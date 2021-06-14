@@ -67,28 +67,6 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QAudioDecoder *parent)
 }
 
 /*!
-    \fn QPlatformAudioDecoder::state() const
-
-    Returns the state of a player control.
-*/
-
-void QPlatformAudioDecoder::stateChanged(QAudioDecoder::State newState)
-{
-    if (m_state == newState)
-        return;
-    m_state = newState;
-    emit q->stateChanged(newState);
-}
-
-/*!
-    \fn QPlatformAudioDecoder::stateChanged(QAudioDecoder::State newState)
-
-    Signals that the state of a player control has changed to \a newState.
-
-    \sa state()
-*/
-
-/*!
     \fn QPlatformAudioDecoder::source() const
 
     Returns the current media source filename, or a null QString if none (or a device)
@@ -150,6 +128,7 @@ void QPlatformAudioDecoder::error(int error, const QString &errorString)
         return;
     m_error = QAudioDecoder::Error(error);
     m_errorString = errorString;
+    setIsDecoding(false);
 
     emit q->error(m_error);
 }
@@ -193,18 +172,6 @@ void QPlatformAudioDecoder::sourceChanged()
 }
 
 /*!
-    \fn QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
-
-    Signals that the current audio format of the decoder has changed to \a format.
-
-    \sa audioFormat(), setAudioFormat()
-*/
-void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
-{
-    emit q->formatChanged(format);
-}
-
-/*!
     \fn void QPlatformAudioDecoder::finished()
 
     Signals that the decoding has finished successfully.
@@ -214,6 +181,7 @@ void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 */
 void QPlatformAudioDecoder::finished()
 {
+    setIsDecoding(false);
     emit q->finished();
 }
 

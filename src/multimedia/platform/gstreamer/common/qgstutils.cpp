@@ -100,12 +100,16 @@ static QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
 */
 QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
 {
-    GstCaps* caps = gst_sample_get_caps(sample);
-    if (!caps)
+    QGstCaps caps = gst_sample_get_caps(sample);
+    if (caps.isNull())
         return QAudioFormat();
+    return audioFormatForCaps(caps);
+}
 
+QAudioFormat QGstUtils::audioFormatForCaps(QGstCaps caps)
+{
     QAudioFormat format;
-    QGstStructure s = QGstCaps(caps).at(0);
+    QGstStructure s = caps.at(0);
     if (s.name() != "audio/x-raw")
         return format;
 

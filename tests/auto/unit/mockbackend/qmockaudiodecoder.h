@@ -49,7 +49,6 @@ class QMockAudioDecoder : public QPlatformAudioDecoder
 public:
     QMockAudioDecoder(QAudioDecoder *parent = 0)
         : QPlatformAudioDecoder(parent)
-        , mState(QAudioDecoder::StoppedState)
         , mDevice(0)
         , mPosition(-1)
         , mSerial(0)
@@ -59,27 +58,9 @@ public:
         mFormat.setSampleRate(1000);
     }
 
-    QAudioDecoder::State state() const
-    {
-        return mState;
-    }
-
     QUrl source() const
     {
         return mSource;
-    }
-
-    QAudioFormat audioFormat() const
-    {
-        return mFormat;
-    }
-
-    void setAudioFormat(const QAudioFormat &format)
-    {
-        if (mFormat != format) {
-            mFormat = format;
-            emit formatChanged(mFormat);
-        }
     }
 
     void setSource(const QUrl &fileName)
@@ -106,10 +87,9 @@ public:
     // 5 buffers
     void start()
     {
-        if (mState == QAudioDecoder::StoppedState) {
+        if (!isDecoding()) {
             if (!mSource.isEmpty()) {
-                mState = QAudioDecoder::DecodingState;
-                emit stateChanged(mState);
+                setIsDecoding(true);
                 emit durationChanged(duration());
 
                 QTimer::singleShot(50, this, SLOT(pretendDecode()));
@@ -121,12 +101,11 @@ public:
 
     void stop()
     {
-        if (mState != QAudioDecoder::StoppedState) {
-            mState = QAudioDecoder::StoppedState;
+        if (isDecoding()) {
             mSerial = 0;
             mPosition = 0;
             mBuffers.clear();
-            emit stateChanged(mState);
+            setIsDecoding(false);
             emit bufferAvailableChanged(false);
         }
     }
@@ -143,9 +122,7 @@ public:
                 emit bufferAvailableChanged(false);
 
             if (mBuffers.isEmpty() && mSerial >= MOCK_DECODER_MAX_BUFFERS) {
-                mState = QAudioDecoder::StoppedState;
                 emit finished();
-                emit stateChanged(mState);
             } else
                 QTimer::singleShot(50, this, SLOT(pretendDecode()));
         }
@@ -189,7 +166,6 @@ private slots:
     }
 
 public:
-    QAudioDecoder::State mState;
     QUrl mSource;
     QIODevice *mDevice;
     QAudioFormat mFormat;

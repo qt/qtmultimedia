@@ -75,9 +75,6 @@ public:
     AVFAudioDecoder(QAudioDecoder *parent);
     virtual ~AVFAudioDecoder();
 
-    // QAudioDecoder interface
-    QAudioDecoder::State state() const override { return m_state; }
-
     QUrl source() const override;
     void setSource(const QUrl &fileName) override;
 
@@ -86,9 +83,6 @@ public:
 
     void start() override;
     void stop() override;
-
-    QAudioFormat audioFormat() const override;
-    void setAudioFormat(const QAudioFormat &format) override;
 
     QAudioBuffer read() override;
     bool bufferAvailable() const override;
@@ -108,12 +102,8 @@ private:
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
     void initAssetReader();
 
-    QAudioDecoder::State m_state = QAudioDecoder::StoppedState;
-    QAudioDecoder::State m_pendingState = QAudioDecoder::StoppedState;
-
     QUrl m_source;
     QIODevice *m_device = nullptr;
-    QAudioFormat m_format;
 
     int m_buffersAvailable = 0;
     QList<QAudioBuffer> m_cachedBuffers;

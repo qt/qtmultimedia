@@ -90,7 +90,7 @@ QT_USE_NAMESPACE
         return;
     const AudioStreamBasicDescription* const asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
     QAudioFormat qtFormat = CoreAudioUtils::toQAudioFormat(*asbd);
-    if (!qtFormat.isValid() || qtFormat != m_decoder->audioFormat())
+    if (!qtFormat.isValid())
         return;
 
     // Get the required size to allocate to audioBufferList
@@ -314,7 +314,7 @@ void AVFAudioDecoder::setSourceDevice(QIODevice *device)
 void AVFAudioDecoder::start()
 {
     Q_ASSERT(!m_buffersAvailable);
-    if (m_state != QAudioDecoder::StoppedState)
+    if (isDecoding())
         return;
 
     if (m_position != -1) {
@@ -348,16 +348,13 @@ void AVFAudioDecoder::start()
     ];
 
     if (m_device && m_loadingSource) {
-        m_state = QAudioDecoder::DecodingState;
-        emit stateChanged(m_state);
+        setIsDecoding(true);
         return;
     }
 }
 
 void AVFAudioDecoder::stop()
 {
-    QAudioDecoder::State oldState = m_state;
-    m_state = QAudioDecoder::StoppedState;
     if (m_asset)
         [m_asset cancelLoading];
     if (m_reader)
@@ -375,21 +372,7 @@ void AVFAudioDecoder::stop()
         m_duration = -1;
         emit durationChanged(m_duration);
     }
-    if (m_state != oldState)
-        emit stateChanged(m_state);
-}
-
-QAudioFormat AVFAudioDecoder::audioFormat() const
-{
-    return m_format;
-}
-
-void AVFAudioDecoder::setAudioFormat(const QAudioFormat &format)
-{
-    if (m_format != format) {
-        m_format = format;
-        emit formatChanged(m_format);
-    }
+    setIsDecoding(false);
 }
 
 QAudioBuffer AVFAudioDecoder::read()
@@ -444,18 +427,10 @@ void AVFAudioDecoder::initAssetReader()
 
     // Set format
     QAudioFormat format;
-    if (m_format.isValid()) {
-        format = m_format;
-    } else {
-        format = qt_format_for_audio_track(track);
-        if (!format.isValid())
-        {
-            processInvalidMedia(QAudioDecoder::FormatError, tr("Unsupported source format"));
-            return;
-        }
-        // ### Change QAudioDecoder's format to resolved one?
-        m_format = format;
-        emit formatChanged(m_format);
+    format = qt_format_for_audio_track(track);
+    if (!format.isValid()) {
+        processInvalidMedia(QAudioDecoder::FormatError, tr("Unsupported source format"));
+        return;
     }
 
     // Set duration
@@ -498,10 +473,7 @@ void AVFAudioDecoder::startReading()
         return;
     }
 
-    QAudioDecoder::State oldState = m_state;
-    m_state = QAudioDecoder::DecodingState;
-    if (oldState != m_state)
-        emit stateChanged(m_state);
+    setIsDecoding(true);
 
     // Since copyNextSampleBuffer is synchronous, submit it to an async dispatch queue
     // to run in a separate thread. Call the handleNextSampleBuffer "callback" on another
@@ -515,11 +487,8 @@ void AVFAudioDecoder::startReading()
                 CFRelease(sampleBuffer);
             });
         }
-        if (m_reader.status == AVAssetReaderStatusCompleted) {
-            m_state = QAudioDecoder::StoppedState;
+        if (m_reader.status == AVAssetReaderStatusCompleted)
             emit finished();
-            emit stateChanged(m_state);
-        }
     });
 }
 

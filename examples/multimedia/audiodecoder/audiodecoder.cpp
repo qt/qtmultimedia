@@ -59,24 +59,12 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete, const QString &target
     m_isPlayback = isPlayback;
     m_isDelete = isDelete;
 
-    // Make sure the data we receive is in correct PCM format.
-    // Our wav file writer only supports SignedInt sample type.
-    QAudioFormat format;
-    format.setChannelCount(2);
-    format.setSampleFormat(QAudioFormat::Int16);
-    format.setSampleRate(48000);
-    m_decoder.setAudioFormat(format);
-
-    QIODevice* target = new QFile(targetFileName, this);
-    if (target->open(QIODevice::WriteOnly))
-        m_waveDecoder = new QWaveDecoder(target, format);
-
     connect(&m_decoder, &QAudioDecoder::bufferReady,
             this, &AudioDecoder::bufferReady);
     connect(&m_decoder, QOverload<QAudioDecoder::Error>::of(&QAudioDecoder::error),
             this, QOverload<QAudioDecoder::Error>::of(&AudioDecoder::error));
-    connect(&m_decoder, &QAudioDecoder::stateChanged,
-            this, &AudioDecoder::stateChanged);
+    connect(&m_decoder, &QAudioDecoder::isDecodingChanged,
+            this, &AudioDecoder::isDecodingChanged);
     connect(&m_decoder, &QAudioDecoder::finished,
             this, &AudioDecoder::finished);
     connect(&m_decoder, &QAudioDecoder::positionChanged,
@@ -129,6 +117,16 @@ void AudioDecoder::bufferReady()
     if (!buffer.isValid())
         return;
 
+    if (!m_waveDecoder) {
+        QIODevice* target = new QFile(m_targetFilename, this);
+        if (!target->open(QIODevice::WriteOnly)) {
+            qWarning() << "target file is not writable";
+            m_decoder.stop();
+            return;
+        }
+        m_waveDecoder = new QWaveDecoder(target, buffer.format());
+    }
+
     if (!m_waveDecoder || (!m_waveDecoder->isOpen()
                         && !m_waveDecoder->open(QIODevice::WriteOnly))) {
         m_decoder.stop();
@@ -160,16 +158,12 @@ void AudioDecoder::error(QAudioDecoder::Error error)
     emit done();
 }
 
-void AudioDecoder::stateChanged(QAudioDecoder::State newState)
+void AudioDecoder::isDecodingChanged(bool isDecoding)
 {
-    switch (newState) {
-    case QAudioDecoder::DecodingState:
+    if (isDecoding)
         m_cout << "Decoding...\n";
-        break;
-    case QAudioDecoder::StoppedState:
+    else
         m_cout << "Decoding stopped\n";
-        break;
-    }
 }
 
 void AudioDecoder::finished()

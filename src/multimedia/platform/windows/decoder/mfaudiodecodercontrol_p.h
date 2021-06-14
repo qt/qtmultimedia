@@ -64,8 +64,6 @@ public:
     MFAudioDecoderControl(QAudioDecoder *parent);
     ~MFAudioDecoderControl();
 
-    QAudioDecoder::State state() const;
-
     QUrl source() const;
     void setSource(const QUrl &fileName);
 
@@ -74,9 +72,6 @@ public:
 
     void start();
     void stop();
-
-    QAudioFormat audioFormat() const;
-    void setAudioFormat(const QAudioFormat &format);
 
     QAudioBuffer read();
     bool bufferAvailable() const;
@@ -91,17 +86,13 @@ private Q_SLOTS:
     void handleSourceFinished();
 
 private:
-    void updateResamplerOutputType();
     void activatePipeline();
     void onSourceCleared();
 
     MFDecoderSourceReader  *m_decoderSourceReader;
     SourceResolver         *m_sourceResolver;
-    IMFTransform           *m_resampler;
-    QAudioDecoder::State    m_state;
     QUrl                    m_source;
     QIODevice              *m_device;
-    QAudioFormat            m_audioFormat;
     DWORD                   m_mfInputStreamID;
     DWORD                   m_mfOutputStreamID;
     bool                    m_bufferReady;
@@ -113,7 +104,6 @@ private:
     IMFSample              *m_convertSample;
     QAudioFormat            m_sourceOutputFormat;
     bool                    m_sourceReady;
-    bool                    m_resamplerDirty;
 };
 
 #endif//MFAUDIODECODERCONTROL_H

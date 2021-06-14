@@ -64,7 +64,7 @@ IMFMediaSource* MFDecoderSourceReader::mediaSource()
     return m_source;
 }
 
-IMFMediaType* MFDecoderSourceReader::setSource(IMFMediaSource *source, const QAudioFormat &audioFormat)
+IMFMediaType* MFDecoderSourceReader::setSource(IMFMediaSource *source)
 {
     IMFMediaType *mediaType = NULL;
     if (m_source == source)
@@ -90,12 +90,7 @@ IMFMediaType* MFDecoderSourceReader::setSource(IMFMediaSource *source, const QAu
             IMFMediaType *pPartialType = NULL;
             MFCreateMediaType(&pPartialType);
             pPartialType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
-
-            if (audioFormat.sampleFormat() == QAudioFormat::Float) {
-                pPartialType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
-            } else {
-                pPartialType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
-            }
+            pPartialType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
 
             m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), NULL, pPartialType);
             pPartialType->Release();

@@ -66,8 +66,6 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioDecoder : public QObject
     Q_OBJECT
 
 public:
-    virtual QAudioDecoder::State state() const { return m_state; }
-
     virtual QUrl source() const = 0;
     virtual void setSource(const QUrl &fileName) = 0;
 
@@ -77,17 +75,12 @@ public:
     virtual void start() = 0;
     virtual void stop() = 0;
 
-    virtual QAudioFormat audioFormat() const = 0;
-    virtual void setAudioFormat(const QAudioFormat &format) = 0;
-
     virtual QAudioBuffer read() = 0;
     virtual bool bufferAvailable() const = 0;
 
     virtual qint64 position() const = 0;
     virtual qint64 duration() const = 0;
 
-    void stateChanged(QAudioDecoder::State newState);
-    void formatChanged(const QAudioFormat &format);
     void sourceChanged();
 
     void error(int error, const QString &errorString);
@@ -95,7 +88,14 @@ public:
 
     void bufferReady();
     void bufferAvailableChanged(bool available);
+    void setIsDecoding(bool running = true) {
+        if (m_isDecoding == running)
+            return;
+        m_isDecoding = running;
+        emit q->isDecodingChanged(m_isDecoding);
+    }
     void finished();
+    bool isDecoding() const { return m_isDecoding; }
 
     void positionChanged(qint64 position);
     void durationChanged(qint64 duration);
@@ -108,9 +108,9 @@ protected:
 private:
     QAudioDecoder *q = nullptr;
 
-    QAudioDecoder::State m_state = QAudioDecoder::StoppedState;
     QAudioDecoder::Error m_error = QAudioDecoder::NoError;
     QString m_errorString;
+    bool m_isDecoding = false;
 };
 
 QT_END_NAMESPACE

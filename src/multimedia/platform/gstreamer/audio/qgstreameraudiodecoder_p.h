@@ -81,9 +81,6 @@ public:
     QGstreamerAudioDecoder(QAudioDecoder *parent);
     virtual ~QGstreamerAudioDecoder();
 
-    // QAudioDecoder interface
-    QAudioDecoder::State state() const override { return m_state; }
-
     QUrl source() const override;
     void setSource(const QUrl &fileName) override;
 
@@ -93,9 +90,6 @@ public:
     void start() override;
     void stop() override;
 
-    QAudioFormat audioFormat() const override;
-    void setAudioFormat(const QAudioFormat &format) override;
-
     QAudioBuffer read() override;
     bool bufferAvailable() const override;
 
@@ -104,8 +98,6 @@ public:
 
     // GStreamerBusMessageFilter interface
     bool processBusMessage(const QGstreamerMessage &message) override;
-
-    QAudioDecoder::State pendingState() const { return m_pendingState; }
 
 #if QT_CONFIG(gstreamer_app)
     QGstAppSrc *appsrc() const { return m_appSrc; }
@@ -125,8 +117,6 @@ private:
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
     static qint64 getPositionFromBuffer(GstBuffer* buffer);
 
-    QAudioDecoder::State m_state = QAudioDecoder::StoppedState;
-    QAudioDecoder::State m_pendingState = QAudioDecoder::StoppedState;
     QGstPipeline m_playbin;
     QGstBin m_outputBin;
     QGstElement m_audioConvert;
@@ -135,7 +125,6 @@ private:
 
     QUrl mSource;
     QIODevice *mDevice = nullptr;
-    QAudioFormat mFormat;
 
     mutable QMutex m_buffersMutex;
     int m_buffersAvailable = 0;

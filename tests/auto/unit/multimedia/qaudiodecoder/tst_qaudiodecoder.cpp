@@ -61,12 +61,12 @@ tst_QAudioDecoder::tst_QAudioDecoder()
 void tst_QAudioDecoder::ctors()
 {
     QAudioDecoder d;
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
     QCOMPARE(d.source(), QString(""));
 
     d.setSource(QUrl());
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
     QCOMPARE(d.source(), QUrl());
 }
@@ -74,7 +74,7 @@ void tst_QAudioDecoder::ctors()
 void tst_QAudioDecoder::read()
 {
     QAudioDecoder d;
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
@@ -84,7 +84,7 @@ void tst_QAudioDecoder::read()
     // Starting with empty source == error
     d.start();
 
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
     QCOMPARE(readySpy.count(), 0);
@@ -100,7 +100,7 @@ void tst_QAudioDecoder::read()
     bufferChangedSpy.clear();
 
     d.start();
-    QCOMPARE(d.state(), QAudioDecoder::DecodingState);
+    QVERIFY(d.isDecoding());
     QCOMPARE(d.bufferAvailable(), false); // not yet
 
     // Try to read
@@ -135,7 +135,7 @@ void tst_QAudioDecoder::read()
 void tst_QAudioDecoder::stop()
 {
     QAudioDecoder d;
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
@@ -145,7 +145,7 @@ void tst_QAudioDecoder::stop()
     // Starting with empty source == error
     d.start();
 
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
     QCOMPARE(readySpy.count(), 0);
@@ -161,7 +161,7 @@ void tst_QAudioDecoder::stop()
     bufferChangedSpy.clear();
 
     d.start();
-    QCOMPARE(d.state(), QAudioDecoder::DecodingState);
+    QVERIFY(d.isDecoding());
     QCOMPARE(d.bufferAvailable(), false); // not yet
 
     // Try to read
@@ -180,14 +180,14 @@ void tst_QAudioDecoder::stop()
     // Now stop
     d.stop();
 
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 }
 
 void tst_QAudioDecoder::format()
 {
     QAudioDecoder d;
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
     QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
@@ -203,7 +203,7 @@ void tst_QAudioDecoder::format()
     bufferChangedSpy.clear();
 
     d.start();
-    QCOMPARE(d.state(), QAudioDecoder::DecodingState);
+    QVERIFY(d.isDecoding());
     QCOMPARE(d.bufferAvailable(), false); // not yet
 
     // Try to read
@@ -218,28 +218,7 @@ void tst_QAudioDecoder::format()
     QTRY_VERIFY(d.bufferAvailable());
 
     b = d.read();
-    QVERIFY(d.audioFormat() == b.format());
-
-    // Setting format while decoding is forbidden
-    QAudioFormat f(d.audioFormat());
-    f.setChannelCount(2);
-
-    d.setAudioFormat(f);
-    QVERIFY(d.audioFormat() != f);
-    QVERIFY(d.audioFormat() == b.format());
-
-    // Now stop, and set something specific
-    d.stop();
-    d.setAudioFormat(f);
-    QVERIFY(d.audioFormat() == f);
-
-    // Decode again
-    d.start();
-    QTRY_VERIFY(d.bufferAvailable());
-
-    b = d.read();
-    QVERIFY(d.audioFormat() == f);
-    QVERIFY(b.format() == f);
+    QVERIFY(b.format().isValid());
 }
 
 void tst_QAudioDecoder::source()
@@ -275,18 +254,18 @@ void tst_QAudioDecoder::readAll()
 {
     QAudioDecoder d;
     d.setSource(QUrl::fromLocalFile("Foo"));
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
 
     QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
     QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
-    QSignalSpy stateSpy(&d, SIGNAL(stateChanged(QAudioDecoder::State)));
+    QSignalSpy isDecodingSpy(&d, SIGNAL(isDecodingChanged(bool)));
     QSignalSpy finishedSpy(&d, SIGNAL(finished()));
     QSignalSpy bufferAvailableSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
     d.start();
     int i = 0;
     forever {
-        QVERIFY(d.state() == QAudioDecoder::DecodingState);
-        QCOMPARE(stateSpy.count(), 1);
+        QVERIFY(d.isDecoding());
+        QCOMPARE(isDecodingSpy.count(), 1);
         QCOMPARE(durationSpy.count(), 1);
         QVERIFY(finishedSpy.isEmpty());
         QTRY_VERIFY(bufferAvailableSpy.count() >= 1);
@@ -301,10 +280,10 @@ void tst_QAudioDecoder::readAll()
             i++;
             if (i == MOCK_DECODER_MAX_BUFFERS) {
                 QCOMPARE(finishedSpy.count(), 1);
-                QCOMPARE(stateSpy.count(), 2);
-                QVERIFY(d.state() == QAudioDecoder::StoppedState);
-                QList<QVariant> arguments = stateSpy.takeLast();
-                QVERIFY(arguments.at(0).toInt() == (int)QAudioDecoder::StoppedState);
+                QCOMPARE(isDecodingSpy.count(), 2);
+                QVERIFY(!d.isDecoding());
+                QList<QVariant> arguments = isDecodingSpy.takeLast();
+                QVERIFY(arguments.at(0).toBool() == false);
                 QVERIFY(!d.bufferAvailable());
                 QVERIFY(!bufferAvailableSpy.isEmpty());
                 arguments = bufferAvailableSpy.takeLast();
@@ -324,7 +303,7 @@ void tst_QAudioDecoder::nullControl()
     QVERIFY(d.error() == QAudioDecoder::NotSupportedError);
     QVERIFY(!d.errorString().isEmpty());
 
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
 
     QVERIFY(d.source().isEmpty());
     d.setSource(QUrl::fromLocalFile("test"));
@@ -335,12 +314,6 @@ void tst_QAudioDecoder::nullControl()
     d.setSourceDevice(&f);
     QVERIFY(d.sourceDevice() == nullptr);
 
-    QAudioFormat format;
-    format.setChannelCount(2);
-    QVERIFY(!d.audioFormat().isValid());
-    d.setAudioFormat(format);
-    QVERIFY(!d.audioFormat().isValid());
-
     QVERIFY(!d.read().isValid());
     QVERIFY(!d.bufferAvailable());
 
@@ -350,7 +323,7 @@ void tst_QAudioDecoder::nullControl()
     d.start();
     QVERIFY(d.error() == QAudioDecoder::NotSupportedError);
     QVERIFY(!d.errorString().isEmpty());
-    QVERIFY(d.state() == QAudioDecoder::StoppedState);
+    QVERIFY(!d.isDecoding());
     d.stop();
 }
 
