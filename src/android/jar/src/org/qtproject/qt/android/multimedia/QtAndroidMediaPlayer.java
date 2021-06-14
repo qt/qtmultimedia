@@ -379,8 +379,7 @@ public class QtAndroidMediaPlayer
         FileInputStream fis = null;
         try {
             mUri = Uri.parse(path);
-            final boolean inAssets = (mUri.getScheme().compareTo("assets") == 0);
-            if (inAssets) {
+            if (mUri.getScheme().compareTo("assets") == 0) {
                 final String asset = mUri.getPath().substring(1 /* Remove first '/' */);
                 final AssetManager am = mContext.getAssets();
                 afd = am.openFd(asset);
@@ -392,23 +391,14 @@ public class QtAndroidMediaPlayer
                 fis = new FileInputStream(mUri.getPath());
                 FileDescriptor fd = fis.getFD();
                 mMediaPlayer.setDataSource(fd);
+            } else if (mUri.getScheme().compareTo("content") == 0) {
+                mMediaPlayer.setDataSource(mContext, mUri, mHeaders);
             } else {
-                if (mHeaders.isEmpty())
-                    mMediaPlayer.setDataSource(path);
-                else
-                    mMediaPlayer.setDataSource(mContext, mUri, mHeaders);
+                mMediaPlayer.setDataSource(path);
             }
             setState(State.Initialized);
-        } catch (final IOException e) {
-            Log.d(TAG, "" + e.getMessage());
-        } catch (final IllegalArgumentException e) {
-            Log.d(TAG, "" + e.getMessage());
-        } catch (final SecurityException e) {
-            Log.d(TAG, "" + e.getMessage());
-        } catch (final IllegalStateException e) {
-            Log.d(TAG, "" + e.getMessage());
-        } catch (final NullPointerException e) {
-            Log.d(TAG, "" + e.getMessage());
+        } catch (final Exception e) {
+            Log.d(TAG, "Exception: " + e.getMessage());
         } finally {
             try {
                if (afd != null)
