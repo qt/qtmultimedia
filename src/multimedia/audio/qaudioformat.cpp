@@ -170,18 +170,18 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    Returns the number of bytes required for this audio format for \a duration microseconds.
+    Returns the number of bytes required for this audio format for \a microseconds.
 
     Returns 0 if this format is not valid.
 
-    Note that some rounding may occur if \a duration is not an exact fraction of the
+    Note that some rounding may occur if \a microseconds is not an exact fraction of the
     sampleRate().
 
     \sa durationForBytes()
  */
-qint32 QAudioFormat::bytesForDuration(qint64 duration) const
+qint32 QAudioFormat::bytesForDuration(qint64 microseconds) const
 {
-    return bytesPerFrame() * framesForDuration(duration);
+    return bytesPerFrame() * framesForDuration(microseconds);
 }
 
 /*!
@@ -239,17 +239,17 @@ qint32 QAudioFormat::framesForBytes(qint32 byteCount) const
 }
 
 /*!
-    Returns the number of frames required to represent \a duration microseconds in this format.
+    Returns the number of frames required to represent \a microseconds in this format.
 
-    Note that some rounding may occur if \a duration is not an exact fraction of the
+    Note that some rounding may occur if \a microseconds is not an exact fraction of the
     \l sampleRate().
 */
-qint32 QAudioFormat::framesForDuration(qint64 duration) const
+qint32 QAudioFormat::framesForDuration(qint64 microseconds) const
 {
     if (!isValid())
         return 0;
 
-    return qint32((duration * sampleRate()) / 1000000LL);
+    return qint32((microseconds * sampleRate()) / 1000000LL);
 }
 
 /*!
