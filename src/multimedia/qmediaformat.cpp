@@ -432,8 +432,7 @@ bool QMediaFormat::operator==(const QMediaFormat &other) const
  */
 void QMediaFormat::resolveForEncoding(ResolveFlags flags)
 {
-    if (isSupported(Encode))
-        return;
+    const bool requiresVideo = (flags & ResolveFlags::RequiresVideo) != 0;
 
     QMediaFormat nullFormat;
     auto supportedFormats = nullFormat.supportedFileFormats(QMediaFormat::Encode);
@@ -456,6 +455,10 @@ void QMediaFormat::resolveForEncoding(ResolveFlags flags)
         return *list;
     };
 
+    // reset format if it does not support video when video is required
+    if (requiresVideo && this->supportedVideoCodecs(QMediaFormat::Encode).isEmpty())
+        fmt = QMediaFormat::UnspecifiedFormat;
+
     // reset non supported formats and codecs
     if (!supportedFormats.contains(fmt))
         fmt = QMediaFormat::UnspecifiedFormat;
@@ -464,7 +467,7 @@ void QMediaFormat::resolveForEncoding(ResolveFlags flags)
     if ((flags == NoFlags) || !supportedVideoCodecs.contains(video))
         video = QMediaFormat::VideoCodec::Unspecified;
 
-    if (!(flags == NoFlags)) {
+    if (requiresVideo) {
         // try finding a file format that is supported
         if (fmt == QMediaFormat::UnspecifiedFormat)
             fmt = bestSupportedFileFormat(audio, video);
@@ -483,7 +486,7 @@ void QMediaFormat::resolveForEncoding(ResolveFlags flags)
         return;
 
     // find a working video codec
-    if (!(flags == NoFlags)) {
+    if (requiresVideo) {
         // reset the audio codec, so that we won't throw away the video codec
         // if it is supported (choosing the specified video codec has higher
         // priority than the specified audio codec)
