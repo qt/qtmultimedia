@@ -66,9 +66,6 @@ public:
     virtual ~QWindowsCamera();
 
     bool isActive() const override;
-    void setActive(bool active) override;
-
-    QCamera::Status status() const override;
 
     void setCamera(const QCameraDevice &camera) override;
 
@@ -77,14 +74,13 @@ public:
     bool setCameraFormat(const QCameraFormat &format) override;
 
 private Q_SLOTS:
-    void updateStatus();
+    void setActive(bool active) override;
 
 private:
     QWindowsMediaCaptureService *m_captureService = nullptr;
     QWindowsMediaDeviceSession  *m_mediaDeviceSession = nullptr;
     QCameraDevice m_cameraDevice;
     QCameraFormat m_cameraFormat;
-    QCamera::Status m_lastStatus = QCamera::InactiveStatus;
     bool m_active = false;
 };
 

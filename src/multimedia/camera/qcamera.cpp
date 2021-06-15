@@ -270,18 +270,6 @@ QCamera::Features QCamera::supportedFeatures() const
 */
 
 /*!
-    Returns the current status of the camers.
-*/
-QCamera::Status QCamera::status() const
-{
-    if(d_func()->control)
-        return (QCamera::Status)d_func()->control->status();
-
-    return QCamera::UnavailableStatus;
-}
-
-
-/*!
     Returns the capture session this camera is connected to, or
     a nullptr if the camera is not connected to a capture session.
 

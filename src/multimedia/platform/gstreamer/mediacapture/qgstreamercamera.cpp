@@ -90,7 +90,6 @@ void QGstreamerCamera::setActive(bool active)
 
     m_active = active;
 
-    statusChanged(m_active ? QCamera::ActiveStatus : QCamera::InactiveStatus);
     emit activeChanged(active);
 }
 

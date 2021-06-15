@@ -75,18 +75,10 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
 
     if (cameraSession) {
         connect(cameraSession, SIGNAL(opened()), this, SLOT(onCameraOpened()));
-        connect(cameraSession, &QAndroidCameraSession::statusChanged, this,
-            [this](QCamera::Status status) {
-                if (status == QCamera::UnavailableStatus) {
+        connect(cameraSession, &QAndroidCameraSession::activeChanged, this,
+            [this](bool isActive) {
+                if (!isActive)
                     stop();
-                    return;
-                }
-
-                // Stop recording when stopping the camera.
-                if (status == QCamera::StoppingStatus) {
-                    stop();
-                    return;
-                }
             });
         connect(cameraSession, &QAndroidCameraSession::readyForCaptureChanged, this,
             [this](bool ready) {
@@ -268,7 +260,7 @@ void QAndroidCaptureSession::stop(bool error)
     delete m_mediaRecorder;
     m_mediaRecorder = 0;
 
-    if (m_cameraSession && m_cameraSession->status() == QCamera::ActiveStatus) {
+    if (m_cameraSession && m_cameraSession->isActive()) {
         // Viewport needs to be restarted after recording
         restartViewfinder();
     }

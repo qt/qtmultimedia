@@ -81,8 +81,6 @@ public:
     bool isActive() const { return m_active; }
     void setActive(bool active);
 
-    QCamera::Status status() const { return m_status; }
-
     void applyResolution(const QSize &captureSize = QSize(), bool restartPreview = true);
 
     QAndroidVideoOutput *videoOutput() const { return m_videoOutput; }
@@ -113,7 +111,6 @@ public:
     void setVideoSink(QVideoSink *surface);
 
 Q_SIGNALS:
-    void statusChanged(QCamera::Status status);
     void activeChanged(bool);
     void error(int error, const QString &errorString);
     void opened();
@@ -170,7 +167,6 @@ private:
 
     bool m_active = false;
     int m_savedState = -1;
-    QCamera::Status m_status;
     bool m_previewStarted;
 
     QAndroidCameraVideoRendererControl *m_renderer = nullptr;

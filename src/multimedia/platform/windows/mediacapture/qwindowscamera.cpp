@@ -68,28 +68,6 @@ void QWindowsCamera::setActive(bool active)
         m_mediaDeviceSession->setActive(active);
 
     emit activeChanged(m_active);
-    updateStatus();
-}
-
-QCamera::Status QWindowsCamera::status() const
-{
-    if (!m_mediaDeviceSession)
-        return QCamera::InactiveStatus;
-
-    if (m_active)
-        return m_mediaDeviceSession->isActive() ? QCamera::ActiveStatus : QCamera::StartingStatus;
-
-    return m_mediaDeviceSession->isActive() ? QCamera::StoppingStatus : QCamera::InactiveStatus;
-}
-
-void QWindowsCamera::updateStatus()
-{
-    QCamera::Status newStatus = status();
-
-    if (m_lastStatus != newStatus) {
-        m_lastStatus = newStatus;
-        statusChanged(m_lastStatus);
-    }
 }
 
 void QWindowsCamera::setCamera(const QCameraDevice &camera)
@@ -121,7 +99,7 @@ void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     m_mediaDeviceSession = m_captureService->session();
     Q_ASSERT(m_mediaDeviceSession);
-    connect(m_mediaDeviceSession, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
+    connect(m_mediaDeviceSession, SIGNAL(activeChanged(bool)), SLOT(setActive(bool)));
 
     m_mediaDeviceSession->setActiveCamera(m_cameraDevice);
     m_mediaDeviceSession->setCameraFormat(m_cameraFormat);

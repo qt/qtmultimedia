@@ -76,7 +76,6 @@ private slots:
     void testErrorSignal();
     void testError();
     void testErrorString();
-    void testStatus();
 
 
     // Test cases to for focus handling
@@ -445,14 +444,11 @@ void tst_QCamera::testCameraEncodingProperyChange()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
+    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
 
     camera.start();
     QCOMPARE(camera.isActive(), true);
-    QCOMPARE(camera.status(), QCamera::ActiveStatus);
-
-    QCOMPARE(statusChangedSignal.count(), 1);
-    statusChangedSignal.clear();
+    QCOMPARE(activeChangedSignal.count(), 1);
 }
 
 void tst_QCamera::testSetVideoOutput()
@@ -543,8 +539,6 @@ void tst_QCamera::testSetVideoOutputDestruction()
 
 void tst_QCamera::testEnumDebug()
 {
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::ActiveStatus");
-    qDebug() << QCamera::ActiveStatus;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::CameraError");
     qDebug() << QCamera::CameraError;
 //    QTest::ignoreMessage(QtDebugMsg, "QCameraDevice::FrontFace");
@@ -703,27 +697,6 @@ void tst_QCamera::testErrorString()
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("CameraError Error"));
     QVERIFY(camera.errorString() == QString("CameraError Error"));
-}
-
-/* Test case for verifying Status of QCamera. */
-void tst_QCamera::testStatus()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    session.setCamera(&camera);
-    auto *service = integration.lastCaptureService();
-
-    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setStatus(QCamera::StartingStatus);
-    QVERIFY(camera.status() == QCamera::StartingStatus);
-
-    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setStatus(QCamera::StartingStatus);
-    QVERIFY(camera.status() == QCamera::StartingStatus);
-
-    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setStatus(QCamera::UnavailableStatus);
-    QVERIFY(camera.status() == QCamera::UnavailableStatus);
 }
 
 //Added this code to cover QCamera::FocusModeHyperfocal and QCamera::FocusModeAutoNear

@@ -77,7 +77,7 @@ AVFCameraImageCapture::~AVFCameraImageCapture()
 
 bool AVFCameraImageCapture::isReadyForCapture() const
 {
-    return m_cameraControl && m_videoConnection && m_cameraControl->status() == QCamera::ActiveStatus;
+    return m_cameraControl && m_videoConnection && m_cameraControl->isActive();
 }
 
 void AVFCameraImageCapture::updateReadyStatus()

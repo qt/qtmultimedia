@@ -64,7 +64,6 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
-    Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(QCameraDevice cameraDevice READ cameraDevice WRITE setCameraDevice NOTIFY cameraDeviceChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
@@ -90,15 +89,6 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(Features supportedFeatures READ supportedFeatures NOTIFY supportedFeaturesChanged)
 
 public:
-    enum Status {
-        UnavailableStatus,
-        InactiveStatus,
-        StartingStatus,
-        StoppingStatus,
-        ActiveStatus
-    };
-    Q_ENUM(Status)
-
     enum Error
     {
         NoError,
@@ -181,8 +171,6 @@ public:
 
     bool isAvailable() const;
     bool isActive() const;
-
-    Status status() const;
 
     QMediaCaptureSession *captureSession() const;
 
@@ -267,7 +255,6 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void activeChanged(bool);
-    void statusChanged(QCamera::Status status);
     void errorChanged();
     void errorOccurred(QCamera::Error error, const QString &errorString);
     void cameraDeviceChanged();
@@ -311,7 +298,6 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(QCamera::Features)
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QCamera, Status)
 Q_MEDIA_ENUM_DEBUG(QCamera, Error)
 
 #endif  // QCAMERA_H

@@ -66,8 +66,6 @@ public:
     virtual bool isActive() const = 0;
     virtual void setActive(bool active) = 0;
 
-    virtual QCamera::Status status() const { return m_status; }
-
     virtual void setCamera(const QCameraDevice &camera) = 0;
     virtual bool setCameraFormat(const QCameraFormat &/*format*/) { return false; }
 
@@ -128,7 +126,6 @@ public:
     int colorTemperature() const { return m_colorTemperature; }
 
     void supportedFeaturesChanged(QCamera::Features);
-    void statusChanged(QCamera::Status);
     void minimumZoomFactorChanged(float factor);
     void maximumZoomFactorChanged(float);
     void focusModeChanged(QCamera::FocusMode mode);
@@ -163,7 +160,6 @@ protected:
 private:
     QCamera *m_camera = nullptr;
     QCamera::Features m_supportedFeatures = {};
-    QCamera::Status m_status = QCamera::InactiveStatus;
     QCamera::FocusMode m_focusMode = QCamera::FocusModeAuto;
     float m_minZoom = 1.;
     float m_maxZoom = 1.;

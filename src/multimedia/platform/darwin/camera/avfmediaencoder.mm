@@ -468,7 +468,7 @@ void AVFMediaEncoder::record()
 
     if (!audioOnly) {
         AVFCamera *cameraControl = m_service->avfCameraControl();
-        if (!cameraControl || cameraControl->status() != QCamera::ActiveStatus) {
+        if (!cameraControl || !cameraControl->isActive()) {
             qDebugCamera() << Q_FUNC_INFO << "can not start record while camera is not active";
             Q_EMIT error(QMediaRecorder::ResourceError, tr("Failed to start recording"));
             return;

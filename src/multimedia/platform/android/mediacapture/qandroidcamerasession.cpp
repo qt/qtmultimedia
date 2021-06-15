@@ -65,7 +65,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_nativeOrientation(0)
     , m_videoOutput(0)
     , m_savedState(-1)
-    , m_status(QCamera::InactiveStatus)
     , m_previewStarted(false)
     , m_lastImageCaptureId(0)
     , m_readyForCapture(false)
@@ -108,7 +107,6 @@ void QAndroidCameraSession::setActive(bool active)
         return;
 
     m_active = active;
-    emit activeChanged(m_active);
 
     // If the application is inactive, the camera shouldn't be started. Save the desired state
     // instead and it will be set when the application becomes active.
@@ -116,6 +114,8 @@ void QAndroidCameraSession::setActive(bool active)
         setActiveHelper(active);
     else
         m_savedState = active;
+
+    emit activeChanged(m_active);
 }
 
 void QAndroidCameraSession::setActiveHelper(bool active)
@@ -125,10 +125,7 @@ void QAndroidCameraSession::setActiveHelper(bool active)
         close();
     } else {
         if (!m_camera && !open()) {
-            m_active = false;
             emit error(QCamera::CameraError, QStringLiteral("Failed to open camera"));
-            m_status = QCamera::InactiveStatus;
-            emit statusChanged(m_status);
             return;
         }
         startPreview();
@@ -161,9 +158,6 @@ bool QAndroidCameraSession::open()
 {
     close();
 
-    m_status = QCamera::StartingStatus;
-    emit statusChanged(m_status);
-
     m_camera = AndroidCamera::open(m_selectedCamera);
 
     if (m_camera) {
@@ -188,7 +182,7 @@ bool QAndroidCameraSession::open()
         m_camera->notifyNewFrames(m_previewCallback);
 
         emit opened();
-        emit statusChanged(m_status);
+        setActive(true);
     }
 
     return m_camera != 0;
@@ -201,9 +195,6 @@ void QAndroidCameraSession::close()
 
     stopPreview();
 
-    m_status = QCamera::StoppingStatus;
-    emit statusChanged(m_status);
-
     m_readyForCapture = false;
     m_currentImageCaptureId = -1;
     m_currentImageCaptureFileName.clear();
@@ -213,8 +204,7 @@ void QAndroidCameraSession::close()
     delete m_camera;
     m_camera = 0;
 
-    m_status = QCamera::InactiveStatus;
-    emit statusChanged(m_status);
+    setActive(false);
 }
 
 void QAndroidCameraSession::setVideoOutput(QAndroidVideoOutput *output)
@@ -370,9 +360,6 @@ bool QAndroidCameraSession::startPreview()
             || (m_videoOutput->surfaceHolder() && !m_camera->setPreviewDisplay(m_videoOutput->surfaceHolder())))
         return false;
 
-    m_status = QCamera::StartingStatus;
-    emit statusChanged(m_status);
-
     applyImageSettings();
     applyResolution(m_actualImageSettings.resolution());
 
@@ -393,9 +380,6 @@ void QAndroidCameraSession::stopPreview()
 {
     if (!m_camera || !m_previewStarted)
         return;
-
-    m_status = QCamera::StoppingStatus;
-    emit statusChanged(m_status);
 
     AndroidMultimediaUtils::enableOrientationListener(false);
 
@@ -506,7 +490,7 @@ void QAndroidCameraSession::applyImageSettings()
 
 bool QAndroidCameraSession::isReadyForCapture() const
 {
-    return m_status == QCamera::ActiveStatus && m_readyForCapture;
+    return isActive() && m_readyForCapture;
 }
 
 void QAndroidCameraSession::setReadyForCapture(bool ready)
@@ -616,17 +600,12 @@ void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
 
 void QAndroidCameraSession::onCameraPreviewStarted()
 {
-    if (m_status == QCamera::StartingStatus) {
-        m_status = QCamera::ActiveStatus;
-        emit statusChanged(m_status);
-    }
-
     setReadyForCapture(true);
 }
 
 void QAndroidCameraSession::onCameraPreviewFailedToStart()
 {
-    if (m_status == QCamera::StartingStatus) {
+    if (isActive()) {
         Q_EMIT error(QCamera::CameraError, tr("Camera preview failed to start."));
 
         AndroidMultimediaUtils::enableOrientationListener(false);
@@ -638,20 +617,14 @@ void QAndroidCameraSession::onCameraPreviewFailedToStart()
         }
         m_previewStarted = false;
 
-        m_status = QCamera::InactiveStatus;
-        emit statusChanged(m_status);
-
+        setActive(false);
         setReadyForCapture(false);
     }
 }
 
 void QAndroidCameraSession::onCameraPreviewStopped()
 {
-    if (m_status == QCamera::StoppingStatus) {
-        m_status = QCamera::InactiveStatus;
-        emit statusChanged(m_status);
-    }
-
+    setActive(false);
     setReadyForCapture(false);
 }
 
@@ -738,8 +711,7 @@ void QAndroidCameraSession::onApplicationStateChanged(Qt::ApplicationState state
         if (!m_keepActive && m_active) {
             m_savedState = m_active;
             close();
-            m_active = false;
-            emit activeChanged(m_active);
+            setActive(false);
         }
         break;
     case Qt::ApplicationActive:

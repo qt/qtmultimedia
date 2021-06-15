@@ -80,13 +80,12 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
+    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
 
     camera.start();
     QCOMPARE(camera.isActive(), true);
-    QCOMPARE(camera.status(), QCamera::ActiveStatus);
 
-    QCOMPARE(statusChangedSignal.count(), 1);
+    QCOMPARE(activeChangedSignal.count(), 1);
 }
 
 void tst_QCameraWidgets::testSetVideoOutput()
