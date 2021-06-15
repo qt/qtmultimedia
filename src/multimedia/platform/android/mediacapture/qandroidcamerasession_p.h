@@ -53,11 +53,11 @@
 //
 
 #include <qcamera.h>
-#include <QCameraImageCapture>
+#include <QImageCapture>
 #include <QSet>
 #include <QMutex>
 #include <private/qmediastoragelocation_p.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 #include "androidcamera_p.h"
 
 QT_BEGIN_NAMESPACE

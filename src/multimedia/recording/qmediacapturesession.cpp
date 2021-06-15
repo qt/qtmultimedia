@@ -41,7 +41,7 @@
 #include "qaudiodevice.h"
 #include "qcamera.h"
 #include "qmediarecorder.h"
-#include "qcameraimagecapture.h"
+#include "qimagecapture.h"
 #include "qvideosink.h"
 
 #include <qpointer.h>
@@ -61,7 +61,7 @@ public:
     QAudioInput *audioInput = nullptr;
     QAudioOutput *audioOutput = nullptr;
     QCamera *camera = nullptr;
-    QCameraImageCapture *imageCapture = nullptr;
+    QImageCapture *imageCapture = nullptr;
     QMediaRecorder *encoder = nullptr;
     QVideoSink *videoSink = nullptr;
     QPointer<QObject> videoOutput;
@@ -94,13 +94,13 @@ public:
     A preview of the captured media can be seen by setting a QVideoSink of QVideoWidget using setVideoOutput()
     and heard by routing the audio to an output device using setAudioOutput().
 
-    You can capture still images from a camera by setting a QCameraImageCapture object on the capture session,
+    You can capture still images from a camera by setting a QImageCapture object on the capture session,
     and record audio/video using a QMediaRecorder.
 
     If you need a simple class that records media from the default camera and microphone, you can use QMediaRecorder.
     That class uses a QMediaCaptureSession behind the scene to support audio and video capture.
 
-    \sa QCamera, QAudioDevice, QMediaRecorder, QCameraImageCapture, QMediaRecorder
+    \sa QCamera, QAudioDevice, QMediaRecorder, QImageCapture, QMediaRecorder
 */
 
 /*!
@@ -194,15 +194,15 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
 
     \brief the object used to capture still images.
 
-    Add a QCameraImageCapture object to the capture session to enable
+    Add a QImageCapture object to the capture session to enable
     capturing of still images from the camera.
 */
-QCameraImageCapture *QMediaCaptureSession::imageCapture()
+QImageCapture *QMediaCaptureSession::imageCapture()
 {
     return d_ptr->imageCapture;
 }
 
-void QMediaCaptureSession::setImageCapture(QCameraImageCapture *imageCapture)
+void QMediaCaptureSession::setImageCapture(QImageCapture *imageCapture)
 {
     if (d_ptr->imageCapture == imageCapture)
         return;

@@ -33,10 +33,10 @@
 #include <QDebug>
 
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 #include <qcamera.h>
 #include <qcameradevice.h>
-#include <qcameraimagecapture.h>
+#include <qimagecapture.h>
 #include <qmediacapturesession.h>
 #include <qobject.h>
 #include <qmediadevices.h>
@@ -158,7 +158,7 @@ void tst_QCameraBackend::testCameraStates()
     QMediaCaptureSession session;
     QCamera camera;
     camera.setCameraDevice(QCameraDevice());
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -218,7 +218,7 @@ void tst_QCameraBackend::testCameraCapture()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -229,11 +229,11 @@ void tst_QCameraBackend::testCameraCapture()
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,const QString&)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,const QString&)));
 
     imageCapture.captureToFile();
     QTRY_COMPARE(errorSignal.size(), 1);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NotReadyError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
     QCOMPARE(capturedSignal.size(), 0);
     errorSignal.clear();
 
@@ -253,7 +253,7 @@ void tst_QCameraBackend::testCameraCapture()
     QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(capturedSignal.last().first().toInt(), id);
     QCOMPARE(errorSignal.size(), 0);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NoError);
 
     QCOMPARE(savedSignal.last().first().toInt(), id);
     QString location = savedSignal.last().last().toString();
@@ -274,7 +274,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -287,7 +287,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy imageAvailableSignal(&imageCapture, SIGNAL(imageAvailable(int,QVideoFrame)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,const QString&)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,const QString&)));
 
     camera.start();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
@@ -323,7 +323,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 

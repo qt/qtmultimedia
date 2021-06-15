@@ -44,7 +44,7 @@
 #include "qmediarecorder.h"
 #include "qmediadevices.h"
 #include "qmediacapturesession.h"
-#include "qcameraimagecapture.h"
+#include "qimagecapture.h"
 #include "qvideosink.h"
 #include <QtMultimediaWidgets/qvideowidget.h>
 #include <QtGui/qscreen.h>
@@ -54,7 +54,7 @@
 /* Globals so that everything is consistent. */
 QCamera *camera = 0;
 QMediaRecorder *recorder = 0;
-QCameraImageCapture *imageCapture = 0;
+QImageCapture *imageCapture = 0;
 
 //! [Camera overview check]
 bool checkCameraAvailability()
@@ -135,7 +135,7 @@ void overview_still()
     QMediaCaptureSession captureSession;
     camera = new QCamera;
     captureSession.setCamera(camera);
-    imageCapture = new QCameraImageCapture(camera);
+    imageCapture = new QImageCapture(camera);
     captureSession.setImageCapture(imageCapture);
 
     camera->start(); // Viewfinder frames start flowing
@@ -216,7 +216,7 @@ void camera_blah()
     preview->show();
     captureSession.setVideoOutput(preview);
 
-    imageCapture = new QCameraImageCapture(camera);
+    imageCapture = new QImageCapture(camera);
     captureSession.setImageCapture(imageCapture);
 
     camera->start();

@@ -43,9 +43,9 @@
 #include "avfcameraservice_p.h"
 #include "avfcamera_p.h"
 #include "avfcamerasession_p.h"
-#include "avfcameraimagecapture_p.h"
+#include "avfimagecapture_p.h"
 #include "avfcamerarenderer_p.h"
-#include "avfcameraimagecapture_p.h"
+#include "avfimagecapture_p.h"
 #include "avfmediaencoder_p.h"
 #include <qmediadevices.h>
 #include <private/qplatformaudioinput_p.h>
@@ -84,14 +84,14 @@ void AVFCameraService::setCamera(QPlatformCamera *camera)
     emit cameraChanged();
 }
 
-QPlatformCameraImageCapture *AVFCameraService::imageCapture()
+QPlatformImageCapture *AVFCameraService::imageCapture()
 {
     return m_imageCaptureControl;
 }
 
-void AVFCameraService::setImageCapture(QPlatformCameraImageCapture *imageCapture)
+void AVFCameraService::setImageCapture(QPlatformImageCapture *imageCapture)
 {
-    AVFCameraImageCapture *control = static_cast<AVFCameraImageCapture *>(imageCapture);
+    AVFImageCapture *control = static_cast<AVFImageCapture *>(imageCapture);
     if (m_imageCaptureControl == control)
         return;
 

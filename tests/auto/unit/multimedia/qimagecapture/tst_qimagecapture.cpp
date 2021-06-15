@@ -30,9 +30,9 @@
 #include <QDebug>
 
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 #include <qcamera.h>
-#include <qcameraimagecapture.h>
+#include <qimagecapture.h>
 #include <qmediacapturesession.h>
 
 #include "qmockmediacapturesession.h"
@@ -40,7 +40,7 @@
 
 QT_USE_NAMESPACE
 
-class tst_QCameraImageCapture: public QObject
+class tst_QImageCapture: public QObject
 {
     Q_OBJECT
 
@@ -68,40 +68,40 @@ private:
     QMockIntegration *mockIntegration;
 };
 
-void tst_QCameraImageCapture::initTestCase()
+void tst_QImageCapture::initTestCase()
 {
     mockIntegration = new QMockIntegration;
 }
 
-void tst_QCameraImageCapture::init()
+void tst_QImageCapture::init()
 {
 }
 
-void tst_QCameraImageCapture::cleanup()
+void tst_QImageCapture::cleanup()
 {
 }
 
-void tst_QCameraImageCapture::cleanupTestCase()
+void tst_QImageCapture::cleanupTestCase()
 {
     delete mockIntegration;
 }
 
-void tst_QCameraImageCapture::constructor()
+void tst_QImageCapture::constructor()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
     QVERIFY(imageCapture.isAvailable() == true);
 }
 
-void tst_QCameraImageCapture::isAvailable()
+void tst_QImageCapture::isAvailable()
 {
     {
         QMediaCaptureSession session;
-        QCameraImageCapture imageCapture;
+        QImageCapture imageCapture;
         session.setImageCapture(&imageCapture);
 
         QVERIFY(!imageCapture.isAvailable());
@@ -110,7 +110,7 @@ void tst_QCameraImageCapture::isAvailable()
     {
         QMediaCaptureSession session;
         QCamera camera;
-        QCameraImageCapture imageCapture;
+        QImageCapture imageCapture;
         session.setCamera(&camera);
         session.setImageCapture(&imageCapture);
 
@@ -118,11 +118,11 @@ void tst_QCameraImageCapture::isAvailable()
     }
 }
 
-void tst_QCameraImageCapture::deleteMediaSource()
+void tst_QImageCapture::deleteMediaSource()
 {
     QMediaCaptureSession session;
     QCamera *camera = new QCamera;
-    QCameraImageCapture *capture = new QCameraImageCapture;
+    QImageCapture *capture = new QImageCapture;
     session.setCamera(camera);
     session.setImageCapture(capture);
 
@@ -137,11 +137,11 @@ void tst_QCameraImageCapture::deleteMediaSource()
     delete capture;
 }
 
-void tst_QCameraImageCapture::isReadyForCapture()
+void tst_QImageCapture::isReadyForCapture()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -154,11 +154,11 @@ void tst_QCameraImageCapture::isReadyForCapture()
     camera.stop();
 }
 
-void tst_QCameraImageCapture::capture()
+void tst_QImageCapture::capture()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -172,77 +172,77 @@ void tst_QCameraImageCapture::capture()
     camera.stop();
 }
 
-void tst_QCameraImageCapture::encodingSettings()
+void tst_QImageCapture::encodingSettings()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
     QVERIFY(imageCapture.isAvailable() == true);
-    imageCapture.setFileFormat(QCameraImageCapture::JPEG);
-    imageCapture.setQuality(QCameraImageCapture::NormalQuality);
-    QVERIFY(imageCapture.fileFormat() == QCameraImageCapture::JPEG);
-    QVERIFY(imageCapture.quality() == QCameraImageCapture::NormalQuality);
+    imageCapture.setFileFormat(QImageCapture::JPEG);
+    imageCapture.setQuality(QImageCapture::NormalQuality);
+    QVERIFY(imageCapture.fileFormat() == QImageCapture::JPEG);
+    QVERIFY(imageCapture.quality() == QImageCapture::NormalQuality);
 }
 
-void tst_QCameraImageCapture::errors()
+void tst_QImageCapture::errors()
 {
     QMockCamera::Simple simple;
 
     {
         QMediaCaptureSession session;
         QCamera camera;
-        QCameraImageCapture imageCapture;
+        QImageCapture imageCapture;
         session.setCamera(&camera);
         session.setImageCapture(&imageCapture);
 
         QVERIFY(imageCapture.isAvailable() == true);
         imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
-        QCOMPARE(imageCapture.error(), QCameraImageCapture::NotReadyError);
+        QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
         QVERIFY(!imageCapture.errorString().isEmpty());
     }
 
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
     camera.start();
 
     QVERIFY(imageCapture.isAvailable() == true);
-    QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
+    QVERIFY(imageCapture.error() == QImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
     imageCapture.captureToFile();
-    QVERIFY(imageCapture.error() == QCameraImageCapture::NoError);
+    QVERIFY(imageCapture.error() == QImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 }
 
-void tst_QCameraImageCapture::error()
+void tst_QImageCapture::error()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy spy(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,QString)));
+    QSignalSpy spy(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
     imageCapture.captureToFile();
     QTest::qWait(30);
     QVERIFY(spy.count() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) == -1);
-    QVERIFY(qvariant_cast<QCameraImageCapture::Error>(spy.at(0).at(1)) == QCameraImageCapture::NotReadyError);
+    QVERIFY(qvariant_cast<QImageCapture::Error>(spy.at(0).at(1)) == QImageCapture::NotReadyError);
     QVERIFY(qvariant_cast<QString>(spy.at(0).at(2)) == "Could not capture in stopped state");
     spy.clear();
 }
 
-void tst_QCameraImageCapture::imageCaptured()
+void tst_QImageCapture::imageCaptured()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -261,11 +261,11 @@ void tst_QCameraImageCapture::imageCaptured()
     camera.stop();
 }
 
-void tst_QCameraImageCapture::imageExposed()
+void tst_QImageCapture::imageExposed()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -282,11 +282,11 @@ void tst_QCameraImageCapture::imageExposed()
     camera.stop();
 }
 
-void tst_QCameraImageCapture::imageSaved()
+void tst_QImageCapture::imageSaved()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -304,11 +304,11 @@ void tst_QCameraImageCapture::imageSaved()
     camera.stop();
 }
 
-void tst_QCameraImageCapture::readyForCaptureChanged()
+void tst_QImageCapture::readyForCaptureChanged()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -329,6 +329,6 @@ void tst_QCameraImageCapture::readyForCaptureChanged()
     spy.clear();
 }
 
-QTEST_MAIN(tst_QCameraImageCapture)
+QTEST_MAIN(tst_QImageCapture)
 
-#include "tst_qcameraimagecapture.moc"
+#include "tst_qimagecapture.moc"

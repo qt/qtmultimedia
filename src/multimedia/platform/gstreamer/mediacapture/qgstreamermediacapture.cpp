@@ -39,11 +39,10 @@
 
 #include "qgstreamermediacapture_p.h"
 #include "qgstreamermediaencoder_p.h"
-#include "qgstreamercameraimagecapture_p.h"
+#include "qgstreamerimagecapture_p.h"
 #include "qgstreamercamera_p.h"
 #include <private/qgstpipeline_p.h>
 
-#include "qgstreamercameraimagecapture_p.h"
 #include "private/qgstreameraudioinput_p.h"
 #include "private/qgstreameraudiooutput_p.h"
 #include "private/qgstreamervideooutput_p.h"
@@ -118,14 +117,14 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     gstPipeline.dumpGraph("camera");
 }
 
-QPlatformCameraImageCapture *QGstreamerMediaCapture::imageCapture()
+QPlatformImageCapture *QGstreamerMediaCapture::imageCapture()
 {
     return m_imageCapture;
 }
 
-void QGstreamerMediaCapture::setImageCapture(QPlatformCameraImageCapture *imageCapture)
+void QGstreamerMediaCapture::setImageCapture(QPlatformImageCapture *imageCapture)
 {
-    QGstreamerCameraImageCapture *control = static_cast<QGstreamerCameraImageCapture *>(imageCapture);
+    QGstreamerImageCapture *control = static_cast<QGstreamerImageCapture *>(imageCapture);
     if (m_imageCapture == control)
         return;
 

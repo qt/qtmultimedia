@@ -47,7 +47,7 @@
 #include "private/androidsurfaceview_p.h"
 #include "private/androidcamera_p.h"
 #include "private/qandroidcameracontrol_p.h"
-#include "private/qandroidcameraimagecapturecontrol_p.h"
+#include "private/qandroidimagecapture_p.h"
 #include "private/qandroidmediaencoder_p.h"
 #include "private/androidmediarecorder_p.h"
 #include "private/qandroidformatsinfo_p.h"
@@ -104,9 +104,9 @@ QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaRecorder *encode
     return new QAndroidMediaEncoder(encoder);
 }
 
-QPlatformCameraImageCapture *QAndroidIntegration::createImageCapture(QCameraImageCapture *imageCapture)
+QPlatformImageCapture *QAndroidIntegration::createImageCapture(QImageCapture *imageCapture)
 {
-    return new QAndroidCameraImageCaptureControl(imageCapture);
+    return new QAndroidImageCapture(imageCapture);
 }
 
 QPlatformAudioOutput *QAndroidIntegration::createAudioOutput(QAudioOutput *q)

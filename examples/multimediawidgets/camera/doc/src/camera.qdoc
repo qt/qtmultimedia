@@ -48,7 +48,7 @@ the image or video clip is to be saved. It will also store the image and video
 settings.
 
 The Camera class contains an instance of \l {QCamera}, the API class interface to
-the hardware. It also has an instance of \l {QCameraImageCapture} to take still images
+the hardware. It also has an instance of \l {QImageCapture} to take still images
 and an instance of \l {QMediaRecorder} to record video. It also contains the user
 interface object.
 
@@ -59,7 +59,7 @@ the \e{setCamera()} function is called, passing in a \l {QByteArray}.
 
 \e{setCamera()} sets up various connections between the user interface and the functionality
 of the Camera class using signals and slots. It also instantiates and initializes the \l {QCamera},
-\l {QCameraImageCapture} and \l {QMediaRecorder} objects mentioned above. The still
+\l {QImageCapture} and \l {QMediaRecorder} objects mentioned above. The still
 and video recording visual tabs are enabled and finally the
 \l {QCamera::start()}{start()} function of the \l{QCamera} object is called.
 

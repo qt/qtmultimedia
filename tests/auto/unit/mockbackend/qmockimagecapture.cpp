@@ -29,11 +29,11 @@
 #include <qmockimagecapture.h>
 #include <qmockcamera.h>
 #include <qmockmediacapturesession.h>
-#include <qcameraimagecapture.h>
+#include <qimagecapture.h>
 #include <qcamera.h>
 
-QMockImageCapture::QMockImageCapture(QCameraImageCapture *parent)
-    : QPlatformCameraImageCapture(parent)
+QMockImageCapture::QMockImageCapture(QImageCapture *parent)
+    : QPlatformImageCapture(parent)
 {
 }
 
@@ -51,7 +51,7 @@ int QMockImageCapture::capture(const QString &fileName)
         QTimer::singleShot(5, this, SLOT(captured()));
         return m_captureRequest;
     } else {
-        emit error(-1, QCameraImageCapture::NotReadyError,
+        emit error(-1, QImageCapture::NotReadyError,
                    QLatin1String("Could not capture in stopped state"));
     }
 

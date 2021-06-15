@@ -51,18 +51,18 @@
 // We mean it.
 //
 
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 class QAndroidCaptureService;
 
-class QAndroidCameraImageCaptureControl : public QPlatformCameraImageCapture
+class QAndroidImageCapture : public QPlatformImageCapture
 {
     Q_OBJECT
 public:
-    explicit QAndroidCameraImageCaptureControl(QCameraImageCapture *parent = nullptr);
+    explicit QAndroidImageCapture(QImageCapture *parent = nullptr);
 
     bool isReadyForCapture() const override;
 

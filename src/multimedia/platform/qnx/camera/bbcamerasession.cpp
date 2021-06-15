@@ -317,7 +317,7 @@ static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *b
         // We are inside a worker thread here, so emit error signal inside the main thread
         QMetaObject::invokeMethod(data->session, "imageCaptureError", Qt::QueuedConnection,
                                   Q_ARG(int, data->requestId),
-                                  Q_ARG(QCameraImageCapture::Error, QCameraImageCapture::FormatError),
+                                  Q_ARG(QImageCapture::Error, QImageCapture::FormatError),
                                   Q_ARG(QString, BbCameraSession::tr("Camera provides image in unsupported format")));
         return;
     }
@@ -331,7 +331,7 @@ static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *b
         // We are inside a worker thread here, so emit error signal inside the main thread
         QMetaObject::invokeMethod(data->session, "imageCaptureError", Qt::QueuedConnection,
                                   Q_ARG(int, data->requestId),
-                                  Q_ARG(QCameraImageCapture::Error, QCameraImageCapture::FormatError),
+                                  Q_ARG(QImageCapture::Error, QImageCapture::FormatError),
                                   Q_ARG(QString, errorMessage));
         return;
     }
@@ -349,7 +349,7 @@ int BbCameraSession::capture(const QString &fileName)
     m_lastImageCaptureId++;
 
     if (!isReadyForCapture()) {
-        emit imageCaptureError(m_lastImageCaptureId, QCameraImageCapture::NotReadyError, tr("Camera not ready"));
+        emit imageCaptureError(m_lastImageCaptureId, QImageCapture::NotReadyError, tr("Camera not ready"));
         return m_lastImageCaptureId;
     }
 
@@ -631,11 +631,11 @@ void BbCameraSession::imageCaptured(int requestId, const QImage &rawImage, const
             if (image.save(&file, "JPG")) {
                 emit imageSaved(requestId, actualFileName);
             } else {
-                emit imageCaptureError(requestId, QCameraImageCapture::OutOfSpaceError, file.errorString());
+                emit imageCaptureError(requestId, QImageCapture::OutOfSpaceError, file.errorString());
             }
         } else {
             const QString errorMessage = tr("Could not open destination file:\n%1").arg(actualFileName);
-            emit imageCaptureError(requestId, QCameraImageCapture::ResourceError, errorMessage);
+            emit imageCaptureError(requestId, QImageCapture::ResourceError, errorMessage);
         }
     }
 }

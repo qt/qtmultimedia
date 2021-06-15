@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include <qcameraimagecapture.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <qimagecapture.h>
+#include <private/qplatformimagecapture_p.h>
 #include <qmediametadata.h>
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
@@ -55,15 +55,15 @@
 QT_BEGIN_NAMESPACE
 
 /*!
-    \class QCameraImageCapture
+    \class QImageCapture
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_camera
 
 
-    \brief The QCameraImageCapture class is used for the recording of media content.
+    \brief The QImageCapture class is used for the recording of media content.
 
-    The QCameraImageCapture class is a high level images recording class.
+    The QImageCapture class is a high level images recording class.
     It's not intended to be used alone but for accessing the media
     recording functions of other media objects, like QCamera.
 
@@ -74,31 +74,31 @@ QT_BEGIN_NAMESPACE
     \sa QCamera
 */
 
-class QCameraImageCapturePrivate
+class QImageCapturePrivate
 {
-    Q_DECLARE_PUBLIC(QCameraImageCapture)
+    Q_DECLARE_PUBLIC(QImageCapture)
 public:
     QCamera *camera = nullptr;
 
     QMediaCaptureSession *captureSession = nullptr;
-    QPlatformCameraImageCapture *control = nullptr;
+    QPlatformImageCapture *control = nullptr;
 
-    QCameraImageCapture::Error error = QCameraImageCapture::NoError;
+    QImageCapture::Error error = QImageCapture::NoError;
     QString errorString;
     QMediaMetaData metaData;
 
     void _q_error(int id, int error, const QString &errorString);
 
-    void unsetError() { error = QCameraImageCapture::NoError; errorString.clear(); }
+    void unsetError() { error = QImageCapture::NoError; errorString.clear(); }
 
-    QCameraImageCapture *q_ptr;
+    QImageCapture *q_ptr;
 };
 
-void QCameraImageCapturePrivate::_q_error(int id, int error, const QString &errorString)
+void QImageCapturePrivate::_q_error(int id, int error, const QString &errorString)
 {
-    Q_Q(QCameraImageCapture);
+    Q_Q(QImageCapture);
 
-    this->error = QCameraImageCapture::Error(error);
+    this->error = QImageCapture::Error(error);
     this->errorString = errorString;
 
     emit q->errorChanged();
@@ -111,17 +111,17 @@ void QCameraImageCapturePrivate::_q_error(int id, int error, const QString &erro
     Connect both an image capture object and a QCamera to a capture session to capture images.
 */
 
-QCameraImageCapture::QCameraImageCapture(QObject *parent)
-    : QObject(parent), d_ptr(new QCameraImageCapturePrivate)
+QImageCapture::QImageCapture(QObject *parent)
+    : QObject(parent), d_ptr(new QImageCapturePrivate)
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
     d->q_ptr = this;
     d->control = QPlatformMediaIntegration::instance()->createImageCapture(this);
 }
 
-void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
+void QImageCapture::setCaptureSession(QMediaCaptureSession *session)
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
     d->captureSession = session;
 
     QPlatformMediaCaptureSession *platformSession = session ? session->platformSession() : nullptr;
@@ -152,7 +152,7 @@ void QCameraImageCapture::setCaptureSession(QMediaCaptureSession *session)
     Destroys images capture object.
 */
 
-QCameraImageCapture::~QCameraImageCapture()
+QImageCapture::~QImageCapture()
 {
     if (d_ptr->captureSession) {
         d_ptr->captureSession->platformSession()->setImageCapture(nullptr);
@@ -164,7 +164,7 @@ QCameraImageCapture::~QCameraImageCapture()
 /*!
     Returns true if the images capture service ready to use.
 */
-bool QCameraImageCapture::isAvailable() const
+bool QImageCapture::isAvailable() const
 {
     return d_func()->control != nullptr && d_func()->captureSession->camera();
 }
@@ -176,7 +176,7 @@ bool QCameraImageCapture::isAvailable() const
     Use QMediaCaptureSession::setImageCapture() to connect the image capture to
     a session.
 */
-QMediaCaptureSession *QCameraImageCapture::captureSession() const
+QMediaCaptureSession *QImageCapture::captureSession() const
 {
     return d_ptr->captureSession;
 }
@@ -187,7 +187,7 @@ QMediaCaptureSession *QCameraImageCapture::captureSession() const
     \sa errorString()
 */
 
-QCameraImageCapture::Error QCameraImageCapture::error() const
+QImageCapture::Error QImageCapture::error() const
 {
     return d_func()->error;
 }
@@ -198,7 +198,7 @@ QCameraImageCapture::Error QCameraImageCapture::error() const
     \sa error()
 */
 
-QString QCameraImageCapture::errorString() const
+QString QImageCapture::errorString() const
 {
     return d_func()->errorString;
 }
@@ -207,18 +207,18 @@ QString QCameraImageCapture::errorString() const
     Returns the meta data that will get embedded into the image. A couple of additional fields
     such as a time stamp or location might get added by the camera backend.
 */
-QMediaMetaData QCameraImageCapture::metaData() const
+QMediaMetaData QImageCapture::metaData() const
 {
-    Q_D(const QCameraImageCapture);
+    Q_D(const QImageCapture);
     return d->metaData;
 }
 
 /*!
     Defines a set of meta data that will get embedded into the captured image.
 */
-void QCameraImageCapture::setMetaData(const QMediaMetaData &metaData)
+void QImageCapture::setMetaData(const QMediaMetaData &metaData)
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
     d->metaData = metaData;
     d->control->setMetaData(d->metaData);
     emit metaDataChanged();
@@ -227,9 +227,9 @@ void QCameraImageCapture::setMetaData(const QMediaMetaData &metaData)
 /*!
     Adds additional meta data to be embedded into the captured image.
 */
-void QCameraImageCapture::addMetaData(const QMediaMetaData &metaData)
+void QImageCapture::addMetaData(const QMediaMetaData &metaData)
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
     auto data = d->metaData;
     for (auto k : metaData.keys())
         data.insert(k, metaData.value(k));
@@ -237,16 +237,16 @@ void QCameraImageCapture::addMetaData(const QMediaMetaData &metaData)
 }
 
 /*!
-  \property QCameraImageCapture::readyForCapture
+  \property QImageCapture::readyForCapture
   \brief whether the service is ready to capture a an image immediately.
 
   Calling capture() while \e readyForCapture is \c false is not permitted and
   results in an error.
 */
 
-bool QCameraImageCapture::isReadyForCapture() const
+bool QImageCapture::isReadyForCapture() const
 {
-    Q_D(const QCameraImageCapture);
+    Q_D(const QImageCapture);
     if (!d->control || !d->captureSession || !d->control->isReadyForCapture())
         return false;
     auto *camera = d->captureSession->camera();
@@ -256,7 +256,7 @@ bool QCameraImageCapture::isReadyForCapture() const
 }
 
 /*!
-    \fn QCameraImageCapture::readyForCaptureChanged(bool ready)
+    \fn QImageCapture::readyForCaptureChanged(bool ready)
 
     Signals that a camera's \a ready for capture state has changed.
 */
@@ -265,9 +265,9 @@ bool QCameraImageCapture::isReadyForCapture() const
 /*!
     Capture the image and save it to \a file.
     This operation is asynchronous in majority of cases,
-    followed by signals QCameraImageCapture::imageExposed(),
-    QCameraImageCapture::imageCaptured(), QCameraImageCapture::imageSaved()
-    or QCameraImageCapture::error().
+    followed by signals QImageCapture::imageExposed(),
+    QImageCapture::imageCaptured(), QImageCapture::imageSaved()
+    or QImageCapture::error().
 
     If an empty \a file is passed, the camera backend choses
     the default location and naming scheme for photos on the system,
@@ -278,14 +278,14 @@ bool QCameraImageCapture::isReadyForCapture() const
     image processing parameters, so changes to camera parameters after
     capture() is called do not affect previous capture requests.
 
-    QCameraImageCapture::capture returns the capture Id parameter, used with
+    QImageCapture::capture returns the capture Id parameter, used with
     imageExposed(), imageCaptured() and imageSaved() signals.
 
     \sa isReadyForCapture()
 */
-int QCameraImageCapture::captureToFile(const QString &file)
+int QImageCapture::captureToFile(const QString &file)
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
 
     d->unsetError();
 
@@ -305,18 +305,18 @@ int QCameraImageCapture::captureToFile(const QString &file)
 /*!
     Capture the image and make it available as a QImage.
     This operation is asynchronous in majority of cases,
-    followed by signals QCameraImageCapture::imageExposed(),
-    QCameraImageCapture::imageCaptured()
-    or QCameraImageCapture::error().
+    followed by signals QImageCapture::imageExposed(),
+    QImageCapture::imageCaptured()
+    or QImageCapture::error().
 
-    QCameraImageCapture::capture returns the capture Id parameter, used with
+    QImageCapture::capture returns the capture Id parameter, used with
     imageExposed(), imageCaptured() and imageSaved() signals.
 
     \sa isReadyForCapture()
 */
-int QCameraImageCapture::capture()
+int QImageCapture::capture()
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
 
     d->unsetError();
 
@@ -332,7 +332,7 @@ int QCameraImageCapture::capture()
 }
 
 /*!
-    \enum QCameraImageCapture::Error
+    \enum QImageCapture::Error
 
     \value NoError         No Errors.
     \value NotReadyError   The service is not ready for capture yet.
@@ -343,33 +343,33 @@ int QCameraImageCapture::capture()
 */
 
 /*!
-    \fn QCameraImageCapture::error(int id, QCameraImageCapture::Error error, const QString &errorString)
+    \fn QImageCapture::error(int id, QImageCapture::Error error, const QString &errorString)
 
     Signals that the capture request \a id has failed with an \a error
     and \a errorString description.
 */
 
 /*!
-    \fn QCameraImageCapture::bufferFormatChanged(QVideoFrameFormat::PixelFormat format)
+    \fn QImageCapture::bufferFormatChanged(QVideoFrameFormat::PixelFormat format)
 
     Signal emitted when the buffer \a format for the buffer image capture has changed.
 */
 
 /*!
-    \fn QCameraImageCapture::imageExposed(int id)
+    \fn QImageCapture::imageExposed(int id)
 
     Signal emitted when the frame with request \a id was exposed.
 */
 
 /*!
-    \fn QCameraImageCapture::imageCaptured(int id, const QImage &preview);
+    \fn QImageCapture::imageCaptured(int id, const QImage &preview);
 
     Signal emitted when the frame with request \a id was captured, but not
     processed and saved yet. Frame \a preview can be displayed to user.
 */
 
 /*!
-    \fn QCameraImageCapture::imageMetadataAvailable(int id, const QString &key, const QVariant &value)
+    \fn QImageCapture::imageMetadataAvailable(int id, const QString &key, const QVariant &value)
 
     Signals that a metadata for an image with request \a id is available. Also
     includes the \a key and \a value of the metadata.
@@ -378,16 +378,16 @@ int QCameraImageCapture::capture()
 */
 
 /*!
-    \fn QCameraImageCapture::imageAvailable(int id, const QVideoFrame &frame)
+    \fn QImageCapture::imageAvailable(int id, const QVideoFrame &frame)
 
-    Signal emitted when QCameraImageCapture::CaptureToBuffer is set and
+    Signal emitted when QImageCapture::CaptureToBuffer is set and
     the \a frame with request \a id is available.
 */
 
 /*!
-    \fn QCameraImageCapture::imageSaved(int id, const QString &fileName)
+    \fn QImageCapture::imageSaved(int id, const QString &fileName)
 
-    Signal emitted when QCameraImageCapture::CaptureToFile is set and
+    Signal emitted when QImageCapture::CaptureToFile is set and
     the frame with request \a id was saved to \a fileName.
 */
 
@@ -395,9 +395,9 @@ int QCameraImageCapture::capture()
     Returns the image format.
 */
 
-QCameraImageCapture::FileFormat QCameraImageCapture::fileFormat() const
+QImageCapture::FileFormat QImageCapture::fileFormat() const
 {
-    Q_D(const QCameraImageCapture);
+    Q_D(const QImageCapture);
     if (!d->control)
         return UnspecifiedFormat;
     return d->control->imageSettings().format();
@@ -406,9 +406,9 @@ QCameraImageCapture::FileFormat QCameraImageCapture::fileFormat() const
 /*!
     Sets the image \a format.
 */
-void QCameraImageCapture::setFileFormat(QCameraImageCapture::FileFormat format)
+void QImageCapture::setFileFormat(QImageCapture::FileFormat format)
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
     if (!d->control)
         return;
     auto fmt = d->control->imageSettings();
@@ -419,12 +419,12 @@ void QCameraImageCapture::setFileFormat(QCameraImageCapture::FileFormat format)
     emit fileFormatChanged();
 }
 
-QList<QCameraImageCapture::FileFormat> QCameraImageCapture::supportedFormats()
+QList<QImageCapture::FileFormat> QImageCapture::supportedFormats()
 {
     return QPlatformMediaIntegration::instance()->formatInfo()->imageFormats;
 }
 
-QString QCameraImageCapture::fileFormatName(QCameraImageCapture::FileFormat f)
+QString QImageCapture::fileFormatName(QImageCapture::FileFormat f)
 {
     const char *name = nullptr;
     switch (f) {
@@ -447,7 +447,7 @@ QString QCameraImageCapture::fileFormatName(QCameraImageCapture::FileFormat f)
     return QString::fromUtf8(name);
 }
 
-QString QCameraImageCapture::fileFormatDescription(QCameraImageCapture::FileFormat f)
+QString QImageCapture::fileFormatDescription(QImageCapture::FileFormat f)
 {
     const char *name = nullptr;
     switch (f) {
@@ -474,9 +474,9 @@ QString QCameraImageCapture::fileFormatDescription(QCameraImageCapture::FileForm
     Returns the resolution of the encoded image.
 */
 
-QSize QCameraImageCapture::resolution() const
+QSize QImageCapture::resolution() const
 {
-    Q_D(const QCameraImageCapture);
+    Q_D(const QImageCapture);
     if (!d->control)
         return QSize();
     return d->control->imageSettings().resolution();
@@ -488,9 +488,9 @@ QSize QCameraImageCapture::resolution() const
     An empty QSize indicates the encoder should make an optimal choice based on
     what is available from the image source and the limitations of the codec.
 */
-void QCameraImageCapture::setResolution(const QSize &resolution)
+void QImageCapture::setResolution(const QSize &resolution)
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
     if (!d->control)
         return;
     auto fmt = d->control->imageSettings();
@@ -506,13 +506,13 @@ void QCameraImageCapture::setResolution(const QSize &resolution)
 
     \overload
 */
-void QCameraImageCapture::setResolution(int width, int height)
+void QImageCapture::setResolution(int width, int height)
 {
     setResolution(QSize(width, height));
 }
 
 /*!
-    \enum QCameraImageCapture::EncodingQuality
+    \enum QImageCapture::EncodingQuality
 
     Enumerates quality encoding levels.
 
@@ -526,9 +526,9 @@ void QCameraImageCapture::setResolution(int width, int height)
 /*!
     Returns the image encoding quality.
 */
-QCameraImageCapture::Quality QCameraImageCapture::quality() const
+QImageCapture::Quality QImageCapture::quality() const
 {
-    Q_D(const QCameraImageCapture);
+    Q_D(const QImageCapture);
     if (!d->control)
         return NormalQuality;
     return d->control->imageSettings().quality();
@@ -537,9 +537,9 @@ QCameraImageCapture::Quality QCameraImageCapture::quality() const
 /*!
     Sets the image encoding \a quality.
 */
-void QCameraImageCapture::setQuality(Quality quality)
+void QImageCapture::setQuality(Quality quality)
 {
-    Q_D(QCameraImageCapture);
+    Q_D(QImageCapture);
     if (!d->control)
         return;
     auto fmt = d->control->imageSettings();
@@ -552,4 +552,4 @@ void QCameraImageCapture::setQuality(Quality quality)
 
 QT_END_NAMESPACE
 
-#include "moc_qcameraimagecapture.cpp"
+#include "moc_qimagecapture.cpp"

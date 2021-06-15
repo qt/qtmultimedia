@@ -42,7 +42,7 @@
 #include "qwindowsmediaencoder_p.h"
 #include "qwindowscamera_p.h"
 #include "qwindowsmediadevicesession_p.h"
-#include "qwindowscameraimagecapture_p.h"
+#include "qwindowsimagecapture_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
 #include "qplatformaudioinput_p.h"
@@ -79,14 +79,14 @@ void QWindowsMediaCaptureService::setCamera(QPlatformCamera *camera)
     emit cameraChanged();
 }
 
-QPlatformCameraImageCapture *QWindowsMediaCaptureService::imageCapture()
+QPlatformImageCapture *QWindowsMediaCaptureService::imageCapture()
 {
     return m_imageCapture;
 }
 
-void QWindowsMediaCaptureService::setImageCapture(QPlatformCameraImageCapture *imageCapture)
+void QWindowsMediaCaptureService::setImageCapture(QPlatformImageCapture *imageCapture)
 {
-    QWindowsCameraImageCapture *control = static_cast<QWindowsCameraImageCapture *>(imageCapture);
+    QWindowsImageCapture *control = static_cast<QWindowsImageCapture *>(imageCapture);
     if (m_imageCapture == control)
         return;
 

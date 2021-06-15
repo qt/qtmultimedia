@@ -53,7 +53,7 @@
 #include "bbmediastoragelocation_p.h"
 
 #include <QCamera>
-#include <QCameraImageCapture>
+#include <QImageCapture>
 #include <QElapsedTimer>
 #include <QMediaRecorder>
 #include <QMutex>

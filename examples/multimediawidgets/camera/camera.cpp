@@ -105,7 +105,7 @@ void Camera::setCamera(const QCameraDevice &cameraDevice)
     m_captureSession.setEncoder(m_mediaEncoder.data());
     connect(m_mediaEncoder.data(), &QMediaRecorder::recorderStateChanged, this, &Camera::updateRecorderState);
 
-    m_imageCapture = new QCameraImageCapture;
+    m_imageCapture = new QImageCapture;
     m_captureSession.setImageCapture(m_imageCapture);
 
     connect(m_mediaEncoder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
@@ -118,10 +118,10 @@ void Camera::setCamera(const QCameraDevice &cameraDevice)
     updateCameraActive(m_camera->isActive());
     updateRecorderState(m_mediaEncoder->recorderState());
 
-    connect(m_imageCapture, &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
-    connect(m_imageCapture, &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
-    connect(m_imageCapture, &QCameraImageCapture::imageSaved, this, &Camera::imageSaved);
-    connect(m_imageCapture, &QCameraImageCapture::errorOccurred, this, &Camera::displayCaptureError);
+    connect(m_imageCapture, &QImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
+    connect(m_imageCapture, &QImageCapture::imageCaptured, this, &Camera::processCapturedImage);
+    connect(m_imageCapture, &QImageCapture::imageSaved, this, &Camera::imageSaved);
+    connect(m_imageCapture, &QImageCapture::errorOccurred, this, &Camera::displayCaptureError);
     readyForCapture(m_imageCapture->isReadyForCapture());
 
     updateCaptureMode();
@@ -233,7 +233,7 @@ void Camera::takeImage()
     m_imageCapture->captureToFile();
 }
 
-void Camera::displayCaptureError(int id, const QCameraImageCapture::Error error, const QString &errorString)
+void Camera::displayCaptureError(int id, const QImageCapture::Error error, const QString &errorString)
 {
     Q_UNUSED(id);
     Q_UNUSED(error);

@@ -52,7 +52,7 @@
 //
 
 #include <qcamera.h>
-#include <qcameraimagecapture.h>
+#include <qimagecapture.h>
 #include <qmediametadata.h>
 
 #include <QtQml/qqml.h>
@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 
 class QUrl;
 
-class QQuickImageCapture : public QCameraImageCapture
+class QQuickImageCapture : public QImageCapture
 {
     Q_OBJECT
     Q_PROPERTY(QString preview READ preview NOTIFY previewChanged)

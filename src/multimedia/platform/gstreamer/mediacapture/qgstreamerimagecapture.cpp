@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamercameraimagecapture_p.h"
+#include "qgstreamerimagecapture_p.h"
 #include "qplatformcamera_p.h"
 #include <private/qgstvideobuffer_p.h>
 #include <private/qgstutils_p.h>
@@ -54,8 +54,8 @@ QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcImageCapture, "qt.multimedia.imageCapture")
 
-QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QCameraImageCapture *parent)
-  : QPlatformCameraImageCapture(parent),
+QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
+  : QPlatformImageCapture(parent),
     QGstreamerBufferProbe(ProbeBuffers)
 {
     bin = QGstBin("imageCaptureBin");
@@ -80,16 +80,16 @@ QGstreamerCameraImageCapture::QGstreamerCameraImageCapture(QCameraImageCapture *
     addProbeToPad(queue.staticPad("src").pad(), false);
 
     sink.set("signal-handoffs", true);
-    g_signal_connect(sink.object(), "handoff", G_CALLBACK(&QGstreamerCameraImageCapture::saveImageFilter), this);
+    g_signal_connect(sink.object(), "handoff", G_CALLBACK(&QGstreamerImageCapture::saveImageFilter), this);
 }
 
-QGstreamerCameraImageCapture::~QGstreamerCameraImageCapture()
+QGstreamerImageCapture::~QGstreamerImageCapture()
 {
     if (m_session)
         m_session->releaseVideoPad(videoSrcPad);
 }
 
-bool QGstreamerCameraImageCapture::isReadyForCapture() const
+bool QGstreamerImageCapture::isReadyForCapture() const
 {
     return m_session && !passImage && cameraActive;
 }
@@ -134,7 +134,7 @@ QString generateFileName(const QDir &dir, const QString &ext)
 }
 
 
-int QGstreamerCameraImageCapture::capture(const QString &fileName)
+int QGstreamerImageCapture::capture(const QString &fileName)
 {
     QString path = fileName;
     if (path.isEmpty())
@@ -143,12 +143,12 @@ int QGstreamerCameraImageCapture::capture(const QString &fileName)
     return doCapture(path);
 }
 
-int QGstreamerCameraImageCapture::captureToBuffer()
+int QGstreamerImageCapture::captureToBuffer()
 {
     return doCapture(QString());
 }
 
-int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
+int QGstreamerImageCapture::doCapture(const QString &fileName)
 {
     qCDebug(qLcImageCapture) << "do capture";
     if (!m_session) {
@@ -156,7 +156,7 @@ int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
         //so application can associate it with returned request id.
         QMetaObject::invokeMethod(this, "errorOccurred", Qt::QueuedConnection,
                                   Q_ARG(int, -1),
-                                  Q_ARG(int, QCameraImageCapture::ResourceError),
+                                  Q_ARG(int, QImageCapture::ResourceError),
                                   Q_ARG(QString,tr("Image capture not set to a session.")));
 
         qCDebug(qLcImageCapture) << "error 1";
@@ -167,7 +167,7 @@ int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
         //so application can associate it with returned request id.
         QMetaObject::invokeMethod(this, "errorOccurred", Qt::QueuedConnection,
                                   Q_ARG(int, -1),
-                                  Q_ARG(int, QCameraImageCapture::ResourceError),
+                                  Q_ARG(int, QImageCapture::ResourceError),
                                   Q_ARG(QString,tr("No camera available.")));
 
         qCDebug(qLcImageCapture) << "error 2";
@@ -178,7 +178,7 @@ int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
         //so application can associate it with returned request id.
         QMetaObject::invokeMethod(this, "errorOccurred", Qt::QueuedConnection,
                                   Q_ARG(int, -1),
-                                  Q_ARG(int, QCameraImageCapture::NotReadyError),
+                                  Q_ARG(int, QImageCapture::NotReadyError),
                                   Q_ARG(QString,tr("Camera is not ready.")));
 
         qCDebug(qLcImageCapture) << "error 3";
@@ -198,7 +198,7 @@ int QGstreamerCameraImageCapture::doCapture(const QString &fileName)
     return m_lastId;
 }
 
-bool QGstreamerCameraImageCapture::probeBuffer(GstBuffer *buffer)
+bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 {
     if (!passImage)
         return false;
@@ -244,7 +244,7 @@ bool QGstreamerCameraImageCapture::probeBuffer(GstBuffer *buffer)
     return true;
 }
 
-void QGstreamerCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
+void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
     QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
     if (m_session == captureSession)
@@ -268,11 +268,11 @@ void QGstreamerCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSessio
     gstPipeline = captureSession->pipeline();
     gstPipeline.add(bin);
     bin.setStateSync(GST_STATE_READY);
-    connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QGstreamerCameraImageCapture::onCameraChanged);
+    connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QGstreamerImageCapture::onCameraChanged);
     onCameraChanged();
 }
 
-void QGstreamerCameraImageCapture::cameraActiveChanged(bool active)
+void QGstreamerImageCapture::cameraActiveChanged(bool active)
 {
     qCDebug(qLcImageCapture) << "cameraActiveChanged" << cameraActive << active;
     if (cameraActive == active)
@@ -282,23 +282,23 @@ void QGstreamerCameraImageCapture::cameraActiveChanged(bool active)
     emit readyForCaptureChanged(isReadyForCapture());
 }
 
-void QGstreamerCameraImageCapture::onCameraChanged()
+void QGstreamerImageCapture::onCameraChanged()
 {
     if (m_session->camera()) {
         cameraActiveChanged(m_session->camera()->isActive());
-        connect(m_session->camera(), &QPlatformCamera::activeChanged, this, &QGstreamerCameraImageCapture::cameraActiveChanged);
+        connect(m_session->camera(), &QPlatformCamera::activeChanged, this, &QGstreamerImageCapture::cameraActiveChanged);
     }
 
 }
 
-gboolean QGstreamerCameraImageCapture::saveImageFilter(GstElement *element,
+gboolean QGstreamerImageCapture::saveImageFilter(GstElement *element,
                                                        GstBuffer *buffer,
                                                        GstPad *pad,
                                                        void *appdata)
 {
     Q_UNUSED(element);
     Q_UNUSED(pad);
-    QGstreamerCameraImageCapture *capture = static_cast<QGstreamerCameraImageCapture *>(appdata);
+    QGstreamerImageCapture *capture = static_cast<QGstreamerImageCapture *>(appdata);
 
     if (capture->pendingImages.isEmpty()) {
         capture->unlink();
@@ -322,7 +322,7 @@ gboolean QGstreamerCameraImageCapture::saveImageFilter(GstElement *element,
         }
         f.close();
 
-        static QMetaMethod savedSignal = QMetaMethod::fromSignal(&QGstreamerCameraImageCapture::imageSaved);
+        static QMetaMethod savedSignal = QMetaMethod::fromSignal(&QGstreamerImageCapture::imageSaved);
         savedSignal.invoke(capture,
                            Qt::QueuedConnection,
                            Q_ARG(int, imageData.id),
@@ -334,7 +334,7 @@ gboolean QGstreamerCameraImageCapture::saveImageFilter(GstElement *element,
     return TRUE;
 }
 
-void QGstreamerCameraImageCapture::unlink()
+void QGstreamerImageCapture::unlink()
 {
     return;
     if (passImage)
@@ -350,7 +350,7 @@ void QGstreamerCameraImageCapture::unlink()
     gstPipeline.setStateSync(GST_STATE_PLAYING);
 }
 
-void QGstreamerCameraImageCapture::link()
+void QGstreamerImageCapture::link()
 {
     if (!(m_session && m_session->camera()))
         return;
@@ -364,12 +364,12 @@ void QGstreamerCameraImageCapture::link()
     gstPipeline.setStateSync(GST_STATE_PLAYING);
 }
 
-QImageEncoderSettings QGstreamerCameraImageCapture::imageSettings() const
+QImageEncoderSettings QGstreamerImageCapture::imageSettings() const
 {
     return m_settings;
 }
 
-void QGstreamerCameraImageCapture::setImageSettings(const QImageEncoderSettings &settings)
+void QGstreamerImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
     if (m_settings != settings) {
         m_settings = settings;

@@ -57,8 +57,8 @@ class QImageEncoderSettings;
 class QCamera;
 class QMediaCaptureSession;
 
-class QCameraImageCapturePrivate;
-class Q_MULTIMEDIA_EXPORT QCameraImageCapture : public QObject
+class QImageCapturePrivate;
+class Q_MULTIMEDIA_EXPORT QImageCapture : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool readyForCapture READ isReadyForCapture NOTIFY readyForCaptureChanged)
@@ -99,8 +99,8 @@ public:
     };
     Q_ENUM(FileFormat)
 
-    explicit QCameraImageCapture(QObject *parent = nullptr);
-    ~QCameraImageCapture();
+    explicit QImageCapture(QObject *parent = nullptr);
+    ~QImageCapture();
 
     bool isAvailable() const;
 
@@ -135,7 +135,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void errorChanged();
-    void errorOccurred(int id, QCameraImageCapture::Error error, const QString &errorString);
+    void errorOccurred(int id, QImageCapture::Error error, const QString &errorString);
 
     void readyForCaptureChanged(bool ready);
     void metaDataChanged();
@@ -152,19 +152,19 @@ Q_SIGNALS:
 
 private:
     // This is here to flag an incompatibilities with Qt 5
-    QCameraImageCapture(QCamera *) = delete;
+    QImageCapture(QCamera *) = delete;
 
     friend class QMediaCaptureSession;
     void setCaptureSession(QMediaCaptureSession *session);
-    QCameraImageCapturePrivate *d_ptr;
-    Q_DISABLE_COPY(QCameraImageCapture)
-    Q_DECLARE_PRIVATE(QCameraImageCapture)
+    QImageCapturePrivate *d_ptr;
+    Q_DISABLE_COPY(QImageCapture)
+    Q_DECLARE_PRIVATE(QImageCapture)
     Q_PRIVATE_SLOT(d_func(), void _q_error(int, int, const QString &))
 };
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QCameraImageCapture, Error)
+Q_MEDIA_ENUM_DEBUG(QImageCapture, Error)
 
 #endif
 

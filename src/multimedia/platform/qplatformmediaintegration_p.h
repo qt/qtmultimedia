@@ -59,7 +59,7 @@ class QMediaPlayer;
 class QAudioDecoder;
 class QCamera;
 class QMediaRecorder;
-class QCameraImageCapture;
+class QImageCapture;
 class QMediaDevices;
 class QPlatformMediaDevices;
 class QPlatformMediaCaptureSession;
@@ -67,7 +67,7 @@ class QPlatformMediaPlayer;
 class QPlatformAudioDecoder;
 class QPlatformCamera;
 class QPlatformMediaEncoder;
-class QPlatformCameraImageCapture;
+class QPlatformImageCapture;
 class QPlatformMediaFormatInfo;
 class QObject;
 class QPlatformVideoSink;
@@ -94,7 +94,7 @@ public:
     virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
     virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
     virtual QPlatformMediaEncoder *createEncoder(QMediaRecorder *) { return nullptr; }
-    virtual QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) { return nullptr; }
+    virtual QPlatformImageCapture *createImageCapture(QImageCapture *) { return nullptr; }
 
     virtual QPlatformAudioInput *createAudioInput(QAudioInput *);
     virtual QPlatformAudioOutput *createAudioOutput(QAudioOutput *);

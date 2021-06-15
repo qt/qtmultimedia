@@ -78,7 +78,7 @@ QPlatformCamera *BbCameraService::camera()
     return m_cameraControl;
 }
 
-QPlatformCameraImageCapture *BbCameraService::imageCapture()
+QPlatformImageCapture *BbCameraService::imageCapture()
 {
     return m_cameraImageCaptureControl;
 }

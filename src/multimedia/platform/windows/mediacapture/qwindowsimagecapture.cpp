@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qwindowscameraimagecapture_p.h"
+#include "qwindowsimagecapture_p.h"
 
 #include "qwindowsmediadevicesession_p.h"
 #include "qwindowsmediacapture_p.h"
@@ -47,21 +47,21 @@
 
 QT_BEGIN_NAMESPACE
 
-QWindowsCameraImageCapture::QWindowsCameraImageCapture(QCameraImageCapture *parent)
-    : QPlatformCameraImageCapture(parent)
+QWindowsImageCapture::QWindowsImageCapture(QImageCapture *parent)
+    : QPlatformImageCapture(parent)
 {
 }
 
-QWindowsCameraImageCapture::~QWindowsCameraImageCapture() = default;
+QWindowsImageCapture::~QWindowsImageCapture() = default;
 
-bool QWindowsCameraImageCapture::isReadyForCapture() const
+bool QWindowsImageCapture::isReadyForCapture() const
 {
     if (!m_mediaDeviceSession)
         return false;
     return !m_capturing && m_mediaDeviceSession->isActive() && !m_mediaDeviceSession->activeCamera().isNull();
 }
 
-int QWindowsCameraImageCapture::capture(const QString &fileName)
+int QWindowsImageCapture::capture(const QString &fileName)
 {
     QString ext = writerFormat(m_settings.format());
     QString path = m_storageLocation.generateFileName(fileName, QWindowsStorageLocation::Image,
@@ -69,12 +69,12 @@ int QWindowsCameraImageCapture::capture(const QString &fileName)
     return doCapture(path);
 }
 
-int QWindowsCameraImageCapture::captureToBuffer()
+int QWindowsImageCapture::captureToBuffer()
 {
     return doCapture(QString());
 }
 
-int QWindowsCameraImageCapture::doCapture(const QString &fileName)
+int QWindowsImageCapture::doCapture(const QString &fileName)
 {
     if (!isReadyForCapture())
         return -1;
@@ -83,17 +83,17 @@ int QWindowsCameraImageCapture::doCapture(const QString &fileName)
     return m_captureId;
 }
 
-QImageEncoderSettings QWindowsCameraImageCapture::imageSettings() const
+QImageEncoderSettings QWindowsImageCapture::imageSettings() const
 {
     return m_settings;
 }
 
-void QWindowsCameraImageCapture::setImageSettings(const QImageEncoderSettings &settings)
+void QWindowsImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
     m_settings = settings;
 }
 
-void QWindowsCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
+void QWindowsImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
     QWindowsMediaCaptureService *captureService = static_cast<QWindowsMediaCaptureService *>(session);
     if (m_captureService == captureService)
@@ -118,7 +118,7 @@ void QWindowsCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession 
             this, SLOT(handleNewVideoFrame(QVideoFrame)));
 }
 
-void QWindowsCameraImageCapture::handleNewVideoFrame(const QVideoFrame &frame)
+void QWindowsImageCapture::handleNewVideoFrame(const QVideoFrame &frame)
 {
     if (m_capturing) {
 
@@ -136,7 +136,7 @@ void QWindowsCameraImageCapture::handleNewVideoFrame(const QVideoFrame &frame)
 
         if (!m_fileName.isEmpty()) {
 
-            (void)QtConcurrent::run(&QWindowsCameraImageCapture::saveImage, this,
+            (void)QtConcurrent::run(&QWindowsImageCapture::saveImage, this,
                                     m_captureId, m_fileName, image, metaData, m_settings);
         }
 
@@ -145,7 +145,7 @@ void QWindowsCameraImageCapture::handleNewVideoFrame(const QVideoFrame &frame)
     }
 }
 
-void QWindowsCameraImageCapture::saveImage(int captureId, const QString &fileName,
+void QWindowsImageCapture::saveImage(int captureId, const QString &fileName,
                                            const QImage &image, const QMediaMetaData &metaData,
                                            const QImageEncoderSettings &settings)
 {
@@ -169,21 +169,21 @@ void QWindowsCameraImageCapture::saveImage(int captureId, const QString &fileNam
                               Q_ARG(int, captureId), Q_ARG(QString, fileName));
 }
 
-QString QWindowsCameraImageCapture::writerFormat(QCameraImageCapture::FileFormat reqFormat)
+QString QWindowsImageCapture::writerFormat(QImageCapture::FileFormat reqFormat)
 {
     QString format;
 
     switch (reqFormat) {
-    case QCameraImageCapture::FileFormat::JPEG:
+    case QImageCapture::FileFormat::JPEG:
         format = QLatin1String("jpg");
         break;
-    case QCameraImageCapture::FileFormat::PNG:
+    case QImageCapture::FileFormat::PNG:
         format = QLatin1String("png");
         break;
-    case QCameraImageCapture::FileFormat::WebP:
+    case QImageCapture::FileFormat::WebP:
         format = QLatin1String("webp");
         break;
-    case QCameraImageCapture::FileFormat::Tiff:
+    case QImageCapture::FileFormat::Tiff:
         format = QLatin1String("tiff");
         break;
     default:
@@ -198,22 +198,22 @@ QString QWindowsCameraImageCapture::writerFormat(QCameraImageCapture::FileFormat
     return QLatin1String("jpg");
 }
 
-int QWindowsCameraImageCapture::writerQuality(const QString &writerFormat,
-                                              QCameraImageCapture::Quality quality)
+int QWindowsImageCapture::writerQuality(const QString &writerFormat,
+                                              QImageCapture::Quality quality)
 {
     if (writerFormat.compare(QLatin1String("jpg"), Qt::CaseInsensitive) == 0 ||
             writerFormat.compare(QLatin1String("jpeg"), Qt::CaseInsensitive) == 0) {
 
         switch (quality) {
-        case QCameraImageCapture::Quality::VeryLowQuality:
+        case QImageCapture::Quality::VeryLowQuality:
             return 10;
-        case QCameraImageCapture::Quality::LowQuality:
+        case QImageCapture::Quality::LowQuality:
             return 30;
-        case QCameraImageCapture::Quality::NormalQuality:
+        case QImageCapture::Quality::NormalQuality:
             return 75;
-        case QCameraImageCapture::Quality::HighQuality:
+        case QImageCapture::Quality::HighQuality:
             return 90;
-        case QCameraImageCapture::Quality::VeryHighQuality:
+        case QImageCapture::Quality::VeryHighQuality:
             return 98;
         default:
             return 75;

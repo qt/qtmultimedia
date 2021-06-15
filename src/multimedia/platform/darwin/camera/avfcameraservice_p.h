@@ -61,7 +61,7 @@ QT_BEGIN_NAMESPACE
 class QPlatformCamera;
 class QPlatformMediaEncoder;
 class AVFCamera;
-class AVFCameraImageCapture;
+class AVFImageCapture;
 class AVFCameraSession;
 class AVFMediaEncoder;
 
@@ -75,8 +75,8 @@ public:
     QPlatformCamera *camera() override;
     void setCamera(QPlatformCamera *camera) override;
 
-    QPlatformCameraImageCapture *imageCapture() override;
-    void setImageCapture(QPlatformCameraImageCapture *imageCapture) override;
+    QPlatformImageCapture *imageCapture() override;
+    void setImageCapture(QPlatformImageCapture *imageCapture) override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
@@ -88,7 +88,7 @@ public:
     AVFCameraSession *session() const { return m_session; }
     AVFCamera *avfCameraControl() const { return m_cameraControl; }
     AVFMediaEncoder *recorderControl() const { return m_encoder; }
-    AVFCameraImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
+    AVFImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
     AVCaptureDevice *audioCaptureDevice() const { return m_audioCaptureDevice; }
 
 public Q_SLOTS:
@@ -101,7 +101,7 @@ private:
     AVFCameraSession *m_session = nullptr;
     AVFCamera *m_cameraControl = nullptr;
     AVFMediaEncoder *m_encoder = nullptr;
-    AVFCameraImageCapture *m_imageCaptureControl = nullptr;
+    AVFImageCapture *m_imageCaptureControl = nullptr;
 };
 
 QT_END_NAMESPACE

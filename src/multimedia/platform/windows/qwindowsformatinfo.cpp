@@ -81,7 +81,7 @@ QWindowsFormatInfo::QWindowsFormatInfo()
     };
 
     // ####
-    imageFormats = { QCameraImageCapture::JPEG, QCameraImageCapture::PNG };
+    imageFormats = { QImageCapture::JPEG, QImageCapture::PNG };
 
 }
 

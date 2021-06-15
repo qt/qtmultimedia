@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,9 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSCAMERAIMAGECAPTURE_H
-#define QWINDOWSCAMERAIMAGECAPTURE_H
+
+#ifndef QGSTREAMERIMAGECAPTURECONTROL_H
+#define QGSTREAMERIMAGECAPTURECONTROL_H
 
 //
 //  W A R N I N G
@@ -51,53 +52,73 @@
 // We mean it.
 //
 
-#include "qwindowsstoragelocation_p.h"
+#include <private/qplatformimagecapture_p.h>
+#include "qgstreamermediacapture_p.h"
+#include "private/qgstreamerbufferprobe_p.h"
 
-#include <private/qplatformcameraimagecapture_p.h>
+#include <qqueue.h>
+
+#include <private/qgst_p.h>
+#include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsMediaDeviceSession;
-class QWindowsMediaCaptureService;
+class QGstreamerImageCapture : public QPlatformImageCapture, private QGstreamerBufferProbe
 
-class QWindowsCameraImageCapture : public QPlatformCameraImageCapture
 {
     Q_OBJECT
 public:
-    explicit QWindowsCameraImageCapture(QCameraImageCapture *parent);
-    virtual ~QWindowsCameraImageCapture();
+    QGstreamerImageCapture(QImageCapture *parent/*, const QGstPipeline &pipeline*/);
+    virtual ~QGstreamerImageCapture();
 
     bool isReadyForCapture() const override;
-
     int capture(const QString &fileName) override;
     int captureToBuffer() override;
 
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
 
+    bool probeBuffer(GstBuffer *buffer) override;
+
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-private Q_SLOTS:
-    void handleNewVideoFrame(const QVideoFrame &frame);
+    QGstElement gstElement() const { return bin.element(); }
+
+public Q_SLOTS:
+    void cameraActiveChanged(bool active);
+    void onCameraChanged();
 
 private:
     int doCapture(const QString &fileName);
-    void saveImage(int captureId, const QString &fileName,
-                   const QImage &image, const QMediaMetaData &metaData,
-                   const QImageEncoderSettings &settings);
-    QString writerFormat(QCameraImageCapture::FileFormat reqFormat);
-    int writerQuality(const QString &writerFormat,
-                      QCameraImageCapture::Quality quality);
+    static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad, void *appdata);
+    void link();
+    void unlink();
 
-    QWindowsMediaCaptureService  *m_captureService = nullptr;
-    QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
-    QImageEncoderSettings         m_settings;
-    QWindowsStorageLocation       m_storageLocation;
-    int m_captureId = 0;
-    bool m_capturing = false;
-    QString m_fileName;
+    QGstreamerMediaCapture *m_session = nullptr;
+    int m_lastId = 0;
+    QImageEncoderSettings m_settings;
+
+    struct PendingImage {
+        int id;
+        QString filename;
+        QMediaMetaData metaData;
+    };
+
+    QQueue<PendingImage> pendingImages;
+
+    QGstPipeline gstPipeline;
+    QGstBin bin;
+    QGstElement queue;
+    QGstElement videoConvert;
+    QGstElement encoder;
+    QGstElement muxer;
+    QGstElement sink;
+    QGstPad videoSrcPad;
+
+    bool passImage = false;
+    bool cameraActive = false;
 };
 
 QT_END_NAMESPACE
 
-#endif  // QWINDOWSCAMERAIMAGECAPTURE_H
+#endif // QGSTREAMERCAPTURECORNTROL_H

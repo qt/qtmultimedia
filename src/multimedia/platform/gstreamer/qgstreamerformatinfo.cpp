@@ -140,22 +140,22 @@ QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure s
 }
 
 
-QCameraImageCapture::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure structure)
+QImageCapture::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure structure)
 {
     const char *name = structure.name().data();
 
     if (!strcmp(name, "image/jpeg")) {
-        return QCameraImageCapture::JPEG;
+        return QImageCapture::JPEG;
     } else if (!strcmp(name, "image/png")) {
-        return QCameraImageCapture::PNG;
+        return QImageCapture::PNG;
     } else if (!strcmp(name, "image/webp")) {
-        return QCameraImageCapture::WebP;
+        return QImageCapture::WebP;
     } else if (!strcmp(name, "image/webp")) {
-        return QCameraImageCapture::WebP;
+        return QImageCapture::WebP;
     } else if (!strcmp(name, "image/tiff")) {
-        return QCameraImageCapture::Tiff;
+        return QImageCapture::Tiff;
     }
-    return QCameraImageCapture::UnspecifiedFormat;
+    return QImageCapture::UnspecifiedFormat;
 }
 
 static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> getCodecsList(bool decode)
@@ -266,9 +266,9 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
     return muxers;
 }
 
-static QList<QCameraImageCapture::FileFormat> getImageFormatList()
+static QList<QImageCapture::FileFormat> getImageFormatList()
 {
-    QSet<QCameraImageCapture::FileFormat> formats;
+    QSet<QImageCapture::FileFormat> formats;
 
     GList *elementList = gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_ENCODER,
                                                                GST_RANK_MARGINAL);
@@ -289,7 +289,7 @@ static QList<QCameraImageCapture::FileFormat> getImageFormatList()
                 for (int i = 0; i < caps.size(); i++) {
                     QGstStructure structure = caps.at(i);
                     auto f = QGstreamerFormatInfo::imageFormatForCaps(structure);
-                    if (f != QCameraImageCapture::UnspecifiedFormat) {
+                    if (f != QImageCapture::UnspecifiedFormat) {
 //                        qDebug() << structure.toString() << f;
                         formats.insert(f);
                     }

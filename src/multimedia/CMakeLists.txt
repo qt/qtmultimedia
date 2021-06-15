@@ -30,12 +30,12 @@ qt_internal_add_module(Multimedia
         audio/qwavedecoder.cpp audio/qwavedecoder.h
         camera/qcamera.cpp camera/qcamera.h camera/qcamera_p.h
         camera/qcameradevice.cpp camera/qcameradevice.h camera/qcameradevice_p.h
-        camera/qcameraimagecapture.cpp camera/qcameraimagecapture.h
+        camera/qimagecapture.cpp camera/qimagecapture.h
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformaudioinput_p.h
         platform/qplatformaudiooutput_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
-        platform/qplatformcameraimagecapture.cpp platform/qplatformcameraimagecapture_p.h
+        platform/qplatformimagecapture.cpp platform/qplatformimagecapture_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
         platform/qplatformmediadevices.cpp platform/qplatformmediadevices_p.h
         platform/qplatformmediaencoder.cpp platform/qplatformmediaencoder_p.h
@@ -154,9 +154,9 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/player/mfvideorenderercontrol.cpp platform/windows/player/mfvideorenderercontrol_p.h
         platform/windows/player/samplegrabber.cpp platform/windows/player/samplegrabber_p.h
         platform/windows/mediacapture/qwindowscamera.cpp
-        platform/windows/mediacapture/qwindowscameraimagecapture.cpp
-        platform/windows/mediacapture/qwindowscameraimagecapture_p.h
         platform/windows/mediacapture/qwindowscamera_p.h
+        platform/windows/mediacapture/qwindowsimagecapture.cpp
+        platform/windows/mediacapture/qwindowsimagecapture_p.h
         platform/windows/mediacapture/qwindowsmediacapture.cpp
         platform/windows/mediacapture/qwindowsmediacapture_p.h
         platform/windows/mediacapture/qwindowsmediadevicereader.cpp
@@ -228,8 +228,8 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/qgstreamerformatinfo.cpp platform/gstreamer/qgstreamerformatinfo_p.h
         platform/gstreamer/qgstreamerintegration.cpp platform/gstreamer/qgstreamerintegration_p.h
         platform/gstreamer/mediacapture/qgstreamercamera.cpp platform/gstreamer/mediacapture/qgstreamercamera_p.h
+        platform/gstreamer/mediacapture/qgstreamerimagecapture.cpp platform/gstreamer/mediacapture/qgstreamerimagecapture_p.h
         platform/gstreamer/mediacapture/qgstreamermediacapture.cpp platform/gstreamer/mediacapture/qgstreamermediacapture_p.h
-        platform/gstreamer/mediacapture/qgstreamercameraimagecapture.cpp platform/gstreamer/mediacapture/qgstreamercameraimagecapture_p.h
         platform/gstreamer/mediacapture/qgstreamermediaencoder.cpp platform/gstreamer/mediacapture/qgstreamermediaencoder_p.h
     DEFINES
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
@@ -307,7 +307,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
         platform/android/common/qandroidvideooutput.cpp platform/android/common/qandroidvideooutput_p.h
         platform/android/mediacapture/qandroidcameracontrol.cpp platform/android/mediacapture/qandroidcameracontrol_p.h
-        platform/android/mediacapture/qandroidcameraimagecapturecontrol.cpp platform/android/mediacapture/qandroidcameraimagecapturecontrol_p.h
+        platform/android/mediacapture/qandroidimagecapture.cpp platform/android/mediacapture/qandroidimagecapture_p.h
         platform/android/mediacapture/qandroidcamerasession.cpp platform/android/mediacapture/qandroidcamerasession_p.h
         platform/android/mediacapture/qandroidcameravideorenderercontrol.cpp platform/android/mediacapture/qandroidcameravideorenderercontrol_p.h
         platform/android/mediacapture/qandroidcaptureservice.cpp platform/android/mediacapture/qandroidcaptureservice_p.h
@@ -403,7 +403,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfcameraservice.mm platform/darwin/camera/avfcameraservice_p.h
         platform/darwin/camera/avfcamerasession.mm platform/darwin/camera/avfcamerasession_p.h
         platform/darwin/camera/avfcamerautility.mm platform/darwin/camera/avfcamerautility_p.h
-        platform/darwin/camera/avfcameraimagecapture.mm platform/darwin/camera/avfcameraimagecapture_p.h
+        platform/darwin/camera/avfimagecapture.mm platform/darwin/camera/avfimagecapture_p.h
         platform/darwin/camera/avfstoragelocation.mm platform/darwin/camera/avfstoragelocation_p.h
 )
 

@@ -61,7 +61,7 @@ class QAndroidMediaEncoder;
 class QAndroidCaptureSession;
 class QAndroidCameraControl;
 class QAndroidCameraSession;
-class QAndroidCameraImageCaptureControl;
+class QAndroidImageCapture;
 
 class QAndroidCaptureService : public QPlatformMediaCaptureSession
 {
@@ -74,8 +74,8 @@ public:
     QPlatformCamera *camera() override;
     void setCamera(QPlatformCamera *camera) override;
 
-    QPlatformCameraImageCapture *imageCapture() override;
-    void setImageCapture(QPlatformCameraImageCapture *imageCapture) override;
+    QPlatformImageCapture *imageCapture() override;
+    void setImageCapture(QPlatformImageCapture *imageCapture) override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
@@ -94,7 +94,7 @@ private:
     QAndroidCaptureSession *m_captureSession = nullptr;
     QAndroidCameraControl *m_cameraControl = nullptr;
     QAndroidCameraSession *m_cameraSession = nullptr;
-    QAndroidCameraImageCaptureControl *m_imageCaptureControl;
+    QAndroidImageCapture *m_imageCaptureControl;
 };
 
 QT_END_NAMESPACE

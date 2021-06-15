@@ -53,7 +53,7 @@ QAndroidFormatInfo::QAndroidFormatInfo()
     };
     encoders = decoders;
 
-    imageFormats << QCameraImageCapture::JPEG;
+    imageFormats << QImageCapture::JPEG;
 }
 
 QAndroidFormatInfo::~QAndroidFormatInfo()

@@ -447,7 +447,7 @@ void QAndroidCameraSession::applyImageSettings()
         return;
 
     // only supported format right now.
-    m_actualImageSettings.setFormat(QCameraImageCapture::JPEG);
+    m_actualImageSettings.setFormat(QImageCapture::JPEG);
 
     const QSize requestedResolution = m_requestedImageSettings.resolution();
     const QList<QSize> supportedResolutions = m_camera->getSupportedPictureSizes();
@@ -469,19 +469,19 @@ void QAndroidCameraSession::applyImageSettings()
 
     int jpegQuality = 100;
     switch (m_requestedImageSettings.quality()) {
-    case QCameraImageCapture::VeryLowQuality:
+    case QImageCapture::VeryLowQuality:
         jpegQuality = 20;
         break;
-    case QCameraImageCapture::LowQuality:
+    case QImageCapture::LowQuality:
         jpegQuality = 40;
         break;
-    case QCameraImageCapture::NormalQuality:
+    case QImageCapture::NormalQuality:
         jpegQuality = 60;
         break;
-    case QCameraImageCapture::HighQuality:
+    case QImageCapture::HighQuality:
         jpegQuality = 80;
         break;
-    case QCameraImageCapture::VeryHighQuality:
+    case QImageCapture::VeryHighQuality:
         jpegQuality = 100;
         break;
     }
@@ -507,7 +507,7 @@ int QAndroidCameraSession::capture(const QString &fileName)
     ++m_lastImageCaptureId;
 
     if (!isReadyForCapture()) {
-        emit imageCaptureError(m_lastImageCaptureId, QCameraImageCapture::NotReadyError,
+        emit imageCaptureError(m_lastImageCaptureId, QImageCapture::NotReadyError,
                                tr("Camera not ready"));
         return m_lastImageCaptureId;
     }
@@ -530,7 +530,7 @@ int QAndroidCameraSession::capture(const QString &fileName)
 
 void QAndroidCameraSession::onCameraTakePictureFailed()
 {
-    emit imageCaptureError(m_currentImageCaptureId, QCameraImageCapture::ResourceError,
+    emit imageCaptureError(m_currentImageCaptureId, QImageCapture::ResourceError,
                            tr("Failed to capture image"));
 
     // Preview needs to be restarted and the preview call back must be setup again
@@ -654,11 +654,11 @@ void QAndroidCameraSession::processCapturedImage(int id,
 
                 emit imageSaved(id, actualFileName);
             } else {
-                emit imageCaptureError(id, QCameraImageCapture::OutOfSpaceError, file.errorString());
+                emit imageCaptureError(id, QImageCapture::OutOfSpaceError, file.errorString());
             }
         } else {
             const QString errorMessage = tr("Could not open destination file: %1").arg(actualFileName);
-            emit imageCaptureError(id, QCameraImageCapture::ResourceError, errorMessage);
+            emit imageCaptureError(id, QImageCapture::ResourceError, errorMessage);
         }
     } else {
         QVideoFrame frame(new QMemoryVideoBuffer(data, -1), QVideoFrameFormat(resolution, QVideoFrameFormat::Format_Jpeg));

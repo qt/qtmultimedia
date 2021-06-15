@@ -45,7 +45,7 @@
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
 #include "qandroidcameravideorenderercontrol_p.h"
-#include "qandroidcameraimagecapturecontrol_p.h"
+#include "qandroidimagecapture_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
 
@@ -94,14 +94,14 @@ void QAndroidCaptureService::setCamera(QPlatformCamera *camera)
         emit cameraChanged();
 }
 
-QPlatformCameraImageCapture *QAndroidCaptureService::imageCapture()
+QPlatformImageCapture *QAndroidCaptureService::imageCapture()
 {
     return m_imageCaptureControl;
 }
 
-void QAndroidCaptureService::setImageCapture(QPlatformCameraImageCapture *imageCapture)
+void QAndroidCaptureService::setImageCapture(QPlatformImageCapture *imageCapture)
 {
-    QAndroidCameraImageCaptureControl *control = static_cast<QAndroidCameraImageCaptureControl *>(imageCapture);
+    QAndroidImageCapture *control = static_cast<QAndroidImageCapture *>(imageCapture);
     if (m_imageCaptureControl == control)
         return;
 

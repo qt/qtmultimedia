@@ -196,7 +196,7 @@ account the camera sensor orientation and the current display orientation.
 \section2 Still Images
 
 After setting up a viewfinder and finding something photogenic,
-to capture an image we need to initialize a new QCameraImageCapture
+to capture an image we need to initialize a new QImageCapture
 object. All that is then needed is to start the camera and capture the image.
 
     \snippet multimedia-snippets/camera.cpp Camera overview capture
@@ -276,7 +276,7 @@ Various operations such as image capture and auto focusing occur
 asynchrously. These operations can often be canceled by the start of a new
 operation as long as this is supported by the camera. For image capture,
 the operation can be canceled by calling
-\l {QCameraImageCapture::cancelCapture()}{cancelCapture()}. For AutoFocus,
+\l {QImageCapture::cancelCapture()}{cancelCapture()}. For AutoFocus,
 autoexposure or white balance cancellation can be done by calling
 \e {QCamera::unlock(QCamera::LockFocus)}.
 

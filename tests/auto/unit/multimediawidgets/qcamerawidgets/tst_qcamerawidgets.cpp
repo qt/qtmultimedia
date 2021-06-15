@@ -32,10 +32,10 @@
 #include <QDebug>
 
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 #include <qmediacapturesession.h>
 #include <qcamera.h>
-#include <qcameraimagecapture.h>
+#include <qimagecapture.h>
 #include <qgraphicsvideoitem.h>
 #include <qobject.h>
 #include <qvideowidget.h>
@@ -76,7 +76,7 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
