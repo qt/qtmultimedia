@@ -41,6 +41,7 @@
 
 #include <private/qplatformmediaintegration_p.h>
 #include <qvideosink.h>
+#include <qaudiooutput.h>
 
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qmetaobject.h>
@@ -294,32 +295,6 @@ qint64 QMediaPlayer::position() const
 }
 
 /*!
-    Returns the playback volume. Valid numbers are between 0 and 100.
-*/
-int QMediaPlayer::volume() const
-{
-    Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->volume();
-
-    return 0;
-}
-
-/*!
-    Returns true if playback is currently muted.
-*/
-bool QMediaPlayer::isMuted() const
-{
-    Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->isMuted();
-
-    return false;
-}
-
-/*!
     Returns a number betwee 0 and 1 when buffering data.
 
     0 means that there is no buffered data available, playback is usually
@@ -469,30 +444,6 @@ void QMediaPlayer::setPosition(qint64 position)
     d->control->setPosition(qMax(position, 0ll));
 }
 
-void QMediaPlayer::setVolume(int v)
-{
-    Q_D(QMediaPlayer);
-
-    if (d->control == nullptr)
-        return;
-
-    int clamped = qBound(0, v, 100);
-    if (clamped == volume())
-        return;
-
-    d->control->setVolume(clamped);
-}
-
-void QMediaPlayer::setMuted(bool muted)
-{
-    Q_D(QMediaPlayer);
-
-    if (d->control == nullptr || muted == isMuted())
-        return;
-
-    d->control->setMuted(muted);
-}
-
 /*!
     If \a autoPlay is set to true, playback will start immediately after calling
     setSource() on the media player. Otherwise the media player will enter the
@@ -558,16 +509,20 @@ void QMediaPlayer::setSource(const QUrl &source, QIODevice *stream)
 
     Returns true if the output could be changed, false otherwise.
  */
-bool QMediaPlayer::setAudioOutput(const QAudioDevice &device)
+void QMediaPlayer::setAudioOutput(QAudioOutput *output)
 {
     Q_D(QMediaPlayer);
-    return d->control->setAudioOutput(device);
+    if (d->audioOutput == output)
+        return;
+    d->audioOutput = output;
+    d->control->setAudioOutput(output ? output->handle() : nullptr);
+    emit audioOutputChanged();
 }
 
-QAudioDevice QMediaPlayer::audioOutput() const
+QAudioOutput *QMediaPlayer::audioOutput() const
 {
     Q_D(const QMediaPlayer);
-    return d->control->audioOutput();
+    return d->audioOutput;
 }
 
 /*!
@@ -769,45 +724,6 @@ QMediaMetaData QMediaPlayer::metaData() const
     return d->control->metaData();
 }
 
-/*!
-    Returns the currently set audio role.
-
-    Audio roles can be used to tell the system what kind of media is being
-    played back, so that it can be associated with a correct mixer channel.
-*/
-QAudio::Role QMediaPlayer::audioRole() const
-{
-    Q_D(const QMediaPlayer);
-    return d->audioRole;
-}
-
-void QMediaPlayer::setAudioRole(QAudio::Role audioRole)
-{
-    Q_D(QMediaPlayer);
-    if (d->audioRole == audioRole)
-        return;
-
-    d->audioRole = audioRole;
-    d->control->setAudioRole(audioRole);
-    emit audioRoleChanged(audioRole);
-
-}
-
-/*!
-    Returns a list of supported audio roles.
-
-    If setting the audio role is not supported, an empty list is returned.
-
-    \since 5.6
-    \sa audioRole
-*/
-QList<QAudio::Role> QMediaPlayer::supportedAudioRoles() const
-{
-    Q_D(const QMediaPlayer);
-
-    return d->control->supportedAudioRoles();
-}
-
 bool QMediaPlayer::autoPlay() const
 {
     Q_D(const QMediaPlayer);
@@ -910,14 +826,6 @@ bool QMediaPlayer::autoPlay() const
     Signals the \a seekable status of the player object has changed.
 */
 
-/*!
-    \fn void QMediaPlayer::audioRoleChanged(QAudio::Role role)
-
-    Signals that the audio \a role of the media player has changed.
-
-    \since 5.6
-*/
-
 // Properties
 /*!
     \property QMediaPlayer::state
@@ -983,27 +891,6 @@ bool QMediaPlayer::autoPlay() const
 */
 
 /*!
-    \property QMediaPlayer::volume
-    \brief the current playback volume.
-
-    The playback volume is scaled linearly, ranging from \c 0 (silence) to \c 100 (full volume).
-    Values outside this range will be clamped.
-
-    By default the volume is \c 100.
-
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
-    will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See QAudio::convertVolume() for more details.
-*/
-
-/*!
-    \property QMediaPlayer::muted
-    \brief the muted state of the current media.
-
-    The value will be true if the playback volume is muted; otherwise false.
-*/
-
-/*!
     \property QMediaPlayer::bufferProgress
     \brief the percentage of the temporary buffer filled before playback begins or resumes, from
     \c 0 (empty) to \c 100 (full).
@@ -1063,19 +950,6 @@ bool QMediaPlayer::autoPlay() const
 */
 
 /*!
-    \property QMediaPlayer::audioRole
-    \brief the role of the audio stream played by the media player.
-
-    It can be set to specify the type of audio being played, allowing the system to make
-    appropriate decisions when it comes to volume, routing or post-processing.
-
-    The audio role must be set before calling setMedia().
-
-    \since 5.6
-    \sa supportedAudioRoles()
-*/
-
-/*!
     \fn void QMediaPlayer::durationChanged(qint64 duration)
 
     Signal the duration of the content has changed to \a duration, expressed in milliseconds.
@@ -1086,18 +960,6 @@ bool QMediaPlayer::autoPlay() const
 
     Signal the position of the content has changed to \a position, expressed in
     milliseconds.
-*/
-
-/*!
-    \fn void QMediaPlayer::volumeChanged(int volume)
-
-    Signal the playback volume has changed to \a volume.
-*/
-
-/*!
-    \fn void QMediaPlayer::mutedChanged(bool muted)
-
-    Signal the mute state has changed to \a muted.
 */
 
 /*!

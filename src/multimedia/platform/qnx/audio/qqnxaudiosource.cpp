@@ -267,7 +267,7 @@ bool QQnxAudioSource::open()
         return false;
     }
 
-    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudio::AudioInput, info.max_fragment_size);
+    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudioDevice::Input, info.max_fragment_size);
 
     if ((errorCode = snd_pcm_plugin_params(m_pcmHandle, &params)) < 0) {
         qWarning("QQnxAudioSource: open error, couldn't set channel params (0x%x)", -errorCode);

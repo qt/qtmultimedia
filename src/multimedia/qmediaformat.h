@@ -58,9 +58,6 @@ class Q_MULTIMEDIA_EXPORT QMediaFormat
     Q_PROPERTY(FileFormat fileFormat READ fileFormat WRITE setFileFormat)
     Q_PROPERTY(AudioCodec audioCodec READ audioCodec WRITE setAudioCodec)
     Q_PROPERTY(VideoCodec videoCodec READ videoCodec WRITE setVideoCodec)
-    Q_ENUMS(FileFormat)
-    Q_ENUMS(AudioCodec)
-    Q_ENUMS(VideoCodec)
 public:
     enum FileFormat {
         UnspecifiedFormat = -1,
@@ -81,6 +78,7 @@ public:
         Wave,
         LastFileFormat = Wave
     };
+    Q_ENUM(FileFormat)
 
     enum class AudioCodec {
         Unspecified = -1,
@@ -96,6 +94,7 @@ public:
         ALAC,
         LastAudioCodec = ALAC
     };
+    Q_ENUM(AudioCodec)
 
     enum class VideoCodec {
         Unspecified = -1,
@@ -111,6 +110,7 @@ public:
         MotionJPEG,
         LastVideoCodec = MotionJPEG
     };
+    Q_ENUM(VideoCodec)
 
     enum ConversionMode {
         Encode,

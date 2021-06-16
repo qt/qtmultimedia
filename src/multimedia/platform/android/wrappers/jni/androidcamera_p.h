@@ -70,13 +70,12 @@ class AndroidSurfaceHolder;
 class AndroidCamera : public QObject
 {
     Q_OBJECT
-    Q_ENUMS(CameraFacing)
-    Q_ENUMS(ImageFormat)
 public:
     enum CameraFacing {
         CameraFacingBack = 0,
         CameraFacingFront = 1
     };
+    Q_ENUM(CameraFacing)
 
     enum ImageFormat { // same values as in android.graphics.ImageFormat Java class
         UnknownImageFormat = 0,
@@ -87,6 +86,7 @@ public:
         JPEG = 256,
         YV12 = 842094169
     };
+    Q_ENUM(ImageFormat)
 
     // http://developer.android.com/reference/android/hardware/Camera.Parameters.html#getSupportedPreviewFpsRange%28%29
     // "The values are multiplied by 1000 and represented in integers"

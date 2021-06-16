@@ -85,8 +85,6 @@ class QQuickPlaylist : public QAbstractListModel, public QQmlParserStatus
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QQmlListProperty<QQuickPlaylistItem> items READ items DESIGNABLE false)
-    Q_ENUMS(PlaybackMode)
-    Q_ENUMS(Error)
     Q_INTERFACES(QQmlParserStatus)
     Q_CLASSINFO("DefaultProperty", "items")
     QML_NAMED_ELEMENT(Playlist)
@@ -100,6 +98,8 @@ public:
         Loop = QMediaPlaylist::Loop,
 //        Random = QMediaPlaylist::Random
     };
+    Q_ENUM(PlaybackMode)
+
     enum Error
     {
         NoError = QMediaPlaylist::NoError,
@@ -108,6 +108,8 @@ public:
         NetworkError = QMediaPlaylist::NetworkError,
         AccessDeniedError = QMediaPlaylist::AccessDeniedError
     };
+    Q_ENUM(Error)
+
     enum Roles
     {
         SourceRole = Qt::UserRole + 1

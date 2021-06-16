@@ -54,14 +54,15 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QDebug>
-#include <QMediaEncoder>
+#include <QMediaRecorder>
 #include <QMediaFormat>
 #include <QAudioDevice>
 #include <QMediaCaptureSession>
 #include <QCameraDevice>
 #include <QCamera>
+#include <QAudioInput>
 
-VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
+VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
     : QDialog(parent),
       ui(new Ui::VideoSettingsUi),
       mediaRecorder(mediaRecorder)
@@ -77,8 +78,9 @@ VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
     }
 
     //sample rate:
-    ui->audioSampleRateBox->setRange(mediaRecorder->captureSession()->audioInput().minimumSampleRate(),
-                                     mediaRecorder->captureSession()->audioInput().maximumSampleRate());
+    auto audioDevice = mediaRecorder->captureSession()->audioInput()->device();
+    ui->audioSampleRateBox->setRange(audioDevice.minimumSampleRate(),
+                                     audioDevice.maximumSampleRate());
 
     //video codecs
     ui->videoCodecBox->addItem(tr("Default video codec"), QVariant::fromValue(QMediaFormat::VideoCodec::Unspecified));
@@ -111,7 +113,7 @@ VideoSettings::VideoSettings(QMediaEncoder *mediaRecorder, QWidget *parent)
                                         QVariant::fromValue(format));
     }
 
-    ui->qualitySlider->setRange(0, int(QImageEncoderSettings::VeryHighQuality));
+    ui->qualitySlider->setRange(0, int(QMediaEncoderSettings::VeryHighQuality));
 }
 
 VideoSettings::~VideoSettings()

@@ -57,12 +57,12 @@ QAndroidMediaDevices::QAndroidMediaDevices()
 
 QList<QAudioDevice> QAndroidMediaDevices::audioInputs() const
 {
-    return QOpenSLESEngine::availableDevices(QAudio::AudioInput);
+    return QOpenSLESEngine::availableDevices(QAudioDevice::Input);
 }
 
 QList<QAudioDevice> QAndroidMediaDevices::audioOutputs() const
 {
-    return QOpenSLESEngine::availableDevices(QAudio::AudioOutput);
+    return QOpenSLESEngine::availableDevices(QAudioDevice::Output);
 }
 
 QList<QCameraDevice> QAndroidMediaDevices::videoInputs() const

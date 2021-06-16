@@ -73,10 +73,13 @@ public:
     QPlatformMediaCaptureSession *createCaptureSession() override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
     QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
+    QPlatformMediaEncoder *createEncoder(QMediaRecorder *) override;
     QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) override;
 
     QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+
+    QPlatformAudioInput *createAudioInput(QAudioInput *) override;
+    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
 
     QGstreamerMediaDevices *m_devices = nullptr;
     QGstreamerFormatInfo *m_formatsInfo = nullptr;

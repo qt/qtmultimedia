@@ -42,7 +42,7 @@ There are a number of new features in Qt Multimedia:
 \list
 \li QMediaCaptureSession class as the central object for media capture
 \li Changed QMediaRecorder class to be a high level class for audio/video recording
-\li new QMediaEncoder class to handle encoding of data produced in a capture session
+\li new QMediaRecorder class to handle encoding of data produced in a capture session
 \li Setting up the desired encodings when recording has changed significantly, see
 QMediaEncoderSettings for details
 \li Support for selection of audio, video and subtitle tracks when playing back media files

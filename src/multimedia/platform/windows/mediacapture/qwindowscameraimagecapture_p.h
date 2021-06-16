@@ -57,7 +57,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsCameraSession;
+class QWindowsMediaDeviceSession;
 class QWindowsMediaCaptureService;
 
 class QWindowsCameraImageCapture : public QPlatformCameraImageCapture
@@ -85,12 +85,12 @@ private:
     void saveImage(int captureId, const QString &fileName,
                    const QImage &image, const QMediaMetaData &metaData,
                    const QImageEncoderSettings &settings);
-    QString writerFormat(QImageEncoderSettings::FileFormat reqFormat);
+    QString writerFormat(QCameraImageCapture::FileFormat reqFormat);
     int writerQuality(const QString &writerFormat,
-                      QImageEncoderSettings::Quality quality);
+                      QCameraImageCapture::Quality quality);
 
     QWindowsMediaCaptureService  *m_captureService = nullptr;
-    QWindowsCameraSession        *m_cameraSession = nullptr;
+    QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QImageEncoderSettings         m_settings;
     QWindowsStorageLocation       m_storageLocation;
     int m_captureId = 0;

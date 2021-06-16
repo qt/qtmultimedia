@@ -52,7 +52,7 @@ import QtQuick
 import QtMultimedia
 
 VideoOutput {
-    source: mediaPlayer
+    id: video
     property alias mediaSource: mediaPlayer.source
     property alias volume: mediaPlayer.volume
     property bool isRunning: true
@@ -62,6 +62,10 @@ VideoOutput {
         autoPlay: true
         volume: 0.5
         loops: Audio.Infinite
+        videoOutput: video
+        audioOutput: AudioOutput {
+
+        }
     }
 
     function play() { mediaPlayer.play() }

@@ -54,12 +54,13 @@
 #include "imagesettings.h"
 #include "metadatadialog.h"
 
-#include <QMediaEncoder>
+#include <QMediaRecorder>
 #include <QVideoWidget>
 #include <QCameraDevice>
 #include <QMediaMetaData>
 #include <QMediaDevices>
 #include <QAudioDevice>
+#include <QAudioInput>
 
 #include <QMessageBox>
 #include <QPalette>
@@ -73,6 +74,9 @@ Camera::Camera()
     : ui(new Ui::Camera)
 {
     ui->setupUi(this);
+
+    m_audioInput.reset(new QAudioInput);
+    m_captureSession.setAudioInput(m_audioInput.get());
 
     //Camera devices:
 
@@ -97,23 +101,22 @@ void Camera::setCamera(const QCameraDevice &cameraInfo)
     connect(m_camera.data(), &QCamera::activeChanged, this, &Camera::updateCameraActive);
     connect(m_camera.data(), &QCamera::errorOccurred, this, &Camera::displayCameraError);
 
-    m_mediaEncoder.reset(new QMediaEncoder);
+    m_mediaEncoder.reset(new QMediaRecorder);
     m_captureSession.setEncoder(m_mediaEncoder.data());
-    connect(m_mediaEncoder.data(), &QMediaEncoder::stateChanged, this, &Camera::updateRecorderState);
+    connect(m_mediaEncoder.data(), &QMediaRecorder::recorderStateChanged, this, &Camera::updateRecorderState);
 
     m_imageCapture = new QCameraImageCapture;
     m_captureSession.setImageCapture(m_imageCapture);
 
-    connect(m_mediaEncoder.data(), &QMediaEncoder::durationChanged, this, &Camera::updateRecordTime);
-    connect(m_mediaEncoder.data(), &QMediaEncoder::errorChanged, this, &Camera::displayRecorderError);
+    connect(m_mediaEncoder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
+    connect(m_mediaEncoder.data(), &QMediaRecorder::errorChanged, this, &Camera::displayRecorderError);
 
     connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
 
     m_captureSession.setVideoOutput(ui->viewfinder);
-    m_captureSession.setAudioInput(QMediaDevices::defaultAudioInput());
 
     updateCameraActive(m_camera->isActive());
-    updateRecorderState(m_mediaEncoder->state());
+    updateRecorderState(m_mediaEncoder->recorderState());
 
     connect(m_imageCapture, &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
     connect(m_imageCapture, &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
@@ -139,7 +142,7 @@ void Camera::keyPressEvent(QKeyEvent * event)
         if (m_doImageCapture) {
             takeImage();
         } else {
-            if (m_mediaEncoder->state() == QMediaEncoder::RecordingState)
+            if (m_mediaEncoder->recorderState() == QMediaRecorder::RecordingState)
                 stop();
             else
                 record();
@@ -203,11 +206,8 @@ void Camera::configureImageSettings()
     ImageSettings settingsDialog(m_imageCapture);
     settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-    settingsDialog.setImageSettings(m_imageSettings);
-
     if (settingsDialog.exec()) {
-        m_imageSettings = settingsDialog.imageSettings();
-        m_imageCapture->setEncodingSettings(m_imageSettings);
+        settingsDialog.applyImageSettings();
     }
 }
 
@@ -229,7 +229,7 @@ void Camera::stop()
 
 void Camera::setMuted(bool muted)
 {
-    m_captureSession.setMuted(muted);
+    m_captureSession.audioInput()->setMuted(muted);
 }
 
 void Camera::takeImage()
@@ -277,22 +277,22 @@ void Camera::updateCameraActive(bool active)
     }
 }
 
-void Camera::updateRecorderState(QMediaEncoder::State state)
+void Camera::updateRecorderState(QMediaRecorder::RecorderState state)
 {
     switch (state) {
-    case QMediaEncoder::StoppedState:
+    case QMediaRecorder::StoppedState:
         ui->recordButton->setEnabled(true);
         ui->pauseButton->setEnabled(true);
         ui->stopButton->setEnabled(false);
         ui->metaDataButton->setEnabled(true);
         break;
-    case QMediaEncoder::PausedState:
+    case QMediaRecorder::PausedState:
         ui->recordButton->setEnabled(true);
         ui->pauseButton->setEnabled(false);
         ui->stopButton->setEnabled(true);
         ui->metaDataButton->setEnabled(false);
         break;
-    case QMediaEncoder::RecordingState:
+    case QMediaRecorder::RecordingState:
         ui->recordButton->setEnabled(false);
         ui->pauseButton->setEnabled(true);
         ui->stopButton->setEnabled(true);
@@ -308,7 +308,7 @@ void Camera::setExposureCompensation(int index)
 
 void Camera::displayRecorderError()
 {
-    if (m_mediaEncoder->error() != QMediaEncoder::NoError)
+    if (m_mediaEncoder->error() != QMediaRecorder::NoError)
         QMessageBox::warning(this, tr("Capture Error"), m_mediaEncoder->errorString());
 }
 

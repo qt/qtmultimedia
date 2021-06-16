@@ -60,7 +60,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsCameraSession;
+class QWindowsMediaDeviceSession;
 class QPlatformMediaCaptureSession;
 class QWindowsMediaCaptureService;
 
@@ -68,12 +68,12 @@ class QWindowsMediaEncoder : public QObject, public QPlatformMediaEncoder
 {
     Q_OBJECT
 public:
-    explicit QWindowsMediaEncoder(QMediaEncoder *parent);
+    explicit QWindowsMediaEncoder(QMediaRecorder *parent);
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
-    QMediaEncoder::State state() const override;
-    QMediaEncoder::Status status() const override;
+    QMediaRecorder::RecorderState state() const override;
+    QMediaRecorder::Status status() const override;
     qint64 duration() const override;
     void applySettings() override;
 
@@ -82,7 +82,7 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
 public Q_SLOTS:
-    void setState(QMediaEncoder::State state) override;
+    void setState(QMediaRecorder::RecorderState state) override;
 
 private Q_SLOTS:
     void onCameraChanged();
@@ -93,10 +93,10 @@ private Q_SLOTS:
 
 private:
     QWindowsMediaCaptureService  *m_captureService = nullptr;
-    QWindowsCameraSession        *m_cameraSession = nullptr;
+    QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QUrl                          m_outputLocation;
-    QMediaEncoder::State          m_state = QMediaEncoder::StoppedState;
-    QMediaEncoder::Status         m_lastStatus = QMediaEncoder::StoppedStatus;
+    QMediaRecorder::RecorderState          m_state = QMediaRecorder::StoppedState;
+    QMediaRecorder::Status         m_lastStatus = QMediaRecorder::StoppedStatus;
     QMediaEncoderSettings         m_settings;
     QWindowsStorageLocation       m_storageLocation;
     qint64                        m_duration = 0;

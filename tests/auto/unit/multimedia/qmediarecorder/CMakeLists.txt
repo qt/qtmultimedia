@@ -1,12 +1,12 @@
-# Generated from qmediarecorder.pro.
+# Generated from QMediaRecorder.pro.
 
 #####################################################################
-## tst_qmediarecorder Test:
+## tst_QMediaRecorder Test:
 #####################################################################
 
-qt_internal_add_test(tst_qmediaencoder
+qt_internal_add_test(tst_qmediarecorder
     SOURCES
-        tst_qmediaencoder.cpp
+        tst_qmediarecorder.cpp
     INCLUDE_DIRECTORIES
         ../../mockbackend
     PUBLIC_LIBRARIES

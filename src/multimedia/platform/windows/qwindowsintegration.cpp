@@ -108,7 +108,7 @@ QPlatformCamera *QWindowsIntegration::createCamera(QCamera *camera)
     return new QWindowsCamera(camera);
 }
 
-QPlatformMediaEncoder *QWindowsIntegration::createEncoder(QMediaEncoder *encoder)
+QPlatformMediaEncoder *QWindowsIntegration::createEncoder(QMediaRecorder *encoder)
 {
     return new QWindowsMediaEncoder(encoder);
 }

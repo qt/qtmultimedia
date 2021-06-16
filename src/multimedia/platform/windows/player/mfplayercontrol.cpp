@@ -126,14 +126,9 @@ QMediaMetaData MFPlayerControl::metaData() const
     return m_session->metaData();
 }
 
-bool MFPlayerControl::setAudioOutput(const QAudioDevice &info)
+void MFPlayerControl::setAudioOutput(QPlatformAudioOutput *output)
 {
-    return m_session->setAudioOutput(info);
-}
-
-QAudioDevice MFPlayerControl::audioOutput() const
-{
-    return m_session->audioOutput();
+    m_session->setAudioOutput(output);
 }
 
 void MFPlayerControl::setVideoSink(QVideoSink *sink)
@@ -252,26 +247,6 @@ void MFPlayerControl::setPosition(qint64 position)
     if (!m_seekable || position == m_session->position())
         return;
     m_session->setPosition(position);
-}
-
-int MFPlayerControl::volume() const
-{
-    return m_session->volume();
-}
-
-void MFPlayerControl::setVolume(int volume)
-{
-    m_session->setVolume(volume);
-}
-
-bool MFPlayerControl::isMuted() const
-{
-    return m_session->isMuted();
-}
-
-void MFPlayerControl::setMuted(bool muted)
-{
-    m_session->setMuted(muted);
 }
 
 float MFPlayerControl::bufferProgress() const

@@ -69,7 +69,7 @@ QT_BEGIN_NAMESPACE
 class QAlsaAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudio::Mode mode);
+    QAlsaAudioDeviceInfo(const QByteArray &dev, const QString &description, QAudioDevice::Mode mode);
     ~QAlsaAudioDeviceInfo();
 
 private:

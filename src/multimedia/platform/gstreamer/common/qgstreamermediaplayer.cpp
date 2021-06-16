@@ -70,11 +70,6 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
       QPlatformMediaPlayer(parent),
       playerPipeline("playerPipeline")
 {
-    gstAudioOutput = new QGstreamerAudioOutput(this);
-    gstAudioOutput->setPipeline(playerPipeline);
-    connect(gstAudioOutput, &QGstreamerAudioOutput::mutedChanged, this, &QGstreamerMediaPlayer::mutedChangedHandler);
-    connect(gstAudioOutput, &QGstreamerAudioOutput::volumeChanged, this, &QGstreamerMediaPlayer::volumeChangedHandler);
-
     gstVideoOutput = new QGstreamerVideoOutput(this);
     gstVideoOutput->setPipeline(playerPipeline);
 
@@ -119,16 +114,6 @@ qint64 QGstreamerMediaPlayer::duration() const
 float QGstreamerMediaPlayer::bufferProgress() const
 {
     return m_bufferProgress/100.;
-}
-
-int QGstreamerMediaPlayer::volume() const
-{
-    return gstAudioOutput->volume();
-}
-
-bool QGstreamerMediaPlayer::isMuted() const
-{
-    return gstAudioOutput->isMuted();
 }
 
 bool QGstreamerMediaPlayer::isSeekable() const
@@ -229,16 +214,6 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
     updatePosition();
     emit stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(eos ? QMediaPlayer::EndOfMedia : QMediaPlayer::LoadedMedia);
-}
-
-void QGstreamerMediaPlayer::setVolume(int vol)
-{
-    gstAudioOutput->setVolume(vol);
-}
-
-void QGstreamerMediaPlayer::setMuted(bool muted)
-{
-    gstAudioOutput->setMuted(muted);
 }
 
 bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
@@ -424,7 +399,8 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
         output = gstVideoOutput->gstElement();
     } else if (type.startsWith("audio/x-raw")) {
         streamType = AudioStream;
-        output = gstAudioOutput->gstElement();
+        if (gstAudioOutput)
+            output = gstAudioOutput->gstElement();
     } else if (type.startsWith("text/")) {
         streamType = SubtitleStream;
     } else {
@@ -601,14 +577,12 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     positionChanged(0);
 }
 
-bool QGstreamerMediaPlayer::setAudioOutput(const QAudioDevice &info)
+void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 {
-    return gstAudioOutput->setAudioOutput(info);
-}
-
-QAudioDevice QGstreamerMediaPlayer::audioOutput() const
-{
-    return gstAudioOutput->audioOutput();
+    if (gstAudioOutput == output)
+        return;
+    gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
+    // ### Connect it if we're already running!
 }
 
 QMediaMetaData QGstreamerMediaPlayer::metaData() const

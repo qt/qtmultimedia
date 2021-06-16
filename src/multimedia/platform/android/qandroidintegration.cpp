@@ -52,6 +52,7 @@
 #include "private/androidmediarecorder_p.h"
 #include "private/qandroidformatsinfo_p.h"
 #include "private/qandroidmediaplayercontrol_p.h"
+#include "private/qandroidaudiooutput_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -98,7 +99,7 @@ QPlatformCamera *QAndroidIntegration::createCamera(QCamera *camera)
     return new QAndroidCameraControl(camera);
 }
 
-QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaEncoder *encoder)
+QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaRecorder *encoder)
 {
     return new QAndroidMediaEncoder(encoder);
 }
@@ -106,6 +107,11 @@ QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaEncoder *encoder
 QPlatformCameraImageCapture *QAndroidIntegration::createImageCapture(QCameraImageCapture *imageCapture)
 {
     return new QAndroidCameraImageCaptureControl(imageCapture);
+}
+
+QPlatformAudioOutput *QAndroidIntegration::createAudioOutput(QAudioOutput *q)
+{
+    return new QAndroidAudioOutput(q);
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)

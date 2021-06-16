@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 class QnxAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QnxAudioDeviceInfo(const QByteArray &deviceName, QAudio::Mode mode);
+    QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode);
     ~QnxAudioDeviceInfo();
 
     QAudioFormat preferredFormat() const override;

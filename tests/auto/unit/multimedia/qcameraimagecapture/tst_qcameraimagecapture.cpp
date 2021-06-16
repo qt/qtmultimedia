@@ -181,14 +181,10 @@ void tst_QCameraImageCapture::encodingSettings()
     session.setImageCapture(&imageCapture);
 
     QVERIFY(imageCapture.isAvailable() == true);
-    QVERIFY(imageCapture.encodingSettings() == QImageEncoderSettings());
-    QImageEncoderSettings settings;
-    settings.setFormat(QImageEncoderSettings::JPEG);
-    settings.setQuality(QImageEncoderSettings::NormalQuality);
-    imageCapture.setEncodingSettings(settings);
-    QVERIFY(!imageCapture.encodingSettings().isNull());
-    QVERIFY(imageCapture.encodingSettings().format() == QImageEncoderSettings::JPEG);
-    QVERIFY(imageCapture.encodingSettings().quality() == QImageEncoderSettings::NormalQuality);
+    imageCapture.setFileFormat(QCameraImageCapture::JPEG);
+    imageCapture.setQuality(QCameraImageCapture::NormalQuality);
+    QVERIFY(imageCapture.fileFormat() == QCameraImageCapture::JPEG);
+    QVERIFY(imageCapture.quality() == QCameraImageCapture::NormalQuality);
 }
 
 void tst_QCameraImageCapture::errors()

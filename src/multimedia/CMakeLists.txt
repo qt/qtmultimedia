@@ -18,6 +18,8 @@ qt_internal_add_module(Multimedia
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
         audio/qaudiodecoder.cpp audio/qaudiodecoder.h
         audio/qaudiodevice.cpp audio/qaudiodevice.h audio/qaudiodevice_p.h
+        audio/qaudioinput.cpp audio/qaudioinput.h
+        audio/qaudiooutput.cpp audio/qaudiooutput.h
         audio/qaudioformat.cpp audio/qaudioformat.h
         audio/qaudiohelpers.cpp audio/qaudiohelpers_p.h
         audio/qaudiosource.cpp audio/qaudiosource.h
@@ -30,6 +32,8 @@ qt_internal_add_module(Multimedia
         camera/qcameradevice.cpp camera/qcameradevice.h camera/qcameradevice_p.h
         camera/qcameraimagecapture.cpp camera/qcameraimagecapture.h
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
+        platform/qplatformaudioinput_p.h
+        platform/qplatformaudiooutput_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
         platform/qplatformcameraimagecapture.cpp platform/qplatformcameraimagecapture_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
@@ -51,9 +55,8 @@ qt_internal_add_module(Multimedia
         qmultimediautils.cpp qmultimediautils_p.h
         qtmultimediaglobal.h qtmultimediaglobal_p.h
         recording/qmediacapturesession.cpp recording/qmediacapturesession.h
-        recording/qmediaencoder.cpp recording/qmediaencoder.h recording/qmediaencoder_p.h
-        recording/qmediaencodersettings.cpp recording/qmediaencodersettings.h
         recording/qmediarecorder.cpp recording/qmediarecorder.h recording/qmediarecorder_p.h
+        recording/qmediaencodersettings.cpp recording/qmediaencodersettings.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qvideoframe.cpp video/qvideoframe.h
@@ -154,13 +157,13 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/mediacapture/qwindowscamera.cpp
         platform/windows/mediacapture/qwindowscameraimagecapture.cpp
         platform/windows/mediacapture/qwindowscameraimagecapture_p.h
-        platform/windows/mediacapture/qwindowscamerareader.cpp
-        platform/windows/mediacapture/qwindowscamerareader_p.h
-        platform/windows/mediacapture/qwindowscamerasession.cpp
-        platform/windows/mediacapture/qwindowscamerasession_p.h
         platform/windows/mediacapture/qwindowscamera_p.h
         platform/windows/mediacapture/qwindowsmediacapture.cpp
         platform/windows/mediacapture/qwindowsmediacapture_p.h
+        platform/windows/mediacapture/qwindowsmediadevicereader.cpp
+        platform/windows/mediacapture/qwindowsmediadevicereader_p.h
+        platform/windows/mediacapture/qwindowsmediadevicesession.cpp
+        platform/windows/mediacapture/qwindowsmediadevicesession_p.h
         platform/windows/mediacapture/qwindowsmediaencoder.cpp
         platform/windows/mediacapture/qwindowsmediaencoder_p.h
         platform/windows/qwindowsmediadevices.cpp platform/windows/qwindowsmediadevices_p.h
@@ -300,6 +303,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/audio/qandroidaudiosink.cpp platform/android/audio/qandroidaudiosink_p.h
         platform/android/audio/qandroidaudiodevice.cpp platform/android/audio/qandroidaudiodevice_p.h
         platform/android/audio/qopenslesengine.cpp platform/android/audio/qopenslesengine_p.h
+        platform/android/common/qandroidaudiooutput_p.h
         platform/android/common/qandroidglobal_p.h
         platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
         platform/android/common/qandroidvideooutput.cpp platform/android/common/qandroidvideooutput_p.h
@@ -352,6 +356,7 @@ qt_internal_extend_target(Multimedia CONDITION TARGET Qt::Widgets AND WIN32
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
     SOURCES
+        platform/darwin/audio/avfaudiodecoder.mm platform/darwin/audio/avfaudiodecoder_p.h
         platform/darwin/audio/qdarwinaudiodevice.mm platform/darwin/audio/qdarwinaudiodevice_p.h
         platform/darwin/audio/qdarwinaudiosource.mm platform/darwin/audio/qdarwinaudiosource_p.h
         platform/darwin/audio/qdarwinaudiosink.mm platform/darwin/audio/qdarwinaudiosink_p.h

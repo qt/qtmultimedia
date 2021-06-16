@@ -40,6 +40,7 @@
 #include <private/qgstreameraudioinput_p.h>
 #include <private/qgstreameraudiodevice_p.h>
 #include <qaudiodevice.h>
+#include <qaudioinput.h>
 
 #include <QtCore/qloggingcategory.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
@@ -53,9 +54,10 @@ Q_LOGGING_CATEGORY(qLcMediaAudioInput, "qt.multimedia.audioInput")
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerAudioInput::QGstreamerAudioInput(QObject *parent)
-    : QObject(parent),
-      gstAudioInput("audioInput")
+QGstreamerAudioInput::QGstreamerAudioInput(QAudioInput *parent)
+  : QObject(parent),
+    QPlatformAudioInput(parent),
+    gstAudioInput("audioInput")
 {
     audioSrc = QGstElement("autoaudiosrc", "autoaudiosrc");
     audioVolume = QGstElement("volume", "volume");
@@ -79,12 +81,12 @@ bool QGstreamerAudioInput::isMuted() const
     return m_muted;
 }
 
-void QGstreamerAudioInput::setVolume(int vol)
+void QGstreamerAudioInput::setVolume(float vol)
 {
     if (vol == m_volume)
         return;
     m_volume = vol;
-    audioVolume.set("volume", vol/100.);
+    audioVolume.set("volume", vol);
     emit volumeChanged(m_volume);
 }
 
@@ -102,28 +104,27 @@ void QGstreamerAudioInput::setPipeline(const QGstPipeline &pipeline)
     gstPipeline = pipeline;
 }
 
-bool QGstreamerAudioInput::setAudioInput(const QAudioDevice &info)
+void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
 {
-    if (info == m_audioInput)
-        return true;
-    qCDebug(qLcMediaAudioInput) << "setAudioInput" << info.description() << info.isNull();
-    m_audioInput = info;
+    if (device == m_audioDevice)
+        return;
+    qCDebug(qLcMediaAudioInput) << "setAudioInput" << device.description() << device.isNull();
+    m_audioDevice = device;
 
-    auto state = gstPipeline.state();
-    if (state != GST_STATE_PLAYING)
-        return changeAudioInput();
+    if (gstPipeline.isNull() || gstPipeline.state() != GST_STATE_PLAYING) {
+        changeAudioInput();
+        return;
+    }
 
     auto pad = audioVolume.staticPad("src");
     pad.addProbe<&QGstreamerAudioInput::prepareAudioInputChange>(this, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM);
-
-    return true;
 }
 
 bool QGstreamerAudioInput::changeAudioInput()
 {
     qCDebug(qLcMediaAudioInput) << "Changing audio Input";
     QGstElement newSrc;
-    auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioInput.handle());
+    auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
     if (deviceInfo && deviceInfo->gstDevice)
         newSrc = gst_device_create_element(deviceInfo->gstDevice , "audiosrc");
 
@@ -151,7 +152,7 @@ void QGstreamerAudioInput::prepareAudioInputChange(const QGstPad &/*pad*/)
 
 QAudioDevice QGstreamerAudioInput::audioInput() const
 {
-    return m_audioInput;
+    return m_audioDevice;
 }
 
 QT_END_NAMESPACE

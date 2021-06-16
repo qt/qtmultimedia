@@ -14,6 +14,7 @@ target_link_libraries(QtMultimediaMockBackend INTERFACE
 )
 target_sources(QtMultimediaMockBackend INTERFACE
     qmockaudiodecoder.h
+    qmockaudiooutput.h
     qmockcamera.h
     qmockimagecapture.h qmockimagecapture.cpp
     qmockmediaplayer.h

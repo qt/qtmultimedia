@@ -79,7 +79,6 @@ class Q_MULTIMEDIA_EXPORT QCameraDevice
     Q_PROPERTY(QString description READ description CONSTANT)
     Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
     Q_PROPERTY(Position position READ position CONSTANT)
-    Q_ENUMS(Position)
 public:
     QCameraDevice();
     QCameraDevice(const QCameraDevice& other);
@@ -106,6 +105,7 @@ public:
         BackFace,
         FrontFace
     };
+    Q_ENUM(Position)
 
     Position position() const;
 

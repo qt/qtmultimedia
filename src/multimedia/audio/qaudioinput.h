@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,57 +37,51 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIAENCODER_P_H
-#define QMEDIAENCODER_P_H
+#ifndef QAUDIOINPUTDEVICE_H
+#define QAUDIOINPUTDEVICE_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include "qmediaencoder.h"
-#include "qcamera.h"
-#include <QtCore/qurl.h>
-#include <QtCore/qpointer.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-class QPlatformMediaEncoder;
-class QMediaContainerControl;
-class QAudioEncoderSettingsControl;
-class QVideoEncoderSettingsControl;
-class QTimer;
+class QAudioDevice;
+class QPlatformAudioInput;
 
-class QMediaEncoderPrivate
+class Q_MULTIMEDIA_EXPORT QAudioInput : public QObject
 {
-    Q_DECLARE_PUBLIC(QMediaEncoder)
+    Q_OBJECT
+    Q_PROPERTY(QAudioDevice device READ device WRITE setDevice NOTIFY deviceChanged)
+    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
 
 public:
-    QMediaEncoderPrivate() = default;
+    explicit QAudioInput(QObject *parent = nullptr);
+    explicit QAudioInput(const QAudioDevice &deviceInfo, QObject *parent = nullptr);
+    ~QAudioInput();
 
-    void applySettingsLater();
+    QAudioDevice device() const;
+    float volume() const;
+    bool isMuted() const;
 
-    QMediaCaptureSession *captureSession = nullptr;
-    QPlatformMediaEncoder *control = nullptr;
+public Q_SLOTS:
+    void setDevice(const QAudioDevice &device);
+    void setVolume(float volume);
+    void setMuted(bool muted);
 
-    bool settingsChanged = false;
+Q_SIGNALS:
+    void deviceChanged();
+    void volumeChanged(float volume);
+    void mutedChanged(bool muted);
 
-    QMediaEncoderSettings encoderSettings;
-
-    void _q_applySettings();
-
-    QMediaEncoder *q_ptr = nullptr;
+public:
+    QPlatformAudioInput *handle() const { return d; }
+private:
+    Q_DISABLE_COPY(QAudioInput)
+    QPlatformAudioInput *d = nullptr;
 };
-
-#undef Q_DECLARE_NON_CONST_PUBLIC
 
 QT_END_NAMESPACE
 
-#endif
-
+#endif  // QAUDIOINPUTDEVICE_H

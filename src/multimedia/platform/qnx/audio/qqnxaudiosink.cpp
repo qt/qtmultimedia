@@ -278,7 +278,7 @@ bool QQnxAudioSink::open()
         return false;
     }
 
-    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudio::AudioOutput, info.max_fragment_size);
+    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudioDevice::Output, info.max_fragment_size);
     setTypeName(&params);
 
     if ((errorCode = snd_pcm_plugin_params(m_pcmHandle, &params)) < 0) {

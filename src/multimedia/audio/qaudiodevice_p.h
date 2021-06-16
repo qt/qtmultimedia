@@ -59,13 +59,13 @@ QT_BEGIN_NAMESPACE
 class QAudioDevicePrivate : public QSharedData
 {
 public:
-    QAudioDevicePrivate(const QByteArray &i, QAudio::Mode m)
+    QAudioDevicePrivate(const QByteArray &i, QAudioDevice::Mode m)
         : id(i),
           mode(m)
     {}
     virtual ~QAudioDevicePrivate();
     QByteArray  id;
-    QAudio::Mode mode = QAudio::AudioOutput;
+    QAudioDevice::Mode mode = QAudioDevice::Output;
     bool isDefault = false;
 
     QAudioFormat preferredFormat;

@@ -54,8 +54,6 @@
 #include <private/qplatformmediadevices_p.h>
 #include <qaudio.h>
 
-#include <QtCore/private/qjni_p.h>
-
 QT_BEGIN_NAMESPACE
 
 class QAndroidMediaDevices : public QPlatformMediaDevices

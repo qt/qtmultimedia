@@ -61,6 +61,7 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaStreamsControl;
+class QPlatformAudioOutput;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaPlayer
 {
@@ -73,12 +74,6 @@ public:
 
     virtual qint64 position() const = 0;
     virtual void setPosition(qint64 position) = 0;
-
-    virtual int volume() const = 0;
-    virtual void setVolume(int volume) = 0;
-
-    virtual bool isMuted() const = 0;
-    virtual void setMuted(bool mute) = 0;
 
     virtual float bufferProgress() const = 0;
 
@@ -100,13 +95,9 @@ public:
     virtual void pause() = 0;
     virtual void stop() = 0;
 
-    virtual void setAudioRole(QAudio::Role /*role*/) {}
-    virtual QList<QAudio::Role> supportedAudioRoles() const { return {}; }
-
     virtual bool streamPlaybackSupported() const { return false; }
 
-    virtual bool setAudioOutput(const QAudioDevice &) { return false; }
-    virtual QAudioDevice audioOutput() const { return QAudioDevice(); }
+    virtual void setAudioOutput(QPlatformAudioOutput *) {}
 
     virtual QMediaMetaData metaData() const { return {}; }
 
@@ -124,8 +115,6 @@ public:
     void positionChanged(qint64 position) { player->positionChanged(position); }
     void audioAvailableChanged(bool audioAvailable) { player->hasAudioChanged(audioAvailable); }
     void videoAvailableChanged(bool videoAvailable) { player->hasVideoChanged(videoAvailable); }
-    void volumeChanged(int volume) { player->volumeChanged(volume); }
-    void mutedChanged(bool mute) { player->mutedChanged(mute); }
     void seekableChanged(bool seekable) { player->seekableChanged(seekable); }
     void playbackRateChanged(qreal rate) { player->playbackRateChanged(rate); }
     void bufferProgressChanged(float progress) { player->bufferProgressChanged(progress); }

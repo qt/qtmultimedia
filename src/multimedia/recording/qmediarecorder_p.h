@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIARECORDER_P_H
-#define QMEDIARECORDER_P_H
+#ifndef QMediaRecorder_P_H
+#define QMediaRecorder_P_H
 
 //
 //  W A R N I N G
@@ -64,6 +64,26 @@ class QAudioEncoderSettingsControl;
 class QVideoEncoderSettingsControl;
 class QTimer;
 
+class QMediaRecorderPrivate
+{
+    Q_DECLARE_PUBLIC(QMediaRecorder)
+
+public:
+    QMediaRecorderPrivate() = default;
+
+    void applySettingsLater();
+
+    QMediaCaptureSession *captureSession = nullptr;
+    QPlatformMediaEncoder *control = nullptr;
+
+    bool settingsChanged = false;
+
+    QMediaEncoderSettings encoderSettings;
+
+    void _q_applySettings();
+
+    QMediaRecorder *q_ptr = nullptr;
+};
 
 #undef Q_DECLARE_NON_CONST_PUBLIC
 

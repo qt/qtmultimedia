@@ -69,7 +69,6 @@ private slots:
     void testCameraFocus();
     void testCameraCapture();
     void testCameraCaptureMetadata();
-    void testImageSettings();
     void testCameraEncodingProperyChange();
 
     void testConstructor();
@@ -436,98 +435,6 @@ void tst_QCamera::testCameraFocus()
     QCOMPARE(camera.customFocusPoint(), QPointF(-1, -1));
     camera.setCustomFocusPoint(QPointF(1.0, 1.0));
     QCOMPARE(camera.customFocusPoint(), QPointF(1.0, 1.0));
-}
-
-void tst_QCamera::testImageSettings()
-{
-    QImageEncoderSettings settings;
-    QVERIFY(settings.isNull());
-    QVERIFY(settings == QImageEncoderSettings());
-
-    QCOMPARE(settings.format(), QImageEncoderSettings::UnspecifiedFormat);
-    settings.setFormat(QImageEncoderSettings::Tiff);
-    QCOMPARE(settings.format(), QImageEncoderSettings::Tiff);
-    QVERIFY(!settings.isNull());
-    QVERIFY(settings != QImageEncoderSettings());
-
-    settings = QImageEncoderSettings();
-    QCOMPARE(settings.quality(), QImageEncoderSettings::NormalQuality);
-    settings.setQuality(QImageEncoderSettings::HighQuality);
-    QCOMPARE(settings.quality(), QImageEncoderSettings::HighQuality);
-    QVERIFY(!settings.isNull());
-
-    settings = QImageEncoderSettings();
-    QCOMPARE(settings.resolution(), QSize());
-    settings.setResolution(QSize(320,240));
-    QCOMPARE(settings.resolution(), QSize(320,240));
-    settings.setResolution(800,600);
-    QCOMPARE(settings.resolution(), QSize(800,600));
-    QVERIFY(!settings.isNull());
-
-    settings = QImageEncoderSettings();
-    QVERIFY(settings.isNull());
-    QCOMPARE(settings.format(), QImageEncoderSettings::UnspecifiedFormat);
-    QCOMPARE(settings.quality(), QImageEncoderSettings::NormalQuality);
-    QCOMPARE(settings.resolution(), QSize());
-
-    {
-        QImageEncoderSettings settings1;
-        QImageEncoderSettings settings2;
-        QCOMPARE(settings2, settings1);
-
-        settings2 = settings1;
-        QCOMPARE(settings2, settings1);
-        QVERIFY(settings2.isNull());
-
-        settings1.setQuality(QImageEncoderSettings::HighQuality);
-
-        QVERIFY(settings2.isNull());
-        QVERIFY(!settings1.isNull());
-        QVERIFY(settings1 != settings2);
-    }
-
-    {
-        QImageEncoderSettings settings1;
-        QImageEncoderSettings settings2(settings1);
-        QCOMPARE(settings2, settings1);
-
-        settings2 = settings1;
-        QCOMPARE(settings2, settings1);
-        QVERIFY(settings2.isNull());
-
-        settings1.setQuality(QImageEncoderSettings::HighQuality);
-
-        QVERIFY(settings2.isNull());
-        QVERIFY(!settings1.isNull());
-        QVERIFY(settings1 != settings2);
-    }
-
-    QImageEncoderSettings settings1;
-    QImageEncoderSettings settings2;
-
-    settings1 = QImageEncoderSettings();
-    settings1.setResolution(800,600);
-    settings2 = QImageEncoderSettings();
-    settings2.setResolution(QSize(800,600));
-    QVERIFY(settings1 == settings2);
-    settings2.setResolution(QSize(400,300));
-    QVERIFY(settings1 != settings2);
-
-    settings1 = QImageEncoderSettings();
-    settings1.setFormat(QImageEncoderSettings::PNG);
-    settings2 = QImageEncoderSettings();
-    settings2.setFormat(QImageEncoderSettings::PNG);
-    QVERIFY(settings1 == settings2);
-    settings2.setFormat(QImageEncoderSettings::Tiff);
-    QVERIFY(settings1 != settings2);
-
-    settings1 = QImageEncoderSettings();
-    settings1.setQuality(QImageEncoderSettings::NormalQuality);
-    settings2 = QImageEncoderSettings();
-    settings2.setQuality(QImageEncoderSettings::NormalQuality);
-    QVERIFY(settings1 == settings2);
-    settings2.setQuality(QImageEncoderSettings::LowQuality);
-    QVERIFY(settings1 != settings2);
 }
 
 void tst_QCamera::testCameraEncodingProperyChange()

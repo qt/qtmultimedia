@@ -56,15 +56,13 @@ class Q_MULTIMEDIA_EXPORT QAudioDecoder : public QObject
     Q_PROPERTY(QString error READ errorString)
     Q_PROPERTY(bool bufferAvailable READ bufferAvailable NOTIFY bufferAvailableChanged)
 
-    Q_ENUMS(State)
-    Q_ENUMS(Error)
-
 public:
     enum State
     {
         StoppedState,
         DecodingState
     };
+    Q_ENUM(State)
 
     enum Error
     {
@@ -74,6 +72,7 @@ public:
         AccessDeniedError,
         NotSupportedError
     };
+    Q_ENUM(Error)
 
     explicit QAudioDecoder(QObject *parent = nullptr);
     ~QAudioDecoder();

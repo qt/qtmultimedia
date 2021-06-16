@@ -39,7 +39,7 @@
 
 #include "qwindowscameraimagecapture_p.h"
 
-#include "qwindowscamerasession_p.h"
+#include "qwindowsmediadevicesession_p.h"
 #include "qwindowsmediacapture_p.h"
 
 #include <QtConcurrent/qtconcurrentrun.h>
@@ -56,9 +56,9 @@ QWindowsCameraImageCapture::~QWindowsCameraImageCapture() = default;
 
 bool QWindowsCameraImageCapture::isReadyForCapture() const
 {
-    if (!m_cameraSession)
+    if (!m_mediaDeviceSession)
         return false;
-    return !m_capturing && m_cameraSession->isReadyForCapture();
+    return !m_capturing && m_mediaDeviceSession->isActive() && !m_mediaDeviceSession->activeCamera().isNull();
 }
 
 int QWindowsCameraImageCapture::capture(const QString &fileName)
@@ -99,22 +99,22 @@ void QWindowsCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession 
     if (m_captureService == captureService)
         return;
 
-    if (m_cameraSession)
-        disconnect(m_cameraSession, nullptr, this, nullptr);
+    if (m_mediaDeviceSession)
+        disconnect(m_mediaDeviceSession, nullptr, this, nullptr);
 
     m_captureService = captureService;
     if (!m_captureService) {
-        m_cameraSession = nullptr;
+        m_mediaDeviceSession = nullptr;
         return;
     }
 
-    m_cameraSession = m_captureService->session();
-    Q_ASSERT(m_cameraSession);
+    m_mediaDeviceSession = m_captureService->session();
+    Q_ASSERT(m_mediaDeviceSession);
 
-    connect(m_cameraSession, SIGNAL(readyForCaptureChanged(bool)),
+    connect(m_mediaDeviceSession, SIGNAL(readyForCaptureChanged(bool)),
             this, SIGNAL(readyForCaptureChanged(bool)));
 
-    connect(m_cameraSession, SIGNAL(newVideoFrame(QVideoFrame)),
+    connect(m_mediaDeviceSession, SIGNAL(newVideoFrame(QVideoFrame)),
             this, SLOT(handleNewVideoFrame(QVideoFrame)));
 }
 
@@ -169,21 +169,21 @@ void QWindowsCameraImageCapture::saveImage(int captureId, const QString &fileNam
                               Q_ARG(int, captureId), Q_ARG(QString, fileName));
 }
 
-QString QWindowsCameraImageCapture::writerFormat(QImageEncoderSettings::FileFormat reqFormat)
+QString QWindowsCameraImageCapture::writerFormat(QCameraImageCapture::FileFormat reqFormat)
 {
     QString format;
 
     switch (reqFormat) {
-    case QImageEncoderSettings::FileFormat::JPEG:
+    case QCameraImageCapture::FileFormat::JPEG:
         format = QLatin1String("jpg");
         break;
-    case QImageEncoderSettings::FileFormat::PNG:
+    case QCameraImageCapture::FileFormat::PNG:
         format = QLatin1String("png");
         break;
-    case QImageEncoderSettings::FileFormat::WebP:
+    case QCameraImageCapture::FileFormat::WebP:
         format = QLatin1String("webp");
         break;
-    case QImageEncoderSettings::FileFormat::Tiff:
+    case QCameraImageCapture::FileFormat::Tiff:
         format = QLatin1String("tiff");
         break;
     default:
@@ -199,21 +199,21 @@ QString QWindowsCameraImageCapture::writerFormat(QImageEncoderSettings::FileForm
 }
 
 int QWindowsCameraImageCapture::writerQuality(const QString &writerFormat,
-                                              QImageEncoderSettings::Quality quality)
+                                              QCameraImageCapture::Quality quality)
 {
     if (writerFormat.compare(QLatin1String("jpg"), Qt::CaseInsensitive) == 0 ||
             writerFormat.compare(QLatin1String("jpeg"), Qt::CaseInsensitive) == 0) {
 
         switch (quality) {
-        case QImageEncoderSettings::Quality::VeryLowQuality:
+        case QCameraImageCapture::Quality::VeryLowQuality:
             return 10;
-        case QImageEncoderSettings::Quality::LowQuality:
+        case QCameraImageCapture::Quality::LowQuality:
             return 30;
-        case QImageEncoderSettings::Quality::NormalQuality:
+        case QCameraImageCapture::Quality::NormalQuality:
             return 75;
-        case QImageEncoderSettings::Quality::HighQuality:
+        case QCameraImageCapture::Quality::HighQuality:
             return 90;
-        case QImageEncoderSettings::Quality::VeryHighQuality:
+        case QCameraImageCapture::Quality::VeryHighQuality:
             return 98;
         default:
             return 75;

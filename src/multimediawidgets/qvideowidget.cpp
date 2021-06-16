@@ -378,7 +378,7 @@ void QVideoWidget::resizeEvent(QResizeEvent *event)
   \reimp
   Handles the move \a event.
  */
-void QVideoWidget::moveEvent(QMoveEvent */*event*/)
+void QVideoWidget::moveEvent(QMoveEvent * /*event*/)
 {
 }
 

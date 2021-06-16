@@ -57,8 +57,9 @@ QT_BEGIN_NAMESPACE
 
 class QWindowsMediaEncoder;
 class QWindowsCamera;
-class QWindowsCameraSession;
+class QWindowsMediaDeviceSession;
 class QWindowsCameraImageCapture;
+class QPlatformAudioInput;
 
 class QWindowsMediaCaptureService : public QPlatformMediaCaptureSession
 {
@@ -77,20 +78,15 @@ public:
     QPlatformMediaEncoder *mediaEncoder() override;
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
-    bool isMuted() const override;
-    void setMuted(bool muted) override;
-    qreal volume() const override;
-    void setVolume(qreal volume) override;
-    QAudioDevice audioInput() const override;
-    bool setAudioInput(const QAudioDevice &) override;
+    void setAudioInput(QPlatformAudioInput *) override;
 
     void setVideoPreview(QVideoSink *sink) override;
 
-    QWindowsCameraSession *session() const;
+    QWindowsMediaDeviceSession *session() const;
 
 private:
     QWindowsCamera              *m_camera = nullptr;
-    QWindowsCameraSession       *m_cameraSession = nullptr;
+    QWindowsMediaDeviceSession  *m_mediaDeviceSession = nullptr;
     QWindowsCameraImageCapture  *m_imageCapture = nullptr;
     QWindowsMediaEncoder        *m_encoder = nullptr;
 };

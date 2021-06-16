@@ -42,6 +42,8 @@
 #include "qandroidvideooutput_p.h"
 #include "qandroidmetadata_p.h"
 #include "qandroidmediaplayervideorenderercontrol_p.h"
+#include "qandroidaudiooutput_p.h"
+#include "qaudiooutput.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -184,12 +186,7 @@ void QAndroidMediaPlayerControl::setPosition(qint64 position)
     Q_EMIT positionChanged(seekPosition);
 }
 
-int QAndroidMediaPlayerControl::volume() const
-{
-    return (mPendingVolume == -1) ? mMediaPlayer->volume() : mPendingVolume;
-}
-
-void QAndroidMediaPlayerControl::setVolume(int volume)
+void QAndroidMediaPlayerControl::setVolume(float volume)
 {
     if ((mState & (AndroidMediaPlayer::Idle
                    | AndroidMediaPlayer::Initialized
@@ -198,26 +195,12 @@ void QAndroidMediaPlayerControl::setVolume(int volume)
                    | AndroidMediaPlayer::Started
                    | AndroidMediaPlayer::Paused
                    | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
-        if (mPendingVolume != volume) {
-            mPendingVolume = volume;
-            Q_EMIT volumeChanged(volume);
-        }
+        mPendingVolume = volume;
         return;
     }
 
-    mMediaPlayer->setVolume(volume);
-
-    if (mPendingVolume != -1) {
-        mPendingVolume = -1;
-        return;
-    }
-
-    Q_EMIT volumeChanged(volume);
-}
-
-bool QAndroidMediaPlayerControl::isMuted() const
-{
-    return (mPendingMute == -1) ? mMediaPlayer->isMuted() : (mPendingMute == 1);
+    mMediaPlayer->setVolume(qRound(volume*100.));
+    mPendingVolume = -1;
 }
 
 void QAndroidMediaPlayerControl::setMuted(bool muted)
@@ -229,40 +212,17 @@ void QAndroidMediaPlayerControl::setMuted(bool muted)
                    | AndroidMediaPlayer::Started
                    | AndroidMediaPlayer::Paused
                    | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
-        if (mPendingMute != muted) {
-            mPendingMute = muted;
-            Q_EMIT mutedChanged(muted);
-        }
+        mPendingMute = muted;
         return;
     }
 
     mMediaPlayer->setMuted(muted);
-
-    if (mPendingMute != -1) {
-        mPendingMute = -1;
-        return;
-    }
-
-    Q_EMIT mutedChanged(muted);
+    mPendingMute = -1;
 }
 
 void QAndroidMediaPlayerControl::setAudioRole(QAudio::Role role)
 {
     mMediaPlayer->setAudioRole(role);
-}
-
-QList<QAudio::Role> QAndroidMediaPlayerControl::supportedAudioRoles() const
-{
-    return QList<QAudio::Role>()
-        << QAudio::VoiceCommunicationRole
-        << QAudio::MusicRole
-        << QAudio::VideoRole
-        << QAudio::SonificationRole
-        << QAudio::AlarmRole
-        << QAudio::NotificationRole
-        << QAudio::RingtoneRole
-        << QAudio::AccessibilityRole
-        << QAudio::GameRole;
 }
 
 QMediaMetaData QAndroidMediaPlayerControl::metaData() const
@@ -427,6 +387,21 @@ void QAndroidMediaPlayerControl::setVideoSink(QVideoSink *sink)
     if (!mVideoRendererControl)
         mVideoRendererControl = new QAndroidMediaPlayerVideoRendererControl(this);
     mVideoRendererControl->setSurface(sink);
+}
+
+void QAndroidMediaPlayerControl::setAudioOutput(QPlatformAudioOutput *output)
+{
+    if (m_audioOutput == output)
+        return;
+    if (m_audioOutput)
+        m_audioOutput->q->disconnect(this);
+    m_audioOutput = static_cast<QAndroidAudioOutput *>(output);
+    if (m_audioOutput) {
+        // #### Implement device changes: connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, XXXX);
+        connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &QAndroidMediaPlayerControl::setVolume);
+        connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &QAndroidMediaPlayerControl::setMuted);
+        connect(m_audioOutput->q, &QAudioOutput::audioRoleChanged, this, &QAndroidMediaPlayerControl::setAudioRole);
+    }
 }
 
 void QAndroidMediaPlayerControl::play()
@@ -772,7 +747,7 @@ void QAndroidMediaPlayerControl::flushPendingStates()
 
     if (mPendingPosition != -1)
         setPosition(mPendingPosition);
-    if (mPendingVolume != -1)
+    if (mPendingVolume >= 0)
         setVolume(mPendingVolume);
     if (mPendingMute != -1)
         setMuted((mPendingMute == 1));

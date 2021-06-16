@@ -37,60 +37,86 @@
 **
 ****************************************************************************/
 
-#ifndef QMEDIARECORDER_H
-#define QMEDIARECORDER_H
+#ifndef QMediaRecorder_H
+#define QMediaRecorder_H
 
-#include <QtMultimedia/qmediaencoder.h>
+#include <QtCore/qobject.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qmediaencodersettings.h>
+#include <QtMultimedia/qmediaenumdebug.h>
+#include <QtMultimedia/qmediametadata.h>
+
+#include <QtCore/qpair.h>
 
 QT_BEGIN_NAMESPACE
 
-class QVideoSink;
+class QUrl;
+class QSize;
+class QAudioFormat;
+class QCamera;
+class QCameraDevice;
+class QAudioDevice;
+class QMediaCaptureSession;
 
 class QMediaRecorderPrivate;
-class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QMediaEncoderBase
+class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QMediaEncoderBase::State state READ state NOTIFY stateChanged)
-    Q_PROPERTY(QMediaEncoderBase::Status status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QMediaRecorder::RecorderState recorderState READ recorderState NOTIFY recorderStateChanged)
+    Q_PROPERTY(QMediaRecorder::Status status READ status NOTIFY statusChanged)
     Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
     Q_PROPERTY(QUrl outputLocation READ outputLocation WRITE setOutputLocation)
-    Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
-    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(QUrl actualLocation READ actualLocation NOTIFY actualLocationChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
-    Q_PROPERTY(CaptureMode captureMode READ captureMode WRITE setCaptureMode NOTIFY captureModeChanged)
-    Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
-    Q_PROPERTY(QCamera camera READ camera)
+    Q_PROPERTY(QMediaRecorder::Error error READ error NOTIFY errorChanged)
+    Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
+    Q_PROPERTY(QMediaEncoderSettings encoderSettings READ encoderSettings WRITE setEncoderSettings NOTIFY encoderSettingsChanged)
+
 public:
-
-    enum CaptureMode {
-        AudioOnly,
-        AudioAndVideo
+    enum RecorderState
+    {
+        StoppedState,
+        RecordingState,
+        PausedState
     };
+    Q_ENUM(RecorderState)
 
-    QMediaRecorder(QObject *parent = nullptr, CaptureMode mode = AudioOnly);
+    enum Status {
+        UnavailableStatus,
+        StoppedStatus,
+        StartingStatus,
+        RecordingStatus,
+        PausedStatus,
+        FinalizingStatus
+    };
+    Q_ENUM(Status)
+
+    enum Error
+    {
+        NoError,
+        ResourceError,
+        FormatError,
+        OutOfSpaceError
+    };
+    Q_ENUM(Error)
+
+    QMediaRecorder(QObject *parent = nullptr);
     ~QMediaRecorder();
 
     bool isAvailable() const;
 
-    CaptureMode captureMode() const;
-    void setCaptureMode(CaptureMode mode);
-
-    // ### Should we expose this, or restrict it to cameraFormat?
-    QCamera *camera() const;
-
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
-    QMediaEncoderBase::State state() const;
-    QMediaEncoderBase::Status status() const;
+    QUrl actualLocation() const;
 
-    QMediaEncoderBase::Error error() const;
+    RecorderState recorderState() const;
+    Status status() const;
+
+    Error error() const;
     QString errorString() const;
 
     qint64 duration() const;
-
-    bool isMuted() const;
-    qreal volume() const;
 
     void setEncoderSettings(const QMediaEncoderSettings &);
     QMediaEncoderSettings encoderSettings() const;
@@ -101,42 +127,36 @@ public:
 
     QMediaCaptureSession *captureSession() const;
 
-    void setVideoOutput(QObject *output);
-    QObject *videoOutput() const;
-
-    void setVideoSink(QVideoSink *output);
-    QVideoSink *videoSink() const;
-
 public Q_SLOTS:
     void record();
     void pause();
     void stop();
-    void setMuted(bool muted);
-    void setVolume(qreal volume);
 
 Q_SIGNALS:
-    void stateChanged(QMediaRecorder::State state);
-    void statusChanged(QMediaRecorder::Status status);
+    void recorderStateChanged(RecorderState state);
+    void statusChanged(Status status);
     void durationChanged(qint64 duration);
-    void mutedChanged(bool muted);
-    void volumeChanged(qreal volume);
-    void captureModeChanged();
-    void videoOutputChanged();
+    void actualLocationChanged(const QUrl &location);
+    void encoderSettingsChanged();
 
-    void error(QMediaRecorder::Error error);
+    void errorOccurred(Error error, const QString &errorString);
+    void errorChanged();
 
     void metaDataChanged();
 
 private:
-    // This is here to flag an incompatibilities with Qt 5
-    QMediaRecorder(QCamera *) = delete;
-
     QMediaRecorderPrivate *d_ptr;
     friend class QMediaCaptureSession;
+    void setCaptureSession(QMediaCaptureSession *session);
     Q_DISABLE_COPY(QMediaRecorder)
     Q_DECLARE_PRIVATE(QMediaRecorder)
+    Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
 };
 
 QT_END_NAMESPACE
 
-#endif  // QMEDIARECORDER_H
+Q_MEDIA_ENUM_DEBUG(QMediaRecorder, RecorderState)
+Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Status)
+Q_MEDIA_ENUM_DEBUG(QMediaRecorder, Error)
+
+#endif  // QMediaRecorder_H

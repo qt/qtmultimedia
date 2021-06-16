@@ -74,8 +74,10 @@ QDir QWindowsStorageLocation::defaultDir(Mode mode) const
 
     if (mode == Video)
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
-    else
+    else if (mode == Image)
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
+    else if (mode == Audio)
+        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
 
     dirCandidates << QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     dirCandidates << QDir::homePath();
@@ -96,7 +98,7 @@ QString QWindowsStorageLocation::generateFileName(const QString &prefix, const Q
 
     if (lastClip == 0) {
         //first run, find the maximum clip number during the fist capture
-        const auto list = dir.entryList(QStringList() << QString::fromUtf8("%1*.%2").arg(prefix).arg(ext));
+        const auto list = dir.entryList(QStringList() << QString::fromUtf8("%1*.%2").arg(prefix, ext));
         for (const QString &fileName : list) {
             int imgNumber = QStringView{fileName}.mid(prefix.length(),
                                                       fileName.size() - prefix.length() - ext.length() - 1).toInt();
@@ -113,7 +115,7 @@ QString QWindowsStorageLocation::generateFileName(const QString &prefix, const Q
 
         QString path = dir.absoluteFilePath(name);
 
-        if (!QFileInfo(path).exists()) {
+        if (!QFileInfo::exists(path)) {
             m_lastUsedIndex[lastClipKey] = lastClip + 1;
             return path;
         }

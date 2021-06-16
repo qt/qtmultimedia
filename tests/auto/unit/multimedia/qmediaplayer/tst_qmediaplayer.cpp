@@ -41,7 +41,9 @@
 
 #include "qmockintegration_p.h"
 #include "qmockmediaplayer.h"
+#include "qmockaudiooutput.h"
 #include "qvideosink.h"
+#include "qaudiooutput.h"
 
 QT_USE_NAMESPACE
 
@@ -123,6 +125,7 @@ private:
 
     QMockIntegration *mockIntegration;
     QMockMediaPlayer *mockPlayer;
+    QAudioOutput *audioOutput = nullptr;
     QMediaPlayer *player;
 };
 
@@ -214,6 +217,9 @@ void tst_QMediaPlayer::init()
     player = new QMediaPlayer;
     mockPlayer = mockIntegration->lastPlayer();
     Q_ASSERT(mockPlayer);
+    audioOutput = new QAudioOutput;
+    player->setAudioOutput(audioOutput);
+    Q_ASSERT(mockPlayer->m_audioOutput != nullptr);
 }
 
 void tst_QMediaPlayer::cleanup()
@@ -326,29 +332,30 @@ void tst_QMediaPlayer::testVolume()
 {
     QFETCH(bool, valid);
     QFETCH(int, volume);
+    float vol = volume/100.;
 
-    mockPlayer->setVolume(volume);
-    QVERIFY(player->volume() == volume);
+    audioOutput->setVolume(vol);
+    QVERIFY(audioOutput->volume() == vol);
 
     if (valid) {
-        { QSignalSpy spy(player, SIGNAL(volumeChanged(int)));
-        player->setVolume(10);
-        QCOMPARE(player->volume(), 10);
+        { QSignalSpy spy(audioOutput, SIGNAL(volumeChanged(float)));
+        audioOutput->setVolume(.1f);
+        QCOMPARE(audioOutput->volume(), .1f);
         QCOMPARE(spy.count(), 1); }
 
-        { QSignalSpy spy(player, SIGNAL(volumeChanged(int)));
-        player->setVolume(-1000);
-        QCOMPARE(player->volume(), 0);
+        { QSignalSpy spy(audioOutput, SIGNAL(volumeChanged(float)));
+        audioOutput->setVolume(-1000.f);
+        QCOMPARE(audioOutput->volume(), 0.f);
         QCOMPARE(spy.count(), 1); }
 
-        { QSignalSpy spy(player, SIGNAL(volumeChanged(int)));
-        player->setVolume(100);
-        QCOMPARE(player->volume(), 100);
+        { QSignalSpy spy(audioOutput, SIGNAL(volumeChanged(float)));
+        audioOutput->setVolume(1.f);
+        QCOMPARE(audioOutput->volume(), 1.f);
         QCOMPARE(spy.count(), 1); }
 
-        { QSignalSpy spy(player, SIGNAL(volumeChanged(int)));
-        player->setVolume(1000);
-        QCOMPARE(player->volume(), 100);
+        { QSignalSpy spy(audioOutput, SIGNAL(volumeChanged(float)));
+        audioOutput->setVolume(1000.f);
+        QCOMPARE(audioOutput->volume(), 1.f);
         QCOMPARE(spy.count(), 0); }
     }
 }
@@ -363,16 +370,17 @@ void tst_QMediaPlayer::testMuted()
     QFETCH(bool, valid);
     QFETCH(bool, muted);
     QFETCH(int, volume);
+    float vol = volume/100.;
 
     if (valid) {
-        mockPlayer->setMuted(muted);
-        mockPlayer->setVolume(volume);
-        QVERIFY(player->isMuted() == muted);
+        audioOutput->setMuted(muted);
+        audioOutput->setVolume(vol);
+        QVERIFY(audioOutput->isMuted() == muted);
 
-        QSignalSpy spy(player, SIGNAL(mutedChanged(bool)));
-        player->setMuted(!muted);
-        QCOMPARE(player->isMuted(), !muted);
-        QCOMPARE(player->volume(), volume);
+        QSignalSpy spy(audioOutput, SIGNAL(mutedChanged(bool)));
+        audioOutput->setMuted(!muted);
+        QCOMPARE(audioOutput->isMuted(), !muted);
+        QCOMPARE(audioOutput->volume(), vol);
         QCOMPARE(spy.count(), 1);
     }
 }
@@ -784,36 +792,36 @@ void tst_QMediaPlayer::testQrc()
 
 void tst_QMediaPlayer::testAudioRole()
 {
+    auto *mockAudioOutput = static_cast<QMockAudioOutput *>(mockPlayer->m_audioOutput);
     {
-        mockPlayer->hasAudioRole = false;
+        mockAudioOutput->hasAudioRole = false;
 
-        QCOMPARE(player->audioRole(), QAudio::UnknownRole);
-        QVERIFY(player->supportedAudioRoles().isEmpty());
+        QCOMPARE(audioOutput->audioRole(), QAudio::UnknownRole);
+        QVERIFY(audioOutput->supportedAudioRoles().isEmpty());
 
-        QSignalSpy spy(player, SIGNAL(audioRoleChanged(QAudio::Role)));
-        player->setAudioRole(QAudio::MusicRole);
-        QCOMPARE(player->audioRole(), QAudio::MusicRole);
-        QCOMPARE(spy.count(), 1);
-        player->setAudioRole(QAudio::UnknownRole);
+        QSignalSpy spy(audioOutput, SIGNAL(audioRoleChanged(QAudio::Role)));
+        audioOutput->setAudioRole(QAudio::MusicRole);
+        QCOMPARE(audioOutput->audioRole(), QAudio::UnknownRole);
+        QCOMPARE(spy.count(), 0);
     }
 
     {
         mockPlayer->reset();
-        mockPlayer->hasAudioRole = true;
-        QSignalSpy spy(player, SIGNAL(audioRoleChanged(QAudio::Role)));
+        mockAudioOutput->hasAudioRole = true;
+        QSignalSpy spy(audioOutput, SIGNAL(audioRoleChanged(QAudio::Role)));
 
-        QCOMPARE(player->audioRole(), QAudio::UnknownRole);
-        QVERIFY(!player->supportedAudioRoles().isEmpty());
+        QCOMPARE(audioOutput->audioRole(), QAudio::UnknownRole);
+        QVERIFY(!audioOutput->supportedAudioRoles().isEmpty());
 
-        player->setAudioRole(QAudio::MusicRole);
-        QCOMPARE(player->audioRole(), QAudio::MusicRole);
+        audioOutput->setAudioRole(QAudio::MusicRole);
+        QCOMPARE(audioOutput->audioRole(), QAudio::MusicRole);
         QCOMPARE(spy.count(), 1);
         QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::MusicRole);
 
         spy.clear();
 
-        player->setProperty("audioRole", QVariant::fromValue(QAudio::AlarmRole));
-        QCOMPARE(qvariant_cast<QAudio::Role>(player->property("audioRole")), QAudio::AlarmRole);
+        audioOutput->setProperty("audioRole", QVariant::fromValue(QAudio::AlarmRole));
+        QCOMPARE(qvariant_cast<QAudio::Role>(audioOutput->property("audioRole")), QAudio::AlarmRole);
         QCOMPARE(spy.count(), 1);
         QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::AlarmRole);
     }

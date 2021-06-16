@@ -93,6 +93,7 @@ public:
     AVCaptureDeviceInput *audioInput() const {return m_audioInput;}
 
     void setVideoSink(QVideoSink *sink);
+    void updateAudioInput();
 
 public Q_SLOTS:
     void setActive(bool active);

@@ -463,7 +463,7 @@ void QAndroidCameraSession::applyImageSettings()
         return;
 
     // only supported format right now.
-    m_actualImageSettings.setFormat(QImageEncoderSettings::JPEG);
+    m_actualImageSettings.setFormat(QCameraImageCapture::JPEG);
 
     const QSize requestedResolution = m_requestedImageSettings.resolution();
     const QList<QSize> supportedResolutions = m_camera->getSupportedPictureSizes();
@@ -485,19 +485,19 @@ void QAndroidCameraSession::applyImageSettings()
 
     int jpegQuality = 100;
     switch (m_requestedImageSettings.quality()) {
-    case QImageEncoderSettings::VeryLowQuality:
+    case QCameraImageCapture::VeryLowQuality:
         jpegQuality = 20;
         break;
-    case QImageEncoderSettings::LowQuality:
+    case QCameraImageCapture::LowQuality:
         jpegQuality = 40;
         break;
-    case QImageEncoderSettings::NormalQuality:
+    case QCameraImageCapture::NormalQuality:
         jpegQuality = 60;
         break;
-    case QImageEncoderSettings::HighQuality:
+    case QCameraImageCapture::HighQuality:
         jpegQuality = 80;
         break;
-    case QImageEncoderSettings::VeryHighQuality:
+    case QCameraImageCapture::VeryHighQuality:
         jpegQuality = 100;
         break;
     }

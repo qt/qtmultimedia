@@ -48,6 +48,8 @@
 #include "private/qgstreamerformatinfo_p.h"
 #include "private/qgstreamervideorenderer_p.h"
 #include "private/qgstreamervideosink_p.h"
+#include "private/qgstreameraudioinput_p.h"
+#include "private/qgstreameraudiooutput_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -94,7 +96,7 @@ QPlatformCamera *QGstreamerIntegration::createCamera(QCamera *camera)
     return new QGstreamerCamera(camera);
 }
 
-QPlatformMediaEncoder *QGstreamerIntegration::createEncoder(QMediaEncoder *encoder)
+QPlatformMediaEncoder *QGstreamerIntegration::createEncoder(QMediaRecorder *encoder)
 {
     return new QGstreamerMediaEncoder(encoder);
 }
@@ -107,6 +109,16 @@ QPlatformCameraImageCapture *QGstreamerIntegration::createImageCapture(QCameraIm
 QPlatformVideoSink *QGstreamerIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QGstreamerVideoSink(sink);
+}
+
+QPlatformAudioInput *QGstreamerIntegration::createAudioInput(QAudioInput *q)
+{
+    return new QGstreamerAudioInput(q);
+}
+
+QPlatformAudioOutput *QGstreamerIntegration::createAudioOutput(QAudioOutput *q)
+{
+    return new QGstreamerAudioOutput(q);
 }
 
 QT_END_NAMESPACE

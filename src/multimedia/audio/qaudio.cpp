@@ -80,7 +80,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \enum QAudio::Mode
+    \enum QAudioDevice::Mode
 
     \value AudioOutput   audio output device
     \value AudioInput    audio input device
@@ -275,21 +275,6 @@ QDebug operator<<(QDebug dbg, QAudio::State state)
             break;
         case QAudio::IdleState:
             dbg << "IdleState";
-            break;
-    }
-    return dbg;
-}
-
-QDebug operator<<(QDebug dbg, QAudio::Mode mode)
-{
-    QDebugStateSaver saver(dbg);
-    dbg.nospace();
-    switch (mode) {
-        case QAudio::AudioInput:
-            dbg << "AudioInput";
-            break;
-        case QAudio::AudioOutput:
-            dbg << "AudioOutput";
             break;
     }
     return dbg;

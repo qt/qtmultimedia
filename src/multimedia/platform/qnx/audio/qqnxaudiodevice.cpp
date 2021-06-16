@@ -45,7 +45,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudio::Mode mode)
+QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(deviceName, mode)
 {
 }
@@ -62,14 +62,14 @@ QAudioFormat QnxAudioDeviceInfo::preferredFormat() const
     format.setSampleType(QAudioFormat::SignedInt);
     format.setSampleSize(16);
     format.setChannelCount(2);
-    if(mode == QAudio::AudioInput && !isFormatSupported(format))
+    if(mode == QAudioDevice::Input && !isFormatSupported(format))
         format.setChannelCount(1);
     return format;
 }
 
 bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 {
-    const int pcmMode = (mode == QAudio::AudioOutput) ? SND_PCM_OPEN_PLAYBACK : SND_PCM_OPEN_CAPTURE;
+    const int pcmMode = (mode == QAudioDevice::Output) ? SND_PCM_OPEN_PLAYBACK : SND_PCM_OPEN_CAPTURE;
     snd_pcm_t *handle;
 
     int card = 0;
@@ -79,7 +79,7 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
 
     snd_pcm_channel_info_t info;
     memset (&info, 0, sizeof(info));
-    info.channel = (mode == QAudio::AudioOutput) ? SND_PCM_CHANNEL_PLAYBACK : SND_PCM_CHANNEL_CAPTURE;
+    info.channel = (mode == QAudioDevice::Output) ? SND_PCM_CHANNEL_PLAYBACK : SND_PCM_CHANNEL_CAPTURE;
 
     if (snd_pcm_plugin_info(handle, &info) < 0) {
         qWarning("QAudioDevice: couldn't get channel info");

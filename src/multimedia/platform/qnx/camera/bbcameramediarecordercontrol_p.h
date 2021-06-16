@@ -64,7 +64,7 @@ public:
 
     QUrl outputLocation() const override;
     bool setOutputLocation(const QUrl &location) override;
-    QMediaRecorder::State state() const override;
+    QMediaRecorder::RecorderState state() const override;
     QMediaRecorder::Status status() const override;
     qint64 duration() const override;
     bool isMuted() const override;
@@ -72,7 +72,7 @@ public:
     void applySettings() override;
 
 public Q_SLOTS:
-    void setState(QMediaRecorder::State state) override;
+    void setState(QMediaRecorder::RecorderState state) override;
     void setMuted(bool muted) override;
     void setVolume(qreal volume) override;
 

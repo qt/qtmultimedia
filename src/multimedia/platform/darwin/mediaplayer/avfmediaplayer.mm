@@ -43,6 +43,9 @@
 #include <private/avfvideosink_p.h>
 #include "avfmetadata_p.h"
 
+#include "qaudiooutput.h"
+#include "qplatformaudiooutput_p.h"
+
 #include <qpointer.h>
 #include <QFileInfo>
 
@@ -268,8 +271,9 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 
     //Set the initial volume on new player object
     if (self.session) {
-        [m_player setVolume:m_session->volume() / 100.0f];
-        [m_player setMuted:m_session->isMuted()];
+        auto *audioOutput = m_session->m_audioOutput;
+        m_player.volume = (audioOutput ? audioOutput->volume : 1.);
+        m_player.muted = (audioOutput ? audioOutput->muted : true);
     }
 
     //Assign the output layer to the new player
@@ -471,9 +475,7 @@ AVFMediaPlayer::AVFMediaPlayer(QMediaPlayer *player)
     , m_state(QMediaPlayer::StoppedState)
     , m_mediaStatus(QMediaPlayer::NoMedia)
     , m_mediaStream(nullptr)
-    , m_muted(false)
     , m_tryingAsync(false)
-    , m_volume(100)
     , m_rate(1.0)
     , m_requestedPosition(-1)
     , m_duration(0)
@@ -651,16 +653,6 @@ float AVFMediaPlayer::bufferProgress() const
     return m_bufferProgress/100.;
 }
 
-int AVFMediaPlayer::volume() const
-{
-    return m_volume;
-}
-
-bool AVFMediaPlayer::isMuted() const
-{
-    return m_muted;
-}
-
 void AVFMediaPlayer::setAudioAvailable(bool available)
 {
     if (m_audioAvailable == available)
@@ -727,25 +719,22 @@ qreal AVFMediaPlayer::playbackRate() const
     return m_rate;
 }
 
-bool AVFMediaPlayer::setAudioOutput(const QAudioDevice &info)
+void AVFMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 {
-    m_audioOutput = info;
-
-#ifdef Q_OS_MACOS
-    AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
-    if (info.isNull()) {
-        player.audioOutputDeviceUniqueID = nil;
-    } else {
-        NSString *str = QString::fromUtf8(info.id()).toNSString();
-        player.audioOutputDeviceUniqueID = str;
+    if (m_audioOutput == output)
+        return;
+    if (m_audioOutput)
+        m_audioOutput->q->disconnect(this);
+    m_audioOutput = output;
+    if (m_audioOutput) {
+        connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, &AVFMediaPlayer::audioOutputChanged);
+        connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &AVFMediaPlayer::setVolume);
+        connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &AVFMediaPlayer::setMuted);
+        //connect(m_audioOutput->q, &QAudioOutput::audioRoleChanged, this, &AVFMediaPlayer::setAudioRole);
     }
-#endif
-    return true;
-}
-
-QAudioDevice AVFMediaPlayer::audioOutput() const
-{
-    return m_audioOutput;
+    audioOutputChanged();
+    setMuted(m_audioOutput ? m_audioOutput->muted : true);
+    setVolume(m_audioOutput ? m_audioOutput->volume : 1.);
 }
 
 QMediaMetaData AVFMediaPlayer::metaData() const
@@ -895,22 +884,15 @@ void AVFMediaPlayer::stop()
     m_playbackTimer.stop();
 }
 
-void AVFMediaPlayer::setVolume(int volume)
+void AVFMediaPlayer::setVolume(float volume)
 {
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO << volume;
 #endif
 
-    if (m_volume == volume)
-        return;
-
-    m_volume = volume;
-
     AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
     if (player)
-        [player setVolume:volume / 100.0f];
-
-    Q_EMIT volumeChanged(m_volume);
+        player.volume = volume;
 }
 
 void AVFMediaPlayer::setMuted(bool muted)
@@ -919,16 +901,24 @@ void AVFMediaPlayer::setMuted(bool muted)
     qDebug() << Q_FUNC_INFO << muted;
 #endif
 
-    if (m_muted == muted)
-        return;
-
-    m_muted = muted;
-
     AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
     if (player)
-        [player setMuted:muted];
+        player.muted = muted;
+}
 
-    Q_EMIT mutedChanged(muted);
+void AVFMediaPlayer::audioOutputChanged()
+{
+#ifdef Q_OS_MACOS
+    AVPlayer *player = [static_cast<AVFMediaPlayerObserver*>(m_observer) player];
+    if (!m_audioOutput || m_audioOutput->device.id().isEmpty()) {
+        player.audioOutputDeviceUniqueID = nil;
+        if (!m_audioOutput)
+            player.muted = true;
+    } else {
+        NSString *str = QString::fromUtf8(m_audioOutput->device.id()).toNSString();
+        player.audioOutputDeviceUniqueID = str;
+    }
+#endif
 }
 
 void AVFMediaPlayer::processEOS()

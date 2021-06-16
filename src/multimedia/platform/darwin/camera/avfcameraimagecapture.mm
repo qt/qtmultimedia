@@ -301,7 +301,7 @@ QImageEncoderSettings AVFCameraImageCapture::imageSettings() const
     }
 
     settings.setResolution(res);
-    settings.setFormat(QImageEncoderSettings::JPEG);
+    settings.setFormat(QCameraImageCapture::JPEG);
 
     return settings;
 }
@@ -330,7 +330,7 @@ bool AVFCameraImageCapture::applySettings()
         return false;
     }
 
-    if (m_settings.format() != QImageEncoderSettings::UnspecifiedFormat && m_settings.format() != QImageEncoderSettings::JPEG) {
+    if (m_settings.format() != QCameraImageCapture::UnspecifiedFormat && m_settings.format() != QCameraImageCapture::JPEG) {
         qDebugCamera() << Q_FUNC_INFO << "unsupported format:" << m_settings.format();
         return false;
     }

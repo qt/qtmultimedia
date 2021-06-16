@@ -48,6 +48,9 @@ Item {
         autoPlay: true
         source: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
         videoOutput: [v1, v2]
+        audioOutput: AudioOutput {
+
+        }
     }
 
     VideoOutput {

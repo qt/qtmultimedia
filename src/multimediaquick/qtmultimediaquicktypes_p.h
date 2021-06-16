@@ -92,10 +92,10 @@ struct QCameraImageCaptureForeign
     QML_NAMED_ELEMENT(ImageCapture)
 };
 
-struct QMediaEncoderForeign
+struct QMediaRecorderForeign
 {
     Q_GADGET
-    QML_FOREIGN(QMediaEncoder)
+    QML_FOREIGN(QMediaRecorder)
     QML_NAMED_ELEMENT(MediaEncoder)
 };
 
@@ -111,6 +111,20 @@ struct QMediaDevicesForeign
     Q_GADGET
     QML_FOREIGN(QMediaDevices)
     QML_NAMED_ELEMENT(MediaDevices)
+};
+
+struct QAudioInputForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QAudioInput)
+    QML_NAMED_ELEMENT(AudioInput)
+};
+
+struct QAudioOutputForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QAudioOutput)
+    QML_NAMED_ELEMENT(AudioOutput)
 };
 
 struct QAudioDeviceForeign

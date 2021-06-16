@@ -70,6 +70,9 @@ VideoOutput {
     MediaPlayer {
         id: mediaPlayer
         videoOutput: root;
+        audioOutput: AudioOutput {
+
+        }
 
         onErrorOccurred: function(error, errorString) {
             if (MediaPlayer.NoError !== error) {

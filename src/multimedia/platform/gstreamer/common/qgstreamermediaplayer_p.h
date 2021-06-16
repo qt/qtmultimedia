@@ -84,9 +84,6 @@ public:
 
     float bufferProgress() const override;
 
-    int volume() const override;
-    bool isMuted() const override;
-
     bool isAudioAvailable() const override;
     bool isVideoAvailable() const override;
 
@@ -102,8 +99,7 @@ public:
 
     bool streamPlaybackSupported() const override { return true; }
 
-    bool setAudioOutput(const QAudioDevice &) override;
-    QAudioDevice audioOutput() const override;
+    void setAudioOutput(QPlatformAudioOutput *output) override;
 
     QMediaMetaData metaData() const override;
 
@@ -120,13 +116,8 @@ public:
     void pause() override;
     void stop() override;
 
-    void setVolume(int volume) override;
-    void setMuted(bool muted) override;
-
     bool processBusMessage(const QGstreamerMessage& message) override;
 public Q_SLOTS:
-    void volumeChangedHandler(int volume) { volumeChanged(volume); }
-    void mutedChangedHandler(bool mute) { mutedChanged(mute); }
     void updatePosition() { positionChanged(position()); }
 
 private:

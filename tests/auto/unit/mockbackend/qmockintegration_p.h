@@ -74,10 +74,12 @@ public:
     QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *) override;
     QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaEncoder *createEncoder(QMediaEncoder *) override;
+    QPlatformMediaEncoder *createEncoder(QMediaRecorder *) override;
     QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) override;
     QPlatformMediaCaptureSession *createCaptureSession() override;
     QPlatformVideoSink *createVideoSink(QVideoSink *) override;
+
+    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
 
     enum Flag {
         NoPlayerInterface = 0x1,

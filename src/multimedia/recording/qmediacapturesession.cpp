@@ -40,7 +40,7 @@
 #include "qmediacapturesession.h"
 #include "qaudiodevice.h"
 #include "qcamera.h"
-#include "qmediaencoder.h"
+#include "qmediarecorder.h"
 #include "qcameraimagecapture.h"
 #include "qvideosink.h"
 
@@ -48,6 +48,8 @@
 
 #include "qplatformmediaintegration_p.h"
 #include "qplatformmediacapture_p.h"
+#include "qaudioinput.h"
+#include "qaudiooutput.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -56,10 +58,11 @@ class QMediaCaptureSessionPrivate
 public:
     QMediaCaptureSession *q = nullptr;
     QPlatformMediaCaptureSession *captureSession;
-    QAudioDevice audioInput;
+    QAudioInput *audioInput = nullptr;
+    QAudioOutput *audioOutput = nullptr;
     QCamera *camera = nullptr;
     QCameraImageCapture *imageCapture = nullptr;
-    QMediaEncoder *encoder = nullptr;
+    QMediaRecorder *encoder = nullptr;
     QVideoSink *videoSink = nullptr;
     QPointer<QObject> videoOutput;
 
@@ -75,6 +78,7 @@ public:
         captureSession->setVideoPreview(sink);
         emit q->videoOutputChanged();
     }
+
 };
 
 /*!
@@ -91,12 +95,12 @@ public:
     and heard by routing the audio to an output device using setAudioOutput().
 
     You can capture still images from a camera by setting a QCameraImageCapture object on the capture session,
-    and record audio/video using a QMediaEncoder.
+    and record audio/video using a QMediaRecorder.
 
     If you need a simple class that records media from the default camera and microphone, you can use QMediaRecorder.
     That class uses a QMediaCaptureSession behind the scene to support audio and video capture.
 
-    \sa QCamera, QAudioDevice, QMediaEncoder, QCameraImageCapture, QMediaRecorder
+    \sa QCamera, QAudioDevice, QMediaRecorder, QCameraImageCapture, QMediaRecorder
 */
 
 /*!
@@ -108,9 +112,6 @@ QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
 {
     d_ptr->q = this;
     d_ptr->captureSession = QPlatformMediaIntegration::instance()->createCaptureSession();
-
-    connect(d_ptr->captureSession, SIGNAL(mutedChanged(bool)), this, SIGNAL(mutedChanged(bool)));
-    connect(d_ptr->captureSession, SIGNAL(volumeChanged(qreal)), this, SIGNAL(volumeChanged(qreal)));
 }
 
 /*!
@@ -140,7 +141,7 @@ bool QMediaCaptureSession::isAvailable() const
 /*!
     Returns the device that is being used to capture audio.
 */
-QAudioDevice QMediaCaptureSession::audioInput() const
+QAudioInput *QMediaCaptureSession::audioInput() const
 {
     return d_ptr->audioInput;
 }
@@ -154,52 +155,13 @@ QAudioDevice QMediaCaptureSession::audioInput() const
 
     \sa muted(), setMuted()
 */
-void QMediaCaptureSession::setAudioInput(const QAudioDevice &device)
+void QMediaCaptureSession::setAudioInput(QAudioInput *device)
 {
+    if (d_ptr->audioInput == device)
+        return;
     d_ptr->audioInput = device;
-    d_ptr->captureSession->setAudioInput(device);
+    d_ptr->captureSession->setAudioInput(device ? device->handle() : nullptr);
     emit audioInputChanged();
-}
-
-/*!
-    \property QMediaCaptureSession::muted
-
-    \brief whether a recording audio stream is muted.
-*/
-
-bool QMediaCaptureSession::isMuted() const
-{
-    return d_ptr->captureSession->isMuted();
-}
-
-void QMediaCaptureSession::setMuted(bool muted)
-{
-    d_ptr->captureSession->setMuted(muted);
-}
-
-/*!
-    \property QMediaCaptureSession::volume
-
-    \brief the current recording audio volume.
-
-    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
-    range will be clamped.
-
-    The default volume is \c 1.0.
-
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
-    will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See QAudio::convertVolume() for more details.
-*/
-
-qreal QMediaCaptureSession::volume() const
-{
-    return d_ptr->captureSession->volume();
-}
-
-void QMediaCaptureSession::setVolume(qreal volume)
-{
-    d_ptr->captureSession->setVolume(volume);
 }
 
 /*!
@@ -258,16 +220,16 @@ void QMediaCaptureSession::setImageCapture(QCameraImageCapture *imageCapture)
 
     \brief the encoder object used to capture audio/video.
 
-    Add a QMediaEncoder object to the capture session to enable
+    Add a QMediaRecorder object to the capture session to enable
     recording of audio and/or video from the capture session.
 */
 
-QMediaEncoder *QMediaCaptureSession::encoder()
+QMediaRecorder *QMediaCaptureSession::encoder()
 {
     return d_ptr->encoder;
 }
 
-void QMediaCaptureSession::setEncoder(QMediaEncoder *encoder)
+void QMediaCaptureSession::setEncoder(QMediaRecorder *encoder)
 {
     if (d_ptr->encoder == encoder)
         return;
@@ -319,6 +281,22 @@ QVideoSink *QMediaCaptureSession::videoSink() const
 {
     Q_D(const QMediaCaptureSession);
     return d->videoSink;
+}
+
+void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
+{
+    Q_D(QMediaCaptureSession);
+    if (d->audioOutput == output)
+        return;
+    d->audioOutput = output;
+    d->captureSession->setAudioOutput(output ? output->handle() : nullptr);
+    emit audioOutputChanged();
+}
+
+QAudioOutput *QMediaCaptureSession::audioOutput() const
+{
+    Q_D(const QMediaCaptureSession);
+    return d->audioOutput;
 }
 
 /*!

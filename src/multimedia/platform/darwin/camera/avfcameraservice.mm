@@ -48,13 +48,14 @@
 #include "avfcameraimagecapture_p.h"
 #include "avfmediaencoder_p.h"
 #include <qmediadevices.h>
+#include <private/qplatformaudioinput_p.h>
+#include <qaudioinput.h>
 
 QT_USE_NAMESPACE
 
 AVFCameraService::AVFCameraService()
 {
     m_session = new AVFCameraSession(this);
-    m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
 }
 
 AVFCameraService::~AVFCameraService()
@@ -122,57 +123,35 @@ void AVFCameraService::setMediaEncoder(QPlatformMediaEncoder *encoder)
     emit encoderChanged();
 }
 
-bool AVFCameraService::isMuted() const
+void AVFCameraService::setAudioInput(QPlatformAudioInput *input)
 {
-    return m_muted;
-}
+    if (m_audioInput == input)
+        return;
+    if (m_audioInput)
+        m_audioInput->q->disconnect(this);
 
-void AVFCameraService::setMuted(bool muted)
-{
-    if (m_muted != muted) {
-        m_muted = muted;
-        Q_EMIT mutedChanged(muted);
+    m_audioInput = input;
+
+    if (input) {
+        connect(m_audioInput->q, &QAudioInput::destroyed, this, &AVFCameraService::audioInputDestroyed);
+        connect(m_audioInput->q, &QAudioInput::deviceChanged, this, &AVFCameraService::audioInputChanged);
     }
+    audioInputChanged();
 }
 
-qreal AVFCameraService::volume() const
+void AVFCameraService::audioInputChanged()
 {
-    return m_volume;
-}
+    m_audioCaptureDevice = nullptr;
+    if (!m_audioInput)
+        return;
 
-void AVFCameraService::setVolume(qreal volume)
-{
-    if (m_volume != volume) {
-        m_volume = volume;
-        Q_EMIT volumeChanged(volume);
-    }
-}
-
-QAudioDevice AVFCameraService::audioInput() const
-{
-    QByteArray id = [[m_audioCaptureDevice uniqueID] UTF8String];
-    const QList<QAudioDevice> devices = QMediaDevices::audioInputs();
-    for (auto d : devices)
-        if (d.id() == id)
-            return d;
-    return QMediaDevices::defaultAudioInput();
-}
-
-bool AVFCameraService::setAudioInput(const QAudioDevice &id)
-{
-    AVCaptureDevice *device = nullptr;
-
-    if (!id.isNull()) {
-        device = [AVCaptureDevice deviceWithUniqueID: [NSString stringWithUTF8String:id.id().constData()]];
+    QByteArray id = m_audioInput->device.id();
+    if (!id.isEmpty()) {
+        m_audioCaptureDevice = [AVCaptureDevice deviceWithUniqueID: [NSString stringWithUTF8String:id.constData()]];
     } else {
-        device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
+        m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
     }
-
-    if (device) {
-        m_audioCaptureDevice = device;
-        return true;
-    }
-    return false;
+    m_session->updateAudioInput();
 }
 
 void AVFCameraService::setVideoPreview(QVideoSink *sink)

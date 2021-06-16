@@ -61,6 +61,7 @@ QT_BEGIN_NAMESPACE
 class AndroidMediaPlayer;
 class QAndroidVideoOutput;
 class QAndroidMediaPlayerVideoRendererControl;
+class QAndroidAudioOutput;
 
 class QAndroidMediaPlayerControl : public QObject, public QPlatformMediaPlayer
 {
@@ -72,8 +73,6 @@ public:
     QMediaPlayer::PlaybackState state() const override;
     qint64 duration() const override;
     qint64 position() const override;
-    int volume() const override;
-    bool isMuted() const override;
     float bufferProgress() const override;
     bool isAudioAvailable() const override;
     bool isVideoAvailable() const override;
@@ -85,22 +84,22 @@ public:
     const QIODevice *mediaStream() const override;
     void setMedia(const QUrl &mediaContent, QIODevice *stream) override;
 
-    void setAudioRole(QAudio::Role role) override;
-    QList<QAudio::Role> supportedAudioRoles() const override;
-
     QMediaMetaData metaData() const override;
 
     void setVideoOutput(QAndroidVideoOutput *videoOutput);
     void setVideoSink(QVideoSink *surface) override;
 
+    void setAudioOutput(QPlatformAudioOutput *output) override;
+
     void setPosition(qint64 position) override;
     void play() override;
     void pause() override;
     void stop() override;
-    void setVolume(int volume) override;
-    void setMuted(bool muted) override;
 
 private Q_SLOTS:
+    void setVolume(float volume);
+    void setMuted(bool muted);
+    void setAudioRole(QAudio::Role role);
     void onVideoOutputReady(bool ready);
     void onError(qint32 what, qint32 extra);
     void onInfo(qint32 what, qint32 extra);
@@ -111,6 +110,7 @@ private Q_SLOTS:
 private:
     AndroidMediaPlayer *mMediaPlayer;
     QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl = nullptr;
+    QAndroidAudioOutput *m_audioOutput = nullptr;
     QMediaPlayer::PlaybackState mCurrentState;
     QUrl mMediaContent;
     QIODevice *mMediaStream;
@@ -127,7 +127,7 @@ private:
     int mPendingState;
     qint64 mPendingPosition;
     bool mPendingSetMedia;
-    int mPendingVolume;
+    float mPendingVolume;
     int mPendingMute;
     bool mReloadingMedia;
     int mActiveStateChangeNotifiers;

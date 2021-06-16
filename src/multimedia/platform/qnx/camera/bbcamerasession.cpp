@@ -418,17 +418,17 @@ bool BbCameraSession::setOutputLocation(const QUrl &location)
     return true;
 }
 
-QMediaRecorder::State BbCameraSession::videoState() const
+QMediaRecorder::RecorderState BbCameraSession::videoState() const
 {
     return m_videoState;
 }
 
-void BbCameraSession::setVideoState(QMediaRecorder::State state)
+void BbCameraSession::setVideoState(QMediaRecorder::RecorderState state)
 {
     if (m_videoState == state)
         return;
 
-    const QMediaRecorder::State previousState = m_videoState;
+    const QMediaRecorder::RecorderState previousState = m_videoState;
 
     if (previousState == QMediaRecorder::StoppedState) {
         if (state == QMediaRecorder::RecordingState) {

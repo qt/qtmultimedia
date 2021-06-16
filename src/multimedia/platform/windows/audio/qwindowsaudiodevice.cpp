@@ -57,7 +57,7 @@
 #include "qwindowsaudioutils_p.h"
 
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudio::Mode mode)
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(dev, mode),
       devId(waveID)
 {
@@ -68,7 +68,7 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, con
 
     DWORD fmt = 0;
 
-    if(mode == QAudio::AudioOutput) {
+    if(mode == QAudioDevice::Output) {
         WAVEOUTCAPS woc;
         if (waveOutGetDevCaps(devId, &woc, sizeof(WAVEOUTCAPS)) == MMSYSERR_NOERROR)
             fmt = woc.dwFormats;
@@ -214,7 +214,7 @@ bool QWindowsAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     WAVEFORMATEXTENSIBLE wfx;
     if (qt_convertFormat(format, &wfx)) {
         // query only, do not open device
-        if (mode == QAudio::AudioOutput) {
+        if (mode == QAudioDevice::Output) {
             return (waveOutOpen(NULL, UINT_PTR(devId), &wfx.Format, 0, 0,
                                 WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
         } else { // AudioInput

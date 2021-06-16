@@ -274,9 +274,26 @@ QAudioDevice::QAudioDevice(QAudioDevicePrivate *p)
 /*!
     returns whether this device is an input or output device.
 */
-QAudio::Mode QAudioDevice::mode() const
+QAudioDevice::Mode QAudioDevice::mode() const
 {
     return d->mode;
 }
+
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug dbg, QAudioDevice::Mode mode)
+{
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    switch (mode) {
+    case QAudioDevice::Input:
+        dbg << "QAudioDevice::Input";
+        break;
+    case QAudioDevice::Output:
+        dbg << "QAudioDevice::Output";
+        break;
+    }
+    return dbg;
+}
+#endif
 
 QT_END_NAMESPACE

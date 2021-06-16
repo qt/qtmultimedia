@@ -140,22 +140,22 @@ QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure s
 }
 
 
-QImageEncoderSettings::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure structure)
+QCameraImageCapture::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure structure)
 {
     const char *name = structure.name().data();
 
     if (!strcmp(name, "image/jpeg")) {
-        return QImageEncoderSettings::JPEG;
+        return QCameraImageCapture::JPEG;
     } else if (!strcmp(name, "image/png")) {
-        return QImageEncoderSettings::PNG;
+        return QCameraImageCapture::PNG;
     } else if (!strcmp(name, "image/webp")) {
-        return QImageEncoderSettings::WebP;
+        return QCameraImageCapture::WebP;
     } else if (!strcmp(name, "image/webp")) {
-        return QImageEncoderSettings::WebP;
+        return QCameraImageCapture::WebP;
     } else if (!strcmp(name, "image/tiff")) {
-        return QImageEncoderSettings::Tiff;
+        return QCameraImageCapture::Tiff;
     }
-    return QImageEncoderSettings::UnspecifiedFormat;
+    return QCameraImageCapture::UnspecifiedFormat;
 }
 
 static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> getCodecsList(bool decode)
@@ -266,9 +266,9 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
     return muxers;
 }
 
-static QList<QImageEncoderSettings::FileFormat> getImageFormatList()
+static QList<QCameraImageCapture::FileFormat> getImageFormatList()
 {
-    QSet<QImageEncoderSettings::FileFormat> formats;
+    QSet<QCameraImageCapture::FileFormat> formats;
 
     GList *elementList = gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_ENCODER,
                                                                GST_RANK_MARGINAL);
@@ -289,7 +289,7 @@ static QList<QImageEncoderSettings::FileFormat> getImageFormatList()
                 for (int i = 0; i < caps.size(); i++) {
                     QGstStructure structure = caps.at(i);
                     auto f = QGstreamerFormatInfo::imageFormatForCaps(structure);
-                    if (f != QImageEncoderSettings::UnspecifiedFormat) {
+                    if (f != QCameraImageCapture::UnspecifiedFormat) {
 //                        qDebug() << structure.toString() << f;
                         formats.insert(f);
                     }

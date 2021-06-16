@@ -63,9 +63,9 @@ class QCoreAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
 #if defined(Q_OS_MACOS)
-    QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudio::Mode mode);
+    QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode);
 #else
-    QCoreAudioDeviceInfo(const QByteArray &device, QAudio::Mode mode);
+    QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode);
 #endif
     ~QCoreAudioDeviceInfo() {}
 

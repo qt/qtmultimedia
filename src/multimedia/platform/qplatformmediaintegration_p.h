@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
 class QMediaPlayer;
 class QAudioDecoder;
 class QCamera;
-class QMediaEncoder;
+class QMediaRecorder;
 class QCameraImageCapture;
 class QMediaDevices;
 class QPlatformMediaDevices;
@@ -72,6 +72,10 @@ class QPlatformMediaFormatInfo;
 class QObject;
 class QPlatformVideoSink;
 class QVideoSink;
+class QAudioInput;
+class QAudioOutput;
+class QPlatformAudioInput;
+class QPlatformAudioOutput;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 {
@@ -89,8 +93,11 @@ public:
     virtual QPlatformMediaCaptureSession *createCaptureSession() { return nullptr; }
     virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
     virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
-    virtual QPlatformMediaEncoder *createEncoder(QMediaEncoder *) { return nullptr; }
+    virtual QPlatformMediaEncoder *createEncoder(QMediaRecorder *) { return nullptr; }
     virtual QPlatformCameraImageCapture *createImageCapture(QCameraImageCapture *) { return nullptr; }
+
+    virtual QPlatformAudioInput *createAudioInput(QAudioInput *);
+    virtual QPlatformAudioOutput *createAudioOutput(QAudioOutput *);
 
     virtual QPlatformVideoSink *createVideoSink(QVideoSink *) { return nullptr; }
 };

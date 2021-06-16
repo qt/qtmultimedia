@@ -46,7 +46,7 @@
 #include "qmediametadata.h"
 #include "qcamera.h"
 #include "qmediacapturesession.h"
-#include "qmediaencoder.h"
+#include "qmediarecorder.h"
 
 #include <private/qquickimagepreviewprovider_p.h>
 

@@ -37,10 +37,10 @@
 class QMockMediaEncoder : public QPlatformMediaEncoder
 {
 public:
-    QMockMediaEncoder(QMediaEncoder *parent):
+    QMockMediaEncoder(QMediaRecorder *parent):
         QPlatformMediaEncoder(parent),
-        m_state(QMediaEncoder::StoppedState),
-        m_status(QMediaEncoder::StoppedStatus),
+        m_state(QMediaRecorder::StoppedState),
+        m_status(QMediaRecorder::StoppedStatus),
         m_position(0),
         m_settingAppliedCount(0)
     {
@@ -57,12 +57,12 @@ public:
         return true;
     }
 
-    QMediaEncoder::State state() const
+    QMediaRecorder::RecorderState state() const
     {
         return m_state;
     }
 
-    QMediaEncoder::Status status() const
+    QMediaRecorder::Status status() const
     {
         return m_status;
     }
@@ -91,8 +91,8 @@ public:
 public:
     void record()
     {
-        m_state = QMediaEncoder::RecordingState;
-        m_status = QMediaEncoder::RecordingStatus;
+        m_state = QMediaRecorder::RecordingState;
+        m_status = QMediaRecorder::RecordingStatus;
         m_position=1;
         emit stateChanged(m_state);
         emit statusChanged(m_status);
@@ -104,8 +104,8 @@ public:
 
     void pause()
     {
-        m_state = QMediaEncoder::PausedState;
-        m_status = QMediaEncoder::PausedStatus;
+        m_state = QMediaRecorder::PausedState;
+        m_status = QMediaRecorder::PausedStatus;
         emit stateChanged(m_state);
         emit statusChanged(m_status);
     }
@@ -113,22 +113,22 @@ public:
     void stop()
     {
         m_position=0;
-        m_state = QMediaEncoder::StoppedState;
-        m_status = QMediaEncoder::StoppedStatus;
+        m_state = QMediaRecorder::StoppedState;
+        m_status = QMediaRecorder::StoppedStatus;
         emit stateChanged(m_state);
         emit statusChanged(m_status);
     }
 
-    void setState(QMediaEncoder::State state)
+    void setState(QMediaRecorder::RecorderState state)
     {
         switch (state) {
-        case QMediaEncoder::StoppedState:
+        case QMediaRecorder::StoppedState:
             stop();
             break;
-        case QMediaEncoder::PausedState:
+        case QMediaRecorder::PausedState:
             pause();
             break;
-        case QMediaEncoder::RecordingState:
+        case QMediaRecorder::RecordingState:
             record();
             break;
         }
@@ -137,8 +137,8 @@ public:
 public:
     QMediaMetaData m_metaData;
     QUrl       m_sink;
-    QMediaEncoder::State m_state;
-    QMediaEncoder::Status m_status;
+    QMediaRecorder::RecorderState m_state;
+    QMediaRecorder::Status m_status;
     QMediaEncoderSettings m_settings;
     qint64     m_position;
     int m_settingAppliedCount;

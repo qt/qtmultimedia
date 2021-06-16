@@ -44,12 +44,16 @@ import QtMultimedia
 Item {
     MediaPlayer {
         id: mediaplayer
-        source: "gst-pipeline: videotestsrc ! qtvideosink"
+        source: "file:///test.mp4"
+        videoOutput: videoOutput
+        audioOutput: AudioOutput {
+
+        }
     }
 
     VideoOutput {
+        id: videoOutput
         anchors.fill: parent
-        source: mediaplayer
     }
 
     MouseArea {

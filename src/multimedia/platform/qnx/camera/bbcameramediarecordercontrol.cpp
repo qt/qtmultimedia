@@ -65,7 +65,7 @@ BbCameraMediaRecorderControl::BbCameraMediaRecorderControl(BbCameraSession *sess
     : QPlatformMediaEncoder(parent)
     , m_session(session)
 {
-    connect(m_session, SIGNAL(videoStateChanged(QMediaRecorder::State)), this, SIGNAL(stateChanged(QMediaRecorder::State)));
+    connect(m_session, SIGNAL(videoStateChanged(QMediaRecorder::RecorderState)), this, SIGNAL(stateChanged(QMediaRecorder::RecorderState)));
     connect(m_session, SIGNAL(videoStatusChanged(QMediaRecorder::Status)), this, SIGNAL(statusChanged(QMediaRecorder::Status)));
     connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
@@ -82,7 +82,7 @@ bool BbCameraMediaRecorderControl::setOutputLocation(const QUrl &location)
     return m_session->setOutputLocation(location);
 }
 
-QMediaRecorder::State BbCameraMediaRecorderControl::state() const
+QMediaRecorder::RecorderState BbCameraMediaRecorderControl::state() const
 {
     return m_session->videoState();
 }
@@ -128,7 +128,7 @@ void BbCameraMediaRecorderControl::applySettings()
     m_session->applyVideoSettings();
 }
 
-void BbCameraMediaRecorderControl::setState(QMediaRecorder::State state)
+void BbCameraMediaRecorderControl::setState(QMediaRecorder::RecorderState state)
 {
     m_session->setVideoState(state);
 }

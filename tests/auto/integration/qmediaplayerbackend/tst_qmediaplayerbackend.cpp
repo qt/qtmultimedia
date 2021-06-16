@@ -34,6 +34,7 @@
 #include <qaudiobuffer.h>
 #include <qvideosink.h>
 #include <qvideoframe.h>
+#include <qaudiooutput.h>
 
 #include "../shared/mediafileselector.h"
 //TESTED_COMPONENT=src/multimedia
@@ -200,6 +201,8 @@ void tst_QMediaPlayerBackend::loadMedia()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
@@ -233,6 +236,8 @@ void tst_QMediaPlayerBackend::unloadMedia()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
@@ -278,6 +283,8 @@ void tst_QMediaPlayerBackend::loadMediaInLoadingState()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
     player.setSource(localWavFile2);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::LoadingMedia);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
@@ -298,6 +305,8 @@ void tst_QMediaPlayerBackend::playPauseStop()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
@@ -452,6 +461,8 @@ void tst_QMediaPlayerBackend::processEOS()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy statusSpy(&player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
@@ -586,6 +597,8 @@ void tst_QMediaPlayerBackend::deleteLaterAtEOS()
         QSKIP("Sound format is not supported");
 
     QPointer<QMediaPlayer> player(new QMediaPlayer);
+    QAudioOutput output;
+    player->setAudioOutput(&output);
     DeleteLaterAtEos deleter(player);
     player->setSource(localWavFile);
 
@@ -606,46 +619,48 @@ void tst_QMediaPlayerBackend::volumeAndMuted()
 {
     //volume and muted properties should be independent
     QMediaPlayer player;
-    QVERIFY(player.volume() > 0);
-    QVERIFY(!player.isMuted());
+    QAudioOutput output;
+    player.setAudioOutput(&output);
+    QCOMPARE(output.volume(), 1.);
+    QVERIFY(!output.isMuted());
 
     player.setSource(localWavFile);
     player.pause();
 
-    QVERIFY(player.volume() > 0);
-    QVERIFY(!player.isMuted());
+    QCOMPARE(output.volume(), 1.);
+    QVERIFY(!output.isMuted());
 
-    QSignalSpy volumeSpy(&player, SIGNAL(volumeChanged(int)));
-    QSignalSpy mutedSpy(&player, SIGNAL(mutedChanged(bool)));
+    QSignalSpy volumeSpy(&output, SIGNAL(volumeChanged(float)));
+    QSignalSpy mutedSpy(&output, SIGNAL(mutedChanged(bool)));
 
     //setting volume to 0 should not trigger muted
-    player.setVolume(0);
-    QTRY_COMPARE(player.volume(), 0);
-    QVERIFY(!player.isMuted());
+    output.setVolume(0);
+    QTRY_COMPARE(output.volume(), 0);
+    QVERIFY(!output.isMuted());
     QCOMPARE(volumeSpy.count(), 1);
-    QCOMPARE(volumeSpy.last()[0].toInt(), player.volume());
+    QCOMPARE(volumeSpy.last()[0].toFloat(), output.volume());
     QCOMPARE(mutedSpy.count(), 0);
 
-    player.setVolume(50);
-    QTRY_COMPARE(player.volume(), 50);
-    QVERIFY(!player.isMuted());
+    output.setVolume(0.5);
+    QTRY_COMPARE(output.volume(), 0.5);
+    QVERIFY(!output.isMuted());
     QCOMPARE(volumeSpy.count(), 2);
-    QCOMPARE(volumeSpy.last()[0].toInt(), player.volume());
+    QCOMPARE(volumeSpy.last()[0].toFloat(), output.volume());
     QCOMPARE(mutedSpy.count(), 0);
 
-    player.setMuted(true);
-    QTRY_VERIFY(player.isMuted());
-    QVERIFY(player.volume() > 0);
+    output.setMuted(true);
+    QTRY_VERIFY(output.isMuted());
+    QVERIFY(output.volume() > 0);
     QCOMPARE(volumeSpy.count(), 2);
     QCOMPARE(mutedSpy.count(), 1);
-    QCOMPARE(mutedSpy.last()[0].toBool(), player.isMuted());
+    QCOMPARE(mutedSpy.last()[0].toBool(), output.isMuted());
 
-    player.setMuted(false);
-    QTRY_VERIFY(!player.isMuted());
-    QVERIFY(player.volume() > 0);
+    output.setMuted(false);
+    QTRY_VERIFY(!output.isMuted());
+    QVERIFY(output.volume() > 0);
     QCOMPARE(volumeSpy.count(), 2);
     QCOMPARE(mutedSpy.count(), 2);
-    QCOMPARE(mutedSpy.last()[0].toBool(), player.isMuted());
+    QCOMPARE(mutedSpy.last()[0].toBool(), output.isMuted());
 
 }
 
@@ -666,40 +681,43 @@ void tst_QMediaPlayerBackend::volumeAcrossFiles()
 {
     QFETCH(int, volume);
     QFETCH(bool, muted);
+    float vol = volume/100.;
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     //volume and muted should not be preserved between player instances
-    QVERIFY(player.volume() > 0);
-    QVERIFY(!player.isMuted());
+    QVERIFY(output.volume() > 0);
+    QVERIFY(!output.isMuted());
 
-    player.setVolume(volume);
-    player.setMuted(muted);
+    output.setVolume(vol);
+    output.setMuted(muted);
 
-    QTRY_COMPARE(player.volume(), volume);
-    QTRY_COMPARE(player.isMuted(), muted);
+    QTRY_COMPARE(output.volume(), vol);
+    QTRY_COMPARE(output.isMuted(), muted);
 
     player.setSource(localWavFile);
-    QCOMPARE(player.volume(), volume);
-    QCOMPARE(player.isMuted(), muted);
+    QCOMPARE(output.volume(), vol);
+    QCOMPARE(output.isMuted(), muted);
 
     player.pause();
 
     //to ensure the backend doesn't change volume/muted
     //async during file loading.
 
-    QTRY_COMPARE(player.volume(), volume);
-    QCOMPARE(player.isMuted(), muted);
+    QTRY_COMPARE(output.volume(), vol);
+    QCOMPARE(output.isMuted(), muted);
 
     player.setSource(QUrl());
-    QTRY_COMPARE(player.volume(), volume);
-    QCOMPARE(player.isMuted(), muted);
+    QTRY_COMPARE(output.volume(), vol);
+    QCOMPARE(output.isMuted(), muted);
 
     player.setSource(localWavFile);
     player.pause();
 
-    QTRY_COMPARE(player.volume(), volume);
-    QCOMPARE(player.isMuted(), muted);
+    QTRY_COMPARE(output.volume(), vol);
+    QCOMPARE(output.isMuted(), muted);
 }
 
 void tst_QMediaPlayerBackend::initialVolume()
@@ -709,21 +727,25 @@ void tst_QMediaPlayerBackend::initialVolume()
 
     {
         QMediaPlayer player;
-        player.setVolume(1);
+        QAudioOutput output;
+        player.setAudioOutput(&output);
+        output.setVolume(1);
         player.setSource(localWavFile);
-        QCOMPARE(player.volume(), 1);
+        QCOMPARE(output.volume(), 1);
         player.play();
         QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
-        QCOMPARE(player.volume(), 1);
+        QCOMPARE(output.volume(), 1);
     }
 
     {
         QMediaPlayer player;
+        QAudioOutput output;
+        player.setAudioOutput(&output);
         player.setSource(localWavFile);
-        QCOMPARE(player.volume(), 100);
+        QCOMPARE(output.volume(), 1);
         player.play();
         QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
-        QCOMPARE(player.volume(), 100);
+        QCOMPARE(output.volume(), 1);
     }
 }
 
@@ -733,6 +755,8 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QSKIP("No supported video file");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
 
@@ -805,6 +829,8 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
         QSKIP("No supported video file");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
@@ -923,6 +949,8 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
     player.setSource(localCompressedSoundFile);
     player.setPosition(5000);
     player.play();
@@ -961,6 +989,8 @@ void tst_QMediaPlayerBackend::surfaceTest()
 
     TestVideoSink surface(false);
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
     player.setVideoOutput(&surface);
     player.setSource(localVideoFile);
     player.play();
@@ -994,6 +1024,8 @@ void tst_QMediaPlayerBackend::metadata()
         QSKIP("No supported media file");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
 
@@ -1019,6 +1051,8 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
         QSKIP("Sound format is not supported");
 
     QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
 
     bool endOfMediaReceived = false;
     connect(&player, &QMediaPlayer::mediaStatusChanged, [&](QMediaPlayer::MediaStatus status) {

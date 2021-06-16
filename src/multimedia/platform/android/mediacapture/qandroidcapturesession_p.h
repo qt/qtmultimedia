@@ -52,7 +52,7 @@
 //
 
 #include <qobject.h>
-#include <qmediaencoder.h>
+#include <qmediarecorder.h>
 #include <qurl.h>
 #include <qelapsedtimer.h>
 #include <qtimer.h>
@@ -62,6 +62,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class QAudioInput;
 class QAndroidCameraSession;
 
 class QAndroidCaptureSession : public QObject
@@ -74,16 +75,15 @@ public:
     QList<QSize> supportedResolutions() const { return m_supportedResolutions; }
     QList<qreal> supportedFrameRates() const { return m_supportedFramerates; }
 
-    QString audioInput() const { return m_audioInput; }
-    void setAudioInput(const QString &input);
+    void setAudioInput(QPlatformAudioInput *input);
 
     QUrl outputLocation() const;
     bool setOutputLocation(const QUrl &location);
 
-    QMediaEncoder::State state() const;
-    void setState(QMediaEncoder::State state);
+    QMediaRecorder::RecorderState state() const;
+    void setState(QMediaRecorder::RecorderState state);
 
-    QMediaEncoder::Status status() const;
+    QMediaRecorder::Status status() const;
 
     qint64 duration() const;
 
@@ -94,11 +94,11 @@ public:
 
     void applySettings();
 
-    void stateChanged(QMediaEncoder::State state) {
+    void stateChanged(QMediaRecorder::RecorderState state) {
         if (m_mediaEncoder)
             m_mediaEncoder->stateChanged(state);
     }
-    void statusChanged(QMediaEncoder::Status status)
+    void statusChanged(QMediaRecorder::Status status)
     {
         if (m_mediaEncoder)
             m_mediaEncoder->statusChanged(status);
@@ -116,11 +116,8 @@ public:
     void error(int error, const QString &errorString)
     {
         if (m_mediaEncoder)
-            m_mediaEncoder->error(QMediaEncoder::Error(error), errorString);
+            m_mediaEncoder->error(QMediaRecorder::Error(error), errorString);
     }
-
-Q_SIGNALS:
-    void audioInputChanged(const QString& name);
 
 private Q_SLOTS:
     void updateDuration();
@@ -166,7 +163,7 @@ private:
     void start();
     void stop(bool error = false);
 
-    void setStatus(QMediaEncoder::Status status);
+    void setStatus(QMediaRecorder::Status status);
 
     void updateResolution();
     void restartViewfinder();
@@ -175,7 +172,7 @@ private:
     AndroidMediaRecorder *m_mediaRecorder;
     QAndroidCameraSession *m_cameraSession;
 
-    QString m_audioInput;
+    QPlatformAudioInput *m_audioInput = nullptr;
     AndroidMediaRecorder::AudioSource m_audioSource;
 
     QMediaStorageLocation m_mediaStorageLocation;
@@ -184,8 +181,8 @@ private:
     QTimer m_notifyTimer;
     qint64 m_duration;
 
-    QMediaEncoder::State m_state;
-    QMediaEncoder::Status m_status;
+    QMediaRecorder::RecorderState m_state;
+    QMediaRecorder::Status m_status;
     QUrl m_requestedOutputLocation;
     QUrl m_usedOutputLocation;
     QUrl m_actualOutputLocation;

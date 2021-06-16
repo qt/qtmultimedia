@@ -56,7 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 class QWindowsMediaCaptureService;
-class QWindowsCameraSession;
+class QWindowsMediaDeviceSession;
 
 class QWindowsCamera : public QPlatformCamera
 {
@@ -81,8 +81,8 @@ private Q_SLOTS:
 
 private:
     QWindowsMediaCaptureService *m_captureService = nullptr;
-    QWindowsCameraSession  *m_cameraSession = nullptr;
-    QCameraDevice m_cameraInfo;
+    QWindowsMediaDeviceSession  *m_mediaDeviceSession = nullptr;
+    QCameraDevice m_cameraDevice;
     QCameraFormat m_cameraFormat;
     QCamera::Status m_lastStatus = QCamera::InactiveStatus;
     bool m_active = false;

@@ -82,45 +82,15 @@ public:
 
     void setVideoPreview(QVideoSink *) override {}
 
-    bool isMuted() const override
+    void setAudioInput(QPlatformAudioInput *input) override
     {
-        return m_muted;
-    }
-
-    void setMuted(bool muted) override
-    {
-        if (m_muted != muted)
-            emit mutedChanged(m_muted = muted);
-    }
-
-    qreal volume() const override
-    {
-        return m_volume;
-    }
-
-    void setVolume(qreal volume) override
-    {
-        if (!qFuzzyCompare(m_volume, volume))
-            emit volumeChanged(m_volume = volume);
-    }
-
-    QAudioDevice audioInput() const override
-    {
-        return m_audioInput;
-    }
-    bool setAudioInput(const QAudioDevice &id) override
-    {
-        m_audioInput = id;
-        return true;
+        m_audioInput = input;
     }
 
     QMockCamera *mockCameraControl = nullptr;
     QPlatformCameraImageCapture *mockImageCapture = nullptr;
     QMockMediaEncoder *mockControl = nullptr;
-
-    QAudioDevice m_audioInput;
-    bool m_muted = false;
-    qreal m_volume = 1.0;
+    QPlatformAudioInput *m_audioInput = nullptr;
     bool hasControls;
 };
 

@@ -58,28 +58,28 @@
 
 #include <private/qgst_p.h>
 #include <private/qgstpipeline_p.h>
+#include <private/qplatformaudiooutput_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QGstreamerMessage;
 class QAudioDevice;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerAudioOutput : public QObject
+class Q_MULTIMEDIA_EXPORT QGstreamerAudioOutput : public QObject, public QPlatformAudioOutput
 {
     Q_OBJECT
 
 public:
-    QGstreamerAudioOutput(QObject *parent = 0);
+    QGstreamerAudioOutput(QAudioOutput *parent);
     ~QGstreamerAudioOutput();
-
-    int volume() const;
-    bool isMuted() const;
 
     bool setAudioOutput(const QAudioDevice &);
     QAudioDevice audioOutput() const;
 
-    void setVolume(int volume);
-    void setMuted(bool muted);
+    void setAudioDevice(const QAudioDevice &) override
+    { setAudioOutput(device); }
+    void setVolume(float volume) override;
+    void setMuted(bool muted) override;
 
     void setPipeline(const QGstPipeline &pipeline);
 
@@ -92,9 +92,6 @@ Q_SIGNALS:
 private:
     void prepareAudioOutputChange(const QGstPad &pad);
     bool changeAudioOutput();
-
-    int m_volume = 100.;
-    bool m_muted = false;
 
     QAudioDevice m_audioOutput;
 

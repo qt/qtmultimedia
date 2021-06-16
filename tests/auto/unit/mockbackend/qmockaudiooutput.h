@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QWINDOWSCAMERASESSION_H
-#define QWINDOWSCAMERASESSION_H
+#ifndef QMOCKAUDIOOUTPUT_H
+#define QMOCKAUDIOOUTPUT_H
 
 //
 //  W A R N I N G
@@ -51,78 +50,27 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <qcamera.h>
-#include <qmediaencodersettings.h>
-#include <qaudiodevice.h>
-#include <qwindowsmultimediautils_p.h>
+#include <private/qplatformaudiooutput_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QVideoSink;
-class QWindowsCameraReader;
-
-class QWindowsCameraSession : public QObject
+class QMockAudioOutput : public QPlatformAudioOutput
 {
-    Q_OBJECT
 public:
-    explicit QWindowsCameraSession(QObject *parent = nullptr);
-    ~QWindowsCameraSession();
+    QMockAudioOutput(QAudioOutput *qq) : QPlatformAudioOutput(qq) {}
 
-    bool isActive() const;
-    void setActive(bool active);
+    virtual QList<QAudio::Role> supportedAudioRoles() const {
+        if (!hasAudioRole)
+            return {};
+        return QList<QAudio::Role>() << QAudio::MusicRole
+                                     << QAudio::AlarmRole
+                                     << QAudio::NotificationRole;
+    }
 
-    bool isReadyForCapture() const;
-
-    void setActiveCamera(const QCameraDevice &info);
-
-    void setCameraFormat(const QCameraFormat &cameraFormat);
-
-    void setVideoSink(QVideoSink *surface);
-
-    QMediaEncoderSettings videoSettings() const;
-    void setVideoSettings(const QMediaEncoderSettings &settings);
-
-    bool isMuted() const;
-    void setMuted(bool muted);
-    qreal volume() const;
-    void setVolume(qreal volume);
-    QAudioDevice audioInput() const;
-    bool setAudioInput(const QAudioDevice &info);
-
-    bool startRecording(const QString &fileName);
-    void stopRecording();
-    bool pauseRecording();
-    bool resumeRecording();
-
-Q_SIGNALS:
-    void activeChanged(bool);
-    void readyForCaptureChanged(bool);
-    void durationChanged(qint64 duration);
-    void recordingStarted();
-    void recordingStopped();
-    void streamingError(int errorCode);
-    void newVideoFrame(const QVideoFrame &frame);
-
-private Q_SLOTS:
-    void handleStreamingStarted();
-    void handleStreamingStopped();
-    void handleStreamingError(int errorCode);
-    void handleNewVideoFrame(const QVideoFrame &frame);
-
-private:
-    quint32 estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
-                                qreal frameRate, QMediaEncoderSettings::Quality quality);
-    quint32 estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality);
-    bool m_active = false;
-    QCameraDevice m_activeCameraInfo;
-    QCameraFormat m_cameraFormat;
-    QWindowsCameraReader *m_cameraReader = nullptr;
-    QMediaEncoderSettings m_mediaEncoderSettings;
-    QAudioDevice m_audioInput;
-    QVideoSink  *m_surface = nullptr;
+    bool hasAudioRole = true;
 };
 
 QT_END_NAMESPACE
 
-#endif // QWINDOWSCAMERASESSION_H
+
+#endif // QMOCKAUDIOOUTPUT_H
