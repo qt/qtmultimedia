@@ -107,8 +107,11 @@ void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     if (m_captureService == captureService)
         return;
 
-    if (m_mediaDeviceSession)
+    if (m_mediaDeviceSession) {
         m_mediaDeviceSession->setActive(false);
+        m_mediaDeviceSession->setCameraFormat({});
+        m_mediaDeviceSession->setActiveCamera({});
+    }
 
     m_captureService = captureService;
     if (!m_captureService) {
