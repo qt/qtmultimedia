@@ -143,7 +143,7 @@ bool AndroidMediaMetadataRetriever::setDataSource(const QUrl &url)
 
         if (!ok)
             return false;
-    } else if (QNativeInterface::QAndroidApplication::sdkVersion() >= 14) {
+    } else if (QNativeInterface::QAndroidApplication::sdkVersion() >= 14 && url.scheme() != QLatin1String("content")) {
         // On API levels >= 14, only setDataSource(String, Map<String, String>) accepts remote media
         QJniObject string = QJniObject::fromString(url.toString(QUrl::FullyEncoded));
         QJniObject hash("java/util/HashMap");
