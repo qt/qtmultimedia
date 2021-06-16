@@ -53,7 +53,7 @@
 
 /* Globals so that everything is consistent. */
 QCamera *camera = 0;
-QMediaRecorder *encoder = 0;
+QMediaRecorder *recorder = 0;
 QCameraImageCapture *imageCapture = 0;
 
 //! [Camera overview check]
@@ -110,18 +110,18 @@ void overview_viewfinder_orientation()
     //! [Camera overview viewfinder orientation]
     // Assuming a QImage has been created from the QVideoFrame that needs to be presented
     QImage videoFrame;
-    QCameraDevice cameraInfo(camera); // needed to get the camera sensor position and orientation
+    QCameraDevice cameraDevice(camera); // needed to get the camera sensor position and orientation
 
     // Get the current display orientation
     const QScreen *screen = QGuiApplication::primaryScreen();
     const int screenAngle = screen->angleBetween(screen->nativeOrientation(), screen->orientation());
 
     int rotation;
-    if (cameraInfo.position() == QCameraDevice::BackFace) {
-        rotation = (cameraInfo.orientation() - screenAngle) % 360;
+    if (cameraDevice.position() == QCameraDevice::BackFace) {
+        rotation = (cameraDevice.orientation() - screenAngle) % 360;
     } else {
         // Front position, compensate the mirror
-        rotation = (360 - cameraInfo.orientation() + screenAngle) % 360;
+        rotation = (360 - cameraDevice.orientation() + screenAngle) % 360;
     }
 
     // Rotate the frame so it always shows in the correct orientation
@@ -151,23 +151,22 @@ void overview_movie()
     QMediaCaptureSession captureSession;
     camera = new QCamera;
     captureSession.setCamera(camera);
-    encoder = new QMediaRecorder(camera);
-    captureSession.setEncoder(encoder);
+    recorder = new QMediaRecorder(camera);
+    captureSession.setMediaEncoder(recorder);
 
     camera->start();
 
-    // setup output format for the encoder
+    // setup output format for the recorder
     QMediaFormat format(QMediaFormat::MPEG4);
-    format.setVideoCodec(QMediaEncoderSettings::VideoCodec::H264);
-    format.setAudioCodec(QMediaEncoderSettings::AudioCodec::MP3);
-    QMediaEncoderSettings settings(format);
-    encoder->setEncoderSettings(settings);
+    format.setVideoCodec(QMediaRecorder::VideoCodec::H264);
+    format.setAudioCodec(QMediaRecorder::AudioCodec::MP3);
+    recorder->setMediaFormat(settings);
 
     //on shutter button pressed
-    encoder->record();
+    recorder->record();
 
     // sometime later, or on another press
-    encoder->stop();
+    recorder->stop();
     //! [Camera overview movie]
 }
 
@@ -175,8 +174,8 @@ void camera_listing()
 {
     //! [Camera listing]
     const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
-    for (const QCameraDevice &cameraInfo : cameras)
-        qDebug() << cameraInfo.description();
+    for (const QCameraDevice &cameraDevice : cameras)
+        qDebug() << cameraDevice.description();
     //! [Camera listing]
 }
 
@@ -184,9 +183,9 @@ void camera_selection()
 {
     //! [Camera selection]
     const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
-    for (const QCameraDevice &cameraInfo : cameras) {
-        if (cameraInfo.description() == "mycamera")
-            camera = new QCamera(cameraInfo);
+    for (const QCameraDevice &cameraDevice : cameras) {
+        if (cameraDevice.description() == "mycamera")
+            camera = new QCamera(cameraDevice);
     }
     //! [Camera selection]
 }
@@ -195,14 +194,14 @@ void camera_info()
 {
     //! [Camera info]
     QCamera myCamera;
-    QCameraDevice cameraInfo = camera->cameraInfo();
+    QCameraDevice cameraDevice = camera->cameraDevice();
 
-    if (cameraInfo.position() == QCameraDevice::FrontFace)
+    if (cameraDevice.position() == QCameraDevice::FrontFace)
         qDebug() << "The camera is on the front face of the hardware system.";
-    else if (cameraInfo.position() == QCameraDevice::BackFace)
+    else if (cameraDevice.position() == QCameraDevice::BackFace)
         qDebug() << "The camera is on the back face of the hardware system.";
 
-    qDebug() << "The camera sensor orientation is " << cameraInfo.orientation() << " degrees.";
+    qDebug() << "The camera sensor orientation is " << cameraDevice.orientation() << " degrees.";
     //! [Camera info]
 }
 

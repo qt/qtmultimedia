@@ -65,7 +65,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(QCamera::Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QCameraDevice cameraInfo READ cameraInfo WRITE setCameraInfo NOTIFY cameraInfoChanged)
+    Q_PROPERTY(QCameraDevice cameraDevice READ cameraDevice WRITE setCameraDevice NOTIFY cameraDeviceChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat NOTIFY cameraFormatChanged)
@@ -175,7 +175,7 @@ public:
     Q_DECLARE_FLAGS(Features, Feature)
 
     explicit QCamera(QObject *parent = nullptr);
-    explicit QCamera(const QCameraDevice& cameraInfo, QObject *parent = nullptr);
+    explicit QCamera(const QCameraDevice& cameraDevice, QObject *parent = nullptr);
     explicit QCamera(QCameraDevice::Position position, QObject *parent = nullptr);
     ~QCamera();
 
@@ -186,8 +186,8 @@ public:
 
     QMediaCaptureSession *captureSession() const;
 
-    QCameraDevice cameraInfo() const;
-    void setCameraInfo(const QCameraDevice &cameraInfo);
+    QCameraDevice cameraDevice() const;
+    void setCameraDevice(const QCameraDevice &cameraDevice);
 
     QCameraFormat cameraFormat() const;
     void setCameraFormat(const QCameraFormat &format);
@@ -235,8 +235,8 @@ public:
     int minimumIsoSensitivity() const;
     int maximumIsoSensitivity() const;
 
-    float minimumShutterSpeed() const;
-    float maximumShutterSpeed() const;
+    float minimumExposureTime() const;
+    float maximumExposureTime() const;
 
     WhiteBalanceMode whiteBalanceMode() const;
     Q_INVOKABLE bool isWhiteBalanceModeSupported(WhiteBalanceMode mode) const;
@@ -270,7 +270,7 @@ Q_SIGNALS:
     void statusChanged(QCamera::Status status);
     void errorChanged();
     void errorOccurred(QCamera::Error error, const QString &errorString);
-    void cameraInfoChanged();
+    void cameraDeviceChanged();
     void cameraFormatChanged();
     void supportedFeaturesChanged();
 
@@ -285,7 +285,7 @@ Q_SIGNALS:
     void flashModeChanged();
     void torchModeChanged();
 
-    void exposureTimeChanged(qreal speed);
+    void exposureTimeChanged(float speed);
     void isoSensitivityChanged(int);
     void exposureCompensationChanged(qreal);
     void exposureModeChanged();

@@ -253,35 +253,6 @@ qint64 QMediaRecorder::duration() const
 }
 
 /*!
-    Sets the encoder settings to \a settings.
-
-    \sa QMediaEncoderSettings
-*/
-void QMediaRecorder::setEncoderSettings(const QMediaEncoderSettings &settings)
-{
-    Q_D(QMediaRecorder);
-    if (d->encoderSettings == settings)
-        return;
-
-    d->encoderSettings = settings;
-    if (d->control && d->captureSession)
-        d->control->setEncoderSettings(settings);
-    d->applySettingsLater();
-
-    emit encoderSettingsChanged();
-}
-
-/*!
-    Returns the current encoder settings.
-
-    \sa QMediaEncoderSettings
-*/
-QMediaEncoderSettings QMediaRecorder::encoderSettings() const
-{
-    return d_func()->encoderSettings;
-}
-
-/*!
     Start recording.
 
     While the encoder state is changed immediately to QMediaRecorder::RecordingState,
@@ -481,6 +452,266 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
 {
     Q_D(const QMediaRecorder);
     return d->captureSession;
+}
+
+/*!
+    \enum QMediaRecorder::EncodingQuality
+
+    Enumerates quality encoding levels.
+
+    \value VeryLowQuality
+    \value LowQuality
+    \value NormalQuality
+    \value HighQuality
+    \value VeryHighQuality
+*/
+
+/*!
+    \enum QMediaRecorder::EncodingMode
+
+    Enumerates encoding modes.
+
+    \value ConstantQualityEncoding Encoding will aim to have a constant quality, adjusting bitrate to fit.
+    \value ConstantBitRateEncoding Encoding will use a constant bit rate, adjust quality to fit.
+    \value AverageBitRateEncoding Encoding will try to keep an average bitrate setting, but will use
+           more or less as needed.
+    \value TwoPassEncoding The media will first be processed to determine the characteristics,
+           and then processed a second time allocating more bits to the areas
+           that need it.
+*/
+
+QMediaFormat QMediaRecorder::mediaFormat() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.mediaFormat();
+}
+
+void QMediaRecorder::setMediaFormat(const QMediaFormat &format)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.mediaFormat() == format)
+        return;
+    d->encoderSettings.setMediaFormat(format);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit mediaFormatChanged();
+}
+
+/*!
+    Returns the encoding mode.
+
+    \sa EncodingMode
+*/
+QMediaRecorder::EncodingMode QMediaRecorder::encodingMode() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.encodingMode();
+}
+
+/*!
+    Sets the encoding \a mode setting.
+
+    If ConstantQualityEncoding is set, the quality
+    encoding parameter is used and bit rates are ignored,
+    otherwise the bitrates are used.
+
+    \sa encodingMode(), EncodingMode
+*/
+void QMediaRecorder::setEncodingMode(EncodingMode mode)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.encodingMode() == mode)
+        return;
+    d->encoderSettings.setEncodingMode(mode);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit encodingModeChanged();
+}
+
+QMediaRecorder::Quality QMediaRecorder::quality() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.quality();
+}
+
+void QMediaRecorder::setQuality(Quality quality)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.quality() == quality)
+        return;
+    d->encoderSettings.setQuality(quality);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit qualityChanged();
+}
+
+
+/*!
+    Returns the resolution of the encoded video.
+*/
+QSize QMediaRecorder::videoResolution() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.videoResolution();
+}
+
+/*!
+    Sets the \a resolution of the encoded video.
+
+    An empty QSize indicates the encoder should make an optimal choice based on
+    what is available from the video source and the limitations of the codec.
+*/
+void QMediaRecorder::setVideoResolution(const QSize &size)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.videoResolution() == size)
+        return;
+    d->encoderSettings.setVideoResolution(size);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit videoResolutionChanged();
+}
+
+/*! \fn void QMediaRecorder::setVideoResolution(int width, int height)
+
+    Sets the \a width and \a height of the resolution of the encoded video.
+
+    \overload
+*/
+
+/*!
+    Returns the video frame rate.
+*/
+qreal QMediaRecorder::videoFrameRate() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.videoFrameRate();
+}
+
+/*!
+    \fn QVideoEncoderSettings::setFrameRate(qreal rate)
+
+    Sets the video frame \a rate.
+
+    A value of 0 indicates the encoder should make an optimal choice based on what is available
+    from the video source and the limitations of the codec.
+*/
+void QMediaRecorder::setVideoFrameRate(qreal frameRate)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.videoFrameRate() == frameRate)
+        return;
+    d->encoderSettings.setVideoFrameRate(frameRate);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit videoFrameRateChanged();
+}
+
+/*!
+    Returns the bit rate of the compressed video stream in bits per second.
+*/
+int QMediaRecorder::videoBitRate() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.videoBitRate();
+}
+
+/*!
+    Sets the video bit \a rate in bits per second.
+*/
+void QMediaRecorder::setVideoBitRate(int bitRate)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.videoBitRate() == bitRate)
+        return;
+    d->encoderSettings.setVideoBitRate(bitRate);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit videoBitRateChanged();
+}
+
+/*!
+    Returns the bit rate of the compressed audio stream in bits per second.
+*/
+int QMediaRecorder::audioBitRate() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.audioBitRate();
+}
+
+/*!
+    Sets the audio bit \a rate in bits per second.
+*/
+void QMediaRecorder::setAudioBitRate(int bitRate)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.audioBitRate() == bitRate)
+        return;
+    d->encoderSettings.setAudioBitRate(bitRate);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit audioBitRateChanged();
+}
+
+/*!
+    Returns the number of audio channels.
+*/
+int QMediaRecorder::audioChannelCount() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.audioChannelCount();
+}
+
+/*!
+    Sets the number of audio \a channels.
+
+    A value of -1 indicates the encoder should make an optimal choice based on
+    what is available from the audio source and the limitations of the codec.
+*/
+void QMediaRecorder::setAudioChannelCount(int channels)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.audioChannelCount() == channels)
+        return;
+    d->encoderSettings.setAudioChannelCount(channels);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit audioChannelCountChanged();
+}
+
+/*!
+    Returns the audio sample rate in Hz.
+*/
+int QMediaRecorder::audioSampleRate() const
+{
+    Q_D(const QMediaRecorder);
+    return d->encoderSettings.audioSampleRate();
+}
+
+/*!
+    Sets the audio sample \a rate in Hz.
+
+    A value of -1 indicates the encoder should make an optimal choice based on what is avaialbe
+    from the audio source and the limitations of the codec.
+*/
+void QMediaRecorder::setAudioSampleRate(int sampleRate)
+{
+    Q_D(QMediaRecorder);
+    if (d->encoderSettings.audioSampleRate() == sampleRate)
+        return;
+    d->encoderSettings.setAudioSampleRate(sampleRate);
+    if (d->control)
+        d->control->setEncoderSettings(d->encoderSettings);
+    d->applySettingsLater();
+    emit audioSampleRateChanged();
 }
 
 QT_END_NAMESPACE

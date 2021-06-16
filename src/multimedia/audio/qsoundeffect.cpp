@@ -96,10 +96,9 @@ public:
     QAudioSink *m_audioOutput = nullptr;
     QSample *m_sample = nullptr;
     bool m_muted = false;
-    qreal m_volume = 1.0;
+    float m_volume = 1.0;
     bool m_sampleReady = false;
     qint64 m_offset = 0;
-    QAudio::Role m_role;
     QAudioDevice m_audioDevice;
 };
 
@@ -108,7 +107,6 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
     , q_ptr(q)
     , m_audioDevice(audioDevice)
 {
-    m_role = QAudio::UnknownRole;
     open(QIODevice::ReadOnly);
 }
 
@@ -485,6 +483,20 @@ void QSoundEffect::setLoopCount(int loopCount)
     emit loopCountChanged();
 }
 
+QAudioDevice QSoundEffect::audioDevice()
+{
+    return d->m_audioDevice;
+}
+
+void QSoundEffect::setAudioDevice(const QAudioDevice &device)
+{
+    if (d->m_audioDevice == device)
+        return;
+    // ### recreate the QAudioSink if needed
+    d->m_audioDevice = device;
+    emit audioDeviceChanged();
+}
+
 /*!
     \qmlproperty int QtMultimedia::SoundEffect::loopsRemaining
 
@@ -527,7 +539,7 @@ int QSoundEffect::loopsRemaining() const
 /*!
     Returns the current volume of this sound effect, from 0.0 (silent) to 1.0 (maximum volume).
  */
-qreal QSoundEffect::volume() const
+float QSoundEffect::volume() const
 {
     if (d->m_audioOutput && !d->m_muted)
         return d->m_audioOutput->volume();
@@ -547,9 +559,9 @@ qreal QSoundEffect::volume() const
     will produce linear changes in perceived loudness, which is what a user would normally expect
     from a volume control. See QAudio::convertVolume() for more details.
  */
-void QSoundEffect::setVolume(qreal volume)
+void QSoundEffect::setVolume(float volume)
 {
-    volume = qBound(qreal(0.0), volume, qreal(1.0));
+    volume = qBound(0.0f, volume, 1.0f);
     if (d->m_volume == volume)
         return;
 
@@ -724,47 +736,6 @@ QSoundEffect::Status QSoundEffect::status() const
     This setting will be ignored on platforms that do not
     support audio categories.
 */
-/*!
-    Returns the audio role for this sound effect.
-
-    Some platforms can perform different audio routing
-    for different roles, or may allow the user to
-    set different volume levels for different roles.
-
-    This setting will be ignored on platforms that do not
-    support audio roles.
-
-    \sa setRole()
-*/
-QAudio::Role QSoundEffect::audioRole() const
-{
-    return d->m_role;
-}
-
-/*!
-    Sets the \e category of this sound effect to \a category.
-
-    Some platforms can perform different audio routing
-    for different categories, or may allow the user to
-    set different volume levels for different categories.
-
-    This setting will be ignored on platforms that do not
-    support audio categories.
-
-    If this setting is changed while a sound effect is playing
-    it will only take effect when the sound effect has stopped
-    playing.
-
-    \sa category()
- */
-void QSoundEffect::setAudioRole(QAudio::Role role)
-{
-    if (d->m_role != role && !d->m_playing) {
-        d->m_role = role;
-        emit audioRoleChanged();
-    }
-}
-
 
 /*!
   \qmlmethod QtMultimedia::SoundEffect::stop()

@@ -56,19 +56,6 @@ namespace QAudio
     enum Error { NoError, OpenError, IOError, UnderrunError, FatalError };
     enum State { ActiveState, SuspendedState, StoppedState, IdleState };
 
-    enum Role {
-        UnknownRole,
-        MusicRole,
-        VideoRole,
-        VoiceCommunicationRole,
-        AlarmRole,
-        NotificationRole,
-        RingtoneRole,
-        AccessibilityRole,
-        SonificationRole,
-        GameRole,
-    };
-
     enum VolumeScale {
         LinearVolumeScale,
         CubicVolumeScale,
@@ -82,7 +69,6 @@ namespace QAudio
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Error error);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::State state);
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::Role role);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug dbg, QAudio::VolumeScale role);
 #endif
 

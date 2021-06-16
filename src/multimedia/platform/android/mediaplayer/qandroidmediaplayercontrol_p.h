@@ -99,7 +99,6 @@ public:
 private Q_SLOTS:
     void setVolume(float volume);
     void setMuted(bool muted);
-    void setAudioRole(QAudio::Role role);
     void onVideoOutputReady(bool ready);
     void onError(qint32 what, qint32 extra);
     void onInfo(qint32 what, qint32 extra);

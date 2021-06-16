@@ -119,9 +119,9 @@ void QCameraPrivate::init()
         return;
     }
 
-    if (cameraInfo.isNull())
+    if (cameraDevice.isNull())
         _q_error(QCamera::CameraError, QString::fromUtf8("Invalid camera specified"));
-    control->setCamera(cameraInfo);
+    control->setCamera(cameraDevice);
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
 }
@@ -140,17 +140,17 @@ QCamera::QCamera(QObject *parent)
 /*!
     \since 5.3
 
-    Construct a QCamera from a camera description \a cameraInfo and \a parent.
+    Construct a QCamera from a camera description \a cameraDevice and \a parent.
 */
 
-QCamera::QCamera(const QCameraDevice &cameraInfo, QObject *parent)
+QCamera::QCamera(const QCameraDevice &cameraDevice, QObject *parent)
     : QObject(*new QCameraPrivate, parent)
 {
     Q_D(QCamera);
 
-    d->cameraInfo = cameraInfo;
+    d->cameraDevice = cameraDevice;
     d->init();
-    setCameraInfo(cameraInfo);
+    setCameraDevice(cameraDevice);
 }
 
 /*!
@@ -180,7 +180,7 @@ QCamera::QCamera(QCameraDevice::Position position, QObject *parent)
     }
     if (info.isNull())
         info = QMediaDevices::defaultVideoInput();
-    d->cameraInfo = info;
+    d->cameraDevice = info;
     d->init();
 }
 
@@ -204,7 +204,7 @@ QCamera::~QCamera()
 bool QCamera::isAvailable() const
 {
     Q_D(const QCamera);
-    return d->control && !d->cameraInfo.isNull();
+    return d->control && !d->cameraDevice.isNull();
 }
 
 /*!
@@ -316,29 +316,29 @@ void QCamera::setCaptureSession(QMediaCaptureSession *session)
 /*!
     Returns the QCameraDevice object associated with this camera.
  */
-QCameraDevice QCamera::cameraInfo() const
+QCameraDevice QCamera::cameraDevice() const
 {
     Q_D(const QCamera);
-    return d->cameraInfo;
+    return d->cameraDevice;
 }
 
 /*!
     Sets the camera object to use the physical camera described by
-    \a cameraInfo.
+    \a cameraDevice.
 */
-void QCamera::setCameraInfo(const QCameraDevice &cameraInfo)
+void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 {
     Q_D(QCamera);
-    if (d->cameraInfo == cameraInfo)
+    if (d->cameraDevice == cameraDevice)
         return;
-    d->cameraInfo = cameraInfo;
-    if (d->cameraInfo.isNull())
+    d->cameraDevice = cameraDevice;
+    if (d->cameraDevice.isNull())
         d->_q_error(QCamera::CameraError, QString::fromUtf8("Invalid camera specified"));
     else
         d->_q_error(QCamera::NoError, QString());
     if (d->control)
-        d->control->setCamera(d->cameraInfo);
-    emit cameraInfoChanged();
+        d->control->setCamera(d->cameraDevice);
+    emit cameraDeviceChanged();
     setCameraFormat({});
 }
 
@@ -819,29 +819,35 @@ int QCamera::maximumIsoSensitivity() const
     return d->control ? d->control->maxIso() : -1;
 }
 
-float QCamera::minimumShutterSpeed() const
+/*!
+    The minimal exposure time in seconds.
+*/
+float QCamera::minimumExposureTime() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->minShutterSpeed() : -1.;
+    return d->control ? d->control->minExposureTime() : -1.;
 }
 
-float QCamera::maximumShutterSpeed() const
+/*!
+    The maximal exposure time in seconds.
+*/
+float QCamera::maximumExposureTime() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->maxShutterSpeed() : -1.;
+    return d->control ? d->control->maxExposureTime() : -1.;
 }
 
 /*!
     \property QCamera::exposureTime
-    \brief Camera's shutter speed in seconds.
+    \brief Camera's exposure time in seconds.
 
-    \sa supportedShutterSpeeds(), setAutoShutterSpeed(), setManualExposureTime()
+    \sa minimumExposureTime(), maximumExposureTime(), setManualExposureTime()
 */
 
 /*!
-    \fn QCamera::exposureTimeChanged(qreal speed)
+    \fn QCamera::exposureTimeChanged(float time)
 
-    Signals that a camera's shutter \a speed has changed.
+    Signals that a camera's exposure \a time has changed.
 */
 
 /*!
@@ -883,9 +889,8 @@ float QCamera::manualExposureTime() const
 }
 
 /*!
-    Turn on auto shutter speed
+    Use automatically calculated exposure time
 */
-
 void QCamera::setAutoExposureTime()
 {
     Q_D(QCamera);
@@ -946,7 +951,7 @@ void QCamera::setAutoExposureTime()
 /*!
     \fn void QCamera::exposureTimeRangeChanged()
 
-    Signal emitted when the shutter speed range has changed.
+    Signal emitted when the exposure time range has changed.
 */
 
 

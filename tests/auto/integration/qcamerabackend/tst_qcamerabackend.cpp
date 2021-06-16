@@ -60,8 +60,8 @@ public slots:
     void cleanupTestCase();
 
 private slots:
-    void testCameraInfo();
-    void testCtorWithCameraInfo();
+    void testCameraDevice();
+    void testCtorWithCameraDevice();
     void testCtorWithPosition();
 
     void testCameraStates();
@@ -88,7 +88,7 @@ void tst_QCameraBackend::cleanupTestCase()
 {
 }
 
-void tst_QCameraBackend::testCameraInfo()
+void tst_QCameraBackend::testCameraDevice()
 {
     const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
     if (cameras.isEmpty()) {
@@ -104,13 +104,13 @@ void tst_QCameraBackend::testCameraInfo()
     }
 }
 
-void tst_QCameraBackend::testCtorWithCameraInfo()
+void tst_QCameraBackend::testCtorWithCameraDevice()
 {
     {
-        // loading an invalid CameraInfo should fail
+        // loading an invalid CameraDevice should fail
         QCamera camera(QCameraDevice{});
         QCOMPARE(camera.error(), QCamera::CameraError);
-        QVERIFY(camera.cameraInfo().isNull());
+        QVERIFY(camera.cameraDevice().isNull());
     }
 
     if (noCamera)
@@ -120,13 +120,13 @@ void tst_QCameraBackend::testCtorWithCameraInfo()
         QCameraDevice info = QMediaDevices::defaultVideoInput();
         QCamera camera(info);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), info);
+        QCOMPARE(camera.cameraDevice(), info);
     }
     {
         QCameraDevice info = QMediaDevices::videoInputs().first();
         QCamera camera(info);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), info);
+        QCOMPARE(camera.cameraDevice(), info);
     }
 }
 
@@ -157,7 +157,7 @@ void tst_QCameraBackend::testCameraStates()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    camera.setCameraInfo(QCameraDevice());
+    camera.setCameraDevice(QCameraDevice());
     QCameraImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
@@ -175,7 +175,7 @@ void tst_QCameraBackend::testCameraStates()
 
     if (noCamera)
         QSKIP("No camera available");
-    camera.setCameraInfo(QMediaDevices::defaultVideoInput());
+    camera.setCameraDevice(QMediaDevices::defaultVideoInput());
     QCOMPARE(camera.error(), QCamera::NoError);
 
     camera.start();
@@ -461,9 +461,7 @@ void tst_QCameraBackend::testVideoRecording()
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
     QSignalSpy recorderStatusSignal(&recorder, SIGNAL(statusChanged(Status)));
 
-    QMediaEncoderSettings videoSettings;
-    videoSettings.setVideoResolution(320, 240);
-    recorder.setEncoderSettings(videoSettings);
+    recorder.setVideoResolution(320, 240);
 
     QCOMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
 

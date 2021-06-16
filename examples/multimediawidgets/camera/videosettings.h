@@ -52,7 +52,6 @@
 #define VIDEOSETTINGS_H
 
 #include <QDialog>
-#include <QMediaEncoderSettings>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;
@@ -68,8 +67,7 @@ public:
     explicit VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent = nullptr);
     ~VideoSettings();
 
-    QMediaEncoderSettings encoderSettings() const;
-    void setEncoderSettings(const QMediaEncoderSettings&);
+    void applySettings();
 
 protected:
     void changeEvent(QEvent *e) override;

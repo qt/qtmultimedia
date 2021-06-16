@@ -93,9 +93,9 @@ Camera::Camera()
     setCamera(QMediaDevices::defaultVideoInput());
 }
 
-void Camera::setCamera(const QCameraDevice &cameraInfo)
+void Camera::setCamera(const QCameraDevice &cameraDevice)
 {
-    m_camera.reset(new QCamera(cameraInfo));
+    m_camera.reset(new QCamera(cameraDevice));
     m_captureSession.setCamera(m_camera.data());
 
     connect(m_camera.data(), &QCamera::activeChanged, this, &Camera::updateCameraActive);
@@ -192,13 +192,8 @@ void Camera::configureVideoSettings()
     VideoSettings settingsDialog(m_mediaEncoder.data());
     settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-    settingsDialog.setEncoderSettings(m_encoderSettings);
-
-    if (settingsDialog.exec()) {
-        m_encoderSettings = settingsDialog.encoderSettings();
-
-        m_mediaEncoder->setEncoderSettings(m_encoderSettings);
-    }
+    if (settingsDialog.exec())
+        settingsDialog.applySettings();
 }
 
 void Camera::configureImageSettings()
@@ -363,11 +358,11 @@ void Camera::updateCameras()
 {
     ui->menuDevices->clear();
     const QList<QCameraDevice> availableCameras = QMediaDevices::videoInputs();
-    for (const QCameraDevice &cameraInfo : availableCameras) {
-        QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
+    for (const QCameraDevice &cameraDevice : availableCameras) {
+        QAction *videoDeviceAction = new QAction(cameraDevice.description(), videoDevicesGroup);
         videoDeviceAction->setCheckable(true);
-        videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
-        if (cameraInfo == QMediaDevices::defaultVideoInput())
+        videoDeviceAction->setData(QVariant::fromValue(cameraDevice));
+        if (cameraDevice == QMediaDevices::defaultVideoInput())
             videoDeviceAction->setChecked(true);
 
         ui->menuDevices->addAction(videoDeviceAction);

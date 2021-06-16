@@ -108,9 +108,6 @@ public:
     void pause() override;
     void stop() override;
 
-    void setAudioRole(QAudio::Role role) override;
-    QList<QAudio::Role> supportedAudioRoles() const override;
-
     MmRendererPlayerVideoRendererControl *videoRendererControl() const;
     void setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl);
 

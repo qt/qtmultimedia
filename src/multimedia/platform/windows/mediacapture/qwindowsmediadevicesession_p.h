@@ -53,9 +53,9 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <qcamera.h>
-#include <qmediaencodersettings.h>
 #include <qaudiodevice.h>
 #include <qwindowsmultimediautils_p.h>
+#include <qplatformmediaencoder_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -114,8 +114,8 @@ private Q_SLOTS:
 
 private:
     quint32 estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
-                                qreal frameRate, QMediaEncoderSettings::Quality quality);
-    quint32 estimateAudioBitRate(const GUID &audioFormat, QMediaEncoderSettings::Quality quality);
+                                qreal frameRate, QMediaRecorder::Quality quality);
+    quint32 estimateAudioBitRate(const GUID &audioFormat, QMediaRecorder::Quality quality);
     bool m_active = false;
     bool m_activating = false;
     QCameraDevice m_activeCameraDevice;

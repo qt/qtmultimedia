@@ -125,7 +125,7 @@ private:
 
     QGstreamerMediaCapture *m_session = nullptr;
 
-    QCameraDevice m_cameraInfo;
+    QCameraDevice m_cameraDevice;
 
     QGstPipeline gstPipeline;
 

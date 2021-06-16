@@ -118,7 +118,6 @@ private slots:
     void testDestructor();
     void testQrc_data();
     void testQrc();
-    void testAudioRole();
 
 private:
     void setupCommonTestData();
@@ -251,9 +250,9 @@ void tst_QMediaPlayer::testMedia()
     QCOMPARE(player->source(), mediaContent);
 
     QBuffer stream;
-    player->setSource(mediaContent, &stream);
+    player->setSourceDevice(&stream, mediaContent);
     QCOMPARE(player->source(), mediaContent);
-    QCOMPARE(player->sourceStream(), &stream);
+    QCOMPARE(player->sourceDevice(), &stream);
 }
 
 void tst_QMediaPlayer::testDuration_data()
@@ -788,43 +787,6 @@ void tst_QMediaPlayer::testQrc()
     // Check the media actually passed to the backend
     QCOMPARE(mockPlayer->media().scheme(), backendMediaContentScheme);
     QCOMPARE(bool(mockPlayer->mediaStream()), backendHasStream);
-}
-
-void tst_QMediaPlayer::testAudioRole()
-{
-    auto *mockAudioOutput = static_cast<QMockAudioOutput *>(mockPlayer->m_audioOutput);
-    {
-        mockAudioOutput->hasAudioRole = false;
-
-        QCOMPARE(audioOutput->audioRole(), QAudio::UnknownRole);
-        QVERIFY(audioOutput->supportedAudioRoles().isEmpty());
-
-        QSignalSpy spy(audioOutput, SIGNAL(audioRoleChanged(QAudio::Role)));
-        audioOutput->setAudioRole(QAudio::MusicRole);
-        QCOMPARE(audioOutput->audioRole(), QAudio::UnknownRole);
-        QCOMPARE(spy.count(), 0);
-    }
-
-    {
-        mockPlayer->reset();
-        mockAudioOutput->hasAudioRole = true;
-        QSignalSpy spy(audioOutput, SIGNAL(audioRoleChanged(QAudio::Role)));
-
-        QCOMPARE(audioOutput->audioRole(), QAudio::UnknownRole);
-        QVERIFY(!audioOutput->supportedAudioRoles().isEmpty());
-
-        audioOutput->setAudioRole(QAudio::MusicRole);
-        QCOMPARE(audioOutput->audioRole(), QAudio::MusicRole);
-        QCOMPARE(spy.count(), 1);
-        QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::MusicRole);
-
-        spy.clear();
-
-        audioOutput->setProperty("audioRole", QVariant::fromValue(QAudio::AlarmRole));
-        QCOMPARE(qvariant_cast<QAudio::Role>(audioOutput->property("audioRole")), QAudio::AlarmRole);
-        QCOMPARE(spy.count(), 1);
-        QCOMPARE(qvariant_cast<QAudio::Role>(spy.last().value(0)), QAudio::AlarmRole);
-    }
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaPlayer)

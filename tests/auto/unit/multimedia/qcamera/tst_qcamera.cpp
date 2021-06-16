@@ -173,8 +173,8 @@ void tst_QCamera::testSimpleCameraExposure()
     QCOMPARE(camera.isoSensitivity(), -1);
 
     QVERIFY(camera.exposureTime() < 0);
-    QCOMPARE(camera.minimumShutterSpeed(), -1.);
-    QCOMPARE(camera.maximumShutterSpeed(), -1.);
+    QCOMPARE(camera.minimumExposureTime(), -1.);
+    QCOMPARE(camera.maximumExposureTime(), -1.);
     camera.setAutoExposureTime();
     QVERIFY(camera.exposureTime() < 0);
     camera.setManualExposureTime(1/128.0);
@@ -384,22 +384,22 @@ void tst_QCamera::testCameraExposure()
     camera.setAutoIsoSensitivity();
     QCOMPARE(camera.isoSensitivity(), 100);
 
-    qreal minShutterSpeed = camera.minimumShutterSpeed();
-    qreal maxShutterSpeed = camera.maximumShutterSpeed();
-    QVERIFY(minShutterSpeed > 0);
-    QVERIFY(maxShutterSpeed > 0);
-    QVERIFY(camera.exposureTime() >= minShutterSpeed);
-    QVERIFY(camera.exposureTime() <= maxShutterSpeed);
+    qreal minExposureTime = camera.minimumExposureTime();
+    qreal maxExposureTime = camera.maximumExposureTime();
+    QVERIFY(minExposureTime > 0);
+    QVERIFY(maxExposureTime > 0);
+    QVERIFY(camera.exposureTime() >= minExposureTime);
+    QVERIFY(camera.exposureTime() <= maxExposureTime);
 
     camera.setAutoExposureTime();
-    QVERIFY(camera.exposureTime() >= minShutterSpeed);
-    QVERIFY(camera.exposureTime() <= maxShutterSpeed);
+    QVERIFY(camera.exposureTime() >= minExposureTime);
+    QVERIFY(camera.exposureTime() <= maxExposureTime);
 
     camera.setManualExposureTime(0);
-    QCOMPARE(camera.exposureTime(), minShutterSpeed);
+    QCOMPARE(camera.exposureTime(), minExposureTime);
 
     camera.setManualExposureTime(10000);
-    QCOMPARE(camera.exposureTime(), maxShutterSpeed);
+    QCOMPARE(camera.exposureTime(), maxExposureTime);
 
     camera.setAutoExposureTime();
 }
@@ -577,36 +577,36 @@ void tst_QCamera::testConstructor()
         QCamera camera;
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), defaultCamera);
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
     }
 
     {
         QCamera camera(QCameraDevice::FrontFace);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), frontCamera);
+        QCOMPARE(camera.cameraDevice(), frontCamera);
     }
 
     {
         QCamera camera(QMediaDevices::defaultVideoInput());
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), defaultCamera);
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
     }
 
     {
-        QCameraDevice cameraInfo = QMediaDevices::videoInputs().at(0);
-        QCamera camera(cameraInfo);
+        QCameraDevice cameraDevice = QMediaDevices::videoInputs().at(0);
+        QCamera camera(cameraDevice);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), cameraInfo);
+        QCOMPARE(camera.cameraDevice(), cameraDevice);
     }
 
     {
         QCamera camera(QCameraDevice::BackFace);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), backCamera);
+        QCOMPARE(camera.cameraDevice(), backCamera);
     }
 
     {
@@ -614,7 +614,7 @@ void tst_QCamera::testConstructor()
         QCamera camera(QCameraDevice::UnspecifiedPosition);
         QCOMPARE(camera.isAvailable(), true);
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraInfo(), defaultCamera);
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
     }
 }
 
@@ -822,14 +822,14 @@ void tst_QCamera::testSignalShutterSpeedChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spySignalShutterSpeedChanged(&camera, SIGNAL(exposureTimeChanged(qreal)));
+    QSignalSpy spySignalExposureTimeChanged(&camera, SIGNAL(exposureTimeChanged(float)));
 
-    QVERIFY(spySignalShutterSpeedChanged.count() ==0);
+    QVERIFY(spySignalExposureTimeChanged.count() ==0);
 
     camera.setManualExposureTime(2.0);//set the ManualShutterSpeed to 2.0
     QTest::qWait(100);
 
-    QVERIFY(spySignalShutterSpeedChanged.count() ==1);
+    QVERIFY(spySignalExposureTimeChanged.count() ==1);
 }
 
 void tst_QCamera::testSignalFlashReady()

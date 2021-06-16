@@ -305,6 +305,7 @@ bool QPulseAudioSink::open()
 
     qint64 bytesPerSecond = m_format.sampleRate() * m_format.bytesPerFrame();
 
+#if 0
     static const char *mediaRoleFromAudioRole[] = {
         nullptr, // UnknownRole
         "music", // MusicRole
@@ -322,6 +323,7 @@ bool QPulseAudioSink::open()
     const char *r = mediaRoleFromAudioRole[m_role];
     if (r)
         pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, r);
+#endif
 
     static const auto mapName = qEnvironmentVariable("QT_PA_CHANNEL_MAP");
     pa_channel_map_def_t mapDef = PA_CHANNEL_MAP_DEFAULT;
@@ -360,8 +362,8 @@ bool QPulseAudioSink::open()
     pa_stream_set_overflow_callback(m_stream, outputStreamOverflowCallback, this);
     pa_stream_set_latency_update_callback(m_stream, outputStreamLatencyCallback, this);
 
-    if (m_bufferSize <= 0 && m_role == QAudio::GameRoleRole)
-        m_bufferSize = bytesPerSecond * LowLatencyBufferSizeMs / qint64(1000);
+//    if (m_bufferSize <= 0 && m_role == QAudio::GameRoleRole)
+//        m_bufferSize = bytesPerSecond * LowLatencyBufferSizeMs / qint64(1000);
 
     pa_buffer_attr requestedBuffer;
     requestedBuffer.fragsize = (uint32_t)-1;
@@ -385,7 +387,7 @@ bool QPulseAudioSink::open()
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
 
     const pa_buffer_attr *buffer = pa_stream_get_buffer_attr(m_stream);
-    m_periodTime = (m_role == QAudio::GameRole) ? LowLatencyPeriodTimeMs : PeriodTimeMs;
+    m_periodTime = /*(m_role == QAudio::GameRole) ? LowLatencyPeriodTimeMs :*/ PeriodTimeMs;
     m_periodSize = pa_usec_to_bytes(m_periodTime*1000, &m_spec);
     m_bufferSize = buffer->tlength;
     m_maxBufferSize = buffer->maxlength;

@@ -100,11 +100,6 @@ constexpr size_t countof(T (&)[N])
     return N;
 }
 
-constexpr bool inBounds(QAudio::Role r)
-{
-    return r >= 0 && r < countof(roleMap);
-}
-
 QString keyValueMapsLocation()
 {
     QByteArray qtKeyValueMaps = qgetenv("QT_KEY_VALUE_MAPS");
@@ -126,53 +121,6 @@ QJsonObject loadMapObject(const QString &keyValueMapPath)
         }
     }
     return QJsonObject();
-}
-
-static void loadRoleMap()
-{
-    QMutexLocker locker(&roleMapMutex);
-
-    if (!roleMapInitialized) {
-        QJsonObject mapObject = loadMapObject("/QAudio/Role.json");
-        if (!mapObject.isEmpty()) {
-            // Wrapping the loads in a switch like this ensures that anyone adding
-            // a new enumerator will be notified that this code must be updated. A
-            // compile error will occur because the enumerator is missing from the
-            // switch.  A compile error will also occur if the enumerator used to
-            // size the mapping table isn't updated when a new enumerator is added.
-            // One or more enumerators will be outside the bounds of the array when
-            // the wrong enumerator is used to size the array.
-            //
-            // The code loads a mapping for each enumerator because role is set
-            // to UnknownRole and all the cases drop through to the next case.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic error "-Wswitch"
-#define loadRoleMapping(r)                                                             \
-    case QAudio::r:                                                                    \
-        static_assert(inBounds(QAudio::r), #r " out-of-bounds."                        \
-            "  Do you need to change the enumerator used to size the mapping table"    \
-            " because you added new QAudio::Role enumerators?");                       \
-            roleMap[QAudio::r] = mapObject.value(QLatin1String(#r)).toString();
-
-            QAudio::Role role = QAudio::UnknownRole;
-            switch (role) {
-                loadRoleMapping(UnknownRole);
-                loadRoleMapping(MusicRole);
-                loadRoleMapping(VideoRole);
-                loadRoleMapping(VoiceCommunicationRole);
-                loadRoleMapping(AlarmRole);
-                loadRoleMapping(NotificationRole);
-                loadRoleMapping(RingtoneRole);
-                loadRoleMapping(AccessibilityRole);
-                loadRoleMapping(SonificationRole);
-                loadRoleMapping(GameRole);
-            }
-#undef loadRoleMapping
-#pragma GCC diagnostic pop
-        }
-
-        roleMapInitialized = true;
-    }
 }
 
 QString mmErrorMessage(const QString &msg, mmr_context_t *context, int *errorCode)
@@ -212,29 +160,6 @@ bool checkForDrmPermission()
     }
 
     return false;
-}
-
-QString qnxAudioType(QAudio::Role role)
-{
-    loadRoleMap();
-
-    if (role >= 0 && role < countof(roleMap))
-        return roleMap[role];
-    else
-        return QString();
-}
-
-QList<QAudio::Role> qnxSupportedAudioRoles()
-{
-    loadRoleMap();
-
-    QList<QAudio::Role> result;
-    for (size_t i = 0; i < countof(roleMap); ++i) {
-        if (!roleMap[i].isEmpty() || (i == QAudio::UnknownRole))
-            result.append(static_cast<QAudio::Role>(i));
-    }
-
-    return result;
 }
 
 QT_END_NAMESPACE

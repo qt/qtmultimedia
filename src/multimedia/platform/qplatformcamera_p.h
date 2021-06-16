@@ -122,8 +122,8 @@ public:
     int minIso() const { return m_minIso; }
     int maxIso() const { return m_maxIso; }
     float manualExposureTime() const { return m_exposureTime; }
-    float minShutterSpeed() const { return m_minShutterSpeed; }
-    float maxShutterSpeed() const { return m_maxShutterSpeed; }
+    float minExposureTime() const { return m_minExposureTime; }
+    float maxExposureTime() const { return m_maxExposureTime; }
     QCamera::WhiteBalanceMode whiteBalanceMode() const { return m_whiteBalance; }
     int colorTemperature() const { return m_colorTemperature; }
 
@@ -145,8 +145,8 @@ public:
     void minIsoChanged(int iso) { m_minIso = iso; }
     void maxIsoChanged(int iso) { m_maxIso = iso; }
     void exposureTimeChanged(float speed);
-    void minShutterSpeedChanged(float secs) { m_minShutterSpeed = secs; }
-    void maxShutterSpeedChanged(float secs) { m_maxShutterSpeed = secs; }
+    void minExposureTimeChanged(float secs) { m_minExposureTime = secs; }
+    void maxExposureTimeChanged(float secs) { m_maxExposureTime = secs; }
     void whiteBalanceModeChanged(QCamera::WhiteBalanceMode mode);
     void colorTemperatureChanged(int temperature);
 
@@ -181,8 +181,8 @@ private:
     int m_minIso = -1;
     int m_maxIso = -1;
     float m_exposureTime = -1.;
-    float m_minShutterSpeed = -1.;
-    float m_maxShutterSpeed = -1.;
+    float m_minExposureTime = -1.;
+    float m_maxExposureTime = -1.;
     QCamera::WhiteBalanceMode m_whiteBalance = QCamera::WhiteBalanceAuto;
     int m_colorTemperature = 0;
 };

@@ -60,11 +60,11 @@ class Q_MULTIMEDIA_EXPORT QSoundEffect : public QObject
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(int loops READ loopCount WRITE setLoopCount NOTIFY loopCountChanged)
     Q_PROPERTY(int loopsRemaining READ loopsRemaining NOTIFY loopsRemainingChanged)
-    Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ isMuted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(Status status READ status NOTIFY statusChanged)
-    Q_PROPERTY(QAudio::Role audioRole READ audioRole WRITE setAudioRole NOTIFY audioRoleChanged)
+    Q_PROPERTY(QAudioDevice audioDevice READ audioDevice WRITE setAudioDevice NOTIFY audioDeviceChanged)
 
 public:
     enum Loop
@@ -95,8 +95,11 @@ public:
     int loopsRemaining() const;
     void setLoopCount(int loopCount);
 
-    qreal volume() const;
-    void setVolume(qreal volume);
+    QAudioDevice audioDevice();
+    void setAudioDevice(const QAudioDevice &device);
+
+    float volume() const;
+    void setVolume(float volume);
 
     bool isMuted() const;
     void setMuted(bool muted);
@@ -105,9 +108,6 @@ public:
 
     bool isPlaying() const;
     Status status() const;
-
-    QAudio::Role audioRole() const;
-    void setAudioRole(QAudio::Role);
 
 Q_SIGNALS:
     void sourceChanged();
@@ -118,7 +118,7 @@ Q_SIGNALS:
     void loadedChanged();
     void playingChanged();
     void statusChanged();
-    void audioRoleChanged();
+    void audioDeviceChanged();
 
 public Q_SLOTS:
     void play();

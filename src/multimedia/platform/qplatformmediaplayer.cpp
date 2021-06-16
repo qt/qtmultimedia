@@ -358,24 +358,6 @@ void QPlatformMediaPlayer::error(int error, const QString &errorString)
 */
 
 /*!
-    \fn QAudio::Role QPlatformMediaPlayer::audioRole() const
-
-    Returns the audio role of the media played by the media service.
-*/
-
-/*!
-    \fn void QPlatformMediaPlayer::setAudioRole(QAudio::Role role)
-
-    Sets the audio \a role of the media played by the media service.
-*/
-
-/*!
-    \fn QList<QAudio::Role> QPlatformMediaPlayer::supportedAudioRoles() const
-
-    Returns a list of audio roles that the media service supports.
-*/
-
-/*!
     \fn QPlatformMediaPlayer::error(int error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString provides a more detailed explanation.

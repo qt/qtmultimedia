@@ -1080,7 +1080,7 @@ void tst_QMediaPlayerBackend::playFromBuffer()
     QFile file(localVideoFile.toLocalFile());
     if (!file.open(QIODevice::ReadOnly))
         QSKIP("Could not open file");
-    player.setSource(localVideoFile, &file);
+    player.setSourceDevice(&file, localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));

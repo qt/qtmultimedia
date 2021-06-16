@@ -152,23 +152,6 @@ bool QAudioOutput::isMuted() const
     return d->muted;
 }
 
-QAudio::Role QAudioOutput::audioRole() const
-{
-    return d->role;
-}
-
-/*!
-    Returns a list of supported audio roles.
-
-    If setting the audio role is not supported, an empty list is returned.
-
-    \sa audioRole
-*/
-QList<QAudio::Role> QAudioOutput::supportedAudioRoles() const
-{
-    return d->supportedAudioRoles();
-}
-
 void QAudioOutput::setMuted(bool muted)
 {
     if (d->muted == muted)
@@ -176,17 +159,6 @@ void QAudioOutput::setMuted(bool muted)
     d->muted = muted;
     d->setMuted(muted);
     emit mutedChanged(muted);
-}
-
-void QAudioOutput::setAudioRole(QAudio::Role audioRole)
-{
-    if (d->role == audioRole)
-        return;
-    if (!d->supportedAudioRoles().contains(audioRole))
-        return;
-    d->role = audioRole;
-    d->setAudioRole(d->role);
-    emit audioRoleChanged(d->role);
 }
 
 #include "moc_qaudiooutput.cpp"

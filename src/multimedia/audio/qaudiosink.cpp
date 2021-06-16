@@ -334,26 +334,6 @@ qreal QAudioSink::volume() const
 }
 
 /*!
-    \property QMediaPlayer::audioRole
-    \brief the role of the audio stream played by the media player.
-
-    It can be set to specify the type of audio being played, allowing the system to make
-    appropriate decisions when it comes to volume, routing or post-processing.
-
-    The audio role must be set before calling setMedia().
-*/
-
-QAudio::Role QAudioSink::audioRole() const
-{
-    return d->role();
-}
-
-void QAudioSink::setAudioRole(QAudio::Role role)
-{
-    d->setRole(role);
-}
-
-/*!
     \fn QAudioSink::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
     This is the current state of the audio output.

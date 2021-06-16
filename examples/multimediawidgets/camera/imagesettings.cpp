@@ -75,7 +75,7 @@ ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent)
     ui->imageQualitySlider->setRange(0, int(QCameraImageCapture::VeryHighQuality));
 
     ui->imageResolutionBox->addItem(tr("Default Resolution"));
-    const QList<QSize> supportedResolutions = imagecapture->captureSession()->camera()->cameraInfo().photoResolutions();
+    const QList<QSize> supportedResolutions = imagecapture->captureSession()->camera()->cameraDevice().photoResolutions();
     for (const QSize &resolution : supportedResolutions) {
         ui->imageResolutionBox->addItem(QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
                                         QVariant(resolution));

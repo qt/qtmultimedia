@@ -137,7 +137,7 @@ FocusScope {
 
             CameraListButton {
                 model: MediaDevices.videoInputs
-                onValueChanged: captureSession.camera.cameraInfo = value
+                onValueChanged: captureSession.camera.cameraDevice = value
             }
 
             CameraButton {

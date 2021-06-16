@@ -58,16 +58,6 @@ class QMockAudioOutput : public QPlatformAudioOutput
 {
 public:
     QMockAudioOutput(QAudioOutput *qq) : QPlatformAudioOutput(qq) {}
-
-    virtual QList<QAudio::Role> supportedAudioRoles() const {
-        if (!hasAudioRole)
-            return {};
-        return QList<QAudio::Role>() << QAudio::MusicRole
-                                     << QAudio::AlarmRole
-                                     << QAudio::NotificationRole;
-    }
-
-    bool hasAudioRole = true;
 };
 
 QT_END_NAMESPACE

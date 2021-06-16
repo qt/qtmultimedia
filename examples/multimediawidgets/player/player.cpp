@@ -70,7 +70,6 @@ Player::Player(QWidget *parent)
     m_player = new QMediaPlayer(this);
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
-    m_audioOutput->setAudioRole(QAudio::VideoRole);
 //! [create-objs]
 
 //! [2]

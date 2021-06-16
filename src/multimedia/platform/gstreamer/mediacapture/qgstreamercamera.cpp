@@ -85,7 +85,7 @@ void QGstreamerCamera::setActive(bool active)
 {
     if (m_active == active)
         return;
-    if (m_cameraInfo.isNull() && active)
+    if (m_cameraDevice.isNull() && active)
         return;
 
     m_active = active;
@@ -96,11 +96,11 @@ void QGstreamerCamera::setActive(bool active)
 
 void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 {
-    if (m_cameraInfo == camera)
+    if (m_cameraDevice == camera)
         return;
 //    qDebug() << "setCamera" << camera;
 
-    m_cameraInfo = camera;
+    m_cameraDevice = camera;
 
     bool havePipeline = !gstPipeline.isNull();
 
@@ -141,7 +141,7 @@ void QGstreamerCamera::setCameraFormatInternal(const QCameraFormat &format)
 {
     QCameraFormat f = format;
     if (f.isNull())
-        f = findBestCameraFormat(m_cameraInfo);
+        f = findBestCameraFormat(m_cameraDevice);
 
     // add jpeg decoder where required
     gstDecode.setStateSync(GST_STATE_NULL);
@@ -169,7 +169,7 @@ void QGstreamerCamera::setCameraFormatInternal(const QCameraFormat &format)
 
 bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
 {
-    if (!m_cameraInfo.videoFormats().contains(format))
+    if (!m_cameraDevice.videoFormats().contains(format))
         return false;
     bool havePipeline = !gstPipeline.isNull();
     auto state = havePipeline ? gstPipeline.state() : GST_STATE_NULL;

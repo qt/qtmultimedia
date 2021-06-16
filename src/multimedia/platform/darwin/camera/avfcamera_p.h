@@ -127,7 +127,7 @@ private:
     AVFCameraService *m_service = nullptr;
     AVFCameraSession *m_session = nullptr;
 
-    QCameraDevice m_cameraInfo;
+    QCameraDevice m_cameraDevice;
 
     bool m_active;
     QCamera::Status m_lastStatus;

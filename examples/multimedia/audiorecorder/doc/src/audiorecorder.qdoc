@@ -51,8 +51,8 @@
     \l{QAudioRecorder::supportedContainers()}{supportedContainers()}, and
     \l{QAudioRecorder::supportedAudioSampleRates()}{supportedAudioSampleRates()}
     methods. The quality slider is setup from 0 (zero) to
-    \l{QMediaEncoderSettings::VeryHighQuality} with a default value of
-    \l{QMediaEncoderSettings::NormalQuality}, while the bitrates are hardcoded
+    \l{QMediaRecorder::VeryHighQuality} with a default value of
+    \l{QMediaRecorder::NormalQuality}, while the bitrates are hardcoded
     into the list.
 
     \section1 Recording Audio
@@ -79,18 +79,18 @@
     \l{QMediaRecorder::record()}{record()} method.
 
     \code
-        QAudioEncoderSettings settings;
-        settings.setCodec(boxValue(ui->audioCodecBox).toString());
-        settings.setSampleRate(boxValue(ui->sampleRateBox).toInt());
-        settings.setBitRate(boxValue(ui->bitrateBox).toInt());
-        settings.setQuality(QMediaEncoderSettings::EncodingQuality(ui->qualitySlider->value()));
-        settings.setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
-                                 QMediaEncoderSettings::ConstantQualityEncoding :
-                                 QMediaEncoderSettings::ConstantBitRateEncoding);
+        QMediaFormat format;
+        format.setCodec(boxValue(ui->audioCodecBox).toString());
+        audioRecorder->setMediaFormat(format);
+        audioRecorder->setSampleRate(boxValue(ui->sampleRateBox).toInt());
+        audioRecorder->setBitRate(boxValue(ui->bitrateBox).toInt());
+        audioRecorder->setQuality(QMediaRecorder::EncodingQuality(ui->qualitySlider->value()));
+        audioRecorder->setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
+                                 QMediaRecorder::ConstantQualityEncoding :
+                                 QMediaRecorder::ConstantBitRateEncoding);
 
         QString container = boxValue(ui->containerBox).toString();
 
-        audioRecorder->setEncodingSettings(settings, QVideoEncoderSettings(), container);
         audioRecorder->record();
     \endcode
 

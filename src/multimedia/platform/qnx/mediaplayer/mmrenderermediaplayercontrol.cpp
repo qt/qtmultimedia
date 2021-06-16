@@ -558,16 +558,6 @@ void MmRendererMediaPlayerControl::stop()
     stopInternal(StopMmRenderer);
 }
 
-void MmRendererMediaPlayerControl::setAudioRole(QAudio::Role role)
-{
-    m_role = role;
-}
-
-QList<QAudio::Role> MmRendererMediaPlayerControl::supportedAudioRoles() const
-{
-    return qnxSupportedAudioRoles();
-}
-
 MmRendererPlayerVideoRendererControl *MmRendererMediaPlayerControl::videoRendererControl() const
 {
     return m_videoRendererControl;

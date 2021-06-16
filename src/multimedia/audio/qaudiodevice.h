@@ -63,6 +63,7 @@ class Q_MULTIMEDIA_EXPORT QAudioDevice
     Q_PROPERTY(QByteArray id READ id CONSTANT)
     Q_PROPERTY(QString description READ description CONSTANT)
     Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
+    Q_PROPERTY(Mode mode READ mode CONSTANT)
 public:
     enum Mode {
         Input,

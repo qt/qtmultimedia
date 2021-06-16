@@ -80,7 +80,7 @@ public slots:
     void saveMetaData();
 
 private slots:
-    void setCamera(const QCameraDevice &cameraInfo);
+    void setCamera(const QCameraDevice &cameraDevice);
 
     void startCamera();
     void stopCamera();
@@ -138,7 +138,6 @@ private:
     QCameraImageCapture *m_imageCapture;
     QScopedPointer<QMediaRecorder> m_mediaEncoder;
 
-    QMediaEncoderSettings m_encoderSettings;
     bool m_isCapturingImage = false;
     bool m_applicationExiting = false;
     bool m_doImageCapture = true;

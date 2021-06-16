@@ -58,19 +58,6 @@ class Q_MULTIMEDIA_EXPORT QAndroidAudioOutput : public QPlatformAudioOutput
 {
 public:
     QAndroidAudioOutput(QAudioOutput *qq) : QPlatformAudioOutput(qq) {}
-
-    virtual QList<QAudio::Role> supportedAudioRoles() const {
-        return QList<QAudio::Role>()
-               << QAudio::VoiceCommunicationRole
-               << QAudio::MusicRole
-               << QAudio::VideoRole
-               << QAudio::SonificationRole
-               << QAudio::AlarmRole
-               << QAudio::NotificationRole
-               << QAudio::RingtoneRole
-               << QAudio::AccessibilityRole
-               << QAudio::GameRole;
-    }
 };
 
 QT_END_NAMESPACE

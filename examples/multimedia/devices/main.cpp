@@ -119,18 +119,18 @@ void printAudioDeviceInfo(QTextStream &out, const QAudioDevice &deviceInfo)
     out << Qt::endl;
 }
 
-void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraInfo)
+void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDevice)
 {
-    const auto isDefault = cameraInfo.isDefault() ? "Yes" : "No";
-    const auto position = cameraInfo.position();
-    const auto photoResolutions = cameraInfo.photoResolutions();
-    const auto videoFormats = cameraInfo.videoFormats();
+    const auto isDefault = cameraDevice.isDefault() ? "Yes" : "No";
+    const auto position = cameraDevice.position();
+    const auto photoResolutions = cameraDevice.photoResolutions();
+    const auto videoFormats = cameraDevice.videoFormats();
 
     out.setFieldWidth(30);
     out.setFieldAlignment(QTextStream::AlignLeft);
-    out << "Name: " << cameraInfo.description() << qSetFieldWidth(0) << Qt::endl;
+    out << "Name: " << cameraDevice.description() << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
-    out << "Id: " <<  QString::fromLatin1(cameraInfo.id()) << qSetFieldWidth(0) << Qt::endl;
+    out << "Id: " <<  QString::fromLatin1(cameraDevice.id()) << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
     out << "Default: " <<  isDefault << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
@@ -173,8 +173,8 @@ int main()
         printAudioDeviceInfo(out, deviceInfo);
 
     out << Qt::endl << "Video devices detected: " << Qt::endl;
-    for (auto &cameraInfo: videoInputDevices)
-        printVideoDeviceInfo(out, cameraInfo);
+    for (auto &cameraDevice : videoInputDevices)
+        printVideoDeviceInfo(out, cameraDevice);
 
     return 0;
 }

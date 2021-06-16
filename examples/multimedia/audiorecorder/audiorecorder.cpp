@@ -59,6 +59,7 @@
 #include <QMediaRecorder>
 #include <QStandardPaths>
 #include <qmediadevices.h>
+#include <qmediaformat.h>
 #include <qaudiodevice.h>
 #include <qaudiobuffer.h>
 #include <qaudioinput.h>
@@ -194,18 +195,18 @@ void AudioRecorder::toggleRecord()
     if (m_audioEncoder->recorderState() == QMediaRecorder::StoppedState) {
         m_captureSession.audioInput()->setDevice(boxValue(ui->audioDeviceBox).value<QAudioDevice>());
 
-        QMediaEncoderSettings settings;
-        settings.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
-        settings.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
-        settings.setAudioSampleRate(ui->sampleRateBox->value());
-        settings.setAudioBitRate(boxValue(ui->bitrateBox).toInt());
-        settings.setAudioChannelCount(boxValue(ui->channelsBox).toInt());
-        settings.setQuality(QMediaEncoderSettings::Quality(ui->qualitySlider->value()));
-        settings.setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
-                                 QMediaEncoderSettings::ConstantQualityEncoding :
-                                 QMediaEncoderSettings::ConstantBitRateEncoding);
+        QMediaFormat format;
+        format.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
+        format.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
+        m_audioEncoder->setMediaFormat(format);
+        m_audioEncoder->setAudioSampleRate(ui->sampleRateBox->value());
+        m_audioEncoder->setAudioBitRate(boxValue(ui->bitrateBox).toInt());
+        m_audioEncoder->setAudioChannelCount(boxValue(ui->channelsBox).toInt());
+        m_audioEncoder->setQuality(QMediaRecorder::Quality(ui->qualitySlider->value()));
+        m_audioEncoder->setEncodingMode(ui->constantQualityRadioButton->isChecked() ?
+                                 QMediaRecorder::ConstantQualityEncoding :
+                                 QMediaRecorder::ConstantBitRateEncoding);
 
-        m_audioEncoder->setEncoderSettings(settings);
         m_audioEncoder->record();
     }
     else {

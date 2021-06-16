@@ -270,43 +270,6 @@ qreal QAndroidAudioSink::volume() const
     return m_volume;
 }
 
-void QAndroidAudioSink::setRole(QAudio::Role role)
-{
-    QPlatformAudioSink::setRole(role);
-#ifdef ANDROID
-    switch (role) {
-    case QAudio::MusicRole:
-        Q_FALLTHROUGH();
-    case QAudio::VideoRole:
-        m_streamType = SL_ANDROID_STREAM_MEDIA;
-        break;
-    case QAudio::VoiceCommunicationRole:
-        m_streamType = SL_ANDROID_STREAM_VOICE;
-    case QAudio::NotificationRole:
-        m_streamType = SL_ANDROID_STREAM_NOTIFICATION;
-        break;
-    case QAudio::AlarmRole:
-        m_streamType = SL_ANDROID_STREAM_ALARM;
-        break;
-    case QAudio::RingtoneRole:
-        m_streamType = SL_ANDROID_STREAM_RING;
-        break;
-    case QAudio::AccessibilityRole:
-#define STREAM_ACCESSIBILITY 0xa // AudioManager.STREAM_ACCESSIBILITY
-        m_streamType = STREAM_ACCESSIBILITY;
-    case QAudio::SonificationRole:
-        Q_FALLTHROUGH();
-    case QAudio::GameRole:
-        Q_FALLTHROUGH();
-    case QAudio::UnknownRole:
-        m_streamType  = -1;
-        break;
-    }
-
-    m_startRequiresInit = true;
-#endif // ANDROID
-}
-
 void QAndroidAudioSink::onEOSEvent()
 {
     if (m_state != QAudio::ActiveState)

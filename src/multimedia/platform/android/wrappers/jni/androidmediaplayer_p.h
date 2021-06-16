@@ -129,7 +129,6 @@ public:
     void setVolume(int volume);
     bool setPlaybackRate(qreal rate);
     void setDisplay(AndroidSurfaceTexture *surfaceTexture);
-    void setAudioRole(QAudio::Role role);
 
     static bool registerNativeMethods();
 
