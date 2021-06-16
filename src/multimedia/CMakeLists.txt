@@ -108,8 +108,8 @@ qt_internal_add_simd_part(Multimedia SIMD avx2
 
 if(ANDROID)
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
-        jar/QtAndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtMultimediaUtils
-        jar/QtAndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtAudioDeviceManager
+        jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtMultimediaUtils
+        jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtAudioDeviceManager
     )
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
         lib/libQt6MultimediaQuick.so:Qt6Quick
