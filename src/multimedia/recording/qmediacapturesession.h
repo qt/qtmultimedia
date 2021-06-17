@@ -67,8 +67,6 @@ public:
     explicit QMediaCaptureSession(QObject *parent = nullptr);
     ~QMediaCaptureSession();
 
-    bool isAvailable() const;
-
     QAudioInput *audioInput() const;
     void setAudioInput(QAudioInput *device);
 

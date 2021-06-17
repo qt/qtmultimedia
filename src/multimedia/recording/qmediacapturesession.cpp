@@ -112,6 +112,7 @@ QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
 {
     d_ptr->q = this;
     d_ptr->captureSession = QPlatformMediaIntegration::instance()->createCaptureSession();
+    Q_ASSERT(d_ptr->captureSession);
 }
 
 /*!
@@ -128,14 +129,6 @@ QMediaCaptureSession::~QMediaCaptureSession()
     d_ptr->setVideoSink(nullptr);
     delete d_ptr->captureSession;
     delete d_ptr;
-}
-
-/*!
-    Returns false if media capture is not supported.
- */
-bool QMediaCaptureSession::isAvailable() const
-{
-    return d_ptr->captureSession != nullptr;
 }
 
 /*!
