@@ -132,7 +132,7 @@ void tst_QMediaRecorder::testNullControls()
     QCOMPARE(recorder.duration(), qint64(0));
 
     recorder.setOutputLocation(QUrl("file://test/save/file.mp4"));
-    QCOMPARE(recorder.outputLocation(), QUrl());
+    QCOMPARE(recorder.outputLocation(), QUrl("file://test/save/file.mp4"));
     QCOMPARE(recorder.actualLocation(), QUrl());
 
     QMediaFormat format;
