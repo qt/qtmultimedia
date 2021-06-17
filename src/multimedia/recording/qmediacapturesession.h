@@ -81,10 +81,10 @@ public:
     QMediaRecorder *encoder();
     void setEncoder(QMediaRecorder *recorder);
 
-    void setVideoOutput(QObject *preview);
+    void setVideoOutput(QObject *output);
     QObject *videoOutput() const;
 
-    void setVideoSink(QVideoSink *preview);
+    void setVideoSink(QVideoSink *sink);
     QVideoSink *videoSink() const;
 
     void setAudioOutput(QAudioOutput *output);
