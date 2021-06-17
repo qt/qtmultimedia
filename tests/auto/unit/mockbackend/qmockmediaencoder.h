@@ -46,7 +46,7 @@ public:
     {
     }
 
-    bool isLocationWritable(const QUrl &location) const
+    bool isLocationWritable(const QUrl &) const
     {
         return true;
     }
