@@ -130,7 +130,12 @@ public:
     QMediaFormat(QMediaFormat &&other) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QMediaFormat)
     void swap(QMediaFormat &other) noexcept
-    { qSwap(d, other.d); }
+    {
+        qSwap(fmt, other.fmt);
+        qSwap(audio, other.audio);
+        qSwap(video, other.video);
+        qSwap(d, other.d);
+    }
 
     FileFormat fileFormat() const { return fmt; }
     void setFileFormat(FileFormat f) { fmt = f; }
