@@ -58,6 +58,7 @@
 
 #include <private/qplatformmediaencoder_p.h>
 #include <private/qvideooutputorientationhandler_p.h>
+#include <QtMultimedia/qmediametadata.h>
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qurl.h>
@@ -90,6 +91,9 @@ public:
     void setEncoderSettings(const QMediaEncoderSettings &settings) override;
     QMediaEncoderSettings encoderSettings() const;
 
+    void setMetaData(const QMediaMetaData &) override;
+    QMediaMetaData metaData() const override;
+
     AVFCameraService *cameraService() const { return m_service; }
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
@@ -118,6 +122,8 @@ private:
     QMediaRecorder::RecorderState m_state;
     QMediaRecorder::Status m_lastStatus;
     QMediaEncoderSettings m_settings;
+
+    QMediaMetaData m_metaData;
 
     NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;

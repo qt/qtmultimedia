@@ -44,6 +44,7 @@
 #include "avfcamerasession_p.h"
 #include "avfcameradebug_p.h"
 #include <private/qdarwinformatsinfo_p.h>
+#include <private/avfmetadata_p.h>
 
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qatomic.h>
@@ -201,8 +202,15 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     if (m_cameraWriterInput)
         m_cameraWriterInput.data().transform = transform;
 
+    [self setMetaData:fileType];
+
     // Ready to start ...
     return true;
+}
+
+- (void)setMetaData:(AVFileType)fileType
+{
+    m_assetWriter.data().metadata = AVFMetaData::toAVMetadataForFormat(m_delegate->metaData(), fileType);
 }
 
 - (void)start

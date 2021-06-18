@@ -30,6 +30,8 @@
 
 #include <QtTest/QtTest>
 #include <QtGui/QImageReader>
+#include <QtCore/qurl.h>
+#include <QtCore/qlocale.h>
 #include <QDebug>
 
 #include <private/qplatformcamera_p.h>
@@ -41,6 +43,8 @@
 #include <qobject.h>
 #include <qmediadevices.h>
 #include <qmediarecorder.h>
+#include <qmediaplayer.h>
+#include <qaudiooutput.h>
 
 QT_USE_NAMESPACE
 
@@ -74,6 +78,9 @@ private slots:
 
     void testVideoRecording_data();
     void testVideoRecording();
+
+    void testNativeMetadata();
+
 private:
     bool noCamera = false;
 };
@@ -456,6 +463,12 @@ void tst_QCameraBackend::testVideoRecording()
 
     recorder.setVideoResolution(320, 240);
 
+    // Insert metadata
+    QMediaMetaData metaData;
+    metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
+    metaData.insert(QMediaMetaData::Date, QDateTime(QDateTime::currentDateTime()));
+    recorder.setMetaData(metaData);
+
     QCOMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
 
     camera->start();
@@ -474,6 +487,9 @@ void tst_QCameraBackend::testVideoRecording()
         QTRY_COMPARE(recorder.status(), QMediaRecorder::RecordingStatus);
         QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
         QTest::qWait(200);
+
+        QCOMPARE(recorder.metaData(), metaData);
+
         recorderStatusSignal.clear();
         recorder.stop();
         bool foundFinalizingStatus = false;
@@ -499,6 +515,79 @@ void tst_QCameraBackend::testVideoRecording()
         QTRY_COMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
         QCOMPARE(recorderStatusSignal.last().first().value<QMediaRecorder::Status>(), recorder.status());
     }
+}
+
+void tst_QCameraBackend::testNativeMetadata()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    QMediaCaptureSession session;
+    QCameraDevice device = QMediaDevices::defaultVideoInput();
+    QCamera camera(device);
+    session.setCamera(&camera);
+
+    QMediaRecorder recorder;
+    session.setEncoder(&recorder);
+
+    QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error, const QString &)));
+    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
+
+    QCOMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
+
+    camera.start();
+    if (device.isNull()) {
+        QVERIFY(!camera.isActive());
+        return;
+    }
+
+    QTRY_VERIFY(camera.isActive());
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
+
+    // Insert common metadata supported on all platforms
+    QMediaMetaData metaData;
+    metaData.insert(QMediaMetaData::Title, QString::fromUtf8("Title"));
+    metaData.insert(QMediaMetaData::Date, QDate::currentDate());
+    metaData.insert(QMediaMetaData::Description, QString::fromUtf8("Description"));
+
+    recorder.setMetaData(metaData);
+
+    recorder.record();
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::RecordingStatus);
+    QTest::qWait(200);
+
+    QCOMPARE(recorder.metaData(), metaData);
+
+    recorder.stop();
+    QTRY_COMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
+
+    QVERIFY(errorSignal.isEmpty());
+    QVERIFY(recorderErrorSignal.isEmpty());
+
+    QString fileName = recorder.actualLocation().toLocalFile();
+    QVERIFY(!fileName.isEmpty());
+    QVERIFY(QFileInfo(fileName).size() > 0);
+
+    // QMediaRecorder::metaData() can only test that QMediaMetaData is set properly on the recorder.
+    // Use QMediaPlayer to test that the native metadata is properly set on the track
+    QMediaPlayer player;
+    QAudioOutput output;
+    player.setAudioOutput(&output);
+
+    QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
+
+    player.setSource(QUrl::fromLocalFile(fileName));
+
+    QTRY_VERIFY(metadataChangedSpy.count() > 0);
+
+    QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), metaData.value(QMediaMetaData::Title).toString());
+    QCOMPARE(player.metaData().value(QMediaMetaData::Date).toDateTime(), metaData.value(QMediaMetaData::Date).toDateTime());
+    QCOMPARE(player.metaData().value(QMediaMetaData::Description).toString(), metaData.value(QMediaMetaData::Description).toString());
+
+    metadataChangedSpy.clear();
+
+    player.stop();
+    QFile(fileName).remove();
 }
 
 QTEST_MAIN(tst_QCameraBackend)

@@ -414,6 +414,16 @@ QMediaEncoderSettings AVFMediaEncoder::encoderSettings() const
     return s;
 }
 
+void AVFMediaEncoder::setMetaData(const QMediaMetaData &metaData)
+{
+    m_metaData = metaData;
+}
+
+QMediaMetaData AVFMediaEncoder::metaData() const
+{
+    return m_metaData;
+}
+
 void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
     AVFCameraService *captureSession = static_cast<AVFCameraService *>(session);
