@@ -39,7 +39,6 @@
 
 #include "qmediaplaylist.h"
 #include "qmediaplaylist_p.h"
-#include "qplatformmediaplayer_p.h"
 #include "qplaylistfileparser_p.h"
 
 #include <QtCore/qlist.h>

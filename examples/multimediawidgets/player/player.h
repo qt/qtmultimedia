@@ -53,7 +53,7 @@
 
 #include <QWidget>
 #include <QMediaPlayer>
-#include <QMediaPlaylist>
+#include <qmediaplaylist.h>
 #include <QMediaMetaData>
 
 QT_BEGIN_NAMESPACE

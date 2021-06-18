@@ -55,7 +55,7 @@
 #include "histogramwidget.h"
 #include "videowidget.h"
 
-#include <QMediaPlaylist>
+#include <qmediaplaylist.h>
 #include <QMediaMetaData>
 #include <QMediaDevices>
 #include <QAudioDevice>

@@ -29,7 +29,6 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include "qmediaplayer.h"
-#include <qmediaplaylist.h>
 #include <qmediametadata.h>
 #include <qaudiobuffer.h>
 #include <qvideosink.h>
