@@ -148,6 +148,13 @@ struct QMediaFormatForeign
     QML_NAMED_ELEMENT(mediaFormat)
 };
 
+namespace QMediaFormatNamespaceForeign
+{
+    Q_NAMESPACE
+    QML_FOREIGN_NAMESPACE(QMediaFormat)
+    QML_NAMED_ELEMENT(MediaFormat)
+};
+
 QT_END_NAMESPACE
 
 #endif
