@@ -184,9 +184,6 @@ Player::Player(QWidget *parent)
     m_fullScreenButton = new QPushButton(tr("FullScreen"), this);
     m_fullScreenButton->setCheckable(true);
 
-    m_colorButton = new QPushButton(tr("Color Options..."), this);
-    m_colorButton->setEnabled(false);
-    connect(m_colorButton, &QPushButton::clicked, this, &Player::showColorDialog);
 
     m_audioOutputCombo = new QComboBox(this);
     m_audioOutputCombo->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDevice()));
@@ -205,7 +202,6 @@ Player::Player(QWidget *parent)
     controlLayout->addWidget(controls);
     controlLayout->addStretch(1);
     controlLayout->addWidget(m_fullScreenButton);
-    controlLayout->addWidget(m_colorButton);
     controlLayout->addWidget(m_audioOutputCombo);
 
     QBoxLayout *layout = new QVBoxLayout;
@@ -239,7 +235,6 @@ Player::Player(QWidget *parent)
         controls->setEnabled(false);
         m_playlistView->setEnabled(false);
         openButton->setEnabled(false);
-        m_colorButton->setEnabled(false);
         m_fullScreenButton->setEnabled(false);
     }
 
@@ -464,7 +459,6 @@ void Player::videoAvailableChanged(bool available)
         if (m_fullScreenButton->isChecked())
             m_videoWidget->setFullScreen(true);
     }
-    m_colorButton->setEnabled(available);
 }
 
 void Player::selectAudioStream()
@@ -536,51 +530,6 @@ void Player::updateDurationInfo(qint64 currentInfo)
         tStr = currentTime.toString(format) + " / " + totalTime.toString(format);
     }
     m_labelDuration->setText(tStr);
-}
-
-void Player::showColorDialog()
-{
-    if (!m_colorDialog) {
-        QSlider *brightnessSlider = new QSlider(Qt::Horizontal);
-        brightnessSlider->setRange(-100, 100);
-        brightnessSlider->setValue(m_videoWidget->brightness());
-        connect(brightnessSlider, &QSlider::sliderMoved, [this](int b) { m_videoWidget->setBrightness(b/100.); });
-        connect(m_videoWidget, &QVideoWidget::brightnessChanged, brightnessSlider, &QSlider::setValue);
-
-        QSlider *contrastSlider = new QSlider(Qt::Horizontal);
-        contrastSlider->setRange(-100, 100);
-        contrastSlider->setValue(m_videoWidget->contrast());
-        connect(contrastSlider, &QSlider::sliderMoved, [this](int c) { m_videoWidget->setContrast(c/100.); });
-        connect(m_videoWidget, &QVideoWidget::contrastChanged, contrastSlider, &QSlider::setValue);
-
-        QSlider *hueSlider = new QSlider(Qt::Horizontal);
-        hueSlider->setRange(-100, 100);
-        hueSlider->setValue(m_videoWidget->hue());
-        connect(hueSlider, &QSlider::sliderMoved, [this](int h) { m_videoWidget->setHue(h/100.); });
-        connect(m_videoWidget, &QVideoWidget::hueChanged, hueSlider, &QSlider::setValue);
-
-        QSlider *saturationSlider = new QSlider(Qt::Horizontal);
-        saturationSlider->setRange(-100, 100);
-        saturationSlider->setValue(m_videoWidget->saturation());
-        connect(saturationSlider, &QSlider::sliderMoved, [this](int s) { m_videoWidget->setSaturation(s/100.); });
-        connect(m_videoWidget, &QVideoWidget::saturationChanged, saturationSlider, &QSlider::setValue);
-
-        QFormLayout *layout = new QFormLayout;
-        layout->addRow(tr("Brightness"), brightnessSlider);
-        layout->addRow(tr("Contrast"), contrastSlider);
-        layout->addRow(tr("Hue"), hueSlider);
-        layout->addRow(tr("Saturation"), saturationSlider);
-
-        QPushButton *button = new QPushButton(tr("Close"));
-        layout->addRow(button);
-
-        m_colorDialog = new QDialog(this);
-        m_colorDialog->setWindowTitle(tr("Color Options"));
-        m_colorDialog->setLayout(layout);
-
-        connect(button, &QPushButton::clicked, m_colorDialog, &QDialog::close);
-    }
-    m_colorDialog->show();
 }
 
 void Player::audioOutputChanged(int index)

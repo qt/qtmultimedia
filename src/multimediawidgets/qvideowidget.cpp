@@ -112,10 +112,10 @@ QVideoWidget::QVideoWidget(QWidget *parent)
 
     d_ptr->videoSink->setNativeWindowId(winId());
     connect(d_ptr->videoSink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_newFrame(const QVideoFrame &)));
-    connect(d_ptr->videoSink, &QVideoSink::brightnessChanged, this, &QVideoWidget::brightnessChanged);
-    connect(d_ptr->videoSink, &QVideoSink::contrastChanged, this, &QVideoWidget::contrastChanged);
-    connect(d_ptr->videoSink, &QVideoSink::hueChanged, this, &QVideoWidget::hueChanged);
-    connect(d_ptr->videoSink, &QVideoSink::saturationChanged, this, &QVideoWidget::saturationChanged);
+//    connect(d_ptr->videoSink, &QVideoSink::brightnessChanged, this, &QVideoWidget::brightnessChanged);
+//    connect(d_ptr->videoSink, &QVideoSink::contrastChanged, this, &QVideoWidget::contrastChanged);
+//    connect(d_ptr->videoSink, &QVideoSink::hueChanged, this, &QVideoWidget::hueChanged);
+//    connect(d_ptr->videoSink, &QVideoSink::saturationChanged, this, &QVideoWidget::saturationChanged);
 }
 
 /*!
@@ -189,6 +189,7 @@ void QVideoWidget::setFullScreen(bool fullScreen)
     \sa isFullScreen()
 */
 
+#if 0
 /*!
     \property QVideoWidget::brightness
     \brief an adjustment to the brightness of displayed video.
@@ -300,6 +301,7 @@ void QVideoWidget::setSaturation(float saturation)
 
     \sa saturation()
 */
+#endif
 
 /*!
   Returns the size hint for the current back end,
