@@ -42,7 +42,7 @@
 
 #include <qcameradevice.h>
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
 #include <qmediadevices.h>
@@ -268,18 +268,6 @@ QCamera::Features QCamera::supportedFeatures() const
 
     \sa unload(), QCamera::InactiveStatus
 */
-
-/*!
-    Returns the current status of the camers.
-*/
-QCamera::Status QCamera::status() const
-{
-    if(d_func()->control)
-        return (QCamera::Status)d_func()->control->status();
-
-    return QCamera::UnavailableStatus;
-}
-
 
 /*!
     Returns the capture session this camera is connected to, or

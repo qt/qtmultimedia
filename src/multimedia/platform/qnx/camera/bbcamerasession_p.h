@@ -53,7 +53,7 @@
 #include "bbmediastoragelocation_p.h"
 
 #include <QCamera>
-#include <QCameraImageCapture>
+#include <QImageCapture>
 #include <QElapsedTimer>
 #include <QMediaRecorder>
 #include <QMutex>
@@ -107,13 +107,13 @@ public:
     void setImageSettings(const QImageEncoderSettings &settings);
 
     // media recorder control
-    QUrl outputLocation() const;
-    bool setOutputLocation(const QUrl &location);
     QMediaRecorder::RecorderState videoState() const;
-    void setVideoState(QMediaRecorder::RecorderState state);
     QMediaRecorder::Status videoStatus() const;
     qint64 duration() const;
     void applyVideoSettings();
+
+    bool startVideoRecording(const QUrl &outputLocation);
+    void stopVideoRecording();
 
     // video encoder settings control
     QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous) const;
@@ -166,8 +166,6 @@ private:
     void closeCamera();
     bool startViewFinder();
     void stopViewFinder();
-    bool startVideoRecording();
-    void stopVideoRecording();
 
     bool isCaptureModeSupported(camera_handle_t handle, QCamera::CaptureModes mode) const;
     QList<QSize> supportedResolutions(QCamera::CaptureMode mode) const;
@@ -191,7 +189,6 @@ private:
 
     QImageEncoderSettings m_imageEncoderSettings;
 
-    QString m_videoOutputLocation;
     QMediaRecorder::RecorderState m_videoState;
     QMediaRecorder::Status m_videoStatus;
     QElapsedTimer m_videoRecordingDuration;

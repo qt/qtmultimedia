@@ -46,14 +46,8 @@ public:
     {
     }
 
-    QUrl outputLocation() const
+    bool isLocationWritable(const QUrl &) const
     {
-        return m_sink;
-    }
-
-    bool setOutputLocation(const QUrl &sink)
-    {
-        m_sink = sink;
         return true;
     }
 
@@ -98,7 +92,7 @@ public:
         emit statusChanged(m_status);
         emit durationChanged(m_position);
 
-        QUrl actualLocation = m_sink.isEmpty() ? QUrl::fromLocalFile("default_name.mp4") : m_sink;
+        QUrl actualLocation = outputLocation().isEmpty() ? QUrl::fromLocalFile("default_name.mp4") : outputLocation();
         emit actualLocationChanged(actualLocation);
     }
 
@@ -136,7 +130,6 @@ public:
 
 public:
     QMediaMetaData m_metaData;
-    QUrl       m_sink;
     QMediaRecorder::RecorderState m_state;
     QMediaRecorder::Status m_status;
     QMediaEncoderSettings m_settings;

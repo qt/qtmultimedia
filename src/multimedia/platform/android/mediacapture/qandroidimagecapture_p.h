@@ -3,7 +3,7 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Mobility Components.
+** This file is part of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef MFMETADATACONTROL_H
-#define MFMETADATACONTROL_H
+#ifndef QANDROIDCAMERAIMAGECAPTURECONTROL_H
+#define QANDROIDCAMERAIMAGECAPTURECONTROL_H
 
 //
 //  W A R N I N G
@@ -51,15 +51,34 @@
 // We mean it.
 //
 
-#include <qmediametadata.h>
-#include "Mfidl.h"
+#include <private/qplatformimagecapture_p.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
-class MFMetaData
+class QAndroidCameraSession;
+class QAndroidCaptureService;
+
+class QAndroidImageCapture : public QPlatformImageCapture
 {
+    Q_OBJECT
 public:
-    static QMediaMetaData fromNative(IMFMediaSource* mediaSource);
+    explicit QAndroidImageCapture(QImageCapture *parent = nullptr);
+
+    bool isReadyForCapture() const override;
+
+    int capture(const QString &fileName) override;
+    int captureToBuffer() override;
+
+    QImageEncoderSettings imageSettings() const override;
+    void setImageSettings(const QImageEncoderSettings &settings) override;
+
+    void setCaptureSession(QPlatformMediaCaptureSession *session);
+
+private:
+    QAndroidCameraSession *m_session;
+    QAndroidCaptureService *m_service;
 };
 
-#endif
+QT_END_NAMESPACE
+
+#endif // QANDROIDCAMERAIMAGECAPTURECONTROL_H

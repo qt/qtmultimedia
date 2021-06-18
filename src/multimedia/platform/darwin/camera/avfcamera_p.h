@@ -75,8 +75,6 @@ public:
     bool isActive() const override;
     void setActive(bool activce) override;
 
-    QCamera::Status status() const override;
-
     void setCamera(const QCameraDevice &camera) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
@@ -115,9 +113,6 @@ public:
     AVCaptureConnection *videoConnection() const;
     AVCaptureDevice *device() const;
 
-private Q_SLOTS:
-    void updateStatus();
-
 private:
     void updateCameraConfiguration();
     void updateCameraProperties();
@@ -130,7 +125,6 @@ private:
     QCameraDevice m_cameraDevice;
 
     bool m_active;
-    QCamera::Status m_lastStatus;
 
     bool isFlashSupported = false;
     bool isFlashAutoSupported = false;

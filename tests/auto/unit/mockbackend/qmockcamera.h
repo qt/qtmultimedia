@@ -50,7 +50,6 @@ public:
 
     QMockCamera(QCamera *parent)
         : QPlatformCamera(parent),
-          m_status(QCamera::InactiveStatus),
           m_propertyChangesSupported(false)
     {
         if (!simpleCamera) {
@@ -71,23 +70,13 @@ public:
         if (m_active == active)
             return;
         m_active = active;
-        setStatus(active ? QCamera::ActiveStatus : QCamera::InactiveStatus);
         emit activeChanged(active);
     }
-
-    QCamera::Status status() const override { return m_status; }
 
     /* helper method to emit the signal error */
     void setError(QCamera::Error err, QString errorString)
     {
         emit error(err, errorString);
-    }
-
-    /* helper method to emit the signal statusChaged */
-    void setStatus(QCamera::Status newStatus)
-    {
-        m_status = newStatus;
-        emit statusChanged(newStatus);
     }
 
     void setCamera(const QCameraDevice &camera) override
@@ -183,7 +172,6 @@ public:
     }
 
     bool m_active = false;
-    QCamera::Status m_status;
     QCameraDevice m_camera;
     bool m_propertyChangesSupported;
 };

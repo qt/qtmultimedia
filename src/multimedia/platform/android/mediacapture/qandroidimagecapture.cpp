@@ -37,50 +37,50 @@
 **
 ****************************************************************************/
 
-#include "qandroidcameraimagecapturecontrol_p.h"
+#include "qandroidimagecapture_p.h"
 
 #include "qandroidcamerasession_p.h"
 #include "qandroidcaptureservice_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QAndroidCameraImageCaptureControl::QAndroidCameraImageCaptureControl(QCameraImageCapture *parent)
-    : QPlatformCameraImageCapture(parent)
+QAndroidImageCapture::QAndroidImageCapture(QImageCapture *parent)
+    : QPlatformImageCapture(parent)
 {
 }
 
-bool QAndroidCameraImageCaptureControl::isReadyForCapture() const
+bool QAndroidImageCapture::isReadyForCapture() const
 {
     return m_session->isReadyForCapture();
 }
 
-int QAndroidCameraImageCaptureControl::capture(const QString &fileName)
+int QAndroidImageCapture::capture(const QString &fileName)
 {
     return m_session->capture(fileName);
 }
 
-int QAndroidCameraImageCaptureControl::captureToBuffer()
+int QAndroidImageCapture::captureToBuffer()
 {
     // ### implement me!
     const QLatin1String errorMessage("Capturing to buffer not supported.");
     QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                               Q_ARG(int, -1),
-                              Q_ARG(int, QCameraImageCapture::NotSupportedFeatureError),
+                              Q_ARG(int, QImageCapture::NotSupportedFeatureError),
                               Q_ARG(QString, errorMessage));
     return -1;
 }
 
-QImageEncoderSettings QAndroidCameraImageCaptureControl::imageSettings() const
+QImageEncoderSettings QAndroidImageCapture::imageSettings() const
 {
     return m_session->imageSettings();
 }
 
-void QAndroidCameraImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
+void QAndroidImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
     m_session->setImageSettings(settings);
 }
 
-void QAndroidCameraImageCaptureControl::setCaptureSession(QPlatformMediaCaptureSession *session)
+void QAndroidImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
     QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
     if (m_service == captureSession)

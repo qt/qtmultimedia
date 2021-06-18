@@ -78,7 +78,7 @@ signals:
 public slots:
     void bufferReady();
     void error(QAudioDecoder::Error error);
-    void stateChanged(QAudioDecoder::State newState);
+    void isDecodingChanged(bool isDecoding);
     void finished();
 
     void playbackStatusChanged();

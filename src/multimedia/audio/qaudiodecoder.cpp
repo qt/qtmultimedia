@@ -89,17 +89,17 @@ QAudioDecoder::~QAudioDecoder() = default;
 /*!
     Returns true is audio decoding is supported on this platform.
 */
-bool QAudioDecoder::isAvailable() const
+bool QAudioDecoder::isSupported() const
 {
     return decoder != nullptr;
 }
 
 /*!
-    Returns the current state of the audio decoder.
+    Returns true if the decoder is currently running and decoding audio data.
 */
-QAudioDecoder::State QAudioDecoder::state() const
+bool QAudioDecoder::isDecoding() const
 {
-    return decoder ? decoder->state() : QAudioDecoder::StoppedState;
+    return decoder && decoder->isDecoding();
 }
 
 /*!
@@ -151,8 +151,10 @@ void QAudioDecoder::start()
 */
 void QAudioDecoder::stop()
 {
-    if (decoder != nullptr)
-        decoder->stop();
+    if (!decoder)
+        return;
+
+    decoder->stop();
 }
 
 /*!
@@ -207,47 +209,9 @@ QIODevice *QAudioDecoder::sourceDevice() const
 */
 void QAudioDecoder::setSourceDevice(QIODevice *device)
 {
-    if (decoder != nullptr)
-        decoder->setSourceDevice(device);
-}
-
-/*!
-    Returns the current audio format of the decoded stream.
-
-    Any buffers returned should have this format.
-
-    \sa setAudioFormat(), formatChanged()
-*/
-QAudioFormat QAudioDecoder::audioFormat() const
-{
-    if (decoder)
-        return decoder->audioFormat();
-    return QAudioFormat();
-}
-
-/*!
-    Set the desired audio format for decoded samples to \a format.
-
-    This property can only be set while the decoder is stopped.
-    Setting this property at other times will be ignored.
-
-    If the decoder does not support this format, \l error() will
-    be set to \c FormatError.
-
-    If you do not specify a format, the format of the decoded
-    audio itself will be used.  Otherwise, some format conversion
-    will be applied.
-
-    If you wish to reset the decoded format to that of the original
-    audio file, you can specify an invalid \a format.
-*/
-void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
-{
-    if (state() != QAudioDecoder::StoppedState)
+    if (!decoder)
         return;
-
-    if (decoder != nullptr)
-        decoder->setAudioFormat(format);
+    decoder->setSourceDevice(device);
 }
 
 /*!

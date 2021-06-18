@@ -50,13 +50,13 @@
 // We mean it.
 //
 
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class BbCameraSession;
 
-class BbCameraImageCaptureControl : public QPlatformCameraImageCapture
+class BbCameraImageCaptureControl : public QPlatformImageCapture
 {
     Q_OBJECT
 public:

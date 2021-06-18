@@ -71,14 +71,8 @@ QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
     QObject::disconnect(cameraChanged);
 }
 
-QUrl QGstreamerMediaEncoder::outputLocation() const
+bool QGstreamerMediaEncoder::isLocationWritable(const QUrl &) const
 {
-    return m_requestedOutputLocation;
-}
-
-bool QGstreamerMediaEncoder::setOutputLocation(const QUrl &sink)
-{
-    m_requestedOutputLocation = sink;
     return true;
 }
 
@@ -300,12 +294,12 @@ void QGstreamerMediaEncoder::record()
 
     updateStatus();
     // create new encoder
-    QString outputLocation = m_requestedOutputLocation.toLocalFile();
-    if (m_requestedOutputLocation.isEmpty()) {
+    QString location = outputLocation().toLocalFile();
+    if (outputLocation().isEmpty()) {
         QString container = m_resolvedSettings.mimeType().preferredSuffix();
-        outputLocation = generateFileName(defaultDir(), container);
+        location = generateFileName(defaultDir(), container);
     }
-    QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(outputLocation);
+    QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(location);
     qCDebug(qLcMediaEncoder) << "recording new video to" << actualSink;
 
     Q_ASSERT(!actualSink.isEmpty());
@@ -338,7 +332,7 @@ void QGstreamerMediaEncoder::record()
     heartbeat.start();
     gstPipeline.dumpGraph("recording");
 
-    actualLocationChanged(QUrl::fromLocalFile(outputLocation));
+    actualLocationChanged(QUrl::fromLocalFile(location));
     updateStatus();
 }
 

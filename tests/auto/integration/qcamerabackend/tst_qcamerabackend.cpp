@@ -33,10 +33,10 @@
 #include <QDebug>
 
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 #include <qcamera.h>
 #include <qcameradevice.h>
-#include <qcameraimagecapture.h>
+#include <qimagecapture.h>
 #include <qmediacapturesession.h>
 #include <qobject.h>
 #include <qmediadevices.h>
@@ -158,16 +158,14 @@ void tst_QCameraBackend::testCameraStates()
     QMediaCaptureSession session;
     QCamera camera;
     camera.setCameraDevice(QCameraDevice());
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
     QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error, const QString &)));
     QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
-    QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
 
     QCOMPARE(camera.isActive(), false);
-    QCOMPARE(camera.status(), QCamera::InactiveStatus);
 
     // Camera should not startup with a null QCameraDevice as device
     camera.start();
@@ -182,14 +180,10 @@ void tst_QCameraBackend::testCameraStates()
     QCOMPARE(camera.isActive(), true);
     QTRY_COMPARE(activeChangedSignal.size(), 1);
     QCOMPARE(activeChangedSignal.last().first().value<bool>(), true);
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
-    QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::ActiveStatus);
 
     camera.stop();
     QCOMPARE(camera.isActive(), false);
     QCOMPARE(activeChangedSignal.last().first().value<bool>(), false);
-    QTRY_COMPARE(camera.status(), QCamera::InactiveStatus);
-    QCOMPARE(statusChangedSignal.last().first().value<QCamera::Status>(), QCamera::InactiveStatus);
 
     QCOMPARE(camera.errorString(), QString());
 }
@@ -212,7 +206,6 @@ void tst_QCameraBackend::testCameraStartParallel()
     camera2.start();
 
     QCOMPARE(camera1.isActive(), true);
-    QTRY_COMPARE(camera1.status(), QCamera::ActiveStatus);
     QCOMPARE(camera1.error(), QCamera::NoError);
     QCOMPARE(camera2.isActive(), true);
     QCOMPARE(camera2.error(), QCamera::NoError);
@@ -225,7 +218,7 @@ void tst_QCameraBackend::testCameraCapture()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -236,11 +229,11 @@ void tst_QCameraBackend::testCameraCapture()
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,const QString&)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,const QString&)));
 
     imageCapture.captureToFile();
     QTRY_COMPARE(errorSignal.size(), 1);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NotReadyError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
     QCOMPARE(capturedSignal.size(), 0);
     errorSignal.clear();
 
@@ -250,7 +243,7 @@ void tst_QCameraBackend::testCameraCapture()
     camera.start();
 
     QTRY_VERIFY(imageCapture.isReadyForCapture());
-    QCOMPARE(camera.status(), QCamera::ActiveStatus);
+    QVERIFY(camera.isActive());
     QCOMPARE(errorSignal.size(), 0);
 
     int id = imageCapture.captureToFile();
@@ -260,7 +253,7 @@ void tst_QCameraBackend::testCameraCapture()
     QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(capturedSignal.last().first().toInt(), id);
     QCOMPARE(errorSignal.size(), 0);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NoError);
 
     QCOMPARE(savedSignal.last().first().toInt(), id);
     QString location = savedSignal.last().last().toString();
@@ -281,7 +274,7 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -289,12 +282,12 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     camera.setActive(true);
 
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+    QTRY_VERIFY(camera.isActive());
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
     QSignalSpy imageAvailableSignal(&imageCapture, SIGNAL(imageAvailable(int,QVideoFrame)));
     QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,const QString&)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,const QString&)));
 
     camera.start();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
@@ -330,7 +323,7 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -377,7 +370,7 @@ void tst_QCameraBackend::testExposureCompensation()
 
     //exposure compensation should be preserved during start
     camera.start();
-    QTRY_COMPARE(camera.status(), QCamera::ActiveStatus);
+    QTRY_VERIFY(camera.isActive());
 
     QCOMPARE(camera.exposureCompensation(), 1.0);
 
@@ -407,7 +400,7 @@ void tst_QCameraBackend::testExposureMode()
     }
 
     camera.stop();
-    QTRY_COMPARE(camera.status(), QCamera::InactiveStatus);
+    QTRY_VERIFY(!camera.isActive());
 
     // Auto
     camera.setExposureMode(QCamera::ExposureAuto);
@@ -472,7 +465,7 @@ void tst_QCameraBackend::testVideoRecording()
     }
     QTRY_VERIFY(camera->isActive());
 
-    QTRY_COMPARE(camera->status(), QCamera::ActiveStatus);
+    QTRY_VERIFY(camera->isActive());
     QTRY_COMPARE(recorder.status(), QMediaRecorder::StoppedStatus);
 
     for (int recordings = 0; recordings < 2; ++recordings) {

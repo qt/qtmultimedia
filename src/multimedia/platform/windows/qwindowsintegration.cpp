@@ -41,7 +41,7 @@
 #include <private/qwindowsmediadevices_p.h>
 #include <private/qwindowsformatinfo_p.h>
 #include <private/qwindowsmediacapture_p.h>
-#include <private/qwindowscameraimagecapture_p.h>
+#include <private/qwindowsimagecapture_p.h>
 #include <private/qwindowscamera_p.h>
 #include <private/qwindowsmediaencoder_p.h>
 #include <private/mfplayercontrol_p.h>
@@ -113,9 +113,9 @@ QPlatformMediaEncoder *QWindowsIntegration::createEncoder(QMediaRecorder *encode
     return new QWindowsMediaEncoder(encoder);
 }
 
-QPlatformCameraImageCapture *QWindowsIntegration::createImageCapture(QCameraImageCapture *imageCapture)
+QPlatformImageCapture *QWindowsIntegration::createImageCapture(QImageCapture *imageCapture)
 {
-    return new QWindowsCameraImageCapture(imageCapture);
+    return new QWindowsImageCapture(imageCapture);
 }
 
 QPlatformVideoSink *QWindowsIntegration::createVideoSink(QVideoSink *sink)

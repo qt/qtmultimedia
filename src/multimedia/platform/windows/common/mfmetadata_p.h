@@ -3,7 +3,7 @@
 ** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the Qt Mobility Components.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERAIMAGECAPTURE_H
-#define AVFCAMERAIMAGECAPTURE_H
+#ifndef MFMETADATACONTROL_H
+#define MFMETADATACONTROL_H
 
 //
 //  W A R N I N G
@@ -51,69 +51,16 @@
 // We mean it.
 //
 
-#import <AVFoundation/AVFoundation.h>
+#include <qmediametadata.h>
+#include "Mfidl.h"
 
-#include <QtCore/qqueue.h>
-#include <QtCore/qsemaphore.h>
-#include <QtCore/qsharedpointer.h>
-#include <private/qplatformcameraimagecapture_p.h>
-#include "avfcamerasession_p.h"
-#include "avfstoragelocation_p.h"
+QT_USE_NAMESPACE
 
-QT_BEGIN_NAMESPACE
-
-class AVFCameraImageCapture : public QPlatformCameraImageCapture
+class MFMetaData
 {
-Q_OBJECT
 public:
-    struct CaptureRequest {
-        int captureId;
-        QSharedPointer<QSemaphore> previewReady;
-    };
-
-    AVFCameraImageCapture(QCameraImageCapture *parent = nullptr);
-    ~AVFCameraImageCapture();
-
-    bool isReadyForCapture() const override;
-
-    AVCaptureStillImageOutput *stillImageOutput() const {return m_stillImageOutput;}
-
-    int doCapture(const QString &fileName);
-    int capture(const QString &fileName) override;
-    int captureToBuffer() override;
-
-    QImageEncoderSettings imageSettings() const override;
-    void setImageSettings(const QImageEncoderSettings &settings) override;
-    bool applySettings();
-
-    void setCaptureSession(QPlatformMediaCaptureSession *session);
-
-private Q_SLOTS:
-    void updateCaptureConnection();
-    void updateReadyStatus();
-    void onNewViewfinderFrame(const QVideoFrame &frame);
-    void onCameraChanged();
-
-private:
-    void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
-    bool videoCaptureDeviceIsValid() const;
-
-    AVFCameraService *m_service;
-    AVFCameraSession *m_session;
-    AVFCamera *m_cameraControl;
-    bool m_ready;
-    int m_lastCaptureId;
-    AVCaptureStillImageOutput *m_stillImageOutput;
-    AVCaptureConnection *m_videoConnection;
-    AVFStorageLocation m_storageLocation;
-
-    QMutex m_requestsMutex;
-    QQueue<CaptureRequest> m_captureRequests;
-    QImageEncoderSettings m_settings;
+    static QMediaMetaData fromNative(IMFMediaSource* mediaSource);
+    static void toNative(const QMediaMetaData &metaData, IPropertyStore *content);
 };
-
-Q_DECLARE_TYPEINFO(AVFCameraImageCapture::CaptureRequest, Q_PRIMITIVE_TYPE);
-
-QT_END_NAMESPACE
 
 #endif

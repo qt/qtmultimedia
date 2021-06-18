@@ -51,9 +51,9 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qcameraimagecapture.h>
+#include <QtMultimedia/qimagecapture.h>
 #include <QtMultimedia/qmediametadata.h>
-#include <QtMultimedia/qcameraimagecapture.h>
+#include <QtMultimedia/qimagecapture.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -63,9 +63,9 @@ class QPlatformMediaCaptureSession;
 class QImageEncoderSettingsPrivate;
 class Q_MULTIMEDIA_EXPORT QImageEncoderSettings
 {
-    QCameraImageCapture::FileFormat m_format = QCameraImageCapture::UnspecifiedFormat;
+    QImageCapture::FileFormat m_format = QImageCapture::UnspecifiedFormat;
     QSize m_resolution;
-    QCameraImageCapture::Quality m_quality = QCameraImageCapture::NormalQuality;
+    QImageCapture::Quality m_quality = QImageCapture::NormalQuality;
 
 public:
     bool operator==(const QImageEncoderSettings &other) {
@@ -75,18 +75,18 @@ public:
     }
     bool operator!=(const QImageEncoderSettings &other) { return !operator==(other); }
 
-    QCameraImageCapture::FileFormat format() const { return m_format; }
-    void setFormat(QCameraImageCapture::FileFormat f) { m_format = f; }
+    QImageCapture::FileFormat format() const { return m_format; }
+    void setFormat(QImageCapture::FileFormat f) { m_format = f; }
 
     QSize resolution() const { return m_resolution; }
     void setResolution(const QSize &s) { m_resolution = s; }
     void setResolution(int width, int height) { m_resolution = QSize(width, height); }
 
-    QCameraImageCapture::Quality quality() const { return m_quality; }
-    void setQuality(QCameraImageCapture::Quality quality) { m_quality = quality; }
+    QImageCapture::Quality quality() const { return m_quality; }
+    void setQuality(QImageCapture::Quality quality) { m_quality = quality; }
 };
 
-class Q_MULTIMEDIA_EXPORT QPlatformCameraImageCapture : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformImageCapture : public QObject
 {
     Q_OBJECT
 
@@ -102,7 +102,7 @@ public:
     virtual void setMetaData(const QMediaMetaData &m) { m_metaData = m; }
     QMediaMetaData metaData() const { return m_metaData; }
 
-    QCameraImageCapture *imageCapture() { return m_imageCapture; }
+    QImageCapture *imageCapture() { return m_imageCapture; }
 
 Q_SIGNALS:
     void readyForCaptureChanged(bool ready);
@@ -116,9 +116,9 @@ Q_SIGNALS:
     void error(int id, int error, const QString &errorString);
 
 protected:
-    explicit QPlatformCameraImageCapture(QCameraImageCapture *parent = nullptr);
+    explicit QPlatformImageCapture(QImageCapture *parent = nullptr);
 private:
-    QCameraImageCapture *m_imageCapture = nullptr;
+    QImageCapture *m_imageCapture = nullptr;
     QMediaMetaData m_metaData;
 };
 

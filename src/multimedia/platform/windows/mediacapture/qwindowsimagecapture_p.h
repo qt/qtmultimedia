@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDCAMERAIMAGECAPTURECONTROL_H
-#define QANDROIDCAMERAIMAGECAPTURECONTROL_H
+#ifndef QWindowsImageCapture_H
+#define QWindowsImageCapture_H
 
 //
 //  W A R N I N G
@@ -51,18 +51,21 @@
 // We mean it.
 //
 
-#include <private/qplatformcameraimagecapture_p.h>
+#include "qwindowsstoragelocation_p.h"
+
+#include <private/qplatformimagecapture_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidCameraSession;
-class QAndroidCaptureService;
+class QWindowsMediaDeviceSession;
+class QWindowsMediaCaptureService;
 
-class QAndroidCameraImageCaptureControl : public QPlatformCameraImageCapture
+class QWindowsImageCapture : public QPlatformImageCapture
 {
     Q_OBJECT
 public:
-    explicit QAndroidCameraImageCaptureControl(QCameraImageCapture *parent = nullptr);
+    explicit QWindowsImageCapture(QImageCapture *parent);
+    virtual ~QWindowsImageCapture();
 
     bool isReadyForCapture() const override;
 
@@ -74,11 +77,27 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
+private Q_SLOTS:
+    void handleNewVideoFrame(const QVideoFrame &frame);
+
 private:
-    QAndroidCameraSession *m_session;
-    QAndroidCaptureService *m_service;
+    int doCapture(const QString &fileName);
+    void saveImage(int captureId, const QString &fileName,
+                   const QImage &image, const QMediaMetaData &metaData,
+                   const QImageEncoderSettings &settings);
+    QString writerFormat(QImageCapture::FileFormat reqFormat);
+    int writerQuality(const QString &writerFormat,
+                      QImageCapture::Quality quality);
+
+    QWindowsMediaCaptureService  *m_captureService = nullptr;
+    QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
+    QImageEncoderSettings         m_settings;
+    QWindowsStorageLocation       m_storageLocation;
+    int m_captureId = 0;
+    bool m_capturing = false;
+    QString m_fileName;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDCAMERAIMAGECAPTURECONTROL_H
+#endif  // QWindowsImageCapture_H

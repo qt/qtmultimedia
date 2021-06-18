@@ -33,18 +33,18 @@
 #include <QTimer>
 #include <QtMultimedia/qmediametadata.h>
 
-#include "private/qplatformcameraimagecapture_p.h"
+#include "private/qplatformimagecapture_p.h"
 #include "private/qplatformcamera_p.h"
 
 QT_BEGIN_NAMESPACE
 
 class QMockMediaCaptureSession;
 
-class QMockImageCapture : public QPlatformCameraImageCapture
+class QMockImageCapture : public QPlatformImageCapture
 {
     Q_OBJECT
 public:
-    QMockImageCapture(QCameraImageCapture *parent);
+    QMockImageCapture(QImageCapture *parent);
 
     ~QMockImageCapture()
     {

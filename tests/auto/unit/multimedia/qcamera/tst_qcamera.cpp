@@ -33,10 +33,10 @@
 
 #include <qvideosink.h>
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 #include <qcamera.h>
 #include <qcameradevice.h>
-#include <qcameraimagecapture.h>
+#include <qimagecapture.h>
 #include <qmediacapturesession.h>
 #include <qobject.h>
 #include <qmediadevices.h>
@@ -76,7 +76,6 @@ private slots:
     void testErrorSignal();
     void testError();
     void testErrorString();
-    void testStatus();
 
 
     // Test cases to for focus handling
@@ -212,26 +211,26 @@ void tst_QCamera::testSimpleCameraCapture()
 
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
     QVERIFY(!imageCapture.isReadyForCapture());
     QVERIFY(imageCapture.isAvailable());
 
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
     imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NotReadyError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
     QVERIFY(!imageCapture.errorString().isEmpty());
 
     camera.start();
     imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 }
 
@@ -239,19 +238,19 @@ void tst_QCamera::testCameraCapture()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
     QVERIFY(!imageCapture.isReadyForCapture());
 
     QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QCameraImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
 
     imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
     QCOMPARE(capturedSignal.size(), 0);
     QCOMPARE(errorSignal.size(), 1);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NotReadyError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
 
     errorSignal.clear();
 
@@ -263,14 +262,14 @@ void tst_QCamera::testCameraCapture()
 
     QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(errorSignal.size(), 0);
-    QCOMPARE(imageCapture.error(), QCameraImageCapture::NoError);
+    QCOMPARE(imageCapture.error(), QImageCapture::NoError);
 }
 
 void tst_QCamera::testCameraCaptureMetadata()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
@@ -441,18 +440,15 @@ void tst_QCamera::testCameraEncodingProperyChange()
 {
     QMediaCaptureSession session;
     QCamera camera;
-    QCameraImageCapture imageCapture;
+    QImageCapture imageCapture;
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy statusChangedSignal(&camera, SIGNAL(statusChanged(QCamera::Status)));
+    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
 
     camera.start();
     QCOMPARE(camera.isActive(), true);
-    QCOMPARE(camera.status(), QCamera::ActiveStatus);
-
-    QCOMPARE(statusChangedSignal.count(), 1);
-    statusChangedSignal.clear();
+    QCOMPARE(activeChangedSignal.count(), 1);
 }
 
 void tst_QCamera::testSetVideoOutput()
@@ -543,8 +539,6 @@ void tst_QCamera::testSetVideoOutputDestruction()
 
 void tst_QCamera::testEnumDebug()
 {
-    QTest::ignoreMessage(QtDebugMsg, "QCamera::ActiveStatus");
-    qDebug() << QCamera::ActiveStatus;
     QTest::ignoreMessage(QtDebugMsg, "QCamera::CameraError");
     qDebug() << QCamera::CameraError;
 //    QTest::ignoreMessage(QtDebugMsg, "QCameraDevice::FrontFace");
@@ -703,27 +697,6 @@ void tst_QCamera::testErrorString()
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("CameraError Error"));
     QVERIFY(camera.errorString() == QString("CameraError Error"));
-}
-
-/* Test case for verifying Status of QCamera. */
-void tst_QCamera::testStatus()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    session.setCamera(&camera);
-    auto *service = integration.lastCaptureService();
-
-    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setStatus(QCamera::StartingStatus);
-    QVERIFY(camera.status() == QCamera::StartingStatus);
-
-    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setStatus(QCamera::StartingStatus);
-    QVERIFY(camera.status() == QCamera::StartingStatus);
-
-    /* Set the QPlatformCamera status and verify if it is set correctly in QCamera */
-    service->mockCameraControl->setStatus(QCamera::UnavailableStatus);
-    QVERIFY(camera.status() == QCamera::UnavailableStatus);
 }
 
 //Added this code to cover QCamera::FocusModeHyperfocal and QCamera::FocusModeAutoNear

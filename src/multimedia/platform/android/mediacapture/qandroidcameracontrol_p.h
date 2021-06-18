@@ -70,8 +70,6 @@ public:
     bool isActive() const override;
     void setActive(bool active) override;
 
-    QCamera::Status status() const override;
-
     void setCamera(const QCameraDevice &camera) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;

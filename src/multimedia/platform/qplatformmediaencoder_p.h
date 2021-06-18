@@ -136,8 +136,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformMediaEncoder
 {
 public:
     virtual ~QPlatformMediaEncoder() {}
-    virtual QUrl outputLocation() const = 0;
-    virtual bool setOutputLocation(const QUrl &location) = 0;
+
+    virtual bool isLocationWritable(const QUrl &location) const = 0;
 
     virtual QMediaRecorder::RecorderState state() const { return m_state; }
     virtual void setState(QMediaRecorder::RecorderState state) = 0;
@@ -155,6 +155,8 @@ public:
     QMediaRecorder::Error error() const { return m_error;}
     QString errorString() const { return m_errorString; }
 
+    QUrl outputLocation() const { return m_outputLocation; }
+    void setOutputLocation(const QUrl &location) { m_outputLocation = location; }
     QUrl actualLocation() const { return m_actualLocation; }
     void clearActualLocation() { m_actualLocation.clear(); }
     void clearError() { error(QMediaRecorder::NoError, QString()); }
@@ -174,6 +176,8 @@ private:
     QMediaRecorder::Error m_error = QMediaRecorder::NoError;
     QString m_errorString;
     QUrl m_actualLocation;
+    QUrl m_outputLocation;
+
     QMediaRecorder::RecorderState m_state = QMediaRecorder::StoppedState;
     QMediaRecorder::Status m_status = QMediaRecorder::StoppedStatus;
 };

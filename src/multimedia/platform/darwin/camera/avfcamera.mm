@@ -158,7 +158,6 @@ bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCamera::ExposureM
 AVFCamera::AVFCamera(QCamera *camera)
    : QPlatformCamera(camera)
    , m_active(false)
-   , m_lastStatus(QCamera::InactiveStatus)
 {
     Q_ASSERT(camera);
 }
@@ -183,23 +182,9 @@ void AVFCamera::setActive(bool active)
     if (m_session)
         m_session->setActive(active);
 
-    Q_EMIT activeChanged(m_active);
-    updateStatus();
     if (active)
         updateCameraConfiguration();
-}
-
-QCamera::Status AVFCamera::status() const
-{
-    static const QCamera::Status statusTable[2][2] = {
-        { QCamera::InactiveStatus,    QCamera::StoppingStatus }, //Inactive state
-        { QCamera::StartingStatus,  QCamera::ActiveStatus } //ActiveState
-    };
-
-    if (!m_session)
-        return QCamera::InactiveStatus;
-
-    return statusTable[m_active ? 1 : 0][m_session->isActive() ? 1 : 0];
+    Q_EMIT activeChanged(m_active);
 }
 
 void AVFCamera::setCamera(const QCameraDevice &camera)
@@ -224,23 +209,9 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     }
 
     m_session = m_service->session();
-    Q_ASSERT(m_session);
-    connect(m_session, SIGNAL(activeChanged(bool)), SLOT(updateStatus()));
-
     m_session->setActiveCamera(QCameraDevice());
     m_session->setActive(m_active);
     m_session->setActiveCamera(m_cameraDevice);
-}
-
-void AVFCamera::updateStatus()
-{
-    QCamera::Status newStatus = status();
-
-    if (m_lastStatus != newStatus) {
-        qDebugCamera() << "Camera status changed: " << m_lastStatus << " -> " << newStatus;
-        m_lastStatus = newStatus;
-        Q_EMIT statusChanged(m_lastStatus);
-    }
 }
 
 AVCaptureConnection *AVFCamera::videoConnection() const

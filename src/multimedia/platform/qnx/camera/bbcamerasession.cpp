@@ -317,7 +317,7 @@ static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *b
         // We are inside a worker thread here, so emit error signal inside the main thread
         QMetaObject::invokeMethod(data->session, "imageCaptureError", Qt::QueuedConnection,
                                   Q_ARG(int, data->requestId),
-                                  Q_ARG(QCameraImageCapture::Error, QCameraImageCapture::FormatError),
+                                  Q_ARG(QImageCapture::Error, QImageCapture::FormatError),
                                   Q_ARG(QString, BbCameraSession::tr("Camera provides image in unsupported format")));
         return;
     }
@@ -331,7 +331,7 @@ static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *b
         // We are inside a worker thread here, so emit error signal inside the main thread
         QMetaObject::invokeMethod(data->session, "imageCaptureError", Qt::QueuedConnection,
                                   Q_ARG(int, data->requestId),
-                                  Q_ARG(QCameraImageCapture::Error, QCameraImageCapture::FormatError),
+                                  Q_ARG(QImageCapture::Error, QImageCapture::FormatError),
                                   Q_ARG(QString, errorMessage));
         return;
     }
@@ -349,7 +349,7 @@ int BbCameraSession::capture(const QString &fileName)
     m_lastImageCaptureId++;
 
     if (!isReadyForCapture()) {
-        emit imageCaptureError(m_lastImageCaptureId, QCameraImageCapture::NotReadyError, tr("Camera not ready"));
+        emit imageCaptureError(m_lastImageCaptureId, QImageCapture::NotReadyError, tr("Camera not ready"));
         return m_lastImageCaptureId;
     }
 
@@ -406,55 +406,9 @@ void BbCameraSession::setImageSettings(const QImageEncoderSettings &settings)
         m_imageEncoderSettings.setCodec(QLatin1String("jpeg"));
 }
 
-QUrl BbCameraSession::outputLocation() const
-{
-    return QUrl::fromLocalFile(m_videoOutputLocation);
-}
-
-bool BbCameraSession::setOutputLocation(const QUrl &location)
-{
-    m_videoOutputLocation = location.toLocalFile();
-
-    return true;
-}
-
 QMediaRecorder::RecorderState BbCameraSession::videoState() const
 {
     return m_videoState;
-}
-
-void BbCameraSession::setVideoState(QMediaRecorder::RecorderState state)
-{
-    if (m_videoState == state)
-        return;
-
-    const QMediaRecorder::RecorderState previousState = m_videoState;
-
-    if (previousState == QMediaRecorder::StoppedState) {
-        if (state == QMediaRecorder::RecordingState) {
-            if (startVideoRecording()) {
-                m_videoState = state;
-            }
-        } else if (state == QMediaRecorder::PausedState) {
-            // do nothing
-        }
-    } else if (previousState == QMediaRecorder::RecordingState) {
-        if (state == QMediaRecorder::StoppedState) {
-            stopVideoRecording();
-            m_videoState = state;
-        } else if (state == QMediaRecorder::PausedState) {
-            //TODO: (pause) not supported by BB10 API yet
-        }
-    } else if (previousState == QMediaRecorder::PausedState) {
-        if (state == QMediaRecorder::StoppedState) {
-            stopVideoRecording();
-            m_videoState = state;
-        } else if (state == QMediaRecorder::RecordingState) {
-            //TODO: (resume) not supported by BB10 API yet
-        }
-    }
-
-    emit videoStateChanged(m_videoState);
 }
 
 QMediaRecorder::Status BbCameraSession::videoStatus() const
@@ -677,11 +631,11 @@ void BbCameraSession::imageCaptured(int requestId, const QImage &rawImage, const
             if (image.save(&file, "JPG")) {
                 emit imageSaved(requestId, actualFileName);
             } else {
-                emit imageCaptureError(requestId, QCameraImageCapture::OutOfSpaceError, file.errorString());
+                emit imageCaptureError(requestId, QImageCapture::OutOfSpaceError, file.errorString());
             }
         } else {
             const QString errorMessage = tr("Could not open destination file:\n%1").arg(actualFileName);
-            emit imageCaptureError(requestId, QCameraImageCapture::ResourceError, errorMessage);
+            emit imageCaptureError(requestId, QImageCapture::ResourceError, errorMessage);
         }
     }
 }
@@ -986,32 +940,37 @@ static void videoRecordingStatusCallback(camera_handle_t handle, camera_devstatu
     }
 }
 
-bool BbCameraSession::startVideoRecording()
+void BbCameraSession::startVideoRecording(const QUrl &outputLocation)
 {
+    if (m_videoState == QMediaRecorder::RecordingState)
+        return;
+
     m_videoRecordingDuration.invalidate();
 
     m_videoStatus = QMediaRecorder::StartingStatus;
     emit videoStatusChanged(m_videoStatus);
 
-    if (m_videoOutputLocation.isEmpty())
-        m_videoOutputLocation = m_mediaStorageLocation.generateFileName(QLatin1String("VID_"), m_mediaStorageLocation.defaultDir(QCamera::CaptureVideo), QLatin1String("mp4"));
+    QString videoOutputLocation = outputLocation.toLocalFile();
+    if (videoOutputLocation.isEmpty())
+        videoOutputLocation = m_mediaStorageLocation.generateFileName(QLatin1String("VID_"), m_mediaStorageLocation.defaultDir(QCamera::CaptureVideo), QLatin1String("mp4"));
 
-    emit actualLocationChanged(m_videoOutputLocation);
+    emit actualLocationChanged(videoOutputLocation);
 
-    const camera_error_t result = camera_start_video(m_handle, QFile::encodeName(m_videoOutputLocation), 0, videoRecordingStatusCallback, this);
+    const camera_error_t result = camera_start_video(m_handle, QFile::encodeName(videoOutputLocation), 0, videoRecordingStatusCallback, this);
     if (result != CAMERA_EOK) {
         m_videoStatus = QMediaRecorder::StoppedStatus;
-        emit videoStatusChanged(m_videoStatus);
-
         emit videoError(QMediaRecorder::ResourceError, tr("Unable to start video recording"));
-        return false;
+    } else {
+        m_videoState = QMediaRecorder::RecordingState;
     }
-
-    return true;
+    emit videoStateChanged(m_videoState);
 }
 
 void BbCameraSession::stopVideoRecording()
 {
+    if (m_videoState == QMediaRecorder::StoppedState)
+        return;
+
     m_videoStatus = QMediaRecorder::FinalizingStatus;
     emit videoStatusChanged(m_videoStatus);
 
@@ -1024,6 +983,8 @@ void BbCameraSession::stopVideoRecording()
     emit videoStatusChanged(m_videoStatus);
 
     m_videoRecordingDuration.invalidate();
+    m_videoState = QMediaRecorder::StoppedState;
+    emit videoStateChanged(m_videoState);
 }
 
 bool BbCameraSession::isCaptureModeSupported(camera_handle_t handle, QCamera::CaptureModes mode) const

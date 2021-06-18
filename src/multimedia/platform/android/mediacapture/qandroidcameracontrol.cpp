@@ -73,11 +73,6 @@ bool QAndroidCameraControl::isActive() const
     return m_cameraSession->isActive();
 }
 
-QCamera::Status QAndroidCameraControl::status() const
-{
-    return m_cameraSession->status();
-}
-
 void QAndroidCameraControl::setCamera(const QCameraDevice &camera)
 {
     int id = 0;

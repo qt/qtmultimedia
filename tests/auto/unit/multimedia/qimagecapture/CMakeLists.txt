@@ -1,12 +1,12 @@
-# Generated from qcameraimagecapture.pro.
+# Generated from qimagecapture.pro.
 
 #####################################################################
-## tst_qcameraimagecapture Test:
+## tst_qimagecapture Test:
 #####################################################################
 
-qt_internal_add_test(tst_qcameraimagecapture
+qt_internal_add_test(tst_qimagecapture
     SOURCES
-        tst_qcameraimagecapture.cpp
+        tst_qimagecapture.cpp
     INCLUDE_DIRECTORIES
         ../../mockbackend
     PUBLIC_LIBRARIES

@@ -94,9 +94,7 @@ QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera)
 
     Sets the camera \a state.
 
-    State changes are synchronous and indicate user intention,
-    while camera status is used as a feedback mechanism to inform application about backend status.
-    Status changes are reported asynchronously with QPlatformCamera::statusChanged() signal.
+    State changes are synchronous and indicate user intention.
 
     \sa QCamera::State
 */
@@ -109,21 +107,6 @@ QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera)
     In most cases the state chage is caused by QPlatformCamera::setState(),
     but if critical error has occurred the state changes to QCamera::UnloadedState.
 */
-
-/*!
-    \fn QPlatformCamera::status() const
-
-    Returns the status of the camera service.
-
-    \sa QCamera::state
-*/
-
-/*!
-    \fn void QPlatformCamera::statusChanged(QCamera::Status status)
-
-    Signal emitted when the camera \a status changes.
-*/
-
 
 /*!
     \fn void QPlatformCamera::error(int error, const QString &errorString)
@@ -163,14 +146,6 @@ void QPlatformCamera::supportedFeaturesChanged(QCamera::Features f)
         return;
     m_supportedFeatures = f;
     emit m_camera->supportedFeaturesChanged();
-}
-
-void QPlatformCamera::statusChanged(QCamera::Status s)
-{
-    if (s == m_status)
-        return;
-    m_status = s;
-    emit m_camera->statusChanged(s);
 }
 
 void QPlatformCamera::minimumZoomFactorChanged(float factor)

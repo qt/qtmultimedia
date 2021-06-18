@@ -94,7 +94,7 @@ QPlatformCamera *QMockIntegration::createCamera(QCamera *parent)
     return m_lastCamera;
 }
 
-QPlatformCameraImageCapture *QMockIntegration::createImageCapture(QCameraImageCapture *capture)
+QPlatformImageCapture *QMockIntegration::createImageCapture(QImageCapture *capture)
 {
     return new QMockImageCapture(capture);
 }

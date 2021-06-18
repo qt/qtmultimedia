@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "avfcameradebug_p.h"
-#include "avfcameraimagecapture_p.h"
+#include "avfimagecapture_p.h"
 #include "avfcameraservice_p.h"
 #include "avfcamerautility_p.h"
 #include "avfcamera_p.h"
@@ -56,8 +56,8 @@
 
 QT_USE_NAMESPACE
 
-AVFCameraImageCapture::AVFCameraImageCapture(QCameraImageCapture *parent)
-   : QPlatformCameraImageCapture(parent)
+AVFImageCapture::AVFImageCapture(QImageCapture *parent)
+   : QPlatformImageCapture(parent)
    , m_ready(false)
    , m_lastCaptureId(0)
    , m_videoConnection(nil)
@@ -71,16 +71,16 @@ AVFCameraImageCapture::AVFCameraImageCapture(QCameraImageCapture *parent)
     [outputSettings release];
 }
 
-AVFCameraImageCapture::~AVFCameraImageCapture()
+AVFImageCapture::~AVFImageCapture()
 {
 }
 
-bool AVFCameraImageCapture::isReadyForCapture() const
+bool AVFImageCapture::isReadyForCapture() const
 {
-    return m_cameraControl && m_videoConnection && m_cameraControl->status() == QCamera::ActiveStatus;
+    return m_cameraControl && m_videoConnection && m_cameraControl->isActive();
 }
 
-void AVFCameraImageCapture::updateReadyStatus()
+void AVFImageCapture::updateReadyStatus()
 {
     if (m_ready != isReadyForCapture()) {
         m_ready = !m_ready;
@@ -89,19 +89,19 @@ void AVFCameraImageCapture::updateReadyStatus()
     }
 }
 
-int AVFCameraImageCapture::doCapture(const QString &actualFileName)
+int AVFImageCapture::doCapture(const QString &actualFileName)
 {
     if (!m_session) {
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                 Q_ARG(int, m_lastCaptureId),
-                                Q_ARG(int, QCameraImageCapture::ResourceError),
+                                Q_ARG(int, QImageCapture::ResourceError),
                                 Q_ARG(QString, tr("Image capture not set to capture session")));
         return m_lastCaptureId;
     }
     if (!isReadyForCapture()) {
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                   Q_ARG(int, m_lastCaptureId),
-                                  Q_ARG(int, QCameraImageCapture::NotReadyError),
+                                  Q_ARG(int, QImageCapture::NotReadyError),
                                   Q_ARG(QString, tr("Camera not ready")));
         return m_lastCaptureId;
     }
@@ -130,7 +130,7 @@ int AVFCameraImageCapture::doCapture(const QString &actualFileName)
 
             QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                       Q_ARG(int, request.captureId),
-                                      Q_ARG(int, QCameraImageCapture::ResourceError),
+                                      Q_ARG(int, QImageCapture::ResourceError),
                                       Q_ARG(QString, errorMessage));
             return;
         }
@@ -169,14 +169,14 @@ int AVFCameraImageCapture::doCapture(const QString &actualFileName)
                     } else {
                         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                                   Q_ARG(int, request.captureId),
-                                                  Q_ARG(int, QCameraImageCapture::OutOfSpaceError),
+                                                  Q_ARG(int, QImageCapture::OutOfSpaceError),
                                                   Q_ARG(QString, f.errorString()));
                     }
                 } else {
                     QString errorMessage = tr("Could not open destination file:\n%1").arg(fileName);
                     QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                               Q_ARG(int, request.captureId),
-                                              Q_ARG(int, QCameraImageCapture::ResourceError),
+                                              Q_ARG(int, QImageCapture::ResourceError),
                                               Q_ARG(QString, errorMessage));
                 }
             }
@@ -186,7 +186,7 @@ int AVFCameraImageCapture::doCapture(const QString &actualFileName)
             qDebugCamera() << errorMessage;
             QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                       Q_ARG(int, request.captureId),
-                                      Q_ARG(int, QCameraImageCapture::ResourceError),
+                                      Q_ARG(int, QImageCapture::ResourceError),
                                       Q_ARG(QString, errorMessage));
         }
     }];
@@ -194,7 +194,7 @@ int AVFCameraImageCapture::doCapture(const QString &actualFileName)
     return request.captureId;
 }
 
-int AVFCameraImageCapture::capture(const QString &fileName)
+int AVFImageCapture::capture(const QString &fileName)
 {
     QString actualFileName;
     actualFileName = m_storageLocation.generateFileName(fileName,
@@ -206,12 +206,12 @@ int AVFCameraImageCapture::capture(const QString &fileName)
     return doCapture(actualFileName);
 }
 
-int AVFCameraImageCapture::captureToBuffer()
+int AVFImageCapture::captureToBuffer()
 {
     return doCapture(QString());
 }
 
-void AVFCameraImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
+void AVFImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
 {
     QMutexLocker locker(&m_requestsMutex);
 
@@ -221,24 +221,24 @@ void AVFCameraImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
     CaptureRequest request = m_captureRequests.dequeue();
     Q_EMIT imageExposed(request.captureId);
 
-    (void) QtConcurrent::run(&AVFCameraImageCapture::makeCapturePreview, this,
+    (void) QtConcurrent::run(&AVFImageCapture::makeCapturePreview, this,
                       request,
                       frame,
                       0 /* rotation */);
 }
 
-void AVFCameraImageCapture::onCameraChanged()
+void AVFImageCapture::onCameraChanged()
 {
     Q_ASSERT(m_service && m_session);
     if (m_service->camera())
         connect(m_service->camera(), SIGNAL(activeChanged(bool)), this, SLOT(updateReadyStatus()));
     if (m_session->videoOutput())
         connect(m_session->videoOutput(), &AVFCameraRenderer::newViewfinderFrame,
-                this, &AVFCameraImageCapture::onNewViewfinderFrame,
+                this, &AVFImageCapture::onNewViewfinderFrame,
                 Qt::DirectConnection);
 }
 
-void AVFCameraImageCapture::makeCapturePreview(CaptureRequest request,
+void AVFImageCapture::makeCapturePreview(CaptureRequest request,
                                                 const QVideoFrame &frame,
                                                 int rotation)
 {
@@ -250,7 +250,7 @@ void AVFCameraImageCapture::makeCapturePreview(CaptureRequest request,
     request.previewReady->release();
 }
 
-void AVFCameraImageCapture::updateCaptureConnection()
+void AVFImageCapture::updateCaptureConnection()
 {
     if (m_session && m_session->videoCaptureDevice()) {
         qDebugCamera() << Q_FUNC_INFO;
@@ -271,7 +271,7 @@ void AVFCameraImageCapture::updateCaptureConnection()
 }
 
 
-QImageEncoderSettings AVFCameraImageCapture::imageSettings() const
+QImageEncoderSettings AVFImageCapture::imageSettings() const
 {
     QImageEncoderSettings settings;
 
@@ -301,12 +301,12 @@ QImageEncoderSettings AVFCameraImageCapture::imageSettings() const
     }
 
     settings.setResolution(res);
-    settings.setFormat(QCameraImageCapture::JPEG);
+    settings.setFormat(QImageCapture::JPEG);
 
     return settings;
 }
 
-void AVFCameraImageCapture::setImageSettings(const QImageEncoderSettings &settings)
+void AVFImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
     if (m_settings == settings)
         return;
@@ -315,7 +315,7 @@ void AVFCameraImageCapture::setImageSettings(const QImageEncoderSettings &settin
     applySettings();
 }
 
-bool AVFCameraImageCapture::applySettings()
+bool AVFImageCapture::applySettings()
 {
     if (!videoCaptureDeviceIsValid())
         return false;
@@ -330,7 +330,7 @@ bool AVFCameraImageCapture::applySettings()
         return false;
     }
 
-    if (m_settings.format() != QCameraImageCapture::UnspecifiedFormat && m_settings.format() != QCameraImageCapture::JPEG) {
+    if (m_settings.format() != QImageCapture::UnspecifiedFormat && m_settings.format() != QImageCapture::JPEG) {
         qDebugCamera() << Q_FUNC_INFO << "unsupported format:" << m_settings.format();
         return false;
     }
@@ -373,7 +373,7 @@ bool AVFCameraImageCapture::applySettings()
     return activeFormatChanged;
 }
 
-void AVFCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
+void AVFImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
     AVFCameraService *captureSession = static_cast<AVFCameraService *>(session);
     if (m_service == captureSession)
@@ -396,7 +396,7 @@ void AVFCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sess
     Q_ASSERT(m_session);
     m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
 
-    connect(m_service, &AVFCameraService::cameraChanged, this, &AVFCameraImageCapture::onCameraChanged);
+    connect(m_service, &AVFCameraService::cameraChanged, this, &AVFImageCapture::onCameraChanged);
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
 
     updateCaptureConnection();
@@ -404,7 +404,7 @@ void AVFCameraImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sess
     onCameraChanged();
 }
 
-bool AVFCameraImageCapture::videoCaptureDeviceIsValid() const
+bool AVFImageCapture::videoCaptureDeviceIsValid() const
 {
     if (!m_service || !m_service->session() || !m_service->session()->videoCaptureDevice())
         return false;
@@ -416,4 +416,4 @@ bool AVFCameraImageCapture::videoCaptureDeviceIsValid() const
     return true;
 }
 
-#include "moc_avfcameraimagecapture_p.cpp"
+#include "moc_avfimagecapture_p.cpp"

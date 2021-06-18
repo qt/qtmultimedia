@@ -37,9 +37,8 @@
 **
 ****************************************************************************/
 
-
-#ifndef QGSTREAMERIMAGECAPTURECONTROL_H
-#define QGSTREAMERIMAGECAPTURECONTROL_H
+#ifndef AVFCAMERAIMAGECAPTURE_H
+#define AVFCAMERAIMAGECAPTURE_H
 
 //
 //  W A R N I N G
@@ -52,73 +51,69 @@
 // We mean it.
 //
 
-#include <private/qplatformcameraimagecapture_p.h>
-#include "qgstreamermediacapture_p.h"
-#include "private/qgstreamerbufferprobe_p.h"
+#import <AVFoundation/AVFoundation.h>
 
-#include <qqueue.h>
-
-#include <private/qgst_p.h>
-#include <gst/video/video.h>
+#include <QtCore/qqueue.h>
+#include <QtCore/qsemaphore.h>
+#include <QtCore/qsharedpointer.h>
+#include <private/qplatformimagecapture_p.h>
+#include "avfcamerasession_p.h"
+#include "avfstoragelocation_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCameraImageCapture : public QPlatformCameraImageCapture, private QGstreamerBufferProbe
-
+class AVFImageCapture : public QPlatformImageCapture
 {
-    Q_OBJECT
+Q_OBJECT
 public:
-    QGstreamerCameraImageCapture(QCameraImageCapture *parent/*, const QGstPipeline &pipeline*/);
-    virtual ~QGstreamerCameraImageCapture();
+    struct CaptureRequest {
+        int captureId;
+        QSharedPointer<QSemaphore> previewReady;
+    };
+
+    AVFImageCapture(QImageCapture *parent = nullptr);
+    ~AVFImageCapture();
 
     bool isReadyForCapture() const override;
+
+    AVCaptureStillImageOutput *stillImageOutput() const {return m_stillImageOutput;}
+
+    int doCapture(const QString &fileName);
     int capture(const QString &fileName) override;
     int captureToBuffer() override;
 
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
-
-    bool probeBuffer(GstBuffer *buffer) override;
+    bool applySettings();
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    QGstElement gstElement() const { return bin.element(); }
-
-public Q_SLOTS:
-    void cameraActiveChanged(bool active);
+private Q_SLOTS:
+    void updateCaptureConnection();
+    void updateReadyStatus();
+    void onNewViewfinderFrame(const QVideoFrame &frame);
     void onCameraChanged();
 
 private:
-    int doCapture(const QString &fileName);
-    static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad, void *appdata);
-    void link();
-    void unlink();
+    void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
+    bool videoCaptureDeviceIsValid() const;
 
-    QGstreamerMediaCapture *m_session = nullptr;
-    int m_lastId = 0;
+    AVFCameraService *m_service;
+    AVFCameraSession *m_session;
+    AVFCamera *m_cameraControl;
+    bool m_ready;
+    int m_lastCaptureId;
+    AVCaptureStillImageOutput *m_stillImageOutput;
+    AVCaptureConnection *m_videoConnection;
+    AVFStorageLocation m_storageLocation;
+
+    QMutex m_requestsMutex;
+    QQueue<CaptureRequest> m_captureRequests;
     QImageEncoderSettings m_settings;
-
-    struct PendingImage {
-        int id;
-        QString filename;
-        QMediaMetaData metaData;
-    };
-
-    QQueue<PendingImage> pendingImages;
-
-    QGstPipeline gstPipeline;
-    QGstBin bin;
-    QGstElement queue;
-    QGstElement videoConvert;
-    QGstElement encoder;
-    QGstElement muxer;
-    QGstElement sink;
-    QGstPad videoSrcPad;
-
-    bool passImage = false;
-    bool cameraActive = false;
 };
+
+Q_DECLARE_TYPEINFO(AVFImageCapture::CaptureRequest, Q_PRIMITIVE_TYPE);
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERCAPTURECORNTROL_H
+#endif

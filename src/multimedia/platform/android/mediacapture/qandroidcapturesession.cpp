@@ -75,20 +75,10 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
 
     if (cameraSession) {
         connect(cameraSession, SIGNAL(opened()), this, SLOT(onCameraOpened()));
-        connect(cameraSession, &QAndroidCameraSession::statusChanged, this,
-            [this](QCamera::Status status) {
-                if (status == QCamera::UnavailableStatus) {
-                    setState(QMediaRecorder::StoppedState);
-                    setStatus(QMediaRecorder::UnavailableStatus);
-                    return;
-                }
-
-                // Stop recording when stopping the camera.
-                if (status == QCamera::StoppingStatus) {
-                    setState(QMediaRecorder::StoppedState);
-                    setStatus(QMediaRecorder::StoppedStatus);
-                    return;
-                }
+        connect(cameraSession, &QAndroidCameraSession::activeChanged, this,
+            [this](bool isActive) {
+                if (!isActive)
+                    stop();
             });
         connect(cameraSession, &QAndroidCameraSession::readyForCaptureChanged, this,
             [this](bool ready) {
@@ -134,56 +124,12 @@ void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
         m_audioSource = AndroidMediaRecorder::DefaultAudioSource;
 }
 
-QUrl QAndroidCaptureSession::outputLocation() const
-{
-    return m_actualOutputLocation;
-}
-
-bool QAndroidCaptureSession::setOutputLocation(const QUrl &location)
-{
-    if (m_requestedOutputLocation == location)
-        return false;
-
-    m_actualOutputLocation = QUrl();
-    m_requestedOutputLocation = location;
-
-    if (m_requestedOutputLocation.isEmpty())
-        return true;
-
-    if (m_requestedOutputLocation.isValid()
-            && (m_requestedOutputLocation.isLocalFile() || m_requestedOutputLocation.isRelative())) {
-        return true;
-    }
-
-    m_requestedOutputLocation = QUrl();
-    return false;
-}
-
 QMediaRecorder::RecorderState QAndroidCaptureSession::state() const
 {
     return m_state;
 }
 
-void QAndroidCaptureSession::setState(QMediaRecorder::RecorderState state)
-{
-    if (m_state == state)
-        return;
-
-    switch (state) {
-    case QMediaRecorder::StoppedState:
-        stop();
-        break;
-    case QMediaRecorder::RecordingState:
-        start();
-        break;
-    case QMediaRecorder::PausedState:
-        // Not supported by Android API
-        qWarning("QMediaRecorder::PausedState is not supported on Android");
-        break;
-    }
-}
-
-void QAndroidCaptureSession::start()
+void QAndroidCaptureSession::start(const QUrl &outputLocation)
 {
     if (m_state == QMediaRecorder::RecordingState || m_status != QMediaRecorder::StoppedStatus)
         return;
@@ -193,6 +139,7 @@ void QAndroidCaptureSession::start()
     if (m_mediaRecorder) {
         m_mediaRecorder->release();
         delete m_mediaRecorder;
+        m_mediaRecorder = nullptr;
     }
 
     const bool granted = m_cameraSession
@@ -242,8 +189,8 @@ void QAndroidCaptureSession::start()
 
     // Set output file
     QString filePath = m_mediaStorageLocation.generateFileName(
-                m_requestedOutputLocation.isLocalFile() ? m_requestedOutputLocation.toLocalFile()
-                                                        : m_requestedOutputLocation.toString(),
+                outputLocation.isLocalFile() ? outputLocation.toLocalFile()
+                                             : outputLocation.toString(),
                 m_cameraSession ? QMediaStorageLocation::Movies
                                 : QMediaStorageLocation::Sounds,
                 m_cameraSession ? QLatin1String("VID_")
@@ -313,7 +260,7 @@ void QAndroidCaptureSession::stop(bool error)
     delete m_mediaRecorder;
     m_mediaRecorder = 0;
 
-    if (m_cameraSession && m_cameraSession->status() == QCamera::ActiveStatus) {
+    if (m_cameraSession && m_cameraSession->isActive()) {
         // Viewport needs to be restarted after recording
         restartViewfinder();
     }
@@ -328,8 +275,7 @@ void QAndroidCaptureSession::stop(bool error)
         if (mediaPath.startsWith(standardLoc))
             AndroidMultimediaUtils::registerMediaFile(mediaPath);
 
-        m_actualOutputLocation = m_usedOutputLocation;
-        emit actualLocationChanged(m_actualOutputLocation);
+        emit actualLocationChanged(m_usedOutputLocation);
     }
 
     m_state = QMediaRecorder::StoppedState;
@@ -545,11 +491,11 @@ void QAndroidCaptureSession::onInfo(int what, int extra)
     Q_UNUSED(extra);
     if (what == 800) {
         // MEDIA_RECORDER_INFO_MAX_DURATION_REACHED
-        setState(QMediaRecorder::StoppedState);
+        stop();
         emit error(QMediaRecorder::OutOfSpaceError, QLatin1String("Maximum duration reached."));
     } else if (what == 801) {
         // MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED
-        setState(QMediaRecorder::StoppedState);
+        stop();
         emit error(QMediaRecorder::OutOfSpaceError, QLatin1String("Maximum file size reached."));
     }
 }

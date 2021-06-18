@@ -52,7 +52,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
-#include <qcameraimagecapture.h>
+#include <qimagecapture.h>
 #include <qmediaformat.h>
 
 QT_BEGIN_NAMESPACE
@@ -77,7 +77,7 @@ public:
     QList<CodecMap> encoders;
     QList<CodecMap> decoders;
 
-    QList<QCameraImageCapture::FileFormat> imageFormats;
+    QList<QImageCapture::FileFormat> imageFormats;
 };
 
 QT_END_NAMESPACE

@@ -53,11 +53,11 @@
 //
 
 #include <qcamera.h>
-#include <QCameraImageCapture>
+#include <QImageCapture>
 #include <QSet>
 #include <QMutex>
 #include <private/qmediastoragelocation_p.h>
-#include <private/qplatformcameraimagecapture_p.h>
+#include <private/qplatformimagecapture_p.h>
 #include "androidcamera_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -80,8 +80,6 @@ public:
 
     bool isActive() const { return m_active; }
     void setActive(bool active);
-
-    QCamera::Status status() const { return m_status; }
 
     void applyResolution(const QSize &captureSize = QSize(), bool restartPreview = true);
 
@@ -113,7 +111,6 @@ public:
     void setVideoSink(QVideoSink *surface);
 
 Q_SIGNALS:
-    void statusChanged(QCamera::Status status);
     void activeChanged(bool);
     void error(int error, const QString &errorString);
     void opened();
@@ -170,7 +167,6 @@ private:
 
     bool m_active = false;
     int m_savedState = -1;
-    QCamera::Status m_status;
     bool m_previewStarted;
 
     QAndroidCameraVideoRendererControl *m_renderer = nullptr;

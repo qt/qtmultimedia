@@ -53,11 +53,11 @@
 
 #include <QComboBox>
 #include <QDebug>
-#include <QCameraImageCapture>
+#include <QImageCapture>
 #include <QCamera>
 #include <QMediaCaptureSession>
 
-ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent) :
+ImageSettings::ImageSettings(QImageCapture *imageCapture, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ImageSettingsUi),
     imagecapture(imageCapture)
@@ -66,13 +66,13 @@ ImageSettings::ImageSettings(QCameraImageCapture *imageCapture, QWidget *parent)
 
     //image codecs
     ui->imageCodecBox->addItem(tr("Default image format"), QVariant(QString()));
-    const auto supportedImageFormats = QCameraImageCapture::supportedFormats();
+    const auto supportedImageFormats = QImageCapture::supportedFormats();
     for (const auto &f : supportedImageFormats) {
-        QString description = QCameraImageCapture::fileFormatDescription(f);
-        ui->imageCodecBox->addItem(QCameraImageCapture::fileFormatName(f) + ": " + description, QVariant::fromValue(f));
+        QString description = QImageCapture::fileFormatDescription(f);
+        ui->imageCodecBox->addItem(QImageCapture::fileFormatName(f) + ": " + description, QVariant::fromValue(f));
     }
 
-    ui->imageQualitySlider->setRange(0, int(QCameraImageCapture::VeryHighQuality));
+    ui->imageQualitySlider->setRange(0, int(QImageCapture::VeryHighQuality));
 
     ui->imageResolutionBox->addItem(tr("Default Resolution"));
     const QList<QSize> supportedResolutions = imagecapture->captureSession()->camera()->cameraDevice().photoResolutions();
@@ -105,8 +105,8 @@ void ImageSettings::changeEvent(QEvent *e)
 
 void ImageSettings::applyImageSettings() const
 {
-    imagecapture->setFileFormat(boxValue(ui->imageCodecBox).value<QCameraImageCapture::FileFormat>());
-    imagecapture->setQuality(QCameraImageCapture::Quality(ui->imageQualitySlider->value()));
+    imagecapture->setFileFormat(boxValue(ui->imageCodecBox).value<QImageCapture::FileFormat>());
+    imagecapture->setQuality(QImageCapture::Quality(ui->imageQualitySlider->value()));
     imagecapture->setResolution(boxValue(ui->imageResolutionBox).toSize());
 }
 

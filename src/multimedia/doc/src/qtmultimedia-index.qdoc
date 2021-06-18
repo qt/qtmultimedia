@@ -117,7 +117,7 @@
      \li QCamera
      \li Access camera viewfinder.
     \row
-     \li QCameraImageCapture
+     \li QImageCapture
      \li Capture still images with a camera.
     \row
      \li QMediaRecorder

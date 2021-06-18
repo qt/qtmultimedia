@@ -163,21 +163,17 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
                                 .arg(states[pending]) << "internal" << m_state;
 #endif
 
-                    QAudioDecoder::State prevState = m_state;
-
+                    bool isDecoding = false;
                     switch (newState) {
                     case GST_STATE_VOID_PENDING:
                     case GST_STATE_NULL:
-                        m_state = QAudioDecoder::StoppedState;
-                        break;
                     case GST_STATE_READY:
-                        m_state = QAudioDecoder::StoppedState;
                         break;
                     case GST_STATE_PLAYING:
-                        m_state = QAudioDecoder::DecodingState;
+                        isDecoding = true;
                         break;
                     case GST_STATE_PAUSED:
-                        m_state = QAudioDecoder::DecodingState;
+                        isDecoding = true;
 
                         //gstreamer doesn't give a reliable indication the duration
                         //information is ready, GST_MESSAGE_DURATION is not sent by most elements
@@ -187,15 +183,12 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
                         break;
                     }
 
-                    if (prevState != m_state)
-                        emit stateChanged(m_state);
+                    setIsDecoding(isDecoding);
                 }
                 break;
 
             case GST_MESSAGE_EOS:
-                m_pendingState = m_state = QAudioDecoder::StoppedState;
-                emit finished();
-                emit stateChanged(m_state);
+                finished();
                 break;
 
             case GST_MESSAGE_ERROR: {
@@ -338,24 +331,15 @@ void QGstreamerAudioDecoder::start()
 
     // Set audio format
     if (m_appSink) {
-        if (mFormat.isValid()) {
-            setAudioFlags(false);
-            QGstMutableCaps caps = QGstUtils::capsForAudioFormat(mFormat);
-            gst_app_sink_set_caps(m_appSink, caps.get());
-        } else {
-            // We want whatever the native audio format is
-            setAudioFlags(true);
-            gst_app_sink_set_caps(m_appSink, nullptr);
-        }
+        // We want whatever the native audio format is
+        setAudioFlags(true);
+        gst_app_sink_set_caps(m_appSink, nullptr);
     }
 
-    m_pendingState = QAudioDecoder::DecodingState;
     if (m_playbin.setState(GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
         qWarning() << "GStreamer; Unable to start decoding process";
         m_playbin.dumpGraph("failed");
-        m_pendingState = m_state = QAudioDecoder::StoppedState;
-
-        emit stateChanged(m_state);
+        return;
     }
 }
 
@@ -366,9 +350,6 @@ void QGstreamerAudioDecoder::stop()
 
     m_playbin.setState(GST_STATE_NULL);
     removeAppSink();
-
-    QAudioDecoder::State oldState = m_state;
-    m_pendingState = m_state = QAudioDecoder::StoppedState;
 
     // GStreamer thread is stopped. Can safely access m_buffersAvailable
     if (m_buffersAvailable != 0) {
@@ -386,21 +367,7 @@ void QGstreamerAudioDecoder::stop()
         emit durationChanged(m_duration);
     }
 
-    if (oldState != m_state)
-        emit stateChanged(m_state);
-}
-
-QAudioFormat QGstreamerAudioDecoder::audioFormat() const
-{
-    return mFormat;
-}
-
-void QGstreamerAudioDecoder::setAudioFormat(const QAudioFormat &format)
-{
-    if (mFormat != format) {
-        mFormat = format;
-        emit formatChanged(mFormat);
-    }
+    setIsDecoding(false);
 }
 
 QAudioBuffer QGstreamerAudioDecoder::read()

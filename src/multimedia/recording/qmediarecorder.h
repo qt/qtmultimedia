@@ -116,7 +116,8 @@ public:
         NoError,
         ResourceError,
         FormatError,
-        OutOfSpaceError
+        OutOfSpaceError,
+        LocationNotWritable
     };
     Q_ENUM(Error)
 
@@ -126,7 +127,7 @@ public:
     bool isAvailable() const;
 
     QUrl outputLocation() const;
-    bool setOutputLocation(const QUrl &location);
+    void setOutputLocation(const QUrl &location);
 
     QUrl actualLocation() const;
 

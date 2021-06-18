@@ -60,7 +60,7 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerCamera;
-class QGstreamerCameraImageCapture;
+class QGstreamerImageCapture;
 class QGstreamerMediaEncoder;
 class QGstreamerAudioInput;
 class QGstreamerAudioOutput;
@@ -77,8 +77,8 @@ public:
     QPlatformCamera *camera() override;
     void setCamera(QPlatformCamera *camera) override;
 
-    QPlatformCameraImageCapture *imageCapture() override;
-    void setImageCapture(QPlatformCameraImageCapture *imageCapture) override;
+    QPlatformImageCapture *imageCapture() override;
+    void setImageCapture(QPlatformImageCapture *imageCapture) override;
 
     QPlatformMediaEncoder *mediaEncoder() override;
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
@@ -113,7 +113,7 @@ private:
     QGstreamerVideoOutput *gstVideoOutput = nullptr;
 
     QGstreamerMediaEncoder *m_mediaEncoder = nullptr;
-    QGstreamerCameraImageCapture *m_imageCapture = nullptr;
+    QGstreamerImageCapture *m_imageCapture = nullptr;
 };
 
 QT_END_NAMESPACE

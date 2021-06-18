@@ -52,18 +52,11 @@ class Q_MULTIMEDIA_EXPORT QAudioDecoder : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(bool isDecoding READ isDecoding NOTIFY isDecodingChanged)
     Q_PROPERTY(QString error READ errorString)
     Q_PROPERTY(bool bufferAvailable READ bufferAvailable NOTIFY bufferAvailableChanged)
 
 public:
-    enum State
-    {
-        StoppedState,
-        DecodingState
-    };
-    Q_ENUM(State)
-
     enum Error
     {
         NoError,
@@ -77,17 +70,14 @@ public:
     explicit QAudioDecoder(QObject *parent = nullptr);
     ~QAudioDecoder();
 
-    bool isAvailable() const;
-    State state() const;
+    bool isSupported() const;
+    bool isDecoding() const;
 
     QUrl source() const;
     void setSource(const QUrl &fileName);
 
     QIODevice* sourceDevice() const;
     void setSourceDevice(QIODevice *device);
-
-    QAudioFormat audioFormat() const;
-    void setAudioFormat(const QAudioFormat &format);
 
     Error error() const;
     QString errorString() const;
@@ -106,9 +96,7 @@ Q_SIGNALS:
     void bufferAvailableChanged(bool);
     void bufferReady();
     void finished();
-
-    void stateChanged(QAudioDecoder::State newState);
-    void formatChanged(const QAudioFormat &format);
+    void isDecodingChanged(bool);
 
     void error(QAudioDecoder::Error error);
 
@@ -124,7 +112,6 @@ private:
 
 QT_END_NAMESPACE
 
-Q_MEDIA_ENUM_DEBUG(QAudioDecoder, State)
 Q_MEDIA_ENUM_DEBUG(QAudioDecoder, Error)
 
 #endif  // QAUDIODECODER_H

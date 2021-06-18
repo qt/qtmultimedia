@@ -60,11 +60,11 @@ public:
         mockCameraControl = control;
     }
 
-    void setImageCapture(QPlatformCameraImageCapture *imageCapture) override
+    void setImageCapture(QPlatformImageCapture *imageCapture) override
     {
         mockImageCapture = imageCapture;
     }
-    QPlatformCameraImageCapture *imageCapture() override { return hasControls ? mockImageCapture : nullptr; }
+    QPlatformImageCapture *imageCapture() override { return hasControls ? mockImageCapture : nullptr; }
 
     QPlatformMediaEncoder *mediaEncoder() override { return hasControls ? mockControl : nullptr; }
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override
@@ -88,7 +88,7 @@ public:
     }
 
     QMockCamera *mockCameraControl = nullptr;
-    QPlatformCameraImageCapture *mockImageCapture = nullptr;
+    QPlatformImageCapture *mockImageCapture = nullptr;
     QMockMediaEncoder *mockControl = nullptr;
     QPlatformAudioInput *m_audioInput = nullptr;
     bool hasControls;

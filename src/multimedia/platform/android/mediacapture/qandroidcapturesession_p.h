@@ -77,13 +77,11 @@ public:
 
     void setAudioInput(QPlatformAudioInput *input);
 
-    QUrl outputLocation() const;
-    bool setOutputLocation(const QUrl &location);
-
     QMediaRecorder::RecorderState state() const;
-    void setState(QMediaRecorder::RecorderState state);
-
     QMediaRecorder::Status status() const;
+
+    void start(const QUrl &outputLocation);
+    void stop(bool error = false);
 
     qint64 duration() const;
 
@@ -160,8 +158,6 @@ private:
 
     CaptureProfile getProfile(int id);
 
-    void start();
-    void stop(bool error = false);
 
     void setStatus(QMediaRecorder::Status status);
 
@@ -183,9 +179,7 @@ private:
 
     QMediaRecorder::RecorderState m_state;
     QMediaRecorder::Status m_status;
-    QUrl m_requestedOutputLocation;
     QUrl m_usedOutputLocation;
-    QUrl m_actualOutputLocation;
 
     CaptureProfile m_defaultSettings;
 

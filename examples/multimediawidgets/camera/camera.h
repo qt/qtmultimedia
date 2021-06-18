@@ -52,7 +52,7 @@
 #define CAMERA_H
 
 #include <QCamera>
-#include <QCameraImageCapture>
+#include <QImageCapture>
 #include <QMediaRecorder>
 #include <QScopedPointer>
 #include <QMediaMetaData>
@@ -91,7 +91,7 @@ private slots:
     void setMuted(bool);
 
     void takeImage();
-    void displayCaptureError(int, QCameraImageCapture::Error, const QString &errorString);
+    void displayCaptureError(int, QImageCapture::Error, const QString &errorString);
 
     void configureCaptureSettings();
     void configureVideoSettings();
@@ -135,7 +135,7 @@ private:
     QMediaCaptureSession m_captureSession;
     QScopedPointer<QCamera> m_camera;
     QScopedPointer<QAudioInput> m_audioInput;
-    QCameraImageCapture *m_imageCapture;
+    QImageCapture *m_imageCapture;
     QScopedPointer<QMediaRecorder> m_mediaEncoder;
 
     bool m_isCapturingImage = false;

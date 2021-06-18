@@ -11,13 +11,13 @@ set(java_sources
     src/org/qtproject/qt/android/multimedia/QtSurfaceTextureListener.java
 )
 
-qt_internal_add_jar(QtAndroidMultimedia
+qt_internal_add_jar(Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia
     INCLUDE_JARS ${QT_ANDROID_JAR}
     SOURCES ${java_sources}
     OUTPUT_DIR "${QT_BUILD_DIR}/jar"
 )
 
-install_jar(QtAndroidMultimedia
+install_jar(Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia
     DESTINATION jar
     COMPONENT Devel
 )

@@ -55,7 +55,7 @@
 
 QT_BEGIN_NAMESPACE
 class QPlatformCamera;
-class QPlatformCameraImageCapture;
+class QPlatformImageCapture;
 class QPlatformMediaEncoder;
 class QAudioDevice;
 class QCameraDevice;
@@ -73,8 +73,8 @@ public:
     virtual QPlatformCamera *camera() = 0;
     virtual void setCamera(QPlatformCamera *) {}
 
-    virtual QPlatformCameraImageCapture *imageCapture() = 0;
-    virtual void setImageCapture(QPlatformCameraImageCapture *) {}
+    virtual QPlatformImageCapture *imageCapture() = 0;
+    virtual void setImageCapture(QPlatformImageCapture *) {}
 
     virtual QPlatformMediaEncoder *mediaEncoder() = 0;
     virtual void setMediaEncoder(QPlatformMediaEncoder *) {}

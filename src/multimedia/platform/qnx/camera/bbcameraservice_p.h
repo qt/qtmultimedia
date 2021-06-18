@@ -76,7 +76,7 @@ public:
     ~BbCameraService();
 
     QPlatformCamera *camera() override;
-    QPlatformCameraImageCapture *imageCapture() override;
+    QPlatformImageCapture *imageCapture() override;
     QPlatformMediaEncoder *mediaEncoder() override;
 
     void setVideoPreview(QVideoSink *surface) override;

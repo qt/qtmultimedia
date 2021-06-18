@@ -47,7 +47,7 @@
 #include "qplatformmediaplayer_p.h"
 #include "qmediaplayer.h"
 #include "qvideowidget.h"
-#include "qcameraimagecapture.h"
+#include "qimagecapture.h"
 #include "qcamera.h"
 #include "qcameraviewfinder.h"
 #include "qaudiorecorder.h"
@@ -73,7 +73,7 @@ private:
     QMediaRecorder *recorder;
     QCamera *camera;
     QCameraViewfinder *viewfinder;
-    QCameraImageCapture *imageCapture;
+    QImageCapture *imageCapture;
     QString fileName;
 
     QMediaContent image1;
@@ -100,7 +100,7 @@ void MediaExample::recorderSettings()
 void MediaExample::imageSettings()
 {
     //! [Image encoder settings]
-    imageCapture->setFileFormat(QCameraImageCapture::JPEG);
+    imageCapture->setFileFormat(QImageCapture::JPEG);
     imageCapture->setResolution(1600, 1200);
     //! [Image encoder settings]
 }

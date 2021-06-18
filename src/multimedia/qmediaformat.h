@@ -115,6 +115,7 @@ public:
         Encode,
         Decode
     };
+    Q_ENUM(ConversionMode)
 
     enum ResolveFlags
     {
@@ -146,13 +147,13 @@ public:
     void setAudioCodec(AudioCodec codec) { audio = codec; }
     AudioCodec audioCodec() const { return audio; }
 
-    bool isSupported(ConversionMode mode) const;
+    Q_INVOKABLE bool isSupported(ConversionMode mode) const;
 
     QMimeType mimeType() const;
 
-    QList<QMediaFormat::FileFormat> supportedFileFormats(ConversionMode m);
-    QList<QMediaFormat::VideoCodec> supportedVideoCodecs(ConversionMode m);
-    QList<QMediaFormat::AudioCodec> supportedAudioCodecs(ConversionMode m);
+    Q_INVOKABLE QList<QMediaFormat::FileFormat> supportedFileFormats(ConversionMode m);
+    Q_INVOKABLE QList<QMediaFormat::VideoCodec> supportedVideoCodecs(ConversionMode m);
+    Q_INVOKABLE QList<QMediaFormat::AudioCodec> supportedAudioCodecs(ConversionMode m);
 
     static QString fileFormatName(QMediaFormat::FileFormat c);
     static QString audioCodecName(QMediaFormat::AudioCodec c);

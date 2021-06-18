@@ -77,13 +77,13 @@ public:
     constexpr SampleFormat sampleFormat() const noexcept { return m_sampleFormat; }
 
     // Helper functions
-    Q_MULTIMEDIA_EXPORT qint32 bytesForDuration(qint64 duration) const;
+    Q_MULTIMEDIA_EXPORT qint32 bytesForDuration(qint64 microseconds) const;
     Q_MULTIMEDIA_EXPORT qint64 durationForBytes(qint32 byteCount) const;
 
     Q_MULTIMEDIA_EXPORT qint32 bytesForFrames(qint32 frameCount) const;
     Q_MULTIMEDIA_EXPORT qint32 framesForBytes(qint32 byteCount) const;
 
-    Q_MULTIMEDIA_EXPORT qint32 framesForDuration(qint64 duration) const;
+    Q_MULTIMEDIA_EXPORT qint32 framesForDuration(qint64 microseconds) const;
     Q_MULTIMEDIA_EXPORT qint64 durationForFrames(qint32 frameCount) const;
 
     constexpr int bytesPerFrame() const { return bytesPerSample()*channelCount(); }

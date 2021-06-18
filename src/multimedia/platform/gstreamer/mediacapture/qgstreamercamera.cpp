@@ -40,7 +40,7 @@
 #include <qcameradevice.h>
 
 #include "qgstreamercamera_p.h"
-#include "qgstreamercameraimagecapture_p.h"
+#include "qgstreamerimagecapture_p.h"
 #include <private/qgstreamermediadevices_p.h>
 #include <private/qgstreamerintegration_p.h>
 #include <qmediacapturesession.h>
@@ -90,7 +90,6 @@ void QGstreamerCamera::setActive(bool active)
 
     m_active = active;
 
-    statusChanged(m_active ? QCamera::ActiveStatus : QCamera::InactiveStatus);
     emit activeChanged(active);
 }
 
