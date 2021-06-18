@@ -54,18 +54,18 @@
 #include <QtMultimedia/QMediaMetaData>
 #include <QtCore/qvariant.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVAssetTrack);
+#import <AVFoundation/AVFoundation.h>
 
 QT_BEGIN_NAMESPACE
 
 class AVFMediaPlayer;
 
-class AVFMetaData : public QMediaMetaData
+class AVFMetaData
 {
 public:
     static QMediaMetaData fromAsset(AVAsset *asset);
     static QMediaMetaData fromAssetTrack(AVAssetTrack *asset);
+    static NSMutableArray<AVMetadataItem *> *toAVMetadataForFormat(QMediaMetaData metaData, AVFileType format);
 };
 
 QT_END_NAMESPACE
