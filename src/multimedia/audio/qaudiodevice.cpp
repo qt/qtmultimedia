@@ -276,7 +276,7 @@ QAudioDevice::QAudioDevice(QAudioDevicePrivate *p)
 */
 QAudioDevice::Mode QAudioDevice::mode() const
 {
-    return d->mode;
+    return d ? d->mode : Null;
 }
 
 #ifndef QT_NO_DEBUG_STREAM
@@ -290,6 +290,9 @@ QDebug operator<<(QDebug dbg, QAudioDevice::Mode mode)
         break;
     case QAudioDevice::Output:
         dbg << "QAudioDevice::Output";
+        break;
+    case QAudioDevice::Null:
+        dbg << "QAudioDevice::Null";
         break;
     }
     return dbg;

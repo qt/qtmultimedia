@@ -66,6 +66,7 @@ class Q_MULTIMEDIA_EXPORT QAudioDevice
     Q_PROPERTY(Mode mode READ mode CONSTANT)
 public:
     enum Mode {
+        Null,
         Input,
         Output
     };

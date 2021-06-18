@@ -47,7 +47,7 @@ static struct {
     const char *name;
     QMediaFormat::FileFormat value;
 } mediaContainerMap[] = {
-    { "video/x-ms-asf", QMediaFormat::ASF },
+    { "video/x-ms-asf", QMediaFormat::WMV },
     { "video/avi", QMediaFormat::AVI },
     { "video/x-matroska", QMediaFormat::Matroska },
     { "video/mp4", QMediaFormat::MPEG4 },

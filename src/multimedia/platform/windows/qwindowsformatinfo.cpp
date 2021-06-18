@@ -62,7 +62,13 @@ QWindowsFormatInfo::QWindowsFormatInfo()
           {} },
         { QMediaFormat::Mpeg4Audio,
           { QMediaFormat::AudioCodec::AAC },
-          {} }
+          {} },
+        { QMediaFormat::WMA,
+          { QMediaFormat::AudioCodec::WMA },
+          {} },
+        { QMediaFormat::WMV,
+          { QMediaFormat::AudioCodec::WMA },
+          { QMediaFormat::VideoCodec::WMV } }
     };
 
     encoders = {
@@ -77,7 +83,13 @@ QWindowsFormatInfo::QWindowsFormatInfo()
           {} },
         { QMediaFormat::Mpeg4Audio,
           { QMediaFormat::AudioCodec::AAC },
-          {} }
+          {} },
+        { QMediaFormat::WMA,
+          { QMediaFormat::AudioCodec::WMA },
+          {} },
+        { QMediaFormat::WMV,
+          { QMediaFormat::AudioCodec::WMA },
+          { QMediaFormat::VideoCodec::WMV } }
     };
 
     // ####

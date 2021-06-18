@@ -62,19 +62,19 @@ public:
     enum FileFormat {
         UnspecifiedFormat = -1,
         // Video Formats
-        ASF,
+        WMV,
         AVI,
         Matroska,
         MPEG4,
         Ogg,
         QuickTime,
         WebM,
-        // Audio Formats
-        AAC,
-        FLAC,
-        MP3,
+        // Audio Only Formats
         Mpeg4Audio,
-        ALAC,
+        AAC,
+        WMA,
+        MP3,
+        FLAC,
         Wave,
         LastFileFormat = Wave
     };
@@ -91,6 +91,7 @@ public:
         Opus,
         Vorbis,
         Wave,
+        WMA,
         ALAC,
         LastAudioCodec = ALAC
     };
@@ -107,6 +108,7 @@ public:
         VP9,
         AV1,
         Theora,
+        WMV,
         MotionJPEG,
         LastVideoCodec = MotionJPEG
     };
