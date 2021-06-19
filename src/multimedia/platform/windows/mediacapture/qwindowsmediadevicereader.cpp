@@ -614,10 +614,21 @@ void QWindowsMediaDeviceReader::stopRecording()
     m_finalizeSemaphore.acquire();
     QMutexLocker locker(&m_mutex);
 
-    if (m_sinkWriter && m_recording)
-        m_sinkWriter->Finalize();
-    else
+    if (m_sinkWriter && m_recording) {
+
+        HRESULT hr = m_sinkWriter->Finalize();
+
+        if (!SUCCEEDED(hr)) {
+            m_finalizeSemaphore.release();
+            m_sinkWriter->Release();
+            m_sinkWriter = nullptr;
+
+            QMetaObject::invokeMethod(this, "recordingError",
+                                      Qt::QueuedConnection, Q_ARG(int, hr));
+        }
+    } else {
         m_finalizeSemaphore.release();
+    }
 
     m_recording = false;
     m_paused = false;

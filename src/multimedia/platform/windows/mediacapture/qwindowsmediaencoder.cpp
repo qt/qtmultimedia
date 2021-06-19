@@ -194,6 +194,7 @@ void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *sessi
     connect(m_mediaDeviceSession, &QWindowsMediaDeviceSession::recordingStarted, this, &QWindowsMediaEncoder::onRecordingStarted);
     connect(m_mediaDeviceSession, &QWindowsMediaDeviceSession::recordingStopped, this, &QWindowsMediaEncoder::onRecordingStopped);
     connect(m_mediaDeviceSession, &QWindowsMediaDeviceSession::streamingError, this, &QWindowsMediaEncoder::onStreamingError);
+    connect(m_mediaDeviceSession, &QWindowsMediaDeviceSession::recordingError, this, &QWindowsMediaEncoder::onRecordingError);
     connect(m_mediaDeviceSession, &QWindowsMediaDeviceSession::durationChanged, this, &QWindowsMediaEncoder::onDurationChanged);
     connect(m_captureService, &QWindowsMediaCaptureService::cameraChanged, this, &QWindowsMediaEncoder::onCameraChanged);
     onCameraChanged();
@@ -248,6 +249,20 @@ void QWindowsMediaEncoder::onStreamingError(int errorCode)
         m_lastStatus = QMediaRecorder::FinalizingStatus;
         statusChanged(m_lastStatus);
     }
+}
+
+void QWindowsMediaEncoder::onRecordingError(int errorCode)
+{
+    error(QMediaRecorder::ResourceError, tr("Recording error"));
+
+    auto lastState = m_state;
+    auto lastStatus = m_lastStatus;
+    m_state = QMediaRecorder::StoppedState;
+    m_lastStatus = QMediaRecorder::StoppedStatus;
+    if (m_state != lastState)
+        stateChanged(m_state);
+    if (m_lastStatus != lastStatus)
+        statusChanged(m_lastStatus);
 }
 
 void QWindowsMediaEncoder::onCameraChanged()

@@ -57,6 +57,7 @@ QWindowsMediaDeviceSession::QWindowsMediaDeviceSession(QObject *parent)
     connect(m_mediaDeviceReader, SIGNAL(newVideoFrame(QVideoFrame)), this, SLOT(handleNewVideoFrame(QVideoFrame)));
     connect(m_mediaDeviceReader, SIGNAL(recordingStarted()), this, SIGNAL(recordingStarted()));
     connect(m_mediaDeviceReader, SIGNAL(recordingStopped()), this, SIGNAL(recordingStopped()));
+    connect(m_mediaDeviceReader, SIGNAL(recordingError(int)), this, SIGNAL(recordingError(int)));
     connect(m_mediaDeviceReader, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
 }
 

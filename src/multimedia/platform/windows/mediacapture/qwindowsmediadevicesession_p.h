@@ -104,6 +104,7 @@ Q_SIGNALS:
     void recordingStarted();
     void recordingStopped();
     void streamingError(int errorCode);
+    void recordingError(int errorCode);
     void newVideoFrame(const QVideoFrame &frame);
 
 private Q_SLOTS:

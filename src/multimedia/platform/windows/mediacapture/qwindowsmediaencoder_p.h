@@ -92,6 +92,7 @@ private Q_SLOTS:
     void onRecordingStopped();
     void onDurationChanged(qint64 duration);
     void onStreamingError(int errorCode);
+    void onRecordingError(int errorCode);
 
 private:
     void saveMetadata();
