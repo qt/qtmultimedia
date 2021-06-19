@@ -113,6 +113,7 @@ private Q_SLOTS:
     void handleNewVideoFrame(const QVideoFrame &frame);
 
 private:
+    void reactivate();
     quint32 estimateVideoBitRate(const GUID &videoFormat, quint32 width, quint32 height,
                                 qreal frameRate, QMediaRecorder::Quality quality);
     quint32 estimateAudioBitRate(const GUID &audioFormat, QMediaRecorder::Quality quality);

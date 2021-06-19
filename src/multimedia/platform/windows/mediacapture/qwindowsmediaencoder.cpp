@@ -238,6 +238,8 @@ void QWindowsMediaEncoder::onStreamingError(int errorCode)
 {
     if (errorCode == MF_E_VIDEO_RECORDING_DEVICE_INVALIDATED)
         error(QMediaRecorder::ResourceError, tr("Camera is no longer present"));
+    else if (errorCode == MF_E_AUDIO_RECORDING_DEVICE_INVALIDATED)
+        error(QMediaRecorder::ResourceError, tr("Audio input is no longer present"));
     else
         error(QMediaRecorder::ResourceError, tr("Streaming error"));
 

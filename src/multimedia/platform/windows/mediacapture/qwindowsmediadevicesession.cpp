@@ -77,7 +77,7 @@ bool QWindowsMediaDeviceSession::isActivating() const
 
 void QWindowsMediaDeviceSession::setActive(bool active)
 {
-    if ((m_active == active) || (m_activating && active))
+    if ((active && (m_active || m_activating)) || (!active && !m_active && !m_activating))
         return;
 
     if (active) {
@@ -98,9 +98,20 @@ void QWindowsMediaDeviceSession::setActive(bool active)
     }
 }
 
+void QWindowsMediaDeviceSession::reactivate()
+{
+    if (m_active || m_activating) {
+        pauseRecording();
+        setActive(false);
+        setActive(true);
+        resumeRecording();
+    }
+}
+
 void QWindowsMediaDeviceSession::setActiveCamera(const QCameraDevice &camera)
 {
     m_activeCameraDevice = camera;
+    reactivate();
 }
 
 QCameraDevice QWindowsMediaDeviceSession::activeCamera() const
@@ -169,8 +180,7 @@ void QWindowsMediaDeviceSession::setAudioInputVolume(float volume)
 
 void QWindowsMediaDeviceSession::audioInputDeviceChanged()
 {
-    // ### FIXME: get the new input device from m_audioInput and adjust
-    // the pipeline
+    reactivate();
 }
 
 void QWindowsMediaDeviceSession::setAudioInput(QAudioInput *input)
