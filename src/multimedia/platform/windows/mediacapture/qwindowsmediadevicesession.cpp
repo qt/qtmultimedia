@@ -295,8 +295,9 @@ quint32 QWindowsMediaDeviceSession::estimateAudioBitRate(const GUID &audioFormat
             return 160000;
         case QMediaRecorder::Quality::VeryHighQuality:
             return 192000;
+        default:
+            return 128000;
         }
-        return 128000;
     } else if (audioFormat == MFAudioFormat_MP3) {
         // Bitrates supported by the MP3 encoder are
         // 32K, 40K, 48K, 56K, 64K, 80K, 96K, 112K, 128K, 160K, 192K, 224K, 256K, 320K.
@@ -311,8 +312,41 @@ quint32 QWindowsMediaDeviceSession::estimateAudioBitRate(const GUID &audioFormat
             return 224000;
         case QMediaRecorder::Quality::VeryHighQuality:
             return 320000;
+        default:
+            return 128000;
         }
-        return 128000;
+    } else if (audioFormat == MFAudioFormat_WMAudioV8) {
+        // Bitrates supported by the Windows Media Audio 8 encoder
+        switch (quality) {
+        case QMediaRecorder::Quality::VeryLowQuality:
+            return 32000;
+        case QMediaRecorder::Quality::LowQuality:
+            return 96000;
+        case QMediaRecorder::Quality::NormalQuality:
+            return 192000;
+        case QMediaRecorder::Quality::HighQuality:
+            return 256016;
+        case QMediaRecorder::Quality::VeryHighQuality:
+            return 320032;
+        default:
+            return 192000;
+        }
+    } else if (audioFormat == MFAudioFormat_WMAudioV9) {
+        // Bitrates supported by the Windows Media Audio 9 encoder
+        switch (quality) {
+        case QMediaRecorder::Quality::VeryLowQuality:
+            return 32000;
+        case QMediaRecorder::Quality::LowQuality:
+            return 96000;
+        case QMediaRecorder::Quality::NormalQuality:
+            return 192000;
+        case QMediaRecorder::Quality::HighQuality:
+            return 256016;
+        case QMediaRecorder::Quality::VeryHighQuality:
+            return 384000;
+        default:
+            return 192000;
+        }
     }
     return 0;  // Use default for format
 }
