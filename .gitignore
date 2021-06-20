@@ -50,3 +50,8 @@ tests/auto/cmake/build
 
 # Generated static plugin import sources
 *_plugin_import.cpp
+
+# Build artifacts
+CMakeLists.txt.user
+build-*-Debug
+build-*-Release
