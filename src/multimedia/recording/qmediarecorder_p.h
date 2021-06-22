@@ -74,6 +74,8 @@ public:
 
     void applySettingsLater();
 
+    static QString msgFailedStartRecording();
+
     QMediaCaptureSession *captureSession = nullptr;
     QPlatformMediaEncoder *control = nullptr;
 

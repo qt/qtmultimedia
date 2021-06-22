@@ -44,6 +44,7 @@
 #include "avfcamera_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcamerarenderer_p.h"
+#include <private/qplatformimagecapture_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 
 #include <QtCore/qurl.h>
@@ -95,14 +96,14 @@ int AVFImageCapture::doCapture(const QString &actualFileName)
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                 Q_ARG(int, m_lastCaptureId),
                                 Q_ARG(int, QImageCapture::ResourceError),
-                                Q_ARG(QString, tr("Image capture not set to capture session")));
+                                Q_ARG(QString, QPlatformImageCapture::msgImageCaptureNotSet()));
         return m_lastCaptureId;
     }
     if (!isReadyForCapture()) {
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                   Q_ARG(int, m_lastCaptureId),
                                   Q_ARG(int, QImageCapture::NotReadyError),
-                                  Q_ARG(QString, tr("Camera not ready")));
+                                  Q_ARG(QString, QPlatformImageCapture::msgCameraNotReady()));
         return m_lastCaptureId;
     }
     m_lastCaptureId++;

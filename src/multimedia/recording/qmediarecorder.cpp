@@ -87,6 +87,11 @@ void QMediaRecorderPrivate::_q_applySettings()
     }
 }
 
+QString QMediaRecorderPrivate::msgFailedStartRecording()
+{
+    return QMediaRecorder::tr("Failed to start recording");
+}
+
 /*!
     Constructs a media encoder which records the media produced by a microphone and camera.
 */

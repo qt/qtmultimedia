@@ -46,6 +46,7 @@
 #include <QtCore/QMimeType>
 #include <Mferror.h>
 #include <shobjidl.h>
+#include <private/qmediarecorder_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -107,7 +108,8 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
         m_mediaDeviceSession->setActive(true);
 
         if (!m_mediaDeviceSession->isActive() && !m_mediaDeviceSession->isActivating()) {
-            error(QMediaRecorder::ResourceError, tr("Failed to start recording"));
+            error(QMediaRecorder::ResourceError,
+                  QMediaRecorderPrivate::msgFailedStartRecording());
             return;
         }
 
@@ -143,7 +145,8 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
                 statusChanged(m_lastStatus);
 
             } else {
-                error(QMediaRecorder::FormatError, tr("Failed to start recording"));
+                error(QMediaRecorder::FormatError,
+                      QMediaRecorderPrivate::msgFailedStartRecording());
             }
         }
     } break;

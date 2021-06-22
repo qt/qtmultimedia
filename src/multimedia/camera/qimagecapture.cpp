@@ -290,7 +290,7 @@ int QImageCapture::captureToFile(const QString &file)
     d->unsetError();
 
     if (!d->control) {
-        d->_q_error(-1, NotSupportedFeatureError, tr("Camera is not ready."));
+        d->_q_error(-1, NotSupportedFeatureError, QPlatformImageCapture::msgCameraNotReady());
         return -1;
     }
 

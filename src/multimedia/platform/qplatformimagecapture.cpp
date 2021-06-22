@@ -54,6 +54,16 @@ QT_BEGIN_NAMESPACE
 
 */
 
+QString QPlatformImageCapture::msgCameraNotReady()
+{
+    return QImageCapture::tr("Camera is not ready.");
+}
+
+QString QPlatformImageCapture::msgImageCaptureNotSet()
+{
+    return QImageCapture::tr("No instance of QImageCapture set on QMediaCaptureSession.");
+}
+
 /*!
     Constructs a new image capture control object with the given \a parent
 */

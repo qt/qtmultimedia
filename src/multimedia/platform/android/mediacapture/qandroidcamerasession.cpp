@@ -51,6 +51,7 @@
 #include <qguiapplication.h>
 #include <qdebug.h>
 #include <qvideoframe.h>
+#include <private/qplatformimagecapture_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qcameradevice_p.h>
 
@@ -508,7 +509,7 @@ int QAndroidCameraSession::capture(const QString &fileName)
 
     if (!isReadyForCapture()) {
         emit imageCaptureError(m_lastImageCaptureId, QImageCapture::NotReadyError,
-                               tr("Camera not ready"));
+                               QPlatformImageCapture::msgCameraNotReady());
         return m_lastImageCaptureId;
     }
 

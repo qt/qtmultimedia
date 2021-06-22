@@ -46,6 +46,7 @@
 #include "qandroidvideooutput_p.h"
 #include "qandroidglobal_p.h"
 #include <private/qplatformaudioinput_p.h>
+#include <private/qmediarecorder_p.h>
 #include <QtCore/qmimetype.h>
 
 #include <algorithm>
@@ -222,7 +223,8 @@ void QAndroidCaptureSession::start(const QUrl &outputLocation)
     }
 
     if (!m_mediaRecorder->start()) {
-        emit error(QMediaRecorder::FormatError, QLatin1String("Unable to start the media recorder."));
+        emit error(QMediaRecorder::FormatError,
+                   QMediaRecorderPrivate::msgFailedStartRecording());
         if (m_cameraSession)
             restartViewfinder();
         return;
