@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qmediametadata.h"
+#include <QtCore/qcoreapplication.h>
 #include <qvariant.h>
 #include <qobject.h>
 #include <qdatetime.h>
@@ -277,61 +278,61 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
 {
     switch (key) {
         case QMediaMetaData::Title:
-            return (QObject::tr("Title"));
+            return (QCoreApplication::translate("QMediaMetaData", "Title"));
         case QMediaMetaData::Author:
-            return (QObject::tr("Author"));
+            return (QCoreApplication::translate("QMediaMetaData", "Author"));
         case QMediaMetaData::Comment:
-            return (QObject::tr("Comment"));
+            return (QCoreApplication::translate("QMediaMetaData", "Comment"));
         case QMediaMetaData::Description:
-            return (QObject::tr("Description"));
+            return (QCoreApplication::translate("QMediaMetaData", "Description"));
         case QMediaMetaData::Genre:
-            return (QObject::tr("Genre"));
+            return (QCoreApplication::translate("QMediaMetaData", "Genre"));
         case QMediaMetaData::Date:
-            return (QObject::tr("Date"));
+            return (QCoreApplication::translate("QMediaMetaData", "Date"));
         case QMediaMetaData::Language:
-            return (QObject::tr("Language"));
+            return (QCoreApplication::translate("QMediaMetaData", "Language"));
         case QMediaMetaData::Publisher:
-            return (QObject::tr("Publisher"));
+            return (QCoreApplication::translate("QMediaMetaData", "Publisher"));
         case QMediaMetaData::Copyright:
-            return (QObject::tr("Copyright"));
+            return (QCoreApplication::translate("QMediaMetaData", "Copyright"));
         case QMediaMetaData::Url:
-            return (QObject::tr("Url"));
+            return (QCoreApplication::translate("QMediaMetaData", "Url"));
         case QMediaMetaData::Duration:
-            return (QObject::tr("Duration"));
+            return (QCoreApplication::translate("QMediaMetaData", "Duration"));
         case QMediaMetaData::MediaType:
-            return (QObject::tr("Media type"));
+            return (QCoreApplication::translate("QMediaMetaData", "Media type"));
         case QMediaMetaData::FileFormat:
-            return (QObject::tr("Container Format"));
+            return (QCoreApplication::translate("QMediaMetaData", "Container Format"));
         case QMediaMetaData::AudioBitRate:
-            return (QObject::tr("Audio bit rate"));
+            return (QCoreApplication::translate("QMediaMetaData", "Audio bit rate"));
         case QMediaMetaData::AudioCodec:
-            return (QObject::tr("Audio codec"));
+            return (QCoreApplication::translate("QMediaMetaData", "Audio codec"));
         case QMediaMetaData::VideoBitRate:
-            return (QObject::tr("Video bit rate"));
+            return (QCoreApplication::translate("QMediaMetaData", "Video bit rate"));
         case QMediaMetaData::VideoCodec:
-            return (QObject::tr("Video codec"));
+            return (QCoreApplication::translate("QMediaMetaData", "Video codec"));
         case QMediaMetaData::VideoFrameRate:
-            return (QObject::tr("Video frame rate"));
+            return (QCoreApplication::translate("QMediaMetaData", "Video frame rate"));
         case QMediaMetaData::AlbumTitle:
-            return (QObject::tr("Album title"));
+            return (QCoreApplication::translate("QMediaMetaData", "Album title"));
         case QMediaMetaData::AlbumArtist:
-            return (QObject::tr("Album artist"));
+            return (QCoreApplication::translate("QMediaMetaData", "Album artist"));
         case QMediaMetaData::ContributingArtist:
-            return (QObject::tr("Contributing artist"));
+            return (QCoreApplication::translate("QMediaMetaData", "Contributing artist"));
         case QMediaMetaData::TrackNumber:
-            return (QObject::tr("Track number"));
+            return (QCoreApplication::translate("QMediaMetaData", "Track number"));
         case QMediaMetaData::Composer:
-            return (QObject::tr("Composer"));
+            return (QCoreApplication::translate("QMediaMetaData", "Composer"));
         case QMediaMetaData::ThumbnailImage:
-            return (QObject::tr("Thumbnail image"));
+            return (QCoreApplication::translate("QMediaMetaData", "Thumbnail image"));
         case QMediaMetaData::CoverArtImage:
-            return (QObject::tr("Cover art image"));
+            return (QCoreApplication::translate("QMediaMetaData", "Cover art image"));
         case QMediaMetaData::Orientation:
-            return (QObject::tr("Orientation"));
+            return (QCoreApplication::translate("QMediaMetaData", "Orientation"));
         case QMediaMetaData::Resolution:
-            return (QObject::tr("Resolution"));
+            return (QCoreApplication::translate("QMediaMetaData", "Resolution"));
         case QMediaMetaData::LeadPerformer:
-            return (QObject::tr("Lead performer"));
+            return (QCoreApplication::translate("QMediaMetaData", "Lead performer"));
     }
     return QString();
 }
