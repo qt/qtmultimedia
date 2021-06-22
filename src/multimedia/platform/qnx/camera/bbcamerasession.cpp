@@ -47,6 +47,8 @@
 #include <QUrl>
 #include <QVideoFrameFormat>
 #include <qmath.h>
+#include <private/qmediarecorder_p.h>
+#include <private/qplatformimagecapture_p.h>
 
 #include <algorithm>
 
@@ -349,7 +351,8 @@ int BbCameraSession::capture(const QString &fileName)
     m_lastImageCaptureId++;
 
     if (!isReadyForCapture()) {
-        emit imageCaptureError(m_lastImageCaptureId, QImageCapture::NotReadyError, tr("Camera not ready"));
+        emit imageCaptureError(m_lastImageCaptureId, QImageCapture::NotReadyError,
+                               QPlatformImageCapture::msgCameraNotReady());
         return m_lastImageCaptureId;
     }
 
@@ -959,7 +962,8 @@ void BbCameraSession::startVideoRecording(const QUrl &outputLocation)
     const camera_error_t result = camera_start_video(m_handle, QFile::encodeName(videoOutputLocation), 0, videoRecordingStatusCallback, this);
     if (result != CAMERA_EOK) {
         m_videoStatus = QMediaRecorder::StoppedStatus;
-        emit videoError(QMediaRecorder::ResourceError, tr("Unable to start video recording"));
+        emit videoError(QMediaRecorder::ResourceError,
+                        QMediaRecorderPrivate::msgFailedStartRecording());
     } else {
         m_videoState = QMediaRecorder::RecordingState;
     }

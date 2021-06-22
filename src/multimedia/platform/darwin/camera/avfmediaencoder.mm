@@ -48,6 +48,7 @@
 
 #include "qaudiodevice.h"
 #include "qmediadevices.h"
+#include "private/qmediarecorder_p.h"
 #include "private/qdarwinformatsinfo_p.h"
 
 #include <QtCore/qmath.h>
@@ -480,7 +481,8 @@ void AVFMediaEncoder::record()
         AVFCamera *cameraControl = m_service->avfCameraControl();
         if (!cameraControl || !cameraControl->isActive()) {
             qDebugCamera() << Q_FUNC_INFO << "can not start record while camera is not active";
-            Q_EMIT error(QMediaRecorder::ResourceError, tr("Failed to start recording"));
+            Q_EMIT error(QMediaRecorder::ResourceError,
+                         QMediaRecorderPrivate::msgFailedStartRecording());
             return;
         }
 
@@ -555,7 +557,8 @@ void AVFMediaEncoder::record()
         [m_writer start];
     } else {
         [session startRunning];
-        Q_EMIT error(QMediaRecorder::FormatError, tr("Failed to start recording"));
+        Q_EMIT error(QMediaRecorder::FormatError,
+                     QMediaRecorderPrivate::msgFailedStartRecording());
     }
 }
 

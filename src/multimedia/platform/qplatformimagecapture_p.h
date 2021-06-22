@@ -104,6 +104,9 @@ public:
 
     QImageCapture *imageCapture() { return m_imageCapture; }
 
+    static QString msgCameraNotReady();
+    static QString msgImageCaptureNotSet();
+
 Q_SIGNALS:
     void readyForCaptureChanged(bool ready);
 

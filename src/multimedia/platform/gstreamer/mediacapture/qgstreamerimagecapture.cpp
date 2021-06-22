@@ -39,6 +39,7 @@
 
 #include "qgstreamerimagecapture_p.h"
 #include "qplatformcamera_p.h"
+#include <private/qplatformimagecapture_p.h>
 #include <private/qgstvideobuffer_p.h>
 #include <private/qgstutils_p.h>
 #include <private/qgstreamermetadata_p.h>
@@ -157,7 +158,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
         QMetaObject::invokeMethod(this, "errorOccurred", Qt::QueuedConnection,
                                   Q_ARG(int, -1),
                                   Q_ARG(int, QImageCapture::ResourceError),
-                                  Q_ARG(QString,tr("Image capture not set to a session.")));
+                                  Q_ARG(QString, QPlatformImageCapture::msgImageCaptureNotSet()));
 
         qCDebug(qLcImageCapture) << "error 1";
         return -1;
@@ -179,7 +180,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
         QMetaObject::invokeMethod(this, "errorOccurred", Qt::QueuedConnection,
                                   Q_ARG(int, -1),
                                   Q_ARG(int, QImageCapture::NotReadyError),
-                                  Q_ARG(QString,tr("Camera is not ready.")));
+                                  Q_ARG(QString, QPlatformImageCapture::msgCameraNotReady()));
 
         qCDebug(qLcImageCapture) << "error 3";
         return -1;
