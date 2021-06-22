@@ -61,7 +61,7 @@ static bool hasRecordingPermission()
     if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return true;
 
-    const QPermission::PermisionType key(QPermission::Microphone);
+    const QPermission::PermissionType key(QPermission::Microphone);
     // Permission already granted?
     if (QCoreApplication::checkPermission(key).result() == QPermission::Authorized)
         return true;

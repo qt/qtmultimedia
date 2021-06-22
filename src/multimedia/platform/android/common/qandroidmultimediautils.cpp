@@ -108,7 +108,7 @@ AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrameForma
     }
 }
 
-static bool androidRequestPermission(QPermission::PermisionType key)
+static bool androidRequestPermission(QPermission::PermissionType key)
 {
     if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return true;
