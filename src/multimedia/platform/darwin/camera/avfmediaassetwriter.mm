@@ -99,6 +99,9 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     AVFScopedPointer<AVAssetWriter> m_assetWriter;
 
+    AVFScopedPointer<AVSampleBufferRenderSynchronizer> m_bufferSynchronizer;
+    AVFScopedPointer<AVSampleBufferAudioRenderer> m_audioRenderer;
+
     AVFMediaEncoder *m_delegate;
 
     bool m_setStartTime;
@@ -342,6 +345,13 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         }
     }
 
+    if (m_audioRenderer && m_bufferSynchronizer) {
+        [m_audioRenderer enqueueSampleBuffer:sampleBuffer];
+        if (m_bufferSynchronizer.data().rate == 0)
+            [m_bufferSynchronizer setRate:1
+             time:CMSampleBufferGetPresentationTimeStamp(sampleBuffer)];
+    }
+
     CFRelease(sampleBuffer);
 }
 
@@ -477,6 +487,26 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 - (qint64)durationInMs
 {
     return m_durationInMs.loadAcquire();
+}
+
+- (void)updateAudioOutput:(NSString *)deviceId
+{
+    if (!m_bufferSynchronizer)
+        m_bufferSynchronizer.reset([[AVSampleBufferRenderSynchronizer alloc] init]);
+    if (!m_audioRenderer)
+        m_audioRenderer.reset([[AVSampleBufferAudioRenderer alloc] init]);
+
+    if (![m_bufferSynchronizer.data().renderers containsObject:m_audioRenderer.data()])
+        [m_bufferSynchronizer addRenderer:m_audioRenderer];
+
+#ifdef Q_OS_MACOS
+    m_audioRenderer.data().audioOutputDeviceUniqueID = deviceId;
+#endif
+
+    if (!deviceId) {
+        m_bufferSynchronizer.data().rate = 0.0;
+        [m_audioRenderer flush];
+    }
 }
 
 @end

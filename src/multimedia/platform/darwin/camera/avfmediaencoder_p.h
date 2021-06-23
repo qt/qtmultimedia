@@ -98,6 +98,7 @@ public:
 
 public Q_SLOTS:
     void setState(QMediaRecorder::RecorderState state) override;
+    void onAudioOutputChanged();
 
 private:
 
