@@ -49,7 +49,9 @@
 #include "avfmediaencoder_p.h"
 #include <qmediadevices.h>
 #include <private/qplatformaudioinput_p.h>
+#include <private/qplatformaudiooutput_p.h>
 #include <qaudioinput.h>
+#include <qaudiooutput.h>
 
 QT_USE_NAMESPACE
 
@@ -120,6 +122,8 @@ void AVFCameraService::setMediaEncoder(QPlatformMediaEncoder *encoder)
     m_encoder = control;
     if (m_encoder)
         m_encoder->setCaptureSession(this);
+
+    audioOutputChanged();
     emit encoderChanged();
 }
 
@@ -139,6 +143,22 @@ void AVFCameraService::setAudioInput(QPlatformAudioInput *input)
     audioInputChanged();
 }
 
+void AVFCameraService::setAudioOutput(QPlatformAudioOutput *output)
+{
+    if (m_audioOutput == output)
+        return;
+    if (m_audioOutput)
+        m_audioOutput->q->disconnect(this);
+
+    m_audioOutput = output;
+
+    if (m_audioOutput) {
+        connect(m_audioOutput->q, &QAudioOutput::destroyed, this, &AVFCameraService::audioOutputDestroyed);
+        connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, &AVFCameraService::audioOutputChanged);
+    }
+    audioOutputChanged();
+}
+
 void AVFCameraService::audioInputChanged()
 {
     m_audioCaptureDevice = nullptr;
@@ -152,6 +172,14 @@ void AVFCameraService::audioInputChanged()
         m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
     }
     m_session->updateAudioInput();
+}
+
+void AVFCameraService::audioOutputChanged()
+{
+    if (!m_audioOutput)
+        return;
+    if (m_encoder)
+        m_encoder->onAudioOutputChanged();
 }
 
 void AVFCameraService::setVideoPreview(QVideoSink *sink)

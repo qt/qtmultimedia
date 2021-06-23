@@ -201,7 +201,7 @@ void AVFCameraSession::setVideoOutput(AVFCameraRenderer *output)
         output->configureAVCaptureSession(this);
 }
 
-void AVFCameraSession::setAudioOutput()
+void AVFCameraSession::addAudioCapture()
 {
     if (m_audioOutput) {
         [m_captureSession removeOutput:m_audioOutput];
@@ -252,7 +252,7 @@ void AVFCameraSession::setActive(bool active)
 
         if (m_service->audioCaptureDevice()) {
             attachAudioInputDevice();
-            setAudioOutput();
+            addAudioCapture();
         }
         if (!m_activeCameraDevice.isNull()) {
             attachVideoInputDevice();

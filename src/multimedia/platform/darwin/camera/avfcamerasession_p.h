@@ -109,7 +109,7 @@ Q_SIGNALS:
 
 private:
     void setVideoOutput(AVFCameraRenderer *output);
-    void setAudioOutput();
+    void addAudioCapture();
     AVCaptureDevice *createVideoCaptureDevice();
     void attachVideoInputDevice();
     void attachAudioInputDevice();

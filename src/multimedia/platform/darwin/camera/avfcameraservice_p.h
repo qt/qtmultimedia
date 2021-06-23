@@ -82,6 +82,7 @@ public:
     void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
 
     void setAudioInput(QPlatformAudioInput *) override;
+    void setAudioOutput(QPlatformAudioOutput *) override;
 
     void setVideoPreview(QVideoSink *sink) override;
 
@@ -91,11 +92,18 @@ public:
     AVFImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
     AVCaptureDevice *audioCaptureDevice() const { return m_audioCaptureDevice; }
 
+    QPlatformAudioOutput *audioOutput() { return m_audioOutput; }
+
 public Q_SLOTS:
     void audioInputDestroyed() { setAudioInput(nullptr); }
     void audioInputChanged();
+    void audioOutputDestroyed() { setAudioOutput(nullptr); }
+    void audioOutputChanged();
+
 private:
     QPlatformAudioInput *m_audioInput = nullptr;
+    QPlatformAudioOutput *m_audioOutput = nullptr;
+
     AVCaptureDevice *m_audioCaptureDevice = nullptr;
 
     AVFCameraSession *m_session = nullptr;
