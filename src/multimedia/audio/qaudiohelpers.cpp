@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -74,7 +74,7 @@ template<class T> void adjustUnsignedSamples(qreal factor, const void *src, void
 
 void qMultiplySamples(qreal factor, const QAudioFormat &format, const void* src, void* dest, int len)
 {
-    int samplesCount = len / (format.bytesPerSample());
+    const int samplesCount = len / qMax(1, format.bytesPerSample());
 
     switch (format.sampleFormat()) {
     case QAudioFormat::Unknown:
