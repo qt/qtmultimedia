@@ -45,38 +45,38 @@ public:
     {
     }
 
-    bool isLocationWritable(const QUrl &) const
+    bool isLocationWritable(const QUrl &) const override
     {
         return true;
     }
 
-    QMediaRecorder::RecorderState state() const
+    QMediaRecorder::RecorderState state() const override
     {
         return m_state;
     }
 
-    qint64 duration() const
+    qint64 duration() const override
     {
         return m_position;
     }
 
-    void applySettings(const QMediaEncoderSettings &settings)
+    void applySettings(const QMediaEncoderSettings &settings) override
     {
         m_settings = settings;
         m_settingAppliedCount++;
     }
 
-    virtual void setMetaData(const QMediaMetaData &m)
+    virtual void setMetaData(const QMediaMetaData &m) override
     {
         m_metaData = m;
         emit metaDataChanged();
     }
-    virtual QMediaMetaData metaData() const { return m_metaData; }
+    virtual QMediaMetaData metaData() const override { return m_metaData; }
 
     using QPlatformMediaEncoder::error;
 
 public:
-    void record(const QMediaEncoderSettings &)
+    void record(const QMediaEncoderSettings &) override
     {
         m_state = QMediaRecorder::RecordingState;
         m_position=1;
@@ -87,19 +87,19 @@ public:
         emit actualLocationChanged(actualLocation);
     }
 
-    void pause()
+    void pause() override
     {
         m_state = QMediaRecorder::PausedState;
         emit stateChanged(m_state);
     }
 
-    void resume()
+    void resume() override
     {
         m_state = QMediaRecorder::RecordingState;
         emit stateChanged(m_state);
     }
 
-    void stop()
+    void stop() override
     {
         m_position=0;
         m_state = QMediaRecorder::StoppedState;

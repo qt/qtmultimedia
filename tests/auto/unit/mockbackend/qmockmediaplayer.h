@@ -58,7 +58,7 @@ public:
     {
     }
 
-    QMediaPlayer::PlaybackState state() const { return _state; }
+    QMediaPlayer::PlaybackState state() const override { return _state; }
     void updateState(QMediaPlayer::PlaybackState state) { setState(state); }
     void updateMediaStatus(QMediaPlayer::MediaStatus status, QMediaPlayer::PlaybackState state)
     {
@@ -68,14 +68,14 @@ public:
         stateChanged(_state);
     }
 
-    qint64 duration() const { return _duration; }
+    qint64 duration() const override { return _duration; }
     void setDuration(qint64 duration) { emit durationChanged(_duration = duration); }
 
-    qint64 position() const { return _position; }
+    qint64 position() const override { return _position; }
 
-    void setPosition(qint64 position) { if (position != _position) emit positionChanged(_position = position); }
+    void setPosition(qint64 position) override { if (position != _position) emit positionChanged(_position = position); }
 
-    float bufferProgress() const { return _bufferProgress; }
+    float bufferProgress() const override { return _bufferProgress; }
     void setBufferStatus(float status)
     {
         if (_bufferProgress == status)
@@ -84,38 +84,38 @@ public:
         bufferProgressChanged(status);
     }
 
-    bool isAudioAvailable() const { return _audioAvailable; }
-    bool isVideoAvailable() const { return _videoAvailable; }
+    bool isAudioAvailable() const override { return _audioAvailable; }
+    bool isVideoAvailable() const override { return _videoAvailable; }
 
-    bool isSeekable() const { return _isSeekable; }
+    bool isSeekable() const override { return _isSeekable; }
     void setSeekable(bool seekable) { emit seekableChanged(_isSeekable = seekable); }
 
-    QMediaTimeRange availablePlaybackRanges() const { return QMediaTimeRange(_seekRange.first, _seekRange.second); }
+    QMediaTimeRange availablePlaybackRanges() const override { return QMediaTimeRange(_seekRange.first, _seekRange.second); }
     void setSeekRange(qint64 minimum, qint64 maximum) { _seekRange = qMakePair(minimum, maximum); }
 
-    qreal playbackRate() const { return _playbackRate; }
-    void setPlaybackRate(qreal rate) { if (rate != _playbackRate) emit playbackRateChanged(_playbackRate = rate); }
+    qreal playbackRate() const override { return _playbackRate; }
+    void setPlaybackRate(qreal rate) override { if (rate != _playbackRate) emit playbackRateChanged(_playbackRate = rate); }
 
-    QUrl media() const { return _media; }
-    void setMedia(const QUrl &content, QIODevice *stream)
+    QUrl media() const override { return _media; }
+    void setMedia(const QUrl &content, QIODevice *stream) override
     {
         _stream = stream;
         _media = content;
         setState(QMediaPlayer::StoppedState);
         mediaStatusChanged(_media.isEmpty() ? QMediaPlayer::NoMedia : QMediaPlayer::LoadingMedia);
     }
-    QIODevice *mediaStream() const { return _stream; }
+    QIODevice *mediaStream() const override { return _stream; }
 
-    bool streamPlaybackSupported() const { return m_supportsStreamPlayback; }
+    bool streamPlaybackSupported() const override { return m_supportsStreamPlayback; }
     void setStreamPlaybackSupported(bool b) { m_supportsStreamPlayback = b; }
 
-    void play() { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PlayingState); }
-    void pause() { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PausedState); }
-    void stop() { if (_state != QMediaPlayer::StoppedState) setState(QMediaPlayer::StoppedState); }
+    void play() override { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PlayingState); }
+    void pause() override { if (_isValid && !_media.isEmpty()) setState(QMediaPlayer::PausedState); }
+    void stop() override { if (_state != QMediaPlayer::StoppedState) setState(QMediaPlayer::StoppedState); }
 
-    void setVideoSink(QVideoSink *) {}
+    void setVideoSink(QVideoSink *) override {}
 
-    void setAudioOutput(QPlatformAudioOutput *output) { m_audioOutput = output; }
+    void setAudioOutput(QPlatformAudioOutput *output) override { m_audioOutput = output; }
 
     void emitError(QMediaPlayer::Error err, const QString &errorString)
     {
