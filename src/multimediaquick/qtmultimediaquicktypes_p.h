@@ -96,7 +96,7 @@ struct QMediaRecorderForeign
 {
     Q_GADGET
     QML_FOREIGN(QMediaRecorder)
-    QML_NAMED_ELEMENT(MediaEncoder)
+    QML_NAMED_ELEMENT(MediaRecorder)
 };
 
 struct QMediaMetaDataForeign
@@ -104,6 +104,13 @@ struct QMediaMetaDataForeign
     Q_GADGET
     QML_FOREIGN(QMediaMetaData)
     QML_NAMED_ELEMENT(mediaMetaData)
+};
+
+namespace QMediaMetaDataNamespaceForeign
+{
+    Q_NAMESPACE
+    QML_FOREIGN_NAMESPACE(QMediaMetaData)
+    QML_NAMED_ELEMENT(MetaData)
 };
 
 struct QMediaDevicesForeign
