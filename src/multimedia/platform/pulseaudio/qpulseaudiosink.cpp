@@ -303,9 +303,10 @@ bool QPulseAudioSink::open()
 
     pulseEngine->lock();
 
-    qint64 bytesPerSecond = m_format.sampleRate() * m_format.bytesPerFrame();
 
+    pa_proplist *propList = pa_proplist_new();
 #if 0
+    qint64 bytesPerSecond = m_format.sampleRate() * m_format.bytesPerFrame();
     static const char *mediaRoleFromAudioRole[] = {
         nullptr, // UnknownRole
         "music", // MusicRole
@@ -319,7 +320,6 @@ bool QPulseAudioSink::open()
         "game" // GameRole
     };
 
-    pa_proplist *propList = pa_proplist_new();
     const char *r = mediaRoleFromAudioRole[m_role];
     if (r)
         pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, r);
