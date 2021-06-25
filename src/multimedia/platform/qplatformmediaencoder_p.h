@@ -144,8 +144,7 @@ public:
 
     virtual qint64 duration() const = 0;
 
-    virtual void applySettings() = 0;
-    virtual void setEncoderSettings(const QMediaEncoderSettings &settings) = 0;
+    virtual void applySettings(const QMediaEncoderSettings &settings) = 0;
 
     virtual void setMetaData(const QMediaMetaData &) {}
     virtual QMediaMetaData metaData() const { return {}; }

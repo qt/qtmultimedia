@@ -60,7 +60,6 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
     , m_audioSource(AndroidMediaRecorder::DefaultAudioSource)
     , m_duration(0)
     , m_state(QMediaRecorder::StoppedState)
-    , m_encoderSettingsDirty(true)
     , m_outputFormat(AndroidMediaRecorder::DefaultOutputFormat)
     , m_audioEncoder(AndroidMediaRecorder::DefaultAudioEncoder)
     , m_videoEncoder(AndroidMediaRecorder::DefaultVideoEncoder)
@@ -274,19 +273,12 @@ qint64 QAndroidCaptureSession::duration() const
     return m_duration;
 }
 
-void QAndroidCaptureSession::setEncoderSettings(const QMediaEncoderSettings &settings)
+void QAndroidCaptureSession::applySettings(const QMediaEncoderSettings &settings)
 {
     const auto flag = m_cameraSession ? QMediaFormat::RequiresVideo
                                        : QMediaFormat::NoFlags;
     m_encoderSettings = settings;
     m_encoderSettings.resolveFormat(flag);
-    m_encoderSettingsDirty = true;
-}
-
-void QAndroidCaptureSession::applySettings()
-{
-    if (!m_encoderSettingsDirty)
-        return;
 
     // container settings
     auto fileFormat = m_encoderSettings.mediaFormat().fileFormat();
@@ -411,7 +403,7 @@ void QAndroidCaptureSession::onCameraOpened()
     std::sort(m_supportedResolutions.begin(), m_supportedResolutions.end(), qt_sizeLessThan);
     std::sort(m_supportedFramerates.begin(), m_supportedFramerates.end());
 
-    applySettings();
+    applySettings(m_encoderSettings);
 }
 
 QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id)

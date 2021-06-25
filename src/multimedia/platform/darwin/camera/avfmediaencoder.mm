@@ -351,8 +351,10 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
     return videoSettings;
 }
 
-void AVFMediaEncoder::applySettings()
+void AVFMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
 {
+    m_settings = settings;
+
     if (!m_service || !m_service->session())
         return;
     AVFCameraSession *session = m_service->session();
@@ -392,11 +394,6 @@ void AVFMediaEncoder::unapplySettings()
         [m_videoSettings release];
         m_videoSettings = nil;
     }
-}
-
-void AVFMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
-{
-    m_settings = settings;
 }
 
 QMediaEncoderSettings AVFMediaEncoder::encoderSettings() const
@@ -521,7 +518,7 @@ void AVFMediaEncoder::record()
         return;
     }
 
-    applySettings();
+    applySettings(m_settings);
 
     // We stop session now so that no more frames for renderer's queue
     // generated, will restart in assetWriterStarted.

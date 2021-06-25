@@ -76,10 +76,7 @@ public:
 
     qint64 duration() const override;
 
-    void applySettings() override;
-
-    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
-    QMediaEncoderSettings encoderSettings() const { return m_settings; }
+    void applySettings(const QMediaEncoderSettings &settings) override;
 
     void setMetaData(const QMediaMetaData &) override;
     QMediaMetaData metaData() const override;
@@ -101,7 +98,6 @@ private:
     QDir defaultDir() const;
     QString generateFileName(const QDir &dir, const QString &ext) const;
 
-    QMediaEncoderSettings m_settings;
     QMediaEncoderSettings m_resolvedSettings;
     QGstreamerMediaCapture *m_session = nullptr;
     QGstreamerMetaData m_metaData;

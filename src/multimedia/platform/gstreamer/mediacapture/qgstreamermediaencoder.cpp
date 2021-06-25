@@ -363,24 +363,19 @@ void QGstreamerMediaEncoder::finalize()
     gstPipeline.setStateSync(GST_STATE_PLAYING);
 }
 
-void QGstreamerMediaEncoder::applySettings()
+void QGstreamerMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
 {
     if (!m_session)
         return;
+
     const auto flag = m_session->camera() ? QMediaFormat::RequiresVideo
                                           : QMediaFormat::NoFlags;
-    m_resolvedSettings = m_settings;
+    m_resolvedSettings = settings;
     m_resolvedSettings.resolveFormat(flag);
 
     auto *encodingProfile = createEncodingProfile(m_resolvedSettings);
     g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
     gst_encoding_profile_unref(encodingProfile);
-}
-
-void QGstreamerMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
-{
-    m_settings = settings;
-    applySettings();
 }
 
 void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)
@@ -431,8 +426,8 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
     gstFileSink.lockState(true); // ### enough with the encoder?
 
     // ensure we have a usable format
-    setEncoderSettings(QMediaEncoderSettings());
-    cameraChanged = QObject::connect(m_session, &QGstreamerMediaCapture::cameraChanged, [this]() { applySettings(); });
+    applySettings(QMediaEncoderSettings());
+    cameraChanged = QObject::connect(m_session, &QGstreamerMediaCapture::cameraChanged, [this]() { applySettings(m_resolvedSettings); });
 }
 
 QDir QGstreamerMediaEncoder::defaultDir() const

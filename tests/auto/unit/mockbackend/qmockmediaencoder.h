@@ -60,12 +60,11 @@ public:
         return m_position;
     }
 
-    void applySettings()
+    void applySettings(const QMediaEncoderSettings &settings)
     {
+        m_settings = settings;
         m_settingAppliedCount++;
     }
-
-    void setEncoderSettings(const QMediaEncoderSettings &settings) { m_settings = settings; }
 
     virtual void setMetaData(const QMediaMetaData &m)
     {

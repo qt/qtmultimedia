@@ -74,8 +74,10 @@ qint64 QWindowsMediaEncoder::duration() const
     return m_duration;
 }
 
-void QWindowsMediaEncoder::applySettings()
+void QWindowsMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
 {
+    m_settings = settings;
+
     if (!m_mediaDeviceSession)
         return;
 
@@ -117,7 +119,7 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
             }
         } else {
 
-            applySettings();
+            applySettings(m_settings);
 
             const bool audioOnly = m_settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
 
@@ -160,11 +162,6 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
         // state will change in onRecordingStopped()
     } break;
     }
-}
-
-void QWindowsMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
-{
-    m_settings = settings;
 }
 
 void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)

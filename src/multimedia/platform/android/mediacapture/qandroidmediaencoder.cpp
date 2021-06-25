@@ -65,9 +65,9 @@ qint64 QAndroidMediaEncoder::duration() const
     return m_session->duration();
 }
 
-void QAndroidMediaEncoder::applySettings()
+void QAndroidMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
 {
-    m_session->applySettings();
+    m_session->applySettings(settings);
 }
 
 void QAndroidMediaEncoder::setState(QMediaRecorder::RecorderState state)
@@ -87,11 +87,6 @@ void QAndroidMediaEncoder::setState(QMediaRecorder::RecorderState state)
         qWarning("QMediaEncoder::PausedState is not supported on Android");
         break;
     }
-}
-
-void QAndroidMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
-{
-    m_session->setEncoderSettings(settings);
 }
 
 void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)

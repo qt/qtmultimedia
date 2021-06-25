@@ -84,10 +84,9 @@ public:
 
     qint64 duration() const override;
 
-    void applySettings() override;
+    void applySettings(const QMediaEncoderSettings &settings) override;
     void unapplySettings();
 
-    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
     QMediaEncoderSettings encoderSettings() const;
 
     void setMetaData(const QMediaMetaData &) override;

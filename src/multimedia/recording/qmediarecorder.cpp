@@ -83,7 +83,7 @@ void QMediaRecorderPrivate::_q_applySettings()
 {
     if (control && settingsChanged) {
         settingsChanged = false;
-        control->applySettings();
+        control->applySettings(encoderSettings);
     }
 }
 
@@ -265,7 +265,7 @@ void QMediaRecorder::record()
     d->control->clearActualLocation();
 
     if (d->settingsChanged)
-        d->control->applySettings();
+        d->control->applySettings(d->encoderSettings);
 
     d->control->clearError();
 
@@ -456,8 +456,6 @@ void QMediaRecorder::setMediaFormat(const QMediaFormat &format)
     if (d->encoderSettings.mediaFormat() == format)
         return;
     d->encoderSettings.setMediaFormat(format);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit mediaFormatChanged();
 }
@@ -488,8 +486,6 @@ void QMediaRecorder::setEncodingMode(EncodingMode mode)
     if (d->encoderSettings.encodingMode() == mode)
         return;
     d->encoderSettings.setEncodingMode(mode);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit encodingModeChanged();
 }
@@ -506,8 +502,6 @@ void QMediaRecorder::setQuality(Quality quality)
     if (d->encoderSettings.quality() == quality)
         return;
     d->encoderSettings.setQuality(quality);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit qualityChanged();
 }
@@ -534,8 +528,6 @@ void QMediaRecorder::setVideoResolution(const QSize &size)
     if (d->encoderSettings.videoResolution() == size)
         return;
     d->encoderSettings.setVideoResolution(size);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit videoResolutionChanged();
 }
@@ -570,8 +562,6 @@ void QMediaRecorder::setVideoFrameRate(qreal frameRate)
     if (d->encoderSettings.videoFrameRate() == frameRate)
         return;
     d->encoderSettings.setVideoFrameRate(frameRate);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit videoFrameRateChanged();
 }
@@ -594,8 +584,6 @@ void QMediaRecorder::setVideoBitRate(int bitRate)
     if (d->encoderSettings.videoBitRate() == bitRate)
         return;
     d->encoderSettings.setVideoBitRate(bitRate);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit videoBitRateChanged();
 }
@@ -618,8 +606,6 @@ void QMediaRecorder::setAudioBitRate(int bitRate)
     if (d->encoderSettings.audioBitRate() == bitRate)
         return;
     d->encoderSettings.setAudioBitRate(bitRate);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit audioBitRateChanged();
 }
@@ -645,8 +631,6 @@ void QMediaRecorder::setAudioChannelCount(int channels)
     if (d->encoderSettings.audioChannelCount() == channels)
         return;
     d->encoderSettings.setAudioChannelCount(channels);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit audioChannelCountChanged();
 }
@@ -672,8 +656,6 @@ void QMediaRecorder::setAudioSampleRate(int sampleRate)
     if (d->encoderSettings.audioSampleRate() == sampleRate)
         return;
     d->encoderSettings.setAudioSampleRate(sampleRate);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit audioSampleRateChanged();
 }
