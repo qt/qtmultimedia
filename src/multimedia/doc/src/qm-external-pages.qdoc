@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the FOO module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,69 +37,26 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTVIDEOSINK_H
-#define QABSTRACTVIDEOSINK_H
+/*!
+    \externalpage https://gstreamer.freedesktop.org
+    \title gstreamer
+*/
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Pixel_Format
+    \title pixel format
+*/
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/qobject.h>
-#include <QtGui/qwindowdefs.h>
+/*!
+    \externalpage https://developer.apple.com/documentation/bundleresources/information_property_list
+    \title Info.plist
+*/
 
-QT_BEGIN_NAMESPACE
+/*!
+    \externalpage https://www.wix.com/blog/photography/2018/10/04/photography-terms/
+    \title photo glossary
+*/
 
-class QRectF;
-class QVideoFrameFormat;
-class QVideoFrame;
-
-class QVideoSinkPrivate;
-class QPlatformVideoSink;
-class QRhi;
-
-class Q_MULTIMEDIA_EXPORT QVideoSink : public QObject
-{
-    Q_OBJECT
-public:
-    QVideoSink(QObject *parent = nullptr);
-    ~QVideoSink();
-
-    // setter sets graphics type to NativeWindow
-    WId nativeWindowId() const;
-    void setNativeWindowId(WId id);
-
-    QRhi *rhi() const;
-    void setRhi(QRhi *rhi);
-
-    void setFullScreen(bool fullscreen);
-    bool isFullScreen() const;
-
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    QRectF targetRect() const;
-    void setTargetRect(const QRectF &rect);
-
-    Qt::BGMode backgroundMode() const;
-    void setBackgroundMode(Qt::BGMode mode);
-
-    void paint(QPainter *painter, const QVideoFrame &frame);
-
-    QPlatformVideoSink *platformVideoSink() const;
-    QSize videoSize() const;
-
-Q_SIGNALS:
-    // would never get called in windowed mode
-    void newVideoFrame(const QVideoFrame &frame) const;
-
-    void fullScreenChanged(bool fullScreen);
-    void aspectRatioModeChanged(Qt::AspectRatioMode mode);
-
-private:
-    friend class QMediaPlayerPrivate;
-    friend class QMediaCaptureSessionPrivate;
-    void setSource(QObject *source);
-
-    QVideoSinkPrivate *d = nullptr;
-};
-
-QT_END_NAMESPACE
-
-#endif
+/*!
+    \externalpage https://doc.qt.io/qt-6/qtqml-syntax-imports.html
+    \title qtqml import syntax
+*/

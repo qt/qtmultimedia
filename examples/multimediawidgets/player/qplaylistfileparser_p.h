@@ -63,7 +63,7 @@ class QNetworkRequest;
 
 class QPlaylistFileParserPrivate;
 
-class Q_MULTIMEDIA_EXPORT QPlaylistFileParser : public QObject
+class QPlaylistFileParser : public QObject
 {
     Q_OBJECT
 public:

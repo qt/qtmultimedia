@@ -53,7 +53,7 @@
 
 #include <QWidget>
 #include <QMediaPlayer>
-#include <QMediaPlaylist>
+#include <qmediaplaylist.h>
 #include <QMediaMetaData>
 
 QT_BEGIN_NAMESPACE
@@ -110,8 +110,6 @@ private slots:
 
     void displayErrorMessage();
 
-    void showColorDialog();
-
     void audioOutputChanged(int);
 
 private:
@@ -128,9 +126,7 @@ private:
     QSlider *m_slider = nullptr;
     QLabel *m_labelDuration = nullptr;
     QPushButton *m_fullScreenButton = nullptr;
-    QPushButton *m_colorButton = nullptr;
     QComboBox *m_audioOutputCombo = nullptr;
-    QDialog *m_colorDialog = nullptr;
     QLabel *m_statusLabel = nullptr;
     QStatusBar *m_statusBar = nullptr;
 

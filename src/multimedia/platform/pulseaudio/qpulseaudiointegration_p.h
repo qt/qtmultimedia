@@ -65,6 +65,7 @@ public:
     ~QPulseAudioIntegration();
 
     QPlatformMediaDevices *devices() override;
+    QPlatformMediaFormatInfo *formatInfo() override;
 
     QPulseAudioMediaDevices *m_devices = nullptr;
     QPulseAudioEngine *pulseEngine = nullptr;

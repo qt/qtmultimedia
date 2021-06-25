@@ -112,7 +112,7 @@ QAudioDevice QAudioInput::device() const
 
 void QAudioInput::setDevice(const QAudioDevice &device)
 {
-    if (device.mode() != QAudioDevice::Input)
+    if (device.mode() == QAudioDevice::Output)
         return;
     d->device = device;
     d->setAudioDevice(device);

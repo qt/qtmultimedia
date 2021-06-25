@@ -1,11 +1,11 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing/
+** Copyright (C) 2021 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the documentation of the Qt Toolkit.
+** This file is part of the Qt for Multimedia module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:FDL$
+** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -14,13 +14,25 @@
 ** and conditions see https://www.qt.io/terms-conditions. For further
 ** information use the contact form at https://www.qt.io/contact-us.
 **
-** GNU Free Documentation License Usage
-** Alternatively, this file may be used under the terms of the GNU Free
-** Documentation License version 1.3 as published by the Free Software
-** Foundation and appearing in the file included in the packaging of
-** this file. Please review the following information to ensure
-** the GNU Free Documentation License version 1.3 requirements
-** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
@@ -33,79 +45,85 @@
 
 
 The Qt Multimedia module in Qt 6 replaces the Qt Multimedia module from Qt 5.x.
-Existing code that uses Qt Multimedia from Qt 5 can be ported with limited effort. The
-\l {changed features} section highlights changes relevant to porting.
+Existing code that uses Qt Multimedia from Qt 5 can be ported with limited effort.
+The \l {changed features} section highlights changes relevant to porting.
 
-\section1 New features in Qt 6.0
+\section1 New features in Qt 6
 
 There are a number of new features in Qt Multimedia:
 \list
-\li QMediaCaptureSession class as the central object for media capture
-\li Changed QMediaRecorder class to be a high level class for audio/video recording
-\li new QMediaRecorder class to handle encoding of data produced in a capture session
-\li Setting up the desired encodings when recording has changed significantly, see
-QMediaEncoderSettings for details
-\li Support for selection of audio, video and subtitle tracks when playing back media files
-\li QAudioDecoder is now supported on all platforms
+    \li QMediaCaptureSession class is the central object for media capture.
+    \li Changed QMediaRecorder class to be a high level class for audio/video
+    recording.
+    \li new QMediaEncoder class to handle encoding of data produced in a capture
+    session.
+    \li Setting up the desired encoding when recording has changed significantly.
+    see QMediaEncoderSettings for details.
+    \li Support for selection of audio, video and subtitle tracks when playing
+    back media files has been added.
+    \li QAudioDecoder is now supported on all platforms.
 \endlist
 
 
-\section1 Removed features
+\section1 Removed Features
 
 \table 70%
     \header
         \li Removed feature
-        \li Notes
+        \li Notes or suggested alternative
     \row
         \li Playlist in QMediaPlayer
-        \li QMediaPlayer does not do any playlist handling anymore in Qt 6. The QMediaPlayList class
-            does however still exist and provides this functionality. Users will need to connect the
-            playlist to the mediaplayer themselves to handle playlists.
+        \li QMediaPlayer does not do any playlist handling anymore in Qt 6.
+        The QMediaPlayList class does however still exist and provides this
+        functionality. Users will need to connect the playlist to the mediaplayer
+        themselves to handle playlists.
     \row
         \li QAudioProbe and QVideoProbe
-        \li The audio and video probing API has been removed. A replacement API using custom audio
-            and video outputs may be added in a future release.
+        \li The audio and video probing API has been removed.
     \row
         \li QAudioRecorder and the Audio QML type
-        \li Use a QMediaCaptureSession or the CaptureSession QML type
+        \li Use a QMediaCaptureSession or the CaptureSession QML type.
     \row
         \li QMediaObject and QMediaBindableInterface
-        \li These classes have been removed in favor of a more direct API for setting up connections
-            between objects using e.g. setVideoOutput and QMediaCaptureSession.
+        \li These classes have been removed in favor of a more direct API for
+        setting up connections between objects using e.g. setVideoOutput and
+        QMediaCaptureSession.
     \row
         \li QCameraViewFinderSettings
-        \li This class has been removed. Use QCameraFormat to define the resolution and framerate the
-            camera should be using.
+        \li This class has been removed. Use QCameraFormat to define the
+        resolution and frame rate the camera should be using.
     \row
         \li QMediaContent
-        \li The class has been removed. Use QMediaPlayList for play lists and QUrl for individual
-            media files instead.
+        \li The class has been removed. Use QMediaPlayList for playlists and
+        QUrl for individual media files instead.
     \row
         \li QSound
         \li Use QSoundEffect instead.
     \row
         \li QVideoFilterRunnable
-        \li Use shader effects in QML instead or access the QVideoFrame's content in C++.
+        \li Use \l{shader effects} in QML instead or access the QVideoFrame's
+        content in C++.
     \row
-        \li Backend API
-        \li The backend API of Qt Multimedia is private in Qt 6. Having a public backend API was one
-            the main things that made supporting and enhancing Qt Multimedia in Qt 5 very difficult.
-            By making the backend API private, we expect to be able to better support new multimedia
-            use cases in the future. This includes all classes the contain "Control" or "Abstract"
-            in the class name in Qt 5.
+        \li Public back end API
+        \li The back end API of Qt Multimedia is private in Qt 6. This improves
+        response time for supporting new multimedia use cases. This includes all
+        classes that contain "Control" or "Abstract" in the class name in Qt 5.
     \row
-        \li Pluggable backends
-        \li Qt Multimedia in Qt 6 does not use a plugin infrastructure for its backends anymore.
-            This means that users do not need to ship those backends with their application anymore
-            neither. Instead the backend being used is determined at compile time based on the
-            underlying operating system. Qt uses gstreamer on Linux, WMF on Windows, AVFoundation
-            on macOS and iOS and the Android multimedia APIs on Android.
+        \li Back ends as plugins
+        \li Qt Multimedia in Qt 6 does not use a plugin infrastructure for its
+        back ends anymore.
+        This means that users no longer need to ship those back ends with their
+        application. Instead, the back end being used is determined at compile
+        time based on the underlying operating system. Qt uses \l gstreamer on
+        Linux, WMF on Windows, AVFoundation on macOS and iOS and the Android
+        multimedia APIs on Android.
 \endtable
 
 \section1 Changed features
 
 A number of classes previously offered in Qt Multimedia or Qt Multimedia Kit have
-changed in ways that may affect previously written code. This table highlights such changes.
+changed in ways that may affect previously written code. The following table
+highlights these changes.
 
 \table 70%
     \header
@@ -113,26 +131,31 @@ changed in ways that may affect previously written code. This table highlights s
         \li Notes
     \row
         \li Handling of Camera resolutions and frame rates
-        \li Handling of those has been simplified and a new QCameraFormat class helps selecting
-            the correct resolution and frame rate on the camera.
+        \li Handling of these has been simplified and a new QCameraFormat class
+        helps with selecting the correct resolution and frame rate for the camera.
     \row
         \li Video output handling on the C++ side has changed significantly.
-        \li QAbstractVideoSurface has been replaced by the QVideoSink class, and generic rendering
-            support has been enhanced to cover all pixel formats supported by Qt Multimedia
+        \li QAbstractVideoSurface has been replaced by the QVideoSink class, and
+        generic rendering support has been enhanced to cover all \l{pixel format}s
+        supported by Qt Multimedia.
     \row
         \li Metadata types
-        \li QMediaMetaData has changed significantly, mainly moving from string based
-            to enum based keys, and reducing the set of supported keys to the ones that
-            can be supported on most platforms.
+        \li QMediaMetaData has changed significantly: mainly moving from string
+        based to enum based keys, and reducing the set of supported keys to the
+        ones that can be supported on most platforms.
     \row
         \li QMediaFormat
-        \li Handling of formats for encoded media and the settings for the media recorder have
-            changed significantly. While Qt 5 provided a string based API and separated file format,
-            audio and video codecs into 3 classes, Qt 6 does unify the formats in the QMediaFormat class,
-            and other settings in QMediaRecorder. Setting up of file formats and codecs is now
-            enum based and doesn't use strings anymore. This puts some limitations on the set of codecs
-            that can be used, but helps provide a consistent cross-platform API and reduces the changes
-            for inconsistencies.
+        \li Handling of formats for encoded media and the settings for the media
+        encoder have changed significantly. Qt 5 provides a string based
+        API, a separated file format, and audio and video codecs into 3 classes.
+        However, Qt 6 unifies the formats in the QMediaFormat class, and encoder
+        settings in QMediaEncoderSettings. Setting up file formats and codecs
+        is now enum based and no longer uses strings. This puts some
+        limitations on the set of codecs that can be used, but helps provide a
+        consistent cross-platform API.
+    \row
+        \li QCameraImageCapture renamed QImageCapture
+        \li None
 \endtable
 
 */

@@ -50,10 +50,17 @@ QT_BEGIN_NAMESPACE
 
 class QAudioFormatPrivate;
 
+namespace QtPrivate {
+template <typename... Args>
+constexpr int channelConfig(Args... values) {
+    return (0 | ... | (1u << values));
+}
+}
+
 class QAudioFormat
 {
 public:
-    enum SampleFormat {
+    enum SampleFormat : quint16 {
         Unknown,
         UInt8,
         Int16,
@@ -61,6 +68,52 @@ public:
         Float,
         NSampleFormats
     };
+
+    // This matches the speaker positions of a 22.2 audio layout. Stereo, Surround 5.1 and Surround 7.1 are subsets of these
+    enum AudioChannelPosition {
+        UnknownPosition,
+        FrontLeft,
+        FrontRight,
+        FrontCenter,
+        LFE,
+        BackLeft,
+        BackRight,
+        FrontLeftOfCenter,
+        FrontRightOfCenter,
+        BackCenter,
+        LFE2,
+        SideLeft,
+        SideRight,
+        TopFrontLeft,
+        TopFrontRight,
+        TopFrontCenter,
+        TopCenter,
+        TopBackLeft,
+        TopBackRight,
+        TopSideLeft,
+        TopSideRight,
+        TopBackCenter,
+        BottomFrontCenter,
+        BottomFrontLeft,
+        BottomFrontRight
+    };
+
+    enum ChannelConfig : quint32 {
+        ChannelConfigUnknown = 0,
+        ChannelConfigMono = QtPrivate::channelConfig(FrontCenter),
+        ChannelConfigStereo = QtPrivate::channelConfig(FrontLeft, FrontRight),
+        ChannelConfig2Dot1 = QtPrivate::channelConfig(FrontLeft, FrontRight, LFE),
+        ChannelConfigSurround5Dot0 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter, BackLeft, BackRight),
+        ChannelConfigSurround5Dot1 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter, LFE, BackLeft, BackRight),
+        ChannelConfigSurround7Dot0 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter, BackLeft, BackRight, SideLeft, SideRight),
+        ChannelConfigSurround7Dot1 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter, LFE, BackLeft, BackRight, SideLeft, SideRight),
+    };
+
+    template <typename... Args>
+    static ChannelConfig channelConfig(Args... channels)
+    {
+        return ChannelConfig(QtPrivate::channelConfig(channels...));
+    }
 
     constexpr bool isValid() const noexcept
     {
@@ -70,8 +123,13 @@ public:
     constexpr void setSampleRate(int sampleRate) noexcept { m_sampleRate = sampleRate; }
     constexpr int sampleRate() const noexcept { return m_sampleRate; }
 
-    constexpr void setChannelCount(int channelCount) noexcept { m_channelCount = channelCount; }
+    Q_MULTIMEDIA_EXPORT void setChannelConfig(ChannelConfig config) noexcept;
+    constexpr ChannelConfig channelConfig() const noexcept { return m_channelConfig; }
+
+    constexpr void setChannelCount(int channelCount) noexcept { m_channelConfig = ChannelConfigUnknown; m_channelCount = channelCount; }
     constexpr int channelCount() const noexcept { return m_channelCount; }
+
+    Q_MULTIMEDIA_EXPORT int channelOffset(AudioChannelPosition channel) const noexcept;
 
     constexpr void setSampleFormat(SampleFormat f) noexcept { m_sampleFormat = f; }
     constexpr SampleFormat sampleFormat() const noexcept { return m_sampleFormat; }
@@ -115,9 +173,9 @@ public:
 
 private:
     SampleFormat m_sampleFormat = SampleFormat::Unknown;
-    int m_sampleRate = 0;
     short m_channelCount = 0;
-    short bitfields = 0;
+    ChannelConfig m_channelConfig = ChannelConfigUnknown;
+    int m_sampleRate = 0;
     quint64 reserved = 0;
 };
 

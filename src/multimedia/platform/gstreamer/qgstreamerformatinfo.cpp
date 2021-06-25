@@ -53,8 +53,8 @@ QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure s
     if (!strcmp(name, "mpeg")) {
         auto version = structure["mpegversion"].toInt();
         if (version == 1) {
-            auto layer = structure["layer"].toInt();
-            if (layer == 3)
+            auto layer = structure["layer"];
+            if (!layer.isNull())
                 return QMediaFormat::AudioCodec::MP3;
         }
         if (version == 4)
@@ -75,6 +75,8 @@ QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure s
         return QMediaFormat::AudioCodec::Opus;
     } else if (!strcmp(name, "x-wav")) {
         return QMediaFormat::AudioCodec::Wave;
+    } else if (!strcmp(name, "x-wma")) {
+        return QMediaFormat::AudioCodec::WMA;
     }
     return QMediaFormat::AudioCodec::Unspecified;
 }
@@ -111,6 +113,8 @@ QMediaFormat::VideoCodec QGstreamerFormatInfo::videoCodecForCaps(QGstStructure s
         return QMediaFormat::VideoCodec::Theora;
     } else if (!strcmp(name, "x-jpeg")) {
         return QMediaFormat::VideoCodec::MotionJPEG;
+    } else if (!strcmp(name, "x-wmv")) {
+        return QMediaFormat::VideoCodec::WMV;
     }
     return QMediaFormat::VideoCodec::Unspecified;
 }
@@ -120,7 +124,7 @@ QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure s
     const char *name = structure.name().data();
 
     if (!strcmp(name, "video/x-ms-asf")) {
-        return QMediaFormat::FileFormat::ASF;
+        return QMediaFormat::FileFormat::WMV;
     } else if (!strcmp(name, "video/x-msvideo")) {
         return QMediaFormat::FileFormat::AVI;
     } else if (!strcmp(name, "video/x-matroska")) {
@@ -135,6 +139,17 @@ QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure s
         return QMediaFormat::FileFormat::Ogg;
     } else if (!strcmp(name, "video/webm")) {
         return QMediaFormat::FileFormat::WebM;
+    } else if (!strcmp(name, "audio/x-m4a")) {
+        return QMediaFormat::FileFormat::Mpeg4Audio;
+    } else if (!strcmp(name, "audio/x-wav")) {
+        return QMediaFormat::FileFormat::Wave;
+    } else if (!strcmp(name, "audio/mpeg")) {
+        auto mpegversion = structure["mpegversion"].toInt();
+        if (mpegversion == 1) {
+            auto layer = structure["layer"];
+            if (!layer.isNull())
+                return QMediaFormat::FileFormat::MP3;
+        }
     }
     return QMediaFormat::UnspecifiedFormat;
 }
@@ -184,10 +199,10 @@ static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> g
                 for (int i = 0; i < caps.size(); i++) {
                     QGstStructure structure = caps.at(i);
                     auto a = QGstreamerFormatInfo::audioCodecForCaps(structure);
-                    if (a != QMediaFormat::AudioCodec::Unspecified)
+                    if (a != QMediaFormat::AudioCodec::Unspecified && !audio.contains(a))
                         audio.append(a);
                     auto v = QGstreamerFormatInfo::videoCodecForCaps(structure);
-                    if (v != QMediaFormat::VideoCodec::Unspecified)
+                    if (v != QMediaFormat::VideoCodec::Unspecified && !video.contains(v))
                         video.append(v);
                 }
             }
@@ -246,8 +261,11 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
             if (padTemplate->direction != padDirection) {
                 QGstMutableCaps caps = gst_static_caps_get(&padTemplate->static_caps);
 
+                bool acceptsRawAudio = false;
                 for (int i = 0; i < caps.size(); i++) {
                     QGstStructure structure = caps.at(i);
+                    if (structure.name() == "audio/x-raw")
+                        acceptsRawAudio = true;
                     auto audio = audioCodecForCaps(structure);
                     if (audio != QMediaFormat::AudioCodec::Unspecified && supportedAudioCodecs.contains(audio))
                         audioCodecs.append(audio);
@@ -255,11 +273,35 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
                     if (video != QMediaFormat::VideoCodec::Unspecified && supportedVideoCodecs.contains(video))
                         videoCodecs.append(video);
                 }
+                if (acceptsRawAudio && fileFormats.size() == 1) {
+                    switch (fileFormats.at(0)) {
+                    case QMediaFormat::Mpeg4Audio:
+                    default:
+                        break;
+                    case QMediaFormat::MP3:
+                        audioCodecs.append(QMediaFormat::AudioCodec::MP3);
+                        break;
+                    case QMediaFormat::FLAC:
+                        audioCodecs.append(QMediaFormat::AudioCodec::FLAC);
+                        break;
+                    case QMediaFormat::Wave:
+                        audioCodecs.append(QMediaFormat::AudioCodec::Wave);
+                        break;
+                    }
+                }
             }
         }
         if (!audioCodecs.isEmpty() || !videoCodecs.isEmpty()) {
-            for (auto f : qAsConst(fileFormats))
+            for (auto f : qAsConst(fileFormats)) {
                 muxers.append({f, audioCodecs, videoCodecs});
+                if (f == QMediaFormat::MPEG4 && !fileFormats.contains(QMediaFormat::Mpeg4Audio)) {
+                    muxers.append({QMediaFormat::Mpeg4Audio, audioCodecs, {}});
+                    if (audioCodecs.contains(QMediaFormat::AudioCodec::AAC))
+                        muxers.append({QMediaFormat::AAC, { QMediaFormat::AudioCodec::AAC }, {}});
+                } else if (f == QMediaFormat::WMV && !fileFormats.contains(QMediaFormat::WMA)) {
+                    muxers.append({QMediaFormat::WMA, audioCodecs, {}});
+                }
+            }
         }
     }
     gst_plugin_feature_list_free(elementList);
@@ -302,7 +344,21 @@ static QList<QImageCapture::FileFormat> getImageFormatList()
 }
 
 #if 0
-static void dumpMuxers(const QList<QGstreamerFormatsInfo::CodecMap> &muxerList)
+static void dumpAudioCodecs(const QList<QMediaFormat::AudioCodec> &codecList)
+{
+    qDebug() << "Audio codecs:";
+    for (const auto &c : codecList)
+        qDebug() << "            " << QMediaFormat::audioCodecName(c);
+}
+
+static void dumpVideoCodecs(const QList<QMediaFormat::VideoCodec> &codecList)
+{
+    qDebug() << "Video codecs:";
+    for (const auto &c : codecList)
+        qDebug() << "            " << QMediaFormat::videoCodecName(c);
+}
+
+static void dumpMuxers(const QList<QPlatformMediaFormatInfo::CodecMap> &muxerList)
 {
     for (const auto &m : muxerList) {
         qDebug() << "    " << QMediaFormat::fileFormatName(m.format);
@@ -324,7 +380,9 @@ QGstreamerFormatInfo::QGstreamerFormatInfo()
 
     codecs = getCodecsList(/*decode = */ false);
     encoders = getMuxerList(/* demuxer = */false, codecs.first, codecs.second);
-    //dumpMuxers(encoders);
+//    dumpAudioCodecs(codecs.first);
+//    dumpVideoCodecs(codecs.second);
+//    dumpMuxers(encoders);
 
     imageFormats = getImageFormatList();
 }
@@ -337,20 +395,19 @@ QGstMutableCaps QGstreamerFormatInfo::formatCaps(const QMediaFormat &f) const
     Q_ASSERT(format != QMediaFormat::UnspecifiedFormat);
 
     const char *capsForFormat[QMediaFormat::LastFileFormat + 1] = {
-        "video/x-ms-asf", // ASF
+        "video/x-ms-asf", // WMV
         "video/x-msvideo", // AVI
         "video/x-matroska", // Matroska
         "video/quicktime, variant=(string)iso", // MPEG4
         "video/ogg", // Ogg
         "video/quicktime", // QuickTime
         "video/webm", // WebM
-        "audio/mpeg, mpegversion=(int)4", // AAC
-        "audio/x-flac", // FLAC
+        "video/quicktime, variant=(string)iso", // Mpeg4Audio is the same is mp4...
+        "video/quicktime, variant=(string)iso", // AAC is also an MP4 container
+        "video/x-ms-asf", // WMA, same as WMV
         "audio/mpeg, mpegversion=(int)1, layer=(int)3", // MP3
-        "audio/mpeg, mpegversion=(int)4", // Mpeg4Audio
-        "audio/x-alac", // ALAC
+        "audio/x-flac", // FLAC
         "audio/x-wav" // Wave
-
     };
     return gst_caps_from_string(capsForFormat[format]);
 }
@@ -370,8 +427,9 @@ QGstMutableCaps QGstreamerFormatInfo::audioCaps(const QMediaFormat &f) const
         "audio/x-true-hd", // DolbyTrueHD
         "audio/x-opus", // Opus
         "audio/x-vorbis", // Vorbis
+        "audio/x-raw", // WAVE
+        "audio/x-wma", // WMA
         "audio/x-alac", // ALAC
-        "audio/x-wav", // WAVE
     };
     return gst_caps_from_string(capsForCodec[(int)codec]);
 }
@@ -392,6 +450,7 @@ QGstMutableCaps QGstreamerFormatInfo::videoCaps(const QMediaFormat &f) const
         "video/x-vp9", // VP9,
         "video/x-av1", // AV1,
         "video/x-theora", // Theora,
+        "audio/x-wmv", // WMV
         "video/x-jpeg", // MotionJPEG,
     };
     return gst_caps_from_string(capsForCodec[(int)codec]);

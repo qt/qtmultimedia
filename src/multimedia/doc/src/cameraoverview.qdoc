@@ -1,11 +1,11 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing/
+** Copyright (C) 2021 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the documentation of the Qt Toolkit.
+** This file is part of the Qt for Multimedia module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:FDL$
+** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -14,13 +14,25 @@
 ** and conditions see https://www.qt.io/terms-conditions. For further
 ** information use the contact form at https://www.qt.io/contact-us.
 **
-** GNU Free Documentation License Usage
-** Alternatively, this file may be used under the terms of the GNU Free
-** Documentation License version 1.3 as published by the Free Software
-** Foundation and appearing in the file included in the packaging of
-** this file. Please review the following information to ensure
-** the GNU Free Documentation License version 1.3 requirements
-** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
@@ -31,52 +43,75 @@
 \brief Camera viewfinder, still image capture, and video recording.
 
 The Qt Multimedia API provides a number of camera related classes, so you
-can access images and videos from mobile device cameras or webcameras.
+can access images and videos from mobile device cameras or web cameras.
 There are both C++ and QML APIs for common tasks.
 
 \section1 Camera Features
 
-In order to use the camera classes a quick overview of the way a camera
-works is needed.  If you're already familiar with this, you can skip ahead to
+In order to use the camera classes, a quick overview of the way a camera
+works is needed. If you're already familiar with this, you can skip ahead to
 \l {camera-tldr}{Camera implementation details}.
+For a more detailed explanations of how a camera works, see the following YouTube
+clip.
+
+\youtube qS1FmgPVLqw
 
 \section2 The Lens Assembly
+
 At one end of the camera assembly is the lens assembly (one or
-more lenses, arranged to focus light onto the sensor).  The lenses
-themselves can sometimes be moved to adjust things like focus and zoom,
-or they might be fixed in an arrangement to give a good balance between
-objects in focus, and cost.
+more lenses, arranged to focus light onto the sensor). The lenses
+themselves can sometimes be moved to adjust things like focus and zoom. They
+might also be fixed in an arrangement for a good balance between maintaining
+focus and cost.
+
+\image how-focus-works.gif "An animation of how focus works"
+
+\image Zoom.gif "An animation of how zoom works."
 
 Some lens assemblies can automatically be adjusted so that
 an object at different distances from the camera can be kept in focus.
 This is usually done by measuring how sharp a particular area of the
-frame is, and by adjusting the lens assembly until it is maximally
-sharp.  In some cases the camera will always use the center of the
-frame for this.  Other cameras may also allow the region to focus
-to be specified (for "touch to zoom", or "face zoom" features).
+frame is, and then adjusting the lens assembly to find the peak sharpness. In
+some cases, the camera will always use the center of the frame for this.
+In other cases, a camera may also allow this target focus region to be specified.
+Some examples of this feature include:
+\list
+\li Face zoom: Using computer vision to detect and use one or more faces as the
+target.
+\li Touch to zoom: Enabling the user to manually select an area via the preview
+screen.
+\endlist
 
 \section2 The Sensor
 Once light arrives at the sensor, it gets converted into digital pixels.
 This process can depend on a number of things but ultimately comes down
-to two things - how long the conversion is allowed to take, and how
-bright the light is.  The longer a conversion can take, the better the
-quality.  Using a flash can assist with letting more light hit the sensor,
+to two things:
+\list
+\li The length of time conversion is allowed to take. Also known as exposure
+time.
+\li How bright the light is.
+\endlist
+
+The longer a conversion is allowed to take, the better the resulting image
+quality. Using a flash can assist with letting more light hit the sensor,
 allowing it to convert pixels faster, giving better quality for the same
-amount of time.  Conversely, allowing a longer conversion time can let you
-take photos in darker environments, as long as the camera is steady.
+amount of time. Conversely, allowing a longer conversion time can let you
+take photos in darker environments, \b{as long as the camera is steady}. If the
+camera moves while the sensor is recording, the resulting image is blurred.
 
 \section2 Image Processing
 After the image has been captured by the sensor, the camera firmware performs
 various image processing tasks on it to compensate for various sensor
-characteristics, current lighting, and desired image properties.  Faster sensor
-pixel conversion times tend to introduce digital noise, so some amount of image
-processing can be done to remove this based on the camera sensor settings.
+characteristics, current lighting, and desired image properties. Faster sensor
+pixel conversion times may introduce digital noise, so some amount of image
+processing can be done to remove this, based on the camera sensor settings.
 
 The color of the image can also be adjusted at this stage to compensate for
 different light sources - fluorescent lights and sunlight give very different
 appearances to the same object, so the image can be adjusted based on the
 white balance of the picture (due to the different color temperatures of the
 light sources).
+\image image_processing.png "5 examples of various image processing techniques."
 
 Some forms of "special effects" can also be performed at this stage.  Black
 and white, sepia, or "negative" style images can be produced.
@@ -84,21 +119,24 @@ and white, sepia, or "negative" style images can be produced.
 \section2 Recording for Posterity
 Finally, once a perfectly focused, exposed and processed image has been
 created, it can be put to good use.  Camera images can be further processed
-by application code (for example, to detect barcodes, or to stitch together a
+by application code (for example, to detect bar-codes, or to stitch together a
 panoramic image), or saved to a common format like JPEG, or used to create a movie.
 Many of these tasks have classes to assist them.
 
 \target camera-tldr
 \section1 Camera Implementation Details
-\section2 Detecting and Selecting Camera
+\section2 Detecting and Selecting a Camera
 
-Before using the camera APIs, you should check that a camera is available at runtime. If there
-is none, you could for example disable camera related features in your application. To perform this
-check in C++, use the \l QCameraDevice::availableCameras() function, as shown in the example below:
+Before using the camera APIs, you should check that a camera is available at
+runtime. If there is none available, you could disable camera related features
+in your application. To perform this check in C++, use the
+\l QCameraDevice::availableCameras() function, as shown in the example below:
+
 
     \snippet multimedia-snippets/camera.cpp Camera overview check
 
-In QML, use the \l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}
+In QML, use the
+\l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}
 property:
 
 \qml
@@ -107,8 +145,8 @@ Item {
 }
 \endqml
 
-After determining whether a camera is available, access it using the \l QCamera class in C++ or
-the \l Camera type in QML.
+After determining whether a camera is available, access it using the
+\l QCamera class in C++ or the \l Camera type in QML.
 
 When multiple cameras are available, you can specify which one to use.
 
@@ -116,8 +154,10 @@ In C++:
 
      \snippet multimedia-snippets/camera.cpp Camera selection
 
-In QML, you can set the \c Camera \l{Camera::cameraDevice}{cameraDevice} property. All available cameras can
-be retrieved from \l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}:
+
+In QML, you can set the \c Camera \l{Camera::cameraDevice}{cameraDevice} property.
+All available cameras can be retrieved from
+\l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}:
 
 \qml
 Camera {
@@ -125,8 +165,9 @@ Camera {
 }
 \endqml
 
-You can also select the camera by its physical position on the system rather than by camera info.
-This is useful on mobile devices, which often have a front-facing and a back-facing camera.
+You can also select a camera by its physical position on the system rather than
+by camera info. This is useful on mobile devices, which often have a
+front-facing and a back-facing camera.
 
 In C++:
 
@@ -140,20 +181,22 @@ Camera {
 }
 \endqml
 
-If neither cameraDevice nor position is specified, the default camera will be used. On desktop
-platforms, the default camera is set by the user in the system settings. On a mobile device, the
-back-facing camera is usually the default camera. You can get information about the default camera
-using \l QCameraDevice::defaultCamera() in C++ or
+
+If both QCameraDevice and position aren't specified, the default camera will be
+used. On desktop platforms, the default camera is set by the user in the system
+settings. On a mobile device, the back-facing camera is usually the default
+camera. You can get information about the default camera using
+\l QCameraInfo::defaultCamera() in C++ or
 \l{QtMultimedia::MediaDevices::defaultCamera}{MediaDevices.defaultCamera} in QML.
 
 \section2 Preview
 
 While not strictly necessary, it's often useful to be able to see
-what the camera is pointing at.
+what the camera is pointing at. This is known as a preview.
 
 Depending on whether you're using QML or C++, you can do this in multiple ways.
-In QML, you can use \l Camera and \l VideoOutput together in a CaptureSession to show a
-simple viewfinder:
+In QML, you can use \l Camera and videoOutput together to monitor a
+captureSession.
 
 \qml
 Item {
@@ -177,27 +220,29 @@ is useful for QGraphicsView.
 
     \snippet multimedia-snippets/camera.cpp Camera overview viewfinder
 
-For advanced usage (like processing preview frames as they come, to detect
-objects or patterns), you can also use your own QVideoSink and set that as the videoOutput
-for the QCamera object.  In this case you will need to render the viewfinder image yourself
-by processing the data received from the newVideoFrame() signal.
+For advanced usage (like processing preview frames as they come, which enables
+detection of objects or patterns), you can also use your own QVideoSink and set
+that as the videoOutput for the QCamera object. In this case, you will need to
+render the viewfinder image yourself by processing the data received from the
+newVideoFrame() signal.
 
     \snippet multimedia-snippets/camera.cpp Camera overview surface
 
-On mobile devices, the preview image might not always be in the orientation you would expect.
-The camera sensors on these devices are often mounted in landscape while the natural
-orientation of the screen is portrait. This results in the image appearing sideways or inverted
-depending on the device orientation. In order to reflect on screen what the user actually sees, you
-should make sure the viewfinder frames are always rotated to the correct orientation, taking into
+On mobile devices, the preview image might not always be in the orientation you
+would expect. The camera sensors on these devices are often mounted in landscape
+while the natural orientation of the screen is portrait. This results in the
+image appearing sideways or inverted depending on the device orientation. In
+order to reflect on screen what the user actually sees, you should make sure
+the viewfinder frames are always rotated to the correct orientation, taking into
 account the camera sensor orientation and the current display orientation.
 
     \snippet multimedia-snippets/camera.cpp Camera overview viewfinder orientation
 
 \section2 Still Images
 
-After setting up a viewfinder and finding something photogenic,
-to capture an image we need to initialize a new QImageCapture
-object. All that is then needed is to start the camera and capture the image.
+After setting up a viewfinder and finding something photogenic, to capture an
+image we need to initialize a new QImageCapture object. All that is then
+needed is to start the camera and capture the image.
 
     \snippet multimedia-snippets/camera.cpp Camera overview capture
 
@@ -213,72 +258,73 @@ well as creating a viewfinder, we will also initialize a media recorder object.
 
 Signals from the \e mediaEncoder can be connected to slots to react to
 changes in the state of the encoding process or error events. Recording itself
-starts with the \l {QMediaRecorder::record()}{record()} function of
-mediaEncoder being called, this causes the signal \l
-{QMediaRecorder::recorderStateChanged()}{recorderStateChanged()} to be emitted. The
-recording process can be changed with the \l {QMediaRecorder::record()}{record()},
-\l {QMediaRecorder::stop()}{stop()} slots in \l QMediaRecorder.
-
-On top of the above, QMediaRecorder provides a simple to use, but more limited all-in-one class
-for recording audio and video content.
+starts when the \l {QMediaEncoder::record()}{record()} function of mediaEncoder
+is called. This causes the signal
+\l{QMediaEncoder::stateChanged()}{stateChanged()} to be emitted. The
+recording process can be changed with the \l {QMediaEncoder::record()}{record()}
+, \l {QMediaEncoder::stop()}{stop()} slots in \l QMediaEncoder.
 
 \section2 Controlling the Imaging Pipeline
 
-Now that the basics of capturing images or movies are covered, there are a number
+Now that the basics of capturing images and movies are covered, there are a number
 of ways to control the imaging pipeline to implement some interesting techniques.
 As explained earlier, several physical and electronic elements combine to determine
 the final images, and you can control them with different classes.
 
 \section3 Focus and Zoom
 
-QCamera allows the developer to set the general focus policy by means of the
+QCamera allows you to set the general focus policy by means of the
 enums for the \l {QCamera::FocusMode}{FocusMode}. \l {QCamera::FocusMode}{FocusMode}
 deals with settings such as \l {QCamera::FocusModeAuto},
 and \l {QCamera::FocusModeInfinity}.
 
 For camera hardware that supports it, \l QCamera::FocusModeAutoNear} allows
-imaging of things that are close to the sensor.  This is useful in applications like
-barcode recognition, or business card scanning.
+imaging of things that are close to the sensor. This is useful in applications
+like bar-code recognition, or business card scanning.
 
-In addition to focus, QCameraFocus allows you to control any available zoom using \l setZoomFactor()
-or \l zoomTo(). The available zoom range might be limited (or fixed to unity), the allowed range can
-be checked with \l minimumZoomFactor() and maximumZoomFactor().
+In addition to focus, QCameraFocus allows you to control any available zoom
+functionality using \l setZoomFactor() or \l zoomTo(). The available zoom range
+might be limited or entirely fixed to unity (1:1). The allowed range can
+be checked with \l minimumZoomFactor() and \l maximumZoomFactor().
 
 \section3 Exposure, Shutter Speed and Flash
 
 There are a number of settings that affect the amount of light that hits the
 camera sensor, and hence the quality of the resulting image.
 
-The main settings for automatic image taking are the \l {QCamera::ExposureMode}{exposure mode}
-and \l {QCamera::FlashMode}{flash mode}.  Several other settings (ISO setting,
- shutter speed) are usually managed automatically but can also be overridden if desired.
+The main settings for automatic image taking are the
+\l {QCamera::ExposureMode}{exposure mode} and \l {QCamera::FlashMode}{flash mode}.
+Several other settings (such as: ISO setting and exposure time) are usually
+managed automatically, but can also be overridden if desired.
 
-Finally, you can control the flash hardware (if present) using this class.  In some cases
-the hardware may also double as a torch.
+Finally, you can control the flash hardware (if present) using this class. In
+some cases the hardware may also double as a torch.
 
 \target camera_image_processing
 \section3 Image Processing
 
-The QCamera class lets you adjust the image processing
-part of the pipeline.  This includes the \l {QCamera::WhiteBalanceMode}{white balance}
-(or color temperature), \l {QCamera::contrast()}{contrast}, and
-\l {QCamera::saturation()}{saturation}.
-Most cameras support automatic settings for all of these, so you shouldn't need to adjust them unless
-the user wants a specific setting.
+The QCamera class lets you adjust the image processing part of the pipeline.
+These settings include:
+\list
+    \li \l {QCamera::WhiteBalanceMode}{white balance}
+    (also known as color temperature)
+    \li \l {QCamera::contrast()}{contrast}
+    \li \l {QCamera::saturation()}{saturation}
+    \li \l {QCamera::hue()}{hue}
+    \li \l {QCamera::brightness()}{brightness}
+\endlist
 
-If you're taking a series of images (for example, to stitch them together for
-a panoramic image), you should lock the image processing settings so that all the
-images taken appear similar with \e {QCamera::searchAndLock(QCamera::LockWhiteBalance)}/
+Most cameras support automatic settings for all of these, so you shouldn't need
+to adjust them unless the user wants a specific setting.
 
 \section3 Canceling Asynchronous Operations
 
-Various operations such as image capture and auto focusing occur
-asynchrously. These operations can often be canceled by the start of a new
-operation as long as this is supported by the camera. For image capture,
-the operation can be canceled by calling
-\l {QImageCapture::cancelCapture()}{cancelCapture()}. For AutoFocus,
-autoexposure or white balance cancellation can be done by calling
-\e {QCamera::unlock(QCamera::LockFocus)}.
+Various operations, such as image capture and auto focusing, occur asynchronously.
+These operations can often be canceled by the start of a new operation, as long
+as this is supported by the camera. For image capture, the operation can be
+canceled by calling
+\l {QImageCapture::cancelCapture()}{cancelCapture()}.
+
 
 \section1 Examples
 

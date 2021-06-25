@@ -59,4 +59,10 @@ QPlatformMediaDevices *QPulseAudioIntegration::devices()
     return m_devices;
 }
 
+QPlatformMediaFormatInfo *QPulseAudioIntegration::formatInfo()
+{
+    Q_ASSERT(!"In need of implementation"); // TODO
+    return nullptr;
+}
+
 QT_END_NAMESPACE

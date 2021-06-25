@@ -60,6 +60,7 @@ QWindowsMediaDeviceReader::QWindowsMediaDeviceReader(QObject *parent)
 
 QWindowsMediaDeviceReader::~QWindowsMediaDeviceReader()
 {
+    stopRecording();
     deactivate();
 }
 
@@ -371,6 +372,8 @@ bool QWindowsMediaDeviceReader::activate(const QString &cameraId,
         return false;
     }
 
+    updateSinkInputMediaTypes();
+
     // Request the first frame or audio sample.
     if (!SUCCEEDED(m_sourceReader->ReadSample(MF_SOURCE_READER_ANY_STREAM, 0, nullptr, nullptr, nullptr, nullptr))) {
         releaseResources();
@@ -383,7 +386,6 @@ bool QWindowsMediaDeviceReader::activate(const QString &cameraId,
 
 void QWindowsMediaDeviceReader::deactivate()
 {
-    stopRecording();
     stopStreaming();
     m_active = false;
     m_streaming = false;
@@ -496,6 +498,22 @@ HRESULT QWindowsMediaDeviceReader::createAudioMediaType(const GUID &format, UINT
     return E_FAIL;
 }
 
+HRESULT QWindowsMediaDeviceReader::updateSinkInputMediaTypes()
+{
+    HRESULT hr = S_OK;
+    if (m_sinkWriter) {
+        if (m_videoSource && m_videoMediaType && m_sinkVideoStreamIndex != MF_SINK_WRITER_INVALID_STREAM_INDEX) {
+            hr = m_sinkWriter->SetInputMediaType(m_sinkVideoStreamIndex, m_videoMediaType, nullptr);
+        }
+        if (SUCCEEDED(hr)) {
+            if (m_audioSource && m_audioMediaType && m_sinkAudioStreamIndex != MF_SINK_WRITER_INVALID_STREAM_INDEX) {
+                hr = m_sinkWriter->SetInputMediaType(m_sinkAudioStreamIndex, m_audioMediaType, nullptr);
+            }
+        }
+    }
+    return hr;
+}
+
 bool QWindowsMediaDeviceReader::startRecording(const QString &fileName, const GUID &container,
                                                const GUID &videoFormat, UINT32 videoBitRate, UINT32 width,
                                                UINT32 height, qreal frameRate, const GUID &audioFormat,
@@ -596,10 +614,21 @@ void QWindowsMediaDeviceReader::stopRecording()
     m_finalizeSemaphore.acquire();
     QMutexLocker locker(&m_mutex);
 
-    if (m_sinkWriter && m_recording)
-        m_sinkWriter->Finalize();
-    else
+    if (m_sinkWriter && m_recording) {
+
+        HRESULT hr = m_sinkWriter->Finalize();
+
+        if (!SUCCEEDED(hr)) {
+            m_finalizeSemaphore.release();
+            m_sinkWriter->Release();
+            m_sinkWriter = nullptr;
+
+            QMetaObject::invokeMethod(this, "recordingError",
+                                      Qt::QueuedConnection, Q_ARG(int, hr));
+        }
+    } else {
         m_finalizeSemaphore.release();
+    }
 
     m_recording = false;
     m_paused = false;
@@ -614,6 +643,7 @@ bool QWindowsMediaDeviceReader::pauseRecording()
 {
     if (!m_recording || m_paused)
         return false;
+    m_pauseTime = m_lastTimestamp;
     m_paused = true;
     m_pauseChanging = true;
     return true;
@@ -715,6 +745,8 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
         emit streamingError(int(hrStatus));
         return hrStatus;
     }
+
+    m_lastTimestamp = llTimestamp;
 
     if ((dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) == MF_SOURCE_READERF_ENDOFSTREAM) {
         m_streaming = false;

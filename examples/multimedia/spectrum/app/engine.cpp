@@ -299,6 +299,8 @@ void Engine::suspend()
         case QAudioDevice::Output:
             m_audioOutput->suspend();
             break;
+        default:
+            break;
         }
         m_notifyTimer->stop();
     }
@@ -380,6 +382,8 @@ void Engine::audioNotify()
                 calculateSpectrum(spectrumPosition);
         }
         break;
+        default:
+            break;
     }
 }
 
@@ -400,6 +404,8 @@ void Engine::audioStateChanged(QAudio::State state)
                 break;
             case QAudioDevice::Output:
                 error = m_audioOutput->error();
+                break;
+            default:
                 break;
             }
             if (QAudio::NoError != error) {
