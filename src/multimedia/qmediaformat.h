@@ -57,23 +57,24 @@ class Q_MULTIMEDIA_EXPORT QMediaFormat
     Q_PROPERTY(FileFormat fileFormat READ fileFormat WRITE setFileFormat)
     Q_PROPERTY(AudioCodec audioCodec READ audioCodec WRITE setAudioCodec)
     Q_PROPERTY(VideoCodec videoCodec READ videoCodec WRITE setVideoCodec)
+    Q_CLASSINFO("RegisterEnumClassesUnscoped", "false")
 public:
     enum FileFormat {
         UnspecifiedFormat = -1,
         // Video Formats
-        ASF,
+        WMV,
         AVI,
         Matroska,
         MPEG4,
         Ogg,
         QuickTime,
         WebM,
-        // Audio Formats
-        AAC,
-        FLAC,
-        MP3,
+        // Audio Only Formats
         Mpeg4Audio,
-        ALAC,
+        AAC,
+        WMA,
+        MP3,
+        FLAC,
         Wave,
         LastFileFormat = Wave
     };
@@ -90,6 +91,7 @@ public:
         Opus,
         Vorbis,
         Wave,
+        WMA,
         ALAC,
         LastAudioCodec = ALAC
     };
@@ -106,6 +108,7 @@ public:
         VP9,
         AV1,
         Theora,
+        WMV,
         MotionJPEG,
         LastVideoCodec = MotionJPEG
     };
@@ -151,13 +154,13 @@ public:
 
     QMimeType mimeType() const;
 
-    Q_INVOKABLE QList<QMediaFormat::FileFormat> supportedFileFormats(ConversionMode m);
-    Q_INVOKABLE QList<QMediaFormat::VideoCodec> supportedVideoCodecs(ConversionMode m);
-    Q_INVOKABLE QList<QMediaFormat::AudioCodec> supportedAudioCodecs(ConversionMode m);
+    Q_INVOKABLE QList<FileFormat> supportedFileFormats(ConversionMode m);
+    Q_INVOKABLE QList<VideoCodec> supportedVideoCodecs(ConversionMode m);
+    Q_INVOKABLE QList<AudioCodec> supportedAudioCodecs(ConversionMode m);
 
-    static QString fileFormatName(QMediaFormat::FileFormat c);
-    static QString audioCodecName(QMediaFormat::AudioCodec c);
-    static QString videoCodecName(QMediaFormat::VideoCodec c);
+    Q_INVOKABLE static QString fileFormatName(FileFormat c);
+    Q_INVOKABLE static QString audioCodecName(AudioCodec c);
+    Q_INVOKABLE static QString videoCodecName(VideoCodec c);
 
     static QString fileFormatDescription(QMediaFormat::FileFormat c);
     static QString audioCodecDescription(QMediaFormat::AudioCodec c);

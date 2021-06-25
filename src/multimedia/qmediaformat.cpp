@@ -49,7 +49,7 @@ namespace {
 const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
 {
     "",
-    "video/x-ms-asf",
+    "video/x-ms-wmv",
     "video/x-msvideo",
     "video/x-matroska",
     "video/mp4",
@@ -57,11 +57,11 @@ const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
     "video/quicktime",
     "video/webm",
     // Audio Formats
+    "audio/mp4",
     "audio/aac",
+    "audio/x-ms-wma",
     "audio/flac",
     "audio/mpeg",
-    "audio/mp4",
-    "audio/alac",
     "audio/wav",
 };
 
@@ -71,7 +71,7 @@ constexpr QMediaFormat::FileFormat videoFormatPriorityList[] =
     QMediaFormat::QuickTime,
     QMediaFormat::AVI,
     QMediaFormat::WebM,
-    QMediaFormat::ASF,
+    QMediaFormat::WMV,
     QMediaFormat::Matroska,
     QMediaFormat::Ogg,
     QMediaFormat::UnspecifiedFormat
@@ -79,11 +79,10 @@ constexpr QMediaFormat::FileFormat videoFormatPriorityList[] =
 
 constexpr QMediaFormat::FileFormat audioFormatPriorityList[] =
 {
-    QMediaFormat::AAC,
-    QMediaFormat::MP3,
     QMediaFormat::Mpeg4Audio,
+    QMediaFormat::MP3,
+    QMediaFormat::WMA,
     QMediaFormat::FLAC,
-    QMediaFormat::ALAC,
     QMediaFormat::Wave,
     QMediaFormat::UnspecifiedFormat
 };
@@ -96,6 +95,7 @@ constexpr QMediaFormat::AudioCodec audioPriorityList[] =
     QMediaFormat::AudioCodec::Opus,
     QMediaFormat::AudioCodec::EAC3,
     QMediaFormat::AudioCodec::DolbyTrueHD,
+    QMediaFormat::AudioCodec::WMA,
     QMediaFormat::AudioCodec::FLAC,
     QMediaFormat::AudioCodec::Vorbis,
     QMediaFormat::AudioCodec::Wave,
@@ -109,6 +109,7 @@ constexpr QMediaFormat::VideoCodec videoPriorityList[] =
     QMediaFormat::VideoCodec::H264,
     QMediaFormat::VideoCodec::AV1,
     QMediaFormat::VideoCodec::VP8,
+    QMediaFormat::VideoCodec::WMV,
     QMediaFormat::VideoCodec::Theora,
     QMediaFormat::VideoCodec::MPEG4,
     QMediaFormat::VideoCodec::MPEG2,
@@ -303,7 +304,7 @@ QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)
 {
     constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
         "Unspecified",
-        "ASF",
+        "WMV",
         "AVI",
         "Matroska",
         "MPEG-4",
@@ -311,11 +312,11 @@ QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)
         "QuickTime",
         "WebM",
         // Audio Formats
-        "AAC",
-        "FLAC",
-        "MP3",
         "MPEG-4 Audio",
-        "ALAC",
+        "AAC",
+        "WMA",
+        "MP3",
+        "FLAC",
         "Wave"
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
@@ -334,6 +335,7 @@ QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec c)
         "Opus",
         "Vorbis",
         "Wave",
+        "WMA",
         "ALAC",
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
@@ -352,6 +354,7 @@ QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec c)
         "VP9",
         "AV1",
         "Theora",
+        "WMV",
         "MotionJPEG"
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
@@ -361,7 +364,7 @@ QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat c)
 {
     constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
         "Unspecified File Format",
-        "Windows Media Format",
+        "Windows Media Video",
         "Audio Video Interleave",
         "Matroska Multimedia Container",
         "MPEG-4 Video Container",
@@ -369,11 +372,11 @@ QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat c)
         "QuickTime Container",
         "WebM",
         // Audio Formats
-        "Advanced Audio Codec (AAC)",
-        "Free Lossless Audio Codec (FLAC)",
+        "MPEG-4 Audio",
+        "AAC",
+        "Windows Media Audio",
         "MP3",
-        "MPEG-4 Audio Container",
-        "Apple Lossless Audio Codec (ALAC)",
+        "Free Lossless Audio Codec (FLAC)",
         "Wave File"
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
@@ -392,6 +395,7 @@ QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec c)
         "Opus",
         "Vorbis",
         "Wave",
+        "Windows Media Audio",
         "Apple Lossless Audio Codec (ALAC)",
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
@@ -410,6 +414,7 @@ QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec c)
         "VP9",
         "AV1",
         "Theora",
+        "Windows Media Video",
         "MotionJPEG"
     };
     return QString::fromUtf8(descriptions[int(c) + 1]);
@@ -433,6 +438,11 @@ bool QMediaFormat::operator==(const QMediaFormat &other) const
 void QMediaFormat::resolveForEncoding(ResolveFlags flags)
 {
     const bool requiresVideo = (flags & ResolveFlags::RequiresVideo) != 0;
+
+    if (!requiresVideo)
+        video = VideoCodec::Unspecified;
+
+    // need to adjust the format. Priority is given first to file format, then video codec, then audio codec
 
     QMediaFormat nullFormat;
     auto supportedFormats = nullFormat.supportedFileFormats(QMediaFormat::Encode);
@@ -464,7 +474,7 @@ void QMediaFormat::resolveForEncoding(ResolveFlags flags)
         fmt = QMediaFormat::UnspecifiedFormat;
     if (!supportedAudioCodecs.contains(audio))
         audio = QMediaFormat::AudioCodec::Unspecified;
-    if ((flags == NoFlags) || !supportedVideoCodecs.contains(video))
+    if (!requiresVideo || !supportedVideoCodecs.contains(video))
         video = QMediaFormat::VideoCodec::Unspecified;
 
     if (requiresVideo) {
@@ -482,8 +492,10 @@ void QMediaFormat::resolveForEncoding(ResolveFlags flags)
     if (fmt == QMediaFormat::UnspecifiedFormat)
         fmt = bestSupportedFileFormat();
     // still nothing? Give up
-    if (fmt == QMediaFormat::UnspecifiedFormat)
+    if (fmt == QMediaFormat::UnspecifiedFormat) {
+        *this = {};
         return;
+    }
 
     // find a working video codec
     if (requiresVideo) {

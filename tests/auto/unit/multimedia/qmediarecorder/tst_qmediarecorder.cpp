@@ -317,7 +317,7 @@ void tst_QMediaRecorder::testAudioSettings()
     QCOMPARE(recorder.audioSampleRate(), -1);
 
     QMediaFormat format;
-    format.setFileFormat(QMediaFormat::AAC);
+    format.setFileFormat(QMediaFormat::FLAC);
     recorder.setMediaFormat(format);
     QCOMPARE(recorder.mediaFormat(), format);
 

@@ -159,6 +159,7 @@ void VideoSettings::applySettings()
     format.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
     format.setVideoCodec(boxValue(ui->videoCodecBox).value<QMediaFormat::VideoCodec>());
 
+    mediaRecorder->setMediaFormat(format);
     mediaRecorder->setQuality(QMediaRecorder::Quality(ui->qualitySlider->value()));
     mediaRecorder->setAudioSampleRate(ui->audioSampleRateBox->value());
     mediaRecorder->setVideoResolution(boxValue(ui->videoResolutionBox).toSize());

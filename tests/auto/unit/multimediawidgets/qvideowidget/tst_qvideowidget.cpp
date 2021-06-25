@@ -55,6 +55,7 @@ private slots:
     void aspectRatio();
     void sizeHint_data();
     void sizeHint();
+#if 0
     void brightness_data() { color_data(); }
     void brightness();
     void contrast_data() { color_data(); }
@@ -63,11 +64,12 @@ private slots:
     void hue();
     void saturation_data() { color_data(); }
     void saturation();
+#endif
 
     void paint();
 
 private:
-    void color_data();
+//    void color_data();
 };
 
 class QtTestVideoWidget : public QVideoWidget
@@ -96,6 +98,7 @@ void tst_QVideoWidget::nullObject()
     widget.setAspectRatioMode(Qt::IgnoreAspectRatio);
     QCOMPARE(widget.aspectRatioMode(), Qt::IgnoreAspectRatio);
 
+#if 0
     {
         QSignalSpy spy(&widget, SIGNAL(brightnessChanged(float)));
 
@@ -161,6 +164,7 @@ void tst_QVideoWidget::nullObject()
         QCOMPARE(spy.count(), 2);
         QCOMPARE(spy.value(1).value(0).toFloat(), -1.);
     }
+#endif
 }
 
 
@@ -325,6 +329,7 @@ void tst_QVideoWidget::fullScreen()
     QCOMPARE(spy.count(), 5);
 }
 
+#if 0
 void tst_QVideoWidget::color_data()
 {
     QTest::addColumn<float>("controlValue");
@@ -494,6 +499,7 @@ void tst_QVideoWidget::saturation()
     QCOMPARE(spy.count(), 2);
     QCOMPARE(spy.value(1).value(0).toFloat(), controlValue);
 }
+#endif
 
 static const uchar rgb32ImageData[] =
 {

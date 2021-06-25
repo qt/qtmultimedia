@@ -233,6 +233,7 @@ void QVideoSink::setTargetRect(const QRectF &rect)
         d->videoSink->setDisplayRect(rect.toRect());
 }
 
+#if 0
 float QVideoSink::brightness() const
 {
     return d->brightness;
@@ -292,6 +293,7 @@ void QVideoSink::setSaturation(float saturation)
     d->videoSink->setSaturation(saturation);
     emit saturationChanged(saturation);
 }
+#endif
 
 Qt::BGMode QVideoSink::backgroundMode() const
 {

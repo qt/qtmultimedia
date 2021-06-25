@@ -54,10 +54,6 @@ class Q_MULTIMEDIAWIDGETS_EXPORT QVideoWidget : public QWidget
     Q_OBJECT
     Q_PROPERTY(bool fullScreen READ isFullScreen WRITE setFullScreen NOTIFY fullScreenChanged)
     Q_PROPERTY(Qt::AspectRatioMode aspectRatioMode READ aspectRatioMode WRITE setAspectRatioMode NOTIFY aspectRatioModeChanged)
-    Q_PROPERTY(float brightness READ brightness WRITE setBrightness NOTIFY brightnessChanged)
-    Q_PROPERTY(float contrast READ contrast WRITE setContrast NOTIFY contrastChanged)
-    Q_PROPERTY(float hue READ hue WRITE setHue NOTIFY hueChanged)
-    Q_PROPERTY(float saturation READ saturation WRITE setSaturation NOTIFY saturationChanged)
 
 public:
     explicit QVideoWidget(QWidget *parent = nullptr);
@@ -71,11 +67,6 @@ public:
 
     Qt::AspectRatioMode aspectRatioMode() const;
 
-    float brightness() const;
-    float contrast() const;
-    float hue() const;
-    float saturation() const;
-
     QSize sizeHint() const override;
 #if defined(Q_OS_WIN)
     bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
@@ -84,17 +75,9 @@ public:
 public Q_SLOTS:
     void setFullScreen(bool fullScreen);
     void setAspectRatioMode(Qt::AspectRatioMode mode);
-    void setBrightness(float brightness);
-    void setContrast(float contrast);
-    void setHue(float hue);
-    void setSaturation(float saturation);
 
 Q_SIGNALS:
     void fullScreenChanged(bool fullScreen);
-    void brightnessChanged(float brightness);
-    void contrastChanged(float contrast);
-    void hueChanged(float hue);
-    void saturationChanged(float saturation);
     void aspectRatioModeChanged(Qt::AspectRatioMode mode);
 
 protected:

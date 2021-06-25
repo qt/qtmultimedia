@@ -133,7 +133,7 @@ void AudioDecoder::bufferReady()
         return;
     }
 
-    m_waveDecoder->write((const char *)buffer.constData(), buffer.byteCount());
+    m_waveDecoder->write(buffer.constData<char>(), buffer.byteCount());
 }
 
 void AudioDecoder::error(QAudioDecoder::Error error)

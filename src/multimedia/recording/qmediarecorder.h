@@ -71,7 +71,7 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
     Q_PROPERTY(QMediaMetaData metaData READ metaData WRITE setMetaData NOTIFY metaDataChanged)
     Q_PROPERTY(QMediaRecorder::Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-    Q_PROPERTY(QMediaFormat mediaFormat READ mediaFormat WRITE setMediaFormat)
+    Q_PROPERTY(QMediaFormat mediaFormat READ mediaFormat WRITE setMediaFormat NOTIFY mediaFormatChanged)
     Q_PROPERTY(Quality quality READ quality WRITE setQuality)
 public:
     enum Quality

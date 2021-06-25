@@ -49,10 +49,10 @@
 ****************************************************************************/
 
 #include "playlistmodel.h"
+#include <qmediaplaylist.h>
 
 #include <QFileInfo>
 #include <QUrl>
-#include <QMediaPlaylist>
 
 PlaylistModel::PlaylistModel(QObject *parent)
     : QAbstractItemModel(parent)

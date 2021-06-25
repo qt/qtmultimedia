@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -178,7 +178,7 @@ qint64 QWaveDecoder::headerLength()
 
 qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
 {
-    if (!haveFormat)
+    if (!haveFormat || format.bytesPerSample() == 0)
         return 0;
 
     qint64 nSamples = maxlen / format.bytesPerSample();

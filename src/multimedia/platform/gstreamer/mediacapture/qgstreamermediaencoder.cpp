@@ -238,20 +238,29 @@ static GstEncodingProfile *createAudioProfile(const QMediaEncoderSettings &setti
 static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSettings &settings)
 {
     auto *containerProfile = createContainerProfile(settings);
-    if (containerProfile) {
-        GstEncodingProfile *audioProfile = createAudioProfile(settings);
-        GstEncodingProfile *videoProfile = settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified ? createVideoProfile(settings) : nullptr;
-//        qDebug() << "audio profile" << gst_caps_to_string(gst_encoding_profile_get_format(audioProfile));
-//        qDebug() << "video profile" << gst_caps_to_string(gst_encoding_profile_get_format(videoProfile));
-//        qDebug() << "conta profile" << gst_caps_to_string(gst_encoding_profile_get_format((GstEncodingProfile *)containerProfile));
+    if (!containerProfile) {
+        qWarning() << "QGstreamerMediaEncoder: failed to create container profile!";
+        return nullptr;
+    }
 
-        if (videoProfile) {
-            if (!gst_encoding_container_profile_add_profile(containerProfile, videoProfile))
-                gst_encoding_profile_unref(videoProfile);
+    GstEncodingProfile *audioProfile = createAudioProfile(settings);
+    GstEncodingProfile *videoProfile = nullptr;
+    if (settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified)
+        videoProfile = createVideoProfile(settings);
+//    qDebug() << "audio profile" << (audioProfile ? gst_caps_to_string(gst_encoding_profile_get_format(audioProfile)) : "(null)");
+//    qDebug() << "video profile" << (videoProfile ? gst_caps_to_string(gst_encoding_profile_get_format(videoProfile)) : "(null)");
+//    qDebug() << "conta profile" << gst_caps_to_string(gst_encoding_profile_get_format((GstEncodingProfile *)containerProfile));
+
+    if (videoProfile) {
+        if (!gst_encoding_container_profile_add_profile(containerProfile, videoProfile)) {
+            qWarning() << "QGstreamerMediaEncoder: failed to add video profile!";
+            gst_encoding_profile_unref(videoProfile);
         }
-        if (audioProfile) {
-            if (!gst_encoding_container_profile_add_profile(containerProfile, audioProfile))
-                gst_encoding_profile_unref(audioProfile);
+    }
+    if (audioProfile) {
+        if (!gst_encoding_container_profile_add_profile(containerProfile, audioProfile)) {
+            qWarning() << "QGstreamerMediaEncoder: failed to add audio profile!";
+            gst_encoding_profile_unref(audioProfile);
         }
     }
 
@@ -356,11 +365,16 @@ void QGstreamerMediaEncoder::stop()
     heartbeat.stop();
 
     gstPipeline.setStateSync(GST_STATE_PAUSED);
-    audioSrcPad.unlinkPeer();
-    videoSrcPad.unlinkPeer();
-    m_session->releaseAudioPad(audioSrcPad);
-    m_session->releaseVideoPad(videoSrcPad);
-    audioSrcPad = videoSrcPad = {};
+    if (!audioSrcPad.isNull()) {
+        audioSrcPad.unlinkPeer();
+        m_session->releaseAudioPad(audioSrcPad);
+        audioSrcPad = {};
+    }
+    if (!videoSrcPad.isNull()) {
+        videoSrcPad.unlinkPeer();
+        m_session->releaseVideoPad(videoSrcPad);
+        videoSrcPad = {};
+    }
 
     gstPipeline.setState(GST_STATE_PLAYING);
     //with live sources it's necessary to send EOS even to pipeline

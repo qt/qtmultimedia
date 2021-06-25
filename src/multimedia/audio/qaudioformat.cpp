@@ -38,6 +38,7 @@
 ****************************************************************************/
 #include <QDebug>
 #include <qaudioformat.h>
+#include <qalgorithms.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -141,10 +142,78 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \enum AudioChannel
+
+    The audio channels follow the standard definition used in
+
+    \value Mono
+    \value Left
+    \value Right
+    \value Center
+    \value LFE Low Frequence Effect channel (Subwoofer)
+    \value RearLeft
+    \value RearRight,
+    \value SideLeft,
+    \value SideRight
+    \value RearCenter
+*/
+
+
+/*!
+    \enum ChannelConfig
+
+    This enum describes a standardized audio channel layout. The most common configurations are Mono, Stereo, 2.1
+    (stereo plus low frequency) , 5.1 surround and 7.1 surround configurations.
+
+    \value ChannelConfigUnknown The channel configuration is not known.
+    \value ChannelConfigMono The audio has one Center channel
+    \value ChannelConfigStereo The audio has two channels, Left and Right
+    \value ChannelConfig2Dot1 The audio has three channels, Left, Right and LFE (low frequency effect)
+    \value ChannelConfigSurround5Dot0 The audio has five channels, Left, Right, Center, BackLeft, BackRight
+    \value ChannelConfigSurround5Dot1 The audio has 6 channels, Left, Right, Center, LFE, BackLeft and BackRight
+    \value ChannelConfigSurround7Dot0 The audio has 7 channels, Left, Right, Center, BackLeft, BackRight, SideLeft and SideRight
+    \value ChannelConfigSurround7Dot1 The audio has 8 channels, Left, Right, Center, LFE, BackLeft, BackRight, SideLeft and SideRight
+*/
+
+/*!
+    Sets the channel configuration to \a config.
+
+    Sets the channel configuration of the audio format to one of the standard
+    audio channel configurations.
+
+    \note that this will also modify the channel count.
+*/
+void QAudioFormat::setChannelConfig(ChannelConfig config) noexcept
+{
+    m_channelConfig = config;
+    if (config != ChannelConfigUnknown)
+        m_channelCount = qPopulationCount(config);
+}
+
+/*!
+    Returns the position of a certain audio channel inside an audio frame for the given format.
+    Returns -1 if the channel does not exist for this format or the channel configuration is unknown.
+*/
+int QAudioFormat::channelOffset(AudioChannelPosition channel) const noexcept
+{
+    if (!(m_channelConfig & (1u << channel)))
+        return -1;
+
+    uint maskedChannels = m_channelConfig & ((1u << channel) - 1);
+    return qPopulationCount(maskedChannels);
+}
+
+/*!
     \fn void QAudioFormat::setChannelCount(int channels)
 
-    Sets the channel count to \a channels.
+    Sets the channel count to \a channels. Setting this also sets the channel config to ChannelConfigUnknown.
+*/
 
+
+/*!
+    \fn QAudioFormat::ChannelConfig QAudioFormat::channelConfig() const noexcept
+
+    Returns the current channel configuration.
 */
 
 /*!
@@ -198,7 +267,6 @@ qint64 QAudioFormat::durationForBytes(qint32 bytes) const
 {
     // avoid compiler warnings about unused variables. [[maybe_unused]] in the header
     // gives compiler errors on older gcc versions
-    Q_UNUSED(bitfields);
     Q_UNUSED(reserved);
 
     if (!isValid() || bytes <= 0)

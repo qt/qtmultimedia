@@ -118,6 +118,7 @@ Q_SIGNALS:
     void streamingError(int errorCode);
     void recordingStarted();
     void recordingStopped();
+    void recordingError(int errorCode);
     void durationChanged(qint64 duration);
     void newVideoFrame(const QVideoFrame &frame);
 
@@ -134,6 +135,7 @@ private:
     HRESULT prepareVideoStream(DWORD mediaTypeIndex);
     HRESULT prepareAudioStream();
     HRESULT initSourceIndexes();
+    HRESULT updateSinkInputMediaTypes();
     void releaseResources();
     void stopStreaming();
     DWORD findMediaTypeIndex(const QCameraFormat &reqFormat);
@@ -167,6 +169,7 @@ private:
     QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
     LONGLONG           m_timeOffset = 0;
     LONGLONG           m_pauseTime = 0;
+    LONGLONG           m_lastTimestamp = 0;
     QTimer             m_durationTimer;
     qint64             m_currentDuration = -1;
     qint64             m_lastDuration = -1;

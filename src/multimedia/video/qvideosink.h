@@ -77,18 +77,6 @@ public:
     QRectF targetRect() const;
     void setTargetRect(const QRectF &rect);
 
-    float brightness() const;
-    void setBrightness(float brightness);
-
-    float contrast() const;
-    void setContrast(float contrast);
-
-    float hue() const;
-    void setHue(float hue);
-
-    float saturation() const;
-    void setSaturation(float saturation);
-
     Qt::BGMode backgroundMode() const;
     void setBackgroundMode(Qt::BGMode mode);
 
@@ -102,10 +90,6 @@ Q_SIGNALS:
     void newVideoFrame(const QVideoFrame &frame) const;
 
     void fullScreenChanged(bool fullScreen);
-    void brightnessChanged(float brightness);
-    void contrastChanged(float contrast);
-    void hueChanged(float hue);
-    void saturationChanged(float saturation);
     void aspectRatioModeChanged(Qt::AspectRatioMode mode);
 
 private:

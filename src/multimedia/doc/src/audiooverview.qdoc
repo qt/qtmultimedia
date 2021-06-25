@@ -1,11 +1,11 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
-** Contact: http://www.qt.io/licensing/
+** Copyright (C) 2021 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the documentation of the Qt Toolkit.
+** This file is part of the Qt for Multimedia module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:FDL$
+** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
@@ -14,13 +14,25 @@
 ** and conditions see https://www.qt.io/terms-conditions. For further
 ** information use the contact form at https://www.qt.io/contact-us.
 **
-** GNU Free Documentation License Usage
-** Alternatively, this file may be used under the terms of the GNU Free
-** Documentation License version 1.3 as published by the Free Software
-** Foundation and appearing in the file included in the packaging of
-** this file. Please review the following information to ensure
-** the GNU Free Documentation License version 1.3 requirements
-** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
@@ -28,52 +40,64 @@
 /*!
 \page audiooverview.html
 \title Audio Overview
-\brief Audio playback, recording and processing
+\inlineimage sound-wave-small.jpg
+\brief Playback, recording and processing of Audio.
 
 \section1 Audio Features
 
-Qt Multimedia offers a range of audio classes, covering both low and
-high level approaches to audio input, output and processing.
+Qt Multimedia offers a range of audio classes that cover both low and
+high level approaches to: audio input, output and processing.
 
 \section1 Audio Implementation Details
 
 \section2 Playing Compressed Audio
-For playing media or audio files that are not simple, uncompressed audio, you can
-use the \l QMediaPlayer C++ class, or the \l {MediaPlayer} QML type.
+For playing media or audio files that are not simple, uncompressed audio, you
+can use the QMediaPlayer C++ class, or the \l{MediaPlayer} QML type.
 The QMediaPlayer class and associated QML types are also capable of playing
-\l{multimedia-playing-video}{video}, if required.  The compressed audio formats supported does depend
-on the operating system environment, and also what decoder plugins the user
-may have installed.
+\l{multimedia-playing-video}{video}, if required. The compressed audio formats
+supported depends on:
+\list
+    \li The operating system environment.
+    \li Any decoder plugins the user may have installed.
+\endlist
 
 Here is how you play a local file using C++:
 
     \snippet multimedia-snippets/media.cpp Local playback
 
-You can also put files (even remote URLs) into a playlist:
+You can also put files, and remote URLs into a playlist:
     \snippet multimedia-snippets/media.cpp Audio playlist
 
 \section2 Recording Audio to a File
-For recording audio to a file, the \l {QMediaRecorder} class allows you
+For recording audio to a file, the QMediaRecorder class allows you
 to compress audio data from an input device and record it.
 
     \snippet multimedia-snippets/media.cpp Audio recorder
 
-\l {QMediaCaptureSession} provides support for more complex capturing and recording use cases.
+QMediaCaptureSession provides support for more complex use cases involving the
+capturing and recording of audio.
 
 \section2 Low Latency Sound Effects
 
-In addition to the raw access to sound devices described above, the QSoundEffect class (and
-\l {SoundEffect} QML type) offers a slightly higher level way to play
-sounds.  This class allows you to specify a WAV format file which can
+In addition to \l{raw access} to sound devices, the QSoundEffect
+class (and \l{SoundEffect} QML type) offers a more abstract way to play
+sounds. This class allows you to specify a \b{WAV format} file, which can
 then be played with low latency when necessary.
 
-You can adjust the number of \l {QSoundEffect::loopCount()}{loops} a sound effect is played, as well as
-the \l {QSoundEffect::setVolume()}{volume} (or \l {QSoundEffect::setMuted()}{muting}) of the effect.
+You can adjust the:
+\list
+    \li \l{QSoundEffect::loopCount()}{Number of loops} in which a sound effect
+    is played.
+    \li \l{QSoundEffect::setVolume()}{Volume} of the sound effect.
+    \li \l{QSoundEffect::setMuted()}{Muting} of the sound effect.
+\endlist
 
+\target raw access
 \section2 Low Level Audio Playback and Recording
+
 Qt Multimedia offers classes for raw access to audio input and output
 facilities, allowing applications to receive raw data from devices like
-microphones, and to write raw data to speakers or other devices.  Generally
+microphones, and to write raw data to speakers or other devices. Generally
 these classes do not do any audio decoding, or other processing, but they
 can support different types of raw audio data.
 
@@ -90,13 +114,14 @@ for \c pull mode with QAudioSource, when audio data is available then the
 data will be written directly to the QIODevice.
 
 In \c push mode, the audio device provides a QIODevice instance that
-can be written or read to as needed.  Typically this results in simpler
+can be written or read to as needed. Typically, this results in simpler
 code but more buffering, which may affect latency.
 
 \section2 Decoding Compressed Audio to Memory
+
 In some cases you may want to decode a compressed audio file and do further
-processing yourself (for example, mixing multiple samples or using custom
-digital signal processing algorithms). QAudioDecoder supports decoding local
+processing yourself. For example, mixing multiple samples or using custom
+digital signal processing algorithms. QAudioDecoder supports decoding local
 files or data streams from QIODevice instances.
 
 Here's an example of decoding a local file:
@@ -122,3 +147,4 @@ There are both C++ and QML examples available.
 \annotatedlist multimedia_audio_qml
 
 */
+

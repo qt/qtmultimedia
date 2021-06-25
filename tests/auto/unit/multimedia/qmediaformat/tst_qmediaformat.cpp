@@ -43,6 +43,7 @@ void tst_QMediaFormat::testResolveForEncoding()
     QMediaFormat format;
 
     auto hasVideoCodecs = !format.supportedVideoCodecs(QMediaFormat::Encode).isEmpty();
+    bool hasWav = format.supportedFileFormats(QMediaFormat::Encode).contains(QMediaFormat::Wave);
 
     // Resolve codecs for audio only stream
     format.resolveForEncoding(QMediaFormat::NoFlags);
@@ -62,6 +63,27 @@ void tst_QMediaFormat::testResolveForEncoding()
     // Resolve again for audio only stream
     format.resolveForEncoding(QMediaFormat::NoFlags);
     QVERIFY(format.videoCodec() == QMediaFormat::VideoCodec::Unspecified);
+
+    // check some specific conditions
+    if (hasWav) {
+        QMediaFormat f(QMediaFormat::Mpeg4Audio);
+        if (!f.supportedAudioCodecs(QMediaFormat::Encode).contains(QMediaFormat::AudioCodec::Wave)) {
+            qDebug() << "testing!";
+            format.setFileFormat(QMediaFormat::Mpeg4Audio);
+            format.setAudioCodec(QMediaFormat::AudioCodec::Wave);
+            format.resolveForEncoding(QMediaFormat::NoFlags);
+            QVERIFY(format.fileFormat() == QMediaFormat::Mpeg4Audio);
+            QVERIFY(format.audioCodec() != QMediaFormat::AudioCodec::Wave);
+
+            format = {};
+            format.setFileFormat(QMediaFormat::Wave);
+            format.setAudioCodec(QMediaFormat::AudioCodec::AAC);
+            format.resolveForEncoding(QMediaFormat::NoFlags);
+            QVERIFY(format.fileFormat() == QMediaFormat::Wave);
+            QVERIFY(format.audioCodec() == QMediaFormat::AudioCodec::Wave);
+        }
+    }
+
 }
 
 QTEST_MAIN(tst_QMediaFormat)
