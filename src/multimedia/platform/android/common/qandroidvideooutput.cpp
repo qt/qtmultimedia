@@ -97,10 +97,8 @@ class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
 public:
     AndroidTextureVideoBuffer(QAndroidTextureVideoOutput *output, const QSize &size)
         : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle)
-        , m_mapMode(QVideoFrame::NotMapped)
         , m_output(output)
         , m_size(size)
-        , m_textureUpdated(false)
     {
     }
 
@@ -163,21 +161,15 @@ private:
         return (m_textureUpdated = m_output->renderFrameToFbo());
     }
 
-    QVideoFrame::MapMode m_mapMode;
-    QAndroidTextureVideoOutput *m_output;
+    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
+    QAndroidTextureVideoOutput *m_output = nullptr;
     QImage m_image;
     QSize m_size;
-    bool m_textureUpdated;
+    bool m_textureUpdated = false;
 };
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
     : QAndroidVideoOutput(parent)
-    , m_sink(0)
-    , m_surfaceTexture(0)
-    , m_externalTex(0)
-    , m_fbo(0)
-    , m_program(0)
-    , m_glDeleter(0)
 {
 
 }
@@ -214,13 +206,13 @@ bool QAndroidTextureVideoOutput::isReady()
     return QOpenGLContext::currentContext() || m_externalTex;
 }
 
-bool QAndroidTextureVideoOutput::initSurfaceTexture()
+void QAndroidTextureVideoOutput::initSurfaceTexture()
 {
     if (m_surfaceTexture)
-        return true;
+        return;
 
     if (!m_sink)
-        return false;
+        return;
 
     QMutexLocker locker(&m_mutex);
 
@@ -230,13 +222,11 @@ bool QAndroidTextureVideoOutput::initSurfaceTexture()
         connect(m_surfaceTexture, SIGNAL(frameAvailable()), this, SLOT(onFrameAvailable()));
     } else {
         delete m_surfaceTexture;
-        m_surfaceTexture = 0;
+        m_surfaceTexture = nullptr;
         if (m_glDeleter)
             m_glDeleter->deleteTexture(m_externalTex);
         m_externalTex = 0;
     }
-
-    return m_surfaceTexture != 0;
 }
 
 void QAndroidTextureVideoOutput::clearSurfaceTexture()
@@ -244,7 +234,7 @@ void QAndroidTextureVideoOutput::clearSurfaceTexture()
     QMutexLocker locker(&m_mutex);
     if (m_surfaceTexture) {
         delete m_surfaceTexture;
-        m_surfaceTexture = 0;
+        m_surfaceTexture = nullptr;
     }
 
     // Also reset the attached OpenGL texture
@@ -255,9 +245,7 @@ void QAndroidTextureVideoOutput::clearSurfaceTexture()
 
 AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
 {
-    if (!initSurfaceTexture())
-        return 0;
-
+    initSurfaceTexture();
     return m_surfaceTexture;
 }
 
