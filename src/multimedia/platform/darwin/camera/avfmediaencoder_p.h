@@ -96,6 +96,8 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
+    void updateDuration(qint64 duration);
+
 public Q_SLOTS:
     void setState(QMediaRecorder::RecorderState state) override;
     void onAudioOutputChanged();
@@ -122,6 +124,8 @@ private:
     QMediaEncoderSettings m_settings;
 
     QMediaMetaData m_metaData;
+
+    qint64 m_duration;
 
     NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;

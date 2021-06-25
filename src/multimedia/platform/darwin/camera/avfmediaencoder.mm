@@ -91,6 +91,7 @@ AVFMediaEncoder::AVFMediaEncoder(QMediaRecorder *parent)
     : QObject(parent)
     , QPlatformMediaEncoder(parent)
     , m_state(QMediaRecorder::StoppedState)
+    , m_duration(0)
     , m_audioSettings(nil)
     , m_videoSettings(nil)
     //, m_restoreFPS(-1, -1)
@@ -124,7 +125,13 @@ QMediaRecorder::RecorderState AVFMediaEncoder::state() const
 
 qint64 AVFMediaEncoder::duration() const
 {
-    return m_writer.data().durationInMs;
+    return m_duration;
+}
+
+void AVFMediaEncoder::updateDuration(qint64 duration)
+{
+    m_duration = duration;
+    durationChanged(m_duration);
 }
 
 static bool formatSupportsFramerate(AVCaptureDeviceFormat *format, qreal fps)
