@@ -66,7 +66,6 @@ public:
 
     bool isLocationWritable(const QUrl &location) const override;
     QMediaRecorder::RecorderState state() const override;
-    QMediaRecorder::Status status() const override;
     qint64 duration() const override;
     void applySettings() override;
 

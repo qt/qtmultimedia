@@ -60,11 +60,6 @@ QMediaRecorder::RecorderState QAndroidMediaEncoder::state() const
     return m_session->state();
 }
 
-QMediaRecorder::Status QAndroidMediaEncoder::status() const
-{
-    return m_session->status();
-}
-
 qint64 QAndroidMediaEncoder::duration() const
 {
     return m_session->duration();

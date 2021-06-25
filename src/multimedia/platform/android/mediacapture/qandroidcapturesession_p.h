@@ -78,7 +78,6 @@ public:
     void setAudioInput(QPlatformAudioInput *input);
 
     QMediaRecorder::RecorderState state() const;
-    QMediaRecorder::Status status() const;
 
     void start(const QUrl &outputLocation);
     void stop(bool error = false);
@@ -95,11 +94,6 @@ public:
     void stateChanged(QMediaRecorder::RecorderState state) {
         if (m_mediaEncoder)
             m_mediaEncoder->stateChanged(state);
-    }
-    void statusChanged(QMediaRecorder::Status status)
-    {
-        if (m_mediaEncoder)
-            m_mediaEncoder->statusChanged(status);
     }
     void durationChanged(qint64 position)
     {
@@ -158,9 +152,6 @@ private:
 
     CaptureProfile getProfile(int id);
 
-
-    void setStatus(QMediaRecorder::Status status);
-
     void updateResolution();
     void restartViewfinder();
 
@@ -178,7 +169,6 @@ private:
     qint64 m_duration;
 
     QMediaRecorder::RecorderState m_state;
-    QMediaRecorder::Status m_status;
     QUrl m_usedOutputLocation;
 
     CaptureProfile m_defaultSettings;

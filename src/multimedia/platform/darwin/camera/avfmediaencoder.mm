@@ -90,7 +90,6 @@ AVFMediaEncoder::AVFMediaEncoder(QMediaRecorder *parent)
     : QObject(parent)
     , QPlatformMediaEncoder(parent)
     , m_state(QMediaRecorder::StoppedState)
-    , m_lastStatus(QMediaRecorder::StoppedStatus)
     , m_audioSettings(nil)
     , m_videoSettings(nil)
     //, m_restoreFPS(-1, -1)
@@ -120,11 +119,6 @@ bool AVFMediaEncoder::isLocationWritable(const QUrl &location) const
 QMediaRecorder::RecorderState AVFMediaEncoder::state() const
 {
     return m_state;
-}
-
-QMediaRecorder::Status AVFMediaEncoder::status() const
-{
-    return m_lastStatus;
 }
 
 qint64 AVFMediaEncoder::duration() const
@@ -540,11 +534,9 @@ void AVFMediaEncoder::record()
                     transform:CGAffineTransformMakeRotation(qDegreesToRadians(rotation))]) {
 
         m_state = QMediaRecorder::RecordingState;
-        m_lastStatus = QMediaRecorder::StartingStatus;
 
         Q_EMIT actualLocationChanged(fileURL);
         Q_EMIT stateChanged(m_state);
-        Q_EMIT statusChanged(m_lastStatus);
 
         // Apple recommends to call startRunning and do all
         // setup on a special queue, and that's what we had
@@ -564,8 +556,6 @@ void AVFMediaEncoder::record()
 
 void AVFMediaEncoder::assetWriterStarted()
 {
-    m_lastStatus = QMediaRecorder::RecordingStatus;
-    Q_EMIT statusChanged(QMediaRecorder::RecordingStatus);
 }
 
 void AVFMediaEncoder::assetWriterFinished()
@@ -573,7 +563,6 @@ void AVFMediaEncoder::assetWriterFinished()
     Q_ASSERT(m_service && m_service->session());
     AVFCameraSession *session = m_service->session();
 
-    const QMediaRecorder::Status lastStatus = m_lastStatus;
     const QMediaRecorder::RecorderState lastState = m_state;
 
     unapplySettings();
@@ -584,9 +573,6 @@ void AVFMediaEncoder::assetWriterFinished()
     [session->captureSession() startRunning];
 
     m_state = QMediaRecorder::StoppedState;
-    m_lastStatus = QMediaRecorder::StoppedStatus;
-    if (m_lastStatus != lastStatus)
-        Q_EMIT statusChanged(m_lastStatus);
     if (m_state != lastState)
         Q_EMIT stateChanged(m_state);
 }
@@ -606,27 +592,14 @@ void AVFMediaEncoder::cameraActiveChanged(bool active)
     AVFCamera *cameraControl = m_service->avfCameraControl();
     Q_ASSERT(cameraControl);
 
-    const QMediaRecorder::Status lastStatus = m_lastStatus;
     if (!active) {
-        if (m_lastStatus == QMediaRecorder::RecordingStatus)
-            return stopWriter();
-
-        m_lastStatus = QMediaRecorder::StoppedStatus;
+        return stopWriter();
     }
-
-    if (lastStatus != m_lastStatus)
-        Q_EMIT statusChanged(m_lastStatus);
 }
 
 void AVFMediaEncoder::stopWriter()
 {
-    if (m_lastStatus == QMediaRecorder::RecordingStatus) {
-        m_lastStatus = QMediaRecorder::FinalizingStatus;
-
-        Q_EMIT statusChanged(m_lastStatus);
-
-        [m_writer stop];
-    }
+    [m_writer stop];
 }
 
 #include "moc_avfmediaencoder_p.cpp"

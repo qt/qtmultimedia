@@ -210,18 +210,6 @@ QMediaRecorder::RecorderState QMediaRecorder::recorderState() const
 }
 
 /*!
-    Returns the current media encoder status.
-
-    \sa QMediaRecorder::Status
-*/
-
-QMediaRecorder::Status QMediaRecorder::status() const
-{
-    Q_D(const QMediaRecorder);
-    return d->control ? d->control->status() : UnavailableStatus;
-}
-
-/*!
     Returns the current error state.
 
     \sa errorString()
@@ -262,8 +250,7 @@ qint64 QMediaRecorder::duration() const
     Start recording.
 
     While the encoder state is changed immediately to QMediaRecorder::RecordingState,
-    recording may start asynchronously, with statusChanged(QMediaRecorder::RecordingStatus)
-    signal emitted when recording starts.
+    recording may start asynchronously.
 
     If recording fails error() signal is emitted
     with encoder state being reset back to QMediaRecorder::StoppedState.
@@ -328,27 +315,6 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \enum QMediaRecorder::Status
-
-    \value UnavailableStatus
-        The recorder is not available or not supported by connected media object.
-    \value UnloadedStatus
-        The recorder is avilable but not loaded.
-    \value LoadingStatus
-        The recorder is initializing.
-    \value LoadedStatus
-        The recorder is initialized and ready to record media.
-    \value StartingStatus
-        Recording is requested but not active yet.
-    \value RecordingStatus
-        Recording is active.
-    \value PausedStatus
-        Recording is paused.
-    \value FinalizingStatus
-        Recording is stopped with media being finalized.
-*/
-
-/*!
     \enum QMediaRecorder::Error
 
     \value NoError         No Errors.
@@ -364,14 +330,6 @@ void QMediaRecorder::stop()
     The state property represents the user request and is changed synchronously
     during record(), pause() or stop() calls.
     Recorder state may also change asynchronously when recording fails.
-*/
-
-/*!
-    \property QMediaRecorder::status
-    \brief The current status of the media recorder.
-
-    The status is changed asynchronously and represents the actual status
-    of media recorder.
 */
 
 /*!

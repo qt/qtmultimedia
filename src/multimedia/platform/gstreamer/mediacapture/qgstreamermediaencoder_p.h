@@ -96,7 +96,6 @@ public:
     void updateDuration();
 
 private:
-    void updateStatus();
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
     void finalize();
     QDir defaultDir() const;

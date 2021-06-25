@@ -227,7 +227,6 @@ void tst_QMediaRecorder::testSink()
 void tst_QMediaRecorder::testRecord()
 {
     QSignalSpy stateSignal(encoder,SIGNAL(recorderStateChanged(RecorderState)));
-    QSignalSpy statusSignal(encoder,SIGNAL(statusChanged(Status)));
     QSignalSpy progressSignal(encoder, SIGNAL(durationChanged(qint64)));
     encoder->record();
     QCOMPARE(encoder->recorderState(), QMediaRecorder::RecordingState);
@@ -239,11 +238,6 @@ void tst_QMediaRecorder::testRecord()
 
     QTestEventLoop::instance().enterLoop(1);
 
-    QCOMPARE(encoder->status(), QMediaRecorder::RecordingStatus);
-    QVERIFY(!statusSignal.isEmpty());
-    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::RecordingStatus);
-    statusSignal.clear();
-
     QVERIFY(progressSignal.count() > 0);
 
     encoder->pause();
@@ -253,10 +247,6 @@ void tst_QMediaRecorder::testRecord()
     QCOMPARE(stateSignal.count(), 2);
 
     QTestEventLoop::instance().enterLoop(1);
-    QCOMPARE(encoder->status(), QMediaRecorder::PausedStatus);
-    QVERIFY(!statusSignal.isEmpty());
-    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::PausedStatus);
-    statusSignal.clear();
 
     encoder->stop();
 
@@ -264,10 +254,6 @@ void tst_QMediaRecorder::testRecord()
     QCOMPARE(stateSignal.count(), 3);
 
     QTestEventLoop::instance().enterLoop(1);
-    QCOMPARE(encoder->status(), QMediaRecorder::StoppedStatus);
-    QVERIFY(!statusSignal.isEmpty());
-    QCOMPARE(statusSignal.last()[0].value<QMediaRecorder::Status>(), QMediaRecorder::StoppedStatus);
-    statusSignal.clear();
 
     mock->stop();
     QCOMPARE(stateSignal.count(), 3);

@@ -81,7 +81,6 @@ public:
     bool isLocationWritable(const QUrl &location) const override;
 
     QMediaRecorder::RecorderState state() const override;
-    QMediaRecorder::Status status() const override;
 
     qint64 duration() const override;
 
@@ -120,7 +119,6 @@ private:
     AVFStorageLocation m_storageLocation;
 
     QMediaRecorder::RecorderState m_state;
-    QMediaRecorder::Status m_lastStatus;
     QMediaEncoderSettings m_settings;
 
     QMediaMetaData m_metaData;

@@ -96,12 +96,6 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaRecorder *parent)
 */
 
 /*!
-    \fn QMediaRecorder::Status QPlatformMediaEncoder::status() const
-
-    Return the current recording status.
-*/
-
-/*!
     \fn qint64 QPlatformMediaEncoder::duration() const
 
     Return the current duration in milliseconds.
@@ -137,19 +131,6 @@ void QPlatformMediaEncoder::stateChanged(QMediaRecorder::RecorderState state)
         return;
     m_state = state;
     emit q->recorderStateChanged(state);
-}
-
-/*!
-    \fn void QPlatformMediaEncoder::statusChanged(QMediaRecorder::Status status)
-
-    Signals that the \a status of a media recorder has changed.
-*/
-void QPlatformMediaEncoder::statusChanged(QMediaRecorder::Status status)
-{
-    if (m_status == status)
-        return;
-    m_status = status;
-    emit q->statusChanged(status);
 }
 
 /*!

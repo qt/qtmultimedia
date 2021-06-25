@@ -72,7 +72,6 @@ public:
 
     bool isLocationWritable(const QUrl &location) const override;
     QMediaRecorder::RecorderState state() const override;
-    QMediaRecorder::Status status() const override;
     qint64 duration() const override;
     void applySettings() override;
 
@@ -100,7 +99,6 @@ private:
     QWindowsMediaCaptureService  *m_captureService = nullptr;
     QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QMediaRecorder::RecorderState          m_state = QMediaRecorder::StoppedState;
-    QMediaRecorder::Status         m_lastStatus = QMediaRecorder::StoppedStatus;
     QMediaEncoderSettings         m_settings;
     QWindowsStorageLocation       m_storageLocation;
     QString                       m_fileName;
