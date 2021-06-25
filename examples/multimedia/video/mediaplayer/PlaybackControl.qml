@@ -58,6 +58,8 @@ Item {
 
     required property MediaPlayer mediaPlayer
     property int mediaPlayerState: mediaPlayer.playbackState
+    property alias muted: audio.muted
+    property alias volume: audio.volume
 
     implicitHeight: 80
     opacity: 1
@@ -139,6 +141,7 @@ Item {
                 }
 
                 AudioControl {
+                    id: audio
                     anchors.right: parent.right
                     anchors.top: parent.top
                     anchors.bottom: parent.bottom
