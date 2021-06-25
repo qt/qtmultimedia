@@ -178,7 +178,6 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
     , m_fbo(0)
     , m_program(0)
     , m_glDeleter(0)
-    , m_surfaceTextureCanAttachToContext(QNativeInterface::QAndroidApplication::sdkVersion() >= 16)
 {
 
 }
@@ -207,22 +206,12 @@ void QAndroidTextureVideoOutput::setSurface(QVideoSink *surface)
     if (surface == m_sink)
         return;
 
-    if (m_sink) {
-        if (!m_surfaceTextureCanAttachToContext)
-            m_sink->setProperty("_q_GLThreadCallback", QVariant());
-    }
-
     m_sink = surface;
-
-    if (m_sink && !m_surfaceTextureCanAttachToContext) {
-        m_sink->setProperty("_q_GLThreadCallback",
-                               QVariant::fromValue<QObject*>(this));
-    }
 }
 
 bool QAndroidTextureVideoOutput::isReady()
 {
-    return m_surfaceTextureCanAttachToContext || QOpenGLContext::currentContext() || m_externalTex;
+    return QOpenGLContext::currentContext() || m_externalTex;
 }
 
 bool QAndroidTextureVideoOutput::initSurfaceTexture()
@@ -232,18 +221,6 @@ bool QAndroidTextureVideoOutput::initSurfaceTexture()
 
     if (!m_sink)
         return false;
-
-    if (!m_surfaceTextureCanAttachToContext) {
-        // if we have an OpenGL context in the current thread, create a texture. Otherwise, wait
-        // for the GL render thread to call us back to do it.
-        if (QOpenGLContext::currentContext()) {
-            glGenTextures(1, &m_externalTex);
-            if (!m_glDeleter)
-                m_glDeleter = new OpenGLResourcesDeleter;
-        } else if (!m_externalTex) {
-            return false;
-        }
-    }
 
     QMutexLocker locker(&m_mutex);
 
@@ -271,14 +248,9 @@ void QAndroidTextureVideoOutput::clearSurfaceTexture()
     }
 
     // Also reset the attached OpenGL texture
-    // Note: The Android SurfaceTexture class does not release the texture on deletion,
-    // only if detachFromGLContext() called (API level >= 16), so we'll do it manually,
-    // on the render thread.
-    if (m_surfaceTextureCanAttachToContext) {
-        if (m_glDeleter)
-            m_glDeleter->deleteTexture(m_externalTex);
-        m_externalTex = 0;
-    }
+    if (m_glDeleter)
+        m_glDeleter->deleteTexture(m_externalTex);
+    m_externalTex = 0;
 }
 
 AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
@@ -426,7 +398,7 @@ void QAndroidTextureVideoOutput::createGLResources()
     if (!m_glDeleter)
         m_glDeleter = new OpenGLResourcesDeleter;
 
-    if (m_surfaceTextureCanAttachToContext && !m_externalTex) {
+    if (!m_externalTex) {
         m_surfaceTexture->detachFromGLContext();
         glGenTextures(1, &m_externalTex);
         m_surfaceTexture->attachToGLContext(m_externalTex);
@@ -465,19 +437,6 @@ void QAndroidTextureVideoOutput::createGLResources()
         m_program->bindAttributeLocation("vertexCoordsArray", 0);
         m_program->bindAttributeLocation("textureCoordArray", 1);
         m_program->link();
-    }
-}
-
-void QAndroidTextureVideoOutput::customEvent(QEvent *e)
-{
-    if (e->type() == QEvent::User) {
-        // This is running in the render thread (OpenGL enabled)
-        if (!m_surfaceTextureCanAttachToContext && !m_externalTex) {
-            glGenTextures(1, &m_externalTex);
-            if (!m_glDeleter) // We'll use this to cleanup GL resources in the correct thread
-                m_glDeleter = new OpenGLResourcesDeleter;
-            emit readyChanged(true);
-        }
     }
 }
 

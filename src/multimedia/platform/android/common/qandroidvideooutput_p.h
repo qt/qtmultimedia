@@ -120,8 +120,6 @@ public:
     void stop() override;
     void reset() override;
 
-    void customEvent(QEvent *) override;
-
 private Q_SLOTS:
     void onFrameAvailable();
 
@@ -142,8 +140,6 @@ private:
     QOpenGLFramebufferObject *m_fbo;
     QOpenGLShaderProgram *m_program;
     OpenGLResourcesDeleter *m_glDeleter;
-
-    bool m_surfaceTextureCanAttachToContext;
 
     QWindow *m_offscreenSurface = nullptr;
     QOpenGLContext *m_glContext = nullptr;
