@@ -234,38 +234,10 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     return containerProfile;
 }
 
-void QGstreamerMediaEncoder::setState(QMediaRecorder::RecorderState s)
+void QGstreamerMediaEncoder::record(const QMediaEncoderSettings &)
 {
-    if (s == state())
+    if (!m_session || state() != QMediaRecorder::StoppedState)
         return;
-
-    switch (s) {
-    case QMediaRecorder::StoppedState:
-        stop();
-        break;
-    case QMediaRecorder::PausedState:
-        pause();
-        break;
-    case QMediaRecorder::RecordingState:
-        record();
-        break;
-    }
-    stateChanged(s);
-}
-
-void QGstreamerMediaEncoder::record()
-{
-    if (!m_session)
-        return;
-    auto oldState = state();
-    stateChanged(QMediaRecorder::RecordingState);
-
-    if (oldState == QMediaRecorder::PausedState) {
-        // coming from paused state
-        stateChanged(QMediaRecorder::RecordingState);
-        gstEncoder.setState(GST_STATE_PLAYING);
-        return;
-    }
 
     // create new encoder
     QString location = outputLocation().toLocalFile();
@@ -306,12 +278,13 @@ void QGstreamerMediaEncoder::record()
     heartbeat.start();
     gstPipeline.dumpGraph("recording");
 
+    stateChanged(QMediaRecorder::RecordingState);
     actualLocationChanged(QUrl::fromLocalFile(location));
 }
 
 void QGstreamerMediaEncoder::pause()
 {
-    if (!m_session)
+    if (!m_session || state() != QMediaRecorder::RecordingState)
         return;
     heartbeat.stop();
     gstPipeline.dumpGraph("before-pause");
@@ -320,9 +293,17 @@ void QGstreamerMediaEncoder::pause()
     stateChanged(QMediaRecorder::PausedState);
 }
 
+void QGstreamerMediaEncoder::resume()
+{
+    if (!m_session || state() != QMediaRecorder::PausedState)
+        return;
+    gstEncoder.setState(GST_STATE_PLAYING);
+    stateChanged(QMediaRecorder::RecordingState);
+}
+
 void QGstreamerMediaEncoder::stop()
 {
-    if (!m_session)
+    if (!m_session || state() == QMediaRecorder::StoppedState)
         return;
     qCDebug(qLcMediaEncoder) << "stop";
     heartbeat.stop();

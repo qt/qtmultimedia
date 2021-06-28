@@ -71,6 +71,13 @@ QT_BEGIN_NAMESPACE
     \snippet multimedia-snippets/media.cpp Media encoder
 */
 
+QMediaRecorderPrivate::QMediaRecorderPrivate()
+{
+    // Force an early initialization of the mime database
+    // to avoid a delay when recording for the first time.
+    encoderSettings.mimeType();
+}
+
 void QMediaRecorderPrivate::applySettingsLater()
 {
     if (control && !settingsChanged) {
@@ -260,17 +267,17 @@ void QMediaRecorder::record()
 {
     Q_D(QMediaRecorder);
 
-    if (!d->control)
+    if (!d->control || ! d->captureSession)
         return;
-    d->control->clearActualLocation();
 
-    if (d->settingsChanged)
+    if (d->control->state() == QMediaRecorder::PausedState) {
+        d->control->resume();
+    } else {
         d->control->applySettings(d->encoderSettings);
-
-    d->control->clearError();
-
-    if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::RecordingState);
+        d->control->clearActualLocation();
+        d->control->clearError();
+        d->control->record(d->encoderSettings);
+    }
 }
 
 /*!
@@ -286,7 +293,7 @@ void QMediaRecorder::pause()
 {
     Q_D(QMediaRecorder);
     if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::PausedState);
+        d->control->pause();
 }
 
 /*!
@@ -299,7 +306,7 @@ void QMediaRecorder::stop()
 {
     Q_D(QMediaRecorder);
     if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::StoppedState);
+        d->control->stop();
 }
 
 /*!

@@ -76,7 +76,7 @@ public:
     using QPlatformMediaEncoder::error;
 
 public:
-    void record()
+    void record(const QMediaEncoderSettings &)
     {
         m_state = QMediaRecorder::RecordingState;
         m_position=1;
@@ -93,26 +93,17 @@ public:
         emit stateChanged(m_state);
     }
 
+    void resume()
+    {
+        m_state = QMediaRecorder::RecordingState;
+        emit stateChanged(m_state);
+    }
+
     void stop()
     {
         m_position=0;
         m_state = QMediaRecorder::StoppedState;
         emit stateChanged(m_state);
-    }
-
-    void setState(QMediaRecorder::RecorderState state)
-    {
-        switch (state) {
-        case QMediaRecorder::StoppedState:
-            stop();
-            break;
-        case QMediaRecorder::PausedState:
-            pause();
-            break;
-        case QMediaRecorder::RecordingState:
-            record();
-            break;
-        }
     }
 
 public:

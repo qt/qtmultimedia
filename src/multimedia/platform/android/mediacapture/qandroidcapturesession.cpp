@@ -129,7 +129,7 @@ QMediaRecorder::RecorderState QAndroidCaptureSession::state() const
     return m_state;
 }
 
-void QAndroidCaptureSession::start(const QUrl &outputLocation)
+void QAndroidCaptureSession::start(const QMediaEncoderSettings &, const QUrl &outputLocation)
 {
     if (m_state == QMediaRecorder::RecordingState)
         return;

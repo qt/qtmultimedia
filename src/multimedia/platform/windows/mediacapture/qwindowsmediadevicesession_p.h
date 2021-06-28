@@ -83,9 +83,6 @@ public:
 
     void setVideoSink(QVideoSink *surface);
 
-    QMediaEncoderSettings videoSettings() const;
-    void setVideoSettings(const QMediaEncoderSettings &settings);
-
 public Q_SLOTS:
     void setAudioInputMuted(bool muted);
     void setAudioInputVolume(float volume);
@@ -98,7 +95,7 @@ public:
     void setAudioInput(QAudioInput *input);
     void setAudioOutput(QAudioOutput *output);
 
-    bool startRecording(const QString &fileName, bool audioOnly);
+    bool startRecording(const QMediaEncoderSettings &settings, const QString &fileName, bool audioOnly);
     void stopRecording();
     bool pauseRecording();
     bool resumeRecording();
@@ -129,7 +126,6 @@ private:
     QCameraDevice m_activeCameraDevice;
     QCameraFormat m_cameraFormat;
     QWindowsMediaDeviceReader *m_mediaDeviceReader = nullptr;
-    QMediaEncoderSettings m_mediaEncoderSettings;
     QAudioInput *m_audioInput = nullptr;
     QAudioOutput *m_audioOutput = nullptr;
     QVideoSink  *m_surface = nullptr;

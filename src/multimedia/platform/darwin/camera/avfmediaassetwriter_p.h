@@ -52,6 +52,7 @@
 //
 
 #include "avfcamerautility_p.h"
+#include "qmediaformat.h"
 
 #include <QtCore/qglobal.h>
 
@@ -72,6 +73,7 @@ QT_END_NAMESPACE
         cameraService:(QT_PREPEND_NAMESPACE(AVFCameraService) *)service
         audioSettings:(NSDictionary *)audioSettings
         videoSettings:(NSDictionary *)videoSettings
+        fileFormat:(QMediaFormat::FileFormat)fileFormat
         transform:(CGAffineTransform)transform;
 
 // This to be called from the recorder control's thread:

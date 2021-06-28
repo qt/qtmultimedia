@@ -60,9 +60,6 @@
 QT_BEGIN_NAMESPACE
 
 class QPlatformMediaEncoder;
-class QMediaContainerControl;
-class QAudioEncoderSettingsControl;
-class QVideoEncoderSettingsControl;
 class QTimer;
 
 class QMediaRecorderPrivate
@@ -70,7 +67,7 @@ class QMediaRecorderPrivate
     Q_DECLARE_PUBLIC(QMediaRecorder)
 
 public:
-    QMediaRecorderPrivate() = default;
+    QMediaRecorderPrivate();
 
     void applySettingsLater();
 

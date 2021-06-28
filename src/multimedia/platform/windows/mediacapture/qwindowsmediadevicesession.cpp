@@ -163,16 +163,6 @@ void QWindowsMediaDeviceSession::handleNewVideoFrame(const QVideoFrame &frame)
     emit newVideoFrame(frame);
 }
 
-QMediaEncoderSettings QWindowsMediaDeviceSession::videoSettings() const
-{
-    return m_mediaEncoderSettings;
-}
-
-void QWindowsMediaDeviceSession::setVideoSettings(const QMediaEncoderSettings &settings)
-{
-    m_mediaEncoderSettings = settings;
-}
-
 void QWindowsMediaDeviceSession::setAudioInputMuted(bool muted)
 {
     m_mediaDeviceReader->setInputMuted(muted);
@@ -240,13 +230,13 @@ void QWindowsMediaDeviceSession::setAudioOutput(QAudioOutput *output)
     connect(m_audioOutput, &QAudioOutput::deviceChanged, this, &QWindowsMediaDeviceSession::audioOutputDeviceChanged);
 }
 
-bool QWindowsMediaDeviceSession::startRecording(const QString &fileName, bool audioOnly)
+bool QWindowsMediaDeviceSession::startRecording(const QMediaEncoderSettings &settings, const QString &fileName, bool audioOnly)
 {
-    GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(m_mediaEncoderSettings.mediaFormat().fileFormat());
-    GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(m_mediaEncoderSettings.videoCodec());
-    GUID audioFormat = QWindowsMultimediaUtils::audioFormatForCodec(m_mediaEncoderSettings.audioCodec());
+    GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(settings.mediaFormat().fileFormat());
+    GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(settings.videoCodec());
+    GUID audioFormat = QWindowsMultimediaUtils::audioFormatForCodec(settings.audioCodec());
 
-    QSize res = m_mediaEncoderSettings.videoResolution();
+    QSize res = settings.videoResolution();
     UINT32 width, height;
     if (res.width() > 0 && res.height() > 0) {
         width = UINT32(res.width());
@@ -256,12 +246,12 @@ bool QWindowsMediaDeviceSession::startRecording(const QString &fileName, bool au
         height = m_mediaDeviceReader->frameHeight();
     }
 
-    qreal fps = m_mediaEncoderSettings.videoFrameRate();
+    qreal fps = settings.videoFrameRate();
     qreal frameRate = (fps > 0) ? fps : m_mediaDeviceReader->frameRate();
 
-    auto quality = m_mediaEncoderSettings.quality();
-    int vbrate = m_mediaEncoderSettings.videoBitRate();
-    int abrate = m_mediaEncoderSettings.audioBitRate();
+    auto quality = settings.quality();
+    int vbrate = settings.videoBitRate();
+    int abrate = settings.audioBitRate();
 
     UINT32 videoBitRate = (vbrate > 0) ? UINT32(vbrate)
                                        : estimateVideoBitRate(videoFormat, width, height, frameRate, quality);

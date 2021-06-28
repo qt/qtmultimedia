@@ -80,7 +80,7 @@ public:
 
     QMediaRecorder::RecorderState state() const;
 
-    void start(const QUrl &outputLocation);
+    void start(const QMediaEncoderSettings &settings, const QUrl &outputLocation);
     void stop(bool error = false);
 
     qint64 duration() const;

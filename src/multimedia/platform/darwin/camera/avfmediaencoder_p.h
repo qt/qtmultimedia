@@ -87,7 +87,8 @@ public:
     void applySettings(const QMediaEncoderSettings &settings) override;
     void unapplySettings();
 
-    QMediaEncoderSettings encoderSettings() const;
+    void record(const QMediaEncoderSettings &settings) override;
+    void stop() override;
 
     void setMetaData(const QMediaMetaData &) override;
     QMediaMetaData metaData() const override;
@@ -97,9 +98,6 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
     void updateDuration(qint64 duration);
-
-public Q_SLOTS:
-    void setState(QMediaRecorder::RecorderState state) override;
 
 private:
 
@@ -111,7 +109,6 @@ private Q_SLOTS:
     void cameraActiveChanged(bool);
 
 private:
-    void record();
     void stopWriter();
 
     AVFCameraService *m_service = nullptr;

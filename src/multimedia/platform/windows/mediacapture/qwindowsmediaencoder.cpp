@@ -54,9 +54,6 @@ QWindowsMediaEncoder::QWindowsMediaEncoder(QMediaRecorder *parent)
     : QObject(parent),
     QPlatformMediaEncoder(parent)
 {
-    // Force an early initialization of the mime database
-    // to avoid a delay when recording for the first time.
-    m_settings.mimeType();
 }
 
 bool QWindowsMediaEncoder::isLocationWritable(const QUrl &location) const
@@ -74,95 +71,84 @@ qint64 QWindowsMediaEncoder::duration() const
     return m_duration;
 }
 
-void QWindowsMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
-{
-    m_settings = settings;
-
-    if (!m_mediaDeviceSession)
-        return;
-
-    const auto flag = m_mediaDeviceSession->activeCamera().isNull()
-            ? QMediaFormat::NoFlags
-            : QMediaFormat::RequiresVideo;
-
-    m_settings.resolveFormat(flag);
-    m_mediaDeviceSession->setVideoSettings(m_settings);
-}
-
-void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
+void QWindowsMediaEncoder::record(const QMediaEncoderSettings &settings)
 {
     if (!m_captureService || !m_mediaDeviceSession) {
         qWarning() << Q_FUNC_INFO << "Encoder is not set to a capture session";
         return;
     }
-
-    if (state == m_state)
+    if (m_state != QMediaRecorder::StoppedState)
         return;
 
-    switch (state) {
-    case QMediaRecorder::RecordingState:
-    {
-        m_mediaDeviceSession->setActive(true);
+    m_mediaDeviceSession->setActive(true);
 
-        if (!m_mediaDeviceSession->isActive() && !m_mediaDeviceSession->isActivating()) {
-            error(QMediaRecorder::ResourceError,
-                  QMediaRecorderPrivate::msgFailedStartRecording());
-            return;
-        }
+    if (!m_mediaDeviceSession->isActive() && !m_mediaDeviceSession->isActivating()) {
+        error(QMediaRecorder::ResourceError,
+              QMediaRecorderPrivate::msgFailedStartRecording());
+        return;
+    }
 
-        if (m_state == QMediaRecorder::PausedState) {
-            if (m_mediaDeviceSession->resumeRecording()) {
-                m_state = QMediaRecorder::RecordingState;
-                stateChanged(m_state);
-            } else {
-                error(QMediaRecorder::FormatError, tr("Failed to resume recording"));
-            }
-        } else {
+    const auto audioOnly = m_mediaDeviceSession->activeCamera().isNull();
 
-            applySettings(m_settings);
+    auto resolvedSettings = settings;
+    resolvedSettings.resolveFormat(audioOnly ? QMediaFormat::NoFlags
+                                             : QMediaFormat::RequiresVideo);
 
-            const bool audioOnly = m_settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
+    const QString path = (outputLocation().scheme() == QLatin1String("file") ?
+                              outputLocation().path() : outputLocation().toString());
 
-            const QString path = (outputLocation().scheme() == QLatin1String("file") ?
-                                      outputLocation().path() : outputLocation().toString());
+    m_fileName = m_storageLocation.generateFileName(path, audioOnly
+                                                    ? QWindowsStorageLocation::Audio
+                                                    : QWindowsStorageLocation::Video,
+                                                    QLatin1String("clip_"),
+                                                    resolvedSettings.mimeType().preferredSuffix());
 
-            m_fileName = m_storageLocation.generateFileName(path, audioOnly
-                                                            ? QWindowsStorageLocation::Audio
-                                                            : QWindowsStorageLocation::Video,
-                                                            QLatin1String("clip_"),
-                                                            m_settings.mimeType().preferredSuffix());
+    if (m_mediaDeviceSession->startRecording(resolvedSettings, m_fileName, audioOnly)) {
 
-            if (m_mediaDeviceSession->startRecording(m_fileName, audioOnly)) {
+        m_state = QMediaRecorder::RecordingState;
 
-                m_state = QMediaRecorder::RecordingState;
+        actualLocationChanged(QUrl::fromLocalFile(m_fileName));
+        stateChanged(m_state);
 
-                actualLocationChanged(QUrl::fromLocalFile(m_fileName));
-                stateChanged(m_state);
-
-            } else {
-                error(QMediaRecorder::FormatError,
-                      QMediaRecorderPrivate::msgFailedStartRecording());
-            }
-        }
-    } break;
-    case QMediaRecorder::PausedState:
-    {
-        if (m_state == QMediaRecorder::RecordingState) {
-            if (m_mediaDeviceSession->pauseRecording()) {
-                m_state = QMediaRecorder::PausedState;
-                stateChanged(m_state);
-            } else {
-                error(QMediaRecorder::FormatError, tr("Failed to pause recording"));
-            }
-        }
-    } break;
-    case QMediaRecorder::StoppedState:
-    {
-        m_mediaDeviceSession->stopRecording();
-        // state will change in onRecordingStopped()
-    } break;
+    } else {
+        error(QMediaRecorder::FormatError,
+              QMediaRecorderPrivate::msgFailedStartRecording());
     }
 }
+
+void QWindowsMediaEncoder::pause()
+{
+    if (!m_mediaDeviceSession || m_state != QMediaRecorder::RecordingState)
+        return;
+
+    if (m_mediaDeviceSession->pauseRecording()) {
+        m_state = QMediaRecorder::PausedState;
+        stateChanged(m_state);
+    } else {
+        error(QMediaRecorder::FormatError, tr("Failed to pause recording"));
+    }
+}
+
+void QWindowsMediaEncoder::resume()
+{
+    if (!m_mediaDeviceSession || m_state != QMediaRecorder::PausedState)
+        return;
+
+    if (m_mediaDeviceSession->resumeRecording()) {
+        m_state = QMediaRecorder::RecordingState;
+        stateChanged(m_state);
+    } else {
+        error(QMediaRecorder::FormatError, tr("Failed to resume recording"));
+    }
+}
+
+void QWindowsMediaEncoder::stop()
+{
+    if (m_mediaDeviceSession && m_state != QMediaRecorder::StoppedState)
+        m_mediaDeviceSession->stopRecording();
+}
+
+
 
 void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
@@ -171,7 +157,7 @@ void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *sessi
         return;
 
     if (m_captureService)
-        setState(QMediaRecorder::StoppedState);
+        stop();
 
     m_captureService = captureSession;
     if (!m_captureService) {

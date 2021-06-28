@@ -73,15 +73,16 @@ public:
     bool isLocationWritable(const QUrl &location) const override;
     QMediaRecorder::RecorderState state() const override;
     qint64 duration() const override;
-    void applySettings(const QMediaEncoderSettings &settings) override;
 
     void setMetaData(const QMediaMetaData &metaData) override;
     QMediaMetaData metaData() const override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-public Q_SLOTS:
-    void setState(QMediaRecorder::RecorderState state) override;
+    void record(const QMediaEncoderSettings &settings) override;
+    void pause() override;
+    void resume() override;
+    void stop() override;
 
 private Q_SLOTS:
     void onCameraChanged();
@@ -97,7 +98,6 @@ private:
     QWindowsMediaCaptureService  *m_captureService = nullptr;
     QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QMediaRecorder::RecorderState          m_state = QMediaRecorder::StoppedState;
-    QMediaEncoderSettings         m_settings;
     QWindowsStorageLocation       m_storageLocation;
     QString                       m_fileName;
     QMediaMetaData                m_metaData;

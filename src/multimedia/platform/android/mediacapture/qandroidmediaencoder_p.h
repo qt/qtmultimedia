@@ -71,8 +71,10 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    void setState(QMediaRecorder::RecorderState state) override;
     void setOutputLocation(const QUrl &location) override;
+    void record(const QMediaEncoderSettings &settings) override;
+    void stop() override;
+
 private:
     friend class QAndroidCaptureSession;
 

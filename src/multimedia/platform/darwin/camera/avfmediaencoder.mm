@@ -404,16 +404,6 @@ void AVFMediaEncoder::unapplySettings()
     }
 }
 
-QMediaEncoderSettings AVFMediaEncoder::encoderSettings() const
-{
-    QMediaEncoderSettings s = m_settings;
-    const auto flag = (m_service->session()->activecameraDevice().isNull())
-                            ? QMediaFormat::NoFlags
-                            : QMediaFormat::RequiresVideo;
-    s.resolveFormat(flag);
-    return s;
-}
-
 void AVFMediaEncoder::setMetaData(const QMediaMetaData &metaData)
 {
     m_metaData = metaData;
@@ -431,7 +421,7 @@ void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
         return;
 
     if (m_service)
-        setState(QMediaRecorder::StoppedState);
+        stop();
 
     m_service = captureSession;
     if (!m_service)
@@ -441,7 +431,7 @@ void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
     onCameraChanged();
 }
 
-void AVFMediaEncoder::setState(QMediaRecorder::RecorderState state)
+void AVFMediaEncoder::record(const QMediaEncoderSettings &)
 {
     if (!m_service || !m_service->session()) {
         qWarning() << Q_FUNC_INFO << "Encoder is not set to a capture session";
@@ -453,25 +443,10 @@ void AVFMediaEncoder::setState(QMediaRecorder::RecorderState state)
         return;
     }
 
-    if (state == m_state)
+    if (QMediaRecorder::RecordingState == m_state)
         return;
 
-    switch (state) {
-        case QMediaRecorder::RecordingState:
-            m_service->session()->setActive(true);
-            record();
-            break;
-        case QMediaRecorder::PausedState:
-            Q_EMIT error(QMediaRecorder::FormatError, tr("Recording pause not supported"));
-            return;
-        case QMediaRecorder::StoppedState:
-            // Do not check the camera status, we can stop if we started.
-            stopWriter();
-    }
-}
-
-void AVFMediaEncoder::record()
-{
+    m_service->session()->setActive(true);
     const bool audioOnly = m_settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
     AVCaptureSession *session = m_service->session()->captureSession();
     float rotation = 0;
@@ -503,7 +478,7 @@ void AVFMediaEncoder::record()
     const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path,
                     audioOnly ? AVFStorageLocation::Audio : AVFStorageLocation::Video,
                     QLatin1String("clip_"),
-                    encoderSettings().mimeType().preferredSuffix())));
+                    m_settings.mimeType().preferredSuffix())));
 
     NSURL *nsFileURL = fileURL.toNSURL();
     if (!nsFileURL) {
@@ -536,6 +511,7 @@ void AVFMediaEncoder::record()
                     cameraService:m_service
                     audioSettings:m_audioSettings
                     videoSettings:m_videoSettings
+                    fileFormat:m_settings.fileFormat()
                     transform:CGAffineTransformMakeRotation(qDegreesToRadians(rotation))]) {
 
         m_state = QMediaRecorder::RecordingState;
@@ -556,6 +532,14 @@ void AVFMediaEncoder::record()
         [session startRunning];
         Q_EMIT error(QMediaRecorder::FormatError,
                      QMediaRecorderPrivate::msgFailedStartRecording());
+    }
+}
+
+void AVFMediaEncoder::stop()
+{
+    if (m_state != QMediaRecorder::StoppedState) {
+        // Do not check the camera status, we can stop if we started.
+        stopWriter();
     }
 }
 

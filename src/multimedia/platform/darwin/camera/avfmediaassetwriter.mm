@@ -139,6 +139,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         cameraService:(AVFCameraService *)service
         audioSettings:(NSDictionary *)audioSettings
         videoSettings:(NSDictionary *)videoSettings
+        fileFormat:(QMediaFormat::FileFormat)fileFormat
         transform:(CGAffineTransform)transform
 {
     Q_ASSERT(fileURL);
@@ -177,8 +178,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         // But we still can write video!
     }
 
-    auto settings = m_service->recorderControl()->encoderSettings();
-    auto fileType = QDarwinFormatInfo::avFileTypeForContainerFormat(settings.fileFormat());
+    auto fileType = QDarwinFormatInfo::avFileTypeForContainerFormat(fileFormat);
     m_assetWriter.reset([[AVAssetWriter alloc] initWithURL:fileURL
                                                fileType:fileType
                                                error:nil]);

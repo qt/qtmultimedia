@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qplatformmediaencoder_p.h"
+#include <QObject>
 
 QT_BEGIN_NAMESPACE
 
@@ -102,10 +103,35 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaRecorder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::setState(QMediaRecorder::RecorderState state)
+    \fn void QPlatformMediaEncoder::record(const QMediaEncoderSettings &settings)
 
-    Set the media recorder \a state.
+    Start media recording.
 */
+
+/*!
+    \fn void QPlatformMediaEncoder::pause()
+
+    Pause media recording. Not all platforms supports this operation
+*/
+void QPlatformMediaEncoder::pause() {
+    error(QMediaRecorder::FormatError, QObject::tr("Pause not supported"));
+}
+
+/*!
+    \fn void QPlatformMediaEncoder::resume()
+
+    Resume media recording. Not all platforms supports this operation
+*/
+void QPlatformMediaEncoder::resume() {
+    error(QMediaRecorder::FormatError, QObject::tr("Resume not supported"));
+}
+
+/*!
+    \fn void QPlatformMediaEncoder::stop()
+
+    Stop media recording
+*/
+
 
 /*!
     \fn void QPlatformMediaEncoder::applySettings()
