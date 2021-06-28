@@ -41,7 +41,6 @@
 #include "androidmediaplayer_p.h"
 #include "qandroidvideooutput_p.h"
 #include "qandroidmetadata_p.h"
-#include "qandroidmediaplayervideorenderercontrol_p.h"
 #include "qandroidaudiooutput_p.h"
 #include "qaudiooutput.h"
 
@@ -358,30 +357,29 @@ void QAndroidMediaPlayerControl::setMedia(const QUrl &mediaContent,
     mReloadingMedia = false;
 }
 
-void QAndroidMediaPlayerControl::setVideoOutput(QAndroidVideoOutput *videoOutput)
-{
-    if (mVideoOutput) {
-        mMediaPlayer->setDisplay(0);
-        mVideoOutput->stop();
-        mVideoOutput->reset();
-    }
-
-    mVideoOutput = videoOutput;
-
-    if (!mVideoOutput)
-        return;
-
-    if (mVideoOutput->isReady())
-        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
-
-    connect(videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
-}
-
 void QAndroidMediaPlayerControl::setVideoSink(QVideoSink *sink)
 {
-    if (!mVideoRendererControl)
-        mVideoRendererControl = new QAndroidMediaPlayerVideoRendererControl(this);
-    mVideoRendererControl->setSurface(sink);
+    if (m_videoSink == sink)
+        return;
+
+    m_videoSink = sink;
+
+    if (!m_videoSink) {
+        if (mVideoOutput) {
+            delete mVideoOutput;
+            mVideoOutput = nullptr;
+        }
+        return;
+    }
+
+    if (!mVideoOutput) {
+        mVideoOutput = new QAndroidTextureVideoOutput(this);
+        connect(mVideoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
+    }
+
+    mVideoOutput->setSurface(sink);
+    if (mVideoOutput->isReady())
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
 }
 
 void QAndroidMediaPlayerControl::setAudioOutput(QPlatformAudioOutput *output)

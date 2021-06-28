@@ -59,7 +59,7 @@
 QT_BEGIN_NAMESPACE
 
 class AndroidMediaPlayer;
-class QAndroidVideoOutput;
+class QAndroidTextureVideoOutput;
 class QAndroidMediaPlayerVideoRendererControl;
 class QAndroidAudioOutput;
 
@@ -86,7 +86,6 @@ public:
 
     QMediaMetaData metaData() const override;
 
-    void setVideoOutput(QAndroidVideoOutput *videoOutput);
     void setVideoSink(QVideoSink *surface) override;
 
     void setAudioOutput(QPlatformAudioOutput *output) override;
@@ -108,12 +107,12 @@ private Q_SLOTS:
 
 private:
     AndroidMediaPlayer *mMediaPlayer;
-    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl = nullptr;
     QAndroidAudioOutput *m_audioOutput = nullptr;
     QMediaPlayer::PlaybackState mCurrentState;
     QUrl mMediaContent;
     QIODevice *mMediaStream;
-    QAndroidVideoOutput *mVideoOutput;
+    QAndroidTextureVideoOutput *mVideoOutput = nullptr;
+    QVideoSink *m_videoSink = nullptr;
     bool mSeekable;
     int mBufferPercent;
     bool mBufferFilled;

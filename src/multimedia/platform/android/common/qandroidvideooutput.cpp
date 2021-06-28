@@ -42,6 +42,8 @@
 #include "androidsurfacetexture_p.h"
 #include <qvideosink.h>
 #include "private/qabstractvideobuffer_p.h"
+#include "private/qrhi_p.h"
+#include "private/qrhigles2_p.h"
 #include <QVideoFrameFormat>
 #include <qvideosink.h>
 #include <QtCore/qcoreapplication.h>
@@ -128,8 +130,10 @@ public:
         m_mapMode = QVideoFrame::NotMapped;
     }
 
-    quint64 textureHandle(int /*plane*/) const override
+    quint64 textureHandle(int plane) const override
     {
+        if (plane != 0)
+            return 0;
         AndroidTextureVideoBuffer *that = const_cast<AndroidTextureVideoBuffer*>(this);
         if (!that->updateFrame())
             return 0;
@@ -280,7 +284,7 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
         return;
 
     QAbstractVideoBuffer *buffer = new AndroidTextureVideoBuffer(this, m_nativeSize);
-    QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, QVideoFrameFormat::Format_ABGR32));
+    QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, QVideoFrameFormat::Format_ARGB32_Premultiplied));
 
     m_sink->newVideoFrame(frame);
 }
@@ -292,9 +296,12 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
     if (!m_nativeSize.isValid() || !m_surfaceTexture)
         return false;
 
-    QOpenGLContext *shareContext = !m_glContext && m_sink
-        ? qobject_cast<QOpenGLContext*>(m_sink->property("GLContext").value<QObject*>())
-        : nullptr;
+    QOpenGLContext *shareContext = nullptr;
+    auto rhi = m_sink ? m_sink->rhi() : nullptr;
+    if (rhi && rhi->backend() == QRhi::OpenGLES2) {
+        auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+        shareContext = nativeHandles->context;
+    }
 
     // Make sure we have an OpenGL context to make current.
     if (shareContext || (!QOpenGLContext::currentContext() && !m_glContext)) {
