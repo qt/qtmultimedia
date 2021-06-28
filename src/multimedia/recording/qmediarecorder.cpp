@@ -78,22 +78,6 @@ QMediaRecorderPrivate::QMediaRecorderPrivate()
     encoderSettings.mimeType();
 }
 
-void QMediaRecorderPrivate::applySettingsLater()
-{
-    if (control && !settingsChanged) {
-        settingsChanged = true;
-        QMetaObject::invokeMethod(q_func(), "_q_applySettings", Qt::QueuedConnection);
-    }
-}
-
-void QMediaRecorderPrivate::_q_applySettings()
-{
-    if (control && settingsChanged) {
-        settingsChanged = false;
-        control->applySettings(encoderSettings);
-    }
-}
-
 QString QMediaRecorderPrivate::msgFailedStartRecording()
 {
     return QMediaRecorder::tr("Failed to start recording");
@@ -146,8 +130,6 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
         return;
 
     platformSession->setMediaEncoder(d->control);
-    d->applySettingsLater();
-
 }
 
 /*!
@@ -271,10 +253,22 @@ void QMediaRecorder::record()
     if (d->control->state() == QMediaRecorder::PausedState) {
         d->control->resume();
     } else {
-        d->control->applySettings(d->encoderSettings);
+        auto oldMediaFormat = d->encoderSettings.mediaFormat();
+        auto camera = d->captureSession->camera();
+        auto flags = camera && camera->isActive() ? QMediaFormat::RequiresVideo
+                                                  : QMediaFormat::NoFlags;
+        d->encoderSettings.resolveFormat(flags);
         d->control->clearActualLocation();
         d->control->clearError();
+
+        auto settings = d->encoderSettings;
         d->control->record(d->encoderSettings);
+
+        if (settings != d->encoderSettings)
+            emit encoderSettingsChanged();
+
+        if (oldMediaFormat != d->encoderSettings.mediaFormat())
+            emit mediaFormatChanged();
     }
 }
 
@@ -450,7 +444,6 @@ void QMediaRecorder::setMediaFormat(const QMediaFormat &format)
     if (d->encoderSettings.mediaFormat() == format)
         return;
     d->encoderSettings.setMediaFormat(format);
-    d->applySettingsLater();
     emit mediaFormatChanged();
 }
 
@@ -480,7 +473,6 @@ void QMediaRecorder::setEncodingMode(EncodingMode mode)
     if (d->encoderSettings.encodingMode() == mode)
         return;
     d->encoderSettings.setEncodingMode(mode);
-    d->applySettingsLater();
     emit encodingModeChanged();
 }
 
@@ -496,7 +488,6 @@ void QMediaRecorder::setQuality(Quality quality)
     if (d->encoderSettings.quality() == quality)
         return;
     d->encoderSettings.setQuality(quality);
-    d->applySettingsLater();
     emit qualityChanged();
 }
 
@@ -522,7 +513,6 @@ void QMediaRecorder::setVideoResolution(const QSize &size)
     if (d->encoderSettings.videoResolution() == size)
         return;
     d->encoderSettings.setVideoResolution(size);
-    d->applySettingsLater();
     emit videoResolutionChanged();
 }
 
@@ -554,7 +544,6 @@ void QMediaRecorder::setVideoFrameRate(qreal frameRate)
     if (d->encoderSettings.videoFrameRate() == frameRate)
         return;
     d->encoderSettings.setVideoFrameRate(frameRate);
-    d->applySettingsLater();
     emit videoFrameRateChanged();
 }
 
@@ -576,7 +565,6 @@ void QMediaRecorder::setVideoBitRate(int bitRate)
     if (d->encoderSettings.videoBitRate() == bitRate)
         return;
     d->encoderSettings.setVideoBitRate(bitRate);
-    d->applySettingsLater();
     emit videoBitRateChanged();
 }
 
@@ -598,7 +586,6 @@ void QMediaRecorder::setAudioBitRate(int bitRate)
     if (d->encoderSettings.audioBitRate() == bitRate)
         return;
     d->encoderSettings.setAudioBitRate(bitRate);
-    d->applySettingsLater();
     emit audioBitRateChanged();
 }
 
@@ -623,7 +610,6 @@ void QMediaRecorder::setAudioChannelCount(int channels)
     if (d->encoderSettings.audioChannelCount() == channels)
         return;
     d->encoderSettings.setAudioChannelCount(channels);
-    d->applySettingsLater();
     emit audioChannelCountChanged();
 }
 
@@ -648,7 +634,6 @@ void QMediaRecorder::setAudioSampleRate(int sampleRate)
     if (d->encoderSettings.audioSampleRate() == sampleRate)
         return;
     d->encoderSettings.setAudioSampleRate(sampleRate);
-    d->applySettingsLater();
     emit audioSampleRateChanged();
 }
 

@@ -230,7 +230,7 @@ void QWindowsMediaDeviceSession::setAudioOutput(QAudioOutput *output)
     connect(m_audioOutput, &QAudioOutput::deviceChanged, this, &QWindowsMediaDeviceSession::audioOutputDeviceChanged);
 }
 
-bool QWindowsMediaDeviceSession::startRecording(const QMediaEncoderSettings &settings, const QString &fileName, bool audioOnly)
+bool QWindowsMediaDeviceSession::startRecording(QMediaEncoderSettings &settings, const QString &fileName, bool audioOnly)
 {
     GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(settings.mediaFormat().fileFormat());
     GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(settings.videoCodec());
@@ -244,20 +244,32 @@ bool QWindowsMediaDeviceSession::startRecording(const QMediaEncoderSettings &set
     } else {
         width = m_mediaDeviceReader->frameWidth();
         height = m_mediaDeviceReader->frameHeight();
+        settings.setVideoResolution(QSize(int(width), int(height)));
     }
 
-    qreal fps = settings.videoFrameRate();
-    qreal frameRate = (fps > 0) ? fps : m_mediaDeviceReader->frameRate();
+    qreal frameRate = settings.videoFrameRate();
+    if (frameRate <= 0) {
+        frameRate = m_mediaDeviceReader->frameRate();
+        settings.setVideoFrameRate(frameRate);
+    }
 
     auto quality = settings.quality();
-    int vbrate = settings.videoBitRate();
-    int abrate = settings.audioBitRate();
 
-    UINT32 videoBitRate = (vbrate > 0) ? UINT32(vbrate)
-                                       : estimateVideoBitRate(videoFormat, width, height, frameRate, quality);
+    UINT32 videoBitRate = 0;
+    if (settings.videoBitRate() > 0) {
+        videoBitRate = UINT32(settings.videoBitRate());
+    } else {
+        videoBitRate = estimateVideoBitRate(videoFormat, width, height, frameRate, quality);
+        settings.setVideoBitRate(int(videoBitRate));
+    }
 
-    UINT32 audioBitRate = (abrate > 0) ? UINT32(abrate)
-                                       : estimateAudioBitRate(audioFormat, quality);
+    UINT32 audioBitRate = 0;
+    if (settings.audioBitRate() > 0) {
+        audioBitRate = UINT32(settings.audioBitRate());
+    } else {
+        audioBitRate = estimateAudioBitRate(audioFormat, quality);
+        settings.setAudioBitRate(int(audioBitRate));
+    }
 
     return m_mediaDeviceReader->startRecording(fileName, container, audioOnly ? GUID_NULL : videoFormat,
                                                videoBitRate, width, height, frameRate,

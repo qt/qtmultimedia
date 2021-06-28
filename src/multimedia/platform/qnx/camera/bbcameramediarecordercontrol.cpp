@@ -112,16 +112,12 @@ qreal BbCameraMediaRecorderControl::volume() const
     return (level / 100);
 }
 
-void BbCameraMediaRecorderControl::applySettings(const QMediaEncoderSettings &)
+void BbCameraMediaRecorderControl::record(QMediaEncoderSettings &)
 {
-    if (m_session)
+    if (m_session) {
         m_session->applyVideoSettings();
-}
-
-void BbCameraMediaRecorderControl::record(const QMediaEncoderSettings &)
-{
-    if (m_session)
         m_session->startVideoRecording(outputLocation());
+    }
 }
 
 void BbCameraMediaRecorderControl::stop()

@@ -109,7 +109,7 @@ QMediaRecorder::RecorderState QAndroidCaptureSession::state() const
     return m_state;
 }
 
-void QAndroidCaptureSession::start(const QMediaEncoderSettings &, const QUrl &outputLocation)
+void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &outputLocation)
 {
     if (m_state == QMediaRecorder::RecordingState)
         return;
@@ -133,13 +133,16 @@ void QAndroidCaptureSession::start(const QMediaEncoderSettings &, const QUrl &ou
         return;
     }
 
+    applySettings(settings);
+
     m_mediaRecorder = new AndroidMediaRecorder;
     connect(m_mediaRecorder, SIGNAL(error(int,int)), this, SLOT(onError(int,int)));
     connect(m_mediaRecorder, SIGNAL(info(int,int)), this, SLOT(onInfo(int,int)));
 
     // Set audio/video sources
     if (m_cameraSession) {
-        updateResolution();
+        m_cameraSession->camera()->stopPreviewSynchronous();
+        m_cameraSession->applyResolution(settings.videoResolution(), false);
         m_cameraSession->camera()->unlock();
         m_mediaRecorder->setCamera(m_cameraSession->camera());
         m_mediaRecorder->setAudioSource(AndroidMediaRecorder::Camcorder);
@@ -155,22 +158,22 @@ void QAndroidCaptureSession::start(const QMediaEncoderSettings &, const QUrl &ou
     m_mediaRecorder->setOutputFormat(m_outputFormat);
 
     // Set audio encoder settings
-    m_mediaRecorder->setAudioChannels(m_encoderSettings.audioChannelCount());
-    m_mediaRecorder->setAudioEncodingBitRate(m_encoderSettings.audioBitRate());
-    m_mediaRecorder->setAudioSamplingRate(m_encoderSettings.audioSampleRate());
+    m_mediaRecorder->setAudioChannels(settings.audioChannelCount());
+    m_mediaRecorder->setAudioEncodingBitRate(settings.audioBitRate());
+    m_mediaRecorder->setAudioSamplingRate(settings.audioSampleRate());
     m_mediaRecorder->setAudioEncoder(m_audioEncoder);
 
     // Set video encoder settings
     if (m_cameraSession) {
-        m_mediaRecorder->setVideoSize(m_encoderSettings.videoResolution());
-        m_mediaRecorder->setVideoFrameRate(qRound(m_encoderSettings.videoFrameRate()));
-        m_mediaRecorder->setVideoEncodingBitRate(m_encoderSettings.videoBitRate());
+        m_mediaRecorder->setVideoSize(settings.videoResolution());
+        m_mediaRecorder->setVideoFrameRate(qRound(settings.videoFrameRate()));
+        m_mediaRecorder->setVideoEncodingBitRate(settings.videoBitRate());
         m_mediaRecorder->setVideoEncoder(m_videoEncoder);
 
         m_mediaRecorder->setOrientationHint(m_cameraSession->currentCameraRotation());
     }
 
-    QString extension = m_encoderSettings.mimeType().preferredSuffix();
+    QString extension = settings.mimeType().preferredSuffix();
 
     // Set output file
     QString filePath = m_mediaStorageLocation.generateFileName(
@@ -270,15 +273,10 @@ qint64 QAndroidCaptureSession::duration() const
     return m_duration;
 }
 
-void QAndroidCaptureSession::applySettings(const QMediaEncoderSettings &settings)
+void QAndroidCaptureSession::applySettings(QMediaEncoderSettings &settings)
 {
-    const auto flag = m_cameraSession ? QMediaFormat::RequiresVideo
-                                       : QMediaFormat::NoFlags;
-    m_encoderSettings = settings;
-    m_encoderSettings.resolveFormat(flag);
-
     // container settings
-    auto fileFormat = m_encoderSettings.mediaFormat().fileFormat();
+    auto fileFormat = settings.mediaFormat().fileFormat();
     if (!m_cameraSession && fileFormat == QMediaFormat::AAC) {
         m_outputFormat = AndroidMediaRecorder::AAC_ADTS;
     } else if (fileFormat == QMediaFormat::Ogg) {
@@ -293,18 +291,18 @@ void QAndroidCaptureSession::applySettings(const QMediaEncoderSettings &settings
     }
 
     // audio settings
-    if (m_encoderSettings.audioChannelCount() <= 0)
-        m_encoderSettings.setAudioChannelCount(m_defaultSettings.audioChannels);
-    if (m_encoderSettings.audioBitRate() <= 0)
-        m_encoderSettings.setAudioBitRate(m_defaultSettings.audioBitRate);
-    if (m_encoderSettings.audioSampleRate() <= 0)
-        m_encoderSettings.setAudioSampleRate(m_defaultSettings.audioSampleRate);
+    if (settings.audioChannelCount() <= 0)
+        settings.setAudioChannelCount(m_defaultSettings.audioChannels);
+    if (settings.audioBitRate() <= 0)
+        settings.setAudioBitRate(m_defaultSettings.audioBitRate);
+    if (settings.audioSampleRate() <= 0)
+        settings.setAudioSampleRate(m_defaultSettings.audioSampleRate);
 
-    if (m_encoderSettings.audioCodec() == QMediaFormat::AudioCodec::AAC)
+    if (settings.audioCodec() == QMediaFormat::AudioCodec::AAC)
         m_audioEncoder = AndroidMediaRecorder::AAC;
-    else if (m_encoderSettings.audioCodec() == QMediaFormat::AudioCodec::Opus)
+    else if (settings.audioCodec() == QMediaFormat::AudioCodec::Opus)
         m_audioEncoder = AndroidMediaRecorder::OPUS;
-    else if (m_encoderSettings.audioCodec() == QMediaFormat::AudioCodec::Vorbis)
+    else if (settings.audioCodec() == QMediaFormat::AudioCodec::Vorbis)
         m_audioEncoder = AndroidMediaRecorder::VORBIS;
     else
         m_audioEncoder = m_defaultSettings.audioEncoder;
@@ -312,11 +310,11 @@ void QAndroidCaptureSession::applySettings(const QMediaEncoderSettings &settings
 
     // video settings
     if (m_cameraSession && m_cameraSession->camera()) {
-        if (m_encoderSettings.videoResolution().isEmpty()) {
-            m_encoderSettings.setVideoResolution(m_defaultSettings.videoResolution);
-        } else if (!m_supportedResolutions.contains(m_encoderSettings.videoResolution())) {
+        if (settings.videoResolution().isEmpty()) {
+            settings.setVideoResolution(m_defaultSettings.videoResolution);
+        } else if (!m_supportedResolutions.contains(settings.videoResolution())) {
             // if the requested resolution is not supported, find the closest one
-            QSize reqSize = m_encoderSettings.videoResolution();
+            QSize reqSize = settings.videoResolution();
             int reqPixelCount = reqSize.width() * reqSize.height();
             QList<int> supportedPixelCounts;
             for (int i = 0; i < m_supportedResolutions.size(); ++i) {
@@ -324,30 +322,24 @@ void QAndroidCaptureSession::applySettings(const QMediaEncoderSettings &settings
                 supportedPixelCounts.append(s.width() * s.height());
             }
             int closestIndex = qt_findClosestValue(supportedPixelCounts, reqPixelCount);
-            m_encoderSettings.setVideoResolution(m_supportedResolutions.at(closestIndex));
+            settings.setVideoResolution(m_supportedResolutions.at(closestIndex));
         }
 
-        if (m_encoderSettings.videoFrameRate() <= 0)
-            m_encoderSettings.setVideoFrameRate(m_defaultSettings.videoFrameRate);
-        if (m_encoderSettings.videoBitRate() <= 0)
-            m_encoderSettings.setVideoBitRate(m_defaultSettings.videoBitRate);
+        if (settings.videoFrameRate() <= 0)
+            settings.setVideoFrameRate(m_defaultSettings.videoFrameRate);
+        if (settings.videoBitRate() <= 0)
+            settings.setVideoBitRate(m_defaultSettings.videoBitRate);
 
-        if (m_encoderSettings.videoCodec() == QMediaFormat::VideoCodec::H264)
+        if (settings.videoCodec() == QMediaFormat::VideoCodec::H264)
             m_videoEncoder = AndroidMediaRecorder::H264;
-        else if (m_encoderSettings.videoCodec() == QMediaFormat::VideoCodec::H265)
+        else if (settings.videoCodec() == QMediaFormat::VideoCodec::H265)
             m_videoEncoder = AndroidMediaRecorder::HEVC;
-        else if (m_encoderSettings.videoCodec() == QMediaFormat::VideoCodec::MPEG4)
+        else if (settings.videoCodec() == QMediaFormat::VideoCodec::MPEG4)
             m_videoEncoder = AndroidMediaRecorder::MPEG_4_SP;
         else
             m_videoEncoder = m_defaultSettings.videoEncoder;
 
     }
-}
-
-void QAndroidCaptureSession::updateResolution()
-{
-    m_cameraSession->camera()->stopPreviewSynchronous();
-    m_cameraSession->applyResolution(m_encoderSettings.videoResolution(), false);
 }
 
 void QAndroidCaptureSession::restartViewfinder()
@@ -399,8 +391,6 @@ void QAndroidCaptureSession::onCameraOpened()
 
     std::sort(m_supportedResolutions.begin(), m_supportedResolutions.end(), qt_sizeLessThan);
     std::sort(m_supportedFramerates.begin(), m_supportedFramerates.end());
-
-    applySettings(m_encoderSettings);
 }
 
 QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id)

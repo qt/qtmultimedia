@@ -193,7 +193,6 @@ private:
     void setCaptureSession(QMediaCaptureSession *session);
     Q_DISABLE_COPY(QMediaRecorder)
     Q_DECLARE_PRIVATE(QMediaRecorder)
-    Q_PRIVATE_SLOT(d_func(), void _q_applySettings())
 };
 
 QT_END_NAMESPACE

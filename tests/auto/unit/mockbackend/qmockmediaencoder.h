@@ -40,8 +40,7 @@ public:
     QMockMediaEncoder(QMediaRecorder *parent):
         QPlatformMediaEncoder(parent),
         m_state(QMediaRecorder::StoppedState),
-        m_position(0),
-        m_settingAppliedCount(0)
+        m_position(0)
     {
     }
 
@@ -60,12 +59,6 @@ public:
         return m_position;
     }
 
-    void applySettings(const QMediaEncoderSettings &settings) override
-    {
-        m_settings = settings;
-        m_settingAppliedCount++;
-    }
-
     virtual void setMetaData(const QMediaMetaData &m) override
     {
         m_metaData = m;
@@ -76,9 +69,10 @@ public:
     using QPlatformMediaEncoder::error;
 
 public:
-    void record(const QMediaEncoderSettings &) override
+    void record(QMediaEncoderSettings &settings) override
     {
         m_state = QMediaRecorder::RecordingState;
+        m_settings = settings;
         m_position=1;
         emit stateChanged(m_state);
         emit durationChanged(m_position);
@@ -111,7 +105,6 @@ public:
     QMediaRecorder::RecorderState m_state;
     QMediaEncoderSettings m_settings;
     qint64     m_position;
-    int m_settingAppliedCount;
 };
 
 #endif // MOCKRECORDERCONTROL_H

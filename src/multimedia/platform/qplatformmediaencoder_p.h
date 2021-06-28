@@ -140,14 +140,12 @@ public:
     virtual bool isLocationWritable(const QUrl &location) const = 0;
 
     virtual QMediaRecorder::RecorderState state() const { return m_state; }
-    virtual void record(const QMediaEncoderSettings &settings) = 0;
+    virtual void record(QMediaEncoderSettings &settings) = 0;
     virtual void pause();
     virtual void resume();
     virtual void stop() = 0;
 
     virtual qint64 duration() const = 0;
-
-    virtual void applySettings(const QMediaEncoderSettings &) {};
 
     virtual void setMetaData(const QMediaMetaData &) {}
     virtual QMediaMetaData metaData() const { return {}; }

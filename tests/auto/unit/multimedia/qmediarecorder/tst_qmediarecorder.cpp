@@ -361,22 +361,11 @@ void tst_QMediaRecorder::testSettingsApplied()
     session.setRecorder(&encoder);
     auto *mock = mockIntegration->lastCaptureService()->mockControl;
 
-    //if the media recorder is not configured after construction
-    //the settings are applied in the next event loop
-    QCOMPARE(mock->m_settingAppliedCount, 0);
-    QTRY_COMPARE(mock->m_settingAppliedCount, 1);
-
     encoder.setVideoResolution(640,480);
-
-    QCOMPARE(mock->m_settingAppliedCount, 1);
-    QTRY_COMPARE(mock->m_settingAppliedCount, 2);
 
     //encoder settings are applied before recording if changed
     encoder.setQuality(QMediaRecorder::VeryHighQuality);
-
-    QCOMPARE(mock->m_settingAppliedCount, 2);
     encoder.record();
-    QCOMPARE(mock->m_settingAppliedCount, 3);
 
     encoder.stop();
 }
