@@ -51,7 +51,7 @@
 #include "private/qandroidmediaencoder_p.h"
 #include "private/androidmediarecorder_p.h"
 #include "private/qandroidformatsinfo_p.h"
-#include "private/qandroidmediaplayercontrol_p.h"
+#include "private/qandroidmediaplayer_p.h"
 #include "private/qandroidaudiooutput_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -91,7 +91,7 @@ QPlatformMediaCaptureSession *QAndroidIntegration::createCaptureSession()
 
 QPlatformMediaPlayer *QAndroidIntegration::createPlayer(QMediaPlayer *player)
 {
-    return new QAndroidMediaPlayerControl(player);
+    return new QAndroidMediaPlayer(player);
 }
 
 QPlatformCamera *QAndroidIntegration::createCamera(QCamera *camera)
