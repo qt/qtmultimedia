@@ -3,11 +3,11 @@ dependencies:
     ref: 286816e76ef9dd5c656a25e604ea00138da957f5
     required: true
   ../qtdeclarative:
-    ref: 42779e2d8fffc918e66c0290eaecef1b7cd4a126
+    ref: 7576b4d5b3f6a718e0741113e9c20b785ee26935
     required: false
   ../qtquickcontrols2:
-    ref: 51946cf0ce9f3bd1569187ea35d2df5e89d7bdbf
+    ref: a2a600e3ee15d3b4e14046e97476412433bae5f1
     required: false
   ../qtshadertools:
-    ref: b3ed0d41ec52a41248ce792d1d85c9ba5803fe29
+    ref: 4a2537f8d3a0fedfbb6582fa3dcbd3c76c0b08c2
     required: true
