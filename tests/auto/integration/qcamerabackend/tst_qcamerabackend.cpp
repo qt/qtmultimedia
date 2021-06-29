@@ -424,7 +424,7 @@ void tst_QCameraBackend::testExposureMode()
         QVERIFY(camera.isActive());
         QCOMPARE(camera.exposureMode(), QCamera::ExposureManual);
 
-        camera.setManualExposureTime(.02); // ~20ms should be supported by most cameras
+        camera.setManualExposureTime(.02f); // ~20ms should be supported by most cameras
         QVERIFY(camera.manualExposureTime() > .01 && camera.manualExposureTime() < .04);
     }
 
@@ -459,13 +459,15 @@ void tst_QCameraBackend::testVideoRecording()
 
     QSignalSpy errorSignal(camera.data(), SIGNAL(errorOccurred(QCamera::Error, const QString &)));
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
+    QSignalSpy recorderStateChanged(&recorder, SIGNAL(recorderStateChanged(RecorderState)));
+    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
 
     recorder.setVideoResolution(320, 240);
 
     // Insert metadata
     QMediaMetaData metaData;
     metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
-    metaData.insert(QMediaMetaData::Date, QDateTime(QDateTime::currentDateTime()));
+    metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
     recorder.setMetaData(metaData);
 
     camera->start();
@@ -480,20 +482,20 @@ void tst_QCameraBackend::testVideoRecording()
     for (int recordings = 0; recordings < 2; ++recordings) {
         //record 200ms clip
         recorder.record();
-        QTest::qWait(200);
+        durationChanged.clear();
+        QVERIFY(durationChanged.wait(1000));
 
         QCOMPARE(recorder.metaData(), metaData);
 
         recorder.stop();
-        bool foundFinalizingStatus = false;
-        QVERIFY(foundFinalizingStatus);
+        QVERIFY(recorderStateChanged.wait(1000));
+        QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
 
         QVERIFY(errorSignal.isEmpty());
         QVERIFY(recorderErrorSignal.isEmpty());
 
         QString fileName = recorder.actualLocation().toLocalFile();
         QVERIFY(!fileName.isEmpty());
-
         QVERIFY(QFileInfo(fileName).size() > 0);
         QFile(fileName).remove();
     }
@@ -514,6 +516,8 @@ void tst_QCameraBackend::testNativeMetadata()
 
     QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error, const QString &)));
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
+    QSignalSpy recorderStateChanged(&recorder, SIGNAL(recorderStateChanged(RecorderState)));
+    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
 
     camera.start();
     if (device.isNull()) {
@@ -532,11 +536,14 @@ void tst_QCameraBackend::testNativeMetadata()
     recorder.setMetaData(metaData);
 
     recorder.record();
-    QTest::qWait(200);
+    durationChanged.clear();
+    QVERIFY(durationChanged.wait(1000));
 
     QCOMPARE(recorder.metaData(), metaData);
 
     recorder.stop();
+
+    QVERIFY(recorderStateChanged.wait(1000));
 
     QVERIFY(errorSignal.isEmpty());
     QVERIFY(recorderErrorSignal.isEmpty());
@@ -554,6 +561,7 @@ void tst_QCameraBackend::testNativeMetadata()
     QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
 
     player.setSource(QUrl::fromLocalFile(fileName));
+    player.play();
 
     QTRY_VERIFY(metadataChangedSpy.count() > 0);
 
@@ -564,6 +572,7 @@ void tst_QCameraBackend::testNativeMetadata()
     metadataChangedSpy.clear();
 
     player.stop();
+    player.setSource({});
     QFile(fileName).remove();
 }
 
