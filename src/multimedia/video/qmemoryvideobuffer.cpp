@@ -82,10 +82,10 @@ QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
     if (m_mapMode == QVideoFrame::NotMapped && data.size() && mode != QVideoFrame::NotMapped) {
         m_mapMode = mode;
 
-        mapData.nBytes = data.size();
         mapData.nPlanes = 1;
         mapData.bytesPerLine[0] = bytesPerLine;
         mapData.data[0] = reinterpret_cast<uchar *>(data.data());
+        mapData.size[0] = data.size();
     }
 
     return mapData;

@@ -311,8 +311,8 @@ void tst_QQuickVideoOutput::paintSurface()
 
     QVideoFrame frame(QVideoFrameFormat(QSize(4, 4), QVideoFrameFormat::Format_ARGB32));
     frame.map(QVideoFrame::ReadWrite);
-    QCOMPARE(frame.mappedBytes(), 64);
-    memcpy(frame.bits(), rgb32ImageData, 64);
+    QCOMPARE(frame.mappedBytes(0), 64);
+    memcpy(frame.bits(0), rgb32ImageData, 64);
     frame.unmap();
     surface->newVideoFrame(frame);
 }

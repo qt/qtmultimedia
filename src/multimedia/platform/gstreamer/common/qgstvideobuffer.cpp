@@ -88,20 +88,20 @@ QAbstractVideoBuffer::MapData QGstVideoBuffer::map(QVideoFrame::MapMode mode)
 
     if (m_videoInfo.finfo->n_planes == 0) {         // Encoded
         if (gst_buffer_map(m_buffer, &m_frame.map[0], flags)) {
-            mapData.nBytes = m_frame.map[0].size;
             mapData.nPlanes = 1;
             mapData.bytesPerLine[0] = -1;
+            mapData.size[0] = m_frame.map[0].size;
             mapData.data[0] = static_cast<uchar *>(m_frame.map[0].data);
 
             m_mode = mode;
         }
     } else if (gst_video_frame_map(&m_frame, &m_videoInfo, m_buffer, flags)) {
-        mapData.nBytes = m_frame.info.size;
         mapData.nPlanes = m_frame.info.finfo->n_planes;
 
         for (guint i = 0; i < m_frame.info.finfo->n_planes; ++i) {
-            mapData.bytesPerLine[i] = m_frame.info.stride[i];
-            mapData.data[i] = static_cast<uchar *>(m_frame.data[i]);
+            mapData.bytesPerLine[i] = GST_VIDEO_FRAME_PLANE_STRIDE(&m_frame, i);
+            mapData.data[i] = static_cast<uchar *>(GST_VIDEO_FRAME_PLANE_DATA(&m_frame, i));
+            mapData.size[i] = mapData.bytesPerLine[i]*GST_VIDEO_FRAME_COMP_HEIGHT(&m_frame, i);
         }
 
         m_mode = mode;

@@ -119,11 +119,16 @@ public:
     {
         m_mapMode = mode;
         MapData mapData;
-        mapData.nBytes = m_numBytes;
+        int nBytes = m_numBytes;
         mapData.nPlanes = m_planeCount;
         for (int i = 0; i < m_planeCount; ++i) {
             mapData.data[i] = m_data[i];
             mapData.bytesPerLine[i] = m_bytesPerLine[i];
+            if (i) {
+                mapData.size[i-1] = m_data[i] - m_data[i-1];
+                nBytes -= mapData.size[i-1];
+            }
+            mapData.size[i] = nBytes;
         }
         return mapData;
     }
@@ -558,25 +563,25 @@ void tst_QVideoFrame::map()
 
     QVideoFrame frame(QVideoFrameFormat(size, pixelFormat));
 
-    QVERIFY(!frame.bits());
-    QCOMPARE(frame.mappedBytes(), 0);
-    QCOMPARE(frame.bytesPerLine(), 0);
+    QVERIFY(!frame.bits(0));
+    QCOMPARE(frame.mappedBytes(0), 0);
+    QCOMPARE(frame.bytesPerLine(0), 0);
     QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
 
     QVERIFY(frame.map(mode));
 
     // Mapping multiple times is allowed in ReadOnly mode
     if (mode == QVideoFrame::ReadOnly) {
-        const uchar *bits = frame.bits();
+        const uchar *bits = frame.bits(0);
 
         QVERIFY(frame.map(QVideoFrame::ReadOnly));
         QVERIFY(frame.isMapped());
-        QCOMPARE(frame.bits(), bits);
+        QCOMPARE(frame.bits(0), bits);
 
         frame.unmap();
         //frame should still be mapped after the first nested unmap
         QVERIFY(frame.isMapped());
-        QCOMPARE(frame.bits(), bits);
+        QCOMPARE(frame.bits(0), bits);
 
         //re-mapping in Write or ReadWrite modes should fail
         QVERIFY(!frame.map(QVideoFrame::WriteOnly));
@@ -587,14 +592,14 @@ void tst_QVideoFrame::map()
         QVERIFY(!frame.map(QVideoFrame::ReadOnly));
     }
 
-    QVERIFY(frame.bits());
+    QVERIFY(frame.bits(0));
     QCOMPARE(frame.mapMode(), mode);
 
     frame.unmap();
 
-    QVERIFY(!frame.bits());
-    QCOMPARE(frame.mappedBytes(), 0);
-    QCOMPARE(frame.bytesPerLine(), 0);
+    QVERIFY(!frame.bits(0));
+    QCOMPARE(frame.mappedBytes(0), 0);
+    QCOMPARE(frame.bytesPerLine(0), 0);
     QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped);
 }
 
@@ -796,19 +801,19 @@ void tst_QVideoFrame::formatConversion()
 
 #define TEST_MAPPED(frame, mode) \
 do { \
-    QVERIFY(frame.bits()); \
+    QVERIFY(frame.bits(0)); \
     QVERIFY(frame.isMapped()); \
-    QCOMPARE(frame.mappedBytes(), 16384); \
-    QCOMPARE(frame.bytesPerLine(), 256); \
+    QCOMPARE(frame.mappedBytes(0), 16384); \
+    QCOMPARE(frame.bytesPerLine(0), 256); \
     QCOMPARE(frame.mapMode(), mode); \
 } while (0)
 
 #define TEST_UNMAPPED(frame) \
 do { \
-    QVERIFY(!frame.bits()); \
+    QVERIFY(!frame.bits(0)); \
     QVERIFY(!frame.isMapped()); \
-    QCOMPARE(frame.mappedBytes(), 0); \
-    QCOMPARE(frame.bytesPerLine(), 0); \
+    QCOMPARE(frame.mappedBytes(0), 0); \
+    QCOMPARE(frame.bytesPerLine(0), 0); \
     QCOMPARE(frame.mapMode(), QVideoFrame::NotMapped); \
 } while (0)
 

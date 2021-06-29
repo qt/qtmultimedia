@@ -94,13 +94,13 @@ AVFVideoBuffer::MapData AVFVideoBuffer::map(QVideoFrame::MapMode mode)
     }
 
     mapData.nPlanes = CVPixelBufferGetPlaneCount(m_buffer);
-    mapData.nBytes = CVPixelBufferGetDataSize(m_buffer);
     Q_ASSERT(mapData.nPlanes <= 3);
 
     if (!mapData.nPlanes) {
         // single plane
         mapData.bytesPerLine[0] = CVPixelBufferGetBytesPerRow(m_buffer);
         mapData.data[0] = static_cast<uchar*>(CVPixelBufferGetBaseAddress(m_buffer));
+        mapData.size[0] = CVPixelBufferGetDataSize(m_buffer);
         mapData.nPlanes = mapData.data[0] ? 1 : 0;
         return mapData;
     }
@@ -108,6 +108,7 @@ AVFVideoBuffer::MapData AVFVideoBuffer::map(QVideoFrame::MapMode mode)
     // For a bi-planar or tri-planar format we have to set the parameters correctly:
     for (int i = 0; i < mapData.nPlanes; ++i) {
         mapData.bytesPerLine[i] = CVPixelBufferGetBytesPerRowOfPlane(m_buffer, i);
+        mapData.size[i] = mapData.bytesPerLine[i]*CVPixelBufferGetHeightOfPlane(m_buffer, i);
         mapData.data[i] = static_cast<uchar*>(CVPixelBufferGetBaseAddressOfPlane(m_buffer, i));
     }
 

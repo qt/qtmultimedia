@@ -83,8 +83,8 @@ inline quint32 qConvertBGR24ToARGB32(const uchar *bgr)
 }
 
 #define FETCH_INFO_PACKED(frame) \
-    const uchar *src = frame.bits(); \
-    int stride = frame.bytesPerLine(); \
+    const uchar *src = frame.bits(0); \
+    int stride = frame.bytesPerLine(0); \
     int width = frame.width(); \
     int height = frame.height();
 

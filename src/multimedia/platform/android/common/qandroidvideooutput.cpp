@@ -115,9 +115,9 @@ public:
             m_mapMode = mode;
             m_image = m_output->m_fbo->toImage();
 
-            mapData.nBytes = static_cast<int>(m_image.sizeInBytes());
             mapData.nPlanes = 1;
             mapData.bytesPerLine[0] = m_image.bytesPerLine();
+            mapData.size[0] = static_cast<int>(m_image.sizeInBytes());
             mapData.data[0] = m_image.bits();
         }
 
