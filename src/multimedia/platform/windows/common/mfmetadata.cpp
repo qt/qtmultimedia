@@ -147,10 +147,13 @@ static QVariant convertValue(const PROPVARIANT& var)
         value = bool(var.boolVal);
         break;
     case VT_FILETIME:
-        SYSTEMTIME sysDate;
-        if (!FileTimeToSystemTime(&var.filetime, &sysDate))
+        SYSTEMTIME t;
+        if (!FileTimeToSystemTime(&var.filetime, &t))
             break;
-        value = QDate(sysDate.wYear, sysDate.wMonth, sysDate.wDay);
+
+        value = QDateTime(QDate(t.wYear, t.wMonth, t.wDay),
+                          QTime(t.wHour, t.wMinute, t.wSecond, t.wMilliseconds),
+                          Qt::UTC);
         break;
     case VT_STREAM:
     {
