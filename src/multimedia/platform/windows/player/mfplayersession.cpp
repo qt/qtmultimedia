@@ -104,6 +104,8 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
 
     m_audioSampleGrabber = new AudioSampleGrabberCallback;
     m_videoRendererControl = new MFVideoRendererControl;
+
+    PropVariantInit(&m_varStart);
 }
 
 void MFPlayerSession::close()
@@ -1015,7 +1017,7 @@ void MFPlayerSession::start()
         if (SUCCEEDED(m_session->Start(&GUID_NULL, &m_varStart))) {
             m_state.setCommand(CmdStart);
             m_pendingState = CmdPending;
-            PropVariantInit(&m_varStart);
+            PropVariantClear(&m_varStart);
         } else {
             emit error(QMediaPlayer::ResourceError, tr("failed to start playback"), true);
         }
@@ -1086,7 +1088,7 @@ void MFPlayerSession::createSession()
         emit error(QMediaPlayer::ResourceError, tr("Unable to pull session events."), false);
     }
 
-    PropVariantInit(&m_varStart);
+    PropVariantClear(&m_varStart);
     m_varStart.vt = VT_I8;
     m_varStart.hVal.QuadPart = 0;
 }
@@ -1099,8 +1101,12 @@ qint64 MFPlayerSession::position()
     if (m_pendingState == SeekPending)
         return m_state.start;
 
-    if (m_state.command == CmdStop)
-        return qint64(m_varStart.hVal.QuadPart / 10000);
+    if (m_state.command == CmdStop) {
+        if (m_varStart.vt == VT_I8)
+            return qint64(m_varStart.hVal.QuadPart / 10000);
+        else
+            return 0;
+    }
 
     if (m_presentationClock) {
         MFTIME time, sysTime;
@@ -1149,7 +1155,7 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
     varStart.hVal.QuadPart = LONGLONG(position * 10000);
     if (SUCCEEDED(m_session->Start(NULL, &varStart)))
     {
-        PropVariantInit(&m_varStart);
+        PropVariantClear(&m_varStart);
         // Store the pending state.
         m_state.setCommand(CmdStart);
         m_state.start = position;
