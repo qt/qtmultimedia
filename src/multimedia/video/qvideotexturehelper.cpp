@@ -441,7 +441,8 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
             }
         }
 
-        QRhiTextureSubresourceUploadDescription subresDesc(frame.bits(plane), frame.mappedBytes(plane));
+        auto data = QByteArray::fromRawData((const char *)frame.bits(plane), frame.mappedBytes(plane));
+        QRhiTextureSubresourceUploadDescription subresDesc(data);
         subresDesc.setDataStride(frame.bytesPerLine(plane));
         QRhiTextureUploadEntry entry(0, 0, subresDesc);
         QRhiTextureUploadDescription desc({ entry });
