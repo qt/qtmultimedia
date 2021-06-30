@@ -102,6 +102,8 @@ private Q_SLOTS:
     void onBufferingChanged(qint32 percent);
     void onVideoSizeChanged(qint32 width, qint32 height);
     void onStateChanged(qint32 state);
+    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration);
 
 private:
     AndroidMediaPlayer *mMediaPlayer = nullptr;

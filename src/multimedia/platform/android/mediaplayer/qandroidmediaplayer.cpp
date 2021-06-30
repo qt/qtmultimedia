@@ -92,9 +92,9 @@ QAndroidMediaPlayer::QAndroidMediaPlayer(QMediaPlayer *parent)
     connect(mMediaPlayer,SIGNAL(videoSizeChanged(qint32,qint32)),
             this,SLOT(onVideoSizeChanged(qint32,qint32)));
     connect(mMediaPlayer,SIGNAL(progressChanged(qint64)),
-            this,SIGNAL(positionChanged(qint64)));
+            this,SLOT(positionChanged(qint64)));
     connect(mMediaPlayer,SIGNAL(durationChanged(qint64)),
-            this,SIGNAL(durationChanged(qint64)));
+            this,SLOT(durationChanged(qint64)));
 }
 
 QAndroidMediaPlayer::~QAndroidMediaPlayer()
@@ -627,6 +627,16 @@ void QAndroidMediaPlayer::onStateChanged(qint32 state)
             mVideoOutput->reset();
         }
     }
+}
+
+void QAndroidMediaPlayer::positionChanged(qint64 position)
+{
+    QPlatformMediaPlayer::positionChanged(position);
+}
+
+void QAndroidMediaPlayer::durationChanged(qint64 duration)
+{
+    QPlatformMediaPlayer::durationChanged(duration);
 }
 
 void QAndroidMediaPlayer::onVideoOutputReady(bool ready)
