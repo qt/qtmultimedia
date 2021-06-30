@@ -57,7 +57,6 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 class QAndroidTextureVideoOutput;
-class QAndroidCameraDataVideoOutput;
 class QVideoSink;
 
 class QAndroidCameraVideoRendererControl : public QObject
@@ -76,7 +75,6 @@ private:
     QAndroidCameraSession *m_cameraSession;
     QVideoSink *m_surface;
     QAndroidTextureVideoOutput *m_textureOutput;
-    QAndroidCameraDataVideoOutput *m_dataOutput;
 };
 
 QT_END_NAMESPACE
