@@ -259,10 +259,12 @@ void AVFImageCapture::updateCaptureConnection()
 
         if (![captureSession.outputs containsObject:m_stillImageOutput]) {
             if ([captureSession canAddOutput:m_stillImageOutput]) {
+                [captureSession beginConfiguration];
                 // Lock the video capture device to make sure the active format is not reset
                 const AVFConfigurationLock lock(m_session->videoCaptureDevice());
                 [captureSession addOutput:m_stillImageOutput];
                 m_videoConnection = [m_stillImageOutput connectionWithMediaType:AVMediaTypeVideo];
+                [captureSession commitConfiguration];
                 updateReadyStatus();
             }
         } else {

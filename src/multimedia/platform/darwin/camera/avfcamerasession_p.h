@@ -111,6 +111,7 @@ private:
     void setVideoOutput(AVFCameraRenderer *output);
     void addAudioCapture();
     AVCaptureDevice *createVideoCaptureDevice();
+    AVCaptureDevice *createAudioCaptureDevice();
     void attachVideoInputDevice();
     void attachAudioInputDevice();
     bool applyImageEncoderSettings();

@@ -161,17 +161,11 @@ void AVFCameraService::setAudioOutput(QPlatformAudioOutput *output)
 
 void AVFCameraService::audioInputChanged()
 {
-    m_audioCaptureDevice = nullptr;
     if (!m_audioInput)
         return;
-
-    QByteArray id = m_audioInput->device.id();
-    if (!id.isEmpty()) {
-        m_audioCaptureDevice = [AVCaptureDevice deviceWithUniqueID: [NSString stringWithUTF8String:id.constData()]];
-    } else {
-        m_audioCaptureDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
-    }
     m_session->updateAudioInput();
+    // if (m_encoder)
+    //     m_encoder->onAudioInputChanged();
 }
 
 void AVFCameraService::audioOutputChanged()
@@ -184,8 +178,7 @@ void AVFCameraService::audioOutputChanged()
 
 void AVFCameraService::setVideoPreview(QVideoSink *sink)
 {
-    if (m_session)
-        m_session->setVideoSink(sink);
+    m_session->setVideoSink(sink);
 }
 
 #include "moc_avfcameraservice_p.cpp"
