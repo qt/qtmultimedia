@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qandroidmediaencoder_p.h"
-
+#include "qandroidmultimediautils_p.h"
 #include "qandroidcapturesession_p.h"
 #include "qandroidcaptureservice_p.h"
 
@@ -87,6 +87,14 @@ void QAndroidMediaEncoder::setState(QMediaRecorder::RecorderState state)
         qWarning("QMediaEncoder::PausedState is not supported on Android");
         break;
     }
+}
+
+void QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
+{
+    if (location.isLocalFile()) {
+        qt_androidRequestWriteStoragePermission();
+    }
+    QPlatformMediaEncoder::setOutputLocation(location);
 }
 
 void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)

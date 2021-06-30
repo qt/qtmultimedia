@@ -153,7 +153,7 @@ public:
     QString errorString() const { return m_errorString; }
 
     QUrl outputLocation() const { return m_outputLocation; }
-    void setOutputLocation(const QUrl &location) { m_outputLocation = location; }
+    virtual void setOutputLocation(const QUrl &location) { m_outputLocation = location; }
     QUrl actualLocation() const { return m_actualLocation; }
     void clearActualLocation() { m_actualLocation.clear(); }
     void clearError() { error(QMediaRecorder::NoError, QString()); }
