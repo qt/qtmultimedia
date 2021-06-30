@@ -78,28 +78,21 @@ public:
     void setAudioInput(QPlatformAudioInput *input);
 
     QMediaRecorder::RecorderState state() const;
-    QMediaRecorder::Status status() const;
 
     void start(const QUrl &outputLocation);
     void stop(bool error = false);
 
     qint64 duration() const;
 
-    void setEncoderSettings(const QMediaEncoderSettings &settings);
     QMediaEncoderSettings encoderSettings() { return m_encoderSettings; }
 
     void setMediaEncoder(QAndroidMediaEncoder *encoder) { m_mediaEncoder = encoder; }
 
-    void applySettings();
+    void applySettings(const QMediaEncoderSettings &settings);
 
     void stateChanged(QMediaRecorder::RecorderState state) {
         if (m_mediaEncoder)
             m_mediaEncoder->stateChanged(state);
-    }
-    void statusChanged(QMediaRecorder::Status status)
-    {
-        if (m_mediaEncoder)
-            m_mediaEncoder->statusChanged(status);
     }
     void durationChanged(qint64 position)
     {
@@ -158,9 +151,6 @@ private:
 
     CaptureProfile getProfile(int id);
 
-
-    void setStatus(QMediaRecorder::Status status);
-
     void updateResolution();
     void restartViewfinder();
 
@@ -178,13 +168,11 @@ private:
     qint64 m_duration;
 
     QMediaRecorder::RecorderState m_state;
-    QMediaRecorder::Status m_status;
     QUrl m_usedOutputLocation;
 
     CaptureProfile m_defaultSettings;
 
     QMediaEncoderSettings m_encoderSettings;
-    bool m_encoderSettingsDirty = false;
     AndroidMediaRecorder::OutputFormat m_outputFormat;
     AndroidMediaRecorder::AudioEncoder m_audioEncoder;
     AndroidMediaRecorder::VideoEncoder m_videoEncoder;

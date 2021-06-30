@@ -481,6 +481,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
         m_durationInMs.storeRelease(CMTimeGetSeconds(duration) * 1000);
         m_lastTimeStamp = newTimeStamp;
+
+        m_delegate->updateDuration([self durationInMs]);
     }
 }
 

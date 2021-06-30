@@ -114,7 +114,6 @@ private:
     void attachVideoInputDevice();
     void attachAudioInputDevice();
     bool applyImageEncoderSettings();
-    bool applyEncoderSettings();
 
     QCameraDevice m_activeCameraDevice;
 

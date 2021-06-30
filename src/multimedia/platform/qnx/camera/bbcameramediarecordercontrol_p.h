@@ -64,11 +64,10 @@ public:
 
     QMediaRecorder::RecorderState state() const override;
     bool isLocationWritable(const QUrl &location) const override;
-    QMediaRecorder::Status status() const override;
     qint64 duration() const override;
     bool isMuted() const override;
     qreal volume() const override;
-    void applySettings() override;
+    void applySettings(const QMediaEncoderSettings &settings) override;
 
 public Q_SLOTS:
     void setState(QMediaRecorder::RecorderState state) override;

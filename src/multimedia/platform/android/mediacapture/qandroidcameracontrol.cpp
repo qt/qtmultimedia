@@ -65,16 +65,20 @@ QAndroidCameraControl::~QAndroidCameraControl()
 
 void QAndroidCameraControl::setActive(bool active)
 {
-    m_cameraSession->setActive(active);
+    if (m_cameraSession)
+        m_cameraSession->setActive(active);
 }
 
 bool QAndroidCameraControl::isActive() const
 {
-    return m_cameraSession->isActive();
+    return m_cameraSession ? m_cameraSession->isActive() : false;
 }
 
 void QAndroidCameraControl::setCamera(const QCameraDevice &camera)
 {
+    if (!m_cameraSession)
+        return;
+
     int id = 0;
     auto cameras = QMediaDevices::videoInputs();
     for (int i = 0; i < cameras.size(); ++i) {
@@ -114,7 +118,7 @@ void QAndroidCameraControl::setCaptureSession(QPlatformMediaCaptureSession *sess
 
 void QAndroidCameraControl::setFocusMode(QCamera::FocusMode mode)
 {
-    if (!m_cameraSession->camera())
+    if (!m_cameraSession || !m_cameraSession->camera())
         return;
 
     if (isFocusModeSupported(mode)) {
@@ -154,11 +158,12 @@ void QAndroidCameraControl::setFocusMode(QCamera::FocusMode mode)
 
 bool QAndroidCameraControl::isFocusModeSupported(QCamera::FocusMode mode) const
 {
-    return m_cameraSession->camera() ? m_supportedFocusModes.contains(mode) : false;
+    return (m_cameraSession && m_cameraSession->camera()) ? m_supportedFocusModes.contains(mode) : false;
 }
 
 void QAndroidCameraControl::onCameraOpened()
 {
+    Q_ASSERT(m_cameraSession);
     connect(m_cameraSession->camera(), SIGNAL(previewSizeChanged()),
             this, SLOT(setCameraFocusArea()));
 
@@ -337,6 +342,9 @@ static QRect adjustedArea(const QRectF &area)
 
 void QAndroidCameraControl::setCameraFocusArea()
 {
+    if (!m_cameraSession)
+        return;
+
     QList<QRect> areas;
     auto focusPoint = customFocusPoint();
     if (QRectF(0., 0., 1., 1.).contains(focusPoint)) {
@@ -370,7 +378,7 @@ void QAndroidCameraControl::zoomTo(float factor, float rate)
     if (zoomFactor() == factor)
         return;
 
-    if (!m_cameraSession->camera())
+    if (!m_cameraSession || !m_cameraSession->camera())
         return;
 
     factor = qBound(qreal(1), factor, maxZoomFactor());
@@ -382,7 +390,7 @@ void QAndroidCameraControl::zoomTo(float factor, float rate)
 
 void QAndroidCameraControl::setFlashMode(QCamera::FlashMode mode)
 {
-    if (!m_cameraSession->camera())
+    if (!m_cameraSession || !m_cameraSession->camera())
         return;
 
     if (!isFlashModeSupported(mode))
@@ -402,7 +410,7 @@ void QAndroidCameraControl::setFlashMode(QCamera::FlashMode mode)
 
 bool QAndroidCameraControl::isFlashModeSupported(QCamera::FlashMode mode) const
 {
-    if (!m_cameraSession->camera())
+    if (!m_cameraSession || !m_cameraSession->camera())
         return false;
     switch (mode) {
     case QCamera::FlashOff:
@@ -422,6 +430,8 @@ bool QAndroidCameraControl::isFlashReady() const
 
 void QAndroidCameraControl::setTorchMode(QCamera::TorchMode mode)
 {
+    if (!m_cameraSession)
+        return;
     auto *camera = m_cameraSession->camera();
     if (!camera || !isTorchSupported || mode == QCamera::TorchAuto)
         return;
@@ -438,7 +448,7 @@ void QAndroidCameraControl::setTorchMode(QCamera::TorchMode mode)
 
 bool QAndroidCameraControl::isTorchModeSupported(QCamera::TorchMode mode) const
 {
-    if (!m_cameraSession->camera())
+    if (!m_cameraSession || !m_cameraSession->camera())
         return false;
     switch (mode) {
     case QCamera::TorchOff:
@@ -455,7 +465,7 @@ void QAndroidCameraControl::setExposureMode(QCamera::ExposureMode mode)
     if (exposureMode() == mode)
         return;
 
-    if (!m_cameraSession->camera())
+    if (!m_cameraSession || !m_cameraSession->camera())
         return;
 
     if (!m_supportedExposureModes.contains(mode))
@@ -528,7 +538,7 @@ bool QAndroidCameraControl::isExposureModeSupported(QCamera::ExposureMode mode) 
 
 void QAndroidCameraControl::setExposureCompensation(float bias)
 {
-    if (exposureCompensation() == bias || !m_cameraSession->camera())
+    if (exposureCompensation() == bias || !m_cameraSession || !m_cameraSession->camera())
         return;
 
     int biasIndex = qRound(bias / m_exposureCompensationStep);
@@ -545,6 +555,8 @@ bool QAndroidCameraControl::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMod
 
 void QAndroidCameraControl::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 {
+    if (!m_cameraSession)
+        return;
     auto *camera = m_cameraSession->camera();
     if (!camera)
         return;

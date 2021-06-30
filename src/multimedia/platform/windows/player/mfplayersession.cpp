@@ -174,8 +174,10 @@ void MFPlayerSession::load(const QUrl &url, QIODevice *stream)
         m_sourceResolver->cancel();
 
     if (url.isEmpty() && !stream) {
+        close();
         changeStatus(QMediaPlayer::NoMedia);
     } else if (stream && (!stream->isReadable())) {
+        close();
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Invalid stream source."), true);
     } else {

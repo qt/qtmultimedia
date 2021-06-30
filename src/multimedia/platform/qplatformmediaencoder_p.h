@@ -142,12 +142,9 @@ public:
     virtual QMediaRecorder::RecorderState state() const { return m_state; }
     virtual void setState(QMediaRecorder::RecorderState state) = 0;
 
-    virtual QMediaRecorder::Status status() const { return m_status; }
-
     virtual qint64 duration() const = 0;
 
-    virtual void applySettings() = 0;
-    virtual void setEncoderSettings(const QMediaEncoderSettings &settings) = 0;
+    virtual void applySettings(const QMediaEncoderSettings &settings) = 0;
 
     virtual void setMetaData(const QMediaMetaData &) {}
     virtual QMediaMetaData metaData() const { return {}; }
@@ -165,7 +162,6 @@ protected:
     explicit QPlatformMediaEncoder(QMediaRecorder *parent);
 
     void stateChanged(QMediaRecorder::RecorderState state);
-    void statusChanged(QMediaRecorder::Status status);
     void durationChanged(qint64 position);
     void actualLocationChanged(const QUrl &location);
     void error(QMediaRecorder::Error error, const QString &errorString);
@@ -179,7 +175,6 @@ private:
     QUrl m_outputLocation;
 
     QMediaRecorder::RecorderState m_state = QMediaRecorder::StoppedState;
-    QMediaRecorder::Status m_status = QMediaRecorder::StoppedStatus;
 };
 
 QT_END_NAMESPACE

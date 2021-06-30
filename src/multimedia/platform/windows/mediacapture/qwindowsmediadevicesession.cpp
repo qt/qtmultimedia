@@ -191,6 +191,9 @@ void QWindowsMediaDeviceSession::setAudioInput(QAudioInput *input)
     if (m_audioInput)
         m_audioInput->disconnect(this);
     m_audioInput = input;
+
+    audioInputDeviceChanged();
+
     if (!m_audioInput)
         return;
     connect(m_audioInput, &QAudioInput::mutedChanged, this, &QWindowsMediaDeviceSession::setAudioInputMuted);

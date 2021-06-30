@@ -69,18 +69,15 @@ QMediaRecorder::RecorderState QWindowsMediaEncoder::state() const
     return m_state;
 }
 
-QMediaRecorder::Status QWindowsMediaEncoder::status() const
-{
-    return m_lastStatus;
-}
-
 qint64 QWindowsMediaEncoder::duration() const
 {
     return m_duration;
 }
 
-void QWindowsMediaEncoder::applySettings()
+void QWindowsMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
 {
+    m_settings = settings;
+
     if (!m_mediaDeviceSession)
         return;
 
@@ -122,7 +119,7 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
             }
         } else {
 
-            applySettings();
+            applySettings(m_settings);
 
             const bool audioOnly = m_settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
 
@@ -138,11 +135,9 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
             if (m_mediaDeviceSession->startRecording(m_fileName, audioOnly)) {
 
                 m_state = QMediaRecorder::RecordingState;
-                m_lastStatus = QMediaRecorder::StartingStatus;
 
                 actualLocationChanged(QUrl::fromLocalFile(m_fileName));
                 stateChanged(m_state);
-                statusChanged(m_lastStatus);
 
             } else {
                 error(QMediaRecorder::FormatError,
@@ -164,16 +159,9 @@ void QWindowsMediaEncoder::setState(QMediaRecorder::RecorderState state)
     case QMediaRecorder::StoppedState:
     {
         m_mediaDeviceSession->stopRecording();
-        m_lastStatus = QMediaRecorder::FinalizingStatus;
-        statusChanged(m_lastStatus);
         // state will change in onRecordingStopped()
     } break;
     }
-}
-
-void QWindowsMediaEncoder::setEncoderSettings(const QMediaEncoderSettings &settings)
-{
-    m_settings = settings;
 }
 
 void QWindowsMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
@@ -249,8 +237,6 @@ void QWindowsMediaEncoder::onStreamingError(int errorCode)
 
     if (m_state != QMediaRecorder::StoppedState) {
         m_mediaDeviceSession->stopRecording();
-        m_lastStatus = QMediaRecorder::FinalizingStatus;
-        statusChanged(m_lastStatus);
     }
 }
 
@@ -259,13 +245,9 @@ void QWindowsMediaEncoder::onRecordingError(int errorCode)
     error(QMediaRecorder::ResourceError, tr("Recording error"));
 
     auto lastState = m_state;
-    auto lastStatus = m_lastStatus;
     m_state = QMediaRecorder::StoppedState;
-    m_lastStatus = QMediaRecorder::StoppedStatus;
     if (m_state != lastState)
         stateChanged(m_state);
-    if (m_lastStatus != lastStatus)
-        statusChanged(m_lastStatus);
 }
 
 void QWindowsMediaEncoder::onCameraChanged()
@@ -274,8 +256,6 @@ void QWindowsMediaEncoder::onCameraChanged()
 
 void QWindowsMediaEncoder::onRecordingStarted()
 {
-    m_lastStatus = QMediaRecorder::RecordingStatus;
-    statusChanged(m_lastStatus);
 }
 
 void QWindowsMediaEncoder::onRecordingStopped()
@@ -283,13 +263,9 @@ void QWindowsMediaEncoder::onRecordingStopped()
     saveMetadata();
 
     auto lastState = m_state;
-    auto lastStatus = m_lastStatus;
     m_state = QMediaRecorder::StoppedState;
-    m_lastStatus = QMediaRecorder::StoppedStatus;
     if (m_state != lastState)
         stateChanged(m_state);
-    if (m_lastStatus != lastStatus)
-        statusChanged(m_lastStatus);
 }
 
 QT_END_NAMESPACE

@@ -94,7 +94,7 @@ private:
     QAndroidCaptureSession *m_captureSession = nullptr;
     QAndroidCameraControl *m_cameraControl = nullptr;
     QAndroidCameraSession *m_cameraSession = nullptr;
-    QAndroidImageCapture *m_imageCaptureControl;
+    QAndroidImageCapture *m_imageCaptureControl = nullptr;
 };
 
 QT_END_NAMESPACE

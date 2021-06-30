@@ -74,6 +74,9 @@ Window {
         id: mediaPlayer
         videoOutput: videoOutput
         audioOutput: AudioOutput {
+            id: audio
+            muted: playbackControl.muted
+            volume: playbackControl.volume
         }
 
         onErrorOccurred: { mediaErrorText.text = mediaPlayer.errorString; mediaError.open() }

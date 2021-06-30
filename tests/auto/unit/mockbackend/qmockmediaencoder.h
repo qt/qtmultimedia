@@ -40,7 +40,6 @@ public:
     QMockMediaEncoder(QMediaRecorder *parent):
         QPlatformMediaEncoder(parent),
         m_state(QMediaRecorder::StoppedState),
-        m_status(QMediaRecorder::StoppedStatus),
         m_position(0),
         m_settingAppliedCount(0)
     {
@@ -56,22 +55,16 @@ public:
         return m_state;
     }
 
-    QMediaRecorder::Status status() const
-    {
-        return m_status;
-    }
-
     qint64 duration() const
     {
         return m_position;
     }
 
-    void applySettings()
+    void applySettings(const QMediaEncoderSettings &settings)
     {
+        m_settings = settings;
         m_settingAppliedCount++;
     }
-
-    void setEncoderSettings(const QMediaEncoderSettings &settings) { m_settings = settings; }
 
     virtual void setMetaData(const QMediaMetaData &m)
     {
@@ -86,10 +79,8 @@ public:
     void record()
     {
         m_state = QMediaRecorder::RecordingState;
-        m_status = QMediaRecorder::RecordingStatus;
         m_position=1;
         emit stateChanged(m_state);
-        emit statusChanged(m_status);
         emit durationChanged(m_position);
 
         QUrl actualLocation = outputLocation().isEmpty() ? QUrl::fromLocalFile("default_name.mp4") : outputLocation();
@@ -99,18 +90,14 @@ public:
     void pause()
     {
         m_state = QMediaRecorder::PausedState;
-        m_status = QMediaRecorder::PausedStatus;
         emit stateChanged(m_state);
-        emit statusChanged(m_status);
     }
 
     void stop()
     {
         m_position=0;
         m_state = QMediaRecorder::StoppedState;
-        m_status = QMediaRecorder::StoppedStatus;
         emit stateChanged(m_state);
-        emit statusChanged(m_status);
     }
 
     void setState(QMediaRecorder::RecorderState state)
@@ -131,7 +118,6 @@ public:
 public:
     QMediaMetaData m_metaData;
     QMediaRecorder::RecorderState m_state;
-    QMediaRecorder::Status m_status;
     QMediaEncoderSettings m_settings;
     qint64     m_position;
     int m_settingAppliedCount;

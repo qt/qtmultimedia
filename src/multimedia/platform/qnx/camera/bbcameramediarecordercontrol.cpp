@@ -66,7 +66,6 @@ BbCameraMediaRecorderControl::BbCameraMediaRecorderControl(BbCameraSession *sess
     , m_session(session)
 {
     connect(m_session, SIGNAL(videoStateChanged(QMediaRecorder::RecorderState)), this, SIGNAL(stateChanged(QMediaRecorder::RecorderState)));
-    connect(m_session, SIGNAL(videoStatusChanged(QMediaRecorder::Status)), this, SIGNAL(statusChanged(QMediaRecorder::Status)));
     connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
     connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
     connect(m_session, SIGNAL(videoError(int,QString)), this, SIGNAL(error(int,QString)));
@@ -80,11 +79,6 @@ bool BbCameraMediaRecorderControl::isLocationWritable(const QUrl &location) cons
 QMediaRecorder::RecorderState BbCameraMediaRecorderControl::state() const
 {
     return m_session->videoState();
-}
-
-QMediaRecorder::Status BbCameraMediaRecorderControl::status() const
-{
-    return m_session->videoStatus();
 }
 
 qint64 BbCameraMediaRecorderControl::duration() const
@@ -118,7 +112,7 @@ qreal BbCameraMediaRecorderControl::volume() const
     return (level / 100);
 }
 
-void BbCameraMediaRecorderControl::applySettings()
+void BbCameraMediaRecorderControl::applySettings(const QMediaEncoderSettings &)
 {
     m_session->applyVideoSettings();
 }

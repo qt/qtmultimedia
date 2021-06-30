@@ -125,7 +125,6 @@ AudioRecorder::AudioRecorder()
     ui->bitrateBox->addItem(QStringLiteral("128000"), QVariant(128000));
 
     connect(m_audioEncoder, &QMediaRecorder::durationChanged, this, &AudioRecorder::updateProgress);
-    connect(m_audioEncoder, &QMediaRecorder::statusChanged, this, &AudioRecorder::updateStatus);
     connect(m_audioEncoder, &QMediaRecorder::recorderStateChanged, this, &AudioRecorder::onStateChanged);
     connect(m_audioEncoder, &QMediaRecorder::errorChanged, this, &AudioRecorder::displayErrorMessage);
 }
@@ -138,47 +137,33 @@ void AudioRecorder::updateProgress(qint64 duration)
     ui->statusbar->showMessage(tr("Recorded %1 sec").arg(duration / 1000));
 }
 
-void AudioRecorder::updateStatus(QMediaRecorder::Status status)
+void AudioRecorder::onStateChanged(QMediaRecorder::RecorderState state)
 {
     QString statusMessage;
 
-    switch (status) {
-    case QMediaRecorder::RecordingStatus:
-        statusMessage = tr("Recording to %1").arg(m_audioEncoder->actualLocation().toString());
-        break;
-    case QMediaRecorder::PausedStatus:
-        clearAudioLevels();
-        statusMessage = tr("Paused");
-        break;
-    case QMediaRecorder::StoppedStatus:
-        clearAudioLevels();
-        statusMessage = tr("Stopped");
-    default:
-        break;
-    }
-
-    if (m_audioEncoder->error() == QMediaRecorder::NoError)
-        ui->statusbar->showMessage(statusMessage);
-}
-
-void AudioRecorder::onStateChanged(QMediaRecorder::RecorderState state)
-{
     switch (state) {
     case QMediaRecorder::RecordingState:
+        statusMessage = tr("Recording to %1").arg(m_audioEncoder->actualLocation().toString());
         ui->recordButton->setText(tr("Stop"));
         ui->pauseButton->setText(tr("Pause"));
         break;
     case QMediaRecorder::PausedState:
+        clearAudioLevels();
+        statusMessage = tr("Paused");
         ui->recordButton->setText(tr("Stop"));
         ui->pauseButton->setText(tr("Resume"));
         break;
     case QMediaRecorder::StoppedState:
+        clearAudioLevels();
+        statusMessage = tr("Stopped");
         ui->recordButton->setText(tr("Record"));
         ui->pauseButton->setText(tr("Pause"));
         break;
     }
 
     ui->pauseButton->setEnabled(m_audioEncoder->recorderState() != QMediaRecorder::StoppedState);
+    if (m_audioEncoder->error() == QMediaRecorder::NoError)
+        ui->statusbar->showMessage(statusMessage);
 }
 
 static QVariant boxValue(const QComboBox *box)

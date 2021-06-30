@@ -81,14 +81,12 @@ public:
     bool isLocationWritable(const QUrl &location) const override;
 
     QMediaRecorder::RecorderState state() const override;
-    QMediaRecorder::Status status() const override;
 
     qint64 duration() const override;
 
-    void applySettings() override;
+    void applySettings(const QMediaEncoderSettings &settings) override;
     void unapplySettings();
 
-    void setEncoderSettings(const QMediaEncoderSettings &settings) override;
     QMediaEncoderSettings encoderSettings() const;
 
     void setMetaData(const QMediaMetaData &) override;
@@ -97,6 +95,8 @@ public:
     AVFCameraService *cameraService() const { return m_service; }
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
+
+    void updateDuration(qint64 duration);
 
 public Q_SLOTS:
     void setState(QMediaRecorder::RecorderState state) override;
@@ -121,10 +121,11 @@ private:
     AVFStorageLocation m_storageLocation;
 
     QMediaRecorder::RecorderState m_state;
-    QMediaRecorder::Status m_lastStatus;
     QMediaEncoderSettings m_settings;
 
     QMediaMetaData m_metaData;
+
+    qint64 m_duration;
 
     NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;

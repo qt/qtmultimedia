@@ -390,15 +390,6 @@ bool AVFCameraSession::applyImageEncoderSettings()
     return false;
 }
 
-bool AVFCameraSession::applyEncoderSettings()
-{
-    if (AVFMediaEncoder *encoder = m_service->recorderControl()) {
-        encoder->applySettings();
-        return true;
-    }
-    return false;
-}
-
 FourCharCode AVFCameraSession::defaultCodec()
 {
     if (!m_defaultCodec) {

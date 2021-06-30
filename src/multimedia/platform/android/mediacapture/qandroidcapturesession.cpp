@@ -60,8 +60,6 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
     , m_audioSource(AndroidMediaRecorder::DefaultAudioSource)
     , m_duration(0)
     , m_state(QMediaRecorder::StoppedState)
-    , m_status(QMediaRecorder::StoppedStatus)
-    , m_encoderSettingsDirty(true)
     , m_outputFormat(AndroidMediaRecorder::DefaultOutputFormat)
     , m_audioEncoder(AndroidMediaRecorder::DefaultAudioEncoder)
     , m_videoEncoder(AndroidMediaRecorder::DefaultVideoEncoder)
@@ -81,14 +79,6 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
                 if (!isActive)
                     stop();
             });
-        connect(cameraSession, &QAndroidCameraSession::readyForCaptureChanged, this,
-            [this](bool ready) {
-                if (ready)
-                    setStatus(QMediaRecorder::StoppedStatus);
-            });
-    } else {
-        // Audio-only recording.
-        setStatus(QMediaRecorder::StoppedStatus);
     }
 
     m_notifyTimer.setInterval(1000);
@@ -132,10 +122,8 @@ QMediaRecorder::RecorderState QAndroidCaptureSession::state() const
 
 void QAndroidCaptureSession::start(const QUrl &outputLocation)
 {
-    if (m_state == QMediaRecorder::RecordingState || m_status != QMediaRecorder::StoppedStatus)
+    if (m_state == QMediaRecorder::RecordingState)
         return;
-
-    setStatus(QMediaRecorder::StartingStatus);
 
     if (m_mediaRecorder) {
         m_mediaRecorder->release();
@@ -147,7 +135,6 @@ void QAndroidCaptureSession::start(const QUrl &outputLocation)
                        ? m_cameraSession->requestRecordingPermission()
                        : qt_androidRequestRecordingPermission();
     if (!granted) {
-        setStatus(QMediaRecorder::UnavailableStatus);
         Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("Permission denied."));
         return;
     }
@@ -244,15 +231,12 @@ void QAndroidCaptureSession::start(const QUrl &outputLocation)
 
     m_state = QMediaRecorder::RecordingState;
     emit stateChanged(m_state);
-    setStatus(QMediaRecorder::RecordingStatus);
 }
 
 void QAndroidCaptureSession::stop(bool error)
 {
     if (m_state == QMediaRecorder::StoppedState || m_mediaRecorder == 0)
         return;
-
-    setStatus(QMediaRecorder::FinalizingStatus);
 
     m_mediaRecorder->stop();
     m_notifyTimer.stop();
@@ -282,21 +266,6 @@ void QAndroidCaptureSession::stop(bool error)
 
     m_state = QMediaRecorder::StoppedState;
     emit stateChanged(m_state);
-    setStatus(QMediaRecorder::StoppedStatus);
-}
-
-void QAndroidCaptureSession::setStatus(QMediaRecorder::Status status)
-{
-    if (m_status == status)
-        return;
-
-    m_status = status;
-    emit statusChanged(m_status);
-}
-
-QMediaRecorder::Status QAndroidCaptureSession::status() const
-{
-    return m_status;
 }
 
 qint64 QAndroidCaptureSession::duration() const
@@ -304,19 +273,12 @@ qint64 QAndroidCaptureSession::duration() const
     return m_duration;
 }
 
-void QAndroidCaptureSession::setEncoderSettings(const QMediaEncoderSettings &settings)
+void QAndroidCaptureSession::applySettings(const QMediaEncoderSettings &settings)
 {
     const auto flag = m_cameraSession ? QMediaFormat::RequiresVideo
                                        : QMediaFormat::NoFlags;
     m_encoderSettings = settings;
     m_encoderSettings.resolveFormat(flag);
-    m_encoderSettingsDirty = true;
-}
-
-void QAndroidCaptureSession::applySettings()
-{
-    if (!m_encoderSettingsDirty)
-        return;
 
     // container settings
     auto fileFormat = m_encoderSettings.mediaFormat().fileFormat();
@@ -441,7 +403,7 @@ void QAndroidCaptureSession::onCameraOpened()
     std::sort(m_supportedResolutions.begin(), m_supportedResolutions.end(), qt_sizeLessThan);
     std::sort(m_supportedFramerates.begin(), m_supportedFramerates.end());
 
-    applySettings();
+    applySettings(m_encoderSettings);
 }
 
 QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id)

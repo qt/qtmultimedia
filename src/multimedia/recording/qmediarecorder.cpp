@@ -83,7 +83,7 @@ void QMediaRecorderPrivate::_q_applySettings()
 {
     if (control && settingsChanged) {
         settingsChanged = false;
-        control->applySettings();
+        control->applySettings(encoderSettings);
     }
 }
 
@@ -210,18 +210,6 @@ QMediaRecorder::RecorderState QMediaRecorder::recorderState() const
 }
 
 /*!
-    Returns the current media encoder status.
-
-    \sa QMediaRecorder::Status
-*/
-
-QMediaRecorder::Status QMediaRecorder::status() const
-{
-    Q_D(const QMediaRecorder);
-    return d->control ? d->control->status() : UnavailableStatus;
-}
-
-/*!
     Returns the current error state.
 
     \sa errorString()
@@ -262,8 +250,7 @@ qint64 QMediaRecorder::duration() const
     Start recording.
 
     While the encoder state is changed immediately to QMediaRecorder::RecordingState,
-    recording may start asynchronously, with statusChanged(QMediaRecorder::RecordingStatus)
-    signal emitted when recording starts.
+    recording may start asynchronously.
 
     If recording fails error() signal is emitted
     with encoder state being reset back to QMediaRecorder::StoppedState.
@@ -278,7 +265,7 @@ void QMediaRecorder::record()
     d->control->clearActualLocation();
 
     if (d->settingsChanged)
-        d->control->applySettings();
+        d->control->applySettings(d->encoderSettings);
 
     d->control->clearError();
 
@@ -328,27 +315,6 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \enum QMediaRecorder::Status
-
-    \value UnavailableStatus
-        The recorder is not available or not supported by connected media object.
-    \value UnloadedStatus
-        The recorder is avilable but not loaded.
-    \value LoadingStatus
-        The recorder is initializing.
-    \value LoadedStatus
-        The recorder is initialized and ready to record media.
-    \value StartingStatus
-        Recording is requested but not active yet.
-    \value RecordingStatus
-        Recording is active.
-    \value PausedStatus
-        Recording is paused.
-    \value FinalizingStatus
-        Recording is stopped with media being finalized.
-*/
-
-/*!
     \enum QMediaRecorder::Error
 
     \value NoError         No Errors.
@@ -364,14 +330,6 @@ void QMediaRecorder::stop()
     The state property represents the user request and is changed synchronously
     during record(), pause() or stop() calls.
     Recorder state may also change asynchronously when recording fails.
-*/
-
-/*!
-    \property QMediaRecorder::status
-    \brief The current status of the media recorder.
-
-    The status is changed asynchronously and represents the actual status
-    of media recorder.
 */
 
 /*!
@@ -498,8 +456,6 @@ void QMediaRecorder::setMediaFormat(const QMediaFormat &format)
     if (d->encoderSettings.mediaFormat() == format)
         return;
     d->encoderSettings.setMediaFormat(format);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit mediaFormatChanged();
 }
@@ -530,8 +486,6 @@ void QMediaRecorder::setEncodingMode(EncodingMode mode)
     if (d->encoderSettings.encodingMode() == mode)
         return;
     d->encoderSettings.setEncodingMode(mode);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit encodingModeChanged();
 }
@@ -548,8 +502,6 @@ void QMediaRecorder::setQuality(Quality quality)
     if (d->encoderSettings.quality() == quality)
         return;
     d->encoderSettings.setQuality(quality);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit qualityChanged();
 }
@@ -576,8 +528,6 @@ void QMediaRecorder::setVideoResolution(const QSize &size)
     if (d->encoderSettings.videoResolution() == size)
         return;
     d->encoderSettings.setVideoResolution(size);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit videoResolutionChanged();
 }
@@ -612,8 +562,6 @@ void QMediaRecorder::setVideoFrameRate(qreal frameRate)
     if (d->encoderSettings.videoFrameRate() == frameRate)
         return;
     d->encoderSettings.setVideoFrameRate(frameRate);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit videoFrameRateChanged();
 }
@@ -636,8 +584,6 @@ void QMediaRecorder::setVideoBitRate(int bitRate)
     if (d->encoderSettings.videoBitRate() == bitRate)
         return;
     d->encoderSettings.setVideoBitRate(bitRate);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit videoBitRateChanged();
 }
@@ -660,8 +606,6 @@ void QMediaRecorder::setAudioBitRate(int bitRate)
     if (d->encoderSettings.audioBitRate() == bitRate)
         return;
     d->encoderSettings.setAudioBitRate(bitRate);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit audioBitRateChanged();
 }
@@ -687,8 +631,6 @@ void QMediaRecorder::setAudioChannelCount(int channels)
     if (d->encoderSettings.audioChannelCount() == channels)
         return;
     d->encoderSettings.setAudioChannelCount(channels);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit audioChannelCountChanged();
 }
@@ -714,8 +656,6 @@ void QMediaRecorder::setAudioSampleRate(int sampleRate)
     if (d->encoderSettings.audioSampleRate() == sampleRate)
         return;
     d->encoderSettings.setAudioSampleRate(sampleRate);
-    if (d->control)
-        d->control->setEncoderSettings(d->encoderSettings);
     d->applySettingsLater();
     emit audioSampleRateChanged();
 }

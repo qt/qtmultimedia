@@ -57,6 +57,8 @@ Item {
     id: root
 
     required property MediaPlayer mediaPlayer
+    property bool muted: false
+    property real volume: volumeSlider.value/100.
 
     implicitWidth: 150
     implicitHeight: buttons.height
@@ -72,30 +74,20 @@ Item {
 
             RoundButton {
                 id: muteButton
-                visible: !mediaPlayer.muted
                 radius: 50.0
-                icon.source: "qrc:///Speaker_Icon.svg"
-                onClicked: { mediaPlayer.setMuted(true) }
-            }
-
-            RoundButton {
-                id: unmuteButton
-                visible: mediaPlayer.muted
-                radius: 50.0
-                icon.source: "qrc:///Mute_Icon.svg"
-                onClicked: { mediaPlayer.setMuted(false) }
+                icon.source: muted ? "qrc:///Mute_Icon.svg" : "qrc:///Speaker_Icon.svg"
+                onClicked: { muted = !muted }
             }
         }
 
         Slider {
+            id: volumeSlider
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignVCenter
 
             enabled: true
             to: 100.0
             value: 100.0
-
-            onMoved: { mediaPlayer.setVolume(value) }
         }
     }
 }
