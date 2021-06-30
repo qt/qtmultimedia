@@ -455,7 +455,7 @@ void tst_QCameraBackend::testVideoRecording()
     session.setCamera(camera.data());
 
     QMediaRecorder recorder;
-    session.setEncoder(&recorder);
+    session.setRecorder(&recorder);
 
     QSignalSpy errorSignal(camera.data(), SIGNAL(errorOccurred(QCamera::Error, const QString &)));
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
@@ -512,7 +512,7 @@ void tst_QCameraBackend::testNativeMetadata()
     session.setCamera(&camera);
 
     QMediaRecorder recorder;
-    session.setEncoder(&recorder);
+    session.setRecorder(&recorder);
 
     QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error, const QString &)));
     QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));

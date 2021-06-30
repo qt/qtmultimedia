@@ -88,7 +88,7 @@ private:
     Ui::AudioRecorder *ui = nullptr;
 
     QMediaCaptureSession m_captureSession;
-    QMediaRecorder *m_audioEncoder = nullptr;
+    QMediaRecorder *m_audioRecorder = nullptr;
     QList<AudioLevel*> m_audioLevels;
     bool m_outputLocationSet = false;
 

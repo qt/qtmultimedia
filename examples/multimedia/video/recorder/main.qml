@@ -73,7 +73,7 @@ Window {
 
     CaptureSession {
         id: captureSession
-        encoder: recorder
+        recorder: recorder
         audioInput: controls.audioInput
         camera: controls.camera
         videoOutput: playback.active ? null : videoOutput

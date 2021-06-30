@@ -75,8 +75,8 @@ Item {
             id: imageCapture
         }
 
-        encoder: MediaEncoder {
-            id: encoder
+        recorder: MediaRecorder {
+            id: recorder
 //             resolution: "640x480"
 //             frameRate: 30
         }

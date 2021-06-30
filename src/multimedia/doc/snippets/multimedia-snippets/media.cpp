@@ -59,7 +59,7 @@ class MediaExample : public QObject {
 
     void MediaControl();
     void MediaPlayer();
-    void AudioRecorder();
+    void MediaRecorder();
     void recorderSettings();
     void imageSettings();
 
@@ -88,21 +88,21 @@ void MediaExample::MediaControl()
 
 void MediaExample::recorderSettings()
 {
-    //! [Media encoder settings]
+    //! [Media recorder settings]
     QMediaFormat format(QMediaFormat::MPEG4);
     format.setVideoCodec(QMediaRecorder::VideoCodec::H264);
     format.setAudioCodec(QMediaRecorder::AudioCodec::MP3);
 
     recorder->setMediaFormat(settings);
-    //! [Media encoder settings]
+    //! [Media recorder settings]
 }
 
 void MediaExample::imageSettings()
 {
-    //! [Image encoder settings]
+    //! [Image recorder settings]
     imageCapture->setFileFormat(QImageCapture::JPEG);
     imageCapture->setResolution(1600, 1200);
-    //! [Image encoder settings]
+    //! [Image recorder settings]
 }
 
 void MediaExample::MediaPlayer()
@@ -124,17 +124,17 @@ void MediaExample::MediaPlayer()
     //! [Local playback]
 }
 
-void MediaExample::AudioRecorder()
+void MediaExample::MediaRecorder()
 {
-    //! [Audio recorder]
+    //! [Media recorder]
     QMediaCaptureSession session;
     QAudioInput audioInput;
     session.setAudioInput(&input);
     QMediaRecorder recorder;
-    session.setMediaEncoder(&recorder);
+    session.setMediaRecorder(&recorder);
     recorder.setQuality(QMediaRecorder::HighQuality);
     recorder.setOutputLocation(QUrl::fromLocalFile("test.mp3"));
     recorder.record();
-    //! [Audio recorder]
+    //! [Media recorder]
 }
 

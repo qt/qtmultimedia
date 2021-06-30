@@ -62,7 +62,7 @@ public:
     QAudioOutput *audioOutput = nullptr;
     QCamera *camera = nullptr;
     QImageCapture *imageCapture = nullptr;
-    QMediaRecorder *encoder = nullptr;
+    QMediaRecorder *recorder = nullptr;
     QVideoSink *videoSink = nullptr;
     QPointer<QObject> videoOutput;
 
@@ -122,8 +122,8 @@ QMediaCaptureSession::~QMediaCaptureSession()
 {
     if (d_ptr->camera)
         d_ptr->camera->setCaptureSession(nullptr);
-    if (d_ptr->encoder)
-        d_ptr->encoder->setCaptureSession(nullptr);
+    if (d_ptr->recorder)
+        d_ptr->recorder->setCaptureSession(nullptr);
     if (d_ptr->imageCapture)
         d_ptr->imageCapture->setCaptureSession(nullptr);
     d_ptr->setVideoSink(nullptr);
@@ -209,30 +209,30 @@ void QMediaCaptureSession::setImageCapture(QImageCapture *imageCapture)
 }
 
 /*!
-    \property QMediaCaptureSession::encoder
+    \property QMediaCaptureSession::recorder
 
-    \brief the encoder object used to capture audio/video.
+    \brief the recorder object used to capture audio/video.
 
     Add a QMediaRecorder object to the capture session to enable
     recording of audio and/or video from the capture session.
 */
 
-QMediaRecorder *QMediaCaptureSession::encoder()
+QMediaRecorder *QMediaCaptureSession::recorder()
 {
-    return d_ptr->encoder;
+    return d_ptr->recorder;
 }
 
-void QMediaCaptureSession::setEncoder(QMediaRecorder *encoder)
+void QMediaCaptureSession::setRecorder(QMediaRecorder *recorder)
 {
-    if (d_ptr->encoder == encoder)
+    if (d_ptr->recorder == recorder)
         return;
-    if (d_ptr->encoder)
-        d_ptr->encoder->setCaptureSession(nullptr);
+    if (d_ptr->recorder)
+        d_ptr->recorder->setCaptureSession(nullptr);
 
-    d_ptr->encoder = encoder;
-    if (d_ptr->encoder)
-        d_ptr->encoder->setCaptureSession(this);
-    emit encoderChanged();
+    d_ptr->recorder = recorder;
+    if (d_ptr->recorder)
+        d_ptr->recorder->setCaptureSession(this);
+    emit recorderChanged();
 }
 
 QObject *QMediaCaptureSession::videoOutput() const

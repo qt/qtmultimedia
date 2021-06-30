@@ -99,8 +99,8 @@ Rectangle {
             id: imageCapture
         }
 
-        encoder: MediaEncoder {
-            id: encoder
+        recorder: MediaRecorder {
+            id: recorder
 //             resolution: "640x480"
 //             frameRate: 30
         }
@@ -124,7 +124,7 @@ Rectangle {
         focus: visible
 
         //don't load recorded video if preview is invisible
-        source: visible ? encoder.actualLocation : ""
+        source: visible ? recorder.actualLocation : ""
     }
 
     VideoOutput {

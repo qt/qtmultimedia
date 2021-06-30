@@ -81,22 +81,22 @@ FocusScope {
 
             CameraButton {
                 text: "Record"
-                visible: captureSession.encoder.status !== MediaEncoder.RecordingStatus
-                onClicked: captureSession.encoder.record()
+                visible: captureSession.recorder.status !== MediaRecorder.RecordingStatus
+                onClicked: captureSession.recorder.record()
             }
 
             CameraButton {
                 id: stopButton
                 text: "Stop"
-                visible: captureSession.encoder.status === MediaEncoder.RecordingStatus
-                onClicked: captureSession.encoder.stop()
+                visible: captureSession.recorder.status === MediaRecorder.RecordingStatus
+                onClicked: captureSession.recorder.stop()
             }
 
             CameraButton {
                 text: "View"
                 onClicked: captureControls.previewSelected()
                 //don't show View button during recording
-                visible: captureSession.encoder.actualLocation && !stopButton.visible
+                visible: captureSession.recorder.actualLocation && !stopButton.visible
             }
         }
 
