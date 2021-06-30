@@ -303,6 +303,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/common/qandroidaudiooutput_p.h
         platform/android/common/qandroidglobal_p.h
         platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
+        platform/android/common/qandroidvideosink.cpp platform/android/common/qandroidvideosink_p.h
         platform/android/common/qandroidvideooutput.cpp platform/android/common/qandroidvideooutput_p.h
         platform/android/mediacapture/qandroidcameracontrol.cpp platform/android/mediacapture/qandroidcameracontrol_p.h
         platform/android/mediacapture/qandroidimagecapture.cpp platform/android/mediacapture/qandroidimagecapture_p.h

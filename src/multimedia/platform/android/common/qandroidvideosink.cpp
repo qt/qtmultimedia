@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,65 +37,64 @@
 **
 ****************************************************************************/
 
-#ifndef QPLATFORMVIDEOSINK_H
-#define QPLATFORMVIDEOSINK_H
+#include "qandroidvideosink_p.h"
+#include <QtGui/private/qrhi_p.h>
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include <QtCore/qdebug.h>
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/qobject.h>
-#include <QtCore/qrect.h>
-#include <QtCore/qsize.h>
-#include <QtGui/qwindowdefs.h>
-#include <qvideosink.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
+Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
 
-class Q_MULTIMEDIA_EXPORT QPlatformVideoSink : public QObject
+QAndroidVideoSink::QAndroidVideoSink(QVideoSink *parent)
+    : QPlatformVideoSink(parent)
 {
-    Q_OBJECT
+}
 
-public:
-    virtual void setWinId(WId id) = 0;
+QAndroidVideoSink::~QAndroidVideoSink()
+{
+}
 
-    virtual void setRhi(QRhi * /*rhi*/) {}
+void QAndroidVideoSink::setWinId(WId id)
+{
+    if (m_windowId == id)
+        return;
 
-    virtual void setDisplayRect(const QRect &rect) = 0;
+    m_windowId = id;
+}
 
-    virtual void setFullScreen(bool fullScreen) = 0;
+void QAndroidVideoSink::setRhi(QRhi *rhi)
+{
+    if (rhi && rhi->backend() != QRhi::OpenGLES2)
+        rhi = nullptr;
+    if (m_rhi == rhi)
+        return;
 
-    virtual QSize nativeSize() const = 0;
+    m_rhi = rhi;
+}
 
-    virtual void setAspectRatioMode(Qt::AspectRatioMode mode) = 0;
+void QAndroidVideoSink::setDisplayRect(const QRect &rect)
+{
+    m_displayRect = rect;
+}
 
-    virtual void setBrightness(float /*brightness*/) {}
-    virtual void setContrast(float /*contrast*/) {}
-    virtual void setHue(float /*hue*/) {}
-    virtual void setSaturation(float /*saturation*/) {}
+void QAndroidVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
+{
+    m_aspectRatioMode = mode;
+}
 
-    QVideoSink *videoSink() { return sink; }
+void QAndroidVideoSink::setFullScreen(bool fullScreen)
+{
+    if (fullScreen == m_fullScreen)
+        return;
+    m_fullScreen = fullScreen;
+}
 
-Q_SIGNALS:
-    void nativeSizeChanged();
-
-protected:
-    explicit QPlatformVideoSink(QVideoSink *parent);
-    QVideoSink *sink = nullptr;
-};
+QSize QAndroidVideoSink::nativeSize() const
+{
+    return QSize(640, 480);
+}
 
 QT_END_NAMESPACE
-
-
-#endif

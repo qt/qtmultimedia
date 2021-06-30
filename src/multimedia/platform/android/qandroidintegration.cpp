@@ -53,6 +53,7 @@
 #include "private/qandroidformatsinfo_p.h"
 #include "private/qandroidmediaplayer_p.h"
 #include "private/qandroidaudiooutput_p.h"
+#include "private/qandroidvideosink_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -112,6 +113,11 @@ QPlatformImageCapture *QAndroidIntegration::createImageCapture(QImageCapture *im
 QPlatformAudioOutput *QAndroidIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QAndroidAudioOutput(q);
+}
+
+QPlatformVideoSink *QAndroidIntegration::createVideoSink(QVideoSink *sink)
+{
+    return new QAndroidVideoSink(sink);
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
