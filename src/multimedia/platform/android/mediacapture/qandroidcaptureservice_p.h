@@ -88,8 +88,6 @@ public:
     QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
 
 private:
-    bool m_videoEnabled = false;
-
     QAndroidMediaEncoder *m_encoder = nullptr;
     QAndroidCaptureSession *m_captureSession = nullptr;
     QAndroidCameraControl *m_cameraControl = nullptr;

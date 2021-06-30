@@ -69,12 +69,13 @@ class QAndroidCaptureSession : public QObject
 {
     Q_OBJECT
 public:
-    explicit QAndroidCaptureSession(QAndroidCameraSession *cameraSession = 0);
+    explicit QAndroidCaptureSession();
     ~QAndroidCaptureSession();
 
     QList<QSize> supportedResolutions() const { return m_supportedResolutions; }
     QList<qreal> supportedFrameRates() const { return m_supportedFramerates; }
 
+    void setCameraSession(QAndroidCameraSession *cameraSession = 0);
     void setAudioInput(QPlatformAudioInput *input);
 
     QMediaRecorder::RecorderState state() const;
@@ -179,6 +180,9 @@ private:
 
     QList<QSize> m_supportedResolutions;
     QList<qreal> m_supportedFramerates;
+
+    QMetaObject::Connection m_connOpenCamera;
+    QMetaObject::Connection m_connActiveChangedCamera;
 };
 
 QT_END_NAMESPACE

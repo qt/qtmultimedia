@@ -52,16 +52,8 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidCaptureService::QAndroidCaptureService()
-    : m_videoEnabled(true)
+    : m_captureSession(new QAndroidCaptureSession())
 {
-    if (m_videoEnabled) {
-        m_cameraSession = new QAndroidCameraSession;
-    } else {
-        m_cameraSession = 0;
-        m_imageCaptureControl = 0;
-    }
-
-    m_captureSession = new QAndroidCaptureSession(m_cameraSession);
 }
 
 QAndroidCaptureService::~QAndroidCaptureService()
@@ -80,6 +72,17 @@ QPlatformCamera *QAndroidCaptureService::camera()
 
 void QAndroidCaptureService::setCamera(QPlatformCamera *camera)
 {
+        if (!m_cameraSession) {
+            if (camera) {
+                m_cameraSession = new QAndroidCameraSession;
+                m_captureSession->setCameraSession(m_cameraSession);
+            }
+        } else if (!camera){
+            m_captureSession->setCameraSession(nullptr);
+            delete m_cameraSession;
+            m_cameraSession = nullptr;
+        }
+
         QAndroidCameraControl *control = static_cast<QAndroidCameraControl *>(camera);
         if (m_cameraControl == control)
             return;
