@@ -340,6 +340,7 @@ void QAndroidMediaPlayer::setVideoSink(QVideoSink *sink)
         if (mVideoOutput) {
             delete mVideoOutput;
             mVideoOutput = nullptr;
+            mMediaPlayer->setDisplay(nullptr);
         }
         return;
     }

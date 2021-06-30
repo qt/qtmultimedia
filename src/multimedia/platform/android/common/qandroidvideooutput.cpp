@@ -60,17 +60,17 @@
 QT_BEGIN_NAMESPACE
 
 static const GLfloat g_vertex_data[] = {
+    -1.f, -1.f,
     -1.f, 1.f,
     1.f, 1.f,
-    1.f, -1.f,
-    -1.f, -1.f
+    1.f, -1.f
 };
 
 static const GLfloat g_texture_data[] = {
     0.f, 0.f,
-    1.f, 0.f,
+    0.f, 1.f,
     1.f, 1.f,
-    0.f, 1.f
+    1.f, 0.f
 };
 
 void OpenGLResourcesDeleter::deleteTextureHelper(quint32 id)
@@ -98,7 +98,7 @@ class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     AndroidTextureVideoBuffer(QAndroidTextureVideoOutput *output, const QSize &size)
-        : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle)
+        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
         , m_output(output)
         , m_size(size)
     {
@@ -132,6 +132,7 @@ public:
 
     quint64 textureHandle(int plane) const override
     {
+        qDebug() << "AndroidTextureVideoBuffer::textureHandle()";
         if (plane != 0)
             return 0;
         AndroidTextureVideoBuffer *that = const_cast<AndroidTextureVideoBuffer*>(this);
@@ -207,7 +208,7 @@ void QAndroidTextureVideoOutput::setSurface(QVideoSink *surface)
 
 bool QAndroidTextureVideoOutput::isReady()
 {
-    return QOpenGLContext::currentContext() || m_externalTex;
+    return true;
 }
 
 void QAndroidTextureVideoOutput::initSurfaceTexture()
@@ -304,7 +305,7 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
     }
 
     // Make sure we have an OpenGL context to make current.
-    if (shareContext || (!QOpenGLContext::currentContext() && !m_glContext)) {
+    if (!m_glContext) {
         // Create Hidden QWindow surface to create context in this thread.
         m_offscreenSurface = new QWindow();
         m_offscreenSurface->setSurfaceType(QWindow::OpenGLSurface);
@@ -326,8 +327,7 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
         }
     }
 
-    if (m_glContext)
-        m_glContext->makeCurrent(m_offscreenSurface);
+    m_glContext->makeCurrent(m_offscreenSurface);
 
     createGLResources();
 
@@ -425,7 +425,7 @@ void QAndroidTextureVideoOutput::createGLResources()
                                           "uniform samplerExternalOES frameTexture; \n" \
                                           "void main() \n" \
                                           "{ \n" \
-                                          "    gl_FragColor = texture2D(frameTexture, textureCoords); \n" \
+                                          "    gl_FragColor = texture2D(frameTexture, textureCoords).bgra; \n" \
                                           "}\n");
         m_program->addShader(fragmentShader);
 
