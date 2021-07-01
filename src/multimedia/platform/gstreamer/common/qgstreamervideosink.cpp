@@ -52,7 +52,18 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
     sinkBin = QGstBin("videoSinkBin");
-    gstPreprocess = QGstElement("identity");
+    // This is a hack for some iMX platforms. Thos require the use of a special video
+    // conversion element in the pipeline before the video sink, as they unfortunately
+    // output some proprietary format from the decoder even though it's marked as
+    // a regular supported video/x-raw format.
+    //
+    // To fix this, simply insert the element into the pipeline if it's available. Otherwise
+    // we simply use an identity element.
+    auto imxVideoConvert = QGstElement("imxvideoconvert_g2d");
+    if (!imxVideoConvert.isNull())
+        gstPreprocess = imxVideoConvert;
+    else
+        gstPreprocess = QGstElement("identity");
     sinkBin.add(gstPreprocess);
     sinkBin.addGhostPad(gstPreprocess, "sink");
     createOverlay();
