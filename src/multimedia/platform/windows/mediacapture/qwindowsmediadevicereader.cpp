@@ -46,6 +46,8 @@
 #include <private/qmemoryvideobuffer_p.h>
 #include <QtCore/qdebug.h>
 
+#include <mmdeviceapi.h>
+
 QT_BEGIN_NAMESPACE
 
 enum { MEDIA_TYPE_INDEX_DEFAULT = 0xffffffff };
@@ -261,6 +263,40 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
     return hr;
 }
 
+HRESULT QWindowsMediaDeviceReader::initAudioType(IMFMediaType *mediaType, UINT32 channels, UINT32 samplesPerSec, bool flt)
+{
+    if (!mediaType)
+        return E_INVALIDARG;
+
+    HRESULT hr = mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+    if (SUCCEEDED(hr)) {
+        hr = mediaType->SetGUID(MF_MT_SUBTYPE, flt ? MFAudioFormat_Float : MFAudioFormat_PCM);
+        if (SUCCEEDED(hr)) {
+            hr = mediaType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, channels);
+            if (SUCCEEDED(hr)) {
+                hr = mediaType->SetUINT32(MF_MT_AUDIO_CHANNEL_MASK,
+                                          (channels == 1) ? SPEAKER_FRONT_CENTER  : (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT ));
+                if (SUCCEEDED(hr)) {
+                    hr = mediaType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, samplesPerSec);
+                    if (SUCCEEDED(hr)) {
+                        UINT32 bitsPerSample = flt ? 32 : 16;
+                        UINT32 bytesPerFrame = channels * bitsPerSample/8;
+                        hr = mediaType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, bitsPerSample);
+                        if (SUCCEEDED(hr)) {
+                            hr = mediaType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, bytesPerFrame);
+                            if (SUCCEEDED(hr)) {
+                                hr = mediaType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bytesPerFrame * samplesPerSec);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return hr;
+}
+
 // Prepares the source audio stream.
 HRESULT QWindowsMediaDeviceReader::prepareAudioStream()
 {
@@ -273,8 +309,7 @@ HRESULT QWindowsMediaDeviceReader::prepareAudioStream()
     HRESULT hr = m_sourceReader->GetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM),
                                                      &m_audioMediaType);
     if (SUCCEEDED(hr)) {
-        // Request audio samples in float format.
-        hr = m_audioMediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
+        hr = initAudioType(m_audioMediaType, 2, 48000, true);
         if (SUCCEEDED(hr)) {
             hr = m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM),
                                                      nullptr, m_audioMediaType);
@@ -320,6 +355,118 @@ HRESULT QWindowsMediaDeviceReader::initSourceIndexes()
     return S_OK;
 }
 
+bool QWindowsMediaDeviceReader::setAudioOutput(const QString &audioOutputId)
+{
+    QMutexLocker locker(&m_mutex);
+
+    stopMonitoring();
+
+    m_audioOutputId = audioOutputId;
+
+    if (!m_active || m_audioOutputId.isEmpty())
+        return true;
+
+    HRESULT hr = startMonitoring();
+
+    return SUCCEEDED(hr);
+}
+
+HRESULT QWindowsMediaDeviceReader::startMonitoring()
+{
+    if (m_audioOutputId.isEmpty())
+        return E_FAIL;
+
+    IMFAttributes *sinkAttributes = nullptr;
+
+    HRESULT hr = MFCreateAttributes(&sinkAttributes, 1);
+    if (SUCCEEDED(hr)) {
+
+        hr = sinkAttributes->SetString(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID,
+                                       reinterpret_cast<LPCWSTR>(m_audioOutputId.utf16()));
+        if (SUCCEEDED(hr)) {
+
+            IMFMediaSink *mediaSink = nullptr;
+            hr = MFCreateAudioRenderer(sinkAttributes, &mediaSink);
+            if (SUCCEEDED(hr)) {
+
+                IMFStreamSink *streamSink = nullptr;
+                hr = mediaSink->GetStreamSinkByIndex(0, &streamSink);
+                if (SUCCEEDED(hr)) {
+
+                    IMFMediaTypeHandler *typeHandler = nullptr;
+                    hr = streamSink->GetMediaTypeHandler(&typeHandler);
+                    if (SUCCEEDED(hr)) {
+
+                        hr = typeHandler->IsMediaTypeSupported(m_audioMediaType, nullptr);
+                        if (SUCCEEDED(hr)) {
+
+                            hr = typeHandler->SetCurrentMediaType(m_audioMediaType);
+                            if (SUCCEEDED(hr)) {
+
+                                IMFAttributes *writerAttributes = nullptr;
+
+                                HRESULT hr = MFCreateAttributes(&writerAttributes, 1);
+                                if (SUCCEEDED(hr)) {
+
+                                    hr = writerAttributes->SetUINT32(MF_SINK_WRITER_DISABLE_THROTTLING, TRUE);
+                                    if (SUCCEEDED(hr)) {
+
+                                        IMFSinkWriter *sinkWriter = nullptr;
+                                        hr = MFCreateSinkWriterFromMediaSink(mediaSink, writerAttributes, &sinkWriter);
+                                        if (SUCCEEDED(hr)) {
+
+                                            hr = sinkWriter->SetInputMediaType(0, m_audioMediaType, nullptr);
+                                            if (SUCCEEDED(hr)) {
+
+                                                IMFSimpleAudioVolume *audioVolume = nullptr;
+
+                                                if (SUCCEEDED(MFGetService(mediaSink, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&audioVolume)))) {
+                                                    audioVolume->SetMasterVolume(float(m_outputVolume));
+                                                    audioVolume->SetMute(m_outputMuted);
+                                                    audioVolume->Release();
+                                                }
+
+                                                hr = sinkWriter->BeginWriting();
+                                                if (SUCCEEDED(hr)) {
+                                                    m_monitorSink = mediaSink;
+                                                    m_monitorSink->AddRef();
+                                                    m_monitorWriter = sinkWriter;
+                                                    m_monitorWriter->AddRef();
+                                                }
+                                            }
+                                            sinkWriter->Release();
+                                        }
+                                    }
+                                    writerAttributes->Release();
+                                }
+                            }
+                        }
+                        typeHandler->Release();
+                    }
+                    streamSink->Release();
+                }
+                mediaSink->Release();
+            }
+        }
+        sinkAttributes->Release();
+    }
+
+    return hr;
+}
+
+void QWindowsMediaDeviceReader::stopMonitoring()
+{
+    if (m_monitorWriter) {
+        m_monitorWriter->Release();
+        m_monitorWriter = nullptr;
+    }
+    if (m_monitorSink) {
+        m_monitorSink->Shutdown();
+        m_monitorSink->Release();
+        m_monitorSink = nullptr;
+    }
+}
+
 // Activates the requested camera/microphone for streaming.
 // One of the IDs may be empty for video-only/audio-only.
 bool QWindowsMediaDeviceReader::activate(const QString &cameraId,
@@ -331,6 +478,7 @@ bool QWindowsMediaDeviceReader::activate(const QString &cameraId,
     if (cameraId.isEmpty() && microphoneId.isEmpty())
         return false;
 
+    stopMonitoring();
     releaseResources();
 
     m_active = false;
@@ -373,6 +521,7 @@ bool QWindowsMediaDeviceReader::activate(const QString &cameraId,
     }
 
     updateSinkInputMediaTypes();
+    startMonitoring();
 
     // Request the first frame or audio sample.
     if (!SUCCEEDED(m_sourceReader->ReadSample(MF_SOURCE_READER_ANY_STREAM, 0, nullptr, nullptr, nullptr, nullptr))) {
@@ -386,6 +535,7 @@ bool QWindowsMediaDeviceReader::activate(const QString &cameraId,
 
 void QWindowsMediaDeviceReader::deactivate()
 {
+    stopMonitoring();
     stopStreaming();
     m_active = false;
     m_streaming = false;
@@ -706,24 +856,46 @@ qreal QWindowsMediaDeviceReader::frameRate() const
     return m_frameRate;
 }
 
-bool QWindowsMediaDeviceReader::isMuted() const
+void QWindowsMediaDeviceReader::setInputMuted(bool muted)
 {
-    return m_muted;
+    m_inputMuted = muted;
 }
 
-void QWindowsMediaDeviceReader::setMuted(bool muted)
+void QWindowsMediaDeviceReader::setInputVolume(qreal volume)
 {
-    m_muted = muted;
+    m_inputVolume = qBound(0.0, volume, 1.0);
 }
 
-qreal QWindowsMediaDeviceReader::volume() const
+void QWindowsMediaDeviceReader::setOutputMuted(bool muted)
 {
-    return m_volume;
+    QMutexLocker locker(&m_mutex);
+
+    m_outputMuted = muted;
+
+    if (m_active && m_monitorSink) {
+        IMFSimpleAudioVolume *audioVolume = nullptr;
+        if (SUCCEEDED(MFGetService(m_monitorSink, MR_POLICY_VOLUME_SERVICE,
+                                   IID_PPV_ARGS(&audioVolume)))) {
+            audioVolume->SetMute(m_outputMuted);
+            audioVolume->Release();
+        }
+    }
 }
 
-void QWindowsMediaDeviceReader::setVolume(qreal volume)
+void QWindowsMediaDeviceReader::setOutputVolume(qreal volume)
 {
-    m_volume = volume;
+    QMutexLocker locker(&m_mutex);
+
+    m_outputVolume = qBound(0.0, volume, 1.0);
+
+    if (m_active && m_monitorSink) {
+        IMFSimpleAudioVolume *audioVolume = nullptr;
+        if (SUCCEEDED(MFGetService(m_monitorSink, MR_POLICY_VOLUME_SERVICE,
+                                   IID_PPV_ARGS(&audioVolume)))) {
+            audioVolume->SetMasterVolume(float(m_outputVolume));
+            audioVolume->Release();
+        }
+    }
 }
 
 void QWindowsMediaDeviceReader::updateDuration()
@@ -752,11 +924,15 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
         m_streaming = false;
         emit streamingStopped();
     } else {
+
         if (!m_streaming) {
             m_streaming = true;
             emit streamingStarted();
         }
         if (pSample) {
+
+            if (m_monitorWriter && dwStreamIndex == m_sourceAudioStreamIndex)
+                m_monitorWriter->WriteSample(0, pSample);
 
             if (m_recording) {
 
@@ -786,7 +962,7 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
 
                     } else if (dwStreamIndex == m_sourceAudioStreamIndex) {
 
-                        float volume = m_muted ? 0.0f : float(m_volume);
+                        float volume = m_inputMuted ? 0.0f : float(m_inputVolume);
 
                         // Change the volume of the audio sample, if needed.
                         if (volume != 1.0f) {

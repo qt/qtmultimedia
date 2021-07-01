@@ -60,6 +60,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAudioInput;
+class QAudioOutput;
 class QVideoSink;
 class QWindowsMediaDeviceReader;
 
@@ -89,8 +90,13 @@ public Q_SLOTS:
     void setAudioInputMuted(bool muted);
     void setAudioInputVolume(float volume);
     void audioInputDeviceChanged();
+    void setAudioOutputMuted(bool muted);
+    void setAudioOutputVolume(float volume);
+    void audioOutputDeviceChanged();
+
 public:
     void setAudioInput(QAudioInput *input);
+    void setAudioOutput(QAudioOutput *output);
 
     bool startRecording(const QString &fileName, bool audioOnly);
     void stopRecording();
@@ -125,6 +131,7 @@ private:
     QWindowsMediaDeviceReader *m_mediaDeviceReader = nullptr;
     QMediaEncoderSettings m_mediaEncoderSettings;
     QAudioInput *m_audioInput = nullptr;
+    QAudioOutput *m_audioOutput = nullptr;
     QVideoSink  *m_surface = nullptr;
 };
 

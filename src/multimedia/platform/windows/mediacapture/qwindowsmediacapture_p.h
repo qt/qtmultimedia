@@ -80,6 +80,8 @@ public:
 
     void setAudioInput(QPlatformAudioInput *) override;
 
+    void setAudioOutput(QPlatformAudioOutput *output) override;
+
     void setVideoPreview(QVideoSink *sink) override;
 
     QWindowsMediaDeviceSession *session() const;

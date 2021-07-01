@@ -107,10 +107,11 @@ public:
     UINT32 frameWidth() const;
     UINT32 frameHeight() const;
     qreal frameRate() const;
-    bool isMuted() const;
-    void setMuted(bool muted);
-    qreal volume() const;
-    void setVolume(qreal volume);
+    void setInputMuted(bool muted);
+    void setInputVolume(qreal volume);
+    void setOutputMuted(bool muted);
+    void setOutputVolume(qreal volume);
+    bool setAudioOutput(const QString &audioOutputId);
 
 Q_SIGNALS:
     void streamingStarted();
@@ -132,10 +133,13 @@ private:
     HRESULT createVideoMediaType(const GUID &format, UINT32 bitRate, UINT32 width, UINT32 height,
                                  qreal frameRate, IMFMediaType **mediaType);
     HRESULT createAudioMediaType(const GUID &format, UINT32 bitRate, IMFMediaType **mediaType);
+    HRESULT initAudioType(IMFMediaType *mediaType, UINT32 channels, UINT32 samplesPerSec, bool flt);
     HRESULT prepareVideoStream(DWORD mediaTypeIndex);
     HRESULT prepareAudioStream();
     HRESULT initSourceIndexes();
     HRESULT updateSinkInputMediaTypes();
+    HRESULT startMonitoring();
+    void stopMonitoring();
     void releaseResources();
     void stopStreaming();
     DWORD findMediaTypeIndex(const QCameraFormat &reqFormat);
@@ -150,6 +154,9 @@ private:
     IMFMediaSource     *m_aggregateSource = nullptr;
     IMFSourceReader    *m_sourceReader = nullptr;
     IMFSinkWriter      *m_sinkWriter = nullptr;
+    IMFMediaSink       *m_monitorSink = nullptr;
+    IMFSinkWriter      *m_monitorWriter = nullptr;
+    QString            m_audioOutputId;
     DWORD              m_sourceVideoStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;
     DWORD              m_sourceAudioStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;
     DWORD              m_sinkVideoStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
@@ -164,8 +171,10 @@ private:
     bool               m_firstFrame = false;
     bool               m_paused = false;
     bool               m_pauseChanging = false;
-    bool               m_muted = false;
-    qreal              m_volume = 1.0;
+    bool               m_inputMuted = false;
+    bool               m_outputMuted = false;
+    qreal              m_inputVolume = 1.0;
+    qreal              m_outputVolume = 1.0;
     QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
     LONGLONG           m_timeOffset = 0;
     LONGLONG           m_pauseTime = 0;

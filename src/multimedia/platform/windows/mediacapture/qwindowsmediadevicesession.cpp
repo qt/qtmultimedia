@@ -44,6 +44,7 @@
 #include <qvideosink.h>
 #include <QtCore/qdebug.h>
 #include <qaudioinput.h>
+#include <qaudiooutput.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -85,8 +86,11 @@ void QWindowsMediaDeviceSession::setActive(bool active)
         auto camId = QString::fromUtf8(m_activeCameraDevice.id());
         auto micId = m_audioInput ? QString::fromUtf8(m_audioInput->device().id()) : QString();
         if (!camId.isEmpty() || !micId.isEmpty()) {
-            m_activating = true;
-            m_mediaDeviceReader->activate(camId, m_cameraFormat, micId);
+            if (m_mediaDeviceReader->activate(camId, m_cameraFormat, micId)) {
+                m_activating = true;
+            } else {
+                emit streamingError(MF_E_NOT_AVAILABLE);
+            }
         } else {
             qWarning() << Q_FUNC_INFO << "Camera ID and Microphone ID both undefined.";
         }
@@ -171,17 +175,33 @@ void QWindowsMediaDeviceSession::setVideoSettings(const QMediaEncoderSettings &s
 
 void QWindowsMediaDeviceSession::setAudioInputMuted(bool muted)
 {
-    m_mediaDeviceReader->setMuted(muted);
+    m_mediaDeviceReader->setInputMuted(muted);
 }
 
 void QWindowsMediaDeviceSession::setAudioInputVolume(float volume)
 {
-    m_mediaDeviceReader->setVolume(volume);
+    m_mediaDeviceReader->setInputVolume(volume);
 }
 
 void QWindowsMediaDeviceSession::audioInputDeviceChanged()
 {
     reactivate();
+}
+
+void QWindowsMediaDeviceSession::setAudioOutputMuted(bool muted)
+{
+    m_mediaDeviceReader->setOutputMuted(muted);
+}
+
+void QWindowsMediaDeviceSession::setAudioOutputVolume(float volume)
+{
+    m_mediaDeviceReader->setOutputVolume(volume);
+}
+
+void QWindowsMediaDeviceSession::audioOutputDeviceChanged()
+{
+    if (m_active || m_activating)
+        m_mediaDeviceReader->setAudioOutput(QString::fromUtf8(m_audioOutput->device().id()));
 }
 
 void QWindowsMediaDeviceSession::setAudioInput(QAudioInput *input)
@@ -199,6 +219,25 @@ void QWindowsMediaDeviceSession::setAudioInput(QAudioInput *input)
     connect(m_audioInput, &QAudioInput::mutedChanged, this, &QWindowsMediaDeviceSession::setAudioInputMuted);
     connect(m_audioInput, &QAudioInput::volumeChanged, this, &QWindowsMediaDeviceSession::setAudioInputVolume);
     connect(m_audioInput, &QAudioInput::deviceChanged, this, &QWindowsMediaDeviceSession::audioInputDeviceChanged);
+}
+
+void QWindowsMediaDeviceSession::setAudioOutput(QAudioOutput *output)
+{
+    if (m_audioOutput == output)
+        return;
+    if (m_audioOutput)
+        m_audioOutput->disconnect(this);
+    m_audioOutput = output;
+    if (!m_audioOutput) {
+        m_mediaDeviceReader->setAudioOutput({});
+        return;
+    }
+
+    m_mediaDeviceReader->setAudioOutput(QString::fromUtf8(m_audioOutput->device().id()));
+
+    connect(m_audioOutput, &QAudioOutput::mutedChanged, this, &QWindowsMediaDeviceSession::setAudioOutputMuted);
+    connect(m_audioOutput, &QAudioOutput::volumeChanged, this, &QWindowsMediaDeviceSession::setAudioOutputVolume);
+    connect(m_audioOutput, &QAudioOutput::deviceChanged, this, &QWindowsMediaDeviceSession::audioOutputDeviceChanged);
 }
 
 bool QWindowsMediaDeviceSession::startRecording(const QString &fileName, bool audioOnly)
