@@ -24,7 +24,6 @@ qt_internal_add_qml_module(MultimediaQuickPrivate
         qquickimagepreviewprovider.cpp qquickimagepreviewprovider_p.h
 #        qquickplaylist.cpp qquickplaylist_p.h
         qquickvideooutput.cpp qquickvideooutput_p.h
-        qquickvideooutput_render.cpp qquickvideooutput_render_p.h
         qsgvideonode_p.cpp qsgvideonode_p.h
         qsgvideotexture.cpp qsgvideotexture_p.h
         qtmultimediaquickglobal_p.h
