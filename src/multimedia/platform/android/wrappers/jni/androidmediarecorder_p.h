@@ -161,6 +161,7 @@ public:
     void setAudioEncodingBitRate(int bitRate);
     void setAudioSamplingRate(int samplingRate);
     void setAudioSource(AudioSource source);
+    bool setAudioInput(const QByteArray &id);
 
     void setCamera(AndroidCamera *camera);
     void setVideoEncoder(VideoEncoder encoder);

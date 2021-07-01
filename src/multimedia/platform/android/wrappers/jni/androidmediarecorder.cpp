@@ -234,6 +234,19 @@ void AndroidMediaRecorder::setAudioSource(AudioSource source)
     m_mediaRecorder.callMethod<void>("setAudioSource", "(I)V", int(source));
 }
 
+bool AndroidMediaRecorder::setAudioInput(const QByteArray &id)
+{
+    const bool ret = QJniObject::callStaticMethod<jboolean>("org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                                                    "setAudioInput",
+                                                    "(Landroid/media/MediaRecorder;I)Z",
+                                                    m_mediaRecorder.object(),
+                                                    id.toInt());
+    if (!ret)
+        qCWarning(QLoggingCategory("mediarecorder")) << "No default input device was set";
+
+    return ret;
+}
+
 void AndroidMediaRecorder::setCamera(AndroidCamera *camera)
 {
     QJniObject cam = camera->getCameraObject();

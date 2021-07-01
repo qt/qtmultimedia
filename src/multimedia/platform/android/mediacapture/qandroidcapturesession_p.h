@@ -160,7 +160,6 @@ private:
     QAndroidCameraSession *m_cameraSession;
 
     QPlatformAudioInput *m_audioInput = nullptr;
-    AndroidMediaRecorder::AudioSource m_audioSource;
 
     QMediaStorageLocation m_mediaStorageLocation;
 
