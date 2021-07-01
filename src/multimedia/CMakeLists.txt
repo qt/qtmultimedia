@@ -481,6 +481,8 @@ qt_internal_add_shaders(Multimedia "shaders"
         "/qt-project.org/multimedia/shaders"
     FILES
         "shaders/vertex.vert"
+        "shaders/externalsampler.vert"
+        "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag"
         "shaders/abgr.frag"
         "shaders/argb.frag"
         "shaders/bgra.frag"

@@ -548,9 +548,9 @@ QString QVideoFrameFormat::fragmentShaderFileName() const
 /*!
     \internal
 */
-QByteArray QVideoFrameFormat::uniformData(const QMatrix4x4 &transform, float opacity) const
+QByteArray QVideoFrameFormat::uniformData(const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity) const
 {
-    return QVideoTextureHelper::uniformData(*this, transform, opacity);
+    return QVideoTextureHelper::uniformData(*this, frame, transform, opacity);
 }
 
 
@@ -623,6 +623,7 @@ QImage::Format QVideoFrameFormat::imageFormatFromPixelFormat(QVideoFrameFormat::
     case QVideoFrameFormat::Format_P016:
     case QVideoFrameFormat::Format_Jpeg:
     case QVideoFrameFormat::Format_Invalid:
+    case QVideoFrameFormat::Format_SamplerExternalOES:
         return QImage::Format_Invalid;
     }
     return QImage::Format_Invalid;

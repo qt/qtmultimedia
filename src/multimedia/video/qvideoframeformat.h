@@ -54,6 +54,7 @@ QT_BEGIN_NAMESPACE
 class QDebug;
 
 class QVideoFrameFormatPrivate;
+class QVideoFrame;
 class QMatrix4x4;
 
 QT_DECLARE_QESDP_SPECIALIZATION_DTOR_WITH_EXPORT(QVideoFrameFormatPrivate, Q_MULTIMEDIA_EXPORT)
@@ -91,6 +92,7 @@ public:
         Format_P010,
         Format_P016,
 
+        Format_SamplerExternalOES,
         Format_Jpeg,
     };
 #ifndef Q_QDOC
@@ -160,7 +162,7 @@ public:
 
     QString vertexShaderFileName() const;
     QString fragmentShaderFileName() const;
-    QByteArray uniformData(const QMatrix4x4 &transform, float opacity) const;
+    QByteArray uniformData(const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity) const;
 
     static PixelFormat pixelFormatFromImageFormat(QImage::Format format);
     static QImage::Format imageFormatFromPixelFormat(PixelFormat format);

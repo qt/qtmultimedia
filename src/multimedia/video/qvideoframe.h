@@ -129,6 +129,8 @@ public:
     QImage toImage() const;
 
     QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format);
+
+    QAbstractVideoBuffer *videoBuffer() const;
 private:
     QExplicitlySharedDataPointer<QVideoFramePrivate> d;
 };

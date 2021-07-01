@@ -122,11 +122,14 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
     markDirty(DirtyGeometry);
 }
 
+class QSGVideoMaterial;
+
 class QSGVideoMaterialRhiShader : public QSGMaterialShader
 {
 public:
-    QSGVideoMaterialRhiShader(const QVideoFrameFormat &format)
-        : m_format(format)
+    QSGVideoMaterialRhiShader(const QSGVideoMaterial *material, const QVideoFrameFormat &format)
+        : m_material(material),
+        m_format(format)
     {
         setShaderFileName(VertexStage, m_format.vertexShaderFileName());
         setShaderFileName(FragmentStage, m_format.fragmentShaderFileName());
@@ -139,6 +142,7 @@ public:
                             QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
 
 protected:
+    const QSGVideoMaterial *m_material = nullptr;
     QVideoFrameFormat m_format;
     float m_planeWidth[3] = {0, 0, 0};
     QMatrix4x4 m_colorMatrix;
@@ -155,7 +159,7 @@ public:
     }
 
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
-        return new QSGVideoMaterialRhiShader(m_format);
+        return new QSGVideoMaterialRhiShader(this, m_format);
     }
 
     int compare(const QSGMaterial *other) const override {
@@ -234,7 +238,7 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
     }
 
     QByteArray *buf = state.uniformData();
-    *buf = m_format.uniformData(state.combinedMatrix(), state.opacity());
+    *buf = m_format.uniformData(m_material->m_frame, state.combinedMatrix(), state.opacity());
 
     return true;
 }

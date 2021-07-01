@@ -176,6 +176,14 @@ QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &
 }
 
 /*!
+    \internal
+*/
+QAbstractVideoBuffer *QVideoFrame::videoBuffer() const
+{
+    return d ? d->buffer : nullptr;
+}
+
+/*!
     Constructs a video frame of the given pixel \a format and \a size in pixels.
 
     The \a bytesPerLine (stride) is the length of each scan line in bytes, and \a bytes is the total
@@ -448,6 +456,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         case QVideoFrameFormat::Format_Y8:
         case QVideoFrameFormat::Format_Y16:
         case QVideoFrameFormat::Format_Jpeg:
+        case QVideoFrameFormat::Format_SamplerExternalOES:
             // Single plane or opaque format.
             break;
         case QVideoFrameFormat::Format_YUV420P:
