@@ -100,6 +100,11 @@ public Q_SLOTS:
     void audioOutputDestroyed() { setAudioOutput(nullptr); }
     void audioOutputChanged();
 
+    void setAudioInputMuted(bool muted);
+    void setAudioInputVolume(float volume);
+    void setAudioOutputMuted(bool muted);
+    void setAudioOutputVolume(float volume);
+
 private:
     QPlatformAudioInput *m_audioInput = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;

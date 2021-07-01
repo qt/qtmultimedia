@@ -123,7 +123,6 @@ void AVFCameraService::setMediaEncoder(QPlatformMediaEncoder *encoder)
     if (m_encoder)
         m_encoder->setCaptureSession(this);
 
-    audioOutputChanged();
     emit encoderChanged();
 }
 
@@ -139,6 +138,8 @@ void AVFCameraService::setAudioInput(QPlatformAudioInput *input)
     if (input) {
         connect(m_audioInput->q, &QAudioInput::destroyed, this, &AVFCameraService::audioInputDestroyed);
         connect(m_audioInput->q, &QAudioInput::deviceChanged, this, &AVFCameraService::audioInputChanged);
+        connect(m_audioInput->q, &QAudioInput::mutedChanged, this, &AVFCameraService::setAudioInputMuted);
+        connect(m_audioInput->q, &QAudioInput::volumeChanged, this, &AVFCameraService::setAudioInputVolume);
     }
     audioInputChanged();
 }
@@ -155,6 +156,8 @@ void AVFCameraService::setAudioOutput(QPlatformAudioOutput *output)
     if (m_audioOutput) {
         connect(m_audioOutput->q, &QAudioOutput::destroyed, this, &AVFCameraService::audioOutputDestroyed);
         connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, &AVFCameraService::audioOutputChanged);
+        connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &AVFCameraService::setAudioOutputMuted);
+        connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &AVFCameraService::setAudioOutputVolume);
     }
     audioOutputChanged();
 }
@@ -164,16 +167,33 @@ void AVFCameraService::audioInputChanged()
     if (!m_audioInput)
         return;
     m_session->updateAudioInput();
-    // if (m_encoder)
-    //     m_encoder->onAudioInputChanged();
 }
 
 void AVFCameraService::audioOutputChanged()
 {
     if (!m_audioOutput)
         return;
-    if (m_encoder)
-        m_encoder->onAudioOutputChanged();
+    m_session->updateAudioOutput();
+}
+
+void AVFCameraService::setAudioInputMuted(bool muted)
+{
+    m_session->setAudioInputMuted(muted);
+}
+
+void AVFCameraService::setAudioInputVolume(float volume)
+{
+    m_session->setAudioInputVolume(volume);
+}
+
+void AVFCameraService::setAudioOutputMuted(bool muted)
+{
+    m_session->setAudioOutputMuted(muted);
+}
+
+void AVFCameraService::setAudioOutputVolume(float volume)
+{
+    m_session->setAudioOutputVolume(volume);
 }
 
 void AVFCameraService::setVideoPreview(QVideoSink *sink)

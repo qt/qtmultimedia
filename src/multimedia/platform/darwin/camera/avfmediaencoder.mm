@@ -607,15 +607,4 @@ void AVFMediaEncoder::stopWriter()
     [m_writer stop];
 }
 
-void AVFMediaEncoder::onAudioOutputChanged()
-{
-    QPlatformAudioOutput *audioOutput = m_service ? m_service->audioOutput()
-                                                  : nullptr;
-    NSString *deviceId = nil;
-    if (audioOutput)
-        deviceId = QString::fromUtf8(audioOutput->device.id()).toNSString();
-
-    [m_writer updateAudioOutput:deviceId];
-}
-
 #include "moc_avfmediaencoder_p.cpp"

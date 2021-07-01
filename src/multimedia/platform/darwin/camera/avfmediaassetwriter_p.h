@@ -81,8 +81,6 @@ QT_END_NAMESPACE
 - (void)abort;
 - (qint64)durationInMs;
 
-- (void)updateAudioOutput:(NSString *)deviceId;
-
 @end
 
 #endif // AVFMEDIAASSETWRITER_H

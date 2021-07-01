@@ -99,16 +99,13 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     AVFScopedPointer<AVAssetWriter> m_assetWriter;
 
-    AVFScopedPointer<AVSampleBufferRenderSynchronizer> m_bufferSynchronizer;
-    AVFScopedPointer<AVSampleBufferAudioRenderer> m_audioRenderer;
-
     AVFMediaEncoder *m_delegate;
 
     bool m_setStartTime;
 
     QAtomicInt m_state;
 
-    bool writeFirstAudioBuffer;
+    bool m_writeFirstAudioBuffer;
 
     CMTime m_startTime;
     CMTime m_lastTimeStamp;
@@ -132,7 +129,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         m_durationInMs.storeRelaxed(0);
         m_audioSettings = nil;
         m_videoSettings = nil;
-        writeFirstAudioBuffer = false;
+        m_writeFirstAudioBuffer = false;
     }
 
     return self;
@@ -195,7 +192,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         audioCaptureOn = session->audioOutput() != nil;
 
     if (!m_videoQueue)
-        writeFirstAudioBuffer = true;
+        m_writeFirstAudioBuffer = true;
 
     if (![self addWriterInputs]) {
         m_assetWriter.reset();
@@ -326,8 +323,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
             [m_cameraWriterInput appendSampleBuffer:sampleBuffer];
         }
     }
-
-    CFRelease(sampleBuffer);
 }
 
 - (void)writeAudioSampleBuffer:(CMSampleBufferRef)sampleBuffer
@@ -344,15 +339,21 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
             [m_audioWriterInput appendSampleBuffer:sampleBuffer];
         }
     }
+}
 
-    if (m_audioRenderer && m_bufferSynchronizer) {
-        [m_audioRenderer enqueueSampleBuffer:sampleBuffer];
-        if (m_bufferSynchronizer.data().rate == 0)
-            [m_bufferSynchronizer setRate:1
-             time:CMSampleBufferGetPresentationTimeStamp(sampleBuffer)];
+- (void)renderAudioSampleBuffer:(CMSampleBufferRef)sampleBuffer
+{
+    Q_ASSERT(sampleBuffer);
+    Q_ASSERT(m_service && m_service->session());
+    AVFCameraSession *session = m_service->session();
+
+    AVSampleBufferRenderSynchronizer *syncer = session->bufferSynchronizer();
+    AVSampleBufferAudioRenderer *renderer = session->audioRenderer();
+    if (syncer && renderer) {
+        [renderer enqueueSampleBuffer:sampleBuffer];
+        if (syncer.rate == 0)
+            [syncer setRate:1 time:CMSampleBufferGetPresentationTimeStamp(sampleBuffer)];
     }
-
-    CFRelease(sampleBuffer);
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
@@ -378,7 +379,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
             return;
         }
 
-        writeFirstAudioBuffer = true;
+        m_writeFirstAudioBuffer = true;
         // Find renderercontrol's delegate and invoke its method to
         // show updated viewfinder's frame.
         if (m_service->session()->videoOutput()) {
@@ -390,10 +391,14 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
         dispatch_async(m_writerQueue, ^{
             [self writeVideoSampleBuffer:sampleBuffer];
+            CFRelease(sampleBuffer);
         });
-    } else if (writeFirstAudioBuffer) {
+    } else if (m_writeFirstAudioBuffer) {
         dispatch_async(m_writerQueue, ^{
             [self writeAudioSampleBuffer:sampleBuffer];
+            if (m_service->audioOutput())
+                [self renderAudioSampleBuffer:sampleBuffer];
+            CFRelease(sampleBuffer);
         });
     }
 }
@@ -489,26 +494,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 - (qint64)durationInMs
 {
     return m_durationInMs.loadAcquire();
-}
-
-- (void)updateAudioOutput:(NSString *)deviceId
-{
-    if (!m_bufferSynchronizer)
-        m_bufferSynchronizer.reset([[AVSampleBufferRenderSynchronizer alloc] init]);
-    if (!m_audioRenderer)
-        m_audioRenderer.reset([[AVSampleBufferAudioRenderer alloc] init]);
-
-    if (![m_bufferSynchronizer.data().renderers containsObject:m_audioRenderer.data()])
-        [m_bufferSynchronizer addRenderer:m_audioRenderer];
-
-#ifdef Q_OS_MACOS
-    m_audioRenderer.data().audioOutputDeviceUniqueID = deviceId;
-#endif
-
-    if (!deviceId) {
-        m_bufferSynchronizer.data().rate = 0.0;
-        [m_audioRenderer flush];
-    }
 }
 
 @end

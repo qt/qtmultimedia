@@ -55,6 +55,7 @@
 #include <QtCore/qelapsedtimer.h>
 
 #include <private/qplatformaudioinput_p.h>
+#include <private/qplatformaudiooutput_p.h>
 
 #include <QtCore/qdebug.h>
 
@@ -170,6 +171,9 @@ AVFCameraSession::~AVFCameraSession()
         [m_audioOutput release];
     }
 
+    [m_audioRenderer release];
+    [m_audioBufferSynchronizer release];
+
     if (m_videoOutput)
         delete m_videoOutput;
 
@@ -235,6 +239,45 @@ AVCaptureDevice *AVFCameraSession::audioCaptureDevice() const
         return m_audioInput.device;
 
     return nullptr;
+}
+
+void AVFCameraSession::setAudioInputVolume(float volume)
+{
+    m_inputVolume = volume;
+
+    if (m_inputMuted)
+        volume = 0.0;
+
+#ifdef Q_OS_MACOS
+    AVCaptureConnection *audioInputConnection = [m_audioOutput connectionWithMediaType:AVMediaTypeAudio];
+    NSArray<AVCaptureAudioChannel *> *audioChannels = audioInputConnection.audioChannels;
+    if (audioChannels) {
+        for (AVCaptureAudioChannel *channel in audioChannels) {
+            channel.volume = volume;
+        }
+    }
+#endif
+}
+
+void AVFCameraSession::setAudioInputMuted(bool muted)
+{
+    m_inputMuted = muted;
+    setAudioInputVolume(m_inputVolume);
+}
+
+void AVFCameraSession::setAudioOutputVolume(float volume)
+{
+    m_outputVolume = volume;
+
+    if (m_audioRenderer)
+        m_audioRenderer.volume = volume;
+}
+
+void AVFCameraSession::setAudioOutputMuted(bool muted)
+{
+    m_outputMuted = muted;
+    if (m_audioRenderer)
+        m_audioRenderer.muted = muted ? YES : NO;
 }
 
 bool AVFCameraSession::isActive() const
@@ -441,6 +484,28 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
 void AVFCameraSession::updateAudioInput()
 {
     attachAudioInputDevice();
+}
+
+void AVFCameraSession::updateAudioOutput()
+{
+    [m_audioRenderer release];
+    m_audioRenderer = nullptr;
+    [m_audioBufferSynchronizer release];
+    m_audioBufferSynchronizer = nullptr;
+
+    QByteArray deviceId = m_service->audioOutput()
+                            ? m_service->audioOutput()->device.id()
+                            : QByteArray();
+    if (!deviceId.isEmpty()) {
+        m_audioBufferSynchronizer = [[AVSampleBufferRenderSynchronizer alloc] init];
+        m_audioRenderer = [[AVSampleBufferAudioRenderer alloc] init];
+        [m_audioBufferSynchronizer addRenderer:m_audioRenderer];
+
+#ifdef Q_OS_MACOS
+        m_audioRenderer.audioOutputDeviceUniqueID = [NSString stringWithUTF8String:
+                                                             deviceId.constData()];
+#endif
+    }
 }
 
 #include "moc_avfcamerasession_p.cpp"
