@@ -51,6 +51,10 @@ Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
 QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
+    sinkBin = QGstBin("videoSinkBin");
+    gstPreprocess = QGstElement("identity");
+    sinkBin.add(gstPreprocess);
+    sinkBin.addGhostPad(gstPreprocess, "sink");
     createOverlay();
     createRenderer();
 }
@@ -63,9 +67,8 @@ QGstreamerVideoSink::~QGstreamerVideoSink()
 
 QGstElement QGstreamerVideoSink::gstSink()
 {
-    if (m_fullScreen || m_windowId)
-        return m_videoOverlay->videoSink();
-    return m_videoRenderer->gstVideoSink();
+    updateSinkElement();
+    return sinkBin;
 }
 
 void QGstreamerVideoSink::setWinId(WId id)
@@ -123,7 +126,7 @@ void QGstreamerVideoSink::setFullScreen(bool fullScreen)
         return;
     m_fullScreen = fullScreen;
     if (!m_windowId)
-        emit sinkChanged();
+        updateSinkElement();
 }
 
 QSize QGstreamerVideoSink::nativeSize() const
@@ -143,4 +146,27 @@ void QGstreamerVideoSink::createOverlay()
 void QGstreamerVideoSink::createRenderer()
 {
     m_videoRenderer = new QGstreamerVideoRenderer(sink);
+}
+
+void QGstreamerVideoSink::updateSinkElement()
+{
+    auto state = gstPipeline.isNull() ? GST_STATE_NULL : gstPipeline.state();
+    if (state == GST_STATE_PLAYING)
+        gstPipeline.setStateSync(GST_STATE_PAUSED);
+
+    if (!gstVideoSink.isNull()) {
+        gstVideoSink.setStateSync(GST_STATE_NULL);
+        sinkBin.remove(gstVideoSink);
+    }
+    if (m_fullScreen || m_windowId)
+        gstVideoSink = m_videoOverlay->videoSink();
+    else
+        gstVideoSink = m_videoRenderer->gstVideoSink();
+
+    sinkBin.add(gstVideoSink);
+    gstPreprocess.link(gstVideoSink);
+    gstVideoSink.setState(GST_STATE_PAUSED);
+
+    if (state == GST_STATE_PLAYING)
+        gstPipeline.setState(GST_STATE_PLAYING);
 }

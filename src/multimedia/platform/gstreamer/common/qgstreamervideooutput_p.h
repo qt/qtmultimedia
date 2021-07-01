@@ -81,18 +81,13 @@ public:
 
     void setIsPreview();
 
-    void updateVideoSink(const QGstElement &sink);
-    void updatePrerollFrame();
-public slots:
+private:
     void sinkChanged();
-    void changeVideoOutput();
 
 private:
-    void prepareVideoOutputChange(const QGstPad &pad);
 
     QVideoSink *m_videoSink = nullptr;
     QPointer<QGstreamerVideoSink> m_videoWindow;
-    std::optional<QPropertyChangeHandler<std::function<void()>>> stoppedStateHandler;
     bool isFakeSink = true;
 
     // Gst elements
@@ -104,7 +99,6 @@ private:
     QGstElement videoConvert;
     QGstElement subtitleOverlay;
     QGstElement videoSink;
-    QGstElement newVideoSink;
 
     QGstElement subtitleSrc;
 };

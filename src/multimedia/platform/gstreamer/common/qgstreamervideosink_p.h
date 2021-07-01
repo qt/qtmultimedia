@@ -91,12 +91,18 @@ public:
 
     bool isReady() const { return m_windowId != 0; }
 
-signals:
-    void sinkChanged();
+    void setPipeline(QGstPipeline pipeline) { gstPipeline = pipeline; }
 
 private:
     void createOverlay();
     void createRenderer();
+    void updateSinkElement();
+
+    QGstPipeline gstPipeline;
+    QGstBin sinkBin;
+    QGstElement gstPreprocess;
+    QGstElement gstVideoSink;
+
     QGstreamerVideoOverlay *m_videoOverlay = nullptr;
     QGstreamerVideoRenderer *m_videoRenderer = nullptr;
     WId m_windowId = 0;
