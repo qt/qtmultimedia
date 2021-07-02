@@ -84,7 +84,9 @@ private:
 
     NSObject *m_deviceConnectedObserver;
     NSObject *m_deviceDisconnectedObserver;
+#ifdef Q_OS_MACOS
     void *m_audioDevicesProperty;
+#endif
 };
 
 QT_END_NAMESPACE
