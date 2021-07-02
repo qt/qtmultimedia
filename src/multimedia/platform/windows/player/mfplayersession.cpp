@@ -64,6 +64,7 @@
 #include <wmcodecdsp.h>
 
 #include <mmdeviceapi.h>
+#include <propvarutil.h>
 #include <Functiondiscoverykeys_devpkey.h>
 
 //#define DEBUG_MEDIAFOUNDATION
@@ -77,7 +78,6 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     , m_rateSupport(0)
     , m_volumeControl(0)
     , m_netsourceStatistics(0)
-    , m_duration(0)
     , m_scrubbing(false)
     , m_restoreRate(1)
     , m_sourceResolver(0)
@@ -104,8 +104,6 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
 
     m_audioSampleGrabber = new AudioSampleGrabberCallback;
     m_videoRendererControl = new MFVideoRendererControl;
-
-    PropVariantInit(&m_varStart);
 }
 
 void MFPlayerSession::close()
@@ -987,8 +985,7 @@ void MFPlayerSession::stop(bool immediate)
             m_state.setCommand(CmdStop);
             m_pendingState = CmdPending;
             if (m_status != QMediaPlayer::EndOfMedia) {
-                m_varStart.vt = VT_I8;
-                m_varStart.hVal.QuadPart = 0;
+                m_position = 0;
             }
         } else {
             emit error(QMediaPlayer::ResourceError, tr("Failed to stop."), true);
@@ -999,7 +996,7 @@ void MFPlayerSession::stop(bool immediate)
 void MFPlayerSession::start()
 {
     if (m_status == QMediaPlayer::EndOfMedia)
-        m_varStart.hVal.QuadPart = 0; // restart from the beginning
+        m_position = 0; // restart from the beginning
 
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "start";
@@ -1014,13 +1011,16 @@ void MFPlayerSession::start()
         if (m_scrubbing)
             scrub(false);
 
-        if (SUCCEEDED(m_session->Start(&GUID_NULL, &m_varStart))) {
+        PROPVARIANT varStart;
+        InitPropVariantFromInt64(m_position, &varStart);
+
+        if (SUCCEEDED(m_session->Start(&GUID_NULL, &varStart))) {
             m_state.setCommand(CmdStart);
             m_pendingState = CmdPending;
-            PropVariantClear(&m_varStart);
         } else {
             emit error(QMediaPlayer::ResourceError, tr("failed to start playback"), true);
         }
+        PropVariantClear(&varStart);
     }
 }
 
@@ -1088,9 +1088,7 @@ void MFPlayerSession::createSession()
         emit error(QMediaPlayer::ResourceError, tr("Unable to pull session events."), false);
     }
 
-    PropVariantClear(&m_varStart);
-    m_varStart.vt = VT_I8;
-    m_varStart.hVal.QuadPart = 0;
+    m_position = 0;
 }
 
 qint64 MFPlayerSession::position()
@@ -1102,10 +1100,7 @@ qint64 MFPlayerSession::position()
         return m_state.start;
 
     if (m_state.command == CmdStop) {
-        if (m_varStart.vt == VT_I8)
-            return qint64(m_varStart.hVal.QuadPart / 10000);
-        else
-            return 0;
+        return m_position / 10000;
     }
 
     if (m_presentationClock) {
@@ -1135,8 +1130,7 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
     if (m_status == QMediaPlayer::EndOfMedia)
         changeStatus(QMediaPlayer::LoadedMedia);
     if (m_state.command == CmdStop && requestCmd != CmdSeekResume) {
-        m_varStart.vt = VT_I8;
-        m_varStart.hVal.QuadPart = LONGLONG(position * 10000);
+        m_position = position * 10000;
         // Even though the position is not actually set on the session yet,
         // report it to have changed anyway for UI controls to be updated
         emit positionChanged(this->position());
@@ -1155,7 +1149,7 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
     varStart.hVal.QuadPart = LONGLONG(position * 10000);
     if (SUCCEEDED(m_session->Start(NULL, &varStart)))
     {
-        PropVariantClear(&m_varStart);
+        PropVariantClear(&varStart);
         // Store the pending state.
         m_state.setCommand(CmdStart);
         m_state.start = position;
@@ -1582,8 +1576,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         break;
     case MESessionStopped:
         if (m_status != QMediaPlayer::EndOfMedia) {
-            m_varStart.vt = VT_I8;
-            m_varStart.hVal.QuadPart = 0;
+            m_position = 0;
 
             // Reset to Loaded status unless we are loading a new media
             // or changing the playback rate to negative values (stop required)
@@ -1632,8 +1625,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
             // Topology is resolved and successfuly set, this happens only after loading a new media.
             // Make sure we always start the media from the beginning
-            m_varStart.vt = VT_I8;
-            m_varStart.hVal.QuadPart = 0;
+            m_position = 0;
 
             changeStatus(QMediaPlayer::LoadedMedia);
         }
@@ -1661,9 +1653,8 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         m_request.command = CmdNone;
         m_request.prevCmd = CmdNone;
 
-        m_varStart.vt = VT_I8;
         //keep reporting the final position after end of media
-        m_varStart.hVal.QuadPart = m_duration;
+        m_position = qint64(m_duration);
         emit positionChanged(position());
 
         changeStatus(QMediaPlayer::EndOfMedia);
@@ -1780,6 +1771,11 @@ void MFPlayerSession::clear()
     m_state.prevCmd = CmdNone;
     m_request.command = CmdNone;
     m_request.prevCmd = CmdNone;
+
+    if (!m_metaData.isEmpty()) {
+        m_metaData.clear();
+        emit metaDataChanged();
+    }
 
     if (m_presentationClock) {
         m_presentationClock->Release();

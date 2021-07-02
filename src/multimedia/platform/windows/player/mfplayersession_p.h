@@ -159,8 +159,8 @@ private:
     IMFRateSupport *m_rateSupport;
     IMFAudioStreamVolume *m_volumeControl;
     IPropertyStore *m_netsourceStatistics;
-    PROPVARIANT m_varStart;
-    UINT64 m_duration;
+    qint64 m_position = 0;
+    UINT64 m_duration = 0;
 
     enum Command
     {
