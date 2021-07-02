@@ -52,13 +52,13 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMultimediaDeclarativeModule : public QQmlEngineExtensionPlugin
+class QMultimediaQuickModule : public QQmlEngineExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID QQmlEngineExtensionInterface_iid)
 
 public:
-    QMultimediaDeclarativeModule(QObject *parent = nullptr)
+    QMultimediaQuickModule(QObject *parent = nullptr)
         : QQmlEngineExtensionPlugin(parent)
     {
         volatile auto registration = qml_register_types_QtMultimedia;
