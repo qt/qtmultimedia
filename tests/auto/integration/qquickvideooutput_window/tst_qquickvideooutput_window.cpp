@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Copyright (C) 2016 Research In Motion
 ** Contact: https://www.qt.io/licensing/
 **
@@ -107,7 +107,7 @@ void tst_QQuickVideoOutputWindow::cleanupTestCase()
 
 void tst_QQuickVideoOutputWindow::winId()
 {
-    QCOMPARE(m_sink->nativeWindowId(), 0);
+    QCOMPARE(m_sink->nativeWindowId(), 0u);
 }
 
 void tst_QQuickVideoOutputWindow::aspectRatio()
