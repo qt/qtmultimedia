@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -125,17 +125,21 @@ void tst_QAudioSink::createSineWaveData(const QAudioFormat &format, qint64 lengt
             case QAudioFormat::UInt8: {
                 const quint8 value = static_cast<quint8>((1.0 + x) / 2 * 255);
                 *reinterpret_cast<quint8 *>(ptr) = value;
+                break;
             }
             case QAudioFormat::Int16: {
                 qint16 value = static_cast<qint16>(x * 32767);
                 *reinterpret_cast<qint16 *>(ptr) = value;
+                break;
             }
             case QAudioFormat::Int32: {
                 quint32 value = static_cast<quint32>(x) * std::numeric_limits<qint32>::max();
                 *reinterpret_cast<qint32 *>(ptr) = value;
+                break;
             }
             case QAudioFormat::Float:
                 *reinterpret_cast<float *>(ptr) = x;
+                break;
             case QAudioFormat::Unknown:
             case QAudioFormat::NSampleFormats:
                 break;
