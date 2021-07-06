@@ -46,7 +46,7 @@
 #include "private/androidsurfacetexture_p.h"
 #include "private/androidsurfaceview_p.h"
 #include "private/androidcamera_p.h"
-#include "private/qandroidcameracontrol_p.h"
+#include "private/qandroidcamera_p.h"
 #include "private/qandroidimagecapture_p.h"
 #include "private/qandroidmediaencoder_p.h"
 #include "private/androidmediarecorder_p.h"
@@ -97,7 +97,7 @@ QPlatformMediaPlayer *QAndroidIntegration::createPlayer(QMediaPlayer *player)
 
 QPlatformCamera *QAndroidIntegration::createCamera(QCamera *camera)
 {
-    return new QAndroidCameraControl(camera);
+    return new QAndroidCamera(camera);
 }
 
 QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaRecorder *encoder)

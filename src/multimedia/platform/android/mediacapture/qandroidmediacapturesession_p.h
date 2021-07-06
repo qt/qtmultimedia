@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidMediaEncoder;
 class QAndroidCaptureSession;
-class QAndroidCameraControl;
+class QAndroidCamera;
 class QAndroidCameraSession;
 class QAndroidImageCapture;
 
@@ -90,7 +90,7 @@ public:
 private:
     QAndroidMediaEncoder *m_encoder = nullptr;
     QAndroidCaptureSession *m_captureSession = nullptr;
-    QAndroidCameraControl *m_cameraControl = nullptr;
+    QAndroidCamera *m_cameraControl = nullptr;
     QAndroidCameraSession *m_cameraSession = nullptr;
     QAndroidImageCapture *m_imageCaptureControl = nullptr;
 };

@@ -60,12 +60,12 @@ class QAndroidCameraSession;
 class QAndroidCameraVideoRendererControl;
 class QAndroidMediaCaptureSession;
 
-class QAndroidCameraControl : public QPlatformCamera
+class QAndroidCamera : public QPlatformCamera
 {
     Q_OBJECT
 public:
-    explicit QAndroidCameraControl(QCamera *camera);
-    virtual ~QAndroidCameraControl();
+    explicit QAndroidCamera(QCamera *camera);
+    virtual ~QAndroidCamera();
 
     bool isActive() const override;
     void setActive(bool active) override;

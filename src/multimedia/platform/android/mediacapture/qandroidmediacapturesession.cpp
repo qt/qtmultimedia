@@ -42,7 +42,7 @@
 
 #include "qandroidmediaencoder_p.h"
 #include "qandroidcapturesession_p.h"
-#include "qandroidcameracontrol_p.h"
+#include "qandroidcamera_p.h"
 #include "qandroidcamerasession_p.h"
 #include "qandroidimagecapture_p.h"
 #include "qmediadevices.h"
@@ -82,7 +82,7 @@ void QAndroidMediaCaptureSession::setCamera(QPlatformCamera *camera)
             m_cameraSession = nullptr;
         }
 
-        QAndroidCameraControl *control = static_cast<QAndroidCameraControl *>(camera);
+        QAndroidCamera *control = static_cast<QAndroidCamera *>(camera);
         if (m_cameraControl == control)
             return;
 
