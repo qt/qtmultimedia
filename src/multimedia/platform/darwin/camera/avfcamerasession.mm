@@ -186,8 +186,6 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
     if (m_activeCameraDevice != info) {
         m_activeCameraDevice = info;
         attachVideoInputDevice();
-        if (!m_activeCameraDevice.isNull() && !m_videoOutput)
-            setVideoOutput(new AVFCameraRenderer(this));
     }
 }
 
@@ -474,10 +472,15 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
 
     m_videoSink = videoSink;
 
-    if (m_videoSink && m_videoOutput) {
+    if (m_videoSink && !m_videoOutput)
+        setVideoOutput(new AVFCameraRenderer(this));
+
+    if (m_videoOutput) {
         m_videoOutput->setVideoSink(videoSink);
-        AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
-        m_videoOutput->setLayer(previewLayer);
+        if (m_videoSink) {
+            AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
+            m_videoOutput->setLayer(previewLayer);
+        }
     }
 }
 
