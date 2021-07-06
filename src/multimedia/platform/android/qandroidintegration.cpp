@@ -40,7 +40,7 @@
 #include "qandroidintegration_p.h"
 #include "qandroidmediadevices_p.h"
 #include "private/qandroidglobal_p.h"
-#include "private/qandroidcaptureservice_p.h"
+#include "private/qandroidmediacapturesession_p.h"
 #include "private/androidmediaplayer_p.h"
 #include "private/qandroidcamerasession_p.h"
 #include "private/androidsurfacetexture_p.h"
@@ -87,7 +87,7 @@ QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()
 
 QPlatformMediaCaptureSession *QAndroidIntegration::createCaptureSession()
 {
-    return new QAndroidCaptureService();
+    return new QAndroidMediaCaptureSession();
 }
 
 QPlatformMediaPlayer *QAndroidIntegration::createPlayer(QMediaPlayer *player)

@@ -63,13 +63,13 @@ class QAndroidCameraControl;
 class QAndroidCameraSession;
 class QAndroidImageCapture;
 
-class QAndroidCaptureService : public QPlatformMediaCaptureSession
+class QAndroidMediaCaptureSession : public QPlatformMediaCaptureSession
 {
     Q_OBJECT
 
 public:
-    explicit QAndroidCaptureService();
-    virtual ~QAndroidCaptureService();
+    explicit QAndroidMediaCaptureSession();
+    virtual ~QAndroidMediaCaptureSession();
 
     QPlatformCamera *camera() override;
     void setCamera(QPlatformCamera *camera) override;

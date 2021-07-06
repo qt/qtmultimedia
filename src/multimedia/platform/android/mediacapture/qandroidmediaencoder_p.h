@@ -57,7 +57,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidCaptureSession;
-class QAndroidCaptureService;
+class QAndroidMediaCaptureSession;
 
 class QAndroidMediaEncoder : public QPlatformMediaEncoder
 {
@@ -79,7 +79,7 @@ private:
     friend class QAndroidCaptureSession;
 
     QAndroidCaptureSession *m_session = nullptr;
-    QAndroidCaptureService *m_service = nullptr;
+    QAndroidMediaCaptureSession *m_service = nullptr;
 };
 
 QT_END_NAMESPACE

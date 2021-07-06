@@ -39,7 +39,7 @@
 
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
-#include "qandroidcaptureservice_p.h"
+#include "qandroidmediacapturesession_p.h"
 #include <qmediadevices.h>
 #include <qcameradevice.h>
 #include <qtimer.h>
@@ -91,7 +91,7 @@ void QAndroidCameraControl::setCamera(const QCameraDevice &camera)
 
 void QAndroidCameraControl::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
+    QAndroidMediaCaptureSession *captureSession = static_cast<QAndroidMediaCaptureSession *>(session);
     if (m_service == captureSession)
         return;
 

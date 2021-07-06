@@ -40,7 +40,7 @@
 #include "qandroidmediaencoder_p.h"
 #include "qandroidmultimediautils_p.h"
 #include "qandroidcapturesession_p.h"
-#include "qandroidcaptureservice_p.h"
+#include "qandroidmediacapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -93,7 +93,7 @@ void QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
 
 void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
+    QAndroidMediaCaptureSession *captureSession = static_cast<QAndroidMediaCaptureSession *>(session);
     if (m_service == captureSession)
         return;
 

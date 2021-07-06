@@ -308,7 +308,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture/qandroidcameracontrol.cpp platform/android/mediacapture/qandroidcameracontrol_p.h
         platform/android/mediacapture/qandroidimagecapture.cpp platform/android/mediacapture/qandroidimagecapture_p.h
         platform/android/mediacapture/qandroidcamerasession.cpp platform/android/mediacapture/qandroidcamerasession_p.h
-        platform/android/mediacapture/qandroidcaptureservice.cpp platform/android/mediacapture/qandroidcaptureservice_p.h
+        platform/android/mediacapture/qandroidmediacapturesession.cpp platform/android/mediacapture/qandroidmediacapturesession_p.h
         platform/android/mediacapture/qandroidcapturesession.cpp platform/android/mediacapture/qandroidcapturesession_p.h
         platform/android/mediacapture/qandroidmediaencoder.cpp platform/android/mediacapture/qandroidmediaencoder_p.h
         platform/android/mediaplayer/qandroidmediaplayer.cpp platform/android/mediaplayer/qandroidmediaplayer_p.h

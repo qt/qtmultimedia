@@ -56,7 +56,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
-class QAndroidCaptureService;
+class QAndroidMediaCaptureSession;
 
 class QAndroidImageCapture : public QPlatformImageCapture
 {
@@ -76,7 +76,7 @@ public:
 
 private:
     QAndroidCameraSession *m_session;
-    QAndroidCaptureService *m_service;
+    QAndroidMediaCaptureSession *m_service;
 };
 
 QT_END_NAMESPACE

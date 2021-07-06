@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;
 class QAndroidCameraVideoRendererControl;
-class QAndroidCaptureService;
+class QAndroidMediaCaptureSession;
 
 class QAndroidCameraControl : public QPlatformCamera
 {
@@ -100,7 +100,7 @@ private Q_SLOTS:
 
 private:
     QAndroidCameraSession *m_cameraSession = nullptr;
-    QAndroidCaptureService *m_service = nullptr;
+    QAndroidMediaCaptureSession *m_service = nullptr;
     QTimer *m_recalculateTimer = nullptr;
 
     QList<QCamera::FocusMode> m_supportedFocusModes;
