@@ -157,10 +157,8 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
     NSMutableDictionary *settings = [NSMutableDictionary dictionary];
 
     int codecId = QDarwinFormatInfo::audioFormatForCodec(encoderSettings.mediaFormat().audioCodec());
-
     [settings setObject:[NSNumber numberWithInt:codecId] forKey:AVFormatIDKey];
 
-#ifdef Q_OS_MACOS
     // Setting AVEncoderQualityKey is not allowed when format ID is alac or lpcm
     if (codecId != kAudioFormatAppleLossless && codecId != kAudioFormatLinearPCM
         && encoderSettings.encodingMode() == QMediaRecorder::ConstantQualityEncoding) {
@@ -184,26 +182,78 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
             break;
         }
         [settings setObject:[NSNumber numberWithInt:quality] forKey:AVEncoderAudioQualityKey];
-
-    } else
-#endif
-    if (encoderSettings.audioBitRate() > 0)
-        [settings setObject:[NSNumber numberWithInt:encoderSettings.audioBitRate()] forKey:AVEncoderBitRateKey];
+    } else {
+        bool isBitRateSupported = false;
+        int bitRate = encoderSettings.audioBitRate();
+        if (bitRate > 0) {
+            QList<AudioValueRange> bitRates = qt_supported_bit_rates_for_format(codecId);
+            for (int i = 0; i < bitRates.count(); i++) {
+                if (bitRate >= bitRates[i].mMinimum &&
+                    bitRate <= bitRates[i].mMaximum) {
+                    isBitRateSupported = true;
+                    break;
+                }
+            }
+            if (isBitRateSupported)
+                [settings setObject:[NSNumber numberWithInt:encoderSettings.audioBitRate()]
+                                              forKey:AVEncoderBitRateKey];
+        }
+    }
 
     int sampleRate = encoderSettings.audioSampleRate();
+    bool isSampleRateSupported = false;
+    if (sampleRate >= 8000 && sampleRate <= 192000) {
+        QList<AudioValueRange> sampleRates = qt_supported_sample_rates_for_format(codecId);
+        for (int i = 0; i < sampleRates.count(); i++) {
+            if (sampleRate >= sampleRates[i].mMinimum && sampleRate <= sampleRates[i].mMaximum) {
+                isSampleRateSupported = true;
+                break;
+            }
+        }
+    }
+
     int channelCount = encoderSettings.audioChannelCount();
+    bool isChannelCountSupported = false;
+    if (channelCount > 0) {
+        std::optional<QList<UInt32>> channelCounts = qt_supported_channel_counts_for_format(codecId);
+        // An std::nullopt result indicates that
+        // any number of channels can be encoded.
+        if (channelCounts == std::nullopt) {
+            isChannelCountSupported = true;
+        } else {
+            for (int i = 0; i < channelCounts.value().count(); i++) {
+                if ((UInt32)channelCount == channelCounts.value()[i]) {
+                    isChannelCountSupported = true;
+                    break;
+                }
+            }
+        }
+    }
 
 #ifdef Q_OS_IOS
     // Some keys are mandatory only on iOS
-    if (sampleRate <= 0)
+    if (!isSampleRateSupported) {
         sampleRate = 44100;
-    if (channelCount <= 0)
+        isSampleRateSupported = true;
+    }
+    if (!isChannelCountSupported) {
         channelCount = 2;
-#endif
+        isChannelCountSupported = true;
+    }
 
-    if (sampleRate > 0)
+    if (codecId == kAudioFormatAppleLossless)
+        [settings setObject:[NSNumber numberWithInt:24] forKey:AVEncoderBitDepthHintKey];
+
+    if (codecId == kAudioFormatLinearPCM) {
+        [settings setObject:[NSNumber numberWithInt:16] forKey:AVLinearPCMBitDepthKey];
+        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsBigEndianKey];
+        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsFloatKey];
+        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsNonInterleaved];
+    }
+#endif
+    if (isSampleRateSupported)
         [settings setObject:[NSNumber numberWithInt:sampleRate] forKey:AVSampleRateKey];
-    if (channelCount > 0)
+    if (isChannelCountSupported)
         [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
 
     return settings;
