@@ -44,7 +44,6 @@
 #include "qandroidcapturesession_p.h"
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
-#include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidimagecapture_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"

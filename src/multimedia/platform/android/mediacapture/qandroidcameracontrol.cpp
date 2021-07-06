@@ -39,7 +39,6 @@
 
 #include "qandroidcameracontrol_p.h"
 #include "qandroidcamerasession_p.h"
-#include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidcaptureservice_p.h"
 #include <qmediadevices.h>
 #include <qcameradevice.h>

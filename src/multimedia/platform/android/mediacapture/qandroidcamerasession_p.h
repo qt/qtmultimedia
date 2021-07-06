@@ -63,7 +63,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidVideoOutput;
-class QAndroidCameraVideoRendererControl;
+class QAndroidTextureVideoOutput ;
 class QVideoSink;
 
 class QAndroidCameraSession : public QObject
@@ -169,7 +169,8 @@ private:
     int m_savedState = -1;
     bool m_previewStarted;
 
-    QAndroidCameraVideoRendererControl *m_renderer = nullptr;
+    QVideoSink *m_sink = nullptr;
+    QAndroidTextureVideoOutput *m_textureOutput = nullptr;
 
     QImageEncoderSettings m_requestedImageSettings;
     QImageEncoderSettings m_actualImageSettings;
