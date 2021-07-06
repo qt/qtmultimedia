@@ -52,7 +52,7 @@ QOpenSLESDeviceInfo::QOpenSLESDeviceInfo(const QByteArray &device, const QString
     auto channels = m_engine->supportedChannelCounts(mode);
     if (channels.size()) {
         minimumChannelCount = channels.first();
-        maximumChannelCount = channels.first();
+        maximumChannelCount = channels.last();
     }
 
     auto sampleRates = m_engine->supportedSampleRates(mode);
