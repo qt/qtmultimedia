@@ -59,6 +59,11 @@
 
 QT_BEGIN_NAMESPACE
 
+// Enable this to prevent using the external texture directly (bound as
+// GL_TEXTURE_EXTERNAL_OES), but rather do a readback on every frame and
+// upload the QImage data into a plain 2D texture.
+//#define QANDROIDVIDEOUTPUT_NO_DIRECT_TEXTURE_USAGE
+
 class AndroidSurfaceTexture;
 class AndroidSurfaceHolder;
 class QOpenGLFramebufferObject;
@@ -129,7 +134,8 @@ private Q_SLOTS:
 private:
     void initSurfaceTexture();
     bool renderFrameToFbo();
-    void createGLResources();
+    void ensureCommonGLResources();
+    void ensureFboGLResources();
 
     QMutex m_mutex;
     void clearSurfaceTexture();

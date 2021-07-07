@@ -112,15 +112,20 @@ QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QVideoFrame::MapMod
 
 quint64 AndroidTextureVideoBuffer::textureHandle(int plane) const
 {
-    qDebug() << "AndroidTextureVideoBuffer::textureHandle()";
-    if (plane != 0)
+    if (plane != 0 || !rhi)
         return 0;
-    if (rhi) {
-        m_output->m_surfaceTexture->updateTexImage();
-        m_externalMatrix = m_output->m_surfaceTexture->getTransformMatrix();
-        return m_output->m_externalTex;
-    }
-    return 0;
+
+    m_output->ensureCommonGLResources();
+    m_output->m_surfaceTexture->updateTexImage();
+    m_externalMatrix = m_output->m_surfaceTexture->getTransformMatrix();
+    // flip it back, see http://androidxref.com/9.0.0_r3/xref/frameworks/native/libs/gui/GLConsumer.cpp#866
+    // (NB our matrix ctor takes row major)
+    static const QMatrix4x4 flipV(1.0f,  0.0f, 0.0f, 0.0f,
+                                  0.0f, -1.0f, 0.0f, 1.0f,
+                                  0.0f,  0.0f, 1.0f, 0.0f,
+                                  0.0f,  0.0f, 0.0f, 1.0f);
+    m_externalMatrix *= flipV;
+    return m_output->m_externalTex;
 }
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
@@ -235,10 +240,14 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
         return;
 
     QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::Format_ARGB32_Premultiplied;
-    auto rhi = m_sink ? m_sink->rhi() : nullptr;
+#ifdef QANDROIDVIDEOUTPUT_NO_DIRECT_TEXTURE_USAGE
+    QRhi *rhi = nullptr;
+#else
+    QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
+#endif
     if (rhi && rhi->backend() != QRhi::OpenGLES2)
         rhi = nullptr;
-    else
+    if (rhi)
         format = QVideoFrameFormat::Format_SamplerExternalOES;
 
     auto *buffer = new AndroidTextureVideoBuffer(rhi, this, m_nativeSize);
@@ -286,7 +295,9 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
 
     m_glContext->makeCurrent(m_offscreenSurface);
 
-    createGLResources();
+    ensureFboGLResources();
+
+    m_surfaceTexture->updateTexImage();
 
     // save current render states
     GLboolean stencilTestEnabled;
@@ -341,9 +352,9 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
     return true;
 }
 
-void QAndroidTextureVideoOutput::createGLResources()
+void QAndroidTextureVideoOutput::ensureCommonGLResources()
 {
-    Q_ASSERT(QOpenGLContext::currentContext() != NULL);
+    Q_ASSERT(QOpenGLContext::currentContext());
 
     if (!m_glDeleter)
         m_glDeleter = new OpenGLResourcesDeleter;
@@ -353,6 +364,11 @@ void QAndroidTextureVideoOutput::createGLResources()
         glGenTextures(1, &m_externalTex);
         m_surfaceTexture->attachToGLContext(m_externalTex);
     }
+}
+
+void QAndroidTextureVideoOutput::ensureFboGLResources()
+{
+    ensureCommonGLResources();
 
     if (!m_fbo || m_fbo->size() != m_nativeSize) {
         delete m_fbo;

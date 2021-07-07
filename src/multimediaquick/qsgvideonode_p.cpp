@@ -237,8 +237,12 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
         m->updateBlending();
     }
 
-    QByteArray *buf = state.uniformData();
-    *buf = m_format.uniformData(m_material->m_frame, state.combinedMatrix(), state.opacity());
+    // Do this here, not in updateSampledImage. First, with multiple textures we want to
+    // do this once. More importantly, on some platforms (Android) the externalMatrix is
+    // updated by this function and we need that already in updateUniformData.
+    m->updateTextures(state.rhi(), state.resourceUpdateBatch());
+
+    m_format.updateUniformData(state.uniformData(), m_material->m_frame, state.combinedMatrix(), state.opacity());
 
     return true;
 }
@@ -246,14 +250,12 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
 void QSGVideoMaterialRhiShader::updateSampledImage(RenderState &state, int binding, QSGTexture **texture,
                                                        QSGMaterial *newMaterial, QSGMaterial *oldMaterial)
 {
+    Q_UNUSED(state);
     Q_UNUSED(oldMaterial);
     if (binding < 1 || binding > 3)
         return;
 
     auto m = static_cast<QSGVideoMaterial *>(newMaterial);
-
-    m->updateTextures(state.rhi(), state.resourceUpdateBatch());
-
     *texture = m->m_textures[binding - 1].data();
 }
 

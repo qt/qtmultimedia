@@ -548,9 +548,9 @@ QString QVideoFrameFormat::fragmentShaderFileName() const
 /*!
     \internal
 */
-QByteArray QVideoFrameFormat::uniformData(const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity) const
+void QVideoFrameFormat::updateUniformData(QByteArray *dst, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity) const
 {
-    return QVideoTextureHelper::uniformData(*this, frame, transform, opacity);
+    QVideoTextureHelper::updateUniformData(dst, *this, frame, transform, opacity);
 }
 
 

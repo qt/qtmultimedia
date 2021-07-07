@@ -84,7 +84,7 @@ Q_MULTIMEDIA_EXPORT const TextureDescription *textureDescription(QVideoFrameForm
 
 Q_MULTIMEDIA_EXPORT QString vertexShaderFileName(QVideoFrameFormat::PixelFormat format);
 Q_MULTIMEDIA_EXPORT QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format);
-Q_MULTIMEDIA_EXPORT QByteArray uniformData(const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity);
+Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity);
 Q_MULTIMEDIA_EXPORT int updateRhiTextures(QVideoFrame frame, QRhi *rhi,
                                            QRhiResourceUpdateBatch *resourceUpdates, QRhiTexture **textures);
 
