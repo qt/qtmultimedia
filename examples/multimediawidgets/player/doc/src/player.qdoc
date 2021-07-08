@@ -30,6 +30,7 @@
     \title Media Player Example
     \ingroup multimedia_examples
     \brief Playing audio and video.
+    \meta {tag} {widgets}
 
     \image mediaplayerex.jpg
 

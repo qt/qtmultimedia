@@ -33,6 +33,7 @@
 \title  Camera Example
 \ingroup multimedia_examples
 \ingroup camera_examples
+\meta {tag} {widgets}
 \brief  The Camera Example shows how to use the API to capture a still image
 or video.
 

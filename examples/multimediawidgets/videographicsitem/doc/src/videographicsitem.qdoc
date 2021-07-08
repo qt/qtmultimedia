@@ -26,10 +26,11 @@
 ****************************************************************************/
 
 /*!
-\example multimediawidgets/videographicsitem
-\title Video Graphics Item Example
-\ingroup multimedia_examples
-\brief Streaming video on a graphics scene.
+    \example multimediawidgets/videographicsitem
+    \title Video Graphics Item Example
+    \ingroup multimedia_examples
+    \brief Streaming video on a graphics scene.
+    \meta {tag} {widgets}
 
     \e{Video Graphics Item} demonstrates how to implement a QGraphicsItem that
     displays video on a graphics scene using QVideoSink.
