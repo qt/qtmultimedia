@@ -40,12 +40,14 @@
 #include <qmediametadata.h>
 #include <qdatetime.h>
 #include <qimage.h>
+#include <quuid.h>
 
 #include <mfapi.h>
 #include <mfidl.h>
 #include <propvarutil.h>
 #include <propkey.h>
 
+#include "qwindowsmultimediautils_p.h"
 #include "mfmetadata_p.h"
 
 //#define DEBUG_MEDIAFOUNDATION
@@ -208,10 +210,10 @@ static QVariant metaDataValue(IPropertyStore *content, const PROPERTYKEY &key)
             } else if (key == PKEY_Media_Duration) {
                 // duration is provided in 100-nanosecond units, convert to milliseconds
                 value = (value.toLongLong() + 10000) / 10000;
-            } else if (key == PKEY_Audio_Format || key == PKEY_Video_Compression) {
-                GUID guid;
-                if (SUCCEEDED(CLSIDFromString((const WCHAR*)value.toString().utf16(), &guid)))
-                    value = nameForGUID(guid);
+            } else if (key == PKEY_Video_Compression) {
+                value = int(QWindowsMultimediaUtils::codecForVideoFormat(value.toUuid()));
+            } else if (key == PKEY_Audio_Format) {
+                value = int(QWindowsMultimediaUtils::codecForAudioFormat(value.toUuid()));
             } else if (key == PKEY_Video_FrameHeight /*Resolution*/) {
                 QSize res;
                 res.setHeight(value.toUInt());

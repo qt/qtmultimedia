@@ -102,6 +102,36 @@ GUID QWindowsMultimediaUtils::videoFormatForCodec(QMediaFormat::VideoCodec codec
     }
 }
 
+QMediaFormat::VideoCodec QWindowsMultimediaUtils::codecForVideoFormat(GUID format)
+{
+    if (format == MFVideoFormat_MPG1)
+        return QMediaFormat::VideoCodec::MPEG1;
+    if (format == MFVideoFormat_MPEG2)
+        return QMediaFormat::VideoCodec::MPEG2;
+    if (format == MFVideoFormat_MP4V
+            || format == MFVideoFormat_M4S2
+            || format == MFVideoFormat_MP4S
+            || format == MFVideoFormat_MP43)
+        return QMediaFormat::VideoCodec::MPEG4;
+    if (format == MFVideoFormat_H264)
+        return QMediaFormat::VideoCodec::H264;
+    if (format == MFVideoFormat_H265)
+        return QMediaFormat::VideoCodec::H265;
+    if (format == MFVideoFormat_VP80)
+        return QMediaFormat::VideoCodec::VP8;
+    if (format == MFVideoFormat_VP90)
+        return QMediaFormat::VideoCodec::VP9;
+    if (format == MFVideoFormat_AV1)
+        return QMediaFormat::VideoCodec::AV1;
+    if (format == MFVideoFormat_WMV1
+            || format == MFVideoFormat_WMV2
+            || format == MFVideoFormat_WMV3)
+        return QMediaFormat::VideoCodec::WMV;
+    if (format == MFVideoFormat_MJPG)
+        return QMediaFormat::VideoCodec::MotionJPEG;
+    return QMediaFormat::VideoCodec::Unspecified;
+}
+
 GUID QWindowsMultimediaUtils::audioFormatForCodec(QMediaFormat::AudioCodec codec)
 {
     switch (codec) {
@@ -128,6 +158,33 @@ GUID QWindowsMultimediaUtils::audioFormatForCodec(QMediaFormat::AudioCodec codec
     default:
         return MFAudioFormat_AAC;
     }
+}
+
+QMediaFormat::AudioCodec QWindowsMultimediaUtils::codecForAudioFormat(GUID format)
+{
+    if (format == MFAudioFormat_MP3)
+        return QMediaFormat::AudioCodec::MP3;
+    if (format == MFAudioFormat_AAC)
+        return QMediaFormat::AudioCodec::AAC;
+    if (format == MFAudioFormat_ALAC)
+        return QMediaFormat::AudioCodec::ALAC;
+    if (format == MFAudioFormat_FLAC)
+        return QMediaFormat::AudioCodec::FLAC;
+    if (format == MFAudioFormat_Vorbis)
+        return QMediaFormat::AudioCodec::Vorbis;
+    if (format == MFAudioFormat_PCM)
+        return QMediaFormat::AudioCodec::Wave;
+    if (format == MFAudioFormat_Opus)
+        return QMediaFormat::AudioCodec::Opus;
+    if (format == MFAudioFormat_Dolby_AC3)
+        return QMediaFormat::AudioCodec::AC3;
+    if (format == MFAudioFormat_Dolby_DDPlus)
+        return QMediaFormat::AudioCodec::EAC3;
+    if (format == MFAudioFormat_WMAudioV8
+            || format == MFAudioFormat_WMAudioV9
+            || format == MFAudioFormat_WMAudio_Lossless)
+        return QMediaFormat::AudioCodec::WMA;
+    return QMediaFormat::AudioCodec::Unspecified;
 }
 
 GUID QWindowsMultimediaUtils::containerForVideoFileFormat(QMediaFormat::FileFormat format)
