@@ -22,12 +22,6 @@
 
 #include <QtCore/QtGlobal>
 
-#if defined(FFTREAL_LIBRARY)
-#  define FFTREAL_EXPORT Q_DECL_EXPORT
-#else
-#  define FFTREAL_EXPORT Q_DECL_IMPORT
-#endif
-
 class FFTRealWrapperPrivate;
 
 // Each pass of the FFT processes 2^X samples, where X is the
@@ -46,7 +40,7 @@ static const int FFTLengthPowerOfTwo = 12;
  *
  * See http://ldesoras.free.fr/prod.html
  */
-class FFTREAL_EXPORT FFTRealWrapper
+class FFTRealWrapper
 {
 public:
     FFTRealWrapper();
