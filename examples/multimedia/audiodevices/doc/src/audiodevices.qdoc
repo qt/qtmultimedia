@@ -30,6 +30,7 @@
     \title Audio Devices Example
     \ingroup multimedia_examples
     \brief Testing the available audio devices and their configuration.
+    \meta {tag} {widgets}
 
     \e{Audio Devices} demonstrates how to create a simple application to list
     and test the configuration for the various audio devices available on the

@@ -30,6 +30,7 @@
     \title Audio Recorder Example
     \ingroup multimedia_examples
     \brief Discovering the available devices and supported codecs.
+    \meta {tag} {widgets}
 
     \e{Audio Recorder} demonstrates how to identify the available devices and
     supported codecs, and the use of QAudioRecorder class.
