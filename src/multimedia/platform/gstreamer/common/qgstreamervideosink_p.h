@@ -91,7 +91,7 @@ public:
 
     bool isReady() const { return m_windowId != 0; }
 
-    void setPipeline(QGstPipeline pipeline) { gstPipeline = pipeline; }
+    void setPipeline(QGstPipeline pipeline);
 
 private:
     void createOverlay();

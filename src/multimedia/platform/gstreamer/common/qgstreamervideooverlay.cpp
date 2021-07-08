@@ -330,7 +330,6 @@ void QGstreamerVideoOverlay::setWindowHandle(WId id)
     m_windowId = id;
 
     if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object())) {
-        gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink.object()), id);
         applyRenderRect();
 
         // Properties need to be reset when changing the winId.
@@ -397,6 +396,14 @@ void QGstreamerVideoOverlay::setHue(float hue)
 void QGstreamerVideoOverlay::setSaturation(float saturation)
 {
     m_sinkProperties->setSaturation(saturation);
+}
+
+bool QGstreamerVideoOverlay::processSyncMessage(const QGstreamerMessage &message)
+{
+    if (!gst_is_video_overlay_prepare_window_handle_message(message.rawMessage()))
+        return false;
+    gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink.object()), m_windowId);
+    return true;
 }
 
 QT_END_NAMESPACE

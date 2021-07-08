@@ -61,6 +61,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerSinkProperties;
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
         : public QObject
+        , public QGstreamerSyncMessageFilter
         , private QGstreamerBufferProbe
 {
     Q_OBJECT
@@ -82,6 +83,8 @@ public:
     void setContrast(float contrast);
     void setHue(float hue);
     void setSaturation(float saturation);
+
+    bool processSyncMessage(const QGstreamerMessage &message) override;
 
 Q_SIGNALS:
     void nativeVideoSizeChanged();
