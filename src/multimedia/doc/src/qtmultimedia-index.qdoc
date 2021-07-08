@@ -55,14 +55,16 @@
       \li \l{QtMultimedia}{Qt Multimedia}
       \li Provides API for multimedia-specific use cases.
      \row
-      \li \l{QtMultimediaWidgets}{Qt Multimedia Widgets}
+      \li \l{Qt Multimedia Widgets}
       \li Provides the widget-based multimedia API.
     \endtable
 
-   \section1 Getting Started
+   \section1 Getting started
+    If you are porting from Qt 5 to Qt 6 see \l{Changes to Qt Multimedia}.
 
-    The QML types can be \l{qtqml import syntax}{imported} into an
-    application using the following statement in your \c {.qml} file.
+    If you are new to Qt Multimedia, the QML types can be
+    \l{qtqml import syntax}{imported} into an application using the following
+    statement in your \c {.qml} file.
 
     \qml
      import QtMultimedia
@@ -86,18 +88,14 @@
      QT += multimedia multimediawidgets
    \endcode
 
-    \section1 QML Types and C++ Classes
+    \section1 QML Types
 
-    The following is a list of important QML types and C++ classes provided by
-    this module:
+    The following table outlines some important QML types.
 
     \table
     \header
      \li Type
      \li Description
-    \row
-     \li \l {QtMultimedia::Audio}{Audio}
-     \li Add audio playback functionality to a scene
     \row
      \li \l {QtMultimedia::Playlist}{Playlist}
      \li For specifying a list of media to be played.
@@ -106,13 +104,16 @@
      \li Access camera viewfinder frames
     \row
      \li MediaPlayer
-     \li Add media playback functionality to a scene. It is same as the Audio
-     type, but can be used for video playback with the VideoOutput type.
+     \li Add audio and/or video playback functionality to a scene.
     \row
      \li \l {QtMultimedia::Video}{Video}
      \li Add Video playback functionality to a scene. It uses MediaPlayer and
      VideoOutput types to provide video playback functionality.
     \endtable
+
+    \section1 C++ Classes
+
+    The following table outlines some important C++ Classes
 
     \table
     \header
@@ -126,7 +127,7 @@
      \li Record media content from an audio source.
     \row
      \li \l QCamera
-     \li Access camera viewfinder.
+     \li Access camera preview
     \row
      \li QImageCapture
      \li Capture still images with a camera.
@@ -144,7 +145,7 @@
      \li Class for video presentation.
     \endtable
 
-    \section1 Licenses and Attributions
+    \section1 Licenses and attributions
 
     The Qt Quick Multimedia module is available under commercial licenses from
     \l{The Qt Company}.
@@ -154,17 +155,18 @@
     the \l{GNU General Public License, version 2}.
     See \l{Qt Licensing} for further details.
 
-    \section1 Related Information
+    \section1 Related information
 
     \section2 Guides
      \list
+      \li \l{Changes to Qt Multimedia}{Changes in Qt 6}
       \li \l{Multimedia Overview}
       \li \l{Audio Overview}
       \li \l{Video Overview}
       \li \l{Camera Overview}
      \endlist
 
-    \section2 Platform Notes
+    \section2 Platform notes
 
     For most features, Qt Multimedia builds upon the multimedia framework of the
     underlying operating system. Therefore there are several multimedia back ends
@@ -172,7 +174,7 @@
     \l{Qt Multimedia Backends}{Qt Multimedia back ends wiki}.
 
      \list
-      \li \l{Qt Multimedia on macOS and iOS}{iOS}
+      \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
      \endlist
 
     \section2 Reference

@@ -60,3 +60,41 @@
     \externalpage https://doc.qt.io/qt-6/qtqml-syntax-imports.html
     \title qtqml import syntax
 */
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Sonification
+    \title Sonification
+*/
+/*!
+    \externalpage http://www.sengpielaudio.com/calculator-loudness.htm
+    \title loudness
+*/
+/*!
+    \externalpage https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes
+    \title ISO 639-2 code
+*/
+
+/*!
+    \externalpage https://www.dr-lex.be/info-stuff/volumecontrols.html
+    \title volume controls
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Hyperfocal_distance
+    \title hyperfocal
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Depth_of_field
+    \title DOF
+*/
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Media_type#Mime.types
+    \title MIME type
+*/
+
+/*!
+    \externalpage https://doc.qt.io/qt-5/qml-qtmultimedia-audio.html
+    \title Audio QML Type
+*/
+
