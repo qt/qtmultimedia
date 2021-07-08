@@ -22,10 +22,10 @@ find_package(Qt6 COMPONENTS Multimedia)
 find_package(Qt6 COMPONENTS Qml)
 
 qt_add_executable(qmlvideo
-    ../snippets/frequencymonitor/frequencymonitor.cpp ../snippets/frequencymonitor/frequencymonitor.h
-    ../snippets/frequencymonitor/frequencymonitordeclarative.cpp
-    ../snippets/performancemonitor/performancemonitor.cpp ../snippets/performancemonitor/performancemonitor.h
-    ../snippets/performancemonitor/performancemonitordeclarative.cpp ../snippets/performancemonitor/performancemonitordeclarative.h
+    frequencymonitor.cpp frequencymonitor.h
+    frequencymonitordeclarative.cpp
+    performancemonitor.cpp performancemonitor.h
+    performancemonitordeclarative.cpp performancemonitordeclarative.h
     main.cpp
     trace.h
 )
@@ -33,10 +33,6 @@ set_target_properties(qmlvideo PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-)
-target_include_directories(qmlvideo PUBLIC
-    ../snippets/frequencymonitor
-    ../snippets/performancemonitor
 )
 
 target_compile_definitions(qmlvideo PUBLIC
@@ -67,6 +63,8 @@ set(qmlvideo_resource_files
     "images/folder.png"
     "images/leaves.jpg"
     "images/up.png"
+    "qml/frequencymonitor/FrequencyItem.qml"
+    "qml/performancemonitor/PerformanceItem.qml"
     "qml/qmlvideo/Button.qml"
     "qml/qmlvideo/CameraBasic.qml"
     "qml/qmlvideo/CameraDrag.qml"
@@ -118,30 +116,6 @@ qt6_add_resources(qmlvideo "qmlvideo"
         "/"
     FILES
         ${qmlvideo_resource_files}
-)
-set(frequencymonitordeclarative_resource_files
-    "../snippets/frequencymonitor/qml/frequencymonitor/FrequencyItem.qml"
-)
-
-qt6_add_resources(qmlvideo "frequencymonitordeclarative"
-    PREFIX
-        "/"
-    BASE
-        "../snippets/frequencymonitor"
-    FILES
-        ${frequencymonitordeclarative_resource_files}
-)
-set(performancemonitordeclarative_resource_files
-    "../snippets/performancemonitor/qml/performancemonitor/PerformanceItem.qml"
-)
-
-qt6_add_resources(qmlvideo "performancemonitordeclarative"
-    PREFIX
-        "/"
-    BASE
-        "../snippets/performancemonitor"
-    FILES
-        ${performancemonitordeclarative_resource_files}
 )
 
 install(TARGETS qmlvideo
