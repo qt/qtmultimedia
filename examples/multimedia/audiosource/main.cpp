@@ -55,7 +55,7 @@
 int main(int argv, char **args)
 {
     QApplication app(argv, args);
-    app.setApplicationName("Audio Input Test");
+    app.setApplicationName("Audio Source Test");
 
     InputTest input;
     input.show();
