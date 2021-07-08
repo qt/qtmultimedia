@@ -58,8 +58,9 @@
 
     Spectrum analysis is performed by calculating the Fast Fourier Transform
     (FFT) of a segment of audio data.  An open-source library,
-    \l{http://ldesoras.free.fr/prod.html}{FFTReal}, against which the
-    application is dynamically linked, is used to compute the transform.
+    \l{http://ldesoras.free.fr/prod.html}{FFTReal} is used to compute the
+    transform. FFTReal is available under the GNU Library General Public License
+    2.0 or later.
 
     \include examples-run.qdocinc
 */
