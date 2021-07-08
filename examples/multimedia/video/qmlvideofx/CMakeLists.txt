@@ -22,21 +22,16 @@ find_package(Qt6 COMPONENTS Multimedia)
 find_package(Qt6 COMPONENTS Qml)
 
 qt_add_executable(qmlvideofx
-    ../snippets/frequencymonitor/frequencymonitor.cpp ../snippets/frequencymonitor/frequencymonitor.h
-    ../snippets/frequencymonitor/frequencymonitordeclarative.cpp
-    ../snippets/performancemonitor/performancemonitor.cpp ../snippets/performancemonitor/performancemonitor.h
-    ../snippets/performancemonitor/performancemonitordeclarative.cpp ../snippets/performancemonitor/performancemonitordeclarative.h
-    filereader.cpp filereader.h
+    frequencymonitor.cpp
+    frequencymonitordeclarative.cpp
+    performancemonitor.cpp
+    performancemonitordeclarative.cpp
+    filereader.cpp
     main.cpp
-    trace.h
 )
 set_target_properties(qmlvideofx PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
-)
-target_include_directories(qmlvideofx PUBLIC
-    ../snippets/frequencymonitor
-    ../snippets/performancemonitor
 )
 
 target_compile_definitions(qmlvideofx PUBLIC
@@ -64,6 +59,8 @@ set(qmlvideofx_resource_files
     "images/icon_Folder.png"
     "images/icon_Menu.png"
     "images/qt-logo.png"
+    "qml/frequencymonitor/FrequencyItem.qml"
+    "qml/performancemonitor/PerformanceItem.qml"
     "qml/qmlvideofx/Button.qml"
     "qml/qmlvideofx/Content.qml"
     "qml/qmlvideofx/ContentCamera.qml"
@@ -129,30 +126,6 @@ qt6_add_resources(qmlvideofx "qmlvideofx"
         "/"
     FILES
         ${qmlvideofx_resource_files}
-)
-set(frequencymonitordeclarative_resource_files
-    "../snippets/frequencymonitor/qml/frequencymonitor/FrequencyItem.qml"
-)
-
-qt6_add_resources(qmlvideofx "frequencymonitordeclarative"
-    PREFIX
-        "/"
-    BASE
-        "../snippets/frequencymonitor"
-    FILES
-        ${frequencymonitordeclarative_resource_files}
-)
-set(performancemonitordeclarative_resource_files
-    "../snippets/performancemonitor/qml/performancemonitor/PerformanceItem.qml"
-)
-
-qt6_add_resources(qmlvideofx "performancemonitordeclarative"
-    PREFIX
-        "/"
-    BASE
-        "../snippets/performancemonitor"
-    FILES
-        ${performancemonitordeclarative_resource_files}
 )
 
 install(TARGETS qmlvideofx
