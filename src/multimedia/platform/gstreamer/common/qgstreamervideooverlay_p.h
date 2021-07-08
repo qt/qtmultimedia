@@ -86,6 +86,8 @@ public:
 
     bool processSyncMessage(const QGstreamerMessage &message) override;
 
+    bool isNull() const { return m_videoSink.isNull(); }
+
 Q_SIGNALS:
     void nativeVideoSizeChanged();
     void activeChanged();

@@ -163,7 +163,7 @@ void QGstreamerVideoSink::createRenderer()
 void QGstreamerVideoSink::updateSinkElement()
 {
     QGstElement newSink;
-    if (m_fullScreen || m_windowId) {
+    if (!m_videoOverlay->isNull() && (m_fullScreen || m_windowId)) {
         newSink = m_videoOverlay->videoSink();
     } else {
         newSink = m_videoRenderer->gstVideoSink();

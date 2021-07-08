@@ -269,10 +269,8 @@ static QGstElement findBestVideoSink()
     }
 
     gst_plugin_feature_list_free(list);
-    if (choice.isNull()) {
-        qWarning() << "Could not find a valid video sink";
-        choice = QGstElement("fakesink", "fakesink");
-    }
+    if (choice.isNull())
+        qWarning() << "Could not find a valid windowed video sink";
 
     return choice;
 }
