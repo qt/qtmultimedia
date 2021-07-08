@@ -14,8 +14,8 @@ layout(binding = 1) uniform sampler2D plane1Texture;
 
 void main()
 {
-    float x = texCoord.x * ubuf.width;
-    bool rightSubPixel = bool(int(x) & 1);
+    int x = int(floor(texCoord.x * ubuf.width));
+    bool rightSubPixel = (x/2*2 != x);
     float Y = rightSubPixel ? texture(plane1Texture, texCoord).r : texture(plane1Texture, texCoord).b;
     vec2 UV = texture(plane1Texture, texCoord).ga;
     fragColor = ubuf.colorMatrix * vec4(Y, UV, 1.0) * ubuf.opacity;
