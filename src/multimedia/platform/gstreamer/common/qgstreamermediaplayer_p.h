@@ -142,6 +142,7 @@ private:
     bool prerolling = false;
     double m_playbackRate = 1.;
     bool m_seekable = false;
+    bool m_requiresSeekOnPlay = false;
     qint64 m_duration = 0;
     QTimer positionUpdateTimer;
 

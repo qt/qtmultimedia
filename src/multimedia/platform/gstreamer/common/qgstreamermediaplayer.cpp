@@ -166,6 +166,12 @@ void QGstreamerMediaPlayer::play()
 
     qCDebug(qLcMediaPlayer) << "play().";
     int ret = playerPipeline.setState(GST_STATE_PLAYING);
+    if (m_requiresSeekOnPlay) {
+        // This causes a flush of the pipeline and is required to get track changes
+        // immediately, when they happen while paused.
+        playerPipeline.seek(playerPipeline.position(), m_playbackRate);
+        m_requiresSeekOnPlay = false;
+    }
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the playing state.";
     if (mediaStatus() == QMediaPlayer::LoadedMedia)
@@ -736,7 +742,10 @@ void QGstreamerMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type,
         return;
     selector.set("active-pad", streams.at(index));
     // seek to force an immediate change of the stream
-    playerPipeline.seek(playerPipeline.position(), m_playbackRate);
+    if (playerPipeline.state() == GST_STATE_PLAYING)
+        playerPipeline.seek(playerPipeline.position(), m_playbackRate);
+    else
+        m_requiresSeekOnPlay = true;
 }
 
 bool QGstreamerMediaPlayer::isAudioAvailable() const
