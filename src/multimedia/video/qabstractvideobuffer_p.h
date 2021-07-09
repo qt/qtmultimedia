@@ -72,10 +72,10 @@ public:
 
     struct MapData
     {
-        qsizetype nBytes = 0;
         int nPlanes = 0;
         int bytesPerLine[4] = {};
         uchar *data[4] = {};
+        int size[4] = {};
     };
 
     virtual QVideoFrame::MapMode mapMode() const = 0;

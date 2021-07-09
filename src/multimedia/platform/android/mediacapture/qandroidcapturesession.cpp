@@ -53,10 +53,10 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSession)
+QAndroidCaptureSession::QAndroidCaptureSession()
     : QObject()
     , m_mediaRecorder(0)
-    , m_cameraSession(cameraSession)
+    , m_cameraSession(0)
     , m_audioSource(AndroidMediaRecorder::DefaultAudioSource)
     , m_duration(0)
     , m_state(QMediaRecorder::StoppedState)
@@ -72,15 +72,6 @@ QAndroidCaptureSession::QAndroidCaptureSession(QAndroidCameraSession *cameraSess
                 QMediaStorageLocation::Sounds,
                 AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::Sounds));
 
-    if (cameraSession) {
-        connect(cameraSession, SIGNAL(opened()), this, SLOT(onCameraOpened()));
-        connect(cameraSession, &QAndroidCameraSession::activeChanged, this,
-            [this](bool isActive) {
-                if (!isActive)
-                    stop();
-            });
-    }
-
     m_notifyTimer.setInterval(1000);
     connect(&m_notifyTimer, SIGNAL(timeout()), this, SLOT(updateDuration()));
 }
@@ -89,6 +80,24 @@ QAndroidCaptureSession::~QAndroidCaptureSession()
 {
     stop();
     delete m_mediaRecorder;
+}
+
+void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSession)
+{
+    if (m_cameraSession) {
+        disconnect(m_connOpenCamera);
+        disconnect(m_connActiveChangedCamera);
+    }
+
+    m_cameraSession = cameraSession;
+    if (m_cameraSession) {
+        m_connOpenCamera = connect(cameraSession, SIGNAL(opened()), this, SLOT(onCameraOpened()));
+        m_connActiveChangedCamera = connect(cameraSession, &QAndroidCameraSession::activeChanged, this,
+            [this](bool isActive) {
+                if (!isActive)
+                    stop();
+            });
+    }
 }
 
 void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
@@ -120,7 +129,7 @@ QMediaRecorder::RecorderState QAndroidCaptureSession::state() const
     return m_state;
 }
 
-void QAndroidCaptureSession::start(const QUrl &outputLocation)
+void QAndroidCaptureSession::start(const QMediaEncoderSettings &, const QUrl &outputLocation)
 {
     if (m_state == QMediaRecorder::RecordingState)
         return;

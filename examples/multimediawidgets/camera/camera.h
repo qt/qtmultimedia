@@ -136,7 +136,7 @@ private:
     QScopedPointer<QCamera> m_camera;
     QScopedPointer<QAudioInput> m_audioInput;
     QImageCapture *m_imageCapture;
-    QScopedPointer<QMediaRecorder> m_mediaEncoder;
+    QScopedPointer<QMediaRecorder> m_mediaRecorder;
 
     bool m_isCapturingImage = false;
     bool m_applicationExiting = false;

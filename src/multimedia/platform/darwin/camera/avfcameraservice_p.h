@@ -90,8 +90,8 @@ public:
     AVFCamera *avfCameraControl() const { return m_cameraControl; }
     AVFMediaEncoder *recorderControl() const { return m_encoder; }
     AVFImageCapture *avfImageCaptureControl() const { return m_imageCaptureControl; }
-    AVCaptureDevice *audioCaptureDevice() const { return m_audioCaptureDevice; }
 
+    QPlatformAudioInput *audioInput() { return m_audioInput; }
     QPlatformAudioOutput *audioOutput() { return m_audioOutput; }
 
 public Q_SLOTS:
@@ -100,11 +100,14 @@ public Q_SLOTS:
     void audioOutputDestroyed() { setAudioOutput(nullptr); }
     void audioOutputChanged();
 
+    void setAudioInputMuted(bool muted);
+    void setAudioInputVolume(float volume);
+    void setAudioOutputMuted(bool muted);
+    void setAudioOutputVolume(float volume);
+
 private:
     QPlatformAudioInput *m_audioInput = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;
-
-    AVCaptureDevice *m_audioCaptureDevice = nullptr;
 
     AVFCameraSession *m_session = nullptr;
     AVFCamera *m_cameraControl = nullptr;

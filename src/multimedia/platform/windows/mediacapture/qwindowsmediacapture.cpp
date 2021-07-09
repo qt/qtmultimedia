@@ -46,6 +46,7 @@
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
 #include "qplatformaudioinput_p.h"
+#include "qplatformaudiooutput_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -122,6 +123,11 @@ void QWindowsMediaCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder
 void QWindowsMediaCaptureService::setAudioInput(QPlatformAudioInput *input)
 {
     m_mediaDeviceSession->setAudioInput(input ? input->q : nullptr);
+}
+
+void QWindowsMediaCaptureService::setAudioOutput(QPlatformAudioOutput *output)
+{
+    m_mediaDeviceSession->setAudioOutput(output ? output->q : nullptr);
 }
 
 void QWindowsMediaCaptureService::setVideoPreview(QVideoSink *sink)

@@ -59,24 +59,22 @@
 QT_BEGIN_NAMESPACE
 
 class AndroidMediaPlayer;
-class QAndroidVideoOutput;
+class QAndroidTextureVideoOutput;
 class QAndroidMediaPlayerVideoRendererControl;
 class QAndroidAudioOutput;
 
-class QAndroidMediaPlayerControl : public QObject, public QPlatformMediaPlayer
+class QAndroidMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:
-    explicit QAndroidMediaPlayerControl(QMediaPlayer *parent = 0);
-    ~QAndroidMediaPlayerControl() override;
+    explicit QAndroidMediaPlayer(QMediaPlayer *parent = 0);
+    ~QAndroidMediaPlayer() override;
 
-    QMediaPlayer::PlaybackState state() const override;
     qint64 duration() const override;
     qint64 position() const override;
     float bufferProgress() const override;
     bool isAudioAvailable() const override;
     bool isVideoAvailable() const override;
-    bool isSeekable() const override;
     QMediaTimeRange availablePlaybackRanges() const override;
     qreal playbackRate() const override;
     void setPlaybackRate(qreal rate) override;
@@ -86,7 +84,6 @@ public:
 
     QMediaMetaData metaData() const override;
 
-    void setVideoOutput(QAndroidVideoOutput *videoOutput);
     void setVideoSink(QVideoSink *surface) override;
 
     void setAudioOutput(QPlatformAudioOutput *output) override;
@@ -105,37 +102,35 @@ private Q_SLOTS:
     void onBufferingChanged(qint32 percent);
     void onVideoSizeChanged(qint32 width, qint32 height);
     void onStateChanged(qint32 state);
+    void positionChanged(qint64 position);
+    void durationChanged(qint64 duration);
 
 private:
-    AndroidMediaPlayer *mMediaPlayer;
-    QAndroidMediaPlayerVideoRendererControl *mVideoRendererControl = nullptr;
+    AndroidMediaPlayer *mMediaPlayer = nullptr;
     QAndroidAudioOutput *m_audioOutput = nullptr;
-    QMediaPlayer::PlaybackState mCurrentState;
     QUrl mMediaContent;
-    QIODevice *mMediaStream;
-    QAndroidVideoOutput *mVideoOutput;
-    bool mSeekable;
-    int mBufferPercent;
-    bool mBufferFilled;
-    bool mAudioAvailable;
-    bool mVideoAvailable;
+    QIODevice *mMediaStream = nullptr;
+    QAndroidTextureVideoOutput *mVideoOutput = nullptr;
+    QVideoSink *m_videoSink = nullptr;
+    int mBufferPercent = -1;
+    bool mBufferFilled = false;
+    bool mAudioAvailable = false;
+    bool mVideoAvailable = false;
     QSize mVideoSize;
-    bool mBuffering;
+    bool mBuffering = false;
     QMediaTimeRange mAvailablePlaybackRange;
     int mState;
-    int mPendingState;
-    qint64 mPendingPosition;
-    bool mPendingSetMedia;
-    float mPendingVolume;
-    int mPendingMute;
-    bool mReloadingMedia;
-    int mActiveStateChangeNotifiers;
-    qreal mPendingPlaybackRate;
-    bool mHasPendingPlaybackRate; // we need this because the rate can theoretically be negative
+    int mPendingState = -1;
+    qint64 mPendingPosition = -1;
+    bool mPendingSetMedia = false;
+    float mPendingVolume = -1;
+    int mPendingMute = -1;
+    bool mReloadingMedia = false;
+    int mActiveStateChangeNotifiers = 0;
+    qreal mPendingPlaybackRate = 1.;
+    bool mHasPendingPlaybackRate = false; // we need this because the rate can theoretically be negative
 
-    void setState(QMediaPlayer::PlaybackState state);
     void setMediaStatus(QMediaPlayer::MediaStatus status);
-    void setSeekable(bool seekable);
     void setAudioAvailable(bool available);
     void setVideoAvailable(bool available);
     void updateAvailablePlaybackRanges();

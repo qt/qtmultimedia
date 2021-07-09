@@ -38,33 +38,24 @@
 **
 ****************************************************************************/
 
-#include "qandroidcaptureservice_p.h"
+#include "qandroidmediacapturesession_p.h"
 
 #include "qandroidmediaencoder_p.h"
 #include "qandroidcapturesession_p.h"
-#include "qandroidcameracontrol_p.h"
+#include "qandroidcamera_p.h"
 #include "qandroidcamerasession_p.h"
-#include "qandroidcameravideorenderercontrol_p.h"
 #include "qandroidimagecapture_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
 
 QT_BEGIN_NAMESPACE
 
-QAndroidCaptureService::QAndroidCaptureService()
-    : m_videoEnabled(true)
+QAndroidMediaCaptureSession::QAndroidMediaCaptureSession()
+    : m_captureSession(new QAndroidCaptureSession())
 {
-    if (m_videoEnabled) {
-        m_cameraSession = new QAndroidCameraSession;
-    } else {
-        m_cameraSession = 0;
-        m_imageCaptureControl = 0;
-    }
-
-    m_captureSession = new QAndroidCaptureSession(m_cameraSession);
 }
 
-QAndroidCaptureService::~QAndroidCaptureService()
+QAndroidMediaCaptureSession::~QAndroidMediaCaptureSession()
 {
     delete m_encoder;
     delete m_captureSession;
@@ -73,14 +64,25 @@ QAndroidCaptureService::~QAndroidCaptureService()
     delete m_cameraSession;
 }
 
-QPlatformCamera *QAndroidCaptureService::camera()
+QPlatformCamera *QAndroidMediaCaptureSession::camera()
 {
     return m_cameraControl;
 }
 
-void QAndroidCaptureService::setCamera(QPlatformCamera *camera)
+void QAndroidMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
-        QAndroidCameraControl *control = static_cast<QAndroidCameraControl *>(camera);
+        if (!m_cameraSession) {
+            if (camera) {
+                m_cameraSession = new QAndroidCameraSession;
+                m_captureSession->setCameraSession(m_cameraSession);
+            }
+        } else if (!camera){
+            m_captureSession->setCameraSession(nullptr);
+            delete m_cameraSession;
+            m_cameraSession = nullptr;
+        }
+
+        QAndroidCamera *control = static_cast<QAndroidCamera *>(camera);
         if (m_cameraControl == control)
             return;
 
@@ -94,12 +96,12 @@ void QAndroidCaptureService::setCamera(QPlatformCamera *camera)
         emit cameraChanged();
 }
 
-QPlatformImageCapture *QAndroidCaptureService::imageCapture()
+QPlatformImageCapture *QAndroidMediaCaptureSession::imageCapture()
 {
     return m_imageCaptureControl;
 }
 
-void QAndroidCaptureService::setImageCapture(QPlatformImageCapture *imageCapture)
+void QAndroidMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCapture)
 {
     QAndroidImageCapture *control = static_cast<QAndroidImageCapture *>(imageCapture);
     if (m_imageCaptureControl == control)
@@ -113,12 +115,12 @@ void QAndroidCaptureService::setImageCapture(QPlatformImageCapture *imageCapture
         m_imageCaptureControl->setCaptureSession(this);
 }
 
-QPlatformMediaEncoder *QAndroidCaptureService::mediaEncoder()
+QPlatformMediaEncoder *QAndroidMediaCaptureSession::mediaEncoder()
 {
     return m_encoder;
 }
 
-void QAndroidCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder)
+void QAndroidMediaCaptureSession::setMediaEncoder(QPlatformMediaEncoder *encoder)
 {
     QAndroidMediaEncoder *control = static_cast<QAndroidMediaEncoder *>(encoder);
 
@@ -136,12 +138,12 @@ void QAndroidCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder)
 
 }
 
-void QAndroidCaptureService::setAudioInput(QPlatformAudioInput *input)
+void QAndroidMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
     m_captureSession->setAudioInput(input);
 }
 
-void QAndroidCaptureService::setVideoPreview(QVideoSink *sink)
+void QAndroidMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 {
     m_cameraSession->setVideoSink(sink);
 }

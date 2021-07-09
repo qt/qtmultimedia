@@ -75,14 +75,13 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     if (videoSink == m_videoWindow)
         return;
 
-    if (m_videoWindow) {
-        disconnect(m_videoWindow, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));
-    }
+    if (m_videoWindow)
+        m_videoWindow->setPipeline({});
 
     m_videoWindow = videoSink;
-    if (m_videoWindow) {
-        connect(m_videoWindow, SIGNAL(sinkChanged()), this, SLOT(sinkChanged()));
-    }
+    if (m_videoWindow)
+        m_videoWindow->setPipeline(gstPipeline);
+
     auto state = gstPipeline.state();
     if (state == GST_STATE_PLAYING)
         gstPipeline.setStateSync(GST_STATE_PAUSED);
@@ -94,7 +93,8 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)
 {
     gstPipeline = pipeline;
-    stoppedStateHandler = gstPipeline.inStoppedState()->onValueChanged(std::function([this]() {updatePrerollFrame();}));
+    if (m_videoWindow)
+        m_videoWindow->setPipeline(gstPipeline);
 }
 
 void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
@@ -133,37 +133,6 @@ void QGstreamerVideoOutput::setIsPreview()
     videoQueue.set("max-size-time", 0);
 }
 
-void QGstreamerVideoOutput::updateVideoSink(const QGstElement &sink)
-{
-    if (videoSink == sink)
-        return;
-
-    newVideoSink = sink;
-    gstVideoOutput.add(newVideoSink);
-
-    qCDebug(qLcMediaVideoOutput) << "setVideoSurface: Reconfiguring video output" << QThread::currentThreadId();
-
-    auto state = gstPipeline.state();
-
-    if (state != GST_STATE_PLAYING) {
-        changeVideoOutput();
-        return;
-    }
-
-    // This doesn't quite work, as we're be getting the callback in another thread where state changes aren't allowed.
-    auto pad = videoConvert.staticPad("src");
-    pad.addProbe<&QGstreamerVideoOutput::prepareVideoOutputChange>(this, GstPadProbeType(GST_PAD_PROBE_TYPE_BUFFER | GST_PAD_PROBE_TYPE_BLOCKING));
-}
-
-void QGstreamerVideoOutput::updatePrerollFrame()
-{
-    bool stopped = true;
-    if (!gstPipeline.isNull() && !*gstPipeline.inStoppedState())
-        stopped = false;
-    if (!isFakeSink)
-        videoSink.set("show-preroll-frame", !stopped);
-}
-
 void QGstreamerVideoOutput::sinkChanged()
 {
     QGstElement gstSink;
@@ -174,43 +143,29 @@ void QGstreamerVideoOutput::sinkChanged()
         gstSink = QGstElement("fakesink", "fakevideosink");
         isFakeSink = true;
     }
-    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
-    updateVideoSink(gstSink);
-}
 
-void QGstreamerVideoOutput::changeVideoOutput()
-{
-    qCDebug(qLcMediaVideoOutput) << "Changing video output" << QThread::currentThreadId();
+    if (videoSink == gstSink)
+        return;
 
-    gstPipeline.setState(GST_STATE_PAUSED);
+    if (!videoSink.isNull()) {
+        videoSink.setStateSync(GST_STATE_NULL);
+        gstVideoOutput.remove(videoSink);
+    }
+    videoSink = gstSink;
+    gstVideoOutput.add(videoSink);
 
-    auto state = videoSink.state();
-    videoSink.setState(GST_STATE_NULL);
-    gstVideoOutput.remove(videoSink);
-    videoSink = newVideoSink;
-    updatePrerollFrame();
     videoConvert.link(videoSink);
     GstEvent *event = gst_event_new_reconfigure();
     gst_element_send_event(videoSink.element(), event);
-    videoSink.setState(state);
-    newVideoSink = {};
+    videoSink.setState(GST_STATE_PAUSED);
 
     gstPipeline.setState(GST_STATE_PLAYING);
+    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
 
     GST_DEBUG_BIN_TO_DOT_FILE(gstPipeline.bin(),
-                              GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
+                              GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE |
+                                                   GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
                               videoSink.name());
-
-}
-
-void QGstreamerVideoOutput::prepareVideoOutputChange(const QGstPad &/*pad*/)
-{
-    qCDebug(qLcMediaVideoOutput) << "Reconfiguring video output" << QThread::currentThreadId();
-
-    if (QThread::currentThread() == this->thread())
-        changeVideoOutput();
-    else
-        QMetaObject::invokeMethod(this, "changeVideoOutput", Qt::BlockingQueuedConnection);
 }
 
 

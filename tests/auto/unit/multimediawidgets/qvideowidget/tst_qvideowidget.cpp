@@ -519,7 +519,7 @@ void tst_QVideoWidget::paint()
     QVideoFrameFormat format(QSize(2, 2), QVideoFrameFormat::Format_RGB32);
     QVideoFrame frame(format);
     QVERIFY(frame.map(QVideoFrame::ReadWrite));
-    uchar *data = frame.bits();
+    uchar *data = frame.bits(0);
     memcpy(data, rgb32ImageData, sizeof(rgb32ImageData));
     frame.unmap();
 

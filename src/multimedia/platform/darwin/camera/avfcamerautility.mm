@@ -572,4 +572,103 @@ AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnec
     return fps;
 }
 
+QList<AudioValueRange> qt_supported_sample_rates_for_format(int codecId)
+{
+    QList<AudioValueRange> result;
+    UInt32 format = codecId;
+    UInt32 size;
+    OSStatus err = AudioFormatGetPropertyInfo(
+            kAudioFormatProperty_AvailableEncodeSampleRates,
+            sizeof(format),
+            &format,
+            &size);
+
+    if (err != noErr)
+        return result;
+
+    UInt32 numRanges = size / sizeof(AudioValueRange);
+    AudioValueRange sampleRanges[numRanges];
+
+    err = AudioFormatGetProperty(kAudioFormatProperty_AvailableEncodeSampleRates,
+                                sizeof(format),
+                                &format,
+                                &size,
+                                sampleRanges);
+    if (err != noErr)
+        return result;
+
+    for (UInt32 i = 0; i < numRanges; i++)
+        result << sampleRanges[i];
+
+    return result;
+}
+
+QList<AudioValueRange> qt_supported_bit_rates_for_format(int codecId)
+{
+    QList<AudioValueRange> result;
+    UInt32 format = codecId;
+    UInt32 size;
+    OSStatus err = AudioFormatGetPropertyInfo(
+            kAudioFormatProperty_AvailableEncodeBitRates,
+            sizeof(format),
+            &format,
+            &size);
+
+    if (err != noErr)
+        return result;
+
+    UInt32 numRanges = size / sizeof(AudioValueRange);
+    AudioValueRange bitRanges[numRanges];
+
+    err = AudioFormatGetProperty(kAudioFormatProperty_AvailableEncodeBitRates,
+                                sizeof(format),
+                                &format,
+                                &size,
+                                bitRanges);
+    if (err != noErr)
+        return result;
+
+    for (UInt32 i = 0; i < numRanges; i++)
+        result << bitRanges[i];
+
+    return result;
+}
+
+std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId)
+{
+    QList<UInt32> result;
+    AudioStreamBasicDescription sf = {};
+    sf.mFormatID = codecId;
+    UInt32 size;
+    OSStatus err = AudioFormatGetPropertyInfo(
+            kAudioFormatProperty_AvailableEncodeNumberChannels,
+            sizeof(sf),
+            &sf,
+            &size);
+
+    if (err != noErr)
+        return result;
+
+    // From Apple's docs:
+    // A value of 0xFFFFFFFF indicates that any number of channels may be encoded.
+    if (int(size) == -1)
+        return std::nullopt;
+
+    UInt32 numCounts = size / sizeof(UInt32);
+    UInt32 channelCounts[numCounts];
+
+    err = AudioFormatGetProperty(kAudioFormatProperty_AvailableEncodeNumberChannels,
+                                sizeof(sf),
+                                &sf,
+                                &size,
+                                channelCounts);
+    if (err != noErr)
+        return result;
+
+    for (UInt32 i = 0; i < numCounts; i++)
+        result << channelCounts[i];
+
+    return result;
+}
+
 QT_END_NAMESPACE

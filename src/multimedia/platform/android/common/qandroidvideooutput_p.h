@@ -124,22 +124,22 @@ private Q_SLOTS:
     void onFrameAvailable();
 
 private:
-    bool initSurfaceTexture();
+    void initSurfaceTexture();
     bool renderFrameToFbo();
     void createGLResources();
 
     QMutex m_mutex;
     void clearSurfaceTexture();
 
-    QVideoSink *m_sink;
+    QVideoSink *m_sink = nullptr;
     QSize m_nativeSize;
 
-    AndroidSurfaceTexture *m_surfaceTexture;
+    AndroidSurfaceTexture *m_surfaceTexture = nullptr;
 
-    quint32 m_externalTex;
-    QOpenGLFramebufferObject *m_fbo;
-    QOpenGLShaderProgram *m_program;
-    OpenGLResourcesDeleter *m_glDeleter;
+    quint32 m_externalTex = 0;
+    QOpenGLFramebufferObject *m_fbo = nullptr;
+    QOpenGLShaderProgram *m_program = nullptr;
+    OpenGLResourcesDeleter *m_glDeleter = nullptr;
 
     QWindow *m_offscreenSurface = nullptr;
     QOpenGLContext *m_glContext = nullptr;

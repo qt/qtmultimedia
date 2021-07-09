@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Ruslan Baratov
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,39 +38,63 @@
 **
 ****************************************************************************/
 
-#include "qandroidmediaplayervideorenderercontrol_p.h"
+#ifndef QANDROIDCAPTURESERVICE_H
+#define QANDROIDCAPTURESERVICE_H
 
-#include "qandroidmediaplayercontrol_p.h"
-#include "private/qandroidvideooutput_p.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformmediacapture_p.h>
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaPlayerVideoRendererControl::QAndroidMediaPlayerVideoRendererControl(QAndroidMediaPlayerControl *mediaPlayer, QObject *parent)
-    : QObject(parent)
-    , m_mediaPlayerControl(mediaPlayer)
-    , m_surface(0)
-    , m_textureOutput(new QAndroidTextureVideoOutput(this))
-{
-    m_mediaPlayerControl->setVideoOutput(m_textureOutput);
-}
+class QAndroidMediaEncoder;
+class QAndroidCaptureSession;
+class QAndroidCamera;
+class QAndroidCameraSession;
+class QAndroidImageCapture;
 
-QAndroidMediaPlayerVideoRendererControl::~QAndroidMediaPlayerVideoRendererControl()
+class QAndroidMediaCaptureSession : public QPlatformMediaCaptureSession
 {
-    m_mediaPlayerControl->setVideoOutput(0);
-}
+    Q_OBJECT
 
-QVideoSink *QAndroidMediaPlayerVideoRendererControl::surface() const
-{
-    return m_surface;
-}
+public:
+    explicit QAndroidMediaCaptureSession();
+    virtual ~QAndroidMediaCaptureSession();
 
-void QAndroidMediaPlayerVideoRendererControl::setSurface(QVideoSink *surface)
-{
-    if (m_surface == surface)
-        return;
+    QPlatformCamera *camera() override;
+    void setCamera(QPlatformCamera *camera) override;
 
-    m_surface = surface;
-    m_textureOutput->setSurface(m_surface);
-}
+    QPlatformImageCapture *imageCapture() override;
+    void setImageCapture(QPlatformImageCapture *imageCapture) override;
+
+    QPlatformMediaEncoder *mediaEncoder() override;
+    void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
+
+    void setAudioInput(QPlatformAudioInput *input) override;
+
+    void setVideoPreview(QVideoSink *sink) override;
+
+    QAndroidCaptureSession *captureSession() const { return m_captureSession; }
+    QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
+
+private:
+    QAndroidMediaEncoder *m_encoder = nullptr;
+    QAndroidCaptureSession *m_captureSession = nullptr;
+    QAndroidCamera *m_cameraControl = nullptr;
+    QAndroidCameraSession *m_cameraSession = nullptr;
+    QAndroidImageCapture *m_imageCaptureControl = nullptr;
+};
 
 QT_END_NAMESPACE
+
+#endif // QANDROIDCAPTURESERVICE_H

@@ -204,8 +204,16 @@ QDarwinMediaDevices::~QDarwinMediaDevices()
 QList<QAudioDevice> QDarwinMediaDevices::audioInputs() const
 {
 #ifdef Q_OS_IOS
+    // TODO: Support Bluetooth and USB devices
     QList<QAudioDevice> devices;
-    devices.append((new QCoreAudioDeviceInfo("default", QAudioDevice::Input))->create());
+    AVCaptureDeviceDiscoverySession *captureDeviceDiscoverySession = [AVCaptureDeviceDiscoverySession
+            discoverySessionWithDeviceTypes:@[AVCaptureDeviceTypeBuiltInMicrophone]
+            mediaType:AVMediaTypeAudio
+            position:AVCaptureDevicePositionUnspecified];
+
+    NSArray *captureDevices = [captureDeviceDiscoverySession devices];
+    for (AVCaptureDevice *device in captureDevices)
+        devices << (new QCoreAudioDeviceInfo(QString::fromNSString(device.uniqueID).toUtf8(), QAudioDevice::Input))->create();
     return devices;
 #else
     return availableAudioDevices(QAudioDevice::Input);
@@ -249,8 +257,6 @@ void QDarwinMediaDevices::updateCameraDevices()
         info->id = QByteArray([[device uniqueID] UTF8String]);
         info->description = QString::fromNSString([device localizedName]);
 
-//        qDebug() << "Camera:" << info->description;
-
         QSet<QSize> photoResolutions;
         QList<QCameraFormat> videoFormats;
 
@@ -261,7 +267,7 @@ void QDarwinMediaDevices::updateCameraDevices()
             auto dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
             QSize resolution(dimensions.width, dimensions.height);
             photoResolutions.insert(resolution);
-//            qDebug() << "    Format:" << resolution;
+
             float maxFrameRate = 0;
             float minFrameRate = 1.e6;
 
@@ -277,7 +283,6 @@ void QDarwinMediaDevices::updateCameraDevices()
                 if (frameRateRange.maxFrameRate > maxFrameRate)
                     maxFrameRate = frameRateRange.maxFrameRate;
             }
-//                qDebug() << "        " << frameRateRange.minFrameRate << frameRateRange.maxFrameRate;
 
 #ifdef Q_OS_IOS
             // From Apple's docs (iOS):

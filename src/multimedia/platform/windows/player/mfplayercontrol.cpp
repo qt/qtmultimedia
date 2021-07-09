@@ -50,7 +50,7 @@ MFPlayerControl::MFPlayerControl(QMediaPlayer *player)
     , m_stateDirty(false)
     , m_videoAvailable(false)
     , m_audioAvailable(false)
-    , m_duration(-1)
+    , m_duration(0)
     , m_seekable(false)
 {
     m_session = new MFPlayerSession(this);
@@ -73,7 +73,7 @@ void MFPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
     m_media = media;
     m_stream = stream;
     resetAudioVideoAvailable();
-    handleDurationUpdate(-1);
+    handleDurationUpdate(0);
     handleSeekableUpdate(false);
     m_session->load(media, stream);
 }

@@ -60,7 +60,7 @@ VideoOutput {
     property alias metaData: mediaPlayer.metaData
     property alias playbackRate: mediaPlayer.playbackRate
     property alias position: mediaPlayer.position
-    property alias volume: mediaPlayer.volume
+    property alias volume: audioOutput.volume
 
     signal sizeChanged
     signal fatalError
@@ -71,7 +71,7 @@ VideoOutput {
         id: mediaPlayer
         videoOutput: root;
         audioOutput: AudioOutput {
-
+            id: audioOutput
         }
 
         onErrorOccurred: function(error, errorString) {

@@ -133,12 +133,16 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     frames can vary greatly, and some pixel formats offer greater compression opportunities at
     the expense of ease of use.
 
-    The pixel contents of a video frame can be mapped to memory using the map() function.  While
-    mapped, the video data can accessed using the bits() function, which returns a pointer to a
-    buffer.  The total size of this buffer is given by the mappedBytes() function, and the size of
-    each line is given by bytesPerLine().  The return value of the handle() function may also be
-    used to access frame data using the internal buffer's native APIs (for example - an OpenGL
-    texture handle).
+    The pixel contents of a video frame can be mapped to memory using the map() function. After
+    a successful call to map(), the video data can be accessed through various functions. Some of
+    the YUV pixel formats provide the data in several planes. The planeCount() method will return
+    the amount of planes that being used.
+
+    While mapped, the video data of each plane can accessed using the bits() function, which
+    returns a pointer to a buffer.  The size of this buffer is given by the mappedBytes() function,
+    and the size of each line is given by bytesPerLine().  The return value of the handle()
+    function may also be used to access frame data using the internal buffer's native APIs
+    (for example - an OpenGL texture handle).
 
     A video frame can also have timestamp information associated with it.  These timestamps can be
     used to determine when to start and stop displaying the frame.
@@ -419,7 +423,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
     Q_ASSERT(d->mapData.data[0] == nullptr);
     Q_ASSERT(d->mapData.bytesPerLine[0] == 0);
     Q_ASSERT(d->mapData.nPlanes == 0);
-    Q_ASSERT(d->mapData.nBytes == 0);
+    Q_ASSERT(d->mapData.size[0] == 0);
 
     d->mapData = d->buffer->map(mode);
     if (d->mapData.nPlanes == 0)
@@ -457,13 +461,16 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             const int height = this->height();
             const int yStride = d->mapData.bytesPerLine[0];
             const int uvHeight = pixelFmt == QVideoFrameFormat::Format_YUV422P ? height : height / 2;
-            const int uvStride = (d->mapData.nBytes - (yStride * height)) / uvHeight / 2;
+            const int uvStride = (d->mapData.size[0] - (yStride * height)) / uvHeight / 2;
 
             // Three planes, the second and third vertically (and horizontally for other than Format_YUV422P formats) subsampled.
             d->mapData.nPlanes = 3;
             d->mapData.bytesPerLine[2] = d->mapData.bytesPerLine[1] = uvStride;
-            d->mapData.data[1] = d->mapData.data[0] + (yStride * height);
-            d->mapData.data[2] = d->mapData.data[1] + (uvStride * uvHeight);
+            d->mapData.size[0] = yStride * height;
+            d->mapData.size[1] = uvStride * uvHeight;
+            d->mapData.size[2] = uvStride * uvHeight;
+            d->mapData.data[1] = d->mapData.data[0] + d->mapData.size[0];
+            d->mapData.data[2] = d->mapData.data[1] + d->mapData.size[1];
             break;
         }
         case QVideoFrameFormat::Format_NV12:
@@ -475,7 +482,10 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             // Semi planar, Full resolution Y plane with interleaved subsampled U and V planes.
             d->mapData.nPlanes = 2;
             d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
-            d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * height());
+            int size = d->mapData.size[0];
+            d->mapData.size[0] = (d->mapData.bytesPerLine[0] * height());
+            d->mapData.size[1] = size - d->mapData.size[0];
+            d->mapData.data[1] = d->mapData.data[0] + d->mapData.size[0];
             break;
         }
         case QVideoFrameFormat::Format_IMC1:
@@ -484,8 +494,11 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             // but with lines padded to the width of the first plane.
             d->mapData.nPlanes = 3;
             d->mapData.bytesPerLine[2] = d->mapData.bytesPerLine[1] = d->mapData.bytesPerLine[0];
-            d->mapData.data[1] = d->mapData.data[0] + (d->mapData.bytesPerLine[0] * height());
-            d->mapData.data[2] = d->mapData.data[1] + (d->mapData.bytesPerLine[1] * height() / 2);
+            d->mapData.size[0] = (d->mapData.bytesPerLine[0] * height());
+            d->mapData.size[1] = (d->mapData.bytesPerLine[0] * height() / 2);
+            d->mapData.size[2] = (d->mapData.bytesPerLine[0] * height() / 2);
+            d->mapData.data[1] = d->mapData.data[0] + d->mapData.size[0];
+            d->mapData.data[2] = d->mapData.data[1] + d->mapData.size[1];
             break;
         }
         }
@@ -526,21 +539,6 @@ void QVideoFrame::unmap()
 }
 
 /*!
-    Returns the number of bytes in a scan line.
-
-    \note For planar formats this is the bytes per line of the first plane only.  The bytes per line of subsequent
-    planes should be calculated as per the frame \l{QVideoFrameFormat::PixelFormat}{pixel format}.
-
-    This value is only valid while the frame data is \l {map()}{mapped}.
-
-    \sa bits(), map(), mappedBytes()
-*/
-int QVideoFrame::bytesPerLine() const
-{
-    return d->mapData.bytesPerLine[0];
-}
-
-/*!
     Returns the number of bytes in a scan line of a \a plane.
 
     This value is only valid while the frame data is \l {map()}{mapped}.
@@ -552,22 +550,6 @@ int QVideoFrame::bytesPerLine() const
 int QVideoFrame::bytesPerLine(int plane) const
 {
     return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.bytesPerLine[plane] : 0;
-}
-
-/*!
-    Returns a pointer to the start of the frame data buffer.
-
-    This value is only valid while the frame data is \l {map()}{mapped}.
-
-    Changes made to data accessed via this pointer (when mapped with write access)
-    are only guaranteed to have been persisted when unmap() is called and when the
-    buffer has been mapped for writing.
-
-    \sa map(), mappedBytes(), bytesPerLine()
-*/
-uchar *QVideoFrame::bits()
-{
-    return d->mapData.data[0];
 }
 
 /*!
@@ -588,21 +570,6 @@ uchar *QVideoFrame::bits(int plane)
 }
 
 /*!
-    Returns a pointer to the start of the frame data buffer.
-
-    This value is only valid while the frame data is \l {map()}{mapped}.
-
-    If the buffer was not mapped with read access, the contents of this
-    buffer will initially be uninitialized.
-
-    \sa map(), mappedBytes(), bytesPerLine()
-*/
-const uchar *QVideoFrame::bits() const
-{
-    return d->mapData.data[0];
-}
-
-/*!
     Returns a pointer to the start of the frame data buffer for a \a plane.
 
     This value is only valid while the frame data is \l {map()}{mapped}.
@@ -619,15 +586,15 @@ const uchar *QVideoFrame::bits(int plane) const
 }
 
 /*!
-    Returns the number of bytes occupied by the mapped frame data.
+    Returns the number of bytes occupied by plane \a plane of the mapped frame data.
 
     This value is only valid while the frame data is \l {map()}{mapped}.
 
     \sa map()
 */
-int QVideoFrame::mappedBytes() const
+int QVideoFrame::mappedBytes(int plane) const
 {
-    return d->mapData.nBytes;
+    return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.size[plane] : 0;
 }
 
 /*!
@@ -713,12 +680,12 @@ QImage QVideoFrame::toImage() const
     // Formats supported by QImage don't need conversion
     QImage::Format imageFormat = QVideoFrameFormat::imageFormatFromPixelFormat(frame.pixelFormat());
     if (imageFormat != QImage::Format_Invalid) {
-        result = QImage(frame.bits(), frame.width(), frame.height(), frame.bytesPerLine(), imageFormat).copy();
+        result = QImage(frame.bits(0), frame.width(), frame.height(), frame.bytesPerLine(0), imageFormat).copy();
     }
 
     // Load from JPG
     else if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
-        result.loadFromData(frame.bits(), frame.mappedBytes(), "JPG");
+        result.loadFromData(frame.bits(0), frame.mappedBytes(0), "JPG");
     }
 
     // Need conversion

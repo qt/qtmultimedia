@@ -37,10 +37,9 @@
 **
 ****************************************************************************/
 
-#include "qandroidcameracontrol_p.h"
+#include "qandroidcamera_p.h"
 #include "qandroidcamerasession_p.h"
-#include "qandroidcameravideorenderercontrol_p.h"
-#include "qandroidcaptureservice_p.h"
+#include "qandroidmediacapturesession_p.h"
 #include <qmediadevices.h>
 #include <qcameradevice.h>
 #include <qtimer.h>
@@ -48,7 +47,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidCameraControl::QAndroidCameraControl(QCamera *camera)
+QAndroidCamera::QAndroidCamera(QCamera *camera)
     : QPlatformCamera(camera)
 {
     Q_ASSERT(camera);
@@ -59,22 +58,22 @@ QAndroidCameraControl::QAndroidCameraControl(QCamera *camera)
     connect(m_recalculateTimer, SIGNAL(timeout()), this, SLOT(onRecalculateTimeOut()));
 }
 
-QAndroidCameraControl::~QAndroidCameraControl()
+QAndroidCamera::~QAndroidCamera()
 {
 }
 
-void QAndroidCameraControl::setActive(bool active)
+void QAndroidCamera::setActive(bool active)
 {
     if (m_cameraSession)
         m_cameraSession->setActive(active);
 }
 
-bool QAndroidCameraControl::isActive() const
+bool QAndroidCamera::isActive() const
 {
     return m_cameraSession ? m_cameraSession->isActive() : false;
 }
 
-void QAndroidCameraControl::setCamera(const QCameraDevice &camera)
+void QAndroidCamera::setCamera(const QCameraDevice &camera)
 {
     if (!m_cameraSession)
         return;
@@ -90,9 +89,9 @@ void QAndroidCameraControl::setCamera(const QCameraDevice &camera)
     m_cameraSession->setSelectedCamera(id);
 }
 
-void QAndroidCameraControl::setCaptureSession(QPlatformMediaCaptureSession *session)
+void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
+    QAndroidMediaCaptureSession *captureSession = static_cast<QAndroidMediaCaptureSession *>(session);
     if (m_service == captureSession)
         return;
 
@@ -116,7 +115,7 @@ void QAndroidCameraControl::setCaptureSession(QPlatformMediaCaptureSession *sess
 
 }
 
-void QAndroidCameraControl::setFocusMode(QCamera::FocusMode mode)
+void QAndroidCamera::setFocusMode(QCamera::FocusMode mode)
 {
     if (!m_cameraSession || !m_cameraSession->camera())
         return;
@@ -156,12 +155,12 @@ void QAndroidCameraControl::setFocusMode(QCamera::FocusMode mode)
     }
 }
 
-bool QAndroidCameraControl::isFocusModeSupported(QCamera::FocusMode mode) const
+bool QAndroidCamera::isFocusModeSupported(QCamera::FocusMode mode) const
 {
     return (m_cameraSession && m_cameraSession->camera()) ? m_supportedFocusModes.contains(mode) : false;
 }
 
-void QAndroidCameraControl::onCameraOpened()
+void QAndroidCamera::onCameraOpened()
 {
     Q_ASSERT(m_cameraSession);
     connect(m_cameraSession->camera(), SIGNAL(previewSizeChanged()),
@@ -340,7 +339,7 @@ static QRect adjustedArea(const QRectF &area)
         .intersected(QRect(-1000, -1000, 2000, 2000));
 }
 
-void QAndroidCameraControl::setCameraFocusArea()
+void QAndroidCamera::setCameraFocusArea()
 {
     if (!m_cameraSession)
         return;
@@ -371,7 +370,7 @@ void QAndroidCameraControl::setCameraFocusArea()
     m_cameraSession->camera()->setFocusAreas(areas);
 }
 
-void QAndroidCameraControl::zoomTo(float factor, float rate)
+void QAndroidCamera::zoomTo(float factor, float rate)
 {
     Q_UNUSED(rate);
 
@@ -388,7 +387,7 @@ void QAndroidCameraControl::zoomTo(float factor, float rate)
     zoomFactorChanged(newZoom);
 }
 
-void QAndroidCameraControl::setFlashMode(QCamera::FlashMode mode)
+void QAndroidCamera::setFlashMode(QCamera::FlashMode mode)
 {
     if (!m_cameraSession || !m_cameraSession->camera())
         return;
@@ -408,7 +407,7 @@ void QAndroidCameraControl::setFlashMode(QCamera::FlashMode mode)
     flashModeChanged(mode);
 }
 
-bool QAndroidCameraControl::isFlashModeSupported(QCamera::FlashMode mode) const
+bool QAndroidCamera::isFlashModeSupported(QCamera::FlashMode mode) const
 {
     if (!m_cameraSession || !m_cameraSession->camera())
         return false;
@@ -422,13 +421,13 @@ bool QAndroidCameraControl::isFlashModeSupported(QCamera::FlashMode mode) const
     }
 }
 
-bool QAndroidCameraControl::isFlashReady() const
+bool QAndroidCamera::isFlashReady() const
 {
     // Android doesn't have an API for that
     return true;
 }
 
-void QAndroidCameraControl::setTorchMode(QCamera::TorchMode mode)
+void QAndroidCamera::setTorchMode(QCamera::TorchMode mode)
 {
     if (!m_cameraSession)
         return;
@@ -446,7 +445,7 @@ void QAndroidCameraControl::setTorchMode(QCamera::TorchMode mode)
     torchModeChanged(mode);
 }
 
-bool QAndroidCameraControl::isTorchModeSupported(QCamera::TorchMode mode) const
+bool QAndroidCamera::isTorchModeSupported(QCamera::TorchMode mode) const
 {
     if (!m_cameraSession || !m_cameraSession->camera())
         return false;
@@ -460,7 +459,7 @@ bool QAndroidCameraControl::isTorchModeSupported(QCamera::TorchMode mode) const
     }
 }
 
-void QAndroidCameraControl::setExposureMode(QCamera::ExposureMode mode)
+void QAndroidCamera::setExposureMode(QCamera::ExposureMode mode)
 {
     if (exposureMode() == mode)
         return;
@@ -531,12 +530,12 @@ void QAndroidCameraControl::setExposureMode(QCamera::ExposureMode mode)
     exposureModeChanged(mode);
 }
 
-bool QAndroidCameraControl::isExposureModeSupported(QCamera::ExposureMode mode) const
+bool QAndroidCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 {
     return m_supportedExposureModes.contains(mode);
 }
 
-void QAndroidCameraControl::setExposureCompensation(float bias)
+void QAndroidCamera::setExposureCompensation(float bias)
 {
     if (exposureCompensation() == bias || !m_cameraSession || !m_cameraSession->camera())
         return;
@@ -548,12 +547,12 @@ void QAndroidCameraControl::setExposureCompensation(float bias)
     exposureCompensationChanged(comp);
 }
 
-bool QAndroidCameraControl::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
+bool QAndroidCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 {
     return m_supportedWhiteBalanceModes.contains(mode);
 }
 
-void QAndroidCameraControl::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
+void QAndroidCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 {
     if (!m_cameraSession)
         return;

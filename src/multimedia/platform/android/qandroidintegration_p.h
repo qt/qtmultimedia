@@ -74,6 +74,8 @@ public:
 
     QPlatformAudioOutput *createAudioOutput(QAudioOutput *q) override;
 
+    QPlatformVideoSink *createVideoSink(QVideoSink *) override;
+
     QAndroidMediaDevices *m_devices = nullptr;
     QPlatformMediaFormatInfo  *m_formatInfo = nullptr;
 };

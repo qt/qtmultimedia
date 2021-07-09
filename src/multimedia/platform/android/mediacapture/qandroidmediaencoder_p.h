@@ -57,7 +57,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAndroidCaptureSession;
-class QAndroidCaptureService;
+class QAndroidMediaCaptureSession;
 
 class QAndroidMediaEncoder : public QPlatformMediaEncoder
 {
@@ -71,13 +71,15 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    void setState(QMediaRecorder::RecorderState state) override;
+    void setOutputLocation(const QUrl &location) override;
+    void record(const QMediaEncoderSettings &settings) override;
+    void stop() override;
 
 private:
     friend class QAndroidCaptureSession;
 
     QAndroidCaptureSession *m_session = nullptr;
-    QAndroidCaptureService *m_service = nullptr;
+    QAndroidMediaCaptureSession *m_service = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -80,7 +80,7 @@ public:
     virtual bool isAudioAvailable() const = 0;
     virtual bool isVideoAvailable() const = 0;
 
-    virtual bool isSeekable() const = 0;
+    virtual bool isSeekable() const { return m_seekable; }
 
     virtual QMediaTimeRange availablePlaybackRanges() const = 0;
 
@@ -115,7 +115,12 @@ public:
     void positionChanged(qint64 position) { player->positionChanged(position); }
     void audioAvailableChanged(bool audioAvailable) { player->hasAudioChanged(audioAvailable); }
     void videoAvailableChanged(bool videoAvailable) { player->hasVideoChanged(videoAvailable); }
-    void seekableChanged(bool seekable) { player->seekableChanged(seekable); }
+    void seekableChanged(bool seekable) {
+        if (m_seekable == seekable)
+            return;
+        m_seekable = seekable;
+        player->seekableChanged(seekable);
+    }
     void playbackRateChanged(qreal rate) { player->playbackRateChanged(rate); }
     void bufferProgressChanged(float progress) { player->bufferProgressChanged(progress); }
     void metaDataChanged() { player->metaDataChanged(); }
@@ -134,6 +139,7 @@ private:
     QMediaPlayer *player = nullptr;
     QMediaPlayer::MediaStatus m_status = QMediaPlayer::NoMedia;
     QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
+    bool m_seekable = true;
 };
 
 QT_END_NAMESPACE

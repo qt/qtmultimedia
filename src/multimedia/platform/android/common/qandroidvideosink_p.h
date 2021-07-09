@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDCAMERAVIDEORENDERERCONTROL_H
-#define QANDROIDCAMERAVIDEORENDERERCONTROL_H
+#ifndef QANDROIDVIDEOSINK_P_H
+#define QANDROIDVIDEOSINK_P_H
 
 //
 //  W A R N I N G
@@ -51,34 +51,41 @@
 // We mean it.
 //
 
-#include <qobject.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <private/qplatformvideosink_p.h>
+
+#include <qvideosink.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidCameraSession;
-class QAndroidTextureVideoOutput;
-class QAndroidCameraDataVideoOutput;
-class QVideoSink;
-
-class QAndroidCameraVideoRendererControl : public QObject
+class QAndroidVideoSink
+    : public QPlatformVideoSink
 {
     Q_OBJECT
 public:
-    QAndroidCameraVideoRendererControl(QAndroidCameraSession *session, QObject *parent = 0);
-    ~QAndroidCameraVideoRendererControl() override;
+    explicit QAndroidVideoSink(QVideoSink *parent = 0);
+    ~QAndroidVideoSink();
 
-    QVideoSink *surface() const;
-    void setSurface(QVideoSink *surface);
+    void setWinId(WId id) override;
 
-    QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
+    void setRhi(QRhi *rhi) override;
+
+    void setDisplayRect(const QRect &rect) override;
+
+    void setFullScreen(bool fullScreen) override;
+
+    QSize nativeSize() const override;
+
+    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
 private:
-    QAndroidCameraSession *m_cameraSession;
-    QVideoSink *m_surface;
-    QAndroidTextureVideoOutput *m_textureOutput;
-    QAndroidCameraDataVideoOutput *m_dataOutput;
+    WId m_windowId = 0;
+    QRhi *m_rhi = nullptr;
+    QRect m_displayRect;
+    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
+    bool m_fullScreen = false;
 };
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDCAMERAVIDEORENDERERCONTROL_H
+#endif

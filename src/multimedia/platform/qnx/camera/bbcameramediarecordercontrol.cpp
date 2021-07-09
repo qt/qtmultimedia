@@ -114,25 +114,20 @@ qreal BbCameraMediaRecorderControl::volume() const
 
 void BbCameraMediaRecorderControl::applySettings(const QMediaEncoderSettings &)
 {
-    m_session->applyVideoSettings();
+    if (m_session)
+        m_session->applyVideoSettings();
 }
 
-void BbCameraMediaRecorderControl::setState(QMediaRecorder::RecorderState state)
+void BbCameraMediaRecorderControl::record(const QMediaEncoderSettings &)
 {
-    if (!m_session)
-        return;
-
-    switch (state) {
-    case QMediaRecorder::RecordingState:
+    if (m_session)
         m_session->startVideoRecording(outputLocation());
-        break;
-    case QMediaRecorder::StoppedState:
+}
+
+void BbCameraMediaRecorderControl::stop()
+{
+    if (m_session)
         m_session->stopVideoRecording();
-        break;
-    case QMediaRecorder::PausedState:
-        //TODO: (pause) not supported by BB10 API yet
-        break;
-    }
 }
 
 void BbCameraMediaRecorderControl::setMuted(bool muted)

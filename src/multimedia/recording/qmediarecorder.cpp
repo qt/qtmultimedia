@@ -68,8 +68,15 @@ QT_BEGIN_NAMESPACE
     The QMediaRecorder class is a class for encoding and recording media generated in a
     QMediaCaptureSession.
 
-    \snippet multimedia-snippets/media.cpp Media encoder
+    \snippet multimedia-snippets/media.cpp Media recorder
 */
+
+QMediaRecorderPrivate::QMediaRecorderPrivate()
+{
+    // Force an early initialization of the mime database
+    // to avoid a delay when recording for the first time.
+    encoderSettings.mimeType();
+}
 
 void QMediaRecorderPrivate::applySettingsLater()
 {
@@ -93,7 +100,7 @@ QString QMediaRecorderPrivate::msgFailedStartRecording()
 }
 
 /*!
-    Constructs a media encoder which records the media produced by a microphone and camera.
+    Constructs a media recorder which records the media produced by a microphone and camera.
 */
 
 QMediaRecorder::QMediaRecorder(QObject *parent)
@@ -106,7 +113,7 @@ QMediaRecorder::QMediaRecorder(QObject *parent)
 }
 
 /*!
-    Destroys a media encoder object.
+    Destroys a media recorder object.
 */
 
 QMediaRecorder::~QMediaRecorder()
@@ -114,7 +121,7 @@ QMediaRecorder::~QMediaRecorder()
     if (d_ptr->captureSession) {
         if (d_ptr->captureSession->platformSession())
             d_ptr->captureSession->platformSession()->setMediaEncoder(nullptr);
-        d_ptr->captureSession->setEncoder(nullptr);
+        d_ptr->captureSession->setRecorder(nullptr);
     }
     delete d_ptr->control;
     delete d_ptr;
@@ -153,7 +160,7 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
     always fail. If the operation fails an errorOccured signal is emitted.
 
     The \a location can be relative or empty;
-    in the latter case the encoder uses the system specific place and file naming scheme.
+    in the latter case the recorder uses the system specific place and file naming scheme.
 */
 
 /*!
@@ -165,7 +172,7 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 */
 
 /*!
-    Returns true if media encoder service ready to use.
+    Returns true if media recorder service ready to use.
 
     \sa availabilityChanged()
 */
@@ -199,7 +206,7 @@ QUrl QMediaRecorder::actualLocation() const
 }
 
 /*!
-    Returns the current media encoder state.
+    Returns the current media recorder state.
 
     \sa QMediaRecorder::RecorderState
 */
@@ -249,57 +256,57 @@ qint64 QMediaRecorder::duration() const
 /*!
     Start recording.
 
-    While the encoder state is changed immediately to QMediaRecorder::RecordingState,
+    While the recorder state is changed immediately to QMediaRecorder::RecordingState,
     recording may start asynchronously.
 
     If recording fails error() signal is emitted
-    with encoder state being reset back to QMediaRecorder::StoppedState.
+    with recorder state being reset back to QMediaRecorder::StoppedState.
 */
 
 void QMediaRecorder::record()
 {
     Q_D(QMediaRecorder);
 
-    if (!d->control)
+    if (!d->control || ! d->captureSession)
         return;
-    d->control->clearActualLocation();
 
-    if (d->settingsChanged)
+    if (d->control->state() == QMediaRecorder::PausedState) {
+        d->control->resume();
+    } else {
         d->control->applySettings(d->encoderSettings);
-
-    d->control->clearError();
-
-    if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::RecordingState);
+        d->control->clearActualLocation();
+        d->control->clearError();
+        d->control->record(d->encoderSettings);
+    }
 }
 
 /*!
     Pause recording.
 
-    The encoder state is changed to QMediaRecorder::PausedState.
+    The recorder state is changed to QMediaRecorder::PausedState.
 
     Depending on platform recording pause may be not supported,
-    in this case the encoder state stays unchanged.
+    in this case the recorder state stays unchanged.
 */
 
 void QMediaRecorder::pause()
 {
     Q_D(QMediaRecorder);
     if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::PausedState);
+        d->control->pause();
 }
 
 /*!
     Stop recording.
 
-    The encoder state is changed to QMediaRecorder::StoppedState.
+    The recorder state is changed to QMediaRecorder::StoppedState.
 */
 
 void QMediaRecorder::stop()
 {
     Q_D(QMediaRecorder);
     if (d->control && d->captureSession)
-        d->control->setState(QMediaRecorder::StoppedState);
+        d->control->stop();
 }
 
 /*!
@@ -519,7 +526,7 @@ QSize QMediaRecorder::videoResolution() const
 /*!
     Sets the \a resolution of the encoded video.
 
-    An empty QSize indicates the encoder should make an optimal choice based on
+    An empty QSize indicates the recorder should make an optimal choice based on
     what is available from the video source and the limitations of the codec.
 */
 void QMediaRecorder::setVideoResolution(const QSize &size)
@@ -549,11 +556,9 @@ qreal QMediaRecorder::videoFrameRate() const
 }
 
 /*!
-    \fn QVideoEncoderSettings::setFrameRate(qreal rate)
-
     Sets the video frame \a rate.
 
-    A value of 0 indicates the encoder should make an optimal choice based on what is available
+    A value of 0 indicates the recorder should make an optimal choice based on what is available
     from the video source and the limitations of the codec.
 */
 void QMediaRecorder::setVideoFrameRate(qreal frameRate)
@@ -622,7 +627,7 @@ int QMediaRecorder::audioChannelCount() const
 /*!
     Sets the number of audio \a channels.
 
-    A value of -1 indicates the encoder should make an optimal choice based on
+    A value of -1 indicates the recorder should make an optimal choice based on
     what is available from the audio source and the limitations of the codec.
 */
 void QMediaRecorder::setAudioChannelCount(int channels)
@@ -647,7 +652,7 @@ int QMediaRecorder::audioSampleRate() const
 /*!
     Sets the audio sample \a rate in Hz.
 
-    A value of -1 indicates the encoder should make an optimal choice based on what is avaialbe
+    A value of -1 indicates the recorder should make an optimal choice based on what is avaialbe
     from the audio source and the limitations of the codec.
 */
 void QMediaRecorder::setAudioSampleRate(int sampleRate)

@@ -432,7 +432,7 @@ bool QMediaFormat::operator==(const QMediaFormat &other) const
     Resolves the format to a format that is supported by QMediaRecorder.
 
     This method tries to find the best possible match for unspecified settings.
-    Settings that are not supported by the encoder will be modified to the closest
+    Settings that are not supported by the recorder will be modified to the closest
     match that is supported.
  */
 void QMediaFormat::resolveForEncoding(ResolveFlags flags)

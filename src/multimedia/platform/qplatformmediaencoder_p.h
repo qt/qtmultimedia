@@ -140,11 +140,14 @@ public:
     virtual bool isLocationWritable(const QUrl &location) const = 0;
 
     virtual QMediaRecorder::RecorderState state() const { return m_state; }
-    virtual void setState(QMediaRecorder::RecorderState state) = 0;
+    virtual void record(const QMediaEncoderSettings &settings) = 0;
+    virtual void pause();
+    virtual void resume();
+    virtual void stop() = 0;
 
     virtual qint64 duration() const = 0;
 
-    virtual void applySettings(const QMediaEncoderSettings &settings) = 0;
+    virtual void applySettings(const QMediaEncoderSettings &) {};
 
     virtual void setMetaData(const QMediaMetaData &) {}
     virtual QMediaMetaData metaData() const { return {}; }
@@ -153,7 +156,7 @@ public:
     QString errorString() const { return m_errorString; }
 
     QUrl outputLocation() const { return m_outputLocation; }
-    void setOutputLocation(const QUrl &location) { m_outputLocation = location; }
+    virtual void setOutputLocation(const QUrl &location) { m_outputLocation = location; }
     QUrl actualLocation() const { return m_actualLocation; }
     void clearActualLocation() { m_actualLocation.clear(); }
     void clearError() { error(QMediaRecorder::NoError, QString()); }

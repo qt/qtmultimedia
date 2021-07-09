@@ -40,7 +40,7 @@
 #include "qandroidimagecapture_p.h"
 
 #include "qandroidcamerasession_p.h"
-#include "qandroidcaptureservice_p.h"
+#include "qandroidmediacapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -82,7 +82,7 @@ void QAndroidImageCapture::setImageSettings(const QImageEncoderSettings &setting
 
 void QAndroidImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
+    QAndroidMediaCaptureSession *captureSession = static_cast<QAndroidMediaCaptureSession *>(session);
     if (m_service == captureSession)
         return;
 

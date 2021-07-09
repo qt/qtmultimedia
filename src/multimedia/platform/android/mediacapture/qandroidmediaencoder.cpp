@@ -38,9 +38,9 @@
 ****************************************************************************/
 
 #include "qandroidmediaencoder_p.h"
-
+#include "qandroidmultimediautils_p.h"
 #include "qandroidcapturesession_p.h"
-#include "qandroidcaptureservice_p.h"
+#include "qandroidmediacapturesession_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -67,36 +67,38 @@ qint64 QAndroidMediaEncoder::duration() const
 
 void QAndroidMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
 {
-    m_session->applySettings(settings);
+    if (m_session)
+        m_session->applySettings(settings);
 }
 
-void QAndroidMediaEncoder::setState(QMediaRecorder::RecorderState state)
+void QAndroidMediaEncoder::record(const QMediaEncoderSettings &settings)
 {
-    if (!m_session)
-        return;
+    if (m_session)
+        m_session->start(settings, outputLocation());
+}
 
-    switch (state) {
-    case QMediaRecorder::StoppedState:
+void QAndroidMediaEncoder::stop()
+{
+    if (m_session)
         m_session->stop();
-        break;
-    case QMediaRecorder::RecordingState:
-        m_session->start(outputLocation());
-        break;
-    case QMediaRecorder::PausedState:
-        // Not supported by Android API
-        qWarning("QMediaEncoder::PausedState is not supported on Android");
-        break;
+}
+
+void QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
+{
+    if (location.isLocalFile()) {
+        qt_androidRequestWriteStoragePermission();
     }
+    QPlatformMediaEncoder::setOutputLocation(location);
 }
 
 void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    QAndroidCaptureService *captureSession = static_cast<QAndroidCaptureService *>(session);
+    QAndroidMediaCaptureSession *captureSession = static_cast<QAndroidMediaCaptureSession *>(session);
     if (m_service == captureSession)
         return;
 
     if (m_service)
-        setState(QMediaRecorder::StoppedState);
+        stop();
     if (m_session)
         m_session->setMediaEncoder(nullptr);
 

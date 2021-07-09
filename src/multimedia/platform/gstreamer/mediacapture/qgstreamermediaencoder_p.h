@@ -77,6 +77,10 @@ public:
     qint64 duration() const override;
 
     void applySettings(const QMediaEncoderSettings &settings) override;
+    void record(const QMediaEncoderSettings &settings) override;
+    void pause() override;
+    void resume() override;
+    void stop() override;
 
     void setMetaData(const QMediaMetaData &) override;
     QMediaMetaData metaData() const override;
@@ -86,10 +90,6 @@ public:
 private:
     bool processBusMessage(const QGstreamerMessage& message) override;
 public:
-    void setState(QMediaRecorder::RecorderState state) override;
-    void record();
-    void pause();
-    void stop();
     void updateDuration();
 
 private:

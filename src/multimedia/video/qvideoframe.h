@@ -111,14 +111,11 @@ public:
     bool map(QVideoFrame::MapMode mode);
     void unmap();
 
-    int bytesPerLine() const;
     int bytesPerLine(int plane) const;
 
-    uchar *bits();
     uchar *bits(int plane);
-    const uchar *bits() const;
     const uchar *bits(int plane) const;
-    int mappedBytes() const;
+    int mappedBytes(int plane) const;
     int planeCount() const;
 
     quint64 textureHandle(int plane) const;

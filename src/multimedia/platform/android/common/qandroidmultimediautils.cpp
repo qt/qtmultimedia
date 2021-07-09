@@ -143,4 +143,14 @@ bool qt_androidRequestRecordingPermission()
     return true;
 }
 
+bool qt_androidRequestWriteStoragePermission()
+{
+    if (!androidRequestPermission(QPermission::WriteStorage)) {
+        qCDebug(qtAndroidMediaPlugin, "WriteStorage permission denied by user!");
+        return false;
+    }
+
+    return true;
+}
+
 QT_END_NAMESPACE

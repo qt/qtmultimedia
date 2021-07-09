@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,44 +37,64 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIAPLAYERVIDEORENDERERCONTROL_H
-#define QANDROIDMEDIAPLAYERVIDEORENDERERCONTROL_H
+#include "qandroidvideosink_p.h"
+#include <QtGui/private/qrhi_p.h>
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include <QtCore/qdebug.h>
 
-#include <qobject.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaPlayerControl;
-class QAndroidTextureVideoOutput;
-class QVideoSink;
+Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
 
-class QAndroidMediaPlayerVideoRendererControl : public QObject
+QAndroidVideoSink::QAndroidVideoSink(QVideoSink *parent)
+    : QPlatformVideoSink(parent)
 {
-    Q_OBJECT
-public:
-    QAndroidMediaPlayerVideoRendererControl(QAndroidMediaPlayerControl *mediaPlayer, QObject *parent = 0);
-    ~QAndroidMediaPlayerVideoRendererControl() override;
+}
 
-    QVideoSink *surface() const;
-    void setSurface(QVideoSink *surface);
+QAndroidVideoSink::~QAndroidVideoSink()
+{
+}
 
-private:
-    QAndroidMediaPlayerControl *m_mediaPlayerControl;
-    QVideoSink *m_surface;
-    QAndroidTextureVideoOutput *m_textureOutput;
-};
+void QAndroidVideoSink::setWinId(WId id)
+{
+    if (m_windowId == id)
+        return;
+
+    m_windowId = id;
+}
+
+void QAndroidVideoSink::setRhi(QRhi *rhi)
+{
+    if (rhi && rhi->backend() != QRhi::OpenGLES2)
+        rhi = nullptr;
+    if (m_rhi == rhi)
+        return;
+
+    m_rhi = rhi;
+}
+
+void QAndroidVideoSink::setDisplayRect(const QRect &rect)
+{
+    m_displayRect = rect;
+}
+
+void QAndroidVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
+{
+    m_aspectRatioMode = mode;
+}
+
+void QAndroidVideoSink::setFullScreen(bool fullScreen)
+{
+    if (fullScreen == m_fullScreen)
+        return;
+    m_fullScreen = fullScreen;
+}
+
+QSize QAndroidVideoSink::nativeSize() const
+{
+    return QSize(640, 480);
+}
 
 QT_END_NAMESPACE
-
-#endif // QANDROIDMEDIAPLAYERVIDEORENDERERCONTROL_H

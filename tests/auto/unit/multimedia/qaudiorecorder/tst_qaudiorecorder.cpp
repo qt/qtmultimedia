@@ -80,7 +80,7 @@ void tst_QAudioRecorder::testAudioSource()
 {
     QMediaCaptureSession session;
     encoder = new QMediaRecorder;
-    session.setEncoder(encoder);
+    session.setRecorder(encoder);
 
     QCOMPARE(session.camera(), nullptr);
 }
@@ -106,7 +106,7 @@ void tst_QAudioRecorder::testAvailability()
 {
     QMediaCaptureSession session;
     QMediaRecorder source;
-    session.setEncoder(&source);
+    session.setRecorder(&source);
 
     QVERIFY(source.isAvailable());
 }

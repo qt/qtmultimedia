@@ -57,6 +57,8 @@
 #include <QtCore/qpair.h>
 #include <QtCore/qsize.h>
 
+#include <CoreAudio/CoreAudioTypes.h>
+
 #include <AVFoundation/AVFoundation.h>
 
 // In case we have SDK below 10.7/7.0:
@@ -184,6 +186,10 @@ bool qt_set_active_format(AVCaptureDevice *captureDevice, AVCaptureDeviceFormat 
 AVFPSRange qt_current_framerates(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection);
 void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection *videoConnection,
                              qreal minFPS, qreal maxFPS);
+
+QList<AudioValueRange> qt_supported_sample_rates_for_format(int codecId);
+QList<AudioValueRange> qt_supported_bit_rates_for_format(int codecId);
+std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId);
 
 QT_END_NAMESPACE
 

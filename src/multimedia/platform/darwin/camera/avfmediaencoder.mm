@@ -157,10 +157,8 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
     NSMutableDictionary *settings = [NSMutableDictionary dictionary];
 
     int codecId = QDarwinFormatInfo::audioFormatForCodec(encoderSettings.mediaFormat().audioCodec());
-
     [settings setObject:[NSNumber numberWithInt:codecId] forKey:AVFormatIDKey];
 
-#ifdef Q_OS_MACOS
     // Setting AVEncoderQualityKey is not allowed when format ID is alac or lpcm
     if (codecId != kAudioFormatAppleLossless && codecId != kAudioFormatLinearPCM
         && encoderSettings.encodingMode() == QMediaRecorder::ConstantQualityEncoding) {
@@ -184,26 +182,78 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
             break;
         }
         [settings setObject:[NSNumber numberWithInt:quality] forKey:AVEncoderAudioQualityKey];
-
-    } else
-#endif
-    if (encoderSettings.audioBitRate() > 0)
-        [settings setObject:[NSNumber numberWithInt:encoderSettings.audioBitRate()] forKey:AVEncoderBitRateKey];
+    } else {
+        bool isBitRateSupported = false;
+        int bitRate = encoderSettings.audioBitRate();
+        if (bitRate > 0) {
+            QList<AudioValueRange> bitRates = qt_supported_bit_rates_for_format(codecId);
+            for (int i = 0; i < bitRates.count(); i++) {
+                if (bitRate >= bitRates[i].mMinimum &&
+                    bitRate <= bitRates[i].mMaximum) {
+                    isBitRateSupported = true;
+                    break;
+                }
+            }
+            if (isBitRateSupported)
+                [settings setObject:[NSNumber numberWithInt:encoderSettings.audioBitRate()]
+                                              forKey:AVEncoderBitRateKey];
+        }
+    }
 
     int sampleRate = encoderSettings.audioSampleRate();
+    bool isSampleRateSupported = false;
+    if (sampleRate >= 8000 && sampleRate <= 192000) {
+        QList<AudioValueRange> sampleRates = qt_supported_sample_rates_for_format(codecId);
+        for (int i = 0; i < sampleRates.count(); i++) {
+            if (sampleRate >= sampleRates[i].mMinimum && sampleRate <= sampleRates[i].mMaximum) {
+                isSampleRateSupported = true;
+                break;
+            }
+        }
+    }
+
     int channelCount = encoderSettings.audioChannelCount();
+    bool isChannelCountSupported = false;
+    if (channelCount > 0) {
+        std::optional<QList<UInt32>> channelCounts = qt_supported_channel_counts_for_format(codecId);
+        // An std::nullopt result indicates that
+        // any number of channels can be encoded.
+        if (channelCounts == std::nullopt) {
+            isChannelCountSupported = true;
+        } else {
+            for (int i = 0; i < channelCounts.value().count(); i++) {
+                if ((UInt32)channelCount == channelCounts.value()[i]) {
+                    isChannelCountSupported = true;
+                    break;
+                }
+            }
+        }
+    }
 
 #ifdef Q_OS_IOS
     // Some keys are mandatory only on iOS
-    if (sampleRate <= 0)
+    if (!isSampleRateSupported) {
         sampleRate = 44100;
-    if (channelCount <= 0)
+        isSampleRateSupported = true;
+    }
+    if (!isChannelCountSupported) {
         channelCount = 2;
-#endif
+        isChannelCountSupported = true;
+    }
 
-    if (sampleRate > 0)
+    if (codecId == kAudioFormatAppleLossless)
+        [settings setObject:[NSNumber numberWithInt:24] forKey:AVEncoderBitDepthHintKey];
+
+    if (codecId == kAudioFormatLinearPCM) {
+        [settings setObject:[NSNumber numberWithInt:16] forKey:AVLinearPCMBitDepthKey];
+        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsBigEndianKey];
+        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsFloatKey];
+        [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsNonInterleaved];
+    }
+#endif
+    if (isSampleRateSupported)
         [settings setObject:[NSNumber numberWithInt:sampleRate] forKey:AVSampleRateKey];
-    if (channelCount > 0)
+    if (isChannelCountSupported)
         [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
 
     return settings;
@@ -404,16 +454,6 @@ void AVFMediaEncoder::unapplySettings()
     }
 }
 
-QMediaEncoderSettings AVFMediaEncoder::encoderSettings() const
-{
-    QMediaEncoderSettings s = m_settings;
-    const auto flag = (m_service->session()->activecameraDevice().isNull())
-                            ? QMediaFormat::NoFlags
-                            : QMediaFormat::RequiresVideo;
-    s.resolveFormat(flag);
-    return s;
-}
-
 void AVFMediaEncoder::setMetaData(const QMediaMetaData &metaData)
 {
     m_metaData = metaData;
@@ -431,7 +471,7 @@ void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
         return;
 
     if (m_service)
-        setState(QMediaRecorder::StoppedState);
+        stop();
 
     m_service = captureSession;
     if (!m_service)
@@ -441,7 +481,7 @@ void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
     onCameraChanged();
 }
 
-void AVFMediaEncoder::setState(QMediaRecorder::RecorderState state)
+void AVFMediaEncoder::record(const QMediaEncoderSettings &)
 {
     if (!m_service || !m_service->session()) {
         qWarning() << Q_FUNC_INFO << "Encoder is not set to a capture session";
@@ -453,25 +493,10 @@ void AVFMediaEncoder::setState(QMediaRecorder::RecorderState state)
         return;
     }
 
-    if (state == m_state)
+    if (QMediaRecorder::RecordingState == m_state)
         return;
 
-    switch (state) {
-        case QMediaRecorder::RecordingState:
-            m_service->session()->setActive(true);
-            record();
-            break;
-        case QMediaRecorder::PausedState:
-            Q_EMIT error(QMediaRecorder::FormatError, tr("Recording pause not supported"));
-            return;
-        case QMediaRecorder::StoppedState:
-            // Do not check the camera status, we can stop if we started.
-            stopWriter();
-    }
-}
-
-void AVFMediaEncoder::record()
-{
+    m_service->session()->setActive(true);
     const bool audioOnly = m_settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
     AVCaptureSession *session = m_service->session()->captureSession();
     float rotation = 0;
@@ -503,7 +528,7 @@ void AVFMediaEncoder::record()
     const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path,
                     audioOnly ? AVFStorageLocation::Audio : AVFStorageLocation::Video,
                     QLatin1String("clip_"),
-                    encoderSettings().mimeType().preferredSuffix())));
+                    m_settings.mimeType().preferredSuffix())));
 
     NSURL *nsFileURL = fileURL.toNSURL();
     if (!nsFileURL) {
@@ -536,6 +561,7 @@ void AVFMediaEncoder::record()
                     cameraService:m_service
                     audioSettings:m_audioSettings
                     videoSettings:m_videoSettings
+                    fileFormat:m_settings.fileFormat()
                     transform:CGAffineTransformMakeRotation(qDegreesToRadians(rotation))]) {
 
         m_state = QMediaRecorder::RecordingState;
@@ -556,6 +582,14 @@ void AVFMediaEncoder::record()
         [session startRunning];
         Q_EMIT error(QMediaRecorder::FormatError,
                      QMediaRecorderPrivate::msgFailedStartRecording());
+    }
+}
+
+void AVFMediaEncoder::stop()
+{
+    if (m_state != QMediaRecorder::StoppedState) {
+        // Do not check the camera status, we can stop if we started.
+        stopWriter();
     }
 }
 
@@ -605,17 +639,6 @@ void AVFMediaEncoder::cameraActiveChanged(bool active)
 void AVFMediaEncoder::stopWriter()
 {
     [m_writer stop];
-}
-
-void AVFMediaEncoder::onAudioOutputChanged()
-{
-    QPlatformAudioOutput *audioOutput = m_service ? m_service->audioOutput()
-                                                  : nullptr;
-    NSString *deviceId = nil;
-    if (audioOutput)
-        deviceId = QString::fromUtf8(audioOutput->device.id()).toNSString();
-
-    [m_writer updateAudioOutput:deviceId];
 }
 
 #include "moc_avfmediaencoder_p.cpp"

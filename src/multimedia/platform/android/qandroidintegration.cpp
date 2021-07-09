@@ -40,19 +40,20 @@
 #include "qandroidintegration_p.h"
 #include "qandroidmediadevices_p.h"
 #include "private/qandroidglobal_p.h"
-#include "private/qandroidcaptureservice_p.h"
+#include "private/qandroidmediacapturesession_p.h"
 #include "private/androidmediaplayer_p.h"
 #include "private/qandroidcamerasession_p.h"
 #include "private/androidsurfacetexture_p.h"
 #include "private/androidsurfaceview_p.h"
 #include "private/androidcamera_p.h"
-#include "private/qandroidcameracontrol_p.h"
+#include "private/qandroidcamera_p.h"
 #include "private/qandroidimagecapture_p.h"
 #include "private/qandroidmediaencoder_p.h"
 #include "private/androidmediarecorder_p.h"
 #include "private/qandroidformatsinfo_p.h"
-#include "private/qandroidmediaplayercontrol_p.h"
+#include "private/qandroidmediaplayer_p.h"
 #include "private/qandroidaudiooutput_p.h"
+#include "private/qandroidvideosink_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -86,17 +87,17 @@ QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()
 
 QPlatformMediaCaptureSession *QAndroidIntegration::createCaptureSession()
 {
-    return new QAndroidCaptureService();
+    return new QAndroidMediaCaptureSession();
 }
 
 QPlatformMediaPlayer *QAndroidIntegration::createPlayer(QMediaPlayer *player)
 {
-    return new QAndroidMediaPlayerControl(player);
+    return new QAndroidMediaPlayer(player);
 }
 
 QPlatformCamera *QAndroidIntegration::createCamera(QCamera *camera)
 {
-    return new QAndroidCameraControl(camera);
+    return new QAndroidCamera(camera);
 }
 
 QPlatformMediaEncoder *QAndroidIntegration::createEncoder(QMediaRecorder *encoder)
@@ -112,6 +113,11 @@ QPlatformImageCapture *QAndroidIntegration::createImageCapture(QImageCapture *im
 QPlatformAudioOutput *QAndroidIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QAndroidAudioOutput(q);
+}
+
+QPlatformVideoSink *QAndroidIntegration::createVideoSink(QVideoSink *sink)
+{
+    return new QAndroidVideoSink(sink);
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)

@@ -68,6 +68,7 @@ AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrameForma
 
 bool qt_androidRequestCameraPermission();
 bool qt_androidRequestRecordingPermission();
+bool qt_androidRequestWriteStoragePermission();
 
 QT_END_NAMESPACE
 

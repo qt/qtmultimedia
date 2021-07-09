@@ -403,7 +403,7 @@ void tst_QGraphicsVideoItem::paint()
     QVideoFrameFormat format(QSize(2, 2), QVideoFrameFormat::Format_RGB32);
     QVideoFrame frame(format);
     frame.map(QVideoFrame::WriteOnly);
-    memcpy(frame.bits(), rgb32ImageData, frame.mappedBytes());
+    memcpy(frame.bits(0), rgb32ImageData, frame.mappedBytes(0));
     frame.unmap();
 
     sink->newVideoFrame(frame);

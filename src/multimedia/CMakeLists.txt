@@ -303,16 +303,15 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/common/qandroidaudiooutput_p.h
         platform/android/common/qandroidglobal_p.h
         platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
+        platform/android/common/qandroidvideosink.cpp platform/android/common/qandroidvideosink_p.h
         platform/android/common/qandroidvideooutput.cpp platform/android/common/qandroidvideooutput_p.h
-        platform/android/mediacapture/qandroidcameracontrol.cpp platform/android/mediacapture/qandroidcameracontrol_p.h
+        platform/android/mediacapture/qandroidcamera.cpp platform/android/mediacapture/qandroidcamera_p.h
         platform/android/mediacapture/qandroidimagecapture.cpp platform/android/mediacapture/qandroidimagecapture_p.h
         platform/android/mediacapture/qandroidcamerasession.cpp platform/android/mediacapture/qandroidcamerasession_p.h
-        platform/android/mediacapture/qandroidcameravideorenderercontrol.cpp platform/android/mediacapture/qandroidcameravideorenderercontrol_p.h
-        platform/android/mediacapture/qandroidcaptureservice.cpp platform/android/mediacapture/qandroidcaptureservice_p.h
+        platform/android/mediacapture/qandroidmediacapturesession.cpp platform/android/mediacapture/qandroidmediacapturesession_p.h
         platform/android/mediacapture/qandroidcapturesession.cpp platform/android/mediacapture/qandroidcapturesession_p.h
         platform/android/mediacapture/qandroidmediaencoder.cpp platform/android/mediacapture/qandroidmediaencoder_p.h
-        platform/android/mediaplayer/qandroidmediaplayercontrol.cpp platform/android/mediaplayer/qandroidmediaplayercontrol_p.h
-        platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol.cpp platform/android/mediaplayer/qandroidmediaplayervideorenderercontrol_p.h
+        platform/android/mediaplayer/qandroidmediaplayer.cpp platform/android/mediaplayer/qandroidmediaplayer_p.h
         platform/android/mediaplayer/qandroidmetadata.cpp platform/android/mediaplayer/qandroidmetadata_p.h
         platform/android/qandroidmediadevices.cpp platform/android/qandroidmediadevices_p.h
         platform/android/qandroidformatsinfo.cpp  platform/android/qandroidformatsinfo_p.h

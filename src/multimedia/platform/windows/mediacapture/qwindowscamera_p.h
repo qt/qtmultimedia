@@ -73,8 +73,10 @@ public:
 
     bool setCameraFormat(const QCameraFormat &format) override;
 
-private Q_SLOTS:
     void setActive(bool active) override;
+
+private Q_SLOTS:
+    void onActiveChanged(bool active);
 
 private:
     QWindowsMediaCaptureService *m_captureService = nullptr;

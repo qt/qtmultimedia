@@ -55,10 +55,10 @@ There are a number of new features in Qt Multimedia:
     \li QMediaCaptureSession class is the central object for media capture.
     \li Changed QMediaRecorder class to be a high level class for audio/video
     recording.
-    \li new QMediaEncoder class to handle encoding of data produced in a capture
+    \li new QMediaRecorder class to handle encoding of data produced in a capture
     session.
     \li Setting up the desired encoding when recording has changed significantly.
-    see QMediaEncoderSettings for details.
+    see QMediaFormat and QMediaRecorder for details.
     \li Support for selection of audio, video and subtitle tracks when playing
     back media files has been added.
     \li QAudioDecoder is now supported on all platforms.
@@ -146,10 +146,10 @@ highlights these changes.
     \row
         \li QMediaFormat
         \li Handling of formats for encoded media and the settings for the media
-        encoder have changed significantly. Qt 5 provides a string based
+        recorder have changed significantly. Qt 5 provides a string based
         API, a separated file format, and audio and video codecs into 3 classes.
-        However, Qt 6 unifies the formats in the QMediaFormat class, and encoder
-        settings in QMediaEncoderSettings. Setting up file formats and codecs
+        However, Qt 6 unifies the formats in the QMediaFormat class. Additional
+        settings are directly specified in QMediaRecorder. Setting up file formats and codecs
         is now enum based and no longer uses strings. This puts some
         limitations on the set of codecs that can be used, but helps provide a
         consistent cross-platform API.

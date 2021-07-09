@@ -44,7 +44,6 @@
 #include "androidmultimediautils_p.h"
 #include "qandroidvideooutput_p.h"
 #include "qandroidmultimediautils_p.h"
-#include "qandroidcameravideorenderercontrol_p.h"
 #include <qvideosink.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <qfile.h>
@@ -85,8 +84,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
 
 QAndroidCameraSession::~QAndroidCameraSession()
 {
-    delete m_renderer;
-
     close();
 }
 
@@ -734,11 +731,21 @@ bool QAndroidCameraSession::requestRecordingPermission()
     return result;
 }
 
-void QAndroidCameraSession::setVideoSink(QVideoSink *surface)
+void QAndroidCameraSession::setVideoSink(QVideoSink *sink)
 {
-    if (!m_renderer)
-        m_renderer = new QAndroidCameraVideoRendererControl(this);
-    m_renderer->setSurface(surface);
+    if (m_sink == sink)
+        return;
+
+    m_sink = sink;
+    delete m_textureOutput;
+    m_textureOutput = nullptr;
+
+    if (m_sink) {
+        m_textureOutput = new QAndroidTextureVideoOutput(this);
+        m_textureOutput->setSurface(m_sink);
+    }
+
+    setVideoOutput(m_textureOutput);
 }
 
 QT_END_NAMESPACE

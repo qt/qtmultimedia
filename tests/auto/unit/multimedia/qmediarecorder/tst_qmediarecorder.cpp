@@ -86,7 +86,7 @@ void tst_QMediaRecorder::initTestCase()
     object = new QCamera;
     encoder = new QMediaRecorder;
     captureSession->setCamera(object);
-    captureSession->setEncoder(encoder);
+    captureSession->setRecorder(encoder);
     service = mockIntegration->lastCaptureService();
     mock = service->mockControl;
 }
@@ -105,7 +105,7 @@ void tst_QMediaRecorder::testBasicSession()
     QCamera camera;
     QMediaRecorder recorder;
     session.setCamera(&camera);
-    session.setEncoder(&recorder);
+    session.setRecorder(&recorder);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
     QCOMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
@@ -124,7 +124,7 @@ void tst_QMediaRecorder::testNullControls()
     QCamera camera;
     QMediaRecorder recorder;
     session.setCamera(&camera);
-    // session.setEncoder(&recorder);
+    // session.setRecorder(&recorder);
 
     QCOMPARE(recorder.outputLocation(), QUrl());
     QCOMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
@@ -171,7 +171,7 @@ void tst_QMediaRecorder::testDeleteMediaSource()
     QCamera *camera = new QCamera;
     QMediaRecorder *recorder = new QMediaRecorder;
     session.setCamera(camera);
-    session.setEncoder(recorder);
+    session.setRecorder(recorder);
 
     QVERIFY(session.camera() == camera);
     QVERIFY(recorder->isAvailable());
@@ -358,7 +358,7 @@ void tst_QMediaRecorder::testSettingsApplied()
 {
     QMediaCaptureSession session;
     QMediaRecorder encoder;
-    session.setEncoder(&encoder);
+    session.setRecorder(&encoder);
     auto *mock = mockIntegration->lastCaptureService()->mockControl;
 
     //if the media recorder is not configured after construction
@@ -387,7 +387,7 @@ void tst_QMediaRecorder::metaData()
     QCamera camera;
     QMediaRecorder recorder;
     session.setCamera(&camera);
-    session.setEncoder(&recorder);
+    session.setRecorder(&recorder);
 
     QVERIFY(recorder.metaData().isEmpty());
 
@@ -405,7 +405,7 @@ void tst_QMediaRecorder::testIsAvailable()
         QCamera camera;
         QMediaRecorder recorder;
         session.setCamera(&camera);
-        session.setEncoder(&recorder);
+        session.setRecorder(&recorder);
         QCOMPARE(recorder.isAvailable(), true);
     }
     {

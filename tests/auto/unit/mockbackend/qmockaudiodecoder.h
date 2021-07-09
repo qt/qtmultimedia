@@ -58,24 +58,24 @@ public:
         mFormat.setSampleRate(1000);
     }
 
-    QUrl source() const
+    QUrl source() const override
     {
         return mSource;
     }
 
-    void setSource(const QUrl &fileName)
+    void setSource(const QUrl &fileName) override
     {
         mSource = fileName;
         mDevice = 0;
         stop();
     }
 
-    QIODevice* sourceDevice() const
+    QIODevice* sourceDevice() const override
     {
         return mDevice;
     }
 
-    void setSourceDevice(QIODevice *device)
+    void setSourceDevice(QIODevice *device) override
     {
         mDevice = device;
         mSource.clear();
@@ -85,7 +85,7 @@ public:
     // When decoding we decode to first buffer, then second buffer
     // we then stop until the first is read again and so on, for
     // 5 buffers
-    void start()
+    void start() override
     {
         if (!isDecoding()) {
             if (!mSource.isEmpty()) {
@@ -99,7 +99,7 @@ public:
         }
     }
 
-    void stop()
+    void stop() override
     {
         if (isDecoding()) {
             mSerial = 0;
@@ -110,7 +110,7 @@ public:
         }
     }
 
-    QAudioBuffer read()
+    QAudioBuffer read() override
     {
         QAudioBuffer a;
         if (mBuffers.length() > 0) {
@@ -130,17 +130,17 @@ public:
         return a;
     }
 
-    bool bufferAvailable() const
+    bool bufferAvailable() const override
     {
         return mBuffers.length() > 0;
     }
 
-    qint64 position() const
+    qint64 position() const override
     {
         return mPosition;
     }
 
-    qint64 duration() const
+    qint64 duration() const override
     {
         return (sizeof(mSerial) * MOCK_DECODER_MAX_BUFFERS * qint64(1000)) / (mFormat.sampleRate() * mFormat.channelCount());
     }

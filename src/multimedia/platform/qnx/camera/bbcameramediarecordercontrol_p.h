@@ -68,9 +68,11 @@ public:
     bool isMuted() const override;
     qreal volume() const override;
     void applySettings(const QMediaEncoderSettings &settings) override;
+    void record(const QMediaEncoderSettings &settings) override;
+    void stop() override;
+
 
 public Q_SLOTS:
-    void setState(QMediaRecorder::RecorderState state) override;
     void setMuted(bool muted) override;
     void setVolume(qreal volume) override;
 

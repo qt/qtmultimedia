@@ -89,14 +89,24 @@ public:
 
     FourCharCode defaultCodec();
 
-    AVCaptureDeviceInput *videoInput() const {return m_videoInput;}
-    AVCaptureDeviceInput *audioInput() const {return m_audioInput;}
+    AVCaptureDeviceInput *videoInput() const { return m_videoInput; }
+    AVCaptureDeviceInput *audioInput() const { return m_audioInput; }
+
+    AVSampleBufferRenderSynchronizer *bufferSynchronizer() const { return m_audioBufferSynchronizer; }
+    AVSampleBufferAudioRenderer *audioRenderer() const { return m_audioRenderer; }
 
     void setVideoSink(QVideoSink *sink);
+
     void updateAudioInput();
+    void updateAudioOutput();
 
 public Q_SLOTS:
     void setActive(bool active);
+
+    void setAudioInputVolume(float volume);
+    void setAudioInputMuted(bool muted);
+    void setAudioOutputMuted(bool muted);
+    void setAudioOutputVolume(float volume);
 
     void processRuntimeError();
     void processSessionStarted();
@@ -110,9 +120,12 @@ Q_SIGNALS:
 private:
     void setVideoOutput(AVFCameraRenderer *output);
     void addAudioCapture();
+
     AVCaptureDevice *createVideoCaptureDevice();
+    AVCaptureDevice *createAudioCaptureDevice();
     void attachVideoInputDevice();
     void attachAudioInputDevice();
+
     bool applyImageEncoderSettings();
 
     QCameraDevice m_activeCameraDevice;
@@ -128,7 +141,15 @@ private:
     AVCaptureDeviceInput *m_audioInput = nullptr;
     AVCaptureAudioDataOutput *m_audioOutput = nullptr;
 
+    AVSampleBufferRenderSynchronizer *m_audioBufferSynchronizer = nullptr;
+    AVSampleBufferAudioRenderer *m_audioRenderer = nullptr;
+
     bool m_active = false;
+
+    float m_inputVolume = 1.0;
+    float m_outputVolume = 1.0;
+    bool m_inputMuted = false;
+    bool m_outputMuted = false;
 
     FourCharCode m_defaultCodec;
 };

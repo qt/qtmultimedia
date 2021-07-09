@@ -86,6 +86,7 @@ void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
         return;
 
     if (m_mediaDeviceSession) {
+        m_mediaDeviceSession->disconnect(this);
         m_mediaDeviceSession->setActive(false);
         m_mediaDeviceSession->setCameraFormat({});
         m_mediaDeviceSession->setActiveCamera({});
@@ -99,11 +100,14 @@ void QWindowsCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     m_mediaDeviceSession = m_captureService->session();
     Q_ASSERT(m_mediaDeviceSession);
-    connect(m_mediaDeviceSession, SIGNAL(activeChanged(bool)), SLOT(setActive(bool)));
 
+    m_mediaDeviceSession->setActive(false);
     m_mediaDeviceSession->setActiveCamera(m_cameraDevice);
     m_mediaDeviceSession->setCameraFormat(m_cameraFormat);
     m_mediaDeviceSession->setActive(m_active);
+
+    connect(m_mediaDeviceSession, &QWindowsMediaDeviceSession::activeChanged,
+            this, &QWindowsCamera::onActiveChanged);
 }
 
 bool QWindowsCamera::setCameraFormat(const QCameraFormat &format)
@@ -116,6 +120,16 @@ bool QWindowsCamera::setCameraFormat(const QCameraFormat &format)
     if (m_mediaDeviceSession)
         m_mediaDeviceSession->setCameraFormat(m_cameraFormat);
     return true;
+}
+
+void QWindowsCamera::onActiveChanged(bool active)
+{
+    if (m_active == active)
+        return;
+    if (m_cameraDevice.isNull() && active)
+        return;
+    m_active = active;
+    emit activeChanged(m_active);
 }
 
 QT_END_NAMESPACE

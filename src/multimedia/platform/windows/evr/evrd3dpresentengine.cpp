@@ -114,10 +114,10 @@ IMFSampleVideoBuffer::MapData IMFSampleVideoBuffer::map(QVideoFrame::MapMode mod
     m_mapMode = mode;
 
     MapData mapData;
-    mapData.nBytes = (int)(rect.Pitch * desc.Height);
     mapData.nPlanes = 1;
     mapData.bytesPerLine[0] = (int)rect.Pitch;
     mapData.data[0] = reinterpret_cast<uchar *>(rect.pBits);
+    mapData.size[0] = (int)(rect.Pitch * desc.Height);
     return mapData;
 }
 

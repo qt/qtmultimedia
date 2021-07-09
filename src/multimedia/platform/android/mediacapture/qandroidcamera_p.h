@@ -1,7 +1,6 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2016 Ruslan Baratov
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -38,8 +37,9 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDCAPTURESERVICE_H
-#define QANDROIDCAPTURESERVICE_H
+
+#ifndef QANDROIDCAMERACONTROL_H
+#define QANDROIDCAMERACONTROL_H
 
 //
 //  W A R N I N G
@@ -52,51 +52,78 @@
 // We mean it.
 //
 
-#include <private/qplatformmediacapture_p.h>
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformcamera_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaEncoder;
-class QAndroidCaptureSession;
-class QAndroidCameraControl;
 class QAndroidCameraSession;
-class QAndroidImageCapture;
+class QAndroidCameraVideoRendererControl;
+class QAndroidMediaCaptureSession;
 
-class QAndroidCaptureService : public QPlatformMediaCaptureSession
+class QAndroidCamera : public QPlatformCamera
 {
     Q_OBJECT
-
 public:
-    explicit QAndroidCaptureService();
-    virtual ~QAndroidCaptureService();
+    explicit QAndroidCamera(QCamera *camera);
+    virtual ~QAndroidCamera();
 
-    QPlatformCamera *camera() override;
-    void setCamera(QPlatformCamera *camera) override;
+    bool isActive() const override;
+    void setActive(bool active) override;
 
-    QPlatformImageCapture *imageCapture() override;
-    void setImageCapture(QPlatformImageCapture *imageCapture) override;
+    void setCamera(const QCameraDevice &camera) override;
 
-    QPlatformMediaEncoder *mediaEncoder() override;
-    void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
+    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
-    void setAudioInput(QPlatformAudioInput *input) override;
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
-    void setVideoPreview(QVideoSink *sink) override;
+    void zoomTo(float factor, float rate) override;
 
-    QAndroidCaptureSession *captureSession() const { return m_captureSession; }
-    QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
+    void setFlashMode(QCamera::FlashMode mode) override;
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
+    bool isFlashReady() const override;
+
+    void setTorchMode(QCamera::TorchMode mode) override;
+    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
+
+    void setExposureMode(QCamera::ExposureMode mode) override;
+    bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
+
+    void setExposureCompensation(float bias) override;
+
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override;
+
+private Q_SLOTS:
+    void onCameraOpened();
+    void setCameraFocusArea();
 
 private:
-    bool m_videoEnabled = false;
-
-    QAndroidMediaEncoder *m_encoder = nullptr;
-    QAndroidCaptureSession *m_captureSession = nullptr;
-    QAndroidCameraControl *m_cameraControl = nullptr;
     QAndroidCameraSession *m_cameraSession = nullptr;
-    QAndroidImageCapture *m_imageCaptureControl = nullptr;
+    QAndroidMediaCaptureSession *m_service = nullptr;
+    QTimer *m_recalculateTimer = nullptr;
+
+    QList<QCamera::FocusMode> m_supportedFocusModes;
+    bool m_continuousPictureFocusSupported = false;
+    bool m_continuousVideoFocusSupported = false;
+    bool m_focusPointSupported = false;
+
+    float m_maximumZoom;
+    QList<int> m_zoomRatios;
+
+    QList<QCamera::ExposureMode> m_supportedExposureModes;
+    int m_minExposureCompensationIndex;
+    int m_maxExposureCompensationIndex;
+    qreal m_exposureCompensationStep;
+
+    bool isFlashSupported = false;
+    bool isFlashAutoSupported = false;
+    bool isTorchSupported = false;
+
+    QMap<QCamera::WhiteBalanceMode, QString> m_supportedWhiteBalanceModes;
 };
+
 
 QT_END_NAMESPACE
 
-#endif // QANDROIDCAPTURESERVICE_H
+#endif // QANDROIDCAMERACONTROL_H

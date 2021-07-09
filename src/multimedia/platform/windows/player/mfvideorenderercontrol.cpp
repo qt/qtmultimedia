@@ -83,10 +83,10 @@ namespace
                 DWORD length;
                 HRESULT hr = m_buffer->Lock(&bytes, NULL, &length);
                 if (SUCCEEDED(hr)) {
-                    mapData.nBytes = qsizetype(length);
                     mapData.nPlanes = 1;
                     mapData.bytesPerLine[0] = m_bytesPerLine;
                     mapData.data[0] = reinterpret_cast<uchar *>(bytes);
+                    mapData.size[0] = qsizetype(length);
                     m_mapMode = mode;
                 } else {
                     qWarning("Faild to lock mf buffer!");

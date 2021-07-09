@@ -1,0 +1,18 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>MediaList.qml</file>
+        <file>AudioInputSelect.qml</file>
+        <file>CameraSelect.qml</file>
+        <file>RecordButton.qml</file>
+        <file>Controls.qml</file>
+        <file>StyleParameter.qml</file>
+        <file>StyleRectangle.qml</file>
+        <file>SettingsMetaData.qml</file>
+        <file>SettingsEncoder.qml</file>
+        <file>StyleSlider.qml</file>
+        <file>Style.qml</file>
+        <file>qmldir</file>
+        <file>Playback.qml</file>
+    </qresource>
+</RCC>

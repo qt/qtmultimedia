@@ -80,10 +80,10 @@ public:
 
     virtual void setAspectRatioMode(Qt::AspectRatioMode mode) = 0;
 
-    virtual void setBrightness(float brightness) = 0;
-    virtual void setContrast(float contrast) = 0;
-    virtual void setHue(float hue) = 0;
-    virtual void setSaturation(float saturation) = 0;
+    virtual void setBrightness(float /*brightness*/) {}
+    virtual void setContrast(float /*contrast*/) {}
+    virtual void setHue(float /*hue*/) {}
+    virtual void setSaturation(float /*saturation*/) {}
 
     QVideoSink *videoSink() { return sink; }
 
