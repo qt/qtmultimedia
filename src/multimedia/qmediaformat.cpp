@@ -127,19 +127,33 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
 /*! \enum QMediaFormat::FileFormat
 
     Describes the container format used in a multimedia file or stream.
+
+    //! TODO document each \value
+
+    \omitvalue LastFileFormat
 */
 
 /*! \enum QMediaFormat::AudioCodec
 
     Describes the audio coded used in multimedia file or stream.
+
+    //! TODO document each \value
+
+    \omitvalue LastAudioCodec
 */
 
-/*! \enum QMediaFormat::AudioCodec
+/*! \enum QMediaFormat::VideoCodec
 
     Describes the video coded used in multimedia file or stream.
+
+    //! TODO document each \value
+
+    \omitvalue LastVideoCodec
 */
 
 /*! \class QMediaFormat
+    \inmodule QtMultimedia
+    \since 6.2
 
     Describes an encoding format for a multimedia file or stream.
 
@@ -182,18 +196,26 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
     Moves \a other into this QMediaFormat objects.
 */
 
-/*! \fn void QMediaFormat::setMediaContainer(QMediaFormat::FileFormat container)
+// Properties
+/*! \property QMediaFormat::fileFormat
 
-    Sets the container to \a container.
+    \brief The file (container) format of the media.
 
-    \sa mediaContainer(), QMediaFormat::FileFormat
+    \sa QMediaFormat::FileFormat
 */
 
-/*! \fn QMediaFormat::FileFormat QMediaFormat::mediaContainer() const
+/*! \property QMediaFormat::audioCodec
 
-    Returns the container used in this format.
+    \brief The audio codec of the media.
 
-    \sa setMediaContainer(), QMediaFormat::FileFormat
+    \sa QMediaFormat::AudioCodec
+*/
+
+/*! \property QMediaFormat::videoCodec
+
+    \brief The video codec of the media.
+
+    \sa QMediaFormat::VideoCodec
 */
 
 /*! \fn void QMediaFormat::setVideoCodec(VideoCodec codec)
@@ -222,11 +244,6 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
     Returns the audio codec used in this format.
 
     \sa setAudioCodec(), QMediaFormat::AudioCodec
-*/
-
-/*! \fn bool QMediaFormat::isValid() const
-
-    Returns true if the format is valid.
 */
 
 /*!

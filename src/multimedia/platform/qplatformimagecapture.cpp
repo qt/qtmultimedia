@@ -113,12 +113,6 @@ QPlatformImageCapture::QPlatformImageCapture(QImageCapture *parent)
 */
 
 /*!
-    \fn QPlatformImageCapture::cancelCapture()
-
-    Cancel pending capture requests.
-*/
-
-/*!
     \fn QPlatformImageCapture::imageExposed(int requestId)
 
     Signals that an image with it \a requestId

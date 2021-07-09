@@ -684,7 +684,7 @@ QVideoSink *QMediaPlayer::videoSink() const
 
 
 #if 0
-/*!
+/*
     \since 5.15
     Sets multiple video sinks as the video output of a media player.
     This allows the media player to render video frames on several outputs.
@@ -726,7 +726,7 @@ QMediaMetaData QMediaPlayer::metaData() const
 
 // Enums
 /*!
-    \enum QMediaPlayer::State
+    \enum QMediaPlayer::PlaybackState
 
     Defines the current state of a media player.
 
@@ -771,17 +771,12 @@ QMediaMetaData QMediaPlayer::metaData() const
 
 // Signals
 /*!
-    \fn QMediaPlayer::error(QMediaPlayer::Error error)
+    \fn QMediaPlayer::errorOccurred(QMediaPlayer::Error error, const QString &errorString)
 
-    Signals that an \a error condition has occurred.
+    Signals that an \a error condition has occurred, with \a errorString
+    containing a description of the error.
 
     \sa errorString()
-*/
-
-/*!
-    \fn void QMediaPlayer::stateChanged(State state)
-
-    Signal the \a state of the Player object has changed.
 */
 
 /*!
@@ -793,19 +788,9 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
-    \fn void QMediaPlayer::mediaChanged(const QUrl &media);
+    \fn void QMediaPlayer::sourceChanged(const QUrl &media);
 
     Signals that the media source has been changed to \a media.
-
-    \sa media(), currentMediaChanged()
-*/
-
-/*!
-    \fn void QMediaPlayer::currentMediaChanged(const QUrl &media);
-
-    Signals that the current playing content has been changed to \a media.
-
-    \sa currentMedia(), mediaChanged()
 */
 
 /*!
@@ -822,15 +807,6 @@ QMediaMetaData QMediaPlayer::metaData() const
 
 // Properties
 /*!
-    \property QMediaPlayer::state
-    \brief the media player's playback state.
-
-    By default this property is QMediaPlayer::Stopped
-
-    \sa mediaStatus(), play(), pause(), stop()
-*/
-
-/*!
     \property QMediaPlayer::error
     \brief a string describing the last error condition.
 
@@ -838,7 +814,7 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
-    \property QMediaPlayer::media
+    \property QMediaPlayer::source
     \brief the active media source being used by the player object.
 
     The player object will use the QUrl for selection of the content to
@@ -899,22 +875,21 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
-    \property QMediaPlayer::audioAvailable
+    \property QMediaPlayer::hasAudio
     \brief the audio availabilty status for the current media.
 
-    As the life time of QMediaPlayer can be longer than the playback of one
-    QUrl, this property may change over time, the
-    audioAvailableChanged signal can be used to monitor it's status.
+    \note As the life time of QMediaPlayer can be longer than the playback of
+    one QUrl, this property may change over time.
 */
 
 /*!
-    \property QMediaPlayer::videoAvailable
+    \property QMediaPlayer::hasVideo
     \brief the video availability status for the current media.
 
-    If available, the QVideoWidget class can be used to view the video. As the
-    life time of QMediaPlayer can be longer than the playback of one
-    QUrl, this property may change over time, the
-    videoAvailableChanged signal can be used to monitor it's status.
+    If available, the QVideoWidget class can be used to view the video.
+
+    \note As the life time of QMediaPlayer can be longer than the playback of
+    one QUrl, this property may change over time.
 
     \sa QVideoWidget, QUrl
 */
@@ -957,13 +932,13 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
-    \fn void QMediaPlayer::videoAvailableChanged(bool videoAvailable)
+    \fn void QMediaPlayer::hasVideoChanged(bool videoAvailable)
 
     Signal the availability of visual content has changed to \a videoAvailable.
 */
 
 /*!
-    \fn void QMediaPlayer::audioAvailableChanged(bool available)
+    \fn void QMediaPlayer::hasAudioChanged(bool available)
 
     Signals the availability of audio content has changed to \a available.
 */

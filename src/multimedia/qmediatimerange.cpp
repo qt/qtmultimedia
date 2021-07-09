@@ -559,7 +559,6 @@ bool QMediaTimeRange::contains(qint64 time) const
 
 /*!
     \fn bool QMediaTimeRange::operator==(const QMediaTimeRange &lhs, const QMediaTimeRange &rhs)
-    \relates QMediaTimeRange
 
     Returns true if all intervals in \a lhs are present in \a rhs.
 */
@@ -571,13 +570,15 @@ bool QMediaTimeRange::contains(qint64 time) const
 */
 
 /*!
-    \fn QMediaTimeRange QMediaTimeRange::operator+(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
+    \fn QMediaTimeRange operator+(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
+    \relates QMediaTimeRange
 
     Returns a time range containing the union between \a r1 and \a r2.
  */
 
 /*!
-    \fn QMediaTimeRange QMediaTimeRange::operator-(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
+    \fn QMediaTimeRange operator-(const QMediaTimeRange &r1, const QMediaTimeRange &r2)
+    \relates QMediaTimeRange
 
     Returns a time range containing \a r2 subtracted from \a r1.
  */

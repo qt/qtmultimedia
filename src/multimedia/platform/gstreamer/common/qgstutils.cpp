@@ -94,8 +94,8 @@ static QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
 
 }
 
-/*
-  Returns audio format for a sample.
+/*!
+  Returns audio format for a sample \a sample.
   If the buffer doesn't have a valid audio format, an empty QAudioFormat is returned.
 */
 QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
@@ -127,9 +127,10 @@ QAudioFormat QGstUtils::audioFormatForCaps(QGstCaps caps)
 }
 
 /*!
-  Builds GstCaps for an audio format.
+  Builds GstCaps for an audio format \a format.
   Returns 0 if the audio format is not valid.
-  Caller must unref GstCaps.
+
+  \note Caller must unreference GstCaps.
 */
 
 QGstMutableCaps QGstUtils::capsForAudioFormat(const QAudioFormat &format)

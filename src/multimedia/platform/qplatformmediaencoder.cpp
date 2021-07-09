@@ -134,16 +134,10 @@ void QPlatformMediaEncoder::resume() {
 
 
 /*!
-    \fn void QPlatformMediaEncoder::applySettings()
+    \fn QPlatformMediaEncoder::applySettings(const QMediaEncoderSettings &)
 
     Commits the encoder settings and performs pre-initialization to reduce delays when recording
     is started.
-*/
-
-/*!
-    \fn bool QPlatformMediaEncoder::isMuted() const
-
-    Returns true if the recorder is muted, and false if it is not.
 */
 
 /*!
@@ -186,7 +180,7 @@ void QPlatformMediaEncoder::actualLocationChanged(const QUrl &location)
 }
 
 /*!
-    \fn void QPlatformMediaEncoder::error(int error, const QString &errorString)
+    \fn void QPlatformMediaEncoder::error(QMediaRecorder::Error error, const QString &errorString)
 
     Signals that an \a error has occurred.  The \a errorString describes the error.
 */

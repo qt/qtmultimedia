@@ -26,14 +26,14 @@
 ****************************************************************************/
 
 /*!
-    \example multimedia/audioinput
-    \title Audio Input Example
+    \example multimedia/audiosource
+    \title Audio Source Example
     \ingroup multimedia_examples
     \brief Recording audio using the QAudioSource class.
 
-    \e{Audio Input} demonstrates the basic use cases of QAudioSource.
+    \e{Audio Source} demonstrates the basic use cases of QAudioSource.
 
-    \image audioinput-example.png
+    \image audiosource-example.png
 
     Qt provides the QAudioSource class to enable audio functionality within
     a standard application user interface.

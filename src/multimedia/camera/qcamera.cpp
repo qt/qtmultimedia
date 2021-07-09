@@ -256,17 +256,13 @@ QCamera::Features QCamera::supportedFeatures() const
     Same as setActive(true).
 
     If the camera can't be started for some reason, the errorOccurred() signal is emitted.
-
-    While the camera state is changed to QCamera::ActiveState,
-    starting the camera service can be asynchronous with the actual
-    status reported with QCamera::status property.
 */
 
 /*! \fn void QCamera::stop()
 
     Stops the camera.
 
-    \sa unload(), QCamera::InactiveStatus
+    \sa unload()
 */
 
 /*!
@@ -354,36 +350,6 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 }
 
 /*!
-    \enum QCamera::Status
-
-    This enum holds the current status of the camera.
-
-    \value ActiveStatus
-           The camera has been started and can produce data.
-           The viewfinder displays video frames in active state.
-           Depending on backend, changing some camera settings like
-           capture mode, codecs or resolution in ActiveState may lead
-           to changing the camera status to LoadedStatus and StartingStatus while
-           the settings are applied and back to ActiveStatus when the camera is ready.
-    \value StartingStatus
-           The camera is starting in result of state transition to QCamera::ActiveState.
-           The camera service is not ready to capture yet.
-    \value StoppingStatus
-           The camera is stopping in result of state transition from QCamera::ActiveState
-           to QCamera::LoadedState or QCamera::UnloadedState.
-    \value InactiveStatus
-           The camera is not currently active.
-    \value UnavailableStatus
-           The camera or camera backend is not available.
-*/
-
-
-/*!
-    \property QCamera::status
-    \brief The current status of the camera object.
-*/
-
-/*!
     \enum QCamera::Error
 
     This enum holds the last error code.
@@ -393,17 +359,10 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 */
 
 /*!
-    \fn void QCamera::error(QCamera::Error value)
-    \obsolete
+    \fn void QCamera::errorOccurred(QCamera::Error error, const QString &errorString)
 
-    Use errorOccurred() instead.
-*/
-
-/*!
-    \fn void QCamera::errorOccurred(QCamera::Error value)
-    \since 5.15
-
-    Signal emitted when error state changes to \a value.
+    This signal is emitted when error state changes to \a error. A description
+    of the error is  provided as \a errorString.
 */
 
 /*!
@@ -424,24 +383,6 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 
     \sa QCameraDevice::position()
 */
-
-/*!
-  \fn QCamera::stateChanged(QCamera::State state)
-
-  Signals the camera \a state has changed.
-
-  Usually the state changes is caused by calling
-  load(), unload(), start() and stop(),
-  but the state can also be changed change as a result of camera error.
-*/
-
-/*!
-  \fn QCamera::statusChanged(QCamera::Status status)
-
-  Signals the camera \a status has changed.
-
-*/
-
 
 /*!
     \property QCamera::focusMode
@@ -603,33 +544,6 @@ void QCamera::zoomTo(float factor, float rate)
                                 distance out to infinity will be acceptably sharp.
     \value FocusModeInfinity    Focus strictly to infinity.
     \value FocusModeManual      Manual or fixed focus mode.
-*/
-
-/*!
-    \fn void QCamera::opticalZoomChanged(qreal value)
-
-    Signal emitted when optical zoom value changes to new \a value.
-*/
-
-/*!
-    \fn void QCamera::digitalZoomChanged(qreal value)
-
-    Signal emitted when digital zoom value changes to new \a value.
-*/
-
-/*!
-    \fn void QCamera::maximumOpticalZoomChanged(qreal zoom)
-
-    Signal emitted when the maximum supported optical \a zoom value changed.
-*/
-
-/*!
-    \fn void QCamera::maximumDigitalZoomChanged(qreal zoom)
-
-    Signal emitted when the maximum supported digital \a zoom value changed.
-
-    The maximum supported zoom value can depend on other camera settings,
-    like capture mode or resolution.
 */
 
 /*!
@@ -935,13 +849,6 @@ void QCamera::setAutoExposureTime()
 
     Signal the flash \a ready status has changed.
 */
-
-/*!
-    \fn void QCamera::exposureTimeRangeChanged()
-
-    Signal emitted when the exposure time range has changed.
-*/
-
 
 /*!
     \fn void QCamera::isoSensitivityChanged(int value)

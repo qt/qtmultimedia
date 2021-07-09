@@ -50,15 +50,6 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_control
     \brief The QPlatformVideoSink class provides a media control for rendering video to a window.
 
-
-    The winId() property QPlatformVideoSink allows a platform specific window
-    ID to be set as the video render target.  The
-    displayRect() property is used to set the region of the window the video
-    should be rendered to, and the aspectRatioMode() property indicates how the
-    video should be scaled to fit the displayRect().
-
-    \snippet multimedia-snippets/video.cpp Video window control
-
     QPlatformVideoSink is one of a number of possible video output controls.
 
     \sa QVideoWidget
@@ -74,20 +65,9 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
 }
 
 /*!
-    \fn QPlatformVideoSink::winId() const
-
-    Returns the ID of the window a video overlay end point renders to.
-*/
-
-/*!
     \fn QPlatformVideoSink::setWinId(WId id)
 
     Sets the \a id of the window a video overlay end point renders to.
-*/
-
-/*!
-    \fn QPlatformVideoSink::displayRect() const
-    Returns the sub-rect of a window where video is displayed.
 */
 
 /*!
@@ -96,23 +76,9 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
 */
 
 /*!
-    \fn QPlatformVideoSink::isFullScreen() const
-
-    Identifies if a video overlay is a fullScreen overlay.
-
-    Returns true if the video overlay is fullScreen, and false otherwise.
-*/
-
-/*!
     \fn QPlatformVideoSink::setFullScreen(bool fullScreen)
 
     Sets whether a video overlay is a \a fullScreen overlay.
-*/
-
-/*!
-    \fn QPlatformVideoSink::repaint()
-
-    Repaints the last frame.
 */
 
 /*!
@@ -128,12 +94,6 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
     Signals that the native dimensions of the video have changed.
 */
 
-
-/*!
-    \fn QPlatformVideoSink::aspectRatioMode() const
-
-    Returns how video is scaled to fit the display region with respect to its aspect ratio.
-*/
 
 /*!
     \fn QPlatformVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)

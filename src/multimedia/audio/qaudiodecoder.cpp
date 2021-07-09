@@ -95,7 +95,8 @@ bool QAudioDecoder::isSupported() const
 }
 
 /*!
-    Returns true if the decoder is currently running and decoding audio data.
+    \property QAudioDecoder::isDecoding
+    \brief \c true if the decoder is currently running and decoding audio data.
 */
 bool QAudioDecoder::isDecoding() const
 {
@@ -103,7 +104,8 @@ bool QAudioDecoder::isDecoding() const
 }
 
 /*!
-    Returns the current error state.
+    \property QAudioDecoder::error
+    \brief The current error state.
 */
 QAudioDecoder::Error QAudioDecoder::error() const
 {
@@ -113,8 +115,8 @@ QAudioDecoder::Error QAudioDecoder::error() const
 }
 
 /*!
-    Returns a human readable description of the current error.
-    Returns an empty string is there is no error.
+    Returns a human readable description of the current error, or
+    an empty string is there is no error.
 */
 QString QAudioDecoder::errorString() const
 {
@@ -270,16 +272,6 @@ QAudioBuffer QAudioDecoder::read() const
 
 // Enums
 /*!
-    \enum QAudioDecoder::State
-
-    Defines the current state of a media player.
-
-    \value StoppedState The decoder is not decoding.  Decoding will
-           start at the start of the media.
-    \value DecodingState The audio player is currently decoding media.
-*/
-
-/*!
     \enum QAudioDecoder::Error
 
     Defines a media player error condition.
@@ -301,25 +293,11 @@ QAudioBuffer QAudioDecoder::read() const
 */
 
 /*!
-    \fn void QAudioDecoder::stateChanged(State state)
-
-    Signal the \a state of the decoder object has changed.
-*/
-
-/*!
     \fn void QAudioDecoder::sourceChanged()
 
     Signals that the current source of the decoder has changed.
 
     \sa source(), sourceDevice()
-*/
-
-/*!
-    \fn void QAudioDecoder::formatChanged(const QAudioFormat &format)
-
-    Signals that the current audio format of the decoder has changed to \a format.
-
-    \sa audioFormat(), setAudioFormat()
 */
 
 /*!
@@ -367,22 +345,6 @@ QAudioBuffer QAudioDecoder::read() const
 
 
 // Properties
-/*!
-    \property QAudioDecoder::state
-    \brief the audio decoder's playback state.
-
-    By default this property is QAudioDecoder::Stopped
-
-    \sa start(), stop()
-*/
-
-/*!
-    \property QAudioDecoder::error
-    \brief a string describing the last error condition.
-
-    \sa error()
-*/
-
 /*!
     \property QAudioDecoder::source
     \brief the active filename being decoded by the decoder object.

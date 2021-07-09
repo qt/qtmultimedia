@@ -127,14 +127,6 @@ QVideoFrame::HandleType QAbstractVideoBuffer::handleType() const
     return m_type;
 }
 
-/*!
-    \fn QVideoFrame::mapMode() const
-
-    Returns the mode a video buffer is mapped in.
-
-    \sa map()
-*/
-
 /*! \fn uchar *QAbstractVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 
     Independently maps the planes of a video buffer to memory.
@@ -181,7 +173,7 @@ QVideoFrame::HandleType QAbstractVideoBuffer::handleType() const
     \sa handleType()
 */
 
-/*!
+/*
     \fn int QAbstractPlanarVideoBuffer::map(MapMode mode, int *numBytes, int bytesPerLine[4], uchar *data[4])
 
     Maps the contents of a video buffer to memory.

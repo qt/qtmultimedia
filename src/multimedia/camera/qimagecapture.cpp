@@ -204,8 +204,11 @@ QString QImageCapture::errorString() const
 }
 
 /*!
-    Returns the meta data that will get embedded into the image. A couple of additional fields
-    such as a time stamp or location might get added by the camera backend.
+    \property QImageCapture::metaData
+    \brief The meta data that will get embedded into the image.
+
+    \note Additional fields such as a time stamp or location may get added by
+          the camera backend.
 */
 QMediaMetaData QImageCapture::metaData() const
 {
@@ -343,16 +346,10 @@ int QImageCapture::capture()
 */
 
 /*!
-    \fn QImageCapture::error(int id, QImageCapture::Error error, const QString &errorString)
+    \fn QImageCapture::errorOccurred(int id, QImageCapture::Error error, const QString &errorString);
 
     Signals that the capture request \a id has failed with an \a error
     and \a errorString description.
-*/
-
-/*!
-    \fn QImageCapture::bufferFormatChanged(QVideoFrameFormat::PixelFormat format)
-
-    Signal emitted when the buffer \a format for the buffer image capture has changed.
 */
 
 /*!
@@ -366,15 +363,6 @@ int QImageCapture::capture()
 
     Signal emitted when the frame with request \a id was captured, but not
     processed and saved yet. Frame \a preview can be displayed to user.
-*/
-
-/*!
-    \fn QImageCapture::imageMetadataAvailable(int id, const QString &key, const QVariant &value)
-
-    Signals that a metadata for an image with request \a id is available. Also
-    includes the \a key and \a value of the metadata.
-
-    This signal is emitted between imageExposed and imageSaved signals.
 */
 
 /*!
@@ -392,7 +380,8 @@ int QImageCapture::capture()
 */
 
 /*!
-    Returns the image format.
+    \property QImageCapture::fileFormat
+    \brief The image format.
 */
 
 QImageCapture::FileFormat QImageCapture::fileFormat() const
@@ -512,7 +501,7 @@ void QImageCapture::setResolution(int width, int height)
 }
 
 /*!
-    \enum QImageCapture::EncodingQuality
+    \enum QImageCapture::Quality
 
     Enumerates quality encoding levels.
 
@@ -524,7 +513,8 @@ void QImageCapture::setResolution(int width, int height)
 */
 
 /*!
-    Returns the image encoding quality.
+    \property QImageCapture::quality
+    \brief The image encoding quality.
 */
 QImageCapture::Quality QImageCapture::quality() const
 {

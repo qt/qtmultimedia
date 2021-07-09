@@ -172,9 +172,7 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 */
 
 /*!
-    Returns true if media recorder service ready to use.
-
-    \sa availabilityChanged()
+    Returns \c true if media recorder service ready to use.
 */
 bool QMediaRecorder::isAvailable() const
 {
@@ -331,7 +329,7 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \property QMediaRecorder::RecorderState
+    \property QMediaRecorder::recorderState
     \brief The current state of the media recorder.
 
     The state property represents the user request and is changed synchronously
@@ -340,7 +338,7 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \fn QMediaRecorder::recorderStateChanged(State state)
+    \fn QMediaRecorder::recorderStateChanged(QMediaRecorder::RecorderState state)
 
     Signals that a media recorder's \a state has changed.
 */
@@ -359,21 +357,10 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \fn QMediaRecorder::error(QMediaRecorder::Error error)
+    \fn QMediaRecorder::errorOccurred(QMediaRecorder::Error error, const QString &errorString)
 
-    Signals that an \a error has occurred.
-*/
-
-/*!
-    \fn QMediaRecorder::availabilityChanged(bool available)
-
-    Signals that the media recorder is now available (if \a available is true), or not.
-*/
-
-/*!
-    \fn QMediaRecorder::mutedChanged(bool muted)
-
-    Signals that the \a muted state has changed. If true the recording is being muted.
+    Signals that an \a error has occurred, with \a errorString containing
+    a description of the error.
 */
 
 /*!
@@ -426,7 +413,7 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
 }
 
 /*!
-    \enum QMediaRecorder::EncodingQuality
+    \enum QMediaRecorder::Quality
 
     Enumerates quality encoding levels.
 

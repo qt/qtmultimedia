@@ -87,16 +87,6 @@
     This property can be used to select any other output device listed by QMediaDevices::audioOutputs().
 */
 
-/*!
-    \property QAudioOutput::audioRole
-    \brief the role of the audio played by this output.
-
-    It can be set to specify the type of audio being played, allowing the system to make
-    appropriate decisions when it comes to volume, routing or post-processing.
-
-    \sa supportedAudioRoles()
-*/
-
 QAudioOutput::QAudioOutput(QObject *parent)
     : QAudioOutput(QMediaDevices::defaultAudioOutput(), parent)
 {}

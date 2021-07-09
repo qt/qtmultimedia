@@ -82,63 +82,11 @@ QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera)
 }
 
 /*!
-    \fn QPlatformCamera::state() const
-
-    Returns the state of the camera service.
-
-    \sa QCamera::state
-*/
-
-/*!
-    \fn QPlatformCamera::setState(QCamera::State state)
-
-    Sets the camera \a state.
-
-    State changes are synchronous and indicate user intention.
-
-    \sa QCamera::State
-*/
-
-/*!
-    \fn void QPlatformCamera::stateChanged(QCamera::State state)
-
-    Signal emitted when the camera \a state changes.
-
-    In most cases the state chage is caused by QPlatformCamera::setState(),
-    but if critical error has occurred the state changes to QCamera::UnloadedState.
-*/
-
-/*!
     \fn void QPlatformCamera::error(int error, const QString &errorString)
 
     Signal emitted when an error occurs with error code \a error and
     a description of the error \a errorString.
 */
-
-/*!
-    \fn QPlatformCamera::supportedViewfinderSettings() const
-
-    Returns a list of supported camera viewfinder settings.
-
-    The list is ordered by preference; preferred settings come first.
-*/
-
-/*!
-    \fn QPlatformCamera::viewfinderSettings() const
-
-    Returns the viewfinder settings.
-
-    If undefined or unsupported values are passed to QPlatformCamera::setViewfinderSettings(),
-    this function returns the actual settings used by the camera viewfinder. These may be available
-    only once the camera is active.
-*/
-
-/*!
-    \fn QPlatformCamera::setViewfinderSettings(const QCameraViewfinderSettings &settings)
-
-    Sets the camera viewfinder \a settings.
-*/
-
 
 void QPlatformCamera::supportedFeaturesChanged(QCamera::Features f)
 {
