@@ -110,8 +110,6 @@ namespace QAudio
 {
 
 /*!
-    \fn qreal QAudio::convertVolume(qreal volume, VolumeScale from, VolumeScale to)
-
     Converts an audio \a volume \a from a volume scale \a to another, and returns the result.
 
     Depending on the context, different scales are used to represent audio volume. All Qt Multimedia
@@ -133,27 +131,27 @@ namespace QAudio
     \sa VolumeScale, QMediaPlayer::setVolume(), QAudioSink::setVolume(),
         QAudioSource::setVolume(), QSoundEffect::setVolume(), QMediaRecorder::setVolume()
 */
-qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)
+float convertVolume(float volume, VolumeScale from, VolumeScale to)
 {
     switch (from) {
     case LinearVolumeScale:
-        volume = qMax(qreal(0), volume);
+        volume = qMax(float(0), volume);
         switch (to) {
         case LinearVolumeScale:
             return volume;
         case CubicVolumeScale:
-            return qPow(volume, qreal(1 / 3.0));
+            return qPow(volume, float(1 / 3.0));
         case LogarithmicVolumeScale:
             return 1 - std::exp(-volume * LOG100);
         case DecibelVolumeScale:
             if (volume < 0.001)
-                return qreal(-200);
+                return float(-200);
             else
-                return qreal(20.0) * std::log10(volume);
+                return float(20.0) * std::log10(volume);
         }
         break;
     case CubicVolumeScale:
-        volume = qMax(qreal(0), volume);
+        volume = qMax(float(0), volume);
         switch (to) {
         case LinearVolumeScale:
             return volume * volume * volume;
@@ -163,13 +161,13 @@ qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)
             return 1 - std::exp(-volume * volume * volume * LOG100);
         case DecibelVolumeScale:
             if (volume < 0.001)
-                return qreal(-200);
+                return float(-200);
             else
-                return qreal(3.0 * 20.0) * std::log10(volume);
+                return float(3.0 * 20.0) * std::log10(volume);
         }
         break;
     case LogarithmicVolumeScale:
-        volume = qMax(qreal(0), volume);
+        volume = qMax(float(0), volume);
         switch (to) {
         case LinearVolumeScale:
             if (volume > 0.99)
@@ -180,29 +178,29 @@ qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to)
             if (volume > 0.99)
                 return 1;
             else
-                return qPow(-std::log(1 - volume) / LOG100, qreal(1 / 3.0));
+                return qPow(-std::log(1 - volume) / LOG100, float(1 / 3.0));
         case LogarithmicVolumeScale:
             return volume;
         case DecibelVolumeScale:
             if (volume < 0.001)
-                return qreal(-200);
+                return float(-200);
             else if (volume > 0.99)
                 return 0;
             else
-                return qreal(20.0) * std::log10(-std::log(1 - volume) / LOG100);
+                return float(20.0) * std::log10(-std::log(1 - volume) / LOG100);
         }
         break;
     case DecibelVolumeScale:
         switch (to) {
         case LinearVolumeScale:
-            return qPow(qreal(10.0), volume / qreal(20.0));
+            return qPow(float(10.0), volume / float(20.0));
         case CubicVolumeScale:
-            return qPow(qreal(10.0), volume / qreal(3.0 * 20.0));
+            return qPow(float(10.0), volume / float(3.0 * 20.0));
         case LogarithmicVolumeScale:
             if (qFuzzyIsNull(volume))
                 return 1;
             else
-                return 1 - std::exp(-qPow(qreal(10.0), volume / qreal(20.0)) * LOG100);
+                return 1 - std::exp(-qPow(float(10.0), volume / float(20.0)) * LOG100);
         case DecibelVolumeScale:
             return volume;
         }
