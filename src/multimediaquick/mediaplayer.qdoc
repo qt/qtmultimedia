@@ -502,7 +502,7 @@
 
 /*!
     \qmltype MediaPlayer
-    \instantiates QDeclarativeAudio
+    \instantiates QMediaPlayer
     \brief Add media playback to a scene.
 
     \inqmlmodule QtMultimedia

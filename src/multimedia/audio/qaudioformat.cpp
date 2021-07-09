@@ -142,28 +142,44 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \enum AudioChannel
+    \enum QAudioFormat::AudioChannelPosition
 
-    The audio channels follow the standard definition used in
+    Describes the possible audio channel positions. These follow the standard
+    definition used in the 22.2 surround sound configuration.
 
-    \value Mono
-    \value Left
-    \value Right
-    \value Center
+    \value UnknownPosition Unknown position
+    \value FrontLeft
+    \value FrontRight
+    \value FrontCenter
     \value LFE Low Frequence Effect channel (Subwoofer)
-    \value RearLeft
-    \value RearRight,
-    \value SideLeft,
+    \value BackLeft
+    \value BackRight
+    \value FrontLeftOfCenter
+    \value FrontRightOfCenter
+    \value BackCenter
+    \value LFE2
+    \value SideLeft
     \value SideRight
-    \value RearCenter
+    \value TopFrontLeft
+    \value TopFrontRight
+    \value TopFrontCenter
+    \value TopCenter
+    \value TopBackLeft
+    \value TopBackRight
+    \value TopSideLeft
+    \value TopSideRight
+    \value TopBackCenter
+    \value BottomFrontCenter
+    \value BottomFrontLeft
+    \value BottomFrontRight
 */
 
 
 /*!
-    \enum ChannelConfig
+    \enum QAudioFormat::ChannelConfig
 
     This enum describes a standardized audio channel layout. The most common configurations are Mono, Stereo, 2.1
-    (stereo plus low frequency) , 5.1 surround and 7.1 surround configurations.
+    (stereo plus low frequency), 5.1 surround, and 7.1 surround configurations.
 
     \value ChannelConfigUnknown The channel configuration is not known.
     \value ChannelConfigMono The audio has one Center channel

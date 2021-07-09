@@ -713,31 +713,6 @@ QSoundEffect::Status QSoundEffect::status() const
 }
 
 /*!
-    \qmlproperty string QtMultimedia::SoundEffect::category
-
-    This property contains the \e category of this sound effect.
-
-    Some platforms can perform different audio routing
-    for different categories, or may allow the user to
-    set different volume levels for different categories.
-
-    This setting will be ignored on platforms that do not
-    support audio categories.
-*/
-/*!
-    \property QSoundEffect::category
-
-    This property contains the \e category of this sound effect.
-
-    Some platforms can perform different audio routing
-    for different categories, or may allow the user to
-    set different volume levels for different categories.
-
-    This setting will be ignored on platforms that do not
-    support audio categories.
-*/
-
-/*!
   \qmlmethod QtMultimedia::SoundEffect::stop()
 
   Stop current playback.
@@ -770,8 +745,6 @@ void QSoundEffect::stop()
     \qmlsignal QtMultimedia::SoundEffect::sourceChanged()
 
     The \c sourceChanged signal is emitted when the source has been changed.
-
-    The corresponding handler is \c onSourceChanged.
 */
 /*!
     \fn void QSoundEffect::loadedChanged()
@@ -782,8 +755,6 @@ void QSoundEffect::stop()
     \qmlsignal QtMultimedia::SoundEffect::loadedChanged()
 
     The \c loadedChanged signal is emitted when the loading state has changed.
-
-    The corresponding handler is \c onLoadedChanged.
 */
 
 /*!
@@ -795,8 +766,6 @@ void QSoundEffect::stop()
     \qmlsignal QtMultimedia::SoundEffect::loopCountChanged()
 
     The \c loopCountChanged signal is emitted when the initial number of loops has changed.
-
-    The corresponding handler is \c onLoopCountChanged.
 */
 
 /*!
@@ -808,8 +777,6 @@ void QSoundEffect::stop()
     \qmlsignal QtMultimedia::SoundEffect::loopsRemainingChanged()
 
     The \c loopsRemainingChanged signal is emitted when the remaining number of loops has changed.
-
-    The corresponding handler is \c onLoopsRemainingChanged.
 */
 
 /*!
@@ -821,8 +788,6 @@ void QSoundEffect::stop()
     \qmlsignal QtMultimedia::SoundEffect::volumeChanged()
 
     The \c volumeChanged signal is emitted when the volume has changed.
-
-    The corresponding handler is \c onVolumeChanged.
 */
 
 /*!
@@ -834,8 +799,6 @@ void QSoundEffect::stop()
     \qmlsignal QtMultimedia::SoundEffect::mutedChanged()
 
     The \c mutedChanged signal is emitted when the mute state has changed.
-
-    The corresponding handler is \c onMutedChanged.
 */
 
 /*!
@@ -847,8 +810,6 @@ void QSoundEffect::stop()
     \qmlsignal QtMultimedia::SoundEffect::playingChanged()
 
     The \c playingChanged signal is emitted when the playing property has changed.
-
-    The corresponding handler is \c onPlayingChanged.
 */
 
 /*!
@@ -860,21 +821,6 @@ void QSoundEffect::stop()
     \qmlsignal QtMultimedia::SoundEffect::statusChanged()
 
     The \c statusChanged signal is emitted when the status property has changed.
-
-    The corresponding handler is \c onStatusChanged.
-*/
-
-/*!
-    \fn void QSoundEffect::categoryChanged()
-
-    The \c categoryChanged signal is emitted when the category property has changed.
-*/
-/*!
-    \qmlsignal QtMultimedia::SoundEffect::categoryChanged()
-
-    The \c categoryChanged signal is emitted when the category property has changed.
-
-    The corresponding handler is \c onCategoryChanged.
 */
 
 QT_END_NAMESPACE

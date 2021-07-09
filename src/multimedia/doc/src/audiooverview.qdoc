@@ -65,14 +65,11 @@ Here is how you play a local file using C++:
 
     \snippet multimedia-snippets/media.cpp Local playback
 
-You can also put files, and remote URLs into a playlist:
-    \snippet multimedia-snippets/media.cpp Audio playlist
-
 \section2 Recording Audio to a File
 For recording audio to a file, the QMediaRecorder class allows you
 to compress audio data from an input device and record it.
 
-    \snippet multimedia-snippets/media.cpp Audio recorder
+    \snippet multimedia-snippets/media.cpp Media recorder
 
 QMediaCaptureSession provides support for more complex use cases involving the
 capturing and recording of audio.

@@ -59,85 +59,85 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn virtual void QPlatformAudioSink::start(QIODevice* device)
+    \fn void QPlatformAudioSink::start(QIODevice* device)
     Uses the \a device as the QIODevice to transfer data.
 */
 
 /*!
-    \fn virtual QIODevice* QPlatformAudioSink::start()
+    \fn QIODevice* QPlatformAudioSink::start()
     Returns a pointer to the QIODevice being used to handle
     the data transfer. This QIODevice can be used to write() audio data directly.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSink::stop()
+    \fn void QPlatformAudioSink::stop()
     Stops the audio output.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSink::reset()
+    \fn void QPlatformAudioSink::reset()
     Drops all audio data in the buffers, resets buffers to zero.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSink::suspend()
+    \fn void QPlatformAudioSink::suspend()
     Stops processing audio data, preserving buffered audio data.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSink::resume()
+    \fn void QPlatformAudioSink::resume()
     Resumes processing audio data after a suspend()
 */
 
 /*!
-    \fn virtual qsizetype QPlatformAudioSink::bytesFree() const
+    \fn qsizetype QPlatformAudioSink::bytesFree() const
     Returns the free space available in bytes in the audio buffer.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSink::setBufferSize(qsizetype value)
+    \fn void QPlatformAudioSink::setBufferSize(qsizetype value)
     Sets the audio buffer size to \a value in bytes.
 */
 
 /*!
-    \fn virtual qsizetype QPlatformAudioSink::bufferSize() const
+    \fn qsizetype QPlatformAudioSink::bufferSize() const
     Returns the audio buffer size in bytes.
 */
 
 /*!
-    \fn virtual qint64 QPlatformAudioSink::processedUSecs() const
+    \fn qint64 QPlatformAudioSink::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
 */
 
 /*!
-    \fn virtual QAudio::Error QPlatformAudioSink::error() const
+    \fn QAudio::Error QPlatformAudioSink::error() const
     Returns the error state.
 */
 
 /*!
-    \fn virtual QAudio::State QPlatformAudioSink::state() const
+    \fn QAudio::State QPlatformAudioSink::state() const
     Returns the state of audio processing.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSink::setFormat(const QAudioFormat& fmt)
+    \fn void QPlatformAudioSink::setFormat(const QAudioFormat& fmt)
     Set the QAudioFormat to use to \a fmt.
     Setting the format is only allowable while in QAudio::StoppedState.
 */
 
 /*!
-    \fn virtual QAudioFormat QPlatformAudioSink::format() const
+    \fn QAudioFormat QPlatformAudioSink::format() const
     Returns the QAudioFormat being used.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSink::setVolume(qreal volume)
+    \fn void QPlatformAudioSink::setVolume(qreal volume)
     Sets the volume.
     Where \a volume is between 0.0 and 1.0.
 */
 
 /*!
-    \fn virtual qreal QPlatformAudioSink::volume() const
+    \fn qreal QPlatformAudioSink::volume() const
     Returns the volume in the range 0.0 and 1.0.
 */
 
@@ -169,74 +169,74 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn virtual void QPlatformAudioSource::start(QIODevice* device)
+    \fn void QPlatformAudioSource::start(QIODevice* device)
     Uses the \a device as the QIODevice to transfer data.
 */
 
 /*!
-    \fn virtual QIODevice* QPlatformAudioSource::start()
+    \fn QIODevice* QPlatformAudioSource::start()
     Returns a pointer to the QIODevice being used to handle
     the data transfer. This QIODevice can be used to read() audio data directly.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSource::stop()
+    \fn void QPlatformAudioSource::stop()
     Stops the audio input.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSource::reset()
+    \fn void QPlatformAudioSource::reset()
     Drops all audio data in the buffers, resets buffers to zero.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSource::suspend()
+    \fn void QPlatformAudioSource::suspend()
     Stops processing audio data, preserving buffered audio data.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSource::resume()
+    \fn void QPlatformAudioSource::resume()
     Resumes processing audio data after a suspend().
 */
 
 /*!
-    \fn virtual qsizetype QPlatformAudioSource::bytesReady() const
+    \fn qsizetype QPlatformAudioSource::bytesReady() const
     Returns the amount of audio data available to read in bytes.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSource::setBufferSize(qsizetype value)
+    \fn void QPlatformAudioSource::setBufferSize(qsizetype value)
     Sets the audio buffer size to \a value in milliseconds.
 */
 
 /*!
-    \fn virtual qsizetype QPlatformAudioSource::bufferSize() const
+    \fn qsizetype QPlatformAudioSource::bufferSize() const
     Returns the audio buffer size in milliseconds.
 */
 
 /*!
-    \fn virtual qint64 QPlatformAudioSource::processedUSecs() const
+    \fn qint64 QPlatformAudioSource::processedUSecs() const
     Returns the amount of audio data processed since start() was called in milliseconds.
 */
 
 /*!
-    \fn virtual QAudio::Error QPlatformAudioSource::error() const
+    \fn QAudio::Error QPlatformAudioSource::error() const
     Returns the error state.
 */
 
 /*!
-    \fn virtual QAudio::State QPlatformAudioSource::state() const
+    \fn QAudio::State QPlatformAudioSource::state() const
     Returns the state of audio processing.
 */
 
 /*!
-    \fn virtual void QPlatformAudioSource::setFormat(const QAudioFormat& fmt)
+    \fn void QPlatformAudioSource::setFormat(const QAudioFormat& fmt)
     Set the QAudioFormat to use to \a fmt.
     Setting the format is only allowable while in QAudio::StoppedState.
 */
 
 /*!
-    \fn virtual QAudioFormat QPlatformAudioSource::format() const
+    \fn QAudioFormat QPlatformAudioSource::format() const
     Returns the QAudioFormat being used
 */
 

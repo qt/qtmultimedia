@@ -73,7 +73,7 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QAudioDecoder *parent)
 */
 
 /*!
-    \fn QPlatformAudioDecoder::setSource(const QString &fileName)
+    \fn QPlatformAudioDecoder::setSource(const QUrl &fileName)
 
     Sets the current source to \a fileName.  Changing the source will
     stop any current decoding and discard any buffers.
@@ -208,30 +208,6 @@ void QPlatformAudioDecoder::durationChanged(qint64 duration)
 {
     q->durationChanged(duration);
 }
-
-/*!
-    \fn QPlatformAudioDecoder::audioFormat() const
-    Returns the current audio format of the decoded stream.
-
-    Any buffers returned should have this format.
-
-    \sa setAudioFormat(), formatChanged()
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::setAudioFormat(const QAudioFormat &format)
-    Set the desired audio format for decoded samples to \a format.
-
-    If the decoder does not support this format, \l error() will
-    be set to \c FormatError.
-
-    If you do not specify a format, the format of the decoded
-    audio itself will be used.  Otherwise, some format conversion
-    will be applied.
-
-    If you wish to reset the decoded format to that of the original
-    audio file, you can specify an invalid \a format.
-*/
 
 /*!
     \fn QPlatformAudioDecoder::read()

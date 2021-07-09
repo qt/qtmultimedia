@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.1.0)
+
+project(multimedia_cppsnippets)
+
+add_executable(mytarget
+    multimedia-snippets/media.cpp
+)
+
+# ![0]
+find_package(Qt6 COMPONENTS Multimedia REQUIRED)
+target_link_libraries(mytarget PRIVATE Qt6::Multimedia)
+# ![0]

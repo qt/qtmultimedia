@@ -30,19 +30,18 @@
     \title Qt Multimedia Module C++ Classes
     \ingroup modules
     \qtvariable multimedia
+    \qtcmakepackage Multimedia
 
     \brief The \l {Qt Multimedia} module provides audio, video and camera
     functionality.
 
-    To enable Qt Multimedia in a project, add this directive into the
+    To enable Qt Multimedia in a project, add this directive into your
     C++ files:
 
     \snippet doc_src_qtmultimedia.cpp 0
 
-    To link against the C++ libraries, add the following to your \c qmake project
-    file:
-
-    \snippet doc_src_qtmultimedia.pro 0
+    \include module-use.qdocinc using qt module
+    \snippet ../src/multimedia/doc/snippets/CMakeLists.txt 0
 */
 
 /*!
@@ -54,7 +53,7 @@
     QML alternatives. If your application is serving complex use cases such as
     decoding media files, accessing video or audio buffers, use the C++
     alternative. For more details about the complex audio, video, and camera use
-    cases supported by the C++ classes, refer to \l {Multimedia}{Multimedia Overview}.
+    cases supported by the C++ classes, refer to \l {Qt Multimedia}{Multimedia Overview}.
 
     \section1 Namespaces
     \annotatedlist multimedia-namespaces
