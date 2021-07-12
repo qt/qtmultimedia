@@ -114,7 +114,7 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaRecorder *parent)
     Pause media recording. Not all platforms supports this operation
 */
 void QPlatformMediaEncoder::pause() {
-    error(QMediaRecorder::FormatError, QObject::tr("Pause not supported"));
+    error(QMediaRecorder::FormatError, QMediaRecorder::tr("Pause not supported"));
 }
 
 /*!
@@ -123,7 +123,7 @@ void QPlatformMediaEncoder::pause() {
     Resume media recording. Not all platforms supports this operation
 */
 void QPlatformMediaEncoder::resume() {
-    error(QMediaRecorder::FormatError, QObject::tr("Resume not supported"));
+    error(QMediaRecorder::FormatError, QMediaRecorder::tr("Resume not supported"));
 }
 
 /*!
