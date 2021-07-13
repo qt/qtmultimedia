@@ -145,6 +145,10 @@ void QAndroidMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 
 void QAndroidMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 {
+    if (!m_cameraSession) {
+            m_cameraSession = new QAndroidCameraSession;
+            m_captureSession->setCameraSession(m_cameraSession);
+    }
     m_cameraSession->setVideoSink(sink);
 }
 
