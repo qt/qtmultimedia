@@ -51,11 +51,6 @@ QAndroidCamera::QAndroidCamera(QCamera *camera)
     : QPlatformCamera(camera)
 {
     Q_ASSERT(camera);
-
-    m_recalculateTimer = new QTimer(this);
-    m_recalculateTimer->setInterval(1000);
-    m_recalculateTimer->setSingleShot(true);
-    connect(m_recalculateTimer, SIGNAL(timeout()), this, SLOT(onRecalculateTimeOut()));
 }
 
 QAndroidCamera::~QAndroidCamera()
@@ -105,14 +100,8 @@ void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_cameraSession = m_service->cameraSession();
     Q_ASSERT(m_cameraSession);
 
-    connect(m_cameraSession, SIGNAL(statusChanged(QCamera::Status)),
-            this, SIGNAL(statusChanged(QCamera::Status)));
-
-    connect(m_cameraSession, SIGNAL(stateChanged(QCamera::State)),
-            this, SIGNAL(stateChanged(QCamera::State)));
-
-    connect(m_cameraSession, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
-
+    connect(m_cameraSession, &QAndroidCameraSession::activeChanged, this, &QAndroidCamera::activeChanged);
+    connect(m_cameraSession, &QAndroidCameraSession::error, this, &QAndroidCamera::error);
 }
 
 void QAndroidCamera::setFocusMode(QCamera::FocusMode mode)
@@ -163,8 +152,7 @@ bool QAndroidCamera::isFocusModeSupported(QCamera::FocusMode mode) const
 void QAndroidCamera::onCameraOpened()
 {
     Q_ASSERT(m_cameraSession);
-    connect(m_cameraSession->camera(), SIGNAL(previewSizeChanged()),
-            this, SLOT(setCameraFocusArea()));
+    connect(m_cameraSession->camera(), &AndroidCamera::previewSizeChanged, this, &QAndroidCamera::setCameraFocusArea);
 
     m_supportedFocusModes.clear();
     m_continuousPictureFocusSupported = false;

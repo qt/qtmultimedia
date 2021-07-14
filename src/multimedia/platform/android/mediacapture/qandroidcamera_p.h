@@ -101,7 +101,6 @@ private Q_SLOTS:
 private:
     QAndroidCameraSession *m_cameraSession = nullptr;
     QAndroidMediaCaptureSession *m_service = nullptr;
-    QTimer *m_recalculateTimer = nullptr;
 
     QList<QCamera::FocusMode> m_supportedFocusModes;
     bool m_continuousPictureFocusSupported = false;
