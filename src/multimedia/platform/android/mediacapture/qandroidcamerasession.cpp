@@ -622,7 +622,8 @@ void QAndroidCameraSession::onCameraPreviewFailedToStart()
 
 void QAndroidCameraSession::onCameraPreviewStopped()
 {
-    setActive(false);
+    if (!m_previewStarted)
+        setActive(false);
     setReadyForCapture(false);
 }
 
