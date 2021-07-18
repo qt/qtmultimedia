@@ -337,6 +337,26 @@ void Player::metaDataChanged()
     }
 }
 
+QString Player::trackName(const QMediaMetaData &metaData, int index)
+{
+    QString name;
+    QString title = metaData.stringValue(QMediaMetaData::Title);
+    QLocale::Language lang = metaData.value(QMediaMetaData::Language).value<QLocale::Language>();
+
+    if (title.isEmpty()) {
+        if (lang == QLocale::Language::AnyLanguage)
+            name = tr("Track %1").arg(index+1);
+        else
+            name = QLocale::languageToString(lang);
+    } else {
+        if (lang == QLocale::Language::AnyLanguage)
+            name = title;
+        else
+            name = QString("%1 - [%2]").arg(title).arg(QLocale::languageToString(lang));
+    }
+    return name;
+}
+
 void Player::tracksChanged()
 {
     m_audioTracks->clear();
@@ -345,19 +365,19 @@ void Player::tracksChanged()
 
     const auto audioTracks = m_player->audioTracks();
     for (int i = 0; i < audioTracks.size(); ++i)
-        m_audioTracks->addItem(audioTracks.at(i).stringValue(QMediaMetaData::Language), i);
+        m_audioTracks->addItem(trackName(audioTracks.at(i), i), i);
     m_audioTracks->setCurrentIndex(m_player->activeAudioTrack());
 
     const auto videoTracks = m_player->videoTracks();
     for (int i = 0; i < videoTracks.size(); ++i)
-        m_videoTracks->addItem(videoTracks.at(i).stringValue(QMediaMetaData::Language), i);
+        m_videoTracks->addItem(trackName(videoTracks.at(i), i), i);
     m_videoTracks->setCurrentIndex(m_player->activeVideoTrack());
 
     m_subtitleTracks->addItem(QString::fromUtf8("No subtitles"), -1);
     const auto subtitleTracks = m_player->subtitleTracks();
     for (int i = 0; i < subtitleTracks.size(); ++i)
-        m_subtitleTracks->addItem(subtitleTracks.at(i).stringValue(QMediaMetaData::Language), i);
-    m_subtitleTracks->setCurrentIndex(m_player->activeSubtitleTrack());
+        m_subtitleTracks->addItem(trackName(subtitleTracks.at(i), i), i);
+    m_subtitleTracks->setCurrentIndex(m_player->activeSubtitleTrack() + 1);
 }
 
 void Player::previousClicked()
@@ -469,7 +489,7 @@ void Player::selectAudioStream()
 
 void Player::selectVideoStream()
 {
-    int stream = m_audioTracks->currentData().toInt();
+    int stream = m_videoTracks->currentData().toInt();
     m_player->setActiveVideoTrack(stream);
 }
 

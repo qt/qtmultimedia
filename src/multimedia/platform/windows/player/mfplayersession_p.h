@@ -126,7 +126,13 @@ public:
 
     void setVideoSink(QVideoSink *sink);
 
+    void setActiveTrack(QPlatformMediaPlayer::TrackType type, int index);
+    int activeTrack(QPlatformMediaPlayer::TrackType type);
+    int trackCount(QPlatformMediaPlayer::TrackType);
+    QMediaMetaData trackMetaData(QPlatformMediaPlayer::TrackType type, int trackNumber);
+
     void statusChanged() { if (m_playerControl) m_playerControl->handleStatusChanged(); }
+    void tracksChanged() { if (m_playerControl) m_playerControl->handleTracksChanged(); }
     void audioAvailable() { if (m_playerControl) m_playerControl->handleAudioAvailable(); }
     void videoAvailable() { if (m_playerControl) m_playerControl->handleVideoAvailable(); }
     void durationUpdate(qint64 duration) { if (m_playerControl) m_playerControl->handleDurationUpdate(duration); }
@@ -160,7 +166,9 @@ private:
     IMFAudioStreamVolume *m_volumeControl;
     IPropertyStore *m_netsourceStatistics;
     qint64 m_position = 0;
+    qint64 m_restorePosition = -1;
     UINT64 m_duration = 0;
+    bool m_updatingTopology = false;
 
     enum Command
     {
@@ -219,6 +227,16 @@ private:
     float m_pendingRate;
     void updatePendingCommands(Command command);
 
+    struct TrackInfo
+    {
+        QList<QMediaMetaData> metaData;
+        QList<int> nativeIndexes;
+        int currentIndex = -1;
+        TOPOID sourceNodeId = -1;
+        TOPOID outputNodeId = -1;
+    };
+    TrackInfo m_trackInfo[QPlatformMediaPlayer::NTrackTypes];
+
     QMediaPlayer::MediaStatus m_status;
     bool m_canScrub;
     float m_volume = 1.;
@@ -231,7 +249,7 @@ private:
 
     void createSession();
     void setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD);
-    MediaType getStreamType(IMFStreamDescriptor *stream) const;
+    bool getStreamInfo(IMFStreamDescriptor *stream, MFPlayerSession::MediaType *type, QString *name, QString *language) const;
     IMFTopologyNode* addSourceNode(IMFTopology* topology, IMFMediaSource* source,
         IMFPresentationDescriptor* presentationDesc, IMFStreamDescriptor *streamDesc);
     IMFTopologyNode* addOutputNode(MediaType mediaType, IMFTopology* topology, DWORD sinkID);

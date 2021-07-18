@@ -239,6 +239,7 @@ void MFPlayerSession::handleMediaSourceReady()
         //convert from 100 nanosecond to milisecond
         emit durationUpdate(qint64(m_duration / 10000));
         setupPlaybackTopology(mediaSource, sourcePD);
+        tracksChanged();
         sourcePD->Release();
     } else {
         changeStatus(QMediaPlayer::InvalidMedia);
@@ -246,26 +247,49 @@ void MFPlayerSession::handleMediaSourceReady()
     }
 }
 
-MFPlayerSession::MediaType MFPlayerSession::getStreamType(IMFStreamDescriptor *stream) const
+bool MFPlayerSession::getStreamInfo(IMFStreamDescriptor *stream,
+                                    MFPlayerSession::MediaType *type,
+                                    QString *name,
+                                    QString *language) const
 {
-    if (!stream)
-        return Unknown;
+    if (!stream || !type || !name || !language)
+        return false;
 
-    struct SafeRelease {
-        IMFMediaTypeHandler *ptr = nullptr;
-        ~SafeRelease() { if (ptr) ptr->Release(); }
-    } typeHandler;
-    if (SUCCEEDED(stream->GetMediaTypeHandler(&typeHandler.ptr))) {
-        GUID guidMajorType;
-        if (SUCCEEDED(typeHandler.ptr->GetMajorType(&guidMajorType))) {
-            if (guidMajorType == MFMediaType_Audio)
-                return Audio;
-            else if (guidMajorType == MFMediaType_Video)
-                return Video;
+    *type = Unknown;
+    *name = QString();
+    *language = QString();
+
+    IMFMediaTypeHandler *typeHandler = nullptr;
+
+    if (SUCCEEDED(stream->GetMediaTypeHandler(&typeHandler))) {
+
+        UINT32 len = 0;
+        if (SUCCEEDED(stream->GetStringLength(MF_SD_STREAM_NAME, &len)) && len > 0) {
+            WCHAR *wstr = new WCHAR[len+1];
+            if (SUCCEEDED(stream->GetString(MF_SD_STREAM_NAME, wstr, len+1, &len))) {
+                *name = QString::fromUtf16(reinterpret_cast<const char16_t *>(wstr));
+            }
+            delete []wstr;
         }
+        if (SUCCEEDED(stream->GetStringLength(MF_SD_LANGUAGE, &len)) && len > 0) {
+            WCHAR *wstr = new WCHAR[len+1];
+            if (SUCCEEDED(stream->GetString(MF_SD_LANGUAGE, wstr, len+1, &len))) {
+                *language = QString::fromUtf16(reinterpret_cast<const char16_t *>(wstr));
+            }
+            delete []wstr;
+        }
+
+        GUID guidMajorType;
+        if (SUCCEEDED(typeHandler->GetMajorType(&guidMajorType))) {
+            if (guidMajorType == MFMediaType_Audio)
+                *type = Audio;
+            else if (guidMajorType == MFMediaType_Video)
+                *type = Video;
+        }
+        typeHandler->Release();
     }
 
-    return Unknown;
+    return *type != Unknown;
 }
 
 void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD)
@@ -288,64 +312,76 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         return;
     }
 
-    // Remember output node id for a first video stream
-    TOPOID outputNodeId = -1;
-
     // For each stream, create the topology nodes and add them to the topology.
     DWORD succeededCount = 0;
-    for (DWORD i = 0; i < cSourceStreams; i++)
-    {
-        BOOL fSelected = FALSE;
+    for (DWORD i = 0; i < cSourceStreams; i++) {
+        BOOL selected = FALSE;
         bool streamAdded = false;
         IMFStreamDescriptor *streamDesc = NULL;
 
-        HRESULT hr = sourcePD->GetStreamDescriptorByIndex(i, &fSelected, &streamDesc);
+        HRESULT hr = sourcePD->GetStreamDescriptorByIndex(i, &selected, &streamDesc);
         if (SUCCEEDED(hr)) {
             // The media might have multiple audio and video streams,
             // only use one of each kind, and only if it is selected by default.
-            MediaType mediaType = getStreamType(streamDesc);
-            if (mediaType != Unknown
-                    && ((m_mediaTypes & mediaType) == 0) // Check if this type isn't already added
-                    && fSelected) {
+            MediaType mediaType = Unknown;
+            QString streamName;
+            QString streamLanguage;
 
-                IMFTopologyNode *sourceNode = addSourceNode(topology, source, sourcePD, streamDesc);
-                if (sourceNode) {
-                    IMFTopologyNode *outputNode = addOutputNode(mediaType, topology, 0);
-                    if (outputNode) {
-                        bool connected = false;
-                        if (mediaType == Audio) {
-                            if (!m_audioSampleGrabberNode)
-                                connected = setupAudioSampleGrabber(topology, sourceNode, outputNode);
-                        } else if (mediaType == Video && outputNodeId == -1) {
-                            // Remember video output node ID.
-                            outputNode->GetTopoNodeID(&outputNodeId);
-                        }
+            if (getStreamInfo(streamDesc, &mediaType, &streamName, &streamLanguage)) {
 
-                        if (!connected)
-                            hr = sourceNode->ConnectOutput(0, outputNode, 0);
+                QPlatformMediaPlayer::TrackType trackType = (mediaType == Audio) ?
+                            QPlatformMediaPlayer::AudioStream : QPlatformMediaPlayer::VideoStream;
 
-                        if (FAILED(hr)) {
-                            emit error(QMediaPlayer::FormatError, tr("Unable to play any stream."), false);
-                        } else {
-                            streamAdded = true;
-                            succeededCount++;
-                            m_mediaTypes |= mediaType;
-                            switch (mediaType) {
-                            case Audio:
-                                emit audioAvailable();
-                                break;
-                            case Video:
-                                emit videoAvailable();
-                                break;
+                QLocale::Language lang = streamLanguage.isEmpty() ?
+                            QLocale::Language::AnyLanguage : QLocale(streamLanguage).language();
+
+                QMediaMetaData metaData;
+                metaData.insert(QMediaMetaData::Title, streamName);
+                metaData.insert(QMediaMetaData::Language, lang);
+
+                m_trackInfo[trackType].metaData.append(metaData);
+                m_trackInfo[trackType].nativeIndexes.append(i);
+
+                if (((m_mediaTypes & mediaType) == 0) && selected) { // Check if this type isn't already added
+                    IMFTopologyNode *sourceNode = addSourceNode(topology, source, sourcePD, streamDesc);
+                    if (sourceNode) {
+                        IMFTopologyNode *outputNode = addOutputNode(mediaType, topology, 0);
+                        if (outputNode) {
+                            bool connected = false;
+                            if (mediaType == Audio) {
+                                if (!m_audioSampleGrabberNode)
+                                    connected = setupAudioSampleGrabber(topology, sourceNode, outputNode);
                             }
+                            sourceNode->GetTopoNodeID(&m_trackInfo[trackType].sourceNodeId);
+                            outputNode->GetTopoNodeID(&m_trackInfo[trackType].outputNodeId);
+
+                            if (!connected)
+                                hr = sourceNode->ConnectOutput(0, outputNode, 0);
+
+                            if (FAILED(hr)) {
+                                emit error(QMediaPlayer::FormatError, tr("Unable to play any stream."), false);
+                            } else {
+                                m_trackInfo[trackType].currentIndex = m_trackInfo[trackType].nativeIndexes.count() - 1;
+                                streamAdded = true;
+                                succeededCount++;
+                                m_mediaTypes |= mediaType;
+                                switch (mediaType) {
+                                case Audio:
+                                    emit audioAvailable();
+                                    break;
+                                case Video:
+                                    emit videoAvailable();
+                                    break;
+                                }
+                            }
+                            outputNode->Release();
                         }
-                        outputNode->Release();
+                        sourceNode->Release();
                     }
-                    sourceNode->Release();
                 }
             }
 
-            if (fSelected && !streamAdded)
+            if (selected && !streamAdded)
                 sourcePD->DeselectStream(i);
 
             streamDesc->Release();
@@ -356,12 +392,13 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Unable to play."), true);
     } else {
-        if (outputNodeId != -1) {
-            topology = insertMFT(topology, outputNodeId);
-        }
+        if (m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId != -1)
+            topology = insertMFT(topology, m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId);
 
         hr = m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
-        if (FAILED(hr)) {
+        if (SUCCEEDED(hr)) {
+            m_updatingTopology = true;
+        } else {
             changeStatus(QMediaPlayer::InvalidMedia);
             emit error(QMediaPlayer::ResourceError, tr("Failed to set topology."), true);
         }
@@ -982,6 +1019,7 @@ void MFPlayerSession::stop(bool immediate)
             scrub(false);
 
         if (SUCCEEDED(m_session->Stop())) {
+
             m_state.setCommand(CmdStop);
             m_pendingState = CmdPending;
             if (m_status != QMediaPlayer::EndOfMedia) {
@@ -1010,6 +1048,12 @@ void MFPlayerSession::start()
 
         if (m_scrubbing)
             scrub(false);
+
+        if (m_restorePosition >= 0) {
+            m_position = m_restorePosition;
+            if (!m_updatingTopology)
+                m_restorePosition = -1;
+        }
 
         PROPVARIANT varStart;
         InitPropVariantFromInt64(m_position, &varStart);
@@ -1586,6 +1630,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         updatePendingCommands(CmdStop);
         break;
     case MESessionPaused:
+        m_position = position() * 10000;
         updatePendingCommands(CmdPause);
         break;
     case MEReconnectStart:
@@ -1690,6 +1735,9 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
                     if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
                         setVolumeInternal(m_muted ? 0 : m_volume);
+
+                    m_updatingTopology = false;
+                    stop();
                 }
             }
         }
@@ -1772,6 +1820,14 @@ void MFPlayerSession::clear()
     m_request.command = CmdNone;
     m_request.prevCmd = CmdNone;
 
+    for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
+        m_trackInfo[i].metaData.clear();
+        m_trackInfo[i].nativeIndexes.clear();
+        m_trackInfo[i].currentIndex = -1;
+        m_trackInfo[i].sourceNodeId = -1;
+        m_trackInfo[i].outputNodeId = -1;
+    }
+
     if (!m_metaData.isEmpty()) {
         m_metaData.clear();
         emit metaDataChanged();
@@ -1826,3 +1882,112 @@ void MFPlayerSession::setVideoSink(QVideoSink *sink)
 {
     m_videoRendererControl->setSink(sink);
 }
+
+void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int index)
+{
+    if (!m_session)
+        return;
+
+    // Only audio track selection is currently supported.
+    if (type != QPlatformMediaPlayer::AudioStream)
+        return;
+
+    const auto &nativeIndexes = m_trackInfo[type].nativeIndexes;
+
+    if (index < -1 || index >= nativeIndexes.count() || index == m_trackInfo[type].currentIndex)
+        return;
+
+    IMFTopology *topology = nullptr;
+
+    if (SUCCEEDED(m_session->GetFullTopology(MFSESSION_GETFULLTOPOLOGY_CURRENT, 0, &topology))) {
+
+        m_restorePosition = position() * 10000;
+
+        if (m_state.command == CmdStart)
+            stop();
+
+        if (m_trackInfo[type].outputNodeId != -1) {
+            IMFTopologyNode *node = nullptr;
+            if (SUCCEEDED(topology->GetNodeByID(m_trackInfo[type].outputNodeId, &node))) {
+                topology->RemoveNode(node);
+                node->Release();
+                m_trackInfo[type].outputNodeId = -1;
+            }
+        }
+        if (m_trackInfo[type].sourceNodeId != -1) {
+            IMFTopologyNode *node = nullptr;
+            if (SUCCEEDED(topology->GetNodeByID(m_trackInfo[type].sourceNodeId, &node))) {
+                topology->RemoveNode(node);
+                node->Release();
+                m_trackInfo[type].sourceNodeId = -1;
+            }
+        }
+
+        IMFMediaSource *mediaSource = m_sourceResolver->mediaSource();
+
+        IMFPresentationDescriptor *sourcePD = nullptr;
+        if (SUCCEEDED(mediaSource->CreatePresentationDescriptor(&sourcePD))) {
+
+            if (m_trackInfo[type].currentIndex >= 0 && m_trackInfo[type].currentIndex < nativeIndexes.count())
+                sourcePD->DeselectStream(nativeIndexes.at(m_trackInfo[type].currentIndex));
+
+            m_trackInfo[type].currentIndex = index;
+
+            if (index == -1) {
+                m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
+            } else {
+                int nativeIndex = nativeIndexes.at(index);
+                sourcePD->SelectStream(nativeIndex);
+
+                IMFStreamDescriptor *streamDesc = nullptr;
+                BOOL selected = FALSE;
+
+                if (SUCCEEDED(sourcePD->GetStreamDescriptorByIndex(nativeIndex, &selected, &streamDesc))) {
+                    IMFTopologyNode *sourceNode = addSourceNode(topology, mediaSource, sourcePD, streamDesc);
+                    if (sourceNode) {
+                        IMFTopologyNode *outputNode = addOutputNode(MFPlayerSession::Audio, topology, 0);
+                        if (outputNode) {
+                            if (SUCCEEDED(sourceNode->ConnectOutput(0, outputNode, 0))) {
+                                sourceNode->GetTopoNodeID(&m_trackInfo[type].sourceNodeId);
+                                outputNode->GetTopoNodeID(&m_trackInfo[type].outputNodeId);
+                                m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
+                            }
+                            outputNode->Release();
+                        }
+                        sourceNode->Release();
+                    }
+                    streamDesc->Release();
+                }
+            }
+            m_updatingTopology = true;
+            sourcePD->Release();
+        }
+        topology->Release();
+    }
+}
+
+int MFPlayerSession::activeTrack(QPlatformMediaPlayer::TrackType type)
+{
+    if (type < 0 || type >= QPlatformMediaPlayer::NTrackTypes)
+        return -1;
+    return m_trackInfo[type].currentIndex;
+}
+
+int MFPlayerSession::trackCount(QPlatformMediaPlayer::TrackType type)
+{
+    if (type < 0 || type >= QPlatformMediaPlayer::NTrackTypes)
+        return -1;
+    return m_trackInfo[type].metaData.count();
+}
+
+QMediaMetaData MFPlayerSession::trackMetaData(QPlatformMediaPlayer::TrackType type, int trackNumber)
+{
+    if (type < 0 || type >= QPlatformMediaPlayer::NTrackTypes)
+        return {};
+
+    if (trackNumber < 0 || trackNumber >= m_trackInfo[type].metaData.count())
+        return {};
+
+    return m_trackInfo[type].metaData.at(trackNumber);
+}
+
