@@ -39,6 +39,7 @@
 
 #include "qandroidcamera_p.h"
 #include "qandroidcamerasession_p.h"
+#include "qandroidcapturesession_p.h"
 #include "qandroidmediacapturesession_p.h"
 #include <qmediadevices.h>
 #include <qcameradevice.h>
@@ -70,18 +71,35 @@ bool QAndroidCamera::isActive() const
 
 void QAndroidCamera::setCamera(const QCameraDevice &camera)
 {
-    if (!m_cameraSession)
-        return;
+    m_cameraDev = camera;
 
-    int id = 0;
-    auto cameras = QMediaDevices::videoInputs();
-    for (int i = 0; i < cameras.size(); ++i) {
-        if (cameras.at(i) == camera) {
-            id = i;
-            break;
+    if (m_cameraSession) {
+        int id = 0;
+        auto cameras = QMediaDevices::videoInputs();
+        for (int i = 0; i < cameras.size(); ++i) {
+            if (cameras.at(i) == camera) {
+                id = i;
+                break;
+            }
+        }
+        if (id != m_cameraSession->getSelectedCameraId()) {
+            m_cameraSession->setSelectedCameraId(id);
+            reactivateCameraSession();
         }
     }
-    m_cameraSession->setSelectedCamera(id);
+}
+
+void QAndroidCamera::reactivateCameraSession()
+{
+    if (m_cameraSession->isActive()) {
+        if (m_service->captureSession() &&
+                m_service->captureSession()->state() == QMediaRecorder::RecordingState) {
+            m_service->captureSession()->stop();
+            qWarning() << "Changing camera during recording not supported";
+        }
+        m_cameraSession->setActive(false);
+        m_cameraSession->setActive(true);
+    }
 }
 
 bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
@@ -114,6 +132,8 @@ void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     Q_ASSERT(m_cameraSession);
     if (!m_cameraFormat.isNull())
         m_cameraSession->setCameraFormat(m_cameraFormat);
+
+    setCamera(m_cameraDev);
 
     connect(m_cameraSession, &QAndroidCameraSession::activeChanged, this, &QAndroidCamera::activeChanged);
     connect(m_cameraSession, &QAndroidCameraSession::error, this, &QAndroidCamera::error);
