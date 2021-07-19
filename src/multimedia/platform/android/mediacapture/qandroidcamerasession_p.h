@@ -75,7 +75,8 @@ public:
 
     static const QList<QCameraDevice> &availableCameras();
 
-    void setSelectedCamera(int cameraId) { m_selectedCamera = cameraId; }
+    void setSelectedCameraId(int cameraId) { m_selectedCamera = cameraId; }
+    int getSelectedCameraId() { return m_selectedCamera; }
     AndroidCamera *camera() const { return m_camera; }
 
     bool isActive() const { return m_active; }

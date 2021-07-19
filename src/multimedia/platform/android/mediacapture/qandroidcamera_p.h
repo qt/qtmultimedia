@@ -100,6 +100,8 @@ private Q_SLOTS:
     void setCameraFocusArea();
 
 private:
+    void reactivateCameraSession();
+
     QAndroidCameraSession *m_cameraSession = nullptr;
     QAndroidMediaCaptureSession *m_service = nullptr;
 
@@ -119,6 +121,7 @@ private:
     bool isFlashSupported = false;
     bool isFlashAutoSupported = false;
     bool isTorchSupported = false;
+    QCameraDevice m_cameraDev;
 
     QMap<QCamera::WhiteBalanceMode, QString> m_supportedWhiteBalanceModes;
     QCameraFormat m_cameraFormat;
