@@ -139,7 +139,34 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
 
     Describes the container format used in a multimedia file or stream.
 
-    //! TODO document each \value
+    \value WMA
+        \l {Windows Media Audio}
+    \value UnspecifiedFormat
+        The format is unspecified.
+    \value AAC
+        \l{Advanced Audio Coding}
+    \value Matroska
+        \l{Matroska (MKV)}
+    \value WMV
+        \l{Windows Media Video}
+    \value MP3
+        \l{MPEG-1 Audio Layer III or MPEG-2 Audio Layer III}
+    \value Wave
+        \l{Waveform Audio File Format}
+    \value Ogg
+        \l{Ogg}
+    \value MPEG4
+        \l{MPEG-4}
+    \value AVI
+        \l{Audio Video Interleave}
+    \value QuickTime
+        \l{QuickTime}
+    \value WebM
+        \l{WebM}
+    \value Mpeg4Audio
+        \l{MPEG-4 Part 3 or MPEG-4 Audio (formally ISO/IEC 14496-3)}
+    \value FLAC
+        \l{Free Lossless Audio Codec}
 
     \omitvalue LastFileFormat
 */
@@ -148,7 +175,22 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
 
     Describes the audio coded used in multimedia file or stream.
 
-    //! TODO document each \value
+    \value WMA
+        \l {Windows Media Audio}
+    \value AC3
+        \l {Dolby Digital}
+    \value AAC
+        \l{Advanced Audio Coding}
+    \value DolbyTrueHD
+        \l{Dolby TrueHD}
+    \value MP3
+        \l{MPEG-1 Audio Layer III or MPEG-2 Audio Layer III}
+    \value Wave
+        \l{Waveform Audio File Format}
+    \value Vorbis
+        \l{Ogg Vorbis}
+    \value FLAC
+        \l{Free Lossless Audio Codec}
 
     \omitvalue LastAudioCodec
 */
@@ -157,7 +199,30 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
 
     Describes the video coded used in multimedia file or stream.
 
-    //! TODO document each \value
+    \value VP8
+        \l{VP8}
+    \value MPEG2
+        \l{MPEG-2}
+    \value MPEG1
+        \l{MPEG-1}
+    \value WMV
+        \l{Windows Media Video}
+    \value H265
+        \l{High Efficiency Video Coding (HEVC)}
+    \value H264
+        \l{Advanced Video Coding}
+    \value MPEG4
+        \l{MPEG-4}
+    \value AV1
+        \l{AOMedia Video 1}
+    \value MotionJPEG
+        \l{MotionJPEG}
+    \value VP9
+        \l{VP9}
+    \value Unspecified
+        Video codec not specified
+    \value Theora
+        \l{Theora}
 
     \omitvalue LastVideoCodec
 */

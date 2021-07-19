@@ -106,9 +106,11 @@ void QImageCapturePrivate::_q_error(int id, int error, const QString &errorStrin
 }
 
 /*!
-    Constructs a image capture object that can capture individual still images produced by a camera.
+    Constructs a image capture object, from a \a parent, that can capture
+    individual still images produced by a camera.
 
-    Connect both an image capture object and a QCamera to a capture session to capture images.
+    You must connect both an image capture object and a QCamera to a capture
+    session to capture images.
 */
 
 QImageCapture::QImageCapture(QObject *parent)
@@ -208,7 +210,7 @@ QString QImageCapture::errorString() const
     \brief The meta data that will get embedded into the image.
 
     \note Additional fields such as a time stamp or location may get added by
-          the camera backend.
+     the camera back end.
 */
 QMediaMetaData QImageCapture::metaData() const
 {
@@ -217,7 +219,8 @@ QMediaMetaData QImageCapture::metaData() const
 }
 
 /*!
-    Defines a set of meta data that will get embedded into the captured image.
+    Replaces any existing meta data, to be embedded into the captured image,
+    with a set of \a metaData.
 */
 void QImageCapture::setMetaData(const QMediaMetaData &metaData)
 {
@@ -228,7 +231,8 @@ void QImageCapture::setMetaData(const QMediaMetaData &metaData)
 }
 
 /*!
-    Adds additional meta data to be embedded into the captured image.
+    Adds additional \a metaData to any existing meta data, that is embedded
+    into the captured image.
 */
 void QImageCapture::addMetaData(const QMediaMetaData &metaData)
 {
@@ -240,10 +244,10 @@ void QImageCapture::addMetaData(const QMediaMetaData &metaData)
 }
 
 /*!
-  \property QImageCapture::readyForCapture
-  \brief whether the service is ready to capture a an image immediately.
+  \property QImageCapture::isReadyForCapture
+  \brief The readiness of a camera to capture an image immediately.
 
-  Calling capture() while \e readyForCapture is \c false is not permitted and
+  Calling capture() while \c readyForCapture is \c false is not permitted and
   results in an error.
 */
 
@@ -272,7 +276,7 @@ bool QImageCapture::isReadyForCapture() const
     QImageCapture::imageCaptured(), QImageCapture::imageSaved()
     or QImageCapture::error().
 
-    If an empty \a file is passed, the camera backend choses
+    If an empty \a file is passed, the camera back end chooses
     the default location and naming scheme for photos on the system,
     if only file name without full path is specified, the image will be saved to
     the default directory, with a full path reported with imageCaptured() and imageSaved() signals.

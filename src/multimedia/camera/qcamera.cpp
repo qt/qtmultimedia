@@ -217,7 +217,7 @@ bool QCamera::isActive() const
 }
 
 /*!
-    Turns the camera on or off.
+    Turns the camera on if \a active is \c{true}, or off if it's \c{false}.
 */
 void QCamera::setActive(bool active)
 {
@@ -261,8 +261,8 @@ QCamera::Features QCamera::supportedFeatures() const
 /*! \fn void QCamera::stop()
 
     Stops the camera.
+    Same as setActive(false).
 
-    \sa unload()
 */
 
 /*!
@@ -657,7 +657,8 @@ bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
   \property QCamera::exposureCompensation
   \brief Exposure compensation in EV units.
 
-  Exposure compensation property allows to adjust the automatically calculated exposure.
+  Exposure compensation property allows to adjust the automatically calculated
+  exposure.
 */
 
 qreal QCamera::exposureCompensation() const
@@ -749,16 +750,17 @@ float QCamera::maximumExposureTime() const
 */
 
 /*!
-    \fn QCamera::exposureTimeChanged(float time)
+    \fn QCamera::exposureTimeChanged(float speed)
 
-    Signals that a camera's exposure \a time has changed.
+    Signals that a camera's exposure \a speed has changed.
 */
 
 /*!
     \property QCamera::isoSensitivity
     \brief The sensor ISO sensitivity.
 
-    \sa supportedIsoSensitivities(), setAutoIsoSensitivity(), setManualIsoSensitivity()
+    \sa, setAutoIsoSensitivity(), setManualIsoSensitivity()
+    \sa minimumIsoSensitivity(), maximumIsoSensitivity()
 */
 
 /*!
@@ -783,7 +785,7 @@ void QCamera::setManualExposureTime(float seconds)
 }
 
 /*!
-    Returns the manual exposure time in \a seconds, or -1
+    Returns the manual exposure time in seconds, or -1
     if the camera is using automatic exposure times.
 */
 float QCamera::manualExposureTime() const
@@ -947,8 +949,8 @@ void QCamera::setColorTemperature(int colorTemperature)
     \enum QCamera::WhiteBalanceMode
 
     \value WhiteBalanceAuto         Auto white balance mode.
-    \value WhiteBalanceManual       Manual white balance. In this mode the white balance should be set with
-                                    setColorTemperature()
+    \value WhiteBalanceManual Manual white balance. In this mode the white
+    balance should be set with setColorTemperature()
     \value WhiteBalanceSunlight     Sunlight white balance mode.
     \value WhiteBalanceCloudy       Cloudy white balance mode.
     \value WhiteBalanceShade        Shade white balance mode.

@@ -65,10 +65,12 @@
     \externalpage https://en.wikipedia.org/wiki/Sonification
     \title Sonification
 */
+
 /*!
     \externalpage http://www.sengpielaudio.com/calculator-loudness.htm
     \title loudness
 */
+
 /*!
     \externalpage https://en.wikipedia.org/wiki/List_of_ISO_639-2_codes
     \title ISO 639-2 code
@@ -88,6 +90,7 @@
     \externalpage https://en.wikipedia.org/wiki/Depth_of_field
     \title DOF
 */
+
 /*!
     \externalpage https://en.wikipedia.org/wiki/Media_type#Mime.types
     \title MIME type
@@ -98,3 +101,126 @@
     \title Audio QML Type
 */
 
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Windows_Media_Audio
+    \title Windows Media Audio
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Advanced_Audio_Coding
+    \title Advanced Audio Coding
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Matroska
+    \title Matroska (MKV)
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Windows_Media_Video
+    \title Windows Media Video
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MP3
+    \title MPEG-1 Audio Layer III or MPEG-2 Audio Layer III
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/WAV
+    \title Waveform Audio File Format
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Ogg
+    \title Ogg
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MPEG-4
+    \title MPEG-4
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Audio_Video_Interleave
+    \title Audio Video Interleave
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/QuickTime
+    \title QuickTime
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/WebM
+    \title WebM
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MPEG-4_Part_3
+    \title MPEG-4 Part 3 or MPEG-4 Audio (formally ISO/IEC 14496-3)
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/FLAC
+    \title Free Lossless Audio Codec
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Dolby_Digital
+    \title Dolby Digital
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Dolby_TrueHD
+    \title Dolby TrueHD
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Vorbis
+    \title Ogg Vorbis
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/VP8
+    \title VP8
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MPEG-2
+    \title MPEG-2
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/MPEG-1
+    \title MPEG-1
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/High_Efficiency_Video_Coding
+    \title High Efficiency Video Coding (HEVC)
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Advanced_Video_Coding
+    \title Advanced Video Coding
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/AV1
+    \title AOMedia Video 1
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Motion_JPEG
+    \title Motion JPEG
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/VP9
+    \title VP9
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Theora
+    \title Theora
+*/

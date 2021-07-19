@@ -50,14 +50,15 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QAudioSink
-    \brief The QAudioSink class provides an interface for sending audio data to an audio output device.
+    \brief The QAudioSink class provides an interface for sending audio data to
+    an audio output device.
 
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 
     You can construct an audio output with the system's
-    \l{QAudioDevice::defaultOutputDevice()}{default audio output
+    \l{QMediaDevices::defaultAudioOutput()}{default audio output
     device}. It is also possible to create QAudioSink with a
     specific QAudioDevice. When you create the audio output, you
     should also send in the QAudioFormat to be used for the playback
@@ -308,16 +309,18 @@ QAudio::State QAudioSink::state() const
 /*!
     Sets the output volume to \a volume.
 
-    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
-    range will be clamped.
+    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume).
+    Values outside this range will be clamped.
 
     The default volume is \c 1.0.
 
-    Note: Adjustments to the volume will change the volume of this audio stream, not the global volume.
+    \note Adjustments to the volume will change the volume of this audio stream,
+    not the global volume.
 
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
-    will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See QAudio::convertVolume() for more details.
+    UI volume controls should usually be scaled non-linearly. For example, using
+    a logarithmic scale will produce linear changes in perceived loudness, which
+    is what a user would normally expect from a volume control. See
+    QAudio::convertVolume() for more details.
 */
 void QAudioSink::setVolume(qreal volume)
 {

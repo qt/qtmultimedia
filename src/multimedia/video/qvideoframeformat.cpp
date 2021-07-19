@@ -227,9 +227,6 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
 
     \value Format_Jpeg
     The frame is stored in compressed Jpeg format.
-
-    \value Format_User
-    Start value for user defined pixel formats.
 */
 
 /*!
@@ -260,7 +257,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
 
     \value YCbCr_xvYCC601
     The BT.601 color space with the value range extended to 0 to 255.
-    It is backward compatibile with BT.601 and uses values outside BT.601 range to represent a
+    It is backward compatible with BT.601 and uses values outside BT.601 range to represent a
     wider range of colors.
 
     \value YCbCr_xvYCC709
@@ -280,7 +277,7 @@ QVideoFrameFormat::QVideoFrameFormat()
 }
 
 /*!
-    Contructs a description of stream which receives stream of \a type buffers with given frame
+    Constructs a description of stream which receives stream of \a d type buffers with given frame
     \a size and pixel \a format.
 */
 QVideoFrameFormat::QVideoFrameFormat(

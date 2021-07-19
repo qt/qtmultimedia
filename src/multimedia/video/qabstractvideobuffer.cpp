@@ -59,8 +59,8 @@ QT_BEGIN_NAMESPACE
     memory, and this class provides an abstraction of the location.
 
     In addition, creating a subclass of QAbstractVideoBuffer will allow you to construct video
-    frames from preallocated or static buffers, in cases where the QVideoFrame constructors
-    taking a QByteArray or a QImage do not suffice.  This may be necessary when implementing
+    frames from preallocated or static buffers. This caters for cases where the QVideoFrame constructors
+    taking a QByteArray or a QImage do not suffice. This may be necessary when implementing
     a new hardware accelerated video system, for example.
 
     The contents of a buffer can be accessed by mapping the buffer to memory using the map()
@@ -78,9 +78,12 @@ QT_BEGIN_NAMESPACE
 
     Identifies the type of a video buffers handle.
 
-    \value NoHandle The buffer has no handle, its data can only be accessed by mapping the buffer.
-    \value GLTextureHandle The handle of the buffer is an OpenGL texture ID.
-    \value MTLTextureHandle The handle of the buffer is an Metal texture ID.
+    \value NoHandle
+    The buffer has no handle, its data can only be accessed by mapping the buffer.
+    \value RhiTextureHandle
+    The handle of the buffer is defined by The Qt Rendering Hardware Interface
+    (RHI). RHI is Qt's internal graphics abstraction for 3D APIs, such as
+    OpenGL, Vulkan, Metal, and Direct 3D.
 
     \sa handleType()
 */
@@ -90,13 +93,18 @@ QT_BEGIN_NAMESPACE
 
     Enumerates how a video buffer's data is mapped to system memory.
 
-    \value NotMapped The video buffer is not mapped to memory.
-    \value ReadOnly The mapped memory is populated with data from the video buffer when mapped, but
-    the content of the mapped memory may be discarded when unmapped.
-    \value WriteOnly The mapped memory is uninitialized when mapped, but the possibly modified content
-    will be used to populate the video buffer when unmapped.
-    \value ReadWrite The mapped memory is populated with data from the video buffer, and the
-    video buffer is repopulated with the content of the mapped memory when it is unmapped.
+    \value NotMapped
+    The video buffer is not mapped to memory.
+    \value ReadOnly
+    The mapped memory is populated with data from the video buffer when mapped,
+    but the content of the mapped memory may be discarded when unmapped.
+    \value WriteOnly
+    The mapped memory is uninitialized when mapped, but the possibly modified
+    content will be used to populate the video buffer when unmapped.
+    \value ReadWrite
+    The mapped memory is populated with data from the video
+    buffer, and the video buffer is repopulated with the content of the mapped
+    memory when it is unmapped.
 
     \sa mapMode(), map()
 */

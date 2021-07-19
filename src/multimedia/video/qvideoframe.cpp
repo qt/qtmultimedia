@@ -151,7 +151,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     used to determine when to start and stop displaying the frame.
 
     QVideoFrame objects can consume a significant amount of memory or system resources and
-    should thus not be held for longer than required by the application.
+    should not be held for longer than required by the application.
 
     \note Since video frames can be expensive to copy, QVideoFrame is explicitly shared, so any
     change made to a video frame will also apply to any copies.
@@ -187,10 +187,8 @@ QAbstractVideoBuffer *QVideoFrame::videoBuffer() const
 }
 
 /*!
-    Constructs a video frame of the given pixel \a format and \a size in pixels.
+    Constructs a video frame of the given pixel \a format.
 
-    The \a bytesPerLine (stride) is the length of each scan line in bytes, and \a bytes is the total
-    number of bytes that must be allocated for the frame.
 */
 QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
     : d(new QVideoFramePrivate(format))
@@ -615,7 +613,7 @@ int QVideoFrame::mappedBytes(int plane) const
 /*!
     Returns the number of planes in the video frame.
 
-    \sa map(), textureHandle()
+    \sa map()
     \since 5.4
 */
 

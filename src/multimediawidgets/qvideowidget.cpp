@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -202,7 +202,7 @@ QSize QVideoWidget::sizeHint() const
 /*!
   \reimp
   Current event \a event.
-  Returns the value of the baseclass QWidget::event(QEvent *event) function.
+  Returns the value of the base class QWidget::event(QEvent *event) function.
 */
 bool QVideoWidget::event(QEvent *event)
 {
