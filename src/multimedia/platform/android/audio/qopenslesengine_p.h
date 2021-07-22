@@ -56,7 +56,7 @@
 #include <qlist.h>
 #include <qaudioformat.h>
 #include <qaudiodevice.h>
-#include <SLES/OpenSLES.h>
+#include <SLES/OpenSLES_Android.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -86,8 +86,7 @@ public:
 
 private:
     void checkSupportedInputFormats();
-    bool inputFormatIsSupported(SLDataFormat_PCM format);
-
+    bool inputFormatIsSupported(SLAndroidDataFormat_PCM_EX format);
     SLObjectItf m_engineObject;
     SLEngineItf m_engine;
 

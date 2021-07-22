@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -42,13 +42,9 @@
 #include "qandroidaudiosource_p.h"
 #include "qandroidaudiodevice_p.h"
 
-#include <qdebug.h>
-
-#ifdef Q_OS_ANDROID
-#include <SLES/OpenSLES_Android.h>
 #include <QtCore/qjniobject.h>
-#include <QtCore/qcoreapplication.h>
-#endif
+#include <QtCore/private/qandroidextras_p.h>
+#include <qdebug.h>
 
 #define MINIMUM_PERIOD_TIME_MS 5
 #define DEFAULT_PERIOD_TIME_MS 50
@@ -132,9 +128,15 @@ QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudioDevice::Mode mode)
     return devices;
 }
 
+static bool hasRecordPermission()
+{
+    const auto recordPerm = QtAndroidPrivate::checkPermission(QtAndroidPrivate::Microphone);
+    return recordPerm.result() == QtAndroidPrivate::Authorized;
+}
+
 QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) const
 {
-    if (mode == QAudioDevice::Input) {
+    if (mode == QAudioDevice::Input && hasRecordPermission()) {
         if (!m_checkedInputFormats)
             const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputChannelCounts;
@@ -145,19 +147,18 @@ QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) cons
 
 QList<int> QOpenSLESEngine::supportedSampleRates(QAudioDevice::Mode mode) const
 {
-    if (mode == QAudioDevice::Input) {
+    if (mode == QAudioDevice::Input && hasRecordPermission()) {
         if (!m_checkedInputFormats)
             const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputSampleRates;
     } else {
-        return QList<int>() << 8000 << 11025 << 12000 << 16000 << 22050
-                            << 24000 << 32000 << 44100 << 48000;
+        return QList<int>() << 8000 << 11025 << 12000 << 16000 << 22050 << 24000
+                            << 32000 << 44100 << 48000 << 64000 << 88200 << 96000 << 192000;
     }
 }
 
 int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defaultValue)
 {
-#if defined(Q_OS_ANDROID)
     static int sampleRate = 0;
     static int framesPerBuffer = 0;
 
@@ -208,14 +209,11 @@ int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defau
     if (type == SampleRate)
         return sampleRate;
 
-#endif // Q_OS_ANDROID
-
     return defaultValue;
 }
 
 int QOpenSLESEngine::getDefaultBufferSize(const QAudioFormat &format)
 {
-#if defined(Q_OS_ANDROID)
     if (!format.isValid())
         return 0;
 
@@ -252,9 +250,6 @@ int QOpenSLESEngine::getDefaultBufferSize(const QAudioFormat &format)
                                                                  channelConfig,
                                                                  audioFormat);
     return minBufferSize > 0 ? minBufferSize : format.bytesForDuration(DEFAULT_PERIOD_TIME_MS);
-#else
-    return format.bytesForDuration(DEFAULT_PERIOD_TIME_MS);
-#endif // Q_OS_ANDROID
 }
 
 int QOpenSLESEngine::getLowLatencyBufferSize(const QAudioFormat &format)
@@ -265,7 +260,6 @@ int QOpenSLESEngine::getLowLatencyBufferSize(const QAudioFormat &format)
 
 bool QOpenSLESEngine::supportsLowLatency()
 {
-#if defined(Q_OS_ANDROID)
     static int isSupported = -1;
 
     if (isSupported != -1)
@@ -290,9 +284,6 @@ bool QOpenSLESEngine::supportsLowLatency()
                                           "(Ljava/lang/String;)Z",
                                           audioFeatureField.object());
     return (isSupported == 1);
-#else
-    return true;
-#endif // Q_OS_ANDROID
 }
 
 bool QOpenSLESEngine::printDebugInfo()
@@ -305,16 +296,17 @@ void QOpenSLESEngine::checkSupportedInputFormats()
     m_supportedInputChannelCounts = QList<int>() << 1;
     m_supportedInputSampleRates.clear();
 
-    SLDataFormat_PCM defaultFormat;
+    SLAndroidDataFormat_PCM_EX defaultFormat;
     defaultFormat.formatType = SL_DATAFORMAT_PCM;
     defaultFormat.numChannels = 1;
-    defaultFormat.samplesPerSec = SL_SAMPLINGRATE_44_1;
-    defaultFormat.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_16;
-    defaultFormat.containerSize = SL_PCMSAMPLEFORMAT_FIXED_16;
-    defaultFormat.channelMask = SL_SPEAKER_FRONT_CENTER;
+    defaultFormat.sampleRate = SL_SAMPLINGRATE_44_1;
+    defaultFormat.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_32;
+    defaultFormat.containerSize = SL_PCMSAMPLEFORMAT_FIXED_32;
+    defaultFormat.representation = SL_ANDROID_PCM_REPRESENTATION_FLOAT;
+    defaultFormat.channelMask = SL_ANDROID_MAKE_INDEXED_CHANNEL_MASK(SL_SPEAKER_FRONT_CENTER);
     defaultFormat.endianness = SL_BYTEORDER_LITTLEENDIAN;
 
-    const SLuint32 rates[9] = { SL_SAMPLINGRATE_8,
+    const SLuint32 rates[13] = { SL_SAMPLINGRATE_8,
                                 SL_SAMPLINGRATE_11_025,
                                 SL_SAMPLINGRATE_12,
                                 SL_SAMPLINGRATE_16,
@@ -322,13 +314,17 @@ void QOpenSLESEngine::checkSupportedInputFormats()
                                 SL_SAMPLINGRATE_24,
                                 SL_SAMPLINGRATE_32,
                                 SL_SAMPLINGRATE_44_1,
-                                SL_SAMPLINGRATE_48 };
+                                SL_SAMPLINGRATE_48,
+                                SL_SAMPLINGRATE_64,
+                                SL_SAMPLINGRATE_88_2,
+                                SL_SAMPLINGRATE_96,
+                                SL_SAMPLINGRATE_192 };
 
 
     // Test sampling rates
-    for (int i = 0 ; i < 9; ++i) {
-        SLDataFormat_PCM format = defaultFormat;
-        format.samplesPerSec = rates[i];
+    for (size_t i = 0 ; i < std::size(rates); ++i) {
+        SLAndroidDataFormat_PCM_EX format = defaultFormat;
+        format.sampleRate = rates[i];
 
         if (inputFormatIsSupported(format))
             m_supportedInputSampleRates.append(rates[i] / 1000);
@@ -337,9 +333,10 @@ void QOpenSLESEngine::checkSupportedInputFormats()
 
     // Test if stereo is supported
     {
-        SLDataFormat_PCM format = defaultFormat;
+        SLAndroidDataFormat_PCM_EX format = defaultFormat;
         format.numChannels = 2;
-        format.channelMask = 0;
+        format.channelMask = SL_ANDROID_MAKE_INDEXED_CHANNEL_MASK(SL_SPEAKER_FRONT_LEFT
+                                                                  | SL_SPEAKER_FRONT_RIGHT);
         if (inputFormatIsSupported(format))
             m_supportedInputChannelCounts.append(2);
     }
@@ -347,7 +344,7 @@ void QOpenSLESEngine::checkSupportedInputFormats()
     m_checkedInputFormats = true;
 }
 
-bool QOpenSLESEngine::inputFormatIsSupported(SLDataFormat_PCM format)
+bool QOpenSLESEngine::inputFormatIsSupported(SLAndroidDataFormat_PCM_EX format)
 {
     SLresult result;
     SLObjectItf recorder = 0;
@@ -355,11 +352,7 @@ bool QOpenSLESEngine::inputFormatIsSupported(SLDataFormat_PCM format)
                                        SL_DEFAULTDEVICEID_AUDIOINPUT, NULL };
     SLDataSource audioSrc = { &loc_dev, NULL };
 
-#ifdef Q_OS_ANDROID
     SLDataLocator_AndroidSimpleBufferQueue loc_bq = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 1 };
-#else
-    SLDataLocator_BufferQueue loc_bq = { SL_DATALOCATOR_BUFFERQUEUE, 1 };
-#endif
     SLDataSink audioSnk = { &loc_bq, &format };
 
     result = (*m_engine)->CreateAudioRecorder(m_engine, &recorder, &audioSrc, &audioSnk, 0, 0, 0);
