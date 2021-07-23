@@ -1241,10 +1241,6 @@ void AndroidCameraPrivate::setFocusMode(const QString &value)
 
 int AndroidCameraPrivate::getMaxNumFocusAreas()
 {
-    // FIXME qt 6 support api > 23, should this be removed then?
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return 0;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (!m_parameters.isValid())
@@ -1256,10 +1252,6 @@ int AndroidCameraPrivate::getMaxNumFocusAreas()
 QList<QRect> AndroidCameraPrivate::getFocusAreas()
 {
     QList<QRect> areas;
-
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return areas;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (m_parameters.isValid()) {
@@ -1283,9 +1275,6 @@ QList<QRect> AndroidCameraPrivate::getFocusAreas()
 
 void AndroidCameraPrivate::setFocusAreas(const QList<QRect> &areas)
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (!m_parameters.isValid())
@@ -1328,9 +1317,6 @@ void AndroidCameraPrivate::cancelAutoFocus()
 
 bool AndroidCameraPrivate::isAutoExposureLockSupported()
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return false;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (!m_parameters.isValid())
@@ -1341,9 +1327,6 @@ bool AndroidCameraPrivate::isAutoExposureLockSupported()
 
 bool AndroidCameraPrivate::getAutoExposureLock()
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return false;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (!m_parameters.isValid())
@@ -1354,9 +1337,6 @@ bool AndroidCameraPrivate::getAutoExposureLock()
 
 void AndroidCameraPrivate::setAutoExposureLock(bool toggle)
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (!m_parameters.isValid())
@@ -1368,9 +1348,6 @@ void AndroidCameraPrivate::setAutoExposureLock(bool toggle)
 
 bool AndroidCameraPrivate::isAutoWhiteBalanceLockSupported()
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return false;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (!m_parameters.isValid())
@@ -1381,9 +1358,6 @@ bool AndroidCameraPrivate::isAutoWhiteBalanceLockSupported()
 
 bool AndroidCameraPrivate::getAutoWhiteBalanceLock()
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return false;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (!m_parameters.isValid())
@@ -1394,9 +1368,6 @@ bool AndroidCameraPrivate::getAutoWhiteBalanceLock()
 
 void AndroidCameraPrivate::setAutoWhiteBalanceLock(bool toggle)
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return;
-
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
     if (!m_parameters.isValid())

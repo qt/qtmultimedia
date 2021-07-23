@@ -65,12 +65,6 @@ AndroidSurfaceTexture::AndroidSurfaceTexture(quint32 texName)
     : QObject()
 {
     Q_STATIC_ASSERT(sizeof (jlong) >= sizeof (void *));
-    // API level 11 or higher is required
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 11) {
-        qWarning("Camera preview and video playback require Android 3.0 (API level 11) or later.");
-        return;
-    }
-
     m_surfaceTexture = QJniObject("android/graphics/SurfaceTexture", "(I)V", jint(texName));
 
     if (!m_surfaceTexture.isValid())
@@ -84,7 +78,7 @@ AndroidSurfaceTexture::AndroidSurfaceTexture(quint32 texName)
 
 AndroidSurfaceTexture::~AndroidSurfaceTexture()
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() > 13 && m_surface.isValid())
+    if (m_surface.isValid())
         m_surface.callMethod<void>("release");
 
     if (m_surfaceTexture.isValid()) {
@@ -113,9 +107,6 @@ QMatrix4x4 AndroidSurfaceTexture::getTransformMatrix()
 
 void AndroidSurfaceTexture::release()
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 14)
-        return;
-
     m_surfaceTexture.callMethod<void>("release");
 }
 
@@ -156,7 +147,7 @@ jobject AndroidSurfaceTexture::surfaceHolder()
 
 void AndroidSurfaceTexture::attachToGLContext(quint32 texName)
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 16 || !m_surfaceTexture.isValid())
+    if (!m_surfaceTexture.isValid())
         return;
 
     m_surfaceTexture.callMethod<void>("attachToGLContext", "(I)V", texName);
@@ -164,7 +155,7 @@ void AndroidSurfaceTexture::attachToGLContext(quint32 texName)
 
 void AndroidSurfaceTexture::detachFromGLContext()
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 16 || !m_surfaceTexture.isValid())
+    if (!m_surfaceTexture.isValid())
         return;
 
     m_surfaceTexture.callMethod<void>("detachFromGLContext");
@@ -172,10 +163,6 @@ void AndroidSurfaceTexture::detachFromGLContext()
 
 bool AndroidSurfaceTexture::registerNativeMethods()
 {
-    // SurfaceTexture is available since API 11.
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 11)
-        return false;
-
     static JNINativeMethod methods[] = {
         {"notifyFrameAvailable", "(J)V", (void *)notifyFrameAvailable}
     };
