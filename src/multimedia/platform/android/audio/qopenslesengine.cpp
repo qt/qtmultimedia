@@ -160,10 +160,6 @@ int QOpenSLESEngine::getOutputValue(QOpenSLESEngine::OutputValue type, int defau
 #if defined(Q_OS_ANDROID)
     static int sampleRate = 0;
     static int framesPerBuffer = 0;
-    static const int sdkVersion = QNativeInterface::QAndroidApplication::sdkVersion();
-
-    if (sdkVersion < 17) // getProperty() was added in API level 17...
-        return defaultValue;
 
     if (type == FramesPerBuffer && framesPerBuffer != 0)
         return framesPerBuffer;
