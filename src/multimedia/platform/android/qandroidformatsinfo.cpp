@@ -39,21 +39,63 @@
 
 #include "qandroidformatsinfo_p.h"
 
+#include <qcoreapplication.h>
+
 QT_BEGIN_NAMESPACE
 
 QAndroidFormatInfo::QAndroidFormatInfo()
 {
+    // Audio/Video/Image formats with their decoder/encoder information is documented at
+    // https://developer.android.com/guide/topics/media/media-formats
     decoders = {
         { QMediaFormat::AAC, { QMediaFormat::AudioCodec::AAC }, {} },
         { QMediaFormat::MP3, { QMediaFormat::AudioCodec::MP3}, {} },
         { QMediaFormat::Ogg, { QMediaFormat::AudioCodec::Opus, QMediaFormat::AudioCodec::Vorbis },
-                             { QMediaFormat::VideoCodec::VP8 } },
-        { QMediaFormat::MPEG4, { QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::AAC },
-                               { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265 } }
+                             {} },
+        { QMediaFormat::FLAC, { QMediaFormat::AudioCodec::FLAC }, {} },
+        { QMediaFormat::Mpeg4Audio, { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::FLAC,
+                                QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::Vorbis},
+                             {} },
+        { QMediaFormat::MPEG4, { QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::AAC,
+                                 QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Vorbis },
+                               { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265,
+                                 QMediaFormat::VideoCodec::AV1 } },
+        { QMediaFormat::Matroska, { QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::Opus,
+                                    QMediaFormat::AudioCodec::Vorbis },
+                                  { QMediaFormat::VideoCodec::VP8, QMediaFormat::VideoCodec::VP9,
+                                    QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265,
+                                    QMediaFormat::VideoCodec::AV1} },
+        { QMediaFormat::WebM, { QMediaFormat::AudioCodec::Opus, QMediaFormat::AudioCodec::Vorbis },
+                              { QMediaFormat::VideoCodec::VP8, QMediaFormat::VideoCodec::VP9} }
     };
-    encoders = decoders;
 
-    imageFormats << QImageCapture::JPEG;
+    // MP3 encoders doesn't seem to be supported by the default Android SDK
+    encoders = {
+        { QMediaFormat::AAC, { QMediaFormat::AudioCodec::AAC }, {} },
+        { QMediaFormat::MP3, {}, {} },
+        { QMediaFormat::FLAC, { QMediaFormat::AudioCodec::FLAC }, {} },
+        { QMediaFormat::Mpeg4Audio, {QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::FLAC},
+                             {} },
+        { QMediaFormat::MPEG4, { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::FLAC },
+                               { QMediaFormat::VideoCodec::H264 } }
+    };
+
+    // Opus encoder available only for Android 10+
+    if (QNativeInterface::QAndroidApplication::sdkVersion() >= 29) {
+        encoders.append({ QMediaFormat::Ogg, { QMediaFormat::AudioCodec::Opus }, {} });
+        encoders.append({ QMediaFormat::Matroska, { QMediaFormat::AudioCodec::MP3,
+                                                    QMediaFormat::AudioCodec::Opus },
+                          { QMediaFormat::VideoCodec::VP8, QMediaFormat::VideoCodec::H264 } });
+        encoders.append({ QMediaFormat::WebM, { QMediaFormat::AudioCodec::Opus },
+                          { QMediaFormat::VideoCodec::VP8 } });
+    } else {
+        encoders.append({ QMediaFormat::Ogg, {}, {} });
+        encoders.append({ QMediaFormat::Matroska, { QMediaFormat::AudioCodec::MP3 },
+                          { QMediaFormat::VideoCodec::VP8, QMediaFormat::VideoCodec::H264 } });
+        encoders.append({ QMediaFormat::WebM, {}, { QMediaFormat::VideoCodec::VP8 } });
+    }
+
+    imageFormats << QImageCapture::JPEG << QImageCapture::PNG << QImageCapture::WebP;
 }
 
 QAndroidFormatInfo::~QAndroidFormatInfo()
