@@ -42,29 +42,32 @@
     \section1 Displaying the Window and Audio Settings
 
     We display a window for the user to select the appropriate audio input,
-    codec, container, and sample rate. Allow a setting of either quality or
-    bitrate. Finally, the output file can be selected and recording can be
-    started.
+    codec, container, sample rate, and channels. It allows setting of either
+    quality or bit rate. Finally, the output file can be selected and recording
+    can be started.
 
-    The lists are setup using the \l{QAudioRecorder::audioInputs()}{audioInputs()},
-    \l{QAudioRecorder::supportedAudioCodecs()}{supportedAudioCodecs()},
-    \l{QAudioRecorder::supportedContainers()}{supportedContainers()},
-    \l{QAudioRecorder::supportedContainers()}{supportedContainers()}, and
-    \l{QAudioRecorder::supportedAudioSampleRates()}{supportedAudioSampleRates()}
-    methods. The quality slider is setup from 0 (zero) to
+    The lists are populated using the following methods:
+    \list
+    \li \l{QMediaDevices::audioInputs()}
+    \li \l{QMediaFormat::supportedAudioCodecs()}
+    \li \l{QMediaFormat::supportedFileFormats()}
+    \li \l{AudioDevice::maximumSampleRate()}
+    \li \l{AudioDevice::minimumSampleRate()}
+    \endlist
+    The quality slider is setup from 0 (zero) to
     \l{QMediaRecorder::VeryHighQuality} with a default value of
-    \l{QMediaRecorder::NormalQuality}, while the bitrates are hardcoded
+    \l{QMediaRecorder::NormalQuality}, while the bit rate box are hard-coded
     into the list.
 
     \section1 Recording Audio
 
-    To record audio we simply create a QAudioRecorder object.
+    To record audio we simply create a QAudioRecorder object,
 
     \code
     audioRecorder = new QAudioRecorder(this);
     \endcode
 
-    And setup the lists as described above. The text on the record and pause
+    and setup the lists as described above. The text on the record and pause
     buttons are toggled depending on the \l{QMediaRecorder::RecorderState}{state} of
     the \c audioRecorder object. This means that if the state is
     \l{QMediaRecorder::StoppedState} then the button text will be "Record" and

@@ -105,7 +105,7 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaRecorder *parent)
 /*!
     \fn void QPlatformMediaEncoder::record(QMediaEncoderSettings &settings)
 
-    Start media recording.
+    Start media recording in accordance with \a{settings}.
 */
 
 /*!

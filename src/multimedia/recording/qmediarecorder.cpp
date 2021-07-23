@@ -85,6 +85,7 @@ QString QMediaRecorderPrivate::msgFailedStartRecording()
 
 /*!
     Constructs a media recorder which records the media produced by a microphone and camera.
+    The media recorder is a child of \a{parent}.
 */
 
 QMediaRecorder::QMediaRecorder(QObject *parent)
@@ -320,6 +321,7 @@ void QMediaRecorder::stop()
     \value ResourceError   Device is not ready or not available.
     \value FormatError     Current format is not supported.
     \value OutOfSpaceError No space left on device.
+    \value LocationNotWritable The output location is not writable.
 */
 
 /*!
@@ -368,9 +370,9 @@ QMediaMetaData QMediaRecorder::metaData() const
 }
 
 /*!
-    Sets the meta data tp \a metaData.
+    Sets the meta data to \a metaData.
 
-    \note To ensure that meta data is set corretly, it should be set before starting the recording.
+    \note To ensure that meta data is set correctly, it should be set before starting the recording.
     Once the recording is stopped, any meta data set will be attached to the next recording.
 */
 void QMediaRecorder::setMetaData(const QMediaMetaData &metaData)
@@ -502,10 +504,10 @@ QSize QMediaRecorder::videoResolution() const
 }
 
 /*!
-    Sets the \a resolution of the encoded video.
+    Sets the resolution of the encoded video to \a{size}.
 
-    An empty QSize indicates the recorder should make an optimal choice based on
-    what is available from the video source and the limitations of the codec.
+    Pass an empty QSize to make the recorder choose an optimal resolution based
+    on what is available from the video source and the limitations of the codec.
 */
 void QMediaRecorder::setVideoResolution(const QSize &size)
 {
@@ -533,7 +535,7 @@ qreal QMediaRecorder::videoFrameRate() const
 }
 
 /*!
-    Sets the video frame \a rate.
+    Sets the video \a frameRate.
 
     A value of 0 indicates the recorder should make an optimal choice based on what is available
     from the video source and the limitations of the codec.
@@ -557,7 +559,7 @@ int QMediaRecorder::videoBitRate() const
 }
 
 /*!
-    Sets the video bit \a rate in bits per second.
+    Sets the video \a bitRate in bits per second.
 */
 void QMediaRecorder::setVideoBitRate(int bitRate)
 {
@@ -578,7 +580,7 @@ int QMediaRecorder::audioBitRate() const
 }
 
 /*!
-    Sets the audio bit \a rate in bits per second.
+    Sets the audio \a bitRate in bits per second.
 */
 void QMediaRecorder::setAudioBitRate(int bitRate)
 {
@@ -623,10 +625,10 @@ int QMediaRecorder::audioSampleRate() const
 }
 
 /*!
-    Sets the audio sample \a rate in Hz.
+    Sets the audio \a sampleRate in Hz.
 
-    A value of -1 indicates the recorder should make an optimal choice based on what is avaialbe
-    from the audio source and the limitations of the codec.
+    A value of \c -1 indicates the recorder should make an optimal choice based
+    on what is available from the audio source, and the limitations of the codec.
 */
 void QMediaRecorder::setAudioSampleRate(int sampleRate)
 {

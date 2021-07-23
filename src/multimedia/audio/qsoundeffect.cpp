@@ -525,9 +525,9 @@ int QSoundEffect::loopsRemaining() const
 
     The default volume is \c 1.0.
 
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
+    UI volume controls should usually be scaled non-linearly. For example, using a logarithmic scale
     will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See \l {QtMultimedia::QtMultimedia::convertVolume()}{QtMultimedia.convertVolume()}
+    from a volume control. See \l {QAudio::convertVolume()}{convertVolume()}
     for more details.
 */
 /*!
@@ -555,7 +555,7 @@ float QSoundEffect::volume() const
 
     The default volume is \c 1.0.
 
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
+    UI volume controls should usually be scaled non-linearly. For example, using a logarithmic scale
     will produce linear changes in perceived loudness, which is what a user would normally expect
     from a volume control. See QAudio::convertVolume() for more details.
  */

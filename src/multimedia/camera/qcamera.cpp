@@ -71,7 +71,7 @@ QT_BEGIN_NAMESPACE
     On hardware that supports it, QCamera lets you adjust the focus
     and zoom. This also includes things
     like "Macro" mode for close up work (e.g. reading barcodes, or
-    recognising letters), or "touch to focus" - indicating an
+    recognizing letters), or "touch to focus" - indicating an
     interesting area of the viewfinder for the hardware to attempt
     to focus on.
 
@@ -508,7 +508,9 @@ float QCamera::zoomFactor() const
     Q_D(const QCamera);
     return d->control ? d->control->zoomFactor() : 1.;
 }
-
+/*!
+    Zooms to a zoom factor \a factor at a rate of 1 factor per second.
+ */
 void QCamera::setZoomFactor(float factor)
 {
     zoomTo(factor, 0.);
@@ -517,8 +519,8 @@ void QCamera::setZoomFactor(float factor)
 /*!
     Zooms to a zoom factor \a factor using \a rate.
 
-    The rate is specified in powers of two per second. A rate of 1
-    would take two seconds to zoom from a zoom factor of 1 to a zoom factor of 4.
+    The \a rate is specified in powers of two per second. At a rate of 1
+    it would take 2 seconds to go from a zoom factor of 1 to 4.
  */
 void QCamera::zoomTo(float factor, float rate)
 {

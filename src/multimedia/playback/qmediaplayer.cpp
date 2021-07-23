@@ -106,8 +106,8 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 
     QScopedPointer<QFile> file;
 
-    // Backends can't play qrc files directly.
-    // If the backend supports StreamPlayback, we pass a QFile for that resource.
+    // Back ends can't play qrc files directly.
+    // If the back end supports StreamPlayback, we pass a QFile for that resource.
     // If it doesn't, we copy the data to a temporary file and pass its path.
     if (!media.isEmpty() && !stream && media.scheme() == QLatin1String("qrc")) {
         qrcMedia = media;
@@ -132,7 +132,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
 #else
             QTemporaryFile *tempFile = new QTemporaryFile;
 
-            // Preserve original file extension, some backends might not load the file if it doesn't
+            // Preserve original file extension, some back ends might not load the file if it doesn't
             // have an extension.
             const QString suffix = QFileInfo(*file).suffix();
             if (!suffix.isEmpty())
@@ -176,8 +176,7 @@ QList<QMediaMetaData> QMediaPlayerPrivate::trackMetaData(QPlatformMediaPlayer::T
 }
 
 /*!
-    Construct a QMediaPlayer instance
-    parented to \a parent and with \a flags.
+    Constructs a QMediaPlayer instance as a child of \a{parent}.
 */
 
 QMediaPlayer::QMediaPlayer(QObject *parent)
@@ -480,14 +479,16 @@ void QMediaPlayer::setSource(const QUrl &source)
 /*!
     Sets the current source \a device.
 
-    The media data will be read from \a device. The url can be provided to resolve additional
-    information about the media such as mime type. The \a device must be open and readable.
-    For macOS the \a device should be also seekable.
+    The media data will be read from \a device. The \a sourceUrl can be provided
+    to resolve additional information about the media, mime type etc. The
+    \a device must be open and readable.
 
-    \note This function returns immediately after recording the specified source of the media.
-    It does not wait for the media to finish loading and does not check for errors. Listen for
-    the mediaStatusChanged() and error() signals to be notified when the media is loaded and
-    when an error occurs during loading.
+    For macOS the \a device should also be seek-able.
+
+    \note This function returns immediately after recording the specified source
+    of the media. It does not wait for the media to finish loading and does not
+    check for errors. Listen for the mediaStatusChanged() and error() signals to
+    be notified when the media is loaded, and if an error occurs during loading.
 */
 void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
 {
@@ -505,12 +506,14 @@ void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
 }
 
 /*!
-    Sets the audio output to \a device.
+    Sets the audio \a output device.
 
-    Setting a null QAudioDevice, sets the output to the system default.
+    If \a output is \nullptr, sets the output to the system default output
+    device.
 
-    Returns true if the output could be changed, false otherwise.
- */
+    Listen for the audioOutputChanged() signal to be notified if the output is
+    successfully changed.
+*/
 void QMediaPlayer::setAudioOutput(QAudioOutput *output)
 {
     Q_D(QMediaPlayer);
@@ -599,11 +602,11 @@ int QMediaPlayer::activeSubtitleTrack() const
 }
 
 /*!
-    Sets the currently active audio track.
+    Sets the currently active audio track to one at the given \a index.
 
     By default, the first available audio track will be chosen.
 
-    Set to -1 to disable all audio tracks.
+    Set \a index to \c -1 to disable all audio tracks.
 */
 void QMediaPlayer::setActiveAudioTrack(int index)
 {
@@ -613,7 +616,7 @@ void QMediaPlayer::setActiveAudioTrack(int index)
 }
 
 /*!
-    Sets the currently active video track.
+    Sets the currently active video track to one at the given \a index.
 
     By default, the first available video track will be chosen.
 */
@@ -625,9 +628,9 @@ void QMediaPlayer::setActiveVideoTrack(int index)
 }
 
 /*!
-    Sets the currently active subtitle track.
+    Sets the currently active subtitle track to one at the given \a index.
 
-    Setting the property to -1 will disable subtitles.
+    Set \a index to \c -1 to disable subtitles.
 
     Subtitles are disabled by default.
 */
@@ -840,7 +843,6 @@ QMediaMetaData QMediaPlayer::metaData() const
 
     By default this property is QMediaPlayer::NoMedia
 
-    \sa state
 */
 
 /*!
@@ -923,20 +925,20 @@ QMediaMetaData QMediaPlayer::metaData() const
 /*!
     \fn void QMediaPlayer::durationChanged(qint64 duration)
 
-    Signal the duration of the content has changed to \a duration, expressed in milliseconds.
+    Signals the duration of the content has changed to \a duration, expressed in milliseconds.
 */
 
 /*!
     \fn void QMediaPlayer::positionChanged(qint64 position)
 
-    Signal the position of the content has changed to \a position, expressed in
+    Signals the position of the content has changed to \a position, expressed in
     milliseconds.
 */
 
 /*!
     \fn void QMediaPlayer::hasVideoChanged(bool videoAvailable)
 
-    Signal the availability of visual content has changed to \a videoAvailable.
+    Signals the availability of visual content has changed to \a videoAvailable.
 */
 
 /*!
@@ -948,7 +950,7 @@ QMediaMetaData QMediaPlayer::metaData() const
 /*!
     \fn void QMediaPlayer::bufferProgressChanged(float filled)
 
-    Signal the amount of the local buffer filled as a number between 0 and 1.
+    Signals the amount of the local buffer \a filled as a number between 0 and 1.
 */
 
 QT_END_NAMESPACE

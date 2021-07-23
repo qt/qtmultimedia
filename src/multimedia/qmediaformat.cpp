@@ -253,6 +253,7 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
 
     \sa QMediaDecoderInfo
 */
+
 bool QMediaFormat::isSupported(ConversionMode mode) const
 {
     return QPlatformMediaIntegration::instance()->formatInfo()->isSupported(*this, mode);
@@ -263,6 +264,7 @@ bool QMediaFormat::isSupported(ConversionMode mode) const
 
     \sa format(), setFormat()
 */
+
 QMimeType QMediaFormat::mimeType() const
 {
     return QMimeDatabase().mimeTypeForName(QString::fromLatin1(mimeTypeForFormat[fmt + 1]));
@@ -290,8 +292,8 @@ QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat:
 }
 
 /*!
-    The function returns a list of audio codecs for the chosen file format and
-    video codec.
+    The function returns a list of video codecs for the chosen file format and
+    audio codec.
 
     To get all supported video codecs, run this query on a default constructed
     QMediaFormat.
@@ -303,6 +305,7 @@ QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat:
 }
 
 /*!
+
     The function returns a list of audio codecs for the chosen file format and
     video codec.
 

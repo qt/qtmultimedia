@@ -210,6 +210,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \fn void QMediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
+    Inserts a \a value into a Key: \a{k}.
 */
 
 /*!

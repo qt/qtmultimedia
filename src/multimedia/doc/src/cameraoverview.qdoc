@@ -130,13 +130,13 @@ Many of these tasks have classes to assist them.
 Before using the camera APIs, you should check that a camera is available at
 runtime. If there is none available, you could disable camera related features
 in your application. To perform this check in C++, use the
-\l QCameraDevice::availableCameras() function, as shown in the example below:
+\l QMediaDevices::videoInputs() function, as shown in the example below:
 
 
     \snippet multimedia-snippets/camera.cpp Camera overview check
 
 In QML, use the
-\l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}
+\l{MediaDevices::availableCameras}{MediaDevices.availableCameras}
 property:
 
 \qml
@@ -186,7 +186,7 @@ If both QCameraDevice and position aren't specified, the default camera will be
 used. On desktop platforms, the default camera is set by the user in the system
 settings. On a mobile device, the back-facing camera is usually the default
 camera. You can get information about the default camera using
-\l QCameraInfo::defaultCamera() in C++ or
+\l MediaDevices::defaultCamera() in C++ or
 \l{QtMultimedia::MediaDevices::defaultCamera}{MediaDevices.defaultCamera} in QML.
 
 \section2 Preview
@@ -278,14 +278,15 @@ enums for the \l {QCamera::FocusMode}{FocusMode}. \l {QCamera::FocusMode}{FocusM
 deals with settings such as \l {QCamera::FocusModeAuto},
 and \l {QCamera::FocusModeInfinity}.
 
-For camera hardware that supports it, \l QCamera::FocusModeAutoNear} allows
+For camera hardware that supports it, \l QCamera::FocusModeAutoNear allows
 imaging of things that are close to the sensor. This is useful in applications
 like bar-code recognition, or business card scanning.
 
 In addition to focus, QCameraFocus allows you to control any available zoom
-functionality using \l setZoomFactor() or \l zoomTo(). The available zoom range
-might be limited or entirely fixed to unity (1:1). The allowed range can
-be checked with \l minimumZoomFactor() and \l maximumZoomFactor().
+functionality using \l QCamera::setZoomFactor() or \l QCamera::zoomTo(). The
+available zoom range might be limited or entirely fixed to unity (1:1). The
+allowed range can be checked with \l QCamera::minimumZoomFactor() and
+\l QCamera::minimumZoomFactor().
 
 \section3 Exposure, Shutter Speed and Flash
 
@@ -308,10 +309,6 @@ These settings include:
 \list
     \li \l {QCamera::WhiteBalanceMode}{white balance}
     (also known as color temperature)
-    \li \l {QCamera::contrast()}{contrast}
-    \li \l {QCamera::saturation()}{saturation}
-    \li \l {QCamera::hue()}{hue}
-    \li \l {QCamera::brightness()}{brightness}
 \endlist
 
 Most cameras support automatic settings for all of these, so you shouldn't need
