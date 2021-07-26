@@ -42,6 +42,7 @@
 
 #include <qlist.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/private/qandroidextras_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -108,16 +109,16 @@ AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrameForma
     }
 }
 
-static bool androidRequestPermission(QPermission::PermissionType key)
+static bool androidRequestPermission(QtAndroidPrivate::PermissionType key)
 {
     if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return true;
 
     // Permission already granted?
-    if (QCoreApplication::checkPermission(key).result() == QPermission::Authorized)
+    if (QtAndroidPrivate::checkPermission(key).result() == QtAndroidPrivate::Authorized)
         return true;
 
-    if (QCoreApplication::requestPermission(key).result() != QPermission::Authorized)
+    if (QtAndroidPrivate::requestPermission(key).result() != QtAndroidPrivate::Authorized)
         return false;
 
     return true;
@@ -125,7 +126,7 @@ static bool androidRequestPermission(QPermission::PermissionType key)
 
 bool qt_androidRequestCameraPermission()
 {
-    if (!androidRequestPermission(QPermission::Camera)) {
+    if (!androidRequestPermission(QtAndroidPrivate::Camera)) {
         qCDebug(qtAndroidMediaPlugin, "Camera permission denied by user!");
         return false;
     }
@@ -135,7 +136,7 @@ bool qt_androidRequestCameraPermission()
 
 bool qt_androidRequestRecordingPermission()
 {
-    if (!androidRequestPermission(QPermission::Microphone)) {
+    if (!androidRequestPermission(QtAndroidPrivate::Microphone)) {
         qCDebug(qtAndroidMediaPlugin, "Microphone permission denied by user!");
         return false;
     }
@@ -145,8 +146,8 @@ bool qt_androidRequestRecordingPermission()
 
 bool qt_androidRequestWriteStoragePermission()
 {
-    if (!androidRequestPermission(QPermission::WriteStorage)) {
-        qCDebug(qtAndroidMediaPlugin, "WriteStorage permission denied by user!");
+    if (!androidRequestPermission(QtAndroidPrivate::Storage)) {
+        qCDebug(qtAndroidMediaPlugin, "Storage permission denied by user!");
         return false;
     }
 
