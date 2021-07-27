@@ -116,11 +116,6 @@ float QGstreamerMediaPlayer::bufferProgress() const
     return m_bufferProgress/100.;
 }
 
-bool QGstreamerMediaPlayer::isSeekable() const
-{
-    return true;
-}
-
 QMediaTimeRange QGstreamerMediaPlayer::availablePlaybackRanges() const
 {
     return QMediaTimeRange();
@@ -290,7 +285,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         case GST_STATE_VOID_PENDING:
         case GST_STATE_NULL:
         case GST_STATE_READY:
-            setSeekable(false);
+            seekableChanged(false);
             break;
         case GST_STATE_PAUSED:
         {
@@ -509,6 +504,10 @@ void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement */*uride
     if (G_OBJECT_TYPE(child) == that->decodebinType) {
         qCDebug(qLcMediaPlayer) << "     -> setting post-stream-topology property";
         c.set("post-stream-topology", true);
+    } else if (!qstrcmp(gst_element_get_name(child), "source")) {
+        GstBaseSrc *src = GST_BASE_SRC(child);
+        bool seekable = src && GST_BASE_SRC_GET_CLASS(src)->is_seekable(src);
+        that->seekableChanged(seekable);
     }
 }
 
@@ -532,6 +531,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     src = QGstElement();
     decoder = QGstElement();
     removeAllOutputs();
+    seekableChanged(false);
 
     if (m_duration != 0) {
         m_duration = 0;
@@ -559,6 +559,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         src.link(decoder);
 
         m_appSrc->setup(m_stream);
+        seekableChanged(!stream->isSequential());
     } else {
         // use uridecodebin
         decoder = QGstElement("uridecodebin", "uridecoder");
@@ -606,15 +607,6 @@ QMediaMetaData QGstreamerMediaPlayer::metaData() const
 void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
 {
     gstVideoOutput->setVideoSink(sink);
-}
-
-void QGstreamerMediaPlayer::setSeekable(bool seekable)
-{
-    qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << seekable;
-    if (seekable == m_seekable)
-        return;
-    m_seekable = seekable;
-    emit seekableChanged(m_seekable);
 }
 
 static QGstStructure endOfChain(const QGstStructure &s)

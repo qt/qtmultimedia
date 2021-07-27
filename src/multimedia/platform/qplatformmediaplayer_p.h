@@ -149,7 +149,7 @@ private:
     QMediaPlayer *player = nullptr;
     QMediaPlayer::MediaStatus m_status = QMediaPlayer::NoMedia;
     QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
-    bool m_seekable = true;
+    bool m_seekable = false;
     bool m_videoAvailable = false;
     bool m_audioAvailable = false;
 };

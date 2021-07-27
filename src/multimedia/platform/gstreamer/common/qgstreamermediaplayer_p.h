@@ -84,7 +84,6 @@ public:
 
     float bufferProgress() const override;
 
-    bool isSeekable() const override;
     QMediaTimeRange availablePlaybackRanges() const override;
 
     qreal playbackRate() const override;
@@ -122,7 +121,6 @@ private:
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
-    void setSeekable(bool seekable);
     void parseStreamsAndMetadata();
     void removeOutput(TrackType t);
     void removeAllOutputs();
@@ -138,7 +136,6 @@ private:
 
     bool prerolling = false;
     double m_playbackRate = 1.;
-    bool m_seekable = false;
     bool m_requiresSeekOnPlay = false;
     qint64 m_duration = 0;
     QTimer positionUpdateTimer;

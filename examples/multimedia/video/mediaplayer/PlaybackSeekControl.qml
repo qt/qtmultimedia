@@ -75,16 +75,11 @@ Item {
         Slider {
             id: mediaSlider
             Layout.fillWidth: true
-            enabled: false
+            enabled: mediaPlayer.seekable
             to: 1.0
             value: 0.0
 
             onMoved: mediaPlayer.setPosition(value * mediaPlayer.duration)
-
-            Connections {
-                target: mediaPlayer
-                function onSeekableChanged() { mediaSlider.enabled = mediaPlayer.seekable }
-            }
         }
     }
 

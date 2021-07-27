@@ -350,6 +350,8 @@ bool QMediaPlayer::hasVideo() const
 /*!
     Returns true if the media is seekable. Most file based media files are seekable,
     but live streams usually are not.
+
+    \sa position
 */
 bool QMediaPlayer::isSeekable() const
 {
