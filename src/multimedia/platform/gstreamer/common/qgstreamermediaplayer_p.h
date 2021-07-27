@@ -84,9 +84,6 @@ public:
 
     float bufferProgress() const override;
 
-    bool isAudioAvailable() const override;
-    bool isVideoAvailable() const override;
-
     bool isSeekable() const override;
     QMediaTimeRange availablePlaybackRanges() const override;
 

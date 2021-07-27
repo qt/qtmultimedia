@@ -77,6 +77,7 @@ private slots:
     void metadata();
     void playerStateAtEOS();
     void playFromBuffer();
+    void audioVideoAvailable();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -1083,6 +1084,28 @@ void tst_QMediaPlayerBackend::playFromBuffer()
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
+}
+
+void tst_QMediaPlayerBackend::audioVideoAvailable()
+{
+    if (localVideoFile.isEmpty())
+        QSKIP("No supported video file");
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+    QSignalSpy hasVideoSpy(&player, SIGNAL(hasVideoChanged(bool)));
+    QSignalSpy hasAudioSpy(&player, SIGNAL(hasAudioChanged(bool)));
+    player.setVideoOutput(&surface);
+    player.setSource(localVideoFile);
+    QTRY_VERIFY(player.hasVideo());
+    QTRY_VERIFY(player.hasAudio());
+    QCOMPARE(hasVideoSpy.count(), 1);
+    QCOMPARE(hasAudioSpy.count(), 1);
+    player.setSource(QUrl());
+    QTRY_VERIFY(!player.hasVideo());
+    QTRY_VERIFY(!player.hasAudio());
+    QCOMPARE(hasVideoSpy.count(), 2);
+    QCOMPARE(hasAudioSpy.count(), 2);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

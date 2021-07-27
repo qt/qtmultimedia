@@ -459,22 +459,29 @@ void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGst
     Q_ASSERT(m_streams[streamType].indexOf(peer) != -1);
     m_streams[streamType].removeAll(peer);
 
-    if (m_streams[streamType].size() == 0)
+    if (m_streams[streamType].size() == 0) {
         removeOutput(TrackType(streamType));
+        if (streamType == AudioStream)
+            audioAvailableChanged(false);
+        else if (streamType == VideoStream)
+            videoAvailableChanged(false);
+    }
 
     if (!prerolling)
-        emit tracksChanged();
+        tracksChanged();
 }
 
 void QGstreamerMediaPlayer::removeAllOutputs()
 {
     for (int i = 0; i < NTrackTypes; ++i) {
         removeOutput(TrackType(i));
-        for (QGstPad pad : qAsConst(m_streams[i])) {
+        for (const QGstPad &pad : qAsConst(m_streams[i])) {
             inputSelector[i].releaseRequestPad(pad);
         }
         m_streams[i].clear();
     }
+    audioAvailableChanged(false);
+    videoAvailableChanged(false);
 }
 
 void QGstreamerMediaPlayer::removeOutput(TrackType t)
@@ -746,16 +753,6 @@ void QGstreamerMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type,
         playerPipeline.seek(playerPipeline.position(), m_playbackRate);
     else
         m_requiresSeekOnPlay = true;
-}
-
-bool QGstreamerMediaPlayer::isAudioAvailable() const
-{
-    return !m_streams[AudioStream].isEmpty();
-}
-
-bool QGstreamerMediaPlayer::isVideoAvailable() const
-{
-    return !m_streams[VideoStream].isEmpty();
 }
 
 QT_END_NAMESPACE
