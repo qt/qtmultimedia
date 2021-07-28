@@ -92,8 +92,8 @@ void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     m_service = captureSession;
     if (!m_service) {
-        m_cameraSession = nullptr;
         disconnect(m_cameraSession,nullptr,this,nullptr);
+        m_cameraSession = nullptr;
         return;
     }
 
@@ -102,6 +102,7 @@ void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     connect(m_cameraSession, &QAndroidCameraSession::activeChanged, this, &QAndroidCamera::activeChanged);
     connect(m_cameraSession, &QAndroidCameraSession::error, this, &QAndroidCamera::error);
+    connect(m_cameraSession, &QAndroidCameraSession::opened, this, &QAndroidCamera::onCameraOpened);
 }
 
 void QAndroidCamera::setFocusMode(QCamera::FocusMode mode)
