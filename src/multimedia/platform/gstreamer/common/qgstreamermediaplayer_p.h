@@ -122,6 +122,7 @@ private:
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
     void parseStreamsAndMetadata();
+    void connectOutput(TrackType t);
     void removeOutput(TrackType t);
     void removeAllOutputs();
 

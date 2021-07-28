@@ -388,26 +388,17 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
     qCDebug(qLcMediaPlayer) << "    " << caps.toString();
 
     TrackType streamType = NTrackTypes;
-    QGstElement output;
     if (type.startsWith("video/x-raw")) {
         streamType = VideoStream;
-        output = gstVideoOutput->gstElement();
     } else if (type.startsWith("audio/x-raw")) {
         streamType = AudioStream;
-        if (gstAudioOutput)
-            output = gstAudioOutput->gstElement();
     } else if (type.startsWith("text/")) {
         streamType = SubtitleStream;
     } else {
         qCWarning(qLcMediaPlayer) << "Ignoring unknown media stream:" << pad.name() << type;
         return;
     }
-    if (!selectorIsConnected[streamType] && !output.isNull()) {
-        playerPipeline.add(output);
-        inputSelector[streamType].link(output);
-        output.setState(GST_STATE_PAUSED);
-        selectorIsConnected[streamType] = true;
-    }
+    connectOutput(streamType);
 
     QGstPad sinkPad = inputSelector[streamType].getRequestPad("sink_%u");
     if (!pad.link(sinkPad))
@@ -473,20 +464,40 @@ void QGstreamerMediaPlayer::removeAllOutputs()
     videoAvailableChanged(false);
 }
 
+void QGstreamerMediaPlayer::connectOutput(TrackType t)
+{
+    if (selectorIsConnected[t])
+        return;
+
+    QGstElement e;
+    if (t == AudioStream)
+        e = gstAudioOutput->gstElement();
+    else if (t == VideoStream)
+        e = gstVideoOutput->gstElement();
+    if (!e.isNull()) {
+        qCDebug(qLcMediaPlayer) << "connecting output for track type" << t;
+        playerPipeline.add(e);
+        inputSelector[t].link(e);
+        e.setState(GST_STATE_PAUSED);
+        selectorIsConnected[t] = true;
+    }
+}
+
 void QGstreamerMediaPlayer::removeOutput(TrackType t)
 {
-    if (selectorIsConnected[t]) {
-        QGstElement e;
-        if (t == AudioStream)
-            e = gstAudioOutput->gstElement();
-        else if (t == VideoStream)
-            e = gstVideoOutput->gstElement();
-        if (!e.isNull()) {
-            qCDebug(qLcMediaPlayer) << "removing output for track type" << t;
-            e.setState(GST_STATE_NULL);
-            playerPipeline.remove(e);
-            selectorIsConnected[t] = false;
-        }
+    if (!selectorIsConnected[t])
+        return;
+
+    QGstElement e;
+    if (t == AudioStream)
+        e = gstAudioOutput->gstElement();
+    else if (t == VideoStream)
+        e = gstVideoOutput->gstElement();
+    if (!e.isNull()) {
+        qCDebug(qLcMediaPlayer) << "removing output for track type" << t;
+        e.setState(GST_STATE_NULL);
+        playerPipeline.remove(e);
+        selectorIsConnected[t] = false;
     }
 }
 
@@ -590,8 +601,20 @@ void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 {
     if (gstAudioOutput == output)
         return;
+    auto state = playerPipeline.state();
+    if (state == GST_STATE_PLAYING)
+        playerPipeline.setStateSync(GST_STATE_PAUSED);
+    if (gstAudioOutput) {
+        removeOutput(AudioStream);
+        gstAudioOutput->setPipeline({});
+    }
     gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
-    // ### Connect it if we're already running!
+    if (gstAudioOutput) {
+        gstAudioOutput->setPipeline(playerPipeline);
+        connectOutput(AudioStream);
+    }
+    if (state == GST_STATE_PLAYING)
+        playerPipeline.setState(GST_STATE_PLAYING);
 }
 
 QMediaMetaData QGstreamerMediaPlayer::metaData() const
@@ -699,6 +722,8 @@ QMediaMetaData QGstreamerMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackT
 
     GstTagList *tagList;
     g_object_get(s.at(index).object(), "tags", &tagList, nullptr);
+    if (!tagList)
+        return {};
 
     QMediaMetaData md = QGstreamerMetaData::fromGstTagList(tagList);
     return md;
