@@ -67,6 +67,7 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
 
 QGstreamerVideoOutput::~QGstreamerVideoOutput()
 {
+    gstVideoOutput.setStateSync(GST_STATE_NULL);
 }
 
 void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
