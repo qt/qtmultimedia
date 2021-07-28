@@ -69,7 +69,11 @@ Item {
             Layout.minimumWidth: 50
             Layout.minimumHeight: 18
             horizontalAlignment: Text.AlignRight
-            text: "0:00.0"
+            text: {
+                var m = Math.floor(mediaPlayer.position / 60000)
+                var ms = (mediaPlayer.position / 1000 - m * 60).toFixed(1)
+                return `${m}:${ms.padStart(4, 0)}`
+            }
         }
 
         Slider {
@@ -77,27 +81,9 @@ Item {
             Layout.fillWidth: true
             enabled: mediaPlayer.seekable
             to: 1.0
-            value: 0.0
+            value: mediaPlayer.position / mediaPlayer.duration
 
             onMoved: mediaPlayer.setPosition(value * mediaPlayer.duration)
-        }
-    }
-
-    Timer {
-        interval: 100; repeat: true; running: true;
-        onTriggered: {
-            if (mediaPlayerState != MediaPlayer.StoppedState) {
-                mediaSlider.value = mediaPlayer.position / mediaPlayer.duration
-                mediaTime.text = function(){
-                    var m = Math.floor(mediaPlayer.position / 60000)
-                    var ms = (mediaPlayer.position / 1000 - m * 60).toFixed(1)
-                    return `${m}:${ms.padStart(4, 0)}`
-                }()
-            } else {
-                mediaSlider.value = 0.0
-                mediaTime.text = "0:00.0"
-            }
-
         }
     }
 }

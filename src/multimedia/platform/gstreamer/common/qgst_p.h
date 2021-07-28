@@ -480,28 +480,6 @@ public:
     void sendEvent(GstEvent *event) const { gst_element_send_event(element(), event); }
     void sendEos() const { sendEvent(gst_event_new_eos()); }
 
-    bool seek(qint64 pos, double rate)
-    {
-        return gst_element_seek(element(), rate, GST_FORMAT_TIME,
-                                 GstSeekFlags(GST_SEEK_FLAG_FLUSH),
-                                 GST_SEEK_TYPE_SET, pos,
-                                 GST_SEEK_TYPE_SET, -1);
-    }
-    qint64 duration() const
-    {
-        gint64 d;
-        if (!gst_element_query_duration(element(), GST_FORMAT_TIME, &d))
-            return 0.;
-        return d;
-    }
-    qint64 position() const
-    {
-        gint64 pos;
-        if (!gst_element_query_position(element(), GST_FORMAT_TIME, &pos))
-            return 0.;
-        return pos;
-    }
-
     template<auto Member, typename T>
     void onPadAdded(T *instance) {
         struct Impl {

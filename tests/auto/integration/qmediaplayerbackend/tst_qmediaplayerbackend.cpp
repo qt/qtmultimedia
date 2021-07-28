@@ -79,6 +79,7 @@ private slots:
     void playFromBuffer();
     void audioVideoAvailable();
     void isSeekable();
+    void positionAfterSeek();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -1120,6 +1121,29 @@ void tst_QMediaPlayerBackend::isSeekable()
     QVERIFY(!player.isSeekable());
     player.setSource(localVideoFile);
     QTRY_VERIFY(player.isSeekable());
+}
+
+void tst_QMediaPlayerBackend::positionAfterSeek()
+{
+    if (localVideoFile.isEmpty())
+        QSKIP("No supported video file");
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    QVERIFY(!player.isSeekable());
+    player.setSource(localVideoFile);
+    player.pause();
+    player.setPosition(500);
+    QTRY_VERIFY(player.position() == 500);
+    player.setPosition(700);
+    QVERIFY(player.position() != 0);
+    QTRY_VERIFY(player.position() == 700);
+    player.play();
+    QTRY_VERIFY(player.position() > 700);
+    player.setPosition(200);
+    QVERIFY(player.position() != 0);
+    QTRY_VERIFY(player.position() < 700);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
