@@ -112,55 +112,16 @@ public:
 #endif
     }
 
-    void flush() { seek(position(), m_rate); }
+    void flush();
 
-    bool seek(qint64 pos, double rate)
-    {
-        // always adjust the rate, so it can be  set before playback starts
-        // setting position needs a loaded media file that's seekable
-        m_rate = rate;
-        bool success = gst_element_seek(element(), rate, GST_FORMAT_TIME,
-                                        GstSeekFlags(GST_SEEK_FLAG_FLUSH),
-                                        GST_SEEK_TYPE_SET, pos,
-                                        GST_SEEK_TYPE_SET, -1);
-        if (!success)
-            return false;
+    bool seek(qint64 pos, double rate);
+    bool setPlaybackRate(double rate);
+    double playbackRate() const;
 
-        m_position = pos;
-        return true;
-    }
-    bool setPlaybackRate(double rate)
-    {
-        if (rate == m_rate)
-            return false;
-        seek(position(), rate);
-        return true;
-    }
-    double playbackRate() const { return m_rate; }
+    bool setPosition(qint64 pos);
+    qint64 position() const;
 
-    bool setPosition(qint64 pos)
-    {
-        return seek(pos, m_rate);
-    }
-    qint64 position() const
-    {
-        gint64 pos;
-        if (gst_element_query_position(element(), GST_FORMAT_TIME, &pos))
-            m_position = pos;
-        return m_position;
-    }
-
-    qint64 duration() const
-    {
-        gint64 d;
-        if (!gst_element_query_duration(element(), GST_FORMAT_TIME, &d))
-            return 0.;
-        return d;
-    }
-
-private:
-    mutable qint64 m_position = 0;
-    double m_rate = 1.;
+    qint64 duration() const;
 };
 
 QT_END_NAMESPACE
