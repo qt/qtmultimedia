@@ -123,16 +123,13 @@ QMediaTimeRange QGstreamerMediaPlayer::availablePlaybackRanges() const
 
 qreal QGstreamerMediaPlayer::playbackRate() const
 {
-    return m_playbackRate;
+    return playerPipeline.playbackRate();
 }
 
 void QGstreamerMediaPlayer::setPlaybackRate(qreal rate)
 {
-    if (rate == m_playbackRate)
-        return;
-    m_playbackRate = rate;
-    playerPipeline.seek(playerPipeline.position(), m_playbackRate);
-    emit playbackRateChanged(rate);
+    if (playerPipeline.setPlaybackRate(rate))
+        playbackRateChanged(rate);
 }
 
 void QGstreamerMediaPlayer::setPosition(qint64 pos)
@@ -141,7 +138,7 @@ void QGstreamerMediaPlayer::setPosition(qint64 pos)
     if (pos == currentPos)
         return;
     playerPipeline.finishStateChange();
-    playerPipeline.seek(pos*1e6, m_playbackRate);
+    playerPipeline.setPosition(pos*1e6);
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << pos << playerPipeline.position()/1e6;
     if (mediaStatus() == QMediaPlayer::EndOfMedia)
         mediaStatusChanged(QMediaPlayer::LoadedMedia);
@@ -155,16 +152,16 @@ void QGstreamerMediaPlayer::play()
 
     *playerPipeline.inStoppedState() = false;
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
-        playerPipeline.seek(0, m_playbackRate);
+        playerPipeline.setPosition(0);
         updatePosition();
     }
 
     qCDebug(qLcMediaPlayer) << "play().";
     int ret = playerPipeline.setState(GST_STATE_PLAYING);
     if (m_requiresSeekOnPlay) {
-        // This causes a flush of the pipeline and is required to get track changes
+        // Flushing the pipeline is required to get track changes
         // immediately, when they happen while paused.
-        playerPipeline.seek(playerPipeline.position(), m_playbackRate);
+        playerPipeline.flush();
         m_requiresSeekOnPlay = false;
     }
     if (ret == GST_STATE_CHANGE_FAILURE)
@@ -183,13 +180,13 @@ void QGstreamerMediaPlayer::pause()
     positionUpdateTimer.stop();
     if (*playerPipeline.inStoppedState()) {
         *playerPipeline.inStoppedState() = false;
-        playerPipeline.seek(playerPipeline.position(), m_playbackRate);
+        playerPipeline.flush();
     }
     int ret = playerPipeline.setState(GST_STATE_PAUSED);
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
-        playerPipeline.seek(0, m_playbackRate);
+        playerPipeline.setPosition(0);
         mediaStatusChanged(QMediaPlayer::BufferedMedia);
     }
     updatePosition();
@@ -211,7 +208,7 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
     if (!ret)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the stopped state.";
     if (!eos)
-        playerPipeline.seek(0, m_playbackRate);
+        playerPipeline.setPosition(0);
     updatePosition();
     emit stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(eos ? QMediaPlayer::EndOfMedia : QMediaPlayer::LoadedMedia);
@@ -295,9 +292,6 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 GST_DEBUG_BIN_TO_DOT_FILE(playerPipeline.bin(), GST_DEBUG_GRAPH_SHOW_ALL, "playerPipeline");
 
                 parseStreamsAndMetadata();
-
-                if (!qFuzzyCompare(m_playbackRate, qreal(1.0)))
-                    playerPipeline.seek(playerPipeline.position(), m_playbackRate);
 
                 emit tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
@@ -588,6 +582,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
             qCWarning(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
     }
 
+    playerPipeline.setPosition(0);
     positionChanged(0);
 }
 
@@ -742,7 +737,7 @@ void QGstreamerMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type,
     selector.set("active-pad", streams.at(index));
     // seek to force an immediate change of the stream
     if (playerPipeline.state() == GST_STATE_PLAYING)
-        playerPipeline.seek(playerPipeline.position(), m_playbackRate);
+        playerPipeline.flush();
     else
         m_requiresSeekOnPlay = true;
 }

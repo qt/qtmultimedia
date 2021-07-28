@@ -135,7 +135,6 @@ private:
     QIODevice *m_stream = nullptr;
 
     bool prerolling = false;
-    double m_playbackRate = 1.;
     bool m_requiresSeekOnPlay = false;
     qint64 m_duration = 0;
     QTimer positionUpdateTimer;
