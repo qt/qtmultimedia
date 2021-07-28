@@ -601,9 +601,7 @@ void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 {
     if (gstAudioOutput == output)
         return;
-    auto state = playerPipeline.state();
-    if (state == GST_STATE_PLAYING)
-        playerPipeline.setStateSync(GST_STATE_PAUSED);
+    playerPipeline.beginConfig();
     if (gstAudioOutput) {
         removeOutput(AudioStream);
         gstAudioOutput->setPipeline({});
@@ -613,8 +611,7 @@ void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
         gstAudioOutput->setPipeline(playerPipeline);
         connectOutput(AudioStream);
     }
-    if (state == GST_STATE_PLAYING)
-        playerPipeline.setState(GST_STATE_PLAYING);
+    playerPipeline.endConfig();
 }
 
 QMediaMetaData QGstreamerMediaPlayer::metaData() const

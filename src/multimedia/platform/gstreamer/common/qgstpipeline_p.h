@@ -102,6 +102,9 @@ public:
 
     void dumpGraph(const char *fileName)
     {
+        if (isNull())
+            return;
+
 #if 1 //def QT_GST_CAPTURE_DEBUG
         GST_DEBUG_BIN_TO_DOT_FILE(bin(),
                                   GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL |
@@ -111,6 +114,9 @@ public:
         Q_UNUSED(fileName);
 #endif
     }
+
+    void beginConfig();
+    void endConfig();
 
     void flush();
 

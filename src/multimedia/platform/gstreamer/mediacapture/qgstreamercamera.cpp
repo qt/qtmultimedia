@@ -101,10 +101,7 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 
     m_cameraDevice = camera;
 
-    bool havePipeline = !gstPipeline.isNull();
-
-    if (havePipeline)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
 
     Q_ASSERT(!gstCamera.isNull());
 
@@ -128,10 +125,8 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 
     gstCamera.setState(GST_STATE_PAUSED);
 
-    if (havePipeline) {
-        gstPipeline.dumpGraph("setCamera");
-        gstPipeline.setState(GST_STATE_PLAYING);
-    }
+    gstPipeline.endConfig();
+    gstPipeline.dumpGraph("setCamera");
 
     updateCameraProperties();
 }
@@ -170,13 +165,9 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
 {
     if (!m_cameraDevice.videoFormats().contains(format))
         return false;
-    bool havePipeline = !gstPipeline.isNull();
-    auto state = havePipeline ? gstPipeline.state() : GST_STATE_NULL;
-    if (havePipeline)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
     setCameraFormatInternal(format);
-    if (havePipeline)
-        gstPipeline.setStateSync(state);
+    gstPipeline.endConfig();
     return true;
 }
 

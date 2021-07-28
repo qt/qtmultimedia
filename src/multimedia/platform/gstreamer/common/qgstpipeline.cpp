@@ -66,6 +66,9 @@ public:
     mutable qint64 m_position = 0;
     double m_rate = 1.;
 
+    int m_configCounter = 0;
+    GstState m_savedState = GST_STATE_NULL;
+
     QGstPipelinePrivate(GstBus* bus, QObject* parent = 0);
     ~QGstPipelinePrivate();
 
@@ -260,6 +263,38 @@ void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     Q_ASSERT(d);
     d->removeMessageFilter(filter);
+}
+
+void QGstPipeline::beginConfig()
+{
+    if (!d)
+        return;
+    Q_ASSERT(!isNull());
+
+    ++d->m_configCounter;
+    if (d->m_configCounter > 1)
+        return;
+
+    d->m_savedState = state();
+    if (d->m_savedState == GST_STATE_PLAYING)
+        setStateSync(GST_STATE_PAUSED);
+}
+
+void QGstPipeline::endConfig()
+{
+    if (!d)
+        return;
+    Q_ASSERT(!isNull());
+
+    --d->m_configCounter;
+    if (d->m_configCounter)
+        return;
+
+    if (d->m_savedState != GST_STATE_NULL)
+        flush();
+    if (d->m_savedState == GST_STATE_PLAYING)
+        setStateSync(GST_STATE_PLAYING);
+    d->m_savedState = GST_STATE_NULL;
 }
 
 void QGstPipeline::flush()

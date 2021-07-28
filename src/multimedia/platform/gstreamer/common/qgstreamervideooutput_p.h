@@ -82,9 +82,6 @@ public:
     void setIsPreview();
 
 private:
-    void sinkChanged();
-
-private:
 
     QVideoSink *m_videoSink = nullptr;
     QPointer<QGstreamerVideoSink> m_videoWindow;

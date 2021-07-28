@@ -72,23 +72,51 @@ QGstreamerVideoOutput::~QGstreamerVideoOutput()
 
 void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 {
-    auto *videoSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
-    if (videoSink == m_videoWindow)
+    auto *gstVideoSink = sink ? static_cast<QGstreamerVideoSink *>(sink->platformVideoSink()) : nullptr;
+    if (gstVideoSink == m_videoWindow)
         return;
 
     if (m_videoWindow)
         m_videoWindow->setPipeline({});
 
-    m_videoWindow = videoSink;
+    m_videoWindow = gstVideoSink;
     if (m_videoWindow)
         m_videoWindow->setPipeline(gstPipeline);
 
-    auto state = gstPipeline.state();
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
-    sinkChanged();
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setState(GST_STATE_PLAYING);
+    QGstElement gstSink;
+    if (m_videoWindow) {
+        gstSink = m_videoWindow->gstSink();
+        isFakeSink = false;
+    } else {
+        gstSink = QGstElement("fakesink", "fakevideosink");
+        isFakeSink = true;
+    }
+
+    if (videoSink == gstSink)
+        return;
+
+    gstPipeline.beginConfig();
+    if (!videoSink.isNull()) {
+        videoSink.setStateSync(GST_STATE_NULL);
+        gstVideoOutput.remove(videoSink);
+    }
+    videoSink = gstSink;
+    gstVideoOutput.add(videoSink);
+
+    videoConvert.link(videoSink);
+    GstEvent *event = gst_event_new_reconfigure();
+    gst_element_send_event(videoSink.element(), event);
+    videoSink.setState(GST_STATE_PAUSED);
+
+    gstPipeline.endConfig();
+
+    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
+
+    GST_DEBUG_BIN_TO_DOT_FILE(gstPipeline.bin(),
+                              GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE |
+                                                   GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
+                              videoSink.name());
+
 }
 
 void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)
@@ -104,9 +132,7 @@ void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
     if (src == subtitleSrc)
         return;
 
-    auto state = gstPipeline.state();
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
 
     if (!subtitleSrc.isNull()) {
         subtitleSrc.unlink(subTitleQueue);
@@ -120,7 +146,7 @@ void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
             qCDebug(qLcMediaVideoOutput) << "link subtitle stream 1 failed";
     }
 
-    gstPipeline.setState(state);
+    gstPipeline.endConfig();
 }
 
 void QGstreamerVideoOutput::setIsPreview()
@@ -133,41 +159,5 @@ void QGstreamerVideoOutput::setIsPreview()
     videoQueue.set("max-size-bytes", 0);
     videoQueue.set("max-size-time", 0);
 }
-
-void QGstreamerVideoOutput::sinkChanged()
-{
-    QGstElement gstSink;
-    if (m_videoWindow) {
-        gstSink = m_videoWindow->gstSink();
-        isFakeSink = false;
-    } else {
-        gstSink = QGstElement("fakesink", "fakevideosink");
-        isFakeSink = true;
-    }
-
-    if (videoSink == gstSink)
-        return;
-
-    if (!videoSink.isNull()) {
-        videoSink.setStateSync(GST_STATE_NULL);
-        gstVideoOutput.remove(videoSink);
-    }
-    videoSink = gstSink;
-    gstVideoOutput.add(videoSink);
-
-    videoConvert.link(videoSink);
-    GstEvent *event = gst_event_new_reconfigure();
-    gst_element_send_event(videoSink.element(), event);
-    videoSink.setState(GST_STATE_PAUSED);
-
-    gstPipeline.setState(GST_STATE_PLAYING);
-    qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
-
-    GST_DEBUG_BIN_TO_DOT_FILE(gstPipeline.bin(),
-                              GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE |
-                                                   GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
-                              videoSink.name());
-}
-
 
 QT_END_NAMESPACE

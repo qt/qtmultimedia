@@ -111,18 +111,8 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
     qCDebug(qLcMediaAudioInput) << "setAudioInput" << device.description() << device.isNull();
     m_audioDevice = device;
 
-    if (gstPipeline.isNull() || gstPipeline.state() != GST_STATE_PLAYING) {
-        changeAudioInput();
-        return;
-    }
+    gstPipeline.beginConfig();
 
-    auto pad = audioVolume.staticPad("src");
-    pad.addProbe<&QGstreamerAudioInput::prepareAudioInputChange>(this, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM);
-}
-
-bool QGstreamerAudioInput::changeAudioInput()
-{
-    qCDebug(qLcMediaAudioInput) << "Changing audio Input";
     QGstElement newSrc;
     auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
     if (deviceInfo && deviceInfo->gstDevice)
@@ -138,16 +128,7 @@ bool QGstreamerAudioInput::changeAudioInput()
     audioSrc.link(audioVolume);
     audioSrc.setState(GST_STATE_PAUSED);
 
-    return true;
-}
-
-void QGstreamerAudioInput::prepareAudioInputChange(const QGstPad &/*pad*/)
-{
-    qCDebug(qLcMediaAudioInput) << "Reconfiguring audio Input";
-
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
-    changeAudioInput();
-    gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
 }
 
 QAudioDevice QGstreamerAudioInput::audioInput() const

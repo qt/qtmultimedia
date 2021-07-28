@@ -172,9 +172,7 @@ void QGstreamerVideoSink::updateSinkElement()
     if (newSink == gstVideoSink)
         return;
 
-    auto state = gstPipeline.isNull() ? GST_STATE_NULL : gstPipeline.state();
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
 
     if (!gstVideoSink.isNull()) {
         gstVideoSink.setStateSync(GST_STATE_NULL);
@@ -186,6 +184,5 @@ void QGstreamerVideoSink::updateSinkElement()
     gstPreprocess.link(gstVideoSink);
     gstVideoSink.setState(GST_STATE_PAUSED);
 
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
 }

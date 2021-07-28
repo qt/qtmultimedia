@@ -92,9 +92,6 @@ Q_SIGNALS:
     void volumeChanged(int);
 
 private:
-    void prepareAudioInputChange(const QGstPad &pad);
-    bool changeAudioInput();
-
     float m_volume = 1.;
     bool m_muted = false;
 

@@ -251,8 +251,8 @@ void QGstreamerMediaEncoder::record(const QMediaEncoderSettings &)
     Q_ASSERT(!actualSink.isEmpty());
     gstFileSink.set("location", QFile::encodeName(actualSink.toLocalFile()).constData());
 
-    //auto state = gstPipeline.state();
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
+
     gstEncoder.lockState(false);
     gstFileSink.lockState(false);
 
@@ -272,7 +272,8 @@ void QGstreamerMediaEncoder::record(const QMediaEncoderSettings &)
 
     gstEncoder.setState(GST_STATE_PAUSED);
     gstFileSink.setState(GST_STATE_PAUSED);
-    gstPipeline.setState(GST_STATE_PLAYING);
+
+    gstPipeline.endConfig();
 
     m_duration.start();
     heartbeat.start();
@@ -308,7 +309,8 @@ void QGstreamerMediaEncoder::stop()
     qCDebug(qLcMediaEncoder) << "stop";
     heartbeat.stop();
 
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
+
     if (!audioSrcPad.isNull()) {
         audioSrcPad.unlinkPeer();
         m_session->releaseAudioPad(audioSrcPad);
@@ -320,7 +322,8 @@ void QGstreamerMediaEncoder::stop()
         videoSrcPad = {};
     }
 
-    gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
+
     //with live sources it's necessary to send EOS even to pipeline
     //before going to STOPPED state
     qCDebug(qLcMediaEncoder) << ">>>>>>>>>>>>> sending EOS";
@@ -336,12 +339,12 @@ void QGstreamerMediaEncoder::finalize()
     qCDebug(qLcMediaEncoder) << "finalize";
 
     // The filesink can only be used once, replace it with a new one
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
     gstEncoder.lockState(true);
     gstFileSink.lockState(true);
     gstEncoder.setState(GST_STATE_NULL);
     gstFileSink.setState(GST_STATE_NULL);
-    gstPipeline.setStateSync(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
 }
 
 void QGstreamerMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
