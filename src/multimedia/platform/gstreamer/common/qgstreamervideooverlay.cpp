@@ -64,157 +64,8 @@ static constexpr ElementMap elementMap[] =
     { "xcb", "ximagesink" },
 
     // wayland
-    { "wayland", "vaapisink" }
-};
-
-class QGstreamerSinkProperties
-{
-public:
-    virtual ~QGstreamerSinkProperties() = default;
-
-    virtual void reset() = 0;
-    virtual bool setBrightness(float brightness) = 0;
-    virtual bool setContrast(float contrast) = 0;
-    virtual bool setHue(float hue) = 0;
-    virtual bool setSaturation(float saturation) = 0;
-    virtual void setAspectRatioMode(Qt::AspectRatioMode mode) = 0;
-};
-
-class QXVImageSinkProperties : public QGstreamerSinkProperties
-{
-public:
-    QXVImageSinkProperties(const QGstElement &sink)
-        : m_videoSink(sink)
-    {
-        auto *klass = G_OBJECT_GET_CLASS(m_videoSink.object());
-        m_hasForceAspectRatio = g_object_class_find_property(klass, "force-aspect-ratio");
-        m_hasBrightness = g_object_class_find_property(klass, "brightness");
-        m_hasContrast = g_object_class_find_property(klass, "contrast");
-        m_hasHue = g_object_class_find_property(klass, "hue");
-        m_hasSaturation = g_object_class_find_property(klass, "saturation");
-    }
-
-    void reset() override
-    {
-        setAspectRatioMode(m_aspectRatioMode);
-        setBrightness(m_brightness);
-        setContrast(m_contrast);
-        setHue(m_hue);
-        setSaturation(m_saturation);
-    }
-
-    bool setBrightness(float brightness) override
-    {
-        m_brightness = brightness;
-        if (m_hasBrightness)
-            m_videoSink.set("brightness", (int)brightness * 1000);
-
-        return m_hasBrightness;
-    }
-
-    bool setContrast(float contrast) override
-    {
-        m_contrast = contrast;
-        if (m_hasContrast)
-            m_videoSink.set("contrast", (int)contrast * 1000);
-
-        return m_hasContrast;
-    }
-
-    bool setHue(float hue) override
-    {
-        m_hue = hue;
-        if (m_hasHue)
-            m_videoSink.set("hue", (int)hue * 1000);
-
-        return m_hasHue;
-    }
-
-    bool setSaturation(float saturation) override
-    {
-        m_saturation = saturation;
-        if (m_hasSaturation)
-            m_videoSink.set("saturation", (int)saturation * 1000);
-
-        return m_hasSaturation;
-    }
-
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override
-    {
-        m_aspectRatioMode = mode;
-        if (m_hasForceAspectRatio)
-            m_videoSink.set("force-aspect-ratio", (mode == Qt::KeepAspectRatio));
-    }
-
-protected:
-
-    QGstElement m_videoSink;
-    bool m_hasForceAspectRatio = false;
-    bool m_hasBrightness = false;
-    bool m_hasContrast = false;
-    bool m_hasHue = false;
-    bool m_hasSaturation = false;
-    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
-    float m_brightness = 0;
-    float m_contrast = 0;
-    float m_hue = 0;
-    float m_saturation = 0;
-};
-
-class QVaapiSinkProperties : public QXVImageSinkProperties
-{
-public:
-    QVaapiSinkProperties(QGstElement sink)
-        : QXVImageSinkProperties(sink)
-    {
-        // Set default values.
-        m_contrast = 1;
-        m_saturation = 1;
-    }
-
-    bool setBrightness(float brightness) override
-    {
-        m_brightness = brightness;
-        if (m_hasBrightness) {
-            gfloat v = brightness;
-            m_videoSink.set("brightness", v);
-        }
-
-        return m_hasBrightness;
-    }
-
-    bool setContrast(float contrast) override
-    {
-        m_contrast = contrast;
-        if (m_hasContrast) {
-            gfloat v = contrast + 1; // [-1, 1] -> [0,2]
-            m_videoSink.set("contrast", v);
-        }
-
-        return m_hasContrast;
-    }
-
-    bool setHue(float hue) override
-    {
-        m_hue = hue;
-        if (m_hasHue) {
-            gfloat v = hue * 180; // [-1,1] -> [-180,180]
-            m_videoSink.set("hue", v);
-        }
-
-        return m_hasHue;
-    }
-
-    bool setSaturation(float saturation) override
-    {
-        m_saturation = saturation;
-        if (m_hasSaturation) {
-            gfloat v = saturation + 1; // [-100,100] -> [0,2]
-            m_videoSink.set("saturation", v);
-        }
-
-        return m_hasSaturation;
-    }
+    { "wayland", "vaapisink" },
+    { "wayland", "waylandsink" }
 };
 
 static bool qt_gst_element_is_functioning(QGstElement element)
@@ -246,7 +97,7 @@ static QGstElement findBestVideoSink()
 
     // We need a native window ID to use the GstVideoOverlay interface.
     // Bail out if the Qt platform plugin in use cannot provide a sensible WId.
-    if (platform != QLatin1String("xcb"))
+    if (platform != QLatin1String("xcb") && platform != QLatin1String("wayland"))
         return {};
 
     QGstElement choice;
@@ -291,7 +142,6 @@ QGstreamerVideoOverlay::QGstreamerVideoOverlay(QObject *parent, const QByteArray
 QGstreamerVideoOverlay::~QGstreamerVideoOverlay()
 {
     if (!m_videoSink.isNull()) {
-        delete m_sinkProperties;
         QGstPad pad = m_videoSink.staticPad("sink");
         removeProbeFromPad(pad.pad());
     }
@@ -312,10 +162,9 @@ void QGstreamerVideoOverlay::setVideoSink(QGstElement sink)
     QGstPad pad = m_videoSink.staticPad("sink");
     addProbeToPad(pad.pad());
 
-    QByteArray sinkName(sink.name());
-    bool isVaapi = sinkName.startsWith("vaapisink");
-    delete m_sinkProperties;
-    m_sinkProperties = isVaapi ? new QVaapiSinkProperties(sink) : new QXVImageSinkProperties(sink);
+    auto *klass = G_OBJECT_GET_CLASS(m_videoSink.object());
+    m_hasForceAspectRatio = g_object_class_find_property(klass, "force-aspect-ratio");
+    m_hasFullscreen = g_object_class_find_property(klass, "fullscreen");
 }
 
 QSize QGstreamerVideoOverlay::nativeVideoSize() const
@@ -331,7 +180,9 @@ void QGstreamerVideoOverlay::setWindowHandle(WId id)
         applyRenderRect();
 
         // Properties need to be reset when changing the winId.
-        m_sinkProperties->reset();
+        setAspectRatioMode(m_aspectRatioMode);
+        setFullScreen(m_fullScreen);
+        applyRenderRect();
     }
 }
 
@@ -356,6 +207,11 @@ void QGstreamerVideoOverlay::applyRenderRect()
         y = renderRect.y();
         w = renderRect.width();
         h = renderRect.height();
+        QSize scaledVideo = m_nativeVideoSize.scaled(w, h, m_aspectRatioMode);
+        x += (w - scaledVideo.width())/2;
+        y += (h - scaledVideo.height())/2;
+        w = scaledVideo.width();
+        h = scaledVideo.height();
     }
 
     if (!m_videoSink.isNull() && GST_IS_VIDEO_OVERLAY(m_videoSink.object()))
@@ -368,32 +224,22 @@ void QGstreamerVideoOverlay::probeCaps(GstCaps *caps)
     if (size != m_nativeVideoSize) {
         m_nativeVideoSize = size;
         emit nativeVideoSizeChanged();
+        applyRenderRect();
     }
 }
 
 void QGstreamerVideoOverlay::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
-    m_sinkProperties->setAspectRatioMode(mode);
+    m_aspectRatioMode = mode;
+    if (m_hasForceAspectRatio)
+        m_videoSink.set("force-aspect-ratio", (mode == Qt::KeepAspectRatio));
 }
 
-void QGstreamerVideoOverlay::setBrightness(float brightness)
+void QGstreamerVideoOverlay::setFullScreen(bool fullscreen)
 {
-    m_sinkProperties->setBrightness(brightness);
-}
-
-void QGstreamerVideoOverlay::setContrast(float contrast)
-{
-    m_sinkProperties->setContrast(contrast);
-}
-
-void QGstreamerVideoOverlay::setHue(float hue)
-{
-    m_sinkProperties->setHue(hue);
-}
-
-void QGstreamerVideoOverlay::setSaturation(float saturation)
-{
-    m_sinkProperties->setSaturation(saturation);
+    m_fullScreen = fullscreen;
+    if (m_hasFullscreen)
+        m_videoSink.set("fullscreen", fullscreen);
 }
 
 bool QGstreamerVideoOverlay::processSyncMessage(const QGstreamerMessage &message)

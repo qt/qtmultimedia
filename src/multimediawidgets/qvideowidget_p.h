@@ -70,15 +70,10 @@ public:
 
     QVideoFrame lastFrame;
     QVideoSink *videoSink = nullptr;
+    QRect targetRect;
 
     bool createBackend();
 
-    void _q_brightnessChanged(int brightness);
-    void _q_contrastChanged(int contrast);
-    void _q_hueChanged(int hue);
-    void _q_saturationChanged(int saturation);
-    void _q_fullScreenChanged(bool fullScreen);
-    void _q_dimensionsChanged();
     void _q_newFrame(const QVideoFrame &frame);
 };
 

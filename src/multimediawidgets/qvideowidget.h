@@ -91,7 +91,6 @@ protected:
 
 private:
     Q_DECLARE_PRIVATE(QVideoWidget)
-    Q_PRIVATE_SLOT(d_func(), void _q_dimensionsChanged())
     Q_PRIVATE_SLOT(d_func(), void _q_newFrame(const QVideoFrame &))
 };
 

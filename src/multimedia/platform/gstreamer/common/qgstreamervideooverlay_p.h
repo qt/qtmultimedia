@@ -76,13 +76,8 @@ public:
     void setWindowHandle(WId id);
     void setRenderRectangle(const QRect &rect);
 
-    Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    void setBrightness(float brightness);
-    void setContrast(float contrast);
-    void setHue(float hue);
-    void setSaturation(float saturation);
+    void setFullScreen(bool fullscreen);
 
     bool processSyncMessage(const QGstreamerMessage &message) override;
 
@@ -99,7 +94,11 @@ private:
     QGstElement m_videoSink;
     QSize m_nativeVideoSize;
 
-    QGstreamerSinkProperties *m_sinkProperties = nullptr;
+    bool m_hasForceAspectRatio = false;
+    bool m_hasFullscreen = false;
+    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
+    bool m_fullScreen = false;
+
     WId m_windowId = 0;
     QRect renderRect;
 };

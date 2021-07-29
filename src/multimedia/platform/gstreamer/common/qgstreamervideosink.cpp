@@ -123,26 +123,6 @@ void QGstreamerVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
     m_videoOverlay->setAspectRatioMode(mode);
 }
 
-void QGstreamerVideoSink::setBrightness(float brightness)
-{
-    m_videoOverlay->setBrightness(brightness);
-}
-
-void QGstreamerVideoSink::setContrast(float contrast)
-{
-    m_videoOverlay->setContrast(contrast);
-}
-
-void QGstreamerVideoSink::setHue(float hue)
-{
-    m_videoOverlay->setHue(hue);
-}
-
-void QGstreamerVideoSink::setSaturation(float saturation)
-{
-    m_videoOverlay->setSaturation(saturation);
-}
-
 void QGstreamerVideoSink::setFullScreen(bool fullScreen)
 {
     if (fullScreen == m_fullScreen)
@@ -150,6 +130,7 @@ void QGstreamerVideoSink::setFullScreen(bool fullScreen)
     m_fullScreen = fullScreen;
     if (!m_windowId)
         updateSinkElement();
+    m_videoOverlay->setFullScreen(fullScreen);
 }
 
 QSize QGstreamerVideoSink::nativeSize() const

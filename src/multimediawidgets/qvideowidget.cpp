@@ -64,13 +64,6 @@ using namespace Qt;
 
 QT_BEGIN_NAMESPACE
 
-
-void QVideoWidgetPrivate::_q_dimensionsChanged()
-{
-    q_func()->updateGeometry();
-    q_func()->update();
-}
-
 void QVideoWidgetPrivate::_q_newFrame(const QVideoFrame &frame)
 {
     lastFrame = frame;
@@ -189,120 +182,6 @@ void QVideoWidget::setFullScreen(bool fullScreen)
     \sa isFullScreen()
 */
 
-#if 0
-/*!
-    \property QVideoWidget::brightness
-    \brief an adjustment to the brightness of displayed video.
-
-    Valid brightness values range between -1. and 1., the default is 0.
-*/
-
-float QVideoWidget::brightness() const
-{
-    return d_func()->videoSink->brightness();
-}
-
-void QVideoWidget::setBrightness(float brightness)
-{
-    Q_D(QVideoWidget);
-    d->videoSink->setBrightness(brightness);
-    float boundedBrightness = qBound(-1., brightness, 1.);
-
-    if (boundedBrightness == d->videoSink->brightness())
-        return;
-
-    d->videoSink->setBrightness(boundedBrightness);
-    emit brightnessChanged(boundedBrightness);
-}
-
-/*!
-    \fn QVideoWidget::brightnessChanged(float brightness)
-
-    Signals that a video widgets's \a brightness adjustment has changed.
-
-    \sa brightness()
-*/
-
-/*!
-    \property QVideoWidget::contrast
-    \brief an adjustment to the contrast of displayed video.
-
-    Valid contrast values range between -1. and 1., the default is 0.
-
-*/
-
-float QVideoWidget::contrast() const
-{
-    return d_func()->videoSink->contrast();
-}
-
-void QVideoWidget::setContrast(float contrast)
-{
-    Q_D(QVideoWidget);
-    d->videoSink->setContrast(contrast);
-}
-
-/*!
-    \fn QVideoWidget::contrastChanged(float contrast)
-
-    Signals that a video widgets's \a contrast adjustment has changed.
-
-    \sa contrast()
-*/
-
-/*!
-    \property QVideoWidget::hue
-    \brief an adjustment to the hue of displayed video.
-
-    Valid hue values range between -1. and 1., the default is 0.
-*/
-
-float QVideoWidget::hue() const
-{
-    return d_func()->videoSink->hue();
-}
-
-void QVideoWidget::setHue(float hue)
-{
-    Q_D(QVideoWidget);
-    d->videoSink->setHue(hue);
-}
-
-/*!
-    \fn QVideoWidget::hueChanged(float hue)
-
-    Signals that a video widgets's \a hue has changed.
-
-    \sa hue()
-*/
-
-/*!
-    \property QVideoWidget::saturation
-    \brief an adjustment to the saturation of displayed video.
-
-    Valid saturation values range between -1. and 1., the default is 0.
-*/
-
-float QVideoWidget::saturation() const
-{
-    return d_func()->videoSink->saturation();
-}
-
-void QVideoWidget::setSaturation(float saturation)
-{
-    Q_D(QVideoWidget);
-    d->videoSink->setSaturation(saturation);
-}
-
-/*!
-    \fn QVideoWidget::saturationChanged(float saturation)
-
-    Signals that a video widgets's \a saturation has changed.
-
-    \sa saturation()
-*/
-#endif
-
 /*!
   Returns the size hint for the current back end,
   if there is one, or else the size hint from QWidget.
@@ -362,7 +241,6 @@ void QVideoWidget::showEvent(QShowEvent *event)
 */
 void QVideoWidget::hideEvent(QHideEvent *event)
 {
-    // ### maybe suspend video decoding???
     QWidget::hideEvent(event);
 }
 
