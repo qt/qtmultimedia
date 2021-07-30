@@ -341,13 +341,11 @@ QList<AndroidCamera::FpsRange> QAndroidCameraSession::getSupportedPreviewFpsRang
 
 bool QAndroidCameraSession::startPreview()
 {
-    if (!m_camera)
+    if (!m_camera || !m_videoOutput)
         return false;
 
     if (m_previewStarted)
         return true;
-
-    Q_ASSERT(m_videoOutput);
 
     if (!m_videoOutput->isReady())
         return true; // delay starting until the video output is ready
