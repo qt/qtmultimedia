@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include <private/qgstreamervideooutput_p.h>
-#include <private/qgstreamervideorenderer_p.h>
 #include <private/qgstreamervideosink_p.h>
 #include <qvideosink.h>
 

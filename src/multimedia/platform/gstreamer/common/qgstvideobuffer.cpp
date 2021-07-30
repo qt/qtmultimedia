@@ -50,13 +50,13 @@
 
 #include <gst/gl/gstglconfig.h>
 #include <gst/gl/gstglmemory.h>
+#include <gst/gl/gstglsyncmeta.h>
 #endif
-
 
 QT_BEGIN_NAMESPACE
 
 QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, BufferFormat format)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle, rhi)
+    : QAbstractVideoBuffer(rhi ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, rhi)
     , bufferFormat(format)
     , m_videoInfo(info)
     , m_buffer(buffer)
@@ -69,6 +69,8 @@ QGstVideoBuffer::~QGstVideoBuffer()
     unmap();
 
     gst_buffer_unref(m_buffer);
+    if (m_syncBuffer)
+        gst_buffer_unref(m_syncBuffer);
 }
 
 
@@ -120,34 +122,38 @@ void QGstVideoBuffer::unmap()
     m_mode = QVideoFrame::NotMapped;
 }
 
-quint64 QGstVideoBuffer::textureHandle(int plane) const
+void QGstVideoBuffer::mapTextures()
 {
-    if (plane != 0)
-        return 0;
 #if QT_CONFIG(gstreamer_gl)
     if (bufferFormat == GLTexture) {
-        auto *memory = gst_buffer_peek_memory(m_buffer, 0);
-        if (gst_is_gl_memory(memory)) {
-            GstGLMemory *glmem = GST_GL_MEMORY_CAST(memory);
-            // ### Handle multiple planes
-            return gst_gl_memory_get_texture_id(glmem);
-        }
-    } else if (bufferFormat == VideoGLTextureUploadMeta) {
-        Q_ASSERT(rhi && rhi->backend() == QRhi::OpenGLES2);
-
-        auto *upload = gst_buffer_get_video_gl_texture_upload_meta(m_buffer);
-        if (upload) {
-            rhi->makeThreadLocalNativeContextCurrent();
-            // ### Handle multiple planes
-            guint textures[4];
-            gst_video_gl_texture_upload_meta_upload(upload, textures);
-            return textures[0];
+        auto *mem = GST_GL_BASE_MEMORY_CAST(gst_buffer_peek_memory(m_buffer, 0));
+        Q_ASSERT(mem);
+        if (!gst_video_frame_map(&m_frame, &m_videoInfo, m_buffer, GstMapFlags(GST_MAP_READ|GST_MAP_GL))) {
+            qWarning() << "Could not map GL textures";
         } else {
-            qWarning() << "Could not use GstVideoGLTextureUploadMeta";
+            auto *sync_meta = gst_buffer_get_gl_sync_meta(m_buffer);
+
+            if (!sync_meta) {
+                m_syncBuffer = gst_buffer_new();
+                sync_meta = gst_buffer_add_gl_sync_meta(mem->context, m_syncBuffer);
+            }
+            gst_gl_sync_meta_set_sync_point (sync_meta, mem->context);
+            gst_gl_sync_meta_wait (sync_meta, mem->context);
+
+            int nPlanes = m_frame.info.finfo->n_planes;
+            for (int i = 0; i < nPlanes; ++i) {
+                m_textures[i] = *(guint32 *)m_frame.data[i];
+            }
+            gst_video_frame_unmap(&m_frame);
         }
     }
 #endif
-    return 0;
+    m_texturesUploaded = true;
+}
+
+quint64 QGstVideoBuffer::textureHandle(int plane) const
+{
+    return m_textures[plane];
 }
 
 QT_END_NAMESPACE

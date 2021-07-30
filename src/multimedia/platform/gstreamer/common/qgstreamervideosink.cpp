@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qgstreamervideosink_p.h"
-#include "qgstreamervideorenderer_p.h"
+#include "private/qgstvideorenderersink_p.h"
 #include <private/qgstutils_p.h>
 #include <QtGui/private/qrhi_p.h>
 
@@ -67,14 +67,12 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     sinkBin.add(gstPreprocess);
     sinkBin.addGhostPad(gstPreprocess, "sink");
     createOverlay();
-    createRenderer();
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink()
 {
     setPipeline(QGstPipeline());
     delete m_videoOverlay;
-    delete m_videoRenderer;
 }
 
 QGstElement QGstreamerVideoSink::gstSink()
@@ -111,6 +109,11 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
         return;
 
     m_rhi = rhi;
+    if (!gstQtSink.isNull()) {
+        // force creation of a new sink with proper caps
+        createQtSink();
+        updateSinkElement();
+    }
 }
 
 void QGstreamerVideoSink::setDisplayRect(const QRect &rect)
@@ -147,9 +150,9 @@ void QGstreamerVideoSink::createOverlay()
             this, &QGstreamerVideoSink::nativeSizeChanged);
 }
 
-void QGstreamerVideoSink::createRenderer()
+void QGstreamerVideoSink::createQtSink()
 {
-    m_videoRenderer = new QGstreamerVideoRenderer(sink);
+    gstQtSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(videoSink())));
 }
 
 void QGstreamerVideoSink::updateSinkElement()
@@ -158,7 +161,9 @@ void QGstreamerVideoSink::updateSinkElement()
     if (!m_videoOverlay->isNull() && (m_fullScreen || m_windowId)) {
         newSink = m_videoOverlay->videoSink();
     } else {
-        newSink = m_videoRenderer->gstVideoSink();
+        if (gstQtSink.isNull())
+            createQtSink();
+        newSink = gstQtSink;
     }
 
     if (newSink == gstVideoSink)
@@ -173,8 +178,10 @@ void QGstreamerVideoSink::updateSinkElement()
 
     gstVideoSink = newSink;
     sinkBin.add(gstVideoSink);
-    gstPreprocess.link(gstVideoSink);
+    if (!gstPreprocess.link(gstVideoSink))
+        qCDebug(qLcMediaVideoSink) << "couldn't link preprocess and sink";
     gstVideoSink.setState(GST_STATE_PAUSED);
 
     gstPipeline.endConfig();
+    gstPipeline.dumpGraph("updateVideoSink");
 }

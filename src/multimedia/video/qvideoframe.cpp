@@ -626,6 +626,7 @@ quint64 QVideoFrame::textureHandle(int plane) const
 {
     if (!d->buffer)
         return 0;
+    d->buffer->mapTextures();
     return d->buffer->textureHandle(plane);
 }
 

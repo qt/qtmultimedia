@@ -66,7 +66,6 @@ public:
     enum BufferFormat {
         Memory,
         GLTexture,
-        VideoGLTextureUploadMeta,
         DMABuf
     };
 
@@ -82,14 +81,18 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
+    void mapTextures() override;
     quint64 textureHandle(int plane) const override;
 private:
     BufferFormat bufferFormat = Memory;
-    GstVideoInfo m_videoInfo;
-    GstVideoFrame m_frame;
+    mutable GstVideoInfo m_videoInfo;
+    mutable GstVideoFrame m_frame;
     GstBuffer *m_buffer = nullptr;
+    GstBuffer *m_syncBuffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
     QVariant m_handle;
+    quint64 m_textures[3] = {};
+    bool m_texturesUploaded = false;
 };
 
 QT_END_NAMESPACE

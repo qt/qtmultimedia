@@ -91,11 +91,13 @@ public:
     void flush(QVideoSink *surface);
 
 private:
+    void createSurfaceCaps();
     QVideoSink *m_sink = nullptr;
     QVideoFrameFormat m_format;
     GstVideoInfo m_videoInfo;
     bool m_flushed = true;
     QGstVideoBuffer::BufferFormat bufferFormat = QGstVideoBuffer::Memory;
+    QGstMutableCaps m_surfaceCaps;
 };
 
 class QVideoSurfaceGstDelegate : public QObject
@@ -121,7 +123,6 @@ public:
 
 private slots:
     bool handleEvent(QMutexLocker<QMutex> *locker);
-    void updateSupportedFormats();
 
 private:
     void notify();
@@ -136,7 +137,6 @@ private:
     QGstVideoRenderer *m_renderer = nullptr;
     QGstVideoRenderer *m_activeRenderer = nullptr;
 
-    QGstMutableCaps m_surfaceCaps;
     QGstMutableCaps m_startCaps;
     GstBuffer *m_renderBuffer = nullptr;
 #if QT_CONFIG(gstreamer_gl)

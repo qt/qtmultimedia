@@ -90,16 +90,16 @@ public:
 
 private:
     void createOverlay();
-    void createRenderer();
+    void createQtSink();
     void updateSinkElement();
 
     QGstPipeline gstPipeline;
     QGstBin sinkBin;
     QGstElement gstPreprocess;
     QGstElement gstVideoSink;
+    QGstElement gstQtSink;
 
     QGstreamerVideoOverlay *m_videoOverlay = nullptr;
-    QGstreamerVideoRenderer *m_videoRenderer = nullptr;
     WId m_windowId = 0;
     QRhi *m_rhi = nullptr;
     QRect m_displayRect;

@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include <private/qgstreamermediaplayer_p.h>
-#include <private/qgstreamervideorenderer_p.h>
 #include <private/qgstpipeline_p.h>
 #include <private/qgstreamermetadata_p.h>
 #include <private/qgstreamerformatinfo_p.h>
@@ -233,7 +232,6 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             m_metaData.insert(k, metaData.value(k));
         break;
     }
-    case GST_MESSAGE_ASYNC_DONE:
     case GST_MESSAGE_DURATION_CHANGED: {
         qint64 d = playerPipeline.duration()/1e6;
         qCDebug(qLcMediaPlayer) << "    duration changed message" << d;
@@ -313,6 +311,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             emit error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
         else
             emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err->message));
+        playerPipeline.dumpGraph("error");
         mediaStatusChanged(QMediaPlayer::InvalidMedia);
         g_error_free(err);
         g_free(debug);
@@ -323,6 +322,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         gchar *debug;
         gst_message_parse_warning (gm, &err, &debug);
         qCWarning(qLcMediaPlayer) << "Warning:" << QString::fromUtf8(err->message);
+        playerPipeline.dumpGraph("warning");
         g_error_free (err);
         g_free (debug);
         break;
@@ -416,6 +416,7 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
         emit tracksChanged();
 
     decoderOutputMap.insert(pad.name(), sinkPad);
+    playerPipeline.dumpGraph("foo");
 }
 
 void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGstPad &pad)
@@ -704,6 +705,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
 
     qCDebug(qLcMediaPlayer) << "============== end parse topology ============";
     emit metaDataChanged();
+    playerPipeline.dumpGraph("playback");
 }
 
 int QGstreamerMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)
