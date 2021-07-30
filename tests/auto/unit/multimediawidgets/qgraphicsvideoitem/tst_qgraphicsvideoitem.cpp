@@ -395,7 +395,7 @@ void tst_QGraphicsVideoItem::paint()
     graphicsScene.addItem(item);
     QGraphicsView graphicsView(&graphicsScene);
     graphicsView.show();
-    QVERIFY(item->waitForPaint(1));
+    QVERIFY(item->paintCount() || item->waitForPaint(1));
 
     auto *sink = item->videoSink();
     Q_ASSERT(sink);
