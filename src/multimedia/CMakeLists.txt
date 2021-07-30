@@ -82,12 +82,6 @@ qt_internal_add_module(Multimedia
         Qt::GuiPrivate
 )
 
-# ### Get rid of me!
-qt_internal_extend_target(Multimedia CONDITION TARGET Qt::OpenGL
-    LIBRARIES
-        Qt::OpenGL
-)
-
 qt_internal_add_simd_part(Multimedia SIMD sse2
     SOURCES
         video/qvideoframeconversionhelper_sse2.cpp
@@ -337,12 +331,11 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         mediandk
         Qt::Core
         Qt::Network
-        Qt::OpenGL
     PRIVATE_MODULE_INTERFACE
         Qt::CorePrivate
 )
 
-qt_internal_extend_target(Multimedia CONDITION WIN32 AND NOT TARGET Qt::OpenGL
+qt_internal_extend_target(Multimedia CONDITION WIN32
     LIBRARIES
         gdi32
         user32
@@ -380,7 +373,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         ${FWQuartzCore}
         AVFoundation::AVFoundation
         Qt::Network
-        Qt::OpenGL
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT WATCHOS
