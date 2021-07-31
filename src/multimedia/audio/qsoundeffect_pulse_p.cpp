@@ -552,8 +552,10 @@ void QSoundEffectPrivate::setVolume(qreal volume)
 
     m_volume = qBound(qreal(0), volume, qreal(1));
     locker.unlock();
-    if (!m_playing && m_pulseStream)
+    if (!m_playing && m_pulseStream) {
+        PulseDaemonLocker locker;
         pa_stream_flush(m_pulseStream, volume_stream_flush_callback, m_ref->getRef());
+    }
     emit volumeChanged();
 }
 
