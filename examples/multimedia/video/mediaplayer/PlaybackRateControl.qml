@@ -63,7 +63,7 @@ Item {
 
         Slider {
             id: slider
-            Layout.minimumWidth: 50
+            Layout.fillWidth: true
             snapMode: Slider.SnapOnRelease
             enabled: true
             from: 0.5

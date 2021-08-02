@@ -61,7 +61,8 @@ Item {
     property alias muted: audio.muted
     property alias volume: audio.volume
 
-    implicitHeight: 80
+    height: frame.height
+
     opacity: 1
 
     Behavior on opacity { NumberAnimation { duration: 300 }}
@@ -90,7 +91,10 @@ Item {
     }
 
     Frame {
-        anchors.fill: parent
+        id: frame
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
 
         background: Rectangle {
             color: "white"
@@ -107,21 +111,27 @@ Item {
                 mediaPlayer: root.mediaPlayer
             }
 
-            Item {
+            RowLayout {
                 id: playerButtons
 
                 Layout.fillWidth: true
-                Layout.fillHeight: true
 
                 PlaybackRateControl {
-                    anchors.left: parent.left
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
+                    Layout.minimumWidth: 100
+                    Layout.maximumWidth: 150
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
                     mediaPlayer: root.mediaPlayer
                 }
 
+                Item {
+                    Layout.fillWidth: true
+                }
+
                 RowLayout {
-                    anchors.centerIn: parent
+                    Layout.alignment: Qt.AlignCenter
+                    id: controlButtons
+
                     RoundButton {
                         id: pauseButton
                         radius: 50.0
@@ -144,11 +154,15 @@ Item {
                     }
                 }
 
+                Item {
+                    Layout.fillWidth: true
+                }
+
                 AudioControl {
                     id: audio
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.bottom: parent.bottom
+                    Layout.minimumWidth: 100
+                    Layout.maximumWidth: 150
+                    Layout.fillWidth: true
                     mediaPlayer: root.mediaPlayer
                 }
             }
