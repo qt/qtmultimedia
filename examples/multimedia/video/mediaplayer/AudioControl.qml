@@ -60,7 +60,6 @@ Item {
     property bool muted: false
     property real volume: volumeSlider.value/100.
 
-    implicitWidth: 150
     implicitHeight: buttons.height
 
     RowLayout {

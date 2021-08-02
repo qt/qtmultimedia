@@ -24,7 +24,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #    endif()
 #endif()
 
-find_package(Qt6 COMPONENTS Core Quick QuickControls2 REQUIRED)
+find_package(Qt6 COMPONENTS Core Quick QuickControls2 Svg REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -42,4 +42,4 @@ qt6_add_resources(mediaplayer "mediaplayer"
 target_compile_definitions(mediaplayer
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(mediaplayer
-  PRIVATE Qt6::Core Qt6::Quick Qt6::QuickControls2)
+  PRIVATE Qt6::Core Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
