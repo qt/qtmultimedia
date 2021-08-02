@@ -215,6 +215,10 @@ QAudioFormat qt_format_for_audio_track(AVAssetTrack *track)
     const AudioStreamBasicDescription* const asbd =
         CMAudioFormatDescriptionGetStreamBasicDescription(desc);
     format = CoreAudioUtils::toQAudioFormat(*asbd);
+    // AudioStreamBasicDescription's mBitsPerChannel is 0 for compressed formats
+    // In this case set default Int16 sample format
+    if (asbd->mBitsPerChannel == 0)
+        format.setSampleFormat(QAudioFormat::Int16);
     return format;
 }
 
