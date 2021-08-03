@@ -41,6 +41,7 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qjniobject.h>
 #include <QtCore/qjnienvironment.h>
+#include <QtCore/private/qandroidextras_p.h>
 #include <QTimer>
 #include <QFile>
 #include <QDir>
@@ -378,8 +379,8 @@ void QAndroidAudioDecoder::finished()
 
 bool QAndroidAudioDecoder::requestPermissions()
 {
-    const auto writeRes = QCoreApplication::requestPermission(QPermission::WriteStorage);
-    if (writeRes.result() == QPermission::Authorized)
+    const auto writeRes = QtAndroidPrivate::requestPermission(QtAndroidPrivate::Storage);
+    if (writeRes.result() == QtAndroidPrivate::Authorized)
         return true;
 
     return false;
