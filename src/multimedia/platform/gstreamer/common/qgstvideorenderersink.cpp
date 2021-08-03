@@ -83,14 +83,16 @@ QT_BEGIN_NAMESPACE
 QGstVideoRenderer::QGstVideoRenderer(QVideoSink *sink)
     : m_sink(sink)
 {
+    initGstGLDisplayContext();
     createSurfaceCaps();
 }
 
-QGstVideoRenderer::~QGstVideoRenderer() = default;
-
-QGstMutableCaps QGstVideoRenderer::getCaps()
+QGstVideoRenderer::~QGstVideoRenderer()
 {
-    return m_surfaceCaps;
+#if QT_CONFIG(gstreamer_gl)
+    if (m_gstGLDisplayContext)
+        gst_object_unref(m_gstGLDisplayContext);
+#endif
 }
 
 void QGstVideoRenderer::createSurfaceCaps()
@@ -155,97 +157,19 @@ void QGstVideoRenderer::createSurfaceCaps()
     m_surfaceCaps = caps;
 }
 
+QGstMutableCaps QGstVideoRenderer::caps()
+{
+    QMutexLocker locker(&m_mutex);
+
+    return m_surfaceCaps;
+}
+
 bool QGstVideoRenderer::start(GstCaps *caps)
 {
-    m_flushed = true;
-    m_format = QGstUtils::formatForCaps(caps, &m_videoInfo);
-
-    auto *features = gst_caps_get_features(caps, 0);
-#if QT_CONFIG(gstreamer_gl)
-    if (gst_caps_features_contains(features, GST_CAPS_FEATURE_MEMORY_GL_MEMORY))
-        bufferFormat = QGstVideoBuffer::GLTexture;
-    else
-#endif
-    if (gst_caps_features_contains(features, "memory:DMABuf"))
-        bufferFormat = QGstVideoBuffer::DMABuf;
-
-    return m_format.isValid();
-}
-
-void QGstVideoRenderer::stop()
-{
-    m_flushed = true;
-}
-
-bool QGstVideoRenderer::present(QVideoSink *sink, GstBuffer *buffer)
-{
-    m_flushed = false;
-
-    auto *rhi = m_sink->rhi();
-    if (bufferFormat == QGstVideoBuffer::Memory)
-        rhi = nullptr;
-    QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, rhi, bufferFormat);
-
-    auto meta = gst_buffer_get_video_crop_meta (buffer);
-    if (meta) {
-        QRect vp(meta->x, meta->y, meta->width, meta->height);
-        if (m_format.viewport() != vp) {
-#ifdef DEBUG_VIDEO_SURFACE_SINK
-            qDebug() << Q_FUNC_INFO << " Update viewport on Metadata: [" << meta->height << "x" << meta->width << " | " << meta->x << "x" << meta->y << "]";
-#endif
-            //Update viewport if data is not the same
-            m_format.setViewport(vp);
-        }
-    }
-
-    QVideoFrame frame(videoBuffer, m_format);
-    QGstUtils::setFrameTimeStamps(&frame, buffer);
-
-    sink->newVideoFrame(frame);
-    return true;
-}
-
-void QGstVideoRenderer::flush(QVideoSink *surface)
-{
-    if (surface && !m_flushed)
-        surface->newVideoFrame(QVideoFrame());
-    m_flushed = true;
-}
-
-bool QGstVideoRenderer::proposeAllocation(GstQuery *)
-{
-    return true;
-}
-
-QVideoSurfaceGstDelegate::QVideoSurfaceGstDelegate(QVideoSink *sink)
-    : m_sink(sink)
-{
-    m_renderer = new QGstVideoRenderer(sink);
-}
-
-QVideoSurfaceGstDelegate::~QVideoSurfaceGstDelegate()
-{
-    delete m_renderer;
-
-#if QT_CONFIG(gstreamer_gl)
-    if (m_gstGLDisplayContext)
-        gst_object_unref(m_gstGLDisplayContext);
-#endif
-}
-
-QGstMutableCaps QVideoSurfaceGstDelegate::caps()
-{
+//    qDebug() << "QGstVideoRenderer::start" << QGstCaps(caps).toString();
     QMutexLocker locker(&m_mutex);
 
-    return m_renderer->getCaps();
-}
-
-bool QVideoSurfaceGstDelegate::start(GstCaps *caps)
-{
-//    qDebug() << "QVideoSurfaceGstDelegate::start" << QGstCaps(caps).toString();
-    QMutexLocker locker(&m_mutex);
-
-    if (m_activeRenderer) {
+    if (m_active) {
         m_flush = true;
         m_stop = true;
     }
@@ -268,14 +192,14 @@ bool QVideoSurfaceGstDelegate::start(GstCaps *caps)
         m_startCaps = {};
     }
 
-    return m_activeRenderer != nullptr;
+    return m_active;
 }
 
-void QVideoSurfaceGstDelegate::stop()
+void QGstVideoRenderer::stop()
 {
     QMutexLocker locker(&m_mutex);
 
-    if (!m_activeRenderer)
+    if (!m_active)
         return;
 
     m_flush = true;
@@ -286,7 +210,7 @@ void QVideoSurfaceGstDelegate::stop()
     waitForAsyncEvent(&locker, &m_setupCondition, 500);
 }
 
-void QVideoSurfaceGstDelegate::unlock()
+void QGstVideoRenderer::unlock()
 {
     QMutexLocker locker(&m_mutex);
 
@@ -294,20 +218,13 @@ void QVideoSurfaceGstDelegate::unlock()
     m_renderCondition.wakeAll();
 }
 
-bool QVideoSurfaceGstDelegate::proposeAllocation(GstQuery *query)
+bool QGstVideoRenderer::proposeAllocation(GstQuery *)
 {
     QMutexLocker locker(&m_mutex);
-
-    if (QGstVideoRenderer *pool = m_activeRenderer) {
-        locker.unlock();
-
-        return pool->proposeAllocation(query);
-    }
-
-    return false;
+    return m_active;
 }
 
-void QVideoSurfaceGstDelegate::flush()
+void QGstVideoRenderer::flush()
 {
     QMutexLocker locker(&m_mutex);
 
@@ -318,7 +235,7 @@ void QVideoSurfaceGstDelegate::flush()
     notify();
 }
 
-GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
+GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
 {
     QMutexLocker locker(&m_mutex);
 
@@ -332,17 +249,16 @@ GstFlowReturn QVideoSurfaceGstDelegate::render(GstBuffer *buffer)
     return m_renderReturn;
 }
 
-#if QT_CONFIG(gstreamer_gl)
-static GstGLContext *gstGLDisplayContext(QVideoSink *sink)
+void QGstVideoRenderer::initGstGLDisplayContext()
 {
-    QRhi *rhi = sink->rhi();
+#if QT_CONFIG(gstreamer_gl)
+    QRhi *rhi = m_sink->rhi();
     if (!rhi || rhi->backend() != QRhi::OpenGLES2)
-        return nullptr;
+        return;
 
     auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
     auto glContext = nativeHandles->context;
-    if (!glContext)
-        return nullptr;
+    Q_ASSERT(glContext);
 
     GstGLDisplay *display = nullptr;
     const QString platform = QGuiApplication::platformName();
@@ -381,7 +297,7 @@ static GstGLContext *gstGLDisplayContext(QVideoSink *sink)
 
     if (!display) {
         qWarning() << "Could not create GstGLDisplay";
-        return nullptr;
+        return;
     }
 
     void *nativeContext = pni->nativeResourceForContext(contextName, glContext);
@@ -405,25 +321,18 @@ static GstGLContext *gstGLDisplayContext(QVideoSink *sink)
 
     gst_object_unref(display);
 
-    return displayContext;
-}
+    m_gstGLDisplayContext = displayContext;
 #endif // #if QT_CONFIG(gstreamer_gl)
+}
 
-bool QVideoSurfaceGstDelegate::query(GstQuery *query)
+bool QGstVideoRenderer::query(GstQuery *query)
 {
 #if QT_CONFIG(gstreamer_gl)
-    if (GST_QUERY_TYPE(query) == GST_QUERY_CONTEXT) {
+    if (GST_QUERY_TYPE(query) == GST_QUERY_CONTEXT && m_gstGLDisplayContext) {
         const gchar *type;
         gst_query_parse_context_type(query, &type);
 
         if (strcmp(type, "gst.gl.local_context") != 0)
-            return false;
-
-        if (!m_gstGLDisplayContext)
-            m_gstGLDisplayContext = gstGLDisplayContext(m_sink);
-
-        // No context yet.
-        if (!m_gstGLDisplayContext)
             return false;
 
         GstContext *context = nullptr;
@@ -442,7 +351,7 @@ bool QVideoSurfaceGstDelegate::query(GstQuery *query)
     return false;
 }
 
-bool QVideoSurfaceGstDelegate::event(QEvent *event)
+bool QGstVideoRenderer::event(QEvent *event)
 {
     if (event->type() == QEvent::UpdateRequest) {
         QMutexLocker locker(&m_mutex);
@@ -457,49 +366,50 @@ bool QVideoSurfaceGstDelegate::event(QEvent *event)
     return QObject::event(event);
 }
 
-bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
+bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
 {
     if (m_flush) {
         m_flush = false;
-        if (m_activeRenderer) {
+        if (m_active) {
             locker->unlock();
 
-            m_activeRenderer->flush(m_sink);
+            if (m_sink && !m_flushed)
+                m_sink->newVideoFrame(QVideoFrame());
+            m_flushed = true;
         }
     } else if (m_stop) {
         m_stop = false;
 
-        if (QGstVideoRenderer * const activePool = m_activeRenderer) {
-            m_activeRenderer = nullptr;
-            locker->unlock();
-
-            activePool->stop();
-
-            locker->relock();
+        if (m_active) {
+            m_active = false;
+            m_flushed = true;
         }
     } else if (!m_startCaps.isNull()) {
-        Q_ASSERT(!m_activeRenderer);
+        Q_ASSERT(!m_active);
 
         auto startCaps = m_startCaps;
         m_startCaps = nullptr;
 
-        if (m_renderer && m_sink) {
+        if (m_sink) {
             locker->unlock();
 
-            const bool started = m_renderer->start(startCaps.get());
+            m_flushed = true;
+            m_format = QGstUtils::formatForCaps(startCaps.get(), &m_videoInfo);
+
+            auto *features = gst_caps_get_features(startCaps.get(), 0);
+#if QT_CONFIG(gstreamer_gl)
+            if (gst_caps_features_contains(features, GST_CAPS_FEATURE_MEMORY_GL_MEMORY))
+                bufferFormat = QGstVideoBuffer::GLTexture;
+            else
+#endif
+            if (gst_caps_features_contains(features, "memory:DMABuf"))
+                bufferFormat = QGstVideoBuffer::DMABuf;
 
             locker->relock();
-
-            m_activeRenderer = started
-                    ? m_renderer
-                    : nullptr;
-        } else if (QGstVideoRenderer * const activePool = m_activeRenderer) {
-            m_activeRenderer = nullptr;
-            locker->unlock();
-
-            activePool->stop();
-
-            locker->relock();
+            m_active = m_format.isValid();
+        } else if (m_active) {
+            m_active = false;
+            m_flushed = true;
         }
 
     } else if (m_renderBuffer) {
@@ -507,19 +417,40 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
         m_renderBuffer = nullptr;
         m_renderReturn = GST_FLOW_ERROR;
 
-        if (m_activeRenderer && m_sink) {
+        if (m_active && m_sink) {
             gst_buffer_ref(buffer);
 
             locker->unlock();
 
-            const bool rendered = m_activeRenderer->present(m_sink, buffer);
+            m_flushed = false;
+
+            auto *rhi = m_sink->rhi();
+            if (bufferFormat == QGstVideoBuffer::Memory)
+                rhi = nullptr;
+            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, rhi, bufferFormat);
+
+            auto meta = gst_buffer_get_video_crop_meta (buffer);
+            if (meta) {
+                QRect vp(meta->x, meta->y, meta->width, meta->height);
+                if (m_format.viewport() != vp) {
+#ifdef DEBUG_VIDEO_SURFACE_SINK
+                    qDebug() << Q_FUNC_INFO << " Update viewport on Metadata: [" << meta->height << "x" << meta->width << " | " << meta->x << "x" << meta->y << "]";
+#endif \
+    //Update viewport if data is not the same
+                    m_format.setViewport(vp);
+                }
+            }
+
+            QVideoFrame frame(videoBuffer, m_format);
+            QGstUtils::setFrameTimeStamps(&frame, buffer);
+
+            m_sink->newVideoFrame(frame);
 
             gst_buffer_unref(buffer);
 
             locker->relock();
 
-            if (rendered)
-                m_renderReturn = GST_FLOW_OK;
+            m_renderReturn = GST_FLOW_OK;
         }
 
         m_renderCondition.wakeAll();
@@ -531,7 +462,7 @@ bool QVideoSurfaceGstDelegate::handleEvent(QMutexLocker<QMutex> *locker)
     return true;
 }
 
-void QVideoSurfaceGstDelegate::notify()
+void QGstVideoRenderer::notify()
 {
     if (!m_notified) {
         m_notified = true;
@@ -539,7 +470,7 @@ void QVideoSurfaceGstDelegate::notify()
     }
 }
 
-bool QVideoSurfaceGstDelegate::waitForAsyncEvent(
+bool QGstVideoRenderer::waitForAsyncEvent(
         QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time)
 {
     if (QThread::currentThread() == thread()) {
@@ -655,8 +586,8 @@ void QGstVideoRendererSink::instance_init(GTypeInstance *instance, gpointer g_cl
 
     Q_ASSERT(current_sink);
 
-    sink->delegate = new QVideoSurfaceGstDelegate(current_sink);
-    sink->delegate->moveToThread(current_sink->thread());
+    sink->renderer = new QGstVideoRenderer(current_sink);
+    sink->renderer->moveToThread(current_sink->thread());
     current_sink = nullptr;
 }
 
@@ -664,7 +595,7 @@ void QGstVideoRendererSink::finalize(GObject *object)
 {
     VO_SINK(object);
 
-    delete sink->delegate;
+    delete sink->renderer;
 
     // Chain up
     G_OBJECT_CLASS(sink_parent_class)->finalize(object);
@@ -687,7 +618,7 @@ void QGstVideoRendererSink::handleShowPrerollChange(GObject *o, GParamSpec *p, g
         // the QMediaPlayer was stopped from the paused state.
         // We need to flush the current frame.
         if (state == GST_STATE_PAUSED)
-            sink->delegate->flush();
+            sink->renderer->flush();
     }
 }
 
@@ -703,7 +634,7 @@ GstStateChangeReturn QGstVideoRendererSink::change_state(
     // GST_STATE_PAUSED, it means the QMediaPlayer was stopped.
     // We need to flush the current frame.
     if (transition == GST_STATE_CHANGE_PLAYING_TO_PAUSED && !showPrerollFrame)
-        sink->delegate->flush();
+        sink->renderer->flush();
 
     return GST_ELEMENT_CLASS(sink_parent_class)->change_state(element, transition);
 }
@@ -712,7 +643,7 @@ GstCaps *QGstVideoRendererSink::get_caps(GstBaseSink *base, GstCaps *filter)
 {
     VO_SINK(base);
 
-    QGstMutableCaps caps = sink->delegate->caps();
+    QGstMutableCaps caps = sink->renderer->caps();
     if (filter)
         caps = gst_caps_intersect(caps.get(), filter);
 
@@ -730,10 +661,10 @@ gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *caps)
 #endif
 
     if (!caps) {
-        sink->delegate->stop();
+        sink->renderer->stop();
 
         return TRUE;
-    } else if (sink->delegate->start(caps)) {
+    } else if (sink->renderer->start(caps)) {
         return TRUE;
     } else {
         return FALSE;
@@ -743,33 +674,33 @@ gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *caps)
 gboolean QGstVideoRendererSink::propose_allocation(GstBaseSink *base, GstQuery *query)
 {
     VO_SINK(base);
-    return sink->delegate->proposeAllocation(query);
+    return sink->renderer->proposeAllocation(query);
 }
 
 gboolean QGstVideoRendererSink::stop(GstBaseSink *base)
 {
     VO_SINK(base);
-    sink->delegate->stop();
+    sink->renderer->stop();
     return TRUE;
 }
 
 gboolean QGstVideoRendererSink::unlock(GstBaseSink *base)
 {
     VO_SINK(base);
-    sink->delegate->unlock();
+    sink->renderer->unlock();
     return TRUE;
 }
 
 GstFlowReturn QGstVideoRendererSink::show_frame(GstVideoSink *base, GstBuffer *buffer)
 {
     VO_SINK(base);
-    return sink->delegate->render(buffer);
+    return sink->renderer->render(buffer);
 }
 
 gboolean QGstVideoRendererSink::query(GstBaseSink *base, GstQuery *query)
 {
     VO_SINK(base);
-    if (sink->delegate->query(query))
+    if (sink->renderer->query(query))
         return TRUE;
 
     return GST_BASE_SINK_CLASS(sink_parent_class)->query(base, query);
