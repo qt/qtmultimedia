@@ -149,6 +149,7 @@ private:
     QRhiGraphicsPipeline *m_readbackPs = nullptr;
 
     QImage m_readbackImage;
+    QByteArray m_readbackImageData;
 
     GraphicsResourceDeleter *m_graphicsDeleter = nullptr;
 

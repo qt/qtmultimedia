@@ -425,10 +425,12 @@ bool QAndroidTextureVideoOutput::renderAndReadbackFrame()
     if (!readCompleted)
         return false;
 
-    QImage wrapperImage(reinterpret_cast<const uchar *>(readResult.data.constData()),
-                        readResult.pixelSize.width(), readResult.pixelSize.height(),
-                        QImage::Format_ARGB32_Premultiplied);
-    m_readbackImage = wrapperImage.copy();
+    // implicit sharing, keep the data alive
+    m_readbackImageData = readResult.data;
+    // the QImage does not own the data
+    m_readbackImage = QImage(reinterpret_cast<const uchar *>(m_readbackImageData.constData()),
+                             readResult.pixelSize.width(), readResult.pixelSize.height(),
+                             QImage::Format_ARGB32_Premultiplied);
 
     return true;
 }
