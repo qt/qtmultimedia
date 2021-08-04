@@ -240,7 +240,7 @@ void QGstreamerMediaCapture::setAudioOutput(QPlatformAudioOutput *output)
 
 QGstPad QGstreamerMediaCapture::getAudioPad() const
 {
-    return gstAudioTee.getRequestPad("src_%u");
+    return gstAudioTee.isNull() ? QGstPad() : gstAudioTee.getRequestPad("src_%u");
 }
 
 QGstPad QGstreamerMediaCapture::getVideoPad() const
