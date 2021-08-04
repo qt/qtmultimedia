@@ -154,6 +154,7 @@ void AVFCameraRenderer::configureAVCaptureSession(AVFCameraSession *cameraSessio
     m_needsHorizontalMirroring = false;
 
     m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
+    m_videoDataOutput.videoSettings = @{ };  // Receive samples in device format.
 
     // Configure video output
     m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);

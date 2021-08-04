@@ -134,24 +134,6 @@ void AVFMediaEncoder::updateDuration(qint64 duration)
     durationChanged(m_duration);
 }
 
-static bool formatSupportsFramerate(AVCaptureDeviceFormat *format, qreal fps)
-{
-    if (format && fps > qreal(0)) {
-        const qreal epsilon = 0.1;
-        for (AVFrameRateRange *range in format.videoSupportedFrameRateRanges) {
-            if (range.maxFrameRate - range.minFrameRate < epsilon) {
-                if (qAbs(fps - range.maxFrameRate) < epsilon)
-                    return true;
-            }
-
-            if (fps >= range.minFrameRate && fps <= range.maxFrameRate)
-                return true;
-        }
-    }
-
-    return false;
-}
-
 static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettings)
 {
     NSMutableDictionary *settings = [NSMutableDictionary dictionary];
@@ -295,7 +277,7 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
         AVCaptureDeviceFormat *newFormat = nil;
         if ((w <= 0 || h <= 0)
                 && encoderSettings.videoFrameRate() > 0
-                && !formatSupportsFramerate(currentFormat, encoderSettings.videoFrameRate())) {
+                && !qt_format_supports_framerate(currentFormat, encoderSettings.videoFrameRate())) {
 
             newFormat = qt_find_best_framerate_match(device,
                                                      formatCodec,

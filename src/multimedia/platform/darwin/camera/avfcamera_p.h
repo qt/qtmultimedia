@@ -76,6 +76,7 @@ public:
     void setActive(bool activce) override;
 
     void setCamera(const QCameraDevice &camera) override;
+    bool setCameraFormat(const QCameraFormat &format) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
@@ -123,6 +124,7 @@ private:
     AVFCameraSession *m_session = nullptr;
 
     QCameraDevice m_cameraDevice;
+    QCameraFormat m_cameraFormat;
 
     bool m_active;
 

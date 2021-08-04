@@ -57,6 +57,8 @@
 #include <QtCore/qpair.h>
 #include <QtCore/qsize.h>
 
+#include "qcameradevice.h"
+
 #include <CoreAudio/CoreAudioTypes.h>
 
 #include <AVFoundation/AVFoundation.h>
@@ -167,6 +169,8 @@ private:
 typedef QPair<qreal, qreal> AVFPSRange;
 AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
 
+AVCaptureDeviceFormat *qt_convert_to_capture_device_format(AVCaptureDevice *captureDevice,
+                                                        const QCameraFormat &format);
 QList<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice,
                                                         FourCharCode preferredFormat);
 QSize qt_device_format_resolution(AVCaptureDeviceFormat *format);
@@ -179,6 +183,7 @@ AVCaptureDeviceFormat *qt_find_best_framerate_match(AVCaptureDevice *captureDevi
                                                     FourCharCode preferredFormat,
                                                     Float64 fps);
 AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *format, Float64 fps);
+bool qt_format_supports_framerate(AVCaptureDeviceFormat *format, qreal fps);
 
 bool qt_formats_are_equal(AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2);
 bool qt_set_active_format(AVCaptureDevice *captureDevice, AVCaptureDeviceFormat *format, bool preserveFps);

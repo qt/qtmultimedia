@@ -43,6 +43,7 @@
 #include <QtCore/qvector.h>
 #include <QtCore/qpair.h>
 #include <private/qmultimediautils_p.h>
+#include "private/avfvideobuffer_p.h"
 
 #include <functional>
 #include <algorithm>
@@ -126,6 +127,32 @@ Float64 qt_find_min_framerate_distance(AVCaptureDeviceFormat *format, Float64 fp
 }
 
 } // Unnamed namespace.
+
+AVCaptureDeviceFormat *qt_convert_to_capture_device_format(AVCaptureDevice *captureDevice,
+                                                        const QCameraFormat &cameraFormat)
+{
+    AVCaptureDeviceFormat *newFormat = nil;
+    NSArray<AVCaptureDeviceFormat *> *formats = captureDevice.formats;
+    for (AVCaptureDeviceFormat *format in formats) {
+        CMFormatDescriptionRef formatDesc = format.formatDescription;
+        CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
+        FourCharCode formatCodec = CMVideoFormatDescriptionGetCodecType(formatDesc);
+        if (AVFVideoBuffer::fromCVPixelFormat(formatCodec) == cameraFormat.pixelFormat()
+            && cameraFormat.resolution().width() == dim.width
+            && cameraFormat.resolution().height() == dim.height) {
+            for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
+                if (frameRateRange.minFrameRate >= cameraFormat.minFrameRate()
+                    && frameRateRange.maxFrameRate <= cameraFormat.maxFrameRate()) {
+                    newFormat = format;
+                    break;
+                }
+            }
+        }
+        if (newFormat)
+            break;
+    }
+    return newFormat;
+}
 
 QVector<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice, FourCharCode filter)
 {
@@ -379,6 +406,19 @@ AVFrameRateRange *qt_find_supported_framerate_range(AVCaptureDeviceFormat *forma
     }
 
     return match;
+}
+
+bool qt_format_supports_framerate(AVCaptureDeviceFormat *format, qreal fps)
+{
+    if (format && fps > qreal(0)) {
+        const qreal epsilon = 0.1;
+        for (AVFrameRateRange *range in format.videoSupportedFrameRateRanges) {
+            if (fps >= range.minFrameRate - epsilon && fps <= range.maxFrameRate + epsilon)
+                return true;
+        }
+    }
+
+    return false;
 }
 
 bool qt_formats_are_equal(AVCaptureDeviceFormat *f1, AVCaptureDeviceFormat *f2)
