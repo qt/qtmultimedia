@@ -416,7 +416,6 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
         emit tracksChanged();
 
     decoderOutputMap.insert(pad.name(), sinkPad);
-    playerPipeline.dumpGraph("foo");
 }
 
 void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGstPad &pad)

@@ -180,27 +180,6 @@ private:
     FlushMode m_flushMode = EmptyFrame;
 };
 
-namespace {
-
-inline bool qIsDefaultAspect(int o)
-{
-    return (o % 180) == 0;
-}
-
-/*
- * Return the orientation normalized to 0-359
- */
-inline int qNormalizedOrientation(int o)
-{
-    // Negative orientations give negative results
-    int o2 = o % 360;
-    if (o2 < 0)
-        o2 += 360;
-    return o2;
-}
-
-}
-
 QT_END_NAMESPACE
 
 #endif // QQUICKVIDEOOUTPUT_P_H

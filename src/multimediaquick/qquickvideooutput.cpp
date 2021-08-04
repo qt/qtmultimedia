@@ -53,6 +53,27 @@ QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcVideo, "qt.multimedia.video")
 
+namespace {
+
+inline bool qIsDefaultAspect(int o)
+{
+    return (o % 180) == 0;
+}
+
+/*
+ * Return the orientation normalized to 0-359
+ */
+inline int qNormalizedOrientation(int o)
+{
+    // Negative orientations give negative results
+    int o2 = o % 360;
+    if (o2 < 0)
+        o2 += 360;
+    return o2;
+}
+
+}
+
 /*!
     \qmltype VideoOutput
     //! \instantiates QQuickVideoOutput
