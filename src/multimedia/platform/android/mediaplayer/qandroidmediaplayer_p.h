@@ -87,6 +87,7 @@ public:
     void setVideoSink(QVideoSink *surface) override;
 
     void setAudioOutput(QPlatformAudioOutput *output) override;
+    void updateAudioDevice();
 
     void setPosition(qint64 position) override;
     void play() override;

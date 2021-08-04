@@ -112,6 +112,7 @@ if(ANDROID)
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_PERMISSIONS
         android.permission.CAMERA android.permission.RECORD_AUDIO
         android.permission.BLUETOOTH
+        android.permission.MODIFY_AUDIO_SETTINGS
     )
 endif()
 

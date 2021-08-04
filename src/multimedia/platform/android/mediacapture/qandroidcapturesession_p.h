@@ -77,6 +77,7 @@ public:
 
     void setCameraSession(QAndroidCameraSession *cameraSession = 0);
     void setAudioInput(QPlatformAudioInput *input);
+    void setAudioOutput(QPlatformAudioOutput *output);
 
     QMediaRecorder::RecorderState state() const;
 
@@ -159,6 +160,7 @@ private:
     QAndroidCameraSession *m_cameraSession;
 
     QPlatformAudioInput *m_audioInput = nullptr;
+    QPlatformAudioOutput *m_audioOutput = nullptr;
 
     QMediaStorageLocation m_mediaStorageLocation;
 

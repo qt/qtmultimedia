@@ -363,10 +363,17 @@ void QAndroidMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
         m_audioOutput->q->disconnect(this);
     m_audioOutput = static_cast<QAndroidAudioOutput *>(output);
     if (m_audioOutput) {
-        // #### Implement device changes: connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, XXXX);
+        connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, &QAndroidMediaPlayer::updateAudioDevice);
         connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &QAndroidMediaPlayer::setVolume);
         connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &QAndroidMediaPlayer::setMuted);
+        updateAudioDevice();
     }
+}
+
+void QAndroidMediaPlayer::updateAudioDevice()
+{
+    if (m_audioOutput)
+        mMediaPlayer->setAudioOutput(m_audioOutput->device.id());
 }
 
 void QAndroidMediaPlayer::play()

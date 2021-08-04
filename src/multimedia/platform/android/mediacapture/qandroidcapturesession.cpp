@@ -41,11 +41,13 @@
 
 #include "androidcamera_p.h"
 #include "qandroidcamerasession_p.h"
+#include "androidmediaplayer_p.h"
 #include "androidmultimediautils_p.h"
 #include "qandroidmultimediautils_p.h"
 #include "qandroidvideooutput_p.h"
 #include "qandroidglobal_p.h"
 #include <private/qplatformaudioinput_p.h>
+#include <private/qplatformaudiooutput_p.h>
 #include <private/qmediarecorder_p.h>
 #include <QtCore/qmimetype.h>
 
@@ -102,6 +104,17 @@ void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSessi
 void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
     m_audioInput = input;
+}
+
+void QAndroidCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
+{
+    if (m_audioOutput == output)
+        return;
+
+    m_audioOutput = output;
+
+    if (m_audioOutput)
+        AndroidMediaPlayer::setAudioOutput(m_audioOutput->device.id());
 }
 
 QMediaRecorder::RecorderState QAndroidCaptureSession::state() const

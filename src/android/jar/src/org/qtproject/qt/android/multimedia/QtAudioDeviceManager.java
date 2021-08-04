@@ -205,4 +205,50 @@ public class QtAudioDeviceManager
         ret = devices.toArray(ret);
         return ret;
     }
+
+    private static boolean setAudioOutput(int id)
+    {
+        final AudioDeviceInfo[] audioDevices =
+                                        m_audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
+        for (AudioDeviceInfo deviceInfo : audioDevices) {
+           if (deviceInfo.getId() == id) {
+               switch (deviceInfo.getType())
+               {
+                   case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
+                   case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
+                       setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, true, false);
+                       return true;
+                   case AudioDeviceInfo.TYPE_BUILTIN_SPEAKER:
+                       setAudioOutput(AudioManager.MODE_NORMAL, false, true);
+                       return true;
+                   case AudioDeviceInfo.TYPE_WIRED_HEADSET:
+                   case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
+                       setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, false, false);
+                       return true;
+                   case AudioDeviceInfo.TYPE_BUILTIN_EARPIECE:
+                       // It doesn't work when WIRED HEADPHONES are connected
+                       // Earpiece has the lowest priority and setWiredHeadsetOn(boolean)
+                       // method to force it is deprecated
+                       setAudioOutput(AudioManager.MODE_IN_CALL, false, false);
+                       return true;
+                   default:
+                       return false;
+               }
+           }
+        }
+        return false;
+    }
+
+    private static void setAudioOutput(int mode, boolean bluetoothOn, boolean speakerOn)
+    {
+        m_audioManager.setMode(mode);
+        if (bluetoothOn) {
+            m_audioManager.startBluetoothSco();
+        } else {
+            m_audioManager.stopBluetoothSco();
+        }
+        m_audioManager.setBluetoothScoOn(bluetoothOn);
+        m_audioManager.setSpeakerphoneOn(speakerOn);
+
+    }
 }

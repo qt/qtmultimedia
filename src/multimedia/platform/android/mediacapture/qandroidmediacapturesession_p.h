@@ -84,6 +84,8 @@ public:
 
     void setVideoPreview(QVideoSink *sink) override;
 
+    void setAudioOutput(QPlatformAudioOutput *output) override;
+
     QAndroidCaptureSession *captureSession() const { return m_captureSession; }
     QAndroidCameraSession *cameraSession() const { return m_cameraSession; }
 
