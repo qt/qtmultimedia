@@ -65,13 +65,6 @@
 #include <private/qgstvideobuffer_p.h>
 #include <private/qgst_p.h>
 
-#if QT_CONFIG(gstreamer_gl)
-#ifndef GST_USE_UNSTABLE_API
-#define GST_USE_UNSTABLE_API
-#endif
-#include <gst/gl/gl.h>
-#endif
-
 QT_BEGIN_NAMESPACE
 class QVideoSink;
 
@@ -103,7 +96,6 @@ private:
     void notify();
     bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
     void createSurfaceCaps();
-    void initGstGLDisplayContext();
 
     QPointer<QVideoSink> m_sink;
 
@@ -119,9 +111,6 @@ private:
 
     QGstMutableCaps m_startCaps;
     GstBuffer *m_renderBuffer = nullptr;
-#if QT_CONFIG(gstreamer_gl)
-    GstGLContext *m_gstGLDisplayContext = nullptr;
-#endif
 
     bool m_notified = false;
     bool m_stop = false;

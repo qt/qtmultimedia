@@ -47,6 +47,7 @@
 
 #include <private/qfactoryloader_p.h>
 #include "qgstvideobuffer_p.h"
+#include "qgstreamervideosink_p.h"
 
 #include "qgstvideorenderersink_p.h"
 
@@ -55,25 +56,9 @@
 
 #include "qgstutils_p.h"
 
-#if QT_CONFIG(gstreamer_gl)
 #include <QtGui/private/qrhi_p.h>
-#include <QtGui/private/qrhigles2_p.h>
-#include <QGuiApplication>
-#include <QtGui/qopenglcontext.h>
-#include <QWindow>
-#include <qpa/qplatformnativeinterface.h>
-
-#include <gst/gl/gstglconfig.h>
-
-#if GST_GL_HAVE_WINDOW_X11
-#    include <gst/gl/x11/gstgldisplay_x11.h>
-#endif
-#if GST_GL_HAVE_PLATFORM_EGL
-#    include <gst/gl/egl/gstgldisplay_egl.h>
-#endif
-#if GST_GL_HAVE_WINDOW_WAYLAND
-#    include <gst/gl/wayland/gstgldisplay_wayland.h>
-#endif
+#if QT_CONFIG(gstreamer_gl)
+#include <gst/gl/gl.h>
 #endif // #if QT_CONFIG(gstreamer_gl)
 
 //#define DEBUG_VIDEO_SURFACE_SINK
@@ -83,16 +68,11 @@ QT_BEGIN_NAMESPACE
 QGstVideoRenderer::QGstVideoRenderer(QVideoSink *sink)
     : m_sink(sink)
 {
-    initGstGLDisplayContext();
     createSurfaceCaps();
 }
 
 QGstVideoRenderer::~QGstVideoRenderer()
 {
-#if QT_CONFIG(gstreamer_gl)
-    if (m_gstGLDisplayContext)
-        gst_object_unref(m_gstGLDisplayContext);
-#endif
 }
 
 void QGstVideoRenderer::createSurfaceCaps()
@@ -249,97 +229,26 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
     return m_renderReturn;
 }
 
-void QGstVideoRenderer::initGstGLDisplayContext()
-{
-#if QT_CONFIG(gstreamer_gl)
-    QRhi *rhi = m_sink->rhi();
-    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
-        return;
-
-    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
-    auto glContext = nativeHandles->context;
-    Q_ASSERT(glContext);
-
-    GstGLDisplay *display = nullptr;
-    const QString platform = QGuiApplication::platformName();
-    const char *contextName = "eglcontext";
-    GstGLPlatform glPlatform = GST_GL_PLATFORM_EGL;
-    QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
-
-#if GST_GL_HAVE_WINDOW_X11
-    if (platform == QLatin1String("xcb")) {
-        if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL) {
-            contextName = "glxcontext";
-            glPlatform = GST_GL_PLATFORM_GLX;
-        }
-
-        display = (GstGLDisplay *)gst_gl_display_x11_new_with_display(
-            (Display *)pni->nativeResourceForIntegration("display"));
-    }
-#endif
-
-#if GST_GL_HAVE_PLATFORM_EGL
-    if (!display && platform == QLatin1String("eglfs")) {
-        display = (GstGLDisplay *)gst_gl_display_egl_new_with_egl_display(
-            pni->nativeResourceForIntegration("egldisplay"));
-    }
-#endif
-
-#if GST_GL_HAVE_WINDOW_WAYLAND
-    if (!display && platform.startsWith(QLatin1String("wayland"))) {
-        const char *displayName = (platform == QLatin1String("wayland"))
-            ? "display" : "egldisplay";
-
-        display = (GstGLDisplay *)gst_gl_display_wayland_new_with_display(
-            (struct wl_display *)pni->nativeResourceForIntegration(displayName));
-    }
-#endif
-
-    if (!display) {
-        qWarning() << "Could not create GstGLDisplay";
-        return;
-    }
-
-    void *nativeContext = pni->nativeResourceForContext(contextName, glContext);
-    if (!nativeContext)
-        qWarning() << "Could not find resource for" << contextName;
-
-    GstGLContext *appContext = gst_gl_context_new_wrapped(display, (guintptr)nativeContext, glPlatform, GST_GL_API_ANY);
-    if (!appContext)
-        qWarning() << "Could not create wrappped context for platform:" << glPlatform;
-
-    GstGLContext *displayContext = nullptr;
-    GError *error = nullptr;
-    gst_gl_display_create_context(display, appContext, &displayContext, &error);
-    if (error) {
-        qWarning() << "Could not create display context:" << error->message;
-        g_clear_error(&error);
-    }
-
-    if (appContext)
-        gst_object_unref(appContext);
-
-    gst_object_unref(display);
-
-    m_gstGLDisplayContext = displayContext;
-#endif // #if QT_CONFIG(gstreamer_gl)
-}
-
 bool QGstVideoRenderer::query(GstQuery *query)
 {
 #if QT_CONFIG(gstreamer_gl)
-    if (GST_QUERY_TYPE(query) == GST_QUERY_CONTEXT && m_gstGLDisplayContext) {
+    if (GST_QUERY_TYPE(query) == GST_QUERY_CONTEXT) {
         const gchar *type;
         gst_query_parse_context_type(query, &type);
 
         if (strcmp(type, "gst.gl.local_context") != 0)
             return false;
 
+        auto *platformSink = static_cast<QGstreamerVideoSink *>(m_sink->platformVideoSink());
+        auto *gstGlContext = platformSink->gstGLContext();
+        if (!gstGlContext)
+            return false;
+
         GstContext *context = nullptr;
         gst_query_parse_context(query, &context);
         context = context ? gst_context_copy(context) : gst_context_new(type, FALSE);
         GstStructure *structure = gst_context_writable_structure(context);
-        gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, m_gstGLDisplayContext, nullptr);
+        gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, gstGlContext, nullptr);
         gst_query_set_context(query, context);
         gst_context_unref(context);
 

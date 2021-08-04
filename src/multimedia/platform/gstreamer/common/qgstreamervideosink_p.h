@@ -59,6 +59,10 @@
 #include <QtGui/qcolor.h>
 #include <qvideosink.h>
 
+#if QT_CONFIG(gstreamer_gl)
+#include <gst/gl/gl.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 class QGstreamerVideoRenderer;
 
@@ -88,10 +92,15 @@ public:
 
     void setPipeline(QGstPipeline pipeline);
 
+#if QT_CONFIG(gstreamer_gl)
+    GstGLContext *gstGLContext() const { return m_gstGLDisplayContext; }
+#endif
 private:
     void createOverlay();
     void createQtSink();
     void updateSinkElement();
+
+    void initGstGLDisplayContext();
 
     QGstPipeline gstPipeline;
     QGstBin sinkBin;
@@ -104,7 +113,10 @@ private:
     QRhi *m_rhi = nullptr;
     QRect m_displayRect;
     bool m_fullScreen = false;
-    mutable QColor m_colorKey = QColor::Invalid;
+
+#if QT_CONFIG(gstreamer_gl)
+    GstGLContext *m_gstGLDisplayContext = nullptr;
+#endif
 };
 
 QT_END_NAMESPACE

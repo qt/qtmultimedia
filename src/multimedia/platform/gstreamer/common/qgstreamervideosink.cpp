@@ -42,9 +42,31 @@
 #include <private/qgstutils_p.h>
 #include <QtGui/private/qrhi_p.h>
 
+#if QT_CONFIG(gstreamer_gl)
+#include <QtGui/private/qrhigles2_p.h>
+#include <QGuiApplication>
+#include <QtGui/qopenglcontext.h>
+#include <QWindow>
+#include <qpa/qplatformnativeinterface.h>
+
+#include <gst/gl/gstglconfig.h>
+
+#if GST_GL_HAVE_WINDOW_X11
+#    include <gst/gl/x11/gstgldisplay_x11.h>
+#endif
+#if GST_GL_HAVE_PLATFORM_EGL
+#    include <gst/gl/egl/gstgldisplay_egl.h>
+#endif
+#if GST_GL_HAVE_WINDOW_WAYLAND
+#    include <gst/gl/wayland/gstgldisplay_wayland.h>
+#endif
+#endif // #if QT_CONFIG(gstreamer_gl)
+
 #include <QtCore/qdebug.h>
 
 #include <QtCore/qloggingcategory.h>
+
+QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
 
@@ -71,6 +93,10 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
 
 QGstreamerVideoSink::~QGstreamerVideoSink()
 {
+#if QT_CONFIG(gstreamer_gl)
+    if (m_gstGLDisplayContext)
+        gst_object_unref(m_gstGLDisplayContext);
+#endif
     setPipeline(QGstPipeline());
     delete m_videoOverlay;
 }
@@ -109,6 +135,7 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
         return;
 
     m_rhi = rhi;
+    initGstGLDisplayContext();
     if (!gstQtSink.isNull()) {
         // force creation of a new sink with proper caps
         createQtSink();
@@ -185,3 +212,85 @@ void QGstreamerVideoSink::updateSinkElement()
     gstPipeline.endConfig();
     gstPipeline.dumpGraph("updateVideoSink");
 }
+
+void QGstreamerVideoSink::initGstGLDisplayContext()
+{
+#if QT_CONFIG(gstreamer_gl)
+    if (!m_rhi || m_rhi->backend() != QRhi::OpenGLES2) {
+        if (m_gstGLDisplayContext)
+            gst_object_unref(m_gstGLDisplayContext);
+        m_gstGLDisplayContext = nullptr;
+        return;
+    }
+
+    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(m_rhi->nativeHandles());
+    auto glContext = nativeHandles->context;
+    Q_ASSERT(glContext);
+
+    GstGLDisplay *display = nullptr;
+    const QString platform = QGuiApplication::platformName();
+    const char *contextName = "eglcontext";
+    GstGLPlatform glPlatform = GST_GL_PLATFORM_EGL;
+    QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
+
+#if GST_GL_HAVE_WINDOW_X11
+    if (platform == QLatin1String("xcb")) {
+        if (QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL) {
+            contextName = "glxcontext";
+            glPlatform = GST_GL_PLATFORM_GLX;
+        }
+
+        display = (GstGLDisplay *)gst_gl_display_x11_new_with_display(
+            (Display *)pni->nativeResourceForIntegration("display"));
+    }
+#endif
+
+#if GST_GL_HAVE_PLATFORM_EGL
+    if (!display && platform == QLatin1String("eglfs")) {
+        display = (GstGLDisplay *)gst_gl_display_egl_new_with_egl_display(
+            pni->nativeResourceForIntegration("egldisplay"));
+    }
+#endif
+
+#if GST_GL_HAVE_WINDOW_WAYLAND
+    if (!display && platform.startsWith(QLatin1String("wayland"))) {
+        const char *displayName = (platform == QLatin1String("wayland"))
+                                      ? "display" : "egldisplay";
+
+        display = (GstGLDisplay *)gst_gl_display_wayland_new_with_display(
+            (struct wl_display *)pni->nativeResourceForIntegration(displayName));
+    }
+#endif
+
+    if (!display) {
+        qWarning() << "Could not create GstGLDisplay";
+        return;
+    }
+
+    void *nativeContext = pni->nativeResourceForContext(contextName, glContext);
+    if (!nativeContext)
+        qWarning() << "Could not find resource for" << contextName;
+
+    GstGLAPI glApi = QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL ? GST_GL_API_OPENGL : GST_GL_API_GLES2;
+    GstGLContext *appContext = gst_gl_context_new_wrapped(display, (guintptr)nativeContext, glPlatform, glApi);
+    if (!appContext)
+        qWarning() << "Could not create wrappped context for platform:" << glPlatform;
+
+    GstGLContext *displayContext = nullptr;
+    GError *error = nullptr;
+    gst_gl_display_create_context(display, appContext, &displayContext, &error);
+    if (error) {
+        qWarning() << "Could not create display context:" << error->message;
+        g_clear_error(&error);
+    }
+
+    if (appContext)
+        gst_object_unref(appContext);
+
+    gst_object_unref(display);
+
+    m_gstGLDisplayContext = displayContext;
+#endif // #if QT_CONFIG(gstreamer_gl)
+}
+
+QT_END_NAMESPACE
