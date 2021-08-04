@@ -89,60 +89,32 @@ void QGstreamerAudioOutput::setPipeline(const QGstPipeline &pipeline)
     gstPipeline = pipeline;
 }
 
-bool QGstreamerAudioOutput::setAudioOutput(const QAudioDevice &info)
+void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
 {
     if (info == m_audioOutput)
-        return true;
+        return;
     qCDebug(qLcMediaAudioOutput) << "setAudioOutput" << info.description() << info.isNull();
     m_audioOutput = info;
 
-    if (gstPipeline.isNull() || gstPipeline.state() != GST_STATE_PLAYING)
-        return changeAudioOutput();
+    gstPipeline.beginConfig();
 
-    auto pad = audioVolume.staticPad("src");
-    pad.addProbe<&QGstreamerAudioOutput::prepareAudioOutputChange>(this, GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM);
+    audioSink.setStateSync(GST_STATE_NULL);
+    gstAudioOutput.remove(audioSink);
 
-    return true;
-}
-
-bool QGstreamerAudioOutput::changeAudioOutput()
-{
-    qCDebug(qLcMediaAudioOutput) << "Changing audio output";
     QGstElement newSink;
     auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioOutput.handle());
-    if (!deviceInfo)
-        newSink = QGstElement("fakesink", "fakeaudiosink");
-    else if (deviceInfo->gstDevice)
+    if (deviceInfo && deviceInfo->gstDevice)
         newSink = gst_device_create_element(deviceInfo->gstDevice , "audiosink");
 
     if (newSink.isNull())
         newSink = QGstElement("autoaudiosink", "audiosink");
 
-    gstAudioOutput.remove(audioSink);
     audioSink = newSink;
     gstAudioOutput.add(audioSink);
     audioVolume.link(audioSink);
+    audioSink.setState(GST_STATE_PAUSED);
 
-    return true;
-}
-
-void QGstreamerAudioOutput::prepareAudioOutputChange(const QGstPad &/*pad*/)
-{
-    qCDebug(qLcMediaAudioOutput) << "Reconfiguring audio output";
-
-    auto state = gstPipeline.state();
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
-    audioSink.setStateSync(GST_STATE_NULL);
-    changeAudioOutput();
-    audioSink.setStateSync(GST_STATE_PAUSED);
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setStateSync(state);
-}
-
-QAudioDevice QGstreamerAudioOutput::audioOutput() const
-{
-    return m_audioOutput;
+    gstPipeline.endConfig();
 }
 
 QT_END_NAMESPACE

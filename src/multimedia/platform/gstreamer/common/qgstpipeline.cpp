@@ -63,6 +63,11 @@ public:
     QList<QGstreamerSyncMessageFilter*> syncFilters;
     QList<QGstreamerBusMessageFilter*> busFilters;
     QProperty<bool> inStoppedState;
+    mutable qint64 m_position = 0;
+    double m_rate = 1.;
+
+    int m_configCounter = 0;
+    GstState m_savedState = GST_STATE_NULL;
 
     QGstPipelinePrivate(GstBus* bus, QObject* parent = 0);
     ~QGstPipelinePrivate();
@@ -258,6 +263,93 @@ void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 {
     Q_ASSERT(d);
     d->removeMessageFilter(filter);
+}
+
+void QGstPipeline::beginConfig()
+{
+    if (!d)
+        return;
+    Q_ASSERT(!isNull());
+
+    ++d->m_configCounter;
+    if (d->m_configCounter > 1)
+        return;
+
+    d->m_savedState = state();
+    if (d->m_savedState == GST_STATE_PLAYING)
+        setStateSync(GST_STATE_PAUSED);
+}
+
+void QGstPipeline::endConfig()
+{
+    if (!d)
+        return;
+    Q_ASSERT(!isNull());
+
+    --d->m_configCounter;
+    if (d->m_configCounter)
+        return;
+
+    if (d->m_savedState != GST_STATE_NULL)
+        flush();
+    if (d->m_savedState == GST_STATE_PLAYING)
+        setStateSync(GST_STATE_PLAYING);
+    d->m_savedState = GST_STATE_NULL;
+}
+
+void QGstPipeline::flush()
+{
+    seek(position(), d->m_rate);
+}
+
+bool QGstPipeline::seek(qint64 pos, double rate)
+{
+    // always adjust the rate, so it can be  set before playback starts
+    // setting position needs a loaded media file that's seekable
+    d->m_rate = rate;
+    bool success = gst_element_seek(element(), rate, GST_FORMAT_TIME,
+                                    GstSeekFlags(GST_SEEK_FLAG_FLUSH),
+                                    GST_SEEK_TYPE_SET, pos,
+                                    GST_SEEK_TYPE_SET, -1);
+    if (!success)
+        return false;
+
+    d->m_position = pos;
+    return true;
+}
+
+bool QGstPipeline::setPlaybackRate(double rate)
+{
+    if (rate == d->m_rate)
+        return false;
+    seek(position(), rate);
+    return true;
+}
+
+double QGstPipeline::playbackRate() const
+{
+    return d->m_rate;
+}
+
+bool QGstPipeline::setPosition(qint64 pos)
+{
+    return seek(pos, d->m_rate);
+}
+
+qint64 QGstPipeline::position() const
+{
+    gint64 pos;
+    if (gst_element_query_position(element(), GST_FORMAT_TIME, &pos))
+        d->m_position = pos;
+    return d->m_position;
+}
+
+qint64 QGstPipeline::duration() const
+{
+    gint64 d;
+    if (!gst_element_query_duration(element(), GST_FORMAT_TIME, &d))
+        return 0.;
+    return d;
 }
 
 QT_END_NAMESPACE

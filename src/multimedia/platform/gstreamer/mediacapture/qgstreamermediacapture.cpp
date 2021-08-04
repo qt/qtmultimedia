@@ -84,7 +84,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     if (gstCamera == control)
         return;
 
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
 
     if (gstVideoTee.isNull()) {
         gstVideoTee = QGstElement("tee", "videotee");
@@ -111,7 +111,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
         camera.setState(GST_STATE_PAUSED);
     }
 
-    gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
 
     emit cameraChanged();
     gstPipeline.dumpGraph("camera");
@@ -128,7 +128,7 @@ void QGstreamerMediaCapture::setImageCapture(QPlatformImageCapture *imageCapture
     if (m_imageCapture == control)
         return;
 
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
 
     if (m_imageCapture)
         m_imageCapture->setCaptureSession(nullptr);
@@ -137,7 +137,7 @@ void QGstreamerMediaCapture::setImageCapture(QPlatformImageCapture *imageCapture
     if (m_imageCapture)
         m_imageCapture->setCaptureSession(this);
 
-    gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
     emit imageCaptureChanged();
 }
 
@@ -168,7 +168,7 @@ void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
 {
     if (gstAudioInput == input)
         return;
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
     if (gstAudioInput) {
         gstAudioOutput->setPipeline({});
         gstAudioInput = nullptr;
@@ -198,7 +198,7 @@ void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
         gstAudioOutputPad.link(gstAudioOutput->gstElement().staticPad("sink"));
     }
 
-    gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
 }
 
 void QGstreamerMediaCapture::setVideoPreview(QVideoSink *sink)
@@ -210,7 +210,7 @@ void QGstreamerMediaCapture::setAudioOutput(QPlatformAudioOutput *output)
 {
     if (gstAudioOutput == output)
         return;
-    gstPipeline.setStateSync(GST_STATE_PAUSED);
+    gstPipeline.beginConfig();
 
     if (gstAudioOutput) {
         gstAudioOutput->setPipeline({});
@@ -234,7 +234,7 @@ void QGstreamerMediaCapture::setAudioOutput(QPlatformAudioOutput *output)
         gstAudioOutputPad.link(gstAudioOutput->gstElement().staticPad("sink"));
     }
 
-    gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
 }
 
 

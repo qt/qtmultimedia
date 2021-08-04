@@ -96,9 +96,6 @@ QAudioFormat CoreAudioUtils::toQAudioFormat(AudioStreamBasicDescription const& s
         break;
     }
 
-    if (format == QAudioFormat::Unknown)
-        return audioFormat;
-
     audioFormat.setSampleFormat(format);
     audioFormat.setSampleRate(sf.mSampleRate);
     audioFormat.setChannelCount(sf.mChannelsPerFrame);

@@ -103,7 +103,13 @@ public:
 
     void setVideoSink(QVideoSink *sink) override;
 
+    void setActiveTrack(TrackType type, int index) override;
+    int activeTrack(TrackType type) override;
+    int trackCount(TrackType type) override;
+    QMediaMetaData trackMetaData(TrackType type, int trackNumber) override;
+
     void handleStatusChanged();
+    void handleTracksChanged();
     void handleVideoAvailable();
     void handleAudioAvailable();
     void handleDurationUpdate(qint64 duration);

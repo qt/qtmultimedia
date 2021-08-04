@@ -63,7 +63,7 @@ namespace QAudio
         DecibelVolumeScale
     };
 
-    Q_MULTIMEDIA_EXPORT qreal convertVolume(qreal volume, VolumeScale from, VolumeScale to);
+    Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
 }
 
 #ifndef QT_NO_DEBUG_STREAM

@@ -50,6 +50,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.media.MediaRecorder;
 
 public class QtAudioDeviceManager
 {
@@ -100,6 +101,19 @@ public class QtAudioDeviceManager
     private static String[] getAudioInputDevices()
     {
         return getAudioDevices(AudioManager.GET_DEVICES_INPUTS);
+    }
+
+    private static boolean setAudioInput(MediaRecorder recorder, int id)
+    {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            final AudioDeviceInfo[] audioDevices =
+                                            m_audioManager.getDevices(AudioManager.GET_DEVICES_ALL);
+            for (AudioDeviceInfo deviceInfo : audioDevices) {
+               if (deviceInfo.getId() ==  id)
+                   return recorder.setPreferredDevice(deviceInfo);
+            }
+        }
+        return false;
     }
 
     private static String audioDeviceTypeToString(int type)

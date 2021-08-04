@@ -64,7 +64,11 @@ namespace QWindowsMultimediaUtils {
 
     GUID videoFormatForCodec(QMediaFormat::VideoCodec codec);
 
+    QMediaFormat::VideoCodec codecForVideoFormat(GUID format);
+
     GUID audioFormatForCodec(QMediaFormat::AudioCodec codec);
+
+    QMediaFormat::AudioCodec codecForAudioFormat(GUID format);
 
     GUID containerForVideoFileFormat(QMediaFormat::FileFormat format);
 

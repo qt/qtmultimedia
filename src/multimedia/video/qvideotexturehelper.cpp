@@ -39,7 +39,9 @@
 
 #include "qvideotexturehelper_p.h"
 #include "qvideoframe.h"
-
+#ifdef Q_OS_ANDROID
+#include <private/qandroidvideooutput_p.h>
+#endif
 QT_BEGIN_NAMESPACE
 
 namespace QVideoTextureHelper
@@ -223,6 +225,13 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
 #endif
+    // Format_SamplerExternalOES
+    {
+        1, 0,
+        [](int, int) { return 0; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
     // Format_Jpeg
     { 1, 0,
       [](int, int) { return 0; },
@@ -237,8 +246,15 @@ const TextureDescription *textureDescription(QVideoFrameFormat::PixelFormat form
     return descriptions + format;
 }
 
-QString vertexShaderFileName(QVideoFrameFormat::PixelFormat /*format*/)
+QString vertexShaderFileName(QVideoFrameFormat::PixelFormat format)
 {
+    Q_UNUSED(format);
+
+#ifdef Q_OS_ANDROID
+    if (format == QVideoFrameFormat::Format_SamplerExternalOES)
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.vert.qsb");
+#endif
+
     return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
 }
 
@@ -283,6 +299,11 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12.frag.qsb");
     case QVideoFrameFormat::Format_NV21:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv21.frag.qsb");
+    case QVideoFrameFormat::Format_SamplerExternalOES:
+#ifdef Q_OS_ANDROID
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.frag.qsb");
+#endif
+        // fallthrough
     default:
         return QString();
     }
@@ -348,13 +369,15 @@ static QMatrix4x4 yuvColorCorrectionMatrix(float brightness, float contrast, flo
 }
 #endif
 
-QByteArray uniformData(const QVideoFrameFormat &format, const QMatrix4x4 &transform, float opacity)
+void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity)
 {
+    Q_UNUSED(frame);
+
     QMatrix4x4 cmat;
     switch (format.pixelFormat()) {
     case QVideoFrameFormat::Format_Invalid:
     case QVideoFrameFormat::Format_Jpeg:
-        return QByteArray();
+        return;
 
     case QVideoFrameFormat::Format_ARGB32:
     case QVideoFrameFormat::Format_ARGB32_Premultiplied:
@@ -384,16 +407,24 @@ QByteArray uniformData(const QVideoFrameFormat &format, const QMatrix4x4 &transf
     case QVideoFrameFormat::Format_P016:
         cmat = colorMatrix(format.yCbCrColorSpace());
         break;
+    case QVideoFrameFormat::Format_SamplerExternalOES:
+#ifdef Q_OS_ANDROID
+    {
+        // get Android specific transform for the externalsampler texture
+        if (auto *buffer = static_cast<AndroidTextureVideoBuffer *>(frame.videoBuffer()))
+            cmat = buffer->externalTextureMatrix();
     }
-    // { matrix4x4, colorMatrix, opacity, planeWidth[3] }
-    QByteArray buf(64*2 + 4 + 4, Qt::Uninitialized);
-    char *data = buf.data();
+#endif
+        break;
+    }
+    // { matrix, colorMatrix, opacity, width }
+    Q_ASSERT(dst->size() >= 64 + 64 + 4 + 4);
+    char *data = dst->data();
     memcpy(data, transform.constData(), 64);
     memcpy(data + 64, cmat.constData(), 64);
     memcpy(data + 64 + 64, &opacity, 4);
     float width = format.frameWidth();
     memcpy(data + 64 + 64 + 4, &width, 4);
-    return buf;
 }
 
 int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates, QRhiTexture **textures)
@@ -409,11 +440,20 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
         planeSizes[plane] = QSize(size.width()/description->sizeScale[plane].x, size.height()/description->sizeScale[plane].y);
 
     if (frame.handleType() == QVideoFrame::RhiTextureHandle) {
+        QRhiTexture::Flags textureFlags = {};
+        if (pixelFormat == QVideoFrameFormat::Format_SamplerExternalOES) {
+#ifdef Q_OS_ANDROID
+            if (rhi->backend() == QRhi::OpenGLES2)
+                textureFlags |= QRhiTexture::ExternalOES;
+#endif
+        }
         for (int plane = 0; plane < description->nplanes; ++plane) {
             quint64 nativeTexture = frame.textureHandle(plane);
-            Q_ASSERT(nativeTexture);
-            textures[plane] = rhi->newTexture(description->textureFormat[plane], planeSizes[plane], 1, {});
-            textures[plane]->createFrom({nativeTexture, 0});
+            if (!nativeTexture)
+                qWarning("Texture from QVideoFrame is 0, this cannot be right");
+            textures[plane] = rhi->newTexture(description->textureFormat[plane], planeSizes[plane], 1, textureFlags);
+            if (!textures[plane]->createFrom({nativeTexture, 0}))
+                qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu", nativeTexture);
         }
         return description->nplanes;
     }

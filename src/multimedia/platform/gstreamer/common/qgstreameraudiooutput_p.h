@@ -73,11 +73,7 @@ public:
     QGstreamerAudioOutput(QAudioOutput *parent);
     ~QGstreamerAudioOutput();
 
-    bool setAudioOutput(const QAudioDevice &);
-    QAudioDevice audioOutput() const;
-
-    void setAudioDevice(const QAudioDevice &) override
-    { setAudioOutput(device); }
+    void setAudioDevice(const QAudioDevice &) override;
     void setVolume(float volume) override;
     void setMuted(bool muted) override;
 
@@ -90,9 +86,6 @@ Q_SIGNALS:
     void volumeChanged(int);
 
 private:
-    void prepareAudioOutputChange(const QGstPad &pad);
-    bool changeAudioOutput();
-
     QAudioDevice m_audioOutput;
 
     // Gst elements

@@ -57,7 +57,6 @@ QAndroidCaptureSession::QAndroidCaptureSession()
     : QObject()
     , m_mediaRecorder(0)
     , m_cameraSession(0)
-    , m_audioSource(AndroidMediaRecorder::DefaultAudioSource)
     , m_duration(0)
     , m_state(QMediaRecorder::StoppedState)
     , m_outputFormat(AndroidMediaRecorder::DefaultOutputFormat)
@@ -102,26 +101,7 @@ void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSessi
 
 void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
-    if (m_audioInput == input)
-        return;
-
     m_audioInput = input;
-
-    QString id = input ? QString::fromLatin1(input->device.id()) : QString();
-    if (id == QLatin1String("default"))
-        m_audioSource = AndroidMediaRecorder::DefaultAudioSource;
-    else if (id == QLatin1String("mic"))
-        m_audioSource = AndroidMediaRecorder::Mic;
-    else if (id == QLatin1String("voice_uplink"))
-        m_audioSource = AndroidMediaRecorder::VoiceUplink;
-    else if (id == QLatin1String("voice_downlink"))
-        m_audioSource = AndroidMediaRecorder::VoiceDownlink;
-    else if (id == QLatin1String("voice_call"))
-        m_audioSource = AndroidMediaRecorder::VoiceCall;
-    else if (id == QLatin1String("voice_recognition"))
-        m_audioSource = AndroidMediaRecorder::VoiceRecognition;
-    else
-        m_audioSource = AndroidMediaRecorder::DefaultAudioSource;
 }
 
 QMediaRecorder::RecorderState QAndroidCaptureSession::state() const
@@ -138,6 +118,11 @@ void QAndroidCaptureSession::start(const QMediaEncoderSettings &, const QUrl &ou
         m_mediaRecorder->release();
         delete m_mediaRecorder;
         m_mediaRecorder = nullptr;
+    }
+
+    if (!m_cameraSession && !m_audioInput) {
+        Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("Audio Input device not set"));
+        return;
     }
 
     const bool granted = m_cameraSession
@@ -159,8 +144,11 @@ void QAndroidCaptureSession::start(const QMediaEncoderSettings &, const QUrl &ou
         m_mediaRecorder->setCamera(m_cameraSession->camera());
         m_mediaRecorder->setAudioSource(AndroidMediaRecorder::Camcorder);
         m_mediaRecorder->setVideoSource(AndroidMediaRecorder::Camera);
-    } else {
-        m_mediaRecorder->setAudioSource(m_audioSource);
+    }
+
+    if (m_audioInput) {
+        m_mediaRecorder->setAudioInput(m_audioInput->device.id());
+        m_mediaRecorder->setAudioSource(AndroidMediaRecorder::DefaultAudioSource);
     }
 
     // Set output format

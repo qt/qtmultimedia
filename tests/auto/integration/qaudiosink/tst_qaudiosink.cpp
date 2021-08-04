@@ -254,7 +254,7 @@ void tst_QAudioSink::format()
     QVERIFY2((requested.sampleRate() == actual.sampleRate()),
             QString("sampleRate: requested=%1, actual=%2").arg(requested.sampleRate()).arg(actual.sampleRate()).toUtf8().constData());
     QVERIFY2((requested.sampleFormat() == actual.sampleFormat()),
-            QString("sampleFormat: requested=%1, actual=%2").arg(requested.sampleFormat()).arg(actual.sampleFormat()).toUtf8().constData());
+            QString("sampleFormat: requested=%1, actual=%2").arg((ushort)requested.sampleFormat()).arg((ushort)actual.sampleFormat()).toUtf8().constData());
     QVERIFY(requested == actual);
 }
 

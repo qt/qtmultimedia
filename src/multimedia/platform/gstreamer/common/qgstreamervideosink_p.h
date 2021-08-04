@@ -82,16 +82,11 @@ public:
 
     void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
-    void setBrightness(float brightness) override;
-    void setContrast(float contrast) override;
-    void setHue(float hue) override;
-    void setSaturation(float saturation) override;
-
     QGstElement gstSink();
 
     bool isReady() const { return m_windowId != 0; }
 
-    void setPipeline(QGstPipeline pipeline) { gstPipeline = pipeline; }
+    void setPipeline(QGstPipeline pipeline);
 
 private:
     void createOverlay();

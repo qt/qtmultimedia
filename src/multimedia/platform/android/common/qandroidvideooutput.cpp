@@ -94,84 +94,39 @@ void OpenGLResourcesDeleter::deleteThisHelper()
     delete this;
 }
 
-class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
+QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QVideoFrame::MapMode mode)
 {
-public:
-    AndroidTextureVideoBuffer(QAndroidTextureVideoOutput *output, const QSize &size)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
-        , m_output(output)
-        , m_size(size)
-    {
+    MapData mapData;
+    if (!rhi && m_mapMode == QVideoFrame::NotMapped && mode == QVideoFrame::ReadOnly && updateFrame()) {
+        m_mapMode = mode;
+        m_image = m_output->m_fbo->toImage();
+
+        mapData.nPlanes = 1;
+        mapData.bytesPerLine[0] = m_image.bytesPerLine();
+        mapData.size[0] = static_cast<int>(m_image.sizeInBytes());
+        mapData.data[0] = m_image.bits();
     }
 
-    virtual ~AndroidTextureVideoBuffer() {}
+    return mapData;
+}
 
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
+quint64 AndroidTextureVideoBuffer::textureHandle(int plane) const
+{
+    if (plane != 0 || !rhi)
+        return 0;
 
-    MapData map(QVideoFrame::MapMode mode) override
-    {
-        MapData mapData;
-        if (m_mapMode == QVideoFrame::NotMapped && mode == QVideoFrame::ReadOnly && updateFrame()) {
-            m_mapMode = mode;
-            m_image = m_output->m_fbo->toImage();
-
-            mapData.nPlanes = 1;
-            mapData.bytesPerLine[0] = m_image.bytesPerLine();
-            mapData.size[0] = static_cast<int>(m_image.sizeInBytes());
-            mapData.data[0] = m_image.bits();
-        }
-
-        return mapData;
-    }
-
-    void unmap() override
-    {
-        m_image = QImage();
-        m_mapMode = QVideoFrame::NotMapped;
-    }
-
-    quint64 textureHandle(int plane) const override
-    {
-        qDebug() << "AndroidTextureVideoBuffer::textureHandle()";
-        if (plane != 0)
-            return 0;
-        AndroidTextureVideoBuffer *that = const_cast<AndroidTextureVideoBuffer*>(this);
-        if (!that->updateFrame())
-            return 0;
-
-        return m_output->m_fbo->texture();
-    }
-
-private:
-    bool updateFrame()
-    {
-        // Even though the texture was updated in a previous call, we need to re-check
-        // that this has not become a stale buffer, e.g., if the output size changed or
-        // has since became invalid.
-        if (!m_output->m_nativeSize.isValid())
-            return false;
-
-        // Size changed
-        if (m_output->m_nativeSize != m_size)
-            return false;
-
-        // In the unlikely event that we don't have a valid fbo, but have a valid size,
-        // force an update.
-        const bool forceUpdate = !m_output->m_fbo;
-
-        if (m_textureUpdated && !forceUpdate)
-            return true;
-
-        // update the video texture (called from the render thread)
-        return (m_textureUpdated = m_output->renderFrameToFbo());
-    }
-
-    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
-    QAndroidTextureVideoOutput *m_output = nullptr;
-    QImage m_image;
-    QSize m_size;
-    bool m_textureUpdated = false;
-};
+    m_output->ensureCommonGLResources();
+    m_output->m_surfaceTexture->updateTexImage();
+    m_externalMatrix = m_output->m_surfaceTexture->getTransformMatrix();
+    // flip it back, see http://androidxref.com/9.0.0_r3/xref/frameworks/native/libs/gui/GLConsumer.cpp#866
+    // (NB our matrix ctor takes row major)
+    static const QMatrix4x4 flipV(1.0f,  0.0f, 0.0f, 0.0f,
+                                  0.0f, -1.0f, 0.0f, 1.0f,
+                                  0.0f,  0.0f, 1.0f, 0.0f,
+                                  0.0f,  0.0f, 0.0f, 1.0f);
+    m_externalMatrix *= flipV;
+    return m_output->m_externalTex;
+}
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
     : QAndroidVideoOutput(parent)
@@ -284,8 +239,19 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
     if (!m_nativeSize.isValid() || !m_sink)
         return;
 
-    QAbstractVideoBuffer *buffer = new AndroidTextureVideoBuffer(this, m_nativeSize);
-    QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, QVideoFrameFormat::Format_ARGB32_Premultiplied));
+    QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::Format_ARGB32_Premultiplied;
+#ifdef QANDROIDVIDEOUTPUT_NO_DIRECT_TEXTURE_USAGE
+    QRhi *rhi = nullptr;
+#else
+    QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
+#endif
+    if (rhi && rhi->backend() != QRhi::OpenGLES2)
+        rhi = nullptr;
+    if (rhi)
+        format = QVideoFrameFormat::Format_SamplerExternalOES;
+
+    auto *buffer = new AndroidTextureVideoBuffer(rhi, this, m_nativeSize);
+    QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, format));
 
     m_sink->newVideoFrame(frame);
 }
@@ -329,7 +295,7 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
 
     m_glContext->makeCurrent(m_offscreenSurface);
 
-    createGLResources();
+    ensureFboGLResources();
 
     m_surfaceTexture->updateTexImage();
 
@@ -386,9 +352,9 @@ bool QAndroidTextureVideoOutput::renderFrameToFbo()
     return true;
 }
 
-void QAndroidTextureVideoOutput::createGLResources()
+void QAndroidTextureVideoOutput::ensureCommonGLResources()
 {
-    Q_ASSERT(QOpenGLContext::currentContext() != NULL);
+    Q_ASSERT(QOpenGLContext::currentContext());
 
     if (!m_glDeleter)
         m_glDeleter = new OpenGLResourcesDeleter;
@@ -398,6 +364,11 @@ void QAndroidTextureVideoOutput::createGLResources()
         glGenTextures(1, &m_externalTex);
         m_surfaceTexture->attachToGLContext(m_externalTex);
     }
+}
+
+void QAndroidTextureVideoOutput::ensureFboGLResources()
+{
+    ensureCommonGLResources();
 
     if (!m_fbo || m_fbo->size() != m_nativeSize) {
         delete m_fbo;

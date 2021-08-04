@@ -57,12 +57,13 @@ bool QAndroidMediaEncoder::isLocationWritable(const QUrl &location) const
 
 QMediaRecorder::RecorderState QAndroidMediaEncoder::state() const
 {
-    return m_session->state();
+    return m_session ? m_session->state() : QMediaRecorder::StoppedState;
 }
 
 qint64 QAndroidMediaEncoder::duration() const
 {
-    return m_session->duration();
+    return m_session ? m_session->duration() : 0;
+
 }
 
 void QAndroidMediaEncoder::applySettings(const QMediaEncoderSettings &settings)

@@ -669,8 +669,13 @@ bool AVFCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
         return true;
     if (mode != QCamera::ExposureManual)
         return false;
-    AVCaptureDevice *captureDevice = device();
-    return captureDevice && [captureDevice isExposureModeSupported:AVCaptureExposureModeCustom];
+
+    if (@available(macOS 10.15, *)) {
+        AVCaptureDevice *captureDevice = device();
+        return captureDevice && [captureDevice isExposureModeSupported:AVCaptureExposureModeCustom];
+    }
+
+    return false;
 }
 
 void AVFCamera::applyFlashSettings()

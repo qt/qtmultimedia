@@ -33,6 +33,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qlocale.h>
 #include <QDebug>
+#include <QVideoSink>
 
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformimagecapture_p.h>
@@ -174,10 +175,6 @@ void tst_QCameraBackend::testCameraStates()
 
     QCOMPARE(camera.isActive(), false);
 
-    // Camera should not startup with a null QCameraDevice as device
-    camera.start();
-    QCOMPARE(camera.isActive(), false);
-
     if (noCamera)
         QSKIP("No camera available");
     camera.setCameraDevice(QMediaDevices::defaultVideoInput());
@@ -247,6 +244,8 @@ void tst_QCameraBackend::testCameraCapture()
     if (noCamera)
         QSKIP("No camera available");
 
+    QVideoSink sink;
+    session.setVideoOutput(&sink);
     camera.start();
 
     QTRY_VERIFY(imageCapture.isReadyForCapture());

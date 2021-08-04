@@ -56,15 +56,17 @@
 #include <QtCore/qsharedpointer.h>
 #include <QtQuick/qquickitem.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qmutex.h>
 
 #include <private/qtmultimediaquickglobal_p.h>
+#include <qvideoframe.h>
+#include <qvideoframeformat.h>
 
 QT_BEGIN_NAMESPACE
 
 class QQuickVideoBackend;
 class QVideoOutputOrientationHandler;
 class QVideoSink;
-class QVideoFrame;
 
 class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
 {
@@ -134,28 +136,70 @@ protected:
     void geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry) override;
     void releaseResources() override;
 
+private:
+    QSize nativeSize() const;
+    void updateGeometry();
+    QRectF adjustedViewport() const;
+
+    friend class QSGVideoItemSurface;
+    void present(const QVideoFrame &frame);
+    void stop();
+
+    void invalidateSceneGraph();
+
+    void initRhiForSink();
+
 private Q_SLOTS:
     void _q_newFrame(const QVideoFrame &);
     void _q_updateGeometry();
     void _q_screenOrientationChanged(int);
     void _q_invalidateSceneGraph();
+    void _q_sceneGraphInitialized();
 
 private:
-    bool createBackend();
-
     QSize m_nativeSize;
 
-    bool m_geometryDirty;
+    bool m_geometryDirty = true;
     QRectF m_lastRect;      // Cache of last rect to avoid recalculating geometry
     QRectF m_contentRect;   // Destination pixel coordinates, unclipped
-    int m_orientation;
-    bool m_autoOrientation;
-    QVideoOutputOrientationHandler *m_screenOrientationHandler;
+    int m_orientation = 0;
+    bool m_autoOrientation = false;
+    QVideoOutputOrientationHandler *m_screenOrientationHandler = nullptr;
 
-    QScopedPointer<QQuickVideoBackend> m_backend;
+    QPointer<QQuickWindow> m_window;
+    QVideoSink *m_sink = nullptr;
+    QVideoFrameFormat m_surfaceFormat;
+
+    QVideoFrame m_frame;
+    QVideoFrame m_frameOnFlush;
+    bool m_frameChanged = false;
+    QMutex m_frameMutex;
+    QRectF m_renderedRect;         // Destination pixel coordinates, clipped
+    QRectF m_sourceTextureRect;    // Source texture coordinates
 
     FlushMode m_flushMode = EmptyFrame;
 };
+
+namespace {
+
+inline bool qIsDefaultAspect(int o)
+{
+    return (o % 180) == 0;
+}
+
+/*
+ * Return the orientation normalized to 0-359
+ */
+inline int qNormalizedOrientation(int o)
+{
+    // Negative orientations give negative results
+    int o2 = o % 360;
+    if (o2 < 0)
+        o2 += 360;
+    return o2;
+}
+
+}
 
 QT_END_NAMESPACE
 

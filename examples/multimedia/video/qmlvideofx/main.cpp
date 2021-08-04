@@ -69,14 +69,6 @@ int main(int argc, char *argv[])
     PerformanceMonitor::qmlRegisterTypes();
 #endif
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
-    auto permission = QPermission::WriteStorage;
-    if (QCoreApplication::requestPermission(permission).result() != QPermission::Authorized) {
-        qWarning() << "Couldn't get 'WriteStorage' permission!";
-        return -1;
-    }
-#endif
-
     QUrl fileName;
     qreal volume = 0.5;
     QStringList args = app.arguments();

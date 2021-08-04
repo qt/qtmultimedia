@@ -61,6 +61,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerSinkProperties;
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
         : public QObject
+        , public QGstreamerSyncMessageFilter
         , private QGstreamerBufferProbe
 {
     Q_OBJECT
@@ -75,13 +76,12 @@ public:
     void setWindowHandle(WId id);
     void setRenderRectangle(const QRect &rect);
 
-    Qt::AspectRatioMode aspectRatioMode() const;
     void setAspectRatioMode(Qt::AspectRatioMode mode);
+    void setFullScreen(bool fullscreen);
 
-    void setBrightness(float brightness);
-    void setContrast(float contrast);
-    void setHue(float hue);
-    void setSaturation(float saturation);
+    bool processSyncMessage(const QGstreamerMessage &message) override;
+
+    bool isNull() const { return m_videoSink.isNull(); }
 
 Q_SIGNALS:
     void nativeVideoSizeChanged();
@@ -94,7 +94,11 @@ private:
     QGstElement m_videoSink;
     QSize m_nativeVideoSize;
 
-    QGstreamerSinkProperties *m_sinkProperties = nullptr;
+    bool m_hasForceAspectRatio = false;
+    bool m_hasFullscreen = false;
+    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
+    bool m_fullScreen = false;
+
     WId m_windowId = 0;
     QRect renderRect;
 };

@@ -54,6 +54,7 @@
 #include "private/qandroidmediaplayer_p.h"
 #include "private/qandroidaudiooutput_p.h"
 #include "private/qandroidvideosink_p.h"
+#include "private/qandroidaudiodecoder_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -75,6 +76,11 @@ QPlatformMediaDevices *QAndroidIntegration::devices()
     if (!m_devices)
         m_devices = new QAndroidMediaDevices();
     return m_devices;
+}
+
+QPlatformAudioDecoder *QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
+{
+    return new QAndroidAudioDecoder(decoder);
 }
 
 QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()

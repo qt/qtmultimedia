@@ -86,8 +86,6 @@ void tst_QVideoWidget::nullObject()
 {
     QtTestVideoWidget widget;
 
-    QVERIFY(widget.sizeHint().isEmpty());
-
     widget.show();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
 

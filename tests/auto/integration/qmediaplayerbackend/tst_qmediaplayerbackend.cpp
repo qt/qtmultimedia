@@ -77,6 +77,9 @@ private slots:
     void metadata();
     void playerStateAtEOS();
     void playFromBuffer();
+    void audioVideoAvailable();
+    void isSeekable();
+    void positionAfterSeek();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -1083,6 +1086,64 @@ void tst_QMediaPlayerBackend::playFromBuffer()
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
     QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
+}
+
+void tst_QMediaPlayerBackend::audioVideoAvailable()
+{
+    if (localVideoFile.isEmpty())
+        QSKIP("No supported video file");
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+    QSignalSpy hasVideoSpy(&player, SIGNAL(hasVideoChanged(bool)));
+    QSignalSpy hasAudioSpy(&player, SIGNAL(hasAudioChanged(bool)));
+    player.setVideoOutput(&surface);
+    player.setSource(localVideoFile);
+    QTRY_VERIFY(player.hasVideo());
+    QTRY_VERIFY(player.hasAudio());
+    QCOMPARE(hasVideoSpy.count(), 1);
+    QCOMPARE(hasAudioSpy.count(), 1);
+    player.setSource(QUrl());
+    QTRY_VERIFY(!player.hasVideo());
+    QTRY_VERIFY(!player.hasAudio());
+    QCOMPARE(hasVideoSpy.count(), 2);
+    QCOMPARE(hasAudioSpy.count(), 2);
+}
+
+void tst_QMediaPlayerBackend::isSeekable()
+{
+    if (localVideoFile.isEmpty())
+        QSKIP("No supported video file");
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    QVERIFY(!player.isSeekable());
+    player.setSource(localVideoFile);
+    QTRY_VERIFY(player.isSeekable());
+}
+
+void tst_QMediaPlayerBackend::positionAfterSeek()
+{
+    if (localVideoFile.isEmpty())
+        QSKIP("No supported video file");
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    QVERIFY(!player.isSeekable());
+    player.setSource(localVideoFile);
+    player.pause();
+    player.setPosition(500);
+    QTRY_VERIFY(player.position() == 500);
+    player.setPosition(700);
+    QVERIFY(player.position() != 0);
+    QTRY_VERIFY(player.position() == 700);
+    player.play();
+    QTRY_VERIFY(player.position() > 700);
+    player.setPosition(200);
+    QVERIFY(player.position() != 0);
+    QTRY_VERIFY(player.position() < 700);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

@@ -60,7 +60,7 @@ Row {
 
     Camera {
         id: camera
-        active: available
+        active: available && selected != null
     }
 
     MediaDevices { id: mediaDevices }

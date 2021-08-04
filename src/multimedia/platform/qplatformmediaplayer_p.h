@@ -77,8 +77,8 @@ public:
 
     virtual float bufferProgress() const = 0;
 
-    virtual bool isAudioAvailable() const = 0;
-    virtual bool isVideoAvailable() const = 0;
+    virtual bool isAudioAvailable() const { return m_audioAvailable; }
+    virtual bool isVideoAvailable() const { return m_videoAvailable; }
 
     virtual bool isSeekable() const { return m_seekable; }
 
@@ -113,8 +113,18 @@ public:
 
     void durationChanged(qint64 duration) { player->durationChanged(duration); }
     void positionChanged(qint64 position) { player->positionChanged(position); }
-    void audioAvailableChanged(bool audioAvailable) { player->hasAudioChanged(audioAvailable); }
-    void videoAvailableChanged(bool videoAvailable) { player->hasVideoChanged(videoAvailable); }
+    void audioAvailableChanged(bool audioAvailable) {
+        if (m_audioAvailable == audioAvailable)
+            return;
+        m_audioAvailable = audioAvailable;
+        player->hasAudioChanged(audioAvailable);
+    }
+    void videoAvailableChanged(bool videoAvailable) {
+        if (m_videoAvailable == videoAvailable)
+            return;
+        m_videoAvailable = videoAvailable;
+        player->hasVideoChanged(videoAvailable);
+    }
     void seekableChanged(bool seekable) {
         if (m_seekable == seekable)
             return;
@@ -139,7 +149,9 @@ private:
     QMediaPlayer *player = nullptr;
     QMediaPlayer::MediaStatus m_status = QMediaPlayer::NoMedia;
     QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
-    bool m_seekable = true;
+    bool m_seekable = false;
+    bool m_videoAvailable = false;
+    bool m_audioAvailable = false;
 };
 
 QT_END_NAMESPACE

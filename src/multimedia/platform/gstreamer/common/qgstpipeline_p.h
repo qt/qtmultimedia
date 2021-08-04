@@ -102,6 +102,9 @@ public:
 
     void dumpGraph(const char *fileName)
     {
+        if (isNull())
+            return;
+
 #if 1 //def QT_GST_CAPTURE_DEBUG
         GST_DEBUG_BIN_TO_DOT_FILE(bin(),
                                   GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL |
@@ -112,6 +115,19 @@ public:
 #endif
     }
 
+    void beginConfig();
+    void endConfig();
+
+    void flush();
+
+    bool seek(qint64 pos, double rate);
+    bool setPlaybackRate(double rate);
+    double playbackRate() const;
+
+    bool setPosition(qint64 pos);
+    qint64 position() const;
+
+    qint64 duration() const;
 };
 
 QT_END_NAMESPACE

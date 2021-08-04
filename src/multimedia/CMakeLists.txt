@@ -302,6 +302,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/audio/qandroidaudiodevice.cpp platform/android/audio/qandroidaudiodevice_p.h
         platform/android/audio/qopenslesengine.cpp platform/android/audio/qopenslesengine_p.h
         platform/android/common/qandroidaudiooutput_p.h
+        platform/android/audio/qandroidaudiodecoder.cpp platform/android/audio/qandroidaudiodecoder_p.h
         platform/android/common/qandroidglobal_p.h
         platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
         platform/android/common/qandroidvideosink.cpp platform/android/common/qandroidvideosink_p.h
@@ -333,6 +334,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         Qt::CorePrivate
     PUBLIC_LIBRARIES
         OpenSLES
+        mediandk
         Qt::Core
         Qt::Network
         Qt::OpenGL
@@ -479,6 +481,8 @@ qt_internal_add_shaders(Multimedia "shaders"
         "/qt-project.org/multimedia/shaders"
     FILES
         "shaders/vertex.vert"
+        "shaders/externalsampler.vert"
+        "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag"
         "shaders/abgr.frag"
         "shaders/argb.frag"
         "shaders/bgra.frag"

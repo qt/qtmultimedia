@@ -175,6 +175,11 @@ void MFPlayerControl::handleStatusChanged()
     refreshState();
 }
 
+void MFPlayerControl::handleTracksChanged()
+{
+    tracksChanged();
+}
+
 void MFPlayerControl::handleVideoAvailable()
 {
     if (m_videoAvailable)
@@ -300,3 +305,24 @@ void MFPlayerControl::handleError(QMediaPlayer::Error errorCode, const QString& 
         stop();
     emit error(int(errorCode), errorString);
 }
+
+void MFPlayerControl::setActiveTrack(TrackType type, int index)
+{
+    m_session->setActiveTrack(type, index);
+}
+
+int MFPlayerControl::activeTrack(TrackType type)
+{
+    return m_session->activeTrack(type);
+}
+
+int MFPlayerControl::trackCount(TrackType type)
+{
+    return m_session->trackCount(type);
+}
+
+QMediaMetaData MFPlayerControl::trackMetaData(TrackType type, int trackNumber)
+{
+    return m_session->trackMetaData(type, trackNumber);
+}
+

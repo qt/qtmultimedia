@@ -54,8 +54,15 @@
 #include <qobject.h>
 #include <qsize.h>
 #include <qmutex.h>
+#include <private/qabstractvideobuffer_p.h>
+#include <qmatrix4x4.h>
 
 QT_BEGIN_NAMESPACE
+
+// Enable this to prevent using the external texture directly (bound as
+// GL_TEXTURE_EXTERNAL_OES), but rather do a readback on every frame and
+// upload the QImage data into a plain 2D texture.
+//#define QANDROIDVIDEOUTPUT_NO_DIRECT_TEXTURE_USAGE
 
 class AndroidSurfaceTexture;
 class AndroidSurfaceHolder;
@@ -64,6 +71,7 @@ class QOpenGLShaderProgram;
 class QWindow;
 class QOpenGLContext;
 class QVideoSink;
+class QRhi;
 
 class QAndroidVideoOutput : public QObject
 {
@@ -126,7 +134,8 @@ private Q_SLOTS:
 private:
     void initSurfaceTexture();
     bool renderFrameToFbo();
-    void createGLResources();
+    void ensureCommonGLResources();
+    void ensureFboGLResources();
 
     QMutex m_mutex;
     void clearSurfaceTexture();
@@ -145,6 +154,68 @@ private:
     QOpenGLContext *m_glContext = nullptr;
 
     friend class AndroidTextureVideoBuffer;
+};
+
+
+class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
+{
+public:
+    AndroidTextureVideoBuffer(QRhi *rhi, QAndroidTextureVideoOutput *output, const QSize &size)
+        : QAbstractVideoBuffer(rhi ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, rhi)
+        , m_output(output)
+        , m_size(size)
+    {
+    }
+
+    virtual ~AndroidTextureVideoBuffer() {}
+
+    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
+
+    MapData map(QVideoFrame::MapMode mode) override;
+
+    void unmap() override
+    {
+        m_image = QImage();
+        m_mapMode = QVideoFrame::NotMapped;
+    }
+
+    quint64 textureHandle(int plane) const override;
+
+    QMatrix4x4 externalTextureMatrix() const
+    {
+        return m_externalMatrix;
+    }
+
+private:
+    bool updateFrame()
+    {
+        // Even though the texture was updated in a previous call, we need to re-check
+        // that this has not become a stale buffer, e.g., if the output size changed or
+        // has since became invalid.
+        if (!m_output->m_nativeSize.isValid())
+            return false;
+
+        // Size changed
+        if (m_output->m_nativeSize != m_size)
+            return false;
+
+        // In the unlikely event that we don't have a valid fbo, but have a valid size,
+        // force an update.
+        const bool forceUpdate = !m_output->m_fbo;
+
+        if (m_textureUpdated && !forceUpdate)
+            return true;
+
+        // update the video texture (called from the render thread)
+        return (m_textureUpdated = m_output->renderFrameToFbo());
+    }
+
+    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
+    QAndroidTextureVideoOutput *m_output = nullptr;
+    QImage m_image;
+    QSize m_size;
+    mutable QMatrix4x4 m_externalMatrix;
+    bool m_textureUpdated = false;
 };
 
 QT_END_NAMESPACE

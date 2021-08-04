@@ -52,6 +52,7 @@ QT_BEGIN_NAMESPACE
 
 QAndroidMediaCaptureSession::QAndroidMediaCaptureSession()
     : m_captureSession(new QAndroidCaptureSession())
+    , m_cameraSession(new QAndroidCameraSession())
 {
 }
 
@@ -71,15 +72,10 @@ QPlatformCamera *QAndroidMediaCaptureSession::camera()
 
 void QAndroidMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
-        if (!m_cameraSession) {
-            if (camera) {
-                m_cameraSession = new QAndroidCameraSession;
-                m_captureSession->setCameraSession(m_cameraSession);
-            }
-        } else if (!camera){
+        if (camera) {
+            m_captureSession->setCameraSession(m_cameraSession);
+        } else {
             m_captureSession->setCameraSession(nullptr);
-            delete m_cameraSession;
-            m_cameraSession = nullptr;
         }
 
         QAndroidCamera *control = static_cast<QAndroidCamera *>(camera);

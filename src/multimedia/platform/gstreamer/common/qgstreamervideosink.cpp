@@ -52,7 +52,18 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
     sinkBin = QGstBin("videoSinkBin");
-    gstPreprocess = QGstElement("identity");
+    // This is a hack for some iMX platforms. Thos require the use of a special video
+    // conversion element in the pipeline before the video sink, as they unfortunately
+    // output some proprietary format from the decoder even though it's marked as
+    // a regular supported video/x-raw format.
+    //
+    // To fix this, simply insert the element into the pipeline if it's available. Otherwise
+    // we simply use an identity element.
+    auto imxVideoConvert = QGstElement("imxvideoconvert_g2d");
+    if (!imxVideoConvert.isNull())
+        gstPreprocess = imxVideoConvert;
+    else
+        gstPreprocess = QGstElement("identity");
     sinkBin.add(gstPreprocess);
     sinkBin.addGhostPad(gstPreprocess, "sink");
     createOverlay();
@@ -61,6 +72,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
 
 QGstreamerVideoSink::~QGstreamerVideoSink()
 {
+    setPipeline(QGstPipeline());
     delete m_videoOverlay;
     delete m_videoRenderer;
 }
@@ -69,6 +81,17 @@ QGstElement QGstreamerVideoSink::gstSink()
 {
     updateSinkElement();
     return sinkBin;
+}
+
+void QGstreamerVideoSink::setPipeline(QGstPipeline pipeline)
+{
+    if (pipeline != gstPipeline) {
+        if (!gstPipeline.isNull())
+            gstPipeline.removeMessageFilter(m_videoOverlay);
+    }
+    gstPipeline = pipeline;
+    if (!gstPipeline.isNull())
+        gstPipeline.installMessageFilter(m_videoOverlay);
 }
 
 void QGstreamerVideoSink::setWinId(WId id)
@@ -100,26 +123,6 @@ void QGstreamerVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
     m_videoOverlay->setAspectRatioMode(mode);
 }
 
-void QGstreamerVideoSink::setBrightness(float brightness)
-{
-    m_videoOverlay->setBrightness(brightness);
-}
-
-void QGstreamerVideoSink::setContrast(float contrast)
-{
-    m_videoOverlay->setContrast(contrast);
-}
-
-void QGstreamerVideoSink::setHue(float hue)
-{
-    m_videoOverlay->setHue(hue);
-}
-
-void QGstreamerVideoSink::setSaturation(float saturation)
-{
-    m_videoOverlay->setSaturation(saturation);
-}
-
 void QGstreamerVideoSink::setFullScreen(bool fullScreen)
 {
     if (fullScreen == m_fullScreen)
@@ -127,6 +130,7 @@ void QGstreamerVideoSink::setFullScreen(bool fullScreen)
     m_fullScreen = fullScreen;
     if (!m_windowId)
         updateSinkElement();
+    m_videoOverlay->setFullScreen(fullScreen);
 }
 
 QSize QGstreamerVideoSink::nativeSize() const
@@ -150,23 +154,27 @@ void QGstreamerVideoSink::createRenderer()
 
 void QGstreamerVideoSink::updateSinkElement()
 {
-    auto state = gstPipeline.isNull() ? GST_STATE_NULL : gstPipeline.state();
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setStateSync(GST_STATE_PAUSED);
+    QGstElement newSink;
+    if (!m_videoOverlay->isNull() && (m_fullScreen || m_windowId)) {
+        newSink = m_videoOverlay->videoSink();
+    } else {
+        newSink = m_videoRenderer->gstVideoSink();
+    }
+
+    if (newSink == gstVideoSink)
+        return;
+
+    gstPipeline.beginConfig();
 
     if (!gstVideoSink.isNull()) {
         gstVideoSink.setStateSync(GST_STATE_NULL);
         sinkBin.remove(gstVideoSink);
     }
-    if (m_fullScreen || m_windowId)
-        gstVideoSink = m_videoOverlay->videoSink();
-    else
-        gstVideoSink = m_videoRenderer->gstVideoSink();
 
+    gstVideoSink = newSink;
     sinkBin.add(gstVideoSink);
     gstPreprocess.link(gstVideoSink);
     gstVideoSink.setState(GST_STATE_PAUSED);
 
-    if (state == GST_STATE_PLAYING)
-        gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.endConfig();
 }

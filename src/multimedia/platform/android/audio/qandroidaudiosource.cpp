@@ -41,6 +41,7 @@
 
 #include "qopenslesengine_p.h"
 #include <private/qaudiohelpers_p.h>
+#include <QtCore/private/qandroidextras_p.h>
 #include <qbuffer.h>
 #include <qdebug.h>
 
@@ -61,12 +62,12 @@ static bool hasRecordingPermission()
     if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return true;
 
-    const QPermission::PermissionType key(QPermission::Microphone);
+    const QtAndroidPrivate::PermissionType key(QtAndroidPrivate::Microphone);
     // Permission already granted?
-    if (QCoreApplication::checkPermission(key).result() == QPermission::Authorized)
+    if (QtAndroidPrivate::checkPermission(key).result() == QtAndroidPrivate::Authorized)
         return true;
 
-    if (QCoreApplication::requestPermission(key).result() != QPermission::Authorized) {
+    if (QtAndroidPrivate::requestPermission(key).result() != QtAndroidPrivate::Authorized) {
         qDebug("Microphone permission denied by user!");
         return false;
     }
