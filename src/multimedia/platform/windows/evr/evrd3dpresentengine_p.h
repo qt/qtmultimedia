@@ -63,7 +63,10 @@ struct IDirect3DSurface9;
 struct IDirect3DTexture9;
 struct IMFSample;
 struct IMFMediaType;
+
+QT_BEGIN_NAMESPACE
 class QVideoFrame;
+QT_END_NAMESPACE
 
 // Randomly generated GUIDs
 static const GUID MFSamplePresenter_SampleCounter =

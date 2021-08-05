@@ -128,8 +128,6 @@ DECLARE_INTERFACE_(IPropertyBag, IUnknown)
 
 #endif // defined(Q_CC_MINGW) && !defined(__MINGW64_VERSION_MAJOR)
 
-QT_BEGIN_NAMESPACE
-
 // For mingw toolchain mmsystem.h only defines half the defines, so add if needed.
 #ifndef WAVE_FORMAT_44M08
 #define WAVE_FORMAT_44M08 0x00000100

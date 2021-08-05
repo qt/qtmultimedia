@@ -58,11 +58,12 @@
 #include <qaudiodevice.h>
 #include <windows.h>
 
+struct IMMDeviceEnumerator;
+
 QT_BEGIN_NAMESPACE
 
 class QWindowsEngine;
 class CMMNotificationClient;
-struct IMMDeviceEnumerator;
 
 LRESULT deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 

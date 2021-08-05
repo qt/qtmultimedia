@@ -58,7 +58,10 @@
 QT_USE_NAMESPACE
 
 class EVRCustomPresenterActivate;
+
+QT_BEGIN_NAMESPACE
 class QVideoSink;
+QT_END_NAMESPACE
 
 class MFVideoRendererControl : public QObject
 {
