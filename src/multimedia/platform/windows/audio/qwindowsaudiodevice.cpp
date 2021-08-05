@@ -56,6 +56,7 @@
 #include "qwindowsaudiodevice_p.h"
 #include "qwindowsaudioutils_p.h"
 
+QT_BEGIN_NAMESPACE
 
 QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(dev, mode),
