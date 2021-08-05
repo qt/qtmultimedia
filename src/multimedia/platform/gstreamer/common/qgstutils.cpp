@@ -57,8 +57,7 @@
 #include <gst/audio/audio.h>
 #include <gst/video/video.h>
 
-template<typename T, int N> static int lengthOf(const T (&)[N]) { return N; }
-
+template<typename T, int N> constexpr int lengthOf(const T (&)[N]) { return N; }
 
 QT_BEGIN_NAMESPACE
 
@@ -224,8 +223,7 @@ static int indexOfVideoFormat(GstVideoFormat format)
 
 }
 
-QVideoFrameFormat QGstUtils::formatForCaps(
-        GstCaps *caps, GstVideoInfo *info)
+QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
 {
     GstVideoInfo vidInfo;
     GstVideoInfo *infoPtr = info ? info : &vidInfo;

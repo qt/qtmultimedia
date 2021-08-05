@@ -59,6 +59,7 @@
 #include <QtMultimedia/qvideoframe.h>
 
 #include <gst/gst.h>
+#include <gst/video/video-info.h>
 
 #if QT_CONFIG(gstreamer_photography)
 #define GST_USE_UNSTABLE_API
@@ -199,6 +200,12 @@ public:
 class QGstCaps {
     const GstCaps *caps = nullptr;
 public:
+    enum MemoryFormat {
+        CpuMemory,
+        GLTexture,
+        DMABuf
+    };
+
     QGstCaps() = default;
     QGstCaps(const GstCaps *c) : caps(c) {}
 
@@ -214,58 +221,62 @@ public:
         g_free(c);
         return b;
     }
+    MemoryFormat memoryFormat() const {
+        auto *features = gst_caps_get_features(caps, 0);
+        if (gst_caps_features_contains(features, "memory:GLMemory"))
+            return GLTexture;
+        else if (gst_caps_features_contains(features, "memory:DMABuf"))
+            return DMABuf;
+        return CpuMemory;
+    }
+    QVideoFrameFormat formatForCaps(GstVideoInfo *info) const;
 };
 
-class QGstMutableCaps {
+class QGstMutableCaps : public QGstCaps {
     GstCaps *caps = nullptr;
 public:
     enum RefMode { HasRef, NeedsRef };
     QGstMutableCaps() = default;
     QGstMutableCaps(GstCaps *c, RefMode mode = HasRef)
-        : caps(c)
+        : QGstCaps(c), caps(c)
     {
+        Q_ASSERT(QGstCaps::get() == caps);
         if (mode == NeedsRef)
             gst_caps_ref(caps);
     }
     QGstMutableCaps(const QGstMutableCaps &other)
-        : caps(other.caps)
+        : QGstCaps(other), caps(other.caps)
     {
+        Q_ASSERT(QGstCaps::get() == caps);
         if (caps)
             gst_caps_ref(caps);
     }
     QGstMutableCaps &operator=(const QGstMutableCaps &other)
     {
+        QGstCaps::operator=(other);
         if (other.caps)
             gst_caps_ref(other.caps);
         if (caps)
             gst_caps_unref(caps);
         caps = other.caps;
+        Q_ASSERT(QGstCaps::get() == caps);
         return *this;
     }
     ~QGstMutableCaps() {
+        Q_ASSERT(QGstCaps::get() == caps);
         if (caps)
             gst_caps_unref(caps);
     }
 
     void create() {
         caps = gst_caps_new_empty();
+        QGstCaps::operator=(QGstCaps(caps));
     }
 
     void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier = nullptr);
     static QGstMutableCaps fromCameraFormat(const QCameraFormat &format);
 
-    bool isNull() const { return !caps; }
-
-    int size() const { return gst_caps_get_size(caps); }
-    QGstStructure at(int index) { return gst_caps_get_structure(caps, index); }
     GstCaps *get() const { return caps; }
-    QByteArray toString() const
-    {
-        gchar *c = gst_caps_to_string(caps);
-        QByteArray b(c);
-        g_free(c);
-        return b;
-    }
 };
 
 class QGstObject

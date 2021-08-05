@@ -120,7 +120,7 @@ private:
     QVideoFrameFormat m_format;
     GstVideoInfo m_videoInfo;
     bool m_flushed = true;
-    QGstVideoBuffer::BufferFormat bufferFormat = QGstVideoBuffer::Memory;
+    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
 };
 
 class Q_MULTIMEDIA_EXPORT QGstVideoRendererSink

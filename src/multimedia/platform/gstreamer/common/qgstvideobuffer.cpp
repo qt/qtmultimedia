@@ -55,9 +55,9 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, BufferFormat format)
+QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, QGstCaps::MemoryFormat format)
     : QAbstractVideoBuffer(rhi ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, rhi)
-    , bufferFormat(format)
+    , memoryFormat(format)
     , m_videoInfo(info)
     , m_buffer(buffer)
 {
@@ -125,7 +125,7 @@ void QGstVideoBuffer::unmap()
 void QGstVideoBuffer::mapTextures()
 {
 #if QT_CONFIG(gstreamer_gl)
-    if (bufferFormat == GLTexture) {
+    if (memoryFormat == QGstCaps::GLTexture) {
         auto *mem = GST_GL_BASE_MEMORY_CAST(gst_buffer_peek_memory(m_buffer, 0));
         Q_ASSERT(mem);
         if (!gst_video_frame_map(&m_frame, &m_videoInfo, m_buffer, GstMapFlags(GST_MAP_READ|GST_MAP_GL))) {

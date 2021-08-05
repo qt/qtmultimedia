@@ -55,7 +55,7 @@
 #include <private/qabstractvideobuffer_p.h>
 #include <QtCore/qvariant.h>
 
-#include <gst/gst.h>
+#include <private/qgst_p.h>
 #include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
@@ -63,15 +63,10 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIA_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    enum BufferFormat {
-        Memory,
-        GLTexture,
-        DMABuf
-    };
 
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, BufferFormat format);
+    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, QGstCaps::MemoryFormat format);
     QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info)
-        : QGstVideoBuffer(buffer, info, nullptr, Memory)
+        : QGstVideoBuffer(buffer, info, nullptr, QGstCaps::CpuMemory)
     {}
     ~QGstVideoBuffer();
 
@@ -84,7 +79,7 @@ public:
     void mapTextures() override;
     quint64 textureHandle(int plane) const override;
 private:
-    BufferFormat bufferFormat = Memory;
+    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
     mutable GstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame;
     GstBuffer *m_buffer = nullptr;

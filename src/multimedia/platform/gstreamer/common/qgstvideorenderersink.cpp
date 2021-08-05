@@ -303,16 +303,8 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             locker->unlock();
 
             m_flushed = true;
-            m_format = QGstUtils::formatForCaps(startCaps.get(), &m_videoInfo);
-
-            auto *features = gst_caps_get_features(startCaps.get(), 0);
-#if QT_CONFIG(gstreamer_gl)
-            if (gst_caps_features_contains(features, GST_CAPS_FEATURE_MEMORY_GL_MEMORY))
-                bufferFormat = QGstVideoBuffer::GLTexture;
-            else
-#endif
-            if (gst_caps_features_contains(features, "memory:DMABuf"))
-                bufferFormat = QGstVideoBuffer::DMABuf;
+            m_format = startCaps.formatForCaps(&m_videoInfo);
+            memoryFormat = startCaps.memoryFormat();
 
             locker->relock();
             m_active = m_format.isValid();
@@ -334,9 +326,8 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             m_flushed = false;
 
             auto *rhi = m_sink->rhi();
-            if (bufferFormat == QGstVideoBuffer::Memory)
+            if (memoryFormat == QGstCaps::CpuMemory)
                 rhi = nullptr;
-            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, rhi, bufferFormat);
 
             auto meta = gst_buffer_get_video_crop_meta (buffer);
             if (meta) {
@@ -350,6 +341,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
                 }
             }
 
+            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, rhi, memoryFormat);
             QVideoFrame frame(videoBuffer, m_format);
             QGstUtils::setFrameTimeStamps(&frame, buffer);
 
