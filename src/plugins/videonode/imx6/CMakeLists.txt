@@ -6,7 +6,7 @@
 
 qt_internal_add_plugin(QSGVivanteVideoNodeFactory
     OUTPUT_NAME imx6vivantevideonode
-    TYPE video/videonode
+    PLUGIN_TYPE video/videonode
     SOURCES
         qsgvivantevideomaterial.cpp qsgvivantevideomaterial.h
         qsgvivantevideomaterialshader.cpp qsgvivantevideomaterialshader.h
