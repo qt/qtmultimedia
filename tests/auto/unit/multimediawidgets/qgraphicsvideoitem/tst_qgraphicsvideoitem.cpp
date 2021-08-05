@@ -243,7 +243,7 @@ void tst_QGraphicsVideoItem::nativeSize()
 
     QSignalSpy spy(&item, SIGNAL(nativeSizeChanged(QSizeF)));
 
-    QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB32);
+    QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB8888);
     format.setViewport(viewport);
     QVideoFrame frame(format);
     item.videoSink()->newVideoFrame(frame);
@@ -371,7 +371,7 @@ void tst_QGraphicsVideoItem::boundingRect()
     item.setSize(size);
     item.setAspectRatioMode(aspectRatioMode);
 
-    QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB32);
+    QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB8888);
     QVideoFrame frame(format);
     item.videoSink()->newVideoFrame(frame);
 
@@ -400,7 +400,7 @@ void tst_QGraphicsVideoItem::paint()
     auto *sink = item->videoSink();
     Q_ASSERT(sink);
 
-    QVideoFrameFormat format(QSize(2, 2), QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format(QSize(2, 2), QVideoFrameFormat::Format_XRGB8888);
     QVideoFrame frame(format);
     frame.map(QVideoFrame::WriteOnly);
     memcpy(frame.bits(0), rgb32ImageData, frame.mappedBytes(0));

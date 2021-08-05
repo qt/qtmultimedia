@@ -84,34 +84,6 @@ void QGstVideoRenderer::createSurfaceCaps()
     caps.create();
 
     // All the formats that both we and gstreamer support
-#if QT_CONFIG(gstreamer_gl)
-    if (rhi && rhi->backend() == QRhi::OpenGLES2) {
-        auto formats = QList<QVideoFrameFormat::PixelFormat>()
-                       << QVideoFrameFormat::Format_YUV420P
-                       << QVideoFrameFormat::Format_YUV422P
-                       << QVideoFrameFormat::Format_YV12
-                       << QVideoFrameFormat::Format_UYVY
-                       << QVideoFrameFormat::Format_YUYV
-                       << QVideoFrameFormat::Format_NV12
-                       << QVideoFrameFormat::Format_NV21
-                       << QVideoFrameFormat::Format_AYUV444
-                       << QVideoFrameFormat::Format_P010
-                       // ### Gstreamer uses opposite endianness from what we assume in our shaders for RGB formats
-//                       << QVideoFrameFormat::Format_RGB32
-//                       << QVideoFrameFormat::Format_BGR32
-//                       << QVideoFrameFormat::Format_ARGB32
-//                       << QVideoFrameFormat::Format_ABGR32
-//                       << QVideoFrameFormat::Format_BGRA32
-                       << QVideoFrameFormat::Format_Y8
-                       << QVideoFrameFormat::Format_Y16
-            ;
-        // Even if the surface does not support gl textures,
-        // glupload will be added to the pipeline and GLMemory will be requested.
-        // This will lead to upload data to gl textures
-        // and download it when the buffer will be used within rendering.
-        caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
-    }
-#endif
     auto formats = QList<QVideoFrameFormat::PixelFormat>()
                    << QVideoFrameFormat::Format_YUV420P
                    << QVideoFrameFormat::Format_YUV422P
@@ -120,18 +92,24 @@ void QGstVideoRenderer::createSurfaceCaps()
                    << QVideoFrameFormat::Format_YUYV
                    << QVideoFrameFormat::Format_NV12
                    << QVideoFrameFormat::Format_NV21
-                   << QVideoFrameFormat::Format_AYUV444
-#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+                   << QVideoFrameFormat::Format_AYUV
                    << QVideoFrameFormat::Format_P010
-#endif
-                   << QVideoFrameFormat::Format_RGB32
-                   << QVideoFrameFormat::Format_BGR32
-                   << QVideoFrameFormat::Format_ARGB32
-                   << QVideoFrameFormat::Format_ABGR32
-                   << QVideoFrameFormat::Format_BGRA32
+                   << QVideoFrameFormat::Format_XRGB8888
+                   << QVideoFrameFormat::Format_XBGR8888
+                   << QVideoFrameFormat::Format_RGBX8888
+                   << QVideoFrameFormat::Format_BGRX8888
+                   << QVideoFrameFormat::Format_ARGB8888
+                   << QVideoFrameFormat::Format_ABGR8888
+                   << QVideoFrameFormat::Format_RGBA8888
+                   << QVideoFrameFormat::Format_BGRA8888
                    << QVideoFrameFormat::Format_Y8
                    << QVideoFrameFormat::Format_Y16
         ;
+#if QT_CONFIG(gstreamer_gl)
+    if (rhi && rhi->backend() == QRhi::OpenGLES2) {
+        caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
+    }
+#endif
     caps.addPixelFormats(formats);
 
     m_surfaceCaps = caps;

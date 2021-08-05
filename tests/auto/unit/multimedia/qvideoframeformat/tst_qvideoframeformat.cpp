@@ -121,7 +121,7 @@ void tst_QVideoFrameFormat::construct_data()
 
     QTest::newRow("32x32 rgb32 no handle")
             << QSize(32, 32)
-            << QVideoFrameFormat::Format_RGB32
+            << QVideoFrameFormat::Format_XRGB8888
             << true;
 
     QTest::newRow("32x32 invalid no handle")
@@ -131,12 +131,12 @@ void tst_QVideoFrameFormat::construct_data()
 
     QTest::newRow("invalid size, rgb32 no handle")
             << QSize()
-            << QVideoFrameFormat::Format_RGB32
+            << QVideoFrameFormat::Format_XRGB8888
             << false;
 
     QTest::newRow("0x0 rgb32 no handle")
             << QSize(0,0)
-            << QVideoFrameFormat::Format_RGB32
+            << QVideoFrameFormat::Format_XRGB8888
             << true;
 }
 
@@ -182,7 +182,7 @@ void tst_QVideoFrameFormat::frameSize()
     QFETCH(QSize, initialSize);
     QFETCH(QSize, newSize);
 
-    QVideoFrameFormat format(initialSize, QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format(initialSize, QVideoFrameFormat::Format_XRGB8888);
 
     format.setFrameSize(newSize);
 
@@ -224,7 +224,7 @@ void tst_QVideoFrameFormat::viewport()
 
     QRect initialViewport(QPoint(0, 0), initialSize);
 
-    QVideoFrameFormat format(initialSize, QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format(initialSize, QVideoFrameFormat::Format_XRGB8888);
 
     format.setViewport(viewport);
 
@@ -249,7 +249,7 @@ void tst_QVideoFrameFormat::scanLineDirection()
     QFETCH(QVideoFrameFormat::Direction, direction);
     QFETCH(QString, stringized);
 
-    QVideoFrameFormat format(QSize(16, 16), QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format(QSize(16, 16), QVideoFrameFormat::Format_XRGB8888);
 
     format.setScanLineDirection(direction);
 
@@ -278,7 +278,7 @@ void tst_QVideoFrameFormat::yCbCrColorSpaceEnum()
     QFETCH(QVideoFrameFormat::YCbCrColorSpace, colorspace);
     QFETCH(QString, stringized);
 
-    QVideoFrameFormat format(QSize(64, 64), QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format(QSize(64, 64), QVideoFrameFormat::Format_XRGB8888);
     format.setYCbCrColorSpace(colorspace);
 
     QCOMPARE(format.yCbCrColorSpace(), colorspace);
@@ -306,7 +306,7 @@ void tst_QVideoFrameFormat::frameRate()
 {
     QFETCH(qreal, frameRate);
 
-    QVideoFrameFormat format(QSize(64, 64), QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format(QSize(64, 64), QVideoFrameFormat::Format_XRGB8888);
 
     format.setFrameRate(frameRate);
 
@@ -316,13 +316,13 @@ void tst_QVideoFrameFormat::frameRate()
 void tst_QVideoFrameFormat::compare()
 {
     QVideoFrameFormat format1(
-            QSize(16, 16), QVideoFrameFormat::Format_RGB32);
+            QSize(16, 16), QVideoFrameFormat::Format_XRGB8888);
     QVideoFrameFormat format2(
-            QSize(16, 16), QVideoFrameFormat::Format_RGB32);
+            QSize(16, 16), QVideoFrameFormat::Format_XRGB8888);
     QVideoFrameFormat format3(
-            QSize(32, 32), QVideoFrameFormat::Format_AYUV444);
+            QSize(32, 32), QVideoFrameFormat::Format_AYUV);
     QVideoFrameFormat format4(
-            QSize(16, 16), QVideoFrameFormat::Format_BGR32);
+            QSize(16, 16), QVideoFrameFormat::Format_XBGR8888);
 
     QCOMPARE(format1 == format2, true);
     QCOMPARE(format1 != format2, false);
@@ -397,12 +397,12 @@ void tst_QVideoFrameFormat::compare()
 void tst_QVideoFrameFormat::copy()
 {
     QVideoFrameFormat original(
-            QSize(1024, 768), QVideoFrameFormat::Format_ARGB32);
+            QSize(1024, 768), QVideoFrameFormat::Format_ARGB8888);
     original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
 
     QVideoFrameFormat copy(original);
 
-    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB32);
+    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB8888);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
 
@@ -422,15 +422,15 @@ void tst_QVideoFrameFormat::copy()
 void tst_QVideoFrameFormat::assign()
 {
     QVideoFrameFormat copy(
-            QSize(64, 64), QVideoFrameFormat::Format_AYUV444);
+            QSize(64, 64), QVideoFrameFormat::Format_AYUV);
 
     QVideoFrameFormat original(
-            QSize(1024, 768), QVideoFrameFormat::Format_ARGB32);
+            QSize(1024, 768), QVideoFrameFormat::Format_ARGB8888);
     original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
 
     copy = original;
 
-    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB32);
+    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB8888);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
 
@@ -461,7 +461,7 @@ void tst_QVideoFrameFormat::isValid()
     QVERIFY(!format.isValid());
 
     /* When both the pixel format and framesize is valid. */
-    QVideoFrameFormat format1(QSize(32, 32), QVideoFrameFormat::Format_AYUV444);
+    QVideoFrameFormat format1(QSize(32, 32), QVideoFrameFormat::Format_AYUV);
     QVERIFY(format1.isValid());
 
     /* When pixel format is valid and frame size is not valid */
@@ -475,7 +475,7 @@ void tst_QVideoFrameFormat::copyAllParameters()
 {
     /* Create the instance and set all the parameters. */
     QVideoFrameFormat original(
-            QSize(1024, 768), QVideoFrameFormat::Format_ARGB32);
+            QSize(1024, 768), QVideoFrameFormat::Format_ARGB8888);
 
     original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
@@ -486,7 +486,7 @@ void tst_QVideoFrameFormat::copyAllParameters()
       have the same parameters. */
     QVideoFrameFormat copy(original);
 
-    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB32);
+    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB8888);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
     QCOMPARE(copy.viewport(), QRect(0, 0, 1024, 1024));
@@ -503,7 +503,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
 {
     /* Create the instance and set all the parameters. */
     QVideoFrameFormat copy(
-            QSize(64, 64), QVideoFrameFormat::Format_AYUV444);
+            QSize(64, 64), QVideoFrameFormat::Format_AYUV);
     copy.setScanLineDirection(QVideoFrameFormat::TopToBottom);
     copy.setViewport(QRect(0, 0, 640, 320));
     copy.setFrameRate(qreal(7.5));
@@ -511,7 +511,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
 
     /* Create the instance and set all the parameters. */
     QVideoFrameFormat original(
-            QSize(1024, 768), QVideoFrameFormat::Format_ARGB32);
+            QSize(1024, 768), QVideoFrameFormat::Format_ARGB8888);
     original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
     original.setFrameRate(qreal(15.0));
@@ -521,7 +521,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
       have the same parameters. */
     copy = original;
 
-    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB32);
+    QCOMPARE(copy.pixelFormat(), QVideoFrameFormat::Format_ARGB8888);
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
     QCOMPARE(copy.viewport(), QRect(0, 0, 1024, 1024));

@@ -14,5 +14,5 @@ layout(binding = 1) uniform sampler2D rgbTexture;
 
 void main()
 {
-    fragColor = ubuf.colorMatrix * texture(rgbTexture, texCoord) * ubuf.opacity;
+    fragColor = ubuf.colorMatrix * texture(rgbTexture, texCoord).gbar * ubuf.opacity;
 }

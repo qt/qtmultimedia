@@ -360,8 +360,8 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSamp
 done:
     if (SUCCEEDED(hr)) {
         m_surfaceFormat = QVideoFrameFormat(QSize(width, height),
-                                              m_useTextureRendering ? QVideoFrameFormat::Format_RGB32
-                                                                    : qt_evr_pixelFormatFromD3DFormat(d3dFormat));
+                                            m_useTextureRendering ? QVideoFrameFormat::Format_BGRX8888
+                                                                  : qt_evr_pixelFormatFromD3DFormat(d3dFormat));
     } else {
         releaseResources();
     }

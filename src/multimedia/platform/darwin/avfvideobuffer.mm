@@ -163,7 +163,7 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
                             cvMetalTextureCache,
                             m_buffer, nil,
                             // ### This needs proper handling when enabling other pixel formats than BRGA8
-                            MTLPixelFormatBGRA8Unorm,
+                            MTLPixelFormatRGBA8Unorm,
                             width, height,
                             plane,
                             &cvMetalTexture[plane]);
@@ -241,14 +241,11 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 
 QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVPixelFormat(unsigned avPixelFormat)
 {
-    // BGRA <-> ARGB "swap" is intentional:
-    // to work correctly with GL_RGBA, color swap shaders
-    // (in QSG node renderer etc.).
     switch (avPixelFormat) {
     case kCVPixelFormatType_32ARGB:
-        return QVideoFrameFormat::Format_BGRA32;
+        return QVideoFrameFormat::Format_ARGB8888;
     case kCVPixelFormatType_32BGRA:
-        return QVideoFrameFormat::Format_ARGB32;
+        return QVideoFrameFormat::Format_BGRA8888;
     case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
     case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
         return QVideoFrameFormat::Format_NV12;
@@ -269,15 +266,12 @@ QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVPixelFormat(unsigned avPixe
 
 bool AVFVideoBuffer::toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv)
 {
-    // BGRA <-> ARGB "swap" is intentional:
-    // to work correctly with GL_RGBA, color swap shaders
-    // (in QSG node renderer etc.).
     switch (qtFormat) {
-    case QVideoFrameFormat::Format_ARGB32:
-        conv = kCVPixelFormatType_32BGRA;
-        break;
-    case QVideoFrameFormat::Format_BGRA32:
+    case QVideoFrameFormat::Format_ARGB8888:
         conv = kCVPixelFormatType_32ARGB;
+        break;
+    case QVideoFrameFormat::Format_BGRA8888:
+        conv = kCVPixelFormatType_32BGRA;
         break;
     case QVideoFrameFormat::Format_NV12:
         conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;

@@ -247,7 +247,7 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
     auto *buffer = new AndroidTextureVideoBuffer(rhi, this, m_nativeSize);
     const QVideoFrameFormat::PixelFormat format = rhi ? QVideoFrameFormat::Format_SamplerExternalOES
-                                                      : QVideoFrameFormat::Format_ARGB32_Premultiplied;
+                                                      : QVideoFrameFormat::Format_RGBA8888;
     QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, format));
     m_sink->newVideoFrame(frame);
 }

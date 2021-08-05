@@ -121,15 +121,15 @@ QVideoFrameFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
 {
     switch (format) {
     case D3DFMT_A8R8G8B8:
-        return QVideoFrameFormat::Format_ARGB32;
+        return QVideoFrameFormat::Format_BGRA8888;
     case D3DFMT_X8R8G8B8:
-        return QVideoFrameFormat::Format_RGB32;
+        return QVideoFrameFormat::Format_BGRX8888;
     case D3DFMT_A8:
         return QVideoFrameFormat::Format_Y8;
     case D3DFMT_A8B8G8R8:
-        return QVideoFrameFormat::Format_BGRA32;
+        return QVideoFrameFormat::Format_RGBA8888;
     case D3DFMT_X8B8G8R8:
-        return QVideoFrameFormat::Format_BGR32;
+        return QVideoFrameFormat::Format_RGBX8888;
     case D3DFMT_UYVY:
         return QVideoFrameFormat::Format_UYVY;
     case D3DFMT_YUY2:
@@ -147,15 +147,15 @@ QVideoFrameFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
 D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrameFormat::PixelFormat format)
 {
     switch (format) {
-    case QVideoFrameFormat::Format_ARGB32:
+    case QVideoFrameFormat::Format_BGRA8888:
         return D3DFMT_A8R8G8B8;
-    case QVideoFrameFormat::Format_RGB32:
+    case QVideoFrameFormat::Format_BGRX8888:
         return D3DFMT_X8R8G8B8;
     case QVideoFrameFormat::Format_Y8:
         return D3DFMT_A8;
-    case QVideoFrameFormat::Format_BGRA32:
+    case QVideoFrameFormat::Format_RGBA8888:
         return D3DFMT_A8B8G8R8;
-    case QVideoFrameFormat::Format_BGR32:
+    case QVideoFrameFormat::Format_RGBX8888:
         return D3DFMT_X8B8G8R8;
     case QVideoFrameFormat::Format_UYVY:
         return D3DFMT_UYVY;

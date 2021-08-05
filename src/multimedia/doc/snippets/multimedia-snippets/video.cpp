@@ -128,7 +128,7 @@ void VideoExample::VideoSurface()
 {
     //! [Widget Surface]
     QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
-    QVideoFrameFormat format(img.size(), QVideoFrameFormat::Format_ARGB32);
+    QVideoFrameFormat format(img.size(), QVideoFrameFormat::Format_ARGB8888);
     videoWidget = new QVideoWidget;
     videoWidget->videoSurface()->start(format);
     videoWidget->videoSurface()->present(img);

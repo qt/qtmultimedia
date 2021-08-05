@@ -61,26 +61,45 @@ typedef void (QT_FASTCALL *VideoFrameConvertFunc)(const QVideoFrame &frame, ucha
 
 VideoFrameConvertFunc qConverterForFormat(QVideoFrameFormat::PixelFormat format);
 
-inline quint32 qConvertBGRA32ToARGB32(quint32 bgra)
+template<int a, int r, int g, int b>
+struct RgbPixel
 {
-    return (((bgra & 0xFF000000) >> 24)
-            | ((bgra & 0x00FF0000) >> 8)
-            | ((bgra & 0x0000FF00) << 8)
-            | ((bgra & 0x000000FF) << 24));
-}
+    uchar data[4];
+    inline quint32 convert() const
+    {
+        return (a >= 0 ? (uint(data[a]) << 24) : 0xff000000)
+               | (uint(data[r]) << 16)
+               | (uint(data[g]) << 8)
+               | (uint(data[b]));
+    }
 
-inline quint32 qConvertABGR32ToARGB32(quint32 abgr)
-{
-    return ((abgr & 0xFF000000)
-            | ((abgr & 0x00FF0000) >> 16)
-            | (abgr & 0x0000FF00)
-            | ((abgr & 0x000000FF) << 16));
-}
+};
 
-inline quint32 qConvertBGR24ToARGB32(const uchar *bgr)
+template<typename Y>
+struct YPixel
 {
-    return 0xFF000000 | bgr[0] | bgr[1] << 8 | bgr[2] << 16;
-}
+    Y data;
+    static constexpr uint shift = (sizeof(Y) - 1)*8;
+    inline quint32 convert() const
+    {
+        uint y = (data >> shift) & 0xff;
+        return (0xff000000)
+               | (y << 16)
+               | (y << 8)
+               | (y);
+    }
+
+};
+
+
+using ARGB8888 = RgbPixel<0, 1, 2, 3>;
+using ABGR8888 = RgbPixel<0, 3, 2, 1>;
+using RGBA8888 = RgbPixel<3, 0, 1, 2>;
+using BGRA8888 = RgbPixel<3, 2, 1, 0>;
+using XRGB8888 = RgbPixel<-1, 1, 2, 3>;
+using XBGR8888 = RgbPixel<-1, 3, 2, 1>;
+using RGBX8888 = RgbPixel<-1, 0, 1, 2>;
+using BGRX8888 = RgbPixel<-1, 2, 1, 0>;
 
 #define FETCH_INFO_PACKED(frame) \
     const uchar *src = frame.bits(0); \

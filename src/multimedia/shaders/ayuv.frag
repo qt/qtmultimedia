@@ -14,6 +14,7 @@ layout(binding = 1) uniform sampler2D plane1Texture;
 
 void main()
 {
-    vec3 YUV = texture(plane1Texture, texCoord).gra;
-    fragColor = ubuf.colorMatrix * vec4(YUV, 1.0) * ubuf.opacity;
+    vec3 YUV = texture(plane1Texture, texCoord).gba;
+    float A = texture(plane1Texture, texCoord).r;
+    fragColor = ubuf.colorMatrix * vec4(YUV, 1.0) * A * ubuf.opacity;
 }

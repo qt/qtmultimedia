@@ -45,7 +45,7 @@
 void presentDummyFrame(QVideoSink *sink, const QSize &size)
 {
     if (sink) {
-        QVideoFrameFormat format(size, QVideoFrameFormat::Format_ARGB32_Premultiplied);
+        QVideoFrameFormat format(size, QVideoFrameFormat::Format_ARGB8888_Premultiplied);
         QVideoFrame frame(format);
 
         sink->newVideoFrame(frame);
@@ -309,7 +309,7 @@ void tst_QQuickVideoOutput::paintSurface()
     QVERIFY(surface);
     videoOutput->setSize(QSize(2, 2));
 
-    QVideoFrame frame(QVideoFrameFormat(QSize(4, 4), QVideoFrameFormat::Format_ARGB32));
+    QVideoFrame frame(QVideoFrameFormat(QSize(4, 4), QVideoFrameFormat::Format_ARGB8888));
     frame.map(QVideoFrame::ReadWrite);
     QCOMPARE(frame.mappedBytes(0), 64);
     memcpy(frame.bits(0), rgb32ImageData, 64);

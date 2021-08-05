@@ -128,34 +128,31 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     \value Format_Invalid
     The frame is invalid.
 
-    \value Format_ARGB32
-    The frame is stored using a 32-bit ARGB format (0xAARRGGBB).  This is equivalent to
-    QImage::Format_ARGB32.
+    \value Format_ARGB8888
+    The frame is stored using a ARGB format with 8 bits per component.
 
-    \value Format_ARGB32_Premultiplied
-    The frame stored using a premultiplied 32-bit ARGB format (0xAARRGGBB).  This is equivalent
-    to QImage::Format_ARGB32_Premultiplied.
+    \value Format_ARGB8888_Premultiplied
+    The frame stored using a premultiplied ARGB format with 8 bits per component.
 
-    \value Format_RGB32
-    The frame stored using a 32-bit RGB format (0xffRRGGBB).  This is equivalent to
-    QImage::Format_RGB32
+    \value Format_XRGB8888
+    The frame stored using a 32 bits per pixel RGB format (0xff, R, G, B).
 
-    \value Format_BGRA32
+    \value Format_BGRA8888
     The frame is stored using a 32-bit BGRA format (0xBBGGRRAA).
 
-    \value Format_BGRA32_Premultiplied
+    \value Format_BGRA8888_Premultiplied
     The frame is stored using a premultiplied 32bit BGRA format.
 
-    \value Format_ABGR32
+    \value Format_ABGR8888
     The frame is stored using a 32-bit ABGR format (0xAABBGGRR).
 
-    \value Format_BGR32
-    The frame is stored using a 32-bit BGR format (0xBBGGRRff).
+    \value Format_XBGR8888
+    The frame is stored using a 32-bit BGR format (0xffBBGGRR).
 
-    \value Format_AYUV444
+    \value Format_AYUV
     The frame is stored using a packed 32-bit AYUV format (0xAAYYUUVV).
 
-    \value Format_AYUV444_Premultiplied
+    \value Format_AYUV_Premultiplied
     The frame is stored using a packed premultiplied 32-bit AYUV format (0xAAYYUUVV).
 
     \value Format_YUV420P
@@ -564,15 +561,27 @@ void QVideoFrameFormat::updateUniformData(QByteArray *dst, const QVideoFrame &fr
 QVideoFrameFormat::PixelFormat QVideoFrameFormat::pixelFormatFromImageFormat(QImage::Format format)
 {
     switch (format) {
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
     case QImage::Format_RGB32:
-    case QImage::Format_RGBX8888:
-        return QVideoFrameFormat::Format_RGB32;
+        return QVideoFrameFormat::Format_BGRX8888;
     case QImage::Format_ARGB32:
-    case QImage::Format_RGBA8888:
-        return QVideoFrameFormat::Format_ARGB32;
+        return QVideoFrameFormat::Format_BGRA8888;
     case QImage::Format_ARGB32_Premultiplied:
+        return QVideoFrameFormat::Format_BGRA8888_Premultiplied;
+#else
+    case QImage::Format_RGB32:
+        return QVideoFrameFormat::Format_XRGB8888;
+    case QImage::Format_ARGB32:
+        return QVideoFrameFormat::Format_ARGB8888;
+    case QImage::Format_ARGB32_Premultiplied:
+        return QVideoFrameFormat::Format_ARGB8888_Premultiplied;
+#endif
+    case QImage::Format_RGBA8888:
+        return QVideoFrameFormat::Format_RGBA8888;
     case QImage::Format_RGBA8888_Premultiplied:
-        return QVideoFrameFormat::Format_ARGB32_Premultiplied;
+        return QVideoFrameFormat::Format_ARGB8888_Premultiplied;
+    case QImage::Format_RGBX8888:
+        return QVideoFrameFormat::Format_RGBX8888;
     case QImage::Format_Grayscale8:
         return QVideoFrameFormat::Format_Y8;
     case QImage::Format_Grayscale16:
@@ -592,22 +601,41 @@ QVideoFrameFormat::PixelFormat QVideoFrameFormat::pixelFormatFromImageFormat(QIm
 QImage::Format QVideoFrameFormat::imageFormatFromPixelFormat(QVideoFrameFormat::PixelFormat format)
 {
     switch (format) {
-    case QVideoFrameFormat::Format_ARGB32:
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+    case QVideoFrameFormat::Format_BGRA8888:
         return QImage::Format_ARGB32;
-    case QVideoFrameFormat::Format_ARGB32_Premultiplied:
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
         return QImage::Format_ARGB32_Premultiplied;
-    case QVideoFrameFormat::Format_RGB32:
+    case QVideoFrameFormat::Format_BGRX8888:
         return QImage::Format_RGB32;
+    case QVideoFrameFormat::Format_ARGB8888:
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+    case QVideoFrameFormat::Format_XRGB8888:
+        return QImage::Format_Invalid;
+#else
+    case QVideoFrameFormat::Format_ARGB8888:
+        return QImage::Format_ARGB32;
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+        return QImage::Format_ARGB32_Premultiplied;
+    case QVideoFrameFormat::Format_XRGB8888:
+        return QImage::Format_RGB32;
+    case QVideoFrameFormat::Format_BGRA8888:
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+    case QVideoFrameFormat::Format_BGRX8888:
+        return QImage::Format_Invalid;
+#endif
+    case QVideoFrameFormat::Format_RGBA8888:
+        return QImage::Format_RGBA8888;
+    case QVideoFrameFormat::Format_RGBX8888:
+        return QImage::Format_RGBX8888;
     case QVideoFrameFormat::Format_Y8:
         return QImage::Format_Grayscale8;
     case QVideoFrameFormat::Format_Y16:
         return QImage::Format_Grayscale16;
-    case QVideoFrameFormat::Format_ABGR32:
-    case QVideoFrameFormat::Format_BGRA32:
-    case QVideoFrameFormat::Format_BGRA32_Premultiplied:
-    case QVideoFrameFormat::Format_BGR32:
-    case QVideoFrameFormat::Format_AYUV444:
-    case QVideoFrameFormat::Format_AYUV444_Premultiplied:
+    case QVideoFrameFormat::Format_ABGR8888:
+    case QVideoFrameFormat::Format_XBGR8888:
+    case QVideoFrameFormat::Format_AYUV:
+    case QVideoFrameFormat::Format_AYUV_Premultiplied:
     case QVideoFrameFormat::Format_YUV420P:
     case QVideoFrameFormat::Format_YUV422P:
     case QVideoFrameFormat::Format_YV12:
@@ -697,24 +725,30 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::PixelFormat pf)
     switch (pf) {
     case QVideoFrameFormat::Format_Invalid:
         return dbg << "Format_Invalid";
-    case QVideoFrameFormat::Format_ARGB32:
-        return dbg << "Format_ARGB32";
-    case QVideoFrameFormat::Format_ARGB32_Premultiplied:
-        return dbg << "Format_ARGB32_Premultiplied";
-    case QVideoFrameFormat::Format_RGB32:
-        return dbg << "Format_RGB32";
-    case QVideoFrameFormat::Format_BGRA32:
-        return dbg << "Format_BGRA32";
-    case QVideoFrameFormat::Format_BGRA32_Premultiplied:
-        return dbg << "Format_BGRA32_Premultiplied";
-    case QVideoFrameFormat::Format_ABGR32:
-        return dbg << "Format_ABGR32";
-    case QVideoFrameFormat::Format_BGR32:
-        return dbg << "Format_BGR32";
-    case QVideoFrameFormat::Format_AYUV444:
-        return dbg << "Format_AYUV444";
-    case QVideoFrameFormat::Format_AYUV444_Premultiplied:
-        return dbg << "Format_AYUV444_Premultiplied";
+    case QVideoFrameFormat::Format_ARGB8888:
+        return dbg << "Format_ARGB8888";
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+        return dbg << "Format_ARGB8888_Premultiplied";
+    case QVideoFrameFormat::Format_XRGB8888:
+        return dbg << "Format_XRGB8888";
+    case QVideoFrameFormat::Format_BGRA8888:
+        return dbg << "Format_BGRA8888";
+    case QVideoFrameFormat::Format_BGRX8888:
+        return dbg << "Format_BGRX8888";
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+        return dbg << "Format_BGRA8888_Premultiplied";
+    case QVideoFrameFormat::Format_RGBA8888:
+        return dbg << "Format_RGBA8888";
+    case QVideoFrameFormat::Format_RGBX8888:
+        return dbg << "Format_RGBX8888";
+    case QVideoFrameFormat::Format_ABGR8888:
+        return dbg << "Format_ABGR8888";
+    case QVideoFrameFormat::Format_XBGR8888:
+        return dbg << "Format_XBGR8888";
+    case QVideoFrameFormat::Format_AYUV:
+        return dbg << "Format_AYUV";
+    case QVideoFrameFormat::Format_AYUV_Premultiplied:
+        return dbg << "Format_AYUV_Premultiplied";
     case QVideoFrameFormat::Format_YUV420P:
         return dbg << "Format_YUV420P";
     case QVideoFrameFormat::Format_YUV422P:
@@ -745,12 +779,12 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::PixelFormat pf)
         return dbg << "Format_P010";
     case QVideoFrameFormat::Format_P016:
         return dbg << "Format_P016";
+    case QVideoFrameFormat::Format_SamplerExternalOES:
+        return dbg << "Format_SamplerExternalOES";
     case QVideoFrameFormat::Format_Jpeg:
         return dbg << "Format_Jpeg";
-
-    default:
-        return dbg << QString(QLatin1String("UserType(%1)" )).arg(int(pf)).toLatin1().constData();
     }
+    return dbg;
 }
 #endif
 
