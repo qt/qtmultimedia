@@ -72,7 +72,7 @@ class QGstVideoRenderer : public QObject
 {
     Q_OBJECT
 public:
-    QGstVideoRenderer(QVideoSink *sink);
+    QGstVideoRenderer(QGstreamerVideoSink *sink);
     ~QGstVideoRenderer();
 
     QGstMutableCaps caps();
@@ -97,7 +97,7 @@ private:
     bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
     void createSurfaceCaps();
 
-    QPointer<QVideoSink> m_sink;
+    QPointer<QGstreamerVideoSink> m_sink;
 
     QMutex m_mutex;
     QWaitCondition m_setupCondition;
@@ -128,8 +128,8 @@ class Q_MULTIMEDIA_EXPORT QGstVideoRendererSink
 public:
     GstVideoSink parent;
 
-    static QGstVideoRendererSink *createSink(QVideoSink *surface);
-    static void setSink(QVideoSink *surface);
+    static QGstVideoRendererSink *createSink(QGstreamerVideoSink *surface);
+    static void setSink(QGstreamerVideoSink *surface);
 
 private:
     static GType get_type();

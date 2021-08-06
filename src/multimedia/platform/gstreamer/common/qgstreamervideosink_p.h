@@ -77,6 +77,7 @@ public:
     void setWinId(WId id) override;
 
     void setRhi(QRhi *rhi) override;
+    QRhi *rhi() const { return m_rhi; }
 
     void setDisplayRect(const QRect &rect) override;
 
@@ -92,15 +93,17 @@ public:
 
     void setPipeline(QGstPipeline pipeline);
 
-#if QT_CONFIG(gstreamer_gl)
-    GstGLContext *gstGLContext() const { return m_gstGLDisplayContext; }
-#endif
+    GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext; }
+    GstContext *gstGlLocalContext() const { return m_gstGlLocalContext; }
+    Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
+
 private:
     void createOverlay();
     void createQtSink();
     void updateSinkElement();
 
-    void initGstGLDisplayContext();
+    void unrefGstContexts();
+    void updateGstContexts();
 
     QGstPipeline gstPipeline;
     QGstBin sinkBin;
@@ -114,9 +117,9 @@ private:
     QRect m_displayRect;
     bool m_fullScreen = false;
 
-#if QT_CONFIG(gstreamer_gl)
-    GstGLContext *m_gstGLDisplayContext = nullptr;
-#endif
+    Qt::HANDLE m_eglDisplay = nullptr;
+    GstContext *m_gstGlLocalContext = nullptr;
+    GstContext *m_gstGlDisplayContext = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -65,7 +65,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QGstVideoRenderer::QGstVideoRenderer(QVideoSink *sink)
+QGstVideoRenderer::QGstVideoRenderer(QGstreamerVideoSink *sink)
     : m_sink(sink)
 {
     createSurfaceCaps();
@@ -217,18 +217,11 @@ bool QGstVideoRenderer::query(GstQuery *query)
         if (strcmp(type, "gst.gl.local_context") != 0)
             return false;
 
-        auto *platformSink = static_cast<QGstreamerVideoSink *>(m_sink->platformVideoSink());
-        auto *gstGlContext = platformSink->gstGLContext();
+        auto *gstGlContext = m_sink->gstGlLocalContext();
         if (!gstGlContext)
             return false;
 
-        GstContext *context = nullptr;
-        gst_query_parse_context(query, &context);
-        context = context ? gst_context_copy(context) : gst_context_new(type, FALSE);
-        GstStructure *structure = gst_context_writable_structure(context);
-        gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, gstGlContext, nullptr);
-        gst_query_set_context(query, context);
-        gst_context_unref(context);
+        gst_query_set_context(query, gstGlContext);
 
         return true;
     }
@@ -261,7 +254,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             locker->unlock();
 
             if (m_sink && !m_flushed)
-                m_sink->newVideoFrame(QVideoFrame());
+                m_sink->videoSink()->newVideoFrame(QVideoFrame());
             m_flushed = true;
         }
     } else if (m_stop) {
@@ -323,7 +316,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             QVideoFrame frame(videoBuffer, m_format);
             QGstUtils::setFrameTimeStamps(&frame, buffer);
 
-            m_sink->newVideoFrame(frame);
+            m_sink->videoSink()->newVideoFrame(frame);
 
             gst_buffer_unref(buffer);
 
@@ -365,11 +358,11 @@ bool QGstVideoRenderer::waitForAsyncEvent(
 }
 
 static GstVideoSinkClass *sink_parent_class;
-static thread_local QVideoSink *current_sink;
+static thread_local QGstreamerVideoSink *current_sink;
 
 #define VO_SINK(s) QGstVideoRendererSink *sink(reinterpret_cast<QGstVideoRendererSink *>(s))
 
-QGstVideoRendererSink *QGstVideoRendererSink::createSink(QVideoSink *sink)
+QGstVideoRendererSink *QGstVideoRendererSink::createSink(QGstreamerVideoSink *sink)
 {
     setSink(sink);
     QGstVideoRendererSink *gstSink = reinterpret_cast<QGstVideoRendererSink *>(
@@ -380,7 +373,7 @@ QGstVideoRendererSink *QGstVideoRendererSink::createSink(QVideoSink *sink)
     return gstSink;
 }
 
-void QGstVideoRendererSink::setSink(QVideoSink *sink)
+void QGstVideoRendererSink::setSink(QGstreamerVideoSink *sink)
 {
     current_sink = sink;
     get_type();
