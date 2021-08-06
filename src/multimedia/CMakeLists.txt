@@ -195,6 +195,8 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         Qt::GuiPrivate
 )
 
+qt_find_package(EGL)
+
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
     SOURCES
         platform/gstreamer/audio/qgstreameraudiodevice.cpp platform/gstreamer/audio/qgstreameraudiodevice_p.h
@@ -231,6 +233,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
     LIBRARIES
         GStreamer::GStreamer # special case
         GStreamer::App # special case
+        EGL::EGL
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_photography

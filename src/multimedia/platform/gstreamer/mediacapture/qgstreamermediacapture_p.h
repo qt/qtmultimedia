@@ -65,6 +65,7 @@ class QGstreamerMediaEncoder;
 class QGstreamerAudioInput;
 class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
+class QGstreamerVideoSink;
 
 class QGstreamerMediaCapture : public QPlatformMediaCaptureSession
 {
@@ -96,6 +97,8 @@ public:
     QGstPipeline pipeline() const { return gstPipeline; }
 
     void setupAudioPipeline();
+
+    QGstreamerVideoSink *gstreamerVideoSink() const;
 
 private:
     friend QGstreamerMediaEncoder;

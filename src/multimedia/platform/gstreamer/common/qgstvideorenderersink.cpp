@@ -61,6 +61,9 @@
 #include <gst/gl/gl.h>
 #endif // #if QT_CONFIG(gstreamer_gl)
 
+// DMA support
+#include <gst/allocators/gstdmabuf.h>
+
 //#define DEBUG_VIDEO_SURFACE_SINK
 
 QT_BEGIN_NAMESPACE
@@ -108,9 +111,30 @@ void QGstVideoRenderer::createSurfaceCaps()
 #if QT_CONFIG(gstreamer_gl)
     if (rhi && rhi->backend() == QRhi::OpenGLES2) {
         caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
+        if (m_sink->eglDisplay() && m_sink->eglImageTargetTexture2D()) {
+            // We currently do not handle planar DMA buffers, as it's somewhat unclear how to
+            // convert the planar EGLImage into something we can use from OpenGL
+            auto singlePlaneFormats = QList<QVideoFrameFormat::PixelFormat>()
+                           << QVideoFrameFormat::Format_UYVY
+                           << QVideoFrameFormat::Format_YUYV
+                           << QVideoFrameFormat::Format_AYUV
+                           << QVideoFrameFormat::Format_XRGB8888
+                           << QVideoFrameFormat::Format_XBGR8888
+                           << QVideoFrameFormat::Format_RGBX8888
+                           << QVideoFrameFormat::Format_BGRX8888
+                           << QVideoFrameFormat::Format_ARGB8888
+                           << QVideoFrameFormat::Format_ABGR8888
+                           << QVideoFrameFormat::Format_RGBA8888
+                           << QVideoFrameFormat::Format_BGRA8888
+                           << QVideoFrameFormat::Format_Y8
+                           << QVideoFrameFormat::Format_Y16
+                ;
+            caps.addPixelFormats(singlePlaneFormats, GST_CAPS_FEATURE_MEMORY_DMABUF);
+        }
     }
 #endif
     caps.addPixelFormats(formats);
+    qDebug() << "using caps" << caps.toString();
 
     m_surfaceCaps = caps;
 }
@@ -176,9 +200,11 @@ void QGstVideoRenderer::unlock()
     m_renderCondition.wakeAll();
 }
 
-bool QGstVideoRenderer::proposeAllocation(GstQuery *)
+bool QGstVideoRenderer::proposeAllocation(GstQuery *query)
 {
     QMutexLocker locker(&m_mutex);
+    QGstStructure s = gst_query_get_structure(query);
+    qDebug() << "propose allocation" << s.toString();
     return m_active;
 }
 
@@ -296,10 +322,6 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
 
             m_flushed = false;
 
-            auto *rhi = m_sink->rhi();
-            if (memoryFormat == QGstCaps::CpuMemory)
-                rhi = nullptr;
-
             auto meta = gst_buffer_get_video_crop_meta (buffer);
             if (meta) {
                 QRect vp(meta->x, meta->y, meta->width, meta->height);
@@ -312,7 +334,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
                 }
             }
 
-            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, rhi, memoryFormat);
+            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_sink, m_format, memoryFormat);
             QVideoFrame frame(videoBuffer, m_format);
             QGstUtils::setFrameTimeStamps(&frame, buffer);
 

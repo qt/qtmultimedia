@@ -59,14 +59,18 @@
 #include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
+class QVideoFrameFormat;
+class QGstreamerVideoSink;
+class QOpenGLContext;
 
 class Q_MULTIMEDIA_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
 
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, QGstCaps::MemoryFormat format);
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info)
-        : QGstVideoBuffer(buffer, info, nullptr, QGstCaps::CpuMemory)
+    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,
+                    const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
+    QGstVideoBuffer(GstBuffer *buffer, const QVideoFrameFormat &format, const GstVideoInfo &info)
+        : QGstVideoBuffer(buffer, info, nullptr, format, QGstCaps::CpuMemory)
     {}
     ~QGstVideoBuffer();
 
@@ -80,14 +84,18 @@ public:
     quint64 textureHandle(int plane) const override;
 private:
     QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
+    QVideoFrameFormat m_frameFormat;
     mutable GstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame;
     GstBuffer *m_buffer = nullptr;
     GstBuffer *m_syncBuffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    QVariant m_handle;
-    quint64 m_textures[3] = {};
+    QOpenGLContext *glContext = nullptr;
+    Qt::HANDLE eglDisplay = nullptr;
+    QFunctionPointer eglImageTargetTexture2D = nullptr;
+    uint m_textures[3] = {};
     bool m_texturesUploaded = false;
+    bool m_ownTextures = false;
 };
 
 QT_END_NAMESPACE

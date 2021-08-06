@@ -96,6 +96,7 @@ public:
     GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext; }
     GstContext *gstGlLocalContext() const { return m_gstGlLocalContext; }
     Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
+    QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
 
 private:
     void createOverlay();
@@ -118,6 +119,7 @@ private:
     bool m_fullScreen = false;
 
     Qt::HANDLE m_eglDisplay = nullptr;
+    QFunctionPointer m_eglImageTargetTexture2D = nullptr;
     GstContext *m_gstGlLocalContext = nullptr;
     GstContext *m_gstGlDisplayContext = nullptr;
 };

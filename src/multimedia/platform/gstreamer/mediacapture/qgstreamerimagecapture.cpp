@@ -213,8 +213,10 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     GstVideoInfo previewInfo;
     gst_video_info_from_caps(&previewInfo, caps.get());
 
-    auto fmt = caps.formatForCaps(&previewInfo);
-    auto *gstBuffer = new QGstVideoBuffer(buffer, previewInfo);
+    auto memoryFormat = caps.memoryFormat();
+    auto fmt = QGstCaps(caps).formatForCaps(&previewInfo);
+    auto *sink = m_session->gstreamerVideoSink();
+    auto *gstBuffer = new QGstVideoBuffer(buffer, previewInfo, sink, fmt, memoryFormat);
     QVideoFrame frame(gstBuffer, fmt);
     QImage img = frame.toImage();
     if (img.isNull()) {

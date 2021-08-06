@@ -268,5 +268,10 @@ void QGstreamerMediaCapture::setupAudioPipeline()
     }
 }
 
+QGstreamerVideoSink *QGstreamerMediaCapture::gstreamerVideoSink() const
+{
+    return gstVideoOutput ? gstVideoOutput->gstreamerVideoSink() : nullptr;
+}
+
 
 QT_END_NAMESPACE

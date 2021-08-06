@@ -222,6 +222,7 @@ void QGstreamerVideoSink::unrefGstContexts()
         gst_context_unref(m_gstGlLocalContext);
     m_gstGlLocalContext = nullptr;
     m_eglDisplay = nullptr;
+    m_eglImageTargetTexture2D = nullptr;
 }
 
 void QGstreamerVideoSink::updateGstContexts()
@@ -248,6 +249,7 @@ void QGstreamerVideoSink::updateGstContexts()
     if (m_eglDisplay) {
 #if GST_GL_HAVE_PLATFORM_EGL
         gstGlDisplay = (GstGLDisplay *)gst_gl_display_egl_new_with_egl_display(m_eglDisplay);
+        m_eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
 #endif
     } else {
         auto display = pni->nativeResourceForIntegration("display");

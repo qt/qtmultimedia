@@ -58,11 +58,11 @@
 #include <qwaitcondition.h>
 #include <qmutex.h>
 #include <qpointer.h>
+#include <private/qgstreamervideosink_p.h>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
-class QGstreamerVideoSink;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoOutput : public QObject
 {
@@ -73,6 +73,7 @@ public:
     ~QGstreamerVideoOutput();
 
     void setVideoSink(QVideoSink *sink);
+    QGstreamerVideoSink *gstreamerVideoSink() const { return m_videoWindow; }
 
     void setPipeline(const QGstPipeline &pipeline);
 
@@ -83,7 +84,6 @@ public:
 
 private:
 
-    QVideoSink *m_videoSink = nullptr;
     QPointer<QGstreamerVideoSink> m_videoWindow;
     bool isFakeSink = true;
 
