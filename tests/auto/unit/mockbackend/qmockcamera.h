@@ -84,6 +84,13 @@ public:
         m_camera = camera;
     }
 
+    bool setCameraFormat(const QCameraFormat& format) override
+    {
+        if (!format.isNull() && !m_camera.videoFormats().contains(format))
+            return false;
+        return true;
+    }
+
     void setFocusMode(QCamera::FocusMode mode) override
     {
         if (isFocusModeSupported(mode))

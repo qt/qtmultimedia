@@ -69,8 +69,9 @@ private slots:
     void testCtorWithCameraDevice();
     void testCtorWithPosition();
 
-    void testCameraStates();
+    void testCameraActive();
     void testCameraStartParallel();
+    void testCameraFormat();
     void testCameraCapture();
     void testCaptureToBuffer();
     void testCameraCaptureMetadata();
@@ -84,6 +85,42 @@ private slots:
 
 private:
     bool noCamera = false;
+};
+
+class TestVideoFormat : public QVideoSink
+{
+    Q_OBJECT
+public:
+    explicit TestVideoFormat(const QCameraFormat &format)
+        : formatMismatch(0),
+          cameraFormat(format)
+    {
+        connect(this, &QVideoSink::newVideoFrame, this, &TestVideoFormat::checkVideoFrameFormat);
+    }
+
+    void setCameraFormatToTest(const QCameraFormat &format)
+    {
+        formatMismatch = 0;
+        cameraFormat = format;
+    }
+
+    int formatMismatch = 0;
+
+private:
+    QCameraFormat cameraFormat;
+
+public Q_SLOTS:
+    void checkVideoFrameFormat(const QVideoFrame &frame)
+    {
+        QVideoFrameFormat surfaceFormat = frame.surfaceFormat();
+        if (surfaceFormat.pixelFormat() == cameraFormat.pixelFormat()
+            && surfaceFormat.frameSize() == cameraFormat.resolution()
+            && surfaceFormat.frameRate() >= cameraFormat.minFrameRate()
+            && surfaceFormat.frameRate() <= cameraFormat.maxFrameRate()) {
+            return;
+        }
+        formatMismatch++;
+    }
 };
 
 void tst_QCameraBackend::initTestCase()
@@ -161,7 +198,7 @@ void tst_QCameraBackend::testCtorWithPosition()
     }
 }
 
-void tst_QCameraBackend::testCameraStates()
+void tst_QCameraBackend::testCameraActive()
 {
     QMediaCaptureSession session;
     QCamera camera;
@@ -216,6 +253,62 @@ void tst_QCameraBackend::testCameraStartParallel()
 
     QCOMPARE(errorSpy1.count(), 0);
     QCOMPARE(errorSpy2.count(), 0);
+}
+
+void tst_QCameraBackend::testCameraFormat()
+{
+    QCamera camera;
+    QCameraDevice device = camera.cameraDevice();
+    auto videoFormats = device.videoFormats();
+    QCameraFormat cameraFormat = videoFormats.first();
+    QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
+    QVERIFY(spy.count() == 0);
+
+    QMediaCaptureSession session;
+    session.setCamera(&camera);
+    QVERIFY(videoFormats.count());
+    camera.setCameraFormat(cameraFormat);
+    QCOMPARE(camera.cameraFormat(), cameraFormat);
+    QVERIFY(spy.count() == 1);
+
+    TestVideoFormat videoFormatTester(cameraFormat);
+    session.setVideoOutput(&videoFormatTester);
+    camera.start();
+    QTRY_VERIFY(!videoFormatTester.formatMismatch);
+
+    spy.clear();
+    camera.stop();
+    // Change camera format
+    if (videoFormats.count() > 1) {
+        QCameraFormat secondFormat = videoFormats.at(1);
+        camera.setCameraFormat(secondFormat);
+        QCOMPARE(camera.cameraFormat(), secondFormat);
+        QCOMPARE(spy.count(), 1);
+        QCOMPARE(camera.cameraFormat(), secondFormat);
+        videoFormatTester.setCameraFormatToTest(secondFormat);
+        camera.start();
+        QTRY_VERIFY(!videoFormatTester.formatMismatch);
+
+        // check that frame format is not same as previous camera format
+        videoFormatTester.setCameraFormatToTest(cameraFormat);
+        QTRY_VERIFY(videoFormatTester.formatMismatch);
+    }
+
+    // Set null format
+    spy.clear();
+    camera.stop();
+    camera.setCameraFormat({});
+    QCOMPARE(spy.count(), 1);
+    videoFormatTester.setCameraFormatToTest({});
+    camera.start();
+    // In case of a null format, the backend should have picked
+    // a decent format to render frames
+    QTRY_VERIFY(videoFormatTester.formatMismatch);
+    camera.stop();
+
+    spy.clear();
+    camera.setCameraDevice({});
+    QCOMPARE(spy.count(), 1);
 }
 
 void tst_QCameraBackend::testCameraCapture()
