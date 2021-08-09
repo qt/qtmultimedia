@@ -172,7 +172,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/player
         platform/windows/mediacapture
     LIBRARIES
-        Qt::GuiPrivate
         uuid
         WMF::WMF
         d3d9
@@ -189,11 +188,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         user32
         winmm
         wmcodecdspuuid
-    PUBLIC_LIBRARIES
-        Qt::Gui
-        Qt::Network
-    PRIVATE_MODULE_INTERFACE
-        Qt::GuiPrivate
 )
 
 qt_find_package(EGL)
@@ -327,26 +321,15 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture
         platform/android/mediaplayer
         platform/android/wrappers/jni
-    LIBRARIES
-        Qt::CorePrivate
     PUBLIC_LIBRARIES
         OpenSLES
         mediandk
-        Qt::Core
-        Qt::Network
-    PRIVATE_MODULE_INTERFACE
-        Qt::CorePrivate
 )
 
 qt_internal_extend_target(Multimedia CONDITION WIN32
     LIBRARIES
         gdi32
         user32
-)
-
-qt_internal_extend_target(Multimedia CONDITION TARGET Qt::Widgets AND WIN32
-    PUBLIC_LIBRARIES
-        Qt::Widgets
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
@@ -375,7 +358,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         ${FWMetal}
         ${FWQuartzCore}
         AVFoundation::AVFoundation
-        Qt::Network
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT WATCHOS
