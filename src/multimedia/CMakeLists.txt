@@ -173,9 +173,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
     LIBRARIES
         Qt::GuiPrivate
         uuid
-    PUBLIC_LIBRARIES
-        Qt::Gui
-        Qt::Network
         WMF::WMF
         d3d9
         dxva2
@@ -191,6 +188,9 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         user32
         winmm
         wmcodecdspuuid
+    PUBLIC_LIBRARIES
+        Qt::Gui
+        Qt::Network
     PRIVATE_MODULE_INTERFACE
         Qt::GuiPrivate
 )
