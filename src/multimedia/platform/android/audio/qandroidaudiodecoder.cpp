@@ -107,9 +107,9 @@ void Decoder::setSource(const QUrl &source)
          emit error(QAudioDecoder::ResourceError, tr("Invalid fileDescriptor for source."));
          return;
      }
-
     const int size = QFile(source.toString()).size();
-    media_status_t status = AMediaExtractor_setDataSourceFd(m_extractor, fd, 0, size);
+    media_status_t status = AMediaExtractor_setDataSourceFd(m_extractor, fd, 0,
+                                                            size > 0 ? size : LONG_MAX);
     close(fd);
 
     if (status != AMEDIA_OK) {
@@ -156,7 +156,13 @@ void Decoder::createDecoder()
     m_codec = AMediaCodec_createDecoderByType(mime);
 }
 
-void Decoder::doDecode() {
+void Decoder::doDecode()
+{
+    if (!m_extractor) {
+        emit error(QAudioDecoder::ResourceError, tr("Cannot decode, source not set."));
+        return;
+    }
+
     createDecoder();
 
     media_status_t status = AMediaCodec_configure(m_codec, m_format, nullptr /* surface */,
@@ -259,7 +265,7 @@ void QAndroidAudioDecoder::setSource(const QUrl &fileName)
         return;
 
     m_device = nullptr;
-    m_error = QAudioDecoder::NoError;
+    error(QAudioDecoder::NoError, QStringLiteral(""));
 
     if (m_source != fileName) {
         m_source = fileName;
@@ -363,9 +369,6 @@ void QAndroidAudioDecoder::durationChanged(qint64 duration)
 
 void QAndroidAudioDecoder::error(const QAudioDecoder::Error err, const QString &errorString)
 {
-    QMutexLocker locker(&m_buffersMutex);
-    m_error = err;
-    locker.unlock();
     emit QPlatformAudioDecoder::error(err, errorString);
 }
 
