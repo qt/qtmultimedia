@@ -95,16 +95,6 @@ QQuickImageCapture::QQuickImageCapture(QObject *parent)
 QQuickImageCapture::~QQuickImageCapture() = default;
 
 /*!
-    \property QQuickImageCapture::ready
-
-    This property holds a bool value indicating whether the camera
-    is ready to capture photos or not.
-
-    Calling capture() while \e ready is \c false is not permitted and
-    results in an error.
-*/
-
-/*!
     \qmlproperty bool QtMultimedia::CameraCapture::readyForCapture
 
     This property holds a bool value indicating whether the camera
@@ -145,11 +135,6 @@ QQuickImageCapture::~QQuickImageCapture() = default;
 
 /*!
     \property QQuickImageCapture::capturedImagePath
-
-    This property holds the location of the last captured image.
-*/
-/*!
-    \qmlproperty string QtMultimedia::CameraCapture::capturedImagePath
 
     This property holds the location of the last captured image.
 */

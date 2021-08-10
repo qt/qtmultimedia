@@ -227,6 +227,9 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
 
     \value Format_Jpeg
     The frame is stored in compressed Jpeg format.
+
+    \value Format_SamplerExternalOES
+    The frame is stored in external OES texture format.
 */
 
 /*!

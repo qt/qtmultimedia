@@ -369,7 +369,7 @@ qint64 QAudioFormat::durationForFrames(qint32 frameCount) const
 
 /*!
     Normalizes the \a sample value to a number between -1 and 1.
-    The method depends on the QaudioFormat
+    The method depends on the QaudioFormat.
 */
 float QAudioFormat::normalizedSampleValue(const void *sample) const
 {
@@ -398,11 +398,11 @@ float QAudioFormat::normalizedSampleValue(const void *sample) const
     them to the correct endianness before writing them to a QAudioSink or
     QAudioBuffer.
 
-    \value Unknown       Not Set
-    \value Int16         Samples are 16 bit signed integers
-    \value Int32         Samples are 32 bit signed integers
-    \value Float         Samples are floats
-    \value UInt8         Samples are 8 bit unsigned integers
+    \value Unknown        Not Set
+    \value UInt8          Samples are unsigned 8 bit signed integers
+    \value Int16          Samples are 16 bit signed integers
+    \value Int32          Samples are 32 bit signed intergers
+    \value Float          Samples are floats
     \omitvalue NSampleFormats
 */
 
