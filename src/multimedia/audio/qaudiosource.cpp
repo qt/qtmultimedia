@@ -57,11 +57,11 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audio
 
     You can construct an audio input with the system's
-    \l{QMediaDevices::defaultAudioInput()}{default audio input
-    device}. It is also possible to create QAudioSource with a
-    specific QAudioDevice. When you create the audio input, you
-    should also send in the QAudioFormat to be used for the recording
-    (see the QAudioFormat class description for details).
+    default audio input device. It is also possible to
+    create QAudioSource with a specific QAudioDevice. When
+    you create the audio input, you should also send in the
+    QAudioFormat to be used for the recording (see the QAudioFormat
+    class description for details).
 
     To record to a file:
 

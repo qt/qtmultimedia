@@ -58,11 +58,11 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audio
 
     You can construct an audio output with the system's
-    \l{QMediaDevices::defaultAudioOutput()}{default audio output
-    device}. It is also possible to create QAudioSink with a
-    specific QAudioDevice. When you create the audio output, you
-    should also send in the QAudioFormat to be used for the playback
-    (see the QAudioFormat class description for details).
+    default audio output device. It is also possible to
+    create QAudioSink with a specific QAudioDevice. When
+    you create the audio output, you should also send in
+    the QAudioFormat to be used for the playback (see
+    the QAudioFormat class description for details).
 
     To play a file:
 

@@ -321,114 +321,11 @@ void *QAudioBuffer::data()
     return d->data.data();
 }
 
-// Template helper classes worth documenting
-
-/*!
-    \class QAudioBuffer::StereoFrameDefault
-    \internal
-
-    Just a trait class for the default value.
-*/
-
-/*!
-    \class QAudioBuffer::StereoFrame
-    \brief The StereoFrame class provides a simple wrapper for a stereo audio frame.
-    \inmodule QtMultimedia
-    \ingroup multimedia
-    \ingroup multimedia_audio
-
-    This templatized structure lets you treat a block of individual samples as an
-    interleaved stereo stream frame.  This is most useful when used with the templatized
-    \l {QAudioBuffer::data()}{data()} functions of QAudioBuffer.  Generally the data
-    is accessed as a pointer, so no copying should occur.
-
-    There are some predefined instantiations of this template for working with common
-    stereo sample depths in a convenient way.
-
-    This frame structure has \e left and \e right members for accessing individual channel data.
-
-    For example:
-    \code
-    // Assuming 'buffer' is an unsigned 16 bit stereo buffer..
-    QAudioBuffer::S16U *frames = buffer->data<QAudioBuffer::S16U>();
-    for (int i=0; i < buffer->frameCount(); i++) {
-        qSwap(frames[i].left, frames[i].right);
-    }
-    \endcode
-
-    \sa QAudioBuffer::S8U, QAudioBuffer::S8S, QAudioBuffer::S16S, QAudioBuffer::S16U, QAudioBuffer::S32F
-*/
-
-/*!
-    \fn template <typename T> QAudioBuffer::StereoFrame<T>::StereoFrame()
-
-    Constructs a new frame with the "silent" value for this
-    sample format (0 for signed formats and floats, 0x8* for unsigned formats).
-*/
-
-/*!
-    \fn template <typename T> QAudioBuffer::StereoFrame<T>::StereoFrame(T leftSample, T rightSample)
-
-    Constructs a new frame with the supplied \a leftSample and \a rightSample values.
-*/
-
-/*!
-    \fn template <typename T> QAudioBuffer::StereoFrame<T>::operator=(const StereoFrame &other)
-
-    Assigns \a other to this frame.
- */
-
-
-/*!
-    \fn template <typename T> QAudioBuffer::StereoFrame<T>::average() const
-
-    Returns the arithmetic average of the left and right samples.
- */
-
-/*! \fn template <typename T> QAudioBuffer::StereoFrame<T>::clear()
-
-    Sets the values of this frame to the "silent" value.
-*/
-
-/*!
-    \variable QAudioBuffer::StereoFrame::left
-    \brief the left sample
-*/
-
-/*!
-    \variable QAudioBuffer::StereoFrame::right
-    \brief the right sample
-*/
-
-/*!
-    \typedef QAudioBuffer::S8U
-
-    This is a predefined specialization for an unsigned stereo 8 bit sample.  Each
-    channel is an \e {unsigned char}.
-*/
-/*!
-    \typedef QAudioBuffer::S8S
-
-    This is a predefined specialization for a signed stereo 8 bit sample.  Each
-    channel is a \e {signed char}.
-*/
-/*!
-    \typedef QAudioBuffer::S16U
-
-    This is a predefined specialization for an unsigned stereo 16 bit sample.  Each
-    channel is an \e {unsigned short}.
-*/
 /*!
     \typedef QAudioBuffer::S16S
 
     This is a predefined specialization for a signed stereo 16 bit sample.  Each
     channel is a \e {signed short}.
-*/
-/*!
-    \typedef QAudioBuffer::S32F
-
-    This is a predefined specialization for an 32 bit float sample.  Each
-    channel is a \e float.
 */
 
 QT_END_NAMESPACE
