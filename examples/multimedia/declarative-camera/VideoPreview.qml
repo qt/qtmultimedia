@@ -58,7 +58,6 @@ Item {
 
     MediaPlayer {
         id: player
-        autoPlay: true
 
         //switch back to viewfinder after playback finished
         onMediaStatusChanged: {
