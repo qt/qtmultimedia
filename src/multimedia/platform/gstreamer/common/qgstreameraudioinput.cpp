@@ -126,7 +126,7 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
     audioSrc = newSrc;
     gstAudioInput.add(audioSrc);
     audioSrc.link(audioVolume);
-    audioSrc.setState(GST_STATE_PAUSED);
+    audioSrc.syncStateWithParent();
 
     gstPipeline.endConfig();
 }

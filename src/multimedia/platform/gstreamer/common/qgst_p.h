@@ -475,6 +475,7 @@ public:
 #endif
         return change == GST_STATE_CHANGE_SUCCESS;
     }
+    bool syncStateWithParent() { return gst_element_sync_state_with_parent(element()) == TRUE; }
     bool finishStateChange()
     {
         auto change = gst_element_get_state(element(), nullptr, nullptr, 1000*1e6 /*nano seconds*/);
