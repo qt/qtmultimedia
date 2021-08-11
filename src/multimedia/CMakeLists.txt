@@ -328,7 +328,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture
         platform/android/mediaplayer
         platform/android/wrappers/jni
-    PUBLIC_LIBRARIES
+    LIBRARIES
         OpenSLES
         mediandk
 )
@@ -366,7 +366,7 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         platform/darwin/qdarwinmediadevices.mm platform/darwin/qdarwinmediadevices_p.h
         platform/darwin/qdarwinformatsinfo.mm platform/darwin/qdarwinformatsinfo_p.h
         platform/darwin/qdarwinintegration.mm platform/darwin/qdarwinintegration_p.h
-    PUBLIC_LIBRARIES
+    LIBRARIES
         ${FWAudioToolbox}
         ${FWCoreAudio}
         ${FWCoreFoundation}
@@ -379,14 +379,14 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT WATCHOS
-    PUBLIC_LIBRARIES
+    LIBRARIES
         ${FWAppKit}
         ${FWAudioUnit}
         ${FWVideoToolbox}
 )
 
 qt_internal_extend_target(Multimedia CONDITION IOS AND NOT WATCHOS
-    PUBLIC_LIBRARIES
+    LIBRARIES
         ${FWCoreGraphics}
         ${FWCoreVideo}
 )
@@ -412,13 +412,13 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS AND (IOS OR TVOS)
     SOURCES
         platform/darwin/audio/qcoreaudiosessionmanager.mm platform/darwin/audio/qcoreaudiosessionmanager_p.h
-    PUBLIC_LIBRARIES
+    LIBRARIES
         ${FWAVFoundation}
         ${FWFoundation}
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT IOS AND NOT TVOS AND NOT WATCHOS
-    PUBLIC_LIBRARIES
+    LIBRARIES
         ${FWAppKit}
         ${FWApplicationServices}
         ${FWAudioUnit}
@@ -457,7 +457,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
         platform/qnx/camera
         platform/qnx/common
         platform/qnx/mediaplayer
-    PUBLIC_LIBRARIES
+    LIBRARIES
         MMRenderer::MMRenderer
         asound
         audio_manager
