@@ -4,9 +4,10 @@
 ## QSGVivanteVideoNodeFactory Plugin:
 #####################################################################
 
-qt_internal_add_plugin(QSGVivanteVideoNodeFactory
+qt_internal_add_plugin(QSGVivanteVideoNodeFactoryPlugin
     OUTPUT_NAME imx6vivantevideonode
     PLUGIN_TYPE video/videonode
+    CLASS_NAME QSGVivanteVideoNodeFactory
     SOURCES
         qsgvivantevideomaterial.cpp qsgvivantevideomaterial.h
         qsgvivantevideomaterialshader.cpp qsgvivantevideomaterialshader.h
