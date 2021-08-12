@@ -84,6 +84,19 @@ void QAndroidCamera::setCamera(const QCameraDevice &camera)
     m_cameraSession->setSelectedCamera(id);
 }
 
+bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
+{
+    if (!format.isNull())
+        return false;
+
+    m_cameraFormat = format;
+
+    if (m_cameraSession)
+        m_cameraSession->setCameraFormat(m_cameraFormat);
+
+    return true;
+}
+
 void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
     QAndroidMediaCaptureSession *captureSession = static_cast<QAndroidMediaCaptureSession *>(session);
@@ -99,6 +112,8 @@ void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     m_cameraSession = m_service->cameraSession();
     Q_ASSERT(m_cameraSession);
+    if (!m_cameraFormat.isNull())
+        m_cameraSession->setCameraFormat(m_cameraFormat);
 
     connect(m_cameraSession, &QAndroidCameraSession::activeChanged, this, &QAndroidCamera::activeChanged);
     connect(m_cameraSession, &QAndroidCameraSession::error, this, &QAndroidCamera::error);

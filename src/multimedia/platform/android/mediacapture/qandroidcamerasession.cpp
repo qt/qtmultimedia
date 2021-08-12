@@ -139,8 +139,10 @@ void QAndroidCameraSession::updateAvailableCameras()
         QCameraDevicePrivate *info = new QCameraDevicePrivate;
         AndroidCamera::getCameraInfo(i, info);
 
-        if (!info->id.isEmpty())
+        if (!info->id.isEmpty()) {
+            AndroidCamera::getSupportedFormats(i, info->videoFormats);
             g_availableCameras->append(info->create());
+        }
     }
 }
 
@@ -223,6 +225,18 @@ void QAndroidCameraSession::setVideoOutput(QAndroidVideoOutput *output)
     }
 }
 
+void QAndroidCameraSession::setCameraFormat(const QCameraFormat &format)
+{
+    m_requestedFpsRange.min = format.minFrameRate();
+    m_requestedFpsRange.max = format.maxFrameRate();
+    m_requestedPixelFromat = AndroidCamera::AndroidImageFormatFromQtPixelFormat(format.pixelFormat());
+
+    m_requestedImageSettings.setResolution(format.resolution());
+    m_actualImageSettings.setResolution(format.resolution());
+    if (m_readyForCapture)
+        applyResolution(m_actualImageSettings.resolution());
+}
+
 void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool restartPreview)
 {
     if (!m_camera)
@@ -278,11 +292,15 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
 
     // -- adjust pixel format
 
-    AndroidCamera::ImageFormat adjustedPreviewFormat = AndroidCamera::NV21;
+    AndroidCamera::ImageFormat adjustedPreviewFormat = m_requestedPixelFromat;
+    if (adjustedPreviewFormat == AndroidCamera::UnknownImageFormat)
+        adjustedPreviewFormat = AndroidCamera::NV21;
 
     // -- adjust FPS
 
-    AndroidCamera::FpsRange adjustedFps = currentFpsRange;
+    AndroidCamera::FpsRange adjustedFps = m_requestedFpsRange;;
+    if (adjustedFps.min == 0 || adjustedFps.max == 0)
+        adjustedFps = currentFpsRange;
 
     // -- Set values on camera
 
@@ -325,7 +343,7 @@ QList<QVideoFrameFormat::PixelFormat> QAndroidCameraSession::getSupportedPixelFo
     formats.reserve(nativeFormats.size());
 
     for (AndroidCamera::ImageFormat nativeFormat : nativeFormats) {
-        QVideoFrameFormat::PixelFormat format = QtPixelFormatFromAndroidImageFormat(nativeFormat);
+        QVideoFrameFormat::PixelFormat format = AndroidCamera::QtPixelFormatFromAndroidImageFormat(nativeFormat);
         if (format != QVideoFrameFormat::Format_Invalid)
             formats.append(format);
     }
@@ -660,38 +678,6 @@ void QAndroidCameraSession::processCapturedImage(int id,
     } else {
         QVideoFrame frame(new QMemoryVideoBuffer(data, -1), QVideoFrameFormat(resolution, QVideoFrameFormat::Format_Jpeg));
         emit imageAvailable(id, frame);
-    }
-}
-
-QVideoFrameFormat::PixelFormat QAndroidCameraSession::QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat format)
-{
-    switch (format) {
-    case AndroidCamera::NV21:
-        return QVideoFrameFormat::Format_NV21;
-    case AndroidCamera::YUY2:
-        return QVideoFrameFormat::Format_YUYV;
-    case AndroidCamera::JPEG:
-        return QVideoFrameFormat::Format_Jpeg;
-    case AndroidCamera::YV12:
-        return QVideoFrameFormat::Format_YV12;
-    default:
-        return QVideoFrameFormat::Format_Invalid;
-    }
-}
-
-AndroidCamera::ImageFormat QAndroidCameraSession::AndroidImageFormatFromQtPixelFormat(QVideoFrameFormat::PixelFormat format)
-{
-    switch (format) {
-    case QVideoFrameFormat::Format_NV21:
-        return AndroidCamera::NV21;
-    case QVideoFrameFormat::Format_YUYV:
-        return AndroidCamera::YUY2;
-    case QVideoFrameFormat::Format_Jpeg:
-        return AndroidCamera::JPEG;
-    case QVideoFrameFormat::Format_YV12:
-        return AndroidCamera::YV12;
-    default:
-        return AndroidCamera::UnknownImageFormat;
     }
 }
 

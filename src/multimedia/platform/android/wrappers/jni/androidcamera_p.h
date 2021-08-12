@@ -204,10 +204,12 @@ public:
 
     static int getNumberOfCameras();
     static void getCameraInfo(int id, QCameraDevicePrivate *info);
+    static QVideoFrameFormat::PixelFormat QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat);
+    static AndroidCamera::ImageFormat AndroidImageFormatFromQtPixelFormat(QVideoFrameFormat::PixelFormat);
+    static void getSupportedFormats(int id, QList<QCameraFormat> &formats);
     static bool requestCameraPermission();
 
     static bool registerNativeMethods();
-
 Q_SIGNALS:
     void previewSizeChanged();
     void previewStarted();
