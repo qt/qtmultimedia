@@ -186,6 +186,13 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
     if (m_activeCameraDevice != info) {
         m_activeCameraDevice = info;
         attachVideoInputDevice();
+
+        if (!m_activeCameraDevice.isNull() && !m_videoOutput) {
+            setVideoOutput(new AVFCameraRenderer(this));
+            connect(m_videoOutput, &AVFCameraRenderer::newViewfinderFrame,
+                     this, &AVFCameraSession::newViewfinderFrame);
+        }
+        updateVideoOutput();
     }
 }
 
@@ -479,16 +486,7 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
 
     m_videoSink = videoSink;
 
-    if (m_videoSink && !m_videoOutput)
-        setVideoOutput(new AVFCameraRenderer(this));
-
-    if (m_videoOutput) {
-        m_videoOutput->setVideoSink(videoSink);
-        if (m_videoSink) {
-            AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
-            m_videoOutput->setLayer(previewLayer);
-        }
-    }
+    updateVideoOutput();
 }
 
 void AVFCameraSession::updateAudioInput()
@@ -515,6 +513,17 @@ void AVFCameraSession::updateAudioOutput()
         m_audioRenderer.audioOutputDeviceUniqueID = [NSString stringWithUTF8String:
                                                              deviceId.constData()];
 #endif
+    }
+}
+
+void AVFCameraSession::updateVideoOutput()
+{
+    if (m_videoOutput) {
+        m_videoOutput->setVideoSink(m_videoSink);
+        if (m_videoSink) {
+            AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
+            m_videoOutput->setLayer(previewLayer);
+        }
     }
 }
 

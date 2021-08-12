@@ -114,10 +114,13 @@ public Q_SLOTS:
     void processSessionStarted();
     void processSessionStopped();
 
+    void updateVideoOutput();
+
 Q_SIGNALS:
     void readyToConfigureConnections();
     void activeChanged(bool);
     void error(int error, const QString &errorString);
+    void newViewfinderFrame(const QVideoFrame &frame);
 
 private:
     void setVideoOutput(AVFCameraRenderer *output);

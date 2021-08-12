@@ -232,10 +232,6 @@ void AVFImageCapture::onCameraChanged()
     m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
     if (m_cameraControl)
         connect(m_cameraControl, SIGNAL(activeChanged(bool)), this, SLOT(updateReadyStatus()));
-    if (m_session->videoOutput())
-        connect(m_session->videoOutput(), &AVFCameraRenderer::newViewfinderFrame,
-                this, &AVFImageCapture::onNewViewfinderFrame,
-                Qt::DirectConnection);
 }
 
 void AVFImageCapture::makeCapturePreview(CaptureRequest request,
@@ -397,6 +393,8 @@ void AVFImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     connect(m_service, &AVFCameraService::cameraChanged, this, &AVFImageCapture::onCameraChanged);
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
+    connect(m_session, &AVFCameraSession::newViewfinderFrame,
+                 this, &AVFImageCapture::onNewViewfinderFrame);
 
     updateCaptureConnection();
     updateReadyStatus();
