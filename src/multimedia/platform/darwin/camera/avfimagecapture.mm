@@ -59,9 +59,6 @@ QT_USE_NAMESPACE
 
 AVFImageCapture::AVFImageCapture(QImageCapture *parent)
    : QPlatformImageCapture(parent)
-   , m_ready(false)
-   , m_lastCaptureId(0)
-   , m_videoConnection(nil)
 {
     m_stillImageOutput = [[AVCaptureStillImageOutput alloc] init];
 
@@ -74,6 +71,7 @@ AVFImageCapture::AVFImageCapture(QImageCapture *parent)
 
 AVFImageCapture::~AVFImageCapture()
 {
+    [m_stillImageOutput release];
 }
 
 bool AVFImageCapture::isReadyForCapture() const
@@ -231,8 +229,9 @@ void AVFImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
 void AVFImageCapture::onCameraChanged()
 {
     Q_ASSERT(m_service && m_session);
-    if (m_service->camera())
-        connect(m_service->camera(), SIGNAL(activeChanged(bool)), this, SLOT(updateReadyStatus()));
+    m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
+    if (m_cameraControl)
+        connect(m_cameraControl, SIGNAL(activeChanged(bool)), this, SLOT(updateReadyStatus()));
     if (m_session->videoOutput())
         connect(m_session->videoOutput(), &AVFCameraRenderer::newViewfinderFrame,
                 this, &AVFImageCapture::onNewViewfinderFrame,
@@ -384,11 +383,9 @@ void AVFImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     m_service = captureSession;
     if (!m_service) {
-        disconnect(m_session, nullptr, this, nullptr);
-        if (m_session->videoOutput())
-            disconnect(m_session->videoOutput(), nullptr, this, nullptr);
+        m_session->disconnect(this);
         if (m_cameraControl)
-            disconnect(m_cameraControl, nullptr, this, nullptr);
+            m_cameraControl->disconnect(this);
         m_session = nullptr;
         m_cameraControl = nullptr;
         m_videoConnection = nil;
@@ -397,7 +394,6 @@ void AVFImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     m_session = m_service->session();
     Q_ASSERT(m_session);
-    m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
 
     connect(m_service, &AVFCameraService::cameraChanged, this, &AVFImageCapture::onCameraChanged);
     connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));

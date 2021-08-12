@@ -98,13 +98,13 @@ private:
     void makeCapturePreview(CaptureRequest request, const QVideoFrame &frame, int rotation);
     bool videoCaptureDeviceIsValid() const;
 
-    AVFCameraService *m_service;
-    AVFCameraSession *m_session;
-    AVFCamera *m_cameraControl;
-    bool m_ready;
-    int m_lastCaptureId;
+    AVFCameraService *m_service = nullptr;
+    AVFCameraSession *m_session = nullptr;
+    AVFCamera *m_cameraControl = nullptr;
+    bool m_ready = false;
+    int m_lastCaptureId = 0;
     AVCaptureStillImageOutput *m_stillImageOutput;
-    AVCaptureConnection *m_videoConnection;
+    AVCaptureConnection *m_videoConnection = nullptr;
     AVFStorageLocation m_storageLocation;
 
     QMutex m_requestsMutex;

@@ -126,7 +126,7 @@ private:
     QCameraDevice m_cameraDevice;
     QCameraFormat m_cameraFormat;
 
-    bool m_active;
+    bool m_active = false;
 
     bool isFlashSupported = false;
     bool isFlashAutoSupported = false;

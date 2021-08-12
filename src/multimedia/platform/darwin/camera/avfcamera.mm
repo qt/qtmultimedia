@@ -157,7 +157,6 @@ bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCamera::ExposureM
 
 AVFCamera::AVFCamera(QCamera *camera)
    : QPlatformCamera(camera)
-   , m_active(false)
 {
     Q_ASSERT(camera);
 }
@@ -217,6 +216,13 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     if (m_service == captureSession)
         return;
 
+    if (m_session) {
+        m_session->disconnect(this);
+        m_session->setActive(false);
+        m_session->setCameraFormat({});
+        m_session->setActiveCamera({});
+    }
+
     m_service = captureSession;
     if (!m_service) {
         m_session = nullptr;
@@ -224,10 +230,12 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     }
 
     m_session = m_service->session();
-    m_session->setActiveCamera(QCameraDevice());
-    m_session->setActive(m_active);
+    Q_ASSERT(m_session);
+
+    m_session->setActive(false);
     m_session->setActiveCamera(m_cameraDevice);
-    setCameraFormat(m_cameraFormat);
+    m_session->setCameraFormat(m_cameraFormat);
+    m_session->setActive(m_active);
 }
 
 AVCaptureConnection *AVFCamera::videoConnection() const
