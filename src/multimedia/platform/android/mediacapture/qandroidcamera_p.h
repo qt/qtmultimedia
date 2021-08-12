@@ -71,6 +71,7 @@ public:
     void setActive(bool active) override;
 
     void setCamera(const QCameraDevice &camera) override;
+    bool setCameraFormat(const QCameraFormat &format) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
@@ -120,6 +121,7 @@ private:
     bool isTorchSupported = false;
 
     QMap<QCamera::WhiteBalanceMode, QString> m_supportedWhiteBalanceModes;
+    QCameraFormat m_cameraFormat;
 };
 
 
