@@ -70,6 +70,8 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
       QPlatformMediaPlayer(parent),
       playerPipeline("playerPipeline")
 {
+    playerPipeline.setFlushOnConfigChanges(true);
+
     gstVideoOutput = new QGstreamerVideoOutput(this);
     gstVideoOutput->setPipeline(playerPipeline);
 

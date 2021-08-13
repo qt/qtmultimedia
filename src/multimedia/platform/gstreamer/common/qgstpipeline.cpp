@@ -65,6 +65,7 @@ public:
     QProperty<bool> inStoppedState;
     mutable qint64 m_position = 0;
     double m_rate = 1.;
+    bool m_flushOnConfigChanges = false;
 
     int m_configCounter = 0;
     GstState m_savedState = GST_STATE_NULL;
@@ -241,6 +242,11 @@ QProperty<bool> *QGstPipeline::inStoppedState()
     return &d->inStoppedState;
 }
 
+void QGstPipeline::setFlushOnConfigChanges(bool flush)
+{
+    d->m_flushOnConfigChanges = flush;
+}
+
 void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
     Q_ASSERT(d);
@@ -290,7 +296,7 @@ void QGstPipeline::endConfig()
     if (d->m_configCounter)
         return;
 
-    if (d->m_savedState != GST_STATE_NULL)
+    if (d->m_savedState != GST_STATE_NULL && d->m_flushOnConfigChanges)
         flush();
     if (d->m_savedState == GST_STATE_PLAYING)
         setStateSync(GST_STATE_PLAYING);

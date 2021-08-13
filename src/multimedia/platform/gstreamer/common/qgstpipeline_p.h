@@ -93,6 +93,8 @@ public:
     // transition to play.
     QProperty<bool> *inStoppedState();
 
+    void setFlushOnConfigChanges(bool flush);
+
     void installMessageFilter(QGstreamerSyncMessageFilter *filter);
     void removeMessageFilter(QGstreamerSyncMessageFilter *filter);
     void installMessageFilter(QGstreamerBusMessageFilter *filter);
