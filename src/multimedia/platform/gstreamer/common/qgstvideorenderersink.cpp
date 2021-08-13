@@ -134,7 +134,6 @@ void QGstVideoRenderer::createSurfaceCaps()
     }
 #endif
     caps.addPixelFormats(formats);
-    qDebug() << "using caps" << caps.toString();
 
     m_surfaceCaps = caps;
 }
@@ -202,9 +201,8 @@ void QGstVideoRenderer::unlock()
 
 bool QGstVideoRenderer::proposeAllocation(GstQuery *query)
 {
+    Q_UNUSED(query);
     QMutexLocker locker(&m_mutex);
-    QGstStructure s = gst_query_get_structure(query);
-    qDebug() << "propose allocation" << s.toString();
     return m_active;
 }
 
