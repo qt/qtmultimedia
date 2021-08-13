@@ -57,6 +57,8 @@
 #include <QtCore/qsize.h>
 #include <QtGui/qwindowdefs.h>
 #include <qvideosink.h>
+#include <qvideoframe.h>
+#include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -76,7 +78,8 @@ public:
 
     virtual void setFullScreen(bool fullScreen) = 0;
 
-    virtual QSize nativeSize() const = 0;
+    // ### make non virtual, once Windows is ported
+    virtual QSize nativeSize() const { return m_nativeSize; }
 
     virtual void setAspectRatioMode(Qt::AspectRatioMode mode) = 0;
 
@@ -87,12 +90,21 @@ public:
 
     QVideoSink *videoSink() { return sink; }
 
-Q_SIGNALS:
-    void nativeSizeChanged();
+    void setNativeSize(QSize s) {
+        if (m_nativeSize == s)
+            return;
+        m_nativeSize = s;
+        sink->videoSizeChanged();
+    }
+    void newVideoFrame(const QVideoFrame &frame) {
+        setNativeSize(frame.size());
+        sink->newVideoFrame(frame);
+    }
 
 protected:
     explicit QPlatformVideoSink(QVideoSink *parent);
     QVideoSink *sink = nullptr;
+    QSize m_nativeSize;
 };
 
 QT_END_NAMESPACE

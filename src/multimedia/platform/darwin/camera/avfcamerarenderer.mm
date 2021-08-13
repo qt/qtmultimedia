@@ -229,7 +229,7 @@ void AVFCameraRenderer::handleViewfinderFrame()
         if (m_needsHorizontalMirroring)
             format.setMirrored(true);
 
-        m_sink->videoSink()->newVideoFrame(frame);
+        m_sink->newVideoFrame(frame);
     }
 }
 

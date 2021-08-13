@@ -91,6 +91,7 @@ Q_SIGNALS:
 
     void fullScreenChanged(bool fullScreen);
     void aspectRatioModeChanged(Qt::AspectRatioMode mode);
+    void videoSizeChanged();
 
 private:
     friend class QMediaPlayerPrivate;

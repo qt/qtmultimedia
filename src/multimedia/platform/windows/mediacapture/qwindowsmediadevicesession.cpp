@@ -41,6 +41,7 @@
 
 #include "qwindowsmediadevicereader_p.h"
 #include "qwindowsmultimediautils_p.h"
+#include "private/qplatformvideosink_p.h"
 #include <qvideosink.h>
 #include <QtCore/qdebug.h>
 #include <qaudioinput.h>
@@ -152,14 +153,14 @@ void QWindowsMediaDeviceSession::handleStreamingStopped()
 void QWindowsMediaDeviceSession::handleStreamingError(int errorCode)
 {
     if (m_surface)
-        emit m_surface->newVideoFrame(QVideoFrame());
+        emit m_surface->platformVideoSink()->newVideoFrame(QVideoFrame());
     emit streamingError(errorCode);
 }
 
 void QWindowsMediaDeviceSession::handleNewVideoFrame(const QVideoFrame &frame)
 {
     if (m_surface)
-        emit m_surface->newVideoFrame(frame);
+        emit m_surface->platformVideoSink()->newVideoFrame(frame);
     emit newVideoFrame(frame);
 }
 

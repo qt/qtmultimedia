@@ -163,18 +163,11 @@ void QGstreamerVideoSink::setFullScreen(bool fullScreen)
     m_videoOverlay->setFullScreen(fullScreen);
 }
 
-QSize QGstreamerVideoSink::nativeSize() const
-{
-    return m_videoOverlay->nativeVideoSize();
-}
-
 void QGstreamerVideoSink::createOverlay()
 {
     if (m_videoOverlay)
         return;
     m_videoOverlay = new QGstreamerVideoOverlay(this, qgetenv("QT_GSTREAMER_WINDOW_VIDEOSINK"));
-    connect(m_videoOverlay, &QGstreamerVideoOverlay::nativeVideoSizeChanged,
-            this, &QGstreamerVideoSink::nativeSizeChanged);
 }
 
 void QGstreamerVideoSink::createQtSink()

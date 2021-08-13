@@ -83,8 +83,6 @@ public:
 
     void setFullScreen(bool fullScreen) override;
 
-    QSize nativeSize() const override;
-
     void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
     QGstElement gstSink();

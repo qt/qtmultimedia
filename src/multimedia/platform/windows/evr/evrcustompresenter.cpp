@@ -42,6 +42,7 @@
 #include "evrd3dpresentengine_p.h"
 #include "evrhelpers_p.h"
 #include <private/qwindowsmultimediautils_p.h>
+#include <private/qplatformvideosink_p.h>
 
 #include <QtGui/private/qrhi_p.h>
 
@@ -1913,7 +1914,7 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
             frame.setEndTime(frame.endTime() + m_positionOffset);
     }
 
-    m_videoSink->newVideoFrame(frame);
+    m_videoSink->platformVideoSink()->newVideoFrame(frame);
 }
 
 void EVRCustomPresenter::positionChanged(qint64 position)

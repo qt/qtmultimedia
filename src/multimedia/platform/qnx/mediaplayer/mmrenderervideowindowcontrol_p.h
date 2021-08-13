@@ -74,8 +74,6 @@ public:
 
     void repaint() override;
 
-    QSize nativeSize() const override;
-
     Qt::AspectRatioMode aspectRatioMode() const override;
     void setAspectRatioMode(Qt::AspectRatioMode mode) override;
 
