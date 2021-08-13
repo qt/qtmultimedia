@@ -372,15 +372,13 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 
 bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
 {
+#if QT_CONFIG(gstreamer_gl)
     if (message.type() != GST_MESSAGE_NEED_CONTEXT)
         return false;
     const gchar *type = nullptr;
     gst_message_parse_context_type (message.rawMessage(), &type);
-    qDebug() << "requesting a context" << type << "from" << GST_MESSAGE_SRC_NAME (message.rawMessage());
-#if QT_CONFIG(gstreamer_gl)
     if (strcmp(type, GST_GL_DISPLAY_CONTEXT_TYPE))
         return false;
-#endif
     if (!gstVideoOutput || !gstVideoOutput->gstreamerVideoSink())
         return false;
     auto *context = gstVideoOutput->gstreamerVideoSink()->gstGlDisplayContext();
@@ -389,6 +387,10 @@ bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
     gst_element_set_context(GST_ELEMENT(GST_MESSAGE_SRC(message.rawMessage())), context);
     playerPipeline.dumpGraph("need_context");
     return true;
+#else
+    Q_UNUSED(message);
+    return false;
+#endif
 }
 
 QUrl QGstreamerMediaPlayer::media() const
