@@ -415,7 +415,6 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
 
     TrackType streamType = NTrackTypes;
     if (type.startsWith("video/x-raw")) {
-        qDebug() << "video decoder pad added";
         streamType = VideoStream;
     } else if (type.startsWith("audio/x-raw")) {
         streamType = AudioStream;

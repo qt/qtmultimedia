@@ -699,7 +699,6 @@ QImage QVideoFrame::toImage() const
     // Need conversion
     else {
         VideoFrameConvertFunc convert = qConverterForFormat(frame.pixelFormat());
-        qDebug() << "using QVideoFrame conversion" << frame.pixelFormat();
         if (!convert) {
             qWarning() << Q_FUNC_INFO << ": unsupported pixel format" << frame.pixelFormat();
         } else {
