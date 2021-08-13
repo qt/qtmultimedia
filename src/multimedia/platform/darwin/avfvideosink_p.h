@@ -89,7 +89,6 @@ public:
     bool isFullScreen() const;
     void setFullScreen(bool fullScreen) override;
 
-    QSize nativeSize() const override;
     void setNativeSize(QSize size);
 
     Qt::AspectRatioMode aspectRatioMode() const;
@@ -111,7 +110,6 @@ private:
     QRhi *m_rhi = nullptr;
     NativeView *m_nativeView = nullptr;
 
-    QSize m_nativeSize;
     QRect m_displayRect;
     bool m_fullscreen = false;
     float m_brightness = 0;

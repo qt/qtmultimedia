@@ -43,6 +43,7 @@
 #include "qgstutils_p.h"
 #include "private/qgst_p.h"
 #include "private/qgstreamermessage_p.h"
+#include "private/qgstreamervideosink_p.h"
 
 #include <gst/video/videooverlay.h>
 
@@ -126,9 +127,10 @@ static QGstElement findBestVideoSink()
     return choice;
 }
 
-QGstreamerVideoOverlay::QGstreamerVideoOverlay(QObject *parent, const QByteArray &elementName)
+QGstreamerVideoOverlay::QGstreamerVideoOverlay(QGstreamerVideoSink *parent, const QByteArray &elementName)
     : QObject(parent)
     , QGstreamerBufferProbe(QGstreamerBufferProbe::ProbeCaps)
+    , m_gstreamerVideoSink(parent)
 {
     QGstElement sink;
     if (!elementName.isEmpty())
@@ -223,7 +225,7 @@ void QGstreamerVideoOverlay::probeCaps(GstCaps *caps)
     QSize size = QGstCaps(caps).at(0).resolution();
     if (size != m_nativeVideoSize) {
         m_nativeVideoSize = size;
-        emit nativeVideoSizeChanged();
+        m_gstreamerVideoSink->setNativeSize(m_nativeVideoSize);
         applyRenderRect();
     }
 }

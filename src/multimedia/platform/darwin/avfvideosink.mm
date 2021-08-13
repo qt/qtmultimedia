@@ -111,16 +111,11 @@ void AVFVideoSink::setFullScreen(bool fullScreen)
         m_interface->reconfigure();
 }
 
-QSize AVFVideoSink::nativeSize() const
-{
-    return m_nativeSize;
-}
-
 void AVFVideoSink::setNativeSize(QSize size)
 {
-    if (size == m_nativeSize)
+    if (size == nativeSize())
         return;
-    m_nativeSize = size;
+    QPlatformVideoSink::setNativeSize(size);
     if (m_interface)
         m_interface->nativeSizeChanged();
 }

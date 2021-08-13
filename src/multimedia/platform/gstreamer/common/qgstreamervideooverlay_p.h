@@ -57,8 +57,8 @@
 #include <QtGui/qwindowdefs.h>
 
 QT_BEGIN_NAMESPACE
+class QGstreamerVideoSink;
 
-class QGstreamerSinkProperties;
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
         : public QObject
         , public QGstreamerSyncMessageFilter
@@ -66,7 +66,7 @@ class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
 {
     Q_OBJECT
 public:
-    explicit QGstreamerVideoOverlay(QObject *parent = 0, const QByteArray &elementName = QByteArray());
+    explicit QGstreamerVideoOverlay(QGstreamerVideoSink *parent = 0, const QByteArray &elementName = QByteArray());
     virtual ~QGstreamerVideoOverlay();
 
     QGstElement videoSink() const;
@@ -91,6 +91,7 @@ private:
     void probeCaps(GstCaps *caps) override;
     void applyRenderRect();
 
+    QGstreamerVideoSink *m_gstreamerVideoSink = nullptr;
     QGstElement m_videoSink;
     QSize m_nativeVideoSize;
 

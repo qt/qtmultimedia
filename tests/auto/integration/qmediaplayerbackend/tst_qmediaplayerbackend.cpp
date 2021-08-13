@@ -1157,6 +1157,7 @@ void tst_QMediaPlayerBackend::videoDimensions()
     player.pause();
     QTRY_COMPARE(surface.m_totalFrames, 1);
     QCOMPARE(surface.m_frameList.last().height(), 120);
+    QCOMPARE(surface.videoSize().height(), 120);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

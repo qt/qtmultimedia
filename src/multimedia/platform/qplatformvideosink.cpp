@@ -89,13 +89,6 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
 */
 
 /*!
-    \fn QPlatformVideoSink::nativeSizeChanged()
-
-    Signals that the native dimensions of the video have changed.
-*/
-
-
-/*!
     \fn QPlatformVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
 
     Sets the aspect ratio \a mode which determines how video is scaled to the fit the display region

@@ -42,6 +42,7 @@
 
 #include "evrcustompresenter_p.h"
 
+#include <private/qplatformvideosink_p.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <qvideosink.h>
 #include <qvideoframeformat.h>
@@ -848,7 +849,7 @@ namespace
                         new MediaSampleVideoBuffer(m_scheduledBuffer, m_bytesPerLine), m_surfaceFormat);
             frame.setStartTime(m_bufferStartTime * 0.1);
             frame.setEndTime((m_bufferStartTime + m_bufferDuration) * 0.1);
-            m_videoSink->newVideoFrame(frame);
+            m_videoSink->platformVideoSink()->newVideoFrame(frame);
             m_scheduledBuffer->Release();
             m_scheduledBuffer = NULL;
             if (m_rate != 0)
@@ -2174,7 +2175,7 @@ MFVideoRendererControl::~MFVideoRendererControl()
 void MFVideoRendererControl::clear()
 {
     if (m_sink)
-        m_sink->newVideoFrame(QVideoFrame());
+        m_sink->platformVideoSink()->newVideoFrame(QVideoFrame());
 
     if (m_presenterActivate) {
         m_presenterActivate->ShutdownObject();

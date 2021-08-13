@@ -92,9 +92,4 @@ void QAndroidVideoSink::setFullScreen(bool fullScreen)
     m_fullScreen = fullScreen;
 }
 
-QSize QAndroidVideoSink::nativeSize() const
-{
-    return QSize(640, 480);
-}
-
 QT_END_NAMESPACE

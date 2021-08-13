@@ -100,11 +100,6 @@ void MmRendererVideoWindowControl::repaint()
     // Nothing we can or should do here
 }
 
-QSize MmRendererVideoWindowControl::nativeSize() const
-{
-    return QSize(m_metaData.width(), m_metaData.height());
-}
-
 Qt::AspectRatioMode MmRendererVideoWindowControl::aspectRatioMode() const
 {
     return m_aspectRatioMode;
@@ -329,7 +324,7 @@ void MmRendererVideoWindowControl::detachDisplay()
 void MmRendererVideoWindowControl::setMetaData(const MmRendererMetaData &metaData)
 {
     m_metaData = metaData;
-    emit nativeSizeChanged();
+    setNativeSize(QSize(m_metaData.width(), m_metaData.height());)
 
     // To handle the updated source size data
     updateVideoPosition();

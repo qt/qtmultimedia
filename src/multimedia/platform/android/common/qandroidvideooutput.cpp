@@ -42,6 +42,7 @@
 #include "androidsurfacetexture_p.h"
 #include <qvideosink.h>
 #include "private/qabstractvideobuffer_p.h"
+#include "private/qplatformvideosink_p.h"
 #include <QVideoFrameFormat>
 #include <QFile>
 #include <QtGui/private/qrhigles2_p.h>
@@ -234,7 +235,7 @@ void QAndroidTextureVideoOutput::reset()
 {
     // flush pending frame
     if (m_sink)
-        m_sink->newVideoFrame(QVideoFrame());
+        m_sink->platformVideoSink()->newVideoFrame(QVideoFrame());
 
     clearSurfaceTexture();
 }
@@ -249,7 +250,7 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
     const QVideoFrameFormat::PixelFormat format = rhi ? QVideoFrameFormat::Format_SamplerExternalOES
                                                       : QVideoFrameFormat::Format_RGBA8888;
     QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, format));
-    m_sink->newVideoFrame(frame);
+    m_sink->platformVideoSink()->newVideoFrame(frame);
 }
 
 static const float g_quad[] = {
