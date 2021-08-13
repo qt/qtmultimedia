@@ -80,6 +80,7 @@ private slots:
     void audioVideoAvailable();
     void isSeekable();
     void positionAfterSeek();
+    void videoDimensions();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -1144,6 +1145,18 @@ void tst_QMediaPlayerBackend::positionAfterSeek()
     player.setPosition(200);
     QVERIFY(player.position() != 0);
     QTRY_VERIFY(player.position() < 700);
+}
+
+void tst_QMediaPlayerBackend::videoDimensions()
+{
+    TestVideoSink surface(true);
+    QMediaPlayer player;
+    player.setVideoOutput(&surface);
+    QVERIFY(!player.isSeekable());
+    player.setSource(localVideoFile);
+    player.pause();
+    QTRY_COMPARE(surface.m_totalFrames, 1);
+    QCOMPARE(surface.m_frameList.last().height(), 120);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

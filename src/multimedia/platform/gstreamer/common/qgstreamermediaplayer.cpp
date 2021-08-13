@@ -381,6 +381,8 @@ bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
     if (strcmp(type, GST_GL_DISPLAY_CONTEXT_TYPE))
         return false;
 #endif
+    if (!gstVideoOutput || !gstVideoOutput->gstreamerVideoSink())
+        return false;
     auto *context = gstVideoOutput->gstreamerVideoSink()->gstGlDisplayContext();
     if (!context)
         return false;
@@ -493,10 +495,13 @@ void QGstreamerMediaPlayer::connectOutput(TrackType t)
         return;
 
     QGstElement e;
-    if (t == AudioStream)
-        e = gstAudioOutput->gstElement();
-    else if (t == VideoStream)
-        e = gstVideoOutput->gstElement();
+    if (t == AudioStream) {
+        if (gstAudioOutput)
+            e = gstAudioOutput->gstElement();
+    } else if (t == VideoStream) {
+        if (gstVideoOutput)
+            e = gstVideoOutput->gstElement();
+    }
     if (!e.isNull()) {
         qCDebug(qLcMediaPlayer) << "connecting output for track type" << t;
         playerPipeline.add(e);
