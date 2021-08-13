@@ -69,6 +69,7 @@ QGstreamerAudioInput::QGstreamerAudioInput(QAudioInput *parent)
 
 QGstreamerAudioInput::~QGstreamerAudioInput()
 {
+    gstAudioInput.setStateSync(GST_STATE_NULL);
 }
 
 int QGstreamerAudioInput::volume() const

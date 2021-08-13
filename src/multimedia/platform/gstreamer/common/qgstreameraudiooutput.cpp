@@ -72,6 +72,7 @@ QGstreamerAudioOutput::QGstreamerAudioOutput(QAudioOutput *parent)
 
 QGstreamerAudioOutput::~QGstreamerAudioOutput()
 {
+    gstAudioOutput.setStateSync(GST_STATE_NULL);
 }
 
 void QGstreamerAudioOutput::setVolume(float vol)

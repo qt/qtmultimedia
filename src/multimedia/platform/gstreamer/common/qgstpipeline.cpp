@@ -299,7 +299,7 @@ void QGstPipeline::endConfig()
     if (d->m_savedState != GST_STATE_NULL && d->m_flushOnConfigChanges)
         flush();
     if (d->m_savedState == GST_STATE_PLAYING)
-        setStateSync(GST_STATE_PLAYING);
+        setState(GST_STATE_PLAYING);
     d->m_savedState = GST_STATE_NULL;
 }
 
