@@ -71,7 +71,7 @@ qint64 QWindowsMediaEncoder::duration() const
     return m_duration;
 }
 
-void QWindowsMediaEncoder::record(const QMediaEncoderSettings &settings)
+void QWindowsMediaEncoder::record(QMediaEncoderSettings &settings)
 {
     if (!m_captureService || !m_mediaDeviceSession) {
         qWarning() << Q_FUNC_INFO << "Encoder is not set to a capture session";
@@ -88,11 +88,7 @@ void QWindowsMediaEncoder::record(const QMediaEncoderSettings &settings)
         return;
     }
 
-    const auto audioOnly = m_mediaDeviceSession->activeCamera().isNull();
-
-    auto resolvedSettings = settings;
-    resolvedSettings.resolveFormat(audioOnly ? QMediaFormat::NoFlags
-                                             : QMediaFormat::RequiresVideo);
+    const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
 
     const QString path = (outputLocation().scheme() == QLatin1String("file") ?
                               outputLocation().path() : outputLocation().toString());
@@ -101,9 +97,9 @@ void QWindowsMediaEncoder::record(const QMediaEncoderSettings &settings)
                                                     ? QWindowsStorageLocation::Audio
                                                     : QWindowsStorageLocation::Video,
                                                     QLatin1String("clip_"),
-                                                    resolvedSettings.mimeType().preferredSuffix());
+                                                    settings.mimeType().preferredSuffix());
 
-    if (m_mediaDeviceSession->startRecording(resolvedSettings, m_fileName, audioOnly)) {
+    if (m_mediaDeviceSession->startRecording(settings, m_fileName, audioOnly)) {
 
         m_state = QMediaRecorder::RecordingState;
 

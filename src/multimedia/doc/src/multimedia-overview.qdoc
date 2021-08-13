@@ -91,7 +91,7 @@ For some quick recipes, see this table:
         \li QSoundEffect
     \row
         \li Playing low latency audio
-        \li \l{Audio Input Example}{audioinput},
+        \li \l{Audio Source Example}{audiosource},
             \l{Spectrum Example}{spectrum}
         \li
         \li QAudioSink
@@ -103,7 +103,7 @@ For some quick recipes, see this table:
     \row
         \li Accessing raw audio input data
         \li \l{Spectrum Example}{spectrum},
-            \l{Audio Input Example}{audioinput}
+            \l{Audio Source Example}{audiosource}
         \li
         \li QAudioSource
     \row
@@ -151,12 +151,6 @@ For some quick recipes, see this table:
             \l {QML Camera Example}{declarative-camera}
         \li \l Camera
         \li QCamera, QMediaRecorder
-    \row
-        \li 3D sound sources
-        \li
-        \li \l {AudioEngine Example}{Audio Engine}
-        \li \l {AudioEngine}, \l Sound
-        \li
 \endtable
 
 \section1 Limitations

@@ -84,10 +84,7 @@ public:
 
     qint64 duration() const override;
 
-    void applySettings(const QMediaEncoderSettings &settings) override;
-    void unapplySettings();
-
-    void record(const QMediaEncoderSettings &settings) override;
+    void record(QMediaEncoderSettings &settings) override;
     void stop() override;
 
     void setMetaData(const QMediaMetaData &) override;
@@ -100,6 +97,8 @@ public:
     void updateDuration(qint64 duration);
 
 private:
+    void applySettings(QMediaEncoderSettings &settings);
+    void unapplySettings();
 
     Q_INVOKABLE void assetWriterStarted();
     Q_INVOKABLE void assetWriterFinished();
@@ -117,7 +116,6 @@ private:
     AVFStorageLocation m_storageLocation;
 
     QMediaRecorder::RecorderState m_state;
-    QMediaEncoderSettings m_settings;
 
     QMediaMetaData m_metaData;
 

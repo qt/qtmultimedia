@@ -75,10 +75,6 @@ namespace QGstUtils {
     QAudioFormat audioFormatForCaps(QGstCaps caps);
     Q_MULTIMEDIA_EXPORT QGstMutableCaps capsForAudioFormat(const QAudioFormat &format);
 
-    Q_MULTIMEDIA_EXPORT QVideoFrameFormat formatForCaps(
-            GstCaps *caps,
-            GstVideoInfo *info = 0);
-
     void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
 }
 

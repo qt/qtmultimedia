@@ -163,7 +163,7 @@ void QGstreamerCamera::setCameraFormatInternal(const QCameraFormat &format)
 
 bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
 {
-    if (!m_cameraDevice.videoFormats().contains(format))
+    if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
         return false;
     gstPipeline.beginConfig();
     setCameraFormatInternal(format);

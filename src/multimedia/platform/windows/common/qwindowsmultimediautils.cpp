@@ -47,11 +47,19 @@ QT_BEGIN_NAMESPACE
 QVideoFrameFormat::PixelFormat QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(const GUID &subtype)
 {
     if (subtype == MFVideoFormat_ARGB32)
-        return QVideoFrameFormat::Format_ARGB32;
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        return QVideoFrameFormat::Format_BGRA8888;
+#else
+        return QVideoFrameFormat::Format_ARGB8888;
+#endif
     if (subtype == MFVideoFormat_RGB32)
-        return QVideoFrameFormat::Format_RGB32;
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        return QVideoFrameFormat::Format_BGRX8888;
+#else
+        return QVideoFrameFormat::Format_XRGB8888;
+#endif
     if (subtype == MFVideoFormat_AYUV)
-        return QVideoFrameFormat::Format_AYUV444;
+        return QVideoFrameFormat::Format_AYUV;
     if (subtype == MFVideoFormat_I420)
         return QVideoFrameFormat::Format_YUV420P;
     if (subtype == MFVideoFormat_UYVY)

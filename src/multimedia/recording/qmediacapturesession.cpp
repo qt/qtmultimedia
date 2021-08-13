@@ -242,7 +242,7 @@ QObject *QMediaCaptureSession::videoOutput() const
 }
 
 /*!
-    Sets a QObject based video preview for the capture session.
+    Sets a QObject, (\a output), to a video preview for the capture session.
 
     A QObject based preview is expected to have an invokable videoSink()
     method that returns a QVideoSink.

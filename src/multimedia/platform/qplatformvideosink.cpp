@@ -102,37 +102,6 @@ QPlatformVideoSink::QPlatformVideoSink(QVideoSink *parent)
     with respect to its aspect ratio.
 */
 
-/*!
-    \fn QPlatformVideoSink::setBrightness(float brightness)
-
-    Sets a \a brightness adjustment for a video overlay.
-
-    Valid brightness values range between -100 and 100, the default is 0.
-*/
-
-/*!
-    \fn QPlatformVideoSink::setContrast(float contrast)
-
-    Sets the \a contrast adjustment for a video overlay.
-
-    Valid contrast values range between -100 and 100, the default is 0.
-*/
-
-/*!
-    \fn QPlatformVideoSink::setHue(float hue)
-
-    Sets a \a hue adjustment for a video overlay.
-
-    Valid hue values range between -100 and 100, the default is 0.
-*/
-
-/*!
-    \fn QPlatformVideoSink::setSaturation(float saturation)
-    Sets a \a saturation adjustment for a video overlay.
-
-    Valid saturation values range between -100 and 100, the default is 0.
-*/
-
 QT_END_NAMESPACE
 
 #include "moc_qplatformvideosink_p.cpp"

@@ -69,8 +69,6 @@ class QMediaRecorderPrivate
 public:
     QMediaRecorderPrivate();
 
-    void applySettingsLater();
-
     static QString msgFailedStartRecording();
 
     QMediaCaptureSession *captureSession = nullptr;
@@ -79,8 +77,6 @@ public:
     bool settingsChanged = false;
 
     QMediaEncoderSettings encoderSettings;
-
-    void _q_applySettings();
 
     QMediaRecorder *q_ptr = nullptr;
 };

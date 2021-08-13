@@ -74,11 +74,11 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
     Q_DISABLE_COPY(QQuickVideoOutput)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
     Q_PROPERTY(int orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
-    Q_PROPERTY(bool autoOrientation READ autoOrientation WRITE setAutoOrientation NOTIFY autoOrientationChanged REVISION 2)
+    Q_PROPERTY(bool autoOrientation READ autoOrientation WRITE setAutoOrientation NOTIFY autoOrientationChanged)
     Q_PROPERTY(QRectF sourceRect READ sourceRect NOTIFY sourceRectChanged)
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
-    Q_PROPERTY(FlushMode flushMode READ flushMode WRITE setFlushMode NOTIFY flushModeChanged REVISION 13)
-    Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT REVISION 15)
+    Q_PROPERTY(FlushMode flushMode READ flushMode WRITE setFlushMode NOTIFY flushModeChanged)
+    Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT)
     Q_MOC_INCLUDE(qvideosink.h)
     Q_MOC_INCLUDE(qvideoframe.h)
     QML_NAMED_ELEMENT(VideoOutput)
@@ -179,27 +179,6 @@ private:
 
     FlushMode m_flushMode = EmptyFrame;
 };
-
-namespace {
-
-inline bool qIsDefaultAspect(int o)
-{
-    return (o % 180) == 0;
-}
-
-/*
- * Return the orientation normalized to 0-359
- */
-inline int qNormalizedOrientation(int o)
-{
-    // Negative orientations give negative results
-    int o2 = o % 360;
-    if (o2 < 0)
-        o2 += 360;
-    return o2;
-}
-
-}
 
 QT_END_NAMESPACE
 

@@ -71,7 +71,8 @@ class QGstreamerVideoOutput;
 class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer
     : public QObject,
       public QPlatformMediaPlayer,
-      public QGstreamerBusMessageFilter
+      public QGstreamerBusMessageFilter,
+      public QGstreamerSyncMessageFilter
 {
     Q_OBJECT
 
@@ -113,6 +114,7 @@ public:
     void stop() override;
 
     bool processBusMessage(const QGstreamerMessage& message) override;
+    bool processSyncMessage(const QGstreamerMessage& message) override;
 public Q_SLOTS:
     void updatePosition() { positionChanged(position()); }
 

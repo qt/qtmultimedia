@@ -59,6 +59,10 @@
 #include <QtGui/qcolor.h>
 #include <qvideosink.h>
 
+#if QT_CONFIG(gstreamer_gl)
+#include <gst/gl/gl.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 class QGstreamerVideoRenderer;
 
@@ -73,6 +77,7 @@ public:
     void setWinId(WId id) override;
 
     void setRhi(QRhi *rhi) override;
+    QRhi *rhi() const { return m_rhi; }
 
     void setDisplayRect(const QRect &rect) override;
 
@@ -88,23 +93,35 @@ public:
 
     void setPipeline(QGstPipeline pipeline);
 
+    GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext; }
+    GstContext *gstGlLocalContext() const { return m_gstGlLocalContext; }
+    Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
+    QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
+
 private:
     void createOverlay();
-    void createRenderer();
+    void createQtSink();
     void updateSinkElement();
+
+    void unrefGstContexts();
+    void updateGstContexts();
 
     QGstPipeline gstPipeline;
     QGstBin sinkBin;
     QGstElement gstPreprocess;
     QGstElement gstVideoSink;
+    QGstElement gstQtSink;
 
     QGstreamerVideoOverlay *m_videoOverlay = nullptr;
-    QGstreamerVideoRenderer *m_videoRenderer = nullptr;
     WId m_windowId = 0;
     QRhi *m_rhi = nullptr;
     QRect m_displayRect;
     bool m_fullScreen = false;
-    mutable QColor m_colorKey = QColor::Invalid;
+
+    Qt::HANDLE m_eglDisplay = nullptr;
+    QFunctionPointer m_eglImageTargetTexture2D = nullptr;
+    GstContext *m_gstGlLocalContext = nullptr;
+    GstContext *m_gstGlDisplayContext = nullptr;
 };
 
 QT_END_NAMESPACE

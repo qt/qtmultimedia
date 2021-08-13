@@ -129,7 +129,7 @@ public:
     void setVolume(int volume);
     bool setPlaybackRate(qreal rate);
     void setDisplay(AndroidSurfaceTexture *surfaceTexture);
-
+    static bool setAudioOutput(const QByteArray &deviceId);
     static bool registerNativeMethods();
 
 Q_SIGNALS:

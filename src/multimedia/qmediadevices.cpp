@@ -74,8 +74,8 @@ QT_BEGIN_NAMESPACE
 /*!
     Returns a list of available audio input devices on the system.
 
-    Those devices are usually microphones, either built-in, or connected to
-    the device through e.g. USB or Bluetooth.
+    Those devices are usually microphones. Devices are either built-in, or
+    connected to the device through USB or Bluetooth.
 */
 QList<QAudioDevice> QMediaDevices::audioInputs()
 {
@@ -83,10 +83,10 @@ QList<QAudioDevice> QMediaDevices::audioInputs()
 }
 
 /*!
-    Returns a list of available audio input devices on the system.
+    Returns a list of available audio output devices on the system.
 
-    Those devices are usually loudspeakers or head sets, either built-in,
-    or connected to the device through e.g. USB or Bluetooth.
+    Those devices are usually loudspeakers or head sets. Devices are either
+    built-in, or connected to the device through USB or Bluetooth.
 */
 QList<QAudioDevice> QMediaDevices::audioOutputs()
 {
@@ -104,8 +104,8 @@ QList<QCameraDevice> QMediaDevices::videoInputs()
 /*!
     Returns the default audio input device.
 
-    The default device can change during the runtime of the application. The audioInputsChanged()
-    signal will get emitted in that case.
+    The default device can change during the runtime of the application.
+    The audioInputsChanged() signal is emitted in this case.
 */
 QAudioDevice QMediaDevices::defaultAudioInput()
 {
@@ -119,8 +119,8 @@ QAudioDevice QMediaDevices::defaultAudioInput()
 /*!
     Returns the default audio output device.
 
-    The default device can change during the runtime of the application. The audioOutputsChanged()
-    signal will get emitted in that case.
+    The default device can change during the runtime of the application. The
+    audioOutputsChanged() signal is emitted in this case.
 */
 QAudioDevice QMediaDevices::defaultAudioOutput()
 {
@@ -134,11 +134,11 @@ QAudioDevice QMediaDevices::defaultAudioOutput()
 /*!
     Returns the default camera on the system.
 
-    The returned object should be checked using isNull() before being used, in case there is no
-    default camera or no cameras at all.
+    /note The returned object should be checked using isNull() before being used,
+    in case there is no default camera or no cameras at all.
 
-    The default device can change during the runtime of the application. The videoInputsChanged()
-    signal will get emitted in that case.
+    The default device can change during the runtime of the application. The
+    videoInputsChanged() signal is emitted in that case.
 
     \sa availableCameras()
 */

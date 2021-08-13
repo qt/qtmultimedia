@@ -103,9 +103,9 @@ QPlatformMediaEncoder::QPlatformMediaEncoder(QMediaRecorder *parent)
 */
 
 /*!
-    \fn void QPlatformMediaEncoder::record(const QMediaEncoderSettings &settings)
+    \fn void QPlatformMediaEncoder::record(QMediaEncoderSettings &settings)
 
-    Start media recording.
+    Start media recording in accordance with \a{settings}.
 */
 
 /*!
@@ -130,14 +130,6 @@ void QPlatformMediaEncoder::resume() {
     \fn void QPlatformMediaEncoder::stop()
 
     Stop media recording
-*/
-
-
-/*!
-    \fn QPlatformMediaEncoder::applySettings(const QMediaEncoderSettings &)
-
-    Commits the encoder settings and performs pre-initialization to reduce delays when recording
-    is started.
 */
 
 /*!

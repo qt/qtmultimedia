@@ -56,7 +56,6 @@ class IMFSampleVideoBuffer: public QAbstractVideoBuffer
 public:
     IMFSampleVideoBuffer(D3DPresentEngine *engine, IMFSample *sample, QVideoFrame::HandleType handleType)
         : QAbstractVideoBuffer(handleType)
-        , m_engine(engine)
         , m_sample(sample)
         , m_surface(0)
         , m_mapMode(QVideoFrame::NotMapped)
@@ -91,11 +90,9 @@ public:
     void unmap() override;
 
 private:
-    mutable D3DPresentEngine *m_engine;
     IMFSample *m_sample;
     IDirect3DSurface9 *m_surface;
     QVideoFrame::MapMode m_mapMode;
-    mutable unsigned int m_textureId = 0;
 };
 
 IMFSampleVideoBuffer::MapData IMFSampleVideoBuffer::map(QVideoFrame::MapMode mode)
@@ -360,8 +357,8 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSamp
 done:
     if (SUCCEEDED(hr)) {
         m_surfaceFormat = QVideoFrameFormat(QSize(width, height),
-                                              m_useTextureRendering ? QVideoFrameFormat::Format_RGB32
-                                                                    : qt_evr_pixelFormatFromD3DFormat(d3dFormat));
+                                            m_useTextureRendering ? QVideoFrameFormat::Format_BGRX8888
+                                                                  : qt_evr_pixelFormatFromD3DFormat(d3dFormat));
     } else {
         releaseResources();
     }

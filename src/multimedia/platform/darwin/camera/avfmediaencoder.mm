@@ -134,24 +134,6 @@ void AVFMediaEncoder::updateDuration(qint64 duration)
     durationChanged(m_duration);
 }
 
-static bool formatSupportsFramerate(AVCaptureDeviceFormat *format, qreal fps)
-{
-    if (format && fps > qreal(0)) {
-        const qreal epsilon = 0.1;
-        for (AVFrameRateRange *range in format.videoSupportedFrameRateRanges) {
-            if (range.maxFrameRate - range.minFrameRate < epsilon) {
-                if (qAbs(fps - range.maxFrameRate) < epsilon)
-                    return true;
-            }
-
-            if (fps >= range.minFrameRate && fps <= range.maxFrameRate)
-                return true;
-        }
-    }
-
-    return false;
-}
-
 static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettings)
 {
     NSMutableDictionary *settings = [NSMutableDictionary dictionary];
@@ -295,7 +277,7 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
         AVCaptureDeviceFormat *newFormat = nil;
         if ((w <= 0 || h <= 0)
                 && encoderSettings.videoFrameRate() > 0
-                && !formatSupportsFramerate(currentFormat, encoderSettings.videoFrameRate())) {
+                && !qt_format_supports_framerate(currentFormat, encoderSettings.videoFrameRate())) {
 
             newFormat = qt_find_best_framerate_match(device,
                                                      formatCodec,
@@ -409,25 +391,12 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
     return videoSettings;
 }
 
-void AVFMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
+void AVFMediaEncoder::applySettings(QMediaEncoderSettings &settings)
 {
-    m_settings = settings;
-
-    if (!m_service || !m_service->session())
-        return;
     AVFCameraSession *session = m_service->session();
 
-    if (m_state != QMediaRecorder::StoppedState)
-        return;
-
-    const auto flag = (session->activecameraDevice().isNull())
-                              ? QMediaFormat::NoFlags
-                              : QMediaFormat::RequiresVideo;
-
-    m_settings.resolveFormat(flag);
-
     // audio settings
-    m_audioSettings = avfAudioSettings(m_settings);
+    m_audioSettings = avfAudioSettings(settings);
     if (m_audioSettings)
         [m_audioSettings retain];
 
@@ -437,7 +406,7 @@ void AVFMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
         return;
     const AVFConfigurationLock lock(device); // prevents activeFormat from being overridden
     AVCaptureConnection *conn = [session->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
-    m_videoSettings = avfVideoSettings(m_settings, device, conn);
+    m_videoSettings = avfVideoSettings(settings, device, conn);
     if (m_videoSettings)
         [m_videoSettings retain];
 }
@@ -481,7 +450,7 @@ void AVFMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)
     onCameraChanged();
 }
 
-void AVFMediaEncoder::record(const QMediaEncoderSettings &)
+void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
 {
     if (!m_service || !m_service->session()) {
         qWarning() << Q_FUNC_INFO << "Encoder is not set to a capture session";
@@ -497,7 +466,7 @@ void AVFMediaEncoder::record(const QMediaEncoderSettings &)
         return;
 
     m_service->session()->setActive(true);
-    const bool audioOnly = m_settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
+    const bool audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
     AVCaptureSession *session = m_service->session()->captureSession();
     float rotation = 0;
 
@@ -528,7 +497,7 @@ void AVFMediaEncoder::record(const QMediaEncoderSettings &)
     const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path,
                     audioOnly ? AVFStorageLocation::Audio : AVFStorageLocation::Video,
                     QLatin1String("clip_"),
-                    m_settings.mimeType().preferredSuffix())));
+                    settings.mimeType().preferredSuffix())));
 
     NSURL *nsFileURL = fileURL.toNSURL();
     if (!nsFileURL) {
@@ -551,7 +520,7 @@ void AVFMediaEncoder::record(const QMediaEncoderSettings &)
         return;
     }
 
-    applySettings(m_settings);
+    applySettings(settings);
 
     // We stop session now so that no more frames for renderer's queue
     // generated, will restart in assetWriterStarted.
@@ -561,7 +530,7 @@ void AVFMediaEncoder::record(const QMediaEncoderSettings &)
                     cameraService:m_service
                     audioSettings:m_audioSettings
                     videoSettings:m_videoSettings
-                    fileFormat:m_settings.fileFormat()
+                    fileFormat:settings.fileFormat()
                     transform:CGAffineTransformMakeRotation(qDegreesToRadians(rotation))]) {
 
         m_state = QMediaRecorder::RecordingState;

@@ -52,6 +52,8 @@ Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(lcAudio, "qt.multimedia.audio")
+
 static bool exceptionCheckAndClear()
 {
 #ifdef QT_DEBUG
@@ -239,6 +241,20 @@ void AndroidMediaPlayer::setDisplay(AndroidSurfaceTexture *surfaceTexture)
     mMediaPlayer.callMethod<void>("setDisplay",
                                   "(Landroid/view/SurfaceHolder;)V",
                                   surfaceTexture ? surfaceTexture->surfaceHolder() : 0);
+}
+
+bool AndroidMediaPlayer::setAudioOutput(const QByteArray &deviceId)
+{
+    const bool ret = QJniObject::callStaticMethod<jboolean>(
+                                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                                    "setAudioOutput",
+                                    "(I)Z",
+                                    deviceId.toInt());
+
+    if (!ret)
+        qCWarning(lcAudio) << "Output device not set";
+
+    return ret;
 }
 
 #if 0

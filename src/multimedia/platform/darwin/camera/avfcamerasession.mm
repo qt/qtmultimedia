@@ -189,6 +189,17 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
     }
 }
 
+void AVFCameraSession::setCameraFormat(const QCameraFormat &format)
+{
+    AVCaptureDevice *captureDevice = videoCaptureDevice();
+    if (!captureDevice)
+        return;
+
+    AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(captureDevice, format);
+    if (newFormat)
+        qt_set_active_format(captureDevice, newFormat, false);
+}
+
 void AVFCameraSession::setVideoOutput(AVFCameraRenderer *output)
 {
     if (m_videoOutput == output)
@@ -299,18 +310,14 @@ void AVFCameraSession::setActive(bool active)
             defaultCodec();
         }
 
-        bool activeFormatSet = applyImageEncoderSettings();
+        applyImageEncoderSettings();
 
-        if (activeFormatSet) {
         // According to the doc, the capture device must be locked before
         // startRunning to prevent the format we set to be overridden by the
         // session preset.
-            [videoCaptureDevice() lockForConfiguration:nil];
-        }
+        [videoCaptureDevice() lockForConfiguration:nil];
         [m_captureSession startRunning];
-
-        if (activeFormatSet)
-            [videoCaptureDevice() unlockForConfiguration];
+        [videoCaptureDevice() unlockForConfiguration];
     } else {
         [m_captureSession stopRunning];
     }

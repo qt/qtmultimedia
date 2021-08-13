@@ -54,60 +54,77 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
      { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat},
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
-    // Format_ARGB32
+    // Format_ARGB8888
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_ARGB8888_Premultiplied
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_XRGB8888
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_BGRA8888
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_BGRA8888_Premultiplied
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_BGRX8888
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_ABGR8888
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_XBGR8888
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_RGBA8888
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_RGBX8888
+    { 1, 4,
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_AYUV
     { 1, 4,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
-     // Format_ARGB32_Premultiplied
+    // Format_AYUV_Premultiplied
     { 1, 4,
-      [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-    // Format_RGB32
-    { 1, 4,
-      [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-    // Format_BGRA32
-    { 1, 4,
-      [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-    // Format_BGRA32_Premultiplied
-    { 1, 4,
-      [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-    // Format_ABGR32
-    { 1, 4,
-      [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-    // Format_BGR32
-    { 1, 4,
-      [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-
-    // Format_AYUV444
-    { 1, 4,
-      [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    },
-    // Format_AYUV444_Premultiplied
-    { 1, 4,
-      [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+        [](int stride, int height) { return stride*height; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUV420P
     { 3, 1,
@@ -130,13 +147,13 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     // Format_UYVY
     { 1, 2,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 2, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUYV
     { 1, 2,
       [](int stride, int height) { return stride*height; },
-     { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+     { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 2, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_NV12
@@ -197,21 +214,6 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
      { QRhiTexture::R16, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
-#if QT_VERSION < QT_VERSION_CHECK(6, 2, 0)
-    // Rendering of those formats pre 6.2 will be wrong, as RHI doesn't yet support the correct texture formats
-    // Format_P010
-    { 2, 2,
-     [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { QRhiTexture::RG8, QRhiTexture::RGBA8, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 2, 2 }, { 1, 1 } }
-    },
-    // Format_P016
-    { 2, 2,
-     [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
-     { QRhiTexture::RG8, QRhiTexture::RGBA8, QRhiTexture::UnknownFormat },
-     { { 1, 1 }, { 2, 2 }, { 1, 1 } }
-    },
-#else
     // Format_P010
     { 2, 2,
       [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
@@ -224,7 +226,6 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
      { QRhiTexture::R16, QRhiTexture::RG16, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 2, 2 }, { 1, 1 } }
     },
-#endif
     // Format_SamplerExternalOES
     {
         1, 0,
@@ -250,7 +251,7 @@ QString vertexShaderFileName(QVideoFrameFormat::PixelFormat format)
 {
     Q_UNUSED(format);
 
-#ifdef Q_OS_ANDROID
+#if 1//def Q_OS_ANDROID
     if (format == QVideoFrameFormat::Format_SamplerExternalOES)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.vert.qsb");
 #endif
@@ -264,19 +265,23 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
     case QVideoFrameFormat::Format_Y8:
     case QVideoFrameFormat::Format_Y16:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/y.frag.qsb");
-    case QVideoFrameFormat::Format_AYUV444:
-    case QVideoFrameFormat::Format_AYUV444_Premultiplied:
+    case QVideoFrameFormat::Format_AYUV:
+    case QVideoFrameFormat::Format_AYUV_Premultiplied:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/ayuv.frag.qsb");
-    case QVideoFrameFormat::Format_ARGB32:
-    case QVideoFrameFormat::Format_ARGB32_Premultiplied:
-    case QVideoFrameFormat::Format_RGB32:
+    case QVideoFrameFormat::Format_ARGB8888:
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+    case QVideoFrameFormat::Format_XRGB8888:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/argb.frag.qsb");
-    case QVideoFrameFormat::Format_BGRA32:
-    case QVideoFrameFormat::Format_BGRA32_Premultiplied:
+    case QVideoFrameFormat::Format_BGRA8888:
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+    case QVideoFrameFormat::Format_BGRX8888:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/bgra.frag.qsb");
-    case QVideoFrameFormat::Format_ABGR32:
-    case QVideoFrameFormat::Format_BGR32:
+    case QVideoFrameFormat::Format_ABGR8888:
+    case QVideoFrameFormat::Format_XBGR8888:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/abgr.frag.qsb");
+    case QVideoFrameFormat::Format_RGBA8888:
+    case QVideoFrameFormat::Format_RGBX8888:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/rgba.frag.qsb");
     case QVideoFrameFormat::Format_YUV420P:
     case QVideoFrameFormat::Format_YUV422P:
     case QVideoFrameFormat::Format_IMC3:
@@ -300,10 +305,12 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
     case QVideoFrameFormat::Format_NV21:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv21.frag.qsb");
     case QVideoFrameFormat::Format_SamplerExternalOES:
-#ifdef Q_OS_ANDROID
+#if 1//def Q_OS_ANDROID
         return QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.frag.qsb");
 #endif
         // fallthrough
+    case QVideoFrameFormat::Format_Invalid:
+    case QVideoFrameFormat::Format_Jpeg:
     default:
         return QString();
     }
@@ -379,13 +386,16 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     case QVideoFrameFormat::Format_Jpeg:
         return;
 
-    case QVideoFrameFormat::Format_ARGB32:
-    case QVideoFrameFormat::Format_ARGB32_Premultiplied:
-    case QVideoFrameFormat::Format_RGB32:
-    case QVideoFrameFormat::Format_BGRA32:
-    case QVideoFrameFormat::Format_BGRA32_Premultiplied:
-    case QVideoFrameFormat::Format_ABGR32:
-    case QVideoFrameFormat::Format_BGR32:
+    case QVideoFrameFormat::Format_ARGB8888:
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+    case QVideoFrameFormat::Format_XRGB8888:
+    case QVideoFrameFormat::Format_BGRA8888:
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+    case QVideoFrameFormat::Format_BGRX8888:
+    case QVideoFrameFormat::Format_ABGR8888:
+    case QVideoFrameFormat::Format_XBGR8888:
+    case QVideoFrameFormat::Format_RGBA8888:
+    case QVideoFrameFormat::Format_RGBX8888:
 
     case QVideoFrameFormat::Format_Y8:
     case QVideoFrameFormat::Format_Y16:
@@ -394,8 +404,8 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     case QVideoFrameFormat::Format_IMC2:
     case QVideoFrameFormat::Format_IMC3:
     case QVideoFrameFormat::Format_IMC4:
-    case QVideoFrameFormat::Format_AYUV444:
-    case QVideoFrameFormat::Format_AYUV444_Premultiplied:
+    case QVideoFrameFormat::Format_AYUV:
+    case QVideoFrameFormat::Format_AYUV_Premultiplied:
     case QVideoFrameFormat::Format_YUV420P:
     case QVideoFrameFormat::Format_YUV422P:
     case QVideoFrameFormat::Format_YV12:

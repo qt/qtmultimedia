@@ -68,7 +68,6 @@ QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
 {
     gstPipeline.removeMessageFilter(this);
     gstPipeline.setStateSync(GST_STATE_NULL);
-    QObject::disconnect(cameraChanged);
 }
 
 bool QGstreamerMediaEncoder::isLocationWritable(const QUrl &) const
@@ -234,16 +233,22 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     return containerProfile;
 }
 
-void QGstreamerMediaEncoder::record(const QMediaEncoderSettings &)
+void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
 {
     if (!m_session || state() != QMediaRecorder::StoppedState)
         return;
 
+    auto *encodingProfile = createEncodingProfile(settings);
+    g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
+    gst_encoding_profile_unref(encodingProfile);
+
+    const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
+
     // create new encoder
     QString location = outputLocation().toLocalFile();
     if (outputLocation().isEmpty()) {
-        QString container = m_resolvedSettings.mimeType().preferredSuffix();
-        location = generateFileName(defaultDir(), container);
+        QString container = settings.mimeType().preferredSuffix();
+        location = generateFileName(defaultDir(audioOnly), container);
     }
     QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(location);
     qCDebug(qLcMediaEncoder) << "recording new video to" << actualSink;
@@ -262,7 +267,7 @@ void QGstreamerMediaEncoder::record(const QMediaEncoderSettings &)
         audioSrcPad.link(audioPad);
     }
 
-    if (m_resolvedSettings.videoCodec() != QMediaFormat::VideoCodec::Unspecified) {
+    if (settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified) {
         videoSrcPad = m_session->getVideoPad();
         if (!videoSrcPad.isNull()) {
             QGstPad videoPad = gstEncoder.getRequestPad("video_%u");
@@ -347,21 +352,6 @@ void QGstreamerMediaEncoder::finalize()
     gstPipeline.endConfig();
 }
 
-void QGstreamerMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
-{
-    if (!m_session)
-        return;
-
-    const auto flag = m_session->camera() ? QMediaFormat::RequiresVideo
-                                          : QMediaFormat::NoFlags;
-    m_resolvedSettings = settings;
-    m_resolvedSettings.resolveFormat(flag);
-
-    auto *encodingProfile = createEncodingProfile(m_resolvedSettings);
-    g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
-    gst_encoding_profile_unref(encodingProfile);
-}
-
 void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)
 {
     if (!m_session)
@@ -388,7 +378,6 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
         gstPipeline.remove(gstEncoder);
         gstPipeline.remove(gstFileSink);
         heartbeat.disconnect();
-        QObject::disconnect(cameraChanged);
         gstPipeline.removeMessageFilter(this);
     }
 
@@ -408,17 +397,13 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
     gstEncoder.link(gstFileSink);
     gstEncoder.lockState(true);
     gstFileSink.lockState(true); // ### enough with the encoder?
-
-    // ensure we have a usable format
-    applySettings(QMediaEncoderSettings());
-    cameraChanged = QObject::connect(m_session, &QGstreamerMediaCapture::cameraChanged, [this]() { applySettings(m_resolvedSettings); });
 }
 
-QDir QGstreamerMediaEncoder::defaultDir() const
+QDir QGstreamerMediaEncoder::defaultDir(bool audioOnly) const
 {
     QStringList dirCandidates;
 
-    if (m_resolvedSettings.videoCodec() != QMediaFormat::VideoCodec::Unspecified)
+    if (!audioOnly)
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     else
         dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);

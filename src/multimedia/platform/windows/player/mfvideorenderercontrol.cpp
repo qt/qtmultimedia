@@ -804,15 +804,15 @@ namespace
                 mediaType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
                 mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
                 switch (format) {
-                    case QVideoFrameFormat::Format_ARGB32:
-                    case QVideoFrameFormat::Format_ARGB32_Premultiplied:
+                    case QVideoFrameFormat::Format_BGRA8888:
+                    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_ARGB32);
                         break;
-                    case QVideoFrameFormat::Format_RGB32:
+                    case QVideoFrameFormat::Format_BGRX8888:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
                         break;
-                    case QVideoFrameFormat::Format_AYUV444:
-                    case QVideoFrameFormat::Format_AYUV444_Premultiplied:
+                    case QVideoFrameFormat::Format_AYUV:
+                    case QVideoFrameFormat::Format_AYUV_Premultiplied:
                         mediaType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_AYUV);
                         break;
                     case QVideoFrameFormat::Format_YUV420P:
@@ -1036,8 +1036,11 @@ namespace
         {
             switch (format.pixelFormat()) {
             // 32 bpp packed formats.
-            case QVideoFrameFormat::Format_RGB32:
-            case QVideoFrameFormat::Format_AYUV444:
+            case QVideoFrameFormat::Format_XBGR8888:
+            case QVideoFrameFormat::Format_BGRX8888:
+            case QVideoFrameFormat::Format_XRGB8888:
+            case QVideoFrameFormat::Format_RGBX8888:
+            case QVideoFrameFormat::Format_AYUV:
                 return format.frameWidth() * 4;
             // 16 bpp packed formats.
             case QVideoFrameFormat::Format_YUYV:

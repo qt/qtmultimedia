@@ -55,24 +55,22 @@
 #include <private/qabstractvideobuffer_p.h>
 #include <QtCore/qvariant.h>
 
-#include <gst/gst.h>
+#include <private/qgst_p.h>
 #include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
+class QVideoFrameFormat;
+class QGstreamerVideoSink;
+class QOpenGLContext;
 
 class Q_MULTIMEDIA_EXPORT QGstVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    enum BufferFormat {
-        Memory,
-        GLTexture,
-        VideoGLTextureUploadMeta,
-        DMABuf
-    };
 
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QRhi *rhi, BufferFormat format);
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info)
-        : QGstVideoBuffer(buffer, info, nullptr, Memory)
+    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,
+                    const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
+    QGstVideoBuffer(GstBuffer *buffer, const QVideoFrameFormat &format, const GstVideoInfo &info)
+        : QGstVideoBuffer(buffer, info, nullptr, format, QGstCaps::CpuMemory)
     {}
     ~QGstVideoBuffer();
 
@@ -82,14 +80,22 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
+    void mapTextures() override;
     quint64 textureHandle(int plane) const override;
 private:
-    BufferFormat bufferFormat = Memory;
-    GstVideoInfo m_videoInfo;
-    GstVideoFrame m_frame;
+    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
+    QVideoFrameFormat m_frameFormat;
+    mutable GstVideoInfo m_videoInfo;
+    mutable GstVideoFrame m_frame;
     GstBuffer *m_buffer = nullptr;
+    GstBuffer *m_syncBuffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    QVariant m_handle;
+    QOpenGLContext *glContext = nullptr;
+    Qt::HANDLE eglDisplay = nullptr;
+    QFunctionPointer eglImageTargetTexture2D = nullptr;
+    uint m_textures[3] = {};
+    bool m_texturesUploaded = false;
+    bool m_ownTextures = false;
 };
 
 QT_END_NAMESPACE

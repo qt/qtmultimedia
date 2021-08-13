@@ -77,6 +77,7 @@ private slots:
     void testError();
     void testErrorString();
 
+    void testSetCameraFormat();
 
     // Test cases to for focus handling
     void testFocusMode();
@@ -290,7 +291,6 @@ void tst_QCamera::testCameraCaptureMetadata()
     QCOMPARE(data[QMediaMetaData::Author].toString(), "Author");
     QCOMPARE(data[QMediaMetaData::Date].toDateTime().date().year(), 2021);
 }
-
 
 void tst_QCamera::testCameraWhiteBalance()
 {
@@ -697,6 +697,41 @@ void tst_QCamera::testErrorString()
     /* Set the QPlatformCamera error and verify if it is set correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("CameraError Error"));
     QVERIFY(camera.errorString() == QString("CameraError Error"));
+}
+
+void tst_QCamera::testSetCameraFormat()
+{
+    QCamera camera;
+    QCameraDevice device = camera.cameraDevice();
+    auto videoFormats = device.videoFormats();
+    QVERIFY(videoFormats.count());
+    QCameraFormat cameraFormat = videoFormats.first();
+    QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
+    QVERIFY(spy.count() == 0);
+    camera.setCameraFormat(cameraFormat);
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(camera.cameraFormat(), cameraFormat);
+    QCOMPARE(camera.cameraFormat().pixelFormat(), QVideoFrameFormat::Format_ARGB8888);
+    QCOMPARE(camera.cameraFormat().resolution(), QSize(640, 480));
+    QCOMPARE(camera.cameraFormat().minFrameRate(), 0);
+    QCOMPARE(camera.cameraFormat().maxFrameRate(), 30);
+    QCOMPARE(spy.count(), 1);
+
+    spy.clear();
+    camera.setCameraFormat({});
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(camera.cameraFormat(), QCameraFormat());
+
+    spy.clear();
+    camera.setCameraDevice(QMediaDevices::videoInputs().at(1));
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(camera.cameraFormat(), QCameraFormat());
+    camera.setCameraFormat(camera.cameraDevice().videoFormats().first());
+    QCOMPARE(camera.cameraFormat().pixelFormat(), QVideoFrameFormat::Format_XRGB8888);
+    QCOMPARE(camera.cameraFormat().resolution(), QSize(1280, 720));
+    QCOMPARE(camera.cameraFormat().minFrameRate(), 0);
+    QCOMPARE(camera.cameraFormat().maxFrameRate(), 30);
+    QCOMPARE(spy.count(), 2);
 }
 
 //Added this code to cover QCamera::FocusModeHyperfocal and QCamera::FocusModeAutoNear

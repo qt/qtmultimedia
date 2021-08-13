@@ -65,45 +65,15 @@
 #include <private/qgstvideobuffer_p.h>
 #include <private/qgst_p.h>
 
-#if QT_CONFIG(gstreamer_gl)
-#ifndef GST_USE_UNSTABLE_API
-#define GST_USE_UNSTABLE_API
-#endif
-#include <gst/gl/gl.h>
-#endif
-
 QT_BEGIN_NAMESPACE
 class QVideoSink;
 
-class QGstVideoRenderer
-{
-public:
-    QGstVideoRenderer(QVideoSink *sink);
-    ~QGstVideoRenderer();
-
-    QGstMutableCaps getCaps();
-    bool start(GstCaps *caps);
-    void stop();
-
-    bool proposeAllocation(GstQuery *query);
-
-    bool present(QVideoSink *surface, GstBuffer *buffer);
-    void flush(QVideoSink *surface);
-
-private:
-    QVideoSink *m_sink = nullptr;
-    QVideoFrameFormat m_format;
-    GstVideoInfo m_videoInfo;
-    bool m_flushed = true;
-    QGstVideoBuffer::BufferFormat bufferFormat = QGstVideoBuffer::Memory;
-};
-
-class QVideoSurfaceGstDelegate : public QObject
+class QGstVideoRenderer : public QObject
 {
     Q_OBJECT
 public:
-    QVideoSurfaceGstDelegate(QVideoSink *sink);
-    ~QVideoSurfaceGstDelegate();
+    QGstVideoRenderer(QGstreamerVideoSink *sink);
+    ~QGstVideoRenderer();
 
     QGstMutableCaps caps();
 
@@ -121,31 +91,36 @@ public:
 
 private slots:
     bool handleEvent(QMutexLocker<QMutex> *locker);
-    void updateSupportedFormats();
 
 private:
     void notify();
     bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
+    void createSurfaceCaps();
 
-    QPointer<QVideoSink> m_sink;
+    QPointer<QGstreamerVideoSink> m_sink;
 
     QMutex m_mutex;
     QWaitCondition m_setupCondition;
     QWaitCondition m_renderCondition;
+
+    // --- accessed from multiple threads, need to hold mutex to access
     GstFlowReturn m_renderReturn = GST_FLOW_OK;
-    QGstVideoRenderer *m_renderer = nullptr;
-    QGstVideoRenderer *m_activeRenderer = nullptr;
+    bool m_active = false;
 
     QGstMutableCaps m_surfaceCaps;
+
     QGstMutableCaps m_startCaps;
     GstBuffer *m_renderBuffer = nullptr;
-#if QT_CONFIG(gstreamer_gl)
-    GstGLContext *m_gstGLDisplayContext = nullptr;
-#endif
 
     bool m_notified = false;
     bool m_stop = false;
     bool m_flush = false;
+
+    // --- only accessed from one thread
+    QVideoFrameFormat m_format;
+    GstVideoInfo m_videoInfo;
+    bool m_flushed = true;
+    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
 };
 
 class Q_MULTIMEDIA_EXPORT QGstVideoRendererSink
@@ -153,8 +128,8 @@ class Q_MULTIMEDIA_EXPORT QGstVideoRendererSink
 public:
     GstVideoSink parent;
 
-    static QGstVideoRendererSink *createSink(QVideoSink *surface);
-    static void setSink(QVideoSink *surface);
+    static QGstVideoRendererSink *createSink(QGstreamerVideoSink *surface);
+    static void setSink(QGstreamerVideoSink *surface);
 
 private:
     static GType get_type();
@@ -181,7 +156,7 @@ private:
     static gboolean query(GstBaseSink *element, GstQuery *query);
 
 private:
-    QVideoSurfaceGstDelegate *delegate = nullptr;
+    QGstVideoRenderer *renderer = nullptr;
 };
 
 

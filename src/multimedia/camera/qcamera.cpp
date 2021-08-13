@@ -71,7 +71,7 @@ QT_BEGIN_NAMESPACE
     On hardware that supports it, QCamera lets you adjust the focus
     and zoom. This also includes things
     like "Macro" mode for close up work (e.g. reading barcodes, or
-    recognising letters), or "touch to focus" - indicating an
+    recognizing letters), or "touch to focus" - indicating an
     interesting area of the viewfinder for the hardware to attempt
     to focus on.
 
@@ -217,7 +217,7 @@ bool QCamera::isActive() const
 }
 
 /*!
-    Turns the camera on or off.
+    Turns the camera on if \a active is \c{true}, or off if it's \c{false}.
 */
 void QCamera::setActive(bool active)
 {
@@ -261,8 +261,8 @@ QCamera::Features QCamera::supportedFeatures() const
 /*! \fn void QCamera::stop()
 
     Stops the camera.
+    Same as setActive(false).
 
-    \sa unload()
 */
 
 /*!
@@ -508,7 +508,9 @@ float QCamera::zoomFactor() const
     Q_D(const QCamera);
     return d->control ? d->control->zoomFactor() : 1.;
 }
-
+/*!
+    Zooms to a zoom factor \a factor at a rate of 1 factor per second.
+ */
 void QCamera::setZoomFactor(float factor)
 {
     zoomTo(factor, 0.);
@@ -517,8 +519,8 @@ void QCamera::setZoomFactor(float factor)
 /*!
     Zooms to a zoom factor \a factor using \a rate.
 
-    The rate is specified in powers of two per second. A rate of 1
-    would take two seconds to zoom from a zoom factor of 1 to a zoom factor of 4.
+    The \a rate is specified in powers of two per second. At a rate of 1
+    it would take 2 seconds to go from a zoom factor of 1 to 4.
  */
 void QCamera::zoomTo(float factor, float rate)
 {
@@ -655,7 +657,8 @@ bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
   \property QCamera::exposureCompensation
   \brief Exposure compensation in EV units.
 
-  Exposure compensation property allows to adjust the automatically calculated exposure.
+  Exposure compensation property allows to adjust the automatically calculated
+  exposure.
 */
 
 qreal QCamera::exposureCompensation() const
@@ -747,16 +750,17 @@ float QCamera::maximumExposureTime() const
 */
 
 /*!
-    \fn QCamera::exposureTimeChanged(float time)
+    \fn QCamera::exposureTimeChanged(float speed)
 
-    Signals that a camera's exposure \a time has changed.
+    Signals that a camera's exposure \a speed has changed.
 */
 
 /*!
     \property QCamera::isoSensitivity
     \brief The sensor ISO sensitivity.
 
-    \sa supportedIsoSensitivities(), setAutoIsoSensitivity(), setManualIsoSensitivity()
+    \sa, setAutoIsoSensitivity(), setManualIsoSensitivity()
+    \sa minimumIsoSensitivity(), maximumIsoSensitivity()
 */
 
 /*!
@@ -781,7 +785,7 @@ void QCamera::setManualExposureTime(float seconds)
 }
 
 /*!
-    Returns the manual exposure time in \a seconds, or -1
+    Returns the manual exposure time in seconds, or -1
     if the camera is using automatic exposure times.
 */
 float QCamera::manualExposureTime() const
@@ -945,8 +949,8 @@ void QCamera::setColorTemperature(int colorTemperature)
     \enum QCamera::WhiteBalanceMode
 
     \value WhiteBalanceAuto         Auto white balance mode.
-    \value WhiteBalanceManual       Manual white balance. In this mode the white balance should be set with
-                                    setColorTemperature()
+    \value WhiteBalanceManual Manual white balance. In this mode the white
+    balance should be set with setColorTemperature()
     \value WhiteBalanceSunlight     Sunlight white balance mode.
     \value WhiteBalanceCloudy       Cloudy white balance mode.
     \value WhiteBalanceShade        Shade white balance mode.

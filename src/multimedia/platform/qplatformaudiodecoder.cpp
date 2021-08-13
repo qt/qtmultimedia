@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 
     \ingroup multimedia_control
 
-    \brief The QPlatformAudioDecoder class provides access audio decoding
+    \brief The QPlatformAudioDecoder class provides access to audio decoding
     functionality.
 
     \preliminary

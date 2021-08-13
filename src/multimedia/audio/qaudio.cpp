@@ -82,8 +82,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \enum QAudioDevice::Mode
 
-    \value AudioOutput   audio output device
-    \value AudioInput    audio input device
+    \value Output   Audio output device
+    \value Input    Audio input device
+    \omitvalue Null
 */
 
 /*!
@@ -128,8 +129,8 @@ namespace QAudio
     \snippet multimedia-snippets/audio.cpp Volume conversion
 
     \since 5.8
-    \sa VolumeScale, QMediaPlayer::setVolume(), QAudioSink::setVolume(),
-        QAudioSource::setVolume(), QSoundEffect::setVolume(), QMediaRecorder::setVolume()
+    \sa VolumeScale, QAudioSink::setVolume(), QAudioSource::setVolume(),
+    QSoundEffect::setVolume()
 */
 float convertVolume(float volume, VolumeScale from, VolumeScale to)
 {

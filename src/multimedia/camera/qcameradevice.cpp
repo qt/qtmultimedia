@@ -97,22 +97,24 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     \ingroup multimedia
     \ingroup multimedia_camera
 
-    QCameraDevice lets you query for camera devices that are currently available on the system.
+    QCameraDevice represents a physical camera device and its properties.
 
-    The static functions defaultCamera() and availableCameras() provide you a list of all
-    available cameras.
+    You can discover what cameras are available on a system using the
+    availableCameras() and defaultCamera() functions. These are contained within
+    QtMultimedia::MediaDevices.
 
     This example prints the name of all available cameras:
 
     \snippet multimedia-snippets/camera.cpp Camera listing
 
-    A QCameraDevice can be used to construct a QCamera. The following example instantiates a QCamera
-    whose camera device is named 'mycamera':
+    A QCameraDevice can be used to construct a QCamera. The following example
+    instantiates a QCamera whose camera device is named \c {mycamera}:
 
     \snippet multimedia-snippets/camera.cpp Camera selection
 
-    You can also use QCameraDevice to get general information about a camera device such as
-    description, physical position on the system, or camera sensor orientation.
+    You can also use QCameraDevice to get general information about a camera
+    device such as description, physical position on the system, or camera sensor
+    orientation.
 
     \snippet multimedia-snippets/camera.cpp Camera info
 

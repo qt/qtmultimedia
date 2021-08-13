@@ -59,14 +59,17 @@ static bool pixelFormatHasAlpha[QVideoFrameFormat::NPixelFormats] =
     false, //Format_Invalid,
     true, //Format_ARGB32,
     true, //Format_ARGB32_Premultiplied,
-    false, //Format_RGB32,
+    false, //Format_XRGB32,
     true, //Format_BGRA32,
     true, //Format_BGRA32_Premultiplied,
+    false, //Format_BGRX32,
     true, //Format_ABGR32,
-    false, //Format_BGR32,
+    false, //Format_XBGR32,
+    true, //Format_RGBA32,
+    false, //Format_RGBX32,
 
-    true, //Format_AYUV444,
-    true, //Format_AYUV444_Premultiplied,
+    true, //Format_AYUV,
+    true, //Format_AYUV_Premultiplied,
     false, //Format_YUV420P,
     false, //Format_YUV422P,
     false, //Format_YV12,
@@ -148,7 +151,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     used to determine when to start and stop displaying the frame.
 
     QVideoFrame objects can consume a significant amount of memory or system resources and
-    should thus not be held for longer than required by the application.
+    should not be held for longer than required by the application.
 
     \note Since video frames can be expensive to copy, QVideoFrame is explicitly shared, so any
     change made to a video frame will also apply to any copies.
@@ -184,10 +187,8 @@ QAbstractVideoBuffer *QVideoFrame::videoBuffer() const
 }
 
 /*!
-    Constructs a video frame of the given pixel \a format and \a size in pixels.
+    Constructs a video frame of the given pixel \a format.
 
-    The \a bytesPerLine (stride) is the length of each scan line in bytes, and \a bytes is the total
-    number of bytes that must be allocated for the frame.
 */
 QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
     : d(new QVideoFramePrivate(format))
@@ -442,15 +443,18 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         // If the plane count is 1 derive the additional planes for planar formats.
         switch (pixelFmt) {
         case QVideoFrameFormat::Format_Invalid:
-        case QVideoFrameFormat::Format_ARGB32:
-        case QVideoFrameFormat::Format_ARGB32_Premultiplied:
-        case QVideoFrameFormat::Format_RGB32:
-        case QVideoFrameFormat::Format_BGRA32:
-        case QVideoFrameFormat::Format_BGRA32_Premultiplied:
-        case QVideoFrameFormat::Format_ABGR32:
-        case QVideoFrameFormat::Format_BGR32:
-        case QVideoFrameFormat::Format_AYUV444:
-        case QVideoFrameFormat::Format_AYUV444_Premultiplied:
+        case QVideoFrameFormat::Format_ARGB8888:
+        case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+        case QVideoFrameFormat::Format_XRGB8888:
+        case QVideoFrameFormat::Format_BGRA8888:
+        case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+        case QVideoFrameFormat::Format_BGRX8888:
+        case QVideoFrameFormat::Format_ABGR8888:
+        case QVideoFrameFormat::Format_XBGR8888:
+        case QVideoFrameFormat::Format_RGBA8888:
+        case QVideoFrameFormat::Format_RGBX8888:
+        case QVideoFrameFormat::Format_AYUV:
+        case QVideoFrameFormat::Format_AYUV_Premultiplied:
         case QVideoFrameFormat::Format_UYVY:
         case QVideoFrameFormat::Format_YUYV:
         case QVideoFrameFormat::Format_Y8:
@@ -609,7 +613,7 @@ int QVideoFrame::mappedBytes(int plane) const
 /*!
     Returns the number of planes in the video frame.
 
-    \sa map(), textureHandle()
+    \sa map()
     \since 5.4
 */
 
@@ -626,6 +630,7 @@ quint64 QVideoFrame::textureHandle(int plane) const
 {
     if (!d->buffer)
         return 0;
+    d->buffer->mapTextures();
     return d->buffer->textureHandle(plane);
 }
 
@@ -686,20 +691,15 @@ QImage QVideoFrame::toImage() const
     if (!frame.isValid() || !frame.map(QVideoFrame::ReadOnly))
         return result;
 
-    // Formats supported by QImage don't need conversion
-    QImage::Format imageFormat = QVideoFrameFormat::imageFormatFromPixelFormat(frame.pixelFormat());
-    if (imageFormat != QImage::Format_Invalid) {
-        result = QImage(frame.bits(0), frame.width(), frame.height(), frame.bytesPerLine(0), imageFormat).copy();
-    }
-
-    // Load from JPG
-    else if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+    if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+        // Load from JPG
         result.loadFromData(frame.bits(0), frame.mappedBytes(0), "JPG");
     }
 
     // Need conversion
     else {
         VideoFrameConvertFunc convert = qConverterForFormat(frame.pixelFormat());
+        qDebug() << "using QVideoFrame conversion" << frame.pixelFormat();
         if (!convert) {
             qWarning() << Q_FUNC_INFO << ": unsupported pixel format" << frame.pixelFormat();
         } else {

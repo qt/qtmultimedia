@@ -41,9 +41,9 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype Camera
-    \instantiates QDeclarativeCameraFocus
+    \instantiates Camera
     \inqmlmodule QtMultimedia
-    \brief An interface for focus and zoom related camera settings.
+    \brief An interface for camera settings related to focus and zoom.
     \ingroup multimedia_qml
     \ingroup camera_qml
 
@@ -79,53 +79,23 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \class QDeclarativeCameraFocus
-    \internal
-    \brief An interface for focus related camera settings.
-*/
-
-/*!
-    \property QDeclarativeCameraFocus::focusMode
+    \qmlproperty enumeration CameraFocus::focusMode
 
     This property holds the current camera focus mode.
 
-    In automatic focusing modes, the \l focusPoint
-    property provides a hint on where the camera should focus.
-*/
+    \note In automatic focusing modes, the \l focusPoint property provides
+    information and control over the area of the image that is being focused.
 
-/*!
-    \qmlproperty enumeration CameraFocus::focusMode
-
-    This property holds the current camera focus mode, which can be one of the following values:
-
-    \table
-     \header
-      \li Value
-      \li Description
-     \row
-      \li FocusModeAuto
-      \li Continuous auto focus mode.
-     \row
-      \li FocusModeAutoNear
-      \li Continuous auto focus, preferring objects near to the camera.
-     \row
-      \li FocusModeAutoFar
-      \li Continuous auto focus, preferring objects far away from the camera.
-     \row
-      \li FocusModeHyperfocal
-      \li Focus to hyperfocal distance, with the maximum depth of field achieved. All objects at distances
-          from half of this distance out to infinity will be acceptably sharp.
-     \row
-      \li FocusModeInfinity
-      \li Focus strictly to infinity.
-     \row
-      \li FocusModeManual
-      \li Manual or fixed focus mode.
-    \endtable
-
-    In automatic focusing modes, the \l focusPoint property
-    provides information and control
-    over the area of the image that is being focused.
+      \value FocusModeAuto Continuous auto focus mode.
+      \value FocusModeAutoNear Continuous auto focus, preferring objects near to
+      the camera.
+      \value FocusModeAutoFar Continuous auto focus, preferring objects far away
+      from the camera.
+      \value FocusModeHyperfocal Focus to hyperfocal distance, with the maximum
+      depth of field achieved. All objects at distances from half of this
+      distance out to infinity will be acceptably sharp.
+      \value FocusModeInfinity Focus strictly to infinity.
+      \value FocusModeManual Manual or fixed focus mode.
 */
 
 /*!
@@ -138,23 +108,13 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-  \property QDeclarativeCameraFocus::customFocusPoint
-
-  This property holds the position of the custom focus point in relative
-  frame coordinates. For example, QPointF(0,0) pointing to the left top corner of the frame, and QPointF(0.5,0.5)
-  pointing to the center of the frame.
-
-  Custom focus point is used only in QCamera::FocusPointCustom focus mode.
-*/
-
-/*!
   \qmlproperty point QtMultimedia::CameraFocus::customFocusPoint
 
-  This property holds the position of custom focus point, in relative frame coordinates:
-  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5)
-  points to the frame center.
+  This property holds the position of custom focus point, in relative frame
+  coordinates. This means that QPointF(0,0) points to the top-left corner
+  of the frame, and QPointF(0.5,0.5) points to the center of the frame.
 
-  Custom focus point is used only in FocusPointCustom focus mode.
+  Custom focus point is used only in \c FocusPointCustom focus mode.
 */
 
 /*!
@@ -166,11 +126,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlproperty real QtMultimedia::CameraFocus::maximumZoomFactor
 
-    This property holds the maximum zoom factor supported, or 1.0 if zooming is not supported.
+    This property holds the maximum zoom factor supported, or \c 1.0 if zooming
+    is not supported.
 */
 
-/*!
-    \property QDeclarativeCameraFocus::zoomFactor
-
-    This property holds the current zoom factor.
-*/

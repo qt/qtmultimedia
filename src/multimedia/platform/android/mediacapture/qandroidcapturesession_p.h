@@ -77,10 +77,11 @@ public:
 
     void setCameraSession(QAndroidCameraSession *cameraSession = 0);
     void setAudioInput(QPlatformAudioInput *input);
+    void setAudioOutput(QPlatformAudioOutput *output);
 
     QMediaRecorder::RecorderState state() const;
 
-    void start(const QMediaEncoderSettings &settings, const QUrl &outputLocation);
+    void start(QMediaEncoderSettings &settings, const QUrl &outputLocation);
     void stop(bool error = false);
 
     qint64 duration() const;
@@ -88,8 +89,6 @@ public:
     QMediaEncoderSettings encoderSettings() { return m_encoderSettings; }
 
     void setMediaEncoder(QAndroidMediaEncoder *encoder) { m_mediaEncoder = encoder; }
-
-    void applySettings(const QMediaEncoderSettings &settings);
 
     void stateChanged(QMediaRecorder::RecorderState state) {
         if (m_mediaEncoder)
@@ -119,6 +118,8 @@ private Q_SLOTS:
     void onInfo(int what, int extra);
 
 private:
+    void applySettings(QMediaEncoderSettings &settings);
+
     struct CaptureProfile {
         AndroidMediaRecorder::OutputFormat outputFormat;
         QString outputFileExtension;
@@ -152,7 +153,6 @@ private:
 
     CaptureProfile getProfile(int id);
 
-    void updateResolution();
     void restartViewfinder();
 
     QAndroidMediaEncoder *m_mediaEncoder = nullptr;
@@ -160,6 +160,7 @@ private:
     QAndroidCameraSession *m_cameraSession;
 
     QPlatformAudioInput *m_audioInput = nullptr;
+    QPlatformAudioOutput *m_audioOutput = nullptr;
 
     QMediaStorageLocation m_mediaStorageLocation;
 

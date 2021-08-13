@@ -145,8 +145,8 @@ WId QVideoSink::nativeWindowId() const
 }
 
 /*!
-    Tells QVideoSink to render directly to the native window \a id. This is usually more
-    resource efficient than rendering individual video frames.
+    Tells QVideoSink to render directly to the native window \a id. This is
+    usually more resource efficient than rendering individual video frames.
 
     The newVideoFrame() signal will never get emitted in this mode.
 
@@ -163,7 +163,7 @@ void QVideoSink::setNativeWindowId(WId id)
 
 /*!
     \internal
-    The QRhi instance being used to create texture data in the video frames.
+    Returns the QRhi instance being used to create texture data in the video frames.
  */
 QRhi *QVideoSink::rhi() const
 {
@@ -172,7 +172,8 @@ QRhi *QVideoSink::rhi() const
 
 /*!
     \internal
-    Sets the QRhi instance being used to create texture data in the video frames to \a rhi.
+    Sets the QRhi instance being used to create texture data in the video frames
+    to \a rhi.
  */
 void QVideoSink::setRhi(QRhi *rhi)
 {
@@ -183,8 +184,8 @@ void QVideoSink::setRhi(QRhi *rhi)
 }
 
 /*!
-    Render the video full screen. This is often more resource efficient than rendering to
-    only parts of the screen.
+    Render the video full screen. This is often more resource efficient than
+    rendering to only parts of the screen.
 
     The newVideoFrame() signal will never get emitted when rendering full screen.
  */
@@ -306,8 +307,8 @@ void QVideoSink::setBackgroundMode(Qt::BGMode mode)
 }
 
 /*!
-    Use a QPainter to render the QVideoFrame \a f. Rendering will usually happen in without hardware
-    acceleration when using this method.
+    Uses a QPainter, \a{painter}, to render the QVideoFrame \a f. Rendering will
+    usually happen without hardware acceleration when using this method.
 */
 void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
 {
@@ -333,7 +334,7 @@ void QVideoSink::paint(QPainter *painter, const QVideoFrame &f)
         size.scale(targetRect.size(), Qt::KeepAspectRatio);
         targetRect = QRect(0, 0, size.width(), size.height());
         targetRect.moveCenter(d->targetRect.center());
-        // we might not be drawing every pixel, fill the leftover black
+        // we might not be drawing every pixel, fill the leftovers black
         if (d->backgroundMode == Qt::OpaqueMode && d->targetRect != targetRect) {
             if (targetRect.top() > d->targetRect.top()) {
                 QRectF top(d->targetRect.left(), d->targetRect.top(), d->targetRect.width(), targetRect.top() - d->targetRect.top());
@@ -398,8 +399,8 @@ QPlatformVideoSink *QVideoSink::platformVideoSink() const
 }
 
 /*!
-    Returns the size of the video currently being played back. If no video is being played,
-    this method returns an invalid size.
+    Returns the size of the video currently being played back. If no video is
+    being played, this method returns an invalid size.
  */
 QSize QVideoSink::videoSize() const
 {

@@ -209,12 +209,14 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 
     emit readyForCaptureChanged(isReadyForCapture());
 
-    GstCaps *caps = gst_pad_get_current_caps(bin.staticPad("sink").pad());
+    QGstCaps caps = gst_pad_get_current_caps(bin.staticPad("sink").pad());
     GstVideoInfo previewInfo;
-    gst_video_info_from_caps(&previewInfo, caps);
+    gst_video_info_from_caps(&previewInfo, caps.get());
 
-    auto *gstBuffer = new QGstVideoBuffer(buffer, previewInfo);
-    auto fmt = QGstUtils::formatForCaps(caps, &previewInfo);
+    auto memoryFormat = caps.memoryFormat();
+    auto fmt = QGstCaps(caps).formatForCaps(&previewInfo);
+    auto *sink = m_session->gstreamerVideoSink();
+    auto *gstBuffer = new QGstVideoBuffer(buffer, previewInfo, sink, fmt, memoryFormat);
     QVideoFrame frame(gstBuffer, fmt);
     QImage img = frame.toImage();
     if (img.isNull()) {

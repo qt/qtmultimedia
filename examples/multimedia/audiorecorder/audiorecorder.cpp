@@ -117,7 +117,7 @@ AudioRecorder::AudioRecorder()
     ui->qualitySlider->setRange(0, int(QImageCapture::VeryHighQuality));
     ui->qualitySlider->setValue(int(QImageCapture::NormalQuality));
 
-    //bitrates:
+    //bit rates:
     ui->bitrateBox->addItem(tr("Default"), QVariant(0));
     ui->bitrateBox->addItem(QStringLiteral("32000"), QVariant(32000));
     ui->bitrateBox->addItem(QStringLiteral("64000"), QVariant(64000));

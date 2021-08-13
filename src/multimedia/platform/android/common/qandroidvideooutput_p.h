@@ -56,22 +56,14 @@
 #include <qmutex.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <qmatrix4x4.h>
+#include <QtGui/private/qrhi_p.h>
+#include <QtGui/qoffscreensurface.h>
 
 QT_BEGIN_NAMESPACE
 
-// Enable this to prevent using the external texture directly (bound as
-// GL_TEXTURE_EXTERNAL_OES), but rather do a readback on every frame and
-// upload the QImage data into a plain 2D texture.
-//#define QANDROIDVIDEOUTPUT_NO_DIRECT_TEXTURE_USAGE
-
 class AndroidSurfaceTexture;
 class AndroidSurfaceHolder;
-class QOpenGLFramebufferObject;
-class QOpenGLShaderProgram;
-class QWindow;
-class QOpenGLContext;
 class QVideoSink;
-class QRhi;
 
 class QAndroidVideoOutput : public QObject
 {
@@ -95,19 +87,17 @@ protected:
     QAndroidVideoOutput(QObject *parent) : QObject(parent) { }
 };
 
-class OpenGLResourcesDeleter : public QObject
+class GraphicsResourceDeleter : public QObject
 {
     Q_OBJECT
 public:
-    void deleteTexture(quint32 id) { QMetaObject::invokeMethod(this, "deleteTextureHelper", Qt::AutoConnection, Q_ARG(quint32, id)); }
-    void deleteFbo(QOpenGLFramebufferObject *fbo) { QMetaObject::invokeMethod(this, "deleteFboHelper", Qt::AutoConnection, Q_ARG(void *, fbo)); }
-    void deleteShaderProgram(QOpenGLShaderProgram *prog) { QMetaObject::invokeMethod(this, "deleteShaderProgramHelper", Qt::AutoConnection, Q_ARG(void *, prog)); }
+    void deleteResources(const QList<QRhiResource *> &res) { QMetaObject::invokeMethod(this, "deleteResourcesHelper", Qt::AutoConnection, Q_ARG(QList<QRhiResource*>, res)); }
+    void deleteRhi(QRhi *rhi, QOffscreenSurface *surf) { QMetaObject::invokeMethod(this, "deleteRhiHelper", Qt::AutoConnection, Q_ARG(QRhi*, rhi), Q_ARG(QOffscreenSurface*, surf)); }
     void deleteThis() { QMetaObject::invokeMethod(this, "deleteThisHelper"); }
 
 private:
-    Q_INVOKABLE void deleteTextureHelper(quint32 id);
-    Q_INVOKABLE void deleteFboHelper(void *fbo);
-    Q_INVOKABLE void deleteShaderProgramHelper(void *prog);
+    Q_INVOKABLE void deleteResourcesHelper(const QList<QRhiResource *> &res);
+    Q_INVOKABLE void deleteRhiHelper(QRhi *rhi, QOffscreenSurface *surf);
     Q_INVOKABLE void deleteThisHelper();
 };
 
@@ -133,9 +123,8 @@ private Q_SLOTS:
 
 private:
     void initSurfaceTexture();
-    bool renderFrameToFbo();
-    void ensureCommonGLResources();
-    void ensureFboGLResources();
+    bool renderAndReadbackFrame();
+    void ensureExternalTexture(QRhi *rhi);
 
     QMutex m_mutex;
     void clearSurfaceTexture();
@@ -145,13 +134,24 @@ private:
 
     AndroidSurfaceTexture *m_surfaceTexture = nullptr;
 
-    quint32 m_externalTex = 0;
-    QOpenGLFramebufferObject *m_fbo = nullptr;
-    QOpenGLShaderProgram *m_program = nullptr;
-    OpenGLResourcesDeleter *m_glDeleter = nullptr;
+    QRhiTexture *m_externalTex = nullptr;
 
-    QWindow *m_offscreenSurface = nullptr;
-    QOpenGLContext *m_glContext = nullptr;
+    QRhi *m_readbackRhi = nullptr;
+    QOffscreenSurface *m_readbackRhiFallbackSurface = nullptr;
+    QRhiTexture *m_readbackSrc = nullptr;
+    QRhiTexture *m_readbackTex = nullptr;
+    QRhiBuffer *m_readbackVBuf = nullptr;
+    QRhiBuffer *m_readbackUBuf = nullptr;
+    QRhiSampler *m_externalTexSampler = nullptr;
+    QRhiShaderResourceBindings *m_readbackSrb = nullptr;
+    QRhiTextureRenderTarget *m_readbackRenderTarget = nullptr;
+    QRhiRenderPassDescriptor *m_readbackRpDesc = nullptr;
+    QRhiGraphicsPipeline *m_readbackPs = nullptr;
+
+    QImage m_readbackImage;
+    QByteArray m_readbackImageData;
+
+    GraphicsResourceDeleter *m_graphicsDeleter = nullptr;
 
     friend class AndroidTextureVideoBuffer;
 };
@@ -187,28 +187,7 @@ public:
     }
 
 private:
-    bool updateFrame()
-    {
-        // Even though the texture was updated in a previous call, we need to re-check
-        // that this has not become a stale buffer, e.g., if the output size changed or
-        // has since became invalid.
-        if (!m_output->m_nativeSize.isValid())
-            return false;
-
-        // Size changed
-        if (m_output->m_nativeSize != m_size)
-            return false;
-
-        // In the unlikely event that we don't have a valid fbo, but have a valid size,
-        // force an update.
-        const bool forceUpdate = !m_output->m_fbo;
-
-        if (m_textureUpdated && !forceUpdate)
-            return true;
-
-        // update the video texture (called from the render thread)
-        return (m_textureUpdated = m_output->renderFrameToFbo());
-    }
+    bool updateReadbackFrame();
 
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
     QAndroidTextureVideoOutput *m_output = nullptr;

@@ -178,8 +178,9 @@ QT_BEGIN_NAMESPACE
 /*!
     \enum QAudioFormat::ChannelConfig
 
-    This enum describes a standardized audio channel layout. The most common configurations are Mono, Stereo, 2.1
-    (stereo plus low frequency), 5.1 surround, and 7.1 surround configurations.
+    This enum describes a standardized audio channel layout. The most common
+    configurations are Mono, Stereo, 2.1 (stereo plus low frequency), 5.1 surround,
+    and 7.1 surround configurations.
 
     \value ChannelConfigUnknown The channel configuration is not known.
     \value ChannelConfigMono The audio has one Center channel
@@ -207,8 +208,10 @@ void QAudioFormat::setChannelConfig(ChannelConfig config) noexcept
 }
 
 /*!
-    Returns the position of a certain audio channel inside an audio frame for the given format.
-    Returns -1 if the channel does not exist for this format or the channel configuration is unknown.
+    Returns the position of a certain audio \a channel inside an audio frame
+    for the given format.
+    Returns -1 if the channel does not exist for this format or the channel
+    configuration is unknown.
 */
 int QAudioFormat::channelOffset(AudioChannelPosition channel) const noexcept
 {
@@ -222,7 +225,8 @@ int QAudioFormat::channelOffset(AudioChannelPosition channel) const noexcept
 /*!
     \fn void QAudioFormat::setChannelCount(int channels)
 
-    Sets the channel count to \a channels. Setting this also sets the channel config to ChannelConfigUnknown.
+    Sets the channel count to \a channels. Setting this also sets the channel
+    config to ChannelConfigUnknown.
 */
 
 
@@ -350,7 +354,8 @@ qint64 QAudioFormat::durationForFrames(qint32 frameCount) const
 /*!
     \fn int QAudioFormat::bytesPerFrame() const
 
-    Returns the number of bytes required to represent one frame (a sample in each channel) in this format.
+    Returns the number of bytes required to represent one frame
+    (a sample in each channel) in this format.
 
     Returns 0 if this format is invalid.
 */
@@ -363,7 +368,8 @@ qint64 QAudioFormat::durationForFrames(qint32 frameCount) const
 */
 
 /*!
-    Normalizes the sample value to a number between -1 and 1.
+    Normalizes the \a sample value to a number between -1 and 1.
+    The method depends on the QaudioFormat
 */
 float QAudioFormat::normalizedSampleValue(const void *sample) const
 {
@@ -387,14 +393,17 @@ float QAudioFormat::normalizedSampleValue(const void *sample) const
 /*!
     \enum QAudioFormat::SampleFormat
 
-    Qt will always expect and use samples in the endianness of the host platform. When processing audio data
-    from external sources yourself, ensure you convert them to the correct endianness before writing them to
-    a QAudioSink or QAudioBuffer
+    Qt will always expect and use samples in the endianness of the host platform.
+    When processing audio data from external sources yourself, ensure you convert
+    them to the correct endianness before writing them to a QAudioSink or
+    QAudioBuffer.
 
     \value Unknown       Not Set
     \value Int16         Samples are 16 bit signed integers
-    \value Int32         Samples are 32 bit signed intergers
+    \value Int32         Samples are 32 bit signed integers
     \value Float         Samples are floats
+    \value UInt8         Samples are 8 bit unsigned integers
+    \omitvalue NSampleFormats
 */
 
 #ifndef QT_NO_DEBUG_STREAM

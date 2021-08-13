@@ -82,12 +82,6 @@ qt_internal_add_module(Multimedia
         Qt::GuiPrivate
 )
 
-# ### Get rid of me!
-qt_internal_extend_target(Multimedia CONDITION TARGET Qt::OpenGL
-    LIBRARIES
-        Qt::OpenGL
-)
-
 qt_internal_add_simd_part(Multimedia SIMD sse2
     SOURCES
         video/qvideoframeconversionhelper_sse2.cpp
@@ -118,6 +112,7 @@ if(ANDROID)
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_PERMISSIONS
         android.permission.CAMERA android.permission.RECORD_AUDIO
         android.permission.BLUETOOTH
+        android.permission.MODIFY_AUDIO_SETTINGS
     )
 endif()
 
@@ -177,7 +172,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/player
         platform/windows/mediacapture
     LIBRARIES
-        Qt::GuiPrivate
         uuid
         WMF::WMF
         d3d9
@@ -194,12 +188,9 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         user32
         winmm
         wmcodecdspuuid
-    PUBLIC_LIBRARIES
-        Qt::Gui
-        Qt::Network
-    PRIVATE_MODULE_INTERFACE
-        Qt::GuiPrivate
 )
+
+qt_find_package(EGL)
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
     SOURCES
@@ -217,7 +208,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
         platform/gstreamer/common/qgstreamermediaplayer.cpp platform/gstreamer/common/qgstreamermediaplayer_p.h
         platform/gstreamer/common/qgstreamervideooutput.cpp platform/gstreamer/common/qgstreamervideooutput_p.h
         platform/gstreamer/common/qgstreamervideooverlay.cpp platform/gstreamer/common/qgstreamervideooverlay_p.h
-        platform/gstreamer/common/qgstreamervideorenderer.cpp platform/gstreamer/common/qgstreamervideorenderer_p.h
         platform/gstreamer/common/qgstreamervideosink.cpp platform/gstreamer/common/qgstreamervideosink_p.h
         platform/gstreamer/common/qgstpipeline.cpp platform/gstreamer/common/qgstpipeline_p.h
         platform/gstreamer/common/qgstutils.cpp platform/gstreamer/common/qgstutils_p.h
@@ -238,6 +228,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
     LIBRARIES
         GStreamer::GStreamer # special case
         GStreamer::App # special case
+        EGL::EGL
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_photography
@@ -330,27 +321,15 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         platform/android/mediacapture
         platform/android/mediaplayer
         platform/android/wrappers/jni
-    LIBRARIES
-        Qt::CorePrivate
     PUBLIC_LIBRARIES
         OpenSLES
         mediandk
-        Qt::Core
-        Qt::Network
-        Qt::OpenGL
-    PRIVATE_MODULE_INTERFACE
-        Qt::CorePrivate
 )
 
-qt_internal_extend_target(Multimedia CONDITION WIN32 AND NOT TARGET Qt::OpenGL
+qt_internal_extend_target(Multimedia CONDITION WIN32
     LIBRARIES
         gdi32
         user32
-)
-
-qt_internal_extend_target(Multimedia CONDITION TARGET Qt::Widgets AND WIN32
-    PUBLIC_LIBRARIES
-        Qt::Widgets
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
@@ -379,8 +358,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
         ${FWMetal}
         ${FWQuartzCore}
         AVFoundation::AVFoundation
-        Qt::Network
-        Qt::OpenGL
 )
 
 qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT WATCHOS
@@ -486,6 +463,7 @@ qt_internal_add_shaders(Multimedia "shaders"
         "shaders/abgr.frag"
         "shaders/argb.frag"
         "shaders/bgra.frag"
+        "shaders/rgba.frag"
         "shaders/y.frag"
         "shaders/nv12.frag"
         "shaders/nv21.frag"

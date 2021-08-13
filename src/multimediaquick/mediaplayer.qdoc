@@ -38,469 +38,6 @@
 ****************************************************************************/
 
 /*!
-    \qmltype Audio
-    \instantiates QMediaPlayer
-    \brief Add audio playback to a scene.
-
-    \inqmlmodule QtMultimedia
-    \ingroup multimedia_qml
-    \ingroup multimedia_audio_qml
-
-    \qml
-    Text {
-        text: "Click Me!";
-        font.pointSize: 24;
-        width: 150; height: 50;
-
-        Audio {
-            id: playMusic
-            source: "music.wav"
-        }
-        MouseArea {
-            id: playArea
-            anchors.fill: parent
-            onPressed:  { playMusic.play() }
-        }
-    }
-    \endqml
-
-    \sa Video
-*/
-
-/*!
-    \since 5.15
-    \qmlproperty url QtMultimedia::MediaPlayer::videoOutput
-
-    This property holds the target video output.
-    Accepts one or an array of VideoOutput elements.
-
-    \snippet multimedia-snippets/multiple-videooutputs.qml complete
-
-    \sa QMediaPlayer::setVideoOutput()
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia::Audio::isAvailable
-
-    Returns the availability state of the media player.
- */
-
-/*!
-    \qmlproperty enumeration QtMultimedia::Audio::audioRole
-
-    This property holds the role of the audio stream. It can be set to specify the type of audio
-    being played, allowing the system to make appropriate decisions when it comes to volume,
-    routing or post-processing.
-
-    The audio role must be set before setting the source property.
-
-    Supported values can be retrieved with supportedAudioRoles().
-
-    The value can be one of:
-    \list
-    \li UnknownRole - the role is unknown or undefined.
-    \li MusicRole - music.
-    \li VideoRole - soundtrack from a movie or a video.
-    \li VoiceCommunicationRole - voice communications, such as telephony.
-    \li AlarmRole - alarm.
-    \li NotificationRole - notification, such as an incoming e-mail or a chat request.
-    \li RingtoneRole - ringtone.
-    \li AccessibilityRole - for accessibility, such as with a screen reader.
-    \li SonificationRole - sonification, such as with user interface sounds.
-    \li GameRole - game audio.
-    \endlist
-
-    \since 5.6
-*/
-
-/*!
-    \qmlmethod list<int> QtMultimedia::Audio::supportedAudioRoles()
-
-    Returns a list of supported audio roles.
-
-    If setting the audio role is not supported, an empty list is returned.
-
-    \since 5.6
-    \sa audioRole
-*/
-
-/*!
-    \qmlmethod QtMultimedia::Audio::play()
-
-    Starts playback of the media.
-
-    Sets the \l playbackState property to PlayingState.
-*/
-
-/*!
-    \qmlmethod QtMultimedia::Audio::pause()
-
-    Pauses playback of the media.
-
-    Sets the \l playbackState property to PausedState.
-*/
-
-/*!
-    \qmlmethod QtMultimedia::Audio::stop()
-
-    Stops playback of the media.
-
-    Sets the \l playbackState property to StoppedState.
-*/
-
-/*!
-    \qmlmethod QtMultimedia::Audio::seek(offset)
-
-    If the \l seekable property is true, seeks the current
-    playback position to \a offset.
-
-    Seeking may be asynchronous, so the \l position property
-    may not be updated immediately.
-
-    \sa seekable, position
-*/
-
-/*!
-    \qmlproperty url QtMultimedia::Audio::source
-
-    This property holds the source URL of the media.
-*/
-
-/*!
-    \qmlproperty int QtMultimedia::Audio::loops
-
-    This property holds the number of times the media is played. A value of \c 0 or \c 1 means
-    the media will be played only once; set to \c Audio.Infinite to enable infinite looping.
-
-    The value can be changed while the media is playing, in which case it will update
-    the remaining loops to the new value.
-
-    The default is \c 1.
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia::Audio::autoLoad
-
-    This property indicates if loading of media should begin immediately.
-
-    Defaults to \c true. If \c false, the media will not be loaded until playback is started.
-*/
-
-/*!
-    \qmlsignal QtMultimedia::Audio::playbackStateChanged()
-
-    This signal is emitted when the \l playbackState property is altered.
-
-    The corresponding handler is \c onPlaybackStateChanged.
-*/
-
-
-/*!
-    \qmlsignal QtMultimedia::Audio::paused()
-
-    This signal is emitted when playback is paused.
-
-    The corresponding handler is \c onPaused.
-*/
-
-/*!
-    \qmlsignal QtMultimedia::Audio::stopped()
-
-    This signal is emitted when playback is stopped.
-
-    The corresponding handler is \c onStopped.
-*/
-
-/*!
-    \qmlsignal QtMultimedia::Audio::playing()
-
-    This signal is emitted when playback is started or resumed.
-
-    The corresponding handler is \c onPlaying.
-*/
-
-/*!
-    \qmlproperty enumeration QtMultimedia::Audio::status
-
-    This property holds the status of media loading. It can be one of:
-
-    \list
-    \li NoMedia - no media has been set.
-    \li Loading - the media is currently being loaded.
-    \li Loaded - the media has been loaded.
-    \li Buffering - the media is buffering data.
-    \li Stalled - playback has been interrupted while the media is buffering data.
-    \li Buffered - the media has buffered data.
-    \li EndOfMedia - the media has played to the end.
-    \li InvalidMedia - the media cannot be played.
-    \li UnknownStatus - the status of the media is unknown.
-    \endlist
-*/
-
-/*!
-    \qmlproperty enumeration QtMultimedia::Audio::playbackState
-
-    This property holds the state of media playback. It can be one of:
-
-    \list
-    \li PlayingState - the media is currently playing.
-    \li PausedState - playback of the media has been suspended.
-    \li StoppedState - playback of the media is yet to begin.
-    \endlist
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia::Audio::autoPlay
-
-    This property controls whether the media will begin to play on start up.
-
-    Defaults to \c false. If set to \c true, the value of autoLoad will be overwritten to \c true.
-*/
-
-/*!
-    \qmlproperty int QtMultimedia::Audio::duration
-
-    This property holds the duration of the media in milliseconds.
-
-    If the media doesn't have a fixed duration (a live stream for example) this will be 0.
-*/
-
-/*!
-    \qmlproperty int QtMultimedia::Audio::position
-
-    This property holds the current playback position in milliseconds.
-
-    To change this position, use the \l seek() method.
-
-    \sa seek()
-*/
-
-/*!
-    \qmlproperty real QtMultimedia::Audio::volume
-
-    This property holds the audio volume.
-
-    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
-    range will be clamped.
-
-    The default volume is \c 1.0.
-
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
-    will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See \l {QtMultimedia::QtMultimedia::convertVolume()}{QtMultimedia.convertVolume()}
-    for more details.
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia::Audio::muted
-
-    This property holds whether the audio output is muted.
-
-    Defaults to false.
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia::Audio::hasAudio
-
-    This property holds whether the media contains audio.
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia::Audio::hasVideo
-
-    This property holds whether the media contains video.
-*/
-
-/*!
-    \qmlproperty real QtMultimedia::Audio::bufferProgress
-
-    This property holds how much of the data buffer is currently filled, from \c 0.0 (empty) to
-    \c 1.0 (full).
-
-    Playback can start or resume only when the buffer is entirely filled, in which case the
-    status is \c Audio.Buffered or \c Audio.Buffering. A value lower than \c 1.0 implies that
-    the status is \c Audio.Stalled.
-
-    \sa status
-*/
-
-/*!
-    \qmlproperty bool QtMultimedia::Audio::seekable
-
-    This property holds whether position of the audio can be changed.
-
-    If true, calling the \l seek() method will cause playback to seek to the new position.
-*/
-
-/*!
-    \qmlproperty real QtMultimedia::Audio::playbackRate
-
-    This property holds the rate at which audio is played at as a multiple of the normal rate.
-
-    Defaults to 1.0.
-*/
-
-/*!
-    \qmlproperty enumeration QtMultimedia::Audio::error
-
-    This property holds the error state of the audio.  It can be one of:
-
-    \table
-    \header \li Value \li Description
-    \row \li NoError
-        \li There is no current error.
-    \row \li ResourceError
-        \li The audio cannot be played due to a problem allocating resources.
-    \row \li FormatError
-        \li The audio format is not supported.
-    \row \li NetworkError
-        \li The audio cannot be played due to network issues.
-    \row \li AccessDenied
-        \li The audio cannot be played due to insufficient permissions.
-    \row \li ServiceMissing
-        \li The audio cannot be played because the media service could not be
-    instantiated.
-    \endtable
-*/
-
-/*!
-    \qmlproperty string QtMultimedia::Audio::errorString
-
-    This property holds a string describing the current error condition in more detail.
-*/
-
-/*!
-    \qmlsignal QtMultimedia::Audio::error(error, errorString)
-
-    This signal is emitted when an \a error has
-    occurred.  The \a errorString parameter may contain more detailed
-    information about the error.
-
-    The corresponding handler is \c onError.
-
-    \sa QMediaPlayer::Error
-*/
-
-/*!
-    \qmlproperty variant QtMultimedia::Audio::mediaSource
-
-    This property holds the native media object.
-
-    It can be used to get a pointer to a QMediaPlayer object in order to integrate with C++ code.
-
-    \code
-        QObject *qmlAudio; // The QML Audio object
-        QMediaPlayer *player = qvariant_cast<QMediaPlayer *>(qmlAudio->property("mediaSource"));
-    \endcode
-
-    \note This property is not accessible from QML.
-*/
-
-/*!
-    \qmlpropertygroup QtMultimedia::Audio::metaData
-    \qmlproperty variant QtMultimedia::Audio::metaData.title
-    \qmlproperty variant QtMultimedia::Audio::metaData.subTitle
-    \qmlproperty variant QtMultimedia::Audio::metaData.author
-    \qmlproperty variant QtMultimedia::Audio::metaData.comment
-    \qmlproperty variant QtMultimedia::Audio::metaData.description
-    \qmlproperty variant QtMultimedia::Audio::metaData.category
-    \qmlproperty variant QtMultimedia::Audio::metaData.genre
-    \qmlproperty variant QtMultimedia::Audio::metaData.year
-    \qmlproperty variant QtMultimedia::Audio::metaData.date
-    \qmlproperty variant QtMultimedia::Audio::metaData.userRating
-    \qmlproperty variant QtMultimedia::Audio::metaData.keywords
-    \qmlproperty variant QtMultimedia::Audio::metaData.language
-    \qmlproperty variant QtMultimedia::Audio::metaData.publisher
-    \qmlproperty variant QtMultimedia::Audio::metaData.copyright
-    \qmlproperty variant QtMultimedia::Audio::metaData.parentalRating
-    \qmlproperty variant QtMultimedia::Audio::metaData.ratingOrganization
-    \qmlproperty variant QtMultimedia::Audio::metaData.size
-    \qmlproperty variant QtMultimedia::Audio::metaData.mediaType
-    \qmlproperty variant QtMultimedia::Audio::metaData.audioBitRate
-    \qmlproperty variant QtMultimedia::Audio::metaData.audioCodec
-    \qmlproperty variant QtMultimedia::Audio::metaData.averageLevel
-    \qmlproperty variant QtMultimedia::Audio::metaData.channelCount
-    \qmlproperty variant QtMultimedia::Audio::metaData.peakValue
-    \qmlproperty variant QtMultimedia::Audio::metaData.sampleRate
-    \qmlproperty variant QtMultimedia::Audio::metaData.albumTitle
-    \qmlproperty variant QtMultimedia::Audio::metaData.albumArtist
-    \qmlproperty variant QtMultimedia::Audio::metaData.contributingArtist
-    \qmlproperty variant QtMultimedia::Audio::metaData.composer
-    \qmlproperty variant QtMultimedia::Audio::metaData.conductor
-    \qmlproperty variant QtMultimedia::Audio::metaData.lyrics
-    \qmlproperty variant QtMultimedia::Audio::metaData.mood
-    \qmlproperty variant QtMultimedia::Audio::metaData.trackNumber
-    \qmlproperty variant QtMultimedia::Audio::metaData.trackCount
-    \qmlproperty variant QtMultimedia::Audio::metaData.coverArtUrlSmall
-    \qmlproperty variant QtMultimedia::Audio::metaData.coverArtUrlLarge
-    \qmlproperty variant QtMultimedia::Audio::metaData.resolution
-    \qmlproperty variant QtMultimedia::Audio::metaData.videoFrameRate
-    \qmlproperty variant QtMultimedia::Audio::metaData.videoBitRate
-    \qmlproperty variant QtMultimedia::Audio::metaData.videoCodec
-    \qmlproperty variant QtMultimedia::Audio::metaData.posterUrl
-    \qmlproperty variant QtMultimedia::Audio::metaData.chapterNumber
-    \qmlproperty variant QtMultimedia::Audio::metaData.director
-    \qmlproperty variant QtMultimedia::Audio::metaData.leadPerformer
-    \qmlproperty variant QtMultimedia::Audio::metaData.writer
-
-    These properties hold the meta data for the current media.
-
-    \list
-    \li \c metaData.title - the title of the media.
-    \li \c metaData.subTitle - the sub-title of the media.
-    \li \c metaData.author - the author of the media.
-    \li \c metaData.comment - a user comment about the media.
-    \li \c metaData.description - a description of the media.
-    \li \c metaData.category - the category of the media.
-    \li \c metaData.genre - the genre of the media.
-    \li \c metaData.year - the year of release of the media.
-    \li \c metaData.date - the date of the media.
-    \li \c metaData.userRating - a user rating of the media in the range of 0 to 100.
-    \li \c metaData.keywords - a list of keywords describing the media.
-    \li \c metaData.language - the language of the media, as an ISO 639-2 code.
-    \li \c metaData.publisher - the publisher of the media.
-    \li \c metaData.copyright - the media's copyright notice.
-    \li \c metaData.parentalRating - the parental rating of the media.
-    \li \c metaData.ratingOrganization - the name of the rating organization responsible for the
-                                         parental rating of the media.
-    \li \c metaData.size - the size of the media in bytes.
-    \li \c metaData.mediaType - the type of the media.
-    \li \c metaData.audioBitRate - the bit rate of the media's audio stream in bits per second.
-    \li \c metaData.audioCodec - the encoding of the media audio stream.
-    \li \c metaData.averageLevel - the average volume level of the media.
-    \li \c metaData.channelCount - the number of channels in the media's audio stream.
-    \li \c metaData.peakValue - the peak volume of media's audio stream.
-    \li \c metaData.sampleRate - the sample rate of the media's audio stream in hertz.
-    \li \c metaData.albumTitle - the title of the album the media belongs to.
-    \li \c metaData.albumArtist - the name of the principal artist of the album the media
-                                  belongs to.
-    \li \c metaData.contributingArtist - the names of artists contributing to the media.
-    \li \c metaData.composer - the composer of the media.
-    \li \c metaData.conductor - the conductor of the media.
-    \li \c metaData.lyrics - the lyrics to the media.
-    \li \c metaData.mood - the mood of the media.
-    \li \c metaData.trackNumber - the track number of the media.
-    \li \c metaData.trackCount - the number of tracks on the album containing the media.
-    \li \c metaData.coverArtUrlSmall - the URL of a small cover art image.
-    \li \c metaData.coverArtUrlLarge - the URL of a large cover art image.
-    \li \c metaData.resolution - the dimension of an image or video.
-    \li \c metaData.videoFrameRate - the frame rate of the media's video stream.
-    \li \c metaData.videoBitRate - the bit rate of the media's video stream in bits per second.
-    \li \c metaData.videoCodec - the encoding of the media's video stream.
-    \li \c metaData.posterUrl - the URL of a poster image.
-    \li \c metaData.chapterNumber - the chapter number of the media.
-    \li \c metaData.director - the director of the media.
-    \li \c metaData.leadPerformer - the lead performer in the media.
-    \li \c metaData.writer - the writer of the media.
-    \endlist
-
-    \sa {QMediaMetaData}
-*/
-
-
-///////////// MediaPlayer Docs /////////////
-
-/*!
     \qmltype MediaPlayer
     \instantiates QMediaPlayer
     \brief Add media playback to a scene.
@@ -555,13 +92,24 @@
 */
 
 /*!
+    \since 5.15
+    \qmlproperty url QtMultimedia::MediaPlayer::videoOutput
+
+    This property holds the target video output.
+    Accepts one, or an array of, VideoOutput elements.
+
+    \snippet multimedia-snippets/multiple-videooutputs.qml complete
+
+    \sa QMediaPlayer::setVideoOutput()
+*/
+
+/*!
     \qmlproperty enumeration QtMultimedia::MediaPlayer::availability
 
-    Returns the availability state of the media player.
+    Returns the media player's state, which can be one of the following:
 
-    This is one of:
     \table
-    \header \li Value \li Description
+    \header \li State value \li Description
     \row \li Available
         \li The media player is available to use.
     \row \li Busy
@@ -578,27 +126,38 @@
 /*!
     \qmlproperty enumeration QtMultimedia::MediaPlayer::audioRole
 
-    This property holds the role of the audio stream. It can be set to specify the type of audio
-    being played, allowing the system to make appropriate decisions when it comes to volume,
-    routing or post-processing.
+    This property holds the role of the audio stream. It can be set to specify
+    the type of audio being played, allowing the system to make appropriate
+    decisions when it comes to volume, routing or post-processing.
 
     The audio role must be set before setting the source property.
 
     Supported values can be retrieved with supportedAudioRoles().
 
-    The value can be one of:
-    \list
-    \li UnknownRole - the role is unknown or undefined.
-    \li MusicRole - music.
-    \li VideoRole - soundtrack from a movie or a video.
-    \li VoiceCommunicationRole - voice communications, such as telephony.
-    \li AlarmRole - alarm.
-    \li NotificationRole - notification, such as an incoming e-mail or a chat request.
-    \li RingtoneRole - ringtone.
-    \li AccessibilityRole - for accessibility, such as with a screen reader.
-    \li SonificationRole - sonification, such as with user interface sounds.
-    \li GameRole - game audio.
-    \endlist
+    The value for an audio role can be one of the following:
+    \table
+    \header \li Role \li Description
+    \row \li UnknownRole
+        \li The role is unknown or undefined.
+    \row \li MusicRole
+        \li For music.
+    \row \li VideoRole
+        \li Soundtrack from a movie or a video.
+    \row \li VoiceCommunicationRole
+        \li Voice communications, such as telephony.
+    \row \li AlarmRole
+        \li Alarms or timers.
+    \row \li NotificationRole
+        \li Notification, such as an incoming e-mail or a chat request.
+    \row \li RingtoneRole
+        \li For ringtones.
+    \row \li AccessibilityRole
+        \li For accessibility, such as a screen reader.
+    \row \li SonificationRole
+        \li \l{Sonification}, such as with user interface sounds.
+    \row \li GameRole
+        \li For game audio.
+    \endtable
 
     \since 5.6
 */
@@ -657,21 +216,27 @@
 /*!
     \qmlproperty int QtMultimedia::MediaPlayer::loops
 
-    This property holds the number of times the media is played. A value of \c 0 or \c 1 means
-    the media will be played only once; set to \c MediaPlayer.Infinite to enable infinite looping.
+    This property holds the number of times the media is played. A value of
+    \c 0 or \c 1 means the media will be played only once.
+    Set the property to \c MediaPlayer.Infinite to enable infinite looping.
 
-    The value can be changed while the media is playing, in which case it will update
-    the remaining loops to the new value.
+    The value can be changed while the media is playing, in which case it will
+    update the remaining loops to the new value.
 
-    The default is \c 1.
+    The default property value is \c{1}.
 */
 
 /*!
     \qmlproperty bool QtMultimedia::MediaPlayer::autoLoad
 
-    This property indicates if loading of media should begin immediately.
+    This property controls if loading of media should begin immediately.
 
-    Defaults to true, if false media will not be loaded until playback is started.
+    Defaults to \b{true}.
+
+    If set to \c{false}, the media will not be loaded until playback is started.
+
+    The value of autoLoad will be overwritten to true, if \l autoPlay is set
+    to \b{true}.
 */
 
 /*!
@@ -710,31 +275,45 @@
 /*!
     \qmlproperty enumeration QtMultimedia::MediaPlayer::status
 
-    This property holds the status of media loading. It can be one of:
+    This property holds the status of media loading. It can be one of the
+    following:
 
-    \list
-    \li NoMedia - no media has been set.
-    \li Loading - the media is currently being loaded.
-    \li Loaded - the media has been loaded.
-    \li Buffering - the media is buffering data.
-    \li Stalled - playback has been interrupted while the media is buffering data.
-    \li Buffered - the media has buffered data.
-    \li EndOfMedia - the media has played to the end.
-    \li InvalidMedia - the media cannot be played.
-    \li UnknownStatus - the status of the media is unknown.
-    \endlist
+    \table \li Property value \li Description
+    \row \li NoMedia
+        \li No media has been set.
+    \row \li Loading
+        \li The media is currently being loaded.
+    \row \li Loaded
+        \li The media has been loaded.
+    \row \li Buffering
+        \li The media is buffering data.
+    \row \li Stalled
+        \li Playback has been interrupted while the media is buffering data.
+    \row \li Buffered
+        \li The media has buffered data.
+    \row \li EndOfMedia
+        \li The media has played to the end.
+    \row \li InvalidMedia
+        \li The media cannot be played.
+    \row \li UnknownStatus
+        \li The status of the media is unknown.
+    \endtable
 */
 
 /*!
     \qmlproperty enumeration QtMultimedia::MediaPlayer::playbackState
 
-    This property holds the state of media playback. It can be one of:
+    This property holds the state of media playback.It can be one of the
+    following:
 
-    \list
-    \li PlayingState - the media is currently playing.
-    \li PausedState - playback of the media has been suspended.
-    \li StoppedState - playback of the media is yet to begin.
-    \endlist
+    \table \li Property value \li Description
+    \row \li PlayingState
+        \li The media is currently playing.
+    \row \li PausedState
+        \li Playback of the media has been suspended.
+    \row \li StoppedState
+        \li Playback of the media is yet to begin.
+    \endtable
 */
 
 /*!
@@ -742,7 +321,10 @@
 
     This property controls whether the media will begin to play on start up.
 
-    Defaults to \c false. If set to \c true, the value of autoLoad will be overwritten to \c true.
+    The property defaults to \c{false}.
+
+    If autoPlay is set to \c{true}, the value of \l{autoLoad} will be overwritten
+    to true.
 */
 
 /*!
@@ -750,7 +332,8 @@
 
     This property holds the duration of the media in milliseconds.
 
-    If the media doesn't have a fixed duration (a live stream for example) this will be 0.
+    If the media doesn't have a fixed duration (a live stream for example) this
+    will be set to \c{0}.
 */
 
 /*!
@@ -768,14 +351,17 @@
 
     This property holds the audio volume of the media player.
 
-    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside this
-    range will be clamped.
+    The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume).
+    Values outside this range will be clamped: a value lower than 0.0 is set to
+    0.0, a value higher than 1.0 will set to 1.0.
 
-    The default volume is \c 1.0.
+    The default volume is \c{1.0}.
 
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
-    will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See \l {QtMultimedia::QtMultimedia::convertVolume()}{QtMultimedia.convertVolume()}
+    UI \l{volume controls} should usually be scaled non-linearly. For example,
+    using a logarithmic scale will produce linear changes in perceived \l{loudness},
+    which is what a user would normally expect from a volume control.
+
+    See \l {QtMultimedia::QtMultimedia::convertVolume()}{QtMultimedia.convertVolume()}
     for more details.
 */
 
@@ -784,7 +370,7 @@
 
     This property holds whether the audio output is muted.
 
-    Defaults to false.
+    Defaults to \c{false}.
 */
 
 /*!
@@ -802,12 +388,16 @@
 /*!
     \qmlproperty real QtMultimedia::MediaPlayer::bufferProgress
 
-    This property holds how much of the data buffer is currently filled, from \c 0.0 (empty) to
-    \c 1.0 (full).
+    This property holds how much of the data buffer is currently filled,
+    from \c 0.0 (empty) to \c 1.0 (full).
 
-    Playback can start or resume only when the buffer is entirely filled, in which case the
-    status is \c MediaPlayer.Buffered or \c MediaPlayer.Buffering. A value lower than \c 1.0
-    implies that the status is \c MediaPlayer.Stalled.
+    Playback can start or resume only when the buffer is entirely filled.
+    When the buffer is filled, \c MediaPlayer.Buffered is true.
+    When buffer progress is between \c 0.0 and \c 0.1, \c MediaPlayer.Buffering
+    is set to \c{true}.
+
+    A value lower than \c 1.0 implies that the property \c MediaPlayer.Stalled
+    is \c{true}.
 
     \sa status
 */
@@ -817,7 +407,8 @@
 
     This property holds whether position of the audio can be changed.
 
-    If true, calling the \l seek() method will cause playback to seek to the new position.
+    If true, calling the \l seek() method will cause playback to seek to the new
+    position.
 */
 
 /*!
@@ -835,15 +426,17 @@
 /*!
     \qmlproperty real QtMultimedia::MediaPlayer::playbackRate
 
-    This property holds the rate at which audio is played at as a multiple of the normal rate.
+    This property holds the rate at which audio is played at as a multiple of
+    the normal rate.
 
-    Defaults to 1.0.
+    Defaults to \c{1.0}.
 */
 
 /*!
     \qmlproperty enumeration QtMultimedia::MediaPlayer::error
 
-    This property holds the error state of the audio.  It can be one of:
+    This property holds the error state of the audio. It can be one of the
+    following.
 
     \table
     \header \li Value \li Description
@@ -866,15 +459,15 @@
 /*!
     \qmlproperty string QtMultimedia::MediaPlayer::errorString
 
-    This property holds a string describing the current error condition in more detail.
+    This property holds a string describing the current error condition in more
+    detail.
 */
 
 /*!
     \qmlsignal QtMultimedia::MediaPlayer::error(error, errorString)
 
-    This signal is emitted when an \a error has
-    occurred.  The \a errorString parameter may contain more detailed
-    information about the error.
+    This signal is emitted when an \a error has occurred. The \a errorString
+    parameter may contain more detailed information about the error.
 
     The corresponding handler is \c onError.
 
@@ -886,7 +479,8 @@
 
     This property holds the native media object.
 
-    It can be used to get a pointer to a QMediaPlayer object in order to integrate with C++ code.
+    It can be used to get a pointer to the QMediaPlayer object in order to
+    integrate with C++ code.
 
     \code
         QObject *qmlMediaPlayer; // The QML MediaPlayer object
@@ -945,54 +539,97 @@
 
     These properties hold the meta data for the current media.
 
-    \list
-    \li \c metaData.title - the title of the media.
-    \li \c metaData.subTitle - the sub-title of the media.
-    \li \c metaData.author - the author of the media.
-    \li \c metaData.comment - a user comment about the media.
-    \li \c metaData.description - a description of the media.
-    \li \c metaData.category - the category of the media.
-    \li \c metaData.genre - the genre of the media.
-    \li \c metaData.year - the year of release of the media.
-    \li \c metaData.date - the date of the media.
-    \li \c metaData.userRating - a user rating of the media in the range of 0 to 100.
-    \li \c metaData.keywords - a list of keywords describing the media.
-    \li \c metaData.language - the language of the media, as an ISO 639-2 code.
-    \li \c metaData.publisher - the publisher of the media.
-    \li \c metaData.copyright - the media's copyright notice.
-    \li \c metaData.parentalRating - the parental rating of the media.
-    \li \c metaData.ratingOrganization - the name of the rating organization responsible for the
-                                         parental rating of the media.
-    \li \c metaData.size - the size of the media in bytes.
-    \li \c metaData.mediaType - the type of the media.
-    \li \c metaData.audioBitRate - the bit rate of the media's audio stream in bits per second.
-    \li \c metaData.audioCodec - the encoding of the media audio stream.
-    \li \c metaData.averageLevel - the average volume level of the media.
-    \li \c metaData.channelCount - the number of channels in the media's audio stream.
-    \li \c metaData.peakValue - the peak volume of media's audio stream.
-    \li \c metaData.sampleRate - the sample rate of the media's audio stream in hertz.
-    \li \c metaData.albumTitle - the title of the album the media belongs to.
-    \li \c metaData.albumArtist - the name of the principal artist of the album the media
-                                  belongs to.
-    \li \c metaData.contributingArtist - the names of artists contributing to the media.
-    \li \c metaData.composer - the composer of the media.
-    \li \c metaData.conductor - the conductor of the media.
-    \li \c metaData.lyrics - the lyrics to the media.
-    \li \c metaData.mood - the mood of the media.
-    \li \c metaData.trackNumber - the track number of the media.
-    \li \c metaData.trackCount - the number of tracks on the album containing the media.
-    \li \c metaData.coverArtUrlSmall - the URL of a small cover art image.
-    \li \c metaData.coverArtUrlLarge - the URL of a large cover art image.
-    \li \c metaData.resolution - the dimension of an image or video.
-    \li \c metaData.videoFrameRate - the frame rate of the media's video stream.
-    \li \c metaData.videoBitRate - the bit rate of the media's video stream in bits per second.
-    \li \c metaData.videoCodec - the encoding of the media's video stream.
-    \li \c metaData.posterUrl - the URL of a poster image.
-    \li \c metaData.chapterNumber - the chapter number of the media.
-    \li \c metaData.director - the director of the media.
-    \li \c metaData.leadPerformer - the lead performer in the media.
-    \li \c metaData.writer - the writer of the media.
-    \endlist
+    \table \li Property name \li Description
+    \row \li \c metaData.title
+    \li The title of the media.
+    \row \li \c metaData.subTitle
+    \li The sub-title of the media.
+    \row \li \c metaData.author
+    \li The author of the media.
+    \row \li \c metaData.comment
+    \li A user comment about the media.
+    \row \li \c metaData.description
+    \li A description of the media.
+    \row \li \c metaData.category
+    \li The category of the media.
+    \row \li \c metaData.genre
+    \li The genre of the media.
+    \row \li \c metaData.year
+    \li The year of release of the media.
+    \row \li \c metaData.date
+    \li The date of the media.
+    \row \li \c metaData.userRating
+    \li A user rating of the media in the range of 0 to 100.
+    \row \li \c metaData.keywords
+    \li A list of keywords describing the media.
+    \row \li \c metaData.language
+    \li The language of the media, as an \l{ISO 639-2 code}.
+    \row \li \c metaData.publisher
+    \li The publisher of the media.
+    \row \li \c metaData.copyright
+    \li The media's copyright notice.
+    \row \li \c metaData.parentalRating
+    \li The parental rating of the media.
+    \row \li \c metaData.ratingOrganization
+    \li The name of the rating organization responsible for the parental rating
+    of the media.
+    \row \li \c metaData.size
+    \li The size of the media in bytes.
+    \row \li \c metaData.mediaType
+    \li The type of the media.
+    \row \li \c metaData.audioBitRate
+    \li The bit rate of the media's audio stream in bits per second.
+    \row \li \c metaData.audioCodec
+    \li The encoding of the media audio stream.
+    \row \li \c metaData.averageLevel
+    \li The average volume level of the media.
+    \row \li \c metaData.channelCount
+    \li The number of channels in the media's audio stream.
+    \row \li \c metaData.peakValue
+    \li The peak volume of media's audio stream.
+    \row \li \c metaData.sampleRate
+    \li The sample rate of the media's audio stream in hertz.
+    \row \li \c metaData.albumTitle
+    \li The title of the album the media belongs to.
+    \row \li \c metaData.albumArtist
+    \li The name of the principal artist of the album the media belongs to.
+    \row \li \c metaData.contributingArtist
+    \li The names of artists contributing to the media.
+    \row \li \c metaData.composer
+    \li The composer of the media.
+    \row \li \c metaData.conductor
+    \li The conductor of the media.
+    \row \li \c metaData.lyrics
+    \li The lyrics to the media.
+    \row \li \c metaData.mood
+    \li The mood of the media.
+    \row \li \c metaData.trackNumber
+    \li The track number of the media.
+    \row \li \c metaData.trackCount
+    \li The number of tracks on the album containing the media.
+    \row \li \c metaData.coverArtUrlSmall
+    \li The URL of a small cover art image.
+    \row \li \c metaData.coverArtUrlLarge
+    \li The URL of a large cover art image.
+    \row \li \c metaData.resolution
+    \li The dimension of an image or video.
+    \row \li \c metaData.videoFrameRate
+    \li The frame rate of the media's video stream.
+    \row \li \c metaData.videoBitRate
+    \li The bit rate of the media's video stream in bits per second.
+    \row \li \c metaData.videoCodec
+    \li The encoding of the media's video stream.
+    \row \li \c metaData.posterUrl
+    \li The URL of a poster image.
+    \row \li \c metaData.chapterNumber
+    \li The chapter number of the media.
+    \row \li \c metaData.director
+    \li The director of the media.
+    \row \li \c metaData.leadPerformer
+    \li The lead performer in the media.
+    \row \li \c metaData.writer
+    \li The writer of the media.
+    \endtable
 
     \sa {QMediaMetaData}
 */

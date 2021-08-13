@@ -78,22 +78,6 @@ QMediaRecorderPrivate::QMediaRecorderPrivate()
     encoderSettings.mimeType();
 }
 
-void QMediaRecorderPrivate::applySettingsLater()
-{
-    if (control && !settingsChanged) {
-        settingsChanged = true;
-        QMetaObject::invokeMethod(q_func(), "_q_applySettings", Qt::QueuedConnection);
-    }
-}
-
-void QMediaRecorderPrivate::_q_applySettings()
-{
-    if (control && settingsChanged) {
-        settingsChanged = false;
-        control->applySettings(encoderSettings);
-    }
-}
-
 QString QMediaRecorderPrivate::msgFailedStartRecording()
 {
     return QMediaRecorder::tr("Failed to start recording");
@@ -101,6 +85,7 @@ QString QMediaRecorderPrivate::msgFailedStartRecording()
 
 /*!
     Constructs a media recorder which records the media produced by a microphone and camera.
+    The media recorder is a child of \a{parent}.
 */
 
 QMediaRecorder::QMediaRecorder(QObject *parent)
@@ -146,8 +131,6 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
         return;
 
     platformSession->setMediaEncoder(d->control);
-    d->applySettingsLater();
-
 }
 
 /*!
@@ -271,10 +254,22 @@ void QMediaRecorder::record()
     if (d->control->state() == QMediaRecorder::PausedState) {
         d->control->resume();
     } else {
-        d->control->applySettings(d->encoderSettings);
+        auto oldMediaFormat = d->encoderSettings.mediaFormat();
+        auto camera = d->captureSession->camera();
+        auto flags = camera && camera->isActive() ? QMediaFormat::RequiresVideo
+                                                  : QMediaFormat::NoFlags;
+        d->encoderSettings.resolveFormat(flags);
         d->control->clearActualLocation();
         d->control->clearError();
+
+        auto settings = d->encoderSettings;
         d->control->record(d->encoderSettings);
+
+        if (settings != d->encoderSettings)
+            emit encoderSettingsChanged();
+
+        if (oldMediaFormat != d->encoderSettings.mediaFormat())
+            emit mediaFormatChanged();
     }
 }
 
@@ -326,6 +321,7 @@ void QMediaRecorder::stop()
     \value ResourceError   Device is not ready or not available.
     \value FormatError     Current format is not supported.
     \value OutOfSpaceError No space left on device.
+    \value LocationNotWritable The output location is not writable.
 */
 
 /*!
@@ -374,9 +370,9 @@ QMediaMetaData QMediaRecorder::metaData() const
 }
 
 /*!
-    Sets the meta data tp \a metaData.
+    Sets the meta data to \a metaData.
 
-    \note To ensure that meta data is set corretly, it should be set before starting the recording.
+    \note To ensure that meta data is set correctly, it should be set before starting the recording.
     Once the recording is stopped, any meta data set will be attached to the next recording.
 */
 void QMediaRecorder::setMetaData(const QMediaMetaData &metaData)
@@ -450,7 +446,6 @@ void QMediaRecorder::setMediaFormat(const QMediaFormat &format)
     if (d->encoderSettings.mediaFormat() == format)
         return;
     d->encoderSettings.setMediaFormat(format);
-    d->applySettingsLater();
     emit mediaFormatChanged();
 }
 
@@ -480,7 +475,6 @@ void QMediaRecorder::setEncodingMode(EncodingMode mode)
     if (d->encoderSettings.encodingMode() == mode)
         return;
     d->encoderSettings.setEncodingMode(mode);
-    d->applySettingsLater();
     emit encodingModeChanged();
 }
 
@@ -496,7 +490,6 @@ void QMediaRecorder::setQuality(Quality quality)
     if (d->encoderSettings.quality() == quality)
         return;
     d->encoderSettings.setQuality(quality);
-    d->applySettingsLater();
     emit qualityChanged();
 }
 
@@ -511,10 +504,10 @@ QSize QMediaRecorder::videoResolution() const
 }
 
 /*!
-    Sets the \a resolution of the encoded video.
+    Sets the resolution of the encoded video to \a{size}.
 
-    An empty QSize indicates the recorder should make an optimal choice based on
-    what is available from the video source and the limitations of the codec.
+    Pass an empty QSize to make the recorder choose an optimal resolution based
+    on what is available from the video source and the limitations of the codec.
 */
 void QMediaRecorder::setVideoResolution(const QSize &size)
 {
@@ -522,7 +515,6 @@ void QMediaRecorder::setVideoResolution(const QSize &size)
     if (d->encoderSettings.videoResolution() == size)
         return;
     d->encoderSettings.setVideoResolution(size);
-    d->applySettingsLater();
     emit videoResolutionChanged();
 }
 
@@ -543,7 +535,7 @@ qreal QMediaRecorder::videoFrameRate() const
 }
 
 /*!
-    Sets the video frame \a rate.
+    Sets the video \a frameRate.
 
     A value of 0 indicates the recorder should make an optimal choice based on what is available
     from the video source and the limitations of the codec.
@@ -554,7 +546,6 @@ void QMediaRecorder::setVideoFrameRate(qreal frameRate)
     if (d->encoderSettings.videoFrameRate() == frameRate)
         return;
     d->encoderSettings.setVideoFrameRate(frameRate);
-    d->applySettingsLater();
     emit videoFrameRateChanged();
 }
 
@@ -568,7 +559,7 @@ int QMediaRecorder::videoBitRate() const
 }
 
 /*!
-    Sets the video bit \a rate in bits per second.
+    Sets the video \a bitRate in bits per second.
 */
 void QMediaRecorder::setVideoBitRate(int bitRate)
 {
@@ -576,7 +567,6 @@ void QMediaRecorder::setVideoBitRate(int bitRate)
     if (d->encoderSettings.videoBitRate() == bitRate)
         return;
     d->encoderSettings.setVideoBitRate(bitRate);
-    d->applySettingsLater();
     emit videoBitRateChanged();
 }
 
@@ -590,7 +580,7 @@ int QMediaRecorder::audioBitRate() const
 }
 
 /*!
-    Sets the audio bit \a rate in bits per second.
+    Sets the audio \a bitRate in bits per second.
 */
 void QMediaRecorder::setAudioBitRate(int bitRate)
 {
@@ -598,7 +588,6 @@ void QMediaRecorder::setAudioBitRate(int bitRate)
     if (d->encoderSettings.audioBitRate() == bitRate)
         return;
     d->encoderSettings.setAudioBitRate(bitRate);
-    d->applySettingsLater();
     emit audioBitRateChanged();
 }
 
@@ -623,7 +612,6 @@ void QMediaRecorder::setAudioChannelCount(int channels)
     if (d->encoderSettings.audioChannelCount() == channels)
         return;
     d->encoderSettings.setAudioChannelCount(channels);
-    d->applySettingsLater();
     emit audioChannelCountChanged();
 }
 
@@ -637,10 +625,10 @@ int QMediaRecorder::audioSampleRate() const
 }
 
 /*!
-    Sets the audio sample \a rate in Hz.
+    Sets the audio \a sampleRate in Hz.
 
-    A value of -1 indicates the recorder should make an optimal choice based on what is avaialbe
-    from the audio source and the limitations of the codec.
+    A value of \c -1 indicates the recorder should make an optimal choice based
+    on what is available from the audio source, and the limitations of the codec.
 */
 void QMediaRecorder::setAudioSampleRate(int sampleRate)
 {
@@ -648,7 +636,6 @@ void QMediaRecorder::setAudioSampleRate(int sampleRate)
     if (d->encoderSettings.audioSampleRate() == sampleRate)
         return;
     d->encoderSettings.setAudioSampleRate(sampleRate);
-    d->applySettingsLater();
     emit audioSampleRateChanged();
 }
 

@@ -38,12 +38,12 @@
 ****************************************************************************/
 
 #include <private/qgstreamermediaplayer_p.h>
-#include <private/qgstreamervideorenderer_p.h>
 #include <private/qgstpipeline_p.h>
 #include <private/qgstreamermetadata_p.h>
 #include <private/qgstreamerformatinfo_p.h>
 #include <private/qgstreameraudiooutput_p.h>
 #include <private/qgstreamervideooutput_p.h>
+#include <private/qgstreamervideosink_p.h>
 #include "private/qgstreamermessage_p.h"
 #include <private/qgstreameraudiodevice_p.h>
 #include <private/qgstappsrc_p.h>
@@ -80,7 +80,8 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
     playerPipeline.add(inputSelector[AudioStream], inputSelector[VideoStream], inputSelector[SubtitleStream]);
 
     playerPipeline.setState(GST_STATE_NULL);
-    playerPipeline.installMessageFilter(this);
+    playerPipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
+    playerPipeline.installMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
 
     /* Taken from gstdicoverer.c:
      * This is ugly. We get the GType of decodebin so we can quickly detect
@@ -93,7 +94,8 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
 
 QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
 {
-    playerPipeline.removeMessageFilter(this);
+    playerPipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
+    playerPipeline.removeMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
     playerPipeline.setStateSync(GST_STATE_NULL);
     topology.free();
 }
@@ -233,7 +235,6 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             m_metaData.insert(k, metaData.value(k));
         break;
     }
-    case GST_MESSAGE_ASYNC_DONE:
     case GST_MESSAGE_DURATION_CHANGED: {
         qint64 d = playerPipeline.duration()/1e6;
         qCDebug(qLcMediaPlayer) << "    duration changed message" << d;
@@ -313,6 +314,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             emit error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
         else
             emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err->message));
+        playerPipeline.dumpGraph("error");
         mediaStatusChanged(QMediaPlayer::InvalidMedia);
         g_error_free(err);
         g_free(debug);
@@ -323,6 +325,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         gchar *debug;
         gst_message_parse_warning (gm, &err, &debug);
         qCWarning(qLcMediaPlayer) << "Warning:" << QString::fromUtf8(err->message);
+        playerPipeline.dumpGraph("warning");
         g_error_free (err);
         g_free (debug);
         break;
@@ -367,6 +370,25 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     return false;
 }
 
+bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
+{
+    if (message.type() != GST_MESSAGE_NEED_CONTEXT)
+        return false;
+    const gchar *type = nullptr;
+    gst_message_parse_context_type (message.rawMessage(), &type);
+    qDebug() << "requesting a context" << type << "from" << GST_MESSAGE_SRC_NAME (message.rawMessage());
+#if QT_CONFIG(gstreamer_gl)
+    if (strcmp(type, GST_GL_DISPLAY_CONTEXT_TYPE))
+        return false;
+#endif
+    auto *context = gstVideoOutput->gstreamerVideoSink()->gstGlDisplayContext();
+    if (!context)
+        return false;
+    gst_element_set_context(GST_ELEMENT(GST_MESSAGE_SRC(message.rawMessage())), context);
+    playerPipeline.dumpGraph("need_context");
+    return true;
+}
+
 QUrl QGstreamerMediaPlayer::media() const
 {
     return m_url;
@@ -389,6 +411,7 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
 
     TrackType streamType = NTrackTypes;
     if (type.startsWith("video/x-raw")) {
+        qDebug() << "video decoder pad added";
         streamType = VideoStream;
     } else if (type.startsWith("audio/x-raw")) {
         streamType = AudioStream;
@@ -704,6 +727,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
 
     qCDebug(qLcMediaPlayer) << "============== end parse topology ============";
     emit metaDataChanged();
+    playerPipeline.dumpGraph("playback");
 }
 
 int QGstreamerMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)

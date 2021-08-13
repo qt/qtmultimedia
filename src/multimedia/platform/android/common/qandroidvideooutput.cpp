@@ -42,90 +42,87 @@
 #include "androidsurfacetexture_p.h"
 #include <qvideosink.h>
 #include "private/qabstractvideobuffer_p.h"
-#include "private/qrhi_p.h"
-#include "private/qrhigles2_p.h"
 #include <QVideoFrameFormat>
-#include <qvideosink.h>
-#include <QtCore/qcoreapplication.h>
-
-#include <qevent.h>
-#include <qcoreapplication.h>
-#include <qopenglcontext.h>
-#include <qopenglfunctions.h>
-#include <qopenglshaderprogram.h>
-#include <qopenglframebufferobject.h>
-#include <QtGui/QWindow>
-#include <QtGui/QOffscreenSurface>
+#include <QFile>
+#include <QtGui/private/qrhigles2_p.h>
+#include <QOpenGLContext>
 
 QT_BEGIN_NAMESPACE
 
-static const GLfloat g_vertex_data[] = {
-    -1.f, -1.f,
-    -1.f, 1.f,
-    1.f, 1.f,
-    1.f, -1.f
-};
-
-static const GLfloat g_texture_data[] = {
-    0.f, 0.f,
-    0.f, 1.f,
-    1.f, 1.f,
-    1.f, 0.f
-};
-
-void OpenGLResourcesDeleter::deleteTextureHelper(quint32 id)
+void GraphicsResourceDeleter::deleteResourcesHelper(const QList<QRhiResource *> &res)
 {
-    if (id != 0)
-        glDeleteTextures(1, &id);
+    qDeleteAll(res);
 }
 
-void OpenGLResourcesDeleter::deleteFboHelper(void *fbo)
+void GraphicsResourceDeleter::deleteRhiHelper(QRhi *rhi, QOffscreenSurface *surf)
 {
-    delete reinterpret_cast<QOpenGLFramebufferObject *>(fbo);
+    delete rhi;
+    delete surf;
 }
 
-void OpenGLResourcesDeleter::deleteShaderProgramHelper(void *prog)
-{
-    delete reinterpret_cast<QOpenGLShaderProgram *>(prog);
-}
-
-void OpenGLResourcesDeleter::deleteThisHelper()
+void GraphicsResourceDeleter::deleteThisHelper()
 {
     delete this;
+}
+
+bool AndroidTextureVideoBuffer::updateReadbackFrame()
+{
+    // Even though the texture was updated in a previous call, we need to re-check
+    // that this has not become a stale buffer, e.g., if the output size changed or
+    // has since became invalid.
+    if (!m_output->m_nativeSize.isValid())
+        return false;
+
+    // Size changed
+    if (m_output->m_nativeSize != m_size)
+        return false;
+
+    // In the unlikely event that we don't have a valid fbo, but have a valid size,
+    // force an update.
+    const bool forceUpdate = !m_output->m_readbackTex;
+    if (m_textureUpdated && !forceUpdate)
+        return true;
+
+    // update the video texture (called from the render thread)
+    return (m_textureUpdated = m_output->renderAndReadbackFrame());
 }
 
 QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     MapData mapData;
-    if (!rhi && m_mapMode == QVideoFrame::NotMapped && mode == QVideoFrame::ReadOnly && updateFrame()) {
+    if (m_mapMode == QVideoFrame::NotMapped && mode == QVideoFrame::ReadOnly && updateReadbackFrame()) {
         m_mapMode = mode;
-        m_image = m_output->m_fbo->toImage();
-
+        m_image = m_output->m_readbackImage;
         mapData.nPlanes = 1;
         mapData.bytesPerLine[0] = m_image.bytesPerLine();
         mapData.size[0] = static_cast<int>(m_image.sizeInBytes());
         mapData.data[0] = m_image.bits();
     }
-
     return mapData;
 }
 
-quint64 AndroidTextureVideoBuffer::textureHandle(int plane) const
+static QMatrix4x4 extTransformMatrix(AndroidSurfaceTexture *surfaceTexture)
 {
-    if (plane != 0 || !rhi)
-        return 0;
-
-    m_output->ensureCommonGLResources();
-    m_output->m_surfaceTexture->updateTexImage();
-    m_externalMatrix = m_output->m_surfaceTexture->getTransformMatrix();
+    QMatrix4x4 m = surfaceTexture->getTransformMatrix();
     // flip it back, see http://androidxref.com/9.0.0_r3/xref/frameworks/native/libs/gui/GLConsumer.cpp#866
     // (NB our matrix ctor takes row major)
     static const QMatrix4x4 flipV(1.0f,  0.0f, 0.0f, 0.0f,
                                   0.0f, -1.0f, 0.0f, 1.0f,
                                   0.0f,  0.0f, 1.0f, 0.0f,
                                   0.0f,  0.0f, 0.0f, 1.0f);
-    m_externalMatrix *= flipV;
-    return m_output->m_externalTex;
+    m *= flipV;
+    return m;
+}
+
+quint64 AndroidTextureVideoBuffer::textureHandle(int plane) const
+{
+    if (plane != 0 || !rhi || !m_output->m_nativeSize.isValid())
+        return 0;
+
+    m_output->ensureExternalTexture(rhi);
+    m_output->m_surfaceTexture->updateTexImage();
+    m_externalMatrix = extTransformMatrix(m_output->m_surfaceTexture);
+    return m_output->m_externalTex->nativeTexture().object;
 }
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
@@ -136,15 +133,23 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
 
 QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
-    delete m_offscreenSurface;
-    delete m_glContext;
     clearSurfaceTexture();
 
-    if (m_glDeleter) { // Make sure all of these are deleted on the render thread.
-        m_glDeleter->deleteFbo(m_fbo);
-        m_glDeleter->deleteShaderProgram(m_program);
-        m_glDeleter->deleteTexture(m_externalTex);
-        m_glDeleter->deleteThis();
+    if (m_graphicsDeleter) { // Make sure all of these are deleted on the render thread.
+        m_graphicsDeleter->deleteResources({
+                m_externalTex,
+                m_readbackSrc,
+                m_readbackTex,
+                m_readbackVBuf,
+                m_readbackUBuf,
+                m_externalTexSampler,
+                m_readbackSrb,
+                m_readbackRenderTarget,
+                m_readbackRpDesc,
+                m_readbackPs
+            });
+        m_graphicsDeleter->deleteRhi(m_readbackRhi, m_readbackRhiFallbackSurface);
+        m_graphicsDeleter->deleteThis();
     }
 }
 
@@ -176,16 +181,16 @@ void QAndroidTextureVideoOutput::initSurfaceTexture()
 
     QMutexLocker locker(&m_mutex);
 
-    m_surfaceTexture = new AndroidSurfaceTexture(m_externalTex);
+    m_surfaceTexture = new AndroidSurfaceTexture(m_externalTex ? m_externalTex->nativeTexture().object : 0);
 
     if (m_surfaceTexture->surfaceTexture() != 0) {
         connect(m_surfaceTexture, SIGNAL(frameAvailable()), this, SLOT(onFrameAvailable()));
     } else {
         delete m_surfaceTexture;
         m_surfaceTexture = nullptr;
-        if (m_glDeleter)
-            m_glDeleter->deleteTexture(m_externalTex);
-        m_externalTex = 0;
+        if (m_graphicsDeleter)
+            m_graphicsDeleter->deleteResources({ m_externalTex });
+        m_externalTex = nullptr;
     }
 }
 
@@ -197,10 +202,10 @@ void QAndroidTextureVideoOutput::clearSurfaceTexture()
         m_surfaceTexture = nullptr;
     }
 
-    // Also reset the attached OpenGL texture
-    if (m_glDeleter)
-        m_glDeleter->deleteTexture(m_externalTex);
-    m_externalTex = 0;
+    // Also reset the attached texture
+    if (m_graphicsDeleter)
+        m_graphicsDeleter->deleteResources({ m_externalTex });
+    m_externalTex = nullptr;
 }
 
 AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
@@ -239,170 +244,208 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
     if (!m_nativeSize.isValid() || !m_sink)
         return;
 
-    QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::Format_ARGB32_Premultiplied;
-#ifdef QANDROIDVIDEOUTPUT_NO_DIRECT_TEXTURE_USAGE
-    QRhi *rhi = nullptr;
-#else
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
-#endif
-    if (rhi && rhi->backend() != QRhi::OpenGLES2)
-        rhi = nullptr;
-    if (rhi)
-        format = QVideoFrameFormat::Format_SamplerExternalOES;
-
     auto *buffer = new AndroidTextureVideoBuffer(rhi, this, m_nativeSize);
+    const QVideoFrameFormat::PixelFormat format = rhi ? QVideoFrameFormat::Format_SamplerExternalOES
+                                                      : QVideoFrameFormat::Format_RGBA8888;
     QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, format));
-
     m_sink->newVideoFrame(frame);
 }
 
-bool QAndroidTextureVideoOutput::renderFrameToFbo()
+static const float g_quad[] = {
+    -1.f, -1.f,   0.f, 0.f,
+    -1.f, 1.f,    0.f, 1.f,
+    1.f, 1.f,     1.f, 1.f,
+    1.f, -1.f,    1.f, 0.f
+};
+
+static QShader getShader(const QString &name)
+{
+    QFile f(name);
+    if (f.open(QIODevice::ReadOnly))
+        return QShader::fromSerialized(f.readAll());
+
+    return QShader();
+}
+
+bool QAndroidTextureVideoOutput::renderAndReadbackFrame()
 {
     QMutexLocker locker(&m_mutex);
 
     if (!m_nativeSize.isValid() || !m_surfaceTexture)
         return false;
 
-    QOpenGLContext *shareContext = nullptr;
-    auto rhi = m_sink ? m_sink->rhi() : nullptr;
-    if (rhi && rhi->backend() == QRhi::OpenGLES2) {
-        auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
-        shareContext = nativeHandles->context;
-    }
-
-    // Make sure we have an OpenGL context to make current.
-    if (!m_glContext) {
-        // Create Hidden QWindow surface to create context in this thread.
-        m_offscreenSurface = new QWindow();
-        m_offscreenSurface->setSurfaceType(QWindow::OpenGLSurface);
-        // Needs geometry to be a valid surface, but size is not important.
-        m_offscreenSurface->setGeometry(0, 0, 1, 1);
-        m_offscreenSurface->create();
-        m_offscreenSurface->moveToThread(m_sink->thread());
-
-        // Create OpenGL context and set share context from surface.
-        m_glContext = new QOpenGLContext();
-        m_glContext->setFormat(m_offscreenSurface->requestedFormat());
-
-        if (shareContext)
-            m_glContext->setShareContext(shareContext);
-
-        if (!m_glContext->create()) {
-            qWarning("Failed to create QOpenGLContext");
-            return false;
+    if (!m_readbackRhi) {
+        QRhi *sinkRhi = m_sink ? m_sink->rhi() : nullptr;
+        if (sinkRhi && sinkRhi->backend() == QRhi::OpenGLES2) {
+            // There is an rhi from the sink, e.g. VideoOutput.  We lack the necessary
+            // insight to use that directly, so create our own a QRhi that just wraps the
+            // same QOpenGLContext.
+            sinkRhi->finish();
+            QRhiGles2NativeHandles h = *static_cast<const QRhiGles2NativeHandles *>(sinkRhi->nativeHandles());
+            m_readbackRhiFallbackSurface = QRhiGles2InitParams::newFallbackSurface(h.context->format());
+            QRhiGles2InitParams initParams;
+            initParams.format = h.context->format();
+            initParams.fallbackSurface = m_readbackRhiFallbackSurface;
+            m_readbackRhi = QRhi::create(QRhi::OpenGLES2, &initParams, {}, &h);
+        } else {
+            // No rhi from the sink, e.g. QVideoWidget.
+            // We will fire up our own QRhi with its own QOpenGLContext.
+            m_readbackRhiFallbackSurface = QRhiGles2InitParams::newFallbackSurface({});
+            QRhiGles2InitParams initParams;
+            initParams.fallbackSurface = m_readbackRhiFallbackSurface;
+            m_readbackRhi = QRhi::create(QRhi::OpenGLES2, &initParams);
         }
     }
 
-    m_glContext->makeCurrent(m_offscreenSurface);
+    if (!m_readbackRhi) {
+        qWarning("Failed to create QRhi for video frame readback");
+        return false;
+    }
 
-    ensureFboGLResources();
+    QRhiCommandBuffer *cb = nullptr;
+    if (m_readbackRhi->beginOffscreenFrame(&cb) != QRhi::FrameOpSuccess)
+        return false;
 
+    if (!m_readbackTex || m_readbackTex->pixelSize() != m_nativeSize) {
+        delete m_readbackRenderTarget;
+        delete m_readbackRpDesc;
+        delete m_readbackTex;
+        m_readbackTex = m_readbackRhi->newTexture(QRhiTexture::RGBA8, m_nativeSize, 1, QRhiTexture::RenderTarget);
+        if (!m_readbackTex->create()) {
+            qWarning("Failed to create readback texture");
+            return false;
+        }
+        m_readbackRenderTarget = m_readbackRhi->newTextureRenderTarget({ { m_readbackTex } });
+        m_readbackRpDesc = m_readbackRenderTarget->newCompatibleRenderPassDescriptor();
+        m_readbackRenderTarget->setRenderPassDescriptor(m_readbackRpDesc);
+        m_readbackRenderTarget->create();
+    }
+
+    m_readbackRhi->makeThreadLocalNativeContextCurrent();
+    ensureExternalTexture(m_readbackRhi);
     m_surfaceTexture->updateTexImage();
 
-    // save current render states
-    GLboolean stencilTestEnabled;
-    GLboolean depthTestEnabled;
-    GLboolean scissorTestEnabled;
-    GLboolean blendEnabled;
-    glGetBooleanv(GL_STENCIL_TEST, &stencilTestEnabled);
-    glGetBooleanv(GL_DEPTH_TEST, &depthTestEnabled);
-    glGetBooleanv(GL_SCISSOR_TEST, &scissorTestEnabled);
-    glGetBooleanv(GL_BLEND, &blendEnabled);
+    // The only purpose of m_readbackSrc is to be nice and have a QRhiTexture that belongs
+    // to m_readbackRhi, not the sink's rhi if there is one. The underlying native object
+    // (and the rhi's OpenGL context) are the same regardless.
+    if (!m_readbackSrc)
+        m_readbackSrc = m_readbackRhi->newTexture(QRhiTexture::RGBA8, m_nativeSize, 1, QRhiTexture::ExternalOES);
 
-    if (stencilTestEnabled)
-        glDisable(GL_STENCIL_TEST);
-    if (depthTestEnabled)
-        glDisable(GL_DEPTH_TEST);
-    if (scissorTestEnabled)
-        glDisable(GL_SCISSOR_TEST);
-    if (blendEnabled)
-        glDisable(GL_BLEND);
+    // Keep the object the same (therefore all references to m_readbackSrc in
+    // the srb or other objects stay valid all the time), just call createFrom
+    // if the native external texture changes.
+    const quint64 texId = m_externalTex->nativeTexture().object;
+    if (m_readbackSrc->nativeTexture().object != texId)
+        m_readbackSrc->createFrom({ texId, 0 });
 
-    m_fbo->bind();
+    QRhiResourceUpdateBatch *rub = nullptr;
+    if (!m_readbackVBuf) {
+        m_readbackVBuf = m_readbackRhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_quad));
+        m_readbackVBuf->create();
+        if (!rub)
+            rub = m_readbackRhi->nextResourceUpdateBatch();
+        rub->uploadStaticBuffer(m_readbackVBuf, g_quad);
+    }
 
-    glViewport(0, 0, m_nativeSize.width(), m_nativeSize.height());
+    if (!m_readbackUBuf) {
+        m_readbackUBuf = m_readbackRhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 64 + 64 + 4 + 4);
+        m_readbackUBuf->create();
+    }
 
-    m_program->bind();
-    m_program->enableAttributeArray(0);
-    m_program->enableAttributeArray(1);
-    m_program->setUniformValue("frameTexture", GLuint(0));
-    m_program->setUniformValue("texMatrix", m_surfaceTexture->getTransformMatrix());
+    if (!m_externalTexSampler) {
+        m_externalTexSampler = m_readbackRhi->newSampler(QRhiSampler::Nearest, QRhiSampler::Nearest, QRhiSampler::None,
+                                                         QRhiSampler::ClampToEdge, QRhiSampler::ClampToEdge);
+        m_externalTexSampler->create();
+    }
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, g_vertex_data);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, g_texture_data);
+    if (!m_readbackSrb) {
+        m_readbackSrb = m_readbackRhi->newShaderResourceBindings();
+        m_readbackSrb->setBindings({
+                QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage, m_readbackUBuf),
+                QRhiShaderResourceBinding::sampledTexture(1, QRhiShaderResourceBinding::FragmentStage, m_readbackSrc, m_externalTexSampler)
+            });
+        m_readbackSrb->create();
+    }
 
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    if (!m_readbackPs) {
+        m_readbackPs = m_readbackRhi->newGraphicsPipeline();
+        m_readbackPs->setTopology(QRhiGraphicsPipeline::TriangleFan);
+        QShader vs = getShader(QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.vert.qsb"));
+        Q_ASSERT(vs.isValid());
+        QShader fs = getShader(QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.frag.qsb"));
+        Q_ASSERT(fs.isValid());
+        m_readbackPs->setShaderStages({
+                { QRhiShaderStage::Vertex, vs },
+                { QRhiShaderStage::Fragment, fs }
+            });
+        QRhiVertexInputLayout inputLayout;
+        inputLayout.setBindings({
+                { 4 * sizeof(float) }
+            });
+        inputLayout.setAttributes({
+                { 0, 0, QRhiVertexInputAttribute::Float2, 0 },
+                { 0, 1, QRhiVertexInputAttribute::Float2, 2 * sizeof(float) }
+            });
+        m_readbackPs->setVertexInputLayout(inputLayout);
+        m_readbackPs->setShaderResourceBindings(m_readbackSrb);
+        m_readbackPs->setRenderPassDescriptor(m_readbackRpDesc);
+        m_readbackPs->create();
+    }
 
-    m_program->disableAttributeArray(0);
-    m_program->disableAttributeArray(1);
+    QMatrix4x4 identity;
+    char *p = m_readbackUBuf->beginFullDynamicBufferUpdateForCurrentFrame();
+    memcpy(p, identity.constData(), 64);
+    QMatrix4x4 extMatrix = extTransformMatrix(m_surfaceTexture);
+    memcpy(p + 64, extMatrix.constData(), 64);
+    float opacity = 1.0f;
+    memcpy(p + 64 + 64, &opacity, 4);
+    m_readbackUBuf->endFullDynamicBufferUpdateForCurrentFrame();
 
-    glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
-    m_fbo->release();
+    cb->beginPass(m_readbackRenderTarget, Qt::transparent, { 1.0f, 0 }, rub);
+    cb->setGraphicsPipeline(m_readbackPs);
+    cb->setViewport(QRhiViewport(0, 0, m_nativeSize.width(), m_nativeSize.height()));
+    cb->setShaderResources();
+    const QRhiCommandBuffer::VertexInput vbufBinding(m_readbackVBuf, 0);
+    cb->setVertexInput(0, 1, &vbufBinding);
+    cb->draw(4);
 
-    // restore render states
-    if (stencilTestEnabled)
-        glEnable(GL_STENCIL_TEST);
-    if (depthTestEnabled)
-        glEnable(GL_DEPTH_TEST);
-    if (scissorTestEnabled)
-        glEnable(GL_SCISSOR_TEST);
-    if (blendEnabled)
-        glEnable(GL_BLEND);
+    QRhiReadbackDescription readDesc(m_readbackTex);
+    QRhiReadbackResult readResult;
+    bool readCompleted = false;
+    // invoked at latest in the endOffscreenFrame() below
+    readResult.completed = [&readCompleted] { readCompleted = true; };
+    rub = m_readbackRhi->nextResourceUpdateBatch();
+    rub->readBackTexture(readDesc, &readResult);
+
+    cb->endPass(rub);
+
+    m_readbackRhi->endOffscreenFrame();
+
+    if (!readCompleted)
+        return false;
+
+    // implicit sharing, keep the data alive
+    m_readbackImageData = readResult.data;
+    // the QImage does not own the data
+    m_readbackImage = QImage(reinterpret_cast<const uchar *>(m_readbackImageData.constData()),
+                             readResult.pixelSize.width(), readResult.pixelSize.height(),
+                             QImage::Format_ARGB32_Premultiplied);
 
     return true;
 }
 
-void QAndroidTextureVideoOutput::ensureCommonGLResources()
+void QAndroidTextureVideoOutput::ensureExternalTexture(QRhi *rhi)
 {
-    Q_ASSERT(QOpenGLContext::currentContext());
-
-    if (!m_glDeleter)
-        m_glDeleter = new OpenGLResourcesDeleter;
+    if (!m_graphicsDeleter)
+        m_graphicsDeleter = new GraphicsResourceDeleter;
 
     if (!m_externalTex) {
         m_surfaceTexture->detachFromGLContext();
-        glGenTextures(1, &m_externalTex);
-        m_surfaceTexture->attachToGLContext(m_externalTex);
-    }
-}
-
-void QAndroidTextureVideoOutput::ensureFboGLResources()
-{
-    ensureCommonGLResources();
-
-    if (!m_fbo || m_fbo->size() != m_nativeSize) {
-        delete m_fbo;
-        m_fbo = new QOpenGLFramebufferObject(m_nativeSize);
-    }
-
-    if (!m_program) {
-        m_program = new QOpenGLShaderProgram;
-
-        QOpenGLShader *vertexShader = new QOpenGLShader(QOpenGLShader::Vertex, m_program);
-        vertexShader->compileSourceCode("attribute highp vec4 vertexCoordsArray; \n" \
-                                        "attribute highp vec2 textureCoordArray; \n" \
-                                        "uniform   highp mat4 texMatrix; \n" \
-                                        "varying   highp vec2 textureCoords; \n" \
-                                        "void main(void) \n" \
-                                        "{ \n" \
-                                        "    gl_Position = vertexCoordsArray; \n" \
-                                        "    textureCoords = (texMatrix * vec4(textureCoordArray, 0.0, 1.0)).xy; \n" \
-                                        "}\n");
-        m_program->addShader(vertexShader);
-
-        QOpenGLShader *fragmentShader = new QOpenGLShader(QOpenGLShader::Fragment, m_program);
-        fragmentShader->compileSourceCode("#extension GL_OES_EGL_image_external : require \n" \
-                                          "varying highp vec2         textureCoords; \n" \
-                                          "uniform samplerExternalOES frameTexture; \n" \
-                                          "void main() \n" \
-                                          "{ \n" \
-                                          "    gl_FragColor = texture2D(frameTexture, textureCoords).bgra; \n" \
-                                          "}\n");
-        m_program->addShader(fragmentShader);
-
-        m_program->bindAttributeLocation("vertexCoordsArray", 0);
-        m_program->bindAttributeLocation("textureCoordArray", 1);
-        m_program->link();
+        m_externalTex = rhi->newTexture(QRhiTexture::RGBA8, m_nativeSize, 1, QRhiTexture::ExternalOES);
+        if (!m_externalTex->create())
+            qWarning("Failed to create native texture object");
+        m_surfaceTexture->attachToGLContext(m_externalTex->nativeTexture().object);
     }
 }
 

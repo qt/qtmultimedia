@@ -76,8 +76,7 @@ public:
 
     qint64 duration() const override;
 
-    void applySettings(const QMediaEncoderSettings &settings) override;
-    void record(const QMediaEncoderSettings &settings) override;
+    void record(QMediaEncoderSettings &settings) override;
     void pause() override;
     void resume() override;
     void stop() override;
@@ -95,10 +94,9 @@ public:
 private:
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
     void finalize();
-    QDir defaultDir() const;
+    QDir defaultDir(bool audioOnly) const;
     QString generateFileName(const QDir &dir, const QString &ext) const;
 
-    QMediaEncoderSettings m_resolvedSettings;
     QGstreamerMediaCapture *m_session = nullptr;
     QGstreamerMetaData m_metaData;
     QElapsedTimer m_duration;
@@ -110,8 +108,6 @@ private:
 
     QGstPad audioSrcPad;
     QGstPad videoSrcPad;
-
-    QMetaObject::Connection cameraChanged;
 };
 
 QT_END_NAMESPACE

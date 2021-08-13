@@ -82,6 +82,7 @@ public:
     virtual MapData map(QVideoFrame::MapMode mode) = 0;
     virtual void unmap() = 0;
 
+    virtual void mapTextures() {}
     virtual quint64 textureHandle(int /*plane*/) const { return 0; }
 
 protected:

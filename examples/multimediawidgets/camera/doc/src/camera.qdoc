@@ -24,17 +24,14 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-
-
 /*!
 
 \example multimediawidgets/camera
-\title  Camera Example
+\title Camera Example
 \ingroup multimedia_examples
 \ingroup camera_examples
 \meta {tag} {widgets}
-\brief  The Camera Example shows how to use the API to capture a still image
+\brief Shows how to capture a still image or record video.
 or video.
 
 The Camera Example demonstrates how you can use \l{Qt Multimedia} to implement
@@ -43,31 +40,38 @@ with audio.
 
 \include examples-run.qdocinc
 
-A Camera class is created that will act as our Camera. It has a user interface,
-control functions, setting values and a means of defining the location where
-the image or video clip is to be saved. It will also store the image and video
-settings.
+The example implements a \c Camera class that acts as our camera interface. It
+has a user interface, control functions, setting values and a means of defining
+the location where the image or video clip is to be saved. It will also store
+the image and video settings.
 
-The Camera class contains an instance of \l {QCamera}, the API class interface to
-the hardware. It also has an instance of \l {QImageCapture} to take still images
-and an instance of \l {QMediaRecorder} to record video. It also contains the user
-interface object.
+The Camera class uses:
+\list
+    \li An instance of \l {QCamera}, the API class interface to the hardware.
+    \li An instance of \l {QImageCapture} to take still images.
+    \li An instance of \l {QMediaRecorder} to record video. It also contains
+    the user interface object.
+\endlist
 
-The Camera constructor does some basic initialization. The camera object is
-set to '0', the user interface is initialized and UI signal are connected to
-slots that react to the triggering event. However, most of the work is done when
-the \e{setCamera()} function is called, passing in a \l {QByteArray}.
+The Camera constructor does some basic initialization:
+\list
+    \li The user interface is initialized.
+    \li UI signals are connected to slots that react to the triggering event.
+\endlist
+However, most of the work is done when the \e{setCamera()} function is called,
+passing in a \l QCameraDevice.
 
-\e{setCamera()} sets up various connections between the user interface and the functionality
-of the Camera class using signals and slots. It also instantiates and initializes the \l {QCamera},
-\l {QImageCapture} and \l {QMediaRecorder} objects mentioned above. The still
-and video recording visual tabs are enabled and finally the
-\l {QCamera::start()}{start()} function of the \l{QCamera} object is called.
+\e{setCamera()} sets up various connections between the user interface and the
+functionality of the Camera class using signals and slots. It also instantiates
+and initializes the \l {QCamera}, \l {QImageCapture}, and \l {QMediaRecorder}
+objects mentioned above. The still and video recording visual tabs are enabled
+and finally the \l {QCamera::start()}{start()} function of the \l{QCamera}
+object is called.
 
 Now that the camera is ready for user commands it waits for a suitable event.
-Such an event will be the key press of either the \l {Qt::Key_CameraFocus} or
+Such an event can be a key press of either the \l {Qt::Key_CameraFocus} or
 \l {Qt::Key_Camera} buttons on the application window. Camera focus will
-simply display the viewfinder and lock the camera settings. Key_Camera will
+simply display the preview and lock the camera settings. Key_Camera will
 either call \e{takeImage()} if the \l {QCamera::captureMode()}{captureMode()}
 is QCamera::CaptureStillImage, or if the capture mode is for video then one
 of two actions will occur. If the recording state shows that we are currently

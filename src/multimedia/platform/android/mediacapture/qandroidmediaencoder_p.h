@@ -67,12 +67,11 @@ public:
     bool isLocationWritable(const QUrl &location) const override;
     QMediaRecorder::RecorderState state() const override;
     qint64 duration() const override;
-    void applySettings(const QMediaEncoderSettings &settings) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
     void setOutputLocation(const QUrl &location) override;
-    void record(const QMediaEncoderSettings &settings) override;
+    void record(QMediaEncoderSettings &settings) override;
     void stop() override;
 
 private:

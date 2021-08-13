@@ -46,7 +46,6 @@
 #include "private/qgstreamermediaencoder_p.h"
 #include "private/qgstreamerimagecapture_p.h"
 #include "private/qgstreamerformatinfo_p.h"
-#include "private/qgstreamervideorenderer_p.h"
 #include "private/qgstreamervideosink_p.h"
 #include "private/qgstreameraudioinput_p.h"
 #include "private/qgstreameraudiooutput_p.h"

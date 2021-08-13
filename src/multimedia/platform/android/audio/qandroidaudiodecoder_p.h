@@ -134,8 +134,6 @@ private:
     QList<QAudioBuffer> m_audioBuffer;
     QUrl m_source;
 
-    QAudioDecoder::Error m_error = QAudioDecoder::NoError;
-
     mutable QMutex m_buffersMutex;
     qint64 m_position = -1;
     qint64 m_duration = -1;

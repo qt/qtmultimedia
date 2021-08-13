@@ -38,7 +38,122 @@
     APIs in each release. But some changes were inevitable in an effort to
     make Qt a better framework.
 
-    In this topic we summarize those changes in Qt Multimedia, and provide guidance
-    to handle them.
+The module has been refactored significantly and has changed classification,
+from essential to add-on. The Qt Multimedia module in Qt 6 replaces the
+Qt Multimedia module from Qt 5.x. Existing code that uses Qt Multimedia from
+Qt 5 can be ported with limited effort.
+
+
+\section1 New features in Qt 6
+
+There are a number of new features in Qt Multimedia:
+\list
+    \li QMediaCaptureSession class is the central object for media capture.
+    \li QMediaRecorder class is now an abstract class for audio/video
+    functionality. It handles encoding of data produced in a capture session.
+    \li Using QMediaFormat and QMediaRecorder, setting up the desired encoding
+    when recording has changed significantly.
+    \li Support for selection of audio, video and subtitle tracks when playing
+    back media files has been added.
+    \li QAudioDecoder is now supported on all platforms.
+\endlist
+
+
+\section1 Removed features
+
+\table 70%
+    \header
+        \li Removed feature
+        \li Notes or suggested alternative
+    \row
+        \li Playlist in QMediaPlayer
+        \li QMediaPlayer does not do any playlist handling anymore in Qt 6.
+        The QMediaPlayList class does however still exist and provides this
+        functionality. Users will need to connect the playlist to the mediaplayer
+        themselves to handle playlists.
+    \row
+        \li QAudioProbe and QVideoProbe
+        \li The audio and video probing API has been removed.
+    \row
+        \li QAudioRecorder
+        \li Use the QMediaCaptureSession or CaptureSession QML type.
+    \row
+        \li \l{Audio QML type}
+        \li Use MediaPlayer QML type.
+    \row
+        \li QMediaObject and QMediaBindableInterface
+        \li These classes have been removed in favor of a more direct API for
+        setting up connections between objects using, for example, setVideoOutput
+        and QMediaCaptureSession.
+    \row
+        \li QCameraViewFinderSettings
+        \li This class has been removed. Use QCameraFormat to define the
+        resolution and frame rate the camera should be using.
+    \row
+        \li QMediaContent
+        \li The class has been removed. Use QMediaPlayList for playlists and
+        QUrl for individual media files instead.
+    \row
+        \li QSound
+        \li Use QSoundEffect instead.
+    \row
+        \li QVideoFilterRunnable
+        \li Use \l{shader effects} in QML instead or access the QVideoFrame's
+        content in C++.
+    \row
+        \li Public back-end API
+        \li The back-end API of Qt Multimedia is private in Qt 6. This improves
+        response time for supporting new multimedia use cases. Any classes that
+        contain the words "Control" or "Abstract" in the class name in Qt 5 are
+        now private in Qt 6.
+    \row
+        \li Back-end plugins
+        \li Qt Multimedia in Qt 6 does not use a plugin infrastructure for its
+        back ends anymore.
+        This means that users no longer need to ship those back ends with their
+        application. Instead, the back end being used is determined at compile
+        time based on the underlying operating system. Qt uses \l gstreamer on
+        Linux, WMF on Windows, AVFoundation on macOS and iOS and the Android
+        multimedia APIs on Android.
+\endtable
+
+\section1 Changed features
+
+A number of classes previously offered in Qt Multimedia or Qt Multimedia Kit have
+changed in ways that may affect previously written code. The following table
+highlights these changes.
+
+\table 70%
+    \header
+        \li Changed feature
+        \li Notes
+    \row
+        \li Handling of Camera resolutions and frame rates
+        \li Handling of these has been simplified and a new QCameraFormat class
+        helps with selecting the correct resolution and frame rate for the camera.
+    \row
+        \li Video output handling on the C++ side has changed significantly.
+        \li QAbstractVideoSurface has been replaced by the QVideoSink class, and
+        generic rendering support has been enhanced to cover all \l{pixel format}s
+        supported by Qt Multimedia.
+    \row
+        \li Metadata types
+        \li QMediaMetaData has changed significantly: mainly moving from string
+        based to enum based keys, and reducing the set of supported keys to the
+        ones that can be supported on most platforms.
+    \row
+        \li QMediaFormat
+        \li Handling of formats for encoded media and the settings for the media
+        recorder have changed significantly. Qt 5 provides a string-based
+        API, a separated file format, and audio and video codecs into three classes.
+        However, Qt 6 unifies the formats in the QMediaFormat class. Additional
+        settings are directly specified in QMediaRecorder. Setting up file formats
+        and codecs is now implemented with enums and no longer uses strings. This
+        puts some limitations on the set of codecs that can be used, but helps
+        provide a consistent cross-platform API.
+    \row
+        \li QCameraImageCapture renamed QImageCapture
+        \li None
+\endtable
 
 */

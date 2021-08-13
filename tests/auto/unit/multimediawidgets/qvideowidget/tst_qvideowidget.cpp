@@ -514,7 +514,7 @@ void tst_QVideoWidget::paint()
     widget.show();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
-    QVideoFrameFormat format(QSize(2, 2), QVideoFrameFormat::Format_RGB32);
+    QVideoFrameFormat format(QSize(2, 2), QVideoFrameFormat::Format_XRGB8888);
     QVideoFrame frame(format);
     QVERIFY(frame.map(QVideoFrame::ReadWrite));
     uchar *data = frame.bits(0);

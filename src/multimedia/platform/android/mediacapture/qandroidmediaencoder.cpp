@@ -66,13 +66,7 @@ qint64 QAndroidMediaEncoder::duration() const
 
 }
 
-void QAndroidMediaEncoder::applySettings(const QMediaEncoderSettings &settings)
-{
-    if (m_session)
-        m_session->applySettings(settings);
-}
-
-void QAndroidMediaEncoder::record(const QMediaEncoderSettings &settings)
+void QAndroidMediaEncoder::record(QMediaEncoderSettings &settings)
 {
     if (m_session)
         m_session->start(settings, outputLocation());

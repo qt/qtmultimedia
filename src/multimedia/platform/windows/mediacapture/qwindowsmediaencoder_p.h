@@ -79,7 +79,7 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    void record(const QMediaEncoderSettings &settings) override;
+    void record(QMediaEncoderSettings &settings) override;
     void pause() override;
     void resume() override;
     void stop() override;

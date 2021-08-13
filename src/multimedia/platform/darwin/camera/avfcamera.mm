@@ -192,8 +192,23 @@ void AVFCamera::setCamera(const QCameraDevice &camera)
     if (m_cameraDevice == camera)
         return;
     m_cameraDevice = camera;
-    if (m_session)
+    if (m_session) {
         m_session->setActiveCamera(camera);
+        setCameraFormat({});
+    }
+}
+
+bool AVFCamera::setCameraFormat(const QCameraFormat &format)
+{
+    if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
+        return false;
+
+    m_cameraFormat = format.isNull() ? findBestCameraFormat(m_cameraDevice) : format;
+
+    if (m_session)
+        m_session->setCameraFormat(m_cameraFormat);
+
+    return true;
 }
 
 void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
@@ -212,6 +227,7 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_session->setActiveCamera(QCameraDevice());
     m_session->setActive(m_active);
     m_session->setActiveCamera(m_cameraDevice);
+    setCameraFormat(m_cameraFormat);
 }
 
 AVCaptureConnection *AVFCamera::videoConnection() const

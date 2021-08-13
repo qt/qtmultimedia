@@ -72,6 +72,16 @@ struct TextureDescription
 
     inline int strideForWidth(int width) const { return (width*strideFactor + 15) & ~15; }
     inline int bytesForSize(QSize s) const { return bytesRequired(strideForWidth(s.width()), s.height()); }
+    int widthForPlane(int width, int plane) const
+    {
+        if (plane > nplanes) return 0;
+        return (width + sizeScale[plane].x - 1)/sizeScale[plane].x;
+    }
+    int heightForPlane(int height, int plane) const
+    {
+        if (plane > nplanes) return 0;
+        return (height + sizeScale[plane].y - 1)/sizeScale[plane].y;
+    }
 
     int nplanes;
     int strideFactor;
