@@ -1861,8 +1861,6 @@ void MFPlayerSession::clear()
 
 void MFPlayerSession::setAudioOutput(QPlatformAudioOutput *device)
 {
-    // ### This doesn't yet update the output routing during playback
-    // ie. it currently only works before the first play().
     if (m_audioOutput == device)
         return;
 
@@ -1871,11 +1869,20 @@ void MFPlayerSession::setAudioOutput(QPlatformAudioOutput *device)
 
     m_audioOutput = device;
     if (m_audioOutput) {
-        // #### Implement device changes: connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, XXXX);
+        setMuted(m_audioOutput->q->isMuted());
+        setVolume(m_audioOutput->q->volume());
+        updateOutputRouting();
+        connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this, &MFPlayerSession::updateOutputRouting);
         connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &MFPlayerSession::setVolume);
         connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &MFPlayerSession::setMuted);
-//        connect(m_audioOutput->q, &QAudioOutput::audioRoleChanged, this, &MFPlayerSession::setAudioRole);
     }
+}
+
+void MFPlayerSession::updateOutputRouting()
+{
+    int currentAudioTrack = m_trackInfo[QPlatformMediaPlayer::AudioStream].currentIndex;
+    if (currentAudioTrack > -1)
+        setActiveTrack(QPlatformMediaPlayer::AudioStream, currentAudioTrack);
 }
 
 void MFPlayerSession::setVideoSink(QVideoSink *sink)
@@ -1894,7 +1901,7 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
 
     const auto &nativeIndexes = m_trackInfo[type].nativeIndexes;
 
-    if (index < -1 || index >= nativeIndexes.count() || index == m_trackInfo[type].currentIndex)
+    if (index < -1 || index >= nativeIndexes.count())
         return;
 
     IMFTopology *topology = nullptr;

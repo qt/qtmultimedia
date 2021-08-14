@@ -154,6 +154,7 @@ private Q_SLOTS:
     void handleMediaSourceReady();
     void handleSessionEvent(IMFMediaEvent *sessionEvent);
     void handleSourceError(long hr);
+    void updateOutputRouting();
 
 private:
     long m_cRef;
