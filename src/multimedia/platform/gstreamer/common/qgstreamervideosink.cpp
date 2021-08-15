@@ -83,13 +83,15 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     //
     // To fix this, simply insert the element into the pipeline if it's available. Otherwise
     // we simply use an identity element.
+    gstQueue = QGstElement("queue");
     auto imxVideoConvert = QGstElement("imxvideoconvert_g2d");
     if (!imxVideoConvert.isNull())
         gstPreprocess = imxVideoConvert;
     else
         gstPreprocess = QGstElement("identity");
-    sinkBin.add(gstPreprocess);
-    sinkBin.addGhostPad(gstPreprocess, "sink");
+    sinkBin.add(gstQueue, gstPreprocess);
+    gstQueue.link(gstPreprocess);
+    sinkBin.addGhostPad(gstQueue, "sink");
     createOverlay();
 }
 
