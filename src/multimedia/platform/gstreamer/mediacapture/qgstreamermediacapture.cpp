@@ -152,6 +152,8 @@ void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
 
     gstPipeline.setStateSync(GST_STATE_PAUSED);
 
+    if (m_mediaEncoder)
+        m_mediaEncoder->setCaptureSession(nullptr);
     m_mediaEncoder = control;
     if (m_mediaEncoder)
         m_mediaEncoder->setCaptureSession(this);
