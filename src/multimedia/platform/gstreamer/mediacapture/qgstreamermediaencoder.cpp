@@ -59,15 +59,18 @@ Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
   : QPlatformMediaEncoder(parent)
 {
-    gstEncoder = QGstElement("encodebin", "encodebin");
-    gstFileSink = QGstElement("filesink", "filesink");
-    gstFileSink.set("location", "dummy");
+    // used to update duration every 100 msecond
+    heartbeat.setInterval(100);
+    QObject::connect(&heartbeat, &QTimer::timeout, [this]() { updateDuration(); });
 }
 
 QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
 {
-    gstPipeline.removeMessageFilter(this);
-    gstPipeline.setStateSync(GST_STATE_NULL);
+    if (!gstPipeline.isNull()) {
+        finalize();
+        gstPipeline.removeMessageFilter(this);
+        gstPipeline.setStateSync(GST_STATE_NULL);
+    }
 }
 
 bool QGstreamerMediaEncoder::isLocationWritable(const QUrl &) const
@@ -238,10 +241,6 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     if (!m_session || state() != QMediaRecorder::StoppedState)
         return;
 
-    auto *encodingProfile = createEncodingProfile(settings);
-    g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
-    gst_encoding_profile_unref(encodingProfile);
-
     const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
 
     // create new encoder
@@ -254,12 +253,24 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     qCDebug(qLcMediaEncoder) << "recording new video to" << actualSink;
 
     Q_ASSERT(!actualSink.isEmpty());
-    gstFileSink.set("location", QFile::encodeName(actualSink.toLocalFile()).constData());
+
+    gstPipeline.dumpGraph("before-recording");
 
     gstPipeline.beginConfig();
 
-    gstEncoder.lockState(false);
-    gstFileSink.lockState(false);
+    gstEncoder = QGstElement("encodebin", "encodebin");
+    auto *encodingProfile = createEncodingProfile(settings);
+    g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
+    gst_encoding_profile_unref(encodingProfile);
+
+    gstFileSink = QGstElement("filesink", "filesink");
+    gstFileSink.set("location", QFile::encodeName(actualSink.toLocalFile()).constData());
+
+    gstPipeline.add(gstEncoder, gstFileSink);
+    gstEncoder.link(gstFileSink);
+
+    gstEncoder.setState(GST_STATE_PAUSED);
+    gstFileSink.setState(GST_STATE_PAUSED);
 
     audioSrcPad = m_session->getAudioPad();
     if (!audioSrcPad.isNull()) {
@@ -274,9 +285,6 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
             videoSrcPad.link(videoPad);
         }
     }
-
-    gstEncoder.setState(GST_STATE_PAUSED);
-    gstFileSink.setState(GST_STATE_PAUSED);
 
     gstPipeline.endConfig();
 
@@ -301,8 +309,10 @@ void QGstreamerMediaEncoder::pause()
 
 void QGstreamerMediaEncoder::resume()
 {
+    gstPipeline.dumpGraph("before-resume");
     if (!m_session || state() != QMediaRecorder::PausedState)
         return;
+    heartbeat.start();
     gstEncoder.setState(GST_STATE_PLAYING);
     stateChanged(QMediaRecorder::RecordingState);
 }
@@ -312,7 +322,6 @@ void QGstreamerMediaEncoder::stop()
     if (!m_session || state() == QMediaRecorder::StoppedState)
         return;
     qCDebug(qLcMediaEncoder) << "stop";
-    heartbeat.stop();
 
     gstPipeline.beginConfig();
 
@@ -339,16 +348,20 @@ void QGstreamerMediaEncoder::stop()
 
 void QGstreamerMediaEncoder::finalize()
 {
-    if (!m_session)
+    if (!m_session || gstEncoder.isNull())
         return;
     qCDebug(qLcMediaEncoder) << "finalize";
 
+    heartbeat.stop();
+
     // The filesink can only be used once, replace it with a new one
     gstPipeline.beginConfig();
-    gstEncoder.lockState(true);
-    gstFileSink.lockState(true);
     gstEncoder.setState(GST_STATE_NULL);
     gstFileSink.setState(GST_STATE_NULL);
+    gstPipeline.remove(gstEncoder);
+    gstPipeline.remove(gstFileSink);
+    gstFileSink = {};
+    gstEncoder = {};
     gstPipeline.endConfig();
 }
 
@@ -373,12 +386,9 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
         return;
 
     if (m_session) {
-        gstEncoder.setStateSync(GST_STATE_NULL);
-        gstFileSink.setStateSync(GST_STATE_NULL);
-        gstPipeline.remove(gstEncoder);
-        gstPipeline.remove(gstFileSink);
-        heartbeat.disconnect();
+        finalize();
         gstPipeline.removeMessageFilter(this);
+        gstPipeline = {};
     }
 
     m_session = captureSession;
@@ -388,15 +398,6 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
     gstPipeline = captureSession->gstPipeline;
     gstPipeline.set("message-forward", true);
     gstPipeline.installMessageFilter(this);
-
-    // used to update duration every second
-    heartbeat.setInterval(1000);
-    QObject::connect(&heartbeat, &QTimer::timeout, [this]() { updateDuration(); });
-
-    gstPipeline.add(gstEncoder, gstFileSink);
-    gstEncoder.link(gstFileSink);
-    gstEncoder.lockState(true);
-    gstFileSink.lockState(true); // ### enough with the encoder?
 }
 
 QDir QGstreamerMediaEncoder::defaultDir(bool audioOnly) const
