@@ -75,26 +75,27 @@ private:
     QMediaPlayer::MediaStatus mPreviousMediaStatus;
 };
 
-
 QAndroidMediaPlayer::QAndroidMediaPlayer(QMediaPlayer *parent)
     : QPlatformMediaPlayer(parent),
       mMediaPlayer(new AndroidMediaPlayer),
       mState(AndroidMediaPlayer::Uninitialized)
 {
-    connect(mMediaPlayer, &AndroidMediaPlayer::bufferingChanged,
-            this, &QAndroidMediaPlayer::onBufferingChanged);
-    connect(mMediaPlayer, &AndroidMediaPlayer::info,
-            this, &QAndroidMediaPlayer::onInfo);
-    connect(mMediaPlayer, &AndroidMediaPlayer::error,
-            this, &QAndroidMediaPlayer::onError);
-    connect(mMediaPlayer, &AndroidMediaPlayer::stateChanged,
-            this, &QAndroidMediaPlayer::onStateChanged);
-    connect(mMediaPlayer, &AndroidMediaPlayer::videoSizeChanged,
-            this, &QAndroidMediaPlayer::onVideoSizeChanged);
-    connect(mMediaPlayer, &AndroidMediaPlayer::progressChanged,
-            this, &QAndroidMediaPlayer::positionChanged);
-    connect(mMediaPlayer, &AndroidMediaPlayer::durationChanged,
-            this, &QAndroidMediaPlayer::durationChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::bufferingChanged, this,
+            &QAndroidMediaPlayer::onBufferingChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::info, this, &QAndroidMediaPlayer::onInfo);
+    connect(mMediaPlayer, &AndroidMediaPlayer::error, this, &QAndroidMediaPlayer::onError);
+    connect(mMediaPlayer, &AndroidMediaPlayer::stateChanged, this,
+            &QAndroidMediaPlayer::onStateChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::videoSizeChanged, this,
+            &QAndroidMediaPlayer::onVideoSizeChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::progressChanged, this,
+            &QAndroidMediaPlayer::positionChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::durationChanged, this,
+            &QAndroidMediaPlayer::durationChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::tracksInfoChanged, this,
+            &QAndroidMediaPlayer::updateTrackInfo);
+    connect(mMediaPlayer, &AndroidMediaPlayer::timedTextChanged, this,
+            &QAndroidMediaPlayer::setSubtitle);
 }
 
 QAndroidMediaPlayer::~QAndroidMediaPlayer()
@@ -638,6 +639,108 @@ void QAndroidMediaPlayer::onStateChanged(qint32 state)
     }
 }
 
+int QAndroidMediaPlayer::trackCount(TrackType trackType)
+{
+    if (!mTracksMetadata.contains(trackType))
+        return -1;
+
+    auto tracks = mTracksMetadata.value(trackType);
+    return tracks.count();
+}
+
+QMediaMetaData QAndroidMediaPlayer::trackMetaData(TrackType trackType, int streamNumber)
+{
+    if (!mTracksMetadata.contains(trackType))
+        return QMediaMetaData();
+
+    auto tracks = mTracksMetadata.value(trackType);
+    if (tracks.count() < streamNumber)
+        return QMediaMetaData();
+
+    QAndroidMetaData trackInfo = tracks.at(streamNumber);
+    return static_cast<QMediaMetaData>(trackInfo);
+}
+
+QPlatformMediaPlayer::TrackType convertTrackType(AndroidMediaPlayer::TrackType type)
+{
+    switch (type) {
+    case AndroidMediaPlayer::TrackType::Video:
+        return QPlatformMediaPlayer::TrackType::VideoStream;
+    case AndroidMediaPlayer::TrackType::Audio:
+        return QPlatformMediaPlayer::TrackType::AudioStream;
+    case AndroidMediaPlayer::TrackType::TimedText:
+        return QPlatformMediaPlayer::TrackType::SubtitleStream;
+    case AndroidMediaPlayer::TrackType::Subtitle:
+        return QPlatformMediaPlayer::TrackType::SubtitleStream;
+    case AndroidMediaPlayer::TrackType::Unknown:
+    case AndroidMediaPlayer::TrackType::Metadata:
+        return QPlatformMediaPlayer::TrackType::NTrackTypes;
+    }
+
+    return QPlatformMediaPlayer::TrackType::NTrackTypes;
+}
+
+int QAndroidMediaPlayer::activeTrack(TrackType trackType)
+{
+    switch (trackType) {
+    case QPlatformMediaPlayer::TrackType::VideoStream:
+        return mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Video);
+    case QPlatformMediaPlayer::TrackType::AudioStream:
+        return mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Audio);
+    case QPlatformMediaPlayer::TrackType::SubtitleStream: {
+        int timedTextSelectedTrack =
+                mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::TimedText);
+        if (timedTextSelectedTrack > -1)
+            return timedTextSelectedTrack;
+
+        int subtitleSelectedTrack =
+                mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Subtitle);
+        if (subtitleSelectedTrack > -1)
+            return subtitleSelectedTrack;
+
+        return -1;
+    }
+    case QPlatformMediaPlayer::TrackType::NTrackTypes:
+        return -1;
+    }
+
+    return -1;
+}
+
+void QAndroidMediaPlayer::setActiveTrack(TrackType trackType, int streamNumber)
+{
+    if (!mTracksMetadata.contains(trackType)) {
+        qDebug() << "Trying to set a active track of a type that does not exist";
+        return;
+    }
+
+    const auto &tracks = mTracksMetadata.value(trackType);
+    if (streamNumber > tracks.count()) {
+        return;
+    }
+
+    if (trackType == TrackType::SubtitleStream) {
+        // subtitles and timedtext tracks can be selected at the same time so deselect both before
+        // selection
+        int subtitleSelectedTrack =
+                mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Subtitle);
+        if (subtitleSelectedTrack > -1)
+            mMediaPlayer->deselectTrack(subtitleSelectedTrack);
+
+        int timedTextSelectedTrack =
+                mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::TimedText);
+        if (timedTextSelectedTrack > -1)
+            mMediaPlayer->deselectTrack(timedTextSelectedTrack);
+
+        // in case of < 0 just deselect all - no subtitle selected.
+        if (streamNumber < 0)
+            return;
+    }
+
+    auto trackInfo = tracks.at(streamNumber);
+    mMediaPlayer->selectTrack(trackInfo.androidTrackNumber());
+}
+
 void QAndroidMediaPlayer::positionChanged(qint64 position)
 {
     QPlatformMediaPlayer::positionChanged(position);
@@ -734,13 +837,45 @@ void QAndroidMediaPlayer::flushPendingStates()
 
 void QAndroidMediaPlayer::updateBufferStatus()
 {
-    auto status = mediaStatus();
+    const auto &status = mediaStatus();
     bool bufferFilled = (status == QMediaPlayer::BufferedMedia || status == QMediaPlayer::BufferingMedia);
 
     if (mBufferFilled != bufferFilled) {
         mBufferFilled = bufferFilled;
         Q_EMIT bufferProgressChanged(bufferProgress());
     }
+}
+
+void QAndroidMediaPlayer::updateTrackInfo()
+{
+    const auto &androidTracksInfo = mMediaPlayer->tracksInfo();
+
+    // prepare mTracksMetadata
+    mTracksMetadata[TrackType::VideoStream] = QList<QAndroidMetaData>();
+    mTracksMetadata[TrackType::AudioStream] = QList<QAndroidMetaData>();
+    mTracksMetadata[TrackType::SubtitleStream] = QList<QAndroidMetaData>();
+    mTracksMetadata[TrackType::NTrackTypes] = QList<QAndroidMetaData>();
+
+    for (const auto &androidTrackInfo : androidTracksInfo) {
+
+        const auto &mediaPlayerType = convertTrackType(androidTrackInfo.trackType);
+        auto &tracks = mTracksMetadata[mediaPlayerType];
+
+        const QAndroidMetaData metadata(mediaPlayerType, androidTrackInfo.trackType,
+                                        androidTrackInfo.trackNumber, androidTrackInfo.mimeType,
+                                        androidTrackInfo.language);
+        tracks.append(metadata);
+    }
+
+    emit tracksChanged();
+}
+
+void QAndroidMediaPlayer::setSubtitle(QString subtitle)
+{
+    if (mSubtitle == subtitle)
+        return;
+
+    mSubtitle = subtitle;
 }
 
 QT_END_NAMESPACE

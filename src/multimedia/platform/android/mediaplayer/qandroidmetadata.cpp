@@ -161,4 +161,42 @@ QMediaMetaData QAndroidMetaData::extractMetadata(const QUrl &url)
     return metadata;
 }
 
+QLocale::Language getLocaleLanguage(const QString &language)
+{
+    // undefined language or uncoded language
+    if (language == QLatin1String("und") || language == QStringLiteral("mis"))
+        return QLocale::AnyLanguage;
+
+    QLocale locale(language);
+    if (locale != QLocale::c())
+        return locale.language();
+
+    return QLocale::codeToLanguage(language.left(2));
+}
+
+QAndroidMetaData::QAndroidMetaData(int trackType, int androidTrackType, int androidTrackNumber,
+                                   const QString &mimeType, const QString &language)
+    : mTrackType(trackType),
+      mAndroidTrackType(androidTrackType),
+      mAndroidTrackNumber(androidTrackNumber)
+{
+    insert(QMediaMetaData::MediaType, mimeType);
+    insert(QMediaMetaData::Language, getLocaleLanguage(language));
+}
+
+int QAndroidMetaData::trackType()
+{
+    return mTrackType;
+}
+
+int QAndroidMetaData::androidTrackType()
+{
+    return mAndroidTrackType;
+}
+
+int QAndroidMetaData::androidTrackNumber()
+{
+    return mAndroidTrackNumber;
+}
+
 QT_END_NAMESPACE

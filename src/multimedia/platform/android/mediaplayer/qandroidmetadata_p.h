@@ -64,6 +64,18 @@ class QAndroidMetaData : public QMediaMetaData
 {
 public:
     static QMediaMetaData extractMetadata(const QUrl &url);
+
+    QAndroidMetaData(int trackType, int androidTrackType, int androidTrackNumber,
+                     const QString &mimeType, const QString &language);
+
+    int trackType();
+    int androidTrackType();
+    int androidTrackNumber();
+
+private:
+    int mTrackType;
+    int mAndroidTrackType;
+    int mAndroidTrackNumber;
 };
 
 QT_END_NAMESPACE

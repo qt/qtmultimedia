@@ -148,6 +148,86 @@ jobject AndroidMediaPlayer::display()
     return mMediaPlayer.callObjectMethod("display", "()Landroid/view/SurfaceHolder;").object();
 }
 
+AndroidMediaPlayer::TrackInfo convertTrackInfo(int streamNumber, QJniObject androidTrackInfo)
+{
+    const QLatin1String unknownMimeType("application/octet-stream");
+    const QLatin1String undefinedLanguage("und");
+
+    if (!androidTrackInfo.isValid())
+        return { streamNumber, AndroidMediaPlayer::TrackType::Unknown, undefinedLanguage,
+                 unknownMimeType };
+
+    auto type = androidTrackInfo.callMethod<jint>("getType", "()I");
+    if (exceptionCheckAndClear())
+        return { streamNumber, AndroidMediaPlayer::TrackType::Unknown, undefinedLanguage,
+                 unknownMimeType };
+
+    if (type < 0 || type > 5) {
+        return { streamNumber, AndroidMediaPlayer::TrackType::Unknown, undefinedLanguage,
+                 unknownMimeType };
+    }
+
+    AndroidMediaPlayer::TrackType trackType = static_cast<AndroidMediaPlayer::TrackType>(type);
+
+    auto languageObject = androidTrackInfo.callObjectMethod("getLanguage", "()Ljava/lang/String;");
+    QString language = languageObject.isValid() ? languageObject.toString() : undefinedLanguage;
+
+    auto mimeTypeObject = androidTrackInfo.callObjectMethod("getMime", "()Ljava/lang/String;");
+    QString mimeType = mimeTypeObject.isValid() ? mimeTypeObject.toString() : unknownMimeType;
+
+    return { streamNumber, trackType, language, mimeType };
+}
+
+QList<AndroidMediaPlayer::TrackInfo> AndroidMediaPlayer::tracksInfo()
+{
+    auto androidTracksInfoObject = mMediaPlayer.callObjectMethod(
+            "getAllTrackInfo",
+            "()[Lorg/qtproject/qt/android/multimedia/QtAndroidMediaPlayer$TrackInfo;");
+
+    if (!androidTracksInfoObject.isValid())
+        return QList<AndroidMediaPlayer::TrackInfo>();
+
+    auto androidTracksInfo = androidTracksInfoObject.object<jobjectArray>();
+    if (!androidTracksInfo)
+        return QList<AndroidMediaPlayer::TrackInfo>();
+
+    QJniEnvironment environment;
+    auto numberofTracks = environment->GetArrayLength(androidTracksInfo);
+
+    QList<AndroidMediaPlayer::TrackInfo> tracksInformation;
+
+    for (int index = 0; index < numberofTracks; index++) {
+        auto androidTrackInformation = environment->GetObjectArrayElement(androidTracksInfo, index);
+
+        if (exceptionCheckAndClear()) {
+            continue;
+        }
+
+        auto trackInfo = convertTrackInfo(index, androidTrackInformation);
+        tracksInformation.insert(index, trackInfo);
+
+        environment->DeleteLocalRef(androidTrackInformation);
+    }
+
+    return tracksInformation;
+}
+
+int AndroidMediaPlayer::activeTrack(TrackType androidTrackType)
+{
+    int type = static_cast<int>(androidTrackType);
+    return mMediaPlayer.callMethod<jint>("getSelectedTrack", "(I)I", type);
+}
+
+void AndroidMediaPlayer::deselectTrack(int trackNumber)
+{
+    mMediaPlayer.callMethod<void>("deselectTrack", "(I)V", trackNumber);
+}
+
+void AndroidMediaPlayer::selectTrack(int trackNumber)
+{
+    mMediaPlayer.callMethod<void>("selectTrack", "(I)V", trackNumber);
+}
+
 void AndroidMediaPlayer::play()
 {
     mMediaPlayer.callMethod<void>("start");
@@ -427,16 +507,62 @@ static void onVideoSizeChangedNative(JNIEnv *env,
     Q_EMIT (*mediaPlayers)[i]->videoSizeChanged(width, height);
 }
 
+static AndroidMediaPlayer *getMediaPlayer(jlong ptr)
+{
+    auto mediaplayer = reinterpret_cast<AndroidMediaPlayer *>(ptr);
+    if (!mediaplayer || !mediaPlayers->contains(mediaplayer))
+        return nullptr;
+
+    return mediaplayer;
+}
+
+static void onTrackInfoChangedNative(JNIEnv *env, jobject thiz, jlong ptr)
+{
+    Q_UNUSED(env);
+    Q_UNUSED(thiz);
+
+    QReadLocker locker(rwLock);
+    auto mediaplayer = getMediaPlayer(ptr);
+    if (!mediaplayer)
+        return;
+
+    emit mediaplayer->tracksInfoChanged();
+}
+
+static void onTimedTextChangedNative(JNIEnv *env, jobject thiz, jstring timedText, jint time,
+                                     jlong ptr)
+{
+    Q_UNUSED(env);
+    Q_UNUSED(thiz);
+    Q_UNUSED(time);
+
+    QReadLocker locker(rwLock);
+
+    auto mediaplayer = getMediaPlayer(ptr);
+    if (!mediaplayer)
+        return;
+
+    QString subtitleText;
+    if (timedText != nullptr)
+        subtitleText = QString::fromUtf8(env->GetStringUTFChars(timedText, 0));
+
+    emit mediaplayer->timedTextChanged(subtitleText);
+}
+
 bool AndroidMediaPlayer::registerNativeMethods()
 {
     static JNINativeMethod methods[] = {
-        {"onErrorNative", "(IIJ)V", reinterpret_cast<void *>(onErrorNative)},
-        {"onBufferingUpdateNative", "(IJ)V", reinterpret_cast<void *>(onBufferingUpdateNative)},
-        {"onProgressUpdateNative", "(IJ)V", reinterpret_cast<void *>(onProgressUpdateNative)},
-        {"onDurationChangedNative", "(IJ)V", reinterpret_cast<void *>(onDurationChangedNative)},
-        {"onInfoNative", "(IIJ)V", reinterpret_cast<void *>(onInfoNative)},
-        {"onVideoSizeChangedNative", "(IIJ)V", reinterpret_cast<void *>(onVideoSizeChangedNative)},
-        {"onStateChangedNative", "(IJ)V", reinterpret_cast<void *>(onStateChangedNative)}
+        { "onErrorNative", "(IIJ)V", reinterpret_cast<void *>(onErrorNative) },
+        { "onBufferingUpdateNative", "(IJ)V", reinterpret_cast<void *>(onBufferingUpdateNative) },
+        { "onProgressUpdateNative", "(IJ)V", reinterpret_cast<void *>(onProgressUpdateNative) },
+        { "onDurationChangedNative", "(IJ)V", reinterpret_cast<void *>(onDurationChangedNative) },
+        { "onInfoNative", "(IIJ)V", reinterpret_cast<void *>(onInfoNative) },
+        { "onVideoSizeChangedNative", "(IIJ)V",
+          reinterpret_cast<void *>(onVideoSizeChangedNative) },
+        { "onStateChangedNative", "(IJ)V", reinterpret_cast<void *>(onStateChangedNative) },
+        { "onTrackInfoChangedNative", "(J)V", reinterpret_cast<void *>(onTrackInfoChangedNative) },
+        { "onTimedTextChangedNative", "(Ljava/lang/String;IJ)V",
+          reinterpret_cast<void *>(onTimedTextChangedNative) }
     };
 
     const int size = sizeof(methods) / sizeof(methods[0]);

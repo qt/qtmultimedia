@@ -53,6 +53,7 @@
 
 #include <qglobal.h>
 #include <private/qplatformmediaplayer_p.h>
+#include <private/qandroidmetadata_p.h>
 #include <qsize.h>
 #include <qurl.h>
 
@@ -66,6 +67,7 @@ class QAndroidAudioOutput;
 class QAndroidMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
     Q_OBJECT
+
 public:
     explicit QAndroidMediaPlayer(QMediaPlayer *parent = 0);
     ~QAndroidMediaPlayer() override;
@@ -93,6 +95,11 @@ public:
     void play() override;
     void pause() override;
     void stop() override;
+
+    int trackCount(TrackType trackType) override;
+    QMediaMetaData trackMetaData(TrackType trackType, int streamNumber) override;
+    int activeTrack(TrackType trackType) override;
+    void setActiveTrack(TrackType trackType, int streamNumber) override;
 
 private Q_SLOTS:
     void setVolume(float volume);
@@ -130,6 +137,8 @@ private:
     int mActiveStateChangeNotifiers = 0;
     qreal mPendingPlaybackRate = 1.;
     bool mHasPendingPlaybackRate = false; // we need this because the rate can theoretically be negative
+    QMap<TrackType, QList<QAndroidMetaData>> mTracksMetadata;
+    QString mSubtitle;
 
     void setMediaStatus(QMediaPlayer::MediaStatus status);
     void setAudioAvailable(bool available);
@@ -138,6 +147,8 @@ private:
     void resetBufferingProgress();
     void flushPendingStates();
     void updateBufferStatus();
+    void updateTrackInfo();
+    void setSubtitle(QString subtitle);
 
     friend class StateChangeNotifier;
 };

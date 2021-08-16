@@ -94,8 +94,7 @@ public:
         MEDIA_INFO_METADATA_UPDATE = 802
     };
 
-    enum MediaPlayerState
-    {
+    enum MediaPlayerState {
         Uninitialized = 0x1, /* End */
         Idle = 0x2,
         Preparing = 0x4,
@@ -106,6 +105,16 @@ public:
         Paused = 0x80,
         PlaybackCompleted = 0x100,
         Error = 0x200
+    };
+
+    enum TrackType { Unknown = 0, Video, Audio, TimedText, Subtitle, Metadata };
+
+    struct TrackInfo
+    {
+        int trackNumber;
+        TrackType trackType;
+        QString language;
+        QString mimeType;
     };
 
     void release();
@@ -130,6 +139,11 @@ public:
     bool setPlaybackRate(qreal rate);
     void setDisplay(AndroidSurfaceTexture *surfaceTexture);
     static bool setAudioOutput(const QByteArray &deviceId);
+    QList<TrackInfo> tracksInfo();
+    int activeTrack(TrackType trackType);
+    void deselectTrack(int trackNumber);
+    void selectTrack(int trackNumber);
+
     static bool registerNativeMethods();
 
 Q_SIGNALS:
@@ -140,6 +154,8 @@ Q_SIGNALS:
     void stateChanged(qint32 state);
     void info(qint32 what, qint32 extra);
     void videoSizeChanged(qint32 width, qint32 height);
+    void timedTextChanged(QString text);
+    void tracksInfoChanged();
 
 private:
     QJniObject mMediaPlayer;
