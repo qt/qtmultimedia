@@ -230,7 +230,6 @@ void QGstreamerMediaCapture::setAudioOutput(QPlatformAudioOutput *output)
             gstPipeline.remove(gstAudioOutput->gstElement());
         }
         gstAudioOutput->setPipeline({});
-        setupAudioPipeline();
     }
 
     gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
@@ -267,14 +266,6 @@ void QGstreamerMediaCapture::releaseVideoPad(const QGstPad &pad) const
 {
     if (!pad.isNull())
         gstVideoTee.releaseRequestPad(pad);
-}
-
-void QGstreamerMediaCapture::setupAudioPipeline()
-{
-
-    if (!gstAudioInput) {
-        return;
-    }
 }
 
 QGstreamerVideoSink *QGstreamerMediaCapture::gstreamerVideoSink() const
