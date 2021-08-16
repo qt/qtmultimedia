@@ -47,7 +47,9 @@ import java.io.FileInputStream;
 // API is level is < 9 unless marked otherwise.
 import android.content.Context;
 import android.media.MediaPlayer;
+import android.media.MediaFormat;
 import android.media.AudioAttributes;
+import android.media.TimedText;
 import android.net.Uri;
 import android.util.Log;
 import java.io.FileDescriptor;
@@ -65,6 +67,9 @@ public class QtAndroidMediaPlayer
     native public void onInfoNative(int what, int extra, long id);
     native public void onVideoSizeChangedNative(int width, int height, long id);
     native public void onStateChangedNative(int state, long id);
+
+    native public void onTrackInfoChangedNative(long id);
+    native public void onTimedTextChangedNative(String text, int time, long id);
 
     private MediaPlayer mMediaPlayer = null;
     private AudioAttributes mAudioAttributes = null;
@@ -90,6 +95,23 @@ public class QtAndroidMediaPlayer
         final static int Error = 0x200;
     }
 
+    public class TrackInfo
+    {
+        private int type;
+        private String mime, language;
+
+        TrackInfo(int type, String mime, String language)
+        {
+            this.type = type;
+            this.mime = mime;
+            this.language = language;
+        }
+
+        int getType() { return this.type; }
+        String getMime() { return this.mime; }
+        String getLanguage() { return this.language; }
+    }
+
     private volatile int mState = State.Uninitialized;
 
     /**
@@ -107,7 +129,6 @@ public class QtAndroidMediaPlayer
             onErrorNative(what, extra, mID);
             return true;
         }
-
     }
 
     /**
@@ -174,6 +195,7 @@ public class QtAndroidMediaPlayer
         {
             setState(State.Prepared);
             onDurationChangedNative(getDuration(), mID);
+            onTrackInfoChangedNative(mID);
         }
 
     }
@@ -210,6 +232,14 @@ public class QtAndroidMediaPlayer
 
     }
 
+    private class MediaPlayerTimedTextListener implements MediaPlayer.OnTimedTextListener
+    {
+        @Override public void onTimedText(MediaPlayer mp, TimedText text)
+        {
+            onTimedTextChangedNative(text.getText(), mp.getCurrentPosition(), mID);
+        }
+    }
+
     public QtAndroidMediaPlayer(final Context context, final long id)
     {
         mID = id;
@@ -230,7 +260,6 @@ public class QtAndroidMediaPlayer
 
         onStateChangedNative(mState, mID);
     }
-
 
     private void init()
     {
@@ -255,8 +284,8 @@ public class QtAndroidMediaPlayer
         try {
             mMediaPlayer.start();
             setState(State.Started);
-        } catch (final IllegalStateException e) {
-            Log.d(TAG, "" + e.getMessage());
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
         }
     }
 
@@ -269,8 +298,8 @@ public class QtAndroidMediaPlayer
         try {
             mMediaPlayer.pause();
             setState(State.Paused);
-        } catch (final IllegalStateException e) {
-            Log.d(TAG, "" + e.getMessage());
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
         }
     }
 
@@ -288,8 +317,8 @@ public class QtAndroidMediaPlayer
         try {
             mMediaPlayer.stop();
             setState(State.Stopped);
-        } catch (final IllegalStateException e) {
-            Log.d(TAG, "" + e.getMessage());
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
         }
     }
 
@@ -305,8 +334,8 @@ public class QtAndroidMediaPlayer
 
         try {
             mMediaPlayer.seekTo(msec);
-        } catch (final IllegalStateException e) {
-            Log.d(TAG, "" + e.getMessage());
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
         }
     }
 
@@ -326,8 +355,8 @@ public class QtAndroidMediaPlayer
 
         try {
             playing = mMediaPlayer.isPlaying();
-        } catch (final IllegalStateException e) {
-            Log.d(TAG, "" + e.getMessage());
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
         }
 
         return playing;
@@ -341,8 +370,8 @@ public class QtAndroidMediaPlayer
         try {
             mMediaPlayer.prepareAsync();
             setState(State.Preparing);
-        } catch (final IllegalStateException e) {
-            Log.d(TAG, "" + e.getMessage());
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
         }
     }
 
@@ -371,6 +400,7 @@ public class QtAndroidMediaPlayer
         mMediaPlayer.setOnVideoSizeChangedListener(new MediaPlayerVideoSizeChangedListener());
         mMediaPlayer.setOnErrorListener(new MediaPlayerErrorListener());
         mMediaPlayer.setOnPreparedListener(new MediaPlayerPreparedListener());
+        mMediaPlayer.setOnTimedTextListener(new MediaPlayerTimedTextListener());
 
         if (mSurfaceHolder != null)
             mMediaPlayer.setDisplay(mSurfaceHolder);
@@ -397,8 +427,8 @@ public class QtAndroidMediaPlayer
                 mMediaPlayer.setDataSource(path);
             }
             setState(State.Initialized);
-        } catch (final Exception e) {
-            Log.d(TAG, "Exception: " + e.getMessage());
+        } catch (final Exception exception) {
+            Log.w(TAG, exception);
         } finally {
             try {
                if (afd != null)
@@ -417,6 +447,121 @@ public class QtAndroidMediaPlayer
         }
     }
 
+    private boolean isMediaPlayerPrepared()
+    {
+        int preparedState = (State.Prepared | State.Started | State.Paused | State.Stopped
+                             | State.PlaybackCompleted);
+        return ((mState & preparedState) != 0);
+    }
+
+    public TrackInfo[] getAllTrackInfo()
+    {
+        if (!isMediaPlayerPrepared()) {
+            Log.w(TAG, "Trying to get track info of a media player that is not prepared!");
+            return new TrackInfo[0];
+        }
+
+        MediaPlayer.TrackInfo[] tracks = new MediaPlayer.TrackInfo[0];
+
+        try {
+            // media player will ignore if this a out bounds index.
+            tracks = mMediaPlayer.getTrackInfo();
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
+        }
+
+        int numberOfTracks = tracks.length;
+        TrackInfo[] qtTracksInfo = new TrackInfo[numberOfTracks];
+
+        for (int index = 0; index < numberOfTracks; index++) {
+
+            MediaPlayer.TrackInfo track = tracks[index];
+
+            int type = track.getTrackType();
+            String mimeType = getMimeType(track);
+            String language = track.getLanguage();
+
+            qtTracksInfo[index] = new TrackInfo(type, mimeType, language);
+        }
+
+        return qtTracksInfo;
+    }
+
+    private String getMimeType(MediaPlayer.TrackInfo trackInfo)
+    {
+        // The "octet-stream" subtype is used to indicate that a body contains arbitrary binary
+        // data.
+        String defaultMimeType = "application/octet-stream";
+
+        String mimeType = defaultMimeType;
+
+        MediaFormat mediaFormat = trackInfo.getFormat();
+        if (mediaFormat != null) {
+            mimeType = mediaFormat.getString(MediaFormat.KEY_MIME, defaultMimeType);
+        }
+
+        return mimeType;
+    }
+
+    public void selectTrack(int index)
+    {
+        if (!isMediaPlayerPrepared()) {
+            Log.d(TAG, "Trying to select a track of a media player that is not prepared!");
+            return;
+        }
+        try {
+            // media player will ignore if this a out bounds index.
+            mMediaPlayer.selectTrack(index);
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
+        }
+    }
+
+    public void deselectTrack(int index)
+    {
+        if (!isMediaPlayerPrepared()) {
+            Log.d(TAG, "Trying to deselect track of a media player that is not prepared!");
+            return;
+        }
+
+        try {
+            // media player will ignore if this a out bounds index.
+            mMediaPlayer.deselectTrack(index);
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
+        }
+    }
+
+    public int getSelectedTrack(int type)
+    {
+
+        int InvalidTrack = -1;
+        if (!isMediaPlayerPrepared()) {
+            Log.d(TAG, "Trying to get the selected track of a media player that is not prepared!");
+            return InvalidTrack;
+        }
+
+        boolean isVideoTrackType = (type == MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_VIDEO);
+        boolean isAudioTrackType = (type == MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO);
+        boolean isTimedTextTrackType = (type == MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT);
+        boolean isSubtitleTrackType = (type == MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_SUBTITLE);
+
+        if (!(isVideoTrackType || isAudioTrackType || isSubtitleTrackType
+              || isTimedTextTrackType)) {
+            Log.w(TAG,
+                  "Trying to get a selected track of a invalid type"
+                          + " Only Video,Audio, TimedText and Subtitle tracks are selectable.");
+            return InvalidTrack;
+        }
+
+        try {
+            return mMediaPlayer.getSelectedTrack(type);
+        } catch (final IllegalStateException exception) {
+            Log.w(TAG, exception);
+        }
+
+        return InvalidTrack;
+    }
 
    public int getCurrentPosition()
    {
@@ -433,8 +578,8 @@ public class QtAndroidMediaPlayer
 
        try {
            currentPosition = mMediaPlayer.getCurrentPosition();
-       } catch (final IllegalStateException e) {
-           Log.d(TAG, "" + e.getMessage());
+       } catch (final IllegalStateException exception) {
+           Log.w(TAG, exception);
        }
 
        return currentPosition;
@@ -454,8 +599,8 @@ public class QtAndroidMediaPlayer
 
        try {
            duration = mMediaPlayer.getDuration();
-       } catch (final IllegalStateException e) {
-           Log.d(TAG, "" + e.getMessage());
+       } catch (final IllegalStateException exception) {
+           Log.w(TAG, exception);
        }
 
        return duration;
@@ -490,8 +635,8 @@ public class QtAndroidMediaPlayer
        try {
            float newVolume = (float)volume / 100;
            mMediaPlayer.setVolume(newVolume, newVolume);
-       } catch (final IllegalStateException e) {
-           Log.d(TAG, "" + e.getMessage());
+       } catch (final IllegalStateException exception) {
+           Log.w(TAG, exception);
        }
    }
 
@@ -573,8 +718,8 @@ public class QtAndroidMediaPlayer
 
         try {
             player.setAudioAttributes(attr);
-        } catch (final IllegalArgumentException e) {
-            Log.d(TAG, "" + e.getMessage());
+        } catch (final IllegalArgumentException exception) {
+            Log.w(TAG, exception);
         }
     }
 }
