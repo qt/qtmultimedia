@@ -96,8 +96,6 @@ public:
 
     QGstPipeline pipeline() const { return gstPipeline; }
 
-    void setupAudioPipeline();
-
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
 private:
