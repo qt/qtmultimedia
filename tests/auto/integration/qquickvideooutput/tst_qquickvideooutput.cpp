@@ -331,9 +331,7 @@ void tst_QQuickVideoOutput::sourceRect()
 
     holder.setVideoOutput(videoOutput);
 
-    QRectF invalid(0,0,-1,-1);
-
-    QCOMPARE(videoOutput->property("sourceRect").toRectF(), invalid);
+    QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF());
 
     presentDummyFrame(holder.videoSink(), QSize(200,100));
 
