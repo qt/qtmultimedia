@@ -709,6 +709,12 @@ void tst_QVideoFrame::formatConversion_data()
     QTest::newRow("QImage::Format_ARGB32_Premultiplied | QVideoFrameFormat::Format_BGRA8888_Premultiplied")
             << QImage::Format_ARGB32_Premultiplied
             << QVideoFrameFormat::Format_BGRA8888_Premultiplied;
+    QTest::newRow("QVideoFrameFormat::Format_ARGB8888")
+        << QImage::Format_Invalid
+        << QVideoFrameFormat::Format_ARGB8888;
+    QTest::newRow("QVideoFrameFormat::Format_ARGB8888_Premultiplied")
+        << QImage::Format_Invalid
+        << QVideoFrameFormat::Format_ARGB8888_Premultiplied;
 #else
     QTest::newRow("QImage::Format_RGB32 | QVideoFrameFormat::Format_XRGB8888")
         << QImage::Format_RGB32
@@ -719,6 +725,12 @@ void tst_QVideoFrame::formatConversion_data()
     QTest::newRow("QImage::Format_ARGB32_Premultiplied | QVideoFrameFormat::Format_ARGB8888_Premultiplied")
         << QImage::Format_ARGB32_Premultiplied
         << QVideoFrameFormat::Format_ARGB8888_Premultiplied;
+    QTest::newRow("QVideoFrameFormat::Format_BGRA8888")
+        << QImage::Format_Invalid
+        << QVideoFrameFormat::Format_BGRA8888;
+    QTest::newRow("QVideoFrameFormat::Format_BGRA8888_Premultiplied")
+        << QImage::Format_Invalid
+        << QVideoFrameFormat::Format_BGRA8888_Premultiplied;
 #endif
 
     QTest::newRow("QImage::Format_MonoLSB")
@@ -743,12 +755,6 @@ void tst_QVideoFrame::formatConversion_data()
             << QImage::Format_ARGB4444_Premultiplied
             << QVideoFrameFormat::Format_Invalid;
 
-    QTest::newRow("QVideoFrameFormat::Format_BGRA32")
-            << QImage::Format_Invalid
-            << QVideoFrameFormat::Format_BGRA8888;
-    QTest::newRow("QVideoFrameFormat::Format_BGRA32_Premultiplied")
-            << QImage::Format_Invalid
-            << QVideoFrameFormat::Format_BGRA8888_Premultiplied;
     QTest::newRow("QVideoFrameFormat::Format_BGR32")
             << QImage::Format_Invalid
             << QVideoFrameFormat::Format_XBGR8888;
@@ -804,11 +810,11 @@ void tst_QVideoFrame::formatConversion()
     QFETCH(QImage::Format, imageFormat);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
 
-    QCOMPARE(QVideoFrameFormat::pixelFormatFromImageFormat(imageFormat) == pixelFormat,
-             imageFormat != QImage::Format_Invalid);
+    if (imageFormat != QImage::Format_Invalid)
+        QCOMPARE(QVideoFrameFormat::pixelFormatFromImageFormat(imageFormat), pixelFormat);
 
-    QCOMPARE(QVideoFrameFormat::imageFormatFromPixelFormat(pixelFormat) == imageFormat,
-             pixelFormat != QVideoFrameFormat::Format_Invalid);
+    if (pixelFormat != QVideoFrameFormat::Format_Invalid)
+        QCOMPARE(QVideoFrameFormat::imageFormatFromPixelFormat(pixelFormat), imageFormat);
 }
 
 #define TEST_MAPPED(frame, mode) \
@@ -914,7 +920,7 @@ void tst_QVideoFrame::image_data()
     QTest::newRow("64x64 ARGB32")
             << QSize(64, 64)
             << QVideoFrameFormat::Format_ARGB8888
-            << QImage::Format_ARGB32;
+            << QImage::Format_ARGB32_Premultiplied;
 
     QTest::newRow("64x64 ARGB32_Premultiplied")
             << QSize(64, 64)
