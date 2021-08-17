@@ -49,6 +49,7 @@
 ****************************************************************************/
 
 import QtQuick
+import QtMultimedia
 
 Item {
     id: cameraListButton
@@ -78,6 +79,11 @@ Item {
         anchors.rightMargin: 16
         anchors.top: parent.top
         visible: opacity > 0
+        model: mediaDevices.videoInputs
+
+        MediaDevices {
+            id: mediaDevices
+        }
 
         onSelected: popup.toggle()
     }
