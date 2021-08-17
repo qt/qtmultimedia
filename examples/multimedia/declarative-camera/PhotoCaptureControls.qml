@@ -136,7 +136,6 @@ FocusScope {
             spacing: 8
 
             CameraListButton {
-                model: MediaDevices.videoInputs
                 onValueChanged: captureSession.camera.cameraDevice = value
             }
 
