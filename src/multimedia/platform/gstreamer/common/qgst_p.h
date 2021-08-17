@@ -380,9 +380,8 @@ public:
     template<auto Member, typename T>
     void addProbe(T *instance, GstPadProbeType type) {
         struct Impl {
-            static GstPadProbeReturn callback(GstPad *pad, GstPadProbeInfo */*info*/, gpointer userData) {
-                (static_cast<T *>(userData)->*Member)(QGstPad(pad, NeedsRef));
-                return GST_PAD_PROBE_REMOVE;
+            static GstPadProbeReturn callback(GstPad *pad, GstPadProbeInfo *info, gpointer userData) {
+                return (static_cast<T *>(userData)->*Member)(QGstPad(pad, NeedsRef), info);
             };
         };
 

@@ -57,7 +57,9 @@
 Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 
 QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
-  : QPlatformMediaEncoder(parent)
+  : QPlatformMediaEncoder(parent),
+    audioPauseControl(*this),
+    videoPauseControl(*this)
 {
     // used to update duration every 100 msecond
     heartbeat.setInterval(100);
@@ -236,6 +238,45 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     return containerProfile;
 }
 
+void QGstreamerMediaEncoder::PauseControl::installOn(QGstPad pad)
+{
+    pauseOffsetPts = 0;
+    pauseStartPts.reset();
+    pad.addProbe<&QGstreamerMediaEncoder::PauseControl::processBuffer>(this, GST_PAD_PROBE_TYPE_BUFFER);
+}
+
+GstPadProbeReturn QGstreamerMediaEncoder::PauseControl::processBuffer(QGstPad, GstPadProbeInfo *info)
+{
+    auto buffer = GST_PAD_PROBE_INFO_BUFFER(info);
+    if (!buffer)
+        return GST_PAD_PROBE_OK;
+
+    buffer = gst_buffer_make_writable(buffer);
+
+    if (!buffer)
+        return GST_PAD_PROBE_OK;
+
+    GST_PAD_PROBE_INFO_DATA(info) = buffer;
+
+    if (!GST_BUFFER_PTS_IS_VALID(buffer))
+        return GST_PAD_PROBE_OK;
+
+    if (encoder.state() == QMediaRecorder::PausedState) {
+        if (!pauseStartPts)
+            pauseStartPts = GST_BUFFER_PTS(buffer);
+
+        return GST_PAD_PROBE_DROP;
+    }
+
+    if (pauseStartPts) {
+        pauseOffsetPts += GST_BUFFER_PTS(buffer) - *pauseStartPts;
+        pauseStartPts.reset();
+    }
+    GST_BUFFER_PTS(buffer) -= pauseOffsetPts;
+
+    return GST_PAD_PROBE_OK;
+}
+
 void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
 {
     if (!m_session || state() != QMediaRecorder::StoppedState)
@@ -275,6 +316,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     audioSrcPad = m_session->getAudioPad();
     if (!audioSrcPad.isNull()) {
         QGstPad audioPad = gstEncoder.getRequestPad("audio_%u");
+        audioPauseControl.installOn(audioPad);
         audioSrcPad.link(audioPad);
     }
 
@@ -282,6 +324,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
         videoSrcPad = m_session->getVideoPad();
         if (!videoSrcPad.isNull()) {
             QGstPad videoPad = gstEncoder.getRequestPad("video_%u");
+            videoPauseControl.installOn(videoPad);
             videoSrcPad.link(videoPad);
         }
     }

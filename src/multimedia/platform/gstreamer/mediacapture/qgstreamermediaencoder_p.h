@@ -92,6 +92,20 @@ public:
     void updateDuration();
 
 private:
+    struct PauseControl {
+        PauseControl(QPlatformMediaEncoder &encoder) : encoder(encoder) {}
+
+        GstPadProbeReturn processBuffer(QGstPad pad, GstPadProbeInfo *info);
+        void installOn(QGstPad pad);
+
+        QPlatformMediaEncoder &encoder;
+        GstClockTime pauseOffsetPts = 0;
+        std::optional<GstClockTime> pauseStartPts;
+    };
+
+    PauseControl audioPauseControl;
+    PauseControl videoPauseControl;
+
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
     void finalize();
     QDir defaultDir(bool audioOnly) const;
