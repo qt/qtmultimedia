@@ -110,7 +110,7 @@ For some quick recipes, see this table:
         \li Recording encoded audio data
         \li \l{Audio Recorder Example}{audiorecorder}
         \li
-        \li QAudioRecorder
+        \li QMediaCaptureSession
     \row
         \li Discovering raw audio devices
         \li \l{Audio Devices Example}{audiodevices}

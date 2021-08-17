@@ -52,7 +52,7 @@
 
     \table
      \row
-      \li \l{QtMultimedia}{Qt Multimedia}
+      \li \l{Multimedia Overview}{Qt Multimedia}
       \li Provides API for multimedia-specific use cases.
      \row
       \li \l{Qt Multimedia Widgets}
@@ -81,11 +81,13 @@
     \note If you are using a few classes from this module, we recommend
     including those specific classes only instead of the module.
 
-    To link against the corresponding C++ libraries, add the following to your
-    \c {qmake} project file:
+    To link against the C++ libraries, add the following to your project's
+    \c CMakeLists.txt file. Substitute \c my_project with the name of your
+    project.
 
    \code
-     QT += multimedia multimediawidgets
+        find_package(Qt6 COMPONENTS Multimedia REQUIRED)
+        target_link_libraries(my_project PUBLIC Qt::Multimedia)
    \endcode
 
     \section1 QML Types
@@ -121,27 +123,24 @@
      \li Description
     \row
      \li QAudioSink
-     \li Sends audio data to an audio output device
+     \li Sends audio data to an audio output device.
     \row
-     \li \l QAudioRecorder
-     \li Record media content from an audio source.
+     \li QMediaCaptureSession
+     \li Allows capturing of audio and video.
     \row
-     \li \l QCamera
-     \li Access camera preview
+     \li QCamera
+     \li Access camera features.
     \row
      \li QImageCapture
      \li Capture still images with a camera.
     \row
-     \li \l QMediaRecorder
+     \li QMediaRecorder
      \li Record media content from a camera source.
     \row
-     \li \l QMediaPlayer
+     \li QMediaPlayer
      \li Playback media from a source.
     \row
-     \li \l QMediaPlaylist
-     \li List of media to be played.
-    \row
-     \li \l QVideoSink
+     \li QVideoSink
      \li Class for video presentation.
     \endtable
 
