@@ -68,9 +68,10 @@ There are a number of new features in Qt Multimedia:
     \row
         \li Playlist in QMediaPlayer
         \li QMediaPlayer does not do any playlist handling anymore in Qt 6.
-        The QMediaPlayList class does however still exist and provides this
-        functionality. Users will need to connect the playlist to the mediaplayer
-        themselves to handle playlists.
+    \row
+        \li QMediaPlayList
+        \li This class has been removed from the API. It does however still exist
+        as part of the \l{Media Player Example}.
     \row
         \li QAudioProbe and QVideoProbe
         \li The audio and video probing API has been removed.

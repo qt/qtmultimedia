@@ -42,22 +42,20 @@ C++ files:
 #include <QtMultimediaWidgets>
 \endcode
 
-To link against the C++ libraries, add the following to your \c qmake project
-file:
+To link against the C++ libraries, add the following to your project's
+\c CMakeLists.txt file. Substitute \c my_project with the name of your project.
+
 \code
-QT += multimediawidgets
+find_package(Qt6 COMPONENTS MultimediaWidgets REQUIRED)
+target_link_libraries(my_project PUBLIC Qt::MultimediaWidgets)
 \endcode
 
-\include qm-licenses-attributions.qdocinc
-
-\section1 Related Information
-
-\section2 Reference
+\section1 References
 \list
 \li \l{Qt Multimedia Widgets C++ Classes}{C++ Classes}
 \endlist
 
-\section2 Examples
+\section1 Examples
 \list
 \li \l{Camera Example}
 \li \l{Media Player Example}
