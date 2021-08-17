@@ -296,6 +296,13 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 
                 parseStreamsAndMetadata();
 
+                qint64 d = playerPipeline.duration()/1e6;
+                if (d != m_duration) {
+                    m_duration = d;
+                    qCDebug(qLcMediaPlayer) << "    duration changed" << d;
+                    emit durationChanged(duration());
+                }
+
                 emit tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
             }
