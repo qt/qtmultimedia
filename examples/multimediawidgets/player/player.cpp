@@ -373,14 +373,16 @@ void Player::tracksChanged()
     m_subtitleTracks->clear();
 
     const auto audioTracks = m_player->audioTracks();
+    m_audioTracks->addItem(QString::fromUtf8("No audio"), -1);
     for (int i = 0; i < audioTracks.size(); ++i)
         m_audioTracks->addItem(trackName(audioTracks.at(i), i), i);
-    m_audioTracks->setCurrentIndex(m_player->activeAudioTrack());
+    m_audioTracks->setCurrentIndex(m_player->activeAudioTrack() + 1);
 
     const auto videoTracks = m_player->videoTracks();
+    m_videoTracks->addItem(QString::fromUtf8("No video"), -1);
     for (int i = 0; i < videoTracks.size(); ++i)
         m_videoTracks->addItem(trackName(videoTracks.at(i), i), i);
-    m_videoTracks->setCurrentIndex(m_player->activeVideoTrack());
+    m_videoTracks->setCurrentIndex(m_player->activeVideoTrack() + 1);
 
     m_subtitleTracks->addItem(QString::fromUtf8("No subtitles"), -1);
     const auto subtitleTracks = m_player->subtitleTracks();
