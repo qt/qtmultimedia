@@ -191,8 +191,8 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
             setVideoOutput(new AVFCameraRenderer(this));
             connect(m_videoOutput, &AVFCameraRenderer::newViewfinderFrame,
                      this, &AVFCameraSession::newViewfinderFrame);
+            updateVideoOutput();
         }
-        updateVideoOutput();
     }
 }
 
@@ -202,9 +202,14 @@ void AVFCameraSession::setCameraFormat(const QCameraFormat &format)
     if (!captureDevice)
         return;
 
+    m_cameraFormat = format;
+
     AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(captureDevice, format);
-    if (newFormat)
+    if (newFormat) {
         qt_set_active_format(captureDevice, newFormat, false);
+        if (m_videoOutput)
+            m_videoOutput->setPixelFormat(format.pixelFormat());
+    }
 }
 
 void AVFCameraSession::setVideoOutput(AVFCameraRenderer *output)

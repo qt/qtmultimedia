@@ -191,10 +191,9 @@ void AVFCamera::setCamera(const QCameraDevice &camera)
     if (m_cameraDevice == camera)
         return;
     m_cameraDevice = camera;
-    if (m_session) {
+    if (m_session)
         m_session->setActiveCamera(camera);
-        setCameraFormat({});
-    }
+    setCameraFormat({});
 }
 
 bool AVFCamera::setCameraFormat(const QCameraFormat &format)

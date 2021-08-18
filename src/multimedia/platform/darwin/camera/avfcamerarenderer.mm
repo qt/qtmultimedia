@@ -111,7 +111,6 @@ QT_USE_NAMESPACE
 
 @end
 
-
 AVFCameraRenderer::AVFCameraRenderer(QObject *parent)
    : QObject(parent)
 {
@@ -154,7 +153,6 @@ void AVFCameraRenderer::configureAVCaptureSession(AVFCameraSession *cameraSessio
     m_needsHorizontalMirroring = false;
 
     m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
-    m_videoDataOutput.videoSettings = @{ };  // Receive samples in device format.
 
     // Configure video output
     m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);
@@ -262,6 +260,32 @@ void AVFCameraRenderer::updateAspectRatio()
 void AVFCameraRenderer::setRhi(QRhi *rhi)
 {
     m_rhi = rhi;
+}
+
+void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat /*pixelFormat*/)
+{
+    // ### Force 32ARGB pixel format on the viewfinder for now.
+    // There are problems with other pixel formats that need more investigation.
+    unsigned avPixelFormat = kCVPixelFormatType_32ARGB;
+    // AVFVideoBuffer::toCVPixelFormat(pixelFormat, avPixelFormat);
+
+    bool isSupported = false;
+    NSArray *supportedPixelFormats = m_videoDataOutput.availableVideoCVPixelFormatTypes;
+    for (NSNumber *currentPixelFormat in supportedPixelFormats)
+    {
+        if ([currentPixelFormat unsignedIntValue] == avPixelFormat) {
+            isSupported = true;
+            break;
+        }
+    }
+
+    if (isSupported) {
+        NSDictionary* outputSettings = @{
+            (NSString *)kCVPixelBufferPixelFormatTypeKey: [NSNumber numberWithUnsignedInt:avPixelFormat],
+            (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
+        };
+        m_videoDataOutput.videoSettings = outputSettings;
+    }
 }
 
 #include "moc_avfcamerarenderer_p.cpp"
