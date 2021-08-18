@@ -759,8 +759,7 @@ float QCamera::maximumExposureTime() const
     \property QCamera::isoSensitivity
     \brief The sensor ISO sensitivity.
 
-    \sa, setAutoIsoSensitivity(), setManualIsoSensitivity()
-    \sa minimumIsoSensitivity(), maximumIsoSensitivity()
+    \sa setAutoIsoSensitivity(), setManualIsoSensitivity()
 */
 
 /*!

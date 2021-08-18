@@ -149,6 +149,15 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     \value Format_XBGR8888
     The frame is stored using a 32-bit BGR format (0xffBBGGRR).
 
+    \value Format_RGBA8888
+    The frame is stored in memory as the bytes R, G, B, A/X, with R at the lowest address and A/X at the highest address.
+
+    \value Format_BGRX8888
+    The frame is stored in format 32-bit BGRx format, [31:0] B:G:R:x 8:8:8:8 little endian
+
+    \value Format_RGBX8888
+    The frame is stored in memory as the bytes R, G, B, A/X, with R at the lowest address and A/X at the highest address.
+
     \value Format_AYUV
     The frame is stored using a packed 32-bit AYUV format (0xAAYYUUVV).
 
@@ -230,6 +239,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
 
     \value Format_SamplerExternalOES
     The frame is stored in external OES texture format.
+Format_RGBA8888
 */
 
 /*!

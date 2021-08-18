@@ -278,7 +278,10 @@
     This property holds the status of media loading. It can be one of the
     following:
 
-    \table \li Property value \li Description
+    \table
+    \header
+        \li Property value
+        \li Description
     \row \li NoMedia
         \li No media has been set.
     \row \li Loading
@@ -306,7 +309,9 @@
     This property holds the state of media playback.It can be one of the
     following:
 
-    \table \li Property value \li Description
+    \table
+    \header \li Property value
+            \li Description
     \row \li PlayingState
         \li The media is currently playing.
     \row \li PausedState
@@ -539,7 +544,9 @@
 
     These properties hold the meta data for the current media.
 
-    \table \li Property name \li Description
+    \table
+    \header \li Property name
+            \li Description
     \row \li \c metaData.title
     \li The title of the media.
     \row \li \c metaData.subTitle

@@ -133,11 +133,6 @@ QQuickImageCapture::~QQuickImageCapture() = default;
     \sa capture
 */
 
-/*!
-    \property QQuickImageCapture::capturedImagePath
-
-    This property holds the location of the last captured image.
-*/
 QString QQuickImageCapture::preview() const
 {
     return m_capturedImagePath;

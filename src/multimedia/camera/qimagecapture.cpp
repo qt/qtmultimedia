@@ -244,13 +244,10 @@ void QImageCapture::addMetaData(const QMediaMetaData &metaData)
 }
 
 /*!
-  \property QImageCapture::isReadyForCapture
-  \brief The readiness of a camera to capture an image immediately.
-
-  Calling capture() while \c readyForCapture is \c false is not permitted and
-  results in an error.
+  Returns true if the camera is ready to capture an image immediately.
+  Calling capture() while \c readyForCapture is \c false is not
+  permitted and results in an error.
 */
-
 bool QImageCapture::isReadyForCapture() const
 {
     Q_D(const QImageCapture);

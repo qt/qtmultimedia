@@ -104,7 +104,7 @@ public:
 */
 
 /*!
-    Creates a session for media capture.
+    Creates a session for media capture from the \a parent object.
  */
 QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
     : QObject(parent),
@@ -146,7 +146,7 @@ QAudioInput *QMediaCaptureSession::audioInput() const
 
     Use setMuted(), if you want to disable audio input.
 
-    \sa muted(), setMuted()
+    \sa setMuted()
 */
 void QMediaCaptureSession::setAudioInput(QAudioInput *device)
 {
