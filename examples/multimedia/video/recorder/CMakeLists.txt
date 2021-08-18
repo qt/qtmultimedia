@@ -27,3 +27,8 @@ target_compile_definitions(recorder
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(recorder
   PRIVATE Qt6::Core Qt6::Quick Qt6::Multimedia)
+
+set_target_properties(recorder PROPERTIES
+    MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+)
