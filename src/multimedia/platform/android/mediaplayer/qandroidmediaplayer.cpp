@@ -81,20 +81,20 @@ QAndroidMediaPlayer::QAndroidMediaPlayer(QMediaPlayer *parent)
       mMediaPlayer(new AndroidMediaPlayer),
       mState(AndroidMediaPlayer::Uninitialized)
 {
-    connect(mMediaPlayer,SIGNAL(bufferingChanged(qint32)),
-            this,SLOT(onBufferingChanged(qint32)));
-    connect(mMediaPlayer,SIGNAL(info(qint32,qint32)),
-            this,SLOT(onInfo(qint32,qint32)));
-    connect(mMediaPlayer,SIGNAL(error(qint32,qint32)),
-            this,SLOT(onError(qint32,qint32)));
-    connect(mMediaPlayer,SIGNAL(stateChanged(qint32)),
-            this,SLOT(onStateChanged(qint32)));
-    connect(mMediaPlayer,SIGNAL(videoSizeChanged(qint32,qint32)),
-            this,SLOT(onVideoSizeChanged(qint32,qint32)));
-    connect(mMediaPlayer,SIGNAL(progressChanged(qint64)),
-            this,SLOT(positionChanged(qint64)));
-    connect(mMediaPlayer,SIGNAL(durationChanged(qint64)),
-            this,SLOT(durationChanged(qint64)));
+    connect(mMediaPlayer, &AndroidMediaPlayer::bufferingChanged,
+            this, &QAndroidMediaPlayer::onBufferingChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::info,
+            this, &QAndroidMediaPlayer::onInfo);
+    connect(mMediaPlayer, &AndroidMediaPlayer::error,
+            this, &QAndroidMediaPlayer::onError);
+    connect(mMediaPlayer, &AndroidMediaPlayer::stateChanged,
+            this, &QAndroidMediaPlayer::onStateChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::videoSizeChanged,
+            this, &QAndroidMediaPlayer::onVideoSizeChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::progressChanged,
+            this, &QAndroidMediaPlayer::positionChanged);
+    connect(mMediaPlayer, &AndroidMediaPlayer::durationChanged,
+            this, &QAndroidMediaPlayer::durationChanged);
 }
 
 QAndroidMediaPlayer::~QAndroidMediaPlayer()
@@ -347,7 +347,8 @@ void QAndroidMediaPlayer::setVideoSink(QVideoSink *sink)
 
     if (!mVideoOutput) {
         mVideoOutput = new QAndroidTextureVideoOutput(this);
-        connect(mVideoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
+        connect(mVideoOutput, &QAndroidTextureVideoOutput::readyChanged,
+                this, &QAndroidMediaPlayer::onVideoOutputReady);
     }
 
     mVideoOutput->setSurface(sink);

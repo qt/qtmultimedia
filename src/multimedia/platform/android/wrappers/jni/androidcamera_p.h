@@ -237,4 +237,6 @@ private:
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(AndroidCamera::ImageFormat)
+
 #endif // ANDROIDCAMERA_H

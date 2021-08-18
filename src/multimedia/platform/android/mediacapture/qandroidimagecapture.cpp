@@ -95,12 +95,19 @@ void QAndroidImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessi
     m_session = m_service->cameraSession();
     Q_ASSERT(m_session);
 
-    connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
-    connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
-    connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
-    connect(m_session, SIGNAL(imageMetadataAvailable(int,QString,QVariant)), this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
-    connect(m_session, SIGNAL(imageAvailable(int,QVideoFrame)), this, SIGNAL(imageAvailable(int,QVideoFrame)));
-    connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
-    connect(m_session, SIGNAL(imageCaptureError(int,int,QString)), this, SIGNAL(error(int,int,QString)));
+    connect(m_session, &QAndroidCameraSession::readyForCaptureChanged,
+            this, &QAndroidImageCapture::readyForCaptureChanged);
+    connect(m_session, &QAndroidCameraSession::imageExposed,
+            this, &QAndroidImageCapture::imageExposed);
+    connect(m_session, &QAndroidCameraSession::imageCaptured,
+            this, &QAndroidImageCapture::imageCaptured);
+    connect(m_session, &QAndroidCameraSession::imageMetadataAvailable,
+            this, &QAndroidImageCapture::imageMetadataAvailable);
+    connect(m_session, &QAndroidCameraSession::imageAvailable,
+            this, &QAndroidImageCapture::imageAvailable);
+    connect(m_session, &QAndroidCameraSession::imageSaved,
+            this, &QAndroidImageCapture::imageSaved);
+    connect(m_session, &QAndroidCameraSession::imageCaptureError,
+            this, &QAndroidImageCapture::error);
 }
 QT_END_NAMESPACE

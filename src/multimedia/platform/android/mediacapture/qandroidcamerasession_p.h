@@ -121,7 +121,7 @@ Q_SIGNALS:
     void readyForCaptureChanged(bool);
     void imageExposed(int id);
     void imageCaptured(int id, const QImage &preview);
-    void imageMetadataAvailable(int id, const QString &key, const QVariant &value);
+    void imageMetadataAvailable(int id, const QMediaMetaData &key);
     void imageAvailable(int id, const QVideoFrame &buffer);
     void imageSaved(int id, const QString &fileName);
     void imageCaptureError(int id, int error, const QString &errorString);

@@ -74,7 +74,7 @@ QAndroidCaptureSession::QAndroidCaptureSession()
                 AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::Sounds));
 
     m_notifyTimer.setInterval(1000);
-    connect(&m_notifyTimer, SIGNAL(timeout()), this, SLOT(updateDuration()));
+    connect(&m_notifyTimer, &QTimer::timeout, this, &QAndroidCaptureSession::updateDuration);
 }
 
 QAndroidCaptureSession::~QAndroidCaptureSession()
@@ -92,12 +92,13 @@ void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSessi
 
     m_cameraSession = cameraSession;
     if (m_cameraSession) {
-        m_connOpenCamera = connect(cameraSession, SIGNAL(opened()), this, SLOT(onCameraOpened()));
-        m_connActiveChangedCamera = connect(cameraSession, &QAndroidCameraSession::activeChanged, this,
-            [this](bool isActive) {
-                if (!isActive)
-                    stop();
-            });
+        m_connOpenCamera = connect(cameraSession, &QAndroidCameraSession::opened,
+                                   this, &QAndroidCaptureSession::onCameraOpened);
+        m_connActiveChangedCamera = connect(cameraSession, &QAndroidCameraSession::activeChanged,
+                                            this, [this](bool isActive) {
+            if (!isActive)
+                stop();
+        });
     }
 }
 
@@ -149,8 +150,8 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     applySettings(settings);
 
     m_mediaRecorder = new AndroidMediaRecorder;
-    connect(m_mediaRecorder, SIGNAL(error(int,int)), this, SLOT(onError(int,int)));
-    connect(m_mediaRecorder, SIGNAL(info(int,int)), this, SLOT(onInfo(int,int)));
+    connect(m_mediaRecorder, &AndroidMediaRecorder::error, this, &QAndroidCaptureSession::onError);
+    connect(m_mediaRecorder, &AndroidMediaRecorder::info, this, &QAndroidCaptureSession::onInfo);
 
     // Set audio/video sources
     if (m_cameraSession) {

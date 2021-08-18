@@ -77,8 +77,8 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
                 AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM));
 
     if (qApp) {
-        connect(qApp, SIGNAL(applicationStateChanged(Qt::ApplicationState)),
-                this, SLOT(onApplicationStateChanged(Qt::ApplicationState)));
+        connect(qApp, &QGuiApplication::applicationStateChanged,
+                this, &QAndroidCameraSession::onApplicationStateChanged);
     }
 }
 
@@ -161,18 +161,24 @@ bool QAndroidCameraSession::open()
     m_camera = AndroidCamera::open(m_selectedCamera);
 
     if (m_camera) {
-        connect(m_camera, SIGNAL(pictureExposed()), this, SLOT(onCameraPictureExposed()));
-        connect(m_camera, SIGNAL(lastPreviewFrameFetched(QVideoFrame)),
-                this, SLOT(onLastPreviewFrameFetched(QVideoFrame)),
+        connect(m_camera, &AndroidCamera::pictureExposed,
+                this, &QAndroidCameraSession::onCameraPictureExposed);
+        connect(m_camera, &AndroidCamera::lastPreviewFrameFetched,
+                this, &QAndroidCameraSession::onLastPreviewFrameFetched,
                 Qt::DirectConnection);
-        connect(m_camera, SIGNAL(newPreviewFrame(QVideoFrame)),
-                this, SLOT(onNewPreviewFrame(QVideoFrame)),
+        connect(m_camera, &AndroidCamera::newPreviewFrame,
+                this, &QAndroidCameraSession::onNewPreviewFrame,
                 Qt::DirectConnection);
-        connect(m_camera, SIGNAL(pictureCaptured(QByteArray)), this, SLOT(onCameraPictureCaptured(QByteArray)));
-        connect(m_camera, SIGNAL(previewStarted()), this, SLOT(onCameraPreviewStarted()));
-        connect(m_camera, SIGNAL(previewStopped()), this, SLOT(onCameraPreviewStopped()));
-        connect(m_camera, &AndroidCamera::previewFailedToStart, this, &QAndroidCameraSession::onCameraPreviewFailedToStart);
-        connect(m_camera, &AndroidCamera::takePictureFailed, this, &QAndroidCameraSession::onCameraTakePictureFailed);
+        connect(m_camera, &AndroidCamera::pictureCaptured,
+                this, &QAndroidCameraSession::onCameraPictureCaptured);
+        connect(m_camera, &AndroidCamera::previewStarted,
+                this, &QAndroidCameraSession::onCameraPreviewStarted);
+        connect(m_camera, &AndroidCamera::previewStopped,
+                this, &QAndroidCameraSession::onCameraPreviewStopped);
+        connect(m_camera, &AndroidCamera::previewFailedToStart,
+                this, &QAndroidCameraSession::onCameraPreviewFailedToStart);
+        connect(m_camera, &AndroidCamera::takePictureFailed,
+                this, &QAndroidCameraSession::onCameraTakePictureFailed);
 
         m_nativeOrientation = m_camera->getNativeOrientation();
 
@@ -216,10 +222,12 @@ void QAndroidCameraSession::setVideoOutput(QAndroidVideoOutput *output)
 
     if (output) {
         m_videoOutput = output;
-        if (m_videoOutput->isReady())
+        if (m_videoOutput->isReady()) {
             onVideoOutputReady(true);
-        else
-            connect(m_videoOutput, SIGNAL(readyChanged(bool)), this, SLOT(onVideoOutputReady(bool)));
+        } else {
+            connect(m_videoOutput, &QAndroidVideoOutput::readyChanged,
+                    this, &QAndroidCameraSession::onVideoOutputReady);
+        }
     } else {
         m_videoOutput = 0;
     }
