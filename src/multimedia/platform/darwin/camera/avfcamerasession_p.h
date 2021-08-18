@@ -134,6 +134,7 @@ private:
     bool applyImageEncoderSettings();
 
     QCameraDevice m_activeCameraDevice;
+    QCameraFormat m_cameraFormat;
 
     AVFCameraService *m_service;
     AVCaptureSession *m_captureSession;

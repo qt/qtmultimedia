@@ -99,6 +99,8 @@ public:
 
     QRhi *rhi() const { return m_rhi; }
 
+    void setPixelFormat(const QVideoFrameFormat::PixelFormat format);
+
 Q_SIGNALS:
     void newViewfinderFrame(const QVideoFrame &frame);
 
