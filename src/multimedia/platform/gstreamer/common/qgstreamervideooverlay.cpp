@@ -60,12 +60,10 @@ struct ElementMap
 // Ordered by descending priority
 static constexpr ElementMap elementMap[] =
 {
-    { "xcb", "vaapisink" },
     { "xcb", "xvimagesink" },
     { "xcb", "ximagesink" },
 
     // wayland
-    { "wayland", "vaapisink" },
     { "wayland", "waylandsink" }
 };
 
@@ -83,13 +81,10 @@ static bool qt_gst_element_is_functioning(QGstElement element)
 static QGstElement findBestVideoSink()
 {
     QString platform = QGuiApplication::platformName();
-    bool disableVaapi = qgetenv("QT_GSTREAMER_DISABLE_VAAPISINK").toInt();
 
     // First, try some known video sinks, depending on the Qt platform plugin in use.
     for (auto i : elementMap) {
         if (platform != QLatin1String(i.qtPlatform))
-            continue;
-        if (disableVaapi && !strcmp(i.gstreamerElement, "vaapisink"))
             continue;
         QGstElement choice(i.gstreamerElement, i.gstreamerElement);
         if (choice.isNull())
