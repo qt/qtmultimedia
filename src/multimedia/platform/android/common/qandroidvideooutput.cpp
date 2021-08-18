@@ -185,7 +185,8 @@ void QAndroidTextureVideoOutput::initSurfaceTexture()
     m_surfaceTexture = new AndroidSurfaceTexture(m_externalTex ? m_externalTex->nativeTexture().object : 0);
 
     if (m_surfaceTexture->surfaceTexture() != 0) {
-        connect(m_surfaceTexture, SIGNAL(frameAvailable()), this, SLOT(onFrameAvailable()));
+        connect(m_surfaceTexture, &AndroidSurfaceTexture::frameAvailable,
+                this, &QAndroidTextureVideoOutput::onFrameAvailable);
     } else {
         delete m_surfaceTexture;
         m_surfaceTexture = nullptr;
