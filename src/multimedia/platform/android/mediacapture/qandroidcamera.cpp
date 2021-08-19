@@ -104,9 +104,6 @@ void QAndroidCamera::reactivateCameraSession()
 
 bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
 {
-    if (!format.isNull())
-        return false;
-
     m_cameraFormat = format;
 
     if (m_cameraSession)
