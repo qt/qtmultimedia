@@ -228,8 +228,11 @@ void AVFImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
 
 void AVFImageCapture::onCameraChanged()
 {
-    Q_ASSERT(m_service && m_session);
-    m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
+    if (m_service)
+        m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
+    else
+        m_cameraControl = nullptr;
+
     if (m_cameraControl)
         connect(m_cameraControl, SIGNAL(activeChanged(bool)), this, SLOT(updateReadyStatus()));
 }
