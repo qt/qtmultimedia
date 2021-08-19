@@ -100,11 +100,11 @@ public:
 
     void setCameraFormatToTest(const QCameraFormat &format)
     {
-        formatMismatch = 0;
+        formatMismatch = -1;
         cameraFormat = format;
     }
 
-    int formatMismatch = 0;
+    int formatMismatch = -1;
 
 private:
     QCameraFormat cameraFormat;
@@ -114,12 +114,11 @@ public Q_SLOTS:
     {
         QVideoFrameFormat surfaceFormat = frame.surfaceFormat();
         if (surfaceFormat.pixelFormat() == cameraFormat.pixelFormat()
-            && surfaceFormat.frameSize() == cameraFormat.resolution()
-            && surfaceFormat.frameRate() >= cameraFormat.minFrameRate()
-            && surfaceFormat.frameRate() <= cameraFormat.maxFrameRate()) {
-            return;
+            && surfaceFormat.frameSize() == cameraFormat.resolution()) {
+            formatMismatch = 0;
+        } else {
+            formatMismatch = 1;
         }
-        formatMismatch++;
     }
 };
 
@@ -274,7 +273,7 @@ void tst_QCameraBackend::testCameraFormat()
     TestVideoFormat videoFormatTester(cameraFormat);
     session.setVideoOutput(&videoFormatTester);
     camera.start();
-    QTRY_VERIFY(!videoFormatTester.formatMismatch);
+    QTRY_VERIFY(videoFormatTester.formatMismatch == 0);
 
     spy.clear();
     camera.stop();
@@ -287,11 +286,11 @@ void tst_QCameraBackend::testCameraFormat()
         QCOMPARE(camera.cameraFormat(), secondFormat);
         videoFormatTester.setCameraFormatToTest(secondFormat);
         camera.start();
-        QTRY_VERIFY(!videoFormatTester.formatMismatch);
+        QTRY_VERIFY(videoFormatTester.formatMismatch == 0);
 
         // check that frame format is not same as previous camera format
         videoFormatTester.setCameraFormatToTest(cameraFormat);
-        QTRY_VERIFY(videoFormatTester.formatMismatch);
+        QTRY_VERIFY(videoFormatTester.formatMismatch == 1);
     }
 
     // Set null format
@@ -303,7 +302,7 @@ void tst_QCameraBackend::testCameraFormat()
     camera.start();
     // In case of a null format, the backend should have picked
     // a decent format to render frames
-    QTRY_VERIFY(videoFormatTester.formatMismatch);
+    QTRY_VERIFY(videoFormatTester.formatMismatch == 1);
     camera.stop();
 
     spy.clear();
