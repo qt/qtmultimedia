@@ -43,7 +43,7 @@ def _get_qt_minor_version() -> str:
 
 class QtMultimedia(ConanFile):
     name = "qtmultimedia"
-    license = "LGPL-3.0-only"
+    license = "LGPL-3.0, GPL-2.0+, Commercial Qt License Agreement"
     author = "The Qt Company <https://www.qt.io/contact-us>"
     url = "https://code.qt.io/cgit/qt/qtmultimedia.git"
     description = (
