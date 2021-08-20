@@ -45,46 +45,53 @@
 
 /*!
     \class QAudioOutput
-    \brief The QAudioOutput class represents an output channel for audio.
+    \brief Represents an output channel for audio.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
     \since 6.0
 
-    QAudioOutput represents an output channel that can be used together with QMediaPlayer or
-    QMediaCaptureSession. It allows selecting the physical output device to be used, muting the channel
-    or changing its volume.
+    This class represents an output channel that can be used together with
+    QMediaPlayer or QMediaCaptureSession. It enables the selection of the
+    physical output device to be used, muting the channel, and changing the
+    channel's volume.
 */
 
 /*!
     \property QAudioOutput::volume
-    \brief the current volume.
+    \brief The current volume.
 
-    The volume is scaled linearly, ranging from \c 0 (silence) to \c 1 (full volume).
-    Values outside this range will be clamped.
+    The volume is scaled linearly, ranging from \c 0 (silence) to \c 1
+    (full volume).
+    \note values outside this range will be clamped.
 
     By default the volume is \c 1.
 
-    UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic scale
-    will produce linear changes in perceived loudness, which is what a user would normally expect
-    from a volume control. See QAudio::convertVolume() for more details.
+    UI volume controls should usually be scaled non-linearly. For example,
+    using a logarithmic scale will produce linear changes in perceived loudness,
+    which is what a user would normally expect from a volume control.
+
+    \sa QAudio::convertVolume()
 */
 
 /*!
     \property QAudioOutput::muted
-    \brief the muted state of the current media.
+    \brief The muted state of the current media.
 
-    The value will be true if the output is muted; otherwise false.
+    The value will be \c true if the output is muted; otherwise \c{false}.
 */
 
 /*!
     \property QAudioOutput::device
-    \brief the audio device connected to this output.
+    \brief The audio device connected to this output.
 
-    The device property represents the audio device connected to this output. A default constructed
-    QAudioOutput object will be connected to the systems default audio output at construction time.
+    The device property represents the audio device connected to this output.
+    A default constructed
+    QAudioOutput object will be connected to the systems default audio output at
+    construction time.
 
-    This property can be used to select any other output device listed by QMediaDevices::audioOutputs().
+    This property can be used to select any other output device listed by
+    QMediaDevices::audioOutputs().
 */
 
 QAudioOutput::QAudioOutput(QObject *parent)

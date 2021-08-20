@@ -50,13 +50,12 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_audio
 
-    An audio format specifies how data in a raw audio stream is arranged,
-    i.e, how the stream is to be interpreted.
+    An audio format specifies how data in a raw audio stream is arranged. For
+    example, how the stream is to be interpreted.
 
     QAudioFormat contains parameters that specify how the audio sample data
     is arranged. These are the frequency, the number of channels, and the
-    sameple format. The following table describes
-    these in more detail.
+    sample format. The following table describes these in more detail.
 
     \table
         \header
@@ -95,7 +94,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn QAudioFormat::QAudioFormat()
 
-    Construct a new audio format.
+    Constructs a new audio format.
 
     Values are initialized as follows:
     \list
@@ -126,13 +125,13 @@ QT_BEGIN_NAMESPACE
 /*!
     \fn bool QAudioFormat::isValid() const
 
-    Returns true if all of the parameters are valid.
+    Returns \c true if all of the parameters are valid.
 */
 
 /*!
     \fn void QAudioFormat::setSampleRate(int samplerate)
 
-    Sets the sample rate to \a samplerate Hertz.
+    Sets the sample rate to \a samplerate in Hertz.
 */
 
 /*!
@@ -151,7 +150,7 @@ QT_BEGIN_NAMESPACE
     \value FrontLeft
     \value FrontRight
     \value FrontCenter
-    \value LFE Low Frequence Effect channel (Subwoofer)
+    \value LFE Low Frequency Effect channel (Subwoofer)
     \value BackLeft
     \value BackRight
     \value FrontLeftOfCenter
@@ -401,7 +400,7 @@ float QAudioFormat::normalizedSampleValue(const void *sample) const
     \value Unknown        Not Set
     \value UInt8          Samples are unsigned 8 bit signed integers
     \value Int16          Samples are 16 bit signed integers
-    \value Int32          Samples are 32 bit signed intergers
+    \value Int32          Samples are 32 bit signed integers
     \value Float          Samples are floats
     \omitvalue NSampleFormats
 */
