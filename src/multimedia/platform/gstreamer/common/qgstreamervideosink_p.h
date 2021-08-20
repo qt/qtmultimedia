@@ -65,6 +65,7 @@
 
 QT_BEGIN_NAMESPACE
 class QGstreamerVideoRenderer;
+class QVideoWindow;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink
     : public QPlatformVideoSink
