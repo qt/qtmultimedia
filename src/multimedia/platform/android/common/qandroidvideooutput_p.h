@@ -54,10 +54,12 @@
 #include <qobject.h>
 #include <qsize.h>
 #include <qmutex.h>
+#include <qreadwritelock.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <qmatrix4x4.h>
 #include <QtGui/private/qrhi_p.h>
 #include <QtGui/qoffscreensurface.h>
+#include <QPixmap>
 
 QT_BEGIN_NAMESPACE
 
@@ -118,8 +120,10 @@ public:
     void stop() override;
     void reset() override;
 
+    void setSubtitle(const QString &subtitle);
 private Q_SLOTS:
     void onFrameAvailable();
+    void onSubtitleAvailable(QPixmap pixmap);
 
 private:
     void initSurfaceTexture();
@@ -127,6 +131,8 @@ private:
     void ensureExternalTexture(QRhi *rhi);
 
     QMutex m_mutex;
+    QReadWriteLock m_subtitleLock;
+
     void clearSurfaceTexture();
 
     QVideoSink *m_sink = nullptr;
@@ -150,6 +156,9 @@ private:
 
     QImage m_readbackImage;
     QByteArray m_readbackImageData;
+
+    QString m_subtitleText;
+    QPixmap m_subtitlePixmap;
 
     GraphicsResourceDeleter *m_graphicsDeleter = nullptr;
 
@@ -188,6 +197,7 @@ public:
 
 private:
     bool updateReadbackFrame();
+    void mapSubtitle();
 
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
     QAndroidTextureVideoOutput *m_output = nullptr;
@@ -195,6 +205,21 @@ private:
     QSize m_size;
     mutable QMatrix4x4 m_externalMatrix;
     bool m_textureUpdated = false;
+};
+
+class QSubtitleWorkerThread : public QThread
+{
+    Q_OBJECT
+public:
+    QSubtitleWorkerThread(const QString &text, const QSize &videoSize);
+    void run() override;
+
+signals:
+    void subtitleAvaliable(QPixmap subtitle);
+
+private:
+    QString m_text;
+    QSize m_videoSize;
 };
 
 QT_END_NAMESPACE

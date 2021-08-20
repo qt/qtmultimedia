@@ -47,6 +47,11 @@
 #include <QFile>
 #include <QtGui/private/qrhigles2_p.h>
 #include <QOpenGLContext>
+#include <QPainter>
+#include <QPainterPath>
+#include <QMutexLocker>
+#include <QTextLayout>
+#include <QTextFormat>
 
 QT_BEGIN_NAMESPACE
 
@@ -88,12 +93,34 @@ bool AndroidTextureVideoBuffer::updateReadbackFrame()
     return (m_textureUpdated = m_output->renderAndReadbackFrame());
 }
 
+void AndroidTextureVideoBuffer::mapSubtitle()
+{
+    if (m_output->m_subtitleText.isEmpty())
+        return;
+
+    QReadLocker locker(&m_output->m_subtitleLock);
+    const QPixmap &map = m_output->m_subtitlePixmap;
+
+    // horizontally center the subtitle
+    // put it vertically in lower part of the video but not stuck to the bottom
+    int bottomMargin = m_size.height() / 12;
+    QPoint subtitleStartingPoint(m_size.width() / 2 - map.size().width() / 2,
+                                 m_size.height() - map.size().height() - bottomMargin);
+
+    // set compositionmode SourceOver and SmoothPixmapTransform to false to make QPainter as
+    // performant as possible
+    QPainter painter(&m_image);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter.drawPixmap(subtitleStartingPoint, map);
+}
+
 QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     MapData mapData;
     if (m_mapMode == QVideoFrame::NotMapped && mode == QVideoFrame::ReadOnly && updateReadbackFrame()) {
         m_mapMode = mode;
         m_image = m_output->m_readbackImage;
+        mapSubtitle();
         mapData.nPlanes = 1;
         mapData.bytesPerLine[0] = m_image.bytesPerLine();
         mapData.size[0] = static_cast<int>(m_image.sizeInBytes());
@@ -105,7 +132,8 @@ QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QVideoFrame::MapMod
 static QMatrix4x4 extTransformMatrix(AndroidSurfaceTexture *surfaceTexture)
 {
     QMatrix4x4 m = surfaceTexture->getTransformMatrix();
-    // flip it back, see http://androidxref.com/9.0.0_r3/xref/frameworks/native/libs/gui/GLConsumer.cpp#866
+    // flip it back, see
+    // http://androidxref.com/9.0.0_r3/xref/frameworks/native/libs/gui/GLConsumer.cpp#866
     // (NB our matrix ctor takes row major)
     static const QMatrix4x4 flipV(1.0f,  0.0f, 0.0f, 0.0f,
                                   0.0f, -1.0f, 0.0f, 1.0f,
@@ -126,11 +154,7 @@ quint64 AndroidTextureVideoBuffer::textureHandle(int plane) const
     return m_output->m_externalTex->nativeTexture().object;
 }
 
-QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent)
-    : QAndroidVideoOutput(parent)
-{
-
-}
+QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QObject *parent) : QAndroidVideoOutput(parent) { }
 
 QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
@@ -148,10 +172,37 @@ QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
                 m_readbackRenderTarget,
                 m_readbackRpDesc,
                 m_readbackPs
-            });
+        });
+
         m_graphicsDeleter->deleteRhi(m_readbackRhi, m_readbackRhiFallbackSurface);
         m_graphicsDeleter->deleteThis();
     }
+}
+
+void QAndroidTextureVideoOutput::setSubtitle(const QString &subtitle)
+{
+    if (m_subtitleText == subtitle)
+        return;
+
+    m_subtitleText = subtitle;
+
+    if (m_subtitleText.isEmpty()) {
+        // prevent starting a new thread just to reset image
+        onSubtitleAvailable(QPixmap());
+        return;
+    }
+
+    // start thread to create a new subtitle image
+    QSubtitleWorkerThread *worker = new QSubtitleWorkerThread(m_subtitleText, m_nativeSize);
+    connect(worker, &QSubtitleWorkerThread::subtitleAvaliable, this, &QAndroidTextureVideoOutput::onSubtitleAvailable);
+    connect(worker, &QSubtitleWorkerThread::finished, worker, &QObject::deleteLater);
+    worker->start();
+}
+
+void QAndroidTextureVideoOutput::onSubtitleAvailable(QPixmap pixmap)
+{
+    QWriteLocker locker(&m_subtitleLock);
+    m_subtitlePixmap = QPixmap(pixmap);
 }
 
 QVideoSink *QAndroidTextureVideoOutput::surface() const
@@ -218,7 +269,7 @@ AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
 
 void QAndroidTextureVideoOutput::setVideoSize(const QSize &size)
 {
-     QMutexLocker locker(&m_mutex);
+    QMutexLocker locker(&m_mutex);
     if (m_nativeSize == size)
         return;
 
@@ -255,10 +306,10 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
 }
 
 static const float g_quad[] = {
-    -1.f, -1.f,   0.f, 0.f,
-    -1.f, 1.f,    0.f, 1.f,
-    1.f, 1.f,     1.f, 1.f,
-    1.f, -1.f,    1.f, 0.f
+    -1.f, -1.f, 0.f, 0.f,
+    -1.f,  1.f, 0.f, 1.f,
+     1.f,  1.f, 1.f, 1.f,
+     1.f, -1.f, 1.f, 0.f
 };
 
 static QShader getShader(const QString &name)
@@ -366,7 +417,7 @@ bool QAndroidTextureVideoOutput::renderAndReadbackFrame()
         m_readbackSrb->setBindings({
                 QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage, m_readbackUBuf),
                 QRhiShaderResourceBinding::sampledTexture(1, QRhiShaderResourceBinding::FragmentStage, m_readbackSrc, m_externalTexSampler)
-            });
+        });
         m_readbackSrb->create();
     }
 
@@ -380,15 +431,15 @@ bool QAndroidTextureVideoOutput::renderAndReadbackFrame()
         m_readbackPs->setShaderStages({
                 { QRhiShaderStage::Vertex, vs },
                 { QRhiShaderStage::Fragment, fs }
-            });
+        });
         QRhiVertexInputLayout inputLayout;
         inputLayout.setBindings({
                 { 4 * sizeof(float) }
-            });
+        });
         inputLayout.setAttributes({
                 { 0, 0, QRhiVertexInputAttribute::Float2, 0 },
                 { 0, 1, QRhiVertexInputAttribute::Float2, 2 * sizeof(float) }
-            });
+        });
         m_readbackPs->setVertexInputLayout(inputLayout);
         m_readbackPs->setShaderResourceBindings(m_readbackSrb);
         m_readbackPs->setRenderPassDescriptor(m_readbackRpDesc);
@@ -449,6 +500,67 @@ void QAndroidTextureVideoOutput::ensureExternalTexture(QRhi *rhi)
             qWarning("Failed to create native texture object");
         m_surfaceTexture->attachToGLContext(m_externalTex->nativeTexture().object);
     }
+}
+
+QSubtitleWorkerThread::QSubtitleWorkerThread(const QString &text, const QSize &videoSize)
+    : m_text(text), m_videoSize(videoSize)
+{
+}
+
+void QSubtitleWorkerThread::run()
+{
+    QFont font({ QStringLiteral("Sans-Serif") });
+    // 0.07 - based on this https://www.md-subs.com/saa-subtitle-font-size
+    qreal fontSize = m_videoSize.height() * 0.07;
+    font.setPointSize(fontSize);
+    font.setBold(true);
+
+    QPen strokePen(Qt::black);
+    strokePen.setWidth(3);
+    strokePen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+    strokePen.setCapStyle(Qt::PenCapStyle::RoundCap);
+
+    QTextLayout textLayout(m_text);
+    textLayout.setFont(font);
+
+    QFontMetrics metrics(font);
+    QRect maxSubtitleRect = { 0, 0, m_videoSize.width(), m_videoSize.height() / 4 };
+    QRect textBoundingbox = metrics.boundingRect(maxSubtitleRect, 0, m_text);
+
+    QTextLayout::FormatRange range;
+    range.start = 0;
+    range.length = m_text.length();
+    range.format.setTextOutline(strokePen);
+    range.format.setFont(font);
+    range.format.setForeground(QBrush(Qt::white));
+    textLayout.setFormats({ range });
+
+    int leading = metrics.leading();
+    qreal height = 0;
+    textLayout.beginLayout();
+    while (1) {
+        QTextLine line = textLayout.createLine();
+        if (!line.isValid())
+            break;
+
+        line.setLineWidth(textBoundingbox.width());
+        height += leading;
+        line.setPosition(QPointF(0, height));
+        height += line.height();
+    }
+    textLayout.endLayout();
+
+    // match the height of box with the height of textLayout
+    textBoundingbox.setHeight(height);
+
+    QPixmap pixmap(textBoundingbox.size());
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+
+    textLayout.draw(&painter, QPoint(0, 0));
+
+    emit subtitleAvaliable(pixmap);
 }
 
 QT_END_NAMESPACE

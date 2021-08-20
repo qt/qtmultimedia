@@ -94,8 +94,6 @@ QAndroidMediaPlayer::QAndroidMediaPlayer(QMediaPlayer *parent)
             &QAndroidMediaPlayer::durationChanged);
     connect(mMediaPlayer, &AndroidMediaPlayer::tracksInfoChanged, this,
             &QAndroidMediaPlayer::updateTrackInfo);
-    connect(mMediaPlayer, &AndroidMediaPlayer::timedTextChanged, this,
-            &QAndroidMediaPlayer::setSubtitle);
 }
 
 QAndroidMediaPlayer::~QAndroidMediaPlayer()
@@ -348,8 +346,10 @@ void QAndroidMediaPlayer::setVideoSink(QVideoSink *sink)
 
     if (!mVideoOutput) {
         mVideoOutput = new QAndroidTextureVideoOutput(this);
-        connect(mVideoOutput, &QAndroidTextureVideoOutput::readyChanged,
-                this, &QAndroidMediaPlayer::onVideoOutputReady);
+        connect(mVideoOutput, &QAndroidTextureVideoOutput::readyChanged, this,
+                &QAndroidMediaPlayer::onVideoOutputReady);
+        connect(mMediaPlayer, &AndroidMediaPlayer::timedTextChanged, mVideoOutput,
+                &QAndroidTextureVideoOutput::setSubtitle);
     }
 
     mVideoOutput->setSurface(sink);
@@ -868,14 +868,6 @@ void QAndroidMediaPlayer::updateTrackInfo()
     }
 
     emit tracksChanged();
-}
-
-void QAndroidMediaPlayer::setSubtitle(QString subtitle)
-{
-    if (mSubtitle == subtitle)
-        return;
-
-    mSubtitle = subtitle;
 }
 
 QT_END_NAMESPACE
