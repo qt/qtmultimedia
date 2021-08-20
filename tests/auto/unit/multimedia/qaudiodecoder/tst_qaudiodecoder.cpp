@@ -219,6 +219,28 @@ void tst_QAudioDecoder::format()
 
     b = d.read();
     QVERIFY(b.format().isValid());
+    QVERIFY(d.audioFormat() == b.format());
+
+    // Setting format while decoding is forbidden
+    QAudioFormat f(d.audioFormat());
+    f.setChannelCount(2);
+
+    d.setAudioFormat(f);
+    QVERIFY(d.audioFormat() != f);
+    QVERIFY(d.audioFormat() == b.format());
+
+    // Now stop, and set something specific
+    d.stop();
+    d.setAudioFormat(f);
+    QVERIFY(d.audioFormat() == f);
+
+    // Decode again
+    d.start();
+    QTRY_VERIFY(d.bufferAvailable());
+
+    b = d.read();
+    QVERIFY(d.audioFormat() == f);
+    QVERIFY(b.format() == f);
 }
 
 void tst_QAudioDecoder::source()
@@ -313,6 +335,12 @@ void tst_QAudioDecoder::nullControl()
     QVERIFY(d.sourceDevice() == nullptr);
     d.setSourceDevice(&f);
     QVERIFY(d.sourceDevice() == nullptr);
+
+    QAudioFormat format;
+    format.setChannelCount(2);
+    QVERIFY(!d.audioFormat().isValid());
+    d.setAudioFormat(format);
+    QVERIFY(!d.audioFormat().isValid());
 
     QVERIFY(!d.read().isValid());
     QVERIFY(!d.bufferAvailable());

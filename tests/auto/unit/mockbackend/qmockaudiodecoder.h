@@ -82,6 +82,19 @@ public:
         stop();
     }
 
+    QAudioFormat audioFormat() const override
+    {
+        return mFormat;
+    }
+
+    void setAudioFormat(const QAudioFormat &format) override
+    {
+        if (mFormat != format) {
+            mFormat = format;
+            emit formatChanged(mFormat);
+        }
+    }
+
     // When decoding we decode to first buffer, then second buffer
     // we then stop until the first is read again and so on, for
     // 5 buffers

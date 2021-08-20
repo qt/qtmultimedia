@@ -172,6 +172,18 @@ void QPlatformAudioDecoder::sourceChanged()
 }
 
 /*!
+    \fn QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
+
+    Signals that the current audio format of the decoder has changed to \a format.
+
+    \sa audioFormat(), setAudioFormat()
+*/
+void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
+{
+    emit q->formatChanged(format);
+}
+
+/*!
     \fn void QPlatformAudioDecoder::finished()
 
     Signals that the decoding has finished successfully.

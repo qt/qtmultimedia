@@ -84,6 +84,9 @@ public:
     void start() override;
     void stop() override;
 
+    QAudioFormat audioFormat() const override;
+    void setAudioFormat(const QAudioFormat &format) override;
+
     QAudioBuffer read() override;
     bool bufferAvailable() const override;
 
@@ -104,6 +107,7 @@ private:
 
     QUrl m_source;
     QIODevice *m_device = nullptr;
+    QAudioFormat m_format;
 
     int m_buffersAvailable = 0;
     QList<QAudioBuffer> m_cachedBuffers;

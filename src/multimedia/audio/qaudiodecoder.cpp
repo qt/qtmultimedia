@@ -217,6 +217,49 @@ void QAudioDecoder::setSourceDevice(QIODevice *device)
 }
 
 /*!
+    Returns the audio format the decoder is set to.
+
+    \note This may be different than the format of the decoded
+    samples, if the audio format was set to an invalid one.
+
+    \sa setAudioFormat(), formatChanged()
+*/
+QAudioFormat QAudioDecoder::audioFormat() const
+{
+    if (decoder)
+        return decoder->audioFormat();
+    return QAudioFormat();
+}
+
+/*!
+    Set the desired audio format for decoded samples to \a format.
+
+    This property can only be set while the decoder is stopped.
+    Setting this property at other times will be ignored.
+
+    If the decoder does not support this format, \l error() will
+    be set to \c FormatError.
+
+    If you do not specify a format, the format of the decoded
+    audio itself will be used.  Otherwise, some format conversion
+    will be applied.
+
+    If you wish to reset the decoded format to that of the original
+    audio file, you can specify an invalid \a format.
+
+    \warning Setting a desired audio format is not yet supported
+    on Android.
+*/
+void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
+{
+    if (isDecoding())
+        return;
+
+    if (decoder != nullptr)
+        decoder->setAudioFormat(format);
+}
+
+/*!
     Returns true if a buffer is available to be read,
     and false otherwise.  If there is no buffer available, calling
     the \l read() function will return an invalid buffer.
@@ -298,6 +341,14 @@ QAudioBuffer QAudioDecoder::read() const
     Signals that the current source of the decoder has changed.
 
     \sa source(), sourceDevice()
+*/
+
+/*!
+    \fn void QAudioDecoder::formatChanged(const QAudioFormat &format)
+
+    Signals that the current audio format of the decoder has changed to \a format.
+
+    \sa audioFormat(), setAudioFormat()
 */
 
 /*!
