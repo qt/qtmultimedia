@@ -72,7 +72,6 @@ public slots:
 
 private slots:
     void fillMode();
-    void flushMode();
     void orientation();
     void surfaceSource();
     void paintSurface();
@@ -140,24 +139,6 @@ void tst_QQuickVideoOutput::fillMode()
     QCOMPARE(propSpy.count(), 2);
 
     delete videoOutput;
-}
-
-void tst_QQuickVideoOutput::flushMode()
-{
-    QQmlComponent component(&m_engine);
-    component.loadUrl(QUrl("qrc:/main.qml"));
-
-    QObject *videoOutput = component.create();
-    QVERIFY(videoOutput != nullptr);
-
-    QSignalSpy propSpy(videoOutput, SIGNAL(flushModeChanged()));
-
-    QCOMPARE(videoOutput->property("flushMode").value<QQuickVideoOutput::FlushMode>(), QQuickVideoOutput::EmptyFrame);
-    QCOMPARE(propSpy.count(), 0);
-
-    videoOutput->setProperty("flushMode", QVariant(int(QQuickVideoOutput::FirstFrame)));
-    QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FlushMode>(), QQuickVideoOutput::FirstFrame);
-    QCOMPARE(propSpy.count(), 1);
 }
 
 void tst_QQuickVideoOutput::orientation()

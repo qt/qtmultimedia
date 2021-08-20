@@ -457,31 +457,6 @@ void QQuickVideoOutput::_q_sceneGraphInitialized()
     initRhiForSink();
 }
 
-/*!
-    \qmlproperty enumeration QtMultimedia::VideoOutput::flushMode
-    \since 5.13
-
-    Set this property to define what \c VideoOutput should show
-    when playback is finished or stopped.
-
-    \list
-    \li EmptyFrame - clears video output.
-    \li FirstFrame - shows the first valid frame.
-    \li LastFrame - shows the last valid frame.
-    \endlist
-
-    The default flush mode is EmptyFrame.
-*/
-
-void QQuickVideoOutput::setFlushMode(FlushMode mode)
-{
-    if (m_flushMode == mode)
-        return;
-
-    m_flushMode = mode;
-    emit flushModeChanged();
-}
-
 void QQuickVideoOutput::releaseResources()
 {
     // Called on the gui thread when the window is closed or changed.
@@ -629,11 +604,6 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
     if (m_frameChanged) {
         videoNode->setCurrentFrame(m_frame);
 
-        if ((flushMode() == QQuickVideoOutput::FirstFrame && !m_frameOnFlush.isValid())
-            || flushMode() == QQuickVideoOutput::LastFrame) {
-            m_frameOnFlush = m_frame;
-        }
-
         //don't keep the frame for more than really necessary
         m_frameChanged = false;
         m_frame = QVideoFrame();
@@ -650,7 +620,7 @@ void QQuickVideoOutput::present(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
     m_surfaceFormat = frame.surfaceFormat();
-    m_frame = frame.isValid() ? frame : m_frameOnFlush;
+    m_frame = frame;
     m_frameChanged = true;
     m_frameMutex.unlock();
 
