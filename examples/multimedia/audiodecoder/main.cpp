@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -54,13 +54,28 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QTextStream>
+#ifdef Q_OS_ANDROID
+#include <QApplication>
+#include <QFileDialog>
+#include <QMessageBox>
+#endif
 
 #include <stdio.h>
 
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_ANDROID
+    QApplication app(argc, argv);
+#else
     QCoreApplication app(argc, argv);
+#endif
 
+    QFileInfo sourceFile;
+    QFileInfo targetFile;
+    bool isPlayback = false;
+    bool isDelete = false;
+
+#ifndef Q_OS_ANDROID
     QTextStream cout(stdout, QIODevice::WriteOnly);
     if (app.arguments().size() < 2) {
         cout << "Usage: audiodecoder [-p] [-pd] SOURCEFILE [TARGETFILE]\n";
@@ -70,18 +85,12 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    bool isPlayback = false;
-    bool isDelete = false;
-
     if (app.arguments().at(1) == "-p")
         isPlayback = true;
     else if (app.arguments().at(1) == "-pd") {
         isPlayback = true;
         isDelete = true;
     }
-
-    QFileInfo sourceFile;
-    QFileInfo targetFile;
 
     int sourceFileIndex = (isPlayback || isDelete) ? 2 : 1;
     if (app.arguments().size() <= sourceFileIndex) {
@@ -95,6 +104,17 @@ int main(int argc, char *argv[])
     else
         targetFile.setFile(sourceFile.dir().absoluteFilePath("out.wav"));
 
+#else
+
+    const QString message = "You will be prompted to select an audio file which will be"
+                            "decoded and played back to you.";
+    QMessageBox messageBox(QMessageBox::Information, "Audio Decoder", message, QMessageBox::Ok);
+    messageBox.exec();
+    sourceFile = QFileInfo(QFileDialog::getOpenFileName(messageBox.parentWidget(),
+                                                        "Select Audio File"));
+    targetFile = QFileInfo("/data/local/tmp/out.wav");
+    isPlayback = true;
+#endif
     AudioDecoder decoder(isPlayback, isDelete, targetFile.absoluteFilePath());
     QObject::connect(&decoder, &AudioDecoder::done,
                      &app, &QCoreApplication::quit);

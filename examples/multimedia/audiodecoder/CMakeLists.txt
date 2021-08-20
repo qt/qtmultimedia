@@ -18,6 +18,9 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/audiodecoder")
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
 find_package(Qt6 COMPONENTS Multimedia)
+if(ANDROID)
+    find_package(Qt6 COMPONENTS Widgets)
+endif()
 
 qt_add_executable(audiodecoder
     audiodecoder.cpp audiodecoder.h
@@ -32,6 +35,10 @@ target_link_libraries(audiodecoder PUBLIC
     Qt::Gui
     Qt::Multimedia
 )
+
+if(ANDROID)
+    target_link_libraries(audiodecoder PUBLIC Qt::Widgets)
+endif()
 
 install(TARGETS audiodecoder
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
