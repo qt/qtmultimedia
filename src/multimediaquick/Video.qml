@@ -125,23 +125,6 @@ Item {
     property alias fillMode:            videoOut.fillMode
 
     /*!
-        \qmlproperty enumeration Video::flushMode
-
-        Set this property to define what \c Video should show
-        when playback is finished or stopped.
-
-        \list
-        \li VideoOutput.EmptyFrame - clears video output.
-        \li VideoOutput.FirstFrame - shows the first valid frame.
-        \li VideoOutput.LastFrame - shows the last valid frame.
-        \endlist
-
-        The default flush mode is EmptyFrame.
-        \since 5.15
-    */
-    property alias flushMode:            videoOut.flushMode
-
-    /*!
         \qmlproperty int Video::orientation
 
         The orientation of the \c Video in degrees. Only multiples of 90
@@ -166,16 +149,6 @@ Item {
         The default state is MediaPlayer.StoppedState.
     */
     property alias playbackState:        player.playbackState
-
-    /*!
-        \qmlproperty bool Video::autoLoad
-
-        This property indicates if loading of media should begin immediately.
-
-        Defaults to true, if false media will not be loaded until playback is
-        started.
-    */
-    property alias autoLoad:        player.autoLoad
 
     /*!
         \qmlproperty real Video::bufferProgress
@@ -224,28 +197,6 @@ Item {
     property alias errorString:     player.errorString
 
     /*!
-        \qmlproperty enumeration Video::availability
-
-        Returns the availability state of the video instance.
-
-        This is one of:
-        \table
-        \header \li Value \li Description
-        \row \li MediaPlayer.Available
-            \li The video player is available to use.
-        \row \li MediaPlayer.Busy
-            \li The video player is usually available, but some other
-               process is utilizing the hardware necessary to play media.
-        \row \li MediaPlayer.Unavailable
-            \li There are no supported video playback facilities.
-        \row \li MediaPlayer.ResourceMissing
-            \li There is one or more resources missing, so the video player cannot
-               be used.  It may be possible to try again at a later time.
-        \endtable
-     */
-    property alias availability:    player.availability
-
-    /*!
         \qmlproperty bool Video::hasAudio
 
         This property holds whether the current media has audio content.
@@ -275,7 +226,7 @@ Item {
 
         This property holds whether the audio output is muted.
     */
-    property alias muted:           player.muted
+    property alias muted:           audioOutput.muted
 
     /*!
         \qmlproperty real Video::playbackRate
@@ -297,35 +248,6 @@ Item {
     property alias position:        player.position
 
     /*!
-        \qmlproperty enumeration Video::audioRole
-
-        This property holds the role of the audio stream. It can be set to specify the type of audio
-        being played, allowing the system to make appropriate decisions when it comes to volume,
-        routing or post-processing.
-
-        The audio role must be set before setting the source property.
-
-        Supported values can be retrieved with supportedAudioRoles().
-
-        The value can be one of:
-        \list
-        \li MediaPlayer.UnknownRole - the role is unknown or undefined.
-        \li MediaPlayer.MusicRole - music.
-        \li MediaPlayer.VideoRole - soundtrack from a movie or a video.
-        \li MediaPlayer.VoiceCommunicationRole - voice communications, such as telephony.
-        \li MediaPlayer.AlarmRole - alarm.
-        \li MediaPlayer.NotificationRole - notification, such as an incoming e-mail or a chat request.
-        \li MediaPlayer.RingtoneRole - ringtone.
-        \li MediaPlayer.AccessibilityRole - for accessibility, such as with a screen reader.
-        \li MediaPlayer.SonificationRole - sonification, such as with user interface sounds.
-        \li MediaPlayer.GameRole - game audio.
-        \endlist
-
-        \since 5.6
-    */
-    property alias audioRole:       player.audioRole
-
-    /*!
         \qmlproperty bool Video::seekable
 
         This property holds whether the playback position of the video can be
@@ -343,25 +265,6 @@ Item {
     property alias source:          player.source
 
     /*!
-        \qmlproperty enumeration Video::status
-
-        This property holds the status of media loading. It can be one of:
-
-        \list
-        \li MediaPlayer.NoMedia - no media has been set.
-        \li MediaPlayer.Loading - the media is currently being loaded.
-        \li MediaPlayer.Loaded - the media has been loaded.
-        \li MediaPlayer.Buffering - the media is buffering data.
-        \li MediaPlayer.Stalled - playback has been interrupted while the media is buffering data.
-        \li MediaPlayer.Buffered - the media has buffered data.
-        \li MediaPlayer.EndOfMedia - the media has played to the end.
-        \li MediaPlayer.InvalidMedia - the media cannot be played.
-        \li MediaPlayer.UnknownStatus - the status of the media cannot be determined.
-        \endlist
-    */
-    property alias status:          player.status
-
-    /*!
         \qmlproperty real Video::volume
 
         This property holds the audio volume.
@@ -376,31 +279,7 @@ Item {
         expect from a volume control. See \l {QtMultimedia::QtMultimedia::convertVolume()}{QtMultimedia.convertVolume()}
         for more details.
     */
-    property alias volume:          player.volume
-
-    /*!
-        \qmlproperty bool Video::autoPlay
-
-        This property determines whether the media should begin playback automatically.
-
-        Setting to \c true also sets \l autoLoad to \c true. The default is \c false.
-    */
-    property alias autoPlay:        player.autoPlay
-
-    /*!
-        \qmlproperty int Video::loops
-
-        This property holds the number of times the media is played. A value of \c 0 or \c 1 means
-        the media will be played only once; set to \c MediaPlayer.Infinite to enable infinite looping.
-
-        The value can be changed while the media is playing, in which case it will update
-        the remaining loops to the new value.
-
-        The default is \c 1.
-
-        \since 5.9
-    */
-    property alias loops:           player.loops
+    property alias volume:          audioOutput.volume
 
     /*!
         \qmlsignal Video::paused()
@@ -436,12 +315,17 @@ Item {
 
     MediaPlayer {
         id: player
-        onPaused:  video.paused()
-        onStopped: video.stopped()
-        onPlaying: video.playing()
+        onPlaybackStateChanged: function(newState) {
+            if (newState === MediaPlayer.PausedState)
+                video.paused();
+            else if (newState === MediaPlayer.StoppedState)
+                video.stopped();
+            else
+                video.playing();
+        }
         videoOutput: videoOut
         audioOutput: AudioOutput {
-
+            id: audioOutput
         }
     }
 
@@ -486,19 +370,4 @@ Item {
     function seek(offset) {
         player.seek(offset);
     }
-
-    /*!
-        \qmlmethod list<int> Video::supportedAudioRoles()
-
-        Returns a list of supported audio roles.
-
-        If setting the audio role is not supported, an empty list is returned.
-
-        \since 5.6
-        \sa audioRole
-    */
-    function supportedAudioRoles() {
-        return player.supportedAudioRoles();
-    }
-
 }

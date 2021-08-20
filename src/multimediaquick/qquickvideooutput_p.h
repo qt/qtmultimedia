@@ -77,21 +77,12 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
     Q_PROPERTY(bool autoOrientation READ autoOrientation WRITE setAutoOrientation NOTIFY autoOrientationChanged)
     Q_PROPERTY(QRectF sourceRect READ sourceRect NOTIFY sourceRectChanged)
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
-    Q_PROPERTY(FlushMode flushMode READ flushMode WRITE setFlushMode NOTIFY flushModeChanged)
     Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT)
     Q_MOC_INCLUDE(qvideosink.h)
     Q_MOC_INCLUDE(qvideoframe.h)
     QML_NAMED_ELEMENT(VideoOutput)
 
 public:
-
-    enum FlushMode
-    {
-        EmptyFrame,
-        FirstFrame,
-        LastFrame
-    };
-    Q_ENUM(FlushMode)
 
     enum FillMode
     {
@@ -118,9 +109,6 @@ public:
     QRectF sourceRect() const;
     QRectF contentRect() const;
 
-    FlushMode flushMode() const { return m_flushMode; }
-    void setFlushMode(FlushMode mode);
-
 Q_SIGNALS:
     void sourceChanged();
     void fillModeChanged(QQuickVideoOutput::FillMode);
@@ -128,7 +116,6 @@ Q_SIGNALS:
     void autoOrientationChanged();
     void sourceRectChanged();
     void contentRectChanged();
-    void flushModeChanged();
 
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
@@ -171,13 +158,10 @@ private:
     QVideoFrameFormat m_surfaceFormat;
 
     QVideoFrame m_frame;
-    QVideoFrame m_frameOnFlush;
     bool m_frameChanged = false;
     QMutex m_frameMutex;
     QRectF m_renderedRect;         // Destination pixel coordinates, clipped
     QRectF m_sourceTextureRect;    // Source texture coordinates
-
-    FlushMode m_flushMode = EmptyFrame;
 };
 
 QT_END_NAMESPACE
