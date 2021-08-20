@@ -48,7 +48,6 @@
 #include <QtGui/qopenglcontext.h>
 #include <QWindow>
 #include <qpa/qplatformnativeinterface.h>
-
 #include <gst/gl/gstglconfig.h>
 
 #if GST_GL_HAVE_WINDOW_X11

@@ -103,6 +103,8 @@ QVideoWidget::QVideoWidget(QWidget *parent)
     d_ptr->videoSink = new QVideoSink(this);
 
     connect(d_ptr->videoSink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_newFrame(const QVideoFrame &)));
+
+    setAttribute(Qt::WA_UpdatesDisabled);
 }
 
 /*!
@@ -254,6 +256,9 @@ void QVideoWidget::moveEvent(QMoveEvent * /*event*/)
  */
 void QVideoWidget::paintEvent(QPaintEvent *event)
 {
+    // ###
+    return;
+
     Q_D(QVideoWidget);
 
     if (d->videoSink && d->lastFrame.isValid()) {
