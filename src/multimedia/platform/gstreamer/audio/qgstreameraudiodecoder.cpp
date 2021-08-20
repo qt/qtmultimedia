@@ -331,9 +331,15 @@ void QGstreamerAudioDecoder::start()
 
     // Set audio format
     if (m_appSink) {
-        // We want whatever the native audio format is
-        setAudioFlags(true);
-        gst_app_sink_set_caps(m_appSink, nullptr);
+        if (mFormat.isValid()) {
+            setAudioFlags(false);
+            QGstMutableCaps caps = QGstUtils::capsForAudioFormat(mFormat);
+            gst_app_sink_set_caps(m_appSink, caps.get());
+        } else {
+            // We want whatever the native audio format is
+            setAudioFlags(true);
+            gst_app_sink_set_caps(m_appSink, nullptr);
+        }
     }
 
     if (m_playbin.setState(GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
@@ -368,6 +374,19 @@ void QGstreamerAudioDecoder::stop()
     }
 
     setIsDecoding(false);
+}
+
+QAudioFormat QGstreamerAudioDecoder::audioFormat() const
+{
+    return mFormat;
+}
+
+void QGstreamerAudioDecoder::setAudioFormat(const QAudioFormat &format)
+{
+    if (mFormat != format) {
+        mFormat = format;
+        emit formatChanged(mFormat);
+    }
 }
 
 QAudioBuffer QGstreamerAudioDecoder::read()

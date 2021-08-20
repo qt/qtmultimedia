@@ -69,7 +69,7 @@ public:
     void shutdown();
 
     IMFMediaSource* mediaSource();
-    IMFMediaType* setSource(IMFMediaSource *source);
+    IMFMediaType* setSource(IMFMediaSource *source, const QAudioFormat &audioFormat);
 
     void reset();
     void readNextSample();

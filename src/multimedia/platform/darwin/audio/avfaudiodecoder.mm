@@ -46,7 +46,7 @@
 
 #include <AVFoundation/AVFoundation.h>
 
-#define MAX_BUFFERS_IN_QUEUE 6
+#define MAX_BUFFERS_IN_QUEUE 10
 
 QT_USE_NAMESPACE
 
@@ -90,6 +90,8 @@ QT_USE_NAMESPACE
         return;
     const AudioStreamBasicDescription* const asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
     QAudioFormat qtFormat = CoreAudioUtils::toQAudioFormat(*asbd);
+    if (qtFormat.sampleFormat() == QAudioFormat::Unknown && asbd->mBitsPerChannel == 8)
+        qtFormat.setSampleFormat(QAudioFormat::UInt8);
     if (!qtFormat.isValid())
         return;
 
@@ -359,8 +361,8 @@ void AVFAudioDecoder::start()
 
 void AVFAudioDecoder::stop()
 {
-    if (m_asset)
-        [m_asset cancelLoading];
+    m_cachedBuffers.clear();
+
     if (m_reader)
         [m_reader cancelReading];
 
@@ -377,6 +379,19 @@ void AVFAudioDecoder::stop()
         emit durationChanged(m_duration);
     }
     setIsDecoding(false);
+}
+
+QAudioFormat AVFAudioDecoder::audioFormat() const
+{
+    return m_format;
+}
+
+void AVFAudioDecoder::setAudioFormat(const QAudioFormat &format)
+{
+    if (m_format != format) {
+        m_format = format;
+        emit formatChanged(m_format);
+    }
 }
 
 QAudioBuffer AVFAudioDecoder::read()
@@ -431,10 +446,15 @@ void AVFAudioDecoder::initAssetReader()
 
     // Set format
     QAudioFormat format;
-    format = qt_format_for_audio_track(track);
-    if (!format.isValid()) {
-        processInvalidMedia(QAudioDecoder::FormatError, tr("Unsupported source format"));
-        return;
+    if (m_format.isValid()) {
+        format = m_format;
+    } else {
+        format = qt_format_for_audio_track(track);
+        if (!format.isValid())
+        {
+            processInvalidMedia(QAudioDecoder::FormatError, tr("Unsupported source format"));
+            return;
+        }
     }
 
     // Set duration

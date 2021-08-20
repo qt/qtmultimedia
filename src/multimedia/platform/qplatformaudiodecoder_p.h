@@ -75,11 +75,16 @@ public:
     virtual void start() = 0;
     virtual void stop() = 0;
 
+    virtual QAudioFormat audioFormat() const = 0;
+    virtual void setAudioFormat(const QAudioFormat &format) = 0;
+
     virtual QAudioBuffer read() = 0;
     virtual bool bufferAvailable() const = 0;
 
     virtual qint64 position() const = 0;
     virtual qint64 duration() const = 0;
+
+    void formatChanged(const QAudioFormat &format);
 
     void sourceChanged();
 

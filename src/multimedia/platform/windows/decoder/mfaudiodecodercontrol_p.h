@@ -73,6 +73,9 @@ public:
     void start();
     void stop();
 
+    QAudioFormat audioFormat() const override;
+    void setAudioFormat(const QAudioFormat &format) override;
+
     QAudioBuffer read();
     bool bufferAvailable() const;
 
@@ -86,13 +89,17 @@ private Q_SLOTS:
     void handleSourceFinished();
 
 private:
+    void updateResamplerOutputType();
     void activatePipeline();
     void onSourceCleared();
+    void setResamplerOutputFormat(const QAudioFormat &format);
 
     MFDecoderSourceReader  *m_decoderSourceReader;
     SourceResolver         *m_sourceResolver;
+    IMFTransform           *m_resampler;
     QUrl                    m_source;
     QIODevice              *m_device;
+    QAudioFormat            m_audioFormat;
     DWORD                   m_mfInputStreamID;
     DWORD                   m_mfOutputStreamID;
     bool                    m_bufferReady;
@@ -104,6 +111,7 @@ private:
     IMFSample              *m_convertSample;
     QAudioFormat            m_sourceOutputFormat;
     bool                    m_sourceReady;
+    bool                    m_resamplerDirty;
 };
 
 #endif//MFAUDIODECODERCONTROL_H

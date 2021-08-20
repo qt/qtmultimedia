@@ -44,20 +44,32 @@ MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)
     , m_decoderSourceReader(new MFDecoderSourceReader)
     , m_sourceResolver(new SourceResolver)
+    , m_resampler(0)
     , m_device(0)
     , m_mfInputStreamID(0)
     , m_mfOutputStreamID(0)
     , m_bufferReady(false)
-    , m_duration(0)
-    , m_position(0)
+    , m_duration(-1)
+    , m_position(-1)
     , m_loadingSource(false)
     , m_mfOutputType(0)
     , m_convertSample(0)
     , m_sourceReady(false)
+    , m_resamplerDirty(false)
 {
+    CoCreateInstance(CLSID_CResamplerMediaObject, NULL, CLSCTX_INPROC_SERVER, IID_IMFTransform, (LPVOID*)(&m_resampler));
+    if (!m_resampler) {
+        qCritical("MFAudioDecoderControl: Failed to create resampler(CLSID_CResamplerMediaObject)!");
+        return;
+    }
+    m_resampler->AddInputStreams(1, &m_mfInputStreamID);
+
     connect(m_sourceResolver, SIGNAL(mediaSourceReady()), this, SLOT(handleMediaSourceReady()));
     connect(m_sourceResolver, SIGNAL(error(long)), this, SLOT(handleMediaSourceError(long)));
     connect(m_decoderSourceReader, SIGNAL(finished()), this, SLOT(handleSourceFinished()));
+
+    QAudioFormat defaultFormat;
+    setAudioFormat(defaultFormat);
 }
 
 MFAudioDecoderControl::~MFAudioDecoderControl()
@@ -67,6 +79,8 @@ MFAudioDecoderControl::~MFAudioDecoderControl()
     m_decoderSourceReader->shutdown();
     m_decoderSourceReader->Release();
     m_sourceResolver->Release();
+    if (m_resampler)
+        m_resampler->Release();
 }
 
 QUrl MFAudioDecoderControl::source() const
@@ -78,12 +92,12 @@ void MFAudioDecoderControl::onSourceCleared()
 {
     bool positionDirty = false;
     bool durationDirty = false;
-    if (m_position != 0) {
-        m_position = 0;
+    if (m_position != -1) {
+        m_position = -1;
         positionDirty = true;
     }
-    if (m_duration != 0) {
-        m_duration = 0;
+    if (m_duration != -1) {
+        m_duration = -1;
         durationDirty = true;
     }
     if (positionDirty)
@@ -98,7 +112,7 @@ void MFAudioDecoderControl::setSource(const QUrl &fileName)
         return;
     m_sourceReady = false;
     m_sourceResolver->cancel();
-    m_decoderSourceReader->setSource(nullptr);
+    m_decoderSourceReader->setSource(nullptr, m_audioFormat);
     m_device = 0;
     m_source = fileName;
     if (!m_source.isEmpty()) {
@@ -122,7 +136,7 @@ void MFAudioDecoderControl::setSourceDevice(QIODevice *device)
         return;
     m_sourceReady = false;
     m_sourceResolver->cancel();
-    m_decoderSourceReader->setSource(nullptr);
+    m_decoderSourceReader->setSource(nullptr, m_audioFormat);
     m_source.clear();
     m_device = device;
     if (m_device) {
@@ -135,14 +149,44 @@ void MFAudioDecoderControl::setSourceDevice(QIODevice *device)
     sourceChanged();
 }
 
+void MFAudioDecoderControl::updateResamplerOutputType()
+{
+    m_resamplerDirty = false;
+    if (m_audioFormat == m_sourceOutputFormat)
+        return;
+    HRESULT hr = m_resampler->SetOutputType(m_mfOutputStreamID, m_mfOutputType, 0);
+    if (SUCCEEDED(hr)) {
+        MFT_OUTPUT_STREAM_INFO streamInfo;
+        m_resampler->GetOutputStreamInfo(m_mfOutputStreamID, &streamInfo);
+        if ((streamInfo.dwFlags & (MFT_OUTPUT_STREAM_PROVIDES_SAMPLES |  MFT_OUTPUT_STREAM_CAN_PROVIDE_SAMPLES)) == 0) {
+            //if resampler does not allocate output sample memory, we do it here
+            if (m_convertSample) {
+                m_convertSample->Release();
+                m_convertSample = 0;
+            }
+            if (SUCCEEDED(MFCreateSample(&m_convertSample))) {
+                IMFMediaBuffer *mbuf = 0;;
+                if (SUCCEEDED(MFCreateMemoryBuffer(streamInfo.cbSize, &mbuf))) {
+                    m_convertSample->AddBuffer(mbuf);
+                    mbuf->Release();
+                }
+            }
+        }
+    } else {
+        qWarning() << "MFAudioDecoderControl: failed to SetOutputType of resampler" << hr;
+    }
+}
+
 void MFAudioDecoderControl::handleMediaSourceReady()
 {
     m_loadingSource = false;
     m_sourceReady = true;
-    IMFMediaType *mediaType = m_decoderSourceReader->setSource(m_sourceResolver->mediaSource());
+    IMFMediaType *mediaType = m_decoderSourceReader->setSource(m_sourceResolver->mediaSource(), m_audioFormat);
     m_sourceOutputFormat = QAudioFormat();
 
     if (mediaType) {
+        m_sourceOutputFormat = m_audioFormat;
+
         UINT32 val = 0;
         if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &val))) {
             m_sourceOutputFormat.setChannelCount(int(val));
@@ -165,9 +209,24 @@ void MFAudioDecoderControl::handleMediaSourceReady()
                 m_sourceOutputFormat.setSampleFormat(QAudioFormat::Int32);
             }
         }
+
+        if (!m_audioFormat.isValid())
+            setResamplerOutputFormat(m_sourceOutputFormat);
+        else {
+            setResamplerOutputFormat(m_audioFormat);
+        }
     }
 
     if (m_sourceResolver->mediaSource()) {
+        if (mediaType && m_resampler) {
+            HRESULT hr = S_OK;
+            hr = m_resampler->SetInputType(m_mfInputStreamID, mediaType, 0);
+            if (SUCCEEDED(hr)) {
+                updateResamplerOutputType();
+            } else {
+                qWarning() << "MFAudioDecoderControl: failed to SetInputType of resampler" << hr;
+            }
+        }
         IMFPresentationDescriptor *pd;
         if (SUCCEEDED(m_sourceResolver->mediaSource()->CreatePresentationDescriptor(&pd))) {
             UINT64 duration = 0;
@@ -187,11 +246,48 @@ void MFAudioDecoderControl::handleMediaSourceReady()
     }
 }
 
+void MFAudioDecoderControl::setResamplerOutputFormat(const QAudioFormat &format)
+{
+    if (format.isValid()) {
+        IMFMediaType *mediaType = 0;
+        MFCreateMediaType(&mediaType);
+        mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+        if (format.sampleFormat() == QAudioFormat::Float) {
+            mediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
+        } else {
+            mediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
+        }
+
+        mediaType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, UINT32(format.channelCount()));
+        mediaType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, UINT32(format.sampleRate()));
+        UINT32 alignmentBlock = UINT32(format.bytesPerFrame());
+        mediaType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, alignmentBlock);
+        UINT32 avgBytesPerSec = UINT32(format.sampleRate() * format.bytesPerFrame());
+        mediaType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, avgBytesPerSec);
+        mediaType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, UINT32(format.bytesPerSample()*8));
+        mediaType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
+
+        if (m_mfOutputType)
+            m_mfOutputType->Release();
+        m_mfOutputType = mediaType;
+    } else {
+        if (m_mfOutputType)
+            m_mfOutputType->Release();
+        m_mfOutputType = NULL;
+    }
+
+    if (m_sourceReady && !isDecoding()) {
+        updateResamplerOutputType();
+    } else {
+        m_resamplerDirty = true;
+    }
+}
+
 void MFAudioDecoderControl::handleMediaSourceError(long hr)
 {
     Q_UNUSED(hr);
     m_loadingSource = false;
-    m_decoderSourceReader->setSource(nullptr);
+    m_decoderSourceReader->setSource(nullptr, m_audioFormat);
     setIsDecoding(false);
 }
 
@@ -200,11 +296,14 @@ void MFAudioDecoderControl::activatePipeline()
     Q_ASSERT(!m_bufferReady);
     setIsDecoding(true);
     connect(m_decoderSourceReader, SIGNAL(sampleAdded()), this, SLOT(handleSampleAdded()));
+    if (m_resamplerDirty) {
+        updateResamplerOutputType();
+    }
     m_decoderSourceReader->reset();
     m_decoderSourceReader->readNextSample();
-    if (m_position != 0) {
-        m_position = 0;
-        positionChanged(0);
+    if (m_position != -1) {
+        m_position = -1;
+        positionChanged(-1);
     }
 }
 
@@ -241,29 +340,67 @@ void MFAudioDecoderControl::handleSampleAdded()
     QList<IMFSample*> samples = m_decoderSourceReader->takeSamples();
     Q_ASSERT(samples.count() > 0);
     Q_ASSERT(!m_bufferReady);
+    Q_ASSERT(m_resampler);
     LONGLONG sampleStartTime = 0;
     IMFSample *firstSample = samples.first();
     firstSample->GetSampleTime(&sampleStartTime);
     QByteArray abuf;
-    for (IMFSample *s : qAsConst(samples)) {
-        IMFMediaBuffer *buffer;
-        s->ConvertToContiguousBuffer(&buffer);
-        DWORD bufLen = 0;
-        BYTE *buf = 0;
-        if (SUCCEEDED(buffer->Lock(&buf, NULL, &bufLen))) {
-            abuf.push_back(QByteArray(reinterpret_cast<char*>(buf), bufLen));
-            buffer->Unlock();
+    QAudioFormat bufferFormat;
+    if (!m_audioFormat.isValid()) {
+        bufferFormat = m_sourceOutputFormat;
+        //no need for resampling
+         for (IMFSample *s : qAsConst(samples)) {
+            IMFMediaBuffer *buffer;
+            s->ConvertToContiguousBuffer(&buffer);
+            DWORD bufLen = 0;
+            BYTE *buf = 0;
+            if (SUCCEEDED(buffer->Lock(&buf, NULL, &bufLen))) {
+                abuf.push_back(QByteArray(reinterpret_cast<char*>(buf), bufLen));
+                buffer->Unlock();
+            }
+            buffer->Release();
+            LONGLONG sampleTime = 0, sampleDuration = 0;
+            s->GetSampleTime(&sampleTime);
+            s->GetSampleDuration(&sampleDuration);
+            m_position = qint64(sampleTime + sampleDuration) / 10000;
+            s->Release();
         }
-        buffer->Release();
-        LONGLONG sampleTime = 0, sampleDuration = 0;
-        s->GetSampleTime(&sampleTime);
-        s->GetSampleDuration(&sampleDuration);
-        m_position = qint64(sampleTime + sampleDuration) / 10000;
-        s->Release();
+    } else {
+        bufferFormat = m_audioFormat;
+        for (IMFSample *s : qAsConst(samples)) {
+            HRESULT hr = m_resampler->ProcessInput(m_mfInputStreamID, s, 0);
+            if (SUCCEEDED(hr)) {
+                MFT_OUTPUT_DATA_BUFFER outputDataBuffer;
+                outputDataBuffer.dwStreamID = m_mfOutputStreamID;
+                while (true) {
+                    outputDataBuffer.pEvents = 0;
+                    outputDataBuffer.dwStatus = 0;
+                    outputDataBuffer.pSample = m_convertSample;
+                    DWORD status = 0;
+                    if (SUCCEEDED(m_resampler->ProcessOutput(0, 1, &outputDataBuffer, &status))) {
+                        IMFMediaBuffer *buffer;
+                        outputDataBuffer.pSample->ConvertToContiguousBuffer(&buffer);
+                        DWORD bufLen = 0;
+                        BYTE *buf = 0;
+                        if (SUCCEEDED(buffer->Lock(&buf, NULL, &bufLen))) {
+                            abuf.push_back(QByteArray(reinterpret_cast<char*>(buf), bufLen));
+                            buffer->Unlock();
+                        }
+                        buffer->Release();
+                    } else {
+                        break;
+                    }
+                }
+            }
+            LONGLONG sampleTime = 0, sampleDuration = 0;
+            s->GetSampleTime(&sampleTime);
+            s->GetSampleDuration(&sampleDuration);
+            m_position = qint64(sampleTime + sampleDuration) / 10000;
+            s->Release();
+        }
     }
-
     // WMF uses 100-nanosecond units, QAudioDecoder uses milliseconds, QAudioBuffer uses microseconds...
-    m_cachedAudioBuffer = QAudioBuffer(abuf, m_sourceOutputFormat, qint64(sampleStartTime / 10));
+    m_cachedAudioBuffer = QAudioBuffer(abuf, bufferFormat, qint64(sampleStartTime / 10));
     m_bufferReady = true;
     emit positionChanged(m_position);
     emit bufferAvailableChanged(m_bufferReady);
@@ -274,6 +411,20 @@ void MFAudioDecoderControl::handleSourceFinished()
 {
     stop();
     emit finished();
+}
+
+QAudioFormat MFAudioDecoderControl::audioFormat() const
+{
+    return m_audioFormat;
+}
+
+void MFAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
+{
+    if (m_audioFormat == format || !m_resampler)
+        return;
+    m_audioFormat = format;
+    setResamplerOutputFormat(format);
+    emit formatChanged(m_audioFormat);
 }
 
 QAudioBuffer MFAudioDecoderControl::read()

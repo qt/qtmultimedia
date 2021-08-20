@@ -110,6 +110,9 @@ public:
     void start() override;
     void stop() override;
 
+    QAudioFormat audioFormat() const override { return {}; }
+    void setAudioFormat(const QAudioFormat &format) override {}
+
     QAudioBuffer read() override;
     bool bufferAvailable() const override;
 

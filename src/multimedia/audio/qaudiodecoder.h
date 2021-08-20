@@ -79,6 +79,9 @@ public:
     QIODevice* sourceDevice() const;
     void setSourceDevice(QIODevice *device);
 
+    QAudioFormat audioFormat() const;
+    void setAudioFormat(const QAudioFormat &format);
+
     Error error() const;
     QString errorString() const;
 
@@ -97,6 +100,8 @@ Q_SIGNALS:
     void bufferReady();
     void finished();
     void isDecodingChanged(bool);
+
+    void formatChanged(const QAudioFormat &format);
 
     void error(QAudioDecoder::Error error);
 
