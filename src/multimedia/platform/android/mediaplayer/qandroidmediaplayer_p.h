@@ -138,7 +138,6 @@ private:
     qreal mPendingPlaybackRate = 1.;
     bool mHasPendingPlaybackRate = false; // we need this because the rate can theoretically be negative
     QMap<TrackType, QList<QAndroidMetaData>> mTracksMetadata;
-    QString mSubtitle;
 
     void setMediaStatus(QMediaPlayer::MediaStatus status);
     void setAudioAvailable(bool available);
