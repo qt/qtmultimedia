@@ -574,7 +574,7 @@ void tst_QCameraBackend::testVideoRecording()
         //record 200ms clip
         recorder.record();
         durationChanged.clear();
-        QVERIFY(durationChanged.wait(1000));
+        QTRY_VERIFY(durationChanged.count());
 
         QCOMPARE(recorder.metaData(), metaData);
 
@@ -628,7 +628,7 @@ void tst_QCameraBackend::testNativeMetadata()
 
     recorder.record();
     durationChanged.clear();
-    QVERIFY(durationChanged.wait(1000));
+    QTRY_VERIFY(durationChanged.count());
 
     QCOMPARE(recorder.metaData(), metaData);
 

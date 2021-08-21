@@ -1149,6 +1149,9 @@ void tst_QMediaPlayerBackend::positionAfterSeek()
 
 void tst_QMediaPlayerBackend::videoDimensions()
 {
+    if (localVideoFile.isEmpty())
+        QSKIP("No supported video file");
+
     TestVideoSink surface(true);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
