@@ -264,9 +264,12 @@ void AVFCameraRenderer::setRhi(QRhi *rhi)
 
 void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat /*pixelFormat*/)
 {
-    // ### Force 32ARGB pixel format on the viewfinder for now.
+    // ### Force 32ARGB/32BGRA pixel formats on the viewfinder for now.
     // There are problems with other pixel formats that need more investigation.
     unsigned avPixelFormat = kCVPixelFormatType_32ARGB;
+#ifdef Q_OS_IOS
+    avPixelFormat = kCVPixelFormatType_32BGRA;
+#endif
     // AVFVideoBuffer::toCVPixelFormat(pixelFormat, avPixelFormat);
 
     bool isSupported = false;
