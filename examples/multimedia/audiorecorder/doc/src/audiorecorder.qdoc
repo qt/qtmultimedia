@@ -51,8 +51,8 @@
     \li \l{QMediaDevices::audioInputs()}
     \li \l{QMediaFormat::supportedAudioCodecs()}
     \li \l{QMediaFormat::supportedFileFormats()}
-    \li \l{AudioDevice::maximumSampleRate()}
-    \li \l{AudioDevice::minimumSampleRate()}
+    \li \l{QAudioDevice::maximumSampleRate()}
+    \li \l{QAudioDevice::minimumSampleRate()}
     \endlist
     The quality slider is setup from 0 (zero) to
     \l{QMediaRecorder::VeryHighQuality} with a default value of

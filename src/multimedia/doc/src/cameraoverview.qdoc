@@ -135,18 +135,8 @@ in your application. To perform this check in C++, use the
 
     \snippet multimedia-snippets/camera.cpp Camera overview check
 
-In QML, use the
-\l{MediaDevices::availableCameras}{MediaDevices.availableCameras}
-property:
-
-\qml
-Item {
-    property bool isCameraAvailable: MediaDevices.availableCameras.length > 0
-}
-\endqml
-
-After determining whether a camera is available, access it using the
-\l QCamera class in C++ or the \l Camera type in QML.
+Access a camera using the \l QCamera class in C++ or the \l Camera
+type in QML.
 
 When multiple cameras are available, you can specify which one to use.
 
@@ -154,17 +144,7 @@ In C++:
 
      \snippet multimedia-snippets/camera.cpp Camera selection
 
-
-In QML, you can set the \c Camera \l{Camera::cameraDevice}{cameraDevice} property.
-All available cameras can be retrieved from
-\l{QtMultimedia::MediaDevices::availableCameras}{MediaDevices.availableCameras}:
-
-\qml
-Camera {
-    cameraDevice: QtMultimedia.availableCameras[0]
-}
-\endqml
-
+In QML, you can select the camera by setting the \l{Camera::cameraDevice} property.
 You can also select a camera by its physical position on the system rather than
 by camera info. This is useful on mobile devices, which often have a
 front-facing and a back-facing camera.
@@ -172,6 +152,10 @@ front-facing and a back-facing camera.
 In C++:
 
     \snippet multimedia-snippets/camera.cpp Camera overview position
+
+
+In QML, you can set the \c Camera \l{Camera::cameraDevice}{cameraDevice} property.
+Available cameras can be retrieved with MediaDevices.videoInputs
 
 In QML:
 
@@ -182,12 +166,12 @@ Camera {
 \endqml
 
 
-If both QCameraDevice and position aren't specified, the default camera will be
-used. On desktop platforms, the default camera is set by the user in the system
-settings. On a mobile device, the back-facing camera is usually the default
-camera. You can get information about the default camera using
-\l MediaDevices::defaultCamera() in C++ or
-\l{QtMultimedia::MediaDevices::defaultCamera}{MediaDevices.defaultCamera} in QML.
+If both QCameraDevice and position aren't specified, the default camera
+will be used. On desktop platforms, the default camera is set by the
+user in the system settings. On a mobile device, the back-facing camera
+is usually the default camera. You can get the default camera with
+QMediaDevices::defaultVideoInput() or MediaDevices.defaultVideoInput
+in QML.
 
 \section2 Preview
 
@@ -256,13 +240,11 @@ well as creating a viewfinder, we will also initialize a media recorder object.
 
     \snippet multimedia-snippets/camera.cpp Camera overview movie
 
-Signals from the \e mediaEncoder can be connected to slots to react to
-changes in the state of the encoding process or error events. Recording itself
-starts when the \l {QMediaEncoder::record()}{record()} function of mediaEncoder
-is called. This causes the signal
-\l{QMediaEncoder::stateChanged()}{stateChanged()} to be emitted. The
-recording process can be changed with the \l {QMediaEncoder::record()}{record()}
-, \l {QMediaEncoder::stop()}{stop()} slots in \l QMediaEncoder.
+Signals from the \e QMediaRecorder can be connected to slots to react to
+changes in the state of the encoding process or error events. Recording
+starts when \l QMediaRecorder::record() is called. This causes the signal
+\l{QMediaRecorder::}{recorderStateChanged()} to be emitted. Recording is
+controlled by the record(), stop(), and pause() slots of QMediaRecorder.
 
 \section2 Controlling the Imaging Pipeline
 
@@ -318,10 +300,7 @@ to adjust them unless the user wants a specific setting.
 
 Various operations, such as image capture and auto focusing, occur asynchronously.
 These operations can often be canceled by the start of a new operation, as long
-as this is supported by the camera. For image capture, the operation can be
-canceled by calling
-\l {QImageCapture::cancelCapture()}{cancelCapture()}.
-
+as this is supported by the camera.
 
 \section1 Examples
 

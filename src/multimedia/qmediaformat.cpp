@@ -52,7 +52,8 @@ QT_BEGIN_NAMESPACE
     QMediaFormat describes an encoding format for a multimedia file or stream.
 
     You can check whether a certain media format can be used for encoding
-    or decoding using QMediaDecoderInfo or QMediaRecorderInfo.
+    or decoding using QMediaFormat.
+
     \since 6.2
 */
 namespace {
@@ -181,6 +182,8 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
         \l {Dolby Digital}
     \value AAC
         \l{Advanced Audio Coding}
+    \value ALAC
+        Apple Lossless Audio Codec
     \value DolbyTrueHD
         \l{Dolby TrueHD}
     \value MP3
@@ -191,6 +194,12 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
         \l{Ogg Vorbis}
     \value FLAC
         \l{Free Lossless Audio Codec}
+    \value Opus
+        Voice-over-IP codec
+    \value EAC
+        Enhanced Audio Codec
+    \value Unspecified
+        Unspecified codec
 
     \omitvalue LastAudioCodec
 */
@@ -315,8 +324,6 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
 /*!
     Returns true if Qt Multimedia can encode or decode this format,
     depending on \a mode.
-
-    \sa QMediaDecoderInfo
 */
 
 bool QMediaFormat::isSupported(ConversionMode mode) const
@@ -326,8 +333,6 @@ bool QMediaFormat::isSupported(ConversionMode mode) const
 
 /*!
     Returns the \l{MIME type} for the file format used in this media format.
-
-    \sa format(), setFormat()
 */
 
 QMimeType QMediaFormat::mimeType() const
@@ -344,8 +349,8 @@ static QPlatformMediaFormatInfo *formatInfo()
 }
 
 /*!
-    The function returns a list of file formats for the chosen audio and video
-    codec.
+    The function returns a list of file formats for the audio and video
+    codec indicated by \a{m}.
 
     To get all supported file formats, run this query on a default constructed
     QMediaFormat.
@@ -358,7 +363,7 @@ QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat:
 
 /*!
     The function returns a list of video codecs for the chosen file format and
-    audio codec.
+    audio codec (\a m).
 
     To get all supported video codecs, run this query on a default constructed
     QMediaFormat.
@@ -372,7 +377,7 @@ QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat:
 /*!
 
     The function returns a list of audio codecs for the chosen file format and
-    video codec.
+    video codec (\a m).
 
     To get all supported audio codecs, run this query on a default constructed
     QMediaFormat.
