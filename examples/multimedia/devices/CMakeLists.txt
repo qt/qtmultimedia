@@ -9,6 +9,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+if(ANDROID OR IOS)
+    message(WARNING "This is a commandline tool that is not supported on mobile platforms")
+    return()
+endif()
+
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
   set(INSTALL_EXAMPLESDIR "examples")
 endif()
