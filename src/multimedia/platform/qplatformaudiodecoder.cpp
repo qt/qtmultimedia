@@ -101,10 +101,7 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QAudioDecoder *parent)
 
     Starts decoding the current media.
 
-    If successful the player control will immediately enter the \l {QAudioDecoder::DecodingState}
-    {decoding} state.
-
-    \sa state(), read()
+    \sa read()
 */
 
 /*!

@@ -193,7 +193,6 @@ QAudioInput *QMediaCaptureSession::audioInput() const
     Sets the audio input device to \a device. If setting it to an empty
     QAudioDevice the capture session will use the default input as
     defined by the operating system.
-
 */
 void QMediaCaptureSession::setAudioInput(QAudioInput *device)
 {

@@ -171,8 +171,6 @@ QQuickVideoOutput::~QQuickVideoOutput()
     to render the video frames to this VideoOutput element.
     It is similar to setting a QObject with \c videoSurface property as a source,
     where this video surface will be set.
-
-    \sa source
 */
 
 QVideoSink *QQuickVideoOutput::videoSink() const
@@ -341,8 +339,6 @@ void QQuickVideoOutput::setOrientation(int orientation)
     This property is useful when other coordinates are specified
     in terms of the source dimensions - this applied for relative
     (normalized) frame coordinates in the range of 0 to 1.0.
-
-    \sa mapRectToItem(), mapPointToItem()
 
     Areas outside this will be transparent.
 */

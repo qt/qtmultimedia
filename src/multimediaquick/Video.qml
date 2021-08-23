@@ -283,15 +283,15 @@ Item {
 
         This property holds the audio volume.
 
-        The volume is scaled linearly from \c 0.0 (silence) to \c 1.0 (full volume). Values outside
-        this range will be clamped.
+        The volume is scaled linearly from \c 0.0 (silence) to \c 1.0
+        (full volume). Values outside this range will be clamped.
 
         The default volume is \c 1.0.
 
-        UI volume controls should usually be scaled nonlinearly. For example, using a logarithmic
-        scale will produce linear changes in perceived loudness, which is what a user would normally
-        expect from a volume control. See \l {QtMultimedia::QtMultimedia::convertVolume()}{QtMultimedia.convertVolume()}
-        for more details.
+        UI volume controls should usually be scaled nonlinearly. For example,
+        using a logarithmic scale will produce linear changes in perceived
+        loudness, which is what a user would normally expect from a volume
+        control. See \l {QAudio::convertVolume()} for more details.
     */
     property alias volume:          audioOutput.volume
 

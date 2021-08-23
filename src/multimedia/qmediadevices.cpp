@@ -140,7 +140,7 @@ QAudioDevice QMediaDevices::defaultAudioOutput()
     The default device can change during the runtime of the application. The
     videoInputsChanged() signal is emitted in that case.
 
-    \sa availableCameras()
+    \sa videoInputs()
 */
 QCameraDevice QMediaDevices::defaultVideoInput()
 {
