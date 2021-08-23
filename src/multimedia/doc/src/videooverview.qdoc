@@ -57,8 +57,9 @@ And an example with QGraphicsVideoItem:
 You can use \l VideoOutput to render content that is
 provided by either a \l MediaPlayer or a \l Camera.
 The VideoOutput is a visual component that can be transformed
-or acted upon by shaders (as the \l {QML Video Shader Effects Example} shows), while
-all media decoding and playback control is handled by the \l MediaPlayer or \l CaptureSession.
+or acted upon by shaders (as the \l {QML Video Shader Effects Example} shows),
+while all media decoding and playback control is handled by the \l MediaPlayer
+or \l CaptureSession. \li Video has also been provided for convenience.
 
 \section2 Working with Low Level Video Frames
 
