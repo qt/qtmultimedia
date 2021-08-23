@@ -53,6 +53,8 @@ import QtMultimedia
     simple video playback functionality without having to declare multiple
     types.
 
+    The following is sample code to implement video playback in a scene.
+
     \qml
     Video {
         id: video
@@ -74,7 +76,19 @@ import QtMultimedia
     }
     \endqml
 
-    \c Video supports untransformed, stretched, and uniformly scaled
+    The source file, \c video.avi, plays when you click the parent
+    of MouseArea. The video plays in an area of 800 by 600 pixels, and its \c id
+    property has the value \b{video}.
+
+    Notice that because signals for the \l Keys have been defined pressing the:
+    \list
+    \li \uicontrol Spacebar toggles the pause button.
+    \li \uicontrol{Left Arrow} moves the current position in the video to 5 seconds
+    previously.
+    \li \uicontrol{Right Arrow} advances the current position in the video by 5 seconds.
+    \endlist
+
+    Video supports un-transformed, stretched, and uniformly scaled
     video presentation. For a description of stretched uniformly scaled
     presentation, see the \l fillMode property description.
 

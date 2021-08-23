@@ -35,8 +35,7 @@ or video.
 
 \image qml-camera.png
 
-This example demonstrates how to use the
-\l{Qt Multimedia QML Types}{Qt Multimedia QML API} to access camera functions.
+This example demonstrates how to access camera functions via QML.
 It shows how to change settings and to capture images.
 
 \include examples-run.qdocinc

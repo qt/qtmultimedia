@@ -273,8 +273,8 @@ void QSoundEffectPrivate::setPlaying(bool playing)
     a generally lower latency way, and is suitable for "feedback" type sounds in
     response to user actions (e.g. virtual keyboard sounds, positive or negative
     feedback for popup dialogs, or game sounds).  If low latency is not important,
-    consider using the MediaPlayer or Audio types instead, since they support a wider
-    variety of media formats and are less resource intensive.
+    consider using the MediaPlayer type instead, since it support a wider
+    variety of media formats and is less resource intensive.
 
     Typically the sound effect should be reused, which allows all the
     parsing and preparation to be done ahead of time, and only triggered

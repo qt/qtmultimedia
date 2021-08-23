@@ -65,8 +65,8 @@
     }
     \endqml
 
-    You can use MediaPlayer by itself to play audio content (like \l Audio),
-    or you can use it in conjunction with a \l VideoOutput for rendering video.
+    You can use MediaPlayer by itself to play audio content, or you can use it
+    in conjunction with a Multimedia::VideoOutput for rendering video.
 
     \qml
     Item {
