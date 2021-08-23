@@ -34,7 +34,7 @@
 \section1 Video Features
 
 Qt Multimedia offers both high and low level C++ classes for playing and
-manipulating video data, and QML types for playback and control.  Some
+manipulating video data, and QML types for playback and control. Some
 of these classes also overlap with both \l {Camera Overview}{camera} and
 \l {Audio Overview}{audio} classes, which can be useful.
 
@@ -54,17 +54,17 @@ And an example with QGraphicsVideoItem:
 
 \section2 Playing Video in QML
 
-You can use \l VideoOutput to render content that is
-provided by either a \l MediaPlayer or a \l Camera.
-The VideoOutput is a visual component that can be transformed
-or acted upon by shaders (as the \l {QML Video Shader Effects Example} shows),
-while all media decoding and playback control is handled by the \l MediaPlayer
-or \l CaptureSession. \li Video has also been provided for convenience.
+You can use \l VideoOutput to render content that is provided by
+either a \l MediaPlayer or a \l Camera. The VideoOutput is a visual
+component that can be transformed or acted upon by shaders (as the
+\l {QML Video Shader Effects Example} shows), while all media decoding
+and playback control is handled by the \l MediaPlayer or \l CaptureSession.
+\l Video has also been provided for convenience.
 
 \section2 Working with Low Level Video Frames
 
 Qt Multimedia offers a number of low level classes to make handling
-video frames a bit easier.  These classes are primarily used when
+video frames a bit easier. These classes are primarily used when
 writing code that processes video or camera frames (for example,
 detecting barcodes, or applying a fancy vignette effect), or needs
 to display video in a special way that is otherwise unsupported.

@@ -366,7 +366,7 @@
     using a logarithmic scale will produce linear changes in perceived \l{loudness},
     which is what a user would normally expect from a volume control.
 
-    See \l {QtMultimedia::QtMultimedia::convertVolume()}{QtMultimedia.convertVolume()}
+    See \l {QAudio::convertVolume()}{QtMultimedia.convertVolume()}
     for more details.
 */
 

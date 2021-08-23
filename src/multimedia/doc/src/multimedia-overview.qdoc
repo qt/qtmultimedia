@@ -162,7 +162,7 @@ between machines. This support depends on what the end user has installed.
 \section1 Changes from Previous Versions
 
 If you previously used Qt Multimedia in Qt 5, see
-\l{Changes in Qt Multimedia} for more information on what has changed, and what
+\l{Changes to Qt Multimedia} for more information on what has changed, and what
 you might need to change when porting code to Qt 6.
 
 \section1 Reference Documentation
