@@ -67,7 +67,6 @@ public slots:
     void cleanupTestCase();
 
 private slots:
-    void winId();
     void aspectRatio();
 
 private:
@@ -105,21 +104,16 @@ void tst_QQuickVideoOutputWindow::cleanupTestCase()
     m_rootItem.reset();
 }
 
-void tst_QQuickVideoOutputWindow::winId()
-{
-    QCOMPARE(m_sink->nativeWindowId(), 0u);
-}
-
 void tst_QQuickVideoOutputWindow::aspectRatio()
 {
     m_videoItem->setProperty("fillMode", QQuickVideoOutput::Stretch);
-    QTRY_COMPARE(m_sink->aspectRatioMode(), Qt::IgnoreAspectRatio);
+    QTRY_COMPARE(m_videoItem->fillMode(), QQuickVideoOutput::Stretch);
 
     m_videoItem->setProperty("fillMode", QQuickVideoOutput::PreserveAspectFit);
-    QTRY_COMPARE(m_sink->aspectRatioMode(), Qt::KeepAspectRatio);
+    QTRY_COMPARE(m_videoItem->fillMode(), QQuickVideoOutput::PreserveAspectFit);
 
     m_videoItem->setProperty("fillMode", QQuickVideoOutput::PreserveAspectCrop);
-    QTRY_COMPARE(m_sink->aspectRatioMode(), Qt::KeepAspectRatioByExpanding);
+    QTRY_COMPARE(m_videoItem->fillMode(), QQuickVideoOutput::PreserveAspectCrop);
 }
 
 QTEST_MAIN(tst_QQuickVideoOutputWindow)

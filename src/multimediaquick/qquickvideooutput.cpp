@@ -196,7 +196,7 @@ QVideoSink *QQuickVideoOutput::videoSink() const
 
 QQuickVideoOutput::FillMode QQuickVideoOutput::fillMode() const
 {
-    return FillMode(videoSink()->aspectRatioMode());
+    return FillMode(m_aspectRatioMode);
 }
 
 void QQuickVideoOutput::setFillMode(FillMode mode)
@@ -204,7 +204,7 @@ void QQuickVideoOutput::setFillMode(FillMode mode)
     if (mode == fillMode())
         return;
 
-    videoSink()->setAspectRatioMode(Qt::AspectRatioMode(mode));
+    m_aspectRatioMode = Qt::AspectRatioMode(mode);
 
     m_geometryDirty = true;
     update();
@@ -246,17 +246,16 @@ void QQuickVideoOutput::_q_updateGeometry()
     m_geometryDirty = false;
     m_lastRect = absoluteRect;
 
-    const auto fill = fillMode();
+    const auto fill = m_aspectRatioMode;
     if (m_nativeSize.isEmpty()) {
         //this is necessary for item to receive the
         //first paint event and configure video surface.
         m_contentRect = rect;
-    } else if (fill == Stretch) {
+    } else if (fill == Qt::IgnoreAspectRatio) {
         m_contentRect = rect;
-    } else if (fill == PreserveAspectFit || fill == PreserveAspectCrop) {
+    } else {
         QSizeF scaled = m_nativeSize;
-        scaled.scale(rect.size(), fill == PreserveAspectFit ?
-                         Qt::KeepAspectRatio : Qt::KeepAspectRatioByExpanding);
+        scaled.scale(rect.size(), fill);
 
         m_contentRect = QRectF(QPointF(), scaled);
         m_contentRect.moveCenter(rect.center());
@@ -515,13 +514,13 @@ void QQuickVideoOutput::updateGeometry()
     if (nativeSize().isEmpty()) {
         m_renderedRect = rect;
         m_sourceTextureRect = normalizedViewport;
-    } else if (fillMode() == QQuickVideoOutput::Stretch) {
+    } else if (m_aspectRatioMode == Qt::IgnoreAspectRatio) {
         m_renderedRect = rect;
         m_sourceTextureRect = normalizedViewport;
-    } else if (fillMode() == QQuickVideoOutput::PreserveAspectFit) {
+    } else if (m_aspectRatioMode == Qt::KeepAspectRatio) {
         m_sourceTextureRect = normalizedViewport;
         m_renderedRect = contentRect();
-    } else if (fillMode() == QQuickVideoOutput::PreserveAspectCrop) {
+    } else if (m_aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
         m_renderedRect = rect;
         const qreal contentHeight = contentRect().height();
         const qreal contentWidth = contentRect().width();

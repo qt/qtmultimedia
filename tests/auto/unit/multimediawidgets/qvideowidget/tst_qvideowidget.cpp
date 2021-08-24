@@ -175,10 +175,10 @@ void tst_QVideoWidget::show()
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
 
     widget.resize(640, 480);
-    QCOMPARE(widget.videoSink()->targetRect(), QRect(0, 0, 640, 480));
+    QCOMPARE(widget.size(), QSize(640, 480));
 
     widget.move(10, 10);
-    QCOMPARE(widget.videoSink()->targetRect(), QRect(0, 0, 640, 480));
+    QCOMPARE(widget.size(), QSize(640, 480));
 
     widget.hide();
 }
@@ -196,12 +196,10 @@ void tst_QVideoWidget::aspectRatio()
     widget.show();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
     QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
-    QCOMPARE(widget.videoSink()->aspectRatioMode(), Qt::KeepAspectRatio);
 
     // Test an aspect ratio change is enforced immediately while visible.
     widget.setAspectRatioMode(Qt::IgnoreAspectRatio);
     QCOMPARE(widget.aspectRatioMode(), Qt::IgnoreAspectRatio);
-    QCOMPARE(widget.videoSink()->aspectRatioMode(), Qt::IgnoreAspectRatio);
 
     // Test an aspect ratio set while not visible is respected.
     widget.hide();
@@ -209,7 +207,6 @@ void tst_QVideoWidget::aspectRatio()
     QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
     widget.show();
     QCOMPARE(widget.aspectRatioMode(), Qt::KeepAspectRatio);
-    QCOMPARE(widget.videoSink()->aspectRatioMode(), Qt::KeepAspectRatio);
 }
 
 void tst_QVideoWidget::sizeHint_data()
@@ -272,7 +269,6 @@ void tst_QVideoWidget::fullScreen()
     // Test showing full screen with setFullScreen(true).
     widget.setFullScreen(true);
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.videoSink()->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 1);
     QCOMPARE(spy.value(0).value(0).toBool(), true);
@@ -280,7 +276,6 @@ void tst_QVideoWidget::fullScreen()
     // Test returning to normal with setFullScreen(false).
     widget.setFullScreen(false);
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.videoSink()->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 2);
     QCOMPARE(spy.value(1).value(0).toBool(), false);
@@ -289,7 +284,6 @@ void tst_QVideoWidget::fullScreen()
     // Test showing full screen with showFullScreen().
     widget.showFullScreen();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.videoSink()->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 3);
     QCOMPARE(spy.value(2).value(0).toBool(), true);
@@ -297,7 +291,6 @@ void tst_QVideoWidget::fullScreen()
     // Test returning to normal with showNormal().
     widget.showNormal();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.videoSink()->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
     QCOMPARE(spy.value(3).value(0).toBool(), false);
@@ -305,12 +298,10 @@ void tst_QVideoWidget::fullScreen()
 
     // Test setFullScreen(false) and showNormal() do nothing when isFullScreen() == false.
     widget.setFullScreen(false);
-    QCOMPARE(widget.videoSink()->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
     widget.showNormal();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    QCOMPARE(widget.videoSink()->isFullScreen(), false);
     QCOMPARE(widget.isFullScreen(), false);
     QCOMPARE(spy.count(), 4);
 
@@ -318,11 +309,9 @@ void tst_QVideoWidget::fullScreen()
     widget.showFullScreen();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
     widget.setFullScreen(true);
-    QCOMPARE(widget.videoSink()->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 5);
     widget.showFullScreen();
-    QCOMPARE(widget.videoSink()->isFullScreen(), true);
     QCOMPARE(widget.isFullScreen(), true);
     QCOMPARE(spy.count(), 5);
 }

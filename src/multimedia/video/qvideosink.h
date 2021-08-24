@@ -61,34 +61,18 @@ public:
     QVideoSink(QObject *parent = nullptr);
     ~QVideoSink();
 
-    // setter sets graphics type to NativeWindow
-    WId nativeWindowId() const;
-    void setNativeWindowId(WId id);
-
     QRhi *rhi() const;
     void setRhi(QRhi *rhi);
 
-    void setFullScreen(bool fullscreen);
-    bool isFullScreen() const;
-
-    Qt::AspectRatioMode aspectRatioMode() const;
-    void setAspectRatioMode(Qt::AspectRatioMode mode);
-
-    QRectF targetRect() const;
-    void setTargetRect(const QRectF &rect);
-
-    Qt::BGMode backgroundMode() const;
-    void setBackgroundMode(Qt::BGMode mode);
+    QSize videoSize() const;
 
     QPlatformVideoSink *platformVideoSink() const;
-    QSize videoSize() const;
 
 Q_SIGNALS:
     // would never get called in windowed mode
     void newVideoFrame(const QVideoFrame &frame) const;
 
     void fullScreenChanged(bool fullScreen);
-    void aspectRatioModeChanged(Qt::AspectRatioMode mode);
     void videoSizeChanged();
 
 private:

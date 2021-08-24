@@ -64,6 +64,7 @@ public:
     QRectF boundingRect;
     QSizeF nativeSize;
     QVideoFrame m_frame;
+    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
 
     void updateRects();
 
@@ -78,7 +79,7 @@ void QGraphicsVideoItemPrivate::updateRects()
     if (nativeSize.isEmpty())
         return;
 
-    if (sink->aspectRatioMode() == Qt::KeepAspectRatio) {
+    if (m_aspectRatioMode == Qt::KeepAspectRatio) {
         QSizeF size = nativeSize;
         size.scale(rect.size(), Qt::KeepAspectRatio);
 
@@ -133,7 +134,6 @@ QGraphicsVideoItem::QGraphicsVideoItem(QGraphicsItem *parent)
 {
     d_ptr->q_ptr = this;
     d_ptr->sink = new QVideoSink(this);
-    d_ptr->sink->setBackgroundMode(Qt::TransparentMode);
 
     connect(d_ptr->sink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_present(const QVideoFrame &)));
 }
@@ -169,15 +169,17 @@ QVideoSink *QGraphicsVideoItem::videoSink() const
 
 Qt::AspectRatioMode QGraphicsVideoItem::aspectRatioMode() const
 {
-    return d_func()->sink->aspectRatioMode();
+    return d_func()->m_aspectRatioMode;
 }
 
 void QGraphicsVideoItem::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     Q_D(QGraphicsVideoItem);
+    if (d->m_aspectRatioMode == mode)
+        return;
 
+    d->m_aspectRatioMode = mode;
     d->updateRects();
-    d->sink->setAspectRatioMode(mode);
 }
 
 /*!
@@ -199,7 +201,6 @@ void QGraphicsVideoItem::setOffset(const QPointF &offset)
 
     d->rect.moveTo(offset);
     d->updateRects();
-    d->sink->setTargetRect(d->rect);
 }
 
 /*!
@@ -221,7 +222,6 @@ void QGraphicsVideoItem::setSize(const QSizeF &size)
 
     d->rect.setSize(size.isValid() ? size : QSizeF(0, 0));
     d->updateRects();
-    d->sink->setTargetRect(d->rect);
 }
 
 /*!
@@ -258,7 +258,7 @@ void QGraphicsVideoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    d->m_frame.paint(painter, d->rect, { Qt::transparent, d->sink->aspectRatioMode() });
+    d->m_frame.paint(painter, d->rect, { Qt::transparent, d->m_aspectRatioMode });
 }
 
 /*!

@@ -101,14 +101,8 @@ QVideoWidget::QVideoWidget(QWidget *parent)
 {
     d_ptr->q_ptr = this;
     d_ptr->videoSink = new QVideoSink(this);
-    d_ptr->videoSink->setTargetRect(rect());
 
-    d_ptr->videoSink->setNativeWindowId(winId());
     connect(d_ptr->videoSink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_newFrame(const QVideoFrame &)));
-//    connect(d_ptr->videoSink, &QVideoSink::brightnessChanged, this, &QVideoWidget::brightnessChanged);
-//    connect(d_ptr->videoSink, &QVideoSink::contrastChanged, this, &QVideoWidget::contrastChanged);
-//    connect(d_ptr->videoSink, &QVideoSink::hueChanged, this, &QVideoWidget::hueChanged);
-//    connect(d_ptr->videoSink, &QVideoSink::saturationChanged, this, &QVideoWidget::saturationChanged);
 }
 
 /*!
@@ -141,7 +135,6 @@ void QVideoWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
     if (mode == d->aspectRatioMode)
         return;
     d->aspectRatioMode = mode;
-    d->videoSink->setAspectRatioMode(mode);
     emit aspectRatioModeChanged(mode);
 }
 
@@ -171,7 +164,6 @@ void QVideoWidget::setFullScreen(bool fullScreen)
         showNormal();
     }
     d->wasFullScreen = fullScreen;
-    d->videoSink->setFullScreen(fullScreen);
 }
 
 /*!
@@ -210,14 +202,9 @@ bool QVideoWidget::event(QEvent *event)
 
     if (event->type() == QEvent::WindowStateChange) {
         if (windowState() & Qt::WindowFullScreen) {
-            d->videoSink->setFullScreen(true);
-            d->videoSink->setTargetRect(QRectF(0, 0, window()->width(), window()->height()));
-
             if (!d->wasFullScreen)
                 emit fullScreenChanged(d->wasFullScreen = true);
         } else {
-            d->videoSink->setFullScreen(false);
-
             if (d->wasFullScreen)
                 emit fullScreenChanged(d->wasFullScreen = false);
         }
@@ -250,7 +237,6 @@ void QVideoWidget::hideEvent(QHideEvent *event)
  */
 void QVideoWidget::resizeEvent(QResizeEvent *event)
 {
-    d_ptr->videoSink->setTargetRect(QRectF(0, 0, event->size().width(), event->size().height()));
     QWidget::resizeEvent(event);
 }
 

@@ -152,6 +152,7 @@ private:
     int m_orientation = 0;
     bool m_autoOrientation = false;
     QVideoOutputOrientationHandler *m_screenOrientationHandler = nullptr;
+    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
 
     QPointer<QQuickWindow> m_window;
     QVideoSink *m_sink = nullptr;
