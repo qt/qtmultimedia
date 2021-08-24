@@ -194,11 +194,13 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
 
 void AVFCameraSession::setCameraFormat(const QCameraFormat &format)
 {
+    if (m_cameraFormat == format)
+        return;
+    m_cameraFormat = format;
+
     AVCaptureDevice *captureDevice = videoCaptureDevice();
     if (!captureDevice)
         return;
-
-    m_cameraFormat = format;
 
     AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(captureDevice, format);
     if (newFormat) {
