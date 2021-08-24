@@ -101,9 +101,11 @@ void Camera::setCamera(const QCameraDevice &cameraDevice)
     connect(m_camera.data(), &QCamera::activeChanged, this, &Camera::updateCameraActive);
     connect(m_camera.data(), &QCamera::errorOccurred, this, &Camera::displayCameraError);
 
-    m_mediaRecorder.reset(new QMediaRecorder);
-    m_captureSession.setRecorder(m_mediaRecorder.data());
-    connect(m_mediaRecorder.data(), &QMediaRecorder::recorderStateChanged, this, &Camera::updateRecorderState);
+    if (!m_mediaRecorder) {
+        m_mediaRecorder.reset(new QMediaRecorder);
+        m_captureSession.setRecorder(m_mediaRecorder.data());
+        connect(m_mediaRecorder.data(), &QMediaRecorder::recorderStateChanged, this, &Camera::updateRecorderState);
+    }
 
     m_imageCapture = new QImageCapture;
     m_captureSession.setImageCapture(m_imageCapture);
