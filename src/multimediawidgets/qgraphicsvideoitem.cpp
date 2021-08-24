@@ -251,15 +251,14 @@ QRectF QGraphicsVideoItem::boundingRect() const
 /*!
     \reimp
 */
-void QGraphicsVideoItem::paint(
-        QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void QGraphicsVideoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_D(QGraphicsVideoItem);
 
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    d->sink->paint(painter, d->m_frame);
+    d->m_frame.paint(painter, d->rect, { Qt::transparent, d->sink->aspectRatioMode() });
 }
 
 /*!

@@ -80,8 +80,6 @@ public:
     Qt::BGMode backgroundMode() const;
     void setBackgroundMode(Qt::BGMode mode);
 
-    void paint(QPainter *painter, const QVideoFrame &frame);
-
     QPlatformVideoSink *platformVideoSink() const;
     QSize videoSize() const;
 
