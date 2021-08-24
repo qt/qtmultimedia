@@ -68,9 +68,6 @@ public:
     Qt::AspectRatioMode aspectRatioMode() const;
 
     QSize sizeHint() const override;
-#if defined(Q_OS_WIN)
-    bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
-#endif
 
 public Q_SLOTS:
     void setFullScreen(bool fullScreen);
@@ -86,12 +83,10 @@ protected:
     void hideEvent(QHideEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
     void moveEvent(QMoveEvent *event) override;
-    void paintEvent(QPaintEvent *event) override;
     QVideoWidgetPrivate *d_ptr;
 
 private:
     Q_DECLARE_PRIVATE(QVideoWidget)
-    Q_PRIVATE_SLOT(d_func(), void _q_newFrame(const QVideoFrame &))
 };
 
 QT_END_NAMESPACE
