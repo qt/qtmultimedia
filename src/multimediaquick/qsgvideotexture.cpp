@@ -63,6 +63,9 @@ QSGVideoTexture::QSGVideoTexture()
     : d_ptr(new QSGVideoTexturePrivate)
 {
     d_ptr->q_ptr = this;
+
+    // Nearest filtering just looks bad for any text in videos
+    setFiltering(Linear);
 }
 
 QSGVideoTexture::~QSGVideoTexture() = default;
