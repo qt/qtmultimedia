@@ -92,7 +92,6 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     sinkBin.add(gstQueue, gstPreprocess);
     gstQueue.link(gstPreprocess);
     sinkBin.addGhostPad(gstQueue, "sink");
-    createOverlay();
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink()
@@ -100,7 +99,6 @@ QGstreamerVideoSink::~QGstreamerVideoSink()
     unrefGstContexts();
 
     setPipeline(QGstPipeline());
-    delete m_videoOverlay;
 }
 
 QGstElement QGstreamerVideoSink::gstSink()
@@ -111,22 +109,7 @@ QGstElement QGstreamerVideoSink::gstSink()
 
 void QGstreamerVideoSink::setPipeline(QGstPipeline pipeline)
 {
-    if (pipeline != gstPipeline) {
-        if (!gstPipeline.isNull())
-            gstPipeline.removeMessageFilter(m_videoOverlay);
-    }
     gstPipeline = pipeline;
-    if (!gstPipeline.isNull())
-        gstPipeline.installMessageFilter(m_videoOverlay);
-}
-
-void QGstreamerVideoSink::setWinId(WId id)
-{
-    if (m_windowId == id)
-        return;
-
-    m_windowId = id;
-    m_videoOverlay->setWindowHandle(m_windowId);
 }
 
 void QGstreamerVideoSink::setRhi(QRhi *rhi)
@@ -145,33 +128,6 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
     }
 }
 
-void QGstreamerVideoSink::setDisplayRect(const QRect &rect)
-{
-    m_videoOverlay->setRenderRectangle(m_displayRect = rect);
-}
-
-void QGstreamerVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
-{
-    m_videoOverlay->setAspectRatioMode(mode);
-}
-
-void QGstreamerVideoSink::setFullScreen(bool fullScreen)
-{
-    if (fullScreen == m_fullScreen)
-        return;
-    m_fullScreen = fullScreen;
-    if (!m_windowId)
-        updateSinkElement();
-    m_videoOverlay->setFullScreen(fullScreen);
-}
-
-void QGstreamerVideoSink::createOverlay()
-{
-    if (m_videoOverlay)
-        return;
-    m_videoOverlay = new QGstreamerVideoOverlay(this, qgetenv("QT_GSTREAMER_WINDOW_VIDEOSINK"));
-}
-
 void QGstreamerVideoSink::createQtSink()
 {
     gstQtSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)));
@@ -180,13 +136,9 @@ void QGstreamerVideoSink::createQtSink()
 void QGstreamerVideoSink::updateSinkElement()
 {
     QGstElement newSink;
-    if (!m_videoOverlay->isNull() && (m_fullScreen || m_windowId)) {
-        newSink = m_videoOverlay->videoSink();
-    } else {
-        if (gstQtSink.isNull())
-            createQtSink();
-        newSink = gstQtSink;
-    }
+    if (gstQtSink.isNull())
+        createQtSink();
+    newSink = gstQtSink;
 
     if (newSink == gstVideoSink)
         return;

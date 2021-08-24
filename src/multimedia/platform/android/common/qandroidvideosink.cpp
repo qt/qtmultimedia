@@ -57,14 +57,6 @@ QAndroidVideoSink::~QAndroidVideoSink()
 {
 }
 
-void QAndroidVideoSink::setWinId(WId id)
-{
-    if (m_windowId == id)
-        return;
-
-    m_windowId = id;
-}
-
 void QAndroidVideoSink::setRhi(QRhi *rhi)
 {
     if (rhi && rhi->backend() != QRhi::OpenGLES2)
@@ -73,23 +65,6 @@ void QAndroidVideoSink::setRhi(QRhi *rhi)
         return;
 
     m_rhi = rhi;
-}
-
-void QAndroidVideoSink::setDisplayRect(const QRect &rect)
-{
-    m_displayRect = rect;
-}
-
-void QAndroidVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
-{
-    m_aspectRatioMode = mode;
-}
-
-void QAndroidVideoSink::setFullScreen(bool fullScreen)
-{
-    if (fullScreen == m_fullScreen)
-        return;
-    m_fullScreen = fullScreen;
 }
 
 QT_END_NAMESPACE

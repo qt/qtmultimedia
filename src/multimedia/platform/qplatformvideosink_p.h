@@ -70,18 +70,15 @@ class Q_MULTIMEDIA_EXPORT QPlatformVideoSink : public QObject
     Q_OBJECT
 
 public:
-    virtual void setWinId(WId id) = 0;
-
     virtual void setRhi(QRhi * /*rhi*/) {}
 
-    virtual void setDisplayRect(const QRect &rect) = 0;
-
-    virtual void setFullScreen(bool fullScreen) = 0;
+    virtual void setWinId(WId) {}
+    virtual void setDisplayRect(const QRect &) {};
+    virtual void setFullScreen(bool) {}
+    virtual void setAspectRatioMode(Qt::AspectRatioMode) {}
 
     // ### make non virtual, once Windows is ported
     virtual QSize nativeSize() const { return m_nativeSize; }
-
-    virtual void setAspectRatioMode(Qt::AspectRatioMode mode) = 0;
 
     virtual void setBrightness(float /*brightness*/) {}
     virtual void setContrast(float /*contrast*/) {}

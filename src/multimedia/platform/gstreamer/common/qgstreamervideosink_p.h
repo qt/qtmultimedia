@@ -74,20 +74,10 @@ public:
     explicit QGstreamerVideoSink(QVideoSink *parent = 0);
     ~QGstreamerVideoSink();
 
-    void setWinId(WId id) override;
-
     void setRhi(QRhi *rhi) override;
     QRhi *rhi() const { return m_rhi; }
 
-    void setDisplayRect(const QRect &rect) override;
-
-    void setFullScreen(bool fullScreen) override;
-
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
-
     QGstElement gstSink();
-
-    bool isReady() const { return m_windowId != 0; }
 
     void setPipeline(QGstPipeline pipeline);
 
@@ -97,7 +87,6 @@ public:
     QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
 
 private:
-    void createOverlay();
     void createQtSink();
     void updateSinkElement();
 
@@ -111,11 +100,7 @@ private:
     QGstElement gstVideoSink;
     QGstElement gstQtSink;
 
-    QGstreamerVideoOverlay *m_videoOverlay = nullptr;
-    WId m_windowId = 0;
     QRhi *m_rhi = nullptr;
-    QRect m_displayRect;
-    bool m_fullScreen = false;
 
     Qt::HANDLE m_eglDisplay = nullptr;
     QFunctionPointer m_eglImageTargetTexture2D = nullptr;
