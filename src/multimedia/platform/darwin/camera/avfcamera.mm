@@ -217,9 +217,8 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 
     if (m_session) {
         m_session->disconnect(this);
-        m_session->setActive(false);
-        m_session->setCameraFormat({});
         m_session->setActiveCamera({});
+        m_session->setCameraFormat({});
     }
 
     m_service = captureSession;
@@ -231,7 +230,6 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_session = m_service->session();
     Q_ASSERT(m_session);
 
-    m_session->setActive(false);
     m_session->setActiveCamera(m_cameraDevice);
     m_session->setCameraFormat(m_cameraFormat);
     m_session->setActive(m_active);
