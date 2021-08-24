@@ -66,22 +66,10 @@ public:
     explicit QAndroidVideoSink(QVideoSink *parent = 0);
     ~QAndroidVideoSink();
 
-    void setWinId(WId id) override;
-
     void setRhi(QRhi *rhi) override;
 
-    void setDisplayRect(const QRect &rect) override;
-
-    void setFullScreen(bool fullScreen) override;
-
-    void setAspectRatioMode(Qt::AspectRatioMode mode) override;
-
 private:
-    WId m_windowId = 0;
     QRhi *m_rhi = nullptr;
-    QRect m_displayRect;
-    Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
-    bool m_fullScreen = false;
 };
 
 QT_END_NAMESPACE
