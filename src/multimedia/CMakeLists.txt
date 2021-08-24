@@ -466,7 +466,7 @@ qt_internal_add_shaders(Multimedia "shaders"
     PRECOMPILE
     OPTIMIZED
     PREFIX
-        "/qt-project.org/multimedia/shaders"
+        "/qt-project.org/multimedia"
     FILES
         "shaders/vertex.vert"
         "shaders/externalsampler.vert"
