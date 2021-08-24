@@ -128,6 +128,13 @@ public:
 
     QImage toImage() const;
 
+    struct PaintOptions {
+        QColor backgroundColor = Qt::transparent;
+        Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
+    };
+
+    void paint(QPainter *painter, const QRectF &rect, const PaintOptions &options);
+
     QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format);
 
     QAbstractVideoBuffer *videoBuffer() const;

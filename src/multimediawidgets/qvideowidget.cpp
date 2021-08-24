@@ -272,7 +272,10 @@ void QVideoWidget::paintEvent(QPaintEvent *event)
 
     if (d->videoSink && d->lastFrame.isValid()) {
         QPainter painter(this);
-        d->videoSink->paint(&painter, d->lastFrame);
+        QVideoFrame::PaintOptions options = {
+            Qt::black, d->aspectRatioMode
+        };
+        d->lastFrame.paint(&painter, rect(), options);
         return;
     } else if (testAttribute(Qt::WA_OpaquePaintEvent)) {
         QPainter painter(this);

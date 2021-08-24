@@ -43,6 +43,7 @@
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconversionhelper_p.h"
 #include "qvideoframeformat.h"
+#include "qpainter.h"
 
 #include <qimage.h>
 #include <qmutex.h>
@@ -711,6 +712,87 @@ QImage QVideoFrame::toImage() const
     frame.unmap();
 
     return result;
+}
+
+/*!
+    Uses a QPainter, \a{painter}, to render this QVideoFrame to \a rect.
+    The PaintOptions \a options can be used to specify a background color and
+    how \a rect should be filled with the video.
+
+    \note that rendering will usually happen without hardware acceleration when
+    using this method.
+*/
+void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOptions &options)
+{
+    if (!isValid()) {
+        painter->fillRect(rect, painter->background());
+        return;
+    }
+
+    QVideoFrameFormat::Direction scanLineDirection = QVideoFrameFormat::TopToBottom;//format.scanLineDirection();
+    bool mirrored = false;//format.isMirrored();
+
+    QSizeF size = this->size();
+    QRectF source = QRectF(0, 0, size.width(), size.height());
+    QRectF targetRect = rect;
+    if (options.aspectRatioMode == Qt::KeepAspectRatio) {
+        size.scale(targetRect.size(), Qt::KeepAspectRatio);
+        targetRect = QRect(0, 0, size.width(), size.height());
+        targetRect.moveCenter(rect.center());
+        // we might not be drawing every pixel, fill the leftovers black
+        if (options.backgroundColor != Qt::transparent && rect != targetRect) {
+            if (targetRect.top() > rect.top()) {
+                QRectF top(rect.left(), rect.top(), rect.width(), targetRect.top() - rect.top());
+                painter->fillRect(top, Qt::black);
+            }
+            if (targetRect.left() > rect.left()) {
+                QRectF top(rect.left(), targetRect.top(), targetRect.left() - rect.left(), targetRect.height());
+                painter->fillRect(top, Qt::black);
+            }
+            if (targetRect.right() < rect.right()) {
+                QRectF top(targetRect.right(), targetRect.top(), rect.right() - targetRect.right(), targetRect.height());
+                painter->fillRect(top, Qt::black);
+            }
+            if (targetRect.bottom() < rect.bottom()) {
+                QRectF top(rect.left(), targetRect.bottom(), rect.width(), rect.bottom() - targetRect.bottom());
+                painter->fillRect(top, Qt::black);
+            }
+        }
+    } else if (options.aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
+        QSizeF targetSize = targetRect.size();
+        targetSize.scale(size, Qt::KeepAspectRatio);
+
+        QRectF s(0, 0, targetSize.width(), targetSize.height());
+        s.moveCenter(source.center());
+        source = s;
+    }
+
+    if (map(QVideoFrame::ReadOnly)) {
+        QImage image = toImage();
+
+        const QTransform oldTransform = painter->transform();
+        QTransform transform = oldTransform;
+        if (scanLineDirection == QVideoFrameFormat::BottomToTop) {
+            transform.scale(1, -1);
+            transform.translate(0, -targetRect.bottom());
+            targetRect = QRectF(targetRect.x(), 0, targetRect.width(), targetRect.height());
+        }
+
+        if (mirrored) {
+            transform.scale(-1, 1);
+            transform.translate(-targetRect.right(), 0);
+            targetRect = QRectF(0, targetRect.y(), targetRect.width(), targetRect.height());
+        }
+        painter->setTransform(transform);
+        painter->drawImage(targetRect, image, source);
+        painter->setTransform(oldTransform);
+
+        unmap();
+    } else if (isValid()) {
+        // #### error handling
+    } else {
+        painter->fillRect(rect, Qt::black);
+    }
 }
 
 #ifndef QT_NO_DEBUG_STREAM
