@@ -58,6 +58,7 @@
 QT_BEGIN_NAMESPACE
 
 class QObject;
+class QVideoWindow;
 
 class QVideoWidgetPrivate
 {
@@ -68,13 +69,10 @@ public:
     Qt::WindowFlags nonFullScreenFlags;
     bool wasFullScreen = false;
 
-    QVideoFrame lastFrame;
-    QVideoSink *videoSink = nullptr;
-    QRect targetRect;
+    QVideoWindow *videoWindow = nullptr;
+    QWidget *windowContainer = nullptr;
 
     bool createBackend();
-
-    void _q_newFrame(const QVideoFrame &frame);
 };
 
 QT_END_NAMESPACE

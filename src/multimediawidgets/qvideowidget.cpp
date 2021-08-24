@@ -43,6 +43,7 @@
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <qvideosink.h>
+#include <private/qvideowindow_p.h>
 
 #include <qobject.h>
 #include <qvideoframeformat.h>
@@ -63,12 +64,6 @@
 using namespace Qt;
 
 QT_BEGIN_NAMESPACE
-
-void QVideoWidgetPrivate::_q_newFrame(const QVideoFrame &frame)
-{
-    lastFrame = frame;
-    q_ptr->update();
-}
 
 /*!
     \class QVideoWidget
@@ -100,11 +95,13 @@ QVideoWidget::QVideoWidget(QWidget *parent)
     , d_ptr(new QVideoWidgetPrivate)
 {
     d_ptr->q_ptr = this;
-    d_ptr->videoSink = new QVideoSink(this);
+    d_ptr->videoWindow = new QVideoWindow;
+    d_ptr->videoWindow->setFlag(Qt::WindowTransparentForInput, true);
+    d_ptr->windowContainer = QWidget::createWindowContainer(d_ptr->videoWindow, this, Qt::WindowTransparentForInput);
+    d_ptr->windowContainer->move(0, 0);
+    d_ptr->windowContainer->resize(size());
 
-    connect(d_ptr->videoSink, SIGNAL(newVideoFrame(const QVideoFrame &)), this, SLOT(_q_newFrame(const QVideoFrame &)));
-
-    setAttribute(Qt::WA_UpdatesDisabled);
+    connect(d_ptr->videoWindow, &QVideoWindow::aspectRatioModeChanged, this, &QVideoWidget::aspectRatioModeChanged);
 }
 
 /*!
@@ -112,12 +109,13 @@ QVideoWidget::QVideoWidget(QWidget *parent)
 */
 QVideoWidget::~QVideoWidget()
 {
+    delete d_ptr->videoWindow;
     delete d_ptr;
 }
 
 QVideoSink *QVideoWidget::videoSink() const
 {
-    return d_ptr->videoSink;
+    return d_ptr->videoWindow->videoSink();
 }
 
 /*!
@@ -127,17 +125,12 @@ QVideoSink *QVideoWidget::videoSink() const
 
 Qt::AspectRatioMode QVideoWidget::aspectRatioMode() const
 {
-    return d_func()->aspectRatioMode;
+    return d_ptr->videoWindow->aspectRatioMode();
 }
 
 void QVideoWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
-    Q_D(QVideoWidget);
-
-    if (mode == d->aspectRatioMode)
-        return;
-    d->aspectRatioMode = mode;
-    emit aspectRatioModeChanged(mode);
+    d_ptr->videoWindow->setAspectRatioMode(mode);
 }
 
 /*!
@@ -182,13 +175,9 @@ void QVideoWidget::setFullScreen(bool fullScreen)
  */
 QSize QVideoWidget::sizeHint() const
 {
-    Q_D(const QVideoWidget);
-
-    if (d->videoSink) {
-        auto size = d->videoSink->videoSize();
-        if (size.isValid())
-            return size;
-    }
+    auto size = videoSink()->videoSize();
+    if (size.isValid())
+        return size;
 
     return QWidget::sizeHint();
 }
@@ -239,6 +228,7 @@ void QVideoWidget::hideEvent(QHideEvent *event)
  */
 void QVideoWidget::resizeEvent(QResizeEvent *event)
 {
+    d_ptr->windowContainer->resize(event->size());
     QWidget::resizeEvent(event);
 }
 
@@ -249,47 +239,6 @@ void QVideoWidget::resizeEvent(QResizeEvent *event)
 void QVideoWidget::moveEvent(QMoveEvent * /*event*/)
 {
 }
-
-/*!
-  \reimp
-  Handles the paint \a event.
- */
-void QVideoWidget::paintEvent(QPaintEvent *event)
-{
-    // ###
-    return;
-
-    Q_D(QVideoWidget);
-
-    if (d->videoSink && d->lastFrame.isValid()) {
-        QPainter painter(this);
-        QVideoFrame::PaintOptions options = {
-            Qt::black, d->aspectRatioMode
-        };
-        d->lastFrame.paint(&painter, rect(), options);
-        return;
-    } else if (testAttribute(Qt::WA_OpaquePaintEvent)) {
-        QPainter painter(this);
-        painter.fillRect(event->rect(), Qt::black);
-    }
-}
-
-#if defined(Q_OS_WIN)
-bool QVideoWidget::nativeEvent(const QByteArray &eventType, void *message, qintptr *result)
-{
-    Q_D(QVideoWidget);
-    Q_UNUSED(eventType);
-    Q_UNUSED(result);
-
-    MSG *mes = reinterpret_cast<MSG *>(message);
-    if (mes->message == WM_PAINT || mes->message == WM_ERASEBKGND) {
-//        if (d->windowBackend)
-//            d->windowBackend->showEvent();
-    }
-
-    return false;
-}
-#endif
 
 QT_END_NAMESPACE
 
