@@ -228,17 +228,13 @@ void AVFCameraSession::addAudioCapture()
 {
     [m_captureSession beginConfiguration];
 
-    if (m_audioOutput) {
-        [m_captureSession removeOutput:m_audioOutput];
-        [m_audioOutput release];
-        m_audioOutput = nullptr;
-    }
-
-    m_audioOutput = [[AVCaptureAudioDataOutput alloc] init];
-    if (m_audioOutput && [m_captureSession canAddOutput:m_audioOutput]) {
-        [m_captureSession addOutput:m_audioOutput];
-    } else {
-        qWarning() << Q_FUNC_INFO << "failed to add audio output";
+    if (!m_audioOutput) {
+        m_audioOutput = [[AVCaptureAudioDataOutput alloc] init];
+        if (m_audioOutput && [m_captureSession canAddOutput:m_audioOutput]) {
+            [m_captureSession addOutput:m_audioOutput];
+        } else {
+            qWarning() << Q_FUNC_INFO << "failed to add audio output";
+        }
     }
 
     [m_captureSession commitConfiguration];
@@ -378,11 +374,8 @@ AVCaptureDevice *AVFCameraSession::createAudioCaptureDevice()
 
     QByteArray deviceId = m_service->audioInput() ? m_service->audioInput()->device.id()
                                                   : QByteArray();
-    if (!deviceId.isEmpty()) {
+    if (!deviceId.isEmpty())
         device = [AVCaptureDevice deviceWithUniqueID: [NSString stringWithUTF8String:deviceId.constData()]];
-    } else {
-        device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
-    }
 
     return device;
 }
@@ -452,8 +445,6 @@ void AVFCameraSession::attachAudioInputDevice()
     }
 
     [m_captureSession commitConfiguration];
-
-    addAudioCapture();
 }
 
 bool AVFCameraSession::applyImageEncoderSettings()
@@ -492,6 +483,8 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
 void AVFCameraSession::updateAudioInput()
 {
     attachAudioInputDevice();
+    if (m_audioInput)
+        addAudioCapture();
 }
 
 void AVFCameraSession::updateAudioOutput()

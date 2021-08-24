@@ -165,15 +165,11 @@ void AVFCameraService::setAudioOutput(QPlatformAudioOutput *output)
 
 void AVFCameraService::audioInputChanged()
 {
-    if (!m_audioInput)
-        return;
     m_session->updateAudioInput();
 }
 
 void AVFCameraService::audioOutputChanged()
 {
-    if (!m_audioOutput)
-        return;
     m_session->updateAudioOutput();
 }
 
