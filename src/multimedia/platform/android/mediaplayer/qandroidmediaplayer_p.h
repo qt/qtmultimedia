@@ -139,6 +139,9 @@ private:
     bool mHasPendingPlaybackRate = false; // we need this because the rate can theoretically be negative
     QMap<TrackType, QList<QAndroidMetaData>> mTracksMetadata;
 
+    bool mIsVideoTrackEnabled = true;
+    bool mIsAudioTrackEnabled = true;
+
     void setMediaStatus(QMediaPlayer::MediaStatus status);
     void setAudioAvailable(bool available);
     void setVideoAvailable(bool available);
@@ -148,6 +151,7 @@ private:
     void updateBufferStatus();
     void updateTrackInfo();
     void setSubtitle(QString subtitle);
+    void disableTrack(TrackType trackType);
 
     friend class StateChangeNotifier;
 };

@@ -68,9 +68,9 @@ public:
     QAndroidMetaData(int trackType, int androidTrackType, int androidTrackNumber,
                      const QString &mimeType, const QString &language);
 
-    int trackType();
-    int androidTrackType();
-    int androidTrackNumber();
+    int trackType() const;
+    int androidTrackType() const;
+    int androidTrackNumber() const;
 
 private:
     int mTrackType;

@@ -243,6 +243,9 @@ void AndroidMediaPlayer::seekTo(qint32 msec)
 
 void AndroidMediaPlayer::setMuted(bool mute)
 {
+    if (mAudioBlocked)
+        return;
+
     mMediaPlayer.callMethod<void>("mute", "(Z)V", jboolean(mute));
 }
 
@@ -268,7 +271,20 @@ void AndroidMediaPlayer::prepareAsync()
 
 void AndroidMediaPlayer::setVolume(int volume)
 {
+    if (mAudioBlocked)
+        return;
+
     mMediaPlayer.callMethod<void>("setVolume", "(I)V", jint(volume));
+}
+
+void AndroidMediaPlayer::blockAudio()
+{
+    mAudioBlocked = true;
+}
+
+void AndroidMediaPlayer::unblockAudio()
+{
+    mAudioBlocked = false;
 }
 
 bool AndroidMediaPlayer::setPlaybackRate(qreal rate)

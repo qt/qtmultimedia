@@ -46,6 +46,8 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.mediaplayer.android")
+
 class StateChangeNotifier
 {
 public:
@@ -299,10 +301,6 @@ void QAndroidMediaPlayer::setMedia(const QUrl &mediaContent,
         mMediaContent = mediaContent;
         mMediaStream = stream;
     }
-
-    // Release the mediaplayer if it's not in in Idle or Uninitialized state
-    if ((mState & (AndroidMediaPlayer::Idle | AndroidMediaPlayer::Uninitialized)) == 0)
-        mMediaPlayer->release();
 
     if (mediaContent.isEmpty()) {
         setMediaStatus(QMediaPlayer::NoMedia);
@@ -683,10 +681,16 @@ QPlatformMediaPlayer::TrackType convertTrackType(AndroidMediaPlayer::TrackType t
 int QAndroidMediaPlayer::activeTrack(TrackType trackType)
 {
     switch (trackType) {
-    case QPlatformMediaPlayer::TrackType::VideoStream:
+    case QPlatformMediaPlayer::TrackType::VideoStream: {
+        if (!mIsVideoTrackEnabled)
+            return -1;
         return mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Video);
-    case QPlatformMediaPlayer::TrackType::AudioStream:
+    }
+    case QPlatformMediaPlayer::TrackType::AudioStream: {
+        if (!mIsAudioTrackEnabled)
+            return -1;
         return mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Audio);
+    }
     case QPlatformMediaPlayer::TrackType::SubtitleStream: {
         int timedTextSelectedTrack =
                 mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::TimedText);
@@ -707,21 +711,28 @@ int QAndroidMediaPlayer::activeTrack(TrackType trackType)
     return -1;
 }
 
-void QAndroidMediaPlayer::setActiveTrack(TrackType trackType, int streamNumber)
+void QAndroidMediaPlayer::disableTrack(TrackType trackType)
 {
-    if (!mTracksMetadata.contains(trackType)) {
-        qDebug() << "Trying to set a active track of a type that does not exist";
-        return;
-    }
+    const auto track = activeTrack(trackType);
 
-    const auto &tracks = mTracksMetadata.value(trackType);
-    if (streamNumber > tracks.count()) {
-        return;
+    switch (trackType) {
+    case VideoStream: {
+        if (track > -1) {
+            mMediaPlayer->setDisplay(nullptr);
+            mIsVideoTrackEnabled = false;
+        }
+        break;
     }
-
-    if (trackType == TrackType::SubtitleStream) {
-        // subtitles and timedtext tracks can be selected at the same time so deselect both before
-        // selection
+    case AudioStream: {
+        if (track > -1) {
+            mMediaPlayer->setMuted(true);
+            mMediaPlayer->blockAudio();
+            mIsAudioTrackEnabled = false;
+        }
+        break;
+    }
+    case SubtitleStream: {
+        // subtitles and timedtext tracks can be selected at the same time so deselect both
         int subtitleSelectedTrack =
                 mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Subtitle);
         if (subtitleSelectedTrack > -1)
@@ -732,13 +743,61 @@ void QAndroidMediaPlayer::setActiveTrack(TrackType trackType, int streamNumber)
         if (timedTextSelectedTrack > -1)
             mMediaPlayer->deselectTrack(timedTextSelectedTrack);
 
-        // in case of < 0 just deselect all - no subtitle selected.
-        if (streamNumber < 0)
-            return;
+        break;
+    }
+    case NTrackTypes:
+        break;
+    }
+}
+
+void QAndroidMediaPlayer::setActiveTrack(TrackType trackType, int streamNumber)
+{
+
+    if (!mTracksMetadata.contains(trackType)) {
+        qCWarning(lcMediaPlayer)
+                << "Trying to set a active track which type has no available tracks.";
+        return;
     }
 
-    auto trackInfo = tracks.at(streamNumber);
-    mMediaPlayer->selectTrack(trackInfo.androidTrackNumber());
+    const auto &tracks = mTracksMetadata.value(trackType);
+    if (streamNumber > tracks.count()) {
+        qCWarning(lcMediaPlayer) << "Trying to set a active track that does not exist.";
+        return;
+    }
+
+    // in case of < 0 deselect tracktype
+    if (streamNumber < 0) {
+        disableTrack(trackType);
+        return;
+    }
+
+    const auto currentTrack = activeTrack(trackType);
+    if (streamNumber == currentTrack) {
+        return;
+    }
+
+    if (trackType == TrackType::VideoStream && !mIsVideoTrackEnabled) {
+        // enable video stream
+        mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
+        mIsVideoTrackEnabled = true;
+    }
+
+    if (trackType == TrackType::AudioStream && !mIsAudioTrackEnabled) {
+        // enable audio stream
+        mMediaPlayer->unblockAudio();
+        mMediaPlayer->setMuted(false);
+        mIsAudioTrackEnabled = true;
+    }
+
+    if (trackType == TrackType::SubtitleStream) {
+        // subtitles and timedtext tracks can be selected at the same time so deselect both before
+        // selecting a new one
+        disableTrack(TrackType::SubtitleStream);
+    }
+
+    const auto &trackInfo = tracks.at(streamNumber);
+    const auto &trackNumber = trackInfo.androidTrackNumber();
+    mMediaPlayer->selectTrack(trackNumber);
 }
 
 void QAndroidMediaPlayer::positionChanged(qint64 position)
