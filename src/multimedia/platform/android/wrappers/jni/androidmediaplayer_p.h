@@ -146,6 +146,8 @@ public:
 
     static bool registerNativeMethods();
 
+    void blockAudio();
+    void unblockAudio();
 Q_SIGNALS:
     void error(qint32 what, qint32 extra);
     void bufferingChanged(qint32 percent);
@@ -159,6 +161,7 @@ Q_SIGNALS:
 
 private:
     QJniObject mMediaPlayer;
+    bool mAudioBlocked = false;
 };
 
 QT_END_NAMESPACE

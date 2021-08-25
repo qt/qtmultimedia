@@ -184,17 +184,17 @@ QAndroidMetaData::QAndroidMetaData(int trackType, int androidTrackType, int andr
     insert(QMediaMetaData::Language, getLocaleLanguage(language));
 }
 
-int QAndroidMetaData::trackType()
+int QAndroidMetaData::trackType() const
 {
     return mTrackType;
 }
 
-int QAndroidMetaData::androidTrackType()
+int QAndroidMetaData::androidTrackType() const
 {
     return mAndroidTrackType;
 }
 
-int QAndroidMetaData::androidTrackNumber()
+int QAndroidMetaData::androidTrackNumber() const
 {
     return mAndroidTrackNumber;
 }
