@@ -152,10 +152,6 @@ AVFCameraSession::AVFCameraSession(AVFCameraService *service, QObject *parent)
 
 AVFCameraSession::~AVFCameraSession()
 {
-    if (m_videoSink) {
-        m_videoSink->setLayer(nil);
-    }
-
     if (m_videoInput) {
         [m_captureSession removeInput:m_videoInput];
         [m_videoInput release];
@@ -485,9 +481,6 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
 
     if (m_videoSink == videoSink)
         return;
-
-    if (m_videoSink)
-        m_videoSink->setLayer(nil);
 
     m_videoSink = videoSink;
 

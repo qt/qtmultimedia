@@ -84,15 +84,12 @@ public:
     ~AVFCameraRenderer();
 
     void reconfigure() override;
-    void updateAspectRatio() override;
     void setRhi(QRhi *rhi) override;
 
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);
 
     AVCaptureVideoDataOutput *videoDataOutput() const;
-
-    bool supportsTextures() const { return m_supportsTextures; }
 
     AVFCaptureFramesDelegate *captureDelegate() const;
     void resetCaptureDelegate() const;
@@ -113,7 +110,6 @@ private:
     AVFCameraSession *m_cameraSession = nullptr;
     AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
 
-    bool m_supportsTextures = false;
     bool m_needsHorizontalMirroring = false;
 
 #ifdef Q_OS_IOS
@@ -122,7 +118,6 @@ private:
 
     QVideoFrame m_lastViewfinderFrame;
     QMutex m_vfMutex;
-    bool m_rendersToWindow = false;
     dispatch_queue_t m_delegateQueue;
     QRhi *m_rhi = nullptr;
 

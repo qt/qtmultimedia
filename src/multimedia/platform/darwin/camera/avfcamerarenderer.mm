@@ -133,11 +133,6 @@ void AVFCameraRenderer::reconfigure()
 {
     QMutexLocker lock(&m_vfMutex);
 
-    renderToNativeView(shouldRenderToWindow());
-
-    m_rendersToWindow = rendersToWindow();
-
-    updateAspectRatio();
     // ### This is a hack, need to use a reliable way to determine the size and not use the preview layer
     if (m_layer)
         m_sink->setNativeSize(QSize(m_layer.bounds.size.width, m_layer.bounds.size.height));
@@ -185,8 +180,6 @@ void AVFCameraRenderer::syncHandleViewfinderFrame(const QVideoFrame &frame)
     Q_EMIT newViewfinderFrame(frame);
 
     QMutexLocker lock(&m_vfMutex);
-    if (m_rendersToWindow)
-        return;
 
     if (!m_lastViewfinderFrame.isValid()) {
         static QMetaMethod handleViewfinderFrameSlot = metaObject()->method(
@@ -230,31 +223,6 @@ void AVFCameraRenderer::handleViewfinderFrame()
 
         m_sink->newVideoFrame(frame);
     }
-}
-
-
-void AVFCameraRenderer::updateAspectRatio()
-{
-    if (!m_layer)
-        return;
-
-    AVLayerVideoGravity gravity = AVLayerVideoGravityResizeAspect;
-
-    switch (aspectRatioMode()) {
-    case Qt::IgnoreAspectRatio:
-        gravity = AVLayerVideoGravityResize;
-        break;
-    case Qt::KeepAspectRatio:
-        gravity = AVLayerVideoGravityResizeAspect;
-        break;
-    case Qt::KeepAspectRatioByExpanding:
-        gravity = AVLayerVideoGravityResizeAspectFill;
-        break;
-    default:
-        break;
-    }
-    auto *layer = static_cast<AVCaptureVideoPreviewLayer *>(m_layer);
-    layer.videoGravity = gravity;
 }
 
 void AVFCameraRenderer::setRhi(QRhi *rhi)
