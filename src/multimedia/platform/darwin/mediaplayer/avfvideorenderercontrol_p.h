@@ -76,7 +76,6 @@ public:
 
     // AVFVideoSinkInterface
     void reconfigure() override;
-    void updateAspectRatio() override;
     void setRhi(QRhi *rhi) override;
 
 private Q_SLOTS:

@@ -874,9 +874,6 @@ void AVFMediaPlayer::stop()
     [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] pause];
     setPosition(0);
 
-    if (m_videoSink)
-        m_videoSink->setLayer(nullptr);
-
     if (m_mediaStatus == QMediaPlayer::BufferedMedia)
         Q_EMIT mediaStatusChanged((m_mediaStatus = QMediaPlayer::LoadedMedia));
 
@@ -931,11 +928,6 @@ void AVFMediaPlayer::processEOS()
     m_mediaStatus = QMediaPlayer::EndOfMedia;
     m_state = QMediaPlayer::StoppedState;
 
-    // At this point, frames should not be rendered anymore.
-    // Clear the output layer to make sure of that.
-    if (m_videoSink)
-        m_videoSink->setLayer(nullptr);
-
     Q_EMIT mediaStatusChanged(m_mediaStatus);
     Q_EMIT stateChanged(m_state);
 }
@@ -972,11 +964,6 @@ void AVFMediaPlayer::processLoadStateChange(QMediaPlayer::PlaybackState newState
                     playerLayer.bounds = CGRectMake(0.0f, 0.0f,
                                                     m_observer.videoTrack.assetTrack.naturalSize.width,
                                                     m_observer.videoTrack.assetTrack.naturalSize.height);
-                }
-
-                if (newState != QMediaPlayer::StoppedState) {
-                    if (m_videoSink)
-                        m_videoSink->setLayer(playerLayer);
                 }
             }
 

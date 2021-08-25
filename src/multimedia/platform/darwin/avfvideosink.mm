@@ -61,54 +61,11 @@ AVFVideoSink::~AVFVideoSink()
 {
 }
 
-WId AVFVideoSink::winId() const
-{
-    return m_winId;
-}
-
-void AVFVideoSink::setWinId(WId id)
-{
-    if (id == m_winId)
-        return;
-    m_winId = id;
-    m_nativeView = (NativeView*)m_winId;
-    if (m_interface)
-        m_interface->reconfigure();
-}
-
 void AVFVideoSink::setRhi(QRhi *rhi)
 {
     m_rhi = rhi;
     if (m_interface)
         m_interface->setRhi(rhi);
-}
-
-QRect AVFVideoSink::displayRect() const
-{
-    return m_displayRect;
-}
-
-void AVFVideoSink::setDisplayRect(const QRect &rect)
-{
-    Q_ASSERT(m_displayRect != rect);
-
-    m_displayRect = rect;
-    if (m_interface)
-        m_interface->updateLayerBounds();
-}
-
-bool AVFVideoSink::isFullScreen() const
-{
-    return m_fullscreen;
-}
-
-void AVFVideoSink::setFullScreen(bool fullScreen)
-{
-    Q_ASSERT(fullScreen != m_fullscreen);
-
-    m_fullscreen = fullScreen;
-    if (m_interface)
-        m_interface->reconfigure();
 }
 
 void AVFVideoSink::setNativeSize(QSize size)
@@ -118,44 +75,6 @@ void AVFVideoSink::setNativeSize(QSize size)
     QPlatformVideoSink::setNativeSize(size);
     if (m_interface)
         m_interface->nativeSizeChanged();
-}
-
-Qt::AspectRatioMode AVFVideoSink::aspectRatioMode() const
-{
-    return m_aspectRatioMode;
-}
-
-void AVFVideoSink::setAspectRatioMode(Qt::AspectRatioMode mode)
-{
-    Q_ASSERT(m_aspectRatioMode != mode);
-
-    m_aspectRatioMode = mode;
-    if (m_interface)
-        m_interface->updateAspectRatio();
-}
-
-void AVFVideoSink::setBrightness(float brightness)
-{
-    m_brightness = brightness;
-}
-
-void AVFVideoSink::setContrast(float contrast)
-{
-    m_contrast = contrast;
-}
-
-void AVFVideoSink::setHue(float hue)
-{
-    m_hue = hue;
-}
-
-void AVFVideoSink::setSaturation(float saturation)
-{
-    m_saturation = saturation;
-}
-
-void AVFVideoSink::setLayer(CALayer *)
-{
 }
 
 void AVFVideoSink::setVideoSinkInterface(AVFVideoSinkInterface *interface)
@@ -189,29 +108,14 @@ void AVFVideoSinkInterface::setLayer(CALayer *layer)
     if (layer == m_layer)
         return;
 
-    if (m_layer) {
-        renderToNativeView(false);
+    if (m_layer)
         [m_layer release];
-    }
+
     m_layer = layer;
-    [m_layer retain];
+    if (m_layer)
+        [m_layer retain];
 
     reconfigure();
-}
-
-void AVFVideoSinkInterface::renderToNativeView(bool enable)
-{
-    auto *view = nativeView();
-    if (enable && view && m_layer) {
-        CALayer *nativeLayer = [view layer];
-        [nativeLayer addSublayer:m_layer];
-        m_rendersToWindow = true;
-    } else {
-        if (m_layer)
-            [m_layer removeFromSuperlayer];
-        m_rendersToWindow = false;
-    }
-    updateLayerBounds();
 }
 
 void AVFVideoSinkInterface::updateLayerBounds()
@@ -220,12 +124,8 @@ void AVFVideoSinkInterface::updateLayerBounds()
         return;
     [CATransaction begin];
     [CATransaction setDisableActions: YES]; // disable animation/flicks
-    if (m_rendersToWindow) {
-        m_layer.frame = displayRect().toCGRect();
-    } else {
-        m_layer.frame = QRectF(0, 0, nativeSize().width(), nativeSize().height()).toCGRect();
-        m_layer.bounds = m_layer.frame;
-    }
+    m_layer.frame = QRectF(0, 0, nativeSize().width(), nativeSize().height()).toCGRect();
+    m_layer.bounds = m_layer.frame;
     [CATransaction commit];
 }
 

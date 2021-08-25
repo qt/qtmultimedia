@@ -82,15 +82,8 @@ void AVFVideoRendererControl::reconfigure()
 
     QMutexLocker locker(&m_mutex);
 
-    renderToNativeView(shouldRenderToWindow());
+    m_displayLink->start();
 
-    if (rendersToWindow()) {
-        m_displayLink->stop();
-    } else {
-        m_displayLink->start();
-    }
-
-    updateAspectRatio();
     nativeSizeChanged();
 }
 
@@ -185,30 +178,6 @@ CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width
 //    fmt[4] = 0;
 //    qDebug() << "copyPixelBuffer" << f << fmt << width << height;
     return pixelBuffer;
-}
-
-
-void AVFVideoRendererControl::updateAspectRatio()
-{
-    if (!m_layer)
-        return;
-
-    AVLayerVideoGravity gravity = AVLayerVideoGravityResizeAspect;
-
-    switch (aspectRatioMode()) {
-    case Qt::IgnoreAspectRatio:
-        gravity = AVLayerVideoGravityResize;
-        break;
-    case Qt::KeepAspectRatio:
-        gravity = AVLayerVideoGravityResizeAspect;
-        break;
-    case Qt::KeepAspectRatioByExpanding:
-        gravity = AVLayerVideoGravityResizeAspectFill;
-        break;
-    default:
-        break;
-    }
-    playerLayer().videoGravity = gravity;
 }
 
 void AVFVideoRendererControl::setRhi(QRhi *rhi)
