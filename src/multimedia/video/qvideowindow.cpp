@@ -106,8 +106,8 @@ QVideoWindowPrivate::~QVideoWindowPrivate()
 static const float g_quad[] = {
     -1.f, -1.f,   0.f, 0.f,
     -1.f, 1.f,    0.f, 1.f,
+    1.f, -1.f,    1.f, 0.f,
     1.f, 1.f,     1.f, 1.f,
-    1.f, -1.f,    1.f, 0.f
 };
 
 static QShader getShader(const QString &name)
@@ -187,7 +187,7 @@ void QVideoWindowPrivate::updateGraphicsPipeline()
     if (!m_graphicsPipeline)
         m_graphicsPipeline.reset(m_rhi->newGraphicsPipeline());
 
-    m_graphicsPipeline->setTopology(QRhiGraphicsPipeline::TriangleFan);
+    m_graphicsPipeline->setTopology(QRhiGraphicsPipeline::TriangleStrip);
     QShader vs = getShader(QVideoTextureHelper::vertexShaderFileName(format));
     Q_ASSERT(vs.isValid());
     QShader fs = getShader(QVideoTextureHelper::fragmentShaderFileName(format));
