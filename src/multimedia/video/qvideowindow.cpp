@@ -235,6 +235,7 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
         QImage img(QSize(1, 1), QImage::Format_RGBA8888);
         img.fill(Qt::black);
         m_frameTextures[0] = m_rhi->newTexture(QRhiTexture::RGBA8, m_frameSize, 1);
+        m_frameTextures[0]->create();
         rub->uploadTexture(m_frameTextures[0], img);
     }
 
