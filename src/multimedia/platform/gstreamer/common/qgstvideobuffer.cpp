@@ -115,8 +115,11 @@ QGstVideoBuffer::~QGstVideoBuffer()
                 break;
         }
 #if QT_CONFIG(gstreamer_gl)
-        QOpenGLFunctions functions(glContext);
-        glDeleteTextures(planes, m_textures);
+        if (rhi) {
+            rhi->makeThreadLocalNativeContextCurrent();
+            QOpenGLFunctions functions(glContext);
+            functions.glDeleteTextures(planes, m_textures);
+        }
 #endif
     }
 }
