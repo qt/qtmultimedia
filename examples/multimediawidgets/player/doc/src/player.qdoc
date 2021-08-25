@@ -65,35 +65,7 @@
         connect(controls, SIGNAL(changeVolume(int)), player, SLOT(setVolume(int)));
     \endcode
 
-    The example also allows us to change various video properties by means
+    The example also allows us to change video properties by means
     of the QVideoWidget object. We can go to Full Screen mode with a single
-    button click, and back again. Or if we press the "Color Options" dialog
-    button we can have access to more subtle influences. The dialog has a
-    set of sliders so that we can change the brightness, contrast, hue and
-    saturation of the video being watched. The connect() statements are in
-    pairs so that changes to either the user interface widget (the relevant
-    slider) or the QVideoWidget object will update the other object.
-
-    \code
-            connect(brightnessSlider, SIGNAL(sliderMoved(int)), videoWidget,
-                SLOT(setBrightness(int)));
-            connect(videoWidget, SIGNAL(brightnessChanged(int)),
-                brightnessSlider, SLOT(setValue(int)));
-
-            connect(contrastSlider, SIGNAL(sliderMoved(int)), videoWidget,
-                SLOT(setContrast(int)));
-            connect(videoWidget, SIGNAL(contrastChanged(int)), contrastSlider,
-                SLOT(setValue(int)));
-
-            connect(hueSlider, SIGNAL(sliderMoved(int)), videoWidget,
-                SLOT(setHue(int)));
-            connect(videoWidget, SIGNAL(hueChanged(int)), hueSlider,
-                SLOT(setValue(int)));
-
-            connect(saturationSlider, SIGNAL(sliderMoved(int)), videoWidget,
-                SLOT(setSaturation(int)));
-            connect(videoWidget, SIGNAL(saturationChanged(int)),
-                saturationSlider, SLOT(setValue(int)));
-    \endcode
-
+    button click, and back again.
 */

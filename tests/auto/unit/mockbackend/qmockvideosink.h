@@ -63,22 +63,9 @@ public:
     explicit QMockVideoSink(QVideoSink *parent)
         : QPlatformVideoSink(parent)
     {}
-    void setWinId(WId) override {}
-
     void setRhi(QRhi * /*rhi*/) override {}
 
-    void setDisplayRect(const QRect &) override {}
-
-    void setFullScreen(bool) override {}
-
     QSize nativeSize() const override { return videoSize; }
-
-    void setAspectRatioMode(Qt::AspectRatioMode) override {}
-
-    void setBrightness(float) override {}
-    void setContrast(float) override {}
-    void setHue(float) override {}
-    void setSaturation(float) override {}
 
     void setVideoSize(QSize s) { videoSize = s; }
 protected:
