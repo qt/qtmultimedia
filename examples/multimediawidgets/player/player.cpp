@@ -102,6 +102,7 @@ Player::Player(QWidget *parent)
     m_slider->setRange(0, m_player->duration() / 1000);
 
     m_labelDuration = new QLabel(this);
+    m_labelDuration->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     connect(m_slider, &QSlider::sliderMoved, this, &Player::seek);
 
     m_audioTracks = new QComboBox(this);
@@ -185,15 +186,19 @@ Player::Player(QWidget *parent)
     m_fullScreenButton->setCheckable(true);
 
 
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     m_audioOutputCombo = new QComboBox(this);
     m_audioOutputCombo->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDevice()));
     for (auto &deviceInfo: QMediaDevices::audioOutputs())
         m_audioOutputCombo->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     connect(m_audioOutputCombo, QOverload<int>::of(&QComboBox::activated), this, &Player::audioOutputChanged);
+#endif
 
     QBoxLayout *displayLayout = new QHBoxLayout;
     displayLayout->addWidget(m_videoWidget, 2);
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     displayLayout->addWidget(m_playlistView);
+#endif
 
     QBoxLayout *controlLayout = new QHBoxLayout;
     controlLayout->setContentsMargins(0, 0, 0, 0);
@@ -202,7 +207,9 @@ Player::Player(QWidget *parent)
     controlLayout->addWidget(controls);
     controlLayout->addStretch(1);
     controlLayout->addWidget(m_fullScreenButton);
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     controlLayout->addWidget(m_audioOutputCombo);
+#endif
 
     QBoxLayout *layout = new QVBoxLayout;
     layout->addLayout(displayLayout);
@@ -212,9 +219,11 @@ Player::Player(QWidget *parent)
     layout->addLayout(hLayout);
     layout->addLayout(controlLayout);
     layout->addLayout(tracksLayout);
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     layout->addLayout(histogramLayout);
     layout->addWidget(metaDataLabel);
     layout->addLayout(metaDataLayout);
+#endif
 #if defined(Q_OS_QNX)
     // On QNX, the main window doesn't have a title bar (or any other decorations).
     // Create a status bar for the status information instead.
