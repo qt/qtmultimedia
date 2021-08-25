@@ -219,11 +219,6 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
         // We render a 1x1 black pixel when we don't have a video
         fmt = QVideoFrameFormat::Format_RGBA8888;
 
-    if (fmt != format) {
-        format = fmt;
-        updateGraphicsPipeline();
-    }
-
     auto textureDesc = QVideoTextureHelper::textureDescription(fmt);
 
     m_frameSize = m_currentFrame.isValid() ? m_currentFrame.size() : QSize(1, 1);
@@ -249,6 +244,11 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
                                                            m_frameTextures[i], m_textureSampler.get());
     m_shaderResourceBindings->setBindings(bindings, b);
     m_shaderResourceBindings->create();
+
+    if (fmt != format) {
+        format = fmt;
+        updateGraphicsPipeline();
+    }
 }
 
 void QVideoWindowPrivate::freeTextures()
