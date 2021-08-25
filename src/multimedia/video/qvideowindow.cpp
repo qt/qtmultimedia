@@ -184,7 +184,9 @@ void QVideoWindowPrivate::initRhi()
 
 void QVideoWindowPrivate::updateGraphicsPipeline()
 {
-    m_graphicsPipeline.reset(m_rhi->newGraphicsPipeline());
+    if (!m_graphicsPipeline)
+        m_graphicsPipeline.reset(m_rhi->newGraphicsPipeline());
+
     m_graphicsPipeline->setTopology(QRhiGraphicsPipeline::TriangleFan);
     QShader vs = getShader(QVideoTextureHelper::vertexShaderFileName(format));
     Q_ASSERT(vs.isValid());
@@ -206,7 +208,6 @@ void QVideoWindowPrivate::updateGraphicsPipeline()
     m_graphicsPipeline->setShaderResourceBindings(m_shaderResourceBindings.get());
     m_graphicsPipeline->setRenderPassDescriptor(m_renderPass.get());
     m_graphicsPipeline->create();
-
 }
 
 void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
