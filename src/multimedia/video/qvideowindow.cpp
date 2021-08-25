@@ -296,6 +296,9 @@ void QVideoWindowPrivate::render()
     QRect rect(0, 0, q->width(), q->height());
 
     if (backingStore) {
+        if (backingStore->size() != q->size())
+            backingStore->resize(q->size());
+
         backingStore->beginPaint(rect);
 
         QPaintDevice *device = backingStore->paintDevice();
