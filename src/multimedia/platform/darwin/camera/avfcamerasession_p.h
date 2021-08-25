@@ -114,8 +114,6 @@ public Q_SLOTS:
     void processSessionStarted();
     void processSessionStopped();
 
-    void updateVideoOutput();
-
 Q_SIGNALS:
     void readyToConfigureConnections();
     void activeChanged(bool);
@@ -124,6 +122,8 @@ Q_SIGNALS:
 
 private:
     void setVideoOutput(AVFCameraRenderer *output);
+    void updateVideoOutput();
+
     void addAudioCapture();
 
     AVCaptureDevice *createVideoCaptureDevice();
