@@ -62,7 +62,9 @@ VideoWidget::VideoWidget(QWidget *parent)
     p.setColor(QPalette::Window, Qt::black);
     setPalette(p);
 
+#ifndef Q_OS_ANDROID // QTBUG-95723
     setAttribute(Qt::WA_OpaquePaintEvent);
+#endif
 }
 
 void VideoWidget::keyPressEvent(QKeyEvent *event)
