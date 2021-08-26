@@ -97,11 +97,6 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
     qCDebug(qLcMediaAudioOutput) << "setAudioOutput" << info.description() << info.isNull();
     m_audioOutput = info;
 
-    gstPipeline.beginConfig();
-
-    audioSink.setStateSync(GST_STATE_NULL);
-    gstAudioOutput.remove(audioSink);
-
     QGstElement newSink;
     auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioOutput.handle());
     if (deviceInfo && deviceInfo->gstDevice)
@@ -110,12 +105,16 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
     if (newSink.isNull())
         newSink = QGstElement("autoaudiosink", "audiosink");
 
-    audioSink = newSink;
-    gstAudioOutput.add(audioSink);
-    audioVolume.link(audioSink);
-    audioSink.syncStateWithParent();
+    audioVolume.staticPad("src").doInIdleProbe([&](){
+        audioVolume.unlink(audioSink);
+        gstAudioOutput.remove(audioSink);
+        gstAudioOutput.add(newSink);
+        newSink.syncStateWithParent();
+        audioVolume.link(newSink);
+    });
 
-    gstPipeline.endConfig();
+    audioSink.setStateSync(GST_STATE_NULL);
+    audioSink = newSink;
 }
 
 QT_END_NAMESPACE

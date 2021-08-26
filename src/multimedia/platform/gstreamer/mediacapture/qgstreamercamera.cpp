@@ -53,16 +53,16 @@
 #include <QtCore/qdebug.h>
 
 QGstreamerCamera::QGstreamerCamera(QCamera *camera)
-    : QPlatformCamera(camera),
-      gstCameraBin("camerabin")
+        : QPlatformCamera(camera)
 {
     gstCamera = QGstElement("videotestsrc");
+    gstCapsFilter = QGstElement("capsfilter", "videoCapsFilter");
     gstDecode = QGstElement("identity");
     gstVideoConvert = QGstElement("videoconvert", "videoConvert");
     gstVideoScale = QGstElement("videoscale", "videoScale");
-    gstCameraBin.add(gstCamera, gstDecode, gstVideoConvert, gstVideoScale);
-    gstCamera.link(gstDecode, gstVideoConvert, gstVideoScale);
-
+    gstCameraBin = QGstBin("camerabin");
+    gstCameraBin.add(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
+    gstCamera.link(gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
     gstCameraBin.addGhostPad(gstVideoScale, "src");
 }
 
@@ -97,88 +97,91 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 {
     if (m_cameraDevice == camera)
         return;
-//    qDebug() << "setCamera" << camera;
 
     m_cameraDevice = camera;
 
-    gstPipeline.beginConfig();
-
-    Q_ASSERT(!gstCamera.isNull());
-
-    gstCamera.setStateSync(GST_STATE_NULL);
-    gstCameraBin.remove(gstCamera);
-
+    QGstElement gstNewCamera;
     if (camera.isNull()) {
-        gstCamera = QGstElement("videotestsrc");
+        gstNewCamera = QGstElement("videotestsrc");
     } else {
         auto *devices = static_cast<QGstreamerMediaDevices *>(QGstreamerIntegration::instance()->devices());
         auto *device = devices->videoDevice(camera.id());
-        gstCamera = gst_device_create_element(device, "camerasrc");
+        gstNewCamera = gst_device_create_element(device, "camerasrc");
         QGstStructure properties = gst_device_get_properties(device);
         if (properties.name() == "v4l2deviceprovider")
             m_v4l2Device = QString::fromUtf8(properties["device.path"].toString());
     }
 
-    gstCameraBin.add(gstCamera);
-    // set the camera up with a decent format
-    setCameraFormatInternal({});
+    QCameraFormat f = findBestCameraFormat(camera);
+    auto caps = QGstMutableCaps::fromCameraFormat(f);
+    auto gstNewDecode = QGstElement(f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
-    gstCamera.setState(GST_STATE_PAUSED);
-
-    gstPipeline.endConfig();
-    gstPipeline.dumpGraph("setCamera");
-
-    updateCameraProperties();
-}
-
-void QGstreamerCamera::setCameraFormatInternal(const QCameraFormat &format)
-{
-    QCameraFormat f = format;
-    if (f.isNull())
-        f = findBestCameraFormat(m_cameraDevice);
-
-    // add jpeg decoder where required
+    gstCamera.setStateSync(GST_STATE_NULL);
     gstDecode.setStateSync(GST_STATE_NULL);
+
+    gstCamera.unlink(gstCapsFilter);
+    gstCapsFilter.unlink(gstDecode);
+    gstDecode.unlink(gstVideoConvert);
+
+    gstCameraBin.remove(gstCamera);
     gstCameraBin.remove(gstDecode);
 
-    if (f.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
-//        qDebug() << "    enabling jpeg decoder";
-        gstDecode = QGstElement("jpegdec");
-    } else {
-//        qDebug() << "    camera delivers raw video";
-        gstDecode = QGstElement("identity");
-    }
-    gstCameraBin.add(gstDecode);
-    gstDecode.link(gstVideoConvert);
+    gstCapsFilter.set("caps", caps);
 
-    auto caps = QGstMutableCaps::fromCameraFormat(f);
-    if (!caps.isNull()) {
-        if (!gstCamera.linkFiltered(gstDecode, caps))
-            qWarning() << "linking filtered camera to decoder failed" << gstCamera.name() << gstDecode.name() << caps.toString();
-    } else {
-        if (!gstCamera.link(gstDecode))
-            qWarning() << "linking camera to decoder failed" << gstCamera.name() << gstDecode.name();
-    }
+    gstCameraBin.add(gstNewCamera, gstNewDecode);
+
+    gstNewDecode.link(gstVideoConvert);
+    gstCapsFilter.link(gstNewDecode);
+
+    if (!gstNewCamera.link(gstCapsFilter))
+        qWarning() << "linking camera failed" << gstCamera.name() << caps.toString();
+
+    // Start sending frames once pipeline is linked
+    // FIXME: put camera to READY state before linking to decoder as in the NULL state it does not know its true caps
+    gstCapsFilter.syncStateWithParent();
+    gstNewDecode.syncStateWithParent();
+    gstNewCamera.syncStateWithParent();
+
+    gstCamera = gstNewCamera;
+    gstDecode = gstNewDecode;
+
+    updateCameraProperties();
 }
 
 bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
 {
     if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
         return false;
-    gstPipeline.beginConfig();
-    setCameraFormatInternal(format);
-    gstPipeline.endConfig();
+
+    QCameraFormat f = format;
+    if (f.isNull())
+        f = findBestCameraFormat(m_cameraDevice);
+
+    auto caps = QGstMutableCaps::fromCameraFormat(f);
+
+    auto newGstDecode = QGstElement(f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
+    gstCameraBin.add(newGstDecode);
+    newGstDecode.syncStateWithParent();
+
+    gstCamera.staticPad("src").doInIdleProbe([&](){
+        gstCamera.unlink(gstCapsFilter);
+        gstCapsFilter.unlink(gstDecode);
+        gstDecode.unlink(gstVideoConvert);
+
+        gstCapsFilter.set("caps", caps);
+
+        newGstDecode.link(gstVideoConvert);
+        gstCapsFilter.link(newGstDecode);
+        if (!gstCamera.link(gstCapsFilter))
+            qWarning() << "linking filtered camera to decoder failed" << gstCamera.name() << caps.toString();
+    });
+
+    gstDecode.setStateSync(GST_STATE_NULL);
+    gstCameraBin.remove(gstDecode);
+
+    gstDecode = newGstDecode;
+
     return true;
-}
-
-void QGstreamerCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
-{
-    QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
-    if (m_session == captureSession)
-        return;
-
-    m_session = captureSession;
-    gstPipeline = m_session ? m_session->pipeline() : QGstPipeline();
 }
 
 void QGstreamerCamera::updateCameraProperties()

@@ -42,6 +42,7 @@
 #include "private/qgstreamerformatinfo_p.h"
 #include "private/qgstpipeline_p.h"
 #include "private/qgstreamermessage_p.h"
+#include "private/qplatformcamera_p.h"
 #include "qaudiodevice.h"
 #include "qmediastoragelocation_p.h"
 
@@ -122,6 +123,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
         error(QMediaRecorder::ResourceError, QString::fromUtf8(err->message));
         g_error_free(err);
         g_free(debug);
+        finalize();
     }
 
     if (msg.source() == gstEncoder) {
@@ -283,6 +285,14 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     if (!m_session || state() != QMediaRecorder::StoppedState)
         return;
 
+    const auto hasVideo = m_session->camera() && m_session->camera()->isActive();
+    const auto hasAudio = m_session->audioInput() != nullptr;
+
+    if (!hasVideo && !hasAudio) {
+        error(QMediaRecorder::ResourceError, QMediaRecorder::tr("No camera or audio input"));
+        return;
+    }
+
     const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
 
     auto primaryLocation = audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation;
@@ -294,10 +304,6 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
 
     Q_ASSERT(!actualSink.isEmpty());
 
-    gstPipeline.dumpGraph("before-recording");
-
-    gstPipeline.beginConfig();
-
     gstEncoder = QGstElement("encodebin", "encodebin");
     auto *encodingProfile = createEncodingProfile(settings);
     g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
@@ -305,33 +311,36 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
 
     gstFileSink = QGstElement("filesink", "filesink");
     gstFileSink.set("location", QFile::encodeName(actualSink.toLocalFile()).constData());
+    gstFileSink.set("async", false);
 
-    gstPipeline.add(gstEncoder, gstFileSink);
-    gstEncoder.link(gstFileSink);
-
-    gstEncoder.setState(GST_STATE_PAUSED);
-    gstFileSink.setState(GST_STATE_PAUSED);
+    QGstPad audioSink = {};
+    QGstPad videoSink = {};
 
     audioPauseControl.reset();
     videoPauseControl.reset();
 
-    audioSrcPad = m_session->getAudioPad();
-    if (!audioSrcPad.isNull()) {
-        QGstPad audioPad = gstEncoder.getRequestPad("audio_%u");
-        audioPauseControl.installOn(audioPad);
-        audioSrcPad.link(audioPad);
+    if (hasAudio) {
+        audioSink = gstEncoder.getRequestPad("audio_%u");
+        if (audioSink.isNull())
+            qWarning() << "Unsupported audio codec";
+        else
+            audioPauseControl.installOn(audioSink);
     }
 
-    if (settings.videoCodec() != QMediaFormat::VideoCodec::Unspecified) {
-        videoSrcPad = m_session->getVideoPad();
-        if (!videoSrcPad.isNull()) {
-            QGstPad videoPad = gstEncoder.getRequestPad("video_%u");
-            videoPauseControl.installOn(videoPad);
-            videoSrcPad.link(videoPad);
-        }
+    if (hasVideo) {
+        videoSink = gstEncoder.getRequestPad("video_%u");
+        if (videoSink.isNull())
+            qWarning() << "Unsupported video codec";
+        else
+            videoPauseControl.installOn(videoSink);
     }
 
-    gstPipeline.endConfig();
+    gstPipeline.add(gstEncoder, gstFileSink);
+    gstEncoder.link(gstFileSink);
+    m_session->linkEncoder(audioSink, videoSink);
+
+    gstEncoder.syncStateWithParent();
+    gstFileSink.syncStateWithParent();
 
     signalDurationChangedTimer.start();
     gstPipeline.dumpGraph("recording");
@@ -346,8 +355,6 @@ void QGstreamerMediaEncoder::pause()
         return;
     signalDurationChangedTimer.stop();
     gstPipeline.dumpGraph("before-pause");
-    gstEncoder.setState(GST_STATE_PAUSED);
-
     stateChanged(QMediaRecorder::PausedState);
 }
 
@@ -356,7 +363,6 @@ void QGstreamerMediaEncoder::resume()
     gstPipeline.dumpGraph("before-resume");
     if (!m_session || state() != QMediaRecorder::PausedState)
         return;
-    gstEncoder.setState(GST_STATE_PLAYING);
     signalDurationChangedTimer.start();
     stateChanged(QMediaRecorder::RecordingState);
 }
@@ -367,45 +373,29 @@ void QGstreamerMediaEncoder::stop()
         return;
     qCDebug(qLcMediaEncoder) << "stop";
 
-    gstPipeline.beginConfig();
-
-    if (!audioSrcPad.isNull()) {
-        audioSrcPad.unlinkPeer();
-        m_session->releaseAudioPad(audioSrcPad);
-        audioSrcPad = {};
-    }
-    if (!videoSrcPad.isNull()) {
-        videoSrcPad.unlinkPeer();
-        m_session->releaseVideoPad(videoSrcPad);
-        videoSrcPad = {};
-    }
-
-    gstPipeline.endConfig();
+    m_session->unlinkEncoder();
     signalDurationChangedTimer.stop();
 
     //with live sources it's necessary to send EOS even to pipeline
     //before going to STOPPED state
     qCDebug(qLcMediaEncoder) << ">>>>>>>>>>>>> sending EOS";
-
     gstEncoder.sendEos();
-    stateChanged(QMediaRecorder::StoppedState);
 }
 
 void QGstreamerMediaEncoder::finalize()
 {
     if (!m_session || gstEncoder.isNull())
         return;
+
     qCDebug(qLcMediaEncoder) << "finalize";
 
-    // The filesink can only be used once, replace it with a new one
-    gstPipeline.beginConfig();
     gstEncoder.setState(GST_STATE_NULL);
     gstFileSink.setState(GST_STATE_NULL);
     gstPipeline.remove(gstEncoder);
     gstPipeline.remove(gstFileSink);
     gstFileSink = {};
     gstEncoder = {};
-    gstPipeline.endConfig();
+    stateChanged(QMediaRecorder::StoppedState);
 }
 
 void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)

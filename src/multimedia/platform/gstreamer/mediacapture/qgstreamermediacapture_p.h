@@ -57,6 +57,8 @@
 #include <private/qgst_p.h>
 #include <private/qgstpipeline_p.h>
 
+#include <qtimer.h>
+
 QT_BEGIN_NAMESPACE
 
 class QGstreamerCamera;
@@ -85,14 +87,13 @@ public:
     void setMediaRecorder(QPlatformMediaRecorder *recorder) override;
 
     void setAudioInput(QPlatformAudioInput *input) override;
+    QGstreamerAudioInput *audioInput() { return gstAudioInput; }
 
     void setVideoPreview(QVideoSink *sink) override;
     void setAudioOutput(QPlatformAudioOutput *output) override;
 
-    QGstPad getAudioPad() const;
-    QGstPad getVideoPad() const;
-    void releaseAudioPad(const QGstPad &pad) const;
-    void releaseVideoPad(const QGstPad &pad) const;
+    void linkEncoder(QGstPad audioSink, QGstPad videoSink);
+    void unlinkEncoder();
 
     QGstPipeline pipeline() const { return gstPipeline; }
 
@@ -102,14 +103,20 @@ private:
     friend QGstreamerMediaEncoder;
     // Gst elements
     QGstPipeline gstPipeline;
+    QTimer heartbeat;
 
     QGstreamerAudioInput *gstAudioInput = nullptr;
     QGstreamerCamera *gstCamera = nullptr;
 
     QGstElement gstAudioTee;
     QGstElement gstVideoTee;
+    QGstElement encoderVideoCapsFilter;
+    QGstElement encoderAudioCapsFilter;
 
-    QGstPad gstAudioOutputPad;
+    QGstPad encoderAudioSink;
+    QGstPad encoderVideoSink;
+    QGstPad imageCaptureSink;
+
     QGstreamerAudioOutput *gstAudioOutput = nullptr;
     QGstreamerVideoOutput *gstVideoOutput = nullptr;
 

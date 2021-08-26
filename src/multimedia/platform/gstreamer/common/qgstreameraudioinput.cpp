@@ -100,11 +100,6 @@ void QGstreamerAudioInput::setMuted(bool muted)
     emit mutedChanged(muted);
 }
 
-void QGstreamerAudioInput::setPipeline(const QGstPipeline &pipeline)
-{
-    gstPipeline = pipeline;
-}
-
 void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
 {
     if (device == m_audioDevice)
@@ -112,24 +107,24 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
     qCDebug(qLcMediaAudioInput) << "setAudioInput" << device.description() << device.isNull();
     m_audioDevice = device;
 
-    gstPipeline.beginConfig();
-
     QGstElement newSrc;
     auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
     if (deviceInfo && deviceInfo->gstDevice)
-        newSrc = gst_device_create_element(deviceInfo->gstDevice , "audiosrc");
+        newSrc = gst_device_create_element(deviceInfo->gstDevice, "audiosrc");
 
     if (newSrc.isNull())
         newSrc = QGstElement("autoaudiosrc", "audiosrc");
 
+    // FIXME: most probably source can be disconnected outside of idle probe
+    audioSrc.staticPad("src").doInIdleProbe([&](){
+        audioSrc.unlink(audioVolume);
+    });
     audioSrc.setStateSync(GST_STATE_NULL);
     gstAudioInput.remove(audioSrc);
     audioSrc = newSrc;
     gstAudioInput.add(audioSrc);
     audioSrc.link(audioVolume);
     audioSrc.syncStateWithParent();
-
-    gstPipeline.endConfig();
 }
 
 QAudioDevice QGstreamerAudioInput::audioInput() const
