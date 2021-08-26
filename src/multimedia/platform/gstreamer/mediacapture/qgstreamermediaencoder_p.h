@@ -86,6 +86,7 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
+    QGstElement getEncoder() { return gstEncoder; }
 private:
     bool processBusMessage(const QGstreamerMessage& message) override;
 public:
@@ -117,9 +118,6 @@ private:
     QGstPipeline gstPipeline;
     QGstBin gstEncoder;
     QGstElement gstFileSink;
-
-    QGstPad audioSrcPad;
-    QGstPad videoSrcPad;
 };
 
 QT_END_NAMESPACE

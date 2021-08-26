@@ -71,9 +71,6 @@ public:
 
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
-    void setCameraFormatInternal(const QCameraFormat &format);
-
-    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
     QGstElement gstElement() const { return gstCameraBin.element(); }
 #if QT_CONFIG(gstreamer_photography)
@@ -123,14 +120,11 @@ private:
     int v4l2FileDescriptor = -1;
 #endif
 
-    QGstreamerMediaCapture *m_session = nullptr;
-
     QCameraDevice m_cameraDevice;
-
-    QGstPipeline gstPipeline;
 
     QGstBin gstCameraBin;
     QGstElement gstCamera;
+    QGstElement gstCapsFilter;
     QGstElement gstDecode;
     QGstElement gstVideoConvert;
     QGstElement gstVideoScale;

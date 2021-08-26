@@ -53,6 +53,7 @@
 
 #include <private/qtmultimediaglobal_p.h>
 
+#include <QSemaphore>
 #include <QtCore/qlist.h>
 
 #include <QtMultimedia/qaudioformat.h>
@@ -60,6 +61,8 @@
 
 #include <gst/gst.h>
 #include <gst/video/video-info.h>
+
+#include <functional>
 
 #if QT_CONFIG(gstreamer_photography)
 #define GST_USE_UNSTABLE_API
@@ -391,6 +394,24 @@ public:
         gst_pad_add_probe (pad(), type, Impl::callback, instance, nullptr);
     }
 
+    void doInIdleProbe(std::function<void()> work) {
+        struct CallbackData {
+            QSemaphore waitDone;
+            std::function<void()> work;
+        } cd;
+        cd.work = work;
+
+        auto callback= [](GstPad *, GstPadProbeInfo *, gpointer p) {
+            auto cd = reinterpret_cast<CallbackData*>(p);
+            cd->work();
+            cd->waitDone.release();
+            return GST_PAD_PROBE_REMOVE;
+        };
+
+        gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_IDLE, callback, &cd, nullptr);
+        cd.waitDone.acquire();
+    }
+
     template<auto Member, typename T>
     void addEosProbe(T *instance) {
         struct Impl {
@@ -455,6 +476,8 @@ public:
     { gst_element_unlink(element(), next.element()); }
 
     QGstPad staticPad(const char *name) const { return QGstPad(gst_element_get_static_pad(element(), name), HasRef); }
+    QGstPad src() const { return staticPad("src"); }
+    QGstPad sink() const { return staticPad("sink"); }
     QGstPad getRequestPad(const char *name) const { return QGstPad(gst_element_get_request_pad(element(), name), HasRef); }
     void releaseRequestPad(const QGstPad &pad) const { return gst_element_release_request_pad(element(), pad.pad()); }
 

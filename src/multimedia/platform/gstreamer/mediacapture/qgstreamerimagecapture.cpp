@@ -74,10 +74,13 @@ QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
     encoder = QGstElement("jpegenc", "jpegEncoder");
     muxer = QGstElement("jifmux", "jpegMuxer");
     sink = QGstElement("fakesink","imageCaptureSink");
+    // imageCaptureSink do not wait for a preroll buffer when going READY -> PAUSED
+    // as no buffer will arrive until capture() is called
+    sink.set("async", false);
+
     bin.add(queue, videoConvert, encoder, muxer, sink);
     queue.link(videoConvert, encoder, muxer, sink);
     bin.addGhostPad(queue, "sink");
-    bin.lockState(true);
 
     addProbeToPad(queue.staticPad("src").pad(), false);
 
@@ -87,8 +90,7 @@ QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
 
 QGstreamerImageCapture::~QGstreamerImageCapture()
 {
-    if (m_session)
-        m_session->releaseVideoPad(videoSrcPad);
+    bin.setStateSync(GST_STATE_NULL);
 }
 
 bool QGstreamerImageCapture::isReadyForCapture() const
@@ -148,10 +150,6 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
     pendingImages.enqueue({m_lastId, fileName, QMediaMetaData{}});
     // let one image pass the pipeline
     passImage = true;
-
-    link();
-
-    gstPipeline.dumpGraph("captureImage");
 
     emit readyForCaptureChanged(false);
     return m_lastId;
@@ -217,22 +215,12 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
         pendingImages.clear();
         passImage = false;
         cameraActive = false;
-        gstPipeline.beginConfig();
-        bin.setStateSync(GST_STATE_NULL);
-        gstPipeline.remove(bin);
-        gstPipeline.endConfig();
-        gstPipeline = {};
     }
 
     m_session = captureSession;
     if (!m_session)
         return;
 
-    gstPipeline = captureSession->pipeline();
-    gstPipeline.beginConfig();
-    gstPipeline.add(bin);
-    bin.setStateSync(GST_STATE_READY);
-    gstPipeline.endConfig();
     connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QGstreamerImageCapture::onCameraChanged);
     onCameraChanged();
 }
@@ -265,14 +253,14 @@ gboolean QGstreamerImageCapture::saveImageFilter(GstElement *element,
     Q_UNUSED(pad);
     QGstreamerImageCapture *capture = static_cast<QGstreamerImageCapture *>(appdata);
 
+    capture->passImage = false;
+
     if (capture->pendingImages.isEmpty()) {
-        capture->unlink();
         return true;
     }
 
     auto imageData = capture->pendingImages.dequeue();
     if (imageData.filename.isEmpty()) {
-        capture->unlink();
         return true;
     }
 
@@ -294,39 +282,7 @@ gboolean QGstreamerImageCapture::saveImageFilter(GstElement *element,
                            Q_ARG(QString, imageData.filename));
     }
 
-    capture->unlink();
-
     return TRUE;
-}
-
-void QGstreamerImageCapture::unlink()
-{
-    return;
-    if (passImage)
-        return;
-    if (gstPipeline.isNull())
-        return;
-    gstPipeline.beginConfig();
-    videoSrcPad.unlinkPeer();
-    m_session->releaseVideoPad(videoSrcPad);
-    videoSrcPad = {};
-    bin.setStateSync(GST_STATE_READY);
-    bin.lockState(true);
-    gstPipeline.endConfig();
-}
-
-void QGstreamerImageCapture::link()
-{
-    if (!(m_session && m_session->camera()))
-        return;
-    if (!bin.staticPad("sink").peer().isNull() || gstPipeline.isNull())
-        return;
-    gstPipeline.beginConfig();
-    videoSrcPad = m_session->getVideoPad();
-    videoSrcPad.link(bin.staticPad("sink"));
-    bin.lockState(false);
-    bin.setState(GST_STATE_PAUSED);
-    gstPipeline.endConfig();
 }
 
 QImageEncoderSettings QGstreamerImageCapture::imageSettings() const

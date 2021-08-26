@@ -88,16 +88,18 @@ QT_BEGIN_NAMESPACE
 QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,
                                  const QVideoFrameFormat &frameFormat,
                                  QGstCaps::MemoryFormat format)
-    : QAbstractVideoBuffer((sink->rhi() && format != QGstCaps::CpuMemory) ?
-                            QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, sink->rhi())
+    : QAbstractVideoBuffer((sink && sink->rhi() && format != QGstCaps::CpuMemory) ?
+                            QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, sink ? sink->rhi() : nullptr)
     , memoryFormat(format)
     , m_frameFormat(frameFormat)
     , m_videoInfo(info)
     , m_buffer(buffer)
 {
     gst_buffer_ref(m_buffer);
-    eglDisplay = sink->eglDisplay();
-    eglImageTargetTexture2D = sink->eglImageTargetTexture2D();
+    if (sink) {
+        eglDisplay =  sink->eglDisplay();
+        eglImageTargetTexture2D = sink->eglImageTargetTexture2D();
+    }
 }
 
 QGstVideoBuffer::~QGstVideoBuffer()

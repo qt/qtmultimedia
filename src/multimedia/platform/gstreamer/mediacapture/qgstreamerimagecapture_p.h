@@ -68,7 +68,7 @@ class QGstreamerImageCapture : public QPlatformImageCapture, private QGstreamerB
 {
     Q_OBJECT
 public:
-    QGstreamerImageCapture(QImageCapture *parent/*, const QGstPipeline &pipeline*/);
+    QGstreamerImageCapture(QImageCapture *parent);
     virtual ~QGstreamerImageCapture();
 
     bool isReadyForCapture() const override;
@@ -91,8 +91,6 @@ public Q_SLOTS:
 private:
     int doCapture(const QString &fileName);
     static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad, void *appdata);
-    void link();
-    void unlink();
 
     QGstreamerMediaCapture *m_session = nullptr;
     int m_lastId = 0;
@@ -106,7 +104,6 @@ private:
 
     QQueue<PendingImage> pendingImages;
 
-    QGstPipeline gstPipeline;
     QGstBin bin;
     QGstElement queue;
     QGstElement videoConvert;

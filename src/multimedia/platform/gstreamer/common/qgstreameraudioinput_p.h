@@ -83,8 +83,6 @@ public:
     void setVolume(float volume) override;
     void setMuted(bool muted) override;
 
-    void setPipeline(const QGstPipeline &pipeline);
-
     QGstElement gstElement() const { return gstAudioInput; }
 
 Q_SIGNALS:
@@ -98,7 +96,6 @@ private:
     QAudioDevice m_audioDevice;
 
     // Gst elements
-    QGstPipeline gstPipeline;
     QGstBin gstAudioInput;
 
     QGstElement audioSrc;
