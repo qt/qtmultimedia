@@ -57,6 +57,13 @@ Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerLayer);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoPreviewLayer);
 
+#include <CoreVideo/CVBase.h>
+#include <CoreVideo/CVPixelBuffer.h>
+#include <CoreVideo/CVImageBuffer.h>
+
+#import "Metal/Metal.h"
+#import "MetalKit/MetalKit.h"
+
 QT_BEGIN_NAMESPACE
 
 class AVFVideoSinkInterface;
@@ -91,17 +98,28 @@ public:
 
 
     virtual void reconfigure() = 0;
-    virtual void setRhi(QRhi *) = 0;
+    virtual void setRhi(QRhi *);
+    QRhi *rhi() const { return m_rhi; }
 
     void setLayer(CALayer *layer);
 
     void updateLayerBounds();
     void nativeSizeChanged() { updateLayerBounds(); }
 
+    CVMetalTextureCacheRef cvMetalTextureCache = nullptr;
+#if defined(Q_OS_MACOS)
+    CVOpenGLTextureCacheRef cvOpenGLTextureCache = nullptr;
+#elif defined(Q_OS_IOS)
+    CVOpenGLESTextureCacheRef cvOpenGLESTextureCache = nullptr;
+#endif
+private:
+    void freeTextureCaches();
+
 protected:
     QSize nativeSize() const { return m_sink->nativeSize(); }
 
     AVFVideoSink *m_sink = nullptr;
+    QRhi *m_rhi = nullptr;
     CALayer *m_layer = nullptr;
 };
 

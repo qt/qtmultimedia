@@ -103,7 +103,7 @@ QT_USE_NAMESPACE
     if (format == QVideoFrameFormat::Format_Invalid)
         return;
 
-    QVideoFrame frame(new AVFVideoBuffer(m_renderer->rhi(), imageBuffer),
+    QVideoFrame frame(new AVFVideoBuffer(m_renderer, imageBuffer),
                       QVideoFrameFormat(QSize(width, height), format));
 
     m_renderer->syncHandleViewfinderFrame(frame);
@@ -223,11 +223,6 @@ void AVFCameraRenderer::handleViewfinderFrame()
 
         m_sink->newVideoFrame(frame);
     }
-}
-
-void AVFCameraRenderer::setRhi(QRhi *rhi)
-{
-    m_rhi = rhi;
 }
 
 void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat /*pixelFormat*/)
