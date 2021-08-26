@@ -76,7 +76,6 @@ public:
 
     // AVFVideoSinkInterface
     void reconfigure() override;
-    void setRhi(QRhi *rhi) override;
 
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);
@@ -86,7 +85,6 @@ private:
     CVPixelBufferRef copyPixelBufferFromLayer(size_t& width, size_t& height);
 
     QMutex m_mutex;
-    QRhi *m_rhi = nullptr;
     AVFDisplayLink *m_displayLink = nullptr;
     AVPlayerItemVideoOutput *m_videoOutput = nullptr;
 };

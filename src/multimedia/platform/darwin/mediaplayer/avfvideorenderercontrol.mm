@@ -109,7 +109,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     CVPixelBufferRef pixelBuffer = copyPixelBufferFromLayer(width, height);
     if (!pixelBuffer)
         return;
-    AVFVideoBuffer *buffer = new AVFVideoBuffer(m_rhi, pixelBuffer);
+    AVFVideoBuffer *buffer = new AVFVideoBuffer(this, pixelBuffer);
     auto fmt = AVFVideoBuffer::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(pixelBuffer));
 //    qDebug() << "Got pixelbuffer with format" << fmt;
     CVPixelBufferRelease(pixelBuffer);
@@ -160,6 +160,9 @@ CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width
         return nullptr;
     }
 
+    if (![m_videoOutput hasNewPixelBufferForItemTime:currentCMFrameTime])
+        return nullptr;
+
     CVPixelBufferRef pixelBuffer = [m_videoOutput copyPixelBufferForItemTime:currentCMFrameTime
                                                    itemTimeForDisplay:nil];
     if (!pixelBuffer) {
@@ -178,11 +181,6 @@ CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width
 //    fmt[4] = 0;
 //    qDebug() << "copyPixelBuffer" << f << fmt << width << height;
     return pixelBuffer;
-}
-
-void AVFVideoRendererControl::setRhi(QRhi *rhi)
-{
-    m_rhi = rhi;
 }
 
 #include "moc_avfvideorenderercontrol_p.cpp"

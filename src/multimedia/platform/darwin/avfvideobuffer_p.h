@@ -71,7 +71,7 @@ struct AVFMetalTexture;
 class AVFVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    AVFVideoBuffer(QRhi *rhi, CVImageBufferRef buffer);
+    AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
     ~AVFVideoBuffer();
 
     static QVideoFrameFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
@@ -85,17 +85,14 @@ public:
     virtual quint64 textureHandle(int plane) const;
 
 private:
-    QRhi *rhi = nullptr;
+    AVFVideoSinkInterface *sink = nullptr;
 
     mutable CVMetalTextureRef cvMetalTexture[3] = {};
-    mutable CVMetalTextureCacheRef cvMetalTextureCache = nullptr;
 
 #if defined(Q_OS_MACOS)
     mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
-    mutable CVOpenGLTextureCacheRef cvOpenGLTextureCache = nullptr;
 #elif defined(Q_OS_IOS)
     mutable CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
-    mutable CVOpenGLESTextureCacheRef cvOpenGLESTextureCache = nullptr;
 #endif
 
     CVImageBufferRef m_buffer = nullptr;

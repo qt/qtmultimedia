@@ -39,6 +39,11 @@
 
 #include "avfvideosink_p.h"
 
+#include <private/qrhi_p.h>
+#include <private/qrhimetal_p.h>
+#include <private/qrhigles2_p.h>
+#include <QtGui/qopenglcontext.h>
+
 #include <AVFoundation/AVFoundation.h>
 #import <QuartzCore/CATransaction.h>
 
@@ -63,6 +68,8 @@ AVFVideoSink::~AVFVideoSink()
 
 void AVFVideoSink::setRhi(QRhi *rhi)
 {
+    if (m_rhi == rhi)
+        return;
     m_rhi = rhi;
     if (m_interface)
         m_interface->setRhi(rhi);
@@ -88,6 +95,23 @@ AVFVideoSinkInterface::~AVFVideoSinkInterface()
 {
     if (m_layer)
         [m_layer release];
+    freeTextureCaches();
+}
+
+void AVFVideoSinkInterface::freeTextureCaches()
+{
+    if (cvMetalTextureCache)
+        CFRelease(cvMetalTextureCache);
+    cvMetalTextureCache = nullptr;
+#if defined(Q_OS_MACOS)
+    if (cvOpenGLTextureCache)
+        CFRelease(cvOpenGLTextureCache);
+    cvOpenGLTextureCache = nullptr;
+#elif defined(Q_OS_IOS)
+    if (cvOpenGLESTextureCache)
+        CFRelease(cvOpenGLESTextureCache);
+    cvOpenGLESTextureCache = nullptr;
+#endif
 }
 
 void AVFVideoSinkInterface::setVideoSink(AVFVideoSink *sink)
@@ -101,7 +125,63 @@ void AVFVideoSinkInterface::setVideoSink(AVFVideoSink *sink)
         reconfigure();
     }
 }
-#include <qdebug.h>
+
+void AVFVideoSinkInterface::setRhi(QRhi *rhi)
+{
+    if (m_rhi == rhi)
+        return;
+    freeTextureCaches();
+    m_rhi = rhi;
+
+    if (!rhi)
+        return;
+    if (rhi->backend() == QRhi::Metal) {
+        const auto *metal = static_cast<const QRhiMetalNativeHandles *>(rhi->nativeHandles());
+
+        // Create a Metal Core Video texture cache from the pixel buffer.
+        Q_ASSERT(!cvMetalTextureCache);
+        if (CVMetalTextureCacheCreate(
+                        kCFAllocatorDefault,
+                        nil,
+                        (id<MTLDevice>)metal->dev,
+                        nil,
+                        &cvMetalTextureCache) != kCVReturnSuccess) {
+            qWarning() << "Metal texture cache creation failed";
+            m_rhi = nullptr;
+        }
+    } else if (rhi->backend() == QRhi::OpenGLES2) {
+#ifdef Q_OS_MACOS
+        const auto *gl = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+
+        auto nsGLContext = gl->context->nativeInterface<QNativeInterface::QCocoaGLContext>()->nativeContext();
+        auto nsGLPixelFormat = nsGLContext.pixelFormat.CGLPixelFormatObj;
+
+        // Create an OpenGL CoreVideo texture cache from the pixel buffer.
+        if (CVOpenGLTextureCacheCreate(
+                        kCFAllocatorDefault,
+                        nullptr,
+                        reinterpret_cast<CGLContextObj>(nsGLContext.CGLContextObj),
+                        nsGLPixelFormat,
+                        nil,
+                        &cvOpenGLTextureCache)) {
+            qWarning() << "OpenGL texture cache creation failed";
+            m_rhi = nullptr;
+        }
+#endif
+#ifdef Q_OS_IOS
+        // Create an OpenGL CoreVideo texture cache from the pixel buffer.
+        if (CVOpenGLESTextureCacheCreate(
+                        kCFAllocatorDefault,
+                        nullptr,
+                        [EAGLContext currentContext],
+                        nullptr,
+                        &cvOpenGLESTextureCache)) {
+            qWarning() << "OpenGL texture cache creation failed";
+            m_rhi = nullptr;
+        }
+#endif
+    }
+}
 
 void AVFVideoSinkInterface::setLayer(CALayer *layer)
 {
@@ -128,6 +208,5 @@ void AVFVideoSinkInterface::updateLayerBounds()
     m_layer.bounds = m_layer.frame;
     [CATransaction commit];
 }
-
 
 #include "moc_avfvideosink_p.cpp"

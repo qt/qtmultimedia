@@ -84,7 +84,6 @@ public:
     ~AVFCameraRenderer();
 
     void reconfigure() override;
-    void setRhi(QRhi *rhi) override;
 
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);
@@ -93,8 +92,6 @@ public:
 
     AVFCaptureFramesDelegate *captureDelegate() const;
     void resetCaptureDelegate() const;
-
-    QRhi *rhi() const { return m_rhi; }
 
     void setPixelFormat(const QVideoFrameFormat::PixelFormat format);
 
@@ -119,7 +116,6 @@ private:
     QVideoFrame m_lastViewfinderFrame;
     QMutex m_vfMutex;
     dispatch_queue_t m_delegateQueue;
-    QRhi *m_rhi = nullptr;
 
     friend class CVImageVideoBuffer;
 };
