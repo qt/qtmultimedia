@@ -182,6 +182,10 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
     if (m_activeCameraDevice != info) {
         m_activeCameraDevice = info;
 
+        auto recorder = m_service->recorderControl();
+        if (recorder && recorder->state() == QMediaRecorder::RecordingState)
+            recorder->toggleRecord(false);
+
         [m_captureSession beginConfiguration];
 
         attachVideoInputDevice();
@@ -193,6 +197,9 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
         }
 
         [m_captureSession commitConfiguration];
+
+        if (recorder && recorder->state() == QMediaRecorder::RecordingState)
+            recorder->toggleRecord(true);
     }
 }
 
@@ -471,6 +478,10 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
 
 void AVFCameraSession::updateAudioInput()
 {
+    auto recorder = m_service->recorderControl();
+    if (recorder && recorder->state() == QMediaRecorder::RecordingState)
+        recorder->toggleRecord(false);
+
     [m_captureSession beginConfiguration];
     if (m_audioOutput) {
         AVCaptureConnection *lastConnection = [m_audioOutput connectionWithMediaType:AVMediaTypeAudio];
@@ -480,6 +491,9 @@ void AVFCameraSession::updateAudioInput()
     if (m_audioInput)
         addAudioCapture();
     [m_captureSession commitConfiguration];
+
+    if (recorder && recorder->state() == QMediaRecorder::RecordingState)
+        recorder->toggleRecord(true);
 }
 
 void AVFCameraSession::updateAudioOutput()

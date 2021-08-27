@@ -554,12 +554,44 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
     }
 }
 
+void AVFMediaEncoder::pause()
+{
+    if (!m_service || !m_service->session() || state() != QMediaRecorder::RecordingState)
+        return;
+
+    toggleRecord(false);
+    m_state = QMediaRecorder::PausedState;
+    stateChanged(m_state);
+}
+
+void AVFMediaEncoder::resume()
+{
+    if (!m_service || !m_service->session() || state() != QMediaRecorder::PausedState)
+        return;
+
+    toggleRecord(true);
+    m_state = QMediaRecorder::RecordingState;
+    stateChanged(m_state);
+}
+
 void AVFMediaEncoder::stop()
 {
     if (m_state != QMediaRecorder::StoppedState) {
         // Do not check the camera status, we can stop if we started.
         stopWriter();
     }
+}
+
+
+void AVFMediaEncoder::toggleRecord(bool enable)
+{
+    if (!m_service || !m_service->session())
+        return;
+
+    if (!enable)
+        [m_writer pause];
+    else
+        [m_writer resume];
 }
 
 void AVFMediaEncoder::assetWriterStarted()
