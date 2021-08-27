@@ -79,6 +79,8 @@ QT_END_NAMESPACE
 // This to be called from the recorder control's thread:
 - (void)start;
 - (void)stop;
+- (void)pause;
+- (void)resume;
 // This to be called from the recorder control's dtor:
 - (void)abort;
 - (qint64)durationInMs;

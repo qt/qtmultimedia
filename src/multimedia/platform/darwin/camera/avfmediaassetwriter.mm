@@ -69,6 +69,7 @@ enum WriterState
 {
     WriterStateIdle,
     WriterStateActive,
+    WriterStatePaused,
     WriterStateAborted
 };
 
@@ -80,6 +81,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 - (bool)addWriterInputs;
 - (void)setQueues;
 - (void)updateDuration:(CMTime)newTimeStamp;
+- (CMSampleBufferRef)adjustTime:(CMSampleBufferRef)sample by:(CMTime)offset;
 @end
 
 @implementation QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)
@@ -109,6 +111,10 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     CMTime m_startTime;
     CMTime m_lastTimeStamp;
+    CMTime m_lastVideoTimestamp;
+    CMTime m_lastAudioTimestamp;
+    CMTime m_timeOffset;
+    bool m_adjustTime;
 
     NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;
@@ -126,6 +132,10 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         m_state.storeRelaxed(WriterStateIdle);
         m_startTime = kCMTimeInvalid;
         m_lastTimeStamp = kCMTimeInvalid;
+        m_lastAudioTimestamp = kCMTimeInvalid;
+        m_lastVideoTimestamp = kCMTimeInvalid;
+        m_timeOffset = kCMTimeInvalid;
+        m_adjustTime = false;
         m_durationInMs.storeRelaxed(0);
         m_audioSettings = nil;
         m_videoSettings = nil;
@@ -229,7 +239,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
 - (void)stop
 {
-    if (m_state.loadAcquire() != WriterStateActive)
+    if (m_state.loadAcquire() != WriterStateActive && m_state.loadAcquire() != WriterStatePaused)
         return;
     if ([m_assetWriter status] != AVAssetWriterStatusWriting)
         return;
@@ -291,6 +301,27 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     }];
 }
 
+- (void)pause
+{
+    if (m_state.loadAcquire() != WriterStateActive)
+        return;
+    if ([m_assetWriter status] != AVAssetWriterStatusWriting)
+        return;
+
+    m_state.storeRelease(WriterStatePaused);
+    m_adjustTime = true;
+}
+
+- (void)resume
+{
+    if (m_state.loadAcquire() != WriterStatePaused)
+        return;
+    if ([m_assetWriter status] != AVAssetWriterStatusWriting)
+        return;
+
+    m_state.storeRelease(WriterStateActive);
+}
+
 - (void)setStartTimeFrom:(CMSampleBufferRef)sampleBuffer
 {
     // Writer's queue only.
@@ -307,6 +338,23 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     m_lastTimeStamp = m_startTime;
     [m_assetWriter startSessionAtSourceTime:m_startTime];
     m_setStartTime = false;
+}
+
+- (CMSampleBufferRef)adjustTime:(CMSampleBufferRef)sample by:(CMTime)offset
+{
+    CMItemCount count;
+    CMSampleBufferGetSampleTimingInfoArray(sample, 0, nil, &count);
+    CMSampleTimingInfo* timingInfo = (CMSampleTimingInfo*) malloc(sizeof(CMSampleTimingInfo) * count);
+    CMSampleBufferGetSampleTimingInfoArray(sample, count, timingInfo, &count);
+    for (CMItemCount i = 0; i < count; i++)
+    {
+        timingInfo[i].decodeTimeStamp = CMTimeSubtract(timingInfo[i].decodeTimeStamp, offset);
+        timingInfo[i].presentationTimeStamp = CMTimeSubtract(timingInfo[i].presentationTimeStamp, offset);
+    }
+    CMSampleBufferRef updatedBuffer;
+    CMSampleBufferCreateCopyWithNewTiming(kCFAllocatorDefault, sample, count, timingInfo, &updatedBuffer);
+    free(timingInfo);
+    return updatedBuffer;
 }
 
 - (void)writeVideoSampleBuffer:(CMSampleBufferRef)sampleBuffer
@@ -363,7 +411,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     Q_UNUSED(connection);
     Q_ASSERT(m_service && m_service->session());
 
-    if (m_state.loadAcquire() != WriterStateActive)
+    if (m_state.loadAcquire() != WriterStateActive && m_state.loadAcquire() != WriterStatePaused)
         return;
 
     if (!CMSampleBufferDataIsReady(sampleBuffer)) {
@@ -373,13 +421,9 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     CFRetain(sampleBuffer);
 
-    if (captureOutput != m_service->session()->audioOutput()) {
-        if (m_state.loadRelaxed() != WriterStateActive) {
-            CFRelease(sampleBuffer);
-            return;
-        }
-
-        m_writeFirstAudioBuffer = true;
+    bool isVideoBuffer = true;
+    isVideoBuffer = (captureOutput != m_service->session()->audioOutput());
+    if (isVideoBuffer) {
         // Find renderercontrol's delegate and invoke its method to
         // show updated viewfinder's frame.
         if (m_service->session()->videoOutput()) {
@@ -388,12 +432,52 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
             if (vfDelegate)
                 [vfDelegate captureOutput:nil didOutputSampleBuffer:sampleBuffer fromConnection:nil];
         }
+    }
 
+    if (m_state.loadAcquire() != WriterStateActive) {
+        CFRelease(sampleBuffer);
+        return;
+    }
+
+    if (m_adjustTime) {
+        CMTime currentTimestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+        CMTime lastTimestamp = isVideoBuffer ? m_lastVideoTimestamp : m_lastAudioTimestamp;
+
+        if (!CMTIME_IS_INVALID(lastTimestamp)) {
+            if (!CMTIME_IS_INVALID(m_timeOffset))
+                currentTimestamp = CMTimeSubtract(currentTimestamp, m_timeOffset);
+
+            CMTime pauseDuration = CMTimeSubtract(currentTimestamp, lastTimestamp);
+
+            if (m_timeOffset.value == 0)
+                m_timeOffset = pauseDuration;
+            else
+                m_timeOffset = CMTimeAdd(m_timeOffset, pauseDuration);
+        }
+        m_lastVideoTimestamp = kCMTimeInvalid;
+        m_adjustTime = false;
+    }
+
+    if (m_timeOffset.value > 0) {
+        CFRelease(sampleBuffer);
+        sampleBuffer = [self adjustTime:sampleBuffer by:m_timeOffset];
+    }
+
+    CMTime currentTimestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    CMTime currentDuration = CMSampleBufferGetDuration(sampleBuffer);
+    if (currentDuration.value > 0)
+        currentTimestamp = CMTimeAdd(currentTimestamp, currentDuration);
+
+    if (isVideoBuffer)
+    {
+        m_lastVideoTimestamp = currentTimestamp;
         dispatch_async(m_writerQueue, ^{
             [self writeVideoSampleBuffer:sampleBuffer];
+            m_writeFirstAudioBuffer = true;
             CFRelease(sampleBuffer);
         });
     } else if (m_writeFirstAudioBuffer) {
+        m_lastAudioTimestamp = currentTimestamp;
         dispatch_async(m_writerQueue, ^{
             [self writeAudioSampleBuffer:sampleBuffer];
             if (m_service->audioOutput())

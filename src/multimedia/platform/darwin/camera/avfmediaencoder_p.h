@@ -85,6 +85,8 @@ public:
     qint64 duration() const override;
 
     void record(QMediaEncoderSettings &settings) override;
+    void pause() override;
+    void resume() override;
     void stop() override;
 
     void setMetaData(const QMediaMetaData &) override;
@@ -95,6 +97,8 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
     void updateDuration(qint64 duration);
+
+    void toggleRecord(bool enable);
 
 private:
     void applySettings(QMediaEncoderSettings &settings);
