@@ -45,6 +45,8 @@
 #include <CoreVideo/CVMetalTextureCache.h>
 #include <QtGui/qopenglcontext.h>
 
+#include <private/qvideotexturehelper_p.h>
+
 #import <AVFoundation/AVFoundation.h>
 #import <Metal/Metal.h>
 
@@ -58,6 +60,7 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buf
 //    m_type = QVideoFrame::NoHandle;
 //    qDebug() << "RHI" << rhi;
     CVPixelBufferRetain(m_buffer);
+    m_pixelFormat = fromCVPixelFormat(CVPixelBufferGetPixelFormatType(m_buffer));
 }
 
 AVFVideoBuffer::~AVFVideoBuffer()
@@ -119,8 +122,40 @@ void AVFVideoBuffer::unmap()
     }
 }
 
+static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
+{
+    switch (f) {
+    default:
+    case QRhiTexture::UnknownFormat:
+        return MTLPixelFormatInvalid;
+    case QRhiTexture::RGBA8:
+        return MTLPixelFormatRGBA8Unorm;
+    case QRhiTexture::BGRA8:
+        return MTLPixelFormatBGRA8Unorm;
+    case QRhiTexture::R8:
+        return MTLPixelFormatR8Unorm;
+    case QRhiTexture::RG8:
+        return MTLPixelFormatRG8Unorm;
+    case QRhiTexture::R16:
+        return MTLPixelFormatR16Unorm;
+    case QRhiTexture::RG16:
+        return MTLPixelFormatRG16Unorm;
+
+    case QRhiTexture::RGBA16F:
+        return MTLPixelFormatRGBA16Float;
+    case QRhiTexture::RGBA32F:
+        return MTLPixelFormatRGBA32Float;
+    case QRhiTexture::R16F:
+        return MTLPixelFormatR16Float;
+    case QRhiTexture::R32F:
+        return MTLPixelFormatR32Float;
+    }
+}
+
+
 quint64 AVFVideoBuffer::textureHandle(int plane) const
 {
+    auto *textureDescription = QVideoTextureHelper::textureDescription(m_pixelFormat);
     int bufferPlanes = CVPixelBufferGetPlaneCount(m_buffer);
 //    qDebug() << "texture handle" << plane << rhi << (rhi->backend() == QRhi::Metal) << bufferPlanes;
     if (plane > 0 && plane >= bufferPlanes)
@@ -129,22 +164,17 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
         return 0;
     if (rhi->backend() == QRhi::Metal) {
         if (!cvMetalTexture[plane]) {
-            size_t width, height;
-            if (bufferPlanes) {
-                width = CVPixelBufferGetWidthOfPlane(m_buffer, plane);
-                height = CVPixelBufferGetHeightOfPlane(m_buffer, plane);
-            } else {
-                width = CVPixelBufferGetWidth(m_buffer);
-                height = CVPixelBufferGetHeight(m_buffer);
-            }
+            size_t width = CVPixelBufferGetWidth(m_buffer);
+            size_t height = CVPixelBufferGetHeight(m_buffer);
+            width = textureDescription->widthForPlane(width, plane);
+            height = textureDescription->heightForPlane(height, plane);
 
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
                             kCFAllocatorDefault,
                             sink->cvMetalTextureCache,
                             m_buffer, nil,
-                            // ### This needs proper handling when enabling other pixel formats than BRGA8
-                            MTLPixelFormatRGBA8Unorm,
+                            rhiTextureFormatToMetalFormat(textureDescription->textureFormat[plane]),
                             width, height,
                             plane,
                             &cvMetalTexture[plane]);
@@ -153,7 +183,7 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
                 qWarning() << "texture creation failed" << ret;
 //            auto t = CVMetalTextureGetTexture(cvMetalTexture[plane]);
 //            qDebug() << "    metal texture is" << quint64(cvMetalTexture[plane]) << width << height;
-//            qDebug() << t.iosurfacePlane << t.pixelFormat << t.width << t.height;
+//            qDebug() << "    " << t.iosurfacePlane << t.pixelFormat << t.width << t.height;
         }
 
         // Get a Metal texture using the CoreVideo Metal texture reference.
@@ -205,6 +235,9 @@ QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVPixelFormat(unsigned avPixe
         return QVideoFrameFormat::Format_ARGB8888;
     case kCVPixelFormatType_32BGRA:
         return QVideoFrameFormat::Format_BGRA8888;
+    case kCVPixelFormatType_420YpCbCr8Planar:
+    case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
+        return QVideoFrameFormat::Format_YUV420P;
     case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
     case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
         return QVideoFrameFormat::Format_NV12;
@@ -215,6 +248,11 @@ QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVPixelFormat(unsigned avPixe
         return QVideoFrameFormat::Format_UYVY;
     case kCVPixelFormatType_422YpCbCr8_yuvs:
         return QVideoFrameFormat::Format_YUYV;
+    case kCVPixelFormatType_OneComponent8:
+        return QVideoFrameFormat::Format_Y8;
+    case q_kCVPixelFormatType_OneComponent16:
+        return QVideoFrameFormat::Format_Y16;
+
     case kCMVideoCodecType_JPEG:
     case kCMVideoCodecType_JPEG_OpenDML:
         return QVideoFrameFormat::Format_Jpeg;
@@ -232,6 +270,9 @@ bool AVFVideoBuffer::toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, un
     case QVideoFrameFormat::Format_BGRA8888:
         conv = kCVPixelFormatType_32BGRA;
         break;
+    case QVideoFrameFormat::Format_YUV420P:
+        conv = kCVPixelFormatType_420YpCbCr8PlanarFullRange;
+        break;
     case QVideoFrameFormat::Format_NV12:
         conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
         break;
@@ -243,6 +284,12 @@ bool AVFVideoBuffer::toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, un
         break;
     case QVideoFrameFormat::Format_YUYV:
         conv = kCVPixelFormatType_422YpCbCr8_yuvs;
+        break;
+    case QVideoFrameFormat::Format_Y8:
+        conv = kCVPixelFormatType_OneComponent8;
+        break;
+    case QVideoFrameFormat::Format_Y16:
+        conv = q_kCVPixelFormatType_OneComponent16;
         break;
     default:
         return false;

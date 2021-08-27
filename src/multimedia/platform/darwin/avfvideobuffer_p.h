@@ -65,6 +65,11 @@
 #import "Metal/Metal.h"
 #import "MetalKit/MetalKit.h"
 
+enum {
+    // macOS 10.14 doesn't define this pixel format yet
+    q_kCVPixelFormatType_OneComponent16 = 'L016'
+};
+
 QT_BEGIN_NAMESPACE
 
 struct AVFMetalTexture;
@@ -97,6 +102,7 @@ private:
 
     CVImageBufferRef m_buffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
+    QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
 };
 
 QT_END_NAMESPACE
