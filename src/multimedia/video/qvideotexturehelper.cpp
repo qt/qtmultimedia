@@ -241,7 +241,6 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     }
 };
 
-
 const TextureDescription *textureDescription(QVideoFrameFormat::PixelFormat format)
 {
     return descriptions + format;

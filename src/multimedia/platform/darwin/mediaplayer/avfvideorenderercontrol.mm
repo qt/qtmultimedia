@@ -111,7 +111,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
         return;
     AVFVideoBuffer *buffer = new AVFVideoBuffer(this, pixelBuffer);
     auto fmt = AVFVideoBuffer::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(pixelBuffer));
-//    qDebug() << "Got pixelbuffer with format" << fmt;
+//    qDebug() << "Got pixelbuffer with format" << fmt << Qt::hex << CVPixelBufferGetPixelFormatType(pixelBuffer);
     CVPixelBufferRelease(pixelBuffer);
 
     QVideoFrameFormat format(QSize(width, height), fmt);
@@ -123,14 +123,26 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 static NSDictionary* const AVF_OUTPUT_SETTINGS = @{
         (NSString *)kCVPixelBufferPixelFormatTypeKey: @[
             @(kCVPixelFormatType_32BGRA),
-// ### Add supported YUV formats
-// This has problems when trying to get the textures from the pixel buffer in AVFVideoBuffer::textureHandle.
-// Somehow this doesn't work correctly for at least the HDR format (even though it works when mapping the buffers
-// and downloading to a metal texture through RHI). Needs more investigation.
-//            @(kCVPixelFormatType_420YpCbCr8Planar),
-//            @(kCVPixelFormatType_420YpCbCr8PlanarFullRange),
-//            @(kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange),
-//            @(kCVPixelFormatType_420YpCbCr10BiPlanarFullRange)
+            @(kCVPixelFormatType_32RGBA),
+            @(kCVPixelFormatType_422YpCbCr8),
+            @(kCVPixelFormatType_422YpCbCr8_yuvs),
+            @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange),
+            @(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange),
+            @(kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange),
+            @(kCVPixelFormatType_420YpCbCr10BiPlanarFullRange),
+            @(kCVPixelFormatType_OneComponent8),
+            @(q_kCVPixelFormatType_OneComponent16),
+            @(kCVPixelFormatType_420YpCbCr8Planar),
+            @(kCVPixelFormatType_420YpCbCr8PlanarFullRange)
+        ],
+        (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
+};
+
+// The OpengGL texture cache can apparently only handle single plane formats, so lets simply restrict to RGBA
+static NSDictionary* const AVF_OUTPUT_SETTINGS_OPENGL = @{
+        (NSString *)kCVPixelBufferPixelFormatTypeKey: @[
+            @(kCVPixelFormatType_32BGRA),
+            @(kCVPixelFormatType_32RGBA),
         ],
         (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
 };
@@ -147,7 +159,8 @@ CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width
     }
 
     if (!m_videoOutput) {
-        m_videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:AVF_OUTPUT_SETTINGS];
+        auto *settings = (m_rhi && m_rhi->backend() == QRhi::OpenGLES2) ? AVF_OUTPUT_SETTINGS_OPENGL : AVF_OUTPUT_SETTINGS;
+        m_videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
         [m_videoOutput setDelegate:nil queue:nil];
         AVPlayerItem * item = [[layer player] currentItem];
         [item addOutput:m_videoOutput];
