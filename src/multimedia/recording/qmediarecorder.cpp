@@ -63,14 +63,66 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \ingroup multimedia_recording
 
-    \brief The QMediaRecorder class is used for the encoding and recording a capture session.
+    \brief The QMediaRecorder class is used for encoding and recording a capture session.
 
     The QMediaRecorder class is a class for encoding and recording media generated in a
     QMediaCaptureSession.
 
     \snippet multimedia-snippets/media.cpp Media recorder
 */
+/*!
+    \qmltype MediaRecorder
+    \instantiates QMediaRecorder
+    \brief For encoding and recording media generated in a CaptureSession.
 
+    \inqmlmodule QtMultimedia
+    \ingroup multimedia_qml
+    \ingroup multimedia_audio_qml
+    \ingroup multimedia_video_qml
+
+    \since 6.2
+    The code below shows how this qml is instantiated.
+\qml
+    CaptureSession {
+        id: captureSession
+        camera: Camera {
+            id: camera
+        }
+        imageCapture: ImageCapture {
+            id: imageCapture
+        }
+
+        recorder: MediaRecorder {
+            id: recorder
+        }
+    }
+\endqml
+
+    The code below shows how some properties are used.
+\qml
+    CameraButton {
+        text: "Record"
+        visible: captureSession.recorder.status !== MediaRecorder.RecordingStatus
+        onClicked: captureSession.recorder.record()
+    }
+
+    CameraButton {
+        id: stopButton
+        text: "Stop"
+        visible: captureSession.recorder.status === MediaRecorder.RecordingStatus
+        onClicked: captureSession.recorder.stop()
+    }
+
+    CameraButton {
+        text: "View"
+        onClicked: captureControls.previewSelected()
+        //don't show View button during recording
+        visible: captureSession.recorder.actualLocation && !stopButton.visible
+    }
+\endqml
+
+    \sa CaptureSession
+*/
 QMediaRecorderPrivate::QMediaRecorderPrivate()
 {
     // Force an early initialization of the mime database
@@ -132,28 +184,54 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 
     platformSession->setMediaEncoder(d->control);
 }
+/*!
+    \qmlproperty QUrl QtMultimedia::MediaRecorder::outputLocation
+    \brief The destination location of media content.
+
+    Setting the location can fail, for example when the service supports only
+    local file system locations but a network URL was passed. If the operation
+    fails an errorOccured() signal is emitted.
+
+    The location can be relative or empty. If empty the recorder uses the
+    system specific place and file naming scheme.
+
+   \sa errorOccured()
+*/
 
 /*!
     \property QMediaRecorder::outputLocation
     \brief the destination location of media content.
 
     Setting the location can fail, for example when the service supports only
-    local file system locations but a network URL was passed. If the service
-    does not support media recording, setting the output location will
-    always fail. If the operation fails an errorOccured signal is emitted.
+    local file system locations but a network URL was passed. If the operation
+    fails an errorOccured() signal is emitted.
 
-    The \a location can be relative or empty;
-    in the latter case the recorder uses the system specific place and file naming scheme.
+    The output location can be relative or empty; in the latter case the recorder
+    uses the system specific place and file naming scheme.
 */
 
 /*!
-    \property QMediaRecorder::actualLocation
-    \brief the actual location of the last media content.
+    \qmlproperty QUrl QtMultimedia::MediaRecorder::actualLocation
+    \brief The actual location of the last media content.
 
     The actual location is usually available after recording starts,
     and reset when new location is set or new recording starts.
 */
 
+/*!
+    \property QMediaRecorder::actualLocation
+    \brief The actual location of the last media content.
+
+    The actual location is usually available after recording starts,
+    and reset when new location is set or new recording starts.
+*/
+
+/*!
+    \qmlproperty bool QtMultimedia::MediaRecorder::isAvailable
+    \brief This property holds whether the recorder service is ready to use.
+
+    Returns \c true if media recorder service ready to use.
+*/
 /*!
     Returns \c true if media recorder service ready to use.
 */
@@ -209,7 +287,12 @@ QMediaRecorder::Error QMediaRecorder::error() const
 
     return d->control ? d->control->error() : QMediaRecorder::ResourceError;
 }
+/*!
+    \qmlproperty string QtMultimedia::MediaRecorder::errorString
+    \brief This property holds a string describing the current error state.
 
+    \sa error
+*/
 /*!
     Returns a string describing the current error state.
 
@@ -222,6 +305,11 @@ QString QMediaRecorder::errorString() const
 
     return d->control ? d->control->errorString() : tr("QMediaRecorder not supported on this platform");
 }
+/*!
+    \qmlproperty qint64 QtMultimedia::MediaRecorder::duration
+
+    \brief This property holds the recorded media duration in milliseconds.
+*/
 
 /*!
     \property QMediaRecorder::duration
@@ -233,15 +321,24 @@ qint64 QMediaRecorder::duration() const
 {
     return d_func()->control ? d_func()->control->duration() : 0;
 }
+/*!
+    \qmlmethod QtMultimedia::MediaRecorder::record()
+    \brief Starts recording.
 
+    While the recorder state is changed immediately to
+    \c MediaRecorder.RecordingState, recording may start asynchronously.
+
+    If recording fails, the error() signal is emitted with recorder state being
+    reset back to \c{QMediaRecorder.StoppedState}.
+*/
 /*!
     Start recording.
 
-    While the recorder state is changed immediately to QMediaRecorder::RecordingState,
-    recording may start asynchronously.
+    While the recorder state is changed immediately to
+    c\{QMediaRecorder::RecordingState}, recording may start asynchronously.
 
-    If recording fails error() signal is emitted
-    with recorder state being reset back to QMediaRecorder::StoppedState.
+    If recording fails error() signal is emitted with recorder state being
+    reset back to \c{QMediaRecorder::StoppedState}.
 */
 
 void QMediaRecorder::record()
@@ -272,14 +369,22 @@ void QMediaRecorder::record()
             emit mediaFormatChanged();
     }
 }
-
 /*!
-    Pause recording.
+    \qmlmethod QtMultimedia::MediaRecorder::pause()
+    \brief Pauses recording.
+
+    The recorder state is changed to QMediaRecorder.PausedState.
+
+    Depending on the platform, pausing recording may be not supported.
+    In this case the recorder state is unchanged.
+*/
+/*!
+    Pauses recording.
 
     The recorder state is changed to QMediaRecorder::PausedState.
 
-    Depending on platform recording pause may be not supported,
-    in this case the recorder state stays unchanged.
+    Depending on the platform, pausing recording may be not supported.
+    In this case the recorder state is unchanged.
 */
 
 void QMediaRecorder::pause()
@@ -288,9 +393,15 @@ void QMediaRecorder::pause()
     if (d->control && d->captureSession)
         d->control->pause();
 }
+/*!
+    \qmlmethod QtMultimedia::MediaRecorder::stop()
+    \brief Stops recording.
+
+    The recorder state is changed to \c{QMediaRecorder.StoppedState}.
+*/
 
 /*!
-    Stop recording.
+    Stops recording.
 
     The recorder state is changed to QMediaRecorder::StoppedState.
 */
@@ -301,7 +412,22 @@ void QMediaRecorder::stop()
     if (d->control && d->captureSession)
         d->control->stop();
 }
+/*!
+    \qmlproperty enumeration QtMultimedia::MediaRecorder::recorderState
+    \brief This property holds the current media recorder state.
 
+    The state property represents the user request and is changed synchronously
+    during record(), pause() or stop() calls.
+    RecorderSstate may also change asynchronously when recording fails.
+
+    \value recorderState.StoppedState The recorder is not active.
+        If this is the state after recording then the actual created recording has
+        finished being written to the final location and is ready on all platforms
+        except on Android. On Android, due to platform limitations, there is no way
+        to be certain that the recording has finished writing to the final location.
+    \value recorderState.RecordingState The recording is requested.
+    \value recorderState.PausedState The recorder is pause.
+*/
 /*!
     \enum QMediaRecorder::RecorderState
 
@@ -313,7 +439,16 @@ void QMediaRecorder::stop()
     \value RecordingState  The recording is requested.
     \value PausedState     The recorder is paused.
 */
+/*!
+    \qmlproperty enumeration QtMultimedia::MediaRecorder::error
+    \brief This property holds the current media recorder error state.
 
+    \value MediaRecorder.NoError Not in an error state.
+    \value MediaRecorder.ResourceError Not enough system resources
+    \value MediaRecorder.FormatError the current format is not supported.
+    \value MediaRecorder.OutOfSpaceError No space left on device.
+    \value MediaRecorder.LocationNotWriteable The output location is not writable.
+*/
 /*!
     \enum QMediaRecorder::Error
 
@@ -334,9 +469,19 @@ void QMediaRecorder::stop()
 */
 
 /*!
+    \qmlsignal QtMultimedia::MediaRecorder::recorderStateChanged(RecorderState state)
+    \brief Signals that a media recorder's \a state has changed.
+*/
+
+/*!
     \fn QMediaRecorder::recorderStateChanged(QMediaRecorder::RecorderState state)
 
     Signals that a media recorder's \a state has changed.
+*/
+
+/*!
+    \qmlsignal QtMultimedia::MediaRecorder::durationChanged(qint64 duration)
+    \brief Signals that the \a duration of the recorded media has changed.
 */
 
 /*!
@@ -344,19 +489,41 @@ void QMediaRecorder::stop()
 
     Signals that the \a duration of the recorded media has changed.
 */
+/*!
+    \qmlsignal QtMultimedia::MediaRecorder::actualLocationChanged(const QUrl &location)
+    \brief Signals that the actual \a location of the recorded media has changed.
 
+    This signal is usually emitted when recording starts.
+*/
 /*!
     \fn QMediaRecorder::actualLocationChanged(const QUrl &location)
 
     Signals that the actual \a location of the recorded media has changed.
     This signal is usually emitted when recording starts.
 */
+/*!
+    \qmlsignal QtMultimedia::MediaRecorder::errorOccurred(Error error, const QString &errorString)
+    \brief Signals that an \a error has occurred.
 
+    The \a errorString contains a description of the error.
+*/
 /*!
     \fn QMediaRecorder::errorOccurred(QMediaRecorder::Error error, const QString &errorString)
 
     Signals that an \a error has occurred, with \a errorString containing
     a description of the error.
+*/
+
+/*!
+    \qmlproperty MetaData QtMultimedia::MediaRecorder::metaData
+
+    \brief This property holds meta data associated with the recording.
+
+    When a recording is started, any meta-data assigned will be attached to  that
+    recording.
+
+    \note Ensure that meta-data is assigned correctly by assigning it before
+    starting the recording.
 */
 
 /*!
@@ -372,8 +539,8 @@ QMediaMetaData QMediaRecorder::metaData() const
 /*!
     Sets the meta data to \a metaData.
 
-    \note To ensure that meta data is set correctly, it should be set before starting the recording.
-    Once the recording is stopped, any meta data set will be attached to the next recording.
+    \note To ensure that meta-data is set correctly, it should be set before starting the recording.
+    Once the recording is started, any meta-data set will be attached to the next recording.
 */
 void QMediaRecorder::setMetaData(const QMediaMetaData &metaData)
 {
@@ -391,15 +558,21 @@ void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
         data.insert(k, metaData.value(k));
     setMetaData(data);
 }
+/*!
+    \qmlsignal QtMultimedia::MediaRecorder::metaDataChanged()
 
+    \brief Signals that a media object's meta-data has changed.
+
+    If multiple meta-data elements are changed metaDataChanged() is emitted
+    once.
+*/
 /*!
     \fn QMediaRecorder::metaDataChanged()
 
     Signals that a media object's meta-data has changed.
 
-    If multiple meta-data elements are changed,
-    metaDataChanged(const QString &key, const QVariant &value) signal is emitted
-    for each of them with metaDataChanged() changed emitted once.
+    If multiple meta-data elements are changed metaDataChanged() is emitted
+    once.
 */
 
 QMediaCaptureSession *QMediaRecorder::captureSession() const
@@ -407,7 +580,17 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
     Q_D(const QMediaRecorder);
     return d->captureSession;
 }
+/*!
+    \qmlproprty enumeration QtMultimedia::MediaRecorder::quality
 
+    Enumerates quality encoding levels.
+
+    \value MediaaRecorder.VeryLowQuality
+    \value MediaaRecorder.LowQuality
+    \value MediaaRecorder.NormalQuality
+    \value MediaaRecorder.HighQuality
+    \value MediaaRecorder.VeryHighQuality
+*/
 /*!
     \enum QMediaRecorder::Quality
 
@@ -432,6 +615,13 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
     \value TwoPassEncoding The media will first be processed to determine the characteristics,
            and then processed a second time allocating more bits to the areas
            that need it.
+*/
+
+/*!
+
+    \qmlproperty MediaFormat QtMultimedia::MediaRecorder::mediaFormat
+
+    \brief This property holds the current MediaFormat of the recorder.
 */
 
 QMediaFormat QMediaRecorder::mediaFormat() const
