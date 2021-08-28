@@ -225,15 +225,18 @@ void AVFCameraRenderer::handleViewfinderFrame()
     }
 }
 
-void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat /*pixelFormat*/)
+void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat pixelFormat)
 {
-    // ### Force 32ARGB/32BGRA pixel formats on the viewfinder for now.
-    // There are problems with other pixel formats that need more investigation.
+    // Default to 32ARGB/32BGRA pixel formats on the viewfinder, in case the requested
+    // format can't be used (shouldn't happen unless the developers sets a wrong camera
+    // format on the camera).
     unsigned avPixelFormat = kCVPixelFormatType_32ARGB;
 #ifdef Q_OS_IOS
     avPixelFormat = kCVPixelFormatType_32BGRA;
 #endif
-    // AVFVideoBuffer::toCVPixelFormat(pixelFormat, avPixelFormat);
+    if (!AVFVideoBuffer::toCVPixelFormat(pixelFormat, avPixelFormat))
+        qWarning() << "QCamera::setCameraFormat: couldn't convert requested pixel format, using ARGB32";
+    qDebug() << "setPixelFormat" <<  pixelFormat << Qt::hex << avPixelFormat;
 
     bool isSupported = false;
     NSArray *supportedPixelFormats = m_videoDataOutput.availableVideoCVPixelFormatTypes;
@@ -251,6 +254,8 @@ void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat /*pi
             (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
         };
         m_videoDataOutput.videoSettings = outputSettings;
+    } else {
+        qWarning() << "QCamera::setCameraFormat: requested pixel format not supported. Did you use a camera format from another camera?";
     }
 }
 
