@@ -21,11 +21,22 @@ find_package(Qt6 COMPONENTS Multimedia)
 find_package(Qt6 COMPONENTS MultimediaWidgets)
 find_package(Qt6 COMPONENTS Widgets)
 
+set(camera_form "")
+set(videosettings_form "")
+if(ANDROID OR IOS)
+    set(camera_form camera_mobile.ui)
+    set(videosettings_form videosettings_mobile.ui)
+else()
+    set(camera_form camera.ui)
+    set(videosettings_form videosettings.ui)
+endif()
+
 qt_add_executable(camera
-    camera.cpp camera.h camera.ui
+    MANUAL_FINALIZATION
+    camera.cpp camera.h ${camera_form}
     imagesettings.cpp imagesettings.h imagesettings.ui
     main.cpp
-    videosettings.cpp videosettings.h videosettings.ui
+    videosettings.cpp videosettings.h ${videosettings_form}
     metadatadialog.cpp metadatadialog.h
 )
 set_target_properties(camera PROPERTIES
@@ -33,6 +44,10 @@ set_target_properties(camera PROPERTIES
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
+
+set_property(TARGET camera APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
+             ${CMAKE_CURRENT_SOURCE_DIR}/android)
+
 target_include_directories(camera PUBLIC
     ../../multimedia/shared
 )
@@ -56,6 +71,8 @@ qt6_add_resources(camera "camera"
     FILES
         ${camera_resource_files}
 )
+
+qt_finalize_executable(camera)
 
 install(TARGETS camera
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
