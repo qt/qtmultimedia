@@ -114,12 +114,12 @@ void AndroidSurfaceHolder::handleSurfaceDestroyed(JNIEnv*, jobject, jlong id)
 
 bool AndroidSurfaceHolder::registerNativeMethods()
 {
-    static JNINativeMethod methods[] = {
+    static const JNINativeMethod methods[] = {
         {"notifySurfaceCreated", "(J)V", (void *)AndroidSurfaceHolder::handleSurfaceCreated},
         {"notifySurfaceDestroyed", "(J)V", (void *)AndroidSurfaceHolder::handleSurfaceDestroyed}
     };
 
-    const int size = sizeof(methods) / sizeof(methods[0]);
+    const int size = std::size(methods);
     return QJniEnvironment().registerNativeMethods(QtSurfaceHolderCallbackClassName, methods, size);
 }
 

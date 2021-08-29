@@ -163,10 +163,10 @@ void AndroidSurfaceTexture::detachFromGLContext()
 
 bool AndroidSurfaceTexture::registerNativeMethods()
 {
-    static JNINativeMethod methods[] = {
+    static const JNINativeMethod methods[] = {
         {"notifyFrameAvailable", "(J)V", (void *)notifyFrameAvailable}
     };
-    const int size = sizeof(methods) / sizeof(methods[0]);
+    const int size = std::size(methods);
     if (QJniEnvironment().registerNativeMethods(QtSurfaceTextureListenerClassName, methods, size))
         return false;
 

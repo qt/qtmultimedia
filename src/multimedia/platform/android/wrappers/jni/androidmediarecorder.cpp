@@ -310,12 +310,12 @@ void AndroidMediaRecorder::setSurfaceHolder(AndroidSurfaceHolder *holder)
 
 bool AndroidMediaRecorder::registerNativeMethods()
 {
-    static JNINativeMethod methods[] = {
+    static const JNINativeMethod methods[] = {
         {"notifyError", "(JII)V", (void *)notifyError},
         {"notifyInfo", "(JII)V", (void *)notifyInfo}
     };
 
-    const int size = sizeof(methods) / sizeof(methods[0]);
+    const int size = std::size(methods);
     return QJniEnvironment().registerNativeMethods(QtMediaRecorderListenerClassName, methods, size);
 }
 

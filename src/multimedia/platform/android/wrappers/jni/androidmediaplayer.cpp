@@ -544,7 +544,7 @@ static void onTimedTextChangedNative(JNIEnv *env, jobject thiz, jstring timedTex
 
 bool AndroidMediaPlayer::registerNativeMethods()
 {
-    static JNINativeMethod methods[] = {
+    static const JNINativeMethod methods[] = {
         { "onErrorNative", "(IIJ)V", reinterpret_cast<void *>(onErrorNative) },
         { "onBufferingUpdateNative", "(IJ)V", reinterpret_cast<void *>(onBufferingUpdateNative) },
         { "onProgressUpdateNative", "(IJ)V", reinterpret_cast<void *>(onProgressUpdateNative) },
@@ -558,7 +558,7 @@ bool AndroidMediaPlayer::registerNativeMethods()
           reinterpret_cast<void *>(onTimedTextChangedNative) }
     };
 
-    const int size = sizeof(methods) / sizeof(methods[0]);
+    const int size = std::size(methods);
     return QJniEnvironment().registerNativeMethods(QtAndroidMediaPlayerClassName, methods, size);
 }
 
