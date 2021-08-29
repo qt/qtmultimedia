@@ -45,15 +45,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static bool exceptionCheckAndClear()
-{
-#ifdef QT_DEBUG
-    return QJniEnvironment().checkAndClearExceptions(QJniEnvironment::OutputMode::Verbose);
-#else
-    return QJniEnvironment().checkAndClearExceptions();
-#endif // QT_DEBUG
-}
-
 AndroidMediaMetadataRetriever::AndroidMediaMetadataRetriever()
 {
     m_metadataRetriever = QJniObject("android/media/MediaMetadataRetriever");
@@ -110,7 +101,7 @@ bool AndroidMediaMetadataRetriever::setDataSource(const QUrl &url)
         auto methodId = env->GetMethodID(m_metadataRetriever.objectClass(), "setDataSource",
                                          "(Ljava/io/FileDescriptor;)V");
         env->CallVoidMethod(m_metadataRetriever.object(), methodId, fd.object());
-        bool ok = !exceptionCheckAndClear();
+        bool ok = !env.checkAndClearExceptions();
         fileInputStream.callMethod<void>("close");
         if (!ok)
             return false;
@@ -138,7 +129,7 @@ bool AndroidMediaMetadataRetriever::setDataSource(const QUrl &url)
                             fd.object(),
                             assetFd.callMethod<jlong>("getStartOffset"),
                             assetFd.callMethod<jlong>("getLength"));
-        bool ok = !exceptionCheckAndClear();
+        bool ok = !env.checkAndClearExceptions();
         assetFd.callMethod<void>("close");
 
         if (!ok)
@@ -152,7 +143,7 @@ bool AndroidMediaMetadataRetriever::setDataSource(const QUrl &url)
                                          "(Ljava/lang/String;Ljava/util/Map;)V");
         env->CallVoidMethod(m_metadataRetriever.object(), methodId,
                             string.object(), hash.object());
-        if (exceptionCheckAndClear())
+        if (env.checkAndClearExceptions())
             return false;
     } else {
         // While on API levels < 14, only setDataSource(Context, Uri) is available and works for
@@ -170,7 +161,7 @@ bool AndroidMediaMetadataRetriever::setDataSource(const QUrl &url)
                                          "(Landroid/content/Context;Landroid/net/Uri;)V");
         env->CallVoidMethod(m_metadataRetriever.object(), methodId,
                             QNativeInterface::QAndroidApplication::context(), uri.object());
-        if (exceptionCheckAndClear())
+        if (env.checkAndClearExceptions())
             return false;
     }
 

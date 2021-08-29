@@ -51,15 +51,6 @@ QT_BEGIN_NAMESPACE
 typedef QMap<QString, QJniObject> CamcorderProfiles;
 Q_GLOBAL_STATIC(CamcorderProfiles, g_camcorderProfiles)
 
-static inline bool exceptionCheckAndClear()
-{
-#ifdef QT_DEBUG
-    return QJniEnvironment().checkAndClearExceptions(QJniEnvironment::OutputMode::Verbose);
-#else
-    return QJniEnvironment().checkAndClearExceptions();
-#endif // QT_DEBUG
-}
-
 static QString profileKey()
 {
     return QStringLiteral("%1-%2");
@@ -86,10 +77,10 @@ AndroidCamcorderProfile AndroidCamcorderProfile::get(jint cameraId, Quality qual
         return AndroidCamcorderProfile(*it);
 
     QJniObject camProfile = QJniObject::callStaticObjectMethod("android/media/CamcorderProfile",
-                                                                             "get",
-                                                                             "(II)Landroid/media/CamcorderProfile;",
-                                                                             cameraId,
-                                                                             quality);
+                                                         "get",
+                                                         "(II)Landroid/media/CamcorderProfile;",
+                                                         cameraId,
+                                                         quality);
 
     return AndroidCamcorderProfile((*g_camcorderProfiles)[key] = camProfile);
 }
@@ -131,7 +122,8 @@ AndroidCamcorderProfile::AndroidCamcorderProfile(const QJniObject &camcorderProf
     m_camcorderProfile = camcorderProfile;
 }
 
-static const char QtMediaRecorderListenerClassName[] = "org/qtproject/qt/android/multimedia/QtMediaRecorderListener";
+static const char QtMediaRecorderListenerClassName[] =
+        "org/qtproject/qt/android/multimedia/QtMediaRecorderListener";
 typedef QMap<jlong, AndroidMediaRecorder*> MediaRecorderMap;
 Q_GLOBAL_STATIC(MediaRecorderMap, mediaRecorders)
 
@@ -182,7 +174,7 @@ bool AndroidMediaRecorder::prepare()
     auto methodId = env->GetMethodID(m_mediaRecorder.objectClass(), "prepare", "()V");
     env->CallVoidMethod(m_mediaRecorder.object(), methodId);
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         return false;
     return true;
 }
@@ -198,7 +190,7 @@ bool AndroidMediaRecorder::start()
     auto methodId = env->GetMethodID(m_mediaRecorder.objectClass(), "start", "()V");
     env->CallVoidMethod(m_mediaRecorder.object(), methodId);
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         return false;
     return true;
 }
@@ -236,11 +228,12 @@ void AndroidMediaRecorder::setAudioSource(AudioSource source)
 
 bool AndroidMediaRecorder::setAudioInput(const QByteArray &id)
 {
-    const bool ret = QJniObject::callStaticMethod<jboolean>("org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
-                                                    "setAudioInput",
-                                                    "(Landroid/media/MediaRecorder;I)Z",
-                                                    m_mediaRecorder.object(),
-                                                    id.toInt());
+    const bool ret = QJniObject::callStaticMethod<jboolean>(
+                "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                "setAudioInput",
+                "(Landroid/media/MediaRecorder;I)Z",
+                m_mediaRecorder.object(),
+                id.toInt());
     if (!ret)
         qCWarning(QLoggingCategory("mediarecorder")) << "No default input device was set";
 

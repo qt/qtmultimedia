@@ -54,15 +54,6 @@ QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(lcAudio, "qt.multimedia.audio")
 
-static bool exceptionCheckAndClear()
-{
-#ifdef QT_DEBUG
-    return QJniEnvironment().checkAndClearExceptions(QJniEnvironment::OutputMode::Verbose);
-#else
-    return QJniEnvironment().checkAndClearExceptions();
-#endif // QT_DEBUG
-}
-
 AndroidMediaPlayer::AndroidMediaPlayer()
     : QObject()
 {
@@ -135,7 +126,7 @@ qreal AndroidMediaPlayer::playbackRate()
             QJniEnvironment env;
             auto methodId = env->GetMethodID(playbackParams.objectClass(), "getSpeed", "()F");
             const qreal speed = env->CallFloatMethod(playbackParams.object(), methodId);
-            if (!exceptionCheckAndClear())
+            if (!env.checkAndClearExceptions())
                 rate = speed;
         }
     }
@@ -158,7 +149,7 @@ AndroidMediaPlayer::TrackInfo convertTrackInfo(int streamNumber, QJniObject andr
                  unknownMimeType };
 
     auto type = androidTrackInfo.callMethod<jint>("getType", "()I");
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         return { streamNumber, AndroidMediaPlayer::TrackType::Unknown, undefinedLanguage,
                  unknownMimeType };
 
@@ -199,7 +190,7 @@ QList<AndroidMediaPlayer::TrackInfo> AndroidMediaPlayer::tracksInfo()
     for (int index = 0; index < numberofTracks; index++) {
         auto androidTrackInformation = environment->GetObjectArrayElement(androidTracksInfo, index);
 
-        if (exceptionCheckAndClear()) {
+        if (environment.checkAndClearExceptions()) {
             continue;
         }
 
@@ -304,7 +295,7 @@ bool AndroidMediaPlayer::setPlaybackRate(qreal rate)
                                              "(Landroid/media/PlaybackParams;)V");
             env->CallVoidMethod(player.object(), methodId, playbackParams.object());
 
-            if (exceptionCheckAndClear()) {
+            if (env.checkAndClearExceptions()) {
                 qWarning() << "Invalid playback rate" << rate;
                 return false;
             } else {

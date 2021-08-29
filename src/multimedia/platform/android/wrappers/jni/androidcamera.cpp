@@ -62,15 +62,6 @@ typedef QHash<int, AndroidCamera *> CameraMap;
 Q_GLOBAL_STATIC(CameraMap, cameras)
 Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
-static inline bool exceptionCheckAndClear()
-{
-#ifdef QT_DEBUG
-    return QJniEnvironment().checkAndClearExceptions(QJniEnvironment::OutputMode::Verbose);
-#else
-    return QJniEnvironment().checkAndClearExceptions();
-#endif // QT_DEBUG
-}
-
 static QRect areaToRect(jobject areaObj)
 {
     QJniObject area(areaObj);
@@ -938,7 +929,7 @@ bool AndroidCameraPrivate::lock()
     auto methodId = env->GetMethodID(m_camera.objectClass(), "lock", "()V");
     env->CallVoidMethod(m_camera.object(), methodId);
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         return false;
     return true;
 }
@@ -949,7 +940,7 @@ bool AndroidCameraPrivate::unlock()
     auto methodId = env->GetMethodID(m_camera.objectClass(), "unlock", "()V");
     env->CallVoidMethod(m_camera.object(), methodId);
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         return false;
     return true;
 }
@@ -960,7 +951,7 @@ bool AndroidCameraPrivate::reconnect()
     auto methodId = env->GetMethodID(m_camera.objectClass(), "reconnect", "()V");
     env->CallVoidMethod(m_camera.object(), methodId);
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         return false;
     return true;
 }
@@ -1176,7 +1167,7 @@ bool AndroidCameraPrivate::setPreviewTexture(void *surfaceTexture)
                                      "(Landroid/graphics/SurfaceTexture;)V");
     env->CallVoidMethod(m_camera.object(), methodId, static_cast<jobject>(surfaceTexture));
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         return false;
     return true;
 }
@@ -1188,7 +1179,7 @@ bool AndroidCameraPrivate::setPreviewDisplay(void *surfaceHolder)
                                      "(Landroid/view/SurfaceHolder;)V");
     env->CallVoidMethod(m_camera.object(), methodId, static_cast<jobject>(surfaceHolder));
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         return false;
     return true;
 }
@@ -1385,7 +1376,7 @@ void AndroidCameraPrivate::autoFocus()
                                      "(Landroid/hardware/Camera$AutoFocusCallback;)V");
     env->CallVoidMethod(m_camera.object(), methodId, m_cameraListener.object());
 
-    if (!exceptionCheckAndClear())
+    if (!env.checkAndClearExceptions())
         emit autoFocusStarted();
 }
 
@@ -1629,7 +1620,7 @@ void AndroidCameraPrivate::startPreview()
     auto methodId = env->GetMethodID(m_camera.objectClass(), "startPreview", "()V");
     env->CallVoidMethod(m_camera.object(), methodId);
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         emit previewFailedToStart();
     else
         emit previewStarted();
@@ -1658,7 +1649,7 @@ void AndroidCameraPrivate::takePicture()
     env->CallVoidMethod(m_camera.object(), methodId, m_cameraListener.object(),
                         jobject(0), m_cameraListener.object());
 
-    if (exceptionCheckAndClear())
+    if (env.checkAndClearExceptions())
         emit takePictureFailed();
 }
 
