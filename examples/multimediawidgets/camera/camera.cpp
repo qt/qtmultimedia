@@ -49,7 +49,11 @@
 ****************************************************************************/
 
 #include "camera.h"
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
+#include "ui_camera_mobile.h"
+#else
 #include "ui_camera.h"
+#endif
 #include "videosettings.h"
 #include "imagesettings.h"
 #include "metadatadialog.h"

@@ -49,7 +49,11 @@
 ****************************************************************************/
 
 #include "videosettings.h"
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
+#include "ui_videosettings_mobile.h"
+#else
 #include "ui_videosettings.h"
+#endif
 
 #include <QComboBox>
 #include <QSpinBox>
