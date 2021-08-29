@@ -101,7 +101,7 @@ private slots:
 
     void statusChanged(QMediaPlayer::MediaStatus status);
     void stateChanged(QMediaPlayer::PlaybackState state);
-    void bufferingProgress(int progress);
+    void bufferingProgress(float progress);
     void videoAvailableChanged(bool available);
 
     void selectAudioStream();

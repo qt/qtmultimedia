@@ -434,10 +434,10 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
         break;
     case QMediaPlayer::BufferingMedia:
     case QMediaPlayer::BufferedMedia:
-        setStatusInfo(tr("Buffering %1%").arg(m_player->bufferProgress()));
+        setStatusInfo(tr("Buffering %1%").arg(qRound(m_player->bufferProgress()*100.)));
         break;
     case QMediaPlayer::StalledMedia:
-        setStatusInfo(tr("Stalled %1%").arg(m_player->bufferProgress()));
+        setStatusInfo(tr("Stalled %1%").arg(qRound(m_player->bufferProgress()*100.)));
         break;
     case QMediaPlayer::EndOfMedia:
         QApplication::alert(this);
@@ -467,12 +467,13 @@ void Player::handleCursor(QMediaPlayer::MediaStatus status)
 #endif
 }
 
-void Player::bufferingProgress(int progress)
+void Player::bufferingProgress(float progress)
 {
+    qDebug() << "buffering progress" << progress;
     if (m_player->mediaStatus() == QMediaPlayer::StalledMedia)
-        setStatusInfo(tr("Stalled %1%").arg(progress));
+        setStatusInfo(tr("Stalled %1%").arg(qRound(progress*100.)));
     else
-        setStatusInfo(tr("Buffering %1%").arg(progress));
+        setStatusInfo(tr("Buffering %1%").arg(qRound(progress*100.)));
 }
 
 void Player::videoAvailableChanged(bool available)
