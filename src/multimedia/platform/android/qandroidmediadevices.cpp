@@ -104,11 +104,11 @@ static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 
 bool QAndroidMediaDevices::registerNativeMethods()
 {
-    static JNINativeMethod methods[] = {
+    static const JNINativeMethod methods[] = {
         {"onAudioInputDevicesUpdated","()V",(void*)onAudioInputDevicesUpdated},
         {"onAudioOutputDevicesUpdated", "()V",(void*)onAudioOutputDevicesUpdated}
     };
-    const int size = sizeof(methods) / sizeof(methods[0]);
+    const int size = std::size(methods);
     return QJniEnvironment().registerNativeMethods(
                 "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", methods, size);
 }

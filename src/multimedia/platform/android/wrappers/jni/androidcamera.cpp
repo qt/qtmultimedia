@@ -1730,7 +1730,7 @@ QStringList AndroidCameraPrivate::callParametersStringListMethod(const QByteArra
 
 bool AndroidCamera::registerNativeMethods()
 {
-    static JNINativeMethod methods[] = {
+    static const JNINativeMethod methods[] = {
         {"notifyAutoFocusComplete", "(IZ)V", (void *)notifyAutoFocusComplete},
         {"notifyPictureExposed", "(I)V", (void *)notifyPictureExposed},
         {"notifyPictureCaptured", "(I[B)V", (void *)notifyPictureCaptured},
@@ -1738,7 +1738,7 @@ bool AndroidCamera::registerNativeMethods()
         {"notifyFrameAvailable", "(I)V", (void *)notifyFrameAvailable}
     };
 
-    const int size = sizeof(methods) / sizeof(methods[0]);
+    const int size = std::size(methods);
     return QJniEnvironment().registerNativeMethods(QtCameraListenerClassName, methods, size);
 }
 
