@@ -1089,9 +1089,6 @@ void AVFMediaPlayer::updateTracks()
                 }
                 else if ([assetTrack.mediaType isEqualToString:AVMediaTypeSubtitle]) {
                     qtTrack = QPlatformMediaPlayer::SubtitleStream;
-                    setVideoAvailable(true);
-                    if (!m_observer.videoTrack)
-                        m_observer.videoTrack = track;
                 }
                 if (qtTrack != -1) {
                     QMediaMetaData metaData = AVFMetaData::fromAssetTrack(assetTrack);

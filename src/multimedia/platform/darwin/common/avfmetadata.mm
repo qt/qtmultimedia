@@ -279,9 +279,16 @@ QMediaMetaData AVFMetaData::fromAssetTrack(AVAssetTrack *asset)
 {
     QMediaMetaData metadata = fromAVMetadata([asset metadata]);
     if (metadata.value(QMediaMetaData::Language).isNull()) {
-        auto *lang = asset.languageCode;
-        if (lang)
-            metadata.insert(QMediaMetaData::Language, QString::fromNSString(lang));
+        auto *languageCode = asset.languageCode;
+        if (languageCode) {
+            // languageCode is encoded as ISO 639-2, which QLocale does not handle.
+            // Convert it to 639-1 first.
+            auto id = CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorDefault,
+                                                                          (__bridge CFStringRef)languageCode);
+            QString lang = QString::fromCFString(id);
+            CFRelease(id);
+            metadata.insert(QMediaMetaData::Language, QLocale::codeToLanguage(lang));
+        }
     }
     return metadata;
 }
