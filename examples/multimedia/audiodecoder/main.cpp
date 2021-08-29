@@ -58,6 +58,7 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <qstandardpaths.h>
 #endif
 
 #include <stdio.h>
@@ -106,13 +107,14 @@ int main(int argc, char *argv[])
 
 #else
 
-    const QString message = "You will be prompted to select an audio file which will be"
-                            "decoded and played back to you.";
+    const QString message = "You will be prompted to select an audio file (e.g. mp3 or ogg format) "
+                            "which will be decoded and played back to you.";
     QMessageBox messageBox(QMessageBox::Information, "Audio Decoder", message, QMessageBox::Ok);
     messageBox.exec();
     sourceFile = QFileInfo(QFileDialog::getOpenFileName(messageBox.parentWidget(),
                                                         "Select Audio File"));
-    targetFile = QFileInfo("/data/local/tmp/out.wav");
+    auto musicPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
+    targetFile = QFileInfo(musicPath.append("/out.wav"));
     isPlayback = true;
 #endif
     AudioDecoder decoder(isPlayback, isDelete, targetFile.absoluteFilePath());
