@@ -148,7 +148,9 @@ AndroidMediaPlayer::TrackInfo convertTrackInfo(int streamNumber, QJniObject andr
         return { streamNumber, AndroidMediaPlayer::TrackType::Unknown, undefinedLanguage,
                  unknownMimeType };
 
-    auto type = androidTrackInfo.callMethod<jint>("getType", "()I");
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(androidTrackInfo.objectClass(), "getType", "()I");
+    const jint type = env->CallIntMethod(androidTrackInfo.object(), methodId);
     if (env.checkAndClearExceptions())
         return { streamNumber, AndroidMediaPlayer::TrackType::Unknown, undefinedLanguage,
                  unknownMimeType };
