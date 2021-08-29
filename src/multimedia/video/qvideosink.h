@@ -69,10 +69,8 @@ public:
     QPlatformVideoSink *platformVideoSink() const;
 
 Q_SIGNALS:
-    // would never get called in windowed mode
     void newVideoFrame(const QVideoFrame &frame) const;
 
-    void fullScreenChanged(bool fullScreen);
     void videoSizeChanged();
 
 private:
