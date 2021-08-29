@@ -60,80 +60,91 @@ struct AVMetadataIDs {
     AVMetadataIdentifier iTunes;
     AVMetadataIdentifier quickTime;
     AVMetadataIdentifier ID3;
+    AVMetadataIdentifier quickTimeUserData;
+    AVMetadataIdentifier isoUserData;
 };
 
 const AVMetadataIDs keyToAVMetaDataID[] = {
     // Title
     { AVMetadataCommonIdentifierTitle, AVMetadataIdentifieriTunesMetadataSongName,
       AVMetadataIdentifierQuickTimeMetadataTitle,
-      AVMetadataIdentifierID3MetadataTitleDescription },
+      AVMetadataIdentifierID3MetadataTitleDescription,
+      nil, AVMetadata3GPUserDataKeyTitle },
     // Author
     { AVMetadataCommonIdentifierAuthor,AVMetadataIdentifieriTunesMetadataAuthor,
-      AVMetadataIdentifierQuickTimeMetadataAuthor, nil },
+      AVMetadataIdentifierQuickTimeMetadataAuthor, nil,
+      AVMetadataQuickTimeUserDataKeyAuthor, AVMetadata3GPUserDataKeyAuthor },
     // Comment
     { nil, AVMetadataIdentifieriTunesMetadataUserComment,
-      AVMetadataIdentifierQuickTimeMetadataComment, AVMetadataIdentifierID3MetadataComments },
+      AVMetadataIdentifierQuickTimeMetadataComment, AVMetadataIdentifierID3MetadataComments,
+      AVMetadataQuickTimeUserDataKeyComment, nil },
     // Description
     { AVMetadataCommonIdentifierDescription,AVMetadataIdentifieriTunesMetadataDescription,
-      AVMetadataIdentifierQuickTimeMetadataDescription, nil },
+      AVMetadataIdentifierQuickTimeMetadataDescription, nil,
+      AVMetadataQuickTimeUserDataKeyDescription, AVMetadata3GPUserDataKeyDescription },
     // Genre
     { nil, AVMetadataIdentifieriTunesMetadataUserGenre,
-      AVMetadataIdentifierQuickTimeMetadataGenre, nil },
+      AVMetadataIdentifierQuickTimeMetadataGenre, nil,
+      AVMetadataQuickTimeUserDataKeyGenre, AVMetadata3GPUserDataKeyGenre },
     // Date
     { AVMetadataCommonIdentifierCreationDate, AVMetadataIdentifieriTunesMetadataReleaseDate,
-      AVMetadataIdentifierQuickTimeMetadataCreationDate, AVMetadataIdentifierID3MetadataDate },
+      AVMetadataIdentifierQuickTimeMetadataCreationDate, AVMetadataIdentifierID3MetadataDate,
+      AVMetadataQuickTimeUserDataKeyCreationDate, AVMetadataISOUserDataKeyDate },
     // Language
-    { AVMetadataCommonIdentifierLanguage, nil, nil, AVMetadataIdentifierID3MetadataLanguage },
+    { AVMetadataCommonIdentifierLanguage, nil, nil, AVMetadataIdentifierID3MetadataLanguage, nil, nil },
     // Publisher
     { AVMetadataCommonIdentifierPublisher, AVMetadataIdentifieriTunesMetadataPublisher,
-      AVMetadataIdentifierQuickTimeMetadataPublisher, AVMetadataIdentifierID3MetadataPublisher },
+      AVMetadataIdentifierQuickTimeMetadataPublisher, AVMetadataIdentifierID3MetadataPublisher, nil, nil },
     // Copyright
     { AVMetadataCommonIdentifierCopyrights, AVMetadataIdentifieriTunesMetadataCopyright,
-      AVMetadataIdentifierQuickTimeMetadataCopyright, AVMetadataIdentifierID3MetadataCopyright },
+      AVMetadataIdentifierQuickTimeMetadataCopyright, AVMetadataIdentifierID3MetadataCopyright,
+      AVMetadataQuickTimeUserDataKeyCopyright, AVMetadataISOUserDataKeyCopyright },
     // Url
-    { nil, nil, nil, AVMetadataIdentifierID3MetadataOfficialAudioSourceWebpage },
+    { nil, nil, nil, AVMetadataIdentifierID3MetadataOfficialAudioSourceWebpage, nil, nil },
     // Duration
-    { nil, nil, nil, AVMetadataIdentifierID3MetadataLength },
+    { nil, nil, nil, AVMetadataIdentifierID3MetadataLength, nil, nil },
     // MediaType
-    { AVMetadataCommonIdentifierType, nil, nil, AVMetadataIdentifierID3MetadataContentType },
+    { AVMetadataCommonIdentifierType, nil, nil, AVMetadataIdentifierID3MetadataContentType, nil, nil },
     // FileFormat
-    { nil, nil, nil, AVMetadataIdentifierID3MetadataFileType },
+    { nil, nil, nil, AVMetadataIdentifierID3MetadataFileType, nil, nil },
     // AudioBitRate
-    { nil, nil, nil, nil },
+    { nil, nil, nil, nil, nil, nil },
     // AudioCodec
-    { nil, nil, nil, nil },
+    { nil, nil, nil, nil, nil, nil },
     // VideoBitRate
-    { nil, nil, nil, nil },
+    { nil, nil, nil, nil, nil, nil },
     // VideoCodec
-    { nil, nil, nil, nil },
+    { nil, nil, nil, nil, nil, nil },
     // VideoFrameRate
-    { nil, nil, AVMetadataIdentifierQuickTimeMetadataCameraFrameReadoutTime, nil },
+    { nil, nil, AVMetadataIdentifierQuickTimeMetadataCameraFrameReadoutTime, nil, nil, nil },
     // AlbumTitle
     { AVMetadataCommonIdentifierAlbumName, AVMetadataIdentifieriTunesMetadataAlbum,
-      AVMetadataIdentifierQuickTimeMetadataAlbum, AVMetadataIdentifierID3MetadataAlbumTitle },
+      AVMetadataIdentifierQuickTimeMetadataAlbum, AVMetadataIdentifierID3MetadataAlbumTitle,
+      AVMetadataQuickTimeUserDataKeyAlbum, AVMetadata3GPUserDataKeyAlbumAndTrack },
     // AlbumArtist
-    { nil, AVMetadataIdentifieriTunesMetadataAlbumArtist, nil, nil },
+    { nil, AVMetadataIdentifieriTunesMetadataAlbumArtist, nil, nil,
+      AVMetadataQuickTimeUserDataKeyArtist, AVMetadata3GPUserDataKeyPerformer },
     // ContributingArtist
     { AVMetadataCommonIdentifierArtist, AVMetadataIdentifieriTunesMetadataArtist,
-      AVMetadataIdentifierQuickTimeMetadataArtist, nil },
+      AVMetadataIdentifierQuickTimeMetadataArtist, nil, nil, nil },
     // TrackNumber
     { nil, AVMetadataIdentifieriTunesMetadataTrackNumber,
-      nil, AVMetadataIdentifierID3MetadataTrackNumber },
+      nil, AVMetadataIdentifierID3MetadataTrackNumber, nil, nil },
     // Composer
     { nil, AVMetadataIdentifieriTunesMetadataComposer,
-      AVMetadataIdentifierQuickTimeMetadataComposer, AVMetadataIdentifierID3MetadataComposer },
+      AVMetadataIdentifierQuickTimeMetadataComposer, AVMetadataIdentifierID3MetadataComposer, nil, nil },
     // LeadPerformer
     { nil, AVMetadataIdentifieriTunesMetadataPerformer,
-      AVMetadataIdentifierQuickTimeMetadataPerformer, AVMetadataIdentifierID3MetadataLeadPerformer },
+      AVMetadataIdentifierQuickTimeMetadataPerformer, AVMetadataIdentifierID3MetadataLeadPerformer, nil, nil },
     // ThumbnailImage
-    { nil, nil, nil, AVMetadataIdentifierID3MetadataAttachedPicture},
+    { nil, nil, nil, AVMetadataIdentifierID3MetadataAttachedPicture, nil, nil },
     // CoverArtImage
     { AVMetadataCommonIdentifierArtwork, AVMetadataIdentifieriTunesMetadataCoverArt,
-      AVMetadataIdentifierQuickTimeMetadataArtwork, nil },
+      AVMetadataIdentifierQuickTimeMetadataArtwork, nil, nil, nil },
     // Orientation
-    { nil, nil, AVMetadataIdentifierQuickTimeMetadataDirectionFacing, nil },
+    { nil, nil, AVMetadataIdentifierQuickTimeMetadataDirectionFacing, nil, nil, nil },
     // Resolution
-    { nil, nil, nil, nil }
+    { nil, nil, nil, nil, nil, nil }
 };
 
 static AVMetadataIdentifier toIdentifier(QMediaMetaData::Key key, AVMetadataKeySpace keySpace)
@@ -187,7 +198,7 @@ static std::optional<QMediaMetaData::Key> toKey(AVMetadataItem *item)
 
     // Check by identifier if no common key found
     // No need to check for the common keySpace since there's no common key
-    enum keySpaces { iTunes, QuickTime, ID3, Other } itemKeySpace;
+    enum keySpaces { iTunes, QuickTime, QuickTimeUserData, IsoUserData, ID3, Other } itemKeySpace;
     itemKeySpace = Other;
     AVMetadataKeySpace keySpace = [item keySpace];
     AVMetadataIdentifier identifier = [item identifier];
@@ -196,6 +207,10 @@ static std::optional<QMediaMetaData::Key> toKey(AVMetadataItem *item)
         itemKeySpace = iTunes;
     } else if ([keySpace isEqualToString:AVMetadataKeySpaceQuickTimeMetadata]) {
         itemKeySpace = QuickTime;
+    } else if ([keySpace isEqualToString:AVMetadataKeySpaceQuickTimeUserData]) {
+        itemKeySpace = QuickTimeUserData;
+    } else if ([keySpace isEqualToString:AVMetadataKeySpaceISOUserData]) {
+        itemKeySpace = IsoUserData;
     } else if (([keySpace isEqualToString:AVMetadataKeySpaceID3])) {
         itemKeySpace = ID3;
     }
@@ -211,6 +226,12 @@ static std::optional<QMediaMetaData::Key> toKey(AVMetadataItem *item)
             break;
         case ID3:
             idForKey = keyToAVMetaDataID[key].ID3;
+            break;
+        case QuickTimeUserData:
+            idForKey = keyToAVMetaDataID[key].quickTimeUserData;
+            break;
+        case IsoUserData:
+            idForKey = keyToAVMetaDataID[key].isoUserData;
             break;
         default:
             break;
