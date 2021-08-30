@@ -59,8 +59,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static const int DEFAULT_BUFFER_SIZE = 8 * 1024;
-
 QDarwinAudioSinkBuffer::QDarwinAudioSinkBuffer(int bufferSize, int maxPeriodSize, const QAudioFormat &audioFormat)
     : m_deviceError(false)
     , m_maxPeriodSize(maxPeriodSize)
@@ -223,17 +221,6 @@ qint64 QDarwinAudioSinkDevice::writeData(const char *data, qint64 len)
 
 QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device)
     : m_audioDeviceInfo(device)
-    , m_isOpen(false)
-    , m_internalBufferSize(DEFAULT_BUFFER_SIZE)
-    , m_totalFrames(0)
-    , m_audioIO(0)
-    , m_audioUnit(0)
-    , m_audioBuffer(0)
-    , m_cachedVolume(1.0)
-    , m_volume(1.0)
-    , m_pullMode(false)
-    , m_errorCode(QAudio::NoError)
-    , m_stateCode(QAudio::StoppedState)
 {
     QAudioDevice di = device;
     if (di.isNull())

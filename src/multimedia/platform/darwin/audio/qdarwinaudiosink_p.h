@@ -179,28 +179,32 @@ private:
     QAudioDevice m_audioDeviceInfo;
     QByteArray m_device;
 
-    bool m_isOpen;
-    int m_internalBufferSize;
-    int m_periodSizeBytes;
-    qint64 m_totalFrames;
+    static constexpr int DEFAULT_BUFFER_SIZE = 8 * 1024;
+
+    bool m_isOpen = false;
+    int m_internalBufferSize = DEFAULT_BUFFER_SIZE;
+    int m_periodSizeBytes = 0;
+    qint64 m_totalFrames = 0;
     QAudioFormat m_audioFormat;
-    QIODevice *m_audioIO;
-#if defined(Q_OS_OSX)
+    QIODevice *m_audioIO = nullptr;
+#if defined(Q_OS_MACOS)
     AudioDeviceID m_audioDeviceId;
 #endif
-    AudioUnit m_audioUnit;
-    Float64 m_clockFrequency;
+    AudioUnit m_audioUnit = 0;
+    Float64 m_clockFrequency = 0;
     AudioStreamBasicDescription m_streamFormat;
-    QDarwinAudioSinkBuffer *m_audioBuffer;
+    QDarwinAudioSinkBuffer *m_audioBuffer = nullptr;
     QAtomicInt m_audioThreadState;
     QWaitCondition m_threadFinished;
     QMutex m_mutex;
-    qreal m_cachedVolume;
-    qreal m_volume;
-    bool m_pullMode;
+    qreal m_cachedVolume = 1.;
+#if defined(Q_OS_MACOS)
+    qreal m_volume = 1.;
+#endif
+    bool m_pullMode = false;
 
-    QAudio::Error m_errorCode;
-    QAudio::State m_stateCode;
+    QAudio::Error m_errorCode = QAudio::NoError;
+    QAudio::State m_stateCode = QAudio::StoppedState;
 };
 
 QT_END_NAMESPACE
