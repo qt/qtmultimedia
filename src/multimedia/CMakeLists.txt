@@ -161,8 +161,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/mediacapture/qwindowsmediaencoder.cpp
         platform/windows/mediacapture/qwindowsmediaencoder_p.h
         platform/windows/qwindowsmediadevices.cpp platform/windows/qwindowsmediadevices_p.h
-        platform/windows/mediacapture/qwindowsstoragelocation.cpp
-        platform/windows/mediacapture/qwindowsstoragelocation_p.h
         platform/windows/qwindowsformatinfo.cpp platform/windows/qwindowsformatinfo_p.h
         platform/windows/qwindowsintegration.cpp platform/windows/qwindowsintegration_p.h
         platform/windows/sourceresolver.cpp platform/windows/sourceresolver_p.h
@@ -394,7 +392,6 @@ qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHO
         platform/darwin/camera/avfcamerasession.mm platform/darwin/camera/avfcamerasession_p.h
         platform/darwin/camera/avfcamerautility.mm platform/darwin/camera/avfcamerautility_p.h
         platform/darwin/camera/avfimagecapture.mm platform/darwin/camera/avfimagecapture_p.h
-        platform/darwin/camera/avfstoragelocation.mm platform/darwin/camera/avfstoragelocation_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHOS
@@ -436,7 +433,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
         platform/qnx/camera/bbcameraservice.cpp platform/qnx/camera/bbcameraservice_p.h
         platform/qnx/camera/bbcamerasession.cpp platform/qnx/camera/bbcamerasession_p.h
         platform/qnx/camera/bbcameravideoencodersettingscontrol.cpp platform/qnx/camera/bbcameravideoencodersettingscontrol_p.h
-        platform/qnx/camera/bbmediastoragelocation.cpp platform/qnx/camera/bbmediastoragelocation_p.h
         platform/qnx/camera/bbvideorenderercontrol.cpp platform/qnx/camera/bbvideorenderercontrol_p.h
         platform/qnx/common/windowgrabber.cpp platform/qnx/common/windowgrabber_p.h
         platform/qnx/mediaplayer/mmrenderermediaplayercontrol.cpp platform/qnx/mediaplayer/mmrenderermediaplayercontrol_p.h

@@ -52,11 +52,11 @@
 //
 
 #include "avfmediaassetwriter_p.h"
-#include "avfstoragelocation_p.h"
 #include "avfcamerautility_p.h"
 #include "qaudiodevice.h"
 
 #include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediacapture_p.h>
 #include <private/qvideooutputorientationhandler_p.h>
 #include <QtMultimedia/qmediametadata.h>
 
@@ -116,8 +116,6 @@ private:
 
     AVFCameraService *m_service = nullptr;
     AVFScopedPointer<QT_MANGLE_NAMESPACE(AVFMediaAssetWriter)> m_writer;
-
-    AVFStorageLocation m_storageLocation;
 
     QMediaRecorder::RecorderState m_state;
 

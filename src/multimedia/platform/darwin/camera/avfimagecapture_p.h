@@ -58,7 +58,6 @@
 #include <QtCore/qsharedpointer.h>
 #include <private/qplatformimagecapture_p.h>
 #include "avfcamerasession_p.h"
-#include "avfstoragelocation_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -105,7 +104,6 @@ private:
     int m_lastCaptureId = 0;
     AVCaptureStillImageOutput *m_stillImageOutput;
     AVCaptureConnection *m_videoConnection = nullptr;
-    AVFStorageLocation m_storageLocation;
 
     QMutex m_requestsMutex;
     QQueue<CaptureRequest> m_captureRequests;

@@ -44,6 +44,7 @@
 #include "avfcamera_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcamerarenderer_p.h"
+#include "qmediastoragelocation_p.h"
 #include <private/qplatformimagecapture_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 
@@ -195,11 +196,7 @@ int AVFImageCapture::doCapture(const QString &actualFileName)
 
 int AVFImageCapture::capture(const QString &fileName)
 {
-    QString actualFileName;
-    actualFileName = m_storageLocation.generateFileName(fileName,
-                                                        AVFStorageLocation::Image,
-                                                        QLatin1String("img_"),
-                                                        QLatin1String("jpg"));
+    auto actualFileName = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
 
     qDebugCamera() << "Capture image to" << actualFileName;
     return doCapture(actualFileName);

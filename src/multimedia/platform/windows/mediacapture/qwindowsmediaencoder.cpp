@@ -41,6 +41,7 @@
 
 #include "qwindowsmediadevicesession_p.h"
 #include "qwindowsmediacapture_p.h"
+#include "qmediastoragelocation_p.h"
 #include "mfmetadata_p.h"
 #include <QtCore/QUrl>
 #include <QtCore/QMimeType>
@@ -93,10 +94,9 @@ void QWindowsMediaEncoder::record(QMediaEncoderSettings &settings)
     const QString path = (outputLocation().scheme() == QLatin1String("file") ?
                               outputLocation().path() : outputLocation().toString());
 
-    m_fileName = m_storageLocation.generateFileName(path, audioOnly
-                                                    ? QWindowsStorageLocation::Audio
-                                                    : QWindowsStorageLocation::Video,
-                                                    QLatin1String("clip_"),
+    m_fileName = QMediaStorageLocation::generateFileName(path, audioOnly
+                                                    ? QStandardPaths::MusicLocation
+                                                    : QStandardPaths::MoviesLocation,
                                                     settings.mimeType().preferredSuffix());
 
     if (m_mediaDeviceSession->startRecording(settings, m_fileName, audioOnly)) {

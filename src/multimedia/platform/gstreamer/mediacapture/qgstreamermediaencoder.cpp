@@ -43,6 +43,7 @@
 #include "private/qgstpipeline_p.h"
 #include "private/qgstreamermessage_p.h"
 #include "qaudiodevice.h"
+#include "qmediastoragelocation_p.h"
 
 #include <qdebug.h>
 #include <qstandardpaths.h>
@@ -284,12 +285,10 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
 
     const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
 
-    // create new encoder
-    QString location = outputLocation().toLocalFile();
-    if (outputLocation().isEmpty()) {
-        QString container = settings.mimeType().preferredSuffix();
-        location = generateFileName(defaultDir(audioOnly), container);
-    }
+    auto primaryLocation = audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation;
+    auto container = settings.mimeType().preferredSuffix();
+    auto location = QMediaStorageLocation::generateFileName(outputLocation().toLocalFile(), primaryLocation, container);
+
     QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(location);
     qCDebug(qLcMediaEncoder) << "recording new video to" << actualSink;
 
@@ -441,46 +440,4 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
     gstPipeline = captureSession->gstPipeline;
     gstPipeline.set("message-forward", true);
     gstPipeline.installMessageFilter(this);
-}
-
-QDir QGstreamerMediaEncoder::defaultDir(bool audioOnly) const
-{
-    QStringList dirCandidates;
-
-    if (!audioOnly)
-        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
-    else
-        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
-
-    dirCandidates << QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    dirCandidates << QDir::homePath();
-    dirCandidates << QDir::currentPath();
-    dirCandidates << QDir::tempPath();
-
-    for (const QString &path : qAsConst(dirCandidates)) {
-        QDir dir(path);
-        if (dir.exists() && QFileInfo(path).isWritable())
-            return dir;
-    }
-
-    return QDir();
-}
-
-QString QGstreamerMediaEncoder::generateFileName(const QDir &dir, const QString &ext) const
-{
-    int lastClip = 0;
-    const auto list = dir.entryList(QStringList() << QString::fromLatin1("clip_*.%1").arg(ext));
-    for (const QString &fileName : list) {
-        int imgNumber = QStringView{fileName}.mid(5, fileName.size()-6-ext.length()).toInt();
-        lastClip = qMax(lastClip, imgNumber);
-    }
-
-    QString name = QString::fromLatin1("clip_%1.%2")
-                       .arg(lastClip+1,
-                            4, //fieldWidth
-                            10,
-                            QLatin1Char('0'))
-                       .arg(ext);
-
-    return dir.absoluteFilePath(name);
 }

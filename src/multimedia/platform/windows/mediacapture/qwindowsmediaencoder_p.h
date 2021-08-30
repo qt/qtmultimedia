@@ -51,8 +51,6 @@
 #ifndef QWINDOWSMEDIAENCODER_H
 #define QWINDOWSMEDIAENCODER_H
 
-#include "qwindowsstoragelocation_p.h"
-
 #include <private/qplatformmediaencoder_p.h>
 
 #include <QtCore/qglobal.h>
@@ -98,7 +96,6 @@ private:
     QWindowsMediaCaptureService  *m_captureService = nullptr;
     QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QMediaRecorder::RecorderState          m_state = QMediaRecorder::StoppedState;
-    QWindowsStorageLocation       m_storageLocation;
     QString                       m_fileName;
     QMediaMetaData                m_metaData;
     qint64                        m_duration = 0;

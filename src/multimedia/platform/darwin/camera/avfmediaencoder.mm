@@ -45,9 +45,10 @@
 #include "avfcameraservice_p.h"
 #include "avfcameradebug_p.h"
 #include "avfcamerautility_p.h"
-
 #include "qaudiodevice.h"
+
 #include "qmediadevices.h"
+#include "qmediastoragelocation_p.h"
 #include "private/qmediarecorder_p.h"
 #include "private/qdarwinformatsinfo_p.h"
 #include "private/qplatformaudiooutput_p.h"
@@ -494,9 +495,8 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
 
     const QString path(outputLocation().scheme() == QLatin1String("file") ?
                            outputLocation().path() : outputLocation().toString());
-    const QUrl fileURL(QUrl::fromLocalFile(m_storageLocation.generateFileName(path,
-                    audioOnly ? AVFStorageLocation::Audio : AVFStorageLocation::Video,
-                    QLatin1String("clip_"),
+    const QUrl fileURL(QUrl::fromLocalFile(QMediaStorageLocation::generateFileName(path,
+                    audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation,
                     settings.mimeType().preferredSuffix())));
 
     NSURL *nsFileURL = fileURL.toNSURL();

@@ -44,6 +44,7 @@
 #include <private/qgstutils_p.h>
 #include <private/qgstreamermetadata_p.h>
 #include <qvideoframeformat.h>
+#include "qmediastoragelocation_p.h"
 
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
@@ -95,52 +96,9 @@ bool QGstreamerImageCapture::isReadyForCapture() const
     return m_session && !passImage && cameraActive;
 }
 
-
-static QDir defaultDir()
-{
-    QStringList dirCandidates;
-
-    dirCandidates << QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
-    dirCandidates << QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    dirCandidates << QDir::homePath();
-    dirCandidates << QDir::currentPath();
-    dirCandidates << QDir::tempPath();
-
-    for (const QString &path : qAsConst(dirCandidates)) {
-        QDir dir(path);
-        if (dir.exists() && QFileInfo(path).isWritable())
-            return dir;
-    }
-
-    return QDir();
-}
-
-QString generateFileName(const QDir &dir, const QString &ext)
-{
-    int lastClip = 0;
-    const auto list = dir.entryList(QStringList() << QString::fromLatin1("img_*.%1").arg(ext));
-    for (const QString &fileName : list) {
-        int imgNumber = QStringView{fileName}.mid(5, fileName.size()-6-ext.length()).toInt();
-        lastClip = qMax(lastClip, imgNumber);
-    }
-
-    QString name = QString::fromLatin1("img_%1.%2")
-                       .arg(lastClip+1,
-                            4, //fieldWidth
-                            10,
-                            QLatin1Char('0'))
-                       .arg(ext);
-
-    return dir.absoluteFilePath(name);
-}
-
-
 int QGstreamerImageCapture::capture(const QString &fileName)
 {
-    QString path = fileName;
-    if (path.isEmpty())
-        path = generateFileName(defaultDir(), QLatin1String("jpg"));
-
+    QString path = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
     return doCapture(path);
 }
 

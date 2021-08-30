@@ -108,8 +108,6 @@ private:
 
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
     void finalize();
-    QDir defaultDir(bool audioOnly) const;
-    QString generateFileName(const QDir &dir, const QString &ext) const;
 
     QGstreamerMediaCapture *m_session = nullptr;
     QGstreamerMetaData m_metaData;

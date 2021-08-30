@@ -51,8 +51,6 @@
 // We mean it.
 //
 
-#include "qwindowsstoragelocation_p.h"
-
 #include <private/qplatformimagecapture_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -92,7 +90,6 @@ private:
     QWindowsMediaCaptureService  *m_captureService = nullptr;
     QWindowsMediaDeviceSession   *m_mediaDeviceSession = nullptr;
     QImageEncoderSettings         m_settings;
-    QWindowsStorageLocation       m_storageLocation;
     int m_captureId = 0;
     bool m_capturing = false;
     QString m_fileName;

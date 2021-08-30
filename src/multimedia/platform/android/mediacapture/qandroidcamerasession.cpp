@@ -53,6 +53,7 @@
 #include <private/qplatformimagecapture_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qcameradevice_p.h>
+#include <private/qmediastoragelocation_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -72,10 +73,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_previewCallback(0)
     , m_keepActive(false)
 {
-    m_mediaStorageLocation.addStorageLocation(
-                QMediaStorageLocation::Pictures,
-                AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM));
-
     if (qApp) {
         connect(qApp, &QGuiApplication::applicationStateChanged,
                 this, &QAndroidCameraSession::onApplicationStateChanged);
@@ -660,10 +657,7 @@ void QAndroidCameraSession::processCapturedImage(int id,
 
 
     if (!captureToBuffer) {
-        const QString actualFileName = m_mediaStorageLocation.generateFileName(fileName,
-                                                                               QMediaStorageLocation::Pictures,
-                                                                               QLatin1String("IMG_"),
-                                                                               QLatin1String("jpg"));
+        const QString actualFileName = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
 
         QFile file(actualFileName);
         if (file.open(QFile::WriteOnly)) {
@@ -671,8 +665,7 @@ void QAndroidCameraSession::processCapturedImage(int id,
                 // if the picture is saved into the standard picture location, register it
                 // with the Android media scanner so it appears immediately in apps
                 // such as the gallery.
-                QString standardLoc = AndroidMultimediaUtils::getDefaultMediaDirectory(AndroidMultimediaUtils::DCIM);
-                if (actualFileName.startsWith(standardLoc))
+                if (fileName.isEmpty() || QFileInfo(fileName).isRelative())
                     AndroidMultimediaUtils::registerMediaFile(actualFileName);
 
                 emit imageSaved(id, actualFileName);
