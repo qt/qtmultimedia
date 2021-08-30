@@ -55,6 +55,7 @@
 #include <QtMultimedia/qcamera.h>
 #include <QVideoFrame>
 #include <qcameradevice.h>
+#include "avfaudiopreviewdelegate_p.h"
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -82,6 +83,8 @@ public:
 
     AVFCameraRenderer *videoOutput() const { return m_videoOutput; }
     AVCaptureAudioDataOutput *audioOutput() const { return m_audioOutput; }
+    AVFAudioPreviewDelegate *audioPreviewDelegate() const { return m_audioPreviewDelegate; }
+
 
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
@@ -93,9 +96,6 @@ public:
 
     AVCaptureDeviceInput *videoInput() const { return m_videoInput; }
     AVCaptureDeviceInput *audioInput() const { return m_audioInput; }
-
-    AVSampleBufferRenderSynchronizer *bufferSynchronizer() const { return m_audioBufferSynchronizer; }
-    AVSampleBufferAudioRenderer *audioRenderer() const { return m_audioRenderer; }
 
     void setVideoSink(QVideoSink *sink);
 
@@ -145,17 +145,14 @@ private:
 
     AVCaptureDeviceInput *m_videoInput = nullptr;
     AVCaptureDeviceInput *m_audioInput = nullptr;
-    AVCaptureAudioDataOutput *m_audioOutput = nullptr;
 
-    AVSampleBufferRenderSynchronizer *m_audioBufferSynchronizer = nullptr;
-    AVSampleBufferAudioRenderer *m_audioRenderer = nullptr;
+    AVCaptureAudioDataOutput *m_audioOutput = nullptr;
+    AVFAudioPreviewDelegate *m_audioPreviewDelegate = nullptr;
 
     bool m_active = false;
 
     float m_inputVolume = 1.0;
-    float m_outputVolume = 1.0;
     bool m_inputMuted = false;
-    bool m_outputMuted = false;
 
     FourCharCode m_defaultCodec;
 };
