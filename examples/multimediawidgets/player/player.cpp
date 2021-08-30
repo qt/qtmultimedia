@@ -469,7 +469,6 @@ void Player::handleCursor(QMediaPlayer::MediaStatus status)
 
 void Player::bufferingProgress(float progress)
 {
-    qDebug() << "buffering progress" << progress;
     if (m_player->mediaStatus() == QMediaPlayer::StalledMedia)
         setStatusInfo(tr("Stalled %1%").arg(qRound(progress*100.)));
     else
