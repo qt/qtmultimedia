@@ -153,6 +153,7 @@ private:
     void setSubtitle(QString subtitle);
     void disableTrack(TrackType trackType);
 
+    int convertTrackNumber(int androidTrackNumber);
     friend class StateChangeNotifier;
 };
 
