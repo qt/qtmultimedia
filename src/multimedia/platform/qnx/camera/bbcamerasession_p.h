@@ -50,8 +50,6 @@
 // We mean it.
 //
 
-#include "bbmediastoragelocation_p.h"
-
 #include <QCamera>
 #include <QImageCapture>
 #include <QElapsedTimer>
@@ -191,8 +189,6 @@ private:
 
     QVideoEncoderSettings m_videoEncoderSettings;
     QAudioEncoderSettings m_audioEncoderSettings;
-
-    BbMediaStorageLocation m_mediaStorageLocation;
 
     camera_handle_t m_handle;
 

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -43,101 +43,74 @@
 
 QT_BEGIN_NAMESPACE
 
-QMediaStorageLocation::QMediaStorageLocation() = default;
-
-void QMediaStorageLocation::addStorageLocation(MediaType type, const QString &location)
-{
-    m_customLocations[type].append(location);
-}
-
-QDir QMediaStorageLocation::defaultLocation(MediaType type) const
+QDir QMediaStorageLocation::defaultDirectory(QStandardPaths::StandardLocation type)
 {
     QStringList dirCandidates;
 
-    dirCandidates << m_customLocations.value(type);
+#if QT_CONFIG(mmrenderer)
+    dirCandidates << QLatin1String("shared/camera");
+#endif
 
-    switch (type) {
-    case Movies:
-        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
-        break;
-    case Music:
-        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
-        break;
-    case Pictures:
-        dirCandidates << QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
-    default:
-        break;
-    }
-
+    dirCandidates << QStandardPaths::writableLocation(type);
+    dirCandidates << QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     dirCandidates << QDir::homePath();
     dirCandidates << QDir::currentPath();
     dirCandidates << QDir::tempPath();
 
     for (const QString &path : qAsConst(dirCandidates)) {
-        if (QFileInfo(path).isWritable())
-            return QDir(path);
+        QDir dir(path);
+        if (dir.exists() && QFileInfo(path).isWritable())
+            return dir;
     }
 
     return QDir();
 }
 
-QString QMediaStorageLocation::generateFileName(const QString &requestedName,
-                                                MediaType type,
-                                                const QString &prefix,
-                                                const QString &extension) const
+static QString generateFileName(const QDir &dir, const QString &prefix, const QString &extension)
 {
+    auto lastMediaIndex = 0;
+    const auto list = dir.entryList({ QString::fromLatin1("%1*.%2").arg(prefix, extension) });
+    for (const QString &fileName : list) {
+        auto mediaIndex = QStringView{fileName}.mid(prefix.length(), fileName.size() - prefix.length() - extension.length() - 1).toInt();
+        lastMediaIndex = qMax(lastMediaIndex, mediaIndex);
+    }
+
+    const QString name = QString::fromLatin1("%1%2.%3")
+            .arg(prefix)
+            .arg(lastMediaIndex + 1, 4, 10, QLatin1Char('0'))
+            .arg(extension);
+
+    return dir.absoluteFilePath(name);
+}
+
+
+QString QMediaStorageLocation::generateFileName(const QString &requestedName,
+                                                QStandardPaths::StandardLocation type,
+                                                const QString &extension)
+{
+    auto prefix = QLatin1String("clip_");
+    switch (type) {
+        case QStandardPaths::PicturesLocation: prefix = QLatin1String("image_"); break;
+        case QStandardPaths::MoviesLocation: prefix = QLatin1String("video_"); break;
+        case QStandardPaths::MusicLocation: prefix = QLatin1String("record_"); break;
+        default: break;
+    }
+
     if (requestedName.isEmpty())
-        return generateFileName(prefix, defaultLocation(type), extension);
+        return generateFileName(defaultDirectory(type), prefix, extension);
 
     QString path = requestedName;
 
     if (QFileInfo(path).isRelative())
-        path = defaultLocation(type).absoluteFilePath(path);
+        path = defaultDirectory(type).absoluteFilePath(path);
 
     if (QFileInfo(path).isDir())
-        return generateFileName(prefix, QDir(path), extension);
+        return generateFileName(QDir(path), prefix, extension);
 
     if (!path.endsWith(extension))
         path.append(QString(QLatin1String(".%1")).arg(extension));
 
     return path;
-}
-
-QString QMediaStorageLocation::generateFileName(const QString &prefix,
-                                                const QDir &dir,
-                                                const QString &extension) const
-{
-    QMutexLocker lock(&m_mutex);
-
-    const QString lastMediaKey = dir.absolutePath() + QLatin1Char(' ') + prefix + QLatin1Char(' ') + extension;
-    qint64 lastMediaIndex = m_lastUsedIndex.value(lastMediaKey, 0);
-
-    if (lastMediaIndex == 0) {
-        // first run, find the maximum media number during the fist capture
-        const auto list = dir.entryList(QStringList() << QString(QLatin1String("%1*.%2")).arg(prefix).arg(extension));
-        for (const QString &fileName : list) {
-            const qint64 mediaIndex = QStringView{fileName}.mid(prefix.length(), fileName.size() - prefix.length() - extension.length() - 1).toInt();
-            lastMediaIndex = qMax(lastMediaIndex, mediaIndex);
-        }
-    }
-
-    // don't just rely on cached lastMediaIndex value,
-    // someone else may create a file after camera started
-    while (true) {
-        const QString name = QString(QLatin1String("%1%2.%3")).arg(prefix)
-                                               .arg(lastMediaIndex + 1, 8, 10, QLatin1Char('0'))
-                                               .arg(extension);
-
-        const QString path = dir.absoluteFilePath(name);
-        if (!QFileInfo::exists(path)) {
-            m_lastUsedIndex[lastMediaKey] = lastMediaIndex + 1;
-            return path;
-        }
-
-        lastMediaIndex++;
-    }
-
-    return QString();
 }
 
 QT_END_NAMESPACE

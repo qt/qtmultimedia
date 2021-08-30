@@ -56,7 +56,6 @@
 #include <QImageCapture>
 #include <QSet>
 #include <QMutex>
-#include <private/qmediastoragelocation_p.h>
 #include <private/qplatformimagecapture_p.h>
 #include "androidcamera_p.h"
 
@@ -181,8 +180,6 @@ private:
     bool m_readyForCapture;
     int m_currentImageCaptureId;
     QString m_currentImageCaptureFileName;
-
-    QMediaStorageLocation m_mediaStorageLocation;
 
     QMutex m_videoFrameCallbackMutex;
     PreviewCallback *m_previewCallback;

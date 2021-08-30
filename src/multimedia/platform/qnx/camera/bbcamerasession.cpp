@@ -49,6 +49,7 @@
 #include <qmath.h>
 #include <private/qmediarecorder_p.h>
 #include <private/qplatformimagecapture_p.h>
+#include <private/qmediastoragelocation_p.h>
 
 #include <algorithm>
 
@@ -618,14 +619,10 @@ void BbCameraSession::imageCaptured(int requestId, const QImage &rawImage, const
         QVideoFrame frame(image);
         emit imageAvailable(requestId, frame);
     } else {
-        const QString actualFileName = m_mediaStorageLocation.generateFileName(fileName,
-                                                                               QCamera::CaptureStillImage,
-                                                                               QLatin1String("IMG_"),
-                                                                               QLatin1String("jpg"));
-
+        const QString actualFileName = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
         QFile file(actualFileName);
         if (file.open(QFile::WriteOnly)) {
-            if (image.save(&file, "JPG")) {
+            if (image.save(&file, "jpg")) {
                 emit imageSaved(requestId, actualFileName);
             } else {
                 emit imageCaptureError(requestId, QImageCapture::OutOfSpaceError, file.errorString());
@@ -940,9 +937,7 @@ void BbCameraSession::startVideoRecording(const QUrl &outputLocation)
 
     m_videoRecordingDuration.invalidate();
 
-    QString videoOutputLocation = outputLocation.toLocalFile();
-    if (videoOutputLocation.isEmpty())
-        videoOutputLocation = m_mediaStorageLocation.generateFileName(QLatin1String("VID_"), m_mediaStorageLocation.defaultDir(QCamera::CaptureVideo), QLatin1String("mp4"));
+    auto videoOutputLocation = QMediaStorageLocation::generateFileName(outputLocation.toLocalFile(), QStandardPaths::MoviesLocation, QLatin1String("mp4"));
 
     emit actualLocationChanged(videoOutputLocation);
 

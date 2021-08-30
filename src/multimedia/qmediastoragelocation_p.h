@@ -52,36 +52,15 @@
 //
 
 #include <qtmultimediaglobal.h>
+#include <QStandardPaths>
 #include <QDir>
-#include <QMap>
-#include <QHash>
-#include <QMutex>
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT QMediaStorageLocation
+namespace QMediaStorageLocation
 {
-public:
-    enum MediaType {
-        Movies,
-        Music,
-        Pictures,
-        Sounds
-    };
-
-    QMediaStorageLocation();
-
-    void addStorageLocation(MediaType type, const QString &location);
-
-    QDir defaultLocation(MediaType type) const;
-
-    QString generateFileName(const QString &requestedName, MediaType type, const QString &prefix, const QString &extension) const;
-    QString generateFileName(const QString &prefix, const QDir &dir, const QString &extension) const;
-
-private:
-    mutable QMutex m_mutex;
-    mutable QHash<QString, qint64> m_lastUsedIndex;
-    QMap<MediaType, QStringList> m_customLocations;
+    QDir defaultDirectory(QStandardPaths::StandardLocation type);
+    QString generateFileName(const QString &requestedName, QStandardPaths::StandardLocation type, const QString &extension);
 };
 
 QT_END_NAMESPACE

@@ -56,7 +56,6 @@
 #include <qurl.h>
 #include <qelapsedtimer.h>
 #include <qtimer.h>
-#include <private/qmediastoragelocation_p.h>
 #include "androidmediarecorder_p.h"
 #include "qandroidmediaencoder_p.h"
 
@@ -162,14 +161,13 @@ private:
     QPlatformAudioInput *m_audioInput = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;
 
-    QMediaStorageLocation m_mediaStorageLocation;
-
     QElapsedTimer m_elapsedTime;
     QTimer m_notifyTimer;
     qint64 m_duration;
 
     QMediaRecorder::RecorderState m_state;
     QUrl m_usedOutputLocation;
+    bool m_outputLocationIsStandard = false;
 
     CaptureProfile m_defaultSettings;
 

@@ -41,6 +41,7 @@
 
 #include "qwindowsmediadevicesession_p.h"
 #include "qwindowsmediacapture_p.h"
+#include "qmediastoragelocation_p.h"
 
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <QtGui/qimagewriter.h>
@@ -63,9 +64,8 @@ bool QWindowsImageCapture::isReadyForCapture() const
 
 int QWindowsImageCapture::capture(const QString &fileName)
 {
-    QString ext = writerFormat(m_settings.format());
-    QString path = m_storageLocation.generateFileName(fileName, QWindowsStorageLocation::Image,
-                                                      QLatin1String("img_"), ext);
+    auto ext = writerFormat(m_settings.format());
+    auto path = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, ext);
     return doCapture(path);
 }
 
