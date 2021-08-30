@@ -1149,6 +1149,5 @@ void AVFMediaPlayer::nativeSizeChanged(QSize size)
 {
     if (!m_videoSink)
         return;
-    qDebug() << "presentation size" << size;
     m_videoSink->setNativeSize(size);
 }
