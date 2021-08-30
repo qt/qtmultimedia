@@ -610,6 +610,9 @@ void AVFMediaEncoder::assetWriterFinished()
     if (session->videoOutput()) {
         session->videoOutput()->resetCaptureDelegate();
     }
+    if (session->audioPreviewDelegate()) {
+        [session->audioPreviewDelegate() resetAudioPreviewDelegate];
+    }
     [session->captureSession() startRunning];
 
     m_state = QMediaRecorder::StoppedState;

@@ -167,9 +167,6 @@ AVFCameraSession::~AVFCameraSession()
         [m_audioOutput release];
     }
 
-    [m_audioRenderer release];
-    [m_audioBufferSynchronizer release];
-
     if (m_videoOutput)
         delete m_videoOutput;
 
@@ -286,17 +283,14 @@ void AVFCameraSession::setAudioInputMuted(bool muted)
 
 void AVFCameraSession::setAudioOutputVolume(float volume)
 {
-    m_outputVolume = volume;
-
-    if (m_audioRenderer)
-        m_audioRenderer.volume = volume;
+    if (m_audioPreviewDelegate)
+        [m_audioPreviewDelegate setVolume:volume];
 }
 
 void AVFCameraSession::setAudioOutputMuted(bool muted)
 {
-    m_outputMuted = muted;
-    if (m_audioRenderer)
-        m_audioRenderer.muted = muted ? YES : NO;
+    if (m_audioPreviewDelegate)
+        [m_audioPreviewDelegate setMuted:muted];
 }
 
 bool AVFCameraSession::isActive() const
@@ -498,23 +492,17 @@ void AVFCameraSession::updateAudioInput()
 
 void AVFCameraSession::updateAudioOutput()
 {
-    [m_audioRenderer release];
-    m_audioRenderer = nullptr;
-    [m_audioBufferSynchronizer release];
-    m_audioBufferSynchronizer = nullptr;
-
     QByteArray deviceId = m_service->audioOutput()
                             ? m_service->audioOutput()->device.id()
                             : QByteArray();
-    if (!deviceId.isEmpty()) {
-        m_audioBufferSynchronizer = [[AVSampleBufferRenderSynchronizer alloc] init];
-        m_audioRenderer = [[AVSampleBufferAudioRenderer alloc] init];
-        [m_audioBufferSynchronizer addRenderer:m_audioRenderer];
 
-#ifdef Q_OS_MACOS
-        m_audioRenderer.audioOutputDeviceUniqueID = [NSString stringWithUTF8String:
-                                                             deviceId.constData()];
-#endif
+    [m_audioPreviewDelegate release];
+    m_audioPreviewDelegate = nil;
+    if (!deviceId.isEmpty()) {
+        m_audioPreviewDelegate = [[AVFAudioPreviewDelegate alloc] init];
+        [m_audioPreviewDelegate setupWithCaptureSession:this
+                                audioOutputDevice:[NSString stringWithUTF8String:
+                                                        deviceId.constData()]];
     }
 }
 

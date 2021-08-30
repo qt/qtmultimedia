@@ -389,21 +389,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     }
 }
 
-- (void)renderAudioSampleBuffer:(CMSampleBufferRef)sampleBuffer
-{
-    Q_ASSERT(sampleBuffer);
-    Q_ASSERT(m_service && m_service->session());
-    AVFCameraSession *session = m_service->session();
-
-    AVSampleBufferRenderSynchronizer *syncer = session->bufferSynchronizer();
-    AVSampleBufferAudioRenderer *renderer = session->audioRenderer();
-    if (syncer && renderer) {
-        [renderer enqueueSampleBuffer:sampleBuffer];
-        if (syncer.rate == 0)
-            [syncer setRate:1 time:CMSampleBufferGetPresentationTimeStamp(sampleBuffer)];
-    }
-}
-
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
         didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         fromConnection:(AVCaptureConnection *)connection
@@ -429,8 +414,21 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         if (m_service->session()->videoOutput()) {
             NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *vfDelegate =
                 (NSObject<AVCaptureVideoDataOutputSampleBufferDelegate> *)m_service->session()->videoOutput()->captureDelegate();
-            if (vfDelegate)
-                [vfDelegate captureOutput:nil didOutputSampleBuffer:sampleBuffer fromConnection:nil];
+            if (vfDelegate) {
+                AVCaptureOutput *output = nil;
+                AVCaptureConnection *connection = nil;
+                [vfDelegate captureOutput:output didOutputSampleBuffer:sampleBuffer fromConnection:connection];
+            }
+        }
+    } else {
+        if (m_service->session()->audioOutput()) {
+            NSObject<AVCaptureAudioDataOutputSampleBufferDelegate> *audioPreviewDelegate =
+                (NSObject<AVCaptureAudioDataOutputSampleBufferDelegate> *)m_service->session()->audioPreviewDelegate();
+            if (audioPreviewDelegate) {
+                AVCaptureOutput *output = nil;
+                AVCaptureConnection *connection = nil;
+                [audioPreviewDelegate captureOutput:output didOutputSampleBuffer:sampleBuffer fromConnection:connection];
+            }
         }
     }
 
@@ -480,8 +478,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         m_lastAudioTimestamp = currentTimestamp;
         dispatch_async(m_writerQueue, ^{
             [self writeAudioSampleBuffer:sampleBuffer];
-            if (m_service->audioOutput())
-                [self renderAudioSampleBuffer:sampleBuffer];
             CFRelease(sampleBuffer);
         });
     }
