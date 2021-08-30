@@ -52,6 +52,7 @@
 //
 
 #include <QWindow>
+#include <qtextlayout.h>
 
 #include <QtGui/private/qrhinull_p.h>
 #if QT_CONFIG(opengl)
@@ -94,8 +95,10 @@ public:
     void releaseSwapChain();
 
     void updateTextures(QRhiResourceUpdateBatch *rub);
-    void updateGraphicsPipeline();
+    void updateSubtitle(QRhiResourceUpdateBatch *rub);
     void freeTextures();
+
+    void setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, QVideoFrameFormat::PixelFormat fmt);
 
     QVideoWindow *q = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
@@ -117,16 +120,24 @@ public:
     std::unique_ptr<QRhiShaderResourceBindings> m_shaderResourceBindings;
     std::unique_ptr<QRhiGraphicsPipeline> m_graphicsPipeline;
 
+    std::unique_ptr<QRhiTexture> m_subtitleTexture;
+    std::unique_ptr<QRhiShaderResourceBindings> m_subtitleResourceBindings;
+    std::unique_ptr<QRhiGraphicsPipeline> m_subtitlePipeline;
+    std::unique_ptr<QRhiBuffer> m_subtitleUniformBuf;
+
     std::unique_ptr<QVideoSink> m_sink;
     QRhi::Implementation m_graphicsApi = QRhi::Null;
     QSize m_frameSize = QSize(-1, -1);
     QVideoFrame m_currentFrame;
+    QVideoTextureHelper::SubtitleLayout m_subtitleLayout;
 
     bool initialized = false;
     bool isExposed = false;
     bool m_useRhi = true;
     bool m_hasSwapChain = false;
     bool m_texturesDirty = true;
+    bool m_subtitleDirty = false;
+    bool m_hasSubtitle = false;
     QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::Format_Invalid;
 };
 

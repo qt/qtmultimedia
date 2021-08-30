@@ -62,6 +62,7 @@
 
 Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemVideoOutput);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemLegibleOutput);
 
 QT_BEGIN_NAMESPACE
 
@@ -77,6 +78,10 @@ public:
     // AVFVideoSinkInterface
     void reconfigure() override;
 
+    void setSubtitleText(const QString &subtitle)
+    {
+        m_sink->setSubtitleText(subtitle);
+    }
 private Q_SLOTS:
     void updateVideoFrame(const CVTimeStamp &ts);
 
@@ -87,6 +92,7 @@ private:
     QMutex m_mutex;
     AVFDisplayLink *m_displayLink = nullptr;
     AVPlayerItemVideoOutput *m_videoOutput = nullptr;
+    AVPlayerItemLegibleOutput *m_subtitleOutput = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -158,6 +158,14 @@ QPlatformVideoSink *QVideoSink::platformVideoSink() const
 }
 
 /*!
+    Returns the current subtitle text.
+ */
+QString QVideoSink::subtitleText() const
+{
+    return d->videoSink->subtitleText();
+}
+
+/*!
     Returns the size of the video currently being played back. If no video is
     being played, this method returns an invalid size.
  */

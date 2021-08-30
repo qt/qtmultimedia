@@ -44,6 +44,7 @@
 #include "qvideoframeconversionhelper_p.h"
 #include "qvideoframeformat.h"
 #include "qpainter.h"
+#include <qtextlayout.h>
 
 #include <qimage.h>
 #include <qmutex.h>
@@ -114,7 +115,7 @@ public:
     QAbstractVideoBuffer *buffer = nullptr;
     int mappedCount = 0;
     QMutex mapMutex;
-    QVariantMap metadata;
+    QString subtitleText;
 
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)
@@ -715,6 +716,22 @@ QImage QVideoFrame::toImage() const
 }
 
 /*!
+    Returns the subtitle text that should be rendered together with this video frame.
+*/
+QString QVideoFrame::subtitleText() const
+{
+    return d->subtitleText;
+}
+
+/*!
+    Sets the subtitle text that should be rendered together with this video frame to \a text.
+*/
+void QVideoFrame::setSubtitleText(const QString &text)
+{
+    d->subtitleText = text;
+}
+
+/*!
     Uses a QPainter, \a{painter}, to render this QVideoFrame to \a rect.
     The PaintOptions \a options can be used to specify a background color and
     how \a rect should be filled with the video.
@@ -725,7 +742,7 @@ QImage QVideoFrame::toImage() const
 void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOptions &options)
 {
     if (!isValid()) {
-        painter->fillRect(rect, painter->background());
+        painter->fillRect(rect, options.backgroundColor);
         return;
     }
 
@@ -793,6 +810,17 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
     } else {
         painter->fillRect(rect, Qt::black);
     }
+
+    if ((options.paintFlags & PaintOptions::DontDrawSubtitles) || d->subtitleText.isEmpty())
+        return;
+
+    // draw subtitles
+    auto text = d->subtitleText;
+    text.replace(QLatin1Char('\n'), QChar::LineSeparator);
+
+    QVideoTextureHelper::SubtitleLayout layout;
+    layout.updateFromVideoFrame(*this);
+    layout.draw(painter, targetRect);
 }
 
 #ifndef QT_NO_DEBUG_STREAM
