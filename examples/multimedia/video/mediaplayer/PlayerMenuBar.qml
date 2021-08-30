@@ -60,6 +60,9 @@ Item {
     required property MediaPlayer mediaPlayer
     required property VideoOutput videoOutput
     required property MetadataInfo metadataInfo
+    required property TracksInfo audioTracksInfo
+    required property TracksInfo videoTracksInfo
+    required property TracksInfo subtitleTracksInfo
 
     height: menuBar.height
 
@@ -69,6 +72,18 @@ Item {
         mediaPlayer.stop()
         mediaPlayer.source = url
         mediaPlayer.play()
+    }
+
+    function closeOverlays(){
+        metadataInfo.visible = false;
+        audioTracksInfo.visible = false;
+        videoTracksInfo.visible = false;
+        subtitleTracksInfo.visible = false;
+    }
+
+    function showOverlay(overlay){
+        closeOverlays();
+        overlay.visible = true;
     }
 
     Popup {
@@ -133,7 +148,23 @@ Item {
             title: qsTr("&View")
             Action {
                 text: qsTr("Metadata")
-                onTriggered: metadataInfo.visible = !metadataInfo.visible
+                onTriggered: showOverlay(metadataInfo)
+            }
+        }
+
+        Menu {
+            title: qsTr("&Tracks")
+            Action {
+                text: qsTr("Audio")
+                onTriggered: showOverlay(audioTracksInfo)
+            }
+            Action {
+                text: qsTr("Video")
+                onTriggered: showOverlay(videoTracksInfo)
+            }
+            Action {
+                text: qsTr("Subtitles")
+                onTriggered: showOverlay(subtitleTracksInfo)
             }
         }
     }

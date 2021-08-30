@@ -81,6 +81,14 @@ Window {
 
         onErrorOccurred: { mediaErrorText.text = mediaPlayer.errorString; mediaError.open() }
         onMetaDataChanged: { metadataInfo.read(mediaPlayer.metaData) }
+        onTracksChanged: {
+            audioTracksInfo.read(mediaPlayer.audioTracks);
+            audioTracksInfo.selectedTrack = mediaPlayer.activeAudioTrack +1;
+            videoTracksInfo.read(mediaPlayer.videoTracks);
+            videoTracksInfo.selectedTrack = mediaPlayer.activeVideoTrack +1;
+            subtitleTracksInfo.read(mediaPlayer.subtitleTracks);
+            subtitleTracksInfo.selectedTrack = mediaPlayer.activeSubtitleTrack +1;
+        }
     }
 
     PlayerMenuBar {
@@ -94,6 +102,9 @@ Window {
         mediaPlayer: mediaPlayer
         videoOutput: videoOutput
         metadataInfo: metadataInfo
+        audioTracksInfo: audioTracksInfo
+        videoTracksInfo: videoTracksInfo
+        subtitleTracksInfo: subtitleTracksInfo
 
         onClosePlayer: root.close()
     }
@@ -127,6 +138,38 @@ Window {
         visible: false
     }
 
+    TracksInfo {
+        id: audioTracksInfo
+
+        anchors.right: parent.right
+        anchors.top: videoOutput.fullScreen ? parent.top : menuBar.bottom
+        anchors.bottom: playbackControl.opacity ? playbackControl.bottom : parent.bottom
+
+        visible: false
+        onSelectedTrackChanged:  mediaPlayer.activeAudioTrack = audioTracksInfo.selectedTrack
+    }
+
+    TracksInfo {
+        id: videoTracksInfo
+
+        anchors.right: parent.right
+        anchors.top: videoOutput.fullScreen ? parent.top : menuBar.bottom
+        anchors.bottom: playbackControl.opacity ? playbackControl.bottom : parent.bottom
+
+        visible: false
+        onSelectedTrackChanged: mediaPlayer.activeVideoTrack = videoTracksInfo.selectedTrack
+    }
+
+    TracksInfo {
+        id: subtitleTracksInfo
+
+        anchors.right: parent.right
+        anchors.top: videoOutput.fullScreen ? parent.top : menuBar.bottom
+        anchors.bottom: playbackControl.opacity ? playbackControl.bottom : parent.bottom
+
+        visible: false
+        onSelectedTrackChanged: mediaPlayer.activeSubtitleTrack = subtitleTracksInfo.selectedTrack
+    }
 
     PlaybackControl {
         id: playbackControl

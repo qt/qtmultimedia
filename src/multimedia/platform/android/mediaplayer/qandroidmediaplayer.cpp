@@ -678,29 +678,75 @@ QPlatformMediaPlayer::TrackType convertTrackType(AndroidMediaPlayer::TrackType t
     return QPlatformMediaPlayer::TrackType::NTrackTypes;
 }
 
+int QAndroidMediaPlayer::convertTrackNumber(int androidTrackNumber)
+{
+    int trackNumber = androidTrackNumber;
+
+    int videoTrackCount = trackCount(QPlatformMediaPlayer::TrackType::VideoStream);
+    if (trackNumber <= videoTrackCount)
+        return trackNumber;
+
+    trackNumber = trackNumber - videoTrackCount;
+
+    int audioTrackCount = trackCount(QPlatformMediaPlayer::TrackType::AudioStream);
+    if (trackNumber <= audioTrackCount)
+        return trackNumber;
+
+    trackNumber = trackNumber - audioTrackCount;
+
+    auto subtitleTracks = mTracksMetadata.value(QPlatformMediaPlayer::TrackType::SubtitleStream);
+    int timedTextCount = 0;
+    int subtitleTextCount = 0;
+    for (const auto &track : subtitleTracks) {
+        if (track.androidTrackType() == 3) // 3 == TimedText
+            timedTextCount++;
+
+        if (track.androidTrackType() == 4) // 4 == Subtitle
+            subtitleTextCount++;
+    }
+
+    if (trackNumber <= timedTextCount)
+        return trackNumber;
+
+    trackNumber = trackNumber - timedTextCount;
+
+    if (trackNumber <= subtitleTextCount)
+        return trackNumber;
+
+    return -1;
+}
+
 int QAndroidMediaPlayer::activeTrack(TrackType trackType)
 {
+    int androidTrackNumber = -1;
+
     switch (trackType) {
     case QPlatformMediaPlayer::TrackType::VideoStream: {
         if (!mIsVideoTrackEnabled)
             return -1;
-        return mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Video);
+        androidTrackNumber = mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Video);
     }
     case QPlatformMediaPlayer::TrackType::AudioStream: {
         if (!mIsAudioTrackEnabled)
             return -1;
-        return mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Audio);
+
+        androidTrackNumber = mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Audio);
     }
     case QPlatformMediaPlayer::TrackType::SubtitleStream: {
         int timedTextSelectedTrack =
                 mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::TimedText);
-        if (timedTextSelectedTrack > -1)
-            return timedTextSelectedTrack;
+
+        if (timedTextSelectedTrack > -1) {
+            androidTrackNumber = timedTextSelectedTrack;
+            break;
+        }
 
         int subtitleSelectedTrack =
                 mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Subtitle);
-        if (subtitleSelectedTrack > -1)
-            return subtitleSelectedTrack;
+        if (subtitleSelectedTrack > -1) {
+            androidTrackNumber = subtitleSelectedTrack;
+            break;
+        }
 
         return -1;
     }
@@ -708,7 +754,7 @@ int QAndroidMediaPlayer::activeTrack(TrackType trackType)
         return -1;
     }
 
-    return -1;
+    return convertTrackNumber(androidTrackNumber);
 }
 
 void QAndroidMediaPlayer::disableTrack(TrackType trackType)

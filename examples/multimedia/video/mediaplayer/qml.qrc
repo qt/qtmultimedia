@@ -7,5 +7,6 @@
         <file>PlaybackSeekControl.qml</file>
         <file>PlaybackRateControl.qml</file>
         <file>PlayerMenuBar.qml</file>
+        <file>TracksInfo.qml</file>
     </qresource>
 </RCC>
