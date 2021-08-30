@@ -42,6 +42,9 @@
 #ifdef Q_OS_ANDROID
 #include <private/qandroidvideooutput_p.h>
 #endif
+
+#include <qpainter.h>
+
 QT_BEGIN_NAMESPACE
 
 namespace QVideoTextureHelper
@@ -500,6 +503,101 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
         resourceUpdates->uploadTexture(textures[plane], desc);
     }
     return description->nplanes;
+}
+
+void SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
+{
+    auto text = frame.subtitleText();
+    text.replace(QLatin1Char('\n'), QChar::LineSeparator);
+    if (layout.text() == text && videoSize == frame.size())
+        return;
+
+    videoSize = frame.size();
+    QFont font;
+    // 0.045 - based on this https://www.md-subs.com/saa-subtitle-font-size
+    qreal fontSize = videoSize.height() * 0.045;
+    font.setPointSize(fontSize);
+
+    layout.setText(text);
+    if (text.isEmpty()) {
+        bounds = {};
+        return;
+    }
+    layout.setFont(font);
+    QTextOption option;
+    option.setUseDesignMetrics(true);
+    option.setAlignment(Qt::AlignCenter);
+    layout.setTextOption(option);
+
+    QFontMetrics metrics(font);
+    int leading = metrics.leading();
+
+    qreal lineWidth = videoSize.width()*.9;
+    qreal margin = videoSize.width()*.05;
+    qreal height = 0;
+    qreal textWidth = 0;
+    layout.beginLayout();
+    while (1) {
+        QTextLine line = layout.createLine();
+        if (!line.isValid())
+            break;
+
+        line.setLineWidth(lineWidth);
+        height += leading;
+        line.setPosition(QPointF(margin, height));
+        height += line.height();
+        textWidth = qMax(textWidth, line.naturalTextWidth());
+    }
+    layout.endLayout();
+
+    // put subtitles vertically in lower part of the video but not stuck to the bottom
+    int bottomMargin = videoSize.height() / 20;
+    qreal y = videoSize.height() - bottomMargin - height;
+    layout.setPosition(QPointF(0, y));
+    textWidth += fontSize/4.;
+
+    bounds = QRectF((videoSize.width() - textWidth)/2., y, textWidth, height);
+}
+
+void SubtitleLayout::draw(QPainter *painter, const QRectF &videoRect) const
+{
+    painter->save();
+    painter->translate(videoRect.topLeft());
+    painter->scale(videoRect.width()/videoSize.width(), videoRect.height()/videoSize.height());
+    painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+
+    QColor bgColor = Qt::black;
+    bgColor.setAlpha(128);
+    painter->setBrush(bgColor);
+    painter->setPen(Qt::NoPen);
+    painter->drawRect(bounds);
+
+    QTextLayout::FormatRange range;
+    range.start = 0;
+    range.length = layout.text().size();
+    range.format.setForeground(Qt::white);
+    layout.draw(painter, {}, { range });
+    painter->restore();
+}
+
+QImage SubtitleLayout::toImage() const
+{
+    auto size = bounds.size().toSize();
+    if (size.isEmpty())
+        return QImage();
+    QImage img(size, QImage::Format_RGBA8888_Premultiplied);
+    QColor bgColor = Qt::black;
+    bgColor.setAlpha(128);
+    img.fill(bgColor);
+
+    QPainter painter(&img);
+    painter.translate(-bounds.topLeft());
+    QTextLayout::FormatRange range;
+    range.start = 0;
+    range.length = layout.text().size();
+    range.format.setForeground(Qt::white);
+    layout.draw(&painter, {}, { range });
+    return img;
 }
 
 }

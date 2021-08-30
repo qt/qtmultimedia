@@ -68,8 +68,11 @@ public:
 
     QPlatformVideoSink *platformVideoSink() const;
 
+    QString subtitleText() const;
+
 Q_SIGNALS:
     void newVideoFrame(const QVideoFrame &frame) const;
+    void subtitleTextChanged(const QString &subtitleText) const;
 
     void videoSizeChanged();
 

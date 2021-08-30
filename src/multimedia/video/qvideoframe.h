@@ -131,7 +131,15 @@ public:
     struct PaintOptions {
         QColor backgroundColor = Qt::transparent;
         Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
+        enum PaintFlag {
+            DontDrawSubtitles = 0x1
+        };
+        Q_DECLARE_FLAGS(PaintFlags, PaintFlag)
+        PaintFlags paintFlags = {};
     };
+
+    QString subtitleText() const;
+    void setSubtitleText(const QString &text);
 
     void paint(QPainter *painter, const QRectF &rect, const PaintOptions &options);
 

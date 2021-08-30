@@ -55,6 +55,47 @@
 
 QT_USE_NAMESPACE
 
+@interface SubtitleDelegate : NSObject <AVPlayerItemLegibleOutputPushDelegate>
+{
+    AVFVideoRendererControl *m_renderer;
+}
+
+- (void)legibleOutput:(AVPlayerItemLegibleOutput *)output
+        didOutputAttributedStrings:(NSArray<NSAttributedString *> *)strings
+        nativeSampleBuffers:(NSArray *)nativeSamples
+        forItemTime:(CMTime)itemTime;
+
+@end
+
+@implementation SubtitleDelegate
+
+-(id)initWithRenderer: (AVFVideoRendererControl *)renderer
+{
+    if (!(self = [super init]))
+        return nil;
+
+    m_renderer = renderer;
+
+    return self;
+}
+
+- (void)legibleOutput:(AVPlayerItemLegibleOutput *)output
+        didOutputAttributedStrings:(NSArray<NSAttributedString *> *)strings
+        nativeSampleBuffers:(NSArray *)nativeSamples
+        forItemTime:(CMTime)itemTime
+{
+    QString text;
+    for (NSAttributedString *s : strings) {
+        if (!text.isEmpty())
+            text += QChar::LineSeparator;
+        text += QString::fromNSString(s.string);
+    }
+    m_renderer->setSubtitleText(text);
+}
+
+@end
+
+
 AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     : QObject(parent)
 {
@@ -162,8 +203,12 @@ CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width
         auto *settings = (m_rhi && m_rhi->backend() == QRhi::OpenGLES2) ? AVF_OUTPUT_SETTINGS_OPENGL : AVF_OUTPUT_SETTINGS;
         m_videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
         [m_videoOutput setDelegate:nil queue:nil];
+        m_subtitleOutput = [[AVPlayerItemLegibleOutput alloc] init];
+        SubtitleDelegate *subtitleDelegate = [[SubtitleDelegate alloc] initWithRenderer:this];
+        [m_subtitleOutput setDelegate:subtitleDelegate queue:dispatch_get_main_queue()];
         AVPlayerItem * item = [[layer player] currentItem];
         [item addOutput:m_videoOutput];
+        [item addOutput:m_subtitleOutput];
     }
 
     CFTimeInterval currentCAFrameTime =  CACurrentMediaTime();

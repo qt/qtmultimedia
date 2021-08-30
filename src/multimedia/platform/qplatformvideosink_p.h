@@ -55,6 +55,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
+#include <QtCore/qmutex.h>
 #include <QtGui/qwindowdefs.h>
 #include <qvideosink.h>
 #include <qvideoframe.h>
@@ -78,7 +79,11 @@ public:
     virtual void setAspectRatioMode(Qt::AspectRatioMode) {}
 
     // ### make non virtual, once Windows is ported
-    virtual QSize nativeSize() const { return m_nativeSize; }
+    virtual QSize nativeSize() const
+    {
+        QMutexLocker locker(&mutex);
+        return m_nativeSize;
+    }
 
     virtual void setBrightness(float /*brightness*/) {}
     virtual void setContrast(float /*contrast*/) {}
@@ -88,20 +93,39 @@ public:
     QVideoSink *videoSink() { return sink; }
 
     void setNativeSize(QSize s) {
+        QMutexLocker locker(&mutex);
         if (m_nativeSize == s)
             return;
         m_nativeSize = s;
         sink->videoSizeChanged();
     }
-    void newVideoFrame(const QVideoFrame &frame) {
+    void newVideoFrame(QVideoFrame frame) {
         setNativeSize(frame.size());
+        frame.setSubtitleText(subtitleText());
         sink->newVideoFrame(frame);
+    }
+
+    void setSubtitleText(const QString &subtitleText)
+    {
+        QMutexLocker locker(&mutex);
+        if (m_subtitleText == subtitleText)
+            return;
+        m_subtitleText = subtitleText;
+        sink->subtitleTextChanged(subtitleText);
+    }
+    QString subtitleText() const
+    {
+        QMutexLocker locker(&mutex);
+        return m_subtitleText;
     }
 
 protected:
     explicit QPlatformVideoSink(QVideoSink *parent);
     QVideoSink *sink = nullptr;
+    mutable QMutex mutex;
+private:
     QSize m_nativeSize;
+    QString m_subtitleText;
 };
 
 QT_END_NAMESPACE

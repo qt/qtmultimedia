@@ -54,9 +54,12 @@
 #include <qvideoframeformat.h>
 #include <private/qrhi_p.h>
 
+#include <QtGui/qtextlayout.h>
+
 QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
+class QTextLayout;
 
 namespace QVideoTextureHelper
 {
@@ -97,6 +100,17 @@ Q_MULTIMEDIA_EXPORT QString fragmentShaderFileName(QVideoFrameFormat::PixelForma
 Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity);
 Q_MULTIMEDIA_EXPORT int updateRhiTextures(QVideoFrame frame, QRhi *rhi,
                                            QRhiResourceUpdateBatch *resourceUpdates, QRhiTexture **textures);
+
+struct Q_MULTIMEDIA_EXPORT SubtitleLayout
+{
+    QSize videoSize;
+    QRectF bounds;
+    QTextLayout layout;
+
+    void updateFromVideoFrame(const QVideoFrame &frame);
+    void draw(QPainter *painter, const QRectF &videoRect) const;
+    QImage toImage() const;
+};
 
 }
 
