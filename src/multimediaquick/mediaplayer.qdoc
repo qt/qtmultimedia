@@ -243,33 +243,6 @@
     \qmlsignal QtMultimedia::MediaPlayer::playbackStateChanged()
 
     This signal is emitted when the \l playbackState property is altered.
-
-    The corresponding handler is \c onPlaybackStateChanged.
-*/
-
-
-/*!
-    \qmlsignal QtMultimedia::MediaPlayer::paused()
-
-    This signal is emitted when playback is paused.
-
-    The corresponding handler is \c onPaused.
-*/
-
-/*!
-    \qmlsignal QtMultimedia::MediaPlayer::stopped()
-
-    This signal is emitted when playback is stopped.
-
-    The corresponding handler is \c onStopped.
-*/
-
-/*!
-    \qmlsignal QtMultimedia::MediaPlayer::playing()
-
-    This signal is emitted when playback is started or resumed.
-
-    The corresponding handler is \c onPlaying.
 */
 
 /*!
@@ -469,12 +442,10 @@
 */
 
 /*!
-    \qmlsignal QtMultimedia::MediaPlayer::error(error, errorString)
+    \qmlsignal QtMultimedia::MediaPlayer::errorOccurred(error, errorString)
 
     This signal is emitted when an \a error has occurred. The \a errorString
     parameter may contain more detailed information about the error.
-
-    The corresponding handler is \c onError.
 
     \sa QMediaPlayer::Error
 */
