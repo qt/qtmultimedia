@@ -93,14 +93,24 @@
 
 /*!
     \since 5.15
-    \qmlproperty url QtMultimedia::MediaPlayer::videoOutput
+    \qmlproperty QObject* QtMultimedia::MediaPlayer::videoOutput
 
     This property holds the target video output.
-    Accepts one, or an array of, VideoOutput elements.
+    Accepts one VideoOutput elements.
 
-    \snippet multimedia-snippets/multiple-videooutputs.qml complete
+    \snippet multimedia-snippets/multiple-videooutputs.qml
 
     \sa QMediaPlayer::setVideoOutput()
+*/
+
+/*!
+    \qmlproperty QAudioOutput* QtMultimedia::MediaPlayer::audioOutput
+
+    This property holds the target audio output.
+    Accepts one AudioOutput elements.
+
+
+    \sa QMediaPlayer::setAudioOutput()
 */
 
 /*!
@@ -319,9 +329,11 @@
 
     This property holds the current playback position in milliseconds.
 
-    To change this position, use the \l seek() method.
+    If the \l seekable property is true, this property can be set to
+    milliseconds.
 
-    \sa seek()
+    Setting the position may be asynchronous, so this may not be updated
+    immediately.
 */
 
 /*!
@@ -385,20 +397,8 @@
 
     This property holds whether position of the audio can be changed.
 
-    If true, calling the \l seek() method will cause playback to seek to the new
+    If true, calling the \l setPosition() method will cause playback to seek to the new
     position.
-*/
-
-/*!
-    \qmlmethod QtMultimedia::MediaPlayer::seek(offset)
-
-    If the \l seekable property is true, seeks the current
-    playback position to \a offset.
-
-    Seeking may be asynchronous, so the \l position property
-    may not be updated immediately.
-
-    \sa seekable, position
 */
 
 /*!
@@ -464,6 +464,84 @@
     \endcode
 
     \note This property is not accessible from QML.
+*/
+
+/*!
+    \since 6.2
+    \qmlproperty int QtMultimedia::MediaPlayer::activeAudioTrack
+
+        This property holds the track number of the currently active audio track.
+        Set to \c{-1} to disable audio track.
+
+        The default property value is \c{0}: the first audio track.
+*/
+
+/*!
+    \since 6.2
+    \qmlproperty int QtMultimedia::MediaPlayer::activeVideoTrack
+
+        This property holds the track number of the currently active video audio track.
+        Set to \c{-1} to disable video track.
+
+        The default property value is \c{0}: the first video track.
+*/
+
+/*!
+    \since 6.2
+    \qmlproperty int QtMultimedia::MediaPlayer::activeSubtitleTrack
+
+        This property holds the track number of the currently active subtitle track.
+        Set to \c{-1} to disable subtitle track.
+
+        The default property value is \c{-1}: no subtitles active.
+*/
+
+/*!
+    \since 6.2
+    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::audioTracks
+
+        This property holds a list of metadata.
+        Each index refers to a audio track.
+
+        The metadata holds 2 properties;
+        \list
+             \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
+             \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
+        \endlist
+
+    \sa {MetaData}
+*/
+
+/*!
+    \since 6.2
+    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::videoTracks
+
+        This property holds a list of metadata.
+        Each index refers to a video track.
+
+        The metadata holds 2 properties;
+        \list
+             \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
+             \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
+        \endlist
+
+    \sa {MetaData}
+*/
+
+/*!
+    \since 6.2
+    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::subtitleTracks
+
+        This property holds a list of metadata.
+        Each index refers to a subtitle track.
+
+        The metadata holds 2 properties;
+        \list
+             \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
+             \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
+        \endlist
+
+    \sa {MetaData}
 */
 
 /*!
