@@ -580,8 +580,6 @@ void QQuickPlaylist::componentComplete()
 
     This signal is emitted when items are to be inserted into the playlist at \a start and ending at
     \a end.
-
-    The corresponding handler is \c onItemAboutToBeInserted.
 */
 
 /*!
@@ -589,8 +587,6 @@ void QQuickPlaylist::componentComplete()
 
     This signal is emitted after items have been inserted into the playlist. The new items are those
     between \a start and \a end inclusive.
-
-    The corresponding handler is \c onItemInserted.
 */
 
 /*!
@@ -598,8 +594,6 @@ void QQuickPlaylist::componentComplete()
 
     This signal emitted when items are to be deleted from the playlist at \a start and ending at
     \a end.
-
-    The corresponding handler is \c onItemAboutToBeRemoved.
 */
 
 /*!
@@ -607,8 +601,6 @@ void QQuickPlaylist::componentComplete()
 
     This signal is emitted after items have been removed from the playlist. The removed items are
     those between \a start and \a end inclusive.
-
-    The corresponding handler is \c onMediaRemoved.
 */
 
 /*!
@@ -616,16 +608,12 @@ void QQuickPlaylist::componentComplete()
 
     This signal is emitted after items have been changed in the playlist between \a start and
     \a end positions inclusive.
-
-    The corresponding handler is \c onItemChanged.
 */
 
 /*!
     \qmlsignal QtMultimedia::Playlist::loaded()
 
     This signal is emitted when the playlist loading succeeded.
-
-    The corresponding handler is \c onLoaded.
 */
 
 /*!
@@ -633,8 +621,6 @@ void QQuickPlaylist::componentComplete()
 
     This signal is emitted when the playlist loading failed. \l error and \l errorString can be
     checked for more information on the failure.
-
-    The corresponding handler is \c onLoadFailed.
 */
 
 QT_END_NAMESPACE

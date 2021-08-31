@@ -299,8 +299,6 @@ Item {
         \qmlsignal Video::paused()
 
         This signal is emitted when playback is paused.
-
-        The corresponding handler is \c onPaused.
     */
     signal paused
 
@@ -308,8 +306,6 @@ Item {
         \qmlsignal Video::stopped()
 
         This signal is emitted when playback is stopped.
-
-        The corresponding handler is \c onStopped.
     */
     signal stopped
 
@@ -317,8 +313,6 @@ Item {
         \qmlsignal Video::playing()
 
         This signal is emitted when playback is started or continued.
-
-        The corresponding handler is \c onPlaying.
     */
     signal playing
 

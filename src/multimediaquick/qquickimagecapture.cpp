@@ -156,8 +156,6 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
 
     This signal is emitted when an error occurs during capture with \a requestId.
     A descriptive message is available in \a message.
-
-    The corresponding handler is \c onErrorOccurred.
 */
 
 /*!
@@ -166,8 +164,6 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
     This signal is emitted when an image with \a requestId has been captured
     but not yet saved to the filesystem.  The \a preview
     parameter can be used as the URL supplied to an \l Image.
-
-    The corresponding handler is \c onImageCaptured.
 
     \sa imageSaved
 */
@@ -178,8 +174,6 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
     This signal is emitted after the image with \a requestId has been written to the filesystem.
     The \a path is a local file path, not a URL.
 
-    The corresponding handler is \c onImageSaved.
-
     \sa imageCaptured
 */
 
@@ -189,8 +183,6 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
 
     This signal is emitted when the image with \a requestId has new metadata
     available with the key \a key and value \a value.
-
-    The corresponding handler is \c onImageMetadataAvailable.
 
     \sa imageCaptured
 */
