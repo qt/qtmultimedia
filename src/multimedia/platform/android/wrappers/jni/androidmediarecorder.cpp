@@ -45,8 +45,11 @@
 #include "qandroidglobal_p.h"
 #include "qandroidmultimediautils_p.h"
 #include <qmap.h>
+#include <QtCore/qlogging.h>
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(lcMediaRecorder, "qt.multimedia.mediarecorder.android")
 
 typedef QMap<QString, QJniObject> CamcorderProfiles;
 Q_GLOBAL_STATIC(CamcorderProfiles, g_camcorderProfiles)
@@ -182,6 +185,7 @@ bool AndroidMediaRecorder::prepare()
 void AndroidMediaRecorder::reset()
 {
     m_mediaRecorder.callMethod<void>("reset");
+    m_isAudioSourceSet = false; // Now setAudioSource can be used again.
 }
 
 bool AndroidMediaRecorder::start()
@@ -223,7 +227,20 @@ void AndroidMediaRecorder::setAudioSamplingRate(int samplingRate)
 
 void AndroidMediaRecorder::setAudioSource(AudioSource source)
 {
-    m_mediaRecorder.callMethod<void>("setAudioSource", "(I)V", int(source));
+    if (!m_isAudioSourceSet) {
+        QJniEnvironment env;
+        auto methodId = env->GetMethodID(m_mediaRecorder.objectClass(), "setAudioSource", "(I)V");
+        env->CallVoidMethod(m_mediaRecorder.object(), methodId, source);
+        if (!env.checkAndClearExceptions())
+            m_isAudioSourceSet = true;
+    } else {
+        qCWarning(lcMediaRecorder) << "Audio source already set. Not setting a new source.";
+    }
+}
+
+bool AndroidMediaRecorder::isAudioSourceSet() const
+{
+    return m_isAudioSourceSet;
 }
 
 bool AndroidMediaRecorder::setAudioInput(const QByteArray &id)
@@ -235,7 +252,7 @@ bool AndroidMediaRecorder::setAudioInput(const QByteArray &id)
                 m_mediaRecorder.object(),
                 id.toInt());
     if (!ret)
-        qCWarning(QLoggingCategory("mediarecorder")) << "No default input device was set";
+        qCWarning(lcMediaRecorder) << "No default input device was set.";
 
     return ret;
 }
@@ -278,7 +295,12 @@ void AndroidMediaRecorder::setOrientationHint(int degrees)
 
 void AndroidMediaRecorder::setOutputFormat(OutputFormat format)
 {
-    m_mediaRecorder.callMethod<void>("setOutputFormat", "(I)V", int(format));
+    QJniEnvironment env;
+    auto methodId = env->GetMethodID(m_mediaRecorder.objectClass(), "setOutputFormat", "(I)V");
+    env->CallVoidMethod(m_mediaRecorder.object(), methodId, format);
+    // setAudioSource cannot be set after outputFormat is set.
+    if (!env.checkAndClearExceptions())
+        m_isAudioSourceSet = true;
 }
 
 void AndroidMediaRecorder::setOutputFile(const QString &path)

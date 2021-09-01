@@ -161,6 +161,7 @@ public:
     void setAudioEncodingBitRate(int bitRate);
     void setAudioSamplingRate(int samplingRate);
     void setAudioSource(AudioSource source);
+    bool isAudioSourceSet() const;
     bool setAudioInput(const QByteArray &id);
 
     void setCamera(AndroidCamera *camera);
@@ -187,6 +188,7 @@ Q_SIGNALS:
 private:
     jlong m_id;
     QJniObject m_mediaRecorder;
+    bool m_isAudioSourceSet = false;
 };
 
 QT_END_NAMESPACE
