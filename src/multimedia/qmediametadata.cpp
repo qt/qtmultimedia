@@ -107,6 +107,19 @@ QT_BEGIN_NAMESPACE
     \endtable
 */
 
+/*!
+    \qmltype MetaData
+    \since 6.2
+    \instantiates QMediaMetaData
+    \brief Provides meta-data for media files.
+    \ingroup multimedia_qml
+    \ingroup multimedia_audio_qml
+    \ingroup multimedia_video_qml
+
+    Meta-data is supplementary data describing media.
+    See QMediaMetaData for available meta data attributes.
+*/
+
 /*
     Some potential attributes to add if we can properly support them.
     Might require that we add EXIF support to Qt Multimedia
@@ -202,6 +215,13 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \qmlmethod QVariant QtMultimedia::MetaData::value(QMediaMetaData::Key key)
+
+    Returns the meta data value for Key \a key, or a null QVariant if no
+    meta-data for the key is available.
+*/
+
+/*!
     \fn QVariant QMediaMetaData::value(QMediaMetaData::Key key) const
 
     Returns the meta data value for Key \a key, or a null QVariant is not
@@ -209,10 +229,60 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn void QMediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
+    \qmlmethod bool QtMultimedia::MetaData::isEmpty()
+    Returns \c true if the meta data contains no items: otherwise returns \c{false}.
+*/
+
+/*!
+    \fn bool QMediaMetaData::isEmpty()
+    Returns \c true if the meta data contains no items: otherwise returns \c{false}.
+*/
+
+/*!
+    \qmlmethod void QtMultimedia::MetaData::clear()
+    Removes all data from the MetaData object.
+*/
+
+/*!
+    \fn void QMediaMetaData::clear()
+    Removes all data from the MetaData object.
+*/
+
+/*!
+    \qmlmethod void QtMultimedia::MetaData::insert(QMediaMetaData::Key k, const QVariant &value)
     Inserts a \a value into a Key: \a{k}.
 */
 
+/*!
+    \fn void QMediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
+    Inserts a \a value into a Key: \a{k}.
+*/
+/*!
+    \qmlmethod void QtMultimedia::MetaData::remove(QMediaMetaData::Key k)
+    Removes meta data from a Key: \a{k}.
+*/
+
+/*!
+    \fn void QMediaMetaData::remove(QMediaMetaData::Key k)
+    Removes meta data from a Key: \a{k}.
+*/
+
+/*!
+    \qmlmethod QList QtMultimedia::MetaData::keys()
+    Returns a QList of MetaData.Keys.
+*/
+
+/*!
+    \fn QList QMediaMetaData::keys()
+    Returns a QList of QMediaMetaData::Keys.
+*/
+
+/*!
+    \qmlmethod QString QtMultimedia::MetaData::stringValue(QMediaMetaData::Key key)
+    Returns the meta data for key \a key as a QString.
+
+    This is mainly meant to simplify presenting the meta data to a user.
+*/
 /*!
     Returns the meta data for key \a key as a QString.
 
@@ -271,9 +341,15 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key key) const
     }
     return QString();
 }
+/*!
+    \qmlmethod QString QtMultimedia::MetaData::metaDataKeyToString(QMediaMetaData::Key key)
+    returns a string representation of \a key that can be used when presenting
+    meta data to users.
+*/
 
 /*!
-    returns a string representation of \a key that can be used when presenting meta data to users.
+    returns a string representation of \a key that can be used when presenting
+    meta data to users.
 */
 QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
 {
@@ -337,6 +413,32 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
     }
     return QString();
 }
+// operator documentation
+/*!
+\fn QVariant &QMediaMetaData ::operator[](QMediaMetaData::Key k)
+    The \c [] operator returns data stored at the Key \a{k}.
+    \code
+        QMediaMetaData rockBallad1;
+        rockBalad[QMediaMetaData::Genre]="Rock"
+    \endcode
+*/
 
+/*!
+\fn bool QMediaMetaData::operator==(const QMediaMetaData &a, const QMediaMetaData &b)
+    The \c == operator will compare two meta data objects, and return
+    \c true if they are identical or \c false if they differ.
+*/
+
+/*!
+\fn bool QMediaMetaData::operator!=(const QMediaMetaData &a, const QMediaMetaData &b)
+    The \c != operator will compare two meta data objects, and return
+    \c false if they are identical or \c true if they differ.
+*/
+
+/*!
+\property QHash<Key, QVariant> QMediaMetaData::data
+    This property holds the metaData.
+    \note this is a \c protected member of its class.
+*/
 
 QT_END_NAMESPACE
