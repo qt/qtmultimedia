@@ -377,7 +377,9 @@ static QMatrix4x4 yuvColorCorrectionMatrix(float brightness, float contrast, flo
 
 void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity)
 {
+#ifndef Q_OS_ANDROID
     Q_UNUSED(frame);
+#endif
 
     QMatrix4x4 cmat;
     switch (format.pixelFormat()) {
