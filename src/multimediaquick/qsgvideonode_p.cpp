@@ -242,7 +242,8 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
     // updated by this function and we need that already in updateUniformData.
     m->updateTextures(state.rhi(), state.resourceUpdateBatch());
 
-    m_format.updateUniformData(state.uniformData(), m_material->m_frame, state.combinedMatrix(), state.opacity());
+    m_format.updateUniformData(state.uniformData(), m->m_frame,
+                               state.combinedMatrix(), state.opacity());
 
     return true;
 }
