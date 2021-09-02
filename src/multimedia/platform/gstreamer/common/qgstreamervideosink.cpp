@@ -39,6 +39,7 @@
 
 #include "qgstreamervideosink_p.h"
 #include "private/qgstvideorenderersink_p.h"
+#include "private/qgstsubtitlesink_p.h"
 #include <private/qgstutils_p.h>
 #include <QtGui/private/qrhi_p.h>
 
@@ -91,6 +92,8 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     sinkBin.add(gstQueue, gstPreprocess);
     gstQueue.link(gstPreprocess);
     sinkBin.addGhostPad(gstQueue, "sink");
+
+    gstSubtitleSink = GST_ELEMENT(QGstSubtitleSink::createSink(this));
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink()

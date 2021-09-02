@@ -79,6 +79,7 @@ public:
     QRhi *rhi() const { return m_rhi; }
 
     QGstElement gstSink();
+    QGstElement subtitleSink() const { return gstSubtitleSink; }
 
     void setPipeline(QGstPipeline pipeline);
 
@@ -100,6 +101,7 @@ private:
     QGstElement gstPreprocess;
     QGstElement gstVideoSink;
     QGstElement gstQtSink;
+    QGstElement gstSubtitleSink;
 
     QRhi *m_rhi = nullptr;
 

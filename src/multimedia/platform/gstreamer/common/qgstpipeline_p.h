@@ -100,6 +100,8 @@ public:
     void installMessageFilter(QGstreamerBusMessageFilter *filter);
     void removeMessageFilter(QGstreamerBusMessageFilter *filter);
 
+    GstStateChangeReturn setState(GstState state);
+
     GstPipeline *pipeline() const { return GST_PIPELINE_CAST(m_object); }
 
     void dumpGraph(const char *fileName)

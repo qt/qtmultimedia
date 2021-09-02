@@ -66,6 +66,7 @@ public:
     mutable qint64 m_position = 0;
     double m_rate = 1.;
     bool m_flushOnConfigChanges = false;
+    bool m_pendingFlush = false;
 
     int m_configCounter = 0;
     GstState m_savedState = GST_STATE_NULL;
@@ -271,6 +272,16 @@ void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
     d->removeMessageFilter(filter);
 }
 
+GstStateChangeReturn QGstPipeline::setState(GstState state)
+{
+    auto retval = gst_element_set_state(element(), state);
+    if (d->m_pendingFlush) {
+        d->m_pendingFlush = false;
+        flush();
+    }
+    return retval;
+}
+
 void QGstPipeline::beginConfig()
 {
     if (!d)
@@ -296,8 +307,7 @@ void QGstPipeline::endConfig()
     if (d->m_configCounter)
         return;
 
-    if (d->m_savedState != GST_STATE_NULL && d->m_flushOnConfigChanges)
-        flush();
+    d->m_pendingFlush = true;
     if (d->m_savedState == GST_STATE_PLAYING)
         setState(GST_STATE_PLAYING);
     d->m_savedState = GST_STATE_NULL;

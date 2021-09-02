@@ -377,6 +377,9 @@ public:
 
     GstPad *pad() const { return GST_PAD_CAST(object()); }
 
+    GstEvent *stickyEvent(GstEventType type) { return gst_pad_get_sticky_event(pad(), type, 0); }
+    bool sendEvent(GstEvent *event) { return gst_pad_send_event (pad(), event); }
+
     template<auto Member, typename T>
     void addProbe(T *instance, GstPadProbeType type) {
         struct Impl {
