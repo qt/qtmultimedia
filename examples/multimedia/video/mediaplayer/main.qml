@@ -61,6 +61,7 @@ Window {
     height: 480
     visible: true
     title: qsTr("Multimedia Player")
+    property alias source: mediaPlayer.source
 
     Popup {
         id: mediaError
