@@ -384,10 +384,8 @@ bool QAndroidCameraSession::startPreview()
 
     AndroidMultimediaUtils::enableOrientationListener(true);
 
-    // Before API level 24 the orientation was always 0, which is what we're expecting, so
-    // we'll enforce that here.
-    if (QNativeInterface::QAndroidApplication::sdkVersion() > 23)
-        m_camera->setDisplayOrientation(0);
+    // Use the default native orientation as the orientation for the preview
+    m_camera->setDisplayOrientation(m_nativeOrientation);
 
     m_camera->startPreview();
     m_previewStarted = true;
