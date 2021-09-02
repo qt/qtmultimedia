@@ -115,6 +115,7 @@ public:
 
     bool processBusMessage(const QGstreamerMessage& message) override;
     bool processSyncMessage(const QGstreamerMessage& message) override;
+
 public Q_SLOTS:
     void updatePosition() { positionChanged(position()); }
 

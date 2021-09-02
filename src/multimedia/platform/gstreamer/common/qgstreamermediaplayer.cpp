@@ -78,6 +78,11 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
     inputSelector[AudioStream] = QGstElement("input-selector", "audioInputSelector");
     inputSelector[VideoStream] = QGstElement("input-selector", "videoInputSelector");
     inputSelector[SubtitleStream] = QGstElement("input-selector", "subTitleInputSelector");
+    for (int i = 0; i < 3; ++i)
+        inputSelector[i].set ("sync-streams", true);
+
+    inputSelector[SubtitleStream].set("sync-mode", 1 /*clock*/);
+    inputSelector[SubtitleStream].set("cache-buffers", true);
 
     playerPipeline.add(inputSelector[AudioStream], inputSelector[VideoStream], inputSelector[SubtitleStream]);
 
@@ -795,6 +800,10 @@ void QGstreamerMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type,
     auto &selector = inputSelector[type];
     if (selector.isNull())
         return;
+
+    if (type == QPlatformMediaPlayer::SubtitleStream)
+        gstVideoOutput->flushSubtitles();
+
     selector.set("active-pad", streams.at(index));
     // seek to force an immediate change of the stream
     if (playerPipeline.state() == GST_STATE_PLAYING)
