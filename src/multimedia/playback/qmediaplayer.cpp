@@ -587,7 +587,7 @@ int QMediaPlayer::activeVideoTrack() const
     Q_D(const QMediaPlayer);
     if (d->control)
         return d->control->activeTrack(QPlatformMediaPlayer::VideoStream);
-    return 0;
+    return -1;
 }
 
 /*!
@@ -598,7 +598,7 @@ int QMediaPlayer::activeSubtitleTrack() const
     Q_D(const QMediaPlayer);
     if (d->control)
         return d->control->activeTrack(QPlatformMediaPlayer::SubtitleStream);
-    return 0;
+    return -1;
 }
 
 /*!
@@ -611,8 +611,12 @@ int QMediaPlayer::activeSubtitleTrack() const
 void QMediaPlayer::setActiveAudioTrack(int index)
 {
     Q_D(QMediaPlayer);
-    if (d->control)
-        d->control->setActiveTrack(QPlatformMediaPlayer::AudioStream, index);
+    if (!d->control)
+        return;
+
+    if (activeAudioTrack() == index)
+        return;
+    d->control->setActiveTrack(QPlatformMediaPlayer::AudioStream, index);
 }
 
 /*!
@@ -623,8 +627,12 @@ void QMediaPlayer::setActiveAudioTrack(int index)
 void QMediaPlayer::setActiveVideoTrack(int index)
 {
     Q_D(QMediaPlayer);
-    if (d->control)
-        d->control->setActiveTrack(QPlatformMediaPlayer::VideoStream, index);
+    if (!d->control)
+        return;
+
+    if (activeVideoTrack() == index)
+        return;
+    d->control->setActiveTrack(QPlatformMediaPlayer::VideoStream, index);
 }
 
 /*!
@@ -637,8 +645,12 @@ void QMediaPlayer::setActiveVideoTrack(int index)
 void QMediaPlayer::setActiveSubtitleTrack(int index)
 {
     Q_D(QMediaPlayer);
-    if (d->control)
-        d->control->setActiveTrack(QPlatformMediaPlayer::SubtitleStream, index);
+    if (!d->control)
+        return;
+
+    if (activeSubtitleTrack() == index)
+        return;
+    d->control->setActiveTrack(QPlatformMediaPlayer::SubtitleStream, index);
 }
 
 QObject *QMediaPlayer::videoOutput() const
