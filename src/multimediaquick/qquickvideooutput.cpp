@@ -586,7 +586,7 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
             // Get a node that supports our frame. The surface is irrelevant, our
             // QSGVideoItemSurface supports (logically) anything.
             updateGeometry();
-            videoNode = new QSGVideoNode(m_surfaceFormat);
+            videoNode = new QSGVideoNode(this, m_surfaceFormat);
             qCDebug(qLcVideo) << "updatePaintNode: Video node created. Handle type:" << m_frame.handleType();
         }
     }
@@ -597,9 +597,6 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
         return nullptr;
     }
 
-    // Negative rotations need lots of %360
-    videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect,
-                                       qNormalizedOrientation(orientation()));
     if (m_frameChanged) {
         videoNode->setCurrentFrame(m_frame);
 
@@ -607,6 +604,11 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
         m_frameChanged = false;
         m_frame = QVideoFrame();
     }
+
+    // Negative rotations need lots of %360
+    videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect,
+                                       qNormalizedOrientation(orientation()));
+
     return videoNode;
 }
 

@@ -41,6 +41,8 @@
 #include <QtQuick/qsgmaterial.h>
 #include "qsgvideotexture_p.h"
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <private/qquicktextnode_p.h>
+#include <private/qquickvideooutput_p.h>
 #include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
@@ -120,6 +122,8 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
         setGeometry(g);
 
     markDirty(DirtyGeometry);
+
+    setSubtitleGeometry();
 }
 
 class QSGVideoMaterial;
@@ -271,8 +275,9 @@ QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &format) :
     setFlag(Blending, false);
 }
 
-QSGVideoNode::QSGVideoNode(const QVideoFrameFormat &format)
-    : m_orientation(-1),
+QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format)
+    : m_parent(parent),
+    m_orientation(-1),
     m_format(format)
 {
     setFlag(QSGNode::OwnsMaterial);
@@ -280,10 +285,54 @@ QSGVideoNode::QSGVideoNode(const QVideoFrameFormat &format)
     setMaterial(m_material);
 }
 
+QSGVideoNode::~QSGVideoNode()
+{
+    delete m_subtitleTextNode;
+}
+
 void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
 {
     m_material->setCurrentFrame(frame);
     markDirty(DirtyMaterial);
+    updateSubtitle(frame);
 }
+
+void QSGVideoNode::updateSubtitle(const QVideoFrame &frame)
+{
+    if (!m_subtitleLayout.updateFromVideoFrame(frame))
+        return;
+
+    delete m_subtitleTextNode;
+    m_subtitleTextNode = nullptr;
+    if (frame.subtitleText().isEmpty())
+        return;
+
+    m_subtitleTextNode = new QQuickTextNode(m_parent);
+    QColor bgColor = Qt::black;
+    bgColor.setAlpha(128);
+    m_subtitleTextNode->addRectangleNode(m_subtitleLayout.bounds, bgColor);
+    m_subtitleTextNode->addTextLayout(m_subtitleLayout.layout.position(), &m_subtitleLayout.layout, Qt::white);
+    appendChildNode(m_subtitleTextNode);
+    setSubtitleGeometry();
+}
+
+void QSGVideoNode::setSubtitleGeometry()
+{
+    if (!m_subtitleTextNode)
+        return;
+
+    QSizeF s = m_subtitleLayout.videoSize;
+    QMatrix4x4 transform = {
+        float(m_rect.width()/s.width()), 0, 0, float(m_rect.x()),
+        0, float(m_rect.height()/s.height()), 0, float(m_rect.y()),
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    transform.rotate(m_orientation/180*M_PI, 0, 0, 1);
+    m_subtitleTextNode->setMatrix(transform);
+    m_subtitleTextNode->markDirty(DirtyGeometry);
+}
+
+
 
 QT_END_NAMESPACE

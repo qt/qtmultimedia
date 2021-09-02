@@ -505,12 +505,12 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
     return description->nplanes;
 }
 
-void SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
+bool SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
 {
     auto text = frame.subtitleText();
     text.replace(QLatin1Char('\n'), QChar::LineSeparator);
     if (layout.text() == text && videoSize == frame.size())
-        return;
+        return false;
 
     videoSize = frame.size();
     QFont font;
@@ -521,7 +521,7 @@ void SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
     layout.setText(text);
     if (text.isEmpty()) {
         bounds = {};
-        return;
+        return true;
     }
     layout.setFont(font);
     QTextOption option;
@@ -557,6 +557,7 @@ void SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
     textWidth += fontSize/4.;
 
     bounds = QRectF((videoSize.width() - textWidth)/2., y, textWidth, height);
+    return true;
 }
 
 void SubtitleLayout::draw(QPainter *painter, const QRectF &videoRect) const
