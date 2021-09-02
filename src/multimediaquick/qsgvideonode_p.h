@@ -53,6 +53,7 @@
 
 #include <QtQuick/qsgnode.h>
 #include <private/qtmultimediaquickglobal_p.h>
+#include "private/qvideotexturehelper_p.h"
 
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
@@ -61,11 +62,14 @@
 QT_BEGIN_NAMESPACE
 
 class QSGVideoMaterial;
+class QQuickVideoOutput;
+class QQuickTextNode;
 
 class QSGVideoNode : public QSGGeometryNode
 {
 public:
-    QSGVideoNode(const QVideoFrameFormat &format);
+    QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format);
+    ~QSGVideoNode();
 
     QVideoFrameFormat::PixelFormat pixelFormat() const {
         return m_format.pixelFormat();
@@ -75,12 +79,19 @@ public:
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
 private:
+    void updateSubtitle(const QVideoFrame &frame);
+    void setSubtitleGeometry();
+
+    QQuickVideoOutput *m_parent = nullptr;
     QRectF m_rect;
     QRectF m_textureRect;
     int m_orientation;
 
     QVideoFrameFormat m_format;
     QSGVideoMaterial *m_material;
+
+    QVideoTextureHelper::SubtitleLayout m_subtitleLayout;
+    QQuickTextNode *m_subtitleTextNode = nullptr;
 };
 
 QT_END_NAMESPACE

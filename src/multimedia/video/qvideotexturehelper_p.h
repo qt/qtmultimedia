@@ -107,7 +107,7 @@ struct Q_MULTIMEDIA_EXPORT SubtitleLayout
     QRectF bounds;
     QTextLayout layout;
 
-    void updateFromVideoFrame(const QVideoFrame &frame);
+    bool updateFromVideoFrame(const QVideoFrame &frame);
     void draw(QPainter *painter, const QRectF &videoRect) const;
     QImage toImage() const;
 };
