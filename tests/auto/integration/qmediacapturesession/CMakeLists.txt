@@ -10,4 +10,5 @@ qt_internal_add_test(tst_qmediacapturesession
     PUBLIC_LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+        Qt::MultimediaWidgets
 )
