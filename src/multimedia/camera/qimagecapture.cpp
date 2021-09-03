@@ -168,7 +168,7 @@ QImageCapture::~QImageCapture()
 */
 bool QImageCapture::isAvailable() const
 {
-    return d_func()->control != nullptr && d_func()->captureSession->camera();
+    return d_func()->captureSession && d_func()->captureSession->camera();
 }
 
 /*!
