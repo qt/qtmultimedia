@@ -51,14 +51,19 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Controls
+import QtQuick.Layouts
 import QtMultimedia
 
 Window {
     id: root
-    width: 800
-    height: 600
     visible: true
     title: "Media recorder"
+    width: Style.screenWidth
+    height: Style.screenHeigth
+
+    onWidthChanged:{
+        Style.calculateRatio(root.width, root.height)
+    }
 
     VideoOutput {
         id: videoOutput
@@ -127,12 +132,15 @@ Window {
 
     Frame {
         id: controlsFrame
+
         anchors {
             left: parent.left
             right: parent.right
             bottom: parent.bottom
         }
-        height: controlsAndSettings.height
+
+        height: controls.height + Style.interSpacing * 2 + (settingsEncoder.visible? settingsEncoder.height : 0) +(settingsMetaData.visible? settingsMetaData.height : 0)
+
         background: Rectangle {
             anchors.fill: parent
             color: "white"
@@ -141,43 +149,37 @@ Window {
 
         Behavior on height { NumberAnimation { duration: 100 } }
 
-        Column {
-            id: controlsAndSettings
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
-            padding: Style.interSpacing
-            spacing: Style.interSpacing
-
-            property real widthWithPadding: width - padding * 2
+        ColumnLayout {
+            anchors.fill: parent
 
             Controls {
+                Layout.alignment: Qt.AlignHCenter
                 id: controls
-                width: parent.widthWithPadding
                 recorder: recorder
             }
 
             StyleRectangle {
+                Layout.alignment: Qt.AlignHCenter
                 visible: controls.settingsVisible
-                width: parent.widthWithPadding
+                width: controls.width
                 height: 1
             }
 
-            Row {
+            SettingsEncoder {
+
+                id:settingsEncoder
+                Layout.alignment: Qt.AlignHCenter
                 visible: controls.settingsVisible
-                width: parent.widthWithPadding
-                spacing: Style.interSpacing
-
-                SettingsEncoder {
-                    recorder: recorder
-                }
-
-                SettingsMetaData {
-                    height: parent.height
-                    recorder: recorder
-                }
+                padding: Style.interSpacing
+                recorder: recorder
             }
+
+            SettingsMetaData {
+                id: settingsMetaData
+                Layout.alignment: Qt.AlignHCenter
+                visible: !Style.isMobile() && controls.settingsVisible
+                recorder: recorder
+           }
         }
     }
 }
