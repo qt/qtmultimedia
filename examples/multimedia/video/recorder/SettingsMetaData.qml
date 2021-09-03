@@ -78,8 +78,9 @@ ColumnLayout {
         spacing: Style.intraSpacing
         ComboBox {
             id: metaDataType
-            width: (Style.widthLong + Style.widthShort)/2
-            height: parent.height
+            width: Style.widthMedium
+            height: Style.height
+            font.pointSize: Style.fontSize
             model: ListModel {
                 ListElement { text: "Title"; value: MetaData.Title }
                 ListElement { text: "Author"; value: MetaData.Author }
@@ -99,7 +100,7 @@ ColumnLayout {
             }
             textRole: "text"
             valueRole: "value"
-            background: StyleRectangle { width: metaDataType.width }
+            background: StyleRectangle { anchors.fill: parent; width: metaDataType.width }
         }
         Item {
             width: Style.widthMedium
@@ -108,19 +109,24 @@ ColumnLayout {
             TextInput {
                 id: textInput
                 anchors.fill: parent
+                anchors.bottom: parent.bottom
                 anchors.margins: 4
+                font.pointSize: Style.fontSize
                 clip: true
                 onAccepted: {
                     recorder.metaData.insert(metaDataType.currentValue, text)
                     recorder.metaDataChanged()
                     text = ""
+                    textInput.deselect()
                 }
             }
         }
         Button {
-            width: Style.widthTiny
+            width: Style.widthShort
             height: Style.height
             text: "add"
+            font.pointSize: Style.fontSize
+
             background: StyleRectangle { anchors.fill: parent }
             onClicked: textInput.accepted()
         }
@@ -146,25 +152,32 @@ ColumnLayout {
                 width: Style.widthShort
                 height: Style.height
                 text: r.text
+                font.pointSize: Style.fontSize
+
                 horizontalAlignment: Text.AlignRight
                 verticalAlignment: Text.AlignVCenter
             }
             Item {
                 width: Style.widthMedium
                 height: Style.height
+
                 StyleRectangle { anchors.fill: parent }
                 TextInput {
                     anchors.fill: parent
                     anchors.margins: 4
+                    anchors.bottom: parent.bottom
+                    font.pointSize: Style.fontSize
                     clip: true
                     text: recorder.metaData.stringValue(r.value)
                     onAccepted: recorder.metaData.insert(r.value, text)
+
                 }
             }
             Button {
-                width: Style.widthTiny
+                width: Style.widthShort
                 height: Style.height
                 text: "del"
+                font.pointSize: Style.fontSize
                 background: StyleRectangle { anchors.fill: parent }
                 onClicked: { recorder.metaData.remove(r.value); recorder.metaDataChanged() }
             }

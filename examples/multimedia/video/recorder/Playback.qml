@@ -60,6 +60,10 @@ Item {
 
     function playUrl(url) {
         root.active = true
+        if (!videoOutput) {
+            console.log("videooutput is null")
+        }
+
         mediaPlayer.videoOutput = videoOutput
         mediaPlayer.audioOutput = audioOutput
         mediaPlayer.source = url

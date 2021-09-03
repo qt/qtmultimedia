@@ -62,15 +62,16 @@ Row {
 
     AudioInput { id: audioInput; muted: false }
 
-    Switch { id: audioSwitch }
+    Switch { id: audioSwitch; height: Style.height; }
 
     ComboBox {
         id: comboBox
         width: Style.widthLong
-        height: parent.height
+        height: Style.height
         background: StyleRectangle { anchors.fill: parent }
         model: mediaDevices.audioInputs
         textRole: "description"
+        font.pointSize: Style.fontSize
         displayText: typeof currentValue === 'undefined' ? "unavailable" : currentValue.description
         onCurrentValueChanged: if (typeof comboBox.currentValue !== 'undefined') audioInput.device = currentValue
     }
