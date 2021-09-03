@@ -53,9 +53,8 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtMultimedia
 
-RowLayout {
+Row {
     id: root
-
     required property MediaRecorder recorder
 
     property bool settingsVisible: false
@@ -64,17 +63,14 @@ RowLayout {
     property alias audioInput: audioInputSelect.selected
     property alias camera: cameraSelect.selected
 
+    spacing: Style.interSpacing * Style.ratio
+
     Column {
         id: inputControls
         spacing: Style.intraSpacing
 
         CameraSelect { id: cameraSelect }
         AudioInputSelect { id: audioInputSelect }
-    }
-
-    Item {
-        // Position RecordButton in the center
-        Layout.minimumWidth: root.width / 2 - inputControls.width - recordButton.width / 2
     }
 
     Column {
@@ -87,28 +83,28 @@ RowLayout {
         Text {
             id: recordingTime
             anchors.horizontalCenter: parent.horizontalCenter
+            font.pointSize: Style.fontSize
         }
-    }
-
-    Item {
-        Layout.fillWidth: true
     }
 
     Column {
+        id: optionButtons
         spacing: Style.intraSpacing
         Button {
             height: Style.height
-            width: Style.widthShort
+            width: Style.widthMedium
             background: StyleRectangle { anchors.fill: parent }
             onClicked: root.capturesVisible = !root.capturesVisible
             text: "Captures"
+            font.pointSize: Style.fontSize
         }
         Button {
             height: Style.height
-            width: Style.widthShort
+            width: Style.widthMedium
             background: StyleRectangle { anchors.fill: parent }
-            onClicked: root.settingsVisible = !root.settingsVisible
+            onClicked: settingsVisible = !settingsVisible
             text: "Settings"
+            font.pointSize: Style.fontSize
         }
     }
 
