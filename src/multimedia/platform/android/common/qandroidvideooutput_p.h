@@ -123,7 +123,6 @@ public:
     void setSubtitle(const QString &subtitle);
 private Q_SLOTS:
     void onFrameAvailable();
-    void onSubtitleAvailable(QPixmap pixmap);
 
 private:
     void initSurfaceTexture();
@@ -197,7 +196,6 @@ public:
 
 private:
     bool updateReadbackFrame();
-    void mapSubtitle();
 
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
     QAndroidTextureVideoOutput *m_output = nullptr;
@@ -205,21 +203,6 @@ private:
     QSize m_size;
     mutable QMatrix4x4 m_externalMatrix;
     bool m_textureUpdated = false;
-};
-
-class QSubtitleWorkerThread : public QThread
-{
-    Q_OBJECT
-public:
-    QSubtitleWorkerThread(const QString &text, const QSize &videoSize);
-    void run() override;
-
-signals:
-    void subtitleAvaliable(QPixmap subtitle);
-
-private:
-    QString m_text;
-    QSize m_videoSize;
 };
 
 QT_END_NAMESPACE
