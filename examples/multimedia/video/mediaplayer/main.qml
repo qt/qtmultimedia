@@ -117,7 +117,7 @@ Window {
         property bool fullScreen: false
 
         anchors.top: fullScreen ? parent.top : menuBar.bottom
-        anchors.bottom: parent.bottom
+        anchors.bottom: playbackControl.top
         anchors.left: parent.left
         anchors.right: parent.right
 
