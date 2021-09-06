@@ -75,7 +75,7 @@ Item {
         if (playbackControlHoover.hovered || mediaPlayerState != MediaPlayer.PlayingState || !mediaPlayer.hasVideo)
             root.opacity = 1;
         else
-            root.opacity = 0;
+            root.opacity = 1; // 0; TODO: enable opacity change when HoverHandle is fixed
     }
 
     Connections {
