@@ -1914,7 +1914,7 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
             frame.setEndTime(frame.endTime() + m_positionOffset);
     }
 
-    m_videoSink->platformVideoSink()->newVideoFrame(frame);
+    m_videoSink->platformVideoSink()->setVideoFrame(frame);
 }
 
 void EVRCustomPresenter::positionChanged(qint64 position)

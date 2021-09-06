@@ -107,7 +107,7 @@ public:
     explicit TestVideoSink(bool storeFrames = true)
         : m_storeFrames(storeFrames)
     {
-        connect(this, &QVideoSink::newVideoFrame, this, &TestVideoSink::addVideoFrame);
+        connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::addVideoFrame);
     }
 
 public Q_SLOTS:

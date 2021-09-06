@@ -278,7 +278,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             locker->unlock();
 
             if (m_sink && !m_flushed)
-                m_sink->newVideoFrame(QVideoFrame());
+                m_sink->setVideoFrame(QVideoFrame());
             m_flushed = true;
         }
     } else if (m_stop) {
@@ -336,7 +336,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             QVideoFrame frame(videoBuffer, m_format);
             QGstUtils::setFrameTimeStamps(&frame, buffer);
 
-            m_sink->newVideoFrame(frame);
+            m_sink->setVideoFrame(frame);
 
             gst_buffer_unref(buffer);
 

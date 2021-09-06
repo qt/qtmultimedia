@@ -66,12 +66,15 @@ public:
 
     QSize videoSize() const;
 
-    QPlatformVideoSink *platformVideoSink() const;
-
     QString subtitleText() const;
+    void setSubtitleText(const QString &subtitle);
 
+    void setVideoFrame(const QVideoFrame &frame);
+    QVideoFrame videoFrame() const;
+
+    QPlatformVideoSink *platformVideoSink() const;
 Q_SIGNALS:
-    void newVideoFrame(const QVideoFrame &frame) const;
+    void videoFrameChanged(const QVideoFrame &frame) const;
     void subtitleTextChanged(const QString &subtitleText) const;
 
     void videoSizeChanged();

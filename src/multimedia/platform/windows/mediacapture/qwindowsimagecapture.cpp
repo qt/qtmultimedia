@@ -114,11 +114,11 @@ void QWindowsImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessi
     connect(m_mediaDeviceSession, SIGNAL(readyForCaptureChanged(bool)),
             this, SIGNAL(readyForCaptureChanged(bool)));
 
-    connect(m_mediaDeviceSession, SIGNAL(newVideoFrame(QVideoFrame)),
-            this, SLOT(handleNewVideoFrame(QVideoFrame)));
+    connect(m_mediaDeviceSession, SIGNAL(videoFrameChanged(QVideoFrame)),
+            this, SLOT(handleVideoFrameChanged(QVideoFrame)));
 }
 
-void QWindowsImageCapture::handleNewVideoFrame(const QVideoFrame &frame)
+void QWindowsImageCapture::handleVideoFrameChanged(const QVideoFrame &frame)
 {
     if (m_capturing) {
 

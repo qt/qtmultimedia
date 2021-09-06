@@ -95,7 +95,7 @@ public:
     QVideoSink can operate in two modes. In the first mode, it can render the video
     stream to a native window of the underlying windowing system. In the other mode,
     it will provide individual video frames to the application developer through the
-    newVideoFrame() signal.
+    videoFrameChanged() signal.
 
     The video frame can then be used to read out the data of those frames and handle them
     further. When using QPainter, the QVideoFrame can be drawing using the paint() method
@@ -158,11 +158,35 @@ QPlatformVideoSink *QVideoSink::platformVideoSink() const
 }
 
 /*!
-    Returns the current subtitle text.
+    Returns the current video frame.
  */
+QVideoFrame QVideoSink::videoFrame() const
+{
+    return d->videoSink->currentVideoFrame();
+}
+
+/*!
+    Sets the current video frame.
+*/
+void QVideoSink::setVideoFrame(const QVideoFrame &frame)
+{
+    d->videoSink->setVideoFrame(frame);
+}
+
+/*!
+    Returns the current subtitle text.
+*/
 QString QVideoSink::subtitleText() const
 {
     return d->videoSink->subtitleText();
+}
+
+/*!
+    Sets the current subtitle text.
+*/
+void QVideoSink::setSubtitleText(const QString &subtitle)
+{
+    d->videoSink->setSubtitleText(subtitle);
 }
 
 /*!

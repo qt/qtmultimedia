@@ -99,11 +99,13 @@ public:
         m_nativeSize = s;
         sink->videoSizeChanged();
     }
-    void newVideoFrame(QVideoFrame frame) {
+    void setVideoFrame(const QVideoFrame &frame) {
         setNativeSize(frame.size());
-        frame.setSubtitleText(subtitleText());
-        sink->newVideoFrame(frame);
+        m_currentVideoFrame = frame;
+        m_currentVideoFrame.setSubtitleText(subtitleText());
+        sink->videoFrameChanged(m_currentVideoFrame);
     }
+    QVideoFrame currentVideoFrame() const { return m_currentVideoFrame; }
 
     void setSubtitleText(const QString &subtitleText)
     {
@@ -126,6 +128,7 @@ protected:
 private:
     QSize m_nativeSize;
     QString m_subtitleText;
+    QVideoFrame m_currentVideoFrame;
 };
 
 QT_END_NAMESPACE

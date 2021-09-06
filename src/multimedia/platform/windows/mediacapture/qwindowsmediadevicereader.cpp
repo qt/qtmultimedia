@@ -1012,7 +1012,7 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
                         if (SUCCEEDED(pSample->GetSampleDuration(&duration)))
                             frame.setEndTime((llTimestamp + duration) * 0.1);
 
-                        emit newVideoFrame(frame);
+                        emit videoFrameChanged(frame);
 
                         mediaBuffer->Unlock();
                     }

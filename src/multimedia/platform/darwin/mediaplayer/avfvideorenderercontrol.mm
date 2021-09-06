@@ -158,7 +158,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     QVideoFrameFormat format(QSize(width, height), fmt);
 
     frame = QVideoFrame(buffer, format);
-    m_sink->newVideoFrame(frame);
+    m_sink->setVideoFrame(frame);
 }
 
 static NSDictionary* const AVF_OUTPUT_SETTINGS = @{

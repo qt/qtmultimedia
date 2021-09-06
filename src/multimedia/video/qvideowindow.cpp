@@ -94,7 +94,7 @@ QVideoWindowPrivate::QVideoWindowPrivate(QVideoWindow *q)
         }
     }
 
-    QObject::connect(m_sink.get(), &QVideoSink::newVideoFrame, q, &QVideoWindow::newVideoFrame);
+    QObject::connect(m_sink.get(), &QVideoSink::videoFrameChanged, q, &QVideoWindow::setVideoFrame);
 }
 
 QVideoWindowPrivate::~QVideoWindowPrivate()
@@ -520,7 +520,7 @@ void QVideoWindow::resizeEvent(QResizeEvent *resizeEvent)
     d->backingStore->resize(resizeEvent->size());
 }
 
-void QVideoWindow::newVideoFrame(const QVideoFrame &frame)
+void QVideoWindow::setVideoFrame(const QVideoFrame &frame)
 {
     if (d->m_currentFrame.subtitleText() != frame.subtitleText())
         d->m_subtitleDirty = true;
