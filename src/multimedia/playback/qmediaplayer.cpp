@@ -722,6 +722,9 @@ bool QMediaPlayer::isAvailable() const
     Returns meta data for the current media used by the media player.
 
     Meta data can contain information such as the title of the video or it's creation date.
+
+    \note The Windows implementation provides metadata only for media located on the local file
+    system.
 */
 QMediaMetaData QMediaPlayer::metaData() const
 {
