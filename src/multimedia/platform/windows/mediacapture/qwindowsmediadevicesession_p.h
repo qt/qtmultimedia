@@ -108,13 +108,13 @@ Q_SIGNALS:
     void recordingStopped();
     void streamingError(int errorCode);
     void recordingError(int errorCode);
-    void newVideoFrame(const QVideoFrame &frame);
+    void videoFrameChanged(const QVideoFrame &frame);
 
 private Q_SLOTS:
     void handleStreamingStarted();
     void handleStreamingStopped();
     void handleStreamingError(int errorCode);
-    void handleNewVideoFrame(const QVideoFrame &frame);
+    void handleVideoFrameChanged(const QVideoFrame &frame);
 
 private:
     void reactivate();

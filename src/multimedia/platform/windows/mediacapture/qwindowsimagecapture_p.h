@@ -76,7 +76,7 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
 private Q_SLOTS:
-    void handleNewVideoFrame(const QVideoFrame &frame);
+    void handleVideoFrameChanged(const QVideoFrame &frame);
 
 private:
     int doCapture(const QString &fileName);

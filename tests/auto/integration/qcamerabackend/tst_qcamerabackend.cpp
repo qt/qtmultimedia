@@ -95,7 +95,7 @@ public:
         : formatMismatch(0),
           cameraFormat(format)
     {
-        connect(this, &QVideoSink::newVideoFrame, this, &TestVideoFormat::checkVideoFrameFormat);
+        connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoFormat::checkVideoFrameFormat);
     }
 
     void setCameraFormatToTest(const QCameraFormat &format)

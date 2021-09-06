@@ -121,7 +121,7 @@ Q_SIGNALS:
     void recordingStopped();
     void recordingError(int errorCode);
     void durationChanged(qint64 duration);
-    void newVideoFrame(const QVideoFrame &frame);
+    void videoFrameChanged(const QVideoFrame &frame);
 
 private slots:
     void updateDuration();

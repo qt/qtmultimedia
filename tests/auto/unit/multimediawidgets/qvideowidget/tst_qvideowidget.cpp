@@ -271,7 +271,7 @@ void tst_QVideoWidget::paint()
     frame.unmap();
 
     auto *sink = widget.videoSink();
-    emit sink->newVideoFrame(frame);
+    emit sink->setVideoFrame(frame);
 
     QCoreApplication::processEvents(QEventLoop::AllEvents);
 }

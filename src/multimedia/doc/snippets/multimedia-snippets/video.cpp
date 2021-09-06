@@ -69,7 +69,7 @@ public slots:
     void onNewVideoContentReceived(const QVideoFrame &frame)
     {
         if (m_sink)
-            m_sink->newVideoFrame(frame);
+            m_sink->setVideoFrame(frame);
     }
 
 private:
@@ -140,7 +140,7 @@ void VideoExample::VideoSurface()
     graphicsView->scene()->addItem(item);
     graphicsView->show();
     QImage img = QImage("images/qt-logo.png").convertToFormat(QImage::Format_ARGB32);
-    item->videoSink()->newVideoFrame(QVideoFrame(img));
+    item->videoSink()->setVideoFrame(QVideoFrame(img));
     //! [GraphicsVideoItem Surface]
 }
 

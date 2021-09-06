@@ -56,7 +56,7 @@ QWindowsMediaDeviceSession::QWindowsMediaDeviceSession(QObject *parent)
     connect(m_mediaDeviceReader, SIGNAL(streamingStarted()), this, SLOT(handleStreamingStarted()));
     connect(m_mediaDeviceReader, SIGNAL(streamingStopped()), this, SLOT(handleStreamingStopped()));
     connect(m_mediaDeviceReader, SIGNAL(streamingError(int)), this, SLOT(handleStreamingError(int)));
-    connect(m_mediaDeviceReader, SIGNAL(newVideoFrame(QVideoFrame)), this, SLOT(handleNewVideoFrame(QVideoFrame)));
+    connect(m_mediaDeviceReader, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(handleVideoFrameChanged(QVideoFrame)));
     connect(m_mediaDeviceReader, SIGNAL(recordingStarted()), this, SIGNAL(recordingStarted()));
     connect(m_mediaDeviceReader, SIGNAL(recordingStopped()), this, SIGNAL(recordingStopped()));
     connect(m_mediaDeviceReader, SIGNAL(recordingError(int)), this, SIGNAL(recordingError(int)));
@@ -153,15 +153,15 @@ void QWindowsMediaDeviceSession::handleStreamingStopped()
 void QWindowsMediaDeviceSession::handleStreamingError(int errorCode)
 {
     if (m_surface)
-        emit m_surface->platformVideoSink()->newVideoFrame(QVideoFrame());
+        emit m_surface->platformVideoSink()->setVideoFrame(QVideoFrame());
     emit streamingError(errorCode);
 }
 
-void QWindowsMediaDeviceSession::handleNewVideoFrame(const QVideoFrame &frame)
+void QWindowsMediaDeviceSession::handleVideoFrameChanged(const QVideoFrame &frame)
 {
     if (m_surface)
-        emit m_surface->platformVideoSink()->newVideoFrame(frame);
-    emit newVideoFrame(frame);
+        emit m_surface->platformVideoSink()->setVideoFrame(frame);
+    emit videoFrameChanged(frame);
 }
 
 void QWindowsMediaDeviceSession::setAudioInputMuted(bool muted)

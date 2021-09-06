@@ -247,7 +247,7 @@ void QAndroidTextureVideoOutput::reset()
 {
     // flush pending frame
     if (m_sink)
-        m_sink->platformVideoSink()->newVideoFrame(QVideoFrame());
+        m_sink->platformVideoSink()->setVideoFrame(QVideoFrame());
 
     clearSurfaceTexture();
 }
@@ -262,7 +262,7 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
     const QVideoFrameFormat::PixelFormat format = rhi ? QVideoFrameFormat::Format_SamplerExternalOES
                                                       : QVideoFrameFormat::Format_RGBA8888;
     QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, format));
-    m_sink->platformVideoSink()->newVideoFrame(frame);
+    m_sink->platformVideoSink()->setVideoFrame(frame);
 }
 
 static const float g_quad[] = {

@@ -175,9 +175,9 @@ void MmRendererPlayerVideoRendererControl::updateScene(const QSize &size)
         if (m_windowGrabber->eglImageSupported()) {
             QnxTextureBuffer *textBuffer = new QnxTextureBuffer(m_windowGrabber);
             QVideoFrame actualFrame(textBuffer, QVideoFrameFormat(size, QVideoFrameFormat::Format_BGR32));
-            m_sink->newVideoFrame(actualFrame);
+            m_sink->setVideoFrame(actualFrame);
         } else {
-            m_sink->newVideoFrame(m_windowGrabber->getNextImage().copy());
+            m_sink->setVideoFrame(m_windowGrabber->getNextImage().copy());
         }
     }
 }

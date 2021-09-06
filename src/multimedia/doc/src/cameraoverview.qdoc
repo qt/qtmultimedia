@@ -224,7 +224,7 @@ For advanced usage (like processing preview frames as they come, which enables
 detection of objects or patterns), you can also use your own QVideoSink and set
 that as the videoOutput for the QCamera object. In this case, you will need to
 render the viewfinder image yourself by processing the data received from the
-newVideoFrame() signal.
+videoFrameChanged() signal.
 
     \snippet multimedia-snippets/camera.cpp Camera overview surface
 

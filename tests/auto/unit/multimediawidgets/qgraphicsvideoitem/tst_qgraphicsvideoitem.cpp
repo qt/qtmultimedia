@@ -246,7 +246,7 @@ void tst_QGraphicsVideoItem::nativeSize()
     QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB8888);
     format.setViewport(viewport);
     QVideoFrame frame(format);
-    item.videoSink()->newVideoFrame(frame);
+    item.videoSink()->setVideoFrame(frame);
 
     QCoreApplication::processEvents();
     QCOMPARE(item.nativeSize(), nativeSize);
@@ -373,7 +373,7 @@ void tst_QGraphicsVideoItem::boundingRect()
 
     QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB8888);
     QVideoFrame frame(format);
-    item.videoSink()->newVideoFrame(frame);
+    item.videoSink()->setVideoFrame(frame);
 
     QCoreApplication::processEvents();
     QCOMPARE(item.boundingRect(), expectedRect);
@@ -406,7 +406,7 @@ void tst_QGraphicsVideoItem::paint()
     memcpy(frame.bits(0), rgb32ImageData, frame.mappedBytes(0));
     frame.unmap();
 
-    sink->newVideoFrame(frame);
+    sink->setVideoFrame(frame);
 
     QVERIFY(item->waitForPaint(1));
 }

@@ -153,7 +153,7 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
 
     m_sink = new QVideoSink(this);
     qRegisterMetaType<QVideoFrameFormat>();
-    QObject::connect(m_sink, SIGNAL(newVideoFrame(const QVideoFrame &)),
+    QObject::connect(m_sink, SIGNAL(videoFrameChanged(const QVideoFrame &)),
                      this, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);
 
     initRhiForSink();

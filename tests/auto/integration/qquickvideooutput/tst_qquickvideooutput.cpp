@@ -48,7 +48,7 @@ void presentDummyFrame(QVideoSink *sink, const QSize &size)
         QVideoFrameFormat format(size, QVideoFrameFormat::Format_ARGB8888_Premultiplied);
         QVideoFrame frame(format);
 
-        sink->newVideoFrame(frame);
+        sink->setVideoFrame(frame);
 
         // Have to spin an event loop or two for the surfaceFormatChanged() signal
         qApp->processEvents();
@@ -295,7 +295,7 @@ void tst_QQuickVideoOutput::paintSurface()
     QCOMPARE(frame.mappedBytes(0), 64);
     memcpy(frame.bits(0), rgb32ImageData, 64);
     frame.unmap();
-    surface->newVideoFrame(frame);
+    surface->setVideoFrame(frame);
 }
 
 void tst_QQuickVideoOutput::sourceRect()

@@ -164,7 +164,7 @@ protected:
     void resizeEvent(QResizeEvent *) override;
 
 private Q_SLOTS:
-    void newVideoFrame(const QVideoFrame &frame);
+    void setVideoFrame(const QVideoFrame &frame);
 
 private:
     friend class QVideoWindowPrivate;
