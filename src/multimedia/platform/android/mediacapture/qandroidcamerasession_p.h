@@ -127,6 +127,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onVideoOutputReady(bool ready);
+    void updateOrientation();
 
     void onApplicationStateChanged(Qt::ApplicationState state);
 
@@ -161,7 +162,6 @@ private:
 
     int m_selectedCamera;
     AndroidCamera *m_camera;
-    int m_nativeOrientation;
     QAndroidVideoOutput *m_videoOutput;
 
     bool m_active = false;
