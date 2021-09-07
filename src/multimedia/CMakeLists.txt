@@ -189,8 +189,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         wmcodecdspuuid
 )
 
-qt_find_package(EGL)
-
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
     SOURCES
         platform/gstreamer/audio/qgstreameraudiodevice.cpp platform/gstreamer/audio/qgstreameraudiodevice_p.h
@@ -228,7 +226,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer
     LIBRARIES
         GStreamer::GStreamer # special case
         GStreamer::App # special case
-        EGL::EGL
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_photography
@@ -236,9 +233,14 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATU
         -lgstphotography-1.0#GStreamer::Photography # special case
 )
 
+if (QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl)
+    qt_find_package(EGL)
+endif()
+
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl
     LIBRARIES
         GStreamer::Gl # special case
+        EGL::EGL
 )
 
 qt_internal_extend_target(Multimedia CONDITION ANDROID AND QT_FEATURE_gstreamer
