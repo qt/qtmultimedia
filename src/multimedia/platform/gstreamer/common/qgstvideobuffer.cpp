@@ -54,6 +54,7 @@
 #include <QtGui/private/qrhigles2_p.h>
 #include <QtGui/qopenglcontext.h>
 #include <QtGui/qopenglfunctions.h>
+#include <QtGui/qopengl.h>
 
 #include <gst/gl/gstglconfig.h>
 #include <gst/gl/gstglmemory.h>
@@ -62,8 +63,6 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
 #endif
 
 QT_BEGIN_NAMESPACE
