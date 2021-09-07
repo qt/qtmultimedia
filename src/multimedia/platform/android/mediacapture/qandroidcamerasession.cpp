@@ -48,6 +48,7 @@
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <qfile.h>
 #include <qguiapplication.h>
+#include <qscreen.h>
 #include <qdebug.h>
 #include <qvideoframe.h>
 #include <private/qplatformimagecapture_p.h>
@@ -63,7 +64,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     : QObject(parent)
     , m_selectedCamera(0)
     , m_camera(0)
-    , m_nativeOrientation(0)
     , m_videoOutput(0)
     , m_savedState(-1)
     , m_previewStarted(false)
@@ -76,6 +76,11 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     if (qApp) {
         connect(qApp, &QGuiApplication::applicationStateChanged,
                 this, &QAndroidCameraSession::onApplicationStateChanged);
+
+        auto screen = qApp->primaryScreen();
+        if (screen)
+            connect(screen, &QScreen::orientationChanged,
+                this, &QAndroidCameraSession::updateOrientation);
     }
 }
 
@@ -176,8 +181,6 @@ bool QAndroidCameraSession::open()
                 this, &QAndroidCameraSession::onCameraPreviewFailedToStart);
         connect(m_camera, &AndroidCamera::takePictureFailed,
                 this, &QAndroidCameraSession::onCameraTakePictureFailed);
-
-        m_nativeOrientation = m_camera->getNativeOrientation();
 
         if (m_camera->getPreviewFormat() != AndroidCamera::NV21)
             m_camera->setPreviewFormat(AndroidCamera::NV21);
@@ -314,8 +317,14 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
             || currentFpsRange.min != adjustedFps.min
             || currentFpsRange.max != adjustedFps.max) {
 
-        if (m_videoOutput)
-            m_videoOutput->setVideoSize(adjustedViewfinderResolution);
+        if (m_videoOutput) {
+            // fix the resolution of output based on the orientation
+            QSize outputResolution = adjustedViewfinderResolution;
+            const int rotation = currentCameraRotation();
+            if (rotation == 90 || rotation == 270)
+                outputResolution.transpose();
+            m_videoOutput->setVideoSize(outputResolution);
+        }
 
         // if preview is started, we have to stop it first before changing its size
         if (m_previewStarted && restartPreview)
@@ -384,8 +393,7 @@ bool QAndroidCameraSession::startPreview()
 
     AndroidMultimediaUtils::enableOrientationListener(true);
 
-    // Use the default native orientation as the orientation for the preview
-    m_camera->setDisplayOrientation(m_nativeOrientation);
+    updateOrientation();
 
     m_camera->startPreview();
     m_previewStarted = true;
@@ -425,19 +433,52 @@ void QAndroidCameraSession::setImageSettings(const QImageEncoderSettings &settin
         applyResolution(m_actualImageSettings.resolution());
 }
 
+void QAndroidCameraSession::updateOrientation()
+{
+    if (!m_camera)
+        return;
+
+    m_camera->setDisplayOrientation(currentCameraRotation());
+    applyResolution(m_actualImageSettings.resolution());
+}
+
+
 int QAndroidCameraSession::currentCameraRotation() const
 {
     if (!m_camera)
         return 0;
 
-    // subtract natural camera orientation and physical device orientation
-    int rotation = 0;
-    int deviceOrientation = (AndroidMultimediaUtils::getDeviceOrientation() + 45) / 90 * 90;
-    if (m_camera->getFacing() == AndroidCamera::CameraFacingFront)
-        rotation = (m_nativeOrientation - deviceOrientation + 360) % 360;
-    else // back-facing camera
-        rotation = (m_nativeOrientation + deviceOrientation) % 360;
+    auto screen = QGuiApplication::primaryScreen();
+    auto screenOrientation = screen->orientation();
+    if (screenOrientation == Qt::PrimaryOrientation)
+        screenOrientation = screen->primaryOrientation();
 
+    int deviceOrientation = 0;
+    switch (screenOrientation) {
+    case Qt::PrimaryOrientation:
+    case Qt::PortraitOrientation:
+        break;
+    case Qt::LandscapeOrientation:
+        deviceOrientation = 90;
+        break;
+    case Qt::InvertedPortraitOrientation:
+        deviceOrientation = 180;
+        break;
+    case Qt::InvertedLandscapeOrientation:
+        deviceOrientation = 270;
+        break;
+    }
+
+    int nativeCameraOrientation = m_camera->getNativeOrientation();
+
+    int rotation;
+    // subtract natural camera orientation and physical device orientation
+    if (m_camera->getFacing() == AndroidCamera::CameraFacingFront) {
+        rotation = (nativeCameraOrientation + deviceOrientation) % 360;
+        rotation = (360 - rotation) % 360;  // compensate the mirror
+    } else { // back-facing camera
+        rotation = (nativeCameraOrientation - deviceOrientation + 360) % 360;
+    }
     return rotation;
 }
 

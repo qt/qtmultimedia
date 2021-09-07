@@ -1348,7 +1348,7 @@ void AndroidCameraPrivate::setFocusAreas(const QList<QRect> &areas)
 {
     const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
 
-    if (!m_parameters.isValid())
+    if (!m_parameters.isValid() || areas.isEmpty())
         return;
 
     QJniObject list;
