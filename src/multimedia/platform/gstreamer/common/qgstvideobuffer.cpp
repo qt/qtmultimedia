@@ -46,6 +46,7 @@
 #include <gst/video/video.h>
 #include <gst/video/video-frame.h>
 #include <gst/video/gstvideometa.h>
+#include <gst/pbutils/gstpluginsbaseversion.h>
 
 #include "qgstutils_p.h"
 
@@ -208,7 +209,9 @@ fourccFromVideoInfo(const GstVideoInfo * info, int plane)
     case GST_VIDEO_FORMAT_ABGR:
     case GST_VIDEO_FORMAT_xBGR:
     case GST_VIDEO_FORMAT_AYUV:
+#if GST_CHECK_PLUGINS_BASE_VERSION(1,16,0)
     case GST_VIDEO_FORMAT_VUYA:
+#endif
         return rgba_fourcc;
 
     case GST_VIDEO_FORMAT_GRAY8:
@@ -231,8 +234,10 @@ fourccFromVideoInfo(const GstVideoInfo * info, int plane)
     case GST_VIDEO_FORMAT_Y444:
         return DRM_FORMAT_R8;
 
+#if GST_CHECK_PLUGINS_BASE_VERSION(1,16,0)
     case GST_VIDEO_FORMAT_BGR10A2_LE:
         return DRM_FORMAT_BGRA1010102;
+#endif
 
 //    case GST_VIDEO_FORMAT_RGB10A2_LE:
 //        return DRM_FORMAT_RGBA1010102;
