@@ -55,6 +55,7 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qmutex.h>
 #include <private/avfvideosink_p.h>
+#include <private/qvideooutputorientationhandler_p.h>
 
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>
@@ -101,6 +102,8 @@ Q_SIGNALS:
 private Q_SLOTS:
     void handleViewfinderFrame();
     void updateCaptureConnection();
+public Q_SLOTS:
+    void deviceOrientationChanged(int angle = -1);
 
 private:
     AVFCaptureFramesDelegate *m_viewfinderFramesDelegate = nullptr;
@@ -116,6 +119,7 @@ private:
     QVideoFrame m_lastViewfinderFrame;
     QMutex m_vfMutex;
     dispatch_queue_t m_delegateQueue;
+    QVideoOutputOrientationHandler m_orientationHandler;
 
     friend class CVImageVideoBuffer;
 };

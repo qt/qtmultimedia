@@ -57,7 +57,6 @@
 
 #include <private/qplatformmediaencoder_p.h>
 #include <private/qplatformmediacapture_p.h>
-#include <private/qvideooutputorientationhandler_p.h>
 #include <QtMultimedia/qmediametadata.h>
 
 #include <QtCore/qglobal.h>
@@ -125,7 +124,6 @@ private:
 
     NSDictionary *m_audioSettings;
     NSDictionary *m_videoSettings;
-    QVideoOutputOrientationHandler m_orientationHandler;
 };
 
 QT_END_NAMESPACE
