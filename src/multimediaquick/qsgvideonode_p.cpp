@@ -328,7 +328,7 @@ void QSGVideoNode::setSubtitleGeometry()
         0, 0, 1, 0,
         0, 0, 0, 1
     };
-    transform.rotate(m_orientation/180*M_PI, 0, 0, 1);
+    transform.rotate(m_orientation, 0, 0, 1);
     m_subtitleTextNode->setMatrix(transform);
     m_subtitleTextNode->markDirty(DirtyGeometry);
 }
