@@ -109,6 +109,12 @@ AVFVideoRendererControl::~AVFVideoRendererControl()
     qDebug() << Q_FUNC_INFO;
 #endif
     m_displayLink->stop();
+    if (m_videoOutput)
+        [m_videoOutput release];
+    if (m_subtitleOutput)
+        [m_subtitleOutput release];
+    if (m_subtitleDelegate)
+        [m_subtitleDelegate release];
 }
 
 void AVFVideoRendererControl::reconfigure()
@@ -204,8 +210,8 @@ CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width
         m_videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
         [m_videoOutput setDelegate:nil queue:nil];
         m_subtitleOutput = [[AVPlayerItemLegibleOutput alloc] init];
-        SubtitleDelegate *subtitleDelegate = [[SubtitleDelegate alloc] initWithRenderer:this];
-        [m_subtitleOutput setDelegate:subtitleDelegate queue:dispatch_get_main_queue()];
+        m_subtitleDelegate = [[SubtitleDelegate alloc] initWithRenderer:this];
+        [m_subtitleOutput setDelegate:m_subtitleDelegate queue:dispatch_get_main_queue()];
         AVPlayerItem * item = [[layer player] currentItem];
         [item addOutput:m_videoOutput];
         [item addOutput:m_subtitleOutput];

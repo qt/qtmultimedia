@@ -63,6 +63,7 @@
 Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemVideoOutput);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemLegibleOutput);
+Q_FORWARD_DECLARE_OBJC_CLASS(SubtitleDelegate);
 
 QT_BEGIN_NAMESPACE
 
@@ -93,6 +94,7 @@ private:
     AVFDisplayLink *m_displayLink = nullptr;
     AVPlayerItemVideoOutput *m_videoOutput = nullptr;
     AVPlayerItemLegibleOutput *m_subtitleOutput = nullptr;
+    SubtitleDelegate *m_subtitleDelegate = nullptr;
 };
 
 QT_END_NAMESPACE
