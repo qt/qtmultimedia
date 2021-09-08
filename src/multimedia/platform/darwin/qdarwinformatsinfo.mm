@@ -180,6 +180,7 @@ int QDarwinFormatInfo::audioFormatForCodec(QMediaFormat::AudioCodec codec)
     case QMediaFormat::AudioCodec::Unspecified:
     case QMediaFormat::AudioCodec::DolbyTrueHD:
     case QMediaFormat::AudioCodec::Vorbis:
+    case QMediaFormat::AudioCodec::WMA:
         // Unsupported, shouldn't happen. Fall back to AAC
     case QMediaFormat::AudioCodec::AAC:
         codecId = kAudioFormatMPEG4AAC;
@@ -217,6 +218,7 @@ NSString *QDarwinFormatInfo::videoFormatForCodec(QMediaFormat::VideoCodec codec)
     case QMediaFormat::VideoCodec::H265:
     case QMediaFormat::VideoCodec::AV1:
     case QMediaFormat::VideoCodec::Theora:
+    case QMediaFormat::VideoCodec::WMV:
         break;
 
     case QMediaFormat::VideoCodec::MPEG1:

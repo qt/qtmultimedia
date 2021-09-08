@@ -359,7 +359,6 @@ void tst_QMediaRecorder::testSettingsApplied()
     QMediaCaptureSession session;
     QMediaRecorder encoder;
     session.setRecorder(&encoder);
-    auto *mock = mockIntegration->lastCaptureService()->mockControl;
 
     encoder.setVideoResolution(640,480);
 
