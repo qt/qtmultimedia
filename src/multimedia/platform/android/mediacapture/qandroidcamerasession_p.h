@@ -108,7 +108,7 @@ public:
         virtual void onFrameAvailable(const QVideoFrame &frame) = 0;
     };
     void setPreviewCallback(PreviewCallback *callback);
-    bool requestRecordingPermission();
+    bool requestCameraPermission();
 
     void setVideoSink(QVideoSink *surface);
 

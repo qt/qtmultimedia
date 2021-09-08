@@ -70,6 +70,9 @@ bool qt_androidRequestCameraPermission();
 bool qt_androidRequestRecordingPermission();
 bool qt_androidRequestWriteStoragePermission();
 
+bool qt_androidCheckCameraPermission();
+bool qt_androidCheckMicrophonePermission();
+
 QT_END_NAMESPACE
 
 #endif // QANDROIDMULTIMEDIAUTILS_H
