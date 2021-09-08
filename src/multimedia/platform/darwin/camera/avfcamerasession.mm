@@ -192,6 +192,7 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
                      this, &AVFCameraSession::newViewfinderFrame);
             updateVideoOutput();
         }
+        m_videoOutput->deviceOrientationChanged();
 
         [m_captureSession commitConfiguration];
 

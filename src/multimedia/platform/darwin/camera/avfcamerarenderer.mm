@@ -115,6 +115,8 @@ AVFCameraRenderer::AVFCameraRenderer(QObject *parent)
    : QObject(parent)
 {
     m_viewfinderFramesDelegate = [[AVFCaptureFramesDelegate alloc] initWithRenderer:this];
+    connect(&m_orientationHandler, &QVideoOutputOrientationHandler::orientationChanged,
+            this, &AVFCameraRenderer::deviceOrientationChanged);
 }
 
 AVFCameraRenderer::~AVFCameraRenderer()
@@ -137,6 +139,7 @@ void AVFCameraRenderer::reconfigure()
     if (m_layer)
         m_sink->setNativeSize(QSize(m_layer.bounds.size.width, m_layer.bounds.size.height));
     nativeSizeChanged();
+    deviceOrientationChanged();
 }
 
 void AVFCameraRenderer::configureAVCaptureSession(AVFCameraSession *cameraSession)
@@ -172,6 +175,38 @@ void AVFCameraRenderer::updateCaptureConnection()
     // If the connection does't support mirroring, we'll have to do it ourselves
     m_needsHorizontalMirroring = !connection.isVideoMirrored
             && m_cameraSession->videoCaptureDevice().position == AVCaptureDevicePositionFront;
+
+    deviceOrientationChanged();
+}
+
+void AVFCameraRenderer::deviceOrientationChanged(int angle)
+{
+    AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
+    if (connection == nil || !m_cameraSession->videoCaptureDevice())
+        return;
+
+    if (!connection.supportsVideoOrientation)
+        return;
+
+    if (angle < 0)
+        angle = m_orientationHandler.currentOrientation();
+
+    AVCaptureVideoOrientation orientation = AVCaptureVideoOrientationPortrait;
+    switch (angle) {
+    default:
+        break;
+    case 90:
+        orientation = AVCaptureVideoOrientationLandscapeRight;
+        break;
+    case 180:
+        // this keeps the last orientation, don't do anything
+        return;
+    case 270:
+        orientation = AVCaptureVideoOrientationLandscapeLeft;
+        break;
+    }
+
+    connection.videoOrientation = orientation;
 }
 
 //can be called from non main thread
