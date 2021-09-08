@@ -92,12 +92,24 @@ void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSessi
             if (!isActive)
                 stop();
         });
+
+        // It requests permission on setAudioInput instead of on start because asking for
+        // permission can pause the activity and android can release the surface referenced
+        // by camera crashing the app when mediaRecorder tries to use it
+        // TODO: https://bugreports.qt.io/browse/QTBUG-96346
+        m_cameraSession->requestCameraPermission();
     }
 }
 
 void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
     m_audioInput = input;
+
+    // It requests permission on setAudioInput instead of on start because asking for
+    // permission can pause the activity and android can release the surface referenced
+    // by camera crashing the app when mediaRecorder tries to use it
+    // TODO: https://bugreports.qt.io/browse/QTBUG-96346
+    qt_androidRequestRecordingPermission();
 }
 
 void QAndroidCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
@@ -128,15 +140,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     }
 
     if (!m_cameraSession && !m_audioInput) {
-        Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("Audio Input device not set"));
-        return;
-    }
-
-    const bool granted = m_cameraSession
-                       ? m_cameraSession->requestRecordingPermission()
-                       : qt_androidRequestRecordingPermission();
-    if (!granted) {
-        Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("Permission denied."));
+        Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("No devices are set"));
         return;
     }
 
@@ -148,6 +152,11 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
 
     // Set audio/video sources
     if (m_cameraSession) {
+        if (!qt_androidCheckCameraPermission()) {
+            Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("Camera permission denied."));
+            return;
+        }
+
         m_cameraSession->camera()->stopPreviewSynchronous();
         m_cameraSession->applyResolution(settings.videoResolution(), false);
         m_cameraSession->camera()->unlock();
@@ -157,6 +166,12 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     }
 
     if (m_audioInput) {
+        if (!qt_androidCheckMicrophonePermission()) {
+            Q_EMIT error(QMediaRecorder::ResourceError,
+                         QLatin1String("Microphone permission denied."));
+            return;
+        }
+
         m_mediaRecorder->setAudioInput(m_audioInput->device.id());
         if (!m_mediaRecorder->isAudioSourceSet())
             m_mediaRecorder->setAudioSource(AndroidMediaRecorder::DefaultAudioSource);

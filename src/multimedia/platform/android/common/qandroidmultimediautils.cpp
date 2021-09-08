@@ -124,6 +124,25 @@ static bool androidRequestPermission(QtAndroidPrivate::PermissionType key)
     return true;
 }
 
+static bool androidCheckPermission(QtAndroidPrivate::PermissionType key)
+{
+    if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
+        return true;
+
+    // Permission already granted?
+    return (QtAndroidPrivate::checkPermission(key).result() == QtAndroidPrivate::Authorized);
+}
+
+bool qt_androidCheckCameraPermission()
+{
+    return androidCheckPermission(QtAndroidPrivate::Camera);
+}
+
+bool qt_androidCheckMicrophonePermission()
+{
+    return androidCheckPermission(QtAndroidPrivate::Microphone);
+}
+
 bool qt_androidRequestCameraPermission()
 {
     if (!androidRequestPermission(QtAndroidPrivate::Camera)) {
