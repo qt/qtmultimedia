@@ -74,7 +74,6 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
     Q_DISABLE_COPY(QQuickVideoOutput)
     Q_PROPERTY(FillMode fillMode READ fillMode WRITE setFillMode NOTIFY fillModeChanged)
     Q_PROPERTY(int orientation READ orientation WRITE setOrientation NOTIFY orientationChanged)
-    Q_PROPERTY(bool autoOrientation READ autoOrientation WRITE setAutoOrientation NOTIFY autoOrientationChanged)
     Q_PROPERTY(QRectF sourceRect READ sourceRect NOTIFY sourceRectChanged)
     Q_PROPERTY(QRectF contentRect READ contentRect NOTIFY contentRectChanged)
     Q_PROPERTY(QVideoSink* videoSink READ videoSink CONSTANT)
@@ -103,9 +102,6 @@ public:
     int orientation() const;
     void setOrientation(int);
 
-    bool autoOrientation() const;
-    void setAutoOrientation(bool);
-
     QRectF sourceRect() const;
     QRectF contentRect() const;
 
@@ -113,7 +109,6 @@ Q_SIGNALS:
     void sourceChanged();
     void fillModeChanged(QQuickVideoOutput::FillMode);
     void orientationChanged();
-    void autoOrientationChanged();
     void sourceRectChanged();
     void contentRectChanged();
 
@@ -139,7 +134,6 @@ private:
 private Q_SLOTS:
     void _q_newFrame(const QVideoFrame &);
     void _q_updateGeometry();
-    void _q_screenOrientationChanged(int);
     void _q_invalidateSceneGraph();
     void _q_sceneGraphInitialized();
 
@@ -150,8 +144,6 @@ private:
     QRectF m_lastRect;      // Cache of last rect to avoid recalculating geometry
     QRectF m_contentRect;   // Destination pixel coordinates, unclipped
     int m_orientation = 0;
-    bool m_autoOrientation = false;
-    QVideoOutputOrientationHandler *m_screenOrientationHandler = nullptr;
     Qt::AspectRatioMode m_aspectRatioMode = Qt::KeepAspectRatio;
 
     QPointer<QQuickWindow> m_window;

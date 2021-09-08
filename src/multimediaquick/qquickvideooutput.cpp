@@ -267,11 +267,6 @@ void QQuickVideoOutput::_q_updateGeometry()
         emit contentRectChanged();
 }
 
-void QQuickVideoOutput::_q_screenOrientationChanged(int orientation)
-{
-    setOrientation(orientation % 360);
-}
-
 /*!
     \qmlproperty int QtMultimedia::VideoOutput::orientation
 
@@ -333,46 +328,6 @@ void QQuickVideoOutput::setOrientation(int orientation)
 
     update();
     emit orientationChanged();
-}
-
-/*!
-    \qmlproperty bool QtMultimedia::VideoOutput::autoOrientation
-
-    This property allows you to enable and disable auto orientation
-    of the video stream, so that its orientation always matches
-    the orientation of the screen. If \c autoOrientation is enabled,
-    the \c orientation property is overwritten.
-
-    By default \c autoOrientation is disabled.
-
-    \sa orientation
-    \since 5.2
-*/
-bool QQuickVideoOutput::autoOrientation() const
-{
-    return m_autoOrientation;
-}
-
-void QQuickVideoOutput::setAutoOrientation(bool autoOrientation)
-{
-    if (autoOrientation == m_autoOrientation)
-        return;
-
-    m_autoOrientation = autoOrientation;
-    if (m_autoOrientation) {
-        m_screenOrientationHandler = new QVideoOutputOrientationHandler(this);
-        connect(m_screenOrientationHandler, SIGNAL(orientationChanged(int)),
-                this, SLOT(_q_screenOrientationChanged(int)));
-
-        _q_screenOrientationChanged(m_screenOrientationHandler->currentOrientation());
-    } else {
-        disconnect(m_screenOrientationHandler, SIGNAL(orientationChanged(int)),
-                   this, SLOT(_q_screenOrientationChanged(int)));
-        m_screenOrientationHandler->deleteLater();
-        m_screenOrientationHandler = nullptr;
-    }
-
-    emit autoOrientationChanged();
 }
 
 /*!
