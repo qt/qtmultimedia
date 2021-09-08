@@ -62,7 +62,11 @@ Row {
 
     AudioInput { id: audioInput; muted: false }
 
-    Switch { id: audioSwitch; height: Style.height; }
+    Switch {
+        id: audioSwitch;
+        height: Style.height;
+        checked: true
+    }
 
     ComboBox {
         id: comboBox
