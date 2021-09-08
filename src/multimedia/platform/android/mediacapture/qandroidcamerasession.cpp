@@ -748,10 +748,10 @@ void QAndroidCameraSession::onApplicationStateChanged(Qt::ApplicationState state
     }
 }
 
-bool QAndroidCameraSession::requestRecordingPermission()
+bool QAndroidCameraSession::requestCameraPermission()
 {
     m_keepActive = true;
-    const bool result = qt_androidRequestRecordingPermission();
+    const bool result = qt_androidRequestCameraPermission();
     m_keepActive = false;
     return result;
 }
