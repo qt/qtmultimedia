@@ -60,6 +60,8 @@
 
 #include <QtCore/qtimer.h>
 
+#include <array>
+
 QT_BEGIN_NAMESPACE
 
 class QNetworkAccessManager;
@@ -120,19 +122,38 @@ public Q_SLOTS:
     void updatePosition() { positionChanged(position()); }
 
 private:
+    struct TrackSelector {
+        TrackSelector(TrackType, const char *name);
+        QGstPad createInputPad();
+        void removeInputPad(QGstPad pad);
+        void removeAllInputPads();
+        QGstPad inputPad(int index);
+        int activeInputIndex() const { return tracks.indexOf(activeInputPad()); }
+        QGstPad activeInputPad() const { return selector.getObject("active-pad"); }
+        void setActiveInputPad(QGstPad input) { selector.set("active-pad", input); }
+        int trackCount() const { return tracks.count(); }
+
+        QGstElement selector;
+        TrackType type;
+        QList<QGstPad> tracks;
+        QGstPad nullTrack;
+        bool isConnected = false;
+    };
+
     friend class QGstreamerStreamsControl;
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
     void parseStreamsAndMetadata();
-    void connectOutput(TrackType t);
-    void removeOutput(TrackType t);
+    void connectOutput(TrackSelector &ts);
+    void removeOutput(TrackSelector &ts);
     void removeAllOutputs();
-
     void stopOrEOS(bool eos);
 
+    std::array<TrackSelector, NTrackTypes> trackSelectors;
+    TrackSelector &trackSelector(TrackType type);
+
     QMediaMetaData m_metaData;
-    QList<QGstPad> m_streams[3];
 
     int m_bufferProgress = -1;
     QUrl m_url;
@@ -152,8 +173,6 @@ private:
     QGstPipeline playerPipeline;
     QGstElement src;
     QGstElement decoder;
-    QGstElement inputSelector[3];
-    bool selectorIsConnected[3] = { false, false, false };
 
     QGstreamerAudioOutput *gstAudioOutput = nullptr;
     QGstreamerVideoOutput *gstVideoOutput = nullptr;
