@@ -219,6 +219,8 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
             m_mediaRecorder->setSurfaceTexture(m_cameraSession->videoOutput()->surfaceTexture());
         else if (m_cameraSession->videoOutput()->surfaceHolder())
             m_mediaRecorder->setSurfaceHolder(m_cameraSession->videoOutput()->surfaceHolder());
+
+        m_cameraSession->disableRotation();
     }
 
     if (!m_mediaRecorder->prepare()) {
@@ -362,7 +364,6 @@ void QAndroidCaptureSession::restartViewfinder()
 {
     if (!m_cameraSession)
         return;
-
     m_cameraSession->camera()->reconnect();
 
     // This is not necessary on most devices, but it crashes on some if we don't stop the
@@ -376,6 +377,7 @@ void QAndroidCaptureSession::restartViewfinder()
 
     m_cameraSession->camera()->startPreview();
     m_cameraSession->setReadyForCapture(true);
+    m_cameraSession->enableRotation();
 }
 
 void QAndroidCaptureSession::updateDuration()

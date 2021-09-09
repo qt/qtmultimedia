@@ -78,9 +78,11 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
                 this, &QAndroidCameraSession::onApplicationStateChanged);
 
         auto screen = qApp->primaryScreen();
-        if (screen)
-            connect(screen, &QScreen::orientationChanged,
-                this, &QAndroidCameraSession::updateOrientation);
+        if (screen) {
+            connect(screen, &QScreen::orientationChanged, this,
+                    &QAndroidCameraSession::updateOrientation);
+            enableRotation();
+        }
     }
 }
 
@@ -433,9 +435,19 @@ void QAndroidCameraSession::setImageSettings(const QImageEncoderSettings &settin
         applyResolution(m_actualImageSettings.resolution());
 }
 
+void QAndroidCameraSession::enableRotation()
+{
+    m_rotationEnabled = true;
+}
+
+void QAndroidCameraSession::disableRotation()
+{
+    m_rotationEnabled = false;
+}
+
 void QAndroidCameraSession::updateOrientation()
 {
-    if (!m_camera)
+    if (!m_camera || !m_rotationEnabled)
         return;
 
     m_camera->setDisplayOrientation(currentCameraRotation());
