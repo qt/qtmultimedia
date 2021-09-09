@@ -112,6 +112,9 @@ public:
 
     void setVideoSink(QVideoSink *surface);
 
+    void disableRotation();
+    void enableRotation();
+
 Q_SIGNALS:
     void activeChanged(bool);
     void error(int error, const QString &errorString);
@@ -167,6 +170,8 @@ private:
     bool m_active = false;
     int m_savedState = -1;
     bool m_previewStarted;
+
+    bool m_rotationEnabled = false;
 
     QVideoSink *m_sink = nullptr;
     QAndroidTextureVideoOutput *m_textureOutput = nullptr;
