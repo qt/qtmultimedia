@@ -84,11 +84,11 @@ Window {
         onMetaDataChanged: { metadataInfo.read(mediaPlayer.metaData) }
         onTracksChanged: {
             audioTracksInfo.read(mediaPlayer.audioTracks);
-            audioTracksInfo.selectedTrack = mediaPlayer.activeAudioTrack +1;
+            audioTracksInfo.selectedTrack = mediaPlayer.activeAudioTrack;
             videoTracksInfo.read(mediaPlayer.videoTracks);
-            videoTracksInfo.selectedTrack = mediaPlayer.activeVideoTrack +1;
+            videoTracksInfo.selectedTrack = mediaPlayer.activeVideoTrack;
             subtitleTracksInfo.read(mediaPlayer.subtitleTracks);
-            subtitleTracksInfo.selectedTrack = mediaPlayer.activeSubtitleTrack +1;
+            subtitleTracksInfo.selectedTrack = mediaPlayer.activeSubtitleTrack;
         }
     }
 
