@@ -244,7 +244,9 @@ void QImageCapture::addMetaData(const QMediaMetaData &metaData)
 }
 
 /*!
-  Returns true if the camera is ready to capture an image immediately.
+  \property QImageCapture::readyForCapture
+
+  Holds \c true if the camera is ready to capture an image immediately.
   Calling capture() while \c readyForCapture is \c false is not
   permitted and results in an error.
 */

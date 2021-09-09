@@ -451,6 +451,7 @@ void QVideoWindowPrivate::render()
 
 /*!
     \class QVideoWindow
+    \internal
 */
 QVideoWindow::QVideoWindow(QScreen *screen)
     : QWindow(screen)

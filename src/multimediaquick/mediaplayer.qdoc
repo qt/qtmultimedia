@@ -98,7 +98,7 @@
     This property holds the target video output.
     Accepts one VideoOutput elements.
 
-    \snippet multimedia-snippets/multiple-videooutputs.qml
+    \snippet multimedia-snippets/multiple-videooutputs.qml complete
 
     \sa QMediaPlayer::setVideoOutput()
 */
@@ -395,10 +395,7 @@
 /*!
     \qmlproperty bool QtMultimedia::MediaPlayer::seekable
 
-    This property holds whether position of the audio can be changed.
-
-    If true, calling the \l setPosition() method will cause playback to seek to the new
-    position.
+    This property holds whether \l position of the audio can be changed.
 */
 
 /*!

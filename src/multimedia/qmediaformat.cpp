@@ -48,13 +48,12 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \inmodule QtMultimedia
     \brief Describes an encoding format for a multimedia file or stream.
+    \since 6.2
 
     QMediaFormat describes an encoding format for a multimedia file or stream.
 
     You can check whether a certain media format can be used for encoding
     or decoding using QMediaFormat.
-
-    \since 6.2
 */
 namespace {
 
@@ -174,7 +173,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
 
 /*! \enum QMediaFormat::AudioCodec
 
-    Describes the audio coded used in multimedia file or stream.
+    Describes the audio codec used in multimedia file or stream.
 
     \value WMA
         \l {Windows Media Audio}
@@ -183,9 +182,11 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
     \value AAC
         \l{Advanced Audio Coding}
     \value ALAC
-        Apple Lossless Audio Codec
+        \l{Apple Lossless Audio Codec}
     \value DolbyTrueHD
         \l{Dolby TrueHD}
+    \value EAC3
+        \l {Dolby Digital Plus (EAC3)}
     \value MP3
         \l{MPEG-1 Audio Layer III or MPEG-2 Audio Layer III}
     \value Wave
@@ -195,9 +196,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
     \value FLAC
         \l{Free Lossless Audio Codec}
     \value Opus
-        Voice-over-IP codec
-    \value EAC
-        Enhanced Audio Codec
+        \l{Opus Audio Format}
     \value Unspecified
         Unspecified codec
 
@@ -322,7 +321,7 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
 */
 
 /*!
-    Returns true if Qt Multimedia can encode or decode this format,
+    Returns \c true if Qt Multimedia can encode or decode this format,
     depending on \a mode.
 */
 
@@ -349,7 +348,7 @@ static QPlatformMediaFormatInfo *formatInfo()
 }
 
 /*!
-    The function returns a list of file formats for the audio and video
+    Returns a list of file formats for the audio and video
     codec indicated by \a{m}.
 
     To get all supported file formats, run this query on a default constructed
@@ -362,7 +361,7 @@ QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat:
 }
 
 /*!
-    The function returns a list of video codecs for the chosen file format and
+    Returns a list of video codecs for the chosen file format and
     audio codec (\a m).
 
     To get all supported video codecs, run this query on a default constructed
@@ -376,7 +375,7 @@ QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat:
 
 /*!
 
-    The function returns a list of audio codecs for the chosen file format and
+    Returns a list of audio codecs for the chosen file format and
     video codec (\a m).
 
     To get all supported audio codecs, run this query on a default constructed
@@ -517,7 +516,22 @@ bool QMediaFormat::operator==(const QMediaFormat &other) const
 }
 
 /*!
-    Resolves the format to a format that is supported by QMediaRecorder.
+    \enum QMediaFormat::ResolveFlags
+
+    Describes the requirements for resolving a suitable format for
+    QMediaRecorder.
+
+    \value NoFlags
+           No requirements
+    \value RequiresVideo
+           A video codec is required
+
+    \sa resolveForEncoding()
+*/
+
+/*!
+    Resolves the format, based on \a flags, to a format that is supported by
+    QMediaRecorder.
 
     This method tries to find the best possible match for unspecified settings.
     Settings that are not supported by the recorder will be modified to the closest

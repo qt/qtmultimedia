@@ -290,8 +290,7 @@ QVideoFrameFormat::QVideoFrameFormat()
 }
 
 /*!
-    Constructs a description of stream which receives stream of \a d type buffers with given frame
-    \a size and pixel \a format.
+    Constructs a video stream with the given frame \a size and pixel \a format.
 */
 QVideoFrameFormat::QVideoFrameFormat(
         const QSize& size, QVideoFrameFormat::PixelFormat format)

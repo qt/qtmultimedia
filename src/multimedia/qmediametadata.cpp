@@ -109,6 +109,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype MetaData
+    \inqmlmodule QtMultimedia
     \since 6.2
     \instantiates QMediaMetaData
     \brief Provides meta-data for media files.
@@ -234,7 +235,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn bool QMediaMetaData::isEmpty()
+    \fn bool QMediaMetaData::isEmpty() const
     Returns \c true if the meta data contains no items: otherwise returns \c{false}.
 */
 
@@ -273,7 +274,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn QList QMediaMetaData::keys()
+    \fn QMediaMetaData::keys() const
     Returns a QList of QMediaMetaData::Keys.
 */
 
@@ -416,7 +417,7 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
 // operator documentation
 /*!
 \fn QVariant &QMediaMetaData ::operator[](QMediaMetaData::Key k)
-    The \c [] operator returns data stored at the Key \a{k}.
+    Returns data stored at the Key \a{k}.
     \code
         QMediaMetaData rockBallad1;
         rockBalad[QMediaMetaData::Genre]="Rock"
@@ -425,19 +426,19 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
 
 /*!
 \fn bool QMediaMetaData::operator==(const QMediaMetaData &a, const QMediaMetaData &b)
-    The \c == operator will compare two meta data objects, and return
+    Compares two meta data objects \a a and \a b, and returns
     \c true if they are identical or \c false if they differ.
 */
 
 /*!
 \fn bool QMediaMetaData::operator!=(const QMediaMetaData &a, const QMediaMetaData &b)
-    The \c != operator will compare two meta data objects, and return
+    Compares two meta data objects \a a and \a b, and returns
     \c false if they are identical or \c true if they differ.
 */
 
 /*!
-\property QHash<Key, QVariant> QMediaMetaData::data
-    This property holds the metaData.
+    \variable QMediaMetaData::data
+    \brief the meta data.
     \note this is a \c protected member of its class.
 */
 
