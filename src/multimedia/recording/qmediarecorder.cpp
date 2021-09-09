@@ -195,7 +195,7 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
     The location can be relative or empty. If empty the recorder uses the
     system specific place and file naming scheme.
 
-   \sa errorOccured()
+   \sa errorOccurred()
 */
 
 /*!
@@ -581,7 +581,7 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
     return d->captureSession;
 }
 /*!
-    \qmlproprty enumeration QtMultimedia::MediaRecorder::quality
+    \qmlproperty enumeration QtMultimedia::MediaRecorder::quality
 
     Enumerates quality encoding levels.
 

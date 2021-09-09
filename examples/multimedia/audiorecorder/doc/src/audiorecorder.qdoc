@@ -76,11 +76,9 @@
     will have the text "Resume".
 
     Pressing the buttons will also result in a toggle based on the state. If
-    recording is stopped, then pressing the record button will setup the
-    \l{QAudioEncoderSettings} based on the values of the selection lists,
-    will set the encoding settings and container on the \c audioRecorder
-    object, and start recording using the
-    \l{QMediaRecorder::record()}{record()} method.
+    recording is stopped, then pressing the record button will set the encoding
+    settings and container on the \c audioRecorder object, and start recording
+    using the \l{QMediaRecorder::record()}{record()} method.
 
     \code
         QMediaFormat format;

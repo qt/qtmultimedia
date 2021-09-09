@@ -59,7 +59,7 @@ sourcedirs += ../..
 
 excludedirs += ../../gsttools
 
-depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork
+depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork qmake qtcmake
 
 navigation.landingpage = "Qt Multimedia"
 navigation.cppclassespage = "Qt Multimedia C++ Classes"

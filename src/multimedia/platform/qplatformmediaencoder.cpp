@@ -55,7 +55,7 @@ QT_BEGIN_NAMESPACE
     functionality.
 
     This control provides a means to set the \l {outputLocation()}{output location},
-    and record, pause and stop recording via the \l setState() method.  It also
+    and record(), pause(), resume(), and stop() recording.  It also
     provides feedback on the \l {duration()}{duration} of the recording.
 
     \sa QMediaRecorder
