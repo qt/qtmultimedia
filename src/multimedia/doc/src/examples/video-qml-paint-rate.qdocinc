@@ -24,8 +24,8 @@ The FrequencyMonitor class is exposed to QML like this
 \printuntil }
 
 and its data is displayed by defining a QML item called FrequencyItem, like this:
-qmlvideo\qml\frequencymonitor
-\quotefromfile multimedia/video/qmlvideo/frequencymonitor/qml/frequencymonitor/FrequencyItem.qml
+
+\quotefromfile multimedia/video/qmlvideo/qml/frequencymonitor/FrequencyItem.qml
 \skipto import FrequencyMonitor
 \printuntil id: root
 \dots
@@ -39,5 +39,3 @@ qmlvideo\qml\frequencymonitor
 The result looks like this:
 
 \image video-qml-paint-rate.png
-
-

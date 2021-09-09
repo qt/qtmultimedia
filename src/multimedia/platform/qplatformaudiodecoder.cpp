@@ -109,8 +109,7 @@ QPlatformAudioDecoder::QPlatformAudioDecoder(QAudioDecoder *parent)
 
     Stops playback of the current media and discards any buffers.
 
-    If successful the player control will immediately enter the \l {QAudioDecoder::StoppedState}
-    {stopped} state.
+    If successful, the player control will immediately stop decoding.
 */
 
 /*!
@@ -172,8 +171,6 @@ void QPlatformAudioDecoder::sourceChanged()
     \fn QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 
     Signals that the current audio format of the decoder has changed to \a format.
-
-    \sa audioFormat(), setAudioFormat()
 */
 void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 {

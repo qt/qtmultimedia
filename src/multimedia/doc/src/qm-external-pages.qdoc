@@ -112,6 +112,11 @@
 */
 
 /*!
+    \externalpage https://en.wikipedia.org/wiki/ALAC
+    \title Apple Lossless Audio Codec
+*/
+
+/*!
     \externalpage https://en.wikipedia.org/wiki/Matroska
     \title Matroska (MKV)
 */
@@ -169,6 +174,16 @@
 /*!
     \externalpage https://en.wikipedia.org/wiki/Dolby_Digital
     \title Dolby Digital
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Dolby_Digital_Plus
+    \title Dolby Digital Plus (EAC3)
+*/
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Opus_(audio_format)
+    \title Opus Audio Format
 */
 
 /*!

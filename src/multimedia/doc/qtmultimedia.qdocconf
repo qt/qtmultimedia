@@ -61,7 +61,7 @@ sourcedirs += ../..
 
 excludedirs += ../../gsttools
 
-depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork
+depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork qmake qtcmake
 
 # Ignore \since commands for versions earlier than 6.3
 ignoresince = 6.3

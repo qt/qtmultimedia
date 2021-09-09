@@ -72,13 +72,10 @@ object is called.
 Now that the camera is ready for user commands it waits for a suitable event.
 Such an event can be a key press of either the \l {Qt::Key_CameraFocus} or
 \l {Qt::Key_Camera} buttons on the application window. Camera focus will
-simply display the preview and lock the camera settings. Key_Camera will
-either call \e{takeImage()} if capturing still images, or if the capture mode
-is for video then one
-of two actions will occur. If the recording state shows that we are currently
-recording then the \e{stop()} function is called resulting in a call to
-\l {QCamera::stop()}, whereas if we are not recording then a video recording
-is started with a call to \l {QMediaRecorder::record()}.
+simply display the preview and lock the camera settings. \c Key_Camera will
+either call \e{takeImage()} if doing an image capture, or call
+\c record() or \c stop() (if already recording) on the QMediaRecorder instance
+when recording video.
 
 \image camera-example.png
 

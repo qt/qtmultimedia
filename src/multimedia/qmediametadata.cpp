@@ -417,13 +417,12 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
 // operator documentation
 /*!
 \fn QVariant &QMediaMetaData ::operator[](QMediaMetaData::Key k)
-    The \c [] operator returns data stored at the Key \a{k}.
+    Returns data stored at the Key \a{k}.
     \code
         QMediaMetaData rockBallad1;
         rockBalad[QMediaMetaData::Genre]="Rock"
     \endcode
 */
-
 /*!
 \fn bool QMediaMetaData::operator==(const QMediaMetaData &a, const QMediaMetaData &b)
     Compares two meta data objects \a a and \a b, and returns
