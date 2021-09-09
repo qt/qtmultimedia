@@ -74,11 +74,9 @@ Item {
 
         metadataList.forEach(function (metadata, index) {
             var language = metadata.stringValue(LanguageKey);
-            if (!language)
-                return;
-
+            var label = language ? metadata.stringValue(LanguageKey) : "track " + (index + 1)
             elements.append(
-                        { language: metadata.stringValue(LanguageKey)
+                        { language: label
                         , trackNumber: index
                         })
         });
@@ -107,8 +105,7 @@ Item {
             delegate: RowLayout {
                 width: trackList.width
                 RadioButton {
-                    property int trackIndex : index
-                    checked: trackIndex === selectedTrack +1
+                    checked: model.trackNumber === selectedTrack
                     text: model.language
                     ButtonGroup.group: group
                     onClicked: selectedTrack = model.trackNumber
