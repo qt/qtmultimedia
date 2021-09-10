@@ -89,10 +89,14 @@ Window {
         id: recorder
         onRecorderStateChanged:
             (state) => {
-                if (state === MediaRecorder.StoppedState)
+                if (state === MediaRecorder.StoppedState) {
+                    root.contentOrientation = Qt.PrimaryOrientation
                     mediaList.append()
-                else if (state === MediaRecorder.RecordingState && captureSession.camera)
+                } else if (state === MediaRecorder.RecordingState && captureSession.camera) {
+                    // lock orientation while recording and create a preview image
+                    root.contentOrientation = root.screen.orientation;
                     videoOutput.grabToImage(function(res) { mediaList.mediaThumbnail = res.url })
+                }
             }
         onActualLocationChanged: (url) => { mediaList.mediaUrl = url }
         onErrorOccurred: { recorderErrorText.text = recorder.errorString; recorderError.open(); }
