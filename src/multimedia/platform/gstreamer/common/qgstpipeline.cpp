@@ -307,7 +307,8 @@ void QGstPipeline::endConfig()
     if (d->m_configCounter)
         return;
 
-    d->m_pendingFlush = true;
+    if (d->m_flushOnConfigChanges)
+        d->m_pendingFlush = true;
     if (d->m_savedState == GST_STATE_PLAYING)
         setState(GST_STATE_PLAYING);
     d->m_savedState = GST_STATE_NULL;
