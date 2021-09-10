@@ -89,8 +89,14 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     , m_audioSampleGrabber(0)
     , m_audioSampleGrabberNode(0)
     , m_videoProbeMFT(0)
+
 {
     QObject::connect(this, SIGNAL(sessionEvent(IMFMediaEvent*)), this, SLOT(handleSessionEvent(IMFMediaEvent*)));
+
+    m_signalPositionChangeTimer.setInterval(100);
+    m_signalPositionChangeTimer.callOnTimeout([this](){
+        positionChanged(position());
+    });
 
     m_pendingState = NoPending;
     ZeroMemory(&m_state, sizeof(m_state));
@@ -1617,6 +1623,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 //        if (m_playerService->videoWindowControl()) {
 //            m_playerService->videoWindowControl()->applyImageControls();
 //        }
+        m_signalPositionChangeTimer.start();
         break;
     case MESessionStopped:
         if (m_status != QMediaPlayer::EndOfMedia) {
@@ -1628,10 +1635,12 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                 changeStatus(QMediaPlayer::LoadedMedia);
         }
         updatePendingCommands(CmdStop);
+        m_signalPositionChangeTimer.stop();
         break;
     case MESessionPaused:
         m_position = position() * 10000;
         updatePendingCommands(CmdPause);
+        m_signalPositionChangeTimer.stop();
         break;
     case MEReconnectStart:
 #ifdef DEBUG_MEDIAFOUNDATION
