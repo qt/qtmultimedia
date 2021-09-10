@@ -65,6 +65,9 @@ public:
 
     int currentOrientation() const;
 
+    static void setIsRecording(bool isRecording) { m_isRecording = isRecording; }
+    static bool isRecording() { return m_isRecording; }
+
 Q_SIGNALS:
     void orientationChanged(int angle);
 
@@ -73,6 +76,7 @@ private Q_SLOTS:
 
 private:
     int m_currentOrientation;
+    static bool m_isRecording;
 };
 
 QT_END_NAMESPACE

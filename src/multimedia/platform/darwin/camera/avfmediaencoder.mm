@@ -520,6 +520,8 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
 
     applySettings(settings);
 
+    QVideoOutputOrientationHandler::setIsRecording(true);
+
     // We stop session now so that no more frames for renderer's queue
     // generated, will restart in assetWriterStarted.
     [session stopRunning];
@@ -578,6 +580,7 @@ void AVFMediaEncoder::stop()
         // Do not check the camera status, we can stop if we started.
         stopWriter();
     }
+    QVideoOutputOrientationHandler::setIsRecording(false);
 }
 
 
