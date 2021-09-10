@@ -64,6 +64,7 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qvideoframeformat.h>
 #include <qaudiodevice.h>
+#include <qtimer.h>
 #include "mfplayercontrol_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -266,6 +267,8 @@ private:
     void insertColorConverter(IMFTopology *topology, TOPOID outputNodeId);
     // ### Below can be used to monitor the video channel. Functionality currently unused.
     MFTransform *m_videoProbeMFT;
+
+    QTimer m_signalPositionChangeTimer;
 };
 
 
