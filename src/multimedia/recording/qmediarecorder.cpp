@@ -330,6 +330,13 @@ qint64 QMediaRecorder::duration() const
 
     If recording fails, the error() signal is emitted with recorder state being
     reset back to \c{QMediaRecorder.StoppedState}.
+
+    \note On mobile devices, recording will happen in the orientation the
+    device had when calling record and is locked for the duration of the recording.
+    To avoid artifacts on the user interface, we recommend to keep the user interface
+    locked to the same orientation as long as the recording is ongoing using
+    the contentOrientation property of the Window and unlock it again once the recording
+    is finished.
 */
 /*!
     Start recording.
@@ -339,6 +346,13 @@ qint64 QMediaRecorder::duration() const
 
     If recording fails error() signal is emitted with recorder state being
     reset back to \c{QMediaRecorder::StoppedState}.
+
+    \note On mobile devices, recording will happen in the orientation the
+    device had when calling record and is locked for the duration of the recording.
+    To avoid artifacts on the user interface, we recommend to keep the user interface
+    locked to the same orientation as long as the recording is ongoing using
+    the contentOrientation property of QWindow and unlock it again once the recording
+    is finished.
 */
 
 void QMediaRecorder::record()
