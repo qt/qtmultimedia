@@ -242,7 +242,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
     return settings;
 }
 
-NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCaptureDevice *device, AVCaptureConnection *connection)
+NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCaptureDevice *device, AVCaptureConnection *connection, QSize nativeSize)
 {
     if (!device)
         return nil;
@@ -328,12 +328,21 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
         w += w & 1;
         h += h & 1;
 
-        [videoSettings setObject:[NSNumber numberWithInt:w] forKey:AVVideoWidthKey];
-        [videoSettings setObject:[NSNumber numberWithInt:h] forKey:AVVideoHeightKey];
+        bool isPortrait = nativeSize.width() < nativeSize.height();
+        // Make sure the video has the right aspect ratio
+        if (isPortrait && h < w)
+            qSwap(w, h);
+        else if (!isPortrait && w < h)
+            qSwap(w, h);
+
         encoderSettings.setVideoResolution(QSize(w, h));
     } else {
-        encoderSettings.setVideoResolution(qt_device_format_resolution(device.activeFormat));
+        w = nativeSize.width();
+        h = nativeSize.height();
+        encoderSettings.setVideoResolution(nativeSize);
     }
+    [videoSettings setObject:[NSNumber numberWithInt:w] forKey:AVVideoWidthKey];
+    [videoSettings setObject:[NSNumber numberWithInt:h] forKey:AVVideoHeightKey];
 
     // -- FPS
 
@@ -407,7 +416,8 @@ void AVFMediaEncoder::applySettings(QMediaEncoderSettings &settings)
         return;
     const AVFConfigurationLock lock(device); // prevents activeFormat from being overridden
     AVCaptureConnection *conn = [session->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
-    m_videoSettings = avfVideoSettings(settings, device, conn);
+    auto nativeSize = session->videoOutput()->nativeSize();
+    m_videoSettings = avfVideoSettings(settings, device, conn, nativeSize);
     if (m_videoSettings)
         [m_videoSettings retain];
 }
@@ -479,18 +489,6 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
                          QMediaRecorderPrivate::msgFailedStartRecording());
             return;
         }
-
-        // Make sure the video is recorded in device orientation.
-        // The top of the video will match the side of the device which is on top
-        // when recording starts (regardless of the UI orientation).
-        // QCameraDevice cameraDevice = m_service->session()->activecameraDevice();
-        // int screenOrientation = 360 - m_orientationHandler.currentOrientation();
-
-            // ###
-    //        if (cameraDevice.position() == QCameraDevice::FrontFace)
-    //            rotation = (screenOrientation + cameraDevice.orientation()) % 360;
-    //        else
-    //            rotation = (screenOrientation + (360 - cameraDevice.orientation())) % 360;
     }
 
     const QString path(outputLocation().scheme() == QLatin1String("file") ?
