@@ -68,6 +68,7 @@ Window {
     VideoOutput {
         id: videoOutput
         anchors.fill: parent
+        visible: !playback.playing
     }
 
     Popup {
@@ -81,7 +82,7 @@ Window {
         recorder: recorder
         audioInput: controls.audioInput
         camera: controls.camera
-        videoOutput: playback.active ? null : videoOutput
+        videoOutput: videoOutput
     }
 
     MediaRecorder {
@@ -100,13 +101,10 @@ Window {
     Playback {
         id: playback
         anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-            bottom: controls.capturesVisible ? mediaListFrame.top : controlsFrame.top
+            fill: parent
             margins: 50
         }
-        videoOutput: videoOutput
+        active: controls.capturesVisible
     }
 
     Frame {
