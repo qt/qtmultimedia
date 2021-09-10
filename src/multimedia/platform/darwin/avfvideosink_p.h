@@ -105,6 +105,7 @@ public:
 
     void updateLayerBounds();
     void nativeSizeChanged() { updateLayerBounds(); }
+    QSize nativeSize() const { return m_sink->nativeSize(); }
 
     CVMetalTextureCacheRef cvMetalTextureCache = nullptr;
 #if defined(Q_OS_MACOS)
@@ -116,7 +117,6 @@ private:
     void freeTextureCaches();
 
 protected:
-    QSize nativeSize() const { return m_sink->nativeSize(); }
 
     AVFVideoSink *m_sink = nullptr;
     QRhi *m_rhi = nullptr;
