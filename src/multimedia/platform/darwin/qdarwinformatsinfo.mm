@@ -85,7 +85,7 @@ static struct {
     { "; codecs=\"ac-3\"", QMediaFormat::AudioCodec::AC3 },
     { "; codecs=\"ec-3\"", QMediaFormat::AudioCodec::EAC3 },
     { "; codecs=\"flac\"", QMediaFormat::AudioCodec::FLAC },
-    { "; codecs=\"alac\"", QMediaFormat::AudioCodec::FLAC },
+    { "; codecs=\"alac\"", QMediaFormat::AudioCodec::ALAC },
     { "; codecs=\"opus\"", QMediaFormat::AudioCodec::Opus },
     { nullptr, QMediaFormat::AudioCodec::Unspecified },
 };
@@ -117,7 +117,6 @@ QDarwinFormatInfo::QDarwinFormatInfo()
             while (a->name) {
                 QByteArray extendedMimetype = m->name;
                 extendedMimetype += a->name;
-//                qDebug() << "audio" << extendedMimetype << [AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:extendedMimetype.constData()]];
                 if ([AVURLAsset isPlayableExtendedMIMEType:[NSString stringWithUTF8String:extendedMimetype.constData()]])
                     audio << a->value;
                 ++a;
@@ -133,29 +132,14 @@ QDarwinFormatInfo::QDarwinFormatInfo()
         }
     }
 
-// #if 1
-//     // ### Verify that this is correct
-//     encoders = decoders;
-// #else
-    // ### Haven't seen a good way to figure this out.
     // seems AVFoundation only supports those for encoding
     encoders = {
         { QMediaFormat::MPEG4,
-          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::ALAC, QMediaFormat::AudioCodec::AC3, QMediaFormat::AudioCodec::EAC3, },
+          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::ALAC },
           { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265, QMediaFormat::VideoCodec::MotionJPEG } },
         { QMediaFormat::QuickTime,
-          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::ALAC, QMediaFormat::AudioCodec::AC3, QMediaFormat::AudioCodec::EAC3, },
+          { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::ALAC },
           { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265, QMediaFormat::VideoCodec::MotionJPEG } },
-        // seems AVFoundation does not support directly encoding to an AAC and MP3 file
-        // { QMediaFormat::AAC,
-        //   { QMediaFormat::AudioCodec::AAC },
-        //   {} },
-        // { QMediaFormat::MP3,
-        //   { QMediaFormat::AudioCodec::MP3 },
-        //   {} },
-        // { QMediaFormat::FLAC,
-        //   { QMediaFormat::AudioCodec::FLAC },
-        //   {} },
         { QMediaFormat::Mpeg4Audio,
           { QMediaFormat::AudioCodec::AAC },
           {} },
@@ -163,7 +147,6 @@ QDarwinFormatInfo::QDarwinFormatInfo()
             { QMediaFormat::AudioCodec::Wave },
             {} },
     };
-// #endif
 
     // ###
     imageFormats << QImageCapture::JPEG;
