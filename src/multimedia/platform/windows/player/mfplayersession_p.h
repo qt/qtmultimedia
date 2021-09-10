@@ -118,7 +118,6 @@ public:
     void changeStatus(QMediaPlayer::MediaStatus newStatus);
 
     void close();
-    void clearPlayer() { m_playerControl = nullptr; }
 
     void setAudioOutput(QPlatformAudioOutput *device);
 
