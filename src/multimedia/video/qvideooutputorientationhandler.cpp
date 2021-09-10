@@ -44,6 +44,8 @@
 
 QT_BEGIN_NAMESPACE
 
+bool QVideoOutputOrientationHandler::m_isRecording = false;
+
 QVideoOutputOrientationHandler::QVideoOutputOrientationHandler(QObject *parent)
     : QObject(parent)
     , m_currentOrientation(0)
@@ -63,6 +65,9 @@ int QVideoOutputOrientationHandler::currentOrientation() const
 
 void QVideoOutputOrientationHandler::screenOrientationChanged(Qt::ScreenOrientation orientation)
 {
+    if (m_isRecording)
+        return;
+
     const QScreen *screen = QGuiApplication::primaryScreen();
 
     const int angle = (360 - screen->angleBetween(screen->nativeOrientation(), orientation)) % 360;
