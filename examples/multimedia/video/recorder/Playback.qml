@@ -55,31 +55,36 @@ import QtQuick.Controls
 Item {
     id: root
 
-    required property VideoOutput videoOutput
     property bool active: false
+    property bool playing: false
+    visible: active && playing
 
     function playUrl(url) {
-        root.active = true
-        if (!videoOutput) {
-            console.log("videooutput is null")
-        }
-
-        mediaPlayer.videoOutput = videoOutput
-        mediaPlayer.audioOutput = audioOutput
+        playing = true
         mediaPlayer.source = url
         mediaPlayer.play()
     }
 
     function stop() {
+        playing = false
         mediaPlayer.stop()
-        mediaPlayer.videoOutput = null
-        mediaPlayer.audioOutput = null
-        root.active = false
     }
 
-    AudioOutput { id: audioOutput }
+    onActiveChanged: function() {
+        if (!active)
+            stop();
+    }
 
-    MediaPlayer { id: mediaPlayer }
+    VideoOutput {
+        anchors.fill: parent
+        id: videoOutput
+    }
+
+    MediaPlayer {
+        id: mediaPlayer
+        videoOutput: videoOutput
+        audioOutput: AudioOutput {}
+    }
 
     HoverHandler { id: hover }
 
