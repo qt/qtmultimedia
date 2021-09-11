@@ -101,7 +101,7 @@ public:
     virtual void setRhi(QRhi *);
     QRhi *rhi() const { return m_rhi; }
 
-    void setLayer(CALayer *layer);
+    virtual void setLayer(CALayer *layer);
 
     void updateLayerBounds();
     void nativeSizeChanged() { updateLayerBounds(); }
