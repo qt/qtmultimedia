@@ -183,6 +183,8 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
         [m_player release];
         m_player = 0;
     }
+    if (m_playerLayer)
+        m_playerLayer.player = nil;
 #if defined(Q_OS_IOS)
     [[AVAudioSession sharedInstance] setActive:NO error:nil];
 #endif
@@ -874,6 +876,9 @@ void AVFMediaPlayer::stop()
     [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] pause];
     setPosition(0);
 
+    if (m_videoOutput)
+        m_videoOutput->setLayer(nullptr);
+
     if (m_mediaStatus == QMediaPlayer::BufferedMedia)
         Q_EMIT mediaStatusChanged((m_mediaStatus = QMediaPlayer::LoadedMedia));
 
@@ -927,6 +932,9 @@ void AVFMediaPlayer::processEOS()
     Q_EMIT positionChanged(position());
     m_mediaStatus = QMediaPlayer::EndOfMedia;
     m_state = QMediaPlayer::StoppedState;
+
+    if (m_videoOutput)
+        m_videoOutput->setLayer(nullptr);
 
     Q_EMIT mediaStatusChanged(m_mediaStatus);
     Q_EMIT stateChanged(m_state);

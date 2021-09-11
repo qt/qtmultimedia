@@ -134,6 +134,26 @@ void AVFVideoRendererControl::reconfigure()
     nativeSizeChanged();
 }
 
+void AVFVideoRendererControl::setLayer(CALayer *layer)
+{
+    if (m_layer == layer)
+        return;
+
+    AVPlayerLayer *plLayer = playerLayer();
+    if (plLayer) {
+        if (m_videoOutput)
+            [[[plLayer player] currentItem] removeOutput:m_videoOutput];
+
+        if (m_subtitleOutput)
+            [[[plLayer player] currentItem] removeOutput:m_subtitleOutput];
+    }
+
+    if (!layer && m_sink)
+        m_sink->setVideoFrame(QVideoFrame());
+
+    AVFVideoSinkInterface::setLayer(layer);
+}
+
 void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 {
     Q_UNUSED(ts);
@@ -141,10 +161,8 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     if (!m_sink)
         return;
 
-    if (!m_layer) {
-        qWarning("updateVideoFrame called without AVPlayerLayer (which shouldn't happen");
+    if (!m_layer)
         return;
-    }
 
     auto *layer = playerLayer();
     if (!layer.readyForDisplay)
@@ -205,17 +223,22 @@ CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width
         return nullptr;
     }
 
+    AVPlayerItem * item = [[layer player] currentItem];
+
     if (!m_videoOutput) {
         auto *settings = (m_rhi && m_rhi->backend() == QRhi::OpenGLES2) ? AVF_OUTPUT_SETTINGS_OPENGL : AVF_OUTPUT_SETTINGS;
         m_videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
         [m_videoOutput setDelegate:nil queue:nil];
+    }
+    if (!m_subtitleOutput) {
         m_subtitleOutput = [[AVPlayerItemLegibleOutput alloc] init];
         m_subtitleDelegate = [[SubtitleDelegate alloc] initWithRenderer:this];
         [m_subtitleOutput setDelegate:m_subtitleDelegate queue:dispatch_get_main_queue()];
-        AVPlayerItem * item = [[layer player] currentItem];
-        [item addOutput:m_videoOutput];
-        [item addOutput:m_subtitleOutput];
     }
+    if (![item.outputs containsObject:m_videoOutput])
+        [item addOutput:m_videoOutput];
+    if (![item.outputs containsObject:m_subtitleOutput])
+        [item addOutput:m_subtitleOutput];
 
     CFTimeInterval currentCAFrameTime =  CACurrentMediaTime();
     CMTime currentCMFrameTime =  [m_videoOutput itemTimeForHostTime:currentCAFrameTime];

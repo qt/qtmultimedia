@@ -78,6 +78,7 @@ public:
 
     // AVFVideoSinkInterface
     void reconfigure() override;
+    void setLayer(CALayer *layer) override;
 
     void setSubtitleText(const QString &subtitle)
     {
