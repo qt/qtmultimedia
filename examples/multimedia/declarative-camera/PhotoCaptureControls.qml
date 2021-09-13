@@ -82,7 +82,7 @@ FocusScope {
             CameraButton {
                 text: "Capture"
                 visible: captureSession.imageCapture.readyForCapture
-                onClicked: captureSession.imageCapture.capture()
+                onClicked: captureSession.imageCapture.captureToFile("")
             }
 
             CameraPropertyButton {
