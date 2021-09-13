@@ -82,6 +82,7 @@ qt_internal_add_module(Multimedia
     PRIVATE_MODULE_INTERFACE
         Qt::CorePrivate
         Qt::GuiPrivate
+    GENERATE_CPP_EXPORTS
 )
 
 qt_internal_add_simd_part(Multimedia SIMD sse2

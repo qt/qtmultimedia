@@ -52,20 +52,7 @@
 #define QTMULTIMEDIAWIDGETS_P_H
 
 #include <QtCore/qglobal.h>
-
-QT_BEGIN_NAMESPACE
-
-#ifndef QT_STATIC
-#    if defined(QT_BUILD_MULTIMEDIAWIDGETS_LIB)
-#        define Q_MULTIMEDIAWIDGETS_EXPORT Q_DECL_EXPORT
-#    else
-#        define Q_MULTIMEDIAWIDGETS_EXPORT Q_DECL_IMPORT
-#    endif
-#else
-#    define Q_MULTIMEDIAWIDGETS_EXPORT
-#endif
-
-QT_END_NAMESPACE
+#include <QtMultimediaWidgets/qtmultimediawidgetsexports.h>
 
 #endif // QMULTIMEDIAWIDGETS_P_H
 
