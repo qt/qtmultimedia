@@ -128,7 +128,6 @@ Player::Player(QWidget *parent)
     histogramLayout->addWidget(m_videoHistogram, 1);
     histogramLayout->addWidget(m_audioHistogram, 2);
 
-    QLabel *metaDataLabel = new QLabel(tr("Metadata for file:"));
     QGridLayout *metaDataLayout = new QGridLayout;
     int key = QMediaMetaData::Title;
     for (int i = 0; i < (QMediaMetaData::NumMetaData + 2)/3; i++) {
@@ -221,6 +220,7 @@ Player::Player(QWidget *parent)
     layout->addLayout(tracksLayout);
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     layout->addLayout(histogramLayout);
+    QLabel *metaDataLabel = new QLabel(tr("Metadata for file:"));
     layout->addWidget(metaDataLabel);
     layout->addLayout(metaDataLayout);
 #endif
