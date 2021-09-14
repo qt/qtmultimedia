@@ -263,13 +263,23 @@ public class QtAndroidMediaPlayer
 
     private void init()
     {
-        if (mMediaPlayer == null) {
-            mMediaPlayer = new MediaPlayer();
-            setState(State.Idle);
-            // Make sure the new media player has the volume that was set on the QMediaPlayer
-            setVolumeHelper(mMuted ? 0 : mVolume);
-            setAudioAttributes(mMediaPlayer, mAudioAttributes);
-        }
+        if (mMediaPlayer != null)
+            return;
+
+        mMediaPlayer = new MediaPlayer();
+        setState(State.Idle);
+        // Make sure the new media player has the volume that was set on the QMediaPlayer
+        setVolumeHelper(mMuted ? 0 : mVolume);
+        setAudioAttributes(mMediaPlayer, mAudioAttributes);
+
+        mMediaPlayer.setOnBufferingUpdateListener(new MediaPlayerBufferingListener());
+        mMediaPlayer.setOnCompletionListener(new MediaPlayerCompletionListener());
+        mMediaPlayer.setOnInfoListener(new MediaPlayerInfoListener());
+        mMediaPlayer.setOnSeekCompleteListener(new MediaPlayerSeekCompleteListener());
+        mMediaPlayer.setOnVideoSizeChangedListener(new MediaPlayerVideoSizeChangedListener());
+        mMediaPlayer.setOnErrorListener(new MediaPlayerErrorListener());
+        mMediaPlayer.setOnPreparedListener(new MediaPlayerPreparedListener());
+        mMediaPlayer.setOnTimedTextListener(new MediaPlayerTimedTextListener());
     }
 
     public void start()
@@ -387,20 +397,17 @@ public class QtAndroidMediaPlayer
 
     public void setDataSource(final String path)
     {
-        if ((mState & State.Uninitialized) != 0)
+        if (mState == State.Uninitialized)
             init();
 
-        if ((mState & State.Idle) == 0)
-           return;
+        if (mState != State.Idle)
+            reset();
 
-        mMediaPlayer.setOnBufferingUpdateListener(new MediaPlayerBufferingListener());
-        mMediaPlayer.setOnCompletionListener(new MediaPlayerCompletionListener());
-        mMediaPlayer.setOnInfoListener(new MediaPlayerInfoListener());
-        mMediaPlayer.setOnSeekCompleteListener(new MediaPlayerSeekCompleteListener());
-        mMediaPlayer.setOnVideoSizeChangedListener(new MediaPlayerVideoSizeChangedListener());
-        mMediaPlayer.setOnErrorListener(new MediaPlayerErrorListener());
-        mMediaPlayer.setOnPreparedListener(new MediaPlayerPreparedListener());
-        mMediaPlayer.setOnTimedTextListener(new MediaPlayerTimedTextListener());
+        // mediaplayer can only setDataSource if it is on State.Idle
+        if (mState != State.Idle) {
+            Log.w(TAG, "Trying to set data source of a media player that is not idle!");
+            return;
+        }
 
         if (mSurfaceHolder != null)
             mMediaPlayer.setDisplay(mSurfaceHolder);
@@ -675,14 +682,7 @@ public class QtAndroidMediaPlayer
 
     public void reset()
     {
-        if ((mState & (State.Idle
-                       | State.Initialized
-                       | State.Prepared
-                       | State.Started
-                       | State.Paused
-                       | State.Stopped
-                       | State.PlaybackCompleted
-                       | State.Error)) == 0) {
+        if (mState == State.Uninitialized) {
             return;
         }
 
