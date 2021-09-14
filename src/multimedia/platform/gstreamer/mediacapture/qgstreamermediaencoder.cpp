@@ -62,9 +62,8 @@ QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
     audioPauseControl(*this),
     videoPauseControl(*this)
 {
-    // used to update duration every 100 msecond
-    heartbeat.setInterval(100);
-    QObject::connect(&heartbeat, &QTimer::timeout, [this]() { updateDuration(); });
+    signalDurationChangedTimer.setInterval(100);
+    signalDurationChangedTimer.callOnTimeout([this](){ durationChanged(duration()); });
 }
 
 QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
@@ -144,14 +143,9 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
     return false;
 }
 
-void QGstreamerMediaEncoder::updateDuration()
-{
-    durationChanged(m_duration.elapsed());
-}
-
 qint64 QGstreamerMediaEncoder::duration() const
 {
-    return m_duration.elapsed();
+    return std::max(audioPauseControl.duration, videoPauseControl.duration);
 }
 
 
@@ -239,10 +233,16 @@ static GstEncodingContainerProfile *createEncodingProfile(const QMediaEncoderSet
     return containerProfile;
 }
 
-void QGstreamerMediaEncoder::PauseControl::installOn(QGstPad pad)
+void QGstreamerMediaEncoder::PauseControl::reset()
 {
     pauseOffsetPts = 0;
     pauseStartPts.reset();
+    duration = 0;
+    firstBufferPts.reset();
+}
+
+void QGstreamerMediaEncoder::PauseControl::installOn(QGstPad pad)
+{
     pad.addProbe<&QGstreamerMediaEncoder::PauseControl::processBuffer>(this, GST_PAD_PROBE_TYPE_BUFFER);
 }
 
@@ -262,6 +262,9 @@ GstPadProbeReturn QGstreamerMediaEncoder::PauseControl::processBuffer(QGstPad, G
     if (!GST_BUFFER_PTS_IS_VALID(buffer))
         return GST_PAD_PROBE_OK;
 
+    if (!firstBufferPts)
+        firstBufferPts = GST_BUFFER_PTS(buffer);
+
     if (encoder.state() == QMediaRecorder::PausedState) {
         if (!pauseStartPts)
             pauseStartPts = GST_BUFFER_PTS(buffer);
@@ -274,6 +277,8 @@ GstPadProbeReturn QGstreamerMediaEncoder::PauseControl::processBuffer(QGstPad, G
         pauseStartPts.reset();
     }
     GST_BUFFER_PTS(buffer) -= pauseOffsetPts;
+
+    duration = (GST_BUFFER_PTS(buffer) - *firstBufferPts) / GST_MSECOND;
 
     return GST_PAD_PROBE_OK;
 }
@@ -312,6 +317,9 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     gstEncoder.setState(GST_STATE_PAUSED);
     gstFileSink.setState(GST_STATE_PAUSED);
 
+    audioPauseControl.reset();
+    videoPauseControl.reset();
+
     audioSrcPad = m_session->getAudioPad();
     if (!audioSrcPad.isNull()) {
         QGstPad audioPad = gstEncoder.getRequestPad("audio_%u");
@@ -330,8 +338,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
 
     gstPipeline.endConfig();
 
-    m_duration.start();
-    heartbeat.start();
+    signalDurationChangedTimer.start();
     gstPipeline.dumpGraph("recording");
 
     stateChanged(QMediaRecorder::RecordingState);
@@ -342,7 +349,7 @@ void QGstreamerMediaEncoder::pause()
 {
     if (!m_session || state() != QMediaRecorder::RecordingState)
         return;
-    heartbeat.stop();
+    signalDurationChangedTimer.stop();
     gstPipeline.dumpGraph("before-pause");
     gstEncoder.setState(GST_STATE_PAUSED);
 
@@ -354,8 +361,8 @@ void QGstreamerMediaEncoder::resume()
     gstPipeline.dumpGraph("before-resume");
     if (!m_session || state() != QMediaRecorder::PausedState)
         return;
-    heartbeat.start();
     gstEncoder.setState(GST_STATE_PLAYING);
+    signalDurationChangedTimer.start();
     stateChanged(QMediaRecorder::RecordingState);
 }
 
@@ -379,6 +386,7 @@ void QGstreamerMediaEncoder::stop()
     }
 
     gstPipeline.endConfig();
+    signalDurationChangedTimer.stop();
 
     //with live sources it's necessary to send EOS even to pipeline
     //before going to STOPPED state
@@ -393,8 +401,6 @@ void QGstreamerMediaEncoder::finalize()
     if (!m_session || gstEncoder.isNull())
         return;
     qCDebug(qLcMediaEncoder) << "finalize";
-
-    heartbeat.stop();
 
     // The filesink can only be used once, replace it with a new one
     gstPipeline.beginConfig();

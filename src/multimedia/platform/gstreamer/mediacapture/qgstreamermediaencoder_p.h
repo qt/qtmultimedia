@@ -88,8 +88,6 @@ public:
 
 private:
     bool processBusMessage(const QGstreamerMessage& message) override;
-public:
-    void updateDuration();
 
 private:
     struct PauseControl {
@@ -97,10 +95,13 @@ private:
 
         GstPadProbeReturn processBuffer(QGstPad pad, GstPadProbeInfo *info);
         void installOn(QGstPad pad);
+        void reset();
 
         QPlatformMediaEncoder &encoder;
         GstClockTime pauseOffsetPts = 0;
         std::optional<GstClockTime> pauseStartPts;
+        std::optional<GstClockTime> firstBufferPts;
+        qint64 duration = 0;
     };
 
     PauseControl audioPauseControl;
@@ -111,8 +112,7 @@ private:
 
     QGstreamerMediaCapture *m_session = nullptr;
     QGstreamerMetaData m_metaData;
-    QElapsedTimer m_duration;
-    QTimer heartbeat;
+    QTimer signalDurationChangedTimer;
 
     QGstPipeline gstPipeline;
     QGstBin gstEncoder;
