@@ -334,23 +334,23 @@ void QAndroidMediaPlayer::setVideoSink(QVideoSink *sink)
     m_videoSink = sink;
 
     if (!m_videoSink) {
-        if (mVideoOutput) {
-            delete mVideoOutput;
-            mVideoOutput = nullptr;
-            mMediaPlayer->setDisplay(nullptr);
-        }
         return;
     }
 
-    if (!mVideoOutput) {
-        mVideoOutput = new QAndroidTextureVideoOutput(this);
-        connect(mVideoOutput, &QAndroidTextureVideoOutput::readyChanged, this,
-                &QAndroidMediaPlayer::onVideoOutputReady);
-        connect(mMediaPlayer, &AndroidMediaPlayer::timedTextChanged, mVideoOutput,
-                &QAndroidTextureVideoOutput::setSubtitle);
+    if (mVideoOutput) {
+        delete mVideoOutput;
+        mVideoOutput = nullptr;
+        mMediaPlayer->setDisplay(nullptr);
     }
 
+    mVideoOutput = new QAndroidTextureVideoOutput(this);
+    connect(mVideoOutput, &QAndroidTextureVideoOutput::readyChanged, this,
+            &QAndroidMediaPlayer::onVideoOutputReady);
+    connect(mMediaPlayer, &AndroidMediaPlayer::timedTextChanged, mVideoOutput,
+            &QAndroidTextureVideoOutput::setSubtitle);
+
     mVideoOutput->setSurface(sink);
+
     if (mVideoOutput->isReady())
         mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
 }
