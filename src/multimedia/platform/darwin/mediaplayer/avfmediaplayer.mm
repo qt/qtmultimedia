@@ -632,8 +632,11 @@ qint64 AVFMediaPlayer::position() const
 {
     AVPlayerItem *playerItem = [static_cast<AVFMediaPlayerObserver*>(m_observer) playerItem];
 
+    if (m_requestedPosition != -1)
+        return m_requestedPosition;
+
     if (!playerItem)
-        return m_requestedPosition != -1 ? m_requestedPosition : 0;
+        return 0;
 
     CMTime time = [playerItem currentTime];
     return static_cast<quint64>(float(time.value) / float(time.timescale) * 1000.0f);
@@ -789,10 +792,15 @@ void AVFMediaPlayer::setPosition(qint64 pos)
     pos = qMax(qint64(0), pos);
     if (duration() > 0)
         pos = qMin(pos, duration());
+    m_requestedPosition = pos;
 
     CMTime newTime = [playerItem currentTime];
     newTime.value = (pos / 1000.0f) * newTime.timescale;
-    [playerItem seekToTime:newTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero completionHandler:nil];
+    [playerItem seekToTime:newTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero
+                           completionHandler:^(BOOL finished) {
+                                if (finished)
+                                    m_requestedPosition = -1;
+                           }];
 
     Q_EMIT positionChanged(pos);
 
