@@ -779,10 +779,11 @@ void QAndroidCameraSession::setVideoSink(QVideoSink *sink)
         return;
 
     m_sink = sink;
-    delete m_textureOutput;
-    m_textureOutput = nullptr;
 
     if (m_sink) {
+        delete m_textureOutput;
+        m_textureOutput = nullptr;
+
         m_textureOutput = new QAndroidTextureVideoOutput(this);
         m_textureOutput->setSurface(m_sink);
     }
