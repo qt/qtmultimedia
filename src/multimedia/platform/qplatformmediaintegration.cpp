@@ -68,9 +68,10 @@ using PlatformIntegration = QWasmMediaIntegration;
 #else
 class QDummyIntegration : public QPlatformMediaIntegration
 {
+public:
+    QDummyIntegration() { qFatal("QtMultimedia is not currently supported on this platform or compiler."); }
     QPlatformMediaDevices *devices() override { return nullptr; }
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
-
 };
 using PlatformIntegration = QDummyIntegration;
 #endif
