@@ -58,11 +58,11 @@ QT_BEGIN_NAMESPACE
 class QWindowsMediaDevices;
 class QWindowsFormatInfo;
 
-class QWindowsIntegration : public QPlatformMediaIntegration
+class QWindowsMediaIntegration : public QPlatformMediaIntegration
 {
 public:
-    QWindowsIntegration();
-    ~QWindowsIntegration();
+    QWindowsMediaIntegration();
+    ~QWindowsMediaIntegration();
 
     void addRefCount();
     void releaseRefCount();
