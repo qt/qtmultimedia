@@ -58,7 +58,7 @@ using PlatformIntegration = QAlsaIntegration;
 using PlatformIntegration = QDarwinIntegration;
 #elif QT_CONFIG(wmf)
 #include <private/qwindowsintegration_p.h>
-using PlatformIntegration = QWindowsIntegration;
+using PlatformIntegration = QWindowsMediaIntegration;
 #elif defined(Q_OS_ANDROID)
 #include <private/qandroidintegration_p.h>
 using PlatformIntegration = QAndroidIntegration;

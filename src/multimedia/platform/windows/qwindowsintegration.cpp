@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 
 static int g_refCount = 0;
 
-QWindowsIntegration::QWindowsIntegration()
+QWindowsMediaIntegration::QWindowsMediaIntegration()
 {
     g_refCount++;
     if (g_refCount == 1) {
@@ -61,7 +61,7 @@ QWindowsIntegration::QWindowsIntegration()
     }
 }
 
-QWindowsIntegration::~QWindowsIntegration()
+QWindowsMediaIntegration::~QWindowsMediaIntegration()
 {
     delete m_devices;
     delete m_formatInfo;
@@ -74,51 +74,51 @@ QWindowsIntegration::~QWindowsIntegration()
     }
 }
 
-QPlatformMediaDevices *QWindowsIntegration::devices()
+QPlatformMediaDevices *QWindowsMediaIntegration::devices()
 {
     if (!m_devices)
         m_devices = new QWindowsMediaDevices();
     return m_devices;
 }
 
-QPlatformMediaFormatInfo *QWindowsIntegration::formatInfo()
+QPlatformMediaFormatInfo *QWindowsMediaIntegration::formatInfo()
 {
     if (!m_formatInfo)
         m_formatInfo = new QWindowsFormatInfo();
     return m_formatInfo;
 }
 
-QPlatformMediaCaptureSession *QWindowsIntegration::createCaptureSession()
+QPlatformMediaCaptureSession *QWindowsMediaIntegration::createCaptureSession()
 {
     return new QWindowsMediaCaptureService();
 }
 
-QPlatformAudioDecoder *QWindowsIntegration::createAudioDecoder(QAudioDecoder *decoder)
+QPlatformAudioDecoder *QWindowsMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new MFAudioDecoderControl(decoder);
 }
 
-QPlatformMediaPlayer *QWindowsIntegration::createPlayer(QMediaPlayer *parent)
+QPlatformMediaPlayer *QWindowsMediaIntegration::createPlayer(QMediaPlayer *parent)
 {
     return new MFPlayerControl(parent);
 }
 
-QPlatformCamera *QWindowsIntegration::createCamera(QCamera *camera)
+QPlatformCamera *QWindowsMediaIntegration::createCamera(QCamera *camera)
 {
     return new QWindowsCamera(camera);
 }
 
-QPlatformMediaEncoder *QWindowsIntegration::createEncoder(QMediaRecorder *encoder)
+QPlatformMediaEncoder *QWindowsMediaIntegration::createEncoder(QMediaRecorder *encoder)
 {
     return new QWindowsMediaEncoder(encoder);
 }
 
-QPlatformImageCapture *QWindowsIntegration::createImageCapture(QImageCapture *imageCapture)
+QPlatformImageCapture *QWindowsMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QWindowsImageCapture(imageCapture);
 }
 
-QPlatformVideoSink *QWindowsIntegration::createVideoSink(QVideoSink *sink)
+QPlatformVideoSink *QWindowsMediaIntegration::createVideoSink(QVideoSink *sink)
 {
     return new MFEvrVideoWindowControl(sink);
 }
