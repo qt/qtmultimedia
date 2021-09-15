@@ -434,6 +434,11 @@ void QAndroidMediaPlayer::stop()
     mMediaPlayer->stop();
 }
 
+bool QAndroidMediaPlayer::isSeekable() const
+{
+    return true;
+}
+
 void QAndroidMediaPlayer::onInfo(qint32 what, qint32 extra)
 {
     StateChangeNotifier notifier(this);
