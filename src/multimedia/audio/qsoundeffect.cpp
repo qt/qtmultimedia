@@ -214,15 +214,18 @@ void QSoundEffectPrivate::setStatus(QSoundEffect::Status status)
 void QSoundEffectPrivate::setPlaying(bool playing)
 {
     qCDebug(qLcSoundEffect) << this << "setPlaying(" << playing << ")" << m_playing;
+    if (m_audioOutput) {
+        m_audioOutput->stop();
+        if (playing) {
+            if (!m_sampleReady)
+                return;
+            m_audioOutput->start(this);
+        }
+    }
+
     if (m_playing == playing)
         return;
     m_playing = playing;
-    if (m_audioOutput) {
-        if (!m_playing)
-            m_audioOutput->stop();
-        else if (m_audioOutput->state() == QAudio::StoppedState && m_sampleReady)
-            m_audioOutput->start(this);
-    }
 
     emit q_ptr->playingChanged();
 }
