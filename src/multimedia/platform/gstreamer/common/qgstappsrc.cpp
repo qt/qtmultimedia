@@ -121,6 +121,7 @@ bool QGstAppSrc::setStream(QIODevice *stream, qint64 offset)
     m_dataRequestSize = 0;
     m_sequential = true;
     m_maxBytes = 0;
+    streamedSamples = 0;
 
     if (stream) {
         if (!stream->isOpen() && !stream->open(QIODevice::ReadOnly))
@@ -161,6 +162,7 @@ void QGstAppSrc::streamDestroyed()
     qCDebug(qLcAppSrc) << "stream destroyed";
     m_stream = nullptr;
     m_dataRequestSize = 0;
+    streamedSamples = 0;
     sendEOS();
 }
 
