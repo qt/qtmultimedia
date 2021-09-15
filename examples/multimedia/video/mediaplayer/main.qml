@@ -126,6 +126,12 @@ Window {
                 parent.fullScreen ?  showNormal() : showFullScreen()
                 parent.fullScreen = !parent.fullScreen
             }
+            onTapped: {
+                metadataInfo.visible = false
+                audioTracksInfo.visible = false
+                videoTracksInfo.visible = false
+                subtitleTracksInfo.visible = false
+            }
         }
     }
 
