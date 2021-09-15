@@ -57,6 +57,11 @@ import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.view.SurfaceHolder;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 public class QtAndroidMediaPlayer
 {
     // Native callback functions for MediaPlayer
@@ -81,6 +86,8 @@ public class QtAndroidMediaPlayer
     private int mVolume = 100;
     private static final String TAG = "Qt MediaPlayer";
     private SurfaceHolder mSurfaceHolder = null;
+    private ScheduledExecutorService mProgressScheduler = null;
+    private ScheduledFuture mProgressWatcherHandle = null;
 
     private class State {
         final static int Uninitialized = 0x1 /* End */;
@@ -280,6 +287,29 @@ public class QtAndroidMediaPlayer
         mMediaPlayer.setOnErrorListener(new MediaPlayerErrorListener());
         mMediaPlayer.setOnPreparedListener(new MediaPlayerPreparedListener());
         mMediaPlayer.setOnTimedTextListener(new MediaPlayerTimedTextListener());
+        // Report playback position since there is no default listner for that in MediaPlayer
+        mProgressScheduler = Executors.newScheduledThreadPool(1);
+    }
+
+    public void startProgressWatcher()
+    {
+        // if it was shutdown, request new thread
+        if (mProgressScheduler.isTerminated() || mProgressScheduler == null)
+            mProgressScheduler = Executors.newScheduledThreadPool(1);
+
+        mProgressWatcherHandle = mProgressScheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                if (isPlaying())
+                    onProgressUpdateNative(getCurrentPosition(), mID);
+            }
+        }, 10, 100, TimeUnit.MILLISECONDS);
+    }
+
+    public void cancelProgressWatcher()
+    {
+        if (mProgressScheduler != null)
+            mProgressScheduler.shutdown();
     }
 
     public void start()
@@ -294,11 +324,11 @@ public class QtAndroidMediaPlayer
         try {
             mMediaPlayer.start();
             setState(State.Started);
+            startProgressWatcher();
         } catch (final IllegalStateException exception) {
             Log.w(TAG, exception);
         }
     }
-
 
     public void pause()
     {
@@ -327,6 +357,7 @@ public class QtAndroidMediaPlayer
         try {
             mMediaPlayer.stop();
             setState(State.Stopped);
+            cancelProgressWatcher();
         } catch (final IllegalStateException exception) {
             Log.w(TAG, exception);
         }
@@ -679,7 +710,6 @@ public class QtAndroidMediaPlayer
         return mMuted;
     }
 
-
     public void reset()
     {
         if (mState == State.Uninitialized) {
@@ -688,6 +718,7 @@ public class QtAndroidMediaPlayer
 
         mMediaPlayer.reset();
         setState(State.Idle);
+        cancelProgressWatcher();
     }
 
     public void release()
@@ -699,6 +730,7 @@ public class QtAndroidMediaPlayer
         }
 
         setState(State.Uninitialized);
+        cancelProgressWatcher();
     }
 
     public void setAudioAttributes(int type, int usage)
