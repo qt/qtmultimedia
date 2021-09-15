@@ -193,7 +193,7 @@ QCameraDevice::Position QCameraDevice::position() const
 
 QList<QSize> QCameraDevice::photoResolutions() const
 {
-    return d->photoResolutions;
+    return d ? d->photoResolutions : QList<QSize>{};
 }
 
 /*!
