@@ -71,7 +71,7 @@ AVFVideoBuffer::~AVFVideoBuffer()
             CFRelease(cvMetalTexture[i]);
 #if defined(Q_OS_MACOS)
     if (cvOpenGLTexture)
-        CFRelease(cvOpenGLTexture);
+        CVOpenGLTextureRelease(cvOpenGLTexture);
 #elif defined(Q_OS_IOS)
     if (cvOpenGLESTexture)
         CFRelease(cvOpenGLESTexture);
@@ -191,6 +191,7 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
         return cvMetalTexture[plane] ? quint64(CVMetalTextureGetTexture(cvMetalTexture[plane])) : 0;
     } else if (rhi->backend() == QRhi::OpenGLES2) {
 #ifdef Q_OS_MACOS
+        CVOpenGLTextureCacheFlush(sink->cvOpenGLTextureCache, 0);
         CVReturn cvret;
         // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
         cvret = CVOpenGLTextureCacheCreateTextureFromImage(
@@ -200,10 +201,12 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
                         nil,
                         &cvOpenGLTexture);
 
+        Q_ASSERT(CVOpenGLTextureGetTarget(cvOpenGLTexture) == GL_TEXTURE_RECTANGLE);
         // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
         return CVOpenGLTextureGetName(cvOpenGLTexture);
 #endif
 #ifdef Q_OS_IOS
+        CVOpenGLESTextureCacheFlush(sink->cvOpenGLESTextureCache, 0);
         CVReturn cvret;
         // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
         cvret = CVOpenGLESTextureCacheCreateTextureFromImage(
