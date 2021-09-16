@@ -57,15 +57,6 @@ void bswap2(char *data, qsizetype count) noexcept
     }
 }
 
-void bswap3(char *data, qsizetype count) noexcept
-{
-    for (qsizetype i = 0; i < count; ++i) {
-        qSwap(data[0], data[2]);
-        ++count;
-        data += 3;
-    }
-}
-
 void bswap4(char *data, qsizetype count) noexcept
 {
     for (qsizetype i = 0; i < count; ++i) {
@@ -150,15 +141,20 @@ int QWaveDecoder::duration() const
 {
     if (openMode() & QIODevice::WriteOnly)
         return 0;
-    return dataSize * 1000 / (format.bytesPerFrame() * format.sampleRate());
+    return size() * 1000 / (format.bytesPerFrame() * format.sampleRate());
 }
 
 qint64 QWaveDecoder::size() const
 {
-    if (openMode() & QIODevice::ReadOnly)
-        return haveFormat ? dataSize : 0;
-    else
+    if (openMode() & QIODevice::ReadOnly) {
+        if (!haveFormat)
+            return 0;
+        if (bps == 24)
+            return dataSize*2/3;
+        return dataSize;
+    } else {
         return device->size();
+    }
 }
 
 bool QWaveDecoder::isSequential() const
@@ -181,25 +177,46 @@ qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
     if (!haveFormat || format.bytesPerSample() == 0)
         return 0;
 
+    if (bps == 24) {
+        // 24 bit WAV, read in as 16 bit
+        qint64 l = 0;
+        while (l < maxlen - 1) {
+            char tmp[3];
+            device->read(tmp, 3);
+            if (byteSwap)
+                qSwap(tmp[0], tmp[2]);
+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
+            data[0] = tmp[0];
+            data[1] = tmp[1];
+#else
+            data[0] = tmp[1];
+            data[1] = tmp[2];
+#endif
+            data += 2;
+            l += 2;
+        }
+        return l;
+    }
+
     qint64 nSamples = maxlen / format.bytesPerSample();
     maxlen = nSamples * format.bytesPerSample();
-    device->read(data, maxlen);
+    int read = device->read(data, maxlen);
 
     if (!byteSwap || format.bytesPerFrame() == 1)
-        return maxlen;
+        return read;
 
+    nSamples = read / format.bytesPerSample();
     switch (format.bytesPerSample()) {
     case 2:
         bswap2(data, nSamples);
         break;
-    case 3:
-        bswap3(data, nSamples);
-        break;
     case 4:
         bswap4(data, nSamples);
         break;
+    default:
+        Q_UNREACHABLE();
     }
-    return maxlen;
+    return read;
 
 }
 
@@ -357,7 +374,6 @@ void QWaveDecoder::handleData()
                 return;
             }
 
-            int bps;
             int rate;
             int channels;
             if (bigEndian) {
@@ -379,7 +395,7 @@ void QWaveDecoder::handleData()
                 fmt = QAudioFormat::Int16;
                 break;
             case 24:
-                fmt = QAudioFormat::Unknown;
+                fmt = QAudioFormat::Int16;
                 break;
             case 32:
                 fmt = QAudioFormat::Int32;

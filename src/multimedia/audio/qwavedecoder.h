@@ -141,6 +141,7 @@ private:
     quint32 junkToSkip = 0;
     bool bigEndian = false;
     bool byteSwap = false;
+    int bps = 0;
 };
 
 QT_END_NAMESPACE
