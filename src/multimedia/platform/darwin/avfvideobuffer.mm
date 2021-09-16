@@ -60,7 +60,7 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buf
 //    m_type = QVideoFrame::NoHandle;
 //    qDebug() << "RHI" << rhi;
     CVPixelBufferRetain(m_buffer);
-    m_pixelFormat = fromCVPixelFormat(CVPixelBufferGetPixelFormatType(m_buffer));
+    m_pixelFormat = fromCVVideoPixelFormat(CVPixelBufferGetPixelFormatType(m_buffer));
 }
 
 AVFVideoBuffer::~AVFVideoBuffer()
@@ -230,6 +230,19 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
     return 0;
 }
 
+
+QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVVideoPixelFormat(unsigned avPixelFormat) const
+{
+#ifdef Q_OS_MACOS
+    if (sink->rhi() && sink->rhi()->backend() == QRhi::OpenGLES2) {
+        if (avPixelFormat == kCVPixelFormatType_32BGRA)
+            return QVideoFrameFormat::Format_SamplerRect;
+        else
+            qWarning() << "Accelerated macOS OpenGL video supports BGRA only, got CV pixel format" << avPixelFormat;
+    }
+#endif
+    return fromCVPixelFormat(avPixelFormat);
+}
 
 QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVPixelFormat(unsigned avPixelFormat)
 {

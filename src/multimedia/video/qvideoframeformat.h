@@ -97,9 +97,10 @@ public:
 
         Format_SamplerExternalOES,
         Format_Jpeg,
+        Format_SamplerRect,
     };
 #ifndef Q_QDOC
-    static constexpr int NPixelFormats = Format_Jpeg + 1;
+    static constexpr int NPixelFormats = Format_SamplerRect + 1;
 #endif
 
     enum Direction

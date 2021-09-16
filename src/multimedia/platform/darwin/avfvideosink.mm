@@ -151,10 +151,6 @@ void AVFVideoSinkInterface::setRhi(QRhi *rhi)
         }
     } else if (rhi->backend() == QRhi::OpenGLES2) {
 #ifdef Q_OS_MACOS
-        // ### FIXME: Workaround a limitation on macOS for now. The OpenGL textures we get a GL_TEXTURE_RECTANGLE and those ar
-        // not currently supported by RHI. So disable the RHI code path for the moment and rather copy the texture data
-        // on the CPU time until we have a solution.
-#if 0
         const auto *gl = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
 
         auto nsGLContext = gl->context->nativeInterface<QNativeInterface::QCocoaGLContext>()->nativeContext();
@@ -171,9 +167,6 @@ void AVFVideoSinkInterface::setRhi(QRhi *rhi)
             qWarning() << "OpenGL texture cache creation failed";
             m_rhi = nullptr;
         }
-#else
-        m_rhi = nullptr;
-#endif
 #endif
 #ifdef Q_OS_IOS
         // Create an OpenGL CoreVideo texture cache from the pixel buffer.

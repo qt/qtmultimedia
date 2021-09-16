@@ -487,3 +487,19 @@ qt_internal_add_shaders(Multimedia "shaders"
         "shaders/yuyv.frag"
         "shaders/ayuv.frag"
 )
+
+qt_internal_add_shaders(Multimedia "shaders_gl_macos"
+    SILENT
+    BATCHABLE
+    PRECOMPILE
+    OPTIMIZED
+    PREFIX
+        "/qt-project.org/multimedia"
+    GLSL
+        "120,150"
+    NOHLSL
+    NOMSL
+    FILES
+        "shaders/rectsampler.vert"
+        "shaders/rectsampler_bgra.frag"
+)

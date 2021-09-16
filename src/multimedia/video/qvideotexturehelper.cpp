@@ -241,6 +241,13 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
       [](int, int) { return 0; },
      { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
+    },
+    // Format_SamplerRect
+    {
+        1, 0,
+        [](int, int) { return 0; },
+        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     }
 };
 
@@ -256,6 +263,10 @@ QString vertexShaderFileName(QVideoFrameFormat::PixelFormat format)
 #if 1//def Q_OS_ANDROID
     if (format == QVideoFrameFormat::Format_SamplerExternalOES)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.vert.qsb");
+#endif
+#if 1//def Q_OS_MACOS
+    if (format == QVideoFrameFormat::Format_SamplerRect)
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/rectsampler.vert.qsb");
 #endif
 
     return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
@@ -309,6 +320,10 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
     case QVideoFrameFormat::Format_SamplerExternalOES:
 #if 1//def Q_OS_ANDROID
         return QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.frag.qsb");
+#endif
+    case QVideoFrameFormat::Format_SamplerRect:
+#if 1//def Q_OS_MACOS
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/rectsampler_bgra.frag.qsb");
 #endif
         // fallthrough
     case QVideoFrameFormat::Format_Invalid:
@@ -430,6 +445,16 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     }
 #endif
         break;
+    case QVideoFrameFormat::Format_SamplerRect:
+    {
+        // Similarly to SamplerExternalOES, the "color matrix" is used here to
+        // transform the texture coordinates. OpenGL texture rectangles expect
+        // non-normalized UVs, so apply a scale to have the fragment shader see
+        // UVs in range [width,height] instead of [0,1].
+        const QSize videoSize = frame.size();
+        cmat.scale(videoSize.width(), videoSize.height());
+    }
+        break;
     }
     // { matrix, colorMatrix, opacity, width }
     Q_ASSERT(dst->size() >= 64 + 64 + 4 + 4);
@@ -459,6 +484,12 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
 #ifdef Q_OS_ANDROID
             if (rhi->backend() == QRhi::OpenGLES2)
                 textureFlags |= QRhiTexture::ExternalOES;
+#endif
+        }
+        if (pixelFormat == QVideoFrameFormat::Format_SamplerRect) {
+#ifdef Q_OS_MACOS
+            if (rhi->backend() == QRhi::OpenGLES2)
+                textureFlags |= QRhiTexture::TextureRectangleGL;
 #endif
         }
         for (int plane = 0; plane < description->nplanes; ++plane) {
