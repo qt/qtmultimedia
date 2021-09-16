@@ -209,7 +209,7 @@ static NSDictionary* const AVF_OUTPUT_SETTINGS_OPENGL = @{
             @(kCVPixelFormatType_32BGRA),
             @(kCVPixelFormatType_32RGBA),
         ],
-        (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
+        (NSString *)kCVPixelBufferOpenGLCompatibilityKey: @true
 };
 
 CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width, size_t& height)
