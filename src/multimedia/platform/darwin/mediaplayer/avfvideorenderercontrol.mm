@@ -175,7 +175,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     if (!pixelBuffer)
         return;
     AVFVideoBuffer *buffer = new AVFVideoBuffer(this, pixelBuffer);
-    auto fmt = AVFVideoBuffer::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(pixelBuffer));
+    auto fmt = buffer->fromCVVideoPixelFormat(CVPixelBufferGetPixelFormatType(pixelBuffer));
 //    qDebug() << "Got pixelbuffer with format" << fmt << Qt::hex << CVPixelBufferGetPixelFormatType(pixelBuffer);
     CVPixelBufferRelease(pixelBuffer);
 
@@ -203,11 +203,10 @@ static NSDictionary* const AVF_OUTPUT_SETTINGS = @{
         (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
 };
 
-// The OpengGL texture cache can apparently only handle single plane formats, so lets simply restrict to RGBA
+// The OpengGL texture cache can apparently only handle single plane formats, so lets simply restrict to BGRA
 static NSDictionary* const AVF_OUTPUT_SETTINGS_OPENGL = @{
         (NSString *)kCVPixelBufferPixelFormatTypeKey: @[
             @(kCVPixelFormatType_32BGRA),
-            @(kCVPixelFormatType_32RGBA),
         ],
         (NSString *)kCVPixelBufferOpenGLCompatibilityKey: @true
 };

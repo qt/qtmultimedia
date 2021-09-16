@@ -239,7 +239,9 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
 
     \value Format_SamplerExternalOES
     The frame is stored in external OES texture format.
-Format_RGBA8888
+
+    \value Format_SamplerRect
+    The frame is stored in rectangle texture format.
 */
 
 /*!
@@ -661,6 +663,7 @@ QImage::Format QVideoFrameFormat::imageFormatFromPixelFormat(QVideoFrameFormat::
     case QVideoFrameFormat::Format_Jpeg:
     case QVideoFrameFormat::Format_Invalid:
     case QVideoFrameFormat::Format_SamplerExternalOES:
+    case QVideoFrameFormat::Format_SamplerRect:
         return QImage::Format_Invalid;
     }
     return QImage::Format_Invalid;
@@ -792,6 +795,8 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::PixelFormat pf)
         return dbg << "Format_SamplerExternalOES";
     case QVideoFrameFormat::Format_Jpeg:
         return dbg << "Format_Jpeg";
+    case QVideoFrameFormat::Format_SamplerRect:
+        return dbg << "Format_SamplerRect";
     }
     return dbg;
 }

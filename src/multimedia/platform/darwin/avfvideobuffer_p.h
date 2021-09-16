@@ -79,6 +79,8 @@ public:
     AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
     ~AVFVideoBuffer();
 
+    QVideoFrameFormat::PixelFormat fromCVVideoPixelFormat(unsigned avPixelFormat) const;
+
     static QVideoFrameFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
     static bool toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv);
 

@@ -89,7 +89,9 @@ static bool pixelFormatHasAlpha[QVideoFrameFormat::NPixelFormats] =
     false, //Format_P010,
     false, //Format_P016,
 
+    false, //Format_SamplerExternalOES
     false, //Format_Jpeg,
+    false, //Format_SamplerRect
 
 };
 
@@ -463,6 +465,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
         case QVideoFrameFormat::Format_Y16:
         case QVideoFrameFormat::Format_Jpeg:
         case QVideoFrameFormat::Format_SamplerExternalOES:
+        case QVideoFrameFormat::Format_SamplerRect:
             // Single plane or opaque format.
             break;
         case QVideoFrameFormat::Format_YUV420P:
