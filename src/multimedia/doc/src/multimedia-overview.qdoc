@@ -119,36 +119,26 @@ For some quick recipes, see this table:
     \row
         \li Video Playback
         \li \l{Media Player Example}{player},
+            \l{QML Media Player Example}{mediaplayer}
             \l{QML Video Example}{qmlvideo},
-            \l{QML Video Shader Effects Example}{qmlvideofx}
         \li \l MediaPlayer, \l VideoOutput, \l Video
         \li QMediaPlayer, QVideoWidget, QGraphicsVideoItem
     \row
-        \li Video Processing
-        \li \l {QML Video Example}{qmlvideofx}
-        \li \l {MediaPlayer}, \l VideoOutput
-        \li QMediaPlayer, QVideoFrame
-    \row
-        \li Accessing camera viewfinder
+        \li Capturing audio and video
         \li \l {Camera Example}{camera},
-            \l {QML Camera Example}{declarative-camera}
+            \l {QML Recorder Example}{recorder}
         \li \l Camera, \l VideoOutput
         \li QCamera, QVideoWidget, QGraphicsVideoItem
     \row
-        \li Viewfinder processing
-        \li
-        \li \l Camera, \l VideoOutput
-        \li QCamera, QVideoFrame
-    \row
         \li Capturing photos
         \li \l {Camera Example}{camera},
-            \l {QML Camera Example}{declarative-camera}
+            \l {QML Recorder Example}{recorder}
         \li \l Camera
         \li QCamera, QImageCapture
     \row
         \li Capturing movies
         \li \l {Camera Example}{camera},
-            \l {QML Camera Example}{declarative-camera}
+            \l {QML Recorder Example}{recorder}
         \li \l Camera
         \li QCamera, QMediaRecorder
 \endtable

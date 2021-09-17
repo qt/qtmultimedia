@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -56,10 +56,9 @@ And an example with QGraphicsVideoItem:
 
 You can use \l VideoOutput to render content that is provided by
 either a \l MediaPlayer or a \l Camera. The VideoOutput is a visual
-component that can be transformed or acted upon by shaders (as the
-\l {QML Video Shader Effects Example} shows), while all media decoding
-and playback control is handled by the \l MediaPlayer or \l CaptureSession.
-\l Video has also been provided for convenience.
+component that can be embedded into a QQuickScene or \l Window, while
+all media decoding and playback control is handled by the \l MediaPlayer
+or \l CaptureSession. \l Video has also been provided for convenience.
 
 \section2 Working with Low Level Video Frames
 
