@@ -58,6 +58,7 @@ class QCameraDevice;
 class QMediaFormat;
 class QAudioDevice;
 class QMediaCaptureSession;
+class QPlatformMediaEncoder;
 
 class QMediaRecorderPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
@@ -160,6 +161,7 @@ public:
     void addMetaData(const QMediaMetaData &metaData);
 
     QMediaCaptureSession *captureSession() const;
+    QPlatformMediaEncoder *platformEncoder() const;
 
 public Q_SLOTS:
     void record();

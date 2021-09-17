@@ -168,8 +168,10 @@ QMediaCaptureSession::~QMediaCaptureSession()
 {
     if (d_ptr->camera)
         d_ptr->camera->setCaptureSession(nullptr);
-    if (d_ptr->recorder)
+    if (d_ptr->recorder) {
         d_ptr->recorder->setCaptureSession(nullptr);
+        d_ptr->captureSession->setMediaEncoder(nullptr);
+    }
     if (d_ptr->imageCapture)
         d_ptr->imageCapture->setCaptureSession(nullptr);
     d_ptr->setVideoSink(nullptr);
@@ -300,6 +302,8 @@ void QMediaCaptureSession::setRecorder(QMediaRecorder *recorder)
         return;
     if (d_ptr->recorder)
         d_ptr->recorder->setCaptureSession(nullptr);
+
+    d_ptr->captureSession->setMediaEncoder(recorder ? recorder->platformEncoder() : nullptr);
 
     d_ptr->recorder = recorder;
     if (d_ptr->recorder)
