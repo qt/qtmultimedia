@@ -68,6 +68,7 @@ private:
     QVideoWidget *videoWidget;
     QWidget *widget;
     QMediaPlayer *player;
+    QAudioOutput *audioOutput;
     QMediaPlaylist *playlist;
     QMediaContent video;
     QMediaRecorder *recorder;
@@ -109,17 +110,21 @@ void MediaExample::MediaPlayer()
 {
     //! [Player]
     player = new QMediaPlayer;
+    audioOutput = new QAudioOutput;
+    player->setAudioOutput(audioOutput);
     connect(player, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
     player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
-    player->setVolume(50);
+    audioOutput->setVolume(50);
     player->play();
     //! [Player]
 
     //! [Local playback]
     player = new QMediaPlayer;
+    audioOutput = new QAudioOutput;
+    player->setAudioOutput(audioOutput);
     // ...
     player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
-    player->setVolume(50);
+    audioOutput->setVolume(50);
     player->play();
     //! [Local playback]
 }
