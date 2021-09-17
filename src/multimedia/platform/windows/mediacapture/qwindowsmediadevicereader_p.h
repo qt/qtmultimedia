@@ -58,7 +58,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
-#include <QtCore/qsemaphore.h>
+#include <QtCore/qwaitcondition.h>
 #include <QtCore/qtimer.h>
 #include <qvideoframe.h>
 #include <qcameradevice.h>
@@ -146,7 +146,7 @@ private:
 
     long               m_cRef = 1;
     QMutex             m_mutex;
-    QSemaphore         m_finalizeSemaphore;
+    QWaitCondition     m_hasFinalized;
     IMFMediaSource     *m_videoSource = nullptr;
     IMFMediaType       *m_videoMediaType = nullptr;
     IMFMediaSource     *m_audioSource = nullptr;
