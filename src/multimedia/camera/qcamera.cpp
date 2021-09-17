@@ -109,7 +109,7 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
     emit q->errorOccurred(this->error, errorString);
 }
 
-void QCameraPrivate::init()
+void QCameraPrivate::init(const QCameraDevice &device)
 {
     Q_Q(QCamera);
 
@@ -119,8 +119,9 @@ void QCameraPrivate::init()
         return;
     }
 
+    cameraDevice = !device.isNull() ? device : QMediaDevices::defaultVideoInput();
     if (cameraDevice.isNull())
-        _q_error(QCamera::CameraError, QString::fromUtf8("Invalid camera specified"));
+        _q_error(QCamera::CameraError, QString::fromUtf8("No camera detected"));
     control->setCamera(cameraDevice);
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
@@ -147,10 +148,7 @@ QCamera::QCamera(const QCameraDevice &cameraDevice, QObject *parent)
     : QObject(*new QCameraPrivate, parent)
 {
     Q_D(QCamera);
-
-    d->cameraDevice = cameraDevice;
-    d->init();
-    setCameraDevice(cameraDevice);
+    d->init(cameraDevice);
 }
 
 /*!
@@ -170,18 +168,15 @@ QCamera::QCamera(QCameraDevice::Position position, QObject *parent)
 {
     Q_D(QCamera);
 
-    QCameraDevice info;
+    QCameraDevice device;
     auto cameras = QMediaDevices::videoInputs();
     for (const auto &c : cameras) {
         if (c.position() == position) {
-            info = c;
+            device = c;
             break;
         }
     }
-    if (info.isNull())
-        info = QMediaDevices::defaultVideoInput();
-    d->cameraDevice = info;
-    d->init();
+    d->init(device);
 }
 
 /*!
@@ -307,19 +302,19 @@ QCameraDevice QCamera::cameraDevice() const
 }
 
 /*!
-    Sets the camera object to use the physical camera described by
-    \a cameraDevice.
+    Connects the camera object to the physical camera device described by
+    \a device. Using a default constructed QCameraDevice object as \a device
+    will connect the camera to the system default camera device.
 */
 void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 {
     Q_D(QCamera);
-    if (d->cameraDevice == cameraDevice)
+    auto dev = cameraDevice;
+    if (dev.isNull())
+        dev = QMediaDevices::defaultVideoInput();
+    if (d->cameraDevice == dev)
         return;
-    d->cameraDevice = cameraDevice;
-    if (d->cameraDevice.isNull())
-        d->_q_error(QCamera::CameraError, QString::fromUtf8("Invalid camera specified"));
-    else
-        d->_q_error(QCamera::NoError, QString());
+    d->cameraDevice = dev;
     if (d->control)
         d->control->setCamera(d->cameraDevice);
     emit cameraDeviceChanged();
@@ -336,7 +331,7 @@ QCameraFormat QCamera::cameraFormat() const
 }
 
 /*!
-    Tells the camera to use the format described by \a format. This can be used to define
+    Tells the camera to use the format desribed by \a format. This can be used to define
     as specific resolution and frame rate to be used for recording and image capture.
 */
 void QCamera::setCameraFormat(const QCameraFormat &format)
