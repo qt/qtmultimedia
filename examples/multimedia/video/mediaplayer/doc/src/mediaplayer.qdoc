@@ -26,47 +26,23 @@
 ****************************************************************************/
 
 /*!
-    \example multimediawidgets/player
-    \title Media Player Example
+    \example multimedia/video/mediaplayer
+    \title QML Media Player Example
     \ingroup multimedia_examples
-    \ingroup video_examples
-    \brief Playing audio and video.
-    \meta {tag} {widgets}
+    \ingroup video_examples_qml
+    \brief Playing audio and video using Qt Quick.
+    \meta {tag} {quick}
 
-    \image mediaplayerex.jpg
+    \image qmlmediaplayer.jpg
 
-    \e{Media Player} demonstrates a simple multimedia player that can play
+    \e{QML Media Player} demonstrates a simple multimedia player that can play
     audio and or video files using various codecs.
 
     \include examples-run.qdocinc
 
-    The example uses a QMediaPlayer object passed into a QVideoWidget to
-    control the video output. To give the application playlist capability
-    we also use a QPlayList object.
+    The example uses the QML MediaPlayer object connected to a VideoOutput to
+    play back the video.
 
-    To activate the various functions such as play and stop on the dialog,
-    the button clicked events emit the play() and stop() signals, which
-    are connected to the play() and stop() slots of QMediaPlayer.
-
-    \code
-        connect(controls, SIGNAL(play()), player, SLOT(play()));
-        connect(controls, SIGNAL(pause()), player, SLOT(pause()));
-        connect(controls, SIGNAL(stop()), player, SLOT(stop()));
-    \endcode
-
-    We can get the volume (and set our user interface representation)
-
-    \code
-        controls->setVolume(player->volume());
-    \endcode
-
-    and we can make widget 'volume' changes change the volume
-
-    \code
-        connect(controls, SIGNAL(changeVolume(int)), player, SLOT(setVolume(int)));
-    \endcode
-
-    The example also allows us to change video properties by means
-    of the QVideoWidget object. We can go to Full Screen mode with a single
-    button click, and back again.
+    The example shows usage of some advanced features such as selection of audio
+    or subtitle tracks.
 */
