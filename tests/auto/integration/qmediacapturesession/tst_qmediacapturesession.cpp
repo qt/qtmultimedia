@@ -162,8 +162,7 @@ void tst_QMediaCaptureSession::can_change_AudioDevices_on_attached_AudioInput()
     if (audioInputs.size() < 2)
         QSKIP("Two audio inputs are not available");
 
-    QAudioDevice nullDevice;
-    QAudioInput input(nullDevice);
+    QAudioInput input(audioInputs[0]);
     QSignalSpy deviceChanged(&input, SIGNAL(deviceChanged()));
 
     QMediaCaptureSession session;
@@ -175,13 +174,13 @@ void tst_QMediaCaptureSession::can_change_AudioDevices_on_attached_AudioInput()
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
 
-    input.setDevice(audioInputs[0]);
+    input.setDevice(audioInputs[1]);
     QTRY_COMPARE(deviceChanged.count(), 1);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
 
-    input.setDevice(audioInputs[1]);
+    input.setDevice(audioInputs[0]);
     QTRY_COMPARE(deviceChanged.count(), 2);
 
     recordOk(session);
