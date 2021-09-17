@@ -166,11 +166,11 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
         m_cameraSession->camera()->unlock();
 
         m_mediaRecorder->setCamera(m_cameraSession->camera());
-        m_mediaRecorder->setAudioSource(AndroidMediaRecorder::Camcorder);
         m_mediaRecorder->setVideoSource(AndroidMediaRecorder::Camera);
     }
 
     if (m_audioInput) {
+        m_mediaRecorder->setAudioSource(AndroidMediaRecorder::Camcorder);
         m_mediaRecorder->setAudioInput(m_audioInput->device.id());
         if (!m_mediaRecorder->isAudioSourceSet())
             m_mediaRecorder->setAudioSource(AndroidMediaRecorder::DefaultAudioSource);
@@ -178,12 +178,6 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
 
     // Set output format
     m_mediaRecorder->setOutputFormat(m_outputFormat);
-
-    // Set audio encoder settings
-    m_mediaRecorder->setAudioChannels(settings.audioChannelCount());
-    m_mediaRecorder->setAudioEncodingBitRate(settings.audioBitRate());
-    m_mediaRecorder->setAudioSamplingRate(settings.audioSampleRate());
-    m_mediaRecorder->setAudioEncoder(m_audioEncoder);
 
     // Set video encoder settings
     if (m_cameraSession) {
@@ -193,6 +187,14 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
         m_mediaRecorder->setVideoEncoder(m_videoEncoder);
 
         m_mediaRecorder->setOrientationHint(m_cameraSession->currentCameraRotation());
+    }
+
+    // Set audio encoder settings
+    if (m_audioInput) {
+        m_mediaRecorder->setAudioChannels(settings.audioChannelCount());
+        m_mediaRecorder->setAudioEncodingBitRate(settings.audioBitRate());
+        m_mediaRecorder->setAudioSamplingRate(settings.audioSampleRate());
+        m_mediaRecorder->setAudioEncoder(m_audioEncoder);
     }
 
     QString extension = settings.mimeType().preferredSuffix();
@@ -224,8 +226,8 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
 
     if (!m_mediaRecorder->prepare()) {
         emit error(QMediaRecorder::FormatError, QLatin1String("Unable to prepare the media recorder."));
-        if (m_cameraSession)
-            restartViewfinder();
+        restartViewfinder();
+
         return;
     }
 
