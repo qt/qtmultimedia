@@ -157,13 +157,18 @@ QMediaRecorder::QMediaRecorder(QObject *parent)
 
 QMediaRecorder::~QMediaRecorder()
 {
-    if (d_ptr->captureSession) {
-        if (d_ptr->captureSession->platformSession())
-            d_ptr->captureSession->platformSession()->setMediaEncoder(nullptr);
+    if (d_ptr->captureSession)
         d_ptr->captureSession->setRecorder(nullptr);
-    }
     delete d_ptr->control;
     delete d_ptr;
+}
+
+/*!
+    \internal
+*/
+QPlatformMediaEncoder *QMediaRecorder::platformEncoder() const
+{
+    return d_ptr->control;
 }
 
 /*!
@@ -172,19 +177,7 @@ QMediaRecorder::~QMediaRecorder()
 void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 {
     Q_D(QMediaRecorder);
-    if (d->captureSession == session)
-        return;
-
     d->captureSession = session;
-
-    if (!d->captureSession)
-        return;
-
-    QPlatformMediaCaptureSession *platformSession = session->platformSession();
-    if (!platformSession || !d->control)
-        return;
-
-    platformSession->setMediaEncoder(d->control);
 }
 /*!
     \qmlproperty QUrl QtMultimedia::MediaRecorder::outputLocation
