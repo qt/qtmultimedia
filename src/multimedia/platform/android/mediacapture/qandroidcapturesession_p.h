@@ -155,7 +155,7 @@ private:
     void restartViewfinder();
 
     QAndroidMediaEncoder *m_mediaEncoder = nullptr;
-    AndroidMediaRecorder *m_mediaRecorder;
+    std::shared_ptr<AndroidMediaRecorder> m_mediaRecorder;
     QAndroidCameraSession *m_cameraSession;
 
     QPlatformAudioInput *m_audioInput = nullptr;

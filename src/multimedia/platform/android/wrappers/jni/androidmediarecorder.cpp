@@ -163,6 +163,10 @@ AndroidMediaRecorder::AndroidMediaRecorder()
 
 AndroidMediaRecorder::~AndroidMediaRecorder()
 {
+    if (m_isVideoSourceSet || m_isAudioSourceSet)
+        reset();
+
+    release();
     mediaRecorders->remove(m_id);
 }
 
@@ -186,6 +190,7 @@ void AndroidMediaRecorder::reset()
 {
     m_mediaRecorder.callMethod<void>("reset");
     m_isAudioSourceSet = false; // Now setAudioSource can be used again.
+    m_isVideoSourceSet = false;
 }
 
 bool AndroidMediaRecorder::start()
@@ -285,7 +290,13 @@ void AndroidMediaRecorder::setVideoSize(const QSize &size)
 
 void AndroidMediaRecorder::setVideoSource(VideoSource source)
 {
-    m_mediaRecorder.callMethod<void>("setVideoSource", "(I)V", int(source));
+    QJniEnvironment env;
+
+    auto methodId = env->GetMethodID(m_mediaRecorder.objectClass(), "setVideoSource", "(I)V");
+    env->CallVoidMethod(m_mediaRecorder.object(), methodId, source);
+
+    if (!env.checkAndClearExceptions())
+        m_isVideoSourceSet = true;
 }
 
 void AndroidMediaRecorder::setOrientationHint(int degrees)
