@@ -187,7 +187,9 @@ public:
     void setRotation(int rotation);
     int getRotation() const;
 
+    QList<QCameraFormat> getSupportedFormats();
     QList<QSize> getSupportedPictureSizes();
+    QList<QSize> getSupportedVideoSizes();
     void setPictureSize(const QSize &size);
     void setJpegQuality(int quality);
 
@@ -206,7 +208,6 @@ public:
     static void getCameraInfo(int id, QCameraDevicePrivate *info);
     static QVideoFrameFormat::PixelFormat QtPixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat);
     static AndroidCamera::ImageFormat AndroidImageFormatFromQtPixelFormat(QVideoFrameFormat::PixelFormat);
-    static void getSupportedFormats(int id, QList<QCameraFormat> &formats);
     static bool requestCameraPermission();
 
     static bool registerNativeMethods();
