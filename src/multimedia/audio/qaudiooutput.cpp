@@ -85,13 +85,11 @@
     \property QAudioOutput::device
     \brief The audio device connected to this output.
 
-    The device property represents the audio device connected to this output.
-    A default constructed
-    QAudioOutput object will be connected to the systems default audio output at
-    construction time.
-
-    This property can be used to select any other output device listed by
-    QMediaDevices::audioOutputs().
+    The device property represents the audio device this output is connected to.
+    This property can be used to select an output device from the
+    QMediaDevices::audioOutputs() list.
+    You can select the system default audio output by setting this property to
+    a default constructed QAudioDevice object.
 */
 
 QAudioOutput::QAudioOutput(QObject *parent)
@@ -102,9 +100,7 @@ QAudioOutput::QAudioOutput(const QAudioDevice &device, QObject *parent)
     : QObject(parent),
     d(QPlatformMediaIntegration::instance()->createAudioOutput(this))
 {
-    d->device = device;
-    if (!d->device.isNull() && d->device.mode() != QAudioDevice::Output)
-        d->device = QMediaDevices::defaultAudioOutput();
+    d->device = device.mode() == QAudioDevice::Output ? device : QMediaDevices::defaultAudioOutput();
     d->setAudioDevice(d->device);
 }
 
@@ -118,14 +114,23 @@ QAudioDevice QAudioOutput::device() const
     return d->device;
 }
 
+/*!
+    Connects the audio output to the physical audio device described by
+    \a device. Using a default constructed QAudioDevice object as \a device
+    will connect the audio output to the system default audio output device.
+*/
+
 void QAudioOutput::setDevice(const QAudioDevice &device)
 {
-    if (!device.isNull() && device.mode() != QAudioDevice::Output)
+    auto dev = device;
+    if (dev.isNull())
+        dev = QMediaDevices::defaultAudioOutput();
+    if (dev.mode() != QAudioDevice::Output)
         return;
-    if (d->device == device)
+    if (d->device == dev)
         return;
-    d->device = device;
-    d->setAudioDevice(device);
+    d->device = dev;
+    d->setAudioDevice(dev);
     emit deviceChanged();
 }
 

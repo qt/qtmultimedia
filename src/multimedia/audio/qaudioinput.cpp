@@ -82,12 +82,11 @@
     \property QAudioInput::device
     \brief The audio device connected to this input.
 
-    The device property represents the audio device connected to this input. A
-    default constructed QAudioInput object will be connected to the system's
-    default audio input at construction time.
-
-    This property can be used to select any other input device listed by
-    QMediaDevices::audioInputs().
+    The device property represents the audio device connected to this input.
+    This property can be used to select an input device from the
+    QMediaDevices::audioInputs() list.
+    You can select the system default audio input by setting this property to
+    a default constructed QAudioDevice object.
 */
 
 QAudioInput::QAudioInput(QObject *parent)
@@ -98,9 +97,7 @@ QAudioInput::QAudioInput(const QAudioDevice &device, QObject *parent)
   : QObject(parent),
     d(QPlatformMediaIntegration::instance()->createAudioInput(this))
 {
-    d->device = device;
-    if (!d->device.isNull() && d->device.mode() != QAudioDevice::Input)
-        d->device = QMediaDevices::defaultAudioInput();
+    d->device = device.mode() == QAudioDevice::Input ? device : QMediaDevices::defaultAudioInput();
     d->setAudioDevice(d->device);
 }
 
@@ -114,12 +111,23 @@ QAudioDevice QAudioInput::device() const
     return d->device;
 }
 
+/*!
+    Connects the audio input to the physical audio device described by
+    \a device. Using a default constructed QAudioDevice object as \a device
+    will connect the audio input to the system default audio input device.
+*/
+
 void QAudioInput::setDevice(const QAudioDevice &device)
 {
-    if (device.mode() == QAudioDevice::Output)
+    auto dev = device;
+    if (dev.isNull())
+        dev = QMediaDevices::defaultAudioInput();
+    if (dev.mode() != QAudioDevice::Input)
         return;
-    d->device = device;
-    d->setAudioDevice(device);
+    if (d->device == dev)
+        return;
+    d->device = dev;
+    d->setAudioDevice(dev);
     emit deviceChanged();
 }
 
