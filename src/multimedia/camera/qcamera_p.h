@@ -70,7 +70,7 @@ public:
     {
     }
 
-    void init();
+    void init(const QCameraDevice &device);
 
     QMediaCaptureSession *captureSession = nullptr;
     QPlatformMediaCaptureSession *captureInterface = nullptr;
