@@ -53,8 +53,7 @@ QT_BEGIN_NAMESPACE
 enum { MEDIA_TYPE_INDEX_DEFAULT = 0xffffffff };
 
 QWindowsMediaDeviceReader::QWindowsMediaDeviceReader(QObject *parent)
-    : QObject(parent),
-      m_finalizeSemaphore(1)
+    : QObject(parent)
 {
     m_durationTimer.setInterval(100);
     connect(&m_durationTimer, SIGNAL(timeout()), this, SLOT(updateDuration()));
@@ -758,26 +757,21 @@ bool QWindowsMediaDeviceReader::startRecording(const QString &fileName, const GU
 
 void QWindowsMediaDeviceReader::stopRecording()
 {
-    // The semaphore is used to ensure the video is properly saved
-    // to disk, e.g, before the app exits. Released on OnFinalize.
-    // Acquire it BEFORE locking the mutex, to avoid deadlocks.
-    m_finalizeSemaphore.acquire();
     QMutexLocker locker(&m_mutex);
 
     if (m_sinkWriter && m_recording) {
 
         HRESULT hr = m_sinkWriter->Finalize();
 
-        if (!SUCCEEDED(hr)) {
-            m_finalizeSemaphore.release();
+        if (SUCCEEDED(hr)) {
+            m_hasFinalized.wait(&m_mutex);
+        } else {
             m_sinkWriter->Release();
             m_sinkWriter = nullptr;
 
             QMetaObject::invokeMethod(this, "recordingError",
                                       Qt::QueuedConnection, Q_ARG(int, hr));
         }
-    } else {
-        m_finalizeSemaphore.release();
     }
 
     m_recording = false;
@@ -1047,8 +1041,8 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnFinalize(HRESULT)
         m_sinkWriter->Release();
         m_sinkWriter = nullptr;
     }
-    m_finalizeSemaphore.release();
     emit recordingStopped();
+    m_hasFinalized.notify_one();
     return S_OK;
 }
 
