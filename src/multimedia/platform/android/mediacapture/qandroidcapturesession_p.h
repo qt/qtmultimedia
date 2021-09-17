@@ -181,6 +181,9 @@ private:
 
     QMetaObject::Connection m_connOpenCamera;
     QMetaObject::Connection m_connActiveChangedCamera;
+
+    void setKeepAlive(bool keepAlive);
+
 };
 
 QT_END_NAMESPACE

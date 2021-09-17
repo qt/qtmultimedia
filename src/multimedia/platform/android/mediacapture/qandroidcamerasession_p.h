@@ -108,12 +108,13 @@ public:
         virtual void onFrameAvailable(const QVideoFrame &frame) = 0;
     };
     void setPreviewCallback(PreviewCallback *callback);
-    bool requestCameraPermission();
 
     void setVideoSink(QVideoSink *surface);
 
     void disableRotation();
     void enableRotation();
+
+    void setKeepAlive(bool keepAlive);
 
 Q_SIGNALS:
     void activeChanged(bool);
