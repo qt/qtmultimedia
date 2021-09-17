@@ -765,12 +765,9 @@ void QAndroidCameraSession::onApplicationStateChanged(Qt::ApplicationState state
     }
 }
 
-bool QAndroidCameraSession::requestCameraPermission()
+void QAndroidCameraSession::setKeepAlive(bool keepAlive)
 {
-    m_keepActive = true;
-    const bool result = qt_androidRequestCameraPermission();
-    m_keepActive = false;
-    return result;
+    m_keepActive = keepAlive;
 }
 
 void QAndroidCameraSession::setVideoSink(QVideoSink *sink)

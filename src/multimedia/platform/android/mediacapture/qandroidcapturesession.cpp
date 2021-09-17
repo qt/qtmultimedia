@@ -92,24 +92,12 @@ void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSessi
             if (!isActive)
                 stop();
         });
-
-        // It requests permission on setAudioInput instead of on start because asking for
-        // permission can pause the activity and android can release the surface referenced
-        // by camera crashing the app when mediaRecorder tries to use it
-        // TODO: https://bugreports.qt.io/browse/QTBUG-96346
-        m_cameraSession->requestCameraPermission();
     }
 }
 
 void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
     m_audioInput = input;
-
-    // It requests permission on setAudioInput instead of on start because asking for
-    // permission can pause the activity and android can release the surface referenced
-    // by camera crashing the app when mediaRecorder tries to use it
-    // TODO: https://bugreports.qt.io/browse/QTBUG-96346
-    qt_androidRequestRecordingPermission();
 }
 
 void QAndroidCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
@@ -128,6 +116,13 @@ QMediaRecorder::RecorderState QAndroidCaptureSession::state() const
     return m_state;
 }
 
+void QAndroidCaptureSession::setKeepAlive(bool keepAlive)
+{
+    if (m_cameraSession)
+        m_cameraSession->setKeepAlive(keepAlive);
+}
+
+
 void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &outputLocation)
 {
     if (m_state == QMediaRecorder::RecordingState)
@@ -140,38 +135,42 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     }
 
     if (!m_cameraSession && !m_audioInput) {
-        Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("No devices are set"));
+        emit error(QMediaRecorder::ResourceError, QLatin1String("No devices are set"));
         return;
     }
 
-    applySettings(settings);
+    setKeepAlive(true);
+
+    if (m_cameraSession && !qt_androidRequestCameraPermission()) {
+        emit error(QMediaRecorder::ResourceError, QLatin1String("Camera permission denied."));
+        setKeepAlive(false);
+        return;
+    }
+
+    if (m_audioInput && !qt_androidRequestRecordingPermission()) {
+        emit error(QMediaRecorder::ResourceError, QLatin1String("Microphone permission denied."));
+        setKeepAlive(false);
+        return;
+    }
 
     m_mediaRecorder = new AndroidMediaRecorder;
     connect(m_mediaRecorder, &AndroidMediaRecorder::error, this, &QAndroidCaptureSession::onError);
     connect(m_mediaRecorder, &AndroidMediaRecorder::info, this, &QAndroidCaptureSession::onInfo);
 
+    applySettings(settings);
+
     // Set audio/video sources
     if (m_cameraSession) {
-        if (!qt_androidCheckCameraPermission()) {
-            Q_EMIT error(QMediaRecorder::ResourceError, QLatin1String("Camera permission denied."));
-            return;
-        }
-
         m_cameraSession->camera()->stopPreviewSynchronous();
         m_cameraSession->applyResolution(settings.videoResolution(), false);
         m_cameraSession->camera()->unlock();
+
         m_mediaRecorder->setCamera(m_cameraSession->camera());
         m_mediaRecorder->setAudioSource(AndroidMediaRecorder::Camcorder);
         m_mediaRecorder->setVideoSource(AndroidMediaRecorder::Camera);
     }
 
     if (m_audioInput) {
-        if (!qt_androidCheckMicrophonePermission()) {
-            Q_EMIT error(QMediaRecorder::ResourceError,
-                         QLatin1String("Microphone permission denied."));
-            return;
-        }
-
         m_mediaRecorder->setAudioInput(m_audioInput->device.id());
         if (!m_mediaRecorder->isAudioSourceSet())
             m_mediaRecorder->setAudioSource(AndroidMediaRecorder::DefaultAudioSource);
@@ -210,7 +209,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     // Even though the Android doc explicitly says that calling MediaRecorder.setPreviewDisplay()
     // is not necessary when the Camera already has a Surface, it doesn't actually work on some
     // devices. For example on the Samsung Galaxy Tab 2, the camera server dies after prepare()
-    // and start() if MediaRecorder.setPreviewDispaly() is not called.
+    // and start() if MediaRecorder.setPreviewDisplay() is not called.
     if (m_cameraSession) {
         // When using a SurfaceTexture, we need to pass a new one to the MediaRecorder, not the same
         // one that is set on the Camera or it will crash, hence the reset().
@@ -233,8 +232,8 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     if (!m_mediaRecorder->start()) {
         emit error(QMediaRecorder::FormatError,
                    QMediaRecorderPrivate::msgFailedStartRecording());
-        if (m_cameraSession)
-            restartViewfinder();
+        restartViewfinder();
+
         return;
     }
 
@@ -256,7 +255,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
 
 void QAndroidCaptureSession::stop(bool error)
 {
-    if (m_state == QMediaRecorder::StoppedState || m_mediaRecorder == 0)
+    if (m_state == QMediaRecorder::StoppedState || m_mediaRecorder == nullptr)
         return;
 
     m_mediaRecorder->stop();
@@ -378,6 +377,7 @@ void QAndroidCaptureSession::restartViewfinder()
     m_cameraSession->camera()->startPreview();
     m_cameraSession->setReadyForCapture(true);
     m_cameraSession->enableRotation();
+    setKeepAlive(false);
 }
 
 void QAndroidCaptureSession::updateDuration()
