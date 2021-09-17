@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -94,20 +94,47 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
         ui->videoCodecBox->addItem(QMediaFormat::videoCodecName(codec) + ": " + description, QVariant::fromValue(codec));
     }
 
-
     ui->videoResolutionBox->addItem(tr("Default"));
-    auto supportedResolutions = mediaRecorder->captureSession()->camera()->cameraDevice().photoResolutions(); // ### Should use resolutions from video formats
-    for (const QSize &resolution : supportedResolutions) {
-        ui->videoResolutionBox->addItem(QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
+
+    const QList<QCameraFormat> videoFormats =
+            mediaRecorder->captureSession()->camera()->cameraDevice().videoFormats();
+
+    for (const QCameraFormat &format : videoFormats) {
+        const QSize resolution = format.resolution();
+        ui->videoResolutionBox->addItem(QString("%1x%2")
+                                        .arg(resolution.width())
+                                        .arg(resolution.height()),
                                         QVariant(resolution));
     }
 
     ui->videoFramerateBox->addItem(tr("Default"));
-//    const QList<qreal> supportedFrameRates = mediaRecorder->supportedFrameRates();
-//    for (qreal rate : supportedFrameRates) {
-//        QString rateString = QString("%1").arg(rate, 0, 'f', 2);
-//        ui->videoFramerateBox->addItem(rateString, QVariant(rate));
-//    }
+
+    connect(ui->videoResolutionBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            [this, mediaRecorder](int index) {
+
+        // Get the current list of formats
+        const QList<QCameraFormat> videoFormats =
+                mediaRecorder->captureSession()->camera()->cameraDevice().videoFormats();
+
+        QCameraFormat videoFormat;
+        const auto resolution = ui->videoResolutionBox->itemData(index).value<QSize>();
+        for (const QCameraFormat &format : videoFormats) {
+            if (format.resolution() == resolution) {
+                videoFormat = format;
+                break;
+            }
+        }
+
+        ui->videoFramerateBox->clear();
+
+        const float minFrameRate = videoFormat.minFrameRate();
+        QString rateString = QString("%1").arg(minFrameRate, 0, 'f', 2);
+        ui->videoFramerateBox->addItem(rateString, QVariant(minFrameRate));
+
+        const float maxFrameRate = videoFormat.maxFrameRate();
+        rateString = QString("%1").arg(maxFrameRate, 0, 'f', 2);
+        ui->videoFramerateBox->addItem(rateString, QVariant(maxFrameRate));
+    });
 
     //containers
     ui->containerFormatBox->addItem(tr("Default container"), QVariant::fromValue(QMediaFormat::UnspecifiedFormat));

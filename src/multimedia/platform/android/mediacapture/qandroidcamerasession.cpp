@@ -146,7 +146,15 @@ void QAndroidCameraSession::updateAvailableCameras()
         AndroidCamera::getCameraInfo(i, info);
 
         if (!info->id.isEmpty()) {
-            AndroidCamera::getSupportedFormats(i, info->videoFormats);
+            // Add supported picture and video sizes to the camera info
+            AndroidCamera *camera = AndroidCamera::open(i);
+
+            if (camera) {
+                info->videoFormats = camera->getSupportedFormats();
+                info->photoResolutions = camera->getSupportedPictureSizes();
+            }
+
+            delete camera;
             g_availableCameras->append(info->create());
         }
     }

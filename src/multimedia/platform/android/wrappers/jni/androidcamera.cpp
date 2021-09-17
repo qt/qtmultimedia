@@ -233,6 +233,7 @@ public:
     Q_INVOKABLE void updateRotation();
 
     Q_INVOKABLE QList<QSize> getSupportedPictureSizes();
+    Q_INVOKABLE QList<QSize> getSupportedVideoSizes();
     Q_INVOKABLE void setPictureSize(const QSize &size);
     Q_INVOKABLE void setJpegQuality(int quality);
 
@@ -703,6 +704,12 @@ QList<QSize> AndroidCamera::getSupportedPictureSizes()
     return d->getSupportedPictureSizes();
 }
 
+QList<QSize> AndroidCamera::getSupportedVideoSizes()
+{
+    Q_D(AndroidCamera);
+    return d->getSupportedVideoSizes();
+}
+
 void AndroidCamera::setPictureSize(const QSize &size)
 {
     Q_D(AndroidCamera);
@@ -817,27 +824,12 @@ AndroidCamera::ImageFormat AndroidCamera::AndroidImageFormatFromQtPixelFormat(QV
     }
 }
 
-void AndroidCamera::getSupportedFormats(int id, QList<QCameraFormat> &formats)
+QList<QCameraFormat> AndroidCamera::getSupportedFormats()
 {
-    QJniObject camera = QJniObject::callStaticObjectMethod("android/hardware/Camera",
-                                                  "open",
-                                                  "(I)Landroid/hardware/Camera;",
-                                                  id);
-    if (!camera.isValid())
-        return;
-
-    QJniObject cameraParams = camera.callObjectMethod("getParameters",
-                                                         "()Landroid/hardware/Camera$Parameters;");
-    if (!cameraParams.isValid()) {
-        camera.callMethod<void>("release");
-        return;
-    }
-    AndroidCamera::FpsRange range = AndroidCameraPrivate::getPreviewFpsRange(cameraParams);
-
-    for (const auto &previewSize : AndroidCameraPrivate::getSupportedPreviewSizes(cameraParams))
-    {
-        for (const auto &previewFormat : AndroidCameraPrivate::getSupportedPreviewFormats(cameraParams))
-        {
+    QList<QCameraFormat> formats;
+    AndroidCamera::FpsRange range = getPreviewFpsRange();
+    for (const auto &previewSize : getSupportedVideoSizes()) {
+        for (const auto &previewFormat : getSupportedPreviewFormats()) {
             QCameraFormatPrivate * format = new QCameraFormatPrivate();
             format->pixelFormat = QtPixelFormatFromAndroidImageFormat(previewFormat);
             format->resolution = previewSize;
@@ -847,7 +839,7 @@ void AndroidCamera::getSupportedFormats(int id, QList<QCameraFormat> &formats)
         }
     }
 
-    camera.callMethod<void>("release");
+    return formats;
 }
 
 void AndroidCamera::startPreview()
@@ -1066,8 +1058,10 @@ AndroidCamera::FpsRange AndroidCameraPrivate::getPreviewFpsRange(QJniObject &par
 
     jint* jRangeElements = env->GetIntArrayElements(jRangeArray, 0);
 
-    range.min = jRangeElements[0];
-    range.max = jRangeElements[1];
+    // Android Camera API returns values scaled by 1000, so divide here to report
+    // normal values for Qt
+    range.min = jRangeElements[0] / 1000;
+    range.max = jRangeElements[1] / 1000;
 
     env->ReleaseIntArrayElements(jRangeArray, jRangeElements, 0);
     env->DeleteLocalRef(jRangeArray);
@@ -1082,8 +1076,9 @@ void AndroidCameraPrivate::setPreviewFpsRange(int min, int max)
     if (!m_parameters.isValid())
         return;
 
-    QJniEnvironment env;
-    m_parameters.callMethod<void>("setPreviewFpsRange", "(II)V", min, max);
+    // Android Camera API returns values scaled by 1000, so multiply here to
+    // give Android API the scale is expects
+    m_parameters.callMethod<void>("setPreviewFpsRange", "(II)V", min * 1000, max * 1000);
 }
 
 AndroidCamera::ImageFormat AndroidCameraPrivate::getPreviewFormat()
@@ -1584,6 +1579,29 @@ QList<QSize> AndroidCameraPrivate::getSupportedPictureSizes()
             list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
         }
 
+        std::sort(list.begin(), list.end(), qt_sizeLessThan);
+    }
+
+    return list;
+}
+
+QList<QSize> AndroidCameraPrivate::getSupportedVideoSizes()
+{
+    const std::lock_guard<QRecursiveMutex> locker(m_parametersMutex);
+    QList<QSize> list;
+
+    if (m_parameters.isValid()) {
+        QJniObject sizeList = m_parameters.callObjectMethod("getSupportedVideoSizes",
+                                                            "()Ljava/util/List;");
+        if (!sizeList.isValid())
+            return list;
+
+        int count = sizeList.callMethod<jint>("size");
+        for (int i = 0; i < count; ++i) {
+            const QJniObject size = sizeList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+            if (size.isValid())
+                list.append(QSize(size.getField<jint>("width"), size.getField<jint>("height")));
+        }
         std::sort(list.begin(), list.end(), qt_sizeLessThan);
     }
 
