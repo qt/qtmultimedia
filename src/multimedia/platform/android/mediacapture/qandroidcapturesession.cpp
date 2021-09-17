@@ -73,7 +73,7 @@ QAndroidCaptureSession::QAndroidCaptureSession()
 QAndroidCaptureSession::~QAndroidCaptureSession()
 {
     stop();
-    delete m_mediaRecorder;
+    m_mediaRecorder = nullptr;
 }
 
 void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSession)
@@ -128,12 +128,6 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     if (m_state == QMediaRecorder::RecordingState)
         return;
 
-    if (m_mediaRecorder) {
-        m_mediaRecorder->release();
-        delete m_mediaRecorder;
-        m_mediaRecorder = nullptr;
-    }
-
     if (!m_cameraSession && !m_audioInput) {
         emit error(QMediaRecorder::ResourceError, QLatin1String("No devices are set"));
         return;
@@ -153,9 +147,11 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
         return;
     }
 
-    m_mediaRecorder = new AndroidMediaRecorder;
-    connect(m_mediaRecorder, &AndroidMediaRecorder::error, this, &QAndroidCaptureSession::onError);
-    connect(m_mediaRecorder, &AndroidMediaRecorder::info, this, &QAndroidCaptureSession::onInfo);
+    m_mediaRecorder = std::make_shared<AndroidMediaRecorder>();
+    connect(m_mediaRecorder.get(), &AndroidMediaRecorder::error, this,
+            &QAndroidCaptureSession::onError);
+    connect(m_mediaRecorder.get(), &AndroidMediaRecorder::info, this,
+            &QAndroidCaptureSession::onInfo);
 
     applySettings(settings);
 
@@ -264,9 +260,8 @@ void QAndroidCaptureSession::stop(bool error)
     m_notifyTimer.stop();
     updateDuration();
     m_elapsedTime.invalidate();
-    m_mediaRecorder->release();
-    delete m_mediaRecorder;
-    m_mediaRecorder = 0;
+
+    m_mediaRecorder = nullptr;
 
     if (m_cameraSession && m_cameraSession->isActive()) {
         // Viewport needs to be restarted after recording
@@ -380,6 +375,7 @@ void QAndroidCaptureSession::restartViewfinder()
     m_cameraSession->setReadyForCapture(true);
     m_cameraSession->enableRotation();
     setKeepAlive(false);
+    m_mediaRecorder = nullptr;
 }
 
 void QAndroidCaptureSession::updateDuration()

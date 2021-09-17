@@ -189,6 +189,7 @@ private:
     jlong m_id;
     QJniObject m_mediaRecorder;
     bool m_isAudioSourceSet = false;
+    bool m_isVideoSourceSet = false;
 };
 
 QT_END_NAMESPACE
