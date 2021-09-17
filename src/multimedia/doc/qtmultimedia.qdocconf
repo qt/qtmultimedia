@@ -48,8 +48,10 @@ exampledirs += ../../../examples \
                snippets \
                ../../multimediawidgets/doc/snippets
 
-manifestmeta.highlighted.names  = "QtMultimedia/QML Video Shader Effects Example" \
-                                  "QtMultimedia/Media Player Example"
+manifestmeta.highlighted.names  = "QtMultimedia/QML Media Player Example" \
+                                  "QtMultimedia/Media Player Example" \
+                                  "QtMultimedia/Camera Example" \
+                                  "QtMultimedia/QML Recorder Example" \
 
 headerdirs += ../..
 
