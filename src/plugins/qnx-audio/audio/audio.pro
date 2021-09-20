@@ -19,4 +19,5 @@ SOURCES += qnxaudioplugin.cpp \
 OTHER_FILES += qnx_audio.json
 
 PLUGIN_TYPE = audio
+PLUGIN_CLASS_NAME = QnxAudioPlugin
 load(qt_plugin)
