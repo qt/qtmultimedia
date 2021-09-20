@@ -58,10 +58,7 @@ QAndroidMediaCaptureSession::QAndroidMediaCaptureSession()
 
 QAndroidMediaCaptureSession::~QAndroidMediaCaptureSession()
 {
-    delete m_encoder;
     delete m_captureSession;
-    delete m_cameraControl;
-    delete m_imageCaptureControl;
     delete m_cameraSession;
 }
 
