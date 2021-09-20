@@ -93,7 +93,6 @@ inline int qNormalizedOrientation(int o)
         MediaPlayer {
             id: player
             source: "file://video.webm"
-            autoPlay: true
         }
 
         VideoOutput {
