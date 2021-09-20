@@ -61,8 +61,6 @@ ApplicationWindow {
     Video {
         id: video
         anchors.fill: parent
-        autoPlay: true
-        autoLoad: true
         source: "gst-pipeline: videotestsrc ! qtvideosink"
     }
 
