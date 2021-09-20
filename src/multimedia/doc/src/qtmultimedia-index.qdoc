@@ -101,9 +101,6 @@
      \li Type
      \li Description
     \row
-     \li \l {QtMultimedia::Playlist}{Playlist}
-     \li For specifying a list of media to be played.
-    \row
      \li \l {QtMultimedia::Camera}{Camera}
      \li Access camera viewfinder frames
     \row
