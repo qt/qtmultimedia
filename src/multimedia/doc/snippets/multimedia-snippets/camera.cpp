@@ -76,7 +76,7 @@ void overview_viewfinder()
     camera->setVideoOutput(preview);
     preview->show();
 
-    camera->start(); // to start the viewfinder
+    camera->start(); // to start the camera
     //! [Camera overview viewfinder]
 }
 

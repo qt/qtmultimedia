@@ -34,9 +34,9 @@
 \section1 Video Features
 
 Qt Multimedia offers both high and low level C++ classes for playing and
-manipulating video data, and QML types for playback and control. Some
-of these classes also overlap with both \l {Camera Overview}{camera} and
-\l {Audio Overview}{audio} classes, which can be useful.
+manipulating video data, and QML types for playback and recording. Some
+of the classes presented here overlap with what is presented in the \l {Camera Overview} and
+\l {Audio Overview}.
 
 \section1 Video Implementation Details
 
@@ -58,7 +58,8 @@ You can use \l VideoOutput to render content that is provided by
 either a \l MediaPlayer or a \l Camera. The VideoOutput is a visual
 component that can be embedded into a QQuickScene or \l Window, while
 all media decoding and playback control is handled by the \l MediaPlayer
-or \l CaptureSession. \l Video has also been provided for convenience.
+or \l CaptureSession. A \l Video element has been provided for convenience.
+It combines MediaPlayer, VideoOutput and AudioOutput elements in one item.
 
 \section2 Working with Low Level Video Frames
 
@@ -75,8 +76,9 @@ allows you to receive these frames from \l QMediaPlayer and
 \l QCamera.
 
 \section2 Recording Video
-You can use the \l QMediaRecorder class as a simple way to record video to disk.
-For more advances use cases \l QMediaCaptureSession provides a more flexible API.
+The central class for any type of capturing or recording of audio and video is QMediaCaptureSession
+(or the CaptureSession QML type). You can connect a QCamera (Camera in QML) and a QMediaRecorder
+(MediaRecorder)to the session and then ask the media recorder to start recording.
 
 \section1 Examples
 

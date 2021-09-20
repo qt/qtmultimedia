@@ -41,12 +41,14 @@
     \page qtmultimedia-index.html
     \title Qt Multimedia
     \image noun_Media_166644.svg "image of multimedia icons, courtesy of misirlou from the Noun Project"
-    \brief The Qt Multimedia module provides APIs for audio, video and
-    camera-related functionality
+    \brief The Qt Multimedia module provides APIs for playing back and recording
+    audiovisual content
 
     Qt Multimedia is an add-on module that provides a rich set of QML types
-    and C++ classes to handle multimedia content. It also provides necessary
-    APIs to access the camera functionality.
+    and C++ classes to handle multimedia content. It contains an easy to use
+    API for playing back audio and video files and rendering those on screen, as
+    well as a comprehensive API for recording audio and video from the systems
+    cameras and microphones.
 
     The functionality of this module is divided into the following submodules:
 
@@ -59,7 +61,7 @@
       \li Provides the widget-based multimedia API.
     \endtable
 
-   \section1 Getting started
+    \section1 Getting started
     If you are porting from Qt 5 to Qt 6 see \l{Changes to Qt Multimedia}.
 
     If you are new to Qt Multimedia, the QML types can be
@@ -141,11 +143,15 @@
      \li Class for video presentation.
     \endtable
 
+    For playback QMediaPlayer, QAudioOutput and QVideoOutput contain all the required functionality.
+    The other classes are used for capturing audio and video content, where the QMediaCaptureSession is the central
+    class managing the whole capture/recording process.
+
     \section1 Licenses and attributions
 
     The Qt Quick Multimedia module is available under commercial licenses from
     \l{The Qt Company}.
-    In addition, it is available under free software licenses. Since Qt 5.4,
+    In addition, it is available under free software licenses. Since Qt 5.6,
     these free software licenses are
     \l{GNU Lesser General Public License, version 3}, or
     the \l{GNU General Public License, version 2}.
@@ -166,12 +172,20 @@
 
     For most features, Qt Multimedia builds upon the multimedia framework of the
     underlying operating system. Therefore there are several multimedia back ends
-    based on different technologies and APIs. For further details, see the
-    \l{Qt Multimedia Backends}{Qt Multimedia back ends wiki}.
+    based on different technologies and APIs.
 
-     \list
+    While we try to support our full API on all platforms, platform specific limitations do
+    exist in a few places. This is due to the fact that the feature set supported by those
+    frameworks varies, implying that some functionality
+    might not be available on all platforms. This is especially true for the set of
+    supported file formats and codecs, as well as advanced camera functionality.
+
+    Where limitations exist, we aim to document those in the respective classes and
+    methods.
+
+    \list
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
-     \endlist
+    \endlist
 
     \section2 Reference
     \list
