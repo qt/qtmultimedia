@@ -206,21 +206,18 @@ is useful for QGraphicsView.
 
 For advanced usage (like processing preview frames as they come, which enables
 detection of objects or patterns), you can also use your own QVideoSink and set
-that as the videoOutput for the QCamera object. In this case, you will need to
-render the viewfinder image yourself by processing the data received from the
+that as the videoOutput for the QMediaCaptureSession. In this case, you will need to
+render the preview image yourself by processing the data received from the
 videoFrameChanged() signal.
 
     \snippet multimedia-snippets/camera.cpp Camera overview surface
 
-On mobile devices, the preview image might not always be in the orientation you
-would expect. The camera sensors on these devices are often mounted in landscape
-while the natural orientation of the screen is portrait. This results in the
-image appearing sideways or inverted depending on the device orientation. In
-order to reflect on screen what the user actually sees, you should make sure
-the viewfinder frames are always rotated to the correct orientation, taking into
-account the camera sensor orientation and the current display orientation.
-
-    \snippet multimedia-snippets/camera.cpp Camera overview viewfinder orientation
+On mobile devices, the preview image is by default oriented in the same way as the device.
+Thus, as the user rotates the device, the preview image will switch between portrait and
+landscape mode. Once you start recording, the orientation will be locked. To avoid a poor
+user experience, you should also lock the orientation of the applications user interface
+while recording. This can be achieved using the
+\l{contentOrientation}{QWindow::contentOrientation} property of QWindow.
 
 \section2 Still Images
 

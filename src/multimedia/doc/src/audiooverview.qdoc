@@ -51,28 +51,62 @@ high level approaches to: audio input, output and processing.
 \section1 Audio Implementation Details
 
 \section2 Playing Compressed Audio
+
 For playing media or audio files that are not simple, uncompressed audio, you
 can use the QMediaPlayer C++ class, or the \l{MediaPlayer} QML type.
 The QMediaPlayer class and associated QML types are also capable of playing
-\l{multimedia-playing-video}{video}, if required. The compressed audio formats
-supported depends on:
+\l{multimedia-playing-video}{video}, if required. The audio formats
+that the player supports depends on:
 \list
     \li The operating system environment.
     \li Any decoder plugins the user may have installed.
 \endlist
 
+The media player needs to be connected to a QAudioOutput object (or the QML AudioOutput
+element) to play back audio.
+
 Here is how you play a local file using C++:
 
     \snippet multimedia-snippets/media.cpp Local playback
 
+The same functionality in QML:
+
+\qml
+MediaPlayer {
+    audioOutput: AudioOutput {}
+    source: "file:///path/to/my/music.mp3"
+    Component.onCompleted: { play() }
+}
+\endqml
+
 \section2 Recording Audio to a File
-For recording audio to a file, the QMediaRecorder class allows you
-to compress audio data from an input device and record it.
+
+To record audio to a file, you need to create a capture session and connect to it an audio
+input and a recorder. These elements are implemented with the QMediaCaptureSession,
+QAudioInput, and QMediaRecorder classes. The default constructed QAudioInput selects the
+system default audio input. The recorder controls the recording process with a simple record()
+and stop() functions. Additionally, you can use it to select the output location, audio
+encoder, or file container format.
+
+A session recording audio from the default microphone would look as follows in C++:
 
     \snippet multimedia-snippets/media.cpp Media recorder
 
-QMediaCaptureSession provides support for more complex use cases involving the
-capturing and recording of audio.
+In QML, the same can be achieved by:
+
+\qml
+CaptureSession {
+    audioInput: AudioInput {}
+    mediaRecorder: MediaRecorder {
+        id: recorder
+        outputLocation: "file:///path/to/test.mp3"
+    }
+    Component.onCompleted: { recorder.record() }
+}
+\endqml
+
+QMediaCaptureSession also provides support for more complex use cases such as image
+capturing or video recording.
 
 \section2 Low Latency Sound Effects
 
@@ -92,7 +126,7 @@ You can adjust the:
 \target raw access
 \section2 Low Level Audio Playback and Recording
 
-Qt Multimedia offers classes for raw access to audio input and output
+The C++ API of Qt Multimedia offers classes for raw access to audio input and output
 facilities, allowing applications to receive raw data from devices like
 microphones, and to write raw data to speakers or other devices. Generally
 these classes do not do any audio decoding, or other processing, but they

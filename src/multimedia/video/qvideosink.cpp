@@ -88,6 +88,7 @@ public:
     \brief The QVideoSink class represents a generic sink for video data.
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_video
 
     The QVideoSink class can be used to retrieve video data on a frame by frame
     basis from Qt Multimedia.

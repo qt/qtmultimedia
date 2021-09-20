@@ -49,10 +49,11 @@ Qt 5 can be ported with limited effort.
 There are a number of new features in Qt Multimedia:
 \list
     \li QMediaCaptureSession class is the central object for media capture.
-    \li QMediaRecorder class is now an abstract class for audio/video
-    functionality. It handles encoding of data produced in a capture session.
+    \li QMediaRecorder class is now a class limited to recording audio and video.
+    It handles encoding of data produced in a capture session.
     \li Using QMediaFormat and QMediaRecorder, setting up the desired encoding
     when recording has changed significantly.
+    \li You can now also monitor the audio recorded by a capture session.
     \li Support for selection of audio, video and subtitle tracks when playing
     back media files has been added.
     \li QAudioDecoder is now supported on all platforms.
@@ -92,8 +93,7 @@ There are a number of new features in Qt Multimedia:
         resolution and frame rate the camera should be using.
     \row
         \li QMediaContent
-        \li The class has been removed. Use QMediaPlayList for playlists and
-        QUrl for individual media files instead.
+        \li The class has been removed. Use QUrl for individual media files instead.
     \row
         \li QSound
         \li Use QSoundEffect instead.
@@ -120,7 +120,7 @@ There are a number of new features in Qt Multimedia:
 
 \section1 Changed features
 
-A number of classes previously offered in Qt Multimedia or Qt Multimedia Kit have
+A number of classes previously offered in Qt Multimedia have
 changed in ways that may affect previously written code. The following table
 highlights these changes.
 
@@ -155,6 +155,15 @@ highlights these changes.
     \row
         \li QCameraImageCapture renamed QImageCapture
         \li None
+    \row
+        \li Audio inputs and outputs
+        \li QMediaPlayer and QMediaCaptureSession (and the corresponding QML types MediaPlayer and
+        CaptureSession) are not connected to any audio devices by default. Explicitly connect them
+        to a QAudioInput/AudioInput or QAudioOutput/AudioOutput to capture or play back audio.
+    \row
+        \li Capturing video
+        \li A capture session is by default not connected to a Camera. Connect it to a QCamera object
+        (Camera item) to be able to capture video or still images.
 \endtable
 
 */

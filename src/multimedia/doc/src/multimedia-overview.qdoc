@@ -87,19 +87,19 @@ For some quick recipes, see this table:
     \row
         \li Playing a sound effect
         \li
-        \li
+        \li \l{SoundEffect}
         \li QSoundEffect
     \row
-        \li Playing low latency audio
+        \li Playing encoded audio (MP3, AAC etc)
+        \li \l{Media Player Example}{player}
+        \li \l{MediaPlayer}
+        \li QMediaPlayer
+    \row
+        \li Playing raw audio data with low latency
         \li \l{Audio Source Example}{audiosource},
             \l{Spectrum Example}{spectrum}
         \li
         \li QAudioSink
-    \row
-        \li Playing encoded audio (MP3, AAC etc)
-        \li \l{Media Player Example}{player}
-        \li \l Audio, \l {MediaPlayer}
-        \li QMediaPlayer
     \row
         \li Accessing raw audio input data
         \li \l{Spectrum Example}{spectrum},
@@ -109,38 +109,37 @@ For some quick recipes, see this table:
     \row
         \li Recording encoded audio data
         \li \l{Audio Recorder Example}{audiorecorder}
-        \li
-        \li QMediaCaptureSession
+        \li \l{CaptureSession}, \l{AudioInput}, \l{MediaRecorder}
+        \li QMediaCaptureSession, QAudioInput, QMediaRecorder
     \row
-        \li Discovering raw audio devices
+        \li Discovering audio and video devices
         \li \l{Audio Devices Example}{audiodevices}
-        \li
-        \li QAudioDevice
+        \li \l{MediaDevices}, \l{AudioDevice}, \l{CameraDevice}
+        \li QMediaDevices, QAudioDevice, QCameraDevice
     \row
         \li Video Playback
         \li \l{Media Player Example}{player},
             \l{QML Media Player Example}{mediaplayer}
-            \l{QML Video Example}{qmlvideo},
         \li \l MediaPlayer, \l VideoOutput, \l Video
         \li QMediaPlayer, QVideoWidget, QGraphicsVideoItem
     \row
         \li Capturing audio and video
         \li \l {Camera Example}{camera},
             \l {QML Recorder Example}{recorder}
-        \li \l Camera, \l VideoOutput
-        \li QCamera, QVideoWidget, QGraphicsVideoItem
+        \li \l CaptureSession, \l Camera, \l AudioInput \l VideoOutput
+        \li QMediaCaptureSession, QCamera, QAudioInput, QVideoWidget
     \row
         \li Capturing photos
         \li \l {Camera Example}{camera},
             \l {QML Recorder Example}{recorder}
-        \li \l Camera
-        \li QCamera, QImageCapture
+        \li \l CaptureSession, \l Camera, \l ImageCapture
+        \li QMediaCaptureSession, QCamera, QImageCapture
     \row
         \li Capturing movies
         \li \l {Camera Example}{camera},
             \l {QML Recorder Example}{recorder}
-        \li \l Camera
-        \li QCamera, QMediaRecorder
+        \li \l CaptureSession, \l Camera, \l MediaRecorder
+        \li QMediaCaptureSession, QCamera, QMediaRecorder
 \endtable
 
 \section1 Limitations
