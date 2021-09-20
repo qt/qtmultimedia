@@ -43,19 +43,55 @@
 #include <QtCore/qmimedatabase.h>
 
 QT_BEGIN_NAMESPACE
+
 /*!
     \class QMediaFormat
     \ingroup multimedia
     \inmodule QtMultimedia
     \brief Describes an encoding format for a multimedia file or stream.
+    \since 6.2
 
     QMediaFormat describes an encoding format for a multimedia file or stream.
 
     You can check whether a certain media format can be used for encoding
     or decoding using QMediaFormat.
-
-    \since 6.2
 */
+
+/*!
+    \qmltype MediaFormat
+    \since 6.2
+    \instantiates QMediaFormat
+    \brief MediaFormat describes the format of a media file.
+    \inqmlmodule QtMultimedia
+    \ingroup multimedia_qml
+
+    The MediaFormat type describes the format of a media file. It contains
+    three properties that describe the file type and the audio and video codecs
+    that are being used.
+
+    MediaFormat can be used to specify the type of file that should be created
+    by a MediaRecorder. The snippet below shows an example that sets up the
+    recorder to create an mpeg4 video with AAC encoded audio and H265 video:
+
+    \qml
+    CaptureSession {
+        ... // setup inputs
+        MediaRecorder {
+            mediaFormat: MediaFormat {
+                fileFormat: mediaFormat.FileFormat.MPEG4
+                audioCodec: mediaFormat.AudioCodec.AAC
+                videoCodec: mediaFormat.VideoCodec.H265
+            }
+        }
+    }
+    \endqml
+
+    If the specified MediaFormat is not supported, the MediaRecorder will automatically try
+    to find the best possible replacement format and use that instead.
+
+    \sa MediaRecorder, CaptureSession
+*/
+
 namespace {
 
 const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
@@ -142,8 +178,6 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
 
     \value WMA
         \l {Windows Media Audio}
-    \value UnspecifiedFormat
-        The format is unspecified.
     \value AAC
         \l{Advanced Audio Coding}
     \value Matroska
@@ -168,13 +202,54 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
         \l{MPEG-4 Part 3 or MPEG-4 Audio (formally ISO/IEC 14496-3)}
     \value FLAC
         \l{Free Lossless Audio Codec}
+    \value UnspecifiedFormat
+        The format is unspecified.
 
     \omitvalue LastFileFormat
 */
 
+/*! \qmlproperty enumeration QtMultiMedia::MediaFormat::fileFormat
+
+    Describes the container format used in a multimedia file or stream.
+    It can take one of the following values:
+
+    \table
+    \header \li Property value
+            \li Description
+    \row \li WMA
+        \li \l{Windows Media Audio}
+    \row \li AAC
+        \li \l{Advanced Audio Coding}
+    \row \li Matroska
+        \li \l{Matroska (MKV)}
+    \row \li WMV
+        \li \l{Windows Media Video}
+    \row \li MP3
+        \li \l{MPEG-1 Audio Layer III or MPEG-2 Audio Layer III}
+    \row \li Wave
+        \li \l{Waveform Audio File Format}
+    \row \li Ogg
+        \li \l{Ogg}
+    \row \li MPEG4
+        \li \l{MPEG-4}
+    \row \li AVI
+        \li \l{Audio Video Interleave}
+    \row \li QuickTime
+        \li \l{QuickTime}
+    \row \li WebM
+        \li \l{WebM}
+    \row \li Mpeg4Audio
+        \li \l{MPEG-4 Part 3 or MPEG-4 Audio (formally ISO/IEC 14496-3)}
+    \row \li FLAC
+        \li \l{Free Lossless Audio Codec}
+    \row \li UnspecifiedFormat
+        \li The format is unspecified.
+    \endtable
+*/
+
 /*! \enum QMediaFormat::AudioCodec
 
-    Describes the audio coded used in multimedia file or stream.
+    Describes the audio codec used in multimedia file or stream.
 
     \value WMA
         \l {Windows Media Audio}
@@ -183,9 +258,11 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
     \value AAC
         \l{Advanced Audio Coding}
     \value ALAC
-        Apple Lossless Audio Codec
+        \l{Apple Lossless Audio Codec}
     \value DolbyTrueHD
         \l{Dolby TrueHD}
+    \value EAC3
+        \l {Dolby Digital Plus (EAC3)}
     \value MP3
         \l{MPEG-1 Audio Layer III or MPEG-2 Audio Layer III}
     \value Wave
@@ -195,13 +272,46 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
     \value FLAC
         \l{Free Lossless Audio Codec}
     \value Opus
-        Voice-over-IP codec
-    \value EAC
-        Enhanced Audio Codec
+        \l{Opus Audio Format}
     \value Unspecified
         Unspecified codec
 
     \omitvalue LastAudioCodec
+*/
+
+/*! \qmlproperty enumeration QMediaFormat::audioCodec
+
+    Describes the audio codec used in multimedia file or stream.
+    It can take one of the following values:
+
+    \table
+    \header \li Property value
+            \li Description
+    \row \li WMA
+        \li \l {Windows Media Audio}
+    \row \li AC3
+        \li \l {Dolby Digital}
+    \row \li AAC
+        \li \l{Advanced Audio Coding}
+    \row \li ALAC
+        \li \l{Apple Lossless Audio Codec}
+    \row \li DolbyTrueHD
+        \li \l{Dolby TrueHD}
+    \row \li EAC3
+        \li \l {Dolby Digital Plus (EAC3)}
+    \row \li MP3
+        \li \l{MPEG-1 Audio Layer III or MPEG-2 Audio Layer III}
+    \row \li Wave
+        \li \l{Waveform Audio File Format}
+    \row \li Vorbis
+        \li \l{Ogg Vorbis}
+    \row \li FLAC
+        \li \l{Free Lossless Audio Codec}
+    \row \li Opus
+        \li \l{Opus Audio Format}
+    \row \li Unspecified
+        \li Unspecified codec
+    \endtable
 */
 
 /*! \enum QMediaFormat::VideoCodec
@@ -228,12 +338,47 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
         \l{MotionJPEG}
     \value VP9
         \l{VP9}
-    \value Unspecified
-        Video codec not specified
     \value Theora
         \l{Theora}
+    \value Unspecified
+        Video codec not specified
 
     \omitvalue LastVideoCodec
+*/
+
+/*! \qmlproperty QtMultimedia::MediaFormat::videoCodec
+
+    Describes the video codec used in multimedia file or stream.
+    It can take one of the following values:
+
+    \table
+    \header \li Property value
+            \li Description
+    \row \li VP8
+        \li \l{VP8}
+    \row \li MPEG2
+        \li \l{MPEG-2}
+    \row \li MPEG1
+        \li \l{MPEG-1}
+    \row \li WMV
+        \li \l{Windows Media Video}
+    \row \li H265
+        \li \l{High Efficiency Video Coding (HEVC)}
+    \row \li H264
+        \li \l{Advanced Video Coding}
+    \row \li MPEG4
+        \li \l{MPEG-4}
+    \row \li AV1
+        \li \l{AOMedia Video 1}
+    \row \li MotionJPEG
+        \li \l{MotionJPEG}
+    \row \li VP9
+        \li \l{VP9}
+    \row \li Theora
+        \li \l{Theora}
+    \row \li Unspecified
+        \li Video codec not specified
+    \endtable
 */
 
 // these are non inline to make a possible future addition of a d pointer binary compatible
@@ -272,6 +417,11 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
 */
 
 // Properties
+/*! \qmlproperty QtMultimedia::MediaFormat::fileFormat
+
+    The file (container) format of the media.
+*/
+
 /*! \property QMediaFormat::fileFormat
 
     \brief The file (container) format of the media.
@@ -279,11 +429,21 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
     \sa QMediaFormat::FileFormat
 */
 
+/*! \qmlproperty QtMultimedia::MediaFormat::audioCodec
+
+    The audio codec of the media.
+*/
+
 /*! \property QMediaFormat::audioCodec
 
     \brief The audio codec of the media.
 
     \sa QMediaFormat::AudioCodec
+*/
+
+/*! \qmlproperty QtMultimedia::MediaFormat::videoCodec
+
+    The video codec of the media.
 */
 
 /*! \property QMediaFormat::videoCodec
@@ -322,7 +482,7 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
 */
 
 /*!
-    Returns true if Qt Multimedia can encode or decode this format,
+    Returns \c true if Qt Multimedia can encode or decode this format,
     depending on \a mode.
 */
 
@@ -349,11 +509,40 @@ static QPlatformMediaFormatInfo *formatInfo()
 }
 
 /*!
-    The function returns a list of file formats for the audio and video
+    \enum QMediaFormat::ConversionMode
+
+    In many cases, systems have asymmetric capabilities and can often decode more formats
+    or codecs than can be encoded. This enum describes the requested conversion mode to
+    be used when checking whether a certain file format or codec is supported.
+
+    \value Encode
+        Used to check whether a certain file format or codec can be encoded.
+    \value Decode
+        Used to check whether a certain file format or codec can be decoded.
+
+    \sa supportedFileFormats, supportedAudioCodecs, supportedVideoCodecs
+*/
+
+/*!
+    \qmlmethod list<FileFormat> QtMultimedia::MediaFormat::supportedFileFormats(conversionMode)
+    Returns a list of file formats for the audio and video
+    codec indicated by \a{conversionMode}.
+
+    To get all supported file formats, run this query on a default constructed MediaFormat. To
+    get a list of file formats supporting a specific combination of an audio and video codec,
+    you can set the audioCodec and videoCodec properties before running this query.
+
+    \sa QMediaFormat::ConversionMode
+*/
+
+/*!
+    Returns a list of file formats for the audio and video
     codec indicated by \a{m}.
 
     To get all supported file formats, run this query on a default constructed
     QMediaFormat.
+
+    \sa QMediaFormat::ConversionMode
 */
 QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat::ConversionMode m)
 {
@@ -362,11 +551,25 @@ QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat:
 }
 
 /*!
-    The function returns a list of video codecs for the chosen file format and
+    \qmlmethod list<VideoCodec> QtMultimedia::MediaFormat::supportedVideoCodecs(conversionMode)
+    Returns a list of video codecs for the chosen file format and
+    audio codec (\a conversionMode).
+
+    To get all supported video codecs, run this query on a default constructed MediaFormat. To
+    get a list of supported video codecs for a specific combination of a file format and an audio
+    codec, you can set the fileFormat and audioCodec properties before running this query.
+
+    \sa QMediaFormat::ConversionMode
+*/
+
+/*!
+    Returns a list of video codecs for the chosen file format and
     audio codec (\a m).
 
     To get all supported video codecs, run this query on a default constructed
-    QMediaFormat.
+    MediaFormat.
+
+    \sa QMediaFormat::ConversionMode
 */
 QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat::ConversionMode m)
 {
@@ -375,12 +578,25 @@ QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat:
 }
 
 /*!
+    \qmlmethods list<AudioCodec> QtMultimedia::MediaFormat::supportedAudioFormats(conversionMode)
+    Returns a list of audio codecs for the chosen file format and
+    video codec (\a conversionMode).
 
-    The function returns a list of audio codecs for the chosen file format and
+    To get all supported audio codecs, run this query on a default constructed MediaFormat. To get
+    a list of supported audio codecs for a specific combination of a file format and a video codec,
+    you can set the fileFormat and videoCodec properties before running this query.
+
+    \sa QMediaFormat::ConversionMode
+*/
+
+/*!
+    Returns a list of audio codecs for the chosen file format and
     video codec (\a m).
 
     To get all supported audio codecs, run this query on a default constructed
     QMediaFormat.
+
+    \sa QMediaFormat::ConversionMode
 */
 QList<QMediaFormat::AudioCodec> QMediaFormat::supportedAudioCodecs(QMediaFormat::ConversionMode m)
 {
@@ -388,7 +604,15 @@ QList<QMediaFormat::AudioCodec> QMediaFormat::supportedAudioCodecs(QMediaFormat:
     return fi != nullptr ? fi->supportedAudioCodecs(*this, m) : QList<QMediaFormat::AudioCodec>{};
 }
 
-QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)
+/*!
+    \qmlmethods QtMultimedia::MediaFormat::fileFormatName(fileFormat)
+    Returns a string based name for \a fileFormat.
+*/
+
+/*!
+    Returns a string based name for \a fileFormat.
+*/
+QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat fileFormat)
 {
     constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
         "Unspecified",
@@ -407,10 +631,18 @@ QString QMediaFormat::fileFormatName(QMediaFormat::FileFormat c)
         "FLAC",
         "Wave"
     };
-    return QString::fromUtf8(descriptions[int(c) + 1]);
+    return QString::fromUtf8(descriptions[int(fileFormat) + 1]);
 }
 
-QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec c)
+/*!
+    \qmlmethods QtMultimedia::MediaFormat::audioCodecName(codec)
+    Returns a string based name for \a codec.
+*/
+
+/*!
+    Returns a string based name for \a codec.
+*/
+QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec codec)
 {
     constexpr const char *descriptions[] = {
         "Invalid",
@@ -426,9 +658,17 @@ QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec c)
         "WMA",
         "ALAC",
     };
-    return QString::fromUtf8(descriptions[int(c) + 1]);
+    return QString::fromUtf8(descriptions[int(codec) + 1]);
 }
 
+/*!
+    \qmlmethods QtMultimedia::MediaFormat::videoCodecName(codec)
+    Returns a string based name for \a codec.
+*/
+
+/*!
+    Returns a string based name for \a codec.
+*/
 QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec c)
 {
     constexpr const char *descriptions[] = {
@@ -448,7 +688,15 @@ QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec c)
     return QString::fromUtf8(descriptions[int(c) + 1]);
 }
 
-QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat c)
+/*!
+    \qmlmethods QtMultimedia::MediaFormat::fileFormatDescription(fileFormat)
+    Returns a description for \a fileFormat.
+*/
+
+/*!
+    Returns a description for \a fileFormat.
+*/
+QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat fileFormat)
 {
     constexpr const char *descriptions[QMediaFormat::LastFileFormat + 2] = {
         "Unspecified File Format",
@@ -467,10 +715,18 @@ QString QMediaFormat::fileFormatDescription(QMediaFormat::FileFormat c)
         "Free Lossless Audio Codec (FLAC)",
         "Wave File"
     };
-    return QString::fromUtf8(descriptions[int(c) + 1]);
+    return QString::fromUtf8(descriptions[int(fileFormat) + 1]);
 }
 
-QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec c)
+/*!
+    \qmlmethods QtMultimedia::MediaFormat::audioCodecDescription(codec)
+    Returns a description for \a codec.
+*/
+
+/*!
+    Returns a description for \a codec.
+*/
+QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec codec)
 {
     constexpr const char *descriptions[] = {
         "Unspecified Audio Codec",
@@ -486,10 +742,18 @@ QString QMediaFormat::audioCodecDescription(QMediaFormat::AudioCodec c)
         "Windows Media Audio",
         "Apple Lossless Audio Codec (ALAC)",
     };
-    return QString::fromUtf8(descriptions[int(c) + 1]);
+    return QString::fromUtf8(descriptions[int(codec) + 1]);
 }
 
-QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec c)
+/*!
+    \qmlmethods QtMultimedia::MediaFormat::videoCodecDescription(codec)
+    Returns a description for \a codec.
+*/
+
+/*!
+    Returns a description for \a codec.
+*/
+QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec codec)
 {
     constexpr const char *descriptions[] = {
         "Unspecified Video Codec",
@@ -505,7 +769,7 @@ QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec c)
         "Windows Media Video",
         "MotionJPEG"
     };
-    return QString::fromUtf8(descriptions[int(c) + 1]);
+    return QString::fromUtf8(descriptions[int(codec) + 1]);
 }
 
 bool QMediaFormat::operator==(const QMediaFormat &other) const
@@ -517,7 +781,22 @@ bool QMediaFormat::operator==(const QMediaFormat &other) const
 }
 
 /*!
-    Resolves the format to a format that is supported by QMediaRecorder.
+    \enum QMediaFormat::ResolveFlags
+
+    Describes the requirements for resolving a suitable format for
+    QMediaRecorder.
+
+    \value NoFlags
+           No requirements
+    \value RequiresVideo
+           A video codec is required
+
+    \sa resolveForEncoding()
+*/
+
+/*!
+    Resolves the format, based on \a flags, to a format that is supported by
+    QMediaRecorder.
 
     This method tries to find the best possible match for unspecified settings.
     Settings that are not supported by the recorder will be modified to the closest
