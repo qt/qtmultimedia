@@ -64,11 +64,14 @@ QT_BEGIN_NAMESPACE
             imageCapture : ImageCapture {
                 id: imageCapture
             }
-        camera: Camera {
-            id: camera
-        }
+            camera: Camera {
+                id: camera
+            }
 
-        videoOutput: VideoOutput {
+            videoOutput: videoOutput
+        }
+        VideoOutput {
+            id: videoOutput
             anchors.fill: parent
 
             MouseArea {
@@ -79,7 +82,7 @@ QT_BEGIN_NAMESPACE
 
         Image {
             id: photoPreview
-            src: imageCapture.preview // always shows the last captured image
+            source: imageCapture.preview // always shows the last captured image
         }
     }
     \endqml
