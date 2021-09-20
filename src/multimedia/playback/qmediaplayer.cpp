@@ -73,6 +73,62 @@ QT_BEGIN_NAMESPACE
     \sa QVideoWidget
 */
 
+/*!
+    \qmltype MediaPlayer
+    \instantiates QMediaPlayer
+    \brief Adds media playback to a scene.
+
+    \inqmlmodule QtMultimedia
+    \ingroup multimedia_qml
+    \ingroup multimedia_audio_qml
+    \ingroup multimedia_video_qml
+
+    \qml
+    Text {
+        text: "Click Me!";
+        font.pointSize: 24;
+        width: 150; height: 50;
+
+        MediaPlayer {
+            id: playMusic
+            source: "music.wav"
+            audioOutput: AudioOutput {}
+        }
+        MouseArea {
+            id: playArea
+            anchors.fill: parent
+            onPressed:  { playMusic.play() }
+        }
+    }
+    \endqml
+
+    You can use MediaPlayer together with a MultiMedia::AudioOutput to play audio content, or you can use it
+    in conjunction with a Multimedia::VideoOutput for rendering video.
+
+    \qml
+    Item {
+        MediaPlayer {
+            id: mediaplayer
+            source: "groovy_video.mp4"
+            audioOutput: AudioOutput {}
+            videoOutput: videoOutput
+        }
+
+        VideoOutput {
+            anchors.fill: parent
+        }
+
+        MouseArea {
+            id: playArea
+            anchors.fill: parent
+            onPressed: mediaplayer.play();
+        }
+    }
+    \endqml
+
+    \sa AudioOutput, VideoOutput
+*/
+
 void QMediaPlayerPrivate::setState(QMediaPlayer::PlaybackState ps)
 {
     Q_Q(QMediaPlayer);
@@ -327,6 +383,16 @@ QMediaTimeRange QMediaPlayer::bufferedTimeRange() const
     return {};
 }
 
+/*!
+    \qmlproperty bool QtMultimedia::MediaPlayer::hasAudio
+
+    This property holds whether the media contains audio.
+*/
+
+/*!
+    \property bool QMediaPlayer::hasAudio
+    \brief This property holds whether the media contains audio.
+*/
 bool QMediaPlayer::hasAudio() const
 {
     Q_D(const QMediaPlayer);
@@ -337,6 +403,16 @@ bool QMediaPlayer::hasAudio() const
     return false;
 }
 
+/*!
+    \qmlproperty bool QtMultimedia::MediaPlayer::hasVideo
+
+    This property holds whether the media contains video.
+*/
+
+/*!
+    \property bool QMediaPlayer::hasVideo
+    \brief This property holds whether the media contains video.
+*/
 bool QMediaPlayer::hasVideo() const
 {
     Q_D(const QMediaPlayer);
@@ -384,15 +460,36 @@ QMediaPlayer::Error QMediaPlayer::error() const
     return d_func()->error;
 }
 
+/*!
+    \qmlproperty string QtMultimedia::MediaPlayer::errorString
+
+    This property holds a string describing the current error condition in more
+    detail.
+*/
+
+/*!
+    \property string QtMultimedia::MediaPlayer::errorString
+    \brief This property holds a string describing the current error condition in
+    more detail.
+*/
 QString QMediaPlayer::errorString() const
 {
     return d_func()->errorString;
 }
 
 /*!
-    Start or resume playing the current source.
+    \qmlmethod QtMultimedia::MediaPlayer::play()
+
+    Starts or resumes playback of the media.
+
+    Sets the \l playbackState property to PlayingState.
 */
 
+/*!
+    Start or resume playing the current source.
+
+    \sa pause(), stop()
+*/
 void QMediaPlayer::play()
 {
     Q_D(QMediaPlayer);
@@ -408,9 +505,18 @@ void QMediaPlayer::play()
 }
 
 /*!
-    Pause playing the current source.
+    \qmlmethod QtMultimedia::MediaPlayer::pause()
+
+    Pauses playback of the media.
+
+    Sets the \l playbackState property to PausedState.
 */
 
+/*!
+    Pause playing the current source.
+
+    \sa play(), stop()
+*/
 void QMediaPlayer::pause()
 {
     Q_D(QMediaPlayer);
@@ -420,9 +526,18 @@ void QMediaPlayer::pause()
 }
 
 /*!
-    Stop playing, and reset the play position to the beginning.
+    \qmlmethod QtMultimedia::MediaPlayer::stop()
+
+    Stops playback of the media.
+
+    Sets the \l playbackState property to StoppedState.
 */
 
+/*!
+    Stop playing, and reset the play position to the beginning.
+
+    \sa play(), pause()
+*/
 void QMediaPlayer::stop()
 {
     Q_D(QMediaPlayer);
@@ -448,6 +563,16 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     if (d->control != nullptr)
         d->control->setPlaybackRate(rate);
 }
+
+/*!
+    \qmlproperty url QtMultimedia::MediaPlayer::source
+
+    This property holds the source URL of the media.
+
+    \snippet multimedia-snippets/qtvideosink.qml complete
+
+    \sa QMediaPlayer::setSource()
+*/
 
 /*!
     Sets the current \a source.
@@ -507,13 +632,23 @@ void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
 }
 
 /*!
-    Sets the audio \a output device.
+    \qmlproperty QAudioOutput* QtMultimedia::MediaPlayer::audioOutput
 
-    If \a output is \nullptr, sets the output to the system default output
-    device.
+    This property holds the target audio output.
+    Accepts one AudioOutput elements.
 
-    Listen for the audioOutputChanged() signal to be notified if the output is
-    successfully changed.
+    \sa QMediaPlayer::setAudioOutput()
+*/
+
+
+/*!
+    \property QMediaPlayer::audioOutput
+    \brief The audio output device used by the media player.
+
+    The current audio output to be used when playing back media. Setting
+    a new audio output will replace the currently used output.
+
+    Setting this property to \c nullptr will disable any audio output.
 */
 void QMediaPlayer::setAudioOutput(QAudioOutput *output)
 {
@@ -532,6 +667,21 @@ QAudioOutput *QMediaPlayer::audioOutput() const
 }
 
 /*!
+    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::audioTracks
+
+    This property holds a list of metadata.
+    Each index refers to an audio track.
+
+    The metadata holds 2 properties;
+    \list
+        \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
+        \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
+    \endlist
+
+    \sa {MetaData}
+*/
+
+/*!
     Lists the set of available audio tracks inside the media.
 
     The QMediaMetaData returned describes the properties of individual
@@ -546,6 +696,21 @@ QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 }
 
 /*!
+    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::videoTracks
+
+    This property holds a list of metadata.
+    Each index refers to a video track.
+
+    The metadata holds 2 properties;
+    \list
+        \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
+        \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
+    \endlist
+
+    \sa {MetaData}
+*/
+
+/*!
     Lists the set of available video tracks inside the media.
 
     The QMediaMetaData returned describes the properties of individual
@@ -556,6 +721,21 @@ QList<QMediaMetaData> QMediaPlayer::videoTracks() const
     Q_D(const QMediaPlayer);
     return d->trackMetaData(QPlatformMediaPlayer::VideoStream);
 }
+
+/*!
+    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::subtitleTracks
+
+    This property holds a list of metadata.
+    Each index refers to a subtitle track.
+
+    The metadata holds 2 properties;
+    \list
+        \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
+        \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
+    \endlist
+
+    \sa {MetaData}
+*/
 
 /*!
     Lists the set of available subtitle tracks inside the media.
@@ -570,7 +750,21 @@ QList<QMediaMetaData> QMediaPlayer::subtitleTracks() const
 }
 
 /*!
-    Returns the currently active audio track.
+    \qmlproperty int QtMultimedia::MediaPlayer::activeAudioTrack
+
+    This property holds the track number of the currently active audio track.
+    Set to \c{-1} to disable audio track.
+
+    The default property value is \c{0}: the first audio track.
+*/
+
+/*!
+    \property QMediaPlayer::activeAudioTrack
+    \brief Returns the currently active audio track.
+
+    By default, the first available audio track will be chosen.
+
+    Set \a index to \c -1 to disable all audio tracks.
 */
 int QMediaPlayer::activeAudioTrack() const
 {
@@ -581,7 +775,22 @@ int QMediaPlayer::activeAudioTrack() const
 }
 
 /*!
-    Returns the currently active video track.
+    \since 6.2
+    \qmlproperty int QtMultimedia::MediaPlayer::activeVideoTrack
+
+    This property holds the track number of the currently active video audio track.
+    Set to \c{-1} to disable video track.
+
+    The default property value is \c{0}: the first video track.
+*/
+
+/*!
+    \property QMediaPlayer::activeVideoTrack
+    \brief Returns the currently active video track.
+
+    By default, the first available audio track will be chosen.
+
+    Set \a index to \c -1 to disable all video tracks.
 */
 int QMediaPlayer::activeVideoTrack() const
 {
@@ -592,7 +801,22 @@ int QMediaPlayer::activeVideoTrack() const
 }
 
 /*!
-    Returns the currently active subtitle track.
+    \since 6.2
+    \qmlproperty int QtMultimedia::MediaPlayer::activeSubtitleTrack
+
+    This property holds the track number of the currently active subtitle track.
+    Set to \c{-1} to disable subtitle track.
+
+    The default property value is \c{-1}: no subtitles active.
+*/
+
+/*!
+    \property QMediaPlayer::activeSubtitleTrack
+    \brief Returns the currently active subtitle track.
+
+    Set \a index to \c -1 to disable subtitles.
+
+    Subtitles are disabled by default.
 */
 int QMediaPlayer::activeSubtitleTrack() const
 {
@@ -602,13 +826,6 @@ int QMediaPlayer::activeSubtitleTrack() const
     return -1;
 }
 
-/*!
-    Sets the currently active audio track to one at the given \a index.
-
-    By default, the first available audio track will be chosen.
-
-    Set \a index to \c -1 to disable all audio tracks.
-*/
 void QMediaPlayer::setActiveAudioTrack(int index)
 {
     Q_D(QMediaPlayer);
@@ -620,11 +837,6 @@ void QMediaPlayer::setActiveAudioTrack(int index)
     d->control->setActiveTrack(QPlatformMediaPlayer::AudioStream, index);
 }
 
-/*!
-    Sets the currently active video track to one at the given \a index.
-
-    By default, the first available video track will be chosen.
-*/
 void QMediaPlayer::setActiveVideoTrack(int index)
 {
     Q_D(QMediaPlayer);
@@ -636,13 +848,6 @@ void QMediaPlayer::setActiveVideoTrack(int index)
     d->control->setActiveTrack(QPlatformMediaPlayer::VideoStream, index);
 }
 
-/*!
-    Sets the currently active subtitle track to one at the given \a index.
-
-    Set \a index to \c -1 to disable subtitles.
-
-    Subtitles are disabled by default.
-*/
 void QMediaPlayer::setActiveSubtitleTrack(int index)
 {
     Q_D(QMediaPlayer);
@@ -654,18 +859,31 @@ void QMediaPlayer::setActiveSubtitleTrack(int index)
     d->control->setActiveTrack(QPlatformMediaPlayer::SubtitleStream, index);
 }
 
+/*!
+    \qmlproperty QObject* QtMultimedia::MediaPlayer::videoOutput
+
+    This property holds the target video output.
+    Accepts one VideoOutput elements.
+
+    \sa QMediaPlayer::setVideoOutput()
+*/
+
+/*!
+    \property QMediaPlayer::videoOutput
+    \brief The video output to be used by the media player.
+
+    A media player can only have one video output attached, so
+    setting this property will replace the previously connected
+    video output.
+
+    Setting this property to \c nullptr will disable video output.
+*/
 QObject *QMediaPlayer::videoOutput() const
 {
     Q_D(const QMediaPlayer);
     return d->videoOutput;
 }
 
-/*!
-    Attach a video \a output to the media player.
-
-    If the media player has already video output attached,
-    it will be replaced with a new one.
-*/
 void QMediaPlayer::setVideoOutput(QObject *output)
 {
     Q_D(QMediaPlayer);
@@ -756,6 +974,29 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
+    \qmlproperty enumeration QtMultimedia::MediaPlayer::playbackState
+
+    This property holds the state of media playback. It can be one of the following:
+
+    \table
+    \header \li Property value
+            \li Description
+    \row \li PlayingState
+        \li The media is currently playing.
+    \row \li PausedState
+        \li Playback of the media has been suspended.
+    \row \li StoppedState
+        \li Playback of the media is yet to begin.
+    \endtable
+*/
+
+/*!
+    \qmlsignal QtMultimedia::MediaPlayer::playbackStateChanged()
+
+    This signal is emitted when the \l playbackState property is altered.
+*/
+
+/*!
     \enum QMediaPlayer::MediaStatus
 
     Defines the status of a media player's current media.
@@ -775,6 +1016,54 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
+    \qmlproperty enumeration QtMultimedia::MediaPlayer::mediaStatus
+
+    This property holds the status of media loading. It can be one of the following:
+
+    \table
+    \header
+        \li Property value
+        \li Description
+    \row \li NoMedia
+        \li No media has been set.
+    \row \li LoadingMedia
+        \li The media is currently being loaded.
+    \row \li LoadedMedia
+        \li The media has been loaded.
+    \row \li BufferingMedia
+        \li The media is buffering data.
+    \row \li StalledMedia
+        \li Playback has been interrupted while the media is buffering data.
+    \row \li BufferedMedia
+        \li The media has buffered data.
+    \row \li EndOfMedia
+        \li The media has played to the end.
+    \row \li InvalidMedia
+        \li The media cannot be played.
+    \endtable
+*/
+
+/*!
+    \qmlproperty enumeration QtMultimedia::MediaPlayer::error
+
+    This property holds the error state of the audio. It can be one of the following.
+
+    \table
+    \header \li Value \li Description
+    \row \li NoError
+        \li There is no current error.
+    \row \li ResourceError
+        \li The audio cannot be played due to a problem allocating resources.
+    \row \li FormatError
+        \li The audio format is not supported.
+    \row \li NetworkError
+        \li The audio cannot be played due to network issues.
+    \row \li AccessDeniedError
+        \li The audio cannot be played due to insufficient permissions.
+    \endtable
+*/
+
+/*!
     \enum QMediaPlayer::Error
 
     Defines a media player error condition.
@@ -787,7 +1076,15 @@ QMediaMetaData QMediaPlayer::metaData() const
     \value AccessDeniedError There are not the appropriate permissions to play a media resource.
 */
 
-// Signals
+/*!
+    \qmlsignal QtMultimedia::MediaPlayer::errorOccurred(error, errorString)
+
+    This signal is emitted when an \a error has occurred. The \a errorString
+    parameter may contain more detailed information about the error.
+
+    \sa QMediaPlayer::Error
+*/
+
 /*!
     \fn QMediaPlayer::errorOccurred(QMediaPlayer::Error error, const QString &errorString)
 
@@ -859,6 +1156,15 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
+    \qmlproperty int QtMultimedia::MediaPlayer::duration
+
+    This property holds the duration of the media in milliseconds.
+
+    If the media doesn't have a fixed duration (a live stream for example) this
+    will be set to \c{0}.
+*/
+
+/*!
     \property QMediaPlayer::duration
     \brief the duration of the current media.
 
@@ -869,18 +1175,47 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
+    \qmlproperty int QtMultimedia::MediaPlayer::position
+
+    The value is the current playback position, expressed in milliseconds since
+    the beginning of the media. Periodically changes in the position will be
+    indicated with the positionChanged() signal.
+
+    If the \l seekable property is true, this property can be set to milliseconds.
+*/
+
+/*!
     \property QMediaPlayer::position
     \brief the playback position of the current media.
 
     The value is the current playback position, expressed in milliseconds since
     the beginning of the media. Periodically changes in the position will be
-    indicated with the signal positionChanged().
+    indicated with the positionChanged() signal.
+
+    If the \l seekable property is true, this property can be set to milliseconds.
 */
+
+/*!
+    \qmlproperty real QtMultimedia::MediaPlayer::bufferProgress
+
+    This property holds how much of the data buffer is currently filled,
+    from \c 0.0 (empty) to \c 1.0 (full).
+
+    Playback can start or resume only when the buffer is entirely filled.
+    When the buffer is filled, \c MediaPlayer.Buffered is true.
+    When buffer progress is between \c 0.0 and \c 0.1, \c MediaPlayer.Buffering
+    is set to \c{true}.
+
+    A value lower than \c 1.0 implies that the property \c MediaPlayer.StalledMedia
+    is \c{true}.
+
+    \sa mediaStatus
+ */
 
 /*!
     \property QMediaPlayer::bufferProgress
     \brief the percentage of the temporary buffer filled before playback begins or resumes, from
-    \c 0 (empty) to \c 100 (full).
+    \c 0. (empty) to \c 1. (full).
 
     When the player object is buffering; this property holds the percentage of
     the temporary buffer that is filled. The buffer will need to reach 100%
@@ -912,12 +1247,27 @@ QMediaMetaData QMediaPlayer::metaData() const
 */
 
 /*!
+    \qmlproperty bool QtMultimedia::MediaPlayer::seekable
+
+    This property holds whether the \l position of the media can be changed.
+*/
+
+/*!
     \property QMediaPlayer::seekable
     \brief the seek-able status of the current media
 
     If seeking is supported this property will be true; false otherwise. The
     status of this property may change across the life time of the QMediaPlayer
     object, use the seekableChanged signal to monitor changes.
+*/
+
+/*!
+    \qmlproperty real QtMultimedia::MediaPlayer::playbackRate
+
+    This property holds the rate at which audio is played at as a multiple of
+    the normal rate.
+
+    Defaults to \c{1.0}.
 */
 
 /*!

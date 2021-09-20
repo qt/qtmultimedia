@@ -44,6 +44,36 @@
 #include <private/qplatformmediaintegration_p.h>
 
 /*!
+    \qmltype AudioInput
+    \instantiates QAudioInput
+    \brief An audio input to be used for capturing audio in a capture session.
+
+    \inqmlmodule QtMultimedia
+    \ingroup multimedia_qml
+    \ingroup multimedia_audio_qml
+
+    \qml
+    CaptureSession {
+        id: playMusic
+        audioInput: AudioInput {
+            volume: slider
+        }
+        recorder: MediaRecorder { ... }
+    }
+    Slider {
+    id: slider
+            from: 0.
+            to: 1.
+    }
+    \endqml
+
+    You can use AudioInput together with a QtMultiMedia::CaptureSession to capture audio from an audio
+    input device.
+
+    \sa Camera AudioOutput
+*/
+
+/*!
     \class QAudioInput
     \brief Represents an input channel for audio.
     \inmodule QtMultimedia
@@ -55,12 +85,27 @@
     to be used, muting the channel, and changing the channel's volume.
 */
 
-/*!
-    \property QAudioInput::volume
-    \brief The current volume.
+QAudioInput::QAudioInput(QObject *parent)
+    : QAudioInput(QMediaDevices::defaultAudioInput(), parent)
+{}
 
-    The volume is scaled linearly, ranging from \c 0 (silence) to \c 1
-    (full volume).
+QAudioInput::QAudioInput(const QAudioDevice &device, QObject *parent)
+    : QObject(parent),
+    d(QPlatformMediaIntegration::instance()->createAudioInput(this))
+{
+    d->device = device.mode() == QAudioDevice::Input ? device : QMediaDevices::defaultAudioInput();
+    d->setAudioDevice(d->device);
+}
+
+QAudioInput::~QAudioInput()
+{
+    delete d;
+}
+
+/*!
+    \qmlproperty real QtMultimedia::AudioInput::volume
+
+    The volume is scaled linearly, ranging from \c 0 (silence) to \c 1 (full volume).
     \note values outside this range will be clamped.
 
     By default the volume is \c 1.
@@ -70,59 +115,6 @@
     which is what a user would normally expect from a volume control.
     \sa QAudio::convertVolume()
 */
-
-/*!
-    \property QAudioInput::muted
-    \brief The muted state of the current media.
-
-    The value will be \c true if the input is muted; otherwise \c false.
-*/
-
-/*!
-    \property QAudioInput::device
-    \brief The audio device connected to this input.
-
-    The device property represents the audio device connected to this input. A
-    default constructed QAudioInput object will be connected to the system's
-    default audio input at construction time.
-
-    This property can be used to select any other input device listed by
-    QMediaDevices::audioInputs().
-*/
-
-QAudioInput::QAudioInput(QObject *parent)
-  : QAudioInput(QMediaDevices::defaultAudioInput(), parent)
-{}
-
-QAudioInput::QAudioInput(const QAudioDevice &device, QObject *parent)
-  : QObject(parent),
-    d(QPlatformMediaIntegration::instance()->createAudioInput(this))
-{
-    d->device = device;
-    if (!d->device.isNull() && d->device.mode() != QAudioDevice::Input)
-        d->device = QMediaDevices::defaultAudioInput();
-    d->setAudioDevice(d->device);
-}
-
-QAudioInput::~QAudioInput()
-{
-    delete d;
-}
-
-QAudioDevice QAudioInput::device() const
-{
-    return d->device;
-}
-
-void QAudioInput::setDevice(const QAudioDevice &device)
-{
-    if (device.mode() == QAudioDevice::Output)
-        return;
-    d->device = device;
-    d->setAudioDevice(device);
-    emit deviceChanged();
-}
-
 float QAudioInput::volume() const
 {
     return d->volume;
@@ -138,6 +130,20 @@ void QAudioInput::setVolume(float volume)
     emit volumeChanged(volume);
 }
 
+/*!
+    \qmlproperty bool QtMultimedia::AudioInput::muted
+
+    This property holds whether the audio input is muted.
+
+    Defaults to \c{false}.
+*/
+
+/*!
+    \property QAudioInput::muted
+    \brief The muted state of the current media.
+
+    The value will be \c true if the input is muted; otherwise \c false.
+*/
 bool QAudioInput::isMuted() const
 {
     return d->muted;
@@ -152,4 +158,43 @@ void QAudioInput::setMuted(bool muted)
     emit mutedChanged(muted);
 }
 
+/*!
+    \qmlproperty QtMultimedia::AudioInput::device
+
+    This property describes the audio device connected to this input.
+
+    The device property represents the audio device this input is connected to.
+    This property can be used to select an output device from the
+    QtMultimedia::MediaDevices::audioInputs() list.
+*/
+
+/*!
+    \property QAudioInput::device
+    \brief The audio device connected to this input.
+
+    The device property represents the audio device connected to this input.
+    This property can be used to select an input device from the
+    QMediaDevices::audioInputs() list.
+
+    You can select the system default audio input by setting this property to
+    a default constructed QAudioDevice object.
+*/
+QAudioDevice QAudioInput::device() const
+{
+    return d->device;
+}
+
+void QAudioInput::setDevice(const QAudioDevice &device)
+{
+    auto dev = device;
+    if (dev.isNull())
+        dev = QMediaDevices::defaultAudioInput();
+    if (dev.mode() != QAudioDevice::Input)
+        return;
+    if (d->device == dev)
+        return;
+    d->device = dev;
+    d->setAudioDevice(dev);
+    emit deviceChanged();
+}
 #include "moc_qaudioinput.cpp"
