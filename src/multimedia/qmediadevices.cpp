@@ -53,16 +53,25 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia
     \inmodule QtMultimedia
 
-    The QMediaDevices class helps in managing the available multimedia
-    input and output devices. It manages three types of devices:
+    The QMediaDevices class provides information about the available multimedia
+    devices and the system defaults. It monitors the following three groups:
     \list
     \li Audio input devices (Microphones)
     \li Audio output devices (Speakers, Headsets)
     \li Video input devices (Cameras)
     \endlist
 
-    QMediaDevices allows listing all available devices and will emit
-    signals when the list of available devices has changed.
+    QMediaDevices provides a separate list for each device group. If it detects that a
+    new device has been connected to the system or an attached device has been disconnected
+    from the system, it will update the corresponding device list and emit a signal
+    notifying about the change.
+
+    QMediaDevices monitors the system defaults for each device group. It will notify about
+    any changes done through the system settings. For example, if the user selects a new
+    default audio output in the system settings, QMediaDevices will update the default audio
+    output accordingly and emit a signal. If the system does not provide a default for a
+    camera or an audio input, QMediaDevices will select the first device from the list as
+    the default device.
 
     While using the default input and output devices is often sufficient for
     playing back or recording multimedia, there is often a need to explicitly
@@ -72,10 +81,69 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \qmltype MediaDevices
+    \since 6.2
+    \instantiates QMediaDevices
+    \brief MediaDevices provides information about available
+    multimedia input and output devices.
+    \inqmlmodule QtMultimedia
+    \ingroup multimedia_qml
+
+    The MediaDevices type provides information about the available multimedia
+    devices and the system defaults. It monitors the following three groups:
+    \list
+    \li Audio input devices (Microphones)
+    \li Audio output devices (Speakers, Headsets)
+    \li Video input devices (Cameras)
+    \endlist
+
+    MediaDevices provides a separate list for each device group. If it detects that a
+    new device has been connected to the system or an attached device has been disconnected
+    from the system, it will update the corresponding device list and emit a signal
+    notifying about the change.
+
+    MediaDevices monitors the system defaults for each device group. It will notify about
+    any changes done through the system settings. For example, if the user selects a new
+    default audio output in the system settings, MediaDevices will update the default audio
+    output accordingly and emit a signal. If the system does not provide a default for a
+    camera or an audio input, MediaDevices will select the first device from the list as
+    the default device.
+
+    While using the default input and output devices is often sufficient for
+    playing back or recording multimedia, there is often a need to explicitly
+    select the device to be used.
+
+    For example, the snippet below will ensure that the media player always uses
+    the systems default audio output device for playback:
+
+    \qml
+    MediaDevices {
+        id: devices
+    }
+    MediaPlayer {
+        ...
+        audioOutput: AudioOutput {
+            device: devices.defaultAudioOutput
+        }
+    }
+    \endqml
+
+    \sa Camera, AudioInput, VideoOutput
+*/
+
+/*!
+    \qmlproperty QtMultimedia::MediaDevices::audioInputs
+    Contains a list of available audio input devices on the system.
+
+    Those devices are usually microphones. Devices can be either built-in, or
+    connected through for example USB or Bluetooth.
+*/
+
+/*!
     Returns a list of available audio input devices on the system.
 
-    Those devices are usually microphones. Devices are either built-in, or
-    connected to the device through USB or Bluetooth.
+    Those devices are usually microphones. Devices can be either built-in, or
+    connected through for example USB or Bluetooth.
 */
 QList<QAudioDevice> QMediaDevices::audioInputs()
 {
@@ -83,15 +151,28 @@ QList<QAudioDevice> QMediaDevices::audioInputs()
 }
 
 /*!
+    \qmlproperty QtMultimedia::MediaDevices::audioOutputs
+    Contains a list of available audio output devices on the system.
+
+    Those devices are usually loudspeakers or head sets. Devices can be either
+    built-in, or connected through for example USB or Bluetooth.
+*/
+
+/*!
     Returns a list of available audio output devices on the system.
 
-    Those devices are usually loudspeakers or head sets. Devices are either
-    built-in, or connected to the device through USB or Bluetooth.
+    Those devices are usually loudspeakers or head sets. Devices can be either
+    built-in, or connected through for example USB or Bluetooth.
 */
 QList<QAudioDevice> QMediaDevices::audioOutputs()
 {
     return QPlatformMediaIntegration::instance()->devices()->audioOutputs();
 }
+
+/*!
+    \qmlproperty QtMultimedia::MediaDevices::videoInputs
+    Contains a list of cameras on the system.
+*/
 
 /*!
     Returns a list of available cameras on the system.
@@ -100,6 +181,14 @@ QList<QCameraDevice> QMediaDevices::videoInputs()
 {
     return QPlatformMediaIntegration::instance()->devices()->videoInputs();
 }
+
+/*!
+    \qmlproperty QtMultimedia::MediaDevices::defaultAudioInput
+    Returns the default audio input device.
+
+    The default device can change during the runtime of the application. The value
+    of this property will automatically adjust itself to such changes.
+*/
 
 /*!
     Returns the default audio input device.
@@ -117,6 +206,14 @@ QAudioDevice QMediaDevices::defaultAudioInput()
 }
 
 /*!
+    \qmlproperty QtMultimedia::MediaDevices::defaultAudioOutput
+    Returns the default audio output device.
+
+    The default device can change during the runtime of the application. The value
+    of this property will automatically adjust itself to such changes.
+*/
+
+/*!
     Returns the default audio output device.
 
     The default device can change during the runtime of the application. The
@@ -130,6 +227,17 @@ QAudioDevice QMediaDevices::defaultAudioOutput()
             return info;
     return outputs.value(0);
 }
+
+/*!
+    \qmlproperty QtMultimedia::MediaDevices::defaultVideoInput
+    Returns the default camera on the system.
+
+    \note The returned object should be checked using isNull() before being used,
+    in case there is no camera available.
+
+    The default device can change during the runtime of the application. The value
+    of this property will automatically adjust itself to such changes.
+*/
 
 /*!
     Returns the default camera on the system.
