@@ -62,6 +62,8 @@ QT_BEGIN_NAMESPACE
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_recording
+    \ingroup multimedia_video
+    \ingroup multimedia_audio
 
     \brief The QMediaRecorder class is used for encoding and recording a capture session.
 

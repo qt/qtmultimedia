@@ -87,6 +87,8 @@ public:
     \brief The QMediaCaptureSession class allows capturing of audio and video content.
     \inmodule QtMultimedia
     \ingroup multimedia
+    \ingroup multimedia_video
+    \ingroup multimedia_audio
 
     The QMediaCaptureSession is the central class that manages capturing of media on the local device.
 

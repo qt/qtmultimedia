@@ -72,6 +72,7 @@ QT_BEGIN_NAMESPACE
     \brief The QVideoWidget class provides a widget which presents video
     produced by a media object.
     \ingroup multimedia
+    \ingroup multimedia_video
     \inmodule QtMultimediaWidgets
 
     Attaching a QVideoWidget to a QMediaPlayer or QCamera allows it to display the

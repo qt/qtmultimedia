@@ -60,6 +60,7 @@ QT_BEGIN_NAMESPACE
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_playback
+    \ingroup multimedia_video
 
     The QMediaPlayer class is a high level media playback class. It can be used
     to playback audio of video media files. The content
