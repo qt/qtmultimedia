@@ -158,13 +158,13 @@ public:
     Q_INVOKABLE QList<VideoCodec> supportedVideoCodecs(ConversionMode m);
     Q_INVOKABLE QList<AudioCodec> supportedAudioCodecs(ConversionMode m);
 
-    Q_INVOKABLE static QString fileFormatName(FileFormat c);
-    Q_INVOKABLE static QString audioCodecName(AudioCodec c);
-    Q_INVOKABLE static QString videoCodecName(VideoCodec c);
+    Q_INVOKABLE static QString fileFormatName(FileFormat fileFormat);
+    Q_INVOKABLE static QString audioCodecName(AudioCodec codec);
+    Q_INVOKABLE static QString videoCodecName(VideoCodec codec);
 
-    static QString fileFormatDescription(QMediaFormat::FileFormat c);
-    static QString audioCodecDescription(QMediaFormat::AudioCodec c);
-    static QString videoCodecDescription(QMediaFormat::VideoCodec c);
+    Q_INVOKABLE static QString fileFormatDescription(QMediaFormat::FileFormat fileFormat);
+    Q_INVOKABLE static QString audioCodecDescription(QMediaFormat::AudioCodec codec);
+    Q_INVOKABLE static QString videoCodecDescription(QMediaFormat::VideoCodec codec);
 
     bool operator==(const QMediaFormat &other) const;
     bool operator!=(const QMediaFormat &other) const
