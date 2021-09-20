@@ -51,6 +51,7 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audio_qml
     \ingroup multimedia_video_qml
     \brief Defines an item in a Playlist.
+    \internal
 
     \sa Playlist
 */
@@ -82,6 +83,7 @@ void QQuickPlaylistItem::setSource(const QUrl &source)
     \instantiates QQuickPlaylist
     \since 5.6
     \brief For specifying a list of media to be played.
+    \internal
 
     \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
