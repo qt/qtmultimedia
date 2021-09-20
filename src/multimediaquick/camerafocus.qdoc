@@ -60,17 +60,18 @@ QT_BEGIN_NAMESPACE
         width: 640
         height: 360
 
-        Camera {
-            id: camera
+        CaptureSession {
+            camera: Camera {
+                id: camera
 
-            focus {
-                focusMode: Camera.FocusMacro
+                focusMode: Camera.FocusModeAutoNear
                 customFocusPoint: Qt.point(0.2, 0.2) // Focus relative to top-left corner
             }
+            videoOutput: videoOutput
         }
 
         VideoOutput {
-            source: camera
+            id: videoOutput
             anchors.fill: parent
         }
     }
