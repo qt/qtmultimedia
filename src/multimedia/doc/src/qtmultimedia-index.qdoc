@@ -101,14 +101,32 @@
      \li Type
      \li Description
     \row
-     \li \l {QtMultimedia::Camera}{Camera}
-     \li Access camera viewfinder frames
+     \li \l{MediaPlayer}
+     \li Add audio/video playback functionality to a scene.
     \row
-     \li MediaPlayer
-     \li Add audio and/or video playback functionality to a scene.
+     \li \l {QtMultimedia::CaptureSession}{CaptureSession}
+     \li Create a session for capturing audio/video.
+    \row
+     \li \l {QtMultimedia::Camera}{Camera}
+     \li Access a camera connected to the system.
+    \row
+     \li \l {QtMultimedia::AudioInput}{AudioInput}
+     \li Access an audio input (microphone) connected to the system.
+    \row
+     \li \l {QtMultimedia::AudioOutput}{AudioOutput}
+     \li Access an audio output (speaker, headphone) connected to the system.
+    \row
+     \li \l {QtMultimedia::VideoOutput}{VideoOutput}
+     \li Display video content.
+    \row
+     \li \l {QtMultimedia::MediaRecorder}{MediaRecorder}
+     \li Record audio/video from the CaptureSession.
+    \row
+     \li \l {QtMultimedia::ImageCapture}{ImageCapture}
+     \li Capture still images from the Camera.
     \row
      \li \l {QtMultimedia::Video}{Video}
-     \li Add Video playback functionality to a scene. It uses MediaPlayer and
+     \li Add Video playback functionality to a scene. Uses MediaPlayer and
      VideoOutput types to provide video playback functionality.
     \endtable
 
@@ -121,26 +139,35 @@
      \li Class
      \li Description
     \row
-     \li QAudioSink
-     \li Sends audio data to an audio output device.
+     \li QMediaPlayer
+     \li Playback media from a source.
+    \row
+     \li QVideoWidget
+     \li Display video from a media player or a capture session.
     \row
      \li QMediaCaptureSession
-     \li Allows capturing of audio and video.
+     \li Capture audio and video.
     \row
      \li QCamera
-     \li Access camera features.
+     \li Access a camera connected to the system
+    \row
+     \li QAudioInput
+     \li Access an audio input (microphone) connected to the system.
+    \row
+     \li QAudioOutput
+     \li Access an audio output (speaker, headphone) connected to the system.
     \row
      \li QImageCapture
      \li Capture still images with a camera.
     \row
      \li QMediaRecorder
-     \li Record media content from a camera source.
-    \row
-     \li QMediaPlayer
-     \li Playback media from a source.
+     \li Record media content from a capture session.
     \row
      \li QVideoSink
-     \li Class for video presentation.
+     \li Access and render individual video frames.
+    \row
+     \li QAudioSink
+     \li Sends raw audio data to an audio output device.
     \endtable
 
     For playback QMediaPlayer, QAudioOutput and QVideoOutput contain all the required functionality.
