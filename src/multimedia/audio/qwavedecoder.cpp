@@ -141,7 +141,8 @@ int QWaveDecoder::duration() const
 {
     if (openMode() & QIODevice::WriteOnly)
         return 0;
-    return size() * 1000 / (format.bytesPerFrame() * format.sampleRate());
+    int bytesPerSec = format.bytesPerFrame() * format.sampleRate();
+    return bytesPerSec ? size() * 1000 / bytesPerSec : 0;
 }
 
 qint64 QWaveDecoder::size() const
