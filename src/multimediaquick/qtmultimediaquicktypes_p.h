@@ -110,7 +110,7 @@ namespace QMediaMetaDataNamespaceForeign
 {
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QMediaMetaData)
-    QML_NAMED_ELEMENT(MetaData)
+    QML_NAMED_ELEMENT(MediaMetaData)
 };
 
 struct QMediaDevicesForeign
