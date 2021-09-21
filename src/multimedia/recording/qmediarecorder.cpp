@@ -82,48 +82,43 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_audio_qml
     \ingroup multimedia_video_qml
 
+    The MediaRecorder element can be used within a CaptureSession to record and encode audio and
+    video captured from a microphone and camera
+
     \since 6.2
-    The code below shows how this qml is instantiated.
+    The code below shows a simple capture session containing a MediaRecorder using the default
+    camera and default audio input.
+
 \qml
     CaptureSession {
         id: captureSession
         camera: Camera {
             id: camera
         }
-        imageCapture: ImageCapture {
-            id: imageCapture
-        }
-
+        audioInput: AudioInput {}
         recorder: MediaRecorder {
             id: recorder
         }
     }
 \endqml
 
-    The code below shows how some properties are used.
+    The code below shows how the recording can be started and stopped.
 \qml
     CameraButton {
         text: "Record"
-        visible: captureSession.recorder.status !== MediaRecorder.RecordingStatus
-        onClicked: captureSession.recorder.record()
+        visible: recorder.status !== MediaRecorder.RecordingStatus
+        onClicked: recorder.record()
     }
 
     CameraButton {
         id: stopButton
         text: "Stop"
-        visible: captureSession.recorder.status === MediaRecorder.RecordingStatus
-        onClicked: captureSession.recorder.stop()
-    }
-
-    CameraButton {
-        text: "View"
-        onClicked: captureControls.previewSelected()
-        //don't show View button during recording
-        visible: captureSession.recorder.actualLocation && !stopButton.visible
+        visible: recorder.status === MediaRecorder.RecordingStatus
+        onClicked: recorder.stop()
     }
 \endqml
 
-    \sa CaptureSession
+    \sa CaptureSession, Camera, AudioInput, ImageCapture
 */
 QMediaRecorderPrivate::QMediaRecorderPrivate()
 {
