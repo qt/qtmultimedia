@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -119,20 +119,6 @@ QImageCapture::QImageCapture(QObject *parent)
     Q_D(QImageCapture);
     d->q_ptr = this;
     d->control = QPlatformMediaIntegration::instance()->createImageCapture(this);
-}
-
-void QImageCapture::setCaptureSession(QMediaCaptureSession *session)
-{
-    Q_D(QImageCapture);
-    d->captureSession = session;
-
-    QPlatformMediaCaptureSession *platformSession = session ? session->platformSession() : nullptr;
-
-    if (platformSession && d->control) {
-        platformSession->setImageCapture(d->control);
-    } else {
-        return;
-    }
 
     connect(d->control, SIGNAL(imageExposed(int)),
             this, SIGNAL(imageExposed(int)));
@@ -148,6 +134,17 @@ void QImageCapture::setCaptureSession(QMediaCaptureSession *session)
             this, SIGNAL(readyForCaptureChanged(bool)));
     connect(d->control, SIGNAL(error(int,int,QString)),
             this, SLOT(_q_error(int,int,QString)));
+}
+
+void QImageCapture::setCaptureSession(QMediaCaptureSession *session)
+{
+    Q_D(QImageCapture);
+    d->captureSession = session;
+
+    QPlatformMediaCaptureSession *platformSession = session ? session->platformSession() : nullptr;
+
+    if (platformSession && d->control)
+        platformSession->setImageCapture(d->control);
 }
 
 /*!
