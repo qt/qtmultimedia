@@ -122,6 +122,34 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
 */
 
 /*!
+    \qmltype cameraDevice
+    \inqmlmodule QtMultimedia
+    \since 6.2
+    \instantiates QCameraDevice
+    \brief Describes a camera device.
+    \ingroup multimedia_qml
+    \ingroup multimedia_video_qml
+
+    The cameraDevice value type describes the properties of a camera device that
+    is connected to the system.
+
+    The list of camera devices can be queried from the \l{MediaDevices}
+    type. To select a certain camera device set it as the device
+    on \l{Camera}.
+
+    \qml
+    CaptureSession {
+        camera: Camera {
+            device: mediaDevices.defaultVideoInput
+        }
+    }
+    MediaDevices {
+        id: mediaDevices
+    }
+    \endqml
+*/
+
+/*!
   Constructs a null camera device
 */
 QCameraDevice::QCameraDevice() = default;
@@ -161,6 +189,14 @@ bool QCameraDevice::isNull() const
 }
 
 /*!
+    \qmlmethod string QtMultimedia::cameraDevice::id
+
+    Returns the device id of the camera
+
+    This is a unique ID to identify the camera and may not be human-readable.
+*/
+
+/*!
     Returns the device id of the camera
 
     This is a unique ID to identify the camera and may not be human-readable.
@@ -170,18 +206,72 @@ QByteArray QCameraDevice::id() const
     return d ? d->id : QByteArray();
 }
 
+/*!
+    \qmlmethod bool QtMultimedia::cameraDevice::isDefault
+
+    Returns true if this is the default camera device.
+*/
+
+/*!
+    Returns true if this is the default camera device.
+*/
 bool QCameraDevice::isDefault() const
 {
     return d ? d->isDefault : false;
 }
 
 /*!
+    \qmlmethod string QtMultimedia::cameraDevice::description
+
+    Returns a human readable name of the camera.
+
+    Use this string to present the device to the user.
+*/
+
+/*!
     Returns the human-readable description of the camera.
+
+    Use this string to present the device to the user.
 */
 QString QCameraDevice::description() const
 {
     return d ? d->description : QString();
 }
+
+/*!
+    \enum QCameraDevice::Position
+
+    Describes the physical position of the camera on the hardware system.
+
+    \value CameraDevice.UnspecifiedPosition
+        The physical positition of the camera is unspecified.
+    \value CameraDevice.FrontFace
+        The camera is on the front of the hardware, facing towards the user.
+    \value CameraDevice.BackFace
+        The camera is on the back of the hardware, facing away from the user.
+    \endtable
+*/
+
+
+/*!
+    \qmlmethod enumeration QtMultimedia::cameraDevice::position
+
+    Returns the physical position of the camera on the hardware system.
+
+    The returned value can be one of the following:
+
+    \table
+    \header
+        \li Property value
+        \li Description
+    \row \li CameraDevice.UnspecifiedPosition
+        \li The physical positition of the camera is unspecified.
+    \row \li CameraDevice.FrontFace
+        \li The camera is on the front of the hardware, facing towards the user.
+    \row \li CameraDevice.BackFace
+        \li The camera is on the back of the hardware, facing away from the user.
+    \endtable
+*/
 
 /*!
     Returns the physical position of the camera on the hardware system.
@@ -191,6 +281,12 @@ QCameraDevice::Position QCameraDevice::position() const
     return d ? d->position : QCameraDevice::UnspecifiedPosition;
 }
 
+/*!
+    Returns a list of resolutions that the camera can use to
+    capture still images.
+
+    \sa QCameraImageCapture
+ */
 QList<QSize> QCameraDevice::photoResolutions() const
 {
     return d ? d->photoResolutions : QList<QSize>{};

@@ -141,11 +141,25 @@ struct QAudioDeviceForeign
     QML_NAMED_ELEMENT(audioDevice)
 };
 
+namespace QAudioDeviceNamespaceForeign
+{
+    Q_NAMESPACE
+    QML_FOREIGN_NAMESPACE(QAudioDevice)
+    QML_NAMED_ELEMENT(AudioDevice)
+};
+
 struct QCameraDeviceForeign
 {
     Q_GADGET
     QML_FOREIGN(QCameraDevice)
     QML_NAMED_ELEMENT(cameraDevice)
+};
+
+namespace QCameraDeviceNamespaceForeign
+{
+    Q_NAMESPACE
+    QML_FOREIGN_NAMESPACE(QCameraDevice)
+    QML_NAMED_ELEMENT(CameraDevice)
 };
 
 struct QMediaFormatForeign
