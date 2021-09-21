@@ -526,7 +526,7 @@ void QMediaRecorder::stop()
 */
 
 /*!
-    \qmlproperty MetaData QtMultimedia::MediaRecorder::metaData
+    \qmlproperty MediaMetaData QtMultimedia::MediaRecorder::metaData
 
     \brief This property holds meta data associated with the recording.
 

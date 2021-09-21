@@ -82,21 +82,21 @@ ColumnLayout {
             height: Style.height
             font.pointSize: Style.fontSize
             model: ListModel {
-                ListElement { text: "Title"; value: MetaData.Title }
-                ListElement { text: "Author"; value: MetaData.Author }
-                ListElement { text: "Comment"; value: MetaData.Comment }
-                ListElement { text: "Description"; value: MetaData.Description }
-                ListElement { text: "Genre"; value: MetaData.Genre }
-                ListElement { text: "Publisher"; value: MetaData.Publisher }
-                ListElement { text: "Copyright"; value: MetaData.Copyright }
-                ListElement { text: "Date"; value: MetaData.Date }
-                ListElement { text: "Url"; value: MetaData.Url }
-                ListElement { text: "MediaType"; value: MetaData.MediaType }
-                ListElement { text: "AlbumTitle"; value: MetaData.AlbumTitle }
-                ListElement { text: "AlbumArtist"; value: MetaData.AlbumArtist }
-                ListElement { text: "ContributingArtist"; value: MetaData.ContributingArtist }
-                ListElement { text: "Composer"; value: MetaData.Composer }
-                ListElement { text: "LeadPerformer"; value: MetaData.LeadPerformer }
+                ListElement { text: "Title"; value: MediaMetaData.Title }
+                ListElement { text: "Author"; value: MediaMetaData.Author }
+                ListElement { text: "Comment"; value: MediaMetaData.Comment }
+                ListElement { text: "Description"; value: MediaMetaData.Description }
+                ListElement { text: "Genre"; value: MediaMetaData.Genre }
+                ListElement { text: "Publisher"; value: MediaMetaData.Publisher }
+                ListElement { text: "Copyright"; value: MediaMetaData.Copyright }
+                ListElement { text: "Date"; value: MediaMetaData.Date }
+                ListElement { text: "Url"; value: MediaMetaData.Url }
+                ListElement { text: "MediaType"; value: MediaMetaData.MediaType }
+                ListElement { text: "AlbumTitle"; value: MediaMetaData.AlbumTitle }
+                ListElement { text: "AlbumArtist"; value: MediaMetaData.AlbumArtist }
+                ListElement { text: "ContributingArtist"; value: MediaMetaData.ContributingArtist }
+                ListElement { text: "Composer"; value: MediaMetaData.Composer }
+                ListElement { text: "LeadPerformer"; value: MediaMetaData.LeadPerformer }
             }
             textRole: "text"
             valueRole: "value"
