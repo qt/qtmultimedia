@@ -98,17 +98,38 @@ QQuickImageCapture::QQuickImageCapture(QObject *parent)
 QQuickImageCapture::~QQuickImageCapture() = default;
 
 /*!
-    \qmlproperty bool QtMultimedia::CameraCapture::readyForCapture
+    \qmlproperty bool QtMultimedia::ImageCapture::readyForCapture
 
     This property holds a bool value indicating whether the camera
     is ready to capture photos or not.
 
-    Calling capture() while \e ready is \c false is not permitted and
+    Calling capture() or captureToFile() while \e ready is \c false is not permitted and
     results in an error.
 */
 
 /*!
-    \qmlmethod QtMultimedia::CameraCapture::capture()
+    \qmlproperty bool QtMultimedia::ImageCapture::preview
+
+    This property holds a url to the latest captured image. It can be connected to the
+    source property of an \l Image element to show the last captured image.
+
+    \qml
+    CaptureSession {
+        camera: Camera {}
+        imageCapture: ImageCapture {
+            id: capture
+        }
+    }
+    Image {
+        source: capture.preview
+    }
+    \endqml
+
+    \sa saveToFile
+*/
+
+/*!
+    \qmlmethod QtMultimedia::ImageCapture::capture()
 
     Start image capture.  The \l imageCaptured and \l imageSaved signals will
     be emitted when the capture is complete.
@@ -124,11 +145,11 @@ QQuickImageCapture::~QQuickImageCapture() = default;
     capture() returns the capture requestId parameter, used with
     imageExposed(), imageCaptured(), imageMetadataAvailable() and imageSaved() signals.
 
-    \sa ready
+    \sa ready, preview
 */
 
 /*!
-    \qmlmethod QtMultimedia::CameraCapture::captureToFile()
+    \qmlmethod QtMultimedia::ImageCapture::captureToFile(location)
 
     Does the same as capture() but additionally automatically saves the captured image to the specified
     \a location.
@@ -141,6 +162,13 @@ QString QQuickImageCapture::preview() const
     return m_capturedImagePath;
 }
 
+/*!
+    \qmlmethod QtMultimedia::ImageCapture::saveToFile(location)
+
+    Saves the last captured image to \a location.
+
+    \sa capture, preview
+*/
 void QQuickImageCapture::saveToFile(const QUrl &location) const
 {
     m_lastImage.save(location.toLocalFile());
@@ -156,24 +184,24 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
 }
 
 /*!
-    \qmlsignal QtMultimedia::CameraCapture::errorOccurred(requestId, Error, message)
+    \qmlsignal QtMultimedia::ImageCapture::errorOccurred(requestId, Error, message)
 
     This signal is emitted when an error occurs during capture with \a requestId.
     A descriptive message is available in \a message.
 */
 
 /*!
-    \qmlsignal QtMultimedia::CameraCapture::imageCaptured(requestId, preview)
+    \qmlsignal QtMultimedia::ImageCapture::imageCaptured(requestId, previewImage)
 
     This signal is emitted when an image with \a requestId has been captured
-    but not yet saved to the filesystem.  The \a preview
-    parameter can be used as the URL supplied to an \l Image.
+    but not yet saved to the filesystem.  The \a previewImage
+    parameter is the captured image.
 
-    \sa imageSaved
+    \sa imageSaved, preview
 */
 
 /*!
-    \qmlsignal QtMultimedia::CameraCapture::imageSaved(requestId, path)
+    \qmlsignal QtMultimedia::ImageCapture::imageSaved(requestId, path)
 
     This signal is emitted after the image with \a requestId has been written to the filesystem.
     The \a path is a local file path, not a URL.
@@ -183,7 +211,7 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
 
 
 /*!
-    \qmlsignal QtMultimedia::CameraCapture::imageMetadataAvailable(requestId, key, value)
+    \qmlsignal QtMultimedia::ImageCapture::imageMetadataAvailable(requestId, key, value)
 
     This signal is emitted when the image with \a requestId has new metadata
     available with the key \a key and value \a value.
