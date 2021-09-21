@@ -99,9 +99,9 @@ QPlatformImageCapture *QMockIntegration::createImageCapture(QImageCapture *captu
     return new QMockImageCapture(capture);
 }
 
-QPlatformMediaEncoder *QMockIntegration::createEncoder(QMediaRecorder *encoder)
+QPlatformMediaRecorder *QMockIntegration::createRecorder(QMediaRecorder *recorder)
 {
-    return new QMockMediaEncoder(encoder);
+    return new QMockMediaEncoder(recorder);
 }
 
 QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession()

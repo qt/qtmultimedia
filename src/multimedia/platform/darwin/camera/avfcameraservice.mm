@@ -106,14 +106,14 @@ void AVFCameraService::setImageCapture(QPlatformImageCapture *imageCapture)
         m_imageCaptureControl->setCaptureSession(this);
 }
 
-QPlatformMediaEncoder *AVFCameraService::mediaEncoder()
+QPlatformMediaRecorder *AVFCameraService::mediaRecorder()
 {
     return m_encoder;
 }
 
-void AVFCameraService::setMediaEncoder(QPlatformMediaEncoder *encoder)
+void AVFCameraService::setMediaRecorder(QPlatformMediaRecorder *recorder)
 {
-    AVFMediaEncoder *control = static_cast<AVFMediaEncoder *>(encoder);
+    AVFMediaEncoder *control = static_cast<AVFMediaEncoder *>(recorder);
     if (m_encoder == control)
         return;
 

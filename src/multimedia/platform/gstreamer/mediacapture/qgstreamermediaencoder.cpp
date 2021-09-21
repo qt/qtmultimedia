@@ -59,7 +59,7 @@
 Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 
 QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
-  : QPlatformMediaEncoder(parent),
+  : QPlatformMediaRecorder(parent),
     audioPauseControl(*this),
     videoPauseControl(*this)
 {

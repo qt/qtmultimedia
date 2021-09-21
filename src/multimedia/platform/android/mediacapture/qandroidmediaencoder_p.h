@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediarecorder_p.h>
 #include <private/qplatformmediacapture_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 class QAndroidCaptureSession;
 class QAndroidMediaCaptureSession;
 
-class QAndroidMediaEncoder : public QPlatformMediaEncoder
+class QAndroidMediaEncoder : public QPlatformMediaRecorder
 {
 public:
     explicit QAndroidMediaEncoder(QMediaRecorder *parent);

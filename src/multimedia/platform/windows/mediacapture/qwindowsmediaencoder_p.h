@@ -51,7 +51,7 @@
 #ifndef QWINDOWSMEDIAENCODER_H
 #define QWINDOWSMEDIAENCODER_H
 
-#include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediarecorder_p.h>
 
 #include <QtCore/qglobal.h>
 #include <QtCore/qurl.h>
@@ -62,7 +62,7 @@ class QWindowsMediaDeviceSession;
 class QPlatformMediaCaptureSession;
 class QWindowsMediaCaptureService;
 
-class QWindowsMediaEncoder : public QObject, public QPlatformMediaEncoder
+class QWindowsMediaEncoder : public QObject, public QPlatformMediaRecorder
 {
     Q_OBJECT
 public:

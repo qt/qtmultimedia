@@ -48,8 +48,8 @@
 // We mean it.
 //
 
-#ifndef QPLATFORMMEDIAENCODER_H
-#define QPLATFORMMEDIAENCODER_H
+#ifndef QPLATFORMMEDIARECORDER_H
+#define QPLATFORMMEDIARECORDER_H
 
 #include <QtCore/qurl.h>
 #include <QtCore/qsize.h>
@@ -132,10 +132,10 @@ public:
     { return !operator==(other); }
 };
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaEncoder
+class Q_MULTIMEDIA_EXPORT QPlatformMediaRecorder
 {
 public:
-    virtual ~QPlatformMediaEncoder() {}
+    virtual ~QPlatformMediaRecorder() {}
 
     virtual bool isLocationWritable(const QUrl &location) const = 0;
 
@@ -160,7 +160,7 @@ public:
     void clearError() { error(QMediaRecorder::NoError, QString()); }
 
 protected:
-    explicit QPlatformMediaEncoder(QMediaRecorder *parent);
+    explicit QPlatformMediaRecorder(QMediaRecorder *parent);
 
     void stateChanged(QMediaRecorder::RecorderState state);
     void durationChanged(qint64 position);

@@ -52,7 +52,7 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediarecorder_p.h>
 #include "qgstreamermediacapture_p.h"
 #include "private/qgstreamermetadata_p.h"
 
@@ -66,7 +66,7 @@ QT_BEGIN_NAMESPACE
 class QMediaMetaData;
 class QGstreamerMessage;
 
-class QGstreamerMediaEncoder : public QPlatformMediaEncoder, QGstreamerBusMessageFilter
+class QGstreamerMediaEncoder : public QPlatformMediaRecorder, QGstreamerBusMessageFilter
 {
 public:
     QGstreamerMediaEncoder(QMediaRecorder *parent);
@@ -92,13 +92,13 @@ private:
 
 private:
     struct PauseControl {
-        PauseControl(QPlatformMediaEncoder &encoder) : encoder(encoder) {}
+        PauseControl(QPlatformMediaRecorder &encoder) : encoder(encoder) {}
 
         GstPadProbeReturn processBuffer(QGstPad pad, GstPadProbeInfo *info);
         void installOn(QGstPad pad);
         void reset();
 
-        QPlatformMediaEncoder &encoder;
+        QPlatformMediaRecorder &encoder;
         GstClockTime pauseOffsetPts = 0;
         std::optional<GstClockTime> pauseStartPts;
         std::optional<GstClockTime> firstBufferPts;

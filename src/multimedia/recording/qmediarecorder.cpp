@@ -39,7 +39,7 @@
 
 #include "qmediarecorder_p.h"
 
-#include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediarecorder_p.h>
 #include <qaudiodevice.h>
 #include <qcamera.h>
 #include <qmediacapturesession.h>
@@ -143,7 +143,7 @@ QMediaRecorder::QMediaRecorder(QObject *parent)
 {
     Q_D(QMediaRecorder);
     d->q_ptr = this;
-    d->control = QPlatformMediaIntegration::instance()->createEncoder(this);
+    d->control = QPlatformMediaIntegration::instance()->createRecorder(this);
 }
 
 /*!
@@ -161,7 +161,7 @@ QMediaRecorder::~QMediaRecorder()
 /*!
     \internal
 */
-QPlatformMediaEncoder *QMediaRecorder::platformEncoder() const
+QPlatformMediaRecorder *QMediaRecorder::platformRecoder() const
 {
     return d_ptr->control;
 }

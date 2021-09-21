@@ -74,7 +74,7 @@ public:
     QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *) override;
     QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaEncoder *createEncoder(QMediaRecorder *) override;
+    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
     QPlatformImageCapture *createImageCapture(QImageCapture *) override;
     QPlatformMediaCaptureSession *createCaptureSession() override;
     QPlatformVideoSink *createVideoSink(QVideoSink *) override;

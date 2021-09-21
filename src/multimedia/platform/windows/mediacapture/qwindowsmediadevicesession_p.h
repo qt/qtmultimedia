@@ -55,7 +55,7 @@
 #include <qcamera.h>
 #include <qaudiodevice.h>
 #include <qwindowsmultimediautils_p.h>
-#include <qplatformmediaencoder_p.h>
+#include <qplatformmediarecorder_p.h>
 
 QT_BEGIN_NAMESPACE
 

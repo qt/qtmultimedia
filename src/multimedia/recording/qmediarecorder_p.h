@@ -55,11 +55,11 @@
 #include "qcamera.h"
 #include <QtCore/qurl.h>
 #include <QtCore/qpointer.h>
-#include "private/qplatformmediaencoder_p.h"
+#include "private/qplatformmediarecorder_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QPlatformMediaEncoder;
+class QPlatformMediaRecorder;
 class QTimer;
 
 class QMediaRecorderPrivate
@@ -72,7 +72,7 @@ public:
     static QString msgFailedStartRecording();
 
     QMediaCaptureSession *captureSession = nullptr;
-    QPlatformMediaEncoder *control = nullptr;
+    QPlatformMediaRecorder *control = nullptr;
 
     bool settingsChanged = false;
 

@@ -38,7 +38,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformimagecapture.cpp platform/qplatformimagecapture_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
         platform/qplatformmediadevices.cpp platform/qplatformmediadevices_p.h
-        platform/qplatformmediaencoder.cpp platform/qplatformmediaencoder_p.h
+        platform/qplatformmediarecorder.cpp platform/qplatformmediarecorder_p.h
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
