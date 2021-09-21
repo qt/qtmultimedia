@@ -667,18 +667,16 @@ QAudioOutput *QMediaPlayer::audioOutput() const
 }
 
 /*!
-    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::audioTracks
+    \qmlproperty list<mediaMetaData> QtMultimedia::MediaPlayer::audioTracks
 
     This property holds a list of metadata.
     Each index refers to an audio track.
 
-    The metadata holds 2 properties;
-    \list
-        \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
-        \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
-    \endlist
+    The metadata holds properties describing the individual tracks. For
+    audio tracks the \l{language}{MediaMetaData::Language} is usually the most
+    important property.
 
-    \sa {MetaData}
+    \sa MediaMetaData
 */
 
 /*!
@@ -696,18 +694,14 @@ QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 }
 
 /*!
-    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::videoTracks
+    \qmlproperty list<mediaMetaData> QtMultimedia::MediaPlayer::videoTracks
 
     This property holds a list of metadata.
     Each index refers to a video track.
 
-    The metadata holds 2 properties;
-    \list
-        \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
-        \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
-    \endlist
+    The metadata holds properties describing the individual tracks.
 
-    \sa {MetaData}
+    \sa MediaMetaData
 */
 
 /*!
@@ -723,18 +717,16 @@ QList<QMediaMetaData> QMediaPlayer::videoTracks() const
 }
 
 /*!
-    \qmlproperty QList<QMediaMetaData> QtMultimedia::MediaPlayer::subtitleTracks
+    \qmlproperty list<mediaMetaData> QtMultimedia::MediaPlayer::subtitleTracks
 
     This property holds a list of metadata.
     Each index refers to a subtitle track.
 
-    The metadata holds 2 properties;
-    \list
-        \li \l{QtMultimedia::MediaPlayer::metaData.language}{Language}
-        \li \l{QtMultimedia::MediaPlayer::metaData.mediaType}{MimeType}
-    \endlist
+    The metadata holds properties describing the individual tracks. For
+    subtitle tracks the \l{language}{MediaMetaData::Language} is usually the most
+    important property.
 
-    \sa {MetaData}
+    \sa MediaMetaData
 */
 
 /*!

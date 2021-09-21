@@ -108,7 +108,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmltype MetaData
+    \qmltype MediaMetaData
     \inqmlmodule QtMultimedia
     \since 6.2
     \instantiates QMediaMetaData
@@ -216,7 +216,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlmethod QVariant QtMultimedia::MetaData::value(QMediaMetaData::Key key)
+    \qmlmethod QVariant QtMultimedia::MediaMetaData::value(QMediaMetaData::Key key)
 
     Returns the meta data value for Key \a key, or a null QVariant if no
     meta-data for the key is available.
@@ -230,7 +230,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlmethod bool QtMultimedia::MetaData::isEmpty()
+    \qmlmethod bool QtMultimedia::MediaMetaData::isEmpty()
     Returns \c true if the meta data contains no items: otherwise returns \c{false}.
 */
 
@@ -240,17 +240,17 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlmethod void QtMultimedia::MetaData::clear()
-    Removes all data from the MetaData object.
+    \qmlmethod void QtMultimedia::MediaMetaData::clear()
+    Removes all data from the MediaMetaData object.
 */
 
 /*!
     \fn void QMediaMetaData::clear()
-    Removes all data from the MetaData object.
+    Removes all data from the meta data object.
 */
 
 /*!
-    \qmlmethod void QtMultimedia::MetaData::insert(QMediaMetaData::Key k, const QVariant &value)
+    \qmlmethod void QtMultimedia::MediaMetaData::insert(QMediaMetaData::Key k, const QVariant &value)
     Inserts a \a value into a Key: \a{k}.
 */
 
@@ -259,7 +259,7 @@ QT_BEGIN_NAMESPACE
     Inserts a \a value into a Key: \a{k}.
 */
 /*!
-    \qmlmethod void QtMultimedia::MetaData::remove(QMediaMetaData::Key k)
+    \qmlmethod void QtMultimedia::MediaMetaData::remove(QMediaMetaData::Key k)
     Removes meta data from a Key: \a{k}.
 */
 
@@ -269,8 +269,8 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlmethod QList QtMultimedia::MetaData::keys()
-    Returns a QList of MetaData.Keys.
+    \qmlmethod QList QtMultimedia::MediaMetaData::keys()
+    Returns a QList of MediaMetaData.Keys.
 */
 
 /*!
@@ -279,7 +279,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlmethod QString QtMultimedia::MetaData::stringValue(QMediaMetaData::Key key)
+    \qmlmethod QString QtMultimedia::MediaMetaData::stringValue(QMediaMetaData::Key key)
     Returns the meta data for key \a key as a QString.
 
     This is mainly meant to simplify presenting the meta data to a user.
@@ -343,7 +343,7 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key key) const
     return QString();
 }
 /*!
-    \qmlmethod QString QtMultimedia::MetaData::metaDataKeyToString(QMediaMetaData::Key key)
+    \qmlmethod QString QtMultimedia::MediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
     returns a string representation of \a key that can be used when presenting
     meta data to users.
 */
