@@ -92,6 +92,34 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
 */
 
 /*!
+    \qmltype audioDevice
+    \inqmlmodule QtMultimedia
+    \since 6.2
+    \instantiates QAudioDevice
+    \brief Describes an audio device.
+    \ingroup multimedia_qml
+    \ingroup multimedia_audio_qml
+
+    The audioDevice value type describes the properties of an audio device that
+    is connected to the system.
+
+    The list of audio input or output devices can be queried from the \l{MediaDevices}
+    type. To select a certain audio device for input or output set it as the device
+    on \l{AudioInput} or \l{AudioOutput}.
+
+    \qml
+    MediaPlayer {
+        audioOutput: AudioOutput {
+            device: mediaDevices.defaultAudioOutput
+        }
+    }
+    MediaDevices {
+        id: mediaDevices
+    }
+    \endqml
+*/
+
+/*!
     Constructs a null QAudioDevice object.
 */
 QAudioDevice::QAudioDevice() = default;
@@ -156,6 +184,16 @@ bool QAudioDevice::isNull() const
 }
 
 /*!
+    \qmlmethod string QtMultimedia::audioDevice::id
+
+    Returns an identifier for the audio device.
+
+    Device names vary depending on the platform/audio plugin being used.
+
+    They are a unique identifier for the audio device.
+*/
+
+/*!
     Returns an identifier for the audio device.
 
     Device names vary depending on the platform/audio plugin being used.
@@ -168,6 +206,14 @@ QByteArray QAudioDevice::id() const
 }
 
 /*!
+    \qmlmethod string QtMultimedia::audioDevice::description
+
+    Returns a human readable name of the audio device.
+
+    Use this string to present the device to the user.
+*/
+
+/*!
     Returns a human readable name of the audio device.
 
     Use this string to present the device to the user.
@@ -178,7 +224,13 @@ QString QAudioDevice::description() const
 }
 
 /*!
-    Returns true if this is the default audio device for it's mode.
+    \qmlmethod bool QtMultimedia::audioDevice::isDefault
+
+    Returns true if this is the default audio device.
+*/
+
+/*!
+    Returns true if this is the default audio device.
 */
 bool QAudioDevice::isDefault() const
 {
@@ -270,6 +322,39 @@ QList<QAudioFormat::SampleFormat> QAudioDevice::supportedSampleFormats() const
 QAudioDevice::QAudioDevice(QAudioDevicePrivate *p)
     : d(p)
 {}
+
+/*!
+    \enum QAudioDevice::mode
+
+    Describes the mode of a QAudioDevice
+
+    \value Null
+         A null device.
+    \value Input
+         An input device.
+    \value Output
+        An output device.
+*/
+
+/*!
+    \qmlmethod enumeration QtMultimedia::audioDevice::mode
+
+    Tells whether this device is an input or output device.
+
+    The returned value can be one of the following:
+
+    \table
+    \header
+        \li Property value
+        \li Description
+    \row \li AudioDevice.Null
+        \li A null device.
+    \row \li AudioDevice.Input
+        \li An input device.
+    \row \li AudioDevice.Output
+        \li An output device.
+    \endtable
+*/
 
 /*!
     returns whether this device is an input or output device.
