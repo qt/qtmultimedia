@@ -31,7 +31,7 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
-#include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediarecorder_p.h>
 #include <qmediarecorder.h>
 #include <qaudioformat.h>
 #include <qmockintegration_p.h>

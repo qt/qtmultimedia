@@ -90,7 +90,7 @@ bool qt_file_exists(NSURL *fileURL)
 
 AVFMediaEncoder::AVFMediaEncoder(QMediaRecorder *parent)
     : QObject(parent)
-    , QPlatformMediaEncoder(parent)
+    , QPlatformMediaRecorder(parent)
     , m_state(QMediaRecorder::StoppedState)
     , m_duration(0)
     , m_audioSettings(nil)

@@ -55,7 +55,7 @@
 #include "avfcamerautility_p.h"
 #include "qaudiodevice.h"
 
-#include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediarecorder_p.h>
 #include <private/qplatformmediacapture_p.h>
 #include <QtMultimedia/qmediametadata.h>
 
@@ -70,7 +70,7 @@ class AVFCameraService;
 class QString;
 class QUrl;
 
-class AVFMediaEncoder : public QObject, public QPlatformMediaEncoder
+class AVFMediaEncoder : public QObject, public QPlatformMediaRecorder
 {
     Q_OBJECT
 public:

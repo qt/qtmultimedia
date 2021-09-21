@@ -62,7 +62,7 @@ static audio_manager_device_t currentAudioInputDevice()
 }
 
 BbCameraMediaRecorderControl::BbCameraMediaRecorderControl(BbCameraSession *session, QObject *parent)
-    : QPlatformMediaEncoder(parent)
+    : QPlatformMediaRecorder(parent)
     , m_session(session)
 {
     connect(m_session, SIGNAL(videoStateChanged(QMediaRecorder::RecorderState)), this, SIGNAL(stateChanged(QMediaRecorder::RecorderState)));

@@ -66,14 +66,14 @@ public:
     }
     QPlatformImageCapture *imageCapture() override { return hasControls ? mockImageCapture : nullptr; }
 
-    QPlatformMediaEncoder *mediaEncoder() override { return hasControls ? mockControl : nullptr; }
-    void setMediaEncoder(QPlatformMediaEncoder *encoder) override
+    QPlatformMediaRecorder *mediaRecorder() override { return hasControls ? mockControl : nullptr; }
+    void setMediaRecorder(QPlatformMediaRecorder *recorder) override
     {
         if (!hasControls) {
             mockControl = nullptr;
             return;
         }
-        QMockMediaEncoder *control = static_cast<QMockMediaEncoder *>(encoder);
+        QMockMediaEncoder *control = static_cast<QMockMediaEncoder *>(recorder);
         if (mockControl == control)
             return;
 

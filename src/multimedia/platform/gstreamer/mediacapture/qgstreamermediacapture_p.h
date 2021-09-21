@@ -81,8 +81,8 @@ public:
     QPlatformImageCapture *imageCapture() override;
     void setImageCapture(QPlatformImageCapture *imageCapture) override;
 
-    QPlatformMediaEncoder *mediaEncoder() override;
-    void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
+    QPlatformMediaRecorder *mediaRecorder() override;
+    void setMediaRecorder(QPlatformMediaRecorder *recorder) override;
 
     void setAudioInput(QPlatformAudioInput *input) override;
 

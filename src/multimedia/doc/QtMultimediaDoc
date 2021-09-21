@@ -4,6 +4,6 @@
 #include "../audio/qaudiosystem_p.h"
 #include "../platform/qplatformaudiodecoder_p.h"
 #include "../platform/qplatformcamera_p.h"
-#include "../platform/qplatformmediaencoder_p.h"
+#include "../platform/qplatformmediarecorder_p.h"
 #include "../platform/qplatformimagecapture_p.h"
 #include "../platform/qplatformvideosink_p.h"

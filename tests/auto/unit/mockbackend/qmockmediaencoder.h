@@ -32,13 +32,13 @@
 #include <QUrl>
 #include <qaudiodevice.h>
 
-#include "private/qplatformmediaencoder_p.h"
+#include "private/qplatformmediarecorder_p.h"
 
-class QMockMediaEncoder : public QPlatformMediaEncoder
+class QMockMediaEncoder : public QPlatformMediaRecorder
 {
 public:
     QMockMediaEncoder(QMediaRecorder *parent):
-        QPlatformMediaEncoder(parent),
+        QPlatformMediaRecorder(parent),
         m_state(QMediaRecorder::StoppedState),
         m_position(0)
     {
@@ -66,7 +66,7 @@ public:
     }
     virtual QMediaMetaData metaData() const override { return m_metaData; }
 
-    using QPlatformMediaEncoder::error;
+    using QPlatformMediaRecorder::error;
 
 public:
     void record(QMediaEncoderSettings &settings) override

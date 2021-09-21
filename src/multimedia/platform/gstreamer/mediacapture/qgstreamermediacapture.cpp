@@ -67,7 +67,7 @@ QGstreamerMediaCapture::QGstreamerMediaCapture()
 
 QGstreamerMediaCapture::~QGstreamerMediaCapture()
 {
-    setMediaEncoder(nullptr);
+    setMediaRecorder(nullptr);
     setImageCapture(nullptr);
     setCamera(nullptr);
     gstPipeline.setStateSync(GST_STATE_NULL);
@@ -144,9 +144,9 @@ void QGstreamerMediaCapture::setImageCapture(QPlatformImageCapture *imageCapture
     emit imageCaptureChanged();
 }
 
-void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
+void QGstreamerMediaCapture::setMediaRecorder(QPlatformMediaRecorder *recorder)
 {
-    QGstreamerMediaEncoder *control = static_cast<QGstreamerMediaEncoder *>(encoder);
+    QGstreamerMediaEncoder *control = static_cast<QGstreamerMediaEncoder *>(recorder);
     if (m_mediaEncoder == control)
         return;
 
@@ -164,7 +164,7 @@ void QGstreamerMediaCapture::setMediaEncoder(QPlatformMediaEncoder *encoder)
     gstPipeline.dumpGraph("encoder");
 }
 
-QPlatformMediaEncoder *QGstreamerMediaCapture::mediaEncoder()
+QPlatformMediaRecorder *QGstreamerMediaCapture::mediaRecorder()
 {
     return m_mediaEncoder;
 }

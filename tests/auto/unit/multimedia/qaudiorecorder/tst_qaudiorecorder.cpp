@@ -32,7 +32,7 @@
 #include <qaudioformat.h>
 
 #include <qmediarecorder.h>
-#include <private/qplatformmediaencoder_p.h>
+#include <private/qplatformmediarecorder_p.h>
 #include <qaudiodevice.h>
 #include <qaudiosource.h>
 #include <qmediacapturesession.h>

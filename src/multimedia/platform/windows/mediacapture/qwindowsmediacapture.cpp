@@ -100,14 +100,14 @@ void QWindowsMediaCaptureService::setImageCapture(QPlatformImageCapture *imageCa
     emit imageCaptureChanged();
 }
 
-QPlatformMediaEncoder *QWindowsMediaCaptureService::mediaEncoder()
+QPlatformMediaRecorder *QWindowsMediaCaptureService::mediaRecorder()
 {
     return m_encoder;
 }
 
-void QWindowsMediaCaptureService::setMediaEncoder(QPlatformMediaEncoder *encoder)
+void QWindowsMediaCaptureService::setMediaRecorder(QPlatformMediaRecorder *recorder)
 {
-    QWindowsMediaEncoder *control = static_cast<QWindowsMediaEncoder *>(encoder);
+    QWindowsMediaEncoder *control = static_cast<QWindowsMediaEncoder *>(recorder);
     if (m_encoder == control)
         return;
 

@@ -59,7 +59,7 @@ Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
 
 QT_BEGIN_NAMESPACE
 class QPlatformCamera;
-class QPlatformMediaEncoder;
+class QPlatformMediaRecorder;
 class AVFCamera;
 class AVFImageCapture;
 class AVFCameraSession;
@@ -78,8 +78,8 @@ public:
     QPlatformImageCapture *imageCapture() override;
     void setImageCapture(QPlatformImageCapture *imageCapture) override;
 
-    QPlatformMediaEncoder *mediaEncoder() override;
-    void setMediaEncoder(QPlatformMediaEncoder *encoder) override;
+    QPlatformMediaRecorder *mediaRecorder() override;
+    void setMediaRecorder(QPlatformMediaRecorder *recorder) override;
 
     void setAudioInput(QPlatformAudioInput *) override;
     void setAudioOutput(QPlatformAudioOutput *) override;

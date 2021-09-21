@@ -45,7 +45,7 @@
 QT_BEGIN_NAMESPACE
 
 QAndroidMediaEncoder::QAndroidMediaEncoder(QMediaRecorder *parent)
-    : QPlatformMediaEncoder(parent)
+    : QPlatformMediaRecorder(parent)
 {
 }
 
@@ -83,7 +83,7 @@ void QAndroidMediaEncoder::setOutputLocation(const QUrl &location)
     if (location.isLocalFile()) {
         qt_androidRequestWriteStoragePermission();
     }
-    QPlatformMediaEncoder::setOutputLocation(location);
+    QPlatformMediaRecorder::setOutputLocation(location);
 }
 
 void QAndroidMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *session)

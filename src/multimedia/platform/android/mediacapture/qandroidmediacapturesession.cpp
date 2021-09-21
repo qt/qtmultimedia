@@ -108,14 +108,14 @@ void QAndroidMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCa
         m_imageCaptureControl->setCaptureSession(this);
 }
 
-QPlatformMediaEncoder *QAndroidMediaCaptureSession::mediaEncoder()
+QPlatformMediaRecorder *QAndroidMediaCaptureSession::mediaRecorder()
 {
     return m_encoder;
 }
 
-void QAndroidMediaCaptureSession::setMediaEncoder(QPlatformMediaEncoder *encoder)
+void QAndroidMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *recorder)
 {
-    QAndroidMediaEncoder *control = static_cast<QAndroidMediaEncoder *>(encoder);
+    QAndroidMediaEncoder *control = static_cast<QAndroidMediaEncoder *>(recorder);
 
     if (m_encoder == control)
         return;
