@@ -43,6 +43,8 @@
 #include <private/qplatformaudioinput_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
+#include <utility>
+
 /*!
     \qmltype AudioInput
     \instantiates QAudioInput
@@ -99,6 +101,7 @@ QAudioInput::QAudioInput(const QAudioDevice &device, QObject *parent)
 
 QAudioInput::~QAudioInput()
 {
+    setDisconnectFunction({});
     delete d;
 }
 
@@ -197,4 +200,18 @@ void QAudioInput::setDevice(const QAudioDevice &device)
     d->setAudioDevice(dev);
     emit deviceChanged();
 }
+
+/*!
+    \internal
+*/
+void QAudioInput::setDisconnectFunction(std::function<void()> disconnectFunction)
+{
+    if (d->disconnectFunction) {
+        auto df = d->disconnectFunction;
+        d->disconnectFunction = {};
+        df();
+    }
+    d->disconnectFunction = std::move(disconnectFunction);
+}
+
 #include "moc_qaudioinput.cpp"
