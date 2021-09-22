@@ -1,7 +1,9 @@
 # Generated from multimedia.pro.
 
 add_subdirectory(audiodecoder)
-add_subdirectory(devices)
+if(NOT ANDROID AND NOT IOS)
+    add_subdirectory(devices)
+endif()
 if(TARGET Qt::Widgets)
     add_subdirectory(spectrum)
     add_subdirectory(audiorecorder)
