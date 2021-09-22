@@ -30,10 +30,10 @@
     \title Video Widget Example
     \ingroup multimedia_examples
     \brief Implementing a video player widget.
-    \meta {tag} {widgets}
+    \meta {tag} {widgets,QVideoWidget}
 
-    \e{Video Widget} demonstrates how to implement a video widget using
-    QVideoSink.
+    \e{Video Widget} demonstrates how to implement a simple video player using
+    QVideoWidget.
 
     \image video-videowidget.png
 
