@@ -390,7 +390,7 @@ QMediaTimeRange QMediaPlayer::bufferedTimeRange() const
 */
 
 /*!
-    \property bool QMediaPlayer::hasAudio
+    \property QMediaPlayer::hasAudio
     \brief This property holds whether the media contains audio.
 */
 bool QMediaPlayer::hasAudio() const
@@ -410,7 +410,7 @@ bool QMediaPlayer::hasAudio() const
 */
 
 /*!
-    \property bool QMediaPlayer::hasVideo
+    \property QMediaPlayer::hasVideo
     \brief This property holds whether the media contains video.
 */
 bool QMediaPlayer::hasVideo() const
@@ -468,7 +468,7 @@ QMediaPlayer::Error QMediaPlayer::error() const
 */
 
 /*!
-    \property string QtMultimedia::MediaPlayer::errorString
+    \property QMediaPlayer::errorString
     \brief This property holds a string describing the current error condition in
     more detail.
 */
@@ -673,7 +673,7 @@ QAudioOutput *QMediaPlayer::audioOutput() const
     Each index refers to an audio track.
 
     The metadata holds properties describing the individual tracks. For
-    audio tracks the \l{language}{MediaMetaData::Language} is usually the most
+    audio tracks the \l{MediaMetaData::Language}{language} is usually the most
     important property.
 
     \sa mediaMetaData
@@ -723,7 +723,7 @@ QList<QMediaMetaData> QMediaPlayer::videoTracks() const
     Each index refers to a subtitle track.
 
     The metadata holds properties describing the individual tracks. For
-    subtitle tracks the \l{language}{MediaMetaData::Language} is usually the most
+    subtitle tracks the \l{MediaMetaData::Language}{language} is usually the most
     important property.
 
     \sa mediaMetaData
@@ -942,9 +942,23 @@ bool QMediaPlayer::isAvailable() const
 }
 
 /*!
+    \qmlproperty mediaMetaData QtMultimedia::MediaPlayer::metaData
+
     Returns meta data for the current media used by the media player.
 
-    Meta data can contain information such as the title of the video or it's creation date.
+    Meta data can contain information such as the title of the video or its creation date.
+
+    \note The Windows implementation provides metadata only for media located on the local file
+    system.
+*/
+
+/*!
+    Returns meta data for the current media used by the media player.
+
+    Meta data can contain information such as the title of the video or its creation date.
+
+    \note The Windows implementation provides metadata only for media located on the local file
+    system.
 */
 QMediaMetaData QMediaPlayer::metaData() const
 {
@@ -1216,26 +1230,6 @@ QMediaMetaData QMediaPlayer::metaData() const
     return StalledMedia.
 
     \sa mediaStatus()
-*/
-
-/*!
-    \property QMediaPlayer::hasAudio
-    \brief the audio availabilty status for the current media.
-
-    \note As the life time of QMediaPlayer can be longer than the playback of
-    one QUrl, this property may change over time.
-*/
-
-/*!
-    \property QMediaPlayer::hasVideo
-    \brief the video availability status for the current media.
-
-    If available, the QVideoWidget class can be used to view the video.
-
-    \note As the life time of QMediaPlayer can be longer than the playback of
-    one QUrl, this property may change over time.
-
-    \sa QVideoWidget, QUrl
 */
 
 /*!

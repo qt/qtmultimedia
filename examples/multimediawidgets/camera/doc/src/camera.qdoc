@@ -66,7 +66,7 @@ passing in a \l QCameraDevice.
 functionality of the Camera class using signals and slots. It also instantiates
 and initializes the \l {QCamera}, \l {QImageCapture}, and \l {QMediaRecorder}
 objects mentioned above. The still and video recording visual tabs are enabled
-and finally the \l {QCamera::start()}{start()} function of the \l{QCamera}
+and finally the \l {QCamera::start}{start()} function of the \l{QCamera}
 object is called.
 
 Now that the camera is ready for user commands it waits for a suitable event.

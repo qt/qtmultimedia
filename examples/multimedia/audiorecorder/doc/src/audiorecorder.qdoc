@@ -49,8 +49,8 @@
     The lists are populated using the following methods:
     \list
     \li \l{QMediaDevices::audioInputs()}
-    \li \l{QMediaFormat::supportedAudioCodecs()}
-    \li \l{QMediaFormat::supportedFileFormats()}
+    \li \l{QMediaFormat::supportedAudioCodecs}
+    \li \l{QMediaFormat::supportedFileFormats}
     \li \l{QAudioDevice::maximumSampleRate()}
     \li \l{QAudioDevice::minimumSampleRate()}
     \endlist

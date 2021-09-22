@@ -114,7 +114,7 @@ For some quick recipes, see this table:
     \row
         \li Discovering audio and video devices
         \li \l{Audio Devices Example}{audiodevices}
-        \li \l{MediaDevices}, \l{AudioDevice}, \l{CameraDevice}
+        \li \l{MediaDevices}, \l{audioDevice}, \l{cameraDevice}
         \li QMediaDevices, QAudioDevice, QCameraDevice
     \row
         \li Video Playback

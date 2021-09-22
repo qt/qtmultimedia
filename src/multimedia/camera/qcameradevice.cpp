@@ -73,16 +73,16 @@ QT_BEGIN_NAMESPACE
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
 
-    CameraFormat represents a certain video format supported by a camera device.
+    cameraFormat represents a certain video format supported by a camera device.
 
     The format is a combination of a
     \l{pixel format}{QVideoFrameFormat::PixelFormat}, resolution and a range of frame
     rates.
 
-    CameraFormat objects can be queried from \l CameraDevice to inspect the set of
+    cameraFormat objects can be queried from \l cameraDevice to inspect the set of
     supported video formats.
 
-    \sa CameraDevice, Camera
+    \sa cameraDevice, Camera
 */
 
 /*!
@@ -106,6 +106,11 @@ QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other) noexcept = d
     Destructs the camera format object.
 */
 QCameraFormat::~QCameraFormat() = default;
+
+/*! \fn bool QCameraFormat::isNull() const noexcept
+
+    Returns true if this is a default constructed QCameraFormat.
+*/
 
 /*!
     \qmlproperty enumeration QtMultimedia::CameraFormat::pixelFormat
@@ -402,7 +407,7 @@ QCameraDevice::Position QCameraDevice::position() const
     Returns a list of resolutions that the camera can use to
     capture still images.
 
-    \sa QCameraImageCapture
+    \sa QImageCapture
  */
 QList<QSize> QCameraDevice::photoResolutions() const
 {

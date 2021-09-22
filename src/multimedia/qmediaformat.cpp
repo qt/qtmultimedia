@@ -279,7 +279,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
     \omitvalue LastAudioCodec
 */
 
-/*! \qmlproperty enumeration QMediaFormat::audioCodec
+/*! \qmlproperty enumeration QtMultimedia::mediaFormat::audioCodec
 
     Describes the audio codec used in multimedia file or stream.
     It can take one of the following values:
@@ -346,7 +346,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QMediaFormatPrivate);
     \omitvalue LastVideoCodec
 */
 
-/*! \qmlproperty QtMultimedia::mediaFormat::videoCodec
+/*! \qmlproperty enumeration QtMultimedia::mediaFormat::videoCodec
 
     Describes the video codec used in multimedia file or stream.
     It can take one of the following values:
@@ -417,11 +417,6 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
 */
 
 // Properties
-/*! \qmlproperty QtMultimedia::mediaFormat::fileFormat
-
-    The file (container) format of the media.
-*/
-
 /*! \property QMediaFormat::fileFormat
 
     \brief The file (container) format of the media.
@@ -429,21 +424,11 @@ QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = defa
     \sa QMediaFormat::FileFormat
 */
 
-/*! \qmlproperty QtMultimedia::mediaFormat::audioCodec
-
-    The audio codec of the media.
-*/
-
 /*! \property QMediaFormat::audioCodec
 
     \brief The audio codec of the media.
 
     \sa QMediaFormat::AudioCodec
-*/
-
-/*! \qmlproperty QtMultimedia::mediaFormat::videoCodec
-
-    The video codec of the media.
 */
 
 /*! \property QMediaFormat::videoCodec
@@ -669,7 +654,7 @@ QString QMediaFormat::audioCodecName(QMediaFormat::AudioCodec codec)
 /*!
     Returns a string based name for \a codec.
 */
-QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec c)
+QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec codec)
 {
     constexpr const char *descriptions[] = {
         "Invalid",
@@ -685,7 +670,7 @@ QString QMediaFormat::videoCodecName(QMediaFormat::VideoCodec c)
         "WMV",
         "MotionJPEG"
     };
-    return QString::fromUtf8(descriptions[int(c) + 1]);
+    return QString::fromUtf8(descriptions[int(codec) + 1]);
 }
 
 /*!

@@ -267,8 +267,6 @@ void QQuickVideoOutput::_q_updateGeometry()
 
     The orientation change will also affect the mapping
     of coordinates from source to viewport.
-
-    \sa autoOrientation
 */
 int QQuickVideoOutput::orientation() const
 {

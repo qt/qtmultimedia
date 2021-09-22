@@ -70,6 +70,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(QCameraFormat cameraFormat READ cameraFormat WRITE setCameraFormat NOTIFY cameraFormatChanged)
 
     Q_PROPERTY(FocusMode focusMode READ focusMode WRITE setFocusMode)
+    Q_PROPERTY(QPointF focusPoint READ focusPoint NOTIFY focusPointChanged)
     Q_PROPERTY(QPointF customFocusPoint READ customFocusPoint WRITE setCustomFocusPoint NOTIFY customFocusPointChanged)
     Q_PROPERTY(float focusDistance READ focusDistance WRITE setFocusDistance NOTIFY focusDistanceChanged)
 
@@ -268,6 +269,7 @@ Q_SIGNALS:
     void minimumZoomFactorChanged(float);
     void maximumZoomFactorChanged(float);
     void focusDistanceChanged(float);
+    void focusPointChanged();
     void customFocusPointChanged();
 
     void flashReady(bool);
