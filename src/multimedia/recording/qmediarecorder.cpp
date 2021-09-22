@@ -424,22 +424,14 @@ void QMediaRecorder::stop()
     during record(), pause() or stop() calls.
     RecorderSstate may also change asynchronously when recording fails.
 
-    \value recorderState.StoppedState The recorder is not active.
-        If this is the state after recording then the actual created recording has
-        finished being written to the final location and is ready on all platforms
-        except on Android. On Android, due to platform limitations, there is no way
-        to be certain that the recording has finished writing to the final location.
-    \value recorderState.RecordingState The recording is requested.
-    \value recorderState.PausedState The recorder is pause.
+    \value MediaRecorder.StoppedState The recorder is not active.
+    \value MediaRecorder.RecordingState The recording is requested.
+    \value MediaRecorder.PausedState The recorder is pause.
 */
 /*!
     \enum QMediaRecorder::RecorderState
 
     \value StoppedState    The recorder is not active.
-        If this is the state after recording then the actual created recording has
-        finished being written to the final location and is ready on all platforms
-        except on Android. On Android, due to platform limitations, there is no way
-        to be certain that the recording has finished writing to the final location.
     \value RecordingState  The recording is requested.
     \value PausedState     The recorder is paused.
 */
@@ -589,11 +581,11 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
 
     Enumerates quality encoding levels.
 
-    \value MediaaRecorder.VeryLowQuality
-    \value MediaaRecorder.LowQuality
-    \value MediaaRecorder.NormalQuality
-    \value MediaaRecorder.HighQuality
-    \value MediaaRecorder.VeryHighQuality
+    \value MediaRecorder.VeryLowQuality
+    \value MediaRecorder.LowQuality
+    \value MediaRecorder.NormalQuality
+    \value MediaRecorder.HighQuality
+    \value MediaRecorder.VeryHighQuality
 */
 /*!
     \enum QMediaRecorder::Quality
