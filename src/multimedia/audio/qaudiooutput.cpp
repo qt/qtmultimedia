@@ -57,7 +57,7 @@
         id: playMusic
         source: "music.wav"
         audioOutput: AudioOutput {
-            volume: slider
+            volume: slider.value
         }
     }
     Slider {

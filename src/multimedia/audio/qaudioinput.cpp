@@ -56,14 +56,14 @@
     CaptureSession {
         id: playMusic
         audioInput: AudioInput {
-            volume: slider
+            volume: slider.value
         }
         recorder: MediaRecorder { ... }
     }
     Slider {
-    id: slider
-            from: 0.
-            to: 1.
+        id: slider
+        from: 0.
+        to: 1.
     }
     \endqml
 
