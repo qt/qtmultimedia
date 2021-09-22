@@ -225,13 +225,13 @@ Item {
     property alias hasVideo:        player.hasVideo
 
     /*!
-        \qmlproperty object Video::metaData
+        \qmlproperty mediaMetaData Video::metaData
 
         This property holds the meta data for the current media.
 
         See \l{MediaPlayer::metaData}{MediaPlayer.metaData} for details about each meta data key.
 
-        \sa {QMediaMetaData}
+        \sa {mediaMetaData}
     */
     property alias metaData:        player.metaData
 
