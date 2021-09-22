@@ -632,7 +632,7 @@ void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
 }
 
 /*!
-    \qmlproperty QAudioOutput* QtMultimedia::MediaPlayer::audioOutput
+    \qmlproperty AudioOutput QtMultimedia::MediaPlayer::audioOutput
 
     This property holds the target audio output.
     Accepts one AudioOutput elements.
@@ -852,7 +852,7 @@ void QMediaPlayer::setActiveSubtitleTrack(int index)
 }
 
 /*!
-    \qmlproperty QObject* QtMultimedia::MediaPlayer::videoOutput
+    \qmlproperty VideoOutput QtMultimedia::MediaPlayer::videoOutput
 
     This property holds the target video output.
     Accepts one VideoOutput elements.
