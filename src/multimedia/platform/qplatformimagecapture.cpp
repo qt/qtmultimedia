@@ -44,7 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QPlatformImageCapture
-    \obsolete
+    \internal
 
     \brief The QPlatformImageCapture class provides a control interface
     for image capture services.

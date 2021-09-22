@@ -167,7 +167,7 @@ QVideoFrame QVideoSink::videoFrame() const
 }
 
 /*!
-    Sets the current video frame.
+    Sets the current video frame to \a frame.
 */
 void QVideoSink::setVideoFrame(const QVideoFrame &frame)
 {
@@ -183,7 +183,7 @@ QString QVideoSink::subtitleText() const
 }
 
 /*!
-    Sets the current subtitle text.
+    Sets the current subtitle text to \a subtitle.
 */
 void QVideoSink::setSubtitleText(const QString &subtitle)
 {

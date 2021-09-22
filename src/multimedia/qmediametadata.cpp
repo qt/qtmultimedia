@@ -216,16 +216,16 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlmethod variant QtMultimedia::mediaMetaData::value(QMediaMetaData::Key key)
+    \qmlmethod variant QtMultimedia::mediaMetaData::value(Key key)
 
     Returns the meta data value for Key \a key, or a null QVariant if no
     meta-data for the key is available.
 */
 
 /*!
-    \fn variant QMediaMetaData::value(QMediaMetaData::Key key) const
+    \fn QVariant QMediaMetaData::value(QMediaMetaData::Key key) const
 
-    Returns the meta data value for Key \a key, or a null QVariant is not
+    Returns the meta data value for Key \a key, or a null QVariant if no
     meta data for the key is available.
 */
 
@@ -235,7 +235,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn bool QMediaMetaData::isEmpty()
+    \fn bool QMediaMetaData::isEmpty() const
     Returns \c true if the meta data contains no items: otherwise returns \c{false}.
 */
 
@@ -274,7 +274,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn QList QMediaMetaData::keys()
+    \fn QList QMediaMetaData::keys() const
     Returns a QList of QMediaMetaData::Keys.
 */
 
@@ -426,18 +426,18 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
 
 /*!
 \fn bool QMediaMetaData::operator==(const QMediaMetaData &a, const QMediaMetaData &b)
-    The \c == operator will compare two meta data objects, and return
+    Compares two meta data objects \a a and \a b, and returns
     \c true if they are identical or \c false if they differ.
 */
 
 /*!
 \fn bool QMediaMetaData::operator!=(const QMediaMetaData &a, const QMediaMetaData &b)
-    The \c != operator will compare two meta data objects, and return
+    Compares two meta data objects \a a and \a b, and returns
     \c false if they are identical or \c true if they differ.
 */
 
 /*!
-\property QHash<Key, QVariant> QMediaMetaData::data
+    \variable QHash<Key, QVariant> QMediaMetaData::data
     This property holds the metaData.
     \note this is a \c protected member of its class.
 */

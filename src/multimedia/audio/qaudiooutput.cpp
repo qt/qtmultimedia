@@ -183,7 +183,7 @@ void QAudioOutput::setMuted(bool muted)
 }
 
 /*!
-    \qmlproperty QtMultimedia::AudioOutput::device
+    \qmlproperty AudioDevice QtMultimedia::AudioOutput::device
 
     This property describes the audio device connected to this output.
 

@@ -45,7 +45,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QPlatformAudioDecoder
-    \obsolete
+    \internal
     \inmodule QtMultimedia
 
 

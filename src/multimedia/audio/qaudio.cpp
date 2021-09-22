@@ -80,14 +80,6 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \enum QAudioDevice::Mode
-
-    \value Output   Audio output device
-    \value Input    Audio input device
-    \omitvalue Null
-*/
-
-/*!
     \enum QAudio::VolumeScale
 
     This enum defines the different audio volume scales.

@@ -586,7 +586,7 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
     return d->captureSession;
 }
 /*!
-    \qmlproprty enumeration QtMultimedia::MediaRecorder::quality
+    \qmlproperty enumeration QtMultimedia::MediaRecorder::quality
 
     Enumerates quality encoding levels.
 

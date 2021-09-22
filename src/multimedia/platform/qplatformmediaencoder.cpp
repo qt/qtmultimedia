@@ -45,7 +45,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QPlatformMediaEncoder
-    \obsolete
+    \internal
     \inmodule QtMultimedia
 
 

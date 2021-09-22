@@ -281,7 +281,7 @@ Format_RGBA8888
 */
 
 /*!
-    Constructs a null video stream format.
+    Constructs a null video frame format.
 */
 QVideoFrameFormat::QVideoFrameFormat()
     : d(new QVideoFrameFormatPrivate)
@@ -290,7 +290,7 @@ QVideoFrameFormat::QVideoFrameFormat()
 }
 
 /*!
-    Constructs a description of stream which receives stream of \a d type buffers with given frame
+    Constructs a video frame format with given frame
     \a size and pixel \a format.
 */
 QVideoFrameFormat::QVideoFrameFormat(

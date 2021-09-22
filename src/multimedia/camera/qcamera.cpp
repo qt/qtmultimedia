@@ -303,7 +303,7 @@ bool QCamera::isAvailable() const
     Describes whether the camera is currently active.
 */
 
-/*! \property bool QCamera::active
+/*! \property QCamera::active
 
     Describes whether the camera is currently active.
 */
@@ -358,7 +358,7 @@ QString QCamera::errorString() const
     return d_func()->errorString;
 }
 
-/*! \enum QCamera::Features
+/*! \enum QCamera::Feature
 
     Describes a set of features supported by the camera. The returned value can be a
     combination of:
@@ -370,9 +370,9 @@ QString QCamera::errorString() const
     \value IsoSensitivity
         The Camera supports setting a custom \l{isoSensitivity}.
     \value ManualExposureTime
-        The Camera supports setting a \l{manual exposure Time}{QCamera::manualExposureTime}.
+        The Camera supports setting a \l{QCamera::manualExposureTime}{manual exposure Time}.
     \value CustomFocusPoint
-        The Camera supports setting a \l{custom focus point}{QCamera::customFocusPoint}.
+        The Camera supports setting a \l{QCamera::customFocusPoint}{custom focus point}.
     \value FocusDistance
         The Camera supports setting the \l{focusDistance} property.
 */
@@ -381,13 +381,13 @@ QString QCamera::errorString() const
     \qmlproperty Features QtMultimedia::Camera::supportedFeatures
     Returns the features supported by this camera.
 
-    \sa QCamera::Features
+    \sa QCamera::Feature
 */
 
 /*!
     Returns the features supported by this camera.
 
-    \sa QCamera::Features
+    \sa QCamera::Feature
 */
 QCamera::Features QCamera::supportedFeatures() const
 {
@@ -399,7 +399,7 @@ QCamera::Features QCamera::supportedFeatures() const
 
     Starts the camera.
 
-    Same as setActive(true).
+    Same as setting the active property to true.
 
     If the camera can't be started for some reason, the errorOccurred() signal is emitted.
 */
@@ -416,7 +416,7 @@ QCamera::Features QCamera::supportedFeatures() const
 /*! \qmlmethod void Camera::stop()
 
     Stops the camera.
-    Same as setActive(false).
+    Same as setting the active property to false.
 */
 
 /*! \fn void QCamera::stop()
@@ -472,8 +472,9 @@ QCameraDevice QCamera::cameraDevice() const
 }
 
 /*!
-    Sets the camera object to use the physical camera described by
-    \a cameraDevice.
+    Connects the camera object to the physical camera device described by
+    \a cameraDevice. Using a default constructed QCameraDevice object as
+    \a cameraDevice will connect the camera to the system default camera device.
 */
 void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 {
@@ -567,7 +568,7 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 
     If a certain focus mode is not supported, setting it will have no effect.
 
-    \sa isFocusModeSupported()
+    \sa isFocusModeSupported
 */
 
 /*!
@@ -578,7 +579,7 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
     Locking the focus is possible by setting the focus mode to \l FocusModeManual. This will keep
     the current focus and stop any automatic focusing.
 
-    \sa QCamera::isFocusModeSupported()
+    \sa isFocusModeSupported
 */
 QCamera::FocusMode QCamera::focusMode() const
 {
@@ -596,7 +597,7 @@ void QCamera::setFocusMode(QCamera::FocusMode mode)
 }
 
 /*!
-    \qmlproperty bool Camera::isFocusModeSupported(FocusMode mode)
+    \qmlmethod bool Camera::isFocusModeSupported(FocusMode mode)
 
     Returns true if the focus \a mode is supported by the camera.
 */
@@ -609,6 +610,11 @@ bool QCamera::isFocusModeSupported(FocusMode mode) const
     Q_D(const QCamera);
     return d->control ? d->control->isFocusModeSupported(mode) : false;
 }
+
+/*!
+    \qmlproperty point QtMultimedia::Camera::focusPoint
+    Returns the point currently used by the auto focus system to focus onto.
+*/
 
 /*!
     Returns the point currently used by the auto focus system to focus onto.
@@ -735,7 +741,7 @@ float QCamera::minimumZoomFactor() const
 }
 
 /*!
-    \qmlproperty QCamera::zoomFactor
+    \qmlproperty real QtMultimedia::Camera::zoomFactor
 
     Gets or sets the current zoom factor. Values will be clamped between
     \l minimumZoomFactor and \l maximumZoomFactor.
@@ -813,7 +819,7 @@ void QCamera::zoomTo(float factor, float rate)
 
     Gets or sets a certain flash mode if the camera has a flash.
 
-    \sa QCamera::FlashMode, Camera::isFlashModeSupported(), Camera::isFlashReady()
+    \sa QCamera::FlashMode, Camera::isFlashModeSupported, Camera::isFlashReady
 */
 
 /*!
@@ -822,7 +828,7 @@ void QCamera::zoomTo(float factor, float rate)
 
     Enables a certain flash mode if the camera has a flash.
 
-    \sa QCamera::FlashMode, QCamera::isFlashModeSupported(), QCamera::isFlashReady()
+    \sa QCamera::FlashMode, QCamera::isFlashModeSupported, QCamera::isFlashReady
 */
 QCamera::FlashMode QCamera::flashMode() const
 {
@@ -838,7 +844,7 @@ void QCamera::setFlashMode(QCamera::FlashMode mode)
 }
 
 /*!
-    \qmlmethod QtMultimedia::Camera::isFlashModeSupported(FlashMode mode)
+    \qmlmethod bool QtMultimedia::Camera::isFlashModeSupported(FlashMode mode)
 
     Returns true if the flash \a mode is supported.
 */
@@ -887,7 +893,7 @@ bool QCamera::isFlashReady() const
     low light conditions. Enabling torch mode will usually override any currently set
     flash mode.
 
-    \sa QCamera::TorchMode, QCamera::isTorchModeSupported(), QCamera::flashMode
+    \sa QCamera::TorchMode, QCamera::isTorchModeSupported, QCamera::flashMode
 */
 QCamera::TorchMode QCamera::torchMode() const
 {
@@ -928,7 +934,7 @@ bool QCamera::isTorchModeSupported(QCamera::TorchMode mode) const
   \property QCamera::exposureMode
   \brief The exposure mode being used.
 
-  \sa QCamera::isExposureModeSupported()
+  \sa QCamera::isExposureModeSupported
 */
 QCamera::ExposureMode QCamera::exposureMode() const
 {
@@ -944,7 +950,7 @@ void QCamera::setExposureMode(QCamera::ExposureMode mode)
 }
 
 /*!
-    \qmlmethod bool QtMultimedia::Camera::isTorchModeSupported(ExposureMode mode)
+    \qmlmethod bool QtMultimedia::Camera::isExposureModeSupported(ExposureMode mode)
 
     Returns true if the exposure \a mode is supported.
 */
@@ -962,7 +968,7 @@ bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 }
 
 /*!
-    \qmlproperty QCamera::exposureCompensation
+    \qmlproperty real QCamera::exposureCompensation
 
     Gets or sets the exposure compensation in EV units.
 
@@ -998,8 +1004,12 @@ void QCamera::setExposureCompensation(float ev)
 */
 
 /*!
-    \property int QCamera::manualIsoSensitivity
-    \brief Describes the ISO sensitivity currently used by the camera.
+    \property QCamera::isoSensitivity
+    \brief The sensor ISO sensitivity.
+
+    Describes the ISO sensitivity currently used by the camera.
+
+    \sa setAutoIsoSensitivity(), setManualIsoSensitivity()
 */
 int QCamera::isoSensitivity() const
 {
@@ -1017,7 +1027,7 @@ int QCamera::isoSensitivity() const
 */
 
 /*!
-    \property int QCamera::manualIsoSensitivity
+    \property QCamera::manualIsoSensitivity
     \brief Describes a manually set ISO sensitivity
 
     Setting this property to -1 (the default), implies that the camera
@@ -1107,13 +1117,6 @@ float QCamera::maximumExposureTime() const
 */
 
 /*!
-    \property QCamera::isoSensitivity
-    \brief The sensor ISO sensitivity.
-
-    \sa setAutoIsoSensitivity(), setManualIsoSensitivity()
-*/
-
-/*!
     Returns the current exposure time in seconds.
 */
 
@@ -1124,7 +1127,7 @@ float QCamera::exposureTime() const
 }
 
 /*!
-    \qmlproperty QtMultimedia::Camera::manualExposureTime
+    \qmlproperty real QtMultimedia::Camera::manualExposureTime
 
     Gets or sets a manual exposure time.
 
@@ -1203,7 +1206,7 @@ void QCamera::setAutoExposureTime()
 */
 
 /*!
-    \qmlproperty QtMultimedia::Camera::flashReady
+    \qmlproperty bool QtMultimedia::Camera::flashReady
 
     Indicates if the flash is charged and ready to use.
 */
@@ -1233,9 +1236,11 @@ void QCamera::setAutoExposureTime()
 
 
 /*!
-    \qmlproperty QtMultimedia::Camera::whiteBalanceMode
+    \qmlproperty WhiteBalanceMode QtMultimedia::Camera::whiteBalanceMode
 
     Gets or sets the white balance mode being used.
+
+    \sa QCamera::WhiteBalanceMode
 */
 
 /*!

@@ -146,7 +146,7 @@ public:
     }
 \endqml
 
-    \sa Camera, MediaDevice, MediaRecorder, ImageCapture, AudioInput, VideoOutput
+    \sa Camera, MediaDevices, MediaRecorder, ImageCapture, AudioInput, VideoOutput
 */
 
 /*!
@@ -179,8 +179,7 @@ QMediaCaptureSession::~QMediaCaptureSession()
 /*!
     \qmlproperty AudioInput QtMultimedia::CaptureSession::audioInput
 
-    This property holds the audio input that is being used to capture audio..
-    \sa setAudioInput()
+    This property holds the audio input that is being used to capture audio.
 */
 
 /*!
@@ -192,16 +191,16 @@ QAudioInput *QMediaCaptureSession::audioInput() const
 }
 
 /*!
-    Sets the audio input device to \a device. If setting it to an empty
+    Sets the audio input device to \a input. If setting it to an empty
     QAudioDevice the capture session will use the default input as
     defined by the operating system.
 */
-void QMediaCaptureSession::setAudioInput(QAudioInput *device)
+void QMediaCaptureSession::setAudioInput(QAudioInput *input)
 {
-    if (d_ptr->audioInput == device)
+    if (d_ptr->audioInput == input)
         return;
-    d_ptr->audioInput = device;
-    d_ptr->captureSession->setAudioInput(device ? device->handle() : nullptr);
+    d_ptr->audioInput = input;
+    d_ptr->captureSession->setAudioInput(input ? input->handle() : nullptr);
     emit audioInputChanged();
 }
 
