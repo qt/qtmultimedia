@@ -43,40 +43,153 @@
 
 QT_BEGIN_NAMESPACE
 
+
+/*!
+    \class QCameraFormat
+    \since 6.2
+    \brief The QCameraFormat class describes a video format supported by a camera device.
+    \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_camera
+
+    QCameraFormat represents a certain video format supported by a camera device.
+
+    The format is a combination of a
+    \l{QVideoFrameFormat::PixelFormat}{pixel format}, resolution and a range of frame
+    rates.
+
+    QCameraFormat objects can be queried from QCameraDevice to inspect the set of
+    supported video formats.
+
+    \sa QCameraDevice, QCamera
+*/
+
+/*!
+    \qmltype cameraFormat
+    \inqmlmodule QtMultimedia
+    \since 6.2
+    \instantiates QCameraFormat
+    \brief Describes a video format supported by a camera device.
+    \ingroup multimedia_qml
+    \ingroup multimedia_video_qml
+
+    CameraFormat represents a certain video format supported by a camera device.
+
+    The format is a combination of a
+    \l{pixel format}{QVideoFrameFormat::PixelFormat}, resolution and a range of frame
+    rates.
+
+    CameraFormat objects can be queried from \l CameraDevice to inspect the set of
+    supported video formats.
+
+    \sa CameraDevice, Camera
+*/
+
+/*!
+    Constructs a null camera format.
+
+    \sa isNull()
+*/
 QCameraFormat::QCameraFormat() noexcept = default;
 
+/*!
+    Copy constructs a camera format from the \a other format.
+*/
 QCameraFormat::QCameraFormat(const QCameraFormat &other) noexcept = default;
 
+/*!
+    Assign \a other to this.
+*/
 QCameraFormat &QCameraFormat::operator=(const QCameraFormat &other) noexcept = default;
 
+/*!
+    Destructs the camera format object.
+*/
 QCameraFormat::~QCameraFormat() = default;
 
+/*!
+    \qmlproperty enumeration QtMultimedia::CameraFormat::pixelFormat
+
+    Returns the pixel format.
+
+    Most commonly this is either QVideoFrameFormat::Format_Jpeg or QVideoFrameFormat::Format_YUVY
+    but other formats could also be supported by the camera.
+
+    \sa QVideoFrameFormat::PixelFormat
+*/
+
+/*!
+    Returns the pixel format.
+
+    Most commonly this is either QVideoFrameFormat::Format_Jpeg or QVideoFrameFormat::Format_YUVY
+    but other formats could also be supported by the camera.
+
+    \sa QVideoFrameFormat::PixelFormat
+*/
 QVideoFrameFormat::PixelFormat QCameraFormat::pixelFormat() const noexcept
 {
     return d ? d->pixelFormat : QVideoFrameFormat::Format_Invalid;
 }
 
+/*!
+    \qmlproperty size QtMultimedia::CameraFormat::resolution
+
+    Returns the resolution.
+*/
+
+/*!
+    Returns the resolution.
+*/
 QSize QCameraFormat::resolution() const noexcept
 {
     return d ? d->resolution : QSize();
 }
 
+/*!
+    \qmlproperty real QtMultimedia::CameraFormat::minFrameRate
+
+    Returns the lowest frame rate defined by this format.
+*/
+
+/*!
+    Returns the lowest frame rate defined by this format.
+*/
 float QCameraFormat::minFrameRate() const noexcept
 {
     return d ? d->minFrameRate : 0;
 }
 
+/*!
+    \qmlproperty real QtMultimedia::CameraFormat::maxFrameRate
+
+    Returns the highest frame rate defined by this format.
+
+    In 6.2, the camera will always try to use the maximum frame rate supported by a
+    certain video format.
+*/
+
+/*!
+    Returns the highest frame rate defined by this format.
+
+    In 6.2, the camera will always try to use the highest frame rate supported by a
+    certain video format.
+*/
 float QCameraFormat::maxFrameRate() const noexcept
 {
     return d ? d->maxFrameRate : 0;
 }
 
-
+/*!
+    \internal
+*/
 QCameraFormat::QCameraFormat(QCameraFormatPrivate *p)
     : d(p)
 {
 }
 
+/*!
+    Returns \c true if the \a other format is equal to this camera format, otherwise \c false.
+*/
 bool QCameraFormat::operator==(const QCameraFormat &other) const
 {
     if (d == other.d)
@@ -90,9 +203,14 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
 }
 
 /*!
+    \fn bool QCameraFormat::operator!=(const QCameraFormat &other) const
+
+    Returns \c false if the \a other format is equal to this camera format, otherwise \c true.
+*/
+
+/*!
     \class QCameraDevice
     \brief The QCameraDevice class provides general information about camera devices.
-    \since 5.3
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_camera
