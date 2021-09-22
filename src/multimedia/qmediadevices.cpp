@@ -132,7 +132,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty QtMultimedia::MediaDevices::audioInputs
+    \qmlproperty list<audioDevice> QtMultimedia::MediaDevices::audioInputs
     Contains a list of available audio input devices on the system.
 
     Those devices are usually microphones. Devices can be either built-in, or
@@ -151,7 +151,7 @@ QList<QAudioDevice> QMediaDevices::audioInputs()
 }
 
 /*!
-    \qmlproperty QtMultimedia::MediaDevices::audioOutputs
+    \qmlproperty list<audioDevice> QtMultimedia::MediaDevices::audioOutputs
     Contains a list of available audio output devices on the system.
 
     Those devices are usually loudspeakers or head sets. Devices can be either
@@ -170,7 +170,7 @@ QList<QAudioDevice> QMediaDevices::audioOutputs()
 }
 
 /*!
-    \qmlproperty QtMultimedia::MediaDevices::videoInputs
+    \qmlproperty list<cameraDevice> QtMultimedia::MediaDevices::videoInputs
     Contains a list of cameras on the system.
 */
 
@@ -183,7 +183,7 @@ QList<QCameraDevice> QMediaDevices::videoInputs()
 }
 
 /*!
-    \qmlproperty QtMultimedia::MediaDevices::defaultAudioInput
+    \qmlproperty audioDevice QtMultimedia::MediaDevices::defaultAudioInput
     Returns the default audio input device.
 
     The default device can change during the runtime of the application. The value
@@ -206,7 +206,7 @@ QAudioDevice QMediaDevices::defaultAudioInput()
 }
 
 /*!
-    \qmlproperty QtMultimedia::MediaDevices::defaultAudioOutput
+    \qmlproperty audioDevice QtMultimedia::MediaDevices::defaultAudioOutput
     Returns the default audio output device.
 
     The default device can change during the runtime of the application. The value
@@ -229,7 +229,7 @@ QAudioDevice QMediaDevices::defaultAudioOutput()
 }
 
 /*!
-    \qmlproperty QtMultimedia::MediaDevices::defaultVideoInput
+    \qmlproperty cameraDevice QtMultimedia::MediaDevices::defaultVideoInput
     Returns the default camera on the system.
 
     \note The returned object should be checked using isNull() before being used,
