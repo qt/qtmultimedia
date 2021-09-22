@@ -176,6 +176,13 @@ namespace QMediaFormatNamespaceForeign
     QML_NAMED_ELEMENT(MediaFormat)
 };
 
+struct QCameraFormatForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QCameraFormat)
+    QML_NAMED_ELEMENT(cameraFormat)
+};
+
 QT_END_NAMESPACE
 
 #endif
