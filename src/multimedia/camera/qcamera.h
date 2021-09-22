@@ -76,9 +76,11 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
     Q_PROPERTY(float minimumZoomFactor READ minimumZoomFactor NOTIFY minimumZoomFactorChanged)
     Q_PROPERTY(float maximumZoomFactor READ maximumZoomFactor NOTIFY maximumZoomFactorChanged)
     Q_PROPERTY(float zoomFactor READ zoomFactor WRITE setZoomFactor NOTIFY zoomFactorChanged)
-    Q_PROPERTY(qreal exposureTime READ exposureTime NOTIFY exposureTimeChanged)
+    Q_PROPERTY(float exposureTime READ exposureTime NOTIFY exposureTimeChanged)
+    Q_PROPERTY(int manualExposureTime READ manualExposureTime WRITE setManualExposureTime NOTIFY manualExposureTimeChanged)
     Q_PROPERTY(int isoSensitivity READ isoSensitivity NOTIFY isoSensitivityChanged)
-    Q_PROPERTY(qreal exposureCompensation READ exposureCompensation WRITE setExposureCompensation NOTIFY exposureCompensationChanged)
+    Q_PROPERTY(int manualIsoSensitivity READ manualIsoSensitivity WRITE setManualIsoSensitivity NOTIFY manualIsoSensitivityChanged)
+    Q_PROPERTY(float exposureCompensation READ exposureCompensation WRITE setExposureCompensation NOTIFY exposureCompensationChanged)
     Q_PROPERTY(QCamera::ExposureMode exposureMode READ exposureMode WRITE setExposureMode NOTIFY exposureModeChanged)
     Q_PROPERTY(bool flashReady READ isFlashReady NOTIFY flashReady)
     Q_PROPERTY(QCamera::FlashMode flashMode READ flashMode WRITE setFlashMode NOTIFY flashModeChanged)
@@ -187,7 +189,7 @@ public:
 
     FocusMode focusMode() const;
     void setFocusMode(FocusMode mode);
-    bool isFocusModeSupported(FocusMode mode) const;
+    Q_INVOKABLE bool isFocusModeSupported(FocusMode mode) const;
 
     QPointF focusPoint() const;
 
@@ -203,16 +205,16 @@ public:
     void setZoomFactor(float factor);
 
     FlashMode flashMode() const;
-    bool isFlashModeSupported(FlashMode mode) const;
-    bool isFlashReady() const;
+    Q_INVOKABLE bool isFlashModeSupported(FlashMode mode) const;
+    Q_INVOKABLE bool isFlashReady() const;
 
     TorchMode torchMode() const;
-    bool isTorchModeSupported(TorchMode mode) const;
+    Q_INVOKABLE bool isTorchModeSupported(TorchMode mode) const;
 
     ExposureMode exposureMode() const;
-    bool isExposureModeSupported(ExposureMode mode) const;
+    Q_INVOKABLE bool isExposureModeSupported(ExposureMode mode) const;
 
-    qreal exposureCompensation() const;
+    float exposureCompensation() const;
 
     int isoSensitivity() const;
     int manualIsoSensitivity() const;
@@ -242,7 +244,7 @@ public Q_SLOTS:
     void setTorchMode(TorchMode mode);
     void setExposureMode(ExposureMode mode);
 
-    void setExposureCompensation(qreal ev);
+    void setExposureCompensation(float ev);
 
     void setManualIsoSensitivity(int iso);
     void setAutoIsoSensitivity();
@@ -273,8 +275,10 @@ Q_SIGNALS:
     void torchModeChanged();
 
     void exposureTimeChanged(float speed);
+    void manualExposureTimeChanged(float speed);
     void isoSensitivityChanged(int);
-    void exposureCompensationChanged(qreal);
+    void manualIsoSensitivityChanged(int);
+    void exposureCompensationChanged(float);
     void exposureModeChanged();
 
     void whiteBalanceModeChanged() const;

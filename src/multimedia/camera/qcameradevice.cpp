@@ -241,17 +241,16 @@ QString QCameraDevice::description() const
 /*!
     \enum QCameraDevice::Position
 
-    Describes the physical position of the camera on the hardware system.
+    This enum specifies the physical position of the camera on the system hardware.
 
-    \value CameraDevice.UnspecifiedPosition
-        The physical positition of the camera is unspecified.
-    \value CameraDevice.FrontFace
-        The camera is on the front of the hardware, facing towards the user.
-    \value CameraDevice.BackFace
-        The camera is on the back of the hardware, facing away from the user.
-    \endtable
+    \value UnspecifiedPosition  The camera position is unspecified or unknown.
+    \value BackFace  The camera is on the back face of the system hardware. For example on a
+           mobile device, it means it is on the opposite side to that of the screen.
+    \value FrontFace  The camera is on the front face of the system hardware. For example on a
+           mobile device, it means it is on the same side as that of the screen.
+
+    \sa position()
 */
-
 
 /*!
     \qmlmethod enumeration QtMultimedia::cameraDevice::position
@@ -291,6 +290,12 @@ QList<QSize> QCameraDevice::photoResolutions() const
 {
     return d ? d->photoResolutions : QList<QSize>{};
 }
+
+/*!
+    \qmlproperty CameraFormat QtMultiMedia::CameraDevice::videoFormats
+
+    Holds the video formats supported by the camera.
+*/
 
 /*!
     Returns the video formats supported by the camera.
