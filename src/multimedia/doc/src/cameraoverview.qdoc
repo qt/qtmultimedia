@@ -217,7 +217,7 @@ Thus, as the user rotates the device, the preview image will switch between port
 landscape mode. Once you start recording, the orientation will be locked. To avoid a poor
 user experience, you should also lock the orientation of the applications user interface
 while recording. This can be achieved using the
-\l{contentOrientation}{QWindow::contentOrientation} property of QWindow.
+\l{QWindow::contentOrientation}{contentOrientation} property of QWindow.
 
 \section2 Still Images
 
@@ -261,11 +261,12 @@ For camera hardware that supports it, \l QCamera::FocusModeAutoNear allows
 imaging of things that are close to the sensor. This is useful in applications
 like bar-code recognition, or business card scanning.
 
-In addition to focus, QCameraFocus allows you to control any available zoom
-functionality using \l QCamera::setZoomFactor() or \l QCamera::zoomTo(). The
+In addition to focus, QCamera allows you to control any available zoom
+functionality using \l{QCamera::setZoomFactor}{setZoomFactor()} or
+\l{QCamera::zoomTo}{zoomTo()}. The
 available zoom range might be limited or entirely fixed to unity (1:1). The
-allowed range can be checked with \l QCamera::minimumZoomFactor() and
-\l QCamera::minimumZoomFactor().
+allowed range can be checked with \l{QCamera::minimumZoomFactor}{minimumZoomFactor()}
+and \l{QCamera::maximumZoomFactor}{maximumZoomFactor()}.
 
 \section3 Exposure, Shutter Speed and Flash
 

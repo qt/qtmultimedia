@@ -145,7 +145,7 @@ QQuickImageCapture::~QQuickImageCapture() = default;
     capture() returns the capture requestId parameter, used with
     imageExposed(), imageCaptured(), imageMetadataAvailable() and imageSaved() signals.
 
-    \sa ready, preview
+    \sa readyForCapture, preview
 */
 
 /*!
@@ -184,9 +184,10 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
 }
 
 /*!
-    \qmlsignal QtMultimedia::ImageCapture::errorOccurred(requestId, Error, message)
+    \qmlsignal QtMultimedia::ImageCapture::errorOccurred(requestId, error, message)
 
     This signal is emitted when an error occurs during capture with \a requestId.
+    \a error is an enumeration of type ImageCapture::Error.
     A descriptive message is available in \a message.
 */
 

@@ -43,11 +43,10 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QPlatformVideoSink
-    \obsolete
+    \internal
 
     \inmodule QtMultimedia
 
-    \ingroup multimedia_control
     \brief The QPlatformVideoSink class provides a media control for rendering video to a window.
 
     QPlatformVideoSink is one of a number of possible video output controls.

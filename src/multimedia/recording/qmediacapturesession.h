@@ -69,7 +69,7 @@ public:
     ~QMediaCaptureSession();
 
     QAudioInput *audioInput() const;
-    void setAudioInput(QAudioInput *device);
+    void setAudioInput(QAudioInput *input);
 
     QCamera *camera() const;
     void setCamera(QCamera *camera);

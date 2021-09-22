@@ -159,7 +159,7 @@ void QAudioInput::setMuted(bool muted)
 }
 
 /*!
-    \qmlproperty QtMultimedia::AudioInput::device
+    \qmlproperty AudioDevice QtMultimedia::AudioInput::device
 
     This property describes the audio device connected to this input.
 
