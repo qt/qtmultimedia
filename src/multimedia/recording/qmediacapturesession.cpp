@@ -175,6 +175,7 @@ QMediaCaptureSession::~QMediaCaptureSession()
     if (d_ptr->imageCapture)
         d_ptr->imageCapture->setCaptureSession(nullptr);
     setAudioInput(nullptr);
+    setAudioOutput(nullptr);
     d_ptr->setVideoSink(nullptr);
     delete d_ptr->captureSession;
     delete d_ptr;
@@ -379,11 +380,17 @@ QVideoSink *QMediaCaptureSession::videoSink() const
 */
 void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
 {
-    Q_D(QMediaCaptureSession);
-    if (d->audioOutput == output)
+    QAudioOutput *oldOutput = d_ptr->audioOutput;
+    if (oldOutput == output)
         return;
-    d->audioOutput = output;
-    d->captureSession->setAudioOutput(output ? output->handle() : nullptr);
+    d_ptr->audioOutput = output;
+    d_ptr->captureSession->setAudioOutput(nullptr);
+    if (oldOutput)
+        oldOutput->setDisconnectFunction({});
+    if (output) {
+        output->setDisconnectFunction([this](){ setAudioOutput(nullptr); });
+        d_ptr->captureSession->setAudioOutput(output->handle());
+    }
     emit audioOutputChanged();
 }
 /*!
