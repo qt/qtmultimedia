@@ -69,34 +69,125 @@ QT_BEGIN_NAMESPACE
     \snippet multimedia-snippets/camera.cpp Camera selection
 
     On hardware that supports it, QCamera lets you adjust the focus
-    and zoom. This also includes things
-    like "Macro" mode for close up work (e.g. reading barcodes, or
+    and zoom. This also includes functionality such as a
+    "Macro" mode for close up work (e.g. reading barcodes, or
     recognizing letters), or "touch to focus" - indicating an
-    interesting area of the viewfinder for the hardware to attempt
+    interesting area of the image for the hardware to attempt
     to focus on.
 
     \snippet multimedia-snippets/camera.cpp Camera custom focus
 
-    The \l minimumZoomFactor() and \l maximumZoomFactor() methods allows checking the
-    range of allowed zoom factors. The \l zoomTo() method allows changing the zoom factor.
+    The \l minimumZoomFactor() and \l maximumZoomFactor() methods provide the
+    range of supported zoom factors. The \l zoomTo() method allows changing
+    the zoom factor.
 
     \snippet multimedia-snippets/camera.cpp Camera zoom
 
 
-    After capturing the data for a camera frame, the camera hardware and
-    software performs various image processing tasks to produce a final
+    After capturing the raw data for a camera frame, the camera hardware and
+    software performs various image processing tasks to produce the final
     image.  This includes compensating for ambient light color, reducing
     noise, as well as making some other adjustments to the image.
 
+    You can control many of these processing steps through the Camera properties.
     For example, you can set the white balance (or color temperature) used
     for processing images:
 
     \snippet multimedia-snippets/camera.cpp Camera image whitebalance
 
-    For more information on image processing of camera frames, see \l {camera_image_processing}{Camera Image Processing}.
+    For more information on image processing of camera frames, see
+    \l {camera_image_processing}{Camera Image Processing}.
 
     See the \l{Camera Overview}{camera overview} for more information.
 */
+
+/*!
+    \qmltype Camera
+    \instantiates QCamera
+    \inqmlmodule QtMultimedia
+    \brief An interface for camera settings related to focus and zoom.
+    \ingroup multimedia_qml
+    \ingroup camera_qml
+
+    The Camera element can be used within a \l CaptureSession for video recording
+    and image taking.
+
+    You can use \l MediaDevices to list available cameras and choose which one to use.
+
+    \qml
+    MediaDevices {
+        id: mediaDevices
+    }
+    CaptureSession {
+        camera: Camera {
+            device: mediaDevices.defaultVideoInput
+        }
+    }
+    \endqml
+
+    On hardware that supports it, QCamera lets you adjust the focus
+    and zoom. This also includes functionality such as a
+    "Macro" mode for close up work (e.g. reading barcodes, or
+    recognizing letters), or "touch to focus" - indicating an
+    interesting area of the image for the hardware to attempt
+    to focus on.
+
+    \qml
+
+    Item {
+        width: 640
+        height: 360
+
+        CaptureSession {
+            camera: Camera {
+                id: camera
+
+                focusMode: Camera.FocusModeAutoNear
+                customFocusPoint: Qt.point(0.2, 0.2) // Focus relative to top-left corner
+            }
+            videoOutput: videoOutput
+        }
+
+        VideoOutput {
+            id: videoOutput
+            anchors.fill: parent
+        }
+    }
+
+    \endqml
+
+    The \l minimumZoomFactor and \l maximumZoomFactor properties provide the
+    range of supported zoom factors. The \l zoomFactor property allows changing
+    the zoom factor.
+
+    \qml
+    Camera {
+        zoomFactor: maximumZoomFactor // zoom in as much as possible
+    }
+    \endqml
+
+    After capturing the raw data for a camera frame, the camera hardware and
+    software performs various image processing tasks to produce the final
+    image.  This includes compensating for ambient light color, reducing
+    noise, as well as making some other adjustments to the image.
+
+    You can control many of these processing steps through the Camera properties.
+    For example, you can set the white balance (or color temperature) used
+    for processing images:
+
+    \qml
+    Camera {
+        whiteBalanceMode: Camera.WhiteBalanceManual
+        colorTemperature: 5600
+    }
+    \endqml
+
+    For more information on image processing of camera frames, see
+    \l {camera_image_processing}{Camera Image Processing}.
+
+    See the \l{Camera Overview}{camera overview} for more information.
+*/
+
 
 void QCameraPrivate::_q_error(int error, const QString &errorString)
 {
@@ -202,6 +293,16 @@ bool QCamera::isAvailable() const
     return d->control && !d->cameraDevice.isNull();
 }
 
+/*! \qmlproperty bool QtMultimedia::Camera::active
+
+    Describes whether the camera is currently active.
+*/
+
+/*! \property bool QCamera::active
+
+    Describes whether the camera is currently active.
+*/
+
 /*!
     Returns true if the camera is currently active.
 */
@@ -222,13 +323,27 @@ void QCamera::setActive(bool active)
 }
 
 /*!
-    Returns the error state of the object.
+    \qmlproperty enumeration QtMultimedia::Camera::error
+
+    Returns the error state of the camera.
+
+    \sa QCamera::Error
+*/
+
+/*!
+    Returns the error state of the camera.
 */
 
 QCamera::Error QCamera::error() const
 {
     return d_func()->error;
 }
+
+/*!
+    \qmlproperty string QtMultimedia::Camera::errorString
+
+    Returns a human readable string describing a camera's error state.
+*/
 
 /*!
     Returns a human readable string describing a camera's error state.
@@ -238,11 +353,51 @@ QString QCamera::errorString() const
     return d_func()->errorString;
 }
 
+/*! \enum QCamera::Features
+
+    Describes a set of features supported by the camera. The returned value can be a
+    combination of:
+
+    \value ColorTemperature
+        The Camera supports setting a custom \l{colorTemperature}.
+    \value ExposureCompensation
+        The Camera supports setting a custom \l{exposureCompensation}.
+    \value IsoSensitivity
+        The Camera supports setting a custom \l{isoSensitivity}.
+    \value ManualExposureTime
+        The Camera supports setting a \l{manual exposure Time}{QCamera::manualExposureTime}.
+    \value CustomFocusPoint
+        The Camera supports setting a \l{custom focus point}{QCamera::customFocusPoint}.
+    \value FocusDistance
+        The Camera supports setting the \l{focusDistance} property.
+*/
+
+/*!
+    \qmlproperty Features QtMultimedia::Camera::supportedFeatures
+    Returns the features supported by this camera.
+
+    \sa QCamera::Features
+*/
+
+/*!
+    Returns the features supported by this camera.
+
+    \sa QCamera::Features
+*/
 QCamera::Features QCamera::supportedFeatures() const
 {
     Q_D(const QCamera);
     return d->control ? d->control->supportedFeatures() : QCamera::Features{};
 }
+
+/*! \qmlmethod void Camera::start()
+
+    Starts the camera.
+
+    Same as setActive(true).
+
+    If the camera can't be started for some reason, the errorOccurred() signal is emitted.
+*/
 
 /*! \fn void QCamera::start()
 
@@ -253,11 +408,16 @@ QCamera::Features QCamera::supportedFeatures() const
     If the camera can't be started for some reason, the errorOccurred() signal is emitted.
 */
 
+/*! \qmlmethod void Camera::stop()
+
+    Stops the camera.
+    Same as setActive(false).
+*/
+
 /*! \fn void QCamera::stop()
 
     Stops the camera.
     Same as setActive(false).
-
 */
 
 /*!
@@ -292,6 +452,11 @@ void QCamera::setCaptureSession(QMediaCaptureSession *session)
         d->captureInterface->setCamera(d->control);
 }
 
+/*! \qmlproperty CameraDevice QtMultimedia::Camera::cameraDevice
+
+    Gets or sets the currently active camera device.
+*/
+
 /*!
     Returns the QCameraDevice object associated with this camera.
  */
@@ -321,8 +486,17 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
     setCameraFormat({});
 }
 
+/*! \qmlproperty CameraDevice QtMultimedia::Camera::cameraFormat
+
+    Gets or sets the currently active camera format.
+
+    \sa CameraDevice::videoFormats
+*/
+
 /*!
     Returns the camera format currently used by the camera.
+
+    \sa QCameraDevice::videoFormats
 */
 QCameraFormat QCamera::cameraFormat() const
 {
@@ -354,6 +528,13 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 */
 
 /*!
+    \qmlsignal void Camera::errorOccurred(Camera::Error error, string errorString)
+
+    This signal is emitted when error state changes to \a error. A description
+    of the error is  provided as \a errorString.
+*/
+
+/*!
     \fn void QCamera::errorOccurred(QCamera::Error error, const QString &errorString)
 
     This signal is emitted when error state changes to \a error. A description
@@ -361,22 +542,27 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 */
 
 /*!
-    \enum QCameraDevice::Position
-    \since 5.3
+    \qmlproperty enumeration Camera::focusMode
 
-    This enum specifies the physical position of the camera on the system hardware.
+    This property holds the current camera focus mode.
 
-    \value UnspecifiedPosition  The camera position is unspecified or unknown.
+    \note In automatic focusing modes and where supported, the \l focusPoint property provides
+    information and control over the area of the image that is being focused.
 
-    \value BackFace  The camera is on the back face of the system hardware. For example on a
-    mobile device, it means it is on the opposite side to that of the screen.
+    \value Camera.FocusModeAuto Continuous auto focus mode.
+    \value Camera.FocusModeAutoNear Continuous auto focus, preferring objects near to
+        the camera.
+    \value Camera.FocusModeAutoFar Continuous auto focus, preferring objects far away
+        from the camera.
+    \value Camera.FocusModeHyperfocal Focus to hyperfocal distance, with the maximum
+        depth of field achieved. All objects at distances from half of this
+        distance out to infinity will be acceptably sharp.
+    \value Camera.FocusModeInfinity Focus strictly to infinity.
+    \value Camera.FocusModeManual Manual or fixed focus mode.
 
-    \value FrontFace  The camera is on the front face of the system hardware. For example on a
-    mobile device, it means it is on the same side as that of the screen. Viewfinder frames of
-    front-facing cameras are mirrored horizontally, so the users can see themselves as looking
-    into a mirror. Captured images or videos are not mirrored.
+    If a certain focus mode is not supported, setting it will have no effect.
 
-    \sa QCameraDevice::position()
+    \sa isFocusModeSupported()
 */
 
 /*!
@@ -389,7 +575,6 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
 
     \sa QCamera::isFocusModeSupported()
 */
-
 QCamera::FocusMode QCamera::focusMode() const
 {
     Q_D(const QCamera);
@@ -406,9 +591,14 @@ void QCamera::setFocusMode(QCamera::FocusMode mode)
 }
 
 /*!
-    Returns true if the focus \a mode is supported by camera.
+    \qmlproperty bool Camera::isFocusModeSupported(FocusMode mode)
+
+    Returns true if the focus \a mode is supported by the camera.
 */
 
+/*!
+    Returns true if the focus \a mode is supported by the camera.
+*/
 bool QCamera::isFocusModeSupported(FocusMode mode) const
 {
     Q_D(const QCamera);
@@ -426,14 +616,29 @@ QPointF QCamera::focusPoint() const
 }
 
 /*!
-  \property QCamera::customFocusPoint
+    \qmlproperty point QtMultimedia::Camera::customFocusPoint
 
-  This property represents the position of the custom focus point, in relative frame coordinates:
-  QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
+    This property holds the position of custom focus point, in relative frame
+    coordinates. This means that QPointF(0,0) points to the top-left corner
+    of the frame, and QPointF(0.5,0.5) points to the center of the frame.
 
-  The custom focus point property is used only in \c FocusPointCustom focus mode.
- */
+    Custom focus point is used only in \c FocusPointCustom focus mode.
 
+    You can check whether custom focus points are supported by querying
+    supportedFeatures() with the Feature.CustomFocusPoint flag.
+*/
+
+/*!
+    \property QCamera::customFocusPoint
+
+    This property represents the position of the custom focus point, in relative frame coordinates:
+    QPointF(0,0) points to the left top frame point, QPointF(0.5,0.5) points to the frame center.
+
+    The custom focus point property is used only in \c FocusPointCustom focus mode.
+
+    You can check whether custom focus points are supported by querying
+    supportedFeatures() with the Feature.CustomFocusPoint flag.
+*/
 QPointF QCamera::customFocusPoint() const
 {
     Q_D(const QCamera);
@@ -449,13 +654,26 @@ void QCamera::setCustomFocusPoint(const QPointF &point)
 }
 
 /*!
+    \qmlproperty float QCamera::focusDistance
+
+    This property return an approximate focus distance of the camera. The value reported
+    is between 0 and 1, 0 being the closest possible focus distance, 1 being as far away
+    as possible. Note that 1 is often, but not always infinity.
+
+    Setting the focus distance will be ignored unless the focus mode is set to
+    \l FocusModeManual.
+*/
+
+/*!
     \property QCamera::focusDistance
 
-    This property return an approximate focus distance of the camera. The value reported is between 0 and 1, 0 being the closest
-    possible focus distance, 1 being as far away as possible. Note that 1 is often, but not always infinity.
+    This property return an approximate focus distance of the camera. The value reported
+    is between 0 and 1, 0 being the closest possible focus distance, 1 being as far away
+    as possible. Note that 1 is often, but not always infinity.
 
-    Setting the focus distance will be ignored unless the focus mode is set to \l FocusModeManual.
- */
+    Setting the focus distance will be ignored unless the focus mode is set to
+    \l FocusModeManual.
+*/
 void QCamera::setFocusDistance(float d)
 {
     if (!d_func()->control || focusMode() != FocusModeManual)
@@ -471,6 +689,15 @@ float QCamera::focusDistance() const
 }
 
 /*!
+    \qmlproperty real QtMultimedia::Camera::maximumZoomFactor
+
+    This property holds the maximum zoom factor supported.
+
+    This will be \c 1.0 on cameras that do not support zooming.
+*/
+
+
+/*!
     Returns the maximum zoom factor.
 
     This will be \c 1.0 on cameras that do not support zooming.
@@ -481,6 +708,14 @@ float QCamera::maximumZoomFactor() const
     Q_D(const QCamera);
     return d->control ? d->control->maxZoomFactor() : 1.;
 }
+
+/*!
+    \qmlproperty real QtMultimedia::Camera::minimumZoomFactor
+
+    This property holds the minimum zoom factor supported.
+
+    This will be \c 1.0 on cameras that do not support zooming.
+*/
 
 /*!
     Returns the minimum zoom factor.
@@ -495,8 +730,18 @@ float QCamera::minimumZoomFactor() const
 }
 
 /*!
-  \property QCamera::zoomFactor
-  \brief The current zoom factor.
+    \qmlproperty QCamera::zoomFactor
+
+    Gets or sets the current zoom factor. Values will be clamped between
+    \l minimumZoomFactor and \l maximumZoomFactor.
+*/
+
+/*!
+    \property QCamera::zoomFactor
+    \brief The current zoom factor.
+
+    Gets or sets the current zoom factor. Values will be clamped between
+    \l minimumZoomFactor and \l maximumZoomFactor.
 */
 float QCamera::zoomFactor() const
 {
@@ -512,11 +757,26 @@ void QCamera::setZoomFactor(float factor)
 }
 
 /*!
+    \qmlmethod void QtMultimedia::Camera::zoomTo(factor, rate)
+
     Zooms to a zoom factor \a factor using \a rate.
 
     The \a rate is specified in powers of two per second. At a rate of 1
     it would take 2 seconds to go from a zoom factor of 1 to 4.
- */
+
+    \note Using a specific rate is not supported on all cameras. If not supported,
+    zooming will happen as fast as possible.
+*/
+
+/*!
+    Zooms to a zoom factor \a factor using \a rate.
+
+    The \a rate is specified in powers of two per second. At a rate of 1
+    it would take 2 seconds to go from a zoom factor of 1 to 4.
+
+    \note Using a specific rate is not supported on all cameras. If not supported,
+    zooming will happen as fast as possible.
+*/
 void QCamera::zoomTo(float factor, float rate)
 {
     Q_ASSERT(rate >= 0.);
@@ -544,12 +804,20 @@ void QCamera::zoomTo(float factor, float rate)
 */
 
 /*!
+    \qmlproperty Camera::FlashMode QtMultimedia::Camera::flashMode
+
+    Gets or sets a certain flash mode if the camera has a flash.
+
+    \sa QCamera::FlashMode, Camera::isFlashModeSupported(), Camera::isFlashReady()
+*/
+
+/*!
     \property QCamera::flashMode
     \brief The flash mode being used.
 
     Enables a certain flash mode if the camera has a flash.
 
-    \sa QCamera::isFlashModeSupported(), QCamera::isFlashReady()
+    \sa QCamera::FlashMode, QCamera::isFlashModeSupported(), QCamera::isFlashReady()
 */
 QCamera::FlashMode QCamera::flashMode() const
 {
@@ -565,9 +833,14 @@ void QCamera::setFlashMode(QCamera::FlashMode mode)
 }
 
 /*!
+    \qmlmethod QtMultimedia::Camera::isFlashModeSupported(FlashMode mode)
+
     Returns true if the flash \a mode is supported.
 */
 
+/*!
+    Returns true if the flash \a mode is supported.
+*/
 bool QCamera::isFlashModeSupported(QCamera::FlashMode mode) const
 {
     Q_D(const QCamera);
@@ -575,9 +848,14 @@ bool QCamera::isFlashModeSupported(QCamera::FlashMode mode) const
 }
 
 /*!
+    \qmlmethod bool QtMultimedia::Camera::isFlashReady()
+
     Returns true if flash is charged.
 */
 
+/*!
+    Returns true if flash is charged.
+*/
 bool QCamera::isFlashReady() const
 {
     Q_D(const QCamera);
@@ -585,13 +863,26 @@ bool QCamera::isFlashReady() const
 }
 
 /*!
+    \qmlproperty Camera::TorchMode Camera::torchMode
+
+    Gets or sets the torch mode being used.
+
+    A torch is a continuous source of light. It can be used during video recording in
+    low light conditions. Enabling torch mode will usually override any currently set
+    flash mode.
+
+    \sa QCamera::TorchMode, Camera::isTorchModeSupported(), Camera::flashMode
+*/
+
+/*!
     \property QCamera::torchMode
     \brief The torch mode being used.
 
-    A torch is a continuous light source used for low light video recording. Enabling torch mode
-    will usually override any currently set flash mode.
+    A torch is a continuous source of light. It can be used during video recording in
+    low light conditions. Enabling torch mode will usually override any currently set
+    flash mode.
 
-    \sa QCamera::isTorchModeSupported(), QCamera::flashMode
+    \sa QCamera::TorchMode, QCamera::isTorchModeSupported(), QCamera::flashMode
 */
 QCamera::TorchMode QCamera::torchMode() const
 {
@@ -607,6 +898,12 @@ void QCamera::setTorchMode(QCamera::TorchMode mode)
 }
 
 /*!
+    \qmlmethod bool QtMultimedia::Camera::isTorchModeSupported(TorchMode mode)
+
+    Returns true if the torch \a mode is supported.
+*/
+
+/*!
     Returns true if the torch \a mode is supported.
 */
 bool QCamera::isTorchModeSupported(QCamera::TorchMode mode) const
@@ -616,12 +913,18 @@ bool QCamera::isTorchModeSupported(QCamera::TorchMode mode) const
 }
 
 /*!
+    \qmlproperty ExposureMode QtMultimedia::Camera::exposureMode
+    \brief The exposure mode being used.
+
+    \sa QCamera::ExposureMode, Camera::isExposureModeSupported()
+*/
+
+/*!
   \property QCamera::exposureMode
   \brief The exposure mode being used.
 
   \sa QCamera::isExposureModeSupported()
 */
-
 QCamera::ExposureMode QCamera::exposureMode() const
 {
     Q_D(const QCamera);
@@ -636,9 +939,14 @@ void QCamera::setExposureMode(QCamera::ExposureMode mode)
 }
 
 /*!
+    \qmlmethod bool QtMultimedia::Camera::isTorchModeSupported(ExposureMode mode)
+
     Returns true if the exposure \a mode is supported.
 */
 
+/*!
+    Returns true if the exposure \a mode is supported.
+*/
 bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 {
     Q_D(const QCamera);
@@ -649,26 +957,45 @@ bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 }
 
 /*!
+    \qmlproperty QCamera::exposureCompensation
+
+    Gets or sets the exposure compensation in EV units.
+
+    Exposure compensation property allows to adjust the automatically calculated
+    exposure.
+*/
+
+/*!
   \property QCamera::exposureCompensation
   \brief Exposure compensation in EV units.
 
   Exposure compensation property allows to adjust the automatically calculated
   exposure.
 */
-
-qreal QCamera::exposureCompensation() const
+float QCamera::exposureCompensation() const
 {
     Q_D(const QCamera);
     return d->control ? d->control->exposureCompensation() : 0.;
 }
 
-void QCamera::setExposureCompensation(qreal ev)
+void QCamera::setExposureCompensation(float ev)
 {
     Q_D(QCamera);
     if (d->control)
         d->control->setExposureCompensation(ev);
 }
 
+/*!
+    \qmlproperty int QtMultimedia::Camera::isoSensitivity
+
+    Describes the ISO sensitivity currently used by the camera.
+
+*/
+
+/*!
+    \property int QCamera::manualIsoSensitivity
+    \brief Describes the ISO sensitivity currently used by the camera.
+*/
 int QCamera::isoSensitivity() const
 {
     Q_D(const QCamera);
@@ -676,10 +1003,21 @@ int QCamera::isoSensitivity() const
 }
 
 /*!
-    \fn QCamera::setManualIsoSensitivity(int iso)
-    Sets the manual sensitivity to \a iso
+    \qmlproperty int QtMultimedia::Camera::manualIsoSensitivity
+
+    Describes a manually set ISO sensitivity
+
+    Setting this property to -1 (the default), implies that the camera
+    automatically adjusts the ISO sensitivity.
 */
 
+/*!
+    \property int QCamera::manualIsoSensitivity
+    \brief Describes a manually set ISO sensitivity
+
+    Setting this property to -1 (the default), implies that the camera
+    automatically adjusts the ISO sensitivity.
+*/
 void QCamera::setManualIsoSensitivity(int iso)
 {
     Q_D(QCamera);
@@ -707,12 +1045,18 @@ void QCamera::setAutoIsoSensitivity()
         d->control->setManualIsoSensitivity(-1);
 }
 
+/*!
+    Returns the minimum ISO sensitivity supported by the camera.
+*/
 int QCamera::minimumIsoSensitivity() const
 {
     Q_D(const QCamera);
     return d->control ? d->control->minIso() : -1;
 }
 
+/*!
+    Returns the maximum ISO sensitivity supported by the camera.
+*/
 int QCamera::maximumIsoSensitivity() const
 {
     Q_D(const QCamera);
@@ -736,6 +1080,13 @@ float QCamera::maximumExposureTime() const
     Q_D(const QCamera);
     return d->control ? d->control->maxExposureTime() : -1.;
 }
+
+/*!
+    \qmlproperty float QtMultimedia::Camera::exposureTime
+    Returns the Camera's exposure time in seconds.
+
+    \sa manualExposureTime
+*/
 
 /*!
     \property QCamera::exposureTime
@@ -766,6 +1117,15 @@ float QCamera::exposureTime() const
     Q_D(const QCamera);
     return d->control ? d->control->exposureTime() : -1;
 }
+
+/*!
+    \qmlproperty QtMultimedia::Camera::manualExposureTime
+
+    Gets or sets a manual exposure time.
+
+    Setting this property to -1 (the default) means that the camera
+    automatically determines the exposure time.
+*/
 
 /*!
     Set the manual exposure time to \a seconds
@@ -838,6 +1198,12 @@ void QCamera::setAutoExposureTime()
 */
 
 /*!
+    \qmlproperty QtMultimedia::Camera::flashReady
+
+    Indicates if the flash is charged and ready to use.
+*/
+
+/*!
     \property QCamera::flashReady
     \brief Indicates if the flash is charged and ready to use.
 */
@@ -855,17 +1221,21 @@ void QCamera::setAutoExposureTime()
 */
 
 /*!
-    \fn void QCamera::exposureCompensationChanged(qreal value)
+    \fn void QCamera::exposureCompensationChanged(float value)
 
     Signal emitted when the exposure compensation changes to \a value.
 */
 
 
+/*!
+    \qmlproperty QtMultimedia::Camera::whiteBalanceMode
+
+    Gets or sets the white balance mode being used.
+*/
 
 /*!
     Returns the white balance mode being used.
 */
-
 QCamera::WhiteBalanceMode QCamera::whiteBalanceMode() const
 {
     Q_D(const QCamera);
@@ -875,7 +1245,6 @@ QCamera::WhiteBalanceMode QCamera::whiteBalanceMode() const
 /*!
     Sets the white balance to \a mode.
 */
-
 void QCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 {
     Q_D(QCamera);
@@ -889,9 +1258,14 @@ void QCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 }
 
 /*!
+    \qmlmethod bool QtMultimedia::Camera::isWhiteBalanceModeSupported(WhiteBalanceMode mode)
+
     Returns true if the white balance \a mode is supported.
 */
 
+/*!
+    Returns true if the white balance \a mode is supported.
+*/
 bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 {
     Q_D(const QCamera);
@@ -901,11 +1275,21 @@ bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 }
 
 /*!
-    Returns the current color temperature if the
-    current white balance mode is \c WhiteBalanceManual.  For other modes the
-    return value is undefined.
+    \qmlmethod QtMultimedia::Camera::colorTemperature
+
+    Gets or sets the current color temperature.
+
+    Setting a color temperature will only have an effect if WhiteBalanceManual is
+    supported. In this case, setting a temperature greater 0 will automatically set the
+    white balance mode to WhiteBalanceManual. Setting the temperature to 0 will reset
+    the white balance mode to WhiteBalanceAuto.
 */
 
+/*!
+    Returns the current color temperature if the
+    current white balance mode is \c WhiteBalanceManual. For other modes the
+    return value is undefined.
+*/
 int QCamera::colorTemperature() const
 {
     Q_D(const QCamera);
