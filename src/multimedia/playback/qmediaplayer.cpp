@@ -676,7 +676,7 @@ QAudioOutput *QMediaPlayer::audioOutput() const
     audio tracks the \l{language}{MediaMetaData::Language} is usually the most
     important property.
 
-    \sa MediaMetaData
+    \sa mediaMetaData
 */
 
 /*!
@@ -701,7 +701,7 @@ QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 
     The metadata holds properties describing the individual tracks.
 
-    \sa MediaMetaData
+    \sa mediaMetaData
 */
 
 /*!
@@ -726,7 +726,7 @@ QList<QMediaMetaData> QMediaPlayer::videoTracks() const
     subtitle tracks the \l{language}{MediaMetaData::Language} is usually the most
     important property.
 
-    \sa MediaMetaData
+    \sa mediaMetaData
 */
 
 /*!
