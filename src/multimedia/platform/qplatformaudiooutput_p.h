@@ -71,6 +71,7 @@ public:
     QAudioDevice device;
     float volume = 1.;
     bool muted = false;
+    std::function<void()>  disconnectFunction;
 };
 
 QT_END_NAMESPACE

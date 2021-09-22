@@ -39,6 +39,7 @@
 #include <qcameradevice.h>
 #include <qimagecapture.h>
 #include <qmediacapturesession.h>
+#include <qmediaplayer.h>
 #include <qmediadevices.h>
 #include <qmediarecorder.h>
 #include <qaudiooutput.h>
@@ -67,6 +68,8 @@ private slots:
     void can_change_AudioInput_during_recording();
     void disconnects_deleted_AudioInput();
     void can_move_AudioInput_between_sessions();
+    void disconnects_deleted_AudioOutput();
+    void can_move_AudioOutput_between_sessions_and_player();
 
     void can_add_and_remove_Camera();
     void can_disconnect_Camera_when_recording();
@@ -230,6 +233,9 @@ void tst_QMediaCaptureSession::can_change_AudioInput_during_recording()
 
 void tst_QMediaCaptureSession::disconnects_deleted_AudioInput()
 {
+    if (QMediaDevices::audioInputs().isEmpty())
+        QSKIP("No audio input available");
+
     QMediaCaptureSession session;
     QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
     {
@@ -243,6 +249,9 @@ void tst_QMediaCaptureSession::disconnects_deleted_AudioInput()
 
 void tst_QMediaCaptureSession::can_move_AudioInput_between_sessions()
 {
+    if (QMediaDevices::audioInputs().isEmpty())
+        QSKIP("No audio input available");
+
     QMediaCaptureSession session0;
     QMediaCaptureSession session1;
     QSignalSpy audioInputChanged0(&session0, SIGNAL(audioInputChanged()));
@@ -265,6 +274,68 @@ void tst_QMediaCaptureSession::can_move_AudioInput_between_sessions()
     QTRY_COMPARE(audioInputChanged1.count(), 1);
     QVERIFY(session1.audioInput() != nullptr);
 }
+
+void tst_QMediaCaptureSession::disconnects_deleted_AudioOutput()
+{
+    if (QMediaDevices::audioOutputs().isEmpty())
+        QSKIP("No audio output available");
+
+    QMediaCaptureSession session;
+    QSignalSpy audioOutputChanged(&session, SIGNAL(audioOutputChanged()));
+    {
+        QAudioOutput output;
+        session.setAudioOutput(&output);
+        QTRY_COMPARE(audioOutputChanged.count(), 1);
+    }
+    QVERIFY(session.audioOutput() == nullptr);
+    QTRY_COMPARE(audioOutputChanged.count(), 2);
+}
+
+void tst_QMediaCaptureSession::can_move_AudioOutput_between_sessions_and_player()
+{
+    if (QMediaDevices::audioOutputs().isEmpty())
+        QSKIP("No audio output available");
+
+    QMediaCaptureSession session0;
+    QMediaCaptureSession session1;
+    QMediaPlayer player;
+    QSignalSpy audioOutputChanged0(&session0, SIGNAL(audioOutputChanged()));
+    QSignalSpy audioOutputChanged1(&session1, SIGNAL(audioOutputChanged()));
+    QSignalSpy audioOutputChangedPlayer(&player, SIGNAL(audioOutputChanged()));
+
+    QAudioOutput output;
+    {
+        QMediaCaptureSession session2;
+        QSignalSpy audioOutputChanged2(&session2, SIGNAL(audioOutputChanged()));
+        session2.setAudioOutput(&output);
+        QTRY_COMPARE(audioOutputChanged2.count(), 1);
+    }
+
+    session0.setAudioOutput(&output);
+    QTRY_COMPARE(audioOutputChanged0.count(), 1);
+    QVERIFY(session0.audioOutput() != nullptr);
+
+    session1.setAudioOutput(&output);
+    QTRY_COMPARE(audioOutputChanged0.count(), 2);
+    QVERIFY(session0.audioOutput() == nullptr);
+    QTRY_COMPARE(audioOutputChanged1.count(), 1);
+    QVERIFY(session1.audioOutput() != nullptr);
+
+    player.setAudioOutput(&output);
+    QTRY_COMPARE(audioOutputChanged0.count(), 2);
+    QVERIFY(session0.audioOutput() == nullptr);
+    QTRY_COMPARE(audioOutputChanged1.count(), 2);
+    QVERIFY(session1.audioOutput() == nullptr);
+    QTRY_COMPARE(audioOutputChangedPlayer.count(), 1);
+    QVERIFY(player.audioOutput() != nullptr);
+
+    session0.setAudioOutput(&output);
+    QTRY_COMPARE(audioOutputChanged0.count(), 3);
+    QVERIFY(session0.audioOutput() != nullptr);
+    QTRY_COMPARE(audioOutputChangedPlayer.count(), 2);
+    QVERIFY(player.audioOutput() == nullptr);
+}
+
 
 void tst_QMediaCaptureSession::can_add_and_remove_Camera()
 {

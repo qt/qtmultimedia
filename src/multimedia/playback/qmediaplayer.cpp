@@ -263,6 +263,7 @@ QMediaPlayer::~QMediaPlayer()
     // Disconnect everything to prevent notifying
     // when a receiver is already destroyed.
     disconnect();
+    setAudioOutput(nullptr);
 
     d->setVideoSink(nullptr);
     delete d->control;
@@ -653,10 +654,17 @@ void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
 void QMediaPlayer::setAudioOutput(QAudioOutput *output)
 {
     Q_D(QMediaPlayer);
-    if (d->audioOutput == output)
+    auto oldOutput = d->audioOutput;
+    if (oldOutput == output)
         return;
     d->audioOutput = output;
-    d->control->setAudioOutput(output ? output->handle() : nullptr);
+    d->control->setAudioOutput(nullptr);
+    if (oldOutput)
+        oldOutput->setDisconnectFunction({});
+    if (output) {
+        output->setDisconnectFunction([this](){ setAudioOutput(nullptr); });
+        d->control->setAudioOutput(output->handle());
+    }
     emit audioOutputChanged();
 }
 

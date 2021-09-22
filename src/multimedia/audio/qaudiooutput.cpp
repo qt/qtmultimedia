@@ -100,6 +100,7 @@ QAudioOutput::QAudioOutput(const QAudioDevice &device, QObject *parent)
 
 QAudioOutput::~QAudioOutput()
 {
+    setDisconnectFunction({});
     delete d;
 }
 
@@ -220,5 +221,19 @@ void QAudioOutput::setDevice(const QAudioDevice &device)
     d->setAudioDevice(dev);
     emit deviceChanged();
 }
+
+/*!
+    \internal
+*/
+void QAudioOutput::setDisconnectFunction(std::function<void()> disconnectFunction)
+{
+    if (d->disconnectFunction) {
+        auto df = d->disconnectFunction;
+        d->disconnectFunction = {};
+        df();
+    }
+    d->disconnectFunction = std::move(disconnectFunction);
+}
+
 
 #include "moc_qaudiooutput.cpp"
