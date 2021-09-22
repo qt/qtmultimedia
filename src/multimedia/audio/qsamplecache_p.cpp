@@ -314,10 +314,14 @@ void QSample::release()
 void QSample::cleanup()
 {
     qCDebug(qLcSampleCache) << "QSample: cleanup";
-    if (m_waveDecoder)
+    if (m_waveDecoder) {
+        m_waveDecoder->disconnect(this);
         m_waveDecoder->deleteLater();
-    if (m_stream)
+    }
+    if (m_stream) {
+        m_stream->disconnect(this);
         m_stream->deleteLater();
+    }
 
     m_waveDecoder = nullptr;
     m_stream = nullptr;
