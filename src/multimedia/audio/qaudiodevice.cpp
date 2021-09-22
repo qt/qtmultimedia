@@ -92,7 +92,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
 */
 
 /*!
-    \qmltype audioDevice
+    \qmlbasictype audioDevice
     \inqmlmodule QtMultimedia
     \since 6.2
     \instantiates QAudioDevice
