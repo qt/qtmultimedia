@@ -31,7 +31,10 @@
     \title Qt Multimedia Examples
     \brief Demonstrates the multimedia functionality provided by Qt.
 
-    The \l{Qt Multimedia} module provides low-level audio support on Linux,
-    Windows and \macos. It also provides audio plugin API to allow developers
-    implement their own audio support for custom devices and platforms.
+    The \l{Qt Multimedia} module provides cross-platform multimedia capabilities
+    for Qt based applications.
+
+    The examples listed below show some typical use cases in various areas, featuring
+    both low-level audio examples, high level audio and video playback
+    as well as capturing and recording of audiovisual content using both C++ and QML.
 */
