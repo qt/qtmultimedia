@@ -93,11 +93,11 @@ inline int qNormalizedOrientation(int o)
         MediaPlayer {
             id: player
             source: "file://video.webm"
+            videoOutput: videoOutput
         }
 
         VideoOutput {
             id: videoOutput
-            source: player
             anchors.fill: parent
         }
     }
@@ -107,17 +107,6 @@ inline int qNormalizedOrientation(int o)
     The VideoOutput item supports untransformed, stretched, and uniformly scaled video presentation.
     For a description of stretched uniformly scaled presentation, see the \l fillMode property
     description.
-
-    The VideoOutput item works with backends that support either QObject or
-    QPlatformVideoSink. If the backend only supports QPlatformVideoSink, the video is rendered
-    onto an overlay window that is layered on top of the QtQuick window. Due to the nature of the
-    video overlays, certain features are not available for these kind of backends:
-    \list
-    \li Some transformations like rotations
-    \li Having other QtQuick items on top of the VideoOutput item
-    \endlist
-    Most backends however do support QObject and therefore don't have the limitations
-    listed above.
 
     \sa MediaPlayer, Camera
 
@@ -130,7 +119,7 @@ inline int qNormalizedOrientation(int o)
     may be used to disable the screensaver in this fashion:
 
     \qml
-    import QtSystemInfo 5.0
+    import QtSystemInfo
 
     ScreenSaver { screenSaverEnabled: false }
     \endqml
@@ -163,13 +152,12 @@ QQuickVideoOutput::~QQuickVideoOutput()
 }
 
 /*!
-    \qmlproperty object QtMultimedia::VideoOutput::videoSurface
-    \since 5.15
+    \qmlproperty object QtMultimedia::VideoOutput::videoSink
 
-    This property holds the underlaying video surface that can be used
+    This property holds the underlaying C++ QVideoSink object that is used
     to render the video frames to this VideoOutput element.
-    It is similar to setting a QObject with \c videoSurface property as a source,
-    where this video surface will be set.
+
+    Normal usage of VideoOutput from QML should not require using this property.
 */
 
 QVideoSink *QQuickVideoOutput::videoSink() const
