@@ -48,6 +48,11 @@ QT_BEGIN_NAMESPACE
 class QCameraFormatPrivate;
 class Q_MULTIMEDIA_EXPORT QCameraFormat
 {
+    Q_GADGET
+    Q_PROPERTY(QSize resolution READ resolution CONSTANT)
+    Q_PROPERTY(QVideoFrameFormat::PixelFormat pixelFormat READ pixelFormat CONSTANT)
+    Q_PROPERTY(float minFrameRate READ minFrameRate CONSTANT)
+    Q_PROPERTY(float maxFrameRate READ maxFrameRate CONSTANT)
 public:
     QCameraFormat() noexcept;
     QCameraFormat(const QCameraFormat &other) noexcept;
