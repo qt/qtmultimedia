@@ -63,6 +63,9 @@ excludedirs += ../../gsttools
 
 depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork qmake qtcmake
 
+# Ignore \since commands for versions earlier than 6.3
+ignoresince = 6.3
+
 navigation.landingpage = "Qt Multimedia"
 navigation.cppclassespage = "Qt Multimedia C++ Classes"
 navigation.qmltypespage = "Qt Multimedia QML Types"
