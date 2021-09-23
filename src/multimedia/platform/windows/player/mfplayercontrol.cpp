@@ -170,6 +170,8 @@ void MFPlayerControl::handleStatusChanged()
         if (m_state == QMediaPlayer::PlayingState)
             m_session->start();
         break;
+    default:
+        break;
     }
     emit mediaStatusChanged(m_session->status());
     refreshState();

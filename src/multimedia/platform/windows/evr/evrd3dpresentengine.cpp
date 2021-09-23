@@ -60,14 +60,15 @@ public:
         , m_surface(0)
         , m_mapMode(QVideoFrame::NotMapped)
     {
+        Q_UNUSED(engine);
         if (m_sample) {
             m_sample->AddRef();
 
             IMFMediaBuffer *buffer;
             if (SUCCEEDED(m_sample->GetBufferByIndex(0, &buffer))) {
                 MFGetService(buffer,
-                             mr_BUFFER_SERVICE,
-                             iid_IDirect3DSurface9,
+                             MR_BUFFER_SERVICE,
+                             IID_IDirect3DSurface9,
                              reinterpret_cast<void **>(&m_surface));
                 buffer->Release();
             }

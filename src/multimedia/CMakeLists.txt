@@ -132,12 +132,12 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         platform/windows/audio/qwindowsaudioutils.cpp platform/windows/audio/qwindowsaudioutils_p.h
         platform/windows/common/mfmetadata.cpp platform/windows/common/mfmetadata_p.h
         platform/windows/common/qwindowsmultimediautils.cpp platform/windows/common/qwindowsmultimediautils_p.h
+        platform/windows/common/qwindowsmfdefs.cpp platform/windows/common/qwindowsmfdefs_p.h
         platform/windows/common/qwindowsiupointer_p.h
         platform/windows/decoder/mfaudiodecodercontrol.cpp platform/windows/decoder/mfaudiodecodercontrol_p.h
         platform/windows/decoder/mfdecodersourcereader.cpp platform/windows/decoder/mfdecodersourcereader_p.h
         platform/windows/evr/evrcustompresenter.cpp platform/windows/evr/evrcustompresenter_p.h
         platform/windows/evr/evrd3dpresentengine.cpp platform/windows/evr/evrd3dpresentengine_p.h
-        platform/windows/evr/evrdefs.cpp platform/windows/evr/evrdefs_p.h
         platform/windows/evr/evrhelpers.cpp platform/windows/evr/evrhelpers_p.h
         platform/windows/evr/evrvideowindowcontrol.cpp platform/windows/evr/evrvideowindowcontrol_p.h
         platform/windows/mfstream.cpp platform/windows/mfstream_p.h
@@ -178,12 +178,16 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         evr
         gdi32
         mf
+        mfcore
         mfplat
         mfreadwrite
         mfuuid
         ole32
         oleaut32
+        propsys
+        shlwapi
         strmiids
+        amstrmid
         user32
         winmm
         wmcodecdspuuid

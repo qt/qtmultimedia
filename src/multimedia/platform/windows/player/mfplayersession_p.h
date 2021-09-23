@@ -88,15 +88,15 @@ public:
     MFPlayerSession(MFPlayerControl *playerControl = 0);
     ~MFPlayerSession();
 
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
 
-    STDMETHODIMP_(ULONG) AddRef(void);
+    STDMETHODIMP_(ULONG) AddRef(void) override;
 
-    STDMETHODIMP_(ULONG) Release(void);
+    STDMETHODIMP_(ULONG) Release(void) override;
 
-    STDMETHODIMP Invoke(IMFAsyncResult *pResult);
+    STDMETHODIMP Invoke(IMFAsyncResult *pResult) override;
 
-    STDMETHODIMP GetParameters(DWORD *pdwFlags, DWORD *pdwQueue)
+    STDMETHODIMP GetParameters(DWORD *pdwFlags, DWORD *pdwQueue) override
     {
         Q_UNUSED(pdwFlags);
         Q_UNUSED(pdwQueue);

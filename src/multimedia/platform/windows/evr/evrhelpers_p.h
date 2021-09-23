@@ -51,8 +51,14 @@
 // We mean it.
 //
 
-#include "evrdefs_p.h"
 #include <qvideoframe.h>
+#include <d3d9.h>
+#include <dxva2api.h>
+#include <evr9.h>
+#include <evr.h>
+#include <mfidl.h>
+#include <mfapi.h>
+#include <mferror.h>
 
 QT_BEGIN_NAMESPACE
 

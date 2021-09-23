@@ -62,13 +62,13 @@ public:
 
     ~SourceResolver();
 
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
-    STDMETHODIMP_(ULONG) AddRef(void);
-    STDMETHODIMP_(ULONG) Release(void);
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
+    STDMETHODIMP_(ULONG) AddRef(void) override;
+    STDMETHODIMP_(ULONG) Release(void) override;
 
-    HRESULT STDMETHODCALLTYPE Invoke(IMFAsyncResult *pAsyncResult);
+    HRESULT STDMETHODCALLTYPE Invoke(IMFAsyncResult *pAsyncResult) override;
 
-    HRESULT STDMETHODCALLTYPE GetParameters(DWORD*, DWORD*);
+    HRESULT STDMETHODCALLTYPE GetParameters(DWORD*, DWORD*) override;
 
     void load(const QUrl &url, QIODevice* stream);
 
@@ -87,13 +87,13 @@ private:
     {
     public:
         State(IMFSourceResolver *sourceResolver, bool fromStream);
-        ~State();
+        virtual ~State();
 
-        STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
+        STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
 
-        STDMETHODIMP_(ULONG) AddRef(void);
+        STDMETHODIMP_(ULONG) AddRef(void) override;
 
-        STDMETHODIMP_(ULONG) Release(void);
+        STDMETHODIMP_(ULONG) Release(void) override;
 
         IMFSourceResolver* sourceResolver() const;
         bool fromStream() const;

@@ -77,19 +77,19 @@ public:
     ~QWindowsMediaDeviceReader();
 
     //from IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
-    STDMETHODIMP_(ULONG) AddRef(void);
-    STDMETHODIMP_(ULONG) Release(void);
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
+    STDMETHODIMP_(ULONG) AddRef(void) override;
+    STDMETHODIMP_(ULONG) Release(void) override;
 
     //from IMFSourceReaderCallback
     STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
-                              DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample);
-    STDMETHODIMP OnFlush(DWORD dwStreamIndex);
-    STDMETHODIMP OnEvent(DWORD dwStreamIndex, IMFMediaEvent *pEvent);
+                              DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample) override;
+    STDMETHODIMP OnFlush(DWORD dwStreamIndex) override;
+    STDMETHODIMP OnEvent(DWORD dwStreamIndex, IMFMediaEvent *pEvent) override;
 
     //from IMFSinkWriterCallback
-    STDMETHODIMP OnFinalize(HRESULT hrStatus);
-    STDMETHODIMP OnMarker(DWORD dwStreamIndex, LPVOID pvContext);
+    STDMETHODIMP OnFinalize(HRESULT hrStatus) override;
+    STDMETHODIMP OnMarker(DWORD dwStreamIndex, LPVOID pvContext) override;
 
     bool activate(const QString &cameraId,
                   const QCameraFormat &cameraFormat,

@@ -44,6 +44,7 @@
 
 #include <private/qplatformvideosink_p.h>
 #include <private/qabstractvideobuffer_p.h>
+#include <private/qwindowsmfdefs_p.h>
 #include <qvideosink.h>
 #include <qvideoframeformat.h>
 #include <qtcore/qtimer.h>
@@ -116,6 +117,7 @@ namespace
     };
 
     // Custom interface for handling IMFStreamSink::PlaceMarker calls asynchronously.
+    static const GUID IID_IMarker = {0xa3ff32de, 0x1031, 0x438a, {0x8b, 0x47, 0x82, 0xf8, 0xac, 0xda, 0x59, 0xb7}};
     MIDL_INTERFACE("a3ff32de-1031-438a-8b47-82f8acda59b7")
     IMarker : public IUnknown
     {
@@ -160,13 +162,13 @@ namespace
         }
 
         // IUnknown methods.
-        STDMETHODIMP QueryInterface(REFIID iid, void** ppv)
+        STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override
         {
             if (!ppv)
                 return E_POINTER;
             if (iid == IID_IUnknown) {
                 *ppv = static_cast<IUnknown*>(this);
-            } else if (iid == __uuidof(IMarker)) {
+            } else if (iid == IID_IMarker) {
                 *ppv = static_cast<IMarker*>(this);
             } else {
                 *ppv = NULL;
@@ -176,12 +178,12 @@ namespace
             return S_OK;
         }
 
-        STDMETHODIMP_(ULONG) AddRef()
+        STDMETHODIMP_(ULONG) AddRef() override
         {
             return InterlockedIncrement(&m_cRef);
         }
 
-        STDMETHODIMP_(ULONG) Release()
+        STDMETHODIMP_(ULONG) Release() override
         {
             LONG cRef = InterlockedDecrement(&m_cRef);
             if (cRef == 0)
@@ -190,7 +192,7 @@ namespace
             return cRef;
         }
 
-        STDMETHODIMP GetMarkerType(MFSTREAMSINK_MARKER_TYPE *pType)
+        STDMETHODIMP GetMarkerType(MFSTREAMSINK_MARKER_TYPE *pType) override
         {
             if (pType == NULL)
                 return E_POINTER;
@@ -198,14 +200,14 @@ namespace
             return S_OK;
         }
 
-        STDMETHODIMP GetMarkerValue(PROPVARIANT *pvar)
+        STDMETHODIMP GetMarkerValue(PROPVARIANT *pvar) override
         {
             if (pvar == NULL)
                 return E_POINTER;
             return PropVariantCopy(pvar, &m_varMarkerValue);
         }
 
-        STDMETHODIMP GetContext(PROPVARIANT *pvar)
+        STDMETHODIMP GetContext(PROPVARIANT *pvar) override
         {
             if (pvar == NULL)
                 return E_POINTER;
@@ -218,9 +220,9 @@ namespace
         PROPVARIANT m_varContextValue;
 
     private:
-        long    m_cRef;
+        long    m_cRef = 1;
 
-        Marker(MFSTREAMSINK_MARKER_TYPE eMarkerType) : m_cRef(1), m_eMarkerType(eMarkerType)
+        Marker(MFSTREAMSINK_MARKER_TYPE eMarkerType) : m_eMarkerType(eMarkerType)
         {
             PropVariantInit(&m_varMarkerValue);
             PropVariantInit(&m_varContextValue);
@@ -241,27 +243,8 @@ namespace
         static const DWORD DEFAULT_MEDIA_STREAM_ID = 0x0;
 
         MediaStream(IMFMediaSink *parent, MFVideoRendererControl *rendererControl)
-            : m_cRef(1)
-            , m_eventQueue(0)
-            , m_shutdown(false)
-            , m_videoSink(0)
-            , m_state(State_TypeNotSet)
-            , m_currentFormatIndex(-1)
-            , m_bytesPerLine(0)
-            , m_workQueueId(0)
-            , m_workQueueCB(this, &MediaStream::onDispatchWorkItem)
-            , m_finalizeResult(0)
-            , m_scheduledBuffer(0)
-            , m_bufferStartTime(-1)
-            , m_bufferDuration(-1)
-            , m_presentationClock(0)
-            , m_sampleRequested(false)
-            , m_currentMediaType(0)
-            , m_prerolling(false)
-            , m_prerollTargetTime(0)
-            , m_startTime(0)
+            : m_workQueueCB(this, &MediaStream::onDispatchWorkItem)
             , m_rendererControl(rendererControl)
-            , m_rate(1.f)
         {
             m_sink = parent;
 
@@ -277,7 +260,7 @@ namespace
         }
 
         //from IUnknown
-        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject)
+        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
         {
             if (!ppvObject)
                 return E_POINTER;
@@ -297,12 +280,12 @@ namespace
             return S_OK;
         }
 
-        STDMETHODIMP_(ULONG) AddRef(void)
+        STDMETHODIMP_(ULONG) AddRef(void) override
         {
             return InterlockedIncrement(&m_cRef);
         }
 
-        STDMETHODIMP_(ULONG) Release(void)
+        STDMETHODIMP_(ULONG) Release(void) override
         {
             LONG cRef = InterlockedDecrement(&m_cRef);
             if (cRef == 0)
@@ -314,7 +297,7 @@ namespace
         //from IMFMediaEventGenerator
         STDMETHODIMP GetEvent(
             DWORD dwFlags,
-            IMFMediaEvent **ppEvent)
+            IMFMediaEvent **ppEvent) override
         {
             // GetEvent can block indefinitely, so we don't hold the lock.
             // This requires some juggling with the event queue pointer.
@@ -341,7 +324,7 @@ namespace
 
         STDMETHODIMP BeginGetEvent(
             IMFAsyncCallback *pCallback,
-            IUnknown *punkState)
+            IUnknown *punkState) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -351,7 +334,7 @@ namespace
 
         STDMETHODIMP EndGetEvent(
             IMFAsyncResult *pResult,
-            IMFMediaEvent **ppEvent)
+            IMFMediaEvent **ppEvent) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -363,7 +346,7 @@ namespace
             MediaEventType met,
             REFGUID guidExtendedType,
             HRESULT hrStatus,
-            const PROPVARIANT *pvValue)
+            const PROPVARIANT *pvValue) override
         {
 #ifdef DEBUG_MEDIAFOUNDATION
             qDebug() << "MediaStream::QueueEvent" << met;
@@ -376,7 +359,7 @@ namespace
 
         //from IMFStreamSink
         STDMETHODIMP GetMediaSink(
-            IMFMediaSink **ppMediaSink)
+            IMFMediaSink **ppMediaSink) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -390,14 +373,14 @@ namespace
         }
 
         STDMETHODIMP GetIdentifier(
-            DWORD *pdwIdentifier)
+            DWORD *pdwIdentifier) override
         {
             *pdwIdentifier = MediaStream::DEFAULT_MEDIA_STREAM_ID;
             return S_OK;
         }
 
         STDMETHODIMP GetMediaTypeHandler(
-            IMFMediaTypeHandler **ppHandler)
+            IMFMediaTypeHandler **ppHandler) override
         {
             LPVOID handler = NULL;
             HRESULT hr = QueryInterface(IID_IMFMediaTypeHandler, &handler);
@@ -406,7 +389,7 @@ namespace
         }
 
         STDMETHODIMP ProcessSample(
-            IMFSample *pSample)
+            IMFSample *pSample) override
         {
             if (pSample == NULL)
                 return E_INVALIDARG;
@@ -434,7 +417,7 @@ namespace
         STDMETHODIMP PlaceMarker(
             MFSTREAMSINK_MARKER_TYPE eMarkerType,
             const PROPVARIANT *pvarMarkerValue,
-            const PROPVARIANT *pvarContextValue)
+            const PROPVARIANT *pvarContextValue) override
         {
             HRESULT hr = S_OK;
             QMutexLocker locker(&m_mutex);
@@ -459,7 +442,7 @@ namespace
             return hr;
         }
 
-        STDMETHODIMP Flush( void)
+        STDMETHODIMP Flush(void) override
         {
 #ifdef DEBUG_MEDIAFOUNDATION
             qDebug() << "MediaStream::Flush";
@@ -476,7 +459,7 @@ namespace
         //from IMFMediaTypeHandler
         STDMETHODIMP IsMediaTypeSupported(
             IMFMediaType *pMediaType,
-            IMFMediaType **ppMediaType)
+            IMFMediaType **ppMediaType) override
         {
             if (ppMediaType)
                 *ppMediaType = NULL;
@@ -509,7 +492,7 @@ namespace
         }
 
         STDMETHODIMP GetMediaTypeCount(
-            DWORD *pdwTypeCount)
+            DWORD *pdwTypeCount) override
         {
             if (pdwTypeCount == NULL)
                 return E_INVALIDARG;
@@ -520,7 +503,7 @@ namespace
 
         STDMETHODIMP GetMediaTypeByIndex(
             DWORD dwIndex,
-            IMFMediaType **ppType)
+            IMFMediaType **ppType) override
         {
             if (ppType == NULL)
                 return E_INVALIDARG;
@@ -542,7 +525,7 @@ namespace
         }
 
         STDMETHODIMP SetCurrentMediaType(
-            IMFMediaType *pMediaType)
+            IMFMediaType *pMediaType) override
         {
             HRESULT hr = S_OK;
             QMutexLocker locker(&m_mutex);
@@ -600,7 +583,7 @@ namespace
         }
 
         STDMETHODIMP GetCurrentMediaType(
-            IMFMediaType **ppMediaType)
+            IMFMediaType **ppMediaType) override
         {
             if (ppMediaType == NULL)
                 return E_INVALIDARG;
@@ -615,7 +598,7 @@ namespace
         }
 
         STDMETHODIMP GetMajorType(
-            GUID *pguidMajorType)
+            GUID *pguidMajorType) override
         {
             if (pguidMajorType == NULL)
                 return E_INVALIDARG;
@@ -720,7 +703,7 @@ namespace
 
             if (SUCCEEDED(hr)) {
                 MFTIME sysTime;
-                if (start != PRESENTATION_CURRENT_POSITION)
+                if (start != QMM_PRESENTATION_CURRENT_POSITION)
                     m_startTime = start;        // Cache the start time.
                 else
                     m_presentationClock->GetCorrelatedTime(0, &m_startTime, &sysTime);
@@ -938,14 +921,14 @@ namespace
         {
         public:
             AsyncOperation(StreamOperation op)
-                :m_cRef(1), m_op(op)
+                :m_op(op)
             {
             }
 
             StreamOperation m_op;   // The operation to perform.
 
             //from IUnknown
-            STDMETHODIMP QueryInterface(REFIID iid, void** ppv)
+            STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override
             {
                 if (!ppv)
                     return E_POINTER;
@@ -958,11 +941,11 @@ namespace
                 AddRef();
                 return S_OK;
             }
-            STDMETHODIMP_(ULONG) AddRef()
+            STDMETHODIMP_(ULONG) AddRef() override
             {
                 return InterlockedIncrement(&m_cRef);
             }
-            STDMETHODIMP_(ULONG) Release()
+            STDMETHODIMP_(ULONG) Release() override
             {
                 ULONG uCount = InterlockedDecrement(&m_cRef);
                 if (uCount == 0)
@@ -972,7 +955,7 @@ namespace
             }
 
         private:
-            long    m_cRef;
+            long    m_cRef = 1;
             virtual ~AsyncOperation()
             {
                 Q_ASSERT(m_cRef == 0);
@@ -983,27 +966,27 @@ namespace
         // are valid from which states.
         static BOOL ValidStateMatrix[State_Count][Op_Count];
 
-        long m_cRef;
+        long m_cRef = 1;
         QMutex m_mutex;
 
-        IMFMediaType *m_currentMediaType;
-        State m_state;
-        IMFMediaSink *m_sink;
-        IMFMediaEventQueue *m_eventQueue;
-        DWORD m_workQueueId;
+        IMFMediaType *m_currentMediaType = nullptr;
+        State m_state = State_TypeNotSet;
+        IMFMediaSink *m_sink = nullptr;
+        IMFMediaEventQueue *m_eventQueue = nullptr;
+        DWORD m_workQueueId = 0;
         AsyncCallback<MediaStream> m_workQueueCB;
         QList<IUnknown*> m_sampleQueue;
-        IMFAsyncResult   *m_finalizeResult;         // Result object for Finalize operation.
-        MFTIME           m_startTime;               // Presentation time when the clock started.
+        IMFAsyncResult   *m_finalizeResult = nullptr;   // Result object for Finalize operation.
+        MFTIME           m_startTime = 0;               // Presentation time when the clock started.
 
-        bool m_shutdown;
+        bool m_shutdown = false;
         QList<IMFMediaType*> m_mediaTypes;
         QList<QVideoFrameFormat::PixelFormat> m_pixelFormats;
-        int m_currentFormatIndex;
-        int m_bytesPerLine;
+        int m_currentFormatIndex = -1;
+        int m_bytesPerLine = 0;
         QVideoFrameFormat m_surfaceFormat;
-        QVideoSink *m_videoSink;
-        MFVideoRendererControl *m_rendererControl;
+        QVideoSink *m_videoSink = nullptr;
+        MFVideoRendererControl *m_rendererControl = nullptr;
 
         void clearMediaTypes()
         {
@@ -1079,6 +1062,7 @@ namespace
                 case OpStart:
                     endPreroll(S_FALSE);
                     schedulePresentation(true);
+                    // fallthrough
                 case OpRestart:
                     endPreroll(S_FALSE);
                     if (SUCCEEDED(hr)) {
@@ -1114,6 +1098,8 @@ namespace
                 case OpFinalize:
                     endPreroll(S_FALSE);
                     hr = dispatchFinalize(pOp);
+                    break;
+                default:
                     break;
                 }
             }
@@ -1171,7 +1157,7 @@ namespace
                 pUnk = *pos;
                 // Figure out if this is a marker or a sample.
                 if (SUCCEEDED(hr))    {
-                    hr = pUnk->QueryInterface(__uuidof(IMarker), (void**)&pMarker);
+                    hr = pUnk->QueryInterface(IID_IMarker, (void**)&pMarker);
                     if (hr == E_NOINTERFACE)
                         hr = pUnk->QueryInterface(IID_IMFSample, (void**)&pSample);
                 }
@@ -1218,8 +1204,8 @@ namespace
             m_prerolling = false;
             queueEvent(MEStreamSinkPrerolled, GUID_NULL, hrStatus, NULL);
         }
-        MFTIME m_prerollTargetTime;
-        bool m_prerolling;
+        MFTIME m_prerollTargetTime = 0;
+        bool m_prerolling = false;
 
         void clearSampleQueue() {
             for (IUnknown* sample : qAsConst(m_sampleQueue))
@@ -1374,12 +1360,12 @@ namespace
                 queueEvent(MEStreamSinkRequestSample, GUID_NULL, S_OK, NULL);
             }
         }
-        IMFMediaBuffer *m_scheduledBuffer;
-        MFTIME m_bufferStartTime;
-        MFTIME m_bufferDuration;
-        IMFPresentationClock *m_presentationClock;
-        bool m_sampleRequested;
-        float m_rate;
+        IMFMediaBuffer *m_scheduledBuffer = nullptr;
+        MFTIME m_bufferStartTime = -1;
+        MFTIME m_bufferDuration = -1;
+        IMFPresentationClock *m_presentationClock = nullptr;
+        bool m_sampleRequested = false;
+        float m_rate = 1.f;
     };
 
     BOOL MediaStream::ValidStateMatrix[MediaStream::State_Count][MediaStream::Op_Count] =
@@ -1415,15 +1401,11 @@ namespace
     {
     public:
         MediaSink(MFVideoRendererControl *rendererControl)
-            : m_cRef(1)
-            , m_shutdown(false)
-            , m_presentationClock(0)
-            , m_playRate(1)
         {
             m_stream = new MediaStream(this, rendererControl);
         }
 
-        ~MediaSink()
+        virtual ~MediaSink()
         {
             Q_ASSERT(m_shutdown);
         }
@@ -1469,7 +1451,7 @@ namespace
         }
 
         //from IUnknown
-        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject)
+        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
         {
             if (!ppvObject)
                 return E_POINTER;
@@ -1493,12 +1475,12 @@ namespace
             return S_OK;
         }
 
-        STDMETHODIMP_(ULONG) AddRef(void)
+        STDMETHODIMP_(ULONG) AddRef(void) override
         {
             return InterlockedIncrement(&m_cRef);
         }
 
-        STDMETHODIMP_(ULONG) Release(void)
+        STDMETHODIMP_(ULONG) Release(void) override
         {
             LONG cRef = InterlockedDecrement(&m_cRef);
             if (cRef == 0)
@@ -1510,7 +1492,7 @@ namespace
         // IMFGetService methods
         STDMETHODIMP GetService(const GUID &guidService,
                                 const IID &riid,
-                                LPVOID *ppvObject)
+                                LPVOID *ppvObject) override
         {
             if (!ppvObject)
                 return E_POINTER;
@@ -1522,7 +1504,7 @@ namespace
         }
 
         //IMFMediaSinkPreroll
-        STDMETHODIMP NotifyPreroll(MFTIME hnsUpcomingStartTime)
+        STDMETHODIMP NotifyPreroll(MFTIME hnsUpcomingStartTime) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1531,7 +1513,7 @@ namespace
         }
 
         //from IMFFinalizableMediaSink
-        STDMETHODIMP BeginFinalize(IMFAsyncCallback *pCallback, IUnknown *punkState)
+        STDMETHODIMP BeginFinalize(IMFAsyncCallback *pCallback, IUnknown *punkState) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1539,7 +1521,7 @@ namespace
             return m_stream->finalize(pCallback, punkState);
         }
 
-        STDMETHODIMP EndFinalize(IMFAsyncResult *pResult)
+        STDMETHODIMP EndFinalize(IMFAsyncResult *pResult) override
         {
             HRESULT hr = S_OK;
             // Return the status code from the async result.
@@ -1552,7 +1534,7 @@ namespace
 
         //from IMFMediaSink
         STDMETHODIMP GetCharacteristics(
-            DWORD *pdwCharacteristics)
+            DWORD *pdwCharacteristics) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1564,21 +1546,21 @@ namespace
         STDMETHODIMP AddStreamSink(
             DWORD,
             IMFMediaType *,
-            IMFStreamSink **)
+            IMFStreamSink **) override
         {
             QMutexLocker locker(&m_mutex);
             return m_shutdown ? MF_E_SHUTDOWN : MF_E_STREAMSINKS_FIXED;
         }
 
         STDMETHODIMP RemoveStreamSink(
-            DWORD)
+            DWORD) override
         {
             QMutexLocker locker(&m_mutex);
             return m_shutdown ? MF_E_SHUTDOWN : MF_E_STREAMSINKS_FIXED;
         }
 
         STDMETHODIMP GetStreamSinkCount(
-            DWORD *pcStreamSinkCount)
+            DWORD *pcStreamSinkCount) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1589,7 +1571,7 @@ namespace
 
         STDMETHODIMP GetStreamSinkByIndex(
             DWORD dwIndex,
-            IMFStreamSink **ppStreamSink)
+            IMFStreamSink **ppStreamSink) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1605,7 +1587,7 @@ namespace
 
         STDMETHODIMP GetStreamSinkById(
             DWORD dwStreamSinkIdentifier,
-            IMFStreamSink **ppStreamSink)
+            IMFStreamSink **ppStreamSink) override
         {
             if (ppStreamSink == NULL)
                 return E_INVALIDARG;
@@ -1622,7 +1604,7 @@ namespace
         }
 
         STDMETHODIMP SetPresentationClock(
-            IMFPresentationClock *pPresentationClock)
+            IMFPresentationClock *pPresentationClock) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1642,7 +1624,7 @@ namespace
         }
 
         STDMETHODIMP GetPresentationClock(
-            IMFPresentationClock **ppPresentationClock)
+            IMFPresentationClock **ppPresentationClock) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1655,7 +1637,7 @@ namespace
             return MF_E_NO_CLOCK;
         }
 
-        STDMETHODIMP Shutdown(void)
+        STDMETHODIMP Shutdown(void) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1673,7 +1655,7 @@ namespace
         }
 
         // IMFClockStateSink methods
-        STDMETHODIMP OnClockStart(MFTIME, LONGLONG llClockStartOffset)
+        STDMETHODIMP OnClockStart(MFTIME, LONGLONG llClockStartOffset) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1681,7 +1663,7 @@ namespace
             return m_stream->start(llClockStartOffset);
         }
 
-        STDMETHODIMP OnClockStop(MFTIME)
+        STDMETHODIMP OnClockStop(MFTIME) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1689,7 +1671,7 @@ namespace
             return m_stream->stop();
         }
 
-        STDMETHODIMP OnClockPause(MFTIME)
+        STDMETHODIMP OnClockPause(MFTIME) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1697,7 +1679,7 @@ namespace
             return m_stream->pause();
         }
 
-        STDMETHODIMP OnClockRestart(MFTIME)
+        STDMETHODIMP OnClockRestart(MFTIME) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1705,7 +1687,7 @@ namespace
             return m_stream->restart();
         }
 
-        STDMETHODIMP OnClockSetRate(MFTIME, float flRate)
+        STDMETHODIMP OnClockSetRate(MFTIME, float flRate) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_shutdown)
@@ -1717,7 +1699,7 @@ namespace
         // IMFRateSupport methods
         STDMETHODIMP GetFastestRate(MFRATE_DIRECTION eDirection,
                                     BOOL fThin,
-                                    float *pflRate)
+                                    float *pflRate) override
         {
             if (!pflRate)
                 return E_POINTER;
@@ -1729,7 +1711,7 @@ namespace
 
         STDMETHODIMP GetSlowestRate(MFRATE_DIRECTION eDirection,
                                     BOOL fThin,
-                                    float *pflRate)
+                                    float *pflRate) override
         {
             Q_UNUSED(eDirection);
             Q_UNUSED(fThin);
@@ -1745,7 +1727,7 @@ namespace
 
         STDMETHODIMP IsRateSupported(BOOL fThin,
                                      float flRate,
-                                     float *pflNearestSupportedRate)
+                                     float *pflNearestSupportedRate) override
         {
             HRESULT hr = S_OK;
 
@@ -1777,12 +1759,12 @@ namespace
         }
 
     private:
-        long    m_cRef;
+        long    m_cRef = 1;
         QMutex  m_mutex;
-        bool    m_shutdown;
-        IMFPresentationClock *m_presentationClock;
-        MediaStream *m_stream;
-        float   m_playRate;
+        bool    m_shutdown = false;
+        IMFPresentationClock *m_presentationClock = nullptr;
+        MediaStream *m_stream = nullptr;
+        float   m_playRate = 1;
     };
 
     class VideoRendererActivate : public IMFActivate
@@ -1799,13 +1781,13 @@ namespace
             m_sink = new MediaSink(rendererControl);
         }
 
-        ~VideoRendererActivate()
+        virtual ~VideoRendererActivate()
         {
             m_attributes->Release();
         }
 
         //from IUnknown
-        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject)
+        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
         {
             if (!ppvObject)
                 return E_POINTER;
@@ -1823,12 +1805,12 @@ namespace
             return S_OK;
         }
 
-        STDMETHODIMP_(ULONG) AddRef(void)
+        STDMETHODIMP_(ULONG) AddRef(void) override
         {
             return InterlockedIncrement(&m_cRef);
         }
 
-        STDMETHODIMP_(ULONG) Release(void)
+        STDMETHODIMP_(ULONG) Release(void) override
         {
             LONG cRef = InterlockedDecrement(&m_cRef);
             if (cRef == 0)
@@ -1838,7 +1820,7 @@ namespace
         }
 
         //from IMFActivate
-        STDMETHODIMP ActivateObject(REFIID riid, void **ppv)
+        STDMETHODIMP ActivateObject(REFIID riid, void **ppv) override
         {
             if (!ppv)
                 return E_INVALIDARG;
@@ -1851,7 +1833,7 @@ namespace
             return m_sink->QueryInterface(riid, ppv);
         }
 
-        STDMETHODIMP ShutdownObject(void)
+        STDMETHODIMP ShutdownObject(void) override
         {
             QMutexLocker locker(&m_mutex);
             HRESULT hr = S_OK;
@@ -1863,7 +1845,7 @@ namespace
             return hr;
         }
 
-        STDMETHODIMP DetachObject(void)
+        STDMETHODIMP DetachObject(void) override
         {
             QMutexLocker locker(&m_mutex);
             if (m_sink) {
@@ -1876,14 +1858,14 @@ namespace
         //from IMFAttributes
         STDMETHODIMP GetItem(
             REFGUID guidKey,
-            PROPVARIANT *pValue)
+            PROPVARIANT *pValue) override
         {
             return m_attributes->GetItem(guidKey, pValue);
         }
 
         STDMETHODIMP GetItemType(
             REFGUID guidKey,
-            MF_ATTRIBUTE_TYPE *pType)
+            MF_ATTRIBUTE_TYPE *pType) override
         {
             return m_attributes->GetItemType(guidKey, pType);
         }
@@ -1891,7 +1873,7 @@ namespace
         STDMETHODIMP CompareItem(
             REFGUID guidKey,
             REFPROPVARIANT Value,
-            BOOL *pbResult)
+            BOOL *pbResult) override
         {
             return m_attributes->CompareItem(guidKey, Value, pbResult);
         }
@@ -1899,42 +1881,42 @@ namespace
         STDMETHODIMP Compare(
             IMFAttributes *pTheirs,
             MF_ATTRIBUTES_MATCH_TYPE MatchType,
-            BOOL *pbResult)
+            BOOL *pbResult) override
         {
             return m_attributes->Compare(pTheirs, MatchType, pbResult);
         }
 
         STDMETHODIMP GetUINT32(
             REFGUID guidKey,
-            UINT32 *punValue)
+            UINT32 *punValue) override
         {
             return m_attributes->GetUINT32(guidKey, punValue);
         }
 
         STDMETHODIMP GetUINT64(
             REFGUID guidKey,
-            UINT64 *punValue)
+            UINT64 *punValue) override
         {
             return m_attributes->GetUINT64(guidKey, punValue);
         }
 
         STDMETHODIMP GetDouble(
             REFGUID guidKey,
-            double *pfValue)
+            double *pfValue) override
         {
             return m_attributes->GetDouble(guidKey, pfValue);
         }
 
         STDMETHODIMP GetGUID(
             REFGUID guidKey,
-            GUID *pguidValue)
+            GUID *pguidValue) override
         {
             return m_attributes->GetGUID(guidKey, pguidValue);
         }
 
         STDMETHODIMP GetStringLength(
             REFGUID guidKey,
-            UINT32 *pcchLength)
+            UINT32 *pcchLength) override
         {
             return m_attributes->GetStringLength(guidKey, pcchLength);
         }
@@ -1943,7 +1925,7 @@ namespace
             REFGUID guidKey,
             LPWSTR pwszValue,
             UINT32 cchBufSize,
-            UINT32 *pcchLength)
+            UINT32 *pcchLength) override
         {
             return m_attributes->GetString(guidKey, pwszValue, cchBufSize, pcchLength);
         }
@@ -1951,14 +1933,14 @@ namespace
         STDMETHODIMP GetAllocatedString(
             REFGUID guidKey,
             LPWSTR *ppwszValue,
-            UINT32 *pcchLength)
+            UINT32 *pcchLength) override
         {
             return m_attributes->GetAllocatedString(guidKey, ppwszValue, pcchLength);
         }
 
         STDMETHODIMP GetBlobSize(
             REFGUID guidKey,
-            UINT32 *pcbBlobSize)
+            UINT32 *pcbBlobSize) override
         {
             return m_attributes->GetBlobSize(guidKey, pcbBlobSize);
         }
@@ -1967,7 +1949,7 @@ namespace
             REFGUID guidKey,
             UINT8 *pBuf,
             UINT32 cbBufSize,
-            UINT32 *pcbBlobSize)
+            UINT32 *pcbBlobSize) override
         {
             return m_attributes->GetBlob(guidKey, pBuf, cbBufSize, pcbBlobSize);
         }
@@ -1975,7 +1957,7 @@ namespace
         STDMETHODIMP GetAllocatedBlob(
             REFGUID guidKey,
             UINT8 **ppBuf,
-            UINT32 *pcbSize)
+            UINT32 *pcbSize) override
         {
             return m_attributes->GetAllocatedBlob(guidKey, ppBuf, pcbSize);
         }
@@ -1983,60 +1965,60 @@ namespace
         STDMETHODIMP GetUnknown(
             REFGUID guidKey,
             REFIID riid,
-            LPVOID *ppv)
+            LPVOID *ppv) override
         {
             return m_attributes->GetUnknown(guidKey, riid, ppv);
         }
 
         STDMETHODIMP SetItem(
             REFGUID guidKey,
-            REFPROPVARIANT Value)
+            REFPROPVARIANT Value) override
         {
             return m_attributes->SetItem(guidKey, Value);
         }
 
         STDMETHODIMP DeleteItem(
-            REFGUID guidKey)
+            REFGUID guidKey) override
         {
             return m_attributes->DeleteItem(guidKey);
         }
 
-        STDMETHODIMP DeleteAllItems(void)
+        STDMETHODIMP DeleteAllItems(void) override
         {
             return m_attributes->DeleteAllItems();
         }
 
         STDMETHODIMP SetUINT32(
             REFGUID guidKey,
-            UINT32 unValue)
+            UINT32 unValue) override
         {
             return m_attributes->SetUINT32(guidKey, unValue);
         }
 
         STDMETHODIMP SetUINT64(
             REFGUID guidKey,
-            UINT64 unValue)
+            UINT64 unValue) override
         {
             return m_attributes->SetUINT64(guidKey, unValue);
         }
 
         STDMETHODIMP SetDouble(
             REFGUID guidKey,
-            double fValue)
+            double fValue) override
          {
             return m_attributes->SetDouble(guidKey, fValue);
         }
 
         STDMETHODIMP SetGUID(
             REFGUID guidKey,
-            REFGUID guidValue)
+            REFGUID guidValue) override
         {
             return m_attributes->SetGUID(guidKey, guidValue);
         }
 
         STDMETHODIMP SetString(
             REFGUID guidKey,
-            LPCWSTR wszValue)
+            LPCWSTR wszValue) override
         {
             return m_attributes->SetString(guidKey, wszValue);
         }
@@ -2044,30 +2026,30 @@ namespace
         STDMETHODIMP SetBlob(
             REFGUID guidKey,
             const UINT8 *pBuf,
-            UINT32 cbBufSize)
+            UINT32 cbBufSize) override
         {
             return m_attributes->SetBlob(guidKey, pBuf, cbBufSize);
         }
 
         STDMETHODIMP SetUnknown(
             REFGUID guidKey,
-            IUnknown *pUnknown)
+            IUnknown *pUnknown) override
         {
             return m_attributes->SetUnknown(guidKey, pUnknown);
         }
 
-        STDMETHODIMP LockStore(void)
+        STDMETHODIMP LockStore(void) override
         {
             return m_attributes->LockStore();
         }
 
-        STDMETHODIMP UnlockStore(void)
+        STDMETHODIMP UnlockStore(void) override
         {
             return m_attributes->UnlockStore();
         }
 
         STDMETHODIMP GetCount(
-             UINT32 *pcItems)
+             UINT32 *pcItems) override
         {
             return m_attributes->GetCount(pcItems);
         }
@@ -2075,13 +2057,13 @@ namespace
         STDMETHODIMP GetItemByIndex(
             UINT32 unIndex,
             GUID *pguidKey,
-            PROPVARIANT *pValue)
+            PROPVARIANT *pValue) override
         {
             return m_attributes->GetItemByIndex(unIndex, pguidKey, pValue);
         }
 
         STDMETHODIMP CopyAllItems(
-           IMFAttributes *pDest)
+           IMFAttributes *pDest) override
         {
             return m_attributes->CopyAllItems(pDest);
         }
@@ -2149,9 +2131,9 @@ public:
     ~EVRCustomPresenterActivate()
     { }
 
-    STDMETHODIMP ActivateObject(REFIID riid, void **ppv);
-    STDMETHODIMP ShutdownObject();
-    STDMETHODIMP DetachObject();
+    STDMETHODIMP ActivateObject(REFIID riid, void **ppv) override;
+    STDMETHODIMP ShutdownObject() override;
+    STDMETHODIMP DetachObject() override;
 
     void setSink(QVideoSink *sink);
 
@@ -2218,7 +2200,7 @@ void MFVideoRendererControl::customEvent(QEvent *event)
     if (!m_currentActivate)
         return;
 
-    if (event->type() == MediaStream::PresentSurface) {
+    if (event->type() == QEvent::Type(MediaStream::PresentSurface)) {
         MFTIME targetTime = static_cast<MediaStream::PresentEvent*>(event)->targetTime();
         MFTIME currentTime = static_cast<VideoRendererActivate*>(m_currentActivate)->getTime();
         float playRate = static_cast<VideoRendererActivate*>(m_currentActivate)->getPlayRate();

@@ -224,6 +224,7 @@ void QWindowsMediaEncoder::onStreamingError(int errorCode)
 
 void QWindowsMediaEncoder::onRecordingError(int errorCode)
 {
+    Q_UNUSED(errorCode);
     error(QMediaRecorder::ResourceError, tr("Recording error"));
 
     auto lastState = m_state;

@@ -43,6 +43,7 @@
 #include "evrhelpers_p.h"
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qplatformvideosink_p.h>
+#include <private/qwindowsmfdefs_p.h>
 
 #include <QtGui/private/qrhi_p.h>
 
@@ -634,7 +635,7 @@ HRESULT EVRCustomPresenter::GetService(REFGUID guidService, REFIID riid, LPVOID 
         return E_POINTER;
 
     // The only service GUID that we support is MR_VIDEO_RENDER_SERVICE.
-    if (guidService != mr_VIDEO_RENDER_SERVICE)
+    if (guidService != MR_VIDEO_RENDER_SERVICE)
         return MF_E_UNSUPPORTED_SERVICE;
 
     // First try to get the service interface from the D3DPresentEngine object.
@@ -651,7 +652,7 @@ HRESULT EVRCustomPresenter::GetDeviceID(IID* deviceID)
     if (!deviceID)
         return E_POINTER;
 
-    *deviceID = iid_IDirect3DDevice9;
+    *deviceID = IID_IDirect3DDevice9;
 
     return S_OK;
 }
@@ -678,7 +679,7 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
     objectCount = 1;
 
     lookup->LookupService(MF_SERVICE_LOOKUP_GLOBAL, 0,
-                          mr_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_clock),
+                          MR_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_clock),
                           &objectCount
                           );
 
@@ -686,7 +687,7 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
     objectCount = 1;
 
     hr = lookup->LookupService(MF_SERVICE_LOOKUP_GLOBAL, 0,
-                               mr_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_mixer),
+                               MR_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_mixer),
                                &objectCount
                                );
 
@@ -702,7 +703,7 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
     objectCount = 1;
 
     hr = lookup->LookupService(MF_SERVICE_LOOKUP_GLOBAL, 0,
-                               mr_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_mediaEventSink),
+                               MR_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_mediaEventSink),
                                &objectCount
                                );
 
@@ -838,7 +839,7 @@ HRESULT EVRCustomPresenter::OnClockStart(MFTIME, LONGLONG clockStartOffset)
 
         // If the clock position changes while the clock is active, it
         // is a seek request. We need to flush all pending samples.
-        if (clockStartOffset != PRESENTATION_CURRENT_POSITION)
+        if (clockStartOffset != QMM_PRESENTATION_CURRENT_POSITION)
             flush();
     } else {
         m_renderState = RenderStarted;
@@ -1980,7 +1981,7 @@ HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect &sou
 
     HRESULT hr = mixer->GetAttributes(&attributes);
     if (SUCCEEDED(hr)) {
-        hr = attributes->SetBlob(video_ZOOM_RECT, reinterpret_cast<const UINT8*>(&sourceRect),
+        hr = attributes->SetBlob(VIDEO_ZOOM_RECT, reinterpret_cast<const UINT8*>(&sourceRect),
                                  sizeof(sourceRect));
         attributes->Release();
     }

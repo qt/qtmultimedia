@@ -64,23 +64,23 @@ public:
     MFAudioDecoderControl(QAudioDecoder *parent);
     ~MFAudioDecoderControl();
 
-    QUrl source() const;
-    void setSource(const QUrl &fileName);
+    QUrl source() const override;
+    void setSource(const QUrl &fileName) override;
 
-    QIODevice* sourceDevice() const;
-    void setSourceDevice(QIODevice *device);
+    QIODevice* sourceDevice() const override;
+    void setSourceDevice(QIODevice *device) override;
 
-    void start();
-    void stop();
+    void start() override;
+    void stop() override;
 
     QAudioFormat audioFormat() const override;
     void setAudioFormat(const QAudioFormat &format) override;
 
-    QAudioBuffer read();
-    bool bufferAvailable() const;
+    QAudioBuffer read() override;
+    bool bufferAvailable() const override;
 
-    qint64 position() const;
-    qint64 duration() const;
+    qint64 position() const override;
+    qint64 duration() const override;
 
 private Q_SLOTS:
     void handleMediaSourceReady();

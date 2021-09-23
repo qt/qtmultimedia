@@ -51,9 +51,12 @@
 // We mean it.
 //
 
-#include "private/qplatformvideosink_p.h"
-
-#include "evrdefs_p.h"
+#include <d3d9.h>
+#include <dxva2api.h>
+#include <evr9.h>
+#include <evr.h>
+#include <private/qplatformvideosink_p.h>
+#include <private/qwindowsmfdefs_p.h>
 
 QT_BEGIN_NAMESPACE
 

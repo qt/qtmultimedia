@@ -54,6 +54,7 @@
 #include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
 #include <private/mfmetadata_p.h>
+#include <private/qwindowsmfdefs_p.h>
 
 #include "mfplayersession_p.h"
 #include <mferror.h>
@@ -68,6 +69,7 @@
 #include <Functiondiscoverykeys_devpkey.h>
 
 //#define DEBUG_MEDIAFOUNDATION
+
 
 MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     : m_cRef(1)
@@ -270,16 +272,16 @@ bool MFPlayerSession::getStreamInfo(IMFStreamDescriptor *stream,
     if (SUCCEEDED(stream->GetMediaTypeHandler(&typeHandler))) {
 
         UINT32 len = 0;
-        if (SUCCEEDED(stream->GetStringLength(MF_SD_STREAM_NAME, &len)) && len > 0) {
+        if (SUCCEEDED(stream->GetStringLength(QMM_MF_SD_STREAM_NAME, &len)) && len > 0) {
             WCHAR *wstr = new WCHAR[len+1];
-            if (SUCCEEDED(stream->GetString(MF_SD_STREAM_NAME, wstr, len+1, &len))) {
+            if (SUCCEEDED(stream->GetString(QMM_MF_SD_STREAM_NAME, wstr, len+1, &len))) {
                 *name = QString::fromUtf16(reinterpret_cast<const char16_t *>(wstr));
             }
             delete []wstr;
         }
-        if (SUCCEEDED(stream->GetStringLength(MF_SD_LANGUAGE, &len)) && len > 0) {
+        if (SUCCEEDED(stream->GetStringLength(QMM_MF_SD_LANGUAGE, &len)) && len > 0) {
             WCHAR *wstr = new WCHAR[len+1];
-            if (SUCCEEDED(stream->GetString(MF_SD_LANGUAGE, wstr, len+1, &len))) {
+            if (SUCCEEDED(stream->GetString(QMM_MF_SD_LANGUAGE, wstr, len+1, &len))) {
                 *language = QString::fromUtf16(reinterpret_cast<const char16_t *>(wstr));
             }
             delete []wstr;
@@ -378,6 +380,8 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
                                 case Video:
                                     emit videoAvailable();
                                     break;
+                                default:
+                                    break;
                                 }
                             }
                             outputNode->Release();
@@ -398,7 +402,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Unable to play."), true);
     } else {
-        if (m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId != -1)
+        if (m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId != TOPOID(-1))
             topology = insertMFT(topology, m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId);
 
         hr = m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
@@ -1804,6 +1808,8 @@ void MFPlayerSession::updatePendingCommands(Command command)
             start();
             setPositionInternal(m_request.start, m_request.command);
             break;
+        default:
+            break;
         }
         m_request.setCommand(CmdNone);
     }
@@ -1833,8 +1839,8 @@ void MFPlayerSession::clear()
         m_trackInfo[i].metaData.clear();
         m_trackInfo[i].nativeIndexes.clear();
         m_trackInfo[i].currentIndex = -1;
-        m_trackInfo[i].sourceNodeId = -1;
-        m_trackInfo[i].outputNodeId = -1;
+        m_trackInfo[i].sourceNodeId = TOPOID(-1);
+        m_trackInfo[i].outputNodeId = TOPOID(-1);
     }
 
     if (!m_metaData.isEmpty()) {
@@ -1915,27 +1921,27 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
 
     IMFTopology *topology = nullptr;
 
-    if (SUCCEEDED(m_session->GetFullTopology(MFSESSION_GETFULLTOPOLOGY_CURRENT, 0, &topology))) {
+    if (SUCCEEDED(m_session->GetFullTopology(QMM_MFSESSION_GETFULLTOPOLOGY_CURRENT, 0, &topology))) {
 
         m_restorePosition = position() * 10000;
 
         if (m_state.command == CmdStart)
             stop();
 
-        if (m_trackInfo[type].outputNodeId != -1) {
+        if (m_trackInfo[type].outputNodeId != TOPOID(-1)) {
             IMFTopologyNode *node = nullptr;
             if (SUCCEEDED(topology->GetNodeByID(m_trackInfo[type].outputNodeId, &node))) {
                 topology->RemoveNode(node);
                 node->Release();
-                m_trackInfo[type].outputNodeId = -1;
+                m_trackInfo[type].outputNodeId = TOPOID(-1);
             }
         }
-        if (m_trackInfo[type].sourceNodeId != -1) {
+        if (m_trackInfo[type].sourceNodeId != TOPOID(-1)) {
             IMFTopologyNode *node = nullptr;
             if (SUCCEEDED(topology->GetNodeByID(m_trackInfo[type].sourceNodeId, &node))) {
                 topology->RemoveNode(node);
                 node->Release();
-                m_trackInfo[type].sourceNodeId = -1;
+                m_trackInfo[type].sourceNodeId = TOPOID(-1);
             }
         }
 

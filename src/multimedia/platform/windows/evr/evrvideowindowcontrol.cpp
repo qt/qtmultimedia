@@ -70,9 +70,9 @@ bool EvrVideoWindowControl::setEvr(IUnknown *evr)
     IMFGetService *service = NULL;
 
     if (SUCCEEDED(evr->QueryInterface(IID_PPV_ARGS(&service)))
-            && SUCCEEDED(service->GetService(mr_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_displayControl)))) {
+            && SUCCEEDED(service->GetService(MR_VIDEO_RENDER_SERVICE, IID_PPV_ARGS(&m_displayControl)))) {
 
-        service->GetService(mr_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_processor));
+        service->GetService(MR_VIDEO_MIXER_SERVICE, IID_PPV_ARGS(&m_processor));
 
         setWinId(m_windowId);
         setDisplayRect(m_displayRect);
