@@ -68,7 +68,7 @@ QT_BEGIN_NAMESPACE
     \qmlbasictype cameraFormat
     \inqmlmodule QtMultimedia
     \since 6.2
-    \instantiates QCameraFormat
+    //! \instantiates QCameraFormat
     \brief Describes a video format supported by a camera device.
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
@@ -248,7 +248,7 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     \qmlbasictype cameraDevice
     \inqmlmodule QtMultimedia
     \since 6.2
-    \instantiates QCameraDevice
+    //! \instantiates QCameraDevice
     \brief Describes a camera device.
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
