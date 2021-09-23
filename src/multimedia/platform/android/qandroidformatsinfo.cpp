@@ -95,7 +95,8 @@ QAndroidFormatInfo::QAndroidFormatInfo()
         encoders.append({ QMediaFormat::WebM, {}, { QMediaFormat::VideoCodec::VP8 } });
     }
 
-    imageFormats << QImageCapture::JPEG << QImageCapture::PNG << QImageCapture::WebP;
+    // TODO: Add later if needed
+    imageFormats << QImageCapture::JPEG /*<< QImageCapture::PNG << QImageCapture::WebP*/;
 }
 
 QAndroidFormatInfo::~QAndroidFormatInfo()
