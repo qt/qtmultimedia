@@ -673,7 +673,7 @@ QAudioOutput *QMediaPlayer::audioOutput() const
     Each index refers to an audio track.
 
     The metadata holds properties describing the individual tracks. For
-    audio tracks the \l{MediaMetaData::Language}{language} is usually the most
+    audio tracks the \l{QMediaMetaData}{Language} is usually the most
     important property.
 
     \sa mediaMetaData
@@ -723,7 +723,7 @@ QList<QMediaMetaData> QMediaPlayer::videoTracks() const
     Each index refers to a subtitle track.
 
     The metadata holds properties describing the individual tracks. For
-    subtitle tracks the \l{MediaMetaData::Language}{language} is usually the most
+    subtitle tracks the \l{QMediaMetaData}{Language} is usually the most
     important property.
 
     \sa mediaMetaData

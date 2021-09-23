@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlbasictype mediaFormat
     \since 6.2
-    \instantiates QMediaFormat
+    //! \instantiates QMediaFormat
     \brief MediaFormat describes the format of a media file.
     \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
