@@ -198,6 +198,7 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
 
         if (recorder && recorder->state() == QMediaRecorder::RecordingState)
             recorder->toggleRecord(true);
+        Q_EMIT readyToConfigureConnections();
     }
 }
 
