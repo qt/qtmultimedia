@@ -103,16 +103,38 @@ public class QtAudioDeviceManager
         return getAudioDevices(AudioManager.GET_DEVICES_INPUTS);
     }
 
+    private static boolean isBluetoothDevice(AudioDeviceInfo deviceInfo)
+    {
+        switch (deviceInfo.getType()) {
+        case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
+        case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     private static boolean setAudioInput(MediaRecorder recorder, int id)
     {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            final AudioDeviceInfo[] audioDevices;
-            audioDevices = m_audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
-            for (AudioDeviceInfo deviceInfo : audioDevices) {
-               if (deviceInfo.getId() ==  id)
-                   return recorder.setPreferredDevice(deviceInfo);
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.P)
+            return false;
+
+        final AudioDeviceInfo[] audioDevices =
+                m_audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
+
+        for (AudioDeviceInfo deviceInfo : audioDevices) {
+            if (deviceInfo.getId() != id)
+                continue;
+
+            boolean isPreferred = recorder.setPreferredDevice(deviceInfo);
+            if (isPreferred && isBluetoothDevice(deviceInfo)) {
+                m_audioManager.startBluetoothSco();
+                m_audioManager.setBluetoothScoOn(true);
             }
+
+            return isPreferred;
         }
+
         return false;
     }
 
@@ -186,7 +208,7 @@ public class QtAudioDeviceManager
                         continue;
                     }
                     builtInMicAdded = true;
-                } else if (deviceType.equals(audioDeviceTypeToString(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP))) {
+                } else if (isBluetoothDevice(deviceInfo)) {
                     if (bluetoothDeviceAdded) {
                         // Bluetooth device already added. Second device is just a different
                         // technology profille (like A2DP or SCO). We should not add the same
