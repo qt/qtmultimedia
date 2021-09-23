@@ -396,6 +396,8 @@ void QAndroidMediaPlayer::play()
         return;
     }
 
+    updateAudioDevice();
+
     mMediaPlayer->play();
 }
 
