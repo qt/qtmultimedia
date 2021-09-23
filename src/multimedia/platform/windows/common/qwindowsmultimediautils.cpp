@@ -37,10 +37,18 @@
 **
 ****************************************************************************/
 
+#if defined(WINVER) && WINVER < _WIN32_WINNT_WIN10
+#  undef WINVER
+#endif
+#if !defined(WINVER)
+#  define WINVER _WIN32_WINNT_WIN10  // Enables newer audio formats.
+#endif
+
 #include "qwindowsmultimediautils_p.h"
 
 #include <mfapi.h>
 #include <mfidl.h>
+#include <private/qwindowsmfdefs_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -199,13 +207,13 @@ GUID QWindowsMultimediaUtils::containerForVideoFileFormat(QMediaFormat::FileForm
 {
     switch (format) {
     case QMediaFormat::FileFormat::MPEG4:
-        return MFTranscodeContainerType_MPEG4;
+        return QMM_MFTranscodeContainerType_MPEG4;
     case QMediaFormat::FileFormat::WMV:
-        return MFTranscodeContainerType_ASF;
+        return QMM_MFTranscodeContainerType_ASF;
     case QMediaFormat::FileFormat::AVI:
-        return MFTranscodeContainerType_AVI;
+        return QMM_MFTranscodeContainerType_AVI;
     default:
-        return MFTranscodeContainerType_MPEG4;
+        return QMM_MFTranscodeContainerType_MPEG4;
     }
 }
 
@@ -213,19 +221,19 @@ GUID QWindowsMultimediaUtils::containerForAudioFileFormat(QMediaFormat::FileForm
 {
     switch (format) {
     case QMediaFormat::FileFormat::MP3:
-        return MFTranscodeContainerType_MP3;
+        return QMM_MFTranscodeContainerType_MP3;
     case QMediaFormat::FileFormat::AAC:
-        return MFTranscodeContainerType_ADTS;
+        return QMM_MFTranscodeContainerType_ADTS;
     case QMediaFormat::FileFormat::Mpeg4Audio:
-        return MFTranscodeContainerType_MPEG4;
+        return QMM_MFTranscodeContainerType_MPEG4;
     case QMediaFormat::FileFormat::WMA:
-        return MFTranscodeContainerType_ASF;
+        return QMM_MFTranscodeContainerType_ASF;
     case QMediaFormat::FileFormat::FLAC:
-        return MFTranscodeContainerType_FLAC;
+        return QMM_MFTranscodeContainerType_FLAC;
     case QMediaFormat::FileFormat::Wave:
-        return MFTranscodeContainerType_WAVE;
+        return QMM_MFTranscodeContainerType_WAVE;
     default:
-        return MFTranscodeContainerType_MPEG4;
+        return QMM_MFTranscodeContainerType_MPEG4;
     }
 }
 

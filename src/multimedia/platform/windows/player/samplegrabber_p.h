@@ -61,20 +61,20 @@ class SampleGrabberCallback : public IMFSampleGrabberSinkCallback
 {
 public:
     // IUnknown methods
-    STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
-    STDMETHODIMP_(ULONG) AddRef();
-    STDMETHODIMP_(ULONG) Release();
+    STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override;
+    STDMETHODIMP_(ULONG) AddRef() override;
+    STDMETHODIMP_(ULONG) Release() override;
 
     // IMFClockStateSink methods
-    STDMETHODIMP OnClockStart(MFTIME hnsSystemTime, LONGLONG llClockStartOffset);
-    STDMETHODIMP OnClockStop(MFTIME hnsSystemTime);
-    STDMETHODIMP OnClockPause(MFTIME hnsSystemTime);
-    STDMETHODIMP OnClockRestart(MFTIME hnsSystemTime);
-    STDMETHODIMP OnClockSetRate(MFTIME hnsSystemTime, float flRate);
+    STDMETHODIMP OnClockStart(MFTIME hnsSystemTime, LONGLONG llClockStartOffset) override;
+    STDMETHODIMP OnClockStop(MFTIME hnsSystemTime) override;
+    STDMETHODIMP OnClockPause(MFTIME hnsSystemTime) override;
+    STDMETHODIMP OnClockRestart(MFTIME hnsSystemTime) override;
+    STDMETHODIMP OnClockSetRate(MFTIME hnsSystemTime, float flRate) override;
 
     // IMFSampleGrabberSinkCallback methods
-    STDMETHODIMP OnSetPresentationClock(IMFPresentationClock* pClock);
-    STDMETHODIMP OnShutdown();
+    STDMETHODIMP OnSetPresentationClock(IMFPresentationClock* pClock) override;
+    STDMETHODIMP OnShutdown() override;
 
 protected:
     SampleGrabberCallback() : m_cRef(1) {}
@@ -92,7 +92,7 @@ public:
 
     STDMETHODIMP OnProcessSample(REFGUID guidMajorMediaType, DWORD dwSampleFlags,
         LONGLONG llSampleTime, LONGLONG llSampleDuration, const BYTE * pSampleBuffer,
-        DWORD dwSampleSize);
+        DWORD dwSampleSize) override;
 
 private:
 //    QList<MFAudioProbeControl*> m_audioProbes;

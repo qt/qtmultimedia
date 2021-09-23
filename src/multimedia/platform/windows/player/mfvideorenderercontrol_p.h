@@ -77,7 +77,7 @@ public:
     void releaseActivate();
 
 protected:
-    void customEvent(QEvent *event);
+    void customEvent(QEvent *event) override;
 
 private Q_SLOTS:
     void present();

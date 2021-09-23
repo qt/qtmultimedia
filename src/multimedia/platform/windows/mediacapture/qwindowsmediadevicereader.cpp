@@ -44,6 +44,7 @@
 #include <qmediadevices.h>
 #include <qaudiodevice.h>
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qwindowsmfdefs_p.h>
 #include <QtCore/qdebug.h>
 
 #include <mmdeviceapi.h>
@@ -78,8 +79,8 @@ HRESULT QWindowsMediaDeviceReader::createSource(const QString &deviceId, bool vi
     if (SUCCEEDED(hr)) {
 
         hr = sourceAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-                                       video ? MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
-                                             : MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
+                                       video ? QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID
+                                             : QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
         if (SUCCEEDED(hr)) {
 
             hr = sourceAttributes->SetString(video ? MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK
@@ -176,8 +177,8 @@ DWORD QWindowsMediaDeviceReader::findMediaTypeIndex(const QCameraFormat &reqForm
                             float frameRate = float(num) / den;
 
                             if (!reqFormat.isNull()
-                                    && reqFormat.resolution().width() == width
-                                    && reqFormat.resolution().height() == height
+                                    && UINT32(reqFormat.resolution().width()) == width
+                                    && UINT32(reqFormat.resolution().height()) == height
                                     && qFuzzyCompare(reqFormat.maxFrameRate(), frameRate)
                                     && reqFormat.pixelFormat() == pixelFormat) {
                                 mediaType->Release();
@@ -419,7 +420,7 @@ HRESULT QWindowsMediaDeviceReader::startMonitoring()
 
                                                 IMFSimpleAudioVolume *audioVolume = nullptr;
 
-                                                if (SUCCEEDED(MFGetService(mediaSink, MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&audioVolume)))) {
+                                                if (SUCCEEDED(MFGetService(mediaSink, QMM_MR_POLICY_VOLUME_SERVICE, IID_PPV_ARGS(&audioVolume)))) {
                                                     audioVolume->SetMasterVolume(float(m_outputVolume));
                                                     audioVolume->SetMute(m_outputMuted);
                                                     audioVolume->Release();
@@ -683,7 +684,7 @@ bool QWindowsMediaDeviceReader::startRecording(const QString &fileName, const GU
                                           static_cast<IMFSinkWriterCallback*>(this));
         if (SUCCEEDED(hr)) {
 
-            hr = writerAttributes->SetGUID(MF_TRANSCODE_CONTAINERTYPE, container);
+            hr = writerAttributes->SetGUID(QMM_MF_TRANSCODE_CONTAINERTYPE, container);
             if (SUCCEEDED(hr)) {
 
                 hr = MFCreateSinkWriterFromURL(reinterpret_cast<LPCWSTR>(fileName.utf16()),
@@ -868,7 +869,7 @@ void QWindowsMediaDeviceReader::setOutputMuted(bool muted)
 
     if (m_active && m_monitorSink) {
         IMFSimpleAudioVolume *audioVolume = nullptr;
-        if (SUCCEEDED(MFGetService(m_monitorSink, MR_POLICY_VOLUME_SERVICE,
+        if (SUCCEEDED(MFGetService(m_monitorSink, QMM_MR_POLICY_VOLUME_SERVICE,
                                    IID_PPV_ARGS(&audioVolume)))) {
             audioVolume->SetMute(m_outputMuted);
             audioVolume->Release();
@@ -884,7 +885,7 @@ void QWindowsMediaDeviceReader::setOutputVolume(qreal volume)
 
     if (m_active && m_monitorSink) {
         IMFSimpleAudioVolume *audioVolume = nullptr;
-        if (SUCCEEDED(MFGetService(m_monitorSink, MR_POLICY_VOLUME_SERVICE,
+        if (SUCCEEDED(MFGetService(m_monitorSink, QMM_MR_POLICY_VOLUME_SERVICE,
                                    IID_PPV_ARGS(&audioVolume)))) {
             audioVolume->SetMasterVolume(float(m_outputVolume));
             audioVolume->Release();

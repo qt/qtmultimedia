@@ -52,85 +52,7 @@
 
 //#define DEBUG_MEDIAFOUNDATION
 
-static QString nameForGUID(GUID guid)
-{
-    // Audio formats
-    if (guid == MFAudioFormat_AAC)
-        return QStringLiteral("MPEG AAC Audio");
-    else if (guid == MFAudioFormat_ADTS)
-        return QStringLiteral("MPEG ADTS AAC Audio");
-    else if (guid == MFAudioFormat_Dolby_AC3_SPDIF)
-        return QStringLiteral("Dolby AC-3 SPDIF");
-    else if (guid == MFAudioFormat_DRM)
-        return QStringLiteral("DRM");
-    else if (guid == MFAudioFormat_DTS)
-        return QStringLiteral("Digital Theater Systems Audio (DTS)");
-    else if (guid == MFAudioFormat_Float)
-        return QStringLiteral("IEEE Float Audio");
-    else if (guid == MFAudioFormat_MP3)
-        return QStringLiteral("MPEG Audio Layer-3 (MP3)");
-    else if (guid == MFAudioFormat_MPEG)
-        return QStringLiteral("MPEG-1 Audio");
-    else if (guid == MFAudioFormat_MSP1)
-        return QStringLiteral("Windows Media Audio Voice");
-    else if (guid == MFAudioFormat_PCM)
-        return QStringLiteral("Uncompressed PCM Audio");
-    else if (guid == MFAudioFormat_WMASPDIF)
-        return QStringLiteral("Windows Media Audio 9 SPDIF");
-    else if (guid == MFAudioFormat_WMAudioV8)
-        return QStringLiteral("Windows Media Audio 8 (WMA2)");
-    else if (guid == MFAudioFormat_WMAudioV9)
-        return QStringLiteral("Windows Media Audio 9 (WMA3");
-    else if (guid == MFAudioFormat_WMAudio_Lossless)
-        return QStringLiteral("Windows Media Audio 9 Lossless");
-
-    // Video formats
-    if (guid == MFVideoFormat_DV25)
-        return QStringLiteral("DVCPRO 25 (DV25)");
-    else if (guid == MFVideoFormat_DV50)
-        return QStringLiteral("DVCPRO 50 (DV50)");
-    else if (guid == MFVideoFormat_DVC)
-        return QStringLiteral("DVC/DV Video");
-    else if (guid == MFVideoFormat_DVH1)
-        return QStringLiteral("DVCPRO 100 (DVH1)");
-    else if (guid == MFVideoFormat_DVHD)
-        return QStringLiteral("HD-DVCR (DVHD)");
-    else if (guid == MFVideoFormat_DVSD)
-        return QStringLiteral("SDL-DVCR (DVSD)");
-    else if (guid == MFVideoFormat_DVSL)
-        return QStringLiteral("SD-DVCR (DVSL)");
-    else if (guid == MFVideoFormat_H264)
-        return QStringLiteral("H.264 Video");
-    else if (guid == MFVideoFormat_M4S2)
-        return QStringLiteral("MPEG-4 part 2 Video (M4S2)");
-    else if (guid == MFVideoFormat_MJPG)
-        return QStringLiteral("Motion JPEG (MJPG)");
-    else if (guid == MFVideoFormat_MP43)
-        return QStringLiteral("Microsoft MPEG 4 version 3 (MP43)");
-    else if (guid == MFVideoFormat_MP4S)
-        return QStringLiteral("ISO MPEG 4 version 1 (MP4S)");
-    else if (guid == MFVideoFormat_MP4V)
-        return QStringLiteral("MPEG-4 part 2 Video (MP4V)");
-    else if (guid == MFVideoFormat_MPEG2)
-        return QStringLiteral("MPEG-2 Video");
-    else if (guid == MFVideoFormat_MPG1)
-        return QStringLiteral("MPEG-1 Video");
-    else if (guid == MFVideoFormat_MSS1)
-        return QStringLiteral("Windows Media Screen 1 (MSS1)");
-    else if (guid == MFVideoFormat_MSS2)
-        return QStringLiteral("Windows Media Video 9 Screen (MSS2)");
-    else if (guid == MFVideoFormat_WMV1)
-        return QStringLiteral("Windows Media Video 7 (WMV1)");
-    else if (guid == MFVideoFormat_WMV2)
-        return QStringLiteral("Windows Media Video 8 (WMV2)");
-    else if (guid == MFVideoFormat_WMV3)
-        return QStringLiteral("Windows Media Video 9 (WMV3)");
-    else if (guid == MFVideoFormat_WVC1)
-        return QStringLiteral("Windows Media Video VC1 (WVC1)");
-
-    else
-        return QStringLiteral("Unknown codec");
-}
+static const PROPERTYKEY PROP_KEY_NULL = {GUID_NULL, 0};
 
 static QVariant convertValue(const PROPVARIANT& var)
 {
@@ -388,7 +310,7 @@ static REFPROPERTYKEY propertyKeyForMetaDataKey(QMediaMetaData::Key key)
     case QMediaMetaData::MediaType:
         return PKEY_Media_ClassPrimaryID;
     default:
-        return PKEY_Null;
+        return PROP_KEY_NULL;
     }
 }
 
@@ -509,7 +431,7 @@ void MFMetaData::toNative(const QMediaMetaData &metaData, IPropertyStore *conten
                 // do validation and type conversion.
                 REFPROPERTYKEY propKey = propertyKeyForMetaDataKey(key);
 
-                if (propKey != PKEY_Null) {
+                if (propKey != PROP_KEY_NULL) {
                     QString strValue = metaData.stringValue(key);
                     if (!strValue.isEmpty())
                         setStringProperty(content, propKey, strValue);

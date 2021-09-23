@@ -147,6 +147,8 @@ STDMETHODIMP AudioSampleGrabberCallback::OnProcessSample(REFGUID guidMajorMediaT
     Q_UNUSED(dwSampleFlags);
     Q_UNUSED(llSampleTime);
     Q_UNUSED(llSampleDuration);
+    Q_UNUSED(pSampleBuffer);
+    Q_UNUSED(dwSampleSize);
 
     if (guidMajorMediaType != GUID_NULL && guidMajorMediaType != MFMediaType_Audio)
         return S_OK;

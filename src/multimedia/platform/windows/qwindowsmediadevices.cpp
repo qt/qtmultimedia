@@ -61,7 +61,8 @@
 #include <Mferror.h>
 #include <mmdeviceapi.h>
 #include <Functiondiscoverykeys_devpkey.h>
-#include "private/qwindowsaudioutils_p.h"
+#include <private/qwindowsaudioutils_p.h>
+#include <private/qwindowsmfdefs_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -85,12 +86,12 @@ public:
     virtual ~CMMNotificationClient() {}
 
     // IUnknown methods -- AddRef, Release, and QueryInterface
-    ULONG STDMETHODCALLTYPE AddRef()
+    ULONG STDMETHODCALLTYPE AddRef() override
     {
         return InterlockedIncrement(&m_cRef);
     }
 
-    ULONG STDMETHODCALLTYPE Release()
+    ULONG STDMETHODCALLTYPE Release() override
     {
         ULONG ulRef = InterlockedDecrement(&m_cRef);
         if (0 == ulRef) {
@@ -99,7 +100,7 @@ public:
         return ulRef;
     }
 
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, VOID **ppvInterface)
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, VOID **ppvInterface) override
     {
         if (IID_IUnknown == riid) {
             AddRef();
@@ -114,7 +115,7 @@ public:
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR)
+    HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR) override
     {
         if (role == ERole::eMultimedia)
             emitAudioDevicesChanged(flow);
@@ -122,7 +123,7 @@ public:
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR deviceID)
+    HRESULT STDMETHODCALLTYPE OnDeviceAdded(LPCWSTR deviceID) override
     {
         auto it = m_deviceState.find(QString::fromWCharArray(deviceID));
         if (it == std::end(m_deviceState)) {
@@ -133,7 +134,7 @@ public:
         return S_OK;
     };
 
-    HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR deviceID)
+    HRESULT STDMETHODCALLTYPE OnDeviceRemoved(LPCWSTR deviceID) override
     {
         auto key = QString::fromWCharArray(deviceID);
         auto it = m_deviceState.find(key);
@@ -146,7 +147,7 @@ public:
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE OnDeviceStateChanged(LPCWSTR deviceID, DWORD newState)
+    HRESULT STDMETHODCALLTYPE OnDeviceStateChanged(LPCWSTR deviceID, DWORD newState) override
     {
         if (auto it = m_deviceState.find(QString::fromWCharArray(deviceID)); it != std::end(m_deviceState)) {
             // If either the old state or the new state is active emit device change
@@ -159,7 +160,7 @@ public:
         return S_OK;
     }
 
-    HRESULT STDMETHODCALLTYPE OnPropertyValueChanged(LPCWSTR, const PROPERTYKEY)
+    HRESULT STDMETHODCALLTYPE OnPropertyValueChanged(LPCWSTR, const PROPERTYKEY) override
     {
         return S_OK;
     }
@@ -279,10 +280,10 @@ QWindowsMediaDevices::QWindowsMediaDevices()
     if (m_videoDeviceMsgWindow) {
         SetWindowLongPtr(m_videoDeviceMsgWindow, GWLP_USERDATA, (LONG_PTR)this);
 
-        DEV_BROADCAST_DEVICEINTERFACE di = { 0 };
+        DEV_BROADCAST_DEVICEINTERFACE di = {};
         di.dbcc_size = sizeof(di);
         di.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-        di.dbcc_classguid = KSCATEGORY_VIDEO_CAMERA;
+        di.dbcc_classguid = QMM_KSCATEGORY_VIDEO_CAMERA;
 
         m_videoDeviceNotification =
                 RegisterDeviceNotification(m_videoDeviceMsgWindow, &di, DEVICE_NOTIFY_WINDOW_HANDLE);
@@ -367,7 +368,7 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
         PROPVARIANT varName;
         PropVariantInit(&varName);
 
-        if (SUCCEEDED(props->GetValue(PKEY_Device_FriendlyName, &varName))) {
+        if (SUCCEEDED(props->GetValue(QMM_PKEY_Device_FriendlyName, &varName))) {
             auto description = QString::fromWCharArray(varName.pwszVal);
             auto strID = QString::fromWCharArray(id.data()).toUtf8();
 
@@ -453,7 +454,6 @@ QList<QCameraDevice> QWindowsMediaDevices::videoInputs() const
                         UINT32 frameRateMin = 0u;
                         UINT32 frameRateMax = 0u;
                         UINT32 denominator = 0u;
-                        DWORD index = 0u;
                         UINT32 width = 0u;
                         UINT32 height = 0u;
 

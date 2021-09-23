@@ -60,157 +60,157 @@ public:
     virtual ~MFAbstractActivate();
 
     //from IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
-    STDMETHODIMP_(ULONG) AddRef(void);
-    STDMETHODIMP_(ULONG) Release(void);
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
+    STDMETHODIMP_(ULONG) AddRef(void) override;
+    STDMETHODIMP_(ULONG) Release(void) override;
 
     //from IMFAttributes
-    STDMETHODIMP GetItem(REFGUID guidKey, PROPVARIANT *pValue)
+    STDMETHODIMP GetItem(REFGUID guidKey, PROPVARIANT *pValue) override
     {
         return m_attributes->GetItem(guidKey, pValue);
     }
 
-    STDMETHODIMP GetItemType(REFGUID guidKey, MF_ATTRIBUTE_TYPE *pType)
+    STDMETHODIMP GetItemType(REFGUID guidKey, MF_ATTRIBUTE_TYPE *pType) override
     {
         return m_attributes->GetItemType(guidKey, pType);
     }
 
-    STDMETHODIMP CompareItem(REFGUID guidKey, REFPROPVARIANT Value, BOOL *pbResult)
+    STDMETHODIMP CompareItem(REFGUID guidKey, REFPROPVARIANT Value, BOOL *pbResult) override
     {
         return m_attributes->CompareItem(guidKey, Value, pbResult);
     }
 
-    STDMETHODIMP Compare(IMFAttributes *pTheirs, MF_ATTRIBUTES_MATCH_TYPE MatchType, BOOL *pbResult)
+    STDMETHODIMP Compare(IMFAttributes *pTheirs, MF_ATTRIBUTES_MATCH_TYPE MatchType, BOOL *pbResult) override
     {
         return m_attributes->Compare(pTheirs, MatchType, pbResult);
     }
 
-    STDMETHODIMP GetUINT32(REFGUID guidKey, UINT32 *punValue)
+    STDMETHODIMP GetUINT32(REFGUID guidKey, UINT32 *punValue) override
     {
         return m_attributes->GetUINT32(guidKey, punValue);
     }
 
-    STDMETHODIMP GetUINT64(REFGUID guidKey, UINT64 *punValue)
+    STDMETHODIMP GetUINT64(REFGUID guidKey, UINT64 *punValue) override
     {
         return m_attributes->GetUINT64(guidKey, punValue);
     }
 
-    STDMETHODIMP GetDouble(REFGUID guidKey, double *pfValue)
+    STDMETHODIMP GetDouble(REFGUID guidKey, double *pfValue) override
     {
         return m_attributes->GetDouble(guidKey, pfValue);
     }
 
-    STDMETHODIMP GetGUID(REFGUID guidKey, GUID *pguidValue)
+    STDMETHODIMP GetGUID(REFGUID guidKey, GUID *pguidValue) override
     {
         return m_attributes->GetGUID(guidKey, pguidValue);
     }
 
-    STDMETHODIMP GetStringLength(REFGUID guidKey, UINT32 *pcchLength)
+    STDMETHODIMP GetStringLength(REFGUID guidKey, UINT32 *pcchLength) override
     {
         return m_attributes->GetStringLength(guidKey, pcchLength);
     }
 
-    STDMETHODIMP GetString(REFGUID guidKey, LPWSTR pwszValue, UINT32 cchBufSize, UINT32 *pcchLength)
+    STDMETHODIMP GetString(REFGUID guidKey, LPWSTR pwszValue, UINT32 cchBufSize, UINT32 *pcchLength) override
     {
         return m_attributes->GetString(guidKey, pwszValue, cchBufSize, pcchLength);
     }
 
-    STDMETHODIMP GetAllocatedString(REFGUID guidKey, LPWSTR *ppwszValue, UINT32 *pcchLength)
+    STDMETHODIMP GetAllocatedString(REFGUID guidKey, LPWSTR *ppwszValue, UINT32 *pcchLength) override
     {
         return m_attributes->GetAllocatedString(guidKey, ppwszValue, pcchLength);
     }
 
-    STDMETHODIMP GetBlobSize(REFGUID guidKey, UINT32 *pcbBlobSize)
+    STDMETHODIMP GetBlobSize(REFGUID guidKey, UINT32 *pcbBlobSize) override
     {
         return m_attributes->GetBlobSize(guidKey, pcbBlobSize);
     }
 
-    STDMETHODIMP GetBlob(REFGUID guidKey, UINT8 *pBuf, UINT32 cbBufSize, UINT32 *pcbBlobSize)
+    STDMETHODIMP GetBlob(REFGUID guidKey, UINT8 *pBuf, UINT32 cbBufSize, UINT32 *pcbBlobSize) override
     {
         return m_attributes->GetBlob(guidKey, pBuf, cbBufSize, pcbBlobSize);
     }
 
-    STDMETHODIMP GetAllocatedBlob(REFGUID guidKey, UINT8 **ppBuf, UINT32 *pcbSize)
+    STDMETHODIMP GetAllocatedBlob(REFGUID guidKey, UINT8 **ppBuf, UINT32 *pcbSize) override
     {
         return m_attributes->GetAllocatedBlob(guidKey, ppBuf, pcbSize);
     }
 
-    STDMETHODIMP GetUnknown(REFGUID guidKey, REFIID riid, LPVOID *ppv)
+    STDMETHODIMP GetUnknown(REFGUID guidKey, REFIID riid, LPVOID *ppv) override
     {
         return m_attributes->GetUnknown(guidKey, riid, ppv);
     }
 
-    STDMETHODIMP SetItem(REFGUID guidKey, REFPROPVARIANT Value)
+    STDMETHODIMP SetItem(REFGUID guidKey, REFPROPVARIANT Value) override
     {
         return m_attributes->SetItem(guidKey, Value);
     }
 
-    STDMETHODIMP DeleteItem(REFGUID guidKey)
+    STDMETHODIMP DeleteItem(REFGUID guidKey) override
     {
         return m_attributes->DeleteItem(guidKey);
     }
 
-    STDMETHODIMP DeleteAllItems()
+    STDMETHODIMP DeleteAllItems() override
     {
         return m_attributes->DeleteAllItems();
     }
 
-    STDMETHODIMP SetUINT32(REFGUID guidKey, UINT32 unValue)
+    STDMETHODIMP SetUINT32(REFGUID guidKey, UINT32 unValue) override
     {
         return m_attributes->SetUINT32(guidKey, unValue);
     }
 
-    STDMETHODIMP SetUINT64(REFGUID guidKey, UINT64 unValue)
+    STDMETHODIMP SetUINT64(REFGUID guidKey, UINT64 unValue) override
     {
         return m_attributes->SetUINT64(guidKey, unValue);
     }
 
-    STDMETHODIMP SetDouble(REFGUID guidKey, double fValue)
+    STDMETHODIMP SetDouble(REFGUID guidKey, double fValue) override
      {
         return m_attributes->SetDouble(guidKey, fValue);
     }
 
-    STDMETHODIMP SetGUID(REFGUID guidKey, REFGUID guidValue)
+    STDMETHODIMP SetGUID(REFGUID guidKey, REFGUID guidValue) override
     {
         return m_attributes->SetGUID(guidKey, guidValue);
     }
 
-    STDMETHODIMP SetString(REFGUID guidKey, LPCWSTR wszValue)
+    STDMETHODIMP SetString(REFGUID guidKey, LPCWSTR wszValue) override
     {
         return m_attributes->SetString(guidKey, wszValue);
     }
 
-    STDMETHODIMP SetBlob(REFGUID guidKey, const UINT8 *pBuf, UINT32 cbBufSize)
+    STDMETHODIMP SetBlob(REFGUID guidKey, const UINT8 *pBuf, UINT32 cbBufSize) override
     {
         return m_attributes->SetBlob(guidKey, pBuf, cbBufSize);
     }
 
-    STDMETHODIMP SetUnknown(REFGUID guidKey, IUnknown *pUnknown)
+    STDMETHODIMP SetUnknown(REFGUID guidKey, IUnknown *pUnknown) override
     {
         return m_attributes->SetUnknown(guidKey, pUnknown);
     }
 
-    STDMETHODIMP LockStore()
+    STDMETHODIMP LockStore() override
     {
         return m_attributes->LockStore();
     }
 
-    STDMETHODIMP UnlockStore()
+    STDMETHODIMP UnlockStore() override
     {
         return m_attributes->UnlockStore();
     }
 
-    STDMETHODIMP GetCount(UINT32 *pcItems)
+    STDMETHODIMP GetCount(UINT32 *pcItems) override
     {
         return m_attributes->GetCount(pcItems);
     }
 
-    STDMETHODIMP GetItemByIndex(UINT32 unIndex, GUID *pguidKey, PROPVARIANT *pValue)
+    STDMETHODIMP GetItemByIndex(UINT32 unIndex, GUID *pguidKey, PROPVARIANT *pValue) override
     {
         return m_attributes->GetItemByIndex(unIndex, pguidKey, pValue);
     }
 
-    STDMETHODIMP CopyAllItems(IMFAttributes *pDest)
+    STDMETHODIMP CopyAllItems(IMFAttributes *pDest) override
     {
         return m_attributes->CopyAllItems(pDest);
     }

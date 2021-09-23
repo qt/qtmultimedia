@@ -481,6 +481,9 @@ STDMETHODIMP MFTransform::ProcessMessage(MFT_MESSAGE_TYPE eMessage, ULONG_PTR ul
     case MFT_MESSAGE_NOTIFY_END_OF_STREAM:
     case MFT_MESSAGE_NOTIFY_START_OF_STREAM:
         break;
+
+    default:
+        break;
     }
 
     return hr;

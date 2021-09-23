@@ -68,64 +68,65 @@ public:
     ~MFStream();
 
     //from IUnknown
-    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
+    STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
 
-    STDMETHODIMP_(ULONG) AddRef(void);
+    STDMETHODIMP_(ULONG) AddRef(void) override;
 
-    STDMETHODIMP_(ULONG) Release(void);
+    STDMETHODIMP_(ULONG) Release(void) override;
 
 
     //from IMFByteStream
-    STDMETHODIMP GetCapabilities(DWORD *pdwCapabilities);
+    STDMETHODIMP GetCapabilities(DWORD *pdwCapabilities) override;
 
-    STDMETHODIMP GetLength(QWORD *pqwLength);
+    STDMETHODIMP GetLength(QWORD *pqwLength) override;
 
-    STDMETHODIMP SetLength(QWORD);
+    STDMETHODIMP SetLength(QWORD) override;
 
-    STDMETHODIMP GetCurrentPosition(QWORD *pqwPosition);
+    STDMETHODIMP GetCurrentPosition(QWORD *pqwPosition) override;
 
-    STDMETHODIMP SetCurrentPosition(QWORD qwPosition);
+    STDMETHODIMP SetCurrentPosition(QWORD qwPosition) override;
 
-    STDMETHODIMP IsEndOfStream(BOOL *pfEndOfStream);
+    STDMETHODIMP IsEndOfStream(BOOL *pfEndOfStream) override;
 
-    STDMETHODIMP Read(BYTE *pb, ULONG cb, ULONG *pcbRead);
+    STDMETHODIMP Read(BYTE *pb, ULONG cb, ULONG *pcbRead) override;
 
     STDMETHODIMP BeginRead(BYTE *pb, ULONG cb, IMFAsyncCallback *pCallback,
-                           IUnknown *punkState);
+                           IUnknown *punkState) override;
 
-    STDMETHODIMP EndRead(IMFAsyncResult* pResult, ULONG *pcbRead);
+    STDMETHODIMP EndRead(IMFAsyncResult* pResult, ULONG *pcbRead) override;
 
-    STDMETHODIMP Write(const BYTE *, ULONG, ULONG *);
+    STDMETHODIMP Write(const BYTE *, ULONG, ULONG *) override;
 
     STDMETHODIMP BeginWrite(const BYTE *, ULONG ,
                             IMFAsyncCallback *,
-                            IUnknown *);
+                            IUnknown *) override;
 
     STDMETHODIMP EndWrite(IMFAsyncResult *,
-                          ULONG *);
+                          ULONG *) override;
 
     STDMETHODIMP Seek(
         MFBYTESTREAM_SEEK_ORIGIN SeekOrigin,
         LONGLONG llSeekOffset,
         DWORD,
-        QWORD *pqwCurrentPosition);
+        QWORD *pqwCurrentPosition) override;
 
-    STDMETHODIMP Flush();
+    STDMETHODIMP Flush() override;
 
-    STDMETHODIMP Close();
+    STDMETHODIMP Close() override;
 
 private:
     class AsyncReadState : public IUnknown
     {
     public:
         AsyncReadState(BYTE *pb, ULONG cb);
+        virtual ~AsyncReadState() = default;
 
         //from IUnknown
-        STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject);
+        STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
 
-        STDMETHODIMP_(ULONG) AddRef(void);
+        STDMETHODIMP_(ULONG) AddRef(void) override;
 
-        STDMETHODIMP_(ULONG) Release(void);
+        STDMETHODIMP_(ULONG) Release(void) override;
 
         BYTE* pb() const;
         ULONG cb() const;
@@ -152,7 +153,7 @@ private Q_SLOTS:
     void handleReadyRead();
 
 protected:
-    void customEvent(QEvent *event);
+    void customEvent(QEvent *event) override;
     IMFAsyncResult *m_currentReadResult;
 };
 

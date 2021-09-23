@@ -85,22 +85,22 @@ public:
 
     qint64 write( const char *data, qint64 len );
 
-    void setFormat(const QAudioFormat& fmt);
-    QAudioFormat format() const;
-    QIODevice* start();
-    void start(QIODevice* device);
-    void stop();
-    void reset();
-    void suspend();
-    void resume();
-    qsizetype bytesFree() const;
-    void setBufferSize(qsizetype value);
-    qsizetype bufferSize() const;
-    qint64 processedUSecs() const;
-    QAudio::Error error() const;
-    QAudio::State state() const;
-    void setVolume(qreal);
-    qreal volume() const;
+    void setFormat(const QAudioFormat& fmt) override;
+    QAudioFormat format() const override;
+    QIODevice* start() override;
+    void start(QIODevice* device) override;
+    void stop() override;
+    void reset() override;
+    void suspend() override;
+    void resume() override;
+    qsizetype bytesFree() const override;
+    void setBufferSize(qsizetype value) override;
+    qsizetype bufferSize() const override;
+    qint64 processedUSecs() const override;
+    QAudio::Error error() const override;
+    QAudio::State state() const override;
+    void setVolume(qreal) override;
+    qreal volume() const override;
 
     QIODevice* audioSource;
     QAudioFormat settings;
@@ -147,8 +147,8 @@ public:
     OutputPrivate(QWindowsAudioSink* audio);
     ~OutputPrivate();
 
-    qint64 readData( char* data, qint64 len);
-    qint64 writeData(const char* data, qint64 len);
+    qint64 readData( char* data, qint64 len) override;
+    qint64 writeData(const char* data, qint64 len) override;
 
 private:
     QWindowsAudioSink *audioDevice;
