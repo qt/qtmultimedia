@@ -669,6 +669,79 @@ QImage::Format QVideoFrameFormat::imageFormatFromPixelFormat(QVideoFrameFormat::
     return QImage::Format_Invalid;
 }
 
+/*!
+    Returns a string representation of the given \a pixelFormat.
+*/
+QString QVideoFrameFormat::pixelFormatToString(QVideoFrameFormat::PixelFormat pixelFormat)
+{
+    switch (pixelFormat) {
+    case QVideoFrameFormat::Format_Invalid:
+        return QStringLiteral("Invalid");
+    case QVideoFrameFormat::Format_ARGB8888:
+        return QStringLiteral("ARGB8888");
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+        return QStringLiteral("ARGB8888 Premultiplied");
+    case QVideoFrameFormat::Format_XRGB8888:
+        return QStringLiteral("XRGB8888");
+    case QVideoFrameFormat::Format_BGRA8888:
+        return QStringLiteral("BGRA8888");
+    case QVideoFrameFormat::Format_BGRX8888:
+        return QStringLiteral("BGRX8888");
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+        return QStringLiteral("BGRA8888 Premultiplied");
+    case QVideoFrameFormat::Format_RGBA8888:
+        return QStringLiteral("RGBA8888");
+    case QVideoFrameFormat::Format_RGBX8888:
+        return QStringLiteral("RGBX8888");
+    case QVideoFrameFormat::Format_ABGR8888:
+        return QStringLiteral("ABGR8888");
+    case QVideoFrameFormat::Format_XBGR8888:
+        return QStringLiteral("XBGR8888");
+    case QVideoFrameFormat::Format_AYUV:
+        return QStringLiteral("AYUV");
+    case QVideoFrameFormat::Format_AYUV_Premultiplied:
+        return QStringLiteral("AYUV Premultiplied");
+    case QVideoFrameFormat::Format_YUV420P:
+        return QStringLiteral("YUV420P");
+    case QVideoFrameFormat::Format_YUV422P:
+        return QStringLiteral("YUV422P");
+    case QVideoFrameFormat::Format_YV12:
+        return QStringLiteral("YV12");
+    case QVideoFrameFormat::Format_UYVY:
+        return QStringLiteral("UYVY");
+    case QVideoFrameFormat::Format_YUYV:
+        return QStringLiteral("YUYV");
+    case QVideoFrameFormat::Format_NV12:
+        return QStringLiteral("NV12");
+    case QVideoFrameFormat::Format_NV21:
+        return QStringLiteral("NV21");
+    case QVideoFrameFormat::Format_IMC1:
+        return QStringLiteral("IMC1");
+    case QVideoFrameFormat::Format_IMC2:
+        return QStringLiteral("IMC2");
+    case QVideoFrameFormat::Format_IMC3:
+        return QStringLiteral("IMC3");
+    case QVideoFrameFormat::Format_IMC4:
+        return QStringLiteral("IMC4");
+    case QVideoFrameFormat::Format_Y8:
+        return QStringLiteral("Y8");
+    case QVideoFrameFormat::Format_Y16:
+        return QStringLiteral("Y16");
+    case QVideoFrameFormat::Format_P010:
+        return QStringLiteral("P010");
+    case QVideoFrameFormat::Format_P016:
+        return QStringLiteral("P016");
+    case QVideoFrameFormat::Format_SamplerExternalOES:
+        return QStringLiteral("SamplerExternalOES");
+    case QVideoFrameFormat::Format_Jpeg:
+        return QStringLiteral("Jpeg");
+    case QVideoFrameFormat::Format_SamplerRect:
+        return QStringLiteral("SamplerRect");
+    }
+
+    return QStringLiteral("");
+}
+
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, QVideoFrameFormat::YCbCrColorSpace cs)
 {
@@ -734,70 +807,12 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::PixelFormat pf)
 {
     QDebugStateSaver saver(dbg);
     dbg.nospace();
-    switch (pf) {
-    case QVideoFrameFormat::Format_Invalid:
-        return dbg << "Format_Invalid";
-    case QVideoFrameFormat::Format_ARGB8888:
-        return dbg << "Format_ARGB8888";
-    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
-        return dbg << "Format_ARGB8888_Premultiplied";
-    case QVideoFrameFormat::Format_XRGB8888:
-        return dbg << "Format_XRGB8888";
-    case QVideoFrameFormat::Format_BGRA8888:
-        return dbg << "Format_BGRA8888";
-    case QVideoFrameFormat::Format_BGRX8888:
-        return dbg << "Format_BGRX8888";
-    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
-        return dbg << "Format_BGRA8888_Premultiplied";
-    case QVideoFrameFormat::Format_RGBA8888:
-        return dbg << "Format_RGBA8888";
-    case QVideoFrameFormat::Format_RGBX8888:
-        return dbg << "Format_RGBX8888";
-    case QVideoFrameFormat::Format_ABGR8888:
-        return dbg << "Format_ABGR8888";
-    case QVideoFrameFormat::Format_XBGR8888:
-        return dbg << "Format_XBGR8888";
-    case QVideoFrameFormat::Format_AYUV:
-        return dbg << "Format_AYUV";
-    case QVideoFrameFormat::Format_AYUV_Premultiplied:
-        return dbg << "Format_AYUV_Premultiplied";
-    case QVideoFrameFormat::Format_YUV420P:
-        return dbg << "Format_YUV420P";
-    case QVideoFrameFormat::Format_YUV422P:
-        return dbg << "Format_YUV422P";
-    case QVideoFrameFormat::Format_YV12:
-        return dbg << "Format_YV12";
-    case QVideoFrameFormat::Format_UYVY:
-        return dbg << "Format_UYVY";
-    case QVideoFrameFormat::Format_YUYV:
-        return dbg << "Format_YUYV";
-    case QVideoFrameFormat::Format_NV12:
-        return dbg << "Format_NV12";
-    case QVideoFrameFormat::Format_NV21:
-        return dbg << "Format_NV21";
-    case QVideoFrameFormat::Format_IMC1:
-        return dbg << "Format_IMC1";
-    case QVideoFrameFormat::Format_IMC2:
-        return dbg << "Format_IMC2";
-    case QVideoFrameFormat::Format_IMC3:
-        return dbg << "Format_IMC3";
-    case QVideoFrameFormat::Format_IMC4:
-        return dbg << "Format_IMC4";
-    case QVideoFrameFormat::Format_Y8:
-        return dbg << "Format_Y8";
-    case QVideoFrameFormat::Format_Y16:
-        return dbg << "Format_Y16";
-    case QVideoFrameFormat::Format_P010:
-        return dbg << "Format_P010";
-    case QVideoFrameFormat::Format_P016:
-        return dbg << "Format_P016";
-    case QVideoFrameFormat::Format_SamplerExternalOES:
-        return dbg << "Format_SamplerExternalOES";
-    case QVideoFrameFormat::Format_Jpeg:
-        return dbg << "Format_Jpeg";
-    case QVideoFrameFormat::Format_SamplerRect:
-        return dbg << "Format_SamplerRect";
-    }
+
+    auto format = QVideoFrameFormat::pixelFormatToString(pf);
+    if (format.isEmpty())
+        return dbg;
+
+    dbg << QStringLiteral("Format_") << format;
     return dbg;
 }
 #endif

@@ -66,6 +66,27 @@
 #include <QCamera>
 #include <QAudioInput>
 
+QString toFormattedString(const QCameraFormat &cameraFormat)
+{
+    QString string;
+    const auto &separator = QStringLiteral(" ");
+
+    string.append(QVideoFrameFormat::pixelFormatToString(cameraFormat.pixelFormat()));
+    string.append(separator);
+
+    string.append(QString::number(cameraFormat.resolution().width()));
+    string.append(QStringLiteral("x"));
+    string.append(QString::number(cameraFormat.resolution().height()));
+    string.append(separator);
+
+    string.append(QString::number(cameraFormat.minFrameRate()));
+    string.append(QStringLiteral("-"));
+    string.append(QString::number(cameraFormat.maxFrameRate()));
+    string.append(QStringLiteral("FPS"));
+
+    return string;
+}
+
 VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
     : QDialog(parent),
       ui(new Ui::VideoSettingsUi),
@@ -94,50 +115,33 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
         ui->videoCodecBox->addItem(QMediaFormat::videoCodecName(codec) + ": " + description, QVariant::fromValue(codec));
     }
 
-    ui->videoResolutionBox->addItem(tr("Default"));
+    // camera format
+    ui->videoFormatBox->addItem(tr("Default camera format"));
 
     const QList<QCameraFormat> videoFormats =
             mediaRecorder->captureSession()->camera()->cameraDevice().videoFormats();
 
     for (const QCameraFormat &format : videoFormats) {
-        const QSize resolution = format.resolution();
-        ui->videoResolutionBox->addItem(QString("%1x%2")
-                                        .arg(resolution.width())
-                                        .arg(resolution.height()),
-                                        QVariant(resolution));
+        ui->videoFormatBox->addItem(toFormattedString(format), QVariant::fromValue(format));
     }
 
-    ui->videoFramerateBox->addItem(tr("Default"));
-
-    connect(ui->videoResolutionBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            [this, mediaRecorder](int index) {
-
-        // Get the current list of formats
-        const QList<QCameraFormat> videoFormats =
-                mediaRecorder->captureSession()->camera()->cameraDevice().videoFormats();
-
-        QCameraFormat videoFormat;
-        const auto resolution = ui->videoResolutionBox->itemData(index).value<QSize>();
-        for (const QCameraFormat &format : videoFormats) {
-            if (format.resolution() == resolution) {
-                videoFormat = format;
-                break;
-            }
-        }
-
-        ui->videoFramerateBox->clear();
-
-        const float minFrameRate = videoFormat.minFrameRate();
-        QString rateString = QString("%1").arg(minFrameRate, 0, 'f', 2);
-        ui->videoFramerateBox->addItem(rateString, QVariant(minFrameRate));
-
-        const float maxFrameRate = videoFormat.maxFrameRate();
-        rateString = QString("%1").arg(maxFrameRate, 0, 'f', 2);
-        ui->videoFramerateBox->addItem(rateString, QVariant(maxFrameRate));
+    connect(ui->videoFormatBox, &QComboBox::currentIndexChanged, [this](int index) {
+        const auto &cameraFormat = boxValue(ui->videoFormatBox).value<QCameraFormat>();
+        ui->fpsSlider->setRange(cameraFormat.minFrameRate(), cameraFormat.maxFrameRate());
+        ui->fpsSpinBox->setRange(cameraFormat.minFrameRate(), cameraFormat.maxFrameRate());
     });
 
-    //containers
-    ui->containerFormatBox->addItem(tr("Default container"), QVariant::fromValue(QMediaFormat::UnspecifiedFormat));
+    auto currentCameraFormat = mediaRecorder->captureSession()->camera()->cameraFormat();
+    ui->fpsSlider->setRange(currentCameraFormat.minFrameRate(), currentCameraFormat.maxFrameRate());
+    ui->fpsSpinBox->setRange(currentCameraFormat.minFrameRate(),
+                             currentCameraFormat.maxFrameRate());
+
+    connect(ui->fpsSlider, &QSlider::valueChanged, ui->fpsSpinBox, &QSpinBox::setValue);
+    connect(ui->fpsSpinBox, &QSpinBox::valueChanged, ui->fpsSlider, &QSlider::setValue);
+
+    // containers
+    ui->containerFormatBox->addItem(tr("Default video container"),
+                                    QVariant::fromValue(QMediaFormat::UnspecifiedFormat));
     const auto formats = QMediaFormat().supportedFileFormats(QMediaFormat::Encode);
     for (auto format : formats) {
         ui->containerFormatBox->addItem(QMediaFormat::fileFormatName(format) + ": " + QMediaFormat::fileFormatDescription(format),
@@ -153,17 +157,12 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
 
     ui->qualitySlider->setValue(mediaRecorder->quality());
     ui->audioSampleRateBox->setValue(mediaRecorder->audioSampleRate());
-    selectComboBoxItem(ui->videoResolutionBox, QVariant(mediaRecorder->videoResolution()));
+    selectComboBoxItem(
+            ui->videoFormatBox,
+            QVariant::fromValue(mediaRecorder->captureSession()->camera()->cameraFormat()));
 
-    //special case for frame rate
-    for (int i = 0; i < ui->videoFramerateBox->count(); ++i) {
-        qreal itemRate = ui->videoFramerateBox->itemData(i).value<qreal>();
-        if (qFuzzyCompare(itemRate, mediaRecorder->videoFrameRate())) {
-            ui->videoFramerateBox->setCurrentIndex(i);
-            break;
-        }
-    }
-
+    ui->fpsSlider->setValue(mediaRecorder->videoFrameRate());
+    ui->fpsSpinBox->setValue(mediaRecorder->videoFrameRate());
 }
 
 VideoSettings::~VideoSettings()
@@ -193,8 +192,12 @@ void VideoSettings::applySettings()
     mediaRecorder->setMediaFormat(format);
     mediaRecorder->setQuality(QMediaRecorder::Quality(ui->qualitySlider->value()));
     mediaRecorder->setAudioSampleRate(ui->audioSampleRateBox->value());
-    mediaRecorder->setVideoResolution(boxValue(ui->videoResolutionBox).toSize());
-    mediaRecorder->setVideoFrameRate(boxValue(ui->videoFramerateBox).value<qreal>());
+
+    const auto &cameraFormat = boxValue(ui->videoFormatBox).value<QCameraFormat>();
+    mediaRecorder->setVideoResolution(cameraFormat.resolution());
+    mediaRecorder->setVideoFrameRate(ui->fpsSlider->value());
+
+    mediaRecorder->captureSession()->camera()->setCameraFormat(cameraFormat);
 }
 
 QVariant VideoSettings::boxValue(const QComboBox *box) const
