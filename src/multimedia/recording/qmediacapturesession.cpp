@@ -168,10 +168,7 @@ QMediaCaptureSession::~QMediaCaptureSession()
 {
     if (d_ptr->camera)
         d_ptr->camera->setCaptureSession(nullptr);
-    if (d_ptr->recorder) {
-        d_ptr->recorder->setCaptureSession(nullptr);
-        d_ptr->captureSession->setMediaRecorder(nullptr);
-    }
+    setRecorder(nullptr);
     if (d_ptr->imageCapture)
         d_ptr->imageCapture->setCaptureSession(nullptr);
     setAudioInput(nullptr);
@@ -306,16 +303,22 @@ QMediaRecorder *QMediaCaptureSession::recorder()
 
 void QMediaCaptureSession::setRecorder(QMediaRecorder *recorder)
 {
-    if (d_ptr->recorder == recorder)
+    QMediaRecorder *oldRecorder = d_ptr->recorder;
+    if (oldRecorder == recorder)
         return;
-    if (d_ptr->recorder)
-        d_ptr->recorder->setCaptureSession(nullptr);
-
-    d_ptr->captureSession->setMediaRecorder(recorder ? recorder->platformRecoder() : nullptr);
-
     d_ptr->recorder = recorder;
-    if (d_ptr->recorder)
-        d_ptr->recorder->setCaptureSession(this);
+    d_ptr->captureSession->setMediaRecorder(nullptr);
+    if (oldRecorder) {
+        if (oldRecorder->captureSession() && oldRecorder->captureSession() != this)
+            oldRecorder->captureSession()->setRecorder(nullptr);
+        oldRecorder->setCaptureSession(nullptr);
+    }
+    if (recorder) {
+        if (recorder->captureSession())
+            recorder->captureSession()->setRecorder(nullptr);
+        d_ptr->captureSession->setMediaRecorder(recorder->platformRecoder());
+        recorder->setCaptureSession(this);
+    }
     emit recorderChanged();
 }
 /*!
