@@ -99,17 +99,23 @@ void QWindowsImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessi
     if (m_captureService == captureService)
         return;
 
+    auto readyForCapture = isReadyForCapture();
     if (m_mediaDeviceSession)
         disconnect(m_mediaDeviceSession, nullptr, this, nullptr);
 
     m_captureService = captureService;
     if (!m_captureService) {
+        if (readyForCapture)
+            emit readyForCaptureChanged(false);
         m_mediaDeviceSession = nullptr;
         return;
     }
 
     m_mediaDeviceSession = m_captureService->session();
     Q_ASSERT(m_mediaDeviceSession);
+
+    if (isReadyForCapture() != readyForCapture)
+        emit readyForCaptureChanged(isReadyForCapture());
 
     connect(m_mediaDeviceSession, SIGNAL(readyForCaptureChanged(bool)),
             this, SIGNAL(readyForCaptureChanged(bool)));
