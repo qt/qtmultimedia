@@ -292,6 +292,7 @@ Q_SIGNALS:
     void hueChanged();
 
 private:
+    class QPlatformCamera *platformCamera();
     void setCaptureSession(QMediaCaptureSession *session);
     friend class QMediaCaptureSession;
     Q_DISABLE_COPY(QCamera)

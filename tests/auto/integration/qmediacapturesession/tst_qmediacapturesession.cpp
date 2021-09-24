@@ -72,6 +72,7 @@ private slots:
     void can_move_AudioOutput_between_sessions_and_player();
 
     void can_add_and_remove_Camera();
+    void can_move_Camera_between_sessions();
     void can_disconnect_Camera_when_recording();
     void can_add_and_remove_different_Cameras();
     void can_change_CameraDevice_on_attached_Camera();
@@ -87,6 +88,7 @@ private slots:
     void recording_stops_when_recorder_removed();
 
     void can_add_and_remove_ImageCapture();
+    void can_move_ImageCapture_between_sessions();
     void capture_is_not_available_when_Camera_is_null();
     void can_add_ImageCapture_and_capture_during_recording();
 
@@ -366,6 +368,38 @@ void tst_QMediaCaptureSession::can_add_and_remove_Camera()
     QVERIFY(!QTest::currentTestFailed());
 }
 
+void tst_QMediaCaptureSession::can_move_Camera_between_sessions()
+{
+    QMediaCaptureSession session0;
+    QMediaCaptureSession session1;
+    QSignalSpy cameraChanged0(&session0, SIGNAL(cameraChanged()));
+    QSignalSpy cameraChanged1(&session1, SIGNAL(cameraChanged()));
+    {
+        QCamera camera;
+        {
+            QMediaCaptureSession session2;
+            QSignalSpy cameraChanged2(&session2, SIGNAL(cameraChanged()));
+            session2.setCamera(&camera);
+            QTRY_COMPARE(cameraChanged2.count(), 1);
+        }
+        QVERIFY(camera.captureSession() == nullptr);
+
+        session0.setCamera(&camera);
+        QTRY_COMPARE(cameraChanged0.count(), 1);
+        QVERIFY(session0.camera() == &camera);
+        QVERIFY(camera.captureSession() == &session0);
+
+        session1.setCamera(&camera);
+        QTRY_COMPARE(cameraChanged0.count(), 2);
+        QVERIFY(session0.camera() == nullptr);
+        QTRY_COMPARE(cameraChanged1.count(), 1);
+        QVERIFY(session1.camera() == &camera);
+        QVERIFY(camera.captureSession() == &session1);
+    }
+    QTRY_COMPARE(cameraChanged1.count(), 2);
+    QVERIFY(session1.camera() == nullptr);
+}
+
 void tst_QMediaCaptureSession::can_disconnect_Camera_when_recording()
 {
     QCamera camera;
@@ -463,6 +497,7 @@ void tst_QMediaCaptureSession::can_change_CameraDevice_on_attached_Camera()
     QVERIFY(!QTest::currentTestFailed());
 
     camera.setCameraDevice(cameraDevices[1]);
+    camera.setActive(true);
     QTRY_COMPARE(cameraDeviceChanged.count(), 1);
 
     recordOk(session);
@@ -649,6 +684,7 @@ void tst_QMediaCaptureSession::can_record_Camera_with_null_CameraDevice()
     session.setCamera(&camera);
     QTRY_COMPARE(cameraChanged.count(), 1);
 
+    camera.setActive(true);
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
 }
@@ -734,6 +770,39 @@ void tst_QMediaCaptureSession::can_add_and_remove_ImageCapture()
     QVERIFY(capture.isAvailable());
     QVERIFY(capture.isReadyForCapture());
 }
+
+void tst_QMediaCaptureSession::can_move_ImageCapture_between_sessions()
+{
+    QMediaCaptureSession session0;
+    QMediaCaptureSession session1;
+    QSignalSpy imageCaptureChanged0(&session0, SIGNAL(imageCaptureChanged()));
+    QSignalSpy imageCaptureChanged1(&session1, SIGNAL(imageCaptureChanged()));
+    {
+        QImageCapture imageCapture;
+        {
+            QMediaCaptureSession session2;
+            QSignalSpy imageCaptureChanged2(&session2, SIGNAL(imageCaptureChanged()));
+            session2.setImageCapture(&imageCapture);
+            QTRY_COMPARE(imageCaptureChanged2.count(), 1);
+        }
+        QVERIFY(imageCapture.captureSession() == nullptr);
+
+        session0.setImageCapture(&imageCapture);
+        QTRY_COMPARE(imageCaptureChanged0.count(), 1);
+        QVERIFY(session0.imageCapture() == &imageCapture);
+        QVERIFY(imageCapture.captureSession() == &session0);
+
+        session1.setImageCapture(&imageCapture);
+        QTRY_COMPARE(imageCaptureChanged0.count(), 2);
+        QVERIFY(session0.imageCapture() == nullptr);
+        QTRY_COMPARE(imageCaptureChanged1.count(), 1);
+        QVERIFY(session1.imageCapture() == &imageCapture);
+        QVERIFY(imageCapture.captureSession() == &session1);
+    }
+    QTRY_COMPARE(imageCaptureChanged1.count(), 2);
+    QVERIFY(session1.imageCapture() == nullptr);
+}
+
 
 void tst_QMediaCaptureSession::capture_is_not_available_when_Camera_is_null()
 {

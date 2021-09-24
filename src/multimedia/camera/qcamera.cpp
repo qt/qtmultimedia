@@ -277,10 +277,8 @@ QCamera::QCamera(QCameraDevice::Position position, QObject *parent)
 QCamera::~QCamera()
 {
     Q_D(QCamera);
-    if (d->captureSession) {
-        d->captureInterface->setCamera(nullptr);
+    if (d->captureSession)
         d->captureSession->setCamera(nullptr);
-    }
     Q_ASSERT(!d->captureSession);
 }
 
@@ -439,17 +437,16 @@ QMediaCaptureSession *QCamera::captureSession() const
 void QCamera::setCaptureSession(QMediaCaptureSession *session)
 {
     Q_D(QCamera);
-
-    if (d->captureSession == session)
-        return;
-
-    if (d->captureInterface)
-        d->captureInterface->setCamera(nullptr);
-
     d->captureSession = session;
-    d->captureInterface = session ? session->platformSession() : nullptr;
-    if (d->captureInterface && d->control)
-        d->captureInterface->setCamera(d->control);
+}
+
+/*!
+    \internal
+*/
+QPlatformCamera *QCamera::platformCamera()
+{
+    Q_D(const QCamera);
+    return d->control;
 }
 
 /*! \qmlproperty CameraDevice QtMultimedia::Camera::cameraDevice

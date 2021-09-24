@@ -136,15 +136,13 @@ QImageCapture::QImageCapture(QObject *parent)
             this, SLOT(_q_error(int,int,QString)));
 }
 
+/*!
+    \internal
+*/
 void QImageCapture::setCaptureSession(QMediaCaptureSession *session)
 {
     Q_D(QImageCapture);
     d->captureSession = session;
-
-    QPlatformMediaCaptureSession *platformSession = session ? session->platformSession() : nullptr;
-
-    if (platformSession && d->control)
-        platformSession->setImageCapture(d->control);
 }
 
 /*!
@@ -153,10 +151,8 @@ void QImageCapture::setCaptureSession(QMediaCaptureSession *session)
 
 QImageCapture::~QImageCapture()
 {
-    if (d_ptr->captureSession) {
-        d_ptr->captureSession->platformSession()->setImageCapture(nullptr);
+    if (d_ptr->captureSession)
         d_ptr->captureSession->setImageCapture(nullptr);
-    }
     delete d_ptr;
 }
 
@@ -538,6 +534,15 @@ void QImageCapture::setQuality(Quality quality)
     fmt.setQuality(quality);
     d->control->setImageSettings(fmt);
     emit resolutionChanged();
+}
+
+/*!
+    \internal
+*/
+QPlatformImageCapture *QImageCapture::platformImageCapture()
+{
+    Q_D(QImageCapture);
+    return d->control;
 }
 
 QT_END_NAMESPACE

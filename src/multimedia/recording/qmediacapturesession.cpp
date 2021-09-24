@@ -166,11 +166,9 @@ QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
  */
 QMediaCaptureSession::~QMediaCaptureSession()
 {
-    if (d_ptr->camera)
-        d_ptr->camera->setCaptureSession(nullptr);
+    setCamera(nullptr);
     setRecorder(nullptr);
-    if (d_ptr->imageCapture)
-        d_ptr->imageCapture->setCaptureSession(nullptr);
+    setImageCapture(nullptr);
     setAudioInput(nullptr);
     setAudioOutput(nullptr);
     d_ptr->setVideoSink(nullptr);
@@ -236,14 +234,22 @@ QCamera *QMediaCaptureSession::camera() const
 
 void QMediaCaptureSession::setCamera(QCamera *camera)
 {
-    if (d_ptr->camera == camera)
+    QCamera *oldCamera = d_ptr->camera;
+    if (oldCamera == camera)
         return;
-    if (d_ptr->camera)
-        d_ptr->camera->setCaptureSession(nullptr);
-
     d_ptr->camera = camera;
-    if (d_ptr->camera)
-        d_ptr->camera->setCaptureSession(this);
+    d_ptr->captureSession->setCamera(nullptr);
+    if (oldCamera) {
+        if (oldCamera->captureSession() && oldCamera->captureSession() != this)
+            oldCamera->captureSession()->setCamera(nullptr);
+        oldCamera->setCaptureSession(nullptr);
+    }
+    if (camera) {
+        if (camera->captureSession())
+            camera->captureSession()->setCamera(nullptr);
+        d_ptr->captureSession->setCamera(camera->platformCamera());
+        camera->setCaptureSession(this);
+    }
     emit cameraChanged();
 }
 /*!
@@ -269,14 +275,22 @@ QImageCapture *QMediaCaptureSession::imageCapture()
 
 void QMediaCaptureSession::setImageCapture(QImageCapture *imageCapture)
 {
-    if (d_ptr->imageCapture == imageCapture)
+    QImageCapture *oldImageCapture = d_ptr->imageCapture;
+    if (oldImageCapture == imageCapture)
         return;
-    if (d_ptr->imageCapture)
-        d_ptr->imageCapture->setCaptureSession(nullptr);
-
     d_ptr->imageCapture = imageCapture;
-    if (d_ptr->imageCapture)
-        d_ptr->imageCapture->setCaptureSession(this);
+    d_ptr->captureSession->setImageCapture(nullptr);
+    if (oldImageCapture) {
+        if (oldImageCapture->captureSession() && oldImageCapture->captureSession() != this)
+            oldImageCapture->captureSession()->setImageCapture(nullptr);
+        oldImageCapture->setCaptureSession(nullptr);
+    }
+    if (imageCapture) {
+        if (imageCapture->captureSession())
+            imageCapture->captureSession()->setImageCapture(nullptr);
+        d_ptr->captureSession->setImageCapture(imageCapture->platformImageCapture());
+        imageCapture->setCaptureSession(this);
+    }
     emit imageCaptureChanged();
 }
 /*!
