@@ -335,7 +335,6 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         case GST_STATE_VOID_PENDING:
         case GST_STATE_NULL:
         case GST_STATE_READY:
-            seekableChanged(false);
             break;
         case GST_STATE_PAUSED:
         {
