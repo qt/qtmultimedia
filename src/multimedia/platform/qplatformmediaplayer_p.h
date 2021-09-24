@@ -141,6 +141,24 @@ public:
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);
     void error(int error, const QString &errorString);
 
+    void resetCurrentLoop() { m_currentLoop = 0; }
+    bool doLoop() {
+        if (!isSeekable())
+            return false;
+        if (m_loops < 0 || ++m_currentLoop < m_loops) {
+            setPosition(0);
+            return true;
+        }
+        return false;
+    }
+    int loops() { return m_loops; }
+    void setLoops(int loops) {
+        if (m_loops == loops)
+            return;
+        m_loops = loops;
+        Q_EMIT player->loopsChanged();
+    }
+
 protected:
     explicit QPlatformMediaPlayer(QMediaPlayer *parent = nullptr)
         : player(parent)
@@ -152,6 +170,8 @@ private:
     bool m_seekable = false;
     bool m_videoAvailable = false;
     bool m_audioAvailable = false;
+    int m_loops = 1;
+    int m_currentLoop = 0;
 };
 
 QT_END_NAMESPACE

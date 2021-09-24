@@ -66,6 +66,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
     Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged)
     Q_PROPERTY(bool seekable READ isSeekable NOTIFY seekableChanged)
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
+    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
     Q_PROPERTY(MediaStatus mediaStatus READ mediaStatus NOTIFY mediaStatusChanged)
     Q_PROPERTY(QMediaMetaData metaData READ metaData NOTIFY metaDataChanged)
@@ -118,6 +119,13 @@ public:
     };
     Q_ENUM(Error)
 
+    enum Loops
+    {
+        Infinite = -1,
+        Once = 1
+    };
+    Q_ENUM(Loops)
+
     explicit QMediaPlayer(QObject *parent = nullptr);
     ~QMediaPlayer();
 
@@ -163,6 +171,9 @@ public:
     bool isSeekable() const;
     qreal playbackRate() const;
 
+    int loops() const;
+    void setLoops(int loops);
+
     Error error() const;
     QString errorString() const;
 
@@ -196,6 +207,7 @@ Q_SIGNALS:
 
     void seekableChanged(bool seekable);
     void playbackRateChanged(qreal rate);
+    void loopsChanged();
 
     void metaDataChanged();
     void videoOutputChanged();

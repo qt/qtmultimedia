@@ -82,6 +82,7 @@ void MFPlayerControl::play()
 {
     if (m_state == QMediaPlayer::PlayingState)
         return;
+    resetCurrentLoop();
     if (QMediaPlayer::InvalidMedia == m_session->status())
         m_session->load(m_media, m_stream);
 
@@ -160,7 +161,10 @@ void MFPlayerControl::handleStatusChanged()
     QMediaPlayer::MediaStatus status = m_session->status();
     switch (status) {
     case QMediaPlayer::EndOfMedia:
-        changeState(QMediaPlayer::StoppedState);
+        if (doLoop())
+            m_session->start();
+        else
+            changeState(QMediaPlayer::StoppedState);
         break;
     case QMediaPlayer::InvalidMedia:
         break;
