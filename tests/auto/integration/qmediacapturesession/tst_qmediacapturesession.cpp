@@ -80,6 +80,7 @@ private slots:
     void can_change_VideoOutput_when_recording();
 
     void can_add_and_remove_recorders();
+    void can_move_Recorder_between_sessions();
     void cannot_record_without_Camera_and_AudioInput();
     void can_record_AudioInput_with_null_AudioDevice();
     void can_record_Camera_with_null_CameraDevice();
@@ -576,6 +577,38 @@ void tst_QMediaCaptureSession::can_add_and_remove_recorders()
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
+}
+
+void tst_QMediaCaptureSession::can_move_Recorder_between_sessions()
+{
+    QMediaCaptureSession session0;
+    QMediaCaptureSession session1;
+    QSignalSpy recorderChanged0(&session0, SIGNAL(recorderChanged()));
+    QSignalSpy recorderChanged1(&session1, SIGNAL(recorderChanged()));
+    {
+        QMediaRecorder recorder;
+        {
+            QMediaCaptureSession session2;
+            QSignalSpy recorderChanged2(&session2, SIGNAL(recorderChanged()));
+            session2.setRecorder(&recorder);
+            QTRY_COMPARE(recorderChanged2.count(), 1);
+        }
+        QVERIFY(recorder.captureSession() == nullptr);
+
+        session0.setRecorder(&recorder);
+        QTRY_COMPARE(recorderChanged0.count(), 1);
+        QVERIFY(session0.recorder() == &recorder);
+        QVERIFY(recorder.captureSession() == &session0);
+
+        session1.setRecorder(&recorder);
+        QTRY_COMPARE(recorderChanged0.count(), 2);
+        QVERIFY(session0.recorder() == nullptr);
+        QTRY_COMPARE(recorderChanged1.count(), 1);
+        QVERIFY(session1.recorder() == &recorder);
+        QVERIFY(recorder.captureSession() == &session1);
+    }
+    QTRY_COMPARE(recorderChanged1.count(), 2);
+    QVERIFY(session1.recorder() == nullptr);
 }
 
 void tst_QMediaCaptureSession::cannot_record_without_Camera_and_AudioInput()
