@@ -30,18 +30,15 @@
       <string>Video</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="1" column="0" colspan="2">
-       <widget class="QComboBox" name="videoResolutionBox"/>
-      </item>
-      <item row="4" column="0" colspan="2">
-       <widget class="QLabel" name="label_6">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="label_8">
         <property name="text">
-         <string>Video Codec:</string>
+         <string>Camera Format</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QComboBox" name="videoFramerateBox"/>
+      <item row="5" column="0" colspan="2">
+       <widget class="QComboBox" name="videoCodecBox"/>
       </item>
       <item row="2" column="0" colspan="2">
        <widget class="QLabel" name="label_9">
@@ -50,15 +47,29 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0" colspan="2">
-       <widget class="QLabel" name="label_8">
+      <item row="4" column="0" colspan="2">
+       <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>Resolution:</string>
+         <string>Video Codec:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0" colspan="2">
-       <widget class="QComboBox" name="videoCodecBox"/>
+      <item row="1" column="0" colspan="2">
+       <widget class="QComboBox" name="videoFormatBox"/>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QSpinBox" name="fpsSpinBox"/>
+        </item>
+        <item>
+         <widget class="QSlider" name="fpsSlider">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

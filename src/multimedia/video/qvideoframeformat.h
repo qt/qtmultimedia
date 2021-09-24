@@ -171,6 +171,8 @@ public:
     static PixelFormat pixelFormatFromImageFormat(QImage::Format format);
     static QImage::Format imageFormatFromPixelFormat(PixelFormat format);
 
+    static QString pixelFormatToString(QVideoFrameFormat::PixelFormat pixelFormat);
+
 private:
     QExplicitlySharedDataPointer<QVideoFrameFormatPrivate> d;
 };

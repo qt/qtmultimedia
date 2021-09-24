@@ -131,6 +131,25 @@ void Camera::setCamera(const QCameraDevice &cameraDevice)
     readyForCapture(m_imageCapture->isReadyForCapture());
 
     updateCaptureMode();
+
+    if (m_camera->cameraFormat().isNull()) {
+        // Setting default settings.
+        // The biggest resolution and the max framerate
+        auto formats = cameraDevice.videoFormats();
+        auto defaultFormat = formats.first();
+
+        for (const auto &format : formats) {
+
+            bool isFormatBigger = format.resolution().width() > defaultFormat.resolution().width()
+                    && format.resolution().height() > defaultFormat.resolution().height();
+
+            defaultFormat = isFormatBigger ? format : defaultFormat;
+        }
+
+        m_camera->setCameraFormat(defaultFormat);
+        m_mediaRecorder->setVideoFrameRate(defaultFormat.maxFrameRate());
+    }
+
     m_camera->start();
 }
 
