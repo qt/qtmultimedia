@@ -380,6 +380,8 @@ void QAndroidMediaPlayer::play()
 {
     StateChangeNotifier notifier(this);
 
+    resetCurrentLoop();
+
     // We need to prepare the mediaplayer again.
     if ((mState & AndroidMediaPlayer::Stopped) && !mMediaContent.isEmpty()) {
         setMedia(mMediaContent, mMediaStream);
@@ -612,6 +614,10 @@ void QAndroidMediaPlayer::onStateChanged(qint32 state)
         Q_EMIT positionChanged(0);
         break;
     case AndroidMediaPlayer::PlaybackCompleted:
+        if (doLoop()) {
+            mMediaPlayer->play();
+            break;
+        }
         stateChanged(QMediaPlayer::StoppedState);
         setMediaStatus(QMediaPlayer::EndOfMedia);
         break;

@@ -454,6 +454,51 @@ qreal QMediaPlayer::playbackRate() const
 }
 
 /*!
+    \enum QMediaPlayer::Loops
+
+    Some predefined constants for the \l loops property.
+
+    \value Infinite Loop forever.
+    \value Once Play the media once (the default).
+*/
+
+/*!
+    \property QMediaPlayer::loops
+
+    Determines how often the media is played before the player stops.
+    Set to QMediaPlayer::Infinite to loop the current media file forever.
+
+    The default value is \c 1. Setting this property to \c 0 has no effect.
+*/
+
+/*!
+    \qmlproperty int QtMultimedia::MediaPlayer::loops
+
+    Determines how often the media is played before the player stops.
+    Set to MediaPlayer::Infinite to loop the current media file forever.
+
+    The default value is \c 1. Setting this property to \c 0 has no effect.
+*/
+int QMediaPlayer::loops() const
+{
+    Q_D(const QMediaPlayer);
+
+    if (d->control)
+        return d->control->loops();
+
+    return 1;
+}
+
+void QMediaPlayer::setLoops(int loops)
+{
+    Q_D(QMediaPlayer);
+    if (loops == 0)
+        return;
+    if (d->control)
+        d->control->setLoops(loops);
+}
+
+/*!
     Returns the current error state.
 */
 QMediaPlayer::Error QMediaPlayer::error() const

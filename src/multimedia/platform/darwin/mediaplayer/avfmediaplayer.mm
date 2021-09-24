@@ -824,6 +824,8 @@ void AVFMediaPlayer::play()
     if (m_state == QMediaPlayer::PlayingState)
         return;
 
+    resetCurrentLoop();
+
     if (m_videoOutput && m_videoSink)
         m_videoOutput->setLayer([static_cast<AVFMediaPlayerObserver*>(m_observer) playerLayer]);
 
@@ -933,6 +935,11 @@ void AVFMediaPlayer::audioOutputChanged()
 
 void AVFMediaPlayer::processEOS()
 {
+    if (doLoop()) {
+        [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] setRate:m_rate];
+        return;
+    }
+
     //AVPlayerItem has reached end of track/stream
 #ifdef QT_DEBUG_AVF
     qDebug() << Q_FUNC_INFO;

@@ -203,6 +203,7 @@ void QGstreamerMediaPlayer::play()
 {
     if (state() == QMediaPlayer::PlayingState || m_url.isEmpty())
         return;
+    resetCurrentLoop();
 
     *playerPipeline.inStoppedState() = false;
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
@@ -297,6 +298,8 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         return false;
     }
     case GST_MESSAGE_EOS:
+        if (doLoop())
+            break;
         stopOrEOS(true);
         break;
     case GST_MESSAGE_BUFFERING: {
