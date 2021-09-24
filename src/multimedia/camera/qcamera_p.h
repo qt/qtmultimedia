@@ -73,7 +73,6 @@ public:
     void init(const QCameraDevice &device);
 
     QMediaCaptureSession *captureSession = nullptr;
-    QPlatformMediaCaptureSession *captureInterface = nullptr;
     QPlatformCamera *control = nullptr;
 
     QCamera::Error error;

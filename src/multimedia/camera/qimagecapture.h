@@ -155,6 +155,7 @@ private:
     QImageCapture(QCamera *) = delete;
 
     friend class QMediaCaptureSession;
+    class QPlatformImageCapture *platformImageCapture();
     void setCaptureSession(QMediaCaptureSession *session);
     QImageCapturePrivate *d_ptr;
     Q_DISABLE_COPY(QImageCapture)
