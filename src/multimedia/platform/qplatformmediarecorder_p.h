@@ -168,6 +168,8 @@ protected:
     void error(QMediaRecorder::Error error, const QString &errorString);
     void metaDataChanged();
 
+    QMediaRecorder *mediaRecorder() { return q; }
+
 private:
     QMediaRecorder *q = nullptr;
     QMediaRecorder::Error m_error = QMediaRecorder::NoError;

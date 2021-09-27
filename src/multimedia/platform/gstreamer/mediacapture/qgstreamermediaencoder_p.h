@@ -118,6 +118,8 @@ private:
     QGstPipeline gstPipeline;
     QGstBin gstEncoder;
     QGstElement gstFileSink;
+
+    bool m_finalizing = false;
 };
 
 QT_END_NAMESPACE
