@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
@@ -42,7 +42,6 @@
 
 //TESTED_COMPONENT=src/multimedia
 
-#define AUDIO_BUFFER 192000
 #define RANGE_ERR 0.5
 
 template<typename T> inline bool qTolerantCompare(T value, T expected)
@@ -527,7 +526,6 @@ void tst_QAudioSource::push()
 
     qint64 totalBytesRead = 0;
     bool firstBuffer = true;
-    (AUDIO_BUFFER, 0);
     qint64 len = audioFormat.sampleRate()*audioFormat.bytesPerFrame()/2; // .5 seconds
     while (totalBytesRead < len) {
         QTRY_VERIFY_WITH_TIMEOUT(audioInput.bytesAvailable() > 0, 1000);
