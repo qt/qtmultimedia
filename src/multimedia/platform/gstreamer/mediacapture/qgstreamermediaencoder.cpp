@@ -47,6 +47,7 @@
 #include "qmediastoragelocation_p.h"
 
 #include <qdebug.h>
+#include <qeventloop.h>
 #include <qstandardpaths.h>
 #include <qmimetype.h>
 #include <qloggingcategory.h>
@@ -123,6 +124,8 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
         error(QMediaRecorder::ResourceError, QString::fromUtf8(err->message));
         g_error_free(err);
         g_free(debug);
+        if (!m_finalizing)
+            stop();
         finalize();
     }
 
@@ -282,7 +285,7 @@ GstPadProbeReturn QGstreamerMediaEncoder::PauseControl::processBuffer(QGstPad, G
 
 void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
 {
-    if (!m_session || state() != QMediaRecorder::StoppedState)
+    if (!m_session ||m_finalizing || state() != QMediaRecorder::StoppedState)
         return;
 
     const auto hasVideo = m_session->camera() && m_session->camera()->isActive();
@@ -351,7 +354,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
 
 void QGstreamerMediaEncoder::pause()
 {
-    if (!m_session || state() != QMediaRecorder::RecordingState)
+    if (!m_session || m_finalizing || state() != QMediaRecorder::RecordingState)
         return;
     signalDurationChangedTimer.stop();
     gstPipeline.dumpGraph("before-pause");
@@ -361,7 +364,7 @@ void QGstreamerMediaEncoder::pause()
 void QGstreamerMediaEncoder::resume()
 {
     gstPipeline.dumpGraph("before-resume");
-    if (!m_session || state() != QMediaRecorder::PausedState)
+    if (!m_session || m_finalizing || state() != QMediaRecorder::PausedState)
         return;
     signalDurationChangedTimer.start();
     stateChanged(QMediaRecorder::RecordingState);
@@ -369,15 +372,13 @@ void QGstreamerMediaEncoder::resume()
 
 void QGstreamerMediaEncoder::stop()
 {
-    if (!m_session || state() == QMediaRecorder::StoppedState)
+    if (!m_session || m_finalizing || state() == QMediaRecorder::StoppedState)
         return;
     qCDebug(qLcMediaEncoder) << "stop";
-
+    m_finalizing = true;
     m_session->unlinkEncoder();
     signalDurationChangedTimer.stop();
 
-    //with live sources it's necessary to send EOS even to pipeline
-    //before going to STOPPED state
     qCDebug(qLcMediaEncoder) << ">>>>>>>>>>>>> sending EOS";
     gstEncoder.sendEos();
 }
@@ -395,6 +396,7 @@ void QGstreamerMediaEncoder::finalize()
     gstPipeline.remove(gstFileSink);
     gstFileSink = {};
     gstEncoder = {};
+    m_finalizing = false;
     stateChanged(QMediaRecorder::StoppedState);
 }
 
@@ -419,7 +421,13 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
         return;
 
     if (m_session) {
-        finalize();
+        stop();
+        if (m_finalizing) {
+            QEventLoop loop;
+            loop.connect(mediaRecorder(), SIGNAL(recorderStateChanged(RecorderState)), SLOT(quit()));
+            loop.exec();
+        }
+
         gstPipeline.removeMessageFilter(this);
         gstPipeline = {};
     }
