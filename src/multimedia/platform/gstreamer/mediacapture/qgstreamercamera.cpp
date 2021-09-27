@@ -97,7 +97,6 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 {
     if (m_cameraDevice == camera)
         return;
-    qDebug() << "setCamera" << camera;
 
     m_cameraDevice = camera;
 
@@ -153,8 +152,6 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
 {
     if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
         return false;
-
-    qDebug() << "Set camera format";
 
     QCameraFormat f = format;
     if (f.isNull())
