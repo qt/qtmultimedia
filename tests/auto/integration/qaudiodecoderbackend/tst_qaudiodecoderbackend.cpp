@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -30,7 +30,9 @@
 #include <QDebug>
 #include "qaudiodecoder.h"
 
+#ifdef WAV_SUPPORT_NOT_FORCED
 #include "../shared/mediafileselector.h"
+#endif
 
 #define TEST_FILE_NAME "testdata/test.wav"
 #define TEST_UNSUPPORTED_FILE_NAME "testdata/test-unsupported.avi"
