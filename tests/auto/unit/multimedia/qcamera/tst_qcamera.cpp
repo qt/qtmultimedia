@@ -788,7 +788,7 @@ void tst_QCamera::testSignalExposureCompensationChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spyExposureCompensationChanged(&camera, SIGNAL(exposureCompensationChanged(qreal)));
+    QSignalSpy spyExposureCompensationChanged(&camera, SIGNAL(exposureCompensationChanged(float)));
 
     QVERIFY(spyExposureCompensationChanged.count() ==0);
 
