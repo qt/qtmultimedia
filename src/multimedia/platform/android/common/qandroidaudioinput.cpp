@@ -37,51 +37,45 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDINTEGRATION_H
-#define QANDROIDINTEGRATION_H
+#include "qandroidaudioinput_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include <qaudioinput.h>
 
-#include <private/qplatformmediaintegration_p.h>
+#include <QtCore/qjniobject.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaDevices;
-
-class QAndroidIntegration : public QPlatformMediaIntegration
+QAndroidAudioInput::QAndroidAudioInput(QAudioInput *parent)
+    : QObject(parent),
+      QPlatformAudioInput(parent)
 {
-public:
-    QAndroidIntegration();
-    ~QAndroidIntegration();
+    m_muted = isMuted();
+}
 
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+QAndroidAudioInput::~QAndroidAudioInput()
+{
+    setMuted(m_muted);
+}
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *recorder) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *imageCapture) override;
+void QAndroidAudioInput::setMuted(bool muted)
+{
+    bool isInputMuted = isMuted();
+    if (muted != isInputMuted) {
+        QJniObject::callStaticMethod<void>(
+                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                    "setInputMuted",
+                    "(Z)V",
+                    muted);
+        emit mutedChanged(muted);
+    }
+}
 
-    QPlatformAudioOutput *createAudioOutput(QAudioOutput *q) override;
-    QPlatformAudioInput *createAudioInput(QAudioInput *audioInput) override;
-
-    QPlatformVideoSink *createVideoSink(QVideoSink *) override;
-
-    QAndroidMediaDevices *m_devices = nullptr;
-    QPlatformMediaFormatInfo  *m_formatInfo = nullptr;
-};
+bool QAndroidAudioInput::isMuted() const
+{
+    return QJniObject::callStaticMethod<jboolean>(
+                   "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                   "isMicrophoneMute",
+                   "()Z");
+}
 
 QT_END_NAMESPACE
-
-#endif
