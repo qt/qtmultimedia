@@ -69,7 +69,6 @@ class QVideoWidget;
 QT_END_NAMESPACE
 
 class PlaylistModel;
-class HistogramWidget;
 
 class Player : public QWidget
 {
@@ -77,7 +76,7 @@ class Player : public QWidget
 
 public:
     explicit Player(QWidget *parent = nullptr);
-    ~Player();
+    ~Player() = default;
 
     bool isPlayerAvailable() const;
 
@@ -100,7 +99,6 @@ private slots:
     void playlistPositionChanged(int);
 
     void statusChanged(QMediaPlayer::MediaStatus status);
-    void stateChanged(QMediaPlayer::PlaybackState state);
     void bufferingProgress(float progress);
     void videoAvailableChanged(bool available);
 
@@ -113,7 +111,6 @@ private slots:
     void audioOutputChanged(int);
 
 private:
-    void clearHistogram();
     void setTrackInfo(const QString &info);
     void setStatusInfo(const QString &info);
     void handleCursor(QMediaPlayer::MediaStatus status);
@@ -134,10 +131,6 @@ private:
     QComboBox *m_audioTracks = nullptr;
     QComboBox *m_videoTracks = nullptr;
     QComboBox *m_subtitleTracks = nullptr;
-
-    QLabel *m_labelHistogram = nullptr;
-    HistogramWidget *m_videoHistogram = nullptr;
-    HistogramWidget *m_audioHistogram = nullptr;
 
     PlaylistModel *m_playlistModel = nullptr;
     QAbstractItemView *m_playlistView = nullptr;

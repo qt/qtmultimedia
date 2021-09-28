@@ -52,7 +52,6 @@
 
 #include "playercontrols.h"
 #include "playlistmodel.h"
-#include "histogramwidget.h"
 #include "videowidget.h"
 
 #include <qmediaplaylist.h>
@@ -71,6 +70,14 @@ Player::Player(QWidget *parent)
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
 //! [create-objs]
+    connect(m_player, &QMediaPlayer::durationChanged, this, &Player::durationChanged);
+    connect(m_player, &QMediaPlayer::positionChanged, this, &Player::positionChanged);
+    connect(m_player, QOverload<>::of(&QMediaPlayer::metaDataChanged), this, &Player::metaDataChanged);
+    connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &Player::statusChanged);
+    connect(m_player, &QMediaPlayer::bufferProgressChanged, this, &Player::bufferingProgress);
+    connect(m_player, &QMediaPlayer::hasVideoChanged, this, &Player::videoAvailableChanged);
+    connect(m_player, &QMediaPlayer::errorChanged, this, &Player::displayErrorMessage);
+    connect(m_player, &QMediaPlayer::tracksChanged, this, &Player::tracksChanged);
 
 //! [2]
     m_videoWidget = new VideoWidget(this);
@@ -80,89 +87,46 @@ Player::Player(QWidget *parent)
     m_playlistModel = new PlaylistModel(this);
     m_playlist = m_playlistModel->playlist();
 //! [2]
-
-    connect(m_player, &QMediaPlayer::durationChanged, this, &Player::durationChanged);
-    connect(m_player, &QMediaPlayer::positionChanged, this, &Player::positionChanged);
-    connect(m_player, QOverload<>::of(&QMediaPlayer::metaDataChanged), this, &Player::metaDataChanged);
     connect(m_playlist, &QMediaPlaylist::currentIndexChanged, this, &Player::playlistPositionChanged);
-    connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &Player::statusChanged);
-    connect(m_player, &QMediaPlayer::bufferProgressChanged, this, &Player::bufferingProgress);
-    connect(m_player, &QMediaPlayer::hasVideoChanged, this, &Player::videoAvailableChanged);
-    connect(m_player, &QMediaPlayer::errorChanged, this, &Player::displayErrorMessage);
-    connect(m_player, &QMediaPlayer::playbackStateChanged, this, &Player::stateChanged);
-    connect(m_player, &QMediaPlayer::tracksChanged, this, &Player::tracksChanged);
 
-    m_playlistView = new QListView(this);
+    // player layout
+    QBoxLayout *layout = new QVBoxLayout(this);
+
+    // display
+    QBoxLayout *displayLayout = new QHBoxLayout;
+    displayLayout->addWidget(m_videoWidget, 2);
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
+    m_playlistView = new QListView();
     m_playlistView->setModel(m_playlistModel);
     m_playlistView->setCurrentIndex(m_playlistModel->index(m_playlist->currentIndex(), 0));
-
     connect(m_playlistView, &QAbstractItemView::activated, this, &Player::jump);
+    displayLayout->addWidget(m_playlistView);
+#endif
+    layout->addLayout(displayLayout);
+
+    // duration slider and label
+    QHBoxLayout *hLayout = new QHBoxLayout;
 
     m_slider = new QSlider(Qt::Horizontal, this);
     m_slider->setRange(0, m_player->duration() / 1000);
-
-    m_labelDuration = new QLabel(this);
-    m_labelDuration->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     connect(m_slider, &QSlider::sliderMoved, this, &Player::seek);
+    hLayout->addWidget(m_slider);
 
-    m_audioTracks = new QComboBox(this);
-    m_videoTracks = new QComboBox(this);
-    m_subtitleTracks = new QComboBox(this);
-    connect(m_audioTracks, &QComboBox::activated, this, &Player::selectAudioStream);
-    connect(m_videoTracks, &QComboBox::activated, this, &Player::selectVideoStream);
-    connect(m_subtitleTracks, &QComboBox::activated, this, &Player::selectSubtitleStream);
-    QGridLayout *tracksLayout = new QGridLayout;
-    tracksLayout->addWidget(new QLabel(tr("Audio Tracks:"), this), 0, 0);
-    tracksLayout->addWidget(m_audioTracks, 0, 1);
-    tracksLayout->addWidget(new QLabel(tr("Video Tracks:"), this), 1, 0);
-    tracksLayout->addWidget(m_videoTracks, 1, 1);
-    tracksLayout->addWidget(new QLabel(tr("Subtitle Tracks:"), this), 2, 0);
-    tracksLayout->addWidget(m_subtitleTracks, 2, 1);
+    m_labelDuration = new QLabel();
+    m_labelDuration->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    hLayout->addWidget(m_labelDuration);
+    layout->addLayout(hLayout);
 
-    m_labelHistogram = new QLabel(this);
-    m_labelHistogram->setText("Histogram:");
-    m_videoHistogram = new HistogramWidget(this);
-    m_audioHistogram = new HistogramWidget(this);
-    QHBoxLayout *histogramLayout = new QHBoxLayout;
-    histogramLayout->addWidget(m_labelHistogram);
-    histogramLayout->addWidget(m_videoHistogram, 1);
-    histogramLayout->addWidget(m_audioHistogram, 2);
-
-    QGridLayout *metaDataLayout = new QGridLayout;
-    int key = QMediaMetaData::Title;
-    for (int i = 0; i < (QMediaMetaData::NumMetaData + 2)/3; i++) {
-        for (int j = 0; j < 6; j+=2) {
-            m_metaDataLabels[key] = new QLabel(QMediaMetaData::metaDataKeyToString
-                                    (static_cast<QMediaMetaData::Key>(key)));
-            if (key == QMediaMetaData::ThumbnailImage
-                    || key == QMediaMetaData::CoverArtImage)
-                m_metaDataFields[key] = new QLabel;
-            else
-                m_metaDataFields[key] = new QLineEdit;
-            m_metaDataLabels[key]->setDisabled(true);
-            m_metaDataFields[key]->setDisabled(true);
-            metaDataLayout->addWidget(m_metaDataLabels[key], i, j);
-            metaDataLayout->addWidget(m_metaDataFields[key], i, j+1);
-            key++;
-            if (key == QMediaMetaData::NumMetaData)
-                break;
-        }
-    }
-
-    // ### replace by a monitoring outputs once we have them
-//    m_videoProbe = new QVideoProbe(this);
-//    connect(m_videoProbe, &QVideoProbe::videoFrameProbed, m_videoHistogram, &HistogramWidget::processFrame);
-//    m_videoProbe->setSource(m_player);
-
-//    m_audioProbe = new QAudioProbe(this);
-//    connect(m_audioProbe, &QAudioProbe::audioBufferProbed, m_audioHistogram, &HistogramWidget::processBuffer);
-//    m_audioProbe->setSource(m_player);
+    // controls
+    QBoxLayout *controlLayout = new QHBoxLayout;
+    controlLayout->setContentsMargins(0, 0, 0, 0);
 
     QPushButton *openButton = new QPushButton(tr("Open"), this);
-
     connect(openButton, &QPushButton::clicked, this, &Player::open);
+    controlLayout->addWidget(openButton);
+    controlLayout->addStretch(1);
 
-    PlayerControls *controls = new PlayerControls(this);
+    PlayerControls *controls = new PlayerControls();
     controls->setState(m_player->playbackState());
     controls->setVolume(m_audioOutput->volume());
     controls->setMuted(controls->isMuted());
@@ -181,49 +145,74 @@ Player::Player(QWidget *parent)
     connect(m_audioOutput, &QAudioOutput::volumeChanged, controls, &PlayerControls::setVolume);
     connect(m_audioOutput, &QAudioOutput::mutedChanged, controls, &PlayerControls::setMuted);
 
+    controlLayout->addWidget(controls);
+    controlLayout->addStretch(1);
+
     m_fullScreenButton = new QPushButton(tr("FullScreen"), this);
     m_fullScreenButton->setCheckable(true);
-
+    controlLayout->addWidget(m_fullScreenButton);
 
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     m_audioOutputCombo = new QComboBox(this);
     m_audioOutputCombo->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDevice()));
     for (auto &deviceInfo: QMediaDevices::audioOutputs())
         m_audioOutputCombo->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
-    connect(m_audioOutputCombo, QOverload<int>::of(&QComboBox::activated), this, &Player::audioOutputChanged);
-#endif
-
-    QBoxLayout *displayLayout = new QHBoxLayout;
-    displayLayout->addWidget(m_videoWidget, 2);
-#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
-    displayLayout->addWidget(m_playlistView);
-#endif
-
-    QBoxLayout *controlLayout = new QHBoxLayout;
-    controlLayout->setContentsMargins(0, 0, 0, 0);
-    controlLayout->addWidget(openButton);
-    controlLayout->addStretch(1);
-    controlLayout->addWidget(controls);
-    controlLayout->addStretch(1);
-    controlLayout->addWidget(m_fullScreenButton);
-#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
+    connect(m_audioOutputCombo, QOverload<int>::of(&QComboBox::activated), this,
+            &Player::audioOutputChanged);
     controlLayout->addWidget(m_audioOutputCombo);
 #endif
 
-    QBoxLayout *layout = new QVBoxLayout;
-    layout->addLayout(displayLayout);
-    QHBoxLayout *hLayout = new QHBoxLayout;
-    hLayout->addWidget(m_slider);
-    hLayout->addWidget(m_labelDuration);
-    layout->addLayout(hLayout);
     layout->addLayout(controlLayout);
+
+    // tracks
+    QGridLayout *tracksLayout = new QGridLayout;
+
+    m_audioTracks = new QComboBox(this);
+    connect(m_audioTracks, &QComboBox::activated, this, &Player::selectAudioStream);
+    tracksLayout->addWidget(new QLabel(tr("Audio Tracks:")), 0, 0);
+    tracksLayout->addWidget(m_audioTracks, 0, 1);
+
+    m_videoTracks = new QComboBox(this);
+    connect(m_videoTracks, &QComboBox::activated, this, &Player::selectVideoStream);
+    tracksLayout->addWidget(new QLabel(tr("Video Tracks:")), 1, 0);
+    tracksLayout->addWidget(m_videoTracks, 1, 1);
+
+    m_subtitleTracks = new QComboBox(this);
+    connect(m_subtitleTracks, &QComboBox::activated, this, &Player::selectSubtitleStream);
+    tracksLayout->addWidget(new QLabel(tr("Subtitle Tracks:")), 2, 0);
+    tracksLayout->addWidget(m_subtitleTracks, 2, 1);
+
     layout->addLayout(tracksLayout);
+
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
-    layout->addLayout(histogramLayout);
+    // metadata
+
     QLabel *metaDataLabel = new QLabel(tr("Metadata for file:"));
     layout->addWidget(metaDataLabel);
+
+    QGridLayout *metaDataLayout = new QGridLayout;
+    int key = QMediaMetaData::Title;
+    for (int i = 0; i < (QMediaMetaData::NumMetaData + 2) / 3; i++) {
+        for (int j = 0; j < 6; j += 2) {
+            m_metaDataLabels[key] = new QLabel(
+                    QMediaMetaData::metaDataKeyToString(static_cast<QMediaMetaData::Key>(key)));
+            if (key == QMediaMetaData::ThumbnailImage || key == QMediaMetaData::CoverArtImage)
+                m_metaDataFields[key] = new QLabel;
+            else
+                m_metaDataFields[key] = new QLineEdit;
+            m_metaDataLabels[key]->setDisabled(true);
+            m_metaDataFields[key]->setDisabled(true);
+            metaDataLayout->addWidget(m_metaDataLabels[key], i, j);
+            metaDataLayout->addWidget(m_metaDataFields[key], i, j + 1);
+            key++;
+            if (key == QMediaMetaData::NumMetaData)
+                break;
+        }
+    }
+
     layout->addLayout(metaDataLayout);
 #endif
+
 #if defined(Q_OS_QNX)
     // On QNX, the main window doesn't have a title bar (or any other decorations).
     // Create a status bar for the status information instead.
@@ -242,16 +231,13 @@ Player::Player(QWidget *parent)
                                 "Please check the media service plugins are installed."));
 
         controls->setEnabled(false);
-        m_playlistView->setEnabled(false);
+        if (m_playlistView)
+            m_playlistView->setEnabled(false);
         openButton->setEnabled(false);
         m_fullScreenButton->setEnabled(false);
     }
 
     metaDataChanged();
-}
-
-Player::~Player()
-{
 }
 
 bool Player::isPlayerAvailable() const
@@ -288,7 +274,8 @@ void Player::addToPlaylist(const QList<QUrl> &urls)
     }
     if (m_playlist->mediaCount() > previousMediaCount) {
         auto index = m_playlistModel->index(previousMediaCount, 0);
-        m_playlistView->setCurrentIndex(index);
+        if (m_playlistView)
+            m_playlistView->setCurrentIndex(index);
         jump(index);
     }
 }
@@ -314,6 +301,7 @@ void Player::metaDataChanged()
             .arg(metaData.value(QMediaMetaData::AlbumArtist).toString())
             .arg(metaData.value(QMediaMetaData::Title).toString()));
 
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     for (int i = 0; i < QMediaMetaData::NumMetaData; i++) {
         if (QLineEdit* field = qobject_cast<QLineEdit*>(m_metaDataFields[i]))
             field->clear();
@@ -344,6 +332,7 @@ void Player::metaDataChanged()
         m_metaDataFields[i]->setDisabled(false);
         m_metaDataLabels[i]->setDisabled(false);
     }
+#endif
 }
 
 QString Player::trackName(const QMediaMetaData &metaData, int index)
@@ -411,8 +400,8 @@ void Player::jump(const QModelIndex &index)
 
 void Player::playlistPositionChanged(int currentItem)
 {
-    clearHistogram();
-    m_playlistView->setCurrentIndex(m_playlistModel->index(currentItem, 0));
+    if (m_playlistView)
+        m_playlistView->setCurrentIndex(m_playlistModel->index(currentItem, 0));
     m_player->setSource(m_playlist->currentMedia());
 }
 
@@ -449,12 +438,6 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
         displayErrorMessage();
         break;
     }
-}
-
-void Player::stateChanged(QMediaPlayer::PlaybackState state)
-{
-    if (state == QMediaPlayer::StoppedState)
-        clearHistogram();
 }
 
 void Player::handleCursor(QMediaPlayer::MediaStatus status)
@@ -567,10 +550,4 @@ void Player::audioOutputChanged(int index)
 {
     auto device = m_audioOutputCombo->itemData(index).value<QAudioDevice>();
     m_player->audioOutput()->setDevice(device);
-}
-
-void Player::clearHistogram()
-{
-    QMetaObject::invokeMethod(m_videoHistogram, "processFrame", Qt::QueuedConnection, Q_ARG(QVideoFrame, QVideoFrame()));
-    QMetaObject::invokeMethod(m_audioHistogram, "processBuffer", Qt::QueuedConnection, Q_ARG(QAudioBuffer, QAudioBuffer()));
 }

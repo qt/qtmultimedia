@@ -11,7 +11,6 @@ HEADERS = \
     playercontrols.h \
     playlistmodel.h \
     videowidget.h \
-    histogramwidget.h \
     qmediaplaylist.h \
     qmediaplaylist_p.h \
     qplaylistfileparser_p.h
@@ -21,7 +20,6 @@ SOURCES = main.cpp \
     playercontrols.cpp \
     playlistmodel.cpp \
     videowidget.cpp \
-    histogramwidget.cpp \
     qmediaplaylist.cpp \
     qplaylistfileparser.cpp
 
