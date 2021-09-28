@@ -19,7 +19,6 @@ find_package(Qt6 COMPONENTS Network)
 find_package(Qt6 COMPONENTS MultimediaWidgets)
 
 qt_add_executable(player
-    histogramwidget.cpp histogramwidget.h
     main.cpp
     player.cpp player.h
     playercontrols.cpp playercontrols.h
