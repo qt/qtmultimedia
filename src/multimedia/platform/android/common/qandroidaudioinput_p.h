@@ -37,49 +37,34 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDINTEGRATION_H
-#define QANDROIDINTEGRATION_H
+#ifndef QANDROIDAUDIOINPUT_H
+#define QANDROIDAUDIOINPUT_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include <QtCore/qobject.h>
 
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <private/qplatformaudioinput_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaDevices;
-
-class QAndroidIntegration : public QPlatformMediaIntegration
+class Q_MULTIMEDIA_EXPORT QAndroidAudioInput : public QObject, public QPlatformAudioInput
 {
+    Q_OBJECT
+
 public:
-    QAndroidIntegration();
-    ~QAndroidIntegration();
+    explicit QAndroidAudioInput(QAudioInput *parent);
+    ~QAndroidAudioInput();
 
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    void setMuted(bool muted) override;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *recorder) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *imageCapture) override;
+    bool isMuted() const;
 
-    QPlatformAudioOutput *createAudioOutput(QAudioOutput *q) override;
-    QPlatformAudioInput *createAudioInput(QAudioInput *audioInput) override;
+Q_SIGNALS:
+    void mutedChanged(bool muted);
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *) override;
+private:
+    bool m_muted = false;
 
-    QAndroidMediaDevices *m_devices = nullptr;
-    QPlatformMediaFormatInfo  *m_formatInfo = nullptr;
 };
 
 QT_END_NAMESPACE

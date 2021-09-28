@@ -138,6 +138,17 @@ public class QtAudioDeviceManager
         return false;
     }
 
+    private static void setInputMuted(boolean mute)
+    {
+        // This method mutes the microphone across the entire platform
+        m_audioManager.setMicrophoneMute(mute);
+    }
+
+    private static boolean isMicrophoneMute()
+    {
+        return m_audioManager.isMicrophoneMute();
+    }
+
     private static String audioDeviceTypeToString(int type)
     {
         switch (type)

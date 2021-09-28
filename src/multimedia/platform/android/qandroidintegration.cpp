@@ -53,6 +53,7 @@
 #include "private/qandroidformatsinfo_p.h"
 #include "private/qandroidmediaplayer_p.h"
 #include "private/qandroidaudiooutput_p.h"
+#include "private/qandroidaudioinput_p.h"
 #include "private/qandroidvideosink_p.h"
 #include "private/qandroidaudiodecoder_p.h"
 
@@ -119,6 +120,11 @@ QPlatformImageCapture *QAndroidIntegration::createImageCapture(QImageCapture *im
 QPlatformAudioOutput *QAndroidIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QAndroidAudioOutput(q);
+}
+
+QPlatformAudioInput *QAndroidIntegration::createAudioInput(QAudioInput *audioInput)
+{
+    return new QAndroidAudioInput(audioInput);
 }
 
 QPlatformVideoSink *QAndroidIntegration::createVideoSink(QVideoSink *sink)
