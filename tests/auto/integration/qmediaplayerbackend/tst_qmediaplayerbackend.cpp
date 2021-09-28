@@ -1169,6 +1169,9 @@ void tst_QMediaPlayerBackend::position()
     TestVideoSink surface(true);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
+#ifdef Q_OS_ANDROID
+    QEXPECT_FAIL("", "On Android isSeekable() is always set to true due to QTBUG-96952", Continue);
+#endif
     QVERIFY(!player.isSeekable());
     player.setSource(localVideoFile);
     QTRY_VERIFY(player.isSeekable());
