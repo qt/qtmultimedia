@@ -169,7 +169,8 @@ private:
     QAndroidVideoOutput *m_videoOutput;
 
     bool m_active = false;
-    int m_savedState = -1;
+    bool m_isStateSaved = false;
+    bool m_savedState = false;
     bool m_previewStarted;
 
     bool m_rotationEnabled = false;

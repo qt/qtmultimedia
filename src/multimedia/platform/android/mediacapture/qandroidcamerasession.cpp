@@ -108,15 +108,17 @@ void QAndroidCameraSession::setActive(bool active)
     if (m_active == active)
         return;
 
-    m_active = active;
-
     // If the application is inactive, the camera shouldn't be started. Save the desired state
     // instead and it will be set when the application becomes active.
-    if (qApp->applicationState() == Qt::ApplicationActive)
-        setActiveHelper(active);
-    else
+    if (active && qApp->applicationState() == Qt::ApplicationInactive) {
+        m_isStateSaved = true;
         m_savedState = active;
+        return;
+    }
 
+    m_isStateSaved = false;
+    m_active = active;
+    setActiveHelper(m_active);
     emit activeChanged(m_active);
 }
 
@@ -753,14 +755,14 @@ void QAndroidCameraSession::onApplicationStateChanged(Qt::ApplicationState state
     case Qt::ApplicationInactive:
         if (!m_keepActive && m_active) {
             m_savedState = m_active;
-            close();
             setActive(false);
+            m_isStateSaved = true;
         }
         break;
     case Qt::ApplicationActive:
-        if (m_savedState != -1) {
-            setActiveHelper(m_savedState);
-            m_savedState = -1;
+        if (m_isStateSaved) {
+            setActive(m_savedState);
+            m_isStateSaved = false;
         }
         break;
     default:
