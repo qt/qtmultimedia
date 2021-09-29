@@ -101,11 +101,11 @@ void tst_QMediaCaptureSession::recordOk(QMediaCaptureSession &session)
     QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
 
     recorder.record();
-    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 1000);
+    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 2000);
     QVERIFY(durationChanged.wait(1000));
     recorder.stop();
 
-    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 1000);
+    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 2000);
     QVERIFY(recorderErrorSignal.isEmpty());
 
     QString fileName = recorder.actualLocation().toLocalFile();
@@ -655,9 +655,12 @@ void tst_QMediaCaptureSession::capture_is_not_available_when_Camera_is_null()
     QVERIFY(capture.capture() >= 0);
     QTRY_COMPARE(capturedSignal.count(), 1);
 
+    QVERIFY(capture.isReadyForCapture());
+    int readyCount = readyForCaptureChanged.count();
+
     session.setCamera(nullptr);
 
-    QTRY_COMPARE(readyForCaptureChanged.count(), 2);
+    QTRY_COMPARE(readyForCaptureChanged.count(), readyCount + 1);
     QVERIFY(!capture.isReadyForCapture());
     QVERIFY(!capture.isAvailable());
     QVERIFY(capture.capture() < 0);
@@ -700,7 +703,7 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
     QTRY_COMPARE(capturedSignal.count(), 1);
 
     session.setImageCapture(nullptr);
-    QTRY_COMPARE(readyForCaptureChanged.count(), 2);
+    QVERIFY(readyForCaptureChanged.count() >= 2);
     QVERIFY(!capture.isReadyForCapture());
 
     recorder.stop();
