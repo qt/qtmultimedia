@@ -209,6 +209,7 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
     if (m_session == captureSession)
         return;
 
+    bool readyForCapture = isReadyForCapture();
     if (m_session) {
         disconnect(m_session, nullptr, this, nullptr);
         m_lastId = 0;
@@ -218,8 +219,11 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
     }
 
     m_session = captureSession;
-    if (!m_session)
+    if (!m_session) {
+        if (readyForCapture)
+            emit readyForCaptureChanged(false);
         return;
+    }
 
     connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QGstreamerImageCapture::onCameraChanged);
     onCameraChanged();
@@ -240,8 +244,9 @@ void QGstreamerImageCapture::onCameraChanged()
     if (m_session->camera()) {
         cameraActiveChanged(m_session->camera()->isActive());
         connect(m_session->camera(), &QPlatformCamera::activeChanged, this, &QGstreamerImageCapture::cameraActiveChanged);
+    } else {
+        cameraActiveChanged(false);
     }
-
 }
 
 gboolean QGstreamerImageCapture::saveImageFilter(GstElement *element,
