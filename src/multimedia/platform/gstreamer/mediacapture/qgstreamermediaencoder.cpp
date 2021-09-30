@@ -89,9 +89,9 @@ void QGstreamerMediaEncoder::handleSessionError(QMediaRecorder::Error code, cons
 
 bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
 {
-    GstMessage *gm = message.rawMessage();
-    if (!gm)
+    if (message.isNull())
         return false;
+    auto msg = message;
 
 //    qCDebug(qLcMediaEncoder) << "received event from" << message.source().name() << Qt::hex << message.type();
 //    if (message.type() == GST_MESSAGE_STATE_CHANGED) {
@@ -101,45 +101,40 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
 //        gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
 //        qCDebug(qLcMediaEncoder) << "received state change from" << message.source().name() << oldState << newState << pending;
 //    }
-    if (message.type() == GST_MESSAGE_ELEMENT) {
-        QGstStructure s = gst_message_get_structure(gm);
-        qCDebug(qLcMediaEncoder) << "received element message from" << message.source().name() << s.name();
+    if (msg.type() == GST_MESSAGE_ELEMENT) {
+        QGstStructure s = msg.structure();
+        qCDebug(qLcMediaEncoder) << "received element message from" << msg.source().name() << s.name();
         if (s.name() == "GstBinForwarded")
-            gm = s.getMessage();
-        if (!gm)
+            msg = QGstreamerMessage(s);
+        if (msg.isNull())
             return false;
     }
 
-    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_EOS) {
-        qCDebug(qLcMediaEncoder) << "received EOS from" << QGstObject(GST_MESSAGE_SRC(gm)).name();
+    if (msg.type() == GST_MESSAGE_EOS) {
+        qCDebug(qLcMediaEncoder) << "received EOS from" << msg.source().name();
         finalize();
         return false;
     }
 
-    if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ERROR) {
+    if (msg.type() == GST_MESSAGE_ERROR) {
         GError *err;
         gchar *debug;
-        gst_message_parse_error(gm, &err, &debug);
+        gst_message_parse_error(msg.rawMessage(), &err, &debug);
         error(QMediaRecorder::ResourceError, QString::fromUtf8(err->message));
         g_error_free(err);
         g_free(debug);
         finalize();
     }
 
-    if (GST_MESSAGE_SRC(gm) == gstEncoder.object()) {
-        switch (GST_MESSAGE_TYPE(gm))  {
-        case GST_MESSAGE_STATE_CHANGED: {
+    if (msg.source() == gstEncoder) {
+        if (msg.type() == GST_MESSAGE_STATE_CHANGED) {
             GstState    oldState;
             GstState    newState;
             GstState    pending;
-            gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
+            gst_message_parse_state_changed(msg.rawMessage(), &oldState, &newState, &pending);
 
             if (newState == GST_STATE_PAUSED && !m_metaData.isEmpty())
                 setMetaData(m_metaData);
-            break;
-        }
-        default:
-            break;
         }
     }
     return false;

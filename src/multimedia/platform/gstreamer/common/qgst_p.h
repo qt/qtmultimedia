@@ -179,13 +179,6 @@ public:
 
     QGValue operator[](const char *name) const { return gst_structure_get_value(structure, name); }
 
-    GstMessage *getMessage() const
-    {
-        GstMessage *msg;
-        gst_structure_get(structure, "message", GST_TYPE_MESSAGE, &msg, nullptr);
-        return msg;
-    }
-
     Q_MULTIMEDIA_EXPORT QSize resolution() const;
     Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat pixelFormat() const;
     Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
@@ -290,7 +283,7 @@ public:
     enum RefMode { HasRef, NeedsRef };
 
     QGstObject() = default;
-    QGstObject(GstObject *o, RefMode mode = HasRef)
+    explicit QGstObject(GstObject *o, RefMode mode = HasRef)
         : m_object(o)
     {
         if (o && mode == NeedsRef)
@@ -345,7 +338,7 @@ public:
     qint64 getInt64(const char *property) const { gint64 i = 0; g_object_get(m_object, property, &i, nullptr); return i; }
     float getFloat(const char *property) const { gfloat d = 0; g_object_get(m_object, property, &d, nullptr); return d; }
     double getDouble(const char *property) const { gdouble d = 0; g_object_get(m_object, property, &d, nullptr); return d; }
-    QGstObject getObject(const char *property) const { GstObject *o = nullptr; g_object_get(m_object, property, &o, nullptr); return o; }
+    QGstObject getObject(const char *property) const { GstObject *o = nullptr; g_object_get(m_object, property, &o, nullptr); return QGstObject(o, HasRef); }
 
     void connect(const char *name, GCallback callback, gpointer userData) { g_signal_connect(m_object, name, callback, userData); }
 

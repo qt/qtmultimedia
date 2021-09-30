@@ -63,13 +63,16 @@ class Q_MULTIMEDIA_EXPORT QGstreamerMessage
 {
 public:
     QGstreamerMessage() = default;
-    QGstreamerMessage(GstMessage* message);
     QGstreamerMessage(QGstreamerMessage const& m);
+    explicit QGstreamerMessage(GstMessage* message);
+    explicit QGstreamerMessage(const QGstStructure &structure);
+
     ~QGstreamerMessage();
 
     bool isNull() const { return !m_message; }
     GstMessageType type() const { return GST_MESSAGE_TYPE(m_message); }
     QGstObject source() const { return QGstObject(GST_MESSAGE_SRC(m_message), QGstObject::NeedsRef); }
+    QGstStructure structure() const { return QGstStructure(gst_message_get_structure(m_message)); }
 
     GstMessage* rawMessage() const;
 

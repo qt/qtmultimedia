@@ -60,6 +60,10 @@ QGstreamerMessage::QGstreamerMessage(QGstreamerMessage const& m):
     gst_message_ref(m_message);
 }
 
+QGstreamerMessage::QGstreamerMessage(const QGstStructure &structure)
+{
+    gst_structure_get(structure.structure, "message", GST_TYPE_MESSAGE, &m_message, nullptr);
+}
 
 QGstreamerMessage::~QGstreamerMessage()
 {
