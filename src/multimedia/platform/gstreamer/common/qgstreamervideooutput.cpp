@@ -95,8 +95,8 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 
     gstPipeline.beginConfig();
     if (!videoSink.isNull()) {
-        videoSink.setStateSync(GST_STATE_NULL);
         gstVideoOutput.remove(videoSink);
+        videoSink.setStateSync(GST_STATE_NULL);
     }
     videoSink = gstSink;
     gstVideoOutput.add(videoSink);
@@ -104,7 +104,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     videoConvert.link(videoSink);
     GstEvent *event = gst_event_new_reconfigure();
     gst_element_send_event(videoSink.element(), event);
-    videoSink.setState(GST_STATE_PAUSED);
+    videoSink.syncStateWithParent();
 
     doLinkSubtitleStream();
 
@@ -141,8 +141,8 @@ void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
 void QGstreamerVideoOutput::doLinkSubtitleStream()
 {
     if (!subtitleSink.isNull()) {
-        subtitleSink.setStateSync(GST_STATE_NULL);
         gstPipeline.remove(subtitleSink);
+        subtitleSink.setStateSync(GST_STATE_NULL);
         subtitleSink = {};
     }
     if (!m_videoSink || subtitleSrc.isNull())

@@ -12,3 +12,9 @@ qt_internal_add_test(tst_qmediacapturesession
         Qt::MultimediaPrivate
         Qt::MultimediaWidgets
 )
+
+if(QT_FEATURE_gstreamer)
+    set_tests_properties(tst_qmediacapturesession
+        PROPERTIES ENVIRONMENT "G_DEBUG=fatal_criticals"
+    )
+endif()
