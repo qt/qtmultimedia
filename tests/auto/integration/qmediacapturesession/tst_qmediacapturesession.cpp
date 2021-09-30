@@ -63,6 +63,8 @@ class tst_QMediaCaptureSession: public QObject
     Q_OBJECT
 
 private slots:
+    void stress_test_setup_and_teardown();
+
     void can_add_and_remove_AudioInput_with_and_without_AudioOutput_attached();
     void can_change_AudioDevices_on_attached_AudioInput();
     void can_change_AudioInput_during_recording();
@@ -130,6 +132,27 @@ void tst_QMediaCaptureSession::recordFail(QMediaCaptureSession &session)
 
     QTRY_VERIFY_WITH_TIMEOUT(recorderErrorSignal.count() == 1, 1000);
     QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 1000);
+}
+
+void tst_QMediaCaptureSession::stress_test_setup_and_teardown()
+{
+    for (int i = 0; i < 50; i++) {
+        QMediaCaptureSession session;
+        QMediaRecorder recorder;
+        QCamera camera;
+        QAudioInput input;
+        QAudioOutput output;
+        QVideoWidget video;
+
+        session.setAudioInput(&input);
+        session.setAudioOutput(&output);
+        session.setRecorder(&recorder);
+        session.setCamera(&camera);
+        session.setVideoOutput(&video);
+
+        QRandomGenerator rng;
+        QTest::qWait(rng.bounded(200));
+    }
 }
 
 void tst_QMediaCaptureSession::can_add_and_remove_AudioInput_with_and_without_AudioOutput_attached()
