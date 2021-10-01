@@ -189,7 +189,7 @@ void QGstreamerVideoSink::updateGstContexts()
     const QString platform = QGuiApplication::platformName();
     QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
     m_eglDisplay = pni->nativeResourceForIntegration("egldisplay");
-    qDebug() << "platform is" << platform << m_eglDisplay;
+//    qDebug() << "platform is" << platform << m_eglDisplay;
 
     GstGLDisplay *gstGlDisplay = nullptr;
     const char *contextName = "eglcontext";

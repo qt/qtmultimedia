@@ -103,7 +103,6 @@ private:
     friend QGstreamerMediaEncoder;
     // Gst elements
     QGstPipeline gstPipeline;
-    QTimer heartbeat;
 
     QGstreamerAudioInput *gstAudioInput = nullptr;
     QGstreamerCamera *gstCamera = nullptr;
