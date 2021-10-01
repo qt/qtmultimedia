@@ -92,38 +92,6 @@ QGstreamerMediaCapture::QGstreamerMediaCapture()
     // will be always in the playing state.
     gstPipeline.setState(GST_STATE_PLAYING);
 
-    // TODO: remove this debug before final commit
-    // Four basic elements of the capture session showing the current position and state
-    // All presented position should show similar progress.
-    heartbeat.setInterval(1000);
-    heartbeat.start();
-    QObject::connect(&heartbeat, &QTimer::timeout, [this]() {
-        if (!gstPipeline.isNull()) {
-            gint64 current = -1;
-            gst_element_query_position(gstPipeline.element(),GST_FORMAT_TIME, &current);
-            qDebug() << "Pipeline  " <<  current / 1000000 << gstPipeline.state();
-//            auto name = QString::number(current).toLocal8Bit().data();
-//            gstPipeline.dumpGraph(name);
-        }
-        if (gstAudioInput && !gstAudioInput->gstElement().isNull()) {
-            gint64 current = -1;
-            auto element = gstAudioInput->gstElement().element();
-            gst_element_query_position(element,GST_FORMAT_TIME, &current);
-            qDebug() << "Audio     " <<  current / 1000000 << gstAudioInput->gstElement().state();
-        }
-        if (gstCamera && !gstCamera->gstElement().isNull()) {
-            gint64 current = -1;
-            gst_element_query_position(gstCamera->gstElement().element(),GST_FORMAT_TIME, &current);
-            qDebug() << "Camera    " <<  current / 1000000 << gstCamera->gstElement().state();
-        }
-        auto encoder = !m_mediaEncoder ? QGstElement{} : m_mediaEncoder->getEncoder();
-        if (!encoder.isNull()) {
-            gint64 current = -1;
-            gst_element_query_position(encoder.element(),GST_FORMAT_TIME, &current);
-            qDebug() << "Encoder   " <<  current / 1000000 << encoder.state();
-        }
-    });
-
     gstPipeline.dumpGraph("initial");
 }
 
