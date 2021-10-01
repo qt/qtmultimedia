@@ -182,7 +182,12 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
         m_mediaRecorder->setVideoEncodingBitRate(settings.videoBitRate());
         m_mediaRecorder->setVideoEncoder(m_videoEncoder);
 
-        m_mediaRecorder->setOrientationHint(m_cameraSession->currentCameraRotation());
+        // media recorder is also compensanting the mirror on front camera
+        auto rotation = m_cameraSession->currentCameraRotation();
+        if (m_cameraSession->camera()->getFacing() == AndroidCamera::CameraFacingFront)
+            rotation = (360 - rotation) % 360; // remove mirror compensation
+
+        m_mediaRecorder->setOrientationHint(rotation);
     }
 
     // Set audio encoder settings
