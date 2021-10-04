@@ -115,7 +115,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
     if (!m_session) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "errorOccurred", Qt::QueuedConnection,
+        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                   Q_ARG(int, -1),
                                   Q_ARG(int, QImageCapture::ResourceError),
                                   Q_ARG(QString, QPlatformImageCapture::msgImageCaptureNotSet()));
@@ -126,7 +126,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
     if (!m_session->camera()) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "errorOccurred", Qt::QueuedConnection,
+        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                   Q_ARG(int, -1),
                                   Q_ARG(int, QImageCapture::ResourceError),
                                   Q_ARG(QString,tr("No camera available.")));
@@ -137,7 +137,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
     if (passImage) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "errorOccurred", Qt::QueuedConnection,
+        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                   Q_ARG(int, -1),
                                   Q_ARG(int, QImageCapture::NotReadyError),
                                   Q_ARG(QString, QPlatformImageCapture::msgCameraNotReady()));
