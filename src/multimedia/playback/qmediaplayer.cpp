@@ -95,7 +95,6 @@ QT_BEGIN_NAMESPACE
             audioOutput: AudioOutput {}
         }
         MouseArea {
-            id: playArea
             anchors.fill: parent
             onPressed:  { playMusic.play() }
         }
@@ -115,11 +114,11 @@ QT_BEGIN_NAMESPACE
         }
 
         VideoOutput {
+            id: videoOutput
             anchors.fill: parent
         }
 
         MouseArea {
-            id: playArea
             anchors.fill: parent
             onPressed: mediaplayer.play();
         }
