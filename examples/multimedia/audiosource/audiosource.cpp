@@ -88,7 +88,6 @@ qint64 AudioInfo::writeData(const char *data, qint64 len)
 {
     const int channelBytes = m_format.bytesPerSample();
     const int sampleBytes = m_format.bytesPerFrame();
-    Q_ASSERT(len % sampleBytes == 0);
     const int numSamples = len / sampleBytes;
 
     float maxValue = 0;
