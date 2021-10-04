@@ -129,17 +129,6 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
         finalize();
     }
 
-    if (msg.source() == gstEncoder) {
-        if (msg.type() == GST_MESSAGE_STATE_CHANGED) {
-            GstState    oldState;
-            GstState    newState;
-            GstState    pending;
-            gst_message_parse_state_changed(msg.rawMessage(), &oldState, &newState, &pending);
-
-            if (newState == GST_STATE_PAUSED && !m_metaData.isEmpty())
-                setMetaData(m_metaData);
-        }
-    }
     return false;
 }
 
@@ -350,6 +339,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     signalDurationChangedTimer.start();
     gstPipeline.dumpGraph("recording");
 
+    durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);
     actualLocationChanged(QUrl::fromLocalFile(location));
 }

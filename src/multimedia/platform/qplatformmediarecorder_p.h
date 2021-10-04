@@ -176,6 +176,7 @@ private:
     QString m_errorString;
     QUrl m_actualLocation;
     QUrl m_outputLocation;
+    qint64 m_duration = 0;
 
     QMediaRecorder::RecorderState m_state = QMediaRecorder::StoppedState;
 };

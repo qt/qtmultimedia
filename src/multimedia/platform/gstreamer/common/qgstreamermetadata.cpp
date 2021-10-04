@@ -264,6 +264,7 @@ void QGstreamerMetaData::setMetaData(GstElement *element) const
                     tagValue.toDouble(),
                     nullptr);
                 break;
+            case QMetaType::QDate:
             case QMetaType::QDateTime: {
                 QDateTime date = tagValue.toDateTime();
                 gst_tag_setter_add_tags(GST_TAG_SETTER(element),
@@ -275,17 +276,18 @@ void QGstreamerMetaData::setMetaData(GstElement *element) const
                     nullptr);
                 break;
             }
-            case QMetaType::QLocale: {
-                QString language = QLocale::languageToCode(tagValue.value<QLocale::Language>());
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                                        GST_TAG_MERGE_REPLACE,
-                                        tagName,
-                                        language.toUtf8().constData(),
-                                        nullptr);
-            }
+            default: {
+                if (tagValue.typeId() == qMetaTypeId<QLocale::Language>()) {
+                    QString language = QLocale::languageToCode(tagValue.value<QLocale::Language>());
+                    gst_tag_setter_add_tags(GST_TAG_SETTER(element),
+                                            GST_TAG_MERGE_REPLACE,
+                                            tagName,
+                                            language.toUtf8().constData(),
+                                            nullptr);
+                }
 
-            default:
                 break;
+            }
         }
     }
 }

@@ -638,9 +638,10 @@ void tst_QCameraBackend::testNativeMetadata()
     QTRY_VERIFY(camera.isActive());
 
     // Insert common metadata supported on all platforms
+    // Don't use Date, as some backends set that on their own
     QMediaMetaData metaData;
     metaData.insert(QMediaMetaData::Title, QString::fromUtf8("Title"));
-    metaData.insert(QMediaMetaData::Date, QDate::currentDate());
+    metaData.insert(QMediaMetaData::Language, QVariant::fromValue(QLocale::German));
     metaData.insert(QMediaMetaData::Description, QString::fromUtf8("Description"));
 
     recorder.setMetaData(metaData);
@@ -676,7 +677,9 @@ void tst_QCameraBackend::testNativeMetadata()
     QTRY_VERIFY(metadataChangedSpy.count() > 0);
 
     QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), metaData.value(QMediaMetaData::Title).toString());
-    QCOMPARE(player.metaData().value(QMediaMetaData::Date).toDateTime(), metaData.value(QMediaMetaData::Date).toDateTime());
+    auto lang = player.metaData().value(QMediaMetaData::Language).value<QLocale::Language>();
+    if (lang != QLocale::AnyLanguage)
+        QCOMPARE(lang, metaData.value(QMediaMetaData::Language).value<QLocale::Language>());
     QCOMPARE(player.metaData().value(QMediaMetaData::Description).toString(), metaData.value(QMediaMetaData::Description).toString());
 
     metadataChangedSpy.clear();

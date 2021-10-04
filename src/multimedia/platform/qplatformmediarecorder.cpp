@@ -154,6 +154,9 @@ void QPlatformMediaRecorder::stateChanged(QMediaRecorder::RecorderState state)
 */
 void QPlatformMediaRecorder::durationChanged(qint64 duration)
 {
+    if (m_duration == duration)
+        return;
+    m_duration = duration;
     emit q->durationChanged(duration);
 }
 
