@@ -150,21 +150,37 @@ void tst_QCameraBackend::testCameraDevice()
 
 void tst_QCameraBackend::testCtorWithCameraDevice()
 {
-    {
-        // loading an invalid CameraDevice should fail
-        QCamera camera(QCameraDevice{});
+    if (noCamera) {
+        // only verify that we get an error trying to create a camera
+        QCamera camera;
         QCOMPARE(camera.error(), QCamera::CameraError);
         QVERIFY(camera.cameraDevice().isNull());
+
+        QSKIP("No camera available");
     }
 
-    if (noCamera)
-        QSKIP("No camera available");
+    QCameraDevice defaultCamera = QMediaDevices::defaultVideoInput();
 
     {
-        QCameraDevice info = QMediaDevices::defaultVideoInput();
-        QCamera camera(info);
+        // should use default camera
+        QCamera camera;
         QCOMPARE(camera.error(), QCamera::NoError);
-        QCOMPARE(camera.cameraDevice(), info);
+        QVERIFY(!camera.cameraDevice().isNull());
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
+    }
+
+    {
+        // should use default camera
+        QCamera camera(QCameraDevice{});
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QVERIFY(!camera.cameraDevice().isNull());
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
+    }
+
+    {
+        QCamera camera(defaultCamera);
+        QCOMPARE(camera.error(), QCamera::NoError);
+        QCOMPARE(camera.cameraDevice(), defaultCamera);
     }
     {
         QCameraDevice info = QMediaDevices::videoInputs().first();
