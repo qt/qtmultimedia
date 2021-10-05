@@ -299,50 +299,50 @@ QIODevice *QDarwinAudioSink::start()
 
 void QDarwinAudioSink::stop()
 {
-    QMutexLocker lock(&m_mutex);
-    if (m_stateCode != QAudio::StoppedState) {
-        audioThreadDrain();
+    if (m_stateCode == QAudio::StoppedState)
+        return;
 
-        m_stateCode = QAudio::StoppedState;
-        m_errorCode = QAudio::NoError;
-        emit stateChanged(m_stateCode);
-    }
+    audioThreadDrain();
+
+    m_stateCode = QAudio::StoppedState;
+    m_errorCode = QAudio::NoError;
+    emit stateChanged(m_stateCode);
 }
 
 void QDarwinAudioSink::reset()
 {
-    QMutexLocker lock(&m_mutex);
-    if (m_stateCode != QAudio::StoppedState) {
-        audioThreadStop();
+    if (m_stateCode == QAudio::StoppedState)
+        return;
 
-        m_stateCode = QAudio::StoppedState;
-        m_errorCode = QAudio::NoError;
-        emit stateChanged(m_stateCode);
-    }
+    audioThreadStop();
+
+    m_stateCode = QAudio::StoppedState;
+    m_errorCode = QAudio::NoError;
+    emit stateChanged(m_stateCode);
 }
 
 void QDarwinAudioSink::suspend()
 {
-    QMutexLocker lock(&m_mutex);
-    if (m_stateCode == QAudio::ActiveState || m_stateCode == QAudio::IdleState) {
-        audioThreadStop();
+    if (m_stateCode != QAudio::ActiveState && m_stateCode != QAudio::IdleState)
+        return;
 
-        m_stateCode = QAudio::SuspendedState;
-        m_errorCode = QAudio::NoError;
-        emit stateChanged(m_stateCode);
-    }
+    audioThreadStop();
+
+    m_stateCode = QAudio::SuspendedState;
+    m_errorCode = QAudio::NoError;
+    emit stateChanged(m_stateCode);
 }
 
 void QDarwinAudioSink::resume()
 {
-    QMutexLocker lock(&m_mutex);
-    if (m_stateCode == QAudio::SuspendedState) {
-        audioThreadStart();
+    if (m_stateCode != QAudio::SuspendedState)
+        return;
 
-        m_stateCode = m_pullMode ? QAudio::ActiveState : QAudio::IdleState;
-        m_errorCode = QAudio::NoError;
-        emit stateChanged(m_stateCode);
-    }
+    audioThreadStart();
+
+    m_stateCode = m_pullMode ? QAudio::ActiveState : QAudio::IdleState;
+    m_errorCode = QAudio::NoError;
+    emit stateChanged(m_stateCode);
 }
 
 qsizetype QDarwinAudioSink::bytesFree() const
@@ -417,15 +417,15 @@ void QDarwinAudioSink::deviceStopped()
 
 void QDarwinAudioSink::inputReady()
 {
-    QMutexLocker lock(&m_mutex);
-    if (m_stateCode == QAudio::IdleState) {
-        audioThreadStart();
+    if (m_stateCode != QAudio::IdleState)
+        return;
 
-        m_stateCode = QAudio::ActiveState;
-        m_errorCode = QAudio::NoError;
+    audioThreadStart();
 
-        emit stateChanged(m_stateCode);
-    }
+    m_stateCode = QAudio::ActiveState;
+    m_errorCode = QAudio::NoError;
+
+    emit stateChanged(m_stateCode);
 }
 
 OSStatus QDarwinAudioSink::renderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
@@ -626,6 +626,7 @@ void QDarwinAudioSink::close()
 
 void QDarwinAudioSink::audioThreadStart()
 {
+    QMutexLocker lock(&m_mutex);
     startTimers();
     m_audioThreadState.storeRelaxed(Running);
     AudioOutputUnitStart(m_audioUnit);
@@ -633,6 +634,7 @@ void QDarwinAudioSink::audioThreadStart()
 
 void QDarwinAudioSink::audioThreadStop()
 {
+    QMutexLocker lock(&m_mutex);
     stopTimers();
     if (m_audioThreadState.testAndSetAcquire(Running, Stopped))
         m_threadFinished.wait(&m_mutex, 500);
@@ -640,6 +642,7 @@ void QDarwinAudioSink::audioThreadStop()
 
 void QDarwinAudioSink::audioThreadDrain()
 {
+    QMutexLocker lock(&m_mutex);
     stopTimers();
     if (m_audioThreadState.testAndSetAcquire(Running, Draining))
         m_threadFinished.wait(&m_mutex, 500);
@@ -654,26 +657,26 @@ void QDarwinAudioSink::audioDeviceStop()
 
 void QDarwinAudioSink::audioDeviceIdle()
 {
-    if (m_stateCode == QAudio::ActiveState) {
-        QMutexLocker lock(&m_mutex);
-        audioDeviceStop();
+    if (m_stateCode != QAudio::ActiveState)
+        return;
 
-        m_errorCode = QAudio::UnderrunError;
-        m_stateCode = QAudio::IdleState;
-        QMetaObject::invokeMethod(this, "deviceStopped", Qt::QueuedConnection);
-    }
+    audioDeviceStop();
+
+    m_errorCode = QAudio::UnderrunError;
+    m_stateCode = QAudio::IdleState;
+    QMetaObject::invokeMethod(this, "deviceStopped", Qt::QueuedConnection);
 }
 
 void QDarwinAudioSink::audioDeviceError()
 {
-    if (m_stateCode == QAudio::ActiveState) {
-        QMutexLocker lock(&m_mutex);
-        audioDeviceStop();
+    if (m_stateCode != QAudio::ActiveState)
+        return;
 
-        m_errorCode = QAudio::IOError;
-        m_stateCode = QAudio::StoppedState;
-        QMetaObject::invokeMethod(this, "deviceStopped", Qt::QueuedConnection);
-    }
+    audioDeviceStop();
+
+    m_errorCode = QAudio::IOError;
+    m_stateCode = QAudio::StoppedState;
+    QMetaObject::invokeMethod(this, "deviceStopped", Qt::QueuedConnection);
 }
 
 void QDarwinAudioSink::startTimers()
