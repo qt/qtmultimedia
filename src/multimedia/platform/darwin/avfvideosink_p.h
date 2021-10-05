@@ -105,7 +105,7 @@ public:
 
     void updateLayerBounds();
     void nativeSizeChanged() { updateLayerBounds(); }
-    QSize nativeSize() const { return m_sink->nativeSize(); }
+    QSize nativeSize() const { return m_sink ? m_sink->nativeSize() : QSize(); }
 
     CVMetalTextureCacheRef cvMetalTextureCache = nullptr;
 #if defined(Q_OS_MACOS)

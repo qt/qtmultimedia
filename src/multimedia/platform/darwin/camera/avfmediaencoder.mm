@@ -305,6 +305,12 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
             dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
         }
 
+        if (w < 0 || h < 0) {
+            w = dim.width;
+            h = dim.height;
+        }
+
+
         if (w > 0 && h > 0) {
             // Make sure the recording resolution has the same aspect ratio as the device's
             // current resolution
@@ -403,6 +409,8 @@ NSDictionary *avfVideoSettings(QMediaEncoderSettings &encoderSettings, AVCapture
 
 void AVFMediaEncoder::applySettings(QMediaEncoderSettings &settings)
 {
+    unapplySettings();
+
     AVFCameraSession *session = m_service->session();
 
     // audio settings
@@ -601,20 +609,22 @@ void AVFMediaEncoder::assetWriterStarted()
 
 void AVFMediaEncoder::assetWriterFinished()
 {
-    Q_ASSERT(m_service && m_service->session());
-    AVFCameraSession *session = m_service->session();
 
     const QMediaRecorder::RecorderState lastState = m_state;
 
     unapplySettings();
 
-    if (session->videoOutput()) {
-        session->videoOutput()->resetCaptureDelegate();
+    if (m_service) {
+        AVFCameraSession *session = m_service->session();
+
+        if (session->videoOutput()) {
+            session->videoOutput()->resetCaptureDelegate();
+        }
+        if (session->audioPreviewDelegate()) {
+            [session->audioPreviewDelegate() resetAudioPreviewDelegate];
+        }
+        [session->captureSession() startRunning];
     }
-    if (session->audioPreviewDelegate()) {
-        [session->audioPreviewDelegate() resetAudioPreviewDelegate];
-    }
-    [session->captureSession() startRunning];
 
     m_state = QMediaRecorder::StoppedState;
     if (m_state != lastState)
