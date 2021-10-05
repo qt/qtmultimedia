@@ -96,14 +96,14 @@ int AVFImageCapture::doCapture(const QString &actualFileName)
                                 Q_ARG(int, m_lastCaptureId),
                                 Q_ARG(int, QImageCapture::ResourceError),
                                 Q_ARG(QString, QPlatformImageCapture::msgImageCaptureNotSet()));
-        return m_lastCaptureId;
+        return -1;
     }
     if (!isReadyForCapture()) {
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                   Q_ARG(int, m_lastCaptureId),
                                   Q_ARG(int, QImageCapture::NotReadyError),
                                   Q_ARG(QString, QPlatformImageCapture::msgCameraNotReady()));
-        return m_lastCaptureId;
+        return -1;
     }
     m_lastCaptureId++;
 
@@ -225,13 +225,16 @@ void AVFImageCapture::onNewViewfinderFrame(const QVideoFrame &frame)
 
 void AVFImageCapture::onCameraChanged()
 {
-    if (m_service)
-        m_cameraControl = static_cast<AVFCamera *>(m_service->camera());
-    else
-        m_cameraControl = nullptr;
+    auto camera = m_service ? static_cast<AVFCamera *>(m_service->camera()) : nullptr;
+
+    if (camera == m_cameraControl)
+        return;
+
+    m_cameraControl = camera;
 
     if (m_cameraControl)
         connect(m_cameraControl, SIGNAL(activeChanged(bool)), this, SLOT(updateReadyStatus()));
+    updateReadyStatus();
 }
 
 void AVFImageCapture::makeCapturePreview(CaptureRequest request,
@@ -385,20 +388,19 @@ void AVFImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
         m_session = nullptr;
         m_cameraControl = nullptr;
         m_videoConnection = nil;
-        return;
+    } else {
+        m_session = m_service->session();
+        Q_ASSERT(m_session);
+
+        connect(m_service, &AVFCameraService::cameraChanged, this, &AVFImageCapture::onCameraChanged);
+        connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
+        connect(m_session, &AVFCameraSession::newViewfinderFrame,
+                     this, &AVFImageCapture::onNewViewfinderFrame);
     }
 
-    m_session = m_service->session();
-    Q_ASSERT(m_session);
-
-    connect(m_service, &AVFCameraService::cameraChanged, this, &AVFImageCapture::onCameraChanged);
-    connect(m_session, SIGNAL(readyToConfigureConnections()), SLOT(updateCaptureConnection()));
-    connect(m_session, &AVFCameraSession::newViewfinderFrame,
-                 this, &AVFImageCapture::onNewViewfinderFrame);
-
     updateCaptureConnection();
-    updateReadyStatus();
     onCameraChanged();
+    updateReadyStatus();
 }
 
 bool AVFImageCapture::videoCaptureDeviceIsValid() const
