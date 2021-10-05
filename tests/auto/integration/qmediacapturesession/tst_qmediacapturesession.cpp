@@ -65,6 +65,8 @@ class tst_QMediaCaptureSession: public QObject
 private slots:
     void stress_test_setup_and_teardown();
 
+    void record_video_without_preview();
+
     void can_add_and_remove_AudioInput_with_and_without_AudioOutput_attached();
     void can_change_AudioDevices_on_attached_AudioInput();
     void can_change_AudioInput_during_recording();
@@ -110,7 +112,7 @@ void tst_QMediaCaptureSession::recordOk(QMediaCaptureSession &session)
 
     recorder.record();
     QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 2000);
-    QVERIFY(durationChanged.wait(1000));
+    QVERIFY(durationChanged.wait(2000));
     recorder.stop();
 
     QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 2000);
@@ -130,8 +132,8 @@ void tst_QMediaCaptureSession::recordFail(QMediaCaptureSession &session)
     session.setRecorder(&recorder);
     recorder.record();
 
-    QTRY_VERIFY_WITH_TIMEOUT(recorderErrorSignal.count() == 1, 1000);
-    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 1000);
+    QTRY_VERIFY_WITH_TIMEOUT(recorderErrorSignal.count() == 1, 2000);
+    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 2000);
 }
 
 void tst_QMediaCaptureSession::stress_test_setup_and_teardown()
@@ -153,6 +155,35 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown()
         QRandomGenerator rng;
         QTest::qWait(rng.bounded(200));
     }
+}
+
+void tst_QMediaCaptureSession::record_video_without_preview()
+{
+    QCamera camera;
+
+    if (!camera.isAvailable())
+        QSKIP("No video input is available");
+
+    QMediaRecorder recorder;
+    QMediaCaptureSession session;
+
+    session.setRecorder(&recorder);
+
+    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
+
+    session.setCamera(&camera);
+    camera.setActive(true);
+    QTRY_COMPARE(cameraChanged.count(), 1);
+
+    recordOk(session);
+    QVERIFY(!QTest::currentTestFailed());
+
+    session.setCamera(nullptr);
+    QTRY_COMPARE(cameraChanged.count(), 2);
+
+    // can't record without audio and video
+    recordFail(session);
+    QVERIFY(!QTest::currentTestFailed());
 }
 
 void tst_QMediaCaptureSession::can_add_and_remove_AudioInput_with_and_without_AudioOutput_attached()
@@ -238,7 +269,7 @@ void tst_QMediaCaptureSession::can_change_AudioInput_during_recording()
 
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
-    QVERIFY(durationChanged.wait(1000));
+    QVERIFY(durationChanged.wait(2000));
     session.setAudioInput(nullptr);
     QTRY_COMPARE(audioInputChanged.count(), 2);
     session.setAudioInput(&input);
@@ -377,8 +408,8 @@ void tst_QMediaCaptureSession::can_add_and_remove_Camera()
 
     QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
 
-    camera.setActive(true);
     session.setCamera(&camera);
+    camera.setActive(true);
     QTRY_COMPARE(cameraChanged.count(), 1);
 
     session.setCamera(nullptr);
@@ -443,9 +474,10 @@ void tst_QMediaCaptureSession::can_disconnect_Camera_when_recording()
     session.setCamera(&camera);
     QTRY_COMPARE(cameraChanged.count(), 1);
 
+    durationChanged.clear();
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
-    QVERIFY(durationChanged.wait(1000));
+    QTRY_VERIFY(durationChanged.count() > 0);
 
     session.setCamera(nullptr);
     QTRY_COMPARE(cameraChanged.count(), 2);
@@ -587,7 +619,7 @@ void tst_QMediaCaptureSession::can_change_VideoOutput_when_recording()
 
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
-    QVERIFY(durationChanged.wait(1000));
+    QVERIFY(durationChanged.wait(2000));
 
     session.setVideoOutput(&videoOutput);
     QTRY_COMPARE(videoOutputChanged.count(), 1);
@@ -734,7 +766,7 @@ void tst_QMediaCaptureSession::recording_stops_when_recorder_removed()
 
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
-    QVERIFY(durationChanged.wait(1000));
+    QVERIFY(durationChanged.wait(2000));
 
     session.setRecorder(nullptr);
     QTRY_COMPARE(recorderChanged.count(), 2);
@@ -888,7 +920,7 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
 
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
-    QVERIFY(durationChanged.wait(1000));
+    QVERIFY(durationChanged.wait(2000));
 
     session.setImageCapture(&capture);
     QTRY_COMPARE(imageCaptureChanged.count(), 1);

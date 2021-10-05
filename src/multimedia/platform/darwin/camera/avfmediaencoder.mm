@@ -484,13 +484,21 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
     if (QMediaRecorder::RecordingState == m_state)
         return;
 
+    AVFCamera *cameraControl = m_service->avfCameraControl();
+    auto audioInput = m_service->audioInput();
+
+    if (!cameraControl && !audioInput) {
+        qWarning() << Q_FUNC_INFO << "Cannot record without any inputs";
+        Q_EMIT error(QMediaRecorder::ResourceError, tr("No inputs specified"));
+        return;
+    }
+
     m_service->session()->setActive(true);
     const bool audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
     AVCaptureSession *session = m_service->session()->captureSession();
     float rotation = 0;
 
     if (!audioOnly) {
-        AVFCamera *cameraControl = m_service->avfCameraControl();
         if (!cameraControl || !cameraControl->isActive()) {
             qDebugCamera() << Q_FUNC_INFO << "can not start record while camera is not active";
             Q_EMIT error(QMediaRecorder::ResourceError,

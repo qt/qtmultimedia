@@ -81,10 +81,11 @@ void AVFCameraService::setCamera(QPlatformCamera *camera)
         m_cameraControl->setCaptureSession(nullptr);
 
     m_cameraControl = control;
-    emit cameraChanged();
 
     if (m_cameraControl)
         m_cameraControl->setCaptureSession(this);
+
+    emit cameraChanged();
 }
 
 QPlatformImageCapture *AVFCameraService::imageCapture()
