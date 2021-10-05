@@ -271,7 +271,6 @@ void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat pixe
 #endif
     if (!AVFVideoBuffer::toCVPixelFormat(pixelFormat, avPixelFormat))
         qWarning() << "QCamera::setCameraFormat: couldn't convert requested pixel format, using ARGB32";
-    qDebug() << "setPixelFormat" <<  pixelFormat << Qt::hex << avPixelFormat;
 
     bool isSupported = false;
     NSArray *supportedPixelFormats = m_videoDataOutput.availableVideoCVPixelFormatTypes;
