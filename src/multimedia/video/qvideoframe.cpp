@@ -166,7 +166,6 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     Constructs a null video frame.
 */
 QVideoFrame::QVideoFrame()
-    : d(new QVideoFramePrivate)
 {
 }
 
@@ -266,7 +265,7 @@ QVideoFrame::~QVideoFrame() = default;
 */
 bool QVideoFrame::isValid() const
 {
-    return d->buffer != nullptr && d->format.pixelFormat() != QVideoFrameFormat::Format_Invalid;
+    return (d && d->buffer) && d->format.pixelFormat() != QVideoFrameFormat::Format_Invalid;
 }
 
 /*!
@@ -274,7 +273,7 @@ bool QVideoFrame::isValid() const
 */
 QVideoFrameFormat::PixelFormat QVideoFrame::pixelFormat() const
 {
-    return d->format.pixelFormat();
+    return d ? d->format.pixelFormat() : QVideoFrameFormat::Format_Invalid;
 }
 
 /*!
@@ -282,7 +281,7 @@ QVideoFrameFormat::PixelFormat QVideoFrame::pixelFormat() const
 */
 QVideoFrameFormat QVideoFrame::surfaceFormat() const
 {
-    return d->format;
+    return d ? d->format : QVideoFrameFormat{};
 }
 
 /*!
@@ -293,7 +292,7 @@ QVideoFrameFormat QVideoFrame::surfaceFormat() const
 */
 QVideoFrame::HandleType QVideoFrame::handleType() const
 {
-    return d->buffer ? d->buffer->handleType() : QVideoFrame::NoHandle;
+    return (d && d->buffer) ? d->buffer->handleType() : QVideoFrame::NoHandle;
 }
 
 /*!
@@ -301,7 +300,7 @@ QVideoFrame::HandleType QVideoFrame::handleType() const
 */
 QSize QVideoFrame::size() const
 {
-    return d->format.frameSize();
+    return d ? d->format.frameSize() : QSize();
 }
 
 /*!
@@ -334,7 +333,7 @@ int QVideoFrame::height() const
 
 bool QVideoFrame::isMapped() const
 {
-    return d->buffer != nullptr && d->buffer->mapMode() != QVideoFrame::NotMapped;
+    return d && d->buffer && d->buffer->mapMode() != QVideoFrame::NotMapped;
 }
 
 /*!
@@ -353,7 +352,7 @@ bool QVideoFrame::isMapped() const
 */
 bool QVideoFrame::isWritable() const
 {
-    return d->buffer != nullptr && (d->buffer->mapMode() & QVideoFrame::WriteOnly);
+    return d && d->buffer && (d->buffer->mapMode() & QVideoFrame::WriteOnly);
 }
 
 /*!
@@ -369,7 +368,7 @@ bool QVideoFrame::isWritable() const
 */
 bool QVideoFrame::isReadable() const
 {
-    return d->buffer != nullptr && (d->buffer->mapMode() & QVideoFrame::ReadOnly);
+    return d && d->buffer && (d->buffer->mapMode() & QVideoFrame::ReadOnly);
 }
 
 /*!
@@ -379,7 +378,7 @@ bool QVideoFrame::isReadable() const
 */
 QVideoFrame::MapMode QVideoFrame::mapMode() const
 {
-    return d->buffer != nullptr ? d->buffer->mapMode() : QVideoFrame::NotMapped;
+    return (d && d->buffer) ? d->buffer->mapMode() : QVideoFrame::NotMapped;
 }
 
 /*!
@@ -414,11 +413,11 @@ QVideoFrame::MapMode QVideoFrame::mapMode() const
 */
 bool QVideoFrame::map(QVideoFrame::MapMode mode)
 {
-    QMutexLocker lock(&d->mapMutex);
 
-    if (!d->buffer)
+    if (!d || !d->buffer)
         return false;
 
+    QMutexLocker lock(&d->mapMutex);
     if (mode == QVideoFrame::NotMapped)
         return false;
 
@@ -538,10 +537,10 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
 */
 void QVideoFrame::unmap()
 {
-    QMutexLocker lock(&d->mapMutex);
-
-    if (!d->buffer)
+    if (!d || !d->buffer)
         return;
+
+    QMutexLocker lock(&d->mapMutex);
 
     if (d->mappedCount == 0) {
         qWarning() << "QVideoFrame::unmap() was called more times then QVideoFrame::map()";
@@ -567,6 +566,8 @@ void QVideoFrame::unmap()
 
 int QVideoFrame::bytesPerLine(int plane) const
 {
+    if (!d)
+        return 0;
     return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.bytesPerLine[plane] : 0;
 }
 
@@ -584,6 +585,8 @@ int QVideoFrame::bytesPerLine(int plane) const
 */
 uchar *QVideoFrame::bits(int plane)
 {
+    if (!d)
+        return nullptr;
     return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.data[plane] : nullptr;
 }
 
@@ -600,6 +603,8 @@ uchar *QVideoFrame::bits(int plane)
 */
 const uchar *QVideoFrame::bits(int plane) const
 {
+    if (!d)
+        return nullptr;
     return plane >= 0 && plane < d->mapData.nPlanes ?  d->mapData.data[plane] : nullptr;
 }
 
@@ -612,6 +617,8 @@ const uchar *QVideoFrame::bits(int plane) const
 */
 int QVideoFrame::mappedBytes(int plane) const
 {
+    if (!d)
+        return 0;
     return plane >= 0 && plane < d->mapData.nPlanes ? d->mapData.size[plane] : 0;
 }
 
@@ -624,6 +631,8 @@ int QVideoFrame::mappedBytes(int plane) const
 
 int QVideoFrame::planeCount() const
 {
+    if (!d)
+        return 0;
     return d->format.planeCount();
 }
 
@@ -633,7 +642,7 @@ int QVideoFrame::planeCount() const
 */
 quint64 QVideoFrame::textureHandle(int plane) const
 {
-    if (!d->buffer)
+    if (!d || !d->buffer)
         return 0;
     d->buffer->mapTextures();
     return d->buffer->textureHandle(plane);
@@ -647,6 +656,8 @@ quint64 QVideoFrame::textureHandle(int plane) const
 */
 qint64 QVideoFrame::startTime() const
 {
+    if (!d)
+        return 0;
     return d->startTime;
 }
 
@@ -658,6 +669,8 @@ qint64 QVideoFrame::startTime() const
 */
 void QVideoFrame::setStartTime(qint64 time)
 {
+    if (!d)
+        return;
     d->startTime = time;
 }
 
@@ -669,6 +682,8 @@ void QVideoFrame::setStartTime(qint64 time)
 */
 qint64 QVideoFrame::endTime() const
 {
+    if (!d)
+        return 0;
     return d->endTime;
 }
 
@@ -680,6 +695,8 @@ qint64 QVideoFrame::endTime() const
 */
 void QVideoFrame::setEndTime(qint64 time)
 {
+    if (!d)
+        return;
     d->endTime = time;
 }
 
@@ -723,7 +740,7 @@ QImage QVideoFrame::toImage() const
 */
 QString QVideoFrame::subtitleText() const
 {
-    return d->subtitleText;
+    return d ? d->subtitleText : QString();
 }
 
 /*!
@@ -731,6 +748,8 @@ QString QVideoFrame::subtitleText() const
 */
 void QVideoFrame::setSubtitleText(const QString &text)
 {
+    if (!d)
+        return;
     d->subtitleText = text;
 }
 
