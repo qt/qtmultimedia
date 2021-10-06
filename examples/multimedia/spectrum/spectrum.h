@@ -96,6 +96,7 @@ enum WindowFunction {
     NoWindow,
     HannWindow
 };
+Q_DECLARE_METATYPE(WindowFunction)
 
 const WindowFunction DefaultWindowFunction = HannWindow;
 
