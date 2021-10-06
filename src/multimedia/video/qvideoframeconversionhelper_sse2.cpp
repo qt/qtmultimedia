@@ -96,22 +96,22 @@ void convert_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
 
 }
 
-void qt_convert_ARGB8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
+void QT_FASTCALL qt_convert_ARGB8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
 {
     convert_to_ARGB32_sse2<0, 1, 2, 3>(frame, output);
 }
 
-void qt_convert_ABGR8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
+void QT_FASTCALL qt_convert_ABGR8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
 {
     convert_to_ARGB32_sse2<0, 3, 2, 1>(frame, output);
 }
 
-void qt_convert_RGBA8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
+void QT_FASTCALL qt_convert_RGBA8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
 {
     convert_to_ARGB32_sse2<3, 0, 1, 2>(frame, output);
 }
 
-void qt_convert_BGRA8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
+void QT_FASTCALL qt_convert_BGRA8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
 {
     convert_to_ARGB32_sse2<3, 2, 1, 0>(frame, output);
 }

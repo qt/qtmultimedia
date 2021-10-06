@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 class QWindowsEngine;
 class CMMNotificationClient;
 
-LRESULT deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 
 class QWindowsMediaDevices : public QPlatformMediaDevices
 {
@@ -88,7 +88,7 @@ private:
     HDEVNOTIFY m_videoDeviceNotification;
 
     friend CMMNotificationClient;
-    friend LRESULT deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
+    friend LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 };
 
 QT_END_NAMESPACE
