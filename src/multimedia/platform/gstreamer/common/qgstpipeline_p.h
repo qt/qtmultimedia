@@ -91,7 +91,8 @@ public:
     // QMediaPlayer is still in a stopped state, while we put the gstreamer pipeline into a
     // Paused state so that we can get the required metadata of the stream and also have a fast
     // transition to play.
-    QProperty<bool> *inStoppedState();
+    bool inStoppedState() const;
+    void setInStoppedState(bool stopped);
 
     void setFlushOnConfigChanges(bool flush);
 

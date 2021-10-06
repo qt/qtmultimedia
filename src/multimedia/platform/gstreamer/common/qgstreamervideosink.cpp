@@ -114,6 +114,13 @@ void QGstreamerVideoSink::setPipeline(QGstPipeline pipeline)
     gstPipeline = pipeline;
 }
 
+bool QGstreamerVideoSink::inStoppedState() const
+{
+    if (gstPipeline.isNull())
+        return true;
+    return gstPipeline.inStoppedState();
+}
+
 void QGstreamerVideoSink::setRhi(QRhi *rhi)
 {
     if (rhi && rhi->backend() != QRhi::OpenGLES2)

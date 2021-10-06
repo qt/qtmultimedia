@@ -332,11 +332,15 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
                 }
             }
 
-            QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_sink, m_format, memoryFormat);
-            QVideoFrame frame(videoBuffer, m_format);
-            QGstUtils::setFrameTimeStamps(&frame, buffer);
+            if (m_sink->inStoppedState()) {
+                m_sink->setVideoFrame(QVideoFrame());
+            } else {
+                QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_sink, m_format, memoryFormat);
+                QVideoFrame frame(videoBuffer, m_format);
+                QGstUtils::setFrameTimeStamps(&frame, buffer);
 
-            m_sink->setVideoFrame(frame);
+                m_sink->setVideoFrame(frame);
+            }
 
             gst_buffer_unref(buffer);
 

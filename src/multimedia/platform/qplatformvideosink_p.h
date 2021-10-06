@@ -101,6 +101,8 @@ public:
     }
     void setVideoFrame(const QVideoFrame &frame) {
         setNativeSize(frame.size());
+        if (frame == m_currentVideoFrame)
+            return;
         m_currentVideoFrame = frame;
         m_currentVideoFrame.setSubtitleText(subtitleText());
         sink->videoFrameChanged(m_currentVideoFrame);
