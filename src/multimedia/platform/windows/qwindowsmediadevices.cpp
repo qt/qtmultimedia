@@ -190,7 +190,7 @@ public:
     }
 };
 
-LRESULT deviceNotificationWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if (message == WM_DEVICECHANGE) {
         auto b = (PDEV_BROADCAST_HDR)lParam;
