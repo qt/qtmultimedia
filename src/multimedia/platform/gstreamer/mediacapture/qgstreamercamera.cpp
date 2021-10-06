@@ -116,15 +116,15 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
     auto caps = QGstMutableCaps::fromCameraFormat(f);
     auto gstNewDecode = QGstElement(f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
-    gstCamera.setStateSync(GST_STATE_NULL);
-    gstDecode.setStateSync(GST_STATE_NULL);
-
     gstCamera.unlink(gstCapsFilter);
     gstCapsFilter.unlink(gstDecode);
     gstDecode.unlink(gstVideoConvert);
 
     gstCameraBin.remove(gstCamera);
     gstCameraBin.remove(gstDecode);
+
+    gstCamera.setStateSync(GST_STATE_NULL);
+    gstDecode.setStateSync(GST_STATE_NULL);
 
     gstCapsFilter.set("caps", caps);
 
@@ -176,8 +176,8 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
             qWarning() << "linking filtered camera to decoder failed" << gstCamera.name() << caps.toString();
     });
 
-    gstDecode.setStateSync(GST_STATE_NULL);
     gstCameraBin.remove(gstDecode);
+    gstDecode.setStateSync(GST_STATE_NULL);
 
     gstDecode = newGstDecode;
 
