@@ -62,7 +62,7 @@ public:
     QMutex filterMutex;
     QList<QGstreamerSyncMessageFilter*> syncFilters;
     QList<QGstreamerBusMessageFilter*> busFilters;
-    QProperty<bool> inStoppedState;
+    bool inStoppedState = true;
     mutable qint64 m_position = 0;
     double m_rate = 1.;
     bool m_flushOnConfigChanges = false;
@@ -237,10 +237,16 @@ QGstPipeline::~QGstPipeline()
         d->deref();
 }
 
-QProperty<bool> *QGstPipeline::inStoppedState()
+bool QGstPipeline::inStoppedState() const
 {
     Q_ASSERT(d);
-    return &d->inStoppedState;
+    return d->inStoppedState;
+}
+
+void QGstPipeline::setInStoppedState(bool stopped)
+{
+    Q_ASSERT(d);
+    d->inStoppedState = stopped;
 }
 
 void QGstPipeline::setFlushOnConfigChanges(bool flush)

@@ -82,6 +82,7 @@ public:
     QGstElement subtitleSink() const { return gstSubtitleSink; }
 
     void setPipeline(QGstPipeline pipeline);
+    bool inStoppedState() const;
 
     GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext; }
     GstContext *gstGlLocalContext() const { return m_gstGlLocalContext; }
