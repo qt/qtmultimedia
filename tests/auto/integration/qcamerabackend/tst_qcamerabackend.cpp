@@ -322,8 +322,9 @@ void tst_QCameraBackend::testCameraFormat()
     camera.stop();
 
     spy.clear();
-    camera.setCameraDevice({});
-    QCOMPARE(spy.count(), 1);
+    // Shouldn't change anything as it's the same device
+    camera.setCameraDevice(device);
+    QCOMPARE(spy.count(), 0);
 }
 
 void tst_QCameraBackend::testCameraCapture()
@@ -450,7 +451,9 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
-    int id = imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
+    QTemporaryDir dir;
+    auto tmpFile = dir.filePath("testImage");
+    int id = imageCapture.captureToFile(tmpFile);
     QTRY_VERIFY(!savedSignal.isEmpty());
     QVERIFY(!metadataSignal.isEmpty());
     QCOMPARE(metadataSignal.first().first().toInt(), id);
@@ -465,7 +468,7 @@ void tst_QCameraBackend::testExposureCompensation()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy exposureCompensationSignal(&camera, SIGNAL(exposureCompensationChanged(qreal)));
+    QSignalSpy exposureCompensationSignal(&camera, SIGNAL(exposureCompensationChanged(float)));
 
     //it should be possible to set exposure parameters in Unloaded state
     QCOMPARE(camera.exposureCompensation(), 0.);

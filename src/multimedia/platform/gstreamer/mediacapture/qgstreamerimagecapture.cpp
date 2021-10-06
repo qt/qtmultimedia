@@ -285,6 +285,8 @@ gboolean QGstreamerImageCapture::saveImageFilter(GstElement *element,
                            Qt::QueuedConnection,
                            Q_ARG(int, imageData.id),
                            Q_ARG(QString, imageData.filename));
+    } else {
+        qCDebug(qLcImageCapture) << "   could not open image file for writing";
     }
 
     return TRUE;
