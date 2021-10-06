@@ -357,6 +357,17 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 
                 emit tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
+
+                GstQuery *query = gst_query_new_seeking(GST_FORMAT_TIME);
+                gboolean canSeek = false;
+                if (gst_element_query(playerPipeline.element(), query)) {
+                    gst_query_parse_seeking(query, NULL, &canSeek, nullptr, nullptr);
+                    qCDebug(qLcMediaPlayer) << "    pipeline is seekable:" << canSeek;
+                } else {
+                    qCDebug(qLcMediaPlayer) << "    query for seekable failed.";
+                }
+                gst_query_unref(query);
+                seekableChanged(canSeek);
             }
 
             break;
@@ -620,10 +631,6 @@ void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement */*uride
     if (G_OBJECT_TYPE(child) == that->decodebinType) {
         qCDebug(qLcMediaPlayer) << "     -> setting post-stream-topology property";
         c.set("post-stream-topology", true);
-    } else if (!qstrcmp(gst_element_get_name(child), "source")) {
-        GstBaseSrc *src = GST_BASE_SRC(child);
-        bool seekable = src && GST_BASE_SRC_GET_CLASS(src)->is_seekable(src);
-        that->seekableChanged(seekable);
     }
 }
 

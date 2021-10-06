@@ -600,7 +600,8 @@ void QMediaPlayer::setPosition(qint64 position)
 
     if (d->control == nullptr)
         return;
-
+    if (!d->control->isSeekable())
+        return;
     d->control->setPosition(qMax(position, 0ll));
 }
 
