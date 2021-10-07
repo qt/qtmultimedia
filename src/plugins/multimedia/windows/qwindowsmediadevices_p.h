@@ -56,7 +56,7 @@
 #include <qset.h>
 #include <qaudio.h>
 #include <qaudiodevice.h>
-#include <windows.h>
+#include <QtCore/qt_windows.h>
 
 struct IMMDeviceEnumerator;
 
