@@ -100,6 +100,7 @@ QAndroidMediaPlayer::QAndroidMediaPlayer(QMediaPlayer *parent)
 
 QAndroidMediaPlayer::~QAndroidMediaPlayer()
 {
+    mMediaPlayer->disconnect();
     mMediaPlayer->release();
     delete mMediaPlayer;
 }
