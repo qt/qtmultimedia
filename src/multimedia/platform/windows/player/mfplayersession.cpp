@@ -1057,8 +1057,10 @@ void MFPlayerSession::start()
         if (m_state.command == CmdStart)
             return;
 
-        if (m_scrubbing)
+        if (m_scrubbing) {
             scrub(false);
+            m_position = position() * 10000;
+        }
 
         if (m_restorePosition >= 0) {
             m_position = m_restorePosition;
