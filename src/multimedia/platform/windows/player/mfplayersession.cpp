@@ -120,6 +120,7 @@ void MFPlayerSession::close()
     qDebug() << "close";
 #endif
 
+    m_signalPositionChangeTimer.stop();
     clear();
     if (!m_session)
         return;
