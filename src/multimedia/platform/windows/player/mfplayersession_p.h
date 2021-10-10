@@ -131,6 +131,8 @@ public:
     int trackCount(QPlatformMediaPlayer::TrackType);
     QMediaMetaData trackMetaData(QPlatformMediaPlayer::TrackType type, int trackNumber);
 
+    void setPlayerControl(MFPlayerControl *playerControl) { m_playerControl = playerControl; }
+
     void statusChanged() { if (m_playerControl) m_playerControl->handleStatusChanged(); }
     void tracksChanged() { if (m_playerControl) m_playerControl->handleTracksChanged(); }
     void audioAvailable() { if (m_playerControl) m_playerControl->handleAudioAvailable(); }
