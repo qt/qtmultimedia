@@ -32,11 +32,13 @@
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
 #include <private/qplatformmediarecorder_p.h>
+#include "private/qguiapplication_p.h"
 #include <qmediarecorder.h>
 #include <qaudioformat.h>
 #include <qmockintegration_p.h>
 #include <qmediacapturesession.h>
 
+#include "qguiapplication_platform.h"
 #include "qmockmediacapturesession.h"
 #include "qmockmediaencoder.h"
 
@@ -69,6 +71,8 @@ private slots:
 
     void testVideoSettingsQuality();
     void testVideoSettingsEncodingMode();
+
+    void testApplicationInative();
 
 private:
     QMockIntegration *mockIntegration = nullptr;
@@ -453,6 +457,33 @@ void tst_QMediaRecorder::testVideoSettingsEncodingMode()
 
     recorder.setEncodingMode(QMediaRecorder::AverageBitRateEncoding);
     QCOMPARE(recorder.encodingMode(), QMediaRecorder::AverageBitRateEncoding);
+}
+
+void tst_QMediaRecorder::testApplicationInative()
+{
+    QMediaCaptureSession session;
+    QMediaRecorder encoder;
+    session.setRecorder(&encoder);
+
+    encoder.setVideoResolution(640, 480);
+    encoder.setQuality(QMediaRecorder::VeryHighQuality);
+
+    encoder.setOutputLocation(QUrl("test.tmp"));
+    QCOMPARE(encoder.outputLocation().toString(), QString("test.tmp"));
+    QCOMPARE(encoder.actualLocation(), QUrl());
+
+    encoder.record();
+
+    QGuiApplicationPrivate::setApplicationState(Qt::ApplicationInactive);
+    QCoreApplication::processEvents();
+
+    QGuiApplicationPrivate::setApplicationState(Qt::ApplicationActive);
+    QCoreApplication::processEvents();
+
+    encoder.stop();
+
+    // the actual location is available after record
+    QCOMPARE(encoder.actualLocation().toString(), QString("test.tmp"));
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaRecorder)
