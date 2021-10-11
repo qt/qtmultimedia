@@ -39,7 +39,13 @@
 
 #include "qandroidformatsinfo_p.h"
 
+#include <QMutableListIterator>
+#include <QtCore/qjnienvironment.h>
+#include <QtCore/qjniobject.h>
 #include <qcoreapplication.h>
+
+static const char encoderFilter[] = ".encoder";
+static const char decoderFilter[] = ".decoder";
 
 QT_BEGIN_NAMESPACE
 
@@ -47,61 +53,147 @@ QAndroidFormatInfo::QAndroidFormatInfo()
 {
     // Audio/Video/Image formats with their decoder/encoder information is documented at
     // https://developer.android.com/guide/topics/media/media-formats
-    decoders = {
-        { QMediaFormat::AAC, { QMediaFormat::AudioCodec::AAC }, {} },
-        { QMediaFormat::MP3, { QMediaFormat::AudioCodec::MP3}, {} },
-        { QMediaFormat::Ogg, { QMediaFormat::AudioCodec::Opus, QMediaFormat::AudioCodec::Vorbis },
-                             {} },
-        { QMediaFormat::FLAC, { QMediaFormat::AudioCodec::FLAC }, {} },
-        { QMediaFormat::Mpeg4Audio, { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::FLAC,
-                                QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::Vorbis},
-                             {} },
-        { QMediaFormat::MPEG4, { QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::AAC,
-                                 QMediaFormat::AudioCodec::FLAC, QMediaFormat::AudioCodec::Vorbis },
-                               { QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265,
-                                 QMediaFormat::VideoCodec::AV1 } },
-        { QMediaFormat::Matroska, { QMediaFormat::AudioCodec::MP3, QMediaFormat::AudioCodec::Opus,
-                                    QMediaFormat::AudioCodec::Vorbis },
-                                  { QMediaFormat::VideoCodec::VP8, QMediaFormat::VideoCodec::VP9,
-                                    QMediaFormat::VideoCodec::H264, QMediaFormat::VideoCodec::H265,
-                                    QMediaFormat::VideoCodec::AV1} },
-        { QMediaFormat::WebM, { QMediaFormat::AudioCodec::Opus, QMediaFormat::AudioCodec::Vorbis },
-                              { QMediaFormat::VideoCodec::VP8, QMediaFormat::VideoCodec::VP9} }
-    };
 
-    // MP3 encoders doesn't seem to be supported by the default Android SDK
-    encoders = {
-        { QMediaFormat::AAC, { QMediaFormat::AudioCodec::AAC }, {} },
-        { QMediaFormat::MP3, {}, {} },
-        { QMediaFormat::FLAC, { QMediaFormat::AudioCodec::FLAC }, {} },
-        { QMediaFormat::Mpeg4Audio, {QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::FLAC},
-                             {} },
-        { QMediaFormat::MPEG4, { QMediaFormat::AudioCodec::AAC, QMediaFormat::AudioCodec::FLAC },
-                               { QMediaFormat::VideoCodec::H264 } }
-    };
-
-    // Opus encoder available only for Android 10+
-    if (QNativeInterface::QAndroidApplication::sdkVersion() >= 29) {
-        encoders.append({ QMediaFormat::Ogg, { QMediaFormat::AudioCodec::Opus }, {} });
-        encoders.append({ QMediaFormat::Matroska, { QMediaFormat::AudioCodec::MP3,
-                                                    QMediaFormat::AudioCodec::Opus },
-                          { QMediaFormat::VideoCodec::VP8, QMediaFormat::VideoCodec::H264 } });
-        encoders.append({ QMediaFormat::WebM, { QMediaFormat::AudioCodec::Opus },
-                          { QMediaFormat::VideoCodec::VP8 } });
-    } else {
-        encoders.append({ QMediaFormat::Ogg, {}, {} });
-        encoders.append({ QMediaFormat::Matroska, { QMediaFormat::AudioCodec::MP3 },
-                          { QMediaFormat::VideoCodec::VP8, QMediaFormat::VideoCodec::H264 } });
-        encoders.append({ QMediaFormat::WebM, {}, { QMediaFormat::VideoCodec::VP8 } });
+    const QJniObject codecsArrayObject = QJniObject::callStaticObjectMethod(
+                "org/qtproject/qt/android/multimedia/QtMultimediaUtils",
+                "getMediaCodecs",
+                "()[Ljava/lang/String;");
+    QStringList codecs;
+    QJniEnvironment env;
+    const jobjectArray devsArray = codecsArrayObject.object<jobjectArray>();
+    for (int i = 0; i < env->GetArrayLength(devsArray); ++i) {
+        const QString codec = QJniObject(env->GetObjectArrayElement(devsArray, i)).toString();
+        if (codec.contains(QStringLiteral("encoder")))
+            m_supportedEncoders.append(codec);
+        else
+            m_supportedDecoders.append(codec);
     }
 
-    // TODO: Add later if needed
-    imageFormats << QImageCapture::JPEG /*<< QImageCapture::PNG << QImageCapture::WebP*/;
+    auto removeUnspecifiedValues = [](QList<CodecMap> &map) {
+        QMutableListIterator<CodecMap> iter(map);
+        while (iter.hasNext()) {
+            CodecMap &codec = iter.next();
+            codec.audio.removeAll(QMediaFormat::AudioCodec::Unspecified);
+            codec.video.removeAll(QMediaFormat::VideoCodec::Unspecified);
+
+            if (codec.audio.size() < 1 && codec.video.size() < 1)
+                iter.remove();
+        }
+    };
+
+    {
+        const QMediaFormat::AudioCodec aac = hasDecoder(QMediaFormat::AudioCodec::AAC);
+        const QMediaFormat::AudioCodec mp3 = hasDecoder(QMediaFormat::AudioCodec::MP3);
+        const QMediaFormat::AudioCodec flac = hasDecoder(QMediaFormat::AudioCodec::FLAC);
+        const QMediaFormat::AudioCodec opus = hasDecoder(QMediaFormat::AudioCodec::Opus);
+        const QMediaFormat::AudioCodec vorbis = hasDecoder(QMediaFormat::AudioCodec::Vorbis);
+
+        const QMediaFormat::VideoCodec vp8 = hasDecoder(QMediaFormat::VideoCodec::VP8);
+        const QMediaFormat::VideoCodec vp9 = hasDecoder(QMediaFormat::VideoCodec::VP9);
+        const QMediaFormat::VideoCodec h264 = hasDecoder(QMediaFormat::VideoCodec::H264);
+        const QMediaFormat::VideoCodec h265 = hasDecoder(QMediaFormat::VideoCodec::H265);
+        const QMediaFormat::VideoCodec av1 = hasDecoder(QMediaFormat::VideoCodec::AV1);
+
+        decoders = {
+            { QMediaFormat::AAC, {aac}, {} },
+            { QMediaFormat::MP3, {mp3}, {} },
+            { QMediaFormat::FLAC, {flac}, {} },
+            { QMediaFormat::Mpeg4Audio, {mp3, aac, flac, vorbis}, {} },
+            { QMediaFormat::MPEG4, {mp3, aac, flac, vorbis}, {h264, h265, av1} },
+            { QMediaFormat::Ogg, {opus, vorbis, flac}, {} },
+            { QMediaFormat::Matroska, {mp3, opus, vorbis}, {vp8, vp9, h264, h265, av1} },
+            { QMediaFormat::WebM, {opus, vorbis}, {vp8, vp9} }
+        };
+
+        removeUnspecifiedValues(decoders);
+    }
+
+    {
+        const QMediaFormat::AudioCodec aac = hasEncoder(QMediaFormat::AudioCodec::AAC);
+        const QMediaFormat::AudioCodec mp3 = hasEncoder(QMediaFormat::AudioCodec::MP3);
+        const QMediaFormat::AudioCodec flac = hasEncoder(QMediaFormat::AudioCodec::FLAC);
+        const QMediaFormat::AudioCodec opus = hasEncoder(QMediaFormat::AudioCodec::Opus);
+        const QMediaFormat::AudioCodec vorbis = hasEncoder(QMediaFormat::AudioCodec::Vorbis);
+
+        const QMediaFormat::VideoCodec vp8 = hasEncoder(QMediaFormat::VideoCodec::VP8);
+        const QMediaFormat::VideoCodec vp9 = hasEncoder(QMediaFormat::VideoCodec::VP9);
+        const QMediaFormat::VideoCodec h264 = hasEncoder(QMediaFormat::VideoCodec::H264);
+        const QMediaFormat::VideoCodec h265 = hasEncoder(QMediaFormat::VideoCodec::H265);
+        const QMediaFormat::VideoCodec av1 = hasEncoder(QMediaFormat::VideoCodec::AV1);
+
+        // MP3 and Vorbis encoders are not supported by the default Android SDK
+        // Opus encoder available only for Android 10+
+        encoders = {
+            { QMediaFormat::AAC, {aac}, {} },
+            { QMediaFormat::MP3, {mp3}, {} },
+            { QMediaFormat::FLAC, {flac}, {} },
+            { QMediaFormat::Mpeg4Audio, {mp3, aac, flac, vorbis}, {} },
+            { QMediaFormat::MPEG4, {mp3, aac, flac, vorbis}, {h264, h265, av1} },
+            { QMediaFormat::Ogg, {opus, vorbis, flac}, {} },
+            { QMediaFormat::Matroska, {mp3, opus, flac}, {vp8, vp9, h264, h265, av1} },
+            // NOTE: WebM seems to be documented to supported with VP8 encoder,
+            // but the Camera API doesn't work with it, keep it commented for now.
+            // { QMediaFormat::WebM, {vorbis, opus}, {vp8, vp9} }
+        };
+
+        removeUnspecifiedValues(encoders);
+    }
+
+    imageFormats << QImageCapture::JPEG;
+    // NOTE: Add later if needed, the Camera API doens't seem to work with it.
+    // imageFormats << QImageCapture::PNG << QImageCapture::WebP;
 }
 
 QAndroidFormatInfo::~QAndroidFormatInfo()
 {
+}
 
+static QString getVideoCodecName(QMediaFormat::VideoCodec codec)
+{
+    QString codecString = QMediaFormat::videoCodecName(codec);
+    if (codec == QMediaFormat::VideoCodec::H265)
+        codecString = QLatin1String("HEVC");
+    return codecString;
+}
+
+QMediaFormat::AudioCodec QAndroidFormatInfo::hasEncoder(QMediaFormat::AudioCodec codec) const
+{
+    const QString codecString = QMediaFormat::audioCodecName(codec);
+    for (auto str : m_supportedEncoders) {
+        if (str.contains(codecString + QLatin1String(encoderFilter), Qt::CaseInsensitive))
+            return codec;
+    }
+    return QMediaFormat::AudioCodec::Unspecified;
+}
+
+QMediaFormat::VideoCodec QAndroidFormatInfo::hasEncoder(QMediaFormat::VideoCodec codec) const
+{
+    const QString codecString = getVideoCodecName(codec);
+    for (auto str : m_supportedEncoders) {
+        if (str.contains(codecString + QLatin1String(encoderFilter), Qt::CaseInsensitive))
+            return codec;
+    }
+    return QMediaFormat::VideoCodec::Unspecified;
+}
+
+QMediaFormat::AudioCodec QAndroidFormatInfo::hasDecoder(QMediaFormat::AudioCodec codec) const
+{
+    const QString codecString = QMediaFormat::audioCodecName(codec);
+    for (auto str : m_supportedDecoders) {
+        if (str.contains(codecString + QLatin1String(decoderFilter), Qt::CaseInsensitive))
+            return codec;
+    }
+    return QMediaFormat::AudioCodec::Unspecified;
+}
+
+QMediaFormat::VideoCodec QAndroidFormatInfo::hasDecoder(QMediaFormat::VideoCodec codec) const
+{
+    const QString codecString = getVideoCodecName(codec);
+    for (auto str : m_supportedDecoders) {
+        if (str.contains(codecString + QLatin1String(decoderFilter), Qt::CaseInsensitive))
+            return codec;
+    }
+    return QMediaFormat::VideoCodec::Unspecified;
 }
 
 QT_END_NAMESPACE
