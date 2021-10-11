@@ -45,8 +45,11 @@
 #include <qaudiooutput.h>
 #include <qaudioinput.h>
 #include <qaudiodevice.h>
-#include <qcamera.h>
+#include <qaudiodecoder.h>
+#include <qaudiobuffer.h>
 
+#include <qcamera.h>
+#include <QMediaFormat>
 #include <QtMultimediaWidgets/QVideoWidget>
 
 QT_USE_NAMESPACE
@@ -63,6 +66,8 @@ class tst_QMediaCaptureSession: public QObject
     Q_OBJECT
 
 private slots:
+
+    void testAudioMute();
     void stress_test_setup_and_teardown();
 
     void record_video_without_preview();
@@ -942,6 +947,75 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
     QVERIFY(!fileName.isEmpty());
     QTRY_VERIFY(QFileInfo(fileName).size() > 0);
     QFile(fileName).remove();
+}
+
+void tst_QMediaCaptureSession::testAudioMute()
+{
+    QAudioInput audioInput;
+    if (audioInput.device().isNull())
+        QSKIP("No audio input available");
+
+    QMediaRecorder recorder;
+    QMediaCaptureSession session;
+
+    session.setRecorder(&recorder);
+
+    session.setAudioInput(&audioInput);
+
+    session.setCamera(nullptr);
+    recorder.setOutputLocation(QStringLiteral("test"));
+
+    QSignalSpy spy(&audioInput, &QAudioInput::mutedChanged);
+    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+
+    QMediaFormat format;
+    format.setAudioCodec(QMediaFormat::AudioCodec::MP3);
+    recorder.setMediaFormat(format);
+
+    recorder.record();
+    audioInput.setMuted(true);
+
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.last()[0], true);
+
+    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 2000);
+    QVERIFY(durationChanged.wait(2000));
+
+    audioInput.setMuted(false);
+
+    QCOMPARE(spy.count(), 2);
+    QCOMPARE(spy.last()[0], false);
+
+    recorder.stop();
+
+    QString actualLocation = recorder.actualLocation().toLocalFile();
+
+    QVERIFY2(!actualLocation.isEmpty(), "Recorder did not save a file");
+    QTRY_VERIFY2(QFileInfo(actualLocation).size() > 0, "Recorded file is empty (zero bytes)");
+
+    QAudioDecoder decoder;
+    QAudioBuffer buffer;
+    decoder.setSource(QUrl::fromLocalFile(actualLocation));
+
+    decoder.start();
+
+    // Wait a while
+    QTRY_VERIFY(decoder.bufferAvailable());
+
+    while (decoder.bufferAvailable()) {
+        buffer = decoder.read();
+        QVERIFY(buffer.isValid());
+
+        const void *data = buffer.constData<void *>();
+        QVERIFY(data != nullptr);
+
+        const unsigned int *idata = reinterpret_cast<const unsigned int *>(data);
+        QCOMPARE(*idata, 0U);
+    }
+
+    decoder.stop();
+
+    QFile(actualLocation).remove();
 }
 
 QTEST_MAIN(tst_QMediaCaptureSession)
