@@ -60,6 +60,15 @@ class QAndroidFormatInfo : public QPlatformMediaFormatInfo
 public:
     QAndroidFormatInfo();
     ~QAndroidFormatInfo();
+
+private:
+    QMediaFormat::AudioCodec hasEncoder(QMediaFormat::AudioCodec codec) const;
+    QMediaFormat::VideoCodec hasEncoder(QMediaFormat::VideoCodec codec) const;
+    QMediaFormat::AudioCodec hasDecoder(QMediaFormat::AudioCodec codec) const;
+    QMediaFormat::VideoCodec hasDecoder(QMediaFormat::VideoCodec codec) const;
+
+    QStringList m_supportedDecoders;
+    QStringList m_supportedEncoders;
 };
 
 QT_END_NAMESPACE

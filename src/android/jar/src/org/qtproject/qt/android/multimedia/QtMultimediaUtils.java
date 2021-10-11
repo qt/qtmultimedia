@@ -41,6 +41,8 @@ package org.qtproject.qt.android.multimedia;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.view.OrientationEventListener;
 import android.os.Environment;
 import android.media.MediaScannerConnection;
@@ -134,5 +136,21 @@ public class QtMultimediaUtils
     static void registerMediaFile(String file)
     {
         MediaScannerConnection.scanFile(m_context, new String[] { file }, null, null);
+    }
+
+    /*
+    The array of codecs is in the form:
+        c2.qti.vp9.decoder
+        c2.android.opus.encoder
+        OMX.google.opus.decoder
+    */
+    private static String[] getMediaCodecs()
+    {
+        final MediaCodecList codecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+        final MediaCodecInfo[] codecInfoArray = codecList.getCodecInfos();
+        String[] codecs = new String[codecInfoArray.length];
+        for (int i = 0; i < codecInfoArray.length; ++i)
+            codecs[i] = codecInfoArray[i].getName();
+        return codecs;
     }
 }
