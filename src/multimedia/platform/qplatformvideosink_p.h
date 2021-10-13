@@ -78,8 +78,7 @@ public:
     virtual void setFullScreen(bool) {}
     virtual void setAspectRatioMode(Qt::AspectRatioMode) {}
 
-    // ### make non virtual, once Windows is ported
-    virtual QSize nativeSize() const
+    QSize nativeSize() const
     {
         QMutexLocker locker(&mutex);
         return m_nativeSize;

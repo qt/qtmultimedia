@@ -43,8 +43,10 @@ namespace MediaFileSelector {
 static QUrl selectMediaFile(const QStringList& mediaCandidates)
 {
     QMediaPlayer player;
-    QAudioOutput output;
-    player.setAudioOutput(&output);
+    QAudioOutput audioOutput;
+    QVideoSink videoOutput;
+    player.setAudioOutput(&audioOutput);
+    player.setVideoOutput(&videoOutput);
 
     QSignalSpy errorSpy(&player, SIGNAL(errorOccurred(QMediaPlayer::Error, const QString&)));
 

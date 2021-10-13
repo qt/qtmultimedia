@@ -194,7 +194,7 @@ void MFPlayerSession::load(const QUrl &url, QIODevice *stream)
         changeStatus(QMediaPlayer::LoadingMedia);
         m_sourceResolver->load(url, stream);
     }
-    emit positionChanged(position());
+    positionChanged(position());
 }
 
 void MFPlayerSession::handleSourceError(long hr)
@@ -1035,6 +1035,7 @@ void MFPlayerSession::stop(bool immediate)
             m_pendingState = CmdPending;
             if (m_status != QMediaPlayer::EndOfMedia) {
                 m_position = 0;
+                positionChanged(0);
             }
         } else {
             emit error(QMediaPlayer::ResourceError, tr("Failed to stop."), true);
@@ -1044,8 +1045,10 @@ void MFPlayerSession::stop(bool immediate)
 
 void MFPlayerSession::start()
 {
-    if (m_status == QMediaPlayer::EndOfMedia)
+    if (m_status == QMediaPlayer::EndOfMedia) {
         m_position = 0; // restart from the beginning
+        positionChanged(0);
+    }
 
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "start";
@@ -1097,6 +1100,10 @@ void MFPlayerSession::pause()
             m_pendingState = CmdPending;
         } else {
             emit error(QMediaPlayer::ResourceError, tr("Failed to pause."), false);
+        }
+        if (m_status == QMediaPlayer::EndOfMedia) {
+            setPosition(0);
+            positionChanged(0);
         }
     }
 }
@@ -1156,17 +1163,16 @@ qint64 MFPlayerSession::position()
     if (m_pendingState == SeekPending)
         return m_state.start;
 
-    if (m_state.command == CmdStop) {
+    if (m_state.command == CmdStop)
         return m_position / 10000;
-    }
 
     if (m_presentationClock) {
         MFTIME time, sysTime;
         if (FAILED(m_presentationClock->GetCorrelatedTime(0, &time, &sysTime)))
-            return 0;
+            return m_position / 10000;
         return qint64(time / 10000);
     }
-    return 0;
+    return m_position / 10000;
 }
 
 void MFPlayerSession::setPosition(qint64 position)
@@ -1190,7 +1196,7 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
         m_position = position * 10000;
         // Even though the position is not actually set on the session yet,
         // report it to have changed anyway for UI controls to be updated
-        emit positionChanged(this->position());
+        positionChanged(this->position());
         return;
     }
 
@@ -1575,7 +1581,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
     MediaEventType meType = MEUnknown;
     hr = sessionEvent->GetType(&meType);
-
 #ifdef DEBUG_MEDIAFOUNDATION
     if (FAILED(hrStatus))
         qDebug() << "handleSessionEvent: MediaEventType = " << meType << "Failed";
@@ -1648,6 +1653,8 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         m_position = position() * 10000;
         updatePendingCommands(CmdPause);
         m_signalPositionChangeTimer.stop();
+        if (m_status == QMediaPlayer::LoadedMedia)
+            setPosition(position());
         break;
     case MEReconnectStart:
 #ifdef DEBUG_MEDIAFOUNDATION
@@ -1687,7 +1694,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             // Topology is resolved and successfuly set, this happens only after loading a new media.
             // Make sure we always start the media from the beginning
             m_position = 0;
-
+            positionChanged(0);
             changeStatus(QMediaPlayer::LoadedMedia);
         }
         break;
@@ -1716,7 +1723,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
         //keep reporting the final position after end of media
         m_position = qint64(m_duration);
-        emit positionChanged(position());
+        positionChanged(position());
 
         changeStatus(QMediaPlayer::EndOfMedia);
         break;
@@ -1767,7 +1774,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
 void MFPlayerSession::updatePendingCommands(Command command)
 {
-    emit positionChanged(position());
+    positionChanged(position());
     if (m_state.command != command || m_pendingState == NoPending)
         return;
 

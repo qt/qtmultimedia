@@ -180,7 +180,7 @@ void tst_QVideoWidget::sizeHint()
 
     widget.show();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
-    mockSink->setVideoSize(frameSize);
+    mockSink->setNativeSize(frameSize);
 
     QCOMPARE(widget.sizeHint(), expectedSize);
 }

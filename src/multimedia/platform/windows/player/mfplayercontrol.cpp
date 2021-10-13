@@ -107,8 +107,12 @@ void MFPlayerControl::play()
 
 void MFPlayerControl::pause()
 {
-    if (m_state != QMediaPlayer::PlayingState)
+    if (m_state == QMediaPlayer::PausedState)
         return;
+
+    if (m_session->status() == QMediaPlayer::NoMedia)
+        return;
+
     changeState(QMediaPlayer::PausedState);
     m_session->pause();
     refreshState();

@@ -64,12 +64,6 @@ public:
         : QPlatformVideoSink(parent)
     {}
     void setRhi(QRhi * /*rhi*/) override {}
-
-    QSize nativeSize() const override { return videoSize; }
-
-    void setVideoSize(QSize s) { videoSize = s; }
-protected:
-    QSize videoSize = QSize(640, 480);
 };
 
 QT_END_NAMESPACE
