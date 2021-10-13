@@ -1,31 +1,9 @@
 # QTBUG-46368
 
 osx
-windows-7
-windows-7sp1
-windows-10 msvc-2015
-windows-10 msvc-2017
-windows-10 msvc-2019
 # Media player plugin not built at the moment on this platform
 opensuse-13.1 64bit
 
-[loadMedia]
-windows 64bit developer-build
-
-[unloadMedia]
-windows 64bit developer-build
-
-[playPauseStop]
-windows 64bit developer-build
-
-[processEOS]
-windows 64bit developer-build
-
-[deleteLaterAtEOS]
-windows 64bit developer-build
-
-[initialVolume]
-windows 64bit developer-build
 
 [playlist]
 redhatenterpriselinuxworkstation-6.6

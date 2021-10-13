@@ -123,8 +123,6 @@ private:
 
     QMediaPlayer::PlaybackState m_state;
     bool m_stateDirty;
-    QMediaPlayer::MediaStatus m_status;
-    QMediaPlayer::Error m_error;
 
     bool     m_videoAvailable;
     bool     m_audioAvailable;

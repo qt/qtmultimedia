@@ -145,17 +145,6 @@ void EvrVideoWindowControl::setFullScreen(bool fullScreen)
         return;
 }
 
-QSize EvrVideoWindowControl::nativeSize() const
-{
-    QSize size;
-    if (m_displayControl) {
-        SIZE sourceSize;
-        if (SUCCEEDED(m_displayControl->GetNativeVideoSize(&sourceSize, 0)))
-            size = QSize(sourceSize.cx, sourceSize.cy);
-    }
-    return size;
-}
-
 void EvrVideoWindowControl::setAspectRatioMode(Qt::AspectRatioMode mode)
 {
     m_aspectRatioMode = mode;
