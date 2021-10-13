@@ -263,7 +263,7 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     \qml
     CaptureSession {
         camera: Camera {
-            device: mediaDevices.defaultVideoInput
+            cameraDevice: mediaDevices.defaultVideoInput
         }
     }
     MediaDevices {

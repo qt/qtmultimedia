@@ -120,7 +120,7 @@ QT_BEGIN_NAMESPACE
     }
     CaptureSession {
         camera: Camera {
-            device: mediaDevices.defaultVideoInput
+            cameraDevice: mediaDevices.defaultVideoInput
         }
     }
     \endqml

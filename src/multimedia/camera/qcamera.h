@@ -64,6 +64,7 @@ class Q_MULTIMEDIA_EXPORT QCamera : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
+    // Qt 7: rename to device
     Q_PROPERTY(QCameraDevice cameraDevice READ cameraDevice WRITE setCameraDevice NOTIFY cameraDeviceChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
