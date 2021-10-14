@@ -96,6 +96,7 @@ MainWidget::MainWidget(QWidget *parent)
     ,   m_loadFileAction(nullptr)
     ,   m_generateToneAction(nullptr)
     ,   m_recordAction(nullptr)
+    ,   m_errorOccurred(false)
 {
     m_spectrograph->setParams(SpectrumNumBands, SpectrumLowFreq, SpectrumHighFreq);
 
@@ -158,6 +159,8 @@ void MainWidget::infoMessage(const QString &message, int timeoutMs)
 void MainWidget::errorMessage(const QString &heading, const QString &detail)
 {
     QMessageBox::warning(this, heading, detail, QMessageBox::Close);
+    m_errorOccurred = true;
+    reset();
 }
 
 void MainWidget::timerEvent(QTimerEvent *event)
@@ -190,6 +193,7 @@ void MainWidget::bufferLengthChanged(qint64 length)
 
 void MainWidget::showFileDialog()
 {
+    m_errorOccurred = false;
     const QString dir;
     const QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open WAV file"), dir, "*.wav");
     if (fileNames.count()) {
@@ -214,6 +218,7 @@ void MainWidget::showSettingsDialog()
 
 void MainWidget::showToneGeneratorDialog()
 {
+    m_errorOccurred = false;
     m_toneGeneratorDialog->exec();
     if (m_toneGeneratorDialog->result() == QDialog::Accepted) {
         reset();
@@ -228,12 +233,14 @@ void MainWidget::showToneGeneratorDialog()
             updateButtonStates();
         }
     } else {
+        setMode(NoMode);
         updateModeMenu();
     }
 }
 
 void MainWidget::initializeRecord()
 {
+    m_errorOccurred = false;
     reset();
     setMode(RecordMode);
     if (m_engine->initializeRecord())
@@ -413,17 +420,18 @@ void MainWidget::updateButtonStates()
                                 (QAudio::ActiveState != m_engine->state() &&
                                  QAudio::IdleState != m_engine->state())) &&
                                 RecordMode == m_mode);
-    m_recordButton->setEnabled(recordEnabled);
+    m_recordButton->setEnabled(m_errorOccurred ? false : recordEnabled);
 
     const bool pauseEnabled = (QAudio::ActiveState == m_engine->state() ||
                                QAudio::IdleState == m_engine->state());
-    m_pauseButton->setEnabled(pauseEnabled);
+    m_pauseButton->setEnabled(m_errorOccurred ? false : pauseEnabled);
 
     const bool playEnabled = (/*m_engine->dataLength() &&*/
                               (QAudioDevice::Output != m_engine->mode() ||
                                (QAudio::ActiveState != m_engine->state() &&
                                 QAudio::IdleState != m_engine->state())));
-    m_playButton->setEnabled(playEnabled);
+
+    m_playButton->setEnabled(m_errorOccurred ? false : playEnabled);
 }
 
 void MainWidget::reset()
@@ -435,6 +443,10 @@ void MainWidget::reset()
     m_levelMeter->reset();
     m_spectrograph->reset();
     m_progressBar->reset();
+    if (m_errorOccurred) {
+        setMode(Mode::NoMode);
+        updateButtonStates();
+    }
 }
 
 void MainWidget::setMode(Mode mode)

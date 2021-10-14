@@ -112,7 +112,6 @@ public:
      * Stop any ongoing recording or playback, and reset to ground state.
      */
     void reset();
-
     /**
      * Load data from WAV file
      */
@@ -266,6 +265,7 @@ private:
     void calculateLevel(qint64 position, qint64 length);
     void calculateSpectrum(qint64 position);
     void setLevel(qreal rmsLevel, qreal peakLevel, int numSamples);
+    void emitError(QAudio::Error error);
 
 #ifdef DUMP_DATA
     void createOutputDir();

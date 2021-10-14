@@ -252,6 +252,9 @@ void Engine::startRecording()
 
 void Engine::startPlayback()
 {
+    if (!m_audioOutput)
+        initialize();
+
     if (m_audioOutput) {
         if (QAudioDevice::Output == m_mode &&
             QAudio::SuspendedState == m_state) {
@@ -409,6 +412,7 @@ void Engine::audioStateChanged(QAudio::State state)
                 break;
             }
             if (QAudio::NoError != error) {
+                emitError(error);
                 reset();
                 return;
             }
@@ -466,8 +470,8 @@ void Engine::reset()
     stopRecording();
     stopPlayback();
     setState(QAudioDevice::Input, QAudio::StoppedState);
-    setFormat(QAudioFormat());
     m_generateTone = false;
+    setFormat(QAudioFormat());
     delete m_file;
     m_file = nullptr;
     delete m_analysisFile;
@@ -586,6 +590,7 @@ void Engine::stopRecording()
         m_audioInput->disconnect();
     }
     m_audioInputIODevice = nullptr;
+    m_notifyTimer->stop();
 
 #ifdef DUMP_AUDIO
     dumpData();
@@ -600,6 +605,7 @@ void Engine::stopPlayback()
         m_audioOutput->disconnect();
         setPlayPosition(0);
     }
+    m_notifyTimer->stop();
 }
 
 void Engine::setState(QAudio::State state)
@@ -705,6 +711,32 @@ void Engine::setLevel(qreal rmsLevel, qreal peakLevel, int numSamples)
     m_rmsLevel = rmsLevel;
     m_peakLevel = peakLevel;
     emit levelChanged(m_rmsLevel, m_peakLevel, numSamples);
+}
+
+void Engine::emitError(QAudio::Error error)
+{
+    QString errorString;
+    switch (error) {
+    case QAudio::NoError:
+        errorString = tr("NoError");
+        break;
+    case QAudio::OpenError:
+        errorString = tr("OpenError: An error occurred opening the audio device.");
+        break;
+    case QAudio::IOError:
+        errorString = tr("IOError: An error occurred during read/write of audio device.");
+        break;
+    case QAudio::UnderrunError:
+        errorString = tr("UnderrunError: Audio data is not being fed"
+                        "to the audio device at a fast enough rate.");
+        break;
+    case QAudio::FatalError:
+        errorString = tr("FatalError: A non-recoverable error has occurred,"
+                        "the audio device is not usable at this time.");
+        break;
+    }
+
+    emit errorMessage(tr("Audio Device"), errorString);
 }
 
 #ifdef DUMP_DATA
