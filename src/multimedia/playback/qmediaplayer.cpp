@@ -213,7 +213,10 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
         }
     } else {
         qrcMedia = QUrl();
-        control->setMedia(media, stream);
+        QUrl url = media;
+        if (url.scheme().isEmpty() || url.scheme() == QLatin1String("file"))
+            url = QUrl::fromUserInput(media.path(), QDir::currentPath(), QUrl::AssumeLocalFile);
+        control->setMedia(url, stream);
     }
 
     qrcFile.swap(file); // Cleans up any previous file
