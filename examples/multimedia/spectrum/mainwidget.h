@@ -152,6 +152,8 @@ private:
     QAction*                m_loadFileAction;
     QAction*                m_generateToneAction;
     QAction*                m_recordAction;
+    bool                    m_errorOccurred;
+
 };
 
 #endif // MAINWIDGET_H
