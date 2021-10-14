@@ -122,6 +122,7 @@ private slots:
     void toggleSuspendResume();
     void deviceChanged(int index);
     void volumeChanged(int);
+    void updateAudioDevices();
 };
 
 #endif // AUDIOOUTPUT_H
