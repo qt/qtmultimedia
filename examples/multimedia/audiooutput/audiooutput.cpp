@@ -166,6 +166,7 @@ void AudioTest::initializeWindow()
             m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     }
     connect(m_deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
+    connect(m_devices, &QMediaDevices::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
     layout->addWidget(m_deviceBox);
 
     m_modeButton = new QPushButton(this);
@@ -226,6 +227,14 @@ void AudioTest::volumeChanged(int value)
                                                QAudio::LinearVolumeScale);
 
     m_audioOutput->setVolume(linearVolume);
+}
+
+void AudioTest::updateAudioDevices()
+{
+    m_deviceBox->clear();
+    const QList<QAudioDevice> devices = m_devices->audioOutputs();
+    for (const QAudioDevice &deviceInfo: devices)
+        m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
 }
 
 void AudioTest::toggleMode()
