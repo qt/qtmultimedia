@@ -150,6 +150,7 @@ void AVFVideoSinkInterface::setRhi(QRhi *rhi)
             m_rhi = nullptr;
         }
     } else if (rhi->backend() == QRhi::OpenGLES2) {
+#if QT_CONFIG(opengl)
 #ifdef Q_OS_MACOS
         const auto *gl = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
 
@@ -180,6 +181,9 @@ void AVFVideoSinkInterface::setRhi(QRhi *rhi)
             m_rhi = nullptr;
         }
 #endif
+#else
+        m_rhi = nullptr;
+#endif // QT_CONFIG(opengl)
     }
 }
 
