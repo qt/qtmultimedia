@@ -190,6 +190,7 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 //        qDebug() << "    -> " << quint64(CVMetalTextureGetTexture(cvMetalTexture[plane]));
         return cvMetalTexture[plane] ? quint64(CVMetalTextureGetTexture(cvMetalTexture[plane])) : 0;
     } else if (rhi->backend() == QRhi::OpenGLES2) {
+#if QT_CONFIG(opengl)
 #ifdef Q_OS_MACOS
         CVOpenGLTextureCacheFlush(sink->cvOpenGLTextureCache, 0);
         CVReturn cvret;
@@ -225,6 +226,7 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 
         // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
         return CVOpenGLESTextureGetName(cvOpenGLESTexture);
+#endif
 #endif
     }
     return 0;
