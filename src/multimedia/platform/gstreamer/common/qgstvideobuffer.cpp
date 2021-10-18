@@ -60,7 +60,9 @@
 #include <gst/gl/gstglconfig.h>
 #include <gst/gl/gstglmemory.h>
 #include <gst/gl/gstglsyncmeta.h>
+#if QT_CONFIG(linux_dmabuf)
 #include <gst/allocators/gstdmabuf.h>
+#endif
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -175,7 +177,7 @@ void QGstVideoBuffer::unmap()
     m_mode = QVideoFrame::NotMapped;
 }
 
-#if QT_CONFIG(gstreamer_gl)
+#if QT_CONFIG(gstreamer_gl) && QT_CONFIG(linux_dmabuf)
 static int
 fourccFromVideoInfo(const GstVideoInfo * info, int plane)
 {
@@ -289,7 +291,7 @@ void QGstVideoBuffer::mapTextures()
             gst_video_frame_unmap(&m_frame);
         }
     }
-#if GST_GL_HAVE_PLATFORM_EGL
+#if GST_GL_HAVE_PLATFORM_EGL && QT_CONFIG(linux_dmabuf)
     else if (memoryFormat == QGstCaps::DMABuf) {
         if (m_textures[0])
             return;

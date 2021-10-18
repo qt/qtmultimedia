@@ -238,10 +238,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATU
         -lgstphotography-1.0#GStreamer::Photography # special case
 )
 
-if (QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl)
-    qt_find_package(EGL)
-endif()
-
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gstreamer AND QT_FEATURE_gstreamer_gl
     LIBRARIES
         GStreamer::Gl # special case

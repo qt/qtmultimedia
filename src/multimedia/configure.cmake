@@ -20,6 +20,7 @@ if((QNX) OR QT_FIND_ALL_PACKAGES_ALWAYS)
 endif()
 qt_find_package(WrapPulseAudio PROVIDED_TARGETS WrapPulseAudio::WrapPulseAudio MODULE_NAME multimedia QMAKE_LIB pulseaudio)
 qt_find_package(WMF PROVIDED_TARGETS WMF::WMF MODULE_NAME multimedia QMAKE_LIB wmf)
+qt_find_package(EGL)
 
 
 #### Tests
@@ -44,7 +45,26 @@ qt_config_compile_test("wmsdk"
                    LABEL "wmsdk.h"
                    PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/wmsdk"
 )
+qt_config_compile_test(linux_dmabuf
+    LABEL "Linux DMA buffer support"
+    LIBRARIES
+        EGL::EGL
+    CODE
+"#include <EGL/egl.h>
+#include <EGL/eglext.h>
 
+int main(int, char **)
+{
+    /* BEGIN TEST: */
+    eglCreateImage(nullptr,
+        EGL_NO_CONTEXT,
+        EGL_LINUX_DMA_BUF_EXT,
+        nullptr,
+        nullptr);
+    /* END TEST: */
+    return 0;
+}
+")
 
 #### Features
 
@@ -93,6 +113,10 @@ qt_feature("linux_v4l" PRIVATE
     LABEL "Video for Linux"
     CONDITION UNIX AND TEST_linux_v4l
 )
+qt_feature("linux_dmabuf" PRIVATE
+    LABEL "Linux DMA buffer support"
+    CONDITION UNIX AND TEST_linux_dmabuf
+)
 qt_feature("mmrenderer" PUBLIC PRIVATE
     LABEL "MMRenderer"
     CONDITION MMRenderer_FOUND AND false
@@ -118,6 +142,7 @@ qt_configure_add_summary_section(NAME "Qt Multimedia")
 qt_configure_add_summary_entry(ARGS "gstreamer_1_0")
 qt_configure_add_summary_entry(ARGS "linux_v4l")
 #qt_configure_add_summary_entry(ARGS "pulseaudio")
+qt_configure_add_summary_entry(ARGS "linux_dmabuf")
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
 qt_configure_add_summary_entry(ARGS "wmf")
