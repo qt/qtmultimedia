@@ -66,9 +66,9 @@ QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
     // configures the queue to be fast, lightweight and non blocking
     queue.set("leaky", 2 /*downstream*/);
     queue.set("silent", true);
-    queue.set("max-size-buffers", 1);
-    queue.set("max-size-bytes", 0);
-    queue.set("max-size-time", 0);
+    queue.set("max-size-buffers", uint(1));
+    queue.set("max-size-bytes", uint(0));
+    queue.set("max-size-time", quint64(0));
 
     videoConvert = QGstElement("videoconvert", "imageCaptureConvert");
     encoder = QGstElement("jpegenc", "jpegEncoder");
