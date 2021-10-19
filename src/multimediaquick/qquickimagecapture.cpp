@@ -108,7 +108,7 @@ QQuickImageCapture::~QQuickImageCapture() = default;
 */
 
 /*!
-    \qmlproperty bool QtMultimedia::ImageCapture::preview
+    \qmlproperty string QtMultimedia::ImageCapture::preview
 
     This property holds a url to the latest captured image. It can be connected to the
     source property of an \l Image element to show the last captured image.
