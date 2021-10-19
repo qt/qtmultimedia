@@ -161,9 +161,9 @@ void QGstreamerVideoOutput::setIsPreview()
     // also avoids blocking the queue in case we have an encodebin attached to the tee as well
     videoQueue.set("leaky", 2 /*downstream*/);
     videoQueue.set("silent", true);
-    videoQueue.set("max-size-buffers", 1);
-    videoQueue.set("max-size-bytes", 0);
-    videoQueue.set("max-size-time", 0);
+    videoQueue.set("max-size-buffers", uint(1));
+    videoQueue.set("max-size-bytes", uint(0));
+    videoQueue.set("max-size-time", quint64(0));
 }
 
 void QGstreamerVideoOutput::flushSubtitles()
