@@ -81,6 +81,9 @@ Decoder::~Decoder()
 
 void Decoder::stop()
 {
+    if (!m_codec)
+        return;
+
     const media_status_t err = AMediaCodec_stop(m_codec);
     if (err != AMEDIA_OK)
         qCWarning(adLogger) << "stop() error: " << err;
@@ -164,6 +167,11 @@ void Decoder::doDecode()
     }
 
     createDecoder();
+
+    if (!m_codec) {
+        emit error(QAudioDecoder::ResourceError, tr("Audio Decoder could not be created."));
+        return;
+    }
 
     media_status_t status = AMediaCodec_configure(m_codec, m_format, nullptr /* surface */,
                                         nullptr /* crypto */, 0);
@@ -298,9 +306,9 @@ void QAndroidAudioDecoder::start()
     setIsDecoding(true);
     m_position = -1;
 
-    QThread *threadDecoder = new QThread(this);
-    m_decoder->moveToThread(threadDecoder);
-    threadDecoder->start();
+    m_threadDecoder = new QThread(this);
+    m_decoder->moveToThread(m_threadDecoder);
+    m_threadDecoder->start();
     decode();
 }
 
@@ -310,6 +318,9 @@ void QAndroidAudioDecoder::stop()
         return;
 
     m_decoder->stop();
+
+    if (m_threadDecoder && m_threadDecoder->isRunning())
+        m_threadDecoder->exit();
 
     QMutexLocker locker(&m_buffersMutex);
     m_position = -1;
@@ -369,6 +380,7 @@ void QAndroidAudioDecoder::durationChanged(qint64 duration)
 
 void QAndroidAudioDecoder::error(const QAudioDecoder::Error err, const QString &errorString)
 {
+    stop();
     emit QPlatformAudioDecoder::error(err, errorString);
 }
 

@@ -144,6 +144,8 @@ private:
     int m_buffersAvailable = 0;
 
     QByteArray m_deviceBuffer;
+
+    QThread *m_threadDecoder;
 };
 
 QT_END_NAMESPACE
