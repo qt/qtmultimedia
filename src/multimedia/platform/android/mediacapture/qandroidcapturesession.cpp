@@ -135,7 +135,9 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
 
     setKeepAlive(true);
 
-    if (m_cameraSession && !qt_androidRequestCameraPermission()) {
+    const bool validCameraSession = m_cameraSession && m_cameraSession->camera();
+
+    if (validCameraSession && !qt_androidRequestCameraPermission()) {
         emit error(QMediaRecorder::ResourceError, QLatin1String("Camera permission denied."));
         setKeepAlive(false);
         return;
@@ -156,7 +158,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     applySettings(settings);
 
     // Set audio/video sources
-    if (m_cameraSession) {
+    if (validCameraSession) {
         m_cameraSession->camera()->stopPreviewSynchronous();
         m_cameraSession->applyResolution(settings.videoResolution(), false);
         m_cameraSession->camera()->unlock();
@@ -176,7 +178,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     m_mediaRecorder->setOutputFormat(m_outputFormat);
 
     // Set video encoder settings
-    if (m_cameraSession) {
+    if (validCameraSession) {
         m_mediaRecorder->setVideoSize(settings.videoResolution());
         m_mediaRecorder->setVideoFrameRate(qRound(settings.videoFrameRate()));
         m_mediaRecorder->setVideoEncodingBitRate(settings.videoBitRate());
@@ -213,14 +215,18 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     // is not necessary when the Camera already has a Surface, it doesn't actually work on some
     // devices. For example on the Samsung Galaxy Tab 2, the camera server dies after prepare()
     // and start() if MediaRecorder.setPreviewDisplay() is not called.
-    if (m_cameraSession) {
-        // When using a SurfaceTexture, we need to pass a new one to the MediaRecorder, not the same
-        // one that is set on the Camera or it will crash, hence the reset().
-        m_cameraSession->videoOutput()->reset();
-        if (m_cameraSession->videoOutput()->surfaceTexture())
-            m_mediaRecorder->setSurfaceTexture(m_cameraSession->videoOutput()->surfaceTexture());
-        else if (m_cameraSession->videoOutput()->surfaceHolder())
-            m_mediaRecorder->setSurfaceHolder(m_cameraSession->videoOutput()->surfaceHolder());
+    if (validCameraSession) {
+
+        if (m_cameraSession->videoOutput()) {
+            // When using a SurfaceTexture, we need to pass a new one to the MediaRecorder, not the
+            // same one that is set on the Camera or it will crash, hence the reset().
+            m_cameraSession->videoOutput()->reset();
+            if (m_cameraSession->videoOutput()->surfaceTexture())
+                m_mediaRecorder->setSurfaceTexture(
+                        m_cameraSession->videoOutput()->surfaceTexture());
+            else if (m_cameraSession->videoOutput()->surfaceHolder())
+                m_mediaRecorder->setSurfaceHolder(m_cameraSession->videoOutput()->surfaceHolder());
+        }
 
         m_cameraSession->disableRotation();
     }
@@ -244,7 +250,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     m_notifyTimer.start();
     updateDuration();
 
-    if (m_cameraSession) {
+    if (validCameraSession) {
         m_cameraSession->setReadyForCapture(false);
 
         // Preview frame callback is cleared when setting up the camera with the media recorder.
@@ -363,23 +369,36 @@ void QAndroidCaptureSession::applySettings(QMediaEncoderSettings &settings)
 
 void QAndroidCaptureSession::restartViewfinder()
 {
+
+    setKeepAlive(false);
+
     if (!m_cameraSession)
         return;
-    m_cameraSession->camera()->reconnect();
 
-    // This is not necessary on most devices, but it crashes on some if we don't stop the
-    // preview and reset the preview display on the camera when recording is over.
-    m_cameraSession->camera()->stopPreviewSynchronous();
-    m_cameraSession->videoOutput()->reset();
-    if (m_cameraSession->videoOutput()->surfaceTexture())
-        m_cameraSession->camera()->setPreviewTexture(m_cameraSession->videoOutput()->surfaceTexture());
-    else if (m_cameraSession->videoOutput()->surfaceHolder())
-        m_cameraSession->camera()->setPreviewDisplay(m_cameraSession->videoOutput()->surfaceHolder());
+    if (m_cameraSession && m_cameraSession->camera()) {
+        m_cameraSession->camera()->reconnect();
 
-    m_cameraSession->camera()->startPreview();
-    m_cameraSession->setReadyForCapture(true);
-    m_cameraSession->enableRotation();
-    setKeepAlive(false);
+        // This is not necessary on most devices, but it crashes on some if we don't stop the
+        // preview and reset the preview display on the camera when recording is over.
+        m_cameraSession->camera()->stopPreviewSynchronous();
+
+        if (m_cameraSession->videoOutput()) {
+            // When using a SurfaceTexture, we need to pass a new one to the MediaRecorder, not the
+            // same one that is set on the Camera or it will crash, hence the reset().
+            m_cameraSession->videoOutput()->reset();
+            if (m_cameraSession->videoOutput()->surfaceTexture())
+                m_cameraSession->camera()->setPreviewTexture(
+                        m_cameraSession->videoOutput()->surfaceTexture());
+            else if (m_cameraSession->videoOutput()->surfaceHolder())
+                m_cameraSession->camera()->setPreviewDisplay(
+                        m_cameraSession->videoOutput()->surfaceHolder());
+        }
+
+        m_cameraSession->camera()->startPreview();
+        m_cameraSession->setReadyForCapture(true);
+        m_cameraSession->enableRotation();
+    }
+
     m_mediaRecorder = nullptr;
 }
 
