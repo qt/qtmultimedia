@@ -17,6 +17,7 @@ qt_internal_add_qml_module(MultimediaQuickPrivate
     PLUGIN_TARGET quickmultimedia
     NO_GENERATE_PLUGIN_SOURCE
     NO_PLUGIN_OPTIONAL
+    DEPENDENCIES QtQuick
     CONFIG_MODULE_NAME multimediaquick
     INTERNAL_MODULE
     SOURCES
