@@ -82,6 +82,7 @@ private slots:
     void positionAfterSeek();
     void videoDimensions();
     void position();
+    void multipleMediaPlayback();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -91,6 +92,7 @@ private:
     QUrl localWavFile;
     QUrl localWavFile2;
     QUrl localVideoFile;
+    QUrl localVideoFile2;
     QUrl localCompressedSoundFile;
     QUrl localFileWithMetadata;
 
@@ -171,20 +173,26 @@ void tst_QMediaPlayerBackend::initTestCase()
     if (!player.isAvailable())
         QSKIP("Media player service is not available");
 
-    localWavFile = MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA("testdata/test.wav"));
-    localWavFile2 = MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA("testdata/_test.wav"));;
+    localWavFile = MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/test.wav");
+    localWavFile2 = MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/_test.wav");
 
     QStringList mediaCandidates;
-    mediaCandidates << QFINDTESTDATA("testdata/colors.mp4");
-    mediaCandidates << QFINDTESTDATA("testdata/colors.ogv");
+    mediaCandidates << "qrc:/testdata/colors.mp4";
+    mediaCandidates << "qrc:/testdata/colors.ogv";
     localVideoFile = MediaFileSelector::selectMediaFile(mediaCandidates);
 
     mediaCandidates.clear();
-    mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mp3");
-    mediaCandidates << QFINDTESTDATA("testdata/nokia-tune.mkv");
+    mediaCandidates << "qrc:/testdata/BigBuckBunny.mp4";
+    mediaCandidates << "qrc:/testdata/busMpeg4.mp4";
+    localVideoFile2 = MediaFileSelector::selectMediaFile(mediaCandidates);
+
+    mediaCandidates.clear();
+    mediaCandidates << "qrc:/testdata/nokia-tune.mp3";
+    mediaCandidates << "qrc:/testdata/nokia-tune.mkv";
     localCompressedSoundFile = MediaFileSelector::selectMediaFile(mediaCandidates);
 
-    localFileWithMetadata = MediaFileSelector::selectMediaFile(QStringList() << QFINDTESTDATA("testdata/nokia-tune.mp3"));
+    localFileWithMetadata =
+            MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/nokia-tune.mp3");
 
     qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
@@ -985,6 +993,51 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
     player.pause();
     QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
     QVERIFY(player.position() > 1000);
+}
+
+void tst_QMediaPlayerBackend::multipleMediaPlayback()
+{
+    if (localVideoFile.isEmpty() || localVideoFile2.isEmpty())
+        QSKIP("Video format is not supported");
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+    QAudioOutput output;
+
+    player.setVideoOutput(&surface);
+    player.setAudioOutput(&output);
+    player.setSource(localVideoFile);
+
+    QCOMPARE(player.source(), localVideoFile);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    player.setPosition(0);
+    player.play();
+
+    QCOMPARE(player.error(), QMediaPlayer::NoError);
+    QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_VERIFY(player.position() > 0);
+    QCOMPARE(player.source(), localVideoFile);
+
+    player.stop();
+
+    player.setSource(localVideoFile2);
+
+    QCOMPARE(player.source(), localVideoFile2);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QTRY_VERIFY(player.isSeekable());
+
+    player.setPosition(0);
+    player.play();
+
+    QCOMPARE(player.error(), QMediaPlayer::NoError);
+    QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_VERIFY(player.position() > 0);
+    QCOMPARE(player.source(), localVideoFile2);
+
+    player.stop();
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
 }
 
 void tst_QMediaPlayerBackend::surfaceTest()

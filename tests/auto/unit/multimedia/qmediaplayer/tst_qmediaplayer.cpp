@@ -81,6 +81,8 @@ private slots:
     void testValid();
     void testMedia_data();
     void testMedia();
+    void testMultipleMedia_data();
+    void testMultipleMedia();
     void testDuration_data();
     void testDuration();
     void testPosition_data();
@@ -252,6 +254,38 @@ void tst_QMediaPlayer::testMedia()
     player->setSourceDevice(&stream, mediaContent);
     QCOMPARE(player->source(), mediaContent);
     QCOMPARE(player->sourceDevice(), &stream);
+}
+
+void tst_QMediaPlayer::testMultipleMedia_data()
+{
+    QTest::addColumn<QUrl>("mediaContent");
+    QTest::addColumn<QUrl>("anotherMediaContent");
+
+    QTest::newRow("multipleSources")
+            << QUrl(QUrl("file:///some.mp3")) << QUrl(QUrl("file:///someother.mp3"));
+}
+
+void tst_QMediaPlayer::testMultipleMedia()
+{
+    QFETCH(QUrl, mediaContent);
+
+    player->setSource(mediaContent);
+    QCOMPARE(player->source(), mediaContent);
+
+    QBuffer stream;
+    player->setSourceDevice(&stream, mediaContent);
+    QCOMPARE(player->source(), mediaContent);
+    QCOMPARE(player->sourceDevice(), &stream);
+
+    QFETCH(QUrl, anotherMediaContent);
+
+    player->setSource(anotherMediaContent);
+    QCOMPARE(player->source(), anotherMediaContent);
+
+    QBuffer anotherStream;
+    player->setSourceDevice(&anotherStream, anotherMediaContent);
+    QCOMPARE(player->source(), anotherMediaContent);
+    QCOMPARE(player->sourceDevice(), &anotherStream);
 }
 
 void tst_QMediaPlayer::testDuration_data()
