@@ -85,7 +85,6 @@ public:
     AVCaptureAudioDataOutput *audioOutput() const { return m_audioOutput; }
     AVFAudioPreviewDelegate *audioPreviewDelegate() const { return m_audioPreviewDelegate; }
 
-
     AVCaptureSession *captureSession() const { return m_captureSession; }
     AVCaptureDevice *videoCaptureDevice() const;
     AVCaptureDevice *audioCaptureDevice() const;
@@ -98,6 +97,8 @@ public:
     AVCaptureDeviceInput *audioInput() const { return m_audioInput; }
 
     void setVideoSink(QVideoSink *sink);
+
+    void updateVideoInput();
 
     void updateAudioInput();
     void updateAudioOutput();
@@ -114,6 +115,9 @@ public Q_SLOTS:
     void processSessionStarted();
     void processSessionStopped();
 
+    void cameraAuthorizationChanged(bool authorized);
+    void microphoneAuthorizationChanged(bool authorized);
+
 Q_SIGNALS:
     void readyToConfigureConnections();
     void activeChanged(bool);
@@ -121,6 +125,8 @@ Q_SIGNALS:
     void newViewfinderFrame(const QVideoFrame &frame);
 
 private:
+    void updateCameraFormat(const QCameraFormat &format);
+
     void setVideoOutput(AVFCameraRenderer *output);
     void updateVideoOutput();
 
@@ -130,6 +136,8 @@ private:
     AVCaptureDevice *createAudioCaptureDevice();
     void attachVideoInputDevice();
     void attachAudioInputDevice();
+    void requestCameraPermissionIfNeeded();
+    void requestMicrophonePermissionIfNeeded();
 
     bool applyImageEncoderSettings();
 
@@ -155,6 +163,9 @@ private:
     bool m_inputMuted = false;
 
     FourCharCode m_defaultCodec;
+
+    AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
+    AVAuthorizationStatus m_microphoneAuthorizationStatus = AVAuthorizationStatusDenied;
 };
 
 QT_END_NAMESPACE

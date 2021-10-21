@@ -53,6 +53,7 @@
 #include <QtCore/qdatetime.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qelapsedtimer.h>
+#include <QtCore/qpointer.h>
 
 #include <private/qplatformaudioinput_p.h>
 #include <private/qplatformaudiooutput_p.h>
@@ -179,26 +180,9 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
     if (m_activeCameraDevice != info) {
         m_activeCameraDevice = info;
 
-        auto recorder = m_service->recorderControl();
-        if (recorder && recorder->state() == QMediaRecorder::RecordingState)
-            recorder->toggleRecord(false);
-
-        [m_captureSession beginConfiguration];
-
-        attachVideoInputDevice();
-        if (!m_activeCameraDevice.isNull() && !m_videoOutput) {
-            setVideoOutput(new AVFCameraRenderer(this));
-            connect(m_videoOutput, &AVFCameraRenderer::newViewfinderFrame,
-                     this, &AVFCameraSession::newViewfinderFrame);
-            updateVideoOutput();
-        }
-        m_videoOutput->deviceOrientationChanged();
-
-        [m_captureSession commitConfiguration];
-
-        if (recorder && recorder->state() == QMediaRecorder::RecordingState)
-            recorder->toggleRecord(true);
-        Q_EMIT readyToConfigureConnections();
+        requestCameraPermissionIfNeeded();
+        if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
+            updateVideoInput();
     }
 }
 
@@ -206,6 +190,12 @@ void AVFCameraSession::setCameraFormat(const QCameraFormat &format)
 {
     if (m_cameraFormat == format)
         return;
+
+    updateCameraFormat(format);
+}
+
+void AVFCameraSession::updateCameraFormat(const QCameraFormat &format)
+{
     m_cameraFormat = format;
 
     AVCaptureDevice *captureDevice = videoCaptureDevice();
@@ -382,6 +372,9 @@ AVCaptureDevice *AVFCameraSession::createAudioCaptureDevice()
 
 void AVFCameraSession::attachVideoInputDevice()
 {
+    if (m_cameraAuthorizationStatus != AVAuthorizationStatusAuthorized)
+        return;
+
     if (m_videoInput) {
         [m_captureSession removeInput:m_videoInput];
         [m_videoInput release];
@@ -389,30 +382,25 @@ void AVFCameraSession::attachVideoInputDevice()
     }
 
     AVCaptureDevice *videoDevice = createVideoCaptureDevice();
-    if (videoDevice) {
-        NSError *error = nil;
-        m_videoInput = [AVCaptureDeviceInput
-                deviceInputWithDevice:videoDevice
-                error:&error];
+    if (!videoDevice)
+        return;
 
-        if (!m_videoInput) {
-            qWarning() << "Failed to create video device input";
-        } else {
-            if ([m_captureSession canAddInput:m_videoInput]) {
-                [m_videoInput retain];
-                [m_captureSession addInput:m_videoInput];
-            } else {
-                qWarning() << "Failed to connect video device input";
-                m_activeCameraDevice = QCameraDevice();
-            }
-        }
+    m_videoInput = [AVCaptureDeviceInput
+                    deviceInputWithDevice:videoDevice
+                    error:nil];
+    if (m_videoInput && [m_captureSession canAddInput:m_videoInput]) {
+        [m_videoInput retain];
+        [m_captureSession addInput:m_videoInput];
     } else {
-        m_activeCameraDevice = QCameraDevice();
+        qWarning() << "Failed to create video device input";
     }
 }
 
 void AVFCameraSession::attachAudioInputDevice()
 {
+    if (m_microphoneAuthorizationStatus != AVAuthorizationStatusAuthorized)
+        return;
+
     if (m_audioInput) {
         [m_captureSession removeInput:m_audioInput];
         [m_audioInput release];
@@ -420,22 +408,18 @@ void AVFCameraSession::attachAudioInputDevice()
     }
 
     AVCaptureDevice *audioDevice = createAudioCaptureDevice();
-    if (audioDevice) {
-        NSError *error = nil;
-        m_audioInput = [AVCaptureDeviceInput
-                deviceInputWithDevice:audioDevice
-                error:&error];
+    if (!audioDevice)
+        return;
 
-        if (!m_audioInput) {
-            qWarning() << "Failed to create audio device input";
-        } else {
-            if ([m_captureSession canAddInput:m_audioInput]) {
-                [m_audioInput retain];
-                [m_captureSession addInput:m_audioInput];
-            } else {
-                qWarning() << "Failed to connect audio device input";
-            }
-        }
+    m_audioInput = [AVCaptureDeviceInput
+            deviceInputWithDevice:audioDevice
+            error:nil];
+
+    if (m_audioInput && [m_captureSession canAddInput:m_audioInput]) {
+        [m_audioInput retain];
+        [m_captureSession addInput:m_audioInput];
+    } else {
+        qWarning() << "Failed to create audio device input";
     }
 }
 
@@ -472,8 +456,37 @@ void AVFCameraSession::setVideoSink(QVideoSink *sink)
     updateVideoOutput();
 }
 
+void AVFCameraSession::updateVideoInput()
+{
+    auto recorder = m_service->recorderControl();
+    if (recorder && recorder->state() == QMediaRecorder::RecordingState)
+        recorder->toggleRecord(false);
+
+    [m_captureSession beginConfiguration];
+
+    attachVideoInputDevice();
+    if (!m_activeCameraDevice.isNull() && !m_videoOutput) {
+        setVideoOutput(new AVFCameraRenderer(this));
+        connect(m_videoOutput, &AVFCameraRenderer::newViewfinderFrame,
+                    this, &AVFCameraSession::newViewfinderFrame);
+        updateVideoOutput();
+    }
+    if (m_videoOutput)
+        m_videoOutput->deviceOrientationChanged();
+
+    [m_captureSession commitConfiguration];
+
+    if (recorder && recorder->state() == QMediaRecorder::RecordingState)
+        recorder->toggleRecord(true);
+    Q_EMIT readyToConfigureConnections();
+}
+
 void AVFCameraSession::updateAudioInput()
 {
+    requestMicrophonePermissionIfNeeded();
+    if (m_microphoneAuthorizationStatus != AVAuthorizationStatusAuthorized)
+        return;
+
     auto recorder = m_service->recorderControl();
     if (recorder && recorder->state() == QMediaRecorder::RecordingState)
         recorder->toggleRecord(false);
@@ -516,6 +529,95 @@ void AVFCameraSession::updateVideoOutput()
             AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
             m_videoOutput->setLayer(previewLayer);
         }
+    }
+}
+
+void AVFCameraSession::requestCameraPermissionIfNeeded()
+{
+    if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
+        return;
+
+    switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo])
+    {
+        case AVAuthorizationStatusAuthorized:
+        {
+            m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
+            break;
+        }
+        case AVAuthorizationStatusNotDetermined:
+        {
+            m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
+            QPointer<AVFCameraSession> guard(this);
+            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (guard)
+                        cameraAuthorizationChanged(granted);
+                });
+            }];
+            break;
+        }
+        case AVAuthorizationStatusDenied:
+        case AVAuthorizationStatusRestricted:
+        {
+            m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
+            return;
+        }
+    }
+}
+
+void AVFCameraSession::requestMicrophonePermissionIfNeeded()
+{
+    if (m_microphoneAuthorizationStatus == AVAuthorizationStatusAuthorized)
+        return;
+
+    switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio])
+    {
+        case AVAuthorizationStatusAuthorized:
+        {
+            m_microphoneAuthorizationStatus = AVAuthorizationStatusAuthorized;
+            break;
+        }
+        case AVAuthorizationStatusNotDetermined:
+        {
+            m_microphoneAuthorizationStatus = AVAuthorizationStatusNotDetermined;
+            QPointer<AVFCameraSession> guard(this);
+            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (guard)
+                        microphoneAuthorizationChanged(granted);
+                });
+            }];
+            break;
+        }
+        case AVAuthorizationStatusDenied:
+        case AVAuthorizationStatusRestricted:
+        {
+            m_microphoneAuthorizationStatus = AVAuthorizationStatusDenied;
+            return;
+        }
+    }
+}
+
+void AVFCameraSession::cameraAuthorizationChanged(bool authorized)
+{
+    if (authorized) {
+        m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
+        updateVideoInput();
+        updateCameraFormat(m_cameraFormat);
+    } else {
+        m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
+        qWarning() << "User has denied access to camera";
+    }
+}
+
+void AVFCameraSession::microphoneAuthorizationChanged(bool authorized)
+{
+    if (authorized) {
+        m_microphoneAuthorizationStatus = AVAuthorizationStatusAuthorized;
+        updateAudioInput();
+    } else {
+        m_microphoneAuthorizationStatus = AVAuthorizationStatusDenied;
+        qWarning() << "User has denied access to microphone";
     }
 }
 
