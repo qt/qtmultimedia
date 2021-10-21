@@ -47,12 +47,17 @@
 #include <private/qdarwinformatsinfo_p.h>
 #include <private/avfvideosink_p.h>
 #include <private/avfaudiodecoder_p.h>
+#include <VideoToolbox/VideoToolbox.h>
+#include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
 QDarwinIntegration::QDarwinIntegration()
 {
-
+#ifdef Q_OS_MACOS
+    if (__builtin_available(macOS 11.0, *))
+        VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9);
+#endif
 }
 
 QDarwinIntegration::~QDarwinIntegration()
