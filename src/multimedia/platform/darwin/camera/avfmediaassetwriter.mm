@@ -62,6 +62,9 @@ bool qt_capture_session_isValid(AVFCameraService *service)
     if (!session->captureSession())
         return false;
 
+    if (!session->videoInput() && !session->audioInput())
+        return false;
+
     return true;
 }
 
@@ -171,7 +174,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         return false;
     }
 
-    if (session->videoOutput() && session->videoOutput()->videoDataOutput()) {
+    if (session->videoInput() && session->videoOutput() && session->videoOutput()->videoDataOutput()) {
         m_videoQueue.reset(dispatch_queue_create("video-output-queue", DISPATCH_QUEUE_SERIAL));
         if (!m_videoQueue) {
             qDebugCamera() << Q_FUNC_INFO << "failed to create video queue";
@@ -196,10 +199,6 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         qDebugCamera() << Q_FUNC_INFO << "failed to create asset writer";
         return false;
     }
-
-    bool audioCaptureOn = false;
-    if (m_audioQueue)
-        audioCaptureOn = session->audioOutput() != nil;
 
     if (!m_videoQueue)
         m_writeFirstAudioBuffer = true;
@@ -492,16 +491,12 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     if (m_videoQueue)
     {
-        Q_ASSERT(session->videoOutput() && session->videoOutput()->videoDataOutput());
+        Q_ASSERT(session->videoCaptureDevice() && session->videoOutput() && session->videoOutput()->videoDataOutput());
         m_cameraWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeVideo
                                                           outputSettings:m_videoSettings
                                                           sourceFormatHint:session->videoCaptureDevice().activeFormat.formatDescription]);
 
-        if (!m_cameraWriterInput) {
-            qDebugCamera() << Q_FUNC_INFO << "failed to create camera writer input";
-            return false;
-        }
-        if ([m_assetWriter canAddInput:m_cameraWriterInput]) {
+        if (m_cameraWriterInput && [m_assetWriter canAddInput:m_cameraWriterInput]) {
             [m_assetWriter addInput:m_cameraWriterInput];
         } else {
             qDebugCamera() << Q_FUNC_INFO << "failed to add camera writer input";
