@@ -50,11 +50,7 @@ static QUrl selectMediaFile(const QStringList& mediaCandidates)
 
     QSignalSpy errorSpy(&player, SIGNAL(errorOccurred(QMediaPlayer::Error, const QString&)));
 
-    for (const QString &s : mediaCandidates) {
-        QFileInfo mediaFile(s);
-        if (!mediaFile.exists())
-            continue;
-        QUrl media = QUrl::fromLocalFile(mediaFile.absoluteFilePath());
+    for (const QString &media : mediaCandidates) {
         player.setSource(media);
         player.play();
 
