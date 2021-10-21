@@ -9,6 +9,7 @@ find_package(Qt6 COMPONENTS ShaderTools)
 qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
 qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
 qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
+qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox) # special case
 qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special case
 
 qt_internal_add_module(Multimedia
@@ -382,6 +383,7 @@ qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT WATCHOS
     PUBLIC_LIBRARIES
         ${FWAppKit}
         ${FWAudioUnit}
+        ${FWVideoToolbox}
 )
 
 qt_internal_extend_target(Multimedia CONDITION IOS AND NOT WATCHOS
