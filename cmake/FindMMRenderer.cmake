@@ -15,12 +15,12 @@
 # ``MMRenderer::MMRenderer``
 #     The mm-renderer library to link to
 
-find_library(MMRenderer_LIBRARY NAMES mm-renderer)
+find_library(MMRenderer_LIBRARY NAMES mmrndclient)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MMRenderer DEFAULT_MSG MMRenderer_LIBRARY)
 if(MMRenderer_FOUND AND NOT TARGET MMRenderer::MMRenderer)
     add_library(MMRenderer::MMRenderer INTERFACE IMPORTED)
     target_link_libraries(MMRenderer::MMRenderer
-                        INTERFACE ${MMRenderer_LIBRARY})
+                        INTERFACE "${MMRenderer_LIBRARY}")
 endif()
 mark_as_advanced(MMRenderer_LIBRARY)

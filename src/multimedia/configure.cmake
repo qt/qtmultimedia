@@ -15,9 +15,7 @@ qt_find_package(GStreamer OPTIONAL_COMPONENTS Photography PROVIDED_TARGETS GStre
 qt_add_qmake_lib_dependency(gstreamer_photography_1_0 gstreamer_1_0)
 qt_find_package(GStreamer OPTIONAL_COMPONENTS Gl PROVIDED_TARGETS GStreamer::Gl MODULE_NAME multimedia QMAKE_LIB gstreamer_gl_1_0) # special case
 qt_add_qmake_lib_dependency(gstreamer_gl_1_0 gstreamer_1_0)
-if((QNX) OR QT_FIND_ALL_PACKAGES_ALWAYS)
-    qt_find_package(MMRenderer PROVIDED_TARGETS MMRenderer::MMRenderer MODULE_NAME multimedia QMAKE_LIB mmrenderer)
-endif()
+qt_find_package(MMRenderer PROVIDED_TARGETS MMRenderer::MMRenderer MODULE_NAME multimedia QMAKE_LIB mmrenderer)
 qt_find_package(WrapPulseAudio PROVIDED_TARGETS WrapPulseAudio::WrapPulseAudio MODULE_NAME multimedia QMAKE_LIB pulseaudio)
 qt_find_package(WMF PROVIDED_TARGETS WMF::WMF MODULE_NAME multimedia QMAKE_LIB wmf)
 qt_find_package(EGL)
@@ -119,7 +117,7 @@ qt_feature("linux_dmabuf" PRIVATE
 )
 qt_feature("mmrenderer" PUBLIC PRIVATE
     LABEL "MMRenderer"
-    CONDITION MMRenderer_FOUND AND false
+    CONDITION MMRenderer_FOUND
     EMIT_IF QNX
 )
 qt_feature_definition("mmrenderer" "QT_NO_MMRENDERER" NEGATE VALUE "1")
