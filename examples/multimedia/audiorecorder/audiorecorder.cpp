@@ -64,6 +64,7 @@
 #include <qaudiobuffer.h>
 #include <qaudioinput.h>
 #include <qimagecapture.h>
+#include <QMimeType>
 
 static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
@@ -172,10 +173,7 @@ void AudioRecorder::toggleRecord()
     if (m_audioRecorder->recorderState() == QMediaRecorder::StoppedState) {
         m_captureSession.audioInput()->setDevice(boxValue(ui->audioDeviceBox).value<QAudioDevice>());
 
-        QMediaFormat format;
-        format.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
-        format.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
-        m_audioRecorder->setMediaFormat(format);
+        m_audioRecorder->setMediaFormat(selectedMediaFormat());
         m_audioRecorder->setAudioSampleRate(ui->sampleRateBox->value());
         m_audioRecorder->setAudioBitRate(boxValue(ui->bitrateBox).toInt());
         m_audioRecorder->setAudioChannelCount(boxValue(ui->channelsBox).toInt());
@@ -201,7 +199,13 @@ void AudioRecorder::togglePause()
 
 void AudioRecorder::setOutputLocation()
 {
+#ifdef Q_OS_ANDROID
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save Recording"),
+                                                 "output."
+                                                 + selectedMediaFormat().mimeType().preferredSuffix());
+#else
     QString fileName = QFileDialog::getSaveFileName();
+#endif
     m_audioRecorder->setOutputLocation(QUrl::fromLocalFile(fileName));
     m_outputLocationSet = true;
 }
@@ -252,6 +256,14 @@ void AudioRecorder::clearAudioLevels()
 {
     for (auto m_audioLevel : qAsConst(m_audioLevels))
         m_audioLevel->setLevel(0);
+}
+
+QMediaFormat AudioRecorder::selectedMediaFormat() const
+{
+    QMediaFormat format;
+    format.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
+    format.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
+    return format;
 }
 
 // returns the audio level for each channel

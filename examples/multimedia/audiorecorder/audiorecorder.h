@@ -86,6 +86,7 @@ private slots:
 
 private:
     void clearAudioLevels();
+    QMediaFormat selectedMediaFormat() const;
 
     Ui::AudioRecorder *ui = nullptr;
 
