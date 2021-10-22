@@ -304,6 +304,11 @@ void QDarwinMediaDevices::updateCameraDevices()
             };
             videoFormats << f->create();
         }
+        if (videoFormats.isEmpty()) {
+            // skip broken cameras without valid formats
+            delete info;
+            continue;
+        }
         info->videoFormats = videoFormats;
         info->photoResolutions = photoResolutions.values();
 
