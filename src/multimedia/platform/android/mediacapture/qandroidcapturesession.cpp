@@ -201,11 +201,14 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     }
 
     QString extension = settings.mimeType().preferredSuffix();
-
     // Set output file
     auto location = outputLocation.toString(QUrl::PreferLocalFile);
-    auto filePath = QMediaStorageLocation::generateFileName(
-                location, m_cameraSession ? QStandardPaths::MoviesLocation : QStandardPaths::MusicLocation, extension);
+    QString filePath = location;
+    if (QUrl(filePath).scheme() != QLatin1String("content")) {
+        filePath = QMediaStorageLocation::generateFileName(
+                    location, m_cameraSession ? QStandardPaths::MoviesLocation
+                                              : QStandardPaths::MusicLocation, extension);
+    }
 
     m_usedOutputLocation = QUrl::fromLocalFile(filePath);
     m_outputLocationIsStandard = location.isEmpty() || QFileInfo(location).isRelative();

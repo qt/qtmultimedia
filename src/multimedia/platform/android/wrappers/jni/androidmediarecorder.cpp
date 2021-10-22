@@ -38,14 +38,16 @@
 ****************************************************************************/
 
 #include "androidmediarecorder_p.h"
-
 #include "androidcamera_p.h"
 #include "androidsurfacetexture_p.h"
 #include "androidsurfaceview_p.h"
 #include "qandroidglobal_p.h"
 #include "qandroidmultimediautils_p.h"
+
 #include <qmap.h>
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qlogging.h>
+#include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -316,9 +318,23 @@ void AndroidMediaRecorder::setOutputFormat(OutputFormat format)
 
 void AndroidMediaRecorder::setOutputFile(const QString &path)
 {
-    m_mediaRecorder.callMethod<void>("setOutputFile",
-                                     "(Ljava/lang/String;)V",
-                                     QJniObject::fromString(path).object());
+    if (QUrl(path).scheme() == QLatin1String("content")) {
+        const QJniObject fileDescriptor = QJniObject::callStaticObjectMethod(
+                    "org/qtproject/qt/android/QtNative",
+                    "openFdObjectForContentUrl",
+                    "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/io/FileDescriptor;",
+                    QNativeInterface::QAndroidApplication::context(),
+                    QJniObject::fromString(path).object(),
+                    QJniObject::fromString(QLatin1String("rw")).object());
+
+        m_mediaRecorder.callMethod<void>("setOutputFile",
+                                         "(Ljava/io/FileDescriptor;)V",
+                                         fileDescriptor.object());
+    } else {
+        m_mediaRecorder.callMethod<void>("setOutputFile",
+                                         "(Ljava/lang/String;)V",
+                                         QJniObject::fromString(path).object());
+    }
 }
 
 void AndroidMediaRecorder::setSurfaceTexture(AndroidSurfaceTexture *texture)
