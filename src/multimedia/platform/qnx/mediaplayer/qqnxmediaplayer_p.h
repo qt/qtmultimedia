@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMEDIAPLAYERCONTROL_H
-#define MMRENDERERMEDIAPLAYERCONTROL_H
+#ifndef QQnxMediaPlayer_H
+#define QQnxMediaPlayer_H
 
 //
 //  W A R N I N G
@@ -52,6 +52,7 @@
 
 #include "qqnxmediametadata_p.h"
 #include <private/qplatformmediaplayer_p.h>
+#include <private/qqnxmediametadata_p.h>
 #include <QtCore/qabstractnativeeventfilter.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qtimer.h>
@@ -67,13 +68,11 @@ class MmRendererAudioRoleControl;
 class MmRendererPlayerVideoRendererControl;
 class MmRendererVideoWindowControl;
 
-class MmRendererMediaPlayerControl : public QPlatformMediaPlayer, public QAbstractNativeEventFilter
+class QQnxMediaPlayer : public QObject, public QPlatformMediaPlayer, public QAbstractNativeEventFilter
 {
     Q_OBJECT
 public:
-    explicit MmRendererMediaPlayerControl(QMediaPlayer *parent = 0);
-
-    QMediaPlayer::State state() const override;
+    explicit QQnxMediaPlayer(QMediaPlayer *parent = 0);
 
     QMediaPlayer::MediaStatus mediaStatus() const override;
 
@@ -82,11 +81,7 @@ public:
     qint64 position() const override;
     void setPosition(qint64 position) override;
 
-    int volume() const override;
-    void setVolume(int volume) override;
-
-    bool isMuted() const override;
-    void setMuted(bool muted) override;
+    void setAudioOutput(QPlatformAudioOutput *) override;
 
     float bufferProgress() const override;
 
@@ -119,7 +114,10 @@ protected:
     virtual void stopMonitoring() = 0;
     virtual void resetMonitoring() = 0;
 
+    void setState(QMediaPlayer::PlaybackState state);
+
     void openConnection();
+    void emitMmError(const char *msg);
     void emitMmError(const QString &msg);
     void emitPError(const QString &msg);
     void setMmPosition(qint64 newPosition);
@@ -141,6 +139,8 @@ protected:
 
 private Q_SLOTS:
     void continueLoadMedia();
+    void setVolume(float volume);
+    void setMuted(bool muted);
 
 private:
     QByteArray resourcePathForUrl(const QUrl &url);
@@ -150,7 +150,7 @@ private:
 
     // All these set the specified value to the backend, but neither emit changed signals
     // nor change the member value.
-    void setVolumeInternal(int newVolume);
+    void setVolumeInternal(float newVolume);
     void setPlaybackRateInternal(qreal rate);
     void setPositionInternal(qint64 position);
 
@@ -162,12 +162,13 @@ private:
     QUrl m_media;
     mmr_connection_t *m_connection;
     int m_audioId;
-    int m_volume;
-    bool m_muted;
+    float m_volume = 1.;
+    bool m_muted = true;
     qreal m_rate;
+    QPointer<QAudioOutput> m_audioOutput;
     QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
     QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    QMediaMetaData m_metaData;
+    MmRendererMetaData m_metaData;
     qint64 m_position;
     QMediaPlayer::MediaStatus m_mediaStatus;
     bool m_playAfterMediaLoaded;

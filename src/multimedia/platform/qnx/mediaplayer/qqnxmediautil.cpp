@@ -50,6 +50,7 @@
 #include <QXmlStreamReader>
 
 #include <mm/renderer.h>
+#include <mm/renderer/types.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -90,10 +91,6 @@ static const MmError mmErrors[] = {
 };
 static const unsigned int numMmErrors = sizeof(mmErrors) / sizeof(MmError);
 
-static QBasicMutex roleMapMutex;
-static bool roleMapInitialized = false;
-static QString roleMap[QAudio::GameRole + 1];
-
 template <typename T, size_t N>
 constexpr size_t countof(T (&)[N])
 {
@@ -104,9 +101,9 @@ QString keyValueMapsLocation()
 {
     QByteArray qtKeyValueMaps = qgetenv("QT_KEY_VALUE_MAPS");
     if (qtKeyValueMaps.isNull())
-        return QStringLiteral("/etc/qt/keyvaluemaps");
+        return QString(u"/etc/qt/keyvaluemaps");
     else
-        return qtKeyValueMaps;
+        return QString::fromUtf8(qtKeyValueMaps);
 }
 
 QJsonObject loadMapObject(const QString &keyValueMapPath)
@@ -131,10 +128,10 @@ QString mmErrorMessage(const QString &msg, mmr_context_t *context, int *errorCod
         *errorCode = mmError->error_code;
 
     if (mmError->error_code < numMmErrors) {
-        return QString("%1: %2 (code %3)").arg(msg).arg(mmErrors[mmError->error_code].name)
+        return QString::fromLatin1("%1: %2 (code %3)").arg(msg).arg(mmErrors[mmError->error_code].name)
                                           .arg(mmError->error_code);
     } else {
-        return QString("%1: Unknown error code %2").arg(msg).arg(mmError->error_code);
+        return QString::fromLatin1("%1: Unknown error code %2").arg(msg).arg(mmError->error_code);
     }
 }
 

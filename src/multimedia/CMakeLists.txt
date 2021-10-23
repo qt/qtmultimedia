@@ -114,6 +114,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
 #        platform/qnx/camera/bbcamerasession.cpp platform/qnx/camera/bbcamerasession_p.h
 ##        platform/qnx/camera/bbcameravideoencodersettingscontrol.cpp platform/qnx/camera/bbcameravideoencodersettingscontrol_p.h
 #        platform/qnx/common/qqnxwindowgrabber.cpp platform/qnx/common/qqnxwindowgrabber_p.h
+        platform/qnx/common/qqnxaudiooutput.cpp platform/qnx/common/qqnxaudiooutput_p.h
 #        platform/qnx/mediaplayer/qqnxmediaplayer.cpp platform/qnx/mediaplayer/qqnxmediaplayer_p.h
 #        platform/qnx/mediaplayer/qqnxmediametadata.cpp platform/qnx/mediaplayer/qqnxmediametadata_p.h
 #        platform/qnx/mediaplayer/qqnxvideorenderer.cpp platform/qnx/mediaplayer/qqnxvideorenderer_p.h

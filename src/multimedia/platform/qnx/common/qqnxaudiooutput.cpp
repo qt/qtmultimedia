@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 QNX Software Systems. All rights reserved.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,60 +36,51 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMREVENTMEDIAPLAYERCONTROL_H
-#define MMREVENTMEDIAPLAYERCONTROL_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#include <private/qqnxaudiooutput_p.h>
+#include <private/qqnxaudiodevice_p.h>
+#include <qaudiodevice.h>
+#include <qaudiooutput.h>
 
-#include "QQnxMediaPlayer_p.h"
+#include <QtCore/qloggingcategory.h>
 
-#include <mm/renderer/events.h>
+Q_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
 
 QT_BEGIN_NAMESPACE
 
-class MmrEventThread;
-
-class MmrEventMediaPlayerControl final : public QQnxMediaPlayer
+QQnxAudioOutput::QQnxAudioOutput(QAudioOutput *parent)
+  : QPlatformAudioOutput(parent)
 {
-    Q_OBJECT
-public:
-    explicit MmrEventMediaPlayerControl(QObject *parent = 0);
-    ~MmrEventMediaPlayerControl() override;
+}
 
-    void startMonitoring() override;
-    void stopMonitoring() override;
-    void resetMonitoring() override;
+QQnxAudioOutput::~QQnxAudioOutput()
+{
+}
 
-    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
+void QQnxAudioOutput::setVolume(float vol)
+{
+    if (vol == volume)
+        return;
+    vol = volume;
+    q->volumeChanged(vol);
+}
 
-private Q_SLOTS:
-    void readEvents();
+void QQnxAudioOutput::setMuted(bool m)
+{
+    if (muted == m)
+        return;
+    muted = m;
+    q->mutedChanged(muted);
+}
 
-private:
-    MmrEventThread *m_eventThread;
+void QQnxAudioOutput::setAudioDevice(const QAudioDevice &info)
+{
+    if (info == device)
+        return;
+    qCDebug(qLcMediaAudioOutput) << "setAudioDevice" << info.description() << info.isNull();
+    device = info;
 
-    // status properties.
-    QByteArray m_bufferProgress;
-    int m_bufferLevel;
-    int m_bufferCapacity;
-    qint64 m_position;
-    bool m_suspended;
-    QByteArray m_suspendedReason;
-
-    // state properties.
-    mmr_state_t m_state;
-    int m_speed;
-};
+    // ### handle device changes
+}
 
 QT_END_NAMESPACE
-
-#endif

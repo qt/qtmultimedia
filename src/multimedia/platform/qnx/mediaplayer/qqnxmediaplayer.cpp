@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -45,6 +46,9 @@
 #include <QtCore/qfileinfo.h>
 #include <QtCore/quuid.h>
 #include <mm/renderer.h>
+#include <qmediaplayer.h>
+#include <private/qqnxaudiooutput_p.h>
+#include <qaudiooutput.h>
 
 #include <errno.h>
 #include <sys/strm.h>
@@ -54,15 +58,13 @@ QT_BEGIN_NAMESPACE
 
 static int idCounter = 0;
 
-MmRendererMediaPlayerControl::MmRendererMediaPlayerControl(QMediaPlayer *parent)
-    : QPlatformMediaPlayer(parent),
+QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
+    : QObject(parent),
+      QPlatformMediaPlayer(parent),
       m_context(0),
       m_id(-1),
       m_connection(0),
       m_audioId(-1),
-      m_state(QMediaPlayer::StoppedState),
-      m_volume(100),
-      m_muted(false),
       m_rate(1),
       m_position(0),
       m_mediaStatus(QMediaPlayer::NoMedia),
@@ -76,7 +78,7 @@ MmRendererMediaPlayerControl::MmRendererMediaPlayerControl(QMediaPlayer *parent)
     QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
 }
 
-void MmRendererMediaPlayerControl::destroy()
+void QQnxMediaPlayer::destroy()
 {
     stop();
     detach();
@@ -84,21 +86,21 @@ void MmRendererMediaPlayerControl::destroy()
     QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
 }
 
-void MmRendererMediaPlayerControl::openConnection()
+void QQnxMediaPlayer::openConnection()
 {
     m_connection = mmr_connect(NULL);
     if (!m_connection) {
-        emitPError("Unable to connect to the multimedia renderer");
+        emitPError(QString::fromLatin1("Unable to connect to the multimedia renderer"));
         return;
     }
 
     m_id = idCounter++;
-    m_contextName = QString("MmRendererMediaPlayerControl_%1_%2").arg(m_id)
+    m_contextName = QString::fromLatin1("QQnxMediaPlayer_%1_%2").arg(m_id)
                                                          .arg(QCoreApplication::applicationPid());
     m_context = mmr_context_create(m_connection, m_contextName.toLatin1(),
                                    0, S_IRWXU|S_IRWXG|S_IRWXO);
     if (!m_context) {
-        emitPError("Unable to create context");
+        emitPError(QString::fromLatin1("Unable to create context"));
         closeConnection();
         return;
     }
@@ -106,29 +108,29 @@ void MmRendererMediaPlayerControl::openConnection()
     startMonitoring();
 }
 
-void MmRendererMediaPlayerControl::handleMmStopped()
+void QQnxMediaPlayer::handleMmStopped()
 {
     // Only react to stop events that happen when the end of the stream is reached and
     // playback is stopped because of this.
     // Ignore other stop event sources, such as calling mmr_stop() ourselves.
-    if (m_state != QMediaPlayer::StoppedState) {
+    if (state() != QMediaPlayer::StoppedState) {
         setMediaStatus(QMediaPlayer::EndOfMedia);
         stopInternal(IgnoreMmRenderer);
     }
 }
 
-void MmRendererMediaPlayerControl::handleMmSuspend(const QString &reason)
+void QQnxMediaPlayer::handleMmSuspend(const QString &reason)
 {
-    if (m_state == QMediaPlayer::StoppedState)
+    if (state() == QMediaPlayer::StoppedState)
         return;
 
     Q_UNUSED(reason);
     setMediaStatus(QMediaPlayer::StalledMedia);
 }
 
-void MmRendererMediaPlayerControl::handleMmSuspendRemoval(const QString &bufferProgress)
+void QQnxMediaPlayer::handleMmSuspendRemoval(const QString &bufferProgress)
 {
-    if (m_state == QMediaPlayer::StoppedState)
+    if (state() == QMediaPlayer::StoppedState)
         return;
 
     if (bufferProgress == QLatin1String("buffering"))
@@ -137,21 +139,21 @@ void MmRendererMediaPlayerControl::handleMmSuspendRemoval(const QString &bufferP
         setMediaStatus(QMediaPlayer::BufferedMedia);
 }
 
-void MmRendererMediaPlayerControl::handleMmPause()
+void QQnxMediaPlayer::handleMmPause()
 {
-    if (m_state == QMediaPlayer::PlayingState) {
-        setState(QMediaPlayer::PausedState);
+    if (state() == QMediaPlayer::PlayingState) {
+        stateChanged(QMediaPlayer::PausedState);
     }
 }
 
-void MmRendererMediaPlayerControl::handleMmPlay()
+void QQnxMediaPlayer::handleMmPlay()
 {
-    if (m_state == QMediaPlayer::PausedState) {
-        setState(QMediaPlayer::PlayingState);
+    if (state() == QMediaPlayer::PausedState) {
+        stateChanged(QMediaPlayer::PlayingState);
     }
 }
 
-void MmRendererMediaPlayerControl::closeConnection()
+void QQnxMediaPlayer::closeConnection()
 {
     stopMonitoring();
 
@@ -167,7 +169,7 @@ void MmRendererMediaPlayerControl::closeConnection()
     }
 }
 
-QByteArray MmRendererMediaPlayerControl::resourcePathForUrl(const QUrl &url)
+QByteArray QQnxMediaPlayer::resourcePathForUrl(const QUrl &url)
 {
     // If this is a local file, mmrenderer expects the file:// prefix and an absolute path.
     // We treat URLs without scheme as local files, most likely someone just forgot to set the
@@ -187,12 +189,12 @@ QByteArray MmRendererMediaPlayerControl::resourcePathForUrl(const QUrl &url)
     }
 }
 
-void MmRendererMediaPlayerControl::attach()
+void QQnxMediaPlayer::attach()
 {
     // Should only be called in detached state
     Q_ASSERT(m_audioId == -1 && !m_inputAttached);
 
-    if (m_media.isNull() || !m_context) {
+    if (!m_media.isValid() || !m_context) {
         setMediaStatus(QMediaPlayer::NoMedia);
         return;
     }
@@ -212,25 +214,25 @@ void MmRendererMediaPlayerControl::attach()
         return;
     }
 
-    if (m_audioId != -1) {
-        QString audioType = qnxAudioType(m_role);
-        QByteArray latin1AudioType = audioType.toLatin1();
-        if (!audioType.isEmpty() && latin1AudioType == audioType) {
-            strm_dict_t *dict = strm_dict_new();
-            dict = strm_dict_set(dict, "audio_type", latin1AudioType.constData());
-            if (mmr_output_parameters(m_context, m_audioId, dict) != 0)
-                emitMmError("mmr_output_parameters: Setting audio_type failed");
-        }
-    }
+//    if (m_audioId != -1) {
+//        QString audioType = qnxAudioType(m_role);
+//        QByteArray latin1AudioType = audioType.toLatin1();
+//        if (!audioType.isEmpty() && latin1AudioType == audioType) {
+//            strm_dict_t *dict = strm_dict_new();
+//            dict = strm_dict_set(dict, "audio_type", latin1AudioType.constData());
+//            if (mmr_output_parameters(m_context, m_audioId, dict) != 0)
+//                emitMmError("mmr_output_parameters: Setting audio_type failed");
+//        }
+//    }
 
-    const QByteArray resourcePath = resourcePathForUrl(m_media.request().url());
+    const QByteArray resourcePath = resourcePathForUrl(m_media);
     if (resourcePath.isEmpty()) {
         detach();
         return;
     }
 
     if (mmr_input_attach(m_context, resourcePath.constData(), "track") != 0) {
-        emitMmError(QStringLiteral("mmr_input_attach() failed for ") + QString(resourcePath));
+        emitMmError(QStringLiteral("mmr_input_attach() failed for ") + QString::fromUtf8(resourcePath));
         setMediaStatus(QMediaPlayer::InvalidMedia);
         detach();
         return;
@@ -245,7 +247,7 @@ void MmRendererMediaPlayerControl::attach()
     emit bufferProgressChanged(m_bufferLevel/100.);
 }
 
-void MmRendererMediaPlayerControl::detach()
+void QQnxMediaPlayer::detach()
 {
     if (m_context) {
         if (m_inputAttached) {
@@ -265,60 +267,50 @@ void MmRendererMediaPlayerControl::detach()
     m_loadingTimer.stop();
 }
 
-QMediaPlayer::State MmRendererMediaPlayerControl::state() const
-{
-    return m_state;
-}
-
-QMediaPlayer::MediaStatus MmRendererMediaPlayerControl::mediaStatus() const
+QMediaPlayer::MediaStatus QQnxMediaPlayer::mediaStatus() const
 {
     return m_mediaStatus;
 }
 
-qint64 MmRendererMediaPlayerControl::duration() const
+qint64 QQnxMediaPlayer::duration() const
 {
     return m_metaData.duration();
 }
 
-qint64 MmRendererMediaPlayerControl::position() const
+qint64 QQnxMediaPlayer::position() const
 {
     return m_position;
 }
 
-void MmRendererMediaPlayerControl::setPosition(qint64 position)
+void QQnxMediaPlayer::setPosition(qint64 position)
 {
     if (m_position != position) {
         m_position = position;
 
         // Don't update in stopped state, it would not have any effect. Instead, the position is
         // updated in play().
-        if (m_state != QMediaPlayer::StoppedState)
+        if (state() != QMediaPlayer::StoppedState)
             setPositionInternal(m_position);
 
         emit positionChanged(m_position);
     }
 }
 
-int MmRendererMediaPlayerControl::volume() const
-{
-    return m_volume;
-}
-
-void MmRendererMediaPlayerControl::setVolumeInternal(int newVolume)
+void QQnxMediaPlayer::setVolumeInternal(float newVolume)
 {
     if (!m_context)
         return;
 
-    newVolume = qBound(0, newVolume, 100);
+    newVolume = qBound(0.f, newVolume, 1.f);
     if (m_audioId != -1) {
         strm_dict_t * dict = strm_dict_new();
-        dict = strm_dict_set(dict, "volume", QString::number(newVolume).toLatin1());
+        dict = strm_dict_set(dict, "volume", QString::number(int(newVolume*100.)).toLatin1());
         if (mmr_output_parameters(m_context, m_audioId, dict) != 0)
             emitMmError("mmr_output_parameters: Setting volume failed");
     }
 }
 
-void MmRendererMediaPlayerControl::setPlaybackRateInternal(qreal rate)
+void QQnxMediaPlayer::setPlaybackRateInternal(qreal rate)
 {
     if (!m_context)
         return;
@@ -328,18 +320,18 @@ void MmRendererMediaPlayerControl::setPlaybackRateInternal(qreal rate)
         emitMmError("mmr_speed_set failed");
 }
 
-void MmRendererMediaPlayerControl::setPositionInternal(qint64 position)
+void QQnxMediaPlayer::setPositionInternal(qint64 position)
 {
     if (!m_context)
         return;
 
-    if (m_metaData.isSeekable()) {
+    if (true /*#### m_metaData.isSeekable()*/) {
         if (mmr_seek(m_context, QString::number(position).toLatin1()) != 0)
             emitMmError("Seeking failed");
     }
 }
 
-void MmRendererMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus status)
+void QQnxMediaPlayer::setMediaStatus(QMediaPlayer::MediaStatus status)
 {
     if (m_mediaStatus != status) {
         m_mediaStatus = status;
@@ -347,30 +339,30 @@ void MmRendererMediaPlayerControl::setMediaStatus(QMediaPlayer::MediaStatus stat
     }
 }
 
-void MmRendererMediaPlayerControl::setState(QMediaPlayer::State state)
+void QQnxMediaPlayer::setState(QMediaPlayer::PlaybackState state)
 {
-    if (m_state != state) {
+    auto oldState = this->state();
+    if (oldState != state) {
         if (m_videoRendererControl) {
             if (state == QMediaPlayer::PausedState || state == QMediaPlayer::StoppedState) {
                 m_videoRendererControl->pause();
             } else if ((state == QMediaPlayer::PlayingState)
-                       && (m_state == QMediaPlayer::PausedState
-                           || m_state == QMediaPlayer::StoppedState)) {
+                       && (oldState == QMediaPlayer::PausedState
+                           || oldState == QMediaPlayer::StoppedState)) {
                 m_videoRendererControl->resume();
             }
         }
 
-        m_state = state;
-        emit stateChanged(m_state);
+        stateChanged(state);
     }
 }
 
-void MmRendererMediaPlayerControl::stopInternal(StopCommand stopCommand)
+void QQnxMediaPlayer::stopInternal(StopCommand stopCommand)
 {
     resetMonitoring();
     setPosition(0);
 
-    if (m_state != QMediaPlayer::StoppedState) {
+    if (state() != QMediaPlayer::StoppedState) {
 
         if (stopCommand == StopMmRenderer) {
             mmr_stop(m_context);
@@ -380,65 +372,74 @@ void MmRendererMediaPlayerControl::stopInternal(StopCommand stopCommand)
     }
 }
 
-void MmRendererMediaPlayerControl::setVolume(int volume)
+void QQnxMediaPlayer::setVolume(float volume)
 {
-    const int newVolume = qBound(0, volume, 100);
+    const int newVolume = qBound(0.f, volume, 1.f);
     if (m_volume != newVolume) {
         m_volume = newVolume;
-        if (!m_muted)
-            setVolumeInternal(m_volume);
-        emit volumeChanged(m_volume);
+        setVolumeInternal(m_muted ? 0. : m_volume);
     }
 }
 
-bool MmRendererMediaPlayerControl::isMuted() const
-{
-    return m_muted;
-}
-
-void MmRendererMediaPlayerControl::setMuted(bool muted)
+void QQnxMediaPlayer::setMuted(bool muted)
 {
     if (m_muted != muted) {
         m_muted = muted;
         setVolumeInternal(muted ? 0 : m_volume);
-        emit mutedChanged(muted);
     }
 }
 
-float MmRendererMediaPlayerControl::bufferProgress() const
+void QQnxMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
+{
+    QAudioOutput *out = output->q;
+    if (m_audioOutput == out)
+        return;
+
+    if (m_audioOutput)
+        disconnect(m_audioOutput.get());
+    m_audioOutput = out;
+    if (m_audioOutput) {
+        connect(out, &QAudioOutput::volumeChanged, this, &QQnxMediaPlayer::setVolume);
+        connect(out, &QAudioOutput::mutedChanged, this, &QQnxMediaPlayer::setMuted);
+    }
+    setVolume(out ? out->volume() : 1.);
+    setMuted(out ? out->isMuted() : true);
+}
+
+float QQnxMediaPlayer::bufferProgress() const
 {
     // mm-renderer has buffer properties "status" and "level"
     // QMediaPlayer's buffer status maps to mm-renderer's buffer level
     return m_bufferLevel/100.;
 }
 
-bool MmRendererMediaPlayerControl::isAudioAvailable() const
+bool QQnxMediaPlayer::isAudioAvailable() const
 {
     return m_metaData.hasAudio();
 }
 
-bool MmRendererMediaPlayerControl::isVideoAvailable() const
+bool QQnxMediaPlayer::isVideoAvailable() const
 {
     return m_metaData.hasVideo();
 }
 
-bool MmRendererMediaPlayerControl::isSeekable() const
+bool QQnxMediaPlayer::isSeekable() const
 {
     return m_metaData.isSeekable();
 }
 
-QMediaTimeRange MmRendererMediaPlayerControl::availablePlaybackRanges() const
+QMediaTimeRange QQnxMediaPlayer::availablePlaybackRanges() const
 {
     // We can't get this information from the mmrenderer API yet, so pretend we can seek everywhere
     return QMediaTimeRange(0, m_metaData.duration());
 }
 
-qreal MmRendererMediaPlayerControl::playbackRate() const
+qreal QQnxMediaPlayer::playbackRate() const
 {
     return m_rate;
 }
 
-void MmRendererMediaPlayerControl::setPlaybackRate(qreal rate)
+void QQnxMediaPlayer::setPlaybackRate(qreal rate)
 {
     if (m_rate != rate) {
         m_rate = rate;
@@ -447,18 +448,18 @@ void MmRendererMediaPlayerControl::setPlaybackRate(qreal rate)
     }
 }
 
-QUrl MmRendererMediaPlayerControl::media() const
+QUrl QQnxMediaPlayer::media() const
 {
     return m_media;
 }
 
-const QIODevice *MmRendererMediaPlayerControl::mediaStream() const
+const QIODevice *QQnxMediaPlayer::mediaStream() const
 {
     // Always 0, we don't support QIODevice streams
     return 0;
 }
 
-void MmRendererMediaPlayerControl::setMedia(const QUrl &media, QIODevice *stream)
+void QQnxMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 {
     Q_UNUSED(stream); // not supported
 
@@ -473,7 +474,7 @@ void MmRendererMediaPlayerControl::setMedia(const QUrl &media, QIODevice *stream
     // canvas is ready.
     // The mmrenderer doesn't allow to attach video outputs after playing has started, otherwise
     // this would be unnecessary.
-    if (!m_media.isNull()) {
+    if (m_media.isValid()) {
         setMediaStatus(QMediaPlayer::LoadingMedia);
         m_loadingTimer.start(); // singleshot timer to continueLoadMedia()
     } else {
@@ -481,7 +482,7 @@ void MmRendererMediaPlayerControl::setMedia(const QUrl &media, QIODevice *stream
     }
 }
 
-void MmRendererMediaPlayerControl::continueLoadMedia()
+void QQnxMediaPlayer::continueLoadMedia()
 {
     updateMetaData(nullptr);
     attach();
@@ -489,19 +490,19 @@ void MmRendererMediaPlayerControl::continueLoadMedia()
         play();
 }
 
-MmRendererVideoWindowControl *MmRendererMediaPlayerControl::videoWindowControl() const
+MmRendererVideoWindowControl *QQnxMediaPlayer::videoWindowControl() const
 {
     return m_videoWindowControl;
 }
 
-void MmRendererMediaPlayerControl::play()
+void QQnxMediaPlayer::play()
 {
     if (m_playAfterMediaLoaded)
         m_playAfterMediaLoaded = false;
 
     // No-op if we are already playing, except if we were called from continueLoadMedia(), in which
     // case m_playAfterMediaLoaded is true (hence the 'else').
-    else if (m_state == QMediaPlayer::PlayingState)
+    else if (state() == QMediaPlayer::PlayingState)
         return;
 
     if (m_mediaStatus == QMediaPlayer::LoadingMedia) {
@@ -515,13 +516,13 @@ void MmRendererMediaPlayerControl::play()
     }
 
     // Un-pause the state when it is paused
-    if (m_state == QMediaPlayer::PausedState) {
+    if (state() == QMediaPlayer::PausedState) {
         setPlaybackRateInternal(m_rate);
         setState(QMediaPlayer::PlayingState);
         return;
     }
 
-    if (m_media.isNull() || !m_connection || !m_context || m_audioId == -1) {
+    if (!m_media.isValid() || !m_connection || !m_context || m_audioId == -1) {
         setState(QMediaPlayer::StoppedState);
         return;
     }
@@ -543,35 +544,35 @@ void MmRendererMediaPlayerControl::play()
     setState( QMediaPlayer::PlayingState);
 }
 
-void MmRendererMediaPlayerControl::pause()
+void QQnxMediaPlayer::pause()
 {
-    if (m_state == QMediaPlayer::PlayingState) {
+    if (state() == QMediaPlayer::PlayingState) {
         setPlaybackRateInternal(0);
         setState(QMediaPlayer::PausedState);
     }
 }
 
-void MmRendererMediaPlayerControl::stop()
+void QQnxMediaPlayer::stop()
 {
     stopInternal(StopMmRenderer);
 }
 
-MmRendererPlayerVideoRendererControl *MmRendererMediaPlayerControl::videoRendererControl() const
+MmRendererPlayerVideoRendererControl *QQnxMediaPlayer::videoRendererControl() const
 {
     return m_videoRendererControl;
 }
 
-void MmRendererMediaPlayerControl::setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl)
+void QQnxMediaPlayer::setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl)
 {
     m_videoRendererControl = videoControl;
 }
 
-void MmRendererMediaPlayerControl::setVideoWindowControl(MmRendererVideoWindowControl *videoControl)
+void QQnxMediaPlayer::setVideoWindowControl(MmRendererVideoWindowControl *videoControl)
 {
     m_videoWindowControl = videoControl;
 }
 
-void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)
+void QQnxMediaPlayer::setMmPosition(qint64 newPosition)
 {
     if (newPosition != 0 && newPosition != m_position) {
         m_position = newPosition;
@@ -579,7 +580,7 @@ void MmRendererMediaPlayerControl::setMmPosition(qint64 newPosition)
     }
 }
 
-void MmRendererMediaPlayerControl::setMmBufferStatus(const QString &bufferProgress)
+void QQnxMediaPlayer::setMmBufferStatus(const QString &bufferProgress)
 {
     if (bufferProgress == QLatin1String("buffering"))
         setMediaStatus(QMediaPlayer::BufferingMedia);
@@ -588,14 +589,14 @@ void MmRendererMediaPlayerControl::setMmBufferStatus(const QString &bufferProgre
     // ignore "idle" buffer status
 }
 
-void MmRendererMediaPlayerControl::setMmBufferLevel(int level, int capacity)
+void QQnxMediaPlayer::setMmBufferLevel(int level, int capacity)
 {
     m_bufferLevel = capacity == 0 ? 0 : level / static_cast<float>(capacity) * 100.0f;
     m_bufferLevel = qBound(0, m_bufferLevel, 100);
     emit bufferProgressChanged(m_bufferLevel/100.);
 }
 
-void MmRendererMediaPlayerControl::updateMetaData(const strm_dict *dict)
+void QQnxMediaPlayer::updateMetaData(const strm_dict *dict)
 {
     m_metaData.update(dict);
 
@@ -606,11 +607,16 @@ void MmRendererMediaPlayerControl::updateMetaData(const strm_dict *dict)
     emit durationChanged(m_metaData.duration());
     emit audioAvailableChanged(m_metaData.hasAudio());
     emit videoAvailableChanged(m_metaData.hasVideo());
-    emit availablePlaybackRangesChanged(availablePlaybackRanges());
+//    emit availablePlaybackRangesChanged(availablePlaybackRanges());
     emit seekableChanged(m_metaData.isSeekable());
 }
 
-void MmRendererMediaPlayerControl::emitMmError(const QString &msg)
+void QQnxMediaPlayer::emitMmError(const char *msg)
+{
+    emitMmError(QString::fromUtf8(msg));
+}
+
+void QQnxMediaPlayer::emitMmError(const QString &msg)
 {
     int errorCode = MMR_ERROR_NONE;
     const QString errorMessage = mmErrorMessage(msg, m_context, &errorCode);
@@ -618,9 +624,9 @@ void MmRendererMediaPlayerControl::emitMmError(const QString &msg)
     emit error(errorCode, errorMessage);
 }
 
-void MmRendererMediaPlayerControl::emitPError(const QString &msg)
+void QQnxMediaPlayer::emitPError(const QString &msg)
 {
-    const QString errorMessage = QString("%1: %2").arg(msg).arg(strerror(errno));
+    const QString errorMessage = QString::fromLatin1("%1: %2").arg(msg).arg(QString::fromUtf8(strerror(errno)));
     qDebug() << errorMessage;
     emit error(errno, errorMessage);
 }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 QNX Software Systems. All rights reserved.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,8 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMREVENTMEDIAPLAYERCONTROL_H
-#define MMREVENTMEDIAPLAYERCONTROL_H
+
+#ifndef QQNXAUDIOOUTPUT_P_H
+#define QQNXAUDIOOUTPUT_P_H
 
 //
 //  W A R N I N G
@@ -50,44 +51,23 @@
 // We mean it.
 //
 
-#include "QQnxMediaPlayer_p.h"
-
-#include <mm/renderer/events.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <private/qplatformaudiooutput_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class MmrEventThread;
+class QAudioDevice;
+class QAudioOutput;
 
-class MmrEventMediaPlayerControl final : public QQnxMediaPlayer
+class Q_MULTIMEDIA_EXPORT QQnxAudioOutput : public QPlatformAudioOutput
 {
-    Q_OBJECT
 public:
-    explicit MmrEventMediaPlayerControl(QObject *parent = 0);
-    ~MmrEventMediaPlayerControl() override;
+    QQnxAudioOutput(QAudioOutput *parent);
+    ~QQnxAudioOutput();
 
-    void startMonitoring() override;
-    void stopMonitoring() override;
-    void resetMonitoring() override;
-
-    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
-
-private Q_SLOTS:
-    void readEvents();
-
-private:
-    MmrEventThread *m_eventThread;
-
-    // status properties.
-    QByteArray m_bufferProgress;
-    int m_bufferLevel;
-    int m_bufferCapacity;
-    qint64 m_position;
-    bool m_suspended;
-    QByteArray m_suspendedReason;
-
-    // state properties.
-    mmr_state_t m_state;
-    int m_speed;
+    void setAudioDevice(const QAudioDevice &) override;
+    void setVolume(float volume) override;
+    void setMuted(bool muted) override;
 };
 
 QT_END_NAMESPACE
