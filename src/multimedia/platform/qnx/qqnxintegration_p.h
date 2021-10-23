@@ -65,6 +65,7 @@ public:
     ~QQnxIntegration();
 
     QPlatformMediaDevices *devices() override;
+    QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
 

@@ -36,7 +36,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbcameraorientationhandler.h"
+#include "qqnxcameraorientationhandler_p.h"
 
 #include <QAbstractEventDispatcher>
 #include <QGuiApplication>

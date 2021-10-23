@@ -37,9 +37,9 @@
 **
 ****************************************************************************/
 
-#include "mmrendererplayervideorenderercontrol_p.h"
+#include "qqnxvideorenderer_p.h"
 
-#include "windowgrabber.h"
+#include "qqnxwindowgrabber_p.h"
 
 #include <QCoreApplication>
 #include <QDebug>

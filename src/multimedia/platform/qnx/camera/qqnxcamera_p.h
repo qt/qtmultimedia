@@ -36,54 +36,41 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbcameraimagecapturecontrol_p.h"
+#ifndef BBCAMERACONTROL_H
+#define BBCAMERACONTROL_H
 
-#include "bbcamerasession_p.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformcamera_p.h>
 
 QT_BEGIN_NAMESPACE
 
-BbCameraImageCaptureControl::BbCameraImageCaptureControl(BbCameraSession *session, QObject *parent)
-    : QPlatformImageCapture(parent)
-    , m_session(session)
-{
-    connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
-    connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
-    connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
-    connect(m_session, SIGNAL(imageMetadataAvailable(int,QString,QVariant)), this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
-    connect(m_session, SIGNAL(imageAvailable(int,QVideoFrame)), this, SIGNAL(imageAvailable(int,QVideoFrame)));
-    connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
-    connect(m_session, SIGNAL(imageCaptureError(int,int,QString)), this, SIGNAL(error(int,int,QString)));
-}
+class BbCameraSession;
 
-bool BbCameraImageCaptureControl::isReadyForCapture() const
+class BbCameraControl : public QPlatformCamera
 {
-    return m_session->isReadyForCapture();
-}
+    Q_OBJECT
+public:
+    explicit BbCameraControl(BbCameraSession *session, QObject *parent = 0);
 
-int BbCameraImageCaptureControl::capture(const QString &fileName)
-{
-    return m_session->capture(fileName);
-}
+    void setCamera(const QCameraDevice &camera) override;
 
-int BbCameraImageCaptureControl::captureToBuffer()
-{
-    // ### implement me
-    return -1;
-}
+private Q_SLOTS:
+    void cameraOpened();
 
-void BbCameraImageCaptureControl::cancelCapture()
-{
-    m_session->cancelCapture();
-}
-
-QImageEncoderSettings BbCameraImageCaptureControl::imageSettings() const
-{
-    return m_session->imageSettings();
-}
-
-void BbCameraImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
-{
-    m_session->setImageSettings(settings);
-}
+private:
+    BbCameraSession *m_session;
+};
 
 QT_END_NAMESPACE
+
+#endif

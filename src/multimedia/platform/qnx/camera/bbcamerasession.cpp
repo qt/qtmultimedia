@@ -38,7 +38,7 @@
 ****************************************************************************/
 #include "bbcamerasession_p.h"
 
-#include "bbcameraorientationhandler_p.h"
+#include "qqnxcameraorientationhandler_p.h"
 #include "windowgrabber_p.h"
 
 #include <QBuffer>

@@ -36,13 +36,13 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "mmrenderermetadata_p.h"
+#include "qqnxmediametadata_p.h"
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qstringlist.h>
 
-#include <mm/renderer/events.h>
+#include <mm/renderer/types.h>
 #include <sys/neutrino.h>
 #include <sys/strm.h>
 

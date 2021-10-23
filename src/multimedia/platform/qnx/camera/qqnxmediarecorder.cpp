@@ -36,7 +36,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbcameramediarecordercontrol_p.h"
+#include "qqnxmediarecorder_p.h"
 
 #include "bbcamerasession_p.h"
 

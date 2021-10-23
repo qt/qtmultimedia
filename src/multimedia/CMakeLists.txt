@@ -98,30 +98,30 @@ qt_internal_add_simd_part(Multimedia SIMD avx2
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
     SOURCES
-        platform/qnx/audio/qnxaudioutils.cpp platform/qnx/audio/qnxaudioutils_p.h
+        platform/qnx/audio/qqnxaudioutils.cpp platform/qnx/audio/qqnxaudioutils_p.h
         platform/qnx/audio/qqnxaudiodevice.cpp platform/qnx/audio/qqnxaudiodevice_p.h
         platform/qnx/audio/qqnxaudiosink.cpp platform/qnx/audio/qqnxaudiosink_p.h
         platform/qnx/audio/qqnxaudiosource.cpp platform/qnx/audio/qqnxaudiosource_p.h
-        platform/qnx/camera/bbcameraaudioencodersettingscontrol.cpp platform/qnx/camera/bbcameraaudioencodersettingscontrol_p.h
-        platform/qnx/camera/bbcameracontrol.cpp platform/qnx/camera/bbcameracontrol_p.h
-        platform/qnx/camera/bbcameraexposurecontrol.cpp platform/qnx/camera/bbcameraexposurecontrol_p.h
-        platform/qnx/camera/bbcamerafocuscontrol.cpp platform/qnx/camera/bbcamerafocuscontrol_p.h
-        platform/qnx/camera/bbcameraimagecapturecontrol.cpp platform/qnx/camera/bbcameraimagecapturecontrol_p.h
-        platform/qnx/camera/bbcameraimageprocessingcontrol.cpp platform/qnx/camera/bbcameraimageprocessingcontrol_p.h
-        platform/qnx/camera/bbcameramediarecordercontrol.cpp platform/qnx/camera/bbcameramediarecordercontrol_p.h
-        platform/qnx/camera/bbcameraorientationhandler.cpp platform/qnx/camera/bbcameraorientationhandler_p.h
-        platform/qnx/camera/bbcameraservice.cpp platform/qnx/camera/bbcameraservice_p.h
-        platform/qnx/camera/bbcamerasession.cpp platform/qnx/camera/bbcamerasession_p.h
-        platform/qnx/camera/bbcameravideoencodersettingscontrol.cpp platform/qnx/camera/bbcameravideoencodersettingscontrol_p.h
-        platform/qnx/common/windowgrabber.cpp platform/qnx/common/windowgrabber_p.h
-        platform/qnx/mediaplayer/mmrenderermediaplayercontrol.cpp platform/qnx/mediaplayer/mmrenderermediaplayercontrol_p.h
-        platform/qnx/mediaplayer/mmrenderermetadata.cpp platform/qnx/mediaplayer/mmrenderermetadata_p.h
-        platform/qnx/mediaplayer/mmrendererplayervideorenderercontrol.cpp platform/qnx/mediaplayer/mmrendererplayervideorenderercontrol_p.h
-        platform/qnx/mediaplayer/mmrendererutil.cpp platform/qnx/mediaplayer/mmrendererutil_p.h
-        platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h
-        platform/qnx/mediaplayer/mmreventthread.cpp platform/qnx/mediaplayer/mmreventthread_p.h
-        platform/qnx/mediaplayer/mmreventmediaplayercontrol.cpp platform/qnx/mediaplayer/mmreventmediaplayercontrol_p.h
-        platform/qnx/qqnxdevicemanager.cpp platform/qnx/qqnxdevicemanager_p.h
+##        platform/qnx/camera/bbcameraaudioencodersettingscontrol.cpp platform/qnx/camera/bbcameraaudioencodersettingscontrol_p.h
+#        platform/qnx/camera/qqnxcamera.cpp platform/qnx/camera/qqnxcamera_p.h
+##        platform/qnx/camera/bbcameraexposurecontrol.cpp platform/qnx/camera/bbcameraexposurecontrol_p.h
+##        platform/qnx/camera/bbcamerafocuscontrol.cpp platform/qnx/camera/bbcamerafocuscontrol_p.h
+#        platform/qnx/camera/qqnximagecapture.cpp platform/qnx/camera/qqnximagecapture_p.h
+##        platform/qnx/camera/bbcameraimageprocessingcontrol.cpp platform/qnx/camera/bbcameraimageprocessingcontrol_p.h
+#        platform/qnx/camera/qqnxmediarecorder.cpp platform/qnx/camera/qqnxmediarecorder_p.h
+#        platform/qnx/camera/qqnxcameraorientationhandler.cpp platform/qnx/camera/qqnxcameraorientationhandler_p.h
+#        platform/qnx/camera/qqnxmediacapture.cpp platform/qnx/camera/qqnxmediacapture_p.h
+#        platform/qnx/camera/bbcamerasession.cpp platform/qnx/camera/bbcamerasession_p.h
+##        platform/qnx/camera/bbcameravideoencodersettingscontrol.cpp platform/qnx/camera/bbcameravideoencodersettingscontrol_p.h
+#        platform/qnx/common/qqnxwindowgrabber.cpp platform/qnx/common/qqnxwindowgrabber_p.h
+#        platform/qnx/mediaplayer/qqnxmediaplayer.cpp platform/qnx/mediaplayer/qqnxmediaplayer_p.h
+#        platform/qnx/mediaplayer/qqnxmediametadata.cpp platform/qnx/mediaplayer/qqnxmediametadata_p.h
+#        platform/qnx/mediaplayer/qqnxvideorenderer.cpp platform/qnx/mediaplayer/qqnxvideorenderer_p.h
+#        platform/qnx/mediaplayer/qqnxmediautil.cpp platform/qnx/mediaplayer/qqnxmediautil_p.h
+##        platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h
+##        platform/qnx/mediaplayer/mmreventthread.cpp platform/qnx/mediaplayer/mmreventthread_p.h
+##        platform/qnx/mediaplayer/mmreventmediaplayercontrol.cpp platform/qnx/mediaplayer/mmreventmediaplayercontrol_p.h
+        platform/qnx/qqnxmediadevices.cpp platform/qnx/qqnxmediadevices_p.h
         platform/qnx/qqnxintegration.cpp platform/qnx/qqnxintegration_p.h
     INCLUDE_DIRECTORIES
         platform/qnx/camera
@@ -129,8 +129,8 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
         platform/qnx/mediaplayer
     LIBRARIES
         MMRenderer::MMRenderer
+        MMRendererCore::MMRendererCore
         asound
-        audio_manager
         camapi
 )
 qt_internal_add_docs(Multimedia

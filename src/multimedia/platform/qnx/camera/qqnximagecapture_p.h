@@ -66,7 +66,6 @@ public:
 
     int capture(const QString &fileName) override;
     int captureToBuffer() override;
-    void cancelCapture() override;
 
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;

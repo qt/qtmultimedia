@@ -39,8 +39,7 @@
 
 #include "qqnxintegration_p.h"
 #include "qqnxmediadevices_p.h"
-#include "private/mmrenderermediaplayercontrol_p.h"
-#include "private/mmrendererutil_p.h"
+//#include "private/qqnxmediaplayer_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -54,16 +53,21 @@ QQnxIntegration::~QQnxIntegration()
     delete m_devices;
 }
 
-QMediaPlatformMediaDevices *QQnxIntegration::devices()
+QPlatformMediaDevices *QQnxIntegration::devices()
 {
     if (!m_devices)
         m_devices = new QQnxMediaDevices();
     return m_devices;
 }
 
-QPlatformMediaPlayer *QQnxIntegration::createPlayer(QMediaPlayer *parent)
+QPlatformMediaFormatInfo *QQnxIntegration::formatInfo()
 {
-    return new MmRendererMediaPlayerControl(parent);
+    return nullptr;
+}
+
+QPlatformMediaPlayer *QQnxIntegration::createPlayer(QMediaPlayer */*parent*/)
+{
+    return nullptr;//new QQnxMediaPlayer(parent);
 }
 
 QT_END_NAMESPACE

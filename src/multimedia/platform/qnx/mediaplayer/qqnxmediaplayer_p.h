@@ -50,7 +50,7 @@
 // We mean it.
 //
 
-#include "mmrenderermetadata_p.h"
+#include "qqnxmediametadata_p.h"
 #include <private/qplatformmediaplayer_p.h>
 #include <QtCore/qabstractnativeeventfilter.h>
 #include <QtCore/qpointer.h>
@@ -155,7 +155,6 @@ private:
     void setPositionInternal(qint64 position);
 
     void setMediaStatus(QMediaPlayer::MediaStatus status);
-    void setState(QMediaPlayer::State state);
 
     enum StopCommand { StopMmRenderer, IgnoreMmRenderer };
     void stopInternal(StopCommand stopCommand);
@@ -163,13 +162,12 @@ private:
     QUrl m_media;
     mmr_connection_t *m_connection;
     int m_audioId;
-    QMediaPlayer::State m_state;
     int m_volume;
     bool m_muted;
     qreal m_rate;
     QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
     QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
-    MmRendererMetaData m_metaData;
+    QMediaMetaData m_metaData;
     qint64 m_position;
     QMediaPlayer::MediaStatus m_mediaStatus;
     bool m_playAfterMediaLoaded;

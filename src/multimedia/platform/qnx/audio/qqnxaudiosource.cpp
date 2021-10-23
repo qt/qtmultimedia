@@ -39,7 +39,7 @@
 
 #include "qqnxaudiosource_p.h"
 
-#include "qnxaudioutils_p.h"
+#include "qqnxaudioutils_p.h"
 
 #include <private/qaudiohelpers_p.h>
 

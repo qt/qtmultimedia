@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "windowgrabber_p.h"
+#include "qqnxwindowgrabber_p.h"
 
 #include <QAbstractEventDispatcher>
 #include <QDebug>

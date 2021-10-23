@@ -44,10 +44,11 @@
 #include "private/qqnxaudiosource_p.h"
 #include "private/qqnxaudiosink_p.h"
 #include "private/qqnxaudiodevice_p.h"
-#include "bbcamerasession_p.h"
+//#include "bbcamerasession_p.h"
 
 QT_BEGIN_NAMESPACE
 
+#if 0
 static QList<QCameraDevice> enumerateCameras()
 {
 
@@ -88,35 +89,36 @@ static QList<QCameraDevice> enumerateCameras()
     }
     return cameras;
 }
+#endif
 
 QQnxMediaDevices::QQnxMediaDevices()
-    : QMediaPlatformMediaDevices()
+    : QPlatformMediaDevices()
 {
 }
 
 QList<QAudioDevice> QQnxMediaDevices::audioInputs() const
 {
-    return { QAudioDevice(new QnxAudioDeviceInfo("default", QAudioDevice::Input)) };
+    return { (new QnxAudioDeviceInfo("default", QAudioDevice::Input))->create() };
 }
 
 QList<QAudioDevice> QQnxMediaDevices::audioOutputs() const
 {
-    return { QAudioDevice(new QnxAudioDeviceInfo("default", QAudioDevice::Output)) };
+    return { (new QnxAudioDeviceInfo("default", QAudioDevice::Output))->create() };
 }
 
 QList<QCameraDevice> QQnxMediaDevices::videoInputs() const
 {
-    return enumerateCameras();
+    return {};//enumerateCameras();
 }
 
-QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
+QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &/*deviceInfo*/)
 {
     return new QQnxAudioSource();
 }
 
-QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
+QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &/*deviceInfo*/)
 {
-    return new QNxAudioOutput();
+    return new QQnxAudioSink();
 }
 
 QT_END_NAMESPACE

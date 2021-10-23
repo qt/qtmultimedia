@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qnxaudioutils_p.h"
+#include "qqnxaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -58,68 +58,30 @@ snd_pcm_channel_params_t QnxAudioUtils::formatToChannelParams(const QAudioFormat
     params.format.rate = format.sampleRate();
     params.format.voices = format.channelCount();
 
-    switch (format.sampleSize()) {
-    case 8:
-        switch (format.sampleType()) {
-        case QAudioFormat::SignedInt:
-            params.format.format = SND_PCM_SFMT_S8;
-            break;
-        case QAudioFormat::UnSignedInt:
-            params.format.format = SND_PCM_SFMT_U8;
-            break;
-        default:
-            break;
-        }
+    switch (format.sampleFormat()) {
+    case QAudioFormat::UInt8:
+        params.format.format = SND_PCM_SFMT_U8;
         break;
-
-    case 16:
-        switch (format.sampleType()) {
-        case QAudioFormat::SignedInt:
-            if (format.byteOrder() == QAudioFormat::LittleEndian) {
-                params.format.format = SND_PCM_SFMT_S16_LE;
-            } else {
-                params.format.format = SND_PCM_SFMT_S16_BE;
-            }
-            break;
-        case QAudioFormat::UnSignedInt:
-            if (format.byteOrder() == QAudioFormat::LittleEndian) {
-                params.format.format = SND_PCM_SFMT_U16_LE;
-            } else {
-                params.format.format = SND_PCM_SFMT_U16_BE;
-            }
-            break;
-        default:
-            break;
-        }
-        break;
-
-    case 32:
-        switch (format.sampleType()) {
-        case QAudioFormat::SignedInt:
-            if (format.byteOrder() == QAudioFormat::LittleEndian) {
-                params.format.format = SND_PCM_SFMT_S32_LE;
-            } else {
-                params.format.format = SND_PCM_SFMT_S32_BE;
-            }
-            break;
-        case QAudioFormat::UnSignedInt:
-            if (format.byteOrder() == QAudioFormat::LittleEndian) {
-                params.format.format = SND_PCM_SFMT_U32_LE;
-            } else {
-                params.format.format = SND_PCM_SFMT_U32_BE;
-            }
-            break;
-        case QAudioFormat::Float:
-            if (format.byteOrder() == QAudioFormat::LittleEndian) {
-                params.format.format = SND_PCM_SFMT_FLOAT_LE;
-            } else {
-                params.format.format = SND_PCM_SFMT_FLOAT_BE;
-            }
-            break;
-        default:
-            break;
-        }
-        break;
+    default:
+        // fall through
+    case QAudioFormat::Int16:
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        params.format.format = SND_PCM_SFMT_S16_LE;
+#else
+        params.format.format = SND_PCM_SFMT_S16_BE;
+#endif
+    case QAudioFormat::Int32:
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        params.format.format = SND_PCM_SFMT_S32_LE;
+#else
+        params.format.format = SND_PCM_SFMT_S32_BE;
+#endif
+    case QAudioFormat::Float:
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        params.format.format = SND_PCM_SFMT_FLOAT_LE;
+#else
+        params.format.format = SND_PCM_SFMT_FLOAT_BE;
+#endif
     }
 
     return params;

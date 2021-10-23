@@ -36,61 +36,49 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbcameraservice_p.h"
+#include "qqnximagecapture_p.h"
 
-#include "bbcameraaudioencodersettingscontrol_p.h"
-#include "bbcameracontrol_p.h"
-#include "bbcameraexposurecontrol_p.h"
-#include "bbcamerafocuscontrol_p.h"
-#include "bbcameraimagecapturecontrol_p.h"
-#include "bbcameraimageprocessingcontrol_p.h"
-#include "bbcameramediarecordercontrol_p.h"
 #include "bbcamerasession_p.h"
-#include "bbcameravideoencodersettingscontrol_p.h"
-#include "bbvideorenderercontrol_p.h"
-
-#include <QDebug>
-#include <QVariant>
 
 QT_BEGIN_NAMESPACE
 
-BbCameraService::BbCameraService(QObject *parent)
-    : QObject(parent)
-    , m_cameraSession(new BbCameraSession(this))
-    , m_cameraAudioEncoderSettingsControl(new BbCameraAudioEncoderSettingsControl(m_cameraSession, this))
-    , m_cameraControl(new BbCameraControl(m_cameraSession, this))
-    , m_cameraExposureControl(new BbCameraExposureControl(m_cameraSession, this))
-    , m_cameraFocusControl(new BbCameraFocusControl(m_cameraSession, this))
-    , m_cameraImageCaptureControl(new BbCameraImageCaptureControl(m_cameraSession, this))
-    , m_cameraImageProcessingControl(new BbCameraImageProcessingControl(m_cameraSession, this))
-    , m_cameraMediaRecorderControl(new BbCameraMediaRecorderControl(m_cameraSession, this))
-    , m_cameraVideoEncoderSettingsControl(new BbCameraVideoEncoderSettingsControl(m_cameraSession, this))
-    , m_videoRendererControl(new BbVideoRendererControl(m_cameraSession, this))
+BbCameraImageCaptureControl::BbCameraImageCaptureControl(BbCameraSession *session, QObject *parent)
+    : QPlatformImageCapture(parent)
+    , m_session(session)
 {
+    connect(m_session, SIGNAL(readyForCaptureChanged(bool)), this, SIGNAL(readyForCaptureChanged(bool)));
+    connect(m_session, SIGNAL(imageExposed(int)), this, SIGNAL(imageExposed(int)));
+    connect(m_session, SIGNAL(imageCaptured(int,QImage)), this, SIGNAL(imageCaptured(int,QImage)));
+    connect(m_session, SIGNAL(imageMetadataAvailable(int,QString,QVariant)), this, SIGNAL(imageMetadataAvailable(int,QString,QVariant)));
+    connect(m_session, SIGNAL(imageAvailable(int,QVideoFrame)), this, SIGNAL(imageAvailable(int,QVideoFrame)));
+    connect(m_session, SIGNAL(imageSaved(int,QString)), this, SIGNAL(imageSaved(int,QString)));
+    connect(m_session, SIGNAL(imageCaptureError(int,int,QString)), this, SIGNAL(error(int,int,QString)));
 }
 
-BbCameraService::~BbCameraService()
+bool BbCameraImageCaptureControl::isReadyForCapture() const
 {
+    return m_session->isReadyForCapture();
 }
 
-QPlatformCamera *BbCameraService::camera()
+int BbCameraImageCaptureControl::capture(const QString &fileName)
 {
-    return m_cameraControl;
+    return m_session->capture(fileName);
 }
 
-QPlatformImageCapture *BbCameraService::imageCapture()
+int BbCameraImageCaptureControl::captureToBuffer()
 {
-    return m_cameraImageCaptureControl;
+    // ### implement me
+    return -1;
 }
 
-QPlatformMediaRecorder *BbCameraService::mediaRecorder()
+QImageEncoderSettings BbCameraImageCaptureControl::imageSettings() const
 {
-    return m_cameraMediaRecorderControl;
+    return m_session->imageSettings();
 }
 
-void BbCameraService::setVideoPreview(QVideoSink *surface)
+void BbCameraImageCaptureControl::setImageSettings(const QImageEncoderSettings &settings)
 {
-    // ####
+    m_session->setImageSettings(settings);
 }
 
 QT_END_NAMESPACE

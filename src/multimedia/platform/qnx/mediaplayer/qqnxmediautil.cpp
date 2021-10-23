@@ -36,7 +36,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "mmrendererutil_p.h"
+#include "qqnxmediautil_p.h"
 
 #include <QDebug>
 #include <QDir>

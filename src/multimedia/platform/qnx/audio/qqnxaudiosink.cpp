@@ -39,9 +39,11 @@
 
 #include "qqnxaudiosink_p.h"
 
-#include "qnxaudioutils_p.h"
+#include "qqnxaudioutils_p.h"
 
 #include <private/qaudiohelpers_p.h>
+#include <sys/asoundlib.h>
+#include <sys/asound_common.h>
 
 #pragma GCC diagnostic ignored "-Wvla"
 
@@ -200,11 +202,12 @@ void QQnxAudioSink::pullData()
         return;
 
     const int bytesAvailable = bytesFree();
-    const int frames = m_format.framesForBytes(bytesAvailable);
 
-    if (frames == 0 || bytesAvailable < periodSize())
+    // skip if we have less than 4ms of data
+    if (m_format.durationForBytes(bytesAvailable) < 4000)
         return;
 
+    const int frames = m_format.framesForBytes(bytesAvailable);
     // The buffer is placed on the stack so no more than 64K or 1 frame
     // whichever is larger.
     const int maxFrames = qMax(m_format.framesForBytes(64 * 1024), 1);

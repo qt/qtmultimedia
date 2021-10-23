@@ -36,11 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "mmrendereraudiorolecontrol_p.h"
-#include "mmrenderermediaplayercontrol_p.h"
-#include "mmrendererplayervideorenderercontrol_p.h"
-#include "mmrendererutil_p.h"
-#include "mmrenderervideowindowcontrol_p.h"
+#include "qqnxmediaplayer_p.h"
+#include "qqnxvideorenderer_p.h"
+#include "qqnxmediautil_p.h"
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>

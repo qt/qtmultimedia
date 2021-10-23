@@ -36,61 +36,62 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBCAMERACONTROL_H
-#define BBCAMERACONTROL_H
+#include "qqnxcamera_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformcamera_p.h>
+#include "bbcamerasession_p.h"
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class BbCameraSession;
-
-class BbCameraControl : public QPlatformCamera
+BbCameraControl::BbCameraControl(BbCameraSession *session, QObject *parent)
+    : QPlatformCamera(parent)
+    , m_session(session)
 {
-    Q_OBJECT
-public:
-    explicit BbCameraControl(BbCameraSession *session, QObject *parent = 0);
+    connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(statusChanged(QCamera::Status)));
+    connect(m_session, SIGNAL(stateChanged(QCamera::State)), this, SIGNAL(stateChanged(QCamera::State)));
+    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+    connect(m_session, SIGNAL(captureModeChanged(QCamera::CaptureModes)), this, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
 
-    QCamera::State state() const override;
-    void setState(QCamera::State state) override;
+    connect(m_session, SIGNAL(cameraOpened()), SLOT(cameraOpened()));
+}
 
-    QCamera::Status status() const override;
+QCamera::State BbCameraControl::state() const
+{
+    return m_session->state();
+}
 
-    void setCamera(const QCameraDevice &camera) override;
+void BbCameraControl::setState(QCamera::State state)
+{
+    m_session->setState(state);
+}
 
-    QCamera::CaptureModes captureMode() const override;
-    void setCaptureMode(QCamera::CaptureModes) override;
-    bool isCaptureModeSupported(QCamera::CaptureModes mode) const override;
+QCamera::CaptureModes BbCameraControl::captureMode() const
+{
+    return m_session->captureMode();
+}
 
-    enum LocksApplyMode
-    {
-        IndependentMode,
-        FocusExposureBoundMode,
-        AllBoundMode,
-        FocusOnlyMode
-    };
+void BbCameraControl::setCaptureMode(QCamera::CaptureModes mode)
+{
+    m_session->setCaptureMode(mode);
+}
 
-private Q_SLOTS:
-    void cameraOpened();
+QCamera::Status BbCameraControl::status() const
+{
+    return m_session->status();
+}
 
-private:
-    BbCameraSession *m_session;
+void BbCameraControl::setCamera(const QCameraDevice &camera)
+{
+    m_session->setDevice(camera.id());
+}
 
-private:
-    BbCameraSession *m_session;
-};
+bool BbCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
+{
+    return m_session->isCaptureModeSupported(mode);
+}
+
+void BbCameraControl::cameraOpened()
+{
+}
 
 QT_END_NAMESPACE
-
-#endif

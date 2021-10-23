@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -39,7 +40,7 @@
 
 #include "qqnxaudiodevice_p.h"
 
-#include "qnxaudioutils_p.h"
+#include "qqnxaudioutils_p.h"
 
 #include <sys/asoundlib.h>
 
@@ -48,23 +49,21 @@ QT_BEGIN_NAMESPACE
 QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(deviceName, mode)
 {
+    preferredFormat.setSampleRate(44100);
+    preferredFormat.setSampleFormat(QAudioFormat::Int16);
+    preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
+
+    description = QString::fromUtf8(id);
+
+    minimumSampleRate = 8000;
+    maximumSampleRate = 48000;
+    minimumChannelCount = 1;
+    maximumChannelCount = 2;
+    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32;
 }
 
 QnxAudioDeviceInfo::~QnxAudioDeviceInfo()
 {
-}
-
-QAudioFormat QnxAudioDeviceInfo::preferredFormat() const
-{
-    QAudioFormat format;
-    format.setSampleRate(44100);
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setSampleSize(16);
-    format.setChannelCount(2);
-    if(mode == QAudioDevice::Input && !isFormatSupported(format))
-        format.setChannelCount(1);
-    return format;
 }
 
 bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
@@ -92,31 +91,6 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     snd_pcm_close(handle);
 
     return errorCode == 0;
-}
-
-QList<int> QnxAudioDeviceInfo::supportedSampleRates() const
-{
-    return QList<int>() << 8000 << 11025 << 22050 << 44100 << 48000;
-}
-
-QList<int> QnxAudioDeviceInfo::supportedChannelCounts() const
-{
-    return QList<int>() << 1 << 2;
-}
-
-QList<int> QnxAudioDeviceInfo::supportedSampleSizes() const
-{
-    return QList<int>() << 8 << 16 << 32;
-}
-
-QList<QAudioFormat::Endian> QnxAudioDeviceInfo::supportedByteOrders() const
-{
-    return QList<QAudioFormat::Endian>() << QAudioFormat::LittleEndian << QAudioFormat::BigEndian;
-}
-
-QList<QAudioFormat::SampleType> QnxAudioDeviceInfo::supportedSampleTypes() const
-{
-    return QList<QAudioFormat::SampleType>() << QAudioFormat::SignedInt << QAudioFormat::UnSignedInt << QAudioFormat::Float;
 }
 
 QT_END_NAMESPACE

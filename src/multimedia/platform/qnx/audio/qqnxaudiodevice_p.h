@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +38,8 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIODEVICEINFO_H
-#define QNXAUDIODEVICEINFO_H
+#ifndef QNXAUDIODEVICE_P_H
+#define QNXAUDIODEVICE_P_H
 
 //
 //  W A R N I N G
@@ -62,14 +63,7 @@ public:
     QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode);
     ~QnxAudioDeviceInfo();
 
-    QAudioFormat preferredFormat() const override;
-    bool isFormatSupported(const QAudioFormat &format) const override;
-    QString description() const override { return QString::fromUtf8(id()); }
-    QList<int> supportedSampleRates() const override;
-    QList<int> supportedChannelCounts() const override;
-    QList<int> supportedSampleSizes() const override;
-    QList<QAudioFormat::Endian> supportedByteOrders() const override;
-    QList<QAudioFormat::SampleType> supportedSampleTypes() const override;
+    bool isFormatSupported(const QAudioFormat &format) const;
 };
 
 QT_END_NAMESPACE
