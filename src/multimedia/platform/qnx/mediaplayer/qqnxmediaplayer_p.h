@@ -61,18 +61,89 @@ typedef struct mmr_connection mmr_connection_t;
 typedef struct mmr_context mmr_context_t;
 typedef struct mmrenderer_monitor mmrenderer_monitor_t;
 typedef struct strm_dict strm_dict_t;
+typedef struct strm_string strm_string_t;
+
+#include <mm/renderer/types.h>
+
+// ### replace with proper include: mm/renderer/events.h
+typedef enum mmr_state {
+    MMR_STATE_DESTROYED,
+    MMR_STATE_IDLE,
+    MMR_STATE_STOPPED,
+    MMR_STATE_PLAYING
+} mmr_state_t;
+typedef enum mmr_event_type {
+    MMR_EVENT_NONE,
+    MMR_EVENT_ERROR,
+    MMR_EVENT_STATE,
+    MMR_EVENT_OVERFLOW,
+    MMR_EVENT_WARNING,
+    MMR_EVENT_STATUS,
+    MMR_EVENT_METADATA,
+    MMR_EVENT_PLAYLIST,
+    MMR_EVENT_INPUT,
+    MMR_EVENT_OUTPUT,
+    MMR_EVENT_CTXTPAR,
+    MMR_EVENT_TRKPAR,
+    MMR_EVENT_OTHER
+} mmr_event_type_t;
+typedef struct mmr_event {
+    mmr_event_type_t type;
+    mmr_state_t state;
+    int speed;
+    union mmr_event_details {
+
+        struct mmr_event_state {
+            mmr_state_t oldstate;
+            int oldspeed;
+        } state;
+
+        struct mmr_event_error {
+            mmr_error_info_t info;
+        } error;
+
+        struct mmr_event_warning {
+            const char *str;
+            const strm_string_t *obj;
+        } warning;
+
+        struct mmr_event_metadata {
+            unsigned index;
+        } metadata;
+
+        struct mmr_event_trkparam {
+            unsigned index;
+        } trkparam;
+
+        struct mmr_event_playlist {
+            unsigned start;
+            unsigned end;
+            unsigned length;
+        } playlist;
+
+        struct mmr_event_output {
+            unsigned id;
+        } output;
+    } details;
+    const strm_string_t* pos_obj;
+    const char* pos_str;
+    const strm_dict_t* data;
+    const char* objname;
+    void* usrdata;
+} mmr_event_t;
+const mmr_event_t* mmr_event_get(mmr_context_t *ctxt);
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererAudioRoleControl;
 class QQnxVideoSink;
-class MmRendererVideoWindowControl;
+class QQnxMediaEventThread;
 
 class QQnxMediaPlayer : public QObject, public QPlatformMediaPlayer, public QAbstractNativeEventFilter
 {
     Q_OBJECT
 public:
     explicit QQnxMediaPlayer(QMediaPlayer *parent = 0);
+    ~QQnxMediaPlayer();
 
     QMediaPlayer::MediaStatus mediaStatus() const override;
 
@@ -107,9 +178,9 @@ public:
     void setVideoRendererControl(QQnxVideoSink *videoControl);
 
 protected:
-    virtual void startMonitoring() = 0;
-    virtual void stopMonitoring() = 0;
-    virtual void resetMonitoring() = 0;
+    void startMonitoring();
+    void stopMonitoring();
+    void resetMonitoring();
 
     void setState(QMediaPlayer::PlaybackState state);
 
@@ -127,17 +198,17 @@ protected:
     void handleMmPlay();
     void updateMetaData(const strm_dict_t *dict);
 
-    // must be called from subclass dtors (calls virtual function stopMonitoring())
-    void destroy();
-
     mmr_context_t *m_context;
     int m_id;
     QString m_contextName;
+
+    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
 
 private Q_SLOTS:
     void continueLoadMedia();
     void setVolume(float volume);
     void setMuted(bool muted);
+    void readEvents();
 
 private:
     QByteArray resourcePathForUrl(const QUrl &url);
@@ -157,20 +228,33 @@ private:
     void stopInternal(StopCommand stopCommand);
 
     QUrl m_media;
-    mmr_connection_t *m_connection;
+    mmr_connection_t *m_connection = nullptr;
     int m_audioId;
     float m_volume = 1.;
     bool m_muted = true;
-    qreal m_rate;
+    qreal m_rate = 1.;
     QPointer<QAudioOutput> m_audioOutput;
     QPointer<QQnxVideoSink> m_videoRenderer;
     MmRendererMetaData m_metaData;
-    qint64 m_position;
-    QMediaPlayer::MediaStatus m_mediaStatus;
-    bool m_playAfterMediaLoaded;
-    bool m_inputAttached;
-    int m_bufferLevel;
+    qint64 m_position = 0;
+    QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
+    bool m_playAfterMediaLoaded = false;
+    bool m_inputAttached = false;
+    int m_bufferLevel = 0;
     QTimer m_loadingTimer;
+
+
+    QQnxMediaEventThread *m_eventThread = nullptr;
+
+    // status properties.
+    QByteArray m_bufferProgress;
+    int m_bufferCapacity = 0;
+    bool m_suspended = false;
+    QByteArray m_suspendedReason;
+
+    // state properties.
+    mmr_state_t m_state = MMR_STATE_IDLE;
+    int m_speed = 0;
 };
 
 QT_END_NAMESPACE

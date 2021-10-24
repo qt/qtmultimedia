@@ -40,6 +40,7 @@
 #include "qqnxmediaplayer_p.h"
 #include "qqnxvideosink_p.h"
 #include "qqnxmediautil_p.h"
+#include "qqnxmediaeventthread_p.h"
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
@@ -54,7 +55,27 @@
 #include <sys/strm.h>
 #include <sys/stat.h>
 
+#include <tuple>
+
 QT_BEGIN_NAMESPACE
+
+static std::tuple<int, int, bool> parseBufferLevel(const QByteArray &value)
+{
+    const int slashPos = value.indexOf('/');
+    if (slashPos <= 0)
+        return std::make_tuple(0, 0, false);
+
+    bool ok = false;
+    const int level = value.left(slashPos).toInt(&ok);
+    if (!ok || level < 0)
+        return std::make_tuple(0, 0, false);
+
+    const int capacity = value.mid(slashPos + 1).toInt(&ok);
+    if (!ok || capacity < 0)
+        return std::make_tuple(0, 0, false);
+
+    return std::make_tuple(level, capacity, true);
+}
 
 static int idCounter = 0;
 
@@ -78,7 +99,7 @@ QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
     QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
 }
 
-void QQnxMediaPlayer::destroy()
+QQnxMediaPlayer::~QQnxMediaPlayer()
 {
     stop();
     detach();
@@ -557,6 +578,36 @@ void QQnxMediaPlayer::setVideoRendererControl(QQnxVideoSink *videoControl)
     m_videoRenderer = videoControl;
 }
 
+
+void QQnxMediaPlayer::startMonitoring()
+{
+    m_eventThread = new QQnxMediaEventThread(m_context);
+
+    connect(m_eventThread, &QQnxMediaEventThread::eventPending,
+            this, &QQnxMediaPlayer::readEvents);
+
+    m_eventThread->setObjectName(QStringLiteral("MmrEventThread-") + QString::number(m_id));
+    m_eventThread->start();
+}
+
+void QQnxMediaPlayer::stopMonitoring()
+{
+    delete m_eventThread;
+    m_eventThread = nullptr;
+}
+
+void QQnxMediaPlayer::resetMonitoring()
+{
+    m_bufferProgress = "";
+    m_bufferLevel = 0;
+    m_bufferCapacity = 0;
+    m_position = 0;
+    m_suspended = false;
+    m_suspendedReason = "unknown";
+    m_state = MMR_STATE_IDLE;
+    m_speed = 0;
+}
+
 void QQnxMediaPlayer::setMmPosition(qint64 newPosition)
 {
     if (newPosition != 0 && newPosition != m_position) {
@@ -615,6 +666,122 @@ void QQnxMediaPlayer::emitPError(const QString &msg)
     const QString errorMessage = QString::fromLatin1("%1: %2").arg(msg).arg(QString::fromUtf8(strerror(errno)));
     qDebug() << errorMessage;
     emit error(errno, errorMessage);
+}
+
+
+bool QQnxMediaPlayer::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)
+{
+    Q_UNUSED(result);
+    Q_UNUSED(message);
+    Q_UNUSED(eventType);
+//    if (eventType == "screen_event_t") {
+//        screen_event_t event = static_cast<screen_event_t>(message);
+//        if (MmRendererVideoWindowControl *control = videoWindowControl())
+//            control->screenEventHandler(event);
+//    }
+
+    return false;
+}
+
+void QQnxMediaPlayer::readEvents()
+{
+    const mmr_event_t *event;
+
+    while ((event = mmr_event_get(m_context))) {
+        if (event->type == MMR_EVENT_NONE)
+            break;
+
+        switch (event->type) {
+        case MMR_EVENT_STATUS: {
+            if (event->data) {
+                const strm_string_t *value;
+                value = strm_dict_find_rstr(event->data, "bufferstatus");
+                if (value) {
+                    m_bufferProgress = QByteArray(strm_string_get(value));
+                    if (!m_suspended)
+                        setMmBufferStatus(QString::fromUtf8(m_bufferProgress));
+                }
+
+                value = strm_dict_find_rstr(event->data, "bufferlevel");
+                if (value) {
+                    const char *cstrValue = strm_string_get(value);
+                    int level;
+                    int capacity;
+                    bool ok;
+                    std::tie(level, capacity, ok) = parseBufferLevel(QByteArray(cstrValue));
+                    if (!ok) {
+                        qCritical("Could not parse buffer capacity from '%s'", cstrValue);
+                    } else {
+                        m_bufferLevel = level;
+                        m_bufferCapacity = capacity;
+                        setMmBufferLevel(level, capacity);
+                    }
+                }
+
+                value = strm_dict_find_rstr(event->data, "suspended");
+                if (value) {
+                    if (!m_suspended) {
+                        m_suspended = true;
+                        m_suspendedReason = strm_string_get(value);
+                        handleMmSuspend(QString::fromUtf8(m_suspendedReason));
+                    }
+                } else if (m_suspended) {
+                    m_suspended = false;
+                    handleMmSuspendRemoval(QString::fromUtf8(m_bufferProgress));
+                }
+            }
+
+            if (event->pos_str) {
+                const QByteArray valueBa = QByteArray(event->pos_str);
+                bool ok;
+                m_position = valueBa.toLongLong(&ok);
+                if (!ok) {
+                    qCritical("Could not parse position from '%s'", valueBa.constData());
+                } else {
+                    setMmPosition(m_position);
+                }
+            }
+            break;
+        }
+        case MMR_EVENT_STATE: {
+            if (event->state == MMR_STATE_PLAYING && m_speed != event->speed) {
+                m_speed = event->speed;
+                if (m_speed == 0)
+                    handleMmPause();
+                else
+                    handleMmPlay();
+            }
+            break;
+        }
+        case MMR_EVENT_METADATA: {
+            updateMetaData(event->data);
+            break;
+        }
+        case MMR_EVENT_ERROR:
+        case MMR_EVENT_NONE:
+        case MMR_EVENT_OVERFLOW:
+        case MMR_EVENT_WARNING:
+        case MMR_EVENT_PLAYLIST:
+        case MMR_EVENT_INPUT:
+        case MMR_EVENT_OUTPUT:
+        case MMR_EVENT_CTXTPAR:
+        case MMR_EVENT_TRKPAR:
+        case MMR_EVENT_OTHER: {
+            break;
+        }
+        }
+
+        // Currently, any exit from the playing state is considered a stop (end-of-media).
+        // If you ever need to separate end-of-media from things like "stopped unexpectedly"
+        // or "stopped because of an error", you'll find that end-of-media is signaled by an
+        // MMR_EVENT_ERROR of MMR_ERROR_NONE with state changed to MMR_STATE_STOPPED.
+        if (event->state != m_state && m_state == MMR_STATE_PLAYING)
+            handleMmStopped();
+        m_state = event->state;
+    }
+
+    if (m_eventThread)
+        m_eventThread->signalRead();
 }
 
 QT_END_NAMESPACE
