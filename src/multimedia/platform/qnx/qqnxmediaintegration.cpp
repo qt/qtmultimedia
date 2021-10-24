@@ -40,7 +40,7 @@
 #include "qqnxmediaintegration_p.h"
 #include "qqnxmediadevices_p.h"
 #include "qqnxvideosink_p.h"
-//#include "private/qqnxmediaplayer_p.h"
+#include "private/qqnxmediaplayer_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -71,9 +71,9 @@ QPlatformVideoSink *QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
     return new QQnxVideoSink(sink);
 }
 
-QPlatformMediaPlayer *QQnxMediaIntegration::createPlayer(QMediaPlayer */*parent*/)
+QPlatformMediaPlayer *QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
 {
-    return nullptr;//new QQnxMediaPlayer(parent);
+    return new QQnxMediaPlayer(parent);
 }
 
 QT_END_NAMESPACE

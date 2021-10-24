@@ -568,14 +568,9 @@ void QQnxMediaPlayer::stop()
     stopInternal(StopMmRenderer);
 }
 
-QQnxVideoSink *QQnxMediaPlayer::videoRendererControl() const
+void QQnxMediaPlayer::setVideoSink(QVideoSink *videoSink)
 {
-    return m_videoRenderer;
-}
-
-void QQnxMediaPlayer::setVideoRendererControl(QQnxVideoSink *videoControl)
-{
-    m_videoRenderer = videoControl;
+    m_videoRenderer = static_cast<QQnxVideoSink *>(videoSink->platformVideoSink());
 }
 
 

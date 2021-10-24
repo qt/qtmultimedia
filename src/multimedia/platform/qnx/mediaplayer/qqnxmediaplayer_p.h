@@ -174,8 +174,7 @@ public:
     void pause() override;
     void stop() override;
 
-    QQnxVideoSink *videoRendererControl() const;
-    void setVideoRendererControl(QQnxVideoSink *videoControl);
+    void setVideoSink(QVideoSink *videoSink);
 
 protected:
     void startMonitoring();
