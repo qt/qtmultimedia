@@ -101,7 +101,7 @@ QString keyValueMapsLocation()
 {
     QByteArray qtKeyValueMaps = qgetenv("QT_KEY_VALUE_MAPS");
     if (qtKeyValueMaps.isNull())
-        return QString(u"/etc/qt/keyvaluemaps");
+        return QString::fromUtf8("/etc/qt/keyvaluemaps");
     else
         return QString::fromUtf8(qtKeyValueMaps);
 }
@@ -128,7 +128,7 @@ QString mmErrorMessage(const QString &msg, mmr_context_t *context, int *errorCod
         *errorCode = mmError->error_code;
 
     if (mmError->error_code < numMmErrors) {
-        return QString::fromLatin1("%1: %2 (code %3)").arg(msg).arg(mmErrors[mmError->error_code].name)
+        return QString::fromLatin1("%1: %2 (code %3)").arg(msg).arg(QString::fromUtf8(mmErrors[mmError->error_code].name))
                                           .arg(mmError->error_code);
     } else {
         return QString::fromLatin1("%1: Unknown error code %2").arg(msg).arg(mmError->error_code);
@@ -140,7 +140,7 @@ bool checkForDrmPermission()
     QDir sandboxDir = QDir::home(); // always returns 'data' directory
     sandboxDir.cdUp(); // change to app sandbox directory
 
-    QFile file(sandboxDir.filePath("app/native/bar-descriptor.xml"));
+    QFile file(sandboxDir.filePath(QString::fromUtf8("app/native/bar-descriptor.xml")));
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "checkForDrmPermission: Unable to open bar-descriptor.xml";
         return false;
