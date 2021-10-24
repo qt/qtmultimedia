@@ -37,35 +37,41 @@
 **
 ****************************************************************************/
 
-#include "qqnxintegration_p.h"
+#include "qqnxmediaintegration_p.h"
 #include "qqnxmediadevices_p.h"
+#include "qqnxvideosink_p.h"
 //#include "private/qqnxmediaplayer_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QQnxIntegration::QQnxIntegration()
+QQnxMediaIntegration::QQnxMediaIntegration()
 {
 
 }
 
-QQnxIntegration::~QQnxIntegration()
+QQnxMediaIntegration::~QQnxMediaIntegration()
 {
     delete m_devices;
 }
 
-QPlatformMediaDevices *QQnxIntegration::devices()
+QPlatformMediaDevices *QQnxMediaIntegration::devices()
 {
     if (!m_devices)
         m_devices = new QQnxMediaDevices();
     return m_devices;
 }
 
-QPlatformMediaFormatInfo *QQnxIntegration::formatInfo()
+QPlatformMediaFormatInfo *QQnxMediaIntegration::formatInfo()
 {
     return nullptr;
 }
 
-QPlatformMediaPlayer *QQnxIntegration::createPlayer(QMediaPlayer */*parent*/)
+QPlatformVideoSink *QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
+{
+    return new QQnxVideoSink(sink);
+}
+
+QPlatformMediaPlayer *QQnxMediaIntegration::createPlayer(QMediaPlayer */*parent*/)
 {
     return nullptr;//new QQnxMediaPlayer(parent);
 }

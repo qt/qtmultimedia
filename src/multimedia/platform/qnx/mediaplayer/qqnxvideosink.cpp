@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,13 +38,16 @@
 **
 ****************************************************************************/
 
-#include "qqnxvideorenderer_p.h"
+#include "qqnxvideosink_p.h"
 
 #include "qqnxwindowgrabber_p.h"
 
 #include <QCoreApplication>
 #include <QDebug>
 #include <QVideoFrameFormat>
+#include <qvideosink.h>
+#include <qvideoframe.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <QOpenGLContext>
 
 #include <mm/renderer.h>
@@ -52,53 +56,46 @@ QT_BEGIN_NAMESPACE
 
 static int winIdCounter = 0;
 
-MmRendererPlayerVideoRendererControl::MmRendererPlayerVideoRendererControl(QObject *parent)
-    : QVideoRendererControl(parent)
+QQnxVideoSink::QQnxVideoSink(QVideoSink *parent)
+    : QPlatformVideoSink(parent)
     , m_windowGrabber(new WindowGrabber(this))
     , m_context(0)
     , m_videoId(-1)
 {
     connect(m_windowGrabber, SIGNAL(updateScene(const QSize &)), SLOT(updateScene(const QSize &)));
+
+    // ### probably needs to be done on setRhi()!
+    if (QOpenGLContext::currentContext())
+        m_windowGrabber->checkForEglImageExtension();
+    // ####
+    //    else if (sink)
+    //        sink->setProperty("_q_GLThreadCallback", QVariant::fromValue<QObject*>(this));
 }
 
-MmRendererPlayerVideoRendererControl::~MmRendererPlayerVideoRendererControl()
+QQnxVideoSink::~QQnxVideoSink()
 {
     detachDisplay();
 }
 
-QVideoSink *MmRendererPlayerVideoRendererControl::sink() const
-{
-    return m_sink;
-}
-
-void MmRendererPlayerVideoRendererControl::setSink(QVideoSink *surface)
-{
-    m_sink = QPointer<QAbstractVideoSurface>(surface);
-    if (QOpenGLContext::currentContext())
-        m_windowGrabber->checkForEglImageExtension();
-    else if (m_sink)
-        m_sink->setProperty("_q_GLThreadCallback", QVariant::fromValue<QObject*>(this));
-}
-
-void MmRendererPlayerVideoRendererControl::attachDisplay(mmr_context_t *context)
+void QQnxVideoSink::attachDisplay(mmr_context_t *context)
 {
     if (m_videoId != -1) {
-        qWarning() << "MmRendererPlayerVideoRendererControl: Video output already attached!";
+        qWarning() << "QQnxVideoSink: Video output already attached!";
         return;
     }
 
     if (!context) {
-        qWarning() << "MmRendererPlayerVideoRendererControl: No media player context!";
+        qWarning() << "QQnxVideoSink: No media player context!";
         return;
     }
 
     const QByteArray windowGroupId = m_windowGrabber->windowGroupId();
     if (windowGroupId.isEmpty()) {
-        qWarning() << "MmRendererPlayerVideoRendererControl: Unable to find window group";
+        qWarning() << "QQnxVideoSink: Unable to find window group";
         return;
     }
 
-    const QString windowName = QStringLiteral("MmRendererPlayerVideoRendererControl_%1_%2")
+    const QString windowName = QStringLiteral("QQnxVideoSink_%1_%2")
                                              .arg(winIdCounter++)
                                              .arg(QCoreApplication::applicationPid());
 
@@ -118,12 +115,12 @@ void MmRendererPlayerVideoRendererControl::attachDisplay(mmr_context_t *context)
     m_context = context;
 }
 
-void MmRendererPlayerVideoRendererControl::detachDisplay()
+void QQnxVideoSink::detachDisplay()
 {
     m_windowGrabber->stop();
 
-    if (m_sink)
-        m_sink->stop();
+    if (sink)
+        sink->setVideoFrame({});
 
     if (m_context && m_videoId != -1)
         mmr_output_detach(m_context, m_videoId);
@@ -132,12 +129,12 @@ void MmRendererPlayerVideoRendererControl::detachDisplay()
     m_videoId = -1;
 }
 
-void MmRendererPlayerVideoRendererControl::pause()
+void QQnxVideoSink::pause()
 {
     m_windowGrabber->pause();
 }
 
-void MmRendererPlayerVideoRendererControl::resume()
+void QQnxVideoSink::resume()
 {
     m_windowGrabber->resume();
 }
@@ -145,18 +142,20 @@ void MmRendererPlayerVideoRendererControl::resume()
 class QnxTextureBuffer : public QAbstractVideoBuffer
 {
 public:
-    QnxTextureBuffer(WindowGrabber *windowGrabber) :
-        QAbstractVideoBuffer(QVideoFrame::GLTextureHandle)
+    QnxTextureBuffer(WindowGrabber *windowGrabber)
+        : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle)
     {
         m_windowGrabber = windowGrabber;
         m_handle = 0;
     }
-    MapMode mapMode() const {
+    QVideoFrame::MapMode mapMode() const override {
         return QVideoFrame::ReadWrite;
     }
-    void unmap() {}
-    MapData map(MapMode mode) override { return {}; }
-    QVariant handle() const {
+    void unmap() override {}
+    MapData map(QVideoFrame::MapMode /*mode*/) override { return {}; }
+    quint64 textureHandle(int plane) const override {
+        if (plane != 0)
+            return 0;
         if (!m_handle) {
             const_cast<QnxTextureBuffer*>(this)->m_handle = m_windowGrabber->getNextTextureId();
         }
@@ -164,25 +163,26 @@ public:
     }
 private:
     WindowGrabber *m_windowGrabber;
-    int m_handle;
+    quint64 m_handle;
 };
 
-void MmRendererPlayerVideoRendererControl::updateScene(const QSize &size)
+void QQnxVideoSink::updateScene(const QSize &size)
 {
-    if (m_sink) {
+    if (sink) {
         // Depending on the support of EGL images on the current platform we either pass a texture
         // handle or a copy of the image data
         if (m_windowGrabber->eglImageSupported()) {
             QnxTextureBuffer *textBuffer = new QnxTextureBuffer(m_windowGrabber);
-            QVideoFrame actualFrame(textBuffer, QVideoFrameFormat(size, QVideoFrameFormat::Format_BGR32));
-            m_sink->setVideoFrame(actualFrame);
-        } else {
-            m_sink->setVideoFrame(m_windowGrabber->getNextImage().copy());
+            QVideoFrame actualFrame(textBuffer, QVideoFrameFormat(size, QVideoFrameFormat::Format_BGRX8888));
+            sink->setVideoFrame(actualFrame);
+            // ####
+//        } else {
+//            sink->setVideoFrame(m_windowGrabber->getNextImage().copy());
         }
     }
 }
 
-void MmRendererPlayerVideoRendererControl::customEvent(QEvent *e)
+void QQnxVideoSink::customEvent(QEvent *e)
 {
     // This is running in the render thread (OpenGL enabled)
     if (e->type() == QEvent::User)

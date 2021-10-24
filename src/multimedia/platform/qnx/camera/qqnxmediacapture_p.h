@@ -92,7 +92,7 @@ private:
     BbCameraImageProcessingControl* m_cameraImageProcessingControl;
     BbCameraMediaRecorderControl* m_cameraMediaRecorderControl;
     BbCameraVideoEncoderSettingsControl* m_cameraVideoEncoderSettingsControl;
-    BbVideoRendererControl* m_videoRendererControl;
+    BbVideoRendererControl* m_videoRenderer;
 };
 
 QT_END_NAMESPACE

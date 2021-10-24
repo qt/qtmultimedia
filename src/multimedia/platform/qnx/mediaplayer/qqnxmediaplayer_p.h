@@ -65,7 +65,7 @@ typedef struct strm_dict strm_dict_t;
 QT_BEGIN_NAMESPACE
 
 class MmRendererAudioRoleControl;
-class MmRendererPlayerVideoRendererControl;
+class QQnxVideoSink;
 class MmRendererVideoWindowControl;
 
 class QQnxMediaPlayer : public QObject, public QPlatformMediaPlayer, public QAbstractNativeEventFilter
@@ -103,11 +103,8 @@ public:
     void pause() override;
     void stop() override;
 
-    MmRendererPlayerVideoRendererControl *videoRendererControl() const;
-    void setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl);
-
-    MmRendererVideoWindowControl *videoWindowControl() const;
-    void setVideoWindowControl(MmRendererVideoWindowControl *videoControl);
+    QQnxVideoSink *videoRendererControl() const;
+    void setVideoRendererControl(QQnxVideoSink *videoControl);
 
 protected:
     virtual void startMonitoring() = 0;
@@ -166,8 +163,7 @@ private:
     bool m_muted = true;
     qreal m_rate;
     QPointer<QAudioOutput> m_audioOutput;
-    QPointer<MmRendererPlayerVideoRendererControl> m_videoRendererControl;
-    QPointer<MmRendererVideoWindowControl> m_videoWindowControl;
+    QPointer<QQnxVideoSink> m_videoRenderer;
     MmRendererMetaData m_metaData;
     qint64 m_position;
     QMediaPlayer::MediaStatus m_mediaStatus;

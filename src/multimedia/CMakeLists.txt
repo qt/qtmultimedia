@@ -115,15 +115,15 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
 ##        platform/qnx/camera/bbcameravideoencodersettingscontrol.cpp platform/qnx/camera/bbcameravideoencodersettingscontrol_p.h
 #        platform/qnx/common/qqnxwindowgrabber.cpp platform/qnx/common/qqnxwindowgrabber_p.h
         platform/qnx/common/qqnxaudiooutput.cpp platform/qnx/common/qqnxaudiooutput_p.h
-#        platform/qnx/mediaplayer/qqnxmediaplayer.cpp platform/qnx/mediaplayer/qqnxmediaplayer_p.h
+        platform/qnx/mediaplayer/qqnxmediaplayer.cpp platform/qnx/mediaplayer/qqnxmediaplayer_p.h
 #        platform/qnx/mediaplayer/qqnxmediametadata.cpp platform/qnx/mediaplayer/qqnxmediametadata_p.h
-#        platform/qnx/mediaplayer/qqnxvideorenderer.cpp platform/qnx/mediaplayer/qqnxvideorenderer_p.h
+        platform/qnx/mediaplayer/qqnxvideosink.cpp platform/qnx/mediaplayer/qqnxvideosink_p.h
 #        platform/qnx/mediaplayer/qqnxmediautil.cpp platform/qnx/mediaplayer/qqnxmediautil_p.h
 ##        platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h
 ##        platform/qnx/mediaplayer/mmreventthread.cpp platform/qnx/mediaplayer/mmreventthread_p.h
 ##        platform/qnx/mediaplayer/mmreventmediaplayercontrol.cpp platform/qnx/mediaplayer/mmreventmediaplayercontrol_p.h
         platform/qnx/qqnxmediadevices.cpp platform/qnx/qqnxmediadevices_p.h
-        platform/qnx/qqnxintegration.cpp platform/qnx/qqnxintegration_p.h
+        platform/qnx/qqnxmediaintegration.cpp platform/qnx/qqnxmediaintegration_p.h
     INCLUDE_DIRECTORIES
         platform/qnx/camera
         platform/qnx/common

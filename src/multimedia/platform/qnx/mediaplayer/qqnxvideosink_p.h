@@ -1,6 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,40 +37,52 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QQNXINTEGRATION_H
-#define QQNXINTEGRATION_H
+#ifndef QQNXVIDFEOSINK_P_H
+#define QQNXVIDFEOSINK_P_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformvideosink_p.h>
+
+typedef struct mmr_context mmr_context_t;
 
 QT_BEGIN_NAMESPACE
 
-class QQnxMediaDevices;
-class QQnxPlayerInterface;
+class WindowGrabber;
+class QVideoSink;
 
-class QQnxIntegration : public QPlatformMediaIntegration
+class QQnxVideoSink : public QPlatformVideoSink
 {
+    Q_OBJECT
 public:
-    QQnxIntegration();
-    ~QQnxIntegration();
+    explicit QQnxVideoSink(QVideoSink *parent = 0);
+    ~QQnxVideoSink();
 
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    // Called by media control
+    void attachDisplay(mmr_context_t *context);
+    void detachDisplay();
+    void pause();
+    void resume();
 
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
+    void customEvent(QEvent *) override;
 
-    QQnxMediaDevices *m_devices = nullptr;
+private Q_SLOTS:
+    void updateScene(const QSize &size);
+
+private:
+    WindowGrabber* m_windowGrabber;
+    mmr_context_t *m_context;
+
+    int m_videoId;
 };
 
 QT_END_NAMESPACE

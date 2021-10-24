@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 #include "qqnxmediaplayer_p.h"
-#include "qqnxvideorenderer_p.h"
+#include "qqnxvideosink_p.h"
 #include "qqnxmediautil_p.h"
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
@@ -201,11 +201,8 @@ void QQnxMediaPlayer::attach()
 
     resetMonitoring();
 
-    if (m_videoRendererControl)
-        m_videoRendererControl->attachDisplay(m_context);
-
-    if (m_videoWindowControl)
-        m_videoWindowControl->attachDisplay(m_context);
+    if (m_videoRenderer)
+        m_videoRenderer->attachDisplay(m_context);
 
     const QByteArray defaultAudioDevice = qgetenv("QQNX_RENDERER_DEFAULT_AUDIO_SINK");
     m_audioId = mmr_output_attach(m_context, defaultAudioDevice.isEmpty() ? "audio:default" : defaultAudioDevice.constData(), "audio");
@@ -254,10 +251,8 @@ void QQnxMediaPlayer::detach()
             mmr_input_detach(m_context);
             m_inputAttached = false;
         }
-        if (m_videoRendererControl)
-            m_videoRendererControl->detachDisplay();
-        if (m_videoWindowControl)
-            m_videoWindowControl->detachDisplay();
+        if (m_videoRenderer)
+            m_videoRenderer->detachDisplay();
         if (m_audioId != -1 && m_context) {
             mmr_output_detach(m_context, m_audioId);
             m_audioId = -1;
@@ -343,13 +338,13 @@ void QQnxMediaPlayer::setState(QMediaPlayer::PlaybackState state)
 {
     auto oldState = this->state();
     if (oldState != state) {
-        if (m_videoRendererControl) {
+        if (m_videoRenderer) {
             if (state == QMediaPlayer::PausedState || state == QMediaPlayer::StoppedState) {
-                m_videoRendererControl->pause();
+                m_videoRenderer->pause();
             } else if ((state == QMediaPlayer::PlayingState)
                        && (oldState == QMediaPlayer::PausedState
                            || oldState == QMediaPlayer::StoppedState)) {
-                m_videoRendererControl->resume();
+                m_videoRenderer->resume();
             }
         }
 
@@ -490,11 +485,6 @@ void QQnxMediaPlayer::continueLoadMedia()
         play();
 }
 
-MmRendererVideoWindowControl *QQnxMediaPlayer::videoWindowControl() const
-{
-    return m_videoWindowControl;
-}
-
 void QQnxMediaPlayer::play()
 {
     if (m_playAfterMediaLoaded)
@@ -557,19 +547,14 @@ void QQnxMediaPlayer::stop()
     stopInternal(StopMmRenderer);
 }
 
-MmRendererPlayerVideoRendererControl *QQnxMediaPlayer::videoRendererControl() const
+QQnxVideoSink *QQnxMediaPlayer::videoRendererControl() const
 {
-    return m_videoRendererControl;
+    return m_videoRenderer;
 }
 
-void QQnxMediaPlayer::setVideoRendererControl(MmRendererPlayerVideoRendererControl *videoControl)
+void QQnxMediaPlayer::setVideoRendererControl(QQnxVideoSink *videoControl)
 {
-    m_videoRendererControl = videoControl;
-}
-
-void QQnxMediaPlayer::setVideoWindowControl(MmRendererVideoWindowControl *videoControl)
-{
-    m_videoWindowControl = videoControl;
+    m_videoRenderer = videoControl;
 }
 
 void QQnxMediaPlayer::setMmPosition(qint64 newPosition)
@@ -600,8 +585,9 @@ void QQnxMediaPlayer::updateMetaData(const strm_dict *dict)
 {
     m_metaData.update(dict);
 
-    if (m_videoWindowControl)
-        m_videoWindowControl->setMetaData(m_metaData);
+    // ### need to notify sink about possible size changes
+//    if (m_videoWindowControl)
+//        m_videoWindowControl->setMetaData(m_metaData);
 
     // ### convert to QMediaMetaData and notify the player about metadata changes
     emit durationChanged(m_metaData.duration());

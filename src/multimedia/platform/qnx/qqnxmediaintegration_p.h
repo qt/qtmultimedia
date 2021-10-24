@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,58 +36,42 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERPLAYERVIDEORENDERERCONTROL_H
-#define MMRENDERERPLAYERVIDEORENDERERCONTROL_H
+
+#ifndef QQnxMediaIntegration_H
+#define QQnxMediaIntegration_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <QPointer>
-#include <qobject.h>
-
-typedef struct mmr_context mmr_context_t;
+#include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class WindowGrabber;
-class QVideoSink;
+class QQnxMediaDevices;
+class QQnxPlayerInterface;
 
-class MmRendererPlayerVideoRendererControl : public QObject
+class QQnxMediaIntegration : public QPlatformMediaIntegration
 {
-    Q_OBJECT
 public:
-    explicit MmRendererPlayerVideoRendererControl(QObject *parent = 0);
-    ~MmRendererPlayerVideoRendererControl();
+    QQnxMediaIntegration();
+    ~QQnxMediaIntegration();
 
-    QVideoSink *sink() const;
-    void setSink(QVideoSink *sink);
+    QPlatformMediaDevices *devices() override;
+    QPlatformMediaFormatInfo *formatInfo() override;
 
-    // Called by media control
-    void attachDisplay(mmr_context_t *context);
-    void detachDisplay();
-    void pause();
-    void resume();
+    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 
-    void customEvent(QEvent *) override;
+    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
 
-private Q_SLOTS:
-    void updateScene(const QSize &size);
-
-private:
-    QPointer<QVideoSink> m_sink;
-
-    WindowGrabber* m_windowGrabber;
-    mmr_context_t *m_context;
-
-    int m_videoId;
+    QQnxMediaDevices *m_devices = nullptr;
 };
 
 QT_END_NAMESPACE
