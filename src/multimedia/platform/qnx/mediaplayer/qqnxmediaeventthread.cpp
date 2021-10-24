@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2017 QNX Software Systems. All rights reserved.
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,38 +38,42 @@
 **
 ****************************************************************************/
 
-#include "mmreventthread.h"
+#include "qqnxmediaeventthread_p.h"
 
 #include <QtCore/QDebug>
 
 #include <errno.h>
-#include <mm/renderer/events.h>
+#include <mm/renderer/types.h>
 #include <sys/neutrino.h>
+
+// ### Include mm/renderer/events.h once we have it
+int mmr_event_arm(mmr_context_t *ctxt,
+                  struct sigevent const *sev);
 
 static const int c_mmrCode = _PULSE_CODE_MINAVAIL + 0;
 static const int c_readCode = _PULSE_CODE_MINAVAIL + 1;
 static const int c_quitCode = _PULSE_CODE_MINAVAIL + 2;
 
-MmrEventThread::MmrEventThread(mmr_context_t *context)
+QQnxMediaEventThread::QQnxMediaEventThread(mmr_context_t *context)
     : QThread(),
       m_mmrContext(context)
 {
     if (Q_UNLIKELY((m_channelId = ChannelCreate(_NTO_CHF_DISCONNECT
                                                 | _NTO_CHF_UNBLOCK
                                                 | _NTO_CHF_PRIVATE)) == -1)) {
-        qFatal("MmrEventThread: Can't continue without a channel");
+        qFatal("QQnxMediaEventThread: Can't continue without a channel");
     }
 
     if (Q_UNLIKELY((m_connectionId = ConnectAttach(0, 0, m_channelId,
                                                    _NTO_SIDE_CHANNEL, 0)) == -1)) {
         ChannelDestroy(m_channelId);
-        qFatal("MmrEventThread: Can't continue without a channel connection");
+        qFatal("QQnxMediaEventThread: Can't continue without a channel connection");
     }
 
     SIGEV_PULSE_INIT(&m_mmrEvent, m_connectionId, SIGEV_PULSE_PRIO_INHERIT, c_mmrCode, 0);
 }
 
-MmrEventThread::~MmrEventThread()
+QQnxMediaEventThread::~QQnxMediaEventThread()
 {
     // block until thread terminates
     shutdown();
@@ -77,7 +82,7 @@ MmrEventThread::~MmrEventThread()
     ChannelDestroy(m_channelId);
 }
 
-void MmrEventThread::run()
+void QQnxMediaEventThread::run()
 {
     int armResult = mmr_event_arm(m_mmrContext, &m_mmrEvent);
     if (armResult > 0)
@@ -107,12 +112,12 @@ void MmrEventThread::run()
     }
 }
 
-void MmrEventThread::signalRead()
+void QQnxMediaEventThread::signalRead()
 {
     MsgSendPulse(m_connectionId, SIGEV_PULSE_PRIO_INHERIT, c_readCode, 0);
 }
 
-void MmrEventThread::shutdown()
+void QQnxMediaEventThread::shutdown()
 {
     MsgSendPulse(m_connectionId, SIGEV_PULSE_PRIO_INHERIT, c_quitCode, 0);
 

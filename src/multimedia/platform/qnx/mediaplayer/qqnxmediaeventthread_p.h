@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2017 QNX Software Systems. All rights reserved.
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +38,8 @@
 **
 ****************************************************************************/
 
-#ifndef MMREVENTTHREAD_H
-#define MMREVENTTHREAD_H
+#ifndef QQNXMEDIAEVENTTHREAD_P_H
+#define QQNXMEDIAEVENTTHREAD_P_H
 
 //
 //  W A R N I N G
@@ -60,13 +61,13 @@ QT_BEGIN_NAMESPACE
 
 typedef struct mmr_context mmr_context_t;
 
-class MmrEventThread : public QThread
+class QQnxMediaEventThread : public QThread
 {
     Q_OBJECT
 
 public:
-    MmrEventThread(mmr_context_t *context);
-    ~MmrEventThread() override;
+    QQnxMediaEventThread(mmr_context_t *context);
+    ~QQnxMediaEventThread() override;
 
     void signalRead();
 
@@ -87,4 +88,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // MMREVENTTHREAD_H
+#endif // QQnxMediaEventThread_H

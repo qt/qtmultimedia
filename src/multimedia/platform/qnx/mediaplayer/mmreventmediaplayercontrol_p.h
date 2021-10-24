@@ -56,7 +56,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class MmrEventThread;
+class QQnxMediaEventThread;
 
 class MmrEventMediaPlayerControl final : public QQnxMediaPlayer
 {
@@ -75,7 +75,7 @@ private Q_SLOTS:
     void readEvents();
 
 private:
-    MmrEventThread *m_eventThread;
+    QQnxMediaEventThread *m_eventThread;
 
     // status properties.
     QByteArray m_bufferProgress;

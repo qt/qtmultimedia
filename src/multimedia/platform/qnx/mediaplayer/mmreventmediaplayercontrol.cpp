@@ -39,7 +39,6 @@
 
 #include "mmreventmediaplayercontrol_p.h"
 #include "mmreventthread_p.h"
-#include "mmrenderervideowindowcontrol_p.h"
 
 #include <mm/renderer.h>
 #include <tuple>
