@@ -116,7 +116,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
 #        platform/qnx/common/qqnxwindowgrabber.cpp platform/qnx/common/qqnxwindowgrabber_p.h
         platform/qnx/common/qqnxaudiooutput.cpp platform/qnx/common/qqnxaudiooutput_p.h
         platform/qnx/mediaplayer/qqnxmediaplayer.cpp platform/qnx/mediaplayer/qqnxmediaplayer_p.h
-#        platform/qnx/mediaplayer/qqnxmediametadata.cpp platform/qnx/mediaplayer/qqnxmediametadata_p.h
+        platform/qnx/mediaplayer/qqnxmediametadata.cpp platform/qnx/mediaplayer/qqnxmediametadata_p.h
         platform/qnx/mediaplayer/qqnxvideosink.cpp platform/qnx/mediaplayer/qqnxvideosink_p.h
         platform/qnx/mediaplayer/qqnxmediautil.cpp platform/qnx/mediaplayer/qqnxmediautil_p.h
 ##        platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h
