@@ -53,6 +53,7 @@
 
 #include <private/qplatformmediadevices_p.h>
 #include <qaudio.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -66,6 +67,10 @@ public:
     QList<QCameraDevice> videoInputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
+
+private:
+    mutable bool camerasChecked = false;
+    mutable QList<QCameraDevice> cameras;
 };
 
 QT_END_NAMESPACE
