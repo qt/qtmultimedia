@@ -52,7 +52,7 @@
 
 #include <private/qplatformcamera_p.h>
 
-typedef int32_t camera_handle_t;
+#include <camera/camera_api.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -73,8 +73,8 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
-//    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
-//    void setFocusMode(QCamera::FocusMode /*mode*/) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
+    void setFocusMode(QCamera::FocusMode /*mode*/) override;
 
 //    void setCustomFocusPoint(const QPointF &/*point*/) override;
 
@@ -106,6 +106,10 @@ public:
 
 private:
     QQnxMediaCaptureSession *m_session;
+
+    QCameraDevice m_camera;
+    camera_unit_t m_cameraUnit = CAMERA_UNIT_NONE;
+    camera_handle_t m_handle = 0;
 };
 
 QT_END_NAMESPACE

@@ -40,32 +40,52 @@
 
 #include "qqnxmediacapture_p.h"
 #include <qcameradevice.h>
+#include <qmediadevices.h>
+
+#include <camera/camera_api.h>
+#include <camera/camera_3a.h>
 
 QT_BEGIN_NAMESPACE
 
 QQnxCamera::QQnxCamera(QCamera *parent)
     : QPlatformCamera(parent)
 {
-//    connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(statusChanged(QCamera::Status)));
-//    connect(m_session, SIGNAL(stateChanged(QCamera::State)), this, SIGNAL(stateChanged(QCamera::State)));
-//    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
-//    connect(m_session, SIGNAL(captureModeChanged(QCamera::CaptureModes)), this, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
-
-//    connect(m_session, SIGNAL(cameraOpened()), SLOT(cameraOpened()));
+    m_camera = QMediaDevices::defaultVideoInput();
 }
 
 bool QQnxCamera::isActive() const
 {
-
+    return m_handle != 0;
 }
 
 void QQnxCamera::setActive(bool active)
 {
-
+    if (active) {
+        if (m_handle)
+            return;
+        auto error = camera_open(m_cameraUnit, CAMERA_MODE_RO|CAMERA_MODE_PWRITE, &m_handle);
+        if (error != CAMERA_EOK) {
+            qWarning() << "Failed to open camera" << error;
+            return;
+        }
+    } else {
+        if (!m_handle)
+            return;
+        auto error = camera_close(m_handle);
+        m_handle = 0;
+        if (error != CAMERA_EOK) {
+            qWarning() << "Failed to close camera" << error;
+            return;
+        }
+    }
 }
 
 void QQnxCamera::setCamera(const QCameraDevice &camera)
 {
+    if (m_camera == camera)
+        return;
+    m_camera = camera;
+    m_cameraUnit = camera_unit_t(camera.id().toUInt());
 }
 
 void QQnxCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
@@ -75,10 +95,60 @@ void QQnxCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_session = static_cast<QQnxMediaCaptureSession *>(session);
 }
 
+camera_focusmode_t qnxFocusMode(QCamera::FocusMode mode)
+{
+    switch (mode) {
+    case QCamera::FocusModeAuto:
+    case QCamera::FocusModeAutoFar:
+    case QCamera::FocusModeInfinity:
+        return CAMERA_FOCUSMODE_CONTINUOUS_AUTO;
+    case QCamera::FocusModeAutoNear:
+        return CAMERA_FOCUSMODE_CONTINUOUS_MACRO;
+    case QCamera::FocusModeHyperfocal:
+        return CAMERA_FOCUSMODE_EDOF;
+    case QCamera::FocusModeManual:
+        return CAMERA_FOCUSMODE_MANUAL;
+    }
+}
+
+bool QQnxCamera::isFocusModeSupported(QCamera::FocusMode mode) const
+{
+    if (!m_handle)
+        return false;
+
+    camera_focusmode_t focusModes[CAMERA_FOCUSMODE_NUMFOCUSMODES];
+    int nFocusModes = 0;
+    auto error = camera_get_focus_modes(m_handle, CAMERA_FOCUSMODE_NUMFOCUSMODES, &nFocusModes, focusModes);
+    if (error != CAMERA_EOK || nFocusModes == 0)
+        return false;
+
+    auto qnxMode = qnxFocusMode(mode);
+    for (int i = 0; i < nFocusModes; ++i) {
+        if (focusModes[i] == qnxMode)
+            return true;
+    }
+    return false;
+}
+
+void QQnxCamera::setFocusMode(QCamera::FocusMode mode)
+{
+    if (!m_handle)
+        return;
+
+    auto qnxMode = qnxFocusMode(mode);
+    const camera_error_t result = camera_set_focus_mode(m_handle, qnxMode);
+
+    if (result != CAMERA_EOK) {
+        qWarning() << "Unable to set focus mode:" << result;
+        return;
+    }
+
+    focusModeChanged(mode);
+}
+
 camera_handle_t QQnxCamera::handle() const
 {
-    // ####
-    return 0;
+    return m_handle;
 }
 
 QT_END_NAMESPACE

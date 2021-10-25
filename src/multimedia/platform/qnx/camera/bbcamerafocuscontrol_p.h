@@ -62,9 +62,6 @@ class BbCameraFocusControl : public QPlatformCameraFocus
 public:
     explicit BbCameraFocusControl(BbCameraSession *session, QObject *parent = 0);
 
-    QCamera::FocusMode focusMode() const override;
-    void setFocusMode(QCamera::FocusMode mode) override;
-    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
     QPointF focusPoint() const override;
     void setCustomFocusPoint(const QPointF &point) override;
 
