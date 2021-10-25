@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBCAMERAIMAGECAPTURECONTROL_H
-#define BBCAMERAIMAGECAPTURECONTROL_H
+#ifndef QQnxImageCapture_H
+#define QQnxImageCapture_H
 
 //
 //  W A R N I N G
@@ -51,16 +51,17 @@
 //
 
 #include <private/qplatformimagecapture_p.h>
+#include <qqueue.h>
 
 QT_BEGIN_NAMESPACE
 
-class BbCameraSession;
+class QQnxMediaCaptureSession;
 
-class BbCameraImageCaptureControl : public QPlatformImageCapture
+class QQnxImageCapture : public QPlatformImageCapture
 {
     Q_OBJECT
 public:
-    explicit BbCameraImageCaptureControl(BbCameraSession *session, QObject *parent = 0);
+    explicit QQnxImageCapture(QImageCapture *parent);
 
     bool isReadyForCapture() const override;
 
@@ -70,8 +71,20 @@ public:
     QImageEncoderSettings imageSettings() const override;
     void setImageSettings(const QImageEncoderSettings &settings) override;
 
+    void setCaptureSession(QQnxMediaCaptureSession *session);
+
+    struct PendingImage {
+        int id;
+        QString filename;
+        QMediaMetaData metaData;
+        QQnxImageCapture *imageCapture;
+    };
+
 private:
-    BbCameraSession *m_session;
+    QQnxMediaCaptureSession *m_session = nullptr;
+
+    int m_lastId = 0;
+    QImageEncoderSettings m_settings;
 };
 
 QT_END_NAMESPACE

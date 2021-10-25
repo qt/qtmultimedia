@@ -38,60 +38,47 @@
 ****************************************************************************/
 #include "qqnxcamera_p.h"
 
-#include "bbcamerasession_p.h"
+#include "qqnxmediacapture_p.h"
 #include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
-BbCameraControl::BbCameraControl(BbCameraSession *session, QObject *parent)
+QQnxCamera::QQnxCamera(QCamera *parent)
     : QPlatformCamera(parent)
-    , m_session(session)
 {
-    connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(statusChanged(QCamera::Status)));
-    connect(m_session, SIGNAL(stateChanged(QCamera::State)), this, SIGNAL(stateChanged(QCamera::State)));
-    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
-    connect(m_session, SIGNAL(captureModeChanged(QCamera::CaptureModes)), this, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
+//    connect(m_session, SIGNAL(statusChanged(QCamera::Status)), this, SIGNAL(statusChanged(QCamera::Status)));
+//    connect(m_session, SIGNAL(stateChanged(QCamera::State)), this, SIGNAL(stateChanged(QCamera::State)));
+//    connect(m_session, SIGNAL(error(int,QString)), this, SIGNAL(error(int,QString)));
+//    connect(m_session, SIGNAL(captureModeChanged(QCamera::CaptureModes)), this, SIGNAL(captureModeChanged(QCamera::CaptureModes)));
 
-    connect(m_session, SIGNAL(cameraOpened()), SLOT(cameraOpened()));
+//    connect(m_session, SIGNAL(cameraOpened()), SLOT(cameraOpened()));
 }
 
-QCamera::State BbCameraControl::state() const
+bool QQnxCamera::isActive() const
 {
-    return m_session->state();
+
 }
 
-void BbCameraControl::setState(QCamera::State state)
+void QQnxCamera::setActive(bool active)
 {
-    m_session->setState(state);
+
 }
 
-QCamera::CaptureModes BbCameraControl::captureMode() const
+void QQnxCamera::setCamera(const QCameraDevice &camera)
 {
-    return m_session->captureMode();
 }
 
-void BbCameraControl::setCaptureMode(QCamera::CaptureModes mode)
+void QQnxCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    m_session->setCaptureMode(mode);
+    if (m_session == session)
+        return;
+    m_session = static_cast<QQnxMediaCaptureSession *>(session);
 }
 
-QCamera::Status BbCameraControl::status() const
+camera_handle_t QQnxCamera::handle() const
 {
-    return m_session->status();
-}
-
-void BbCameraControl::setCamera(const QCameraDevice &camera)
-{
-    m_session->setDevice(camera.id());
-}
-
-bool BbCameraControl::isCaptureModeSupported(QCamera::CaptureModes mode) const
-{
-    return m_session->isCaptureModeSupported(mode);
-}
-
-void BbCameraControl::cameraOpened()
-{
+    // ####
+    return 0;
 }
 
 QT_END_NAMESPACE

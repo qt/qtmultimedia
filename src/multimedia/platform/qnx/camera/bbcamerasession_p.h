@@ -76,8 +76,6 @@ public:
     camera_handle_t handle() const;
 
     // camera control
-    QCamera::State state() const;
-    void setState(QCamera::State state);
     QCamera::Status status() const;
     QCamera::CaptureModes captureMode() const;
     void setCaptureMode(QCamera::CaptureModes);
@@ -96,8 +94,6 @@ public:
 
     // image capture control
     bool isReadyForCapture() const;
-    int capture(const QString &fileName);
-    void cancelCapture();
 
     // image encoder control
     QList<QSize> supportedResolutions(const QImageEncoderSettings &settings, bool *continuous) const;

@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBCAMERAMEDIARECORDERCONTROL_H
-#define BBCAMERAMEDIARECORDERCONTROL_H
+#ifndef QQnxMediaRecorder_H
+#define QQnxMediaRecorder_H
 
 //
 //  W A R N I N G
@@ -56,27 +56,23 @@ QT_BEGIN_NAMESPACE
 
 class BbCameraSession;
 
-class BbCameraMediaRecorderControl : public QPlatformMediaRecorder
+class QQnxMediaRecorder : public QPlatformMediaRecorder
 {
-    Q_OBJECT
 public:
-    explicit BbCameraMediaRecorderControl(BbCameraSession *session, QObject *parent = 0);
+    explicit QQnxMediaRecorder(QMediaRecorder *parent);
 
-    QMediaRecorder::RecorderState state() const override;
     bool isLocationWritable(const QUrl &location) const override;
-    qint64 duration() const override;
-    bool isMuted() const override;
-    qreal volume() const override;
+
     void record(QMediaEncoderSettings &settings) override;
+//    virtual void pause();
+//    virtual void resume();
     void stop() override;
 
+    qint64 duration() const override;
 
-public Q_SLOTS:
-    void setMuted(bool muted) override;
-    void setVolume(qreal volume) override;
+//    virtual void setMetaData(const QMediaMetaData &) {}
+//    virtual QMediaMetaData metaData() const { return {}; }
 
-private:
-    BbCameraSession *m_session;
 };
 
 QT_END_NAMESPACE

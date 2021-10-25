@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBCAMERACONTROL_H
-#define BBCAMERACONTROL_H
+#ifndef QQnxCamera_H
+#define QQnxCamera_H
 
 //
 //  W A R N I N G
@@ -52,23 +52,60 @@
 
 #include <private/qplatformcamera_p.h>
 
+typedef int32_t camera_handle_t;
+
 QT_BEGIN_NAMESPACE
 
-class BbCameraSession;
+class QQnxMediaCaptureSession;
 
-class BbCameraControl : public QPlatformCamera
+class QQnxCamera : public QPlatformCamera
 {
     Q_OBJECT
 public:
-    explicit BbCameraControl(BbCameraSession *session, QObject *parent = 0);
+    explicit QQnxCamera(QCamera *parent);
+
+    bool isActive() const override;
+    void setActive(bool active) override;
 
     void setCamera(const QCameraDevice &camera) override;
 
-private Q_SLOTS:
-    void cameraOpened();
+//    bool setCameraFormat(const QCameraFormat &/*format*/) override;
+
+    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
+
+//    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
+//    void setFocusMode(QCamera::FocusMode /*mode*/) override;
+
+//    void setCustomFocusPoint(const QPointF &/*point*/) override;
+
+//    void setFocusDistance(float) override;
+
+//    // smaller 0: zoom instantly, rate in power-of-two/sec
+//    void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
+
+//    void setFlashMode(QCamera::FlashMode /*mode*/) override;
+//    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
+//    bool isFlashReady() const override;
+
+//    void setTorchMode(QCamera::TorchMode /*mode*/) override;
+//    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
+
+//    void setExposureMode(QCamera::ExposureMode) override;
+//    bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
+//    void setExposureCompensation(float) override;
+//    int isoSensitivity() const override;
+//    void setManualIsoSensitivity(int) override;
+//    void setManualExposureTime(float) override;
+//    float exposureTime() const override;
+
+//    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+//    void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
+//    void setColorTemperature(int /*temperature*/) override;
+
+    camera_handle_t handle() const;
 
 private:
-    BbCameraSession *m_session;
+    QQnxMediaCaptureSession *m_session;
 };
 
 QT_END_NAMESPACE

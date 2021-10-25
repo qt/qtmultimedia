@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBCAMERASERVICE_H
-#define BBCAMERASERVICE_H
+#ifndef QQnxMediaCaptureSession_H
+#define QQnxMediaCaptureSession_H
 
 //
 //  W A R N I N G
@@ -56,43 +56,41 @@
 
 QT_BEGIN_NAMESPACE
 
-class BbCameraAudioEncoderSettingsControl;
-class BbCameraControl;
-class BbCameraExposureControl;
-class BbCameraFocusControl;
-class BbCameraImageCaptureControl;
-class BbCameraImageProcessingControl;
-class BbCameraMediaRecorderControl;
-class BbCameraSession;
-class BbCameraVideoEncoderSettingsControl;
-class BbVideoRendererControl;
+class QQnxCamera;
+class QQnxImageCapture;
+class QQnxMediaRecorder;
+class QQnxVideoSink;
 
-class BbCameraService : public QPlatformMediaCaptureSession
+class QQnxMediaCaptureSession : public QPlatformMediaCaptureSession
 {
     Q_OBJECT
 
 public:
-    explicit BbCameraService(QObject *parent = 0);
-    ~BbCameraService();
+    explicit QQnxMediaCaptureSession();
+    ~QQnxMediaCaptureSession();
 
     QPlatformCamera *camera() override;
-    QPlatformImageCapture *imageCapture() override;
-    QPlatformMediaRecorder *mediaRecorder() override;
+    void setCamera(QPlatformCamera *camera) override;
 
-    void setVideoPreview(QVideoSink *surface) override;
+    QPlatformImageCapture *imageCapture() override;
+    void setImageCapture(QPlatformImageCapture *imageCapture) override;
+
+    QPlatformMediaRecorder *mediaRecorder() override;
+    void setMediaRecorder(QPlatformMediaRecorder *mediaRecorder) override;
+
+    void setAudioInput(QPlatformAudioInput *input) override;
+
+    void setVideoPreview(QVideoSink *sink) override;
+
+    void setAudioOutput(QPlatformAudioOutput *output) override;
 
 private:
-    BbCameraSession* m_cameraSession;
-
-    BbCameraAudioEncoderSettingsControl* m_cameraAudioEncoderSettingsControl;
-    BbCameraControl* m_cameraControl;
-    BbCameraExposureControl* m_cameraExposureControl;
-    BbCameraFocusControl* m_cameraFocusControl;
-    BbCameraImageCaptureControl* m_cameraImageCaptureControl;
-    BbCameraImageProcessingControl* m_cameraImageProcessingControl;
-    BbCameraMediaRecorderControl* m_cameraMediaRecorderControl;
-    BbCameraVideoEncoderSettingsControl* m_cameraVideoEncoderSettingsControl;
-    BbVideoRendererControl* m_videoRenderer;
+    QQnxCamera *m_camera = nullptr;
+    QQnxImageCapture *m_imageCapture = nullptr;
+    QQnxMediaRecorder *m_mediaRecorder = nullptr;
+    QPlatformAudioInput *m_audioInput = nullptr;
+    QPlatformAudioOutput *m_audioOutput = nullptr;
+    QQnxVideoSink *m_videoSink = nullptr;
 };
 
 QT_END_NAMESPACE

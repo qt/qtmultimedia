@@ -38,59 +38,82 @@
 ****************************************************************************/
 #include "qqnxmediacapture_p.h"
 
-#include "bbcameraaudioencodersettingscontrol_p.h"
 #include "qqnxcamera_p.h"
-#include "bbcameraexposurecontrol_p.h"
-#include "bbcamerafocuscontrol_p.h"
-#include "bbcameraimagecapturecontrol_p.h"
-#include "bbcameraimageprocessingcontrol_p.h"
-#include "bbcameramediarecordercontrol_p.h"
-#include "bbcamerasession_p.h"
-#include "bbcameravideoencodersettingscontrol_p.h"
-#include "bbvideorenderercontrol_p.h"
-
-#include <QDebug>
-#include <QVariant>
+#include "qqnximagecapture_p.h"
+#include "qqnxmediarecorder_p.h"
+#include "qqnxvideosink_p.h"
+#include "qvideosink.h"
 
 QT_BEGIN_NAMESPACE
 
-BbCameraService::BbCameraService(QObject *parent)
-    : QObject(parent)
-    , m_cameraSession(new BbCameraSession(this))
-    , m_cameraAudioEncoderSettingsControl(new BbCameraAudioEncoderSettingsControl(m_cameraSession, this))
-    , m_cameraControl(new BbCameraControl(m_cameraSession, this))
-    , m_cameraExposureControl(new BbCameraExposureControl(m_cameraSession, this))
-    , m_cameraFocusControl(new BbCameraFocusControl(m_cameraSession, this))
-    , m_cameraImageCaptureControl(new BbCameraImageCaptureControl(m_cameraSession, this))
-    , m_cameraImageProcessingControl(new BbCameraImageProcessingControl(m_cameraSession, this))
-    , m_cameraMediaRecorderControl(new BbCameraMediaRecorderControl(m_cameraSession, this))
-    , m_cameraVideoEncoderSettingsControl(new BbCameraVideoEncoderSettingsControl(m_cameraSession, this))
-    , m_videoRendererControl(new BbVideoRendererControl(m_cameraSession, this))
+QQnxMediaCaptureSession::QQnxMediaCaptureSession()
+    : QPlatformMediaCaptureSession()
 {
 }
 
-BbCameraService::~BbCameraService()
+QQnxMediaCaptureSession::~QQnxMediaCaptureSession()
 {
 }
 
-QPlatformCamera *BbCameraService::camera()
+QPlatformCamera *QQnxMediaCaptureSession::camera()
 {
-    return m_cameraControl;
+    return m_camera;
 }
 
-QPlatformImageCapture *BbCameraService::imageCapture()
+void QQnxMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
-    return m_cameraImageCaptureControl;
+    if (camera == m_camera)
+        return;
+    m_camera = static_cast<QQnxCamera *>(camera);
+    emit cameraChanged();
 }
 
-QPlatformMediaRecorder *BbCameraService::mediaRecorder()
+QPlatformImageCapture *QQnxMediaCaptureSession::imageCapture()
 {
-    return m_cameraMediaRecorderControl;
+    return m_imageCapture;
 }
 
-void BbCameraService::setVideoPreview(QVideoSink *surface)
+void QQnxMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCapture)
 {
-    // ####
+    if (m_imageCapture == imageCapture)
+        return;
+    m_imageCapture = static_cast<QQnxImageCapture *>(imageCapture);
+    emit imageCaptureChanged();
+}
+
+QPlatformMediaRecorder *QQnxMediaCaptureSession::mediaRecorder()
+{
+    return m_mediaRecorder;
+}
+
+void QQnxMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *mediaRecorder)
+{
+    if (m_mediaRecorder == mediaRecorder)
+        return;
+    m_mediaRecorder = static_cast<QQnxMediaRecorder *>(mediaRecorder);
+    emit encoderChanged();
+}
+
+void QQnxMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
+{
+    if (m_audioInput == input)
+        return;
+    m_audioInput = input;
+}
+
+void QQnxMediaCaptureSession::setVideoPreview(QVideoSink *sink)
+{
+    auto qnxSink = sink ? static_cast<QQnxVideoSink *>(sink->platformVideoSink()) : nullptr;
+    if (m_videoSink == qnxSink)
+        return;
+    m_videoSink = qnxSink;
+}
+
+void QQnxMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
+{
+    if (m_audioOutput == output)
+        return;
+    m_audioOutput = output;
 }
 
 QT_END_NAMESPACE
