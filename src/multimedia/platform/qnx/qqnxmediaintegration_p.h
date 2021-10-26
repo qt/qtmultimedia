@@ -57,6 +57,7 @@ QT_BEGIN_NAMESPACE
 
 class QQnxMediaDevices;
 class QQnxPlayerInterface;
+class QQnxFormatInfo;
 
 class QQnxMediaIntegration : public QPlatformMediaIntegration
 {
@@ -72,6 +73,7 @@ public:
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
 
     QQnxMediaDevices *m_devices = nullptr;
+    QQnxFormatInfo *m_formatInfo = nullptr;
 };
 
 QT_END_NAMESPACE

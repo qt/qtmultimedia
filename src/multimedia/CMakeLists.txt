@@ -121,6 +121,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
         platform/qnx/mediaplayer/qqnxmediautil.cpp platform/qnx/mediaplayer/qqnxmediautil_p.h
 ##        platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h
         platform/qnx/mediaplayer/qqnxmediaeventthread.cpp platform/qnx/mediaplayer/qqnxmediaeventthread_p.h
+        platform/qnx/qqnxformatinfo.cpp platform/qnx/qqnxformatinfo_p.h
         platform/qnx/qqnxmediadevices.cpp platform/qnx/qqnxmediadevices_p.h
         platform/qnx/qqnxmediaintegration.cpp platform/qnx/qqnxmediaintegration_p.h
     INCLUDE_DIRECTORIES

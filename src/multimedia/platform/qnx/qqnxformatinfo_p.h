@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,52 +36,34 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "bbcameraaudioencodersettingscontrol_p.h"
 
-#include "bbcamerasession_p.h"
+#ifndef QQNXFORMATINFO_H
+#define QQNXFORMATINFO_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformmediaformatinfo_p.h>
+#include <qhash.h>
+#include <qlist.h>
 
 QT_BEGIN_NAMESPACE
 
-BbCameraAudioEncoderSettingsControl::BbCameraAudioEncoderSettingsControl(BbCameraSession *session, QObject *parent)
-    : QAudioEncoderSettingsControl(parent)
-    , m_session(session)
+class QQnxFormatInfo : public QPlatformMediaFormatInfo
 {
-}
-
-QStringList BbCameraAudioEncoderSettingsControl::supportedAudioCodecs() const
-{
-    return QStringList() << QLatin1String("none") << QLatin1String("aac") << QLatin1String("raw");
-}
-
-QString BbCameraAudioEncoderSettingsControl::codecDescription(const QString &codecName) const
-{
-    if (codecName == QLatin1String("none"))
-        return tr("No compression");
-    else if (codecName == QLatin1String("aac"))
-        return tr("AAC compression");
-    else if (codecName == QLatin1String("raw"))
-        return tr("PCM uncompressed");
-
-    return QString();
-}
-
-QList<int> BbCameraAudioEncoderSettingsControl::supportedSampleRates(const QAudioEncoderSettings &settings, bool *continuous) const
-{
-    Q_UNUSED(settings);
-    Q_UNUSED(continuous);
-
-    // no API provided by BB10 yet
-    return QList<int>();
-}
-
-QAudioEncoderSettings BbCameraAudioEncoderSettingsControl::audioSettings() const
-{
-    return m_session->audioSettings();
-}
-
-void BbCameraAudioEncoderSettingsControl::setAudioSettings(const QAudioEncoderSettings &settings)
-{
-    m_session->setAudioSettings(settings);
-}
+public:
+    QQnxFormatInfo();
+    ~QQnxFormatInfo();
+};
 
 QT_END_NAMESPACE
+
+#endif

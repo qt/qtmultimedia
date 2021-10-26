@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,43 +36,37 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef BBCAMERAVIDEOENCODERSETTINGSCONTROL_H
-#define BBCAMERAVIDEOENCODERSETTINGSCONTROL_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <qvideoencodersettingscontrol.h>
+#include "qqnxformatinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class BbCameraSession;
-
-class BbCameraVideoEncoderSettingsControl : public QVideoEncoderSettingsControl
+QQnxFormatInfo::QQnxFormatInfo()
 {
-    Q_OBJECT
-public:
-    explicit BbCameraVideoEncoderSettingsControl(BbCameraSession *session, QObject *parent = 0);
+    // ### This is probably somewhat correct for encoding, but should be checked
+    encoders = {
+                { QMediaFormat::MPEG4,
+                 { QMediaFormat::AudioCodec::AAC },
+                 { QMediaFormat::VideoCodec::H264 } },
+                { QMediaFormat::Mpeg4Audio,
+                 { QMediaFormat::AudioCodec::AAC },
+                 {} },
+                { QMediaFormat::Wave,
+                 { QMediaFormat::AudioCodec::Wave },
+                 {} },
+                { QMediaFormat::AAC,
+                 { QMediaFormat::AudioCodec::AAC },
+                 {} },
+                };
 
-    QList<QSize> supportedResolutions(const QVideoEncoderSettings &settings, bool *continuous = 0) const override;
-    QList<qreal> supportedFrameRates(const QVideoEncoderSettings &settings, bool *continuous = 0) const override;
-    QStringList supportedVideoCodecs() const override;
-    QString videoCodecDescription(const QString &codecName) const override;
-    QVideoEncoderSettings videoSettings() const override;
-    void setVideoSettings(const QVideoEncoderSettings &settings) override;
+    // ### There can apparently be more codecs and demuxers installed on the system as plugins
+    // Need to find a way to determine the list at compile time or runtime
+    decoders = encoders;
 
-private:
-    BbCameraSession *m_session;
-};
+    // ###
+    imageFormats << QImageCapture::JPEG;
+}
+
+QQnxFormatInfo::~QQnxFormatInfo() = default;
 
 QT_END_NAMESPACE
-
-#endif

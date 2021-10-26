@@ -39,6 +39,7 @@
 
 #include "qqnxmediaintegration_p.h"
 #include "qqnxmediadevices_p.h"
+#include "qqnxformatinfo_p.h"
 #include "qqnxvideosink_p.h"
 #include "private/qqnxmediaplayer_p.h"
 
@@ -52,6 +53,7 @@ QQnxMediaIntegration::QQnxMediaIntegration()
 QQnxMediaIntegration::~QQnxMediaIntegration()
 {
     delete m_devices;
+    delete m_formatInfo;
 }
 
 QPlatformMediaDevices *QQnxMediaIntegration::devices()
@@ -63,7 +65,9 @@ QPlatformMediaDevices *QQnxMediaIntegration::devices()
 
 QPlatformMediaFormatInfo *QQnxMediaIntegration::formatInfo()
 {
-    return nullptr;
+    if (!m_formatInfo)
+        m_formatInfo = new QQnxFormatInfo();
+    return m_formatInfo;
 }
 
 QPlatformVideoSink *QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
