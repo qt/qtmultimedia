@@ -83,15 +83,6 @@ public:
 //    // smaller 0: zoom instantly, rate in power-of-two/sec
 //    void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
 
-//    void setFlashMode(QCamera::FlashMode /*mode*/) override;
-//    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
-//    bool isFlashReady() const override;
-
-//    void setTorchMode(QCamera::TorchMode /*mode*/) override;
-//    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
-
-//    void setExposureMode(QCamera::ExposureMode) override;
-//    bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
 //    void setExposureCompensation(float) override;
 //    int isoSensitivity() const override;
 //    void setManualIsoSensitivity(int) override;
