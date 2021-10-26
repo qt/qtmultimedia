@@ -18,11 +18,6 @@
 	<string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
 	<key>CFBundleShortVersionString</key>
 	<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
-	<key>CFBundleLongVersionString</key>
-	<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}</string>
-
-	<key>LSMinimumSystemVersion</key>
-	<string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
 
 	<key>CFBundleGetInfoString</key>
 	<string>${MACOSX_BUNDLE_INFO_STRING}</string>
@@ -35,12 +30,21 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 
-        <key>NSCameraUsageDescription</key>
-        <string>Qt Multimedia Example</string>
-        <key>NSMicrophoneUsageDescription</key>
-        <string>Qt Multimedia Example</string>
-
-	<key>NSSupportsAutomaticGraphicsSwitching</key>
+	<key>LSRequiresIPhoneOS</key>
 	<true/>
+
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+
+	<key>NSCameraUsageDescription</key>
+	<string>Qt Multimedia Example</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Qt Multimedia Example</string>
 </dict>
 </plist>
+

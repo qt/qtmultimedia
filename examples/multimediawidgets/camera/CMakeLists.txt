@@ -42,15 +42,21 @@ qt_add_executable(camera
 set_target_properties(camera PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
-    MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 )
+
+if(APPLE AND NOT IOS)
+    set_target_properties(camera PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/macos/Info.plist.in"
+    )
+elseif(IOS)
+    set_target_properties(camera PROPERTIES
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist.in"
+    )
+endif()
 
 set_property(TARGET camera APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
              ${CMAKE_CURRENT_SOURCE_DIR}/android)
 
-target_include_directories(camera PUBLIC
-    ../../multimedia/shared
-)
 target_link_libraries(camera PUBLIC
     Qt::Core
     Qt::Gui
