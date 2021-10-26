@@ -60,7 +60,7 @@ static const char *strm_string_getx(const strm_string_t *sstr, const char *defau
 
 QT_BEGIN_NAMESPACE
 
-MmRendererMetaData::MmRendererMetaData()
+QQnxMediaMetaData::QQnxMediaMetaData()
 {
     clear();
 }
@@ -91,7 +91,7 @@ static const char * trackPixelHeightKey = "pixel_height";
 static const int mediaTypeAudioFlag = 4;
 static const int mediaTypeVideoFlag = 2;
 
-bool MmRendererMetaData::update(const strm_dict_t *dict)
+bool QQnxMediaMetaData::update(const strm_dict_t *dict)
 {
     if (!dict) {
         clear();
@@ -179,7 +179,7 @@ bool MmRendererMetaData::update(const strm_dict_t *dict)
     return true;
 }
 
-void MmRendererMetaData::clear()
+void QQnxMediaMetaData::clear()
 {
     strm_dict_t *dict;
     dict = strm_dict_new();
@@ -187,7 +187,7 @@ void MmRendererMetaData::clear()
     strm_dict_destroy(dict);
 }
 
-qlonglong MmRendererMetaData::duration() const
+qlonglong QQnxMediaMetaData::duration() const
 {
     return m_duration;
 }
@@ -202,17 +202,17 @@ qlonglong MmRendererMetaData::duration() const
 // is 600x200, which will cause the video to be displayed in an aspect ratio of 3:1 instead of 3:2,
 // and therefore look correct.
 
-int MmRendererMetaData::height() const
+int QQnxMediaMetaData::height() const
 {
     return m_height * m_pixelHeight;
 }
 
-int MmRendererMetaData::width() const
+int QQnxMediaMetaData::width() const
 {
     return m_width * m_pixelWidth;
 }
 
-bool MmRendererMetaData::hasVideo() const
+bool QQnxMediaMetaData::hasVideo() const
 {
     // By default, assume no video if we can't extract the information
     if (m_mediaType == -1)
@@ -221,7 +221,7 @@ bool MmRendererMetaData::hasVideo() const
     return (m_mediaType & mediaTypeVideoFlag);
 }
 
-bool MmRendererMetaData::hasAudio() const
+bool QQnxMediaMetaData::hasAudio() const
 {
     // By default, assume audio only if we can't extract the information
     if (m_mediaType == -1)
@@ -230,37 +230,37 @@ bool MmRendererMetaData::hasAudio() const
     return (m_mediaType & mediaTypeAudioFlag);
 }
 
-QString MmRendererMetaData::title() const
+QString QQnxMediaMetaData::title() const
 {
     return m_title;
 }
 
-bool MmRendererMetaData::isSeekable() const
+bool QQnxMediaMetaData::isSeekable() const
 {
     return m_seekable;
 }
 
-QString MmRendererMetaData::artist() const
+QString QQnxMediaMetaData::artist() const
 {
     return m_artist;
 }
 
-QString MmRendererMetaData::comment() const
+QString QQnxMediaMetaData::comment() const
 {
     return m_comment;
 }
 
-QString MmRendererMetaData::genre() const
+QString QQnxMediaMetaData::genre() const
 {
     return m_genre;
 }
 
-int MmRendererMetaData::year() const
+int QQnxMediaMetaData::year() const
 {
     return m_year;
 }
 
-QString MmRendererMetaData::mediaType() const
+QString QQnxMediaMetaData::mediaType() const
 {
     if (hasVideo())
         return QLatin1String("video");
@@ -270,27 +270,27 @@ QString MmRendererMetaData::mediaType() const
         return QString();
 }
 
-int MmRendererMetaData::audioBitRate() const
+int QQnxMediaMetaData::audioBitRate() const
 {
     return m_audioBitRate;
 }
 
-int MmRendererMetaData::sampleRate() const
+int QQnxMediaMetaData::sampleRate() const
 {
     return m_sampleRate;
 }
 
-QString MmRendererMetaData::album() const
+QString QQnxMediaMetaData::album() const
 {
     return m_album;
 }
 
-int MmRendererMetaData::track() const
+int QQnxMediaMetaData::track() const
 {
     return m_track;
 }
 
-QSize MmRendererMetaData::resolution() const
+QSize QQnxMediaMetaData::resolution() const
 {
     return QSize(width(), height());
 }

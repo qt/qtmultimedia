@@ -50,7 +50,7 @@
 // We mean it.
 //
 
-#include "mmrenderermetadata_p.h"
+#include "qqnxmediametadata_p.h"
 #include "private/qplatformvideosink_p.h"
 #include <screen/screen.h>
 
@@ -87,7 +87,7 @@ public:
     //
     void detachDisplay();
     void attachDisplay(mmr_context_t *context);
-    void setMetaData(const MmRendererMetaData &metaData);
+    void setMetaData(const QQnxMediaMetaData &metaData);
     void screenEventHandler(const screen_event_t &event);
 
 private:
@@ -103,7 +103,7 @@ private:
     QRect m_displayRect;
     mmr_context_t *m_context;
     bool m_fullscreen;
-    MmRendererMetaData m_metaData;
+    QQnxMediaMetaData m_metaData;
     Qt::AspectRatioMode m_aspectRatioMode;
     QString m_windowName;
     screen_window_t m_window;

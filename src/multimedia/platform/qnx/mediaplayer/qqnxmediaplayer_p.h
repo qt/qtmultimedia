@@ -236,7 +236,7 @@ private:
     qreal m_rate = 1.;
     QPointer<QAudioOutput> m_audioOutput;
     QPointer<QQnxVideoSink> m_videoRenderer;
-    MmRendererMetaData m_metaData;
+    QQnxMediaMetaData m_metaData;
     qint64 m_position = 0;
     QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
     bool m_playAfterMediaLoaded = false;

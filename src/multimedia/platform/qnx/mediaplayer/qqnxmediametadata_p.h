@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef MMRENDERERMETADATA_H
-#define MMRENDERERMETADATA_H
+#ifndef QQnxMediaMetaData_H
+#define QQnxMediaMetaData_H
 
 //
 //  W A R N I N G
@@ -58,10 +58,10 @@ typedef struct strm_dict strm_dict_t;
 
 QT_BEGIN_NAMESPACE
 
-class MmRendererMetaData
+class QQnxMediaMetaData
 {
 public:
-    MmRendererMetaData();
+    QQnxMediaMetaData();
     bool update(const strm_dict_t *dict);
     void clear();
 
