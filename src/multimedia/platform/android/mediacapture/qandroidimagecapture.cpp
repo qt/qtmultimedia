@@ -61,13 +61,7 @@ int QAndroidImageCapture::capture(const QString &fileName)
 
 int QAndroidImageCapture::captureToBuffer()
 {
-    // ### implement me!
-    const QLatin1String errorMessage("Capturing to buffer not supported.");
-    QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                              Q_ARG(int, -1),
-                              Q_ARG(int, QImageCapture::NotSupportedFeatureError),
-                              Q_ARG(QString, errorMessage));
-    return -1;
+    return m_session->captureToBuffer();
 }
 
 QImageEncoderSettings QAndroidImageCapture::imageSettings() const

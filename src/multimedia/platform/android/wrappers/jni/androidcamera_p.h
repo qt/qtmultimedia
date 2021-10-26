@@ -203,6 +203,7 @@ public:
     void notifyNewFrames(bool notify);
     void fetchLastPreviewFrame();
     QJniObject getCameraObject();
+    QJniObject getParametersObject();
 
     static int getNumberOfCameras();
     static void getCameraInfo(int id, QCameraDevicePrivate *info);
@@ -224,7 +225,7 @@ Q_SIGNALS:
 
     void takePictureFailed();
     void pictureExposed();
-    void pictureCaptured(const QByteArray &data);
+    void pictureCaptured(const QVideoFrame &frame);
     void lastPreviewFrameFetched(const QVideoFrame &frame);
     void newPreviewFrame(const QVideoFrame &frame);
 

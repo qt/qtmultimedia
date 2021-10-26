@@ -98,6 +98,7 @@ public:
     bool isReadyForCapture() const;
     void setReadyForCapture(bool ready);
     int capture(const QString &fileName);
+    int captureToBuffer();
 
     int currentCameraRotation() const;
 
@@ -137,7 +138,7 @@ private Q_SLOTS:
 
     void onCameraTakePictureFailed();
     void onCameraPictureExposed();
-    void onCameraPictureCaptured(const QByteArray &data);
+    void onCameraPictureCaptured(const QVideoFrame &frame);
     void onLastPreviewFrameFetched(const QVideoFrame &frame);
     void onNewPreviewFrame(const QVideoFrame &frame);
     void onCameraPreviewStarted();
@@ -156,13 +157,12 @@ private:
     void applyImageSettings();
 
     void processPreviewImage(int id, const QVideoFrame &frame, int rotation);
-    void processCapturedImage(int id,
-                              const QByteArray &data,
-                              const QSize &resolution,
-                              bool captureToBuffer,
+    void processCapturedImage(int id, const QVideoFrame &frame, bool captureToBuffer,
                               const QString &fileName);
 
     void setActiveHelper(bool active);
+
+    int captureImage();
 
     int m_selectedCamera;
     AndroidCamera *m_camera;
@@ -183,10 +183,10 @@ private:
     AndroidCamera::FpsRange m_requestedFpsRange;
     AndroidCamera::ImageFormat m_requestedPixelFromat;
 
-    int m_lastImageCaptureId;
     bool m_readyForCapture;
     int m_currentImageCaptureId;
     QString m_currentImageCaptureFileName;
+    bool m_imageCaptureToBuffer;
 
     QMutex m_videoFrameCallbackMutex;
     PreviewCallback *m_previewCallback;
