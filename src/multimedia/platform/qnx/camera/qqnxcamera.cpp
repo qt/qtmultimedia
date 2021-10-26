@@ -198,6 +198,68 @@ void QQnxCamera::zoomTo(float factor, float)
         zoomFactorChanged(factor);
 }
 
+bool QQnxCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
+{
+    if (!whiteBalanceModesChecked) {
+        whiteBalanceModesChecked = true;
+        unsigned numWhiteBalanceValues = 0;
+        auto error = camera_get_supported_manual_white_balance_values(m_handle, 0, &numWhiteBalanceValues,
+                                                                      nullptr, &continuousColorTemperatureSupported);
+        if (error == CAMERA_EOK) {
+            manualColorTemperatureValues.resize(numWhiteBalanceValues);
+            auto error = camera_get_supported_manual_white_balance_values(m_handle, numWhiteBalanceValues, &numWhiteBalanceValues,
+                                                                          manualColorTemperatureValues.data(),
+                                                                          &continuousColorTemperatureSupported);
+
+            minColorTemperature = 1024*1014; // large enough :)
+            for (int temp : qAsConst(manualColorTemperatureValues)) {
+                minColorTemperature = qMin(minColorTemperature, temp);
+                maxColorTemperature = qMax(maxColorTemperature, temp);
+            }
+        } else {
+            maxColorTemperature = 0;
+        }
+    }
+
+    if (maxColorTemperature != 0)
+        return true;
+    return mode == QCamera::WhiteBalanceAuto;
+}
+
+void QQnxCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
+{
+    if (mode == QCamera::WhiteBalanceAuto) {
+        camera_set_whitebalance_mode(m_handle, CAMERA_WHITEBALANCEMODE_AUTO);
+        return;
+    }
+    camera_set_whitebalance_mode(m_handle, CAMERA_WHITEBALANCEMODE_MANUAL);
+    setColorTemperature(colorTemperatureForWhiteBalance(mode));
+}
+
+void QQnxCamera::setColorTemperature(int temperature)
+{
+
+    if (maxColorTemperature == 0)
+        return;
+
+    unsigned bestTemp = 0;
+    if (!continuousColorTemperatureSupported) {
+        // find the closest match
+        int delta = 1024*1024;
+        for (unsigned temp : qAsConst(manualColorTemperatureValues)) {
+            int d = qAbs(int(temp) - temperature);
+            if (d < delta) {
+                bestTemp = temp;
+                delta = d;
+            }
+        }
+    } else {
+        bestTemp = (unsigned)qBound(minColorTemperature, temperature, maxColorTemperature);
+    }
+
+    auto error = camera_set_manual_white_balance(m_handle, bestTemp);
+}
+
 camera_handle_t QQnxCamera::handle() const
 {
     return m_handle;
@@ -205,6 +267,8 @@ camera_handle_t QQnxCamera::handle() const
 
 void QQnxCamera::updateCameraFeatures()
 {
+    whiteBalanceModesChecked = false;
+
     bool smooth;
     auto error = camera_get_zoom_limits(m_handle, &minZoom, &maxZoom, &smooth);
     if (error == CAMERA_EOK) {

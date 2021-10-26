@@ -89,14 +89,15 @@ public:
 //    void setManualExposureTime(float) override;
 //    float exposureTime() const override;
 
-//    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
-//    void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
-//    void setColorTemperature(int /*temperature*/) override;
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
+    void setColorTemperature(int /*temperature*/) override;
 
     camera_handle_t handle() const;
 
 private:
     void updateCameraFeatures();
+    void setColorTemperatureInternal(unsigned temp);
 
     QQnxMediaCaptureSession *m_session;
 
@@ -105,6 +106,11 @@ private:
     camera_handle_t m_handle = CAMERA_HANDLE_INVALID;
     uint minZoom = 1;
     uint maxZoom = 1;
+    mutable bool whiteBalanceModesChecked = false;
+    mutable bool continuousColorTemperatureSupported = false;
+    mutable int minColorTemperature = 0;
+    mutable int maxColorTemperature = 0;
+    mutable QList<unsigned> manualColorTemperatureValues;
 };
 
 QT_END_NAMESPACE
