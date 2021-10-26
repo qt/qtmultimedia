@@ -57,7 +57,7 @@ typedef struct mmr_context mmr_context_t;
 
 QT_BEGIN_NAMESPACE
 
-class WindowGrabber;
+class QQnxWindowGrabber;
 class QVideoSink;
 
 class QQnxVideoSink : public QPlatformVideoSink
@@ -79,7 +79,7 @@ private Q_SLOTS:
     void updateScene(const QSize &size);
 
 private:
-    WindowGrabber* m_windowGrabber;
+    QQnxWindowGrabber* m_QQnxWindowGrabber;
     mmr_context_t *m_context;
 
     int m_videoId;

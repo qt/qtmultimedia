@@ -110,7 +110,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
 #        platform/qnx/camera/qqnxcameraorientationhandler.cpp platform/qnx/camera/qqnxcameraorientationhandler_p.h
         platform/qnx/camera/qqnxmediacapture.cpp platform/qnx/camera/qqnxmediacapture_p.h
 #        platform/qnx/camera/bbcamerasession.cpp platform/qnx/camera/bbcamerasession_p.h
-#        platform/qnx/common/qqnxwindowgrabber.cpp platform/qnx/common/qqnxwindowgrabber_p.h
+        platform/qnx/common/qqnxwindowgrabber.cpp platform/qnx/common/qqnxwindowgrabber_p.h
         platform/qnx/common/qqnxaudiooutput.cpp platform/qnx/common/qqnxaudiooutput_p.h
         platform/qnx/mediaplayer/qqnxmediaplayer.cpp platform/qnx/mediaplayer/qqnxmediaplayer_p.h
         platform/qnx/mediaplayer/qqnxmediametadata.cpp platform/qnx/mediaplayer/qqnxmediametadata_p.h
@@ -126,8 +126,8 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
         platform/qnx/common
         platform/qnx/mediaplayer
     LIBRARIES
-        MMRenderer::MMRenderer
         MMRendererCore::MMRendererCore
+        MMRenderer::MMRenderer
         asound
         camapi
 )

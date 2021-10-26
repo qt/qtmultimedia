@@ -128,7 +128,7 @@ BbCameraSession::BbCameraSession(QObject *parent)
     , m_lastImageCaptureId(0)
     , m_videoState(QMediaRecorder::StoppedState)
     , m_handle(CAMERA_HANDLE_INVALID)
-    , m_windowGrabber(new WindowGrabber(this))
+    , m_windowGrabber(new QQnxWindowGrabber(this))
 {
     connect(this, SIGNAL(statusChanged(QCamera::Status)), SLOT(updateReadyForCapture()));
     connect(this, SIGNAL(captureModeChanged(QCamera::CaptureModes)), SLOT(updateReadyForCapture()));

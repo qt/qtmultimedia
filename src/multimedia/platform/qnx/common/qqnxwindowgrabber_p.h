@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef WINDOWGRABBER_H
-#define WINDOWGRABBER_H
+#ifndef QQnxWindowGrabber_H
+#define QQnxWindowGrabber_H
 
 //
 //  W A R N I N G
@@ -65,13 +65,13 @@
 
 QT_BEGIN_NAMESPACE
 
-class WindowGrabberImage : public QObject
+class QQnxWindowGrabberImage : public QObject
 {
     Q_OBJECT
 
 public:
-    WindowGrabberImage();
-    ~WindowGrabberImage();
+    QQnxWindowGrabberImage();
+    ~QQnxWindowGrabberImage();
 
     bool initialize(screen_context_t screenContext);
 
@@ -93,13 +93,13 @@ private:
     int m_bufferStride;
 };
 
-class WindowGrabber : public QObject, public QAbstractNativeEventFilter
+class QQnxWindowGrabber : public QObject, public QAbstractNativeEventFilter
 {
     Q_OBJECT
 
 public:
-    explicit WindowGrabber(QObject *parent = 0);
-    ~WindowGrabber();
+    explicit QQnxWindowGrabber(QObject *parent = 0);
+    ~QQnxWindowGrabber();
 
     void setFrameRate(int frameRate);
 
@@ -141,7 +141,7 @@ private:
     screen_window_t m_window;
     screen_context_t m_screenContext;
 
-    WindowGrabberImage *m_images[2];
+    QQnxWindowGrabberImage *m_images[2];
     QSize m_size;
 
     bool m_active;

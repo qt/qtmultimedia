@@ -64,7 +64,7 @@
 QT_BEGIN_NAMESPACE
 
 class BbCameraOrientationHandler;
-class WindowGrabber;
+class QQnxWindowGrabber;
 
 class BbCameraSession : public QObject
 {
@@ -188,7 +188,7 @@ private:
 
     camera_handle_t m_handle;
 
-    WindowGrabber* m_windowGrabber;
+    QQnxWindowGrabber* m_windowGrabber;
 };
 
 QDebug operator<<(QDebug debug, camera_error_t error);

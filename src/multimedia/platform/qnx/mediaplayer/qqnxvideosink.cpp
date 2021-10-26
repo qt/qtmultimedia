@@ -58,15 +58,15 @@ static int winIdCounter = 0;
 
 QQnxVideoSink::QQnxVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
-    , m_windowGrabber(new WindowGrabber(this))
+    , m_QQnxWindowGrabber(new QQnxWindowGrabber(this))
     , m_context(0)
     , m_videoId(-1)
 {
-    connect(m_windowGrabber, SIGNAL(updateScene(const QSize &)), SLOT(updateScene(const QSize &)));
+    connect(m_QQnxWindowGrabber, SIGNAL(updateScene(const QSize &)), SLOT(updateScene(const QSize &)));
 
     // ### probably needs to be done on setRhi()!
     if (QOpenGLContext::currentContext())
-        m_windowGrabber->checkForEglImageExtension();
+        m_QQnxWindowGrabber->checkForEglImageExtension();
     // ####
     //    else if (sink)
     //        sink->setProperty("_q_GLThreadCallback", QVariant::fromValue<QObject*>(this));
@@ -89,7 +89,7 @@ void QQnxVideoSink::attachDisplay(mmr_context_t *context)
         return;
     }
 
-    const QByteArray windowGroupId = m_windowGrabber->windowGroupId();
+    const QByteArray windowGroupId = m_QQnxWindowGrabber->windowGroupId();
     if (windowGroupId.isEmpty()) {
         qWarning() << "QQnxVideoSink: Unable to find window group";
         return;
@@ -99,7 +99,7 @@ void QQnxVideoSink::attachDisplay(mmr_context_t *context)
                                              .arg(winIdCounter++)
                                              .arg(QCoreApplication::applicationPid());
 
-    m_windowGrabber->setWindowId(windowName.toLatin1());
+    m_QQnxWindowGrabber->setWindowId(windowName.toLatin1());
 
     // Start with an invisible window, because we just want to grab the frames from it.
     const QString videoDeviceUrl = QStringLiteral("screen:?winid=%1&wingrp=%2&initflags=invisible&nodstviewport=1")
@@ -117,7 +117,7 @@ void QQnxVideoSink::attachDisplay(mmr_context_t *context)
 
 void QQnxVideoSink::detachDisplay()
 {
-    m_windowGrabber->stop();
+    m_QQnxWindowGrabber->stop();
 
     if (sink)
         sink->setVideoFrame({});
@@ -131,21 +131,21 @@ void QQnxVideoSink::detachDisplay()
 
 void QQnxVideoSink::pause()
 {
-    m_windowGrabber->pause();
+    m_QQnxWindowGrabber->pause();
 }
 
 void QQnxVideoSink::resume()
 {
-    m_windowGrabber->resume();
+    m_QQnxWindowGrabber->resume();
 }
 
 class QnxTextureBuffer : public QAbstractVideoBuffer
 {
 public:
-    QnxTextureBuffer(WindowGrabber *windowGrabber)
+    QnxTextureBuffer(QQnxWindowGrabber *QQnxWindowGrabber)
         : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle)
     {
-        m_windowGrabber = windowGrabber;
+        m_QQnxWindowGrabber = QQnxWindowGrabber;
         m_handle = 0;
     }
     QVideoFrame::MapMode mapMode() const override {
@@ -157,12 +157,12 @@ public:
         if (plane != 0)
             return 0;
         if (!m_handle) {
-            const_cast<QnxTextureBuffer*>(this)->m_handle = m_windowGrabber->getNextTextureId();
+            const_cast<QnxTextureBuffer*>(this)->m_handle = m_QQnxWindowGrabber->getNextTextureId();
         }
         return m_handle;
     }
 private:
-    WindowGrabber *m_windowGrabber;
+    QQnxWindowGrabber *m_QQnxWindowGrabber;
     quint64 m_handle;
 };
 
@@ -171,13 +171,13 @@ void QQnxVideoSink::updateScene(const QSize &size)
     if (sink) {
         // Depending on the support of EGL images on the current platform we either pass a texture
         // handle or a copy of the image data
-        if (m_windowGrabber->eglImageSupported()) {
-            QnxTextureBuffer *textBuffer = new QnxTextureBuffer(m_windowGrabber);
+        if (m_QQnxWindowGrabber->eglImageSupported()) {
+            QnxTextureBuffer *textBuffer = new QnxTextureBuffer(m_QQnxWindowGrabber);
             QVideoFrame actualFrame(textBuffer, QVideoFrameFormat(size, QVideoFrameFormat::Format_BGRX8888));
             sink->setVideoFrame(actualFrame);
             // ####
 //        } else {
-//            sink->setVideoFrame(m_windowGrabber->getNextImage().copy());
+//            sink->setVideoFrame(m_QQnxWindowGrabber->getNextImage().copy());
         }
     }
 }
@@ -186,7 +186,7 @@ void QQnxVideoSink::customEvent(QEvent *e)
 {
     // This is running in the render thread (OpenGL enabled)
     if (e->type() == QEvent::User)
-        m_windowGrabber->checkForEglImageExtension();
+        m_QQnxWindowGrabber->checkForEglImageExtension();
 }
 
 QT_END_NAMESPACE
