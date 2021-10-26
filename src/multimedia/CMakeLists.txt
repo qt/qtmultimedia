@@ -105,7 +105,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
         platform/qnx/camera/qqnxcamera.cpp platform/qnx/camera/qqnxcamera_p.h
         platform/qnx/camera/qqnximagecapture.cpp platform/qnx/camera/qqnximagecapture_p.h
         platform/qnx/camera/qqnxmediarecorder.cpp platform/qnx/camera/qqnxmediarecorder_p.h
-#        platform/qnx/camera/qqnxcameraorientationhandler.cpp platform/qnx/camera/qqnxcameraorientationhandler_p.h
         platform/qnx/camera/qqnxmediacapture.cpp platform/qnx/camera/qqnxmediacapture_p.h
 #        platform/qnx/camera/bbcamerasession.cpp platform/qnx/camera/bbcamerasession_p.h
         platform/qnx/common/qqnxwindowgrabber.cpp platform/qnx/common/qqnxwindowgrabber_p.h
