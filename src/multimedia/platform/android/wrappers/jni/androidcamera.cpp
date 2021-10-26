@@ -56,6 +56,8 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(lcAndroidCamera, "qt.multimedia.android.camera")
+
 static const char QtCameraListenerClassName[] = "org/qtproject/qt/android/multimedia/QtCameraListener";
 
 typedef QHash<int, AndroidCamera *> CameraMap;
@@ -111,13 +113,57 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
 {
     QReadLocker locker(rwLock);
     const auto it = cameras->constFind(id);
-    if (Q_UNLIKELY(it == cameras->cend()))
+    if (Q_UNLIKELY(it == cameras->cend())) {
+        qCWarning(lcAndroidCamera) << "Could not obtain camera!";
         return;
+    }
+
+    AndroidCamera *camera = (*it);
 
     const int arrayLength = env->GetArrayLength(data);
     QByteArray bytes(arrayLength, Qt::Uninitialized);
-    env->GetByteArrayRegion(data, 0, arrayLength, (jbyte*)bytes.data());
-    Q_EMIT (*it)->pictureCaptured(bytes);
+    env->GetByteArrayRegion(data, 0, arrayLength, reinterpret_cast<jbyte *>(bytes.data()));
+
+    auto parameters = camera->getParametersObject();
+
+    QJniObject size =
+            parameters.callObjectMethod("getPictureSize", "()Landroid/hardware/Camera$Size;");
+
+    if (!size.isValid()) {
+        qCWarning(lcAndroidCamera) << "Picture Size is not valid!";
+        return;
+    }
+
+    QSize pictureSize(size.getField<jint>("width"), size.getField<jint>("height"));
+
+    auto format = AndroidCamera::ImageFormat(parameters.callMethod<jint>("getPictureFormat"));
+
+    if (format == AndroidCamera::ImageFormat::UnknownImageFormat) {
+        qCWarning(lcAndroidCamera) << "Android Camera Image Format is UnknownImageFormat!";
+        return;
+    }
+
+    int bytesPerLine = 0;
+
+    switch (format) {
+    case AndroidCamera::ImageFormat::YV12:
+        bytesPerLine = (pictureSize.width() + 15) & ~15;
+        break;
+    case AndroidCamera::ImageFormat::NV21:
+        bytesPerLine = pictureSize.width();
+        break;
+    case AndroidCamera::ImageFormat::RGB565:
+    case AndroidCamera::ImageFormat::YUY2:
+        bytesPerLine = pictureSize.width() * 2;
+        break;
+    default:
+        bytesPerLine = -1;
+    }
+
+    QVideoFrame frame(new QMemoryVideoBuffer(bytes, bytesPerLine),
+                      QVideoFrameFormat(pictureSize, qt_pixelFormatFromAndroidImageFormat(format)));
+
+    emit camera->pictureCaptured(frame);
 }
 
 static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data,
@@ -858,6 +904,12 @@ void AndroidCamera::stopPreviewSynchronous()
 {
     Q_D(AndroidCamera);
     QMetaObject::invokeMethod(d, "stopPreview", Qt::BlockingQueuedConnection);
+}
+
+QJniObject AndroidCamera::getParametersObject()
+{
+    Q_D(AndroidCamera);
+    return d->m_parameters;
 }
 
 AndroidCameraPrivate::AndroidCameraPrivate()

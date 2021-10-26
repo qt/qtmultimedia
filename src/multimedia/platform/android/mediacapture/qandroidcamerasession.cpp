@@ -55,6 +55,7 @@
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qcameradevice_p.h>
 #include <private/qmediastoragelocation_p.h>
+#include <QImageWriter>
 
 QT_BEGIN_NAMESPACE
 
@@ -67,7 +68,6 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
     , m_videoOutput(0)
     , m_savedState(-1)
     , m_previewStarted(false)
-    , m_lastImageCaptureId(0)
     , m_readyForCapture(false)
     , m_currentImageCaptureId(-1)
     , m_previewCallback(0)
@@ -582,30 +582,39 @@ void QAndroidCameraSession::setReadyForCapture(bool ready)
     emit readyForCaptureChanged(ready);
 }
 
-int QAndroidCameraSession::capture(const QString &fileName)
+int QAndroidCameraSession::captureImage()
 {
-    ++m_lastImageCaptureId;
+    const int newImageCaptureId = m_currentImageCaptureId + 1;
 
     if (!isReadyForCapture()) {
-        emit imageCaptureError(m_lastImageCaptureId, QImageCapture::NotReadyError,
+        emit imageCaptureError(newImageCaptureId, QImageCapture::NotReadyError,
                                QPlatformImageCapture::msgCameraNotReady());
-        return m_lastImageCaptureId;
+        return newImageCaptureId;
     }
 
     setReadyForCapture(false);
 
-    m_currentImageCaptureId = m_lastImageCaptureId;
-    m_currentImageCaptureFileName = fileName;
+    m_currentImageCaptureId = newImageCaptureId;
 
     applyImageSettings();
     applyResolution(m_actualImageSettings.resolution());
-
-    // adjust picture rotation depending on the device orientation
-    m_camera->setRotation(currentCameraRotation());
-
     m_camera->takePicture();
 
-    return m_lastImageCaptureId;
+    return m_currentImageCaptureId;
+}
+
+int QAndroidCameraSession::capture(const QString &fileName)
+{
+    m_currentImageCaptureFileName = fileName;
+    m_imageCaptureToBuffer = false;
+    return captureImage();
+}
+
+int QAndroidCameraSession::captureToBuffer()
+{
+    m_currentImageCaptureFileName.clear();
+    m_imageCaptureToBuffer = true;
+    return captureImage();
 }
 
 void QAndroidCameraSession::onCameraTakePictureFailed()
@@ -631,10 +640,10 @@ void QAndroidCameraSession::onLastPreviewFrameFetched(const QVideoFrame &frame)
     if (!m_camera)
         return;
 
-    (void) QtConcurrent::run(&QAndroidCameraSession::processPreviewImage, this,
-                      m_currentImageCaptureId,
-                      frame,
-                      m_camera->getRotation());
+    updateOrientation();
+
+    (void)QtConcurrent::run(&QAndroidCameraSession::processPreviewImage, this,
+                            m_currentImageCaptureId, frame, currentCameraRotation());
 }
 
 void QAndroidCameraSession::processPreviewImage(int id, const QVideoFrame &frame, int rotation)
@@ -643,9 +652,10 @@ void QAndroidCameraSession::processPreviewImage(int id, const QVideoFrame &frame
     // we get here is not. Flip it ourselves if the camera is front-facing to match what the user
     // sees on the viewfinder.
     QTransform transform;
+    transform.rotate(rotation);
+
     if (m_camera->getFacing() == AndroidCamera::CameraFacingFront)
         transform.scale(-1, 1);
-    transform.rotate(rotation);
 
     emit imageCaptured(id, frame.toImage().transformed(transform));
 }
@@ -663,15 +673,12 @@ void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)
     m_videoFrameCallbackMutex.unlock();
 }
 
-void QAndroidCameraSession::onCameraPictureCaptured(const QByteArray &data)
+void QAndroidCameraSession::onCameraPictureCaptured(const QVideoFrame &frame)
 {
     // Loading and saving the captured image can be slow, do it in a separate thread
-    (void) QtConcurrent::run(&QAndroidCameraSession::processCapturedImage, this,
-                      m_currentImageCaptureId,
-                      data,
-                      m_actualImageSettings.resolution(),
-                      /* captureToBuffer = */ false,
-                      m_currentImageCaptureFileName);
+    (void)QtConcurrent::run(&QAndroidCameraSession::processCapturedImage, this,
+                            m_currentImageCaptureId, frame, m_imageCaptureToBuffer,
+                            m_currentImageCaptureFileName);
 
     // Preview needs to be restarted after taking a picture
     if (m_camera)
@@ -709,38 +716,35 @@ void QAndroidCameraSession::onCameraPreviewStopped()
     setReadyForCapture(false);
 }
 
-void QAndroidCameraSession::processCapturedImage(int id,
-                                                 const QByteArray &data,
-                                                 const QSize &resolution,
-                                                 bool captureToBuffer,
-                                                 const QString &fileName)
+void QAndroidCameraSession::processCapturedImage(int id, const QVideoFrame &frame,
+                                                 bool captureToBuffer, const QString &fileName)
 {
-
-
-    if (!captureToBuffer) {
-        const QString actualFileName = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
-
-        QFile file(actualFileName);
-        if (file.open(QFile::WriteOnly)) {
-            if (file.write(data) == data.size()) {
-                // if the picture is saved into the standard picture location, register it
-                // with the Android media scanner so it appears immediately in apps
-                // such as the gallery.
-                if (fileName.isEmpty() || QFileInfo(fileName).isRelative())
-                    AndroidMultimediaUtils::registerMediaFile(actualFileName);
-
-                emit imageSaved(id, actualFileName);
-            } else {
-                emit imageCaptureError(id, QImageCapture::OutOfSpaceError, file.errorString());
-            }
-        } else {
-            const QString errorMessage = tr("Could not open destination file: %1").arg(actualFileName);
-            emit imageCaptureError(id, QImageCapture::ResourceError, errorMessage);
-        }
-    } else {
-        QVideoFrame frame(new QMemoryVideoBuffer(data, -1), QVideoFrameFormat(resolution, QVideoFrameFormat::Format_Jpeg));
+    if (captureToBuffer) {
         emit imageAvailable(id, frame);
+        return;
     }
+
+    const QString actualFileName = QMediaStorageLocation::generateFileName(
+            fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
+    QImageWriter writer(actualFileName);
+
+    if (!writer.canWrite()) {
+        const QString errorMessage = tr("File is not available: %1").arg(writer.errorString());
+        emit imageCaptureError(id, QImageCapture::Error::ResourceError, errorMessage);
+        return;
+    }
+
+    const bool written = writer.write(frame.toImage());
+    if (!written) {
+        const QString errorMessage = tr("Could not save to file: %1").arg(writer.errorString());
+        emit imageCaptureError(id, QImageCapture::Error::ResourceError, errorMessage);
+        return;
+    }
+
+    if (fileName.isEmpty() || QFileInfo(fileName).isRelative())
+        AndroidMultimediaUtils::registerMediaFile(actualFileName);
+
+    emit imageSaved(id, actualFileName);
 }
 
 void QAndroidCameraSession::onVideoOutputReady(bool ready)
