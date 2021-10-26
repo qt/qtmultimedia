@@ -74,14 +74,14 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
-    void setFocusMode(QCamera::FocusMode /*mode*/) override;
+    void setFocusMode(QCamera::FocusMode mode) override;
 
-//    void setCustomFocusPoint(const QPointF &/*point*/) override;
+    void setCustomFocusPoint(const QPointF &point) override;
 
 //    void setFocusDistance(float) override;
 
 //    // smaller 0: zoom instantly, rate in power-of-two/sec
-//    void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
+    void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
 
 //    void setExposureCompensation(float) override;
 //    int isoSensitivity() const override;
@@ -96,11 +96,15 @@ public:
     camera_handle_t handle() const;
 
 private:
+    void updateCameraFeatures();
+
     QQnxMediaCaptureSession *m_session;
 
     QCameraDevice m_camera;
     camera_unit_t m_cameraUnit = CAMERA_UNIT_NONE;
     camera_handle_t m_handle = CAMERA_HANDLE_INVALID;
+    uint minZoom = 1;
+    uint maxZoom = 1;
 };
 
 QT_END_NAMESPACE

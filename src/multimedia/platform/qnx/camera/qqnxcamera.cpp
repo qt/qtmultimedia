@@ -78,6 +78,8 @@ void QQnxCamera::setActive(bool active)
             return;
         }
     }
+
+    updateCameraFeatures();
 }
 
 void QQnxCamera::setCamera(const QCameraDevice &camera)
@@ -147,9 +149,82 @@ void QQnxCamera::setFocusMode(QCamera::FocusMode mode)
     focusModeChanged(mode);
 }
 
+void QQnxCamera::setCustomFocusPoint(const QPointF &point)
+{
+    // get the size of the viewfinder
+    int width = 0;
+    int height = 0;
+    auto result = camera_get_vf_property(m_handle,
+                                        CAMERA_IMGPROP_WIDTH, width,
+                                        CAMERA_IMGPROP_HEIGHT, height);
+    if (result != CAMERA_EOK)
+        return;
+
+    // define a 40x40 pixel focus region around the custom focus point
+    camera_region_t focusRegion;
+    focusRegion.left = qMax(0, static_cast<int>(point.x() * width) - 20);
+    focusRegion.top = qMax(0, static_cast<int>(point.y() * height) - 20);
+    focusRegion.width = 40;
+    focusRegion.height = 40;
+
+    result = camera_set_focus_regions(m_handle, 1, &focusRegion);
+    if (result != CAMERA_EOK) {
+        qWarning() << "Unable to set focus region:" << result;
+        return;
+    }
+    auto qnxMode = qnxFocusMode(focusMode());
+    result = camera_set_focus_mode(m_handle, qnxMode);
+    if (result != CAMERA_EOK) {
+        qWarning() << "Unable to set focus region:" << result;
+        return;
+    }
+    customFocusPointChanged(point);
+}
+
+void QQnxCamera::zoomTo(float factor, float)
+{
+    if (maxZoom <= minZoom)
+        return;
+    // QNX has an integer based API. Interpolate between the levels according to the factor we get
+    float max = maxZoomFactor();
+    float min = minZoomFactor();
+    if (max <= min)
+        return;
+    factor = qBound(min, factor, max) - min;
+    uint zoom = minZoom + (uint)qRound(factor*(maxZoom - minZoom)/(max - min));
+
+    auto error = camera_set_vf_property(m_handle, CAMERA_IMGPROP_ZOOMFACTOR, zoom);
+    if (error == CAMERA_EOK)
+        zoomFactorChanged(factor);
+}
+
 camera_handle_t QQnxCamera::handle() const
 {
     return m_handle;
+}
+
+void QQnxCamera::updateCameraFeatures()
+{
+    bool smooth;
+    auto error = camera_get_zoom_limits(m_handle, &minZoom, &maxZoom, &smooth);
+    if (error == CAMERA_EOK) {
+        double level;
+        camera_get_zoom_ratio_from_zoom_level(m_handle, minZoom, &level);
+        minimumZoomFactorChanged(level);
+        camera_get_zoom_ratio_from_zoom_level(m_handle, maxZoom, &level);
+        maximumZoomFactorChanged(level);
+    } else {
+        minZoom = maxZoom = 1;
+    }
+
+    QCamera::Features features = {};
+
+    if (camera_has_feature(m_handle, CAMERA_FEATURE_REGIONFOCUS))
+        features |= QCamera::Feature::CustomFocusPoint;
+
+    minimumZoomFactorChanged(minZoom);
+    maximumZoomFactorChanged(maxZoom);
+    supportedFeaturesChanged(features);
 }
 
 QT_END_NAMESPACE
