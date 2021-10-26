@@ -46,9 +46,11 @@
 #include <mm/renderer/types.h>
 #include <sys/neutrino.h>
 
+extern "C" {
 // ### Include mm/renderer/events.h once we have it
 int mmr_event_arm(mmr_context_t *ctxt,
                   struct sigevent const *sev);
+}
 
 static const int c_mmrCode = _PULSE_CODE_MINAVAIL + 0;
 static const int c_readCode = _PULSE_CODE_MINAVAIL + 1;

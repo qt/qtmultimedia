@@ -65,6 +65,7 @@ typedef struct strm_string strm_string_t;
 
 #include <mm/renderer/types.h>
 
+extern "C" {
 // ### replace with proper include: mm/renderer/events.h
 typedef enum mmr_state {
     MMR_STATE_DESTROYED,
@@ -132,6 +133,7 @@ typedef struct mmr_event {
     void* usrdata;
 } mmr_event_t;
 const mmr_event_t* mmr_event_get(mmr_context_t *ctxt);
+}
 
 QT_BEGIN_NAMESPACE
 

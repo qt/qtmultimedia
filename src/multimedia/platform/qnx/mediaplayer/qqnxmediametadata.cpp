@@ -46,22 +46,17 @@
 #include <sys/neutrino.h>
 #include <sys/strm.h>
 
+extern "C" {
 // ### include this properly from mm/renderer/events.h once the toolchain is fixed
 extern strm_dict_t* mmr_metadata_split(strm_dict_t const *md,
                                 const char *type,
                                 unsigned idx);
+}
 
 static const char *strm_string_getx(const strm_string_t *sstr, const char *defaultValue)
 {
     return sstr ? strm_string_get(sstr) : defaultValue;
 }
-
-#if _NTO_VERSION < 700
-static strm_dict_t *mmr_metadata_split(strm_dict_t const *, const char *, unsigned)
-{
-    return nullptr;
-}
-#endif
 
 QT_BEGIN_NAMESPACE
 
