@@ -100,7 +100,7 @@ private:
 
     QCameraDevice m_camera;
     camera_unit_t m_cameraUnit = CAMERA_UNIT_NONE;
-    camera_handle_t m_handle = 0;
+    camera_handle_t m_handle = CAMERA_HANDLE_INVALID;
 };
 
 QT_END_NAMESPACE

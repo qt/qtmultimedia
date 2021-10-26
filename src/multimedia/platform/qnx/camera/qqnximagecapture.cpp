@@ -60,6 +60,7 @@ bool QQnxImageCapture::isReadyForCapture() const
     return camera && camera->isActive();
 }
 
+#if 0
 static void imageCaptureShutterCallback(camera_handle_t handle, void *context)
 {
     Q_UNUSED(handle);
@@ -69,8 +70,6 @@ static void imageCaptureShutterCallback(camera_handle_t handle, void *context)
     // We are inside a worker thread here, so emit imageExposed inside the main thread
     QMetaObject::invokeMethod(data->imageCapture, "imageExposed", Qt::QueuedConnection, Q_ARG(int, data->id));
 }
-
-#if 0
 
 static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *buffer, void *context)
 {

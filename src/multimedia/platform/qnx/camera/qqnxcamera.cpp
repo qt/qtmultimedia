@@ -55,7 +55,7 @@ QQnxCamera::QQnxCamera(QCamera *parent)
 
 bool QQnxCamera::isActive() const
 {
-    return m_handle != 0;
+    return m_handle != CAMERA_HANDLE_INVALID;
 }
 
 void QQnxCamera::setActive(bool active)
@@ -72,7 +72,7 @@ void QQnxCamera::setActive(bool active)
         if (!m_handle)
             return;
         auto error = camera_close(m_handle);
-        m_handle = 0;
+        m_handle = CAMERA_HANDLE_INVALID;
         if (error != CAMERA_EOK) {
             qWarning() << "Failed to close camera" << error;
             return;
@@ -98,6 +98,7 @@ void QQnxCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 camera_focusmode_t qnxFocusMode(QCamera::FocusMode mode)
 {
     switch (mode) {
+    default:
     case QCamera::FocusModeAuto:
     case QCamera::FocusModeAutoFar:
     case QCamera::FocusModeInfinity:
