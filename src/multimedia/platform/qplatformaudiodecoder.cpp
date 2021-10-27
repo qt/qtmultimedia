@@ -124,9 +124,11 @@ void QPlatformAudioDecoder::error(int error, const QString &errorString)
         return;
     m_error = QAudioDecoder::Error(error);
     m_errorString = errorString;
-    setIsDecoding(false);
 
-    emit q->error(m_error);
+    if (m_error != QAudioDecoder::NoError) {
+        setIsDecoding(false);
+        emit q->error(m_error);
+    }
 }
 
 /*!
