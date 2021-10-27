@@ -152,8 +152,6 @@ void MFAudioDecoderControl::setSourceDevice(QIODevice *device)
 void MFAudioDecoderControl::updateResamplerOutputType()
 {
     m_resamplerDirty = false;
-    if (m_audioFormat == m_sourceOutputFormat)
-        return;
     HRESULT hr = m_resampler->SetOutputType(m_mfOutputStreamID, m_mfOutputType, 0);
     if (SUCCEEDED(hr)) {
         MFT_OUTPUT_STREAM_INFO streamInfo;
