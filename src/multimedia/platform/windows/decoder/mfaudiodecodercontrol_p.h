@@ -51,9 +51,10 @@
 // We mean it.
 //
 
-#include "private/qplatformaudiodecoder_p.h"
 #include "mfdecodersourcereader_p.h"
-#include "private/sourceresolver_p.h"
+#include <private/qplatformaudiodecoder_p.h>
+#include <private/sourceresolver_p.h>
+#include <private/qwindowsiupointer_p.h>
 
 QT_USE_NAMESPACE
 
@@ -62,56 +63,52 @@ class MFAudioDecoderControl : public QPlatformAudioDecoder
     Q_OBJECT
 public:
     MFAudioDecoderControl(QAudioDecoder *parent);
-    ~MFAudioDecoderControl();
+    ~MFAudioDecoderControl() override;
 
-    QUrl source() const override;
+    QUrl source() const override { return m_source; }
     void setSource(const QUrl &fileName) override;
 
-    QIODevice* sourceDevice() const override;
+    QIODevice* sourceDevice() const override { return m_device; }
     void setSourceDevice(QIODevice *device) override;
 
     void start() override;
     void stop() override;
 
-    QAudioFormat audioFormat() const override;
+    QAudioFormat audioFormat() const override { return m_outputFormat; }
     void setAudioFormat(const QAudioFormat &format) override;
 
     QAudioBuffer read() override;
-    bool bufferAvailable() const override;
+    bool bufferAvailable() const override { return m_audioBuffer.sampleCount() > 0; }
 
-    qint64 position() const override;
-    qint64 duration() const override;
+    qint64 position() const override { return m_position; }
+    qint64 duration() const override { return m_duration; }
 
 private Q_SLOTS:
     void handleMediaSourceReady();
     void handleMediaSourceError(long hr);
-    void handleSampleAdded();
+    void handleNewSample(QWindowsIUPointer<IMFSample>);
     void handleSourceFinished();
 
 private:
-    void updateResamplerOutputType();
-    void activatePipeline();
-    void onSourceCleared();
-    void setResamplerOutputFormat(const QAudioFormat &format);
+    HRESULT setResamplerOutputType(IMFMediaType *outputType);
+    void startReadingSource(IMFMediaSource *source);
+    bool useResampler() const { return m_resampler && m_outputFormat.isValid() && m_mediaFormat != m_outputFormat; }
 
-    MFDecoderSourceReader  *m_decoderSourceReader;
+    QWindowsIUPointer<MFDecoderSourceReader>  m_decoderSourceReader;
     SourceResolver         *m_sourceResolver;
-    IMFTransform           *m_resampler;
+    QWindowsIUPointer<IMFTransform> m_resampler;
     QUrl                    m_source;
-    QIODevice              *m_device;
-    QAudioFormat            m_audioFormat;
-    DWORD                   m_mfInputStreamID;
-    DWORD                   m_mfOutputStreamID;
-    bool                    m_bufferReady;
-    QAudioBuffer            m_cachedAudioBuffer;
-    qint64                  m_duration;
-    qint64                  m_position;
-    bool                    m_loadingSource;
-    IMFMediaType           *m_mfOutputType;
-    IMFSample              *m_convertSample;
-    QAudioFormat            m_sourceOutputFormat;
-    bool                    m_sourceReady;
-    bool                    m_resamplerDirty;
+    QIODevice              *m_device = nullptr;
+    QAudioFormat            m_outputFormat;
+    QAudioFormat            m_mediaFormat;
+    DWORD                   m_mfInputStreamID = 0;
+    DWORD                   m_mfOutputStreamID = 0;
+    QAudioBuffer            m_audioBuffer;
+    qint64                  m_duration = -1;
+    qint64                  m_position = -1;
+    bool                    m_loadingSource = false;
+    bool                    m_deferredStart = false;
+    QWindowsIUPointer<IMFSample> m_convertSample;
 };
 
 #endif//MFAUDIODECODERCONTROL_H

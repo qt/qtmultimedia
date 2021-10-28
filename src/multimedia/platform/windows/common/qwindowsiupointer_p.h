@@ -61,10 +61,12 @@ public:
     ~QWindowsIUPointer() { if (m_ptr) m_ptr->Release(); }
 
     QWindowsIUPointer& operator=(const QWindowsIUPointer<T> &rhs) {
-        if (m_ptr)
-            m_ptr->Release();
-        m_ptr = rhs.m_ptr;
-        m_ptr->AddRef();
+        if (this != &rhs) {
+            if (m_ptr)
+                m_ptr->Release();
+            m_ptr = rhs.m_ptr;
+            m_ptr->AddRef();
+        }
         return *this;
     }
 
