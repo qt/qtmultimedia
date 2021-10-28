@@ -160,7 +160,7 @@ void tst_QAudioDecoderBackend::fileTest()
         buffer = d.read();
         QVERIFY(buffer.isValid());
         QTRY_VERIFY(!positionSpy.isEmpty());
-        QVERIFY(positionSpy.takeLast().at(0).toLongLong() == qint64(duration / 1000));
+        QCOMPARE(positionSpy.takeLast().at(0).toLongLong(), qint64(duration / 1000));
 
         duration += buffer.duration();
         sampleCount += buffer.sampleCount();
@@ -234,7 +234,7 @@ void tst_QAudioDecoderBackend::fileTest()
     byteCount += buffer.byteCount();
 
     // Now drain the decoder
-    if (duration < 998000) {
+    if (duration < 996000) {
         QTRY_COMPARE(d.bufferAvailable(), true);
     }
 
@@ -242,14 +242,14 @@ void tst_QAudioDecoderBackend::fileTest()
         buffer = d.read();
         QVERIFY(buffer.isValid());
         QTRY_VERIFY(!positionSpy.isEmpty());
-        QVERIFY(positionSpy.takeLast().at(0).toLongLong() == qint64(duration / 1000));
+        QCOMPARE(positionSpy.takeLast().at(0).toLongLong(), qint64(duration / 1000));
         QVERIFY(d.position() - (duration / 1000) < 20);
 
         duration += buffer.duration();
         sampleCount += buffer.sampleCount();
         byteCount += buffer.byteCount();
 
-        if (duration < 998000) {
+        if (duration < 996000) {
             QTRY_COMPARE(d.bufferAvailable(), true);
         }
     }
@@ -501,9 +501,8 @@ void tst_QAudioDecoderBackend::invalidSource()
     // Check the error code.
     QTRY_VERIFY(!errorSpy.isEmpty());
     errorCode = qvariant_cast<QAudioDecoder::Error>(errorSpy.takeLast().at(0));
-    QCOMPARE(errorCode, QAudioDecoder::AccessDeniedError);
-    QCOMPARE(d.error(), QAudioDecoder::AccessDeniedError);
-
+    QCOMPARE(errorCode, QAudioDecoder::ResourceError);
+    QCOMPARE(d.error(), QAudioDecoder::ResourceError);
     // Check all other spies.
     QVERIFY(readySpy.isEmpty());
     QVERIFY(bufferChangedSpy.isEmpty());

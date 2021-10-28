@@ -329,7 +329,7 @@ void AVFAudioDecoder::start()
     }
 
     if (m_device && (!m_device->isOpen() || !m_device->isReadable())) {
-        processInvalidMedia(QAudioDecoder::AccessDeniedError, tr("Unable to read from specified device"));
+        processInvalidMedia(QAudioDecoder::ResourceError, tr("Unable to read from specified device"));
         return;
     }
 
