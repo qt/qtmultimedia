@@ -133,7 +133,7 @@ private Q_SLOTS:
     void onVideoOutputReady(bool ready);
     void updateOrientation();
 
-    void onApplicationStateChanged(Qt::ApplicationState state);
+    void onApplicationStateChanged();
 
     void onCameraTakePictureFailed();
     void onCameraPictureExposed();

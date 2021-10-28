@@ -749,9 +749,10 @@ void QAndroidCameraSession::onVideoOutputReady(bool ready)
         startPreview();
 }
 
-void QAndroidCameraSession::onApplicationStateChanged(Qt::ApplicationState state)
+void QAndroidCameraSession::onApplicationStateChanged()
 {
-    switch (state) {
+
+    switch (QGuiApplication::applicationState()) {
     case Qt::ApplicationInactive:
         if (!m_keepActive && m_active) {
             m_savedState = m_active;
