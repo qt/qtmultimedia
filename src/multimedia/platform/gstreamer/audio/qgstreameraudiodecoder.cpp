@@ -317,7 +317,7 @@ void QGstreamerAudioDecoder::start()
     } else if (mDevice) {
         // make sure we can read from device
         if (!mDevice->isOpen() || !mDevice->isReadable()) {
-            processInvalidMedia(QAudioDecoder::AccessDeniedError, QLatin1String("Unable to read from specified device"));
+            processInvalidMedia(QAudioDecoder::ResourceError, QLatin1String("Unable to read from specified device"));
             return;
         }
 
