@@ -53,11 +53,11 @@
 
 #include <mfapi.h>
 #include <mfidl.h>
-#include <Mfreadwrite.h>
+#include <mfreadwrite.h>
 
 #include <QtCore/qobject.h>
-#include <QtCore/qmutex.h>
 #include "qaudioformat.h"
+#include <private/qwindowsiupointer_p.h>
 
 QT_USE_NAMESPACE
 
@@ -65,37 +65,32 @@ class MFDecoderSourceReader : public QObject, public IMFSourceReaderCallback
 {
     Q_OBJECT
 public:
-    MFDecoderSourceReader(QObject *parent = 0);
-    void shutdown();
+    MFDecoderSourceReader() {}
+    ~MFDecoderSourceReader() override {}
 
-    IMFMediaSource* mediaSource();
-    IMFMediaType* setSource(IMFMediaSource *source, const QAudioFormat &audioFormat);
+    void clearSource() { m_sourceReader.reset(); }
+    QWindowsIUPointer<IMFMediaType> setSource(IMFMediaSource *source, QAudioFormat::SampleFormat);
 
-    void reset();
     void readNextSample();
-    QList<IMFSample*> takeSamples(); //internal samples will be cleared after this
 
     //from IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
-    STDMETHODIMP_(ULONG) AddRef(void) override;
-    STDMETHODIMP_(ULONG) Release(void) override;
+    STDMETHODIMP_(ULONG) AddRef() override;
+    STDMETHODIMP_(ULONG) Release() override;
 
     //from IMFSourceReaderCallback
     STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
         DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample *pSample) override;
-    STDMETHODIMP OnFlush(DWORD dwStreamIndex) override;
-    STDMETHODIMP OnEvent(DWORD dwStreamIndex, IMFMediaEvent *pEvent) override;
+    STDMETHODIMP OnFlush(DWORD) override { return S_OK; }
+    STDMETHODIMP OnEvent(DWORD, IMFMediaEvent *) override { return S_OK; }
 
 Q_SIGNALS:
-    void sampleAdded();
+    void newSample(QWindowsIUPointer<IMFSample>);
     void finished();
 
 private:
-    long m_cRef;
-    QList<IMFSample*>   m_cachedSamples;
-    QMutex              m_samplesMutex;
+    long m_cRef = 1;
+    QWindowsIUPointer<IMFSourceReader> m_sourceReader;
 
-    IMFSourceReader             *m_sourceReader;
-    IMFMediaSource              *m_source;
 };
 #endif//MFDECODERSOURCEREADER_H
