@@ -56,6 +56,7 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
     videoQueue = QGstElement("queue", "videoQueue");
     videoConvert = QGstElement("videoconvert", "videoConvert");
     videoSink = QGstElement("fakesink", "fakeVideoSink");
+    videoSink.set("sync", true);
     gstVideoOutput.add(videoQueue, videoConvert, videoSink);
     if (!videoQueue.link(videoConvert, videoSink))
         qCDebug(qLcMediaVideoOutput) << ">>>>>> linking failed";
@@ -87,6 +88,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         isFakeSink = false;
     } else {
         gstSink = QGstElement("fakesink", "fakevideosink");
+        gstSink.set("sync", true);
         isFakeSink = true;
     }
 
