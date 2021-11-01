@@ -68,6 +68,7 @@ public:
     ~VideoSettings();
 
     void applySettings();
+    void updateFormatsAndCodecs();
 
 protected:
     void changeEvent(QEvent *e) override;
@@ -78,6 +79,7 @@ private:
 
     Ui::VideoSettingsUi *ui;
     QMediaRecorder *mediaRecorder;
+    bool m_updatingFormats = false;
 };
 
 #endif // VIDEOSETTINGS_H

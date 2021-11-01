@@ -82,6 +82,8 @@ private slots:
     void updateProgress(qint64 pos);
     void displayErrorMessage();
 
+    void updateFormats();
+
 private:
     void clearAudioLevels();
 
@@ -91,7 +93,7 @@ private:
     QMediaRecorder *m_audioRecorder = nullptr;
     QList<AudioLevel*> m_audioLevels;
     bool m_outputLocationSet = false;
-
+    bool m_updatingFormats = false;
 };
 
 #endif // AUDIORECORDER_H
