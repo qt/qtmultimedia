@@ -94,7 +94,7 @@ private slots:
 
     void previousClicked();
 
-    void seek(int seconds);
+    void seek(int mseconds);
     void jump(const QModelIndex &index);
     void playlistPositionChanged(int);
 
