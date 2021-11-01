@@ -858,6 +858,8 @@ void QAndroidMediaPlayer::setActiveTrack(TrackType trackType, int streamNumber)
     const auto &trackInfo = tracks.at(streamNumber);
     const auto &trackNumber = trackInfo.androidTrackNumber();
     mMediaPlayer->selectTrack(trackNumber);
+
+    emit activeTracksChanged();
 }
 
 void QAndroidMediaPlayer::positionChanged(qint64 position)
