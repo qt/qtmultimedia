@@ -108,7 +108,7 @@ Player::Player(QWidget *parent)
     QHBoxLayout *hLayout = new QHBoxLayout;
 
     m_slider = new QSlider(Qt::Horizontal, this);
-    m_slider->setRange(0, m_player->duration() / 1000);
+    m_slider->setRange(0, m_player->duration());
     connect(m_slider, &QSlider::sliderMoved, this, &Player::seek);
     hLayout->addWidget(m_slider);
 
@@ -283,13 +283,13 @@ void Player::addToPlaylist(const QList<QUrl> &urls)
 void Player::durationChanged(qint64 duration)
 {
     m_duration = duration / 1000;
-    m_slider->setMaximum(m_duration);
+    m_slider->setMaximum(duration);
 }
 
 void Player::positionChanged(qint64 progress)
 {
     if (!m_slider->isSliderDown())
-        m_slider->setValue(progress / 1000);
+        m_slider->setValue(progress);
 
     updateDurationInfo(progress / 1000);
 }
@@ -405,9 +405,9 @@ void Player::playlistPositionChanged(int currentItem)
     m_player->setSource(m_playlist->currentMedia());
 }
 
-void Player::seek(int seconds)
+void Player::seek(int mseconds)
 {
-    m_player->setPosition(seconds * 1000);
+    m_player->setPosition(mseconds);
 }
 
 void Player::statusChanged(QMediaPlayer::MediaStatus status)
