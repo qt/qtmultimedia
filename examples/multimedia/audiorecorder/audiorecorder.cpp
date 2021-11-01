@@ -88,18 +88,10 @@ AudioRecorder::AudioRecorder()
         ui->audioDeviceBox->addItem(name, QVariant::fromValue(device));
     }
 
-    //audio codecs
-    ui->audioCodecBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto &codec : QMediaFormat().supportedAudioCodecs(QMediaFormat::Encode))
-        ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec), QVariant::fromValue(codec));
-
-    //containers
-    ui->containerBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto &container : QMediaFormat().supportedFileFormats(QMediaFormat::Encode)) {
-        if (container < QMediaFormat::Mpeg4Audio) // ### Somewhat hacky, skip video formats
-            continue;
-        ui->containerBox->addItem(QMediaFormat::fileFormatDescription(container), QVariant::fromValue(container));
-    }
+    //audio codecs and container formats
+    updateFormats();
+    connect(ui->audioCodecBox, &QComboBox::currentIndexChanged, this, &AudioRecorder::updateFormats);
+    connect(ui->containerBox, &QComboBox::currentIndexChanged, this, &AudioRecorder::updateFormats);
 
     //sample rate
     ui->sampleRateBox->setRange(m_captureSession.audioInput()->device().minimumSampleRate(),
@@ -227,6 +219,43 @@ void AudioRecorder::setOutputLocation()
 void AudioRecorder::displayErrorMessage()
 {
     ui->statusbar->showMessage(m_audioRecorder->errorString());
+}
+
+void AudioRecorder::updateFormats()
+{
+    if (m_updatingFormats)
+        return;
+    m_updatingFormats = true;
+
+    QMediaFormat format;
+    if (ui->containerBox->count())
+        format.setFileFormat(boxValue(ui->containerBox).value<QMediaFormat::FileFormat>());
+    if (ui->audioCodecBox->count())
+        format.setAudioCodec(boxValue(ui->audioCodecBox).value<QMediaFormat::AudioCodec>());
+
+    int currentIndex = 0;
+    ui->audioCodecBox->clear();
+    ui->audioCodecBox->addItem(tr("Default audio codec"), QVariant::fromValue(QMediaFormat::AudioCodec::Unspecified));
+    for (auto codec : format.supportedAudioCodecs(QMediaFormat::Encode)) {
+        if (codec == format.audioCodec())
+            currentIndex = ui->audioCodecBox->count();
+        ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec), QVariant::fromValue(codec));
+    }
+    ui->audioCodecBox->setCurrentIndex(currentIndex);
+
+    currentIndex = 0;
+    ui->containerBox->clear();
+    ui->containerBox->addItem(tr("Default file format"), QVariant::fromValue(QMediaFormat::UnspecifiedFormat));
+    for (auto container : format.supportedFileFormats(QMediaFormat::Encode)) {
+        if (container < QMediaFormat::Mpeg4Audio) // Skip video formats
+            continue;
+        if (container == format.fileFormat())
+            currentIndex = ui->containerBox->count();
+        ui->containerBox->addItem(QMediaFormat::fileFormatDescription(container), QVariant::fromValue(container));
+    }
+    ui->containerBox->setCurrentIndex(currentIndex);
+
+    m_updatingFormats = false;
 }
 
 void AudioRecorder::clearAudioLevels()
