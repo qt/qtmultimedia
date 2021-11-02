@@ -135,6 +135,8 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
     playerPipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.installMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
 
+    gst_pipeline_use_clock(playerPipeline.pipeline(), gst_system_clock_obtain());
+
     /* Taken from gstdicoverer.c:
      * This is ugly. We get the GType of decodebin so we can quickly detect
      * when a decodebin is added to uridecodebin so we can set the
