@@ -90,11 +90,7 @@ void QWindowsMediaEncoder::record(QMediaEncoderSettings &settings)
     }
 
     const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
-
-    const QString path = (outputLocation().scheme() == QLatin1String("file") ?
-                              outputLocation().path() : outputLocation().toString());
-
-    m_fileName = QMediaStorageLocation::generateFileName(path, audioOnly
+    m_fileName = QMediaStorageLocation::generateFileName(outputLocation().toLocalFile(), audioOnly
                                                     ? QStandardPaths::MusicLocation
                                                     : QStandardPaths::MoviesLocation,
                                                     settings.mimeType().preferredSuffix());
