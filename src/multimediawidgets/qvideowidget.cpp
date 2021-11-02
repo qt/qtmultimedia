@@ -146,10 +146,16 @@ void QVideoWidget::setFullScreen(bool fullScreen)
     Qt::WindowFlags flags = windowFlags();
 
     if (fullScreen) {
+        // get the position of the widget in global coordinates
+        QPoint position = mapToGlobal(QPoint(0,0));
         d->nonFullScreenFlags = flags & (Qt::Window | Qt::SubWindow);
+        d_ptr->nonFullscreenPos = pos();
         flags |= Qt::Window;
         flags &= ~Qt::SubWindow;
         setWindowFlags(flags);
+        // move the widget to the position it had on screen, so that showFullScreen() will
+        // place it on the correct screen
+        move(position);
 
         showFullScreen();
     } else {
@@ -158,6 +164,8 @@ void QVideoWidget::setFullScreen(bool fullScreen)
         setWindowFlags(flags);
 
         showNormal();
+        move(d_ptr->nonFullscreenPos);
+        d_ptr->nonFullscreenPos = {};
     }
     d->wasFullScreen = fullScreen;
 }
