@@ -592,6 +592,11 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         m_metaData.clear();
         metaDataChanged();
     }
+    for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
+        tracks[i].clear();
+        nativeTracks[i].clear();
+    }
+    tracksChanged();
 
     const QMediaPlayer::MediaStatus oldMediaStatus = m_mediaStatus;
     const QMediaPlayer::PlaybackState oldState = m_state;
@@ -1089,7 +1094,10 @@ void AVFMediaPlayer::streamDestroyed()
 
 void AVFMediaPlayer::updateTracks()
 {
+    bool firstLoad = true;
     for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
+        if (tracks[i].count())
+            firstLoad = false;
         tracks[i].clear();
         nativeTracks[i].clear();
     }
@@ -1120,6 +1128,9 @@ void AVFMediaPlayer::updateTracks()
                 }
             }
         }
+        // subtitles are disabled by default
+        if (firstLoad)
+            setActiveTrack(SubtitleStream, -1);
     }
     Q_EMIT tracksChanged();
 }
@@ -1127,6 +1138,22 @@ void AVFMediaPlayer::updateTracks()
 void AVFMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int index)
 {
     const auto &t = nativeTracks[type];
+    if (type == QPlatformMediaPlayer::SubtitleStream) {
+        // subtitle streams are not always automatically enabled on macOS/iOS.
+        // this hack ensures they get enables and we actually get the text
+        AVPlayerItem *playerItem = m_observer.m_playerItem;
+        if (playerItem) {
+            AVAsset *asset = playerItem.asset;
+            if (!asset)
+                return;
+            AVMediaSelectionGroup *group = [asset mediaSelectionGroupForMediaCharacteristic:AVMediaCharacteristicLegible];
+            if (!group)
+                return;
+            auto *options = group.options;
+            if (options.count)
+                [playerItem selectMediaOption:options.firstObject inMediaSelectionGroup:group];
+        }
+    }
     for (int i = 0; i < t.count(); ++i)
         t.at(i).enabled = (i == index);
 }
