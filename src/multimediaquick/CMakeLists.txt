@@ -5,9 +5,6 @@
 set(qml_files
     "Video.qml"
 )
-set_source_files_properties(Video.qml PROPERTIES
-    QT_QML_SOURCE_VERSION "5.0"
-)
 
 qt_internal_add_qml_module(MultimediaQuickPrivate
     URI "QtMultimedia"
