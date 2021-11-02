@@ -71,6 +71,7 @@ public:
 
     QVideoWindow *videoWindow = nullptr;
     QWidget *windowContainer = nullptr;
+    QPoint nonFullscreenPos;
 
     bool createBackend();
 };
