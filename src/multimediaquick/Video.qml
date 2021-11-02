@@ -184,6 +184,16 @@ Item {
     property alias duration:        player.duration
 
     /*!
+        \qmlproperty int Video::loops
+
+        Determines how often the media is played before stopping.
+        Set to MediaPlayer.Infinite to loop the current media file forever.
+
+        The default value is \c 1. Setting this property to \c 0 has no effect.
+    */
+    property alias loops:        player.loops
+
+    /*!
         \qmlproperty enumeration Video::error
 
         This property holds the error state of the video.  It can be one of:
