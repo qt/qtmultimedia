@@ -84,6 +84,7 @@ public:
 
     T** address() { Q_ASSERT(m_ptr == nullptr); return &m_ptr; }
     void reset(T* ptr = nullptr) { if (m_ptr) m_ptr->Release(); m_ptr = ptr; }
+    T* release() { T* ptr = m_ptr; m_ptr = nullptr; return ptr; }
 
 private:
     T* m_ptr;
