@@ -138,8 +138,7 @@ private:
 
 QGstPipelinePrivate::QGstPipelinePrivate(GstBus* bus, QObject* parent)
   : QObject(parent),
-    m_bus(bus),
-    inStoppedState(true)
+    m_bus(bus)
 {
     gst_object_ref(GST_OBJECT(bus));
 
