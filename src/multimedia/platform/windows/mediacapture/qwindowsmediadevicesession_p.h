@@ -95,7 +95,7 @@ public:
     void setAudioInput(QAudioInput *input);
     void setAudioOutput(QAudioOutput *output);
 
-    bool startRecording(QMediaEncoderSettings &settings, const QString &fileName, bool audioOnly);
+    QMediaRecorder::Error startRecording(QMediaEncoderSettings &settings, const QString &fileName, bool audioOnly);
     void stopRecording();
     bool pauseRecording();
     bool resumeRecording();

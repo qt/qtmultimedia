@@ -62,6 +62,7 @@
 #include <QtCore/qtimer.h>
 #include <qvideoframe.h>
 #include <qcameradevice.h>
+#include <qmediarecorder.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -96,10 +97,10 @@ public:
                   const QString &microphoneId);
     void deactivate();
 
-    bool startRecording(const QString &fileName, const GUID &container,
-                        const GUID &videoFormat, UINT32 videoBitRate, UINT32 width,
-                        UINT32 height, qreal frameRate, const GUID &audioFormat,
-                        UINT32 audioBitRate);
+    QMediaRecorder::Error startRecording(const QString &fileName, const GUID &container,
+                           const GUID &videoFormat, UINT32 videoBitRate, UINT32 width,
+                           UINT32 height, qreal frameRate, const GUID &audioFormat,
+                           UINT32 audioBitRate);
     void stopRecording();
     bool pauseRecording();
     bool resumeRecording();

@@ -95,16 +95,15 @@ void QWindowsMediaEncoder::record(QMediaEncoderSettings &settings)
                                                     : QStandardPaths::MoviesLocation,
                                                     settings.mimeType().preferredSuffix());
 
-    if (m_mediaDeviceSession->startRecording(settings, m_fileName, audioOnly)) {
-
+    QMediaRecorder::Error ec = m_mediaDeviceSession->startRecording(settings, m_fileName, audioOnly);
+    if (ec == QMediaRecorder::NoError) {
         m_state = QMediaRecorder::RecordingState;
 
         actualLocationChanged(QUrl::fromLocalFile(m_fileName));
         stateChanged(m_state);
 
     } else {
-        error(QMediaRecorder::FormatError,
-              QMediaRecorderPrivate::msgFailedStartRecording());
+        error(ec, QMediaRecorderPrivate::msgFailedStartRecording());
     }
 }
 

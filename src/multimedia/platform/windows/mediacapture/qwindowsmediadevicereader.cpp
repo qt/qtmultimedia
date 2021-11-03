@@ -45,6 +45,7 @@
 #include <qaudiodevice.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qwindowsmfdefs_p.h>
+#include <private/qwindowsiupointer_p.h>
 #include <QtCore/qdebug.h>
 
 #include <mmdeviceapi.h>
@@ -664,96 +665,90 @@ HRESULT QWindowsMediaDeviceReader::updateSinkInputMediaTypes()
     return hr;
 }
 
-bool QWindowsMediaDeviceReader::startRecording(const QString &fileName, const GUID &container,
-                                               const GUID &videoFormat, UINT32 videoBitRate, UINT32 width,
-                                               UINT32 height, qreal frameRate, const GUID &audioFormat,
-                                               UINT32 audioBitRate)
+QMediaRecorder::Error QWindowsMediaDeviceReader::startRecording(
+        const QString &fileName, const GUID &container, const GUID &videoFormat, UINT32 videoBitRate,
+        UINT32 width, UINT32 height, qreal frameRate, const GUID &audioFormat, UINT32 audioBitRate)
 {
     QMutexLocker locker(&m_mutex);
 
     if (!m_active || m_recording || (videoFormat == GUID_NULL && audioFormat == GUID_NULL))
-        return false;
+        return QMediaRecorder::ResourceError;
 
-    IMFAttributes *writerAttributes = nullptr;
+    QWindowsIUPointer<IMFAttributes> writerAttributes;
 
-    HRESULT hr = MFCreateAttributes(&writerAttributes, 2);
-    if (SUCCEEDED(hr)) {
+    HRESULT hr = MFCreateAttributes(writerAttributes.address(), 2);
+    if (FAILED(hr))
+        return QMediaRecorder::ResourceError;
 
-        // Set callback so OnFinalize() is called after video is saved.
-        hr = writerAttributes->SetUnknown(MF_SINK_WRITER_ASYNC_CALLBACK,
-                                          static_cast<IMFSinkWriterCallback*>(this));
+    // Set callback so OnFinalize() is called after video is saved.
+    hr = writerAttributes->SetUnknown(MF_SINK_WRITER_ASYNC_CALLBACK,
+                                      static_cast<IMFSinkWriterCallback*>(this));
+    if (FAILED(hr))
+        return QMediaRecorder::ResourceError;
+
+    hr = writerAttributes->SetGUID(QMM_MF_TRANSCODE_CONTAINERTYPE, container);
+    if (FAILED(hr))
+        return QMediaRecorder::ResourceError;
+
+    QWindowsIUPointer<IMFSinkWriter> sinkWriter;
+    hr = MFCreateSinkWriterFromURL(reinterpret_cast<LPCWSTR>(fileName.utf16()),
+                                   nullptr, writerAttributes, sinkWriter.address());
+    if (FAILED(hr))
+        return QMediaRecorder::LocationNotWritable;
+
+    m_sinkVideoStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
+    m_sinkAudioStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
+
+    if (m_videoSource && videoFormat != GUID_NULL) {
+        IMFMediaType *targetMediaType = nullptr;
+
+        hr = createVideoMediaType(videoFormat, videoBitRate, width, height, frameRate, &targetMediaType);
         if (SUCCEEDED(hr)) {
 
-            hr = writerAttributes->SetGUID(QMM_MF_TRANSCODE_CONTAINERTYPE, container);
+            hr = sinkWriter->AddStream(targetMediaType, &m_sinkVideoStreamIndex);
             if (SUCCEEDED(hr)) {
 
-                hr = MFCreateSinkWriterFromURL(reinterpret_cast<LPCWSTR>(fileName.utf16()),
-                                               nullptr, writerAttributes, &m_sinkWriter);
+                hr = sinkWriter->SetInputMediaType(m_sinkVideoStreamIndex, m_videoMediaType, nullptr);
+            }
+            targetMediaType->Release();
+        }
+    }
+
+    if (SUCCEEDED(hr)) {
+        if (m_audioSource && audioFormat != GUID_NULL) {
+            IMFMediaType *targetMediaType = nullptr;
+
+            hr = createAudioMediaType(audioFormat, audioBitRate, &targetMediaType);
+            if (SUCCEEDED(hr)) {
+
+                hr = sinkWriter->AddStream(targetMediaType, &m_sinkAudioStreamIndex);
                 if (SUCCEEDED(hr)) {
 
-                    m_sinkVideoStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
-                    m_sinkAudioStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
-
-                    if (m_videoSource && videoFormat != GUID_NULL) {
-                        IMFMediaType *targetMediaType = nullptr;
-
-                        hr = createVideoMediaType(videoFormat, videoBitRate, width, height,
-                                                  frameRate, &targetMediaType);
-                        if (SUCCEEDED(hr)) {
-
-                            hr = m_sinkWriter->AddStream(targetMediaType, &m_sinkVideoStreamIndex);
-                            if (SUCCEEDED(hr)) {
-
-                                hr = m_sinkWriter->SetInputMediaType(m_sinkVideoStreamIndex,
-                                                                     m_videoMediaType, nullptr);
-                            }
-                            targetMediaType->Release();
-                        }
-                    }
-
-                    if (SUCCEEDED(hr)) {
-
-                        if (m_audioSource && audioFormat != GUID_NULL) {
-                            IMFMediaType *targetMediaType = nullptr;
-
-                            hr = createAudioMediaType(audioFormat, audioBitRate, &targetMediaType);
-                            if (SUCCEEDED(hr)) {
-
-                                hr = m_sinkWriter->AddStream(targetMediaType, &m_sinkAudioStreamIndex);
-                                if (SUCCEEDED(hr)) {
-
-                                    hr = m_sinkWriter->SetInputMediaType(m_sinkAudioStreamIndex,
-                                                                         m_audioMediaType, nullptr);
-                                }
-                                targetMediaType->Release();
-                            }
-                        }
-
-                        if (SUCCEEDED(hr)) {
-
-                            hr = m_sinkWriter->BeginWriting();
-                            if (SUCCEEDED(hr)) {
-                                m_lastDuration = -1;
-                                m_currentDuration = 0;
-                                updateDuration();
-                                m_durationTimer.start();
-                                m_recording = true;
-                                m_firstFrame = true;
-                                m_paused = false;
-                                m_pauseChanging = false;
-                            }
-                        }
-                    }
+                    hr = sinkWriter->SetInputMediaType(m_sinkAudioStreamIndex, m_audioMediaType, nullptr);
                 }
+                targetMediaType->Release();
             }
         }
-        writerAttributes->Release();
     }
-    if (m_sinkWriter && !SUCCEEDED(hr)) {
-        m_sinkWriter->Release();
-        m_sinkWriter = nullptr;
-    }
-    return SUCCEEDED(hr);
+
+    if (FAILED(hr))
+        return QMediaRecorder::FormatError;
+
+    hr = sinkWriter->BeginWriting();
+    if (FAILED(hr))
+        return QMediaRecorder::ResourceError;
+
+    m_sinkWriter = sinkWriter.release();
+    m_lastDuration = -1;
+    m_currentDuration = 0;
+    updateDuration();
+    m_durationTimer.start();
+    m_recording = true;
+    m_firstFrame = true;
+    m_paused = false;
+    m_pauseChanging = false;
+
+    return QMediaRecorder::NoError;
 }
 
 void QWindowsMediaDeviceReader::stopRecording()
