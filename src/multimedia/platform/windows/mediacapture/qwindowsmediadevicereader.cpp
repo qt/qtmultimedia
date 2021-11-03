@@ -692,7 +692,7 @@ QMediaRecorder::Error QWindowsMediaDeviceReader::startRecording(
 
     QWindowsIUPointer<IMFSinkWriter> sinkWriter;
     hr = MFCreateSinkWriterFromURL(reinterpret_cast<LPCWSTR>(fileName.utf16()),
-                                   nullptr, writerAttributes, sinkWriter.address());
+                                   nullptr, writerAttributes.get(), sinkWriter.address());
     if (FAILED(hr))
         return QMediaRecorder::LocationNotWritable;
 
