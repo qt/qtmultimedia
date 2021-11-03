@@ -91,6 +91,7 @@ QGstreamerMediaCapture::QGstreamerMediaCapture()
     // This is the recording pipeline with only live sources, thus the pipeline
     // will be always in the playing state.
     gstPipeline.setState(GST_STATE_PLAYING);
+    gstPipeline.setInStoppedState(false);
 
     gstPipeline.dumpGraph("initial");
 }

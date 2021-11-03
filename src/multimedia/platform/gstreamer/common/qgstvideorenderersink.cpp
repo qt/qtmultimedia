@@ -53,6 +53,8 @@
 
 #include <gst/video/video.h>
 #include <gst/video/gstvideometa.h>
+#include <qloggingcategory.h>
+#include <qdebug.h>
 
 #include "qgstutils_p.h"
 
@@ -67,6 +69,8 @@
 #endif
 
 //#define DEBUG_VIDEO_SURFACE_SINK
+
+Q_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer")
 
 QT_BEGIN_NAMESPACE
 
@@ -151,7 +155,7 @@ QGstMutableCaps QGstVideoRenderer::caps()
 
 bool QGstVideoRenderer::start(GstCaps *caps)
 {
-//    qDebug() << "QGstVideoRenderer::start" << QGstCaps(caps).toString();
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << QGstCaps(caps).toString();
     QMutexLocker locker(&m_mutex);
 
     if (m_active) {
@@ -224,6 +228,7 @@ void QGstVideoRenderer::flush()
 GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
 {
     QMutexLocker locker(&m_mutex);
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::render";
 
     m_renderReturn = GST_FLOW_OK;
     m_renderBuffer = buffer;
@@ -317,6 +322,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
         m_renderBuffer = nullptr;
         m_renderReturn = GST_FLOW_ERROR;
 
+        qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::handleEvent(renderBuffer)" << m_active << m_sink;
         if (m_active && m_sink) {
             gst_buffer_ref(buffer);
 
@@ -328,21 +334,21 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             if (meta) {
                 QRect vp(meta->x, meta->y, meta->width, meta->height);
                 if (m_format.viewport() != vp) {
-#ifdef DEBUG_VIDEO_SURFACE_SINK
-                    qDebug() << Q_FUNC_INFO << " Update viewport on Metadata: [" << meta->height << "x" << meta->width << " | " << meta->x << "x" << meta->y << "]";
-#endif \
-    //Update viewport if data is not the same
+                    qCDebug(qLcGstVideoRenderer) << Q_FUNC_INFO << " Update viewport on Metadata: [" << meta->height << "x" << meta->width << " | " << meta->x << "x" << meta->y << "]";
+                    // Update viewport if data is not the same
                     m_format.setViewport(vp);
                 }
             }
 
             if (m_sink->inStoppedState()) {
+                qCDebug(qLcGstVideoRenderer) << "    sending empty video frame";
                 m_sink->setVideoFrame(QVideoFrame());
             } else {
                 QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_sink, m_format, memoryFormat);
                 QVideoFrame frame(videoBuffer, m_format);
                 QGstUtils::setFrameTimeStamps(&frame, buffer);
 
+                qCDebug(qLcGstVideoRenderer) << "    sending video frame";
                 m_sink->setVideoFrame(frame);
             }
 
@@ -555,10 +561,7 @@ gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *caps)
 {
     VO_SINK(base);
 
-#ifdef DEBUG_VIDEO_SURFACE_SINK
-    qDebug() << "set_caps:";
-    qDebug() << caps;
-#endif
+    qCDebug(qLcGstVideoRenderer) << "set_caps:" << QGstCaps(caps).toString();
 
     if (!caps) {
         sink->renderer->stop();
