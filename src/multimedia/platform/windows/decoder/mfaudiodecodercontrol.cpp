@@ -181,7 +181,7 @@ HRESULT MFAudioDecoderControl::setResamplerOutputType(IMFMediaType *outputType)
             m_convertSample.reset();
             return hr;
         }
-        m_convertSample->AddBuffer(buffer);
+        m_convertSample->AddBuffer(buffer.get());
     }
     return S_OK;
 }
@@ -220,7 +220,7 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
     }
 
     auto mediaType = m_decoderSourceReader->setSource(source, m_outputFormat.sampleFormat());
-    m_mediaFormat = mediaTypeToFormat(mediaType);
+    m_mediaFormat = mediaTypeToFormat(mediaType.get());
     if (!m_mediaFormat.isValid()) {
         error(QAudioDecoder::FormatError, tr("Invalid media format"));
         m_decoderSourceReader.reset();
@@ -237,10 +237,10 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
     }
 
     if (useResampler()) {
-        HRESULT hr = m_resampler->SetInputType(m_mfInputStreamID, mediaType, 0);
+        HRESULT hr = m_resampler->SetInputType(m_mfInputStreamID, mediaType.get(), 0);
         if (SUCCEEDED(hr)) {
             if (auto output = formatToMediaType(m_outputFormat); output) {
-                hr = setResamplerOutputType(output);
+                hr = setResamplerOutputType(output.get());
                 if (FAILED(hr)) {
                     qWarning() << "MFAudioDecoderControl: failed to SetOutputType of resampler: "
                                << std::system_category().message(hr).c_str();
@@ -254,8 +254,8 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
         }
     }
 
-    connect(m_decoderSourceReader, SIGNAL(finished()), this, SLOT(handleSourceFinished()));
-    connect(m_decoderSourceReader, SIGNAL(newSample(QWindowsIUPointer<IMFSample>)), this, SLOT(handleNewSample(QWindowsIUPointer<IMFSample>)));
+    connect(m_decoderSourceReader.get(), SIGNAL(finished()), this, SLOT(handleSourceFinished()));
+    connect(m_decoderSourceReader.get(), SIGNAL(newSample(QWindowsIUPointer<IMFSample>)), this, SLOT(handleNewSample(QWindowsIUPointer<IMFSample>)));
 
     setIsDecoding(true);
 
@@ -291,7 +291,7 @@ void MFAudioDecoderControl::stop()
     if (!isDecoding())
         return;
 
-    disconnect(m_decoderSourceReader);
+    disconnect(m_decoderSourceReader.get());
     m_decoderSourceReader->clearSource();
     m_decoderSourceReader.reset();
 
@@ -340,7 +340,7 @@ void MFAudioDecoderControl::handleNewSample(QWindowsIUPointer<IMFSample> sample)
 
     HRESULT hr = S_OK;
     if (useResampler()) {
-        hr = m_resampler->ProcessInput(m_mfInputStreamID, sample, 0);
+        hr = m_resampler->ProcessInput(m_mfInputStreamID, sample.get(), 0);
         if (SUCCEEDED(hr)) {
             bool getSampleStartTime = true;
             MFT_OUTPUT_DATA_BUFFER outputDataBuffer;
@@ -348,7 +348,7 @@ void MFAudioDecoderControl::handleNewSample(QWindowsIUPointer<IMFSample> sample)
             do {
                 outputDataBuffer.pEvents = nullptr;
                 outputDataBuffer.dwStatus = 0;
-                outputDataBuffer.pSample = m_convertSample;
+                outputDataBuffer.pSample = m_convertSample.get();
                 DWORD status = 0;
                 hr = m_resampler->ProcessOutput(0, 1, &outputDataBuffer, &status);
                 if (SUCCEEDED(hr)) {
@@ -365,7 +365,7 @@ void MFAudioDecoderControl::handleNewSample(QWindowsIUPointer<IMFSample> sample)
         }
     } else {
         sample->GetSampleTime(&sampleStartTime);
-        hr = addDataFromIMFSample(abuf, sample);
+        hr = addDataFromIMFSample(abuf, sample.get());
     }
 
     if (FAILED(hr)) {

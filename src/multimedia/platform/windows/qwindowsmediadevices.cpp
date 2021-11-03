@@ -270,7 +270,7 @@ QWindowsMediaDevices::QWindowsMediaDevices()
 
 
         m_notificationClient.reset(new CMMNotificationClient(this, m_deviceEnumerator, std::move(devState)));
-        m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient);
+        m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient.get());
 
     } else {
         qWarning() << "Audio device change notification disabled";
@@ -303,7 +303,7 @@ QWindowsMediaDevices::QWindowsMediaDevices()
 QWindowsMediaDevices::~QWindowsMediaDevices()
 {
     if (m_deviceEnumerator) {
-        m_deviceEnumerator->UnregisterEndpointNotificationCallback(m_notificationClient);
+        m_deviceEnumerator->UnregisterEndpointNotificationCallback(m_notificationClient.get());
     }
 
     m_deviceEnumerator.reset();

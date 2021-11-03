@@ -79,15 +79,15 @@ public:
     }
 
     explicit operator bool() const { return m_ptr != nullptr; }
-    operator T*() const { return m_ptr; }
-    T* operator->() const { return m_ptr; }
+    T *operator->() const { return m_ptr; }
 
-    T** address() { Q_ASSERT(m_ptr == nullptr); return &m_ptr; }
-    void reset(T* ptr = nullptr) { if (m_ptr) m_ptr->Release(); m_ptr = ptr; }
-    T* release() { T* ptr = m_ptr; m_ptr = nullptr; return ptr; }
+    T **address() { Q_ASSERT(m_ptr == nullptr); return &m_ptr; }
+    void reset(T *ptr = nullptr) { if (m_ptr) m_ptr->Release(); m_ptr = ptr; }
+    T *release() { T *ptr = m_ptr; m_ptr = nullptr; return ptr; }
+    T *get() const { return m_ptr; }
 
 private:
-    T* m_ptr;
+    T *m_ptr;
 };
 
 #endif

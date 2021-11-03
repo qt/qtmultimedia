@@ -58,7 +58,7 @@ QWindowsIUPointer<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource 
     if (FAILED(attr->SetUINT32(MF_SOURCE_READER_DISCONNECT_MEDIASOURCE_ON_SHUTDOWN, TRUE)))
         return mediaType;
 
-    HRESULT hr = MFCreateSourceReaderFromMediaSource(source, attr, m_sourceReader.address());
+    HRESULT hr = MFCreateSourceReaderFromMediaSource(source, attr.get(), m_sourceReader.address());
     if (FAILED(hr)) {
         qWarning() << "MFDecoderSourceReader: failed to setup source reader: "
                    << std::system_category().message(hr).c_str();
@@ -72,7 +72,7 @@ QWindowsIUPointer<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource 
     MFCreateMediaType(pPartialType.address());
     pPartialType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
     pPartialType->SetGUID(MF_MT_SUBTYPE, sampleFormat == QAudioFormat::Float ? MFAudioFormat_Float : MFAudioFormat_PCM);
-    m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), nullptr, pPartialType);
+    m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), nullptr, pPartialType.get());
     m_sourceReader->GetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), mediaType.address());
     // Ensure the stream is selected.
     m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), TRUE);
