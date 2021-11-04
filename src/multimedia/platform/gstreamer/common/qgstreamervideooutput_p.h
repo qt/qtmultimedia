@@ -79,6 +79,7 @@ public:
 
     QGstElement gstElement() const { return gstVideoOutput; }
     void linkSubtitleStream(QGstElement subtitleSrc);
+    void unlinkSubtitleStream();
 
     void setIsPreview();
     void flushSubtitles();
