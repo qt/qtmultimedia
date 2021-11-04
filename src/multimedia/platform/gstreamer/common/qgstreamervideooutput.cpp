@@ -140,6 +140,23 @@ void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
     gstPipeline.endConfig();
 }
 
+void QGstreamerVideoOutput::unlinkSubtitleStream()
+{
+    if (subtitleSrc.isNull())
+        return;
+    qCDebug(qLcMediaVideoOutput) << "unlink subtitle stream";
+    subtitleSrc = {};
+    if (!subtitleSink.isNull()) {
+        gstPipeline.beginConfig();
+        gstPipeline.remove(subtitleSink);
+        gstPipeline.endConfig();
+        subtitleSink.setStateSync(GST_STATE_NULL);
+        subtitleSink = {};
+    }
+    if (m_videoSink)
+        m_videoSink->setSubtitleText({});
+}
+
 void QGstreamerVideoOutput::doLinkSubtitleStream()
 {
     if (!subtitleSink.isNull()) {

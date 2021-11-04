@@ -128,15 +128,14 @@ private:
         void removeInputPad(QGstPad pad);
         void removeAllInputPads();
         QGstPad inputPad(int index);
-        int activeInputIndex() const { return tracks.indexOf(activeInputPad()); }
-        QGstPad activeInputPad() const { return selector.getObject("active-pad"); }
+        int activeInputIndex() const { return isConnected ? tracks.indexOf(activeInputPad()) : -1; }
+        QGstPad activeInputPad() const { return isConnected ? selector.getObject("active-pad") : QGstPad{}; }
         void setActiveInputPad(QGstPad input) { selector.set("active-pad", input); }
         int trackCount() const { return tracks.count(); }
 
         QGstElement selector;
         TrackType type;
         QList<QGstPad> tracks;
-        QGstPad nullTrack;
         bool isConnected = false;
     };
 
