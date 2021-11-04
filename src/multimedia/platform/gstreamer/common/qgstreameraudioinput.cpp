@@ -111,9 +111,13 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
     auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
     if (deviceInfo && deviceInfo->gstDevice)
         newSrc = gst_device_create_element(deviceInfo->gstDevice, "audiosrc");
+    else
+        qCWarning(qLcMediaAudioInput) << "Invalid audio device";
 
-    if (newSrc.isNull())
+    if (newSrc.isNull()) {
+        qCWarning(qLcMediaAudioInput) << "Failed to create a gst element for the audio device, using a default audio source";
         newSrc = QGstElement("autoaudiosrc", "audiosrc");
+    }
 
     // FIXME: most probably source can be disconnected outside of idle probe
     audioSrc.staticPad("src").doInIdleProbe([&](){

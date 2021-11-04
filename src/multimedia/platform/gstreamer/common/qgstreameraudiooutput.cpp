@@ -101,9 +101,13 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
     auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioOutput.handle());
     if (deviceInfo && deviceInfo->gstDevice)
         newSink = gst_device_create_element(deviceInfo->gstDevice , "audiosink");
+    else
+        qCWarning(qLcMediaAudioOutput) << "Invalid audio device";
 
-    if (newSink.isNull())
+    if (newSink.isNull()) {
+        qCWarning(qLcMediaAudioOutput) << "Failed to create a gst element for the audio device, using a default audio sink";
         newSink = QGstElement("autoaudiosink", "audiosink");
+    }
 
     audioVolume.staticPad("src").doInIdleProbe([&](){
         audioVolume.unlink(audioSink);
