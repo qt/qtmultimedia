@@ -108,9 +108,9 @@ const char *mimeTypeForFormat[QMediaFormat::LastFileFormat + 2] =
     "audio/mp4",
     "audio/aac",
     "audio/x-ms-wma",
-    "audio/flac",
     "audio/mpeg",
-    "audio/wav",
+    "audio/flac",
+    "audio/wav"
 };
 
 constexpr QMediaFormat::FileFormat videoFormatPriorityList[] =
