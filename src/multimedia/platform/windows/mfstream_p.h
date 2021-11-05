@@ -56,6 +56,7 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qcoreevent.h>
+#include <QtCore/qpointer.h>
 
 QT_USE_NAMESPACE
 
@@ -142,7 +143,7 @@ private:
     };
 
     long m_cRef;
-    QIODevice *m_stream;
+    QPointer<QIODevice> m_stream;
     bool m_ownStream;
     DWORD m_workQueueId;
     QMutex m_mutex;

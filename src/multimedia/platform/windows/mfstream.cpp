@@ -261,6 +261,9 @@ STDMETHODIMP MFStream::Close()
 
 void MFStream::doRead()
 {
+    if (!m_stream)
+        return;
+
     bool readDone = true;
     IUnknown *pUnk = NULL;
     HRESULT    hr = m_currentReadResult->GetObject(&pUnk);
