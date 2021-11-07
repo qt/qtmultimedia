@@ -199,6 +199,8 @@ QList<QCameraDevice> QMediaDevices::videoInputs()
 QAudioDevice QMediaDevices::defaultAudioInput()
 {
     const auto inputs = audioInputs();
+    if (inputs.isEmpty())
+        return {};
     for (const auto &info : inputs)
         if (info.isDefault())
             return info;
@@ -222,6 +224,8 @@ QAudioDevice QMediaDevices::defaultAudioInput()
 QAudioDevice QMediaDevices::defaultAudioOutput()
 {
     const auto outputs = audioOutputs();
+    if (outputs.isEmpty())
+        return {};
     for (const auto &info : outputs)
         if (info.isDefault())
             return info;
@@ -253,6 +257,8 @@ QAudioDevice QMediaDevices::defaultAudioOutput()
 QCameraDevice QMediaDevices::defaultVideoInput()
 {
     const auto inputs = videoInputs();
+    if (inputs.isEmpty())
+        return {};
     for (const auto &info : inputs)
         if (info.isDefault())
             return info;
