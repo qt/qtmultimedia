@@ -42,7 +42,7 @@
 
 #include <QtWidgets/qwidget.h>
 
-#include <QtMultimediaWidgets/qtmultimediawidgetdefs.h>
+#include <QtMultimediaWidgets/qtmultimediawidgetsglobal.h>
 
 QT_BEGIN_NAMESPACE
 

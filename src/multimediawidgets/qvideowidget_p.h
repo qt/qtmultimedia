@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qtmultimediawidgetdefs.h>
+#include <QtMultimediaWidgets/qtmultimediawidgetsglobal.h>
 #include <qvideoframe.h>
 #include "qvideowidget.h"
 

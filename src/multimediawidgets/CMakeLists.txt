@@ -6,7 +6,7 @@
 
 qt_internal_add_module(MultimediaWidgets
     SOURCES
-        qtmultimediawidgetdefs.h
+        qtmultimediawidgetsglobal.h
         qvideowidget.cpp qvideowidget.h qvideowidget_p.h
     LIBRARIES
         Qt::MultimediaPrivate

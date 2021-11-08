@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the QtMultimediaWidgets module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,22 +37,9 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+#ifndef QTMULTIMEDIAWIDGETSGLOBAL_H
+#define QTMULTIMEDIAWIDGETSGLOBAL_H
 
-#ifndef QTMULTIMEDIAWIDGETS_P_H
-#define QTMULTIMEDIAWIDGETS_P_H
-
-#include <QtCore/qglobal.h>
 #include <QtMultimediaWidgets/qtmultimediawidgetsexports.h>
 
-#endif // QMULTIMEDIAWIDGETS_P_H
-
+#endif // QTMULTIMEDIAWIDGETSGLOBAL_H

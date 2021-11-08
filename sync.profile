@@ -16,4 +16,7 @@
     "QtMultimedia" =>  {
         "qtmultimediadefs.h" => "QtMultimedia/qtmultimediaglobal.h"
     },
+    "QtMultimediaWidgets" =>  {
+        "qtmultimediawidgetdefs.h" => "QtMultimediaWidgets/qtmultimediawidgetsglobal.h"
+    }
 );
