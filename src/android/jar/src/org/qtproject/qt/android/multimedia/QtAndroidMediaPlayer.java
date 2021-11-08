@@ -374,12 +374,17 @@ public class QtAndroidMediaPlayer
         }
 
         try {
-            mMediaPlayer.seekTo(msec);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                // seekTo to closest frame of the provided msec is only available for devices
+                // with api level over 26
+                mMediaPlayer.seekTo(msec, MediaPlayer.SEEK_CLOSEST);
+            } else {
+                mMediaPlayer.seekTo(msec);
+            }
         } catch (final IllegalStateException exception) {
             Log.w(TAG, exception);
         }
     }
-
 
     public boolean isPlaying()
     {
