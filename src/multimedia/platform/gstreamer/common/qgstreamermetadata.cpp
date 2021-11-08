@@ -44,6 +44,7 @@
 
 #include <gst/gstversion.h>
 #include <private/qgstutils_p.h>
+#include <private/qiso639_2_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -135,7 +136,7 @@ static void addTagToMap(const GstTagList *list,
         {
             const gchar *str_value = g_value_get_string(&val);
             if (key == QMediaMetaData::Language) {
-                map->insert(key, QLocale::codeToLanguage(QString::fromUtf8(str_value)));
+                map->insert(key, QVariant::fromValue(QtMultimediaPrivate::fromIso639(str_value)));
                 break;
             }
             map->insert(key, QString::fromUtf8(str_value));
@@ -278,11 +279,11 @@ void QGstreamerMetaData::setMetaData(GstElement *element) const
             }
             default: {
                 if (tagValue.typeId() == qMetaTypeId<QLocale::Language>()) {
-                    QString language = QLocale::languageToCode(tagValue.value<QLocale::Language>());
+                    QByteArray language = QtMultimediaPrivate::toIso639(tagValue.value<QLocale::Language>());
                     gst_tag_setter_add_tags(GST_TAG_SETTER(element),
                                             GST_TAG_MERGE_REPLACE,
                                             tagName,
-                                            language.toUtf8().constData(),
+                                            language.constData(),
                                             nullptr);
                 }
 
