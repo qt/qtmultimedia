@@ -52,8 +52,6 @@
 QT_BEGIN_NAMESPACE
 
 const int PeriodTimeMs = 20;
-const int LowLatencyPeriodTimeMs = 10;
-const int LowLatencyBufferSizeMs = 40;
 
 #define LOW_LATENCY_CATEGORY_NAME "game"
 
@@ -362,9 +360,6 @@ bool QPulseAudioSink::open()
     pa_stream_set_overflow_callback(m_stream, outputStreamOverflowCallback, this);
     pa_stream_set_latency_update_callback(m_stream, outputStreamLatencyCallback, this);
 
-//    if (m_bufferSize <= 0 && m_role == QAudio::GameRoleRole)
-//        m_bufferSize = bytesPerSecond * LowLatencyBufferSizeMs / qint64(1000);
-
     pa_buffer_attr requestedBuffer;
     requestedBuffer.fragsize = (uint32_t)-1;
     requestedBuffer.maxlength = (uint32_t)-1;
@@ -387,7 +382,7 @@ bool QPulseAudioSink::open()
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
 
     const pa_buffer_attr *buffer = pa_stream_get_buffer_attr(m_stream);
-    m_periodTime = /*(m_role == QAudio::GameRole) ? LowLatencyPeriodTimeMs :*/ PeriodTimeMs;
+    m_periodTime = PeriodTimeMs;
     m_periodSize = pa_usec_to_bytes(m_periodTime*1000, &m_spec);
     m_bufferSize = buffer->tlength;
     m_maxBufferSize = buffer->maxlength;
