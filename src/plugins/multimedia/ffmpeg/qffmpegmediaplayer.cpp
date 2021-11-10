@@ -221,14 +221,23 @@ public:
             qint64 startTime = timeStamp(avFrame->pts, base);
             frame.setStartTime(startTime);
             frame.setEndTime(startTime + duration);
+            qDebug() << ">>>> creating video frame" << startTime << (startTime + duration);
 
             // add in subtitles
             Subtitle *sub = m_subtitleBuffer.peek();
+            qDebug() << "frame: subtitle" << sub;
             if (sub) {
-                if (sub->start <= startTime && sub->end > startTime)
-                    frame.setSubtitleText(sub->text);
-                if (sub->start > startTime)
+                qDebug() << "    " << sub->start << sub->end << sub->text;
+                qDebug() << "    " << sub->start << sub->end << sub->text;
+                if (sub->start <= startTime && sub->end > startTime) {
+                    qDebug() << "        setting text";
+                    sink->setSubtitleText(sub->text);
+                }
+                if (sub->end < startTime) {
+                    qDebug() << "        removing subtitle item";
                     delete m_subtitleBuffer.take();
+                    sink->setSubtitleText({});
+                }
             }
 
             qDebug() << "    sending a video frame" << startTime << duration;
@@ -301,11 +310,11 @@ public:
                     trackType = i;
 
             auto *codec = decoder->m_player->codecContext[trackType];
-            if (!codec)
+            if (!codec || trackType < 0)
                 continue;
 
             auto base = stream->time_base;
-            qDebug() << "    read a packet: track" << packet.stream_index
+            qDebug() << ">> read a packet: track" << trackType << packet.stream_index
                      << timeStamp(packet.dts, base) << timeStamp(packet.pts, base) << timeStamp(packet.duration, base);
 
             if (trackType == QPlatformMediaPlayer::VideoStream ||
@@ -315,16 +324,58 @@ public:
                 qDebug() << "   sent packet to decoder";
                 break;
             } else if (trackType == QPlatformMediaPlayer::SubtitleStream) {
+//                qDebug() << "    decoding subtitle" << "has delay:" << (codec->codec->capabilities & AV_CODEC_CAP_DELAY);
                 AVSubtitle subtitle;
+                memset(&subtitle, 0, sizeof(subtitle));
                 int gotSubtitle = 0;
                 int res = avcodec_decode_subtitle2(codec, &subtitle, &gotSubtitle, &packet);
+//                qDebug() << "       subtitle got:" << res << gotSubtitle << subtitle.format << Qt::hex << (quint64)subtitle.pts;
                 if (res >= 0 && gotSubtitle) {
-                    qint64 pts = timeStamp(subtitle.pts, base);
-                    qint64 start = pts + subtitle.start_display_time;
-                    qint64 end = pts + subtitle.end_display_time;
-                    qDebug() << "got subtitle (" << start << "--" << end << "):";
-                    for (uint i = 0; i < subtitle.num_rects; ++i)
-                        qDebug() << "    " << subtitle.rects[i]->text;
+                    // apparently the timestamps in the AVSubtitle structure are not always filled in
+                    // if they are missing, use the packets pts and duration values instead
+                    // in this case subtitle.pts seems to be 0x8000000000000000, let's simply check for pts < 0
+                    qint64 start, end;
+                    if (subtitle.pts < 0) {
+                        start = timeStamp(packet.pts, base);
+                        end = start + timeStamp(packet.duration, base);
+                    } else {
+                        qint64 pts = timeStamp(subtitle.pts, AV_TIME_BASE_Q);
+                        start = pts + subtitle.start_display_time;
+                        end = pts + subtitle.end_display_time;
+                    }
+//                    qDebug() << "    got subtitle (" << start << "--" << end << "):";
+                    QString text;
+                    for (uint i = 0; i < subtitle.num_rects; ++i) {
+                        const auto *r = subtitle.rects[i];
+//                        qDebug() << "    subtitletext:" << r->text << "/" << r->ass;
+                        if (i)
+                            text += QLatin1Char('\n');
+                        if (r->text)
+                            text += QString::fromUtf8(r->text);
+                        else {
+                            const char *ass = r->ass;
+                            int nCommas = 0;
+                            while (*ass) {
+                                if (nCommas == 9)
+                                    break;
+                                if (*ass == ',')
+                                    ++nCommas;
+                                ++ass;
+                            }
+                            text += QString::fromUtf8(ass);
+                        }
+                    }
+                    text.replace(QLatin1String("\\N"), QLatin1String("\n"));
+                    text.replace(QLatin1String("\\n"), QLatin1String("\n"));
+                    text.replace(QLatin1String("\r\n"), QLatin1String("\n"));
+                    if (text.endsWith(QLatin1Char('\n')))
+                        text.chop(1);
+
+//                    qDebug() << "    >>> subtitle adding" << text << start << end;
+                    Subtitle *sub = new Subtitle{text, start, end};
+                    decoder->mutex.lock();
+                    decoder->m_subtitleBuffer.push(sub);
+                    decoder->mutex.unlock();
                 }
             }
         }
@@ -488,6 +539,8 @@ void QFFmpegMediaPlayer::play()
 {
     openCodec(VideoStream, 0);
 //    openCodec(AudioStream, 0);
+    if (m_streamMap[SubtitleStream].count())
+        openCodec(SubtitleStream, 0);
     decoder->play();
     stateChanged(QMediaPlayer::PlayingState);
 }
@@ -599,10 +652,12 @@ void QFFmpegMediaPlayer::checkStreams()
 
 void QFFmpegMediaPlayer::openCodec(TrackType type, int index)
 {
+    qDebug() << "openCodec" << type << index;
     int streamIdx = m_streamMap[type].value(index).avStreamIndex;
     if (streamIdx < 0)
         return;
-    // ### return is same track as before
+    qDebug() << "    using stream index" << streamIdx;
+    // ### return if same track as before
 
     if (codecContext[type])
         closeCodec(type);
