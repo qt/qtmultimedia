@@ -156,8 +156,11 @@ void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDevice)
 
 }
 
-int main()
+
+int main(int argc, char *argv[])
 {
+    Q_UNUSED(argc);
+    Q_UNUSED(argv);
     QTextStream out(stdout);
 
     const auto audioInputDevices = QMediaDevices::audioInputs();
