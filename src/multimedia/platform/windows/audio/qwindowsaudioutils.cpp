@@ -37,41 +37,97 @@
 **
 ****************************************************************************/
 
+#include <mfapi.h>
 #include "qwindowsaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
-bool qt_convertFormat(const QAudioFormat &format, WAVEFORMATEXTENSIBLE *wfx)
+bool QWindowsAudioUtils::formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx)
 {
-    if (!wfx
-            || !format.isValid()
-            || format.sampleRate() <= 0
-            || format.channelCount() <= 0) {
+    if (!format.isValid())
         return false;
-    }
 
-    wfx->Format.nSamplesPerSec = format.sampleRate();
-    wfx->Format.wBitsPerSample = wfx->Samples.wValidBitsPerSample = format.bytesPerSample()*8;
-    wfx->Format.nChannels = format.channelCount();
-    wfx->Format.nBlockAlign = (wfx->Format.wBitsPerSample / 8) * wfx->Format.nChannels;
-    wfx->Format.nAvgBytesPerSec = wfx->Format.nBlockAlign * wfx->Format.nSamplesPerSec;
-    wfx->Format.cbSize = 0;
+    wfx.Format.nSamplesPerSec = format.sampleRate();
+    wfx.Format.wBitsPerSample = wfx.Samples.wValidBitsPerSample = format.bytesPerSample()*8;
+    wfx.Format.nChannels = format.channelCount();
+    wfx.Format.nBlockAlign = (wfx.Format.wBitsPerSample / 8) * wfx.Format.nChannels;
+    wfx.Format.nAvgBytesPerSec = wfx.Format.nBlockAlign * wfx.Format.nSamplesPerSec;
+    wfx.Format.cbSize = 0;
 
     if (format.sampleFormat() == QAudioFormat::Float) {
-        wfx->Format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-        wfx->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+        wfx.Format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+        wfx.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
     } else {
-        wfx->Format.wFormatTag = WAVE_FORMAT_PCM;
-        wfx->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+        wfx.Format.wFormatTag = WAVE_FORMAT_PCM;
+        wfx.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
     }
 
     if (format.channelCount() > 2) {
-        wfx->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-        wfx->Format.cbSize = 22;
-        wfx->dwChannelMask = 0xFFFFFFFF >> (32 - format.channelCount());
+        wfx.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+        wfx.Format.cbSize = 22;
+        wfx.dwChannelMask = 0xFFFFFFFF >> (32 - format.channelCount());
     }
 
     return true;
+}
+
+QAudioFormat QWindowsAudioUtils::mediaTypeToFormat(IMFMediaType *mediaType)
+{
+    QAudioFormat format;
+    if (!mediaType)
+        return format;
+
+    UINT32 val = 0;
+    if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &val))) {
+        format.setChannelCount(int(val));
+    }
+    if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &val))) {
+        format.setSampleRate(int(val));
+    }
+    UINT32 bitsPerSample = 0;
+    mediaType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bitsPerSample);
+
+    GUID subType;
+    if (SUCCEEDED(mediaType->GetGUID(MF_MT_SUBTYPE, &subType))) {
+        if (subType == MFAudioFormat_Float) {
+            format.setSampleFormat(QAudioFormat::Float);
+        } else if (bitsPerSample == 8) {
+            format.setSampleFormat(QAudioFormat::UInt8);
+        } else if (bitsPerSample == 16) {
+            format.setSampleFormat(QAudioFormat::Int16);
+        } else if (bitsPerSample == 32){
+            format.setSampleFormat(QAudioFormat::Int32);
+        }
+    }
+    return format;
+}
+
+QWindowsIUPointer<IMFMediaType> QWindowsAudioUtils::formatToMediaType(const QAudioFormat &format)
+{
+    QWindowsIUPointer<IMFMediaType> mediaType;
+
+    if (!format.isValid())
+        return mediaType;
+
+    MFCreateMediaType(mediaType.address());
+
+    mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+    if (format.sampleFormat() == QAudioFormat::Float) {
+        mediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
+    } else {
+        mediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
+    }
+
+    mediaType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, UINT32(format.channelCount()));
+    mediaType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, UINT32(format.sampleRate()));
+    auto alignmentBlock = UINT32(format.bytesPerFrame());
+    mediaType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, alignmentBlock);
+    auto avgBytesPerSec = UINT32(format.sampleRate() * format.bytesPerFrame());
+    mediaType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, avgBytesPerSec);
+    mediaType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, UINT32(format.bytesPerSample()*8));
+    mediaType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
+
+    return mediaType;
 }
 
 QT_END_NAMESPACE

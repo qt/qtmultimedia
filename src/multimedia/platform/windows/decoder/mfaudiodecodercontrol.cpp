@@ -42,65 +42,7 @@
 #include <qglobal.h>
 #include "Wmcodecdsp.h"
 #include "mfaudiodecodercontrol_p.h"
-
-static QWindowsIUPointer<IMFMediaType> formatToMediaType(const QAudioFormat &format)
-{
-    QWindowsIUPointer<IMFMediaType> mediaType;
-
-    if (!format.isValid())
-        return mediaType;
-
-    MFCreateMediaType(mediaType.address());
-
-    mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
-    if (format.sampleFormat() == QAudioFormat::Float) {
-        mediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
-    } else {
-        mediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
-    }
-
-    mediaType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, UINT32(format.channelCount()));
-    mediaType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, UINT32(format.sampleRate()));
-    auto alignmentBlock = UINT32(format.bytesPerFrame());
-    mediaType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, alignmentBlock);
-    auto avgBytesPerSec = UINT32(format.sampleRate() * format.bytesPerFrame());
-    mediaType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, avgBytesPerSec);
-    mediaType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, UINT32(format.bytesPerSample()*8));
-    mediaType->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
-
-    return mediaType;
-}
-
-static QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType)
-{
-    QAudioFormat format;
-    if (!mediaType)
-        return format;
-
-    UINT32 val = 0;
-    if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &val))) {
-        format.setChannelCount(int(val));
-    }
-    if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &val))) {
-        format.setSampleRate(int(val));
-    }
-    UINT32 bitsPerSample = 0;
-    mediaType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bitsPerSample);
-
-    GUID subType;
-    if (SUCCEEDED(mediaType->GetGUID(MF_MT_SUBTYPE, &subType))) {
-        if (subType == MFAudioFormat_Float) {
-            format.setSampleFormat(QAudioFormat::Float);
-        } else if (bitsPerSample == 8) {
-            format.setSampleFormat(QAudioFormat::UInt8);
-        } else if (bitsPerSample == 16) {
-            format.setSampleFormat(QAudioFormat::Int16);
-        } else if (bitsPerSample == 32){
-            format.setSampleFormat(QAudioFormat::Int32);
-        }
-    }
-    return format;
-}
+#include <private/qwindowsaudioutils_p.h>
 
 MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)
@@ -220,7 +162,7 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
     }
 
     auto mediaType = m_decoderSourceReader->setSource(source, m_outputFormat.sampleFormat());
-    m_mediaFormat = mediaTypeToFormat(mediaType.get());
+    m_mediaFormat = QWindowsAudioUtils::mediaTypeToFormat(mediaType.get());
     if (!m_mediaFormat.isValid()) {
         error(QAudioDecoder::FormatError, tr("Invalid media format"));
         m_decoderSourceReader.reset();
@@ -239,7 +181,7 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
     if (useResampler()) {
         HRESULT hr = m_resampler->SetInputType(m_mfInputStreamID, mediaType.get(), 0);
         if (SUCCEEDED(hr)) {
-            if (auto output = formatToMediaType(m_outputFormat); output) {
+            if (auto output = QWindowsAudioUtils::formatToMediaType(m_outputFormat); output) {
                 hr = setResamplerOutputType(output.get());
                 if (FAILED(hr)) {
                     qWarning() << "MFAudioDecoderControl: failed to SetOutputType of resampler: "

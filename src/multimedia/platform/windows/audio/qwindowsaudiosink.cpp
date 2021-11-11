@@ -222,7 +222,7 @@ bool QWindowsAudioSink::open()
 
     period_size = 0;
 
-    if (!qt_convertFormat(settings, &wfx)) {
+    if (!QWindowsAudioUtils::formatToWaveFormatExtensible(settings, wfx)) {
         qWarning("QAudioSink: open error, invalid format.");
     } else if (buffer_size == 0) {
         // Default buffer size, 200ms, default period size is 40ms
