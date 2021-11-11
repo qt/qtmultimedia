@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,9 @@
 **
 ****************************************************************************/
 
-#ifndef MFAUDIODECODERCONTROL_H
-#define MFAUDIODECODERCONTROL_H
+
+#ifndef QT_QWINDOWSRESAMPLER_H
+#define QT_QWINDOWSRESAMPLER_H
 
 //
 //  W A R N I N G
@@ -51,59 +52,46 @@
 // We mean it.
 //
 
-#include "mfdecodersourcereader_p.h"
-#include <private/qplatformaudiodecoder_p.h>
-#include <private/sourceresolver_p.h>
+#include <qbytearray.h>
+#include <qbytearrayview.h>
+#include <qaudioformat.h>
 #include <private/qwindowsiupointer_p.h>
-#include <private/qwindowsresampler_p.h>
+#include <qt_windows.h>
 
-QT_USE_NAMESPACE
-
-class MFAudioDecoderControl : public QPlatformAudioDecoder
+class QWindowsResampler
 {
-    Q_OBJECT
 public:
-    MFAudioDecoderControl(QAudioDecoder *parent);
-    ~MFAudioDecoderControl() override;
+    QWindowsResampler();
+    ~QWindowsResampler();
 
-    QUrl source() const override { return m_source; }
-    void setSource(const QUrl &fileName) override;
+    bool setup(const QAudioFormat &in, const QAudioFormat &out);
 
-    QIODevice* sourceDevice() const override { return m_device; }
-    void setSourceDevice(QIODevice *device) override;
+    QByteArray resample(const QByteArrayView &in);
+    QByteArray resample(struct IMFSample *sample);
 
-    void start() override;
-    void stop() override;
+    QAudioFormat inputFormat() const { return m_inputFormat; }
+    QAudioFormat outputFormat() const { return m_outputFormat; }
 
-    QAudioFormat audioFormat() const override { return m_outputFormat; }
-    void setAudioFormat(const QAudioFormat &format) override;
+    quint64 outputBufferSize(quint64 inputBufferSize) const;
+    quint64 inputBufferSize(quint64 outputBufferSize) const;
 
-    QAudioBuffer read() override;
-    bool bufferAvailable() const override { return m_audioBuffer.sampleCount() > 0; }
-
-    qint64 position() const override { return m_position; }
-    qint64 duration() const override { return m_duration; }
-
-private Q_SLOTS:
-    void handleMediaSourceReady();
-    void handleMediaSourceError(long hr);
-    void handleNewSample(QWindowsIUPointer<IMFSample>);
-    void handleSourceFinished();
+    quint64 totalInputBytes() const { return m_totalInputBytes; }
+    quint64 totalOutputBytes() const { return m_totalOutputBytes; }
 
 private:
-    void startReadingSource(IMFMediaSource *source);
+    HRESULT processInput(const QByteArrayView &in);
+    HRESULT processOutput(QByteArray &out);
 
-    QWindowsIUPointer<MFDecoderSourceReader>  m_decoderSourceReader;
-    SourceResolver         *m_sourceResolver;
-    QWindowsResampler       m_resampler;
-    QUrl                    m_source;
-    QIODevice              *m_device = nullptr;
-    QAudioFormat            m_outputFormat;
-    QAudioBuffer            m_audioBuffer;
-    qint64                  m_duration = -1;
-    qint64                  m_position = -1;
-    bool                    m_loadingSource = false;
-    bool                    m_deferredStart = false;
+    QWindowsIUPointer<struct IMFTransform> m_resampler;
+
+    bool m_resamplerNeedsSampleBuffer = false;
+    quint64 m_totalInputBytes = 0;
+    quint64 m_totalOutputBytes = 0;
+    QAudioFormat m_inputFormat;
+    QAudioFormat m_outputFormat;
+
+    DWORD m_inputStreamID = 0;
 };
 
-#endif//MFAUDIODECODERCONTROL_H
+
+#endif // QT_QWINDOWSRESAMPLER_H
