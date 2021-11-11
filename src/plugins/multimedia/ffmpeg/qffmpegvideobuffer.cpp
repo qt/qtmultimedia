@@ -142,6 +142,8 @@ QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat
         return QVideoFrameFormat::Format_YUV422P;
     case AV_PIX_FMT_YUV420P:
         return QVideoFrameFormat::Format_YUV420P;
+    case AV_PIX_FMT_YUV420P10:
+        return QVideoFrameFormat::Format_YUV420P10;
     case AV_PIX_FMT_UYVY422:
         return QVideoFrameFormat::Format_UYVY;
     case AV_PIX_FMT_YUYV422:
@@ -210,6 +212,8 @@ AVPixelFormat QFFmpegVideoBuffer::toAVPixelFormat(QVideoFrameFormat::PixelFormat
         return AV_PIX_FMT_YUV422P;
     case QVideoFrameFormat::Format_YUV420P:
         return AV_PIX_FMT_YUV420P;
+    case QVideoFrameFormat::Format_YUV420P10:
+        return AV_PIX_FMT_YUV420P10;
     case QVideoFrameFormat::Format_UYVY:
         return AV_PIX_FMT_UYVY422;
     case QVideoFrameFormat::Format_YUYV:

@@ -98,9 +98,11 @@ public:
         Format_SamplerExternalOES,
         Format_Jpeg,
         Format_SamplerRect,
+
+        Format_YUV420P10
     };
 #ifndef Q_QDOC
-    static constexpr int NPixelFormats = Format_SamplerRect + 1;
+    static constexpr int NPixelFormats = Format_YUV420P10 + 1;
 #endif
 
     enum Direction

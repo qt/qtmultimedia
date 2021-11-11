@@ -469,6 +469,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
             // Single plane or opaque format.
             break;
         case QVideoFrameFormat::Format_YUV420P:
+        case QVideoFrameFormat::Format_YUV420P10:
         case QVideoFrameFormat::Format_YUV422P:
         case QVideoFrameFormat::Format_YV12: {
             // The UV stride is usually half the Y stride and is 32-bit aligned.

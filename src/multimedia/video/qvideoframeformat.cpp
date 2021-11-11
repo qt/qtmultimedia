@@ -244,6 +244,9 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     The frame is stored in rectangle texture format (GL_TEXTURE_RECTANGLE). This is only being used on
     macOS with an OpenGL based Rendering Hardware interface. The underlying pixel format stored in the
     texture is Format_BRGA8888.
+
+    \value Format_YUV420P10
+    Similar to YUV420, but uses 16bits per component, 10 of those significant.
 */
 
 /*!
@@ -653,6 +656,7 @@ QImage::Format QVideoFrameFormat::imageFormatFromPixelFormat(QVideoFrameFormat::
     case QVideoFrameFormat::Format_AYUV:
     case QVideoFrameFormat::Format_AYUV_Premultiplied:
     case QVideoFrameFormat::Format_YUV420P:
+    case QVideoFrameFormat::Format_YUV420P10:
     case QVideoFrameFormat::Format_YUV422P:
     case QVideoFrameFormat::Format_YV12:
     case QVideoFrameFormat::Format_UYVY:
@@ -708,6 +712,8 @@ QString QVideoFrameFormat::pixelFormatToString(QVideoFrameFormat::PixelFormat pi
         return QStringLiteral("AYUV Premultiplied");
     case QVideoFrameFormat::Format_YUV420P:
         return QStringLiteral("YUV420P");
+    case QVideoFrameFormat::Format_YUV420P10:
+        return QStringLiteral("YUV420P10");
     case QVideoFrameFormat::Format_YUV422P:
         return QStringLiteral("YUV422P");
     case QVideoFrameFormat::Format_YV12:

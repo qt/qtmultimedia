@@ -246,7 +246,13 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
         [](int, int) { return 0; },
         { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
-    }
+    },
+    // Format_YUV420P10
+    { 3, 1,
+        [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
+        { QRhiTexture::R16, QRhiTexture::R16, QRhiTexture::R16 },
+        { { 1, 1 }, { 2, 2 }, { 2, 2 } }
+    },
 };
 
 const TextureDescription *textureDescription(QVideoFrameFormat::PixelFormat format)
@@ -296,6 +302,8 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
     case QVideoFrameFormat::Format_YUV422P:
     case QVideoFrameFormat::Format_IMC3:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv_triplanar.frag.qsb");
+    case QVideoFrameFormat::Format_YUV420P10:
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv_triplanar_p10.frag.qsb");
     case QVideoFrameFormat::Format_YV12:
     case QVideoFrameFormat::Format_IMC1:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/yvu_triplanar.frag.qsb");
@@ -429,6 +437,7 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     case QVideoFrameFormat::Format_AYUV:
     case QVideoFrameFormat::Format_AYUV_Premultiplied:
     case QVideoFrameFormat::Format_YUV420P:
+    case QVideoFrameFormat::Format_YUV420P10:
     case QVideoFrameFormat::Format_YUV422P:
     case QVideoFrameFormat::Format_YV12:
     case QVideoFrameFormat::Format_UYVY:
