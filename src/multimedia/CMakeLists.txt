@@ -178,6 +178,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         dxva2
         evr
         gdi32
+        ksuser
         mf
         mfcore
         mfplat

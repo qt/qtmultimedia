@@ -39,43 +39,6 @@
 
 #include "qwindowsaudioutils_p.h"
 
-#ifndef SPEAKER_FRONT_LEFT
-    #define SPEAKER_FRONT_LEFT            0x00000001
-    #define SPEAKER_FRONT_RIGHT           0x00000002
-    #define SPEAKER_FRONT_CENTER          0x00000004
-    #define SPEAKER_LOW_FREQUENCY         0x00000008
-    #define SPEAKER_BACK_LEFT             0x00000010
-    #define SPEAKER_BACK_RIGHT            0x00000020
-    #define SPEAKER_FRONT_LEFT_OF_CENTER  0x00000040
-    #define SPEAKER_FRONT_RIGHT_OF_CENTER 0x00000080
-    #define SPEAKER_BACK_CENTER           0x00000100
-    #define SPEAKER_SIDE_LEFT             0x00000200
-    #define SPEAKER_SIDE_RIGHT            0x00000400
-    #define SPEAKER_TOP_CENTER            0x00000800
-    #define SPEAKER_TOP_FRONT_LEFT        0x00001000
-    #define SPEAKER_TOP_FRONT_CENTER      0x00002000
-    #define SPEAKER_TOP_FRONT_RIGHT       0x00004000
-    #define SPEAKER_TOP_BACK_LEFT         0x00008000
-    #define SPEAKER_TOP_BACK_CENTER       0x00010000
-    #define SPEAKER_TOP_BACK_RIGHT        0x00020000
-    #define SPEAKER_RESERVED              0x7FFC0000
-    #define SPEAKER_ALL                   0x80000000
-#endif
-
-#ifndef WAVE_FORMAT_EXTENSIBLE
-    #define WAVE_FORMAT_EXTENSIBLE 0xFFFE
-#endif
-
-#ifndef WAVE_FORMAT_IEEE_FLOAT
-    #define WAVE_FORMAT_IEEE_FLOAT 0x0003
-#endif
-
-static const GUID _KSDATAFORMAT_SUBTYPE_PCM = {
-     0x00000001, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}};
-
-static const GUID _KSDATAFORMAT_SUBTYPE_IEEE_FLOAT = {
-     0x00000003, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}};
-
 QT_BEGIN_NAMESPACE
 
 bool qt_convertFormat(const QAudioFormat &format, WAVEFORMATEXTENSIBLE *wfx)
@@ -96,10 +59,10 @@ bool qt_convertFormat(const QAudioFormat &format, WAVEFORMATEXTENSIBLE *wfx)
 
     if (format.sampleFormat() == QAudioFormat::Float) {
         wfx->Format.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-        wfx->SubFormat = _KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+        wfx->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
     } else {
         wfx->Format.wFormatTag = WAVE_FORMAT_PCM;
-        wfx->SubFormat = _KSDATAFORMAT_SUBTYPE_PCM;
+        wfx->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
     }
 
     if (format.channelCount() > 2) {
