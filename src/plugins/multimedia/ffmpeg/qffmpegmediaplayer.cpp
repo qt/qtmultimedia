@@ -720,6 +720,7 @@ void QFFmpegDecoder::openCodec(QPlatformMediaPlayer::TrackType type, int index)
         player->error(QMediaPlayer::FormatError, QMediaPlayer::tr("Can't decode track."));
         return;
     }
+
     codecContext[type] = avcodec_alloc_context3(decoder);
     if (!codecContext[type]) {
         player->error(QMediaPlayer::FormatError, QMediaPlayer::tr("Failed to allocate a FFmpeg codec context"));
@@ -733,6 +734,7 @@ void QFFmpegDecoder::openCodec(QPlatformMediaPlayer::TrackType type, int index)
     /* Init the decoders, with or without reference counting */
     AVDictionary *opts = nullptr;
     av_dict_set(&opts, "refcounted_frames", "1", 0);
+    av_dict_set(&opts, "threads", "auto", 0);
     ret = avcodec_open2(codecContext[type], decoder, &opts);
     if (ret < 0) {
         player->error(QMediaPlayer::FormatError, QMediaPlayer::tr("Can't decode track."));
