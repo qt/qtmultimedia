@@ -302,7 +302,7 @@ bool QWindowsAudioSource::open()
 
     period_size = 0;
 
-    if (!qt_convertFormat(settings, &wfx)) {
+    if (!QWindowsAudioUtils::formatToWaveFormatExtensible(settings, wfx)) {
         qWarning("QAudioSource: open error, invalid format.");
     } else if (buffer_size == 0) {
         buffer_size

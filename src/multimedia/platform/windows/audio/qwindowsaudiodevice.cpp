@@ -213,7 +213,7 @@ QWindowsAudioDeviceInfo::~QWindowsAudioDeviceInfo()
 bool QWindowsAudioDeviceInfo::testSettings(const QAudioFormat& format) const
 {
     WAVEFORMATEXTENSIBLE wfx;
-    if (qt_convertFormat(format, &wfx)) {
+    if (QWindowsAudioUtils::formatToWaveFormatExtensible(format, wfx)) {
         // query only, do not open device
         if (mode == QAudioDevice::Output) {
             return (waveOutOpen(NULL, UINT_PTR(devId), &wfx.Format, 0, 0,

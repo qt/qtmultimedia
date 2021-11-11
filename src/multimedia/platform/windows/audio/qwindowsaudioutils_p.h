@@ -53,12 +53,21 @@
 
 #include <qaudioformat.h>
 #include <QtCore/qt_windows.h>
+#include <private/qwindowsiupointer_p.h>
 #include <mmsystem.h>
 #include <mmreg.h>
 
 QT_BEGIN_NAMESPACE
 
-bool qt_convertFormat(const QAudioFormat &format, WAVEFORMATEXTENSIBLE *wfx);
+struct IMFMediaType;
+
+namespace QWindowsAudioUtils
+{
+    bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
+    QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
+    QWindowsIUPointer<IMFMediaType> formatToMediaType(const QAudioFormat &format);
+
+}
 
 QT_END_NAMESPACE
 
