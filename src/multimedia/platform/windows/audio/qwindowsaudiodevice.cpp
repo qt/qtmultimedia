@@ -52,15 +52,18 @@
 #include <QtCore/qt_windows.h>
 #include <QtCore/QDataStream>
 #include <QtCore/QIODevice>
+#include <utility>
 #include <mmsystem.h>
+#include <mmdeviceapi.h>
 #include "qwindowsaudiodevice_p.h"
 #include "qwindowsaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudioDevice::Mode mode)
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPointer<IMMDevice> immdev, int waveID, const QString &description, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(dev, mode),
-      devId(waveID)
+      devId(waveID),
+      immdev(std::move(immdev))
 {
     this->description = description;
     preferredFormat.setSampleRate(44100);
