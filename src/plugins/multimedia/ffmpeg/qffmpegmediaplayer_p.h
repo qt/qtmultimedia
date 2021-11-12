@@ -113,6 +113,7 @@ private:
     };
 
     QList<StreamInfo> m_streamMap[QPlatformMediaPlayer::NTrackTypes];
+    int m_requestedStreams[3] = { -1, -1, -1 };
 
     QUrl m_url;
     QIODevice *m_device = nullptr;
