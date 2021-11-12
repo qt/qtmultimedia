@@ -60,10 +60,19 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qtimer.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <private/qaudiosystem_p.h>
+#include <private/qwindowsiupointer_p.h>
+#include <private/qwindowsresampler_p.h>
+
+#include <queue>
+#include <utility>
+
+#include <audioclient.h>
+#include <mmdeviceapi.h>
 
 // For compat with 4.6
 #if !defined(QT_WIN_CALLBACK)
@@ -76,82 +85,58 @@
 
 QT_BEGIN_NAMESPACE
 
+class QWindowsResampler;
+
 class QWindowsAudioSink : public QPlatformAudioSink
 {
     Q_OBJECT
 public:
-    QWindowsAudioSink(int deviceId);
+    QWindowsAudioSink(QWindowsIUPointer<IMMDevice> device);
     ~QWindowsAudioSink();
-
-    qint64 write( const char *data, qint64 len );
 
     void setFormat(const QAudioFormat& fmt) override;
     QAudioFormat format() const override;
     QIODevice* start() override;
     void start(QIODevice* device) override;
-    void stop() override;
+    void stop() override { close(); }
     void reset() override;
     void suspend() override;
     void resume() override;
     qsizetype bytesFree() const override;
     void setBufferSize(qsizetype value) override;
-    qsizetype bufferSize() const override;
+    qsizetype bufferSize() const override { return m_bufferSize; }
     qint64 processedUSecs() const override;
-    QAudio::Error error() const override;
-    QAudio::State state() const override;
+    QAudio::Error error() const override { return errorState; }
+    QAudio::State state() const override { return deviceState; }
     void setVolume(qreal) override;
-    qreal volume() const override;
-
-    QIODevice* audioSource;
-    QAudioFormat settings;
-    QAudio::Error errorState;
-    QAudio::State deviceState;
-
-private slots:
-    void feedback();
-    bool deviceReady();
+    qreal volume() const override { return m_volume; }
 
 private:
-    void pauseAndSleep();
-    int m_deviceId;
-    int bytesAvailable;
-    qint64 elapsedTimeOffset;
-    qint32 buffer_size;
-    qint32 period_size;
-    qint32 blocks_count;
-    qint64 totalTimeValue;
-    bool pullMode;
-    qreal volumeCache;
-    static void QT_WIN_CALLBACK waveOutProc( HWAVEOUT hWaveOut, UINT uMsg,
-            DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );
+    friend class OutputPrivate;
+    qint64 write(const char *data, qint64 len);
+    qint64 push(const char *data, qint64 len);
 
-    mutable QMutex mutex;
-
-    WAVEHDR* allocateBlocks(int size, int count);
-    void freeBlocks(WAVEHDR* blockArray);
     bool open();
     void close();
 
-    WAVEFORMATEXTENSIBLE wfx;
-    HWAVEOUT hWaveOut;
-    WAVEHDR* waveBlocks;
-    int waveFreeBlockCount = 0;
-    int waveCurrentBlock = 0;
-    char *audioBuffer = nullptr;
-};
+    void deviceStateChange(QAudio::State, QAudio::Error);
 
-class OutputPrivate : public QIODevice
-{
-    Q_OBJECT
-public:
-    OutputPrivate(QWindowsAudioSink* audio);
-    ~OutputPrivate();
+    void pullSource();
+    qint64 remainingPlayTimeUs();
 
-    qint64 readData( char* data, qint64 len) override;
-    qint64 writeData(const char* data, qint64 len) override;
+    QAudioFormat m_format;
+    QAudio::Error errorState = QAudio::NoError;
+    QAudio::State deviceState = QAudio::StoppedState;
 
-private:
-    QWindowsAudioSink *audioDevice;
+    qsizetype m_bufferSize = 0;
+    qreal m_volume = 1.0;
+    QTimer m_timer;
+    QScopedPointer<QIODevice> m_pushSource;
+    QIODevice *m_pullSource = nullptr;
+    QWindowsIUPointer<IMMDevice> m_device;
+    QWindowsIUPointer<IAudioClient> m_audioClient;
+    QWindowsIUPointer<IAudioRenderClient> m_renderClient;
+    QWindowsResampler m_resampler;
 };
 
 QT_END_NAMESPACE

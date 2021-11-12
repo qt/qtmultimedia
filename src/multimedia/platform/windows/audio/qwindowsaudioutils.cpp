@@ -37,7 +37,6 @@
 **
 ****************************************************************************/
 
-#include <mfapi.h>
 #include "qwindowsaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -69,6 +68,31 @@ bool QWindowsAudioUtils::formatToWaveFormatExtensible(const QAudioFormat &format
     }
 
     return true;
+}
+
+QAudioFormat QWindowsAudioUtils::waveFormatExToFormat(const WAVEFORMATEX &in)
+{
+    QAudioFormat out;
+    out.setSampleRate(in.nSamplesPerSec);
+    out.setChannelCount(in.nChannels);
+    if (in.wFormatTag == WAVE_FORMAT_PCM) {
+        if (in.wBitsPerSample == 8)
+            out.setSampleFormat(QAudioFormat::UInt8);
+        else if (in.wBitsPerSample == 16)
+            out.setSampleFormat(QAudioFormat::Int16);
+        else if (in.wBitsPerSample == 32)
+            out.setSampleFormat(QAudioFormat::Int32);
+    } else if (in.wFormatTag == WAVE_FORMAT_EXTENSIBLE) {
+        if (in.cbSize >= 22) {
+            auto wfe = reinterpret_cast<const WAVEFORMATEXTENSIBLE &>(in);
+            if (wfe.SubFormat == KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)
+                out.setSampleFormat(QAudioFormat::Float);
+        }
+    } else if (in.wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
+        out.setSampleFormat(QAudioFormat::Float);
+    }
+
+    return out;
 }
 
 QAudioFormat QWindowsAudioUtils::mediaTypeToFormat(IMFMediaType *mediaType)

@@ -372,7 +372,7 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
             auto description = QString::fromWCharArray(varName.pwszVal);
             auto strID = QString::fromWCharArray(id.data()).toUtf8();
 
-            auto dev = new QWindowsAudioDeviceInfo(strID, waveID, description, mode);
+            auto dev = new QWindowsAudioDeviceInfo(strID, device, waveID, description, mode);
             dev->isDefault = strID == defaultAudioDeviceID;
 
             devices.append(dev->create());
@@ -526,7 +526,7 @@ QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDevice
 QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
-    return new QWindowsAudioSink(devInfo->waveId());
+    return new QWindowsAudioSink(devInfo->immDev());
 }
 
 QT_END_NAMESPACE

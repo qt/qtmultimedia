@@ -54,6 +54,7 @@
 #include <qaudioformat.h>
 #include <QtCore/qt_windows.h>
 #include <private/qwindowsiupointer_p.h>
+#include <mfapi.h>
 #include <mmsystem.h>
 #include <mmreg.h>
 
@@ -64,6 +65,7 @@ struct IMFMediaType;
 namespace QWindowsAudioUtils
 {
     bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
+    QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in);
     QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
     QWindowsIUPointer<IMFMediaType> formatToMediaType(const QAudioFormat &format);
 

@@ -60,9 +60,12 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <private/qaudiosystem_p.h>
 #include <private/qaudiodevice_p.h>
+#include <private/qwindowsiupointer_p.h>
 
 
 QT_BEGIN_NAMESPACE
+
+struct IMMDevice;
 
 const unsigned int MAX_SAMPLE_RATES = 5;
 const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
@@ -70,7 +73,7 @@ const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
 class QWindowsAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
-    QWindowsAudioDeviceInfo(QByteArray dev, int waveID, const QString &description, QAudioDevice::Mode mode);
+    QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPointer<IMMDevice> immdev, int waveID, const QString &description, QAudioDevice::Mode mode);
     ~QWindowsAudioDeviceInfo();
 
     bool open();
@@ -79,8 +82,11 @@ public:
     bool testSettings(const QAudioFormat& format) const;
 
     int waveId() const { return devId; }
+    QWindowsIUPointer<IMMDevice> immDev() const { return immdev; }
+
 private:
     quint32 devId;
+    QWindowsIUPointer<IMMDevice> immdev;
 };
 
 
