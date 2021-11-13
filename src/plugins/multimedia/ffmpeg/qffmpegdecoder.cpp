@@ -114,6 +114,21 @@ void DemuxerThread::cleanup()
     Thread::cleanup();
 }
 
+bool DemuxerThread::shouldWait()
+{
+    if (data->seek_pos.loadRelaxed() >= 0)
+        return false;
+    if (data->pipelines[0].decoder->queuedPacketSize + data->pipelines[1].decoder->queuedPacketSize > MaxQueueSize)
+        return true;
+    for (int i = 0; i < QPlatformMediaPlayer::SubtitleStream; ++i) {
+        auto *stream = data->stream(QPlatformMediaPlayer::TrackType(i));
+        if (stream && timeStamp(data->pipelines[i].decoder->queuedDuration, stream->time_base) < 2000)
+            return false;
+    }
+    return true;
+
+}
+
 void DemuxerThread::loop()
 {
     int seek = data->seek_pos.loadRelaxed();
@@ -145,20 +160,6 @@ void DemuxerThread::loop()
         data->triggerStep();
     }
     queuePacket();
-
-    auto haveEnoughPackets = [&]() -> bool {
-        if (data->pipelines[0].decoder->queuedPacketSize + data->pipelines[1].decoder->queuedPacketSize > MaxQueueSize)
-            return true;
-        for (int i = 0; i < QPlatformMediaPlayer::SubtitleStream; ++i) {
-            auto *stream = data->stream(QPlatformMediaPlayer::TrackType(i));
-            if (stream && timeStamp(data->pipelines[i].decoder->queuedDuration, stream->time_base) < 2000)
-                return false;
-        }
-        return true;
-    };
-
-    while (haveEnoughPackets() && data->seek_pos.loadRelaxed() < 0)
-        msleep(10);
 }
 
 void DemuxerThread::doSeek(qint64 pos, qint64 offset)
@@ -298,6 +299,7 @@ AVPacket *DecoderThread::dequeue(qint64 *seek)
     queuedDuration -= p->duration;
     *seek = seekTo;
     seekTo = -1;
+    data->demuxer->wake();
     return p;
 }
 
@@ -308,13 +310,15 @@ void DecoderThread::init()
 
 bool DecoderThread::shouldWait()
 {
-    return queue.isEmpty();
+    if (queue.isEmpty())
+        return true;
+    if (data->pipelines[type].renderer->hasEnoughFrames())
+        return true;
+    return false;
 }
 
 void DecoderThread::loop()
 {
-    data->pipelines[type].renderer->waitForSpace();
-
     auto *codec = data->codecContext[type];
     Q_ASSERT(codec);
     AVFrame *frame = av_frame_alloc();
@@ -361,6 +365,7 @@ AVFrame *RendererThread::dequeue(qint64 *seek)
     QMutexLocker locker(&mutex);
     *seek = seekTo;
     // wake up the decoder so it delivers more frames
+    data->pipelines[type].decoder->wake();
     if (queue.isEmpty())
         return nullptr;
     seekTo = -1;

@@ -257,6 +257,7 @@ public:
 protected:
     virtual void init() {}
     virtual void cleanup() {}
+    // loop() should never block, all blocking has to happen in shouldWait()
     virtual void loop() = 0;
     virtual bool shouldWait() { return false; }
 
@@ -281,6 +282,7 @@ public:
 private:
     void init() override;
     void cleanup() override;
+    bool shouldWait() override;
     void loop() override;
 
     void doSeek(qint64 pos, qint64 offset);
@@ -337,13 +339,18 @@ class RendererThread : public Thread
     QQueue<AVFrame *> queue;
     int maxSize = 0;
     qint64 seekTo = -1;
-//    QPlatformMediaPlayer::TrackType type;
+    QPlatformMediaPlayer::TrackType type;
 public:
 
     void enqueue(AVFrame *f) {
         Q_ASSERT(f);
         QMutexLocker locker(&mutex);
         queue.enqueue(f);
+        condition.wakeAll();
+    }
+    bool hasEnoughFrames() {
+        QMutexLocker locker(&mutex);
+        return queue.size() >= maxSize;
     }
     void waitForSpace() {
         condition.wakeAll();
@@ -378,7 +385,7 @@ public:
     RendererThread(QFFmpegDecoder *decoder, QPlatformMediaPlayer::TrackType type)
         : Thread(decoder)
         , maxSize(type == QPlatformMediaPlayer::AudioStream ? 9 : 3)
-//        type(type)
+        , type(type)
     {
     }
 
