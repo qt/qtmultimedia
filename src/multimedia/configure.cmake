@@ -68,6 +68,12 @@ int main(int, char **)
 
 #### Features
 
+qt_feature("ffmpeg" PRIVATE
+    LABEL "FFmpeg"
+    ENABLE INPUT_ffmpeg STREQUAL 'yes'
+    DISABLE INPUT_ffmpeg STREQUAL 'no'
+    CONDITION FFmpeg_FOUND
+)
 qt_feature("alsa" PUBLIC PRIVATE
     LABEL "ALSA"
     AUTODETECT false
@@ -78,12 +84,10 @@ qt_feature("avfoundation" PUBLIC PRIVATE
     LABEL "AVFoundation"
     CONDITION AVFoundation_FOUND
 )
-qt_feature_definition("avfoundation" "QT_NO_AVFOUNDATION" NEGATE VALUE "1")
 qt_feature("evr" PUBLIC PRIVATE
     LABEL "evr.h"
     CONDITION WIN32 AND TEST_evr
 )
-qt_feature_definition("evr" "QT_NO_EVR" NEGATE VALUE "1")
 qt_feature("gstreamer_1_0" PRIVATE
     LABEL "GStreamer 1.0"
     CONDITION GStreamer_FOUND
@@ -104,10 +108,6 @@ qt_feature("gstreamer_photography" PRIVATE
 qt_feature("gstreamer_gl" PRIVATE
     LABEL "GStreamer OpenGL"
     CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND
-)
-qt_feature("ffmpeg" PRIVATE
-    LABEL "FFmpeg"
-    CONDITION FFmpeg_FOUND
 )
 
 qt_feature("gpu_vivante" PRIVATE
