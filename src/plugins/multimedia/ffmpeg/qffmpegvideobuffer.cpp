@@ -124,12 +124,12 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 
     qDebug() << "MAP:";
     MapData mapData;
-    mapData.nPlanes = QVideoTextureHelper::textureDescription(pixelFormat())->nplanes;
+    auto *desc = QVideoTextureHelper::textureDescription(pixelFormat());
+    mapData.nPlanes = desc->nplanes;
     for (int i = 0; i < mapData.nPlanes; ++i) {
         mapData.data[i] = swFrame->data[i];
         mapData.bytesPerLine[i] = swFrame->linesize[i];
-        auto *bufferRef = av_frame_get_plane_buffer(swFrame, i);
-        mapData.size[i] = bufferRef ? bufferRef->size : 0;
+        mapData.size[i] = mapData.bytesPerLine[i]*desc->heightForPlane(swFrame->height, i);
         qDebug() << "    " << i << mapData.data[i] << mapData.size[i];
     }
     return mapData;
