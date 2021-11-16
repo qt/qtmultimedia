@@ -92,7 +92,7 @@ macro(find_component _component _pkgconfig _library _header)
 
   # use pkg-config to get the directories and then use these values
   # in the FIND_PATH() and FIND_LIBRARY() calls
-  find_package(PkgConfig)
+  find_package(PkgConfig QUIET)
   if (PKG_CONFIG_FOUND)
     pkg_check_modules(PC_${_component} ${_pkgconfig})
   endif ()
@@ -102,21 +102,32 @@ macro(find_component _component _pkgconfig _library _header)
       ${PC_${_component}_INCLUDEDIR}
       ${PC_${_component}_INCLUDE_DIRS}
       ${PC_FFMPEG_INCLUDE_DIRS}
+    PATHS
+      ${FFMPEG_DIR}
     PATH_SUFFIXES
-      ffmpeg
+      ffmpeg include
   )
 
   find_library(${_component}_LIBRARY NAMES ${PC_${_component}_LIBRARIES} ${_library}
-      HINTS
+    HINTS
       ${PC_${_component}_LIBDIR}
       ${PC_${_component}_LIBRARY_DIRS}
       ${PC_FFMPEG_LIBRARY_DIRS}
+    PATHS
+      ${FFMPEG_DIR}
+    PATH_SUFFIXES
+      lib
   )
 
-  set(${_component}_DEFINITIONS  ${PC_${_component}_CFLAGS_OTHER} CACHE STRING "The ${_component} CFLAGS.")
-  set(${_component}_VERSION      ${PC_${_component}_VERSION}      CACHE STRING "The ${_component} version number.")
-  set(${_component}_LIBRARY_DIRS ${PC_${_component}_LIBRARY_DIRS} CACHE STRING "The ${_component} library dirs.")
-  set(${_component}_LIBRARIES    ${PC_${_component}_LIBRARIES}    CACHE STRING "The ${_component} libraries.")
+  get_filename_component(${_component}_LIBRARY_DIR_FROM_FIND ${${_component}_LIBRARY} DIRECTORY)
+  get_filename_component(${_component}_LIBRARY_FROM_FIND ${${_component}_LIBRARY} NAME)
+
+  set(${_component}_DEFINITIONS  ${PC_${_component}_CFLAGS_OTHER}       CACHE STRING "The ${_component} CFLAGS.")
+  set(${_component}_VERSION      ${PC_${_component}_VERSION}            CACHE STRING "The ${_component} version number.")
+  set(${_component}_LIBRARY_DIRS ${${_component}_LIBRARY_DIR_FROM_FIND} CACHE STRING "The ${_component} library dirs.")
+  set(${_component}_LIBRARIES    ${${_component}_LIBRARY_FROM_FIND}     CACHE STRING "The ${_component} libraries.")
+
+  message("Libs" ${${_component}_LIBRARIES} ${${_component}_LIBRARY_DIRS})
 
 #  message(STATUS "L0: ${${_component}_LIBRARIES}")
 #  message(STATUS "L1: ${PC_${_component}_LIBRARIES}")
@@ -199,7 +210,7 @@ if (NOT TARGET FFmpeg::FFmpeg)
   add_library(FFmpeg INTERFACE)
   set_target_properties(FFmpeg PROPERTIES
       INTERFACE_COMPILE_OPTIONS "${FFMPEG_DEFINITIONS}"
-      INTERFACE_INCLUDE_DIRECTORIES ${FFMPEG_INCLUDE_DIRS}
+      INTERFACE_INCLUDE_DIRECTORIES "${FFMPEG_INCLUDE_DIRS}"
       INTERFACE_LINK_LIBRARIES "${FFMPEG_LIBRARIES}"
       INTERFACE_LINK_DIRECTORIES "${FFMPEG_LIBRARY_DIRS}")
   add_library(FFmpeg::FFmpeg ALIAS FFmpeg)
