@@ -67,11 +67,11 @@ QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrame *frame, const QFFmpeg::HWAccel &a
 
 QFFmpegVideoBuffer::~QFFmpegVideoBuffer()
 {
+    delete textures;
     if (swFrame)
         av_frame_free(&swFrame);
     if (hwFrame)
         av_frame_free(&hwFrame);
-    hwAccel.freeTextures(textures);
 }
 
 void QFFmpegVideoBuffer::convertSWFrame()
@@ -79,7 +79,7 @@ void QFFmpegVideoBuffer::convertSWFrame()
     Q_ASSERT(swFrame);
     bool needsConversion = false;
     auto pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format), &needsConversion);
-//    qDebug() << "SW frame format:" << pixelFormat << swFrame->format << needsConversion;
+    qDebug() << "SW frame format:" << pixelFormat << swFrame->format << needsConversion;
 
     if (pixelFormat != m_pixelFormat) {
         AVPixelFormat newFormat = toAVPixelFormat(m_pixelFormat);
@@ -122,6 +122,7 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 
     m_mode = mode;
 
+    qDebug() << "MAP:";
     MapData mapData;
     mapData.nPlanes = QVideoTextureHelper::textureDescription(pixelFormat())->nplanes;
     for (int i = 0; i < mapData.nPlanes; ++i) {
@@ -129,6 +130,7 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
         mapData.bytesPerLine[i] = swFrame->linesize[i];
         auto *bufferRef = av_frame_get_plane_buffer(swFrame, i);
         mapData.size[i] = bufferRef ? bufferRef->size : 0;
+        qDebug() << "    " << i << mapData.data[i] << mapData.size[i];
     }
     return mapData;
 }
@@ -140,17 +142,17 @@ void QFFmpegVideoBuffer::unmap()
 
 void QFFmpegVideoBuffer::mapTextures()
 {
-    if (textures[0] || !hwFrame)
+    if (textures || !hwFrame)
         return;
 //    qDebug() << ">>>>> mapTextures";
-    if (!hwAccel.getTextures(hwFrame, textures))
+    textures = hwAccel.getTextures(hwFrame);
+    if (!textures)
         qWarning() << "    failed to get textures for frame" << hwAccel.isNull();
 }
 
 quint64 QFFmpegVideoBuffer::textureHandle(int plane) const
 {
-//    qDebug() << "retrieving texture for plane" << plane << textures[plane];
-    return textures[plane];
+    return textures ? textures->texture(plane) : 0;
 }
 
 QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::pixelFormat() const

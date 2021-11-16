@@ -41,6 +41,9 @@
 #if QT_CONFIG(vaapi)
 #include "qffmpeghwaccel_vaapi_p.h"
 #endif
+#ifdef Q_OS_DARWIN
+#include "qffmpeghwaccel_videotoolbox_p.h"
+#endif
 #include "qffmpeg_p.h"
 #include "qffmpegvideobuffer_p.h"
 
@@ -200,6 +203,11 @@ HWAccel::HWAccel(AVCodec *codec)
 #if QT_CONFIG(vaapi)
     case AV_HWDEVICE_TYPE_VAAPI:
         d = new VAAPIAccel(hwContext);
+        break;
+#endif
+#ifdef Q_OS_DARWIN
+    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
+        d = new VideoToolBoxAccel(hwContext);
         break;
 #endif
     default:

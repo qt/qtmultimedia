@@ -90,7 +90,7 @@ private:
     AVFrame *swFrame = nullptr;
     QFFmpeg::HWAccel hwAccel;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    qint64 textures[4] = {};
+    QFFmpeg::TextureSet *textures = nullptr;
 };
 
 QT_END_NAMESPACE

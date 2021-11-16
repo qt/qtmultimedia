@@ -72,8 +72,7 @@ public:
     ~VAAPIAccel();
 
     void setRhi(QRhi *rhi) override;
-    bool getTextures(AVFrame *frame, qint64 *textures) override;
-    void freeTextures(qint64 *textures) override;
+    TextureSet *getTextures(AVFrame *frame) override;
     AVPixelFormat format(AVFrame *frame) const override;
 
     VADisplay vaDisplay = nullptr;

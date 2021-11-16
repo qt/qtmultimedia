@@ -180,6 +180,21 @@ static const quint32 *fourccFromPixelFormat(const QVideoFrameFormat::PixelFormat
     }
 }
 
+class VAAPITextureSet : public TextureSet
+{
+public:
+    ~VAAPITextureSet();
+    qint64 texture(int plane) override {
+        return textures[plane];
+    }
+
+    QRhi *rhi = nullptr;
+    QOpenGLContext *glContext = nullptr;
+    int nPlanes = 0;
+    GLuint textures[4] = {};
+};
+
+
 VAAPIAccel::VAAPIAccel(AVBufferRef *hwContext)
     : HWAccelBackend(hwContext)
 {
@@ -230,14 +245,13 @@ void VAAPIAccel::setRhi(QRhi *rhi)
 }
 
 //#define VA_EXPORT_USE_LAYERS
-bool VAAPIAccel::getTextures(AVFrame *frame, qint64 *textures)
+TextureSet *VAAPIAccel::getTextures(AVFrame *frame)
 {
 //        qDebug() << "VAAPIAccel::getTextures";
     if (frame->format != AV_PIX_FMT_VAAPI || !eglDisplay) {
         qDebug() << "format/egl error" << frame->format << eglDisplay;
-        return false;
+        return nullptr;
     }
-    Q_UNUSED(textures);
 
     VASurfaceID vaSurface = (uintptr_t)frame->data[3];
 
@@ -253,7 +267,7 @@ bool VAAPIAccel::getTextures(AVFrame *frame, qint64 *textures)
                               &prime) != VA_STATUS_SUCCESS)
     {
         qWarning() << "vaExportSurfaceHandle failed";
-        return false;
+        return nullptr;
     }
     // ### Check that prime.fourcc is what we expect
     vaSyncSurface(vaDisplay, vaSurface);
@@ -269,7 +283,7 @@ bool VAAPIAccel::getTextures(AVFrame *frame, qint64 *textures)
     auto *drm_formats = fourccFromPixelFormat(qtFormat);
     if (!drm_formats || needsConversion) {
         qWarning() << "can't use DMA transfer for pixel format" << fmt << qtFormat;
-        return false;
+        return nullptr;
     }
 
     auto *desc = QVideoTextureHelper::textureDescription(qtFormat);
@@ -312,7 +326,7 @@ bool VAAPIAccel::getTextures(AVFrame *frame, qint64 *textures)
         images[i] = eglCreateImage(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, img_attr);
         if (!images[i]) {
             qWarning() << "eglCreateImage failed for plane" << i << Qt::hex << eglGetError();
-            return false;
+            return nullptr;
         }
         functions.glActiveTexture(GL_TEXTURE0 + i);
         functions.glBindTexture(GL_TEXTURE_2D, glTextures[i]);
@@ -333,30 +347,25 @@ bool VAAPIAccel::getTextures(AVFrame *frame, qint64 *textures)
         eglDestroyImage(eglDisplay, images[i]);
     }
 
+    VAAPITextureSet *textureSet = new VAAPITextureSet;
+    textureSet->nPlanes = nPlanes;
+    textureSet->rhi = rhi;
+    textureSet->glContext = glContext;
 
     for (int i = 0; i < 4; ++i)
-        textures[i] = glTextures[i];
+        textureSet->textures[i] = glTextures[i];
 //        qDebug() << "VAAPIAccel: got textures" << textures[0] << textures[1] << textures[2] << textures[3];
 
-    return true;
+    return textureSet;
 }
 
-void VAAPIAccel::freeTextures(qint64 *textures)
+VAAPITextureSet::~VAAPITextureSet()
 {
     if (rhi) {
         rhi->makeThreadLocalNativeContextCurrent();
-        int nPlanes = 0;
-        GLuint glTextures[4] = {};
-        for (; nPlanes < 4; ++nPlanes) {
-            glTextures[nPlanes] = textures[nPlanes];
-            if (textures[nPlanes] == 0)
-                break;
-        }
-
         QOpenGLFunctions functions(glContext);
-        functions.glDeleteTextures(nPlanes, glTextures);
+        functions.glDeleteTextures(nPlanes, textures);
     }
-
 }
 
 AVPixelFormat VAAPIAccel::format(AVFrame *frame) const

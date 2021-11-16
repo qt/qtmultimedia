@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QFFMPEGHWACCEL_P_H
-#define QFFMPEGHWACCEL_P_H
+#ifndef QFFMPEGHWACCEL_VIDEOTOOLBOX_P_H
+#define QFFMPEGHWACCEL_VIDEOTOOLBOX_P_H
 
 //
 //  W A R N I N G
@@ -50,9 +50,16 @@
 // We mean it.
 //
 
-#include "qffmpeg_p.h"
-#include "qvideoframeformat.h"
-#include <qshareddata.h>
+#include "qffmpeghwaccel_p.h"
+
+#ifdef Q_OS_DARWIN
+
+#include <CoreVideo/CVBase.h>
+#include <CoreVideo/CVPixelBuffer.h>
+#include <CoreVideo/CVImageBuffer.h>
+
+#include <CoreVideo/CVMetalTexture.h>
+#include <CoreVideo/CVOpenGLTextureCache.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -60,64 +67,30 @@ class QRhi;
 
 namespace QFFmpeg {
 
-// used for the get_format callback for the decoder
-enum AVPixelFormat getFormat(struct AVCodecContext *s, const enum AVPixelFormat * fmt);
-
-class HWAccel;
-
-class TextureSet {
-public:
-    // ### Should add QVideoFrameFormat::PixelFormat here
-    virtual ~TextureSet() {}
-    virtual qint64 texture(int plane) = 0;
-};
-
-class HWAccelBackend
-{
-    friend class HWAccel;
-protected:
-    HWAccelBackend(AVBufferRef *hwContext);
-public:
-    virtual ~HWAccelBackend();
-    virtual void setRhi(QRhi *) {}
-    virtual TextureSet *getTextures(AVFrame */*frame*/) { return nullptr; }
-    virtual AVPixelFormat format(AVFrame *frame) const;
-
-    QAtomicInt ref = 0;
-    AVBufferRef *hwContext = nullptr;
-    QRhi *rhi = nullptr;
-};
-
-class HWAccel
+class VideoToolBoxAccel : public HWAccelBackend
 {
 public:
-    HWAccel() = default;
-    explicit HWAccel(AVCodec *codec);
-    ~HWAccel() = default;
+    VideoToolBoxAccel(AVBufferRef *hwContext);
+    ~VideoToolBoxAccel();
 
-    QRhi *rhi() const { return d ? d->rhi : nullptr; }
-    void setRhi(QRhi *rhi) {
-        if (d)
-            d->setRhi(rhi);
-    }
-    TextureSet *getTextures(AVFrame *frame) {
-        if (!d)
-            return nullptr;
-        return d->getTextures(frame);
-    }
-    AVPixelFormat format(AVFrame *frame) const
-    {
-        return d ? d->format(frame) : AVPixelFormat(frame->format);
-    }
-    bool canProvideTextures() const { return d->rhi != nullptr; }
-    AVBufferRef *hwContext() const { return d ? d->hwContext : nullptr; }
-    bool isNull() const { return !d; }
+    void freeTextureCaches();
 
-private:
-    QExplicitlySharedDataPointer<HWAccelBackend> d;
+    void setRhi(QRhi *rhi) override;
+    TextureSet *getTextures(AVFrame *frame) override;
+    AVPixelFormat format(AVFrame *frame) const override;
+
+    // can not forward declare that type from C++ :/
+    void *cvMetalTextureCache = nullptr;
+#if defined(Q_OS_MACOS)
+    CVOpenGLTextureCacheRef cvOpenGLTextureCache = nullptr;
+#elif defined(Q_OS_IOS)
+    CVOpenGLESTextureCacheRef cvOpenGLESTextureCache = nullptr;
+#endif
 };
 }
 
 QT_END_NAMESPACE
+
+#endif
 
 #endif
