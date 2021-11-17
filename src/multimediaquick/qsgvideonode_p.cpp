@@ -185,7 +185,7 @@ public:
 
     void setCurrentFrame(const QVideoFrame &frame) {
         QMutexLocker lock(&m_frameMutex);
-        m_frame = frame;
+        m_currentFrame = frame;
         m_texturesDirty = true;
     }
 
@@ -197,8 +197,10 @@ public:
 
     QMutex m_frameMutex;
     bool m_texturesDirty = false;
-    QVideoFrame m_frame;
+    QVideoFrame m_currentFrame;
 
+    enum { NVideoFrameSlots = 4 };
+    QVideoFrame m_videoFrameSlots[NVideoFrameSlots];
     QScopedPointer<QSGVideoTexture> m_textures[3];
 };
 
@@ -207,6 +209,10 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
     QMutexLocker locker(&m_frameMutex);
     if (!m_texturesDirty)
         return;
+
+    // keep the video frames alive until we know that they are not needed anymore
+    Q_ASSERT(NVideoFrameSlots >= rhi->resourceLimit(QRhi::FramesInFlight));
+    m_videoFrameSlots[rhi->currentFrameSlot()] = m_currentFrame;
 
     // update and upload all textures
     QRhiTexture *textures[3] = {};
@@ -217,7 +223,7 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
             textures[i] = nullptr;
     }
 
-    QVideoTextureHelper::updateRhiTextures(m_frame, rhi, resourceUpdates, textures);
+    QVideoTextureHelper::updateRhiTextures(m_currentFrame, rhi, resourceUpdates, textures);
 
     for (int i = 0; i < 3; ++i) {
         if (m_textures[i].data())
@@ -246,7 +252,7 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
     // updated by this function and we need that already in updateUniformData.
     m->updateTextures(state.rhi(), state.resourceUpdateBatch());
 
-    m_format.updateUniformData(state.uniformData(), m->m_frame,
+    m_format.updateUniformData(state.uniformData(), m->m_currentFrame,
                                state.combinedMatrix(), state.opacity());
 
     return true;

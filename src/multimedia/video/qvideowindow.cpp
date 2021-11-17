@@ -184,6 +184,8 @@ void QVideoWindowPrivate::initRhi()
 
     m_subtitleUniformBuf.reset(m_rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 64 + 64 + 4 + 4));
     m_subtitleUniformBuf->create();
+
+    Q_ASSERT(NVideoFrameSlots >= m_rhi->resourceLimit(QRhi::FramesInFlight));
 }
 
 void QVideoWindowPrivate::setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, QVideoFrameFormat::PixelFormat fmt)
@@ -368,6 +370,10 @@ void QVideoWindowPrivate::render()
         return;
 
     QRhi::FrameOpResult r = m_rhi->beginFrame(m_swapChain.get());
+
+    // keep the video frames alive until we know that they are not needed anymore
+    m_videoFrameSlots[m_rhi->currentFrameSlot()] = m_currentFrame;
+
     if (r == QRhi::FrameOpSwapChainOutOfDate) {
         resizeSwapChain();
         if (!m_hasSwapChain)
