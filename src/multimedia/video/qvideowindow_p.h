@@ -131,6 +131,9 @@ public:
     QVideoFrame m_currentFrame;
     QVideoTextureHelper::SubtitleLayout m_subtitleLayout;
 
+    enum { NVideoFrameSlots = 4 };
+    QVideoFrame m_videoFrameSlots[NVideoFrameSlots];
+
     bool initialized = false;
     bool isExposed = false;
     bool m_useRhi = true;
