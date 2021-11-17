@@ -50,43 +50,41 @@
 
 import QtQuick
 import QtMultimedia
+import QtQuick.Layouts
 
 FocusScope {
+    id : captureControls
     property CaptureSession captureSession
     property bool previewAvailable : false
 
-    property int buttonsPanelWidth: buttonPaneShadow.width
+    property int buttonsmargin: 8
+    property int buttonsPanelWidth
+    property int buttonsPanelPortraitHeight
+    property int buttonsWidth
 
     signal previewSelected
     signal videoModeSelected
-    id : captureControls
 
     Rectangle {
         id: buttonPaneShadow
-        width: bottomColumn.width + 16
-        height: parent.height
-        anchors.top: parent.top
-        anchors.right: parent.right
         color: Qt.rgba(0.08, 0.08, 0.08, 1)
 
-        Column {
-            anchors {
-                right: parent.right
-                top: parent.top
-                margins: 8
-            }
-
+        GridLayout {
             id: buttonsColumn
-            spacing: 8
-
+            anchors.margins: buttonsmargin
+            flow: captureControls.state === "MobilePortrait"
+                  ? GridLayout.LeftToRight : GridLayout.TopToBottom
             CameraButton {
                 text: "Capture"
+                implicitWidth: buttonsWidth
                 visible: captureSession.imageCapture.readyForCapture
                 onClicked: captureSession.imageCapture.captureToFile("")
             }
 
             CameraPropertyButton {
                 id : wbModesButton
+                implicitWidth: buttonsWidth
+                state: captureControls.state
                 value: Camera.WhiteBalanceAuto
                 model: ListModel {
                     ListElement {
@@ -118,46 +116,48 @@ FocusScope {
                 onValueChanged: captureControls.captureSession.camera.whiteBalanceMode = wbModesButton.value
             }
 
-            CameraButton {
-                text: "View"
-                onClicked: captureControls.previewSelected()
-                visible: captureControls.previewAvailable
+            Item {
+                implicitWidth: buttonsWidth
+                height: 70
+                CameraButton {
+                    text: "View"
+                    anchors.fill: parent
+                    onClicked:state = captureControls.previewSelected()
+                    visible: captureControls.previewAvailable
+                }
             }
         }
 
-        Column {
-            anchors {
-                bottom: parent.bottom
-                right: parent.right
-                margins: 8
-            }
-
+        GridLayout {
             id: bottomColumn
-            spacing: 8
+            anchors.margins: buttonsmargin
+            flow: captureControls.state === "MobilePortrait"
+                  ? GridLayout.LeftToRight : GridLayout.TopToBottom
 
             CameraListButton {
+                implicitWidth: buttonsWidth
+                state: captureControls.state
                 onValueChanged: captureSession.camera.cameraDevice = value
             }
 
             CameraButton {
                 text: "Switch to Video"
+                implicitWidth: buttonsWidth
                 onClicked: captureControls.videoModeSelected()
             }
 
             CameraButton {
                 id: quitButton
+                implicitWidth: buttonsWidth
                 text: "Quit"
                 onClicked: Qt.quit()
             }
         }
-
-
     }
-
 
     ZoomControl {
         x : 0
-        y : 0
+        y : captureControls.state === "MobilePortrait" ? -buttonPaneShadow.height : 0
         width : 100
         height: parent.height
 
@@ -165,4 +165,99 @@ FocusScope {
         maximumZoom: camera.maximumZoomFactor
         onZoomTo: camera.setDigitalZoom(value)
     }
+
+    states: [
+        State {
+            name: "MobilePortrait"
+            PropertyChanges {
+                target: buttonPaneShadow
+                width: parent.width
+                height: captureControls.buttonsPanelPortraitHeight
+            }
+            PropertyChanges {
+                target: buttonsColumn
+                height: captureControls.buttonsPanelPortraitHeight / 2 - buttonsmargin
+            }
+            PropertyChanges {
+                target: bottomColumn
+                height: captureControls.buttonsPanelPortraitHeight / 2 - buttonsmargin
+            }
+            AnchorChanges {
+                target: buttonPaneShadow
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+            }
+            AnchorChanges {
+                target: buttonsColumn
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+            }
+            AnchorChanges {
+                target: bottomColumn
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+                anchors.right: parent.right
+            }
+        },
+        State {
+            name: "MobileLandscape"
+            PropertyChanges {
+                target: buttonPaneShadow
+                width: buttonsPanelWidth
+                height: parent.height
+            }
+            PropertyChanges {
+                target: buttonsColumn
+                height: parent.height
+                width: buttonPaneShadow.width / 2
+            }
+            PropertyChanges {
+                target: bottomColumn
+                height: parent.height
+                width: buttonPaneShadow.width / 2
+            }
+            AnchorChanges {
+                target: buttonPaneShadow
+                anchors.top: parent.top
+                anchors.right: parent.right
+            }
+            AnchorChanges {
+                target: buttonsColumn
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.left: parent.left
+            }
+            AnchorChanges {
+                target: bottomColumn
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+            }
+        },
+        State {
+            name: "Other"
+            PropertyChanges {
+                target: buttonPaneShadow
+                width: bottomColumn.width + 16
+                height: parent.height
+            }
+            AnchorChanges {
+                target: buttonPaneShadow
+                anchors.top: parent.top
+                anchors.right: parent.right
+            }
+            AnchorChanges {
+                target: buttonsColumn
+                anchors.top: parent.top
+                anchors.right: parent.right
+            }
+            AnchorChanges {
+                target: bottomColumn
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+            }
+        }
+    ]
 }

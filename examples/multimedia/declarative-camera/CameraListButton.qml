@@ -75,9 +75,7 @@ Item {
 
     CameraListPopup {
         id: popup
-        anchors.right: parent.left
         anchors.rightMargin: 16
-        anchors.top: parent.top
         visible: opacity > 0
         model: mediaDevices.videoInputs
 
@@ -87,4 +85,30 @@ Item {
 
         onSelected: popup.toggle()
     }
+
+    states: [
+        State {
+            name: "MobilePortrait"
+            AnchorChanges {
+                target: popup
+                anchors.bottom: parent.top;
+            }
+        },
+        State {
+            name: "MobileLandscape"
+            AnchorChanges {
+                target: popup
+                anchors.top: parent.top;
+                anchors.right: parent.left;
+            }
+        },
+        State {
+            name: "Other"
+            AnchorChanges {
+                target: popup
+                anchors.top: parent.top;
+                anchors.right: parent.left;
+            }
+        }
+    ]
 }
