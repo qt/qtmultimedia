@@ -95,7 +95,7 @@ QAndroidIntegration::~QAndroidIntegration()
 QPlatformMediaDevices *QAndroidIntegration::devices()
 {
     if (!m_devices)
-        m_devices = new QAndroidMediaDevices();
+        m_devices = new QAndroidMediaDevices(this);
     return m_devices;
 }
 

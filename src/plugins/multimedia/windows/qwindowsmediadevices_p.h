@@ -70,7 +70,7 @@ LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 class QWindowsMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QWindowsMediaDevices();
+    QWindowsMediaDevices(QPlatformMediaIntegration *integration);
     virtual ~QWindowsMediaDevices();
 
     QList<QAudioDevice> audioInputs() const override;

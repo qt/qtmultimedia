@@ -59,7 +59,7 @@ QT_BEGIN_NAMESPACE
 class QAndroidMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QAndroidMediaDevices();
+    QAndroidMediaDevices(QPlatformMediaIntegration *integration);
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;

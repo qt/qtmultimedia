@@ -62,7 +62,7 @@ class QAlsaEngine;
 class QAlsaMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QAlsaMediaDevices();
+    QAlsaMediaDevices(QPlatformMediaIntegration *integration);
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;

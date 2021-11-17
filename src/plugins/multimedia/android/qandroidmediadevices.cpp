@@ -50,8 +50,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaDevices::QAndroidMediaDevices()
-    : QPlatformMediaDevices()
+QAndroidMediaDevices::QAndroidMediaDevices(QPlatformMediaIntegration *integration)
+    : QPlatformMediaDevices(integration)
 {
 }
 

@@ -65,7 +65,7 @@ class QCameraDevice;
 class QDarwinMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QDarwinMediaDevices();
+    QDarwinMediaDevices(QPlatformMediaIntegration *integration);
     ~QDarwinMediaDevices();
 
     QList<QAudioDevice> audioInputs() const override;

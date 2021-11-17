@@ -148,8 +148,8 @@ static QList<QCameraDevice> enumerateCameras()
     return cameras;
 }
 
-QQnxMediaDevices::QQnxMediaDevices()
-    : QPlatformMediaDevices()
+QQnxMediaDevices::QQnxMediaDevices(QPlatformMediaIntegration *integration)
+    : QPlatformMediaDevices(integration)
 {
 }
 

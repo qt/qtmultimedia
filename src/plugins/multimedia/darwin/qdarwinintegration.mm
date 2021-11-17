@@ -89,7 +89,7 @@ QDarwinIntegration::~QDarwinIntegration()
 QPlatformMediaDevices *QDarwinIntegration::devices()
 {
     if (!m_devices)
-        m_devices = new QDarwinMediaDevices();
+        m_devices = new QDarwinMediaDevices(this);
     return m_devices;
 }
 

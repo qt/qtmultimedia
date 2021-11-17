@@ -48,8 +48,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QWasmMediaDevices::QWasmMediaDevices()
-    : QPlatformMediaDevices()
+QWasmMediaDevices::QWasmMediaDevices(QPlatformMediaIntegration *integration)
+    : QPlatformMediaDevices(integration)
 {
     auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
     // present even if there is no capture device

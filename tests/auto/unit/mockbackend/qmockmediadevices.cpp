@@ -42,8 +42,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QMockMediaDevices::QMockMediaDevices()
-    : QPlatformMediaDevices()
+QMockMediaDevices::QMockMediaDevices(QPlatformMediaIntegration *integration)
+    : QPlatformMediaDevices(integration)
 {
     QCameraDevicePrivate *info = new QCameraDevicePrivate;
     info->description = QString::fromUtf8("defaultCamera");

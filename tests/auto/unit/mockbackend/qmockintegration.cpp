@@ -63,7 +63,7 @@ QMockIntegration::~QMockIntegration()
 QPlatformMediaDevices *QMockIntegration::devices()
 {
     if (!m_devices)
-        m_devices = new QMockMediaDevices();
+        m_devices = new QMockMediaDevices(this);
     return m_devices;
 }
 

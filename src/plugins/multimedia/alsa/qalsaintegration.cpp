@@ -54,7 +54,7 @@ QAlsaIntegration::~QAlsaIntegration()
 QPlatformMediaDevices *QAlsaIntegration::devices()
 {
     if (!m_devices)
-        m_devices = new QAlsaMediaDevices();
+        m_devices = new QAlsaMediaDevices(this);
     return m_devices;
 }
 

@@ -233,8 +233,8 @@ HWND createMessageOnlyWindow()
     return hwnd;
 }
 
-QWindowsMediaDevices::QWindowsMediaDevices()
-    : QPlatformMediaDevices(),
+QWindowsMediaDevices::QWindowsMediaDevices(QPlatformMediaIntegration *integration)
+    : QPlatformMediaDevices(integration),
       m_videoDeviceMsgWindow(nullptr),
       m_videoDeviceNotification(nullptr)
 

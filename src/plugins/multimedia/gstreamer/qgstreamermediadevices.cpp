@@ -71,8 +71,8 @@ static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer m)
     return G_SOURCE_CONTINUE;
 }
 
-QGstreamerMediaDevices::QGstreamerMediaDevices()
-    : QPlatformMediaDevices()
+QGstreamerMediaDevices::QGstreamerMediaDevices(QPlatformMediaIntegration *integration)
+    : QPlatformMediaDevices(integration)
 {
     GstDeviceMonitor *monitor;
     GstBus *bus;

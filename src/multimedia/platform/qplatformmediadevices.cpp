@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qplatformmediadevices_p.h"
+#include "qplatformmediaintegration_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
 #include "qcameradevice.h"
@@ -45,7 +46,9 @@
 
 QT_BEGIN_NAMESPACE
 
-QPlatformMediaDevices::QPlatformMediaDevices() = default;
+QPlatformMediaDevices::QPlatformMediaDevices(QPlatformMediaIntegration *integration)
+    : integration(integration)
+{}
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;
 
@@ -105,19 +108,22 @@ QPlatformAudioSink* QPlatformMediaDevices::audioOutputDevice(const QAudioFormat 
 
 void QPlatformMediaDevices::audioInputsChanged() const
 {
-    for (auto m : m_devices)
+    const auto devices = integration->allMediaDevices();
+    for (auto m : devices)
         emit m->audioInputsChanged();
 }
 
 void QPlatformMediaDevices::audioOutputsChanged() const
 {
-    for (auto m : m_devices)
+    const auto devices = integration->allMediaDevices();
+    for (auto m : devices)
         emit m->audioOutputsChanged();
 }
 
 void QPlatformMediaDevices::videoInputsChanged() const
 {
-    for (auto m : m_devices)
+    const auto devices = integration->allMediaDevices();
+    for (auto m : devices)
         emit m->videoInputsChanged();
 }
 

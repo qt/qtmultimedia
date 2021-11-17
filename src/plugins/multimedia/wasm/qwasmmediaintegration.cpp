@@ -87,7 +87,7 @@ QPlatformMediaFormatInfo *QWasmMediaIntegration::formatInfo()
 QPlatformMediaDevices *QWasmMediaIntegration::devices()
 {
     if (!m_devices)
-        m_devices = new QWasmMediaDevices();
+        m_devices = new QWasmMediaDevices(this);
     return m_devices;
 }
 

@@ -78,7 +78,7 @@ QQnxMediaIntegration::~QQnxMediaIntegration()
 QPlatformMediaDevices *QQnxMediaIntegration::devices()
 {
     if (!m_devices)
-        m_devices = new QQnxMediaDevices();
+        m_devices = new QQnxMediaDevices(this);
     return m_devices;
 }
 

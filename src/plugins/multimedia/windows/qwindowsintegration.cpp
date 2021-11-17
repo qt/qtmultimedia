@@ -96,7 +96,7 @@ QWindowsMediaIntegration::~QWindowsMediaIntegration()
 QPlatformMediaDevices *QWindowsMediaIntegration::devices()
 {
     if (!m_devices)
-        m_devices = new QWindowsMediaDevices();
+        m_devices = new QWindowsMediaDevices(this);
     return m_devices;
 }
 

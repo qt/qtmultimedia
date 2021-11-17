@@ -48,10 +48,15 @@
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioMediaDevices::QPulseAudioMediaDevices(QPulseAudioEngine *engine)
-    : QPlatformMediaDevices(),
-      pulseEngine(engine)
+QPulseAudioMediaDevices::QPulseAudioMediaDevices(QPlatformMediaIntegration *integration)
+    : QPlatformMediaDevices(integration)
 {
+    pulseEngine = new QPulseAudioEngine();
+}
+
+QPulseAudioMediaDevices::~QPulseAudioMediaDevices()
+{
+    delete pulseEngine;
 }
 
 QList<QAudioDevice> QPulseAudioMediaDevices::audioInputs() const

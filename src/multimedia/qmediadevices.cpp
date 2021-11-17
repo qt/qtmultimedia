@@ -271,7 +271,7 @@ QCameraDevice QMediaDevices::defaultVideoInput()
 QMediaDevices::QMediaDevices(QObject *parent)
     : QObject(parent)
 {
-    QPlatformMediaIntegration::instance()->devices()->addDevices(this);
+    QPlatformMediaIntegration::instance()->addMediaDevices(this);
 }
 
 /*!
@@ -279,7 +279,7 @@ QMediaDevices::QMediaDevices(QObject *parent)
 */
 QMediaDevices::~QMediaDevices()
 {
-    QPlatformMediaIntegration::instance()->devices()->removeDevices(this);
+    QPlatformMediaIntegration::instance()->removeMediaDevices(this);
 }
 
 

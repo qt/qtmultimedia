@@ -63,7 +63,6 @@ public:
 
 QPulseAudioIntegration::QPulseAudioIntegration()
 {
-    pulseEngine = new QPulseAudioEngine;
 }
 
 QPulseAudioIntegration::~QPulseAudioIntegration()
@@ -74,7 +73,7 @@ QPulseAudioIntegration::~QPulseAudioIntegration()
 QPlatformMediaDevices *QPulseAudioIntegration::devices()
 {
     if (!m_devices)
-        m_devices = new QPulseAudioMediaDevices(pulseEngine);
+        m_devices = new QPulseAudioMediaDevices(this);
     return m_devices;
 }
 

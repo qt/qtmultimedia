@@ -75,7 +75,7 @@ public:
 QGstreamerIntegration::QGstreamerIntegration()
 {
     gst_init(nullptr, nullptr);
-    m_devices = new QGstreamerMediaDevices();
+    m_devices = new QGstreamerMediaDevices(this);
     m_formatsInfo = new QGstreamerFormatInfo();
 }
 

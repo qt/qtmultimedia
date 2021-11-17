@@ -100,6 +100,20 @@ public:
     virtual QPlatformAudioOutput *createAudioOutput(QAudioOutput *);
 
     virtual QPlatformVideoSink *createVideoSink(QVideoSink *) { return nullptr; }
+
+    void addMediaDevices(QMediaDevices *m)
+    {
+        m_devices.append(m);
+    }
+    void removeMediaDevices(QMediaDevices *m)
+    {
+        m_devices.removeAll(m);
+    }
+
+    QList<QMediaDevices *> allMediaDevices() const { return m_devices; }
+
+private:
+    QList<QMediaDevices *> m_devices;
 };
 
 QT_END_NAMESPACE

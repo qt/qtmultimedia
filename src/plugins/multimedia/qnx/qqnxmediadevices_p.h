@@ -60,7 +60,7 @@ QT_BEGIN_NAMESPACE
 class QQnxMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QQnxMediaDevices();
+    QQnxMediaDevices(QPlatformMediaIntegration *integration);
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;

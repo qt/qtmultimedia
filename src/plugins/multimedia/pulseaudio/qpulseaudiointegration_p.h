@@ -68,7 +68,6 @@ public:
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPulseAudioMediaDevices *m_devices = nullptr;
-    QPulseAudioEngine *pulseEngine = nullptr;
 };
 
 QT_END_NAMESPACE
