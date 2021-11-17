@@ -179,7 +179,7 @@ QList<QAudioDevice> QMediaDevices::audioOutputs()
 */
 QList<QCameraDevice> QMediaDevices::videoInputs()
 {
-    return QPlatformMediaIntegration::instance()->devices()->videoInputs();
+    return QPlatformMediaIntegration::instance()->videoInputs();
 }
 
 /*!

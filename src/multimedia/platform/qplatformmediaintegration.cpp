@@ -39,10 +39,13 @@
 
 #include <qtmultimediaglobal_p.h>
 #include "qplatformmediaintegration_p.h"
+#include "qplatformmediadevices_p.h"
 #include <qatomic.h>
 #include <qmutex.h>
 #include <qplatformaudioinput_p.h>
 #include <qplatformaudiooutput_p.h>
+#include <qmediadevices.h>
+#include <qcameradevice.h>
 #include <qloggingcategory.h>
 
 #include "QtCore/private/qfactoryloader_p.h"
@@ -131,6 +134,11 @@ void QPlatformMediaIntegration::setIntegration(QPlatformMediaIntegration *integr
         holder.instance = holder.nativeInstance;
 }
 
+QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
+{
+    return devices()->videoInputs();
+}
+
 QPlatformAudioInput *QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
 {
     return new QPlatformAudioInput(q);
@@ -139,6 +147,13 @@ QPlatformAudioInput *QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
 QPlatformAudioOutput *QPlatformMediaIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QPlatformAudioOutput(q);
+}
+
+void QPlatformMediaIntegration::videoInputsChanged() const
+{
+    const auto devices = allMediaDevices();
+    for (auto m : devices)
+        emit m->videoInputsChanged();
 }
 
 QPlatformMediaIntegration::~QPlatformMediaIntegration()

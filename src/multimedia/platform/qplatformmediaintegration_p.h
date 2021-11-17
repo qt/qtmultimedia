@@ -89,10 +89,12 @@ public:
     virtual QPlatformMediaDevices *devices() = 0;
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
+    virtual QList<QCameraDevice> videoInputs();
+    virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
+
     virtual QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *) { return nullptr; }
     virtual QPlatformMediaCaptureSession *createCaptureSession() { return nullptr; }
     virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
-    virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
     virtual QPlatformMediaRecorder *createRecorder(QMediaRecorder *) { return nullptr; }
     virtual QPlatformImageCapture *createImageCapture(QImageCapture *) { return nullptr; }
 
@@ -111,6 +113,8 @@ public:
     }
 
     QList<QMediaDevices *> allMediaDevices() const { return m_devices; }
+
+    void videoInputsChanged() const;
 
 private:
     QList<QMediaDevices *> m_devices;

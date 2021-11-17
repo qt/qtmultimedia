@@ -52,6 +52,11 @@ QPlatformMediaDevices::QPlatformMediaDevices(QPlatformMediaIntegration *integrat
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;
 
+QList<QCameraDevice> QPlatformMediaDevices::videoInputs() const
+{
+    return {};
+}
+
 QPlatformAudioSource* QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo)
 {
     QAudioDevice info = deviceInfo;
@@ -92,9 +97,7 @@ void QPlatformMediaDevices::audioOutputsChanged() const
 
 void QPlatformMediaDevices::videoInputsChanged() const
 {
-    const auto devices = integration->allMediaDevices();
-    for (auto m : devices)
-        emit m->videoInputsChanged();
+    integration->videoInputsChanged();
 }
 
 

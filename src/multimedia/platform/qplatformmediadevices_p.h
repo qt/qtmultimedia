@@ -72,7 +72,7 @@ public:
 
     virtual QList<QAudioDevice> audioInputs() const = 0;
     virtual QList<QAudioDevice> audioOutputs() const = 0;
-    virtual QList<QCameraDevice> videoInputs() const = 0;
+    virtual QList<QCameraDevice> videoInputs() const;
     virtual QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) = 0;
     virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) = 0;
 
