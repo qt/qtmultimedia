@@ -52,36 +52,6 @@ QPlatformMediaDevices::QPlatformMediaDevices(QPlatformMediaIntegration *integrat
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;
 
-QAudioDevice QPlatformMediaDevices::audioInput(const QByteArray &id) const
-{
-    const auto inputs = audioInputs();
-    for (auto i : inputs) {
-        if (i.id() == id)
-            return i;
-    }
-    return {};
-}
-
-QAudioDevice QPlatformMediaDevices::audioOutput(const QByteArray &id) const
-{
-    const auto outputs = audioOutputs();
-    for (auto o : outputs) {
-        if (o.id() == id)
-            return o;
-    }
-    return {};
-}
-
-QCameraDevice QPlatformMediaDevices::videoInput(const QByteArray &id) const
-{
-    const auto inputs = videoInputs();
-    for (auto i : inputs) {
-        if (i.id() == id)
-            return i;
-    }
-    return QCameraDevice();
-}
-
 QPlatformAudioSource* QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo)
 {
     QAudioDevice info = deviceInfo;

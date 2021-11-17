@@ -76,10 +76,6 @@ public:
     virtual QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) = 0;
     virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) = 0;
 
-    QAudioDevice audioInput(const QByteArray &id) const;
-    QAudioDevice audioOutput(const QByteArray &id) const;
-    QCameraDevice videoInput(const QByteArray &id) const;
-
     QPlatformAudioSource *audioInputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo);
     QPlatformAudioSink *audioOutputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo);
 
