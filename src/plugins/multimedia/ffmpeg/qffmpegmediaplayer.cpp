@@ -129,7 +129,7 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     // ### use io device when provided
 
-    QByteArray url = media.toEncoded();
+    QByteArray url = media.toEncoded(QUrl::PreferLocalFile);
     decoder->context = nullptr;
     int ret = avformat_open_input(&decoder->context, url.constData(), nullptr, nullptr);
     if (ret < 0) {
