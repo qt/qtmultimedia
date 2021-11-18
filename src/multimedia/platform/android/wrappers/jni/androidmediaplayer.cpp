@@ -44,6 +44,7 @@
 #include <QReadWriteLock>
 #include <QString>
 #include <QtCore/qcoreapplication.h>
+#include <qloggingcategory.h>
 
 static const char QtAndroidMediaPlayerClassName[] = "org/qtproject/qt/android/multimedia/QtAndroidMediaPlayer";
 typedef QList<AndroidMediaPlayer *> MediaPlayerList;
