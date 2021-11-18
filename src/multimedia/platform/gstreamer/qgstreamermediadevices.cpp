@@ -107,7 +107,7 @@ static QList<QAudioDevice> devicesFromSet(const QSet<GstDevice *> &deviceSet, QA
         if (properties) {
             auto *klass = gst_structure_get_string(properties, "device.class");
             if (qstrcmp(klass, "monitor")) {
-                auto *name = gst_structure_get_string(properties, "sysfs.path");
+                auto *name = gst_structure_get_string(properties, "device.bus_path");
                 gboolean def;
                 auto *info = new QGStreamerAudioDeviceInfo(d, name, mode);
                 if (gst_structure_get_boolean(properties, "is-default", &def) && def)
@@ -254,7 +254,7 @@ GstDevice *QGstreamerMediaDevices::audioDevice(const QByteArray &id, QAudioDevic
 {
     const auto devices = (mode == QAudioDevice::Output) ? m_audioSinks : m_audioSources;
 
-    return getDevice(devices, "sysfs.path", id);
+    return getDevice(devices, "device.bus_path", id);
 }
 
 GstDevice *QGstreamerMediaDevices::videoDevice(const QByteArray &id) const
