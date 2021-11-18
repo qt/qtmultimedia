@@ -165,8 +165,9 @@ QMetaType QMediaMetaData::keyType(Key key)
 
     case Resolution:
         return QMetaType::fromType<QSize>();
+    default:
+        return QMetaType::fromType<void>();
     }
-
 }
 
 /*!
