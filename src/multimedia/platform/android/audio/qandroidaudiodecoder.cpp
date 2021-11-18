@@ -42,6 +42,7 @@
 #include <QtCore/qjniobject.h>
 #include <QtCore/qjnienvironment.h>
 #include <QtCore/private/qandroidextras_p.h>
+#include <qloggingcategory.h>
 #include <QTimer>
 #include <QFile>
 #include <QDir>
