@@ -289,11 +289,10 @@ private:
     void loop() override;
 
     void doSeek(qint64 pos, qint64 offset);
-    void queuePacket();
+    void queuePacket(AVPacket *packet);
 
     void decodeSubtitle(AVStream *stream, AVCodecContext *codec, AVPacket *packet);
 
-    AVPacket packet;
     qint64 seekPos = -1;
     qint64 seekOffset = 0;
 };

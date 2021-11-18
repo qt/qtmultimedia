@@ -106,12 +106,10 @@ void Thread::run()
 void DemuxerThread::init()
 {
     qCDebug(qLcDemuxer) << "Demuxer started";
-    av_init_packet(&packet);
 }
 
 void DemuxerThread::cleanup()
 {
-    av_packet_unref(&packet);
     Thread::cleanup();
 }
 
@@ -141,13 +139,14 @@ void DemuxerThread::loop()
     if (seekPos >= 0)
         doSeek(seekPos, seekOffset);
 
-    if (av_read_frame(data->context, &packet) < 0) {
+    AVPacket *packet = av_packet_alloc();
+    if (av_read_frame(data->context, packet) < 0) {
         eos = true;
         return;
     }
-    if (seekPos >= 0 && packet.pts != AV_NOPTS_VALUE) {
-        auto *stream = data->context->streams[packet.stream_index];
-        qint64 pts = timeStamp(packet.pts, stream->time_base);
+    if (seekPos >= 0 && packet->pts != AV_NOPTS_VALUE) {
+        auto *stream = data->context->streams[packet->stream_index];
+        qint64 pts = timeStamp(packet->pts, stream->time_base);
         //                qDebug() << ">>> after seek, got pts:" << pts;
         if (pts > seekPos && seekPos + seekOffset >= 0) {
             seekOffset -= 50;
@@ -160,7 +159,8 @@ void DemuxerThread::loop()
         eos = false;
         data->triggerStep();
     }
-    queuePacket();
+    queuePacket(packet);
+    av_packet_unref(packet);
 }
 
 void DemuxerThread::doSeek(qint64 pos, qint64 offset)
@@ -182,12 +182,12 @@ void DemuxerThread::doSeek(qint64 pos, qint64 offset)
     qDebug() << "all queues flushed";
 }
 
-void DemuxerThread::queuePacket()
+void DemuxerThread::queuePacket(AVPacket *packet)
 {
-    auto *stream = data->context->streams[packet.stream_index];
+    auto *stream = data->context->streams[packet->stream_index];
     int trackType = -1;
     for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i)
-        if (packet.stream_index == data->m_currentStream[i])
+        if (packet->stream_index == data->m_currentStream[i])
             trackType = i;
 
     auto *codec = data->codecContext[trackType];
@@ -199,9 +199,9 @@ void DemuxerThread::queuePacket()
     //                            << timeStamp(packet.dts, base) << timeStamp(packet.pts, base) << timeStamp(packet.duration, base);
 
     if (trackType == QPlatformMediaPlayer::SubtitleStream)
-        decodeSubtitle(stream, codec, &packet);
+        decodeSubtitle(stream, codec, packet);
     else
-        data->pipelines[trackType].decoder->enqueue(&packet);
+        data->pipelines[trackType].decoder->enqueue(packet);
 }
 
 void DemuxerThread::decodeSubtitle(AVStream *stream, AVCodecContext *codec, AVPacket *packet)
@@ -221,7 +221,7 @@ void DemuxerThread::decodeSubtitle(AVStream *stream, AVCodecContext *codec, AVPa
             start = timeStamp(packet->pts, base);
             end = start + timeStamp(packet->duration, base);
         } else {
-            qint64 pts = timeStamp(subtitle.pts, AV_TIME_BASE_Q);
+            qint64 pts = timeStamp(subtitle.pts, AVRational{1, AV_TIME_BASE});
             start = pts + subtitle.start_display_time;
             end = pts + subtitle.end_display_time;
         }
