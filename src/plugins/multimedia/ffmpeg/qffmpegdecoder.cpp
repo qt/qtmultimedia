@@ -97,6 +97,8 @@ void Thread::run()
     init();
     while (!exit.loadRelaxed()) {
         maybePause();
+        if (exit.loadAcquire())
+            break;
         loop();
     }
     cleanup();
@@ -117,7 +119,12 @@ bool DemuxerThread::shouldWait()
 {
     if (data->seek_pos.loadRelaxed() >= 0)
         return false;
-    if (data->pipelines[0].decoder->queuedPacketSize + data->pipelines[1].decoder->queuedPacketSize > MaxQueueSize)
+    qint64 queueSize = 0;
+    for (int i = 0; i < QPlatformMediaPlayer::SubtitleStream; ++i) {
+        if (data->pipelines[i].decoder)
+            queueSize += data->pipelines[i].decoder->queuedPacketSize;
+    }
+    if (queueSize > MaxQueueSize)
         return true;
     for (int i = 0; i < QPlatformMediaPlayer::SubtitleStream; ++i) {
         auto *stream = data->stream(QPlatformMediaPlayer::TrackType(i));
@@ -608,7 +615,8 @@ void Pipeline::createAudioPipeline(QFFmpegDecoder *d, QAudioOutput *sink)
 
 void Pipeline::destroy()
 {
-    Q_ASSERT(decoder);
+    if (!decoder)
+        return;
     Q_ASSERT(renderer);
     decoder->kill();
     renderer->kill();
@@ -623,6 +631,7 @@ QFFmpegDecoder::QFFmpegDecoder(QFFmpegMediaPlayer *p)
 
 QFFmpegDecoder::~QFFmpegDecoder()
 {
+    pausePipeline(true);
     for (int i = 0; i < 2; ++i)
         pipelines[i].destroy();
 }
@@ -719,8 +728,10 @@ void QFFmpegDecoder::pausePipeline(bool b)
         while (!isPaused())
             condition.wait(&mutex);
         for (int i = 0; i < QPlatformMediaPlayer::SubtitleStream; ++i) {
-            pipelines[i].decoder->flushAndSeek(currentTime);
-            pipelines[i].renderer->flushAndSeek(currentTime);
+            if (pipelines[i].decoder)
+                pipelines[i].decoder->flushAndSeek(currentTime);
+            if (pipelines[i].renderer)
+                pipelines[i].renderer->flushAndSeek(currentTime);
         }
         subtitleQueue.clear();
         qDebug() << "XXXXXX" << "pipeline stopped";

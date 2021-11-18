@@ -221,6 +221,7 @@ public:
 
     void kill() {
         exit.storeRelaxed(true);
+        wake();
         deleteLater();
     }
 
