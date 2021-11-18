@@ -210,6 +210,7 @@ HWAccel::HWAccel(AVCodec *codec)
         d = new VideoToolBoxAccel(hwContext);
         break;
 #endif
+    case AV_HWDEVICE_TYPE_NONE:
     default:
         d = new HWAccelBackend(hwContext);
         break;
