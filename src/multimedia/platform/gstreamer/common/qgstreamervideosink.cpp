@@ -51,7 +51,7 @@
 #include <qpa/qplatformnativeinterface.h>
 #include <gst/gl/gstglconfig.h>
 
-#if GST_GL_HAVE_WINDOW_X11
+#if GST_GL_HAVE_WINDOW_X11 && __has_include("X11/Xlib-xcb.h")
 #    include <gst/gl/x11/gstgldisplay_x11.h>
 #endif
 #if GST_GL_HAVE_PLATFORM_EGL
@@ -59,7 +59,7 @@
 #    include <EGL/egl.h>
 #    include <EGL/eglext.h>
 #endif
-#if GST_GL_HAVE_WINDOW_WAYLAND
+#if GST_GL_HAVE_WINDOW_WAYLAND && __has_include("wayland-client.h")
 #    include <gst/gl/wayland/gstgldisplay_wayland.h>
 #endif
 #endif // #if QT_CONFIG(gstreamer_gl)
@@ -211,7 +211,7 @@ void QGstreamerVideoSink::updateGstContexts()
         auto display = pni->nativeResourceForIntegration("display");
 
         if (display) {
-#if GST_GL_HAVE_WINDOW_X11
+#if GST_GL_HAVE_WINDOW_X11 && __has_include("X11/Xlib-xcb.h")
             if (platform == QLatin1String("xcb")) {
                 contextName = "glxcontext";
                 glPlatform = GST_GL_PLATFORM_GLX;
@@ -219,7 +219,7 @@ void QGstreamerVideoSink::updateGstContexts()
                 gstGlDisplay = (GstGLDisplay *)gst_gl_display_x11_new_with_display((Display *)display);
             }
 #endif
-#if GST_GL_HAVE_WINDOW_WAYLAND
+#if GST_GL_HAVE_WINDOW_WAYLAND && __has_include("wayland-client.h")
             if (platform.startsWith(QLatin1String("wayland"))) {
                 Q_ASSERT(!gstGlDisplay);
                 gstGlDisplay = (GstGLDisplay *)gst_gl_display_wayland_new_with_display((struct wl_display *)display);
