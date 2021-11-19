@@ -67,7 +67,7 @@ using namespace QFFmpeg;
 QFFmpegMediaPlayer::QFFmpegMediaPlayer(QMediaPlayer *player)
     : QPlatformMediaPlayer(player)
 {
-    decoder = new QFFmpegDecoder(this);
+    decoder = new Decoder(this);
 }
 
 QFFmpegMediaPlayer::~QFFmpegMediaPlayer()

@@ -209,7 +209,7 @@ VAAPIAccel::~VAAPIAccel()
 void VAAPIAccel::setRhi(QRhi *rhi)
 {
     qDebug() << ">>>> Initializing VAAPI zero copy";
-    if (rhi && rhi->backend() != QRhi::OpenGLES2)
+    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
         return;
 
     auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());

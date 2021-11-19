@@ -58,7 +58,7 @@
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
-class QFFmpegDecoder;
+class Decoder;
 }
 class QPlatformAudioOutput;
 
@@ -103,9 +103,9 @@ public:
     void setActiveTrack(TrackType, int streamNumber) override;
 
 private:
-    friend class QFFmpeg::QFFmpegDecoder;
+    friend class QFFmpeg::Decoder;
 
-    QFFmpeg::QFFmpegDecoder *decoder;
+    QFFmpeg::Decoder *decoder;
     void closeContext();
     void checkStreams();
 

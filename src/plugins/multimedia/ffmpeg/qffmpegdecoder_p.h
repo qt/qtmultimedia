@@ -55,6 +55,7 @@
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpeghwaccel_p.h"
 
+#include <qshareddata.h>
 #include <qmutex.h>
 #include <qwaitcondition.h>
 #include <qthread.h>
@@ -69,7 +70,7 @@ namespace QFFmpeg
 {
 
 // queue up max 16M of encoded data, that should always be enough
-// (it's around 3.5 secs of 4K h264, longer for almost all other formats)
+// (it's around 2 secs of 4K HDR video, longer for almost all other formats)
 enum { MaxQueueSize = 16*1024*1024 };
 
 inline qint64 timeStamp(qint64 ts, AVRational base)
@@ -77,59 +78,117 @@ inline qint64 timeStamp(qint64 ts, AVRational base)
     return (1000*ts*base.num + 500)/base.den;
 }
 
-
-struct Subtitle {
-    QString text;
-    qint64 start;
-    qint64 end;
-};
-
-struct SubtitleQueue
+struct Packet
 {
-    QMutex mutex;
-    QQueue<Subtitle *> queue;
+    struct Data {
+        Data(AVPacket *p, int s)
+            : packet(p)
+            , serial(s)
+        {}
+        ~Data() {
+            if (packet)
+                av_packet_free(&packet);
+        }
+        QAtomicInt ref;
+        AVPacket *packet = nullptr;
+        qint64 serial = -1;
+    };
+    Packet() = default;
+    Packet(AVPacket *p, int s)
+        : d(new Data(p, s))
+    {}
 
-    void enqueue(Subtitle *s) {
-        Q_ASSERT(s);
-        QMutexLocker locker(&mutex);
-        queue.enqueue(s);
-    }
-    Subtitle *peek() {
-        QMutexLocker locker(&mutex);
-        return queue.isEmpty() ? nullptr : queue.first();
-    }
-    Subtitle *dequeue() {
-        QMutexLocker locker(&mutex);
-        return queue.isEmpty() ? nullptr : queue.dequeue();
-    }
-    void clear() {
-        QMutexLocker locker(&mutex);
-        queue.clear();
-    }
+    bool isValid() const { return !!d; }
+    AVPacket *avPacket() const { return d->packet; }
+    int serial() const { return d->serial; }
+private:
+    QExplicitlySharedDataPointer<Data> d;
 };
 
-class DemuxerThread;
-class DecoderThread;
-class RendererThread;
-class DecoderThread;
+struct Codec
+{
+    struct Data {
+        Data(AVCodecContext *context, AVStream *stream, const QFFmpeg::HWAccel &hwAccel);
+        ~Data();
+        QAtomicInt ref;
+        AVCodecContext *context = nullptr;
+        AVStream *stream = nullptr;
+        QFFmpeg::HWAccel hwAccel;
+        int streamIndex = -1;
+    };
 
-struct Pipeline {
-    QPlatformMediaPlayer::TrackType type = QPlatformMediaPlayer::NTrackTypes; // Audio or Video
-    //    int streamIndex = -1; // FFmpeg stream index
-    DecoderThread *decoder = nullptr;
-    RendererThread *renderer = nullptr;
-    QFFmpeg::HWAccel hwAccel;
+    Codec() = default;
+    Codec(AVFormatContext *format, int streamIndex, QRhi *rhi = nullptr);
+    bool isValid() const { return !!d; }
 
-    void createVideoPipeline(QFFmpegDecoder *d, QVideoSink *sink);
-    void createAudioPipeline(QFFmpegDecoder *d, QAudioOutput *sink);
-    void destroy();
+    AVCodecContext *context() const { return d->context; }
+    AVStream *stream() const { return d->stream; }
+    uint streamIndex() const { return d->stream->index; }
+    HWAccel hwAccel() const { return d->hwAccel; }
+    qint64 toMs(qint64 ts) const { return timeStamp(ts, d->stream->time_base); }
+
+private:
+    QExplicitlySharedDataPointer<Data> d;
 };
 
-class QFFmpegDecoder : public QObject
+
+struct Frame
+{
+    struct Data {
+        Data(AVFrame *f, const Codec &codec, qint64 pts)
+            : codec(codec)
+            , frame(f)
+            , pts(pts)
+        {}
+        Data(const QString &text, qint64 pts, qint64 duration)
+            : text(text), pts(pts), duration(duration)
+        {}
+        ~Data() {
+            if (frame)
+                av_frame_unref(frame);
+        }
+        QAtomicInt ref;
+        Codec codec;
+        AVFrame *frame = nullptr;
+        QString text;
+        qint64 pts = -1;
+        qint64 duration = -1;
+    };
+    Frame() = default;
+    Frame(AVFrame *f, const Codec &codec, qint64 pts)
+        : d(new Data(f, codec, pts))
+    {}
+    Frame(const QString &text, qint64 pts, qint64 duration)
+        : d(new Data(text, pts, duration))
+    {}
+    bool isValid() const { return !!d; }
+
+    AVFrame *avFrame() const { return d->frame; }
+    AVFrame *takeAVFrame() const {
+        AVFrame *f = d->frame;
+        d->frame = nullptr;
+        return f;
+    }
+    const Codec *codec() const { return &d->codec; }
+    qint64 pts() const { return d->pts; }
+    qint64 duration() const { return d->duration; }
+    qint64 end() const { return d->pts + d->duration; }
+    QString text() const { return d->text; }
+private:
+    QExplicitlySharedDataPointer<Data> d;
+};
+
+class Demuxer;
+class StreamDecoder;
+class Renderer;
+class AudioRenderer;
+class VideoRenderer;
+
+class Decoder : public QObject
 {
 public:
-    QFFmpegDecoder(QFFmpegMediaPlayer *p);
-    ~QFFmpegDecoder();
+    Decoder(QFFmpegMediaPlayer *p);
+    ~Decoder();
 
     void init();
     void play() {
@@ -143,13 +202,6 @@ public:
     void triggerStep();
     void syncClocks();
 
-    void pausePipeline(bool paused);
-
-    AVStream *stream(QPlatformMediaPlayer::TrackType type) {
-        int index = m_currentStream[type];
-        return index < 0 ? nullptr : context->streams[index];
-    }
-
     void setVideoSink(QVideoSink *sink);
     void updateVideo();
 
@@ -159,8 +211,6 @@ public:
     void changeTrack(QPlatformMediaPlayer::TrackType type, int index);
 
     void startDemuxer();
-    bool openCodec(QPlatformMediaPlayer::TrackType type, int index = -1);
-    void closeCodec(QPlatformMediaPlayer::TrackType type);
 
     int getDefaultStream(QPlatformMediaPlayer::TrackType type);
 
@@ -174,23 +224,21 @@ public:
 
     bool paused = true;
 
-    DemuxerThread *demuxer = nullptr;
+    Demuxer *demuxer = nullptr;
     QAtomicInteger<qint64> seek_pos = -1;
-
-    static constexpr int NPipelines = 2;
-    Pipeline pipelines[NPipelines];
 
     AVFormatContext *context = nullptr;
     int m_currentStream[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
-    AVCodecContext *codecContext[QPlatformMediaPlayer::NTrackTypes] = {};
 
     QVideoSink *videoSink = nullptr;
-    QPlatformAudioOutput *audioOutput = nullptr;
+    VideoRenderer *videoRenderer = nullptr;
 
-    SubtitleQueue subtitleQueue;
+    QPlatformAudioOutput *audioOutput = nullptr;
+    AudioRenderer *audioRenderer = nullptr;
 
     QElapsedTimer baseTimer;
-    qint64 currentTime = 0;
+    QAtomicInteger<qint64> pts_base = 0;
+    QAtomicInteger<qint64> currentTime = 0;
 
     bool playing = false;
 };
@@ -200,227 +248,218 @@ class Thread : public QThread
 public:
     QMutex mutex;
     QWaitCondition condition;
+    qint64 timeOut = -1;
 private:
-    bool pauseRequested = false;
-    bool step = false;
-
-    QAtomicInteger<bool> paused = false;
 
 protected:
-    QFFmpegDecoder *data;
     QAtomicInteger<bool> exit = false;
     bool eos = false;
 
 public:
-    Thread(QFFmpegDecoder *parent)
-        : QThread(parent)
-        , data(parent)
-    {}
-
     // public API is thread-safe
 
-    void kill() {
-        exit.storeRelaxed(true);
-        wake();
-        deleteLater();
-    }
+    virtual void kill();
 
     bool atEnd() const { return eos; }
-
-    void requestPause() {
-        QMutexLocker locker(&mutex);
-        qDebug() << "XXX" << this << "request pause";
-        pauseRequested = true;
-    }
-    void requestUnPause() {
-        {
-            QMutexLocker locker(&mutex);
-            pauseRequested = false;
-        }
-        condition.wakeAll();
-    }
-    void requestSingleStep() {
-        {
-            QMutexLocker locker(&mutex);
-            if (!pauseRequested)
-                return;
-            step = true;
-        }
-        condition.wakeAll();
-    }
 
     void wake() {
         condition.wakeAll();
     }
 
-    // use from main thread, while data->mutex is locked
-    bool isPaused() {
-        return paused;
-    }
 
 protected:
     virtual void init() {}
     virtual void cleanup() {}
     // loop() should never block, all blocking has to happen in shouldWait()
     virtual void loop() = 0;
-    virtual bool shouldWait() { return false; }
-
-    bool isPauseRequested() { return pauseRequested; }
+    virtual bool shouldWait() const { return false; }
 
 private:
-    bool checkPaused();
     void maybePause();
 
     void run() override;
 };
 
 
-class DemuxerThread : public Thread
+class Demuxer : public Thread
 {
 public:
-    DemuxerThread(QFFmpegDecoder *decoder)
-        : Thread(decoder)
-    {
-    }
+    Demuxer(Decoder *decoder);
+
+    StreamDecoder *addStream(int streamIndex, QRhi *rhi = nullptr);
+    void removeStream(int streamIndex);
 
 private:
+    void updateEnabledStreams();
+
     void init() override;
     void cleanup() override;
-    bool shouldWait() override;
+    bool shouldWait() const override;
     void loop() override;
 
     void doSeek(qint64 pos, qint64 offset);
-    void queuePacket(AVPacket *packet);
 
-    void decodeSubtitle(AVStream *stream, AVCodecContext *codec, AVPacket *packet);
+    Decoder *decoder;
+    // serial increases when we have a discontinuity in the stream, so that the decoders
+    // can be flushed and intermediate frames discarded. This usually happens when seeking.
+    int serial = 0;
 
     qint64 seekPos = -1;
     qint64 seekOffset = 0;
+
+    QList<StreamDecoder *> streamDecoders;
 };
 
 
-class DecoderThread : public Thread
+class StreamDecoder : public Thread
 {
-    QQueue<AVPacket *> queue;
-    qint64 seekTo = -1;
-public:
-    qint64 queuedPacketSize = 0;
-    qint64 queuedDuration = 0;
+protected:
+    Decoder *decoder = nullptr;
+    Renderer *renderer = nullptr;
+    int serial = 0;
+
+    struct PacketQueue {
+        mutable QMutex mutex;
+        QQueue<Packet> queue;
+        qint64 size = 0;
+        qint64 duration = 0;
+    };
+    PacketQueue packetQueue;
+
+    struct FrameQueue {
+        mutable QMutex mutex;
+        QQueue<Frame> queue;
+        int maxSize = 3;
+    };
+    FrameQueue frameQueue;
 
 public:
-    DecoderThread(QFFmpegDecoder *decoder, QPlatformMediaPlayer::TrackType t);
+    StreamDecoder(Decoder *decoder, const Codec &codec);
 
-    void enqueue(AVPacket *packet);
+    void addPacket(AVPacket *packet, int serial);
 
-    void flushAndSeek(qint64 seek);
+    qint64 queuedPacketSize() const {
+        QMutexLocker locker(&packetQueue.mutex);
+        return packetQueue.size;
+    }
+    qint64 queuedDuration() const {
+        QMutexLocker locker(&packetQueue.mutex);
+        return packetQueue.duration;
+    }
+
+    const Frame *peekFrame() {
+        QMutexLocker locker(&frameQueue.mutex);
+        return frameQueue.queue.isEmpty() ? nullptr : &frameQueue.queue.first();
+    }
+    Frame takeFrame();
+
+    void flush();
+
+    Codec codec;
+
+    void setRenderer(Renderer *r);
 
 private:
-    void waitForPacket() {
-        mutex.lock();
-        condition.wait(&mutex);
-        mutex.unlock();
-    }
-    AVPacket *peek() {
-        QMutexLocker locker(&mutex);
-        return queue.isEmpty() ? nullptr : queue.first();
-    }
-    AVPacket *dequeue(qint64 *seek);
+    Packet takePacket();
+    void addFrame(const Frame &f);
 
-private:
+    bool hasEnoughFrames() const
+    {
+        QMutexLocker locker(&frameQueue.mutex);
+        return frameQueue.queue.size() >= frameQueue.maxSize;
+    }
+    bool hasNoPackets() const
+    {
+        QMutexLocker locker(&packetQueue.mutex);
+        return packetQueue.queue.isEmpty();
+    }
+
     void init() override;
-    bool shouldWait() override;
+    bool shouldWait() const override;
     void loop() override;
 
-    QPlatformMediaPlayer::TrackType type;
-    qint64 seek = -1;
-    const QLoggingCategory &cat;
+    void decode();
+    void decodeSubtitle();
+
+    QPlatformMediaPlayer::TrackType type() const;
 };
 
-
-class RendererThread : public Thread
+class Renderer : public Thread
 {
-    QQueue<AVFrame *> queue;
-    int maxSize = 0;
-    qint64 seekTo = -1;
+protected:
+    Decoder *decoder = nullptr;
     QPlatformMediaPlayer::TrackType type;
-public:
 
-    void enqueue(AVFrame *f) {
-        Q_ASSERT(f);
-        QMutexLocker locker(&mutex);
-        queue.enqueue(f);
-        condition.wakeAll();
-    }
-    bool hasEnoughFrames() {
-        QMutexLocker locker(&mutex);
-        return queue.size() >= maxSize;
-    }
-    void waitForSpace() {
-        condition.wakeAll();
-        mutex.lock();
-        while (queue.size() >= maxSize)
-            condition.wait(&mutex);
-        mutex.unlock();
-    }
-    void flushAndSeek(qint64 seek) {
-        QMutexLocker locker(&mutex);
-        queue.clear();
-        seekTo = seek;
-    }
-protected:
-    AVFrame *peek(qint64 *seek) {
-        QMutexLocker locker(&mutex);
-        *seek = seekTo;
-        return queue.isEmpty() ? nullptr : queue.first();
-    }
-    AVFrame *dequeue(qint64 *seek);
-    void waitForFrame() {
-        condition.wakeAll();
-        mutex.lock();
-        while (queue.size() == 0)
-            condition.wait(&mutex);
-        mutex.unlock();
-    }
-protected:
-    qint64 pts_base = 0;
+    mutable bool step = false;
+    bool paused = false;
+    StreamDecoder *streamDecoder = nullptr;
+
 public:
-    // Queue size: 3 frames for video, 9 for audio
-    RendererThread(QFFmpegDecoder *decoder, QPlatformMediaPlayer::TrackType type)
-        : Thread(decoder)
-        , maxSize(type == QPlatformMediaPlayer::AudioStream ? 9 : 3)
-        , type(type)
-    {
+    Renderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type);
+
+    void pause() {
+        QMutexLocker locker(&mutex);
+        qDebug() << "XXX" << this << "request pause";
+        paused = true;
+    }
+    void unPause() {
+        QMutexLocker locker(&mutex);
+        paused = false;
+        condition.wakeAll();
+        if (decoder)
+            decoder->condition.wakeAll();
+    }
+    void singleStep() {
+        QMutexLocker locker(&mutex);
+        if (!paused)
+            return;
+        step = true;
+        condition.wakeAll();
+    }
+    void doneStep() {
+        step = false;
     }
 
-    void syncClock(qint64 base)
-    {
-        pts_base = base;
-    }
+    void setStream(StreamDecoder *stream);
+
+    void kill() override;
+
+
+protected:
+    bool shouldWait() const override;
+
+public:
 };
 
-class VideoRendererThread : public RendererThread
+class VideoRenderer : public Renderer
 {
+    StreamDecoder *subtitleStreamDecoder = nullptr;
 public:
-    VideoRendererThread(QFFmpegDecoder *decoder, QVideoSink *sink);
+    VideoRenderer(Decoder *decoder, QVideoSink *sink);
 
+    void kill() override;
+
+    void setSubtitleStream(StreamDecoder *stream);
 private:
+
     void init() override;
     void loop() override;
 
     QVideoSink *sink;
+    Frame currentSubtitle;
 };
 
-class AudioRendererThread : public RendererThread
+class AudioRenderer : public Renderer
 {
 public:
-    AudioRendererThread(QFFmpegDecoder *decoder, QAudioOutput *output);
-    ~AudioRendererThread() = default;
+    AudioRenderer(Decoder *decoder, QAudioOutput *output);
+    ~AudioRenderer() = default;
 
 private slots:
     void outputDeviceChanged();
 
 private:
-    void updateOutput();
+    void updateOutput(const Codec *codec);
     void freeOutput();
 
     void init() override;
@@ -430,6 +469,7 @@ private:
     bool deviceChanged = false;
     QAudioOutput *output = nullptr;
 
+//    AVSampleFormat format = AV_SAMPLE_FMT_NONE;
     QAudioSink *audioSink = nullptr;
     QIODevice *audioDevice = nullptr;
     SwrContext *resampler = nullptr;
