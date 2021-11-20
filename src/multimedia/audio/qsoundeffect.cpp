@@ -216,16 +216,16 @@ void QSoundEffectPrivate::setPlaying(bool playing)
     qCDebug(qLcSoundEffect) << this << "setPlaying(" << playing << ")" << m_playing;
     if (m_audioOutput) {
         m_audioOutput->stop();
-        if (playing) {
-            if (!m_sampleReady)
-                return;
-            m_audioOutput->start(this);
-        }
+        if (playing && !m_sampleReady)
+            return;
     }
 
     if (m_playing == playing)
         return;
     m_playing = playing;
+
+    if (m_audioOutput && playing)
+        m_audioOutput->start(this);
 
     emit q_ptr->playingChanged();
 }
