@@ -41,6 +41,8 @@
 #include "qffmpeg_p.h"
 #include "qaudioformat.h"
 
+QT_BEGIN_NAMESPACE
+
 static struct {
     AVCodecID id;
     QMediaFormat::VideoCodec codec;
@@ -57,15 +59,6 @@ static struct {
     { AV_CODEC_ID_WMV3, QMediaFormat::VideoCodec::WMV },
     { AV_CODEC_ID_MJPEG, QMediaFormat::VideoCodec::MotionJPEG }
 };
-
-QMediaFormat::VideoCodec QFFmpegMediaFormatInfo::videoCodecForAVCodecId(AVCodecID id)
-{
-    for (const auto &c : videoCodecMap) {
-        if (c.id == id)
-            return c.codec;
-    }
-    return QMediaFormat::VideoCodec::Unspecified;
-}
 
 static AVCodecID codecId(QMediaFormat::VideoCodec codec)
 {
@@ -92,15 +85,6 @@ static struct {
     { AV_CODEC_ID_WMAPRO, QMediaFormat::AudioCodec::WMA },
     { AV_CODEC_ID_ALAC, QMediaFormat::AudioCodec::ALAC }
 };
-
-QMediaFormat::AudioCodec QFFmpegMediaFormatInfo::audioCodecForAVCodecId(AVCodecID id)
-{
-    for (const auto &c : audioCodecMap) {
-        if (c.id == id)
-            return c.codec;
-    }
-    return QMediaFormat::AudioCodec::Unspecified;
-}
 
 static AVCodecID codecId(QMediaFormat::AudioCodec codec)
 {
@@ -157,8 +141,6 @@ static QMediaFormat::FileFormat formatForAVFormat(AVFormat *format)
     return QMediaFormat::UnspecifiedFormat;
 }
 
-
-QT_BEGIN_NAMESPACE
 
 QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 {
@@ -271,6 +253,63 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 
 QFFmpegMediaFormatInfo::~QFFmpegMediaFormatInfo() = default;
 
+QMediaFormat::AudioCodec QFFmpegMediaFormatInfo::audioCodecForAVCodecId(AVCodecID id)
+{
+    for (const auto &c : audioCodecMap) {
+        if (c.id == id)
+            return c.codec;
+    }
+    return QMediaFormat::AudioCodec::Unspecified;
+}
+
+QMediaFormat::VideoCodec QFFmpegMediaFormatInfo::videoCodecForAVCodecId(AVCodecID id)
+{
+    for (const auto &c : videoCodecMap) {
+        if (c.id == id)
+            return c.codec;
+    }
+    return QMediaFormat::VideoCodec::Unspecified;
+}
+
+QMediaFormat::FileFormat QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(AVInputFormat *format)
+{
+    // Seems like FFmpeg uses different names for muxers and demuxers of the same format.
+    // that makes it somewhat cumbersome to detect things correctly.
+    // The input formats have a comma separated list of short names. We check the first one of those
+    // as the docs specify that you only append to the list
+    static const struct
+    {
+        QMediaFormat::FileFormat fileFormat;
+        const char *name;
+    } map[QMediaFormat::LastFileFormat + 1] = {
+        { QMediaFormat::WMV, "asf" },
+        { QMediaFormat::AVI, "avi" },
+        { QMediaFormat::Matroska, "matroska" },
+        { QMediaFormat::MPEG4, "mov" },
+        { QMediaFormat::Ogg, "ogg" },
+        { QMediaFormat::WebM, "webm" },
+        // Audio Formats
+        // Mpeg4Audio is the same as MP4 without the video codecs
+        { QMediaFormat::AAC, "aac"},
+        // WMA is the same as WMV
+        { QMediaFormat::FLAC, "flac" },
+        { QMediaFormat::MP3, "mp3" },
+        { QMediaFormat::Wave, "wav" },
+        { QMediaFormat::UnspecifiedFormat, nullptr }
+    };
+
+    if (!format->name)
+        return QMediaFormat::UnspecifiedFormat;
+
+    auto *m = map;
+    while (m->fileFormat != QMediaFormat::UnspecifiedFormat) {
+        if (!strncmp(m->name, format->name, strlen(m->name)))
+            return m->fileFormat;
+        ++m;
+    }
+
+    return QMediaFormat::UnspecifiedFormat;
+}
 
 QAudioFormat::SampleFormat QFFmpegMediaFormatInfo::sampleFormat(AVSampleFormat format)
 {
