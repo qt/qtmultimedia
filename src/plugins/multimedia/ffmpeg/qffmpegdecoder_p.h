@@ -81,9 +81,8 @@ inline qint64 timeStamp(qint64 ts, AVRational base)
 struct Packet
 {
     struct Data {
-        Data(AVPacket *p, int s)
+        Data(AVPacket *p)
             : packet(p)
-            , serial(s)
         {}
         ~Data() {
             if (packet)
@@ -91,16 +90,14 @@ struct Packet
         }
         QAtomicInt ref;
         AVPacket *packet = nullptr;
-        qint64 serial = -1;
     };
     Packet() = default;
-    Packet(AVPacket *p, int s)
-        : d(new Data(p, s))
+    Packet(AVPacket *p)
+        : d(new Data(p))
     {}
 
     bool isValid() const { return !!d; }
     AVPacket *avPacket() const { return d->packet; }
-    int serial() const { return d->serial; }
 private:
     QExplicitlySharedDataPointer<Data> d;
 };
@@ -187,7 +184,7 @@ class VideoRenderer;
 class Decoder : public QObject
 {
 public:
-    Decoder(QFFmpegMediaPlayer *p);
+    Decoder(QFFmpegMediaPlayer *p, AVFormatContext *context);
     ~Decoder();
 
     void init();
@@ -198,6 +195,7 @@ public:
     void pause() {
         setPaused(true);
     }
+    void stop();
     void setPaused(bool b);
     void triggerStep();
     void syncClocks();
@@ -209,8 +207,6 @@ public:
     void updateAudio();
 
     void changeTrack(QPlatformMediaPlayer::TrackType type, int index);
-
-    void startDemuxer();
 
     int getDefaultStream(QPlatformMediaPlayer::TrackType type);
 
@@ -225,7 +221,6 @@ public:
     bool paused = true;
 
     Demuxer *demuxer = nullptr;
-    QAtomicInteger<qint64> seek_pos = -1;
 
     AVFormatContext *context = nullptr;
     int m_currentStream[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
@@ -289,6 +284,19 @@ public:
     StreamDecoder *addStream(int streamIndex, QRhi *rhi = nullptr);
     void removeStream(int streamIndex);
 
+    bool isStopped() const
+    {
+        return m_isStopped.loadRelaxed();
+    }
+    void startDecoding()
+    {
+        m_isStopped.storeRelaxed(false);
+        wake();
+    }
+    void stopDecoding();
+
+    int seek(qint64 pos);
+
 private:
     void updateEnabledStreams();
 
@@ -297,17 +305,11 @@ private:
     bool shouldWait() const override;
     void loop() override;
 
-    void doSeek(qint64 pos, qint64 offset);
-
     Decoder *decoder;
-    // serial increases when we have a discontinuity in the stream, so that the decoders
-    // can be flushed and intermediate frames discarded. This usually happens when seeking.
-    int serial = 0;
-
-    qint64 seekPos = -1;
-    qint64 seekOffset = 0;
-
     QList<StreamDecoder *> streamDecoders;
+
+    QAtomicInteger<bool> m_isStopped = false;
+    qint64 last_pts = -1;
 };
 
 
@@ -315,8 +317,7 @@ class StreamDecoder : public Thread
 {
 protected:
     Decoder *decoder = nullptr;
-    Renderer *renderer = nullptr;
-    int serial = 0;
+    Renderer *m_renderer = nullptr;
 
     struct PacketQueue {
         mutable QMutex mutex;
@@ -336,7 +337,7 @@ protected:
 public:
     StreamDecoder(Decoder *decoder, const Codec &codec);
 
-    void addPacket(AVPacket *packet, int serial);
+    void addPacket(AVPacket *packet);
 
     qint64 queuedPacketSize() const {
         QMutexLocker locker(&packetQueue.mutex);
@@ -358,6 +359,7 @@ public:
     Codec codec;
 
     void setRenderer(Renderer *r);
+    Renderer *renderer() const { return m_renderer; }
 
 private:
     Packet takePacket();
@@ -424,6 +426,7 @@ public:
 
     void kill() override;
 
+    virtual void streamChanged() {}
 
 protected:
     bool shouldWait() const override;
@@ -465,6 +468,7 @@ private:
     void init() override;
     void cleanup() override;
     void loop() override;
+    void streamChanged() override;
 
     bool deviceChanged = false;
     QAudioOutput *output = nullptr;

@@ -105,12 +105,15 @@ public:
 private:
     friend class QFFmpeg::Decoder;
 
-    QFFmpeg::Decoder *decoder;
-    void closeContext();
+    QFFmpeg::Decoder *decoder = nullptr;
     void checkStreams();
+
+    QPlatformAudioOutput *m_audioOutput = nullptr;
+    QVideoSink *m_videoSink = nullptr;
 
     struct StreamInfo {
         int avStreamIndex = -1;
+        bool isDefault = false;
         QMediaMetaData metaData;
     };
 
