@@ -706,21 +706,21 @@ void VideoRenderer::loop()
     else
         nextFrameTime = startTime + duration;
     streamDecoder->unlockAndReleaseFrame();
+    nextFrameTime = qRound((nextFrameTime - pts_base)/playbackRate);
 //    qCDebug(qLcVideoRenderer) << "    calculating next frame time" << nextFrame << nextFrameTime << startTime << duration
 //             << pts_base << decoder->baseTimer.elapsed();
-    timeOut = nextFrameTime - (decoder->baseTimer.elapsed() + pts_base);
+    timeOut = nextFrameTime - decoder->baseTimer.elapsed();
     if (timeOut < 0)
         timeOut = -1;
 //    qDebug() << "    next video frame in" << timeOut << startTime;
-    decoder->currentTime = startTime;
-    decoder->player->positionChanged(startTime);
+    decoder->updateCurrentTime(startTime, QPlatformMediaPlayer::VideoStream);
 }
 
 AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
     : Renderer(decoder, QPlatformMediaPlayer::AudioStream)
     , output(output)
 {
-    connect(output, &QAudioOutput::deviceChanged, this, &AudioRenderer::outputDeviceChanged);
+    connect(output, &QAudioOutput::deviceChanged, this, &AudioRenderer::updateAudio);
 }
 
 void AudioRenderer::updateOutput(const Codec *codec)
@@ -730,11 +730,17 @@ void AudioRenderer::updateOutput(const Codec *codec)
 
     AVStream *audioStream = codec->stream();
 
-    QAudioFormat format;
     format.setSampleFormat(QFFmpegMediaFormatInfo::sampleFormat(AVSampleFormat(audioStream->codecpar->format)));
     format.setSampleRate(audioStream->codecpar->sample_rate);
     format.setChannelCount(2); // #### FIXME
     // ### add channel layout
+
+    if (playbackRate < 0.5 || playbackRate > 2) {
+        audioMuted = true;
+        return;
+    }
+    audioMuted = false;
+
     qCDebug(qLcAudioRenderer) << "creating new audio sink with format" << format;
     audioSink = new QAudioSink(output->device(), format);
     audioDevice = audioSink->start();
@@ -743,18 +749,20 @@ void AudioRenderer::updateOutput(const Codec *codec)
     // init resampling if needed
     AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
     if (requiredFormat == audioStream->codecpar->format &&
-        audioStream->codecpar->channels == 2)
+        audioStream->codecpar->channels == 2 &&
+        playbackRate == 1.)
         return;
     qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat << audioStream->codecpar->channels;
     resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
                                    AV_CH_LAYOUT_STEREO,  // out_ch_layout
                                    requiredFormat,    // out_sample_fmt
-                                   audioStream->codecpar->sample_rate,                // out_sample_rate
+                                   outputSamples(audioStream->codecpar->sample_rate),                // out_sample_rate
                                    audioStream->codecpar->channel_layout, // in_ch_layout
                                    AVSampleFormat(audioStream->codecpar->format),   // in_sample_fmt
                                    audioStream->codecpar->sample_rate,                // in_sample_rate
                                    0,                    // log_offset
                                    nullptr);
+//    qDebug() << "setting up resampler, input rate" << audioStream->codecpar->sample_rate << "output rate:" << outputSamples(audioStream->codecpar->sample_rate);
     swr_init(resampler);
 }
 
@@ -769,6 +777,7 @@ void AudioRenderer::freeOutput()
         swr_free(&resampler);
         resampler = nullptr;
     }
+    audioMuted = false;
 }
 
 void AudioRenderer::init()
@@ -799,55 +808,66 @@ void AudioRenderer::loop()
         return;
     }
 
-    if (!audioSink)
+    if (!audioSink && !audioMuted)
         updateOutput(frame.codec());
 
     qint64 pts_base = decoder->pts_base.loadRelaxed();
     qint64 startTime = frame.pts();
-    if (!audioSink || startTime < pts_base) {
-//        qCDebug(qLcAudioRenderer) << "    audio frame to early, discarding";
+    if (startTime < pts_base)
         return;
-    }
 
-    QAudioFormat format = audioSink->format();
-    qint64 duration = format.durationForBytes(frame.avFrame()->linesize[0]);
-    qCDebug(qLcAudioRenderer) << "sending" << frame.avFrame()->linesize[0] << "bytes to audio sink, startTime/duration=" << startTime << duration;
-    if (!paused) {
-        if (!resampler) {
-            audioDevice->write((char *)frame.avFrame()->data[0], frame.avFrame()->linesize[0]);
-        } else {
-             uint8_t *output;
-             av_samples_alloc(&output, nullptr, 2, frame.avFrame()->nb_samples,
-                              QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat()), 0);
-             const uint8_t **in = (const uint8_t **)frame.avFrame()->extended_data;
-             int out_samples = swr_convert(resampler, &output, frame.avFrame()->nb_samples,
-                                           in, frame.avFrame()->nb_samples);
-             int size = av_samples_get_buffer_size(nullptr, 2, out_samples,
-                                                   QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat()), 0);
-             audioDevice->write((char *)output, size);
-             av_freep(&output);
+    int size = frame.avFrame()->linesize[0];
+    qint64 duration = format.durationForBytes(size);
+    if (!audioMuted) {
+        if (!paused) {
+            if (!resampler) {
+                audioDevice->write((char *)frame.avFrame()->data[0], size);
+            } else {
+                uint8_t *output;
+                int outSamples = outputSamples(frame.avFrame()->nb_samples);
+                av_samples_alloc(&output, nullptr, 2, outSamples,
+                                 QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat()), 0);
+                const uint8_t **in = (const uint8_t **)frame.avFrame()->extended_data;
+                int out_samples = swr_convert(resampler, &output, outSamples,
+                                              in, frame.avFrame()->nb_samples);
+                size = av_samples_get_buffer_size(nullptr, 2, out_samples,
+                                                  QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat()), 0);
+                audioDevice->write((char *)output, size);
+                av_freep(&output);
+            }
         }
     }
+    qCDebug(qLcAudioRenderer) << "sending" << size << "bytes to audio sink (was:" << frame.avFrame()->linesize[0] << "), startTime/duration=" << startTime << duration;
 
     const Frame *nextFrame = streamDecoder->lockAndPeekFrame();
     qint64 nextFrameTime = startTime + duration/1000;
     if (nextFrame)
         nextFrameTime = nextFrame->pts();
     streamDecoder->unlockAndReleaseFrame();
-    // always write 40ms ahead
-    timeOut = nextFrameTime - 80 - (decoder->baseTimer.elapsed() + pts_base);
+//    qDebug() << "    unscaled frame time/pts_base" << nextFrameTime << pts_base;
+    nextFrameTime = qRound((nextFrameTime - pts_base)/playbackRate);
+    // always write 80ms ahead
+    timeOut = nextFrameTime - 80 - decoder->baseTimer.elapsed();
     if (timeOut < 0)
         timeOut = -1;
-//    qCDebug(qLcAudioRenderer) << "next audio frame at" << nextFrameTime << "sleeping" << timeOut << "ms. pts_base=" << pts_base
-    //             << "base time" << decoder->baseTimer.elapsed();
+    qCDebug(qLcAudioRenderer) << "next audio frame at" << nextFrameTime << "sleeping" << timeOut << "ms. pts_base=" << pts_base
+                 << "base time" << decoder->baseTimer.elapsed();
+    decoder->updateCurrentTime(startTime, QPlatformMediaPlayer::AudioStream);
 }
 
 void AudioRenderer::streamChanged()
 {
-    freeOutput();
+    // mutex is already locked
+    deviceChanged = true;
 }
 
-void AudioRenderer::outputDeviceChanged()
+void AudioRenderer::playbackRateChanged()
+{
+    // mutex is already locked
+    deviceChanged = true;
+}
+
+void AudioRenderer::updateAudio()
 {
     QMutexLocker locker(&mutex);
     deviceChanged = true;
@@ -909,7 +929,6 @@ void Decoder::setPaused(bool b)
             videoRenderer->pause();
         qDebug() << "Done: setPaused" << b;
     } else {
-        pts_base = currentTime;
         syncClocks();
         if (audioRenderer)
             audioRenderer->unPause();
@@ -928,6 +947,7 @@ void Decoder::triggerStep()
 void Decoder::syncClocks()
 {
     qCDebug(qLcDecoder) << "syncing clocks";
+    pts_base = currentTime;
     baseTimer.restart();
 }
 
@@ -1052,19 +1072,36 @@ int Decoder::getDefaultStream(QPlatformMediaPlayer::TrackType type)
 
 void Decoder::seek(qint64 pos)
 {
-    QElapsedTimer timer;
-    timer.start();
     QMutexLocker locker(&mutex);
     currentTime = demuxer->seek(pos);
-    pts_base = currentTime;
-    player->positionChanged(currentTime);
-    qDebug() << ">>>>>> seeking to pos (1)" << pos << "took" << timer.elapsed() << currentTime;
-//    currentTime = pos;
-//    pts_base = pos;
     syncClocks();
+    player->positionChanged(currentTime);
     demuxer->wake();
     triggerStep();
-    qDebug() << ">>>>>> seeking to pos (2)" << pos << "took" << timer.elapsed();
+}
+
+void Decoder::setPlaybackRate(float rate)
+{
+    bool p = paused;
+    if (!paused)
+        setPaused(true);
+    playbackRate = rate;
+    if (audioRenderer)
+        audioRenderer->setPlaybackRate(rate);
+    if (videoRenderer)
+        videoRenderer->setPlaybackRate(rate);
+    syncClocks();
+    if (!p)
+        setPaused(false);
+}
+
+void Decoder::updateCurrentTime(qint64 time, QPlatformMediaPlayer::TrackType source)
+{
+    QMutexLocker locker(&mutex);
+    if (source == QPlatformMediaPlayer::VideoStream && audioRenderer)
+        return;
+    currentTime = time;
+    player->positionChanged(currentTime);
 }
 
 QT_END_NAMESPACE

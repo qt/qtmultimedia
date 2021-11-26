@@ -124,6 +124,7 @@ private:
     QIODevice *m_device = nullptr;
     qint64 m_duration = 0;
     QMediaMetaData m_metaData;
+    float m_playbackRate = 1.;
 };
 
 QT_END_NAMESPACE

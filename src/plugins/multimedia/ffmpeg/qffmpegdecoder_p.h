@@ -211,6 +211,9 @@ public:
     int getDefaultStream(QPlatformMediaPlayer::TrackType type);
 
     void seek(qint64 pos);
+    void setPlaybackRate(float rate);
+
+    void updateCurrentTime(qint64 time, QPlatformMediaPlayer::TrackType source);
 
 public:
     QFFmpegMediaPlayer *player = nullptr;
@@ -234,6 +237,7 @@ public:
     QElapsedTimer baseTimer;
     QAtomicInteger<qint64> pts_base = 0;
     QAtomicInteger<qint64> currentTime = 0;
+    float playbackRate = 1.;
 
     bool playing = false;
 };
@@ -406,6 +410,7 @@ protected:
     mutable bool step = false;
     bool paused = false;
     StreamDecoder *streamDecoder = nullptr;
+    float playbackRate = 1.;
 
 public:
     Renderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type);
@@ -433,6 +438,13 @@ public:
         step = false;
     }
 
+    void setPlaybackRate(float r)
+    {
+        QMutexLocker locker(&mutex);
+        playbackRate = r;
+        playbackRateChanged();
+    }
+
     void setStream(StreamDecoder *stream);
 
     void kill() override;
@@ -441,6 +453,7 @@ public:
 
 protected:
     bool shouldWait() const override;
+    virtual void playbackRateChanged() {}
 
 public:
 };
@@ -469,7 +482,7 @@ public:
     ~AudioRenderer() = default;
 
 private slots:
-    void outputDeviceChanged();
+    void updateAudio();
 
 private:
     void updateOutput(const Codec *codec);
@@ -479,11 +492,17 @@ private:
     void cleanup() override;
     void loop() override;
     void streamChanged() override;
+    void playbackRateChanged() override;
+
+    int outputSamples(int inputSamples) {
+        return qRound(inputSamples/playbackRate);
+    }
 
     bool deviceChanged = false;
     QAudioOutput *output = nullptr;
+    bool audioMuted = false;
 
-//    AVSampleFormat format = AV_SAMPLE_FMT_NONE;
+    QAudioFormat format;
     QAudioSink *audioSink = nullptr;
     QIODevice *audioDevice = nullptr;
     SwrContext *resampler = nullptr;

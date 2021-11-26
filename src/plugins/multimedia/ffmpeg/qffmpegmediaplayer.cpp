@@ -102,12 +102,16 @@ QMediaTimeRange QFFmpegMediaPlayer::availablePlaybackRanges() const
 
 qreal QFFmpegMediaPlayer::playbackRate() const
 {
-    return 1;
+    return m_playbackRate;
 }
 
 void QFFmpegMediaPlayer::setPlaybackRate(qreal rate)
 {
-    Q_UNUSED(rate);
+    if (m_playbackRate == rate)
+        return;
+    m_playbackRate = rate;
+    if (decoder)
+        decoder->setPlaybackRate(rate);
 }
 
 QUrl QFFmpegMediaPlayer::media() const
