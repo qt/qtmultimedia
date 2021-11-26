@@ -95,10 +95,9 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
 {
     QObject::connect(this, SIGNAL(sessionEvent(IMFMediaEvent*)), this, SLOT(handleSessionEvent(IMFMediaEvent*)));
 
-    m_signalPositionChangeTimer.setInterval(100);
-    m_signalPositionChangeTimer.callOnTimeout([this](){
-        positionChanged(position());
-    });
+    m_signalPositionChangeTimer.setInterval(10);
+    m_signalPositionChangeTimer.setTimerType(Qt::PreciseTimer);
+    m_signalPositionChangeTimer.callOnTimeout(this, &MFPlayerSession::timeout);
 
     m_pendingState = NoPending;
     ZeroMemory(&m_state, sizeof(m_state));
@@ -112,6 +111,25 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
 
     m_audioSampleGrabber = new AudioSampleGrabberCallback;
     m_videoRendererControl = new MFVideoRendererControl;
+}
+
+void MFPlayerSession::timeout()
+{
+    const qint64 pos = position();
+    const bool updatePos = m_timeCounter++ % 10 == 0;
+    if (pos >= qint64(m_duration / 10000 - 20)) {
+        if (m_playerControl->doLoop()) {
+            m_session->Pause();
+            setPosition(0);
+            positionChanged(0);
+        } else {
+            if (updatePos)
+                positionChanged(pos);
+        }
+    } else {
+        if (updatePos)
+            positionChanged(pos);
+    }
 }
 
 void MFPlayerSession::close()

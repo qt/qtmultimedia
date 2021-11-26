@@ -157,6 +157,7 @@ private Q_SLOTS:
     void handleSessionEvent(IMFMediaEvent *sessionEvent);
     void handleSourceError(long hr);
     void updateOutputRouting();
+    void timeout();
 
 private:
     long m_cRef;
@@ -170,6 +171,7 @@ private:
     IPropertyStore *m_netsourceStatistics;
     qint64 m_position = 0;
     qint64 m_restorePosition = -1;
+    qint64 m_timeCounter = 0;
     UINT64 m_duration = 0;
     bool m_updatingTopology = false;
 
