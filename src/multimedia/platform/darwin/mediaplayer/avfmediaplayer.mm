@@ -941,6 +941,7 @@ void AVFMediaPlayer::audioOutputChanged()
 void AVFMediaPlayer::processEOS()
 {
     if (doLoop()) {
+        setPosition(0);
         [[static_cast<AVFMediaPlayerObserver*>(m_observer) player] setRate:m_rate];
         return;
     }

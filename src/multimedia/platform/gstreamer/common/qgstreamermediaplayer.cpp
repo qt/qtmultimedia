@@ -295,8 +295,10 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         return false;
     }
     case GST_MESSAGE_EOS:
-        if (doLoop())
+        if (doLoop()) {
+            setPosition(0);
             break;
+        }
         stopOrEOS(true);
         break;
     case GST_MESSAGE_BUFFERING: {

@@ -143,13 +143,7 @@ public:
 
     void resetCurrentLoop() { m_currentLoop = 0; }
     bool doLoop() {
-        if (!isSeekable())
-            return false;
-        if (m_loops < 0 || ++m_currentLoop < m_loops) {
-            setPosition(0);
-            return true;
-        }
-        return false;
+        return isSeekable() && (m_loops < 0 || ++m_currentLoop < m_loops);
     }
     int loops() { return m_loops; }
     void setLoops(int loops) {

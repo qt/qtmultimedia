@@ -618,6 +618,7 @@ void QAndroidMediaPlayer::onStateChanged(qint32 state)
         break;
     case AndroidMediaPlayer::PlaybackCompleted:
         if (doLoop()) {
+            setPosition(0);
             mMediaPlayer->play();
             break;
         }
