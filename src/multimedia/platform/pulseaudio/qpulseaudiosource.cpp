@@ -316,6 +316,7 @@ bool QPulseAudioSource::open()
     else
         buffer_attr.fragsize = (uint32_t) m_periodSize;
 
+    flags |= PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_INTERPOLATE_TIMING;
     if (pa_stream_connect_record(m_stream, m_device.data(), &buffer_attr, (pa_stream_flags_t)flags) < 0) {
         qWarning() << "pa_stream_connect_record() failed!";
         pa_stream_unref(m_stream);
@@ -546,10 +547,12 @@ qsizetype QPulseAudioSource::bufferSize() const
 
 qint64 QPulseAudioSource::processedUSecs() const
 {
-    pa_sample_spec spec = QPulseAudioInternal::audioFormatToSampleSpec(m_format);
-    qint64 result = pa_bytes_to_usec(m_totalTimeValue, &spec);
+    pa_usec_t usecs = 0;
+    int result = pa_stream_get_time(m_stream, &usecs);
+    if (result != 0)
+        qWarning() << "no timing info from pulse";
 
-    return result;
+    return usecs;
 }
 
 void QPulseAudioSource::suspend()
