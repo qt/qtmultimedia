@@ -417,7 +417,6 @@ public:
 
     void pause() {
         QMutexLocker locker(&mutex);
-        qDebug() << "XXX" << this << "request pause";
         paused = true;
     }
     void unPause() {
@@ -481,6 +480,8 @@ public:
     AudioRenderer(Decoder *decoder, QAudioOutput *output);
     ~AudioRenderer() = default;
 
+    void syncClock();
+
 private slots:
     void updateAudio();
 
@@ -501,11 +502,18 @@ private:
     bool deviceChanged = false;
     QAudioOutput *output = nullptr;
     bool audioMuted = false;
+    qint64 baseTime = 0;
+    qint64 processedUSecs = 0;
+    qint64 writtenUSecs = 0;
+    qint64 latencyUSecs = 0;
+    QElapsedTimer elapsed; // used when muted
 
     QAudioFormat format;
     QAudioSink *audioSink = nullptr;
     QIODevice *audioDevice = nullptr;
     SwrContext *resampler = nullptr;
+    QByteArray bufferedData;
+    qsizetype bufferWritten = 0;
 };
 
 }
