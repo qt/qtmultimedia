@@ -453,7 +453,11 @@ void StreamDecoder::decode()
     int res = avcodec_receive_frame(codec.context(), frame);
 
     if (res >= 0) {
-        qint64 pts = codec.toMs(frame->pts);
+        qint64 pts;
+        if (frame->pts != AV_NOPTS_VALUE)
+            pts = codec.toMs(frame->pts);
+        else
+            pts = codec.toMs(frame->best_effort_timestamp);
 //        qCDebug(qLcDecoder) << "received frame" << type << timeStamp(frame->pts, stream->time_base) << seek;
         if (pts < decoder->pts_base.loadRelaxed()) {
             // too early, discard
@@ -650,12 +654,11 @@ void VideoRenderer::loop()
 //        qDebug() << "no valid frame" << timer.elapsed();
         return;
     }
-    qCDebug(qLcVideoRenderer) << "waiting for video frame" << sink;
+    qCDebug(qLcVideoRenderer) << "received video frame" << frame.pts() << decoder->pts_base.loadRelaxed();
     qint64 pts_base = decoder->pts_base.loadRelaxed();
-    if (frame.avFrame()->pts < pts_base)
+    if (frame.pts() < pts_base)
         return;
 
-    qCDebug(qLcVideoRenderer) << "received video frame";
 
     AVStream *stream = frame.codec()->stream();
     qint64 startTime = frame.pts();
