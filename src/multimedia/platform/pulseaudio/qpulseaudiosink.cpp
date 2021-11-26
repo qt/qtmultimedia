@@ -60,6 +60,7 @@ static void  outputStreamWriteCallback(pa_stream *stream, size_t length, void *u
     Q_UNUSED(stream);
     Q_UNUSED(length);
     Q_UNUSED(userdata);
+//    qDebug() << "write callback!" << length;
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
@@ -89,6 +90,7 @@ static void outputStreamStateCallback(pa_stream *stream, void *userdata)
 static void outputStreamUnderflowCallback(pa_stream *stream, void *userdata)
 {
     Q_UNUSED(stream);
+//    qWarning() << "Got a buffer underflow!";
     ((QPulseAudioSink*)userdata)->streamUnderflowCallback();
 }
 
@@ -107,6 +109,7 @@ static void outputStreamLatencyCallback(pa_stream *stream, void *userdata)
 #ifdef DEBUG_PULSE
     const pa_timing_info *info = pa_stream_get_timing_info(stream);
 
+    qDebug() << "Latency callback:";
     qDebug() << "Write index corrupt: " << info->write_index_corrupt;
     qDebug() << "Write index: " << info->write_index;
     qDebug() << "Read index corrupt: " << info->read_index_corrupt;
@@ -367,7 +370,8 @@ bool QPulseAudioSink::open()
     requestedBuffer.prebuf = (uint32_t)-1;
     requestedBuffer.tlength = m_bufferSize;
 
-    if (pa_stream_connect_playback(m_stream, m_device.data(), (m_bufferSize > 0) ? &requestedBuffer : nullptr, (pa_stream_flags_t)0, nullptr, nullptr) < 0) {
+    pa_stream_flags flags = (pa_stream_flags)(PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_ADJUST_LATENCY);
+    if (pa_stream_connect_playback(m_stream, m_device.data(), (m_bufferSize > 0) ? &requestedBuffer : nullptr, flags, nullptr, nullptr) < 0) {
         qWarning() << "pa_stream_connect_playback() failed!";
         pa_stream_unref(m_stream);
         m_stream = nullptr;
@@ -578,9 +582,17 @@ qsizetype QPulseAudioSink::bufferSize() const
 
 qint64 QPulseAudioSink::processedUSecs() const
 {
-    qint64 result = qint64(1000000) * m_totalTimeValue / m_format.bytesPerFrame() / m_format.sampleRate();
+    pa_usec_t usecs = 0;
+    int result = pa_stream_get_time(m_stream, &usecs);
+    if (result != 0)
+        qWarning() << "no timing info from pulse";
+//    auto info = pa_stream_get_timing_info(m_stream);
+//    qDebug() << "  PA: " << usecs << "timestamp" << info->timestamp.tv_sec << info->timestamp.tv_usec
+//             << "sink_usec" << info->sink_usec
+//             << "write" << pa_bytes_to_usec(info->write_index, &m_spec)
+//             << "read" << pa_bytes_to_usec(info->read_index, &m_spec);
 
-    return result;
+    return usecs;
 }
 
 void QPulseAudioSink::resume()
