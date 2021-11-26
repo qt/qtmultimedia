@@ -291,6 +291,7 @@ public:
     void startDecoding()
     {
         m_isStopped.storeRelaxed(false);
+        updateEnabledStreams();
         wake();
     }
     void stopDecoding();
@@ -348,9 +349,19 @@ public:
         return packetQueue.duration;
     }
 
-    const Frame *peekFrame() {
-        QMutexLocker locker(&frameQueue.mutex);
+    const Frame *lockAndPeekFrame()
+    {
+        frameQueue.mutex.lock();
         return frameQueue.queue.isEmpty() ? nullptr : &frameQueue.queue.first();
+    }
+    void removePeekedFrame()
+    {
+        frameQueue.queue.takeFirst();
+        wake();
+    }
+    void unlockAndReleaseFrame()
+    {
+        frameQueue.mutex.unlock();
     }
     Frame takeFrame();
 
@@ -449,7 +460,6 @@ private:
     void loop() override;
 
     QVideoSink *sink;
-    Frame currentSubtitle;
 };
 
 class AudioRenderer : public Renderer

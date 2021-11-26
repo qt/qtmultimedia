@@ -244,6 +244,8 @@ int Demuxer::seek(qint64 pos)
 
 void Demuxer::updateEnabledStreams()
 {
+    if (isStopped())
+        return;
     for (uint i = 0; i < decoder->context->nb_streams; ++i) {
         AVDiscard discard = AVDISCARD_DEFAULT;
         if (!streamDecoders.at(i))
@@ -537,8 +539,8 @@ void StreamDecoder::decodeSubtitle()
         if (text.endsWith(QLatin1Char('\n')))
             text.chop(1);
 
-        //        qCDebug(qLcDecoder) << "    >>> subtitle adding" << text << start << end;
-        Frame sub{text, start, end};
+//        qCDebug(qLcDecoder) << "    >>> subtitle adding" << text << start << end;
+        Frame sub{text, start, end - start};
         addFrame(sub);
     }
 }
@@ -625,7 +627,6 @@ void VideoRenderer::setSubtitleStream(StreamDecoder *stream)
     if (subtitleStreamDecoder)
         subtitleStreamDecoder->setRenderer(nullptr);
     subtitleStreamDecoder = stream;
-    currentSubtitle = {};
     if (subtitleStreamDecoder)
         subtitleStreamDecoder->setRenderer(this);
     wake();
@@ -638,8 +639,6 @@ void VideoRenderer::init()
 
 void VideoRenderer::loop()
 {
-    QElapsedTimer timer;
-    timer.start();
     if (!streamDecoder) {
         timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
         return;
@@ -651,13 +650,10 @@ void VideoRenderer::loop()
 //        qDebug() << "no valid frame" << timer.elapsed();
         return;
     }
-    qDebug() << "startLoop";
     qCDebug(qLcVideoRenderer) << "waiting for video frame" << sink;
     qint64 pts_base = decoder->pts_base.loadRelaxed();
-    if (frame.avFrame()->pts < pts_base) {
-        qDebug() << "frame to early" << timer.elapsed();
+    if (frame.avFrame()->pts < pts_base)
         return;
-    }
 
     qCDebug(qLcVideoRenderer) << "received video frame";
 
@@ -673,43 +669,46 @@ void VideoRenderer::loop()
         QVideoFrame videoFrame(buffer, format);
         videoFrame.setStartTime(startTime);
         videoFrame.setEndTime(startTime + duration);
-        qDebug() << "Creating video frame" << startTime << (startTime + duration) << subtitleStreamDecoder;
+//        qDebug() << "Creating video frame" << startTime << (startTime + duration) << subtitleStreamDecoder;
 
         // add in subtitles
-        if (!currentSubtitle.isValid() && subtitleStreamDecoder)
-            currentSubtitle = subtitleStreamDecoder->takeFrame();
+        const Frame *currentSubtitle = nullptr;
+        if (subtitleStreamDecoder)
+            currentSubtitle = subtitleStreamDecoder->lockAndPeekFrame();
 
-        if (currentSubtitle.isValid()) {
-            qDebug() << "frame: subtitle" << currentSubtitle.text() << currentSubtitle.pts() << currentSubtitle.duration();
-            qCDebug(qLcVideoRenderer) << "    " << currentSubtitle.pts() << currentSubtitle.duration() << currentSubtitle.text();
-            if (currentSubtitle.pts() <= startTime && currentSubtitle.end() > startTime) {
+        if (currentSubtitle && currentSubtitle->isValid()) {
+//            qDebug() << "frame: subtitle" << currentSubtitle->text() << currentSubtitle->pts() << currentSubtitle->duration();
+            qCDebug(qLcVideoRenderer) << "    " << currentSubtitle->pts() << currentSubtitle->duration() << currentSubtitle->text();
+            if (currentSubtitle->pts() <= startTime && currentSubtitle->end() > startTime) {
 //                qCDebug(qLcVideoRenderer) << "        setting text";
-                sink->setSubtitleText(currentSubtitle.text());
+                sink->setSubtitleText(currentSubtitle->text());
             }
-            if (currentSubtitle.end() < startTime) {
+            if (currentSubtitle->end() < startTime) {
 //                qCDebug(qLcVideoRenderer) << "        removing subtitle item";
-                currentSubtitle = {};
                 sink->setSubtitleText({});
+                subtitleStreamDecoder->removePeekedFrame();
             }
         }
+        if (subtitleStreamDecoder)
+            subtitleStreamDecoder->unlockAndReleaseFrame();
 
 //        qCDebug(qLcVideoRenderer) << "    sending a video frame" << startTime << duration << decoder->baseTimer.elapsed();
         sink->setVideoFrame(videoFrame);
         doneStep();
     }
-    const Frame *nextFrame = streamDecoder->peekFrame();
+    const Frame *nextFrame = streamDecoder->lockAndPeekFrame();
     qint64 nextFrameTime = 0;
     if (nextFrame)
         nextFrameTime = nextFrame->pts();
     else
         nextFrameTime = startTime + duration;
+    streamDecoder->unlockAndReleaseFrame();
 //    qCDebug(qLcVideoRenderer) << "    calculating next frame time" << nextFrame << nextFrameTime << startTime << duration
 //             << pts_base << decoder->baseTimer.elapsed();
     timeOut = nextFrameTime - (decoder->baseTimer.elapsed() + pts_base);
     if (timeOut < 0)
         timeOut = -1;
-    qDebug() << "    next video frame in" << timeOut << startTime;
-    qDebug() << "endLoop: elapsed" << timer.elapsed();
+//    qDebug() << "    next video frame in" << timeOut << startTime;
     decoder->currentTime = startTime;
     decoder->player->positionChanged(startTime);
 }
@@ -827,10 +826,11 @@ void AudioRenderer::loop()
         }
     }
 
-    const Frame *nextFrame = streamDecoder->peekFrame();
+    const Frame *nextFrame = streamDecoder->lockAndPeekFrame();
     qint64 nextFrameTime = startTime + duration/1000;
     if (nextFrame)
         nextFrameTime = nextFrame->pts();
+    streamDecoder->unlockAndReleaseFrame();
     // always write 40ms ahead
     timeOut = nextFrameTime - 80 - (decoder->baseTimer.elapsed() + pts_base);
     if (timeOut < 0)
@@ -987,7 +987,7 @@ void Decoder::updateAudio()
 void Decoder::changeTrack(QPlatformMediaPlayer::TrackType type, int streamIndex)
 {
     int oldIndex = m_currentStream[type];
-    qDebug() << ">>>>> change track" << type << "from" << oldIndex << "to" << streamIndex;
+    qDebug() << ">>>>> change track" << type << "from" << oldIndex << "to" << streamIndex << currentTime;
     m_currentStream[type] = streamIndex;
     if (!demuxer)
         return;

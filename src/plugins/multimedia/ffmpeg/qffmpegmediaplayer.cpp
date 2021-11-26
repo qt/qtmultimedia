@@ -321,6 +321,7 @@ void QFFmpegMediaPlayer::checkStreams()
         insertVideoData(m_metaData, defaultVideoStream);
     if (defaultAudioStream)
         insertAudioData(m_metaData, defaultAudioStream);
+    m_requestedStreams[QPlatformMediaPlayer::SubtitleStream] = -1;
 
     tracksChanged();
 
