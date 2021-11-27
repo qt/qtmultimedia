@@ -2,7 +2,6 @@
     <qresource prefix="/qtmultimediaquicktools">
         <file>shaders/rgba.vert.qsb</file>
         <file>shaders/rgba.frag.qsb</file>
-        <file>shaders/bgra.frag.qsb</file>
         <file>shaders/yuv.vert.qsb</file>
         <file>shaders/yuv_yv.frag.qsb</file>
         <file>shaders/nv12.frag.qsb</file>
