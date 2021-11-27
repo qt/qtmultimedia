@@ -78,19 +78,19 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     // Format_BGRA8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_BGRA8888_Premultiplied
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_BGRX8888
     { 1, 4,
         [](int stride, int height) { return stride*height; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_ABGR8888
@@ -285,15 +285,14 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
     case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
     case QVideoFrameFormat::Format_XRGB8888:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/argb.frag.qsb");
-    case QVideoFrameFormat::Format_BGRA8888:
-    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
-    case QVideoFrameFormat::Format_BGRX8888:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/bgra.frag.qsb");
     case QVideoFrameFormat::Format_ABGR8888:
     case QVideoFrameFormat::Format_XBGR8888:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/abgr.frag.qsb");
     case QVideoFrameFormat::Format_RGBA8888:
     case QVideoFrameFormat::Format_RGBX8888:
+    case QVideoFrameFormat::Format_BGRA8888:
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+    case QVideoFrameFormat::Format_BGRX8888:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/rgba.frag.qsb");
     case QVideoFrameFormat::Format_YUV420P:
     case QVideoFrameFormat::Format_YUV422P:

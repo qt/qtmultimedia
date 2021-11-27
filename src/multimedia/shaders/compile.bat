@@ -39,7 +39,6 @@
 
 qsb -b --glsl "150,120,100 es" --hlsl 50 --msl 12 -o rgba.vert.qsb rgba.vert
 qsb --glsl "150,120,100 es" --hlsl 50 --msl 12 -o rgba.frag.qsb rgba.frag
-qsb --glsl "150,120,100 es" --hlsl 50 --msl 12 -o bgra.frag.qsb bgra.frag
 
 qsb -b --glsl "150,120,100 es" --hlsl 50 --msl 12 -o yuv.vert.qsb yuv.vert
 qsb --glsl "150,120,100 es" --hlsl 50 --msl 12 -o yuv_yv.frag.qsb yuv_yv.frag
