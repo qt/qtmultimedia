@@ -556,7 +556,7 @@ EVRCustomPresenter::EVRCustomPresenter(QVideoSink *sink)
     , m_prerolled(false)
     , m_endStreaming(false)
     , m_playbackRate(1.0f)
-    , m_presentEngine(new D3DPresentEngine)
+    , m_presentEngine(new D3DPresentEngine(sink))
     , m_clock(0)
     , m_mixer(0)
     , m_mediaEventSink(0)
@@ -1026,21 +1026,15 @@ void EVRCustomPresenter::supportedFormatsChanged()
     const std::lock_guard<QRecursiveMutex> locker(m_mutex);
 
     m_canRenderToSurface = false;
-    m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, false);
 
     // check if we can render to the surface (compatible formats)
     if (m_videoSink) {
-        if (m_presentEngine->supportsTextureRendering() && m_videoSink->rhi() && m_videoSink->rhi()->backend() == QRhi::OpenGLES2) {
-            m_presentEngine->setHint(D3DPresentEngine::RenderToTexture, true);
-            m_canRenderToSurface = true;
-        } else {
-            for (int f = 0; f < QVideoFrameFormat::NPixelFormats; ++f) {
-                // ### set a better preference order
-                QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::PixelFormat(f);
-                if (SUCCEEDED(m_presentEngine->checkFormat(qt_evr_D3DFormatFromPixelFormat(format)))) {
-                    m_canRenderToSurface = true;
-                    break;
-                }
+        for (int f = 0; f < QVideoFrameFormat::NPixelFormats; ++f) {
+            // ### set a better preference order
+            QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::PixelFormat(f);
+            if (SUCCEEDED(m_presentEngine->checkFormat(qt_evr_D3DFormatFromPixelFormat(format)))) {
+                m_canRenderToSurface = true;
+                break;
             }
         }
     }
@@ -1052,6 +1046,7 @@ void EVRCustomPresenter::setSink(QVideoSink *sink)
 {
     m_mutex.lock();
     m_videoSink = sink;
+    m_presentEngine->setSink(sink);
     m_mutex.unlock();
 
     supportedFormatsChanged();
