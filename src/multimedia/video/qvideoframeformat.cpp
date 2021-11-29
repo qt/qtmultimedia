@@ -238,10 +238,12 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     The frame is stored in compressed Jpeg format.
 
     \value Format_SamplerExternalOES
-    The frame is stored in external OES texture format.
+    The frame is stored in external OES texture format. This is currently only being used on Android.
 
     \value Format_SamplerRect
-    The frame is stored in rectangle texture format.
+    The frame is stored in rectangle texture format (GL_TEXTURE_RECTANGLE). This is only being used on
+    macOS with an OpenGL based Rendering Hardware interface. The underlying pixel format stored in the
+    texture is Format_BRGA8888.
 */
 
 /*!
