@@ -53,6 +53,7 @@
 
 #include <QMutex>
 #include <QVideoFrameFormat>
+#include <private/qwindowsiupointer_p.h>
 
 #include <d3d9.h>
 
@@ -66,6 +67,7 @@ struct IMFMediaType;
 
 QT_BEGIN_NAMESPACE
 class QVideoFrame;
+class QVideoSink;
 QT_END_NAMESPACE
 
 // Randomly generated GUIDs
@@ -110,45 +112,41 @@ class D3DPresentEngine
 {
     Q_DISABLE_COPY(D3DPresentEngine)
 public:
-    enum Hint
-    {
-        RenderToTexture
-    };
-
-    D3DPresentEngine();
+    D3DPresentEngine(QVideoSink *sink);
     virtual ~D3DPresentEngine();
 
     bool isValid() const;
-    void setHint(Hint hint, bool enable = true);
 
     HRESULT getService(REFGUID guidService, REFIID riid, void** ppv);
     HRESULT checkFormat(D3DFORMAT format);
     UINT refreshRate() const { return m_displayMode.RefreshRate; }
-
-    bool supportsTextureRendering() const;
-    bool isTextureRenderingEnabled() const { return m_useTextureRendering; }
 
     HRESULT createVideoSamples(IMFMediaType *format, QList<IMFSample*>& videoSampleQueue);
     QVideoFrameFormat videoSurfaceFormat() const { return m_surfaceFormat; }
     QVideoFrame makeVideoFrame(IMFSample* sample);
 
     void releaseResources();
+    void setSink(QVideoSink *sink);
 
 private:
+    static const int PRESENTER_BUFFER_COUNT = 3;
+
     HRESULT initializeD3D();
     HRESULT createD3DDevice();
 
+    std::pair<IMFSample *, HANDLE> m_sampleTextureHandle[PRESENTER_BUFFER_COUNT] = {};
 
     UINT m_deviceResetToken;
     D3DDISPLAYMODE m_displayMode;
 
-    IDirect3D9Ex *m_D3D9;
-    IDirect3DDevice9Ex *m_device;
-    IDirect3DDeviceManager9 *m_devices;
+    QWindowsIUPointer<IDirect3D9Ex> m_D3D9;
+    QWindowsIUPointer<IDirect3DDevice9Ex> m_device;
+    QWindowsIUPointer<IDirect3DDeviceManager9> m_devices;
 
     QVideoFrameFormat m_surfaceFormat;
 
-    bool m_useTextureRendering;
+    class QVideoSink *m_sink = nullptr;
+    bool m_useTextureRendering = false;
 
 #ifdef MAYBE_ANGLE
     unsigned int updateTexture(IDirect3DSurface9 *src);

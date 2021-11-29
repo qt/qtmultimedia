@@ -2127,7 +2127,7 @@ namespace
 class EVRCustomPresenterActivate : public MFAbstractActivate
 {
 public:
-    EVRCustomPresenterActivate();
+    EVRCustomPresenterActivate(QVideoSink *sink);
     ~EVRCustomPresenterActivate()
     { }
 
@@ -2235,7 +2235,7 @@ IMFActivate* MFVideoRendererControl::createActivate()
     if (m_sink) {
         // Create the EVR media sink, but replace the presenter with our own
         if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
-            m_presenterActivate = new EVRCustomPresenterActivate;
+            m_presenterActivate = new EVRCustomPresenterActivate(m_sink);
             m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
         } else {
             m_currentActivate = new VideoRendererActivate(this);
@@ -2248,10 +2248,10 @@ IMFActivate* MFVideoRendererControl::createActivate()
 }
 
 
-EVRCustomPresenterActivate::EVRCustomPresenterActivate()
+EVRCustomPresenterActivate::EVRCustomPresenterActivate(QVideoSink *sink)
     : MFAbstractActivate()
     , m_presenter(0)
-    , m_videoSink(0)
+    , m_videoSink(sink)
 { }
 
 HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
@@ -2260,9 +2260,7 @@ HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
         return E_INVALIDARG;
     QMutexLocker locker(&m_mutex);
     if (!m_presenter) {
-        m_presenter = new EVRCustomPresenter;
-        if (m_videoSink)
-            m_presenter->setSink(m_videoSink);
+        m_presenter = new EVRCustomPresenter(m_videoSink);
     }
     return m_presenter->QueryInterface(riid, ppv);
 }

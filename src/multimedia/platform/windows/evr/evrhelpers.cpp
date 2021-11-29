@@ -147,6 +147,8 @@ QVideoFrameFormat::PixelFormat qt_evr_pixelFormatFromD3DFormat(DWORD format)
 D3DFORMAT qt_evr_D3DFormatFromPixelFormat(QVideoFrameFormat::PixelFormat format)
 {
     switch (format) {
+    case QVideoFrameFormat::Format_ARGB8888:
+        return D3DFMT_A8B8G8R8;
     case QVideoFrameFormat::Format_BGRA8888:
         return D3DFMT_A8R8G8B8;
     case QVideoFrameFormat::Format_BGRX8888:
