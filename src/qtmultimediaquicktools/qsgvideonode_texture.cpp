@@ -53,6 +53,13 @@ QList<QVideoFrame::PixelFormat> QSGVideoNodeFactory_Texture::supportedPixelForma
 {
     QList<QVideoFrame::PixelFormat> pixelFormats;
 
+#ifdef Q_OS_MACOS
+    if (handleType == QAbstractVideoBuffer::GLTextureRectangleHandle) {
+        pixelFormats.append(QVideoFrame::Format_BGR32);
+        pixelFormats.append(QVideoFrame::Format_BGRA32);
+    }
+#endif
+
     if (handleType == QAbstractVideoBuffer::GLTextureHandle) {
         pixelFormats.append(QVideoFrame::Format_RGB565);
         pixelFormats.append(QVideoFrame::Format_RGB32);
@@ -82,8 +89,6 @@ public:
     QSGVideoMaterialShader_Texture()
         : QSGMaterialShader()
     {
-        setShaderSourceFile(QOpenGLShader::Vertex, QStringLiteral(":/qtmultimediaquicktools/shaders/monoplanarvideo.vert"));
-        setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo.frag"));
     }
 
     void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
@@ -109,10 +114,20 @@ protected:
     int m_id_opacity;
 };
 
-class QSGVideoMaterialShader_Texture_swizzle : public QSGVideoMaterialShader_Texture
+class QSGVideoMaterialShader_Texture_2D : public QSGVideoMaterialShader_Texture
 {
 public:
-    QSGVideoMaterialShader_Texture_swizzle(bool hasAlpha)
+    QSGVideoMaterialShader_Texture_2D()
+    {
+        setShaderSourceFile(QOpenGLShader::Vertex, QStringLiteral(":/qtmultimediaquicktools/shaders/monoplanarvideo.vert"));
+        setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo.frag"));
+    }
+};
+
+class QSGVideoMaterialShader_Texture_2D_swizzle : public QSGVideoMaterialShader_Texture_2D
+{
+public:
+    QSGVideoMaterialShader_Texture_2D_swizzle(bool hasAlpha)
         : m_hasAlpha(hasAlpha)
     {
         setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rgbvideo_swizzle.frag"));
@@ -120,13 +135,12 @@ public:
 
 protected:
     void initialize() override {
-        QSGVideoMaterialShader_Texture::initialize();
+        QSGVideoMaterialShader_Texture_2D::initialize();
         program()->setUniformValue(program()->uniformLocation("hasAlpha"), GLboolean(m_hasAlpha));
     }
 
     int m_hasAlpha;
 };
-
 
 class QSGVideoMaterial_Texture : public QSGMaterial
 {
@@ -147,12 +161,6 @@ public:
     QSGMaterialType *type() const override {
         static QSGMaterialType normalType, swizzleType;
         return needsSwizzling() ? &swizzleType : &normalType;
-    }
-
-    QSGMaterialShader *createShader() const override {
-        const bool hasAlpha = m_format.pixelFormat() == QVideoFrame::Format_ARGB32;
-        return needsSwizzling() ? new QSGVideoMaterialShader_Texture_swizzle(hasAlpha)
-                                : new QSGVideoMaterialShader_Texture;
     }
 
     int compare(const QSGMaterial *other) const override {
@@ -179,9 +187,42 @@ public:
     void setVideoFrame(const QVideoFrame &frame) {
         QMutexLocker lock(&m_frameMutex);
         m_frame = frame;
+        m_textureSize = frame.size();
     }
 
-    void bind()
+    virtual void bind() = 0;
+
+    QVideoFrame m_frame;
+    QMutex m_frameMutex;
+    QSize m_textureSize;
+    QVideoSurfaceFormat m_format;
+    GLuint m_textureId;
+    qreal m_opacity;
+
+protected:
+    bool needsSwizzling() const {
+        return !QMediaOpenGLHelper::isANGLE()
+                && (m_format.pixelFormat() == QVideoFrame::Format_RGB32
+                    || m_format.pixelFormat() == QVideoFrame::Format_ARGB32);
+    }
+};
+
+class QSGVideoMaterial_Texture_2D : public QSGVideoMaterial_Texture
+{
+public:
+    QSGVideoMaterial_Texture_2D(const QVideoSurfaceFormat &format) :
+        QSGVideoMaterial_Texture(format)
+    {
+    }
+
+    QSGMaterialShader *createShader() const override
+    {
+        const bool hasAlpha = m_format.pixelFormat() == QVideoFrame::Format_ARGB32;
+        return needsSwizzling() ? new QSGVideoMaterialShader_Texture_2D_swizzle(hasAlpha)
+                                : new QSGVideoMaterialShader_Texture_2D;
+    }
+
+    void bind() override
     {
         QMutexLocker lock(&m_frameMutex);
         if (m_frame.isValid()) {
@@ -197,28 +238,84 @@ public:
             m_textureId = 0;
         }
     }
-
-    QVideoFrame m_frame;
-    QMutex m_frameMutex;
-    QSize m_textureSize;
-    QVideoSurfaceFormat m_format;
-    GLuint m_textureId;
-    qreal m_opacity;
-
-private:
-    bool needsSwizzling() const {
-        return !QMediaOpenGLHelper::isANGLE()
-                && (m_format.pixelFormat() == QVideoFrame::Format_RGB32
-                    || m_format.pixelFormat() == QVideoFrame::Format_ARGB32);
-    }
 };
 
+#ifdef Q_OS_MACOS
+class QSGVideoMaterialShader_Texture_Rectangle : public QSGVideoMaterialShader_Texture
+{
+public:
+    QSGVideoMaterialShader_Texture_Rectangle()
+    {
+        setShaderSourceFile(QOpenGLShader::Vertex, QStringLiteral(":/qtmultimediaquicktools/shaders/rectsampler.vert"));
+        setShaderSourceFile(QOpenGLShader::Fragment, QStringLiteral(":/qtmultimediaquicktools/shaders/rectsampler_rgb.frag"));
+    }
+
+    void updateState(const RenderState &state, QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override
+    {
+        QSGVideoMaterial_Texture *mat = static_cast<QSGVideoMaterial_Texture *>(newMaterial);
+        QVector2D size(mat->m_textureSize.width(), mat->m_textureSize.height());
+        program()->setUniformValue(m_id_videoSize, size);
+
+        QSGVideoMaterialShader_Texture::updateState(state, newMaterial, oldMaterial);
+    }
+
+protected:
+    void initialize() override
+    {
+        QSGVideoMaterialShader_Texture::initialize();
+        m_id_videoSize = program()->uniformLocation("qt_videoSize");
+    }
+
+    int m_id_videoSize;
+};
+
+class QSGVideoMaterial_Texture_Rectangle : public QSGVideoMaterial_Texture
+{
+public:
+    QSGVideoMaterial_Texture_Rectangle(const QVideoSurfaceFormat &format) :
+        QSGVideoMaterial_Texture(format)
+    {
+    }
+
+    QSGMaterialShader *createShader() const override
+    {
+        Q_ASSERT(!needsSwizzling());
+        return new QSGVideoMaterialShader_Texture_Rectangle;
+    }
+
+    void bind() override
+    {
+        QMutexLocker lock(&m_frameMutex);
+        if (m_frame.isValid()) {
+            m_textureId = m_frame.handle().toUInt();
+            QOpenGLFunctions *functions = QOpenGLContext::currentContext()->functions();
+            functions->glActiveTexture(GL_TEXTURE0);
+            functions->glBindTexture(GL_TEXTURE_RECTANGLE, m_textureId);
+
+            functions->glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            functions->glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            functions->glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            functions->glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        } else {
+            m_textureId = 0;
+        }
+    }
+};
+#endif
 
 QSGVideoNode_Texture::QSGVideoNode_Texture(const QVideoSurfaceFormat &format) :
     m_format(format)
 {
     setFlag(QSGNode::OwnsMaterial);
-    m_material = new QSGVideoMaterial_Texture(format);
+
+#ifdef Q_OS_MACOS
+    if (format.handleType() == QAbstractVideoBuffer::GLTextureRectangleHandle)
+        m_material = new QSGVideoMaterial_Texture_Rectangle(format);
+#endif
+
+    if (!m_material)
+        m_material = new QSGVideoMaterial_Texture_2D(format);
+
     setMaterial(m_material);
 }
 

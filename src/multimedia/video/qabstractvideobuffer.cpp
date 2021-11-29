@@ -96,12 +96,15 @@ int QAbstractVideoBufferPrivate::map(
     Identifies the type of a video buffers handle.
 
     \value NoHandle The buffer has no handle, its data can only be accessed by mapping the buffer.
-    \value GLTextureHandle The handle of the buffer is an OpenGL texture ID.
+    \value GLTextureHandle The handle of the buffer is an OpenGL texture ID
+           of an undefined and platform dependent target type.
     \value XvShmImageHandle The handle contains pointer to shared memory XVideo image.
     \value CoreImageHandle The handle contains pointer to \macos CIImage.
     \value QPixmapHandle The handle of the buffer is a QPixmap.
     \value EGLImageHandle The handle of the buffer is an EGLImageKHR.
     \value UserHandle Start value for user defined handle types.
+    \value GLTextureRectangleHandle The handle of the buffer is an OpenGL texture ID
+           of target type \c GL_TEXTURE_RECTANGLE.
 
     \sa handleType()
 */

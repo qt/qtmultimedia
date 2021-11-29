@@ -64,6 +64,7 @@ public:
         CoreImageHandle,
         QPixmapHandle,
         EGLImageHandle,
+        GLTextureRectangleHandle,
         UserHandle = 1000
     };
 
