@@ -246,7 +246,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     {
         1, 0,
         [](int, int) { return 0; },
-        { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+        { QRhiTexture::BGRA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     }
 };
