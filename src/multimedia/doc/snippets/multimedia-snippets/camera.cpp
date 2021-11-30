@@ -73,7 +73,7 @@ void overview_viewfinder()
     camera = new QCamera;
     captureSession.setCamera(camera);
     QVideoWidget *preview = new QVideoWidget;
-    camera->setVideoOutput(preview);
+    captureSession.setVideoOutput(preview);
     preview->show();
 
     camera->start(); // to start the camera
@@ -96,7 +96,7 @@ void overview_surface()
     camera = new QCamera;
     captureSession.setCamera(camera);
     mySink = new QVideoSink;
-    camera->setVideoOutput(mySink);
+    captureSession.setVideoOutput(mySink);
 
     camera->start();
     // MyVideoSink::setVideoFrame(..) will be called with video frames
