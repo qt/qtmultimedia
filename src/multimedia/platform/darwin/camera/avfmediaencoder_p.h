@@ -105,6 +105,7 @@ private:
 
     Q_INVOKABLE void assetWriterStarted();
     Q_INVOKABLE void assetWriterFinished();
+    Q_INVOKABLE void assetWriterError(QString error);
 
 private Q_SLOTS:
     void onCameraChanged();

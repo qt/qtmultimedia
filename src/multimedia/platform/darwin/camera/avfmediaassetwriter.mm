@@ -240,7 +240,9 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 {
     if (m_state.loadAcquire() != WriterStateActive && m_state.loadAcquire() != WriterStatePaused)
         return;
-    if ([m_assetWriter status] != AVAssetWriterStatusWriting)
+
+    if ([m_assetWriter status] != AVAssetWriterStatusWriting
+        && [m_assetWriter status] != AVAssetWriterStatusFailed)
         return;
 
     // Do this here so that -
@@ -397,6 +399,19 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     if (m_state.loadAcquire() != WriterStateActive && m_state.loadAcquire() != WriterStatePaused)
         return;
+
+    if ([m_assetWriter status] != AVAssetWriterStatusWriting) {
+        if ([m_assetWriter status] == AVAssetWriterStatusFailed) {
+            NSError *error = [m_assetWriter error];
+            NSString *failureReason = error.localizedFailureReason;
+            NSString *suggestion = error.localizedRecoverySuggestion;
+            NSString *errorString = suggestion ? [failureReason stringByAppendingString:suggestion] : failureReason;
+            QMetaObject::invokeMethod(m_delegate, "assetWriterError",
+                                      Qt::QueuedConnection,
+                                      Q_ARG(QString, QString::fromNSString(errorString)));
+        }
+        return;
+    }
 
     if (!CMSampleBufferDataIsReady(sampleBuffer)) {
         qWarning() << Q_FUNC_INFO << "sample buffer is not ready, skipping.";
