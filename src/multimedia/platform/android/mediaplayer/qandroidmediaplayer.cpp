@@ -207,7 +207,7 @@ QMediaMetaData QAndroidMediaPlayer::metaData() const
 
 float QAndroidMediaPlayer::bufferProgress() const
 {
-    return mBufferFilled ? 1. : 0;
+    return mBufferFilled ? 1. : mBufferPercent;
 }
 
 bool QAndroidMediaPlayer::isAudioAvailable() const
@@ -544,6 +544,8 @@ void QAndroidMediaPlayer::onBufferingChanged(qint32 percent)
 
     if (state() != QMediaPlayer::StoppedState)
         setMediaStatus(mBuffering ? QMediaPlayer::BufferingMedia : QMediaPlayer::BufferedMedia);
+
+    updateBufferStatus();
 }
 
 void QAndroidMediaPlayer::onVideoSizeChanged(qint32 width, qint32 height)
@@ -964,10 +966,10 @@ void QAndroidMediaPlayer::updateBufferStatus()
     const auto &status = mediaStatus();
     bool bufferFilled = (status == QMediaPlayer::BufferedMedia || status == QMediaPlayer::BufferingMedia);
 
-    if (mBufferFilled != bufferFilled) {
+    if (mBufferFilled != bufferFilled)
         mBufferFilled = bufferFilled;
-        Q_EMIT bufferProgressChanged(bufferProgress());
-    }
+
+    emit bufferProgressChanged(bufferProgress());
 }
 
 void QAndroidMediaPlayer::updateTrackInfo()
