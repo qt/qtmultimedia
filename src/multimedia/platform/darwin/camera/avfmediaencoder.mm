@@ -639,6 +639,13 @@ void AVFMediaEncoder::assetWriterFinished()
         Q_EMIT stateChanged(m_state);
 }
 
+void AVFMediaEncoder::assetWriterError(QString err)
+{
+    Q_EMIT error(QMediaRecorder::FormatError, err);
+    if (m_state != QMediaRecorder::StoppedState)
+        stopWriter();
+}
+
 void AVFMediaEncoder::onCameraChanged()
 {
     if (m_service && m_service->avfCameraControl()) {
