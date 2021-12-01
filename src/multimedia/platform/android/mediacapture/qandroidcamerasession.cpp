@@ -44,6 +44,7 @@
 #include "androidmultimediautils_p.h"
 #include "qandroidvideooutput_p.h"
 #include "qandroidmultimediautils_p.h"
+#include "androidmediarecorder_p.h"
 #include <qvideosink.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <qfile.h>
@@ -400,7 +401,6 @@ bool QAndroidCameraSession::startPreview()
             || (m_videoOutput->surfaceHolder() && !m_camera->setPreviewDisplay(m_videoOutput->surfaceHolder())))
         return false;
 
-    applyImageSettings();
     applyResolution(m_actualImageSettings.resolution());
 
     AndroidMultimediaUtils::enableOrientationListener(true);
@@ -411,6 +411,23 @@ bool QAndroidCameraSession::startPreview()
     m_previewStarted = true;
 
     return true;
+}
+
+QSize QAndroidCameraSession::getDefaultResolution() const
+{
+    const bool hasHighQualityProfile = AndroidCamcorderProfile::hasProfile(
+                m_camera->cameraId(),
+                AndroidCamcorderProfile::Quality(AndroidCamcorderProfile::QUALITY_HIGH));
+
+    if (hasHighQualityProfile) {
+        const AndroidCamcorderProfile camProfile = AndroidCamcorderProfile::get(
+                    m_camera->cameraId(),
+                    AndroidCamcorderProfile::Quality(AndroidCamcorderProfile::QUALITY_HIGH));
+
+        return QSize(camProfile.getValue(AndroidCamcorderProfile::videoFrameWidth),
+                     camProfile.getValue(AndroidCamcorderProfile::videoFrameHeight));
+    }
+    return QSize();
 }
 
 void QAndroidCameraSession::stopPreview()
@@ -532,8 +549,7 @@ void QAndroidCameraSession::applyImageSettings()
     const QSize requestedResolution = m_requestedImageSettings.resolution();
     const QList<QSize> supportedResolutions = m_camera->getSupportedPictureSizes();
     if (!requestedResolution.isValid()) {
-        // use the highest supported one
-        m_actualImageSettings.setResolution(supportedResolutions.last());
+        m_actualImageSettings.setResolution(getDefaultResolution());
     } else if (!supportedResolutions.contains(requestedResolution)) {
         // if the requested resolution is not supported, find the closest one
         int reqPixelCount = requestedResolution.width() * requestedResolution.height();
