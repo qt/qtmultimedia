@@ -164,6 +164,8 @@ private:
 
     int captureImage();
 
+    QSize getDefaultResolution() const;
+
     int m_selectedCamera;
     AndroidCamera *m_camera;
     QAndroidVideoOutput *m_videoOutput;
