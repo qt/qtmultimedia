@@ -88,6 +88,7 @@ public:
 
     bool event(QEvent *event) override;
     bool query(GstQuery *query);
+    void gstEvent(GstEvent *event);
 
 private slots:
     bool handleEvent(QMutexLocker<QMutex> *locker);
@@ -115,6 +116,8 @@ private:
     bool m_notified = false;
     bool m_stop = false;
     bool m_flush = false;
+    bool m_frameMirrored = false;
+    QVideoFrame::RotationAngle m_frameRotationAngle = QVideoFrame::Rotation0;
 
     // --- only accessed from one thread
     QVideoFrameFormat m_format;
@@ -154,6 +157,7 @@ private:
 
     static GstFlowReturn show_frame(GstVideoSink *sink, GstBuffer *buffer);
     static gboolean query(GstBaseSink *element, GstQuery *query);
+    static gboolean event(GstBaseSink *element, GstEvent * event);
 
 private:
     QGstVideoRenderer *renderer = nullptr;

@@ -118,7 +118,8 @@ public:
     int mappedCount = 0;
     QMutex mapMutex;
     QString subtitleText;
-
+    QVideoFrame::RotationAngle rotationAngle = QVideoFrame::Rotation0;
+    bool mirrored = false;
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)
 };
@@ -700,6 +701,40 @@ void QVideoFrame::setEndTime(qint64 time)
     d->endTime = time;
 }
 
+/*!
+    Sets the counterclockwise rotation angle for the frame
+*/
+void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
+{
+    if (d)
+        d->rotationAngle = angle;
+}
+
+/*!
+    Tells the angle the frame should be rotated counterclockwise before
+    displaying
+ */
+QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
+{
+    return d ? d->rotationAngle : Rotation0;
+}
+
+/*!
+    Sets the mirrored flag for the frame
+*/
+void QVideoFrame::setMirrored(bool mirrored)
+{
+    if (d)
+        d->mirrored = mirrored;
+}
+
+/*!
+    Tells whether the frame should be mirrored before displaying
+*/
+bool QVideoFrame::mirrored() const
+{
+    return d && d->mirrored;
+}
 
 /*!
     Based on the pixel format converts current video frame to image.
