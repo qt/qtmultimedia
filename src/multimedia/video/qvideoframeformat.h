@@ -117,6 +117,7 @@ public:
         YCbCr_xvYCC601,
         YCbCr_xvYCC709,
         YCbCr_JPEG,
+        YCbCr_BT2020
     };
 
     QVideoFrameFormat();

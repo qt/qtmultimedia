@@ -280,6 +280,9 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
 
     \value YCbCr_JPEG
     The full range Y'CbCr color space used in JPEG files.
+
+    \value YCbCr_BT2020
+    The color space defined by ITU-R BT.2020. Used mainly for HDR videos.
 */
 
 /*!
@@ -762,6 +765,9 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::YCbCrColorSpace cs)
             break;
         case QVideoFrameFormat::YCbCr_xvYCC709:
             dbg << "YCbCr_xvYCC709";
+            break;
+        case QVideoFrameFormat::YCbCr_BT2020:
+            dbg << "YCbCr_BT2020";
             break;
         default:
             dbg << "YCbCr_Undefined";

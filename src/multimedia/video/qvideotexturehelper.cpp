@@ -345,10 +345,16 @@ static QMatrix4x4 colorMatrix(QVideoFrameFormat::YCbCrColorSpace colorSpace)
     case QVideoFrameFormat::YCbCr_BT709:
     case QVideoFrameFormat::YCbCr_xvYCC709:
         return QMatrix4x4(
-            1.164f,  0.000f,  1.793f, -0.5727f,
-            1.164f, -0.534f, -0.213f,  0.3007f,
-            1.164f,  2.115f,  0.000f, -1.1302f,
+            1.1644f,  0.000f,  1.7928f, -0.9731f,
+            1.1644f, -0.5329f, -0.2132f,  0.3015f,
+            1.1644f,  2.1124f,  0.000f, -1.1335f,
             0.0f,    0.000f,  0.000f,  1.0000f);
+    case QVideoFrameFormat::YCbCr_BT2020:
+        return QMatrix4x4(
+            1.1644f,  0.000f,  1.6787f, -0.9158f,
+            1.1644f, -0.1874f, -0.6511f,  0.3478f,
+            1.1644f,  2.1418f,  0.000f, -1.1483f,
+            0.0f,  0.000f,  0.000f,  1.0000f);
     default: //BT 601:
         return QMatrix4x4(
             1.164f,  0.000f,  1.596f, -0.8708f,
