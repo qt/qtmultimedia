@@ -543,15 +543,19 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
 
 bool SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
 {
+    QSize frameSize = frame.size();
+    if (frame.rotationAngle() % 180)
+        frameSize.transpose();
+
     auto text = frame.subtitleText();
     text.replace(QLatin1Char('\n'), QChar::LineSeparator);
-    if (layout.text() == text && videoSize == frame.size())
+    if (layout.text() == text && videoSize == frameSize)
         return false;
 
-    videoSize = frame.size();
+    videoSize = frameSize;
     QFont font;
     // 0.045 - based on this https://www.md-subs.com/saa-subtitle-font-size
-    qreal fontSize = videoSize.height() * 0.045;
+    qreal fontSize = frame.size().height() * 0.045;
     font.setPointSize(fontSize);
 
     layout.setText(text);
