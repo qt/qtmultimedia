@@ -203,14 +203,6 @@ static NSDictionary* const AVF_OUTPUT_SETTINGS = @{
         (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
 };
 
-// The OpengGL texture cache can apparently only handle single plane formats, so lets simply restrict to BGRA
-static NSDictionary* const AVF_OUTPUT_SETTINGS_OPENGL = @{
-        (NSString *)kCVPixelBufferPixelFormatTypeKey: @[
-            @(kCVPixelFormatType_32BGRA),
-        ],
-        (NSString *)kCVPixelBufferOpenGLCompatibilityKey: @true
-};
-
 CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width, size_t& height)
 {
     AVPlayerLayer *layer = playerLayer();
@@ -225,8 +217,9 @@ CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width
     AVPlayerItem * item = [[layer player] currentItem];
 
     if (!m_videoOutput) {
-        auto *settings = (m_rhi && m_rhi->backend() == QRhi::OpenGLES2) ? AVF_OUTPUT_SETTINGS_OPENGL : AVF_OUTPUT_SETTINGS;
-        m_videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
+        if (!m_outputSettings)
+            m_outputSettings = AVF_OUTPUT_SETTINGS;
+        m_videoOutput = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:m_outputSettings];
         [m_videoOutput setDelegate:nil queue:nil];
     }
     if (!m_subtitleOutput) {
