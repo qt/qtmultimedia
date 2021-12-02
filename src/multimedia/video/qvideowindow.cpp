@@ -102,12 +102,28 @@ QVideoWindowPrivate::~QVideoWindowPrivate()
     freeTextures();
 }
 
-
 static const float g_quad[] = {
+    // 4 counterclockwise rotation of texture vertexes (the second pair)
+    // Rotation 0
     -1.f, -1.f,   0.f, 0.f,
     -1.f, 1.f,    0.f, 1.f,
     1.f, -1.f,    1.f, 0.f,
     1.f, 1.f,     1.f, 1.f,
+    // Rotation 90
+    -1.f, -1.f,   1.f, 0.f,
+    -1.f, 1.f,    0.f, 0.f,
+    1.f, -1.f,    1.f, 1.f,
+    1.f, 1.f,     0.f, 1.f,
+    // Rotation 180
+    -1.f, -1.f,   1.f, 1.f,
+    -1.f, 1.f,    1.f, 0.f,
+    1.f, -1.f,    0.f, 1.f,
+    1.f, 1.f,     0.f, 0.f,
+    // Rotation 270
+    -1.f, -1.f,   0.f, 1.f,
+    -1.f, 1.f,    1.f, 1.f,
+    1.f, -1.f,    0.f, 0.f,
+    1.f, 1.f,     1.f, 0.f
 };
 
 static QShader getShader(const QString &name)
@@ -359,7 +375,11 @@ void QVideoWindowPrivate::render()
         return;
     }
 
-    QSize scaled = m_currentFrame.size().scaled(rect.size(), aspectRatioMode);
+    int frameRotationIndex = (m_currentFrame.rotationAngle() / 90) % 4;
+    QSize frameSize = m_currentFrame.size();
+    if (frameRotationIndex % 2)
+        frameSize.transpose();
+    QSize scaled = frameSize.scaled(rect.size(), aspectRatioMode);
     QRect videoRect = QRect(QPoint(0, 0), scaled);
     videoRect.moveCenter(rect.center());
 
@@ -399,35 +419,27 @@ void QVideoWindowPrivate::render()
     if (m_subtitleDirty)
         updateSubtitle(rub);
 
-    float xscale = 1.f - float(rect.width() - videoRect.width())/float(rect.width());
-    float yscale = -1.f + float(rect.height() - videoRect.height())/float(rect.height());
+    float mirrorFrame = m_currentFrame.mirrored() ? -1.f : 1.f;
+    float xscale = mirrorFrame * float(videoRect.width())/float(rect.width());
+    float yscale = -1.f * float(videoRect.height())/float(rect.height());
 
-    QMatrix4x4 transform = {
-        xscale, 0, 0, 0,
-        0, yscale, 0, 0,
-        0, 0, 1.f, 0,
-        0, 0, 0, 1.f
-    };
+    QMatrix4x4 transform;
+    transform.scale(xscale, yscale);
 
     QByteArray uniformData(64 + 64 + 4 + 4, Qt::Uninitialized);
     QVideoTextureHelper::updateUniformData(&uniformData, m_currentFrame.surfaceFormat(), m_currentFrame, transform, 1.f);
     rub->updateDynamicBuffer(m_uniformBuf.get(), 0, uniformData.size(), uniformData.constData());
 
     if (m_hasSubtitle) {
-        QMatrix4x4 t = {
-            xscale, 0, 0, 0,
-            0, yscale, 0, 0,
-            0, 0, 1.f, 0,
-            0, 0, 0, 1.f
-        };
-        QSizeF frameSize = m_currentFrame.size();
-        t.translate(0, 2.*m_subtitleLayout.bounds.center().y()/frameSize.height() - 1.);
-        t.scale(m_subtitleLayout.bounds.width()/frameSize.width(),
+        // Reverse mirror operation before applying transformation to subtitles
+        transform.scale(mirrorFrame, 1.f);
+        transform.translate(0, 2.*m_subtitleLayout.bounds.center().y()/frameSize.height() - 1.);
+        transform.scale(m_subtitleLayout.bounds.width()/frameSize.width(),
                 m_subtitleLayout.bounds.height()/frameSize.height());
 
         QByteArray uniformData(64 + 64 + 4 + 4, Qt::Uninitialized);
         QVideoFrameFormat fmt(m_subtitleLayout.bounds.size().toSize(), QVideoFrameFormat::Format_ARGB8888);
-        QVideoTextureHelper::updateUniformData(&uniformData, fmt, QVideoFrame(), t, 1.f);
+        QVideoTextureHelper::updateUniformData(&uniformData, fmt, QVideoFrame(), transform, 1.f);
         rub->updateDynamicBuffer(m_subtitleUniformBuf.get(), 0, uniformData.size(), uniformData.constData());
     }
 
@@ -438,7 +450,8 @@ void QVideoWindowPrivate::render()
     cb->setViewport({ 0, 0, float(size.width()), float(size.height()) });
     cb->setShaderResources(m_shaderResourceBindings.get());
 
-    const QRhiCommandBuffer::VertexInput vbufBinding(m_vertexBuf.get(), 0);
+    quint32 vertexOffset = quint32(sizeof(float)) * 16 * frameRotationIndex;
+    const QRhiCommandBuffer::VertexInput vbufBinding(m_vertexBuf.get(), vertexOffset);
     cb->setVertexInput(0, 1, &vbufBinding);
     cb->draw(4);
 
