@@ -99,9 +99,10 @@ public:
 
     virtual void reconfigure() = 0;
     virtual void setRhi(QRhi *);
-    QRhi *rhi() const { return m_rhi; }
-
     virtual void setLayer(CALayer *layer);
+    virtual void setOutputSettings(NSDictionary *settings);
+
+    QRhi *rhi() const { return m_rhi; }
 
     void updateLayerBounds();
     void nativeSizeChanged() { updateLayerBounds(); }
@@ -121,6 +122,7 @@ protected:
     AVFVideoSink *m_sink = nullptr;
     QRhi *m_rhi = nullptr;
     CALayer *m_layer = nullptr;
+    NSDictionary *m_outputSettings = nullptr;
 };
 
 

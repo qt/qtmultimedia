@@ -91,6 +91,14 @@ void AVFVideoSink::setVideoSinkInterface(AVFVideoSinkInterface *interface)
         m_interface->setRhi(m_rhi);
 }
 
+// The OpengGL texture cache can apparently only handle single plane formats, so lets simply restrict to BGRA
+static NSDictionary* const AVF_OUTPUT_SETTINGS_OPENGL = @{
+        (NSString *)kCVPixelBufferPixelFormatTypeKey: @[
+            @(kCVPixelFormatType_32BGRA),
+        ],
+        (NSString *)kCVPixelBufferOpenGLCompatibilityKey: @true
+};
+
 AVFVideoSinkInterface::~AVFVideoSinkInterface()
 {
     if (m_layer)
@@ -151,6 +159,8 @@ void AVFVideoSinkInterface::setRhi(QRhi *rhi)
         }
     } else if (rhi->backend() == QRhi::OpenGLES2) {
 #if QT_CONFIG(opengl)
+        setOutputSettings(AVF_OUTPUT_SETTINGS_OPENGL);
+
 #ifdef Q_OS_MACOS
         const auto *gl = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
 
@@ -200,6 +210,11 @@ void AVFVideoSinkInterface::setLayer(CALayer *layer)
         [m_layer retain];
 
     reconfigure();
+}
+
+void AVFVideoSinkInterface::setOutputSettings(NSDictionary *settings)
+{
+    m_outputSettings = settings;
 }
 
 void AVFVideoSinkInterface::updateLayerBounds()
