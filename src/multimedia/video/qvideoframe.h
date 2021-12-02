@@ -76,6 +76,14 @@ public:
         ReadWrite = ReadOnly | WriteOnly
     };
 
+    enum RotationAngle
+    {
+        Rotation0 = 0,
+        Rotation90 = 90,
+        Rotation180 = 180,
+        Rotation270 = 270
+    };
+
     QVideoFrame();
     QVideoFrame(const QVideoFrameFormat &format);
     QVideoFrame(const QVideoFrame &other);
@@ -125,6 +133,12 @@ public:
 
     qint64 endTime() const;
     void setEndTime(qint64 time);
+
+    void setRotationAngle(RotationAngle);
+    RotationAngle rotationAngle() const;
+
+    void setMirrored(bool);
+    bool mirrored() const;
 
     QImage toImage() const;
 

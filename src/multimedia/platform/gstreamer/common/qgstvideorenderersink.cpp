@@ -158,6 +158,9 @@ bool QGstVideoRenderer::start(GstCaps *caps)
     qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << QGstCaps(caps).toString();
     QMutexLocker locker(&m_mutex);
 
+    m_frameMirrored = false;
+    m_frameRotationAngle = QVideoFrame::Rotation0;
+
     if (m_active) {
         m_flush = true;
         m_stop = true;
@@ -264,6 +267,48 @@ bool QGstVideoRenderer::query(GstQuery *query)
     return false;
 }
 
+void QGstVideoRenderer::gstEvent(GstEvent *event)
+{
+    if (GST_EVENT_TYPE(event) != GST_EVENT_TAG)
+        return;
+
+    GstTagList *taglist = nullptr;
+    gst_event_parse_tag(event, &taglist);
+    if (!taglist)
+        return;
+
+    gchar *value = nullptr;
+    if (!gst_tag_list_get_string(taglist, GST_TAG_IMAGE_ORIENTATION, &value))
+        return;
+
+    constexpr const char *rotate= "rotate-";
+    constexpr const char *flipRotate= "flip-rotate-";
+    constexpr size_t rotateLen = strlen(rotate);
+    constexpr size_t flipRotateLen = strlen(flipRotate);
+
+    bool mirrored = false;
+    int rotationAngle = 0;
+
+    if (!strncmp(rotate, value, rotateLen)) {
+        rotationAngle = atoi(value + rotateLen);
+    } else if (!strncmp(flipRotate, value, flipRotateLen)) {
+        // To flip by horizontal axis is the same as to mirror by vertical axis
+        // and rotate by 180 degrees.
+        mirrored = true;
+        rotationAngle = (180 + atoi(value + flipRotateLen)) % 360;
+    }
+
+    QMutexLocker locker(&m_mutex);
+    m_frameMirrored = mirrored;
+    switch (rotationAngle) {
+    case 0: m_frameRotationAngle = QVideoFrame::Rotation0; break;
+    case 90: m_frameRotationAngle = QVideoFrame::Rotation90; break;
+    case 180: m_frameRotationAngle = QVideoFrame::Rotation180; break;
+    case 270: m_frameRotationAngle = QVideoFrame::Rotation270; break;
+    default: m_frameRotationAngle = QVideoFrame::Rotation0;
+    }
+}
+
 bool QGstVideoRenderer::event(QEvent *event)
 {
     if (event->type() == QEvent::UpdateRequest) {
@@ -347,6 +392,8 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
                 QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_sink, m_format, memoryFormat);
                 QVideoFrame frame(videoBuffer, m_format);
                 QGstUtils::setFrameTimeStamps(&frame, buffer);
+                frame.setMirrored(m_frameMirrored);
+                frame.setRotationAngle(m_frameRotationAngle);
 
                 qCDebug(qLcGstVideoRenderer) << "    sending video frame";
                 m_sink->setVideoFrame(frame);
@@ -459,6 +506,7 @@ void QGstVideoRendererSink::class_init(gpointer g_class, gpointer class_data)
     base_sink_class->stop = QGstVideoRendererSink::stop;
     base_sink_class->unlock = QGstVideoRendererSink::unlock;
     base_sink_class->query = QGstVideoRendererSink::query;
+    base_sink_class->event = QGstVideoRendererSink::event;
 
     GstElementClass *element_class = reinterpret_cast<GstElementClass *>(g_class);
     element_class->change_state = QGstVideoRendererSink::change_state;
@@ -607,6 +655,13 @@ gboolean QGstVideoRendererSink::query(GstBaseSink *base, GstQuery *query)
         return TRUE;
 
     return GST_BASE_SINK_CLASS(sink_parent_class)->query(base, query);
+}
+
+gboolean QGstVideoRendererSink::event(GstBaseSink *base, GstEvent * event)
+{
+    VO_SINK(base);
+    sink->renderer->gstEvent(event);
+    return GST_BASE_SINK_CLASS(sink_parent_class)->event(base, event);
 }
 
 QT_END_NAMESPACE
