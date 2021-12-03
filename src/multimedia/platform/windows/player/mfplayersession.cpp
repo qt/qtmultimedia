@@ -1095,6 +1095,9 @@ void MFPlayerSession::start()
         if (SUCCEEDED(m_session->Start(&GUID_NULL, &varStart))) {
             m_state.setCommand(CmdStart);
             m_pendingState = CmdPending;
+            m_lastSeekPos = m_position;
+            m_lastSeekSysTime = MFGetSystemTime();
+            m_altTiming = false;
         } else {
             emit error(QMediaPlayer::ResourceError, tr("failed to start playback"), true);
         }
@@ -1188,6 +1191,13 @@ qint64 MFPlayerSession::position()
         MFTIME time, sysTime;
         if (FAILED(m_presentationClock->GetCorrelatedTime(0, &time, &sysTime)))
             return m_position / 10000;
+
+        if (time > 0 && qint64(time) < m_lastSeekPos)
+            m_altTiming = true;
+
+        if (m_altTiming)
+            return (m_lastSeekPos + MFGetSystemTime() - m_lastSeekSysTime) / 10000;
+
         return qint64(time / 10000);
     }
     return m_position / 10000;
@@ -1230,6 +1240,10 @@ void MFPlayerSession::setPositionInternal(qint64 position, Command requestCmd)
     varStart.hVal.QuadPart = LONGLONG(position * 10000);
     if (SUCCEEDED(m_session->Start(NULL, &varStart)))
     {
+        m_lastSeekPos = position * 10000;
+        m_lastSeekSysTime = MFGetSystemTime();
+        m_altTiming = false;
+
         PropVariantClear(&varStart);
         // Store the pending state.
         m_state.setCommand(CmdStart);
