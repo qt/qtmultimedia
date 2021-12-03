@@ -60,70 +60,14 @@ static inline void qSetTex(QSGGeometry::TexturedPoint2D *v, const QPointF &p)
     v->ty = p.y();
 }
 
-/* Update the vertices and texture coordinates.  Orientation must be in {0,90,180,270} */
-void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect, int orientation)
+static inline void qSwapTex(QSGGeometry::TexturedPoint2D *v0, QSGGeometry::TexturedPoint2D *v1)
 {
-    if (rect == m_rect && textureRect == m_textureRect && orientation == m_orientation)
-        return;
-
-    m_rect = rect;
-    m_textureRect = textureRect;
-    m_orientation = orientation;
-
-    QSGGeometry *g = geometry();
-
-    if (g == nullptr)
-        g = new QSGGeometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), 4);
-
-    QSGGeometry::TexturedPoint2D *v = g->vertexDataAsTexturedPoint2D();
-
-    // Set geometry first
-    qSetGeom(v + 0, rect.topLeft());
-    qSetGeom(v + 1, rect.bottomLeft());
-    qSetGeom(v + 2, rect.topRight());
-    qSetGeom(v + 3, rect.bottomRight());
-
-    // and then texture coordinates
-    switch (orientation) {
-        default:
-            // tl, bl, tr, br
-            qSetTex(v + 0, textureRect.topLeft());
-            qSetTex(v + 1, textureRect.bottomLeft());
-            qSetTex(v + 2, textureRect.topRight());
-            qSetTex(v + 3, textureRect.bottomRight());
-            break;
-
-        case 90:
-            // tr, tl, br, bl
-            qSetTex(v + 0, textureRect.topRight());
-            qSetTex(v + 1, textureRect.topLeft());
-            qSetTex(v + 2, textureRect.bottomRight());
-            qSetTex(v + 3, textureRect.bottomLeft());
-            break;
-
-        case 180:
-            // br, tr, bl, tl
-            qSetTex(v + 0, textureRect.bottomRight());
-            qSetTex(v + 1, textureRect.topRight());
-            qSetTex(v + 2, textureRect.bottomLeft());
-            qSetTex(v + 3, textureRect.topLeft());
-            break;
-
-        case 270:
-            // bl, br, tl, tr
-            qSetTex(v + 0, textureRect.bottomLeft());
-            qSetTex(v + 1, textureRect.bottomRight());
-            qSetTex(v + 2, textureRect.topLeft());
-            qSetTex(v + 3, textureRect.topRight());
-            break;
-    }
-
-    if (!geometry())
-        setGeometry(g);
-
-    markDirty(DirtyGeometry);
-
-    setSubtitleGeometry();
+    auto tvx = v0->tx;
+    auto tvy = v0->ty;
+    v0->tx = v1->tx;
+    v0->ty = v1->ty;
+    v1->tx = tvx;
+    v1->ty = tvy;
 }
 
 class QSGVideoMaterial;
@@ -339,6 +283,78 @@ void QSGVideoNode::setSubtitleGeometry()
     m_subtitleTextNode->markDirty(DirtyGeometry);
 }
 
+/* Update the vertices and texture coordinates.  Orientation must be in {0,90,180,270} */
+void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect, int orientation)
+{
+    if (rect == m_rect && textureRect == m_textureRect && orientation == m_orientation)
+        return;
 
+    m_rect = rect;
+    m_textureRect = textureRect;
+    m_orientation = orientation;
+    int videoRotation = orientation;
+    videoRotation += m_material ? m_material->m_currentFrame.rotationAngle() : 0;
+    videoRotation %= 360;
+
+    QSGGeometry *g = geometry();
+
+    if (g == nullptr)
+        g = new QSGGeometry(QSGGeometry::defaultAttributes_TexturedPoint2D(), 4);
+
+    QSGGeometry::TexturedPoint2D *v = g->vertexDataAsTexturedPoint2D();
+
+    // Set geometry first
+    qSetGeom(v + 0, rect.topLeft());
+    qSetGeom(v + 1, rect.bottomLeft());
+    qSetGeom(v + 2, rect.topRight());
+    qSetGeom(v + 3, rect.bottomRight());
+
+    // and then texture coordinates
+    switch (videoRotation) {
+    default:
+        // tl, bl, tr, br
+        qSetTex(v + 0, textureRect.topLeft());
+        qSetTex(v + 1, textureRect.bottomLeft());
+        qSetTex(v + 2, textureRect.topRight());
+        qSetTex(v + 3, textureRect.bottomRight());
+        break;
+
+    case 90:
+        // tr, tl, br, bl
+        qSetTex(v + 0, textureRect.topRight());
+        qSetTex(v + 1, textureRect.topLeft());
+        qSetTex(v + 2, textureRect.bottomRight());
+        qSetTex(v + 3, textureRect.bottomLeft());
+        break;
+
+    case 180:
+        // br, tr, bl, tl
+        qSetTex(v + 0, textureRect.bottomRight());
+        qSetTex(v + 1, textureRect.topRight());
+        qSetTex(v + 2, textureRect.bottomLeft());
+        qSetTex(v + 3, textureRect.topLeft());
+        break;
+
+    case 270:
+        // bl, br, tl, tr
+        qSetTex(v + 0, textureRect.bottomLeft());
+        qSetTex(v + 1, textureRect.bottomRight());
+        qSetTex(v + 2, textureRect.topLeft());
+        qSetTex(v + 3, textureRect.topRight());
+        break;
+    }
+
+    if (m_material && m_material->m_currentFrame.mirrored()) {
+        qSwapTex(v + 0, v + 2);
+        qSwapTex(v + 1, v + 3);
+    }
+
+    if (!geometry())
+        setGeometry(g);
+
+    markDirty(DirtyGeometry);
+
+    setSubtitleGeometry();
+}
 
 QT_END_NAMESPACE

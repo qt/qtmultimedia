@@ -201,7 +201,7 @@ void QQuickVideoOutput::_q_newFrame(const QVideoFrame &frame)
 {
     present(frame);
     QSize size = frame.size();
-    if (!qIsDefaultAspect(m_orientation)) {
+    if (!qIsDefaultAspect(m_orientation + m_frameOrientation)) {
         size.transpose();
     }
 
@@ -473,7 +473,7 @@ void QQuickVideoOutput::updateGeometry()
         const qreal totalWidth = normalizedViewport.width() * relativeWidth;
         const qreal totalHeight = normalizedViewport.height() * relativeHeight;
 
-        if (qIsDefaultAspect(orientation())) {
+        if (qIsDefaultAspect(orientation() + m_frameOrientation)) {
             m_sourceTextureRect = QRectF(totalOffsetLeft, totalOffsetTop,
                                          totalWidth, totalHeight);
         } else {
@@ -558,6 +558,7 @@ void QQuickVideoOutput::present(const QVideoFrame &frame)
     m_frameMutex.lock();
     m_surfaceFormat = frame.surfaceFormat();
     m_frame = frame;
+    m_frameOrientation = frame.rotationAngle();
     m_frameChanged = true;
     m_frameMutex.unlock();
 
