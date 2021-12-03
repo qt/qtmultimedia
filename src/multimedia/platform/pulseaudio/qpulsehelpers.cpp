@@ -65,6 +65,37 @@ pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format)
     return spec;
 }
 
+QAudioFormat sampleSpecToAudioFormat(const pa_sample_spec &spec)
+{
+    QAudioFormat format;
+
+    format.setSampleRate(spec.rate);
+    format.setChannelCount(spec.channels);
+    QAudioFormat::SampleFormat sampleFormat;
+    switch (spec.format) {
+    case PA_SAMPLE_U8:
+        sampleFormat = QAudioFormat::UInt8;
+        break;
+    case PA_SAMPLE_S16LE:
+    case PA_SAMPLE_S16BE:
+        sampleFormat = QAudioFormat::Int16;
+        break;
+    case PA_SAMPLE_FLOAT32LE:
+    case PA_SAMPLE_FLOAT32BE:
+        sampleFormat = QAudioFormat::Float;
+        break;
+    case PA_SAMPLE_S32LE:
+    case PA_SAMPLE_S32BE:
+        sampleFormat = QAudioFormat::Int32;
+        break;
+        default:
+            return {};
+    }
+
+    format.setSampleFormat(sampleFormat);
+    return format;
+}
+
 #ifdef DEBUG_PULSE
 QString stateToQString(pa_stream_state_t state)
 {

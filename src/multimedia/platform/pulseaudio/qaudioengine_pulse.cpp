@@ -126,6 +126,7 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
     QWriteLocker locker(&pulseEngine->m_sinkLock);
     bool isDefault = pulseEngine->m_defaultSink == info->name;
     auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Output);
+    dinfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
     pulseEngine->m_sinks.insert(info->index, dinfo->create());
 }
 
@@ -164,6 +165,7 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
         return;
     bool isDefault = pulseEngine->m_defaultSink == info->name;
     auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Input);
+    dinfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
     pulseEngine->m_sources.insert(info->index, dinfo->create());
 }
 
