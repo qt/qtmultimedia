@@ -274,14 +274,14 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
     }
 }
 
-void QVideoWindowPrivate::updateSubtitle(QRhiResourceUpdateBatch *rub)
+void QVideoWindowPrivate::updateSubtitle(QRhiResourceUpdateBatch *rub, const QSize &frameSize)
 {
     m_subtitleDirty = false;
     m_hasSubtitle = !m_currentFrame.subtitleText().isEmpty();
     if (!m_hasSubtitle)
         return;
 
-    m_subtitleLayout.updateFromVideoFrame(m_currentFrame);
+    m_subtitleLayout.update(frameSize, m_currentFrame.subtitleText());
     QSize size = m_subtitleLayout.bounds.size().toSize();
 
     QImage img = m_subtitleLayout.toImage();
@@ -382,6 +382,7 @@ void QVideoWindowPrivate::render()
     QSize scaled = frameSize.scaled(rect.size(), aspectRatioMode);
     QRect videoRect = QRect(QPoint(0, 0), scaled);
     videoRect.moveCenter(rect.center());
+    QRect subtitleRect = videoRect.intersected(rect);
 
     if (m_swapChain->currentPixelSize() != m_swapChain->surfacePixelSize())
         resizeSwapChain();
@@ -416,8 +417,8 @@ void QVideoWindowPrivate::render()
     if (m_texturesDirty)
         updateTextures(rub);
 
-    if (m_subtitleDirty)
-        updateSubtitle(rub);
+    if (m_subtitleDirty || m_subtitleLayout.videoSize != subtitleRect.size())
+        updateSubtitle(rub, subtitleRect.size());
 
     float mirrorFrame = m_currentFrame.mirrored() ? -1.f : 1.f;
     float xscale = mirrorFrame * float(videoRect.width())/float(rect.width());
@@ -431,15 +432,14 @@ void QVideoWindowPrivate::render()
     rub->updateDynamicBuffer(m_uniformBuf.get(), 0, uniformData.size(), uniformData.constData());
 
     if (m_hasSubtitle) {
-        // Reverse mirror operation before applying transformation to subtitles
-        transform.scale(mirrorFrame, 1.f);
-        transform.translate(0, 2.*m_subtitleLayout.bounds.center().y()/frameSize.height() - 1.);
-        transform.scale(m_subtitleLayout.bounds.width()/frameSize.width(),
-                m_subtitleLayout.bounds.height()/frameSize.height());
+        QMatrix4x4 st;
+        st.translate(0, -2.f * (float(m_subtitleLayout.bounds.center().y())  + float(subtitleRect.top()))/ float(rect.height()) + 1.f);
+        st.scale(float(m_subtitleLayout.bounds.width())/float(rect.width()),
+                -1.f * float(m_subtitleLayout.bounds.height())/float(rect.height()));
 
         QByteArray uniformData(64 + 64 + 4 + 4, Qt::Uninitialized);
         QVideoFrameFormat fmt(m_subtitleLayout.bounds.size().toSize(), QVideoFrameFormat::Format_ARGB8888);
-        QVideoTextureHelper::updateUniformData(&uniformData, fmt, QVideoFrame(), transform, 1.f);
+        QVideoTextureHelper::updateUniformData(&uniformData, fmt, QVideoFrame(), st, 1.f);
         rub->updateDynamicBuffer(m_subtitleUniformBuf.get(), 0, uniformData.size(), uniformData.constData());
     }
 

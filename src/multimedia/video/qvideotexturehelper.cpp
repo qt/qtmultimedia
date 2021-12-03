@@ -541,13 +541,8 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
     return description->nplanes;
 }
 
-bool SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
+bool SubtitleLayout::update(const QSize &frameSize, QString text)
 {
-    QSize frameSize = frame.size();
-    if (frame.rotationAngle() % 180)
-        frameSize.transpose();
-
-    auto text = frame.subtitleText();
     text.replace(QLatin1Char('\n'), QChar::LineSeparator);
     if (layout.text() == text && videoSize == frameSize)
         return false;
@@ -555,7 +550,7 @@ bool SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
     videoSize = frameSize;
     QFont font;
     // 0.045 - based on this https://www.md-subs.com/saa-subtitle-font-size
-    qreal fontSize = frame.size().height() * 0.045;
+    qreal fontSize = frameSize.height() * 0.045;
     font.setPointSize(fontSize);
 
     layout.setText(text);
@@ -600,11 +595,10 @@ bool SubtitleLayout::updateFromVideoFrame(const QVideoFrame &frame)
     return true;
 }
 
-void SubtitleLayout::draw(QPainter *painter, const QRectF &videoRect) const
+void SubtitleLayout::draw(QPainter *painter, const QPointF &translate) const
 {
     painter->save();
-    painter->translate(videoRect.topLeft());
-    painter->scale(videoRect.width()/videoSize.width(), videoRect.height()/videoSize.height());
+    painter->translate(translate);
     painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
 
     QColor bgColor = Qt::black;

@@ -867,8 +867,8 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
     text.replace(QLatin1Char('\n'), QChar::LineSeparator);
 
     QVideoTextureHelper::SubtitleLayout layout;
-    layout.updateFromVideoFrame(*this);
-    layout.draw(painter, targetRect);
+    layout.update(targetRect.size().toSize(), this->subtitleText());
+    layout.draw(painter, targetRect.topLeft());
 }
 
 #ifndef QT_NO_DEBUG_STREAM
