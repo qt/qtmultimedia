@@ -95,7 +95,7 @@ public:
     void releaseSwapChain();
 
     void updateTextures(QRhiResourceUpdateBatch *rub);
-    void updateSubtitle(QRhiResourceUpdateBatch *rub);
+    void updateSubtitle(QRhiResourceUpdateBatch *rub, const QSize &frameSize);
     void freeTextures();
 
     void setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, QVideoFrameFormat::PixelFormat fmt);

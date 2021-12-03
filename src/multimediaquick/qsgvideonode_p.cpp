@@ -249,7 +249,12 @@ void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
 
 void QSGVideoNode::updateSubtitle(const QVideoFrame &frame)
 {
-    if (!m_subtitleLayout.updateFromVideoFrame(frame))
+    QSize subtitleFrameSize = m_rect.size().toSize();
+    if (subtitleFrameSize.isEmpty())
+        return;
+    if (m_orientation % 180)
+        subtitleFrameSize.transpose();
+    if (!m_subtitleLayout.update(subtitleFrameSize, frame.subtitleText()))
         return;
 
     delete m_subtitleTextNode;
@@ -271,14 +276,25 @@ void QSGVideoNode::setSubtitleGeometry()
     if (!m_subtitleTextNode)
         return;
 
-    QSizeF s = m_subtitleLayout.videoSize;
-    QMatrix4x4 transform = {
-        float(m_rect.width()/s.width()), 0, 0, float(m_rect.x()),
-        0, float(m_rect.height()/s.height()), 0, float(m_rect.y()),
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    };
-    transform.rotate(m_orientation, 0, 0, 1);
+    if (m_material)
+        updateSubtitle(m_material->m_currentFrame);
+
+    float rotate = -1.f * m_orientation;
+    float yTranslate = 0;
+    float xTranslate = 0;
+    if (m_orientation == 90) {
+        yTranslate = m_rect.height();
+    } else if (m_orientation == 180) {
+        yTranslate = m_rect.height();
+        xTranslate = m_rect.width();
+    } else if (m_orientation == 270) {
+        xTranslate = m_rect.width();
+    }
+
+    QMatrix4x4 transform;
+    transform.translate(m_rect.x() + xTranslate, m_rect.y() + yTranslate);
+    transform.rotate(rotate, 0, 0, 1);
+
     m_subtitleTextNode->setMatrix(transform);
     m_subtitleTextNode->markDirty(DirtyGeometry);
 }
