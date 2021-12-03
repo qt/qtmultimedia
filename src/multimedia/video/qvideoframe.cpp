@@ -767,7 +767,15 @@ QImage QVideoFrame::toImage() const
 
     frame.unmap();
 
-    return result;
+    QTransform t;
+    if (mirrored())
+        t.scale(-1.f, 1.f);
+    if (rotationAngle() != Rotation0)
+        t.rotate(-1.f * float(rotationAngle()));
+    if (surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom)
+        t.scale(1.f, -1.f);
+
+    return t.isIdentity() ? result : result.transformed(t);
 }
 
 /*!
@@ -803,14 +811,14 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
         return;
     }
 
-    QVideoFrameFormat::Direction scanLineDirection = QVideoFrameFormat::TopToBottom;//format.scanLineDirection();
-    bool mirrored = false;//format.isMirrored();
-
-    QSizeF size = this->size();
-    QRectF source = QRectF(0, 0, size.width(), size.height());
     QRectF targetRect = rect;
+    QSizeF size = this->size();
+    if (rotationAngle() % 180)
+        size.transpose();
+
+    size.scale(targetRect.size(), options.aspectRatioMode);
+
     if (options.aspectRatioMode == Qt::KeepAspectRatio) {
-        size.scale(targetRect.size(), Qt::KeepAspectRatio);
         targetRect = QRect(0, 0, size.width(), size.height());
         targetRect.moveCenter(rect.center());
         // we might not be drawing every pixel, fill the leftovers black
@@ -832,33 +840,16 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
                 painter->fillRect(top, Qt::black);
             }
         }
-    } else if (options.aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
-        QSizeF targetSize = targetRect.size();
-        targetSize.scale(size, Qt::KeepAspectRatio);
-
-        QRectF s(0, 0, targetSize.width(), targetSize.height());
-        s.moveCenter(source.center());
-        source = s;
     }
 
     if (map(QVideoFrame::ReadOnly)) {
-        QImage image = toImage();
-
         const QTransform oldTransform = painter->transform();
         QTransform transform = oldTransform;
-        if (scanLineDirection == QVideoFrameFormat::BottomToTop) {
-            transform.scale(1, -1);
-            transform.translate(0, -targetRect.bottom());
-            targetRect = QRectF(targetRect.x(), 0, targetRect.width(), targetRect.height());
-        }
-
-        if (mirrored) {
-            transform.scale(-1, 1);
-            transform.translate(-targetRect.right(), 0);
-            targetRect = QRectF(0, targetRect.y(), targetRect.width(), targetRect.height());
-        }
+        transform.translate(targetRect.center().x() - size.width()/2,
+                            targetRect.center().y() - size.height()/2);
         painter->setTransform(transform);
-        painter->drawImage(targetRect, image, source);
+        QImage image = toImage();
+        painter->drawImage({{}, size}, image, {{},image.size()});
         painter->setTransform(oldTransform);
 
         unmap();
