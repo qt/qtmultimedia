@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "avfmediaplayer_p.h"
-#include "avfmediaplayer_p.h"
 #include "avfvideorenderercontrol_p.h"
 #include <private/avfvideosink_p.h>
 #include <private/avfmetadata_p.h>
@@ -48,6 +47,7 @@
 
 #include <qpointer.h>
 #include <QFileInfo>
+#include <QtCore/qmath.h>
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -583,6 +583,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     setVideoAvailable(false);
     setSeekable(false);
     m_requestedPosition = -1;
+    orientationChanged(QVideoFrame::Rotation0, false);
     Q_EMIT positionChanged(position());
     if (m_duration != 0) {
         m_duration = 0;
@@ -1116,8 +1117,13 @@ void AVFMediaPlayer::updateTracks()
                 } else if ([assetTrack.mediaType isEqualToString:AVMediaTypeVideo]) {
                     qtTrack = QPlatformMediaPlayer::VideoStream;
                     setVideoAvailable(true);
-                    if (!m_observer.videoTrack)
+                    if (m_observer.videoTrack != track) {
                         m_observer.videoTrack = track;
+                        bool isMirrored = false;
+                        QVideoFrame::RotationAngle orientation = QVideoFrame::Rotation0;
+                        videoOrientationForAssetTrack(assetTrack, orientation, isMirrored);
+                        orientationChanged(orientation, isMirrored);
+                    }
                 }
                 else if ([assetTrack.mediaType isEqualToString:AVMediaTypeSubtitle]) {
                     qtTrack = QPlatformMediaPlayer::SubtitleStream;
@@ -1201,4 +1207,49 @@ void AVFMediaPlayer::nativeSizeChanged(QSize size)
     if (!m_videoSink)
         return;
     m_videoSink->setNativeSize(size);
+}
+
+void AVFMediaPlayer::orientationChanged(QVideoFrame::RotationAngle rotation, bool mirrored)
+{
+    if (!m_videoOutput)
+        return;
+
+    m_videoOutput->setVideoRotation(rotation);
+    m_videoOutput->setVideoMirrored(mirrored);
+}
+
+void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
+                                                   QVideoFrame::RotationAngle &angle,
+                                                   bool &mirrored)
+{
+    angle = QVideoFrame::Rotation0;
+    if (videoTrack) {
+        CGAffineTransform transform = videoTrack.preferredTransform;
+        if (CGAffineTransformIsIdentity(transform))
+            return;
+        qreal delta = transform.a * transform.d - transform.b * transform.c;
+        qreal radians = qAtan2(transform.b, transform.a);
+        qreal degrees = qRadiansToDegrees(radians);
+        qreal scaleX = (transform.a/qAbs(transform.a)) * qSqrt(qPow(transform.a, 2) + qPow(transform.c, 2));
+        qreal scaleY = (transform.d/abs(transform.d)) * qSqrt(qPow(transform.b, 2) + qPow(transform.d, 2));
+
+        if (delta < 0.0) { // flipped
+            if (scaleX < 0.0) {
+                // vertical flip
+                degrees = -degrees;
+            } else if (scaleY < 0.0) {
+                // horizontal flip
+                degrees = (180 + (int)degrees) % 360;
+            }
+            mirrored = true;
+        }
+
+        if (qFuzzyCompare(degrees, qreal(90)) || qFuzzyCompare(degrees, qreal(-270))) {
+            angle = QVideoFrame::Rotation270;
+        } else if (qFuzzyCompare(degrees, qreal(-90)) || qFuzzyCompare(degrees, qreal(270))) {
+            angle = QVideoFrame::Rotation90;
+        } else if (qFuzzyCompare(degrees, qreal(180)) || qFuzzyCompare(degrees, qreal(-180))) {
+            angle = QVideoFrame::Rotation180;
+        }
+    }
 }

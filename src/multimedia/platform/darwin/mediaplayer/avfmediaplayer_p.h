@@ -60,10 +60,12 @@
 
 #include <private/qplatformmediaplayer_p.h>
 #include <QtMultimedia/QMediaPlayer>
+#include <QtMultimedia/QVideoFrame>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVAsset);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemTrack);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVFMediaPlayerObserver);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVAssetTrack);
 
 QT_BEGIN_NAMESPACE
 
@@ -106,6 +108,10 @@ public:
     QPlatformAudioOutput *m_audioOutput = nullptr;
 
     QMediaMetaData metaData() const override;
+
+    void videoOrientationForAssetTrack(AVAssetTrack *track,
+                                       QVideoFrame::RotationAngle &angle,
+                                       bool &mirrored);
 
 public Q_SLOTS:
     void setPlaybackRate(qreal rate) override;
@@ -150,6 +156,8 @@ private:
     void setVideoAvailable(bool available);
     void setSeekable(bool seekable);
     void resetStream(QIODevice *stream = nullptr);
+
+    void orientationChanged(QVideoFrame::RotationAngle rotation, bool mirrored);
 
     AVFVideoRendererControl *m_videoOutput = nullptr;
     AVFVideoSink *m_videoSink = nullptr;
