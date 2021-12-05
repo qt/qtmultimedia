@@ -80,6 +80,9 @@ public:
     void reconfigure() override;
     void setLayer(CALayer *layer) override;
 
+    void setVideoRotation(QVideoFrame::RotationAngle);
+    void setVideoMirrored(bool mirrored);
+
     void setSubtitleText(const QString &subtitle)
     {
         m_sink->setSubtitleText(subtitle);
@@ -96,6 +99,8 @@ private:
     AVPlayerItemVideoOutput *m_videoOutput = nullptr;
     AVPlayerItemLegibleOutput *m_subtitleOutput = nullptr;
     SubtitleDelegate *m_subtitleDelegate = nullptr;
+    QVideoFrame::RotationAngle m_rotation = QVideoFrame::Rotation0;
+    bool m_mirrored = false;
 };
 
 QT_END_NAMESPACE
