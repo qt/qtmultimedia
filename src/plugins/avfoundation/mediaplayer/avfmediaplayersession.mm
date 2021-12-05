@@ -168,6 +168,10 @@ static void *AVFMediaPlayerSessionObserverCurrentItemDurationObservationContext 
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:AVPlayerItemTimeJumpedNotification
                                                     object:m_playerItem];
+        for (AVPlayerItemOutput *output in m_playerItem.outputs) {
+            if ([output isKindOfClass:[AVPlayerItemVideoOutput class]])
+                [m_playerItem removeOutput:output];
+        }
         m_playerItem = 0;
     }
     if (m_player) {
