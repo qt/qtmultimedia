@@ -113,6 +113,10 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     if (audioInput)
         encoder->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
 
+    auto *camera = m_session->camera();
+    if (camera)
+        encoder->addVideoSource(camera);
+
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);
     actualLocationChanged(QUrl::fromLocalFile(location));

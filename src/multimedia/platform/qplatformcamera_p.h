@@ -68,6 +68,7 @@ public:
 
     virtual void setCamera(const QCameraDevice &camera) = 0;
     virtual bool setCameraFormat(const QCameraFormat &/*format*/) { return false; }
+    QCameraFormat cameraFormat() const { return m_cameraFormat; }
 
     virtual void setCaptureSession(QPlatformMediaCaptureSession *) {}
 
@@ -158,6 +159,7 @@ protected:
     explicit QPlatformCamera(QCamera *parent);
 
     static QCameraFormat findBestCameraFormat(const QCameraDevice &camera);
+    QCameraFormat m_cameraFormat;
 private:
     QCamera *m_camera = nullptr;
     QCamera::Features m_supportedFeatures = {};

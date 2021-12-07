@@ -45,6 +45,7 @@
 #include <private/qcameradevice_p.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qvideotexturehelper_p.h>
+#include <private/qmultimediautils_p.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -339,9 +340,9 @@ bool QV4L2Camera::setCameraFormat(const QCameraFormat &format)
     if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
         return false;
 
-    m_format = format;
-    if (m_format.isNull())
-        m_format = findBestCameraFormat(m_cameraDevice);
+    m_cameraFormat = format;
+    if (m_cameraFormat.isNull())
+        m_cameraFormat = findBestCameraFormat(m_cameraDevice);
 
     if (m_active)
         setV4L2CameraFormat();
@@ -507,12 +508,21 @@ void QV4L2Camera::readFrame()
 
     QV4L2VideoBuffer *buffer = new QV4L2VideoBuffer(this, i);
     buffer->data.nPlanes = 1;
-    buffer->data.bytesPerLine[0] = 2*m_format.resolution().width(); // #####
+    buffer->data.bytesPerLine[0] = bytesPerLine;
     buffer->data.data[0] = (uchar *)mappedBuffers.at(i).data;
     buffer->data.size[0] = mappedBuffers.at(i).size;
-    QVideoFrameFormat fmt(m_format.resolution(), m_format.pixelFormat());
-    qDebug() << "got a frame" << mappedBuffers.at(i).data << mappedBuffers.at(i).size << fmt;
+    QVideoFrameFormat fmt(m_cameraFormat.resolution(), m_cameraFormat.pixelFormat());
+    fmt.setYCbCrColorSpace(colorSpace);
+//    qDebug() << "got a frame" << mappedBuffers.at(i).data << mappedBuffers.at(i).size << fmt;
     QVideoFrame frame(buffer, fmt);
+
+    if (firstFrameTime.tv_sec == -1)
+        firstFrameTime = buf.timestamp;
+    qint64 secs = buf.timestamp.tv_sec - firstFrameTime.tv_sec;
+    qint64 usecs = buf.timestamp.tv_usec - firstFrameTime.tv_usec;
+    frame.setStartTime(secs*1000000 + usecs);
+    frame.setEndTime(frame.startTime() + frameDuration);
+
     emit newVideoFrame(frame);
 }
 
@@ -635,16 +645,16 @@ int QV4L2Camera::getV4L2Parameter(quint32 id) const
 
 void QV4L2Camera::setV4L2CameraFormat()
 {
-    if (m_format.isNull())
-        m_format = findBestCameraFormat(m_cameraDevice);
-    qDebug() << "XXXXX" << m_format.pixelFormat() << m_format.resolution();
+    if (m_cameraFormat.isNull())
+        m_cameraFormat = findBestCameraFormat(m_cameraDevice);
+    qDebug() << "XXXXX" << m_cameraFormat.pixelFormat() << m_cameraFormat.resolution();
 
     struct v4l2_format fmt = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE };
 
-    auto size = m_format.resolution();
+    auto size = m_cameraFormat.resolution();
     fmt.fmt.pix.width = size.width();
     fmt.fmt.pix.height = size.height();
-    fmt.fmt.pix.pixelformat = v4l2FormatForPixelFormat(m_format.pixelFormat());
+    fmt.fmt.pix.pixelformat = v4l2FormatForPixelFormat(m_cameraFormat.pixelFormat());
     fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
     qDebug() << "setting camera format to" << size;
@@ -652,6 +662,39 @@ void QV4L2Camera::setV4L2CameraFormat()
     if (ioctl(v4l2FileDescriptor, VIDIOC_S_FMT, &fmt) < 0)
         qWarning() << "Couldn't set video format on v4l2 camera";
 
+    bytesPerLine = fmt.fmt.pix.bytesperline;
+
+    switch (v4l2_colorspace(fmt.fmt.pix.colorspace)) {
+    default:
+    case V4L2_COLORSPACE_DCI_P3:
+        colorSpace = QVideoFrameFormat::YCbCr_Undefined;
+        break;
+    case V4L2_COLORSPACE_REC709:
+        colorSpace = QVideoFrameFormat::YCbCr_BT709;
+        break;
+    case V4L2_COLORSPACE_JPEG:
+        colorSpace = QVideoFrameFormat::YCbCr_JPEG;
+        break;
+    case V4L2_COLORSPACE_SRGB:
+        // ##### is this correct???
+        colorSpace = QVideoFrameFormat::YCbCr_BT601;
+        break;
+    case V4L2_COLORSPACE_BT2020:
+        colorSpace = QVideoFrameFormat::YCbCr_BT2020;
+        break;
+    }
+
+    v4l2_streamparm streamParam = {
+        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE
+    };
+    streamParam.parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+    int num, den;
+    qt_real_to_fraction(1./m_cameraFormat.maxFrameRate(), &num, &den);
+    streamParam.parm.capture.timeperframe = { (uint)num, (uint)den };
+    ioctl(v4l2FileDescriptor, VIDIOC_S_PARM, &streamParam);
+
+    frameDuration = 1000000*streamParam.parm.capture.timeperframe.numerator
+                    /streamParam.parm.capture.timeperframe.denominator;
 }
 
 void QV4L2Camera::initMMap()
@@ -743,6 +786,7 @@ void QV4L2Camera::startCapturing()
     notifier = new QSocketNotifier(v4l2FileDescriptor, QSocketNotifier::Read);
     connect(notifier, &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
 
+    firstFrameTime = { -1, -1 };
 }
 
 QT_END_NAMESPACE

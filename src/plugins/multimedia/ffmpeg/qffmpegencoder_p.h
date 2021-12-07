@@ -62,12 +62,15 @@
 QT_BEGIN_NAMESPACE
 
 class QFFmpegAudioInput;
+class QVideoFrame;
+class QPlatformCamera;
 
 namespace QFFmpeg
 {
 
 class Muxer;
 class AudioEncoder;
+class VideoEncoder;
 
 class Encoder : public QObject
 {
@@ -76,20 +79,24 @@ public:
     ~Encoder();
 
     void addAudioInput(QFFmpegAudioInput *input);
+    void addVideoSource(QPlatformCamera *source);
 
     void start();
     void finalize();
 
 public Q_SLOTS:
     void newAudioBuffer(const QAudioBuffer &buffer);
+    void newVideoFrame(const QVideoFrame &frame);
 
 public:
 
     QMediaEncoderSettings settings;
     AVFormatContext *formatContext = nullptr;
     Muxer *muxer = nullptr;
+    bool isRecording = false;
 
     AudioEncoder *audioEncode = nullptr;
+    VideoEncoder *videoEncode = nullptr;
 };
 
 
@@ -113,7 +120,21 @@ private:
     Encoder *encoder;
 };
 
-class AudioEncoder : public Thread
+class EncoderThread : public Thread
+{
+public:
+
+protected:
+    void retrievePackets();
+
+    void cleanup() override;
+
+    Encoder *encoder = nullptr;
+    AVStream *stream = nullptr;
+    AVCodecContext *codec = nullptr;
+};
+
+class AudioEncoder : public EncoderThread
 {
     mutable QMutex queueMutex;
     QQueue<QAudioBuffer> audioBufferQueue;
@@ -132,16 +153,35 @@ private:
     bool shouldWait() const override;
     void loop() override;
 
-    Encoder *encoder = nullptr;
 
     QFFmpegAudioInput *input;
     QAudioFormat format;
 
     SwrContext *resampler = nullptr;
-
-    AVStream *stream = nullptr;
-    AVCodecContext *codec = nullptr;
     qint64 samplesWritten = 0;
+};
+
+
+class VideoEncoder : public EncoderThread
+{
+    mutable QMutex queueMutex;
+    QQueue<QVideoFrame> videoFrameQueue;
+public:
+    VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMediaEncoderSettings &settings);
+    ~VideoEncoder();
+
+    void addFrame(const QVideoFrame &frame);
+
+private:
+    QVideoFrame takeFrame();
+
+    void init() override;
+    void cleanup() override;
+    bool shouldWait() const override;
+    void loop() override;
+
+    SwsContext *converter = nullptr;
+    qint64 baseTime = -1;
 };
 
 }

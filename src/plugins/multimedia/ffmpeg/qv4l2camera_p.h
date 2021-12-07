@@ -130,7 +130,6 @@ private:
     bool m_active;
 
     QCameraDevice m_cameraDevice;
-    QCameraFormat m_format;
 
     void initV4L2Controls();
     int setV4L2ColorTemperature(int temperature);
@@ -161,6 +160,10 @@ private:
     qint32 v4l2MinExposureAdjustment = 0;
     qint32 v4l2MaxExposureAdjustment = 0;
     int v4l2FileDescriptor = -1;
+    timeval firstFrameTime = {-1, -1};
+    int bytesPerLine = -1;
+    QVideoFrameFormat::YCbCrColorSpace colorSpace = QVideoFrameFormat::YCbCr_Undefined;
+    qint64 frameDuration = -1;
 };
 
 QT_END_NAMESPACE
