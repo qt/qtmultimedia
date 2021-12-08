@@ -87,8 +87,8 @@ public:
 
         ThumbnailImage,
         CoverArtImage,
-        Orientation,
 
+        Orientation,
         Resolution
     };
     Q_ENUM(Key)
