@@ -420,7 +420,28 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     stream->codecpar->width = resolution.width();
     stream->codecpar->height = resolution.height();
     stream->codecpar->sample_aspect_ratio = AVRational{1, 1};
-    stream->time_base = (AVRational){ 1, (int)(format.maxFrameRate()*1000) };
+    float requestedRate = format.maxFrameRate();
+    stream->time_base = AVRational{ 1, (int)(requestedRate*1000) };
+
+    float delta = 1e10;
+    if (avCodec->supported_framerates) {
+        // codec only supports fixed frame rates
+        auto *f = avCodec->supported_framerates;
+        auto *best = f;
+        qDebug() << "Finding fixed rate:";
+        while (f->num != 0) {
+            float rate = float(f->num)/float(f->den);
+            float d = qAbs(rate - requestedRate);
+            qDebug() << "    " << f->num << f->den << d;
+            if (d < delta) {
+                best = f;
+                delta = d;
+            }
+            ++f;
+        }
+        qDebug() << "Fixed frame rate required. Requested:" << requestedRate << "Using:" << best->num << "/" << best->den;
+        stream->time_base = { best->den, best->num };
+    }
 
     Q_ASSERT(avCodec);
     codec = avcodec_alloc_context3(avCodec);
@@ -428,6 +449,7 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     codec->time_base = stream->time_base;
     int res = avcodec_open2(codec, avCodec, nullptr);
     qDebug() << "video codec opened" << res << codec->time_base.num << codec->time_base.den;
+    stream->time_base = codec->time_base;
 
     if (cameraFormat != encoderFormat)
         converter = sws_getContext(resolution.width(), resolution.height(), cameraFormat,
@@ -509,7 +531,7 @@ void VideoEncoder::loop()
     }
 
     qint64 time = frame.startTime() - baseTime;
-    avFrame->pts = time*stream->time_base.den/1000000;
+    avFrame->pts = (time*stream->time_base.den + stream->time_base.num*500000)/(stream->time_base.num*1000000);
 
 //    qDebug() << "sending frame" << avFrame->pts;
     int ret = avcodec_send_frame(codec, avFrame);
