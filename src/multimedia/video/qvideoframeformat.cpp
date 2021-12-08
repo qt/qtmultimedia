@@ -818,7 +818,7 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::PixelFormat pf)
     if (format.isEmpty())
         return dbg;
 
-    dbg << QStringLiteral("Format_") << format;
+    dbg.noquote() << QStringLiteral("Format_") << format;
     return dbg;
 }
 #endif
