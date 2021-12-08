@@ -142,7 +142,7 @@ const AVMetadataIDs keyToAVMetaDataID[] = {
     { AVMetadataCommonIdentifierArtwork, AVMetadataIdentifieriTunesMetadataCoverArt,
       AVMetadataIdentifierQuickTimeMetadataArtwork, nil, nil, nil },
     // Orientation
-    { nil, nil, AVMetadataIdentifierQuickTimeMetadataDirectionFacing, nil, nil, nil },
+    { nil, nil, AVMetadataIdentifierQuickTimeMetadataVideoOrientation, nil, nil, nil },
     // Resolution
     { nil, nil, nil, nil, nil, nil }
 };
@@ -333,6 +333,12 @@ static AVMutableMetadataItem *setAVMetadataItemForKey(QMediaMetaData::Key key, c
         if (!lang.isEmpty())
             item.value = lang.toNSString();
         break;
+    }
+    case QMediaMetaData::Orientation: {
+        bool ok;
+        int rotation = value.toInt(&ok);
+        if (ok)
+            item.value = [NSNumber numberWithInt:rotation];
     }
     default: {
         switch (value.typeId()) {

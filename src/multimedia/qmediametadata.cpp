@@ -102,6 +102,7 @@ QT_BEGIN_NAMESPACE
 
     \header \li {3,1}
     Image and video attributes
+    \row \li Orientation \li The rotation angle of an image or video. \li int
     \row \li Resolution \li The dimensions of an image or video. \li QSize
 
     \endtable
