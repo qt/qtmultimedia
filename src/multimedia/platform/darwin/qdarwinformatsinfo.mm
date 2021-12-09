@@ -54,6 +54,7 @@ static struct {
     { "video/quicktime", QMediaFormat::QuickTime },
     { "video/ogg", QMediaFormat::Ogg },
     { "audio/mp3", QMediaFormat::MP3 },
+    { "audio/flac", QMediaFormat::FLAC },
     { nullptr, QMediaFormat::UnspecifiedFormat }
 };
 
