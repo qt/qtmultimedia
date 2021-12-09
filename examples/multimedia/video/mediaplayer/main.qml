@@ -73,6 +73,14 @@ Window {
 
     MediaPlayer {
         id: mediaPlayer
+
+        function updateMetadata() {
+            metadataInfo.clear();
+            metadataInfo.read(mediaPlayer.metaData);
+            metadataInfo.read(mediaPlayer.audioTracks[mediaPlayer.activeAudioTrack]);
+            metadataInfo.read(mediaPlayer.videoTracks[mediaPlayer.activeVideoTrack]);
+        }
+
         videoOutput: videoOutput
         audioOutput: AudioOutput {
             id: audio
@@ -81,7 +89,7 @@ Window {
         }
 
         onErrorOccurred: { mediaErrorText.text = mediaPlayer.errorString; mediaError.open() }
-        onMetaDataChanged: { metadataInfo.read(mediaPlayer.metaData) }
+        onMetaDataChanged: { updateMetadata() }
         onTracksChanged: {
             audioTracksInfo.read(mediaPlayer.audioTracks);
             audioTracksInfo.selectedTrack = mediaPlayer.activeAudioTrack;
@@ -89,7 +97,9 @@ Window {
             videoTracksInfo.selectedTrack = mediaPlayer.activeVideoTrack;
             subtitleTracksInfo.read(mediaPlayer.subtitleTracks);
             subtitleTracksInfo.selectedTrack = mediaPlayer.activeSubtitleTrack;
+            updateMetadata()
         }
+        onActiveTracksChanged: { updateMetadata() }
     }
 
     PlayerMenuBar {
