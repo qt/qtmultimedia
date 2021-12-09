@@ -658,7 +658,7 @@ quint64 QVideoFrame::textureHandle(int plane) const
 qint64 QVideoFrame::startTime() const
 {
     if (!d)
-        return 0;
+        return -1;
     return d->startTime;
 }
 
@@ -684,7 +684,7 @@ void QVideoFrame::setStartTime(qint64 time)
 qint64 QVideoFrame::endTime() const
 {
     if (!d)
-        return 0;
+        return -1;
     return d->endTime;
 }
 
