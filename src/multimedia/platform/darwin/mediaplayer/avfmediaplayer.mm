@@ -1163,6 +1163,7 @@ void AVFMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int in
     }
     for (int i = 0; i < t.count(); ++i)
         t.at(i).enabled = (i == index);
+    emit activeTracksChanged();
 }
 
 int AVFMediaPlayer::activeTrack(QPlatformMediaPlayer::TrackType type)

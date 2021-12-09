@@ -57,14 +57,19 @@ Item {
     id: root
     implicitWidth: 200
 
+    function clear() {
+        elements.clear();
+    }
+
     function read(metadata) {
-        elements.clear()
-        for (var key of metadata.keys()) {
-            if (metadata.stringValue(key)) {
-                elements.append(
-                            { name: metadata.metaDataKeyToString(key)
-                            , value: metadata.stringValue(key)
-                            })
+        if (metadata) {
+            for (var key of metadata.keys()) {
+                if (metadata.stringValue(key)) {
+                    elements.append(
+                                { name: metadata.metaDataKeyToString(key)
+                                , value: metadata.stringValue(key)
+                                })
+                }
             }
         }
     }
