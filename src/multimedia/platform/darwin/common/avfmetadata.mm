@@ -39,6 +39,7 @@
 
 #include "avfmetadata_p.h"
 #include <private/qdarwinformatsinfo_p.h>
+#include <private/avfmediaplayer_p.h>
 
 #include <QtCore/qbuffer.h>
 #include <QtCore/qiodevice.h>
@@ -46,6 +47,7 @@
 #include <QtCore/qlocale.h>
 #include <QtCore/qurl.h>
 #include <QImage>
+#include <QtMultimedia/qvideoframe.h>
 
 #if QT_HAS_INCLUDE(<AppKit/AppKit.h>)
 #include <AppKit/AppKit.h>
@@ -278,16 +280,44 @@ QMediaMetaData AVFMetaData::fromAsset(AVAsset *asset)
 QMediaMetaData AVFMetaData::fromAssetTrack(AVAssetTrack *asset)
 {
     QMediaMetaData metadata = fromAVMetadata([asset metadata]);
-    if (metadata.value(QMediaMetaData::Language).isNull()) {
-        auto *languageCode = asset.languageCode;
-        if (languageCode) {
-            // languageCode is encoded as ISO 639-2, which QLocale does not handle.
-            // Convert it to 639-1 first.
-            auto id = CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorDefault,
-                                                                          (__bridge CFStringRef)languageCode);
-            QString lang = QString::fromCFString(id);
-            CFRelease(id);
-            metadata.insert(QMediaMetaData::Language, QLocale::codeToLanguage(lang));
+    if ([asset.mediaType isEqualToString:AVMediaTypeAudio]) {
+        if (metadata.value(QMediaMetaData::Language).isNull()) {
+            auto *languageCode = asset.languageCode;
+            if (languageCode) {
+                // languageCode is encoded as ISO 639-2, which QLocale does not handle.
+                // Convert it to 639-1 first.
+                auto id = CFLocaleCreateCanonicalLanguageIdentifierFromString(kCFAllocatorDefault,
+                                                                            (__bridge CFStringRef)languageCode);
+                QString lang = QString::fromCFString(id);
+                CFRelease(id);
+                metadata.insert(QMediaMetaData::Language, QLocale::codeToLanguage(lang));
+            }
+        }
+    }
+    if ([asset.mediaType isEqualToString:AVMediaTypeVideo]) {
+        // add orientation
+        if (metadata.value(QMediaMetaData::Orientation).isNull()) {
+            int rotation = 0;
+            QVideoFrame::RotationAngle angle = QVideoFrame::Rotation0;
+            bool mirrored;
+            AVFMediaPlayer::videoOrientationForAssetTrack(asset, angle, mirrored);
+            Q_UNUSED(mirrored);
+            switch (angle) {
+            // metadata orientation angle is in clockwise direction
+            case QVideoFrame::Rotation90:
+                rotation = 270;
+                break;
+            case QVideoFrame::Rotation180:
+                rotation = 180;
+                break;
+            case QVideoFrame::Rotation270:
+                rotation = 90;
+                break;
+            default:
+                rotation = 0;
+                break;
+            }
+        metadata.insert(QMediaMetaData::Orientation, rotation);
         }
     }
     return metadata;

@@ -109,7 +109,7 @@ public:
 
     QMediaMetaData metaData() const override;
 
-    void videoOrientationForAssetTrack(AVAssetTrack *track,
+    static void videoOrientationForAssetTrack(AVAssetTrack *track,
                                        QVideoFrame::RotationAngle &angle,
                                        bool &mirrored);
 
