@@ -62,8 +62,10 @@ QFFmpegMediaRecorder::QFFmpegMediaRecorder(QMediaRecorder *parent)
 
 QFFmpegMediaRecorder::~QFFmpegMediaRecorder()
 {
-    encoder->finalize();
-    delete encoder;
+    if (encoder) {
+        encoder->finalize();
+        delete encoder;
+    }
 }
 
 bool QFFmpegMediaRecorder::isLocationWritable(const QUrl &) const
@@ -154,9 +156,12 @@ void QFFmpegMediaRecorder::stop()
     if (input)
         static_cast<QFFmpegAudioInput *>(input)->setRunning(false);
     qCDebug(qLcMediaEncoder) << "stop";
-    encoder->finalize();
-    delete encoder;
-    encoder = nullptr;
+    if (encoder) {
+        encoder->finalize();
+        delete encoder;
+        encoder = nullptr;
+    }
+    stateChanged(QMediaRecorder::StoppedState);
 }
 
 void QFFmpegMediaRecorder::setMetaData(const QMediaMetaData &metaData)

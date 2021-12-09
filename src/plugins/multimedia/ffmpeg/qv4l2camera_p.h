@@ -56,6 +56,7 @@
 
 #include <qfilesystemwatcher.h>
 #include <qsocketnotifier.h>
+#include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -79,6 +80,23 @@ private:
     QFileSystemWatcher deviceWatcher;
 };
 
+struct QV4L2CameraBuffers
+{
+public:
+    ~QV4L2CameraBuffers();
+
+    void release(int index);
+
+    QAtomicInt ref;
+    QMutex mutex;
+    struct MappedBuffer {
+        void *data;
+        qsizetype size;
+    };
+    QList<MappedBuffer> mappedBuffers;
+    int v4l2FileDescriptor = -1;
+};
+
 class Q_MULTIMEDIA_EXPORT QV4L2Camera : public QPlatformCamera
 {
     Q_OBJECT
@@ -92,6 +110,7 @@ public:
 
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
+    bool resolveCameraFormat(const QCameraFormat &format);
 
 //    void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
@@ -127,27 +146,23 @@ private Q_SLOTS:
     void readFrame();
 
 private:
-    bool m_active;
+    bool m_active = false;
 
     QCameraDevice m_cameraDevice;
 
     void initV4L2Controls();
+    void closeV4L2Fd();
     int setV4L2ColorTemperature(int temperature);
     bool setV4L2Parameter(quint32 id, qint32 value);
     int getV4L2Parameter(quint32 id) const;
 
     void setV4L2CameraFormat();
     void initMMap();
-    void closeMappedBuffers();
     void startCapturing();
     void stopCapturing();
 
-    struct MappedBuffer {
-        void *data;
-        qsizetype size;
-    };
-    QList<MappedBuffer> mappedBuffers;
     QSocketNotifier *notifier = nullptr;
+    QExplicitlySharedDataPointer<QV4L2CameraBuffers> d;
 
     bool v4l2AutoWhiteBalanceSupported = false;
     bool v4l2ColorTemperatureSupported = false;
@@ -159,7 +174,6 @@ private:
     qint32 v4l2MaxExposure = 0;
     qint32 v4l2MinExposureAdjustment = 0;
     qint32 v4l2MaxExposureAdjustment = 0;
-    int v4l2FileDescriptor = -1;
     timeval firstFrameTime = {-1, -1};
     int bytesPerLine = -1;
     QVideoFrameFormat::YCbCrColorSpace colorSpace = QVideoFrameFormat::YCbCr_Undefined;
