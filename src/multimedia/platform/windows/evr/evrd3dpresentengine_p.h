@@ -108,6 +108,22 @@ private:
 
 #endif // MAYBE_ANGLE
 
+#if QT_CONFIG(opengl)
+#include <qopengl.h>
+struct WglNvDxInterop {
+    HANDLE (WINAPI* wglDXOpenDeviceNV) (void* dxDevice);
+    BOOL (WINAPI* wglDXCloseDeviceNV) (HANDLE hDevice);
+    HANDLE (WINAPI* wglDXRegisterObjectNV) (HANDLE hDevice, void *dxObject, GLuint name, GLenum type, GLenum access);
+    BOOL (WINAPI* wglDXSetResourceShareHandleNV) (void *dxResource, HANDLE shareHandle);
+    BOOL (WINAPI* wglDXLockObjectsNV) (HANDLE hDevice, GLint count, HANDLE *hObjects);
+    BOOL (WINAPI* wglDXUnlockObjectsNV) (HANDLE hDevice, GLint count, HANDLE *hObjects);
+    BOOL (WINAPI* wglDXUnregisterObjectNV) (HANDLE hDevice, HANDLE hObject);
+
+    static const int WGL_ACCESS_READ_ONLY_NV = 0;
+};
+
+#endif
+
 class D3DPresentEngine
 {
     Q_DISABLE_COPY(D3DPresentEngine)
@@ -147,6 +163,9 @@ private:
 
     class QVideoSink *m_sink = nullptr;
     bool m_useTextureRendering = false;
+#if QT_CONFIG(opengl)
+    WglNvDxInterop m_wglNvDxInterop;
+#endif
 
 #ifdef MAYBE_ANGLE
     unsigned int updateTexture(IDirect3DSurface9 *src);
