@@ -326,6 +326,14 @@ Item {
     */
     signal playing
 
+    /*!
+        \qmlsignal Video::errorOccurred(error, errorString)
+
+        This signal is emitted when an \a error has occurred. The \a errorString
+        parameter may contain more detailed information about the error.
+    */
+    signal errorOccurred(int error, string errorString)
+
     VideoOutput {
         id: videoOut
         anchors.fill: video
@@ -340,6 +348,9 @@ Item {
                 video.stopped();
             else
                 video.playing();
+        }
+        onErrorOccurred: function(error, errorString) {
+            video.errorOccurred(error, errorString);
         }
         videoOutput: videoOut
         audioOutput: AudioOutput {
