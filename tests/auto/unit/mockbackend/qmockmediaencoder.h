@@ -100,6 +100,16 @@ public:
         emit stateChanged(m_state);
     }
 
+    void reset()
+    {
+        m_state = QMediaRecorder::StoppedState;
+        m_settings = QMediaEncoderSettings();
+        m_position = 0;
+        emit stateChanged(m_state);
+        emit durationChanged(m_position);
+        clearActualLocation();
+    }
+
 public:
     QMediaMetaData m_metaData;
     QMediaRecorder::RecorderState m_state;
