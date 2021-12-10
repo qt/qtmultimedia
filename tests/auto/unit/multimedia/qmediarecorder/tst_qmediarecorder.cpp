@@ -226,6 +226,8 @@ void tst_QMediaRecorder::testSink()
     QCOMPARE(encoder->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
     encoder->stop();
     QCOMPARE(encoder->actualLocation(), QUrl::fromLocalFile("default_name.mp4"));
+
+    mock->reset();
 }
 
 void tst_QMediaRecorder::testRecord()
@@ -261,6 +263,8 @@ void tst_QMediaRecorder::testRecord()
 
     mock->stop();
     QCOMPARE(stateSignal.count(), 3);
+
+    mock->reset();
 }
 
 void tst_QMediaRecorder::testEncodingSettings()
