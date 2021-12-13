@@ -92,6 +92,17 @@
         target_link_libraries(my_project PUBLIC Qt::Multimedia)
    \endcode
 
+    \section1 Overviews and Important Topics
+
+     \list
+      \li \l{Changes to Qt Multimedia}{Changes in Qt 6}
+      \li \l{Multimedia Overview}
+      \li \l{Audio Overview}
+      \li \l{Video Overview}
+      \li \l{Camera Overview}
+      \li \l{Supported Media Formats}
+     \endlist
+
     \section1 QML Types
 
     The following table outlines some important QML types.
@@ -183,17 +194,6 @@
     \l{GNU Lesser General Public License, version 3}, or
     the \l{GNU General Public License, version 2}.
     See \l{Qt Licensing} for further details.
-
-    \section1 Related information
-
-    \section2 Guides
-     \list
-      \li \l{Changes to Qt Multimedia}{Changes in Qt 6}
-      \li \l{Multimedia Overview}
-      \li \l{Audio Overview}
-      \li \l{Video Overview}
-      \li \l{Camera Overview}
-     \endlist
 
     \section2 Platform notes
 

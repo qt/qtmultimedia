@@ -147,6 +147,7 @@ For some quick recipes, see this table:
 The Qt Multimedia APIs build upon the multimedia framework of the underlying
 platform. This can mean that support for various codecs, or containers will vary
 between machines. This support depends on what the end user has installed.
+See \l{Supported Media Formats} for more detail.
 
 \section1 Changes from Previous Versions
 
