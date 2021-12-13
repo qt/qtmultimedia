@@ -421,6 +421,11 @@ void QAndroidMediaPlayer::pause()
     }
 
     mMediaPlayer->pause();
+
+    if (mediaStatus() == QMediaPlayer::EndOfMedia) {
+        setPosition(0);
+        setMediaStatus(QMediaPlayer::BufferedMedia);
+    }
 }
 
 void QAndroidMediaPlayer::stop()
