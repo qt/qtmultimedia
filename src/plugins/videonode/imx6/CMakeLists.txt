@@ -27,7 +27,7 @@ set(imx6_resource_files
     "shaders/rgba.vert.qsb"
 )
 
-qt_internal_add_resource(QSGVivanteVideoNodeFactory "imx6"
+qt_internal_add_resource(QSGVivanteVideoNodeFactoryPlugin "imx6"
     PREFIX
         "/imx6"
     FILES
