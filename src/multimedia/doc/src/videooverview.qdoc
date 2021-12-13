@@ -80,6 +80,48 @@ The central class for any type of capturing or recording of audio and video is Q
 (or the CaptureSession QML type). You can connect a QCamera (Camera in QML) and a QMediaRecorder
 (MediaRecorder)to the session and then ask the media recorder to start recording.
 
+\section1 Supported Media Formats
+
+What media formats are supported ultimately depends on the configuration of the
+target system.
+
+\section2 Windows
+By default what is available on a MS Windows target depends on the version of
+\l{Windows Media Player} that was packaged with the OS. See the
+\l{Windows Media Player documentation} for official information.
+
+Independent of Windows Media Player, there are of course numerous codec packs
+that could be installed. See the \l{codec guide} site for some examples.
+
+\section2 Android
+See \l{Android supported media formats} for this information.
+
+\section2 Linux
+On Linux this is about installing the correct \l{GStreamer} plugins.
+
+\section3 Minimum Required GStreamer Plugins
+\list
+\li gstreamer1.0-plugins-base
+\li gstreamer1.0-plugins-good
+\li gstreamer1.0-plugins-pulseaudio
+\endlist
+
+For a Linux desktop target, it is strongly recommended to have \c gstreamer1.0-libav
+for good codec coverage and \c gstreamer1.0-vaapi to get hardware acceleration.
+
+On embedded Linux, the required set of plugins could be somewhat different.
+
+\section2 Determining Supported Media Formats at Runtime
+You can determine what formats are available on a target system at runtime using
+the static QMediaFormat API.
+
+\list
+\li Use \l QMediaFormat::isSupported() on a QMediaFormat::ConversionMode to query a
+    specific format.
+\li Use \l QMediaFormat::supportedFileFormats() on a default constructed QMediaFormat
+    to get all the supported file formats.
+\endlist
+
 \section1 Examples
 
 There are both C++ and QML examples available.
