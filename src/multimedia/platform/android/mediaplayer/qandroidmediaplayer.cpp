@@ -322,6 +322,7 @@ void QAndroidMediaPlayer::setMedia(const QUrl &mediaContent,
             mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
         mMediaPlayer->setDataSource(QNetworkRequest(mediaContent));
         mMediaPlayer->prepareAsync();
+        setMediaStatus(QMediaPlayer::LoadingMedia);
     }
 
     resetBufferingProgress();
