@@ -109,6 +109,9 @@ QAndroidMediaPlayer::~QAndroidMediaPlayer()
 
 qint64 QAndroidMediaPlayer::duration() const
 {
+    if (mediaStatus() == QMediaPlayer::NoMedia)
+        return 0;
+
     if ((mState & (AndroidMediaPlayer::Prepared
                    | AndroidMediaPlayer::Started
                    | AndroidMediaPlayer::Paused
