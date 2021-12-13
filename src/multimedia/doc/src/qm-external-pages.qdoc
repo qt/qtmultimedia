@@ -240,3 +240,29 @@
     \externalpage https://en.wikipedia.org/wiki/Theora
     \title Theora
 */
+
+/*!
+    \externalpage https://en.wikipedia.org/wiki/Windows_Media_Player
+    \title Windows Media Player
+*/
+
+
+/*!
+    \externalpage https://support.microsoft.com/en-us/topic/file-types-supported-by-windows-media-player-32d9998e-dc8f-af54-7ba1-e996f74375d9
+    \title Windows Media Player documentation
+*/
+
+/*!
+    \externalpage https://www.codecguide.com/guides.htm
+    \title codec guide
+*/
+
+/*!
+    \externalpage https://developer.android.com/guide/topics/media/media-formats
+    \title Android supported media formats
+*/
+
+/*!
+    \externalpage https://gstreamer.freedesktop.org/
+    \title GStreamer
+*/

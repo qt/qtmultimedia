@@ -55,12 +55,9 @@ high level approaches to: audio input, output and processing.
 For playing media or audio files that are not simple, uncompressed audio, you
 can use the QMediaPlayer C++ class, or the \l{MediaPlayer} QML type.
 The QMediaPlayer class and associated QML types are also capable of playing
-\l{multimedia-playing-video}{video}, if required. The audio formats
-that the player supports depends on:
-\list
-    \li The operating system environment.
-    \li Any decoder plugins the user may have installed.
-\endlist
+\l{multimedia-playing-video}{video}, if required.
+
+See \l{Supported Media Formats} for more detail.
 
 The media player needs to be connected to a QAudioOutput object (or the QML AudioOutput
 element) to play back audio.
