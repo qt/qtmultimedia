@@ -64,13 +64,6 @@ struct QSoundEffectForeign
     QML_NAMED_ELEMENT(SoundEffect)
 };
 
-struct QMediaPlayerForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QMediaPlayer)
-    QML_NAMED_ELEMENT(MediaPlayer)
-};
-
 struct QMediaCaptureSessionForeign
 {
     Q_GADGET
