@@ -1,9 +1,9 @@
 # Generated from video.pro.
 
-add_subdirectory(qmlvideo)
+qt_internal_add_example(qmlvideo)
 if(TARGET Qt::QuickControls2)
     if(TARGET Qt::Svg)
-        add_subdirectory(mediaplayer)
+        qt_internal_add_example(mediaplayer)
     endif()
-    add_subdirectory(recorder)
+    qt_internal_add_example(recorder)
 endif()

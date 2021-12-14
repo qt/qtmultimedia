@@ -1,8 +1,8 @@
 # Generated from multimediawidgets.pro.
 
 if(TARGET Qt::Widgets)
-    add_subdirectory(camera)
-    add_subdirectory(videographicsitem)
-    add_subdirectory(videowidget)
-    add_subdirectory(player)
+    qt_internal_add_example(camera)
+    qt_internal_add_example(videographicsitem)
+    qt_internal_add_example(videowidget)
+    qt_internal_add_example(player)
 endif()
