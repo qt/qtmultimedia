@@ -145,7 +145,8 @@ void QAndroidMediaPlayer::setPosition(qint64 position)
 
     const int seekPosition = (position > INT_MAX) ? INT_MAX : position;
 
-    if (seekPosition == this->position())
+    qint64 currentPosition = mMediaPlayer->getCurrentPosition();
+    if (seekPosition == currentPosition)
         return;
 
     StateChangeNotifier notifier(this);
@@ -325,7 +326,9 @@ void QAndroidMediaPlayer::setMedia(const QUrl &mediaContent,
             mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
         mMediaPlayer->setDataSource(QNetworkRequest(mediaContent));
         mMediaPlayer->prepareAsync();
-        setMediaStatus(QMediaPlayer::LoadingMedia);
+
+        if (!mReloadingMedia)
+            setMediaStatus(QMediaPlayer::LoadingMedia);
     }
 
     resetBufferingProgress();
@@ -412,6 +415,10 @@ void QAndroidMediaPlayer::play()
 
 void QAndroidMediaPlayer::pause()
 {
+    // cannot pause without media
+    if (mediaStatus() == QMediaPlayer::NoMedia)
+        return;
+
     StateChangeNotifier notifier(this);
 
     stateChanged(QMediaPlayer::PausedState);
@@ -424,11 +431,6 @@ void QAndroidMediaPlayer::pause()
     }
 
     mMediaPlayer->pause();
-
-    if (mediaStatus() == QMediaPlayer::EndOfMedia) {
-        setPosition(0);
-        setMediaStatus(QMediaPlayer::BufferedMedia);
-    }
 }
 
 void QAndroidMediaPlayer::stop()
@@ -599,6 +601,7 @@ void QAndroidMediaPlayer::onStateChanged(qint32 state)
         } else {
             onBufferingChanged(100);
         }
+        setPosition(0);
         Q_EMIT metaDataChanged();
         setAudioAvailable(true);
         flushPendingStates();
@@ -615,6 +618,12 @@ void QAndroidMediaPlayer::onStateChanged(qint32 state)
         break;
     case AndroidMediaPlayer::Paused:
         stateChanged(QMediaPlayer::PausedState);
+        if (mediaStatus() == QMediaPlayer::EndOfMedia) {
+            setPosition(0);
+            setMediaStatus(QMediaPlayer::BufferedMedia);
+        } else {
+            Q_EMIT positionChanged(position());
+        }
         break;
     case AndroidMediaPlayer::Error:
         stateChanged(QMediaPlayer::StoppedState);
