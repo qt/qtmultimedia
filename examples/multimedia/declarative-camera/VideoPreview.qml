@@ -61,8 +61,12 @@ Item {
 
         //switch back to viewfinder after playback finished
         onMediaStatusChanged: {
-            if (status == MediaPlayer.EndOfMedia)
+            if (mediaStatus == MediaPlayer.EndOfMedia)
                 videoPreview.closed();
+        }
+        onSourceChanged: {
+            if (visible && source !== "")
+                play();
         }
 
         videoOutput: output
