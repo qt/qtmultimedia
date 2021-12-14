@@ -80,7 +80,7 @@ FocusScope {
                 CameraButton {
                     text: "Record"
                     anchors.fill: parent
-                    visible: captureSession.recorder.status !== MediaRecorder.RecordingStatus
+                    visible: captureSession.recorder.recorderState !== MediaRecorder.RecordingState
                     onClicked: captureSession.recorder.record()
                 }
             }
@@ -92,7 +92,7 @@ FocusScope {
                     id: stopButton
                     text: "Stop"
                     anchors.fill: parent
-                    visible: captureSession.recorder.status === MediaRecorder.RecordingStatus
+                    visible: captureSession.recorder.recorderState === MediaRecorder.RecordingState
                     onClicked: captureSession.recorder.stop()
                 }
             }
