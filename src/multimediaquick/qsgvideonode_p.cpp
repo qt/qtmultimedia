@@ -231,6 +231,7 @@ QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &f
     m_format(format)
 {
     setFlag(QSGNode::OwnsMaterial);
+    setFlag(QSGNode::OwnsGeometry);
     m_material = new QSGVideoMaterial(format);
     setMaterial(m_material);
 }
