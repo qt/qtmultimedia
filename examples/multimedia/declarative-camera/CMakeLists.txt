@@ -28,6 +28,8 @@ set_target_properties(declarative-camera PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS
+        "${CMAKE_CURRENT_LIST_DIR}/declarative-camera.entitlements"
 )
 # special case begin
 target_include_directories(declarative-camera PUBLIC
@@ -82,3 +84,12 @@ install(TARGETS declarative-camera
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
+
+if(APPLE AND NOT IOS)
+    if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
+        add_custom_command(TARGET declarative-camera
+        POST_BUILD
+        COMMAND codesign --sign - --entitlements ${CMAKE_CURRENT_SOURCE_DIR}/declarative-camera.entitlements ${CMAKE_CURRENT_BINARY_DIR}/declarative-camera.app
+    )
+    endif()
+endif()
