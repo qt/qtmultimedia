@@ -21,3 +21,13 @@ INSTALLS += target
 
 QT+=widgets
 include(../shared/shared.pri)
+
+macos {
+    macx-xcode {
+        code_sign_entitlements.name = CODE_SIGN_ENTITLEMENTS
+        code_sign_entitlements.value = $$PWD/$${TARGET}.entitlements
+        QMAKE_MAC_XCODE_SETTINGS += code_sign_entitlements
+    } else {
+        QMAKE_POST_LINK += "codesign --sign - --entitlements $$PWD/$${TARGET}.entitlements $${OUT_PWD}/$${TARGET}.app"
+    }
+}
