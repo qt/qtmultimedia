@@ -702,7 +702,7 @@ void QVideoFrame::setEndTime(qint64 time)
 }
 
 /*!
-    Sets the counterclockwise rotation angle for the frame
+    Sets the counterclockwise rotation \a angle for the frame.
 */
 void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
 {
@@ -711,8 +711,8 @@ void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
 }
 
 /*!
-    Tells the angle the frame should be rotated counterclockwise before
-    displaying
+    Returns the angle the frame should be rotated counterclockwise before
+    displaying.
  */
 QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
 {
@@ -720,7 +720,7 @@ QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
 }
 
 /*!
-    Sets the mirrored flag for the frame
+    Sets the \a mirrored flag for the frame.
 */
 void QVideoFrame::setMirrored(bool mirrored)
 {
@@ -729,7 +729,7 @@ void QVideoFrame::setMirrored(bool mirrored)
 }
 
 /*!
-    Tells whether the frame should be mirrored before displaying
+    Returns whether the frame should be mirrored before displaying.
 */
 bool QVideoFrame::mirrored() const
 {
