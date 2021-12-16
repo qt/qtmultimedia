@@ -84,7 +84,7 @@ public:
     QGstPipeline &operator=(const QGstPipeline &o);
     QGstPipeline(const char *name);
     QGstPipeline(GstPipeline *p);
-    ~QGstPipeline();
+    ~QGstPipeline() override;
 
     // This is needed to help us avoid sending QVideoFrames or audio buffers to the
     // application while we're prerolling the pipeline.
