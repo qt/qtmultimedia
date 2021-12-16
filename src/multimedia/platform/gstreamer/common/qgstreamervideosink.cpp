@@ -255,10 +255,12 @@ void QGstreamerVideoSink::updateGstContexts()
 
     m_gstGlDisplayContext = gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, false);
     gst_context_set_gl_display(m_gstGlDisplayContext, gstGlDisplay);
+    gst_object_unref(gstGlDisplay);
 
     m_gstGlLocalContext = gst_context_new("gst.gl.local_context", false);
     GstStructure *structure = gst_context_writable_structure(m_gstGlLocalContext);
     gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext, nullptr);
+    gst_object_unref(displayContext);
 
     if (!gstPipeline.isNull())
         gst_element_set_context(gstPipeline.element(), m_gstGlLocalContext);
