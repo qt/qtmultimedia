@@ -140,8 +140,6 @@ QGstPipelinePrivate::QGstPipelinePrivate(GstBus* bus, QObject* parent)
   : QObject(parent),
     m_bus(bus)
 {
-    gst_object_ref(GST_OBJECT(bus));
-
     // glib event loop can be disabled either by env variable or QT_NO_GLIB define, so check the dispacher
     QAbstractEventDispatcher *dispatcher = QCoreApplication::eventDispatcher();
     const bool hasGlib = dispatcher && dispatcher->inherits("QEventDispatcherGlib");
@@ -207,6 +205,8 @@ QGstPipeline::QGstPipeline(const QGstPipeline &o)
 
 QGstPipeline &QGstPipeline::operator=(const QGstPipeline &o)
 {
+    if (this == &o)
+        return *this;
     if (o.d)
         o.d->ref();
     if (d)
