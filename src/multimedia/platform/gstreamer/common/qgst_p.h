@@ -298,6 +298,8 @@ public:
     }
     QGstObject &operator=(const QGstObject &other)
     {
+        if (this == &other)
+            return *this;
         if (other.m_object)
             gst_object_ref(other.m_object);
         if (m_object)
@@ -305,7 +307,7 @@ public:
         m_object = other.m_object;
         return *this;
     }
-    ~QGstObject() {
+    virtual ~QGstObject() {
         if (m_object)
             gst_object_unref(m_object);
     }
