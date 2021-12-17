@@ -70,18 +70,21 @@ snd_pcm_channel_params_t QnxAudioUtils::formatToChannelParams(const QAudioFormat
 #else
         params.format.format = SND_PCM_SFMT_S16_BE;
 #endif
+        break;
     case QAudioFormat::Int32:
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
         params.format.format = SND_PCM_SFMT_S32_LE;
 #else
         params.format.format = SND_PCM_SFMT_S32_BE;
 #endif
+        break;
     case QAudioFormat::Float:
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
         params.format.format = SND_PCM_SFMT_FLOAT_LE;
 #else
         params.format.format = SND_PCM_SFMT_FLOAT_BE;
 #endif
+        break;
     }
 
     return params;

@@ -42,4 +42,4 @@ qt6_add_resources(mediaplayer "mediaplayer"
 target_compile_definitions(mediaplayer
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
 target_link_libraries(mediaplayer
-  PRIVATE Qt6::Core Qt6::Quick Qt6::QuickControls2 Qt6::Svg)
+  PRIVATE Qt6::Core Qt6::Quick Qt6::Svg)
