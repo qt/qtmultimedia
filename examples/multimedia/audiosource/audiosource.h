@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -52,16 +52,17 @@
 #define AUDIOINPUT_H
 
 #include <QAudioSource>
-#include <QByteArray>
+#include <QMediaDevices>
+
 #include <QComboBox>
-#include <QMainWindow>
-#include <QObject>
-#include <QPixmap>
 #include <QPushButton>
 #include <QSlider>
 #include <QWidget>
+
+#include <QPixmap>
+
+#include <QByteArray>
 #include <QScopedPointer>
-#include <QMediaDevices>
 
 class AudioInfo : public QIODevice
 {
@@ -78,12 +79,12 @@ public:
     qint64 readData(char *data, qint64 maxlen) override;
     qint64 writeData(const char *data, qint64 len) override;
 
+signals:
+    void levelChanged(qreal level);
+
 private:
     const QAudioFormat m_format;
     qreal m_level = 0.0; // 0.0 <= m_level <= 1.0
-
-signals:
-    void update();
 };
 
 
@@ -101,11 +102,10 @@ protected:
 
 private:
     qreal m_level = 0;
-    QPixmap m_pixmap;
 };
 
 
-class InputTest : public QMainWindow
+class InputTest : public QWidget
 {
     Q_OBJECT
 
