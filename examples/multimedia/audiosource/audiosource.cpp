@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -76,11 +76,8 @@ void AudioInfo::stop()
     close();
 }
 
-qint64 AudioInfo::readData(char *data, qint64 maxlen)
+qint64 AudioInfo::readData(char * /* data */, qint64 /* maxlen */)
 {
-    Q_UNUSED(data);
-    Q_UNUSED(maxlen);
-
     return 0;
 }
 
@@ -91,7 +88,7 @@ qint64 AudioInfo::writeData(const char *data, qint64 len)
     const int numSamples = len / sampleBytes;
 
     float maxValue = 0;
-    const unsigned char *ptr = reinterpret_cast<const unsigned char *>(data);
+    auto *ptr = reinterpret_cast<const unsigned char *>(data);
 
     for (int i = 0; i < numSamples; ++i) {
         for (int j = 0; j < m_format.channelCount(); ++j) {
@@ -104,7 +101,8 @@ qint64 AudioInfo::writeData(const char *data, qint64 len)
 
     m_level = maxValue;
 
-    emit update();
+    emit levelChanged(m_level);
+
     return len;
 }
 
@@ -123,19 +121,15 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
     QPainter painter(this);
 
     painter.setPen(Qt::black);
-    painter.drawRect(QRect(painter.viewport().left()+10,
-                           painter.viewport().top()+10,
-                           painter.viewport().right()-20,
-                           painter.viewport().bottom()-20));
+
+    const QRect frame = painter.viewport() - QMargins(10, 10, 10, 10);
+    painter.drawRect(frame);
     if (m_level == 0.0)
         return;
 
-    int pos = ((painter.viewport().right()-20)-(painter.viewport().left()+11))*m_level;
-    painter.fillRect(painter.viewport().left()+11,
-                     painter.viewport().top()+10,
-                     pos,
-                     painter.viewport().height()-21,
-                     Qt::red);
+    const int pos = qRound(qreal(frame.width() - 1) * m_level);
+    painter.fillRect(frame.left() + 1, frame.top() + 1,
+                     pos, frame.height() - 1, Qt::red);
 }
 
 void RenderArea::setLevel(qreal value)
@@ -149,27 +143,25 @@ InputTest::InputTest()
     : m_devices(new QMediaDevices(this))
 {
     initializeWindow();
-    initializeAudio(m_devices->defaultAudioInput());
+    initializeAudio(QMediaDevices::defaultAudioInput());
 }
-
 
 void InputTest::initializeWindow()
 {
-    QWidget *window = new QWidget;
-    QVBoxLayout *layout = new QVBoxLayout;
+    QVBoxLayout *layout = new QVBoxLayout(this);
 
     m_canvas = new RenderArea(this);
     layout->addWidget(m_canvas);
 
     m_deviceBox = new QComboBox(this);
-    const QAudioDevice &defaultDeviceInfo = m_devices->defaultAudioInput();
+    const QAudioDevice &defaultDeviceInfo = QMediaDevices::defaultAudioInput();
     m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
     for (auto &deviceInfo: m_devices->audioInputs()) {
         if (deviceInfo != defaultDeviceInfo)
             m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     }
 
-    connect(m_deviceBox, QOverload<int>::of(&QComboBox::activated), this, &InputTest::deviceChanged);
+    connect(m_deviceBox, &QComboBox::activated, this, &InputTest::deviceChanged);
     layout->addWidget(m_deviceBox);
 
     m_volumeSlider = new QSlider(Qt::Horizontal, this);
@@ -185,11 +177,6 @@ void InputTest::initializeWindow()
     m_suspendResumeButton = new QPushButton(this);
     connect(m_suspendResumeButton, &QPushButton::clicked, this, &InputTest::toggleSuspend);
     layout->addWidget(m_suspendResumeButton);
-
-    window->setLayout(layout);
-
-    setCentralWidget(window);
-    window->show();
 }
 
 void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
@@ -200,9 +187,8 @@ void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
     format.setSampleFormat(QAudioFormat::Int16);
 
     m_audioInfo.reset(new AudioInfo(format));
-    connect(m_audioInfo.data(), &AudioInfo::update, [this]() {
-        m_canvas->setLevel(m_audioInfo->level());
-    });
+    connect(m_audioInfo.data(), &AudioInfo::levelChanged,
+            m_canvas, &RenderArea::setLevel);
 
     m_audioInput.reset(new QAudioSource(deviceInfo, format));
     qreal initialVolume = QAudio::convertVolume(m_audioInput->volume(),
@@ -218,7 +204,7 @@ void InputTest::toggleMode()
     m_audioInput->stop();
     toggleSuspend();
 
-    // Change bewteen pull and push modes
+    // Change between pull and push modes
     if (m_pullMode) {
         m_modeButton->setText(tr("Enable push mode"));
         m_audioInput->start(m_audioInfo.data());
@@ -245,14 +231,19 @@ void InputTest::toggleMode()
 void InputTest::toggleSuspend()
 {
     // toggle suspend/resume
-    if (m_audioInput->state() == QAudio::SuspendedState || m_audioInput->state() == QAudio::StoppedState) {
+    switch (m_audioInput->state()) {
+    case QAudio::SuspendedState:
+    case QAudio::StoppedState:
         m_audioInput->resume();
         m_suspendResumeButton->setText(tr("Suspend recording"));
-    } else if (m_audioInput->state() == QAudio::ActiveState) {
+        break;
+    case QAudio::ActiveState:
         m_audioInput->suspend();
         m_suspendResumeButton->setText(tr("Resume recording"));
-    } else if (m_audioInput->state() == QAudio::IdleState) {
+        break;
+    case QAudio::IdleState:
         // no-op
+        break;
     }
 }
 

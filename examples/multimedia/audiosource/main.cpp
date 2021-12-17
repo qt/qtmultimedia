@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -48,17 +48,17 @@
 **
 ****************************************************************************/
 
-#include <QtWidgets>
-
 #include "audiosource.h"
+
+#include <QtWidgets/QApplication>
 
 int main(int argv, char **args)
 {
     QApplication app(argv, args);
-    app.setApplicationName("Audio Source Test");
+    QCoreApplication::setApplicationName("Audio Source Test");
 
     InputTest input;
     input.show();
 
-    return app.exec();
+    return QCoreApplication::exec();
 }
