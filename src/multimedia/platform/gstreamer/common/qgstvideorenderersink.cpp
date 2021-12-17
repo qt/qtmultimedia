@@ -281,10 +281,10 @@ void QGstVideoRenderer::gstEvent(GstEvent *event)
     if (!gst_tag_list_get_string(taglist, GST_TAG_IMAGE_ORIENTATION, &value))
         return;
 
-    constexpr const char *rotate= "rotate-";
-    constexpr const char *flipRotate= "flip-rotate-";
-    constexpr size_t rotateLen = strlen(rotate);
-    constexpr size_t flipRotateLen = strlen(flipRotate);
+    constexpr const char rotate[] = "rotate-";
+    constexpr const char flipRotate[] = "flip-rotate-";
+    constexpr size_t rotateLen = sizeof(rotate) - 1;
+    constexpr size_t flipRotateLen = sizeof(flipRotate) - 1;
 
     bool mirrored = false;
     int rotationAngle = 0;
