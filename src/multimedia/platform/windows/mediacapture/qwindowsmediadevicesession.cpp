@@ -233,7 +233,8 @@ void QWindowsMediaDeviceSession::setAudioOutput(QAudioOutput *output)
 
 QMediaRecorder::Error QWindowsMediaDeviceSession::startRecording(QMediaEncoderSettings &settings, const QString &fileName, bool audioOnly)
 {
-    GUID container = QWindowsMultimediaUtils::containerForVideoFileFormat(settings.mediaFormat().fileFormat());
+    GUID container = audioOnly ? QWindowsMultimediaUtils::containerForAudioFileFormat(settings.mediaFormat().fileFormat())
+                               : QWindowsMultimediaUtils::containerForVideoFileFormat(settings.mediaFormat().fileFormat());
     GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(settings.videoCodec());
     GUID audioFormat = QWindowsMultimediaUtils::audioFormatForCodec(settings.audioCodec());
 
