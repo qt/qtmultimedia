@@ -174,6 +174,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         return false;
     }
 
+    m_videoQueue.reset();
     if (session->videoInput() && session->videoOutput() && session->videoOutput()->videoDataOutput()) {
         m_videoQueue.reset(dispatch_queue_create("video-output-queue", DISPATCH_QUEUE_SERIAL));
         if (!m_videoQueue) {
@@ -183,12 +184,15 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         dispatch_set_target_queue(m_videoQueue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0));
     }
 
-    m_audioQueue.reset(dispatch_queue_create("audio-output-queue", DISPATCH_QUEUE_SERIAL));
-    if (!m_audioQueue) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to create audio queue";
-        if (!m_videoQueue)
-            return false;
-        // But we still can write video!
+    m_audioQueue.reset();
+    if (session->audioInput() && session->audioOutput()) {
+        m_audioQueue.reset(dispatch_queue_create("audio-output-queue", DISPATCH_QUEUE_SERIAL));
+        if (!m_audioQueue) {
+            qDebugCamera() << Q_FUNC_INFO << "failed to create audio queue";
+            if (!m_videoQueue)
+                return false;
+            // But we still can write video!
+        }
     }
 
     auto fileType = QDarwinFormatInfo::avFileTypeForContainerFormat(fileFormat);
@@ -504,6 +508,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     AVFCameraSession *session = m_service->session();
 
+    m_cameraWriterInput.reset();
     if (m_videoQueue)
     {
         Q_ASSERT(session->videoCaptureDevice() && session->videoOutput() && session->videoOutput()->videoDataOutput());
@@ -522,7 +527,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         m_cameraWriterInput.data().expectsMediaDataInRealTime = YES;
     }
 
-    if (session->audioOutput()) {
+    m_audioWriterInput.reset();
+    if (m_audioQueue) {
         CMFormatDescriptionRef sourceFormat = session->audioCaptureDevice()
                                             ? session->audioCaptureDevice().activeFormat.formatDescription
                                             : 0;
@@ -552,15 +558,16 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 - (void)setQueues
 {
     Q_ASSERT(m_service && m_service->session());
+    AVFCameraSession *session = m_service->session();
+
     if (m_videoQueue) {
-        Q_ASSERT(m_service->session()->videoOutput()
-                    && m_service->session()->videoOutput()->videoDataOutput());
-        [m_service->session()->videoOutput()->videoDataOutput() setSampleBufferDelegate:self queue:m_videoQueue];
+        Q_ASSERT(session->videoOutput() && session->videoOutput()->videoDataOutput());
+        [session->videoOutput()->videoDataOutput() setSampleBufferDelegate:self queue:m_videoQueue];
     }
 
-    if (m_service->session()->audioOutput()) {
-        Q_ASSERT(m_audioQueue);
-        [m_service->session()->audioOutput() setSampleBufferDelegate:self queue:m_audioQueue];
+    if (m_audioQueue) {
+        Q_ASSERT(session->audioOutput());
+        [session->audioOutput() setSampleBufferDelegate:self queue:m_audioQueue];
     }
 }
 
