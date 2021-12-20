@@ -81,7 +81,7 @@ qint64 AudioInfo::readData(char * /* data */, qint64 /* maxlen */)
     return 0;
 }
 
-qint64 AudioInfo::writeData(const char *data, qint64 len)
+qreal AudioInfo::calculateLevel(const char *data, qint64 len) const
 {
     const int channelBytes = m_format.bytesPerSample();
     const int sampleBytes = m_format.bytesPerFrame();
@@ -98,8 +98,12 @@ qint64 AudioInfo::writeData(const char *data, qint64 len)
             ptr += channelBytes;
         }
     }
+    return maxValue;
+}
 
-    m_level = maxValue;
+qint64 AudioInfo::writeData(const char *data, qint64 len)
+{
+    m_level = calculateLevel(data, len);
 
     emit levelChanged(m_level);
 
@@ -210,18 +214,18 @@ void InputTest::toggleMode()
         m_audioInput->start(m_audioInfo.data());
     } else {
         m_modeButton->setText(tr("Enable pull mode"));
-        auto io = m_audioInput->start();
+        auto *io = m_audioInput->start();
         connect(io, &QIODevice::readyRead,
-            [&, io]() {
-                qint64 len = m_audioInput->bytesAvailable();
-                const int BufferSize = 4096;
-                if (len > BufferSize)
-                    len = BufferSize;
+            [this, io]() {
+                static const qint64 BufferSize = 4096;
+                const qint64 len = qMin(m_audioInput->bytesAvailable(), BufferSize);
 
                 QByteArray buffer(len, 0);
                 qint64 l = io->read(buffer.data(), len);
-                if (l > 0)
-                    m_audioInfo->write(buffer.constData(), l);
+                if (l > 0) {
+                    const qreal level = m_audioInfo->calculateLevel(buffer.constData(), l);
+                    m_canvas->setLevel(level);
+                }
             });
     }
 
