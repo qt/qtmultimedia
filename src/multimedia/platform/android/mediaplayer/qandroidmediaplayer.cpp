@@ -910,6 +910,8 @@ void QAndroidMediaPlayer::setMediaStatus(QMediaPlayer::MediaStatus status)
     if (status == QMediaPlayer::NoMedia || status == QMediaPlayer::InvalidMedia) {
         Q_EMIT durationChanged(0);
         Q_EMIT metaDataChanged();
+        setAudioAvailable(false);
+        setVideoAvailable(false);
     }
 
     if (status == QMediaPlayer::EndOfMedia)
