@@ -84,7 +84,6 @@ QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
       QPlatformMediaPlayer(parent),
       m_context(0),
       m_id(-1),
-      m_connection(0),
       m_audioId(-1),
       m_rate(1),
       m_position(0),
@@ -97,6 +96,7 @@ QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
     m_loadingTimer.setInterval(0);
     connect(&m_loadingTimer, SIGNAL(timeout()), this, SLOT(continueLoadMedia()));
     QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
+    openConnection();
 }
 
 QQnxMediaPlayer::~QQnxMediaPlayer()
@@ -109,7 +109,7 @@ QQnxMediaPlayer::~QQnxMediaPlayer()
 
 void QQnxMediaPlayer::openConnection()
 {
-    m_connection = mmr_connect(NULL);
+    m_connection = mmr_connect(nullptr);
     if (!m_connection) {
         emitPError(QString::fromLatin1("Unable to connect to the multimedia renderer"));
         return;
@@ -407,7 +407,7 @@ void QQnxMediaPlayer::setMuted(bool muted)
 
 void QQnxMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 {
-    QAudioOutput *out = output->q;
+    QAudioOutput *out = output ? output->q : nullptr;
     if (m_audioOutput == out)
         return;
 
