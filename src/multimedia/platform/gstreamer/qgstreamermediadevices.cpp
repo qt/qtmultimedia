@@ -79,9 +79,7 @@ QGstreamerMediaDevices::QGstreamerMediaDevices()
 
     monitor = gst_device_monitor_new();
 
-    gst_device_monitor_add_filter (monitor, "Video/Source", nullptr);
-    gst_device_monitor_add_filter (monitor, "Audio/Source", nullptr);
-    gst_device_monitor_add_filter (monitor, "Audio/Sink", nullptr);
+    gst_device_monitor_add_filter (monitor, nullptr, nullptr);
 
     bus = gst_device_monitor_get_bus(monitor);
     gst_bus_add_watch(bus, deviceMonitor, this);
@@ -202,13 +200,13 @@ void QGstreamerMediaDevices::addDevice(GstDevice *device)
     gchar *type = gst_device_get_device_class(device);
 //    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device) << gst_structure_to_string(gst_device_get_properties(device));
     gst_object_ref(device);
-    if (!strcmp(type, "Video/Source")) {
+    if (!strcmp(type, "Video/Source") || !strcmp(type, "Source/Video")) {
         m_videoSources.insert(device);
         videoInputsChanged();
-    } else if (!strcmp(type, "Audio/Source")) {
+    } else if (!strcmp(type, "Audio/Source") || !strcmp(type, "Source/Audio")) {
         m_audioSources.insert(device);
         audioInputsChanged();
-    } else if (!strcmp(type, "Audio/Sink")) {
+    } else if (!strcmp(type, "Audio/Sink") || !strcmp(type, "Sink/Audio")) {
         m_audioSinks.insert(device);
         audioOutputsChanged();
     } else {
