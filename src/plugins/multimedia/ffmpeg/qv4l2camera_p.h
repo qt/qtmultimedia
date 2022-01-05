@@ -146,6 +146,8 @@ private Q_SLOTS:
     void readFrame();
 
 private:
+    void setCameraBusy();
+
     bool m_active = false;
 
     QCameraDevice m_cameraDevice;
@@ -178,6 +180,7 @@ private:
     int bytesPerLine = -1;
     QVideoFrameFormat::YCbCrColorSpace colorSpace = QVideoFrameFormat::YCbCr_Undefined;
     qint64 frameDuration = -1;
+    bool cameraBusy = false;
 };
 
 QT_END_NAMESPACE

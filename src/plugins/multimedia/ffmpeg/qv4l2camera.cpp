@@ -571,6 +571,12 @@ void QV4L2Camera::readFrame()
     emit newVideoFrame(frame);
 }
 
+void QV4L2Camera::setCameraBusy()
+{
+    cameraBusy = true;
+    error(QCamera::CameraError, tr("Camera is in use."));
+}
+
 void QV4L2Camera::initV4L2Controls()
 {
     v4l2AutoWhiteBalanceSupported = false;
@@ -716,8 +722,13 @@ void QV4L2Camera::setV4L2CameraFormat()
 
     qDebug() << "setting camera format to" << size;
 
-    if (ioctl(d->v4l2FileDescriptor, VIDIOC_S_FMT, &fmt) < 0)
-        qWarning() << "Couldn't set video format on v4l2 camera";
+    if (ioctl(d->v4l2FileDescriptor, VIDIOC_S_FMT, &fmt) < 0) {
+        if (errno == EBUSY) {
+            setCameraBusy();
+            return;
+        }
+        qWarning() << "Couldn't set video format on v4l2 camera" << strerror(errno);
+    }
 
     bytesPerLine = fmt.fmt.pix.bytesperline;
 
@@ -756,6 +767,9 @@ void QV4L2Camera::setV4L2CameraFormat()
 
 void QV4L2Camera::initMMap()
 {
+    if (cameraBusy)
+        return;
+
     struct v4l2_requestbuffers req = {
         .count = 4,
         .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
@@ -763,7 +777,9 @@ void QV4L2Camera::initMMap()
     };
 
     if (ioctl(d->v4l2FileDescriptor, VIDIOC_REQBUFS, &req) < 0) {
-        qWarning() << "requesting mmap'ed buffers failed";
+        if (errno == EBUSY)
+            setCameraBusy();
+        qWarning() << "requesting mmap'ed buffers failed" << strerror(errno);
         return;
     }
 
@@ -809,10 +825,14 @@ void QV4L2Camera::stopCapturing()
 
     if (ioctl(d->v4l2FileDescriptor, VIDIOC_STREAMOFF, &type) < 0)
         qWarning() << "failed to stop capture";
+    cameraBusy = false;
 }
 
 void QV4L2Camera::startCapturing()
 {
+    if (cameraBusy)
+        return;
+
     // #### better to use the user data method instead of mmap???
     unsigned int i;
 
