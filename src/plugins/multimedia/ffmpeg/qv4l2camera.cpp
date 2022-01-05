@@ -536,14 +536,23 @@ void QV4L2Camera::setColorTemperature(int temperature)
 
 void QV4L2Camera::readFrame()
 {
+    if (!d)
+        return;
+
     struct v4l2_buffer buf = {
         .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
         .memory = V4L2_MEMORY_MMAP
     };
 
     if (ioctl(d->v4l2FileDescriptor, VIDIOC_DQBUF, &buf) < 0) {
+        if (errno == ENODEV) {
+            // camera got removed while being active
+            stopCapturing();
+            closeV4L2Fd();
+            return;
+        }
         if (errno != EAGAIN)
-            qWarning() << "error calling VIDIOC_DQBUF";
+            qWarning() << "error calling VIDIOC_DQBUF" << errno << strerror(errno);
     }
 
     Q_ASSERT(buf.index < d->mappedBuffers.size());
@@ -818,13 +827,18 @@ void QV4L2Camera::initMMap()
 
 void QV4L2Camera::stopCapturing()
 {
+    if (!d)
+        return;
+
     delete notifier;
     notifier = nullptr;
 
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (ioctl(d->v4l2FileDescriptor, VIDIOC_STREAMOFF, &type) < 0)
-        qWarning() << "failed to stop capture";
+    if (ioctl(d->v4l2FileDescriptor, VIDIOC_STREAMOFF, &type) < 0) {
+        if (errno != ENODEV)
+            qWarning() << "failed to stop capture";
+    }
     cameraBusy = false;
 }
 
