@@ -91,6 +91,8 @@ void QV4L2CameraDevices::checkCameras()
 {
     QMutexLocker locker(&holder.mutex);
     doCheckCameras();
+    locker.unlock();
+    integration->videoInputsChanged();
 }
 
 const struct {
@@ -253,8 +255,6 @@ void QV4L2CameraDevices::doCheckCameras()
               delete camera;
         close(fd);
     }
-
-    integration->videoInputsChanged();
 }
 
 class QV4L2VideoBuffer : public QAbstractVideoBuffer
