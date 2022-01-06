@@ -116,9 +116,8 @@ const struct {
     { QVideoFrameFormat::Format_Y16,      V4L2_PIX_FMT_Y16     },
     { QVideoFrameFormat::Format_NV12,     V4L2_PIX_FMT_NV12    },
     { QVideoFrameFormat::Format_NV21,     V4L2_PIX_FMT_NV21    },
-    // ###### Re-enable jpeg for better performance
-//    { QVideoFrameFormat::Format_Jpeg,     V4L2_PIX_FMT_MJPEG   },
-//    { QVideoFrameFormat::Format_Jpeg,     V4L2_PIX_FMT_JPEG    },
+    { QVideoFrameFormat::Format_Jpeg,     V4L2_PIX_FMT_MJPEG   },
+    { QVideoFrameFormat::Format_Jpeg,     V4L2_PIX_FMT_JPEG    },
     { QVideoFrameFormat::Format_Invalid,  0                    },
 };
 

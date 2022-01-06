@@ -241,6 +241,9 @@ AVPixelFormat QFFmpegVideoBuffer::toAVPixelFormat(QVideoFrameFormat::PixelFormat
     case QVideoFrameFormat::Format_IMC3:
     case QVideoFrameFormat::Format_IMC4:
         return AV_PIX_FMT_NONE;
+    case QVideoFrameFormat::Format_Jpeg:
+        // We're using the data from the converted QImage here, which is in BGRA.
+        return AV_PIX_FMT_BGRA;
     case QVideoFrameFormat::Format_ARGB8888:
     case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
         return AV_PIX_FMT_ARGB;

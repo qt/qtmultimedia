@@ -520,13 +520,22 @@ void VideoEncoder::loop()
     avFrame->height = size.height();
     av_frame_get_buffer(avFrame, 0);
 
+    const uint8_t *data[4] = { frame.bits(0), frame.bits(1), frame.bits(2), 0 };
+    int strides[4] = { frame.bytesPerLine(0), frame.bytesPerLine(1), frame.bytesPerLine(2), 0 };
+
+    QImage img;
+    if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+        // the QImage is cached inside the video frame, so we can take the pointer to the image data here
+        img = frame.toImage();
+        data[0] = (const uint8_t *)img.bits();
+        strides[0] = img.bytesPerLine();
+    }
+
     // #### make sure bytesPerline agree, support planar formats
     Q_ASSERT(avFrame->data[0]);
     if (!converter) {
-        memcpy(avFrame->data[0], frame.bits(0), frame.bytesPerLine(0)*frame.height());
+        memcpy(avFrame->data[0], data[0], strides[0]*frame.height());
     } else {
-        const uint8_t *const data[4] = { frame.bits(0), frame.bits(1), frame.bits(2), 0 };
-        const int strides[4] = { frame.bytesPerLine(0), frame.bytesPerLine(1), frame.bytesPerLine(2), 0 };
         sws_scale(converter, data, strides, 0, frame.height(), avFrame->data, avFrame->linesize);
     }
 
