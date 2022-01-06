@@ -120,6 +120,7 @@ public:
     QString subtitleText;
     QVideoFrame::RotationAngle rotationAngle = QVideoFrame::Rotation0;
     bool mirrored = false;
+    QImage image;
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)
 };
@@ -743,15 +744,19 @@ bool QVideoFrame::mirrored() const
 */
 QImage QVideoFrame::toImage() const
 {
-    QVideoFrame frame = *this;
-    QImage result;
+    if (!isValid())
+        return {};
+    if (!d->image.isNull())
+        return d->image;
 
-    if (!frame.isValid() || !frame.map(QVideoFrame::ReadOnly))
-        return result;
+    QVideoFrame frame = *this;
+
+    if (!frame.map(QVideoFrame::ReadOnly))
+        return d->image;
 
     if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
         // Load from JPG
-        result.loadFromData(frame.bits(0), frame.mappedBytes(0), "JPG");
+        d->image.loadFromData(frame.bits(0), frame.mappedBytes(0), "JPG");
     }
 
     // Need conversion
@@ -761,8 +766,8 @@ QImage QVideoFrame::toImage() const
             qWarning() << Q_FUNC_INFO << ": unsupported pixel format" << frame.pixelFormat();
         } else {
             auto format = pixelFormatHasAlpha[frame.pixelFormat()] ? QImage::Format_ARGB32_Premultiplied : QImage::Format_RGB32;
-            result = QImage(frame.width(), frame.height(), format);
-            convert(frame, result.bits());
+            d->image = QImage(frame.width(), frame.height(), format);
+            convert(frame, d->image.bits());
         }
     }
 
@@ -776,7 +781,10 @@ QImage QVideoFrame::toImage() const
     if (surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom)
         t.scale(1.f, -1.f);
 
-    return t.isIdentity() ? result : result.transformed(t);
+    if (!t.isIdentity())
+        d->image = d->image.transformed(t);
+
+    return d->image;
 }
 
 /*!
