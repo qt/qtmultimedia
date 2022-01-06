@@ -235,9 +235,9 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_Jpeg
-    { 1, 0,
-      [](int, int) { return 0; },
-     { QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
+    { 1, 4,
+      [](int stride, int height) { return stride*height; },
+     { QRhiTexture::RGBA8, QRhiTexture::UnknownFormat, QRhiTexture::UnknownFormat },
      { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_SamplerRect
@@ -292,6 +292,8 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
     case QVideoFrameFormat::Format_ABGR8888:
     case QVideoFrameFormat::Format_XBGR8888:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/abgr.frag.qsb");
+    case QVideoFrameFormat::Format_Jpeg: // Jpeg is decoded transparently into an ARGB texture
+        return QStringLiteral(":/qt-project.org/multimedia/shaders/bgra.frag.qsb");
     case QVideoFrameFormat::Format_RGBA8888:
     case QVideoFrameFormat::Format_RGBX8888:
     case QVideoFrameFormat::Format_BGRA8888:
@@ -332,7 +334,6 @@ QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
 #endif
         // fallthrough
     case QVideoFrameFormat::Format_Invalid:
-    case QVideoFrameFormat::Format_Jpeg:
     default:
         return QString();
     }
@@ -413,9 +414,9 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     QMatrix4x4 cmat;
     switch (format.pixelFormat()) {
     case QVideoFrameFormat::Format_Invalid:
-    case QVideoFrameFormat::Format_Jpeg:
         return;
 
+    case QVideoFrameFormat::Format_Jpeg:
     case QVideoFrameFormat::Format_ARGB8888:
     case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
     case QVideoFrameFormat::Format_XRGB8888:
@@ -517,9 +518,7 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
         return 0;
     }
 
-    Q_ASSERT(frame.planeCount() == description->nplanes);
-    for (int plane = 0; plane < description->nplanes; ++plane) {
-
+    auto ensureTexture = [&](int plane) -> bool {
         bool needsRebuild = !textures[plane] || textures[plane]->pixelSize() != planeSizes[plane];
         if (!textures[plane])
             textures[plane] = rhi->newTexture(description->textureFormat[plane], planeSizes[plane], 1, {});
@@ -529,9 +528,31 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
             bool created = textures[plane]->create();
             if (!created) {
                 qWarning("Failed to create texture (size %dx%d)", planeSizes[plane].width(), planeSizes[plane].height());
-                return 0;
+                return false;
             }
         }
+        return true;
+    };
+
+    if (pixelFormat == QVideoFrameFormat::Format_Jpeg) {
+        if (!ensureTexture(0))
+            return 0;
+        QImage image = frame.toImage();
+        image.convertTo(QImage::Format_ARGB32);
+        auto data = QByteArray((const char *)image.bits(), image.bytesPerLine()*image.height());
+        QRhiTextureSubresourceUploadDescription subresDesc(data);
+        subresDesc.setDataStride(image.bytesPerLine());
+        QRhiTextureUploadEntry entry(0, 0, subresDesc);
+        QRhiTextureUploadDescription desc({ entry });
+        resourceUpdates->uploadTexture(textures[0], desc);
+        return 1;
+    }
+
+
+    Q_ASSERT(frame.planeCount() == description->nplanes);
+    for (int plane = 0; plane < description->nplanes; ++plane) {
+        if (!ensureTexture(plane))
+            return 0;
 
         auto data = QByteArray::fromRawData((const char *)frame.bits(plane), frame.mappedBytes(plane));
         QRhiTextureSubresourceUploadDescription subresDesc(data);
