@@ -48,10 +48,6 @@
 #include "QtCore/private/qfactoryloader_p.h"
 #include "qplatformmediaplugin_p.h"
 
-#if QT_CONFIG(wmf)
-#include <private/qwindowsintegration_p.h>
-using PlatformIntegration = QWindowsMediaIntegration;
-#else
 class QDummyIntegration : public QPlatformMediaIntegration
 {
 public:
@@ -59,8 +55,6 @@ public:
     QPlatformMediaDevices *devices() override { return nullptr; }
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 };
-using PlatformIntegration = QDummyIntegration;
-#endif
 
 Q_LOGGING_CATEGORY(qLcMediaPlugin, "qt.multimedia.plugin")
 
@@ -118,8 +112,8 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
     holder.nativeInstance = qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), type);
 
     if (!holder.nativeInstance) {
-        qCDebug(qLcMediaPlugin) << "could not load plugins, loading fallback";
-        holder.nativeInstance = new PlatformIntegration;
+        qWarning() << "could not load multimedia backend" << type;
+        holder.nativeInstance = new QDummyIntegration;
     }
 
     holder.instance = holder.nativeInstance;
