@@ -60,6 +60,7 @@ VideoOutput {
     property alias metaData: mediaPlayer.metaData
     property alias playbackRate: mediaPlayer.playbackRate
     property alias position: mediaPlayer.position
+    property alias seekable: mediaPlayer.seekable
     property alias volume: audioOutput.volume
 
     signal sizeChanged
