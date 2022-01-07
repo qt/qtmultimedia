@@ -49,6 +49,7 @@
 ****************************************************************************/
 
 import QtQuick
+import QtMultimedia
 
 Scene {
     id: root
@@ -72,61 +73,62 @@ Scene {
         id: metadata
         Column {
             anchors.fill: parent
+            property var videoMetaData: content.contentItem().metaData
             Text {
                 color: "#e0e0e0"
-                text: "Title:" + content.contentItem().metaData.title
+                text: "Title:" + videoMetaData.value(MediaMetaData.Title)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Size:" + content.contentItem().metaData.size
+                text: "Size:" + videoMetaData.value(MediaMetaData.Size)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Resolution:" + content.contentItem().metaData.resolution
+                text: "Resolution:" + videoMetaData.value(MediaMetaData.Resolution)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Media type:" + content.contentItem().metaData.mediaType
+                text: "Media type:" + videoMetaData.value(MediaMetaData.MediaType)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Video codec:" + content.contentItem().metaData.videoCodec
+                text: "Video codec:" + videoMetaData.value(MediaMetaData.VideoCodec)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Video bit rate:" + content.contentItem().metaData.videoBitRate
+                text: "Video bit rate:" + videoMetaData.value(MediaMetaData.VideoBitRate)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Video frame rate:" +content.contentItem().metaData.videoFrameRate
+                text: "Video frame rate:" +videoMetaData.value(MediaMetaData.VideoFrameRate)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Audio codec:" + content.contentItem().metaData.audioCodec
+                text: "Audio codec:" + videoMetaData.value(MediaMetaData.AudioCodec)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Audio bit rate:" + content.contentItem().metaData.audioBitRate
+                text: "Audio bit rate:" + videoMetaData.value(MediaMetaData.AudioBitRate)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Date:" + content.contentItem().metaData.date
+                text: "Date:" + videoMetaData.value(MediaMetaData.Date)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Description:" + content.contentItem().metaData.description
+                text: "Description:" + videoMetaData.value(MediaMetaData.Description)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Copyright:" + content.contentItem().metaData.copyright
+                text: "Copyright:" + videoMetaData.value(MediaMetaData.Copyright)
             }
             Text {
                 color: "#e0e0e0"
-                text: "Seekable:" + content.contentItem().metaData.seekable
+                text: "Seekable:" + content.contentItem().seekable
             }
             Text {
                 color: "#e0e0e0"
-                text: "Orientation:" + content.contentItem().metaData.orientation
+                text: "Orientation:" + videoMetaData.value(MediaMetaData.Orientation)
             }
         }
     }
