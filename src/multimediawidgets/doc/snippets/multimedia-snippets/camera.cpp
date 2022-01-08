@@ -45,22 +45,29 @@
 
 /* Globals so that everything is consistent. */
 QCamera *camera = 0;
-QCameraViewfinder *viewfinder = 0;
 QImageCapture *imageCapture = 0;
+QVideoWidget *viewfinder = 0;
 
 void camera_blah()
 {
     //! [Camera]
+    QMediaCaptureSession captureSession;
     camera = new QCamera;
+    captureSession.setCamera(camera);
 
     viewfinder = new QVideoWidget();
     viewfinder->show();
+    captureSession.setVideoOutput(viewfinder);
 
-    camera->setViewfinder(viewfinder);
+    imageCapture = new QImageCapture;
+    captureSession.setImageCapture(imageCapture);
 
-    imageCapture = new QImageCapture(camera);
-
-    camera->setCaptureMode(QCamera::CaptureStillImage);
     camera->start();
     //! [Camera]
+
+    //! [Camera keys]
+    //on shutter button pressed
+    imageCapture->capture();
+    //! [Camera keys]
 }
+
