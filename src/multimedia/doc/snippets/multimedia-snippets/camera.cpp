@@ -55,6 +55,7 @@
 QCamera *camera = 0;
 QMediaRecorder *recorder = 0;
 QImageCapture *imageCapture = 0;
+QVideoWidget *viewfinder = 0;
 
 //! [Camera overview check]
 bool checkCameraAvailability()
@@ -72,9 +73,9 @@ void overview_viewfinder()
     QMediaCaptureSession captureSession;
     camera = new QCamera;
     captureSession.setCamera(camera);
-    QVideoWidget *preview = new QVideoWidget;
-    captureSession.setVideoOutput(preview);
-    preview->show();
+    viewfinder = new QVideoWidget;
+    captureSession.setVideoOutput(viewfinder);
+    viewfinder->show();
 
     camera->start(); // to start the camera
     //! [Camera overview viewfinder]
@@ -135,7 +136,7 @@ void overview_still()
     QMediaCaptureSession captureSession;
     camera = new QCamera;
     captureSession.setCamera(camera);
-    imageCapture = new QImageCapture(camera);
+    imageCapture = new QImageCapture;
     captureSession.setImageCapture(imageCapture);
 
     camera->start(); // Viewfinder frames start flowing
@@ -212,9 +213,9 @@ void camera_blah()
     camera = new QCamera;
     captureSession.setCamera(camera);
 
-    QVideoWidget *preview = new QVideoWidget();
-    preview->show();
-    captureSession.setVideoOutput(preview);
+    viewfinder = new QVideoWidget();
+    viewfinder->show();
+    captureSession.setVideoOutput(viewfinder);
 
     imageCapture = new QImageCapture(camera);
     captureSession.setImageCapture(imageCapture);
