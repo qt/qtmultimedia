@@ -238,9 +238,16 @@ void QAndroidTextureVideoOutput::setVideoSize(const QSize &size)
     m_nativeSize = size;
 }
 
+void QAndroidTextureVideoOutput::start()
+{
+    m_started = true;
+    renderAndReadbackFrame();
+}
+
 void QAndroidTextureVideoOutput::stop()
 {
     m_nativeSize = QSize();
+    m_started = false;
 }
 
 void QAndroidTextureVideoOutput::reset()
@@ -254,7 +261,7 @@ void QAndroidTextureVideoOutput::reset()
 
 void QAndroidTextureVideoOutput::onFrameAvailable()
 {
-    if (!m_nativeSize.isValid() || !m_sink)
+    if (!m_nativeSize.isValid() || !m_sink || !m_started)
         return;
 
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
