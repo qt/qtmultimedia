@@ -37,39 +37,31 @@
 **
 ****************************************************************************/
 
-#include "qwasmmediaintegration_p.h"
-#include "qwasmmediadevices_p.h"
-#include <QLoggingCategory>
+#ifndef QWASMAUDIODEVICEINFO_H
+#define QWASMAUDIODEVICEINFO_H
 
-#include <private/qplatformmediaformatinfo_p.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "private/qaudiodevice_p.h"
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qtWasmMediaPlugin, "qt.multimedia.wasm")
-
-QWasmMediaIntegration::QWasmMediaIntegration()
+class QWasmAudioDevice : public QAudioDevicePrivate
 {
+public:
+    QWasmAudioDevice(const char *device, const char *description, bool isDefault, QAudioDevice::Mode mode);
 
-}
-
-QWasmMediaIntegration::~QWasmMediaIntegration()
-{
-    delete m_devices;
-    delete m_formatInfo;
-}
-
-QPlatformMediaFormatInfo *QWasmMediaIntegration::formatInfo()
-{
-     if (!m_formatInfo)
-         m_formatInfo = new QPlatformMediaFormatInfo();
-     return m_formatInfo;
-}
-
-QPlatformMediaDevices *QWasmMediaIntegration::devices()
-{
-    if (!m_devices)
-        m_devices = new QWasmMediaDevices();
-    return m_devices;
-}
+};
 
 QT_END_NAMESPACE
+
+#endif // QWASMAUDIODEVICEINFO_H

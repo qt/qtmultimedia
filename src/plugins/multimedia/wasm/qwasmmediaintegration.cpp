@@ -37,56 +37,60 @@
 **
 ****************************************************************************/
 
+#include "qwasmmediaintegration_p.h"
 #include "qwasmmediadevices_p.h"
-#include "qcameradevice_p.h"
+#include <QLoggingCategory>
 
-#include "audio/qwasmaudiosource_p.h"
-#include "audio/qwasmaudiosink_p.h"
-#include "audio/qwasmaudiodevice_p.h"
-#include <AL/al.h>
-#include <AL/alc.h>
+#include <private/qplatformmediaformatinfo_p.h>
+#include <private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
 
-QWasmMediaDevices::QWasmMediaDevices()
-    : QPlatformMediaDevices()
-{
-    auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
-    // present even if there is no capture device
-    if (capture)
-        m_ins.append((new QWasmAudioDevice(capture, "WebAssembly audio capture device", true,
-                                               QAudioDevice::Input))->create());
+Q_LOGGING_CATEGORY(qtWasmMediaPlugin, "qt.multimedia.wasm")
 
-    auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
-    // present even if there is no playback device
-    if (playback)
-        m_outs.append((new QWasmAudioDevice(playback, "WebAssembly audio playback device", true,
-                                                QAudioDevice::Output))->create());
+class QWasmMediaPlugin : public QPlatformMediaPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "wasm.json")
+
+public:
+    QWasmMediaPlugin()
+      : QPlatformMediaPlugin()
+    {}
+
+    QPlatformMediaIntegration* create(const QString &name) override
+    {
+        if (name == QLatin1String("wasm"))
+            return new QWasmMediaIntegration;
+        return nullptr;
+    }
+};
+
+QWasmMediaIntegration::QWasmMediaIntegration()
+{
+
 }
 
-QList<QAudioDevice> QWasmMediaDevices::audioInputs() const
+QWasmMediaIntegration::~QWasmMediaIntegration()
 {
-    return m_ins;
+    delete m_devices;
+    delete m_formatInfo;
 }
 
-QList<QAudioDevice> QWasmMediaDevices::audioOutputs() const
+QPlatformMediaFormatInfo *QWasmMediaIntegration::formatInfo()
 {
-    return m_outs;
+     if (!m_formatInfo)
+         m_formatInfo = new QPlatformMediaFormatInfo();
+     return m_formatInfo;
 }
 
-QList<QCameraDevice> QWasmMediaDevices::videoInputs() const
+QPlatformMediaDevices *QWasmMediaIntegration::devices()
 {
-    return {};
-}
-
-QPlatformAudioSource *QWasmMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
-{
-    return new QWasmAudioSource(deviceInfo.id());
-}
-
-QPlatformAudioSink *QWasmMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
-{
-    return new QWasmAudioSink(deviceInfo.id());
+    if (!m_devices)
+        m_devices = new QWasmMediaDevices();
+    return m_devices;
 }
 
 QT_END_NAMESPACE
+
+#include "qwasmmediaintegration.moc"

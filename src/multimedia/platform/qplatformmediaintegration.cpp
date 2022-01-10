@@ -54,9 +54,6 @@ using PlatformIntegration = QDarwinIntegration;
 #elif QT_CONFIG(wmf)
 #include <private/qwindowsintegration_p.h>
 using PlatformIntegration = QWindowsMediaIntegration;
-#elif defined(Q_OS_WASM)
-#include <private/qwasmmediaintegration_p.h>
-using PlatformIntegration = QWasmMediaIntegration;
 #else
 class QDummyIntegration : public QPlatformMediaIntegration
 {
