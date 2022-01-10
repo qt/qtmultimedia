@@ -283,17 +283,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         WrapPulseAudio::WrapPulseAudio
 )
 
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
-    SOURCES
-        platform/alsa/qalsaaudiodevice.cpp platform/alsa/qalsaaudiodevice_p.h
-        platform/alsa/qalsaaudiosource.cpp platform/alsa/qalsaaudiosource_p.h
-        platform/alsa/qalsaaudiosink.cpp platform/alsa/qalsaaudiosink_p.h
-        platform/alsa/qalsamediadevices.cpp platform/alsa/qalsamediadevices_p.h
-        platform/alsa/qalsaintegration.cpp platform/alsa/qalsaintegration_p.h
-    LIBRARIES
-        ALSA::ALSA
-)
-
 qt_internal_extend_target(Multimedia CONDITION ANDROID
     SOURCES
         platform/android/audio/qandroidaudiosource.cpp platform/android/audio/qandroidaudiosource_p.h
