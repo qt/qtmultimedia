@@ -56,8 +56,8 @@
 QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaPrivate {
-QLocale::Language fromIso639(const char *tag);
-QByteArray toIso639(QLocale::Language language);
+Q_MULTIMEDIA_EXPORT QLocale::Language fromIso639(const char *tag);
+Q_MULTIMEDIA_EXPORT QByteArray toIso639(QLocale::Language language);
 }
 
 QT_END_NAMESPACE

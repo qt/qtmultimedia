@@ -62,7 +62,7 @@ QT_BEGIN_NAMESPACE
 class QPlatformMediaRecorder;
 class QTimer;
 
-class QMediaRecorderPrivate
+class Q_MULTIMEDIA_EXPORT QMediaRecorderPrivate
 {
     Q_DECLARE_PUBLIC(QMediaRecorder)
 

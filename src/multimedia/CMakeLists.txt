@@ -13,7 +13,7 @@ qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox) # special c
 qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special case
 
 qt_internal_add_module(Multimedia
-    PLUGIN_TYPES video/gstvideorenderer video/videonode
+    PLUGIN_TYPES multimedia
     SOURCES
         audio/qaudio.cpp audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
@@ -43,6 +43,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
+        platform/qplatformmediaplugin_p.h
         platform/qplatformvideosink.cpp platform/qplatformvideosink_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
         qmediadevices.cpp qmediadevices.h

@@ -59,8 +59,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QMediaStorageLocation
 {
-    QDir defaultDirectory(QStandardPaths::StandardLocation type);
-    QString generateFileName(const QString &requestedName, QStandardPaths::StandardLocation type, const QString &extension);
+    Q_MULTIMEDIA_EXPORT QDir defaultDirectory(QStandardPaths::StandardLocation type);
+    Q_MULTIMEDIA_EXPORT QString generateFileName(const QString &requestedName, QStandardPaths::StandardLocation type, const QString &extension);
 };
 
 QT_END_NAMESPACE

@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the QtSql module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,9 +37,6 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTVIDEOBUFFER_H
-#define QABSTRACTVIDEOBUFFER_H
-
 //
 //  W A R N I N G
 //  -------------
@@ -51,54 +48,32 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qvideoframe.h>
+#ifndef QPLATFORMMEDIAPLUGIN_P_H
+#define QPLATFORMMEDIAPLUGIN_P_H
 
-#include <QtCore/qmetatype.h>
-#include <QtGui/qmatrix4x4.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qplugin.h>
+#include <QtCore/qfactoryinterface.h>
 
 QT_BEGIN_NAMESPACE
 
+class QPlatformMediaIntegration;
 
-class QVariant;
-class QRhi;
+#define QPlatformMediaPlugin_iid "org.qt-project.Qt.QPlatformMediaPlugin"
 
-class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
+class Q_MULTIMEDIA_EXPORT QPlatformMediaPlugin : public QObject
 {
+    Q_OBJECT
 public:
-    QAbstractVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);
-    virtual ~QAbstractVideoBuffer();
+    explicit QPlatformMediaPlugin(QObject *parent = nullptr)
+        : QObject(parent)
+    {}
+    ~QPlatformMediaPlugin() = default;
 
-    QVideoFrame::HandleType handleType() const;
+    virtual QPlatformMediaIntegration *create(const QString &key) = 0;
 
-    struct MapData
-    {
-        int nPlanes = 0;
-        int bytesPerLine[4] = {};
-        uchar *data[4] = {};
-        int size[4] = {};
-    };
-
-    virtual QVideoFrame::MapMode mapMode() const = 0;
-    virtual MapData map(QVideoFrame::MapMode mode) = 0;
-    virtual void unmap() = 0;
-
-    virtual void mapTextures() {}
-    virtual quint64 textureHandle(int /*plane*/) const { return 0; }
-
-    virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
-protected:
-    QVideoFrame::HandleType m_type;
-    QRhi *rhi = nullptr;
-
-private:
-    Q_DISABLE_COPY(QAbstractVideoBuffer)
 };
-
-#ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::MapMode);
-#endif
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QPLATFORMMEDIAPLUGIN_P_H

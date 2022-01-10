@@ -43,6 +43,10 @@
 #include <qmutex.h>
 #include <qplatformaudioinput_p.h>
 #include <qplatformaudiooutput_p.h>
+#include <qloggingcategory.h>
+
+#include "QtCore/private/qfactoryloader_p.h"
+#include "qplatformmediaplugin_p.h"
 
 #if QT_CONFIG(gstreamer)
 #include <private/qgstreamerintegration_p.h>
@@ -76,6 +80,27 @@ public:
 using PlatformIntegration = QDummyIntegration;
 #endif
 
+Q_LOGGING_CATEGORY(qLcMediaPlugin, "qt.multimedia.plugin")
+
+Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
+                          (QPlatformMediaPlugin_iid,
+                           QLatin1String("/multimedia")))
+
+static QStringList backends()
+{
+    QStringList list;
+
+    if (QFactoryLoader *fl = loader()) {
+        const auto keyMap = fl->keyMap();
+        for (auto it = keyMap.constBegin(); it != keyMap.constEnd(); ++it)
+            if (!list.contains(it.value()))
+                list << it.value();
+    }
+
+    qCDebug(qLcMediaPlugin) << "Available backends" << list;
+    return list;
+}
+
 QT_BEGIN_NAMESPACE
 
 namespace {
@@ -83,26 +108,37 @@ struct Holder {
     ~Holder()
     {
         QMutexLocker locker(&mutex);
-        delete nativeInstance;
-        nativeInstance = nullptr;
         instance = nullptr;
     }
     QBasicMutex mutex;
     QPlatformMediaIntegration *instance = nullptr;
-    QAtomicPointer<QPlatformMediaIntegration> nativeInstance = nullptr;
+    QPlatformMediaIntegration *nativeInstance = nullptr;
+    QString preferred;
 } holder;
 
 }
 
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-    if (!holder.nativeInstance.loadRelaxed()) {
-        QMutexLocker locker(&holder.mutex);
-        if (!holder.nativeInstance.loadAcquire())
-            holder.nativeInstance.storeRelease(new PlatformIntegration);
+    QMutexLocker locker(&holder.mutex);
+    if (holder.instance)
+        return holder.instance;
+
+    QString type = holder.preferred;
+    if (type.isEmpty())
+        type = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
+    if (type.isEmpty())
+        type = backends().first();
+
+    qCDebug(qLcMediaPlugin) << "loading backend" << type;
+    holder.nativeInstance = qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), type);
+
+    if (!holder.nativeInstance) {
+        qCDebug(qLcMediaPlugin) << "could not load plugins, loading fallback";
+        holder.nativeInstance = new PlatformIntegration;
     }
-    if (!holder.instance)
-        holder.instance = holder.nativeInstance.loadRelaxed();
+
+    holder.instance = holder.nativeInstance;
     return holder.instance;
 }
 
@@ -111,7 +147,10 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 */
 void QPlatformMediaIntegration::setIntegration(QPlatformMediaIntegration *integration)
 {
-    holder.instance = integration;
+    if (integration)
+        holder.instance = integration;
+    else
+        holder.instance = holder.nativeInstance;
 }
 
 QPlatformAudioInput *QPlatformMediaIntegration::createAudioInput(QAudioInput *q)

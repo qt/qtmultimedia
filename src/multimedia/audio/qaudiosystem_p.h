@@ -63,7 +63,7 @@ QT_BEGIN_NAMESPACE
 
 class QIODevice;
 
-class QPlatformAudioSink : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QObject
 {
     Q_OBJECT
 
@@ -92,7 +92,7 @@ Q_SIGNALS:
     void stateChanged(QAudio::State state);
 };
 
-class QPlatformAudioSource : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QObject
 {
     Q_OBJECT
 

@@ -56,7 +56,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDevicePrivate : public QSharedData
+class Q_MULTIMEDIA_EXPORT QAudioDevicePrivate : public QSharedData
 {
 public:
     QAudioDevicePrivate(const QByteArray &i, QAudioDevice::Mode m)

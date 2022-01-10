@@ -39,9 +39,7 @@
 
 #include "qvideotexturehelper_p.h"
 #include "qvideoframe.h"
-#ifdef Q_OS_ANDROID
-#include <private/qandroidvideooutput_p.h>
-#endif
+#include "qabstractvideobuffer_p.h"
 
 #include <qpainter.h>
 
@@ -442,13 +440,8 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
         cmat = colorMatrix(format.yCbCrColorSpace());
         break;
     case QVideoFrameFormat::Format_SamplerExternalOES:
-#ifdef Q_OS_ANDROID
-    {
         // get Android specific transform for the externalsampler texture
-        if (auto *buffer = static_cast<AndroidTextureVideoBuffer *>(frame.videoBuffer()))
-            cmat = buffer->externalTextureMatrix();
-    }
-#endif
+        cmat = frame.videoBuffer()->externalTextureMatrix();
         break;
     case QVideoFrameFormat::Format_SamplerRect:
     {
