@@ -44,7 +44,7 @@
 #include "avfcamera_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcamerarenderer_p.h"
-#include "qmediastoragelocation_p.h"
+#include "private/qmediastoragelocation_p.h"
 #include <private/qplatformimagecapture_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 

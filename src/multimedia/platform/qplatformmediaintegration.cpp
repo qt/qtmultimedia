@@ -48,10 +48,7 @@
 #include "QtCore/private/qfactoryloader_p.h"
 #include "qplatformmediaplugin_p.h"
 
-#if QT_CONFIG(avfoundation)
-#include <private/qdarwinintegration_p.h>
-using PlatformIntegration = QDarwinIntegration;
-#elif QT_CONFIG(wmf)
+#if QT_CONFIG(wmf)
 #include <private/qwindowsintegration_p.h>
 using PlatformIntegration = QWindowsMediaIntegration;
 #else

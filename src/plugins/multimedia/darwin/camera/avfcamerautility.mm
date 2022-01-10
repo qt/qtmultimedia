@@ -43,7 +43,7 @@
 #include <QtCore/qvector.h>
 #include <QtCore/qpair.h>
 #include <private/qmultimediautils_p.h>
-#include "private/avfvideobuffer_p.h"
+#include "avfvideobuffer_p.h"
 
 #include <functional>
 #include <algorithm>

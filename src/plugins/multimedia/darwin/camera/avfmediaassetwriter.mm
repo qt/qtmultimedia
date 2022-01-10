@@ -43,8 +43,8 @@
 #include "avfcameraservice_p.h"
 #include "avfcamerasession_p.h"
 #include "avfcameradebug_p.h"
-#include <private/qdarwinformatsinfo_p.h>
-#include <private/avfmetadata_p.h>
+#include <qdarwinformatsinfo_p.h>
+#include <avfmetadata_p.h>
 
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qatomic.h>

@@ -48,9 +48,9 @@
 #include "qaudiodevice.h"
 
 #include "qmediadevices.h"
-#include "qmediastoragelocation_p.h"
+#include "private/qmediastoragelocation_p.h"
 #include "private/qmediarecorder_p.h"
-#include "private/qdarwinformatsinfo_p.h"
+#include "qdarwinformatsinfo_p.h"
 #include "private/qplatformaudiooutput_p.h"
 
 #include <QtCore/qmath.h>

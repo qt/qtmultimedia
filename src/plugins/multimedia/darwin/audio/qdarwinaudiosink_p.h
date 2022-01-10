@@ -50,7 +50,7 @@
 // We mean it.
 //
 
-#include <qaudiosystem_p.h>
+#include <private/qaudiosystem_p.h>
 
 #if defined(Q_OS_OSX)
 # include <CoreAudio/CoreAudio.h>
@@ -61,7 +61,7 @@
 #include <QtCore/QIODevice>
 #include <QtCore/QWaitCondition>
 #include <QtCore/QMutex>
-#include <private/qdarwinaudiodevice_p.h>
+#include <qdarwinaudiodevice_p.h>
 
 QT_BEGIN_NAMESPACE
 

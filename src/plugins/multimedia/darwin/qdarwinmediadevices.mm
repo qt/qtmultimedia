@@ -39,20 +39,22 @@
 
 #include "qdarwinmediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcameradevice_p.h"
-#include "qaudiodevice_p.h"
-#include "private/qdarwinaudiodevice_p.h"
-#include "private/qdarwinaudiosource_p.h"
-#include "private/qdarwinaudiosink_p.h"
-#include "private/avfcamera_p.h"
-#include "private/avfcamerautility_p.h"
-#include "private/avfvideobuffer_p.h"
+#include "private/qcameradevice_p.h"
+#include "private/qaudiodevice_p.h"
+#include "qdarwinaudiodevice_p.h"
+#include "qdarwinaudiosource_p.h"
+#include "qdarwinaudiosink_p.h"
+#include "avfcamera_p.h"
+#include "avfcamerautility_p.h"
+#include "avfvideobuffer_p.h"
+
+#include <qdebug.h>
 
 #include <CoreVideo/CoreVideo.h>
 #import <AVFoundation/AVFoundation.h>
 
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-#include "private/qcoreaudiosessionmanager_p.h"
+#include "qcoreaudiosessionmanager_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE

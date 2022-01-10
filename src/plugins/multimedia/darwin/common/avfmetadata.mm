@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 #include "avfmetadata_p.h"
-#include <private/qdarwinformatsinfo_p.h>
-#include <private/avfmediaplayer_p.h>
+#include <qdarwinformatsinfo_p.h>
+#include <avfmediaplayer_p.h>
 
 #include <QtCore/qbuffer.h>
 #include <QtCore/qiodevice.h>

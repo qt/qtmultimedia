@@ -40,7 +40,7 @@
 #include "qcoreaudiosessionmanager_p.h"
 #include "qdarwinaudiodevice_p.h"
 #include "qcoreaudioutils_p.h"
-#include <private/qdarwinmediadevices_p.h>
+#include "qdarwinmediadevices_p.h"
 #include <qmediadevices.h>
 
 #include <QtCore/QDataStream>

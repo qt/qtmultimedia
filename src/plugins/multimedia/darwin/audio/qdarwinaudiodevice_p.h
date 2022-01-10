@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef AVFVIDEORENDERERCONTROL_H
-#define AVFVIDEORENDERERCONTROL_H
+#ifndef IOSAUDIODEVICEINFO_H
+#define IOSAUDIODEVICEINFO_H
 
 //
 //  W A R N I N G
@@ -51,58 +50,38 @@
 // We mean it.
 //
 
-#include <QtCore/QObject>
-#include <QtCore/QMutex>
-#include <QtCore/QSize>
+#include <private/qaudiosystem_p.h>
+#include <private/qaudiodevice_p.h>
 
-#include <private/avfvideosink_p.h>
-
-#include <CoreVideo/CVBase.h>
-#include <CoreVideo/CVPixelBuffer.h>
-
-Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemVideoOutput);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemLegibleOutput);
-Q_FORWARD_DECLARE_OBJC_CLASS(SubtitleDelegate);
+#if defined(Q_OS_MACOS)
+# include <CoreAudio/CoreAudio.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
-class AVFDisplayLink;
-
-class AVFVideoRendererControl : public QObject, public AVFVideoSinkInterface
+class QCoreAudioDeviceInfo : public QAudioDevicePrivate
 {
-    Q_OBJECT
 public:
-    explicit AVFVideoRendererControl(QObject *parent = nullptr);
-    virtual ~AVFVideoRendererControl();
+#if defined(Q_OS_MACOS)
+    QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode);
+#else
+    QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode);
+#endif
+    ~QCoreAudioDeviceInfo() {}
 
-    // AVFVideoSinkInterface
-    void reconfigure() override;
-    void setLayer(CALayer *layer) override;
+    bool isFormatSupported(const QAudioFormat &format) const;
 
-    void setVideoRotation(QVideoFrame::RotationAngle);
-    void setVideoMirrored(bool mirrored);
-
-    void setSubtitleText(const QString &subtitle)
-    {
-        m_sink->setSubtitleText(subtitle);
-    }
-private Q_SLOTS:
-    void updateVideoFrame(const CVTimeStamp &ts);
-
+#if defined(Q_OS_MACOS)
+    AudioDeviceID deviceID() const { return m_deviceId; }
+#endif
 private:
-    AVPlayerLayer *playerLayer() const { return static_cast<AVPlayerLayer *>(m_layer); }
-    CVPixelBufferRef copyPixelBufferFromLayer(size_t& width, size_t& height);
-
-    QMutex m_mutex;
-    AVFDisplayLink *m_displayLink = nullptr;
-    AVPlayerItemVideoOutput *m_videoOutput = nullptr;
-    AVPlayerItemLegibleOutput *m_subtitleOutput = nullptr;
-    SubtitleDelegate *m_subtitleDelegate = nullptr;
-    QVideoFrame::RotationAngle m_rotation = QVideoFrame::Rotation0;
-    bool m_mirrored = false;
+    QAudioFormat determinePreferredFormat() const;
+    QString getDescription() const;
+#if defined(Q_OS_MACOS)
+    AudioDeviceID m_deviceId;
+#endif
 };
 
 QT_END_NAMESPACE
 
-#endif // AVFVIDEORENDERERCONTROL_H
+#endif

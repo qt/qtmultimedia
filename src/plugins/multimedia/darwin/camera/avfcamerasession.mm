@@ -45,7 +45,7 @@
 #include "avfimagecapture_p.h"
 #include "avfmediaencoder_p.h"
 #include "avfcamerautility_p.h"
-#include <private/avfvideosink_p.h>
+#include <avfvideosink_p.h>
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>

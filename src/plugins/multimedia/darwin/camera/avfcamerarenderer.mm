@@ -43,8 +43,8 @@
 #include "avfcameraservice_p.h"
 #include "avfcameradebug_p.h"
 #include "avfcamera_p.h"
-#include <private/avfvideosink_p.h>
-#include <private/avfvideobuffer_p.h>
+#include <avfvideosink_p.h>
+#include <avfvideobuffer_p.h>
 #include "qvideosink.h"
 
 #include <QtGui/private/qrhi_p.h>

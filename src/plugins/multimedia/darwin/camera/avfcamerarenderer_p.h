@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFVIDEOBUFFER_H
-#define AVFVIDEOBUFFER_H
+#ifndef AVFCAMERARENDERER_H
+#define AVFCAMERARENDERER_H
 
 //
 //  W A R N I N G
@@ -51,60 +51,78 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qvideoframe.h>
-#include <private/qabstractvideobuffer_p.h>
-
 #include <QtCore/qobject.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qmutex.h>
-#include <private/avfvideosink_p.h>
+#include <avfvideosink_p.h>
+#include <private/qvideooutputorientationhandler_p.h>
 
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>
 #include <CoreVideo/CVImageBuffer.h>
+#ifdef Q_OS_IOS
+#include <CoreVideo/CVOpenGLESTexture.h>
+#include <CoreVideo/CVOpenGLESTextureCache.h>
+#endif
 
-#import "Metal/Metal.h"
-#import "MetalKit/MetalKit.h"
+#include <dispatch/dispatch.h>
 
-enum {
-    // macOS 10.14 doesn't define this pixel format yet
-    q_kCVPixelFormatType_OneComponent16 = 'L016'
-};
+Q_FORWARD_DECLARE_OBJC_CLASS(AVFCaptureFramesDelegate);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
 
 QT_BEGIN_NAMESPACE
 
-struct AVFMetalTexture;
-class AVFVideoBuffer : public QAbstractVideoBuffer
+class AVFCameraSession;
+class AVFCameraService;
+class AVFCameraRenderer;
+class AVFVideoSink;
+
+class AVFCameraRenderer : public QObject, public AVFVideoSinkInterface
 {
+Q_OBJECT
 public:
-    AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
-    ~AVFVideoBuffer();
+    AVFCameraRenderer(QObject *parent = nullptr);
+    ~AVFCameraRenderer();
 
-    QVideoFrameFormat::PixelFormat fromCVVideoPixelFormat(unsigned avPixelFormat) const;
+    void reconfigure() override;
+    void setOutputSettings(NSDictionary *settings) override;
 
-    static QVideoFrameFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
-    static bool toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv);
+    void configureAVCaptureSession(AVFCameraSession *cameraSession);
+    void syncHandleViewfinderFrame(const QVideoFrame &frame);
 
+    AVCaptureVideoDataOutput *videoDataOutput() const;
 
-    QVideoFrame::MapMode mapMode() const { return m_mode; }
-    MapData map(QVideoFrame::MapMode mode);
-    void unmap();
+    AVFCaptureFramesDelegate *captureDelegate() const;
+    void resetCaptureDelegate() const;
 
-    virtual quint64 textureHandle(int plane) const;
+    void setPixelFormat(const QVideoFrameFormat::PixelFormat format);
+
+Q_SIGNALS:
+    void newViewfinderFrame(const QVideoFrame &frame);
+
+private Q_SLOTS:
+    void handleViewfinderFrame();
+    void updateCaptureConnection();
+public Q_SLOTS:
+    void deviceOrientationChanged(int angle = -1);
 
 private:
-    AVFVideoSinkInterface *sink = nullptr;
+    AVFCaptureFramesDelegate *m_viewfinderFramesDelegate = nullptr;
+    AVFCameraSession *m_cameraSession = nullptr;
+    AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
 
-    mutable CVMetalTextureRef cvMetalTexture[3] = {};
+    bool m_needsHorizontalMirroring = false;
 
-#if defined(Q_OS_MACOS)
-    mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
-#elif defined(Q_OS_IOS)
-    mutable CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
+#ifdef Q_OS_IOS
+    CVOpenGLESTextureCacheRef m_textureCache = nullptr;
 #endif
 
-    CVImageBufferRef m_buffer = nullptr;
-    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
+    QVideoFrame m_lastViewfinderFrame;
+    QMutex m_vfMutex;
+    dispatch_queue_t m_delegateQueue;
+    QVideoOutputOrientationHandler m_orientationHandler;
+
+    friend class CVImageVideoBuffer;
 };
 
 QT_END_NAMESPACE

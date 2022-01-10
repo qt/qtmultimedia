@@ -50,8 +50,8 @@
 // We mean it.
 //
 
-#include <qaudiosystem_p.h>
-#include <private/qdarwinaudiodevice_p.h>
+#include <private/qaudiosystem_p.h>
+#include <qdarwinaudiodevice_p.h>
 
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>

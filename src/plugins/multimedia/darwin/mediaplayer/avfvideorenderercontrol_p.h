@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERARENDERER_H
-#define AVFCAMERARENDERER_H
+#ifndef AVFVIDEORENDERERCONTROL_H
+#define AVFVIDEORENDERERCONTROL_H
 
 //
 //  W A R N I N G
@@ -51,80 +51,58 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
-#include <QtMultimedia/qvideoframe.h>
-#include <QtCore/qmutex.h>
-#include <private/avfvideosink_p.h>
-#include <private/qvideooutputorientationhandler_p.h>
+#include <QtCore/QObject>
+#include <QtCore/QMutex>
+#include <QtCore/QSize>
+
+#include <avfvideosink_p.h>
 
 #include <CoreVideo/CVBase.h>
 #include <CoreVideo/CVPixelBuffer.h>
-#include <CoreVideo/CVImageBuffer.h>
-#ifdef Q_OS_IOS
-#include <CoreVideo/CVOpenGLESTexture.h>
-#include <CoreVideo/CVOpenGLESTextureCache.h>
-#endif
 
-#include <dispatch/dispatch.h>
-
-Q_FORWARD_DECLARE_OBJC_CLASS(AVFCaptureFramesDelegate);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureVideoDataOutput);
+Q_FORWARD_DECLARE_OBJC_CLASS(CALayer);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemVideoOutput);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVPlayerItemLegibleOutput);
+Q_FORWARD_DECLARE_OBJC_CLASS(SubtitleDelegate);
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraSession;
-class AVFCameraService;
-class AVFCameraRenderer;
-class AVFVideoSink;
+class AVFDisplayLink;
 
-class AVFCameraRenderer : public QObject, public AVFVideoSinkInterface
+class AVFVideoRendererControl : public QObject, public AVFVideoSinkInterface
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    AVFCameraRenderer(QObject *parent = nullptr);
-    ~AVFCameraRenderer();
+    explicit AVFVideoRendererControl(QObject *parent = nullptr);
+    virtual ~AVFVideoRendererControl();
 
+    // AVFVideoSinkInterface
     void reconfigure() override;
-    void setOutputSettings(NSDictionary *settings) override;
+    void setLayer(CALayer *layer) override;
 
-    void configureAVCaptureSession(AVFCameraSession *cameraSession);
-    void syncHandleViewfinderFrame(const QVideoFrame &frame);
+    void setVideoRotation(QVideoFrame::RotationAngle);
+    void setVideoMirrored(bool mirrored);
 
-    AVCaptureVideoDataOutput *videoDataOutput() const;
-
-    AVFCaptureFramesDelegate *captureDelegate() const;
-    void resetCaptureDelegate() const;
-
-    void setPixelFormat(const QVideoFrameFormat::PixelFormat format);
-
-Q_SIGNALS:
-    void newViewfinderFrame(const QVideoFrame &frame);
-
+    void setSubtitleText(const QString &subtitle)
+    {
+        m_sink->setSubtitleText(subtitle);
+    }
 private Q_SLOTS:
-    void handleViewfinderFrame();
-    void updateCaptureConnection();
-public Q_SLOTS:
-    void deviceOrientationChanged(int angle = -1);
+    void updateVideoFrame(const CVTimeStamp &ts);
 
 private:
-    AVFCaptureFramesDelegate *m_viewfinderFramesDelegate = nullptr;
-    AVFCameraSession *m_cameraSession = nullptr;
-    AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
+    AVPlayerLayer *playerLayer() const { return static_cast<AVPlayerLayer *>(m_layer); }
+    CVPixelBufferRef copyPixelBufferFromLayer(size_t& width, size_t& height);
 
-    bool m_needsHorizontalMirroring = false;
-
-#ifdef Q_OS_IOS
-    CVOpenGLESTextureCacheRef m_textureCache = nullptr;
-#endif
-
-    QVideoFrame m_lastViewfinderFrame;
-    QMutex m_vfMutex;
-    dispatch_queue_t m_delegateQueue;
-    QVideoOutputOrientationHandler m_orientationHandler;
-
-    friend class CVImageVideoBuffer;
+    QMutex m_mutex;
+    AVFDisplayLink *m_displayLink = nullptr;
+    AVPlayerItemVideoOutput *m_videoOutput = nullptr;
+    AVPlayerItemLegibleOutput *m_subtitleOutput = nullptr;
+    SubtitleDelegate *m_subtitleDelegate = nullptr;
+    QVideoFrame::RotationAngle m_rotation = QVideoFrame::Rotation0;
+    bool m_mirrored = false;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // AVFVIDEORENDERERCONTROL_H

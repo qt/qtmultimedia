@@ -39,12 +39,11 @@
 
 #include "avfvideorenderercontrol_p.h"
 #include "avfdisplaylink_p.h"
-#include <private/avfvideobuffer_p.h>
+#include <avfvideobuffer_p.h>
 
-#include <private/qabstractvideobuffer_p.h>
 #include <QtMultimedia/qvideoframeformat.h>
 
-#include <private/avfvideosink_p.h>
+#include <avfvideosink_p.h>
 #include <QtGui/private/qrhi_p.h>
 
 #include <QtCore/qdebug.h>

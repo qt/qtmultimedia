@@ -39,18 +39,38 @@
 
 #include "qdarwinintegration_p.h"
 #include "qdarwinmediadevices_p.h"
-#include <private/avfmediaplayer_p.h>
-#include <private/avfcameraservice_p.h>
-#include <private/avfcamera_p.h>
-#include <private/avfimagecapture_p.h>
-#include <private/avfmediaencoder_p.h>
-#include <private/qdarwinformatsinfo_p.h>
-#include <private/avfvideosink_p.h>
-#include <private/avfaudiodecoder_p.h>
+#include <avfmediaplayer_p.h>
+#include <avfcameraservice_p.h>
+#include <avfcamera_p.h>
+#include <avfimagecapture_p.h>
+#include <avfmediaencoder_p.h>
+#include <qdarwinformatsinfo_p.h>
+#include <avfvideosink_p.h>
+#include <avfaudiodecoder_p.h>
 #include <VideoToolbox/VideoToolbox.h>
 #include <qdebug.h>
+#include <private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
+
+class QDarwinMediaPlugin : public QPlatformMediaPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "darwin.json")
+
+public:
+    QDarwinMediaPlugin()
+        : QPlatformMediaPlugin()
+    {}
+
+    QPlatformMediaIntegration* create(const QString &name) override
+    {
+        if (name == QLatin1String("darwin"))
+            return new QDarwinIntegration;
+        return nullptr;
+    }
+};
+
 
 QDarwinIntegration::QDarwinIntegration()
 {
@@ -116,3 +136,5 @@ QPlatformVideoSink *QDarwinIntegration::createVideoSink(QVideoSink *sink)
 }
 
 QT_END_NAMESPACE
+
+#include "qdarwinintegration.moc"

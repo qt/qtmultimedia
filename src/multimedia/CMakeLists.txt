@@ -6,12 +6,6 @@
 
 find_package(Qt6 COMPONENTS ShaderTools)
 
-qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
-qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
-qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
-qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox) # special case
-qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special case
-
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
@@ -178,80 +172,6 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
     LIBRARIES
         gdi32
         user32
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS
-    SOURCES
-        platform/darwin/audio/avfaudiodecoder.mm platform/darwin/audio/avfaudiodecoder_p.h
-        platform/darwin/audio/qdarwinaudiodevice.mm platform/darwin/audio/qdarwinaudiodevice_p.h
-        platform/darwin/audio/qdarwinaudiosource.mm platform/darwin/audio/qdarwinaudiosource_p.h
-        platform/darwin/audio/qdarwinaudiosink.mm platform/darwin/audio/qdarwinaudiosink_p.h
-        platform/darwin/audio/qcoreaudioutils.mm platform/darwin/audio/qcoreaudioutils_p.h
-        platform/darwin/mediaplayer/avfdisplaylink.mm platform/darwin/mediaplayer/avfdisplaylink_p.h
-        platform/darwin/mediaplayer/avfmediaplayer.mm platform/darwin/mediaplayer/avfmediaplayer_p.h
-        platform/darwin/common/avfmetadata.mm platform/darwin/common/avfmetadata_p.h
-        platform/darwin/mediaplayer/avfvideorenderercontrol.mm platform/darwin/mediaplayer/avfvideorenderercontrol_p.h
-        platform/darwin/avfvideosink.mm platform/darwin/avfvideosink_p.h
-        platform/darwin/avfvideobuffer.mm platform/darwin/avfvideobuffer_p.h
-        platform/darwin/qdarwinmediadevices.mm platform/darwin/qdarwinmediadevices_p.h
-        platform/darwin/qdarwinformatsinfo.mm platform/darwin/qdarwinformatsinfo_p.h
-        platform/darwin/qdarwinintegration.mm platform/darwin/qdarwinintegration_p.h
-    LIBRARIES
-        ${FWAudioToolbox}
-        ${FWCoreAudio}
-        ${FWCoreFoundation}
-        ${FWCoreMedia}
-        ${FWCoreVideo}
-        ${FWFoundation}
-        ${FWMetal}
-        ${FWQuartzCore}
-        AVFoundation::AVFoundation
-)
-
-qt_internal_extend_target(Multimedia CONDITION MACOS AND NOT WATCHOS
-    LIBRARIES
-        ${FWAppKit}
-        ${FWAudioUnit}
-        ${FWVideoToolbox}
-)
-
-qt_internal_extend_target(Multimedia CONDITION IOS AND NOT WATCHOS
-    LIBRARIES
-        ${FWCoreGraphics}
-        ${FWCoreVideo}
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHOS
-    SOURCES
-        platform/darwin/camera/avfcamera.mm platform/darwin/camera/avfcamera_p.h
-        platform/darwin/camera/avfcameradebug_p.h
-        platform/darwin/camera/avfaudiopreviewdelegate.mm platform/darwin/camera/avfaudiopreviewdelegate_p.h
-        platform/darwin/camera/avfcamerarenderer.mm platform/darwin/camera/avfcamerarenderer_p.h
-        platform/darwin/camera/avfcameraservice.mm platform/darwin/camera/avfcameraservice_p.h
-        platform/darwin/camera/avfcamerasession.mm platform/darwin/camera/avfcamerasession_p.h
-        platform/darwin/camera/avfcamerautility.mm platform/darwin/camera/avfcamerautility_p.h
-        platform/darwin/camera/avfimagecapture.mm platform/darwin/camera/avfimagecapture_p.h
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT TVOS AND NOT WATCHOS
-    SOURCES
-        platform/darwin/camera/avfmediaassetwriter.mm platform/darwin/camera/avfmediaassetwriter_p.h
-        platform/darwin/camera/avfmediaencoder.mm platform/darwin/camera/avfmediaencoder_p.h
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT WATCHOS AND (IOS OR TVOS)
-    SOURCES
-        platform/darwin/audio/qcoreaudiosessionmanager.mm platform/darwin/audio/qcoreaudiosessionmanager_p.h
-    LIBRARIES
-        ${FWAVFoundation}
-        ${FWFoundation}
-)
-
-qt_internal_extend_target(Multimedia CONDITION APPLE AND NOT IOS AND NOT TVOS AND NOT WATCHOS
-    LIBRARIES
-        ${FWAppKit}
-        ${FWApplicationServices}
-        ${FWAudioUnit}
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer

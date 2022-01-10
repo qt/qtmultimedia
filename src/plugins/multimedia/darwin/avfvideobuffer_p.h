@@ -36,8 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef IOSAUDIODEVICEINFO_H
-#define IOSAUDIODEVICEINFO_H
+
+#ifndef AVFVIDEOBUFFER_H
+#define AVFVIDEOBUFFER_H
 
 //
 //  W A R N I N G
@@ -50,36 +51,60 @@
 // We mean it.
 //
 
-#include <qaudiosystem_p.h>
-#include <private/qaudiodevice_p.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <private/qabstractvideobuffer_p.h>
 
-#if defined(Q_OS_MACOS)
-# include <CoreAudio/CoreAudio.h>
-#endif
+#include <QtCore/qobject.h>
+#include <QtCore/qmutex.h>
+#include <avfvideosink_p.h>
+
+#include <CoreVideo/CVBase.h>
+#include <CoreVideo/CVPixelBuffer.h>
+#include <CoreVideo/CVImageBuffer.h>
+
+#import "Metal/Metal.h"
+#import "MetalKit/MetalKit.h"
+
+enum {
+    // macOS 10.14 doesn't define this pixel format yet
+    q_kCVPixelFormatType_OneComponent16 = 'L016'
+};
 
 QT_BEGIN_NAMESPACE
 
-class QCoreAudioDeviceInfo : public QAudioDevicePrivate
+struct AVFMetalTexture;
+class AVFVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-#if defined(Q_OS_MACOS)
-    QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode);
-#else
-    QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode);
-#endif
-    ~QCoreAudioDeviceInfo() {}
+    AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
+    ~AVFVideoBuffer();
 
-    bool isFormatSupported(const QAudioFormat &format) const;
+    QVideoFrameFormat::PixelFormat fromCVVideoPixelFormat(unsigned avPixelFormat) const;
 
-#if defined(Q_OS_MACOS)
-    AudioDeviceID deviceID() const { return m_deviceId; }
-#endif
+    static QVideoFrameFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
+    static bool toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv);
+
+
+    QVideoFrame::MapMode mapMode() const { return m_mode; }
+    MapData map(QVideoFrame::MapMode mode);
+    void unmap();
+
+    virtual quint64 textureHandle(int plane) const;
+
 private:
-    QAudioFormat determinePreferredFormat() const;
-    QString getDescription() const;
+    AVFVideoSinkInterface *sink = nullptr;
+
+    mutable CVMetalTextureRef cvMetalTexture[3] = {};
+
 #if defined(Q_OS_MACOS)
-    AudioDeviceID m_deviceId;
+    mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
+#elif defined(Q_OS_IOS)
+    mutable CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
 #endif
+
+    CVImageBufferRef m_buffer = nullptr;
+    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
+    QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
 };
 
 QT_END_NAMESPACE
