@@ -52,7 +52,6 @@
 
 #include "qqnxmediametadata_p.h"
 #include <private/qplatformmediaplayer_p.h>
-#include <private/qqnxmediametadata_p.h>
 #include <QtCore/qabstractnativeeventfilter.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qtimer.h>

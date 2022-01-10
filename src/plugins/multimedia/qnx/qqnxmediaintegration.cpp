@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,50 +37,68 @@
 **
 ****************************************************************************/
 
-#include <private/qqnxaudiooutput_p.h>
-#include <private/qqnxaudiodevice_p.h>
-#include <qaudiodevice.h>
-#include <qaudiooutput.h>
-
-#include <QtCore/qloggingcategory.h>
-
-Q_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
+#include "qqnxmediaintegration_p.h"
+#include "qqnxmediadevices_p.h"
+#include "qqnxformatinfo_p.h"
+#include "qqnxvideosink_p.h"
+#include "qqnxmediaplayer_p.h"
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
 
-QQnxAudioOutput::QQnxAudioOutput(QAudioOutput *parent)
-  : QPlatformAudioOutput(parent)
+class QQnxMediaPlugin : public QPlatformMediaPlugin
 {
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "qnx.json")
+
+public:
+    QQnxMediaPlugin()
+      : QPlatformMediaPlugin()
+    {}
+
+    QPlatformMediaIntegration* create(const QString &name) override
+    {
+        if (name == QLatin1String("qnx"))
+            return new QQnxMediaIntegration;
+        return nullptr;
+    }
+};
+
+QQnxMediaIntegration::QQnxMediaIntegration()
+{
+
 }
 
-QQnxAudioOutput::~QQnxAudioOutput()
+QQnxMediaIntegration::~QQnxMediaIntegration()
 {
+    delete m_devices;
+    delete m_formatInfo;
 }
 
-void QQnxAudioOutput::setVolume(float vol)
+QPlatformMediaDevices *QQnxMediaIntegration::devices()
 {
-    if (vol == volume)
-        return;
-    vol = volume;
-    q->volumeChanged(vol);
+    if (!m_devices)
+        m_devices = new QQnxMediaDevices();
+    return m_devices;
 }
 
-void QQnxAudioOutput::setMuted(bool m)
+QPlatformMediaFormatInfo *QQnxMediaIntegration::formatInfo()
 {
-    if (muted == m)
-        return;
-    muted = m;
-    q->mutedChanged(muted);
+    if (!m_formatInfo)
+        m_formatInfo = new QQnxFormatInfo();
+    return m_formatInfo;
 }
 
-void QQnxAudioOutput::setAudioDevice(const QAudioDevice &info)
+QPlatformVideoSink *QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
 {
-    if (info == device)
-        return;
-    qCDebug(qLcMediaAudioOutput) << "setAudioDevice" << info.description() << info.isNull();
-    device = info;
+    return new QQnxVideoSink(sink);
+}
 
-    // ### handle device changes
+QPlatformMediaPlayer *QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
+{
+    return new QQnxMediaPlayer(parent);
 }
 
 QT_END_NAMESPACE
+
+#include "qqnxmediaintegration.moc"

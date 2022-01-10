@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2021 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +38,8 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIOUTILS_H
-#define QNXAUDIOUTILS_H
+#ifndef QNXAUDIODEVICE_P_H
+#define QNXAUDIODEVICE_P_H
 
 //
 //  W A R N I N G
@@ -51,15 +52,19 @@
 // We mean it.
 //
 
-#include "qaudiosystem_p.h"
-#include <sys/asoundlib.h>
+#include "private/qaudiosystem_p.h"
+#include <private/qaudiodevice_p.h>
 
 QT_BEGIN_NAMESPACE
 
-namespace QnxAudioUtils
+class QnxAudioDeviceInfo : public QAudioDevicePrivate
 {
-    snd_pcm_channel_params_t formatToChannelParams(const QAudioFormat &format, QAudioDevice::Mode mode, int fragmentSize);
-}
+public:
+    QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode);
+    ~QnxAudioDeviceInfo();
+
+    bool isFormatSupported(const QAudioFormat &format) const;
+};
 
 QT_END_NAMESPACE
 

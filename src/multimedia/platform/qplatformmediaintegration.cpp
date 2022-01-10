@@ -48,10 +48,6 @@
 #include "QtCore/private/qfactoryloader_p.h"
 #include "qplatformmediaplugin_p.h"
 
-#if defined(Q_OS_QNX)
-#include <private/qqnxmediaintegration_p.h>
-#endif
-
 class QDummyIntegration : public QPlatformMediaIntegration
 {
 public:
@@ -114,13 +110,6 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 
     qCDebug(qLcMediaPlugin) << "loading backend" << type;
     holder.nativeInstance = qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), type);
-
-#if defined(Q_OS_QNX)
-    if (!holder.nativeInstance) {
-        qWarning() << "could not load multimedia backend" << type;
-        holder.nativeInstance = new QQnxMediaIntegration;
-    }
-#endif
 
     if (!holder.nativeInstance) {
         qWarning() << "could not load multimedia backend" << type;

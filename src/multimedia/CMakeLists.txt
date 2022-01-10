@@ -96,38 +96,6 @@ qt_internal_add_simd_part(Multimedia SIMD avx2
         video/qvideoframeconversionhelper_avx2.cpp
 )
 
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_mmrenderer
-    SOURCES
-        platform/qnx/audio/qqnxaudioutils.cpp platform/qnx/audio/qqnxaudioutils_p.h
-        platform/qnx/audio/qqnxaudiodevice.cpp platform/qnx/audio/qqnxaudiodevice_p.h
-        platform/qnx/audio/qqnxaudiosink.cpp platform/qnx/audio/qqnxaudiosink_p.h
-        platform/qnx/audio/qqnxaudiosource.cpp platform/qnx/audio/qqnxaudiosource_p.h
-        platform/qnx/camera/qqnxcamera.cpp platform/qnx/camera/qqnxcamera_p.h
-        platform/qnx/camera/qqnximagecapture.cpp platform/qnx/camera/qqnximagecapture_p.h
-        platform/qnx/camera/qqnxmediarecorder.cpp platform/qnx/camera/qqnxmediarecorder_p.h
-        platform/qnx/camera/qqnxmediacapture.cpp platform/qnx/camera/qqnxmediacapture_p.h
-#        platform/qnx/camera/bbcamerasession.cpp platform/qnx/camera/bbcamerasession_p.h
-        platform/qnx/common/qqnxwindowgrabber.cpp platform/qnx/common/qqnxwindowgrabber_p.h
-        platform/qnx/common/qqnxaudiooutput.cpp platform/qnx/common/qqnxaudiooutput_p.h
-        platform/qnx/mediaplayer/qqnxmediaplayer.cpp platform/qnx/mediaplayer/qqnxmediaplayer_p.h
-        platform/qnx/mediaplayer/qqnxmediametadata.cpp platform/qnx/mediaplayer/qqnxmediametadata_p.h
-        platform/qnx/mediaplayer/qqnxvideosink.cpp platform/qnx/mediaplayer/qqnxvideosink_p.h
-        platform/qnx/mediaplayer/qqnxmediautil.cpp platform/qnx/mediaplayer/qqnxmediautil_p.h
-##        platform/qnx/mediaplayer/mmrenderervideowindowcontrol.cpp platform/qnx/mediaplayer/mmrenderervideowindowcontrol_p.h
-        platform/qnx/mediaplayer/qqnxmediaeventthread.cpp platform/qnx/mediaplayer/qqnxmediaeventthread_p.h
-        platform/qnx/qqnxformatinfo.cpp platform/qnx/qqnxformatinfo_p.h
-        platform/qnx/qqnxmediadevices.cpp platform/qnx/qqnxmediadevices_p.h
-        platform/qnx/qqnxmediaintegration.cpp platform/qnx/qqnxmediaintegration_p.h
-    INCLUDE_DIRECTORIES
-        platform/qnx/camera
-        platform/qnx/common
-        platform/qnx/mediaplayer
-    LIBRARIES
-        MMRendererCore::MMRendererCore
-        MMRenderer::MMRenderer
-        asound
-        camapi
-)
 qt_internal_add_docs(Multimedia
     doc/qtmultimedia.qdocconf
 )

@@ -39,12 +39,12 @@
 
 #include "qqnxmediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcameradevice_p.h"
+#include "private/qcameradevice_p.h"
 #include "qcameradevice.h"
 
-#include "private/qqnxaudiosource_p.h"
-#include "private/qqnxaudiosink_p.h"
-#include "private/qqnxaudiodevice_p.h"
+#include "qqnxaudiosource_p.h"
+#include "qqnxaudiosink_p.h"
+#include "qqnxaudiodevice_p.h"
 
 #include <camera/camera_api.h>
 

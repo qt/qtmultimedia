@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QNXAUDIOOUTPUT_H
-#define QNXAUDIOOUTPUT_H
+#ifndef QNXAUDIOINPUT_H
+#define QNXAUDIOINPUT_H
 
 //
 //  W A R N I N G
@@ -51,98 +51,90 @@
 // We mean it.
 //
 
-#include "qaudiosystem_p.h"
+#include "private/qaudiosystem_p.h"
 
+#include <QSocketNotifier>
+#include <QIODevice>
 #include <QElapsedTimer>
 #include <QTimer>
-#include <QIODevice>
-#include <QSocketNotifier>
 
 #include <sys/asoundlib.h>
-#include <sys/neutrino.h>
 
 QT_BEGIN_NAMESPACE
 
-class QnxPushIODevice;
-
-class QQnxAudioSink : public QPlatformAudioSink
+class QQnxAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 
 public:
-    QQnxAudioSink();
-    ~QQnxAudioSink();
+    QQnxAudioSource();
+    ~QQnxAudioSource();
 
-    void start(QIODevice *source) override;
-    QIODevice *start() override;
+    void start(QIODevice*) override;
+    QIODevice* start() override;
     void stop() override;
     void reset() override;
     void suspend() override;
     void resume() override;
-    qsizetype bytesFree() const override;
-    void setBufferSize(qsizetype) override {}
-    qsizetype bufferSize() const override { return 0; }
+    qsizetype bytesReady() const override;
+    void setBufferSize(qsizetype ) override;
+    qsizetype bufferSize() const  override;
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
-    void setFormat(const QAudioFormat &format) override;
+    void setFormat(const QAudioFormat&) override;
     QAudioFormat format() const override;
-    void setVolume(qreal volume) override;
+    void setVolume(qreal) override;
     qreal volume() const override;
 
 private slots:
-    void pullData();
+    void userFeed();
+    bool deviceReady();
 
 private:
+    friend class InputPrivate;
+
     bool open();
     void close();
+    qint64 read(char *data, qint64 len);
     void setError(QAudio::Error error);
     void setState(QAudio::State state);
 
-    void addPcmEventFilter();
-    void createPcmNotifiers();
-    void destroyPcmNotifiers();
-    void setTypeName(snd_pcm_channel_params_t *params);
+    QAudioFormat m_format;
 
-    void suspendInternal(QAudio::State suspendState);
-    void resumeInternal();
-
-    friend class QnxPushIODevice;
-    qint64 write(const char *data, qint64 len);
-
-    QIODevice *m_source;
-    bool m_pushSource;
-    QTimer m_timer;
+    QIODevice *m_audioSource;
+    snd_pcm_t *m_pcmHandle;
+    QSocketNotifier *m_pcmNotifier;
 
     QAudio::Error m_error;
     QAudio::State m_state;
-    QAudioFormat m_format;
+
+    qint64 m_bytesRead;
+    qint64 m_elapsedTimeOffset;
+    qint64 m_totalTimeValue;
+
     qreal m_volume;
+
+    int m_bytesAvailable;
+    int m_bufferSize;
     int m_periodSize;
 
-    snd_pcm_t *m_pcmHandle;
-    qint64 m_bytesWritten;
-
-#if _NTO_VERSION >= 700
-    QSocketNotifier *m_pcmNotifier;
-
-private slots:
-    void pcmNotifierActivated(int socket);
-#endif
+    bool m_pullMode;
 };
 
-class QnxPushIODevice : public QIODevice
+class InputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    explicit QnxPushIODevice(QQnxAudioSink *output);
-    ~QnxPushIODevice();
+    InputPrivate(QQnxAudioSource *audio);
 
-    qint64 readData(char *data, qint64 len);
-    qint64 writeData(const char *data, qint64 len);
+    qint64 readData(char *data, qint64 len) override;
+    qint64 writeData(const char *data, qint64 len) override;
+
+    void trigger();
 
 private:
-    QQnxAudioSink *m_output;
+    QQnxAudioSource *m_audioDevice;
 };
 
 QT_END_NAMESPACE

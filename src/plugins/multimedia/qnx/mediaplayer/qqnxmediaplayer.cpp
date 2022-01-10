@@ -48,7 +48,7 @@
 #include <QtCore/quuid.h>
 #include <mm/renderer.h>
 #include <qmediaplayer.h>
-#include <private/qqnxaudiooutput_p.h>
+#include <qqnxaudiooutput_p.h>
 #include <qaudiooutput.h>
 
 #include <errno.h>

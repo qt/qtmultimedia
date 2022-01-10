@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,47 +37,50 @@
 **
 ****************************************************************************/
 
-#include "qqnxmediaintegration_p.h"
-#include "qqnxmediadevices_p.h"
-#include "qqnxformatinfo_p.h"
-#include "qqnxvideosink_p.h"
-#include "private/qqnxmediaplayer_p.h"
+#include "qqnxaudiooutput_p.h"
+#include "qqnxaudiodevice_p.h"
+#include <qaudiodevice.h>
+#include <qaudiooutput.h>
+
+#include <QtCore/qloggingcategory.h>
+
+Q_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
 
 QT_BEGIN_NAMESPACE
 
-QQnxMediaIntegration::QQnxMediaIntegration()
+QQnxAudioOutput::QQnxAudioOutput(QAudioOutput *parent)
+  : QPlatformAudioOutput(parent)
 {
-
 }
 
-QQnxMediaIntegration::~QQnxMediaIntegration()
+QQnxAudioOutput::~QQnxAudioOutput()
 {
-    delete m_devices;
-    delete m_formatInfo;
 }
 
-QPlatformMediaDevices *QQnxMediaIntegration::devices()
+void QQnxAudioOutput::setVolume(float vol)
 {
-    if (!m_devices)
-        m_devices = new QQnxMediaDevices();
-    return m_devices;
+    if (vol == volume)
+        return;
+    vol = volume;
+    q->volumeChanged(vol);
 }
 
-QPlatformMediaFormatInfo *QQnxMediaIntegration::formatInfo()
+void QQnxAudioOutput::setMuted(bool m)
 {
-    if (!m_formatInfo)
-        m_formatInfo = new QQnxFormatInfo();
-    return m_formatInfo;
+    if (muted == m)
+        return;
+    muted = m;
+    q->mutedChanged(muted);
 }
 
-QPlatformVideoSink *QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
+void QQnxAudioOutput::setAudioDevice(const QAudioDevice &info)
 {
-    return new QQnxVideoSink(sink);
-}
+    if (info == device)
+        return;
+    qCDebug(qLcMediaAudioOutput) << "setAudioDevice" << info.description() << info.isNull();
+    device = info;
 
-QPlatformMediaPlayer *QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
-{
-    return new QQnxMediaPlayer(parent);
+    // ### handle device changes
 }
 
 QT_END_NAMESPACE
