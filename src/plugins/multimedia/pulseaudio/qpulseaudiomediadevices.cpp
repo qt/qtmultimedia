@@ -39,12 +39,12 @@
 
 #include "qpulseaudiomediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcameradevice_p.h"
+#include "private/qcameradevice_p.h"
 
-#include "private/qpulseaudiosource_p.h"
-#include "private/qpulseaudiosink_p.h"
-#include "private/qpulseaudiodevice_p.h"
-#include "private/qaudioengine_pulse_p.h"
+#include "qpulseaudiosource_p.h"
+#include "qpulseaudiosink_p.h"
+#include "qpulseaudiodevice_p.h"
+#include "qaudioengine_pulse_p.h"
 
 QT_BEGIN_NAMESPACE
 

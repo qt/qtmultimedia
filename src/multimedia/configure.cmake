@@ -125,10 +125,8 @@ qt_feature("mmrenderer" PUBLIC PRIVATE
 qt_feature_definition("mmrenderer" "QT_NO_MMRENDERER" NEGATE VALUE "1")
 qt_feature("pulseaudio" PUBLIC PRIVATE
     LABEL "PulseAudio"
-    AUTODETECT false
-    CONDITION WrapPulseAudio_FOUND AND NOT QT_FEATURE_gstreamer
+    CONDITION WrapPulseAudio_FOUND
 )
-qt_feature_definition("pulseaudio" "QT_NO_PULSEAUDIO" NEGATE VALUE "1")
 qt_feature("wmsdk" PRIVATE
     LABEL "wmsdk.h"
     CONDITION WIN32 AND TEST_wmsdk
@@ -141,7 +139,7 @@ qt_configure_add_summary_section(NAME "Qt Multimedia")
 #qt_configure_add_summary_entry(ARGS "alsa")
 qt_configure_add_summary_entry(ARGS "gstreamer_1_0")
 qt_configure_add_summary_entry(ARGS "linux_v4l")
-#qt_configure_add_summary_entry(ARGS "pulseaudio")
+qt_configure_add_summary_entry(ARGS "pulseaudio")
 qt_configure_add_summary_entry(ARGS "linux_dmabuf")
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")

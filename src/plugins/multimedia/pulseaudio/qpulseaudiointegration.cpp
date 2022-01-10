@@ -39,8 +39,27 @@
 
 #include "qpulseaudiointegration_p.h"
 #include "qpulseaudiomediadevices_p.h"
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
+
+class QPulseAudioMediaPlugin : public QPlatformMediaPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "pulseaudio.json")
+
+public:
+    QPulseAudioMediaPlugin()
+      : QPlatformMediaPlugin()
+    {}
+
+    QPlatformMediaIntegration* create(const QString &name) override
+    {
+        if (name == QLatin1String("pulseaudio"))
+            return new QPulseAudioIntegration;
+        return nullptr;
+    }
+};
 
 QPulseAudioIntegration::QPulseAudioIntegration()
 {
@@ -66,3 +85,5 @@ QPlatformMediaFormatInfo *QPulseAudioIntegration::formatInfo()
 }
 
 QT_END_NAMESPACE
+
+#include "qpulseaudiointegration.moc"

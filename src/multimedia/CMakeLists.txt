@@ -174,19 +174,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         wmcodecdspuuid
 )
 
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
-    SOURCES
-        platform/pulseaudio/qpulseaudiodevice.cpp platform/pulseaudio/qpulseaudiodevice_p.h
-        platform/pulseaudio/qaudioengine_pulse.cpp platform/pulseaudio/qaudioengine_pulse_p.h
-        platform/pulseaudio/qpulseaudiosource.cpp platform/pulseaudio/qpulseaudiosource_p.h
-        platform/pulseaudio/qpulseaudiosink.cpp platform/pulseaudio/qpulseaudiosink_p.h
-        platform/pulseaudio/qpulseaudiomediadevices.cpp platform/pulseaudio/qpulseaudiomediadevices_p.h
-        platform/pulseaudio/qpulseaudiointegration.cpp platform/pulseaudio/qpulseaudiointegration_p.h
-        platform/pulseaudio/qpulsehelpers.cpp platform/pulseaudio/qpulsehelpers_p.h
-    LIBRARIES
-        WrapPulseAudio::WrapPulseAudio
-)
-
 qt_internal_extend_target(Multimedia CONDITION WASM
     SOURCES
         platform/wasm/qwasmmediaintegration.cpp platform/wasm/qwasmmediaintegration_p.h
