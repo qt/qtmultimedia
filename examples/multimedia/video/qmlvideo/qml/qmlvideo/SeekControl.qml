@@ -123,7 +123,7 @@ Item {
                 seekControl.seekPosition = progressHandle.x * seekControl.duration / background.width
                 seekControl.seeking = false
             }
-            onReleased: {
+            onReleased: (mouse) =>  {
                 seekControl.seekPosition = progressHandle.x * seekControl.duration / background.width
                 seekControl.seeking = false
                 mouse.accepted = true
