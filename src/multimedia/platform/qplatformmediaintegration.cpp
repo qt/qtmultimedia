@@ -48,10 +48,7 @@
 #include "QtCore/private/qfactoryloader_p.h"
 #include "qplatformmediaplugin_p.h"
 
-#if QT_CONFIG(gstreamer)
-#include <private/qgstreamerintegration_p.h>
-using PlatformIntegration = QGstreamerIntegration;
-#elif QT_CONFIG(pulseaudio)
+#if QT_CONFIG(pulseaudio)
 #include <private/qpulseaudiointegration_p.h>
 using PlatformIntegration = QPulseAudioIntegration;
 #elif QT_CONFIG(alsa)
@@ -63,9 +60,6 @@ using PlatformIntegration = QDarwinIntegration;
 #elif QT_CONFIG(wmf)
 #include <private/qwindowsintegration_p.h>
 using PlatformIntegration = QWindowsMediaIntegration;
-#elif defined(Q_OS_ANDROID)
-#include <private/qandroidintegration_p.h>
-using PlatformIntegration = QAndroidIntegration;
 #elif defined(Q_OS_WASM)
 #include <private/qwasmmediaintegration_p.h>
 using PlatformIntegration = QWasmMediaIntegration;

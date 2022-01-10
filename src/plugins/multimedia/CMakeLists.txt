@@ -1,0 +1,6 @@
+if (QT_FEATURE_gstreamer)
+    add_subdirectory(gstreamer)
+endif ()
+if (ANDROID)
+    add_subdirectory(android)
+endif ()

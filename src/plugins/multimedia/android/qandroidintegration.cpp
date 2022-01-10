@@ -39,27 +39,47 @@
 
 #include "qandroidintegration_p.h"
 #include "qandroidmediadevices_p.h"
-#include "private/qandroidglobal_p.h"
-#include "private/qandroidmediacapturesession_p.h"
-#include "private/androidmediaplayer_p.h"
-#include "private/qandroidcamerasession_p.h"
-#include "private/androidsurfacetexture_p.h"
-#include "private/androidsurfaceview_p.h"
-#include "private/androidcamera_p.h"
-#include "private/qandroidcamera_p.h"
-#include "private/qandroidimagecapture_p.h"
-#include "private/qandroidmediaencoder_p.h"
-#include "private/androidmediarecorder_p.h"
-#include "private/qandroidformatsinfo_p.h"
-#include "private/qandroidmediaplayer_p.h"
-#include "private/qandroidaudiooutput_p.h"
-#include "private/qandroidaudioinput_p.h"
-#include "private/qandroidvideosink_p.h"
-#include "private/qandroidaudiodecoder_p.h"
+#include "qandroidglobal_p.h"
+#include "qandroidmediacapturesession_p.h"
+#include "androidmediaplayer_p.h"
+#include "qandroidcamerasession_p.h"
+#include "androidsurfacetexture_p.h"
+#include "androidsurfaceview_p.h"
+#include "androidcamera_p.h"
+#include "qandroidcamera_p.h"
+#include "qandroidimagecapture_p.h"
+#include "qandroidmediaencoder_p.h"
+#include "androidmediarecorder_p.h"
+#include "qandroidformatsinfo_p.h"
+#include "qandroidmediaplayer_p.h"
+#include "qandroidaudiooutput_p.h"
+#include "qandroidaudioinput_p.h"
+#include "qandroidvideosink_p.h"
+#include "qandroidaudiodecoder_p.h"
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qtAndroidMediaPlugin, "qt.multimedia.android")
+
+class QAndroidMediaPlugin : public QPlatformMediaPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "android.json")
+
+public:
+    QAndroidMediaPlugin()
+      : QPlatformMediaPlugin()
+    {}
+
+    QPlatformMediaIntegration* create(const QString &name) override
+    {
+        if (name == QLatin1String("android"))
+            return new QAndroidIntegration;
+        return nullptr;
+    }
+};
+
 
 QAndroidIntegration::QAndroidIntegration()
 {
@@ -165,3 +185,5 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 }
 
 QT_END_NAMESPACE
+
+#include "qandroidintegration.moc"

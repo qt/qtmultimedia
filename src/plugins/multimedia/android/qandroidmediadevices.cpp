@@ -39,14 +39,14 @@
 
 #include "qandroidmediadevices_p.h"
 #include "qmediadevices.h"
-#include "qcameradevice_p.h"
+#include "private/qcameradevice_p.h"
 
-#include "private/qandroidaudiosource_p.h"
-#include "private/qandroidaudiosink_p.h"
-#include "private/qandroidaudiodevice_p.h"
-#include "private/qopenslesengine_p.h"
+#include "qandroidaudiosource_p.h"
+#include "qandroidaudiosink_p.h"
+#include "qandroidaudiodevice_p.h"
+#include "qopenslesengine_p.h"
 #include "private/qplatformmediaintegration_p.h"
-#include "private/qandroidcamerasession_p.h"
+#include "qandroidcamerasession_p.h"
 
 QT_BEGIN_NAMESPACE
 

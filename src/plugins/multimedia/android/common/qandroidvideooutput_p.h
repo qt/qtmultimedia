@@ -189,7 +189,7 @@ public:
 
     quint64 textureHandle(int plane) const override;
 
-    QMatrix4x4 externalTextureMatrix() const
+    QMatrix4x4 externalTextureMatrix() const override
     {
         return m_externalMatrix;
     }

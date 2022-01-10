@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qaudiosystem_p.h>
+#include <private/qaudiosystem_p.h>
 #include <SLES/OpenSLES.h>
 #include <qbytearray.h>
 #include <qmap.h>

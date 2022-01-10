@@ -103,31 +103,6 @@ qt_internal_add_simd_part(Multimedia SIMD avx2
 )
 
 
-if(ANDROID)
-    set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
-        jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtMultimediaUtils
-        jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtAudioDeviceManager
-    )
-    set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
-        lib/libQt6MultimediaQuick.so:Qt6Quick
-    )
-    set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_FILES
-        lib/libQt6MultimediaQuick.so
-    )
-    set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_PERMISSIONS
-        android.permission.CAMERA android.permission.RECORD_AUDIO
-        android.permission.BLUETOOTH
-        android.permission.MODIFY_AUDIO_SETTINGS
-    )
-endif()
-
-#### Keys ignored in scope 1:.:.:multimedia.pro:<TRUE>:
-# ANDROID_FEATURES = "android.hardware.camera" "android.hardware.camera.autofocus" "android.hardware.microphone"
-# MODULE_WINRT_CAPABILITIES_DEVICE = "microphone" "webcam"
-
-## Scopes:
-#####################################################################
-
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
     SOURCES
         platform/windows/audio/qwindowsaudiodevice.cpp platform/windows/audio/qwindowsaudiodevice_p.h
@@ -210,47 +185,6 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
         platform/pulseaudio/qpulsehelpers.cpp platform/pulseaudio/qpulsehelpers_p.h
     LIBRARIES
         WrapPulseAudio::WrapPulseAudio
-)
-
-qt_internal_extend_target(Multimedia CONDITION ANDROID
-    SOURCES
-        platform/android/audio/qandroidaudiosource.cpp platform/android/audio/qandroidaudiosource_p.h
-        platform/android/audio/qandroidaudiosink.cpp platform/android/audio/qandroidaudiosink_p.h
-        platform/android/audio/qandroidaudiodevice.cpp platform/android/audio/qandroidaudiodevice_p.h
-        platform/android/audio/qopenslesengine.cpp platform/android/audio/qopenslesengine_p.h
-        platform/android/common/qandroidaudiooutput_p.h
-        platform/android/common/qandroidaudioinput.cpp platform/android/common/qandroidaudioinput_p.h
-        platform/android/audio/qandroidaudiodecoder.cpp platform/android/audio/qandroidaudiodecoder_p.h
-        platform/android/common/qandroidglobal_p.h
-        platform/android/common/qandroidmultimediautils.cpp platform/android/common/qandroidmultimediautils_p.h
-        platform/android/common/qandroidvideosink.cpp platform/android/common/qandroidvideosink_p.h
-        platform/android/common/qandroidvideooutput.cpp platform/android/common/qandroidvideooutput_p.h
-        platform/android/mediacapture/qandroidcamera.cpp platform/android/mediacapture/qandroidcamera_p.h
-        platform/android/mediacapture/qandroidimagecapture.cpp platform/android/mediacapture/qandroidimagecapture_p.h
-        platform/android/mediacapture/qandroidcamerasession.cpp platform/android/mediacapture/qandroidcamerasession_p.h
-        platform/android/mediacapture/qandroidmediacapturesession.cpp platform/android/mediacapture/qandroidmediacapturesession_p.h
-        platform/android/mediacapture/qandroidcapturesession.cpp platform/android/mediacapture/qandroidcapturesession_p.h
-        platform/android/mediacapture/qandroidmediaencoder.cpp platform/android/mediacapture/qandroidmediaencoder_p.h
-        platform/android/mediaplayer/qandroidmediaplayer.cpp platform/android/mediaplayer/qandroidmediaplayer_p.h
-        platform/android/mediaplayer/qandroidmetadata.cpp platform/android/mediaplayer/qandroidmetadata_p.h
-        platform/android/qandroidmediadevices.cpp platform/android/qandroidmediadevices_p.h
-        platform/android/qandroidformatsinfo.cpp  platform/android/qandroidformatsinfo_p.h
-        platform/android/qandroidintegration.cpp platform/android/qandroidintegration_p.h
-        platform/android/wrappers/jni/androidcamera.cpp platform/android/wrappers/jni/androidcamera_p.h
-        platform/android/wrappers/jni/androidmediametadataretriever.cpp platform/android/wrappers/jni/androidmediametadataretriever_p.h
-        platform/android/wrappers/jni/androidmediaplayer.cpp platform/android/wrappers/jni/androidmediaplayer_p.h
-        platform/android/wrappers/jni/androidmediarecorder.cpp platform/android/wrappers/jni/androidmediarecorder_p.h
-        platform/android/wrappers/jni/androidmultimediautils.cpp platform/android/wrappers/jni/androidmultimediautils_p.h
-        platform/android/wrappers/jni/androidsurfacetexture.cpp platform/android/wrappers/jni/androidsurfacetexture_p.h
-        platform/android/wrappers/jni/androidsurfaceview.cpp platform/android/wrappers/jni/androidsurfaceview_p.h
-    INCLUDE_DIRECTORIES
-        platform/android/common
-        platform/android/mediacapture
-        platform/android/mediaplayer
-        platform/android/wrappers/jni
-    LIBRARIES
-        OpenSLES
-        mediandk
 )
 
 qt_internal_extend_target(Multimedia CONDITION WASM

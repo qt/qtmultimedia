@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <qaudiosystem_p.h>
+#include <private/qaudiosystem_p.h>
 #include <QElapsedTimer>
 #include <SLES/OpenSLES.h>
 
