@@ -5,6 +5,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     PLUGIN_TYPE multimedia
     SOURCES
         qffmpeg_p.h
+        qffmpegdecoder.cpp qffmpegdecoder_p.h
         qffmpegmediametadata.cpp qffmpegmediametadata_p.h
         qffmpegmediaplayer.cpp qffmpegmediaplayer_p.h
         qffmpegvideosink.cpp qffmpegvideosink_p.h

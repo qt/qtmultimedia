@@ -56,8 +56,10 @@
 #include "qffmpeg_p.h"
 
 QT_BEGIN_NAMESPACE
+
+namespace QFFmpeg {
 class QFFmpegDecoder;
-class QFFmpegDecoder;
+}
 class QPlatformAudioOutput;
 
 class QFFmpegMediaPlayer : public QPlatformMediaPlayer
@@ -101,9 +103,9 @@ public:
     void setActiveTrack(TrackType, int streamNumber) override;
 
 private:
-    friend class QFFmpegDecoder;
+    friend class QFFmpeg::QFFmpegDecoder;
 
-    QFFmpegDecoder *decoder;
+    QFFmpeg::QFFmpegDecoder *decoder;
     void closeContext();
     void checkStreams();
 
