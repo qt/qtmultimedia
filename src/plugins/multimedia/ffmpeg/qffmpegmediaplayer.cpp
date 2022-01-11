@@ -194,11 +194,44 @@ public:
     QMutex mutex;
     QWaitCondition condition;
 
-    void play() {
+    void init()
+    {
+        if (demuxer)
+            return;
+        openCodec(QPlatformMediaPlayer::VideoStream, 0);
+        if (audioOutput) {
+            openCodec(QPlatformMediaPlayer::AudioStream, 0);
+            changeAudioSink(audioOutput);
+        }
+
+        if (player->m_streamMap[QPlatformMediaPlayer::SubtitleStream].count())
+            openCodec(QPlatformMediaPlayer::SubtitleStream, 0);
         startDemuxer();
     }
-    void pause() {
 
+    void play() {
+        init();
+        setPaused(false);
+    }
+    void pause() {
+        setPaused(true);
+    }
+    void setPaused(bool b) {
+        QMutexLocker locker(&rendererMutex);
+        if (paused == b)
+            return;
+        paused = b;
+        if (!b)
+            pts_base = -1;
+        locker.unlock();
+        if (!b) {
+            rendererCondition.wakeAll();
+        }
+    }
+    void blockOnPaused() {
+        QMutexLocker locker(&rendererMutex);
+        while (paused)
+            rendererCondition.wait(&rendererMutex);
     }
 
     AVStream *stream(QPlatformMediaPlayer::TrackType type) {
@@ -206,13 +239,17 @@ public:
         return index < 0 ? nullptr : context->streams[index];
     }
 
-    void changeAudioSink(QPlatformAudioOutput *audioOutput);
+    void changeAudioSink(QPlatformAudioOutput *output);
 
     void startDemuxer();
     void openCodec(QPlatformMediaPlayer::TrackType type, int index);
     void closeCodec(QPlatformMediaPlayer::TrackType type);
 
     QFFmpegMediaPlayer *player = nullptr;
+
+    bool paused = true;
+    QMutex rendererMutex;
+    QWaitCondition rendererCondition;
 
     DemuxerThread *demuxer = nullptr;
     VideoDecoderThread *videoDecoder = nullptr;
@@ -226,6 +263,7 @@ public:
     QVideoSink *videoSink = nullptr;
 
     QMutex audioMutex;
+    QPlatformAudioOutput *audioOutput = nullptr;
     QAudioSink *audioSink = nullptr;
     QIODevice *audioDevice = nullptr;
     SwrContext *resampler = nullptr;
@@ -463,6 +501,8 @@ public:
     {
         qCDebug(qLcVideoRenderer) << "starting video renderer";
         for (;;) {
+            data->blockOnPaused();
+
             auto *stream = data->context->streams[data->m_currentStream[QPlatformMediaPlayer::VideoStream]];
             auto base = stream->time_base;
 
@@ -506,7 +546,7 @@ public:
             }
             AVFrame *nextFrame = data->videoFrameQueue.peek();
             if (data->pts_base < 0) {
-//                qDebug() << "setting new time base" << startTime;
+                qDebug() << "videorenderer: setting new time base" << startTime;
                 data->pts_base = startTime;
                 data->baseTimer.start();
             }
@@ -538,6 +578,9 @@ public:
     {
         qDebug() << "Starting audio renderer";
         for (;;) {
+            // ### suspend the audiosink on pause
+            data->blockOnPaused();
+
             auto *stream = data->context->streams[data->m_currentStream[QPlatformMediaPlayer::AudioStream]];
             auto base = stream->time_base;
 
@@ -574,11 +617,11 @@ public:
 
             AVFrame *nextFrame = data->audioFrameQueue.peek();
             if (data->pts_base < 0) {
-                qDebug() << "setting new time base" << startTime;
+                qDebug() << "audiorenderer: setting new time base" << startTime;
                 data->pts_base = startTime;
                 data->baseTimer.start();
             }
-            qint64 nextAudioFrameTime = startTime + duration;
+            qint64 nextAudioFrameTime = startTime + duration/1000;
             if (nextFrame)
                 nextAudioFrameTime = qMin(timeStamp(nextFrame->pts, base), nextAudioFrameTime);
             locker.unlock();
@@ -600,20 +643,24 @@ QFFmpegDecoder::QFFmpegDecoder(QFFmpegMediaPlayer *p)
     , audioFrameQueue(9)
 {}
 
-void QFFmpegDecoder::changeAudioSink(QPlatformAudioOutput *audioOutput)
+void QFFmpegDecoder::changeAudioSink(QPlatformAudioOutput *output)
 {
-    qDebug() << "changeAudioSink" << audioOutput;
+    // ### optimize and avoid reallocating if current and new would be the same
+    audioOutput = output;
     QMutexLocker locker(&audioMutex);
+    qDebug() << "changeAudioSink" << audioOutput;
 
     if (audioSink) {
         audioSink->stop();
         audioDevice = nullptr;
         delete audioSink;
+        audioSink = nullptr;
         if (resampler)
             swr_free(&resampler);
         resampler = nullptr;
     }
-    audioSink = nullptr;
+    if (!output)
+        return;
 
     AVStream *audioStream = stream(QPlatformMediaPlayer::AudioStream);
     if (!audioStream) {
@@ -649,8 +696,10 @@ void QFFmpegDecoder::changeAudioSink(QPlatformAudioOutput *audioOutput)
 }
 void QFFmpegDecoder::startDemuxer()
 {
-    demuxer = new DemuxerThread(this);
-    demuxer->start();
+    if (!demuxer) {
+        demuxer = new DemuxerThread(this);
+        demuxer->start();
+    }
 }
 
 void QFFmpegDecoder::openCodec(QPlatformMediaPlayer::TrackType type, int index)
@@ -806,14 +855,6 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
 void QFFmpegMediaPlayer::play()
 {
-    decoder->openCodec(VideoStream, 0);
-    if (m_audioOutput) {
-        decoder->openCodec(AudioStream, 0);
-        decoder->changeAudioSink(m_audioOutput);
-    }
-
-    if (m_streamMap[SubtitleStream].count())
-        decoder->openCodec(SubtitleStream, 0);
     decoder->play();
     stateChanged(QMediaPlayer::PlayingState);
 }
@@ -832,13 +873,7 @@ void QFFmpegMediaPlayer::stop()
 
 void QFFmpegMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 {
-    if (m_audioOutput == output)
-        return;
-
-    qDebug() << "setting audio output to" << output << output->device.description();
-    m_audioOutput = output;
-
-    decoder->changeAudioSink(m_audioOutput);
+    decoder->changeAudioSink(output);
 }
 
 void QFFmpegMediaPlayer::setVideoSink(QVideoSink *sink)

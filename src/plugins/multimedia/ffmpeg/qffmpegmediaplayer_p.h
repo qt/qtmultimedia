@@ -118,7 +118,6 @@ private:
     QIODevice *m_device = nullptr;
     qint64 m_duration = 0;
     QMediaMetaData m_metaData;
-    QPlatformAudioOutput *m_audioOutput = nullptr;
 };
 
 QT_END_NAMESPACE
