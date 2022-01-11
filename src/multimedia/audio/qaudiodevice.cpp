@@ -73,10 +73,9 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
     minimumSampleRate(), maximumSampleRate() and supportedSampleFormats(). The
     combinations supported are dependent on the audio device capabilities. If
     you need a specific format, you can check if the device supports it with
-    isFormatSupported(), or fetch a supported format that is as close as
-    possible to the format with nearestFormat(). For instance:
+    isFormatSupported(). For instance:
 
-    \snippet multimedia-snippets/audio.cpp Setting audio format
+    \snippet multimedia-snippets/audio.cpp Audio output setup
 
     The set of available devices can be retrieved from the QMediaDevices class.
 
@@ -88,7 +87,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
     sound, i.e., play an audio stream in a supported format. For each device we
     find, we simply print the deviceName().
 
-    \sa QAudioSink, QAudioSource
+    \sa QAudioSink, QAudioSource QAudioFormat
 */
 
 /*!
