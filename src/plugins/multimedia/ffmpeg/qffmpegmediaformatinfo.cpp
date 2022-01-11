@@ -61,7 +61,7 @@ static struct {
     { AV_CODEC_ID_MJPEG, QMediaFormat::VideoCodec::MotionJPEG }
 };
 
-static QMediaFormat::VideoCodec videoCodecForAVCodecId(AVCodecID id)
+QMediaFormat::VideoCodec QFFmpegMediaFormatInfo::videoCodecForAVCodecId(AVCodecID id)
 {
     for (const auto &c : videoCodecMap) {
         if (c.id == id)
@@ -96,7 +96,7 @@ static struct {
     { AV_CODEC_ID_ALAC, QMediaFormat::AudioCodec::ALAC }
 };
 
-static QMediaFormat::AudioCodec audioCodecForAVCodecId(AVCodecID id)
+QMediaFormat::AudioCodec QFFmpegMediaFormatInfo::audioCodecForAVCodecId(AVCodecID id)
 {
     for (const auto &c : audioCodecMap) {
         if (c.id == id)

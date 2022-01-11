@@ -55,6 +55,10 @@
 #include <qhash.h>
 #include <qlist.h>
 
+extern "C" {
+#include <libavcodec/avcodec.h>
+}
+
 QT_BEGIN_NAMESPACE
 
 class QFFmpegMediaFormatInfo : public QPlatformMediaFormatInfo
@@ -62,6 +66,10 @@ class QFFmpegMediaFormatInfo : public QPlatformMediaFormatInfo
 public:
     QFFmpegMediaFormatInfo();
     ~QFFmpegMediaFormatInfo();
+
+    static QMediaFormat::VideoCodec videoCodecForAVCodecId(AVCodecID id);
+    static QMediaFormat::AudioCodec audioCodecForAVCodecId(AVCodecID id);
+
 };
 
 QT_END_NAMESPACE

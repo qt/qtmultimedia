@@ -37,10 +37,12 @@
 **
 ****************************************************************************/
 
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
 #include "qffmpegmediaintegration_p.h"
 #include "qffmpegmediadevices_p.h"
 #include "qffmpegmediaformatinfo_p.h"
-#include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include "qffmpegmediaplayer_p.h"
+#include "qffmpegvideosink_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -95,9 +97,9 @@ QPlatformMediaCaptureSession *QFFmpegMediaIntegration::createCaptureSession()
     return nullptr; //new QFFmpegMediaCapture();
 }
 
-QPlatformMediaPlayer *QFFmpegMediaIntegration::createPlayer(QMediaPlayer */*player*/)
+QPlatformMediaPlayer *QFFmpegMediaIntegration::createPlayer(QMediaPlayer *player)
 {
-    return nullptr;//new QFFmpegMediaPlayer(player);
+    return new QFFmpegMediaPlayer(player);
 }
 
 QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera */*camera*/)
@@ -115,19 +117,9 @@ QPlatformImageCapture *QFFmpegMediaIntegration::createImageCapture(QImageCapture
     return nullptr;//new QFFmpegImageCapture(imageCapture);
 }
 
-QPlatformVideoSink *QFFmpegMediaIntegration::createVideoSink(QVideoSink */*sink*/)
+QPlatformVideoSink *QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)
 {
-    return nullptr;//new QFFmpegVideoSink(sink);
-}
-
-QPlatformAudioInput *QFFmpegMediaIntegration::createAudioInput(QAudioInput */*q*/)
-{
-    return nullptr;//new QFFmpegAudioInput(q);
-}
-
-QPlatformAudioOutput *QFFmpegMediaIntegration::createAudioOutput(QAudioOutput */*q*/)
-{
-    return nullptr;//new QFFmpegAudioOutput(q);
+    return new QFFmpegVideoSink(sink);
 }
 
 QT_END_NAMESPACE

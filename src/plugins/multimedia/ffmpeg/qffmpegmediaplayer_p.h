@@ -37,53 +37,88 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERINTEGRATION_H
-#define QGSTREAMERINTEGRATION_H
-
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#ifndef QFFMPEGMEDIAPLAYER_H
+#define QFFMPEGMEDIAPLAYER_H
+
+#include <private/qplatformmediaplayer_p.h>
+#include <qmediametadata.h>
+
+extern "C" {
+typedef struct AVFormatContext AVFormatContext;
+}
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegMediaDevices;
-class QFFmpegMediaFormatInfo;
-
-class QFFmpegMediaIntegration : public QPlatformMediaIntegration
+class QFFmpegMediaPlayer : public QPlatformMediaPlayer
 {
 public:
-    QFFmpegMediaIntegration();
-    ~QFFmpegMediaIntegration();
+    QFFmpegMediaPlayer(QMediaPlayer *player);
+    ~QFFmpegMediaPlayer();
 
-    static QFFmpegMediaIntegration *instance() { return static_cast<QFFmpegMediaIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    qint64 duration() const override;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *) override;
+    qint64 position() const override;
+    void setPosition(qint64 position) override;
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+    float bufferProgress() const override;
 
-//    QPlatformAudioInput *createAudioInput(QAudioInput *) override;
-//    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
+    QMediaTimeRange availablePlaybackRanges() const override;
 
-    QFFmpegMediaDevices *m_devices = nullptr;
-    QFFmpegMediaFormatInfo *m_formatsInfo = nullptr;
+    qreal playbackRate() const override;
+    void setPlaybackRate(qreal rate) override;
+
+    QUrl media() const override;
+    const QIODevice *mediaStream() const override;
+    void setMedia(const QUrl &media, QIODevice *stream) override;
+
+    void play() override;
+    void pause() override;
+    void stop() override;
+
+//    bool streamPlaybackSupported() const { return false; }
+
+//    void setAudioOutput(QPlatformAudioOutput *) {}
+
+//    QMediaMetaData metaData() const { return {}; }
+
+    void setVideoSink(QVideoSink *sink) override;
+
+    int trackCount(TrackType) override;
+    QMediaMetaData trackMetaData(TrackType type, int streamNumber) override;
+    int activeTrack(TrackType) override;
+    void setActiveTrack(TrackType, int streamNumber) override;
+
+private:
+    void closeContext();
+    void checkStreams();
+
+    struct StreamInfo {
+        int avStreamIndex = -1;
+        QMediaMetaData metaData;
+    };
+
+    QList<StreamInfo> m_streamMap[QPlatformMediaPlayer::NTrackTypes];
+
+    AVFormatContext *context = nullptr;
+    QUrl m_url;
+    QIODevice *m_device = nullptr;
+    QVideoSink *m_sink = nullptr;
+    qint64 m_duration = 0;
 };
 
 QT_END_NAMESPACE
 
-#endif
+
+#endif  // QMEDIAPLAYERCONTROL_H
+
