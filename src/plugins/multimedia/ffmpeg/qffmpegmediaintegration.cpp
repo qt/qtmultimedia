@@ -39,10 +39,15 @@
 
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
 #include "qffmpegmediaintegration_p.h"
-#include "qffmpegmediadevices_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpegvideosink_p.h"
+
+#if QT_CONFIG(pulseaudio)
+#include "qpulseaudiomediadevices_p.h"
+#else
+#include "qffmpegmediadevices_p.h"
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -67,7 +72,11 @@ public:
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
     qDebug() << "QFFMpegMediaIntegration constructor";
+#if QT_CONFIG(pulseaudio)
+    m_devices = new QPulseAudioMediaDevices(this);
+#else
     m_devices = new QFFmpegMediaDevices(this);
+#endif
     m_formatsInfo = new QFFmpegMediaFormatInfo();
 }
 

@@ -45,6 +45,12 @@
 
 #include <qdebug.h>
 
+#if QT_CONFIG(pulseaudio)
+#include "qpulseaudiosource_p.h"
+#include "qpulseaudiosink_p.h"
+#include "qpulseaudiodevice_p.h"
+#include "qaudioengine_pulse_p.h"
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -52,11 +58,18 @@ QFFmpegMediaDevices::QFFmpegMediaDevices(QPlatformMediaIntegration *integration)
     : QPlatformMediaDevices(integration)
 {
     qDebug() << "QFFMpegMediaDevices constructor";
+#if QT_CONFIG(pulseaudio)
+    pulseEngine = new QPulseAudioEngine;
+#else
     avdevice_register_all();
+#endif
 }
 
 QList<QAudioDevice> QFFmpegMediaDevices::audioInputs() const
 {
+#if QT_CONFIG(pulseaudio)
+    return pulseEngine->availableDevices(QAudioDevice::Input);
+#else
     QList<QAudioDevice> devices;
 
     qDebug() << "listing audio inputs:";
@@ -78,10 +91,14 @@ QList<QAudioDevice> QFFmpegMediaDevices::audioInputs() const
     }
 
     return devices;
+#endif
 }
 
 QList<QAudioDevice> QFFmpegMediaDevices::audioOutputs() const
 {
+#if QT_CONFIG(pulseaudio)
+    return pulseEngine->availableDevices(QAudioDevice::Output);
+#else
     QList<QAudioDevice> devices;
 
     qDebug() << "listing audio outputs:";
@@ -103,12 +120,13 @@ QList<QAudioDevice> QFFmpegMediaDevices::audioOutputs() const
     }
 
     return devices;
+#endif
 }
 
 QList<QCameraDevice> QFFmpegMediaDevices::videoInputs() const
 {
     QList<QCameraDevice> devices;
-
+#if 0
     qDebug() << "listing video inputs:";
     AVInputFormat *device = nullptr;
     while ((device = av_input_video_device_next(device))) {
@@ -126,18 +144,18 @@ QList<QCameraDevice> QFFmpegMediaDevices::videoInputs() const
             }
         }
     }
-
+#endif
     return devices;
 }
 
-QPlatformAudioSource *QFFmpegMediaDevices::createAudioSource(const QAudioDevice &/*deviceInfo*/)
+QPlatformAudioSource *QFFmpegMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
-    return nullptr;//new QFFmpegAudioSource(deviceInfo);
+    return new QPulseAudioSource(deviceInfo.id());
 }
 
-QPlatformAudioSink *QFFmpegMediaDevices::createAudioSink(const QAudioDevice &/*deviceInfo*/)
+QPlatformAudioSink *QFFmpegMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
-    return nullptr;//new QFFmpegAudioSink(deviceInfo);
+    return new QPulseAudioSink(deviceInfo.id());
 }
 
 QT_END_NAMESPACE

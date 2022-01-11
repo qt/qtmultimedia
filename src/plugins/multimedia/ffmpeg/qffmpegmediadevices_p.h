@@ -56,6 +56,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QPulseAudioEngine;
+
 class QFFmpegMediaDevices : public QPlatformMediaDevices
 {
 public:
@@ -66,6 +68,8 @@ public:
     QList<QCameraDevice> videoInputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
+
+    QPulseAudioEngine *pulseEngine = nullptr;
 };
 
 QT_END_NAMESPACE

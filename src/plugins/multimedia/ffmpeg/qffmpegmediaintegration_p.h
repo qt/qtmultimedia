@@ -80,7 +80,7 @@ public:
 //    QPlatformAudioInput *createAudioInput(QAudioInput *) override;
 //    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
 
-    QFFmpegMediaDevices *m_devices = nullptr;
+    QPlatformMediaDevices *m_devices = nullptr;
     QFFmpegMediaFormatInfo *m_formatsInfo = nullptr;
 };
 
