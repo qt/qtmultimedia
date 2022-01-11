@@ -34,7 +34,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_
         EGL::EGL
 )
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND NOT QT_FEATURE_pulseaudio AND NOT APPLE
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND NOT QT_FEATURE_pulseaudio AND NOT APPLE AND NOT WIN32
     SOURCES
         qffmpegmediadevices.cpp qffmpegmediadevices_p.h
 )
@@ -72,4 +72,25 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         ${FWCoreVideo}
         ${FWVideoToolbox}
         AVFoundation::AVFoundation
+)
+
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
+    SOURCES
+        ../windows/audio/qwindowsaudiodevice.cpp ../windows/audio/qwindowsaudiodevice_p.h
+        ../windows/audio/qwindowsaudiosink.cpp ../windows/audio/qwindowsaudiosink_p.h
+        ../windows/audio/qwindowsaudiosource.cpp ../windows/audio/qwindowsaudiosource_p.h
+        ../windows/audio/qwindowsaudioutils.cpp ../windows/audio/qwindowsaudioutils_p.h
+        ../windows/common/qwindowsmultimediautils.cpp ../windows/common/qwindowsmultimediautils_p.h
+        ../windows/qwindowsmediadevices.cpp ../windows/qwindowsmediadevices_p.h
+        ../windows/common/qwindowsmfdefs.cpp ../windows/common/qwindowsmfdefs_p.h
+        ../windows/common/qwindowsresampler.cpp ../windows/common/qwindowsresampler_p.h
+    INCLUDE_DIRECTORIES
+        ../windows
+        ../windows/audio
+        ../windows/common
+    LIBRARIES
+        WMF::WMF
+        mfreadwrite
+        winmm
+        wmcodecdspuuid
 )

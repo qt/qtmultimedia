@@ -48,6 +48,8 @@
 
 #ifdef Q_OS_DARWIN
 #include "qdarwinmediadevices_p.h"
+#elif defined(Q_OS_WINDOWS)
+#include "qwindowsmediadevices_p.h"
 #elif QT_CONFIG(pulseaudio)
 #include "qpulseaudiomediadevices_p.h"
 #else
@@ -82,10 +84,12 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
         VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9);
 #endif
     m_devices = new QDarwinMediaDevices(this);
+#elif defined(Q_OS_WINDOWS)
+    m_devices = new QWindowsMediaDevices(this);
 #elif QT_CONFIG(pulseaudio)
     m_devices = new QPulseAudioMediaDevices(this);
 #else
-    m_devices = new QFFmpegMediaDevices(this);
+   m_devices = new QFFmpegMediaDevices(this);
 #endif
 
     m_formatsInfo = new QFFmpegMediaFormatInfo();
