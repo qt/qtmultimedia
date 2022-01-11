@@ -44,6 +44,8 @@
 #include <qdatetime.h>
 #include <qmediaformat.h>
 #include <qsize.h>
+#include <qurl.h>
+#include <qimage.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -64,7 +66,7 @@ QT_BEGIN_NAMESPACE
     \row \li Comment \li A user comment about the media. \li QString
     \row \li Description \li A description of the media.  \li QString
     \row \li Genre \li The genre of the media.  \li QStringList
-    \row \li Date \li The date of the media. \li QDate.
+    \row \li Date \li The date of the media. \li QDateTime.
     \row \li Language \li The language of media. \li QLocale::Language
 
     \row \li Publisher \li The publisher of the media.  \li QString
@@ -80,7 +82,7 @@ QT_BEGIN_NAMESPACE
     \header \li {3,1}
     Audio attributes
     \row \li AudioBitRate \li The bit rate of the media's audio stream in bits per second.  \li int
-    \row \li AudioCodec \li The codec of the media's audio stream.  \li QMediaForma::AudioCodec
+    \row \li AudioCodec \li The codec of the media's audio stream.  \li QMediaFormat::AudioCodec
 
     \header \li {3,1}
     Video attributes
@@ -107,6 +109,65 @@ QT_BEGIN_NAMESPACE
 
     \endtable
 */
+
+
+/*!
+    Returns the meta type used to store data for Key \a key.
+*/
+QMetaType QMediaMetaData::keyType(Key key)
+{
+    switch (key) {
+    case Title:
+    case Comment:
+    case Description:
+    case Publisher:
+    case Copyright:
+    case MediaType:
+    case AlbumTitle:
+    case AlbumArtist:
+        return QMetaType::fromType<QString>();
+    case Genre:
+    case Author:
+    case ContributingArtist:
+    case Composer:
+    case LeadPerformer:
+        return QMetaType::fromType<QStringList>();
+
+    case Date:
+        return QMetaType::fromType<QDateTime>();
+
+    case Language:
+        return QMetaType::fromType<QLocale::Language>();
+    case Url:
+        return QMetaType::fromType<QUrl>();
+
+    case Duration:
+        return QMetaType::fromType<qint64>();
+    case FileFormat:
+        return QMetaType::fromType<QMediaFormat::FileFormat>();
+
+    case AudioBitRate:
+    case VideoBitRate:
+    case TrackNumber:
+    case Orientation:
+        return QMetaType::fromType<int>();
+    case AudioCodec:
+        return QMetaType::fromType<QMediaFormat::AudioCodec>();
+    case VideoCodec:
+        return QMetaType::fromType<QMediaFormat::VideoCodec>();
+    case VideoFrameRate:
+        return QMetaType::fromType<qreal>();
+
+
+    case ThumbnailImage:
+    case CoverArtImage:
+        return QMetaType::fromType<QImage>();
+
+    case Resolution:
+        return QMetaType::fromType<QSize>();
+    }
+
+}
 
 /*!
     \qmlbasictype mediaMetaData
@@ -415,6 +476,7 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
     }
     return QString();
 }
+
 // operator documentation
 /*!
 \fn QVariant &QMediaMetaData ::operator[](QMediaMetaData::Key k)

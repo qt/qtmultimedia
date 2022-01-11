@@ -41,6 +41,7 @@
 #include "qffmpegmediaformatinfo_p.h"
 #include "private/qiso639_2_p.h"
 #include "qffmpeg_p.h"
+#include "qffmpegmediametadata_p.h"
 
 #include <qlocale.h>
 
@@ -103,7 +104,10 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 {
     m_url = media;
     m_device = stream;
-    // ### use stream when provided
+    m_streamMap[0] = m_streamMap[1] = m_streamMap[2] = {};
+    m_metaData = {};
+
+    // ### use io device when provided
 
     QByteArray url = media.toEncoded();
     context = nullptr;
@@ -119,6 +123,9 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
         return;
     }
     av_dump_format(context, 0, url.constData(), 0);
+
+    m_metaData = QFFmpegMetaData::fromAVMetaData(context->metadata);
+    metaDataChanged();
 
     // check streams and seekable
     if (context->ctx_flags & AVFMTCTX_NOHEADER) {
@@ -188,9 +195,8 @@ void QFFmpegMediaPlayer::checkStreams()
     for (unsigned int i = 0; i < context->nb_streams; ++i) {
         auto *stream = context->streams[i];
 
-        QMediaMetaData metaData;
+        QMediaMetaData metaData = QFFmpegMetaData::fromAVMetaData(stream->metadata);
         TrackType type = VideoStream;
-        auto *avMetaData = stream->metadata;
         auto *codecPar = stream->codecpar;
 
         switch (codecPar->codec_type) {
@@ -215,13 +221,6 @@ void QFFmpegMediaPlayer::checkStreams()
         case AVMEDIA_TYPE_SUBTITLE:
             type = SubtitleStream;
             break;
-        }
-
-        // get title and language
-        auto *lang = av_dict_get(avMetaData, "language", nullptr, 0);
-        if (lang) {
-            qDebug() << "got lang" << lang->value << QtMultimediaPrivate::fromIso639(lang->value);
-            metaData.insert(QMediaMetaData::Language, QVariant::fromValue(QtMultimediaPrivate::fromIso639(lang->value)));
         }
 
         m_streamMap[type].append({ (int)i, metaData });

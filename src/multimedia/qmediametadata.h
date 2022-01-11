@@ -115,6 +115,8 @@ protected:
     friend bool operator!=(const QMediaMetaData &a, const QMediaMetaData &b)
     { return a.data != b.data; }
 
+    static QMetaType keyType(Key key);
+
     QHash<Key, QVariant> data;
 };
 

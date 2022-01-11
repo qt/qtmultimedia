@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,6 +37,9 @@
 **
 ****************************************************************************/
 
+#ifndef QFFMPEGMEDIAMETADATA_H
+#define QFFMPEGMEDIAMETADATA_H
+
 //
 //  W A R N I N G
 //  -------------
@@ -48,75 +51,18 @@
 // We mean it.
 //
 
-#ifndef QFFMPEGMEDIAPLAYER_H
-#define QFFMPEGMEDIAPLAYER_H
-
-#include <private/qplatformmediaplayer_p.h>
 #include <qmediametadata.h>
-#include "qffmpeg_p.h"
+#include <qffmpeg_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegMediaPlayer : public QPlatformMediaPlayer
+class QFFmpegMetaData : public QMediaMetaData
 {
 public:
-    QFFmpegMediaPlayer(QMediaPlayer *player);
-    ~QFFmpegMediaPlayer();
-
-    qint64 duration() const override;
-
-    qint64 position() const override;
-    void setPosition(qint64 position) override;
-
-    float bufferProgress() const override;
-
-    QMediaTimeRange availablePlaybackRanges() const override;
-
-    qreal playbackRate() const override;
-    void setPlaybackRate(qreal rate) override;
-
-    QUrl media() const override;
-    const QIODevice *mediaStream() const override;
-    void setMedia(const QUrl &media, QIODevice *stream) override;
-
-    void play() override;
-    void pause() override;
-    void stop() override;
-
-//    bool streamPlaybackSupported() const { return false; }
-
-//    void setAudioOutput(QPlatformAudioOutput *) {}
-
-    QMediaMetaData metaData() const override { return m_metaData; }
-
-    void setVideoSink(QVideoSink *sink) override;
-
-    int trackCount(TrackType) override;
-    QMediaMetaData trackMetaData(TrackType type, int streamNumber) override;
-    int activeTrack(TrackType) override;
-    void setActiveTrack(TrackType, int streamNumber) override;
-
-private:
-    void closeContext();
-    void checkStreams();
-
-    struct StreamInfo {
-        int avStreamIndex = -1;
-        QMediaMetaData metaData;
-    };
-
-    QList<StreamInfo> m_streamMap[QPlatformMediaPlayer::NTrackTypes];
-
-    AVFormatContext *context = nullptr;
-    QUrl m_url;
-    QIODevice *m_device = nullptr;
-    QVideoSink *m_sink = nullptr;
-    qint64 m_duration = 0;
-    QMediaMetaData m_metaData;
+    static void addEntry(QMediaMetaData &metaData, AVDictionaryEntry *entry);
+    static QMediaMetaData fromAVMetaData(const AVDictionary *tags);
 };
 
 QT_END_NAMESPACE
 
-
-#endif  // QMEDIAPLAYERCONTROL_H
-
+#endif // QFFMPEGMEDIAMETADATA_H
