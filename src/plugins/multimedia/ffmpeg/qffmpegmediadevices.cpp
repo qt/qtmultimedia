@@ -165,25 +165,39 @@ QAudioFormat::SampleFormat QFFmpegMediaDevices::sampleFormat(AVSampleFormat form
     default:
         return QAudioFormat::Unknown;
     case AV_SAMPLE_FMT_U8:          ///< unsigned 8 bits
+    case AV_SAMPLE_FMT_U8P:         ///< unsigned 8 bits: planar
             return QAudioFormat::UInt8;
     case AV_SAMPLE_FMT_S16:         ///< signed 16 bits
+    case AV_SAMPLE_FMT_S16P:        ///< signed 16 bits: planar
         return QAudioFormat::Int16;
     case AV_SAMPLE_FMT_S32:         ///< signed 32 bits
+    case AV_SAMPLE_FMT_S32P:        ///< signed 32 bits: planar
         return QAudioFormat::Int32;
     case AV_SAMPLE_FMT_FLT:         ///< float
+    case AV_SAMPLE_FMT_FLTP:        ///< float: planar
         return QAudioFormat::Float;
     case AV_SAMPLE_FMT_DBL:         ///< double
-        return QAudioFormat::Unknown;
-
-    // planar formats, need interleaving for output
-    case AV_SAMPLE_FMT_U8P:         ///< unsigned 8 bits: planar
-    case AV_SAMPLE_FMT_S16P:        ///< signed 16 bits: planar
-    case AV_SAMPLE_FMT_S32P:        ///< signed 32 bits: planar
-    case AV_SAMPLE_FMT_FLTP:        ///< float: planar
     case AV_SAMPLE_FMT_DBLP:        ///< double: planar
     case AV_SAMPLE_FMT_S64:         ///< signed 64 bits
     case AV_SAMPLE_FMT_S64P:        ///< signed 64 bits, planar
-        return QAudioFormat::Unknown;
+        // let's use float
+        return QAudioFormat::Float;
+    }
+}
+
+AVSampleFormat QFFmpegMediaDevices::avSampleFormat(QAudioFormat::SampleFormat format)
+{
+    switch (format) {
+    case QAudioFormat::UInt8:
+        return AV_SAMPLE_FMT_U8;
+    case QAudioFormat::Int16:
+        return AV_SAMPLE_FMT_S16;
+    case QAudioFormat::Int32:
+        return AV_SAMPLE_FMT_S32;
+    case QAudioFormat::Float:
+        return AV_SAMPLE_FMT_FLT;
+    default:
+        return AV_SAMPLE_FMT_NONE;
     }
 }
 

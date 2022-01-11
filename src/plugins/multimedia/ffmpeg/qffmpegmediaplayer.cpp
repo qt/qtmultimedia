@@ -39,12 +39,14 @@
 
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpegmediaformatinfo_p.h"
+#include "qffmpegmediadevices_p.h"
 #include "private/qiso639_2_p.h"
 #include "qffmpeg_p.h"
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegvideobuffer_p.h"
 #include "private/qplatformaudiooutput_p.h"
 #include "qvideosink.h"
+#include "qaudiosink.h"
 
 #include <qlocale.h>
 #include <qthread.h>
@@ -204,6 +206,8 @@ public:
         return index < 0 ? nullptr : context->streams[index];
     }
 
+    void changeAudioSink(QPlatformAudioOutput *audioOutput);
+
     void startDemuxer();
     void openCodec(QPlatformMediaPlayer::TrackType type, int index);
     void closeCodec(QPlatformMediaPlayer::TrackType type);
@@ -220,7 +224,11 @@ public:
     int m_currentStream[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
     AVCodecContext *codecContext[QPlatformMediaPlayer::NTrackTypes] = {};
     QVideoSink *videoSink = nullptr;
-    QAudioOutput *audioOutput = nullptr;
+
+    QMutex audioMutex;
+    QAudioSink *audioSink = nullptr;
+    QIODevice *audioDevice = nullptr;
+    SwrContext *resampler = nullptr;
 
     // queue up max 16M of encoded data, that should always be enough
     // (it's around 3.5 secs of 4K h264, longer for almost all other formats)
@@ -479,27 +487,26 @@ public:
 
                 // add in subtitles
                 Subtitle *sub = data->subtitleQueue.peek();
-                qDebug() << "frame: subtitle" << sub;
+//                qDebug() << "frame: subtitle" << sub;
                 if (sub) {
                     qDebug() << "    " << sub->start << sub->end << sub->text;
-                    qDebug() << "    " << sub->start << sub->end << sub->text;
                     if (sub->start <= startTime && sub->end > startTime) {
-                        qDebug() << "        setting text";
+//                        qDebug() << "        setting text";
                         sink->setSubtitleText(sub->text);
                     }
                     if (sub->end < startTime) {
-                        qDebug() << "        removing subtitle item";
+//                        qDebug() << "        removing subtitle item";
                         delete data->subtitleQueue.dequeue();
                         sink->setSubtitleText({});
                     }
                 }
 
-                qDebug() << "    sending a video frame" << startTime << duration;
+//                qDebug() << "    sending a video frame" << startTime << duration;
                 sink->setVideoFrame(frame);
             }
             AVFrame *nextFrame = data->videoFrameQueue.peek();
             if (data->pts_base < 0) {
-                qDebug() << "setting new time base" << startTime;
+//                qDebug() << "setting new time base" << startTime;
                 data->pts_base = startTime;
                 data->baseTimer.start();
             }
@@ -529,32 +536,57 @@ public:
 
     void run()
     {
+        qDebug() << "Starting audio renderer";
         for (;;) {
-//            auto *stream = data->context->streams[data->m_currentStream[QPlatformMediaPlayer::AudioStream]];
-//            auto base = stream->time_base;
+            auto *stream = data->context->streams[data->m_currentStream[QPlatformMediaPlayer::AudioStream]];
+            auto base = stream->time_base;
 
             data->audioFrameQueue.waitForFrame();
+            QMutexLocker locker(&data->audioMutex);
             AVFrame *avFrame = data->audioFrameQueue.dequeue();
             Q_ASSERT(avFrame);
 
-//            qint64 startTime = timeStamp(avFrame->pts, base);
-//            qint64 duration = (1000*stream->avg_frame_rate.den + (stream->avg_frame_rate.num>>1))
-//                              /stream->avg_frame_rate.num;
-//            // ### push to audio output
+            if (!data->audioSink) {
+                qDebug() << "no sink, skipping frame";
+                av_frame_free(&avFrame);
+                continue;
+            }
 
-//            AVFrame *nextFrame = data->audioFrameQueue.peek();
-//            if (data->pts_base < 0) {
-//                qDebug() << "setting new time base" << startTime;
-//                data->pts_base = startTime;
-//                data->baseTimer.start();
-//            }
-//            if (nextFrame)
-//                data->nextFrameTime = timeStamp(nextFrame->pts, base);
-//            else
-//                data->nextFrameTime = startTime + duration;
-//            int msToWait = data->nextFrameTime - (data->baseTimer.elapsed() + data->pts_base);
-//            if (msToWait > 0)
-//                msleep(msToWait);
+            QAudioFormat format = data->audioSink->format();
+            qint64 startTime = timeStamp(avFrame->pts, base);
+            qint64 duration = format.durationForBytes(avFrame->linesize[0]);
+            qDebug() << "sending" << avFrame->linesize[0] << "bytes to audio sink, startTime/duration=" << startTime << duration;
+            if (!data->resampler) {
+                data->audioDevice->write((char *)avFrame->data[0], avFrame->linesize[0]);
+            } else {
+                 uint8_t *output;
+                 av_samples_alloc(&output, nullptr, 2, avFrame->nb_samples,
+                                  QFFmpegMediaDevices::avSampleFormat(format.sampleFormat()), 0);
+                 const uint8_t **in = (const uint8_t **)avFrame->extended_data;
+                 int out_samples = swr_convert(data->resampler, &output, avFrame->nb_samples,
+                                               in, avFrame->nb_samples);
+                 int size = av_samples_get_buffer_size(nullptr, 2, out_samples,
+                                                       QFFmpegMediaDevices::avSampleFormat(format.sampleFormat()), 0);
+                 data->audioDevice->write((char *)output, size);
+                 av_freep(&output);
+            }
+            av_frame_free(&avFrame);
+
+            AVFrame *nextFrame = data->audioFrameQueue.peek();
+            if (data->pts_base < 0) {
+                qDebug() << "setting new time base" << startTime;
+                data->pts_base = startTime;
+                data->baseTimer.start();
+            }
+            qint64 nextAudioFrameTime = startTime + duration;
+            if (nextFrame)
+                nextAudioFrameTime = qMin(timeStamp(nextFrame->pts, base), nextAudioFrameTime);
+            locker.unlock();
+            // always write 40ms ahead
+            int msToWait = nextAudioFrameTime - 40 - (data->baseTimer.elapsed() + data->pts_base);
+            qDebug() << "next audio frame at" << nextAudioFrameTime << "sleeping" << msToWait << "ms.";
+            if (msToWait > 0)
+                msleep(msToWait);
         }
     }
 
@@ -568,6 +600,53 @@ QFFmpegDecoder::QFFmpegDecoder(QFFmpegMediaPlayer *p)
     , audioFrameQueue(9)
 {}
 
+void QFFmpegDecoder::changeAudioSink(QPlatformAudioOutput *audioOutput)
+{
+    qDebug() << "changeAudioSink" << audioOutput;
+    QMutexLocker locker(&audioMutex);
+
+    if (audioSink) {
+        audioSink->stop();
+        audioDevice = nullptr;
+        delete audioSink;
+        if (resampler)
+            swr_free(&resampler);
+        resampler = nullptr;
+    }
+    audioSink = nullptr;
+
+    AVStream *audioStream = stream(QPlatformMediaPlayer::AudioStream);
+    if (!audioStream) {
+        qDebug() << "   -> XXX no stream!";
+        return;
+    }
+
+    QAudioFormat format;
+    format.setSampleFormat(QFFmpegMediaDevices::sampleFormat(AVSampleFormat(audioStream->codecpar->format)));
+    format.setSampleRate(audioStream->codecpar->sample_rate);
+    format.setChannelCount(2); // #### FIXME
+    // ### add channel layout
+    qDebug() << "creating new audio sink with format" << format;
+    audioSink = new QAudioSink(audioOutput->device, format, this);
+    audioDevice = audioSink->start();
+    qDebug() << "   -> have an audio sink" << audioDevice;
+
+    // init resampling if needed
+    AVSampleFormat requiredFormat = QFFmpegMediaDevices::avSampleFormat(format.sampleFormat());
+    if (requiredFormat == audioStream->codecpar->format &&
+        audioStream->codecpar->channels == 2)
+        return;
+    resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
+                                    AV_CH_LAYOUT_STEREO,  // out_ch_layout
+                                    requiredFormat,    // out_sample_fmt
+                                    audioStream->codecpar->sample_rate,                // out_sample_rate
+                                    audioStream->codecpar->channel_layout, // in_ch_layout
+                                    AVSampleFormat(audioStream->codecpar->format),   // in_sample_fmt
+                                    audioStream->codecpar->sample_rate,                // in_sample_rate
+                                    0,                    // log_offset
+                                    nullptr);
+    swr_init(resampler);
+}
 void QFFmpegDecoder::startDemuxer()
 {
     demuxer = new DemuxerThread(this);
@@ -728,8 +807,11 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 void QFFmpegMediaPlayer::play()
 {
     decoder->openCodec(VideoStream, 0);
-    if (m_audioOutput)
+    if (m_audioOutput) {
         decoder->openCodec(AudioStream, 0);
+        decoder->changeAudioSink(m_audioOutput);
+    }
+
     if (m_streamMap[SubtitleStream].count())
         decoder->openCodec(SubtitleStream, 0);
     decoder->play();
@@ -753,7 +835,10 @@ void QFFmpegMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
     if (m_audioOutput == output)
         return;
 
+    qDebug() << "setting audio output to" << output << output->device.description();
     m_audioOutput = output;
+
+    decoder->changeAudioSink(m_audioOutput);
 }
 
 void QFFmpegMediaPlayer::setVideoSink(QVideoSink *sink)
