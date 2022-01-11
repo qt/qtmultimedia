@@ -54,6 +54,7 @@
 #include "qffmpeg_p.h"
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpeghwaccel_p.h"
+#include "qffmpegclock_p.h"
 
 #include <qshareddata.h>
 #include <qtimer.h>
@@ -180,6 +181,7 @@ class VideoRenderer;
 
 class Decoder : public QObject
 {
+    Q_OBJECT
 public:
     Decoder(QFFmpegMediaPlayer *p, AVFormatContext *context);
     ~Decoder();
@@ -195,7 +197,6 @@ public:
     void stop();
     void setPaused(bool b);
     void triggerStep();
-    void syncClocks();
 
     void setVideoSink(QVideoSink *sink);
     void updateVideo();
@@ -210,7 +211,8 @@ public:
     void seek(qint64 pos);
     void setPlaybackRate(float rate);
 
-    void updateCurrentTime(qint64 time, QPlatformMediaPlayer::TrackType source);
+public Q_SLOTS:
+    void updateCurrentTime(qint64 time);
 
 public:
     QFFmpegMediaPlayer *player = nullptr;
@@ -231,16 +233,13 @@ public:
     QPlatformAudioOutput *audioOutput = nullptr;
     AudioRenderer *audioRenderer = nullptr;
 
-    QElapsedTimer baseTimer;
-    QAtomicInteger<qint64> pts_base = 0;
-    QAtomicInteger<qint64> currentTime = 0;
-    float playbackRate = 1.;
-
+    ClockController clockController;
     bool playing = false;
 };
 
 class Demuxer : public Thread
 {
+    Q_OBJECT
 public:
     Demuxer(Decoder *decoder);
 
@@ -279,6 +278,7 @@ private:
 
 class StreamDecoder : public Thread
 {
+    Q_OBJECT
 protected:
     Decoder *decoder = nullptr;
     Renderer *m_renderer = nullptr;
@@ -360,16 +360,16 @@ private:
     QPlatformMediaPlayer::TrackType type() const;
 };
 
-class Renderer : public Thread
+class Renderer : public Thread, public Clock
 {
+    Q_OBJECT
 protected:
     Decoder *decoder = nullptr;
     QPlatformMediaPlayer::TrackType type;
 
     mutable bool step = false;
-    bool paused = false;
+    bool paused = true;
     StreamDecoder *streamDecoder = nullptr;
-    float playbackRate = 1.;
 
 public:
     Renderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type);
@@ -396,28 +396,24 @@ public:
         step = false;
     }
 
-    void setPlaybackRate(float r)
-    {
-        QMutexLocker locker(&mutex);
-        playbackRate = r;
-        playbackRateChanged();
-    }
-
     void setStream(StreamDecoder *stream);
 
     void kill() override;
 
     virtual void streamChanged() {}
 
+    void setPaused(bool paused) override;
+
 protected:
     bool shouldWait() const override;
-    virtual void playbackRateChanged() {}
 
 public:
 };
 
 class VideoRenderer : public Renderer
 {
+    Q_OBJECT
+
     StreamDecoder *subtitleStreamDecoder = nullptr;
 public:
     VideoRenderer(Decoder *decoder, QVideoSink *sink);
@@ -435,11 +431,19 @@ private:
 
 class AudioRenderer : public Renderer
 {
+    Q_OBJECT
 public:
     AudioRenderer(Decoder *decoder, QAudioOutput *output);
     ~AudioRenderer() = default;
 
     void syncClock();
+
+    // Clock interface
+    qint64 currentTime() const override;
+    void syncTo(qint64 usecs) override;
+    void adjustBy(qint64 usecs) override;
+    void setPlaybackRate(float rate) override;
+    qint64 usecsTo(qint64 displayTime) override;
 
 private slots:
     void updateAudio();
@@ -447,21 +451,21 @@ private slots:
 private:
     void updateOutput(const Codec *codec);
     void freeOutput();
+    qint64 currentTimeNoLock() const;
 
     void init() override;
     void cleanup() override;
     void loop() override;
     void streamChanged() override;
-    void playbackRateChanged() override;
+    Type type() const override { return AudioClock; }
 
     int outputSamples(int inputSamples) {
-        return qRound(inputSamples/playbackRate);
+        return qRound(inputSamples/playbackRate());
     }
 
     bool deviceChanged = false;
     QAudioOutput *output = nullptr;
     bool audioMuted = false;
-    qint64 baseTime = 0;
     qint64 processedUSecs = 0;
     qint64 writtenUSecs = 0;
     qint64 latencyUSecs = 0;

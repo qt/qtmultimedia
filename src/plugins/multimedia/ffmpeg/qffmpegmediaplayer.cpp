@@ -81,7 +81,7 @@ qint64 QFFmpegMediaPlayer::duration() const
 
 qint64 QFFmpegMediaPlayer::position() const
 {
-    return decoder ? decoder->currentTime.loadRelaxed() : 0;
+    return decoder ? decoder->clockController.currentTime() : 0;
 }
 
 void QFFmpegMediaPlayer::setPosition(qint64 position)

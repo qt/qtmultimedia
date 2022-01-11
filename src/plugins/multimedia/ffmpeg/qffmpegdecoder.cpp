@@ -57,6 +57,7 @@
 
 extern "C" {
 #include <libavutil/hwcontext.h>
+#include <libavutil/opt.h>
 }
 
 QT_BEGIN_NAMESPACE
@@ -199,6 +200,7 @@ int Demuxer::seek(qint64 pos)
     last_pts = -1;
     while (last_pts < 0)
         loop();
+    qDebug() << "Demuxer::seek" << pos << last_pts;
     return last_pts;
 }
 
@@ -232,18 +234,19 @@ bool Demuxer::shouldWait() const
 //    qCDebug(qLcDemuxer) << "XXXX Demuxer::shouldWait" << this << data->seek_pos.loadRelaxed();
     // require a minimum of 200ms of data
     qint64 queueSize = 0;
+    bool buffersFull = true;
     for (auto *d : streamDecoders) {
         if (!d)
             continue;
         if (d->queuedDuration() < 200)
-            return false;
+            buffersFull = false;
         queueSize += d->queuedPacketSize();
     }
 //    qCDebug(qLcDemuxer) << "    queue size" << queueSize << MaxQueueSize;
     if (queueSize > MaxQueueSize)
         return true;
 //    qCDebug(qLcDemuxer) << "    waiting!";
-    return true;
+    return buffersFull;
 
 }
 
@@ -270,6 +273,7 @@ void Demuxer::loop()
         av_packet_free(&packet);
         return;
     }
+//    qDebug() << "add packet to stream" << packet->stream_index;
     decoder->addPacket(packet);
 }
 
@@ -353,10 +357,10 @@ Packet StreamDecoder::takePacket()
     auto packet = packetQueue.queue.dequeue();
     packetQueue.size -= packet.avPacket()->size;
     packetQueue.duration -= codec.toMs(packet.avPacket()->duration);
-    //    qCDebug(qLcDecoder) << "<<<< dequeuing packet of type" << type() << "with serial" << packet.serial() << "current serial" << serial
-    //             << "pts" << codec.toMs(packet.avPacket()->pts)
-    //             << "duration" << codec.toMs(packet.avPacket()->duration)
-    //             << "ts" << decoder->baseTimer.elapsed();
+//        qCDebug(qLcDecoder) << "<<<< dequeuing packet of type" << type()
+//                 << "pts" << codec.toMs(packet.avPacket()->pts)
+//                 << "duration" << codec.toMs(packet.avPacket()->duration)
+//                        << "ts" << decoder->clockController.currentTime();
     decoder->demuxer->wake();
     return packet;
 }
@@ -419,9 +423,9 @@ void StreamDecoder::decode()
         else
             pts = codec.toMs(frame->best_effort_timestamp);
 //        qCDebug(qLcDecoder) << "received frame" << type << timeStamp(frame->pts, stream->time_base) << seek;
-        if (pts < decoder->pts_base.loadRelaxed()) {
+        if (pts*1000 < decoder->clockController.currentTime()) {
             // too early, discard
-//            qCDebug(qLcDecoder) << "    discard";
+//            qCDebug(qLcDecoder) << "    discarding frame";
             av_frame_free(&frame);
             return;
         }
@@ -558,6 +562,15 @@ void Renderer::kill()
     Thread::kill();
 }
 
+void Renderer::setPaused(bool paused)
+{
+    Clock::setPaused(paused);
+    if (paused)
+        pause();
+    else
+        unPause();
+}
+
 bool Renderer::shouldWait() const
 {
     if (!paused)
@@ -614,11 +627,11 @@ void VideoRenderer::loop()
 //        qDebug() << "no valid frame" << timer.elapsed();
         return;
     }
-    qCDebug(qLcVideoRenderer) << "received video frame" << frame.pts() << decoder->pts_base.loadRelaxed();
-    qint64 pts_base = decoder->pts_base.loadRelaxed();
-    if (frame.pts() < pts_base)
+//    qCDebug(qLcVideoRenderer) << "received video frame" << frame.pts();
+    if (frame.pts()*1000 < baseTime()) {
+        qCDebug(qLcVideoRenderer) << "  discarding" << frame.pts() << baseTime();
         return;
-
+    }
 
     AVStream *stream = frame.codec()->stream();
     qint64 startTime = frame.pts();
@@ -666,14 +679,9 @@ void VideoRenderer::loop()
     else
         nextFrameTime = startTime + duration;
     streamDecoder->unlockAndReleaseFrame();
-    nextFrameTime = qRound((nextFrameTime - pts_base)/playbackRate);
-//    qCDebug(qLcVideoRenderer) << "    calculating next frame time" << nextFrame << nextFrameTime << startTime << duration
-//             << pts_base << decoder->baseTimer.elapsed();
-    timeOut = nextFrameTime - decoder->baseTimer.elapsed();
-    if (timeOut < 0)
-        timeOut = -1;
-//    qDebug() << "    next video frame in" << timeOut << startTime;
-    decoder->updateCurrentTime(startTime, QPlatformMediaPlayer::VideoStream);
+    timeOut = usecsTo(nextFrameTime*1000)/1000;
+//    qDebug() << "    next video frame in" << startTime << nextFrameTime << currentTime() << timeOut;
+    timeUpdated(startTime*1000);
 }
 
 AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
@@ -686,8 +694,46 @@ AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
 void AudioRenderer::syncClock()
 {
     QMutexLocker locker(&mutex);
-    writtenUSecs = processedUSecs;
-    elapsed.restart();
+    syncTo(currentTime());
+}
+
+qint64 AudioRenderer::currentTime() const
+{
+//    QMutexLocker l(&mutex);
+    return currentTimeNoLock();
+}
+
+void AudioRenderer::syncTo(qint64 usecs)
+{
+    Clock::syncTo(usecs);
+    QMutexLocker l(&m_clockMutex);
+    if (audioSink)
+        m_baseTime -= audioSink->processedUSecs();
+}
+
+void AudioRenderer::adjustBy(qint64 usecs)
+{
+    Clock::adjustBy(usecs);
+    qDebug() << "adjusting audio clock by" << usecs;
+    QMutexLocker l(&mutex);
+    // ensure we sync up output by dropping/adding frames as needed
+    Q_ASSERT(!isMaster());
+}
+
+void AudioRenderer::setPlaybackRate(float rate)
+{
+    Clock::setPlaybackRate(rate);
+    QMutexLocker l(&mutex);
+    deviceChanged = true;
+}
+
+qint64 AudioRenderer::usecsTo(qint64 displayTime)
+{
+    QMutexLocker l(&mutex);
+    if (!audioSink)
+        return Clock::usecsTo(displayTime);
+
+    return writtenUSecs - processedUSecs - latencyUSecs;
 }
 
 void AudioRenderer::updateOutput(const Codec *codec)
@@ -702,10 +748,9 @@ void AudioRenderer::updateOutput(const Codec *codec)
     format.setChannelCount(2); // #### FIXME
     // ### add channel layout
 
-    baseTime = decoder->currentTime;
     elapsed.restart();
 
-    if (playbackRate < 0.5 || playbackRate > 2) {
+    if (playbackRate() < 0.5 || playbackRate() > 2) {
         audioMuted = true;
         latencyUSecs = 0;
         bufferedData.clear();
@@ -723,9 +768,10 @@ void AudioRenderer::updateOutput(const Codec *codec)
 
     // init resampling if needed
     AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
-    if (requiredFormat == audioStream->codecpar->format &&
+    if (isMaster() &&
+        requiredFormat == audioStream->codecpar->format &&
         audioStream->codecpar->channels == 2 &&
-        playbackRate == 1.)
+        playbackRate() == 1.)
         return;
     qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat << audioStream->codecpar->channels;
     resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
@@ -737,6 +783,9 @@ void AudioRenderer::updateOutput(const Codec *codec)
                                    audioStream->codecpar->sample_rate,                // in_sample_rate
                                    0,                    // log_offset
                                    nullptr);
+    // if we're not the master clock, we might need to handle clock adjustments, initialize for that
+    av_opt_set_double(resampler, "async", format.sampleRate()/50, 0);
+
 //    qDebug() << "setting up resampler, input rate" << audioStream->codecpar->sample_rate << "output rate:" << outputSamples(audioStream->codecpar->sample_rate);
     swr_init(resampler);
 }
@@ -753,6 +802,11 @@ void AudioRenderer::freeOutput()
         resampler = nullptr;
     }
     audioMuted = false;
+}
+
+qint64 AudioRenderer::currentTimeNoLock() const
+{
+    return audioSink ? (audioSink->processedUSecs() + m_baseTime) : Clock::currentTime();
 }
 
 void AudioRenderer::init()
@@ -796,9 +850,8 @@ void AudioRenderer::loop()
         if (!audioSink && !audioMuted)
             updateOutput(frame.codec());
 
-        qint64 pts_base = decoder->pts_base.loadRelaxed();
         qint64 startTime = frame.pts();
-        if (startTime < pts_base)
+        if (startTime*1000 < baseTime())
             return;
 
         int size = frame.avFrame()->linesize[0];
@@ -845,17 +898,11 @@ void AudioRenderer::loop()
 //        qDebug() << ">>>>>>>>>>>>>>>>>>>>>>>> could not write all data" << (bufferedData.size() - bufferWritten);
 //    qDebug() << "Audio: processed" << processedUSecs << "written" << writtenUSecs
 //             << "delta" << (writtenUSecs - processedUSecs) << "timeOut" << timeOut;
-//    qDebug() << "    updating time to" << (baseTime + processedUSecs/1000);
-    decoder->updateCurrentTime(baseTime + processedUSecs/1000, QPlatformMediaPlayer::AudioStream);
+//    qDebug() << "    updating time to" << (currentTimeNoLock()/1000);
+    timeUpdated(currentTimeNoLock());
 }
 
 void AudioRenderer::streamChanged()
-{
-    // mutex is already locked
-    deviceChanged = true;
-}
-
-void AudioRenderer::playbackRateChanged()
 {
     // mutex is already locked
     deviceChanged = true;
@@ -878,6 +925,9 @@ Decoder::Decoder(QFFmpegMediaPlayer *p, AVFormatContext *context)
     m_currentStream[QPlatformMediaPlayer::VideoStream] = getDefaultStream(QPlatformMediaPlayer::VideoStream);
     m_currentStream[QPlatformMediaPlayer::SubtitleStream] = -1;
     demuxer->start();
+
+    qDebug() << ">>>>>> index:" << metaObject()->indexOfSlot("updateCurrentTime(qint64)");
+    clockController.setNotify(this, metaObject()->method(metaObject()->indexOfSlot("updateCurrentTime(qint64)")));
 }
 
 Decoder::~Decoder()
@@ -907,7 +957,7 @@ void Decoder::stop()
     seek(0);
     if (videoSink)
         videoSink->setVideoFrame({});
-    qDebug() << "Decoder::stop: done" << currentTime;
+    qDebug() << "Decoder::stop: done" << clockController.currentTime();
 }
 
 void Decoder::setPaused(bool b)
@@ -915,19 +965,9 @@ void Decoder::setPaused(bool b)
     if (paused == b)
         return;
     paused = b;
-    qDebug() << "setPaused" << b;
-    if (b) {
-        if (audioRenderer)
-            audioRenderer->pause();
-        if (videoRenderer)
-            videoRenderer->pause();
-        qDebug() << "Done: setPaused" << b;
-    } else {
-        syncClocks();
-        if (audioRenderer)
-            audioRenderer->unPause();
-        if (videoRenderer)
-            videoRenderer->unPause();
+    clockController.setPaused(b);
+    if (!b) {
+        qDebug() << "start decoding!";
         demuxer->startDecoding();
     }
 }
@@ -938,15 +978,6 @@ void Decoder::triggerStep()
     videoRenderer->singleStep();
 }
 
-void Decoder::syncClocks()
-{
-    qCDebug(qLcDecoder) << "syncing clocks";
-    pts_base = currentTime;
-    baseTimer.restart();
-    if (audioRenderer)
-        audioRenderer->syncClock();
-}
-
 void Decoder::setVideoSink(QVideoSink *sink)
 {
     qCDebug(qLcDecoder) << "setVideoSink" << sink;
@@ -955,9 +986,11 @@ void Decoder::setVideoSink(QVideoSink *sink)
     videoSink = sink;
     if (sink && !videoRenderer) {
         videoRenderer = new VideoRenderer(this, sink);
+        clockController.addClock(videoRenderer);
         videoRenderer->start();
     } else if (!videoSink && videoRenderer) {
         videoRenderer->kill();
+        clockController.removeClock(videoRenderer);
         videoRenderer = nullptr;
         // ### disable corresponding video stream
     }
@@ -985,9 +1018,11 @@ void Decoder::setAudioSink(QPlatformAudioOutput *output)
     audioOutput = output;
     if (output && !audioRenderer) {
         audioRenderer = new AudioRenderer(this, output->q);
+        clockController.addClock(audioRenderer);
         audioRenderer->start();
     } else if (!output && audioRenderer) {
         audioRenderer->kill();
+        clockController.removeClock(audioRenderer);
         audioRenderer = nullptr;
         // ### unregister from decoder and remove it
     }
@@ -1006,7 +1041,7 @@ void Decoder::updateAudio()
 void Decoder::changeTrack(QPlatformMediaPlayer::TrackType type, int streamIndex)
 {
     int oldIndex = m_currentStream[type];
-    qDebug() << ">>>>> change track" << type << "from" << oldIndex << "to" << streamIndex << currentTime;
+    qDebug() << ">>>>> change track" << type << "from" << oldIndex << "to" << streamIndex << clockController.currentTime();
     m_currentStream[type] = streamIndex;
     if (!demuxer)
         return;
@@ -1069,8 +1104,8 @@ int Decoder::getDefaultStream(QPlatformMediaPlayer::TrackType type)
 void Decoder::seek(qint64 pos)
 {
     QMutexLocker locker(&mutex);
-    currentTime = demuxer->seek(pos);
-    syncClocks();
+    qint64 currentTime = demuxer->seek(pos);
+    clockController.syncTo(pos*1000);
     player->positionChanged(currentTime);
     demuxer->wake();
     triggerStep();
@@ -1081,23 +1116,14 @@ void Decoder::setPlaybackRate(float rate)
     bool p = paused;
     if (!paused)
         setPaused(true);
-    playbackRate = rate;
-    if (audioRenderer)
-        audioRenderer->setPlaybackRate(rate);
-    if (videoRenderer)
-        videoRenderer->setPlaybackRate(rate);
-    syncClocks();
+    clockController.setPlaybackRate(rate);
     if (!p)
         setPaused(false);
 }
 
-void Decoder::updateCurrentTime(qint64 time, QPlatformMediaPlayer::TrackType source)
+void Decoder::updateCurrentTime(qint64 time)
 {
-    QMutexLocker locker(&mutex);
-    if (source == QPlatformMediaPlayer::VideoStream && audioRenderer)
-        return;
-    currentTime = time;
-    player->positionChanged(currentTime);
+    player->positionChanged(time/1000);
 }
 
 QT_END_NAMESPACE

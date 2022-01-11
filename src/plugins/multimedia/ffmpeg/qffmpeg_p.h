@@ -36,6 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QFFMPEG_P_H
+#define QFFMPEG_P_H
 
 #include <private/qtmultimediaglobal_p.h>
 
@@ -46,3 +48,5 @@ extern "C" {
 #include <libavutil/avutil.h>
 #include <libswscale/swscale.h>
 }
+
+#endif

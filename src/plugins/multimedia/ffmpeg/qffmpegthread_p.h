@@ -66,7 +66,7 @@ namespace QFFmpeg
 class Thread : public QThread
 {
 public:
-    QMutex mutex;
+    mutable QMutex mutex;
     QWaitCondition condition;
     qint64 timeOut = -1;
 private:
