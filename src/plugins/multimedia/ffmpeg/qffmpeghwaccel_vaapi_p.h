@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QFFMPEGVIDEOBUFFER_P_H
-#define QFFMPEGVIDEOBUFFER_P_H
+#ifndef QFFMPEGHWACCEL_VAAPI_P_H
+#define QFFMPEGHWACCEL_VAAPI_P_H
 
 //
 //  W A R N I N G
@@ -51,48 +50,41 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qabstractvideobuffer_p.h>
-#include <qvideoframe.h>
-#include <QtCore/qvariant.h>
-
-#include "qffmpeg_p.h"
 #include "qffmpeghwaccel_p.h"
+
+#if QT_CONFIG(vaapi)
+
+#include <qshareddata.h>
+
+#include <va/va.h>
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegVideoBuffer : public QAbstractVideoBuffer
+class QRhi;
+class QOpenGLContext;
+
+namespace QFFmpeg {
+
+class VAAPIAccel : public HWAccelBackend
 {
 public:
+    VAAPIAccel(AVBufferRef *hwContext);
+    ~VAAPIAccel();
 
-    QFFmpegVideoBuffer(AVFrame *frame, const QFFmpeg::HWAccel &accel);
-    ~QFFmpegVideoBuffer();
+    void setRhi(QRhi *rhi) override;
+    bool getTextures(AVFrame *frame, qint64 *textures) override;
+    void freeTextures(qint64 *textures) override;
+    AVPixelFormat format(AVFrame *frame) const override;
 
-    QVideoFrame::MapMode mapMode() const override;
-    MapData map(QVideoFrame::MapMode mode) override;
-    void unmap() override;
-
-    virtual void mapTextures() override;
-    virtual quint64 textureHandle(int plane) const override;
-
-    QVideoFrameFormat::PixelFormat pixelFormat() const;
-    QSize size() const;
-
-    static QVideoFrameFormat::PixelFormat toQtPixelFormat(AVPixelFormat avPixelFormat, bool *needsConversion = nullptr);
-    static AVPixelFormat toAVPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat);
-
-    void convertSWFrame();
-
-private:
-    QVideoFrameFormat::PixelFormat m_pixelFormat;
-    AVFrame *frame = nullptr;
-    AVFrame *hwFrame = nullptr;
-    AVFrame *swFrame = nullptr;
-    QFFmpeg::HWAccel hwAccel;
-    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    qint64 textures[4] = {};
+    VADisplay vaDisplay = nullptr;
+    Qt::HANDLE eglDisplay = nullptr;
+    QOpenGLContext *glContext = nullptr;
+    QFunctionPointer eglImageTargetTexture2D = nullptr;
 };
+}
 
 QT_END_NAMESPACE
+
+#endif
 
 #endif

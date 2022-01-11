@@ -22,6 +22,7 @@ qt_find_package(WMF PROVIDED_TARGETS WMF::WMF MODULE_NAME multimedia QMAKE_LIB w
 qt_find_package(EGL)
 
 qt_find_package(FFmpeg OPTIONAL_COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE SWRESAMPLE SWSCALE PROVIDED_TARGETS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::avdevice FFmpeg::swresample  FFmpeg::swscale MODULE_NAME multimedia QMAKE_LIB ffmpeg)
+qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VA VAAPI::DRM MODULE_NAME multimedia QMAKE_LIB vaapi)
 
 #### Tests
 
@@ -122,6 +123,10 @@ qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"
     CONDITION UNIX AND TEST_linux_dmabuf
 )
+qt_feature("vaapi" PRIVATE
+    LABEL "VAAPI support"
+    CONDITION UNIX AND VAAPI_FOUND AND QT_FEATURE_linux_dmabuf
+)
 qt_feature("mmrenderer" PUBLIC PRIVATE
     LABEL "MMRenderer"
     CONDITION MMRenderer_FOUND AND MMRendererCore_FOUND
@@ -144,6 +149,7 @@ qt_configure_add_summary_section(NAME "Qt Multimedia")
 qt_configure_add_summary_entry(ARGS "gstreamer_1_0")
 qt_configure_add_summary_entry(ARGS "ffmpeg")
 qt_configure_add_summary_entry(ARGS "linux_v4l")
+qt_configure_add_summary_entry(ARGS "vaapi")
 qt_configure_add_summary_entry(ARGS "pulseaudio")
 qt_configure_add_summary_entry(ARGS "linux_dmabuf")
 qt_configure_add_summary_entry(ARGS "mmrenderer")

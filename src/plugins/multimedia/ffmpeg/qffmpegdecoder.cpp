@@ -841,6 +841,7 @@ bool QFFmpegDecoder::openCodec(QPlatformMediaPlayer::TrackType type, int index)
     }
 
     pipelines[type].hwAccel = QFFmpeg::HWAccel(decoder);
+    pipelines[type].hwAccel.setRhi(videoSink->rhi());
 
     codecContext[type] = avcodec_alloc_context3(decoder);
     if (!codecContext[type]) {

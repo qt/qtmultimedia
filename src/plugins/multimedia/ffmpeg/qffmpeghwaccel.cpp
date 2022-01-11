@@ -38,15 +38,11 @@
 ****************************************************************************/
 
 #include "qffmpeghwaccel_p.h"
+#if QT_CONFIG(vaapi)
+#include "qffmpeghwaccel_vaapi_p.h"
+#endif
 #include "qffmpeg_p.h"
 #include "qffmpegvideobuffer_p.h"
-
-#include <qguiapplication.h>
-#include <qpa/qplatformnativeinterface.h>
-
-extern "C" {
-#include <libavutil/hwcontext_vaapi.h>
-}
 
 #include <qdebug.h>
 
@@ -201,6 +197,11 @@ HWAccel::HWAccel(AVCodec *codec)
 
     AVHWDeviceContext *c = (AVHWDeviceContext *)hwContext->data;
     switch (c->type) {
+#if QT_CONFIG(vaapi)
+    case AV_HWDEVICE_TYPE_VAAPI:
+        d = new VAAPIAccel(hwContext);
+        break;
+#endif
     default:
         d = new HWAccelBackend(hwContext);
         break;

@@ -59,8 +59,8 @@ QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrame *frame, const QFFmpeg::HWAccel &a
         return;
     }
 
-    m_pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format));
     swFrame = frame;
+    m_pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format));
 
     convertSWFrame();
 }
@@ -71,6 +71,7 @@ QFFmpegVideoBuffer::~QFFmpegVideoBuffer()
         av_frame_free(&swFrame);
     if (hwFrame)
         av_frame_free(&hwFrame);
+    hwAccel.freeTextures(textures);
 }
 
 void QFFmpegVideoBuffer::convertSWFrame()
@@ -139,15 +140,16 @@ void QFFmpegVideoBuffer::unmap()
 
 void QFFmpegVideoBuffer::mapTextures()
 {
-    if (textures[0])
+    if (textures[0] || !hwFrame)
         return;
-    qDebug() << ">>>>> mapTextures";
-//    QFFmpeg::getRhiTextures(rhi, hwDeviceContext, hwFrame, textures);
+//    qDebug() << ">>>>> mapTextures";
+    if (!hwAccel.getTextures(hwFrame, textures))
+        qWarning() << "    failed to get textures for frame" << hwAccel.isNull();
 }
 
 quint64 QFFmpegVideoBuffer::textureHandle(int plane) const
 {
-    qDebug() << "retrieving texture for plane" << plane << textures[plane];
+//    qDebug() << "retrieving texture for plane" << plane << textures[plane];
     return textures[plane];
 }
 

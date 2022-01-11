@@ -74,6 +74,7 @@ public:
     virtual ~HWAccelBackend();
     virtual void setRhi(QRhi *) {}
     virtual bool getTextures(AVFrame */*frame*/, qint64 */*textures*/) { return false; }
+    virtual void freeTextures(qint64 */*textures*/) {}
     virtual AVPixelFormat format(AVFrame *frame) const;
 
     QAtomicInt ref = 0;
@@ -97,6 +98,10 @@ public:
         if (!d)
             return false;
         return d->getTextures(frame, textures);
+    }
+    void freeTextures(qint64 *textures) {
+        if (d)
+            d->freeTextures(textures);
     }
     AVPixelFormat format(AVFrame *frame) const
     {

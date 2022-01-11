@@ -1,0 +1,373 @@
+/****************************************************************************
+**
+** Copyright (C) 2021 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include "qffmpeghwaccel_vaapi_p.h"
+
+#if !QT_CONFIG(vaapi)
+#error "Configuration error"
+#endif
+
+#include <qvideoframeformat.h>
+#include "qffmpegvideobuffer_p.h"
+#include "private/qvideotexturehelper_p.h"
+
+#include <private/qrhi_p.h>
+#include <private/qrhigles2_p.h>
+
+#include <qguiapplication.h>
+#include <qpa/qplatformnativeinterface.h>
+
+#include <qopenglfunctions.h>
+
+//#define VA_EXPORT_USE_LAYERS
+
+#if __has_include("drm/drm_fourcc.h")
+#include <drm/drm_fourcc.h>
+#elif __has_include("libdrm/drm_fourcc.h")
+#include <libdrm/drm_fourcc.h>
+#else
+// keep things building without drm_fourcc.h
+#define fourcc_code(a, b, c, d) ((uint32_t)(a) | ((uint32_t)(b) << 8) | \
+                                 ((uint32_t)(c) << 16) | ((uint32_t)(d) << 24))
+
+#define DRM_FORMAT_RGBA8888     fourcc_code('R', 'A', '2', '4') /* [31:0] R:G:B:A 8:8:8:8 little endian */
+#define DRM_FORMAT_RGB888       fourcc_code('R', 'G', '2', '4') /* [23:0] R:G:B little endian */
+#define DRM_FORMAT_RG88         fourcc_code('R', 'G', '8', '8') /* [15:0] R:G 8:8 little endian */
+#define DRM_FORMAT_ABGR8888     fourcc_code('A', 'B', '2', '4') /* [31:0] A:B:G:R 8:8:8:8 little endian */
+#define DRM_FORMAT_BGR888       fourcc_code('B', 'G', '2', '4') /* [23:0] B:G:R little endian */
+#define DRM_FORMAT_GR88         fourcc_code('G', 'R', '8', '8') /* [15:0] G:R 8:8 little endian */
+#define DRM_FORMAT_R8           fourcc_code('R', '8', ' ', ' ') /* [7:0] R */
+#define DRM_FORMAT_R16          fourcc_code('R', '1', '6', ' ') /* [15:0] R little endian */
+#define DRM_FORMAT_RGB565       fourcc_code('R', 'G', '1', '6') /* [15:0] R:G:B 5:6:5 little endian */
+#define DRM_FORMAT_RG1616       fourcc_code('R', 'G', '3', '2') /* [31:0] R:G 16:16 little endian */
+#define DRM_FORMAT_GR1616       fourcc_code('G', 'R', '3', '2') /* [31:0] G:R 16:16 little endian */
+#define DRM_FORMAT_BGRA1010102  fourcc_code('B', 'A', '3', '0') /* [31:0] B:G:R:A 10:10:10:2 little endian */
+#endif
+
+extern "C" {
+#include <libavutil/hwcontext_vaapi.h>
+}
+
+#include <va/va_drm.h>
+#include <va/va_drmcommon.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
+#include <unistd.h>
+
+#include <qdebug.h>
+
+namespace QFFmpeg {
+
+static const quint32 *fourccFromPixelFormat(const QVideoFrameFormat::PixelFormat format)
+{
+#if G_BYTE_ORDER == G_LITTLE_ENDIAN
+    const quint32 rgba_fourcc = DRM_FORMAT_ABGR8888;
+    const quint32 rg_fourcc = DRM_FORMAT_GR88;
+    const quint32 rg16_fourcc = DRM_FORMAT_GR1616;
+#else
+    const quint32 rgba_fourcc = DRM_FORMAT_RGBA8888;
+    const quint32 rg_fourcc = DRM_FORMAT_RG88;
+    const quint32 rg16_fourcc = DRM_FORMAT_RG1616;
+#endif
+
+//    qDebug() << "Getting DRM fourcc for pixel format" << format;
+
+    switch (format) {
+    case QVideoFrameFormat::Format_Invalid:
+    case QVideoFrameFormat::Format_IMC1:
+    case QVideoFrameFormat::Format_IMC2:
+    case QVideoFrameFormat::Format_IMC3:
+    case QVideoFrameFormat::Format_IMC4:
+    case QVideoFrameFormat::Format_SamplerExternalOES:
+    case QVideoFrameFormat::Format_Jpeg:
+    case QVideoFrameFormat::Format_SamplerRect:
+        return nullptr;
+
+    case QVideoFrameFormat::Format_ARGB8888:
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+    case QVideoFrameFormat::Format_XRGB8888:
+    case QVideoFrameFormat::Format_BGRA8888:
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+    case QVideoFrameFormat::Format_BGRX8888:
+    case QVideoFrameFormat::Format_ABGR8888:
+    case QVideoFrameFormat::Format_XBGR8888:
+    case QVideoFrameFormat::Format_RGBA8888:
+    case QVideoFrameFormat::Format_RGBX8888:
+    case QVideoFrameFormat::Format_AYUV:
+    case QVideoFrameFormat::Format_AYUV_Premultiplied:
+    case QVideoFrameFormat::Format_UYVY:
+    case QVideoFrameFormat::Format_YUYV:
+    {
+        static constexpr quint32 format[] = { rgba_fourcc, 0, 0, 0 };
+        return format;
+    }
+
+    case QVideoFrameFormat::Format_Y8:
+    {
+        static constexpr quint32 format[] = { DRM_FORMAT_R8, 0, 0, 0 };
+        return format;
+    }
+    case QVideoFrameFormat::Format_Y16:
+    {
+        static constexpr quint32 format[] = { DRM_FORMAT_R16, 0, 0, 0 };
+        return format;
+    }
+
+    case QVideoFrameFormat::Format_YUV420P:
+    case QVideoFrameFormat::Format_YUV422P:
+    case QVideoFrameFormat::Format_YV12:
+    {
+        static constexpr quint32 format[] = { DRM_FORMAT_R8, DRM_FORMAT_R8, DRM_FORMAT_R8, 0 };
+        return format;
+    }
+    case QVideoFrameFormat::Format_YUV420P10:
+    {
+        static constexpr quint32 format[] = { DRM_FORMAT_R16, DRM_FORMAT_R16, DRM_FORMAT_R16, 0 };
+        return format;
+    }
+
+    case QVideoFrameFormat::Format_NV12:
+    case QVideoFrameFormat::Format_NV21:
+    {
+        static constexpr quint32 format[] = { DRM_FORMAT_R8, rg_fourcc, 0, 0 };
+        return format;
+    }
+
+    case QVideoFrameFormat::Format_P010:
+    case QVideoFrameFormat::Format_P016:
+    {
+        static constexpr quint32 format[] = { DRM_FORMAT_R16, rg16_fourcc, 0, 0 };
+        return format;
+    }
+    }
+}
+
+VAAPIAccel::VAAPIAccel(AVBufferRef *hwContext)
+    : HWAccelBackend(hwContext)
+{
+    qDebug() << ">>>> Creating VAAPI HW accelerator";
+}
+
+VAAPIAccel::~VAAPIAccel()
+{
+
+}
+
+void VAAPIAccel::setRhi(QRhi *rhi)
+{
+    qDebug() << ">>>> Initializing VAAPI zero copy";
+    if (rhi && rhi->backend() != QRhi::OpenGLES2)
+        return;
+
+    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+    glContext = nativeHandles->context;
+    if (!glContext) {
+        qDebug() << "    no GL context, disabling";
+        return;
+    }
+    const QString platform = QGuiApplication::platformName();
+    QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
+    eglDisplay = pni->nativeResourceForIntegration("egldisplay");
+    qDebug() << "     platform is" << platform << eglDisplay;
+
+    if (!eglDisplay) {
+        qDebug() << "    no egl display, disabling";
+        return;
+    }
+    eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
+    if (!eglDisplay) {
+        qDebug() << "    no eglImageTargetTexture2D, disabling";
+        return;
+    }
+    auto *ctx = (AVHWDeviceContext *)hwContext->data;
+    auto *vaCtx = (AVVAAPIDeviceContext *)ctx->hwctx;
+    vaDisplay = vaCtx->display;
+    if (!vaDisplay) {
+        qDebug() << "    no VADisplay, disabling";
+        return;
+    }
+
+    // everything ok, indicate that we can do zero copy
+    this->rhi = rhi;
+}
+
+//#define VA_EXPORT_USE_LAYERS
+bool VAAPIAccel::getTextures(AVFrame *frame, qint64 *textures)
+{
+//        qDebug() << "VAAPIAccel::getTextures";
+    if (frame->format != AV_PIX_FMT_VAAPI || !eglDisplay) {
+        qDebug() << "format/egl error" << frame->format << eglDisplay;
+        return false;
+    }
+    Q_UNUSED(textures);
+
+    VASurfaceID vaSurface = (uintptr_t)frame->data[3];
+
+    VADRMPRIMESurfaceDescriptor prime;
+    if (vaExportSurfaceHandle(vaDisplay, vaSurface,
+                              VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
+                              VA_EXPORT_SURFACE_READ_ONLY |
+#ifdef VA_EXPORT_USE_LAYERS
+                                  VA_EXPORT_SURFACE_SEPARATE_LAYERS,
+#else
+                                  VA_EXPORT_SURFACE_COMPOSED_LAYERS,
+#endif
+                              &prime) != VA_STATUS_SUCCESS)
+    {
+        qWarning() << "vaExportSurfaceHandle failed";
+        return false;
+    }
+    // ### Check that prime.fourcc is what we expect
+    vaSyncSurface(vaDisplay, vaSurface);
+
+//        qDebug() << "VAAPIAccel: vaSufraceDesc: width/height" << prime.width << prime.height << "num objects"
+//                 << prime.num_objects << "num layers" << prime.num_layers;
+
+    QOpenGLFunctions functions(glContext);
+
+    AVPixelFormat fmt = format(frame);
+    bool needsConversion;
+    auto qtFormat = QFFmpegVideoBuffer::toQtPixelFormat(fmt, &needsConversion);
+    auto *drm_formats = fourccFromPixelFormat(qtFormat);
+    if (!drm_formats || needsConversion) {
+        qWarning() << "can't use DMA transfer for pixel format" << fmt << qtFormat;
+        return false;
+    }
+
+    auto *desc = QVideoTextureHelper::textureDescription(qtFormat);
+    int nPlanes = 0;
+    for (; nPlanes < 5; ++nPlanes) {
+        if (drm_formats[nPlanes] == 0)
+            break;
+    }
+    Q_ASSERT(nPlanes == desc->nplanes);
+    nPlanes = desc->nplanes;
+//        qDebug() << "VAAPIAccel: nPlanes" << nPlanes;
+
+    rhi->makeThreadLocalNativeContextCurrent();
+
+    EGLImage images[4];
+    GLuint glTextures[4] = {};
+    functions.glGenTextures(nPlanes, glTextures);
+    for (int i = 0;  i < nPlanes;  ++i) {
+#ifdef VA_EXPORT_USE_LAYERS
+#define LAYER i
+#define PLANE 0
+        if (prime.layers[i].drm_format != drm_formats[i]) {
+            qWarning() << "expected DRM format check failed expected"
+                       << Qt::hex << drm_formats[i] << "got" << prime.layers[i].drm_format;
+        }
+#else
+#define LAYER 0
+#define PLANE i
+#endif
+
+        EGLAttrib img_attr[] = {
+            EGL_LINUX_DRM_FOURCC_EXT,      (EGLint)drm_formats[i],
+            EGL_WIDTH,                     desc->widthForPlane(frame->width, i),
+            EGL_HEIGHT,                    desc->heightForPlane(frame->height, i),
+            EGL_DMA_BUF_PLANE0_FD_EXT,     prime.objects[prime.layers[LAYER].object_index[PLANE]].fd,
+            EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLint)prime.layers[LAYER].offset[PLANE],
+            EGL_DMA_BUF_PLANE0_PITCH_EXT,  (EGLint)prime.layers[LAYER].pitch[PLANE],
+            EGL_NONE
+        };
+        images[i] = eglCreateImage(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, img_attr);
+        if (!images[i]) {
+            qWarning() << "eglCreateImage failed for plane" << i << Qt::hex << eglGetError();
+            return false;
+        }
+        functions.glActiveTexture(GL_TEXTURE0 + i);
+        functions.glBindTexture(GL_TEXTURE_2D, glTextures[i]);
+
+        PFNGLEGLIMAGETARGETTEXTURE2DOESPROC eglImageTargetTexture2D = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)this->eglImageTargetTexture2D;
+        eglImageTargetTexture2D(GL_TEXTURE_2D, images[i]);
+        if (glGetError()) {
+            qWarning() << "eglImageTargetTexture2D failed";
+        }
+    }
+
+    for (int i = 0;  i < (int)prime.num_objects;  ++i)
+        close(prime.objects[i].fd);
+
+    for (int i = 0;  i < nPlanes;  ++i) {
+        functions.glActiveTexture(GL_TEXTURE0 + i);
+        functions.glBindTexture(GL_TEXTURE_2D, 0);
+        eglDestroyImage(eglDisplay, images[i]);
+    }
+
+
+    for (int i = 0; i < 4; ++i)
+        textures[i] = glTextures[i];
+//        qDebug() << "VAAPIAccel: got textures" << textures[0] << textures[1] << textures[2] << textures[3];
+
+    return true;
+}
+
+void VAAPIAccel::freeTextures(qint64 *textures)
+{
+    if (rhi) {
+        rhi->makeThreadLocalNativeContextCurrent();
+        int nPlanes = 0;
+        GLuint glTextures[4] = {};
+        for (; nPlanes < 4; ++nPlanes) {
+            glTextures[nPlanes] = textures[nPlanes];
+            if (textures[nPlanes] == 0)
+                break;
+        }
+
+        QOpenGLFunctions functions(glContext);
+        functions.glDeleteTextures(nPlanes, glTextures);
+    }
+
+}
+
+AVPixelFormat VAAPIAccel::format(AVFrame *frame) const
+{
+    if (!frame->hw_frames_ctx)
+        return AVPixelFormat(frame->format);
+
+    auto *hwFramesContext = (AVHWFramesContext *)frame->hw_frames_ctx->data;
+    return AVPixelFormat(hwFramesContext->sw_format);
+}
+
+}
+
+QT_END_NAMESPACE

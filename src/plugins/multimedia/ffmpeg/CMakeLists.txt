@@ -1,4 +1,5 @@
 qt_find_package(EGL)
+qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VA VAAPI::DRM MODULE_NAME multimedia QMAKE_LIB vaapi)
 
 qt_internal_add_plugin(QFFmpegMediaPlugin
     OUTPUT_NAME ffmegmediaplugin
@@ -17,6 +18,14 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
         FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::avdevice FFmpeg::swresample FFmpeg::swscale
+)
+
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_FEATURE_vaapi
+    SOURCES
+        qffmpeghwaccel_vaapi.cpp qffmpeghwaccel_vaapi_p.h
+    LIBRARIES
+        VAAPI::VAAPI
+        EGL::EGL
 )
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND NOT QT_FEATURE_pulseaudio
