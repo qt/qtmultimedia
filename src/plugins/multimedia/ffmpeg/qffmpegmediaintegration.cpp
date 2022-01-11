@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <qcameradevice.h>
 #include "qffmpegmediaintegration_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegmediaplayer_p.h"
@@ -59,6 +60,10 @@
 #include "qpulseaudiomediadevices_p.h"
 #else
 #include "qffmpegmediadevices_p.h"
+#endif
+
+#if QT_CONFIG(linux_v4l)
+#include "qv4l2camera_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -99,6 +104,10 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 
     m_formatsInfo = new QFFmpegMediaFormatInfo();
 
+#if QT_CONFIG(linux_v4l)
+    QV4L2CameraDevices::instance(this);
+#endif
+
 #ifndef QT_NO_DEBUG
     qDebug() << "Available HW decoding frameworks:";
     AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
@@ -138,9 +147,14 @@ QPlatformMediaPlayer *QFFmpegMediaIntegration::createPlayer(QMediaPlayer *player
     return new QFFmpegMediaPlayer(player);
 }
 
-QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera */*camera*/)
+QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera *camera)
 {
+#if QT_CONFIG(linux_v4l)
+    return new QV4L2Camera(camera);
+#else
+    Q_UNUSED(camera);
     return nullptr;//new QFFmpegCamera(camera);
+#endif
 }
 
 QPlatformMediaRecorder *QFFmpegMediaIntegration::createRecorder(QMediaRecorder *recorder)
@@ -151,6 +165,15 @@ QPlatformMediaRecorder *QFFmpegMediaIntegration::createRecorder(QMediaRecorder *
 QPlatformImageCapture *QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QFFmpegImageCapture(imageCapture);
+}
+
+QList<QCameraDevice> QFFmpegMediaIntegration::videoInputs()
+{
+#if QT_CONFIG(linux_v4l)
+    return QV4L2CameraDevices::instance(this)->cameraDevices();
+#else
+    return QPlatformMediaIntegration::videoInputs();
+#endif
 }
 
 QPlatformVideoSink *QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)

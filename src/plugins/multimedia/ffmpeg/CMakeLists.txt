@@ -100,3 +100,8 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
         winmm
         wmcodecdspuuid
 )
+
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
+    SOURCES
+        qv4l2camera.cpp qv4l2camera_p.h
+)

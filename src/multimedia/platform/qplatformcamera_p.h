@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QCAMERACONTROL_H
-#define QCAMERACONTROL_H
+#ifndef QPLATFORMCAMERA_H
+#define QPLATFORMCAMERA_H
 
 //
 //  W A R N I N G
@@ -152,6 +152,7 @@ public:
 Q_SIGNALS:
     void activeChanged(bool);
     void error(int error, const QString &errorString);
+    void newVideoFrame(const QVideoFrame &); // only used by FFmpeg
 
 protected:
     explicit QPlatformCamera(QCamera *parent);
@@ -186,5 +187,5 @@ private:
 QT_END_NAMESPACE
 
 
-#endif  // QCAMERACONTROL_H
+#endif  // QPLATFORMCAMERA_H
 

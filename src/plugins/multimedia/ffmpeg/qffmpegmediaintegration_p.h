@@ -75,6 +75,7 @@ public:
     QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
     QPlatformImageCapture *createImageCapture(QImageCapture *) override;
 
+    QList<QCameraDevice> videoInputs() override;
     QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 
     QPlatformAudioInput *createAudioInput(QAudioInput *input) override;

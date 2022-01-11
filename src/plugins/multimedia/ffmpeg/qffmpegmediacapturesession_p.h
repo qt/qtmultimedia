@@ -57,6 +57,7 @@
 QT_BEGIN_NAMESPACE
 
 class QFFmpegMediaRecorder;
+class QVideoFrame;
 
 class QFFmpegMediaCaptureSession : public QPlatformMediaCaptureSession
 {
@@ -80,6 +81,9 @@ public:
 
     void setVideoPreview(QVideoSink *sink) override;
     void setAudioOutput(QPlatformAudioOutput *output) override;
+
+public Q_SLOTS:
+    void newVideoFrame(const QVideoFrame &frame);
 
 private:
     QPlatformCamera *m_camera = nullptr;

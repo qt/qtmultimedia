@@ -42,6 +42,7 @@
 #include "private/qplatformaudioinput_p.h"
 #include "private/qplatformaudiooutput_p.h"
 #include "qffmpegmediarecorder_p.h"
+#include "private/qplatformcamera_p.h"
 #include "qvideosink.h"
 
 #include <qloggingcategory.h>
@@ -71,6 +72,8 @@ void QFFmpegMediaCaptureSession::setCamera(QPlatformCamera *camera)
         return;
     m_camera = camera;
 
+    if (m_videoSink)
+        connect(camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegMediaCaptureSession::newVideoFrame);
     // ####
     emit cameraChanged();
 }
@@ -132,6 +135,12 @@ void QFFmpegMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
         return;
 
     m_audioOutput = output;
+}
+
+void QFFmpegMediaCaptureSession::newVideoFrame(const QVideoFrame &frame)
+{
+    if (m_videoSink)
+        m_videoSink->setVideoFrame(frame);
 }
 
 
