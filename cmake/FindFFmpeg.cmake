@@ -82,6 +82,10 @@ macro(set_component_found _component )
   endif ()
 endmacro()
 
+find_package(PkgConfig QUIET)
+if (NOT PKG_CONFIG_FOUND AND NOT FFMPEG_DIR)
+    set(FFMPEG_DIR "/usr/local")
+endif()
 #
 ### Macro: find_component
 #
@@ -92,7 +96,6 @@ macro(find_component _component _pkgconfig _library _header)
 
   # use pkg-config to get the directories and then use these values
   # in the FIND_PATH() and FIND_LIBRARY() calls
-  find_package(PkgConfig QUIET)
   if (PKG_CONFIG_FOUND)
     pkg_check_modules(PC_${_component} ${_pkgconfig})
   endif ()
@@ -127,7 +130,7 @@ macro(find_component _component _pkgconfig _library _header)
   set(${_component}_LIBRARY_DIRS ${${_component}_LIBRARY_DIR_FROM_FIND} CACHE STRING "The ${_component} library dirs.")
   set(${_component}_LIBRARIES    ${${_component}_LIBRARY_FROM_FIND}     CACHE STRING "The ${_component} libraries.")
 
-  message("Libs" ${${_component}_LIBRARIES} ${${_component}_LIBRARY_DIRS})
+#  message("Libs" ${FFMPEG_DIR} ${${_component}_LIBRARIES} ${${_component}_LIBRARY_DIRS})
 
 #  message(STATUS "L0: ${${_component}_LIBRARIES}")
 #  message(STATUS "L1: ${PC_${_component}_LIBRARIES}")

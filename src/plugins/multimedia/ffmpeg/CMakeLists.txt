@@ -1,6 +1,12 @@
 qt_find_package(EGL)
 qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VA VAAPI::DRM MODULE_NAME multimedia QMAKE_LIB vaapi)
 
+qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
+qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
+qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
+qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox) # special case
+qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special case
+
 qt_internal_add_plugin(QFFmpegMediaPlugin
     OUTPUT_NAME ffmegmediaplugin
     PLUGIN_TYPE multimedia
@@ -28,7 +34,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_
         EGL::EGL
 )
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND NOT QT_FEATURE_pulseaudio
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND NOT QT_FEATURE_pulseaudio AND NOT APPLE
     SOURCES
         qffmpegmediadevices.cpp qffmpegmediadevices_p.h
 )
@@ -45,4 +51,25 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_pulseaudio
         ../pulseaudio
     LIBRARIES
         WrapPulseAudio::WrapPulseAudio
+)
+
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
+    SOURCES
+        ../darwin/audio/qdarwinaudiodevice.mm ../darwin/audio/qdarwinaudiodevice_p.h
+        ../darwin/audio/qdarwinaudiosource.mm ../darwin/audio/qdarwinaudiosource_p.h
+        ../darwin/audio/qdarwinaudiosink.mm ../darwin/audio/qdarwinaudiosink_p.h
+        ../darwin/audio/qcoreaudioutils.mm ../darwin/audio/qcoreaudioutils_p.h
+        ../darwin/qdarwinmediadevices.mm ../darwin/qdarwinmediadevices_p.h
+        qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
+    INCLUDE_DIRECTORIES
+        ../darwin
+        ../darwin/audio
+    LIBRARIES
+        ${FWAudioToolbox}
+        ${FWCoreAudio}
+        ${FWCoreFoundation}
+        ${FWCoreMedia}
+        ${FWCoreVideo}
+        ${FWVideoToolbox}
+        AVFoundation::AVFoundation
 )

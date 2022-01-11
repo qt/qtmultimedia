@@ -72,9 +72,6 @@ public:
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
 
-    static QAudioFormat::SampleFormat sampleFormat(AVSampleFormat format);
-    static AVSampleFormat avSampleFormat(QAudioFormat::SampleFormat format);
-
     QPulseAudioEngine *pulseEngine = nullptr;
 };
 

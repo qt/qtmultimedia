@@ -54,6 +54,7 @@
 #include <private/qplatformmediaformatinfo_p.h>
 #include <qhash.h>
 #include <qlist.h>
+#include <qaudioformat.h>
 #include "qffmpeg_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -66,6 +67,9 @@ public:
 
     static QMediaFormat::VideoCodec videoCodecForAVCodecId(AVCodecID id);
     static QMediaFormat::AudioCodec audioCodecForAVCodecId(AVCodecID id);
+
+    static QAudioFormat::SampleFormat sampleFormat(AVSampleFormat format);
+    static AVSampleFormat avSampleFormat(QAudioFormat::SampleFormat format);
 
 };
 

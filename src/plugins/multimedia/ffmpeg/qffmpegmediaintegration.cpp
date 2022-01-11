@@ -42,8 +42,13 @@
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpegvideosink_p.h"
+#ifdef Q_OS_MACOS
+#include <VideoToolbox/VideoToolbox.h>
+#endif
 
-#if QT_CONFIG(pulseaudio)
+#ifdef Q_OS_DARWIN
+#include "qdarwinmediadevices_p.h"
+#elif QT_CONFIG(pulseaudio)
 #include "qpulseaudiomediadevices_p.h"
 #else
 #include "qffmpegmediadevices_p.h"
@@ -71,11 +76,18 @@ public:
 
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
-#if QT_CONFIG(pulseaudio)
+#ifdef Q_OS_DARWIN
+#ifdef Q_OS_MACOS
+    if (__builtin_available(macOS 11.0, *))
+        VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9);
+#endif
+    m_devices = new QDarwinMediaDevices(this);
+#elif QT_CONFIG(pulseaudio)
     m_devices = new QPulseAudioMediaDevices(this);
 #else
     m_devices = new QFFmpegMediaDevices(this);
 #endif
+
     m_formatsInfo = new QFFmpegMediaFormatInfo();
 
 #ifndef QT_NO_DEBUG

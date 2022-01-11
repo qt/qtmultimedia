@@ -467,7 +467,7 @@ void AudioRendererThread::updateOutput()
     AVStream *audioStream = data->stream(QPlatformMediaPlayer::AudioStream);
 
     QAudioFormat format;
-    format.setSampleFormat(QFFmpegMediaDevices::sampleFormat(AVSampleFormat(audioStream->codecpar->format)));
+    format.setSampleFormat(QFFmpegMediaFormatInfo::sampleFormat(AVSampleFormat(audioStream->codecpar->format)));
     format.setSampleRate(audioStream->codecpar->sample_rate);
     format.setChannelCount(2); // #### FIXME
     // ### add channel layout
@@ -477,7 +477,7 @@ void AudioRendererThread::updateOutput()
     qCDebug(qLcAudioRenderer) << "   -> have an audio sink" << audioDevice;
 
     // init resampling if needed
-    AVSampleFormat requiredFormat = QFFmpegMediaDevices::avSampleFormat(format.sampleFormat());
+    AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
     if (requiredFormat == audioStream->codecpar->format &&
         audioStream->codecpar->channels == 2)
         return;
@@ -555,12 +555,12 @@ void AudioRendererThread::loop()
         } else {
              uint8_t *output;
              av_samples_alloc(&output, nullptr, 2, avFrame->nb_samples,
-                              QFFmpegMediaDevices::avSampleFormat(format.sampleFormat()), 0);
+                              QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat()), 0);
              const uint8_t **in = (const uint8_t **)avFrame->extended_data;
              int out_samples = swr_convert(resampler, &output, avFrame->nb_samples,
                                            in, avFrame->nb_samples);
              int size = av_samples_get_buffer_size(nullptr, 2, out_samples,
-                                                   QFFmpegMediaDevices::avSampleFormat(format.sampleFormat()), 0);
+                                                   QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat()), 0);
              audioDevice->write((char *)output, size);
              av_freep(&output);
         }
@@ -576,7 +576,7 @@ void AudioRendererThread::loop()
     if (nextFrame)
         nextFrameTime = qMin(timeStamp(nextFrame->pts, base), nextFrameTime);
     // always write 40ms ahead
-    int msToWait = nextFrameTime - 40 - (data->baseTimer.elapsed() + pts_base);
+    int msToWait = nextFrameTime - 80 - (data->baseTimer.elapsed() + pts_base);
     qCDebug(qLcAudioRenderer) << "next audio frame at" << nextFrameTime << "sleeping" << msToWait << "ms. pts_base=" << pts_base;
     if (msToWait > 0)
         msleep(msToWait);
