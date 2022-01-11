@@ -41,6 +41,9 @@
 #include "qaudiodevice.h"
 #include <private/qmediastoragelocation_p.h>
 #include <private/qplatformcamera_p.h>
+#include "qaudiosource.h"
+#include <private/qplatformaudioinput_p.h>
+#include "qaudiobuffer.h"
 
 #include <qdebug.h>
 #include <qeventloop.h>
@@ -49,6 +52,49 @@
 #include <qloggingcategory.h>
 
 Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
+
+class QAudioSourceIO : public QIODevice
+{
+    Q_OBJECT
+public:
+    QAudioSourceIO(QAudioSource *source, int bufferSize)
+        : QIODevice()
+        , m_src(source)
+        , bufferSize(bufferSize)
+    {}
+    qint64 readData(char *, qint64) override
+    {
+        return 0;
+    }
+    qint64 writeData(const char *data, qint64 len) override
+    {
+        int l = len;
+        while (len > 0) {
+            int toAppend = qMin(len, bufferSize - pcm.size());
+            pcm.append(data, toAppend);
+            data += toAppend;
+            len -= toAppend;
+            if (pcm.size() == bufferSize) {
+                QAudioFormat fmt = m_src->format();
+                qint64 time = fmt.durationForBytes(processed);
+                QAudioBuffer buffer(pcm, fmt, time);
+                emit newAudioBuffer(buffer);
+                processed += bufferSize;
+                pcm.clear();
+            }
+        }
+
+        return l;
+    }
+
+Q_SIGNALS:
+    void newAudioBuffer(const QAudioBuffer &buffer);
+private:
+    QAudioSource *m_src = nullptr;
+    int bufferSize = 0;
+    qint64 processed = 0;
+    QByteArray pcm;
+};
 
 QFFmpegMediaRecorder::QFFmpegMediaRecorder(QMediaRecorder *parent)
   : QPlatformMediaRecorder(parent)
@@ -100,7 +146,60 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 
     Q_ASSERT(!actualSink.isEmpty());
 
-    // #####
+    const char *name = "mp4";
+    auto *avFormat = av_guess_format(name, nullptr, nullptr);
+
+    avFormatContext = avformat_alloc_context();
+    avFormatContext->oformat = avFormat;
+
+    QByteArray url = actualSink.toEncoded();
+    avFormatContext->url = (char *)av_malloc(url.size() + 1);
+    memcpy(avFormatContext->url, url.constData(), url.size() + 1);
+    avFormatContext->pb = nullptr;
+    avio_open2(&avFormatContext->pb, avFormatContext->url, AVIO_FLAG_WRITE, nullptr, nullptr);
+
+    auto *audioInput = m_session->audioInput();
+    if (audioInput) {
+        QAudioFormat fmt;
+        fmt.setChannelCount(settings.audioChannelCount() > 0 ? settings.audioChannelCount() : 1);
+        fmt.setSampleRate(settings.audioSampleRate() > 0 ? settings.audioSampleRate() : 48000);
+        fmt.setSampleFormat(QAudioFormat::Float);
+        m_audioSource = new QAudioSource(audioInput->device, fmt);
+        fmt = m_audioSource->format();
+        m_audioSource->setVolume(audioInput->volume);
+
+        avAudioStream = avformat_new_stream(avFormatContext, nullptr);
+        avAudioStream->id = avFormatContext->nb_streams - 1;
+        avAudioStream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+        avAudioStream->codecpar->codec_id = avFormat->audio_codec;
+        avAudioStream->codecpar->channels = fmt.channelCount();
+        avAudioStream->codecpar->channel_layout = AV_CH_LAYOUT_MONO;
+        avAudioStream->codecpar->sample_rate = fmt.sampleRate();
+        avAudioStream->codecpar->format = AV_SAMPLE_FMT_FLT;
+        avAudioStream->time_base = AVRational{ 1, fmt.sampleRate() };
+
+        auto *codec = avcodec_find_encoder(avFormat->audio_codec);
+        avAudioCodec = avcodec_alloc_context3(codec);
+        avcodec_parameters_to_context(avAudioCodec, avAudioStream->codecpar);
+        avcodec_open2(avAudioCodec, codec, nullptr);
+
+        int bufferSize = avAudioCodec->frame_size;
+        if (!bufferSize)
+            bufferSize = 1024;
+        bufferSize = fmt.bytesForFrames(bufferSize);
+
+        m_audioIO = new QAudioSourceIO(m_audioSource, bufferSize);
+        QObject::connect(m_audioIO, &QAudioSourceIO::newAudioBuffer, this, &QFFmpegMediaRecorder::newAudioBuffer);
+    }
+
+    int res = avformat_write_header(avFormatContext, nullptr);
+    if (res < 0)
+        qWarning() << "could not write header" << res;
+
+    if (audioInput) {
+        m_audioIO->open(QIODevice::WriteOnly);
+        m_audioSource->start(m_audioIO);
+    }
 
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);
@@ -112,6 +211,8 @@ void QFFmpegMediaRecorder::pause()
     if (!m_session || m_finalizing || state() != QMediaRecorder::RecordingState)
         return;
 
+    if (m_audioSource)
+        m_audioSource->suspend();
     // ####
     stateChanged(QMediaRecorder::PausedState);
 }
@@ -120,6 +221,9 @@ void QFFmpegMediaRecorder::resume()
 {
     if (!m_session || m_finalizing || state() != QMediaRecorder::PausedState)
         return;
+
+    if (m_audioSource)
+        m_audioSource->resume();
     // ####
     stateChanged(QMediaRecorder::RecordingState);
 }
@@ -128,9 +232,11 @@ void QFFmpegMediaRecorder::stop()
 {
     if (!m_session || m_finalizing || state() == QMediaRecorder::StoppedState)
         return;
+    if (m_audioSource)
+        m_audioSource->stop();
     qCDebug(qLcMediaEncoder) << "stop";
     m_finalizing = true;
-    // ####
+    finalize();
 }
 
 void QFFmpegMediaRecorder::finalize()
@@ -140,7 +246,28 @@ void QFFmpegMediaRecorder::finalize()
 
     qCDebug(qLcMediaEncoder) << "finalize";
 
+    if (avAudioStream) {
+        int ret = avcodec_send_frame(avAudioCodec, nullptr);
+        if (ret != 0) {
+            char errStr[1024];
+            av_strerror(ret, errStr, 1024);
+            qDebug() << "error sending final frame" << ret << errStr;
+        }
+        while (1) {
+            AVPacket *packet = av_packet_alloc();
+            ret = avcodec_receive_packet(avAudioCodec, packet);
+            if (ret == AVERROR_EOF || ret < 0)
+                break;
+            av_interleaved_write_frame(avFormatContext, packet);
+            av_packet_unref(packet);
+        }
+    }
     // ####
+
+    av_write_trailer(avFormatContext);
+    // ### free all data
+    avformat_free_context(avFormatContext);
+    avFormatContext = nullptr;
 
     m_finalizing = false;
     stateChanged(QMediaRecorder::StoppedState);
@@ -171,3 +298,50 @@ void QFFmpegMediaRecorder::setCaptureSession(QPlatformMediaCaptureSession *sessi
     if (!m_session)
         return;
 }
+
+void QFFmpegMediaRecorder::newAudioBuffer(const QAudioBuffer &buffer)
+{
+    if (!avFormatContext)
+        return;
+
+    qDebug() << "new audio buffer" << buffer.byteCount() << buffer.format() << buffer.sampleCount();
+    AVPacket *packet = av_packet_alloc();
+    while (1) {
+        int ret = avcodec_receive_packet(avAudioCodec, packet);
+        if (ret < 0) {
+            if (ret != AVERROR(EAGAIN)) {
+                char errStr[1024];
+                av_strerror(ret, errStr, 1024);
+                qDebug() << "receive frame" << ret << errStr;
+            }
+            break;
+        }
+        qDebug() << "writing packet" << packet->size;
+        av_interleaved_write_frame(avFormatContext, packet);
+    }
+
+    AVFrame *frame = av_frame_alloc();
+    frame->format = avAudioCodec->sample_fmt;
+    frame->channel_layout = avAudioCodec->channel_layout;
+    frame->channels = avAudioCodec->channels;
+    frame->sample_rate = avAudioCodec->sample_rate;
+    frame->nb_samples = buffer.sampleCount();
+    if (frame->nb_samples)
+        av_frame_get_buffer(frame, 0);
+
+    qDebug() << buffer.byteCount() << frame->buf[0]->size;
+    memcpy(frame->buf[0]->data, buffer.constData<uint8_t *>(), buffer.byteCount());
+    frame->pts = audioSamplesWritten;
+    audioSamplesWritten += buffer.sampleCount();
+
+    qDebug() << "sending frame" << buffer.byteCount();
+    int ret = avcodec_send_frame(avAudioCodec, frame);
+    if (ret < 0) {
+        char errStr[1024];
+        av_strerror(ret, errStr, 1024);
+        qDebug() << "error sending frame" << ret << errStr;
+    }
+    av_packet_unref(packet);
+}
+
+#include "qffmpegmediarecorder.moc"

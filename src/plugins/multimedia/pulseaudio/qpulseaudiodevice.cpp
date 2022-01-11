@@ -66,13 +66,8 @@ QPulseAudioDeviceInfo::QPulseAudioDeviceInfo(const char *device, const char *des
         { isBigEndian ? PA_SAMPLE_FLOAT32BE : PA_SAMPLE_FLOAT32LE, QAudioFormat::Float },
     };
 
-    pa_sample_spec spec;
-    spec.channels = 1;
-    spec.rate = 48000;
-
     for (const auto &f : formatMap) {
-        spec.format = f.pa_fmt;
-        if (pa_sample_spec_valid(&spec) != 0)
+        if (pa_sample_format_valid(f.pa_fmt) != 0)
             supportedSampleFormats.append(f.qt_fmt);
     }
 

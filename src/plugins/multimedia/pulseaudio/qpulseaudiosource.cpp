@@ -327,6 +327,12 @@ bool QPulseAudioSource::open()
         return false;
     }
 
+    auto *ss = pa_stream_get_sample_spec(m_stream);
+    qDebug() << "connected stream:";
+    qDebug() << "    channels" << ss->channels << spec.channels;
+    qDebug() << "    format" << ss->format << spec.format;
+    qDebug() << "    rate" << ss->rate << spec.rate;
+
     while (pa_stream_get_state(m_stream) != PA_STREAM_READY)
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
 

@@ -56,13 +56,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCamera;
-class QGstreamerImageCapture;
-class QGstreamerMediaEncoder;
-class QGstreamerAudioInput;
-class QGstreamerAudioOutput;
-class QGstreamerVideoOutput;
-class QGstreamerVideoSink;
+class QFFmpegMediaRecorder;
 
 class QFFmpegMediaCaptureSession : public QPlatformMediaCaptureSession
 {
@@ -91,7 +85,7 @@ private:
     QPlatformCamera *m_camera = nullptr;
     QPlatformAudioInput *m_audioInput = nullptr;
     QPlatformImageCapture *m_imageCapture = nullptr;
-    QPlatformMediaRecorder *m_mediaRecorder = nullptr;
+    QFFmpegMediaRecorder *m_mediaRecorder = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;
     QVideoSink *m_videoSink = nullptr;
 };

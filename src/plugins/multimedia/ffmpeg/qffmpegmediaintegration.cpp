@@ -42,6 +42,10 @@
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpegvideosink_p.h"
+#include "qffmpegmediacapturesession_p.h"
+#include "qffmpegmediarecorder_p.h"
+#include "qffmpegimagecapture_p.h"
+
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
 #endif
@@ -125,7 +129,7 @@ QPlatformAudioDecoder *QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder
 
 QPlatformMediaCaptureSession *QFFmpegMediaIntegration::createCaptureSession()
 {
-    return nullptr; //new QFFmpegMediaCapture();
+    return new QFFmpegMediaCaptureSession();
 }
 
 QPlatformMediaPlayer *QFFmpegMediaIntegration::createPlayer(QMediaPlayer *player)
@@ -138,14 +142,14 @@ QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera */*camera*/)
     return nullptr;//new QFFmpegCamera(camera);
 }
 
-QPlatformMediaRecorder *QFFmpegMediaIntegration::createRecorder(QMediaRecorder */*recorder*/)
+QPlatformMediaRecorder *QFFmpegMediaIntegration::createRecorder(QMediaRecorder *recorder)
 {
-    return nullptr;//new QFFmpegMediaEncoder(recorder);
+    return new QFFmpegMediaRecorder(recorder);
 }
 
-QPlatformImageCapture *QFFmpegMediaIntegration::createImageCapture(QImageCapture */*imageCapture*/)
+QPlatformImageCapture *QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
-    return nullptr;//new QFFmpegImageCapture(imageCapture);
+    return new QFFmpegImageCapture(imageCapture);
 }
 
 QPlatformVideoSink *QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)

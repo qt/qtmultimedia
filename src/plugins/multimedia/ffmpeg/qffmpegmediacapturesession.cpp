@@ -41,7 +41,7 @@
 
 #include "private/qplatformaudioinput_p.h"
 #include "private/qplatformaudiooutput_p.h"
-#include "private/qplatformmediarecorder_p.h"
+#include "qffmpegmediarecorder_p.h"
 #include "qvideosink.h"
 
 #include <qloggingcategory.h>
@@ -92,14 +92,15 @@ void QFFmpegMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCap
 
 void QFFmpegMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *recorder)
 {
-    if (m_mediaRecorder == recorder)
+    auto *r = static_cast<QFFmpegMediaRecorder *>(recorder);
+    if (m_mediaRecorder == r)
         return;
 
-//    if (m_mediaRecorder)
-//        m_mediaRecorder->setCaptureSession(nullptr);
-    m_mediaRecorder = recorder;
-//    if (m_mediaRecorder)
-//        m_mediaRecorder->setCaptureSession(this);
+    if (m_mediaRecorder)
+        m_mediaRecorder->setCaptureSession(nullptr);
+    m_mediaRecorder = r;
+    if (m_mediaRecorder)
+        m_mediaRecorder->setCaptureSession(this);
 
     emit encoderChanged();
 }

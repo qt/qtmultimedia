@@ -38,8 +38,8 @@
 ****************************************************************************/
 
 
-#ifndef QGSTREAMERENCODERCONTROL_H
-#define QGSTREAMERENCODERCONTROL_H
+#ifndef QFFMPEGMEDIARECODER_H
+#define QFFMPEGMEDIARECODER_H
 
 //
 //  W A R N I N G
@@ -55,17 +55,18 @@
 #include <private/qplatformmediarecorder_p.h>
 #include "qffmpegmediacapturesession_p.h"
 
-#include <QtCore/qurl.h>
-#include <QtCore/qdir.h>
-#include <qelapsedtimer.h>
-#include <qtimer.h>
+#include "qffmpeg_p.h"
 
 QT_BEGIN_NAMESPACE
 
+class QAudioSource;
+class QAudioSourceIO;
+class QAudioBuffer;
 class QMediaMetaData;
 
-class QFFmpegMediaRecorder : public QPlatformMediaRecorder
+class QFFmpegMediaRecorder : public QObject, public QPlatformMediaRecorder
 {
+    Q_OBJECT
 public:
     QFFmpegMediaRecorder(QMediaRecorder *parent);
     virtual ~QFFmpegMediaRecorder();
@@ -84,6 +85,9 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
+private Q_SLOTS:
+    void newAudioBuffer(const QAudioBuffer &);
+
 private:
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
     void finalize();
@@ -91,9 +95,18 @@ private:
     QFFmpegMediaCaptureSession *m_session = nullptr;
     QMediaMetaData m_metaData;
 
+    AVFormatContext *avFormatContext = nullptr;
+    AVStream *avAudioStream = nullptr;
+    AVCodecContext *avAudioCodec = nullptr;
+    qint64 audioSamplesWritten = 0;
+//    AVStream *avVideoStream = nullptr;
+
+    QAudioSource *m_audioSource = nullptr;
+    QAudioSourceIO *m_audioIO = nullptr;
+
     bool m_finalizing = false;
 };
 
 QT_END_NAMESPACE
 
-#endif // QGSTREAMERENCODERCONTROL_H
+#endif // QFFMPEGMEDIARECODER_H
