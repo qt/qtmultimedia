@@ -118,12 +118,6 @@ public Q_SLOTS:
         if (m_storeFrames)
             m_frameList.append(frame);
         ++m_totalFrames;
-
-#ifdef Q_OS_ANDROID
-        // in android it is necessary call the frame map for the
-        // AndroidTextureVideoBuffer to updateReadbackFrame
-        static_cast<QVideoFrame>(frame).map(QVideoFrame::ReadOnly);
-#endif
     }
 
 public:
