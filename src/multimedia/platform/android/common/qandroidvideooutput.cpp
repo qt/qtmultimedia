@@ -270,6 +270,11 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
                                                       : QVideoFrameFormat::Format_RGBA8888;
     QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, format));
     m_sink->platformVideoSink()->setVideoFrame(frame);
+
+    QMetaObject::invokeMethod(m_surfaceTexture
+                              , "frameAvailable"
+                              , Qt::QueuedConnection
+                              );
 }
 
 static const float g_quad[] = {
