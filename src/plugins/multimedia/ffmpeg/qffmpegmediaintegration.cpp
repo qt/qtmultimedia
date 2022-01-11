@@ -47,6 +47,7 @@
 #include "qffmpegmediarecorder_p.h"
 #include "qffmpegimagecapture_p.h"
 #include "qffmpegaudioinput_p.h"
+#include "qffmpegaudiodecoder_p.h"
 
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
@@ -132,9 +133,9 @@ QPlatformMediaFormatInfo *QFFmpegMediaIntegration::formatInfo()
     return m_formatsInfo;
 }
 
-QPlatformAudioDecoder *QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder */*decoder*/)
+QPlatformAudioDecoder *QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
-    return nullptr;//new QFFmpegAudioDecoder(decoder);
+    return new QFFmpegAudioDecoder(decoder);
 }
 
 QPlatformMediaCaptureSession *QFFmpegMediaIntegration::createCaptureSession()
