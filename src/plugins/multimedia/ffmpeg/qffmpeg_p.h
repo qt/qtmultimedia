@@ -42,7 +42,6 @@
 extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
-#include <libavdevice/avdevice.h>
 #include <libswresample/swresample.h>
 #include <libavutil/avutil.h>
 #include <libswscale/swscale.h>
