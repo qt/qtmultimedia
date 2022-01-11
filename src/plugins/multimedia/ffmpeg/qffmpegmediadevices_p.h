@@ -53,6 +53,9 @@
 
 #include <private/qplatformmediadevices_p.h>
 #include <qaudiodevice.h>
+#include <qaudioformat.h>
+
+#include <qffmpeg_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -68,6 +71,8 @@ public:
     QList<QCameraDevice> videoInputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
+
+    static QAudioFormat::SampleFormat sampleFormat(AVSampleFormat format);
 
     QPulseAudioEngine *pulseEngine = nullptr;
 };
