@@ -11,6 +11,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegmediadevices.cpp qffmpegmediadevices_p.h
         qffmpegmediaformatinfo.cpp qffmpegmediaformatinfo_p.h
         qffmpegmediaintegration.cpp qffmpegmediaintegration_p.h
+        qffmpegvideobuffer.cpp qffmpegvideobuffer_p.h
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate

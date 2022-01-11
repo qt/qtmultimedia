@@ -56,6 +56,7 @@
 #include "qffmpeg_p.h"
 
 QT_BEGIN_NAMESPACE
+class QFFmpegDecoder;
 
 class QFFmpegMediaPlayer : public QPlatformMediaPlayer
 {
@@ -90,6 +91,7 @@ public:
     QMediaMetaData metaData() const override { return m_metaData; }
 
     void setVideoSink(QVideoSink *sink) override;
+    QVideoSink *videoSink() const { return m_sink; }
 
     int trackCount(TrackType) override;
     QMediaMetaData trackMetaData(TrackType type, int streamNumber) override;
@@ -97,8 +99,12 @@ public:
     void setActiveTrack(TrackType, int streamNumber) override;
 
 private:
+    friend class QFFmpegDecoder;
+    QFFmpegDecoder *decoder;
     void closeContext();
     void checkStreams();
+    void openCodec(TrackType type, int index);
+    void closeCodec(TrackType type);
 
     struct StreamInfo {
         int avStreamIndex = -1;
@@ -108,6 +114,9 @@ private:
     QList<StreamInfo> m_streamMap[QPlatformMediaPlayer::NTrackTypes];
 
     AVFormatContext *context = nullptr;
+    int m_currentStream[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
+    AVCodecContext *codecContext[QPlatformMediaPlayer::NTrackTypes];
+
     QUrl m_url;
     QIODevice *m_device = nullptr;
     QVideoSink *m_sink = nullptr;

@@ -42,17 +42,92 @@
 #include "private/qiso639_2_p.h"
 #include "qffmpeg_p.h"
 #include "qffmpegmediametadata_p.h"
+#include "qffmpegvideobuffer_p.h"
+#include "qvideosink.h"
 
 #include <qlocale.h>
+#include <qthread.h>
+#include <qatomic.h>
+
+static float timeStamp(qint64 ts, AVRational base)
+{
+    return 1000*ts*base.num/(float)base.den;
+}
+
+class QFFmpegDecoder : public QObject
+{
+public:
+    QFFmpegDecoder(QFFmpegMediaPlayer *player)
+        : QObject()
+        , m_player(player)
+    {
+        startTimer(20, Qt::PreciseTimer);
+    }
+
+    void timerEvent(QTimerEvent *)
+    {
+        if (state == Play) {
+            qDebug() << "timer Event";
+            AVPacket packet;
+            av_init_packet(&packet);
+            if (av_read_frame(m_player->context, &packet) >= 0) {
+                auto base = m_player->context->streams[packet.stream_index]->time_base;
+                qDebug() << "    read a packet: track" << packet.stream_index
+                         << timeStamp(packet.dts, base) << timeStamp(packet.pts, base) << timeStamp(packet.duration, base);
+                int trackType = -1;
+    //            for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i)
+                    if (packet.stream_index == m_player->m_currentStream[QPlatformMediaPlayer::VideoStream])
+                        trackType = QPlatformMediaPlayer::VideoStream;
+
+                if (trackType >= 0) {
+                    // send the frame to the decoder
+                    avcodec_send_packet(m_player->codecContext[trackType], &packet);
+                    qDebug() << "   sent a packet to decoder";
+                }
+            }
+            av_packet_unref(&packet);
+
+            AVFrame *frame = av_frame_alloc();
+            int ret = avcodec_receive_frame(m_player->codecContext[QPlatformMediaPlayer::VideoStream], frame);
+            if (ret == 0) {
+                auto base = m_player->context->streams[m_player->m_currentStream[QPlatformMediaPlayer::VideoStream]]->time_base;
+                qDebug() << "    got a frame" << timeStamp(frame->pts, base);
+                QVideoSink *sink = m_player->videoSink();
+                if (sink) {
+                    QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(frame);
+                    QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
+                    QVideoFrame frame(buffer, format);
+                    sink->setVideoFrame(frame);
+                }
+            }
+        } else if (state == Stop) {
+            QVideoSink *sink = m_player->videoSink();
+            if (sink)
+                sink->setVideoFrame({});
+        }
+    }
+
+    enum State {
+        Pause,
+        Play,
+        Stop,
+        Exit
+    };
+
+    QFFmpegMediaPlayer *m_player = nullptr;
+    State state = Pause;
+};
+
 
 QFFmpegMediaPlayer::QFFmpegMediaPlayer(QMediaPlayer *player)
     : QPlatformMediaPlayer(player)
 {
-
+    decoder = new QFFmpegDecoder(this);
 }
 
 QFFmpegMediaPlayer::~QFFmpegMediaPlayer()
 {
+    delete decoder;
 }
 
 qint64 QFFmpegMediaPlayer::duration() const
@@ -139,17 +214,21 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
 void QFFmpegMediaPlayer::play()
 {
-
+    openCodec(VideoStream, 0);
+    decoder->state = QFFmpegDecoder::Play;
+    stateChanged(QMediaPlayer::PlayingState);
 }
 
 void QFFmpegMediaPlayer::pause()
 {
-
+    decoder->state = QFFmpegDecoder::Pause;
+    stateChanged(QMediaPlayer::PausedState);
 }
 
 void QFFmpegMediaPlayer::stop()
 {
-
+    decoder->state = QFFmpegDecoder::Stop;
+    stateChanged(QMediaPlayer::StoppedState);
 }
 
 void QFFmpegMediaPlayer::setVideoSink(QVideoSink *sink)
@@ -235,6 +314,51 @@ void QFFmpegMediaPlayer::checkStreams()
         m_duration = duration;
         durationChanged(duration);
     }
+}
+
+void QFFmpegMediaPlayer::openCodec(TrackType type, int index)
+{
+    int streamIdx = m_streamMap[type].value(index).avStreamIndex;
+    if (streamIdx < 0)
+        return;
+    // ### return is same track as before
+
+    if (codecContext[type])
+        closeCodec(type);
+
+    auto *stream = context->streams[streamIdx];
+    AVCodec *decoder = avcodec_find_decoder(stream->codecpar->codec_id);
+    if (!decoder) {
+        error(QMediaPlayer::FormatError, QMediaPlayer::tr("Can't decode track."));
+        return;
+    }
+    codecContext[type] = avcodec_alloc_context3(decoder);
+    if (!codecContext[type]) {
+        error(QMediaPlayer::FormatError, QMediaPlayer::tr("Failed to allocate a FFmpeg codec context"));
+        return;
+    }
+    int ret = avcodec_parameters_to_context(codecContext[type], stream->codecpar);
+    if (ret < 0) {
+        error(QMediaPlayer::FormatError, QMediaPlayer::tr("Can't decode track."));
+        return;
+    }
+    /* Init the decoders, with or without reference counting */
+    AVDictionary *opts = nullptr;
+    av_dict_set(&opts, "refcounted_frames", "1", 0);
+    ret = avcodec_open2(codecContext[type], decoder, &opts);
+    if (ret < 0) {
+        error(QMediaPlayer::FormatError, QMediaPlayer::tr("Can't decode track."));
+        return;
+    }
+    m_currentStream[type] = streamIdx;
+}
+
+void QFFmpegMediaPlayer::closeCodec(TrackType type)
+{
+    if (codecContext[type])
+        avcodec_close(codecContext[type]);
+    codecContext[type] = nullptr;
+    m_currentStream[type] = -1;
 }
 
 QT_BEGIN_NAMESPACE
