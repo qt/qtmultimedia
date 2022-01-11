@@ -115,7 +115,7 @@ QCameraFormat::~QCameraFormat() = default;
 /*!
     \qmlproperty enumeration QtMultimedia::CameraFormat::pixelFormat
 
-    Returns the pixel format.
+    Holds the pixel format.
 
     Most commonly this is either QVideoFrameFormat::Format_Jpeg or QVideoFrameFormat::Format_YUVY
     but other formats could also be supported by the camera.
@@ -312,9 +312,9 @@ bool QCameraDevice::isNull() const
 }
 
 /*!
-    \qmlmethod string QtMultimedia::cameraDevice::id
+    \qmlproperty string QtMultimedia::cameraDevice::id
 
-    Returns the device id of the camera
+   Holds he device id of the camera
 
     This is a unique ID to identify the camera and may not be human-readable.
 */
@@ -330,9 +330,9 @@ QByteArray QCameraDevice::id() const
 }
 
 /*!
-    \qmlmethod bool QtMultimedia::cameraDevice::isDefault
+    \qmlproperty bool QtMultimedia::cameraDevice::isDefault
 
-    Returns true if this is the default camera device.
+    Is true if this is the default camera device.
 */
 
 /*!
@@ -344,9 +344,9 @@ bool QCameraDevice::isDefault() const
 }
 
 /*!
-    \qmlmethod string QtMultimedia::cameraDevice::description
+    \qmlproperty string QtMultimedia::cameraDevice::description
 
-    Returns a human readable name of the camera.
+    Holds a human readable name of the camera.
 
     Use this string to present the device to the user.
 */
@@ -376,23 +376,17 @@ QString QCameraDevice::description() const
 */
 
 /*!
-    \qmlmethod enumeration QtMultimedia::cameraDevice::position
+    \qmlpropertyenumeration QtMultimedia::cameraDevice::position
 
     Returns the physical position of the camera on the hardware system.
 
     The returned value can be one of the following:
 
-    \table
-    \header
-        \li Property value
-        \li Description
-    \row \li CameraDevice.UnspecifiedPosition
-        \li The physical positition of the camera is unspecified.
-    \row \li CameraDevice.FrontFace
-        \li The camera is on the front of the hardware, facing towards the user.
-    \row \li CameraDevice.BackFace
-        \li The camera is on the back of the hardware, facing away from the user.
-    \endtable
+    \value cameraDevice.UnspecifiedPosition  The camera position is unspecified or unknown.
+    \value cameraDevice.BackFace  The camera is on the back face of the system hardware. For example on a
+           mobile device, it means it is on the opposite side to that of the screen.
+    \value cameraDevice.FrontFace  The camera is on the front face of the system hardware. For example on a
+           mobile device, it means it is on the same side as that of the screen.
 */
 
 /*!

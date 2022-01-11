@@ -183,9 +183,9 @@ bool QAudioDevice::isNull() const
 }
 
 /*!
-    \qmlmethod string QtMultimedia::audioDevice::id
+    \qmlproperty string QtMultimedia::audioDevice::id
 
-    Returns an identifier for the audio device.
+    Holds an identifier for the audio device.
 
     Device names vary depending on the platform/audio plugin being used.
 
@@ -205,9 +205,9 @@ QByteArray QAudioDevice::id() const
 }
 
 /*!
-    \qmlmethod string QtMultimedia::audioDevice::description
+    \qmlmproperty string QtMultimedia::audioDevice::description
 
-    Returns a human readable name of the audio device.
+    Holds a human readable name of the audio device.
 
     Use this string to present the device to the user.
 */
@@ -223,9 +223,9 @@ QString QAudioDevice::description() const
 }
 
 /*!
-    \qmlmethod bool QtMultimedia::audioDevice::isDefault
+    \qmlproperty bool QtMultimedia::audioDevice::isDefault
 
-    Returns true if this is the default audio device.
+    Is true if this is the default audio device.
 */
 
 /*!
@@ -336,23 +336,17 @@ QAudioDevice::QAudioDevice(QAudioDevicePrivate *p)
 */
 
 /*!
-    \qmlmethod enumeration QtMultimedia::audioDevice::mode
+    \qmlproperty enumeration QtMultimedia::audioDevice::mode
 
-    Tells whether this device is an input or output device.
+   Holds whether this device is an input or output device.
 
     The returned value can be one of the following:
 
-    \table
-    \header
-        \li Property value
-        \li Description
-    \row \li AudioDevice.Null
-        \li A null device.
-    \row \li AudioDevice.Input
-        \li An input device.
-    \row \li AudioDevice.Output
-        \li An output device.
-    \endtable
+
+    \value audioDevice.Null A null device.
+    \value audioDevice.Input input device.
+    \value audioDevice.Output An output device.
+
 */
 
 /*!
