@@ -40,13 +40,37 @@
 #include "qffmpegvideobuffer_p.h"
 #include "private/qvideotexturehelper_p.h"
 
+extern "C" {
+#include <libavutil/pixdesc.h>
+}
+
 QT_BEGIN_NAMESPACE
 
 QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrame *frame)
     : QAbstractVideoBuffer(QVideoFrame::NoHandle, nullptr)
     , m_frame(frame)
 {
+    bool needsConversion = false;
+    auto pixelFormat = toQtPixelFormat(AVPixelFormat(m_frame->format), &needsConversion);
 
+    if (needsConversion) {
+        AVPixelFormat newFormat = toAVPixelFormat(pixelFormat);
+        // convert the format into something we can handle
+        SwsContext *c = sws_getContext(frame->width, frame->height, AVPixelFormat(frame->format),
+                                       frame->width, frame->height, newFormat,
+                                       SWS_BICUBIC, nullptr, nullptr, nullptr);
+
+        AVFrame *newFrame = av_frame_alloc();
+        newFrame->width = frame->width;
+        newFrame->height = frame->height;
+        newFrame->format = newFormat;
+        av_frame_get_buffer(newFrame, 0);
+
+        sws_scale(c, frame->data, frame->linesize, 0, frame->height, newFrame->data, newFrame->linesize);
+        av_frame_free(&frame);
+        m_frame = newFrame;
+        sws_freeContext(c);
+    }
 }
 
 QFFmpegVideoBuffer::~QFFmpegVideoBuffer()
@@ -89,11 +113,14 @@ QSize QFFmpegVideoBuffer::size() const
     return QSize(m_frame->width, m_frame->height);
 }
 
-QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat avPixelFormat)
+QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat avPixelFormat, bool *needsConversion)
 {
+    if (needsConversion)
+        *needsConversion = false;
+
     switch (avPixelFormat) {
     default:
-        return QVideoFrameFormat::Format_Invalid;
+        break;
     case AV_PIX_FMT_ARGB:
         return QVideoFrameFormat::Format_ARGB8888;
     case AV_PIX_FMT_0RGB:
@@ -133,6 +160,18 @@ QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat
     case AV_PIX_FMT_P016:
         return QVideoFrameFormat::Format_P016;
     }
+
+    if (needsConversion)
+        *needsConversion = true;
+
+    const AVPixFmtDescriptor *descriptor = av_pix_fmt_desc_get(avPixelFormat);
+
+    if (descriptor->flags & AV_PIX_FMT_FLAG_RGB)
+        return QVideoFrameFormat::Format_RGBA8888;
+
+    if (descriptor->comp[0].depth > 8)
+        return QVideoFrameFormat::Format_P016;
+    return QVideoFrameFormat::Format_YUV420P;
 }
 
 AVPixelFormat QFFmpegVideoBuffer::toAVPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)

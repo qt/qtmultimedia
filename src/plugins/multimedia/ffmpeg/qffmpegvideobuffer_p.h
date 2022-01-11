@@ -74,7 +74,7 @@ public:
     QVideoFrameFormat::PixelFormat pixelFormat() const;
     QSize size() const;
 
-    static QVideoFrameFormat::PixelFormat toQtPixelFormat(AVPixelFormat avPixelFormat);
+    static QVideoFrameFormat::PixelFormat toQtPixelFormat(AVPixelFormat avPixelFormat, bool *needsConversion = nullptr);
     static AVPixelFormat toAVPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat);
 
 private:
