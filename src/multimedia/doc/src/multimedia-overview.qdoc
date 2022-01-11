@@ -96,8 +96,7 @@ For some quick recipes, see this table:
         \li QMediaPlayer
     \row
         \li Playing raw audio data with low latency
-        \li \l{Audio Source Example}{audiosource},
-            \l{Spectrum Example}{spectrum}
+        \li \l{Audio Output Example}{audiooutput},
         \li
         \li QAudioSink
     \row
