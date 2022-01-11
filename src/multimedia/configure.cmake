@@ -21,6 +21,7 @@ qt_find_package(WrapPulseAudio PROVIDED_TARGETS WrapPulseAudio::WrapPulseAudio M
 qt_find_package(WMF PROVIDED_TARGETS WMF::WMF MODULE_NAME multimedia QMAKE_LIB wmf)
 qt_find_package(EGL)
 
+qt_find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE REQUIRED PROVIDED_TARGETS FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::avdevice MODULE_NAME multimedia QMAKE_LIB ffmpeg)
 
 #### Tests
 
@@ -104,6 +105,11 @@ qt_feature("gstreamer_gl" PRIVATE
     LABEL "GStreamer OpenGL"
     CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND
 )
+qt_feature("ffmpeg" PRIVATE
+    LABEL "FFmpeg"
+    CONDITION FFmpeg_FOUND
+)
+
 qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU"
     CONDITION QT_FEATURE_gui AND QT_FEATURE_opengles2 AND TEST_gpu_vivante
@@ -136,6 +142,7 @@ qt_feature("wmf" PRIVATE
 qt_configure_add_summary_section(NAME "Qt Multimedia")
 #qt_configure_add_summary_entry(ARGS "alsa")
 qt_configure_add_summary_entry(ARGS "gstreamer_1_0")
+qt_configure_add_summary_entry(ARGS "ffmpeg")
 qt_configure_add_summary_entry(ARGS "linux_v4l")
 qt_configure_add_summary_entry(ARGS "pulseaudio")
 qt_configure_add_summary_entry(ARGS "linux_dmabuf")

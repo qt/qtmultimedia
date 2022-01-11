@@ -50,6 +50,8 @@
 
 #include "audiodevices.h"
 #include <qmediadevices.h>
+#include <qcameradevice.h>
+#include <qmediaformat.h>
 
 // Utility functions for converting QAudioFormat fields into text
 
@@ -82,6 +84,9 @@ AudioTest::AudioTest(QWidget *parent)
     : AudioDevicesBase(parent),
       m_devices(new QMediaDevices(this))
 {
+    m_devices->videoInputs();
+    qDebug() << "<<<<<<<<<<<<<<<<<<";
+    QMediaFormat().supportedFileFormats(QMediaFormat::Encode);
     connect(testButton, &QPushButton::clicked, this, &AudioTest::test);
     connect(modeBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::modeChanged);
     connect(deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
