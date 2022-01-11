@@ -41,11 +41,10 @@
 #include "qmediadevices.h"
 #include <private/qcameradevice_p.h>
 
+#include "qffmpeg_p.h"
+
 #include <qdebug.h>
 
-extern "C" {
-#include <libavdevice/avdevice.h>
-}
 
 QT_BEGIN_NAMESPACE
 

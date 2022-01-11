@@ -38,11 +38,7 @@
 ****************************************************************************/
 
 #include "qffmpegmediaformatinfo_p.h"
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-}
+#include "qffmpeg_p.h"
 
 static struct {
     AVCodecID id;

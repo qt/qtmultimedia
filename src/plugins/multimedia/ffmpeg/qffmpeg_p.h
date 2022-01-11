@@ -37,38 +37,10 @@
 **
 ****************************************************************************/
 
-#ifndef QFFmpegMediaFormatInfo_H
-#define QFFmpegMediaFormatInfo_H
+#include <private/qtmultimediaglobal_p.h>
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediaformatinfo_p.h>
-#include <qhash.h>
-#include <qlist.h>
-#include "qffmpeg_p.h"
-
-QT_BEGIN_NAMESPACE
-
-class QFFmpegMediaFormatInfo : public QPlatformMediaFormatInfo
-{
-public:
-    QFFmpegMediaFormatInfo();
-    ~QFFmpegMediaFormatInfo();
-
-    static QMediaFormat::VideoCodec videoCodecForAVCodecId(AVCodecID id);
-    static QMediaFormat::AudioCodec audioCodecForAVCodecId(AVCodecID id);
-
-};
-
-QT_END_NAMESPACE
-
-#endif
+extern "C" {
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+#include <libavdevice/avdevice.h>
+}

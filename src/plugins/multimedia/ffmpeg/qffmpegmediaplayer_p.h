@@ -53,10 +53,7 @@
 
 #include <private/qplatformmediaplayer_p.h>
 #include <qmediametadata.h>
-
-extern "C" {
-typedef struct AVFormatContext AVFormatContext;
-}
+#include "qffmpeg_p.h"
 
 QT_BEGIN_NAMESPACE
 

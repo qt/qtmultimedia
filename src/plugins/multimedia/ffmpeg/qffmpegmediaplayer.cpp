@@ -40,13 +40,9 @@
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "private/qiso639_2_p.h"
+#include "qffmpeg_p.h"
 
 #include <qlocale.h>
-
-extern "C" {
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-}
 
 QFFmpegMediaPlayer::QFFmpegMediaPlayer(QMediaPlayer *player)
     : QPlatformMediaPlayer(player)
