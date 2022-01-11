@@ -39,6 +39,7 @@
 
 #include "qffmpegvideobuffer_p.h"
 #include "private/qvideotexturehelper_p.h"
+#include "qffmpeghwaccel_p.h"
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -46,36 +47,57 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
-QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrame *frame)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle, nullptr)
-    , m_frame(frame)
+QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrame *frame, const QFFmpeg::HWAccel &accel)
+    : QAbstractVideoBuffer(accel.rhi() ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, accel.rhi())
+    , frame(frame)
+    , hwAccel(accel)
 {
-    bool needsConversion = false;
-    auto pixelFormat = toQtPixelFormat(AVPixelFormat(m_frame->format), &needsConversion);
-
-    if (needsConversion) {
-        AVPixelFormat newFormat = toAVPixelFormat(pixelFormat);
-        // convert the format into something we can handle
-        SwsContext *c = sws_getContext(frame->width, frame->height, AVPixelFormat(frame->format),
-                                       frame->width, frame->height, newFormat,
-                                       SWS_BICUBIC, nullptr, nullptr, nullptr);
-
-        AVFrame *newFrame = av_frame_alloc();
-        newFrame->width = frame->width;
-        newFrame->height = frame->height;
-        newFrame->format = newFormat;
-        av_frame_get_buffer(newFrame, 0);
-
-        sws_scale(c, frame->data, frame->linesize, 0, frame->height, newFrame->data, newFrame->linesize);
-        av_frame_free(&frame);
-        m_frame = newFrame;
-        sws_freeContext(c);
+    if (frame->hw_frames_ctx) {
+        Q_ASSERT(!accel.isNull());
+        hwFrame = frame;
+        m_pixelFormat = toQtPixelFormat(accel.format(frame));
+        return;
     }
+
+    m_pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format));
+    swFrame = frame;
+
+    convertSWFrame();
 }
 
 QFFmpegVideoBuffer::~QFFmpegVideoBuffer()
 {
-    av_frame_free(&m_frame);
+    if (swFrame)
+        av_frame_free(&swFrame);
+    if (hwFrame)
+        av_frame_free(&hwFrame);
+}
+
+void QFFmpegVideoBuffer::convertSWFrame()
+{
+    Q_ASSERT(swFrame);
+    bool needsConversion = false;
+    auto pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format), &needsConversion);
+//    qDebug() << "SW frame format:" << pixelFormat << swFrame->format << needsConversion;
+
+    if (pixelFormat != m_pixelFormat) {
+        AVPixelFormat newFormat = toAVPixelFormat(m_pixelFormat);
+        // convert the format into something we can handle
+        SwsContext *c = sws_getContext(swFrame->width, swFrame->height, AVPixelFormat(swFrame->format),
+                                       swFrame->width, swFrame->height, newFormat,
+                                       SWS_BICUBIC, nullptr, nullptr, nullptr);
+
+        AVFrame *newFrame = av_frame_alloc();
+        newFrame->width = swFrame->width;
+        newFrame->height = swFrame->height;
+        newFrame->format = newFormat;
+        av_frame_get_buffer(newFrame, 0);
+
+        sws_scale(c, swFrame->data, swFrame->linesize, 0, swFrame->height, newFrame->data, newFrame->linesize);
+        av_frame_free(&swFrame);
+        swFrame = newFrame;
+        sws_freeContext(c);
+    }
 }
 
 QVideoFrame::MapMode QFFmpegVideoBuffer::mapMode() const
@@ -85,14 +107,26 @@ QVideoFrame::MapMode QFFmpegVideoBuffer::mapMode() const
 
 QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 {
+    if (!swFrame) {
+        Q_ASSERT(hwFrame && hwFrame->hw_frames_ctx);
+        swFrame = av_frame_alloc();
+        /* retrieve data from GPU to CPU */
+        int ret = av_hwframe_transfer_data(swFrame, hwFrame, 0);
+        if (ret < 0) {
+            qWarning() << "Error transferring the data to system memory\n";
+            return {};
+        }
+        convertSWFrame();
+    }
+
     m_mode = mode;
 
     MapData mapData;
     mapData.nPlanes = QVideoTextureHelper::textureDescription(pixelFormat())->nplanes;
     for (int i = 0; i < mapData.nPlanes; ++i) {
-        mapData.data[i] = m_frame->data[i];
-        mapData.bytesPerLine[i] = m_frame->linesize[i];
-        auto *bufferRef = av_frame_get_plane_buffer(m_frame, i);
+        mapData.data[i] = swFrame->data[i];
+        mapData.bytesPerLine[i] = swFrame->linesize[i];
+        auto *bufferRef = av_frame_get_plane_buffer(swFrame, i);
         mapData.size[i] = bufferRef ? bufferRef->size : 0;
     }
     return mapData;
@@ -103,14 +137,28 @@ void QFFmpegVideoBuffer::unmap()
     // nothing to do here for SW buffers
 }
 
+void QFFmpegVideoBuffer::mapTextures()
+{
+    if (textures[0])
+        return;
+    qDebug() << ">>>>> mapTextures";
+//    QFFmpeg::getRhiTextures(rhi, hwDeviceContext, hwFrame, textures);
+}
+
+quint64 QFFmpegVideoBuffer::textureHandle(int plane) const
+{
+    qDebug() << "retrieving texture for plane" << plane << textures[plane];
+    return textures[plane];
+}
+
 QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::pixelFormat() const
 {
-    return toQtPixelFormat(AVPixelFormat(m_frame->format));
+    return m_pixelFormat;
 }
 
 QSize QFFmpegVideoBuffer::size() const
 {
-    return QSize(m_frame->width, m_frame->height);
+    return QSize(frame->width, frame->height);
 }
 
 QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat avPixelFormat, bool *needsConversion)

@@ -45,6 +45,7 @@
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegvideobuffer_p.h"
 #include "private/qplatformaudiooutput_p.h"
+#include "qffmpeghwaccel_p.h"
 #include "qvideosink.h"
 #include "qaudiosink.h"
 #include "qaudiooutput.h"
@@ -53,6 +54,10 @@
 #include <qtimer.h>
 
 #include <qloggingcategory.h>
+
+extern "C" {
+#include <libavutil/hwcontext.h>
+}
 
 QT_BEGIN_NAMESPACE
 
@@ -69,7 +74,6 @@ bool Thread::checkPaused()
     if (!pauseRequested)
         return false;
     if (paused.loadAcquire() != pauseRequested) {
-        qDebug() << "YYY" << this << "pause requested" << pauseRequested;
         paused.storeRelease(pauseRequested);
         data->condition.wakeAll();
     }
@@ -84,11 +88,8 @@ bool Thread::checkPaused()
 void Thread::maybePause()
 {
     QMutexLocker locker(&mutex);
-    while (checkPaused() || shouldWait()) {
-        qDebug() << "YYY" << this << "   waiting" << pauseRequested << step;
+    while (checkPaused() || shouldWait())
         condition.wait(&mutex);
-        qDebug() << "YYY" << this << "   done waiting";
-    }
 }
 
 void Thread::run()
@@ -403,8 +404,9 @@ void VideoRendererThread::loop()
     qint64 startTime = timeStamp(avFrame->pts, base);
     qint64 duration = (1000*stream->avg_frame_rate.den + (stream->avg_frame_rate.num>>1))
                       /stream->avg_frame_rate.num;
+
     if (sink) {
-        QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame);
+        QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame, data->pipelines[QPlatformMediaPlayer::VideoStream].hwAccel);
         QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
         QVideoFrame frame(buffer, format);
         qint64 startTime = timeStamp(avFrame->pts, base);
@@ -616,7 +618,14 @@ void Pipeline::destroy()
 
 QFFmpegDecoder::QFFmpegDecoder(QFFmpegMediaPlayer *p)
     : player(p)
-{}
+{
+}
+
+QFFmpegDecoder::~QFFmpegDecoder()
+{
+    for (int i = 0; i < 2; ++i)
+        pipelines[i].destroy();
+}
 
 void QFFmpegDecoder::init()
 {
@@ -831,6 +840,8 @@ bool QFFmpegDecoder::openCodec(QPlatformMediaPlayer::TrackType type, int index)
         return false;
     }
 
+    pipelines[type].hwAccel = QFFmpeg::HWAccel(decoder);
+
     codecContext[type] = avcodec_alloc_context3(decoder);
     if (!codecContext[type]) {
         player->error(QMediaPlayer::FormatError, QMediaPlayer::tr("Failed to allocate a FFmpeg codec context"));
@@ -841,6 +852,11 @@ bool QFFmpegDecoder::openCodec(QPlatformMediaPlayer::TrackType type, int index)
         player->error(QMediaPlayer::FormatError, QMediaPlayer::tr("Can't decode track."));
         return false;
     }
+
+    codecContext[type]->hw_device_ctx = pipelines[type].hwAccel.hwContext();
+    // ### This still gives errors about wrong HW formats (as we accept all of them)
+    // But it would be good to get so we can filter out pixel format we don't support natively
+//    codecContext[type]->get_format = QFFmpeg::getFormat;
 
     /* Init the decoders, with reference counting */
     AVDictionary *opts = nullptr;

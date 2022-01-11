@@ -36,42 +36,81 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QFFMPEGVIDEOSINK_H
-#define QFFMPEGVIDEOSINK_H
+#ifndef QFFMPEGHWACCEL_P_H
+#define QFFMPEGHWACCEL_P_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformvideosink_p.h>
+#include "qffmpeg_p.h"
+
+#include <qshareddata.h>
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
+class QRhi;
 
-class QFFmpegVideoSink : public QPlatformVideoSink
+namespace QFFmpeg {
+
+// used for the get_format callback for the decoder
+enum AVPixelFormat getFormat(struct AVCodecContext *s, const enum AVPixelFormat * fmt);
+
+class HWAccel;
+
+class HWAccelBackend
 {
-    Q_OBJECT
-
+    friend class HWAccel;
+protected:
+    HWAccelBackend(AVBufferRef *hwContext);
 public:
-    QFFmpegVideoSink(QVideoSink *sink);
-//    virtual void setRhi(QRhi * /*rhi*/) {}
+    virtual ~HWAccelBackend();
+    virtual void setRhi(QRhi *) {}
+    virtual bool getTextures(AVFrame */*frame*/, qint64 */*textures*/) { return false; }
+    virtual AVPixelFormat format(AVFrame *frame) const;
 
-//    virtual void setDisplayRect(const QRect &) {};
-//    virtual void setFullScreen(bool) {}
-//    virtual void setAspectRatioMode(Qt::AspectRatioMode) {}
+    QAtomicInt ref = 0;
+    AVBufferRef *hwContext = nullptr;
+    QRhi *rhi = nullptr;
 };
 
-QT_END_NAMESPACE
+class HWAccel
+{
+public:
+    HWAccel() = default;
+    explicit HWAccel(AVCodec *codec);
+    ~HWAccel() = default;
 
+    QRhi *rhi() const { return d ? d->rhi : nullptr; }
+    void setRhi(QRhi *rhi) {
+        if (d)
+            d->setRhi(rhi);
+    }
+    bool getTextures(AVFrame *frame, qint64 *textures) {
+        if (!d)
+            return false;
+        return d->getTextures(frame, textures);
+    }
+    AVPixelFormat format(AVFrame *frame) const
+    {
+        return d ? d->format(frame) : AVPixelFormat(frame->format);
+    }
+    bool canProvideTextures() const { return d->rhi != nullptr; }
+    AVBufferRef *hwContext() const { return d ? d->hwContext : nullptr; }
+    bool isNull() const { return !d; }
+
+private:
+    QExplicitlySharedDataPointer<HWAccelBackend> d;
+};
+}
+
+QT_END_NAMESPACE
 
 #endif

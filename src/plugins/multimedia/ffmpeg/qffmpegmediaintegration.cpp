@@ -71,13 +71,19 @@ public:
 
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
-    qDebug() << "QFFMpegMediaIntegration constructor";
 #if QT_CONFIG(pulseaudio)
     m_devices = new QPulseAudioMediaDevices(this);
 #else
     m_devices = new QFFmpegMediaDevices(this);
 #endif
     m_formatsInfo = new QFFmpegMediaFormatInfo();
+
+#ifndef QT_NO_DEBUG
+    qDebug() << "Available HW decoding frameworks:";
+    AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
+    while ((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
+        qDebug() << "    " << av_hwdevice_get_type_name(type);
+#endif
 }
 
 QFFmpegMediaIntegration::~QFFmpegMediaIntegration()

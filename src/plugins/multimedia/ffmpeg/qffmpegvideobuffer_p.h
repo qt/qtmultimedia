@@ -57,6 +57,7 @@
 #include <QtCore/qvariant.h>
 
 #include <qffmpeg_p.h>
+#include <qffmpeghwaccel_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -64,12 +65,15 @@ class QFFmpegVideoBuffer : public QAbstractVideoBuffer
 {
 public:
 
-    QFFmpegVideoBuffer(AVFrame *frame);
+    QFFmpegVideoBuffer(AVFrame *frame, const QFFmpeg::HWAccel &accel);
     ~QFFmpegVideoBuffer();
 
     QVideoFrame::MapMode mapMode() const override;
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
+
+    virtual void mapTextures() override;
+    virtual quint64 textureHandle(int plane) const override;
 
     QVideoFrameFormat::PixelFormat pixelFormat() const;
     QSize size() const;
@@ -77,9 +81,16 @@ public:
     static QVideoFrameFormat::PixelFormat toQtPixelFormat(AVPixelFormat avPixelFormat, bool *needsConversion = nullptr);
     static AVPixelFormat toAVPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat);
 
+    void convertSWFrame();
+
 private:
-    AVFrame *m_frame;
+    QVideoFrameFormat::PixelFormat m_pixelFormat;
+    AVFrame *frame = nullptr;
+    AVFrame *hwFrame = nullptr;
+    AVFrame *swFrame = nullptr;
+    QFFmpeg::HWAccel hwAccel;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
+    qint64 textures[4] = {};
 };
 
 QT_END_NAMESPACE

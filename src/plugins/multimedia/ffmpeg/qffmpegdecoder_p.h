@@ -53,6 +53,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include "qffmpeg_p.h"
 #include "qffmpegmediaplayer_p.h"
+#include "qffmpeghwaccel_p.h"
 
 #include <qmutex.h>
 #include <qwaitcondition.h>
@@ -117,6 +118,7 @@ struct Pipeline {
     //    int streamIndex = -1; // FFmpeg stream index
     DecoderThread *decoder = nullptr;
     RendererThread *renderer = nullptr;
+    QFFmpeg::HWAccel hwAccel;
 
     void createVideoPipeline(QFFmpegDecoder *d, QVideoSink *sink);
     void createAudioPipeline(QFFmpegDecoder *d, QAudioOutput *sink);
@@ -127,6 +129,7 @@ class QFFmpegDecoder : public QObject
 {
 public:
     QFFmpegDecoder(QFFmpegMediaPlayer *p);
+    ~QFFmpegDecoder();
 
     void init();
     void play() {
