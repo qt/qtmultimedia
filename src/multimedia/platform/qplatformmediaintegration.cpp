@@ -112,11 +112,13 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
     if (holder.instance)
         return holder.instance;
 
+    auto plugins = backends();
+
     QString type = holder.preferred;
     if (type.isEmpty())
         type = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
-    if (type.isEmpty())
-        type = backends().first();
+    if (type.isEmpty() && !plugins.isEmpty())
+        type = plugins.first();
 
     qCDebug(qLcMediaPlugin) << "loading backend" << type;
     holder.nativeInstance = qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), type);
