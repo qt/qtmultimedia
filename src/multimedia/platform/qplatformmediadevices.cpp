@@ -85,7 +85,7 @@ QPlatformAudioSource* QPlatformMediaDevices::audioInputDevice(const QAudioFormat
     if (info.isNull())
         info = audioInputs().value(0);
 
-    QPlatformAudioSource* p = createAudioSource(info);
+    QPlatformAudioSource* p = !info.isNull() ? createAudioSource(info) : nullptr;
     if (p)
         p->setFormat(format);
     return p;
@@ -97,7 +97,7 @@ QPlatformAudioSink* QPlatformMediaDevices::audioOutputDevice(const QAudioFormat 
     if (info.isNull())
         info = audioOutputs().value(0);
 
-    QPlatformAudioSink* p = createAudioSink(info);
+    QPlatformAudioSink* p = !info.isNull() ? createAudioSink(info) : nullptr;
     if (p)
         p->setFormat(format);
     return p;
