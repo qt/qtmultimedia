@@ -105,8 +105,11 @@ QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
     QList<QAudioDevice> devices;
 
     AudioDeviceID defaultDevice = defaultAudioDevice(mode);
-    if (defaultDevice != 0)
-        devices << (new QCoreAudioDeviceInfo(defaultDevice, uniqueId(defaultDevice, mode), mode))->create();
+    if (defaultDevice != 0) {
+        auto *dev = new QCoreAudioDeviceInfo(defaultDevice, uniqueId(defaultDevice, mode), mode);
+        dev->isDefault = true;
+        devices << dev->create();
+    }
 
     UInt32 propSize = 0;
     AudioObjectPropertyAddress audioDevicesPropertyAddress = { kAudioHardwarePropertyDevices,
@@ -204,6 +207,8 @@ QDarwinMediaDevices::~QDarwinMediaDevices()
 QList<QAudioDevice> QDarwinMediaDevices::audioInputs() const
 {
 #ifdef Q_OS_IOS
+    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
+
     // TODO: Support Bluetooth and USB devices
     QList<QAudioDevice> devices;
     AVCaptureDeviceDiscoverySession *captureDeviceDiscoverySession = [AVCaptureDeviceDiscoverySession
@@ -212,8 +217,12 @@ QList<QAudioDevice> QDarwinMediaDevices::audioInputs() const
             position:AVCaptureDevicePositionUnspecified];
 
     NSArray *captureDevices = [captureDeviceDiscoverySession devices];
-    for (AVCaptureDevice *device in captureDevices)
-        devices << (new QCoreAudioDeviceInfo(QString::fromNSString(device.uniqueID).toUtf8(), QAudioDevice::Input))->create();
+    for (AVCaptureDevice *device in captureDevices) {
+        auto *dev = new QCoreAudioDeviceInfo(QString::fromNSString(device.uniqueID).toUtf8(), QAudioDevice::Input);
+        if (defaultDevice && [defaultDevice.uniqueID isEqualToString:device.uniqueID])
+            dev->isDefault = true;
+        devices << dev->create();
+    }
     return devices;
 #else
     return availableAudioDevices(QAudioDevice::Input);
@@ -224,7 +233,9 @@ QList<QAudioDevice> QDarwinMediaDevices::audioOutputs() const
 {
 #ifdef Q_OS_IOS
     QList<QAudioDevice> devices;
-    devices.append((new QCoreAudioDeviceInfo("default", QAudioDevice::Output))->create());
+    auto *dev = new QCoreAudioDeviceInfo("default", QAudioDevice::Output);
+    dev->isDefault = true;
+    devices.append(dev->create());
     return devices;
 #else
     return availableAudioDevices(QAudioDevice::Output);
