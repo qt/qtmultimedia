@@ -215,6 +215,9 @@ void InputTest::toggleMode()
     } else {
         m_modeButton->setText(tr("Enable pull mode"));
         auto *io = m_audioInput->start();
+        if (!io)
+            return;
+
         connect(io, &QIODevice::readyRead,
             [this, io]() {
                 static const qint64 BufferSize = 4096;

@@ -123,9 +123,10 @@ QAudioSink::QAudioSink(const QAudioDevice &audioDevice, const QAudioFormat &form
     QObject(parent)
 {
     d = QPlatformMediaIntegration::instance()->devices()->audioOutputDevice(format, audioDevice);
-    if (d) {
+    if (d)
         connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
-    }
+    else
+        qWarning() << ("No audio device detected");
 }
 
 /*!
@@ -144,7 +145,7 @@ QAudioSink::~QAudioSink()
 */
 QAudioFormat QAudioSink::format() const
 {
-    return d->format();
+    return d ? d->format() : QAudioFormat();
 }
 
 /*!
@@ -163,6 +164,8 @@ QAudioFormat QAudioSink::format() const
 */
 void QAudioSink::start(QIODevice* device)
 {
+    if (!d)
+        return;
     d->elapsedTime.restart();
     d->start(device);
 }
@@ -186,6 +189,8 @@ void QAudioSink::start(QIODevice* device)
 */
 QIODevice* QAudioSink::start()
 {
+    if (!d)
+        return nullptr;
     d->elapsedTime.restart();
     return d->start();
 }
@@ -198,7 +203,8 @@ QIODevice* QAudioSink::start()
 */
 void QAudioSink::stop()
 {
-    d->stop();
+    if (d)
+        d->stop();
 }
 
 /*!
@@ -207,7 +213,8 @@ void QAudioSink::stop()
 */
 void QAudioSink::reset()
 {
-    d->reset();
+    if (d)
+        d->reset();
 }
 
 /*!
@@ -218,7 +225,8 @@ void QAudioSink::reset()
 */
 void QAudioSink::suspend()
 {
-    d->suspend();
+    if (d)
+        d->suspend();
 }
 
 /*!
@@ -231,7 +239,8 @@ void QAudioSink::suspend()
 */
 void QAudioSink::resume()
 {
-     d->resume();
+    if (d)
+        d->resume();
 }
 
 /*!
@@ -242,7 +251,7 @@ void QAudioSink::resume()
 */
 qsizetype QAudioSink::bytesFree() const
 {
-    return d->bytesFree();
+    return d ? d->bytesFree() : 0;
 }
 
 /*!
@@ -255,7 +264,8 @@ qsizetype QAudioSink::bytesFree() const
 */
 void QAudioSink::setBufferSize(qsizetype value)
 {
-    d->setBufferSize(value);
+    if (d)
+        d->setBufferSize(value);
 }
 
 /*!
@@ -269,7 +279,7 @@ void QAudioSink::setBufferSize(qsizetype value)
 */
 qsizetype QAudioSink::bufferSize() const
 {
-    return d->bufferSize();
+    return d ? d->bufferSize() : 0;
 }
 
 /*!
@@ -278,7 +288,7 @@ qsizetype QAudioSink::bufferSize() const
 */
 qint64 QAudioSink::processedUSecs() const
 {
-    return d->processedUSecs();
+    return d ? d->processedUSecs() : 0;
 }
 
 /*!
@@ -287,7 +297,7 @@ qint64 QAudioSink::processedUSecs() const
 */
 qint64 QAudioSink::elapsedUSecs() const
 {
-    return d->state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
+    return state() == QAudio::StoppedState ? 0 : d->elapsedTime.nsecsElapsed()/1000;
 }
 
 /*!
@@ -295,7 +305,7 @@ qint64 QAudioSink::elapsedUSecs() const
 */
 QAudio::Error QAudioSink::error() const
 {
-    return d->error();
+    return d ? d->error() : QAudio::OpenError;
 }
 
 /*!
@@ -303,7 +313,7 @@ QAudio::Error QAudioSink::error() const
 */
 QAudio::State QAudioSink::state() const
 {
-    return d->state();
+    return d ? d->state() : QAudio::StoppedState;
 }
 
 /*!
@@ -324,6 +334,8 @@ QAudio::State QAudioSink::state() const
 */
 void QAudioSink::setVolume(qreal volume)
 {
+    if (!d)
+        return;
     qreal v = qBound(qreal(0.0), volume, qreal(1.0));
     d->setVolume(v);
 }
@@ -333,7 +345,7 @@ void QAudioSink::setVolume(qreal volume)
 */
 qreal QAudioSink::volume() const
 {
-    return d->volume();
+    return d ? d->volume() : 1.0;
 }
 
 /*!
