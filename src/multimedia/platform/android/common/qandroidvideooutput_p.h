@@ -79,6 +79,7 @@ public:
     virtual bool isReady() { return true; }
 
     virtual void setVideoSize(const QSize &) { }
+    virtual void start() { }
     virtual void stop() { }
     virtual void reset() { }
 
@@ -117,6 +118,7 @@ public:
 
     bool isReady() override;
     void setVideoSize(const QSize &) override;
+    void start() override;
     void stop() override;
     void reset() override;
 
@@ -136,6 +138,7 @@ private:
 
     QVideoSink *m_sink = nullptr;
     QSize m_nativeSize;
+    bool m_started = false;
 
     AndroidSurfaceTexture *m_surfaceTexture = nullptr;
 

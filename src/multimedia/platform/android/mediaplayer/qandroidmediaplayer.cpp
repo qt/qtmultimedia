@@ -408,6 +408,9 @@ void QAndroidMediaPlayer::play()
         return;
     }
 
+    if (mVideoOutput)
+        mVideoOutput->start();
+
     updateAudioDevice();
 
     mMediaPlayer->play();
@@ -425,10 +428,17 @@ void QAndroidMediaPlayer::pause()
 
     if ((mState & (AndroidMediaPlayer::Started
                    | AndroidMediaPlayer::Paused
-                   | AndroidMediaPlayer::PlaybackCompleted)) == 0) {
+                   | AndroidMediaPlayer::PlaybackCompleted
+                   | AndroidMediaPlayer::Prepared
+                   | AndroidMediaPlayer::Stopped)) == 0) {
         mPendingState = QMediaPlayer::PausedState;
         return;
     }
+    if (mVideoOutput)
+        mVideoOutput->start();
+
+    const qint64 currentPosition = mMediaPlayer->getCurrentPosition();
+    setPosition(currentPosition);
 
     mMediaPlayer->pause();
 }
@@ -448,6 +458,9 @@ void QAndroidMediaPlayer::stop()
             mPendingState = QMediaPlayer::StoppedState;
         return;
     }
+
+    if (mVideoOutput)
+        mVideoOutput->stop();
 
     mMediaPlayer->stop();
 }
