@@ -1,5 +1,5 @@
 
-qt_internal_add_plugin(QPulseaudioMediaPlugin
+qt_internal_add_plugin(QPulseAudioMediaPlugin
     OUTPUT_NAME pulseaudiomediaplugin
     PLUGIN_TYPE multimedia
     SOURCES
