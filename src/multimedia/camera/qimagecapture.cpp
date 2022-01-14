@@ -364,8 +364,7 @@ int QImageCapture::capture()
 /*!
     \fn QImageCapture::imageAvailable(int id, const QVideoFrame &frame)
 
-    Signal emitted when QImageCapture::CaptureToBuffer is set and
-    the \a frame with request \a id is available.
+    Signal emitted when the \a frame with request \a id is available.
 */
 
 /*!
