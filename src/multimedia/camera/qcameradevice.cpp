@@ -376,7 +376,7 @@ QString QCameraDevice::description() const
 */
 
 /*!
-    \qmlpropertyenumeration QtMultimedia::cameraDevice::position
+    \qmlproperty enumeration QtMultimedia::cameraDevice::position
 
     Returns the physical position of the camera on the hardware system.
 
