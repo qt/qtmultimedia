@@ -205,7 +205,7 @@ QByteArray QAudioDevice::id() const
 }
 
 /*!
-    \qmlmproperty string QtMultimedia::audioDevice::description
+    \qmlproperty string QtMultimedia::audioDevice::description
 
     Holds a human readable name of the audio device.
 
