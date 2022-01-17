@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QGSTREAMERINTEGRATION_H
-#define QGSTREAMERINTEGRATION_H
+#ifndef QFFMPEGENCODER_P_H
+#define QFFMPEGENCODER_P_H
 
 //
 //  W A R N I N G
@@ -51,38 +50,101 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include "qffmpegthread_p.h"
+#include "qffmpeg_p.h"
+
+#include <private/qplatformmediarecorder_p.h>
+#include <qaudioformat.h>
+#include <qaudiobuffer.h>
+
+#include <qqueue.h>
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegMediaDevices;
-class QFFmpegMediaFormatInfo;
+class QFFmpegAudioInput;
 
-class QFFmpegMediaIntegration : public QPlatformMediaIntegration
+namespace QFFmpeg
+{
+
+class Muxer;
+class AudioEncoder;
+
+class Encoder : public QObject
 {
 public:
-    QFFmpegMediaIntegration();
-    ~QFFmpegMediaIntegration();
+    Encoder(const QMediaEncoderSettings &settings, const QUrl &url);
+    ~Encoder();
 
-    static QFFmpegMediaIntegration *instance() { return static_cast<QFFmpegMediaIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    void addAudioInput(QFFmpegAudioInput *input);
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *) override;
+    void start();
+    void finalize();
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+public Q_SLOTS:
+    void newAudioBuffer(const QAudioBuffer &buffer);
 
-    QPlatformAudioInput *createAudioInput(QAudioInput *input) override;
-//    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
+public:
 
-    QPlatformMediaDevices *m_devices = nullptr;
-    QFFmpegMediaFormatInfo *m_formatsInfo = nullptr;
+    QMediaEncoderSettings settings;
+    AVFormatContext *formatContext = nullptr;
+    Muxer *muxer = nullptr;
+
+    AudioEncoder *audioEncode = nullptr;
 };
+
+
+class Muxer : public Thread
+{
+    mutable QMutex queueMutex;
+    QQueue<AVPacket *> packetQueue;
+public:
+    Muxer(Encoder *encoder);
+
+    void addPacket(AVPacket *);
+
+private:
+    AVPacket *takePacket();
+
+    void init() override;
+    void cleanup() override;
+    bool shouldWait() const override;
+    void loop() override;
+
+    Encoder *encoder;
+};
+
+class AudioEncoder : public Thread
+{
+    mutable QMutex queueMutex;
+    QQueue<QAudioBuffer> audioBufferQueue;
+public:
+    AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings);
+
+    void addBuffer(const QAudioBuffer &buffer);
+
+    QFFmpegAudioInput *audioInput() const { return input; }
+
+private:
+    QAudioBuffer takeBuffer();
+
+    void init() override;
+    void cleanup() override;
+    bool shouldWait() const override;
+    void loop() override;
+
+    Encoder *encoder = nullptr;
+
+    QFFmpegAudioInput *input;
+    QAudioFormat format;
+
+    SwrContext *resampler = nullptr;
+
+    AVStream *stream = nullptr;
+    AVCodecContext *codec = nullptr;
+    qint64 samplesWritten = 0;
+};
+
+}
 
 QT_END_NAMESPACE
 

@@ -50,15 +50,12 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
+#include "qffmpegthread_p.h"
 #include "qffmpeg_p.h"
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpeghwaccel_p.h"
 
 #include <qshareddata.h>
-#include <qmutex.h>
-#include <qwaitcondition.h>
-#include <qthread.h>
 #include <qtimer.h>
 #include <qqueue.h>
 
@@ -241,44 +238,6 @@ public:
 
     bool playing = false;
 };
-
-class Thread : public QThread
-{
-public:
-    QMutex mutex;
-    QWaitCondition condition;
-    qint64 timeOut = -1;
-private:
-
-protected:
-    QAtomicInteger<bool> exit = false;
-    bool eos = false;
-
-public:
-    // public API is thread-safe
-
-    virtual void kill();
-
-    bool atEnd() const { return eos; }
-
-    void wake() {
-        condition.wakeAll();
-    }
-
-
-protected:
-    virtual void init() {}
-    virtual void cleanup() {}
-    // loop() should never block, all blocking has to happen in shouldWait()
-    virtual void loop() = 0;
-    virtual bool shouldWait() const { return false; }
-
-private:
-    void maybePause();
-
-    void run() override;
-};
-
 
 class Demuxer : public Thread
 {

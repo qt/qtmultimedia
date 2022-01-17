@@ -37,53 +37,53 @@
 **
 ****************************************************************************/
 
-#ifndef QGSTREAMERINTEGRATION_H
-#define QGSTREAMERINTEGRATION_H
+#include "qffmpegthread_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediaintegration_p.h>
+#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegMediaDevices;
-class QFFmpegMediaFormatInfo;
+using namespace QFFmpeg;
 
-class QFFmpegMediaIntegration : public QPlatformMediaIntegration
+void Thread::kill()
 {
-public:
-    QFFmpegMediaIntegration();
-    ~QFFmpegMediaIntegration();
+    exit.storeRelaxed(true);
+    wake();
+}
 
-    static QFFmpegMediaIntegration *instance() { return static_cast<QFFmpegMediaIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+void Thread::maybePause()
+{
+    if (timeOut < 0)
+        timeOut = 0;
+    while (!exit.loadRelaxed() &&
+           (timeOut >= 0 || shouldWait())) {
+        QElapsedTimer timer;
+        timer.start();
+//        qDebug() << this << "maybePause, waiting" << timeOut;
+        if (condition.wait(&mutex, QDeadlineTimer(timeOut, Qt::PreciseTimer))) {
+            if (timeOut >= 0)
+                timeOut -= timer.elapsed();
+            if (timeOut < 0)
+                timeOut = -1;
+        } else {
+            timeOut = -1;
+        }
+//        qDebug() << this << "    done waiting" << timeOut;
+    }
+}
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *) override;
-
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
-
-    QPlatformAudioInput *createAudioInput(QAudioInput *input) override;
-//    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
-
-    QPlatformMediaDevices *m_devices = nullptr;
-    QFFmpegMediaFormatInfo *m_formatsInfo = nullptr;
-};
+void Thread::run()
+{
+    init();
+    QMutexLocker locker(&mutex);
+    while (!exit.loadRelaxed()) {
+        maybePause();
+        if (exit.loadAcquire())
+            break;
+        loop();
+    }
+    cleanup();
+    deleteLater();
+}
 
 QT_END_NAMESPACE
-
-#endif

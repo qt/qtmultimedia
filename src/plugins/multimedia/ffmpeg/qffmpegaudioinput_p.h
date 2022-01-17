@@ -36,54 +36,55 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QGSTREAMERINTEGRATION_H
-#define QGSTREAMERINTEGRATION_H
+#ifndef QFFMPEGAUDIOINPUT_H
+#define QFFMPEGAUDIOINPUT_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformaudioinput_p.h>
+#include "qffmpegthread_p.h"
+#include <qaudioinput.h>
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegMediaDevices;
-class QFFmpegMediaFormatInfo;
+class QAudioSource;
+class QAudioBuffer;
+namespace QFFmpeg {
+class AudioSourceIO;
+}
 
-class QFFmpegMediaIntegration : public QPlatformMediaIntegration
+class QFFmpegAudioInput : public QObject, public QPlatformAudioInput
 {
+    Q_OBJECT
 public:
-    QFFmpegMediaIntegration();
-    ~QFFmpegMediaIntegration();
+    QFFmpegAudioInput(QAudioInput *qq);
+    ~QFFmpegAudioInput();
 
-    static QFFmpegMediaIntegration *instance() { return static_cast<QFFmpegMediaIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+    void setAudioDevice(const QAudioDevice &/*device*/) override;
+    void setMuted(bool /*muted*/) override;
+    void setVolume(float /*volume*/) override;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *) override;
+    void setFrameSize(int s);
+    void setRunning(bool b);
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+Q_SIGNALS:
+    void newAudioBuffer(const QAudioBuffer &buffer);
 
-    QPlatformAudioInput *createAudioInput(QAudioInput *input) override;
-//    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
-
-    QPlatformMediaDevices *m_devices = nullptr;
-    QFFmpegMediaFormatInfo *m_formatsInfo = nullptr;
+private:
+    QThread *inputThread = nullptr;
+    QFFmpeg::AudioSourceIO *audioIO = nullptr;
 };
 
 QT_END_NAMESPACE
 
-#endif
+
+#endif // QPLATFORMAUDIOINPUT_H

@@ -69,6 +69,11 @@ public:
     static QMediaFormat::AudioCodec audioCodecForAVCodecId(AVCodecID id);
     static QMediaFormat::FileFormat fileFormatForAVInputFormat(AVInputFormat *format);
 
+    static AVOutputFormat *outputFormatForFileFormat(QMediaFormat::FileFormat format);
+
+    static AVCodecID codecIdForVideoCodec(QMediaFormat::VideoCodec codec);
+    static AVCodecID codecIdForAudioCodec(QMediaFormat::AudioCodec codec);
+
     static QAudioFormat::SampleFormat sampleFormat(AVSampleFormat format);
     static AVSampleFormat avSampleFormat(QAudioFormat::SampleFormat format);
 

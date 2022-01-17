@@ -45,6 +45,7 @@
 #include "qffmpegmediacapturesession_p.h"
 #include "qffmpegmediarecorder_p.h"
 #include "qffmpegimagecapture_p.h"
+#include "qffmpegaudioinput_p.h"
 
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
@@ -155,6 +156,11 @@ QPlatformImageCapture *QFFmpegMediaIntegration::createImageCapture(QImageCapture
 QPlatformVideoSink *QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QFFmpegVideoSink(sink);
+}
+
+QPlatformAudioInput *QFFmpegMediaIntegration::createAudioInput(QAudioInput *input)
+{
+    return new QFFmpegAudioInput(input);
 }
 
 QT_END_NAMESPACE

@@ -132,46 +132,6 @@ Codec::Codec(AVFormatContext *format, int streamIndex, QRhi *rhi)
     d = new Data(context, stream, hwAccel);
 }
 
-void Thread::kill()
-{
-    exit.storeRelaxed(true);
-    wake();
-}
-
-void Thread::maybePause()
-{
-    if (timeOut < 0)
-        timeOut = 0;
-    while (timeOut >= 0 || shouldWait()) {
-        QElapsedTimer timer;
-        timer.start();
-//        qDebug() << this << "maybePause, waiting" << timeOut;
-        if (condition.wait(&mutex, QDeadlineTimer(timeOut, Qt::PreciseTimer))) {
-            if (timeOut >= 0)
-                timeOut -= timer.elapsed();
-            if (timeOut < 0)
-                timeOut = -1;
-        } else {
-            timeOut = -1;
-        }
-//        qDebug() << this << "    done waiting" << timeOut;
-    }
-}
-
-void Thread::run()
-{
-    init();
-    QMutexLocker locker(&mutex);
-    while (!exit.loadRelaxed()) {
-        maybePause();
-        if (exit.loadAcquire())
-            break;
-        loop();
-    }
-    cleanup();
-    deleteLater();
-}
-
 
 Demuxer::Demuxer(Decoder *decoder)
     : Thread()

@@ -95,34 +95,34 @@ static AVCodecID codecId(QMediaFormat::AudioCodec codec)
     return AV_CODEC_ID_NONE;
 }
 
+// mimetypes are mostly copied from qmediaformat.cpp. Unfortunately, FFmpeg uses
+// in some cases slightly different mimetypes
+static const struct
+{
+    QMediaFormat::FileFormat fileFormat;
+    const char *mimeType;
+    const char *name; // disambiguate if we have several muxers/demuxers
+} map[QMediaFormat::LastFileFormat + 1] = {
+    { QMediaFormat::WMV, "video/x-ms-asf", "asf" },
+    { QMediaFormat::AVI, "video/x-msvideo", nullptr },
+    { QMediaFormat::Matroska, "video/x-matroska", nullptr },
+    { QMediaFormat::MPEG4, "video/mp4", "mp4" },
+    { QMediaFormat::Ogg, "video/ogg", nullptr },
+    // QuickTime is the same as MP4
+    { QMediaFormat::WebM, "video/webm", "webm" },
+    // Audio Formats
+    // Mpeg4Audio is the same as MP4 without the video codecs
+    { QMediaFormat::AAC, "audio/aac", nullptr },
+    // WMA is the same as WMV
+    { QMediaFormat::FLAC, "audio/x-flac", nullptr },
+    { QMediaFormat::MP3, "audio/mpeg", "mp3" },
+    { QMediaFormat::Wave, "audio/x-wav", nullptr },
+    { QMediaFormat::UnspecifiedFormat, nullptr, nullptr }
+};
 
 template <typename AVFormat>
 static QMediaFormat::FileFormat formatForAVFormat(AVFormat *format)
 {
-    // mimetypes are mostly copied from qmediaformat.cpp. Unfortunately, FFmpeg uses
-    // in some cases slightly different mimetypes
-    static const struct
-    {
-        QMediaFormat::FileFormat fileFormat;
-        const char *mimeType;
-        const char *name; // disambiguate if we have several muxers/demuxers
-    } map[QMediaFormat::LastFileFormat + 1] = {
-        { QMediaFormat::WMV, "video/x-ms-asf", "asf" },
-        { QMediaFormat::AVI, "video/x-msvideo", nullptr },
-        { QMediaFormat::Matroska, "video/x-matroska", nullptr },
-        { QMediaFormat::MPEG4, "video/mp4", "mp4" },
-        { QMediaFormat::Ogg, "video/ogg", nullptr },
-        // QuickTime is the same as MP4
-        { QMediaFormat::WebM, "video/webm", "webm" },
-         // Audio Formats
-        // Mpeg4Audio is the same as MP4 without the video codecs
-        { QMediaFormat::AAC, "audio/aac", nullptr },
-        // WMA is the same as WMV
-        { QMediaFormat::FLAC, "audio/x-flac", nullptr },
-        { QMediaFormat::MP3, "audio/mpeg", "mp3" },
-        { QMediaFormat::Wave, "audio/x-wav", nullptr },
-        { QMediaFormat::UnspecifiedFormat, nullptr, nullptr }
-    };
 
     if (!format->mime_type || !*format->mime_type)
         return QMediaFormat::UnspecifiedFormat;
@@ -139,6 +139,23 @@ static QMediaFormat::FileFormat formatForAVFormat(AVFormat *format)
     }
 
     return QMediaFormat::UnspecifiedFormat;
+}
+
+static AVOutputFormat *avFormatForFormat(QMediaFormat::FileFormat format)
+{
+    if (format == QMediaFormat::QuickTime || format == QMediaFormat::Mpeg4Audio)
+        format = QMediaFormat::MPEG4;
+    if (format == QMediaFormat::WMA)
+        format = QMediaFormat::WMV;
+
+    auto *m = map;
+    while (m->fileFormat != QMediaFormat::UnspecifiedFormat) {
+        if (m->fileFormat == format)
+            return av_guess_format(m->name, nullptr, m->mimeType);
+        ++m;
+    }
+
+    return nullptr;
 }
 
 
@@ -309,6 +326,21 @@ QMediaFormat::FileFormat QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(AVIn
     }
 
     return QMediaFormat::UnspecifiedFormat;
+}
+
+AVOutputFormat *QFFmpegMediaFormatInfo::outputFormatForFileFormat(QMediaFormat::FileFormat format)
+{
+    return avFormatForFormat(format);
+}
+
+AVCodecID QFFmpegMediaFormatInfo::codecIdForVideoCodec(QMediaFormat::VideoCodec codec)
+{
+    return codecId(codec);
+}
+
+AVCodecID QFFmpegMediaFormatInfo::codecIdForAudioCodec(QMediaFormat::AudioCodec codec)
+{
+    return codecId(codec);
 }
 
 QAudioFormat::SampleFormat QFFmpegMediaFormatInfo::sampleFormat(AVSampleFormat format)

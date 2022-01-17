@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QGSTREAMERINTEGRATION_H
-#define QGSTREAMERINTEGRATION_H
+#ifndef QFFMPEGTHREAD_P_H
+#define QFFMPEGTHREAD_P_H
 
 //
 //  W A R N I N G
@@ -51,38 +50,57 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <private/qtmultimediaglobal_p.h>
+
+#include <qmutex.h>
+#include <qwaitcondition.h>
+#include <qthread.h>
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegMediaDevices;
-class QFFmpegMediaFormatInfo;
+class QAudioSink;
 
-class QFFmpegMediaIntegration : public QPlatformMediaIntegration
+namespace QFFmpeg
+{
+
+class Thread : public QThread
 {
 public:
-    QFFmpegMediaIntegration();
-    ~QFFmpegMediaIntegration();
+    QMutex mutex;
+    QWaitCondition condition;
+    qint64 timeOut = -1;
+private:
 
-    static QFFmpegMediaIntegration *instance() { return static_cast<QFFmpegMediaIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
+protected:
+    QAtomicInteger<bool> exit = false;
+    bool eos = false;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *) override;
+public:
+    // public API is thread-safe
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+    virtual void kill();
 
-    QPlatformAudioInput *createAudioInput(QAudioInput *input) override;
-//    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
+    bool atEnd() const { return eos; }
 
-    QPlatformMediaDevices *m_devices = nullptr;
-    QFFmpegMediaFormatInfo *m_formatsInfo = nullptr;
+    void wake() {
+        condition.wakeAll();
+    }
+
+
+protected:
+    virtual void init() {}
+    virtual void cleanup() {}
+    // loop() should never block, all blocking has to happen in shouldWait()
+    virtual void loop() = 0;
+    virtual bool shouldWait() const { return false; }
+
+private:
+    void maybePause();
+
+    void run() override;
 };
+
+}
 
 QT_END_NAMESPACE
 

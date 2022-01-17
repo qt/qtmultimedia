@@ -64,6 +64,10 @@ class QAudioSourceIO;
 class QAudioBuffer;
 class QMediaMetaData;
 
+namespace QFFmpeg {
+class Encoder;
+}
+
 class QFFmpegMediaRecorder : public QObject, public QPlatformMediaRecorder
 {
     Q_OBJECT
@@ -85,26 +89,13 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-private Q_SLOTS:
-    void newAudioBuffer(const QAudioBuffer &);
-
 private:
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
-    void finalize();
 
     QFFmpegMediaCaptureSession *m_session = nullptr;
     QMediaMetaData m_metaData;
 
-    AVFormatContext *avFormatContext = nullptr;
-    AVStream *avAudioStream = nullptr;
-    AVCodecContext *avAudioCodec = nullptr;
-    qint64 audioSamplesWritten = 0;
-//    AVStream *avVideoStream = nullptr;
-
-    QAudioSource *m_audioSource = nullptr;
-    QAudioSourceIO *m_audioIO = nullptr;
-
-    bool m_finalizing = false;
+    QFFmpeg::Encoder *encoder = nullptr;
 };
 
 QT_END_NAMESPACE
