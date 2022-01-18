@@ -39,7 +39,7 @@
 
 #include "qpulseaudiointegration_p.h"
 #include "qpulseaudiomediadevices_p.h"
-#include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
 

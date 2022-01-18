@@ -52,7 +52,7 @@
 //
 
 #include <private/qplatformmediaintegration_p.h>
-#include <private/qaudioengine_pulse_p.h>
+#include "qaudioengine_pulse_p.h"
 
 QT_BEGIN_NAMESPACE
 

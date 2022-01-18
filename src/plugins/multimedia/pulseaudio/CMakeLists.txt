@@ -9,6 +9,7 @@ qt_internal_add_plugin(QPulseAudioMediaPlugin
         qpulseaudiosink.cpp qpulseaudiosink_p.h
         qpulsehelpers.cpp qpulsehelpers_p.h
         qpulseaudiomediadevices.cpp qpulseaudiomediadevices_p.h
+        qpulseaudiointegration.cpp qpulseaudiointegration_p.h
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
