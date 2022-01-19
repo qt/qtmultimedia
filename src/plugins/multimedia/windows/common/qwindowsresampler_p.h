@@ -58,6 +58,11 @@
 #include <qwindowsiupointer_p.h>
 #include <qt_windows.h>
 
+struct IMFSample;
+struct IMFTransform;
+
+QT_BEGIN_NAMESPACE
+
 class QWindowsResampler
 {
 public:
@@ -67,7 +72,7 @@ public:
     bool setup(const QAudioFormat &in, const QAudioFormat &out);
 
     QByteArray resample(const QByteArrayView &in);
-    QByteArray resample(struct IMFSample *sample);
+    QByteArray resample(IMFSample *sample);
 
     QAudioFormat inputFormat() const { return m_inputFormat; }
     QAudioFormat outputFormat() const { return m_outputFormat; }
@@ -82,7 +87,7 @@ private:
     HRESULT processInput(const QByteArrayView &in);
     HRESULT processOutput(QByteArray &out);
 
-    QWindowsIUPointer<struct IMFTransform> m_resampler;
+    QWindowsIUPointer<IMFTransform> m_resampler;
 
     bool m_resamplerNeedsSampleBuffer = false;
     quint64 m_totalInputBytes = 0;
@@ -93,5 +98,6 @@ private:
     DWORD m_inputStreamID = 0;
 };
 
+QT_END_NAMESPACE
 
 #endif // QT_QWINDOWSRESAMPLER_H
