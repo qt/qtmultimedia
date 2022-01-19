@@ -74,6 +74,10 @@ QT_END_NAMESPACE
 static const GUID MFSamplePresenter_SampleCounter =
 { 0xb0bb83cc, 0xf10f, 0x4e2e, { 0xaa, 0x2b, 0x29, 0xea, 0x5e, 0x92, 0xef, 0x85 } };
 
+#if QT_CONFIG(opengl)
+#    include <qopengl.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 #ifdef MAYBE_ANGLE
@@ -109,7 +113,7 @@ private:
 #endif // MAYBE_ANGLE
 
 #if QT_CONFIG(opengl)
-#include <qopengl.h>
+
 struct WglNvDxInterop {
     HANDLE (WINAPI* wglDXOpenDeviceNV) (void* dxDevice);
     BOOL (WINAPI* wglDXCloseDeviceNV) (HANDLE hDevice);

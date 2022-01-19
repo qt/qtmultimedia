@@ -46,6 +46,8 @@
 #include <mfapi.h>
 #include <mferror.h>
 
+QT_BEGIN_NAMESPACE
+
 Q_LOGGING_CATEGORY(qLcAudioResampler, "qt.multimedia.audioresampler")
 
 QWindowsResampler::QWindowsResampler()
@@ -267,3 +269,5 @@ bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
 
     return true;
 }
+
+QT_END_NAMESPACE
