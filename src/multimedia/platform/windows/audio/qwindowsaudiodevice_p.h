@@ -62,10 +62,9 @@
 #include <private/qaudiodevice_p.h>
 #include <private/qwindowsiupointer_p.h>
 
+struct IMMDevice;
 
 QT_BEGIN_NAMESPACE
-
-struct IMMDevice;
 
 const unsigned int MAX_SAMPLE_RATES = 5;
 const unsigned int SAMPLE_RATES[] = { 8000, 11025, 22050, 44100, 48000 };
