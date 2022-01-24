@@ -47,8 +47,6 @@
 #include "qwindowsaudiodevice_p.h"
 #include "qwindowsmultimediautils_p.h"
 
-#include <mftvideo_p.h>
-
 #include <Dbt.h>
 #include <ks.h>
 
