@@ -44,11 +44,8 @@
 #include "qdarwinaudiodevice_p.h"
 #include "qdarwinaudiosource_p.h"
 #include "qdarwinaudiosink_p.h"
-#if !defined(QT_COMPILING_FFMPEG)
-#include "avfcamera_p.h"
+#include "qavfhelpers_p.h"
 #include "avfcamerautility_p.h"
-#include "avfvideobuffer_p.h"
-#endif
 
 #include <qdebug.h>
 
@@ -253,7 +250,6 @@ QList<QCameraDevice> QDarwinMediaDevices::videoInputs() const
 
 void QDarwinMediaDevices::updateCameraDevices()
 {
-#if !defined(QT_COMPILING_FFMPEG)
 #ifdef Q_OS_IOS
     // Cameras can't change dynamically on iOS. Update only once.
     if (!m_cameraDevices.isEmpty())
@@ -288,7 +284,7 @@ void QDarwinMediaDevices::updateCameraDevices()
             float minFrameRate = 1.e6;
 
             auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
-            auto pixelFormat = AVFVideoBuffer::fromCVPixelFormat(encoding);
+            auto pixelFormat = QAVFHelpers::fromCVPixelFormat(encoding);
             // Ignore pixel formats we can't handle
             if (pixelFormat == QVideoFrameFormat::Format_Invalid)
                 continue;
@@ -335,7 +331,6 @@ void QDarwinMediaDevices::updateCameraDevices()
         m_cameraDevices = cameras;
         videoInputsChanged();
     }
-#endif
 }
 
 

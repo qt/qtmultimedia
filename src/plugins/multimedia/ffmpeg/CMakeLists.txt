@@ -72,6 +72,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         ../darwin/audio/qdarwinaudiosink.mm ../darwin/audio/qdarwinaudiosink_p.h
         ../darwin/audio/qcoreaudioutils.mm ../darwin/audio/qcoreaudioutils_p.h
         ../darwin/qdarwinmediadevices.mm ../darwin/qdarwinmediadevices_p.h
+        ../darwin/qavfhelpers.mm ../darwin/qavfhelpers_p.h
         qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
     INCLUDE_DIRECTORIES
         ../darwin

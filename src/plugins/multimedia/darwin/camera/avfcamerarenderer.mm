@@ -46,6 +46,7 @@
 #include <avfvideosink_p.h>
 #include <avfvideobuffer_p.h>
 #include "qvideosink.h"
+#include "qavfhelpers_p.h"
 
 #include <QtGui/private/qrhi_p.h>
 
@@ -282,7 +283,7 @@ void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat pixe
     // format can't be used (shouldn't happen unless the developers sets a wrong camera
     // format on the camera).
     unsigned avPixelFormat = kCVPixelFormatType_32BGRA;
-    if (!AVFVideoBuffer::toCVPixelFormat(pixelFormat, avPixelFormat))
+    if (!QAVFHelpers::toCVPixelFormat(pixelFormat, avPixelFormat))
         qWarning() << "QCamera::setCameraFormat: couldn't convert requested pixel format, using ARGB32";
 
     bool isSupported = false;

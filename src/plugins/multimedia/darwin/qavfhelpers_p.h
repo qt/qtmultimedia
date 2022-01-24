@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef AVFVIDEOBUFFER_H
-#define AVFVIDEOBUFFER_H
+#ifndef QAVFHELPERS_H
+#define QAVFHELPERS_H
 
 //
 //  W A R N I N G
@@ -52,48 +51,23 @@
 //
 
 #include <QtMultimedia/qvideoframe.h>
-#include <private/qabstractvideobuffer_p.h>
+#include <qvideoframeformat.h>
 
-#include <QtCore/qobject.h>
-#include <QtCore/qmutex.h>
-#include <avfvideosink_p.h>
-
+#include <CoreVideo/CVBase.h>
+#include <CoreVideo/CVPixelBuffer.h>
 #include <CoreVideo/CVImageBuffer.h>
 
-#import "Metal/Metal.h"
-#import "MetalKit/MetalKit.h"
+enum {
+    // macOS 10.14 doesn't define this pixel format yet
+    q_kCVPixelFormatType_OneComponent16 = 'L016'
+};
 
 QT_BEGIN_NAMESPACE
 
-struct AVFMetalTexture;
-class AVFVideoBuffer : public QAbstractVideoBuffer
+namespace QAVFHelpers
 {
-public:
-    AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
-    ~AVFVideoBuffer();
-
-    QVideoFrameFormat::PixelFormat fromCVVideoPixelFormat(unsigned avPixelFormat) const;
-
-    QVideoFrame::MapMode mapMode() const { return m_mode; }
-    MapData map(QVideoFrame::MapMode mode);
-    void unmap();
-
-    virtual quint64 textureHandle(int plane) const;
-
-private:
-    AVFVideoSinkInterface *sink = nullptr;
-
-    mutable CVMetalTextureRef cvMetalTexture[3] = {};
-
-#if defined(Q_OS_MACOS)
-    mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
-#elif defined(Q_OS_IOS)
-    mutable CVOpenGLESTextureRef cvOpenGLESTexture = nullptr;
-#endif
-
-    CVImageBufferRef m_buffer = nullptr;
-    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
+    QVideoFrameFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
+    bool toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv);
 };
 
 QT_END_NAMESPACE

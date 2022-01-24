@@ -16,6 +16,7 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         mediaplayer/avfvideorenderercontrol.mm mediaplayer/avfvideorenderercontrol_p.h
         avfvideosink.mm avfvideosink_p.h
         avfvideobuffer.mm avfvideobuffer_p.h
+        qavfhelpers.mm qavfhelpers_p.h
         qdarwinformatsinfo.mm qdarwinformatsinfo_p.h
         qdarwinintegration.mm qdarwinintegration_p.h
     INCLUDE_DIRECTORIES

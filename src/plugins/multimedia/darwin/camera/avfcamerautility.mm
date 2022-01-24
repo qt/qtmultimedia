@@ -44,6 +44,7 @@
 #include <QtCore/qpair.h>
 #include <private/qmultimediautils_p.h>
 #include "avfvideobuffer_p.h"
+#include "qavfhelpers_p.h"
 
 #include <functional>
 #include <algorithm>
@@ -137,7 +138,7 @@ AVCaptureDeviceFormat *qt_convert_to_capture_device_format(AVCaptureDevice *capt
         CMFormatDescriptionRef formatDesc = format.formatDescription;
         CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
         FourCharCode formatCodec = CMVideoFormatDescriptionGetCodecType(formatDesc);
-        if (AVFVideoBuffer::fromCVPixelFormat(formatCodec) == cameraFormat.pixelFormat()
+        if (QAVFHelpers::fromCVPixelFormat(formatCodec) == cameraFormat.pixelFormat()
             && cameraFormat.resolution().width() == dim.width
             && cameraFormat.resolution().height() == dim.height) {
             for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {

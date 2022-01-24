@@ -46,6 +46,7 @@
 #include <QtGui/qopenglcontext.h>
 
 #include <private/qvideotexturehelper_p.h>
+#include "qavfhelpers_p.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <Metal/Metal.h>
@@ -243,75 +244,6 @@ QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVVideoPixelFormat(unsigned a
             qWarning() << "Accelerated macOS OpenGL video supports BGRA only, got CV pixel format" << avPixelFormat;
     }
 #endif
-    return fromCVPixelFormat(avPixelFormat);
+    return QAVFHelpers::fromCVPixelFormat(avPixelFormat);
 }
 
-QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVPixelFormat(unsigned avPixelFormat)
-{
-    switch (avPixelFormat) {
-    case kCVPixelFormatType_32ARGB:
-        return QVideoFrameFormat::Format_ARGB8888;
-    case kCVPixelFormatType_32BGRA:
-        return QVideoFrameFormat::Format_BGRA8888;
-    case kCVPixelFormatType_420YpCbCr8Planar:
-    case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
-        return QVideoFrameFormat::Format_YUV420P;
-    case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
-    case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
-        return QVideoFrameFormat::Format_NV12;
-    case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange:
-    case kCVPixelFormatType_420YpCbCr10BiPlanarFullRange:
-        return QVideoFrameFormat::Format_P010;
-    case kCVPixelFormatType_422YpCbCr8:
-        return QVideoFrameFormat::Format_UYVY;
-    case kCVPixelFormatType_422YpCbCr8_yuvs:
-        return QVideoFrameFormat::Format_YUYV;
-    case kCVPixelFormatType_OneComponent8:
-        return QVideoFrameFormat::Format_Y8;
-    case q_kCVPixelFormatType_OneComponent16:
-        return QVideoFrameFormat::Format_Y16;
-
-    case kCMVideoCodecType_JPEG:
-    case kCMVideoCodecType_JPEG_OpenDML:
-        return QVideoFrameFormat::Format_Jpeg;
-    default:
-        return QVideoFrameFormat::Format_Invalid;
-    }
-}
-
-bool AVFVideoBuffer::toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv)
-{
-    switch (qtFormat) {
-    case QVideoFrameFormat::Format_ARGB8888:
-        conv = kCVPixelFormatType_32ARGB;
-        break;
-    case QVideoFrameFormat::Format_BGRA8888:
-        conv = kCVPixelFormatType_32BGRA;
-        break;
-    case QVideoFrameFormat::Format_YUV420P:
-        conv = kCVPixelFormatType_420YpCbCr8PlanarFullRange;
-        break;
-    case QVideoFrameFormat::Format_NV12:
-        conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
-        break;
-    case QVideoFrameFormat::Format_P010:
-        conv = kCVPixelFormatType_420YpCbCr10BiPlanarFullRange;
-        break;
-    case QVideoFrameFormat::Format_UYVY:
-        conv = kCVPixelFormatType_422YpCbCr8;
-        break;
-    case QVideoFrameFormat::Format_YUYV:
-        conv = kCVPixelFormatType_422YpCbCr8_yuvs;
-        break;
-    case QVideoFrameFormat::Format_Y8:
-        conv = kCVPixelFormatType_OneComponent8;
-        break;
-    case QVideoFrameFormat::Format_Y16:
-        conv = q_kCVPixelFormatType_OneComponent16;
-        break;
-    default:
-        return false;
-    }
-
-    return true;
-}
