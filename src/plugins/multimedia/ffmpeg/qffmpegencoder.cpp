@@ -200,23 +200,23 @@ static AVSampleFormat bestMatchingSampleFormat(AVSampleFormat requested, const A
 
     const AVSampleFormat *f = available;
     AVSampleFormat best = *f;
-
+/*
     enum {
         First,
         Planar,
         Exact,
     } score = First;
-
+*/
     for (; *f != AV_SAMPLE_FMT_NONE; ++f) {
         qDebug() << "format:" << *f;
         if (*f == requested) {
             best = *f;
-            score = Exact;
+//            score = Exact;
             break;
         }
 
         if (av_get_planar_sample_fmt(requested) == *f) {
-            score = Planar;
+//            score = Planar;
             best = *f;
         }
     }

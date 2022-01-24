@@ -164,7 +164,7 @@ void QV4L2CameraDevices::doCheckCameras()
             continue;
 
         QCameraDevicePrivate *camera = nullptr;
-        struct v4l2_fmtdesc formatDesc;
+        v4l2_fmtdesc formatDesc = {};
 
         struct v4l2_capability cap;
         if (ioctl(fd, VIDIOC_QUERYCAP, &cap) < 0)
@@ -182,9 +182,7 @@ void QV4L2CameraDevices::doCheckCameras()
         camera->description = QString::fromUtf8((const char *)cap.card);
 //        qDebug() << "found camera" << camera->id << camera->description;
 
-        formatDesc = {
-            .type = V4L2_BUF_TYPE_VIDEO_CAPTURE
-        };
+        formatDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
         while (!ioctl(fd, VIDIOC_ENUM_FMT, &formatDesc)) {
             auto pixelFmt = formatForV4L2Format(formatDesc.pixelformat);
@@ -196,9 +194,9 @@ void QV4L2CameraDevices::doCheckCameras()
             }
 
 //            qDebug() << "frame sizes:";
-            v4l2_frmsizeenum frameSize = {
-                .pixel_format = formatDesc.pixelformat
-            };
+            v4l2_frmsizeenum frameSize = {};
+            frameSize.pixel_format = formatDesc.pixelformat;
+
             while (!ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
                 if (frameSize.type != V4L2_FRMSIZE_TYPE_DISCRETE)
                     continue;
@@ -207,11 +205,11 @@ void QV4L2CameraDevices::doCheckCameras()
                 float min = 1e10;
                 float max = 0;
 
-                v4l2_frmivalenum frameInterval = {
-                    .pixel_format = formatDesc.pixelformat,
-                    .width = frameSize.discrete.width,
-                    .height = frameSize.discrete.height
-                };
+                v4l2_frmivalenum frameInterval = {};
+                frameInterval.pixel_format = formatDesc.pixelformat;
+                frameInterval.width = frameSize.discrete.width;
+                frameInterval.height = frameSize.discrete.height;
+
                 while (!ioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
                     if (frameInterval.type != V4L2_FRMIVAL_TYPE_DISCRETE)
                         continue;
@@ -538,10 +536,9 @@ void QV4L2Camera::readFrame()
     if (!d)
         return;
 
-    struct v4l2_buffer buf = {
-        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-        .memory = V4L2_MEMORY_MMAP
-    };
+    v4l2_buffer buf = {};
+    buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    buf.memory = V4L2_MEMORY_MMAP;
 
     if (ioctl(d->v4l2FileDescriptor, VIDIOC_DQBUF, &buf) < 0) {
         if (errno == ENODEV) {
@@ -720,7 +717,8 @@ void QV4L2Camera::setV4L2CameraFormat()
     Q_ASSERT(!m_cameraFormat.isNull());
     qDebug() << "XXXXX" << this << m_cameraDevice.id() << m_cameraFormat.pixelFormat() << m_cameraFormat.resolution();
 
-    struct v4l2_format fmt = { .type = V4L2_BUF_TYPE_VIDEO_CAPTURE };
+    v4l2_format fmt = {};
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     auto size = m_cameraFormat.resolution();
     fmt.fmt.pix.width = size.width();
@@ -760,9 +758,9 @@ void QV4L2Camera::setV4L2CameraFormat()
         break;
     }
 
-    v4l2_streamparm streamParam = {
-        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE
-    };
+    v4l2_streamparm streamParam = {};
+    streamParam.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
     streamParam.parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
     int num, den;
     qt_real_to_fraction(1./m_cameraFormat.maxFrameRate(), &num, &den);
@@ -778,11 +776,10 @@ void QV4L2Camera::initMMap()
     if (cameraBusy)
         return;
 
-    struct v4l2_requestbuffers req = {
-        .count = 4,
-        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-        .memory = V4L2_MEMORY_MMAP
-    };
+    v4l2_requestbuffers req = {};
+    req.count = 4;
+    req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    req.memory = V4L2_MEMORY_MMAP;
 
     if (ioctl(d->v4l2FileDescriptor, VIDIOC_REQBUFS, &req) < 0) {
         if (errno == EBUSY)
@@ -797,12 +794,10 @@ void QV4L2Camera::initMMap()
     }
 
     for (uint32_t n = 0; n < req.count; ++n) {
-        struct v4l2_buffer buf = {
-            .index       = n,
-            .type        = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-            .memory      = V4L2_MEMORY_MMAP
-        };
-
+        v4l2_buffer buf = {};
+        buf.index = n;
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
 
         if (ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYBUF, &buf) != 0) {
             qWarning() << "Can't map buffer" << n;
@@ -850,11 +845,10 @@ void QV4L2Camera::startCapturing()
     unsigned int i;
 
     for (i = 0; i < d->mappedBuffers.size(); ++i) {
-        struct v4l2_buffer buf = {
-            .index = i,
-            .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-            .memory = V4L2_MEMORY_MMAP,
-        };
+        v4l2_buffer buf = {};
+        buf.index = i;
+        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        buf.memory = V4L2_MEMORY_MMAP;
 
         if (ioctl(d->v4l2FileDescriptor, VIDIOC_QBUF, &buf) < 0) {
             qWarning() << "failed to setup mapped buffer";
