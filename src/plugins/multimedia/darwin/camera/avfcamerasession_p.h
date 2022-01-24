@@ -164,8 +164,8 @@ private:
 
     FourCharCode m_defaultCodec;
 
-    AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
-    AVAuthorizationStatus m_microphoneAuthorizationStatus = AVAuthorizationStatusDenied;
+    AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
+    AVAuthorizationStatus m_microphoneAuthorizationStatus = AVAuthorizationStatusNotDetermined;
 };
 
 QT_END_NAMESPACE

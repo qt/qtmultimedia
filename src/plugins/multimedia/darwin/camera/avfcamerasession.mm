@@ -372,6 +372,7 @@ AVCaptureDevice *AVFCameraSession::createAudioCaptureDevice()
 
 void AVFCameraSession::attachVideoInputDevice()
 {
+    requestCameraPermissionIfNeeded();
     if (m_cameraAuthorizationStatus != AVAuthorizationStatusAuthorized)
         return;
 
