@@ -91,9 +91,11 @@ qt_internal_add_simd_part(Multimedia SIMD ssse3
         video/qvideoframeconversionhelper_ssse3.cpp
 )
 
-qt_internal_add_simd_part(Multimedia SIMD avx2
+qt_internal_add_simd_part(Multimedia SIMD arch_haswell
     SOURCES
         video/qvideoframeconversionhelper_avx2.cpp
+    EXCLUDE_OSX_ARCHITECTURES
+        arm64
 )
 
 qt_internal_add_docs(Multimedia
