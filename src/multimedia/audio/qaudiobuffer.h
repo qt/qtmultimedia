@@ -113,7 +113,7 @@ public:
             return QtPrivate::AudioSampleFormatHelper<format>::Default;
         return channels[idx];
     }
-    void setValue(QAudioFormat::AudioChannelPosition pos, value_type val) const {
+    void setValue(QAudioFormat::AudioChannelPosition pos, value_type val) {
         int idx = positionToIndex(pos);
         if (idx < 0)
             return;
