@@ -178,6 +178,7 @@ static const quint32 *fourccFromPixelFormat(const QVideoFrameFormat::PixelFormat
         return format;
     }
     }
+    return nullptr;
 }
 
 class VAAPITextureSet : public TextureSet
