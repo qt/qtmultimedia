@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef AVFCAMERA_H
-#define AVFCAMERA_H
+#ifndef QAVFCAMERABASE_H
+#define QAVFCAMERABASE_H
 
 //
 //  W A R N I N G
@@ -51,34 +51,75 @@
 // We mean it.
 //
 
-#include <qavfcamerabase_p.h>
+#include <QtCore/qobject.h>
+
+#include <private/qplatformcamera_p.h>
+
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
+Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
 
 QT_BEGIN_NAMESPACE
 
-class AVFCameraSession;
-class AVFCameraService;
-class AVFCameraSession;
-
-class AVFCamera : public QAVFCameraBase
+class QAVFCameraBase : public QPlatformCamera
 {
 Q_OBJECT
 public:
-    AVFCamera(QCamera *camera);
-    ~AVFCamera();
+    QAVFCameraBase(QCamera *camera);
+    ~QAVFCameraBase();
 
+    bool isActive() const override;
     void setActive(bool activce) override;
 
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
 
-    void setCaptureSession(QPlatformMediaCaptureSession *) override;
+    void setFocusMode(QCamera::FocusMode mode) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
-    AVCaptureConnection *videoConnection() const override;
+    void setCustomFocusPoint(const QPointF &point) override;
 
+    void setFocusDistance(float d) override;
+    void zoomTo(float factor, float rate) override;
+
+    void setFlashMode(QCamera::FlashMode mode) override;
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
+    bool isFlashReady() const override;
+
+    void setTorchMode(QCamera::TorchMode mode) override;
+    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
+
+    void setExposureMode(QCamera::ExposureMode) override;
+    bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
+
+    void setExposureCompensation(float bias) override;
+    void setManualIsoSensitivity(int value) override;
+    virtual int isoSensitivity() const override;
+    void setManualExposureTime(float value) override;
+    virtual float exposureTime() const override;
+
+#ifdef Q_OS_IOS
+    // not supported on macOS
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
+    void setColorTemperature(int /*temperature*/) override;
+#endif
+
+    virtual AVCaptureConnection *videoConnection() const = 0;
+    AVCaptureDevice *device() const;
+
+protected:
+    void updateCameraConfiguration();
+    void updateCameraProperties();
+    void applyFlashSettings();
+
+    QCameraDevice m_cameraDevice;
+    bool m_active = false;
 private:
-    friend class AVFCameraSession;
-    AVFCameraService *m_service = nullptr;
-    AVFCameraSession *m_session = nullptr;
+    bool isFlashSupported = false;
+    bool isFlashAutoSupported = false;
+    bool isTorchSupported = false;
+    bool isTorchAutoSupported = false;
 };
 
 QT_END_NAMESPACE
