@@ -59,8 +59,6 @@
 
 #include "qcameradevice.h"
 
-#include <CoreAudio/CoreAudioTypes.h>
-
 #include <AVFoundation/AVFoundation.h>
 
 // In case we have SDK below 10.7/7.0:
