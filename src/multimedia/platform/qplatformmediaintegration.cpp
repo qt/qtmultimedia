@@ -92,7 +92,6 @@ struct Holder {
     QBasicMutex mutex;
     QPlatformMediaIntegration *instance = nullptr;
     QPlatformMediaIntegration *nativeInstance = nullptr;
-    QString preferred;
 } holder;
 
 }
@@ -105,11 +104,13 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 
     auto plugins = backends();
 
-    QString type = holder.preferred;
-    if (type.isEmpty())
-        type = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
-    if (type.isEmpty() && !plugins.isEmpty())
+    QString type = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
+    if (type.isEmpty() && !plugins.isEmpty()) {
         type = plugins.first();
+        // FIXME: prefer platform specific backend if available over ffmpeg until it becomes mature
+        if (type == QStringLiteral("ffmpeg") && plugins.size() > 1)
+            type = plugins[1];
+    }
 
     qCDebug(qLcMediaPlugin) << "loading backend" << type;
     holder.nativeInstance = qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), type);
