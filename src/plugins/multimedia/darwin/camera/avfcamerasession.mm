@@ -297,7 +297,7 @@ void AVFCameraSession::setActive(bool active)
 
     m_active = active;
 
-    qDebugCamera() << Q_FUNC_INFO << m_active << " -> " << active;
+    qCDebug(qLcCamera) << Q_FUNC_INFO << m_active << " -> " << active;
 
     if (active) {
         if (!m_activeCameraDevice.isNull()) {
@@ -328,7 +328,7 @@ void AVFCameraSession::processRuntimeError()
 
 void AVFCameraSession::processSessionStarted()
 {
-    qDebugCamera() << Q_FUNC_INFO;
+    qCDebug(qLcCamera) << Q_FUNC_INFO;
     if (!m_active) {
         m_active = true;
         Q_EMIT activeChanged(m_active);
@@ -337,7 +337,7 @@ void AVFCameraSession::processSessionStarted()
 
 void AVFCameraSession::processSessionStopped()
 {
-    qDebugCamera() << Q_FUNC_INFO;
+    qCDebug(qLcCamera) << Q_FUNC_INFO;
     if (m_active) {
         m_active = false;
         Q_EMIT activeChanged(m_active);

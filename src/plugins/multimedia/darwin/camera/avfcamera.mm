@@ -85,7 +85,7 @@ bool qt_check_exposure_duration(AVCaptureDevice *captureDevice, CMTime duration)
 
     AVCaptureDeviceFormat *activeFormat = captureDevice.activeFormat;
     if (!activeFormat) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to obtain capture device format";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to obtain capture device format";
         return false;
     }
 
@@ -99,7 +99,7 @@ bool qt_check_ISO_value(AVCaptureDevice *captureDevice, int newISO)
 
     AVCaptureDeviceFormat *activeFormat = captureDevice.activeFormat;
     if (!activeFormat) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to obtain capture device format";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to obtain capture device format";
         return false;
     }
 
@@ -296,7 +296,7 @@ void AVFCamera::setFocusMode(QCamera::FocusMode mode)
         if (qt_focus_mode_supported(mode)) {
             focusModeChanged(mode);
         } else {
-            qDebugCamera() << Q_FUNC_INFO
+            qCDebug(qLcCamera) << Q_FUNC_INFO
                            << "focus mode not supported";
         }
         return;
@@ -305,14 +305,14 @@ void AVFCamera::setFocusMode(QCamera::FocusMode mode)
     if (isFocusModeSupported(mode)) {
         const AVFConfigurationLock lock(captureDevice);
         if (!lock) {
-            qDebugCamera() << Q_FUNC_INFO
+            qCDebug(qLcCamera) << Q_FUNC_INFO
                            << "failed to lock for configuration";
             return;
         }
 
         captureDevice.focusMode = avf_focus_mode(mode);
     } else {
-        qDebugCamera() << Q_FUNC_INFO << "focus mode not supported";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "focus mode not supported";
         return;
     }
 
@@ -352,7 +352,7 @@ void AVFCamera::setCustomFocusPoint(const QPointF &point)
 
     if (!QRectF(0.f, 0.f, 1.f, 1.f).contains(point)) {
         // ### release custom focus point, tell the camera to focus where it wants...
-        qDebugCamera() << Q_FUNC_INFO << "invalid focus point (out of range)";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "invalid focus point (out of range)";
         return;
     }
 
@@ -363,7 +363,7 @@ void AVFCamera::setCustomFocusPoint(const QPointF &point)
     if ([captureDevice isFocusPointOfInterestSupported]) {
         const AVFConfigurationLock lock(captureDevice);
         if (!lock) {
-            qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
             return;
         }
 
@@ -384,14 +384,14 @@ void AVFCamera::setFocusDistance(float d)
         return;
 
     if (captureDevice.lockingFocusWithCustomLensPositionSupported) {
-        qDebugCamera() << Q_FUNC_INFO << "Setting custom focus distance not supported\n";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "Setting custom focus distance not supported\n";
         return;
     }
 
     {
         AVFConfigurationLock lock(captureDevice);
         if (!lock) {
-            qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
             return;
         }
         [captureDevice setFocusModeLockedWithLensPosition:d completionHandler:nil];
@@ -406,13 +406,13 @@ void AVFCamera::updateCameraConfiguration()
 {
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice) {
-        qDebugCamera() << Q_FUNC_INFO << "capture device is nil in 'active' state";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "capture device is nil in 'active' state";
         return;
     }
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
         return;
     }
 
@@ -429,13 +429,13 @@ void AVFCamera::updateCameraConfiguration()
             if ([captureDevice isFocusModeSupported:avMode]) {
                 [captureDevice setFocusMode:avMode];
             } else {
-                qDebugCamera() << Q_FUNC_INFO << "focus mode not supported";
+                qCDebug(qLcCamera) << Q_FUNC_INFO << "focus mode not supported";
             }
         }
     }
 
     if (!captureDevice.activeFormat) {
-        qDebugCamera() << Q_FUNC_INFO << "camera state is active, but active format is nil";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "camera state is active, but active format is nil";
         return;
     }
 
@@ -452,7 +452,7 @@ void AVFCamera::updateCameraConfiguration()
         && !qt_exposure_duration_equal(captureDevice, exposureTime)) {
         newDuration = CMTimeMakeWithSeconds(exposureTime, captureDevice.exposureDuration.timescale);
         if (!qt_check_exposure_duration(captureDevice, newDuration)) {
-            qDebugCamera() << Q_FUNC_INFO << "requested exposure duration is out of range";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "requested exposure duration is out of range";
             return;
         }
         setCustomMode = true;
@@ -463,7 +463,7 @@ void AVFCamera::updateCameraConfiguration()
     if (iso > 0 && !qt_iso_equal(captureDevice, iso)) {
         newISO = iso;
         if (!qt_check_ISO_value(captureDevice, newISO)) {
-            qDebugCamera() << Q_FUNC_INFO << "requested ISO value is out of range";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "requested ISO value is out of range";
             return;
         }
         setCustomMode = true;
@@ -473,7 +473,7 @@ void AVFCamera::updateCameraConfiguration()
     if (bias != 0 && !qt_exposure_bias_equal(captureDevice, bias)) {
         // TODO: mixed fpns.
         if (bias < captureDevice.minExposureTargetBias || bias > captureDevice.maxExposureTargetBias) {
-            qDebugCamera() << Q_FUNC_INFO << "exposure compensation value is"
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "exposure compensation value is"
                            << "out of range";
             return;
         }
@@ -494,7 +494,7 @@ void AVFCamera::updateCameraConfiguration()
     QCamera::ExposureMode qtMode = exposureMode();
     AVCaptureExposureMode avMode = AVCaptureExposureModeContinuousAutoExposure;
     if (!qt_convert_exposure_mode(captureDevice, qtMode, avMode)) {
-        qDebugCamera() << Q_FUNC_INFO << "requested exposure mode is not supported";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "requested exposure mode is not supported";
         return;
     }
 
@@ -558,7 +558,7 @@ void AVFCamera::zoomTo(float factor, float rate)
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
         return;
     }
 
@@ -575,7 +575,7 @@ void AVFCamera::setFlashMode(QCamera::FlashMode mode)
         return;
 
     if (isActive() && !isFlashModeSupported(mode)) {
-        qDebugCamera() << Q_FUNC_INFO << "unsupported mode" << mode;
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "unsupported mode" << mode;
         return;
     }
 
@@ -628,7 +628,7 @@ void AVFCamera::setTorchMode(QCamera::TorchMode mode)
         return;
 
     if (isActive() && !isTorchModeSupported(mode)) {
-        qDebugCamera() << Q_FUNC_INFO << "unsupported torch mode" << mode;
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "unsupported torch mode" << mode;
         return;
     }
 
@@ -654,7 +654,7 @@ void AVFCamera::setExposureMode(QCamera::ExposureMode qtMode)
 {
 #ifdef Q_OS_IOS
     if (qtMode != QCamera::ExposureAuto && qtMode != QCamera::ExposureManual) {
-        qDebugCamera() << Q_FUNC_INFO << "exposure mode not supported";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "exposure mode not supported";
         return;
     }
 
@@ -666,13 +666,13 @@ void AVFCamera::setExposureMode(QCamera::ExposureMode qtMode)
 
     AVCaptureExposureMode avMode = AVCaptureExposureModeContinuousAutoExposure;
     if (!qt_convert_exposure_mode(captureDevice, qtMode, avMode)) {
-        qDebugCamera() << Q_FUNC_INFO << "exposure mode not supported";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "exposure mode not supported";
         return;
     }
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock a capture device"
                        << "for configuration";
         return;
     }
@@ -705,7 +705,7 @@ void AVFCamera::applyFlashSettings()
 
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice) {
-        qDebugCamera() << Q_FUNC_INFO << "no capture device found";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "no capture device found";
         return;
     }
 
@@ -719,7 +719,7 @@ void AVFCamera::applyFlashSettings()
         } else {
 #ifdef Q_OS_IOS
             if (![captureDevice isFlashAvailable]) {
-                qDebugCamera() << Q_FUNC_INFO << "flash is not available at the moment";
+                qCDebug(qLcCamera) << Q_FUNC_INFO << "flash is not available at the moment";
                 return;
             }
 #endif
@@ -737,7 +737,7 @@ void AVFCamera::applyFlashSettings()
         } else {
 #ifdef Q_OS_IOS
             if (![captureDevice isTorchAvailable]) {
-                qDebugCamera() << Q_FUNC_INFO << "torch is not available at the moment";
+                qCDebug(qLcCamera) << Q_FUNC_INFO << "torch is not available at the moment";
                 return;
             }
 #endif
@@ -763,7 +763,7 @@ void AVFCamera::setExposureCompensation(float bias)
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
         return;
     }
 
@@ -790,13 +790,13 @@ void AVFCamera::setManualExposureTime(float value)
 
     const CMTime newDuration = CMTimeMakeWithSeconds(value, captureDevice.exposureDuration.timescale);
     if (!qt_check_exposure_duration(captureDevice, newDuration)) {
-        qDebugCamera() << Q_FUNC_INFO << "shutter speed value is out of range";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "shutter speed value is out of range";
         return;
     }
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
         return;
     }
 
@@ -911,7 +911,7 @@ void AVFCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock a capture device"
                        << "for configuration";
         return;
     }
@@ -945,7 +945,7 @@ void AVFCamera::setColorTemperature(int colorTemp)
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock a capture device"
                        << "for configuration";
         return;
     }
@@ -972,13 +972,13 @@ void AVFCamera::setManualIsoSensitivity(int value)
     }
 
     if (!qt_check_ISO_value(captureDevice, value)) {
-        qDebugCamera() << Q_FUNC_INFO << "ISO value is out of range";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "ISO value is out of range";
         return;
     }
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock a capture device"
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock a capture device"
                        << "for configuration";
         return;
     }

@@ -53,6 +53,8 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(qLcCamera, "qt.multimedia.camera")
+
 AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection)
 {
     Q_ASSERT(videoConnection);
@@ -241,7 +243,7 @@ QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format)
     Q_ASSERT(format);
 
     if (!format.formatDescription) {
-        qDebugCamera() << Q_FUNC_INFO << "no format description found";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "no format description found";
         return QSize();
     }
 
@@ -477,7 +479,7 @@ void qt_set_framerate_limits(AVCaptureConnection *videoConnection, qreal minFPS,
     Q_ASSERT(videoConnection);
 
     if (minFPS < 0. || maxFPS < 0. || (maxFPS && maxFPS < minFPS)) {
-        qDebugCamera() << Q_FUNC_INFO << "invalid framerates (min, max):"
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "invalid framerates (min, max):"
                        << minFPS << maxFPS;
         return;
     }
@@ -485,7 +487,7 @@ void qt_set_framerate_limits(AVCaptureConnection *videoConnection, qreal minFPS,
     CMTime minDuration = kCMTimeInvalid;
     if (maxFPS > 0.) {
         if (!videoConnection.supportsVideoMinFrameDuration)
-            qDebugCamera() << Q_FUNC_INFO << "maximum framerate is not supported";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "maximum framerate is not supported";
         else
             minDuration = CMTimeMake(1, maxFPS);
     }
@@ -495,7 +497,7 @@ void qt_set_framerate_limits(AVCaptureConnection *videoConnection, qreal minFPS,
     CMTime maxDuration = kCMTimeInvalid;
     if (minFPS > 0.) {
         if (!videoConnection.supportsVideoMaxFrameDuration)
-            qDebugCamera() << Q_FUNC_INFO << "minimum framerate is not supported";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "minimum framerate is not supported";
         else
             maxDuration = CMTimeMake(1, minFPS);
     }
@@ -527,12 +529,12 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice, qreal minFPS, qreal
 {
     Q_ASSERT(captureDevice);
     if (!captureDevice.activeFormat) {
-        qDebugCamera() << Q_FUNC_INFO << "no active capture device format";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "no active capture device format";
         return;
     }
 
     if (minFPS < 0. || maxFPS < 0. || (maxFPS && maxFPS < minFPS)) {
-        qDebugCamera() << Q_FUNC_INFO << "invalid framerates (min, max):"
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "invalid framerates (min, max):"
                        << minFPS << maxFPS;
         return;
     }
@@ -543,7 +545,7 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice, qreal minFPS, qreal
         AVFrameRateRange *range = qt_find_supported_framerate_range(captureDevice.activeFormat,
                                                                     maxFPS ? maxFPS : minFPS);
         if (!range) {
-            qDebugCamera() << Q_FUNC_INFO << "no framerate range found, (min, max):"
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "no framerate range found, (min, max):"
                            << minFPS << maxFPS;
             return;
         }
@@ -556,7 +558,7 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice, qreal minFPS, qreal
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to lock for configuration";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to lock for configuration";
         return;
     }
 

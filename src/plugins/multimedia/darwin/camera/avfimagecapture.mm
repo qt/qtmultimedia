@@ -84,7 +84,7 @@ void AVFImageCapture::updateReadyStatus()
 {
     if (m_ready != isReadyForCapture()) {
         m_ready = !m_ready;
-        qDebugCamera() << "ReadyToCapture status changed:" << m_ready;
+        qCDebug(qLcCamera) << "ReadyToCapture status changed:" << m_ready;
         Q_EMIT readyForCaptureChanged(m_ready);
     }
 }
@@ -126,7 +126,7 @@ int AVFImageCapture::doCapture(const QString &actualFileName)
             messageParts << QString::fromUtf8([[error localizedRecoverySuggestion] UTF8String]);
 
             QString errorMessage = messageParts.join(QChar(u' '));
-            qDebugCamera() << "Image capture failed:" << errorMessage;
+            qCDebug(qLcCamera) << "Image capture failed:" << errorMessage;
 
             QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                       Q_ARG(int, request.captureId),
@@ -145,7 +145,7 @@ int AVFImageCapture::doCapture(const QString &actualFileName)
         // so we cannot reliably check the camera's status. Instead, we wait
         // with a timeout and treat a failure to acquire a semaphore as an error.
         if (!m_session->videoOutput() || request.previewReady->tryAcquire(1, 1000)) {
-            qDebugCamera() << "Image capture completed";
+            qCDebug(qLcCamera) << "Image capture completed";
 
             NSData *nsJpgData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
             QByteArray jpgData = QByteArray::fromRawData((const char *)[nsJpgData bytes], [nsJpgData length]);
@@ -183,7 +183,7 @@ int AVFImageCapture::doCapture(const QString &actualFileName)
         } else {
             const QLatin1String errorMessage("Image capture failed: timed out waiting"
                                              " for a preview frame.");
-            qDebugCamera() << errorMessage;
+            qCDebug(qLcCamera) << errorMessage;
             QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
                                       Q_ARG(int, request.captureId),
                                       Q_ARG(int, QImageCapture::ResourceError),
@@ -198,7 +198,7 @@ int AVFImageCapture::capture(const QString &fileName)
 {
     auto actualFileName = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
 
-    qDebugCamera() << "Capture image to" << actualFileName;
+    qCDebug(qLcCamera) << "Capture image to" << actualFileName;
     return doCapture(actualFileName);
 }
 
@@ -252,7 +252,7 @@ void AVFImageCapture::makeCapturePreview(CaptureRequest request,
 void AVFImageCapture::updateCaptureConnection()
 {
     if (m_session && m_session->videoCaptureDevice()) {
-        qDebugCamera() << Q_FUNC_INFO;
+        qCDebug(qLcCamera) << Q_FUNC_INFO;
         AVCaptureSession *captureSession = m_session->captureSession();
 
         if (![captureSession.outputs containsObject:m_stillImageOutput]) {
@@ -281,14 +281,14 @@ QImageEncoderSettings AVFImageCapture::imageSettings() const
 
     AVCaptureDevice *captureDevice = m_service->session()->videoCaptureDevice();
     if (!captureDevice.activeFormat) {
-        qDebugCamera() << Q_FUNC_INFO << "no active format";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "no active format";
         return settings;
     }
 
     QSize res(qt_device_format_resolution(captureDevice.activeFormat));
 #ifdef Q_OS_IOS
     if (!m_service->avfImageCaptureControl() || !m_service->avfImageCaptureControl()->stillImageOutput()) {
-        qDebugCamera() << Q_FUNC_INFO << "no still image output";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "no still image output";
         return settings;
     }
 
@@ -297,7 +297,7 @@ QImageEncoderSettings AVFImageCapture::imageSettings() const
         res = qt_device_format_high_resolution(captureDevice.activeFormat);
 #endif
     if (res.isNull() || !res.isValid()) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to exctract the image resolution";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to exctract the image resolution";
         return settings;
     }
 
@@ -327,18 +327,18 @@ bool AVFImageCapture::applySettings()
 
     if (!m_service->imageCapture()
         || !m_service->avfImageCaptureControl()->stillImageOutput()) {
-        qDebugCamera() << Q_FUNC_INFO << "no still image output";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "no still image output";
         return false;
     }
 
     if (m_settings.format() != QImageCapture::UnspecifiedFormat && m_settings.format() != QImageCapture::JPEG) {
-        qDebugCamera() << Q_FUNC_INFO << "unsupported format:" << m_settings.format();
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "unsupported format:" << m_settings.format();
         return false;
     }
 
     QSize res(m_settings.resolution());
     if (res.isNull()) {
-        qDebugCamera() << Q_FUNC_INFO << "invalid resolution:" << res;
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "invalid resolution:" << res;
         return false;
     }
 
@@ -357,7 +357,7 @@ bool AVFImageCapture::applySettings()
                                                                  m_service->session()->defaultCodec());
 
     if (!match) {
-        qDebugCamera() << Q_FUNC_INFO << "unsupported resolution:" << res;
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "unsupported resolution:" << res;
         return false;
     }
 

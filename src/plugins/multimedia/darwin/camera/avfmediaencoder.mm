@@ -99,7 +99,7 @@ AVFMediaEncoder::AVFMediaEncoder(QMediaRecorder *parent)
 {
     m_writer.reset([[QT_MANGLE_NAMESPACE(AVFMediaAssetWriter) alloc] initWithDelegate:this]);
     if (!m_writer) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to create an asset writer";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to create an asset writer";
         return;
     }
 }
@@ -477,7 +477,7 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
     }
 
     if (!m_writer) {
-        qDebugCamera() << Q_FUNC_INFO << "Invalid recorder";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "Invalid recorder";
         return;
     }
 
@@ -500,7 +500,7 @@ void AVFMediaEncoder::record(QMediaEncoderSettings &settings)
 
     if (!audioOnly) {
         if (!cameraControl || !cameraControl->isActive()) {
-            qDebugCamera() << Q_FUNC_INFO << "can not start record while camera is not active";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "can not start record while camera is not active";
             Q_EMIT error(QMediaRecorder::ResourceError,
                          QMediaRecorderPrivate::msgFailedStartRecording());
             return;

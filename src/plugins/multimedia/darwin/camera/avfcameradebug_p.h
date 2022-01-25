@@ -53,16 +53,10 @@
 
 #include "qtmultimediaglobal.h"
 
-#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
 
-QT_USE_NAMESPACE
-
-//#define AVF_DEBUG_CAMERA
-
-#ifdef AVF_DEBUG_CAMERA
-#define qDebugCamera qDebug
-#else
-#define qDebugCamera QT_NO_QDEBUG_MACRO
-#endif
+QT_BEGIN_NAMESPACE
+Q_DECLARE_LOGGING_CATEGORY(qLcCamera)
+QT_END_NAMESPACE
 
 #endif

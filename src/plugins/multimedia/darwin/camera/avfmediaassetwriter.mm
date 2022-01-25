@@ -158,7 +158,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     Q_ASSERT(fileURL);
 
     if (!qt_capture_session_isValid(service)) {
-        qDebugCamera() << Q_FUNC_INFO << "invalid capture session";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "invalid capture session";
         return false;
     }
 
@@ -170,7 +170,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     m_writerQueue.reset(dispatch_queue_create("asset-writer-queue", DISPATCH_QUEUE_SERIAL));
     if (!m_writerQueue) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to create an asset writer's queue";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to create an asset writer's queue";
         return false;
     }
 
@@ -178,7 +178,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     if (session->videoInput() && session->videoOutput() && session->videoOutput()->videoDataOutput()) {
         m_videoQueue.reset(dispatch_queue_create("video-output-queue", DISPATCH_QUEUE_SERIAL));
         if (!m_videoQueue) {
-            qDebugCamera() << Q_FUNC_INFO << "failed to create video queue";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to create video queue";
             return false;
         }
         dispatch_set_target_queue(m_videoQueue, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0));
@@ -188,7 +188,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
     if (session->audioInput() && session->audioOutput()) {
         m_audioQueue.reset(dispatch_queue_create("audio-output-queue", DISPATCH_QUEUE_SERIAL));
         if (!m_audioQueue) {
-            qDebugCamera() << Q_FUNC_INFO << "failed to create audio queue";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to create audio queue";
             if (!m_videoQueue)
                 return false;
             // But we still can write video!
@@ -200,7 +200,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
                                                fileType:fileType
                                                error:nil]);
     if (!m_assetWriter) {
-        qDebugCamera() << Q_FUNC_INFO << "failed to create asset writer";
+        qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to create asset writer";
         return false;
     }
 
@@ -519,7 +519,7 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
         if (m_cameraWriterInput && [m_assetWriter canAddInput:m_cameraWriterInput]) {
             [m_assetWriter addInput:m_cameraWriterInput];
         } else {
-            qDebugCamera() << Q_FUNC_INFO << "failed to add camera writer input";
+            qCDebug(qLcCamera) << Q_FUNC_INFO << "failed to add camera writer input";
             m_cameraWriterInput.reset();
             return false;
         }
