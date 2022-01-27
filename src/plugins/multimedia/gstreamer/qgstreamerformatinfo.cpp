@@ -165,8 +165,6 @@ QImageCapture::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure
         return QImageCapture::PNG;
     } else if (!strcmp(name, "image/webp")) {
         return QImageCapture::WebP;
-    } else if (!strcmp(name, "image/webp")) {
-        return QImageCapture::WebP;
     } else if (!strcmp(name, "image/tiff")) {
         return QImageCapture::Tiff;
     }
