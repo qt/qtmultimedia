@@ -39,7 +39,6 @@
 
 #include "qandroidformatsinfo_p.h"
 
-#include <QMutableListIterator>
 #include <QtCore/qjnienvironment.h>
 #include <QtCore/qjniobject.h>
 #include <qcoreapplication.h>
@@ -70,15 +69,13 @@ QAndroidFormatInfo::QAndroidFormatInfo()
     }
 
     auto removeUnspecifiedValues = [](QList<CodecMap> &map) {
-        QMutableListIterator<CodecMap> iter(map);
-        while (iter.hasNext()) {
-            CodecMap &codec = iter.next();
+        for (CodecMap &codec : map) {
             codec.audio.removeAll(QMediaFormat::AudioCodec::Unspecified);
             codec.video.removeAll(QMediaFormat::VideoCodec::Unspecified);
-
-            if (codec.audio.size() < 1 && codec.video.size() < 1)
-                iter.remove();
         }
+        erase_if(map, [](const CodecMap &codec) {
+            return codec.audio.isEmpty() && codec.video.isEmpty();
+        });
     };
 
     {
