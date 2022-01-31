@@ -534,9 +534,11 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSamp
         d3dFormat = D3DFMT_A8B8G8R8;
 
     for (int i = 0; i < PRESENTER_BUFFER_COUNT; i++) {
-        IDirect3DTexture9 *texture = nullptr;
+        // texture ref cnt is increased by GetSurfaceLevel()/MFCreateVideoSampleFromSurface()
+        // below, so it will be destroyed only when the sample pool is released.
+        QWindowsIUPointer<IDirect3DTexture9> texture;
         HANDLE sharedHandle = nullptr;
-        hr = m_device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, (D3DFORMAT)d3dFormat,  D3DPOOL_DEFAULT, &texture, &sharedHandle);
+        hr = m_device->CreateTexture(width, height, 1, D3DUSAGE_RENDERTARGET, (D3DFORMAT)d3dFormat,  D3DPOOL_DEFAULT, texture.address(), &sharedHandle);
         if (FAILED(hr))
             break;
 
