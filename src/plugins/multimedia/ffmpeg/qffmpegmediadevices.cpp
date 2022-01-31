@@ -50,6 +50,10 @@
 #include "qpulseaudiosink_p.h"
 #include "qpulseaudiodevice_p.h"
 #include "qaudioengine_pulse_p.h"
+#else
+extern "C" {
+#include <libavdevice/avdevice.h>
+}
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -150,12 +154,22 @@ QList<QCameraDevice> QFFmpegMediaDevices::videoInputs() const
 
 QPlatformAudioSource *QFFmpegMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
+#if QT_CONFIG(pulseaudio)
     return new QPulseAudioSource(deviceInfo.id());
+#else
+    Q_UNUSED(deviceInfo);
+    return nullptr;
+#endif
 }
 
 QPlatformAudioSink *QFFmpegMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
+#if QT_CONFIG(pulseaudio)
     return new QPulseAudioSink(deviceInfo.id());
+#else
+    Q_UNUSED(deviceInfo);
+    return nullptr;
+#endif
 }
 
 QT_END_NAMESPACE

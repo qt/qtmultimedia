@@ -46,6 +46,13 @@
 #include "qgstreameraudiodevice_p.h"
 #include "qgstutils_p.h"
 
+
+#if QT_CONFIG(pulseaudio)
+#include "qaudioengine_pulse_p.h"
+#include "qpulseaudiosink_p.h"
+#include "qpulseaudiosource_p.h"
+#endif
+
 QT_BEGIN_NAMESPACE
 
 static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer m)
@@ -95,8 +102,13 @@ QGstreamerMediaDevices::QGstreamerMediaDevices(QPlatformMediaIntegration *integr
         gst_object_unref(device);
         devices = g_list_delete_link(devices, devices);
     }
+
+#if QT_CONFIG(pulseaudio)
+    m_pulseEngine = new QPulseAudioEngine();
+#endif
 }
 
+#if !QT_CONFIG(pulseaudio)
 static QList<QAudioDevice> devicesFromSet(const QSet<GstDevice *> &deviceSet, QAudioDevice::Mode mode)
 {
     QList<QAudioDevice> devices;
@@ -119,15 +131,24 @@ static QList<QAudioDevice> devicesFromSet(const QSet<GstDevice *> &deviceSet, QA
     }
     return devices;
 };
+#endif
 
 QList<QAudioDevice> QGstreamerMediaDevices::audioInputs() const
 {
+#if QT_CONFIG(pulseaudio)
+    return m_pulseEngine->availableDevices(QAudioDevice::Input);
+#else
     return devicesFromSet(m_audioSources, QAudioDevice::Input);
+#endif
 }
 
 QList<QAudioDevice> QGstreamerMediaDevices::audioOutputs() const
 {
+#if QT_CONFIG(pulseaudio)
+    return m_pulseEngine->availableDevices(QAudioDevice::Output);
+#else
     return devicesFromSet(m_audioSinks, QAudioDevice::Output);
+#endif
 }
 
 QList<QCameraDevice> QGstreamerMediaDevices::videoInputs() const
@@ -187,12 +208,20 @@ QList<QCameraDevice> QGstreamerMediaDevices::videoInputs() const
 
 QPlatformAudioSource *QGstreamerMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
+#if QT_CONFIG(pulseaudio)
+    return new QPulseAudioSource(deviceInfo.id());
+#else
     return new QGStreamerAudioSource(deviceInfo);
+#endif
 }
 
 QPlatformAudioSink *QGstreamerMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
+#if QT_CONFIG(pulseaudio)
+    return new QPulseAudioSink(deviceInfo.id());
+#else
     return new QGStreamerAudioSink(deviceInfo);
+#endif
 }
 
 void QGstreamerMediaDevices::addDevice(GstDevice *device)

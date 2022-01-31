@@ -48,8 +48,8 @@
 // We mean it.
 //
 
-#ifndef QAUDIOINPUTPULSE_H
-#define QAUDIOINPUTPULSE_H
+#ifndef QAUDIOINPUTGSTREAMER_H
+#define QAUDIOINPUTGSTREAMER_H
 
 #include <QtCore/qfile.h>
 #include <QtCore/qtimer.h>

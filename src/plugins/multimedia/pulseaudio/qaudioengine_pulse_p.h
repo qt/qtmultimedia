@@ -95,6 +95,8 @@ public:
 
 Q_SIGNALS:
     void contextFailed();
+    void audioInputsChanged();
+    void audioOutputsChanged();
 
 private Q_SLOTS:
     void prepare();

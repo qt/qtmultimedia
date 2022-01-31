@@ -128,6 +128,7 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
     auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Output);
     dinfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
     pulseEngine->m_sinks.insert(info->index, dinfo->create());
+    emit pulseEngine->audioOutputsChanged();
 }
 
 static void sourceInfoCallback(pa_context *context, const pa_source_info *info, int isLast, void *userdata)
@@ -167,6 +168,7 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
     auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Input);
     dinfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
     pulseEngine->m_sources.insert(info->index, dinfo->create());
+    emit pulseEngine->audioInputsChanged();
 }
 
 static void event_cb(pa_context* context, pa_subscription_event_type_t t, uint32_t index, void* userdata)

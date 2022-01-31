@@ -108,11 +108,20 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
     m_audioDevice = device;
 
     QGstElement newSrc;
+#if QT_CONFIG(pulseaudio)
+    auto id = m_audioDevice.id();
+    newSrc = QGstElement("pulsesrc", "audiosrc");
+    if (!newSrc.isNull())
+        newSrc.set("device", id.constData());
+    else
+        qCWarning(qLcMediaAudioInput) << "Invalid audio device";
+#else
     auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
     if (deviceInfo && deviceInfo->gstDevice)
         newSrc = gst_device_create_element(deviceInfo->gstDevice, "audiosrc");
     else
         qCWarning(qLcMediaAudioInput) << "Invalid audio device";
+#endif
 
     if (newSrc.isNull()) {
         qCWarning(qLcMediaAudioInput) << "Failed to create a gst element for the audio device, using a default audio source";

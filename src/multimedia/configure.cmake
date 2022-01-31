@@ -73,14 +73,13 @@ qt_feature("ffmpeg" PRIVATE
     LABEL "FFmpeg"
     ENABLE INPUT_ffmpeg STREQUAL 'yes'
     DISABLE INPUT_ffmpeg STREQUAL 'no'
-    CONDITION FFmpeg_FOUND
+    CONDITION FFmpeg_FOUND AND (APPLE OR WIN32 OR QT_FEATURE_pulseaudio)
 )
 qt_feature("alsa" PUBLIC PRIVATE
     LABEL "ALSA"
     AUTODETECT false
     CONDITION UNIX AND NOT QNX AND ALSA_FOUND AND NOT QT_FEATURE_gstreamer AND NOT QT_FEATURE_pulseaudio
 )
-qt_feature_definition("alsa" "QT_NO_ALSA" NEGATE VALUE "1")
 qt_feature("avfoundation" PUBLIC PRIVATE
     LABEL "AVFoundation"
     CONDITION AVFoundation_FOUND
@@ -134,6 +133,7 @@ qt_feature("mmrenderer" PUBLIC PRIVATE
 )
 qt_feature("pulseaudio" PUBLIC PRIVATE
     LABEL "PulseAudio"
+    DISABLE INPUT_pulseaudio STREQUAL 'no'
     CONDITION WrapPulseAudio_FOUND
 )
 qt_feature("wmsdk" PRIVATE

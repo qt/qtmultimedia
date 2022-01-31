@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QAUDIOOUTPUTPULSE_H
-#define QAUDIOOUTPUTPULSE_H
+#ifndef QAUDIOOUTPUTGSTREAMER_H
+#define QAUDIOOUTPUTGSTREAMER_H
 
 //
 //  W A R N I N G
