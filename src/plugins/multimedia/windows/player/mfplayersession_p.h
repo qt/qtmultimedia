@@ -276,6 +276,7 @@ private:
     MFTransform *m_videoProbeMFT;
 
     QTimer m_signalPositionChangeTimer;
+    qint64 m_lastPosition = -1;
 };
 
 

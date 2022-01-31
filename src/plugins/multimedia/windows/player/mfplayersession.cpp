@@ -116,19 +116,23 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
 void MFPlayerSession::timeout()
 {
     const qint64 pos = position();
-    const bool updatePos = m_timeCounter++ % 10 == 0;
-    if (pos >= qint64(m_duration / 10000 - 20)) {
-        if (m_playerControl->doLoop()) {
-            m_session->Pause();
-            setPosition(0);
-            positionChanged(0);
+
+    if (pos != m_lastPosition) {
+        const bool updatePos = m_timeCounter++ % 10 == 0;
+        if (pos >= qint64(m_duration / 10000 - 20)) {
+            if (m_playerControl->doLoop()) {
+                m_session->Pause();
+                setPosition(0);
+                positionChanged(0);
+            } else {
+                if (updatePos)
+                    positionChanged(pos);
+            }
         } else {
             if (updatePos)
                 positionChanged(pos);
         }
-    } else {
-        if (updatePos)
-            positionChanged(pos);
+        m_lastPosition = pos;
     }
 }
 
@@ -182,6 +186,7 @@ void MFPlayerSession::close()
     if (m_hCloseEvent)
         CloseHandle(m_hCloseEvent);
     m_hCloseEvent = 0;
+    m_lastPosition = -1;
 }
 
 MFPlayerSession::~MFPlayerSession()
@@ -1725,6 +1730,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
             // Topology is resolved and successfuly set, this happens only after loading a new media.
             // Make sure we always start the media from the beginning
+            m_lastPosition = -1;
             m_position = 0;
             positionChanged(0);
             changeStatus(QMediaPlayer::LoadedMedia);
