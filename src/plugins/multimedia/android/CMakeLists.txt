@@ -49,10 +49,8 @@ set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_D
     jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtAudioDeviceManager
 )
 set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
+    plugins/multimedia/libplugins_multimedia_androidmediaplugin.so
     lib/libQt6MultimediaQuick.so:Qt6Quick
-)
-set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_BUNDLED_FILES
-    lib/libQt6MultimediaQuick.so
 )
 set_property(TARGET QAndroidMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
     android.permission.CAMERA android.permission.RECORD_AUDIO
