@@ -582,6 +582,8 @@ qsizetype QPulseAudioSink::bufferSize() const
 
 qint64 QPulseAudioSink::processedUSecs() const
 {
+    if (!m_stream)
+        return 0;
     pa_usec_t usecs = 0;
     int result = pa_stream_get_time(m_stream, &usecs);
     if (result != 0)
