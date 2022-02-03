@@ -59,8 +59,8 @@ class ClockController;
 class Clock
 {
     ClockController *controller = nullptr;
+
     QElapsedTimer m_timer;
-protected:
     mutable QMutex m_clockMutex;
     qint64 m_baseTime = 0;
     float m_playbackRate = 1.;
@@ -91,8 +91,8 @@ public:
     }
 
     // all times in usecs
-    virtual qint64 currentTime() const;
-    virtual qint64 usecsTo(qint64 displayTime);
+    qint64 currentTime() const;
+    qint64 usecsTo(qint64 displayTime);
 
 protected:
     virtual void syncTo(qint64 usecs);

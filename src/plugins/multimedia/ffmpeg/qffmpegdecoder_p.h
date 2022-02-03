@@ -436,14 +436,10 @@ public:
     AudioRenderer(Decoder *decoder, QAudioOutput *output);
     ~AudioRenderer() = default;
 
-    void syncClock();
-
     // Clock interface
-    qint64 currentTime() const override;
     void syncTo(qint64 usecs) override;
     void adjustBy(qint64 usecs) override;
     void setPlaybackRate(float rate) override;
-    qint64 usecsTo(qint64 displayTime) override;
 
 private slots:
     void updateAudio();
@@ -451,7 +447,6 @@ private slots:
 private:
     void updateOutput(const Codec *codec);
     void freeOutput();
-    qint64 currentTimeNoLock() const;
 
     void init() override;
     void cleanup() override;
@@ -463,13 +458,16 @@ private:
         return qRound(inputSamples/playbackRate());
     }
 
+    // Used for timing update calculations based on processed data
+    qint64 audioBaseTime = 0;
+    qint64 processedBase = 0;
+    qint64 processedUSecs = 0;
+
     bool deviceChanged = false;
     QAudioOutput *output = nullptr;
     bool audioMuted = false;
-    qint64 processedUSecs = 0;
     qint64 writtenUSecs = 0;
     qint64 latencyUSecs = 0;
-    QElapsedTimer elapsed; // used when muted
 
     QAudioFormat format;
     QAudioSink *audioSink = nullptr;

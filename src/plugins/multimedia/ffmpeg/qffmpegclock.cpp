@@ -37,6 +37,9 @@
 **
 ****************************************************************************/
 #include <qffmpegclock_p.h>
+#include <qloggingcategory.h>
+
+Q_LOGGING_CATEGORY(qLcClock, "qt.multimedia.ffmpeg.clock")
 
 QT_BEGIN_NAMESPACE
 
@@ -56,6 +59,7 @@ qint64 QFFmpeg::Clock::currentTime() const
 
 void QFFmpeg::Clock::syncTo(qint64 time)
 {
+    qCDebug(qLcClock) << "syncTo" << time << isMaster();
     QMutexLocker l(&m_clockMutex);
     m_baseTime = time;
     m_timer.restart();
@@ -63,15 +67,18 @@ void QFFmpeg::Clock::syncTo(qint64 time)
 
 void QFFmpeg::Clock::adjustBy(qint64 usecs)
 {
+    qCDebug(qLcClock) << "adjustBy" << usecs << isMaster();
     QMutexLocker l(&m_clockMutex);
-    m_baseTime += qRound64(usecs/m_playbackRate);
+    m_baseTime += usecs;
 }
 
 void QFFmpeg::Clock::setPlaybackRate(float rate)
 {
     QMutexLocker l(&m_clockMutex);
-    m_baseTime = qRound64(m_timer.nsecsElapsed()*(m_playbackRate/1000.)) + m_baseTime;
-    m_timer.restart();
+    if (!m_paused) {
+        m_baseTime += qRound64(m_timer.nsecsElapsed()*(m_playbackRate/1000.));
+        m_timer.restart();
+    }
     m_playbackRate = rate;
 }
 
@@ -87,6 +94,14 @@ void QFFmpeg::Clock::setPaused(bool paused)
 
 void QFFmpeg::Clock::timeUpdated(qint64 currentTime)
 {
+    {
+        QMutexLocker l(&m_clockMutex);
+        if (m_isMaster) {
+            m_baseTime = currentTime;
+            m_timer.restart();
+        }
+    }
+
     if (controller)
         controller->timeUpdated(this, currentTime);
 }
@@ -110,7 +125,7 @@ QFFmpeg::Clock::Type QFFmpeg::Clock::type() const
 void QFFmpeg::ClockController::timeUpdated(Clock *clock, qint64 time)
 {
     if (clock == m_master) {
-        qDebug() << "ClockController::timeUpdated(master)" << time << "skew" << skew();
+        qCDebug(qLcClock) << "ClockController::timeUpdated(master)" << time << "skew" << skew();
         if (notifyObject)
             notify.invoke(notifyObject, Qt::QueuedConnection, Q_ARG(qint64, time));
         return;
@@ -118,7 +133,7 @@ void QFFmpeg::ClockController::timeUpdated(Clock *clock, qint64 time)
 
     // check if we need to adjust clocks
     qint64 skew = m_master->currentTime() - time;
-    qDebug() << "ClockController::timeUpdated(slave)" << time << "master" << m_master->currentTime() << "skew" << skew;
+    qCDebug(qLcClock) << "ClockController::timeUpdated(slave)" << time << "master" << m_master->currentTime() << "skew" << skew;
     if (qAbs(skew) > ClockTolerance) {
         // we adjust if clock skew is larger than 25ms
         clock->adjustBy(skew);
@@ -179,10 +194,12 @@ void QFFmpeg::ClockController::removeClock(Clock *clock)
 
 qint64 QFFmpeg::ClockController::skew() const
 {
+//    qCDebug(qLcClock) << "skew:";
     qint64 min = std::numeric_limits<qint64>::max();
     qint64 max = std::numeric_limits<qint64>::min();
     for (auto *p : qAsConst(m_clocks)) {
         qint64 t = p->currentTime();
+//        qCDebug(qLcClock) << "    " << p->currentTime() << p->baseTime() << p->isMaster();
         min = qMin(min, t);
         max = qMax(max, t);
     }
@@ -216,6 +233,7 @@ void QFFmpeg::ClockController::setPaused(bool paused)
     m_isPaused = paused;
     if (!paused && m_master) {
         qint64 time = m_master->currentTime();
+        qCDebug(qLcClock) << "syncing clocks to" << time;
         for (auto *p : qAsConst(m_clocks))
             if (p != m_master)
                 p->syncTo(time);

@@ -691,24 +691,11 @@ AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
     connect(output, &QAudioOutput::deviceChanged, this, &AudioRenderer::updateAudio);
 }
 
-void AudioRenderer::syncClock()
-{
-    QMutexLocker locker(&mutex);
-    syncTo(currentTime());
-}
-
-qint64 AudioRenderer::currentTime() const
-{
-//    QMutexLocker l(&mutex);
-    return currentTimeNoLock();
-}
-
 void AudioRenderer::syncTo(qint64 usecs)
 {
     Clock::syncTo(usecs);
-    QMutexLocker l(&m_clockMutex);
-    if (audioSink)
-        m_baseTime -= audioSink->processedUSecs();
+    audioBaseTime = usecs;
+    processedBase = processedUSecs;
 }
 
 void AudioRenderer::adjustBy(qint64 usecs)
@@ -722,24 +709,17 @@ void AudioRenderer::adjustBy(qint64 usecs)
 
 void AudioRenderer::setPlaybackRate(float rate)
 {
+    audioBaseTime = currentTime();
+    processedBase = processedUSecs;
     Clock::setPlaybackRate(rate);
-    QMutexLocker l(&mutex);
     deviceChanged = true;
-}
-
-qint64 AudioRenderer::usecsTo(qint64 displayTime)
-{
-    QMutexLocker l(&mutex);
-    if (!audioSink)
-        return Clock::usecsTo(displayTime);
-
-    return writtenUSecs - processedUSecs - latencyUSecs;
 }
 
 void AudioRenderer::updateOutput(const Codec *codec)
 {
+    qDebug() << ">>>>>> updateOutput" << currentTime() << baseTime() << processedUSecs << isMaster();
     freeOutput();
-    qCDebug(qLcAudioRenderer) << "updateOutput";
+    qDebug() << "    " << currentTime() << baseTime() << processedUSecs;
 
     AVStream *audioStream = codec->stream();
 
@@ -748,13 +728,9 @@ void AudioRenderer::updateOutput(const Codec *codec)
     format.setChannelCount(2); // #### FIXME
     // ### add channel layout
 
-    elapsed.restart();
-
     if (playbackRate() < 0.5 || playbackRate() > 2) {
         audioMuted = true;
         latencyUSecs = 0;
-        bufferedData.clear();
-        bufferWritten = 0;
         return;
     }
     audioMuted = false;
@@ -796,17 +772,20 @@ void AudioRenderer::freeOutput()
         audioSink->reset();
         delete audioSink;
         audioSink = nullptr;
+        audioDevice = nullptr;
     }
     if (resampler) {
         swr_free(&resampler);
         resampler = nullptr;
     }
     audioMuted = false;
-}
+    bufferedData.clear();
+    bufferWritten = 0;
 
-qint64 AudioRenderer::currentTimeNoLock() const
-{
-    return audioSink ? (audioSink->processedUSecs() + m_baseTime) : Clock::currentTime();
+    audioBaseTime = currentTime();
+    processedBase = 0;
+    processedUSecs = writtenUSecs = 0;
+    timeUpdated(audioBaseTime);
 }
 
 void AudioRenderer::init()
@@ -883,7 +862,6 @@ void AudioRenderer::loop()
             }
         } else {
             bytesWritten = size;
-            processedUSecs = elapsed.elapsed()*1000;
         }
     }
 
@@ -899,7 +877,10 @@ void AudioRenderer::loop()
 //    qDebug() << "Audio: processed" << processedUSecs << "written" << writtenUSecs
 //             << "delta" << (writtenUSecs - processedUSecs) << "timeOut" << timeOut;
 //    qDebug() << "    updating time to" << (currentTimeNoLock()/1000);
-    timeUpdated(currentTimeNoLock());
+    if (audioMuted)
+        timeUpdated(currentTime());
+    else
+        timeUpdated(audioBaseTime + (processedUSecs - processedBase)*playbackRate());
 }
 
 void AudioRenderer::streamChanged()
