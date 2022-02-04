@@ -143,9 +143,6 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
         error(QMediaPlayer::AccessDeniedError, QMediaPlayer::tr("Could not open file"));
         return;
     }
-    decoder = new Decoder(this, context);
-    decoder->setAudioSink(m_audioOutput);
-    decoder->setVideoSink(m_videoSink);
 
     ret = avformat_find_stream_info(context, nullptr);
     if (ret < 0) {
@@ -153,6 +150,10 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
         return;
     }
     av_dump_format(context, 0, url.constData(), 0);
+
+    decoder = new Decoder(this, context);
+    decoder->setAudioSink(m_audioOutput);
+    decoder->setVideoSink(m_videoSink);
 
     m_metaData = QFFmpegMetaData::fromAVMetaData(context->metadata);
     m_metaData.insert(QMediaMetaData::FileFormat,
