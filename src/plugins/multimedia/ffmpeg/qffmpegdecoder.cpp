@@ -606,6 +606,7 @@ void VideoRenderer::setSubtitleStream(StreamDecoder *stream)
     subtitleStreamDecoder = stream;
     if (subtitleStreamDecoder)
         subtitleStreamDecoder->setRenderer(this);
+    sink->setSubtitleText({});
     wake();
 }
 
@@ -664,6 +665,8 @@ void VideoRenderer::loop()
                 sink->setSubtitleText({});
                 subtitleStreamDecoder->removePeekedFrame();
             }
+        } else {
+            sink->setSubtitleText({});
         }
         if (subtitleStreamDecoder)
             subtitleStreamDecoder->unlockAndReleaseFrame();
@@ -1045,6 +1048,7 @@ void Decoder::changeTrack(QPlatformMediaPlayer::TrackType type, int streamIndex)
         Q_UNREACHABLE();
     }
     demuxer->removeStream(oldIndex);
+    demuxer->seek(clockController.currentTime()/1000);
     if (!isPaused)
         setPaused(false);
     else
