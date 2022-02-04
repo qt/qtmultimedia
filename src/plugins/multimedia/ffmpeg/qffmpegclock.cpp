@@ -188,7 +188,8 @@ void QFFmpeg::ClockController::removeClock(Clock *clock)
                 m_master = c;
             c->syncTo(t);
         }
-        m_master->setIsMaster(true);
+        if (m_master)
+            m_master->setIsMaster(true);
     }
 }
 
