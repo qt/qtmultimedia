@@ -106,7 +106,6 @@ private:
     friend class ClockController;
     void setController(ClockController *c)
     {
-        Q_ASSERT(!controller);
         controller = c;
     }
     void setIsMaster(bool b)
