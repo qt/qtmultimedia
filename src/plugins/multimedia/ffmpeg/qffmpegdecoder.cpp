@@ -682,9 +682,9 @@ void VideoRenderer::loop()
     else
         nextFrameTime = startTime + duration;
     streamDecoder->unlockAndReleaseFrame();
-    timeOut = usecsTo(nextFrameTime*1000)/1000;
+    qint64 mtime = timeUpdated(startTime*1000);
+    timeOut = usecsTo(mtime, nextFrameTime*1000)/1000;
 //    qDebug() << "    next video frame in" << startTime << nextFrameTime << currentTime() << timeOut;
-    timeUpdated(startTime*1000);
 }
 
 AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)

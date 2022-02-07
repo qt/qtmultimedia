@@ -92,7 +92,7 @@ void QFFmpeg::Clock::setPaused(bool paused)
         m_timer.restart();
 }
 
-void QFFmpeg::Clock::timeUpdated(qint64 currentTime)
+qint64 QFFmpeg::Clock::timeUpdated(qint64 currentTime)
 {
     {
         QMutexLocker l(&m_clockMutex);
@@ -103,16 +103,16 @@ void QFFmpeg::Clock::timeUpdated(qint64 currentTime)
     }
 
     if (controller)
-        controller->timeUpdated(this, currentTime);
+        return controller->timeUpdated(this, currentTime);
+    return currentTime;
 }
 
-qint64 QFFmpeg::Clock::usecsTo(qint64 displayTime)
+qint64 QFFmpeg::Clock::usecsTo(qint64 currentTime, qint64 displayTime)
 {
     QMutexLocker l(&m_clockMutex);
     if (m_paused)
         return -1;
-    qint64 current = qRound64(m_timer.nsecsElapsed()*(m_playbackRate/1000.)) + m_baseTime;
-    int t = qRound64((displayTime - current)/m_playbackRate);
+    int t = qRound64((displayTime - currentTime)/m_playbackRate);
     return t < 0 ? -1 : t;
 }
 
@@ -122,27 +122,29 @@ QFFmpeg::Clock::Type QFFmpeg::Clock::type() const
 }
 
 
-void QFFmpeg::ClockController::timeUpdated(Clock *clock, qint64 time)
+qint64 QFFmpeg::ClockController::timeUpdated(Clock *clock, qint64 time)
 {
     if (clock == m_master) {
         // Avoid posting too many updates to the notifyObject, or we can overload
         // the event queue with too many notifications
         if (qAbs(time - m_lastMasterTime) < 5000)
-            return;
+            return time;
         m_lastMasterTime = time;
 //        qCDebug(qLcClock) << "ClockController::timeUpdated(master)" << time << "skew" << skew();
         if (notifyObject)
             notify.invoke(notifyObject, Qt::QueuedConnection, Q_ARG(qint64, time));
-        return;
+        return time;
     }
 
     // check if we need to adjust clocks
-    qint64 skew = m_master->currentTime() - time;
+    qint64 mtime = m_master->currentTime();
+    qint64 skew =  mtime - time;
     qCDebug(qLcClock) << "ClockController::timeUpdated(slave)" << time << "master" << m_master->currentTime() << "skew" << skew;
     if (qAbs(skew) > ClockTolerance) {
         // we adjust if clock skew is larger than 25ms
         clock->adjustBy(skew);
     }
+    return mtime;
 }
 
 QFFmpeg::ClockController::~ClockController()

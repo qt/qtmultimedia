@@ -92,7 +92,7 @@ public:
 
     // all times in usecs
     qint64 currentTime() const;
-    qint64 usecsTo(qint64 displayTime);
+    qint64 usecsTo(qint64 currentTime, qint64 displayTime);
 
 protected:
     virtual void syncTo(qint64 usecs);
@@ -100,7 +100,7 @@ protected:
     virtual void setPlaybackRate(float rate);
     virtual void setPaused(bool paused);
 
-    void timeUpdated(qint64 currentTime);
+    qint64 timeUpdated(qint64 currentTime);
 
 private:
     friend class ClockController;
@@ -126,7 +126,7 @@ class ClockController
     qint64 m_lastMasterTime = 0;
 
     friend class Clock;
-    void timeUpdated(Clock *clock, qint64 time);
+    qint64 timeUpdated(Clock *clock, qint64 time);
     QObject *notifyObject = nullptr;
     QMetaMethod notify;
 public:
