@@ -153,7 +153,7 @@ void overview_movie()
     camera = new QCamera;
     captureSession.setCamera(camera);
     recorder = new QMediaRecorder(camera);
-    captureSession.setMediaRecorder(recorder);
+    captureSession.setRecorder(recorder);
 
     camera->start();
 
