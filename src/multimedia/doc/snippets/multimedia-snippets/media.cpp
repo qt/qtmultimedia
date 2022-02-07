@@ -136,7 +136,7 @@ void MediaExample::MediaRecorder()
     QAudioInput audioInput;
     session.setAudioInput(&input);
     QMediaRecorder recorder;
-    session.setMediaRecorder(&recorder);
+    session.setRecorder(&recorder);
     recorder.setQuality(QMediaRecorder::HighQuality);
     recorder.setOutputLocation(QUrl::fromLocalFile("test.mp3"));
     recorder.record();
