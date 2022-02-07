@@ -125,7 +125,12 @@ QFFmpeg::Clock::Type QFFmpeg::Clock::type() const
 void QFFmpeg::ClockController::timeUpdated(Clock *clock, qint64 time)
 {
     if (clock == m_master) {
-        qCDebug(qLcClock) << "ClockController::timeUpdated(master)" << time << "skew" << skew();
+        // Avoid posting too many updates to the notifyObject, or we can overload
+        // the event queue with too many notifications
+        if (qAbs(time - m_lastMasterTime) < 5000)
+            return;
+        m_lastMasterTime = time;
+//        qCDebug(qLcClock) << "ClockController::timeUpdated(master)" << time << "skew" << skew();
         if (notifyObject)
             notify.invoke(notifyObject, Qt::QueuedConnection, Q_ARG(qint64, time));
         return;

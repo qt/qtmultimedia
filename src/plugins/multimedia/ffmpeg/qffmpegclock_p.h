@@ -123,6 +123,8 @@ class ClockController
     float m_playbackRate = 1.;
     bool m_isPaused = true;
 
+    qint64 m_lastMasterTime = 0;
+
     friend class Clock;
     void timeUpdated(Clock *clock, qint64 time);
     QObject *notifyObject = nullptr;
