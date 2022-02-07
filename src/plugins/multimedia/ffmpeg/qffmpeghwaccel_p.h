@@ -80,7 +80,7 @@ protected:
 public:
     virtual ~HWAccelBackend();
     virtual void setRhi(QRhi *) {}
-    virtual TextureSet *getTextures(AVFrame */*frame*/) { return nullptr; }
+    virtual TextureSet *getTextures(AVFrame * /*frame*/) { return nullptr; }
     virtual AVPixelFormat format(AVFrame *frame) const;
 
     QAtomicInt ref = 0;
