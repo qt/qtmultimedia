@@ -54,7 +54,11 @@
 #include <QtCore/qglobal.h>
 #include <QtMultimediaQuick/qtmultimediaquickexports.h>
 
+QT_BEGIN_NAMESPACE
+
 void Q_MULTIMEDIAQUICK_EXPORT qml_register_types_QtMultimedia();
+
+QT_END_NAMESPACE
 
 #endif // QMULTIMEDIAQUICKDEFS_P_H
 
