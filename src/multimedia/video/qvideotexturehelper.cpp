@@ -44,8 +44,11 @@
 #endif
 
 #include <qpainter.h>
+#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qLcVideoTextureHelper, "qt.multimedia.video.texturehelper")
 
 namespace QVideoTextureHelper
 {
@@ -497,15 +500,25 @@ int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *res
                 textureFlags |= QRhiTexture::TextureRectangleGL;
 #endif
         }
+
+        quint64 textureHandles[TextureDescription::maxPlanes] = {};
+        bool textureHandlesOK = true;
         for (int plane = 0; plane < description->nplanes; ++plane) {
-            quint64 nativeTexture = frame.textureHandle(plane);
-            if (!nativeTexture)
-                qWarning("Texture from QVideoFrame is 0, this cannot be right");
-            textures[plane] = rhi->newTexture(description->textureFormat[plane], planeSizes[plane], 1, textureFlags);
-            if (!textures[plane]->createFrom({nativeTexture, 0}))
-                qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu", nativeTexture);
+            quint64 handle = frame.textureHandle(plane);
+            textureHandles[plane] = handle;
+            textureHandlesOK &= handle > 0;
         }
-        return description->nplanes;
+
+        if (textureHandlesOK) {
+            for (int plane = 0; plane < description->nplanes; ++plane) {
+                textures[plane] = rhi->newTexture(description->textureFormat[plane], planeSizes[plane], 1, textureFlags);
+                if (!textures[plane]->createFrom({ textureHandles[plane], 0}))
+                    qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu", textureHandles[plane]);
+            }
+            return description->nplanes;
+        } else {
+            qCDebug(qLcVideoTextureHelper) << "Incorrect texture handle from QVideoFrame, trying to map and upload texture";
+        }
     }
 
     // need to upload textures
