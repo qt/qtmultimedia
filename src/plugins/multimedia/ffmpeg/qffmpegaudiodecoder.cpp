@@ -45,6 +45,27 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg
+{
+
+class SteppingAudioRenderer : public Renderer
+{
+    SteppingAudioRenderer(Decoder *decoder, const QAudioFormat &format);
+};
+
+class AudioDecoder : public Decoder
+{
+//    AudioDecoder(QFFmpegAudioDecoder *audioDecoder)
+//        : audioDecoder(audioDecoder)
+//    {
+//    }
+
+//private:
+//    QFFmpegAudioDecoder *audioDecoder = nullptr;
+};
+
+}
+
 
 QFFmpegAudioDecoder::QFFmpegAudioDecoder(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)

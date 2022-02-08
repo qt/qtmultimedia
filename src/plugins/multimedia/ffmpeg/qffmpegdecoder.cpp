@@ -582,6 +582,12 @@ void ClockedRenderer::setPaused(bool paused)
         unPause();
 }
 
+void ClockedRenderer::kill()
+{
+    decoder->clockController.removeClock(this);
+    Renderer::kill();
+}
+
 
 VideoRenderer::VideoRenderer(Decoder *decoder, QVideoSink *sink)
     : ClockedRenderer(decoder, QPlatformMediaPlayer::VideoStream)
@@ -1114,27 +1120,17 @@ void Decoder::setVideoSink(QVideoSink *sink)
     videoSink = sink;
     if (sink && !videoRenderer) {
         videoRenderer = new VideoRenderer(this, sink);
-        clockController.addClock(videoRenderer);
         videoRenderer->start();
+        StreamDecoder *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream], videoSink->rhi());
+        videoRenderer->setStream(stream);
+        stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
+        videoRenderer->setSubtitleStream(stream);
     } else if (!videoSink && videoRenderer) {
         videoRenderer->kill();
-        clockController.removeClock(videoRenderer);
         videoRenderer = nullptr;
-        // ### disable corresponding video stream
+        demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream]);
+        demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
     }
-    if (demuxer)
-        updateVideo();
-}
-
-void Decoder::updateVideo()
-{
-    if (!demuxer || !videoRenderer)
-        return;
-
-    StreamDecoder *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream], videoSink->rhi());
-    videoRenderer->setStream(stream);
-    stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
-    videoRenderer->setSubtitleStream(stream);
 }
 
 void Decoder::setAudioSink(QPlatformAudioOutput *output)
@@ -1146,24 +1142,14 @@ void Decoder::setAudioSink(QPlatformAudioOutput *output)
     audioOutput = output;
     if (output && !audioRenderer) {
         audioRenderer = new AudioRenderer(this, output->q);
-        clockController.addClock(audioRenderer);
         audioRenderer->start();
+        auto *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
+        audioRenderer->setStream(stream);
     } else if (!output && audioRenderer) {
         audioRenderer->kill();
-        clockController.removeClock(audioRenderer);
         audioRenderer = nullptr;
-        // ### unregister from decoder and remove it
+        demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
     }
-    updateAudio();
-}
-
-void Decoder::updateAudio()
-{
-    if (!demuxer || !audioRenderer)
-        return;
-
-    auto *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
-    audioRenderer->setStream(stream);
 }
 
 void Decoder::changeAVTrack(QPlatformMediaPlayer::TrackType type, int streamIndex)

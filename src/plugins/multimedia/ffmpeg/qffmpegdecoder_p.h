@@ -201,10 +201,7 @@ public:
     void triggerStep();
 
     void setVideoSink(QVideoSink *sink);
-    void updateVideo();
-
     void setAudioSink(QPlatformAudioOutput *output);
-    void updateAudio();
 
     void changeAVTrack(QPlatformMediaPlayer::TrackType type, int index);
 
@@ -241,10 +238,10 @@ public:
     int m_currentAVStreamIndex[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
 
     QVideoSink *videoSink = nullptr;
-    VideoRenderer *videoRenderer = nullptr;
+    Renderer *videoRenderer = nullptr;
 
     QPlatformAudioOutput *audioOutput = nullptr;
-    AudioRenderer *audioRenderer = nullptr;
+    Renderer *audioRenderer = nullptr;
 
     ClockController clockController;
     bool playing = false;
@@ -421,6 +418,7 @@ public:
     }
 
     void setStream(StreamDecoder *stream);
+    virtual void setSubtitleStream(StreamDecoder *) {}
 
     void kill() override;
 
@@ -437,8 +435,15 @@ class ClockedRenderer : public Renderer, public Clock
 public:
     ClockedRenderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type)
         : Renderer(decoder, type)
-    {}
+    {
+        decoder->clockController.addClock(this);
+    }
+    ~ClockedRenderer()
+    {
+        decoder->clockController.addClock(this);
+    }
     void setPaused(bool paused) override;
+    void kill() override;
 };
 
 class VideoRenderer : public ClockedRenderer
@@ -451,8 +456,7 @@ public:
 
     void kill() override;
 
-    void setSubtitleStream(StreamDecoder *stream);
-
+    void setSubtitleStream(StreamDecoder *stream) override;
 private:
 
     void init() override;

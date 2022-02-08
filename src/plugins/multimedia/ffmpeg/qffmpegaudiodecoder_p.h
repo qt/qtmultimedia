@@ -61,7 +61,7 @@
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
-class Decoder;
+class AudioDecoder;
 }
 
 class QFFmpegAudioDecoder : public QPlatformAudioDecoder
@@ -93,7 +93,7 @@ public:
 private:
     QUrl m_url;
     QIODevice *m_sourceDevice = nullptr;
-    QFFmpeg::Decoder *decoder = nullptr;
+    QFFmpeg::AudioDecoder *decoder = nullptr;
     QAudioFormat m_audioFormat;
 
     mutable QMutex queueMutex;
