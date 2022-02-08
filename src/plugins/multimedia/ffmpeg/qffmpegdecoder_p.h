@@ -183,8 +183,10 @@ class Decoder : public QObject
 {
     Q_OBJECT
 public:
-    Decoder(QFFmpegMediaPlayer *p, AVFormatContext *context);
+    Decoder();
     ~Decoder();
+
+    void setUrl(const QUrl &media);
 
     void init();
     void play() {
@@ -204,12 +206,23 @@ public:
     void setAudioSink(QPlatformAudioOutput *output);
     void updateAudio();
 
-    void changeTrack(QPlatformMediaPlayer::TrackType type, int index);
-
-    int getDefaultStream(QPlatformMediaPlayer::TrackType type);
+    void changeAVTrack(QPlatformMediaPlayer::TrackType type, int index);
 
     void seek(qint64 pos);
     void setPlaybackRate(float rate);
+
+    void setMediaPlayer(QFFmpegMediaPlayer *p) { player = p; }
+
+    void checkStreams();
+
+    int activeTrack(QPlatformMediaPlayer::TrackType type);
+    void setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
+
+    bool isSeekable() const
+    {
+        Q_ASSERT(context);
+        return !(context->ctx_flags & AVFMTCTX_UNSEEKABLE);
+    }
 
 public Q_SLOTS:
     void updateCurrentTime(qint64 time);
@@ -225,7 +238,7 @@ public:
     Demuxer *demuxer = nullptr;
 
     AVFormatContext *context = nullptr;
-    int m_currentStream[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
+    int m_currentAVStreamIndex[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
 
     QVideoSink *videoSink = nullptr;
     VideoRenderer *videoRenderer = nullptr;
@@ -235,6 +248,17 @@ public:
 
     ClockController clockController;
     bool playing = false;
+
+    struct StreamInfo {
+        int avStreamIndex = -1;
+        bool isDefault = false;
+        QMediaMetaData metaData;
+    };
+
+    QList<StreamInfo> m_streamMap[QPlatformMediaPlayer::NTrackTypes];
+    int m_requestedStreams[3] = { -1, -1, -1 };
+    qint64 m_duration = 0;
+    QMediaMetaData m_metaData;
 };
 
 class Demuxer : public Thread
@@ -360,7 +384,7 @@ private:
     QPlatformMediaPlayer::TrackType type() const;
 };
 
-class Renderer : public Thread, public Clock
+class Renderer : public Thread
 {
     Q_OBJECT
 protected:
@@ -402,15 +426,22 @@ public:
 
     virtual void streamChanged() {}
 
-    void setPaused(bool paused) override;
-
 protected:
     bool shouldWait() const override;
 
 public:
 };
 
-class VideoRenderer : public Renderer
+class ClockedRenderer : public Renderer, public Clock
+{
+public:
+    ClockedRenderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type)
+        : Renderer(decoder, type)
+    {}
+    void setPaused(bool paused) override;
+};
+
+class VideoRenderer : public ClockedRenderer
 {
     Q_OBJECT
 
@@ -430,7 +461,7 @@ private:
     QVideoSink *sink;
 };
 
-class AudioRenderer : public Renderer
+class AudioRenderer : public ClockedRenderer
 {
     Q_OBJECT
 public:

@@ -92,7 +92,7 @@ public:
 
     void setAudioOutput(QPlatformAudioOutput *) override;
 
-    QMediaMetaData metaData() const override { return m_metaData; }
+    QMediaMetaData metaData() const override;
 
     void setVideoSink(QVideoSink *sink) override;
     QVideoSink *videoSink() const;
@@ -111,19 +111,8 @@ private:
     QPlatformAudioOutput *m_audioOutput = nullptr;
     QVideoSink *m_videoSink = nullptr;
 
-    struct StreamInfo {
-        int avStreamIndex = -1;
-        bool isDefault = false;
-        QMediaMetaData metaData;
-    };
-
-    QList<StreamInfo> m_streamMap[QPlatformMediaPlayer::NTrackTypes];
-    int m_requestedStreams[3] = { -1, -1, -1 };
-
     QUrl m_url;
     QIODevice *m_device = nullptr;
-    qint64 m_duration = 0;
-    QMediaMetaData m_metaData;
     float m_playbackRate = 1.;
 };
 

@@ -563,15 +563,6 @@ void Renderer::kill()
     Thread::kill();
 }
 
-void Renderer::setPaused(bool paused)
-{
-    Clock::setPaused(paused);
-    if (paused)
-        pause();
-    else
-        unPause();
-}
-
 bool Renderer::shouldWait() const
 {
     if (!paused)
@@ -581,8 +572,19 @@ bool Renderer::shouldWait() const
     return true;
 }
 
+
+void ClockedRenderer::setPaused(bool paused)
+{
+    Clock::setPaused(paused);
+    if (paused)
+        pause();
+    else
+        unPause();
+}
+
+
 VideoRenderer::VideoRenderer(Decoder *decoder, QVideoSink *sink)
-    : Renderer(decoder, QPlatformMediaPlayer::VideoStream)
+    : ClockedRenderer(decoder, QPlatformMediaPlayer::VideoStream)
     , sink(sink)
 {}
 
@@ -693,7 +695,7 @@ void VideoRenderer::loop()
 }
 
 AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
-    : Renderer(decoder, QPlatformMediaPlayer::AudioStream)
+    : ClockedRenderer(decoder, QPlatformMediaPlayer::AudioStream)
     , output(output)
 {
     connect(output, &QAudioOutput::deviceChanged, this, &AudioRenderer::updateAudio);
@@ -903,20 +905,8 @@ void AudioRenderer::updateAudio()
     deviceChanged = true;
 }
 
-Decoder::Decoder(QFFmpegMediaPlayer *p, AVFormatContext *context)
-    : player(p)
-    , context(context)
+Decoder::Decoder()
 {
-    demuxer = new Demuxer(this);
-    // ### These should really be set up by the player!
-    // Currently this relies on the logic on both sides to be in sync.
-    m_currentStream[QPlatformMediaPlayer::AudioStream] = getDefaultStream(QPlatformMediaPlayer::AudioStream);
-    m_currentStream[QPlatformMediaPlayer::VideoStream] = getDefaultStream(QPlatformMediaPlayer::VideoStream);
-    m_currentStream[QPlatformMediaPlayer::SubtitleStream] = -1;
-    demuxer->start();
-
-    qDebug() << ">>>>>> index:" << metaObject()->indexOfSlot("updateCurrentTime(qint64)");
-    clockController.setNotify(this, metaObject()->method(metaObject()->indexOfSlot("updateCurrentTime(qint64)")));
 }
 
 Decoder::~Decoder()
@@ -929,6 +919,155 @@ Decoder::~Decoder()
     if (demuxer)
         demuxer->kill();
     avformat_close_input(&context);
+}
+
+void Decoder::setUrl(const QUrl &media)
+{
+    QByteArray url = media.toEncoded(QUrl::PreferLocalFile);
+
+    int ret = avformat_open_input(&context, url.constData(), nullptr, nullptr);
+    if (ret < 0) {
+        if (player)
+            player->error(QMediaPlayer::AccessDeniedError, QMediaPlayer::tr("Could not open file"));
+        return;
+    }
+
+    ret = avformat_find_stream_info(context, nullptr);
+    if (ret < 0) {
+        if (player)
+            player->error(QMediaPlayer::FormatError, QMediaPlayer::tr("Could not find stream information for media file"));
+        return;
+    }
+    av_dump_format(context, 0, url.constData(), 0);
+
+    m_metaData = QFFmpegMetaData::fromAVMetaData(context->metadata);
+    m_metaData.insert(QMediaMetaData::FileFormat,
+                      QVariant::fromValue(QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(context->iformat)));
+
+    checkStreams();
+
+    demuxer = new Demuxer(this);
+
+    // ### These should really be set up by the player!
+    // Currently this relies on the logic on both sides to be in sync.
+    demuxer->start();
+
+    qDebug() << ">>>>>> index:" << metaObject()->indexOfSlot("updateCurrentTime(qint64)");
+    clockController.setNotify(this, metaObject()->method(metaObject()->indexOfSlot("updateCurrentTime(qint64)")));
+}
+
+static void insertVideoData(QMediaMetaData &metaData, AVStream *stream)
+{
+    Q_ASSERT(stream);
+    auto *codecPar = stream->codecpar;
+    metaData.insert(QMediaMetaData::VideoBitRate, (int)codecPar->bit_rate);
+    metaData.insert(QMediaMetaData::VideoCodec, QVariant::fromValue(QFFmpegMediaFormatInfo::videoCodecForAVCodecId(codecPar->codec_id)));
+    metaData.insert(QMediaMetaData::Resolution, QSize(codecPar->width, codecPar->height));
+    metaData.insert(QMediaMetaData::VideoFrameRate,
+                    qreal(stream->avg_frame_rate.num)/qreal(stream->avg_frame_rate.den));
+};
+
+static void insertAudioData(QMediaMetaData &metaData, AVStream *stream)
+{
+    Q_ASSERT(stream);
+    auto *codecPar = stream->codecpar;
+    metaData.insert(QMediaMetaData::AudioBitRate, (int)codecPar->bit_rate);
+    metaData.insert(QMediaMetaData::AudioCodec,
+                    QVariant::fromValue(QFFmpegMediaFormatInfo::audioCodecForAVCodecId(codecPar->codec_id)));
+};
+
+void Decoder::checkStreams()
+{
+    qint64 duration = 0;
+    AVStream *firstAudioStream = nullptr;
+    AVStream *defaultAudioStream = nullptr;
+    AVStream *firstVideoStream = nullptr;
+    AVStream *defaultVideoStream = nullptr;
+
+    for (unsigned int i = 0; i < context->nb_streams; ++i) {
+        auto *stream = context->streams[i];
+
+        QMediaMetaData metaData = QFFmpegMetaData::fromAVMetaData(stream->metadata);
+        QPlatformMediaPlayer::TrackType type = QPlatformMediaPlayer::VideoStream;
+        auto *codecPar = stream->codecpar;
+
+        bool isDefault = stream->disposition & AV_DISPOSITION_DEFAULT;
+        switch (codecPar->codec_type) {
+        case AVMEDIA_TYPE_UNKNOWN:
+        case AVMEDIA_TYPE_DATA:          ///< Opaque data information usually continuous
+        case AVMEDIA_TYPE_ATTACHMENT:    ///< Opaque data information usually sparse
+        case AVMEDIA_TYPE_NB:
+            continue;
+        case AVMEDIA_TYPE_VIDEO:
+            type = QPlatformMediaPlayer::VideoStream;
+            insertVideoData(metaData, stream);
+            if (!firstVideoStream)
+                firstVideoStream = stream;
+            if (isDefault && !defaultVideoStream)
+                defaultVideoStream = stream;
+            break;
+        case AVMEDIA_TYPE_AUDIO:
+            type = QPlatformMediaPlayer::AudioStream;
+            insertAudioData(metaData, stream);
+            if (!firstAudioStream)
+                firstAudioStream = stream;
+            if (isDefault && !defaultAudioStream)
+                defaultAudioStream = stream;
+            break;
+        case AVMEDIA_TYPE_SUBTITLE:
+            type = QPlatformMediaPlayer::SubtitleStream;
+            break;
+        }
+        if (isDefault && m_requestedStreams[type] < 0)
+            m_requestedStreams[type] = m_streamMap[type].size();
+
+        m_streamMap[type].append({ (int)i, isDefault, metaData });
+        duration = qMax(duration, 1000*stream->duration*stream->time_base.num/stream->time_base.den);
+    }
+
+    if (m_requestedStreams[QPlatformMediaPlayer::VideoStream] < 0 && m_streamMap[QPlatformMediaPlayer::VideoStream].size()) {
+        m_requestedStreams[QPlatformMediaPlayer::VideoStream] = 0;
+        defaultVideoStream = firstVideoStream;
+    }
+    if (m_requestedStreams[QPlatformMediaPlayer::AudioStream] < 0 && m_streamMap[QPlatformMediaPlayer::AudioStream].size()) {
+        m_requestedStreams[QPlatformMediaPlayer::AudioStream] = 0;
+        defaultAudioStream = firstAudioStream;
+    }
+    if (defaultVideoStream) {
+        insertVideoData(m_metaData, defaultVideoStream);
+        m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream] = defaultVideoStream->index;
+    }
+    if (defaultAudioStream) {
+        insertAudioData(m_metaData, defaultAudioStream);
+        m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream] = defaultAudioStream->index;
+    }
+    m_requestedStreams[QPlatformMediaPlayer::SubtitleStream] = -1;
+    m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream] = -1;
+
+    if (player)
+        player->tracksChanged();
+
+    if (m_duration != duration) {
+        m_duration = duration;
+        if (player)
+            player->durationChanged(duration);
+    }
+}
+
+int Decoder::activeTrack(QPlatformMediaPlayer::TrackType type)
+{
+    return m_requestedStreams[type];
+}
+
+void Decoder::setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber)
+{
+    if (streamNumber < 0 || streamNumber >= m_streamMap[type].size())
+        streamNumber = -1;
+    if (m_requestedStreams[type] == streamNumber)
+        return;
+    m_requestedStreams[type] = streamNumber;
+    int avStreamIndex = m_streamMap[type].value(streamNumber).avStreamIndex;
+    changeAVTrack(type, avStreamIndex);
 }
 
 void Decoder::init()
@@ -992,9 +1131,9 @@ void Decoder::updateVideo()
     if (!demuxer || !videoRenderer)
         return;
 
-    StreamDecoder *stream = demuxer->addStream(m_currentStream[QPlatformMediaPlayer::VideoStream], videoSink->rhi());
+    StreamDecoder *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream], videoSink->rhi());
     videoRenderer->setStream(stream);
-    stream = demuxer->addStream(m_currentStream[QPlatformMediaPlayer::SubtitleStream]);
+    stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
     videoRenderer->setSubtitleStream(stream);
 }
 
@@ -1023,15 +1162,15 @@ void Decoder::updateAudio()
     if (!demuxer || !audioRenderer)
         return;
 
-    auto *stream = demuxer->addStream(m_currentStream[QPlatformMediaPlayer::AudioStream]);
+    auto *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
     audioRenderer->setStream(stream);
 }
 
-void Decoder::changeTrack(QPlatformMediaPlayer::TrackType type, int streamIndex)
+void Decoder::changeAVTrack(QPlatformMediaPlayer::TrackType type, int streamIndex)
 {
-    int oldIndex = m_currentStream[type];
+    int oldIndex = m_currentAVStreamIndex[type];
     qDebug() << ">>>>> change track" << type << "from" << oldIndex << "to" << streamIndex << clockController.currentTime();
-    m_currentStream[type] = streamIndex;
+    m_currentAVStreamIndex[type] = streamIndex;
     if (!demuxer)
         return;
     qDebug() << "    applying to renderer.";
@@ -1075,28 +1214,13 @@ QPlatformMediaPlayer::TrackType trackType(AVMediaType mediaType)
     return QPlatformMediaPlayer::NTrackTypes;
 }
 
-
-int Decoder::getDefaultStream(QPlatformMediaPlayer::TrackType type)
-{
-    int firstStream = -1;
-    for (uint i = 0; i < context->nb_streams; ++i) {
-        auto *s = context->streams[i];
-        if (trackType(s->codecpar->codec_type) != type)
-            continue;
-        if (firstStream < 0)
-            firstStream = i;
-        if (s->disposition & AV_DISPOSITION_DEFAULT)
-            return i;
-    }
-    return firstStream;
-}
-
 void Decoder::seek(qint64 pos)
 {
     QMutexLocker locker(&mutex);
     qint64 currentTime = demuxer->seek(pos);
     clockController.syncTo(pos*1000);
-    player->positionChanged(currentTime);
+    if (player)
+        player->positionChanged(currentTime);
     demuxer->wake();
     triggerStep();
 }
@@ -1113,7 +1237,8 @@ void Decoder::setPlaybackRate(float rate)
 
 void Decoder::updateCurrentTime(qint64 time)
 {
-    player->positionChanged(time/1000);
+    if (player)
+        player->positionChanged(time/1000);
 }
 
 QT_END_NAMESPACE
