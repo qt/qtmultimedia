@@ -204,6 +204,7 @@ void Decoder::doDecode()
 
     AMediaExtractor_selectTrack(m_extractor, 0);
 
+    emit decodingChanged(true);
     m_inputEOS = false;
     while (!m_inputEOS) {
         // handle input buffer
@@ -261,7 +262,6 @@ void Decoder::doDecode()
             qCWarning(adLogger) <<  "dequeueInputBuffer() status: invalid buffer idx " << bufferIdx;
         }
     }
-
     emit finished();
 }
 
@@ -273,13 +273,16 @@ QAndroidAudioDecoder::QAndroidAudioDecoder(QAudioDecoder *parent)
     connect(m_decoder, &Decoder::durationChanged, this, &QAndroidAudioDecoder::durationChanged);
     connect(m_decoder, &Decoder::error, this, &QAndroidAudioDecoder::error);
     connect(m_decoder, &Decoder::finished, this, &QAndroidAudioDecoder::finished);
+    connect(m_decoder, &Decoder::decodingChanged, this, &QPlatformAudioDecoder::setIsDecoding);
+    connect(this, &QAndroidAudioDecoder::setSourceUrl, m_decoder, & Decoder::setSource);
 }
 
 QAndroidAudioDecoder::~QAndroidAudioDecoder()
 {
     m_decoder->thread()->quit();
     m_decoder->thread()->wait();
-    m_decoder->deleteLater();
+    delete m_threadDecoder;
+    delete m_decoder;
 }
 
 void QAndroidAudioDecoder::setSource(const QUrl &fileName)
@@ -295,7 +298,7 @@ void QAndroidAudioDecoder::setSource(const QUrl &fileName)
 
     if (m_source != fileName) {
         m_source = fileName;
-        m_decoder->setSource(m_source);
+        emit setSourceUrl(m_source);
         sourceChanged();
     }
 }
@@ -321,7 +324,6 @@ void QAndroidAudioDecoder::start()
     if (isDecoding())
         return;
 
-    setIsDecoding(true);
     m_position = -1;
 
     if (!m_threadDecoder) {
@@ -335,24 +337,26 @@ void QAndroidAudioDecoder::start()
 
 void QAndroidAudioDecoder::stop()
 {
-    if (!isDecoding())
+    if (!isDecoding() && m_position < 0 && m_duration < 0)
         return;
 
     m_decoder->stop();
-
-    if (m_threadDecoder && m_threadDecoder->isRunning())
-        m_threadDecoder->exit();
-
-    m_position = -1;
     m_audioBuffer.clear();
+    m_position = -1;
+    m_duration = -1;
     setIsDecoding(false);
+
+    emit bufferAvailableChanged(false);
+    emit QPlatformAudioDecoder::positionChanged(m_position);
 }
 
 QAudioBuffer QAndroidAudioDecoder::read()
 {
-    if (m_buffersAvailable && !m_audioBuffer.isEmpty()) {
-        --m_buffersAvailable;
-        return m_audioBuffer.takeFirst();
+    if (!m_audioBuffer.isEmpty()) {
+        QPair<QAudioBuffer, int> buffer = m_audioBuffer.takeFirst();
+        m_position = buffer.second;
+        emit QPlatformAudioDecoder::positionChanged(buffer.second);
+        return buffer.first;
     }
 
     // no buffers available
@@ -361,7 +365,7 @@ QAudioBuffer QAndroidAudioDecoder::read()
 
 bool QAndroidAudioDecoder::bufferAvailable() const
 {
-    return m_buffersAvailable;
+    return m_audioBuffer.size() > 0;
 }
 
 qint64 QAndroidAudioDecoder::position() const
@@ -376,11 +380,9 @@ qint64 QAndroidAudioDecoder::duration() const
 
 void QAndroidAudioDecoder::positionChanged(QAudioBuffer audioBuffer, qint64 position)
 {
-    m_audioBuffer.append(audioBuffer);
+    m_audioBuffer.append(QPair<QAudioBuffer, int>(audioBuffer, position));
     m_position = position;
-    m_buffersAvailable++;
     emit bufferReady();
-    emit QPlatformAudioDecoder::positionChanged(position);
 }
 
 void QAndroidAudioDecoder::durationChanged(qint64 duration)
@@ -397,7 +399,11 @@ void QAndroidAudioDecoder::error(const QAudioDecoder::Error err, const QString &
 
 void QAndroidAudioDecoder::finished()
 {
-    stop();
+    emit bufferAvailableChanged(m_audioBuffer.size() > 0);
+
+    if (m_duration != -1)
+        emit durationChanged(m_duration);
+
     // remove temp file when decoding is finished
     QFile(QString(QDir::tempPath()).append(QString::fromUtf8(tempFile))).remove();
     emit QPlatformAudioDecoder::finished();
