@@ -58,7 +58,7 @@
 #include <QtCore/qmap.h>
 #include <QtCore/qset.h>
 #include <qaudioformat.h>
-
+#include <qnetworkreply.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -97,6 +97,7 @@ protected:
 
 private Q_SLOTS:
     void load();
+    void loadingError(QNetworkReply::NetworkError);
     void decoderError();
     void readSample();
     void decoderReady();
