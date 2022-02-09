@@ -90,7 +90,7 @@ public:
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
 #ifdef Q_OS_DARWIN
-#ifdef Q_OS_MACOS
+#if defined(Q_OS_MACOS) && QT_MACOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_11_0)
     if (__builtin_available(macOS 11.0, *))
         VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9);
 #endif
