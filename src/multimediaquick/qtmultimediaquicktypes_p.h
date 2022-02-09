@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company
+** Copyright (C) 2022 The Qt Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtQml module of the Qt Toolkit.
@@ -56,13 +56,6 @@
 #include <private/qtmultimediaquickglobal_p.h>
 
 QT_BEGIN_NAMESPACE
-
-struct QSoundEffectForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QSoundEffect)
-    QML_NAMED_ELEMENT(SoundEffect)
-};
 
 struct QMediaCaptureSessionForeign
 {
