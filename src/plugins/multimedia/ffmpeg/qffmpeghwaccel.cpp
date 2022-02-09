@@ -190,15 +190,16 @@ AVPixelFormat QFFmpeg::HWAccelBackend::format(AVFrame *frame) const
 }
 
 HWAccel::HWAccel(AVCodec *codec)
+    : HWAccel(codec->type != AVMEDIA_TYPE_VIDEO ? hardwareContextForCodec(codec) : nullptr)
 {
-    if (codec->type != AVMEDIA_TYPE_VIDEO)
+}
+
+HWAccel::HWAccel(AVBufferRef *hwDeviceContext)
+{
+    if (!hwDeviceContext)
         return;
 
-    AVBufferRef *hwContext = hardwareContextForCodec(codec);
-    if (!hwContext)
-        return;
-
-    AVHWDeviceContext *c = (AVHWDeviceContext *)hwContext->data;
+    AVHWDeviceContext *c = (AVHWDeviceContext *)hwDeviceContext->data;
     switch (c->type) {
 #if QT_CONFIG(vaapi)
     case AV_HWDEVICE_TYPE_VAAPI:
@@ -207,12 +208,12 @@ HWAccel::HWAccel(AVCodec *codec)
 #endif
 #ifdef Q_OS_DARWIN
     case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
-        d = new VideoToolBoxAccel(hwContext);
+        d = new VideoToolBoxAccel(hwDeviceContext);
         break;
 #endif
     case AV_HWDEVICE_TYPE_NONE:
     default:
-        d = new HWAccelBackend(hwContext);
+        d = new HWAccelBackend(hwDeviceContext);
         break;
     }
     d->ref.ref();

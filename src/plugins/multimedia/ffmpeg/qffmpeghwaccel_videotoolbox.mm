@@ -290,7 +290,7 @@ TextureSet *VideoToolBoxAccel::getTextures(AVFrame *frame)
 
 AVPixelFormat VideoToolBoxAccel::format(AVFrame *frame) const
 {
-    if (!rhi)
+    if (!rhi && !frame->hw_frames_ctx)
         return AVPixelFormat(frame->format);
     auto *hwFramesContext = (AVHWFramesContext *)frame->hw_frames_ctx->data;
     return AVPixelFormat(hwFramesContext->sw_format);

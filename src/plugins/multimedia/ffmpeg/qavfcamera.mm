@@ -44,6 +44,7 @@
 #include "qffmpegvideobuffer_p.h"
 extern "C" {
 #include <libavutil/hwcontext_videotoolbox.h>
+#include <libavutil/hwcontext.h>
 }
 #undef AVMediaType
 
@@ -54,41 +55,27 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
-struct HWFrame {
-     CVPixelBufferRef pixbuf;
-     AVBufferRef *hwContext;
-};
-
 static void releaseHwFrame(void */*opaque*/, uint8_t *data)
 {
-    HWFrame *ref = (HWFrame *)data;
-    CVPixelBufferRelease(ref->pixbuf);
-    av_buffer_unref(&ref->hwContext);
-
-    delete ref;
+    CVPixelBufferRelease(CVPixelBufferRef(data));
 }
 
-AVFrame *allocHWFrame(AVBufferRef *hwContext, const CVPixelBufferRef &pixbuf)
+// Make sure this is compatible with the layout used in ffmpeg's hwcontext_videotoolbox
+static AVFrame *allocHWFrame(AVBufferRef *hwContext, const CVPixelBufferRef &pixbuf)
 {
+    AVHWFramesContext *ctx = (AVHWFramesContext*)hwContext->data;
     AVFrame *frame = av_frame_alloc();
-    HWFrame *data = new HWFrame;
-    data->pixbuf = pixbuf;
-    data->hwContext = hwContext;
+    frame->hw_frames_ctx = av_buffer_ref(hwContext);
+    frame->extended_data = frame->data;
 
-    AVBufferRef *buf = av_buffer_create((uint8_t *)data, sizeof(HWFrame), releaseHwFrame, nullptr, 0);
-    if (!buf) {
-        delete data;
-        return nullptr;
-    }
-    frame->buf[0] = buf;
+    frame->buf[0] = av_buffer_create((uint8_t *)pixbuf, 1, releaseHwFrame, NULL, 0);
     frame->data[3] = (uint8_t *)pixbuf;
     CVPixelBufferRetain(pixbuf);
-    if (hwContext)
-        frame->hw_frames_ctx = av_buffer_ref(hwContext);
-
-    frame->width  = CVPixelBufferGetWidth(pixbuf);
-    frame->height = CVPixelBufferGetHeight(pixbuf);
+    frame->width  = ctx->width;
+    frame->height = ctx->height;
     frame->format = AV_PIX_FMT_VIDEOTOOLBOX;
+    Q_ASSERT(frame->width == (int)CVPixelBufferGetWidth(pixbuf));
+    Q_ASSERT(frame->height == (int)CVPixelBufferGetHeight(pixbuf));
     return frame;
 }
 
@@ -139,26 +126,28 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     int height = CVPixelBufferGetHeight(imageBuffer);
     AVFrame *avFrame = allocHWFrame(hwFramesContext, imageBuffer);
 
-    QFFmpeg::HWAccel accel;
-    QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame, accel); // ### HW accel?
+    auto *hfc = (AVHWFramesContext *)hwFramesContext->data;
+    QFFmpeg::HWAccel accel(hfc->device_ref);
+#ifdef USE_SW_FRAMES
+    auto *swFrame = av_frame_alloc();
+    /* retrieve data from GPU to CPU */
+    int ret = av_hwframe_transfer_data(swFrame, avFrame, 0);
+    if (ret < 0) {
+        qWarning() << "Error transferring the data to system memory\n";
+        av_frame_unref(swFrame);
+    } else {
+        av_frame_unref(avFrame);
+        avFrame = swFrame;
+    }
+#endif
 
-    auto fromCVVideoPixelFormat = [](unsigned avPixelFormat) -> QVideoFrameFormat::PixelFormat
-    {
-//#ifdef Q_OS_MACOS
-//        if (sink->rhi() && sink->rhi()->backend() == QRhi::OpenGLES2) {
-//            if (avPixelFormat == kCVPixelFormatType_32BGRA)
-//                return QVideoFrameFormat::Format_SamplerRect;
-//            else
-//                qWarning() << "Accelerated macOS OpenGL video supports BGRA only, got CV pixel format" << avPixelFormat;
-//        }
-//#endif
-        return QAVFHelpers::fromCVPixelFormat(avPixelFormat);
-    };
-
-    auto format = fromCVVideoPixelFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
-    if (format == QVideoFrameFormat::Format_Invalid)
+    auto format = QAVFHelpers::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
+    if (format == QVideoFrameFormat::Format_Invalid) {
+        av_frame_unref(avFrame);
         return;
+    }
 
+    QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame, accel);
     QVideoFrame frame(buffer, QVideoFrameFormat(QSize(width, height), format));
 
     m_camera->syncHandleFrame(frame);
@@ -167,6 +156,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 - (void) setHWContext:(AVBufferRef *)context
 {
     hwFramesContext = context;
+    av_buffer_ref(context);
 }
 
 @end
@@ -238,8 +228,6 @@ void QAVFCamera::updateVideoInput()
     [m_captureSession beginConfiguration];
 
     attachVideoInputDevice();
-    if (m_videoInput)
-        return;
 
     if (!m_videoDataOutput) {
         m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
@@ -252,9 +240,8 @@ void QAVFCamera::updateVideoInput()
 
         [m_captureSession addOutput:m_videoDataOutput];
     }
-    deviceOrientationChanged();
-
     [m_captureSession commitConfiguration];
+    deviceOrientationChanged();
 }
 
 void QAVFCamera::deviceOrientationChanged(int angle)
@@ -387,7 +374,17 @@ void QAVFCamera::updateCameraFormat(const QCameraFormat &format)
     auto *hwFramesContext = av_hwframe_ctx_alloc(hwDevice);
     av_buffer_unref(&hwDevice);
     auto *c = (AVHWFramesContext *)hwFramesContext->data;
-    c->format = av_map_videotoolbox_format_to_pixfmt(avPixelFormat);
+    c->format = AV_PIX_FMT_VIDEOTOOLBOX;
+    c->sw_format = av_map_videotoolbox_format_to_pixfmt(avPixelFormat);
+    c->width = format.resolution().width();
+    c->height = format.resolution().height();
+    int err = av_hwframe_ctx_init(hwFramesContext);
+    if (err < 0) {
+        char str[AV_ERROR_MAX_STRING_SIZE];
+        av_make_error_string(str, AV_ERROR_MAX_STRING_SIZE, err);
+        qWarning() << "failed to init HW frame context" << err << str;
+        return;
+    }
     [m_sampleBufferDelegate setHWContext:hwFramesContext];
 }
 

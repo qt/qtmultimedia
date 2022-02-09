@@ -93,6 +93,7 @@ class HWAccel
 public:
     HWAccel() = default;
     explicit HWAccel(AVCodec *codec);
+    explicit HWAccel(AVBufferRef *hwDeviceContext);
     ~HWAccel() = default;
 
     QRhi *rhi() const { return d ? d->rhi : nullptr; }
