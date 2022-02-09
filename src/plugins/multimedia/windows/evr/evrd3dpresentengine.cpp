@@ -184,23 +184,23 @@ public:
         if (m_d3dglHandle) {
             if (m_glHandle) {
                 if (!m_wgl.wglDXUnlockObjectsNV(m_d3dglHandle, 1, &m_glHandle))
-                    qWarning() << "Failed to unlock OpenGL texture";
+                    qCDebug(qLcEvrD3DPresentEngine) << "Failed to unlock OpenGL texture";
                 if (!m_wgl.wglDXUnregisterObjectNV(m_d3dglHandle, m_glHandle))
-                    qWarning() << "Failed to unregister OpenGL texture";
+                    qCDebug(qLcEvrD3DPresentEngine) << "Failed to unregister OpenGL texture";
 
                 if (QOpenGLContext::currentContext()) {
                     QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
                     if (funcs)
                         funcs->glDeleteTextures(1, &m_glTextureName);
                     else
-                        qWarning() << "Could not delete texture, OpenGL context functions missing";
+                        qCDebug(qLcEvrD3DPresentEngine) << "Could not delete texture, OpenGL context functions missing";
                 } else {
-                    qWarning() << "Could not delete texture, OpenGL context missing";
+                    qCDebug(qLcEvrD3DPresentEngine) << "Could not delete texture, OpenGL context missing";
                 }
             }
 
             if (!m_wgl.wglDXCloseDeviceNV(m_d3dglHandle))
-                qWarning() << "Failed to close D3D-GL device";
+                qCDebug(qLcEvrD3DPresentEngine) << "Failed to close D3D-GL device";
         }
     }
 
@@ -228,7 +228,7 @@ public:
 
         m_d3dglHandle = m_wgl.wglDXOpenDeviceNV(m_device.get());
         if (!m_d3dglHandle) {
-            qWarning() << "Failed to open D3D device";
+            qCDebug(qLcEvrD3DPresentEngine) << "Failed to open D3D device";
             return;
         }
 
@@ -243,16 +243,16 @@ public:
                 if (m_wgl.wglDXLockObjectsNV(m_d3dglHandle, 1, &m_glHandle))
                     return;
 
-                qWarning() << "Failed to lock OpenGL texture";
+                qCDebug(qLcEvrD3DPresentEngine) << "Failed to lock OpenGL texture";
                 m_wgl.wglDXUnregisterObjectNV(m_d3dglHandle, m_glHandle);
             } else {
-                qWarning() << "Could not register D3D9 texture in OpenGL";
+                qCDebug(qLcEvrD3DPresentEngine) << "Could not register D3D9 texture in OpenGL";
             }
 
             funcs->glDeleteTextures(1, &m_glTextureName);
             m_glTextureName = 0;
         } else {
-            qWarning() << "Failed generate texture names, OpenGL context functions missing";
+            qCDebug(qLcEvrD3DPresentEngine) << "Failed generate texture names, OpenGL context functions missing";
         }
     }
 
@@ -588,7 +588,7 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
                     if (SUCCEEDED(hr))
                         vb = new D3D11TextureVideoBuffer(m_device, sample, d3d11tex);
                     else
-                        qWarning() << "Failed to obtain D3D11Texture2D from D3D9Texture2D handle";
+                        qCDebug(qLcEvrD3DPresentEngine) << "Failed to obtain D3D11Texture2D from D3D9Texture2D handle";
                 }
             }
 #if QT_CONFIG(opengl)
