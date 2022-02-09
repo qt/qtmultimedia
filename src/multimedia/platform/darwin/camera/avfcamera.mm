@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
+** Copyright (C) 2022 The Qt Company Ltd and/or its subsidiary(-ies).
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -55,29 +55,6 @@ namespace {
 #ifdef Q_OS_IOS
 
 // Misc. helpers to check values/ranges:
-
-bool qt_check_ISO_conversion(float isoValue)
-{
-    if (isoValue >= std::numeric_limits<int>::max())
-        return false;
-    if (isoValue <= std::numeric_limits<int>::min())
-        return false;
-    return true;
-}
-
-bool qt_check_ISO_range(AVCaptureDeviceFormat *format)
-{
-    // Qt is using int for ISO, AVFoundation - float. It looks like the ISO range
-    // at the moment can be represented by int (it's max - min > 100, etc.).
-    Q_ASSERT(format);
-    if (format.maxISO - format.minISO < 1.) {
-        // ISO is in some strange units?
-        return false;
-    }
-
-    return qt_check_ISO_conversion(format.minISO)
-           && qt_check_ISO_conversion(format.maxISO);
-}
 
 bool qt_check_exposure_duration(AVCaptureDevice *captureDevice, CMTime duration)
 {
@@ -565,7 +542,7 @@ void AVFCamera::zoomTo(float factor, float rate)
     if (rate < 0)
         captureDevice.videoZoomFactor = factor;
     else
-        [AVCaptureDevice rampToVideoZoomFactor:factor withRate:rate];
+        [captureDevice rampToVideoZoomFactor:factor withRate:rate];
 #endif
 }
 
