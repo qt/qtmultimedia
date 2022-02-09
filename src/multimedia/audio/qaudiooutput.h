@@ -44,6 +44,8 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qaudio.h>
 
+#include <functional>
+
 QT_BEGIN_NAMESPACE
 
 class QAudioDevice;
