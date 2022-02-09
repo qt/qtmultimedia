@@ -301,7 +301,6 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
                                        nullptr);
         swr_init(resampler);
     }
-
 }
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
@@ -389,6 +388,10 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     Q_ASSERT(avformat_query_codec(encoder->formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
 
     auto *avCodec = avcodec_find_encoder(codecID);
+    if (!avCodec) {
+        qWarning() << "Could not find encoder for codecId" << codecID;
+        return;
+    }
 
     auto cameraFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
     auto encoderFormat = cameraFormat;
@@ -412,7 +415,7 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
 
     stream = avformat_new_stream(encoder->formatContext, nullptr);
     stream->id = encoder->formatContext->nb_streams - 1;
-    qDebug() << "Video stream: index" << stream->id;
+    //qDebug() << "Video stream: index" << stream->id;
     stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
     stream->codecpar->codec_id = codecID;
     // ### Fix hardcoded values
@@ -448,7 +451,12 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     avcodec_parameters_to_context(codec, stream->codecpar);
     codec->time_base = stream->time_base;
     int res = avcodec_open2(codec, avCodec, nullptr);
-    qDebug() << "video codec opened" << res << codec->time_base.num << codec->time_base.den;
+    if (res < 0) {
+        avcodec_free_context(&codec);
+        qWarning() << "Couldn't open codec for writing";
+        return;
+    }
+//    qDebug() << "video codec opened" << res << codec->time_base.num << codec->time_base.den;
     stream->time_base = codec->time_base;
 
     if (cameraFormat != encoderFormat)
@@ -540,9 +548,9 @@ void VideoEncoder::loop()
     }
 
     qint64 time = frame.startTime() - baseTime;
-    avFrame->pts = (time*stream->time_base.den + stream->time_base.num*500000)/(stream->time_base.num*1000000);
+    avFrame->pts = (time*stream->time_base.den + (stream->time_base.num >> 1))/(1000*stream->time_base.num);
 
-//    qDebug() << "sending frame" << avFrame->pts;
+//    qDebug() << "sending frame" << avFrame->pts << time << stream->time_base.num << stream->time_base.den;
     int ret = avcodec_send_frame(codec, avFrame);
     if (ret < 0) {
         char errStr[1024];

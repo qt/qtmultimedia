@@ -140,6 +140,8 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
         avFrame = swFrame;
     }
 #endif
+    CMTime time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    avFrame->pts = time.timescale ? time.value*1000/time.timescale : 0;
 
     auto format = QAVFHelpers::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
     if (format == QVideoFrameFormat::Format_Invalid) {
@@ -149,6 +151,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 
     QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame, accel);
     QVideoFrame frame(buffer, QVideoFrameFormat(QSize(width, height), format));
+    frame.setStartTime(avFrame->pts);
 
     m_camera->syncHandleFrame(frame);
 }
@@ -332,6 +335,8 @@ void QAVFCamera::setActive(bool active)
     } else {
         [m_captureSession stopRunning];
     }
+
+    emit activeChanged(active);
 }
 
 void QAVFCamera::setCamera(const QCameraDevice &camera)
