@@ -103,27 +103,28 @@ QVideoWindowPrivate::~QVideoWindowPrivate()
 }
 
 static const float g_quad[] = {
-    // 4 counterclockwise rotation of texture vertexes (the second pair)
+    // 4 clockwise rotation of texture vertexes (the second pair)
     // Rotation 0
     -1.f, -1.f,   0.f, 0.f,
     -1.f, 1.f,    0.f, 1.f,
     1.f, -1.f,    1.f, 0.f,
     1.f, 1.f,     1.f, 1.f,
     // Rotation 90
-    -1.f, -1.f,   1.f, 0.f,
-    -1.f, 1.f,    0.f, 0.f,
-    1.f, -1.f,    1.f, 1.f,
-    1.f, 1.f,     0.f, 1.f,
+    -1.f, -1.f,   0.f, 1.f,
+    -1.f, 1.f,    1.f, 1.f,
+    1.f, -1.f,    0.f, 0.f,
+    1.f, 1.f,     1.f, 0.f,
+
     // Rotation 180
     -1.f, -1.f,   1.f, 1.f,
     -1.f, 1.f,    1.f, 0.f,
     1.f, -1.f,    0.f, 1.f,
     1.f, 1.f,     0.f, 0.f,
     // Rotation 270
-    -1.f, -1.f,   0.f, 1.f,
-    -1.f, 1.f,    1.f, 1.f,
-    1.f, -1.f,    0.f, 0.f,
-    1.f, 1.f,     1.f, 0.f
+    -1.f, -1.f,   1.f, 0.f,
+    -1.f, 1.f,    0.f, 0.f,
+    1.f, -1.f,    1.f, 1.f,
+    1.f, 1.f,     0.f, 1.f
 };
 
 static QShader getShader(const QString &name)
