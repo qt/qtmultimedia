@@ -73,8 +73,6 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
-    AVCaptureConnection *videoConnection() const override;
-
 private:
     friend class AVFCameraSession;
     AVFCameraService *m_service = nullptr;

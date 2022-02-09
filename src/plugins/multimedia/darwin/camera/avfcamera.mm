@@ -230,12 +230,4 @@ void AVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     m_session->setActive(m_active);
 }
 
-AVCaptureConnection *AVFCamera::videoConnection() const
-{
-    if (!m_session || !m_session->videoOutput() || !m_session->videoOutput()->videoDataOutput())
-        return nil;
-
-    return [m_session->videoOutput()->videoDataOutput() connectionWithMediaType:AVMediaTypeVideo];
-}
-
 #include "moc_avfcamera_p.cpp"

@@ -105,7 +105,6 @@ public:
     void setColorTemperature(int /*temperature*/) override;
 #endif
 
-    virtual AVCaptureConnection *videoConnection() const = 0;
     AVCaptureDevice *device() const;
 
 protected:
