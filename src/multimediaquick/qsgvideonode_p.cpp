@@ -337,11 +337,11 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
         break;
 
     case 90:
-        // tr, tl, br, bl
-        qSetTex(v + 0, textureRect.topRight());
-        qSetTex(v + 1, textureRect.topLeft());
-        qSetTex(v + 2, textureRect.bottomRight());
-        qSetTex(v + 3, textureRect.bottomLeft());
+        // bl, br, tl, tr
+        qSetTex(v + 0, textureRect.bottomLeft());
+        qSetTex(v + 1, textureRect.bottomRight());
+        qSetTex(v + 2, textureRect.topLeft());
+        qSetTex(v + 3, textureRect.topRight());
         break;
 
     case 180:
@@ -353,11 +353,11 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
         break;
 
     case 270:
-        // bl, br, tl, tr
-        qSetTex(v + 0, textureRect.bottomLeft());
-        qSetTex(v + 1, textureRect.bottomRight());
-        qSetTex(v + 2, textureRect.topLeft());
-        qSetTex(v + 3, textureRect.topRight());
+        // tr, tl, br, bl
+        qSetTex(v + 0, textureRect.topRight());
+        qSetTex(v + 1, textureRect.topLeft());
+        qSetTex(v + 2, textureRect.bottomRight());
+        qSetTex(v + 3, textureRect.bottomLeft());
         break;
     }
 

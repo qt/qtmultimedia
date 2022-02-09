@@ -1246,9 +1246,9 @@ void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
         }
 
         if (qFuzzyCompare(degrees, qreal(90)) || qFuzzyCompare(degrees, qreal(-270))) {
-            angle = QVideoFrame::Rotation270;
-        } else if (qFuzzyCompare(degrees, qreal(-90)) || qFuzzyCompare(degrees, qreal(270))) {
             angle = QVideoFrame::Rotation90;
+        } else if (qFuzzyCompare(degrees, qreal(-90)) || qFuzzyCompare(degrees, qreal(270))) {
+            angle = QVideoFrame::Rotation270;
         } else if (qFuzzyCompare(degrees, qreal(180)) || qFuzzyCompare(degrees, qreal(-180))) {
             angle = QVideoFrame::Rotation180;
         }
