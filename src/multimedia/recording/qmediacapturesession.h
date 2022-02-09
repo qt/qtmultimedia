@@ -49,7 +49,7 @@ class QCamera;
 class QAudioInput;
 class QAudioOutput;
 class QCameraDevice;
-class QImageCapture; // ### rename to QMediaImageCapture
+class QImageCapture;
 class QMediaRecorder;
 class QPlatformMediaCaptureSession;
 class QVideoSink;
