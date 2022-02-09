@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd and/or its subsidiary(-ies).
+** Copyright (C) 2022 The Qt Company Ltd and/or its subsidiary(-ies).
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -487,8 +487,6 @@ bool QDarwinAudioSource::open()
     if (m_isOpen)
         return true;
 
-    UInt32  size = 0;
-
     AudioComponentDescription componentDescription;
     componentDescription.componentType = kAudioUnitType_Output;
 #if defined(Q_OS_OSX)
@@ -567,6 +565,7 @@ bool QDarwinAudioSource::open()
     m_streamFormat = CoreAudioUtils::toAudioStreamBasicDescription(m_audioFormat);
 
 #if defined(Q_OS_OSX)
+    UInt32  size = 0;
     if (m_audioFormat == m_audioDeviceInfo.preferredFormat()) {
 #endif
 
