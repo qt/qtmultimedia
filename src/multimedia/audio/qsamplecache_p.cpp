@@ -382,13 +382,24 @@ void QSample::load()
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
     qCDebug(qLcSampleCache) << "QSample: load [" << m_url << "]";
     m_stream = m_parent->networkAccessManager().get(QNetworkRequest(m_url));
-    connect(m_stream, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), SLOT(decoderError()));
+    connect(m_stream, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), SLOT(loadingError(QNetworkReply::NetworkError)));
     m_waveDecoder = new QWaveDecoder(m_stream);
     connect(m_waveDecoder, SIGNAL(formatKnown()), SLOT(decoderReady()));
     connect(m_waveDecoder, SIGNAL(parsingError()), SLOT(decoderError()));
     connect(m_waveDecoder, SIGNAL(readyRead()), SLOT(readSample()));
 
     m_waveDecoder->open(QIODevice::ReadOnly);
+}
+
+void QSample::loadingError(QNetworkReply::NetworkError errorCode)
+{
+    Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
+    QMutexLocker m(&m_mutex);
+    qCDebug(qLcSampleCache) << "QSample: loading error" << errorCode;
+    cleanup();
+    m_state = QSample::Error;
+    qobject_cast<QSampleCache*>(m_parent)->loadingRelease();
+    emit error();
 }
 
 // Called in loading thread
