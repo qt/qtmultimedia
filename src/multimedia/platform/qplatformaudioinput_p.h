@@ -53,6 +53,8 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <qaudiodevice.h>
 
+#include <functional>
+
 QT_BEGIN_NAMESPACE
 
 class QAudioInput;
