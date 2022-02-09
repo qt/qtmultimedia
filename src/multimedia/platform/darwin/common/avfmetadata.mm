@@ -297,27 +297,11 @@ QMediaMetaData AVFMetaData::fromAssetTrack(AVAssetTrack *asset)
     if ([asset.mediaType isEqualToString:AVMediaTypeVideo]) {
         // add orientation
         if (metadata.value(QMediaMetaData::Orientation).isNull()) {
-            int rotation = 0;
             QVideoFrame::RotationAngle angle = QVideoFrame::Rotation0;
             bool mirrored;
             AVFMediaPlayer::videoOrientationForAssetTrack(asset, angle, mirrored);
             Q_UNUSED(mirrored);
-            switch (angle) {
-            // metadata orientation angle is in clockwise direction
-            case QVideoFrame::Rotation90:
-                rotation = 270;
-                break;
-            case QVideoFrame::Rotation180:
-                rotation = 180;
-                break;
-            case QVideoFrame::Rotation270:
-                rotation = 90;
-                break;
-            default:
-                rotation = 0;
-                break;
-            }
-        metadata.insert(QMediaMetaData::Orientation, rotation);
+            metadata.insert(QMediaMetaData::Orientation, int(angle));
         }
     }
     return metadata;

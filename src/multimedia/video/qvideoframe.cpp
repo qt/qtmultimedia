@@ -702,7 +702,19 @@ void QVideoFrame::setEndTime(qint64 time)
 }
 
 /*!
-    Sets the counterclockwise rotation \a angle for the frame.
+    \enum QVideoFrame::RotationAngle
+
+    The angle of the clockwise rotation that should be applied to a video
+    frame before displaying.
+
+    \value Rotation0 No rotation required, the frame has correct orientation
+    \value Rotation90 The frame should be rotated by 90 degrees
+    \value Rotation180 The frame should be rotated by 180 degrees
+    \value Rotation270 The frame should be rotated by 270 degrees
+*/
+
+/*!
+    Sets the \a angle the frame should be rotated clockwise before displaying.
 */
 void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
 {
@@ -711,8 +723,7 @@ void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
 }
 
 /*!
-    Returns the angle the frame should be rotated counterclockwise before
-    displaying.
+    Returns the angle the frame should be rotated clockwise before displaying.
  */
 QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
 {
@@ -771,7 +782,7 @@ QImage QVideoFrame::toImage() const
     if (mirrored())
         t.scale(-1.f, 1.f);
     if (rotationAngle() != Rotation0)
-        t.rotate(-1.f * float(rotationAngle()));
+        t.rotate(float(rotationAngle()));
     if (surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom)
         t.scale(1.f, -1.f);
 
