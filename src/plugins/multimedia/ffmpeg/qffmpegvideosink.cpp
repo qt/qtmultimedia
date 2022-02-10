@@ -46,4 +46,12 @@ QFFmpegVideoSink::QFFmpegVideoSink(QVideoSink *sink)
 
 }
 
+void QFFmpegVideoSink::setRhi(QRhi *rhi)
+{
+    if (m_rhi == rhi)
+        return;
+    m_rhi = rhi;
+    emit rhiChanged(rhi);
+}
+
 QT_END_NAMESPACE

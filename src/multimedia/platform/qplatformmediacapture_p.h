@@ -62,6 +62,7 @@ class QCameraDevice;
 class QVideoSink;
 class QPlatformAudioInput;
 class QPlatformAudioOutput;
+class QMediaCaptureSession;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
@@ -69,6 +70,9 @@ class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 public:
     QPlatformMediaCaptureSession() = default;
     virtual ~QPlatformMediaCaptureSession();
+
+    void setCaptureSession(QMediaCaptureSession *session) { m_session = session; }
+    QMediaCaptureSession *captureSession() const { return m_session; }
 
     virtual QPlatformCamera *camera() = 0;
     virtual void setCamera(QPlatformCamera *) {}
@@ -89,6 +93,9 @@ Q_SIGNALS:
     void cameraChanged();
     void imageCaptureChanged();
     void encoderChanged();
+
+private:
+    QMediaCaptureSession *m_session = nullptr;
 };
 
 QT_END_NAMESPACE

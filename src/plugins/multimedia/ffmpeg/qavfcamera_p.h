@@ -70,7 +70,9 @@ QT_BEGIN_NAMESPACE
 
 Q_FORWARD_DECLARE_OBJC_CLASS(QAVFSampleBufferDelegate);
 
-class Q_MULTIMEDIA_EXPORT QAVFCamera : public QAVFCameraBase
+class QFFmpegVideoSink;
+
+class QAVFCamera : public QAVFCameraBase
 {
     Q_OBJECT
 
@@ -81,14 +83,18 @@ public:
     bool isActive() const override;
     void setActive(bool active) override;
 
+    void setCaptureSession(QPlatformMediaCaptureSession *) override;
+
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
-
-//    void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
     void syncHandleFrame(const QVideoFrame &frame);
 
     void deviceOrientationChanged(int angle = -1);
+
+private Q_SLOTS:
+    void videoSinkChanged();
+    void rhiChanged(QRhi *rhi);
 
 private:
     void requestCameraPermissionIfNeeded();
@@ -102,12 +108,14 @@ private:
 
 //    QVideoFrameFormat::YCbCrColorSpace colorSpace = QVideoFrameFormat::YCbCr_Undefined;
 
+    QMediaCaptureSession *m_session = nullptr;
     AVCaptureSession *m_captureSession = nullptr;
     AVCaptureDeviceInput *m_videoInput = nullptr;
     AVCaptureVideoDataOutput *m_videoDataOutput = nullptr;
     QAVFSampleBufferDelegate *m_sampleBufferDelegate = nullptr;
     dispatch_queue_t m_delegateQueue;
     QVideoOutputOrientationHandler m_orientationHandler;
+    QFFmpegVideoSink *m_sink = nullptr;
 };
 
 QT_END_NAMESPACE

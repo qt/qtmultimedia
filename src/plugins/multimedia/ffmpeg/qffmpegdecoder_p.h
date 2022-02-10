@@ -421,6 +421,7 @@ public:
     void kill() override;
 
     void setSubtitleStream(StreamDecoder *stream);
+
 private:
 
     void init() override;

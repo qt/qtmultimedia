@@ -38,10 +38,15 @@
 ****************************************************************************/
 #include <qavfcamera_p.h>
 #include <qpointer.h>
+#include <qmediacapturesession.h>
+#include <private/qplatformmediacapture_p.h>
 #include "avfcamerautility_p.h"
 #include "qavfhelpers_p.h"
+#include <qvideosink.h>
+#include <private/qrhi_p.h>
 #define AVMediaType XAVMediaType
 #include "qffmpegvideobuffer_p.h"
+#include "qffmpegvideosink_p.h"
 extern "C" {
 #include <libavutil/hwcontext_videotoolbox.h>
 #include <libavutil/hwcontext.h>
@@ -90,6 +95,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
          fromConnection:(AVCaptureConnection *)connection;
 
 - (void) setHWContext:(AVBufferRef *)context;
+- (void) setRhi:(QRhi *)rhi;
 
 @end
 
@@ -98,6 +104,8 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 @private
     QAVFCamera *m_camera;
     AVBufferRef *hwFramesContext;
+    QFFmpeg::HWAccel accel;
+    QRhi *m_rhi;
 }
 
 - (QAVFSampleBufferDelegate *) initWithCamera:(QAVFCamera *)renderer
@@ -105,8 +113,9 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     if (!(self = [super init]))
         return nil;
 
-    self->m_camera = renderer;
-    self->hwFramesContext = nullptr;
+    m_camera = renderer;
+    hwFramesContext = nullptr;
+    m_rhi = nullptr;
     return self;
 }
 
@@ -126,8 +135,6 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     int height = CVPixelBufferGetHeight(imageBuffer);
     AVFrame *avFrame = allocHWFrame(hwFramesContext, imageBuffer);
 
-    auto *hfc = (AVHWFramesContext *)hwFramesContext->data;
-    QFFmpeg::HWAccel accel(hfc->device_ref);
 #ifdef USE_SW_FRAMES
     auto *swFrame = av_frame_alloc();
     /* retrieve data from GPU to CPU */
@@ -160,6 +167,16 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 {
     hwFramesContext = context;
     av_buffer_ref(context);
+    auto *hfc = (AVHWFramesContext *)hwFramesContext->data;
+    accel = QFFmpeg::HWAccel(hfc->device_ref);
+    if (m_rhi)
+        accel.setRhi(m_rhi);
+}
+
+- (void) setRhi:(QRhi *)rhi
+{
+    m_rhi = rhi;
+    accel.setRhi(rhi);
 }
 
 @end
@@ -276,6 +293,27 @@ void QAVFCamera::deviceOrientationChanged(int angle)
 
     connection.videoOrientation = orientation;
 }
+
+void QAVFCamera::videoSinkChanged()
+{
+    if (m_sink)
+        m_sink->disconnect(this);
+    m_sink = nullptr;
+    QRhi *rhi = nullptr;
+    auto sink = m_session ? m_session->videoSink() : nullptr;
+    if (sink) {
+        rhi = sink->rhi();
+        m_sink = static_cast<QFFmpegVideoSink *>(sink->platformVideoSink());
+        connect(m_sink, &QFFmpegVideoSink::rhiChanged, this, &QAVFCamera::rhiChanged);
+    }
+    rhiChanged(rhi);
+}
+
+void QAVFCamera::rhiChanged(QRhi *rhi)
+{
+    [m_sampleBufferDelegate setRhi:rhi];
+}
+
 void QAVFCamera::attachVideoInputDevice()
 {
     if (m_videoInput) {
@@ -337,6 +375,16 @@ void QAVFCamera::setActive(bool active)
     }
 
     emit activeChanged(active);
+}
+
+void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    if (m_session)
+        m_session->disconnect(this);
+    m_session = session ? session->captureSession() : nullptr;
+    if (m_session)
+        connect(m_session, &QMediaCaptureSession::videoOutputChanged, this, &QAVFCamera::videoSinkChanged);
+    videoSinkChanged();
 }
 
 void QAVFCamera::setCamera(const QCameraDevice &camera)

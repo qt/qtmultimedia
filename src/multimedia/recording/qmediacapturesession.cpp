@@ -158,6 +158,7 @@ QMediaCaptureSession::QMediaCaptureSession(QObject *parent)
 {
     d_ptr->q = this;
     d_ptr->captureSession = QPlatformMediaIntegration::instance()->createCaptureSession();
+    d_ptr->captureSession->setCaptureSession(this);
     Q_ASSERT(d_ptr->captureSession);
 }
 

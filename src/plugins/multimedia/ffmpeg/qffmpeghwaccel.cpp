@@ -135,6 +135,7 @@ static bool formatIsHWAccelerated(AVPixelFormat fmt)
     case AV_PIX_FMT_CUDA:
     case AV_PIX_FMT_DRM_PRIME:
     case AV_PIX_FMT_OPENCL:
+    case AV_PIX_FMT_VIDEOTOOLBOX:
         return true;
     default:
         break;
@@ -190,7 +191,7 @@ AVPixelFormat QFFmpeg::HWAccelBackend::format(AVFrame *frame) const
 }
 
 HWAccel::HWAccel(AVCodec *codec)
-    : HWAccel(codec->type != AVMEDIA_TYPE_VIDEO ? hardwareContextForCodec(codec) : nullptr)
+    : HWAccel(codec->type == AVMEDIA_TYPE_VIDEO ? hardwareContextForCodec(codec) : nullptr)
 {
 }
 

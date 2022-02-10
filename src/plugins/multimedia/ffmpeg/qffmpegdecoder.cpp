@@ -46,6 +46,7 @@
 #include "qffmpegvideobuffer_p.h"
 #include "private/qplatformaudiooutput_p.h"
 #include "qffmpeghwaccel_p.h"
+#include "qffmpegvideosink_p.h"
 #include "qvideosink.h"
 #include "qaudiosink.h"
 #include "qaudiooutput.h"
@@ -641,7 +642,11 @@ void VideoRenderer::loop()
 
     if (sink) {
         qint64 startTime = frame.pts();
-        QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(frame.takeAVFrame(), frame.codec()->hwAccel());
+        auto accel = frame.codec()->hwAccel();
+        if (!accel.rhi() && sink->rhi())
+            accel.setRhi(sink->rhi());
+//        qDebug() << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
+        QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(frame.takeAVFrame(), accel);
         QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
         QVideoFrame videoFrame(buffer, format);
         videoFrame.setStartTime(startTime);

@@ -64,11 +64,13 @@ class QFFmpegVideoSink : public QPlatformVideoSink
 
 public:
     QFFmpegVideoSink(QVideoSink *sink);
-//    virtual void setRhi(QRhi * /*rhi*/) {}
+    void setRhi(QRhi *rhi) override;
 
-//    virtual void setDisplayRect(const QRect &) {};
-//    virtual void setFullScreen(bool) {}
-//    virtual void setAspectRatioMode(Qt::AspectRatioMode) {}
+Q_SIGNALS:
+    void rhiChanged(QRhi *rhi);
+
+private:
+    QRhi *m_rhi = nullptr;
 };
 
 QT_END_NAMESPACE

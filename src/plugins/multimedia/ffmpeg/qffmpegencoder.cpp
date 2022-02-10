@@ -459,10 +459,12 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
 //    qDebug() << "video codec opened" << res << codec->time_base.num << codec->time_base.den;
     stream->time_base = codec->time_base;
 
-    if (cameraFormat != encoderFormat)
+    if (cameraFormat != encoderFormat) {
+        qDebug() << "camera and encoder use different formats:" << cameraFormat << encoderFormat;
         converter = sws_getContext(resolution.width(), resolution.height(), cameraFormat,
                                    resolution.width(), resolution.height(), encoderFormat,
                                    SWS_BICUBIC, nullptr, nullptr, nullptr);
+    }
 }
 
 VideoEncoder::~VideoEncoder()

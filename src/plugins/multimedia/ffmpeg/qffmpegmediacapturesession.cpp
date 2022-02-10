@@ -70,13 +70,17 @@ void QFFmpegMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
     if (m_camera == camera)
         return;
-    if (m_camera)
+    if (m_camera) {
         m_camera->disconnect(this);
+        m_camera->setCaptureSession(nullptr);
+    }
 
     m_camera = camera;
 
-    if (m_camera)
+    if (m_camera) {
         connect(m_camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegMediaCaptureSession::newVideoFrame);
+        m_camera->setCaptureSession(this);
+    }
 
     emit cameraChanged();
 }
