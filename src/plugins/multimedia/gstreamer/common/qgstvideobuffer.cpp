@@ -120,8 +120,8 @@ QGstVideoBuffer::~QGstVideoBuffer()
                 break;
         }
 #if QT_CONFIG(gstreamer_gl)
-        if (rhi) {
-            rhi->makeThreadLocalNativeContextCurrent();
+        if (m_rhi) {
+            m_rhi->makeThreadLocalNativeContextCurrent();
             QOpenGLFunctions functions(glContext);
             functions.glDeleteTextures(planes, m_textures);
         }
@@ -266,7 +266,7 @@ fourccFromVideoInfo(const GstVideoInfo * info, int plane)
 
 void QGstVideoBuffer::mapTextures()
 {
-    if (!rhi)
+    if (!m_rhi)
         return;
 
 #if QT_CONFIG(gstreamer_gl)
@@ -300,7 +300,7 @@ void QGstVideoBuffer::mapTextures()
         Q_ASSERT(eglDisplay);
         Q_ASSERT(eglImageTargetTexture2D);
 
-        auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+        auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(m_rhi->nativeHandles());
         glContext = nativeHandles->context;
         if (!glContext) {
             qWarning() << "no GL context";

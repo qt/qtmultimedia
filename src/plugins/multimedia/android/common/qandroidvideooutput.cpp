@@ -123,10 +123,10 @@ static QMatrix4x4 extTransformMatrix(AndroidSurfaceTexture *surfaceTexture)
 
 quint64 AndroidTextureVideoBuffer::textureHandle(int plane) const
 {
-    if (plane != 0 || !rhi || !m_output->m_nativeSize.isValid())
+    if (plane != 0 || !m_rhi || !m_output->m_nativeSize.isValid())
         return 0;
 
-    m_output->ensureExternalTexture(rhi);
+    m_output->ensureExternalTexture(m_rhi);
     m_output->m_surfaceTexture->updateTexImage();
     m_externalMatrix = extTransformMatrix(m_output->m_surfaceTexture);
     return m_output->m_externalTex->nativeTexture().object;

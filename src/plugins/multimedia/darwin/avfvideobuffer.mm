@@ -59,7 +59,7 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buf
       m_buffer(buffer)
 {
 //    m_type = QVideoFrame::NoHandle;
-//    qDebug() << "RHI" << rhi;
+//    qDebug() << "RHI" << m_rhi;
     CVPixelBufferRetain(m_buffer);
     m_pixelFormat = fromCVVideoPixelFormat(CVPixelBufferGetPixelFormatType(m_buffer));
 }
@@ -158,12 +158,12 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 {
     auto *textureDescription = QVideoTextureHelper::textureDescription(m_pixelFormat);
     int bufferPlanes = CVPixelBufferGetPlaneCount(m_buffer);
-//    qDebug() << "texture handle" << plane << rhi << (rhi->backend() == QRhi::Metal) << bufferPlanes;
+//    qDebug() << "texture handle" << plane << m_rhi << (m_rhi->backend() == QRhi::Metal) << bufferPlanes;
     if (plane > 0 && plane >= bufferPlanes)
         return 0;
-    if (!rhi)
+    if (!m_rhi)
         return 0;
-    if (rhi->backend() == QRhi::Metal) {
+    if (m_rhi->backend() == QRhi::Metal) {
         if (!cvMetalTexture[plane]) {
             size_t width = CVPixelBufferGetWidth(m_buffer);
             size_t height = CVPixelBufferGetHeight(m_buffer);
@@ -190,7 +190,7 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
         // Get a Metal texture using the CoreVideo Metal texture reference.
 //        qDebug() << "    -> " << quint64(CVMetalTextureGetTexture(cvMetalTexture[plane]));
         return cvMetalTexture[plane] ? quint64(CVMetalTextureGetTexture(cvMetalTexture[plane])) : 0;
-    } else if (rhi->backend() == QRhi::OpenGLES2) {
+    } else if (m_rhi->backend() == QRhi::OpenGLES2) {
 #if QT_CONFIG(opengl)
 #ifdef Q_OS_MACOS
         CVOpenGLTextureCacheFlush(sink->cvOpenGLTextureCache, 0);

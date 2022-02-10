@@ -41,7 +41,7 @@
 
 #include "qvideotexturehelper_p.h"
 #include "qmemoryvideobuffer_p.h"
-#include "qvideoframeconversionhelper_p.h"
+#include "qvideoframeconverter_p.h"
 #include "qvideoframeformat.h"
 #include "qpainter.h"
 #include <qtextlayout.h>
@@ -56,45 +56,6 @@
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
-static bool pixelFormatHasAlpha[QVideoFrameFormat::NPixelFormats] =
-{
-    false, //Format_Invalid,
-    true, //Format_ARGB32,
-    true, //Format_ARGB32_Premultiplied,
-    false, //Format_XRGB32,
-    true, //Format_BGRA32,
-    true, //Format_BGRA32_Premultiplied,
-    false, //Format_BGRX32,
-    true, //Format_ABGR32,
-    false, //Format_XBGR32,
-    true, //Format_RGBA32,
-    false, //Format_RGBX32,
-
-    true, //Format_AYUV,
-    true, //Format_AYUV_Premultiplied,
-    false, //Format_YUV420P,
-    false, //Format_YUV422P,
-    false, //Format_YV12,
-    false, //Format_UYVY,
-    false, //Format_YUYV,
-    false, //Format_NV12,
-    false, //Format_NV21,
-    false, //Format_IMC1,
-    false, //Format_IMC2,
-    false, //Format_IMC3,
-    false, //Format_IMC4,
-    false, //Format_Y8,
-    false, //Format_Y16,
-
-    false, //Format_P010,
-    false, //Format_P016,
-
-    false, //Format_SamplerExternalOES
-    false, //Format_Jpeg,
-    false, //Format_SamplerRect
-
-};
-
 
 class QVideoFramePrivate : public QSharedData
 {
@@ -772,41 +733,8 @@ QImage QVideoFrame::toImage() const
     if (!d->image.isNull())
         return d->image;
 
-    QVideoFrame frame = *this;
-
-    if (!frame.map(QVideoFrame::ReadOnly))
-        return d->image;
-
-    if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
-        // Load from JPG
-        d->image.loadFromData(frame.bits(0), frame.mappedBytes(0), "JPG");
-    }
-
-    // Need conversion
-    else {
-        VideoFrameConvertFunc convert = qConverterForFormat(frame.pixelFormat());
-        if (!convert) {
-            qWarning() << Q_FUNC_INFO << ": unsupported pixel format" << frame.pixelFormat();
-        } else {
-            auto format = pixelFormatHasAlpha[frame.pixelFormat()] ? QImage::Format_ARGB32_Premultiplied : QImage::Format_RGB32;
-            d->image = QImage(frame.width(), frame.height(), format);
-            convert(frame, d->image.bits());
-        }
-    }
-
-    frame.unmap();
-
-    QTransform t;
-    if (mirrored())
-        t.scale(-1.f, 1.f);
-    if (rotationAngle() != Rotation0)
-        t.rotate(float(rotationAngle()));
-    if (surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom)
-        t.scale(1.f, -1.f);
-
-    if (!t.isIdentity())
-        d->image = d->image.transformed(t);
-
+    d->image = qImageFromVideoFrame(*this, rotationAngle(), mirrored(),
+                                    surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom);
     return d->image;
 }
 

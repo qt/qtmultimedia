@@ -115,7 +115,7 @@ QT_BEGIN_NAMESPACE
 */
 QAbstractVideoBuffer::QAbstractVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi)
     : m_type(type),
-      rhi(rhi)
+      m_rhi(rhi)
 {
 }
 
@@ -139,6 +139,14 @@ QVideoFrame::HandleType QAbstractVideoBuffer::handleType() const
 std::unique_ptr<QRhiTexture> QAbstractVideoBuffer::texture(int /*plane*/) const
 {
     return {};
+}
+
+/*!
+    Returns the QRhi instance.
+*/
+QRhi *QAbstractVideoBuffer::rhi() const
+{
+    return m_rhi;
 }
 
 /*! \fn uchar *QAbstractVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)

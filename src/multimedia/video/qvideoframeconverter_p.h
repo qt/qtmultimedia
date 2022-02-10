@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QABSTRACTVIDEOBUFFER_H
-#define QABSTRACTVIDEOBUFFER_H
+#ifndef QVIDEOFRAMECONVERTER_H
+#define QVIDEOFRAMECONVERTER_H
 
 //
 //  W A R N I N G
@@ -51,60 +51,13 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qvideoframe.h>
-
-#include <QtCore/qmetatype.h>
-#include <QtGui/qmatrix4x4.h>
-#include <QtCore/private/qglobal_p.h>
-
-#include <memory>
+#include <qvideoframe.h>
 
 QT_BEGIN_NAMESPACE
 
-
-class QVariant;
-class QRhi;
-class QRhiTexture;
-
-class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
-{
-public:
-    QAbstractVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);
-    virtual ~QAbstractVideoBuffer();
-
-    QVideoFrame::HandleType handleType() const;
-    QRhi *rhi() const;
-
-    struct MapData
-    {
-        int nPlanes = 0;
-        int bytesPerLine[4] = {};
-        uchar *data[4] = {};
-        int size[4] = {};
-    };
-
-    virtual QVideoFrame::MapMode mapMode() const = 0;
-    virtual MapData map(QVideoFrame::MapMode mode) = 0;
-    virtual void unmap() = 0;
-
-    virtual void mapTextures() {}
-    virtual quint64 textureHandle(int /*plane*/) const { return 0; }
-    virtual std::unique_ptr<QRhiTexture> texture(int /*plane*/) const;
-
-    virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
-protected:
-    QVideoFrame::HandleType m_type;
-    QRhi *m_rhi = nullptr;
-
-private:
-    Q_DISABLE_COPY(QAbstractVideoBuffer)
-};
-
-#ifndef QT_NO_DEBUG_STREAM
-Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::MapMode);
-#endif
+Q_MULTIMEDIA_EXPORT QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideoFrame::RotationAngle rotation = QVideoFrame::Rotation0, bool mirrorX = false, bool mirrorY = false);
 
 QT_END_NAMESPACE
 
 #endif
+

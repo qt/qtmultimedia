@@ -161,7 +161,7 @@ public:
 
     std::unique_ptr<QRhiTexture> texture(int plane) const override
     {
-        if (!rhi || !m_d2d11tex || plane > 0)
+        if (!m_rhi || !m_d2d11tex || plane > 0)
             return {};
         D3D11_TEXTURE2D_DESC desc = {};
         m_d2d11tex->GetDesc(&desc);
@@ -173,7 +173,7 @@ public:
         else
             return {};
 
-        std::unique_ptr<QRhiTexture> tex(rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
+        std::unique_ptr<QRhiTexture> tex(m_rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
         tex->createFrom({quint64(m_d2d11tex.get()), 0});
         return tex;
     }
@@ -243,6 +243,7 @@ public:
 
         m_d3dglHandle = m_wgl.wglDXOpenDeviceNV(m_device.get());
         if (!m_d3dglHandle) {
+            m_texture.reset();
             qCDebug(qLcEvrD3DPresentEngine) << "Failed to open D3D device";
             return;
         }
@@ -274,7 +275,7 @@ public:
 
     std::unique_ptr<QRhiTexture> texture(int plane) const override
     {
-        if (!rhi || !m_texture || plane > 0)
+        if (!m_rhi || !m_texture || plane > 0)
             return {};
 
         D3DSURFACE_DESC desc;
@@ -287,7 +288,7 @@ public:
         else
             return {};
 
-        std::unique_ptr<QRhiTexture> tex(rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
+        std::unique_ptr<QRhiTexture> tex(m_rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
         tex->createFrom({quint64(m_glTextureName), 0});
         return tex;
     }
