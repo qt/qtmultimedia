@@ -204,7 +204,7 @@ HWAccel::HWAccel(AVBufferRef *hwDeviceContext)
     switch (c->type) {
 #if QT_CONFIG(vaapi)
     case AV_HWDEVICE_TYPE_VAAPI:
-        d = new VAAPIAccel(hwContext);
+        d = new VAAPIAccel(hwDeviceContext);
         break;
 #endif
 #ifdef Q_OS_DARWIN
