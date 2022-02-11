@@ -470,7 +470,7 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
         qDebug() << "camera and encoder use different formats:" << cameraFormat << encoderFormat;
         converter = sws_getContext(resolution.width(), resolution.height(), cameraFormat,
                                    resolution.width(), resolution.height(), encoderFormat,
-                                   SWS_BICUBIC, nullptr, nullptr, nullptr);
+                                   SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
     }
 }
 
@@ -517,6 +517,11 @@ bool VideoEncoder::shouldWait() const
     return videoFrameQueue.isEmpty();
 }
 
+static void freeQVideoFrame(void *opaque, uint8_t *)
+{
+    delete reinterpret_cast<QVideoFrame *>(opaque);
+}
+
 void VideoEncoder::loop()
 {
     auto frame = takeFrame();
@@ -548,16 +553,21 @@ void VideoEncoder::loop()
         strides[0] = img.bytesPerLine();
     }
 
-    // #### make sure bytesPerline agree, support planar formats
     Q_ASSERT(avFrame->data[0]);
     if (!converter) {
-        memcpy(avFrame->data[0], data[0], strides[0]*frame.height());
+        for (int i = 0; i < 4; ++i) {
+            avFrame->data[i] = const_cast<uint8_t *>(data[i]);
+            avFrame->linesize[i] = strides[i];
+        }
     } else {
         sws_scale(converter, data, strides, 0, frame.height(), avFrame->data, avFrame->linesize);
     }
 
     qint64 time = frame.startTime() - baseTime;
     avFrame->pts = (time*stream->time_base.den + (stream->time_base.num >> 1))/(1000*stream->time_base.num);
+
+    // ensure the video frame and it's data is alive as long as it's being used in the encoder
+    avFrame->opaque_ref = av_buffer_create(nullptr, 0, freeQVideoFrame, new QVideoFrame(frame), 0);
 
 //    qDebug() << "sending frame" << avFrame->pts << time << stream->time_base.num << stream->time_base.den;
     int ret = avcodec_send_frame(codec, avFrame);
