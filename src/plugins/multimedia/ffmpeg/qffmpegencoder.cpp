@@ -51,6 +51,7 @@
 
 extern "C" {
 #include <libavutil/pixdesc.h>
+#include <libavutil/common.h>
 }
 
 QT_BEGIN_NAMESPACE
@@ -134,6 +135,7 @@ void Encoder::finalize()
 
     avformat_free_context(formatContext);
     formatContext = nullptr;
+    qDebug() << "    done finalizing.";
 }
 
 void Encoder::newAudioBuffer(const QAudioBuffer &buffer)
@@ -418,6 +420,11 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     //qDebug() << "Video stream: index" << stream->id;
     stream->codecpar->codec_type = AVMEDIA_TYPE_VIDEO;
     stream->codecpar->codec_id = codecID;
+
+    // Apples HEVC decoders don't like the hev1 tag ffmpeg uses by default, use hvc1 as the more commonly accepted tag
+    if (settings.videoCodec() == QMediaFormat::VideoCodec::H265)
+        stream->codecpar->codec_tag = MKTAG('h','v','c','1');
+
     // ### Fix hardcoded values
     stream->codecpar->format = encoderFormat;
     stream->codecpar->width = resolution.width();
