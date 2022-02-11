@@ -181,26 +181,28 @@ public:
 
     ~OpenGlVideoBuffer() override
     {
-        if (m_d3dglHandle) {
+        if (!m_d3dglHandle)
+            return;
+
+        if (QOpenGLContext::currentContext()) {
             if (m_glHandle) {
                 if (!m_wgl.wglDXUnlockObjectsNV(m_d3dglHandle, 1, &m_glHandle))
                     qCDebug(qLcEvrD3DPresentEngine) << "Failed to unlock OpenGL texture";
                 if (!m_wgl.wglDXUnregisterObjectNV(m_d3dglHandle, m_glHandle))
                     qCDebug(qLcEvrD3DPresentEngine) << "Failed to unregister OpenGL texture";
 
-                if (QOpenGLContext::currentContext()) {
-                    QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
-                    if (funcs)
-                        funcs->glDeleteTextures(1, &m_glTextureName);
-                    else
-                        qCDebug(qLcEvrD3DPresentEngine) << "Could not delete texture, OpenGL context functions missing";
-                } else {
-                    qCDebug(qLcEvrD3DPresentEngine) << "Could not delete texture, OpenGL context missing";
-                }
+                QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
+                if (funcs)
+                    funcs->glDeleteTextures(1, &m_glTextureName);
+                else
+                    qCDebug(qLcEvrD3DPresentEngine) << "Could not delete texture, OpenGL context functions missing";
             }
 
             if (!m_wgl.wglDXCloseDeviceNV(m_d3dglHandle))
                 qCDebug(qLcEvrD3DPresentEngine) << "Failed to close D3D-GL device";
+
+        } else {
+            qCDebug(qLcEvrD3DPresentEngine) << "Could not release texture, OpenGL context missing";
         }
     }
 
@@ -245,6 +247,7 @@ public:
 
                 qCDebug(qLcEvrD3DPresentEngine) << "Failed to lock OpenGL texture";
                 m_wgl.wglDXUnregisterObjectNV(m_d3dglHandle, m_glHandle);
+                m_glHandle = nullptr;
             } else {
                 qCDebug(qLcEvrD3DPresentEngine) << "Could not register D3D9 texture in OpenGL";
             }
