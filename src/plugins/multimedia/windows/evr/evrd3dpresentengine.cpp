@@ -67,8 +67,8 @@ class IMFSampleVideoBuffer: public QAbstractVideoBuffer
 {
 public:
     IMFSampleVideoBuffer(QWindowsIUPointer<IDirect3DDevice9Ex> device,
-                          IMFSample *sample, QVideoFrame::HandleType type = QVideoFrame::NoHandle)
-        : QAbstractVideoBuffer(type)
+                          IMFSample *sample, QRhi *rhi, QVideoFrame::HandleType type = QVideoFrame::NoHandle)
+        : QAbstractVideoBuffer(type, rhi)
         , m_device(device)
         , m_mapMode(QVideoFrame::NotMapped)
     {
@@ -154,8 +154,8 @@ class D3D11TextureVideoBuffer: public IMFSampleVideoBuffer
 {
 public:
     D3D11TextureVideoBuffer(QWindowsIUPointer<IDirect3DDevice9Ex> device, IMFSample *sample,
-                            QWindowsIUPointer<ID3D11Texture2D> d2d11tex)
-        : IMFSampleVideoBuffer(device, sample, QVideoFrame::RhiTextureHandle)
+                            QWindowsIUPointer<ID3D11Texture2D> d2d11tex, QRhi *rhi)
+        : IMFSampleVideoBuffer(device, sample, rhi, QVideoFrame::RhiTextureHandle)
         , m_d2d11tex(d2d11tex)
     {}
 
@@ -173,8 +173,8 @@ class OpenGlVideoBuffer: public IMFSampleVideoBuffer
 {
 public:
     OpenGlVideoBuffer(QWindowsIUPointer<IDirect3DDevice9Ex> device, IMFSample *sample,
-                      const WglNvDxInterop &wglNvDxInterop, HANDLE sharedHandle)
-        : IMFSampleVideoBuffer(device, sample, QVideoFrame::RhiTextureHandle)
+                      const WglNvDxInterop &wglNvDxInterop, HANDLE sharedHandle, QRhi *rhi)
+        : IMFSampleVideoBuffer(device, sample, rhi, QVideoFrame::RhiTextureHandle)
         , m_sharedHandle(sharedHandle)
         , m_wgl(wglNvDxInterop)
     {}
@@ -586,20 +586,20 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
                     QWindowsIUPointer<ID3D11Texture2D> d3d11tex;
                     HRESULT hr = dev->OpenSharedResource(sharedHandle, __uuidof(ID3D11Texture2D), (void**)(d3d11tex.address()));
                     if (SUCCEEDED(hr))
-                        vb = new D3D11TextureVideoBuffer(m_device, sample, d3d11tex);
+                        vb = new D3D11TextureVideoBuffer(m_device, sample, d3d11tex, rhi);
                     else
                         qCDebug(qLcEvrD3DPresentEngine) << "Failed to obtain D3D11Texture2D from D3D9Texture2D handle";
                 }
             }
 #if QT_CONFIG(opengl)
         } else if (rhi->backend() == QRhi::OpenGLES2) {
-            vb = new OpenGlVideoBuffer(m_device, sample, m_wglNvDxInterop, sharedHandle);
+            vb = new OpenGlVideoBuffer(m_device, sample, m_wglNvDxInterop, sharedHandle, rhi);
 #endif
         }
     }
 
     if (!vb)
-        vb = new IMFSampleVideoBuffer(m_device, sample);
+        vb = new IMFSampleVideoBuffer(m_device, sample, rhi);
 
     QVideoFrame frame(vb, m_surfaceFormat);
 
