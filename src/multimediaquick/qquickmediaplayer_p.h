@@ -55,6 +55,7 @@
 #include <QtQml/qqml.h>
 #include <QtQml/qqmlcontext.h>
 #include <qtmultimediaquickexports.h>
+#include <private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 

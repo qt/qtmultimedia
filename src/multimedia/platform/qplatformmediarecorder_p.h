@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -58,6 +58,7 @@
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/qmediaformat.h>
+#include <QtCore/private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 

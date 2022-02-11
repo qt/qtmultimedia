@@ -55,6 +55,7 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 
 #include <QtMultimedia/qcamera.h>
+#include <QtCore/private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 

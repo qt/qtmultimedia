@@ -54,6 +54,7 @@
 #include <qtmultimediaglobal.h>
 
 #include <QObject>
+#include <private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
