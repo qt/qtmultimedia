@@ -1,25 +1,15 @@
-# Generated from qmlvideo.pro.
-
 cmake_minimum_required(VERSION 3.16)
 project(qmlvideo LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
-  set(INSTALL_EXAMPLESDIR "examples")
+    set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/qmlvideo")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS Quick)
-find_package(Qt6 COMPONENTS Multimedia)
-find_package(Qt6 COMPONENTS Qml)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
 
 qt_add_executable(qmlvideo
     frequencymonitor.cpp frequencymonitor.h
@@ -29,6 +19,7 @@ qt_add_executable(qmlvideo
     main.cpp
     trace.h
 )
+
 set_target_properties(qmlvideo PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
@@ -50,17 +41,19 @@ target_link_libraries(qmlvideo PUBLIC
     Qt::Quick
 )
 
-
 # Resources:
 set_source_files_properties("images/folder.png"
     PROPERTIES QT_RESOURCE_ALIAS "folder.png"
 )
+
 set_source_files_properties("images/leaves.jpg"
     PROPERTIES QT_RESOURCE_ALIAS "leaves.jpg"
 )
+
 set_source_files_properties("images/up.png"
     PROPERTIES QT_RESOURCE_ALIAS "up.png"
 )
+
 set(qmlvideo_resource_files
     "images/folder.png"
     "images/leaves.jpg"

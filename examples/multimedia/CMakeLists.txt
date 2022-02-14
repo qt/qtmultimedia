@@ -1,5 +1,3 @@
-# Generated from multimedia.pro.
-
 qt_internal_add_example(audiodecoder)
 if(NOT ANDROID AND NOT IOS)
     qt_internal_add_example(devices)
