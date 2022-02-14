@@ -49,7 +49,7 @@
 ****************************************************************************/
 
 #include "playlistmodel.h"
-#include <qmediaplaylist.h>
+#include "qmediaplaylist.h"
 
 #include <QFileInfo>
 #include <QUrl>

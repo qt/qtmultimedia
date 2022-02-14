@@ -2,17 +2,13 @@ cmake_minimum_required(VERSION 3.16)
 
 project(mediaplayer LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
-  set(INSTALL_EXAMPLESDIR "examples")
+    set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/mediaplayer")
@@ -30,7 +26,7 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/mediaplayer")
 #    endif()
 #endif()
 
-find_package(Qt6 COMPONENTS Core Quick QuickControls2 Svg REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Svg)
 
 set(PROJECT_SOURCES
         main.cpp

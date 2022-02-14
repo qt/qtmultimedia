@@ -1,5 +1,3 @@
-# Generated from video.pro.
-
 qt_internal_add_example(qmlvideo)
 if(TARGET Qt::QuickControls2)
     if(TARGET Qt::Svg)

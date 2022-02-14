@@ -52,9 +52,9 @@
 
 #include "playercontrols.h"
 #include "playlistmodel.h"
+#include "qmediaplaylist.h"
 #include "videowidget.h"
 
-#include <qmediaplaylist.h>
 #include <QMediaMetaData>
 #include <QMediaDevices>
 #include <QAudioDevice>

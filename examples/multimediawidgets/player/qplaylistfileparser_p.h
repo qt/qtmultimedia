@@ -52,8 +52,8 @@
 //
 
 #include "qtmultimediaglobal.h"
+#include "qmediaplaylist.h"
 #include <QtCore/qobject.h>
-#include <qmediaplaylist.h>
 
 QT_BEGIN_NAMESPACE
 

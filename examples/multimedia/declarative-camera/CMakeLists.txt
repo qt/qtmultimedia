@@ -1,29 +1,20 @@
-# Generated from declarative-camera.pro.
-
 cmake_minimum_required(VERSION 3.16)
 project(declarative-camera LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
-  set(INSTALL_EXAMPLESDIR "examples")
+    set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/declarative-camera")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS Quick)
-find_package(Qt6 COMPONENTS Qml)
-find_package(Qt6 COMPONENTS Multimedia)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia Qml Quick)
 
 qt_add_executable(declarative-camera
     qmlcamera.cpp
 )
+
 set_target_properties(declarative-camera PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
@@ -31,11 +22,11 @@ set_target_properties(declarative-camera PROPERTIES
     XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS
         "${CMAKE_CURRENT_LIST_DIR}/declarative-camera.entitlements"
 )
-# special case begin
+
 target_include_directories(declarative-camera PUBLIC
     ../shared
 )
-# special case end
+
 target_link_libraries(declarative-camera PUBLIC
     Qt::Core
     Qt::Gui

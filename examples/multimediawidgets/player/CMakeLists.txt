@@ -1,22 +1,15 @@
-# Generated from player.pro.
-
 cmake_minimum_required(VERSION 3.16)
 project(player LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
-  set(INSTALL_EXAMPLESDIR "examples")
+    set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimediawidgets/player")
 
-find_package(Qt6 COMPONENTS Network)
-find_package(Qt6 COMPONENTS MultimediaWidgets)
+find_package(Qt6 REQUIRED COMPONENTS MultimediaWidgets Network)
 
 qt_add_executable(player
     main.cpp
@@ -27,10 +20,12 @@ qt_add_executable(player
     qmediaplaylist.cpp qmediaplaylist.h qmediaplaylist_p.h
     qplaylistfileparser.cpp qplaylistfileparser_p.h
 )
+
 set_target_properties(player PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
 )
+
 target_link_libraries(player PUBLIC
     Qt::MultimediaWidgets
     Qt::Network

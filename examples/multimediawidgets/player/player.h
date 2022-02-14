@@ -51,9 +51,10 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "qmediaplaylist.h"
+
 #include <QWidget>
 #include <QMediaPlayer>
-#include <qmediaplaylist.h>
 #include <QMediaMetaData>
 
 QT_BEGIN_NAMESPACE
