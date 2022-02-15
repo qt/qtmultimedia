@@ -1,5 +1,6 @@
 include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
 include($QT_INSTALL_DOCS/config/exampleurl-qtmultimedia.qdocconf)
+include(../../../examples/multimedia/video/mediaplayer/doc/qmlmediaplayer.qdocconf)
 
 project                 = QtMultimedia
 description             = Qt Multimedia Documentation

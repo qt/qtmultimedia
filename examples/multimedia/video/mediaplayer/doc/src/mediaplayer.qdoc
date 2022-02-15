@@ -32,17 +32,172 @@
     \ingroup video_examples_qml
     \brief Playing audio and video using Qt Quick.
     \meta {tag} {quick}
-
+    \meta {tag} {player}
     \image qmlmediaplayer.jpg
 
-    \e{QML Media Player} demonstrates a simple multimedia player that can play
-    audio and or video files using various codecs.
+    This example demonstrates a simple multimedia player that can play
+    audio and video files using various codecs.
 
     \include examples-run.qdocinc
 
-    The example uses the QML MediaPlayer object connected to a VideoOutput to
-    play back the video.
+    \section1 Overview
+    At its core this is a QML application, see
+    \l{Getting Started Programming with Qt Quick} for information specific to
+    that. This documentation is focused on how this example utilizes the
+    \l{Qt Multimedia QML types}.
 
-    The example shows usage of some advanced features such as selection of audio
+    \image architecture-overview.gif
+
+    \section1 Using MediaPlayer and VideoOutput
+    In \c main.qml a MediaPlayer instance is connected to a VideoOutput to
+    play back the video:
+
+    \quotefromfile multimedia/video/mediaplayer/main.qml
+    \skipto MediaPlayer
+    \printuntil videoOutput: videoOutput
+
+    \c videoOutput is declared like so:
+
+    \skipto VideoOutput {
+    \printto MetadataInfo {
+
+    \section1 PlayerMenuBar
+    \image PlayerMenuBar.gif
+    This QML type handles media selection from a url or local file, exiting the
+    application, viewing meta data, and the selection of available video, audio
     or subtitle tracks.
+
+    \quotefromfile multimedia/video/mediaplayer/PlayerMenuBar.qml
+    Accessing the mediaPlayer object is done through properties:
+    \skipto required property
+    \printuntil TracksInfo subtitleTracksInfo
+
+    \section2 fileDialog
+    A FileDialog, \c fileDialog, is created with an \c onAccepted function that
+    will stop \c mediaPlayer, load the source by setting the
+    \l{MediaPlayer::source}{source} property and then play it automatically:
+    \skipto FileDialog
+    \printto MenuBar
+
+    This is triggered in the Menu \c File, which is a child of the MenuBar:
+    \skipto MenuBar
+    \printto }
+
+    \section2 loadUrl
+    \image url.png
+    While \c urlPopup handles prompting and capturing a url, it is the \c loadUrl
+    function that interacts with \c mediaPlayer like so:
+    \quotefromfile multimedia/video/mediaplayer/PlayerMenuBar.qml
+    \skipto function loadUrl
+    \printto function closeOverlays(){
+
+    \section2 Getting meta data
+    \image meta-data.png
+
+    In the declaration of \c mediaPlayer, in \c main.qml, there is the function
+    \c updateMetadata():
+
+    \quotefromfile multimedia/video/mediaplayer/main.qml
+    \skipto function updateMetadata(
+    \printto }
+
+    It is called in the following places:
+    \skipto onMetaDataChanged:
+    \printto onActiveTracksChanged: { updateMetadata() }
+
+    Reading MetaData is done by the \c MetadataInfo type's \c read() function
+    \quotefromfile multimedia/video/mediaplayer/MetadataInfo.qml
+    \skipto function read(metadata) {
+    \printto ListModel
+
+    The information is displayed via an \l[QML]{Overlay} item.
+
+    \section2 Tracks information and control
+    \youtube OqosZsDqvzQ
+    This is defined in \c TracksInfo.qml and reading available tracks is done in
+    a similar way to \c MetadataInfo:
+    \quotefromfile multimedia/video/mediaplayer/TracksInfo.qml
+    \skipto function read(metadata
+    \printto ListModel
+
+    To set a track, the property \c selectedTrack is set like so:
+    \skipto ListView
+    \printto Text
+
+    The \c onSelectectedTrackChanged signal, in each relevant \c TracksInfo
+    instance in \c main.qml, is what makes changes to \c mediaPlayer like so:
+    \quotefromfile multimedia/video/mediaplayer/main.qml
+    \skipto id: audioTracksInfo
+    \printuntil audioTracksInfo.selectedTrack
+
+    \section1 playbackControlPanel
+    \image playbackControlPanel.gif
+
+    This item has controls for \l{Playback control}, \l{Play Pause Stop},
+    \l{Playback rate control} and \l{Playback seek control}.
+
+    \section2 Playback control
+    This qml type handles media playback and interacts with the MediaPlayer in
+    \c main.qml.
+
+    Here are the property definitions.
+    \quotefromfile multimedia/video/mediaplayer/PlaybackControl.qml
+    \skipto required property
+    \printto property alias
+
+    Connections:
+    \skipuntil Connections
+    \printto HoverHandler
+
+    \section2 Play Pause Stop
+    \image play-pause-stop.gif
+    \l{MediaPlayer::play()}{Play}, \l{MediaPlayer::stop()}{stop} and
+    \l{MediaPlayer::pause()}{pause} interactions with the MediaPlayer object
+    are done like so:
+    \skipto RoundButton
+    \printto Item {
+
+    Playback states done using \l{MediaPlayer::playbackState}{playbackstate}
+    like so:
+    \skipuntil states:
+    \printuntil ]
+
+
+    \section2 Playback seek control
+
+    \youtube sf_yv01UtIw
+
+    Defined in \c PlaybackSeekControl.qml, this component comprises of an item
+    with a Text, \c mediaTime, and \l{Slider}, \c mediaSlider, in a RowLayout.
+
+    \c mediaTime uses MediaPlayer's \l{MediaPlayer::position}{position} property
+    like so:
+    \quotefromfile multimedia/video/mediaplayer/PlaybackSeekControl.qml
+    \skipto Text {
+    \printto Slider
+
+    \c mediaSlider uses the MediaPlayer \l{MediaPlayer::seekable}{seekable},
+    \l{MediaPlayer::duration}{duration}, and \l{MediaPlayer::position}{position}
+    properties like so:
+    \skipto Slider
+    \printuntil }
+
+    \section2 Playback rate control
+    \youtube nHrBbW0H-pc
+
+    This type is defined in \c PlaybackRateControl.qml like so:
+
+    \quotefromfile multimedia/video/mediaplayer/PlaybackRateControl.qml
+    \skipto Slider
+    \printuntil text:
+
+    \section2 Audio control
+    \image audio-control.gif
+    This type is defined in \c AudioControl.qml, and utilizes the
+    \l{MediaPlayer::muted}{muted} and \l{MediaPlayer::volume}{volume} properties
+    of MediaPlayer.
+
+    \quotefromfile multimedia/video/mediaplayer/AudioControl.qml
+    \skipto required
+    \printuntil value: 100.0
 */
