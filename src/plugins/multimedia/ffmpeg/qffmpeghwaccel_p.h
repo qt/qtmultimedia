@@ -81,7 +81,6 @@ public:
     virtual ~HWAccelBackend();
     virtual void setRhi(QRhi *) {}
     virtual TextureSet *getTextures(AVFrame * /*frame*/) { return nullptr; }
-    virtual AVPixelFormat format(AVFrame *frame) const;
 
     QAtomicInt ref = 0;
     AVBufferRef *hwContext = nullptr;
@@ -106,10 +105,7 @@ public:
             return nullptr;
         return d->getTextures(frame);
     }
-    AVPixelFormat format(AVFrame *frame) const
-    {
-        return d ? d->format(frame) : AVPixelFormat(frame->format);
-    }
+    static AVPixelFormat format(AVFrame *frame);
     bool canProvideTextures() const { return d->rhi != nullptr; }
     AVBufferRef *hwContext() const { return d ? d->hwContext : nullptr; }
     bool isNull() const { return !d; }

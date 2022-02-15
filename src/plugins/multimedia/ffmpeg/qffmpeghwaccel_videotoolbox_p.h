@@ -77,7 +77,6 @@ public:
 
     void setRhi(QRhi *rhi) override;
     TextureSet *getTextures(AVFrame *frame) override;
-    AVPixelFormat format(AVFrame *frame) const override;
 
     // can not forward declare that type from C++ :/
     void *cvMetalTextureCache = nullptr;

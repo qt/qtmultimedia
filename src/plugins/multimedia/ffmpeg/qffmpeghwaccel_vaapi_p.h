@@ -73,7 +73,6 @@ public:
 
     void setRhi(QRhi *rhi) override;
     TextureSet *getTextures(AVFrame *frame) override;
-    AVPixelFormat format(AVFrame *frame) const override;
 
     VADisplay vaDisplay = nullptr;
     Qt::HANDLE eglDisplay = nullptr;

@@ -220,6 +220,16 @@ HWAccel::HWAccel(AVBufferRef *hwDeviceContext)
     d->ref.ref();
 }
 
+AVPixelFormat HWAccel::format(AVFrame *frame)
+{
+    if (!frame->hw_frames_ctx)
+        return AVPixelFormat(frame->format);
+
+    auto *hwFramesContext = (AVHWFramesContext *)frame->hw_frames_ctx->data;
+    Q_ASSERT(hwFramesContext);
+    return AVPixelFormat(hwFramesContext->sw_format);
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

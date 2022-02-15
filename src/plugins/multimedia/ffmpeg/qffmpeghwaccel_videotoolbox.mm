@@ -209,9 +209,9 @@ TextureSet *VideoToolBoxAccel::getTextures(AVFrame *frame)
         return nullptr;
 
     bool needsConversion = false;
-    QVideoFrameFormat::PixelFormat pixelFormat = QFFmpegVideoBuffer::toQtPixelFormat(format(frame), &needsConversion);
+    QVideoFrameFormat::PixelFormat pixelFormat = QFFmpegVideoBuffer::toQtPixelFormat(HWAccel::format(frame), &needsConversion);
     if (needsConversion) {
-        qDebug() << "XXXXXXXXXXXX pixel format needs conversion" << pixelFormat << format(frame);
+        qDebug() << "XXXXXXXXXXXX pixel format needs conversion" << pixelFormat << HWAccel::format(frame);
         return nullptr;
     }
 
@@ -288,14 +288,6 @@ TextureSet *VideoToolBoxAccel::getTextures(AVFrame *frame)
     }
 
     return textureSet;
-}
-
-AVPixelFormat VideoToolBoxAccel::format(AVFrame *frame) const
-{
-    if (!rhi && !frame->hw_frames_ctx)
-        return AVPixelFormat(frame->format);
-    auto *hwFramesContext = (AVHWFramesContext *)frame->hw_frames_ctx->data;
-    return AVPixelFormat(hwFramesContext->sw_format);
 }
 
 VideoToolBoxTextureSet::~VideoToolBoxTextureSet()

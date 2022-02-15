@@ -278,7 +278,7 @@ TextureSet *VAAPIAccel::getTextures(AVFrame *frame)
 
     QOpenGLFunctions functions(glContext);
 
-    AVPixelFormat fmt = format(frame);
+    AVPixelFormat fmt = HWAccel::format(frame);
     bool needsConversion;
     auto qtFormat = QFFmpegVideoBuffer::toQtPixelFormat(fmt, &needsConversion);
     auto *drm_formats = fourccFromPixelFormat(qtFormat);
@@ -367,15 +367,6 @@ VAAPITextureSet::~VAAPITextureSet()
         QOpenGLFunctions functions(glContext);
         functions.glDeleteTextures(nPlanes, textures);
     }
-}
-
-AVPixelFormat VAAPIAccel::format(AVFrame *frame) const
-{
-    if (!frame->hw_frames_ctx)
-        return AVPixelFormat(frame->format);
-
-    auto *hwFramesContext = (AVHWFramesContext *)frame->hw_frames_ctx->data;
-    return AVPixelFormat(hwFramesContext->sw_format);
 }
 
 }
