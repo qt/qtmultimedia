@@ -90,14 +90,16 @@ public:
     qint64 position() const override;
     qint64 duration() const override;
 
+public Q_SLOTS:
+    void newAudioBuffer(const QAudioBuffer &b);
+
 private:
     QUrl m_url;
     QIODevice *m_sourceDevice = nullptr;
     QFFmpeg::AudioDecoder *decoder = nullptr;
     QAudioFormat m_audioFormat;
 
-    mutable QMutex queueMutex;
-    QQueue<QAudioBuffer> queue;
+    QAudioBuffer m_audioBuffer;
     qint64 m_position = 0;
     qint64 m_duration = 0;
 };

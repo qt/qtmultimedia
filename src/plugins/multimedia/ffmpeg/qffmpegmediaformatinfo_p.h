@@ -77,6 +77,8 @@ public:
     static QAudioFormat::SampleFormat sampleFormat(AVSampleFormat format);
     static AVSampleFormat avSampleFormat(QAudioFormat::SampleFormat format);
 
+
+    static int64_t avChannelLayout(QAudioFormat::ChannelConfig channelConfig);
 };
 
 QT_END_NAMESPACE

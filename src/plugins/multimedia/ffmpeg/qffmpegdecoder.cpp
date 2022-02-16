@@ -219,8 +219,7 @@ void Demuxer::updateEnabledStreams()
 
 void Demuxer::init()
 {
-    qCDebug(qLcDemuxer) << "Demuxer started";
-    m_isStopped.storeRelaxed(true);
+    qDebug(qLcDemuxer) << "Demuxer started";
 }
 
 void Demuxer::cleanup()
@@ -261,6 +260,7 @@ void Demuxer::loop()
     AVPacket *packet = av_packet_alloc();
     if (av_read_frame(decoder->context, packet) < 0) {
         eos = true;
+        emit atEnd();
         return;
     }
 
@@ -953,9 +953,6 @@ void Decoder::setUrl(const QUrl &media)
     checkStreams();
 
     demuxer = new Demuxer(this);
-
-    // ### These should really be set up by the player!
-    // Currently this relies on the logic on both sides to be in sync.
     demuxer->start();
 
     qDebug() << ">>>>>> index:" << metaObject()->indexOfSlot("updateCurrentTime(qint64)");
@@ -1076,13 +1073,6 @@ void Decoder::setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNum
     changeAVTrack(type, avStreamIndex);
 }
 
-void Decoder::init()
-{
-    if (demuxer->isRunning())
-        return;
-    demuxer->start();
-}
-
 void Decoder::stop()
 {
     qDebug() << "Decoder::stop";
@@ -1108,8 +1098,10 @@ void Decoder::setPaused(bool b)
 
 void Decoder::triggerStep()
 {
-    audioRenderer->singleStep();
-    videoRenderer->singleStep();
+    if (audioRenderer)
+        audioRenderer->singleStep();
+    if (videoRenderer)
+        videoRenderer->singleStep();
 }
 
 void Decoder::setVideoSink(QVideoSink *sink)

@@ -80,12 +80,11 @@ public:
 
     virtual void kill();
 
-    bool atEnd() const { return eos; }
+    bool isAtEnd() const { return eos; }
 
     void wake() {
         condition.wakeAll();
     }
-
 
 protected:
     virtual void init() {}

@@ -388,4 +388,58 @@ AVSampleFormat QFFmpegMediaFormatInfo::avSampleFormat(QAudioFormat::SampleFormat
     }
 }
 
+int64_t QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::ChannelConfig channelConfig)
+{
+    int64_t avChannelLayout = 0;
+    if (channelConfig & (1 << QAudioFormat::FrontLeft))
+        avChannelLayout |= AV_CH_FRONT_LEFT;
+    if (channelConfig & (1 << QAudioFormat::FrontRight))
+        avChannelLayout |= AV_CH_FRONT_RIGHT;
+    if (channelConfig & (1 << QAudioFormat::FrontCenter))
+        avChannelLayout |= AV_CH_FRONT_CENTER;
+    if (channelConfig & (1 << QAudioFormat::LFE))
+        avChannelLayout |= AV_CH_LOW_FREQUENCY;
+    if (channelConfig & (1 << QAudioFormat::BackLeft))
+        avChannelLayout |= AV_CH_BACK_LEFT;
+    if (channelConfig & (1 << QAudioFormat::BackRight))
+        avChannelLayout |= AV_CH_BACK_RIGHT;
+    if (channelConfig & (1 << QAudioFormat::FrontLeftOfCenter))
+        avChannelLayout |= AV_CH_FRONT_LEFT_OF_CENTER;
+    if (channelConfig & (1 << QAudioFormat::FrontRightOfCenter))
+        avChannelLayout |= AV_CH_FRONT_RIGHT_OF_CENTER;
+    if (channelConfig & (1 << QAudioFormat::BackCenter))
+        avChannelLayout |= AV_CH_BACK_CENTER;
+    if (channelConfig & (1 << QAudioFormat::LFE2))
+        avChannelLayout |= AV_CH_LOW_FREQUENCY_2;
+    if (channelConfig & (1 << QAudioFormat::SideLeft))
+        avChannelLayout |= AV_CH_SIDE_LEFT;
+    if (channelConfig & (1 << QAudioFormat::SideRight))
+        avChannelLayout |= AV_CH_SIDE_RIGHT;
+    if (channelConfig & (1 << QAudioFormat::TopFrontLeft))
+        avChannelLayout |= AV_CH_TOP_FRONT_LEFT;
+    if (channelConfig & (1 << QAudioFormat::TopFrontRight))
+        avChannelLayout |= AV_CH_TOP_FRONT_RIGHT;
+    if (channelConfig & (1 << QAudioFormat::TopFrontCenter))
+        avChannelLayout |= AV_CH_TOP_FRONT_CENTER;
+    if (channelConfig & (1 << QAudioFormat::TopCenter))
+        avChannelLayout |= AV_CH_TOP_CENTER;
+    if (channelConfig & (1 << QAudioFormat::TopBackLeft))
+        avChannelLayout |= AV_CH_TOP_BACK_LEFT;
+    if (channelConfig & (1 << QAudioFormat::TopBackRight))
+        avChannelLayout |= AV_CH_TOP_BACK_RIGHT;
+//    if (channelConfig & (1 << QAudioFormat::TopSideLeft))
+//        avChannelLayout |= AV_CH_TOP_SIDE_LEFT;
+//    if (channelConfig & (1 << QAudioFormat::TopSideRight))
+//        avChannelLayout |= AV_CH_SIDE_RIGHT;
+    if (channelConfig & (1 << QAudioFormat::TopBackCenter))
+        avChannelLayout |= AV_CH_TOP_BACK_CENTER;
+//    if (channelConfig & (1 << QAudioFormat::BottomFrontCenter))
+//        avChannelLayout |= AV_CH_FRONT_LEFT;
+//    if (channelConfig & (1 << QAudioFormat::BottomFrontLeft))
+//        avChannelLayout |= AV_CH_FRONT_LEFT;
+//    if (channelConfig & (1 << QAudioFormat::BottomFrontRight))
+//        avChannelLayout |= AV_CH_FRONT_LEFT;
+    return avChannelLayout;
+}
+
 QT_END_NAMESPACE

@@ -190,7 +190,6 @@ public:
 
     void init();
     void play() {
-        init();
         setPaused(false);
     }
     void pause() {
@@ -281,6 +280,9 @@ public:
 
     int seek(qint64 pos);
 
+Q_SIGNALS:
+    void atEnd();
+
 private:
     void updateEnabledStreams();
 
@@ -292,7 +294,7 @@ private:
     Decoder *decoder;
     QList<StreamDecoder *> streamDecoders;
 
-    QAtomicInteger<bool> m_isStopped = false;
+    QAtomicInteger<bool> m_isStopped = true;
     qint64 last_pts = -1;
 };
 
