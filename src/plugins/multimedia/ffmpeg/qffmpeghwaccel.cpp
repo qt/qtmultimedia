@@ -73,11 +73,11 @@ static AVHWDeviceType preferredHardwareAccelerators[] = {
     AV_HWDEVICE_TYPE_NONE
 };
 
-static AVBufferRef *loadHWContext(const AVCodecHWConfig *config)
+static AVBufferRef *loadHWContext(const AVHWDeviceType type)
 {
     AVBufferRef *hwContext = nullptr;
-    int ret = av_hwdevice_ctx_create(&hwContext, config->device_type, nullptr, nullptr, 0);
-    qDebug() << "    Checking HW context:" << av_hwdevice_get_type_name(config->device_type) << config->pix_fmt << config->methods;
+    int ret = av_hwdevice_ctx_create(&hwContext, type, nullptr, nullptr, 0);
+    qDebug() << "    Checking HW context:" << av_hwdevice_get_type_name(type);
     if (ret == 0) {
         qDebug() << "    Using above hw context.";
         return hwContext;
@@ -99,7 +99,7 @@ static AVBufferRef *hardwareContextForCodec(const AVCodec *codec)
             if (!config)
                 break;
             if (config->device_type == *preferred) {
-                auto *hwContext = loadHWContext(config);
+                auto *hwContext = loadHWContext(config->device_type);
                 if (hwContext)
                     return hwContext;
                 break;
@@ -115,7 +115,7 @@ static AVBufferRef *hardwareContextForCodec(const AVCodec *codec)
         if (!config)
             break;
 
-        auto *hwContext = loadHWContext(config);
+        auto *hwContext = loadHWContext(config->device_type);
         if (hwContext)
             return hwContext;
     }
@@ -170,55 +170,36 @@ AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt)
     return *fmt;
 }
 
-HWAccelBackend::HWAccelBackend(AVBufferRef *hwContext)
-    : hwContext(hwContext)
+HWAccel::Data::~Data()
 {
-    av_buffer_ref(hwContext);
+    if (hwDeviceContext)
+        av_buffer_unref(&hwDeviceContext);
+    if (hwFramesContext)
+        av_buffer_unref(&hwFramesContext);
 }
 
-QFFmpeg::HWAccelBackend::~HWAccelBackend()
-{
-    av_buffer_unref(&hwContext);
-}
-
-AVPixelFormat QFFmpeg::HWAccelBackend::format(AVFrame *frame) const
-{
-    if (!frame->hw_frames_ctx)
-        return AVPixelFormat(frame->format);
-
-    auto *hwFramesContext = (AVHWFramesContext *)frame->hw_frames_ctx->data;
-    return AVPixelFormat(hwFramesContext->sw_format);
-}
 
 HWAccel::HWAccel(const AVCodec *codec)
-    : HWAccel(codec->type == AVMEDIA_TYPE_VIDEO ? hardwareContextForCodec(codec) : nullptr)
 {
-}
-
-HWAccel::HWAccel(AVBufferRef *hwDeviceContext)
-{
-    if (!hwDeviceContext)
+    if (codec->type != AVMEDIA_TYPE_VIDEO)
         return;
-
-    AVHWDeviceContext *c = (AVHWDeviceContext *)hwDeviceContext->data;
-    switch (c->type) {
-#if QT_CONFIG(vaapi)
-    case AV_HWDEVICE_TYPE_VAAPI:
-        d = new VAAPIAccel(hwDeviceContext);
-        break;
-#endif
-#ifdef Q_OS_DARWIN
-    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
-        d = new VideoToolBoxAccel(hwDeviceContext);
-        break;
-#endif
-    case AV_HWDEVICE_TYPE_NONE:
-    default:
-        d = new HWAccelBackend(hwDeviceContext);
-        break;
-    }
-    d->ref.ref();
+    auto *ctx = hardwareContextForCodec(codec);
+    if (!ctx)
+        return;
+    d = new Data;
+    d->hwDeviceContext = ctx;
 }
+
+HWAccel::HWAccel(AVHWDeviceType deviceType)
+{
+    auto *ctx = loadHWContext(deviceType);
+    if (!ctx)
+        return;
+    d = new Data;
+    d->hwDeviceContext = ctx;
+}
+
+HWAccel::~HWAccel() = default;
 
 AVPixelFormat HWAccel::format(AVFrame *frame)
 {
@@ -228,6 +209,82 @@ AVPixelFormat HWAccel::format(AVFrame *frame)
     auto *hwFramesContext = (AVHWFramesContext *)frame->hw_frames_ctx->data;
     Q_ASSERT(hwFramesContext);
     return AVPixelFormat(hwFramesContext->sw_format);
+}
+
+AVHWDeviceContext *HWAccel::hwDeviceContext() const
+{
+    if (!d || !d->hwDeviceContext)
+        return nullptr;
+    return (AVHWDeviceContext *)d->hwDeviceContext->data;
+}
+
+AVHWDeviceType HWAccel::deviceType() const
+{
+    if (!d || !d->hwDeviceContext)
+        return AV_HWDEVICE_TYPE_NONE;
+    return hwDeviceContext()->type;
+}
+
+void HWAccel::createFramesContext(AVPixelFormat swFormat, const QSize &size)
+{
+    if (!d || !d->hwDeviceContext)
+        return;
+    d->hwFramesContext = av_hwframe_ctx_alloc(d->hwDeviceContext);
+    auto *c = (AVHWFramesContext *)d->hwFramesContext->data;
+    c->format = AV_PIX_FMT_VIDEOTOOLBOX;
+    c->sw_format = swFormat;
+    c->width = size.width();
+    c->height = size.height();
+    int err = av_hwframe_ctx_init(d->hwFramesContext);
+    if (err < 0) {
+        char str[AV_ERROR_MAX_STRING_SIZE];
+        av_make_error_string(str, AV_ERROR_MAX_STRING_SIZE, err);
+        qWarning() << "failed to init HW frame context" << err << str;
+        return;
+    }
+}
+
+AVHWFramesContext *HWAccel::hwFramesContext() const
+{
+    if (!d || !d->hwFramesContext)
+        return nullptr;
+    return (AVHWFramesContext *)d->hwFramesContext->data;
+}
+
+
+TextureConverter::TextureConverter(QRhi *rhi)
+    : d(new TextureConverterPrivate)
+{
+    d->rhi = rhi;
+}
+
+TextureSet *TextureConverter::getTextures(AVFrame *frame)
+{
+    if (!frame || isNull())
+        return nullptr;
+
+    Q_ASSERT(frame->format == d->format);
+    return d->backend->getTextures(frame);
+}
+
+void TextureConverter::updateBackend(AVPixelFormat fmt)
+{
+    d->backend = nullptr;
+    switch (fmt) {
+#if QT_CONFIG(vaapi)
+    case AV_PIX_FMT_VAAPI:
+        d->backend = new VAAPITextureConverter(d->rhi);
+        break;
+#endif
+#ifdef Q_OS_DARWIN
+    case AV_PIX_FMT_VIDEOTOOLBOX:
+        d->backend = new VideoToolBoxTextureConverter(d->rhi);
+        break;
+#endif
+    default:
+        break;
+    }
+    d->format = fmt;
 }
 
 } // namespace QFFmpeg

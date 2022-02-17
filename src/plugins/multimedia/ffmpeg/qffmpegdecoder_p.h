@@ -113,7 +113,7 @@ struct Codec
     };
 
     Codec() = default;
-    Codec(AVFormatContext *format, int streamIndex, QRhi *rhi = nullptr);
+    Codec(AVFormatContext *format, int streamIndex);
     bool isValid() const { return !!d; }
 
     AVCodecContext *context() const { return d->context; }
@@ -263,7 +263,7 @@ class Demuxer : public Thread
 public:
     Demuxer(Decoder *decoder);
 
-    StreamDecoder *addStream(int streamIndex, QRhi *rhi = nullptr);
+    StreamDecoder *addStream(int streamIndex);
     void removeStream(int streamIndex);
 
     bool isStopped() const

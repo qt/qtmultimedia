@@ -43,6 +43,8 @@
 #error "Configuration error"
 #endif
 
+#include <va/va.h>
+
 #include <qvideoframeformat.h>
 #include "qffmpegvideobuffer_p.h"
 #include "private/qvideotexturehelper_p.h"
@@ -196,22 +198,16 @@ public:
 };
 
 
-VAAPIAccel::VAAPIAccel(AVBufferRef *hwContext)
-    : HWAccelBackend(hwContext)
+VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
+    : TextureConverterBackend(nullptr)
 {
     qDebug() << ">>>> Creating VAAPI HW accelerator";
-}
 
-VAAPIAccel::~VAAPIAccel()
-{
-
-}
-
-void VAAPIAccel::setRhi(QRhi *rhi)
-{
-    qDebug() << ">>>> Initializing VAAPI zero copy";
-    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
+    if (!rhi || rhi->backend() != QRhi::OpenGLES2) {
+        qWarning() << "VAAPITextureConverter: No rhi or non openGL based RHI";
+        this->rhi = nullptr;
         return;
+    }
 
     auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
     glContext = nativeHandles->context;
@@ -233,24 +229,36 @@ void VAAPIAccel::setRhi(QRhi *rhi)
         qDebug() << "    no eglImageTargetTexture2D, disabling";
         return;
     }
-    auto *ctx = (AVHWDeviceContext *)hwContext->data;
-    auto *vaCtx = (AVVAAPIDeviceContext *)ctx->hwctx;
-    vaDisplay = vaCtx->display;
-    if (!vaDisplay) {
-        qDebug() << "    no VADisplay, disabling";
-        return;
-    }
 
     // everything ok, indicate that we can do zero copy
     this->rhi = rhi;
 }
 
+VAAPITextureConverter::~VAAPITextureConverter()
+{
+}
+
 //#define VA_EXPORT_USE_LAYERS
-TextureSet *VAAPIAccel::getTextures(AVFrame *frame)
+TextureSet *VAAPITextureConverter::getTextures(AVFrame *frame)
 {
 //        qDebug() << "VAAPIAccel::getTextures";
     if (frame->format != AV_PIX_FMT_VAAPI || !eglDisplay) {
         qDebug() << "format/egl error" << frame->format << eglDisplay;
+        return nullptr;
+    }
+
+    if (!frame->hw_frames_ctx)
+        return nullptr;
+
+    auto *fCtx = (AVHWFramesContext *)frame->hw_frames_ctx->data;
+    auto *ctx = fCtx->device_ctx;
+    if (!ctx)
+        return nullptr;
+
+    auto *vaCtx = (AVVAAPIDeviceContext *)ctx->hwctx;
+    auto vaDisplay = vaCtx->display;
+    if (!vaDisplay) {
+        qDebug() << "    no VADisplay, disabling";
         return nullptr;
     }
 

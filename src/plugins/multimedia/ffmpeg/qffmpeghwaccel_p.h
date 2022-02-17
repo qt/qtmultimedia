@@ -57,6 +57,7 @@
 QT_BEGIN_NAMESPACE
 
 class QRhi;
+class QFFmpegVideoBuffer;
 
 namespace QFFmpeg {
 
@@ -72,46 +73,77 @@ public:
     virtual qint64 texture(int plane) = 0;
 };
 
-class HWAccelBackend
+class TextureConverterBackend
 {
-    friend class HWAccel;
-protected:
-    HWAccelBackend(AVBufferRef *hwContext);
 public:
-    virtual ~HWAccelBackend();
-    virtual void setRhi(QRhi *) {}
+    TextureConverterBackend(QRhi *rhi)
+        : rhi(rhi)
+    {}
+    virtual ~TextureConverterBackend() {}
     virtual TextureSet *getTextures(AVFrame * /*frame*/) { return nullptr; }
 
-    QAtomicInt ref = 0;
-    AVBufferRef *hwContext = nullptr;
     QRhi *rhi = nullptr;
+};
+
+class TextureConverterPrivate
+{
+public:
+    ~TextureConverterPrivate()
+    {
+        delete backend;
+    }
+    QAtomicInt ref = 0;
+    QRhi *rhi = nullptr;
+    AVPixelFormat format = AV_PIX_FMT_NONE;
+    TextureConverterBackend *backend = nullptr;
+};
+
+class TextureConverter
+{
+public:
+    TextureConverter(QRhi *rhi = nullptr);
+
+    void init(AVFrame *frame) {
+        AVPixelFormat fmt = frame ? AVPixelFormat(frame->format) : AV_PIX_FMT_NONE;
+        if (fmt != d->format)
+            updateBackend(fmt);
+    }
+    TextureSet *getTextures(AVFrame *frame);
+    bool isNull() const { return !d->backend || !d->backend->rhi; }
+
+private:
+    void updateBackend(AVPixelFormat format);
+
+    QExplicitlySharedDataPointer<TextureConverterPrivate> d;
 };
 
 class HWAccel
 {
+    struct Data {
+        ~Data();
+        QAtomicInt ref = 0;
+        AVBufferRef *hwDeviceContext = nullptr;
+        AVBufferRef *hwFramesContext = nullptr;
+    };
+
 public:
     HWAccel() = default;
+    explicit HWAccel(AVHWDeviceType deviceType);
     explicit HWAccel(const AVCodec *codec);
-    explicit HWAccel(AVBufferRef *hwDeviceContext);
-    ~HWAccel() = default;
+    ~HWAccel();
 
-    QRhi *rhi() const { return d ? d->rhi : nullptr; }
-    void setRhi(QRhi *rhi) {
-        if (d)
-            d->setRhi(rhi);
-    }
-    TextureSet *getTextures(AVFrame *frame) {
-        if (!d)
-            return nullptr;
-        return d->getTextures(frame);
-    }
+    AVHWDeviceType deviceType() const;
+
+    AVBufferRef *hwDeviceContextAsBuffer() const { return d ? d->hwDeviceContext : nullptr; }
+    AVHWDeviceContext *hwDeviceContext() const;
+
+    void createFramesContext(AVPixelFormat swFormat, const QSize &size);
+    AVBufferRef *hwFramesContextAsBuffer() const { return d ? d->hwFramesContext : nullptr; }
+    AVHWFramesContext *hwFramesContext() const;
+
     static AVPixelFormat format(AVFrame *frame);
-    bool canProvideTextures() const { return d->rhi != nullptr; }
-    AVBufferRef *hwContext() const { return d ? d->hwContext : nullptr; }
-    bool isNull() const { return !d; }
-
 private:
-    QExplicitlySharedDataPointer<HWAccelBackend> d;
+    QExplicitlySharedDataPointer<Data> d;
 };
 }
 

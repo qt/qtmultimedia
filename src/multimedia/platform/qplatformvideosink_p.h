@@ -99,7 +99,7 @@ public:
         m_nativeSize = s;
         sink->videoSizeChanged();
     }
-    void setVideoFrame(const QVideoFrame &frame) {
+    virtual void setVideoFrame(const QVideoFrame &frame) {
         setNativeSize(frame.size());
         if (frame == m_currentVideoFrame)
             return;

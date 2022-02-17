@@ -379,24 +379,38 @@ void AudioEncoder::loop()
 }
 
 VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMediaEncoderSettings &settings)
+    : m_encoderSettings(settings)
+    , m_camera(camera)
 {
     this->encoder = encoder;
 
     setObjectName(QLatin1String("VideoEncoder"));
     qDebug() << "VideoEncoder" << settings.videoCodec();
 
-    auto format = camera->cameraFormat();
-    auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(settings.videoCodec());
+    auto format = m_camera->cameraFormat();
+    auto qVideoCodec = m_encoderSettings.videoCodec();
+    auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
     Q_ASSERT(avformat_query_codec(encoder->formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
 
-    auto *avCodec = avcodec_find_encoder(codecID);
-    if (!avCodec) {
-        qWarning() << "Could not find encoder for codecId" << codecID;
-        return;
-    }
+    AVCodec *avCodec = nullptr;
+    const char *hwCodecName = nullptr;
+#ifdef Q_OS_DARWIN
+    // ### Abstract this, so it works more generally and on other platforms
+    if (qVideoCodec == QMediaFormat::VideoCodec::H265)
+        hwCodecName = "hevc_videotoolbox";
+    else if (qVideoCodec == QMediaFormat::VideoCodec::H264)
+        hwCodecName = "h264_videotoolbox";
+#endif
+    if (hwCodecName)
+        avCodec = avcodec_find_encoder_by_name(hwCodecName);
 
-    auto cameraFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
-    auto encoderFormat = cameraFormat;
+    if (!avCodec) {
+        avCodec = avcodec_find_encoder(codecID);
+        if (!avCodec) {
+            qWarning() << "Could not find encoder for codecId" << codecID;
+            return;
+        }
+    }
 
     auto supportsFormat = [&](AVPixelFormat fmt) {
         auto *f = avCodec->pix_fmts;
@@ -407,6 +421,17 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
         }
         return false;
     };
+
+    auto cameraFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
+    auto encoderFormat = cameraFormat;
+
+//    if (!supportsFormat(hwFormat)) {
+//        // check if the encoder supports the SW format
+//        encoderFormat = swFormat;
+//        if (!supportsFormat(swFormat))
+//            // Take first format the encoder supports. Might want to improve upon this
+//            encoderFormat = *avCodec->pix_fmts;
+//    }
 
     if (!supportsFormat(cameraFormat)) {
         // Take first format the encoder supports. Might want to improve upon this
@@ -422,7 +447,7 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     stream->codecpar->codec_id = codecID;
 
     // Apples HEVC decoders don't like the hev1 tag ffmpeg uses by default, use hvc1 as the more commonly accepted tag
-    if (settings.videoCodec() == QMediaFormat::VideoCodec::H265)
+    if (qVideoCodec == QMediaFormat::VideoCodec::H265)
         stream->codecpar->codec_tag = MKTAG('h','v','c','1');
 
     // ### Fix hardcoded values
@@ -528,46 +553,57 @@ void VideoEncoder::loop()
     if (!frame.isValid())
         return;
 
+    auto *videoBuffer = dynamic_cast<QFFmpegVideoBuffer *>(frame.videoBuffer());
+
     if (baseTime < 0)
         baseTime = frame.startTime();
 
 //    qDebug() << "new video buffer" << frame.surfaceFormat() << frame.size();
     retrievePackets();
 
-    frame.map(QVideoFrame::ReadOnly);
-    auto size = frame.size();
-    AVFrame *avFrame = av_frame_alloc();
-    avFrame->format = codec->pix_fmt;
-    avFrame->width = size.width();
-    avFrame->height = size.height();
-    av_frame_get_buffer(avFrame, 0);
+    AVFrame *avFrame = nullptr;
 
-    const uint8_t *data[4] = { frame.bits(0), frame.bits(1), frame.bits(2), 0 };
-    int strides[4] = { frame.bytesPerLine(0), frame.bytesPerLine(1), frame.bytesPerLine(2), 0 };
-
-    QImage img;
-    if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
-        // the QImage is cached inside the video frame, so we can take the pointer to the image data here
-        img = frame.toImage();
-        data[0] = (const uint8_t *)img.bits();
-        strides[0] = img.bytesPerLine();
+    if (videoBuffer) {
+        // ffmpeg video buffer, let's use the native AVFrame stored in there
+        auto *hwFrame = videoBuffer->getHWFrame();
+        if (hwFrame)
+            avFrame = av_frame_clone(hwFrame);
     }
 
-    Q_ASSERT(avFrame->data[0]);
-    if (!converter) {
-        for (int i = 0; i < 4; ++i) {
-            avFrame->data[i] = const_cast<uint8_t *>(data[i]);
-            avFrame->linesize[i] = strides[i];
+    if (!avFrame) {
+        frame.map(QVideoFrame::ReadOnly);
+        auto size = frame.size();
+        AVFrame *avFrame = av_frame_alloc();
+        avFrame->format = codec->pix_fmt;
+        avFrame->width = size.width();
+        avFrame->height = size.height();
+        av_frame_get_buffer(avFrame, 0);
+
+        const uint8_t *data[4] = { frame.bits(0), frame.bits(1), frame.bits(2), 0 };
+        int strides[4] = { frame.bytesPerLine(0), frame.bytesPerLine(1), frame.bytesPerLine(2), 0 };
+
+        QImage img;
+        if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
+            // the QImage is cached inside the video frame, so we can take the pointer to the image data here
+            img = frame.toImage();
+            data[0] = (const uint8_t *)img.bits();
+            strides[0] = img.bytesPerLine();
         }
-    } else {
-        sws_scale(converter, data, strides, 0, frame.height(), avFrame->data, avFrame->linesize);
-    }
 
+        Q_ASSERT(avFrame->data[0]);
+        if (!converter) {
+            for (int i = 0; i < 4; ++i) {
+                avFrame->data[i] = const_cast<uint8_t *>(data[i]);
+                avFrame->linesize[i] = strides[i];
+            }
+        } else {
+            sws_scale(converter, data, strides, 0, frame.height(), avFrame->data, avFrame->linesize);
+        }
+        // ensure the video frame and it's data is alive as long as it's being used in the encoder
+        avFrame->opaque_ref = av_buffer_create(nullptr, 0, freeQVideoFrame, new QVideoFrame(frame), 0);
+    }
     qint64 time = frame.startTime() - baseTime;
     avFrame->pts = (time*stream->time_base.den + (stream->time_base.num >> 1))/(1000*stream->time_base.num);
-
-    // ensure the video frame and it's data is alive as long as it's being used in the encoder
-    avFrame->opaque_ref = av_buffer_create(nullptr, 0, freeQVideoFrame, new QVideoFrame(frame), 0);
 
 //    qDebug() << "sending frame" << avFrame->pts << time << stream->time_base.num << stream->time_base.den;
     int ret = avcodec_send_frame(codec, avFrame);

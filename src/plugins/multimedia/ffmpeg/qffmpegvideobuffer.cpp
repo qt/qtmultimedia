@@ -47,15 +47,13 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
-QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrame *frame, const QFFmpeg::HWAccel &accel)
-    : QAbstractVideoBuffer(accel.rhi() ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, accel.rhi())
+QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrame *frame)
+    : QAbstractVideoBuffer(QVideoFrame::NoHandle)
     , frame(frame)
-    , hwAccel(accel)
 {
     if (frame->hw_frames_ctx) {
-        Q_ASSERT(!accel.isNull());
         hwFrame = frame;
-        m_pixelFormat = toQtPixelFormat(accel.format(frame));
+        m_pixelFormat = toQtPixelFormat(QFFmpeg::HWAccel::format(frame));
         return;
     }
 
@@ -99,6 +97,13 @@ void QFFmpegVideoBuffer::convertSWFrame()
         swFrame = newFrame;
         sws_freeContext(c);
     }
+}
+
+void QFFmpegVideoBuffer::setTextureConverter(const QFFmpeg::TextureConverter &converter)
+{
+    textureConverter = converter;
+    textureConverter.init(hwFrame);
+    m_type = converter.isNull() ? QVideoFrame::NoHandle : QVideoFrame::RhiTextureHandle;
 }
 
 QVideoFrame::MapMode QFFmpegVideoBuffer::mapMode() const
@@ -145,9 +150,9 @@ void QFFmpegVideoBuffer::mapTextures()
     if (textures || !hwFrame)
         return;
 //    qDebug() << ">>>>> mapTextures";
-    textures = hwAccel.getTextures(hwFrame);
+    textures = textureConverter.getTextures(hwFrame);
     if (!textures)
-        qWarning() << "    failed to get textures for frame" << hwAccel.isNull();
+        qWarning() << "    failed to get textures for frame" << textureConverter.isNull();
 }
 
 quint64 QFFmpegVideoBuffer::textureHandle(int plane) const

@@ -94,8 +94,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
          didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
          fromConnection:(AVCaptureConnection *)connection;
 
-- (void) setHWContext:(AVBufferRef *)context;
-- (void) setRhi:(QRhi *)rhi;
+- (void) setHWAccel:(QFFmpeg::HWAccel *)accel;
 
 @end
 
@@ -104,8 +103,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 @private
     QAVFCamera *m_camera;
     AVBufferRef *hwFramesContext;
-    QFFmpeg::HWAccel accel;
-    QRhi *m_rhi;
+    QFFmpeg::HWAccel m_accel;
 }
 
 - (QAVFSampleBufferDelegate *) initWithCamera:(QAVFCamera *)renderer
@@ -115,7 +113,6 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 
     m_camera = renderer;
     hwFramesContext = nullptr;
-    m_rhi = nullptr;
     return self;
 }
 
@@ -133,7 +130,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
-    AVFrame *avFrame = allocHWFrame(hwFramesContext, imageBuffer);
+    AVFrame *avFrame = allocHWFrame(m_accel.hwFramesContextAsBuffer(), imageBuffer);
 
 #ifdef USE_SW_FRAMES
     auto *swFrame = av_frame_alloc();
@@ -156,27 +153,16 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
         return;
     }
 
-    QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame, accel);
+    QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame);
     QVideoFrame frame(buffer, QVideoFrameFormat(QSize(width, height), format));
     frame.setStartTime(avFrame->pts);
 
     m_camera->syncHandleFrame(frame);
 }
 
-- (void) setHWContext:(AVBufferRef *)context
+- (void) setHWAccel:(QFFmpeg::HWAccel *)accel
 {
-    hwFramesContext = context;
-    av_buffer_ref(context);
-    auto *hfc = (AVHWFramesContext *)hwFramesContext->data;
-    accel = QFFmpeg::HWAccel(hfc->device_ref);
-    if (m_rhi)
-        accel.setRhi(m_rhi);
-}
-
-- (void) setRhi:(QRhi *)rhi
-{
-    m_rhi = rhi;
-    accel.setRhi(rhi);
+    m_accel = *accel;
 }
 
 @end
@@ -294,26 +280,6 @@ void QAVFCamera::deviceOrientationChanged(int angle)
     connection.videoOrientation = orientation;
 }
 
-void QAVFCamera::videoSinkChanged()
-{
-    if (m_sink)
-        m_sink->disconnect(this);
-    m_sink = nullptr;
-    QRhi *rhi = nullptr;
-    auto sink = m_session ? m_session->videoSink() : nullptr;
-    if (sink) {
-        rhi = sink->rhi();
-        m_sink = static_cast<QFFmpegVideoSink *>(sink->platformVideoSink());
-        connect(m_sink, &QFFmpegVideoSink::rhiChanged, this, &QAVFCamera::rhiChanged);
-    }
-    rhiChanged(rhi);
-}
-
-void QAVFCamera::rhiChanged(QRhi *rhi)
-{
-    [m_sampleBufferDelegate setRhi:rhi];
-}
-
 void QAVFCamera::attachVideoInputDevice()
 {
     if (m_videoInput) {
@@ -379,12 +345,7 @@ void QAVFCamera::setActive(bool active)
 
 void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
-    if (m_session)
-        m_session->disconnect(this);
     m_session = session ? session->captureSession() : nullptr;
-    if (m_session)
-        connect(m_session, &QMediaCaptureSession::videoOutputChanged, this, &QAVFCamera::videoSinkChanged);
-    videoSinkChanged();
 }
 
 void QAVFCamera::setCamera(const QCameraDevice &camera)
@@ -423,33 +384,13 @@ void QAVFCamera::updateCameraFormat(const QCameraFormat &format)
         avPixelFormat = setPixelFormat(format.pixelFormat());
     }
 
-    auto *hwDevice = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
-    auto *hwFramesContext = av_hwframe_ctx_alloc(hwDevice);
-    av_buffer_unref(&hwDevice);
-    auto *c = (AVHWFramesContext *)hwFramesContext->data;
-    c->format = AV_PIX_FMT_VIDEOTOOLBOX;
-    c->sw_format = av_map_videotoolbox_format_to_pixfmt(avPixelFormat);
-    c->width = format.resolution().width();
-    c->height = format.resolution().height();
-    int err = av_hwframe_ctx_init(hwFramesContext);
-    if (err < 0) {
-        char str[AV_ERROR_MAX_STRING_SIZE];
-        av_make_error_string(str, AV_ERROR_MAX_STRING_SIZE, err);
-        qWarning() << "failed to init HW frame context" << err << str;
-        return;
-    }
-    [m_sampleBufferDelegate setHWContext:hwFramesContext];
+    hwAccel = QFFmpeg::HWAccel(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
+    hwAccel.createFramesContext(av_map_videotoolbox_format_to_pixfmt(avPixelFormat), format.resolution());
+    [m_sampleBufferDelegate setHWAccel:&hwAccel];
 }
 
 uint QAVFCamera::setPixelFormat(const QVideoFrameFormat::PixelFormat pixelFormat)
 {
-#if 0
-    if (rhi() && rhi()->backend() == QRhi::OpenGLES2) {
-        if (pixelFormat != QVideoFrameFormat::Format_BGRA8888)
-            qWarning() << "OpenGL rhi backend only supports 32BGRA pixel format.";
-        return;
-    }
-#endif
     // Default to 32BGRA pixel formats on the viewfinder, in case the requested
     // format can't be used (shouldn't happen unless the developers sets a wrong camera
     // format on the camera).

@@ -54,6 +54,9 @@
 #include "qavfcamerabase_p.h"
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qvideooutputorientationhandler_p.h>
+#define AVMediaType XAVMediaType
+#include "qffmpeghwaccel_p.h"
+#undef AVMediaType
 
 #include <qfilesystemwatcher.h>
 #include <qsocketnotifier.h>
@@ -92,10 +95,6 @@ public:
 
     void deviceOrientationChanged(int angle = -1);
 
-private Q_SLOTS:
-    void videoSinkChanged();
-    void rhiChanged(QRhi *rhi);
-
 private:
     void requestCameraPermissionIfNeeded();
     void cameraAuthorizationChanged(bool authorized);
@@ -115,7 +114,7 @@ private:
     QAVFSampleBufferDelegate *m_sampleBufferDelegate = nullptr;
     dispatch_queue_t m_delegateQueue;
     QVideoOutputOrientationHandler m_orientationHandler;
-    QFFmpegVideoSink *m_sink = nullptr;
+    QFFmpeg::HWAccel hwAccel;
 };
 
 QT_END_NAMESPACE

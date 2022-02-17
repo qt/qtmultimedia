@@ -67,16 +67,15 @@ class QRhi;
 
 namespace QFFmpeg {
 
-class VideoToolBoxAccel : public HWAccelBackend
+class VideoToolBoxTextureConverter : public TextureConverterBackend
 {
 public:
-    VideoToolBoxAccel(AVBufferRef *hwContext);
-    ~VideoToolBoxAccel();
-
-    void freeTextureCaches();
-
-    void setRhi(QRhi *rhi) override;
+    VideoToolBoxTextureConverter(QRhi *rhi);
+    ~VideoToolBoxTextureConverter();
     TextureSet *getTextures(AVFrame *frame) override;
+
+private:
+    void freeTextureCaches();
 
     // can not forward declare that type from C++ :/
     void *cvMetalTextureCache = nullptr;
@@ -86,6 +85,7 @@ public:
     CVOpenGLESTextureCacheRef cvOpenGLESTextureCache = nullptr;
 #endif
 };
+
 }
 
 QT_END_NAMESPACE

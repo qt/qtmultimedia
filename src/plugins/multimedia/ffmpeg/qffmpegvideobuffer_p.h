@@ -65,7 +65,7 @@ class QFFmpegVideoBuffer : public QAbstractVideoBuffer
 {
 public:
 
-    QFFmpegVideoBuffer(AVFrame *frame, const QFFmpeg::HWAccel &accel);
+    QFFmpegVideoBuffer(AVFrame *frame);
     ~QFFmpegVideoBuffer();
 
     QVideoFrame::MapMode mapMode() const override;
@@ -83,12 +83,16 @@ public:
 
     void convertSWFrame();
 
+    AVFrame *getHWFrame() const { return hwFrame; }
+
+    void setTextureConverter(const QFFmpeg::TextureConverter &converter);
+
 private:
     QVideoFrameFormat::PixelFormat m_pixelFormat;
     AVFrame *frame = nullptr;
     AVFrame *hwFrame = nullptr;
     AVFrame *swFrame = nullptr;
-    QFFmpeg::HWAccel hwAccel;
+    QFFmpeg::TextureConverter textureConverter;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
     QFFmpeg::TextureSet *textures = nullptr;
 };

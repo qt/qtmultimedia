@@ -82,42 +82,12 @@ public:
     CVImageBufferRef m_buffer = nullptr;
 };
 
-VideoToolBoxAccel::VideoToolBoxAccel(AVBufferRef *hwContext)
-    : HWAccelBackend(hwContext)
+VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *rhi)
+    : TextureConverterBackend(rhi)
 {
-}
-
-VideoToolBoxAccel::~VideoToolBoxAccel()
-{
-    freeTextureCaches();
-}
-
-void VideoToolBoxAccel::freeTextureCaches()
-{
-    if (cvMetalTextureCache)
-        CFRelease(cvMetalTextureCache);
-    cvMetalTextureCache = nullptr;
-#if defined(Q_OS_MACOS)
-    if (cvOpenGLTextureCache)
-        CFRelease(cvOpenGLTextureCache);
-    cvOpenGLTextureCache = nullptr;
-#elif defined(Q_OS_IOS)
-    if (cvOpenGLESTextureCache)
-        CFRelease(cvOpenGLESTextureCache);
-    cvOpenGLESTextureCache = nullptr;
-#endif
-}
-
-void VideoToolBoxAccel::setRhi(QRhi *_rhi)
-{
-    if (rhi == _rhi)
-        return;
-    qDebug() << "VideoToolBoxAccel::setRhi" << _rhi;
-    freeTextureCaches();
-    rhi = _rhi;
-
     if (!rhi)
         return;
+
     if (rhi->backend() == QRhi::Metal) {
         qDebug() << "    using metal backend";
         const auto *metal = static_cast<const QRhiMetalNativeHandles *>(rhi->nativeHandles());
@@ -169,9 +139,28 @@ void VideoToolBoxAccel::setRhi(QRhi *_rhi)
         rhi = nullptr;
 #endif // QT_CONFIG(opengl)
     }
-
 }
 
+VideoToolBoxTextureConverter::~VideoToolBoxTextureConverter()
+{
+    freeTextureCaches();
+}
+
+void VideoToolBoxTextureConverter::freeTextureCaches()
+{
+    if (cvMetalTextureCache)
+        CFRelease(cvMetalTextureCache);
+    cvMetalTextureCache = nullptr;
+#if defined(Q_OS_MACOS)
+    if (cvOpenGLTextureCache)
+        CFRelease(cvOpenGLTextureCache);
+    cvOpenGLTextureCache = nullptr;
+#elif defined(Q_OS_IOS)
+    if (cvOpenGLESTextureCache)
+        CFRelease(cvOpenGLESTextureCache);
+    cvOpenGLESTextureCache = nullptr;
+#endif
+}
 
 static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
 {
@@ -203,7 +192,7 @@ static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
     }
 }
 
-TextureSet *VideoToolBoxAccel::getTextures(AVFrame *frame)
+TextureSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame)
 {
     if (!rhi)
         return nullptr;

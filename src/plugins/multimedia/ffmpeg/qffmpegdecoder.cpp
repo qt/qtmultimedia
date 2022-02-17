@@ -85,7 +85,7 @@ Codec::Data::~Data()
     avcodec_free_context(&context);
 }
 
-Codec::Codec(AVFormatContext *format, int streamIndex, QRhi *rhi)
+Codec::Codec(AVFormatContext *format, int streamIndex)
 {
     qCDebug(qLcDecoder) << "Codec::Codec" << streamIndex;
     Q_ASSERT(streamIndex >= 0 && streamIndex < (int)format->nb_streams);
@@ -100,7 +100,6 @@ Codec::Codec(AVFormatContext *format, int streamIndex, QRhi *rhi)
     QFFmpeg::HWAccel hwAccel;
     if (decoder->type == AVMEDIA_TYPE_VIDEO) {
         hwAccel = QFFmpeg::HWAccel(decoder);
-        hwAccel.setRhi(rhi);
     }
 
     auto *context = avcodec_alloc_context3(decoder);
@@ -115,7 +114,7 @@ Codec::Codec(AVFormatContext *format, int streamIndex, QRhi *rhi)
         return;
     }
 
-    context->hw_device_ctx = hwAccel.hwContext();
+    context->hw_device_ctx = hwAccel.hwDeviceContextAsBuffer();
     // ### This still gives errors about wrong HW formats (as we accept all of them)
     // But it would be good to get so we can filter out pixel format we don't support natively
     //    context->get_format = QFFmpeg::getFormat;
@@ -145,11 +144,11 @@ Demuxer::Demuxer(Decoder *decoder)
     streamDecoders.resize(decoder->context->nb_streams);
 }
 
-StreamDecoder *Demuxer::addStream(int streamIndex, QRhi *rhi)
+StreamDecoder *Demuxer::addStream(int streamIndex)
 {
     if (streamIndex < 0)
         return nullptr;
-    Codec codec(decoder->context, streamIndex, rhi);
+    Codec codec(decoder->context, streamIndex);
     Q_ASSERT(codec.context()->codec_type == AVMEDIA_TYPE_AUDIO ||
              codec.context()->codec_type == AVMEDIA_TYPE_VIDEO ||
              codec.context()->codec_type == AVMEDIA_TYPE_SUBTITLE);
@@ -650,11 +649,8 @@ void VideoRenderer::loop()
 
     if (sink) {
         qint64 startTime = frame.pts();
-        auto accel = frame.codec()->hwAccel();
-        if (!accel.rhi() && sink->rhi())
-            accel.setRhi(sink->rhi());
 //        qDebug() << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
-        QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(frame.takeAVFrame(), accel);
+        QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(frame.takeAVFrame());
         QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
         QVideoFrame videoFrame(buffer, format);
         videoFrame.setStartTime(startTime);
@@ -1113,7 +1109,7 @@ void Decoder::setVideoSink(QVideoSink *sink)
     if (sink && !videoRenderer) {
         videoRenderer = new VideoRenderer(this, sink);
         videoRenderer->start();
-        StreamDecoder *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream], videoSink->rhi());
+        StreamDecoder *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream]);
         videoRenderer->setStream(stream);
         stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
         videoRenderer->setSubtitleStream(stream);

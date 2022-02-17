@@ -56,8 +56,6 @@
 
 #include <qshareddata.h>
 
-#include <va/va.h>
-
 QT_BEGIN_NAMESPACE
 
 class QRhi;
@@ -65,16 +63,14 @@ class QOpenGLContext;
 
 namespace QFFmpeg {
 
-class VAAPIAccel : public HWAccelBackend
+class VAAPITextureConverter : public TextureConverterBackend
 {
 public:
-    VAAPIAccel(AVBufferRef *hwContext);
-    ~VAAPIAccel();
+    VAAPITextureConverter(QRhi *rhi);
+    ~VAAPITextureConverter();
 
-    void setRhi(QRhi *rhi) override;
     TextureSet *getTextures(AVFrame *frame) override;
 
-    VADisplay vaDisplay = nullptr;
     Qt::HANDLE eglDisplay = nullptr;
     QOpenGLContext *glContext = nullptr;
     QFunctionPointer eglImageTargetTexture2D = nullptr;

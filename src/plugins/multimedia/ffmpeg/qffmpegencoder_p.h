@@ -180,6 +180,9 @@ private:
     bool shouldWait() const override;
     void loop() override;
 
+    QMediaEncoderSettings m_encoderSettings;
+    QPlatformCamera *m_camera = nullptr;
+
     SwsContext *converter = nullptr;
     qint64 baseTime = -1;
 };

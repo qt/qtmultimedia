@@ -52,6 +52,7 @@
 //
 
 #include <private/qplatformvideosink_p.h>
+#include <qffmpeghwaccel_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -66,10 +67,13 @@ public:
     QFFmpegVideoSink(QVideoSink *sink);
     void setRhi(QRhi *rhi) override;
 
+    void setVideoFrame(const QVideoFrame &frame) override;
+
 Q_SIGNALS:
     void rhiChanged(QRhi *rhi);
 
 private:
+    QFFmpeg::TextureConverter textureConverter;
     QRhi *m_rhi = nullptr;
 };
 
