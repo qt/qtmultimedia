@@ -44,10 +44,14 @@ import android.content.Context;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.view.OrientationEventListener;
+import android.webkit.MimeTypeMap;
+import android.net.Uri;
+import android.content.ContentResolver;
 import android.os.Environment;
 import android.media.MediaScannerConnection;
 import java.lang.String;
 import java.io.File;
+import android.util.Log;
 
 public class QtMultimediaUtils
 {
@@ -72,6 +76,7 @@ public class QtMultimediaUtils
 
     static private Context m_context = null;
     static private OrientationListener m_orientationListener = null;
+    private static final String QtTAG = "Qt QtMultimediaUtils";
 
     static public void setActivity(Activity qtMainActivity, Object qtActivityDelegate)
     {
@@ -153,4 +158,25 @@ public class QtMultimediaUtils
             codecs[i] = codecInfoArray[i].getName();
         return codecs;
     }
+
+public static String getMimeType(Context context, String url)
+{
+    Uri parsedUri = Uri.parse(url);
+    String type = null;
+
+    try {
+        String scheme = parsedUri.getScheme();
+        if (scheme != null && scheme.contains("content")) {
+            ContentResolver cR = context.getContentResolver();
+            type = cR.getType(parsedUri);
+        } else {
+            String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+            if (extension != null)
+                type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+       }
+    } catch (Exception e) {
+        Log.e(QtTAG, "getMimeType(): " + e.toString());
+    }
+    return type;
+}
 }
