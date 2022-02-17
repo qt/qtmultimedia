@@ -73,6 +73,7 @@ Popup {
         highlightFollowsCurrentItem: true
         highlight: Rectangle { color: "gray"; radius: 5 }
         currentIndex: 0
+        clip: true
 
         delegate: Item {
             width: cameraListPopup.itemWidth
