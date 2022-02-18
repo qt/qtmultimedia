@@ -65,6 +65,7 @@ private slots:
 
 private:
     bool isWavSupported();
+    QUrl testFileUrl(const QString filePath);
 };
 
 void tst_QAudioDecoderBackend::init()
@@ -91,6 +92,24 @@ bool tst_QAudioDecoderBackend::isWavSupported()
 #endif
 }
 
+QUrl tst_QAudioDecoderBackend::testFileUrl(const QString filePath)
+{
+    QUrl url;
+#ifndef Q_OS_ANDROID
+    QFileInfo fileInfo(QFINDTESTDATA(filePath));
+    url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+#else
+    QFile file(":/" + filePath);
+    QTemporaryFile *temporaryFile = nullptr;
+    if (file.open(QIODevice::ReadOnly)) {
+        temporaryFile = QTemporaryFile::createNativeFile(file);
+        url = QUrl(temporaryFile->fileName());
+    }
+    temporaryFile->deleteLater();
+#endif
+    return url;
+}
+
 void tst_QAudioDecoderBackend::fileTest()
 {
     if (!isWavSupported())
@@ -110,8 +129,7 @@ void tst_QAudioDecoderBackend::fileTest()
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
-    QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
-    QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+    QUrl url = testFileUrl(TEST_FILE_NAME);
     d.setSource(url);
     QVERIFY(!d.isDecoding());
     QVERIFY(!d.bufferAvailable());
@@ -126,7 +144,7 @@ void tst_QAudioDecoderBackend::fileTest()
     QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
 
     d.start();
-    QTRY_VERIFY(d.isDecoding());
+
     QTRY_VERIFY(!isDecodingSpy.isEmpty());
     QTRY_VERIFY(!readySpy.isEmpty());
     QTRY_VERIFY(!bufferChangedSpy.isEmpty());
@@ -192,6 +210,9 @@ void tst_QAudioDecoderBackend::fileTest()
     finishedSpy.clear();
     positionSpy.clear();
 
+#ifdef Q_OS_ANDROID
+    QSKIP("Setting a desired audio format is not yet supported on Android", QTest::SkipSingle);
+#endif
     // change output audio format
     QAudioFormat format;
     format.setChannelCount(2);
@@ -366,8 +387,7 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
-    QFileInfo fileInfo(QFINDTESTDATA(TEST_CORRUPTED_FILE_NAME));
-    QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+    QUrl url = testFileUrl(TEST_CORRUPTED_FILE_NAME);
     d.setSource(url);
     QVERIFY(!d.isDecoding());
     QVERIFY(!d.bufferAvailable());
@@ -420,7 +440,6 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
     QVERIFY(durationSpy.isEmpty());
-
 
     d.stop();
     QTRY_VERIFY(!d.isDecoding());
@@ -543,9 +562,12 @@ void tst_QAudioDecoderBackend::deviceTest()
     QVERIFY(d.bufferAvailable() == false);
     QCOMPARE(d.source(), QString(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
-
+#ifndef Q_OS_ANDROID
     QFileInfo fileInfo(QFINDTESTDATA(TEST_FILE_NAME));
     QFile file(fileInfo.absoluteFilePath());
+#else
+    QFile file(":/" TEST_FILE_NAME);
+#endif
     QVERIFY(file.open(QIODevice::ReadOnly));
     d.setSourceDevice(&file);
 
@@ -557,7 +579,6 @@ void tst_QAudioDecoderBackend::deviceTest()
 
     d.start();
 
-    QTRY_VERIFY(d.isDecoding());
     QTRY_VERIFY(!isDecodingSpy.isEmpty());
     QTRY_VERIFY(!readySpy.isEmpty());
     QTRY_VERIFY(!bufferChangedSpy.isEmpty());
@@ -617,6 +638,9 @@ void tst_QAudioDecoderBackend::deviceTest()
     finishedSpy.clear();
     positionSpy.clear();
 
+#ifdef Q_OS_ANDROID
+    QSKIP("Setting a desired audio format is not yet supported on Android", QTest::SkipSingle);
+#endif
     // Now try changing formats
     QAudioFormat format;
     format.setChannelCount(2);
