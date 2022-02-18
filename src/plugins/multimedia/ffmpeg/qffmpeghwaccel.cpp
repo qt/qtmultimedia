@@ -86,7 +86,7 @@ static AVBufferRef *loadHWContext(const AVCodecHWConfig *config)
     return nullptr;
 }
 
-static AVBufferRef *hardwareContextForCodec(AVCodec *codec)
+static AVBufferRef *hardwareContextForCodec(const AVCodec *codec)
 {
     qDebug() << "Checking HW acceleration for decoder" << codec->name;
 
@@ -190,7 +190,7 @@ AVPixelFormat QFFmpeg::HWAccelBackend::format(AVFrame *frame) const
     return AVPixelFormat(hwFramesContext->sw_format);
 }
 
-HWAccel::HWAccel(AVCodec *codec)
+HWAccel::HWAccel(const AVCodec *codec)
     : HWAccel(codec->type == AVMEDIA_TYPE_VIDEO ? hardwareContextForCodec(codec) : nullptr)
 {
 }

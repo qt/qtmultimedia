@@ -141,7 +141,7 @@ static QMediaFormat::FileFormat formatForAVFormat(AVFormat *format)
     return QMediaFormat::UnspecifiedFormat;
 }
 
-static AVOutputFormat *avFormatForFormat(QMediaFormat::FileFormat format)
+static const AVOutputFormat *avFormatForFormat(QMediaFormat::FileFormat format)
 {
     if (format == QMediaFormat::QuickTime || format == QMediaFormat::Mpeg4Audio)
         format = QMediaFormat::MPEG4;
@@ -288,7 +288,8 @@ QMediaFormat::VideoCodec QFFmpegMediaFormatInfo::videoCodecForAVCodecId(AVCodecI
     return QMediaFormat::VideoCodec::Unspecified;
 }
 
-QMediaFormat::FileFormat QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(AVInputFormat *format)
+QMediaFormat::FileFormat
+QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(const AVInputFormat *format)
 {
     // Seems like FFmpeg uses different names for muxers and demuxers of the same format.
     // that makes it somewhat cumbersome to detect things correctly.
@@ -328,7 +329,8 @@ QMediaFormat::FileFormat QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(AVIn
     return QMediaFormat::UnspecifiedFormat;
 }
 
-AVOutputFormat *QFFmpegMediaFormatInfo::outputFormatForFileFormat(QMediaFormat::FileFormat format)
+const AVOutputFormat *
+QFFmpegMediaFormatInfo::outputFormatForFileFormat(QMediaFormat::FileFormat format)
 {
     return avFormatForFormat(format);
 }

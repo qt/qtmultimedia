@@ -91,7 +91,7 @@ Codec::Codec(AVFormatContext *format, int streamIndex, QRhi *rhi)
     Q_ASSERT(streamIndex >= 0 && streamIndex < (int)format->nb_streams);
 
     AVStream *stream = format->streams[streamIndex];
-    AVCodec *decoder = avcodec_find_decoder(stream->codecpar->codec_id);
+    const AVCodec *decoder = avcodec_find_decoder(stream->codecpar->codec_id);
     if (!decoder) {
         qCDebug(qLcDecoder) << "Failed to find a valid FFmpeg decoder";
         return;

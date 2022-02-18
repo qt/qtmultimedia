@@ -92,7 +92,7 @@ class HWAccel
 {
 public:
     HWAccel() = default;
-    explicit HWAccel(AVCodec *codec);
+    explicit HWAccel(const AVCodec *codec);
     explicit HWAccel(AVBufferRef *hwDeviceContext);
     ~HWAccel() = default;
 
