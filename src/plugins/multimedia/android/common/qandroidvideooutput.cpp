@@ -259,22 +259,38 @@ void QAndroidTextureVideoOutput::reset()
     clearSurfaceTexture();
 }
 
+QOpenGLContext *getRhiOpenGLContext(QRhi *rhi)
+{
+    if (!rhi || rhi->backend() != QRhi::OpenGLES2)
+        return nullptr;
+
+    auto nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+    if (!nativeHandles)
+        return nullptr;
+
+    return nativeHandles->context;
+}
+
 void QAndroidTextureVideoOutput::onFrameAvailable()
 {
     if (!m_nativeSize.isValid() || !m_sink || !m_started)
         return;
 
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
+
+    const auto context = getRhiOpenGLContext(rhi);
+    if (context && (thread() != context->thread())) {
+        parent()->moveToThread(context->thread());
+        moveToThread(context->thread());
+    }
+
     auto *buffer = new AndroidTextureVideoBuffer(rhi, this, m_nativeSize);
     const QVideoFrameFormat::PixelFormat format = rhi ? QVideoFrameFormat::Format_SamplerExternalOES
                                                       : QVideoFrameFormat::Format_RGBA8888;
     QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, format));
     m_sink->platformVideoSink()->setVideoFrame(frame);
 
-    QMetaObject::invokeMethod(m_surfaceTexture
-                              , "frameAvailable"
-                              , Qt::QueuedConnection
-                              );
+    QMetaObject::invokeMethod(m_surfaceTexture, "frameAvailable", Qt::QueuedConnection);
 }
 
 static const float g_quad[] = {

@@ -406,9 +406,9 @@ bool QAndroidCameraSession::startPreview()
     AndroidMultimediaUtils::enableOrientationListener(true);
 
     updateOrientation();
-
     m_camera->startPreview();
     m_previewStarted = true;
+    m_videoOutput->start();
 
     return true;
 }
