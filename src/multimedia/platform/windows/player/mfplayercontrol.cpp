@@ -96,6 +96,8 @@ void MFPlayerControl::play()
     case QMediaPlayer::BufferedMedia:
     case QMediaPlayer::EndOfMedia:
         changeState(QMediaPlayer::PlayingState);
+        if (m_session->status() == QMediaPlayer::LoadedMedia)
+            m_session->updateOutputRouting();
         m_session->start();
         break;
     default: //Loading/Stalled

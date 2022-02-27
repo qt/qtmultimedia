@@ -148,6 +148,7 @@ public:
 public Q_SLOTS:
     void setVolume(float volume);
     void setMuted(bool muted);
+    void updateOutputRouting();
 
 Q_SIGNALS:
     void sessionEvent(IMFMediaEvent  *sessionEvent);
@@ -156,7 +157,6 @@ private Q_SLOTS:
     void handleMediaSourceReady();
     void handleSessionEvent(IMFMediaEvent *sessionEvent);
     void handleSourceError(long hr);
-    void updateOutputRouting();
     void timeout();
 
 private:
