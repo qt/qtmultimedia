@@ -52,6 +52,7 @@
 
 #include "qffmpegthread_p.h"
 #include "qffmpeg_p.h"
+#include "qffmpeghwaccel_p.h"
 
 #include <private/qplatformmediarecorder_p.h>
 #include <qaudioformat.h>
@@ -183,6 +184,7 @@ private:
     QMediaEncoderSettings m_encoderSettings;
     QPlatformCamera *m_camera = nullptr;
 
+    QFFmpeg::HWAccel accel;
     SwsContext *converter = nullptr;
     qint64 baseTime = -1;
 };

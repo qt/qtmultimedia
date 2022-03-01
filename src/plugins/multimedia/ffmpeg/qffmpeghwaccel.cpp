@@ -218,6 +218,71 @@ AVHWDeviceContext *HWAccel::hwDeviceContext() const
     return (AVHWDeviceContext *)d->hwDeviceContext->data;
 }
 
+AVPixelFormat HWAccel::hwFormat() const
+{
+    switch (deviceType()) {
+    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
+        return AV_PIX_FMT_VIDEOTOOLBOX;
+    case AV_HWDEVICE_TYPE_VAAPI:
+        return AV_PIX_FMT_VAAPI;
+    default:
+        return AV_PIX_FMT_NONE;
+    }
+}
+
+const char *HWAccel::hardwareEncoderForCodecId(AVCodecID id) const
+{
+    switch (deviceType()) {
+#ifdef Q_OS_DARWIN
+    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
+        switch (id) {
+        case AV_CODEC_ID_H264:
+            return "h264_videotoolbox";
+        case AV_CODEC_ID_HEVC:
+            return "hevc_videotoolbox";
+        case AV_CODEC_ID_PRORES:
+            return "prores_videotoolbox";
+        default:
+            break;
+        }
+        break;
+#endif
+    case AV_HWDEVICE_TYPE_VAAPI:
+        switch (id) {
+        case AV_CODEC_ID_H264:
+            return "h264_vaapi";
+        case AV_CODEC_ID_HEVC:
+            return "hevc_vaapi";
+        case AV_CODEC_ID_MJPEG:
+            return "mjpeg_vaapi";
+        case AV_CODEC_ID_MPEG2VIDEO:
+            return "mpeg2_vaapi";
+        case AV_CODEC_ID_VP8:
+            return "vp8_vaapi";
+        case AV_CODEC_ID_VP9:
+            return "vp9_vaapi";
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+    return nullptr;
+}
+
+HWAccel HWAccel::findHardwareAccelForCodecID(AVCodecID id)
+{
+    auto *accels = preferredHardwareAccelerators;
+    while (*accels != AV_HWDEVICE_TYPE_NONE) {
+        auto accel = HWAccel(*accels);
+        if (accel.hardwareEncoderForCodecId(id) != nullptr)
+            return accel;
+        ++accels;
+    }
+    return {};
+}
+
 AVHWDeviceType HWAccel::deviceType() const
 {
     if (!d || !d->hwDeviceContext)

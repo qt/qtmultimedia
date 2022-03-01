@@ -132,10 +132,16 @@ public:
     explicit HWAccel(const AVCodec *codec);
     ~HWAccel();
 
+    bool isNull() const { return !d || !d->hwDeviceContext; }
+
     AVHWDeviceType deviceType() const;
 
     AVBufferRef *hwDeviceContextAsBuffer() const { return d ? d->hwDeviceContext : nullptr; }
     AVHWDeviceContext *hwDeviceContext() const;
+    AVPixelFormat hwFormat() const;
+
+    const char *hardwareEncoderForCodecId(AVCodecID id) const;
+    static HWAccel findHardwareAccelForCodecID(AVCodecID id);
 
     void createFramesContext(AVPixelFormat swFormat, const QSize &size);
     AVBufferRef *hwFramesContextAsBuffer() const { return d ? d->hwFramesContext : nullptr; }

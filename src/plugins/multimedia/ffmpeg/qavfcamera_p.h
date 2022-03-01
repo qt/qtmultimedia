@@ -95,6 +95,8 @@ public:
 
     void deviceOrientationChanged(int angle = -1);
 
+    const void *ffmpegHWAccel() const override { return &hwAccel; }
+
 private:
     void requestCameraPermissionIfNeeded();
     void cameraAuthorizationChanged(bool authorized);

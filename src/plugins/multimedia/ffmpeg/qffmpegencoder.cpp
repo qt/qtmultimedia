@@ -256,6 +256,31 @@ void EncoderThread::cleanup()
     retrievePackets();
 }
 
+static void applyEncoderSettings(AVDictionary **opts, const QMediaEncoderSettings &settings, bool audio)
+{
+    av_dict_set(opts, "threads", "auto", 0);
+    if (settings.encodingMode() == QMediaRecorder::ConstantQualityEncoding) {
+        av_dict_set(opts, "flags", "qscale", 0);
+        const char *scales[QMediaRecorder::VeryHighQuality+1] = {
+            "28",
+            "20",
+            "16",
+            "12",
+            "4"
+        };
+        av_dict_set(opts, "global_quality", scales[settings.quality()], 0);
+    } else {
+        if (audio && settings.audioBitRate() > 0)
+            av_dict_set(opts, "ab", QByteArray::number(settings.audioBitRate()).constData(), 0);
+        else if (!audio && settings.videoBitRate() > 0)
+            av_dict_set(opts, "b", QByteArray::number(settings.videoBitRate()).constData(), 0);
+    }
+
+    if (!audio) {
+        av_dict_set(opts, "row-mt", "1", 0);
+    }
+}
+
 
 AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings)
     : input(input)
@@ -288,8 +313,13 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
     Q_ASSERT(avCodec);
     codec = avcodec_alloc_context3(avCodec);
     avcodec_parameters_to_context(codec, stream->codecpar);
-    int res = avcodec_open2(codec, avCodec, nullptr);
+
+    AVDictionary *opts = nullptr;
+    applyEncoderSettings(&opts, settings, /*audio = */ true);
+
+    int res = avcodec_open2(codec, avCodec, &opts);
     qDebug() << "audio codec opened" << res;
+    qDebug() << "audio codec params: fmt=" << codec->sample_fmt << "rate=" << codec->sample_rate;
 
     if (codec->sample_fmt != requested) {
         resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
@@ -392,24 +422,53 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
     Q_ASSERT(avformat_query_codec(encoder->formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
 
-    AVCodec *avCodec = nullptr;
-    const char *hwCodecName = nullptr;
-#ifdef Q_OS_DARWIN
-    // ### Abstract this, so it works more generally and on other platforms
-    if (qVideoCodec == QMediaFormat::VideoCodec::H265)
-        hwCodecName = "hevc_videotoolbox";
-    else if (qVideoCodec == QMediaFormat::VideoCodec::H264)
-        hwCodecName = "h264_videotoolbox";
-#endif
-    if (hwCodecName)
-        avCodec = avcodec_find_encoder_by_name(hwCodecName);
+    const AVCodec *avCodec = nullptr;
+    AVPixelFormat swPixelFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
+    AVPixelFormat requestedPixelFormat = swPixelFormat;
+
+    auto *hwAccel = static_cast<const QFFmpeg::HWAccel *>(camera->ffmpegHWAccel());
+    if (hwAccel) {
+        const char *hwCodecName = hwAccel->hardwareEncoderForCodecId(codecID);
+        if (hwCodecName) {
+            avCodec = avcodec_find_encoder_by_name(hwCodecName);
+            if (avCodec) {
+                // matching encoder, we can do zero copy encoding
+                requestedPixelFormat = hwAccel->hwFormat();
+                accel = *hwAccel;
+            } else {
+                qWarning() << "Didn't find HW encoder for zero copy" << hwCodecName;
+            }
+        }
+    }
+    if (!avCodec) {
+        // no zero copy encoding, maybe we can still use HW acceleration with one copy
+        auto hwAccel = QFFmpeg::HWAccel::findHardwareAccelForCodecID(codecID);
+        const char *hwCodecName = hwAccel.hardwareEncoderForCodecId(codecID);
+        if (hwCodecName) {
+            avCodec = avcodec_find_encoder_by_name(hwCodecName);
+            if (avCodec) {
+                // matching encoder, we can encoding with one copy
+                accel = hwAccel;
+            } else {
+                qWarning() << "Didn't find HW encoder" << hwCodecName;
+            }
+        }
+    }
 
     if (!avCodec) {
+        // no HW encoding, find a SW encoder
         avCodec = avcodec_find_encoder(codecID);
         if (!avCodec) {
             qWarning() << "Could not find encoder for codecId" << codecID;
             return;
         }
+    }
+
+    qDebug() << "using codec" << avCodec->name << "supported formats:";
+    auto *f = avCodec->pix_fmts;
+    while (*f != -1) {
+        qDebug() << "    " << av_get_pix_fmt_name(*f);
+        ++f;
     }
 
     auto supportsFormat = [&](AVPixelFormat fmt) {
@@ -422,21 +481,17 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
         return false;
     };
 
-    auto cameraFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
-    auto encoderFormat = cameraFormat;
+    auto encoderFormat = requestedPixelFormat;
 
-//    if (!supportsFormat(hwFormat)) {
-//        // check if the encoder supports the SW format
-//        encoderFormat = swFormat;
-//        if (!supportsFormat(swFormat))
-//            // Take first format the encoder supports. Might want to improve upon this
-//            encoderFormat = *avCodec->pix_fmts;
-//    }
-
-    if (!supportsFormat(cameraFormat)) {
-        // Take first format the encoder supports. Might want to improve upon this
-        encoderFormat = *avCodec->pix_fmts;
+    if (!supportsFormat(requestedPixelFormat)) {
+        // check if the encoder supports the SW format
+        encoderFormat = swPixelFormat;
+        if (!supportsFormat(swPixelFormat))
+            // Take first format the encoder supports. Might want to improve upon this
+            encoderFormat = *avCodec->pix_fmts;
     }
+
+    qDebug() << "using pixel format" << av_get_pix_fmt_name(encoderFormat);
 
     QSize resolution = format.resolution();
 
@@ -482,7 +537,9 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     codec = avcodec_alloc_context3(avCodec);
     avcodec_parameters_to_context(codec, stream->codecpar);
     codec->time_base = stream->time_base;
-    int res = avcodec_open2(codec, avCodec, nullptr);
+    AVDictionary *opts = nullptr;
+    applyEncoderSettings(&opts, settings, /*audio = */ false);
+    int res = avcodec_open2(codec, avCodec, &opts);
     if (res < 0) {
         avcodec_free_context(&codec);
         qWarning() << "Couldn't open codec for writing";
@@ -491,9 +548,9 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
 //    qDebug() << "video codec opened" << res << codec->time_base.num << codec->time_base.den;
     stream->time_base = codec->time_base;
 
-    if (cameraFormat != encoderFormat) {
-        qDebug() << "camera and encoder use different formats:" << cameraFormat << encoderFormat;
-        converter = sws_getContext(resolution.width(), resolution.height(), cameraFormat,
+    if (requestedPixelFormat != encoderFormat && swPixelFormat != encoderFormat) {
+        qDebug() << "camera and encoder use different formats:" << requestedPixelFormat << encoderFormat;
+        converter = sws_getContext(resolution.width(), resolution.height(), swPixelFormat,
                                    resolution.width(), resolution.height(), encoderFormat,
                                    SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
     }
@@ -553,8 +610,6 @@ void VideoEncoder::loop()
     if (!frame.isValid())
         return;
 
-    auto *videoBuffer = dynamic_cast<QFFmpegVideoBuffer *>(frame.videoBuffer());
-
     if (baseTime < 0)
         baseTime = frame.startTime();
 
@@ -563,17 +618,18 @@ void VideoEncoder::loop()
 
     AVFrame *avFrame = nullptr;
 
-    if (videoBuffer) {
+    auto *videoBuffer = dynamic_cast<QFFmpegVideoBuffer *>(frame.videoBuffer());
+    if (videoBuffer && !accel.isNull()) {
         // ffmpeg video buffer, let's use the native AVFrame stored in there
         auto *hwFrame = videoBuffer->getHWFrame();
-        if (hwFrame)
+        if (hwFrame && hwFrame->format == accel.hwFormat())
             avFrame = av_frame_clone(hwFrame);
     }
 
     if (!avFrame) {
         frame.map(QVideoFrame::ReadOnly);
         auto size = frame.size();
-        AVFrame *avFrame = av_frame_alloc();
+        avFrame = av_frame_alloc();
         avFrame->format = codec->pix_fmt;
         avFrame->width = size.width();
         avFrame->height = size.height();
