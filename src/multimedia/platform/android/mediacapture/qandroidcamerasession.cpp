@@ -409,6 +409,7 @@ bool QAndroidCameraSession::startPreview()
 
     m_camera->startPreview();
     m_previewStarted = true;
+    m_videoOutput->start();
 
     return true;
 }
