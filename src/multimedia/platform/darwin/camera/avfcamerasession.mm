@@ -523,13 +523,8 @@ void AVFCameraSession::updateAudioOutput()
 
 void AVFCameraSession::updateVideoOutput()
 {
-    if (m_videoOutput) {
+    if (m_videoOutput)
         m_videoOutput->setVideoSink(m_videoSink);
-        if (m_videoSink) {
-            AVCaptureVideoPreviewLayer *previewLayer = [AVCaptureVideoPreviewLayer layerWithSession:m_captureSession];
-            m_videoOutput->setLayer(previewLayer);
-        }
-    }
 }
 
 void AVFCameraSession::requestCameraPermissionIfNeeded()
