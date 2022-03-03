@@ -285,6 +285,7 @@ Q_SIGNALS:
 
 private:
     void updateEnabledStreams();
+    void sendFinalPacketToStreams();
 
     void init() override;
     void cleanup() override;

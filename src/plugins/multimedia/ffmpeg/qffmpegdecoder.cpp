@@ -175,11 +175,10 @@ void Demuxer::removeStream(int streamIndex)
 
 void Demuxer::stopDecoding()
 {
-    qDebug() << "StopDecoding";
+    qCDebug(qLcDemuxer) << "StopDecoding";
     QMutexLocker locker(&mutex);
-    m_isStopped.storeRelaxed(true);
+    sendFinalPacketToStreams();
 }
-
 int Demuxer::seek(qint64 pos)
 {
     QMutexLocker locker(&mutex);
@@ -200,7 +199,7 @@ int Demuxer::seek(qint64 pos)
     last_pts = -1;
     while (last_pts < 0)
         loop();
-    qDebug() << "Demuxer::seek" << pos << last_pts;
+    qCDebug(qLcDemuxer) << "Demuxer::seek" << pos << last_pts;
     return last_pts;
 }
 
@@ -216,9 +215,22 @@ void Demuxer::updateEnabledStreams()
     }
 }
 
+void Demuxer::sendFinalPacketToStreams()
+{
+    if (m_isStopped.loadAcquire())
+        return;
+    for (auto *streamDecoder : qAsConst(streamDecoders)) {
+        qCDebug(qLcDemuxer) << "Demuxer: sending last packet to stream" << streamDecoder;
+        if (!streamDecoder)
+            continue;
+        streamDecoder->addPacket(nullptr);
+    }
+    m_isStopped.storeRelease(true);
+}
+
 void Demuxer::init()
 {
-    qDebug(qLcDemuxer) << "Demuxer started";
+    qCDebug(qLcDemuxer) << "Demuxer started";
 }
 
 void Demuxer::cleanup()
@@ -259,6 +271,7 @@ void Demuxer::loop()
     AVPacket *packet = av_packet_alloc();
     if (av_read_frame(decoder->context, packet) < 0) {
         eos = true;
+        sendFinalPacketToStreams();
         emit atEnd();
         return;
     }
@@ -273,7 +286,6 @@ void Demuxer::loop()
         av_packet_free(&packet);
         return;
     }
-//    qDebug() << "add packet to stream" << packet->stream_index;
     decoder->addPacket(packet);
 }
 
@@ -308,7 +320,6 @@ StreamDecoder::StreamDecoder(Decoder *decoder, const Codec &codec)
 
 void StreamDecoder::addPacket(AVPacket *packet)
 {
-    Q_ASSERT(packet);
     {
         QMutexLocker locker(&packetQueue.mutex);
 //        qCDebug(qLcDecoder) << "enqueuing packet of type" << type() << "with serial" << serial << "current serial" << this->serial
@@ -316,8 +327,10 @@ void StreamDecoder::addPacket(AVPacket *packet)
 //                            << "pts" << codec.toMs(packet->pts)
 //                            << "duration" << codec.toMs(packet->duration);
         packetQueue.queue.enqueue(Packet(packet));
-        packetQueue.size += packet->size;
-        packetQueue.duration += codec.toMs(packet->duration);
+        if (packet) {
+            packetQueue.size += packet->size;
+            packetQueue.duration += codec.toMs(packet->duration);
+        }
     }
     condition.wakeAll();
 }
@@ -355,8 +368,10 @@ Packet StreamDecoder::takePacket()
         return {};
     }
     auto packet = packetQueue.queue.dequeue();
-    packetQueue.size -= packet.avPacket()->size;
-    packetQueue.duration -= codec.toMs(packet.avPacket()->duration);
+    if (packet.avPacket()) {
+        packetQueue.size -= packet.avPacket()->size;
+        packetQueue.duration -= codec.toMs(packet.avPacket()->duration);
+    }
 //        qCDebug(qLcDecoder) << "<<<< dequeuing packet of type" << type()
 //                 << "pts" << codec.toMs(packet.avPacket()->pts)
 //                 << "duration" << codec.toMs(packet.avPacket()->duration)
@@ -422,7 +437,6 @@ void StreamDecoder::decode()
             pts = codec.toMs(frame->pts);
         else
             pts = codec.toMs(frame->best_effort_timestamp);
-//        qCDebug(qLcDecoder) << "received frame" << type << timeStamp(frame->pts, stream->time_base) << seek;
         if (pts*1000 < decoder->clockController.currentTime()) {
             // too early, discard
 //            qCDebug(qLcDecoder) << "    discarding frame";
@@ -443,16 +457,8 @@ void StreamDecoder::decode()
     Packet packet = takePacket();
     if (!packet.isValid())
         return;
-//    if (type() == 0)
-//        qDebug() << "got packet" << serial;
-//        if (type() == 0)
-//            qDebug() << "    flushed";
 
-    // send the frame to the data
-//    if (type() == 0)
-//        qDebug() << "    sending packet";
     avcodec_send_packet(codec.context(), packet.avPacket());
-    //        qCDebug(cat) << "packet sent to AV decoder";
 }
 
 void StreamDecoder::decodeSubtitle()
