@@ -50,6 +50,7 @@
 #include "qvideosink.h"
 #include "qaudiosink.h"
 #include "qaudiooutput.h"
+#include "qffmpegaudiodecoder_p.h"
 
 #include <qlocale.h>
 #include <qtimer.h>
@@ -149,6 +150,11 @@ StreamDecoder *Demuxer::addStream(int streamIndex)
     if (streamIndex < 0)
         return nullptr;
     Codec codec(decoder->context, streamIndex);
+    if (!codec.isValid()) {
+        decoder->error(QMediaPlayer::FormatError, "Invalid media file");
+        return nullptr;
+    }
+
     Q_ASSERT(codec.context()->codec_type == AVMEDIA_TYPE_AUDIO ||
              codec.context()->codec_type == AVMEDIA_TYPE_VIDEO ||
              codec.context()->codec_type == AVMEDIA_TYPE_SUBTITLE);
@@ -409,7 +415,7 @@ void StreamDecoder::init()
 
 bool StreamDecoder::shouldWait() const
 {
-    if (hasNoPackets() || hasEnoughFrames())
+    if (eos || hasNoPackets() || hasEnoughFrames())
         return true;
     return false;
 }
@@ -444,12 +450,14 @@ void StreamDecoder::decode()
             return;
         }
         addFrame(Frame{frame, codec, pts});
-    } else if (res == AVERROR(EOF)) {
+    } else if (res == AVERROR(EOF) || res == AVERROR_EOF) {
         eos = true;
         av_frame_free(&frame);
         return;
     } else if (res != AVERROR(EAGAIN)) {
-        qWarning() << "error in decoder" << res;
+        char buf[512];
+        av_make_error_string(buf, 512, res);
+        qWarning() << "error in decoder" << res << buf;
         av_frame_free(&frame);
         return;
     }
@@ -612,7 +620,7 @@ void VideoRenderer::kill()
 void VideoRenderer::setSubtitleStream(StreamDecoder *stream)
 {
     QMutexLocker locker(&mutex);
-    qDebug() << "setting subtitle stream to" << stream;
+    qCDebug(qLcVideoRenderer) << "setting subtitle stream to" << stream;
     if (stream == subtitleStreamDecoder)
         return;
     if (subtitleStreamDecoder)
@@ -719,7 +727,7 @@ void AudioRenderer::syncTo(qint64 usecs)
 void AudioRenderer::adjustBy(qint64 usecs)
 {
     Clock::adjustBy(usecs);
-    qDebug() << "adjusting audio clock by" << usecs;
+    qCDebug(qLcAudioRenderer) << "adjusting audio clock by" << usecs;
     QMutexLocker l(&mutex);
     // ensure we sync up output by dropping/adding frames as needed
     Q_ASSERT(!isMaster());
@@ -735,9 +743,9 @@ void AudioRenderer::setPlaybackRate(float rate)
 
 void AudioRenderer::updateOutput(const Codec *codec)
 {
-    qDebug() << ">>>>>> updateOutput" << currentTime() << baseTime() << processedUSecs << isMaster();
+    qCDebug(qLcAudioRenderer) << ">>>>>> updateOutput" << currentTime() << baseTime() << processedUSecs << isMaster();
     freeOutput();
-    qDebug() << "    " << currentTime() << baseTime() << processedUSecs;
+    qCDebug(qLcAudioRenderer) << "    " << currentTime() << baseTime() << processedUSecs;
 
     AVStream *audioStream = codec->stream();
 
@@ -935,18 +943,25 @@ void Decoder::setUrl(const QUrl &media)
 
     int ret = avformat_open_input(&context, url.constData(), nullptr, nullptr);
     if (ret < 0) {
-        if (player)
-            player->error(QMediaPlayer::AccessDeniedError, QMediaPlayer::tr("Could not open file"));
+        auto code = QMediaPlayer::ResourceError;
+        if (ret == AVERROR(EACCES))
+            code = QMediaPlayer::AccessDeniedError;
+        else if (ret == AVERROR(EINVAL))
+            code = QMediaPlayer::FormatError;
+
+        emitError(code, QMediaPlayer::tr("Could not open file"));
         return;
     }
 
     ret = avformat_find_stream_info(context, nullptr);
     if (ret < 0) {
-        if (player)
-            player->error(QMediaPlayer::FormatError, QMediaPlayer::tr("Could not find stream information for media file"));
+        emitError(QMediaPlayer::FormatError, QMediaPlayer::tr("Could not find stream information for media file"));
         return;
     }
+
+#ifndef QT_NO_DEBUG
     av_dump_format(context, 0, url.constData(), 0);
+#endif
 
     m_metaData = QFFmpegMetaData::fromAVMetaData(context->metadata);
     m_metaData.insert(QMediaMetaData::FileFormat,
@@ -957,7 +972,7 @@ void Decoder::setUrl(const QUrl &media)
     demuxer = new Demuxer(this);
     demuxer->start();
 
-    qDebug() << ">>>>>> index:" << metaObject()->indexOfSlot("updateCurrentTime(qint64)");
+    qCDebug(qLcDecoder) << ">>>>>> index:" << metaObject()->indexOfSlot("updateCurrentTime(qint64)");
     clockController.setNotify(this, metaObject()->method(metaObject()->indexOfSlot("updateCurrentTime(qint64)")));
 }
 
@@ -1056,6 +1071,8 @@ void Decoder::checkStreams()
         m_duration = duration;
         if (player)
             player->durationChanged(duration);
+        else if (audioDecoder)
+            audioDecoder->durationChanged(duration);
     }
 }
 
@@ -1075,15 +1092,48 @@ void Decoder::setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNum
     changeAVTrack(type, avStreamIndex);
 }
 
+void Decoder::error(int errorCode, const QString &errorString)
+{
+    QMetaObject::invokeMethod(this, "emitError", Q_ARG(int, errorCode), Q_ARG(QString, errorString));
+}
+
+void Decoder::emitError(int error, const QString &errorString)
+{
+    if (player)
+        player->error(error, errorString);
+    else if (audioDecoder) {
+        // unfortunately the error enums for QAudioDecoder and QMediaPlayer aren't identical.
+        // Map them.
+        switch (QMediaPlayer::Error(error)) {
+        case QMediaPlayer::NoError:
+            error = QAudioDecoder::NoError;
+            break;
+        case QMediaPlayer::ResourceError:
+            error = QAudioDecoder::ResourceError;
+            break;
+        case QMediaPlayer::FormatError:
+            error = QAudioDecoder::FormatError;
+            break;
+        case QMediaPlayer::NetworkError:
+            // fall through, Network error doesn't exist in QAudioDecoder
+        case QMediaPlayer::AccessDeniedError:
+            error = QAudioDecoder::AccessDeniedError;
+            break;
+        }
+
+        audioDecoder->error(error, errorString);
+    }
+}
+
 void Decoder::stop()
 {
-    qDebug() << "Decoder::stop";
+    qCDebug(qLcDecoder) << "Decoder::stop";
     pause();
     demuxer->stopDecoding();
     seek(0);
     if (videoSink)
         videoSink->setVideoFrame({});
-    qDebug() << "Decoder::stop: done" << clockController.currentTime();
+    qCDebug(qLcDecoder) << "Decoder::stop: done" << clockController.currentTime();
 }
 
 void Decoder::setPaused(bool b)
@@ -1093,7 +1143,7 @@ void Decoder::setPaused(bool b)
     paused = b;
     clockController.setPaused(b);
     if (!b) {
-        qDebug() << "start decoding!";
+        qCDebug(qLcDecoder) << "start decoding!";
         if (demuxer)
             demuxer->startDecoding();
     }
@@ -1150,11 +1200,11 @@ void Decoder::setAudioSink(QPlatformAudioOutput *output)
 void Decoder::changeAVTrack(QPlatformMediaPlayer::TrackType type, int streamIndex)
 {
     int oldIndex = m_currentAVStreamIndex[type];
-    qDebug() << ">>>>> change track" << type << "from" << oldIndex << "to" << streamIndex << clockController.currentTime();
+    qCDebug(qLcDecoder) << ">>>>> change track" << type << "from" << oldIndex << "to" << streamIndex << clockController.currentTime();
     m_currentAVStreamIndex[type] = streamIndex;
     if (!demuxer)
         return;
-    qDebug() << "    applying to renderer.";
+    qCDebug(qLcDecoder) << "    applying to renderer.";
     bool isPaused = paused;
     if (!isPaused)
         setPaused(true);

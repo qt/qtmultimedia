@@ -85,13 +85,10 @@ public:
     void setAudioFormat(const QAudioFormat &format) override;
 
     QAudioBuffer read() override;
-    bool bufferAvailable() const override;
-
-    qint64 position() const override;
-    qint64 duration() const override;
 
 public Q_SLOTS:
     void newAudioBuffer(const QAudioBuffer &b);
+    void done();
 
 private:
     QUrl m_url;
@@ -100,8 +97,6 @@ private:
     QAudioFormat m_audioFormat;
 
     QAudioBuffer m_audioBuffer;
-    qint64 m_position = 0;
-    qint64 m_duration = 0;
 };
 
 QT_END_NAMESPACE

@@ -134,8 +134,7 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     // ### use io device when provided
 
-    decoder = new Decoder();
-    decoder->setMediaPlayer(this);
+    decoder = new Decoder(this);
     decoder->setUrl(media);
     decoder->setAudioSink(m_audioOutput);
     decoder->setVideoSink(m_videoSink);

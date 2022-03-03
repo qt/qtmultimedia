@@ -80,10 +80,10 @@ public:
     virtual void setAudioFormat(const QAudioFormat &format) = 0;
 
     virtual QAudioBuffer read() = 0;
-    virtual bool bufferAvailable() const = 0;
+    virtual bool bufferAvailable() const { return m_bufferAvailable; }
 
-    virtual qint64 position() const = 0;
-    virtual qint64 duration() const = 0;
+    virtual qint64 position() const { return m_position; }
+    virtual qint64 duration() const { return m_duration; }
 
     void formatChanged(const QAudioFormat &format);
 
@@ -114,9 +114,12 @@ protected:
 private:
     QAudioDecoder *q = nullptr;
 
+    qint64 m_duration = -1;
+    qint64 m_position = -1;
     QAudioDecoder::Error m_error = QAudioDecoder::NoError;
     QString m_errorString;
     bool m_isDecoding = false;
+    bool m_bufferAvailable = false;
 };
 
 QT_END_NAMESPACE

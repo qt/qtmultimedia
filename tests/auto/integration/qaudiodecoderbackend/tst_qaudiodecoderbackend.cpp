@@ -323,7 +323,8 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
     QVERIFY(isDecodingSpy.isEmpty());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
-    QVERIFY(durationSpy.isEmpty());
+    // Either reject the file directly, or set the duration to 5secs on setUrl() and back to -1 on start()
+    QVERIFY(durationSpy.isEmpty() || durationSpy.count() == 2);
 
     errorSpy.clear();
 
@@ -340,7 +341,7 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
     QVERIFY(isDecodingSpy.isEmpty());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
-    QVERIFY(durationSpy.isEmpty());
+    QVERIFY(durationSpy.isEmpty() || durationSpy.count() == 2);
 
 
     d.stop();

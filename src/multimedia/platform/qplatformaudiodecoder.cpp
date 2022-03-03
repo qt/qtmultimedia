@@ -138,6 +138,10 @@ void QPlatformAudioDecoder::error(int error, const QString &errorString)
 */
 void QPlatformAudioDecoder::bufferAvailableChanged(bool available)
 {
+    if (m_bufferAvailable == available)
+        return;
+    m_bufferAvailable = available;
+
     if (QThread::currentThread() != q->thread())
         QMetaObject::invokeMethod(q, "bufferAvailableChanged", Qt::QueuedConnection, Q_ARG(bool, available));
     else
@@ -189,6 +193,8 @@ void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 */
 void QPlatformAudioDecoder::finished()
 {
+    positionChanged(-1);
+    durationChanged(-1);
     setIsDecoding(false);
     emit q->finished();
 }
@@ -202,6 +208,9 @@ void QPlatformAudioDecoder::finished()
 */
 void QPlatformAudioDecoder::positionChanged(qint64 position)
 {
+    if (m_position == position)
+        return;
+    m_position = position;
     q->positionChanged(position);
 }
 
@@ -214,6 +223,9 @@ void QPlatformAudioDecoder::positionChanged(qint64 position)
 */
 void QPlatformAudioDecoder::durationChanged(qint64 duration)
 {
+    if (m_duration == duration)
+        return;
+    m_duration = duration;
     q->durationChanged(duration);
 }
 

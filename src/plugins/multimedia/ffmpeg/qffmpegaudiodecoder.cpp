@@ -69,19 +69,22 @@ public:
     AudioDecoder *m_decoder;
     QAudioFormat m_format;
     SwrContext *resampler = nullptr;
+    qint64 samplesProcessed = 0;
+    bool atEndEmitted = false;
 };
 
 class AudioDecoder : public Decoder
 {
     Q_OBJECT
 public:
-    AudioDecoder() = default;
+    explicit AudioDecoder(QFFmpegAudioDecoder *audioDecoder)
+        : Decoder(audioDecoder)
+    {}
 
-    void setup(QFFmpegAudioDecoder *decoder, const QAudioFormat &format)
+    void setup(const QAudioFormat &format)
     {
-        m_audioDecoder = decoder;
-        connect(this, &AudioDecoder::newAudioBuffer, decoder, &QFFmpegAudioDecoder::newAudioBuffer);
-        connect(demuxer, &Demuxer::atEnd, m_audioDecoder, &QFFmpegAudioDecoder::finished);
+        connect(this, &AudioDecoder::newAudioBuffer, audioDecoder, &QFFmpegAudioDecoder::newAudioBuffer);
+        connect(this, &AudioDecoder::isAtEnd, audioDecoder, &QFFmpegAudioDecoder::done);
         m_format = format;
         audioRenderer = new SteppingAudioRenderer(this, format);
         audioRenderer->start();
@@ -91,15 +94,14 @@ public:
 
     void nextBuffer()
     {
-        audioRenderer->singleStep();
         audioRenderer->unPause();
     }
 
 Q_SIGNALS:
     void newAudioBuffer(const QAudioBuffer &b);
+    void isAtEnd();
 
 private:
-    QFFmpegAudioDecoder *m_audioDecoder = nullptr;
     QAudioFormat m_format;
 };
 
@@ -110,60 +112,73 @@ SteppingAudioRenderer::SteppingAudioRenderer(AudioDecoder *decoder, const QAudio
 {
 }
 
+static QAudioFormat::ChannelConfig channelConfigForChannels(int channelCount)
+{
+    QAudioFormat::ChannelConfig config;
+    switch (channelCount) {
+    case 1:
+        config = QAudioFormat::ChannelConfigMono;
+        break;
+    case 2:
+        config = QAudioFormat::ChannelConfigStereo;
+        break;
+    case 3:
+        config = QAudioFormat::ChannelConfig2Dot1;
+        break;
+    case 4:
+        config = QAudioFormat::channelConfig(QAudioFormat::FrontLeft, QAudioFormat::FrontRight,
+                                             QAudioFormat::BackLeft, QAudioFormat::BackRight);
+        break;
+    case 5:
+        config = QAudioFormat::ChannelConfigSurround5Dot0;
+        break;
+    case 6:
+        config = QAudioFormat::ChannelConfigSurround5Dot1;
+        break;
+    case 7:
+        config = QAudioFormat::ChannelConfigSurround7Dot0;
+        break;
+    case 8:
+        config = QAudioFormat::ChannelConfigSurround7Dot1;
+        break;
+    default:
+        // give up, simply use the first n channels
+        config = QAudioFormat::ChannelConfig((1 << (channelCount + 1)) - 1);
+    }
+    return config;
+}
+
 void SteppingAudioRenderer::createResampler(const Codec *codec)
 {
     qCDebug(qLcAudioDecoder) << "createResampler";
     AVStream *audioStream = codec->stream();
+    const auto *codecpar = audioStream->codecpar;
 
     if (!m_format.isValid()) {
         // want the native format
-        m_format.setSampleFormat(QFFmpegMediaFormatInfo::sampleFormat(AVSampleFormat(audioStream->codecpar->format)));
-        m_format.setSampleRate(audioStream->codecpar->sample_rate);
-        m_format.setChannelConfig(QAudioFormat::ChannelConfig(audioStream->codecpar->channel_layout));
+        m_format.setSampleFormat(QFFmpegMediaFormatInfo::sampleFormat(AVSampleFormat(codecpar->format)));
+        m_format.setSampleRate(codecpar->sample_rate);
+        m_format.setChannelCount(codecpar->channels);
+        m_format.setChannelConfig(QAudioFormat::ChannelConfig(codecpar->channel_layout));
     }
 
     QAudioFormat::ChannelConfig config = m_format.channelConfig();
-    if (config == QAudioFormat::ChannelConfigUnknown) {
-        switch (m_format.channelCount()) {
-        case 1:
-            config = QAudioFormat::ChannelConfigMono;
-            break;
-        case 2:
-            config = QAudioFormat::ChannelConfigStereo;
-            break;
-        case 3:
-            config = QAudioFormat::ChannelConfig2Dot1;
-            break;
-        case 4:
-            config = QAudioFormat::channelConfig(QAudioFormat::FrontLeft, QAudioFormat::FrontRight,
-                                                 QAudioFormat::BackLeft, QAudioFormat::BackRight);
-            break;
-        case 5:
-            config = QAudioFormat::ChannelConfigSurround5Dot0;
-            break;
-        case 6:
-            config = QAudioFormat::ChannelConfigSurround5Dot1;
-            break;
-        case 7:
-            config = QAudioFormat::ChannelConfigSurround7Dot0;
-            break;
-        case 8:
-            config = QAudioFormat::ChannelConfigSurround7Dot1;
-            break;
-        default:
-            // give up, simply use the first n channels
-            config = QAudioFormat::ChannelConfig((1 << (m_format.channelCount() + 1)) - 1);
-        }
-    }
+    if (config == QAudioFormat::ChannelConfigUnknown)
+        config = channelConfigForChannels(m_format.channelCount());
+
+    auto inConfig = codecpar->channel_layout;
+    if (inConfig == 0)
+        inConfig = QFFmpegMediaFormatInfo::avChannelLayout(channelConfigForChannels(codecpar->channels));
+
     AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(m_format.sampleFormat());
-    qCDebug(qLcAudioDecoder) << "init resampler" << requiredFormat << audioStream->codecpar->channels;
+    qCDebug(qLcAudioDecoder) << "init resampler" << m_format.sampleRate() << config << requiredFormat << codecpar->sample_rate;
     resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
                                    QFFmpegMediaFormatInfo::avChannelLayout(config),  // out_ch_layout
                                    requiredFormat,    // out_sample_fmt
                                    m_format.sampleRate(),                // out_sample_rate
-                                   audioStream->codecpar->channel_layout, // in_ch_layout
-                                   AVSampleFormat(audioStream->codecpar->format),   // in_sample_fmt
-                                   audioStream->codecpar->sample_rate,                // in_sample_rate
+                                   inConfig, // in_ch_layout
+                                   AVSampleFormat(codecpar->format),   // in_sample_fmt
+                                   codecpar->sample_rate,                // in_sample_rate
                                    0,                    // log_offset
                                    nullptr);
     swr_init(resampler);
@@ -179,7 +194,16 @@ void SteppingAudioRenderer::loop()
 
     Frame frame = streamDecoder->takeFrame();
     if (!frame.isValid()) {
+        if (streamDecoder->isAtEnd()) {
+            if (!atEndEmitted)
+                emit m_decoder->isAtEnd();
+            atEndEmitted = true;
+            paused = true;
+            timeOut = -1;
+            return;
+        }
         timeOut = 10;
+        streamDecoder->wake();
         return;
     }
     qCDebug(qLcAudioDecoder) << "    got frame";
@@ -189,17 +213,18 @@ void SteppingAudioRenderer::loop()
     if (!resampler)
         createResampler(frame.codec());
 
-    qint64 startTime = frame.pts();
-
-    int outSamples = frame.avFrame()->nb_samples;
+    const int outSamples = swr_get_out_samples(resampler, frame.avFrame()->nb_samples);
     QByteArray samples(m_format.bytesForFrames(outSamples), Qt::Uninitialized);
     const uint8_t **in = (const uint8_t **)frame.avFrame()->extended_data;
     uint8_t *out = (uint8_t *)samples.data();
     int out_samples = swr_convert(resampler, &out, outSamples,
                                   in, frame.avFrame()->nb_samples);
-    if (out_samples != outSamples)
-        samples.resize(m_format.bytesForFrames(outSamples));
+    samples.resize(m_format.bytesForFrames(out_samples));
 
+    const qint64 startTime = m_format.durationForFrames(samplesProcessed);
+    samplesProcessed += out_samples;
+
+    qCDebug(qLcAudioDecoder) << "    new frame" << startTime << "in_samples" << frame.avFrame()->nb_samples << out_samples << outSamples;
     QAudioBuffer buffer(samples, m_format, startTime);
     emit m_decoder->newAudioBuffer(buffer);
 
@@ -234,15 +259,6 @@ void QFFmpegAudioDecoder::setSource(const QUrl &fileName)
         return;
     m_url = fileName;
 
-    QByteArray url = fileName.toEncoded(QUrl::PreferLocalFile);
-    AVFormatContext *context = nullptr;
-    int ret = avformat_open_input(&context, url.constData(), nullptr, nullptr);
-    if (ret < 0) {
-        error(QMediaPlayer::AccessDeniedError, QMediaPlayer::tr("Could not open file"));
-        return;
-    }
-    //    decoder = new QFFmpeg::Decoder(this, context);
-
     emit sourceChanged();
 }
 
@@ -264,13 +280,31 @@ void QFFmpegAudioDecoder::setSourceDevice(QIODevice *device)
 void QFFmpegAudioDecoder::start()
 {
     qCDebug(qLcAudioDecoder) << "start";
-    if (decoder)
-        delete decoder;
-    decoder = new QFFmpeg::AudioDecoder();
+    delete decoder;
+    decoder = new QFFmpeg::AudioDecoder(this);
     decoder->setUrl(m_url);
-    decoder->setup(this, m_audioFormat);
+    if (error() != QAudioDecoder::NoError)
+        goto error;
+
+    decoder->setup(m_audioFormat);
+    if (error() != QAudioDecoder::NoError)
+        goto error;
     decoder->play();
+    if (error() != QAudioDecoder::NoError)
+        goto error;
     decoder->nextBuffer();
+    if (error() != QAudioDecoder::NoError)
+        goto error;
+
+    setIsDecoding(true);
+    return;
+
+  error:
+    durationChanged(-1);
+    positionChanged(-1);
+    delete decoder;
+    decoder = nullptr;
+
 }
 
 void QFFmpegAudioDecoder::stop()
@@ -279,9 +313,7 @@ void QFFmpegAudioDecoder::stop()
     if (decoder)
         decoder->stop();
 
-    m_position = 0;
-    emit positionChanged(0);
-    setIsDecoding(false);
+    done();
 }
 
 QAudioFormat QFFmpegAudioDecoder::audioFormat() const
@@ -295,7 +327,7 @@ void QFFmpegAudioDecoder::setAudioFormat(const QAudioFormat &format)
         return;
 
     m_audioFormat = format;
-    emit formatChanged(m_audioFormat);
+    formatChanged(m_audioFormat);
 }
 
 QAudioBuffer QFFmpegAudioDecoder::read()
@@ -304,33 +336,25 @@ QAudioBuffer QFFmpegAudioDecoder::read()
     qCDebug(qLcAudioDecoder) << "reading buffer" << b.startTime();
     m_audioBuffer = {};
     bufferAvailableChanged(false);
-    decoder->nextBuffer();
+    if (decoder)
+        decoder->nextBuffer();
     return b;
-}
-
-bool QFFmpegAudioDecoder::bufferAvailable() const
-{
-    return m_audioBuffer.isValid();
-}
-
-qint64 QFFmpegAudioDecoder::position() const
-{
-    return m_position;
-}
-
-qint64 QFFmpegAudioDecoder::duration() const
-{
-    return m_duration;
 }
 
 void QFFmpegAudioDecoder::newAudioBuffer(const QAudioBuffer &b)
 {
     qCDebug(qLcAudioDecoder) << "new audio buffer" << b.startTime();
     m_audioBuffer = b;
-    m_position = b.startTime() + b.duration();
-    emit positionChanged(m_position);
-    bufferAvailableChanged(true);
+    const qint64 pos = b.startTime();
+    positionChanged(pos/1000);
+    bufferAvailableChanged(b.isValid());
     bufferReady();
+}
+
+void QFFmpegAudioDecoder::done()
+{
+    qCDebug(qLcAudioDecoder) << ">>>>> DONE!";
+    finished();
 }
 
 QT_END_NAMESPACE

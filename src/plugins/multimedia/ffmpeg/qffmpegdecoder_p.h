@@ -63,6 +63,7 @@
 QT_BEGIN_NAMESPACE
 
 class QAudioSink;
+class QFFmpegAudioDecoder;
 
 namespace QFFmpeg
 {
@@ -184,6 +185,14 @@ class Decoder : public QObject
     Q_OBJECT
 public:
     Decoder();
+    Decoder(QFFmpegMediaPlayer *player)
+        : player(player)
+    {
+    }
+    Decoder(QFFmpegAudioDecoder *decoder)
+        : audioDecoder(decoder)
+    {
+    }
     ~Decoder();
 
     void setUrl(const QUrl &media);
@@ -207,8 +216,6 @@ public:
     void seek(qint64 pos);
     void setPlaybackRate(float rate);
 
-    void setMediaPlayer(QFFmpegMediaPlayer *p) { player = p; }
-
     void checkStreams();
 
     int activeTrack(QPlatformMediaPlayer::TrackType type);
@@ -220,11 +227,16 @@ public:
         return !(context->ctx_flags & AVFMTCTX_UNSEEKABLE);
     }
 
+    // threadsafe
+    void error(int errorCode, const QString &errorString);
+
 public Q_SLOTS:
+    void emitError(int error, const QString &errorString);
     void updateCurrentTime(qint64 time);
 
 public:
     QFFmpegMediaPlayer *player = nullptr;
+    QFFmpegAudioDecoder *audioDecoder = nullptr;
 
     bool paused = true;
 
