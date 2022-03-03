@@ -57,7 +57,7 @@ void QFFmpegVideoSink::setRhi(QRhi *rhi)
 
 void QFFmpegVideoSink::setVideoFrame(const QVideoFrame &frame)
 {
-    auto *buffer = static_cast<QFFmpegVideoBuffer *>(frame.videoBuffer());
+    auto *buffer = dynamic_cast<QFFmpegVideoBuffer *>(frame.videoBuffer());
     if (buffer)
         buffer->setTextureConverter(textureConverter);
 
