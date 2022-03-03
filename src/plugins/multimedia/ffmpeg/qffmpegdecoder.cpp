@@ -1094,7 +1094,8 @@ void Decoder::setPaused(bool b)
     clockController.setPaused(b);
     if (!b) {
         qDebug() << "start decoding!";
-        demuxer->startDecoding();
+        if (demuxer)
+            demuxer->startDecoding();
     }
 }
 
@@ -1196,7 +1197,6 @@ QPlatformMediaPlayer::TrackType trackType(AVMediaType mediaType)
 
 void Decoder::seek(qint64 pos)
 {
-    QMutexLocker locker(&mutex);
     qint64 currentTime = demuxer->seek(pos);
     clockController.syncTo(pos*1000);
     if (player)

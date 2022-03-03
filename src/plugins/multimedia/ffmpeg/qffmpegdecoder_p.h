@@ -226,9 +226,6 @@ public Q_SLOTS:
 public:
     QFFmpegMediaPlayer *player = nullptr;
 
-    QMutex mutex;
-    QWaitCondition condition;
-
     bool paused = true;
 
     Demuxer *demuxer = nullptr;
@@ -406,8 +403,8 @@ public:
         QMutexLocker locker(&mutex);
         paused = false;
         condition.wakeAll();
-        if (decoder)
-            decoder->condition.wakeAll();
+        if (streamDecoder)
+            streamDecoder->condition.wakeAll();
     }
     void singleStep() {
         QMutexLocker locker(&mutex);
