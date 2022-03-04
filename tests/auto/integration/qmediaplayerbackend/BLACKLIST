@@ -1,6 +1,3 @@
-# QTBUG-46368
-
-osx
 # Media player plugin not built at the moment on this platform
 opensuse-13.1 64bit
 
