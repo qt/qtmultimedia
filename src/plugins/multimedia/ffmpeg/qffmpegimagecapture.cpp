@@ -38,10 +38,12 @@
 ****************************************************************************/
 
 #include "qffmpegimagecapture_p.h"
+#include <private/qplatformmediaformatinfo_p.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformimagecapture_p.h>
 #include <qvideoframeformat.h>
 #include <private/qmediastoragelocation_p.h>
+#include <qimagewriter.h>
 
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
@@ -67,9 +69,30 @@ bool QFFmpegImageCapture::isReadyForCapture() const
     return m_session && !passImage && cameraActive;
 }
 
+static const char *extensionForFormat(QImageCapture::FileFormat format)
+{
+    const char *fmt = "jpg";
+    switch (format) {
+    case QImageCapture::UnspecifiedFormat:
+    case QImageCapture::JPEG:
+        fmt = "jpg";
+        break;
+    case QImageCapture::PNG:
+        fmt = "png";
+        break;
+    case QImageCapture::WebP:
+        fmt = "webp";
+        break;
+    case QImageCapture::Tiff:
+        fmt = "tiff";
+        break;
+    }
+    return fmt;
+}
+
 int QFFmpegImageCapture::capture(const QString &fileName)
 {
-    QString path = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
+    QString path = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String(extensionForFormat(m_settings.format())));
     return doCapture(path);
 }
 
@@ -92,7 +115,7 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
         qCDebug(qLcImageCapture) << "error 1";
         return -1;
     }
-    if (!m_session->camera()) {
+    if (!m_camera) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
@@ -119,8 +142,6 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
     pendingImages.enqueue({m_lastId, fileName, QMediaMetaData{}});
     // let one image pass the pipeline
     passImage = true;
-
-    // #### trigger actual frame capture
 
     emit readyForCaptureChanged(false);
     return m_lastId;
@@ -162,11 +183,89 @@ void QFFmpegImageCapture::cameraActiveChanged(bool active)
     emit readyForCaptureChanged(isReadyForCapture());
 }
 
+void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
+{
+    if (!passImage)
+        return;
+
+    passImage = false;
+    Q_ASSERT(!pendingImages.isEmpty());
+    auto pending = pendingImages.dequeue();
+
+    emit imageExposed(pending.id);
+    // ### Add metadata from the AVFrame
+    emit imageMetadataAvailable(pending.id, pending.metaData);
+    emit imageAvailable(pending.id, frame);
+    QImage image = frame.toImage();
+    if (m_settings.resolution().isValid() && m_settings.resolution() != image.size())
+        image = image.scaled(m_settings.resolution());
+
+    emit imageCaptured(pending.id, image);
+    if (!pending.filename.isEmpty()) {
+        const char *fmt = nullptr;
+        switch (m_settings.format()) {
+        case QImageCapture::UnspecifiedFormat:
+        case QImageCapture::JPEG:
+            fmt = "jpeg";
+            break;
+        case QImageCapture::PNG:
+            fmt = "png";
+            break;
+        case QImageCapture::WebP:
+            fmt = "webp";
+            break;
+        case QImageCapture::Tiff:
+            fmt = "tiff";
+            break;
+        }
+        int quality = -1;
+        switch (m_settings.quality()) {
+        case QImageCapture::VeryLowQuality:
+            quality = 25;
+            break;
+        case QImageCapture::LowQuality:
+            quality = 50;
+            break;
+        case QImageCapture::NormalQuality:
+            break;
+        case QImageCapture::HighQuality:
+            quality = 75;
+            break;
+        case QImageCapture::VeryHighQuality:
+            quality = 99;
+            break;
+        }
+
+        QImageWriter writer(pending.filename, fmt);
+        writer.setQuality(quality);
+
+        if (writer.write(image)) {
+            emit imageSaved(pending.id, pending.filename);
+        } else {
+            QImageCapture::Error err = QImageCapture::ResourceError;
+            if (writer.error() == QImageWriter::UnsupportedFormatError)
+                err = QImageCapture::FormatError;
+            emit error(pending.id, err, writer.errorString());
+        }
+    }
+    emit readyForCaptureChanged(isReadyForCapture());
+}
+
 void QFFmpegImageCapture::onCameraChanged()
 {
-    if (m_session->camera()) {
-        cameraActiveChanged(m_session->camera()->isActive());
-        connect(m_session->camera(), &QPlatformCamera::activeChanged, this, &QFFmpegImageCapture::cameraActiveChanged);
+    auto *camera = m_session->camera();
+    if (m_camera == camera)
+        return;
+
+    if (m_camera)
+        disconnect(m_camera);
+
+    m_camera = camera;
+
+    if (camera) {
+        cameraActiveChanged(camera->isActive());
+        connect(camera, &QPlatformCamera::activeChanged, this, &QFFmpegImageCapture::cameraActiveChanged);
+        connect(camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegImageCapture::newVideoFrame);
     } else {
         cameraActiveChanged(false);
     }
@@ -179,10 +278,23 @@ QImageEncoderSettings QFFmpegImageCapture::imageSettings() const
 
 void QFFmpegImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
-    if (m_settings != settings) {
-        m_settings = settings;
-        // ###
+    auto s = settings;
+    const auto supportedFormats = QPlatformMediaIntegration::instance()->formatInfo()->imageFormats;
+    if (supportedFormats.isEmpty()) {
+        emit error(-1, QImageCapture::FormatError, "No image formats supported, can't capture.");
+        return;
     }
+    if (s.format() == QImageCapture::UnspecifiedFormat) {
+        auto f = QImageCapture::JPEG;
+        if (!supportedFormats.contains(f))
+            f = supportedFormats.first();
+        s.setFormat(f);
+    } else if (!supportedFormats.contains(settings.format())) {
+        emit error(-1, QImageCapture::FormatError, "Image format not supported.");
+        return;
+    }
+
+    m_settings = settings;
 }
 
 QT_END_NAMESPACE

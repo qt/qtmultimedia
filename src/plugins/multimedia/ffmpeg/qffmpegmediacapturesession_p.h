@@ -57,6 +57,7 @@
 QT_BEGIN_NAMESPACE
 
 class QFFmpegMediaRecorder;
+class QFFmpegImageCapture;
 class QVideoFrame;
 
 class QFFmpegMediaCaptureSession : public QPlatformMediaCaptureSession
@@ -88,7 +89,7 @@ public Q_SLOTS:
 private:
     QPlatformCamera *m_camera = nullptr;
     QPlatformAudioInput *m_audioInput = nullptr;
-    QPlatformImageCapture *m_imageCapture = nullptr;
+    QFFmpegImageCapture *m_imageCapture = nullptr;
     QFFmpegMediaRecorder *m_mediaRecorder = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;
     QVideoSink *m_videoSink = nullptr;

@@ -78,6 +78,7 @@ public:
 
 public Q_SLOTS:
     void cameraActiveChanged(bool active);
+    void newVideoFrame(const QVideoFrame &frame);
     void onCameraChanged();
 
 private:
@@ -86,6 +87,7 @@ private:
     QFFmpegMediaCaptureSession *m_session = nullptr;
     int m_lastId = 0;
     QImageEncoderSettings m_settings;
+    QPlatformCamera *m_camera = nullptr;
 
     struct PendingImage {
         int id;

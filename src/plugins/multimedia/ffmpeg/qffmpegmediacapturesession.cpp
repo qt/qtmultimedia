@@ -41,6 +41,7 @@
 
 #include "private/qplatformaudioinput_p.h"
 #include "private/qplatformaudiooutput_p.h"
+#include "qffmpegimagecapture_p.h"
 #include "qffmpegmediarecorder_p.h"
 #include "private/qplatformcamera_p.h"
 #include "qvideosink.h"
@@ -95,7 +96,13 @@ void QFFmpegMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCap
     if (m_imageCapture == imageCapture)
         return;
 
-    // ####
+    if (m_imageCapture)
+        m_imageCapture->setCaptureSession(nullptr);
+
+    m_imageCapture = static_cast<QFFmpegImageCapture *>(imageCapture);
+
+    if (m_imageCapture)
+        m_imageCapture->setCaptureSession(this);
 
     emit imageCaptureChanged();
 }

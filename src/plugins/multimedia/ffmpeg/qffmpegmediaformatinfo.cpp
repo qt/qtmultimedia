@@ -40,6 +40,7 @@
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpeg_p.h"
 #include "qaudioformat.h"
+#include "qimagewriter.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -266,6 +267,22 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
     if (extraVideoDecoders.contains(QMediaFormat::VideoCodec::WMV)) {
         decoders[QMediaFormat::WMV].video.append(QMediaFormat::VideoCodec::WMV);
     }
+
+    // Add image formats we support. We currently simply use Qt's built-in image write
+    // to save images. That doesn't give us HDR support or support for larger bit depths,
+    // but most cameras can currently not generate those anyway.
+    const auto imgFormats = QImageWriter::supportedImageFormats();
+    for (const auto &f : imgFormats) {
+        if (f == "png")
+            imageFormats.append(QImageCapture::PNG);
+        else if (f == "jpeg")
+            imageFormats.append(QImageCapture::JPEG);
+        else if (f == "tiff")
+            imageFormats.append(QImageCapture::Tiff);
+        else if (f == "webp")
+            imageFormats.append(QImageCapture::WebP);
+    }
+
 }
 
 QFFmpegMediaFormatInfo::~QFFmpegMediaFormatInfo() = default;
