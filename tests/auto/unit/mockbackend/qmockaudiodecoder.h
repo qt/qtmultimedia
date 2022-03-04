@@ -129,7 +129,7 @@ public:
         if (mBuffers.length() > 0) {
             a = mBuffers.takeFirst();
             mPosition = a.startTime() / 1000;
-            emit positionChanged(mPosition);
+            positionChanged(mPosition);
 
             if (mBuffers.isEmpty())
                 emit bufferAvailableChanged(false);

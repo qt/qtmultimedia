@@ -171,6 +171,8 @@ public:
         return !(a == b);
     }
 
+    static Q_MULTIMEDIA_EXPORT ChannelConfig defaultChannelConfigForChannelCount(int channelCount);
+
 private:
     SampleFormat m_sampleFormat = SampleFormat::Unknown;
     short m_channelCount = 0;

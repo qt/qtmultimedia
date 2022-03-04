@@ -390,6 +390,50 @@ float QAudioFormat::normalizedSampleValue(const void *sample) const
 }
 
 /*!
+    Returns a default channel configuration for \a channelCount.
+
+    Default configurations are defined for up to 8 channels, and correspond to
+    standard Mono, Stereo and Surround configurations. For higher channel counts,
+    this simply uses the first \a channelCount audio channels defined in
+    \l QAudioFormat::AudioChannelPosition.
+*/
+QAudioFormat::ChannelConfig QAudioFormat::defaultChannelConfigForChannelCount(int channelCount)
+{
+    QAudioFormat::ChannelConfig config;
+    switch (channelCount) {
+    case 1:
+        config = QAudioFormat::ChannelConfigMono;
+        break;
+    case 2:
+        config = QAudioFormat::ChannelConfigStereo;
+        break;
+    case 3:
+        config = QAudioFormat::ChannelConfig2Dot1;
+        break;
+    case 4:
+        config = QAudioFormat::channelConfig(QAudioFormat::FrontLeft, QAudioFormat::FrontRight,
+                                             QAudioFormat::BackLeft, QAudioFormat::BackRight);
+        break;
+    case 5:
+        config = QAudioFormat::ChannelConfigSurround5Dot0;
+        break;
+    case 6:
+        config = QAudioFormat::ChannelConfigSurround5Dot1;
+        break;
+    case 7:
+        config = QAudioFormat::ChannelConfigSurround7Dot0;
+        break;
+    case 8:
+        config = QAudioFormat::ChannelConfigSurround7Dot1;
+        break;
+    default:
+        // give up, simply use the first n channels
+        config = QAudioFormat::ChannelConfig((1 << (channelCount + 1)) - 1);
+    }
+    return config;
+}
+
+/*!
     \enum QAudioFormat::SampleFormat
 
     Qt will always expect and use samples in the endianness of the host platform.

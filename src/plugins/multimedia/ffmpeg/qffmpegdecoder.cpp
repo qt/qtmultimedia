@@ -775,12 +775,17 @@ void AudioRenderer::updateOutput(const Codec *codec)
         audioStream->codecpar->channels == 2 &&
         playbackRate() == 1.)
         return;
+
+    auto channelLayout = audioStream->codecpar->channel_layout;
+    if (!channelLayout)
+        channelLayout = QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(audioStream->codecpar->channels));
+
     qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat << audioStream->codecpar->channels;
     resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
                                    AV_CH_LAYOUT_STEREO,  // out_ch_layout
                                    requiredFormat,    // out_sample_fmt
                                    outputSamples(audioStream->codecpar->sample_rate),                // out_sample_rate
-                                   audioStream->codecpar->channel_layout, // in_ch_layout
+                                   channelLayout, // in_ch_layout
                                    AVSampleFormat(audioStream->codecpar->format),   // in_sample_fmt
                                    audioStream->codecpar->sample_rate,                // in_sample_rate
                                    0,                    // log_offset

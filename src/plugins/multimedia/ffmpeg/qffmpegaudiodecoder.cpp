@@ -112,42 +112,6 @@ SteppingAudioRenderer::SteppingAudioRenderer(AudioDecoder *decoder, const QAudio
 {
 }
 
-static QAudioFormat::ChannelConfig channelConfigForChannels(int channelCount)
-{
-    QAudioFormat::ChannelConfig config;
-    switch (channelCount) {
-    case 1:
-        config = QAudioFormat::ChannelConfigMono;
-        break;
-    case 2:
-        config = QAudioFormat::ChannelConfigStereo;
-        break;
-    case 3:
-        config = QAudioFormat::ChannelConfig2Dot1;
-        break;
-    case 4:
-        config = QAudioFormat::channelConfig(QAudioFormat::FrontLeft, QAudioFormat::FrontRight,
-                                             QAudioFormat::BackLeft, QAudioFormat::BackRight);
-        break;
-    case 5:
-        config = QAudioFormat::ChannelConfigSurround5Dot0;
-        break;
-    case 6:
-        config = QAudioFormat::ChannelConfigSurround5Dot1;
-        break;
-    case 7:
-        config = QAudioFormat::ChannelConfigSurround7Dot0;
-        break;
-    case 8:
-        config = QAudioFormat::ChannelConfigSurround7Dot1;
-        break;
-    default:
-        // give up, simply use the first n channels
-        config = QAudioFormat::ChannelConfig((1 << (channelCount + 1)) - 1);
-    }
-    return config;
-}
-
 void SteppingAudioRenderer::createResampler(const Codec *codec)
 {
     qCDebug(qLcAudioDecoder) << "createResampler";
@@ -164,11 +128,11 @@ void SteppingAudioRenderer::createResampler(const Codec *codec)
 
     QAudioFormat::ChannelConfig config = m_format.channelConfig();
     if (config == QAudioFormat::ChannelConfigUnknown)
-        config = channelConfigForChannels(m_format.channelCount());
+        config = QAudioFormat::defaultChannelConfigForChannelCount(m_format.channelCount());
 
     auto inConfig = codecpar->channel_layout;
     if (inConfig == 0)
-        inConfig = QFFmpegMediaFormatInfo::avChannelLayout(channelConfigForChannels(codecpar->channels));
+        inConfig = QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->channels));
 
     AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(m_format.sampleFormat());
     qCDebug(qLcAudioDecoder) << "init resampler" << m_format.sampleRate() << config << requiredFormat << codecpar->sample_rate;
