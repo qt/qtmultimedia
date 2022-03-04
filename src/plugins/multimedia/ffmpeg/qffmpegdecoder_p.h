@@ -64,6 +64,7 @@ QT_BEGIN_NAMESPACE
 
 class QAudioSink;
 class QFFmpegAudioDecoder;
+class QFFmpegMediaPlayer;
 
 namespace QFFmpeg
 {
@@ -216,15 +217,14 @@ public:
     void seek(qint64 pos);
     void setPlaybackRate(float rate);
 
-    void checkStreams();
+    void checkStreams(AVFormatContext *context);
 
     int activeTrack(QPlatformMediaPlayer::TrackType type);
     void setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
     bool isSeekable() const
     {
-        Q_ASSERT(context);
-        return !(context->ctx_flags & AVFMTCTX_UNSEEKABLE);
+        return m_isSeekable;
     }
 
     // threadsafe
@@ -235,14 +235,20 @@ public Q_SLOTS:
     void updateCurrentTime(qint64 time);
 
 public:
+
+    // Accessed from multiple threads, but API is threadsafe
+    ClockController clockController;
+
+protected:
+    friend QFFmpegMediaPlayer;
+
     QFFmpegMediaPlayer *player = nullptr;
     QFFmpegAudioDecoder *audioDecoder = nullptr;
 
     bool paused = true;
+    bool m_isSeekable = false;
 
     Demuxer *demuxer = nullptr;
-
-    AVFormatContext *context = nullptr;
     int m_currentAVStreamIndex[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
 
     QVideoSink *videoSink = nullptr;
@@ -251,7 +257,6 @@ public:
     QPlatformAudioOutput *audioOutput = nullptr;
     Renderer *audioRenderer = nullptr;
 
-    ClockController clockController;
     bool playing = false;
 
     struct StreamInfo {
@@ -270,7 +275,7 @@ class Demuxer : public Thread
 {
     Q_OBJECT
 public:
-    Demuxer(Decoder *decoder);
+    Demuxer(Decoder *decoder, AVFormatContext *context);
 
     StreamDecoder *addStream(int streamIndex);
     void removeStream(int streamIndex);
@@ -302,6 +307,7 @@ private:
     void loop() override;
 
     Decoder *decoder;
+    AVFormatContext *context = nullptr;
     QList<StreamDecoder *> streamDecoders;
 
     QAtomicInteger<bool> m_isStopped = true;
@@ -314,6 +320,7 @@ class StreamDecoder : public Thread
     Q_OBJECT
 protected:
     Decoder *decoder = nullptr;
+    Demuxer *demuxer = nullptr;
     Renderer *m_renderer = nullptr;
 
     struct PacketQueue {
@@ -332,7 +339,9 @@ protected:
     FrameQueue frameQueue;
 
 public:
-    StreamDecoder(Decoder *decoder, const Codec &codec);
+    StreamDecoder(Decoder *decoder, Demuxer *demuxer, const Codec &codec);
+
+    void clearDemuxer();
 
     void addPacket(AVPacket *packet);
 
@@ -367,6 +376,8 @@ public:
 
     void setRenderer(Renderer *r);
     Renderer *renderer() const { return m_renderer; }
+
+    void kill() override;
 
 private:
     Packet takePacket();
@@ -448,13 +459,12 @@ public:
     ClockedRenderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type)
         : Renderer(decoder, type)
     {
-        decoder->clockController.addClock(this);
     }
     ~ClockedRenderer()
     {
-        decoder->clockController.addClock(this);
     }
     void setPaused(bool paused) override;
+    void init() override;
     void kill() override;
 };
 

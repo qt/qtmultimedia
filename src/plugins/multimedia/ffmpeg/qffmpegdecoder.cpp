@@ -135,21 +135,23 @@ Codec::Codec(AVFormatContext *format, int streamIndex)
 }
 
 
-Demuxer::Demuxer(Decoder *decoder)
+Demuxer::Demuxer(Decoder *decoder, AVFormatContext *context)
     : Thread()
     , decoder(decoder)
+    , context(context)
 {
     QString objectName = QLatin1String("Demuxer");
     setObjectName(objectName);
 
-    streamDecoders.resize(decoder->context->nb_streams);
+    streamDecoders.resize(context->nb_streams);
 }
 
 StreamDecoder *Demuxer::addStream(int streamIndex)
 {
     if (streamIndex < 0)
         return nullptr;
-    Codec codec(decoder->context, streamIndex);
+    QMutexLocker locker(&mutex);
+    Codec codec(context, streamIndex);
     if (!codec.isValid()) {
         decoder->error(QMediaPlayer::FormatError, "Invalid media file");
         return nullptr;
@@ -158,8 +160,7 @@ StreamDecoder *Demuxer::addStream(int streamIndex)
     Q_ASSERT(codec.context()->codec_type == AVMEDIA_TYPE_AUDIO ||
              codec.context()->codec_type == AVMEDIA_TYPE_VIDEO ||
              codec.context()->codec_type == AVMEDIA_TYPE_SUBTITLE);
-    auto *stream = new StreamDecoder(decoder, codec);
-    QMutexLocker locker(&mutex);
+    auto *stream = new StreamDecoder(decoder, this, codec);
     Q_ASSERT(!streamDecoders.at(streamIndex));
     streamDecoders[streamIndex] = stream;
     stream->start();
@@ -172,7 +173,7 @@ void Demuxer::removeStream(int streamIndex)
     if (streamIndex < 0)
         return;
     QMutexLocker locker(&mutex);
-    Q_ASSERT(streamIndex < (int)decoder->context->nb_streams);
+    Q_ASSERT(streamIndex < (int)context->nb_streams);
     Q_ASSERT(streamDecoders.at(streamIndex) != nullptr);
     streamDecoders[streamIndex]->kill();
     streamDecoders[streamIndex] = nullptr;
@@ -201,7 +202,7 @@ int Demuxer::seek(qint64 pos)
             d->mutex.unlock();
     }
     qint64 seekPos = pos*AV_TIME_BASE/1000;
-    av_seek_frame(decoder->context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
+    av_seek_frame(context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
     last_pts = -1;
     while (last_pts < 0)
         loop();
@@ -213,11 +214,11 @@ void Demuxer::updateEnabledStreams()
 {
     if (isStopped())
         return;
-    for (uint i = 0; i < decoder->context->nb_streams; ++i) {
+    for (uint i = 0; i < context->nb_streams; ++i) {
         AVDiscard discard = AVDISCARD_DEFAULT;
         if (!streamDecoders.at(i))
             discard = AVDISCARD_ALL;
-        decoder->context->streams[i]->discard = discard;
+        context->streams[i]->discard = discard;
     }
 }
 
@@ -241,6 +242,13 @@ void Demuxer::init()
 
 void Demuxer::cleanup()
 {
+    qCDebug(qLcDemuxer) << "Demuxer::cleanup";
+    for (auto *streamDecoder : qAsConst(streamDecoders)) {
+        if (!streamDecoder)
+            continue;
+        streamDecoder->clearDemuxer();
+    }
+    avformat_close_input(&context);
     Thread::cleanup();
 }
 
@@ -275,7 +283,7 @@ void Demuxer::loop()
     }
 
     AVPacket *packet = av_packet_alloc();
-    if (av_read_frame(decoder->context, packet) < 0) {
+    if (av_read_frame(context, packet) < 0) {
         eos = true;
         sendFinalPacketToStreams();
         emit atEnd();
@@ -283,22 +291,23 @@ void Demuxer::loop()
     }
 
     if (last_pts < 0 && packet->pts != AV_NOPTS_VALUE) {
-        auto *stream = decoder->context->streams[packet->stream_index];
+        auto *stream = context->streams[packet->stream_index];
         last_pts = timeStamp(packet->pts, stream->time_base);
     }
 
-    auto *decoder = streamDecoders.at(packet->stream_index);
-    if (!decoder) {
+    auto *streamDecoder = streamDecoders.at(packet->stream_index);
+    if (!streamDecoder) {
         av_packet_free(&packet);
         return;
     }
-    decoder->addPacket(packet);
+    streamDecoder->addPacket(packet);
 }
 
 
-StreamDecoder::StreamDecoder(Decoder *decoder, const Codec &codec)
+StreamDecoder::StreamDecoder(Decoder *decoder, Demuxer *demuxer, const Codec &codec)
     : Thread()
     , decoder(decoder)
+    , demuxer(demuxer)
     , codec(codec)
 {
     Q_ASSERT(codec.context()->codec_type == AVMEDIA_TYPE_AUDIO ||
@@ -323,6 +332,13 @@ StreamDecoder::StreamDecoder(Decoder *decoder, const Codec &codec)
     }
     setObjectName(objectName);
 }
+
+void StreamDecoder::clearDemuxer()
+{
+    QMutexLocker locker(&mutex);
+    demuxer = nullptr;
+}
+
 
 void StreamDecoder::addPacket(AVPacket *packet)
 {
@@ -366,11 +382,20 @@ void StreamDecoder::setRenderer(Renderer *r)
         m_renderer->wake();
 }
 
+void StreamDecoder::kill()
+{
+    QMutexLocker locker(&mutex);
+    if (m_renderer)
+        m_renderer->setStream(nullptr);
+    decoder = nullptr;
+}
+
 Packet StreamDecoder::takePacket()
 {
     QMutexLocker locker(&packetQueue.mutex);
     if (packetQueue.queue.isEmpty()) {
-        decoder->demuxer->wake();
+        if (demuxer)
+            demuxer->wake();
         return {};
     }
     auto packet = packetQueue.queue.dequeue();
@@ -382,7 +407,8 @@ Packet StreamDecoder::takePacket()
 //                 << "pts" << codec.toMs(packet.avPacket()->pts)
 //                 << "duration" << codec.toMs(packet.avPacket()->duration)
 //                        << "ts" << decoder->clockController.currentTime();
-    decoder->demuxer->wake();
+    if (demuxer)
+        demuxer->wake();
     return packet;
 }
 
@@ -422,6 +448,8 @@ bool StreamDecoder::shouldWait() const
 
 void StreamDecoder::loop()
 {
+    if (!decoder)
+        return;
     if (codec.context()->codec->type == AVMEDIA_TYPE_SUBTITLE)
         decodeSubtitle();
     else
@@ -573,6 +601,8 @@ void Renderer::kill()
     QMutexLocker locker(&mutex);
     if (streamDecoder)
         streamDecoder->setRenderer(nullptr);
+    decoder = nullptr;
+    streamDecoder = nullptr;
     Thread::kill();
 }
 
@@ -595,8 +625,16 @@ void ClockedRenderer::setPaused(bool paused)
         unPause();
 }
 
+void ClockedRenderer::init()
+{
+    Q_ASSERT(decoder);
+    decoder->clockController.addClock(this);
+}
+
+
 void ClockedRenderer::kill()
 {
+    Q_ASSERT(decoder);
     decoder->clockController.removeClock(this);
     Renderer::kill();
 }
@@ -639,7 +677,7 @@ void VideoRenderer::init()
 
 void VideoRenderer::loop()
 {
-    if (!streamDecoder) {
+    if (!streamDecoder || !decoder) {
         timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
         return;
     }
@@ -831,7 +869,7 @@ void AudioRenderer::cleanup()
 
 void AudioRenderer::loop()
 {
-    if (!streamDecoder) {
+    if (!streamDecoder || !decoder) {
         timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
         return;
     }
@@ -933,19 +971,25 @@ Decoder::Decoder()
 Decoder::~Decoder()
 {
     pause();
-    if (videoRenderer)
-        videoRenderer->kill();
-    if (audioRenderer)
-        audioRenderer->kill();
-    if (demuxer)
-        demuxer->kill();
-    avformat_close_input(&context);
+    auto *vr = videoRenderer;
+    auto *ar = audioRenderer;
+    auto *d = demuxer;
+    videoRenderer = nullptr;
+    audioRenderer = nullptr;
+    demuxer = nullptr;
+    if (vr)
+        vr->kill();
+    if (ar)
+        ar->kill();
+    if (d)
+        d->kill();
 }
 
 void Decoder::setUrl(const QUrl &media)
 {
     QByteArray url = media.toEncoded(QUrl::PreferLocalFile);
 
+    AVFormatContext *context = nullptr;
     int ret = avformat_open_input(&context, url.constData(), nullptr, nullptr);
     if (ret < 0) {
         auto code = QMediaPlayer::ResourceError;
@@ -972,9 +1016,11 @@ void Decoder::setUrl(const QUrl &media)
     m_metaData.insert(QMediaMetaData::FileFormat,
                       QVariant::fromValue(QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(context->iformat)));
 
-    checkStreams();
+    checkStreams(context);
 
-    demuxer = new Demuxer(this);
+    m_isSeekable = !(context->ctx_flags & AVFMTCTX_UNSEEKABLE);
+
+    demuxer = new Demuxer(this, context);
     demuxer->start();
 
     qCDebug(qLcDecoder) << ">>>>>> index:" << metaObject()->indexOfSlot("updateCurrentTime(qint64)");
@@ -1001,7 +1047,7 @@ static void insertAudioData(QMediaMetaData &metaData, AVStream *stream)
                     QVariant::fromValue(QFFmpegMediaFormatInfo::audioCodecForAVCodecId(codecPar->codec_id)));
 };
 
-void Decoder::checkStreams()
+void Decoder::checkStreams(AVFormatContext *context)
 {
     qint64 duration = 0;
     AVStream *firstAudioStream = nullptr;
@@ -1134,7 +1180,8 @@ void Decoder::stop()
 {
     qCDebug(qLcDecoder) << "Decoder::stop";
     pause();
-    demuxer->stopDecoding();
+    if (demuxer)
+        demuxer->stopDecoding();
     seek(0);
     if (videoSink)
         videoSink->setVideoFrame({});
@@ -1252,6 +1299,8 @@ QPlatformMediaPlayer::TrackType trackType(AVMediaType mediaType)
 
 void Decoder::seek(qint64 pos)
 {
+    if (!demuxer)
+        return;
     qint64 currentTime = demuxer->seek(pos);
     clockController.syncTo(pos*1000);
     if (player)

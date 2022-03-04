@@ -45,6 +45,7 @@ QT_BEGIN_NAMESPACE
 
 QFFmpeg::Clock::~Clock()
 {
+    QMutexLocker l(&m_clockMutex);
     if (controller)
         controller->removeClock(this);
 }
@@ -124,6 +125,7 @@ QFFmpeg::Clock::Type QFFmpeg::Clock::type() const
 
 qint64 QFFmpeg::ClockController::timeUpdated(Clock *clock, qint64 time)
 {
+    QMutexLocker l(&m_mutex);
     if (clock == m_master) {
         // Avoid posting too many updates to the notifyObject, or we can overload
         // the event queue with too many notifications
@@ -149,12 +151,14 @@ qint64 QFFmpeg::ClockController::timeUpdated(Clock *clock, qint64 time)
 
 QFFmpeg::ClockController::~ClockController()
 {
+    QMutexLocker l(&m_mutex);
     for (auto *p : qAsConst(m_clocks))
         p->setController(nullptr);
 }
 
 void QFFmpeg::ClockController::addClock(Clock *clock)
 {
+    QMutexLocker l(&m_mutex);
     Q_ASSERT(clock != nullptr);
 
     if (m_clocks.contains(clock))
@@ -183,6 +187,7 @@ void QFFmpeg::ClockController::addClock(Clock *clock)
 
 void QFFmpeg::ClockController::removeClock(Clock *clock)
 {
+    QMutexLocker l(&m_mutex);
     m_clocks.removeAll(clock);
     clock->setController(nullptr);
     if (m_master == clock) {
@@ -202,6 +207,7 @@ void QFFmpeg::ClockController::removeClock(Clock *clock)
 
 qint64 QFFmpeg::ClockController::skew() const
 {
+    QMutexLocker l(&m_mutex);
 //    qCDebug(qLcClock) << "skew:";
     qint64 min = std::numeric_limits<qint64>::max();
     qint64 max = std::numeric_limits<qint64>::min();
@@ -216,6 +222,7 @@ qint64 QFFmpeg::ClockController::skew() const
 
 qint64 QFFmpeg::ClockController::currentTime() const
 {
+    QMutexLocker l(&m_mutex);
     if (!m_master)
         return 0;
     return m_master->currentTime();
@@ -223,12 +230,14 @@ qint64 QFFmpeg::ClockController::currentTime() const
 
 void QFFmpeg::ClockController::syncTo(qint64 usecs)
 {
+    QMutexLocker l(&m_mutex);
     for (auto *p : qAsConst(m_clocks))
         p->syncTo(usecs);
 }
 
 void QFFmpeg::ClockController::setPlaybackRate(float s)
 {
+    QMutexLocker l(&m_mutex);
     m_playbackRate = s;
     for (auto *p : qAsConst(m_clocks))
         p->setPlaybackRate(s);
@@ -236,6 +245,7 @@ void QFFmpeg::ClockController::setPlaybackRate(float s)
 
 void QFFmpeg::ClockController::setPaused(bool paused)
 {
+    QMutexLocker l(&m_mutex);
     if (m_isPaused == paused)
         return;
     m_isPaused = paused;

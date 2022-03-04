@@ -141,6 +141,7 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     metaDataChanged();
     seekableChanged(decoder->isSeekable());
+    mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
 
 void QFFmpegMediaPlayer::play()
@@ -149,6 +150,7 @@ void QFFmpegMediaPlayer::play()
         return;
     decoder->play();
     stateChanged(QMediaPlayer::PlayingState);
+    mediaStatusChanged(QMediaPlayer::BufferedMedia);
 }
 
 void QFFmpegMediaPlayer::pause()
@@ -165,6 +167,7 @@ void QFFmpegMediaPlayer::stop()
         return;
     decoder->stop();
     stateChanged(QMediaPlayer::StoppedState);
+    mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
 
 void QFFmpegMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)

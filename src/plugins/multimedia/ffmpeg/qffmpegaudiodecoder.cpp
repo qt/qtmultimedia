@@ -150,7 +150,7 @@ void SteppingAudioRenderer::createResampler(const Codec *codec)
 
 void SteppingAudioRenderer::loop()
 {
-    if (!streamDecoder) {
+    if (!streamDecoder || !decoder) {
         qCDebug(qLcAudioDecoder) << "no stream";
         timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
         return;

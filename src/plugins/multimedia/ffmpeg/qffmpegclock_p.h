@@ -106,6 +106,7 @@ private:
     friend class ClockController;
     void setController(ClockController *c)
     {
+        QMutexLocker l(&m_clockMutex);
         controller = c;
     }
     void setIsMaster(bool b)
@@ -118,6 +119,7 @@ private:
 
 class ClockController
 {
+    mutable QMutex m_mutex;
     QList<Clock *> m_clocks;
     Clock *m_master = nullptr;
     float m_playbackRate = 1.;
