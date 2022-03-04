@@ -184,7 +184,7 @@ endmacro()
             INTERFACE_INCLUDE_DIRECTORIES ${${_component}_INCLUDE_DIRS}
             INTERFACE_LINK_LIBRARIES "${${_component}_LIBRARIES}"
             INTERFACE_LINK_DIRECTORIES "${${_component}_LIBRARY_DIRS}"
-            IMPORTED_LINK_INTERFACE_MULTIPLICITY 3)
+        )
       endif()
     else()
       # message(STATUS "Required component ${_component} missing.")
