@@ -40,6 +40,7 @@
 # ::
 #
 #   <component>_FOUND        - System has <component>
+#   FFMPEG_<component>_FOUND - System has <component> (as checked by FHSPA)
 #   <component>_INCLUDE_DIRS - Include directory necessary for using the <component> headers
 #   <component>_LIBRARIES    - Link these to use <component>
 #   <component>_LIBRARY_DIRS - Link directories
@@ -77,6 +78,7 @@ macro(set_component_found _component )
   if (${_component}_LIBRARIES AND ${_component}_INCLUDE_DIRS)
     # message(STATUS "  - ${_component} found.")
     set(${_component}_FOUND TRUE)
+    set(${CMAKE_FIND_PACKAGE_NAME}_${_component}_FOUND TRUE)
   else ()
     # message(STATUS "  - ${_component} not found.")
   endif ()
@@ -139,7 +141,6 @@ macro(find_component _component _pkgconfig _library _header)
 #  message(STATUS "L4: ${${_component}_LIBRARY_DIRS}")
 
   set_component_found(${_component})
-
   mark_as_advanced(
     ${_component}_LIBRARY
     ${_component}_INCLUDE_DIRS
@@ -150,6 +151,12 @@ macro(find_component _component _pkgconfig _library _header)
 
 endmacro()
 
+# Clear the previously cached variables, because they are recomputed every time
+# the Find script is included.
+set(FFMPEG_INCLUDE_DIRS "")
+set(FFMPEG_LIBRARIES "")
+set(FFMPEG_DEFINITIONS "")
+set(FFMPEG_LIBRARY_DIRS "")
 
 # Check for cached results. If there are skip the costly part.
 #if (NOT FFMPEG_LIBRARIES)
@@ -167,7 +174,7 @@ endmacro()
   # Check if the required components were found and add their stuff to the FFMPEG_* vars.
   foreach (_component ${FFmpeg_FIND_COMPONENTS})
     if (${_component}_FOUND)
-      message(STATUS "Libs: ${${_component}_LIBRARIES} | ${PC_${_component}_LIBRARIES}")
+      # message(STATUS "Libs: ${${_component}_LIBRARIES} | ${PC_${_component}_LIBRARIES}")
 
       # message(STATUS "Required component ${_component} present.")
       set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    ${${_component}_LIBRARY} ${${_component}_LIBRARIES})
@@ -231,5 +238,7 @@ foreach (_component ${FFmpeg_FIND_COMPONENTS})
 endforeach ()
 
 # Give a nice error message if some of the required vars are missing.
-find_package_handle_standard_args(FFmpeg DEFAULT_MSG ${_FFmpeg_REQUIRED_VARS})
-
+find_package_handle_standard_args(FFmpeg
+    REQUIRED_VARS ${_FFmpeg_REQUIRED_VARS}
+    HANDLE_COMPONENTS
+)
