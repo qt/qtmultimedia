@@ -160,7 +160,7 @@ StreamDecoder *Demuxer::addStream(int streamIndex)
     Q_ASSERT(codec.context()->codec_type == AVMEDIA_TYPE_AUDIO ||
              codec.context()->codec_type == AVMEDIA_TYPE_VIDEO ||
              codec.context()->codec_type == AVMEDIA_TYPE_SUBTITLE);
-    auto *stream = new StreamDecoder(decoder, this, codec);
+    auto *stream = new StreamDecoder(this, codec);
     Q_ASSERT(!streamDecoders.at(streamIndex));
     streamDecoders[streamIndex] = stream;
     stream->start();
@@ -304,9 +304,8 @@ void Demuxer::loop()
 }
 
 
-StreamDecoder::StreamDecoder(Decoder *decoder, Demuxer *demuxer, const Codec &codec)
+StreamDecoder::StreamDecoder(Demuxer *demuxer, const Codec &codec)
     : Thread()
-    , decoder(decoder)
     , demuxer(demuxer)
     , codec(codec)
 {
@@ -388,7 +387,6 @@ void StreamDecoder::kill()
     QMutexLocker locker(&mutex);
     if (m_renderer)
         m_renderer->setStream(nullptr);
-    decoder = nullptr;
 }
 
 Packet StreamDecoder::takePacket()
@@ -451,8 +449,6 @@ bool StreamDecoder::shouldWait() const
 
 void StreamDecoder::loop()
 {
-    if (!decoder)
-        return;
     if (codec.context()->codec->type == AVMEDIA_TYPE_SUBTITLE)
         decodeSubtitle();
     else

@@ -319,7 +319,6 @@ class StreamDecoder : public Thread
 {
     Q_OBJECT
 protected:
-    Decoder *decoder = nullptr;
     Demuxer *demuxer = nullptr;
     Renderer *m_renderer = nullptr;
 
@@ -339,7 +338,7 @@ protected:
     FrameQueue frameQueue;
 
 public:
-    StreamDecoder(Decoder *decoder, Demuxer *demuxer, const Codec &codec);
+    StreamDecoder(Demuxer *demuxer, const Codec &codec);
 
     void clearDemuxer();
 
