@@ -764,28 +764,19 @@ void AudioRenderer::updateOutput(const Codec *codec)
     format.setChannelCount(2); // #### FIXME
     // ### add channel layout
 
-    if (playbackRate() < 0.5 || playbackRate() > 2) {
+    if (playbackRate() < 0.5 || playbackRate() > 2)
         audioMuted = true;
-        latencyUSecs = 0;
-        return;
-    }
-    audioMuted = false;
 
-    qCDebug(qLcAudioRenderer) << "creating new audio sink with format" << format;
     audioSink = new QAudioSink(output->device(), format);
     audioSink->setBufferSize(format.bytesForDuration(100000));
     audioDevice = audioSink->start();
     latencyUSecs = format.durationForBytes(audioSink->bufferSize()); // ### ideally get full latency
     qCDebug(qLcAudioRenderer) << "   -> have an audio sink" << audioDevice;
 
-    // init resampling if needed
-    AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
-    if (isMaster() &&
-        requiredFormat == audioStream->codecpar->format &&
-        audioStream->codecpar->channels == 2 &&
-        playbackRate() == 1.)
-        return;
+    // init resampler. It's ok to always do this, as the resampler will be a no-op if
+    // formats agree.
 
+    AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
     auto channelLayout = audioStream->codecpar->channel_layout;
     if (!channelLayout)
         channelLayout = QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(audioStream->codecpar->channels));
@@ -826,7 +817,6 @@ void AudioRenderer::freeOutput()
     audioBaseTime = currentTime();
     processedBase = 0;
     processedUSecs = writtenUSecs = 0;
-    timeUpdated(audioBaseTime);
 }
 
 void AudioRenderer::init()
@@ -868,42 +858,32 @@ void AudioRenderer::loop()
             return;
         }
 
-        if (!audioSink && !audioMuted)
+        if (!audioSink)
             updateOutput(frame.codec());
 
         qint64 startTime = frame.pts();
         if (startTime*1000 < seekTime())
             return;
 
-        int size = frame.avFrame()->linesize[0];
-        if (!audioMuted) {
-            if (!paused) {
-                if (!resampler) {
-                    bytesWritten = audioDevice->write((char *)frame.avFrame()->data[0], size);
-                    if (bytesWritten < size) {
-                        bufferedData = QByteArray((char *)frame.avFrame()->data[0] + bytesWritten, size - bytesWritten);
-                        bufferWritten = 0;
-                    }
-                } else {
-                    int outSamples = outputSamples(frame.avFrame()->nb_samples);
-                    QByteArray samples(format.bytesForFrames(outSamples), Qt::Uninitialized);
-                    const uint8_t **in = (const uint8_t **)frame.avFrame()->extended_data;
-                    uint8_t *out = (uint8_t *)samples.data();
-                    int out_samples = swr_convert(resampler, &out, outSamples,
-                                                  in, frame.avFrame()->nb_samples);
-                    if (out_samples != outSamples)
-                        samples.resize(format.bytesForFrames(outSamples));
-                    bytesWritten = audioDevice->write(samples.data(), samples.size());
-                    if (bytesWritten < samples.size()) {
-                        bufferedData = samples;
-                        bufferWritten = bytesWritten;
-                    }
-                }
-
-                processedUSecs = audioSink->processedUSecs();
+        if (!paused) {
+            int outSamples = outputSamples(frame.avFrame()->nb_samples);
+            QByteArray samples(format.bytesForFrames(outSamples), Qt::Uninitialized);
+            const uint8_t **in = (const uint8_t **)frame.avFrame()->extended_data;
+            uint8_t *out = (uint8_t *)samples.data();
+            int out_samples = swr_convert(resampler, &out, outSamples,
+                                          in, frame.avFrame()->nb_samples);
+            if (out_samples != outSamples)
+                samples.resize(format.bytesForFrames(outSamples));
+            if (audioMuted)
+                // This is somewhat inefficient, but it'll work
+                samples.fill(0);
+            bytesWritten = audioDevice->write(samples.data(), samples.size());
+            if (bytesWritten < samples.size()) {
+                bufferedData = samples;
+                bufferWritten = bytesWritten;
             }
-        } else {
-            bytesWritten = size;
+
+            processedUSecs = audioSink->processedUSecs();
         }
     }
 
@@ -919,10 +899,7 @@ void AudioRenderer::loop()
 //    qDebug() << "Audio: processed" << processedUSecs << "written" << writtenUSecs
 //             << "delta" << (writtenUSecs - processedUSecs) << "timeOut" << timeOut;
 //    qDebug() << "    updating time to" << (currentTimeNoLock()/1000);
-    if (audioMuted)
-        timeUpdated(currentTime());
-    else
-        timeUpdated(audioBaseTime + (processedUSecs - processedBase)*playbackRate());
+    timeUpdated(audioBaseTime + (processedUSecs - processedBase)*playbackRate());
 }
 
 void AudioRenderer::streamChanged()
