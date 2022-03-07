@@ -30,16 +30,31 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Svg)
 
 set(PROJECT_SOURCES
         main.cpp
-        qml.qrc
 )
 
 qt_add_executable(mediaplayer
     ${PROJECT_SOURCES}
 )
 
+set(resource_files
+    "main.qml"
+    "PlaybackControl.qml"
+    "MetadataInfo.qml"
+    "AudioControl.qml"
+    "PlaybackSeekControl.qml"
+    "PlaybackRateControl.qml"
+    "PlayerMenuBar.qml"
+    "TracksInfo.qml"
+    "Mute_Icon.svg"
+    "Speaker_Icon.svg"
+)
+
 qt6_add_resources(mediaplayer "mediaplayer"
-    PREFIX "/"
-    FILES "Mute_Icon.svg" "Speaker_Icon.svg")
+    PREFIX
+        "/"
+    FILES
+        ${resource_files}
+)
 
 target_compile_definitions(mediaplayer
   PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
