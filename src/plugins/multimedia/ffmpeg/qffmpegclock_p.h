@@ -59,45 +59,26 @@ class ClockController;
 class Clock
 {
     ClockController *controller = nullptr;
-
-    QElapsedTimer m_timer;
-    mutable QMutex m_clockMutex;
-    qint64 m_baseTime = 0;
-    float m_playbackRate = 1.;
-    bool m_paused = true;
-    bool m_isMaster = false;
 public:
     enum Type {
         SystemClock,
         AudioClock
     };
+    Clock(ClockController *controller);
     virtual ~Clock();
     virtual Type type() const;
 
-    qint64 baseTime() const
-    {
-        QMutexLocker l(&m_clockMutex);
-        return m_baseTime;
-    }
-    float playbackRate() const
-    {
-        QMutexLocker l(&m_clockMutex);
-        return m_playbackRate;
-    }
-    bool isMaster() const
-    {
-        QMutexLocker l(&m_clockMutex);
-        return m_isMaster;
-    }
+    float playbackRate() const;
+    bool isMaster() const;
 
     // all times in usecs
     qint64 currentTime() const;
+    qint64 seekTime() const;
     qint64 usecsTo(qint64 currentTime, qint64 displayTime);
 
 protected:
     virtual void syncTo(qint64 usecs);
-    virtual void adjustBy(qint64 usecs);
-    virtual void setPlaybackRate(float rate);
+    virtual void setPlaybackRate(float rate, qint64 currentTime);
     virtual void setPaused(bool paused);
 
     qint64 timeUpdated(qint64 currentTime);
@@ -106,15 +87,8 @@ private:
     friend class ClockController;
     void setController(ClockController *c)
     {
-        QMutexLocker l(&m_clockMutex);
         controller = c;
     }
-    void setIsMaster(bool b)
-    {
-        QMutexLocker l(&m_clockMutex);
-        m_isMaster = b;
-    }
-
 };
 
 class ClockController
@@ -122,25 +96,29 @@ class ClockController
     mutable QMutex m_mutex;
     QList<Clock *> m_clocks;
     Clock *m_master = nullptr;
+
+    QElapsedTimer m_timer;
+    qint64 m_baseTime = 0;
+    qint64 m_seekTime = 0;
     float m_playbackRate = 1.;
     bool m_isPaused = true;
 
     qint64 m_lastMasterTime = 0;
+    QObject *notifyObject = nullptr;
+    QMetaMethod notify;
+    qint64 currentTimeNoLock() const { return m_isPaused ? m_baseTime : m_baseTime + m_timer.elapsed()/m_playbackRate; }
 
     friend class Clock;
     qint64 timeUpdated(Clock *clock, qint64 time);
-    QObject *notifyObject = nullptr;
-    QMetaMethod notify;
+    void addClock(Clock *provider);
+    void removeClock(Clock *provider);
 public:
     // max 25 msecs tolerance for the clock
     enum { ClockTolerance = 25000 };
     ClockController() = default;
     ~ClockController();
 
-    void addClock(Clock *provider);
-    void removeClock(Clock *provider);
 
-    qint64 skew() const;
     qint64 currentTime() const;
 
     void syncTo(qint64 usecs);
@@ -155,6 +133,22 @@ public:
         notify = method;
     }
 };
+
+inline float Clock::playbackRate() const
+{
+    return controller ? controller->m_playbackRate : 1.;
+}
+
+inline bool Clock::isMaster() const
+{
+    return controller ? controller->m_master == this : false;
+}
+
+inline qint64 Clock::seekTime() const
+{
+    return controller ? controller->m_seekTime : 0;
+}
+
 
 }
 

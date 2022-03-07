@@ -106,7 +106,7 @@ private:
 };
 
 SteppingAudioRenderer::SteppingAudioRenderer(AudioDecoder *decoder, const QAudioFormat &format)
-    : Renderer(decoder, QPlatformMediaPlayer::AudioStream)
+    : Renderer(QPlatformMediaPlayer::AudioStream)
     , m_decoder(decoder)
     , m_format(format)
 {
@@ -150,7 +150,7 @@ void SteppingAudioRenderer::createResampler(const Codec *codec)
 
 void SteppingAudioRenderer::loop()
 {
-    if (!streamDecoder || !decoder) {
+    if (!streamDecoder) {
         qCDebug(qLcAudioDecoder) << "no stream";
         timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
         return;

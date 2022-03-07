@@ -408,7 +408,6 @@ class Renderer : public Thread
 {
     Q_OBJECT
 protected:
-    Decoder *decoder = nullptr;
     QPlatformMediaPlayer::TrackType type;
 
     mutable bool step = false;
@@ -416,7 +415,7 @@ protected:
     StreamDecoder *streamDecoder = nullptr;
 
 public:
-    Renderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type);
+    Renderer(QPlatformMediaPlayer::TrackType type);
 
     void pause() {
         QMutexLocker locker(&mutex);
@@ -457,15 +456,14 @@ class ClockedRenderer : public Renderer, public Clock
 {
 public:
     ClockedRenderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type)
-        : Renderer(decoder, type)
+        : Renderer(type)
+        , Clock(&decoder->clockController)
     {
     }
     ~ClockedRenderer()
     {
     }
     void setPaused(bool paused) override;
-    void init() override;
-    void kill() override;
 };
 
 class VideoRenderer : public ClockedRenderer
@@ -496,8 +494,7 @@ public:
 
     // Clock interface
     void syncTo(qint64 usecs) override;
-    void adjustBy(qint64 usecs) override;
-    void setPlaybackRate(float rate) override;
+    void setPlaybackRate(float rate, qint64 currentTime) override;
 
 private slots:
     void updateAudio();

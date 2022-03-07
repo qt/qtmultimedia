@@ -53,8 +53,6 @@ void Thread::kill()
 
 void Thread::maybePause()
 {
-    if (timeOut < 0)
-        timeOut = 0;
     while (!exit.loadRelaxed() &&
            (timeOut >= 0 || shouldWait())) {
         QElapsedTimer timer;

@@ -344,8 +344,9 @@ void StreamDecoder::addPacket(AVPacket *packet)
 {
     {
         QMutexLocker locker(&packetQueue.mutex);
-//        qCDebug(qLcDecoder) << "enqueuing packet of type" << type() << "with serial" << serial << "current serial" << this->serial
+//        qCDebug(qLcDecoder) << "enqueuing packet of type" << type()
 //                            << "size" << packet->size
+//                            << "stream index" << packet->stream_index
 //                            << "pts" << codec.toMs(packet->pts)
 //                            << "duration" << codec.toMs(packet->duration);
         packetQueue.queue.enqueue(Packet(packet));
@@ -403,10 +404,12 @@ Packet StreamDecoder::takePacket()
         packetQueue.size -= packet.avPacket()->size;
         packetQueue.duration -= codec.toMs(packet.avPacket()->duration);
     }
-//        qCDebug(qLcDecoder) << "<<<< dequeuing packet of type" << type()
-//                 << "pts" << codec.toMs(packet.avPacket()->pts)
-//                 << "duration" << codec.toMs(packet.avPacket()->duration)
-//                        << "ts" << decoder->clockController.currentTime();
+//    qCDebug(qLcDecoder) << "<<<< dequeuing packet of type" << type()
+//                        << "size" << packet.avPacket()->size
+//                        << "stream index" << packet.avPacket()->stream_index
+//             << "pts" << codec.toMs(packet.avPacket()->pts)
+//             << "duration" << codec.toMs(packet.avPacket()->duration)
+//                    << "ts" << decoder->clockController.currentTime();
     if (demuxer)
         demuxer->wake();
     return packet;
@@ -471,12 +474,6 @@ void StreamDecoder::decode()
             pts = codec.toMs(frame->pts);
         else
             pts = codec.toMs(frame->best_effort_timestamp);
-        if (pts*1000 < decoder->clockController.currentTime()) {
-            // too early, discard
-//            qCDebug(qLcDecoder) << "    discarding frame";
-            av_frame_free(&frame);
-            return;
-        }
         addFrame(Frame{frame, codec, pts});
     } else if (res == AVERROR(EOF) || res == AVERROR_EOF) {
         eos = true;
@@ -569,9 +566,8 @@ QPlatformMediaPlayer::TrackType StreamDecoder::type() const
     }
 }
 
-Renderer::Renderer(Decoder *decoder, QPlatformMediaPlayer::TrackType type)
+Renderer::Renderer(QPlatformMediaPlayer::TrackType type)
     : Thread()
-    , decoder(decoder)
     , type(type)
 {
     QString objectName;
@@ -601,7 +597,6 @@ void Renderer::kill()
     QMutexLocker locker(&mutex);
     if (streamDecoder)
         streamDecoder->setRenderer(nullptr);
-    decoder = nullptr;
     streamDecoder = nullptr;
     Thread::kill();
 }
@@ -624,21 +619,6 @@ void ClockedRenderer::setPaused(bool paused)
     else
         unPause();
 }
-
-void ClockedRenderer::init()
-{
-    Q_ASSERT(decoder);
-    decoder->clockController.addClock(this);
-}
-
-
-void ClockedRenderer::kill()
-{
-    Q_ASSERT(decoder);
-    decoder->clockController.removeClock(this);
-    Renderer::kill();
-}
-
 
 VideoRenderer::VideoRenderer(Decoder *decoder, QVideoSink *sink)
     : ClockedRenderer(decoder, QPlatformMediaPlayer::VideoStream)
@@ -673,11 +653,12 @@ void VideoRenderer::setSubtitleStream(StreamDecoder *stream)
 void VideoRenderer::init()
 {
     qCDebug(qLcVideoRenderer) << "starting video renderer";
+    ClockedRenderer::init();
 }
 
 void VideoRenderer::loop()
 {
-    if (!streamDecoder || !decoder) {
+    if (!streamDecoder) {
         timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
         return;
     }
@@ -689,8 +670,8 @@ void VideoRenderer::loop()
         return;
     }
 //    qCDebug(qLcVideoRenderer) << "received video frame" << frame.pts();
-    if (frame.pts()*1000 < baseTime()) {
-        qCDebug(qLcVideoRenderer) << "  discarding" << frame.pts() << baseTime();
+    if (frame.pts()*1000 < seekTime()) {
+        qCDebug(qLcVideoRenderer) << "  discarding" << frame.pts() << seekTime();
         return;
     }
 
@@ -762,28 +743,19 @@ void AudioRenderer::syncTo(qint64 usecs)
     processedBase = processedUSecs;
 }
 
-void AudioRenderer::adjustBy(qint64 usecs)
+void AudioRenderer::setPlaybackRate(float rate, qint64 currentTime)
 {
-    Clock::adjustBy(usecs);
-    qCDebug(qLcAudioRenderer) << "adjusting audio clock by" << usecs;
-    QMutexLocker l(&mutex);
-    // ensure we sync up output by dropping/adding frames as needed
-    Q_ASSERT(!isMaster());
-}
-
-void AudioRenderer::setPlaybackRate(float rate)
-{
-    audioBaseTime = currentTime();
+    audioBaseTime = currentTime;
     processedBase = processedUSecs;
-    Clock::setPlaybackRate(rate);
+    Clock::setPlaybackRate(rate, currentTime);
     deviceChanged = true;
 }
 
 void AudioRenderer::updateOutput(const Codec *codec)
 {
-    qCDebug(qLcAudioRenderer) << ">>>>>> updateOutput" << currentTime() << baseTime() << processedUSecs << isMaster();
+    qCDebug(qLcAudioRenderer) << ">>>>>> updateOutput" << currentTime() << seekTime() << processedUSecs << isMaster();
     freeOutput();
-    qCDebug(qLcAudioRenderer) << "    " << currentTime() << baseTime() << processedUSecs;
+    qCDebug(qLcAudioRenderer) << "    " << currentTime() << seekTime() << processedUSecs;
 
     AVStream *audioStream = codec->stream();
 
@@ -860,6 +832,7 @@ void AudioRenderer::freeOutput()
 void AudioRenderer::init()
 {
     qCDebug(qLcAudioRenderer) << "Starting audio renderer";
+    ClockedRenderer::init();
 }
 
 void AudioRenderer::cleanup()
@@ -869,7 +842,7 @@ void AudioRenderer::cleanup()
 
 void AudioRenderer::loop()
 {
-    if (!streamDecoder || !decoder) {
+    if (!streamDecoder) {
         timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
         return;
     }
@@ -899,7 +872,7 @@ void AudioRenderer::loop()
             updateOutput(frame.codec());
 
         qint64 startTime = frame.pts();
-        if (startTime*1000 < baseTime())
+        if (startTime*1000 < seekTime())
             return;
 
         int size = frame.avFrame()->linesize[0];
@@ -939,7 +912,7 @@ void AudioRenderer::loop()
     timeOut = (writtenUSecs - processedUSecs - latencyUSecs)/1000;
 
     if (timeOut < 0)
-        timeOut = -1;
+        timeOut = 0;
 
 //    if (!bufferedData.isEmpty())
 //        qDebug() << ">>>>>>>>>>>>>>>>>>>>>>>> could not write all data" << (bufferedData.size() - bufferWritten);
@@ -1215,18 +1188,20 @@ void Decoder::setVideoSink(QVideoSink *sink)
     if (sink == videoSink)
         return;
     videoSink = sink;
-    if (sink && !videoRenderer) {
+    if (!videoSink || m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream] < 0) {
+        if (videoRenderer) {
+            videoRenderer->kill();
+            videoRenderer = nullptr;
+            demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream]);
+            demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
+        }
+    } else if (!videoRenderer) {
         videoRenderer = new VideoRenderer(this, sink);
         videoRenderer->start();
         StreamDecoder *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream]);
         videoRenderer->setStream(stream);
         stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
         videoRenderer->setSubtitleStream(stream);
-    } else if (!videoSink && videoRenderer) {
-        videoRenderer->kill();
-        videoRenderer = nullptr;
-        demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream]);
-        demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
     }
 }
 
@@ -1237,15 +1212,17 @@ void Decoder::setAudioSink(QPlatformAudioOutput *output)
 
     qCDebug(qLcDecoder) << "setAudioSink" << audioOutput;
     audioOutput = output;
-    if (output && !audioRenderer) {
+    if (!output || m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream] < 0) {
+        if (audioRenderer) {
+            audioRenderer->kill();
+            audioRenderer = nullptr;
+            demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
+        }
+    } else if (!audioRenderer) {
         audioRenderer = new AudioRenderer(this, output->q);
         audioRenderer->start();
         auto *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
         audioRenderer->setStream(stream);
-    } else if (!output && audioRenderer) {
-        audioRenderer->kill();
-        audioRenderer = nullptr;
-        demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
     }
 }
 
