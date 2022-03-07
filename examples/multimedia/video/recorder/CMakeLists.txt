@@ -18,11 +18,34 @@ find_package(Qt6 REQUIRED COMPONENTS Core Multimedia Quick)
 
 set(PROJECT_SOURCES
         main.cpp
-        qml.qrc
 )
 
 qt_add_executable(recorder
     ${PROJECT_SOURCES}
+)
+
+set(resource_files
+    "main.qml"
+    "qmldir"
+    "MediaList.qml"
+    "AudioInputSelect.qml"
+    "CameraSelect.qml"
+    "RecordButton.qml"
+    "Controls.qml"
+    "StyleParameter.qml"
+    "StyleRectangle.qml"
+    "SettingsMetaData.qml"
+    "SettingsEncoder.qml"
+    "StyleSlider.qml"
+    "Style.qml"
+    "Playback.qml"
+)
+
+qt6_add_resources(recorder "recorder"
+    PREFIX
+        "/"
+    FILES
+        ${resource_files}
 )
 
 target_compile_definitions(recorder
