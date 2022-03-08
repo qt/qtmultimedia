@@ -145,6 +145,15 @@ void Encoder::newVideoFrame(const QVideoFrame &frame)
         videoEncode->addFrame(frame);
 }
 
+void Encoder::newTimeStamp(qint64 time)
+{
+    QMutexLocker locker(&timeMutex);
+    if (time > timeRecorded) {
+        timeRecorded = time;
+        emit durationChanged(time);
+    }
+}
+
 Muxer::Muxer(Encoder *encoder)
     : encoder(encoder)
 {
@@ -394,6 +403,9 @@ void AudioEncoder::loop()
     frame->pts = samplesWritten;
     samplesWritten += buffer.frameCount();
 
+    qint64 time = format.durationForFrames(samplesWritten);
+    encoder->newTimeStamp(time/1000);
+
 //    qDebug() << "sending audio frame" << buffer.byteCount() << frame->pts << ((double)buffer.frameCount()/frame->sample_rate);
     int ret = avcodec_send_frame(codec, frame);
     if (ret < 0) {
@@ -563,10 +575,6 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
     videoFrameQueue.enqueue(frame);
     wake();
 }
-inline qint64 timeStamp(qint64 ts, AVRational base)
-{
-    return (1000*ts*base.num + 500)/base.den;
-}
 
 QVideoFrame VideoEncoder::takeFrame()
 {
@@ -655,6 +663,8 @@ void VideoEncoder::loop()
     }
     qint64 time = frame.startTime() - baseTime;
     avFrame->pts = (time*stream->time_base.den + (stream->time_base.num >> 1))/(1000*stream->time_base.num);
+
+    encoder->newTimeStamp(time);
 
 //    qDebug() << "sending frame" << avFrame->pts << time << stream->time_base.num << stream->time_base.den;
     int ret = avcodec_send_frame(codec, avFrame);

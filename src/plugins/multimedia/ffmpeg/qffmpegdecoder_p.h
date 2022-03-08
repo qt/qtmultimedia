@@ -73,11 +73,6 @@ namespace QFFmpeg
 // (it's around 2 secs of 4K HDR video, longer for almost all other formats)
 enum { MaxQueueSize = 16*1024*1024 };
 
-inline qint64 timeStamp(qint64 ts, AVRational base)
-{
-    return (1000*ts*base.num + 500)/base.den;
-}
-
 struct Packet
 {
     struct Data {

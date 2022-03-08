@@ -75,6 +75,7 @@ class VideoEncoder;
 
 class Encoder : public QObject
 {
+    Q_OBJECT
 public:
     Encoder(const QMediaEncoderSettings &settings, const QUrl &url);
     ~Encoder();
@@ -88,6 +89,10 @@ public:
 public Q_SLOTS:
     void newAudioBuffer(const QAudioBuffer &buffer);
     void newVideoFrame(const QVideoFrame &frame);
+    void newTimeStamp(qint64 time);
+
+Q_SIGNALS:
+    void durationChanged(qint64 duration);
 
 public:
 
@@ -98,6 +103,9 @@ public:
 
     AudioEncoder *audioEncode = nullptr;
     VideoEncoder *videoEncode = nullptr;
+
+    QMutex timeMutex;
+    qint64 timeRecorded = 0;
 };
 
 

@@ -79,11 +79,6 @@ void QFFmpegMediaRecorder::handleSessionError(QMediaRecorder::Error code, const 
     stop();
 }
 
-qint64 QFFmpegMediaRecorder::duration() const
-{
-    return 0;
-}
-
 void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 {
     if (!m_session || state() != QMediaRecorder::StoppedState)
@@ -110,6 +105,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     Q_ASSERT(!actualSink.isEmpty());
 
     encoder = new QFFmpeg::Encoder(settings, actualSink);
+    connect(encoder, &QFFmpeg::Encoder::durationChanged, this, &QFFmpegMediaRecorder::newDuration);
 
     auto *audioInput = m_session->audioInput();
     if (audioInput)

@@ -146,7 +146,7 @@ public:
     virtual void resume();
     virtual void stop() = 0;
 
-    virtual qint64 duration() const = 0;
+    virtual qint64 duration() const { return m_duration; }
 
     virtual void setMetaData(const QMediaMetaData &) {}
     virtual QMediaMetaData metaData() const { return {}; }

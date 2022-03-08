@@ -77,8 +77,6 @@ public:
 
     bool isLocationWritable(const QUrl &sink) const override;
 
-    qint64 duration() const override;
-
     void record(QMediaEncoderSettings &settings) override;
     void pause() override;
     void resume() override;
@@ -88,7 +86,8 @@ public:
     QMediaMetaData metaData() const override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
-
+private Q_SLOTS:
+    void newDuration(qint64 d) { durationChanged(d); }
 private:
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
 
