@@ -599,7 +599,7 @@ void Renderer::kill()
 
 bool Renderer::shouldWait() const
 {
-    if (!paused)
+    if (!paused.loadAcquire())
         return false;
     if (step)
         return false;
@@ -610,10 +610,7 @@ bool Renderer::shouldWait() const
 void ClockedRenderer::setPaused(bool paused)
 {
     Clock::setPaused(paused);
-    if (paused)
-        pause();
-    else
-        unPause();
+    Renderer::setPaused(paused);
 }
 
 VideoRenderer::VideoRenderer(Decoder *decoder, QVideoSink *sink)
@@ -861,7 +858,7 @@ void AudioRenderer::loop()
         if (startTime*1000 < seekTime())
             return;
 
-        if (!paused) {
+        if (!paused.loadAcquire()) {
             int outSamples = outputSamples(frame.avFrame()->nb_samples);
             QByteArray samples(format.bytesForFrames(outSamples), Qt::Uninitialized);
             const uint8_t **in = (const uint8_t **)frame.avFrame()->extended_data;

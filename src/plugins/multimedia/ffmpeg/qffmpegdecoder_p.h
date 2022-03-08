@@ -410,26 +410,20 @@ protected:
     QPlatformMediaPlayer::TrackType type;
 
     mutable bool step = false;
-    bool paused = true;
+    QAtomicInteger<bool> paused = true;
     StreamDecoder *streamDecoder = nullptr;
 
 public:
     Renderer(QPlatformMediaPlayer::TrackType type);
 
-    void pause() {
-        QMutexLocker locker(&mutex);
-        paused = true;
-    }
-    void unPause() {
-        QMutexLocker locker(&mutex);
-        paused = false;
-        condition.wakeAll();
-        if (streamDecoder)
-            streamDecoder->condition.wakeAll();
+    void setPaused(bool p) {
+        paused.storeRelease(p);
+        if (!p)
+            condition.wakeAll();
     }
     void singleStep() {
         QMutexLocker locker(&mutex);
-        if (!paused)
+        if (!paused.loadAcquire())
             return;
         step = true;
         condition.wakeAll();

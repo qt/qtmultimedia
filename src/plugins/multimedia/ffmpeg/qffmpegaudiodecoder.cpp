@@ -94,7 +94,7 @@ public:
 
     void nextBuffer()
     {
-        audioRenderer->unPause();
+        audioRenderer->setPaused(false);
     }
 
 Q_SIGNALS:
@@ -162,7 +162,7 @@ void SteppingAudioRenderer::loop()
             if (!atEndEmitted)
                 emit m_decoder->isAtEnd();
             atEndEmitted = true;
-            paused = true;
+            paused.storeRelaxed(true);
             timeOut = -1;
             return;
         }
@@ -192,7 +192,7 @@ void SteppingAudioRenderer::loop()
     QAudioBuffer buffer(samples, m_format, startTime);
     emit m_decoder->newAudioBuffer(buffer);
 
-    paused = true;
+    paused.storeRelaxed(true);
     timeOut = -1;
 }
 
