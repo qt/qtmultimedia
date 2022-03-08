@@ -62,8 +62,9 @@ class Decoder;
 }
 class QPlatformAudioOutput;
 
-class QFFmpegMediaPlayer : public QPlatformMediaPlayer
+class QFFmpegMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
+    Q_OBJECT
 public:
     QFFmpegMediaPlayer(QMediaPlayer *player);
     ~QFFmpegMediaPlayer();
@@ -101,6 +102,8 @@ public:
     QMediaMetaData trackMetaData(TrackType type, int streamNumber) override;
     int activeTrack(TrackType) override;
     void setActiveTrack(TrackType, int streamNumber) override;
+
+    Q_INVOKABLE void delayedLoadedStatus() { mediaStatusChanged(QMediaPlayer::LoadedMedia); }
 
 private:
     friend class QFFmpeg::Decoder;

@@ -392,7 +392,6 @@ void tst_QMediaPlayerBackend::playPauseStop()
     QTest::qWait(500);
 
     QTRY_VERIFY(qAbs(player.position() - positionBeforePause) < 150);
-    QTRY_VERIFY(positionSpy.count() > 0);
 
     stateSpy.clear();
     statusSpy.clear();

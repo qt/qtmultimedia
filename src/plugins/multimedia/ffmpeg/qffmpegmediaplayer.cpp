@@ -132,8 +132,18 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
         delete decoder;
     decoder = nullptr;
 
+    if (media.isEmpty() && !stream) {
+        seekableChanged(false);
+        audioAvailableChanged(false);
+        videoAvailableChanged(false);
+        metaDataChanged();
+        mediaStatusChanged(QMediaPlayer::NoMedia);
+        return;
+    }
+
     // ### use io device when provided
 
+    mediaStatusChanged(QMediaPlayer::LoadingMedia);
     decoder = new Decoder(this);
     decoder->setUrl(media);
     decoder->setAudioSink(m_audioOutput);
@@ -141,13 +151,18 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     metaDataChanged();
     seekableChanged(decoder->isSeekable());
-    mediaStatusChanged(QMediaPlayer::LoadedMedia);
+
+    audioAvailableChanged(!decoder->m_streamMap[QPlatformMediaPlayer::AudioStream].isEmpty());
+    videoAvailableChanged(!decoder->m_streamMap[QPlatformMediaPlayer::VideoStream].isEmpty());
+
+    QMetaObject::invokeMethod(this, "delayedLoadedStatus", Qt::QueuedConnection);
 }
 
 void QFFmpegMediaPlayer::play()
 {
     if (!decoder)
         return;
+
     decoder->play();
     stateChanged(QMediaPlayer::PlayingState);
     mediaStatusChanged(QMediaPlayer::BufferedMedia);
@@ -159,6 +174,7 @@ void QFFmpegMediaPlayer::pause()
         return;
     decoder->pause();
     stateChanged(QMediaPlayer::PausedState);
+    mediaStatusChanged(QMediaPlayer::BufferedMedia);
 }
 
 void QFFmpegMediaPlayer::stop()
