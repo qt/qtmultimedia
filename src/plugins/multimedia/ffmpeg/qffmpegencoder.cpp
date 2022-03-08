@@ -118,16 +118,11 @@ void Encoder::finalize()
     qDebug() << ">>>>>>>>>>>>>>> finalize";
 
     isRecording = false;
-    if (audioEncode) {
+    if (audioEncode)
         audioEncode->kill();
-        audioEncode->wait();
-    }
-    if (videoEncode) {
+    if (videoEncode)
         videoEncode->kill();
-        videoEncode->wait();
-    }
     muxer->kill();
-    muxer->wait();
 
     int res = av_write_trailer(formatContext);
     if (res < 0)

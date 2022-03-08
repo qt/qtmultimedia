@@ -47,8 +47,14 @@ using namespace QFFmpeg;
 
 void Thread::kill()
 {
-    exit.storeRelaxed(true);
+    {
+        QMutexLocker locker(&mutex);
+        exit.storeRelease(true);
+        killHelper();
+    }
     wake();
+    wait();
+    delete this;
 }
 
 void Thread::maybePause()
@@ -81,7 +87,6 @@ void Thread::run()
         loop();
     }
     cleanup();
-    deleteLater();
 }
 
 QT_END_NAMESPACE

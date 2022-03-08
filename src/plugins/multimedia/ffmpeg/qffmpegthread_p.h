@@ -78,7 +78,8 @@ protected:
 public:
     // public API is thread-safe
 
-    virtual void kill();
+    void kill();
+    virtual void killHelper() {}
 
     bool isAtEnd() const { return eos; }
 

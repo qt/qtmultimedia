@@ -382,9 +382,8 @@ void StreamDecoder::setRenderer(Renderer *r)
         m_renderer->wake();
 }
 
-void StreamDecoder::kill()
+void StreamDecoder::killHelper()
 {
-    QMutexLocker locker(&mutex);
     if (m_renderer)
         m_renderer->setStream(nullptr);
 }
@@ -588,13 +587,11 @@ void Renderer::setStream(StreamDecoder *stream)
     wake();
 }
 
-void Renderer::kill()
+void Renderer::killHelper()
 {
-    QMutexLocker locker(&mutex);
     if (streamDecoder)
         streamDecoder->setRenderer(nullptr);
     streamDecoder = nullptr;
-    Thread::kill();
 }
 
 bool Renderer::shouldWait() const
@@ -618,14 +615,13 @@ VideoRenderer::VideoRenderer(Decoder *decoder, QVideoSink *sink)
     , sink(sink)
 {}
 
-void VideoRenderer::kill()
+void VideoRenderer::killHelper()
 {
-    QMutexLocker locker(&mutex);
     if (subtitleStreamDecoder)
         subtitleStreamDecoder->setRenderer(nullptr);
     if (streamDecoder)
-        streamDecoder->setRenderer(nullptr);
-    Thread::kill();
+        streamDecoder->kill();
+    streamDecoder = nullptr;
 }
 
 void VideoRenderer::setSubtitleStream(StreamDecoder *stream)

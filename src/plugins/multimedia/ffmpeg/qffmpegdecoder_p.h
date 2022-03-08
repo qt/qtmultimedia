@@ -376,7 +376,7 @@ public:
     void setRenderer(Renderer *r);
     Renderer *renderer() const { return m_renderer; }
 
-    void kill() override;
+    void killHelper() override;
 
 private:
     Packet takePacket();
@@ -435,7 +435,7 @@ public:
     void setStream(StreamDecoder *stream);
     virtual void setSubtitleStream(StreamDecoder *) {}
 
-    void kill() override;
+    void killHelper() override;
 
     virtual void streamChanged() {}
 
@@ -467,7 +467,7 @@ class VideoRenderer : public ClockedRenderer
 public:
     VideoRenderer(Decoder *decoder, QVideoSink *sink);
 
-    void kill() override;
+    void killHelper() override;
 
     void setSubtitleStream(StreamDecoder *stream) override;
 private:
