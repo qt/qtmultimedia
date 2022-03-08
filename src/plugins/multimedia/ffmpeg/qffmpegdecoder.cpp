@@ -641,13 +641,13 @@ void VideoRenderer::init()
 void VideoRenderer::loop()
 {
     if (!streamDecoder) {
-        timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
+        timeOut = -1; // Avoid 100% CPU load before play()
         return;
     }
 
     Frame frame = streamDecoder->takeFrame();
     if (!frame.isValid()) {
-        timeOut = 10;
+        timeOut = 1;
 //        qDebug() << "no valid frame" << timer.elapsed();
         return;
     }
@@ -815,7 +815,7 @@ void AudioRenderer::cleanup()
 void AudioRenderer::loop()
 {
     if (!streamDecoder) {
-        timeOut = 10; // ### Fixme, this is to avoid 100% CPU load before play()
+        timeOut = -1; // Avoid 100% CPU load before play()
         return;
     }
 
@@ -836,7 +836,7 @@ void AudioRenderer::loop()
     } else {
         Frame frame = streamDecoder->takeFrame();
         if (!frame.isValid()) {
-            timeOut = 10;
+            timeOut = 1;
             return;
         }
 
@@ -871,8 +871,8 @@ void AudioRenderer::loop()
 
     qint64 duration = format.durationForBytes(bytesWritten);
     writtenUSecs += duration;
-    timeOut = (writtenUSecs - processedUSecs - latencyUSecs)/1000;
 
+    timeOut = (writtenUSecs - processedUSecs - latencyUSecs)/1000;
     if (timeOut < 0)
         timeOut = 0;
 

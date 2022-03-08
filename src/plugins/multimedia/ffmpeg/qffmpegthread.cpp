@@ -59,20 +59,21 @@ void Thread::kill()
 
 void Thread::maybePause()
 {
-    while (!exit.loadRelaxed() &&
-           (timeOut >= 0 || shouldWait())) {
+    while (timeOut > 0 || shouldWait()) {
+        if (exit.loadAcquire())
+            break;
+
         QElapsedTimer timer;
         timer.start();
-//        qDebug() << this << "maybePause, waiting" << timeOut;
         if (condition.wait(&mutex, QDeadlineTimer(timeOut, Qt::PreciseTimer))) {
-            if (timeOut >= 0)
+            if (timeOut >= 0) {
                 timeOut -= timer.elapsed();
-            if (timeOut < 0)
-                timeOut = -1;
+                if (timeOut < 0)
+                    timeOut = -1;
+            }
         } else {
             timeOut = -1;
         }
-//        qDebug() << this << "    done waiting" << timeOut;
     }
 }
 
@@ -80,7 +81,7 @@ void Thread::run()
 {
     init();
     QMutexLocker locker(&mutex);
-    while (!exit.loadRelaxed()) {
+    while (1) {
         maybePause();
         if (exit.loadAcquire())
             break;
