@@ -100,7 +100,7 @@ public:
 private:
     void requestCameraPermissionIfNeeded();
     void cameraAuthorizationChanged(bool authorized);
-    void updateCameraFormat(const QCameraFormat &format);
+    void updateCameraFormat();
     void updateVideoInput();
     void attachVideoInputDevice();
     uint setPixelFormat(const QVideoFrameFormat::PixelFormat pixelFormat);

@@ -358,34 +358,34 @@ void QAVFCamera::setCamera(const QCameraDevice &camera)
     requestCameraPermissionIfNeeded();
     if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
         updateVideoInput();
+    setCameraFormat({});
 }
 
 bool QAVFCamera::setCameraFormat(const QCameraFormat &format)
 {
-    if (m_cameraFormat == format)
+    if (m_cameraFormat == format && !format.isNull())
         return true;
 
-    updateCameraFormat(format);
+    QAVFCameraBase::setCameraFormat(format);
+    updateCameraFormat();
     return true;
 }
 
-void QAVFCamera::updateCameraFormat(const QCameraFormat &format)
+void QAVFCamera::updateCameraFormat()
 {
-    m_cameraFormat = format;
-
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice)
         return;
 
     uint avPixelFormat = 0;
-    AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(captureDevice, format);
+    AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(captureDevice, m_cameraFormat);
     if (newFormat) {
         qt_set_active_format(captureDevice, newFormat, false);
-        avPixelFormat = setPixelFormat(format.pixelFormat());
+        avPixelFormat = setPixelFormat(m_cameraFormat.pixelFormat());
     }
 
     hwAccel = QFFmpeg::HWAccel(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
-    hwAccel.createFramesContext(av_map_videotoolbox_format_to_pixfmt(avPixelFormat), format.resolution());
+    hwAccel.createFramesContext(av_map_videotoolbox_format_to_pixfmt(avPixelFormat), m_cameraFormat.resolution());
     [m_sampleBufferDelegate setHWAccel:&hwAccel];
 }
 
