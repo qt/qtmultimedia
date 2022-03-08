@@ -340,8 +340,6 @@ protected:
 public:
     StreamDecoder(Demuxer *demuxer, const Codec &codec);
 
-    void clearDemuxer();
-
     void addPacket(AVPacket *packet);
 
     qint64 queuedPacketSize() const {

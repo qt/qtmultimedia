@@ -175,7 +175,6 @@ void Demuxer::removeStream(int streamIndex)
     QMutexLocker locker(&mutex);
     Q_ASSERT(streamIndex < (int)context->nb_streams);
     Q_ASSERT(streamDecoders.at(streamIndex) != nullptr);
-    streamDecoders[streamIndex]->kill();
     streamDecoders[streamIndex] = nullptr;
     updateEnabledStreams();
 }
@@ -243,11 +242,11 @@ void Demuxer::init()
 void Demuxer::cleanup()
 {
     qCDebug(qLcDemuxer) << "Demuxer::cleanup";
+#ifndef QT_NO_DEBUG
     for (auto *streamDecoder : qAsConst(streamDecoders)) {
-        if (!streamDecoder)
-            continue;
-        streamDecoder->clearDemuxer();
+        Q_ASSERT(!streamDecoder);
     }
+#endif
     avformat_close_input(&context);
     Thread::cleanup();
 }
@@ -332,13 +331,6 @@ StreamDecoder::StreamDecoder(Demuxer *demuxer, const Codec &codec)
     setObjectName(objectName);
 }
 
-void StreamDecoder::clearDemuxer()
-{
-    QMutexLocker locker(&mutex);
-    demuxer = nullptr;
-}
-
-
 void StreamDecoder::addPacket(AVPacket *packet)
 {
     {
@@ -384,8 +376,8 @@ void StreamDecoder::setRenderer(Renderer *r)
 
 void StreamDecoder::killHelper()
 {
-    if (m_renderer)
-        m_renderer->setStream(nullptr);
+    m_renderer = nullptr;
+    demuxer->removeStream(codec.streamIndex());
 }
 
 Packet StreamDecoder::takePacket()
@@ -579,7 +571,7 @@ void Renderer::setStream(StreamDecoder *stream)
     if (streamDecoder == stream)
         return;
     if (streamDecoder)
-        streamDecoder->setRenderer(nullptr);
+        streamDecoder->kill();
     streamDecoder = stream;
     if (streamDecoder)
         streamDecoder->setRenderer(this);
@@ -590,7 +582,7 @@ void Renderer::setStream(StreamDecoder *stream)
 void Renderer::killHelper()
 {
     if (streamDecoder)
-        streamDecoder->setRenderer(nullptr);
+        streamDecoder->kill();
     streamDecoder = nullptr;
 }
 
@@ -618,7 +610,8 @@ VideoRenderer::VideoRenderer(Decoder *decoder, QVideoSink *sink)
 void VideoRenderer::killHelper()
 {
     if (subtitleStreamDecoder)
-        subtitleStreamDecoder->setRenderer(nullptr);
+        subtitleStreamDecoder->kill();
+    subtitleStreamDecoder = nullptr;
     if (streamDecoder)
         streamDecoder->kill();
     streamDecoder = nullptr;
@@ -631,7 +624,7 @@ void VideoRenderer::setSubtitleStream(StreamDecoder *stream)
     if (stream == subtitleStreamDecoder)
         return;
     if (subtitleStreamDecoder)
-        subtitleStreamDecoder->setRenderer(nullptr);
+        subtitleStreamDecoder->kill();
     subtitleStreamDecoder = stream;
     if (subtitleStreamDecoder)
         subtitleStreamDecoder->setRenderer(this);
@@ -1158,8 +1151,6 @@ void Decoder::setVideoSink(QVideoSink *sink)
         if (videoRenderer) {
             videoRenderer->kill();
             videoRenderer = nullptr;
-            demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream]);
-            demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::SubtitleStream]);
         }
     } else if (!videoRenderer) {
         videoRenderer = new VideoRenderer(this, sink);
@@ -1182,7 +1173,6 @@ void Decoder::setAudioSink(QPlatformAudioOutput *output)
         if (audioRenderer) {
             audioRenderer->kill();
             audioRenderer = nullptr;
-            demuxer->removeStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
         }
     } else if (!audioRenderer) {
         audioRenderer = new AudioRenderer(this, output->q);
@@ -1217,7 +1207,6 @@ void Decoder::changeAVTrack(QPlatformMediaPlayer::TrackType type, int streamInde
     default:
         Q_UNREACHABLE();
     }
-    demuxer->removeStream(oldIndex);
     demuxer->seek(clockController.currentTime()/1000);
     if (!isPaused)
         setPaused(false);
