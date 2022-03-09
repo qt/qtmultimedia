@@ -66,7 +66,7 @@ QFFmpegImageCapture::~QFFmpegImageCapture()
 
 bool QFFmpegImageCapture::isReadyForCapture() const
 {
-    return m_session && !passImage && cameraActive;
+    return m_isReadyForCapture;
 }
 
 static const char *extensionForFormat(QImageCapture::FileFormat format)
@@ -143,7 +143,7 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
     // let one image pass the pipeline
     passImage = true;
 
-    emit readyForCaptureChanged(false);
+    updateReadyForCapture();
     return m_lastId;
 }
 
@@ -153,7 +153,6 @@ void QFFmpegImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessio
     if (m_session == captureSession)
         return;
 
-    bool readyForCapture = isReadyForCapture();
     if (m_session) {
         disconnect(m_session, nullptr, this, nullptr);
         m_lastId = 0;
@@ -163,14 +162,20 @@ void QFFmpegImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessio
     }
 
     m_session = captureSession;
-    if (!m_session) {
-        if (readyForCapture)
-            emit readyForCaptureChanged(false);
-        return;
-    }
+    if (m_session)
+        connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QFFmpegImageCapture::onCameraChanged);
 
-    connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QFFmpegImageCapture::onCameraChanged);
     onCameraChanged();
+    updateReadyForCapture();
+}
+
+void QFFmpegImageCapture::updateReadyForCapture()
+{
+    bool ready = m_session && !passImage && cameraActive;
+    if (ready == m_isReadyForCapture)
+        return;
+    m_isReadyForCapture = ready;
+    emit readyForCaptureChanged(m_isReadyForCapture);
 }
 
 void QFFmpegImageCapture::cameraActiveChanged(bool active)
@@ -180,7 +185,7 @@ void QFFmpegImageCapture::cameraActiveChanged(bool active)
         return;
     cameraActive = active;
     qCDebug(qLcImageCapture) << "isReady" << isReadyForCapture();
-    emit readyForCaptureChanged(isReadyForCapture());
+    updateReadyForCapture();
 }
 
 void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
@@ -248,12 +253,12 @@ void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
             emit error(pending.id, err, writer.errorString());
         }
     }
-    emit readyForCaptureChanged(isReadyForCapture());
+    updateReadyForCapture();
 }
 
 void QFFmpegImageCapture::onCameraChanged()
 {
-    auto *camera = m_session->camera();
+    auto *camera = m_session ? m_session->camera() : nullptr;
     if (m_camera == camera)
         return;
 

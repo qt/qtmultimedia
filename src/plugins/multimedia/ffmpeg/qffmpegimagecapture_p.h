@@ -76,6 +76,8 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
+    void updateReadyForCapture();
+
 public Q_SLOTS:
     void cameraActiveChanged(bool active);
     void newVideoFrame(const QVideoFrame &frame);
@@ -98,6 +100,7 @@ private:
     QQueue<PendingImage> pendingImages;
     bool passImage = false;
     bool cameraActive = false;
+    bool m_isReadyForCapture = false;
 };
 
 QT_END_NAMESPACE
