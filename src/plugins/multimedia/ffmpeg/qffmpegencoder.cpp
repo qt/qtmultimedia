@@ -64,10 +64,10 @@ namespace QFFmpeg
 Encoder::Encoder(const QMediaEncoderSettings &settings, const QUrl &url)
     : settings(settings)
 {
-    auto *avFormat = QFFmpegMediaFormatInfo::outputFormatForFileFormat(settings.fileFormat());
+    const AVOutputFormat *avFormat = QFFmpegMediaFormatInfo::outputFormatForFileFormat(settings.fileFormat());
 
     formatContext = avformat_alloc_context();
-    formatContext->oformat = avFormat;
+    formatContext->oformat = const_cast<AVOutputFormat *>(avFormat); // constness varies
 
     QByteArray encoded = url.toEncoded();
     formatContext->url = (char *)av_malloc(encoded.size() + 1);
