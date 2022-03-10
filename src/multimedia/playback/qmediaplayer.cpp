@@ -160,7 +160,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
     if (!control)
         return;
 
-    QScopedPointer<QFile> file;
+    std::unique_ptr<QFile> file;
 
     // Back ends can't play qrc files directly.
     // If the back end supports StreamPlayback, we pass a QFile for that resource.
@@ -176,7 +176,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
             control->error(QMediaPlayer::ResourceError, QMediaPlayer::tr("Attempting to play invalid Qt resource"));
 
         } else if (control->streamPlaybackSupported()) {
-            control->setMedia(media, file.data());
+            control->setMedia(media, file.get());
         } else {
 #if QT_CONFIG(temporaryfile)
 #if defined(Q_OS_ANDROID)

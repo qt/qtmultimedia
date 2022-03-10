@@ -60,10 +60,12 @@
 #include "private/qobject_p.h"
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qtimer.h>
+
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QPlatformMediaPlayer;
@@ -81,7 +83,7 @@ public:
     QVideoSink *videoSink = nullptr;
     QPointer<QObject> videoOutput;
     QUrl qrcMedia;
-    QScopedPointer<QFile> qrcFile;
+    std::unique_ptr<QFile> qrcFile;
     QUrl source;
     QIODevice *stream = nullptr;
 
