@@ -412,14 +412,14 @@ public:
     void setPaused(bool p) {
         paused.storeRelease(p);
         if (!p)
-            condition.wakeAll();
+            wake();
     }
     void singleStep() {
         QMutexLocker locker(&mutex);
         if (!paused.loadAcquire())
             return;
         step = true;
-        condition.wakeAll();
+        wake();
     }
     void doneStep() {
         step = false;

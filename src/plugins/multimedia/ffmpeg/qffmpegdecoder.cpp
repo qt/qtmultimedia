@@ -348,7 +348,7 @@ void StreamDecoder::addPacket(AVPacket *packet)
             packetQueue.duration += codec.toMs(packet->duration);
         }
     }
-    condition.wakeAll();
+    wake();
 }
 
 void StreamDecoder::flush()

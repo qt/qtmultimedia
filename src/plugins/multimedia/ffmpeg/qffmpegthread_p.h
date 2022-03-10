@@ -67,9 +67,9 @@ class Thread : public QThread
 {
 public:
     mutable QMutex mutex;
-    QWaitCondition condition;
     qint64 timeOut = -1;
 private:
+    QWaitCondition condition;
 
 protected:
     QAtomicInteger<bool> exit = false;
