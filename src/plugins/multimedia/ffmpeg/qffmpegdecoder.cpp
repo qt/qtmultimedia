@@ -905,18 +905,12 @@ Decoder::Decoder()
 Decoder::~Decoder()
 {
     pause();
-    auto *vr = videoRenderer;
-    auto *ar = audioRenderer;
-    auto *d = demuxer;
-    videoRenderer = nullptr;
-    audioRenderer = nullptr;
-    demuxer = nullptr;
-    if (vr)
-        vr->kill();
-    if (ar)
-        ar->kill();
-    if (d)
-        d->kill();
+    if (videoRenderer)
+        videoRenderer->kill();
+    if (audioRenderer)
+        audioRenderer->kill();
+    if (demuxer)
+        demuxer->kill();
 }
 
 void Decoder::setUrl(const QUrl &media)
