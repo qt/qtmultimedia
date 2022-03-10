@@ -191,7 +191,7 @@ public:
     }
     ~Decoder();
 
-    void setUrl(const QUrl &media);
+    void setMedia(const QUrl &media, QIODevice *stream);
 
     void init();
     void play() {
@@ -271,6 +271,7 @@ class Demuxer : public Thread
     Q_OBJECT
 public:
     Demuxer(Decoder *decoder, AVFormatContext *context);
+    ~Demuxer();
 
     StreamDecoder *addStream(int streamIndex);
     void removeStream(int streamIndex);

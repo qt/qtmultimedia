@@ -239,7 +239,7 @@ void QFFmpegAudioDecoder::setSourceDevice(QIODevice *device)
     bool isSignalRequired = (m_sourceDevice != device);
     m_sourceDevice = device;
     if (isSignalRequired)
-        emit sourceChanged();
+        sourceChanged();
 }
 
 void QFFmpegAudioDecoder::start()
@@ -247,7 +247,7 @@ void QFFmpegAudioDecoder::start()
     qCDebug(qLcAudioDecoder) << "start";
     delete decoder;
     decoder = new QFFmpeg::AudioDecoder(this);
-    decoder->setUrl(m_url);
+    decoder->setMedia(m_url, m_sourceDevice);
     if (error() != QAudioDecoder::NoError)
         goto error;
 
@@ -275,10 +275,10 @@ void QFFmpegAudioDecoder::start()
 void QFFmpegAudioDecoder::stop()
 {
     qCDebug(qLcAudioDecoder) << ">>>>> stop";
-    if (decoder)
+    if (decoder) {
         decoder->stop();
-
-    done();
+        done();
+    }
 }
 
 QAudioFormat QFFmpegAudioDecoder::audioFormat() const

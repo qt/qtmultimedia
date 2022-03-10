@@ -630,6 +630,7 @@ void tst_QAudioDecoderBackend::deviceTest()
     QVERIFY(d.audioFormat() == format);
 
     d.start();
+    QVERIFY(d.error() == QAudioDecoder::NoError);
     QTRY_VERIFY(d.isDecoding());
     QTRY_VERIFY(!isDecodingSpy.isEmpty());
     QTRY_VERIFY(!readySpy.isEmpty());

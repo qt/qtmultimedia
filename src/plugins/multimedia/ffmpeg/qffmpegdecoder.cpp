@@ -148,6 +148,17 @@ Demuxer::Demuxer(Decoder *decoder, AVFormatContext *context)
     streamDecoders.resize(context->nb_streams);
 }
 
+Demuxer::~Demuxer()
+{
+    if (context) {
+        if (context->pb) {
+            av_free(context->pb);
+            context->pb = nullptr;
+        }
+        avformat_free_context(context);
+    }
+}
+
 StreamDecoder *Demuxer::addStream(int streamIndex)
 {
     if (streamIndex < 0)
@@ -919,11 +930,57 @@ Decoder::~Decoder()
         demuxer->kill();
 }
 
-void Decoder::setUrl(const QUrl &media)
+static int read(void *opaque, uint8_t *buf, int buf_size)
+{
+    auto *dev = static_cast<QIODevice *>(opaque);
+    if (dev->atEnd())
+        return AVERROR_EOF;
+    return dev->read(reinterpret_cast<char *>(buf), buf_size);
+}
+
+static int64_t seek(void *opaque, int64_t offset, int whence)
+{
+    QIODevice *dev = static_cast<QIODevice *>(opaque);
+
+    if (dev->isSequential())
+        return AVERROR(EINVAL);
+
+    if (whence & AVSEEK_SIZE)
+        return dev->size();
+
+    whence &= ~AVSEEK_FORCE;
+
+    if (whence == SEEK_CUR)
+        offset += dev->pos();
+    else if (whence == SEEK_END)
+        offset += dev->size();
+
+    if (!dev->seek(offset))
+        return AVERROR(EINVAL);
+    return offset;
+}
+
+void Decoder::setMedia(const QUrl &media, QIODevice *stream)
 {
     QByteArray url = media.toEncoded(QUrl::PreferLocalFile);
 
     AVFormatContext *context = nullptr;
+
+    if (stream) {
+        if (!stream->isOpen()) {
+            if (!stream->open(QIODevice::ReadOnly)) {
+                emitError(QMediaPlayer::ResourceError, QLatin1String("Could not open source device."));
+                return;
+            }
+        }
+        if (!stream->isSequential())
+            stream->seek(0);
+        context = avformat_alloc_context();
+        constexpr int bufferSize = 32768;
+        unsigned char *buffer = (unsigned char *)av_malloc(bufferSize);
+        context->pb = avio_alloc_context(buffer, bufferSize, false, stream, ::read, nullptr, ::seek);
+    }
+
     int ret = avformat_open_input(&context, url.constData(), nullptr, nullptr);
     if (ret < 0) {
         auto code = QMediaPlayer::ResourceError;
