@@ -171,7 +171,8 @@ QMetaType QMediaMetaData::keyType(Key key)
 }
 
 /*!
-    \qmlbasictype mediaMetaData
+    \qmlvaluetype mediaMetaData
+    \ingroup qmlvaluetypes
     \inqmlmodule QtMultimedia
     \since 6.2
     //! \instantiates QMediaMetaData

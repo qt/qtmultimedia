@@ -58,7 +58,8 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlbasictype mediaFormat
+    \qmlvaluetype mediaFormat
+    \ingroup qmlvaluetypes
     \since 6.2
     //! \instantiates QMediaFormat
     \brief MediaFormat describes the format of a media file.

@@ -65,7 +65,8 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlbasictype cameraFormat
+    \qmlvaluetype cameraFormat
+    \ingroup qmlvaluetypes
     \inqmlmodule QtMultimedia
     \since 6.2
     //! \instantiates QCameraFormat
@@ -245,7 +246,8 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
 */
 
 /*!
-    \qmlbasictype cameraDevice
+    \qmlvaluetype cameraDevice
+    \ingroup qmlvaluetypes
     \inqmlmodule QtMultimedia
     \since 6.2
     //! \instantiates QCameraDevice
