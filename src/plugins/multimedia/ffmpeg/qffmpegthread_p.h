@@ -73,15 +73,12 @@ private:
 
 protected:
     QAtomicInteger<bool> exit = false;
-    bool eos = false;
 
 public:
     // public API is thread-safe
 
     void kill();
     virtual void killHelper() {}
-
-    bool isAtEnd() const { return eos; }
 
     void wake() {
         condition.wakeAll();

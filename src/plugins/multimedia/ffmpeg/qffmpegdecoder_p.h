@@ -331,6 +331,7 @@ protected:
         int maxSize = 3;
     };
     FrameQueue frameQueue;
+    QAtomicInteger<bool> eos = false;
 
 public:
     StreamDecoder(Demuxer *demuxer, const Codec &codec);
@@ -368,6 +369,8 @@ public:
 
     void setRenderer(Renderer *r);
     Renderer *renderer() const { return m_renderer; }
+
+    bool isAtEnd() const { return eos.loadAcquire(); }
 
     void killHelper() override;
 

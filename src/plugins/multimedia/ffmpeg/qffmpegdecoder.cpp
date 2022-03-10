@@ -285,7 +285,6 @@ void Demuxer::loop()
 
     AVPacket *packet = av_packet_alloc();
     if (av_read_frame(context, packet) < 0) {
-        eos = true;
         sendFinalPacketToStreams();
         emit atEnd();
         return;
@@ -435,7 +434,7 @@ void StreamDecoder::init()
 
 bool StreamDecoder::shouldWait() const
 {
-    if (eos || hasNoPackets() || hasEnoughFrames())
+    if (eos.loadAcquire() || hasNoPackets() || hasEnoughFrames())
         return true;
     return false;
 }
@@ -465,7 +464,7 @@ void StreamDecoder::decode()
             pts = codec.toMs(frame->best_effort_timestamp);
         addFrame(Frame{frame, codec, pts});
     } else if (res == AVERROR(EOF) || res == AVERROR_EOF) {
-        eos = true;
+        eos.storeRelease(true);
         av_frame_free(&frame);
         return;
     } else if (res != AVERROR(EAGAIN)) {
