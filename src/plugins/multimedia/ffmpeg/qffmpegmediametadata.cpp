@@ -121,6 +121,7 @@ void QFFmpegMetaData::addEntry(QMediaMetaData &metaData, AVDictionaryEntry *entr
         return;
     case qMetaTypeId<QStringList>():
         map->insert(key, QString::fromUtf8(entry->value).split(QLatin1Char(',')));
+        return;
     case qMetaTypeId<QDateTime>(): {
         QDateTime date;
         if (!qstrcmp(entry->key, "year")) {
