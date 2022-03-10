@@ -332,6 +332,7 @@ protected:
     };
     FrameQueue frameQueue;
     QAtomicInteger<bool> eos = false;
+    bool decoderHasNoFrames = false;
 
 public:
     StreamDecoder(Demuxer *demuxer, const Codec &codec);

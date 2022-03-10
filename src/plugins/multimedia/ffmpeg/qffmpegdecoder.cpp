@@ -434,7 +434,7 @@ void StreamDecoder::init()
 
 bool StreamDecoder::shouldWait() const
 {
-    if (eos.loadAcquire() || hasNoPackets() || hasEnoughFrames())
+    if (eos.loadAcquire() || (hasNoPackets() && decoderHasNoFrames) || hasEnoughFrames())
         return true;
     return false;
 }
@@ -466,6 +466,7 @@ void StreamDecoder::decode()
     } else if (res == AVERROR(EOF) || res == AVERROR_EOF) {
         eos.storeRelease(true);
         av_frame_free(&frame);
+        timeOut = -1;
         return;
     } else if (res != AVERROR(EAGAIN)) {
         char buf[512];
@@ -473,13 +474,19 @@ void StreamDecoder::decode()
         qWarning() << "error in decoder" << res << buf;
         av_frame_free(&frame);
         return;
+    } else {
+        // EAGAIN
+        decoderHasNoFrames = true;
     }
 
     Packet packet = takePacket();
-    if (!packet.isValid())
+    if (!packet.isValid()) {
+        timeOut = -1;
         return;
+    }
 
     avcodec_send_packet(codec.context(), packet.avPacket());
+    decoderHasNoFrames = false;
 }
 
 void StreamDecoder::decodeSubtitle()

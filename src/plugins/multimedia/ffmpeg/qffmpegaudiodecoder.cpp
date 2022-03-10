@@ -162,7 +162,8 @@ void SteppingAudioRenderer::loop()
             if (!atEndEmitted)
                 emit m_decoder->isAtEnd();
             atEndEmitted = true;
-            paused.storeRelaxed(true);
+            paused.storeRelease(true);
+            doneStep();
             timeOut = -1;
             return;
         }
