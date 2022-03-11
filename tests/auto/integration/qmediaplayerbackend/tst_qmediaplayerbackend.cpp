@@ -522,6 +522,10 @@ void tst_QMediaPlayerBackend::processEOS()
     QVERIFY(statusSpy.count() > 0);
     QCOMPARE(statusSpy.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::BufferedMedia);
 
+    positionSpy.clear();
+    QTRY_VERIFY(player.position() > 100);
+    QTRY_VERIFY(positionSpy.count() > 0);
+    QVERIFY(positionSpy.last()[0].value<qint64>() > 100);
     player.setPosition(900);
     //wait up to 5 seconds for EOS
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
@@ -615,6 +619,7 @@ void tst_QMediaPlayerBackend::deleteLaterAtEOS()
     QPointer<QMediaPlayer> player(new QMediaPlayer);
     QAudioOutput output;
     player->setAudioOutput(&output);
+    player->setPosition(800); // don't wait as long for EOS
     DeleteLaterAtEos deleter(player);
     player->setSource(localWavFile);
 
@@ -623,7 +628,7 @@ void tst_QMediaPlayerBackend::deleteLaterAtEOS()
     // DeferredDelete events during the wait, which interferes with this test.
     QEventLoop loop;
     QTimer::singleShot(0, &deleter, SLOT(play()));
-    QTimer::singleShot(1500, &loop, SLOT(quit()));
+    QTimer::singleShot(5000, &loop, SLOT(quit()));
     connect(player.data(), SIGNAL(destroyed()), &loop, SLOT(quit()));
     loop.exec();
     // Verify that the player was destroyed within the event loop.

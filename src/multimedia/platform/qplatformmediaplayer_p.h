@@ -73,7 +73,7 @@ public:
 
     virtual qint64 duration() const = 0;
 
-    virtual qint64 position() const = 0;
+    virtual qint64 position() const { return m_position; }
     virtual void setPosition(qint64 position) = 0;
 
     virtual float bufferProgress() const = 0;
@@ -113,7 +113,12 @@ public:
     virtual void setActiveTrack(TrackType, int /*streamNumber*/) {}
 
     void durationChanged(qint64 duration) { player->durationChanged(duration); }
-    void positionChanged(qint64 position) { player->positionChanged(position); }
+    void positionChanged(qint64 position) {
+        if (m_position == position)
+            return;
+        m_position = position;
+        player->positionChanged(position);
+    }
     void audioAvailableChanged(bool audioAvailable) {
         if (m_audioAvailable == audioAvailable)
             return;
@@ -167,6 +172,7 @@ private:
     bool m_audioAvailable = false;
     int m_loops = 1;
     int m_currentLoop = 0;
+    qint64 m_position = 0;
 };
 
 QT_END_NAMESPACE

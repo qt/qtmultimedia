@@ -216,8 +216,7 @@ int Demuxer::seek(qint64 pos)
     qint64 seekPos = pos*AV_TIME_BASE/1000;
     av_seek_frame(context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
     last_pts = -1;
-    while (last_pts < 0)
-        loop();
+    loop();
     qCDebug(qLcDemuxer) << "Demuxer::seek" << pos << last_pts;
     return last_pts;
 }
@@ -289,15 +288,9 @@ bool Demuxer::shouldWait() const
 
 void Demuxer::loop()
 {
-    if (m_isStopped.loadRelaxed()) {
-        last_pts = 0;
-        return;
-    }
-
     AVPacket *packet = av_packet_alloc();
     if (av_read_frame(context, packet) < 0) {
         sendFinalPacketToStreams();
-        emit atEnd();
         return;
     }
 
@@ -357,6 +350,7 @@ void StreamDecoder::addPacket(AVPacket *packet)
             packetQueue.size += packet->size;
             packetQueue.duration += codec.toMs(packet->duration);
         }
+        eos.storeRelease(false);
     }
     wake();
 }
@@ -607,9 +601,11 @@ void Renderer::killHelper()
 
 bool Renderer::shouldWait() const
 {
+    if (!streamDecoder)
+        return true;
     if (!paused.loadAcquire())
         return false;
-    if (step)
+    if (step.loadAcquire())
         return false;
     return true;
 }
@@ -666,10 +662,17 @@ void VideoRenderer::loop()
 
     Frame frame = streamDecoder->takeFrame();
     if (!frame.isValid()) {
+        if (streamDecoder->isAtEnd()) {
+            timeOut = -1;
+            eos.storeRelease(true);
+            emit atEnd();
+            return;
+        }
         timeOut = 1;
 //        qDebug() << "no valid frame" << timer.elapsed();
         return;
     }
+    eos.storeRelease(false);
 //    qCDebug(qLcVideoRenderer) << "received video frame" << frame.pts();
     if (frame.pts()*1000 < seekTime()) {
         qCDebug(qLcVideoRenderer) << "  discarding" << frame.pts() << seekTime();
@@ -855,9 +858,17 @@ void AudioRenderer::loop()
     } else {
         Frame frame = streamDecoder->takeFrame();
         if (!frame.isValid()) {
+            if (streamDecoder->isAtEnd()) {
+                processedUSecs = audioSink->processedUSecs();
+                timeOut = -1;
+                eos.storeRelease(true);
+                emit atEnd();
+                return;
+            }
             timeOut = 1;
             return;
         }
+        eos.storeRelease(false);
 
         if (!audioSink)
             updateOutput(frame.codec());
@@ -1084,7 +1095,7 @@ void Decoder::checkStreams(AVFormatContext *context)
             m_requestedStreams[type] = m_streamMap[type].size();
 
         m_streamMap[type].append({ (int)i, isDefault, metaData });
-        duration = qMax(duration, 1000*stream->duration*stream->time_base.num/stream->time_base.den);
+        duration = qMax(duration, 1000000*stream->duration*stream->time_base.num/stream->time_base.den);
     }
 
     if (m_requestedStreams[QPlatformMediaPlayer::VideoStream] < 0 && m_streamMap[QPlatformMediaPlayer::VideoStream].size()) {
@@ -1112,9 +1123,9 @@ void Decoder::checkStreams(AVFormatContext *context)
     if (m_duration != duration) {
         m_duration = duration;
         if (player)
-            player->durationChanged(duration);
+            player->durationChanged(duration/1000);
         else if (audioDecoder)
-            audioDecoder->durationChanged(duration);
+            audioDecoder->durationChanged(duration/1000);
     }
 }
 
@@ -1213,6 +1224,7 @@ void Decoder::setVideoSink(QVideoSink *sink)
         }
     } else if (!videoRenderer) {
         videoRenderer = new VideoRenderer(this, sink);
+        connect(audioRenderer, &Renderer::atEnd, this, &Decoder::streamAtEnd);
         videoRenderer->start();
         StreamDecoder *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream]);
         videoRenderer->setStream(stream);
@@ -1235,6 +1247,7 @@ void Decoder::setAudioSink(QPlatformAudioOutput *output)
         }
     } else if (!audioRenderer) {
         audioRenderer = new AudioRenderer(this, output->q);
+        connect(audioRenderer, &Renderer::atEnd, this, &Decoder::streamAtEnd);
         audioRenderer->start();
         auto *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
         audioRenderer->setStream(stream);
@@ -1294,10 +1307,11 @@ void Decoder::seek(qint64 pos)
         return;
     qint64 currentTime = demuxer->seek(pos);
     clockController.syncTo(pos*1000);
-    if (player)
+    if (player && currentTime >= 0)
         player->positionChanged(currentTime);
     demuxer->wake();
-    triggerStep();
+    if (paused && pos > 0)
+        triggerStep();
 }
 
 void Decoder::setPlaybackRate(float rate)
@@ -1314,6 +1328,22 @@ void Decoder::updateCurrentTime(qint64 time)
 {
     if (player)
         player->positionChanged(time/1000);
+}
+
+void Decoder::streamAtEnd()
+{
+    if (audioRenderer && !audioRenderer->isAtEnd())
+        return;
+    if (videoRenderer && !videoRenderer->isAtEnd())
+        return;
+    pause();
+    // take a local copy, as the signals below could lead to this object being deleted
+    auto *p = player;
+    if (p) {
+        p->positionChanged(m_duration/1000);
+        p->stateChanged(QMediaPlayer::StoppedState);
+        p->mediaStatusChanged(QMediaPlayer::EndOfMedia);
+    }
 }
 
 QT_END_NAMESPACE

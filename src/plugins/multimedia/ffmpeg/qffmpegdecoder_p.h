@@ -228,6 +228,7 @@ public:
 public Q_SLOTS:
     void emitError(int error, const QString &errorString);
     void updateCurrentTime(qint64 time);
+    void streamAtEnd();
 
 public:
 
@@ -289,9 +290,6 @@ public:
     void stopDecoding();
 
     int seek(qint64 pos);
-
-Q_SIGNALS:
-    void atEnd();
 
 private:
     void updateEnabledStreams();
@@ -407,9 +405,10 @@ class Renderer : public Thread
 protected:
     QPlatformMediaPlayer::TrackType type;
 
-    mutable bool step = false;
+    QAtomicInteger<bool> step = false;
     QAtomicInteger<bool> paused = true;
     StreamDecoder *streamDecoder = nullptr;
+    QAtomicInteger<bool> eos = false;
 
 public:
     Renderer(QPlatformMediaPlayer::TrackType type);
@@ -420,15 +419,15 @@ public:
             wake();
     }
     void singleStep() {
-        QMutexLocker locker(&mutex);
         if (!paused.loadAcquire())
             return;
-        step = true;
+        step.storeRelease(true);
         wake();
     }
     void doneStep() {
-        step = false;
+        step.storeRelease(false);
     }
+    bool isAtEnd() { return !streamDecoder || eos.loadAcquire(); }
 
     void setStream(StreamDecoder *stream);
     virtual void setSubtitleStream(StreamDecoder *) {}
@@ -436,6 +435,9 @@ public:
     void killHelper() override;
 
     virtual void streamChanged() {}
+
+Q_SIGNALS:
+    void atEnd();
 
 protected:
     bool shouldWait() const override;

@@ -76,18 +76,15 @@ QFFmpegMediaPlayer::~QFFmpegMediaPlayer()
 
 qint64 QFFmpegMediaPlayer::duration() const
 {
-    return decoder ? decoder->m_duration : 0;
-}
-
-qint64 QFFmpegMediaPlayer::position() const
-{
-    return decoder ? decoder->clockController.currentTime()/1000 : 0;
+    return decoder ? decoder->m_duration/1000 : 0;
 }
 
 void QFFmpegMediaPlayer::setPosition(qint64 position)
 {
     if (decoder)
         decoder->seek(position);
+    if (state() == QMediaPlayer::StoppedState)
+        mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
 
 float QFFmpegMediaPlayer::bufferProgress() const
@@ -161,6 +158,8 @@ void QFFmpegMediaPlayer::play()
     if (!decoder)
         return;
 
+    if (state() == QMediaPlayer::StoppedState)
+        decoder->seek(0);
     decoder->play();
     stateChanged(QMediaPlayer::PlayingState);
     mediaStatusChanged(QMediaPlayer::BufferedMedia);
@@ -170,6 +169,8 @@ void QFFmpegMediaPlayer::pause()
 {
     if (!decoder)
         return;
+    if (state() == QMediaPlayer::StoppedState)
+        decoder->seek(0);
     decoder->pause();
     stateChanged(QMediaPlayer::PausedState);
     mediaStatusChanged(QMediaPlayer::BufferedMedia);

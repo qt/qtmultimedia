@@ -71,7 +71,6 @@ public:
 
     qint64 duration() const override;
 
-    qint64 position() const override;
     void setPosition(qint64 position) override;
 
     float bufferProgress() const override;
