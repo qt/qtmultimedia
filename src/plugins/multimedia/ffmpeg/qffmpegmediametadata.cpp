@@ -89,7 +89,6 @@ static QMediaMetaData::Key tagToKey(const char *tag)
     return QMediaMetaData::Key(-1);
 }
 
-#if 0
 static const char *keyToTag(QMediaMetaData::Key key)
 {
     auto *map = ffmpegTagToMetaDataKey;
@@ -100,7 +99,6 @@ static const char *keyToTag(QMediaMetaData::Key key)
     }
     return nullptr;
 }
-#endif
 
 //internal
 void QFFmpegMetaData::addEntry(QMediaMetaData &metaData, AVDictionaryEntry *entry)
@@ -163,6 +161,51 @@ QMediaMetaData QFFmpegMetaData::fromAVMetaData(const AVDictionary *tags)
         addEntry(metaData, entry);
 
     return metaData;
+}
+
+QByteArray QFFmpegMetaData::value(const QMediaMetaData &metaData, QMediaMetaData::Key key)
+{
+//    qDebug() << "   checking:" << entry->key << entry->value;
+
+    const int metaTypeId = keyType(key).id();
+    const QVariant val = metaData.value(key);
+    switch (metaTypeId) {
+    case qMetaTypeId<QString>():
+        return val.toString().toUtf8();
+    case qMetaTypeId<QStringList>():
+        return val.toStringList().join(u",").toUtf8();
+    case qMetaTypeId<QDateTime>():
+        return val.toDateTime().toString(Qt::ISODate).toUtf8();
+    case qMetaTypeId<QUrl>():
+        return val.toUrl().toEncoded();
+    case qMetaTypeId<qint64>():
+    case qMetaTypeId<int>():
+        return QByteArray::number(val.toLongLong());
+    case qMetaTypeId<qreal>():
+        return QByteArray::number(val.toDouble());
+    default:
+        break;
+    }
+    if (metaTypeId == qMetaTypeId<QLocale::Language>())
+        return QLocale::languageToCode(val.value<QLocale::Language>(), QLocale::ISO639Part2).toUtf8();
+    return {};
+}
+
+
+AVDictionary *QFFmpegMetaData::toAVMetaData(const QMediaMetaData &metaData)
+{
+    const QList<Key> keys = metaData.keys();
+    AVDictionary *dict = nullptr;
+    for (const auto &k : keys) {
+        const char *key = ::keyToTag(k);
+        if (!key)
+            continue;
+        QByteArray val = value(metaData, k);
+        if (val.isEmpty())
+            continue;
+        av_dict_set(&dict, key, val.constData(), 0);
+    }
+    return dict;
 }
 
 

@@ -46,6 +46,7 @@
 #include "qffmpegaudioinput_p.h"
 #include <private/qplatformcamera_p.h>
 #include "qffmpegvideobuffer_p.h"
+#include "qffmpegmediametadata_p.h"
 
 #include <qloggingcategory.h>
 
@@ -101,6 +102,9 @@ void Encoder::addVideoSource(QPlatformCamera *source)
 void Encoder::start()
 {
     qDebug() << "Encoder::start!";
+
+    formatContext->metadata = QFFmpegMetaData::toAVMetaData(metaData);
+
     int res = avformat_write_header(formatContext, nullptr);
     if (res < 0)
         qWarning() << "could not write header" << res;
@@ -131,6 +135,11 @@ void Encoder::finalize()
     avformat_free_context(formatContext);
     formatContext = nullptr;
     qDebug() << "    done finalizing.";
+}
+
+void Encoder::setMetaData(const QMediaMetaData &metaData)
+{
+    this->metaData = metaData;
 }
 
 void Encoder::newAudioBuffer(const QAudioBuffer &buffer)

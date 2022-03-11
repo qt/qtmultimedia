@@ -105,6 +105,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     Q_ASSERT(!actualSink.isEmpty());
 
     encoder = new QFFmpeg::Encoder(settings, actualSink);
+    encoder->setMetaData(m_metaData);
     connect(encoder, &QFFmpeg::Encoder::durationChanged, this, &QFFmpegMediaRecorder::newDuration);
 
     auto *audioInput = m_session->audioInput();

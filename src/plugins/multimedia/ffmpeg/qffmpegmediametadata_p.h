@@ -61,6 +61,9 @@ class QFFmpegMetaData : public QMediaMetaData
 public:
     static void addEntry(QMediaMetaData &metaData, AVDictionaryEntry *entry);
     static QMediaMetaData fromAVMetaData(const AVDictionary *tags);
+
+    static QByteArray value(const QMediaMetaData &metaData, QMediaMetaData::Key key);
+    static AVDictionary *toAVMetaData(const QMediaMetaData &metaData);
 };
 
 QT_END_NAMESPACE

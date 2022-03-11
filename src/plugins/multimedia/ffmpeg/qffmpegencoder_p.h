@@ -86,6 +86,8 @@ public:
     void start();
     void finalize();
 
+    void setMetaData(const QMediaMetaData &metaData);
+
 public Q_SLOTS:
     void newAudioBuffer(const QAudioBuffer &buffer);
     void newVideoFrame(const QVideoFrame &frame);
@@ -97,6 +99,7 @@ Q_SIGNALS:
 public:
 
     QMediaEncoderSettings settings;
+    QMediaMetaData metaData;
     AVFormatContext *formatContext = nullptr;
     Muxer *muxer = nullptr;
     bool isRecording = false;
