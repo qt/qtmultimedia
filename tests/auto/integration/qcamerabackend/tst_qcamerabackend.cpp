@@ -597,9 +597,10 @@ void tst_QCameraBackend::testVideoRecording()
 
         QCOMPARE(recorder.metaData(), metaData);
 
+        recorderStateChanged.clear();
         recorder.stop();
-        QVERIFY(recorderStateChanged.wait(1000));
-        QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
+        QTRY_VERIFY(recorderStateChanged.size() > 0);
+        QVERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
 
         QVERIFY(errorSignal.isEmpty());
         QVERIFY(recorderErrorSignal.isEmpty());
@@ -652,9 +653,10 @@ void tst_QCameraBackend::testNativeMetadata()
 
     QCOMPARE(recorder.metaData(), metaData);
 
+    recorderStateChanged.clear();
     recorder.stop();
 
-    QVERIFY(recorderStateChanged.wait(1000));
+    QTRY_VERIFY(recorderStateChanged.size() > 0);
 
     QVERIFY(errorSignal.isEmpty());
     QVERIFY(recorderErrorSignal.isEmpty());

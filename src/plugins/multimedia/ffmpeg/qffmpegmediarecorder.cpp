@@ -152,6 +152,8 @@ void QFFmpegMediaRecorder::stop()
     if (input)
         static_cast<QFFmpegAudioInput *>(input)->setRunning(false);
     qCDebug(qLcMediaEncoder) << "stop";
+    // ### all of the below should be done asynchronous. finalize() should do it's work in a thread
+    // to avoid blocking the UI in case of slow codecs
     if (encoder) {
         encoder->finalize();
         delete encoder;
