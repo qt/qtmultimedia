@@ -57,6 +57,11 @@ inline qint64 timeStamp(qint64 ts, AVRational base)
     return (1000*ts*base.num + 500)/base.den;
 }
 
+inline qint64 timeStampUs(qint64 ts, AVRational base)
+{
+    return (1000000*ts*base.num + 500000)/base.den;
+}
+
 }
 
 #endif

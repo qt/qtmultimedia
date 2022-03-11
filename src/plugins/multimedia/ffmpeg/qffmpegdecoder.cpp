@@ -213,7 +213,7 @@ int Demuxer::seek(qint64 pos)
         if (d)
             d->mutex.unlock();
     }
-    qint64 seekPos = pos*AV_TIME_BASE/1000;
+    qint64 seekPos = pos*AV_TIME_BASE/1000000; // usecs to AV_TIME_BASE
     av_seek_frame(context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
     last_pts = -1;
     loop();
@@ -464,9 +464,9 @@ void StreamDecoder::decode()
     if (res >= 0) {
         qint64 pts;
         if (frame->pts != AV_NOPTS_VALUE)
-            pts = codec.toMs(frame->pts);
+            pts = codec.toUs(frame->pts);
         else
-            pts = codec.toMs(frame->best_effort_timestamp);
+            pts = codec.toUs(frame->best_effort_timestamp);
         addFrame(Frame{frame, codec, pts});
     } else if (res == AVERROR(EOF) || res == AVERROR_EOF) {
         eos.storeRelease(true);
@@ -511,12 +511,12 @@ void StreamDecoder::decodeSubtitle()
         // if they are missing, use the packets pts and duration values instead
         qint64 start, end;
         if (subtitle.pts == AV_NOPTS_VALUE) {
-            start = codec.toMs(packet.avPacket()->pts);
-            end = start + codec.toMs(packet.avPacket()->duration);
+            start = codec.toUs(packet.avPacket()->pts);
+            end = start + codec.toUs(packet.avPacket()->duration);
         } else {
-            qint64 pts = timeStamp(subtitle.pts, AVRational{1, AV_TIME_BASE});
-            start = pts + subtitle.start_display_time;
-            end = pts + subtitle.end_display_time;
+            qint64 pts = timeStampUs(subtitle.pts, AVRational{1, AV_TIME_BASE});
+            start = pts + qint64(subtitle.start_display_time)*1000;
+            end = pts + qint64(subtitle.end_display_time)*1000;
         }
         //        qCDebug(qLcDecoder) << "    got subtitle (" << start << "--" << end << "):";
         QString text;
@@ -674,14 +674,14 @@ void VideoRenderer::loop()
     }
     eos.storeRelease(false);
 //    qCDebug(qLcVideoRenderer) << "received video frame" << frame.pts();
-    if (frame.pts()*1000 < seekTime()) {
+    if (frame.pts() < seekTime()) {
         qCDebug(qLcVideoRenderer) << "  discarding" << frame.pts() << seekTime();
         return;
     }
 
     AVStream *stream = frame.codec()->stream();
     qint64 startTime = frame.pts();
-    qint64 duration = (1000*stream->avg_frame_rate.den + (stream->avg_frame_rate.num>>1))
+    qint64 duration = (1000000*stream->avg_frame_rate.den + (stream->avg_frame_rate.num>>1))
                       /stream->avg_frame_rate.num;
 
     if (sink) {
@@ -728,8 +728,8 @@ void VideoRenderer::loop()
     else
         nextFrameTime = startTime + duration;
     streamDecoder->unlockAndReleaseFrame();
-    qint64 mtime = timeUpdated(startTime*1000);
-    timeOut = usecsTo(mtime, nextFrameTime*1000)/1000;
+    qint64 mtime = timeUpdated(startTime);
+    timeOut = usecsTo(mtime, nextFrameTime)/1000;
 //    qDebug() << "    next video frame in" << startTime << nextFrameTime << currentTime() << timeOut;
 }
 
@@ -874,7 +874,7 @@ void AudioRenderer::loop()
             updateOutput(frame.codec());
 
         qint64 startTime = frame.pts();
-        if (startTime*1000 < seekTime())
+        if (startTime < seekTime())
             return;
 
         if (!paused.loadAcquire()) {
@@ -910,7 +910,7 @@ void AudioRenderer::loop()
 //        qDebug() << ">>>>>>>>>>>>>>>>>>>>>>>> could not write all data" << (bufferedData.size() - bufferWritten);
 //    qDebug() << "Audio: processed" << processedUSecs << "written" << writtenUSecs
 //             << "delta" << (writtenUSecs - processedUSecs) << "timeOut" << timeOut;
-//    qDebug() << "    updating time to" << (currentTimeNoLock()/1000);
+//    qDebug() << "    updating time to" << currentTimeNoLock();
     timeUpdated(audioBaseTime + (processedUSecs - processedBase)*playbackRate());
 }
 
@@ -1178,29 +1178,46 @@ void Decoder::emitError(int error, const QString &errorString)
     }
 }
 
-void Decoder::stop()
+void Decoder::setState(QMediaPlayer::PlaybackState state)
 {
-    qCDebug(qLcDecoder) << "Decoder::stop";
-    pause();
-    if (demuxer)
-        demuxer->stopDecoding();
-    seek(0);
-    if (videoSink)
-        videoSink->setVideoFrame({});
-    qCDebug(qLcDecoder) << "Decoder::stop: done" << clockController.currentTime();
+    if (m_state == state)
+        return;
+
+    switch (state) {
+    case QMediaPlayer::StoppedState:
+        qCDebug(qLcDecoder) << "Decoder::stop";
+        setPaused(true);
+        if (demuxer)
+            demuxer->stopDecoding();
+        seek(0);
+        if (videoSink)
+            videoSink->setVideoFrame({});
+        updateCurrentTime(0);
+        qCDebug(qLcDecoder) << "Decoder::stop: done";
+        break;
+    case QMediaPlayer::PausedState:
+        qCDebug(qLcDecoder) << "Decoder::pause";
+        setPaused(true);
+        if (demuxer) {
+            demuxer->startDecoding();
+            demuxer->wake();
+            if (m_state == QMediaPlayer::StoppedState)
+                triggerStep();
+        }
+        break;
+    case QMediaPlayer::PlayingState:
+        qCDebug(qLcDecoder) << "Decoder::play";
+        setPaused(false);
+        if (demuxer)
+            demuxer->startDecoding();
+        break;
+    }
+    m_state = state;
 }
 
 void Decoder::setPaused(bool b)
 {
-    if (paused == b)
-        return;
-    paused = b;
     clockController.setPaused(b);
-    if (!b) {
-        qCDebug(qLcDecoder) << "start decoding!";
-        if (demuxer)
-            demuxer->startDecoding();
-    }
 }
 
 void Decoder::triggerStep()
@@ -1262,8 +1279,7 @@ void Decoder::changeAVTrack(QPlatformMediaPlayer::TrackType type, int streamInde
     if (!demuxer)
         return;
     qCDebug(qLcDecoder) << "    applying to renderer.";
-    bool isPaused = paused;
-    if (!isPaused)
+    if (m_state == QMediaPlayer::PlayingState)
         setPaused(true);
     auto *streamDecoder = demuxer->addStream(streamIndex);
     switch (type) {
@@ -1279,8 +1295,8 @@ void Decoder::changeAVTrack(QPlatformMediaPlayer::TrackType type, int streamInde
     default:
         Q_UNREACHABLE();
     }
-    demuxer->seek(clockController.currentTime()/1000);
-    if (!isPaused)
+    demuxer->seek(clockController.currentTime());
+    if (m_state == QMediaPlayer::PlayingState)
         setPaused(false);
     else
         triggerStep();
@@ -1305,22 +1321,22 @@ void Decoder::seek(qint64 pos)
 {
     if (!demuxer)
         return;
-    qint64 currentTime = demuxer->seek(pos);
-    clockController.syncTo(pos*1000);
-    if (player && currentTime >= 0)
-        player->positionChanged(currentTime);
+    pos = qBound(0, pos, m_duration);
+    demuxer->seek(pos);
+    clockController.syncTo(pos);
+    if (player)
+        player->positionChanged(pos/1000);
     demuxer->wake();
-    if (paused && pos > 0)
+    if (m_state == QMediaPlayer::PausedState)
         triggerStep();
 }
 
 void Decoder::setPlaybackRate(float rate)
 {
-    bool p = paused;
-    if (!paused)
+    if (m_state == QMediaPlayer::PlayingState)
         setPaused(true);
     clockController.setPlaybackRate(rate);
-    if (!p)
+    if (m_state == QMediaPlayer::PlayingState)
         setPaused(false);
 }
 

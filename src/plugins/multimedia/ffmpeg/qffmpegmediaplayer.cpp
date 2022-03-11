@@ -82,7 +82,7 @@ qint64 QFFmpegMediaPlayer::duration() const
 void QFFmpegMediaPlayer::setPosition(qint64 position)
 {
     if (decoder)
-        decoder->seek(position);
+        decoder->seek(position*1000);
     if (state() == QMediaPlayer::StoppedState)
         mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
@@ -129,6 +129,8 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
         delete decoder;
     decoder = nullptr;
 
+    positionChanged(0);
+
     if (media.isEmpty() && !stream) {
         seekableChanged(false);
         audioAvailableChanged(false);
@@ -158,7 +160,7 @@ void QFFmpegMediaPlayer::play()
     if (!decoder)
         return;
 
-    if (state() == QMediaPlayer::StoppedState)
+    if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState)
         decoder->seek(0);
     decoder->play();
     stateChanged(QMediaPlayer::PlayingState);
@@ -169,7 +171,7 @@ void QFFmpegMediaPlayer::pause()
 {
     if (!decoder)
         return;
-    if (state() == QMediaPlayer::StoppedState)
+    if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState)
         decoder->seek(0);
     decoder->pause();
     stateChanged(QMediaPlayer::PausedState);

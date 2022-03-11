@@ -118,6 +118,7 @@ struct Codec
     uint streamIndex() const { return d->stream->index; }
     HWAccel hwAccel() const { return d->hwAccel; }
     qint64 toMs(qint64 ts) const { return timeStamp(ts, d->stream->time_base); }
+    qint64 toUs(qint64 ts) const { return timeStampUs(ts, d->stream->time_base); }
 
 private:
     QExplicitlySharedDataPointer<Data> d;
@@ -194,14 +195,17 @@ public:
     void setMedia(const QUrl &media, QIODevice *stream);
 
     void init();
+    void setState(QMediaPlayer::PlaybackState state);
     void play() {
-        setPaused(false);
+        setState(QMediaPlayer::PlayingState);
     }
     void pause() {
-        setPaused(true);
+        setState(QMediaPlayer::PausedState);
     }
-    void stop();
-    void setPaused(bool b);
+    void stop() {
+        setState(QMediaPlayer::StoppedState);
+    }
+
     void triggerStep();
 
     void setVideoSink(QVideoSink *sink);
@@ -235,13 +239,16 @@ public:
     // Accessed from multiple threads, but API is threadsafe
     ClockController clockController;
 
+private:
+    void setPaused(bool b);
+
 protected:
     friend QFFmpegMediaPlayer;
 
     QFFmpegMediaPlayer *player = nullptr;
     QFFmpegAudioDecoder *audioDecoder = nullptr;
 
-    bool paused = true;
+    QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
     bool m_isSeekable = false;
 
     Demuxer *demuxer = nullptr;
