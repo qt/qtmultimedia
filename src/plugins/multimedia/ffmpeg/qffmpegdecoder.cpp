@@ -859,7 +859,8 @@ void AudioRenderer::loop()
         Frame frame = streamDecoder->takeFrame();
         if (!frame.isValid()) {
             if (streamDecoder->isAtEnd()) {
-                processedUSecs = audioSink->processedUSecs();
+                if (audioSink)
+                    processedUSecs = audioSink->processedUSecs();
                 timeOut = -1;
                 eos.storeRelease(true);
                 emit atEnd();

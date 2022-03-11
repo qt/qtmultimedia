@@ -193,7 +193,6 @@ void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 */
 void QPlatformAudioDecoder::finished()
 {
-    positionChanged(-1);
     durationChanged(-1);
     setIsDecoding(false);
     emit q->finished();
