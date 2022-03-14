@@ -129,6 +129,12 @@ private:
     qint64 m_elapsedTimeOffset;
     bool m_resuming;
 
+    // calculate timing manually, as pulseaudio doesn't give us good enough data
+    mutable timeval lastTimingInfo = {};
+    mutable QList<qint64> latencyList; // last latency values
+    mutable qint64 averageLatency = 0; // average latency
+    mutable qint64 lastProcessedUSecs = 0;
+
     qreal m_volume;
     pa_sample_spec m_spec;
 };

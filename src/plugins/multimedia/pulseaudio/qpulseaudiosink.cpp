@@ -370,7 +370,7 @@ bool QPulseAudioSink::open()
     requestedBuffer.prebuf = (uint32_t)-1;
     requestedBuffer.tlength = m_bufferSize;
 
-    pa_stream_flags flags = (pa_stream_flags)(PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_ADJUST_LATENCY);
+    pa_stream_flags flags = (pa_stream_flags)(PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_ADJUST_LATENCY);
     if (pa_stream_connect_playback(m_stream, m_device.data(), (m_bufferSize > 0) ? &requestedBuffer : nullptr, flags, nullptr, nullptr) < 0) {
         qWarning() << "pa_stream_connect_playback() failed!";
         pa_stream_unref(m_stream);
@@ -582,17 +582,53 @@ qsizetype QPulseAudioSink::bufferSize() const
 
 qint64 QPulseAudioSink::processedUSecs() const
 {
-    if (!m_stream)
+    if (!m_stream || m_deviceState == QAudio::StoppedState)
         return 0;
-    pa_usec_t usecs = 0;
-    int result = pa_stream_get_time(m_stream, &usecs);
-    if (result != 0)
-        qWarning() << "no timing info from pulse";
-//    auto info = pa_stream_get_timing_info(m_stream);
-//    qDebug() << "  PA: " << usecs << "timestamp" << info->timestamp.tv_sec << info->timestamp.tv_usec
-//             << "sink_usec" << info->sink_usec
-//             << "write" << pa_bytes_to_usec(info->write_index, &m_spec)
-//             << "read" << pa_bytes_to_usec(info->read_index, &m_spec);
+    if (m_deviceState == QAudio::SuspendedState)
+        return lastProcessedUSecs;
+
+    auto info = pa_stream_get_timing_info(m_stream);
+    if (!info)
+        return 0;
+
+    // if the info changed, update our cached data, and recalculate the average latency
+    if (info->timestamp.tv_sec != lastTimingInfo.tv_sec || info->timestamp.tv_usec != lastTimingInfo.tv_usec) {
+        lastTimingInfo.tv_sec = info->timestamp.tv_sec;
+        lastTimingInfo.tv_usec = info->timestamp.tv_usec;
+        latencyList.append(info->sink_usec);
+        // Average over the last X timing infos to keep numbers more stable.
+        // 10 seems to be a decent number that keeps values relatively stable but doesn't make the list too big
+        const int latencyListMaxSize = 10;
+        if (latencyList.size() > latencyListMaxSize)
+            latencyList.pop_front();
+        averageLatency = 0;
+        for (const auto l : latencyList)
+            averageLatency += l;
+        averageLatency /= latencyList.size();
+        if (averageLatency < 0)
+            averageLatency = 0;
+    }
+
+    const qint64 usecsWritten = info->read_index < 0 ? 0 : pa_bytes_to_usec(info->read_index, &m_spec);
+
+    // processed data is the amount we've written minus the latency
+    qint64 usecs = usecsWritten - averageLatency;
+
+    timeval tv;
+    gettimeofday(&tv, nullptr);
+
+    // and now adjust for the time since the last update
+    constexpr qint64 secsToUSecs = 1000000;
+    usecs += (tv.tv_sec - lastTimingInfo.tv_sec)*secsToUSecs + (tv.tv_usec - lastTimingInfo.tv_usec);
+
+    if (usecs > usecsWritten)
+        usecs = usecsWritten;
+
+    // make sure timing is monotonic
+    if (usecs < lastProcessedUSecs)
+        usecs = lastProcessedUSecs;
+    else
+        lastProcessedUSecs = usecs;
 
     return usecs;
 }

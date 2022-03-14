@@ -422,7 +422,7 @@ void tst_QAudioSink::pull()
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
     stateSignal.clear();
 
-    qint64 processedUs = audioOutput.processedUSecs();
+    QTRY_COMPARE(audioOutput.processedUSecs(), 1000000);
 
     audioOutput.stop();
     QTest::qWait(40);
@@ -430,7 +430,6 @@ void tst_QAudioSink::pull()
              QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
-    QCOMPARE(processedUs, 1000000);
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
@@ -500,7 +499,7 @@ void tst_QAudioSink::pullSuspendResume()
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
     stateSignal.clear();
 
-    processedUs = audioOutput.processedUSecs();
+    QTRY_COMPARE(audioOutput.processedUSecs(), 1000000);
 
     audioOutput.stop();
     QTest::qWait(40);
@@ -508,8 +507,6 @@ void tst_QAudioSink::pullSuspendResume()
              QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
-    QVERIFY2((processedUs == 1000000),
-             QString("processedUSecs() doesn't equal file duration in us (%1)").arg(processedUs).toUtf8().constData());
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
@@ -581,7 +578,7 @@ void tst_QAudioSink::push()
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
     stateSignal.clear();
 
-    qint64 processedUs = audioOutput.processedUSecs();
+    QTRY_COMPARE(audioOutput.processedUSecs(), 1000000);
 
     audioOutput.stop();
     QTest::qWait(40);
@@ -589,8 +586,6 @@ void tst_QAudioSink::push()
              QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
-    QVERIFY2((processedUs == 1000000),
-             QString("processedUSecs() doesn't equal file duration in us (%1)").arg(processedUs).toUtf8().constData());
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
@@ -702,7 +697,7 @@ void tst_QAudioSink::pushSuspendResume()
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
     stateSignal.clear();
 
-    processedUs = audioOutput.processedUSecs();
+    QTRY_COMPARE(audioOutput.processedUSecs(), 1000000);
 
     audioOutput.stop();
     QTest::qWait(40);
@@ -710,8 +705,6 @@ void tst_QAudioSink::pushSuspendResume()
              QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
-    QVERIFY2((processedUs == 1000000),
-             QString("processedUSecs() doesn't equal file duration in us (%1)").arg(processedUs).toUtf8().constData());
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
@@ -814,7 +807,7 @@ void tst_QAudioSink::pushUnderrun()
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transitions to IdleState when at EOF");
     stateSignal.clear();
 
-    qint64 processedUs = audioOutput.processedUSecs();
+    QTRY_COMPARE(audioOutput.processedUSecs(), 1000000);
 
     audioOutput.stop();
     QTest::qWait(40);
@@ -822,8 +815,6 @@ void tst_QAudioSink::pushUnderrun()
              QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(stateSignal.count()).toUtf8().constData());
     QVERIFY2((audioOutput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
-    QVERIFY2((processedUs == 1000000),
-             QString("processedUSecs() doesn't equal file duration in us (%1)").arg(processedUs).toUtf8().constData());
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
     QVERIFY2((audioOutput.elapsedUSecs() == (qint64)0), "elapsedUSecs() not equal to zero in StoppedState");
 
