@@ -509,7 +509,7 @@ void tst_QAudioSource::push()
     QCOMPARE(waveDecoder.size(), QWaveDecoder::headerLength());
 
     // Set a large buffer to avoid underruns during QTest::qWaits
-    audioInput.setBufferSize(audioFormat.bytesForDuration(1000000));
+    audioInput.setBufferSize(audioFormat.bytesForDuration(100000));
 
     QIODevice* feed = audioInput.start();
 
@@ -572,7 +572,7 @@ void tst_QAudioSource::pushSuspendResume()
     QFETCH(QAudioFormat, audioFormat);
     QAudioSource audioInput(audioFormat, this);
 
-    audioInput.setBufferSize(audioFormat.bytesForDuration(1000000));
+    audioInput.setBufferSize(audioFormat.bytesForDuration(100000));
 
     QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
 
