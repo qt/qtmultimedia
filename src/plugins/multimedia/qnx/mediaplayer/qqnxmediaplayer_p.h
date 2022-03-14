@@ -56,12 +56,7 @@
 #include <QtCore/qpointer.h>
 #include <QtCore/qtimer.h>
 
-typedef struct mmr_connection mmr_connection_t;
-typedef struct mmr_context mmr_context_t;
-typedef struct mmrenderer_monitor mmrenderer_monitor_t;
-typedef struct strm_dict strm_dict_t;
-typedef struct strm_string strm_string_t;
-
+#include <mm/renderer.h>
 #include <mm/renderer/types.h>
 
 extern "C" {
