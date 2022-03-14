@@ -30,8 +30,8 @@ qt_internal_add_plugin(QQnxMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
-        MMRendererCore::MMRendererCore
         MMRenderer::MMRenderer
         asound
         camapi
+        strm
 )
