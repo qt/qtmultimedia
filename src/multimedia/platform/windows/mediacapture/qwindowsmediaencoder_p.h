@@ -99,6 +99,7 @@ private:
     QString                       m_fileName;
     QMediaMetaData                m_metaData;
     qint64                        m_duration = 0;
+    bool                          m_sessionWasActive = false;
 };
 
 QT_END_NAMESPACE
