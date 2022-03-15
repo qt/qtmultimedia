@@ -259,16 +259,32 @@ void QAndroidTextureVideoOutput::reset()
     clearSurfaceTexture();
 }
 
-QOpenGLContext *getRhiOpenGLContext(QRhi *rhi)
+bool QAndroidTextureVideoOutput::moveToOpenGLContextThread()
 {
+    if (!m_sink)
+        return false;
+
+    const auto rhi = m_sink->rhi();
     if (!rhi || rhi->backend() != QRhi::OpenGLES2)
-        return nullptr;
+        return false;
 
-    auto nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+    const auto nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
     if (!nativeHandles)
-        return nullptr;
+        return false;
 
-    return nativeHandles->context;
+    const auto context = nativeHandles->context;
+    if (!context)
+        return false;
+
+    // check if QAndroidTextureVideoOutput is already in the OpenGL context thread
+    if (QThread::currentThread() == context->thread())
+        return false;
+
+    // move to the OpenGL context thread;
+    parent()->moveToThread(context->thread());
+    moveToThread(context->thread());
+
+    return true;
 }
 
 void QAndroidTextureVideoOutput::onFrameAvailable()
@@ -277,12 +293,6 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
         return;
 
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
-
-    const auto context = getRhiOpenGLContext(rhi);
-    if (context && (thread() != context->thread())) {
-        parent()->moveToThread(context->thread());
-        moveToThread(context->thread());
-    }
 
     auto *buffer = new AndroidTextureVideoBuffer(rhi, this, m_nativeSize);
     const QVideoFrameFormat::PixelFormat format = rhi ? QVideoFrameFormat::Format_SamplerExternalOES
@@ -316,19 +326,42 @@ bool QAndroidTextureVideoOutput::renderAndReadbackFrame()
     if (!m_nativeSize.isValid() || !m_surfaceTexture)
         return false;
 
+    if (moveToOpenGLContextThread()) {
+        // just moved to another thread, must close the execution of this method
+        QMetaObject::invokeMethod(this, "onFrameAvailable", Qt::QueuedConnection);
+        return false;
+    }
+
     if (!m_readbackRhi) {
         QRhi *sinkRhi = m_sink ? m_sink->rhi() : nullptr;
         if (sinkRhi && sinkRhi->backend() == QRhi::OpenGLES2) {
             // There is an rhi from the sink, e.g. VideoOutput.  We lack the necessary
             // insight to use that directly, so create our own a QRhi that just wraps the
             // same QOpenGLContext.
+
+            const auto constHandles =
+                    static_cast<const QRhiGles2NativeHandles *>(sinkRhi->nativeHandles());
+            if (!constHandles) {
+                qWarning("Failed to get the QRhiGles2NativeHandles to create QRhi readback.");
+                return false;
+            }
+
+            auto handles = const_cast<QRhiGles2NativeHandles *>(constHandles);
+            const auto context = handles->context;
+            if (!context) {
+                qWarning("Failed to get the QOpenGLContext to create QRhi readback.");
+                return false;
+            }
+
             sinkRhi->finish();
-            QRhiGles2NativeHandles h = *static_cast<const QRhiGles2NativeHandles *>(sinkRhi->nativeHandles());
-            m_readbackRhiFallbackSurface = QRhiGles2InitParams::newFallbackSurface(h.context->format());
+            m_readbackRhiFallbackSurface =
+                    QRhiGles2InitParams::newFallbackSurface(context->format());
             QRhiGles2InitParams initParams;
-            initParams.format = h.context->format();
+            initParams.format = context->format();
             initParams.fallbackSurface = m_readbackRhiFallbackSurface;
-            m_readbackRhi = QRhi::create(QRhi::OpenGLES2, &initParams, {}, &h);
+            context->doneCurrent();
+
+            m_readbackRhi = QRhi::create(QRhi::OpenGLES2, &initParams, {}, handles);
         } else {
             // No rhi from the sink, e.g. QVideoWidget.
             // We will fire up our own QRhi with its own QOpenGLContext.

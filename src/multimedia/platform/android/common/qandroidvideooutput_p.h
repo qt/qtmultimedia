@@ -131,6 +131,8 @@ private:
     bool renderAndReadbackFrame();
     void ensureExternalTexture(QRhi *rhi);
 
+    bool moveToOpenGLContextThread();
+
     QMutex m_mutex;
     QReadWriteLock m_subtitleLock;
 
