@@ -275,6 +275,8 @@ void tst_QCameraBackend::testCameraFormat()
     QCamera camera;
     QCameraDevice device = camera.cameraDevice();
     auto videoFormats = device.videoFormats();
+    if (videoFormats.isEmpty())
+        QSKIP("No Camera available, skipping test.");
     QCameraFormat cameraFormat = videoFormats.first();
     QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
     QVERIFY(spy.count() == 0);
