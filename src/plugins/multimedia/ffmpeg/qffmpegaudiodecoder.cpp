@@ -41,6 +41,7 @@
 #include "qffmpegaudiodecoder_p.h"
 #include "qffmpegdecoder_p.h"
 #include "qffmpegmediaformatinfo_p.h"
+#include "qffmpegresampler_p.h"
 #include "qaudiobuffer.h"
 
 #include <qloggingcategory.h>
@@ -60,16 +61,12 @@ public:
     SteppingAudioRenderer(AudioDecoder *decoder, const QAudioFormat &format);
     ~SteppingAudioRenderer()
     {
-        swr_free(&resampler);
     }
-
-    void createResampler(const Codec *codec);
 
     void loop();
     AudioDecoder *m_decoder;
     QAudioFormat m_format;
-    SwrContext *resampler = nullptr;
-    qint64 samplesProcessed = 0;
+    std::unique_ptr<Resampler> resampler;
     bool atEndEmitted = false;
 };
 
@@ -112,41 +109,6 @@ SteppingAudioRenderer::SteppingAudioRenderer(AudioDecoder *decoder, const QAudio
 {
 }
 
-void SteppingAudioRenderer::createResampler(const Codec *codec)
-{
-    qCDebug(qLcAudioDecoder) << "createResampler";
-    AVStream *audioStream = codec->stream();
-    const auto *codecpar = audioStream->codecpar;
-
-    if (!m_format.isValid()) {
-        // want the native format
-        m_format.setSampleFormat(QFFmpegMediaFormatInfo::sampleFormat(AVSampleFormat(codecpar->format)));
-        m_format.setSampleRate(codecpar->sample_rate);
-        m_format.setChannelCount(codecpar->channels);
-        m_format.setChannelConfig(QAudioFormat::ChannelConfig(codecpar->channel_layout));
-    }
-
-    QAudioFormat::ChannelConfig config = m_format.channelConfig();
-    if (config == QAudioFormat::ChannelConfigUnknown)
-        config = QAudioFormat::defaultChannelConfigForChannelCount(m_format.channelCount());
-
-    auto inConfig = codecpar->channel_layout;
-    if (inConfig == 0)
-        inConfig = QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->channels));
-
-    AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(m_format.sampleFormat());
-    qCDebug(qLcAudioDecoder) << "init resampler" << m_format.sampleRate() << config << requiredFormat << codecpar->sample_rate;
-    resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
-                                   QFFmpegMediaFormatInfo::avChannelLayout(config),  // out_ch_layout
-                                   requiredFormat,    // out_sample_fmt
-                                   m_format.sampleRate(),                // out_sample_rate
-                                   inConfig, // in_ch_layout
-                                   AVSampleFormat(codecpar->format),   // in_sample_fmt
-                                   codecpar->sample_rate,                // in_sample_rate
-                                   0,                    // log_offset
-                                   nullptr);
-    swr_init(resampler);
-}
 
 void SteppingAudioRenderer::loop()
 {
@@ -176,21 +138,9 @@ void SteppingAudioRenderer::loop()
     doneStep();
 
     if (!resampler)
-        createResampler(frame.codec());
+        resampler.reset(new Resampler(frame.codec(), m_format));
 
-    const int outSamples = swr_get_out_samples(resampler, frame.avFrame()->nb_samples);
-    QByteArray samples(m_format.bytesForFrames(outSamples), Qt::Uninitialized);
-    const uint8_t **in = (const uint8_t **)frame.avFrame()->extended_data;
-    uint8_t *out = (uint8_t *)samples.data();
-    int out_samples = swr_convert(resampler, &out, outSamples,
-                                  in, frame.avFrame()->nb_samples);
-    samples.resize(m_format.bytesForFrames(out_samples));
-
-    const qint64 startTime = m_format.durationForFrames(samplesProcessed);
-    samplesProcessed += out_samples;
-
-    qCDebug(qLcAudioDecoder) << "    new frame" << startTime << "in_samples" << frame.avFrame()->nb_samples << out_samples << outSamples;
-    QAudioBuffer buffer(samples, m_format, startTime);
+    auto buffer = resampler->resample(frame.avFrame());
     emit m_decoder->newAudioBuffer(buffer);
 
     paused.storeRelaxed(true);

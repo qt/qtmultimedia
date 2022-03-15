@@ -51,6 +51,7 @@
 #include "qaudiosink.h"
 #include "qaudiooutput.h"
 #include "qffmpegaudiodecoder_p.h"
+#include "qffmpegresampler_p.h"
 
 #include <qlocale.h>
 #include <qtimer.h>
@@ -59,7 +60,6 @@
 
 extern "C" {
 #include <libavutil/hwcontext.h>
-#include <libavutil/opt.h>
 }
 
 QT_BEGIN_NAMESPACE
@@ -788,20 +788,7 @@ void AudioRenderer::updateOutput(const Codec *codec)
         channelLayout = QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(audioStream->codecpar->channels));
 
     qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat << audioStream->codecpar->channels;
-    resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
-                                   AV_CH_LAYOUT_STEREO,  // out_ch_layout
-                                   requiredFormat,    // out_sample_fmt
-                                   outputSamples(audioStream->codecpar->sample_rate),                // out_sample_rate
-                                   channelLayout, // in_ch_layout
-                                   AVSampleFormat(audioStream->codecpar->format),   // in_sample_fmt
-                                   audioStream->codecpar->sample_rate,                // in_sample_rate
-                                   0,                    // log_offset
-                                   nullptr);
-    // if we're not the master clock, we might need to handle clock adjustments, initialize for that
-    av_opt_set_double(resampler, "async", format.sampleRate()/50, 0);
-
-//    qDebug() << "setting up resampler, input rate" << audioStream->codecpar->sample_rate << "output rate:" << outputSamples(audioStream->codecpar->sample_rate);
-    swr_init(resampler);
+    resampler.reset(new Resampler(codec, format));
 }
 
 void AudioRenderer::freeOutput()
@@ -812,12 +799,8 @@ void AudioRenderer::freeOutput()
         audioSink = nullptr;
         audioDevice = nullptr;
     }
-    if (resampler) {
-        swr_free(&resampler);
-        resampler = nullptr;
-    }
     audioMuted = false;
-    bufferedData.clear();
+    bufferedData = {};
     bufferWritten = 0;
 
     audioBaseTime = currentTime();
@@ -849,11 +832,11 @@ void AudioRenderer::loop()
     doneStep();
 
     qint64 bytesWritten = 0;
-    if (!bufferedData.isEmpty()) {
-        bytesWritten = audioDevice->write(bufferedData.constData() + bufferWritten, bufferedData.size() - bufferWritten);
+    if (bufferedData.isValid()) {
+        bytesWritten = audioDevice->write(bufferedData.constData<char>() + bufferWritten, bufferedData.byteCount() - bufferWritten);
         bufferWritten += bytesWritten;
-        if (bufferWritten == bufferedData.size()) {
-            bufferedData.clear();
+        if (bufferWritten == bufferedData.byteCount()) {
+            bufferedData = {};
             bufferWritten = 0;
         }
         processedUSecs = audioSink->processedUSecs();
@@ -881,20 +864,15 @@ void AudioRenderer::loop()
             return;
 
         if (!paused.loadAcquire()) {
-            int outSamples = outputSamples(frame.avFrame()->nb_samples);
-            QByteArray samples(format.bytesForFrames(outSamples), Qt::Uninitialized);
-            const uint8_t **in = (const uint8_t **)frame.avFrame()->extended_data;
-            uint8_t *out = (uint8_t *)samples.data();
-            int out_samples = swr_convert(resampler, &out, outSamples,
-                                          in, frame.avFrame()->nb_samples);
-            if (out_samples != outSamples)
-                samples.resize(format.bytesForFrames(outSamples));
+            auto buffer = resampler->resample(frame.avFrame());
+
             if (audioMuted)
                 // This is somewhat inefficient, but it'll work
-                samples.fill(0);
-            bytesWritten = audioDevice->write(samples.data(), samples.size());
-            if (bytesWritten < samples.size()) {
-                bufferedData = samples;
+                memset(buffer.data<char>(), 0, buffer.byteCount());
+
+            bytesWritten = audioDevice->write(buffer.constData<char>(), buffer.byteCount());
+            if (bytesWritten < buffer.byteCount()) {
+                bufferedData = buffer;
                 bufferWritten = bytesWritten;
             }
 

@@ -55,6 +55,8 @@
 #include "qffmpegmediaplayer_p.h"
 #include "qffmpeghwaccel_p.h"
 #include "qffmpegclock_p.h"
+#include "qaudiobuffer.h"
+#include "qffmpegresampler_p.h"
 
 #include <qshareddata.h>
 #include <qtimer.h>
@@ -68,6 +70,8 @@ class QFFmpegMediaPlayer;
 
 namespace QFFmpeg
 {
+
+class Resampler;
 
 // queue up max 16M of encoded data, that should always be enough
 // (it's around 2 secs of 4K HDR video, longer for almost all other formats)
@@ -527,8 +531,8 @@ private:
     QAudioFormat format;
     QAudioSink *audioSink = nullptr;
     QIODevice *audioDevice = nullptr;
-    SwrContext *resampler = nullptr;
-    QByteArray bufferedData;
+    std::unique_ptr<Resampler> resampler;
+    QAudioBuffer bufferedData;
     qsizetype bufferWritten = 0;
 };
 
