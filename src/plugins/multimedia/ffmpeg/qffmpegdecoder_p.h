@@ -138,7 +138,7 @@ struct Frame
         {}
         ~Data() {
             if (frame)
-                av_frame_unref(frame);
+                av_frame_free(&frame);
         }
         QAtomicInt ref;
         Codec codec;

@@ -291,6 +291,7 @@ void Demuxer::loop()
     AVPacket *packet = av_packet_alloc();
     if (av_read_frame(context, packet) < 0) {
         sendFinalPacketToStreams();
+        av_packet_free(&packet);
         return;
     }
 
@@ -482,6 +483,7 @@ void StreamDecoder::decode()
     } else {
         // EAGAIN
         decoderHasNoFrames = true;
+        av_frame_free(&frame);
     }
 
     Packet packet = takePacket();
