@@ -335,6 +335,8 @@ TextureSet *TextureConverter::getTextures(AVFrame *frame)
 void TextureConverter::updateBackend(AVPixelFormat fmt)
 {
     d->backend = nullptr;
+    if (!d->rhi)
+        return;
     switch (fmt) {
 #if QT_CONFIG(vaapi)
     case AV_PIX_FMT_VAAPI:
