@@ -47,15 +47,7 @@ set_target_properties(camera PROPERTIES
 if(APPLE AND NOT IOS)
     set_target_properties(camera PROPERTIES
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/macos/Info.plist.in"
-        XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS
-            "${CMAKE_CURRENT_LIST_DIR}/camera.entitlements"
     )
-    if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
-        add_custom_command(TARGET camera
-        POST_BUILD
-        COMMAND codesign --sign - --entitlements ${CMAKE_CURRENT_SOURCE_DIR}/camera.entitlements ${CMAKE_CURRENT_BINARY_DIR}/camera.app
-    )
-    endif()
 elseif(IOS)
     set_target_properties(camera PROPERTIES
         MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/ios/Info.plist.in"

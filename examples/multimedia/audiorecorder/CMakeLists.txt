@@ -29,8 +29,6 @@ set_target_properties(audiorecorder PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS
-        "${CMAKE_CURRENT_LIST_DIR}/audiorecorder.entitlements"
 )
 # special case begin
 target_include_directories(audiorecorder PUBLIC
@@ -56,11 +54,3 @@ install(TARGETS audiorecorder
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
 
-if(APPLE AND NOT IOS)
-    if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
-        add_custom_command(TARGET audiorecorder
-        POST_BUILD
-        COMMAND codesign --sign - --entitlements ${CMAKE_CURRENT_SOURCE_DIR}/audiorecorder.entitlements ${CMAKE_CURRENT_BINARY_DIR}/audiorecorder.app
-    )
-    endif()
-endif()

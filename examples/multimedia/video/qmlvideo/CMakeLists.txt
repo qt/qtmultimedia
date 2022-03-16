@@ -33,8 +33,6 @@ set_target_properties(qmlvideo PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
-    XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS
-        "${CMAKE_CURRENT_LIST_DIR}/qmlvideo.entitlements"
 )
 
 target_compile_definitions(qmlvideo PUBLIC
@@ -125,12 +123,3 @@ install(TARGETS qmlvideo
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
-
-if(APPLE AND NOT IOS)
-    if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
-        add_custom_command(TARGET qmlvideo
-        POST_BUILD
-        COMMAND codesign --sign - --entitlements ${CMAKE_CURRENT_SOURCE_DIR}/qmlvideo.entitlements ${CMAKE_CURRENT_BINARY_DIR}/qmlvideo.app
-    )
-    endif()
-endif()
