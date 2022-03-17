@@ -1639,6 +1639,14 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
         changeStatus(QMediaPlayer::InvalidMedia);
         break;
     case MEError:
+        if (hrStatus == MF_E_ALREADY_INITIALIZED) {
+            // Workaround for a possible WMF issue that causes an error
+            // with some specific videos, which play fine otherwise.
+#ifdef DEBUG_MEDIAFOUNDATION
+            qDebug() << "handleSessionEvent: ignoring MF_E_ALREADY_INITIALIZED";
+#endif
+            break;
+        }
         changeStatus(QMediaPlayer::InvalidMedia);
         qWarning() << "handleSessionEvent: serious error = " << hrStatus;
         emit error(QMediaPlayer::ResourceError, tr("Media session serious error."), true);
