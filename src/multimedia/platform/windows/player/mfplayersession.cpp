@@ -216,6 +216,7 @@ void MFPlayerSession::load(const QUrl &url, QIODevice *stream)
         createSession();
         changeStatus(QMediaPlayer::LoadingMedia);
         m_sourceResolver->load(url, stream);
+        m_updateRoutingOnStart = true;
     }
     positionChanged(position());
 }
@@ -1068,6 +1069,11 @@ void MFPlayerSession::stop(bool immediate)
 
 void MFPlayerSession::start()
 {
+    if (status() == QMediaPlayer::LoadedMedia && m_updateRoutingOnStart) {
+        m_updateRoutingOnStart = false;
+        updateOutputRouting();
+    }
+
     if (m_status == QMediaPlayer::EndOfMedia) {
         m_position = 0; // restart from the beginning
         positionChanged(0);
