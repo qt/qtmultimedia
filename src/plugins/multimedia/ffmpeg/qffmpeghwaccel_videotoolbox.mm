@@ -253,22 +253,22 @@ TextureSet *VideoToolBoxAccel::getTextures(AVFrame *frame)
 #if QT_CONFIG(opengl)
 #ifdef Q_OS_MACOS
         CVOpenGLTextureCacheFlush(cvOpenGLTextureCache, 0);
-        CVReturn cvret;
         // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
-        cvret = CVOpenGLTextureCacheCreateTextureFromImage(
+        const CVReturn cvret = CVOpenGLTextureCacheCreateTextureFromImage(
                         kCFAllocatorDefault,
                         cvOpenGLTextureCache,
                         buffer,
                         nil,
                         &textureSet->cvOpenGLTexture);
+        if (cvret != kCVReturnSuccess)
+            qWarning() << "OpenGL texture creation failed" << cvret;
 
         Q_ASSERT(CVOpenGLTextureGetTarget(textureSet->cvOpenGLTexture) == GL_TEXTURE_RECTANGLE);
 #endif
 #ifdef Q_OS_IOS
         CVOpenGLESTextureCacheFlush(cvOpenGLESTextureCache, 0);
-        CVReturn cvret;
         // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
-        cvret = CVOpenGLESTextureCacheCreateTextureFromImage(
+        const CVReturn cvret = CVOpenGLESTextureCacheCreateTextureFromImage(
                         kCFAllocatorDefault,
                         cvOpenGLESTextureCache,
                         buffer,
@@ -281,6 +281,8 @@ TextureSet *VideoToolBoxAccel::getTextures(AVFrame *frame)
                         GL_UNSIGNED_BYTE,
                         0,
                         &textureSet->cvOpenGLESTexture);
+        if (cvret != kCVReturnSuccess)
+            qWarning() << "OpenGL ES texture creation failed" << cvret;
 #endif
 #endif
     }

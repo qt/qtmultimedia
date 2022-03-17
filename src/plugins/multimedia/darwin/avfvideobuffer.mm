@@ -194,14 +194,15 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 #if QT_CONFIG(opengl)
 #ifdef Q_OS_MACOS
         CVOpenGLTextureCacheFlush(sink->cvOpenGLTextureCache, 0);
-        CVReturn cvret;
         // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
-        cvret = CVOpenGLTextureCacheCreateTextureFromImage(
+        const CVReturn cvret = CVOpenGLTextureCacheCreateTextureFromImage(
                         kCFAllocatorDefault,
                         sink->cvOpenGLTextureCache,
                         m_buffer,
                         nil,
                         &cvOpenGLTexture);
+        if (cvret != kCVReturnSuccess)
+            qWarning() << "OpenGL texture creation failed" << cvret;
 
         Q_ASSERT(CVOpenGLTextureGetTarget(cvOpenGLTexture) == GL_TEXTURE_RECTANGLE);
         // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
@@ -209,9 +210,8 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 #endif
 #ifdef Q_OS_IOS
         CVOpenGLESTextureCacheFlush(sink->cvOpenGLESTextureCache, 0);
-        CVReturn cvret;
         // Create a CVPixelBuffer-backed OpenGL texture image from the texture cache.
-        cvret = CVOpenGLESTextureCacheCreateTextureFromImage(
+        const CVReturn cvret = CVOpenGLESTextureCacheCreateTextureFromImage(
                         kCFAllocatorDefault,
                         sink->cvOpenGLESTextureCache,
                         m_buffer,
@@ -224,6 +224,8 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
                         GL_UNSIGNED_BYTE,
                         0,
                         &cvOpenGLESTexture);
+        if (cvret != kCVReturnSuccess)
+            qWarning() << "OpenGL ES texture creation failed" << cvret;
 
         // Get an OpenGL texture name from the CVPixelBuffer-backed OpenGL texture image.
         return CVOpenGLESTextureGetName(cvOpenGLESTexture);
