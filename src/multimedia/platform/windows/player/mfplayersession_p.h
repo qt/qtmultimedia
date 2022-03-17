@@ -177,6 +177,7 @@ private:
     qint64 m_lastSeekPos = 0;
     MFTIME m_lastSeekSysTime = 0;
     bool m_altTiming = false;
+    bool m_updateRoutingOnStart = false;
 
     enum Command
     {
