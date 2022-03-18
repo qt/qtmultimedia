@@ -137,6 +137,14 @@ void Encoder::finalize()
     qDebug() << "    done finalizing.";
 }
 
+void Encoder::setPaused(bool p)
+{
+    if (audioEncode)
+       audioEncode->setPaused(p);
+    if (videoEncode)
+       videoEncode->setPaused(p);
+}
+
 void Encoder::setMetaData(const QMediaMetaData &metaData)
 {
     this->metaData = metaData;
@@ -387,7 +395,7 @@ bool AudioEncoder::shouldWait() const
 void AudioEncoder::loop()
 {
     QAudioBuffer buffer = takeBuffer();
-    if (!buffer.isValid())
+    if (!buffer.isValid() || paused.loadAcquire())
         return;
 
 //    qDebug() << "new audio buffer" << buffer.byteCount() << buffer.format() << buffer.frameCount() << codec->frame_size;
@@ -619,11 +627,12 @@ static void freeQVideoFrame(void *opaque, uint8_t *)
 void VideoEncoder::loop()
 {
     auto frame = takeFrame();
-    if (!frame.isValid())
+    if (!frame.isValid() || paused.loadAcquire())
         return;
 
-    if (baseTime < 0)
-        baseTime = frame.startTime();
+    if (baseTime.loadAcquire() < 0)
+        baseTime.storeRelease(frame.startTime() - lastFrameTime);
+    lastFrameTime = frame.startTime();
 
 //    qDebug() << "new video buffer" << frame.surfaceFormat() << frame.size();
     retrievePackets();
@@ -670,7 +679,7 @@ void VideoEncoder::loop()
         // ensure the video frame and it's data is alive as long as it's being used in the encoder
         avFrame->opaque_ref = av_buffer_create(nullptr, 0, freeQVideoFrame, new QVideoFrame(frame), 0);
     }
-    qint64 time = frame.startTime() - baseTime;
+    qint64 time = frame.startTime() - baseTime.loadAcquire();
     avFrame->pts = (time*stream->time_base.den + (stream->time_base.num >> 1))/(1000*stream->time_base.num);
 
     encoder->newTimeStamp(time);

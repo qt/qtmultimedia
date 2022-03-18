@@ -128,9 +128,9 @@ void QFFmpegMediaRecorder::pause()
     if (!m_session || state() != QMediaRecorder::RecordingState)
         return;
 
-//    if (m_audioSource)
-//        m_audioSource->suspend();
-    // ####
+    Q_ASSERT(encoder);
+    encoder->setPaused(true);
+
     stateChanged(QMediaRecorder::PausedState);
 }
 
@@ -139,9 +139,9 @@ void QFFmpegMediaRecorder::resume()
     if (!m_session || state() != QMediaRecorder::PausedState)
         return;
 
-//    if (m_audioSource)
-//        m_audioSource->resume();
-    // ####
+    Q_ASSERT(encoder);
+    encoder->setPaused(false);
+
     stateChanged(QMediaRecorder::RecordingState);
 }
 

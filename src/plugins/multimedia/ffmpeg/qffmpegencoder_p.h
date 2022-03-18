@@ -86,6 +86,8 @@ public:
     void start();
     void finalize();
 
+    void setPaused(bool p);
+
     void setMetaData(const QMediaMetaData &metaData);
 
 public Q_SLOTS:
@@ -135,12 +137,17 @@ private:
 class EncoderThread : public Thread
 {
 public:
+    virtual void setPaused(bool b)
+    {
+        paused.storeRelease(b);
+    }
 
 protected:
     void retrievePackets();
 
     void cleanup() override;
 
+    QAtomicInteger<bool> paused = false;
     Encoder *encoder = nullptr;
     AVStream *stream = nullptr;
     AVCodecContext *codec = nullptr;
@@ -184,6 +191,13 @@ public:
 
     void addFrame(const QVideoFrame &frame);
 
+    void setPaused(bool b) override
+    {
+        EncoderThread::setPaused(b);
+        if (b)
+            baseTime.storeRelease(-1);
+    }
+
 private:
     QVideoFrame takeFrame();
 
@@ -197,7 +211,8 @@ private:
 
     QFFmpeg::HWAccel accel;
     SwsContext *converter = nullptr;
-    qint64 baseTime = -1;
+    QAtomicInteger<qint64> baseTime = -1;
+    qint64 lastFrameTime = 0;
 };
 
 }
