@@ -103,7 +103,6 @@ static inline void planarYUV422_to_ARGB32(const uchar *y, int yStride,
                                           int width, int height)
 {
     quint32 *rgb0 = rgb;
-    quint32 *rgb1 = rgb + width;
 
     for (int j = 0; j < height; ++j) {
         const uchar *lineY0 = y;
@@ -119,11 +118,10 @@ static inline void planarYUV422_to_ARGB32(const uchar *y, int yStride,
             *rgb0++ = qYUVToARGB32(*lineY0++, rv, guv, bu);
         }
 
-        y += yStride << 1; // stride * 2
+        y += yStride; // stride * 2
         u += uStride;
         v += vStride;
         rgb0 += width;
-        rgb1 += width;
     }
 }
 
