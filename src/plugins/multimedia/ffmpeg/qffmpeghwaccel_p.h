@@ -85,21 +85,17 @@ public:
     QRhi *rhi = nullptr;
 };
 
-class TextureConverterPrivate
-{
-public:
-    ~TextureConverterPrivate()
-    {
-        delete backend;
-    }
-    QAtomicInt ref = 0;
-    QRhi *rhi = nullptr;
-    AVPixelFormat format = AV_PIX_FMT_NONE;
-    TextureConverterBackend *backend = nullptr;
-};
-
 class TextureConverter
 {
+    class Data final
+    {
+    public:
+        ~Data();
+        QAtomicInt ref = 0;
+        QRhi *rhi = nullptr;
+        AVPixelFormat format = AV_PIX_FMT_NONE;
+        TextureConverterBackend *backend = nullptr;
+    };
 public:
     TextureConverter(QRhi *rhi = nullptr);
 
@@ -114,7 +110,7 @@ public:
 private:
     void updateBackend(AVPixelFormat format);
 
-    QExplicitlySharedDataPointer<TextureConverterPrivate> d;
+    QExplicitlySharedDataPointer<Data> d;
 };
 
 class HWAccel
@@ -140,7 +136,7 @@ public:
     AVHWDeviceContext *hwDeviceContext() const;
     AVPixelFormat hwFormat() const;
 
-    const char *hardwareEncoderForCodecId(AVCodecID id) const;
+    const AVCodec *hardwareEncoderForCodecId(AVCodecID id) const;
     static HWAccel findHardwareAccelForCodecID(AVCodecID id);
 
     void createFramesContext(AVPixelFormat swFormat, const QSize &size);
@@ -148,9 +144,11 @@ public:
     AVHWFramesContext *hwFramesContext() const;
 
     static AVPixelFormat format(AVFrame *frame);
+    static const AVHWDeviceType *preferredDeviceTypes();
 private:
     QExplicitlySharedDataPointer<Data> d;
 };
+
 }
 
 QT_END_NAMESPACE

@@ -104,6 +104,8 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     QAVFCamera *m_camera;
     AVBufferRef *hwFramesContext;
     QFFmpeg::HWAccel m_accel;
+    qint64 startTime;
+    qint64 baseTime;
 }
 
 - (QAVFSampleBufferDelegate *) initWithCamera:(QAVFCamera *)renderer
@@ -113,6 +115,8 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 
     m_camera = renderer;
     hwFramesContext = nullptr;
+    startTime = 0;
+    baseTime = 0;
     return self;
 }
 
@@ -127,6 +131,15 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     // avfmediaassetwriter).
 
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+
+    CMTime time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    qint64 frameTime = time.timescale ? time.value*1000/time.timescale : 0;
+    if (baseTime == 0) {
+        // drop the first frame to get a valid frame start time
+        baseTime = frameTime;
+        startTime = 0;
+        return;
+    }
 
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
@@ -144,8 +157,6 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
         avFrame = swFrame;
     }
 #endif
-    CMTime time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
-    avFrame->pts = time.timescale ? time.value*1000/time.timescale : 0;
 
     auto format = QAVFHelpers::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
     if (format == QVideoFrameFormat::Format_Invalid) {
@@ -153,9 +164,13 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
         return;
     }
 
+    avFrame->pts = startTime;
+
     QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame);
     QVideoFrame frame(buffer, QVideoFrameFormat(QSize(width, height), format));
-    frame.setStartTime(avFrame->pts);
+    frame.setStartTime(startTime);
+    frame.setEndTime(frameTime);
+    startTime = frameTime;
 
     m_camera->syncHandleFrame(frame);
 }

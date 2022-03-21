@@ -72,6 +72,7 @@ namespace QFFmpeg
 class Muxer;
 class AudioEncoder;
 class VideoEncoder;
+class VideoFrameEncoder;
 
 class Encoder : public QObject
 {
@@ -143,14 +144,8 @@ public:
     }
 
 protected:
-    void retrievePackets();
-
-    void cleanup() override;
-
     QAtomicInteger<bool> paused = false;
     Encoder *encoder = nullptr;
-    AVStream *stream = nullptr;
-    AVCodecContext *codec = nullptr;
 };
 
 class AudioEncoder : public EncoderThread
@@ -166,13 +161,15 @@ public:
 
 private:
     QAudioBuffer takeBuffer();
+    void retrievePackets();
 
     void init() override;
     void cleanup() override;
     bool shouldWait() const override;
     void loop() override;
 
-
+    AVStream *stream = nullptr;
+    AVCodecContext *codec = nullptr;
     QFFmpegAudioInput *input;
     QAudioFormat format;
 
@@ -200,6 +197,7 @@ public:
 
 private:
     QVideoFrame takeFrame();
+    void retrievePackets();
 
     void init() override;
     void cleanup() override;
@@ -208,9 +206,8 @@ private:
 
     QMediaEncoderSettings m_encoderSettings;
     QPlatformCamera *m_camera = nullptr;
+    VideoFrameEncoder *frameEncoder = nullptr;
 
-    QFFmpeg::HWAccel accel;
-    SwsContext *converter = nullptr;
     QAtomicInteger<qint64> baseTime = -1;
     qint64 lastFrameTime = 0;
 };

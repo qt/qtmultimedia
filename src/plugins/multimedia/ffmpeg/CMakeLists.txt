@@ -29,6 +29,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegencoder.cpp qffmpegencoder_p.h
         qffmpegthread.cpp qffmpegthread_p.h
         qffmpegresampler.cpp qffmpegresampler_p.h
+        qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
     DEFINES
         QT_COMPILING_FFMPEG
     LIBRARIES

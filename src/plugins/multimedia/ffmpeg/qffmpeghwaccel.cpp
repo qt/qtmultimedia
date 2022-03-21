@@ -58,7 +58,7 @@ namespace QFFmpeg {
 // HW context initialization
 
 // preferred order of HW accelerators to use
-static AVHWDeviceType preferredHardwareAccelerators[] = {
+static const AVHWDeviceType preferredHardwareAccelerators[] = {
 // Linux/Unix
 #if defined(Q_OS_LINUX)
     AV_HWDEVICE_TYPE_VAAPI,
@@ -170,6 +170,13 @@ AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt)
     return *fmt;
 }
 
+TextureConverter::Data::~Data()
+{
+    delete backend;
+}
+
+
+
 HWAccel::Data::~Data()
 {
     if (hwDeviceContext)
@@ -211,6 +218,11 @@ AVPixelFormat HWAccel::format(AVFrame *frame)
     return AVPixelFormat(hwFramesContext->sw_format);
 }
 
+const AVHWDeviceType *HWAccel::preferredDeviceTypes()
+{
+    return preferredHardwareAccelerators;
+}
+
 AVHWDeviceContext *HWAccel::hwDeviceContext() const
 {
     if (!d || !d->hwDeviceContext)
@@ -230,18 +242,25 @@ AVPixelFormat HWAccel::hwFormat() const
     }
 }
 
-const char *HWAccel::hardwareEncoderForCodecId(AVCodecID id) const
+const AVCodec *HWAccel::hardwareEncoderForCodecId(AVCodecID id) const
 {
+    const char *codec = nullptr;
     switch (deviceType()) {
 #ifdef Q_OS_DARWIN
     case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
         switch (id) {
         case AV_CODEC_ID_H264:
-            return "h264_videotoolbox";
+            codec = "h264_videotoolbox";
+            break;
         case AV_CODEC_ID_HEVC:
-            return "hevc_videotoolbox";
+            codec = "hevc_videotoolbox";
+            break;
         case AV_CODEC_ID_PRORES:
-            return "prores_videotoolbox";
+            codec = "prores_videotoolbox";
+            break;
+        case AV_CODEC_ID_VP9:
+            codec = "vp9_videotoolbox";
+            break;
         default:
             break;
         }
@@ -250,17 +269,23 @@ const char *HWAccel::hardwareEncoderForCodecId(AVCodecID id) const
     case AV_HWDEVICE_TYPE_VAAPI:
         switch (id) {
         case AV_CODEC_ID_H264:
-            return "h264_vaapi";
+            codec = "h264_vaapi";
+            break;
         case AV_CODEC_ID_HEVC:
-            return "hevc_vaapi";
+            codec = "hevc_vaapi";
+            break;
         case AV_CODEC_ID_MJPEG:
-            return "mjpeg_vaapi";
+            codec = "mjpeg_vaapi";
+            break;
         case AV_CODEC_ID_MPEG2VIDEO:
-            return "mpeg2_vaapi";
+            codec = "mpeg2_vaapi";
+            break;
         case AV_CODEC_ID_VP8:
-            return "vp8_vaapi";
+            codec = "vp8_vaapi";
+            break;
         case AV_CODEC_ID_VP9:
-            return "vp9_vaapi";
+            codec = "vp9_vaapi";
+            break;
         default:
             break;
         }
@@ -268,7 +293,11 @@ const char *HWAccel::hardwareEncoderForCodecId(AVCodecID id) const
     default:
         break;
     }
-    return nullptr;
+    if (!codec)
+        return nullptr;
+    const AVCodec *c = avcodec_find_encoder_by_name(codec);
+    qDebug() << "searching for HW codec" << codec << "got" << c;
+    return c;
 }
 
 HWAccel HWAccel::findHardwareAccelForCodecID(AVCodecID id)
@@ -318,7 +347,7 @@ AVHWFramesContext *HWAccel::hwFramesContext() const
 
 
 TextureConverter::TextureConverter(QRhi *rhi)
-    : d(new TextureConverterPrivate)
+    : d(new Data)
 {
     d->rhi = rhi;
 }
