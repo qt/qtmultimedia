@@ -42,6 +42,7 @@
 #include <qfile.h>
 #include <qpainter.h>
 #include <private/qguiapplication_p.h>
+#include <private/qmemoryvideobuffer_p.h>
 #include <qpa/qplatformintegration.h>
 
 QT_BEGIN_NAMESPACE
@@ -240,31 +241,22 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
 {
     m_texturesDirty = false;
 
-    auto fmt = m_currentFrame.pixelFormat();
-    if (fmt == QVideoFrameFormat::Format_Invalid)
-        // We render a 1x1 black pixel when we don't have a video
-        fmt = QVideoFrameFormat::Format_RGBA8888;
-
-    auto textureDesc = QVideoTextureHelper::textureDescription(fmt);
-
-    m_frameSize = m_currentFrame.isValid() ? m_currentFrame.size() : QSize(1, 1);
+    // We render a 1x1 black pixel when we don't have a video
+    if (!m_currentFrame.isValid())
+        m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(QByteArray{4, 0}, 4),
+                                     QVideoFrameFormat(QSize(1,1), QVideoFrameFormat::Format_RGBA8888));
 
     freeTextures();
-    if (m_currentFrame.isValid()) {
-        QVideoTextureHelper::updateRhiTextures(m_currentFrame, m_rhi.get(), rub, m_frameTextures);
-    } else {
-        Q_ASSERT(fmt == QVideoFrameFormat::Format_RGBA8888);
-        QImage img(QSize(1, 1), QImage::Format_RGBA8888);
-        img.fill(Qt::black);
-        m_frameTextures[0] = m_rhi->newTexture(QRhiTexture::RGBA8, m_frameSize, 1);
-        m_frameTextures[0]->create();
-        rub->uploadTexture(m_frameTextures[0], img);
-    }
+    QVideoTextureHelper::updateRhiTextures(m_currentFrame, m_rhi.get(), rub, m_frameTextures);
 
     QRhiShaderResourceBinding bindings[4];
     auto *b = bindings;
     *(b++) = QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
                                                    m_uniformBuf.get());
+
+    auto fmt = m_currentFrame.pixelFormat();
+    auto textureDesc = QVideoTextureHelper::textureDescription(fmt);
+
     for (int i = 0; i < textureDesc->nplanes; ++i)
         (*b++) = QRhiShaderResourceBinding::sampledTexture(i + 1, QRhiShaderResourceBinding::FragmentStage,
                                                            m_frameTextures[i], m_textureSampler.get());

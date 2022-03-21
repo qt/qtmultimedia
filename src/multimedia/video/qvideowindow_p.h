@@ -127,7 +127,6 @@ public:
 
     std::unique_ptr<QVideoSink> m_sink;
     QRhi::Implementation m_graphicsApi = QRhi::Null;
-    QSize m_frameSize = QSize(-1, -1);
     QVideoFrame m_currentFrame;
     QVideoTextureHelper::SubtitleLayout m_subtitleLayout;
 
