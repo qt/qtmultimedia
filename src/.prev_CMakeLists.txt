@@ -1,6 +1,0 @@
-# Generated from src.pro.
-
-add_subdirectory(multimedia)
-if(ANDROID)
-    add_subdirectory(android)
-endif()
