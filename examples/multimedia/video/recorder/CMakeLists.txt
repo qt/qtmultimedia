@@ -4,24 +4,16 @@ project(recorder LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
     set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/recorder")
 
-find_package(QT NAMES Qt6 COMPONENTS Core Quick Multimedia REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Multimedia Quick)
 
-set(PROJECT_SOURCES
-        main.cpp
-)
-
 qt_add_executable(recorder
-    ${PROJECT_SOURCES}
+    main.cpp
 )
 
 set(resource_files
@@ -41,17 +33,18 @@ set(resource_files
     "Playback.qml"
 )
 
-qt6_add_resources(recorder "recorder"
+qt_add_resources(recorder "recorder"
     PREFIX
         "/"
     FILES
         ${resource_files}
 )
 
-target_compile_definitions(recorder
-  PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
-target_link_libraries(recorder
-  PRIVATE Qt6::Core Qt6::Quick Qt6::Multimedia)
+target_link_libraries(recorder PRIVATE
+    Qt6::Core
+    Qt6::Multimedia
+    Qt6::Quick
+)
 
 set_target_properties(recorder PROPERTIES
     MACOSX_BUNDLE TRUE

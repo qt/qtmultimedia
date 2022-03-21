@@ -62,7 +62,7 @@ set(camera_resource_files
     "images/shutter.svg"
 )
 
-qt6_add_resources(camera "camera"
+qt_add_resources(camera "camera"
     PREFIX
         "/"
     FILES

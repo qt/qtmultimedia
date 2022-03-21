@@ -61,7 +61,7 @@ set(declarative-camera_resource_files
     "images/toolbutton.sci"
 )
 
-qt6_add_resources(declarative-camera "declarative-camera"
+qt_add_resources(declarative-camera "declarative-camera"
     PREFIX
         "/"
     FILES
@@ -73,4 +73,3 @@ install(TARGETS declarative-camera
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
-

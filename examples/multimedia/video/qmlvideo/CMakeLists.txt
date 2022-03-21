@@ -104,7 +104,7 @@ set(qmlvideo_resource_files
     "qml/qmlvideo/main.qml"
 )
 
-qt6_add_resources(qmlvideo "qmlvideo"
+qt_add_resources(qmlvideo "qmlvideo"
     PREFIX
         "/"
     FILES
