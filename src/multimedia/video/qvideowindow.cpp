@@ -54,13 +54,18 @@ static QSurface::SurfaceType platformSurfaceType()
     return QSurface::Direct3DSurface;
 #endif
 
-    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::OpenGL))
-        return QSurface::RasterSurface;
-    if (!QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::RasterGLSurface)
-        || QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets))
+    auto *integration = QGuiApplicationPrivate::platformIntegration();
+
+    if (!integration->hasCapability(QPlatformIntegration::OpenGL))
         return QSurface::RasterSurface;
 
-    return QSurface::RasterGLSurface;
+    if (QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets))
+        return QSurface::RasterSurface;
+
+    if (integration->hasCapability(QPlatformIntegration::RasterGLSurface))
+        return QSurface::RasterGLSurface;
+
+    return QSurface::OpenGLSurface;
 }
 
 QVideoWindowPrivate::QVideoWindowPrivate(QVideoWindow *q)
