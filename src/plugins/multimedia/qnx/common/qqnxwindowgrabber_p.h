@@ -61,49 +61,39 @@
 #include <QSize>
 #include <QTimer>
 
+#include <memory>
+
 #include <screen/screen.h>
 
 QT_BEGIN_NAMESPACE
 
-class QQnxWindowGrabberImage : public QObject
-{
-    Q_OBJECT
-
-public:
-    QQnxWindowGrabberImage();
-    ~QQnxWindowGrabberImage();
-
-    bool initialize(screen_context_t screenContext);
-
-    void destroy();
-
-    QImage getImage(screen_window_t window, const QSize &size);
-    GLuint getTexture(screen_window_t window, const QSize &size);
-
-private:
-    bool grab(screen_window_t window);
-    bool resize(const QSize &size);
-
-    QSize m_size;
-    screen_pixmap_t m_pixmap;
-    screen_buffer_t m_pixmapBuffer;
-    EGLImageKHR m_eglImage;
-    GLuint m_glTexture;
-    unsigned char *m_bufferAddress;
-    int m_bufferStride;
-};
+class QRhi;
+class QQnxWindowGrabberImage;
 
 class QQnxWindowGrabber : public QObject, public QAbstractNativeEventFilter
 {
     Q_OBJECT
 
 public:
+    struct BufferView
+    {
+        int width = -1;
+        int height = -1;
+        int stride = -1;
+
+        unsigned char *data = nullptr;
+
+        static constexpr int pixelSize = 4; // BGRX8888;
+    };
+
     explicit QQnxWindowGrabber(QObject *parent = 0);
     ~QQnxWindowGrabber();
 
     void setFrameRate(int frameRate);
 
     void setWindowId(const QByteArray &windowId);
+
+    void setRhi(QRhi *rhi);
 
     void start();
     void stop();
@@ -117,11 +107,10 @@ public:
 
     QByteArray windowGroupId() const;
 
-    bool eglImageSupported();
-    void checkForEglImageExtension();
+    bool isEglImageSupported() const;
 
     int getNextTextureId();
-    QImage getNextImage();
+    BufferView getNextBuffer();
 
 signals:
     void updateScene(const QSize &size);
@@ -131,7 +120,8 @@ private slots:
 
 private:
     bool selectBuffer();
-    void cleanup();
+    void resetBuffers();
+    void checkForEglImageExtension();
 
     QTimer m_timer;
 
@@ -141,13 +131,15 @@ private:
     screen_window_t m_window;
     screen_context_t m_screenContext;
 
-    QQnxWindowGrabberImage *m_images[2];
+    std::unique_ptr<QQnxWindowGrabberImage> m_frontBuffer;
+    std::unique_ptr<QQnxWindowGrabberImage> m_backBuffer;
+
     QSize m_size;
 
+    QRhi *m_rhi;
+
     bool m_active;
-    int m_currentFrame;
     bool m_eglImageSupported;
-    bool m_eglImageCheck;       // We must not send a grabed frame before this is true
 };
 
 QT_END_NAMESPACE

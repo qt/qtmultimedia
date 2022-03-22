@@ -222,8 +222,8 @@ void QQnxMediaPlayer::attach()
 
     resetMonitoring();
 
-    if (m_videoRenderer)
-        m_videoRenderer->attachDisplay(m_context);
+    if (m_platformVideoSink)
+        m_platformVideoSink->attachOutput(m_context);
 
     const QByteArray defaultAudioDevice = qgetenv("QQNX_RENDERER_DEFAULT_AUDIO_SINK");
     m_audioId = mmr_output_attach(m_context, defaultAudioDevice.isEmpty() ? "snd:" : defaultAudioDevice.constData(), "audio");
@@ -272,8 +272,8 @@ void QQnxMediaPlayer::detach()
             mmr_input_detach(m_context);
             m_inputAttached = false;
         }
-        if (m_videoRenderer)
-            m_videoRenderer->detachDisplay();
+        if (m_platformVideoSink)
+            m_platformVideoSink->detachOutput();
         if (m_audioId != -1 && m_context) {
             mmr_output_detach(m_context, m_audioId);
             m_audioId = -1;
@@ -358,19 +358,22 @@ void QQnxMediaPlayer::setMediaStatus(QMediaPlayer::MediaStatus status)
 void QQnxMediaPlayer::setState(QMediaPlayer::PlaybackState state)
 {
     auto oldState = this->state();
-    if (oldState != state) {
-        if (m_videoRenderer) {
-            if (state == QMediaPlayer::PausedState || state == QMediaPlayer::StoppedState) {
-                m_videoRenderer->pause();
-            } else if ((state == QMediaPlayer::PlayingState)
-                       && (oldState == QMediaPlayer::PausedState
-                           || oldState == QMediaPlayer::StoppedState)) {
-                m_videoRenderer->resume();
-            }
-        }
 
-        stateChanged(state);
+    if (oldState == state)
+        return;
+
+    if (m_platformVideoSink) {
+        if (state == QMediaPlayer::PausedState || state == QMediaPlayer::StoppedState) {
+            m_platformVideoSink->pause();
+        } else if (state == QMediaPlayer::PlayingState) {
+            if (oldState == QMediaPlayer::PausedState)
+                m_platformVideoSink->resume();
+            else
+                m_platformVideoSink->start();
+        }
     }
+
+    stateChanged(state);
 }
 
 void QQnxMediaPlayer::stopInternal(StopCommand stopCommand)
@@ -570,7 +573,7 @@ void QQnxMediaPlayer::stop()
 
 void QQnxMediaPlayer::setVideoSink(QVideoSink *videoSink)
 {
-    m_videoRenderer = static_cast<QQnxVideoSink *>(videoSink->platformVideoSink());
+    m_platformVideoSink = static_cast<QQnxVideoSink *>(videoSink->platformVideoSink());
 }
 
 

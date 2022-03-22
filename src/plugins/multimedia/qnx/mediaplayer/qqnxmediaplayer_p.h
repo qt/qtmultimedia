@@ -229,7 +229,7 @@ private:
     bool m_muted = true;
     qreal m_rate = 1.;
     QPointer<QAudioOutput> m_audioOutput;
-    QPointer<QQnxVideoSink> m_videoRenderer;
+    QPointer<QQnxVideoSink> m_platformVideoSink;
     QQnxMediaMetaData m_metaData;
     qint64 m_position = 0;
     QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;

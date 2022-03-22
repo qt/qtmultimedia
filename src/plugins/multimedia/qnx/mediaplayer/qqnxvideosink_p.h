@@ -65,21 +65,23 @@ class QQnxVideoSink : public QPlatformVideoSink
     Q_OBJECT
 public:
     explicit QQnxVideoSink(QVideoSink *parent = 0);
-    ~QQnxVideoSink();
+    ~QQnxVideoSink() override;
 
-    // Called by media control
-    void attachDisplay(mmr_context_t *context);
-    void detachDisplay();
+    // Called by media player
+    void attachOutput(mmr_context_t *context);
+    void detachOutput();
     void pause();
     void resume();
+    void start();
 
-    void customEvent(QEvent *) override;
+    void setRhi(QRhi *) override;
 
 private Q_SLOTS:
     void updateScene(const QSize &size);
 
 private:
-    QQnxWindowGrabber* m_QQnxWindowGrabber;
+    QQnxWindowGrabber* m_windowGrabber;
+
     mmr_context_t *m_context;
 
     int m_videoId;

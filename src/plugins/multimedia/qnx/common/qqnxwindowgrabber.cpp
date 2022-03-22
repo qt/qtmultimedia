@@ -48,6 +48,12 @@
 
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
+
+#include <QtGui/private/qrhi_p.h>
+#include <QtGui/private/qrhigles2_p.h>
+
+#include <cstring>
+
 #include <EGL/egl.h>
 #include <errno.h>
 
@@ -56,24 +62,44 @@ QT_BEGIN_NAMESPACE
 static PFNEGLCREATEIMAGEKHRPROC s_eglCreateImageKHR;
 static PFNEGLDESTROYIMAGEKHRPROC s_eglDestroyImageKHR;
 
+class QQnxWindowGrabberImage
+{
+public:
+    QQnxWindowGrabberImage();
+    ~QQnxWindowGrabberImage();
+
+    bool initialize(screen_context_t screenContext);
+
+    QQnxWindowGrabber::BufferView getBuffer(screen_window_t window, const QSize &size);
+    GLuint getTexture(screen_window_t window, const QSize &size);
+
+private:
+    bool grab(screen_window_t window);
+    bool resize(const QSize &size);
+
+    QSize m_size;
+    screen_pixmap_t m_pixmap;
+    screen_buffer_t m_pixmapBuffer;
+    EGLImageKHR m_eglImage;
+    GLuint m_glTexture;
+    unsigned char *m_bufferAddress;
+    int m_bufferStride;
+};
+
 QQnxWindowGrabber::QQnxWindowGrabber(QObject *parent)
     : QObject(parent),
       m_windowParent(nullptr),
       m_screenContext(0),
+      m_rhi(nullptr),
       m_active(false),
-      m_currentFrame(0),
-      m_eglImageSupported(false),
-      m_eglImageCheck(false)
+      m_eglImageSupported(false)
 {
     // grab the window frame with 60 frames per second
     m_timer.setInterval(1000/60);
 
-    connect(&m_timer, SIGNAL(timeout()), SLOT(triggerUpdate()));
+    connect(&m_timer, &QTimer::timeout, this, &QQnxWindowGrabber::triggerUpdate);
 
     QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
-
-    for ( int i = 0; i < 2; ++i )
-        m_images[i] = 0;
 
     // Use of EGL images can be disabled by setting QQNX_MM_DISABLE_EGLIMAGE_SUPPORT to something
     // non-zero.  This is probably useful only to test that this path still works since it results
@@ -103,7 +129,6 @@ QQnxWindowGrabber::~QQnxWindowGrabber()
 {
     screen_destroy_window(m_windowParent);
     QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
-    cleanup();
 }
 
 void QQnxWindowGrabber::setFrameRate(int frameRate)
@@ -111,10 +136,16 @@ void QQnxWindowGrabber::setFrameRate(int frameRate)
     m_timer.setInterval(1000/frameRate);
 }
 
-
 void QQnxWindowGrabber::setWindowId(const QByteArray &windowId)
 {
     m_windowId = windowId;
+}
+
+void QQnxWindowGrabber::setRhi(QRhi *rhi)
+{
+    m_rhi = rhi;
+
+    checkForEglImageExtension();
 }
 
 void QQnxWindowGrabber::start()
@@ -135,7 +166,7 @@ void QQnxWindowGrabber::stop()
     if (!m_active)
         return;
 
-    cleanup();
+    resetBuffers();
 
     m_timer.stop();
 
@@ -181,10 +212,8 @@ bool QQnxWindowGrabber::handleScreenEvent(screen_event_t screen_event)
     }
 
     // Grab windows that have a non-empty ID string and a matching window id to grab
-    if (idString[0] != '\0' && m_windowId == idString) {
+    if (idString[0] != '\0' && m_windowId == idString)
         m_window = window;
-        start();
-    }
 
     return false;
 }
@@ -210,39 +239,43 @@ QByteArray QQnxWindowGrabber::windowGroupId() const
     return QByteArray(groupName);
 }
 
-bool QQnxWindowGrabber::eglImageSupported()
+bool QQnxWindowGrabber::isEglImageSupported() const
 {
     return m_eglImageSupported;
 }
 
 void QQnxWindowGrabber::checkForEglImageExtension()
 {
-    QOpenGLContext *m_context = QOpenGLContext::currentContext();
-    if (!m_context) //Should not happen, because we are called from the render thread
+    m_eglImageSupported = false;
+
+    if (!m_rhi || m_rhi->backend() != QRhi::OpenGLES2)
         return;
 
-    QByteArray eglExtensions = QByteArray(eglQueryString(eglGetDisplay(EGL_DEFAULT_DISPLAY),
-                                                         EGL_EXTENSIONS));
-    m_eglImageSupported = m_context->hasExtension(QByteArrayLiteral("GL_OES_EGL_image"))
-                          && eglExtensions.contains(QByteArrayLiteral("EGL_KHR_image"))
-                          && s_eglCreateImageKHR && s_eglDestroyImageKHR;
+    const EGLDisplay defaultDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-    if (strstr(reinterpret_cast<const char*>(glGetString(GL_VENDOR)), "VMware"))
-        m_eglImageSupported = false;
+    const char *vendor = eglQueryString(defaultDisplay, EGL_VENDOR);
 
-    m_eglImageCheck = true;
+    if (vendor && std::strstr(vendor, "VMWare"))
+        return;
+
+    const char *eglExtensions = eglQueryString(defaultDisplay, EGL_EXTENSIONS);
+
+    if (!eglExtensions)
+        return;
+
+    m_eglImageSupported = std::strstr(eglExtensions, "EGL_KHR_image")
+                          && s_eglCreateImageKHR
+                          && s_eglDestroyImageKHR;
 }
 
 void QQnxWindowGrabber::triggerUpdate()
 {
-    if (!m_eglImageCheck) // We did not check for egl images yet
-        return;
-
     int size[2] = { 0, 0 };
 
-    int result = screen_get_window_property_iv(m_window, SCREEN_PROPERTY_SOURCE_SIZE, size);
+    const int result = screen_get_window_property_iv(m_window, SCREEN_PROPERTY_SOURCE_SIZE, size);
+
     if (result != 0) {
-        cleanup();
+        resetBuffers();
         qWarning() << "QQnxWindowGrabber: cannot get window size:" << strerror(errno);
         return;
     }
@@ -257,17 +290,19 @@ bool QQnxWindowGrabber::selectBuffer()
 {
     // If we're using egl images we need to double buffer since the gpu may still be using the last
     // video frame.  If we're not, it doesn't matter since the data is immediately copied.
-    if (eglImageSupported())
-        m_currentFrame = (m_currentFrame + 1) % 2;
+    if (isEglImageSupported())
+        std::swap(m_frontBuffer, m_backBuffer);
 
-    if (!m_images[m_currentFrame]) {
-        m_images[m_currentFrame] = new QQnxWindowGrabberImage();
-        if (!m_images[m_currentFrame]->initialize(m_screenContext)) {
-            delete m_images[m_currentFrame];
-            m_images[m_currentFrame] = 0;
-            return false;
-        }
-    }
+    if (m_frontBuffer)
+        return true;
+
+    auto frontBuffer = std::make_unique<QQnxWindowGrabberImage>();
+
+    if (!frontBuffer->initialize(m_screenContext))
+        return false;
+
+    m_frontBuffer = std::move(frontBuffer);
+
     return true;
 }
 
@@ -275,30 +310,31 @@ int QQnxWindowGrabber::getNextTextureId()
 {
     if (!selectBuffer())
         return 0;
-    return m_images[m_currentFrame]->getTexture(m_window, m_size);
+
+    return m_frontBuffer->getTexture(m_window, m_size);
 }
 
-QImage QQnxWindowGrabber::getNextImage()
+QQnxWindowGrabber::BufferView QQnxWindowGrabber::getNextBuffer()
 {
     if (!selectBuffer())
-        return QImage();
+        return {};
 
-    return m_images[m_currentFrame]->getImage(m_window, m_size);
+    return m_frontBuffer->getBuffer(m_window, m_size);
 }
 
-void QQnxWindowGrabber::cleanup()
+void QQnxWindowGrabber::resetBuffers()
 {
-    for ( int i = 0; i < 2; ++i ) {
-        if (m_images[i]) {
-            m_images[i]->destroy();
-            m_images[i] = 0;
-        }
-    }
+    m_frontBuffer.reset();
+    m_backBuffer.reset();
 }
-
 
 QQnxWindowGrabberImage::QQnxWindowGrabberImage()
-    : m_pixmap(0), m_pixmapBuffer(0), m_eglImage(0), m_glTexture(0), m_bufferAddress(0), m_bufferStride(0)
+    : m_pixmap(0),
+    m_pixmapBuffer(0),
+    m_eglImage(0),
+    m_glTexture(0),
+    m_bufferAddress(nullptr),
+    m_bufferStride(0)
 {
 }
 
@@ -312,8 +348,7 @@ QQnxWindowGrabberImage::~QQnxWindowGrabberImage()
         screen_destroy_pixmap(m_pixmap);
 }
 
-bool
-QQnxWindowGrabberImage::initialize(screen_context_t screenContext)
+bool QQnxWindowGrabberImage::initialize(screen_context_t screenContext)
 {
     if (screen_create_pixmap(&m_pixmap, screenContext) != 0) {
         qWarning() << "QQnxWindowGrabber: cannot create pixmap:" << strerror(errno);
@@ -322,26 +357,17 @@ QQnxWindowGrabberImage::initialize(screen_context_t screenContext)
     const int usage = SCREEN_USAGE_WRITE | SCREEN_USAGE_READ | SCREEN_USAGE_NATIVE;
     screen_set_pixmap_property_iv(m_pixmap, SCREEN_PROPERTY_USAGE, &usage);
 
+    // XXX as a matter of fact, the underlying buffer is BGRX8888 (according to
+    // QNX, screen formats can be loose on the ARGB ordering) - as there is no
+    // SCREEN_FORMAT_BGRX8888 constant, we use SCREEN_FORMAT_RGBX8888, which
+    // carries the same depth and allows us to use the buffer.
     const int format = SCREEN_FORMAT_RGBX8888;
     screen_set_pixmap_property_iv(m_pixmap, SCREEN_PROPERTY_FORMAT, &format);
 
     return true;
 }
 
-void
-QQnxWindowGrabberImage::destroy()
-{
-    // We want to delete in the thread we were created in since we need the thread that
-    // has called eglMakeCurrent on the right EGL context.  This doesn't actually guarantee
-    // this but that would be hard to achieve and in practice it works.
-    if (QThread::currentThread() == thread())
-        delete this;
-    else
-        deleteLater();
-}
-
-bool
-QQnxWindowGrabberImage::resize(const QSize &newSize)
+bool QQnxWindowGrabberImage::resize(const QSize &newSize)
 {
     if (m_pixmapBuffer) {
         screen_destroy_pixmap_buffer(m_pixmap);
@@ -350,7 +376,7 @@ QQnxWindowGrabberImage::resize(const QSize &newSize)
         m_bufferStride = 0;
     }
 
-    int size[2] = { newSize.width(), newSize.height() };
+    const int size[2] = { newSize.width(), newSize.height() };
 
     screen_set_pixmap_property_iv(m_pixmap, SCREEN_PROPERTY_BUFFER_SIZE, size);
 
@@ -369,28 +395,30 @@ QQnxWindowGrabberImage::resize(const QSize &newSize)
     }
 }
 
-bool
-QQnxWindowGrabberImage::grab(screen_window_t window)
+bool QQnxWindowGrabberImage::grab(screen_window_t window)
 {
     const int rect[] = { 0, 0, m_size.width(), m_size.height() };
     return screen_read_window(window, m_pixmapBuffer, 1, rect, 0) == 0;
 }
 
-QImage
-QQnxWindowGrabberImage::getImage(screen_window_t window, const QSize &size)
+QQnxWindowGrabber::BufferView QQnxWindowGrabberImage::getBuffer(
+        screen_window_t window, const QSize &size)
 {
-    if (size != m_size) {
-        if (!resize(size))
-            return QImage();
-    }
-    if (!m_bufferAddress || !grab(window))
-        return QImage();
+    if (size != m_size && !resize(size))
+        return {};
 
-    return QImage(m_bufferAddress, m_size.width(), m_size.height(), m_bufferStride, QImage::Format_ARGB32);
+    if (!m_bufferAddress || !grab(window))
+        return {};
+
+    return {
+        .width = m_size.width(),
+        .height = m_size.height(),
+        .stride = m_bufferStride,
+        .data = m_bufferAddress
+    };
 }
 
-GLuint
-QQnxWindowGrabberImage::getTexture(screen_window_t window, const QSize &size)
+GLuint QQnxWindowGrabberImage::getTexture(screen_window_t window, const QSize &size)
 {
     if (size != m_size) {
         if (!m_glTexture)
@@ -413,7 +441,5 @@ QQnxWindowGrabberImage::getTexture(screen_window_t window, const QSize &size)
 
     return m_glTexture;
 }
-
-
 
 QT_END_NAMESPACE
