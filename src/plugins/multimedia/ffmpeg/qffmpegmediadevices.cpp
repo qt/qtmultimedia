@@ -77,7 +77,7 @@ QList<QAudioDevice> QFFmpegMediaDevices::audioInputs() const
     QList<QAudioDevice> devices;
 
     qDebug() << "listing audio inputs:";
-    AVInputFormat *device = nullptr;
+    const AVInputFormat *device = nullptr;
     while ((device = av_input_audio_device_next(device))) {
         auto *d = new QCameraDevicePrivate;
         d->id = device->name;
@@ -106,7 +106,7 @@ QList<QAudioDevice> QFFmpegMediaDevices::audioOutputs() const
     QList<QAudioDevice> devices;
 
     qDebug() << "listing audio outputs:";
-    AVOutputFormat *device = nullptr;
+    const AVOutputFormat *device = nullptr;
     while ((device = av_output_audio_device_next(device))) {
         auto *d = new QCameraDevicePrivate;
         d->id = device->name;
