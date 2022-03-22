@@ -652,6 +652,15 @@ quint64 QVideoFrame::textureHandle(int plane) const
 }
 
 /*!
+    \internal
+    Returns a QRhiTexture of the video frame
+*/
+std::unique_ptr<QRhiTexture> QVideoFrame::rhiTexture(int /* plane */) const
+{
+    return {};
+}
+
+/*!
     Returns the presentation time (in microseconds) when the frame should be displayed.
 
     An invalid time is represented as -1.

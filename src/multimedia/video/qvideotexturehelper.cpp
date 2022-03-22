@@ -477,104 +477,112 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     memcpy(data + 64 + 64 + 4, &width, 4);
 }
 
-int updateRhiTextures(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates, QRhiTexture **textures)
+static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)
+{
+    if (!frame.map(QVideoFrame::ReadOnly)) {
+        qWarning() << "could not map data of QVideoFrame for upload";
+        return false;
+    }
+
+    QVideoFrameFormat fmt = frame.surfaceFormat();
+    QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
+    QSize size = fmt.frameSize();
+
+    const TextureDescription &texDesc = descriptions[pixelFormat];
+    QSize planeSize(size.width()/texDesc.sizeScale[plane].x, size.height()/texDesc.sizeScale[plane].y);
+
+    bool needsRebuild = !tex || tex->pixelSize() != planeSize || tex->format() != texDesc.textureFormat[plane];
+    if (!tex) {
+        tex.reset(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, {}));
+        if (!tex) {
+            qWarning("Failed to create new texture (size %dx%d)", planeSize.width(), planeSize.height());
+            return false;
+        }
+    }
+
+    if (needsRebuild) {
+        tex->setFormat(texDesc.textureFormat[plane]);
+        tex->setPixelSize(planeSize);
+        if (!tex->create()) {
+            qWarning("Failed to create texture (size %dx%d)", planeSize.width(), planeSize.height());
+            return false;
+        }
+    }
+
+    QRhiTextureSubresourceUploadDescription subresDesc;
+    QImage image;
+    if (pixelFormat == QVideoFrameFormat::Format_Jpeg) {
+        image = frame.toImage();
+        image.convertTo(QImage::Format_ARGB32);
+        subresDesc.setData(QByteArray((const char *)image.bits(), image.bytesPerLine()*image.height()));
+        subresDesc.setDataStride(image.bytesPerLine());
+    } else {
+        subresDesc.setData(QByteArray::fromRawData((const char *)frame.bits(plane), frame.mappedBytes(plane)));
+        subresDesc.setDataStride(frame.bytesPerLine(plane));
+    }
+
+    QRhiTextureUploadEntry entry(0, 0, subresDesc);
+    QRhiTextureUploadDescription desc({ entry });
+    rub->uploadTexture(tex.get(), desc);
+
+    return true;
+}
+
+static bool updateTextureWithHandle(QVideoFrame frame, QRhi *rhi, int plane, std::unique_ptr<QRhiTexture> &tex)
 {
     QVideoFrameFormat fmt = frame.surfaceFormat();
     QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
     QSize size = fmt.frameSize();
 
-    const TextureDescription *description = descriptions + pixelFormat;
+    const TextureDescription &texDesc = descriptions[pixelFormat];
+    QSize planeSize(size.width()/texDesc.sizeScale[plane].x, size.height()/texDesc.sizeScale[plane].y);
 
-    QSize planeSizes[TextureDescription::maxPlanes];
-    for (int plane = 0; plane < description->nplanes; ++plane)
-        planeSizes[plane] = QSize(size.width()/description->sizeScale[plane].x, size.height()/description->sizeScale[plane].y);
+    QRhiTexture::Flags textureFlags = {};
+    if (pixelFormat == QVideoFrameFormat::Format_SamplerExternalOES) {
+#ifdef Q_OS_ANDROID
+        if (rhi->backend() == QRhi::OpenGLES2)
+            textureFlags |= QRhiTexture::ExternalOES;
+#endif
+    }
+    if (pixelFormat == QVideoFrameFormat::Format_SamplerRect) {
+#ifdef Q_OS_MACOS
+        if (rhi->backend() == QRhi::OpenGLES2)
+            textureFlags |= QRhiTexture::TextureRectangleGL;
+#endif
+    }
+
+    if (quint64 handle = frame.textureHandle(plane); handle) {
+        tex.reset(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, textureFlags));
+        if (!tex->createFrom({handle, 0})) {
+            qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu",handle);
+            return false;
+        }
+    } else {
+        qCDebug(qLcVideoTextureHelper) << "Incorrect texture handle from QVideoFrame, trying to map and upload texture";
+        return false;
+    }
+    return true;
+}
+
+void updateRhiTexture(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)
+{
+    const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
+    if (plane >= texDesc.nplanes) {
+        tex.reset();
+        return;
+    }
 
     if (frame.handleType() == QVideoFrame::RhiTextureHandle) {
-        QRhiTexture::Flags textureFlags = {};
-        if (pixelFormat == QVideoFrameFormat::Format_SamplerExternalOES) {
-#ifdef Q_OS_ANDROID
-            if (rhi->backend() == QRhi::OpenGLES2)
-                textureFlags |= QRhiTexture::ExternalOES;
-#endif
-        }
-        if (pixelFormat == QVideoFrameFormat::Format_SamplerRect) {
-#ifdef Q_OS_MACOS
-            if (rhi->backend() == QRhi::OpenGLES2)
-                textureFlags |= QRhiTexture::TextureRectangleGL;
-#endif
+        if (std::unique_ptr<QRhiTexture> ftex = frame.rhiTexture(plane); ftex) {
+            tex = std::move(ftex);
+            return;
         }
 
-        quint64 textureHandles[TextureDescription::maxPlanes] = {};
-        bool textureHandlesOK = true;
-        for (int plane = 0; plane < description->nplanes; ++plane) {
-            quint64 handle = frame.textureHandle(plane);
-            textureHandles[plane] = handle;
-            textureHandlesOK &= handle > 0;
-        }
-
-        if (textureHandlesOK) {
-            for (int plane = 0; plane < description->nplanes; ++plane) {
-                textures[plane] = rhi->newTexture(description->textureFormat[plane], planeSizes[plane], 1, textureFlags);
-                if (!textures[plane]->createFrom({ textureHandles[plane], 0}))
-                    qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu", textureHandles[plane]);
-            }
-            return description->nplanes;
-        } else {
-            qCDebug(qLcVideoTextureHelper) << "Incorrect texture handle from QVideoFrame, trying to map and upload texture";
-        }
+        if (QVideoTextureHelper::updateTextureWithHandle(frame, rhi, plane, tex))
+            return;
     }
 
-    // need to upload textures
-    bool mapped = frame.map(QVideoFrame::ReadOnly);
-    if (!mapped) {
-        qWarning() << "could not map data of QVideoFrame for upload";
-        return 0;
-    }
-
-    auto ensureTexture = [&](int plane) -> bool {
-        bool needsRebuild = !textures[plane] || textures[plane]->pixelSize() != planeSizes[plane];
-        if (!textures[plane])
-            textures[plane] = rhi->newTexture(description->textureFormat[plane], planeSizes[plane], 1, {});
-
-        if (needsRebuild) {
-            textures[plane]->setPixelSize(planeSizes[plane]);
-            bool created = textures[plane]->create();
-            if (!created) {
-                qWarning("Failed to create texture (size %dx%d)", planeSizes[plane].width(), planeSizes[plane].height());
-                return false;
-            }
-        }
-        return true;
-    };
-
-    if (pixelFormat == QVideoFrameFormat::Format_Jpeg) {
-        if (!ensureTexture(0))
-            return 0;
-        QImage image = frame.toImage();
-        image.convertTo(QImage::Format_ARGB32);
-        auto data = QByteArray((const char *)image.bits(), image.bytesPerLine()*image.height());
-        QRhiTextureSubresourceUploadDescription subresDesc(data);
-        subresDesc.setDataStride(image.bytesPerLine());
-        QRhiTextureUploadEntry entry(0, 0, subresDesc);
-        QRhiTextureUploadDescription desc({ entry });
-        resourceUpdates->uploadTexture(textures[0], desc);
-        return 1;
-    }
-
-
-    Q_ASSERT(frame.planeCount() == description->nplanes);
-    for (int plane = 0; plane < description->nplanes; ++plane) {
-        if (!ensureTexture(plane))
-            return 0;
-
-        auto data = QByteArray::fromRawData((const char *)frame.bits(plane), frame.mappedBytes(plane));
-        QRhiTextureSubresourceUploadDescription subresDesc(data);
-        subresDesc.setDataStride(frame.bytesPerLine(plane));
-        QRhiTextureUploadEntry entry(0, 0, subresDesc);
-        QRhiTextureUploadDescription desc({ entry });
-        resourceUpdates->uploadTexture(textures[plane], desc);
-    }
-    return description->nplanes;
+    QVideoTextureHelper::updateTextureWithMap(frame, rhi, rub, plane, tex);
 }
 
 bool SubtitleLayout::update(const QSize &frameSize, QString text)

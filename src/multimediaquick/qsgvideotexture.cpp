@@ -55,7 +55,7 @@ private:
     QSize m_size;
     QByteArray m_data;
 
-    QScopedPointer<QRhiTexture> m_texture;
+    std::unique_ptr<QRhiTexture> m_texture;
     quint64 m_nativeObject = 0;
 };
 
@@ -77,7 +77,7 @@ qint64 QSGVideoTexture::comparisonKey() const
         return d->m_nativeObject;
 
     if (d->m_texture)
-        return qint64(qintptr(d->m_texture.data()));
+        return qint64(qintptr(d->m_texture.get()));
 
     // two textures (and so materials) with not-yet-created texture underneath are never equal
     return qint64(qintptr(this));
@@ -85,7 +85,7 @@ qint64 QSGVideoTexture::comparisonKey() const
 
 QRhiTexture *QSGVideoTexture::rhiTexture() const
 {
-    return d_func()->m_texture.data();
+    return d_func()->m_texture.get();
 }
 
 QSize QSGVideoTexture::textureSize() const
@@ -154,7 +154,7 @@ void QSGVideoTexturePrivate::updateRhiTexture(QRhi *rhi, QRhiResourceUpdateBatch
         subresDesc.setDestinationTopLeft(QPoint(0, 0));
         QRhiTextureUploadEntry entry(0, 0, subresDesc);
         QRhiTextureUploadDescription desc({ entry });
-        resourceUpdates->uploadTexture(m_texture.data(), desc);
+        resourceUpdates->uploadTexture(m_texture.get(), desc);
         m_data.clear();
     }
 }
@@ -162,6 +162,11 @@ void QSGVideoTexturePrivate::updateRhiTexture(QRhi *rhi, QRhiResourceUpdateBatch
 void QSGVideoTexture::commitTextureOperations(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
 {
     d_func()->updateRhiTexture(rhi, resourceUpdates);
+}
+
+QRhiTexture *QSGVideoTexture::releaseTexture()
+{
+    return d_func()->m_texture.release();
 }
 
 void QSGVideoTexture::setRhiTexture(QRhiTexture *texture)

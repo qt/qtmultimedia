@@ -103,11 +103,6 @@ QVideoWindowPrivate::QVideoWindowPrivate(QVideoWindow *q)
     QObject::connect(m_sink.get(), &QVideoSink::videoFrameChanged, q, &QVideoWindow::setVideoFrame);
 }
 
-QVideoWindowPrivate::~QVideoWindowPrivate()
-{
-    freeTextures();
-}
-
 static const float g_quad[] = {
     // 4 clockwise rotation of texture vertexes (the second pair)
     // Rotation 0
@@ -246,8 +241,8 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
         m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(QByteArray{4, 0}, 4),
                                      QVideoFrameFormat(QSize(1,1), QVideoFrameFormat::Format_RGBA8888));
 
-    freeTextures();
-    QVideoTextureHelper::updateRhiTextures(m_currentFrame, m_rhi.get(), rub, m_frameTextures);
+    for (int i = 0; i < QVideoTextureHelper::TextureDescription::maxPlanes; ++i)
+        QVideoTextureHelper::updateRhiTexture(m_currentFrame, m_rhi.get(), rub, i, m_frameTextures[i]);
 
     QRhiShaderResourceBinding bindings[4];
     auto *b = bindings;
@@ -259,7 +254,7 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
 
     for (int i = 0; i < textureDesc->nplanes; ++i)
         (*b++) = QRhiShaderResourceBinding::sampledTexture(i + 1, QRhiShaderResourceBinding::FragmentStage,
-                                                           m_frameTextures[i], m_textureSampler.get());
+                                                           m_frameTextures[i].get(), m_textureSampler.get());
     m_shaderResourceBindings->setBindings(bindings, b);
     m_shaderResourceBindings->create();
 
@@ -305,15 +300,6 @@ void QVideoWindowPrivate::updateSubtitle(QRhiResourceUpdateBatch *rub, const QSi
         blend.enable = true;
         m_subtitlePipeline->setTargetBlends({ blend });
         setupGraphicsPipeline(m_subtitlePipeline.get(), m_subtitleResourceBindings.get(), QVideoFrameFormat::Format_RGBA8888);
-    }
-}
-
-void QVideoWindowPrivate::freeTextures()
-{
-    for (int i = 0; i < 3; ++i) {
-        if (m_frameTextures[i])
-            delete m_frameTextures[i];
-        m_frameTextures[i] = nullptr;
     }
 }
 

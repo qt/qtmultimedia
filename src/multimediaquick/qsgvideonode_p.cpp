@@ -159,19 +159,13 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
     m_videoFrameSlots[rhi->currentFrameSlot()] = m_currentFrame;
 
     // update and upload all textures
-    QRhiTexture *textures[3] = {};
-    for (int i = 0; i < 3; ++i) {
-        if (m_textures[i].data())
-            textures[i] = m_textures[i].data()->rhiTexture();
-        else
-            textures[i] = nullptr;
-    }
-
-    QVideoTextureHelper::updateRhiTextures(m_currentFrame, rhi, resourceUpdates, textures);
-
-    for (int i = 0; i < 3; ++i) {
-        if (m_textures[i].data())
-            m_textures[i].data()->setRhiTexture(textures[i]);
+    for (int plane = 0; plane < 3; ++plane) {
+        QSGVideoTexture *sgTex = m_textures[plane].get();
+        if (sgTex) {
+            std::unique_ptr<QRhiTexture> tex(sgTex->releaseTexture());
+            QVideoTextureHelper::updateRhiTexture(m_currentFrame, rhi, resourceUpdates, plane, tex);
+            sgTex->setRhiTexture(tex.release());
+        }
     }
 }
 

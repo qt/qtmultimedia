@@ -81,7 +81,6 @@ class QVideoWindow;
 class QVideoWindowPrivate {
 public:
     QVideoWindowPrivate(QVideoWindow *q);
-    ~QVideoWindowPrivate();
     bool canRender() const { return m_useRhi; }
 
     QRhi *rhi() const { return m_rhi.get(); }
@@ -96,7 +95,6 @@ public:
 
     void updateTextures(QRhiResourceUpdateBatch *rub);
     void updateSubtitle(QRhiResourceUpdateBatch *rub, const QSize &frameSize);
-    void freeTextures();
 
     void setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, QVideoFrameFormat::PixelFormat fmt);
 
@@ -115,7 +113,7 @@ public:
     std::unique_ptr<QRhiBuffer> m_vertexBuf;
     bool m_vertexBufReady = false;
     std::unique_ptr<QRhiBuffer> m_uniformBuf;
-    QRhiTexture *m_frameTextures[3] = {};
+    std::unique_ptr<QRhiTexture> m_frameTextures[3];
     std::unique_ptr<QRhiSampler> m_textureSampler;
     std::unique_ptr<QRhiShaderResourceBindings> m_shaderResourceBindings;
     std::unique_ptr<QRhiGraphicsPipeline> m_graphicsPipeline;
