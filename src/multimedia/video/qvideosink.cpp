@@ -93,10 +93,8 @@ public:
     The QVideoSink class can be used to retrieve video data on a frame by frame
     basis from Qt Multimedia.
 
-    QVideoSink can operate in two modes. In the first mode, it can render the video
-    stream to a native window of the underlying windowing system. In the other mode,
-    it will provide individual video frames to the application developer through the
-    videoFrameChanged() signal.
+    QVideoSink will provide individual video frames to the application developer
+    through the videoFrameChanged() signal.
 
     The video frame can then be used to read out the data of those frames and handle them
     further. When using QPainter, the QVideoFrame can be drawing using the paint() method
