@@ -59,7 +59,7 @@ void convert_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
     const uchar shuffle = _MM_SHUFFLE(3-a, 3-r, 3-b, 3-g);
 #endif
 
-    using Pixel = const RgbPixel<a, r, g, b>;
+    using Pixel = const ArgbPixel<a, r, g, b>;
 
     for (int y = 0; y < height; ++y) {
         auto *pixel = reinterpret_cast<const Pixel *>(src);

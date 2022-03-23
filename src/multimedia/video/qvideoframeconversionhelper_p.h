@@ -62,17 +62,43 @@ typedef void (QT_FASTCALL *VideoFrameConvertFunc)(const QVideoFrame &frame, ucha
 VideoFrameConvertFunc qConverterForFormat(QVideoFrameFormat::PixelFormat format);
 
 template<int a, int r, int g, int b>
-struct RgbPixel
+struct ArgbPixel
 {
-    uchar data[4];
+    quint32 data;
     inline quint32 convert() const
     {
-        return (a >= 0 ? (uint(data[a]) << 24) : 0xff000000)
-               | (uint(data[r]) << 16)
-               | (uint(data[g]) << 8)
-               | (uint(data[b]));
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        return (((data >> (8*a)) & 0xff) << 24)
+             | (((data >> (8*r)) & 0xff) << 16)
+             | (((data >> (8*g)) & 0xff) << 8)
+             | ((data >> (8*b)) & 0xff);
+#else
+        return (((data >> (32-8*a)) & 0xff) << 24)
+             | (((data >> (32-8*r)) & 0xff) << 16)
+             | (((data >> (32-8*g)) & 0xff) << 8)
+             | ((data >> (32-8*b)) & 0xff);
+#endif
     }
+};
 
+template<int r, int g, int b>
+struct RgbPixel
+{
+    quint32 data;
+    inline quint32 convert() const
+    {
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        return 0xff000000
+                | (((data >> (8*r)) & 0xff) << 16)
+                | (((data >> (8*g)) & 0xff) << 8)
+                | ((data >> (8*b)) & 0xff);
+#else
+        return 0xff000000
+                | (((data >> (32-8*r)) & 0xff) << 16)
+                | (((data >> (32-8*g)) & 0xff) << 8)
+                | ((data >> (32-8*b)) & 0xff);
+#endif
+    }
 };
 
 template<typename Y>
@@ -92,14 +118,14 @@ struct YPixel
 };
 
 
-using ARGB8888 = RgbPixel<0, 1, 2, 3>;
-using ABGR8888 = RgbPixel<0, 3, 2, 1>;
-using RGBA8888 = RgbPixel<3, 0, 1, 2>;
-using BGRA8888 = RgbPixel<3, 2, 1, 0>;
-using XRGB8888 = RgbPixel<-1, 1, 2, 3>;
-using XBGR8888 = RgbPixel<-1, 3, 2, 1>;
-using RGBX8888 = RgbPixel<-1, 0, 1, 2>;
-using BGRX8888 = RgbPixel<-1, 2, 1, 0>;
+using ARGB8888 = ArgbPixel<0, 1, 2, 3>;
+using ABGR8888 = ArgbPixel<0, 3, 2, 1>;
+using RGBA8888 = ArgbPixel<3, 0, 1, 2>;
+using BGRA8888 = ArgbPixel<3, 2, 1, 0>;
+using XRGB8888 = RgbPixel<1, 2, 3>;
+using XBGR8888 = RgbPixel<3, 2, 1>;
+using RGBX8888 = RgbPixel<0, 1, 2>;
+using BGRX8888 = RgbPixel<2, 1, 0>;
 
 #define FETCH_INFO_PACKED(frame) \
     const uchar *src = frame.bits(0); \

@@ -72,7 +72,7 @@ void convert_to_ARGB32_avx2(const QVideoFrame &frame, uchar *output)
                                           3 - a, 3 - r, 3 - g, 3 - b);
 #endif
 
-    using Pixel = const RgbPixel<a, r, g, b>;
+    using Pixel = const ArgbPixel<a, r, g, b>;
 
     for (int y = 0; y < height; ++y) {
         auto *pixel = reinterpret_cast<const Pixel *>(src);

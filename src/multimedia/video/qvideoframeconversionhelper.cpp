@@ -353,14 +353,15 @@ static void QT_FASTCALL qt_convert_to_ARGB32(const QVideoFrame &frame, uchar *ou
 
         int x = 0;
         for (; x < width - 3; x += 4) {
-            *argb++ = qPremultiply(data->convert());
-            ++data;
-            *argb++ = qPremultiply(data->convert());
-            ++data;
-            *argb++ = qPremultiply(data->convert());
-            ++data;
-            *argb++ = qPremultiply(data->convert());
-            ++data;
+            // Copy 4 pixels onto the stack in one go. This significantly increases performance
+            // in the case where the mapped memory is uncached (because it's a framebuffer)
+            Pixel p[4];
+            memcpy(p, data, 4*sizeof(Pixel));
+            *argb++ = qPremultiply(p[0].convert());
+            *argb++ = qPremultiply(p[1].convert());
+            *argb++ = qPremultiply(p[2].convert());
+            *argb++ = qPremultiply(p[3].convert());
+            data += 4;
         }
 
         // leftovers
@@ -386,14 +387,15 @@ static void QT_FASTCALL qt_convert_premultiplied_to_ARGB32(const QVideoFrame &fr
 
         int x = 0;
         for (; x < width - 3; x += 4) {
-            *argb++ = data->convert();
-            ++data;
-            *argb++ = data->convert();
-            ++data;
-            *argb++ = data->convert();
-            ++data;
-            *argb++ = data->convert();
-            ++data;
+            // Copy 4 pixels onto the stack in one go. This significantly increases performance
+            // in the case where the mapped memory is uncached (because it's a framebuffer)
+            Pixel p[4];
+            memcpy(p, data, 4*sizeof(Pixel));
+            *argb++ = p[0].convert();
+            *argb++ = p[1].convert();
+            *argb++ = p[2].convert();
+            *argb++ = p[3].convert();
+            data += 4;
         }
 
         // leftovers
