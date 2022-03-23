@@ -159,9 +159,23 @@ public:
         , m_d2d11tex(d2d11tex)
     {}
 
-    quint64 textureHandle(int plane) const override
+    std::unique_ptr<QRhiTexture> texture(int plane) const override
     {
-        return plane == 0 ? quint64(m_d2d11tex.get()) : 0;
+        if (!rhi || !m_d2d11tex || plane > 0)
+            return {};
+        D3D11_TEXTURE2D_DESC desc = {};
+        m_d2d11tex->GetDesc(&desc);
+        QRhiTexture::Format format;
+        if (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM)
+            format = QRhiTexture::BGRA8;
+        else if (desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
+            format = QRhiTexture::RGBA8;
+        else
+            return {};
+
+        std::unique_ptr<QRhiTexture> tex(rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
+        tex->createFrom({quint64(m_d2d11tex.get()), 0});
+        return tex;
     }
 
 private:
@@ -258,9 +272,24 @@ public:
         }
     }
 
-    quint64 textureHandle(int plane) const override
+    std::unique_ptr<QRhiTexture> texture(int plane) const override
     {
-        return plane == 0 ? quint64(m_glTextureName) : 0;
+        if (!rhi || !m_texture || plane > 0)
+            return {};
+
+        D3DSURFACE_DESC desc;
+        m_texture->GetLevelDesc(0, &desc);
+        QRhiTexture::Format format;
+        if (desc.Format == D3DFMT_A8R8G8B8)
+            format = QRhiTexture::BGRA8;
+        else if (desc.Format == D3DFMT_A8B8G8R8)
+            format = QRhiTexture::RGBA8;
+        else
+            return {};
+
+        std::unique_ptr<QRhiTexture> tex(rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
+        tex->createFrom({quint64(m_glTextureName), 0});
+        return tex;
     }
 
 private:
@@ -507,8 +536,15 @@ HRESULT D3DPresentEngine::checkFormat(D3DFORMAT format)
                                    D3DUSAGE_RENDERTARGET,
                                    D3DRTYPE_SURFACE,
                                    format);
+    if (FAILED(hr))
+        return hr;
 
-    return hr;
+    bool ok = format == D3DFMT_X8R8G8B8
+           || format == D3DFMT_A8R8G8B8
+           || format == D3DFMT_X8B8G8R8
+           || format == D3DFMT_A8B8G8R8;
+
+    return ok ? S_OK : D3DERR_NOTAVAILABLE;
 }
 
 HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSample*> &videoSampleQueue)

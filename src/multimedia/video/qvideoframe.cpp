@@ -655,9 +655,12 @@ quint64 QVideoFrame::textureHandle(int plane) const
     \internal
     Returns a QRhiTexture of the video frame
 */
-std::unique_ptr<QRhiTexture> QVideoFrame::rhiTexture(int /* plane */) const
+std::unique_ptr<QRhiTexture> QVideoFrame::rhiTexture(int plane) const
 {
-    return {};
+    if (!d || !d->buffer)
+        return {};
+    d->buffer->mapTextures();
+    return d->buffer->texture(plane);
 }
 
 /*!

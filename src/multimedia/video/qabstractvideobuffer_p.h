@@ -58,11 +58,14 @@
 #include <QtGui/qmatrix4x4.h>
 #include <QtCore/private/qglobal_p.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 
 class QVariant;
 class QRhi;
+class QRhiTexture;
 
 class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 {
@@ -86,6 +89,7 @@ public:
 
     virtual void mapTextures() {}
     virtual quint64 textureHandle(int /*plane*/) const { return 0; }
+    virtual std::unique_ptr<QRhiTexture> texture(int /*plane*/) const;
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
 protected:
