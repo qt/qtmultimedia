@@ -609,11 +609,11 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
     LONGLONG startTime = 0;
     auto hr = sample->GetSampleTime(&startTime);
      if (SUCCEEDED(hr)) {
-        frame.setStartTime(startTime * 0.1);
+        frame.setStartTime(startTime / 10);
 
         LONGLONG duration = -1;
         if (SUCCEEDED(sample->GetSampleDuration(&duration)))
-            frame.setEndTime((startTime + duration) * 0.1);
+            frame.setEndTime((startTime + duration) / 10);
     }
 
     return frame;
