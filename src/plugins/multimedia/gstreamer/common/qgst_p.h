@@ -473,7 +473,14 @@ public:
     QGstPad staticPad(const char *name) const { return QGstPad(gst_element_get_static_pad(element(), name), HasRef); }
     QGstPad src() const { return staticPad("src"); }
     QGstPad sink() const { return staticPad("sink"); }
-    QGstPad getRequestPad(const char *name) const { return QGstPad(gst_element_get_request_pad(element(), name), HasRef); }
+    QGstPad getRequestPad(const char *name) const
+    {
+#if GST_CHECK_VERSION(1,19,1)
+        return QGstPad(gst_element_request_pad_simple(element(), name), HasRef);
+#else
+        return QGstPad(gst_element_get_request_pad(element(), name), HasRef);
+#endif
+    }
     void releaseRequestPad(const QGstPad &pad) const { return gst_element_release_request_pad(element(), pad.pad()); }
 
     GstState state() const
