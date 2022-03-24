@@ -79,8 +79,12 @@ static AVFrame *allocHWFrame(AVBufferRef *hwContext, const CVPixelBufferRef &pix
     frame->width  = ctx->width;
     frame->height = ctx->height;
     frame->format = AV_PIX_FMT_VIDEOTOOLBOX;
-    Q_ASSERT(frame->width == (int)CVPixelBufferGetWidth(pixbuf));
-    Q_ASSERT(frame->height == (int)CVPixelBufferGetHeight(pixbuf));
+    if (frame->width != (int)CVPixelBufferGetWidth(pixbuf) ||
+        frame->height != (int)CVPixelBufferGetHeight(pixbuf)) {
+        // This can happen while changing camera format
+        av_frame_free(&frame);
+        return nullptr;
+    }
     return frame;
 }
 
@@ -144,6 +148,8 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     int width = CVPixelBufferGetWidth(imageBuffer);
     int height = CVPixelBufferGetHeight(imageBuffer);
     AVFrame *avFrame = allocHWFrame(m_accel.hwFramesContextAsBuffer(), imageBuffer);
+    if (!avFrame)
+        return;
 
 #ifdef USE_SW_FRAMES
     auto *swFrame = av_frame_alloc();
