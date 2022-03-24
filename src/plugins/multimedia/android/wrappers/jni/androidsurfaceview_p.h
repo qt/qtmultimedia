@@ -54,6 +54,7 @@
 #include <QtCore/qjniobject.h>
 #include <qrect.h>
 #include <QtCore/qrunnable.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
