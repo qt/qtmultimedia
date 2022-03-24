@@ -49,6 +49,7 @@
 #include <private/qplatformcamera_p.h>
 #include "qffmpegvideobuffer_p.h"
 #include "qffmpegmediametadata_p.h"
+#include "qffmpegencoderoptions_p.h"
 
 #include <qloggingcategory.h>
 
@@ -248,32 +249,6 @@ static AVSampleFormat bestMatchingSampleFormat(AVSampleFormat requested, const A
     return best;
 }
 
-static void applyEncoderSettings(AVDictionary **opts, const QMediaEncoderSettings &settings, bool audio)
-{
-    av_dict_set(opts, "threads", "auto", 0);
-    if (settings.encodingMode() == QMediaRecorder::ConstantQualityEncoding) {
-        av_dict_set(opts, "flags", "qscale", 0);
-        const char *scales[QMediaRecorder::VeryHighQuality+1] = {
-            "28",
-            "20",
-            "16",
-            "12",
-            "4"
-        };
-        av_dict_set(opts, "global_quality", scales[settings.quality()], 0);
-    } else {
-        if (audio && settings.audioBitRate() > 0)
-            av_dict_set(opts, "ab", QByteArray::number(settings.audioBitRate()).constData(), 0);
-        else if (!audio && settings.videoBitRate() > 0)
-            av_dict_set(opts, "b", QByteArray::number(settings.videoBitRate()).constData(), 0);
-    }
-
-    if (!audio) {
-        av_dict_set(opts, "row-mt", "1", 0);
-    }
-}
-
-
 AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings)
     : input(input)
 {
@@ -307,7 +282,7 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
     avcodec_parameters_to_context(codec, stream->codecpar);
 
     AVDictionary *opts = nullptr;
-    applyEncoderSettings(&opts, settings, /*audio = */ true);
+    applyAudioEncoderOptions(settings, avCodec->name, codec, &opts);
 
     int res = avcodec_open2(codec, avCodec, &opts);
     qDebug() << "audio codec opened" << res;

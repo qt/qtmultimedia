@@ -40,6 +40,7 @@
 #include "qffmpegvideoframeencoder_p.h"
 #include "qffmpegvideobuffer_p.h"
 #include "qffmpegmediaformatinfo_p.h"
+#include "qffmpegencoderoptions_p.h"
 #include "private/qplatformmediarecorder_p.h"
 #include "private/qmultimediautils_p.h"
 #include <qdebug.h>
@@ -196,32 +197,6 @@ VideoFrameEncoder::~VideoFrameEncoder()
 {
 }
 
-// #### get rid of duyplication
-static void applyEncoderSettings(AVDictionary **opts, const QMediaEncoderSettings &settings, bool audio)
-{
-    av_dict_set(opts, "threads", "auto", 0);
-    if (settings.encodingMode() == QMediaRecorder::ConstantQualityEncoding) {
-        av_dict_set(opts, "flags", "qscale", 0);
-        const char *scales[QMediaRecorder::VeryHighQuality+1] = {
-            "28",
-            "20",
-            "16",
-            "12",
-            "4"
-        };
-        av_dict_set(opts, "global_quality", scales[settings.quality()], 0);
-    } else {
-        if (audio && settings.audioBitRate() > 0)
-            av_dict_set(opts, "ab", QByteArray::number(settings.audioBitRate()).constData(), 0);
-        else if (!audio && settings.videoBitRate() > 0)
-            av_dict_set(opts, "b", QByteArray::number(settings.videoBitRate()).constData(), 0);
-    }
-
-    if (!audio) {
-        av_dict_set(opts, "row-mt", "1", 0);
-    }
-}
-
 void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatContext)
 {
     d->stream = avformat_new_stream(formatContext, nullptr);
@@ -278,7 +253,7 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     d->codecContext->framerate = { num, den };
 
     AVDictionary *opts = nullptr;
-    applyEncoderSettings(&opts, d->settings, /*audio = */ false);
+    applyVideoEncoderOptions(d->settings, d->codec->name, d->codecContext, &opts);
     int res = avcodec_open2(d->codecContext, d->codec, &opts);
     if (res < 0) {
         avcodec_free_context(&d->codecContext);
