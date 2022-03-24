@@ -195,7 +195,14 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
                 tempFile->setFileTemplate(tempFile->fileTemplate() + QLatin1Char('.') + suffix);
 
             // Copy the qrc data into the temporary file
-            tempFile->open();
+            if (!tempFile->open()) {
+                control->setMedia(QUrl(), nullptr);
+                control->mediaStatusChanged(QMediaPlayer::InvalidMedia);
+                control->error(QMediaPlayer::ResourceError, tempFile->errorString());
+                delete tempFile;
+                qrcFile.reset();
+                return;
+            }
             char buffer[4096];
             while (true) {
                 qint64 len = file->read(buffer, sizeof(buffer));
