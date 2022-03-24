@@ -38,6 +38,10 @@
 ****************************************************************************/
 #include "qffmpegencoderoptions_p.h"
 
+#if QT_CONFIG(vaapi)
+#include <va/va.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 // unfortunately there is no common way to specify options for the encoders. The code here tries to map our settings sensibly
@@ -107,7 +111,7 @@ static void apply_x265(const QMediaEncoderSettings &settings, AVCodecContext *co
         codec->bit_rate = settings.videoBitRate();
     } else {
         const char *scales[QMediaRecorder::VeryHighQuality+1] = {
-            "24", "26", "28", "34", "40",
+            "40", "34", "28", "26", "24",
         };
         av_dict_set(opts, "crf", scales[settings.quality()], 0);
     }
@@ -119,7 +123,7 @@ static void apply_libvpx(const QMediaEncoderSettings &settings, AVCodecContext *
         codec->bit_rate = settings.videoBitRate();
     } else {
         const char *scales[QMediaRecorder::VeryHighQuality+1] = {
-            "18", "20", "31", "28", "34",
+            "38", "34", "31", "28", "25",
         };
         av_dict_set(opts, "crf", scales[settings.quality()], 0);
         av_dict_set(opts, "b", 0, 0);
@@ -127,6 +131,7 @@ static void apply_libvpx(const QMediaEncoderSettings &settings, AVCodecContext *
     av_dict_set(opts, "row-mt", "1", 0); // better multithreading
 }
 
+#ifdef Q_OS_DARWIN
 static void apply_videotoolbox(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **)
 {
     if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
@@ -138,7 +143,7 @@ static void apply_videotoolbox(const QMediaEncoderSettings &settings, AVCodecCon
         // Videotoolbox describes quality as a number from 0 to 1, with low == 0.25, normal 0.5, high 0.75 and lossless = 1
         // ffmpeg uses a different scale going from 0 to 11800.
         // Values here are adjusted to agree approximately with the target bit rates listed above
-        int scales[] = {
+        const int scales[] = {
             3000, 4800, 5900, 6900, 7700,
         };
         codec->global_quality = scales[settings.quality()];
@@ -148,7 +153,66 @@ static void apply_videotoolbox(const QMediaEncoderSettings &settings, AVCodecCon
 #endif
     }
 }
+#endif
 
+#if QT_CONFIG(vaapi)
+static void apply_vaapi(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **/*opts*/)
+{
+    // See also vaapi_encode_init_rate_control() in libavcodec
+    if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding) {
+        codec->bit_rate = settings.videoBitRate();
+        codec->rc_max_rate = settings.videoBitRate();
+    } else if (settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
+        codec->bit_rate = settings.videoBitRate();
+    } else {
+        const int *quality = nullptr;
+        // unfortunately, all VA codecs use different quality scales :/
+        switch (settings.videoCodec()) {
+        case QMediaFormat::VideoCodec::MPEG2: {
+            const int q[] = { 20, 15, 10, 8, 6 };
+            quality = q;
+            break;
+        }
+        case QMediaFormat::VideoCodec::MPEG4:
+        case QMediaFormat::VideoCodec::H264: {
+            const int q[] = { 29, 26, 23, 21, 19 };
+            quality = q;
+            break;
+        }
+        case QMediaFormat::VideoCodec::H265: {
+            const int q[] = { 40, 34, 28, 26, 24 };
+            quality = q;
+            break;
+        }
+        case QMediaFormat::VideoCodec::VP8: {
+            const int q[] = { 56, 48, 40, 34, 28 };
+            quality = q;
+            break;
+        }
+        case QMediaFormat::VideoCodec::VP9: {
+            const int q[] = { 124, 112, 100, 88, 76 };
+            quality = q;
+            break;
+        }
+        case QMediaFormat::VideoCodec::MotionJPEG: {
+            const int q[] = { 40, 60, 80, 90, 95 };
+            quality = q;
+            break;
+        }
+        case QMediaFormat::VideoCodec::AV1:
+        case QMediaFormat::VideoCodec::Theora:
+        case QMediaFormat::VideoCodec::WMV:
+        default:
+            break;
+        }
+
+        if (quality) {
+            qDebug() << "using quality" << settings.quality() << quality[settings.quality()];
+            codec->global_quality = quality[settings.quality()];
+        }
+    }
+}
+#endif
 
 
 namespace QFFmpeg {
@@ -163,10 +227,20 @@ const struct {
     { "libx265xx", apply_x265 },
     { "libvpx", apply_libvpx },
     { "libvpx_vp9", apply_libvpx },
+#ifdef Q_OS_DARWIN
     { "h264_videotoolbox", apply_videotoolbox },
     { "hevc_videotoolbox", apply_videotoolbox },
     { "prores_videotoolbox", apply_videotoolbox },
     { "vp9_videotoolbox", apply_videotoolbox },
+#endif
+#if QT_CONFIG(vaapi)
+    { "mpeg2_vaapi", apply_vaapi },
+    { "mjpeg_vaapi", apply_vaapi },
+    { "h264_vaapi", apply_vaapi },
+    { "hevc_vaapi", apply_vaapi },
+    { "vp8_vaapi", apply_vaapi },
+    { "vp9_vaapi", apply_vaapi },
+#endif
     { nullptr, nullptr }
 };
 

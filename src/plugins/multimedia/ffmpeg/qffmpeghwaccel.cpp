@@ -325,17 +325,16 @@ void HWAccel::createFramesContext(AVPixelFormat swFormat, const QSize &size)
         return;
     d->hwFramesContext = av_hwframe_ctx_alloc(d->hwDeviceContext);
     auto *c = (AVHWFramesContext *)d->hwFramesContext->data;
-    c->format = AV_PIX_FMT_VIDEOTOOLBOX;
+    c->format = hwFormat();
     c->sw_format = swFormat;
     c->width = size.width();
     c->height = size.height();
+    qDebug() << "init frames context";
     int err = av_hwframe_ctx_init(d->hwFramesContext);
-    if (err < 0) {
-        char str[AV_ERROR_MAX_STRING_SIZE];
-        av_make_error_string(str, AV_ERROR_MAX_STRING_SIZE, err);
-        qWarning() << "failed to init HW frame context" << err << str;
-        return;
-    }
+    if (err < 0)
+        qWarning() << "failed to init HW frame context" << err << av_err2str(err);
+    else
+        qDebug() << "Initialized frames context" << size << c->format << c->sw_format;
 }
 
 AVHWFramesContext *HWAccel::hwFramesContext() const
