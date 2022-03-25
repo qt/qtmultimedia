@@ -158,6 +158,37 @@ set(FFMPEG_LIBRARIES "")
 set(FFMPEG_DEFINITIONS "")
 set(FFMPEG_LIBRARY_DIRS "")
 
+# Function parses package config file to find the static library dependencies
+# and adds them to the target library.
+function(__ffmpeg_internal_set_dependencies lib)
+  set(PC_FILE ${FFMPEG_DIR}/lib/pkgconfig/lib${lib}.pc)
+  if(EXISTS ${PC_FILE})
+    file(READ ${PC_FILE} pcfile)
+
+    string(REGEX REPLACE ".*Libs:([A-Za-z0-9_. \${}-]+).*" "\\1" out "${pcfile}")
+    string(REGEX MATCHALL "\\-l[a-z0-9_-]+" libs_dependency ${out})
+    string(REGEX MATCHALL "[A-Za-z0-9_-]+\\.lib" libs_dependency_lib ${out})
+
+    string(REGEX REPLACE ".*Libs.private:([A-Za-z0-9_. \${}-]+).*" "\\1" out "${pcfile}")
+    string(REGEX MATCHALL "\\-l[a-z0-9_-]+" libs_private_dependency ${out})
+    string(REGEX MATCHALL "[A-Za-z0-9_-]+\\.lib" libs_private_dependency_lib ${out})
+
+    list(APPEND no_sufix ${libs_dependency} ${libs_private_dependency})
+    list(APPEND lib_sufix ${libs_dependency_lib} ${libs_private_dependency_lib})
+
+    foreach(d ${no_sufix})
+      string(REGEX REPLACE "\\-l" "" d ${d})
+      if(NOT ${lib} MATCHES ${d})
+        target_link_libraries(FFmpeg::${lib} INTERFACE ${d})
+      endif()
+    endforeach()
+    foreach(d ${lib_sufix})
+      string(REGEX REPLACE "\\.lib" "" d ${d})
+      target_link_libraries(FFmpeg::${lib} INTERFACE ${d})
+    endforeach()
+  endif()
+endfunction()
+
 # Check for cached results. If there are skip the costly part.
 #if (NOT FFMPEG_LIBRARIES)
 
@@ -192,7 +223,9 @@ set(FFMPEG_LIBRARY_DIRS "")
             INTERFACE_LINK_LIBRARIES "${${_component}_LIBRARIES}"
             INTERFACE_LINK_DIRECTORIES "${${_component}_LIBRARY_DIRS}"
         )
-      endif()
+        __ffmpeg_internal_set_dependencies(${_lowerComponent})
+        target_link_libraries(FFmpeg::${_lowerComponent} INTERFACE "${${_component}_LIBRARY}")
+    endif()
     else()
       # message(STATUS "Required component ${_component} missing.")
     endif()
@@ -225,6 +258,10 @@ if (NOT TARGET FFmpeg::FFmpeg)
       INTERFACE_LINK_DIRECTORIES "${FFMPEG_LIBRARY_DIRS}")
   add_library(FFmpeg::FFmpeg ALIAS FFmpeg)
 endif()
+
+if (TARGET FFmpeg::avcodec AND UNIX AND NOT APPLE)
+  target_link_options(FFmpeg::avcodec INTERFACE  "-Wl,--exclude-libs=libavcodec")
+endif ()
 
 # Now set the noncached _FOUND vars for the components.
 foreach (_component AVCODEC AVDEVICE AVFORMAT AVUTIL POSTPROCESS SWSCALE)

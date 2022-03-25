@@ -33,7 +33,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
-        FFmpeg::avcodec FFmpeg::avformat FFmpeg::avutil FFmpeg::swresample FFmpeg::swscale
+        FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil
 )
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_FEATURE_vaapi
