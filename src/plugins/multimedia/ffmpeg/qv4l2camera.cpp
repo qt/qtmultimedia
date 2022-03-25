@@ -413,28 +413,105 @@ void QV4L2Camera::setFocusMode(QCamera::FocusMode mode)
     if (mode == focusMode())
         return;
 
-    // ####
+    bool focusDist = supportedFeatures() & QCamera::Feature::FocusDistance;
+    if (!focusDist && !v4l2RangedFocus)
+        return;
+
+    switch (mode) {
+    default:
+    case QCamera::FocusModeAuto:
+        setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 1);
+        if (v4l2RangedFocus)
+            setV4L2Parameter(V4L2_CID_AUTO_FOCUS_RANGE, V4L2_AUTO_FOCUS_RANGE_AUTO);
+        break;
+    case QCamera::FocusModeAutoNear:
+        setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 1);
+        if (v4l2RangedFocus)
+            setV4L2Parameter(V4L2_CID_AUTO_FOCUS_RANGE, V4L2_AUTO_FOCUS_RANGE_MACRO);
+        else if (focusDist)
+            setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, v4l2MinFocus);
+        break;
+    case QCamera::FocusModeAutoFar:
+        setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 1);
+        if (v4l2RangedFocus)
+            setV4L2Parameter(V4L2_CID_AUTO_FOCUS_RANGE, V4L2_AUTO_FOCUS_RANGE_INFINITY);
+        break;
+    case QCamera::FocusModeInfinity:
+        setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 0);
+        setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, v4l2MaxFocus);
+    case QCamera::FocusModeManual:
+        setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 0);
+        setFocusDistance(focusDistance());
+    }
+    focusModeChanged(mode);
+}
+
+void QV4L2Camera::setFocusDistance(float d)
+{
+    int distance = v4l2MinFocus + int((v4l2MaxFocus - v4l2MinFocus)*d);
+    setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, distance);
+    focusDistanceChanged(d);
+}
+
+void QV4L2Camera::zoomTo(float factor, float)
+{
+    if (v4l2MaxZoom == v4l2MinZoom)
+        return;
+    factor = qBound(1., factor, 2.);
+    int zoom = v4l2MinZoom + (factor - 1.)*(v4l2MaxZoom - v4l2MinZoom);
+    setV4L2Parameter(V4L2_CID_ZOOM_ABSOLUTE, zoom);
+    zoomFactorChanged(factor);
 }
 
 bool QV4L2Camera::isFocusModeSupported(QCamera::FocusMode mode) const
 {
+    if (supportedFeatures() & QCamera::Feature::FocusDistance &&
+        (mode == QCamera::FocusModeManual || mode == QCamera::FocusModeAutoNear || mode == QCamera::FocusModeInfinity))
+        return true;
+
     return mode == QCamera::FocusModeAuto;
 }
 
 void QV4L2Camera::setFlashMode(QCamera::FlashMode mode)
 {
-    Q_UNUSED(mode);
-
+    if (!v4l2FlashSupported || mode == QCamera::FlashOn)
+        return;
+    setV4L2Parameter(V4L2_CID_FLASH_LED_MODE, mode == QCamera::FlashAuto ? V4L2_FLASH_LED_MODE_FLASH : V4L2_FLASH_LED_MODE_NONE);
+    flashModeChanged(mode);
 }
 
 bool QV4L2Camera::isFlashModeSupported(QCamera::FlashMode mode) const
 {
-    return mode == QCamera::FlashAuto;
+    if (v4l2FlashSupported && mode == QCamera::FlashAuto)
+        return true;
+    return mode == QCamera::FlashOff;
 }
 
 bool QV4L2Camera::isFlashReady() const
 {
+    struct v4l2_queryctrl queryControl;
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
+
+    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0)
+        return true;
+
     return false;
+}
+
+void QV4L2Camera::setTorchMode(QCamera::TorchMode mode)
+{
+    if (!v4l2TorchSupported || mode == QCamera::TorchOn)
+        return;
+    setV4L2Parameter(V4L2_CID_FLASH_LED_MODE, mode == QCamera::TorchOn ? V4L2_FLASH_LED_MODE_TORCH : V4L2_FLASH_LED_MODE_NONE);
+    torchModeChanged(mode);
+}
+
+bool QV4L2Camera::isTorchModeSupported(QCamera::TorchMode mode) const
+{
+    if (mode == QCamera::TorchOn)
+        return v4l2TorchSupported;
+    return mode == QCamera::TorchOff;
 }
 
 void QV4L2Camera::setExposureMode(QCamera::ExposureMode mode)
@@ -590,6 +667,9 @@ void QV4L2Camera::initV4L2Controls()
 {
     v4l2AutoWhiteBalanceSupported = false;
     v4l2ColorTemperatureSupported = false;
+    v4l2RangedFocus = false;
+    v4l2FlashSupported = false;
+    v4l2TorchSupported = false;
     QCamera::Features features;
 
 
@@ -660,6 +740,40 @@ void QV4L2Camera::initV4L2Controls()
             maxIsoChanged(queryControl.minimum);
         }
     }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_FOCUS_ABSOLUTE;
+    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2MinExposureAdjustment = queryControl.minimum;
+        v4l2MaxExposureAdjustment = queryControl.maximum;
+        features |= QCamera::Feature::FocusDistance;
+    }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_AUTO_FOCUS_RANGE;
+    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2RangedFocus = true;
+    }
+
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_FLASH_LED_MODE;
+    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2FlashSupported = queryControl.minimum <= V4L2_FLASH_LED_MODE_FLASH && queryControl.maximum >= V4L2_FLASH_LED_MODE_FLASH;
+        v4l2TorchSupported = queryControl.minimum <= V4L2_FLASH_LED_MODE_TORCH && queryControl.maximum >= V4L2_FLASH_LED_MODE_TORCH;
+    }
+
+    v4l2MinZoom = 0;
+    v4l2MaxZoom = 0;
+    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl.id = V4L2_CID_ZOOM_ABSOLUTE;
+    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        v4l2MinZoom = queryControl.minimum;
+        v4l2MaxZoom = queryControl.maximum;
+    }
+    // zoom factors are in arbitrary units, so we simply normalize them to go from 1 to 2
+    // if they are different
+    minimumZoomFactorChanged(1);
+    maximumZoomFactorChanged(v4l2MinZoom != v4l2MaxZoom ? 2 : 1);
 
     supportedFeaturesChanged(features);
 }

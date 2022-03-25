@@ -113,21 +113,19 @@ public:
     bool setCameraFormat(const QCameraFormat &format) override;
     bool resolveCameraFormat(const QCameraFormat &format);
 
-//    void setCaptureSession(QPlatformMediaCaptureSession *) override;
-
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
     void setFocusMode(QCamera::FocusMode /*mode*/) override;
 
 //    void setCustomFocusPoint(const QPointF &/*point*/) override;
-//    void setFocusDistance(float) override;
-//    void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
+    void setFocusDistance(float) override;
+    void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
 
     void setFlashMode(QCamera::FlashMode /*mode*/) override;
     bool isFlashModeSupported(QCamera::FlashMode mode) const override;
     bool isFlashReady() const override;
 
-//    void setTorchMode(QCamera::TorchMode /*mode*/) override;
-//    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
+    void setTorchMode(QCamera::TorchMode /*mode*/) override;
+    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
 
     void setExposureMode(QCamera::ExposureMode) override;
     bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
@@ -177,6 +175,13 @@ private:
     qint32 v4l2MaxExposure = 0;
     qint32 v4l2MinExposureAdjustment = 0;
     qint32 v4l2MaxExposureAdjustment = 0;
+    qint32 v4l2MinFocus = 0;
+    qint32 v4l2MaxFocus = 0;
+    qint32 v4l2RangedFocus = false;
+    bool v4l2FlashSupported = false;
+    bool v4l2TorchSupported = false;
+    int v4l2MinZoom = 0;
+    int v4l2MaxZoom = 0;
     timeval firstFrameTime = {-1, -1};
     int bytesPerLine = -1;
     QVideoFrameFormat::YCbCrColorSpace colorSpace = QVideoFrameFormat::YCbCr_Undefined;
