@@ -270,7 +270,7 @@ public:
     QVideoFrame::MapMode mapMode() const override { return m_mode; }
     MapData map(QVideoFrame::MapMode mode) override {
         m_mode = mode;
-        return data;
+        return d->v4l2FileDescriptor >= 0 ? data : MapData{};
     }
     void unmap() override {
         m_mode = QVideoFrame::NotMapped;
@@ -286,11 +286,7 @@ QV4L2CameraBuffers::~QV4L2CameraBuffers()
 {
     QMutexLocker locker(&mutex);
     Q_ASSERT(v4l2FileDescriptor < 0);
-
-    for (const auto &b : qAsConst(mappedBuffers)) {
-        munmap(b.data, b.size);
-    }
-    mappedBuffers.clear();
+    unmapBuffers();
 }
 
 
@@ -298,7 +294,7 @@ QV4L2CameraBuffers::~QV4L2CameraBuffers()
 void QV4L2CameraBuffers::release(int index)
 {
     QMutexLocker locker(&mutex);
-    if (v4l2FileDescriptor < 0)
+    if (v4l2FileDescriptor < 0 || index >= mappedBuffers.size())
         return;
 
     struct v4l2_buffer buf = {};
@@ -311,6 +307,13 @@ void QV4L2CameraBuffers::release(int index)
         qWarning() << "Couldn't release V4L2 buffer" << errno << strerror(errno) << index;
 }
 
+void QV4L2CameraBuffers::unmapBuffers()
+{
+    for (const auto &b : qAsConst(mappedBuffers))
+        munmap(b.data, b.size);
+    mappedBuffers.clear();
+}
+
 QV4L2Camera::QV4L2Camera(QCamera *camera)
     : QPlatformCamera(camera)
 {
@@ -319,6 +322,7 @@ QV4L2Camera::QV4L2Camera(QCamera *camera)
 QV4L2Camera::~QV4L2Camera()
 {
     setActive(false);
+    stopCapturing();
     closeV4L2Fd();
 }
 
@@ -354,10 +358,10 @@ void QV4L2Camera::setCamera(const QCameraDevice &camera)
 {
     if (m_cameraDevice == camera)
         return;
-    if (m_active) {
+    if (m_active)
         stopCapturing();
-        closeV4L2Fd();
-    }
+
+    closeV4L2Fd();
 
     m_cameraDevice = camera;
     resolveCameraFormat({});
@@ -664,6 +668,7 @@ void QV4L2Camera::closeV4L2Fd()
 {
     if (d && d->v4l2FileDescriptor >= 0) {
         QMutexLocker locker(&d->mutex);
+        d->unmapBuffers();
         qt_safe_close(d->v4l2FileDescriptor);
         d->v4l2FileDescriptor = -1;
     }

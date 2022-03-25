@@ -86,6 +86,7 @@ public:
     ~QV4L2CameraBuffers();
 
     void release(int index);
+    void unmapBuffers();
 
     QAtomicInt ref;
     QMutex mutex;
