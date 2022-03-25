@@ -81,10 +81,11 @@ public:
     void unmap() override;
 
     void mapTextures() override;
-    quint64 textureHandle(int plane) const override;
+    std::unique_ptr<QRhiTexture> texture(int plane) const override;
 private:
     QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
     QVideoFrameFormat m_frameFormat;
+    QRhi *m_rhi = nullptr;
     mutable GstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame;
     GstBuffer *m_buffer = nullptr;

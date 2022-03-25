@@ -94,6 +94,7 @@ QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QG
                             QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle, sink ? sink->rhi() : nullptr)
     , memoryFormat(format)
     , m_frameFormat(frameFormat)
+    , m_rhi(sink ? sink->rhi() : nullptr)
     , m_videoInfo(info)
     , m_buffer(buffer)
 {
@@ -367,9 +368,18 @@ void QGstVideoBuffer::mapTextures()
     m_texturesUploaded = true;
 }
 
-quint64 QGstVideoBuffer::textureHandle(int plane) const
+std::unique_ptr<QRhiTexture> QGstVideoBuffer::texture(int plane) const
 {
-    return m_textures[plane];
+    auto desc = QVideoTextureHelper::textureDescription(m_frameFormat.pixelFormat());
+    if (!m_rhi || !desc || plane >= desc->nplanes)
+        return {};
+    QSize size(desc->widthForPlane(m_videoInfo.width, plane), desc->heightForPlane(m_videoInfo.height, plane));
+    std::unique_ptr<QRhiTexture> tex(m_rhi->newTexture(desc->textureFormat[plane], size, 1, {}));
+    if (tex) {
+        if (!tex->createFrom({m_textures[plane], 0}))
+            return {};
+    }
+    return tex;
 }
 
 QT_END_NAMESPACE
