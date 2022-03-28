@@ -139,12 +139,14 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
 {
     NSMutableDictionary *settings = [NSMutableDictionary dictionary];
 
+    // Codec
     int codecId = QDarwinFormatInfo::audioFormatForCodec(encoderSettings.mediaFormat().audioCodec());
     [settings setObject:[NSNumber numberWithInt:codecId] forKey:AVFormatIDKey];
 
     // Setting AVEncoderQualityKey is not allowed when format ID is alac or lpcm
     if (codecId != kAudioFormatAppleLossless && codecId != kAudioFormatLinearPCM
         && encoderSettings.encodingMode() == QMediaRecorder::ConstantQualityEncoding) {
+        // AudioQuality
         int quality;
         switch (encoderSettings.quality()) {
         case QMediaRecorder::VeryLowQuality:
@@ -166,6 +168,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
         }
         [settings setObject:[NSNumber numberWithInt:quality] forKey:AVEncoderAudioQualityKey];
     } else {
+        // BitRate
         bool isBitRateSupported = false;
         int bitRate = encoderSettings.audioBitRate();
         if (bitRate > 0) {
@@ -183,6 +186,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
         }
     }
 
+    // SampleRate
     int sampleRate = encoderSettings.audioSampleRate();
     bool isSampleRateSupported = false;
     if (sampleRate >= 8000 && sampleRate <= 192000) {
@@ -194,7 +198,11 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
             }
         }
     }
+    if (!isSampleRateSupported)
+        sampleRate = 44100;
+    [settings setObject:[NSNumber numberWithInt:sampleRate] forKey:AVSampleRateKey];
 
+    // Channels
     int channelCount = encoderSettings.audioChannelCount();
     bool isChannelCountSupported = false;
     if (channelCount > 0) {
@@ -213,16 +221,20 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
         }
     }
 
-#ifdef Q_OS_IOS
-    // Some keys are mandatory only on iOS
-    if (!isSampleRateSupported) {
-        sampleRate = 44100;
-        isSampleRateSupported = true;
+if (isChannelCountSupported && channelCount > 2) {
+        AudioChannelLayout channelLayout;
+        memset(&channelLayout, 0, sizeof(AudioChannelLayout));
+        auto channelLayoutTags = qt_supported_channel_layout_tags_for_format(codecId, channelCount);
+        if (channelLayoutTags.size()) {
+            channelLayout.mChannelLayoutTag = channelLayoutTags.first();
+            [settings setObject:[NSData dataWithBytes: &channelLayout length: sizeof(channelLayout)] forKey:AVChannelLayoutKey];
+        } else {
+            isChannelCountSupported = false;
+        }
     }
-    if (!isChannelCountSupported) {
+    if (!isChannelCountSupported)
         channelCount = 2;
-        isChannelCountSupported = true;
-    }
+    [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
 
     if (codecId == kAudioFormatAppleLossless)
         [settings setObject:[NSNumber numberWithInt:24] forKey:AVEncoderBitDepthHintKey];
@@ -233,11 +245,6 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
         [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsFloatKey];
         [settings setObject:[NSNumber numberWithInt:NO] forKey:AVLinearPCMIsNonInterleaved];
     }
-#endif
-    if (isSampleRateSupported)
-        [settings setObject:[NSNumber numberWithInt:sampleRate] forKey:AVSampleRateKey];
-    if (isChannelCountSupported)
-        [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
 
     return settings;
 }

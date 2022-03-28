@@ -529,12 +529,8 @@ using AVFAtomicInt64 = QAtomicInteger<qint64>;
 
     m_audioWriterInput.reset();
     if (m_audioQueue) {
-        CMFormatDescriptionRef sourceFormat = session->audioCaptureDevice()
-                                            ? session->audioCaptureDevice().activeFormat.formatDescription
-                                            : 0;
         m_audioWriterInput.reset([[AVAssetWriterInput alloc] initWithMediaType:AVMediaTypeAudio
-                                                             outputSettings:m_audioSettings
-                                                             sourceFormatHint:sourceFormat]);
+                                                             outputSettings:m_audioSettings]);
         if (!m_audioWriterInput) {
             qWarning() << Q_FUNC_INFO << "failed to create audio writer input";
             // But we still can record video.
