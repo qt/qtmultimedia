@@ -305,7 +305,7 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     int res = avcodec_open2(d->codecContext, d->codec, &opts);
     if (res < 0) {
         avcodec_free_context(&d->codecContext);
-        qWarning() << "Couldn't open codec for writing" << av_err2str(res);
+        qWarning() << "Couldn't open codec for writing" << err2str(res);
         d = {};
         return;
     }
@@ -331,7 +331,7 @@ int VideoFrameEncoder::sendFrame(AVFrame *frame)
         f->format = d->sourceSWFormat;
         int err = av_hwframe_transfer_data(f, frame, 0);
         if (err < 0) {
-            qCDebug(qLcVideoFrameEncoder) << "Error transferring frame data to surface." << av_err2str(err);
+            qCDebug(qLcVideoFrameEncoder) << "Error transferring frame data to surface." << err2str(err);
             return err;
         }
         av_frame_free(&frame);
@@ -357,7 +357,7 @@ int VideoFrameEncoder::sendFrame(AVFrame *frame)
             return AVERROR(ENOMEM);
         int err = av_hwframe_get_buffer(hwFramesContext, f, 0);
         if (err < 0) {
-            qCDebug(qLcVideoFrameEncoder) << "Error getting HW buffer" << av_err2str(err);
+            qCDebug(qLcVideoFrameEncoder) << "Error getting HW buffer" << err2str(err);
             return err;
         } else {
             qCDebug(qLcVideoFrameEncoder) << "got HW buffer";
@@ -368,7 +368,7 @@ int VideoFrameEncoder::sendFrame(AVFrame *frame)
         }
         err = av_hwframe_transfer_data(f, frame, 0);
         if (err < 0) {
-            qCDebug(qLcVideoFrameEncoder) << "Error transferring frame data to surface." << av_err2str(err);
+            qCDebug(qLcVideoFrameEncoder) << "Error transferring frame data to surface." << err2str(err);
             return err;
         }
         av_frame_free(&frame);
@@ -391,7 +391,7 @@ AVPacket *VideoFrameEncoder::retrievePacket()
     if (ret < 0) {
         av_packet_free(&packet);
         if (ret != AVERROR(EOF) && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-            qCDebug(qLcVideoFrameEncoder) << "Error receiving packet" << ret << av_err2str(ret);
+            qCDebug(qLcVideoFrameEncoder) << "Error receiving packet" << ret << err2str(ret);
         return nullptr;
     }
     qCDebug(qLcVideoFrameEncoder) << "got a packet" << packet->pts << timeStamp(packet->pts, d->stream->time_base);

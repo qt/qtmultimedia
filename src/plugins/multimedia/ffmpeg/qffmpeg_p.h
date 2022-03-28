@@ -64,6 +64,13 @@ inline qint64 timeStampUs(qint64 ts, AVRational base)
 
 inline float toFloat(AVRational r) { return float(r.num)/float(r.den); }
 
+inline QString err2str(int errnum)
+{
+    char buffer[AV_ERROR_MAX_STRING_SIZE + 1] = {};
+    av_make_error_string(buffer, AV_ERROR_MAX_STRING_SIZE, errnum);
+    return QString::fromLocal8Bit(buffer);
+}
+
 }
 
 #endif

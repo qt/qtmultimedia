@@ -332,7 +332,7 @@ void HWAccel::createFramesContext(AVPixelFormat swFormat, const QSize &size)
     qDebug() << "init frames context";
     int err = av_hwframe_ctx_init(d->hwFramesContext);
     if (err < 0)
-        qWarning() << "failed to init HW frame context" << err << av_err2str(err);
+        qWarning() << "failed to init HW frame context" << err << err2str(err);
     else
         qDebug() << "Initialized frames context" << size << c->format << c->sw_format;
 }

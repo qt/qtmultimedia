@@ -548,7 +548,7 @@ void VideoEncoder::loop()
 //    qCDebug(qLcFFmpegEncoder) << ">>> sending frame" << avFrame->pts << time;
     int ret = frameEncoder->sendFrame(avFrame);
     if (ret < 0)
-        qCDebug(qLcFFmpegEncoder) << "error sending frame" << ret << av_err2str(ret);
+        qCDebug(qLcFFmpegEncoder) << "error sending frame" << ret << err2str(ret);
 }
 
 }
