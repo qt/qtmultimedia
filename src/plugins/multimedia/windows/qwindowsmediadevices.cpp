@@ -62,6 +62,8 @@
 #include <qwindowsaudioutils_p.h>
 #include <qwindowsmfdefs_p.h>
 
+#include <QtCore/qmap.h>
+
 QT_BEGIN_NAMESPACE
 
 class CMMNotificationClient : public IMMNotificationClient
