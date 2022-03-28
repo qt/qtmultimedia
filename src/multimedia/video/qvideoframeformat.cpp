@@ -90,6 +90,7 @@ public:
     QVideoFrameFormat::Direction scanLineDirection = QVideoFrameFormat::TopToBottom;
     QSize frameSize;
     QVideoFrameFormat::YCbCrColorSpace ycbcrColorSpace = QVideoFrameFormat::YCbCr_Undefined;
+    QVideoFrameFormat::ColorTransfer colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
     QRect viewport;
     qreal frameRate = 0.0;
     bool mirrored = false;
@@ -289,6 +290,41 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     \value YCbCr_BT2020
     The color space defined by ITU-R BT.2020. Used mainly for HDR videos.
 */
+
+/*!
+    \enum QVideoFrameFormat::ColorTransfer
+
+    \value ColorTransfer_Unknown
+    The color transfer function is unknown.
+
+    \value ColorTransfer_BT709
+    Color values are encoded according to BT709. See also https://www.itu.int/rec/R-REC-BT.709/en.
+    This is close to, but not identical to a gamma curve of 2.2, and the same transfer curve as is
+    used in sRGB.
+
+    \value ColorTransfer_BT601
+    Color values are encoded according to BT601. See also https://www.itu.int/rec/R-REC-BT.601/en.
+
+    \value ColorTransfer_Linear
+    Color values are linear
+
+    \value ColorTransfer_Gamma22
+    Color values are encoded with a gamma of 2.2
+
+    \value ColorTransfer_Gamma28
+    Color values are encoded with a gamma of 2.8
+
+    \value ColorTransfer_ST2084
+    Color values are encoded using STME ST 2084. This transfer function is the most common HDR
+    transfer function and often called the 'perceptual quantizer'. See also https://www.itu.int/rec/R-REC-BT.2100
+    and https://en.wikipedia.org/wiki/Perceptual_quantizer.
+
+
+    \value ColorTransfer_STD_B67
+    Color values are encoded using ARIB STD B67. This transfer function is also often referred to as 'hybrid log gamma'.
+    See also https://www.itu.int/rec/R-REC-BT.2100 and https://en.wikipedia.org/wiki/Hybrid_log–gamma.
+*/
+
 
 /*!
     Constructs a null video stream format.
@@ -513,6 +549,25 @@ void QVideoFrameFormat::setYCbCrColorSpace(QVideoFrameFormat::YCbCrColorSpace sp
 {
     detach();
     d->ycbcrColorSpace = space;
+}
+
+/*!
+    Returns the color transfer function that should be used to render the
+    video stream.
+*/
+QVideoFrameFormat::ColorTransfer QVideoFrameFormat::colorTransfer() const
+{
+    return d->colorTransfer;
+}
+
+/*!
+    Sets the color transfer function that should be used to render the
+    video stream to \a colorTransfer.
+*/
+void QVideoFrameFormat::setColorTransfer(ColorTransfer colorTransfer)
+{
+    detach();
+    d->colorTransfer = colorTransfer;
 }
 
 /*!

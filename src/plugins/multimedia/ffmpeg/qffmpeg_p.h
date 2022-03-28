@@ -62,6 +62,8 @@ inline qint64 timeStampUs(qint64 ts, AVRational base)
     return (1000000*ts*base.num + 500000)/base.den;
 }
 
+inline float toFloat(AVRational r) { return float(r.num)/float(r.den); }
+
 }
 
 #endif

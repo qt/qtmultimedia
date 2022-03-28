@@ -122,6 +122,18 @@ public:
         YCbCr_BT2020
     };
 
+    enum ColorTransfer
+    {
+        ColorTransfer_Unknown,
+        ColorTransfer_BT709,
+        ColorTransfer_BT601,
+        ColorTransfer_Linear,
+        ColorTransfer_Gamma22,
+        ColorTransfer_Gamma28,
+        ColorTransfer_ST2084,
+        ColorTransfer_STD_B67,
+    };
+
     QVideoFrameFormat();
     QVideoFrameFormat(const QSize &size, PixelFormat pixelFormat);
     QVideoFrameFormat(const QVideoFrameFormat &format);
@@ -163,6 +175,9 @@ public:
 
     YCbCrColorSpace yCbCrColorSpace() const;
     void setYCbCrColorSpace(YCbCrColorSpace colorSpace);
+
+    ColorTransfer colorTransfer() const;
+    void setColorTransfer(ColorTransfer colorTransfer);
 
     bool isMirrored() const;
     void setMirrored(bool mirrored);
