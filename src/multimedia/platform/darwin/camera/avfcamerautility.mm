@@ -711,4 +711,37 @@ std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId)
     return result;
 }
 
+QList<UInt32> qt_supported_channel_layout_tags_for_format(int codecId, int noChannels)
+{
+    QList<UInt32> result;
+    AudioStreamBasicDescription sf = {};
+    sf.mFormatID = codecId;
+    sf.mChannelsPerFrame = noChannels;
+    UInt32 size;
+    OSStatus err = AudioFormatGetPropertyInfo(
+            kAudioFormatProperty_AvailableEncodeChannelLayoutTags,
+            sizeof(sf),
+            &sf,
+            &size);
+
+    if (err != noErr)
+        return result;
+
+    UInt32 noTags = (UInt32)size / sizeof(UInt32);
+    AudioChannelLayoutTag tagsArr[noTags];
+
+    err = AudioFormatGetProperty(kAudioFormatProperty_AvailableEncodeChannelLayoutTags,
+                                sizeof(sf),
+                                &sf,
+                                &size,
+                                tagsArr);
+    if (err != noErr)
+        return result;
+
+    for (UInt32 i = 0; i < noTags; i++)
+        result << tagsArr[i];
+
+    return result;
+}
+
 QT_END_NAMESPACE

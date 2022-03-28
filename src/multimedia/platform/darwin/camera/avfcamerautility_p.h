@@ -195,6 +195,7 @@ void qt_set_framerate_limits(AVCaptureDevice *captureDevice, AVCaptureConnection
 QList<AudioValueRange> qt_supported_sample_rates_for_format(int codecId);
 QList<AudioValueRange> qt_supported_bit_rates_for_format(int codecId);
 std::optional<QList<UInt32>> qt_supported_channel_counts_for_format(int codecId);
+QList<UInt32> qt_supported_channel_layout_tags_for_format(int codecId, int noChannels);
 
 QT_END_NAMESPACE
 
