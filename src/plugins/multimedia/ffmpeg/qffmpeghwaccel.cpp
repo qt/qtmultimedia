@@ -376,6 +376,11 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
         d->backend = new VideoToolBoxTextureConverter(d->rhi);
         break;
 #endif
+#if QT_CONFIG(wmf)
+    case AV_PIX_FMT_D3D11:
+        d->backend = nullptr;
+        break;
+#endif
     default:
         break;
     }
