@@ -196,11 +196,7 @@ QByteArray QQnxMediaPlayer::resourcePathForUrl(const QUrl &url)
     // We treat URLs without scheme as local files, most likely someone just forgot to set the
     // file:// prefix when constructing the URL.
     if (url.isLocalFile() || url.scheme().isEmpty()) {
-        QString relativeFilePath;
-        if (!url.scheme().isEmpty())
-            relativeFilePath = url.toLocalFile();
-        else
-            relativeFilePath = url.path();
+        const QString relativeFilePath = url.scheme().isEmpty() ? url.path() : url.toLocalFile();
         const QFileInfo fileInfo(relativeFilePath);
         return QFile::encodeName(QStringLiteral("file://") + fileInfo.absoluteFilePath());
 
