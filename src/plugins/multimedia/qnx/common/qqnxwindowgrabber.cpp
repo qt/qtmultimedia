@@ -186,6 +186,14 @@ void QQnxWindowGrabber::resume()
     m_timer.start();
 }
 
+void QQnxWindowGrabber::forceUpdate()
+{
+    if (!m_active)
+        return;
+
+    triggerUpdate();
+}
+
 bool QQnxWindowGrabber::handleScreenEvent(screen_event_t screen_event)
 {
 

@@ -101,6 +101,8 @@ public:
     void pause();
     void resume();
 
+    void forceUpdate();
+
     bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
 
     bool handleScreenEvent(screen_event_t event);

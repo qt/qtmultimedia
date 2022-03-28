@@ -141,6 +141,11 @@ void QQnxVideoSink::start()
     m_windowGrabber->start();
 }
 
+void QQnxVideoSink::forceUpdate()
+{
+    m_windowGrabber->forceUpdate();
+}
+
 class QnxTextureBuffer : public QAbstractVideoBuffer
 {
 public:
