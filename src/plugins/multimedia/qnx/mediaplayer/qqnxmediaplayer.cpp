@@ -222,7 +222,8 @@ void QQnxMediaPlayer::attach()
         m_platformVideoSink->attachOutput(m_context);
 
     const QByteArray defaultAudioDevice = qgetenv("QQNX_RENDERER_DEFAULT_AUDIO_SINK");
-    m_audioId = mmr_output_attach(m_context, defaultAudioDevice.isEmpty() ? "snd:" : defaultAudioDevice.constData(), "audio");
+    m_audioId = mmr_output_attach(m_context,
+            defaultAudioDevice.isEmpty() ? "snd:" : defaultAudioDevice.constData(), "audio");
     if (m_audioId == -1) {
         emitMmError("mmr_output_attach() for audio failed");
         return;
