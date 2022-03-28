@@ -87,6 +87,8 @@ public:
 
     void setTextureConverter(const QFFmpeg::TextureConverter &converter);
 
+    QVideoFrameFormat::YCbCrColorSpace colorSpace() const;
+
 private:
     QVideoFrameFormat::PixelFormat m_pixelFormat;
     AVFrame *frame = nullptr;

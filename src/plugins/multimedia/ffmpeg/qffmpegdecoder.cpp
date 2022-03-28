@@ -691,6 +691,7 @@ void VideoRenderer::loop()
 //        qDebug() << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
         QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(frame.takeAVFrame());
         QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
+        format.setYCbCrColorSpace(buffer->colorSpace());
         QVideoFrame videoFrame(buffer, format);
         videoFrame.setStartTime(startTime);
         videoFrame.setEndTime(startTime + duration);

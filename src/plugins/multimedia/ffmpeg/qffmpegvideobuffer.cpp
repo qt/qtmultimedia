@@ -43,6 +43,8 @@
 
 extern "C" {
 #include <libavutil/pixdesc.h>
+#include <libavutil/hdr_dynamic_metadata.h>
+#include <libavutil/mastering_display_metadata.h>
 }
 
 QT_BEGIN_NAMESPACE
@@ -104,6 +106,36 @@ void QFFmpegVideoBuffer::setTextureConverter(const QFFmpeg::TextureConverter &co
     textureConverter = converter;
     textureConverter.init(hwFrame);
     m_type = converter.isNull() ? QVideoFrame::NoHandle : QVideoFrame::RhiTextureHandle;
+}
+
+QVideoFrameFormat::YCbCrColorSpace QFFmpegVideoBuffer::colorSpace() const
+{
+    switch (frame->colorspace) {
+    default:
+    case AVCOL_SPC_RGB:
+    case AVCOL_SPC_UNSPECIFIED:
+    case AVCOL_SPC_RESERVED:
+    case AVCOL_SPC_FCC:
+    case AVCOL_SPC_SMPTE240M:
+    case AVCOL_SPC_YCGCO:
+    case AVCOL_SPC_SMPTE2085:
+    case AVCOL_SPC_CHROMA_DERIVED_NCL:
+    case AVCOL_SPC_CHROMA_DERIVED_CL:
+    case AVCOL_SPC_ICTCP: // BT.2100
+        return QVideoFrameFormat::YCbCr_Undefined;
+    case AVCOL_SPC_BT709:
+        if (frame->color_range == AVCOL_RANGE_MPEG)
+            return QVideoFrameFormat::YCbCr_BT709;
+        return QVideoFrameFormat::YCbCr_xvYCC709;
+    case AVCOL_SPC_BT470BG: // BT601
+    case AVCOL_SPC_SMPTE170M: // Also BT601
+        if (frame->color_range == AVCOL_RANGE_MPEG)
+            return QVideoFrameFormat::YCbCr_BT601;
+        return QVideoFrameFormat::YCbCr_xvYCC601;
+    case AVCOL_SPC_BT2020_NCL: // Non constant luminence
+    case AVCOL_SPC_BT2020_CL: // Constant luminence
+        return QVideoFrameFormat::YCbCr_BT2020;
+    }
 }
 
 QVideoFrame::MapMode QFFmpegVideoBuffer::mapMode() const
