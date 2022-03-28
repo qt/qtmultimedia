@@ -180,13 +180,13 @@ void QQnxMediaPlayer::closeConnection()
 
     if (m_context) {
         mmr_context_destroy(m_context);
-        m_context = 0;
+        m_context = nullptr;
         m_contextName.clear();
     }
 
     if (m_connection) {
         mmr_disconnect(m_connection);
-        m_connection = 0;
+        m_connection = nullptr;
     }
 }
 
