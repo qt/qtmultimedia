@@ -229,17 +229,6 @@ void QQnxMediaPlayer::attach()
         return;
     }
 
-//    if (m_audioId != -1) {
-//        QString audioType = qnxAudioType(m_role);
-//        QByteArray latin1AudioType = audioType.toLatin1();
-//        if (!audioType.isEmpty() && latin1AudioType == audioType) {
-//            strm_dict_t *dict = strm_dict_new();
-//            dict = strm_dict_set(dict, "audio_type", latin1AudioType.constData());
-//            if (mmr_output_parameters(m_context, m_audioId, dict) != 0)
-//                emitMmError("mmr_output_parameters: Setting audio_type failed");
-//        }
-//    }
-
     const QByteArray resourcePath = resourcePathForUrl(m_media);
     if (resourcePath.isEmpty()) {
         detach();
