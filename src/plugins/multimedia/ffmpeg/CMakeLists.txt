@@ -104,6 +104,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
         ../windows/qwindowsmediadevices.cpp ../windows/qwindowsmediadevices_p.h
         ../windows/common/qwindowsmfdefs.cpp ../windows/common/qwindowsmfdefs_p.h
         ../windows/common/qwindowsresampler.cpp ../windows/common/qwindowsresampler_p.h
+        qffmpeghwaccel_d3d11.cpp qffmpeghwaccel_d3d11_p.h
     INCLUDE_DIRECTORIES
         ../windows
         ../windows/audio

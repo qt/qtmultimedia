@@ -119,7 +119,7 @@ Codec::Codec(AVFormatContext *format, int streamIndex)
         context->hw_device_ctx = av_buffer_ref(buf);
     // ### This still gives errors about wrong HW formats (as we accept all of them)
     // But it would be good to get so we can filter out pixel format we don't support natively
-    //    context->get_format = QFFmpeg::getFormat;
+    context->get_format = QFFmpeg::getFormat;
 
     /* Init the decoder, with reference counting and threading */
     AVDictionary *opts = nullptr;

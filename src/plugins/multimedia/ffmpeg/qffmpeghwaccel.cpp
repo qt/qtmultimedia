@@ -44,9 +44,13 @@
 #ifdef Q_OS_DARWIN
 #include "qffmpeghwaccel_videotoolbox_p.h"
 #endif
+#if QT_CONFIG(wmf)
+#include "qffmpeghwaccel_d3d11_p.h"
+#endif
 #include "qffmpeg_p.h"
 #include "qffmpegvideobuffer_p.h"
 
+#include <private/qrhi_p.h>
 #include <qdebug.h>
 
 /* Infrastructure for HW acceleration goes into this file. */
@@ -149,21 +153,22 @@ AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt)
     Q_UNUSED(s);
 
     // check the pixel formats supported. We always want HW accelerated formats
-    auto *f = fmt;
-    while (*f != -1) {
-        if (formatIsHWAccelerated(*f))
+    for (auto *f = fmt; *f != AV_PIX_FMT_NONE; ++f) {
+        if (formatIsHWAccelerated(*f)) {
+#if QT_CONFIG(wmf)
+            if (*f == AV_PIX_FMT_D3D11)
+                QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(s);
+#endif
             return *f;
-        ++f;
+        }
     }
 
     // prefer video formats we can handle directly
-    f = fmt;
-    while (*f != -1) {
+    for (auto *f = fmt; *f != AV_PIX_FMT_NONE; ++f) {
         bool needsConversion = true;
         QFFmpegVideoBuffer::toQtPixelFormat(*f, &needsConversion);
         if (!needsConversion)
             return *f;
-        ++f;
     }
 
     // take the native format, this will involve one additional format conversion on the CPU side
@@ -378,13 +383,18 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
 #endif
 #if QT_CONFIG(wmf)
     case AV_PIX_FMT_D3D11:
-        d->backend = nullptr;
+        d->backend = new D3D11TextureConverter(d->rhi);
         break;
 #endif
     default:
         break;
     }
     d->format = fmt;
+}
+
+std::unique_ptr<QRhiTexture> TextureSet::texture(int /*plane*/)
+{
+    return {};
 }
 
 } // namespace QFFmpeg

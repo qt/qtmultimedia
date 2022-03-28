@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QFFMPEGVIDEOBUFFER_P_H
-#define QFFMPEGVIDEOBUFFER_P_H
+#ifndef QFFMPEGHWACCEL_D3D11_P_H
+#define QFFMPEGHWACCEL_D3D11_P_H
 
 //
 //  W A R N I N G
@@ -51,59 +50,30 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qabstractvideobuffer_p.h>
-#include <qvideoframe.h>
-#include <QtCore/qvariant.h>
-
-#include "qffmpeg_p.h"
 #include "qffmpeghwaccel_p.h"
+
+#if QT_CONFIG(wmf)
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegVideoBuffer : public QAbstractVideoBuffer
+class QRhi;
+
+namespace QFFmpeg {
+
+class D3D11TextureConverter : public TextureConverterBackend
 {
 public:
+    D3D11TextureConverter(QRhi *rhi);
 
-    QFFmpegVideoBuffer(AVFrame *frame);
-    ~QFFmpegVideoBuffer();
+    TextureSet *getTextures(AVFrame *frame) override;
 
-    QVideoFrame::MapMode mapMode() const override;
-    MapData map(QVideoFrame::MapMode mode) override;
-    void unmap() override;
-
-    virtual void mapTextures() override;
-    virtual quint64 textureHandle(int plane) const override;
-    std::unique_ptr<QRhiTexture> texture(int plane) const override;
-
-    QVideoFrameFormat::PixelFormat pixelFormat() const;
-    QSize size() const;
-
-    static QVideoFrameFormat::PixelFormat toQtPixelFormat(AVPixelFormat avPixelFormat, bool *needsConversion = nullptr);
-    static AVPixelFormat toAVPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat);
-
-    void convertSWFrame();
-
-    AVFrame *getHWFrame() const { return hwFrame; }
-
-    void setTextureConverter(const QFFmpeg::TextureConverter &converter);
-
-    QVideoFrameFormat::ColorSpace colorSpace() const;
-    QVideoFrameFormat::ColorTransfer colorTransfer() const;
-    QVideoFrameFormat::ColorRange colorRange() const;
-
-    float maxNits();
-
-private:
-    QVideoFrameFormat::PixelFormat m_pixelFormat;
-    AVFrame *frame = nullptr;
-    AVFrame *hwFrame = nullptr;
-    AVFrame *swFrame = nullptr;
-    QFFmpeg::TextureConverter textureConverter;
-    QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    QFFmpeg::TextureSet *textures = nullptr;
+    static void SetupDecoderTextures(AVCodecContext *s);
 };
 
+}
+
 QT_END_NAMESPACE
+
+#endif
 
 #endif

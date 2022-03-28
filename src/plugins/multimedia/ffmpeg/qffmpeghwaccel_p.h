@@ -53,10 +53,12 @@
 #include "qffmpeg_p.h"
 #include "qvideoframeformat.h"
 #include <qshareddata.h>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
 class QRhi;
+class QRhiTexture;
 class QFFmpegVideoBuffer;
 
 namespace QFFmpeg {
@@ -70,7 +72,8 @@ class TextureSet {
 public:
     // ### Should add QVideoFrameFormat::PixelFormat here
     virtual ~TextureSet() {}
-    virtual qint64 texture(int plane) = 0;
+    virtual qint64 textureHandle(int /*plane*/) { return 0; }
+    virtual std::unique_ptr<QRhiTexture> texture(int plane);
 };
 
 class TextureConverterBackend
