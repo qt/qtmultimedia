@@ -63,7 +63,7 @@ public:
     {
     }
 
-    void loop();
+    void loop() override;
     AudioDecoder *m_decoder;
     QAudioFormat m_format;
     std::unique_ptr<Resampler> resampler;
