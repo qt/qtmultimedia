@@ -564,7 +564,6 @@ void QQnxMediaPlayer::setVideoSink(QVideoSink *videoSink)
     m_platformVideoSink = static_cast<QQnxVideoSink *>(videoSink->platformVideoSink());
 }
 
-
 void QQnxMediaPlayer::startMonitoring()
 {
     m_eventThread = new QQnxMediaEventThread(m_context);
