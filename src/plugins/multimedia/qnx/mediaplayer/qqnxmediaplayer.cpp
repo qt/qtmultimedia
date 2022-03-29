@@ -614,7 +614,7 @@ void QQnxMediaPlayer::setMmBufferLevel(int level, int capacity)
 {
     m_bufferLevel = capacity == 0 ? 0 : level / static_cast<float>(capacity) * 100.0f;
     m_bufferLevel = qBound(0, m_bufferLevel, 100);
-    emit bufferProgressChanged(m_bufferLevel/100.);
+    bufferProgressChanged(m_bufferLevel/100.0f);
 }
 
 void QQnxMediaPlayer::updateMetaData(const strm_dict *dict)
