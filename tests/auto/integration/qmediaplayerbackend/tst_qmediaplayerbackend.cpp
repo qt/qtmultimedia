@@ -93,6 +93,7 @@ private:
     QUrl localWavFile2;
     QUrl localVideoFile;
     QUrl localVideoFile2;
+    QUrl videoDimensionTestFile;
     QUrl localCompressedSoundFile;
     QUrl localFileWithMetadata;
 
@@ -185,6 +186,10 @@ void tst_QMediaPlayerBackend::initTestCase()
     mediaCandidates << "qrc:/testdata/BigBuckBunny.mp4";
     mediaCandidates << "qrc:/testdata/busMpeg4.mp4";
     localVideoFile2 = MediaFileSelector::selectMediaFile(mediaCandidates);
+
+    mediaCandidates.clear();
+    mediaCandidates << "qrc:/testdata/BigBuckBunny.mp4";
+    videoDimensionTestFile = MediaFileSelector::selectMediaFile(mediaCandidates);
 
     mediaCandidates.clear();
     mediaCandidates << "qrc:/testdata/nokia-tune.mp3";
@@ -1224,12 +1229,14 @@ void tst_QMediaPlayerBackend::videoDimensions()
     QEXPECT_FAIL("", "On Android isSeekable() is always set to true due to QTBUG-96952", Continue);
 #endif
     QVERIFY(!player.isSeekable());
-    player.setSource(localVideoFile);
+    player.setSource(videoDimensionTestFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     player.pause();
     QTRY_COMPARE(surface.m_totalFrames, 1);
-    QCOMPARE(surface.m_frameList.last().height(), 120);
-    QCOMPARE(surface.videoSize().height(), 120);
+    QCOMPARE(surface.m_frameList.last().width(), 540);
+    QCOMPARE(surface.videoSize().width(), 540);
+    QCOMPARE(surface.m_frameList.last().height(), 320);
+    QCOMPARE(surface.videoSize().height(), 320);
 }
 
 void tst_QMediaPlayerBackend::position()
