@@ -621,16 +621,10 @@ void QQnxMediaPlayer::updateMetaData(const strm_dict *dict)
 {
     m_metaData.update(dict);
 
-    // ### need to notify sink about possible size changes
-//    if (m_videoWindowControl)
-//        m_videoWindowControl->setMetaData(m_metaData);
-
-    // ### convert to QMediaMetaData and notify the player about metadata changes
-    emit durationChanged(m_metaData.duration());
-    emit audioAvailableChanged(m_metaData.hasAudio());
-    emit videoAvailableChanged(m_metaData.hasVideo());
-//    emit availablePlaybackRangesChanged(availablePlaybackRanges());
-    emit seekableChanged(m_metaData.isSeekable());
+    durationChanged(m_metaData.duration());
+    audioAvailableChanged(m_metaData.hasAudio());
+    videoAvailableChanged(m_metaData.hasVideo());
+    seekableChanged(m_metaData.isSeekable());
 }
 
 void QQnxMediaPlayer::emitMmError(const char *msg)
