@@ -415,7 +415,7 @@ float QQnxMediaPlayer::bufferProgress() const
 {
     // mm-renderer has buffer properties "status" and "level"
     // QMediaPlayer's buffer status maps to mm-renderer's buffer level
-    return m_bufferLevel/100.;
+    return m_bufferLevel/100.0f;
 }
 
 bool QQnxMediaPlayer::isAudioAvailable() const
