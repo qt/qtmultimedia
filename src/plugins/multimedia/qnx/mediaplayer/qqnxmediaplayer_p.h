@@ -134,7 +134,8 @@ QT_BEGIN_NAMESPACE
 class QQnxVideoSink;
 class QQnxMediaEventThread;
 
-class QQnxMediaPlayer : public QObject, public QPlatformMediaPlayer, public QAbstractNativeEventFilter
+class QQnxMediaPlayer : public QObject
+                      , public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:
@@ -197,7 +198,6 @@ protected:
     int m_id;
     QString m_contextName;
 
-    bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
 
 private Q_SLOTS:
     void continueLoadMedia();

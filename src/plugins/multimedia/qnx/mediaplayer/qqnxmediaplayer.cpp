@@ -95,7 +95,6 @@ QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
     m_loadingTimer.setSingleShot(true);
     m_loadingTimer.setInterval(0);
     connect(&m_loadingTimer, SIGNAL(timeout()), this, SLOT(continueLoadMedia()));
-    QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
     openConnection();
 }
 
@@ -104,7 +103,6 @@ QQnxMediaPlayer::~QQnxMediaPlayer()
     stop();
     detach();
     closeConnection();
-    QCoreApplication::eventDispatcher()->removeNativeEventFilter(this);
 }
 
 void QQnxMediaPlayer::openConnection()
@@ -652,20 +650,6 @@ void QQnxMediaPlayer::emitPError(const QString &msg)
     emit error(errno, errorMessage);
 }
 
-
-bool QQnxMediaPlayer::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)
-{
-    Q_UNUSED(result);
-    Q_UNUSED(message);
-    Q_UNUSED(eventType);
-//    if (eventType == "screen_event_t") {
-//        screen_event_t event = static_cast<screen_event_t>(message);
-//        if (MmRendererVideoWindowControl *control = videoWindowControl())
-//            control->screenEventHandler(event);
-//    }
-
-    return false;
-}
 
 void QQnxMediaPlayer::readEvents()
 {
