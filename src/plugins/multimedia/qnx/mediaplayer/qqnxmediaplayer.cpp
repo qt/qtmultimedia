@@ -55,10 +55,25 @@
 #include <sys/strm.h>
 #include <sys/stat.h>
 
+#include <algorithm>
 #include <tuple>
 
+static constexpr int rateToSpeed(qreal rate)
+{
+    return std::floor(rate * 1000);
+}
 
-static std::tuple<int, int, bool> parseBufferLevel(const QByteArray &value)
+static constexpr qreal speedToRate(int speed)
+{
+    return std::floor(speed / 1000.0);
+}
+
+static constexpr int normalizeVolume(float volume)
+{
+    return std::clamp<int>(std::floor(volume * 100.0), 0, 100);
+}
+
+static std::tuple<int, int, bool> parseBufferLevel(const QString &value)
 {
     if (value.isEmpty())
         return {};
@@ -84,21 +99,14 @@ static int idCounter = 0;
 QT_BEGIN_NAMESPACE
 
 QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
-    : QObject(parent),
-      QPlatformMediaPlayer(parent),
-      m_context(0),
-      m_id(-1),
-      m_audioId(-1),
-      m_rate(1),
-      m_position(0),
-      m_mediaStatus(QMediaPlayer::NoMedia),
-      m_playAfterMediaLoaded(false),
-      m_inputAttached(false),
-      m_bufferLevel(0)
+    : QObject(parent)
+    , QPlatformMediaPlayer(parent)
 {
-    m_loadingTimer.setSingleShot(true);
-    m_loadingTimer.setInterval(0);
-    connect(&m_loadingTimer, SIGNAL(timeout()), this, SLOT(continueLoadMedia()));
+    m_flushPositionTimer.setSingleShot(true);
+    m_flushPositionTimer.setInterval(100);
+
+    connect(&m_flushPositionTimer, &QTimer::timeout, this, &QQnxMediaPlayer::flushPosition);
+
     openConnection();
 }
 
@@ -131,48 +139,121 @@ void QQnxMediaPlayer::openConnection()
     startMonitoring();
 }
 
-void QQnxMediaPlayer::handleMmStopped()
+void QQnxMediaPlayer::handleMmEventState(const mmr_event_t *event)
 {
-    // Only react to stop events that happen when the end of the stream is reached and
-    // playback is stopped because of this.
-    // Ignore other stop event sources, such as calling mmr_stop() ourselves.
-    if (state() != QMediaPlayer::StoppedState) {
-        setMediaStatus(QMediaPlayer::EndOfMedia);
-        stopInternal(IgnoreMmRenderer);
+    if (!event || event->type != MMR_EVENT_STATE)
+        return;
+
+    switch (event->state) {
+    case MMR_STATE_DESTROYED:
+        break;
+    case MMR_STATE_IDLE:
+        mediaStatusChanged(QMediaPlayer::NoMedia);
+        stateChanged(QMediaPlayer::StoppedState);
+        m_platformVideoSink->detachOutput();
+        break;
+    case MMR_STATE_STOPPED:
+        stateChanged(QMediaPlayer::StoppedState);
+        m_platformVideoSink->stop();
+        break;
+    case MMR_STATE_PLAYING:
+        if (event->speed == 0) {
+            stateChanged(QMediaPlayer::PausedState);
+            m_platformVideoSink->pause();
+        } else if (state() == QMediaPlayer::PausedState) {
+            m_platformVideoSink->resume();
+            stateChanged(QMediaPlayer::PlayingState);
+        } else {
+            m_platformVideoSink->start();
+            stateChanged(QMediaPlayer::PlayingState);
+        }
+
+        if (event->speed != m_speed) {
+            m_speed = event->speed;
+
+            if (state() != QMediaPlayer::PausedState)
+                m_configuredSpeed = m_speed;
+
+            playbackRateChanged(::speedToRate(m_speed));
+        }
+        break;
     }
 }
 
-void QQnxMediaPlayer::handleMmSuspend(const QString &reason)
+void QQnxMediaPlayer::handleMmEventStatus(const mmr_event_t *event)
 {
-    if (state() == QMediaPlayer::StoppedState)
+    if (!event || event->type != MMR_EVENT_STATUS)
         return;
 
-    Q_UNUSED(reason);
-    setMediaStatus(QMediaPlayer::StalledMedia);
-}
+    if (event->data)
+        handleMmEventStatusData(event->data);
 
-void QQnxMediaPlayer::handleMmSuspendRemoval(const QString &bufferProgress)
-{
-    if (state() == QMediaPlayer::StoppedState)
+    // update pos
+    if (!event->pos_str || isPendingPositionFlush())
         return;
 
-    if (bufferProgress == QLatin1String("buffering"))
-        setMediaStatus(QMediaPlayer::BufferingMedia);
+    const QByteArray valueBa(event->pos_str);
+
+    bool ok;
+    const qint64 position = valueBa.toLongLong(&ok);
+
+    if (!ok)
+        qCritical("Could not parse position from '%s'", valueBa.constData());
     else
-        setMediaStatus(QMediaPlayer::BufferedMedia);
+        handleMmPositionChanged(position);
 }
 
-void QQnxMediaPlayer::handleMmPause()
+void QQnxMediaPlayer::handleMmEventStatusData(const strm_dict_t *data)
 {
-    if (state() == QMediaPlayer::PlayingState) {
-        stateChanged(QMediaPlayer::PausedState);
+    if (!data)
+        return;
+
+    const auto getValue = [data](const char *key) -> QString {
+        const strm_string_t *value = strm_dict_find_rstr(data, key);
+
+        if (!value)
+            return {};
+
+        return QString::fromUtf8(strm_string_get(value));
+    };
+
+    // update bufferProgress
+    const QString bufferLevel = getValue("bufferlevel");
+
+    if (!bufferLevel.isEmpty()) {
+        const auto & [level, capacity, ok] = ::parseBufferLevel(bufferLevel);
+
+        if (ok)
+            updateBufferLevel(level, capacity);
+        else
+            qCritical("Could not parse buffer capacity from '%s'", qUtf8Printable(bufferLevel));
     }
+
+    // update MediaStatus
+    const QString bufferStatus = getValue("bufferstatus");
+    const QString suspended = getValue("suspended");
+
+    if (suspended == QStringLiteral("yes"))
+        mediaStatusChanged(QMediaPlayer::StalledMedia);
+    else if (bufferStatus == QStringLiteral("buffering"))
+        mediaStatusChanged(QMediaPlayer::BufferingMedia);
+    else if (bufferStatus == QStringLiteral("playing"))
+        mediaStatusChanged(QMediaPlayer::BufferedMedia);
 }
 
-void QQnxMediaPlayer::handleMmPlay()
+void QQnxMediaPlayer::handleMmEventError(const mmr_event_t *event)
 {
-    if (state() == QMediaPlayer::PausedState) {
-        stateChanged(QMediaPlayer::PlayingState);
+    if (!event)
+        return;
+
+    // When playback is explicitly stopped using mmr_stop(), mm-renderer
+    // generates a STATE event. When the end of media is reached, an ERROR
+    // event is generated and the error code contained in the event information
+    // is set to MMR_ERROR_NONE. When an error causes playback to stop,
+    // the error code is set to something else.
+    if (event->details.error.info.error_code == MMR_ERROR_NONE) {
+        mediaStatusChanged(QMediaPlayer::EndOfMedia);
+        stateChanged(QMediaPlayer::StoppedState);
     }
 }
 
@@ -214,7 +295,7 @@ void QQnxMediaPlayer::attach()
     Q_ASSERT(m_audioId == -1 && !m_inputAttached);
 
     if (!m_media.isValid() || !m_context) {
-        setMediaStatus(QMediaPlayer::NoMedia);
+        mediaStatusChanged(QMediaPlayer::NoMedia);
         return;
     }
 
@@ -238,19 +319,16 @@ void QQnxMediaPlayer::attach()
     }
 
     if (mmr_input_attach(m_context, resourcePath.constData(), "track") != 0) {
-        emitMmError(QStringLiteral("mmr_input_attach() failed for ") + QString::fromUtf8(resourcePath));
-        setMediaStatus(QMediaPlayer::InvalidMedia);
+        emitMmError(QStringLiteral("mmr_input_attach() failed for ")
+                + QString::fromUtf8(resourcePath));
+        mediaStatusChanged(QMediaPlayer::InvalidMedia);
         detach();
         return;
     }
 
     m_inputAttached = true;
-    setMediaStatus(QMediaPlayer::LoadedMedia);
 
-    // mm-renderer has buffer properties "status" and "level"
-    // QMediaPlayer's buffer status maps to mm-renderer's buffer level
-    m_bufferLevel = 0;
-    emit bufferProgressChanged(m_bufferLevel/100.);
+    mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
 
 void QQnxMediaPlayer::detach()
@@ -267,13 +345,6 @@ void QQnxMediaPlayer::detach()
             m_audioId = -1;
         }
     }
-
-    m_loadingTimer.stop();
-}
-
-QMediaPlayer::MediaStatus QQnxMediaPlayer::mediaStatus() const
-{
-    return m_mediaStatus;
 }
 
 qint64 QQnxMediaPlayer::duration() const
@@ -288,112 +359,80 @@ qint64 QQnxMediaPlayer::position() const
 
 void QQnxMediaPlayer::setPosition(qint64 position)
 {
-    if (m_position != position) {
-        m_position = position;
-
-        // Don't update in stopped state, it would not have any effect. Instead, the position is
-        // updated in play().
-        if (state() != QMediaPlayer::StoppedState)
-            setPositionInternal(m_position);
-
-        emit positionChanged(m_position);
-    }
-}
-
-void QQnxMediaPlayer::setVolumeInternal(float newVolume)
-{
-    if (!m_context)
+    if (m_position == position)
         return;
 
-    newVolume = qBound(0.f, newVolume, 1.f);
-    if (m_audioId != -1) {
-        strm_dict_t * dict = strm_dict_new();
-        dict = strm_dict_set(dict, "volume", QString::number(int(newVolume*100.)).toLatin1());
-        if (mmr_output_parameters(m_context, m_audioId, dict) != 0)
-            emitMmError("mmr_output_parameters: Setting volume failed");
-    }
-}
-
-void QQnxMediaPlayer::setPlaybackRateInternal(qreal rate)
-{
-    if (!m_context)
-        return;
-
-    const int mmRate = rate * 1000;
-    if (mmr_speed_set(m_context, mmRate) != 0)
-        emitMmError("mmr_speed_set failed");
+    m_pendingPosition = position;
+    m_flushPositionTimer.start();
 }
 
 void QQnxMediaPlayer::setPositionInternal(qint64 position)
 {
-    if (!m_context)
+    if (!m_context || !m_metaData.isSeekable() || mediaStatus() == QMediaPlayer::NoMedia)
         return;
 
-    if (true /*#### m_metaData.isSeekable()*/) {
-        if (mmr_seek(m_context, QString::number(position).toLatin1()) != 0)
-            emitMmError("Seeking failed");
-    }
+    if (mmr_seek(m_context, QString::number(position).toLatin1()) != 0)
+        emitMmError("Seeking failed");
 }
 
-void QQnxMediaPlayer::setMediaStatus(QMediaPlayer::MediaStatus status)
+void QQnxMediaPlayer::flushPosition()
 {
-    if (m_mediaStatus != status) {
-        m_mediaStatus = status;
-        emit mediaStatusChanged(m_mediaStatus);
-    }
+    setPositionInternal(m_pendingPosition);
 }
 
-void QQnxMediaPlayer::setState(QMediaPlayer::PlaybackState state)
+bool QQnxMediaPlayer::isPendingPositionFlush() const
 {
-    auto oldState = this->state();
-
-    if (oldState == state)
-        return;
-
-    if (m_platformVideoSink) {
-        if (state == QMediaPlayer::PausedState || state == QMediaPlayer::StoppedState) {
-            m_platformVideoSink->pause();
-        } else if (state == QMediaPlayer::PlayingState) {
-            if (oldState == QMediaPlayer::PausedState)
-                m_platformVideoSink->resume();
-            else
-                m_platformVideoSink->start();
-        }
-    }
-
-    stateChanged(state);
+    return m_flushPositionTimer.isActive();
 }
 
-void QQnxMediaPlayer::stopInternal(StopCommand stopCommand)
+void QQnxMediaPlayer::setDeferredSpeedEnabled(bool enabled)
 {
-    resetMonitoring();
-    setPosition(0);
+    m_deferredSpeedEnabled = enabled;
+}
 
-    if (state() != QMediaPlayer::StoppedState) {
-
-        if (stopCommand == StopMmRenderer) {
-            mmr_stop(m_context);
-        }
-
-        setState(QMediaPlayer::StoppedState);
-    }
+bool QQnxMediaPlayer::isDeferredSpeedEnabled() const
+{
+    return m_deferredSpeedEnabled;
 }
 
 void QQnxMediaPlayer::setVolume(float volume)
 {
-    const int newVolume = qBound(0.f, volume, 1.f);
-    if (m_volume != newVolume) {
-        m_volume = newVolume;
-        setVolumeInternal(m_muted ? 0. : m_volume);
-    }
+    const int normalizedVolume = ::normalizeVolume(volume);
+
+    if (m_volume == normalizedVolume)
+        return;
+
+    m_volume = normalizedVolume;
+
+    if (!m_muted)
+        updateVolume();
 }
 
 void QQnxMediaPlayer::setMuted(bool muted)
 {
-    if (m_muted != muted) {
-        m_muted = muted;
-        setVolumeInternal(muted ? 0 : m_volume);
-    }
+    if (m_muted == muted)
+        return;
+
+    m_muted = muted;
+
+    updateVolume();
+}
+
+void QQnxMediaPlayer::updateVolume()
+{
+    if (!m_context || m_audioId == -1)
+        return;
+
+    const int volume = m_muted ? 0 : m_volume;
+
+    char buf[] = "100";
+    std::snprintf(buf, sizeof buf, "%d", volume);
+
+    strm_dict_t * dict = strm_dict_new();
+    dict = strm_dict_set(dict, "volume", buf);
+
+    if (mmr_output_parameters(m_context, m_audioId, dict) != 0)
+        emitMmError("mmr_output_parameters: Setting volume failed");
 }
 
 void QQnxMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
@@ -443,16 +482,28 @@ QMediaTimeRange QQnxMediaPlayer::availablePlaybackRanges() const
 
 qreal QQnxMediaPlayer::playbackRate() const
 {
-    return m_rate;
+    return ::speedToRate(m_speed);
 }
 
 void QQnxMediaPlayer::setPlaybackRate(qreal rate)
 {
-    if (m_rate != rate) {
-        m_rate = rate;
-        setPlaybackRateInternal(m_rate);
-        emit playbackRateChanged(m_rate);
+    if (!m_context)
+        return;
+
+    const int speed = ::rateToSpeed(rate);
+
+    if (m_speed == speed)
+        return;
+
+    // defer setting the playback speed for when play() is called to prevent
+    // mm-renderer from inadvertently transitioning into play state
+    if (isDeferredSpeedEnabled() && state() != QMediaPlayer::PlayingState) {
+        m_deferredSpeed = speed;
+        return;
     }
+
+    if (mmr_speed_set(m_context, speed) != 0)
+        emitMmError("mmr_speed_set failed");
 }
 
 QUrl QQnxMediaPlayer::media() const
@@ -473,90 +524,75 @@ void QQnxMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     stop();
     detach();
 
+    mediaStatusChanged(QMediaPlayer::LoadingMedia);
+
     m_media = media;
 
-    // Slight hack: With MediaPlayer QtQuick elements that have autoPlay set to true, playback
-    // would start before the QtQuick canvas is propagated to all elements, and therefore our
-    // video output would not work. Therefore, delay actually playing the media a bit so that the
-    // canvas is ready.
-    // The mmrenderer doesn't allow to attach video outputs after playing has started, otherwise
-    // this would be unnecessary.
-    if (m_media.isValid()) {
-        setMediaStatus(QMediaPlayer::LoadingMedia);
-        m_loadingTimer.start(); // singleshot timer to continueLoadMedia()
-    } else {
-        continueLoadMedia(); // still needed, as it will update the media status and clear metadata
-    }
-}
-
-void QQnxMediaPlayer::continueLoadMedia()
-{
     updateMetaData(nullptr);
     attach();
-    if (m_playAfterMediaLoaded)
-        play();
 }
 
 void QQnxMediaPlayer::play()
 {
-    if (m_playAfterMediaLoaded)
-        m_playAfterMediaLoaded = false;
-
-    // No-op if we are already playing, except if we were called from continueLoadMedia(), in which
-    // case m_playAfterMediaLoaded is true (hence the 'else').
-    else if (state() == QMediaPlayer::PlayingState)
-        return;
-
-    if (m_mediaStatus == QMediaPlayer::LoadingMedia) {
-
-        // State changes are supposed to be synchronous
-        setState(QMediaPlayer::PlayingState);
-
-        // Defer playing to later, when the timer triggers continueLoadMedia()
-        m_playAfterMediaLoaded = true;
+    if (!m_media.isValid() || !m_connection || !m_context || m_audioId == -1) {
+        stateChanged(QMediaPlayer::StoppedState);
         return;
     }
+
+    if (state() == QMediaPlayer::PlayingState)
+        return;
+
+    setDeferredSpeedEnabled(false);
+
+    if (m_deferredSpeed) {
+        setPlaybackRate(::speedToRate(*m_deferredSpeed));
+        m_deferredSpeed = {};
+    } else {
+        setPlaybackRate(::speedToRate(m_configuredSpeed));
+    }
+
+    setDeferredSpeedEnabled(true);
 
     // Un-pause the state when it is paused
     if (state() == QMediaPlayer::PausedState) {
-        setPlaybackRateInternal(m_rate);
-        setState(QMediaPlayer::PlayingState);
         return;
     }
 
-    if (!m_media.isValid() || !m_connection || !m_context || m_audioId == -1) {
-        setState(QMediaPlayer::StoppedState);
-        return;
-    }
 
-    if (m_mediaStatus == QMediaPlayer::EndOfMedia)
-        m_position = 0;
+    if (mediaStatus() == QMediaPlayer::EndOfMedia)
+        setPositionInternal(0);
 
     resetMonitoring();
-    setPositionInternal(m_position);
-    setVolumeInternal(m_muted ? 0 : m_volume);
-    setPlaybackRateInternal(m_rate);
+    updateVolume();
 
     if (mmr_play(m_context) != 0) {
-        setState(QMediaPlayer::StoppedState);
+        stateChanged(QMediaPlayer::StoppedState);
         emitMmError("mmr_play() failed");
         return;
     }
 
-    setState( QMediaPlayer::PlayingState);
+    stateChanged(QMediaPlayer::PlayingState);
 }
 
 void QQnxMediaPlayer::pause()
 {
-    if (state() == QMediaPlayer::PlayingState) {
-        setPlaybackRateInternal(0);
-        setState(QMediaPlayer::PausedState);
-    }
+    if (state() != QMediaPlayer::PlayingState)
+        return;
+
+    setPlaybackRate(0);
 }
 
 void QQnxMediaPlayer::stop()
 {
-    stopInternal(StopMmRenderer);
+    if (!m_context
+            || state() == QMediaPlayer::StoppedState
+            || mediaStatus() == QMediaPlayer::NoMedia)
+        return;
+
+    // mm-renderer does not rewind by default
+    setPositionInternal(0);
+
+    mmr_stop(m_context);
 }
 
 void QQnxMediaPlayer::setVideoSink(QVideoSink *videoSink)
@@ -583,34 +619,22 @@ void QQnxMediaPlayer::stopMonitoring()
 
 void QQnxMediaPlayer::resetMonitoring()
 {
-    m_bufferProgress = "";
     m_bufferLevel = 0;
-    m_bufferCapacity = 0;
     m_position = 0;
-    m_suspended = false;
-    m_suspendedReason = "unknown";
-    m_state = MMR_STATE_IDLE;
     m_speed = 0;
 }
 
-void QQnxMediaPlayer::setMmPosition(qint64 newPosition)
+void QQnxMediaPlayer::handleMmPositionChanged(qint64 newPosition)
 {
-    if (newPosition != 0 && newPosition != m_position) {
-        m_position = newPosition;
-        emit positionChanged(m_position);
-    }
+    m_position = newPosition;
+
+    if (state() == QMediaPlayer::PausedState)
+        m_platformVideoSink->forceUpdate();
+
+    positionChanged(m_position);
 }
 
-void QQnxMediaPlayer::setMmBufferStatus(const QString &bufferProgress)
-{
-    if (bufferProgress == QLatin1String("buffering"))
-        setMediaStatus(QMediaPlayer::BufferingMedia);
-    else if (bufferProgress == QLatin1String("playing"))
-        setMediaStatus(QMediaPlayer::BufferedMedia);
-    // ignore "idle" buffer status
-}
-
-void QQnxMediaPlayer::setMmBufferLevel(int level, int capacity)
+void QQnxMediaPlayer::updateBufferLevel(int level, int capacity)
 {
     m_bufferLevel = capacity == 0 ? 0 : level / static_cast<float>(capacity) * 100.0f;
     m_bufferLevel = qBound(0, m_bufferLevel, 100);
@@ -636,93 +660,35 @@ void QQnxMediaPlayer::emitMmError(const QString &msg)
 {
     int errorCode = MMR_ERROR_NONE;
     const QString errorMessage = mmErrorMessage(msg, m_context, &errorCode);
-    qDebug() << errorMessage;
     emit error(errorCode, errorMessage);
 }
 
 void QQnxMediaPlayer::emitPError(const QString &msg)
 {
     const QString errorMessage = QString::fromLatin1("%1: %2").arg(msg).arg(QString::fromUtf8(strerror(errno)));
-    qDebug() << errorMessage;
     emit error(errno, errorMessage);
 }
 
 
 void QQnxMediaPlayer::readEvents()
 {
-    const mmr_event_t *event;
-
-    while ((event = mmr_event_get(m_context))) {
+    while (const mmr_event_t *event = mmr_event_get(m_context)) {
         if (event->type == MMR_EVENT_NONE)
             break;
 
-        switch (event->type) {
+        switch (event->type)
         case MMR_EVENT_STATUS: {
-            if (event->data) {
-                const strm_string_t *value;
-                value = strm_dict_find_rstr(event->data, "bufferstatus");
-                if (value) {
-                    m_bufferProgress = QByteArray(strm_string_get(value));
-                    if (!m_suspended)
-                        setMmBufferStatus(QString::fromUtf8(m_bufferProgress));
-                }
-
-                value = strm_dict_find_rstr(event->data, "bufferlevel");
-                if (value) {
-                    const char *cstrValue = strm_string_get(value);
-                    int level;
-                    int capacity;
-                    bool ok;
-                    std::tie(level, capacity, ok) = parseBufferLevel(QByteArray(cstrValue));
-                    if (!ok) {
-                        qCritical("Could not parse buffer capacity from '%s'", cstrValue);
-                    } else {
-                        m_bufferLevel = level;
-                        m_bufferCapacity = capacity;
-                        setMmBufferLevel(level, capacity);
-                    }
-                }
-
-                value = strm_dict_find_rstr(event->data, "suspended");
-                if (value) {
-                    if (!m_suspended) {
-                        m_suspended = true;
-                        m_suspendedReason = strm_string_get(value);
-                        handleMmSuspend(QString::fromUtf8(m_suspendedReason));
-                    }
-                } else if (m_suspended) {
-                    m_suspended = false;
-                    handleMmSuspendRemoval(QString::fromUtf8(m_bufferProgress));
-                }
-            }
-
-            if (event->pos_str) {
-                const QByteArray valueBa = QByteArray(event->pos_str);
-                bool ok;
-                m_position = valueBa.toLongLong(&ok);
-                if (!ok) {
-                    qCritical("Could not parse position from '%s'", valueBa.constData());
-                } else {
-                    setMmPosition(m_position);
-                }
-            }
+            handleMmEventStatus(event);
             break;
-        }
-        case MMR_EVENT_STATE: {
-            if (event->state == MMR_STATE_PLAYING && m_speed != event->speed) {
-                m_speed = event->speed;
-                if (m_speed == 0)
-                    handleMmPause();
-                else
-                    handleMmPlay();
-            }
+        case MMR_EVENT_STATE:
+            handleMmEventState(event);
             break;
-        }
-        case MMR_EVENT_METADATA: {
+        case MMR_EVENT_METADATA:
             updateMetaData(event->data);
             break;
-        }
         case MMR_EVENT_ERROR:
+            handleMmEventError(event);
+            break;
         case MMR_EVENT_NONE:
         case MMR_EVENT_OVERFLOW:
         case MMR_EVENT_WARNING:
@@ -731,18 +697,9 @@ void QQnxMediaPlayer::readEvents()
         case MMR_EVENT_OUTPUT:
         case MMR_EVENT_CTXTPAR:
         case MMR_EVENT_TRKPAR:
-        case MMR_EVENT_OTHER: {
+        case MMR_EVENT_OTHER:
             break;
         }
-        }
-
-        // Currently, any exit from the playing state is considered a stop (end-of-media).
-        // If you ever need to separate end-of-media from things like "stopped unexpectedly"
-        // or "stopped because of an error", you'll find that end-of-media is signaled by an
-        // MMR_EVENT_ERROR of MMR_ERROR_NONE with state changed to MMR_STATE_STOPPED.
-        if (event->state != m_state && m_state == MMR_STATE_PLAYING)
-            handleMmStopped();
-        m_state = event->state;
     }
 
     if (m_eventThread)

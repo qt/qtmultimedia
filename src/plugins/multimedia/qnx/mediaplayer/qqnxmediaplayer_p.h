@@ -59,6 +59,8 @@
 #include <mm/renderer.h>
 #include <mm/renderer/types.h>
 
+#include <optional>
+
 extern "C" {
 // ### replace with proper include: mm/renderer/events.h
 typedef enum mmr_state {
@@ -142,8 +144,6 @@ public:
     explicit QQnxMediaPlayer(QMediaPlayer *parent = nullptr);
     ~QQnxMediaPlayer();
 
-    QMediaPlayer::MediaStatus mediaStatus() const override;
-
     qint64 duration() const override;
 
     qint64 position() const override;
@@ -173,83 +173,78 @@ public:
 
     void setVideoSink(QVideoSink *videoSink);
 
-protected:
-    void startMonitoring();
-    void stopMonitoring();
-    void resetMonitoring();
-
-    void setState(QMediaPlayer::PlaybackState state);
-
-    void openConnection();
-    void emitMmError(const char *msg);
-    void emitMmError(const QString &msg);
-    void emitPError(const QString &msg);
-    void setMmPosition(qint64 newPosition);
-    void setMmBufferStatus(const QString &bufferProgress);
-    void setMmBufferLevel(int level, int capacity);
-    void handleMmStopped();
-    void handleMmSuspend(const QString &reason);
-    void handleMmSuspendRemoval(const QString &bufferProgress);
-    void handleMmPause();
-    void handleMmPlay();
-    void updateMetaData(const strm_dict_t *dict);
-
-    mmr_context_t *m_context;
-    int m_id;
-    QString m_contextName;
-
-
 private Q_SLOTS:
-    void continueLoadMedia();
     void setVolume(float volume);
     void setMuted(bool muted);
     void readEvents();
 
 private:
+    void startMonitoring();
+    void stopMonitoring();
+    void resetMonitoring();
+
+    void openConnection();
+    void emitMmError(const char *msg);
+    void emitMmError(const QString &msg);
+    void emitPError(const QString &msg);
+
+    void handleMmPositionChanged(qint64 newPosition);
+    void updateBufferLevel(int level, int capacity);
+    void updateMetaData(const strm_dict_t *dict);
+
+    void handleMmEventState(const mmr_event_t *event);
+    void handleMmEventStatus(const mmr_event_t *event);
+    void handleMmEventStatusData(const strm_dict_t *data);
+    void handleMmEventError(const mmr_event_t *event);
+
     QByteArray resourcePathForUrl(const QUrl &url);
+
     void closeConnection();
     void attach();
     void detach();
 
-    // All these set the specified value to the backend, but neither emit changed signals
-    // nor change the member value.
-    void setVolumeInternal(float newVolume);
-    void setPlaybackRateInternal(qreal rate);
+    void updateVolume();
+
     void setPositionInternal(qint64 position);
+    void flushPosition();
 
-    void setMediaStatus(QMediaPlayer::MediaStatus status);
+    bool isPendingPositionFlush() const;
 
-    enum StopCommand { StopMmRenderer, IgnoreMmRenderer };
-    void stopInternal(StopCommand stopCommand);
+    void setDeferredSpeedEnabled(bool enabled);
+    bool isDeferredSpeedEnabled() const;
+
+    mmr_context_t *m_context = nullptr;
+    mmr_connection_t *m_connection = nullptr;
+
+    QString m_contextName;
+
+    int m_id = -1;
+    int m_audioId = -1;
+    int m_volume = 50; // range is 0-100
 
     QUrl m_media;
-    mmr_connection_t *m_connection = nullptr;
-    int m_audioId;
-    float m_volume = 1.;
-    bool m_muted = true;
-    qreal m_rate = 1.;
     QPointer<QAudioOutput> m_audioOutput;
     QPointer<QQnxVideoSink> m_platformVideoSink;
-    QQnxMediaMetaData m_metaData;
-    qint64 m_position = 0;
-    QMediaPlayer::MediaStatus m_mediaStatus = QMediaPlayer::NoMedia;
-    bool m_playAfterMediaLoaded = false;
-    bool m_inputAttached = false;
-    int m_bufferLevel = 0;
-    QTimer m_loadingTimer;
 
+    QQnxMediaMetaData m_metaData;
+
+    qint64 m_position = 0;
+    qint64 m_pendingPosition = 0;
+
+    int m_bufferLevel = 0;
+
+    QTimer m_flushPositionTimer;
 
     QQnxMediaEventThread *m_eventThread = nullptr;
 
-    // status properties.
-    QByteArray m_bufferProgress;
-    int m_bufferCapacity = 0;
-    bool m_suspended = false;
-    QByteArray m_suspendedReason;
+    int m_speed = 1000;
+    int m_configuredSpeed = 1000;
 
-    // state properties.
-    mmr_state_t m_state = MMR_STATE_IDLE;
-    int m_speed = 0;
+    std::optional<int> m_deferredSpeed;
+
+    bool m_inputAttached = false;
+    bool m_muted = false;
+    bool m_deferredSpeedEnabled = false;
 };
 
 QT_END_NAMESPACE
