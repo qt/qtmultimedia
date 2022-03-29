@@ -61,20 +61,23 @@ QT_BEGIN_NAMESPACE
 
 static std::tuple<int, int, bool> parseBufferLevel(const QByteArray &value)
 {
+    if (value.isEmpty())
+        return {};
+
     const int slashPos = value.indexOf('/');
     if (slashPos <= 0)
-        return std::make_tuple(0, 0, false);
+        return {};
 
     bool ok = false;
     const int level = value.left(slashPos).toInt(&ok);
     if (!ok || level < 0)
-        return std::make_tuple(0, 0, false);
+        return  {};
 
     const int capacity = value.mid(slashPos + 1).toInt(&ok);
     if (!ok || capacity < 0)
-        return std::make_tuple(0, 0, false);
+        return {};
 
-    return std::make_tuple(level, capacity, true);
+    return { level, capacity, true };
 }
 
 static int idCounter = 0;
