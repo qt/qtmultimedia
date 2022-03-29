@@ -121,6 +121,7 @@ public:
     void start() override;
     void stop() override;
     void reset() override;
+    void renderFrame();
 
     void setSubtitle(const QString &subtitle);
 private Q_SLOTS:
@@ -141,6 +142,7 @@ private:
     QVideoSink *m_sink = nullptr;
     QSize m_nativeSize;
     bool m_started = false;
+    bool m_renderFrame = false;
 
     AndroidSurfaceTexture *m_surfaceTexture = nullptr;
 

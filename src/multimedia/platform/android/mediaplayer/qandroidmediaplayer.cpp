@@ -146,9 +146,12 @@ void QAndroidMediaPlayer::setPosition(qint64 position)
     const int seekPosition = (position > INT_MAX) ? INT_MAX : position;
 
     qint64 currentPosition = mMediaPlayer->getCurrentPosition();
-    if (seekPosition == currentPosition)
+    if (seekPosition == currentPosition) {
+        // update position - will send a new frame of this position
+        // for consistency with other platforms
+        mMediaPlayer->seekTo(seekPosition);
         return;
-
+    }
     StateChangeNotifier notifier(this);
 
     if (mediaStatus() == QMediaPlayer::EndOfMedia)
@@ -435,7 +438,7 @@ void QAndroidMediaPlayer::pause()
         return;
     }
     if (mVideoOutput)
-        mVideoOutput->start();
+        mVideoOutput->renderFrame();
 
     const qint64 currentPosition = mMediaPlayer->getCurrentPosition();
     setPosition(currentPosition);

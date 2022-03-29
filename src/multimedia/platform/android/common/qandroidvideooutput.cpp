@@ -250,6 +250,18 @@ void QAndroidTextureVideoOutput::stop()
     m_started = false;
 }
 
+void QAndroidTextureVideoOutput::renderFrame()
+{
+    if (!m_started) {
+        m_renderFrame = true;
+        bool frameok = renderAndReadbackFrame();
+        if (!frameok) {
+            m_renderFrame = true;
+            renderAndReadbackFrame();
+        }
+    }
+}
+
 void QAndroidTextureVideoOutput::reset()
 {
     // flush pending frame
@@ -289,8 +301,10 @@ bool QAndroidTextureVideoOutput::moveToOpenGLContextThread()
 
 void QAndroidTextureVideoOutput::onFrameAvailable()
 {
-    if (!m_nativeSize.isValid() || !m_sink || !m_started)
+    if (!(m_nativeSize.isValid() && m_sink) || !(m_started || m_renderFrame))
         return;
+
+    m_renderFrame = false;
 
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
 
