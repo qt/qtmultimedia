@@ -57,7 +57,6 @@
 
 #include <tuple>
 
-QT_BEGIN_NAMESPACE
 
 static std::tuple<int, int, bool> parseBufferLevel(const QByteArray &value)
 {
@@ -81,6 +80,8 @@ static std::tuple<int, int, bool> parseBufferLevel(const QByteArray &value)
 }
 
 static int idCounter = 0;
+
+QT_BEGIN_NAMESPACE
 
 QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
     : QObject(parent),
