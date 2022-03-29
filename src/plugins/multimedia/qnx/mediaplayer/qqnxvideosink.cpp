@@ -141,6 +141,14 @@ void QQnxVideoSink::start()
     m_windowGrabber->start();
 }
 
+void QQnxVideoSink::stop()
+{
+    m_windowGrabber->stop();
+
+    if (sink)
+        sink->setVideoFrame({});
+}
+
 void QQnxVideoSink::forceUpdate()
 {
     m_windowGrabber->forceUpdate();

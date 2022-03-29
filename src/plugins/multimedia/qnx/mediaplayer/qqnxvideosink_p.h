@@ -73,6 +73,7 @@ public:
     void pause();
     void resume();
     void start();
+    void stop();
     void forceUpdate();
 
     void setRhi(QRhi *) override;
