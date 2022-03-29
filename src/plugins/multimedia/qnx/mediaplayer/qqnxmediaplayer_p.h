@@ -139,7 +139,7 @@ class QQnxMediaPlayer : public QObject
 {
     Q_OBJECT
 public:
-    explicit QQnxMediaPlayer(QMediaPlayer *parent = 0);
+    explicit QQnxMediaPlayer(QMediaPlayer *parent = nullptr);
     ~QQnxMediaPlayer();
 
     QMediaPlayer::MediaStatus mediaStatus() const override;
