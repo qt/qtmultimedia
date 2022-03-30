@@ -597,7 +597,9 @@ void QQnxMediaPlayer::stop()
 
 void QQnxMediaPlayer::setVideoSink(QVideoSink *videoSink)
 {
-    m_platformVideoSink = static_cast<QQnxVideoSink *>(videoSink->platformVideoSink());
+    m_platformVideoSink = videoSink
+        ? static_cast<QQnxVideoSink *>(videoSink->platformVideoSink())
+        : nullptr;
 }
 
 void QQnxMediaPlayer::startMonitoring()
