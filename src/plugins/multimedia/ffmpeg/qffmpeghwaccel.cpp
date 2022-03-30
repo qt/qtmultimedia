@@ -128,47 +128,35 @@ static AVBufferRef *hardwareContextForCodec(const AVCodec *codec)
 
 }
 
-static bool formatIsHWAccelerated(AVPixelFormat fmt)
-{
-    switch (fmt) {
-    case AV_PIX_FMT_VAAPI:
-    case AV_PIX_FMT_VDPAU:
-    case AV_PIX_FMT_QSV:
-    case AV_PIX_FMT_MMAL:
-    case AV_PIX_FMT_D3D11:
-    case AV_PIX_FMT_CUDA:
-    case AV_PIX_FMT_DRM_PRIME:
-    case AV_PIX_FMT_OPENCL:
-    case AV_PIX_FMT_VIDEOTOOLBOX:
-        return true;
-    default:
-        break;
-    }
-    return false;
-}
-
 // Used for the AVCodecContext::get_format callback
 AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt)
 {
-    Q_UNUSED(s);
-
-    // check the pixel formats supported. We always want HW accelerated formats
-    for (auto *f = fmt; *f != AV_PIX_FMT_NONE; ++f) {
-        if (formatIsHWAccelerated(*f)) {
+    // First check HW accelerated codecs, the HW device context must be set
+    if (s->hw_device_ctx && s->codec->hw_configs) {
+        auto *device_ctx = (AVHWDeviceContext*)s->hw_device_ctx->data;
+        for (int i = 0; const AVCodecHWConfig *config = avcodec_get_hw_config(s->codec, i); i++) {
+            if (!(config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX))
+                continue;
+            if (device_ctx->type != config->device_type)
+                continue;
+            for (int n = 0; fmt[n] != AV_PIX_FMT_NONE; n++) {
+                if (config->pix_fmt == fmt[n]) {
 #if QT_CONFIG(wmf)
-            if (*f == AV_PIX_FMT_D3D11)
-                QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(s);
+                    if (fmt[n] == AV_PIX_FMT_D3D11)
+                        QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(s);
 #endif
-            return *f;
+                    return fmt[n];
+                }
+            }
         }
     }
 
     // prefer video formats we can handle directly
-    for (auto *f = fmt; *f != AV_PIX_FMT_NONE; ++f) {
+    for (int n = 0; fmt[n] != AV_PIX_FMT_NONE; n++) {
         bool needsConversion = true;
-        QFFmpegVideoBuffer::toQtPixelFormat(*f, &needsConversion);
+        QFFmpegVideoBuffer::toQtPixelFormat(fmt[n], &needsConversion);
         if (!needsConversion)
-            return *f;
+            return fmt[n];
     }
 
     // take the native format, this will involve one additional format conversion on the CPU side
