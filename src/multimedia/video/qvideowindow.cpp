@@ -100,6 +100,9 @@ QVideoWindowPrivate::QVideoWindowPrivate(QVideoWindow *q)
 QVideoWindowPrivate::~QVideoWindowPrivate()
 {
     freeTextures();
+
+    QObject::disconnect(m_sink.get(), &QVideoSink::videoFrameChanged,
+            q, &QVideoWindow::setVideoFrame);
 }
 
 static const float g_quad[] = {
