@@ -81,6 +81,7 @@ class QVideoWindow;
 class QVideoWindowPrivate {
 public:
     QVideoWindowPrivate(QVideoWindow *q);
+    ~QVideoWindowPrivate();
     bool canRender() const { return m_useRhi; }
 
     QRhi *rhi() const { return m_rhi.get(); }

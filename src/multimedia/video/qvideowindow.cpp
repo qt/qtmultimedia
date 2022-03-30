@@ -103,6 +103,12 @@ QVideoWindowPrivate::QVideoWindowPrivate(QVideoWindow *q)
     QObject::connect(m_sink.get(), &QVideoSink::videoFrameChanged, q, &QVideoWindow::setVideoFrame);
 }
 
+QVideoWindowPrivate::~QVideoWindowPrivate()
+{
+    QObject::disconnect(m_sink.get(), &QVideoSink::videoFrameChanged,
+            q, &QVideoWindow::setVideoFrame);
+}
+
 static const float g_quad[] = {
     // 4 clockwise rotation of texture vertexes (the second pair)
     // Rotation 0
