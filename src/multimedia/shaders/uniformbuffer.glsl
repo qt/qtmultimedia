@@ -7,5 +7,6 @@ layout(std140, binding = 0) uniform buf {
     float width;
     // HDR metadata required for tonemapping
     float masteringWhite; // in PQ values
-    float maxLum; // in PQ values
+    float maxLumPQ; // in PQ values
+    float maxLum;
 } ubuf;

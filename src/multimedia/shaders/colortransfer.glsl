@@ -60,4 +60,25 @@ float convertPQFromLinear(float sig)
     return pow(num/den, m2);
 }
 
+// This implements support for HLG transfer functions, see also https://en.wikipedia.org/wiki/Hybrid_log–gamma
+
+
+vec4 convertHLGToLinear(vec4 rgba, float maxLum)
+{
+    const float a = 0.17883277;
+    const float b = 0.28466892; // = 1 - 4a
+    const float c = 0.55991073; // = 0.5 - a ln(4a)
+
+    bvec4 cutoff = lessThan(rgba, vec4(0.5));
+    vec4 low = rgba*rgba/3;
+    vec4 high = (exp((rgba - c)/a) + b)/12.;
+    rgba = mix(high, low, cutoff);
+
+    float lum = dot(rgba, vec4(0.2627, 0.6780, 0.0593, 0.));
+    float y = pow(lum, 0.2); // gamma-1 with gamma = 1.2
+
+    rgba *= y*maxLum;
+    return rgba;
+}
+
 #endif

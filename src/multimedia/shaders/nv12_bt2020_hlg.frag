@@ -19,7 +19,7 @@ void main()
     fragColor = vec4(Y, UV.x, UV.y, 1.);
     // map to Rec.2020 color space
     fragColor = ubuf.colorMatrix * fragColor;
-    fragColor = convertPQToLinear(fragColor);
+    fragColor = convertHLGToLinear(fragColor, ubuf.maxLum);
     fragColor = convertRec2020ToSRGB(fragColor);
 
     fragColor = tonemapBT2390(fragColor, ubuf.masteringWhite, ubuf.maxLumPQ);

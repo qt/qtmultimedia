@@ -326,6 +326,8 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format)
         // P010/P016 have the same layout as NV12, just 16 instead of 8 bits per pixel
         if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_ST2084)
             return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12_bt2020_pq.frag.qsb");
+        if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_STD_B67)
+            return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12_bt2020_hlg.frag.qsb");
         // Fall through, should be bt709
     case QVideoFrameFormat::Format_NV12:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12.frag.qsb");
@@ -495,8 +497,8 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
         break;
     }
 
-    // { matrix, colorMatrix, opacity, width, masteringWhite, maxLum }
-    const int uniformSize = 64 + 64 + 4 + 4 + 4 + 4;
+    // { matrix, colorMatrix, opacity, width, masteringWhite, maxLumPQ, maxLum }
+    const int uniformSize = 64 + 64 + 4 + 4 + 4 + 4 + 4;
     if (dst->size() < uniformSize)
         dst->resize(uniformSize);
     char *data = dst->data();
@@ -510,8 +512,10 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     // shader. To reduce computations there, it's precomputed in PQ values here.
     float masteringWhite = pq_delinearize(0.5); // ### get from video HDR metadata
     memcpy(data + 64 + 64 + 8, &masteringWhite, 4);
-    float maxPQ = pq_delinearize(0.9*maxNits/10000.);
-    memcpy(data + 64 + 64 + 12, &maxPQ, 4);
+    float maxLum = maxNits*100./10000.;
+    float maxLumPQ = pq_delinearize(maxNits/10000.);
+    memcpy(data + 64 + 64 + 12, &maxLumPQ, 4);
+    memcpy(data + 64 + 64 + 16, &maxLum, 4);
 }
 
 static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)

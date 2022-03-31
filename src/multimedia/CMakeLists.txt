@@ -130,6 +130,7 @@ qt_internal_add_shaders(Multimedia "shaders"
         "shaders/yuyv.frag"
         "shaders/ayuv.frag"
         "shaders/nv12_bt2020_pq.frag"
+        "shaders/nv12_bt2020_hlg.frag"
 )
 
 qt_internal_add_shaders(Multimedia "shaders_gl_macos"
