@@ -97,7 +97,8 @@ Q_MULTIMEDIA_EXPORT const TextureDescription *textureDescription(QVideoFrameForm
 
 Q_MULTIMEDIA_EXPORT QString vertexShaderFileName(const QVideoFrameFormat &format);
 Q_MULTIMEDIA_EXPORT QString fragmentShaderFileName(const QVideoFrameFormat &format);
-Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity);
+Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame,
+                                           const QMatrix4x4 &transform, float opacity, float maxNits = 100);
 Q_MULTIMEDIA_EXPORT void updateRhiTexture(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex);
 
 struct Q_MULTIMEDIA_EXPORT SubtitleLayout

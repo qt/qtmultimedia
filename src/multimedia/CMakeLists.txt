@@ -129,6 +129,7 @@ qt_internal_add_shaders(Multimedia "shaders"
         "shaders/yvu_triplanar.frag"
         "shaders/yuyv.frag"
         "shaders/ayuv.frag"
+        "shaders/nv12_bt2020_pq.frag"
 )
 
 qt_internal_add_shaders(Multimedia "shaders_gl_macos"

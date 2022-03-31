@@ -321,10 +321,13 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/uyvy.frag.qsb");
     case QVideoFrameFormat::Format_YUYV:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/yuyv.frag.qsb");
-    case QVideoFrameFormat::Format_NV12:
     case QVideoFrameFormat::Format_P010:
     case QVideoFrameFormat::Format_P016:
         // P010/P016 have the same layout as NV12, just 16 instead of 8 bits per pixel
+        if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_ST2084)
+            return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12_bt2020_pq.frag.qsb");
+        // Fall through, should be bt709
+    case QVideoFrameFormat::Format_NV12:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12.frag.qsb");
     case QVideoFrameFormat::Format_NV21:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/nv21.frag.qsb");
@@ -343,7 +346,13 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format)
     }
 }
 
-
+// Matrices are calculated from
+// https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.601-7-201103-I!!PDF-E.pdf
+// https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.709-6-201506-I!!PDF-E.pdf
+// https://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.2020-2-201510-I!!PDF-E.pdf
+//
+// For BT2020, we also need to convert the Rec2020 RGB colorspace to sRGB see
+// shaders/colorconvert.glsl for details.
 static QMatrix4x4 colorMatrix(QVideoFrameFormat::YCbCrColorSpace colorSpace)
 {
     switch (colorSpace) {
@@ -366,7 +375,8 @@ static QMatrix4x4 colorMatrix(QVideoFrameFormat::YCbCrColorSpace colorSpace)
             1.1644f, -0.1874f, -0.6511f,  0.3478f,
             1.1644f,  2.1418f,  0.000f, -1.1483f,
             0.0f,  0.000f,  0.000f,  1.0000f);
-    default: //BT 601:
+    case QVideoFrameFormat::YCbCr_BT601:
+    default:
         return QMatrix4x4(
             1.164f,  0.000f,  1.596f, -0.8708f,
             1.164f, -0.392f, -0.813f,  0.5296f,
@@ -409,7 +419,23 @@ static QMatrix4x4 yuvColorCorrectionMatrix(float brightness, float contrast, flo
 }
 #endif
 
-void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity)
+// PQ transfer function, see also https://en.wikipedia.org/wiki/Perceptual_quantizer
+// or https://ieeexplore.ieee.org/document/7291452
+static float pq_delinearize(float sig)
+{
+    const float m1 = 1305.f/8192.f;
+    const float m2 = 2523.f/32.f;
+    const float c1 = 107.f/128.f;
+    const float c2 = 2413.f/128.f;
+    const float c3 = 2392.f/128.f;
+
+    float psig = powf(sig, m1);
+    float num = c1 + c2*psig;
+    float den = 1 + c3*psig;
+    return powf(num/den, m2);
+}
+
+void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity, float maxNits)
 {
 #ifndef Q_OS_ANDROID
     Q_UNUSED(frame);
@@ -468,14 +494,24 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     }
         break;
     }
-    // { matrix, colorMatrix, opacity, width }
-    Q_ASSERT(dst->size() >= 64 + 64 + 4 + 4);
+
+    // { matrix, colorMatrix, opacity, width, masteringWhite, maxLum }
+    const int uniformSize = 64 + 64 + 4 + 4 + 4 + 4;
+    if (dst->size() < uniformSize)
+        dst->resize(uniformSize);
     char *data = dst->data();
     memcpy(data, transform.constData(), 64);
     memcpy(data + 64, cmat.constData(), 64);
     memcpy(data + 64 + 64, &opacity, 4);
     float width = format.frameWidth();
     memcpy(data + 64 + 64 + 4, &width, 4);
+    // HDR with a PQ transfer function uses a BT2390 based tone mapping to cut of the HDR peaks
+    // This requires that we pass the max luminance the tonemapper should clip to over to the fragment
+    // shader. To reduce computations there, it's precomputed in PQ values here.
+    float masteringWhite = pq_delinearize(0.5); // ### get from video HDR metadata
+    memcpy(data + 64 + 64 + 8, &masteringWhite, 4);
+    float maxPQ = pq_delinearize(0.9*maxNits/10000.);
+    memcpy(data + 64 + 64 + 12, &maxPQ, 4);
 }
 
 static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)

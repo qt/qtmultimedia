@@ -188,6 +188,8 @@ void QVideoWindowPrivate::initRhi()
         return;
 
     m_swapChain.reset(m_rhi->newSwapChain());
+    if (m_swapChain->isFormatSupported(QRhiSwapChain::HDRExtendedSrgbLinear))
+        m_swapChain->setFormat(QRhiSwapChain::HDRExtendedSrgbLinear);
     m_swapChain->setWindow(q);
     m_renderPass.reset(m_swapChain->newCompatibleRenderPassDescriptor());
     m_swapChain->setRenderPassDescriptor(m_renderPass.get());
@@ -417,8 +419,17 @@ void QVideoWindowPrivate::render()
     QMatrix4x4 transform;
     transform.scale(xscale, yscale);
 
-    QByteArray uniformData(64 + 64 + 4 + 4, Qt::Uninitialized);
-    QVideoTextureHelper::updateUniformData(&uniformData, m_currentFrame.surfaceFormat(), m_currentFrame, transform, 1.f);
+    float maxNits = 100;
+    if (m_swapChain->format() == QRhiSwapChain::HDRExtendedSrgbLinear) {
+        auto info = m_swapChain->hdrInfo();
+        if (info.limitsType == QRhiSwapChainHdrInfo::ColorComponentValue)
+            maxNits = 100 * info.limits.colorComponentValue.maxColorComponentValue;
+        else
+            maxNits = info.limits.luminanceInNits.maxLuminance;
+    }
+
+    QByteArray uniformData;
+    QVideoTextureHelper::updateUniformData(&uniformData, m_currentFrame.surfaceFormat(), m_currentFrame, transform, 1.f, maxNits);
     rub->updateDynamicBuffer(m_uniformBuf.get(), 0, uniformData.size(), uniformData.constData());
 
     if (m_hasSubtitle) {
@@ -427,7 +438,7 @@ void QVideoWindowPrivate::render()
         st.scale(float(m_subtitleLayout.bounds.width())/float(rect.width()),
                 -1.f * float(m_subtitleLayout.bounds.height())/float(rect.height()));
 
-        QByteArray uniformData(64 + 64 + 4 + 4, Qt::Uninitialized);
+        QByteArray uniformData;
         QVideoFrameFormat fmt(m_subtitleLayout.bounds.size().toSize(), QVideoFrameFormat::Format_ARGB8888);
         QVideoTextureHelper::updateUniformData(&uniformData, fmt, QVideoFrame(), st, 1.f);
         rub->updateDynamicBuffer(m_subtitleUniformBuf.get(), 0, uniformData.size(), uniformData.constData());

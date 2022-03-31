@@ -8,6 +8,8 @@ struct buf
     mat4 colorMatrix;
     float opacity;
     float width;
+    float masteringWhite;
+    float maxLum;
 };
 
 uniform buf ubuf;

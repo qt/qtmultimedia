@@ -5,4 +5,7 @@ layout(std140, binding = 0) uniform buf {
     mat4 colorMatrix;
     float opacity;
     float width;
+    // HDR metadata required for tonemapping
+    float masteringWhite; // in PQ values
+    float maxLum; // in PQ values
 } ubuf;
