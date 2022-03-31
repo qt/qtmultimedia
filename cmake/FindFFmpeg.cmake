@@ -98,7 +98,7 @@ macro(find_component _component _pkgconfig _library _header)
 
   # use pkg-config to get the directories and then use these values
   # in the FIND_PATH() and FIND_LIBRARY() calls
-  if (PKG_CONFIG_FOUND)
+  if (PKG_CONFIG_FOUND AND NOT FFMPEG_DIR)
     pkg_check_modules(PC_${_component} ${_pkgconfig})
   endif ()
 
