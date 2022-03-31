@@ -225,7 +225,8 @@ static bool updateTextures(QRhi *rhi,
                            const QVideoFrame &frame,
                            std::unique_ptr<QRhiTexture> (&textures)[QVideoTextureHelper::TextureDescription::maxPlanes])
 {
-    auto pixelFormat = frame.pixelFormat();
+    auto format = frame.surfaceFormat();
+    auto pixelFormat = format.pixelFormat();
 
     auto textureDesc = QVideoTextureHelper::textureDescription(pixelFormat);
 
@@ -245,11 +246,11 @@ static bool updateTextures(QRhi *rhi,
     graphicsPipeline.reset(rhi->newGraphicsPipeline());
     graphicsPipeline->setTopology(QRhiGraphicsPipeline::TriangleStrip);
 
-    QShader vs = getShader(QVideoTextureHelper::vertexShaderFileName(pixelFormat));
+    QShader vs = getShader(QVideoTextureHelper::vertexShaderFileName(format));
     if (!vs.isValid())
         return false;
 
-    QShader fs = getShader(QVideoTextureHelper::fragmentShaderFileName(pixelFormat));
+    QShader fs = getShader(QVideoTextureHelper::fragmentShaderFileName(format));
     if (!fs.isValid())
         return false;
 

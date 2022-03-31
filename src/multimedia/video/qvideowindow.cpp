@@ -212,7 +212,7 @@ void QVideoWindowPrivate::initRhi()
     Q_ASSERT(NVideoFrameSlots >= m_rhi->resourceLimit(QRhi::FramesInFlight));
 }
 
-void QVideoWindowPrivate::setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, QVideoFrameFormat::PixelFormat fmt)
+void QVideoWindowPrivate::setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, const QVideoFrameFormat &fmt)
 {
 
     pipeline->setTopology(QRhiGraphicsPipeline::TriangleStrip);
@@ -255,8 +255,8 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
     *(b++) = QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
                                                    m_uniformBuf.get());
 
-    auto fmt = m_currentFrame.pixelFormat();
-    auto textureDesc = QVideoTextureHelper::textureDescription(fmt);
+    auto fmt = m_currentFrame.surfaceFormat();
+    auto textureDesc = QVideoTextureHelper::textureDescription(fmt.pixelFormat());
 
     for (int i = 0; i < textureDesc->nplanes; ++i)
         (*b++) = QRhiShaderResourceBinding::sampledTexture(i + 1, QRhiShaderResourceBinding::FragmentStage,
@@ -305,7 +305,7 @@ void QVideoWindowPrivate::updateSubtitle(QRhiResourceUpdateBatch *rub, const QSi
         QRhiGraphicsPipeline::TargetBlend blend;
         blend.enable = true;
         m_subtitlePipeline->setTargetBlends({ blend });
-        setupGraphicsPipeline(m_subtitlePipeline.get(), m_subtitleResourceBindings.get(), QVideoFrameFormat::Format_RGBA8888);
+        setupGraphicsPipeline(m_subtitlePipeline.get(), m_subtitleResourceBindings.get(), QVideoFrameFormat(QSize(1, 1), QVideoFrameFormat::Format_RGBA8888));
     }
 }
 

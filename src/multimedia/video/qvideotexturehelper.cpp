@@ -263,25 +263,26 @@ const TextureDescription *textureDescription(QVideoFrameFormat::PixelFormat form
     return descriptions + format;
 }
 
-QString vertexShaderFileName(QVideoFrameFormat::PixelFormat format)
+QString vertexShaderFileName(const QVideoFrameFormat &format)
 {
-    Q_UNUSED(format);
+    auto fmt = format.pixelFormat();
+    Q_UNUSED(fmt);
 
 #if 1//def Q_OS_ANDROID
-    if (format == QVideoFrameFormat::Format_SamplerExternalOES)
+    if (fmt == QVideoFrameFormat::Format_SamplerExternalOES)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.vert.qsb");
 #endif
 #if 1//def Q_OS_MACOS
-    if (format == QVideoFrameFormat::Format_SamplerRect)
+    if (fmt == QVideoFrameFormat::Format_SamplerRect)
         return QStringLiteral(":/qt-project.org/multimedia/shaders/rectsampler.vert.qsb");
 #endif
 
     return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
 }
 
-QString fragmentShaderFileName(QVideoFrameFormat::PixelFormat format)
+QString fragmentShaderFileName(const QVideoFrameFormat &format)
 {
-    switch (format) {
+    switch (format.pixelFormat()) {
     case QVideoFrameFormat::Format_Y8:
     case QVideoFrameFormat::Format_Y16:
         return QStringLiteral(":/qt-project.org/multimedia/shaders/y.frag.qsb");

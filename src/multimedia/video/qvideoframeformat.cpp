@@ -605,7 +605,7 @@ void QVideoFrameFormat::setMirrored(bool mirrored)
 */
 QString QVideoFrameFormat::vertexShaderFileName() const
 {
-    return QVideoTextureHelper::vertexShaderFileName(d->pixelFormat);
+    return QVideoTextureHelper::vertexShaderFileName(*this);
 }
 
 /*!
@@ -613,7 +613,7 @@ QString QVideoFrameFormat::vertexShaderFileName() const
 */
 QString QVideoFrameFormat::fragmentShaderFileName() const
 {
-    return QVideoTextureHelper::fragmentShaderFileName(d->pixelFormat);
+    return QVideoTextureHelper::fragmentShaderFileName(*this);
 }
 
 /*!

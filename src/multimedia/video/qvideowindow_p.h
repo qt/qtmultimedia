@@ -97,7 +97,7 @@ public:
     void updateTextures(QRhiResourceUpdateBatch *rub);
     void updateSubtitle(QRhiResourceUpdateBatch *rub, const QSize &frameSize);
 
-    void setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, QVideoFrameFormat::PixelFormat fmt);
+    void setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, const QVideoFrameFormat &fmt);
 
     QVideoWindow *q = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
@@ -139,7 +139,7 @@ public:
     bool m_texturesDirty = true;
     bool m_subtitleDirty = false;
     bool m_hasSubtitle = false;
-    QVideoFrameFormat::PixelFormat format = QVideoFrameFormat::Format_Invalid;
+    QVideoFrameFormat format;
 };
 
 class Q_MULTIMEDIA_EXPORT QVideoWindow : public QWindow
