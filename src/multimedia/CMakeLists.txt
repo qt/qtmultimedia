@@ -103,6 +103,32 @@ qt_internal_add_docs(Multimedia
     doc/qtmultimedia.qdocconf
 )
 
+set(VIDEO_VERTEX_SHADERS
+    "shaders/vertex.vert"
+    "shaders/externalsampler.vert"
+)
+
+set(VIDEO_SHADERS
+    "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag"
+    "shaders/abgr.frag"
+    "shaders/argb.frag"
+    "shaders/rgba.frag"
+    "shaders/bgra.frag"
+    "shaders/y.frag"
+    "shaders/nv12.frag"
+    "shaders/nv21.frag"
+    "shaders/imc2.frag"
+    "shaders/imc4.frag"
+    "shaders/uyvy.frag"
+    "shaders/yuv_triplanar.frag"
+    "shaders/yuv_triplanar_p10.frag"
+    "shaders/yvu_triplanar.frag"
+    "shaders/yuyv.frag"
+    "shaders/ayuv.frag"
+    "shaders/nv12_bt2020_pq.frag"
+    "shaders/nv12_bt2020_hlg.frag"
+)
+
 qt_internal_add_shaders(Multimedia "shaders"
     SILENT
     BATCHABLE
@@ -111,26 +137,25 @@ qt_internal_add_shaders(Multimedia "shaders"
     PREFIX
         "/qt-project.org/multimedia"
     FILES
-        "shaders/vertex.vert"
-        "shaders/externalsampler.vert"
-        "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag"
-        "shaders/abgr.frag"
-        "shaders/argb.frag"
-        "shaders/rgba.frag"
-        "shaders/bgra.frag"
-        "shaders/y.frag"
-        "shaders/nv12.frag"
-        "shaders/nv21.frag"
-        "shaders/imc2.frag"
-        "shaders/imc4.frag"
-        "shaders/uyvy.frag"
-        "shaders/yuv_triplanar.frag"
-        "shaders/yuv_triplanar_p10.frag"
-        "shaders/yvu_triplanar.frag"
-        "shaders/yuyv.frag"
-        "shaders/ayuv.frag"
-        "shaders/nv12_bt2020_pq.frag"
-        "shaders/nv12_bt2020_hlg.frag"
+        ${VIDEO_VERTEX_SHADERS}
+        ${VIDEO_SHADERS}
+)
+
+string(REPLACE ".frag" "_linear.frag.qsb" LINEAR_VIDEO_SHADERS "${VIDEO_SHADERS}")
+message(WARNING ${LINEAR_VIDEO_SHADERS})
+qt_internal_add_shaders(Multimedia "shaders_linear"
+    SILENT
+    BATCHABLE
+    PRECOMPILE
+    OPTIMIZED
+    PREFIX
+        "/qt-project.org/multimedia"
+    FILES
+        ${VIDEO_SHADERS}
+    OUTPUTS
+        ${LINEAR_VIDEO_SHADERS}
+    DEFINES
+        QMM_OUTPUTSURFACE_LINEAR
 )
 
 qt_internal_add_shaders(Multimedia "shaders_gl_macos"
@@ -147,4 +172,21 @@ qt_internal_add_shaders(Multimedia "shaders_gl_macos"
     FILES
         "shaders/rectsampler.vert"
         "shaders/rectsampler_bgra.frag"
+)
+
+qt_internal_add_shaders(Multimedia "shaders_gl_macos_linear"
+    SILENT
+    BATCHABLE
+    PRECOMPILE
+    OPTIMIZED
+    PREFIX
+        "/qt-project.org/multimedia"
+    GLSL
+        "120,150"
+    NOHLSL
+    NOMSL
+    FILES
+        "shaders/rectsampler_bgra.frag"
+    OUTPUTS
+        "shaders/rectsampler_bgra_linear.frag.qsb"
 )

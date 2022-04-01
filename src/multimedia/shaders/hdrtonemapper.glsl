@@ -37,4 +37,27 @@ vec4 tonemapBT2390(vec4 rgba, float masteringWhite, float maxLum)
     return rgba;
 }
 
+vec4 tonemapBT2390_component(vec4 rgba, float masteringWhite, float maxLum)
+{
+    // tonemapping operates in PQ space
+    vec4 p = convertPQFromLinear(rgba)/masteringWhite;
+
+    float ks = 1.5*maxLum - 0.5;
+
+    bvec4 step = lessThan(p, vec4(ks, ks, ks, 1.));
+
+    vec4 t = (p - ks)/(1 - ks);
+    vec4 t2 = t*t;
+    vec4 t3 = t*t2;
+
+    p = (2*t3 - 3*t2 + 1)*ks + (t3 - 2*t2 + t)*(1. - ks) + (-2*t3 + 3*t2)*maxLum;
+
+    // get the linear new luminosity
+    vec4 newRgba = convertPQToLinear(p*masteringWhite);
+
+    rgba = mix(newRgba, rgba, step);
+    rgba.a = 1;
+    return rgba;
+}
+
 #endif

@@ -280,72 +280,101 @@ QString vertexShaderFileName(const QVideoFrameFormat &format)
     return QStringLiteral(":/qt-project.org/multimedia/shaders/vertex.vert.qsb");
 }
 
-QString fragmentShaderFileName(const QVideoFrameFormat &format)
+QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::Format surfaceFormat)
 {
+    const char *shader = nullptr;
     switch (format.pixelFormat()) {
     case QVideoFrameFormat::Format_Y8:
     case QVideoFrameFormat::Format_Y16:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/y.frag.qsb");
+        shader = "y";
+        break;
     case QVideoFrameFormat::Format_AYUV:
     case QVideoFrameFormat::Format_AYUV_Premultiplied:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/ayuv.frag.qsb");
+        shader = "ayuv";
+        break;
     case QVideoFrameFormat::Format_ARGB8888:
     case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
     case QVideoFrameFormat::Format_XRGB8888:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/argb.frag.qsb");
+        shader = "argb";
+        break;
     case QVideoFrameFormat::Format_ABGR8888:
     case QVideoFrameFormat::Format_XBGR8888:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/abgr.frag.qsb");
+        shader = "abgr";
+        break;
     case QVideoFrameFormat::Format_Jpeg: // Jpeg is decoded transparently into an ARGB texture
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/bgra.frag.qsb");
+        shader = "bgra";
+        break;
     case QVideoFrameFormat::Format_RGBA8888:
     case QVideoFrameFormat::Format_RGBX8888:
     case QVideoFrameFormat::Format_BGRA8888:
     case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
     case QVideoFrameFormat::Format_BGRX8888:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/rgba.frag.qsb");
+        shader = "rgba";
+        break;
     case QVideoFrameFormat::Format_YUV420P:
     case QVideoFrameFormat::Format_YUV422P:
     case QVideoFrameFormat::Format_IMC3:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv_triplanar.frag.qsb");
+        shader = "yuv_triplanar";
+        break;
     case QVideoFrameFormat::Format_YUV420P10:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/yuv_triplanar_p10.frag.qsb");
+        shader = "yuv_triplanar_p10";
+        break;
     case QVideoFrameFormat::Format_YV12:
     case QVideoFrameFormat::Format_IMC1:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/yvu_triplanar.frag.qsb");
+        shader = "yvu_triplanar";
+        break;
     case QVideoFrameFormat::Format_IMC2:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/imc2.frag.qsb");
+        shader = "imc2";
+        break;
     case QVideoFrameFormat::Format_IMC4:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/imc4.frag.qsb");
+        shader = "imc4";
+        break;
     case QVideoFrameFormat::Format_UYVY:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/uyvy.frag.qsb");
+        shader = "uyvy";
+        break;
     case QVideoFrameFormat::Format_YUYV:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/yuyv.frag.qsb");
+        shader = "yuyv";
+        break;
     case QVideoFrameFormat::Format_P010:
     case QVideoFrameFormat::Format_P016:
         // P010/P016 have the same layout as NV12, just 16 instead of 8 bits per pixel
-        if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_ST2084)
-            return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12_bt2020_pq.frag.qsb");
-        if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_STD_B67)
-            return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12_bt2020_hlg.frag.qsb");
+        if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_ST2084) {
+            shader = "nv12_bt2020_pq";
+            break;
+        }
+        if (format.colorTransfer() == QVideoFrameFormat::ColorTransfer_STD_B67) {
+            shader = "nv12_bt2020_hlg";
+            break;
+        }
         // Fall through, should be bt709
     case QVideoFrameFormat::Format_NV12:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/nv12.frag.qsb");
+        shader = "nv12";
+        break;
     case QVideoFrameFormat::Format_NV21:
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/nv21.frag.qsb");
+        shader = "nv21";
+        break;
     case QVideoFrameFormat::Format_SamplerExternalOES:
 #if 1//def Q_OS_ANDROID
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/externalsampler.frag.qsb");
+        shader = "externalsampler";
+        break;
 #endif
     case QVideoFrameFormat::Format_SamplerRect:
 #if 1//def Q_OS_MACOS
-        return QStringLiteral(":/qt-project.org/multimedia/shaders/rectsampler_bgra.frag.qsb");
+        shader = "rectsampler_bgra";
+        break;
 #endif
         // fallthrough
     case QVideoFrameFormat::Format_Invalid:
     default:
-        return QString();
+        break;
     }
+    if (!shader)
+        return QString();
+    QString shaderFile = QStringLiteral(":/qt-project.org/multimedia/shaders/") + QString::fromLatin1(shader);
+    if (surfaceFormat == QRhiSwapChain::HDRExtendedSrgbLinear)
+        shaderFile += QLatin1String("_linear");
+    shaderFile += QStringLiteral(".frag.qsb");
+    return shaderFile;
 }
 
 // Matrices are calculated from

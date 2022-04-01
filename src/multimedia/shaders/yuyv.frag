@@ -2,6 +2,7 @@
 #extension GL_GOOGLE_include_directive : enable
 
 #include "uniformbuffer.glsl"
+#include "colortransfer.glsl"
 
 layout(location = 0) in vec2 texCoord;
 layout(location = 0) out vec4 fragColor;
@@ -15,4 +16,8 @@ void main()
     float Y = rightSubPixel ? texture(plane1Texture, texCoord).b : texture(plane1Texture, texCoord).r;
     vec2 UV = texture(plane1Texture, texCoord).ga;
     fragColor = ubuf.colorMatrix * vec4(Y, UV, 1.0) * ubuf.opacity;
+
+#ifdef QMM_OUTPUTSURFACE_LINEAR
+    fragColor = convertSRGBToLinear(fragColor);
+#endif
 }

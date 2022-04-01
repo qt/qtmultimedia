@@ -12,6 +12,15 @@ vec4 convertRec709ToLinear(vec4 rgba)
     return mix(high, low, cutoff);
 }
 
+vec4 convertSRGBToLinear(vec4 rgba)
+{
+    return pow(rgba, vec4(2.2));
+}
+
+vec4 convertSRGBFromLinear(vec4 rgba)
+{
+    return pow(rgba, vec4(1./2.2));
+}
 
 // This uses the PQ transfer function, see also https://en.wikipedia.org/wiki/Perceptual_quantizer
 // or https://ieeexplore.ieee.org/document/7291452
@@ -29,6 +38,21 @@ vec4 convertPQToLinear(vec4 rgba)
     vec4 num = max(e - c1, 0);
     vec4 den = c2 - c3*e;
     return pow(num/den, one_over_m1)*10000./SDR_LEVEL;
+}
+
+vec4 convertPQFromLinear(vec4 rgba)
+{
+    const float m1 = float(1305./8192.);
+    const float m2 = float(2523./32.);
+    const float c1 = 107./128.;
+    const float c2 = 2413./128;
+    const float c3 = 2392./128.;
+
+    rgba *= SDR_LEVEL/10000.;
+    vec4 p = pow(rgba, vec4(m1));
+    vec4 num = c1 + c2*p;
+    vec4 den = 1. + c3*p;
+    return pow(num/den, vec4(m2));
 }
 
 float convertPQToLinear(float sig)

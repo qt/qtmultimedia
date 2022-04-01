@@ -22,6 +22,12 @@ void main()
     fragColor = convertPQToLinear(fragColor);
     fragColor = convertRec2020ToSRGB(fragColor);
 
+#ifdef QMM_OUTPUTSURFACE_LINEAR
     fragColor = tonemapBT2390(fragColor, ubuf.masteringWhite, ubuf.maxLumPQ);
+#else
+    fragColor = fragColor*.7; // scale down slightly to reduce overexposure
+    fragColor = tonemapBT2390(fragColor, ubuf.masteringWhite, ubuf.maxLumPQ);
+    fragColor = convertSRGBFromLinear(fragColor);
+#endif
     fragColor *= ubuf.opacity;
 }

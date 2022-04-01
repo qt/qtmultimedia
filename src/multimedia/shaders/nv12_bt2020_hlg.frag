@@ -24,4 +24,8 @@ void main()
 
     fragColor = tonemapBT2390(fragColor, ubuf.masteringWhite, ubuf.maxLumPQ);
     fragColor *= ubuf.opacity;
+
+#ifndef QMM_OUTPUTSURFACE_LINEAR
+    fragColor = convertSRGBFromLinear(fragColor);
+#endif
 }
