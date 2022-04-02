@@ -452,7 +452,7 @@ static QMatrix4x4 yuvColorCorrectionMatrix(float brightness, float contrast, flo
 
 // PQ transfer function, see also https://en.wikipedia.org/wiki/Perceptual_quantizer
 // or https://ieeexplore.ieee.org/document/7291452
-static float pq_delinearize(float sig)
+static float convertPQFromLinear(float sig)
 {
     const float m1 = 1305.f/8192.f;
     const float m2 = 2523.f/32.f;
@@ -460,10 +460,28 @@ static float pq_delinearize(float sig)
     const float c2 = 2413.f/128.f;
     const float c3 = 2392.f/128.f;
 
+    const float SDR_LEVEL = 100.f;
+    sig *= SDR_LEVEL/10000.f;
     float psig = powf(sig, m1);
     float num = c1 + c2*psig;
     float den = 1 + c3*psig;
     return powf(num/den, m2);
+}
+
+float convertHLGFromLinear(float sig)
+{
+    const float a = 0.17883277f;
+    const float b = 0.28466892f; // = 1 - 4a
+    const float c = 0.55991073f; // = 0.5 - a ln(4a)
+
+    if (sig < 1.f/12.f)
+        return sqrtf(3.f*sig);
+    return a*logf(12.f*sig - b) + c;
+}
+
+static float convertSDRFromLinear(float sig)
+{
+    return sig;
 }
 
 void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity, float maxNits)
@@ -527,7 +545,7 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     }
 
     // { matrix, colorMatrix, opacity, width, masteringWhite, maxLumPQ, maxLum }
-    const int uniformSize = 64 + 64 + 4 + 4 + 4 + 4 + 4;
+    const int uniformSize = 64 + 64 + 4 + 4 + 4 + 4;
     if (dst->size() < uniformSize)
         dst->resize(uniformSize);
     char *data = dst->data();
@@ -536,15 +554,25 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     memcpy(data + 64 + 64, &opacity, 4);
     float width = format.frameWidth();
     memcpy(data + 64 + 64 + 4, &width, 4);
-    // HDR with a PQ transfer function uses a BT2390 based tone mapping to cut of the HDR peaks
+    // HDR with a PQ or HLG transfer function uses a BT2390 based tone mapping to cut off the HDR peaks
     // This requires that we pass the max luminance the tonemapper should clip to over to the fragment
     // shader. To reduce computations there, it's precomputed in PQ values here.
-    float masteringWhite = pq_delinearize(0.5); // ### get from video HDR metadata
+    auto fromLinear = convertSDRFromLinear;
+    switch (format.colorTransfer()) {
+    case QVideoFrameFormat::ColorTransfer_ST2084:
+        fromLinear = convertPQFromLinear;
+        break;
+    case QVideoFrameFormat::ColorTransfer_STD_B67:
+        fromLinear = convertHLGFromLinear;
+        break;
+    default:
+        break;
+    }
+
+    float masteringWhite = fromLinear(5000./100.); // ### get from video HDR metadata
     memcpy(data + 64 + 64 + 8, &masteringWhite, 4);
-    float maxLum = maxNits*100./10000.;
-    float maxLumPQ = pq_delinearize(maxNits/10000.);
-    memcpy(data + 64 + 64 + 12, &maxLumPQ, 4);
-    memcpy(data + 64 + 64 + 16, &maxLum, 4);
+    float maxLum = fromLinear(maxNits/100.);
+    memcpy(data + 64 + 64 + 12, &maxLum, 4);
 }
 
 static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)
