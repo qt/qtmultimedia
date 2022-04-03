@@ -201,6 +201,9 @@ public:
     QString fragmentShaderFileName() const;
     void updateUniformData(QByteArray *dst, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity) const;
 
+    float maxLuminance() const;
+    void setMaxLuminance(float lum);
+
     static PixelFormat pixelFormatFromImageFormat(QImage::Format format);
     static QImage::Format imageFormatFromPixelFormat(PixelFormat format);
 

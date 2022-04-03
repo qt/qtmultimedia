@@ -91,6 +91,8 @@ public:
     QVideoFrameFormat::ColorTransfer colorTransfer() const;
     QVideoFrameFormat::ColorRange colorRange() const;
 
+    float maxNits();
+
 private:
     QVideoFrameFormat::PixelFormat m_pixelFormat;
     AVFrame *frame = nullptr;

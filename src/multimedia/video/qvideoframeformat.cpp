@@ -93,7 +93,8 @@ public:
     QVideoFrameFormat::ColorTransfer colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
     QVideoFrameFormat::ColorRange colorRange = QVideoFrameFormat::ColorRange_Unknown;
     QRect viewport;
-    qreal frameRate = 0.0;
+    float frameRate = 0.0;
+    float maxLuminance = -1.;
     bool mirrored = false;
 };
 
@@ -668,6 +669,30 @@ QString QVideoFrameFormat::fragmentShaderFileName() const
 void QVideoFrameFormat::updateUniformData(QByteArray *dst, const QVideoFrame &frame, const QMatrix4x4 &transform, float opacity) const
 {
     QVideoTextureHelper::updateUniformData(dst, *this, frame, transform, opacity);
+}
+
+/*!
+    \internal
+
+    The maximum luminence in nits as set by the HDR metadata. If the video doesn't have meta data, the returned value depends on the
+    maximum that can be encoded by the transfer function.
+*/
+float QVideoFrameFormat::maxLuminance() const
+{
+    if (d->maxLuminance <= 0) {
+        if (d->colorTransfer == ColorTransfer_ST2084)
+            return 10000.; // ST2084 can encode up to 10000 nits
+        if (d->colorTransfer == ColorTransfer_STD_B67)
+            return 1500.; // SRD_B67 can encode up to 1200 nits, use a bit more for some headroom
+        return 100; // SDR
+    }
+    return d->maxLuminance;
+}
+
+void QVideoFrameFormat::setMaxLuminance(float lum)
+{
+    detach();
+    d->maxLuminance = lum;
 }
 
 

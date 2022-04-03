@@ -581,7 +581,7 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
         break;
     }
 
-    float masteringWhite = fromLinear(5000./100.); // ### get from video HDR metadata
+    float masteringWhite = fromLinear(format.maxLuminance()/100.);
     memcpy(data + 64 + 64 + 8, &masteringWhite, 4);
     float maxLum = fromLinear(maxNits/100.);
     memcpy(data + 64 + 64 + 12, &maxLum, 4);

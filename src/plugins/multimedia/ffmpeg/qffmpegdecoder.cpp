@@ -694,6 +694,7 @@ void VideoRenderer::loop()
         format.setYCbCrColorSpace(buffer->colorSpace());
         format.setColorTransfer(buffer->colorTransfer());
         format.setColorRange(buffer->colorRange());
+        format.setMaxLuminance(buffer->maxNits());
         QVideoFrame videoFrame(buffer, format);
         videoFrame.setStartTime(startTime);
         videoFrame.setEndTime(startTime + duration);
