@@ -190,6 +190,8 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     CVPixelBufferRelease(pixelBuffer);
 
     QVideoFrameFormat format(QSize(width, height), fmt);
+    format.setYCbCrColorSpace(buffer->colorSpace());
+    format.setColorTransfer(buffer->colorTransfer());
 
     frame = QVideoFrame(buffer, format);
     frame.setRotationAngle(m_rotation);

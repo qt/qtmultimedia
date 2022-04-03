@@ -80,6 +80,9 @@ public:
 
     virtual quint64 textureHandle(int plane) const;
 
+    QVideoFrameFormat::YCbCrColorSpace colorSpace() const { return m_colorSpace; }
+    QVideoFrameFormat::ColorTransfer colorTransfer() const { return m_colorTransfer; }
+
 private:
     AVFVideoSinkInterface *sink = nullptr;
 
@@ -94,6 +97,8 @@ private:
     CVImageBufferRef m_buffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
     QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
+    QVideoFrameFormat::YCbCrColorSpace m_colorSpace = QVideoFrameFormat::YCbCr_Undefined;
+    QVideoFrameFormat::ColorTransfer m_colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
 };
 
 QT_END_NAMESPACE
