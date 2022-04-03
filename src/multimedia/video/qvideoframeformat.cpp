@@ -91,6 +91,7 @@ public:
     QSize frameSize;
     QVideoFrameFormat::YCbCrColorSpace ycbcrColorSpace = QVideoFrameFormat::YCbCr_Undefined;
     QVideoFrameFormat::ColorTransfer colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
+    QVideoFrameFormat::ColorRange colorRange = QVideoFrameFormat::ColorRange_Unknown;
     QRect viewport;
     qreal frameRate = 0.0;
     bool mirrored = false;
@@ -270,22 +271,27 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     \value YCbCr_BT601
     A Y'CbCr color space defined by ITU-R recommendation BT.601
     with Y value range from 16 to 235, and Cb/Cr range from 16 to 240.
-    Used in standard definition video.
+    Used mostly by older videos that were targeting CRT displays.
 
     \value YCbCr_BT709
-    A Y'CbCr color space defined by ITU-R BT.709 with the same values range as YCbCr_BT601.  Used
-    for HDTV.
+    A Y'CbCr color space defined by ITU-R BT.709 with the same values range as YCbCr_BT601.
+    The most commonly used color space today.
 
     \value YCbCr_xvYCC601
+    This value is deprecated. Please check the \l ColorRange instead.
     The BT.601 color space with the value range extended to 0 to 255.
     It is backward compatible with BT.601 and uses values outside BT.601 range to represent a
     wider range of colors.
 
     \value YCbCr_xvYCC709
+    This value is deprecated. Please check the \l ColorRange instead.
     The BT.709 color space with the value range extended to 0 to 255.
 
     \value YCbCr_JPEG
-    The full range Y'CbCr color space used in JPEG files.
+    Deprected. Use AdobeRgb instead.
+
+    \value YCbCr_AdobeRgb
+    The full range Y'CbCr color space used in most JPEG files.
 
     \value YCbCr_BT2020
     The color space defined by ITU-R BT.2020. Used mainly for HDR videos.
@@ -325,6 +331,27 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     See also https://www.itu.int/rec/R-REC-BT.2100 and https://en.wikipedia.org/wiki/Hybrid_log–gamma.
 */
 
+/*!
+    \enum QVideoFrameFormat::ColorRange
+
+    Describes the color range used by the video data. Video data usually comes in either full
+    color range, where all values are being used, or a more limited range traditionally used in
+    YUV video formats, where a subset of all values is being used.
+
+    \value ColorRange_Unknown
+    The color range of the video is unknown.
+
+    \value ColorRange_Video
+
+    The color range traditionally used by most YUV video formats. For 8 bit formats, the Y component is
+    limited to values between 16 and 235. The U and V components are limited to values between 16 and 240
+
+    For higher bit depths multiply these values with 2^(depth-8).
+
+    \value ColorRange_Full
+
+    Full color range. All values from 0 to 2^depth - 1 are valid.
+*/
 
 /*!
     Constructs a null video stream format.
@@ -568,6 +595,25 @@ void QVideoFrameFormat::setColorTransfer(ColorTransfer colorTransfer)
 {
     detach();
     d->colorTransfer = colorTransfer;
+}
+
+/*!
+    Returns the color range that should be used to render the
+    video stream.
+*/
+QVideoFrameFormat::ColorRange QVideoFrameFormat::colorRange() const
+{
+    return d->colorRange;
+}
+
+/*!
+    Sets the color transfer range that should be used to render the
+    video stream to \a range.
+*/
+void QVideoFrameFormat::setColorRange(ColorRange range)
+{
+    detach();
+    d->colorRange = range;
 }
 
 /*!
@@ -820,8 +866,8 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::YCbCrColorSpace cs)
         case QVideoFrameFormat::YCbCr_BT709:
             dbg << "YCbCr_BT709";
             break;
-        case QVideoFrameFormat::YCbCr_JPEG:
-            dbg << "YCbCr_JPEG";
+        case QVideoFrameFormat::YCbCr_AdobeRgb:
+            dbg << "YCbCr_AdobeRgb";
             break;
         case QVideoFrameFormat::YCbCr_xvYCC601:
             dbg << "YCbCr_xvYCC601";

@@ -89,6 +89,7 @@ public:
 
     QVideoFrameFormat::YCbCrColorSpace colorSpace() const;
     QVideoFrameFormat::ColorTransfer colorTransfer() const;
+    QVideoFrameFormat::ColorRange colorRange() const;
 
 private:
     QVideoFrameFormat::PixelFormat m_pixelFormat;

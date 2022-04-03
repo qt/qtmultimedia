@@ -112,7 +112,6 @@ QVideoFrameFormat::YCbCrColorSpace QFFmpegVideoBuffer::colorSpace() const
 {
     switch (frame->colorspace) {
     default:
-    case AVCOL_SPC_RGB:
     case AVCOL_SPC_UNSPECIFIED:
     case AVCOL_SPC_RESERVED:
     case AVCOL_SPC_FCC:
@@ -121,17 +120,15 @@ QVideoFrameFormat::YCbCrColorSpace QFFmpegVideoBuffer::colorSpace() const
     case AVCOL_SPC_SMPTE2085:
     case AVCOL_SPC_CHROMA_DERIVED_NCL:
     case AVCOL_SPC_CHROMA_DERIVED_CL:
-    case AVCOL_SPC_ICTCP: // BT.2100
+    case AVCOL_SPC_ICTCP: // BT.2100 ICtCp
         return QVideoFrameFormat::YCbCr_Undefined;
+    case AVCOL_SPC_RGB:
+        return QVideoFrameFormat::YCbCr_AdobeRgb;
     case AVCOL_SPC_BT709:
-        if (frame->color_range == AVCOL_RANGE_MPEG)
-            return QVideoFrameFormat::YCbCr_BT709;
-        return QVideoFrameFormat::YCbCr_xvYCC709;
+        return QVideoFrameFormat::YCbCr_BT709;
     case AVCOL_SPC_BT470BG: // BT601
     case AVCOL_SPC_SMPTE170M: // Also BT601
-        if (frame->color_range == AVCOL_RANGE_MPEG)
-            return QVideoFrameFormat::YCbCr_BT601;
-        return QVideoFrameFormat::YCbCr_xvYCC601;
+        return QVideoFrameFormat::YCbCr_BT601;
     case AVCOL_SPC_BT2020_NCL: // Non constant luminence
     case AVCOL_SPC_BT2020_CL: // Constant luminence
         return QVideoFrameFormat::YCbCr_BT2020;
@@ -167,6 +164,18 @@ QVideoFrameFormat::ColorTransfer QFFmpegVideoBuffer::colorTransfer() const
         break;
     }
     return QVideoFrameFormat::ColorTransfer_Unknown;
+}
+
+QVideoFrameFormat::ColorRange QFFmpegVideoBuffer::colorRange() const
+{
+    switch (frame->color_range) {
+    case AVCOL_RANGE_MPEG:
+        return QVideoFrameFormat::ColorRange_Video;
+    case AVCOL_RANGE_JPEG:
+        return QVideoFrameFormat::ColorRange_Full;
+    default:
+        return QVideoFrameFormat::ColorRange_Unknown;
+    }
 }
 QVideoFrame::MapMode QFFmpegVideoBuffer::mapMode() const
 {

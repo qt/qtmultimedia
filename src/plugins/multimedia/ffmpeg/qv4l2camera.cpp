@@ -866,7 +866,7 @@ void QV4L2Camera::setV4L2CameraFormat()
         colorSpace = QVideoFrameFormat::YCbCr_BT709;
         break;
     case V4L2_COLORSPACE_JPEG:
-        colorSpace = QVideoFrameFormat::YCbCr_JPEG;
+        colorSpace = QVideoFrameFormat::YCbCr_AdobeRgb;
         break;
     case V4L2_COLORSPACE_SRGB:
         // ##### is this correct???

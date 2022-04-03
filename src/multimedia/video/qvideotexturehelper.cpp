@@ -387,7 +387,7 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::F
 static QMatrix4x4 colorMatrix(QVideoFrameFormat::YCbCrColorSpace colorSpace)
 {
     switch (colorSpace) {
-    case QVideoFrameFormat::YCbCr_JPEG:
+    case QVideoFrameFormat::YCbCr_AdobeRgb:
         return QMatrix4x4(
             1.0f,  0.000f,  1.402f, -0.701f,
             1.0f, -0.344f, -0.714f,  0.529f,

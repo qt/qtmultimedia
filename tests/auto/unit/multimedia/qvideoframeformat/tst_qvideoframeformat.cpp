@@ -268,7 +268,7 @@ void tst_QVideoFrameFormat::yCbCrColorSpaceEnum_data()
     ADD_ENUM_TEST(YCbCr_BT709);
     ADD_ENUM_TEST(YCbCr_xvYCC601);
     ADD_ENUM_TEST(YCbCr_xvYCC709);
-    ADD_ENUM_TEST(YCbCr_JPEG);
+    ADD_ENUM_TEST(YCbCr_AdobeRgb);
     ADD_ENUM_TEST(YCbCr_Undefined);
 }
 
