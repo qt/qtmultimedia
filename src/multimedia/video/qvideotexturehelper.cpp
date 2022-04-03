@@ -384,8 +384,17 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::F
 //
 // For BT2020, we also need to convert the Rec2020 RGB colorspace to sRGB see
 // shaders/colorconvert.glsl for details.
-static QMatrix4x4 colorMatrix(QVideoFrameFormat::YCbCrColorSpace colorSpace)
+static QMatrix4x4 colorMatrix(const QVideoFrameFormat & format)
 {
+    auto colorSpace = format.yCbCrColorSpace();
+    if (colorSpace == QVideoFrameFormat::YCbCr_Undefined) {
+        if (format.frameHeight() > 576)
+            // HD video, assume BT709
+            colorSpace = QVideoFrameFormat::YCbCr_BT709;
+        else
+            // SD video, assume BT601
+            colorSpace = QVideoFrameFormat::YCbCr_BT601;
+    }
     switch (colorSpace) {
     case QVideoFrameFormat::YCbCr_AdobeRgb:
         return QMatrix4x4(
@@ -393,6 +402,7 @@ static QMatrix4x4 colorMatrix(QVideoFrameFormat::YCbCrColorSpace colorSpace)
             1.0f, -0.344f, -0.714f,  0.529f,
             1.0f,  1.772f,  0.000f, -0.886f,
             0.0f,  0.000f,  0.000f,  1.0000f);
+    default:
     case QVideoFrameFormat::YCbCr_BT709:
     case QVideoFrameFormat::YCbCr_xvYCC709:
         return QMatrix4x4(
@@ -407,7 +417,8 @@ static QMatrix4x4 colorMatrix(QVideoFrameFormat::YCbCrColorSpace colorSpace)
             1.1644f,  2.1418f,  0.000f, -1.1483f,
             0.0f,  0.000f,  0.000f,  1.0000f);
     case QVideoFrameFormat::YCbCr_BT601:
-    default:
+        // Corresponds to the primaries used by NTSC BT601. For PAL BT601, we use the BT709 conversion
+        // as those are very close.
         return QMatrix4x4(
             1.164f,  0.000f,  1.596f, -0.8708f,
             1.164f, -0.392f, -0.813f,  0.5296f,
@@ -526,7 +537,7 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     case QVideoFrameFormat::Format_NV21:
     case QVideoFrameFormat::Format_P010:
     case QVideoFrameFormat::Format_P016:
-        cmat = colorMatrix(format.yCbCrColorSpace());
+        cmat = colorMatrix(format);
         break;
     case QVideoFrameFormat::Format_SamplerExternalOES:
         // get Android specific transform for the externalsampler texture
