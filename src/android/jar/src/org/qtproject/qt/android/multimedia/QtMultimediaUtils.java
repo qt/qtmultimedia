@@ -138,6 +138,8 @@ public class QtMultimediaUtils
         MediaScannerConnection.scanFile(m_context, new String[] { file }, null, null);
     }
 
+    static File getCacheDirectory() { return m_context.getCacheDir(); }
+
     /*
     The array of codecs is in the form:
         c2.qti.vp9.decoder
