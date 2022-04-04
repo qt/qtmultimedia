@@ -45,11 +45,11 @@ import android.hardware.Camera.CameraInfo;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.Math;
 import android.media.ExifInterface;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.lang.String;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -208,11 +208,16 @@ public class QtCameraListener implements Camera.ShutterCallback,
     @Override
     public void onPictureTaken(byte[] data, Camera camera)
     {
+        File outputFile = null;
         try {
-            InputStream stream = new ByteArrayInputStream(data);
+            outputFile = File.createTempFile("pic_", ".jpg", QtMultimediaUtils.getCacheDirectory());
+            FileOutputStream out = new FileOutputStream(outputFile);
 
-            ExifInterface exif = new ExifInterface(stream);
+            // we just want to read the exif...
+            BitmapFactory.decodeByteArray(data, 0, data.length)
+                    .compress(Bitmap.CompressFormat.JPEG, 10, out);
 
+            ExifInterface exif = new ExifInterface(outputFile.getAbsolutePath());
             int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION,
                                                    ExifInterface.ORIENTATION_UNDEFINED);
 
@@ -260,6 +265,9 @@ public class QtCameraListener implements Camera.ShutterCallback,
         } catch (Exception e) {
             Log.w(TAG, "Error fixing bitmap orientation.");
             e.printStackTrace();
+        } finally {
+            if (outputFile != null && outputFile.exists())
+                outputFile.delete();
         }
 
         notifyPictureCaptured(m_cameraId, data);
