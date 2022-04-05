@@ -52,6 +52,10 @@
 //
 
 #include "private/qaudiosystem_p.h"
+
+#include <memory>
+#include <optional>
+
 #include <sys/asoundlib.h>
 
 QT_BEGIN_NAMESPACE
@@ -59,6 +63,12 @@ QT_BEGIN_NAMESPACE
 namespace QnxAudioUtils
 {
     snd_pcm_channel_params_t formatToChannelParams(const QAudioFormat &format, QAudioDevice::Mode mode, int fragmentSize);
+
+    using HandleUniquePtr = std::unique_ptr<snd_pcm_t, decltype(&snd_pcm_close)>;
+    HandleUniquePtr openPcmDevice(const QByteArray &id, QAudioDevice::Mode mode);
+
+    std::optional<snd_pcm_channel_info_t> pcmChannelInfo(snd_pcm_t *handle, QAudioDevice::Mode mode);
+    std::optional<snd_pcm_channel_info_t> pcmChannelInfo(const QByteArray &device, QAudioDevice::Mode mode);
 }
 
 QT_END_NAMESPACE

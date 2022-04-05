@@ -41,7 +41,10 @@
 
 QT_BEGIN_NAMESPACE
 
-snd_pcm_channel_params_t QnxAudioUtils::formatToChannelParams(const QAudioFormat &format, QAudioDevice::Mode mode, int fragmentSize)
+namespace QnxAudioUtils
+{
+
+snd_pcm_channel_params_t formatToChannelParams(const QAudioFormat &format, QAudioDevice::Mode mode, int fragmentSize)
 {
     snd_pcm_channel_params_t params;
     memset(&params, 0, sizeof(params));
@@ -89,5 +92,52 @@ snd_pcm_channel_params_t QnxAudioUtils::formatToChannelParams(const QAudioFormat
 
     return params;
 }
+
+
+HandleUniquePtr openPcmDevice(const QByteArray &id, QAudioDevice::Mode mode)
+{
+    const int pcmMode = mode == QAudioDevice::Output
+        ? SND_PCM_OPEN_PLAYBACK
+        : SND_PCM_OPEN_CAPTURE;
+
+    snd_pcm_t *handle;
+
+    if (snd_pcm_open_name(&handle, id.constData(), pcmMode) != 0) {
+        qWarning("Unable to open PCM device %s", id.constData());
+        return { nullptr, snd_pcm_close };
+    }
+
+    return { handle, snd_pcm_close };
+}
+
+std::optional<snd_pcm_channel_info_t> pcmChannelInfo(snd_pcm_t *handle, QAudioDevice::Mode mode)
+{
+    // initialize in-place to prevent an extra copy when returning
+    std::optional<snd_pcm_channel_info_t> info = { snd_pcm_channel_info_t{} };
+
+    info->channel = mode == QAudioDevice::Output
+        ? SND_PCM_CHANNEL_PLAYBACK
+        : SND_PCM_CHANNEL_CAPTURE;
+
+    if (snd_pcm_plugin_info(handle, &(*info)) != 0) {
+        qWarning("QAudioDevice: couldn't get channel info");
+        return {};
+    }
+
+    return info;
+}
+
+std::optional<snd_pcm_channel_info_t> pcmChannelInfo(const QByteArray &device,
+        QAudioDevice::Mode mode)
+{
+    const HandleUniquePtr handle = openPcmDevice(device, mode);
+
+    if (!handle)
+        return {};
+
+    return pcmChannelInfo(handle.get(), mode);
+}
+
+} // namespace QnxAudioUtils
 
 QT_END_NAMESPACE
