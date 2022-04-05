@@ -53,6 +53,8 @@
 
 #include "private/qaudiosystem_p.h"
 
+#include "qqnxaudioutils_p.h"
+
 #include <QElapsedTimer>
 #include <QTimer>
 #include <QIODevice>
@@ -120,7 +122,7 @@ private:
     qreal m_volume;
     int m_periodSize;
 
-    snd_pcm_t *m_pcmHandle;
+    QnxAudioUtils::HandleUniquePtr m_pcmHandle;
     qint64 m_bytesWritten;
 
     QAudioDevice m_deviceInfo;

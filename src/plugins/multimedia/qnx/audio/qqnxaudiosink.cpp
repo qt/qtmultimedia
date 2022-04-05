@@ -39,8 +39,6 @@
 
 #include "qqnxaudiosink_p.h"
 
-#include "qqnxaudioutils_p.h"
-
 #include <private/qaudiohelpers_p.h>
 #include <sys/asoundlib.h>
 #include <sys/asound_common.h>
@@ -56,7 +54,6 @@ QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo)
     , m_state(QAudio::StoppedState)
     , m_volume(1.0)
     , m_periodSize(0)
-    , m_pcmHandle(0)
     , m_bytesWritten(0)
     , m_deviceInfo(deviceInfo)
 #if _NTO_VERSION >= 700
@@ -125,22 +122,22 @@ void QQnxAudioSink::reset()
 {
     if (m_pcmHandle)
 #if SND_PCM_VERSION < SND_PROTOCOL_VERSION('P',3,0,2)
-        snd_pcm_playback_drain(m_pcmHandle);
+        snd_pcm_playback_drain(m_pcmHandle.get());
 #else
-        snd_pcm_channel_drain(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK);
+        snd_pcm_channel_drain(m_pcmHandle.get(), SND_PCM_CHANNEL_PLAYBACK);
 #endif
     stop();
 }
 
 void QQnxAudioSink::suspend()
 {
-    snd_pcm_playback_pause(m_pcmHandle);
+    snd_pcm_playback_pause(m_pcmHandle.get());
     suspendInternal(QAudio::SuspendedState);
 }
 
 void QQnxAudioSink::resume()
 {
-    snd_pcm_playback_resume(m_pcmHandle);
+    snd_pcm_playback_resume(m_pcmHandle.get());
     resumeInternal();
 }
 
@@ -152,7 +149,7 @@ qsizetype QQnxAudioSink::bytesFree() const
     snd_pcm_channel_status_t status;
     memset(&status, 0, sizeof(status));
     status.channel = SND_PCM_CHANNEL_PLAYBACK;
-    const int errorCode = snd_pcm_plugin_status(m_pcmHandle, &status);
+    const int errorCode = snd_pcm_plugin_status(m_pcmHandle.get(), &status);
 
     if (errorCode)
         return 0;
@@ -253,18 +250,15 @@ bool QQnxAudioSink::open()
         return false;
     }
 
+
+    m_pcmHandle = QnxAudioUtils::openPcmDevice(m_deviceInfo.id(), QAudioDevice::Output);
+
+    if (!m_pcmHandle)
+        return false;
+
     int errorCode = 0;
 
-    const QByteArray cardName = m_deviceInfo.id();
-
-    if ((errorCode = snd_pcm_open_name(&m_pcmHandle,
-                    cardName.constData(), SND_PCM_OPEN_PLAYBACK)) < 0) {
-        qWarning("QQnxAudioSink: open error, couldn't open card %s (0x%x)",
-                cardName.constData(), -errorCode);
-        return false;
-    }
-
-    if ((errorCode = snd_pcm_nonblock_mode(m_pcmHandle, 0)) < 0) {
+    if ((errorCode = snd_pcm_nonblock_mode(m_pcmHandle.get(), 0)) < 0) {
         qWarning("QQnxAudioSink: open error, couldn't set non block mode (0x%x)", -errorCode);
         close();
         return false;
@@ -273,42 +267,41 @@ bool QQnxAudioSink::open()
     addPcmEventFilter();
 
     // Necessary so that bytesFree() which uses the "free" member of the status struct works
-    snd_pcm_plugin_set_disable(m_pcmHandle, PLUGIN_MMAP);
+    snd_pcm_plugin_set_disable(m_pcmHandle.get(), PLUGIN_MMAP);
 
-    snd_pcm_channel_info_t info;
-    memset(&info, 0, sizeof(info));
-    info.channel = SND_PCM_CHANNEL_PLAYBACK;
-    if ((errorCode = snd_pcm_plugin_info(m_pcmHandle, &info)) < 0) {
-        qWarning("QQnxAudioSink: open error, couldn't get channel info (0x%x)", -errorCode);
+    const std::optional<snd_pcm_channel_info_t> info = QnxAudioUtils::pcmChannelInfo(
+            m_pcmHandle.get(), QAudioDevice::Output);
+
+    if (!info) {
         close();
         return false;
     }
 
     snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudioDevice::Output, info.max_fragment_size);
+
     setTypeName(&params);
 
-    if ((errorCode = snd_pcm_plugin_params(m_pcmHandle, &params)) < 0) {
+    if ((errorCode = snd_pcm_plugin_params(m_pcmHandle.get(), &params)) < 0) {
         qWarning("QQnxAudioSink: open error, couldn't set channel params (0x%x)", -errorCode);
         close();
         return false;
     }
 
-    if ((errorCode = snd_pcm_plugin_prepare(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK)) < 0) {
+    if ((errorCode = snd_pcm_plugin_prepare(m_pcmHandle.get(), SND_PCM_CHANNEL_PLAYBACK)) < 0) {
         qWarning("QQnxAudioSink: open error, couldn't prepare channel (0x%x)", -errorCode);
         close();
         return false;
     }
 
-    snd_pcm_channel_setup_t setup;
-    memset(&setup, 0, sizeof(setup));
-    setup.channel = SND_PCM_CHANNEL_PLAYBACK;
-    if ((errorCode = snd_pcm_plugin_setup(m_pcmHandle, &setup)) < 0) {
-        qWarning("QQnxAudioSink: open error, couldn't get channel setup (0x%x)", -errorCode);
+    const std::optional<snd_pcm_channel_setup_t> setup = QnxAudioUtils::pcmChannelSetup(
+            m_pcmHandle.get(), QAudioDevice::Output);
+
+    if (!setup) {
         close();
         return false;
     }
 
-    m_periodSize = qMin(2048, setup.buf.block.frag_size);
+    m_periodSize = qMin(2048, setup->buf.block.frag_size);
     m_bytesWritten = 0;
 
     createPcmNotifiers();
@@ -324,12 +317,11 @@ void QQnxAudioSink::close()
 
     if (m_pcmHandle) {
 #if SND_PCM_VERSION < SND_PROTOCOL_VERSION('P',3,0,2)
-        snd_pcm_plugin_flush(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK);
+        snd_pcm_plugin_flush(m_pcmHandle.get(), SND_PCM_CHANNEL_PLAYBACK);
 #else
-        snd_pcm_plugin_drop(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK);
+        snd_pcm_plugin_drop(m_pcmHandle.get(), SND_PCM_CHANNEL_PLAYBACK);
 #endif
-        snd_pcm_close(m_pcmHandle);
-        m_pcmHandle = 0;
+        m_pcmHandle = nullptr;
     }
 
     if (m_pushSource) {
@@ -370,9 +362,9 @@ qint64 QQnxAudioSink::write(const char *data, qint64 len)
     if (m_volume < 1.0f) {
         char out[size];
         QAudioHelperInternal::qMultiplySamples(m_volume, m_format, data, out, size);
-        written = snd_pcm_plugin_write(m_pcmHandle, out, size);
+        written = snd_pcm_plugin_write(m_pcmHandle.get(), out, size);
     } else {
-        written = snd_pcm_plugin_write(m_pcmHandle, data, size);
+        written = snd_pcm_plugin_write(m_pcmHandle.get(), data, size);
     }
 
     if (written > 0) {
@@ -421,14 +413,14 @@ void QQnxAudioSink::addPcmEventFilter()
     filter.enable = (1<<SND_PCM_EVENT_AUDIOMGMT_STATUS) |
                     (1<<SND_PCM_EVENT_AUDIOMGMT_MUTE) |
                     (1<<SND_PCM_EVENT_OUTPUTCLASS);
-    snd_pcm_set_filter(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK, &filter);
+    snd_pcm_set_filter(m_pcmHandle.get(), SND_PCM_CHANNEL_PLAYBACK, &filter);
 }
 
 void QQnxAudioSink::createPcmNotifiers()
 {
     // QSocketNotifier::Read for poll based event dispatcher.  Exception for
     // select based event dispatcher.
-    m_pcmNotifier = new QSocketNotifier(snd_pcm_file_descriptor(m_pcmHandle,
+    m_pcmNotifier = new QSocketNotifier(snd_pcm_file_descriptor(m_pcmHandle.get(),
                                                                 SND_PCM_CHANNEL_PLAYBACK),
                                         QSocketNotifier::Read, this);
     connect(m_pcmNotifier, &QSocketNotifier::activated,
@@ -472,7 +464,7 @@ void QQnxAudioSink::pcmNotifierActivated(int socket)
 
     snd_pcm_event_t pcm_event;
     memset(&pcm_event, 0, sizeof(pcm_event));
-    while (snd_pcm_channel_read_event(m_pcmHandle, SND_PCM_CHANNEL_PLAYBACK, &pcm_event) == 0) {
+    while (snd_pcm_channel_read_event(m_pcmHandle.get(), SND_PCM_CHANNEL_PLAYBACK, &pcm_event) == 0) {
         if (pcm_event.type == SND_PCM_EVENT_AUDIOMGMT_STATUS) {
             if (pcm_event.data.audiomgmt_status.new_status == SND_PCM_STATUS_SUSPENDED)
                 suspendInternal(suspendState(pcm_event));
