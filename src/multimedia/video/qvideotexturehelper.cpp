@@ -385,7 +385,30 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::F
 //
 // For BT2020, we also need to convert the Rec2020 RGB colorspace to sRGB see
 // shaders/colorconvert.glsl for details.
-static QMatrix4x4 colorMatrix(const QVideoFrameFormat & format)
+//
+// Doing the math gives the following (Y, U & V normalized to [0..1] range):
+//
+// Y = a*R + b*G + c*B
+// R = Y           + e*V
+// G = Y - c*d/b*U - a*e/b*V
+// B = Y + d*U
+
+// BT2020:
+// a = .2627, b = 0.6780, c = 0.0593
+// d = 1.8814
+// e = 1.4746
+//
+// BT709:
+// a = 0.2126, b = 0.7152, c = 0.0722
+// d = 1.8556
+// e = 1.5748
+//
+// BT601:
+// a = 0.299, b = 0.578, c = 0.114
+// d = 1.42
+// e = 1.772
+//
+static QMatrix4x4 colorMatrix(const QVideoFrameFormat &format)
 {
     auto colorSpace = format.colorSpace();
     if (colorSpace == QVideoFrameFormat::ColorSpace_Undefined) {
@@ -405,12 +428,24 @@ static QMatrix4x4 colorMatrix(const QVideoFrameFormat & format)
             0.0f,  0.000f,  0.000f,  1.0000f);
     default:
     case QVideoFrameFormat::ColorSpace_BT709:
+        if (format.colorRange() == QVideoFrameFormat::ColorRange_Full)
+            return QMatrix4x4(
+                1.f,  0.000f,  1.5748f, -0.8774f,
+                1.f, -0.187324f, -0.468124f,  0.327724f,
+                1.f,  1.8556f,  0.000f, -0.9278f,
+                0.0f,    0.000f,  0.000f,  1.0000f);
         return QMatrix4x4(
             1.1644f,  0.000f,  1.7928f, -0.9731f,
             1.1644f, -0.5329f, -0.2132f,  0.3015f,
             1.1644f,  2.1124f,  0.000f, -1.1335f,
             0.0f,    0.000f,  0.000f,  1.0000f);
     case QVideoFrameFormat::ColorSpace_BT2020:
+        if (format.colorRange() == QVideoFrameFormat::ColorRange_Full)
+            return QMatrix4x4(
+                1.f,  0.000f,  1.4746f, -0.7373f,
+                1.f, -0.2801f, -0.91666f,  0.5984f,
+                1.f,  1.8814f,  0.000f, -0.9407f,
+                0.0f,    0.000f,  0.000f,  1.0000f);
         return QMatrix4x4(
             1.1644f,  0.000f,  1.6787f, -0.9158f,
             1.1644f, -0.1874f, -0.6511f,  0.3478f,
@@ -419,6 +454,12 @@ static QMatrix4x4 colorMatrix(const QVideoFrameFormat & format)
     case QVideoFrameFormat::ColorSpace_BT601:
         // Corresponds to the primaries used by NTSC BT601. For PAL BT601, we use the BT709 conversion
         // as those are very close.
+        if (format.colorRange() == QVideoFrameFormat::ColorRange_Full)
+            return QMatrix4x4(
+                1.f,  0.000f,  1.772f, -0.886f,
+                1.f, -0.1646f, -0.57135f,  0.36795f,
+                1.f,  1.42f,  0.000f, -0.71f,
+                0.0f,    0.000f,  0.000f,  1.0000f);
         return QMatrix4x4(
             1.164f,  0.000f,  1.596f, -0.8708f,
             1.164f, -0.392f, -0.813f,  0.5296f,
