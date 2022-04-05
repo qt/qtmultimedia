@@ -49,6 +49,8 @@ QT_BEGIN_NAMESPACE
 QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(deviceName, mode)
 {
+    isDefault = id.contains("Preferred");
+
     preferredFormat.setSampleRate(44100);
     preferredFormat.setSampleFormat(QAudioFormat::Int16);
     preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
@@ -71,9 +73,7 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     const int pcmMode = (mode == QAudioDevice::Output) ? SND_PCM_OPEN_PLAYBACK : SND_PCM_OPEN_CAPTURE;
     snd_pcm_t *handle;
 
-    int card = 0;
-    int device = 0;
-    if (snd_pcm_open_preferred(&handle, &card, &device, pcmMode) < 0)
+    if (snd_pcm_open_name(&handle, id.constData(), pcmMode) < 0)
         return false;
 
     snd_pcm_channel_info_t info;

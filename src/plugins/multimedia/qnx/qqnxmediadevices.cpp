@@ -48,6 +48,7 @@
 
 #include <camera/camera_api.h>
 
+#include <qdir.h>
 #include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
@@ -148,6 +149,31 @@ static QList<QCameraDevice> enumerateCameras()
     return cameras;
 }
 
+static QList<QAudioDevice> enumeratePcmDevices(QAudioDevice::Mode mode)
+{
+    if (mode == QAudioDevice::Null)
+        return {};
+
+    QDir dir(QStringLiteral("/dev/snd"));
+
+    dir.setFilter(QDir::Files);
+    dir.setSorting(QDir::Name);
+
+    // QNX PCM devices names start with the pcm prefix and end either with the
+    // 'p' (playback) or 'c' (capture) suffix
+
+    const char modeSuffix = mode == QAudioDevice::Input ? 'c' : 'p';
+
+    QList<QAudioDevice> devices;
+
+    for (const QString &entry : dir.entryList()) {
+        if (entry.startsWith(QStringLiteral("pcm")) && entry.back() == modeSuffix)
+            devices << (new QnxAudioDeviceInfo(entry.toUtf8(), mode))->create();
+    }
+
+    return devices;
+}
+
 QQnxMediaDevices::QQnxMediaDevices(QPlatformMediaIntegration *integration)
     : QPlatformMediaDevices(integration)
 {
@@ -155,12 +181,12 @@ QQnxMediaDevices::QQnxMediaDevices(QPlatformMediaIntegration *integration)
 
 QList<QAudioDevice> QQnxMediaDevices::audioInputs() const
 {
-    return { (new QnxAudioDeviceInfo("default", QAudioDevice::Input))->create() };
+    return ::enumeratePcmDevices(QAudioDevice::Input);
 }
 
 QList<QAudioDevice> QQnxMediaDevices::audioOutputs() const
 {
-    return { (new QnxAudioDeviceInfo("default", QAudioDevice::Output))->create() };
+    return ::enumeratePcmDevices(QAudioDevice::Output);
 }
 
 QList<QCameraDevice> QQnxMediaDevices::videoInputs() const
