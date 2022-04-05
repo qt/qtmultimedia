@@ -42,7 +42,6 @@ qt_internal_add_module(Multimedia
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
         qmediadevices.cpp qmediadevices.h
         qmediaenumdebug.h
-        qiso639_2.cpp qiso639_2_p.h
         qmediaformat.cpp  qmediaformat.h
         qmediametadata.cpp qmediametadata.h
         qmediastoragelocation.cpp qmediastoragelocation_p.h

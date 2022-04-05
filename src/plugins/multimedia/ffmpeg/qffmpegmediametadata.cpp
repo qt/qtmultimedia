@@ -42,7 +42,7 @@
 #include <QtCore/qdatetime.h>
 #include <qstringlist.h>
 #include <qurl.h>
-#include <private/qiso639_2_p.h>
+#include <qlocale.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -148,7 +148,7 @@ void QFFmpegMetaData::addEntry(QMediaMetaData &metaData, AVDictionaryEntry *entr
         break;
     }
     if (metaTypeId == qMetaTypeId<QLocale::Language>()) {
-        map->insert(key, QVariant::fromValue(QtMultimediaPrivate::fromIso639(entry->value)));
+        map->insert(key, QVariant::fromValue(QLocale::codeToLanguage(QString::fromUtf8(entry->value), QLocale::ISO639Part2)));
     }
 }
 
