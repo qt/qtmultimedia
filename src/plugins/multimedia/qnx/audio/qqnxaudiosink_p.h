@@ -70,7 +70,7 @@ class QQnxAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QQnxAudioSink();
+    explicit QQnxAudioSink(const QAudioDevice &deviceInfo);
     ~QQnxAudioSink();
 
     void start(QIODevice *source) override;
@@ -122,6 +122,8 @@ private:
 
     snd_pcm_t *m_pcmHandle;
     qint64 m_bytesWritten;
+
+    QAudioDevice m_deviceInfo;
 
 #if _NTO_VERSION >= 700
     QSocketNotifier *m_pcmNotifier;

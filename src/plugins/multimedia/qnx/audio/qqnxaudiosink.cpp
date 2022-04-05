@@ -49,7 +49,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QQnxAudioSink::QQnxAudioSink()
+QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo)
     : m_source(0)
     , m_pushSource(false)
     , m_error(QAudio::NoError)
@@ -58,6 +58,7 @@ QQnxAudioSink::QQnxAudioSink()
     , m_periodSize(0)
     , m_pcmHandle(0)
     , m_bytesWritten(0)
+    , m_deviceInfo(deviceInfo)
 #if _NTO_VERSION >= 700
     , m_pcmNotifier(0)
 #endif
@@ -254,10 +255,12 @@ bool QQnxAudioSink::open()
 
     int errorCode = 0;
 
-    int card = 0;
-    int device = 0;
-    if ((errorCode = snd_pcm_open_preferred(&m_pcmHandle, &card, &device, SND_PCM_OPEN_PLAYBACK)) < 0) {
-        qWarning("QQnxAudioSink: open error, couldn't open card (0x%x)", -errorCode);
+    const QByteArray cardName = m_deviceInfo.id();
+
+    if ((errorCode = snd_pcm_open_name(&m_pcmHandle,
+                    cardName.constData(), SND_PCM_OPEN_PLAYBACK)) < 0) {
+        qWarning("QQnxAudioSink: open error, couldn't open card %s (0x%x)",
+                cardName.constData(), -errorCode);
         return false;
     }
 

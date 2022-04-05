@@ -203,9 +203,9 @@ QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &/*
     return new QQnxAudioSource();
 }
 
-QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &/*deviceInfo*/)
+QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
-    return new QQnxAudioSink();
+    return new QQnxAudioSink(deviceInfo);
 }
 
 QT_END_NAMESPACE
