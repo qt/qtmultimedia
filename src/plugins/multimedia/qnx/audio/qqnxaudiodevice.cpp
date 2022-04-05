@@ -42,6 +42,7 @@
 
 #include "qqnxaudioutils_p.h"
 
+#include <array>
 #include <memory>
 #include <optional>
 
@@ -82,6 +83,16 @@ static std::optional<snd_pcm_channel_info_t> pcmChannelInfo(snd_pcm_t *handle, Q
     return info;
 }
 
+static std::optional<snd_pcm_channel_info_t> pcmChannelInfo(const QByteArray &device, QAudioDevice::Mode mode)
+{
+    const HandleUniquePtr handle = openPcmDevice(device, mode);
+
+    if (!handle)
+        return {};
+
+    return pcmChannelInfo(handle.get(), mode);
+}
+
 QT_BEGIN_NAMESPACE
 
 QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevice::Mode mode)
@@ -89,17 +100,45 @@ QnxAudioDeviceInfo::QnxAudioDeviceInfo(const QByteArray &deviceName, QAudioDevic
 {
     isDefault = id.contains("Preferred");
 
-    preferredFormat.setSampleRate(44100);
-    preferredFormat.setSampleFormat(QAudioFormat::Int16);
     preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
 
     description = QString::fromUtf8(id);
 
-    minimumSampleRate = 8000;
-    maximumSampleRate = 48000;
     minimumChannelCount = 1;
     maximumChannelCount = 2;
-    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32;
+
+    const std::optional<snd_pcm_channel_info_t> info = ::pcmChannelInfo(id, mode);
+
+    if (!info)
+        return;
+
+    minimumSampleRate = info->min_rate;
+    maximumSampleRate = info->max_rate;
+
+    constexpr std::array sampleRates { 48000, 44100, 22050, 16000, 11025, 8000 };
+
+    for (int rate : sampleRates) {
+        if (rate <= maximumSampleRate && rate >= minimumSampleRate) {
+            preferredFormat.setSampleRate(rate);
+            break;
+        }
+    }
+
+    if (info->formats & SND_PCM_FMT_U8) {
+        supportedSampleFormats << QAudioFormat::UInt8;
+        preferredFormat.setSampleFormat(QAudioFormat::UInt8);
+    }
+
+    if (info->formats & SND_PCM_FMT_S16) {
+        supportedSampleFormats << QAudioFormat::Int16;
+        preferredFormat.setSampleFormat(QAudioFormat::Int16);
+    }
+
+    if (info->formats & SND_PCM_FMT_S32)
+        supportedSampleFormats << QAudioFormat::Int32;
+
+    if (info->formats & SND_PCM_FMT_FLOAT)
+        supportedSampleFormats << QAudioFormat::Float;
 }
 
 QnxAudioDeviceInfo::~QnxAudioDeviceInfo()
