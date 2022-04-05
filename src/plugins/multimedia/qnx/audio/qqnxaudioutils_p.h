@@ -64,7 +64,12 @@ namespace QnxAudioUtils
 {
     snd_pcm_channel_params_t formatToChannelParams(const QAudioFormat &format, QAudioDevice::Mode mode, int fragmentSize);
 
-    using HandleUniquePtr = std::unique_ptr<snd_pcm_t, decltype(&snd_pcm_close)>;
+    struct HandleDeleter
+    {
+        void operator()(snd_pcm_t *h) { if (h) snd_pcm_close(h); }
+    };
+
+    using HandleUniquePtr = std::unique_ptr<snd_pcm_t, HandleDeleter>;
     HandleUniquePtr openPcmDevice(const QByteArray &id, QAudioDevice::Mode mode);
 
     std::optional<snd_pcm_channel_info_t> pcmChannelInfo(snd_pcm_t *handle, QAudioDevice::Mode mode);

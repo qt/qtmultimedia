@@ -106,10 +106,10 @@ HandleUniquePtr openPcmDevice(const QByteArray &id, QAudioDevice::Mode mode)
 
     if (errorCode != 0) {
         qWarning("Unable to open PCM device %s (0x%x)", id.constData(), -errorCode);
-        return { nullptr, snd_pcm_close };
+        return {};
     }
 
-    return { handle, snd_pcm_close };
+    return HandleUniquePtr { handle };
 }
 
 std::optional<snd_pcm_channel_info_t> pcmChannelInfo(snd_pcm_t *handle, QAudioDevice::Mode mode)
