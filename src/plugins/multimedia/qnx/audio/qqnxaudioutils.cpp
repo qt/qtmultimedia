@@ -112,32 +112,48 @@ HandleUniquePtr openPcmDevice(const QByteArray &id, QAudioDevice::Mode mode)
     return HandleUniquePtr { handle };
 }
 
-std::optional<snd_pcm_channel_info_t> pcmChannelInfo(snd_pcm_t *handle, QAudioDevice::Mode mode)
+template <typename T, typename Func>
+std::optional<T> pcmChannelGetStruct(snd_pcm_t *handle, QAudioDevice::Mode mode, Func &&func)
 {
     // initialize in-place to prevent an extra copy when returning
-    std::optional<snd_pcm_channel_info_t> info = { snd_pcm_channel_info_t{} };
+    std::optional<T> t = { T{} };
 
-    info->channel = mode == QAudioDevice::Output
+    t->channel = mode == QAudioDevice::Output
         ? SND_PCM_CHANNEL_PLAYBACK
         : SND_PCM_CHANNEL_CAPTURE;
 
-    if (snd_pcm_plugin_info(handle, &(*info)) != 0) {
-        qWarning("QAudioDevice: couldn't get channel info");
+    const int errorCode = func(handle, &(*t));
+
+    if (errorCode != 0) {
+        qWarning("QAudioDevice: couldn't get channel info (0x%x)", -errorCode);
         return {};
     }
 
-    return info;
+    return t;
 }
 
-std::optional<snd_pcm_channel_info_t> pcmChannelInfo(const QByteArray &device,
-        QAudioDevice::Mode mode)
+template <typename T, typename Func>
+std::optional<T> pcmChannelGetStruct(const QByteArray &device,
+        QAudioDevice::Mode mode, Func &&func)
 {
     const HandleUniquePtr handle = openPcmDevice(device, mode);
 
     if (!handle)
         return {};
 
-    return pcmChannelInfo(handle.get(), mode);
+    return pcmChannelGetStruct<T>(handle.get(), mode, std::forward<Func>(func));
+}
+
+
+std::optional<snd_pcm_channel_info_t> pcmChannelInfo(snd_pcm_t *handle, QAudioDevice::Mode mode)
+{
+    return pcmChannelGetStruct<snd_pcm_channel_info_t>(handle, mode, snd_pcm_plugin_info);
+}
+
+std::optional<snd_pcm_channel_info_t> pcmChannelInfo(const QByteArray &device,
+        QAudioDevice::Mode mode)
+{
+    return pcmChannelGetStruct<snd_pcm_channel_info_t>(device, mode, snd_pcm_plugin_info);
 }
 
 } // namespace QnxAudioUtils
