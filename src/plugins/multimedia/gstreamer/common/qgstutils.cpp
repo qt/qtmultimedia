@@ -237,6 +237,77 @@ QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
             if (infoPtr->fps_d > 0)
                 format.setFrameRate(qreal(infoPtr->fps_n) / infoPtr->fps_d);
 
+            QVideoFrameFormat::ColorRange range = QVideoFrameFormat::ColorRange_Unknown;
+            switch (infoPtr->colorimetry.range) {
+            case GST_VIDEO_COLOR_RANGE_UNKNOWN:
+                break;
+            case GST_VIDEO_COLOR_RANGE_0_255:
+                range = QVideoFrameFormat::ColorRange_Full;
+                break;
+            case GST_VIDEO_COLOR_RANGE_16_235:
+                range = QVideoFrameFormat::ColorRange_Video;
+                break;
+            }
+            format.setColorRange(range);
+
+            QVideoFrameFormat::ColorSpace colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
+            switch (infoPtr->colorimetry.matrix) {
+            case GST_VIDEO_COLOR_MATRIX_UNKNOWN:
+            case GST_VIDEO_COLOR_MATRIX_RGB:
+            case GST_VIDEO_COLOR_MATRIX_FCC:
+                break;
+            case GST_VIDEO_COLOR_MATRIX_BT709:
+                colorSpace = QVideoFrameFormat::ColorSpace_BT709;
+                break;
+            case GST_VIDEO_COLOR_MATRIX_BT601:
+                colorSpace = QVideoFrameFormat::ColorSpace_BT601;
+                break;
+            case GST_VIDEO_COLOR_MATRIX_SMPTE240M:
+                colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
+                break;
+            case GST_VIDEO_COLOR_MATRIX_BT2020:
+                colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+                break;
+            }
+            format.setColorSpace(colorSpace);
+
+            QVideoFrameFormat::ColorTransfer transfer = QVideoFrameFormat::ColorTransfer_Unknown;
+            switch (infoPtr->colorimetry.transfer) {
+            case GST_VIDEO_TRANSFER_UNKNOWN:
+                break;
+            case GST_VIDEO_TRANSFER_GAMMA10:
+                transfer = QVideoFrameFormat::ColorTransfer_Linear;
+                break;
+            case GST_VIDEO_TRANSFER_GAMMA22:
+            case GST_VIDEO_TRANSFER_SMPTE240M:
+            case GST_VIDEO_TRANSFER_SRGB:
+            case GST_VIDEO_TRANSFER_ADOBERGB:
+                transfer = QVideoFrameFormat::ColorTransfer_Gamma22;
+                break;
+            case GST_VIDEO_TRANSFER_GAMMA18:
+            case GST_VIDEO_TRANSFER_GAMMA20:
+                // not quite, but best fit
+            case GST_VIDEO_TRANSFER_BT709:
+            case GST_VIDEO_TRANSFER_BT2020_12:
+                transfer = QVideoFrameFormat::ColorTransfer_BT709;
+                break;
+            case GST_VIDEO_TRANSFER_GAMMA28:
+                transfer = QVideoFrameFormat::ColorTransfer_Gamma28;
+                break;
+            case GST_VIDEO_TRANSFER_LOG100:
+            case GST_VIDEO_TRANSFER_LOG316:
+                break;
+#if GST_CHECK_VERSION(1, 18, 0)
+            case GST_VIDEO_TRANSFER_SMPTE2084:
+                transfer = QVideoFrameFormat::ColorTransfer_ST2084;
+                break;
+            case GST_VIDEO_TRANSFER_ARIB_STD_B67:
+                transfer = QVideoFrameFormat::ColorTransfer_STD_B67;
+                break;
+#endif
+            }
+            format.setColorTransfer(transfer);
+
             return format;
         }
     }
