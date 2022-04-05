@@ -43,6 +43,7 @@
 #include "qqnxaudioutils_p.h"
 
 #include <memory>
+#include <optional>
 
 #include <sys/asoundlib.h>
 
@@ -64,6 +65,22 @@ static HandleUniquePtr openPcmDevice(const QByteArray &id, QAudioDevice::Mode mo
     return { handle, snd_pcm_close };
 }
 
+static std::optional<snd_pcm_channel_info_t> pcmChannelInfo(snd_pcm_t *handle, QAudioDevice::Mode mode)
+{
+    // initialize in-place to prevent an extra copy when returning
+    std::optional<snd_pcm_channel_info_t> info = { snd_pcm_channel_info_t{} };
+
+    info->channel = mode == QAudioDevice::Output
+        ? SND_PCM_CHANNEL_PLAYBACK
+        : SND_PCM_CHANNEL_CAPTURE;
+
+    if (snd_pcm_plugin_info(handle, &(*info)) != 0) {
+        qWarning("QAudioDevice: couldn't get channel info");
+        return {};
+    }
+
+    return info;
+}
 
 QT_BEGIN_NAMESPACE
 
@@ -96,16 +113,12 @@ bool QnxAudioDeviceInfo::isFormatSupported(const QAudioFormat &format) const
     if (!handle)
         return false;
 
-    snd_pcm_channel_info_t info;
-    memset (&info, 0, sizeof(info));
-    info.channel = (mode == QAudioDevice::Output) ? SND_PCM_CHANNEL_PLAYBACK : SND_PCM_CHANNEL_CAPTURE;
+    const std::optional<snd_pcm_channel_info_t> info = ::pcmChannelInfo(handle.get(), mode);
 
-    if (snd_pcm_plugin_info(handle.get(), &info) < 0) {
-        qWarning("QAudioDevice: couldn't get channel info");
+    if (!info)
         return false;
-    }
 
-    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(format, mode, info.max_fragment_size);
+    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(format, mode, info->max_fragment_size);
     const int errorCode = snd_pcm_plugin_params(handle.get(), &params);
 
     return errorCode == 0;
