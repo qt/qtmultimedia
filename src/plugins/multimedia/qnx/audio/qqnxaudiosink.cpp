@@ -43,6 +43,9 @@
 #include <sys/asoundlib.h>
 #include <sys/asound_common.h>
 
+#include <algorithm>
+#include <limits>
+
 #pragma GCC diagnostic ignored "-Wvla"
 
 QT_BEGIN_NAMESPACE
@@ -55,6 +58,7 @@ QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo)
     , m_volume(1.0)
     , m_periodSize(0)
     , m_bytesWritten(0)
+    , m_requestedBufferSize(0)
     , m_deviceInfo(deviceInfo)
 #if _NTO_VERSION >= 700
     , m_pcmNotifier(0)
@@ -63,6 +67,12 @@ QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo)
     m_timer.setSingleShot(false);
     m_timer.setInterval(20);
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(pullData()));
+
+    const std::optional<snd_pcm_channel_info_t> info = QnxAudioUtils::pcmChannelInfo(
+            m_deviceInfo.id(), QAudioDevice::Output);
+
+    if (info)
+        m_requestedBufferSize = info->max_fragment_size;
 }
 
 QQnxAudioSink::~QQnxAudioSink()
@@ -139,6 +149,20 @@ void QQnxAudioSink::resume()
 {
     snd_pcm_playback_resume(m_pcmHandle.get());
     resumeInternal();
+}
+
+void QQnxAudioSink::setBufferSize(qsizetype bufferSize)
+{
+    m_requestedBufferSize = std::clamp<qsizetype>(bufferSize, 0, std::numeric_limits<int>::max());
+}
+
+qsizetype QQnxAudioSink::bufferSize() const
+{
+    const std::optional<snd_pcm_channel_setup_t> setup = m_pcmHandle
+        ? QnxAudioUtils::pcmChannelSetup(m_pcmHandle.get(), QAudioDevice::Output)
+        : QnxAudioUtils::pcmChannelSetup(m_deviceInfo.id(), QAudioDevice::Output);
+
+    return setup ? setup->buf.block.frag_size : 0;
 }
 
 qsizetype QQnxAudioSink::bytesFree() const
@@ -277,7 +301,11 @@ bool QQnxAudioSink::open()
         return false;
     }
 
-    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudioDevice::Output, info.max_fragment_size);
+    const int fragmentSize = std::clamp(m_requestedBufferSize,
+            info->min_fragment_size, info->max_fragment_size);
+
+    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format,
+            QAudioDevice::Output, fragmentSize);
 
     setTypeName(&params);
 

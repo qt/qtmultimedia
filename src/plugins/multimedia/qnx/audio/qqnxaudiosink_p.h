@@ -82,8 +82,8 @@ public:
     void suspend() override;
     void resume() override;
     qsizetype bytesFree() const override;
-    void setBufferSize(qsizetype) override {}
-    qsizetype bufferSize() const override { return 0; }
+    void setBufferSize(qsizetype) override;
+    qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
@@ -124,6 +124,8 @@ private:
 
     QnxAudioUtils::HandleUniquePtr m_pcmHandle;
     qint64 m_bytesWritten;
+
+    int m_requestedBufferSize;
 
     QAudioDevice m_deviceInfo;
 
