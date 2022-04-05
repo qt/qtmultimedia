@@ -237,6 +237,10 @@ void QPulseAudioSink::start(QIODevice *device)
         return;
     }
 
+    // ensure we only process timing infos that are up to date
+    gettimeofday(&lastTimingInfo, nullptr);
+    lastProcessedUSecs = 0;
+
     setState(QAudio::ActiveState);
 }
 
@@ -260,6 +264,10 @@ QIODevice *QPulseAudioSink::start()
 
     m_audioSource = new PulseOutputPrivate(this);
     m_audioSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
+
+    // ensure we only process timing infos that are up to date
+    gettimeofday(&lastTimingInfo, nullptr);
+    lastProcessedUSecs = 0;
 
     setState(QAudio::IdleState);
 
@@ -580,6 +588,12 @@ qsizetype QPulseAudioSink::bufferSize() const
     return m_bufferSize;
 }
 
+static qint64 operator-(timeval t1, timeval t2)
+{
+    constexpr qint64 secsToUSecs = 1000000;
+    return (t1.tv_sec - t2.tv_sec)*secsToUSecs + (t1.tv_usec - t2.tv_usec);
+}
+
 qint64 QPulseAudioSink::processedUSecs() const
 {
     if (!m_stream || m_deviceState == QAudio::StoppedState)
@@ -589,38 +603,45 @@ qint64 QPulseAudioSink::processedUSecs() const
 
     auto info = pa_stream_get_timing_info(m_stream);
     if (!info)
-        return 0;
+        return lastProcessedUSecs;
 
     // if the info changed, update our cached data, and recalculate the average latency
-    if (info->timestamp.tv_sec != lastTimingInfo.tv_sec || info->timestamp.tv_usec != lastTimingInfo.tv_usec) {
+    if (info->timestamp - lastTimingInfo > 0) {
         lastTimingInfo.tv_sec = info->timestamp.tv_sec;
         lastTimingInfo.tv_usec = info->timestamp.tv_usec;
-        latencyList.append(info->sink_usec);
-        // Average over the last X timing infos to keep numbers more stable.
-        // 10 seems to be a decent number that keeps values relatively stable but doesn't make the list too big
-        const int latencyListMaxSize = 10;
-        if (latencyList.size() > latencyListMaxSize)
-            latencyList.pop_front();
-        averageLatency = 0;
-        for (const auto l : latencyList)
-            averageLatency += l;
-        averageLatency /= latencyList.size();
-        if (averageLatency < 0)
-            averageLatency = 0;
+        averageLatency = 0; // also use that as long as we don't have valid data from the timing info
+
+        // Only use timing values when playing, otherwise the latency numbers can be way off
+        if (info->since_underrun >= 0 && pa_bytes_to_usec(info->since_underrun, &m_spec) > info->sink_usec) {
+            latencyList.append(info->sink_usec);
+            // Average over the last X timing infos to keep numbers more stable.
+            // 10 seems to be a decent number that keeps values relatively stable but doesn't make the list too big
+            const int latencyListMaxSize = 10;
+            if (latencyList.size() > latencyListMaxSize)
+                latencyList.pop_front();
+            for (const auto l : latencyList)
+                averageLatency += l;
+            averageLatency /= latencyList.size();
+            if (averageLatency < 0)
+                averageLatency = 0;
+        }
     }
 
-    const qint64 usecsWritten = info->read_index < 0 ? 0 : pa_bytes_to_usec(info->read_index, &m_spec);
+    const qint64 usecsRead = info->read_index < 0 ? 0 : pa_bytes_to_usec(info->read_index, &m_spec);
+    const qint64 usecsWritten = info->write_index < 0 ? 0 : pa_bytes_to_usec(info->write_index, &m_spec);
 
-    // processed data is the amount we've written minus the latency
-    qint64 usecs = usecsWritten - averageLatency;
+    // processed data is the amount read by the server minus its latency
+    qint64 usecs = usecsRead - averageLatency;
 
     timeval tv;
     gettimeofday(&tv, nullptr);
 
     // and now adjust for the time since the last update
-    constexpr qint64 secsToUSecs = 1000000;
-    usecs += (tv.tv_sec - lastTimingInfo.tv_sec)*secsToUSecs + (tv.tv_usec - lastTimingInfo.tv_usec);
+    qint64 timeSinceUpdate = tv - info->timestamp;
+    if (timeSinceUpdate > 0)
+        usecs += timeSinceUpdate;
 
+    // We can never have processed more than we've written to the sink
     if (usecs > usecsWritten)
         usecs = usecsWritten;
 

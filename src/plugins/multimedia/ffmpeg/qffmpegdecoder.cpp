@@ -889,7 +889,8 @@ void AudioRenderer::loop()
 
     timeOut = (writtenUSecs - processedUSecs - latencyUSecs)/1000;
     if (timeOut < 0)
-        timeOut = 0;
+        // Don't use a zero timeout if the sink didn't want any more data, rather wait for 10ms.
+        timeOut = bytesWritten > 0 ? 0 : 10;
 
 //    if (!bufferedData.isEmpty())
 //        qDebug() << ">>>>>>>>>>>>>>>>>>>>>>>> could not write all data" << (bufferedData.size() - bufferWritten);
