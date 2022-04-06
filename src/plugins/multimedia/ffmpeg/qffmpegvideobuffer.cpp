@@ -108,7 +108,7 @@ void QFFmpegVideoBuffer::setTextureConverter(const QFFmpeg::TextureConverter &co
     m_type = converter.isNull() ? QVideoFrame::NoHandle : QVideoFrame::RhiTextureHandle;
 }
 
-QVideoFrameFormat::YCbCrColorSpace QFFmpegVideoBuffer::colorSpace() const
+QVideoFrameFormat::ColorSpace QFFmpegVideoBuffer::colorSpace() const
 {
     switch (frame->colorspace) {
     default:
@@ -121,17 +121,17 @@ QVideoFrameFormat::YCbCrColorSpace QFFmpegVideoBuffer::colorSpace() const
     case AVCOL_SPC_CHROMA_DERIVED_NCL:
     case AVCOL_SPC_CHROMA_DERIVED_CL:
     case AVCOL_SPC_ICTCP: // BT.2100 ICtCp
-        return QVideoFrameFormat::YCbCr_Undefined;
+        return QVideoFrameFormat::ColorSpace_Undefined;
     case AVCOL_SPC_RGB:
-        return QVideoFrameFormat::YCbCr_AdobeRgb;
+        return QVideoFrameFormat::ColorSpace_AdobeRgb;
     case AVCOL_SPC_BT709:
-        return QVideoFrameFormat::YCbCr_BT709;
+        return QVideoFrameFormat::ColorSpace_BT709;
     case AVCOL_SPC_BT470BG: // BT601
     case AVCOL_SPC_SMPTE170M: // Also BT601
-        return QVideoFrameFormat::YCbCr_BT601;
+        return QVideoFrameFormat::ColorSpace_BT601;
     case AVCOL_SPC_BT2020_NCL: // Non constant luminence
     case AVCOL_SPC_BT2020_CL: // Constant luminence
-        return QVideoFrameFormat::YCbCr_BT2020;
+        return QVideoFrameFormat::ColorSpace_BT2020;
     }
 }
 

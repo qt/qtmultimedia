@@ -184,7 +184,7 @@ private:
     int v4l2MaxZoom = 0;
     timeval firstFrameTime = {-1, -1};
     int bytesPerLine = -1;
-    QVideoFrameFormat::YCbCrColorSpace colorSpace = QVideoFrameFormat::YCbCr_Undefined;
+    QVideoFrameFormat::ColorSpace colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
     qint64 frameDuration = -1;
     bool cameraBusy = false;
 };

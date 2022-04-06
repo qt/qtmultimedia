@@ -87,7 +87,7 @@ public:
 
     void setTextureConverter(const QFFmpeg::TextureConverter &converter);
 
-    QVideoFrameFormat::YCbCrColorSpace colorSpace() const;
+    QVideoFrameFormat::ColorSpace colorSpace() const;
     QVideoFrameFormat::ColorTransfer colorTransfer() const;
     QVideoFrameFormat::ColorRange colorRange() const;
 

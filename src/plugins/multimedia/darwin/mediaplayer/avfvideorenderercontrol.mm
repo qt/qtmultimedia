@@ -190,7 +190,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     CVPixelBufferRelease(pixelBuffer);
 
     QVideoFrameFormat format(QSize(width, height), fmt);
-    format.setYCbCrColorSpace(buffer->colorSpace());
+    format.setColorSpace(buffer->colorSpace());
     format.setColorTransfer(buffer->colorTransfer());
 
     frame = QVideoFrame(buffer, format);

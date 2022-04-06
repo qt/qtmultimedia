@@ -643,7 +643,7 @@ void QV4L2Camera::readFrame()
     buffer->data.data[0] = (uchar *)d->mappedBuffers.at(i).data;
     buffer->data.size[0] = d->mappedBuffers.at(i).size;
     QVideoFrameFormat fmt(m_cameraFormat.resolution(), m_cameraFormat.pixelFormat());
-    fmt.setYCbCrColorSpace(colorSpace);
+    fmt.setColorSpace(colorSpace);
 //    qDebug() << "got a frame" << d->mappedBuffers.at(i).data << d->mappedBuffers.at(i).size << fmt << i;
     QVideoFrame frame(buffer, fmt);
 
@@ -860,20 +860,20 @@ void QV4L2Camera::setV4L2CameraFormat()
     switch (v4l2_colorspace(fmt.fmt.pix.colorspace)) {
     default:
     case V4L2_COLORSPACE_DCI_P3:
-        colorSpace = QVideoFrameFormat::YCbCr_Undefined;
+        colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
         break;
     case V4L2_COLORSPACE_REC709:
-        colorSpace = QVideoFrameFormat::YCbCr_BT709;
+        colorSpace = QVideoFrameFormat::ColorSpace_BT709;
         break;
     case V4L2_COLORSPACE_JPEG:
-        colorSpace = QVideoFrameFormat::YCbCr_AdobeRgb;
+        colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
         break;
     case V4L2_COLORSPACE_SRGB:
         // ##### is this correct???
-        colorSpace = QVideoFrameFormat::YCbCr_BT601;
+        colorSpace = QVideoFrameFormat::ColorSpace_BT601;
         break;
     case V4L2_COLORSPACE_BT2020:
-        colorSpace = QVideoFrameFormat::YCbCr_BT2020;
+        colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
         break;
     }
 

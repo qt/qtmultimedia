@@ -67,42 +67,42 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buf
     CFStringRef name = CGColorSpaceGetName(cspace);
     if (name != NULL) {
         if (CFEqual(name, kCGColorSpaceAdobeRGB1998)) {
-            m_colorSpace = QVideoFrameFormat::YCbCr_AdobeRgb;
+            m_colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
         } else if (CFEqual(name, kCGColorSpaceSRGB)) {
-            m_colorSpace = QVideoFrameFormat::YCbCr_BT709;
+            m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
             m_colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
         } else if (CFEqual(name, kCGColorSpaceITUR_709)) {
-            m_colorSpace = QVideoFrameFormat::YCbCr_BT709;
+            m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
             m_colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
         } else if (CFEqual(name, kCGColorSpaceITUR_709)) {
-            m_colorSpace = QVideoFrameFormat::YCbCr_BT709;
+            m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
         } else if (CFEqual(name, kCGColorSpaceITUR_2020)) {
-            m_colorSpace = QVideoFrameFormat::YCbCr_BT2020;
+            m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
             m_colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
         } else if (@available(macOS 10.15.4, iOS 13.4, *)) {
             if (CFEqual(name, kCGColorSpaceITUR_2020_PQ)) {
-                m_colorSpace = QVideoFrameFormat::YCbCr_BT2020;
+                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
                 m_colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
             }
         } else if (@available(macOS 10.15.6, iOS 12.6, *)) {
             if (CFEqual(name, kCGColorSpaceITUR_2020_HLG)) {
-                m_colorSpace = QVideoFrameFormat::YCbCr_BT2020;
+                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
                 m_colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
             }
         } else if (@available(macOS 11.0, iOS 14.0, *)) {
             if (CFEqual(name, kCGColorSpaceITUR_2100_PQ)) {
-                m_colorSpace = QVideoFrameFormat::YCbCr_BT2020;
+                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
                 m_colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
             } else if (CFEqual(name, kCGColorSpaceITUR_2100_HLG)) {
-                m_colorSpace = QVideoFrameFormat::YCbCr_BT2020;
+                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
                 m_colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
             }
         } else if (@available(macOS 12.0, iOS 15.1, *)) {
             if (CFEqual(name, kCGColorSpaceITUR_709_PQ)) {
-                m_colorSpace = QVideoFrameFormat::YCbCr_BT709;
+                m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
                 m_colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
             } else if (CFEqual(name, kCGColorSpaceITUR_2020_sRGBGamma)) {
-                m_colorSpace = QVideoFrameFormat::YCbCr_BT2020;
+                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
                 m_colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
             }
         }

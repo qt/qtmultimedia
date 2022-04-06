@@ -107,8 +107,6 @@ private:
 
     AVCaptureDevice *device() const;
 
-//    QVideoFrameFormat::YCbCrColorSpace colorSpace = QVideoFrameFormat::YCbCr_Undefined;
-
     QMediaCaptureSession *m_session = nullptr;
     AVCaptureSession *m_captureSession = nullptr;
     AVCaptureDeviceInput *m_videoInput = nullptr;

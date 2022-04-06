@@ -111,20 +111,27 @@ public:
         BottomToTop
     };
 
+#if QT_DEPRECATED_SINCE(6, 4)
     enum YCbCrColorSpace
     {
         YCbCr_Undefined = 0,
         YCbCr_BT601 = 1,
         YCbCr_BT709 = 2,
-#if QT_DEPRECATED_SINCE(6, 4)
         YCbCr_xvYCC601 = 3,
         YCbCr_xvYCC709 = 4,
-#endif
-        YCbCr_AdobeRgb = 5,
-#if QT_DEPRECATED_SINCE(6, 4)
         YCbCr_JPEG = 5,
-#endif
         YCbCr_BT2020 = 6
+    };
+#endif
+
+    // Keep values compatible with YCbCrColorSpace
+    enum ColorSpace
+    {
+        ColorSpace_Undefined = 0,
+        ColorSpace_BT601 = 1,
+        ColorSpace_BT709 = 2,
+        ColorSpace_AdobeRgb = 5,
+        ColorSpace_BT2020 = 6
     };
 
     enum ColorTransfer
@@ -185,8 +192,13 @@ public:
     qreal frameRate() const;
     void setFrameRate(qreal rate);
 
-    YCbCrColorSpace yCbCrColorSpace() const;
-    void setYCbCrColorSpace(YCbCrColorSpace colorSpace);
+#if QT_DEPRECATED_SINCE(6, 4)
+    QT_DEPRECATED_VERSION_X_6_0("Use colorSpace()") YCbCrColorSpace yCbCrColorSpace() const;
+    QT_DEPRECATED_VERSION_X_6_0("Use setColorSpace()") void setYCbCrColorSpace(YCbCrColorSpace colorSpace);
+#endif
+
+    ColorSpace colorSpace() const;
+    void setColorSpace(ColorSpace colorSpace);
 
     ColorTransfer colorTransfer() const;
     void setColorTransfer(ColorTransfer colorTransfer);
@@ -218,7 +230,9 @@ Q_DECLARE_SHARED(QVideoFrameFormat)
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrameFormat &);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::Direction);
+QT_DEPRECATED_VERSION_X_6_0("Use QVideoFrameFormat::ColorSpace")
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::YCbCrColorSpace);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::ColorSpace);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::PixelFormat);
 #endif
 

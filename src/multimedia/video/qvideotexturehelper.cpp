@@ -387,37 +387,36 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::F
 // shaders/colorconvert.glsl for details.
 static QMatrix4x4 colorMatrix(const QVideoFrameFormat & format)
 {
-    auto colorSpace = format.yCbCrColorSpace();
-    if (colorSpace == QVideoFrameFormat::YCbCr_Undefined) {
+    auto colorSpace = format.colorSpace();
+    if (colorSpace == QVideoFrameFormat::ColorSpace_Undefined) {
         if (format.frameHeight() > 576)
             // HD video, assume BT709
-            colorSpace = QVideoFrameFormat::YCbCr_BT709;
+            colorSpace = QVideoFrameFormat::ColorSpace_BT709;
         else
             // SD video, assume BT601
-            colorSpace = QVideoFrameFormat::YCbCr_BT601;
+            colorSpace = QVideoFrameFormat::ColorSpace_BT601;
     }
     switch (colorSpace) {
-    case QVideoFrameFormat::YCbCr_AdobeRgb:
+    case QVideoFrameFormat::ColorSpace_AdobeRgb:
         return QMatrix4x4(
             1.0f,  0.000f,  1.402f, -0.701f,
             1.0f, -0.344f, -0.714f,  0.529f,
             1.0f,  1.772f,  0.000f, -0.886f,
             0.0f,  0.000f,  0.000f,  1.0000f);
     default:
-    case QVideoFrameFormat::YCbCr_BT709:
-    case QVideoFrameFormat::YCbCr_xvYCC709:
+    case QVideoFrameFormat::ColorSpace_BT709:
         return QMatrix4x4(
             1.1644f,  0.000f,  1.7928f, -0.9731f,
             1.1644f, -0.5329f, -0.2132f,  0.3015f,
             1.1644f,  2.1124f,  0.000f, -1.1335f,
             0.0f,    0.000f,  0.000f,  1.0000f);
-    case QVideoFrameFormat::YCbCr_BT2020:
+    case QVideoFrameFormat::ColorSpace_BT2020:
         return QMatrix4x4(
             1.1644f,  0.000f,  1.6787f, -0.9158f,
             1.1644f, -0.1874f, -0.6511f,  0.3478f,
             1.1644f,  2.1418f,  0.000f, -1.1483f,
             0.0f,  0.000f,  0.000f,  1.0000f);
-    case QVideoFrameFormat::YCbCr_BT601:
+    case QVideoFrameFormat::ColorSpace_BT601:
         // Corresponds to the primaries used by NTSC BT601. For PAL BT601, we use the BT709 conversion
         // as those are very close.
         return QMatrix4x4(

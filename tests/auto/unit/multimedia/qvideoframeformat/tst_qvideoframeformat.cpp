@@ -63,8 +63,8 @@ private slots:
     void scanLineDirection();
     void frameRate_data();
     void frameRate();
-    void yCbCrColorSpaceEnum_data();
-    void yCbCrColorSpaceEnum ();
+    void colorSpaceEnum_data();
+    void colorSpaceEnum ();
     void compare();
     void copy();
     void assign();
@@ -110,7 +110,7 @@ void tst_QVideoFrameFormat::constructNull()
     QCOMPARE(format.viewport(), QRect());
     QCOMPARE(format.scanLineDirection(), QVideoFrameFormat::TopToBottom);
     QCOMPARE(format.frameRate(), 0.0);
-    QCOMPARE(format.yCbCrColorSpace(), QVideoFrameFormat::YCbCr_Undefined);
+    QCOMPARE(format.colorSpace(), QVideoFrameFormat::ColorSpace_Undefined);
 }
 
 void tst_QVideoFrameFormat::construct_data()
@@ -158,7 +158,7 @@ void tst_QVideoFrameFormat::construct()
     QCOMPARE(format.viewport(), viewport);
     QCOMPARE(format.scanLineDirection(), QVideoFrameFormat::TopToBottom);
     QCOMPARE(format.frameRate(), 0.0);
-    QCOMPARE(format.yCbCrColorSpace(), QVideoFrameFormat::YCbCr_Undefined);
+    QCOMPARE(format.colorSpace(), QVideoFrameFormat::ColorSpace_Undefined);
 }
 
 void tst_QVideoFrameFormat::frameSize_data()
@@ -259,29 +259,28 @@ void tst_QVideoFrameFormat::scanLineDirection()
     qDebug() << direction;
 }
 
-void tst_QVideoFrameFormat::yCbCrColorSpaceEnum_data()
+void tst_QVideoFrameFormat::colorSpaceEnum_data()
 {
-    QTest::addColumn<QVideoFrameFormat::YCbCrColorSpace>("colorspace");
+    QTest::addColumn<QVideoFrameFormat::ColorSpace>("colorspace");
     QTest::addColumn<QString>("stringized");
 
-    ADD_ENUM_TEST(YCbCr_BT601);
-    ADD_ENUM_TEST(YCbCr_BT709);
-    ADD_ENUM_TEST(YCbCr_xvYCC601);
-    ADD_ENUM_TEST(YCbCr_xvYCC709);
-    ADD_ENUM_TEST(YCbCr_AdobeRgb);
-    ADD_ENUM_TEST(YCbCr_Undefined);
+    ADD_ENUM_TEST(ColorSpace_BT601);
+    ADD_ENUM_TEST(ColorSpace_BT709);
+    ADD_ENUM_TEST(ColorSpace_BT2020);
+    ADD_ENUM_TEST(ColorSpace_AdobeRgb);
+    ADD_ENUM_TEST(ColorSpace_Undefined);
 }
 
-/* Test case for Enum YCbCr_BT601, YCbCr_xvYCC709 */
-void tst_QVideoFrameFormat::yCbCrColorSpaceEnum()
+/* Test case for Enum ColorSpace */
+void tst_QVideoFrameFormat::colorSpaceEnum()
 {
-    QFETCH(QVideoFrameFormat::YCbCrColorSpace, colorspace);
+    QFETCH(QVideoFrameFormat::ColorSpace, colorspace);
     QFETCH(QString, stringized);
 
     QVideoFrameFormat format(QSize(64, 64), QVideoFrameFormat::Format_XRGB8888);
-    format.setYCbCrColorSpace(colorspace);
+    format.setColorSpace(colorspace);
 
-    QCOMPARE(format.yCbCrColorSpace(), colorspace);
+    QCOMPARE(format.colorSpace(), colorspace);
 
     QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
     qDebug() << colorspace;
@@ -380,13 +379,13 @@ void tst_QVideoFrameFormat::compare()
     QCOMPARE(format1 == format2, true);
     QCOMPARE(format1 != format2, false);
 
-    format2.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_xvYCC601);
+    format2.setColorSpace(QVideoFrameFormat::ColorSpace_BT601);
 
     // Not equal yuv color space differs.
     QCOMPARE(format1 == format2, false);
     QCOMPARE(format1 != format2, true);
 
-    format1.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_xvYCC601);
+    format1.setColorSpace(QVideoFrameFormat::ColorSpace_BT601);
 
     // Equal.
     QCOMPARE(format1 == format2, true);
@@ -480,7 +479,7 @@ void tst_QVideoFrameFormat::copyAllParameters()
     original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
     original.setFrameRate(qreal(15.0));
-    original.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_BT709);
+    original.setColorSpace(QVideoFrameFormat::ColorSpace_BT709);
 
     /* Copy the original instance to copy and verify if both the instances
       have the same parameters. */
@@ -491,7 +490,7 @@ void tst_QVideoFrameFormat::copyAllParameters()
     QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
     QCOMPARE(copy.viewport(), QRect(0, 0, 1024, 1024));
     QCOMPARE(copy.frameRate(), qreal(15.0));
-    QCOMPARE(copy.yCbCrColorSpace(), QVideoFrameFormat::YCbCr_BT709);
+    QCOMPARE(copy.colorSpace(), QVideoFrameFormat::ColorSpace_BT709);
 
     /* Verify if both the instances are eqaul */
     QCOMPARE(original == copy, true);
@@ -507,7 +506,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
     copy.setScanLineDirection(QVideoFrameFormat::TopToBottom);
     copy.setViewport(QRect(0, 0, 640, 320));
     copy.setFrameRate(qreal(7.5));
-    copy.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_BT601);
+    copy.setColorSpace(QVideoFrameFormat::ColorSpace_BT601);
 
     /* Create the instance and set all the parameters. */
     QVideoFrameFormat original(
@@ -515,7 +514,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
     original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
     original.setFrameRate(qreal(15.0));
-    original.setYCbCrColorSpace(QVideoFrameFormat::YCbCr_BT709);
+    original.setColorSpace(QVideoFrameFormat::ColorSpace_BT709);
 
     /* Assign the original instance to copy and verify if both the instancess
       have the same parameters. */
@@ -526,7 +525,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
     QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
     QCOMPARE(copy.viewport(), QRect(0, 0, 1024, 1024));
     QCOMPARE(copy.frameRate(), qreal(15.0));
-    QCOMPARE(copy.yCbCrColorSpace(), QVideoFrameFormat::YCbCr_BT709);
+    QCOMPARE(copy.colorSpace(), QVideoFrameFormat::ColorSpace_BT709);
 
      /* Verify if both the instances are eqaul */
     QCOMPARE(original == copy, true);

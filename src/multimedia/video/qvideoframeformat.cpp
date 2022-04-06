@@ -74,7 +74,7 @@ public:
             && frameSize == other.frameSize
             && viewport == other.viewport
             && frameRatesEqual(frameRate, other.frameRate)
-            && ycbcrColorSpace == other.ycbcrColorSpace
+            && colorSpace == other.colorSpace
             && mirrored == other.mirrored)
             return true;
 
@@ -89,7 +89,7 @@ public:
     QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
     QVideoFrameFormat::Direction scanLineDirection = QVideoFrameFormat::TopToBottom;
     QSize frameSize;
-    QVideoFrameFormat::YCbCrColorSpace ycbcrColorSpace = QVideoFrameFormat::YCbCr_Undefined;
+    QVideoFrameFormat::ColorSpace colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
     QVideoFrameFormat::ColorTransfer colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
     QVideoFrameFormat::ColorRange colorRange = QVideoFrameFormat::ColorRange_Unknown;
     QRect viewport;
@@ -264,6 +264,8 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
 /*!
     \enum QVideoFrameFormat::YCbCrColorSpace
 
+    \deprecated Use QVideoFrameFormat::ColorSpace instead.
+
     Enumerates the Y'CbCr color space of video frames.
 
     \value YCbCr_Undefined
@@ -289,12 +291,34 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     The BT.709 color space with the value range extended to 0 to 255.
 
     \value YCbCr_JPEG
-    Deprected. Use AdobeRgb instead.
-
-    \value YCbCr_AdobeRgb
     The full range Y'CbCr color space used in most JPEG files.
 
     \value YCbCr_BT2020
+    The color space defined by ITU-R BT.2020. Used mainly for HDR videos.
+*/
+
+
+/*!
+    \enum QVideoFrameFormat::ColorSpace
+
+    Enumerates the color space of video frames.
+
+    \value ColorSpace_Undefined
+    No color space is specified.
+
+    \value ColorSpace_BT601
+    A color space defined by ITU-R recommendation BT.601
+    with Y value range from 16 to 235, and Cb/Cr range from 16 to 240.
+    Used mostly by older videos that were targeting CRT displays.
+
+    \value ColorSpace_BT709
+    A color space defined by ITU-R BT.709 with the same values range as ColorSpace_BT601.
+    The most commonly used color space today.
+
+    \value ColorSpace_AdobeRgb
+    The full range YUV color space used in most JPEG files.
+
+    \value ColorSpace_BT2020
     The color space defined by ITU-R BT.2020. Used mainly for HDR videos.
 */
 
@@ -562,21 +586,42 @@ void QVideoFrameFormat::setFrameRate(qreal rate)
 }
 
 /*!
+    \deprecated Use colorSpace() instead
+
     Returns the Y'CbCr color space of a video stream.
 */
 QVideoFrameFormat::YCbCrColorSpace QVideoFrameFormat::yCbCrColorSpace() const
 {
-    return d->ycbcrColorSpace;
+    return YCbCrColorSpace(d->colorSpace);
 }
 
 /*!
+    \deprecated Use setColorSpace() instead
+
     Sets the Y'CbCr color \a space of a video stream.
     It is only used with raw YUV frame types.
 */
 void QVideoFrameFormat::setYCbCrColorSpace(QVideoFrameFormat::YCbCrColorSpace space)
 {
     detach();
-    d->ycbcrColorSpace = space;
+    d->colorSpace = ColorSpace(space);
+}
+
+/*!
+    Returns the color space of a video stream.
+*/
+QVideoFrameFormat::ColorSpace QVideoFrameFormat::colorSpace() const
+{
+    return d->colorSpace;
+}
+
+/*!
+    Sets the \a colorSpace of a video stream.
+*/
+void QVideoFrameFormat::setColorSpace(ColorSpace colorSpace)
+{
+    detach();
+    d->colorSpace = colorSpace;
 }
 
 /*!
@@ -891,8 +936,8 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::YCbCrColorSpace cs)
         case QVideoFrameFormat::YCbCr_BT709:
             dbg << "YCbCr_BT709";
             break;
-        case QVideoFrameFormat::YCbCr_AdobeRgb:
-            dbg << "YCbCr_AdobeRgb";
+        case QVideoFrameFormat::YCbCr_JPEG:
+            dbg << "YCbCr_JPEG";
             break;
         case QVideoFrameFormat::YCbCr_xvYCC601:
             dbg << "YCbCr_xvYCC601";
@@ -905,6 +950,30 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::YCbCrColorSpace cs)
             break;
         default:
             dbg << "YCbCr_Undefined";
+            break;
+    }
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, QVideoFrameFormat::ColorSpace cs)
+{
+    QDebugStateSaver saver(dbg);
+    dbg.nospace();
+    switch (cs) {
+        case QVideoFrameFormat::ColorSpace_BT601:
+            dbg << "ColorSpace_BT601";
+            break;
+        case QVideoFrameFormat::ColorSpace_BT709:
+            dbg << "ColorSpace_BT709";
+            break;
+        case QVideoFrameFormat::ColorSpace_AdobeRgb:
+            dbg << "ColorSpace_AdobeRgb";
+            break;
+        case QVideoFrameFormat::ColorSpace_BT2020:
+            dbg << "ColorSpace_BT2020";
+            break;
+        default:
+            dbg << "ColorSpace_Undefined";
             break;
     }
     return dbg;
@@ -931,12 +1000,12 @@ QDebug operator<<(QDebug dbg, const QVideoFrameFormat &f)
     dbg.nospace();
     dbg << "QVideoFrameFormat(" << f.pixelFormat() << ", " << f.frameSize()
         << ", viewport=" << f.viewport()
-        <<  ", yCbCrColorSpace=" << f.yCbCrColorSpace()
+        <<  ", colorSpace=" << f.colorSpace()
         << ')'
         << "\n    pixel format=" << f.pixelFormat()
         << "\n    frame size=" << f.frameSize()
         << "\n    viewport=" << f.viewport()
-        << "\n    yCbCrColorSpace=" << f.yCbCrColorSpace()
+        << "\n    colorSpace=" << f.colorSpace()
         << "\n    frameRate=" << f.frameRate()
         << "\n    mirrored=" << f.isMirrored();
 
