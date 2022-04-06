@@ -141,12 +141,18 @@ void QQnxAudioSink::reset()
 
 void QQnxAudioSink::suspend()
 {
+    if (!m_pcmHandle)
+        return;
+
     snd_pcm_playback_pause(m_pcmHandle.get());
     suspendInternal(QAudio::SuspendedState);
 }
 
 void QQnxAudioSink::resume()
 {
+    if (!m_pcmHandle)
+        return;
+
     snd_pcm_playback_resume(m_pcmHandle.get());
     resumeInternal();
 }
