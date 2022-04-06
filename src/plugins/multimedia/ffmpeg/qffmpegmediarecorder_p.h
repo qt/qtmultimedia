@@ -88,6 +88,8 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 private Q_SLOTS:
     void newDuration(qint64 d) { durationChanged(d); }
+    void finalizationDone();
+
 private:
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
 

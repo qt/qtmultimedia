@@ -399,17 +399,18 @@ void QMediaRecorder::pause()
 }
 /*!
     \qmlmethod QtMultimedia::MediaRecorder::stop()
-    \brief Stops recording.
+    \brief Stops the recording.
 
-    The recorder state is changed to \c{QMediaRecorder.StoppedState}.
+    The recorder will stop the recording. Processing pending video and audio data might
+    however still take some time. The recording is finished, once the state of the media
+    recorder changes to QMediaRecorder::StoppedState.
 */
 
 /*!
-    Stops recording.
-
-    The recorder state is changed to QMediaRecorder::StoppedState.
+    The recorder will stop the recording. Processing pending video and audio data might
+    however still take some time. The recording is finished, once the state of the media
+    recorder changes to QMediaRecorder::StoppedState.
 */
-
 void QMediaRecorder::stop()
 {
     Q_D(QMediaRecorder);

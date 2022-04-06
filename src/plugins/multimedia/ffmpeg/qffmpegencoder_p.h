@@ -69,10 +69,22 @@ class QPlatformCamera;
 namespace QFFmpeg
 {
 
+class Encoder;
 class Muxer;
 class AudioEncoder;
 class VideoEncoder;
 class VideoFrameEncoder;
+
+class EncodingFinalizer : public QThread
+{
+public:
+    EncodingFinalizer(Encoder *e)
+        : encoder(e)
+    {}
+    void run() override;
+
+    Encoder *encoder = nullptr;
+};
 
 class Encoder : public QObject
 {
@@ -98,6 +110,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void durationChanged(qint64 duration);
+    void finalizationDone();
 
 public:
 

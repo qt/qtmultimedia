@@ -85,8 +85,6 @@ Encoder::Encoder(const QMediaEncoderSettings &settings, const QUrl &url)
 
 Encoder::~Encoder()
 {
-    if (formatContext)
-        finalize();
 }
 
 void Encoder::addAudioInput(QFFmpegAudioInput *input)
@@ -120,24 +118,32 @@ void Encoder::start()
     isRecording = true;
 }
 
-void Encoder::finalize()
+void EncodingFinalizer::run()
 {
-    qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
+    if (encoder->audioEncode)
+        encoder->audioEncode->kill();
+    if (encoder->videoEncode)
+        encoder->videoEncode->kill();
+    encoder->muxer->kill();
 
-    isRecording = false;
-    if (audioEncode)
-        audioEncode->kill();
-    if (videoEncode)
-        videoEncode->kill();
-    muxer->kill();
-
-    int res = av_write_trailer(formatContext);
+    int res = av_write_trailer(encoder->formatContext);
     if (res < 0)
         qWarning() << "could not write trailer" << res;
 
-    avformat_free_context(formatContext);
-    formatContext = nullptr;
-    qCDebug(qLcFFmpegEncoder) << "    done finalizing.";
+    avformat_free_context(encoder->formatContext);
+    qDebug() << "    done finalizing.";
+    emit encoder->finalizationDone();
+    delete encoder;
+    deleteLater();
+}
+
+void Encoder::finalize()
+{
+    qDebug() << ">>>>>>>>>>>>>>> finalize";
+
+    isRecording = false;
+    auto *finalizer = new EncodingFinalizer(this);
+    finalizer->start();
 }
 
 void Encoder::setPaused(bool p)

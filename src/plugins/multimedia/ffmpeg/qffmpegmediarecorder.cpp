@@ -62,10 +62,8 @@ QFFmpegMediaRecorder::QFFmpegMediaRecorder(QMediaRecorder *parent)
 
 QFFmpegMediaRecorder::~QFFmpegMediaRecorder()
 {
-    if (encoder) {
+    if (encoder)
         encoder->finalize();
-        delete encoder;
-    }
 }
 
 bool QFFmpegMediaRecorder::isLocationWritable(const QUrl &) const
@@ -107,6 +105,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     encoder = new QFFmpeg::Encoder(settings, actualSink);
     encoder->setMetaData(m_metaData);
     connect(encoder, &QFFmpeg::Encoder::durationChanged, this, &QFFmpegMediaRecorder::newDuration);
+    connect(encoder, &QFFmpeg::Encoder::finalizationDone, this, &QFFmpegMediaRecorder::finalizationDone);
 
     auto *audioInput = m_session->audioInput();
     if (audioInput)
@@ -157,9 +156,12 @@ void QFFmpegMediaRecorder::stop()
     // to avoid blocking the UI in case of slow codecs
     if (encoder) {
         encoder->finalize();
-        delete encoder;
         encoder = nullptr;
     }
+}
+
+void QFFmpegMediaRecorder::finalizationDone()
+{
     stateChanged(QMediaRecorder::StoppedState);
 }
 
