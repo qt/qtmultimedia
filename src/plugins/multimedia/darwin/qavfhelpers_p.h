@@ -68,6 +68,8 @@ namespace QAVFHelpers
 {
     QVideoFrameFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
     bool toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv);
+
+    QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL = false);
 };
 
 QT_END_NAMESPACE

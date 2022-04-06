@@ -72,16 +72,13 @@ public:
     AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
     ~AVFVideoBuffer();
 
-    QVideoFrameFormat::PixelFormat fromCVVideoPixelFormat(unsigned avPixelFormat) const;
-
     QVideoFrame::MapMode mapMode() const { return m_mode; }
     MapData map(QVideoFrame::MapMode mode);
     void unmap();
 
     virtual quint64 textureHandle(int plane) const;
 
-    QVideoFrameFormat::ColorSpace colorSpace() const { return m_colorSpace; }
-    QVideoFrameFormat::ColorTransfer colorTransfer() const { return m_colorTransfer; }
+    QVideoFrameFormat videoFormat() const { return m_format; }
 
 private:
     AVFVideoSinkInterface *sink = nullptr;
@@ -96,9 +93,7 @@ private:
 
     CVImageBufferRef m_buffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    QVideoFrameFormat::PixelFormat m_pixelFormat = QVideoFrameFormat::Format_Invalid;
-    QVideoFrameFormat::ColorSpace m_colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
-    QVideoFrameFormat::ColorTransfer m_colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
+    QVideoFrameFormat m_format;
 };
 
 QT_END_NAMESPACE

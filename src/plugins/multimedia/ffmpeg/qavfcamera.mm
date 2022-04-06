@@ -145,8 +145,6 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
         return;
     }
 
-    int width = CVPixelBufferGetWidth(imageBuffer);
-    int height = CVPixelBufferGetHeight(imageBuffer);
     AVFrame *avFrame = allocHWFrame(m_accel.hwFramesContextAsBuffer(), imageBuffer);
     if (!avFrame)
         return;
@@ -164,8 +162,8 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     }
 #endif
 
-    auto format = QAVFHelpers::fromCVPixelFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
-    if (format == QVideoFrameFormat::Format_Invalid) {
+    QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(imageBuffer);
+    if (!format.isValid()) {
         av_frame_unref(avFrame);
         return;
     }
@@ -173,7 +171,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     avFrame->pts = startTime;
 
     QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame);
-    QVideoFrame frame(buffer, QVideoFrameFormat(QSize(width, height), format));
+    QVideoFrame frame(buffer, format);
     frame.setStartTime(startTime);
     frame.setEndTime(frameTime);
     startTime = frameTime;

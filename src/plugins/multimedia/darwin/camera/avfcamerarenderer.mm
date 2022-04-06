@@ -98,16 +98,14 @@ QT_USE_NAMESPACE
     // avfmediaassetwriter).
 
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-
-    int width = CVPixelBufferGetWidth(imageBuffer);
-    int height = CVPixelBufferGetHeight(imageBuffer);
     AVFVideoBuffer *buffer = new AVFVideoBuffer(m_renderer, imageBuffer);
-    auto format = buffer->fromCVVideoPixelFormat(CVPixelBufferGetPixelFormatType(imageBuffer));
-    if (format == QVideoFrameFormat::Format_Invalid)
+    auto format = buffer->videoFormat();
+    if (!format.isValid()) {
+        delete buffer;
         return;
+    }
 
-    QVideoFrame frame(buffer, QVideoFrameFormat(QSize(width, height), format));
-
+    QVideoFrame frame(buffer, format);
     m_renderer->syncHandleViewfinderFrame(frame);
 }
 

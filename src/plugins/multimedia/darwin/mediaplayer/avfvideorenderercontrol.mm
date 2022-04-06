@@ -185,15 +185,10 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     if (!pixelBuffer)
         return;
     AVFVideoBuffer *buffer = new AVFVideoBuffer(this, pixelBuffer);
-    auto fmt = buffer->fromCVVideoPixelFormat(CVPixelBufferGetPixelFormatType(pixelBuffer));
 //    qDebug() << "Got pixelbuffer with format" << fmt << Qt::hex << CVPixelBufferGetPixelFormatType(pixelBuffer);
     CVPixelBufferRelease(pixelBuffer);
 
-    QVideoFrameFormat format(QSize(width, height), fmt);
-    format.setColorSpace(buffer->colorSpace());
-    format.setColorTransfer(buffer->colorTransfer());
-
-    frame = QVideoFrame(buffer, format);
+    frame = QVideoFrame(buffer, buffer->videoFormat());
     frame.setRotationAngle(m_rotation);
     frame.setMirrored(m_mirrored);
     m_sink->setVideoFrame(frame);

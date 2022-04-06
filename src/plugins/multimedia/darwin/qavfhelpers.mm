@@ -38,6 +38,10 @@
 ****************************************************************************/
 #include <qavfhelpers_p.h>
 #include <CoreMedia/CMFormatDescription.h>
+#include <CoreVideo/CoreVideo.h>
+#include <qdebug.h>
+
+#import <CoreVideo/CoreVideo.h>
 
 QVideoFrameFormat::PixelFormat QAVFHelpers::fromCVPixelFormat(unsigned avPixelFormat)
 {
@@ -107,4 +111,74 @@ bool QAVFHelpers::toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsig
     }
 
     return true;
+}
+
+QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL)
+{
+    auto avPixelFormat = CVPixelBufferGetPixelFormatType(buffer);
+    if (openGL) {
+        if (avPixelFormat == kCVPixelFormatType_32BGRA)
+            avPixelFormat = QVideoFrameFormat::Format_SamplerRect;
+        else
+            qWarning() << "Accelerated macOS OpenGL video supports BGRA only, got CV pixel format" << avPixelFormat;
+    }
+    auto pixelFormat = fromCVPixelFormat(avPixelFormat);
+
+    size_t width = CVPixelBufferGetWidth(buffer);
+    size_t height = CVPixelBufferGetHeight(buffer);
+
+    QVideoFrameFormat format(QSize(width, height), pixelFormat);
+
+    auto colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
+    auto colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
+    // ### FIXME: Figure out the colorspace for iOS
+#ifdef Q_OS_MACOS
+    auto cspace = CVImageBufferGetColorSpace(buffer);
+    CFStringRef name = CGColorSpaceGetName(cspace);
+    if (name != NULL) {
+        if (CFEqual(name, kCGColorSpaceAdobeRGB1998)) {
+            colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
+        } else if (CFEqual(name, kCGColorSpaceSRGB)) {
+            colorSpace = QVideoFrameFormat::ColorSpace_BT709;
+            colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
+        } else if (CFEqual(name, kCGColorSpaceITUR_709)) {
+            colorSpace = QVideoFrameFormat::ColorSpace_BT709;
+            colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
+        } else if (CFEqual(name, kCGColorSpaceITUR_709)) {
+            colorSpace = QVideoFrameFormat::ColorSpace_BT709;
+        } else if (CFEqual(name, kCGColorSpaceITUR_2020)) {
+            colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+            colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
+        } else if (@available(macOS 10.15.4, iOS 13.4, *)) {
+            if (CFEqual(name, kCGColorSpaceITUR_2020_PQ)) {
+                colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+                colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
+            }
+        } else if (@available(macOS 10.15.6, iOS 12.6, *)) {
+            if (CFEqual(name, kCGColorSpaceITUR_2020_HLG)) {
+                colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+                colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
+            }
+        } else if (@available(macOS 11.0, iOS 14.0, *)) {
+            if (CFEqual(name, kCGColorSpaceITUR_2100_PQ)) {
+                colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+                colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
+            } else if (CFEqual(name, kCGColorSpaceITUR_2100_HLG)) {
+                colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+                colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
+            }
+        } else if (@available(macOS 12.0, iOS 15.1, *)) {
+            if (CFEqual(name, kCGColorSpaceITUR_709_PQ)) {
+                colorSpace = QVideoFrameFormat::ColorSpace_BT709;
+                colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
+            } else if (CFEqual(name, kCGColorSpaceITUR_2020_sRGBGamma)) {
+                colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+                colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
+            }
+        }
+    }
+#endif
+    format.setColorSpace(colorSpace);
+    format.setColorTransfer(colorTransfer);
+    return format;
 }

@@ -61,52 +61,8 @@ AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buf
 //    m_type = QVideoFrame::NoHandle;
 //    qDebug() << "RHI" << m_rhi;
     CVPixelBufferRetain(m_buffer);
-    m_pixelFormat = fromCVVideoPixelFormat(CVPixelBufferGetPixelFormatType(m_buffer));
-
-    auto cspace = CVImageBufferGetColorSpace(buffer);
-    CFStringRef name = CGColorSpaceGetName(cspace);
-    if (name != NULL) {
-        if (CFEqual(name, kCGColorSpaceAdobeRGB1998)) {
-            m_colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
-        } else if (CFEqual(name, kCGColorSpaceSRGB)) {
-            m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
-            m_colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
-        } else if (CFEqual(name, kCGColorSpaceITUR_709)) {
-            m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
-            m_colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
-        } else if (CFEqual(name, kCGColorSpaceITUR_709)) {
-            m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
-        } else if (CFEqual(name, kCGColorSpaceITUR_2020)) {
-            m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-            m_colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
-        } else if (@available(macOS 10.15.4, iOS 13.4, *)) {
-            if (CFEqual(name, kCGColorSpaceITUR_2020_PQ)) {
-                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-                m_colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
-            }
-        } else if (@available(macOS 10.15.6, iOS 12.6, *)) {
-            if (CFEqual(name, kCGColorSpaceITUR_2020_HLG)) {
-                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-                m_colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
-            }
-        } else if (@available(macOS 11.0, iOS 14.0, *)) {
-            if (CFEqual(name, kCGColorSpaceITUR_2100_PQ)) {
-                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-                m_colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
-            } else if (CFEqual(name, kCGColorSpaceITUR_2100_HLG)) {
-                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-                m_colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
-            }
-        } else if (@available(macOS 12.0, iOS 15.1, *)) {
-            if (CFEqual(name, kCGColorSpaceITUR_709_PQ)) {
-                m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
-                m_colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
-            } else if (CFEqual(name, kCGColorSpaceITUR_2020_sRGBGamma)) {
-                m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-                m_colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
-            }
-        }
-    }
+    const bool rhiIsOpenGL = sink && sink->rhi() && sink->rhi()->backend() == QRhi::OpenGLES2;
+    m_format = QAVFHelpers::videoFormatForImageBuffer(m_buffer, rhiIsOpenGL);
 }
 
 AVFVideoBuffer::~AVFVideoBuffer()
@@ -201,7 +157,7 @@ static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
 
 quint64 AVFVideoBuffer::textureHandle(int plane) const
 {
-    auto *textureDescription = QVideoTextureHelper::textureDescription(m_pixelFormat);
+    auto *textureDescription = QVideoTextureHelper::textureDescription(m_format.pixelFormat());
     int bufferPlanes = CVPixelBufferGetPlaneCount(m_buffer);
 //    qDebug() << "texture handle" << plane << m_rhi << (m_rhi->backend() == QRhi::Metal) << bufferPlanes;
     if (plane > 0 && plane >= bufferPlanes)
@@ -279,18 +235,3 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
     }
     return 0;
 }
-
-
-QVideoFrameFormat::PixelFormat AVFVideoBuffer::fromCVVideoPixelFormat(unsigned avPixelFormat) const
-{
-#ifdef Q_OS_MACOS
-    if (sink->rhi() && sink->rhi()->backend() == QRhi::OpenGLES2) {
-        if (avPixelFormat == kCVPixelFormatType_32BGRA)
-            return QVideoFrameFormat::Format_SamplerRect;
-        else
-            qWarning() << "Accelerated macOS OpenGL video supports BGRA only, got CV pixel format" << avPixelFormat;
-    }
-#endif
-    return QAVFHelpers::fromCVPixelFormat(avPixelFormat);
-}
-
