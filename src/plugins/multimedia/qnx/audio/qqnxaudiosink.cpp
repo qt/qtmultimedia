@@ -259,14 +259,12 @@ void QQnxAudioSink::pullData()
 
     } else {
         // We're done
-        close();
-        if (bytesRead != 0)
+        setState(QAudio::IdleState);
+        if (bytesRead == 0)
+            setError(QAudio::NoError);
+        else
             setError(QAudio::IOError);
-        setState(QAudio::StoppedState);
     }
-
-    if (m_state != QAudio::ActiveState)
-        return;
 }
 
 bool QQnxAudioSink::open()
