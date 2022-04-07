@@ -167,6 +167,18 @@ std::optional<snd_pcm_channel_setup_t> pcmChannelSetup(const QByteArray &device,
     return pcmChannelGetStruct<snd_pcm_channel_setup_t>(device, mode, snd_pcm_plugin_setup);
 }
 
+std::optional<snd_pcm_channel_status_t> pcmChannelStatus(snd_pcm_t *handle, QAudioDevice::Mode mode)
+{
+    return pcmChannelGetStruct<snd_pcm_channel_status_t>(handle, mode, snd_pcm_plugin_status);
+}
+
+std::optional<snd_pcm_channel_status_t> pcmChannelStatus(const QByteArray &device,
+        QAudioDevice::Mode mode)
+{
+    return pcmChannelGetStruct<snd_pcm_channel_status_t>(device, mode, snd_pcm_plugin_status);
+}
+
+
 } // namespace QnxAudioUtils
 
 QT_END_NAMESPACE

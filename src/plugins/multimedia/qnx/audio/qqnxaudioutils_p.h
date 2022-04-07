@@ -77,6 +77,9 @@ namespace QnxAudioUtils
 
     std::optional<snd_pcm_channel_setup_t> pcmChannelSetup(snd_pcm_t *handle, QAudioDevice::Mode mode);
     std::optional<snd_pcm_channel_setup_t> pcmChannelSetup(const QByteArray &device, QAudioDevice::Mode mode);
+
+    std::optional<snd_pcm_channel_status_t> pcmChannelStatus(snd_pcm_t *handle, QAudioDevice::Mode mode);
+    std::optional<snd_pcm_channel_status_t> pcmChannelStatus(const QByteArray &device, QAudioDevice::Mode mode);
 }
 
 QT_END_NAMESPACE
