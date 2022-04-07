@@ -60,9 +60,7 @@ QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo)
     , m_bytesWritten(0)
     , m_requestedBufferSize(0)
     , m_deviceInfo(deviceInfo)
-#if _NTO_VERSION >= 700
     , m_pcmNotifier(0)
-#endif
 {
     m_timer.setSingleShot(false);
     m_timer.setInterval(20);
@@ -464,8 +462,6 @@ void QQnxAudioSink::resumeInternal()
     }
 }
 
-#if _NTO_VERSION >= 700
-
 QAudio::State suspendState(const snd_pcm_event_t &event)
 {
     Q_ASSERT(event.type == SND_PCM_EVENT_AUDIOMGMT_STATUS);
@@ -520,15 +516,6 @@ void QQnxAudioSink::pcmNotifierActivated(int socket)
         }
     }
 }
-
-#else
-
-void QQnxAudioSink::addPcmEventFilter() {}
-void QQnxAudioSink::createPcmNotifiers() {}
-void QQnxAudioSink::destroyPcmNotifiers() {}
-void QQnxAudioSink::setTypeName(snd_pcm_channel_params_t *) {}
-
-#endif
 
 QnxPushIODevice::QnxPushIODevice(QQnxAudioSink *output)
     : QIODevice(output),

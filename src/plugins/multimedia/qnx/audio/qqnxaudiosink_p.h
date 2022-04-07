@@ -95,6 +95,7 @@ public:
 
 private slots:
     void pullData();
+    void pcmNotifierActivated(int socket);
 
 private:
     bool open();
@@ -128,12 +129,7 @@ private:
 
     QAudioDevice m_deviceInfo;
 
-#if _NTO_VERSION >= 700
     QSocketNotifier *m_pcmNotifier;
-
-private slots:
-    void pcmNotifierActivated(int socket);
-#endif
 };
 
 class QnxPushIODevice : public QIODevice
