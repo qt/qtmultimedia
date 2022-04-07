@@ -380,13 +380,15 @@ qreal QGStreamerAudioSink::volume() const
 void QGStreamerAudioSink::bytesProcessedByAppSrc(int bytes)
 {
     m_bytesProcessed += bytes;
+    setState(QAudio::ActiveState);
+    setError(QAudio::NoError);
 }
 
 void QGStreamerAudioSink::needData()
 {
     if (state() != QAudio::StoppedState && state() != QAudio::IdleState) {
         setState(QAudio::IdleState);
-        setError(QAudio::UnderrunError);
+        setError(m_audioSource && m_audioSource->atEnd() ? QAudio::NoError : QAudio::UnderrunError);
     }
 }
 

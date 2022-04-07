@@ -170,24 +170,24 @@ void QWindowsAudioSink::setFormat(const QAudioFormat& fmt)
 void QWindowsAudioSink::pullSource()
 {
     qCDebug(qLcAudioOutput) << "Pull source";
+    if (!m_pullSource)
+        return;
 
-    qsizetype freeSpace = bytesFree();
-    QByteArray samples;
-    if (freeSpace > 0) {
-        samples.resize(freeSpace);
-        qint64 read = m_pullSource->read(samples.data(), freeSpace);
-        if (read < 0) {
+    auto bytesAvailable = m_pullSource->isOpen() ? qsizetype(m_pullSource->bytesAvailable()) : 0;
+    auto readLen = qMin(bytesFree(), bytesAvailable);
+    if (readLen > 0) {
+        QByteArray samples = m_pullSource->read(readLen);
+        if (samples.size() == 0) {
             deviceStateChange(QAudio::IdleState, QAudio::IOError);
             return;
-        } else if (read > 0) {
-            write(samples.data(), read);
+        } else {
+            write(samples.data(), samples.size());
         }
     }
 
     auto playTimeUs = remainingPlayTimeUs();
-
     if (playTimeUs == 0) {
-        deviceStateChange(QAudio::IdleState, QAudio::UnderrunError);
+        deviceStateChange(QAudio::IdleState, m_pullSource->atEnd() ? QAudio::NoError : QAudio::UnderrunError);
     } else {
         deviceStateChange(QAudio::ActiveState, QAudio::NoError);
         m_timer.start(playTimeUs / 2000);
@@ -208,6 +208,7 @@ void QWindowsAudioSink::start(QIODevice* device)
 
     m_pullSource = device;
 
+    connect(device, &QIODevice::readyRead, this, &QWindowsAudioSink::pullSource);
     m_timer.disconnect();
     m_timer.callOnTimeout(this, &QWindowsAudioSink::pullSource);
     m_timer.start(0);
@@ -317,6 +318,8 @@ void QWindowsAudioSink::close()
 
     deviceStateChange(QAudio::StoppedState, QAudio::NoError);
 
+    if (m_pullSource)
+        disconnect(m_pullSource, &QIODevice::readyRead, this, &QWindowsAudioSink::pullSource);
     m_audioClient.reset();
     m_renderClient.reset();
     m_pullSource = nullptr;

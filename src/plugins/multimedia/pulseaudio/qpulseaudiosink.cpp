@@ -241,6 +241,7 @@ void QPulseAudioSink::start(QIODevice *device)
     gettimeofday(&lastTimingInfo, nullptr);
     lastProcessedUSecs = 0;
 
+    connect(device, SIGNAL(readyRead()), m_tickTimer, SLOT(start()));
     setState(QAudio::ActiveState);
 }
 
@@ -463,9 +464,13 @@ void QPulseAudioSink::close()
 
     disconnect(pulseEngine, &QPulseAudioEngine::contextFailed, this, &QPulseAudioSink::onPulseContextFailed);
 
-    if (!m_pullMode && m_audioSource) {
-        delete m_audioSource;
-        m_audioSource = nullptr;
+    if (m_audioSource) {
+        if (m_pullMode) {
+            disconnect(m_audioSource, SIGNAL(readyRead()), m_tickTimer, SLOT(start()));
+        } else {
+            delete m_audioSource;
+            m_audioSource = nullptr;
+        }
     }
     m_opened = false;
     if (m_audioBuffer) {
@@ -482,6 +487,8 @@ void QPulseAudioSink::userFeed()
     m_resuming = false;
 
     if (m_pullMode) {
+        setError(QAudio::NoError);
+        setState(QAudio::ActiveState);
         int writableSize = bytesFree();
         int chunks = writableSize / m_periodSize;
         if (chunks == 0)
@@ -491,9 +498,10 @@ void QPulseAudioSink::userFeed()
         if (input > m_maxBufferSize)
             input = m_maxBufferSize;
 
+        Q_ASSERT(m_audioBuffer);
         int audioBytesPulled = m_audioSource->read(m_audioBuffer, input);
         Q_ASSERT(audioBytesPulled <= input);
-        if (m_audioBuffer && audioBytesPulled > 0) {
+        if (audioBytesPulled > 0) {
             if (audioBytesPulled > input) {
                 qWarning() << "QPulseAudioSink::userFeed() - Invalid audio data size provided from user:"
                            << audioBytesPulled << "should be less than" << input;
@@ -507,6 +515,10 @@ void QPulseAudioSink::userFeed()
                 // PulseAudio needs more data. Ask for it immediately.
                 QMetaObject::invokeMethod(this, "userFeed", Qt::QueuedConnection);
             }
+        } else if (audioBytesPulled == 0) {
+            m_tickTimer->stop();
+            setError(m_audioSource->atEnd() ? QAudio::NoError : QAudio::UnderrunError);
+            setState(QAudio::IdleState);
         }
     }
 
