@@ -110,6 +110,8 @@ private:
     void suspendInternal(QAudio::State suspendState);
     void resumeInternal();
 
+    void updateState();
+
     qint64 write(const char *data, qint64 len);
 
     QIODevice *m_source;

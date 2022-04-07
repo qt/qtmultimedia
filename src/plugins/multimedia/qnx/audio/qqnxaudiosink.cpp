@@ -64,7 +64,7 @@ QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo)
 {
     m_timer.setSingleShot(false);
     m_timer.setInterval(20);
-    connect(&m_timer, SIGNAL(timeout()), this, SLOT(pullData()));
+    connect(&m_timer, &QTimer::timeout, this, &QQnxAudioSink::pullData);
 
     const std::optional<snd_pcm_channel_info_t> info = QnxAudioUtils::pcmChannelInfo(
             m_deviceInfo.id(), QAudioDevice::Output);
@@ -83,12 +83,12 @@ void QQnxAudioSink::start(QIODevice *source)
     if (m_state != QAudio::StoppedState)
         stop();
 
-    m_error = QAudio::NoError;
     m_source = source;
     m_pushSource = false;
 
     if (open()) {
         setState(QAudio::ActiveState);
+        setError(QAudio::NoError);
         m_timer.start();
     } else {
         setError(QAudio::OpenError);
@@ -106,9 +106,9 @@ QIODevice *QQnxAudioSink::start()
     m_source->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
     m_pushSource = true;
 
-    if (open())
+    if (open()) {
         setState(QAudio::IdleState);
-    else {
+    } else {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
     }
@@ -174,15 +174,10 @@ qsizetype QQnxAudioSink::bytesFree() const
     if (m_state != QAudio::ActiveState && m_state != QAudio::IdleState)
         return 0;
 
-    snd_pcm_channel_status_t status;
-    memset(&status, 0, sizeof(status));
-    status.channel = SND_PCM_CHANNEL_PLAYBACK;
-    const int errorCode = snd_pcm_plugin_status(m_pcmHandle.get(), &status);
+    const std::optional<snd_pcm_channel_status_t> status = QnxAudioUtils::pcmChannelStatus(
+            m_pcmHandle.get(), QAudioDevice::Output);
 
-    if (errorCode)
-        return 0;
-    else
-        return status.free;
+    return status ? status->free : 0;
 }
 
 qint64 QQnxAudioSink::processedUSecs() const
@@ -221,6 +216,23 @@ qreal QQnxAudioSink::volume() const
     return m_volume;
 }
 
+void QQnxAudioSink::updateState()
+{
+    const std::optional<snd_pcm_channel_status_t> status = QnxAudioUtils::pcmChannelStatus(
+            m_pcmHandle.get(), QAudioDevice::Output);
+
+    if (!status)
+        return;
+
+    if (state() == QAudio::ActiveState && status->underrun > 0) {
+        setState(QAudio::IdleState);
+        setError(QAudio::UnderrunError);
+    } else if (state() == QAudio::IdleState && status->underrun == 0) {
+        setState(QAudio::ActiveState);
+        setError(QAudio::NoError);
+    }
+}
+
 void QQnxAudioSink::pullData()
 {
     if (m_state == QAudio::StoppedState
@@ -247,14 +259,15 @@ void QQnxAudioSink::pullData()
         return;
 
     if (bytesRead > 0) {
-        // Got some data to output
-        if (m_state != QAudio::ActiveState)
-            return;
-
         const qint64 bytesWritten = write(buffer, bytesRead);
-        if (bytesWritten != bytesRead)
-            m_source->seek(m_source->pos()-(bytesRead-bytesWritten));
 
+        if (bytesWritten <= 0) {
+            close();
+            setError(QAudio::FatalError);
+            setState(QAudio::StoppedState);
+        } else if (bytesWritten != bytesRead) {
+            m_source->seek(m_source->pos()-(bytesRead-bytesWritten));
+        }
     } else {
         // We're done
         setState(QAudio::IdleState);
@@ -339,7 +352,8 @@ bool QQnxAudioSink::open()
 
 void QQnxAudioSink::close()
 {
-    m_timer.stop();
+    if (!m_pushSource)
+        m_timer.stop();
 
     destroyPcmNotifiers();
 
@@ -380,6 +394,11 @@ qint64 QQnxAudioSink::pushData(const char *data, qint64 len)
 
     if (s == QAudio::StoppedState || s == QAudio::SuspendedState)
         return 0;
+
+    if (s == QAudio::IdleState) {
+        setState(QAudio::ActiveState);
+        setError(QAudio::NoError);
+    }
 
     qint64 totalWritten = 0;
 
@@ -435,31 +454,27 @@ qint64 QQnxAudioSink::write(const char *data, qint64 len)
 
     if (written > 0) {
         m_bytesWritten += written;
-        setError(QAudio::NoError);
-        setState(QAudio::ActiveState);
         return written;
-    } else {
-        close();
-        setError(QAudio::FatalError);
-        setState(QAudio::StoppedState);
-        return 0;
     }
+
+    return 0;
 }
 
 void QQnxAudioSink::suspendInternal(QAudio::State suspendState)
 {
-    m_timer.stop();
+    if (!m_pushSource)
+        m_timer.stop();
+
     setState(suspendState);
 }
 
 void QQnxAudioSink::resumeInternal()
 {
-    if (m_pushSource) {
-        setState(QAudio::IdleState);
-    } else {
-        setState(QAudio::ActiveState);
-        m_timer.start();
-    }
+    const QAudio::State state = m_pushSource ? QAudio::IdleState : QAudio::ActiveState;
+
+    setState(state);
+
+    m_timer.start();
 }
 
 QAudio::State suspendState(const snd_pcm_event_t &event)
@@ -476,7 +491,8 @@ void QQnxAudioSink::addPcmEventFilter()
     memset(&filter, 0, sizeof(filter));
     filter.enable = (1<<SND_PCM_EVENT_AUDIOMGMT_STATUS) |
                     (1<<SND_PCM_EVENT_AUDIOMGMT_MUTE) |
-                    (1<<SND_PCM_EVENT_OUTPUTCLASS);
+                    (1<<SND_PCM_EVENT_OUTPUTCLASS) |
+                    (1<<SND_PCM_EVENT_UNDERRUN);
     snd_pcm_set_filter(m_pcmHandle.get(), SND_PCM_CHANNEL_PLAYBACK, &filter);
 }
 
@@ -513,6 +529,8 @@ void QQnxAudioSink::pcmNotifierActivated(int socket)
                 resumeInternal();
             else if (pcm_event.data.audiomgmt_status.new_status == SND_PCM_STATUS_PAUSED)
                 suspendInternal(QAudio::SuspendedState);
+        } else if (pcm_event.type == SND_PCM_EVENT_UNDERRUN) {
+            updateState();
         }
     }
 }
