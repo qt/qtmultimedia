@@ -91,6 +91,7 @@ public:
     QAudioFormat format() const override;
     void setVolume(qreal volume) override;
     qreal volume() const override;
+    qint64 pushData(const char *data, qint64 len);
 
 private slots:
     void pullData();
@@ -109,7 +110,6 @@ private:
     void suspendInternal(QAudio::State suspendState);
     void resumeInternal();
 
-    friend class QnxPushIODevice;
     qint64 write(const char *data, qint64 len);
 
     QIODevice *m_source;

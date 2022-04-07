@@ -378,6 +378,44 @@ void QQnxAudioSink::setState(QAudio::State state)
     }
 }
 
+qint64 QQnxAudioSink::pushData(const char *data, qint64 len)
+{
+    const QAudio::State s = state();
+
+    if (s == QAudio::StoppedState || s == QAudio::SuspendedState)
+        return 0;
+
+    qint64 totalWritten = 0;
+
+    int retry = 0;
+
+    constexpr int maxRetries = 10;
+
+    while (totalWritten < len) {
+        const int bytesWritten = write(data + totalWritten, len - totalWritten);
+
+        if (bytesWritten <= 0) {
+            ++retry;
+
+            if (retry >= maxRetries) {
+                close();
+                setError(QAudio::FatalError);
+                setState(QAudio::StoppedState);
+
+                return totalWritten;
+            } else {
+                continue;
+            }
+        }
+
+        retry = 0;
+
+        totalWritten += bytesWritten;
+    }
+
+    return totalWritten;
+}
+
 qint64 QQnxAudioSink::write(const char *data, qint64 len)
 {
     if (!m_pcmHandle)
@@ -536,28 +574,7 @@ qint64 QnxPushIODevice::readData(char *data, qint64 len)
 
 qint64 QnxPushIODevice::writeData(const char *data, qint64 len)
 {
-    int retry = 0;
-    qint64 written = 0;
-
-    if (m_output->state() == QAudio::ActiveState
-     || m_output->state() == QAudio::IdleState) {
-        while (written < len) {
-            const int writeSize = m_output->write(data + written, len - written);
-
-            if (writeSize <= 0) {
-                retry++;
-                if (retry > 10)
-                    return written;
-                else
-                    continue;
-            }
-
-            retry = 0;
-            written += writeSize;
-        }
-    }
-
-    return written;
+    return m_output->pushData(data, len);
 }
 
 QT_END_NAMESPACE
