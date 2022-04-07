@@ -133,6 +133,9 @@ void QQnxAudioSource::reset()
 
 void QQnxAudioSource::suspend()
 {
+    if (m_state == QAudio::StoppedState)
+        return;
+
     snd_pcm_capture_pause(m_pcmHandle);
 
     if (m_pcmNotifier)
@@ -143,6 +146,9 @@ void QQnxAudioSource::suspend()
 
 void QQnxAudioSource::resume()
 {
+    if (m_state == QAudio::StoppedState)
+        return;
+
     snd_pcm_capture_resume(m_pcmHandle);
 
     if (m_pcmNotifier)
