@@ -87,12 +87,10 @@ void QQnxAudioSink::start(QIODevice *source)
     m_pushSource = false;
 
     if (open()) {
-        setState(QAudio::ActiveState);
-        setError(QAudio::NoError);
+        changeState(QAudio::ActiveState, QAudio::NoError);
         m_timer.start();
     } else {
-        setError(QAudio::OpenError);
-        setState(QAudio::StoppedState);
+        changeState(QAudio::StoppedState, QAudio::OpenError);
     }
 }
 
@@ -101,16 +99,14 @@ QIODevice *QQnxAudioSink::start()
     if (m_state != QAudio::StoppedState)
         stop();
 
-    m_error = QAudio::NoError;
     m_source = new QnxPushIODevice(this);
     m_source->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
     m_pushSource = true;
 
     if (open()) {
-        setState(QAudio::IdleState);
+        changeState(QAudio::IdleState, QAudio::NoError);
     } else {
-        setError(QAudio::OpenError);
-        setState(QAudio::StoppedState);
+        changeState(QAudio::StoppedState, QAudio::OpenError);
     }
 
     return m_source;
@@ -121,8 +117,8 @@ void QQnxAudioSink::stop()
     if (m_state == QAudio::StoppedState)
         return;
 
-    setError(QAudio::NoError);
-    setState(QAudio::StoppedState);
+    changeState(QAudio::StoppedState, QAudio::NoError);
+
     close();
 }
 
@@ -224,13 +220,10 @@ void QQnxAudioSink::updateState()
     if (!status)
         return;
 
-    if (state() == QAudio::ActiveState && status->underrun > 0) {
-        setState(QAudio::IdleState);
-        setError(QAudio::UnderrunError);
-    } else if (state() == QAudio::IdleState && status->underrun == 0) {
-        setState(QAudio::ActiveState);
-        setError(QAudio::NoError);
-    }
+    if (state() == QAudio::ActiveState && status->underrun > 0)
+        changeState(QAudio::IdleState, QAudio::UnderrunError);
+    else if (state() == QAudio::IdleState && status->underrun == 0)
+        changeState(QAudio::ActiveState, QAudio::NoError);
 }
 
 void QQnxAudioSink::pullData()
@@ -263,18 +256,16 @@ void QQnxAudioSink::pullData()
 
         if (bytesWritten <= 0) {
             close();
-            setError(QAudio::FatalError);
-            setState(QAudio::StoppedState);
+            changeState(QAudio::StoppedState, QAudio::FatalError);
         } else if (bytesWritten != bytesRead) {
             m_source->seek(m_source->pos()-(bytesRead-bytesWritten));
         }
     } else {
         // We're done
-        setState(QAudio::IdleState);
         if (bytesRead == 0)
-            setError(QAudio::NoError);
+            changeState(QAudio::IdleState, QAudio::NoError);
         else
-            setError(QAudio::IOError);
+            changeState(QAudio::IdleState, QAudio::IOError);
     }
 }
 
@@ -372,19 +363,16 @@ void QQnxAudioSink::close()
     }
 }
 
-void QQnxAudioSink::setError(QAudio::Error error)
-{
-    if (m_error != error) {
-        m_error = error;
-        emit errorChanged(error);
-    }
-}
-
-void QQnxAudioSink::setState(QAudio::State state)
+void QQnxAudioSink::changeState(QAudio::State state, QAudio::Error error)
 {
     if (m_state != state) {
         m_state = state;
         emit stateChanged(state);
+    }
+
+    if (m_error != error) {
+        m_error = error;
+        emit errorChanged(error);
     }
 }
 
@@ -395,10 +383,8 @@ qint64 QQnxAudioSink::pushData(const char *data, qint64 len)
     if (s == QAudio::StoppedState || s == QAudio::SuspendedState)
         return 0;
 
-    if (s == QAudio::IdleState) {
-        setState(QAudio::ActiveState);
-        setError(QAudio::NoError);
-    }
+    if (s == QAudio::IdleState)
+        changeState(QAudio::ActiveState, QAudio::NoError);
 
     qint64 totalWritten = 0;
 
@@ -414,8 +400,7 @@ qint64 QQnxAudioSink::pushData(const char *data, qint64 len)
 
             if (retry >= maxRetries) {
                 close();
-                setError(QAudio::FatalError);
-                setState(QAudio::StoppedState);
+                changeState(QAudio::StoppedState, QAudio::FatalError);
 
                 return totalWritten;
             } else {
@@ -465,14 +450,14 @@ void QQnxAudioSink::suspendInternal(QAudio::State suspendState)
     if (!m_pushSource)
         m_timer.stop();
 
-    setState(suspendState);
+    changeState(suspendState, QAudio::NoError);
 }
 
 void QQnxAudioSink::resumeInternal()
 {
     const QAudio::State state = m_pushSource ? QAudio::IdleState : QAudio::ActiveState;
 
-    setState(state);
+    changeState(state, QAudio::NoError);
 
     m_timer.start();
 }

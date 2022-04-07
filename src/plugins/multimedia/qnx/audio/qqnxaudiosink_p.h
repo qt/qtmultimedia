@@ -100,8 +100,7 @@ private slots:
 private:
     bool open();
     void close();
-    void setError(QAudio::Error error);
-    void setState(QAudio::State state);
+    void changeState(QAudio::State state, QAudio::Error error);
 
     void addPcmEventFilter();
     void createPcmNotifiers();
