@@ -166,9 +166,9 @@ qsizetype QQnxAudioSink::bufferSize() const
 {
     const std::optional<snd_pcm_channel_setup_t> setup = m_pcmHandle
         ? QnxAudioUtils::pcmChannelSetup(m_pcmHandle.get(), QAudioDevice::Output)
-        : QnxAudioUtils::pcmChannelSetup(m_deviceInfo.id(), QAudioDevice::Output);
+        : std::nullopt;
 
-    return setup ? setup->buf.block.frag_size : 0;
+    return setup ? setup->buf.block.frag_size : m_requestedBufferSize;
 }
 
 qsizetype QQnxAudioSink::bytesFree() const
