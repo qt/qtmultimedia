@@ -311,8 +311,6 @@ bool QQnxAudioSink::open()
     snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format,
             QAudioDevice::Output, fragmentSize);
 
-    setTypeName(&params);
-
     if ((errorCode = snd_pcm_plugin_params(m_pcmHandle.get(), &params)) < 0) {
         qWarning("QQnxAudioSink: open error, couldn't set channel params (0x%x)", -errorCode);
         close();
@@ -503,29 +501,6 @@ void QQnxAudioSink::destroyPcmNotifiers()
         delete m_pcmNotifier;
         m_pcmNotifier = 0;
     }
-}
-
-void QQnxAudioSink::setTypeName(snd_pcm_channel_params_t *params)
-{
-#if 0
-// Use some mapping from QAudio::Role
-    if (m_category.isEmpty())
-        return;
-
-    QByteArray latin1Category = m_category.toLatin1();
-
-    if (QString::fromLatin1(latin1Category) != m_category) {
-        qWarning("QQnxAudioSink: audio category name isn't a Latin1 string.");
-        return;
-    }
-
-    if (latin1Category.size() >= static_cast<int>(sizeof(params->audio_type_name))) {
-        qWarning("QQnxAudioSink: audio category name too long.");
-        return;
-    }
-
-    strcpy(params->audio_type_name, latin1Category.constData());
-#endif
 }
 
 void QQnxAudioSink::pcmNotifierActivated(int socket)

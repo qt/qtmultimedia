@@ -105,7 +105,6 @@ private:
     void addPcmEventFilter();
     void createPcmNotifiers();
     void destroyPcmNotifiers();
-    void setTypeName(snd_pcm_channel_params_t *params);
 
     void suspendInternal(QAudio::State suspendState);
     void resumeInternal();
