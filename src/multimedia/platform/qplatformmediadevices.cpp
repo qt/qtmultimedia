@@ -38,17 +38,79 @@
 ****************************************************************************/
 
 #include "qplatformmediadevices_p.h"
-#include "qplatformmediaintegration_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
 #include "qcameradevice.h"
 #include "qaudiosystem_p.h"
 
+#include <qmutex.h>
+#include <qloggingcategory.h>
+
+#if defined(Q_OS_ANDROID)
+#include <qandroidmediadevices_p.h>
+#elif defined(Q_OS_DARWIN)
+#include <qdarwinmediadevices_p.h>
+#elif defined(Q_OS_WINDOWS)
+#include <qwindowsmediadevices_p.h>
+#elif QT_CONFIG(pulseaudio)
+#include <qpulseaudiomediadevices_p.h>
+#elif defined(Q_OS_QNX)
+#include <qqnxmediadevices_p.h>
+#elif defined(Q_OS_WASM)
+#include <private/qwasmmediadevices_p.h>
+#endif
+
+
 QT_BEGIN_NAMESPACE
 
-QPlatformMediaDevices::QPlatformMediaDevices(QPlatformMediaIntegration *integration)
-    : integration(integration)
+namespace {
+struct Holder {
+    ~Holder()
+    {
+        QMutexLocker locker(&mutex);
+        delete nativeInstance;
+        nativeInstance = nullptr;
+        instance = nullptr;
+    }
+    QBasicMutex mutex;
+    QPlatformMediaDevices *instance = nullptr;
+    QPlatformMediaDevices *nativeInstance = nullptr;
+} holder;
+
+}
+
+QPlatformMediaDevices *QPlatformMediaDevices::instance()
+{
+    QMutexLocker locker(&holder.mutex);
+    if (holder.instance)
+        return holder.instance;
+
+#ifdef Q_OS_DARWIN
+    holder.nativeInstance = new QDarwinMediaDevices;
+#elif defined(Q_OS_WINDOWS)
+    holder.nativeInstance = new QWindowsMediaDevices;
+#elif defined(Q_OS_ANDROID)
+    holder.nativeInstance = new QAndroidMediaDevices;
+#elif QT_CONFIG(pulseaudio)
+    holder.nativeInstance = new QPulseAudioMediaDevices;
+#elif defined(Q_OS_QNX)
+    holder.nativeInstance = new QQnxMediaDevices;
+#elif defined(Q_OS_WASM)
+    holder.nativeInstance = new QWasmMediaDevices;
+#endif
+
+    holder.instance = holder.nativeInstance;
+    return holder.instance;
+}
+
+
+QPlatformMediaDevices::QPlatformMediaDevices()
 {}
+
+void QPlatformMediaDevices::setDevices(QPlatformMediaDevices *devices)
+{
+    holder.instance = devices;
+}
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;
 
@@ -83,21 +145,23 @@ QPlatformAudioSink* QPlatformMediaDevices::audioOutputDevice(const QAudioFormat 
 
 void QPlatformMediaDevices::audioInputsChanged() const
 {
-    const auto devices = integration->allMediaDevices();
+    const auto devices = allMediaDevices();
     for (auto m : devices)
         emit m->audioInputsChanged();
 }
 
 void QPlatformMediaDevices::audioOutputsChanged() const
 {
-    const auto devices = integration->allMediaDevices();
+    const auto devices = allMediaDevices();
     for (auto m : devices)
         emit m->audioOutputsChanged();
 }
 
 void QPlatformMediaDevices::videoInputsChanged() const
 {
-    integration->videoInputsChanged();
+    const auto devices = allMediaDevices();
+    for (auto m : devices)
+        emit m->videoInputsChanged();
 }
 
 

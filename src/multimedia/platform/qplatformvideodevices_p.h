@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,9 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef QWINDOWSAUDIOUTILS_H
-#define QWINDOWSAUDIOUTILS_H
+#ifndef QPLATFORMVIDEODEVICES_H
+#define QPLATFORMVIDEODEVICES_H
 
 //
 //  W A R N I N G
@@ -51,26 +50,28 @@
 // We mean it.
 //
 
-#include <qaudioformat.h>
-#include <QtCore/qt_windows.h>
-#include <qwindowsiupointer_p.h>
-#include <mfapi.h>
-#include <mmsystem.h>
-#include <mmreg.h>
-
-struct IMFMediaType;
+#include <private/qtmultimediaglobal_p.h>
+#include <qmediarecorder.h>
 
 QT_BEGIN_NAMESPACE
 
-namespace QWindowsAudioUtils
-{
-    bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
-    QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in);
-    QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
-    QWindowsIUPointer<IMFMediaType> formatToMediaType(const QAudioFormat &format);
+class QPlatformMediaIntegration;
 
-}
+class Q_MULTIMEDIA_EXPORT QPlatformVideoDevices
+{
+public:
+    QPlatformVideoDevices(QPlatformMediaIntegration *integration)
+        : m_integration(integration)
+    {}
+    virtual ~QPlatformVideoDevices();
+
+    virtual QList<QCameraDevice> videoDevices() const = 0;
+
+protected:
+    void videoInputsChanged();
+    QPlatformMediaIntegration *m_integration = nullptr;
+};
 
 QT_END_NAMESPACE
 
-#endif // QWINDOWSAUDIOUTILS_H
+#endif

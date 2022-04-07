@@ -67,8 +67,11 @@ class QPlatformMediaIntegration;
 class Q_MULTIMEDIA_EXPORT QPlatformMediaDevices
 {
 public:
-    QPlatformMediaDevices(QPlatformMediaIntegration *integration);
+    QPlatformMediaDevices();
     virtual ~QPlatformMediaDevices();
+
+    static void setDevices(QPlatformMediaDevices *);
+    static QPlatformMediaDevices *instance();
 
     virtual QList<QAudioDevice> audioInputs() const = 0;
     virtual QList<QAudioDevice> audioOutputs() const = 0;
@@ -79,12 +82,24 @@ public:
     QPlatformAudioSource *audioInputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo);
     QPlatformAudioSink *audioOutputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo);
 
+    void addMediaDevices(QMediaDevices *m)
+    {
+        m_devices.append(m);
+    }
+    void removeMediaDevices(QMediaDevices *m)
+    {
+        m_devices.removeAll(m);
+    }
+
+    QList<QMediaDevices *> allMediaDevices() const { return m_devices; }
+
+    void videoInputsChanged() const;
+
 protected:
     void audioInputsChanged() const;
     void audioOutputsChanged() const;
-    void videoInputsChanged() const;
 
-    QPlatformMediaIntegration *integration = nullptr;
+    QList<QMediaDevices *> m_devices;
 };
 
 QT_END_NAMESPACE

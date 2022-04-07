@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,39 +37,40 @@
 **
 ****************************************************************************/
 
-#ifndef QPULSEAUDIOINTEGRATION_H
-#define QPULSEAUDIOINTEGRATION_H
+#ifndef QWINDOWSAUDIOUTILS_H
+#define QWINDOWSAUDIOUTILS_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
-#include "qaudioengine_pulse_p.h"
+#include <qaudioformat.h>
+#include <QtCore/qt_windows.h>
+#include <private/qwindowsiupointer_p.h>
+#include <mfapi.h>
+#include <mmsystem.h>
+#include <mmreg.h>
+
+struct IMFMediaType;
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioMediaDevices;
-
-class QPulseAudioIntegration : public QPlatformMediaIntegration
+namespace QWindowsAudioUtils
 {
-public:
-    QPulseAudioIntegration();
-    ~QPulseAudioIntegration();
+    bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
+    QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in);
+    Q_MULTIMEDIA_EXPORT QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
+    QWindowsIUPointer<IMFMediaType> formatToMediaType(const QAudioFormat &format);
 
-    QPlatformMediaDevices *devices() override;
-    QPlatformMediaFormatInfo *formatInfo() override;
-
-    QPulseAudioMediaDevices *m_devices = nullptr;
-};
+}
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QWINDOWSAUDIOUTILS_H

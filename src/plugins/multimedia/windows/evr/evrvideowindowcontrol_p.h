@@ -56,7 +56,7 @@
 #include <evr9.h>
 #include <evr.h>
 #include <private/qplatformvideosink_p.h>
-#include <qwindowsmfdefs_p.h>
+#include <private/qwindowsmfdefs_p.h>
 
 QT_BEGIN_NAMESPACE
 

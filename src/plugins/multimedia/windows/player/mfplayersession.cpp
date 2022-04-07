@@ -54,7 +54,7 @@
 #include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
 #include <mfmetadata_p.h>
-#include <qwindowsmfdefs_p.h>
+#include <private/qwindowsmfdefs_p.h>
 
 #include "mfplayersession_p.h"
 #include <mferror.h>

@@ -39,7 +39,6 @@
 
 #include "qqnxmediaintegration_p.h"
 #include "qqnxmediacapturesession_p.h"
-#include "qqnxmediadevices_p.h"
 #include "qqnxmediarecorder_p.h"
 #include "qqnxformatinfo_p.h"
 #include "qqnxvideosink_p.h"
@@ -73,15 +72,7 @@ QQnxMediaIntegration::QQnxMediaIntegration()
 
 QQnxMediaIntegration::~QQnxMediaIntegration()
 {
-    delete m_devices;
     delete m_formatInfo;
-}
-
-QPlatformMediaDevices *QQnxMediaIntegration::devices()
-{
-    if (!m_devices)
-        m_devices = new QQnxMediaDevices(this);
-    return m_devices;
 }
 
 QPlatformMediaFormatInfo *QQnxMediaIntegration::formatInfo()

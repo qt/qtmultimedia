@@ -42,7 +42,7 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qiodevice.h>
 #include <QMimeDatabase>
-#include "qcoreaudioutils_p.h"
+#include "private/qcoreaudioutils_p.h"
 
 #include <AVFoundation/AVFoundation.h>
 

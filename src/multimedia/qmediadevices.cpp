@@ -147,7 +147,7 @@ QT_BEGIN_NAMESPACE
 */
 QList<QAudioDevice> QMediaDevices::audioInputs()
 {
-    return QPlatformMediaIntegration::instance()->devices()->audioInputs();
+    return QPlatformMediaDevices::instance()->audioInputs();
 }
 
 /*!
@@ -166,7 +166,7 @@ QList<QAudioDevice> QMediaDevices::audioInputs()
 */
 QList<QAudioDevice> QMediaDevices::audioOutputs()
 {
-    return QPlatformMediaIntegration::instance()->devices()->audioOutputs();
+    return QPlatformMediaDevices::instance()->audioOutputs();
 }
 
 /*!
@@ -271,7 +271,7 @@ QCameraDevice QMediaDevices::defaultVideoInput()
 QMediaDevices::QMediaDevices(QObject *parent)
     : QObject(parent)
 {
-    QPlatformMediaIntegration::instance()->addMediaDevices(this);
+    QPlatformMediaDevices::instance()->addMediaDevices(this);
 }
 
 /*!
@@ -279,7 +279,7 @@ QMediaDevices::QMediaDevices(QObject *parent)
 */
 QMediaDevices::~QMediaDevices()
 {
-    QPlatformMediaIntegration::instance()->removeMediaDevices(this);
+    QPlatformMediaDevices::instance()->removeMediaDevices(this);
 }
 
 

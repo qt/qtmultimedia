@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qdarwinintegration_p.h"
-#include "qdarwinmediadevices_p.h"
 #include <avfmediaplayer_p.h>
 #include <avfcameraservice_p.h>
 #include <avfcamera_p.h>
@@ -50,6 +49,7 @@
 #include <VideoToolbox/VideoToolbox.h>
 #include <qdebug.h>
 #include <private/qplatformmediaplugin_p.h>
+#include <qavfcamerabase_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -78,19 +78,12 @@ QDarwinIntegration::QDarwinIntegration()
     if (__builtin_available(macOS 11.0, *))
         VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9);
 #endif
+    m_videoDevices = new QAVFVideoDevices(this);
 }
 
 QDarwinIntegration::~QDarwinIntegration()
 {
-    delete m_devices;
     delete m_formatInfo;
-}
-
-QPlatformMediaDevices *QDarwinIntegration::devices()
-{
-    if (!m_devices)
-        m_devices = new QDarwinMediaDevices(this);
-    return m_devices;
 }
 
 QPlatformMediaFormatInfo *QDarwinIntegration::formatInfo()

@@ -2,10 +2,6 @@ qt_internal_add_plugin(QAndroidMediaPlugin
     OUTPUT_NAME androidmediaplugin
     PLUGIN_TYPE multimedia
     SOURCES
-        audio/qandroidaudiosource.cpp audio/qandroidaudiosource_p.h
-        audio/qandroidaudiosink.cpp audio/qandroidaudiosink_p.h
-        audio/qandroidaudiodevice.cpp audio/qandroidaudiodevice_p.h
-        audio/qopenslesengine.cpp audio/qopenslesengine_p.h
         common/qandroidaudiooutput_p.h
         common/qandroidaudioinput.cpp common/qandroidaudioinput_p.h
         audio/qandroidaudiodecoder.cpp audio/qandroidaudiodecoder_p.h
@@ -21,7 +17,6 @@ qt_internal_add_plugin(QAndroidMediaPlugin
         mediacapture/qandroidmediaencoder.cpp mediacapture/qandroidmediaencoder_p.h
         mediaplayer/qandroidmediaplayer.cpp mediaplayer/qandroidmediaplayer_p.h
         mediaplayer/qandroidmetadata.cpp mediaplayer/qandroidmetadata_p.h
-        qandroidmediadevices.cpp qandroidmediadevices_p.h
         qandroidformatsinfo.cpp  qandroidformatsinfo_p.h
         qandroidintegration.cpp qandroidintegration_p.h
         wrappers/jni/androidcamera.cpp wrappers/jni/androidcamera_p.h

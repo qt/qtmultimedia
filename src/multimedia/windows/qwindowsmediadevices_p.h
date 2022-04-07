@@ -37,67 +37,60 @@
 **
 ****************************************************************************/
 
-
-#ifndef QT_QWINDOWSRESAMPLER_H
-#define QT_QWINDOWSRESAMPLER_H
+#ifndef QWINDOWSMEDIADEVICES_H
+#define QWINDOWSMEDIADEVICES_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <qbytearray.h>
-#include <qbytearrayview.h>
-#include <qaudioformat.h>
-#include <qwindowsiupointer_p.h>
-#include <qt_windows.h>
+#include <private/qplatformmediadevices_p.h>
+#include <private/qwindowsiupointer_p.h>
+#include <qset.h>
+#include <qaudio.h>
+#include <qaudiodevice.h>
+#include <QtCore/qt_windows.h>
 
-struct IMFSample;
-struct IMFTransform;
+struct IMMDeviceEnumerator;
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsResampler
+class QWindowsEngine;
+class CMMNotificationClient;
+
+LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
+
+class QWindowsMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QWindowsResampler();
-    ~QWindowsResampler();
+    QWindowsMediaDevices();
+    virtual ~QWindowsMediaDevices();
 
-    bool setup(const QAudioFormat &in, const QAudioFormat &out);
-
-    QByteArray resample(const QByteArrayView &in);
-    QByteArray resample(IMFSample *sample);
-
-    QAudioFormat inputFormat() const { return m_inputFormat; }
-    QAudioFormat outputFormat() const { return m_outputFormat; }
-
-    quint64 outputBufferSize(quint64 inputBufferSize) const;
-    quint64 inputBufferSize(quint64 outputBufferSize) const;
-
-    quint64 totalInputBytes() const { return m_totalInputBytes; }
-    quint64 totalOutputBytes() const { return m_totalOutputBytes; }
+    QList<QAudioDevice> audioInputs() const override;
+    QList<QAudioDevice> audioOutputs() const override;
+    QList<QCameraDevice> videoInputs() const override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
 
 private:
-    HRESULT processInput(const QByteArrayView &in);
-    HRESULT processOutput(QByteArray &out);
+    QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
-    QWindowsIUPointer<IMFTransform> m_resampler;
+    QWindowsIUPointer<IMMDeviceEnumerator> m_deviceEnumerator;
+    QWindowsIUPointer<CMMNotificationClient> m_notificationClient;
+    HWND m_videoDeviceMsgWindow;
+    HDEVNOTIFY m_videoDeviceNotification;
 
-    bool m_resamplerNeedsSampleBuffer = false;
-    quint64 m_totalInputBytes = 0;
-    quint64 m_totalOutputBytes = 0;
-    QAudioFormat m_inputFormat;
-    QAudioFormat m_outputFormat;
-
-    DWORD m_inputStreamID = 0;
+    friend CMMNotificationClient;
+    friend LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 };
 
 QT_END_NAMESPACE
 
-#endif // QT_QWINDOWSRESAMPLER_H
+#endif

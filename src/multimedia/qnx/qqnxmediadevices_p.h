@@ -37,52 +37,42 @@
 **
 ****************************************************************************/
 
-#include "qpulseaudiointegration_p.h"
-#include "qpulseaudiomediadevices_p.h"
-#include <private/qplatformmediaplugin_p.h>
+#ifndef QQNXMEDIADEVICES_H
+#define QQNXMEDIADEVICES_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformmediadevices_p.h>
+#include <qaudio.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioMediaPlugin : public QPlatformMediaPlugin
+class QQnxMediaDevices : public QPlatformMediaDevices
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "pulseaudio.json")
-
 public:
-    QPulseAudioMediaPlugin()
-      : QPlatformMediaPlugin()
-    {}
+    QQnxMediaDevices();
 
-    QPlatformMediaIntegration* create(const QString &name) override
-    {
-        if (name == QLatin1String("pulseaudio"))
-            return new QPulseAudioIntegration;
-        return nullptr;
-    }
+    QList<QAudioDevice> audioInputs() const override;
+    QList<QAudioDevice> audioOutputs() const override;
+    QList<QCameraDevice> videoInputs() const override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
+
+private:
+    mutable bool camerasChecked = false;
+    mutable QList<QCameraDevice> cameras;
 };
-
-QPulseAudioIntegration::QPulseAudioIntegration()
-{
-}
-
-QPulseAudioIntegration::~QPulseAudioIntegration()
-{
-    delete m_devices;
-}
-
-QPlatformMediaDevices *QPulseAudioIntegration::devices()
-{
-    if (!m_devices)
-        m_devices = new QPulseAudioMediaDevices(this);
-    return m_devices;
-}
-
-QPlatformMediaFormatInfo *QPulseAudioIntegration::formatInfo()
-{
-    Q_ASSERT(!"In need of implementation"); // TODO
-    return nullptr;
-}
 
 QT_END_NAMESPACE
 
-#include "qpulseaudiointegration.moc"
+#endif

@@ -67,7 +67,6 @@ public:
     void addRefCount();
     void releaseRefCount();
 
-    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformMediaCaptureSession *createCaptureSession() override;
@@ -80,7 +79,6 @@ public:
 
     QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 
-    QWindowsMediaDevices *m_devices = nullptr;
     QWindowsFormatInfo *m_formatInfo = nullptr;
 };
 

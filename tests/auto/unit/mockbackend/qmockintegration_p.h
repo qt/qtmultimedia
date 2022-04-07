@@ -55,7 +55,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMockMediaDevices;
 class QMockMediaPlayer;
 class QMockAudioDecoder;
 class QMockCamera;
@@ -68,7 +67,6 @@ public:
     QMockIntegration();
     ~QMockIntegration();
 
-    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 
     QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
@@ -100,7 +98,6 @@ public:
 
 private:
     Flags m_flags = {};
-    QMockMediaDevices *m_devices = nullptr;
     QMockMediaPlayer *m_lastPlayer = nullptr;
     QMockAudioDecoder *m_lastAudioDecoderControl = nullptr;
     QMockCamera *m_lastCamera = nullptr;

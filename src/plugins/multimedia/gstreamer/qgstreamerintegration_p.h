@@ -52,6 +52,7 @@
 //
 
 #include <private/qplatformmediaintegration_p.h>
+#include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -66,7 +67,6 @@ public:
     ~QGstreamerIntegration();
 
     static QGstreamerIntegration *instance() { return static_cast<QGstreamerIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
@@ -81,8 +81,17 @@ public:
     QPlatformAudioInput *createAudioInput(QAudioInput *) override;
     QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
 
-    QGstreamerMediaDevices *m_devices = nullptr;
+    QList<QCameraDevice> videoInputs() override;
+
+    GstDevice *videoDevice(const QByteArray &id) const;
+
     QGstreamerFormatInfo *m_formatsInfo = nullptr;
+private:
+    void addDevice(GstDevice *device);
+    void removeDevice(GstDevice *device);
+
+    GstDeviceMonitor *monitor = nullptr;
+    QSet<GstDevice *> m_videoSources;
 };
 
 QT_END_NAMESPACE

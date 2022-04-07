@@ -9,7 +9,7 @@ qt_internal_add_plugin(QDarwinMediaPlugin
     OUTPUT_NAME darwinmediaplugin
     PLUGIN_TYPE multimedia
     SOURCES
-        audio/avfaudiodecoder.mm audio/avfaudiodecoder_p.h
+        avfaudiodecoder.mm avfaudiodecoder_p.h
         mediaplayer/avfdisplaylink.mm mediaplayer/avfdisplaylink_p.h
         mediaplayer/avfmediaplayer.mm mediaplayer/avfmediaplayer_p.h
         common/avfmetadata.mm common/avfmetadata_p.h
@@ -33,22 +33,7 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         ${FWFoundation}
         ${FWMetal}
         ${FWQuartzCore}
-        AVFoundation::AVFoundation
-)
-
-
-qt_internal_extend_target(QDarwinMediaPlugin
-    SOURCES
-        audio/qdarwinaudiodevice.mm audio/qdarwinaudiodevice_p.h
-        audio/qdarwinaudiosource.mm audio/qdarwinaudiosource_p.h
-        audio/qdarwinaudiosink.mm audio/qdarwinaudiosink_p.h
-        audio/qcoreaudioutils.mm audio/qcoreaudioutils_p.h
-        qdarwinmediadevices.mm qdarwinmediadevices_p.h
-    LIBRARIES
         ${FWAudioToolbox}
-        ${FWCoreAudio}
-        ${FWCoreFoundation}
-        ${FWCoreMedia}
         AVFoundation::AVFoundation
 )
 
@@ -79,12 +64,4 @@ qt_internal_extend_target(QDarwinMediaPlugin CONDITION IOS
     LIBRARIES
         ${FWCoreGraphics}
         ${FWCoreVideo}
-)
-
-qt_internal_extend_target(QDarwinMediaPlugin CONDITION IOS OR TVOS
-    SOURCES
-        audio/qcoreaudiosessionmanager.mm audio/qcoreaudiosessionmanager_p.h
-    LIBRARIES
-        ${FWAVFoundation}
-        ${FWFoundation}
 )

@@ -41,9 +41,9 @@
 
 #include "evrd3dpresentengine_p.h"
 #include "evrhelpers_p.h"
-#include <qwindowsmultimediautils_p.h>
+#include <private/qwindowsmultimediautils_p.h>
 #include <private/qplatformvideosink_p.h>
-#include <qwindowsmfdefs_p.h>
+#include <private/qwindowsmfdefs_p.h>
 
 #include <QtGui/private/qrhi_p.h>
 

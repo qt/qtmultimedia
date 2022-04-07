@@ -2,15 +2,7 @@ qt_internal_add_plugin(QWindowsMediaPlugin
     OUTPUT_NAME windowsmediaplugin
     PLUGIN_TYPE multimedia
     SOURCES
-        audio/qwindowsaudiodevice.cpp audio/qwindowsaudiodevice_p.h
-        audio/qwindowsaudiosource.cpp audio/qwindowsaudiosource_p.h
-        audio/qwindowsaudiosink.cpp audio/qwindowsaudiosink_p.h
-        audio/qwindowsaudioutils.cpp audio/qwindowsaudioutils_p.h
         common/mfmetadata.cpp common/mfmetadata_p.h
-        common/qwindowsmultimediautils.cpp common/qwindowsmultimediautils_p.h
-        common/qwindowsmfdefs.cpp common/qwindowsmfdefs_p.h
-        common/qwindowsiupointer_p.h
-        common/qwindowsresampler.cpp common/qwindowsresampler_p.h
         decoder/mfaudiodecodercontrol.cpp decoder/mfaudiodecodercontrol_p.h
         decoder/mfdecodersourcereader.cpp decoder/mfdecodersourcereader_p.h
         evr/evrcustompresenter.cpp evr/evrcustompresenter_p.h
@@ -37,7 +29,6 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         mediacapture/qwindowsmediadevicesession_p.h
         mediacapture/qwindowsmediaencoder.cpp
         mediacapture/qwindowsmediaencoder_p.h
-        qwindowsmediadevices.cpp qwindowsmediadevices_p.h
         qwindowsformatinfo.cpp qwindowsformatinfo_p.h
         qwindowsintegration.cpp qwindowsintegration_p.h
         sourceresolver.cpp sourceresolver_p.h

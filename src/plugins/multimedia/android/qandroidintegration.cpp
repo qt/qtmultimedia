@@ -38,7 +38,6 @@
 ****************************************************************************/
 
 #include "qandroidintegration_p.h"
-#include "qandroidmediadevices_p.h"
 #include "qandroidglobal_p.h"
 #include "qandroidmediacapturesession_p.h"
 #include "androidmediaplayer_p.h"
@@ -88,15 +87,7 @@ QAndroidIntegration::QAndroidIntegration()
 
 QAndroidIntegration::~QAndroidIntegration()
 {
-    delete m_devices;
     delete m_formatInfo;
-}
-
-QPlatformMediaDevices *QAndroidIntegration::devices()
-{
-    if (!m_devices)
-        m_devices = new QAndroidMediaDevices(this);
-    return m_devices;
 }
 
 QPlatformAudioDecoder *QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
@@ -174,14 +165,18 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
     if (!AndroidMediaPlayer::registerNativeMethods()
             || !AndroidCamera::registerNativeMethods()
             || !AndroidMediaRecorder::registerNativeMethods()
-            || !AndroidSurfaceHolder::registerNativeMethods()
-            || !QAndroidMediaDevices::registerNativeMethods()) {
+            || !AndroidSurfaceHolder::registerNativeMethods()) {
         return JNI_ERR;
     }
 
     AndroidSurfaceTexture::registerNativeMethods();
 
     return JNI_VERSION_1_6;
+}
+
+QList<QCameraDevice> QAndroidIntegration::videoInputs()
+{
+    return QAndroidCameraSession::availableCameras();
 }
 
 QT_END_NAMESPACE

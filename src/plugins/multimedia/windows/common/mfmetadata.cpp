@@ -47,7 +47,7 @@
 #include <propvarutil.h>
 #include <propkey.h>
 
-#include "qwindowsmultimediautils_p.h"
+#include "private/qwindowsmultimediautils_p.h"
 #include "mfmetadata_p.h"
 
 //#define DEBUG_MEDIAFOUNDATION

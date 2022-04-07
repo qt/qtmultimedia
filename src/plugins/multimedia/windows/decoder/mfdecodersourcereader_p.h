@@ -57,7 +57,7 @@
 
 #include <QtCore/qobject.h>
 #include "qaudioformat.h"
-#include <qwindowsiupointer_p.h>
+#include <private/qwindowsiupointer_p.h>
 
 QT_USE_NAMESPACE
 

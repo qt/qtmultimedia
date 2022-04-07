@@ -55,7 +55,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QQnxMediaDevices;
 class QQnxPlayerInterface;
 class QQnxFormatInfo;
 
@@ -65,18 +64,16 @@ public:
     QQnxMediaIntegration();
     ~QQnxMediaIntegration();
 
-    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
 
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
 
-    QPlatformMediaCaptureSession *createCaptureSession();
+    QPlatformMediaCaptureSession *createCaptureSession() override;
 
     QPlatformMediaRecorder *createRecorder(QMediaRecorder *parent) override;
 
-    QQnxMediaDevices *m_devices = nullptr;
     QQnxFormatInfo *m_formatInfo = nullptr;
 };
 

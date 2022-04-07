@@ -40,7 +40,7 @@
 #include "qwindowsmediadevicesession_p.h"
 
 #include "qwindowsmediadevicereader_p.h"
-#include "qwindowsmultimediautils_p.h"
+#include "private/qwindowsmultimediautils_p.h"
 #include "private/qplatformvideosink_p.h"
 #include <qvideosink.h>
 #include <QtCore/qdebug.h>

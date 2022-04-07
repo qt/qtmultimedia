@@ -42,7 +42,7 @@
 #include <qglobal.h>
 #include "Wmcodecdsp.h"
 #include "mfaudiodecodercontrol_p.h"
-#include <qwindowsaudioutils_p.h>
+#include <private/qwindowsaudioutils_p.h>
 
 MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)

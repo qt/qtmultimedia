@@ -174,8 +174,8 @@ static QList<QAudioDevice> enumeratePcmDevices(QAudioDevice::Mode mode)
     return devices;
 }
 
-QQnxMediaDevices::QQnxMediaDevices(QPlatformMediaIntegration *integration)
-    : QPlatformMediaDevices(integration)
+QQnxMediaDevices::QQnxMediaDevices()
+    : QPlatformMediaDevices()
 {
 }
 

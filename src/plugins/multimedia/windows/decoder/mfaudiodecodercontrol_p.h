@@ -54,8 +54,8 @@
 #include "mfdecodersourcereader_p.h"
 #include <private/qplatformaudiodecoder_p.h>
 #include <sourceresolver_p.h>
-#include <qwindowsiupointer_p.h>
-#include <qwindowsresampler_p.h>
+#include <private/qwindowsiupointer_p.h>
+#include <private/qwindowsresampler_p.h>
 
 QT_USE_NAMESPACE
 

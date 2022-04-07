@@ -38,7 +38,9 @@
 ****************************************************************************/
 
 #include "qqnxaudiooutput_p.h"
-#include "qqnxaudiodevice_p.h"
+
+#include <private/qqnxaudiodevice_p.h>
+
 #include <qaudiodevice.h>
 #include <qaudiooutput.h>
 

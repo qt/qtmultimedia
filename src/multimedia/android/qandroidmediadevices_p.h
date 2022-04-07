@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSMEDIADEVICES_H
-#define QWINDOWSMEDIADEVICES_H
+#ifndef QANDROIDMEDIADEVICES_H
+#define QANDROIDMEDIADEVICES_H
 
 //
 //  W A R N I N G
@@ -52,43 +52,23 @@
 //
 
 #include <private/qplatformmediadevices_p.h>
-#include <qwindowsiupointer_p.h>
-#include <qset.h>
 #include <qaudio.h>
-#include <qaudiodevice.h>
-#include <QtCore/qt_windows.h>
-
-struct IMMDeviceEnumerator;
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsEngine;
-class CMMNotificationClient;
-
-LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
-
-class QWindowsMediaDevices : public QPlatformMediaDevices
+class QAndroidMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QWindowsMediaDevices(QPlatformMediaIntegration *integration);
-    virtual ~QWindowsMediaDevices();
+    QAndroidMediaDevices();
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
-    QList<QCameraDevice> videoInputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
 
-private:
-    QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
-
-    QWindowsIUPointer<IMMDeviceEnumerator> m_deviceEnumerator;
-    QWindowsIUPointer<CMMNotificationClient> m_notificationClient;
-    HWND m_videoDeviceMsgWindow;
-    HDEVNOTIFY m_videoDeviceNotification;
-
-    friend CMMNotificationClient;
-    friend LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
+    void forwardAudioOutputsChanged();
+    void forwardAudioInputsChanged();
+    static bool registerNativeMethods();
 };
 
 QT_END_NAMESPACE

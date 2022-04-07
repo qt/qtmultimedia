@@ -54,15 +54,35 @@
 #include <QtCore/qobject.h>
 
 #include <private/qplatformcamera_p.h>
+#include <private/qplatformvideodevices_p.h>
 
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceFormat);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureConnection);
 Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDevice);
 
 QT_BEGIN_NAMESPACE
+class QPlatformMediaIntegration;
+
+class QAVFVideoDevices : public QPlatformVideoDevices
+{
+public:
+    QAVFVideoDevices(QPlatformMediaIntegration *integration);
+    ~QAVFVideoDevices();
+
+    QList<QCameraDevice> videoDevices() const override;
+
+private:
+    void updateCameraDevices();
+
+    NSObject *m_deviceConnectedObserver;
+    NSObject *m_deviceDisconnectedObserver;
+
+    QList<QCameraDevice> m_cameraDevices;
+};
+
 
 class QAVFCameraBase : public QPlatformCamera
-{
+{;
 Q_OBJECT
 public:
     QAVFCameraBase(QCamera *camera);

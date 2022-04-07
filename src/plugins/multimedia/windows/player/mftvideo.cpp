@@ -39,7 +39,7 @@
 
 #include "mftvideo_p.h"
 #include <private/qmemoryvideobuffer_p.h>
-#include <qwindowsmultimediautils_p.h>
+#include <private/qwindowsmultimediautils_p.h>
 #include <mferror.h>
 #include <strmif.h>
 #include <uuids.h>

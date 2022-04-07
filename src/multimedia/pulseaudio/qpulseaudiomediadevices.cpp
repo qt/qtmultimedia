@@ -37,42 +37,51 @@
 **
 ****************************************************************************/
 
-#ifndef QQNXMEDIADEVICES_H
-#define QQNXMEDIADEVICES_H
+#include "qpulseaudiomediadevices_p.h"
+#include "qmediadevices.h"
+#include "private/qcameradevice_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediadevices_p.h>
-#include <qaudio.h>
-#include <qcameradevice.h>
+#include "qpulseaudiosource_p.h"
+#include "qpulseaudiosink_p.h"
+#include "qpulseaudiodevice_p.h"
+#include "qaudioengine_pulse_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QQnxMediaDevices : public QPlatformMediaDevices
+QPulseAudioMediaDevices::QPulseAudioMediaDevices()
+    : QPlatformMediaDevices()
 {
-public:
-    QQnxMediaDevices(QPlatformMediaIntegration *integration);
+    pulseEngine = new QPulseAudioEngine();
+}
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
-    QList<QCameraDevice> videoInputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
+QPulseAudioMediaDevices::~QPulseAudioMediaDevices()
+{
+    delete pulseEngine;
+}
 
-private:
-    mutable bool camerasChecked = false;
-    mutable QList<QCameraDevice> cameras;
-};
+QList<QAudioDevice> QPulseAudioMediaDevices::audioInputs() const
+{
+    return pulseEngine->availableDevices(QAudioDevice::Input);
+}
+
+QList<QAudioDevice> QPulseAudioMediaDevices::audioOutputs() const
+{
+    return pulseEngine->availableDevices(QAudioDevice::Output);
+}
+
+QList<QCameraDevice> QPulseAudioMediaDevices::videoInputs() const
+{
+    return {};
+}
+
+QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
+{
+    return new QPulseAudioSource(deviceInfo.id());
+}
+
+QPlatformAudioSink *QPulseAudioMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
+{
+    return new QPulseAudioSink(deviceInfo.id());
+}
 
 QT_END_NAMESPACE
-
-#endif

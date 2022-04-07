@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QANDROIDMEDIADEVICES_H
-#define QANDROIDMEDIADEVICES_H
+#ifndef QWASMMEDIADEVICES_H
+#define QWASMMEDIADEVICES_H
 
 //
 //  W A R N I N G
@@ -52,14 +52,18 @@
 //
 
 #include <private/qplatformmediadevices_p.h>
+#include <qset.h>
 #include <qaudio.h>
+#include <qaudiodevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class QAndroidMediaDevices : public QPlatformMediaDevices
+class QWasmAudioEngine;
+
+class QWasmMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QAndroidMediaDevices(QPlatformMediaIntegration *integration);
+    QWasmMediaDevices();
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
@@ -67,9 +71,9 @@ public:
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
 
-    void forwardAudioOutputsChanged();
-    void forwardAudioInputsChanged();
-    static bool registerNativeMethods();
+private:
+    QList<QAudioDevice> m_outs;
+    QList<QAudioDevice> m_ins;
 };
 
 QT_END_NAMESPACE

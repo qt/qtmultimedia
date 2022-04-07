@@ -39,21 +39,16 @@
 
 #include "qdarwinmediadevices_p.h"
 #include "qmediadevices.h"
-#include "private/qcameradevice_p.h"
 #include "private/qaudiodevice_p.h"
 #include "qdarwinaudiodevice_p.h"
 #include "qdarwinaudiosource_p.h"
 #include "qdarwinaudiosink_p.h"
-#include "qavfhelpers_p.h"
-#include "avfcamerautility_p.h"
 
 #include <qdebug.h>
 
-#include <CoreVideo/CoreVideo.h>
-#import <AVFoundation/AVFoundation.h>
-
 #if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
 #include "qcoreaudiosessionmanager_p.h"
+#import <AVFoundation/AVFoundation.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -159,25 +154,9 @@ audioDeviceChangeListener(AudioObjectID, UInt32, const AudioObjectPropertyAddres
 #endif
 
 
-QDarwinMediaDevices::QDarwinMediaDevices(QPlatformMediaIntegration *integration)
-    : QPlatformMediaDevices(integration)
+QDarwinMediaDevices::QDarwinMediaDevices()
+    : QPlatformMediaDevices()
 {
-    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
-    m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification
-                                                                object:nil
-                                                                queue:[NSOperationQueue mainQueue]
-                                                                usingBlock:^(NSNotification *) {
-                                                                        this->updateCameraDevices();
-            this->updateAudioDevices();
-                                                                }];
-
-    m_deviceDisconnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasDisconnectedNotification
-                                                                object:nil
-                                                                queue:[NSOperationQueue mainQueue]
-                                                                usingBlock:^(NSNotification *) {
-                                                                        this->updateCameraDevices();
-            this->updateAudioDevices();
-                                                                }];
 
 #ifdef Q_OS_MACOS
     OSStatus err = noErr;
@@ -189,16 +168,12 @@ QDarwinMediaDevices::QDarwinMediaDevices(QPlatformMediaIntegration *integration)
 #else
     // ### This should use the audio session manager
 #endif
-    updateCameraDevices();
     updateAudioDevices();
 }
 
 
 QDarwinMediaDevices::~QDarwinMediaDevices()
 {
-    NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
-    [notificationCenter removeObserver:(id)m_deviceConnectedObserver];
-    [notificationCenter removeObserver:(id)m_deviceDisconnectedObserver];
 
 #ifdef Q_OS_MACOS
     AudioObjectRemovePropertyListener(kAudioObjectSystemObject, (AudioObjectPropertyAddress *)m_audioDevicesProperty, audioDeviceChangeListener, this);
@@ -242,97 +217,6 @@ QList<QAudioDevice> QDarwinMediaDevices::audioOutputs() const
     return availableAudioDevices(QAudioDevice::Output);
 #endif
 }
-
-QList<QCameraDevice> QDarwinMediaDevices::videoInputs() const
-{
-    return m_cameraDevices;
-}
-
-void QDarwinMediaDevices::updateCameraDevices()
-{
-#ifdef Q_OS_IOS
-    // Cameras can't change dynamically on iOS. Update only once.
-    if (!m_cameraDevices.isEmpty())
-        return;
-#endif
-
-    QList<QCameraDevice> cameras;
-
-    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-
-    for (AVCaptureDevice *device in videoDevices) {
-
-        QCameraDevicePrivate *info = new QCameraDevicePrivate;
-        if (defaultDevice && [defaultDevice.uniqueID isEqualToString:device.uniqueID])
-            info->isDefault = true;
-        info->id = QByteArray([[device uniqueID] UTF8String]);
-        info->description = QString::fromNSString([device localizedName]);
-
-        QSet<QSize> photoResolutions;
-        QList<QCameraFormat> videoFormats;
-
-        for (AVCaptureDeviceFormat *format in device.formats) {
-            if (![format.mediaType isEqualToString:AVMediaTypeVideo])
-                continue;
-
-            auto dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
-            QSize resolution(dimensions.width, dimensions.height);
-            photoResolutions.insert(resolution);
-
-            float maxFrameRate = 0;
-            float minFrameRate = 1.e6;
-
-            auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
-            auto pixelFormat = QAVFHelpers::fromCVPixelFormat(encoding);
-            // Ignore pixel formats we can't handle
-            if (pixelFormat == QVideoFrameFormat::Format_Invalid)
-                continue;
-
-            for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
-                if (frameRateRange.minFrameRate < minFrameRate)
-                    minFrameRate = frameRateRange.minFrameRate;
-                if (frameRateRange.maxFrameRate > maxFrameRate)
-                    maxFrameRate = frameRateRange.maxFrameRate;
-            }
-
-#ifdef Q_OS_IOS
-            // From Apple's docs (iOS):
-            // By default, AVCaptureStillImageOutput emits images with the same dimensions as
-            // its source AVCaptureDevice instance’s activeFormat.formatDescription. However,
-            // if you set this property to YES, the receiver emits still images at the capture
-            // device’s highResolutionStillImageDimensions value.
-            const QSize hrRes(qt_device_format_high_resolution(format));
-            if (!hrRes.isNull() && hrRes.isValid())
-                photoResolutions.insert(hrRes);
-#endif
-
-            auto *f = new QCameraFormatPrivate{
-                QSharedData(),
-                pixelFormat,
-                resolution,
-                minFrameRate,
-                maxFrameRate
-            };
-            videoFormats << f->create();
-        }
-        if (videoFormats.isEmpty()) {
-            // skip broken cameras without valid formats
-            delete info;
-            continue;
-        }
-        info->videoFormats = videoFormats;
-        info->photoResolutions = photoResolutions.values();
-
-        cameras.append(info->create());
-    }
-
-    if (cameras != m_cameraDevices) {
-        m_cameraDevices = cameras;
-        videoInputsChanged();
-    }
-}
-
 
 void QDarwinMediaDevices::updateAudioDevices()
 {

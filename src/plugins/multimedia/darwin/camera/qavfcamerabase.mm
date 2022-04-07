@@ -40,6 +40,9 @@
 #include "avfcameradebug_p.h"
 #include "qavfcamerabase_p.h"
 #include "avfcamerautility_p.h"
+#include <private/qcameradevice_p.h>
+#include "qavfhelpers_p.h"
+#include <private/qplatformmediaintegration_p.h>
 
 QT_USE_NAMESPACE
 
@@ -148,6 +151,124 @@ bool qt_convert_exposure_mode(AVCaptureDevice *captureDevice, QCamera::ExposureM
 #endif // defined(Q_OS_IOS)
 
 } // Unnamed namespace.
+
+
+QAVFVideoDevices::QAVFVideoDevices(QPlatformMediaIntegration *integration)
+    : QPlatformVideoDevices(integration)
+{
+    NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
+    m_deviceConnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasConnectedNotification
+                                                                object:nil
+                                                                queue:[NSOperationQueue mainQueue]
+                                                                usingBlock:^(NSNotification *) {
+                                                                        this->updateCameraDevices();
+                                                                }];
+
+    m_deviceDisconnectedObserver = [notificationCenter addObserverForName:AVCaptureDeviceWasDisconnectedNotification
+                                                                object:nil
+                                                                queue:[NSOperationQueue mainQueue]
+                                                                usingBlock:^(NSNotification *) {
+                                                                        this->updateCameraDevices();
+                                                                }];
+    updateCameraDevices();
+}
+
+QAVFVideoDevices::~QAVFVideoDevices()
+{
+    NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
+    [notificationCenter removeObserver:(id)m_deviceConnectedObserver];
+    [notificationCenter removeObserver:(id)m_deviceDisconnectedObserver];
+}
+
+QList<QCameraDevice> QAVFVideoDevices::videoDevices() const
+{
+    return m_cameraDevices;
+}
+
+void QAVFVideoDevices::updateCameraDevices()
+{
+#ifdef Q_OS_IOS
+    // Cameras can't change dynamically on iOS. Update only once.
+    if (!m_cameraDevices.isEmpty())
+        return;
+#endif
+
+    QList<QCameraDevice> cameras;
+
+    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+
+    for (AVCaptureDevice *device in videoDevices) {
+
+        QCameraDevicePrivate *info = new QCameraDevicePrivate;
+        if (defaultDevice && [defaultDevice.uniqueID isEqualToString:device.uniqueID])
+            info->isDefault = true;
+        info->id = QByteArray([[device uniqueID] UTF8String]);
+        info->description = QString::fromNSString([device localizedName]);
+
+        QSet<QSize> photoResolutions;
+        QList<QCameraFormat> videoFormats;
+
+        for (AVCaptureDeviceFormat *format in device.formats) {
+            if (![format.mediaType isEqualToString:AVMediaTypeVideo])
+                continue;
+
+            auto dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription);
+            QSize resolution(dimensions.width, dimensions.height);
+            photoResolutions.insert(resolution);
+
+            float maxFrameRate = 0;
+            float minFrameRate = 1.e6;
+
+            auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
+            auto pixelFormat = QAVFHelpers::fromCVPixelFormat(encoding);
+            // Ignore pixel formats we can't handle
+            if (pixelFormat == QVideoFrameFormat::Format_Invalid)
+                continue;
+
+            for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
+                if (frameRateRange.minFrameRate < minFrameRate)
+                    minFrameRate = frameRateRange.minFrameRate;
+                if (frameRateRange.maxFrameRate > maxFrameRate)
+                    maxFrameRate = frameRateRange.maxFrameRate;
+            }
+
+#ifdef Q_OS_IOS
+            // From Apple's docs (iOS):
+            // By default, AVCaptureStillImageOutput emits images with the same dimensions as
+            // its source AVCaptureDevice instance’s activeFormat.formatDescription. However,
+            // if you set this property to YES, the receiver emits still images at the capture
+            // device’s highResolutionStillImageDimensions value.
+            const QSize hrRes(qt_device_format_high_resolution(format));
+            if (!hrRes.isNull() && hrRes.isValid())
+                photoResolutions.insert(hrRes);
+#endif
+
+            auto *f = new QCameraFormatPrivate{
+                QSharedData(),
+                pixelFormat,
+                resolution,
+                minFrameRate,
+                maxFrameRate
+            };
+            videoFormats << f->create();
+        }
+        if (videoFormats.isEmpty()) {
+            // skip broken cameras without valid formats
+            delete info;
+            continue;
+        }
+        info->videoFormats = videoFormats;
+        info->photoResolutions = photoResolutions.values();
+
+        cameras.append(info->create());
+    }
+
+    if (cameras != m_cameraDevices) {
+        m_cameraDevices = cameras;
+        videoInputsChanged();
+    }
+}
 
 
 QAVFCameraBase::QAVFCameraBase(QCamera *camera)

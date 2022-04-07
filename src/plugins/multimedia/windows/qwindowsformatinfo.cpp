@@ -41,8 +41,8 @@
 
 #include <mfapi.h>
 #include <mftransform.h>
-#include <qwindowsiupointer_p.h>
-#include <qwindowsmultimediautils_p.h>
+#include <private/qwindowsiupointer_p.h>
+#include <private/qwindowsmultimediautils_p.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qset.h>

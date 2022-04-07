@@ -6,6 +6,12 @@
 
 find_package(Qt6 COMPONENTS ShaderTools)
 
+qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
+qt_internal_find_apple_system_framework(FWCoreVideo CoreVideo) # special case
+qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
+qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
+qt_internal_find_apple_system_framework(FWAudioToolbox AudioToolbox) # special case
+
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
@@ -38,6 +44,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
         platform/qplatformmediaplugin_p.h
+        platform/qplatformvideodevices.cpp platform/qplatformvideodevices_p.h
         platform/qplatformvideosink.cpp platform/qplatformvideosink_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
         qmediadevices.cpp qmediadevices.h
@@ -100,6 +107,104 @@ qt_internal_add_simd_part(Multimedia SIMD arch_haswell
 
 qt_internal_add_docs(Multimedia
     doc/qtmultimedia.qdocconf
+)
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
+    SOURCES
+        pulseaudio/qpulseaudiodevice.cpp pulseaudio/qpulseaudiodevice_p.h
+        pulseaudio/qaudioengine_pulse.cpp pulseaudio/qaudioengine_pulse_p.h
+        pulseaudio/qpulseaudiosource.cpp pulseaudio/qpulseaudiosource_p.h
+        pulseaudio/qpulseaudiosink.cpp pulseaudio/qpulseaudiosink_p.h
+        pulseaudio/qpulsehelpers.cpp pulseaudio/qpulsehelpers_p.h
+        pulseaudio/qpulseaudiomediadevices.cpp pulseaudio/qpulseaudiomediadevices_p.h
+    INCLUDE_DIRECTORIES
+        pulseaudio
+    LIBRARIES
+        WrapPulseAudio::WrapPulseAudio
+)
+
+qt_internal_extend_target(Multimedia CONDITION ANDROID
+    SOURCES
+        android/qandroidaudiosource.cpp android/qandroidaudiosource_p.h
+        android/qandroidaudiosink.cpp android/qandroidaudiosink_p.h
+        android/qandroidaudiodevice.cpp android/qandroidaudiodevice_p.h
+        android/qopenslesengine.cpp android/qopenslesengine_p.h
+        android/qandroidmediadevices.cpp android/qandroidmediadevices_p.h
+    INCLUDE_DIRECTORIES
+        android
+    LIBRARIES
+        OpenSLES
+)
+
+qt_internal_extend_target(Multimedia CONDITION APPLE
+    SOURCES
+        darwin/qdarwinaudiodevice.mm darwin/qdarwinaudiodevice_p.h
+        darwin/qdarwinaudiosource.mm darwin/qdarwinaudiosource_p.h
+        darwin/qdarwinaudiosink.mm darwin/qdarwinaudiosink_p.h
+        darwin/qcoreaudioutils.mm darwin/qcoreaudioutils_p.h
+        darwin/qdarwinmediadevices.mm darwin/qdarwinmediadevices_p.h
+    INCLUDE_DIRECTORIES
+        darwin
+    LIBRARIES
+        ${FWAudioToolbox}
+        ${FWCoreAudio}
+        ${FWCoreMedia}
+        ${FWCoreFoundation}
+)
+
+qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS
+    SOURCES
+        darwin/qcoreaudiosessionmanager.mm darwin/qcoreaudiosessionmanager_p.h
+    LIBRARIES
+        ${FWAVFoundation}
+        ${FWFoundation}
+)
+
+qt_internal_extend_target(Multimedia CONDITION QNX
+    SOURCES
+        qnx/qqnxaudiodevice.cpp qnx/qqnxaudiodevice_p.h
+        qnx/qqnxaudiosink.cpp qnx/qqnxaudiosink_p.h
+        qnx/qqnxaudiosource.cpp qnx/qqnxaudiosource_p.h
+        qnx/qqnxaudioutils.cpp qnx/qqnxaudioutils_p.h
+        qnx/qqnxmediadevices.cpp qnx/qqnxmediadevices_p.h
+    INCLUDE_DIRECTORIES
+        qnx
+    LIBRARIES
+        asound
+        camapi
+)
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
+    SOURCES
+        windows/qwindowsaudiodevice.cpp windows/qwindowsaudiodevice_p.h
+        windows/qwindowsaudiosource.cpp windows/qwindowsaudiosource_p.h
+        windows/qwindowsaudiosink.cpp windows/qwindowsaudiosink_p.h
+        windows/qwindowsaudioutils.cpp windows/qwindowsaudioutils_p.h
+        windows/qwindowsmediadevices.cpp windows/qwindowsmediadevices_p.h
+        windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
+        windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
+        windows/qwindowsmfdefs.cpp windows/qwindowsmfdefs_p.h
+        windows/qwindowsiupointer_p.h
+    INCLUDE_DIRECTORIES
+        windows
+    LIBRARIES
+        WMF::WMF
+        mfreadwrite
+        winmm
+        wmcodecdspuuid
+        ksuser
+)
+
+qt_internal_extend_target(Multimedia CONDITION WASM
+    SOURCES
+        wasm/qwasmmediadevices.cpp wasm/qwasmmediadevices_p.h
+        wasm/qwasmaudiosource.cpp wasm/qwasmaudiosource_p.h
+        wasm/qwasmaudiosink.cpp wasm/qwasmaudiosink_p.h
+        wasm/qwasmaudiodevice.cpp wasm/qwasmaudiodevice_p.h
+    INCLUDE_DIRECTORIES
+        wasm
+    PUBLIC_LIBRARIES
+        openal
 )
 
 set(VIDEO_VERTEX_SHADERS

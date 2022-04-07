@@ -39,13 +39,13 @@
 
 #include "qwindowsmediadevicereader_p.h"
 
-#include "qwindowsmultimediautils_p.h"
+#include "private/qwindowsmultimediautils_p.h"
 #include <qvideosink.h>
 #include <qmediadevices.h>
 #include <qaudiodevice.h>
 #include <private/qmemoryvideobuffer_p.h>
-#include <qwindowsmfdefs_p.h>
-#include <qwindowsiupointer_p.h>
+#include <private/qwindowsmfdefs_p.h>
+#include <private/qwindowsiupointer_p.h>
 #include <QtCore/qdebug.h>
 
 #include <mmdeviceapi.h>

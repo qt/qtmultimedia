@@ -4,14 +4,10 @@ qt_internal_add_plugin(QQnxMediaPlugin
     PLUGIN_TYPE multimedia
     SOURCES
     SOURCES
-        audio/qqnxaudioutils.cpp audio/qqnxaudioutils_p.h
-        audio/qqnxaudiodevice.cpp audio/qqnxaudiodevice_p.h
-        audio/qqnxaudioinput.cpp audio/qqnxaudioinput_p.h
-        audio/qqnxaudiooutput.cpp audio/qqnxaudiooutput_p.h
-        audio/qqnxaudiosink.cpp audio/qqnxaudiosink_p.h
-        audio/qqnxaudiosource.cpp audio/qqnxaudiosource_p.h
         camera/qqnxcamera.cpp camera/qqnxcamera_p.h
         camera/qqnximagecapture.cpp camera/qqnximagecapture_p.h
+        common/qqnxaudioinput.cpp common/qqnxaudioinput_p.h
+        common/qqnxaudiooutput.cpp common/qqnxaudiooutput_p.h
         common/qqnxmediaeventthread.cpp common/qqnxmediaeventthread_p.h
         common/qqnxwindowgrabber.cpp common/qqnxwindowgrabber_p.h
         capture/qqnxaudiorecorder.cpp capture/qqnxaudiorecorder_p.h
@@ -22,7 +18,6 @@ qt_internal_add_plugin(QQnxMediaPlugin
         mediaplayer/qqnxvideosink.cpp mediaplayer/qqnxvideosink_p.h
         mediaplayer/qqnxmediautil.cpp mediaplayer/qqnxmediautil_p.h
         qqnxformatinfo.cpp qqnxformatinfo_p.h
-        qqnxmediadevices.cpp qqnxmediadevices_p.h
         qqnxmediaintegration.cpp qqnxmediaintegration_p.h
     INCLUDE_DIRECTORIES
         audio
@@ -34,7 +29,5 @@ qt_internal_add_plugin(QQnxMediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
         MMRenderer::MMRenderer
-        asound
-        camapi
         strm
 )

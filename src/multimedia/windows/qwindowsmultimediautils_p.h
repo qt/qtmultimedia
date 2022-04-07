@@ -60,19 +60,19 @@ QT_BEGIN_NAMESPACE
 
 namespace QWindowsMultimediaUtils {
 
-    QVideoFrameFormat::PixelFormat pixelFormatFromMediaSubtype(const GUID &subtype);
+    Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat pixelFormatFromMediaSubtype(const GUID &subtype);
 
-    GUID videoFormatForCodec(QMediaFormat::VideoCodec codec);
+    Q_MULTIMEDIA_EXPORT GUID videoFormatForCodec(QMediaFormat::VideoCodec codec);
 
-    QMediaFormat::VideoCodec codecForVideoFormat(GUID format);
+    Q_MULTIMEDIA_EXPORT QMediaFormat::VideoCodec codecForVideoFormat(GUID format);
 
-    GUID audioFormatForCodec(QMediaFormat::AudioCodec codec);
+    Q_MULTIMEDIA_EXPORT GUID audioFormatForCodec(QMediaFormat::AudioCodec codec);
 
-    QMediaFormat::AudioCodec codecForAudioFormat(GUID format);
+    Q_MULTIMEDIA_EXPORT QMediaFormat::AudioCodec codecForAudioFormat(GUID format);
 
-    GUID containerForVideoFileFormat(QMediaFormat::FileFormat format);
+    Q_MULTIMEDIA_EXPORT GUID containerForVideoFileFormat(QMediaFormat::FileFormat format);
 
-    GUID containerForAudioFileFormat(QMediaFormat::FileFormat format);
+    Q_MULTIMEDIA_EXPORT GUID containerForAudioFileFormat(QMediaFormat::FileFormat format);
 }
 
 QT_END_NAMESPACE

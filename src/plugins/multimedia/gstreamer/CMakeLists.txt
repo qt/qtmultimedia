@@ -4,6 +4,9 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
     OUTPUT_NAME gstreamermediaplugin
     PLUGIN_TYPE multimedia
     SOURCES
+        audio/qgstreameraudiodevice.cpp audio/qgstreameraudiodevice_p.h
+        audio/qgstreameraudiosource.cpp audio/qgstreameraudiosource_p.h
+        audio/qgstreameraudiosink.cpp audio/qgstreameraudiosink_p.h
         audio/qgstreameraudiodecoder.cpp audio/qgstreameraudiodecoder_p.h
         common/qgst_p.h
         common/qgstappsrc.cpp common/qgstappsrc_p.h
@@ -50,25 +53,4 @@ qt_internal_extend_target(QGstreamerMediaPlugin CONDITION QT_FEATURE_gstreamer_g
     LIBRARIES
         GStreamer::Gl
         EGL::EGL
-)
-
-
-qt_internal_extend_target(QGstreamerMediaPlugin CONDITION QT_FEATURE_pulseaudio
-    SOURCES
-        ../pulseaudio/qpulseaudiodevice.cpp ../pulseaudio/qpulseaudiodevice_p.h
-        ../pulseaudio/qaudioengine_pulse.cpp ../pulseaudio/qaudioengine_pulse_p.h
-        ../pulseaudio/qpulseaudiosource.cpp ../pulseaudio/qpulseaudiosource_p.h
-        ../pulseaudio/qpulseaudiosink.cpp ../pulseaudio/qpulseaudiosink_p.h
-        ../pulseaudio/qpulsehelpers.cpp ../pulseaudio/qpulsehelpers_p.h
-    INCLUDE_DIRECTORIES
-        ../pulseaudio
-    LIBRARIES
-        WrapPulseAudio::WrapPulseAudio
-)
-
-qt_internal_extend_target(QGstreamerMediaPlugin CONDITION NOT QT_FEATURE_pulseaudio
-    SOURCES
-        audio/qgstreameraudiodevice.cpp audio/qgstreameraudiodevice_p.h
-        audio/qgstreameraudiosource.cpp audio/qgstreameraudiosource_p.h
-        audio/qgstreameraudiosink.cpp audio/qgstreameraudiosink_p.h
 )

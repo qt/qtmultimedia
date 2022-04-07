@@ -65,7 +65,6 @@ public:
     ~QFFmpegMediaIntegration();
 
     static QFFmpegMediaIntegration *instance() { return static_cast<QFFmpegMediaIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
@@ -81,7 +80,6 @@ public:
     QPlatformAudioInput *createAudioInput(QAudioInput *input) override;
 //    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
 
-    QPlatformMediaDevices *m_devices = nullptr;
     QFFmpegMediaFormatInfo *m_formatsInfo = nullptr;
 };
 

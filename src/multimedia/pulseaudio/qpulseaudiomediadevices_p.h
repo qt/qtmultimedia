@@ -37,56 +37,44 @@
 **
 ****************************************************************************/
 
-#include "qwasmmediadevices_p.h"
-#include "private/qcameradevice_p.h"
+#ifndef QPULSEAUDIOMEDIADEVICES_H
+#define QPULSEAUDIOMEDIADEVICES_H
 
-#include "qwasmaudiosource_p.h"
-#include "qwasmaudiosink_p.h"
-#include "qwasmaudiodevice_p.h"
-#include <AL/al.h>
-#include <AL/alc.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformmediadevices_p.h>
+#include <qset.h>
+#include <qaudio.h>
 
 QT_BEGIN_NAMESPACE
 
-QWasmMediaDevices::QWasmMediaDevices(QPlatformMediaIntegration *integration)
-    : QPlatformMediaDevices(integration)
-{
-    auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
-    // present even if there is no capture device
-    if (capture)
-        m_ins.append((new QWasmAudioDevice(capture, "WebAssembly audio capture device", true,
-                                               QAudioDevice::Input))->create());
+class QPulseAudioEngine;
 
-    auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
-    // present even if there is no playback device
-    if (playback)
-        m_outs.append((new QWasmAudioDevice(playback, "WebAssembly audio playback device", true,
-                                                QAudioDevice::Output))->create());
-}
-
-QList<QAudioDevice> QWasmMediaDevices::audioInputs() const
+class QPulseAudioMediaDevices : public QPlatformMediaDevices
 {
-    return m_ins;
-}
+public:
+    QPulseAudioMediaDevices();
+    ~QPulseAudioMediaDevices();
 
-QList<QAudioDevice> QWasmMediaDevices::audioOutputs() const
-{
-    return m_outs;
-}
+    QList<QAudioDevice> audioInputs() const override;
+    QList<QAudioDevice> audioOutputs() const override;
+    QList<QCameraDevice> videoInputs() const override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
 
-QList<QCameraDevice> QWasmMediaDevices::videoInputs() const
-{
-    return {};
-}
-
-QPlatformAudioSource *QWasmMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
-{
-    return new QWasmAudioSource(deviceInfo.id());
-}
-
-QPlatformAudioSink *QWasmMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
-{
-    return new QWasmAudioSink(deviceInfo.id());
-}
+private:
+    QPulseAudioEngine *pulseEngine;
+};
 
 QT_END_NAMESPACE
+
+#endif

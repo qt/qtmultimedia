@@ -63,7 +63,6 @@ public:
     QAndroidIntegration();
     ~QAndroidIntegration();
 
-    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
@@ -77,8 +76,8 @@ public:
     QPlatformAudioInput *createAudioInput(QAudioInput *audioInput) override;
 
     QPlatformVideoSink *createVideoSink(QVideoSink *) override;
+    QList<QCameraDevice> videoInputs() override;
 
-    QAndroidMediaDevices *m_devices = nullptr;
     QPlatformMediaFormatInfo  *m_formatInfo = nullptr;
 };
 

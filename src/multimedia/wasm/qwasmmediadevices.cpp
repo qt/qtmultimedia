@@ -37,45 +37,56 @@
 **
 ****************************************************************************/
 
-#ifndef QWASMMEDIADEVICES_H
-#define QWASMMEDIADEVICES_H
+#include "qwasmmediadevices_p.h"
+#include "private/qcameradevice_p.h"
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <private/qplatformmediadevices_p.h>
-#include <qset.h>
-#include <qaudio.h>
-#include <qaudiodevice.h>
+#include "qwasmaudiosource_p.h"
+#include "qwasmaudiosink_p.h"
+#include "qwasmaudiodevice_p.h"
+#include <AL/al.h>
+#include <AL/alc.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWasmAudioEngine;
-
-class QWasmMediaDevices : public QPlatformMediaDevices
+QWasmMediaDevices::QWasmMediaDevices()
+    : QPlatformMediaDevices()
 {
-public:
-    QWasmMediaDevices(QPlatformMediaIntegration *integration);
+    auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
+    // present even if there is no capture device
+    if (capture)
+        m_ins.append((new QWasmAudioDevice(capture, "WebAssembly audio capture device", true,
+                                               QAudioDevice::Input))->create());
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
-    QList<QCameraDevice> videoInputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
+    auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
+    // present even if there is no playback device
+    if (playback)
+        m_outs.append((new QWasmAudioDevice(playback, "WebAssembly audio playback device", true,
+                                                QAudioDevice::Output))->create());
+}
 
-private:
-    QList<QAudioDevice> m_outs;
-    QList<QAudioDevice> m_ins;
-};
+QList<QAudioDevice> QWasmMediaDevices::audioInputs() const
+{
+    return m_ins;
+}
+
+QList<QAudioDevice> QWasmMediaDevices::audioOutputs() const
+{
+    return m_outs;
+}
+
+QList<QCameraDevice> QWasmMediaDevices::videoInputs() const
+{
+    return {};
+}
+
+QPlatformAudioSource *QWasmMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
+{
+    return new QWasmAudioSource(deviceInfo.id());
+}
+
+QPlatformAudioSink *QWasmMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
+{
+    return new QWasmAudioSink(deviceInfo.id());
+}
 
 QT_END_NAMESPACE
-
-#endif

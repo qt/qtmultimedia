@@ -63,7 +63,7 @@ class QCameraDevice;
 class QMockMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QMockMediaDevices(QPlatformMediaIntegration *integration);
+    QMockMediaDevices();
     ~QMockMediaDevices();
 
     QList<QAudioDevice> audioInputs() const override;

@@ -53,7 +53,7 @@
 
 #include <QMutex>
 #include <QVideoFrameFormat>
-#include <qwindowsiupointer_p.h>
+#include <private/qwindowsiupointer_p.h>
 
 #include <d3d9.h>
 

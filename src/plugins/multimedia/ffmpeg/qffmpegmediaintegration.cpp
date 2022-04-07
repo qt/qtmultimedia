@@ -55,13 +55,6 @@
 
 #ifdef Q_OS_DARWIN
 #include "qavfcamera_p.h"
-#include "qdarwinmediadevices_p.h"
-#elif defined(Q_OS_WINDOWS)
-#include "qwindowsmediadevices_p.h"
-#elif QT_CONFIG(pulseaudio)
-#include "qpulseaudiomediadevices_p.h"
-#else
-#include "qffmpegmediadevices_p.h"
 #endif
 
 #if QT_CONFIG(linux_v4l)
@@ -90,24 +83,13 @@ public:
 
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
-#ifdef Q_OS_DARWIN
-#if defined(Q_OS_MACOS) && QT_MACOS_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_11_0)
-    if (__builtin_available(macOS 11.0, *))
-        VTRegisterSupplementalVideoDecoderIfAvailable(kCMVideoCodecType_VP9);
-#endif
-    m_devices = new QDarwinMediaDevices(this);
-#elif defined(Q_OS_WINDOWS)
-    m_devices = new QWindowsMediaDevices(this);
-#elif QT_CONFIG(pulseaudio)
-    m_devices = new QPulseAudioMediaDevices(this);
-#else
-   m_devices = new QFFmpegMediaDevices(this);
-#endif
-
     m_formatsInfo = new QFFmpegMediaFormatInfo();
 
 #if QT_CONFIG(linux_v4l)
     QV4L2CameraDevices::instance(this);
+#endif
+#ifdef Q_OS_DARWIN
+    m_videoDevices = new QAVFVideoDevices(this);
 #endif
 
 #ifndef QT_NO_DEBUG
@@ -120,13 +102,7 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 
 QFFmpegMediaIntegration::~QFFmpegMediaIntegration()
 {
-    delete m_devices;
     delete m_formatsInfo;
-}
-
-QPlatformMediaDevices *QFFmpegMediaIntegration::devices()
-{
-    return m_devices;
 }
 
 QPlatformMediaFormatInfo *QFFmpegMediaIntegration::formatInfo()

@@ -44,6 +44,7 @@
 #include <qmutex.h>
 #include <qplatformaudioinput_p.h>
 #include <qplatformaudiooutput_p.h>
+#include <qplatformvideodevices_p.h>
 #include <qmediadevices.h>
 #include <qcameradevice.h>
 #include <qloggingcategory.h>
@@ -55,7 +56,6 @@ class QDummyIntegration : public QPlatformMediaIntegration
 {
 public:
     QDummyIntegration() { qFatal("QtMultimedia is not currently supported on this platform or compiler."); }
-    QPlatformMediaDevices *devices() override { return nullptr; }
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 };
 
@@ -137,7 +137,7 @@ void QPlatformMediaIntegration::setIntegration(QPlatformMediaIntegration *integr
 
 QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
 {
-    return devices()->videoInputs();
+    return m_videoDevices ? m_videoDevices->videoDevices() : QList<QCameraDevice>{};
 }
 
 QPlatformAudioInput *QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
@@ -150,14 +150,9 @@ QPlatformAudioOutput *QPlatformMediaIntegration::createAudioOutput(QAudioOutput 
     return new QPlatformAudioOutput(q);
 }
 
-void QPlatformMediaIntegration::videoInputsChanged() const
-{
-    const auto devices = allMediaDevices();
-    for (auto m : devices)
-        emit m->videoInputsChanged();
-}
-
 QPlatformMediaIntegration::~QPlatformMediaIntegration()
-= default;
+{
+    delete m_videoDevices;
+}
 
 QT_END_NAMESPACE

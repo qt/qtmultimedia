@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qwindowsintegration_p.h"
-#include <qwindowsmediadevices_p.h>
+#include <private/qwindowsmediadevices_p.h>
 #include <qwindowsformatinfo_p.h>
 #include <qwindowsmediacapture_p.h>
 #include <qwindowsimagecapture_p.h>
@@ -82,7 +82,6 @@ QWindowsMediaIntegration::QWindowsMediaIntegration()
 
 QWindowsMediaIntegration::~QWindowsMediaIntegration()
 {
-    delete m_devices;
     delete m_formatInfo;
 
     g_refCount--;
@@ -91,13 +90,6 @@ QWindowsMediaIntegration::~QWindowsMediaIntegration()
 //        MFShutdown();
 //        CoUninitialize();
     }
-}
-
-QPlatformMediaDevices *QWindowsMediaIntegration::devices()
-{
-    if (!m_devices)
-        m_devices = new QWindowsMediaDevices(this);
-    return m_devices;
 }
 
 QPlatformMediaFormatInfo *QWindowsMediaIntegration::formatInfo()

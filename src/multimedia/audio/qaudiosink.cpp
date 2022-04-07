@@ -122,7 +122,7 @@ QAudioSink::QAudioSink(const QAudioFormat &format, QObject *parent)
 QAudioSink::QAudioSink(const QAudioDevice &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QPlatformMediaIntegration::instance()->devices()->audioOutputDevice(format, audioDevice);
+    d = QPlatformMediaDevices::instance()->audioOutputDevice(format, audioDevice);
     if (d)
         connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
     else

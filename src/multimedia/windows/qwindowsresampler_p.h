@@ -37,58 +37,68 @@
 **
 ****************************************************************************/
 
-#ifndef QDARWINMEDIADEVICES_H
-#define QDARWINMEDIADEVICES_H
+
+#ifndef QT_QWINDOWSRESAMPLER_H
+#define QT_QWINDOWSRESAMPLER_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
-#include <qelapsedtimer.h>
-#include <qcameradevice.h>
+#include <qbytearray.h>
+#include <qbytearrayview.h>
+#include <qaudioformat.h>
+#include <private/qwindowsiupointer_p.h>
+#include <qt_windows.h>
+#include <mftransform.h>
 
-Q_FORWARD_DECLARE_OBJC_CLASS(NSObject);
-Q_FORWARD_DECLARE_OBJC_CLASS(AVCaptureDeviceDiscoverySession);
+struct IMFSample;
+struct IMFTransform;
 
 QT_BEGIN_NAMESPACE
 
-class QCameraDevice;
-
-class QDarwinMediaDevices : public QPlatformMediaDevices
+class Q_MULTIMEDIA_EXPORT QWindowsResampler
 {
 public:
-    QDarwinMediaDevices(QPlatformMediaIntegration *integration);
-    ~QDarwinMediaDevices();
+    QWindowsResampler();
+    ~QWindowsResampler();
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
-    QList<QCameraDevice> videoInputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &info) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &info) override;
+    bool setup(const QAudioFormat &in, const QAudioFormat &out);
 
-    void updateCameraDevices();
-    void updateAudioDevices();
+    QByteArray resample(const QByteArrayView &in);
+    QByteArray resample(IMFSample *sample);
+
+    QAudioFormat inputFormat() const { return m_inputFormat; }
+    QAudioFormat outputFormat() const { return m_outputFormat; }
+
+    quint64 outputBufferSize(quint64 inputBufferSize) const;
+    quint64 inputBufferSize(quint64 outputBufferSize) const;
+
+    quint64 totalInputBytes() const { return m_totalInputBytes; }
+    quint64 totalOutputBytes() const { return m_totalOutputBytes; }
 
 private:
-    QList<QCameraDevice> m_cameraDevices;
-    QList<QAudioDevice> m_audioInputs;
-    QList<QAudioDevice> m_audioOutputs;
+    HRESULT processInput(const QByteArrayView &in);
+    HRESULT processOutput(QByteArray &out);
 
-    NSObject *m_deviceConnectedObserver;
-    NSObject *m_deviceDisconnectedObserver;
-#ifdef Q_OS_MACOS
-    void *m_audioDevicesProperty;
-#endif
+    QWindowsIUPointer<IMFTransform> m_resampler;
+
+    bool m_resamplerNeedsSampleBuffer = false;
+    quint64 m_totalInputBytes = 0;
+    quint64 m_totalOutputBytes = 0;
+    QAudioFormat m_inputFormat;
+    QAudioFormat m_outputFormat;
+
+    DWORD m_inputStreamID = 0;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QT_QWINDOWSRESAMPLER_H

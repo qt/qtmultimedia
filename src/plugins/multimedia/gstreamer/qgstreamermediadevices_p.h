@@ -58,14 +58,10 @@
 
 QT_BEGIN_NAMESPACE
 
-#if QT_CONFIG(pulseaudio)
-class QPulseAudioEngine;
-#endif
-
 class QGstreamerMediaDevices : public QPlatformMediaDevices
 {
 public:
-    QGstreamerMediaDevices(QPlatformMediaIntegration *integration);
+    QGstreamerMediaDevices();
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
@@ -83,9 +79,6 @@ private:
     QSet<GstDevice *> m_videoSources;
     QSet<GstDevice *> m_audioSources;
     QSet<GstDevice *> m_audioSinks;
-#if QT_CONFIG(pulseaudio)
-    QPulseAudioEngine *m_pulseEngine;
-#endif
 };
 
 QT_END_NAMESPACE

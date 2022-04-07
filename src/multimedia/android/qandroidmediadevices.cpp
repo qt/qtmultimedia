@@ -37,51 +37,75 @@
 **
 ****************************************************************************/
 
-#include "qpulseaudiomediadevices_p.h"
+#include "qandroidmediadevices_p.h"
 #include "qmediadevices.h"
 #include "private/qcameradevice_p.h"
 
-#include "qpulseaudiosource_p.h"
-#include "qpulseaudiosink_p.h"
-#include "qpulseaudiodevice_p.h"
-#include "qaudioengine_pulse_p.h"
+#include "qandroidaudiosource_p.h"
+#include "qandroidaudiosink_p.h"
+#include "qandroidaudiodevice_p.h"
+#include "qopenslesengine_p.h"
+#include "private/qplatformmediaintegration_p.h"
+
+#include <qjnienvironment.h>
 
 QT_BEGIN_NAMESPACE
 
-QPulseAudioMediaDevices::QPulseAudioMediaDevices(QPlatformMediaIntegration *integration)
-    : QPlatformMediaDevices(integration)
+QAndroidMediaDevices::QAndroidMediaDevices()
+    : QPlatformMediaDevices()
 {
-    pulseEngine = new QPulseAudioEngine();
+    QAndroidMediaDevices::registerNativeMethods();
 }
 
-QPulseAudioMediaDevices::~QPulseAudioMediaDevices()
+QList<QAudioDevice> QAndroidMediaDevices::audioInputs() const
 {
-    delete pulseEngine;
+    return QOpenSLESEngine::availableDevices(QAudioDevice::Input);
 }
 
-QList<QAudioDevice> QPulseAudioMediaDevices::audioInputs() const
+QList<QAudioDevice> QAndroidMediaDevices::audioOutputs() const
 {
-    return pulseEngine->availableDevices(QAudioDevice::Input);
+    return QOpenSLESEngine::availableDevices(QAudioDevice::Output);
 }
 
-QList<QAudioDevice> QPulseAudioMediaDevices::audioOutputs() const
+QPlatformAudioSource *QAndroidMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
-    return pulseEngine->availableDevices(QAudioDevice::Output);
+    return new QAndroidAudioSource(deviceInfo.id());
 }
 
-QList<QCameraDevice> QPulseAudioMediaDevices::videoInputs() const
+QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
 {
-    return {};
+    return new QAndroidAudioSink(deviceInfo.id());
 }
 
-QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
+void QAndroidMediaDevices::forwardAudioOutputsChanged()
 {
-    return new QPulseAudioSource(deviceInfo.id());
+    audioOutputsChanged();
 }
 
-QPlatformAudioSink *QPulseAudioMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
+void QAndroidMediaDevices::forwardAudioInputsChanged()
 {
-    return new QPulseAudioSink(deviceInfo.id());
+    audioInputsChanged();
+}
+
+static void onAudioInputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
+{
+    static_cast<QAndroidMediaDevices*>(QPlatformMediaDevices::instance())->forwardAudioInputsChanged();
+}
+
+static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
+{
+    static_cast<QAndroidMediaDevices*>(QPlatformMediaDevices::instance())->forwardAudioOutputsChanged();
+}
+
+bool QAndroidMediaDevices::registerNativeMethods()
+{
+    static const JNINativeMethod methods[] = {
+        {"onAudioInputDevicesUpdated","()V",(void*)onAudioInputDevicesUpdated},
+        {"onAudioOutputDevicesUpdated", "()V",(void*)onAudioOutputDevicesUpdated}
+    };
+    const int size = std::size(methods);
+    return QJniEnvironment().registerNativeMethods(
+                "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", methods, size);
 }
 
 QT_END_NAMESPACE

@@ -51,32 +51,33 @@
 // We mean it.
 //
 
+#include <qtmultimediaexports.h>
 #include <d3d9.h>
 #include <dxva2api.h>
 #include <mfidl.h>
 
 // Stuff that is missing or incorrecty defined in MinGW.
 
-extern const GUID QMM_MFTranscodeContainerType_ADTS;
-extern const GUID QMM_MFTranscodeContainerType_ASF;
-extern const GUID QMM_MFTranscodeContainerType_AVI;
-extern const GUID QMM_MFTranscodeContainerType_FLAC;
-extern const GUID QMM_MFTranscodeContainerType_MP3;
-extern const GUID QMM_MFTranscodeContainerType_MPEG4;
-extern const GUID QMM_MFTranscodeContainerType_WAVE;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MFTranscodeContainerType_ADTS;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MFTranscodeContainerType_ASF;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MFTranscodeContainerType_AVI;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MFTranscodeContainerType_FLAC;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MFTranscodeContainerType_MP3;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MFTranscodeContainerType_MPEG4;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MFTranscodeContainerType_WAVE;
 
-extern const GUID QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID;
-extern const GUID QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID;
-extern const GUID QMM_MF_TRANSCODE_CONTAINERTYPE;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MF_TRANSCODE_CONTAINERTYPE;
 
-extern const GUID QMM_MF_SD_STREAM_NAME;
-extern const GUID QMM_MF_SD_LANGUAGE;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MF_SD_STREAM_NAME;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MF_SD_LANGUAGE;
 
-extern const GUID QMM_KSCATEGORY_VIDEO_CAMERA;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_KSCATEGORY_VIDEO_CAMERA;
 
-extern const GUID QMM_MR_POLICY_VOLUME_SERVICE;
+Q_MULTIMEDIA_EXPORT extern const GUID QMM_MR_POLICY_VOLUME_SERVICE;
 
-extern const PROPERTYKEY QMM_PKEY_Device_FriendlyName;
+Q_MULTIMEDIA_EXPORT extern const PROPERTYKEY QMM_PKEY_Device_FriendlyName;
 
 extern "C" HRESULT WINAPI MFCreateDeviceSource(IMFAttributes *pAttributes, IMFMediaSource **ppSource);
 

@@ -44,7 +44,7 @@
 
 #include <private/qplatformvideosink_p.h>
 #include <private/qabstractvideobuffer_p.h>
-#include <qwindowsmfdefs_p.h>
+#include <private/qwindowsmfdefs_p.h>
 #include <qvideosink.h>
 #include <qvideoframeformat.h>
 #include <qtimer.h>

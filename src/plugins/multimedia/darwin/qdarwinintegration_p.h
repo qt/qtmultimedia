@@ -53,9 +53,9 @@
 
 #include <private/qplatformmediaintegration_p.h>
 
-QT_BEGIN_NAMESPACE
+Q_FORWARD_DECLARE_OBJC_CLASS(NSObject);
 
-class QDarwinMediaDevices;
+QT_BEGIN_NAMESPACE
 
 class QDarwinIntegration : public QPlatformMediaIntegration
 {
@@ -63,7 +63,6 @@ public:
     QDarwinIntegration();
     ~QDarwinIntegration();
 
-    QPlatformMediaDevices *devices() override;
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *) override;
@@ -75,7 +74,6 @@ public:
 
     QPlatformVideoSink *createVideoSink(QVideoSink *) override;
 
-    QDarwinMediaDevices *m_devices = nullptr;
     QPlatformMediaFormatInfo *m_formatInfo = nullptr;
 };
 

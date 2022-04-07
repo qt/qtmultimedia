@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Qt Toolkit.
+** This file is part of the plugins of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,44 +37,68 @@
 **
 ****************************************************************************/
 
-#ifndef QPULSEAUDIOMEDIADEVICES_H
-#define QPULSEAUDIOMEDIADEVICES_H
+#ifndef IOSAUDIOUTILS_H
+#define IOSAUDIOUTILS_H
 
 //
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API. It exists purely as an
-// implementation detail. This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
-#include <qset.h>
-#include <qaudio.h>
+#include <CoreAudio/CoreAudioTypes.h>
+
+#include <QtMultimedia/QAudioFormat>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 
-class QPulseAudioEngine;
-
-class QPulseAudioMediaDevices : public QPlatformMediaDevices
+class CoreAudioUtils
 {
 public:
-    QPulseAudioMediaDevices(QPlatformMediaIntegration *integration);
-    ~QPulseAudioMediaDevices();
-
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
-    QList<QCameraDevice> videoInputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
+    static quint64 currentTime();
+    static double frequency();
+    static Q_MULTIMEDIA_EXPORT QAudioFormat toQAudioFormat(const AudioStreamBasicDescription& streamFormat);
+    static AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
 
 private:
-    QPulseAudioEngine *pulseEngine;
+    static void initialize();
+    static double sFrequency;
+    static bool sIsInitialized;
+};
+
+class CoreAudioRingBuffer
+{
+public:
+    typedef QPair<char*, int> Region;
+
+    CoreAudioRingBuffer(int bufferSize);
+    ~CoreAudioRingBuffer();
+
+    Region acquireReadRegion(int size);
+    void releaseReadRegion(Region const& region);
+    Region acquireWriteRegion(int size);
+    void releaseWriteRegion(Region const& region);
+
+    int used() const;
+    int free() const;
+    int size() const;
+
+    void reset();
+
+private:
+    int     m_bufferSize;
+    int     m_readPos;
+    int     m_writePos;
+    char*   m_buffer;
+    QAtomicInt  m_bufferUsed;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // IOSAUDIOUTILS_H

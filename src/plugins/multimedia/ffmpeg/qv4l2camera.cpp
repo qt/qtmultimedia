@@ -46,6 +46,7 @@
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qvideotexturehelper_p.h>
 #include <private/qmultimediautils_p.h>
+#include <private/qplatformmediadevices_p.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -92,7 +93,7 @@ void QV4L2CameraDevices::checkCameras()
     QMutexLocker locker(&holder.mutex);
     doCheckCameras();
     locker.unlock();
-    integration->videoInputsChanged();
+    QPlatformMediaDevices::instance()->videoInputsChanged();
 }
 
 const struct {
