@@ -278,7 +278,8 @@ AVFCameraRendererControl::AVFCameraRendererControl(QObject *parent)
 
 AVFCameraRendererControl::~AVFCameraRendererControl()
 {
-    [m_cameraSession->captureSession() removeOutput:m_videoDataOutput];
+    if ([m_cameraSession->captureSession().outputs containsObject:m_videoDataOutput])
+        [m_cameraSession->captureSession() removeOutput:m_videoDataOutput];
     [m_viewfinderFramesDelegate release];
     if (m_delegateQueue)
         dispatch_release(m_delegateQueue);
