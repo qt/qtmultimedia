@@ -84,6 +84,14 @@ qt_feature("avfoundation" PUBLIC PRIVATE
     LABEL "AVFoundation"
     CONDITION AVFoundation_FOUND
 )
+qt_feature("coreaudio" PUBLIC PRIVATE
+    LABEL "CoreAudio"
+    CONDITION AVFoundation_FOUND
+)
+qt_feature("videotoolbox" PUBLIC PRIVATE
+    LABEL "VideoToolbox"
+    CONDITION AVFoundation_FOUND
+)
 qt_feature("evr" PUBLIC PRIVATE
     LABEL "evr.h"
     CONDITION WIN32 AND TEST_evr
@@ -137,22 +145,49 @@ qt_feature("pulseaudio" PUBLIC PRIVATE
     CONDITION WrapPulseAudio_FOUND
 )
 qt_feature("wmsdk" PRIVATE
-    LABEL "wmsdk.h"
+    LABEL "Windows Media SDK"
     CONDITION WIN32 AND TEST_wmsdk
 )
+qt_feature("opensles" PRIVATE
+    LABEL "Open SLES (Android)"
+    CONDITION ANDROID
+)
+qt_feature("wasm" PRIVATE
+    LABEL "Web Assembly"
+    CONDITION WASM
+)
+
 qt_feature("wmf" PRIVATE
     LABEL "Windows Media Foundation"
     CONDITION WIN32 AND WMF_FOUND AND QT_FEATURE_wmsdk
 )
 qt_configure_add_summary_section(NAME "Qt Multimedia")
-#qt_configure_add_summary_entry(ARGS "alsa")
+qt_configure_add_summary_section(NAME "Low level Audio Backend")
+qt_configure_add_summary_entry(ARGS "alsa")
+qt_configure_add_summary_entry(ARGS "pulseaudio")
+qt_configure_add_summary_entry(ARGS "mmrenderer")
+qt_configure_add_summary_entry(ARGS "coreaudio")
+qt_configure_add_summary_entry(ARGS "wmsdk")
+qt_configure_add_summary_entry(ARGS "opensles")
+qt_configure_add_summary_entry(ARGS "wasm")
+qt_configure_end_summary_section()
+qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer_1_0")
 qt_configure_add_summary_entry(ARGS "ffmpeg")
-qt_configure_add_summary_entry(ARGS "linux_v4l")
-qt_configure_add_summary_entry(ARGS "vaapi")
-qt_configure_add_summary_entry(ARGS "pulseaudio")
-qt_configure_add_summary_entry(ARGS "linux_dmabuf")
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
 qt_configure_add_summary_entry(ARGS "wmf")
+qt_configure_end_summary_section()
+qt_configure_add_summary_section(NAME "Hardware acceleration and features")
+qt_configure_add_summary_entry(ARGS "linux_v4l")
+qt_configure_add_summary_entry(ARGS "vaapi")
+qt_configure_add_summary_entry(ARGS "linux_dmabuf")
+qt_configure_add_summary_entry(ARGS "videotoolbox")
+qt_configure_end_summary_section()
 qt_configure_end_summary_section() # end of "Qt Multimedia" section
+
+qt_configure_add_report_entry(
+    TYPE WARNING
+    MESSAGE "No backend for low level audio found."
+    CONDITION NOT QT_FEATURE_alsa AND NOT QT_FEATURE_pulseaudio AND NOT QT_FEATURE_mmrenderer AND NOT QT_FEATURE_coreaudio AND NOT QT_FEATURE_wmsdk AND NOT ANDROID AND NOT WASM
+)
