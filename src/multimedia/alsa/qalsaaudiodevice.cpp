@@ -74,6 +74,10 @@ QAlsaAudioDeviceInfo::QAlsaAudioDeviceInfo(const QByteArray &dev, const QString 
     maximumSampleRate = 48000;
 
     supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
+
+    preferredFormat.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
+    preferredFormat.setSampleFormat(QAudioFormat::Float);
+    preferredFormat.setSampleRate(48000);
 }
 
 QAlsaAudioDeviceInfo::~QAlsaAudioDeviceInfo()

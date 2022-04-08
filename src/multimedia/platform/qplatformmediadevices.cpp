@@ -52,6 +52,8 @@
 #include <qdarwinmediadevices_p.h>
 #elif defined(Q_OS_WINDOWS)
 #include <qwindowsmediadevices_p.h>
+#elif QT_CONFIG(alsa)
+#include <qalsamediadevices_p.h>
 #elif QT_CONFIG(pulseaudio)
 #include <qpulseaudiomediadevices_p.h>
 #elif defined(Q_OS_QNX)
@@ -91,6 +93,8 @@ QPlatformMediaDevices *QPlatformMediaDevices::instance()
     holder.nativeInstance = new QWindowsMediaDevices;
 #elif defined(Q_OS_ANDROID)
     holder.nativeInstance = new QAndroidMediaDevices;
+#elif QT_CONFIG(alsa)
+    holder.nativeInstance = new QAlsaMediaDevices;
 #elif QT_CONFIG(pulseaudio)
     holder.nativeInstance = new QPulseAudioMediaDevices;
 #elif defined(Q_OS_QNX)

@@ -267,13 +267,12 @@ bool QAlsaAudioSink::open()
     QTime now(QTime::currentTime());
     qDebug()<<now.second()<<"s "<<now.msec()<<"ms :open()";
 #endif
-    timeStamp.restart();
     elapsedTimeOffset = 0;
 
     int dir;
     int err = 0;
     int count=0;
-    unsigned int sampleRate=settings.sampleRate();
+    unsigned int sampleRate = settings.sampleRate();
 
     if (!settings.isValid()) {
         qWarning("QAudioSink: open error, invalid format.");
@@ -451,7 +450,6 @@ bool QAlsaAudioSink::open()
     // Step 6: Start audio processing
     timer->start(period_time/1000);
 
-    timeStamp.restart();
     elapsedTimeOffset = 0;
     errorState  = QAudio::NoError;
     totalTimeValue = 0;
@@ -598,8 +596,7 @@ void QAlsaAudioSink::resume()
 
 void QAlsaAudioSink::setFormat(const QAudioFormat& fmt)
 {
-    if (deviceState == QAudio::StoppedState)
-        settings = fmt;
+    settings = fmt;
 }
 
 QAudioFormat QAlsaAudioSink::format() const

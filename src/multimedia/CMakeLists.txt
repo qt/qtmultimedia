@@ -109,6 +109,18 @@ qt_internal_add_docs(Multimedia
     doc/qtmultimedia.qdocconf
 )
 
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_alsa
+    SOURCES
+        alsa/qalsaaudiodevice.cpp alsa/qalsaaudiodevice_p.h
+        alsa/qalsaaudiosource.cpp alsa/qalsaaudiosource_p.h
+        alsa/qalsaaudiosink.cpp alsa/qalsaaudiosink_p.h
+        alsa/qalsamediadevices.cpp alsa/qalsamediadevices_p.h
+    INCLUDE_DIRECTORIES
+        alsa
+    LIBRARIES
+        ALSA::ALSA
+)
+
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_pulseaudio
     SOURCES
         pulseaudio/qpulseaudiodevice.cpp pulseaudio/qpulseaudiodevice_p.h

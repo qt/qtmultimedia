@@ -49,8 +49,8 @@
 
 QT_BEGIN_NAMESPACE
 
-QAlsaMediaDevices::QAlsaMediaDevices(QPlatformMediaIntegration *integration)
-    : QPlatformMediaDevices(integration)
+QAlsaMediaDevices::QAlsaMediaDevices()
+    : QPlatformMediaDevices()
 {
 }
 

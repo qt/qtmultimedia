@@ -449,7 +449,7 @@ int QAlsaAudioSource::checkBytesReady()
     return bytesAvailable;
 }
 
-int QAlsaAudioSource::bytesReady() const
+qsizetype QAlsaAudioSource::bytesReady() const
 {
     return qMax(bytesAvailable, 0);
 }
@@ -623,12 +623,12 @@ void QAlsaAudioSource::resume()
     }
 }
 
-void QAlsaAudioSource::setBufferSize(int value)
+void QAlsaAudioSource::setBufferSize(qsizetype value)
 {
     buffer_size = value;
 }
 
-int QAlsaAudioSource::bufferSize() const
+qsizetype QAlsaAudioSource::bufferSize() const
 {
     return buffer_size;
 }

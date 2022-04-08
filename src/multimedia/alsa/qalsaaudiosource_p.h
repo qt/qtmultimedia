@@ -142,10 +142,10 @@ private:
     QTimer* timer;
     qint64 elapsedTimeOffset;
     RingBuffer ringBuffer;
-    int bytesAvailable;
+    qsizetype bytesAvailable;
     QByteArray m_device;
     bool pullMode;
-    int buffer_size;
+    qsizetype buffer_size;
     int period_size;
     unsigned int buffer_time;
     unsigned int period_time;

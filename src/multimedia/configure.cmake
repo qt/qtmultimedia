@@ -76,9 +76,9 @@ qt_feature("ffmpeg" PRIVATE
     CONDITION FFmpeg_FOUND AND (APPLE OR WIN32 OR QNX OR QT_FEATURE_pulseaudio)
 )
 qt_feature("alsa" PUBLIC PRIVATE
-    LABEL "ALSA"
+    LABEL "ALSA (experimental)"
     AUTODETECT false
-    CONDITION UNIX AND NOT QNX AND ALSA_FOUND AND NOT QT_FEATURE_gstreamer AND NOT QT_FEATURE_pulseaudio
+    CONDITION UNIX AND NOT QNX AND ALSA_FOUND AND NOT QT_FEATURE_pulseaudio
 )
 qt_feature("avfoundation" PUBLIC PRIVATE
     LABEL "AVFoundation"
