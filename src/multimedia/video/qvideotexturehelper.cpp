@@ -347,6 +347,7 @@ QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::F
             break;
         }
         // Fall through, should be bt709
+        Q_FALLTHROUGH();
     case QVideoFrameFormat::Format_NV12:
         shader = "nv12";
         break;
