@@ -40,6 +40,7 @@
 #define QFFMPEG_P_H
 
 #include <private/qtmultimediaglobal_p.h>
+#include <qstring.h>
 
 extern "C" {
 #include <libavformat/avformat.h>
