@@ -72,6 +72,8 @@ public:
 
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
 
+    QPlatformMediaCaptureSession *createCaptureSession();
+
     QQnxMediaDevices *m_devices = nullptr;
     QQnxFormatInfo *m_formatInfo = nullptr;
 };
