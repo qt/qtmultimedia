@@ -74,7 +74,7 @@ public:
 
 private:
     QVideoSurfaceFormat m_format;
-    QSGVideoMaterial_Texture *m_material;
+    QSGVideoMaterial_Texture *m_material = nullptr;
     QVideoFrame m_frame;
 };
 
