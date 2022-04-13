@@ -260,16 +260,16 @@ bool QQnxAudioSource::open()
     // Necessary so that bytesFree() which uses the "free" member of the status struct works
     snd_pcm_plugin_set_disable(m_pcmHandle.get(), PLUGIN_MMAP);
 
-    snd_pcm_channel_info_t info;
-    memset(&info, 0, sizeof(info));
-    info.channel = SND_PCM_CHANNEL_CAPTURE;
-    if ((errorCode = snd_pcm_plugin_info(m_pcmHandle.get(), &info)) < 0) {
-        qWarning("QQnxAudioSource: open error, couldn't get channel info (0x%x)", -errorCode);
+    const std::optional<snd_pcm_channel_info_t> info = QnxAudioUtils::pcmChannelInfo(
+            m_pcmHandle.get(), QAudioDevice::Input);
+
+    if (!info) {
         close();
         return false;
     }
 
-    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudioDevice::Input, info.max_fragment_size);
+    snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format,
+            QAudioDevice::Input, info->max_fragment_size);
 
     if ((errorCode = snd_pcm_plugin_params(m_pcmHandle.get(), &params)) < 0) {
         qWarning("QQnxAudioSource: open error, couldn't set channel params (0x%x)", -errorCode);
