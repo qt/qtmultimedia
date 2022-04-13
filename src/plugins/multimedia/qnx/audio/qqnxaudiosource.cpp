@@ -390,6 +390,11 @@ qint64 InputPrivate::writeData(const char *data, qint64 len)
     return 0;
 }
 
+bool InputPrivate::isSequential() const
+{
+    return true;
+}
+
 void InputPrivate::trigger()
 {
     emit readyRead();

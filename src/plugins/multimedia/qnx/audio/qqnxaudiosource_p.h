@@ -134,6 +134,8 @@ public:
     qint64 readData(char *data, qint64 len) override;
     qint64 writeData(const char *data, qint64 len) override;
 
+    bool isSequential() const override;
+
     void trigger();
 
 private:
