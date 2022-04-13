@@ -283,17 +283,10 @@ bool QQnxAudioSource::open()
         return false;
     }
 
-    snd_pcm_channel_setup_t setup;
+    const std::optional<snd_pcm_channel_setup_t> setup = QnxAudioUtils::pcmChannelSetup(
+            m_pcmHandle.get(), QAudioDevice::Input);
 
-    memset(&setup, 0, sizeof(setup));
-    setup.channel = SND_PCM_CHANNEL_CAPTURE;
-    if ((errorCode = snd_pcm_plugin_setup(m_pcmHandle.get(), &setup)) < 0) {
-        qWarning("QQnxAudioSource: open error, couldn't get channel setup (0x%x)", -errorCode);
-        close();
-        return false;
-    }
-
-    m_periodSize = qMin(2048, setup.buf.block.frag_size);
+    m_periodSize = qMin(2048, setup->buf.block.frag_size);
 
     m_elapsedTimeOffset = 0;
     m_totalTimeValue = 0;
