@@ -645,8 +645,8 @@ void tst_QAudioSource::pushSuspendResume()
 
     // Check that QAudioSource immediately transitions to Active or IdleState
     QTRY_VERIFY2((stateSignal.count() > 0),"didn't emit signals on resume()");
-    QVERIFY2((audioInput.state() == QAudio::ActiveState),
-             "didn't transition to ActiveState after resume()");
+    QVERIFY2((audioInput.state() == QAudio::ActiveState || audioInput.state() == QAudio::IdleState),
+             "didn't transition to ActiveState or IdleState after resume()");
     QVERIFY2((audioInput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after resume()");
 
     stateSignal.clear();
