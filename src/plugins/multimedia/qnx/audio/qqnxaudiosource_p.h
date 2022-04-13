@@ -53,6 +53,8 @@
 
 #include "private/qaudiosystem_p.h"
 
+#include "qqnxaudioutils_p.h"
+
 #include <QSocketNotifier>
 #include <QIODevice>
 #include <QElapsedTimer>
@@ -67,7 +69,7 @@ class QQnxAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QQnxAudioSource();
+    explicit QQnxAudioSource(const QAudioDevice &deviceInfo);
     ~QQnxAudioSource();
 
     void start(QIODevice*) override;
@@ -103,7 +105,7 @@ private:
     QAudioFormat m_format;
 
     QIODevice *m_audioSource;
-    snd_pcm_t *m_pcmHandle;
+    QnxAudioUtils::HandleUniquePtr m_pcmHandle;
     QSocketNotifier *m_pcmNotifier;
 
     QAudio::Error m_error;
@@ -118,6 +120,8 @@ private:
     int m_bytesAvailable;
     int m_bufferSize;
     int m_periodSize;
+
+    QAudioDevice m_deviceInfo;
 
     bool m_pullMode;
 };

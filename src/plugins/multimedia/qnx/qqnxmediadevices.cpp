@@ -198,9 +198,9 @@ QList<QCameraDevice> QQnxMediaDevices::videoInputs() const
     return cameras;
 }
 
-QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &/*deviceInfo*/)
+QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
 {
-    return new QQnxAudioSource();
+    return new QQnxAudioSource(deviceInfo);
 }
 
 QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)

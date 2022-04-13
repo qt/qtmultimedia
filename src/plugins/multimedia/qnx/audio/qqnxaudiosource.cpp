@@ -39,17 +39,14 @@
 
 #include "qqnxaudiosource_p.h"
 
-#include "qqnxaudioutils_p.h"
-
 #include <private/qaudiohelpers_p.h>
 
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
-QQnxAudioSource::QQnxAudioSource()
+QQnxAudioSource::QQnxAudioSource(const QAudioDevice &deviceInfo)
     : m_audioSource(0)
-    , m_pcmHandle(0)
     , m_pcmNotifier(0)
     , m_error(QAudio::NoError)
     , m_state(QAudio::StoppedState)
@@ -60,6 +57,7 @@ QQnxAudioSource::QQnxAudioSource()
     , m_bytesAvailable(0)
     , m_bufferSize(0)
     , m_periodSize(0)
+    , m_deviceInfo(deviceInfo)
     , m_pullMode(true)
 {
 }
@@ -136,7 +134,7 @@ void QQnxAudioSource::suspend()
     if (m_state == QAudio::StoppedState)
         return;
 
-    snd_pcm_capture_pause(m_pcmHandle);
+    snd_pcm_capture_pause(m_pcmHandle.get());
 
     if (m_pcmNotifier)
         m_pcmNotifier->setEnabled(false);
@@ -149,7 +147,7 @@ void QQnxAudioSource::resume()
     if (m_state == QAudio::StoppedState)
         return;
 
-    snd_pcm_capture_resume(m_pcmHandle);
+    snd_pcm_capture_resume(m_pcmHandle.get());
 
     if (m_pcmNotifier)
         m_pcmNotifier->setEnabled(true);
@@ -252,22 +250,20 @@ bool QQnxAudioSource::open()
         return false;
     }
 
+    m_pcmHandle = QnxAudioUtils::openPcmDevice(m_deviceInfo.id(), QAudioDevice::Input);
+
+    if (!m_pcmHandle)
+        return false;
+
     int errorCode = 0;
 
-    int card = 0;
-    int device = 0;
-    if ((errorCode = snd_pcm_open_preferred(&m_pcmHandle, &card, &device, SND_PCM_OPEN_CAPTURE)) < 0) {
-        qWarning("QQnxAudioSource: open error, couldn't open card (0x%x)", -errorCode);
-        return false;
-    }
-
     // Necessary so that bytesFree() which uses the "free" member of the status struct works
-    snd_pcm_plugin_set_disable(m_pcmHandle, PLUGIN_MMAP);
+    snd_pcm_plugin_set_disable(m_pcmHandle.get(), PLUGIN_MMAP);
 
     snd_pcm_channel_info_t info;
     memset(&info, 0, sizeof(info));
     info.channel = SND_PCM_CHANNEL_CAPTURE;
-    if ((errorCode = snd_pcm_plugin_info(m_pcmHandle, &info)) < 0) {
+    if ((errorCode = snd_pcm_plugin_info(m_pcmHandle.get(), &info)) < 0) {
         qWarning("QQnxAudioSource: open error, couldn't get channel info (0x%x)", -errorCode);
         close();
         return false;
@@ -275,13 +271,13 @@ bool QQnxAudioSource::open()
 
     snd_pcm_channel_params_t params = QnxAudioUtils::formatToChannelParams(m_format, QAudioDevice::Input, info.max_fragment_size);
 
-    if ((errorCode = snd_pcm_plugin_params(m_pcmHandle, &params)) < 0) {
+    if ((errorCode = snd_pcm_plugin_params(m_pcmHandle.get(), &params)) < 0) {
         qWarning("QQnxAudioSource: open error, couldn't set channel params (0x%x)", -errorCode);
         close();
         return false;
     }
 
-    if ((errorCode = snd_pcm_plugin_prepare(m_pcmHandle, SND_PCM_CHANNEL_CAPTURE)) < 0) {
+    if ((errorCode = snd_pcm_plugin_prepare(m_pcmHandle.get(), SND_PCM_CHANNEL_CAPTURE)) < 0) {
         qWarning("QQnxAudioSource: open error, couldn't prepare channel (0x%x)", -errorCode);
         close();
         return false;
@@ -291,7 +287,7 @@ bool QQnxAudioSource::open()
 
     memset(&setup, 0, sizeof(setup));
     setup.channel = SND_PCM_CHANNEL_CAPTURE;
-    if ((errorCode = snd_pcm_plugin_setup(m_pcmHandle, &setup)) < 0) {
+    if ((errorCode = snd_pcm_plugin_setup(m_pcmHandle.get(), &setup)) < 0) {
         qWarning("QQnxAudioSource: open error, couldn't get channel setup (0x%x)", -errorCode);
         close();
         return false;
@@ -303,7 +299,7 @@ bool QQnxAudioSource::open()
     m_totalTimeValue = 0;
     m_bytesRead = 0;
 
-    m_pcmNotifier = new QSocketNotifier(snd_pcm_file_descriptor(m_pcmHandle, SND_PCM_CHANNEL_CAPTURE),
+    m_pcmNotifier = new QSocketNotifier(snd_pcm_file_descriptor(m_pcmHandle.get(), SND_PCM_CHANNEL_CAPTURE),
                                         QSocketNotifier::Read, this);
     connect(m_pcmNotifier, SIGNAL(activated(QSocketDescriptor)), SLOT(userFeed()));
 
@@ -312,21 +308,18 @@ bool QQnxAudioSource::open()
 
 void QQnxAudioSource::close()
 {
-    if (m_pcmHandle)
+    if (m_pcmHandle) {
 #if SND_PCM_VERSION < SND_PROTOCOL_VERSION('P',3,0,2)
-        snd_pcm_plugin_flush(m_pcmHandle, SND_PCM_CHANNEL_CAPTURE);
+        snd_pcm_plugin_flush(m_pcmHandle.get(), SND_PCM_CHANNEL_CAPTURE);
 #else
-        snd_pcm_plugin_drop(m_pcmHandle, SND_PCM_CHANNEL_CAPTURE);
+        snd_pcm_plugin_drop(m_pcmHandle.get(), SND_PCM_CHANNEL_CAPTURE);
 #endif
+        m_pcmHandle = nullptr;
+    }
 
     if (m_pcmNotifier) {
         delete m_pcmNotifier;
         m_pcmNotifier = 0;
-    }
-
-    if (m_pcmHandle) {
-        snd_pcm_close(m_pcmHandle);
-        m_pcmHandle = 0;
     }
 
     if (!m_pullMode && m_audioSource) {
@@ -340,12 +333,12 @@ qint64 QQnxAudioSource::read(char *data, qint64 len)
     int errorCode = 0;
     QByteArray tempBuffer(m_periodSize, 0);
 
-    const int actualRead = snd_pcm_plugin_read(m_pcmHandle, tempBuffer.data(), m_periodSize);
+    const int actualRead = snd_pcm_plugin_read(m_pcmHandle.get(), tempBuffer.data(), m_periodSize);
     if (actualRead < 1) {
         snd_pcm_channel_status_t status;
         memset(&status, 0, sizeof(status));
         status.channel = SND_PCM_CHANNEL_CAPTURE;
-        if ((errorCode = snd_pcm_plugin_status(m_pcmHandle, &status)) < 0) {
+        if ((errorCode = snd_pcm_plugin_status(m_pcmHandle.get(), &status)) < 0) {
             qWarning("QQnxAudioSource: read error, couldn't get plugin status (0x%x)", -errorCode);
             close();
             setError(QAudio::FatalError);
@@ -355,7 +348,7 @@ qint64 QQnxAudioSource::read(char *data, qint64 len)
 
         if (status.status == SND_PCM_STATUS_READY
             || status.status == SND_PCM_STATUS_OVERRUN) {
-            if ((errorCode = snd_pcm_plugin_prepare(m_pcmHandle, SND_PCM_CHANNEL_CAPTURE)) < 0) {
+            if ((errorCode = snd_pcm_plugin_prepare(m_pcmHandle.get(), SND_PCM_CHANNEL_CAPTURE)) < 0) {
                 qWarning("QQnxAudioSource: read error, couldn't prepare plugin (0x%x)", -errorCode);
                 close();
                 setError(QAudio::FatalError);
