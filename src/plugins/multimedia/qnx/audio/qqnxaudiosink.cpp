@@ -542,4 +542,9 @@ qint64 QnxPushIODevice::writeData(const char *data, qint64 len)
     return m_output->pushData(data, len);
 }
 
+bool QnxPushIODevice::isSequential() const
+{
+    return true;
+}
+
 QT_END_NAMESPACE
