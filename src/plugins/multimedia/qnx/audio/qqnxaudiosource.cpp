@@ -78,13 +78,10 @@ void QQnxAudioSource::start(QIODevice *device)
     m_pullMode = true;
     m_audioSource = device;
 
-    if (open()) {
-        setError(QAudio::NoError);
-        setState(QAudio::ActiveState);
-    } else {
-        setError(QAudio::OpenError);
-        setState(QAudio::StoppedState);
-    }
+    if (open())
+        changeState(QAudio::ActiveState, QAudio::NoError);
+    else
+        changeState(QAudio::StoppedState, QAudio::OpenError);
 }
 
 QIODevice *QQnxAudioSource::start()
@@ -100,14 +97,12 @@ QIODevice *QQnxAudioSource::start()
     m_audioSource->open(QIODevice::ReadOnly | QIODevice::Unbuffered);
 
     if (open()) {
-        setError(QAudio::NoError);
-        setState(QAudio::IdleState);
+        changeState(QAudio::IdleState, QAudio::NoError);
     } else {
         delete m_audioSource;
         m_audioSource = 0;
 
-        setError(QAudio::OpenError);
-        setState(QAudio::StoppedState);
+        changeState(QAudio::StoppedState, QAudio::OpenError);
     }
 
     return m_audioSource;
@@ -118,8 +113,7 @@ void QQnxAudioSource::stop()
     if (m_state == QAudio::StoppedState)
         return;
 
-    setError(QAudio::NoError);
-    setState(QAudio::StoppedState);
+    changeState(QAudio::StoppedState, QAudio::NoError);
     close();
 }
 
@@ -139,7 +133,7 @@ void QQnxAudioSource::suspend()
     if (m_pcmNotifier)
         m_pcmNotifier->setEnabled(false);
 
-    setState(QAudio::SuspendedState);
+    changeState(QAudio::SuspendedState, QAudio::NoError);
 }
 
 void QQnxAudioSource::resume()
@@ -152,11 +146,10 @@ void QQnxAudioSource::resume()
     if (m_pcmNotifier)
         m_pcmNotifier->setEnabled(true);
 
-    if (m_pullMode) {
-        setState(QAudio::ActiveState);
-    } else {
-        setState(QAudio::IdleState);
-    }
+    if (m_pullMode)
+        changeState(QAudio::ActiveState, QAudio::NoError);
+    else
+        changeState(QAudio::IdleState, QAudio::NoError);
 }
 
 qsizetype QQnxAudioSource::bytesReady() const
@@ -334,8 +327,7 @@ qint64 QQnxAudioSource::read(char *data, qint64 len)
         if ((errorCode = snd_pcm_plugin_status(m_pcmHandle.get(), &status)) < 0) {
             qWarning("QQnxAudioSource: read error, couldn't get plugin status (0x%x)", -errorCode);
             close();
-            setError(QAudio::FatalError);
-            setState(QAudio::StoppedState);
+            changeState(QAudio::StoppedState, QAudio::FatalError);
             return -1;
         }
 
@@ -344,14 +336,12 @@ qint64 QQnxAudioSource::read(char *data, qint64 len)
             if ((errorCode = snd_pcm_plugin_prepare(m_pcmHandle.get(), SND_PCM_CHANNEL_CAPTURE)) < 0) {
                 qWarning("QQnxAudioSource: read error, couldn't prepare plugin (0x%x)", -errorCode);
                 close();
-                setError(QAudio::FatalError);
-                setState(QAudio::StoppedState);
+                changeState(QAudio::StoppedState, QAudio::FatalError);
                 return -1;
             }
         }
     } else {
-        setError(QAudio::NoError);
-        setState(QAudio::ActiveState);
+        changeState(QAudio::ActiveState, QAudio::NoError);
     }
 
     if (m_volume < 1.0f)
@@ -370,22 +360,17 @@ qint64 QQnxAudioSource::read(char *data, qint64 len)
     return actualRead;
 }
 
-void QQnxAudioSource::setError(QAudio::Error error)
+void QQnxAudioSource::changeState(QAudio::State state, QAudio::Error error)
 {
-    if (m_error == error)
-        return;
+    if (m_state != state) {
+        m_state = state;
+        emit stateChanged(state);
+    }
 
-    m_error = error;
-    emit errorChanged(m_error);
-}
-
-void QQnxAudioSource::setState(QAudio::State state)
-{
-    if (m_state == state)
-        return;
-
-    m_state = state;
-    emit stateChanged(m_state);
+    if (m_error != error) {
+        m_error = error;
+        emit errorChanged(error);
+    }
 }
 
 InputPrivate::InputPrivate(QQnxAudioSource *audio)

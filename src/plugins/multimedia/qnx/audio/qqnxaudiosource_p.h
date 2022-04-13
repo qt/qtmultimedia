@@ -99,8 +99,7 @@ private:
     bool open();
     void close();
     qint64 read(char *data, qint64 len);
-    void setError(QAudio::Error error);
-    void setState(QAudio::State state);
+    void changeState(QAudio::State state, QAudio::Error error);
 
     QAudioFormat m_format;
 
