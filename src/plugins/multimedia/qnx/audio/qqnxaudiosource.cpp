@@ -316,6 +316,9 @@ void QQnxAudioSource::close()
 
 qint64 QQnxAudioSource::read(char *data, qint64 len)
 {
+    if (!m_pullMode && m_bytesAvailable == 0)
+        return 0;
+
     int errorCode = 0;
     QByteArray tempBuffer(m_periodSize, 0);
 
