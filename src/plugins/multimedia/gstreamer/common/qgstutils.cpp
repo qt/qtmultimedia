@@ -305,6 +305,14 @@ QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
                 transfer = QVideoFrameFormat::ColorTransfer_STD_B67;
                 break;
 #endif
+#if GST_CHECK_VERSION(1, 20, 0)
+            case GST_VIDEO_TRANSFER_BT2020_10:
+                transfer = QVideoFrameFormat::ColorTransfer_BT709;
+                break;
+            case GST_VIDEO_TRANSFER_BT601:
+                transfer = QVideoFrameFormat::ColorTransfer_BT601;
+                break;
+#endif
             }
             format.setColorTransfer(transfer);
 
