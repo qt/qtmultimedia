@@ -439,9 +439,11 @@ void QV4L2Camera::setFocusMode(QCamera::FocusMode mode)
     case QCamera::FocusModeInfinity:
         setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 0);
         setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, v4l2MaxFocus);
+        break;
     case QCamera::FocusModeManual:
         setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 0);
         setFocusDistance(focusDistance());
+        break;
     }
     focusModeChanged(mode);
 }
