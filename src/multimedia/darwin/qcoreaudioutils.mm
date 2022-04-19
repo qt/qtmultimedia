@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "qcoreaudioutils_p.h"
+#include <qdebug.h>
 #include <mach/mach_time.h>
 
 QT_BEGIN_NAMESPACE
@@ -132,6 +133,156 @@ AudioStreamBasicDescription CoreAudioUtils::toAudioStreamBasicDescription(QAudio
     }
 
     return sf;
+}
+
+
+static constexpr struct {
+    QAudioFormat::AudioChannelPosition pos;
+    AudioChannelLabel label;
+} channelMap[] =  {
+        { QAudioFormat::FrontLeft, kAudioChannelLabel_Left },
+        { QAudioFormat::FrontRight, kAudioChannelLabel_Right },
+        { QAudioFormat::FrontCenter, kAudioChannelLabel_Center },
+        { QAudioFormat::LFE, kAudioChannelLabel_LFEScreen },
+        { QAudioFormat::BackLeft, kAudioChannelLabel_LeftSurround },
+        { QAudioFormat::BackRight, kAudioChannelLabel_RightSurround },
+        { QAudioFormat::FrontLeftOfCenter, kAudioChannelLabel_LeftCenter },
+        { QAudioFormat::FrontRightOfCenter, kAudioChannelLabel_RightCenter },
+        { QAudioFormat::BackCenter, kAudioChannelLabel_CenterSurround },
+        { QAudioFormat::LFE2, kAudioChannelLabel_LFE2 },
+        { QAudioFormat::SideLeft, kAudioChannelLabel_LeftSurroundDirect }, // ???
+        { QAudioFormat::SideRight, kAudioChannelLabel_RightSurroundDirect }, // ???
+        { QAudioFormat::TopFrontLeft, kAudioChannelLabel_VerticalHeightLeft },
+        { QAudioFormat::TopFrontRight, kAudioChannelLabel_VerticalHeightRight },
+        { QAudioFormat::TopFrontCenter, kAudioChannelLabel_VerticalHeightCenter },
+        { QAudioFormat::TopCenter, kAudioChannelLabel_CenterTopMiddle },
+        { QAudioFormat::TopBackLeft, kAudioChannelLabel_TopBackLeft },
+        { QAudioFormat::TopBackRight, kAudioChannelLabel_TopBackRight },
+        { QAudioFormat::TopSideLeft, kAudioChannelLabel_LeftTopMiddle },
+        { QAudioFormat::TopSideRight, kAudioChannelLabel_RightTopMiddle },
+        { QAudioFormat::TopBackCenter, kAudioChannelLabel_TopBackCenter },
+};
+
+std::unique_ptr<AudioChannelLayout> CoreAudioUtils::toAudioChannelLayout(const QAudioFormat &format, UInt32 *size)
+{
+    auto channelConfig = format.channelConfig();
+    if (channelConfig == QAudioFormat::ChannelConfigUnknown)
+        channelConfig = QAudioFormat::defaultChannelConfigForChannelCount(format.channelCount());
+
+    *size = sizeof(AudioChannelLayout) + int(QAudioFormat::NChannelPositions)*sizeof(AudioChannelDescription);
+    auto *layout = static_cast<AudioChannelLayout *>(malloc(*size));
+    memset(layout, 0, *size);
+    layout->mChannelLayoutTag = kAudioChannelLayoutTag_UseChannelDescriptions;
+
+    for (const auto &m : channelMap) {
+        if (channelConfig & QAudioFormat::channelConfig(m.pos))
+            layout->mChannelDescriptions[layout->mNumberChannelDescriptions++].mChannelLabel = m.label;
+    }
+
+    if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::BottomFrontCenter)) {
+        auto &desc = layout->mChannelDescriptions[layout->mNumberChannelDescriptions++];
+        desc.mChannelLabel = kAudioChannelLabel_UseCoordinates;
+        desc.mChannelFlags = kAudioChannelFlags_SphericalCoordinates;
+        desc.mCoordinates[kAudioChannelCoordinates_Azimuth] = 0.f;
+        desc.mCoordinates[kAudioChannelCoordinates_Elevation] = -20.;
+        desc.mCoordinates[kAudioChannelCoordinates_Distance] = 1.f;
+    }
+    if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::BottomFrontLeft)) {
+        auto &desc = layout->mChannelDescriptions[layout->mNumberChannelDescriptions++];
+        desc.mChannelLabel = kAudioChannelLabel_UseCoordinates;
+        desc.mChannelFlags = kAudioChannelFlags_SphericalCoordinates;
+        desc.mCoordinates[kAudioChannelCoordinates_Azimuth] = -45.f;
+        desc.mCoordinates[kAudioChannelCoordinates_Elevation] = -20.;
+        desc.mCoordinates[kAudioChannelCoordinates_Distance] = 1.f;
+    }
+    if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::BottomFrontRight)) {
+        auto &desc = layout->mChannelDescriptions[layout->mNumberChannelDescriptions++];
+        desc.mChannelLabel = kAudioChannelLabel_UseCoordinates;
+        desc.mChannelFlags = kAudioChannelFlags_SphericalCoordinates;
+        desc.mCoordinates[kAudioChannelCoordinates_Azimuth] = 45.f;
+        desc.mCoordinates[kAudioChannelCoordinates_Elevation] = -20.;
+        desc.mCoordinates[kAudioChannelCoordinates_Distance] = 1.f;
+    }
+
+    return std::unique_ptr<AudioChannelLayout>(layout);
+}
+
+static constexpr struct {
+    AudioChannelLayoutTag tag;
+    QAudioFormat::ChannelConfig channelConfig;
+} layoutTagMap[] = {
+    { kAudioChannelLayoutTag_Mono, QAudioFormat::ChannelConfigMono },
+    { kAudioChannelLayoutTag_Stereo, QAudioFormat::ChannelConfigStereo },
+    { kAudioChannelLayoutTag_StereoHeadphones, QAudioFormat::ChannelConfigStereo },
+    { kAudioChannelLayoutTag_MPEG_1_0, QAudioFormat::ChannelConfigMono },
+    { kAudioChannelLayoutTag_MPEG_2_0, QAudioFormat::ChannelConfigStereo },
+    { kAudioChannelLayoutTag_MPEG_3_0_A, QAudioFormat::channelConfig(QAudioFormat::FrontLeft,
+                                                                     QAudioFormat::FrontRight,
+                                                                     QAudioFormat::FrontCenter) },
+    { kAudioChannelLayoutTag_MPEG_4_0_A, QAudioFormat::channelConfig(QAudioFormat::FrontLeft,
+                                                                     QAudioFormat::FrontRight,
+                                                                     QAudioFormat::FrontCenter,
+                                                                     QAudioFormat::BackCenter) },
+    { kAudioChannelLayoutTag_MPEG_5_0_A, QAudioFormat::ChannelConfigSurround5Dot0 },
+    { kAudioChannelLayoutTag_MPEG_5_1_A, QAudioFormat::ChannelConfigSurround5Dot1 },
+    { kAudioChannelLayoutTag_MPEG_6_1_A, QAudioFormat::channelConfig(QAudioFormat::FrontLeft,
+                                                                     QAudioFormat::FrontRight,
+                                                                     QAudioFormat::FrontCenter,
+                                                                     QAudioFormat::LFE,
+                                                                     QAudioFormat::BackLeft,
+                                                                     QAudioFormat::BackRight,
+                                                                     QAudioFormat::BackCenter) },
+    { kAudioChannelLayoutTag_MPEG_7_1_A, QAudioFormat::ChannelConfigSurround7Dot1 },
+    { kAudioChannelLayoutTag_SMPTE_DTV, QAudioFormat::channelConfig(QAudioFormat::FrontLeft,
+                                                                    QAudioFormat::FrontRight,
+                                                                    QAudioFormat::FrontCenter,
+                                                                    QAudioFormat::LFE,
+                                                                    QAudioFormat::BackLeft,
+                                                                    QAudioFormat::BackRight,
+                                                                    QAudioFormat::TopFrontLeft,
+                                                                    QAudioFormat::TopFrontRight) },
+
+    { kAudioChannelLayoutTag_ITU_2_1, QAudioFormat::ChannelConfig2Dot1 },
+    { kAudioChannelLayoutTag_ITU_2_2, QAudioFormat::channelConfig(QAudioFormat::FrontLeft,
+                                                                  QAudioFormat::FrontRight,
+                                                                  QAudioFormat::BackLeft,
+                                                                  QAudioFormat::BackRight) }
+};
+
+
+QAudioFormat::ChannelConfig CoreAudioUtils::fromAudioChannelLayout(const AudioChannelLayout *layout)
+{
+    for (const auto &m : layoutTagMap) {
+        if (m.tag == layout->mChannelLayoutTag)
+            return m.channelConfig;
+    }
+
+    quint32 channels = 0;
+    if (layout->mChannelLayoutTag == kAudioChannelLayoutTag_UseChannelDescriptions) {
+        // special case 1 and 2 channel configs, as they are often reported without proper descriptions
+        if (layout->mNumberChannelDescriptions == 1 && layout->mChannelDescriptions[0].mChannelLabel == kAudioChannelLabel_Unknown)
+            return QAudioFormat::ChannelConfigMono;
+        if (layout->mNumberChannelDescriptions == 2 &&
+            layout->mChannelDescriptions[0].mChannelLabel == kAudioChannelLabel_Unknown &&
+            layout->mChannelDescriptions[1].mChannelLabel == kAudioChannelLabel_Unknown)
+            return QAudioFormat::ChannelConfigStereo;
+
+        for (uint i = 0; i < layout->mNumberChannelDescriptions; ++i) {
+            bool found = false;
+            for (const auto &m : channelMap) {
+                if (layout->mChannelDescriptions[i].mChannelLabel == m.label) {
+                    channels |= QAudioFormat::channelConfig(m.pos);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+                qWarning() << "audio device has unknown channel" << layout->mChannelDescriptions[i].mChannelLabel;
+        }
+    } else {
+        qWarning() << "Channel layout uses unimplemented format";
+    }
+    return QAudioFormat::ChannelConfig(channels);
 }
 
 // QAudioRingBuffer

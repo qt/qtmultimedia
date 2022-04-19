@@ -77,6 +77,7 @@ public:
 private:
     QAudioFormat determinePreferredFormat() const;
     QString getDescription() const;
+    void getChannelLayout();
 #if defined(Q_OS_MACOS)
     AudioDeviceID m_deviceId;
 #endif

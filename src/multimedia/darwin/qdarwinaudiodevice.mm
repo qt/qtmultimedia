@@ -53,22 +53,24 @@
 QT_BEGIN_NAMESPACE
 
 #if defined(Q_OS_MACOS)
-    QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
-        : QAudioDevicePrivate(device, mode),
-        m_deviceId(id)
+QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(AudioDeviceID id, const QByteArray &device, QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(device, mode),
+    m_deviceId(id)
 #else
-    QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode)
-        : QAudioDevicePrivate(device, mode)
+QCoreAudioDeviceInfo::QCoreAudioDeviceInfo(const QByteArray &device, QAudioDevice::Mode mode)
+    : QAudioDevicePrivate(device, mode)
 #endif
-    {
-        preferredFormat = determinePreferredFormat();
-        description = getDescription();
-        minimumSampleRate = 1;
-        maximumSampleRate = 96000;
-        minimumChannelCount = 1;
-        maximumChannelCount = 16;
-        supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
-    }
+{
+    description = getDescription();
+    getChannelLayout();
+    preferredFormat = determinePreferredFormat();
+    minimumSampleRate = 1;
+    maximumSampleRate = 96000;
+    minimumChannelCount = 1;
+    maximumChannelCount = 16;
+    supportedSampleFormats << QAudioFormat::UInt8 << QAudioFormat::Int16 << QAudioFormat::Int32 << QAudioFormat::Float;
+
+}
 
 
 QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const
@@ -121,6 +123,7 @@ QAudioFormat QCoreAudioDeviceInfo::determinePreferredFormat() const
         format.setSampleFormat(QAudioFormat::Int16);
         format.setChannelCount(mode == QAudioDevice::Input ? 1 : 2);
     }
+    format.setChannelConfig(channelConfiguration);
 
     return format;
 }
@@ -147,6 +150,25 @@ QString QCoreAudioDeviceInfo::getDescription() const
     return s;
 #else
     return QString::fromUtf8(id);
+#endif
+}
+
+void QCoreAudioDeviceInfo::getChannelLayout()
+{
+#ifdef Q_OS_MACOS
+    AudioObjectPropertyAddress audioDeviceChannelLayoutPropertyAddress = { kAudioDevicePropertyPreferredChannelLayout,
+                                                                    (mode == QAudioDevice::Input ? kAudioDevicePropertyScopeInput : kAudioDevicePropertyScopeOutput),
+                                                                    kAudioObjectPropertyElementMaster };
+    UInt32 propSize;
+    if (AudioObjectGetPropertyDataSize(m_deviceId, &audioDeviceChannelLayoutPropertyAddress, 0, nullptr, &propSize) == noErr) {
+        AudioChannelLayout *layout = static_cast<AudioChannelLayout *>(malloc(propSize));
+        if (AudioObjectGetPropertyData(m_deviceId, &audioDeviceChannelLayoutPropertyAddress, 0, nullptr, &propSize, layout) == noErr) {
+            channelConfiguration = CoreAudioUtils::fromAudioChannelLayout(layout);
+        }
+        free(layout);
+    }
+#else
+    channelConfiguration = (mode == QAudioDevice::Input) ? QAudioFormat::ChannelConfigMono : QAudioFormat::ChannelConfigStereo;
 #endif
 }
 

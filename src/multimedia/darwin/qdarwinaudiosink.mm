@@ -555,11 +555,13 @@ bool QDarwinAudioSink::open()
         return false;
     }
 #endif
+    UInt32 size;
+
 
     // Set stream format
     m_streamFormat = CoreAudioUtils::toAudioStreamBasicDescription(m_audioFormat);
+    size = sizeof(m_streamFormat);
 
-    UInt32 size = sizeof(m_streamFormat);
     if (AudioUnitSetProperty(m_audioUnit,
                                 kAudioUnitProperty_StreamFormat,
                                 kAudioUnitScope_Input,

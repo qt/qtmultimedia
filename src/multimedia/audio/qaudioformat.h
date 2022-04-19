@@ -97,6 +97,7 @@ public:
         BottomFrontLeft,
         BottomFrontRight
     };
+    static constexpr int NChannelPositions = BottomFrontRight + 1;
 
     enum ChannelConfig : quint32 {
         ChannelConfigUnknown = 0,
