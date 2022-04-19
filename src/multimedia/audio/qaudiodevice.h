@@ -102,6 +102,7 @@ public:
     int minimumChannelCount() const;
     int maximumChannelCount() const;
     QList<QAudioFormat::SampleFormat> supportedSampleFormats() const;
+    QAudioFormat::ChannelConfig channelConfiguration() const;
 
     const QAudioDevicePrivate *handle() const { return d.get(); }
 private:

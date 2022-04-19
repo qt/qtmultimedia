@@ -317,6 +317,14 @@ QList<QAudioFormat::SampleFormat> QAudioDevice::supportedSampleFormats() const
 }
 
 /*!
+    Returns the channel configuration of the device.
+*/
+QAudioFormat::ChannelConfig QAudioDevice::channelConfiguration() const
+{
+    return isNull() ? QAudioFormat::ChannelConfigUnknown : d->channelConfiguration;
+}
+
+/*!
     \internal
 */
 QAudioDevice::QAudioDevice(QAudioDevicePrivate *p)

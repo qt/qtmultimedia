@@ -126,7 +126,10 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
     QWriteLocker locker(&pulseEngine->m_sinkLock);
     bool isDefault = pulseEngine->m_defaultSink == info->name;
     auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Output);
+    dinfo->channelMap = info->channel_map;
+    dinfo->channelConfiguration = QPulseAudioInternal::channelConfigFromMap(info->channel_map);
     dinfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
+    dinfo->preferredFormat.setChannelConfig(dinfo->channelConfiguration);
     pulseEngine->m_sinks.insert(info->index, dinfo->create());
     emit pulseEngine->audioOutputsChanged();
 }
@@ -166,7 +169,10 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
         return;
     bool isDefault = pulseEngine->m_defaultSink == info->name;
     auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Input);
+    dinfo->channelMap = info->channel_map;
+    dinfo->channelConfiguration = QPulseAudioInternal::channelConfigFromMap(info->channel_map);
     dinfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
+    dinfo->preferredFormat.setChannelConfig(dinfo->channelConfiguration);
     pulseEngine->m_sources.insert(info->index, dinfo->create());
     emit pulseEngine->audioInputsChanged();
 }

@@ -261,6 +261,8 @@ bool QPulseAudioSource::open()
     }
 
     pa_sample_spec spec = QPulseAudioInternal::audioFormatToSampleSpec(m_format);
+    pa_channel_map channel_map = QPulseAudioInternal::channelMapForAudioFormat(m_format);
+    Q_ASSERT(spec.channels == channel_map.channels);
 
     if (!pa_sample_spec_valid(&spec)) {
         setError(QAudio::OpenError);
@@ -286,12 +288,6 @@ bool QPulseAudioSource::open()
 #endif
 
     pulseEngine->lock();
-    pa_channel_map channel_map;
-
-    pa_channel_map_init_extend(&channel_map, spec.channels, PA_CHANNEL_MAP_DEFAULT);
-
-    if (!pa_channel_map_compatible(&channel_map, &spec))
-        qWarning() << "Channel map doesn't match sample specification!";
 
     m_stream = pa_stream_new(pulseEngine->context(), m_streamName.constData(), &spec, &channel_map);
 

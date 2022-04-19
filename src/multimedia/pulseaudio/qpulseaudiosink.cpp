@@ -290,6 +290,8 @@ bool QPulseAudioSink::open()
     }
 
     pa_sample_spec spec = QPulseAudioInternal::audioFormatToSampleSpec(m_format);
+    pa_channel_map channel_map = QPulseAudioInternal::channelMapForAudioFormat(m_format);
+    Q_ASSERT(spec.channels == channel_map.channels);
 
     if (!pa_sample_spec_valid(&spec)) {
         setError(QAudio::OpenError);
@@ -335,25 +337,7 @@ bool QPulseAudioSink::open()
         pa_proplist_sets(propList, PA_PROP_MEDIA_ROLE, r);
 #endif
 
-    static const auto mapName = qEnvironmentVariable("QT_PA_CHANNEL_MAP");
-    pa_channel_map_def_t mapDef = PA_CHANNEL_MAP_DEFAULT;
-    if (mapName == QLatin1String("ALSA"))
-        mapDef = PA_CHANNEL_MAP_ALSA;
-    else if (mapName == QLatin1String("AUX"))
-        mapDef = PA_CHANNEL_MAP_AUX;
-    else if (mapName == QLatin1String("WAVEEX"))
-        mapDef = PA_CHANNEL_MAP_WAVEEX;
-    else if (mapName == QLatin1String("OSS"))
-        mapDef = PA_CHANNEL_MAP_OSS;
-    else if (!mapName.isEmpty())
-        qWarning() << "Unknown pulse audio channel mapping definition:" << mapName;
-
-    pa_channel_map m;
-    auto channelMap = pa_channel_map_init_extend(&m, m_spec.channels, mapDef);
-    if (!channelMap)
-        qWarning() << "QAudioSink: pa_channel_map_init_extend() Could not initialize channel map";
-
-    m_stream = pa_stream_new_with_proplist(pulseEngine->context(), m_streamName.constData(), &m_spec, channelMap, propList);
+    m_stream = pa_stream_new_with_proplist(pulseEngine->context(), m_streamName.constData(), &m_spec, &channel_map, propList);
     if (!m_stream) {
         qWarning() << "QAudioSink: pa_stream_new_with_proplist() failed!";
         pulseEngine->unlock();
