@@ -59,13 +59,9 @@ Resampler::Resampler(const Codec *codec, const QAudioFormat &outputFormat)
     const AVStream *audioStream = codec->stream();
     const auto *codecpar = audioStream->codecpar;
 
-    if (!m_outputFormat.isValid()) {
+    if (!m_outputFormat.isValid())
         // want the native format
-        m_outputFormat.setSampleFormat(QFFmpegMediaFormatInfo::sampleFormat(AVSampleFormat(codecpar->format)));
-        m_outputFormat.setSampleRate(codecpar->sample_rate);
-        m_outputFormat.setChannelCount(codecpar->channels);
-        m_outputFormat.setChannelConfig(QAudioFormat::ChannelConfig(codecpar->channel_layout));
-    }
+        m_outputFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(audioStream->codecpar);
 
     QAudioFormat::ChannelConfig config = m_outputFormat.channelConfig();
     if (config == QAudioFormat::ChannelConfigUnknown)
@@ -75,11 +71,10 @@ Resampler::Resampler(const Codec *codec, const QAudioFormat &outputFormat)
     if (inConfig == 0)
         inConfig = QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->channels));
 
-    const AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(m_outputFormat.sampleFormat());
-    qCDebug(qLcResampler) << "init resampler" << m_outputFormat.sampleRate() << config << requiredFormat << codecpar->sample_rate;
+    qCDebug(qLcResampler) << "init resampler" << m_outputFormat.sampleRate() << config << codecpar->sample_rate;
     resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
                                    QFFmpegMediaFormatInfo::avChannelLayout(config),  // out_ch_layout
-                                   requiredFormat,    // out_sample_fmt
+                                   QFFmpegMediaFormatInfo::avSampleFormat(m_outputFormat.sampleFormat()),    // out_sample_fmt
                                    m_outputFormat.sampleRate(),                // out_sample_rate
                                    inConfig, // in_ch_layout
                                    AVSampleFormat(codecpar->format),   // in_sample_fmt
