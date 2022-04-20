@@ -67,7 +67,7 @@ class QQnxMediaCaptureSession : public QPlatformMediaCaptureSession
     Q_OBJECT
 
 public:
-    explicit QQnxMediaCaptureSession();
+    QQnxMediaCaptureSession();
     ~QQnxMediaCaptureSession();
 
     QPlatformCamera *camera() override;
