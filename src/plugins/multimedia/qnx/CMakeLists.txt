@@ -6,6 +6,7 @@ qt_internal_add_plugin(QQnxMediaPlugin
     SOURCES
         audio/qqnxaudioutils.cpp audio/qqnxaudioutils_p.h
         audio/qqnxaudiodevice.cpp audio/qqnxaudiodevice_p.h
+        audio/qqnxaudioinput.cpp audio/qqnxaudioinput_p.h
         audio/qqnxaudiooutput.cpp audio/qqnxaudiooutput_p.h
         audio/qqnxaudiosink.cpp audio/qqnxaudiosink_p.h
         audio/qqnxaudiosource.cpp audio/qqnxaudiosource_p.h

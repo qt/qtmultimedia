@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,8 +36,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQNXMEDIACAPTURESESSION_H
-#define QQNXMEDIACAPTURESESSION_H
+
+#ifndef QQNXAUDIOINPUT_P_H
+#define QQNXAUDIOINPUT_P_H
 
 //
 //  W A R N I N G
@@ -50,52 +51,19 @@
 // We mean it.
 //
 
-#include <QObject>
-
-#include <private/qplatformmediacapture_p.h>
+#include <private/qtmultimediaglobal_p.h>
+#include <private/qplatformaudioinput_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QQnxAudioInput;
-class QQnxCamera;
-class QQnxImageCapture;
-class QQnxMediaRecorder;
-class QQnxVideoSink;
-
-class QQnxMediaCaptureSession : public QPlatformMediaCaptureSession
+class Q_MULTIMEDIA_EXPORT QQnxAudioInput : public QPlatformAudioInput
 {
-    Q_OBJECT
-
 public:
-    explicit QQnxMediaCaptureSession();
-    ~QQnxMediaCaptureSession();
+    explicit QQnxAudioInput(QAudioInput *parent);
+    ~QQnxAudioInput();
 
-    QPlatformCamera *camera() override;
-    void setCamera(QPlatformCamera *camera) override;
-
-    QPlatformImageCapture *imageCapture() override;
-    void setImageCapture(QPlatformImageCapture *imageCapture) override;
-
-    QPlatformMediaRecorder *mediaRecorder() override;
-    void setMediaRecorder(QPlatformMediaRecorder *mediaRecorder) override;
-
-    void setAudioInput(QPlatformAudioInput *input) override;
-
-    void setVideoPreview(QVideoSink *sink) override;
-
-    void setAudioOutput(QPlatformAudioOutput *output) override;
-
-    QQnxAudioInput *audioInput() const;
-
-private:
-    QQnxCamera *m_camera = nullptr;
-    QQnxImageCapture *m_imageCapture = nullptr;
-    QQnxMediaRecorder *m_mediaRecorder = nullptr;
-    QQnxAudioInput *m_audioInput = nullptr;
-    QPlatformAudioOutput *m_audioOutput = nullptr;
-    QQnxVideoSink *m_videoSink = nullptr;
+    void setAudioDevice(const QAudioDevice &device) override;
 };
 
 QT_END_NAMESPACE
-
 #endif

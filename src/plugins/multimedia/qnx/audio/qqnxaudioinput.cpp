@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,66 +36,26 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQNXMEDIACAPTURESESSION_H
-#define QQNXMEDIACAPTURESESSION_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <QObject>
-
-#include <private/qplatformmediacapture_p.h>
+#include "qqnxaudioinput_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QQnxAudioInput;
-class QQnxCamera;
-class QQnxImageCapture;
-class QQnxMediaRecorder;
-class QQnxVideoSink;
-
-class QQnxMediaCaptureSession : public QPlatformMediaCaptureSession
+QQnxAudioInput::QQnxAudioInput(QAudioInput *parent)
+    : QPlatformAudioInput(parent)
 {
-    Q_OBJECT
+}
 
-public:
-    explicit QQnxMediaCaptureSession();
-    ~QQnxMediaCaptureSession();
+QQnxAudioInput::~QQnxAudioInput()
+{
+}
 
-    QPlatformCamera *camera() override;
-    void setCamera(QPlatformCamera *camera) override;
+void QQnxAudioInput::setAudioDevice(const QAudioDevice &info)
+{
+    if (info == device)
+        return;
 
-    QPlatformImageCapture *imageCapture() override;
-    void setImageCapture(QPlatformImageCapture *imageCapture) override;
-
-    QPlatformMediaRecorder *mediaRecorder() override;
-    void setMediaRecorder(QPlatformMediaRecorder *mediaRecorder) override;
-
-    void setAudioInput(QPlatformAudioInput *input) override;
-
-    void setVideoPreview(QVideoSink *sink) override;
-
-    void setAudioOutput(QPlatformAudioOutput *output) override;
-
-    QQnxAudioInput *audioInput() const;
-
-private:
-    QQnxCamera *m_camera = nullptr;
-    QQnxImageCapture *m_imageCapture = nullptr;
-    QQnxMediaRecorder *m_mediaRecorder = nullptr;
-    QQnxAudioInput *m_audioInput = nullptr;
-    QPlatformAudioOutput *m_audioOutput = nullptr;
-    QQnxVideoSink *m_videoSink = nullptr;
-};
+    device = info;
+}
 
 QT_END_NAMESPACE
-
-#endif

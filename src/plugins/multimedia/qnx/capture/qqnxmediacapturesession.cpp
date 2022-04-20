@@ -38,6 +38,7 @@
 ****************************************************************************/
 #include "qqnxmediacapturesession_p.h"
 
+#include "qqnxaudioinput_p.h"
 #include "qqnxcamera_p.h"
 #include "qqnximagecapture_p.h"
 #include "qqnxmediarecorder_p.h"
@@ -98,7 +99,8 @@ void QQnxMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
     if (m_audioInput == input)
         return;
-    m_audioInput = input;
+
+    m_audioInput = static_cast<QQnxAudioInput*>(input);
 }
 
 void QQnxMediaCaptureSession::setVideoPreview(QVideoSink *sink)
@@ -114,6 +116,11 @@ void QQnxMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
     if (m_audioOutput == output)
         return;
     m_audioOutput = output;
+}
+
+QQnxAudioInput * QQnxMediaCaptureSession::audioInput() const
+{
+    return m_audioInput;
 }
 
 QT_END_NAMESPACE
