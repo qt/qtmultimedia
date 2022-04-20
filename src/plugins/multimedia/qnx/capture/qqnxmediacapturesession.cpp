@@ -36,7 +36,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "qqnxmediacapture_p.h"
+#include "qqnxmediacapturesession_p.h"
 
 #include "qqnxcamera_p.h"
 #include "qqnximagecapture_p.h"

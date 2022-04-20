@@ -12,8 +12,8 @@ qt_internal_add_plugin(QQnxMediaPlugin
         camera/qqnxcamera.cpp camera/qqnxcamera_p.h
         camera/qqnximagecapture.cpp camera/qqnximagecapture_p.h
         camera/qqnxmediarecorder.cpp camera/qqnxmediarecorder_p.h
-        camera/qqnxmediacapture.cpp camera/qqnxmediacapture_p.h
         common/qqnxwindowgrabber.cpp common/qqnxwindowgrabber_p.h
+        capture/qqnxmediacapturesession.cpp capture/qqnxmediacapturesession_p.h
         mediaplayer/qqnxmediaplayer.cpp mediaplayer/qqnxmediaplayer_p.h
         mediaplayer/qqnxmediametadata.cpp mediaplayer/qqnxmediametadata_p.h
         mediaplayer/qqnxvideosink.cpp mediaplayer/qqnxvideosink_p.h
@@ -25,6 +25,7 @@ qt_internal_add_plugin(QQnxMediaPlugin
     INCLUDE_DIRECTORIES
         audio
         camera
+        capture
         common
         mediaplayer
     LIBRARIES

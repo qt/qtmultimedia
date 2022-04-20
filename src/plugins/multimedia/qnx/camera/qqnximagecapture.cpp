@@ -38,7 +38,7 @@
 ****************************************************************************/
 #include "qqnximagecapture_p.h"
 
-#include "qqnxmediacapture_p.h"
+#include "qqnxmediacapturesession_p.h"
 #include "qqnxcamera_p.h"
 #include "qfile.h"
 

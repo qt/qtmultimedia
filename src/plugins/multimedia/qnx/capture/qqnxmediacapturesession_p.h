@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQnxMediaCaptureSession_H
-#define QQnxMediaCaptureSession_H
+#ifndef QQNXMEDIACAPTURESESSION_H
+#define QQNXMEDIACAPTURESESSION_H
 
 //
 //  W A R N I N G

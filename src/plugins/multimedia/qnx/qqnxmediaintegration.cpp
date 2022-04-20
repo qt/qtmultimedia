@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qqnxmediaintegration_p.h"
-#include "qqnxmediacapture_p.h"
+#include "qqnxmediacapturesession_p.h"
 #include "qqnxmediadevices_p.h"
 #include "qqnxformatinfo_p.h"
 #include "qqnxvideosink_p.h"

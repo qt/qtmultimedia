@@ -38,7 +38,7 @@
 ****************************************************************************/
 #include "qqnxmediarecorder_p.h"
 
-#include "qqnxmediacapture_p.h"
+#include "qqnxmediacapturesession_p.h"
 
 #include <QDebug>
 #include <QUrl>
