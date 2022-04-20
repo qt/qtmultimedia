@@ -341,7 +341,7 @@ bool QAndroidTextureVideoOutput::renderAndReadbackFrame()
 
     if (moveToOpenGLContextThread()) {
         // just moved to another thread, must close the execution of this method
-        QMetaObject::invokeMethod(this, "onFrameAvailable", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "onFrameAvailable", Qt::ConnectionType::DirectConnection);
         return false;
     }
 
