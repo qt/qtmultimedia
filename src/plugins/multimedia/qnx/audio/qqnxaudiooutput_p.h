@@ -62,7 +62,7 @@ class QAudioOutput;
 class Q_MULTIMEDIA_EXPORT QQnxAudioOutput : public QPlatformAudioOutput
 {
 public:
-    QQnxAudioOutput(QAudioOutput *parent);
+    explicit QQnxAudioOutput(QAudioOutput *parent);
     ~QQnxAudioOutput();
 
     void setAudioDevice(const QAudioDevice &) override;
