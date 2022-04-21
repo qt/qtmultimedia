@@ -1,5 +1,6 @@
 # Generated from src.pro.
 
+add_subdirectory(resonance-audio)
 add_subdirectory(multimedia)
 if(ANDROID)
     add_subdirectory(android)
