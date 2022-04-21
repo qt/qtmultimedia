@@ -34,26 +34,20 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOSOURCE_H
-#define QSPATIALAUDIOSOURCE_H
+#ifndef QQUICK3DSOUND_H
+#define QQUICK3DSOUND_H
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QObject>
-#include <QtGui/qvector3d.h>
-#include <QtGui/qquaternion.h>
+#include <private/qquick3dnode_p.h>
+#include <QUrl>
+#include <qvector3d.h>
+#include <qspatialaudiosoundsource.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QAudioOutputStream;
-
-class QSpatialAudioSoundSourcePrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioSoundSource : public QObject
+class QQuick3DSpatialAudioSoundSource : public QQuick3DNode
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(QVector3D position READ position WRITE setPosition NOTIFY positionChanged)
-    Q_PROPERTY(QQuaternion rotation READ rotation WRITE setRotation NOTIFY rotationChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(DistanceModel distanceModel READ distanceModel WRITE setDistanceModel NOTIFY distanceModelChanged)
     Q_PROPERTY(float minimumDistance READ minimumDistance WRITE setMinimumDistance NOTIFY minimumDistanceChanged)
@@ -63,19 +57,14 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioSoundSource : public QObject
     Q_PROPERTY(float directivity READ directivity WRITE setDirectivity NOTIFY directivityChanged)
     Q_PROPERTY(float directivityOrder READ directivityOrder WRITE setDirectivityOrder NOTIFY directivityOrderChanged)
     Q_PROPERTY(float nearFieldGain READ nearFieldGain WRITE setNearFieldGain NOTIFY nearFieldGainChanged)
+    QML_NAMED_ELEMENT(SpatialAudioSoundSource)
 
 public:
-    explicit QSpatialAudioSoundSource(QSpatialAudioEngine *engine);
-    ~QSpatialAudioSoundSource();
+    QQuick3DSpatialAudioSoundSource();
+    ~QQuick3DSpatialAudioSoundSource();
 
-    void setSource(const QUrl &url);
+    void setSource(QUrl source);
     QUrl source() const;
-
-    void setPosition(QVector3D pos);
-    QVector3D position() const;
-
-    void setRotation(const QQuaternion &q);
-    QQuaternion rotation() const;
 
     void setVolume(float volume);
     float volume() const;
@@ -111,12 +100,8 @@ public:
     void setNearFieldGain(float gain);
     float nearFieldGain() const;
 
-    QSpatialAudioEngine *engine() const;
-
 Q_SIGNALS:
     void sourceChanged();
-    void positionChanged();
-    void rotationChanged();
     void volumeChanged();
     void distanceModelChanged();
     void minimumDistanceChanged();
@@ -127,14 +112,15 @@ Q_SIGNALS:
     void directivityOrderChanged();
     void nearFieldGainChanged();
 
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
+protected Q_SLOTS:
+    void updatePosition();
+    void updateRotation();
+
+protected:
+    QSSGRenderGraphObject *updateSpatialNode(QSSGRenderGraphObject *) override { return nullptr; }
 
 private:
-    void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioSoundSourcePrivate;
-    QSpatialAudioSoundSourcePrivate *d = nullptr;
+    QSpatialAudioSoundSource *m_sound = nullptr;
 };
 
 QT_END_NAMESPACE

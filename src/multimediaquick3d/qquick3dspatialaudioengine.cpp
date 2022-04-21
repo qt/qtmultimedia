@@ -34,51 +34,63 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOSTEREOSOURCE_H
-#define QSPATIALAUDIOSTEREOSOURCE_H
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+#include <qquick3dspatialaudioengine_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QAudioOutputStream;
+static QSpatialAudioEngine *globalEngine = nullptr;
 
-class QSpatialAudioStereoSourcePrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
+QQuick3DSpatialAudioEngine::QQuick3DSpatialAudioEngine()
 {
-    Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    auto *e = getEngine();
+    connect(e, &QSpatialAudioEngine::outputModeChanged, this, &QQuick3DSpatialAudioEngine::outputModeChanged);
+    connect(e, &QSpatialAudioEngine::outputDeviceChanged, this, &QQuick3DSpatialAudioEngine::outputDeviceChanged);
+    connect(e, &QSpatialAudioEngine::masterVolumeChanged, this, &QQuick3DSpatialAudioEngine::masterVolumeChanged);
+}
 
-public:
-    explicit QSpatialAudioStereoSource(QSpatialAudioEngine *engine);
-    ~QSpatialAudioStereoSource();
+QQuick3DSpatialAudioEngine::~QQuick3DSpatialAudioEngine()
+{
+}
 
-    void setSource(const QUrl &url);
-    QUrl source() const;
+void QQuick3DSpatialAudioEngine::setOutputMode(OutputMode mode)
+{
+    globalEngine->setOutputMode(QSpatialAudioEngine::OutputMode(mode));
+}
 
-    void setVolume(float volume);
-    float volume() const;
+QQuick3DSpatialAudioEngine::OutputMode QQuick3DSpatialAudioEngine::outputMode() const
+{
+    return OutputMode(globalEngine->outputMode());
+}
 
-    QSpatialAudioEngine *engine() const;
+void QQuick3DSpatialAudioEngine::setOutputDevice(const QAudioDevice &device)
+{
+    globalEngine->setOutputDevice(device);
+}
 
-Q_SIGNALS:
-    void sourceChanged();
-    void volumeChanged();
+QAudioDevice QQuick3DSpatialAudioEngine::outputDevice() const
+{
+    return globalEngine->outputDevice();
+}
 
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
+void QQuick3DSpatialAudioEngine::setMasterVolume(float volume)
+{
+    globalEngine->setMasterVolume(volume);
+}
 
-private:
-    void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioStereoSourcePrivate;
-    QSpatialAudioStereoSourcePrivate *d = nullptr;
-};
+float QQuick3DSpatialAudioEngine::masterVolume() const
+{
+    return globalEngine->masterVolume();
+}
+
+QSpatialAudioEngine *QQuick3DSpatialAudioEngine::getEngine()
+{
+    if (!globalEngine) {
+        globalEngine = new QSpatialAudioEngine;
+        globalEngine->start();
+    }
+    return globalEngine;
+}
 
 QT_END_NAMESPACE
 
-#endif
+#include "moc_qquick3dspatialaudioengine_p.cpp"

@@ -34,49 +34,51 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOSTEREOSOURCE_H
-#define QSPATIALAUDIOSTEREOSOURCE_H
+#ifndef QQUICK3DENGINE_H
+#define QQUICK3DENGINE_H
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+#include <private/qquick3dnode_p.h>
+#include <QtGui/qvector3d.h>
+#include <qspatialaudioengine.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QAudioOutputStream;
+class QQuick3DSpatialAudioSoundSource;
 
-class QSpatialAudioStereoSourcePrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
+class QQuick3DSpatialAudioEngine : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    QML_NAMED_ELEMENT(SpatialAudioEngine)
+    Q_PROPERTY(OutputMode outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
+    Q_PROPERTY(QAudioDevice outputDevice READ outputDevice WRITE setOutputDevice NOTIFY outputDeviceChanged)
+    Q_PROPERTY(float masterVolume READ masterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
 
 public:
-    explicit QSpatialAudioStereoSource(QSpatialAudioEngine *engine);
-    ~QSpatialAudioStereoSource();
+    // Keep in sync with QSpatialAudioEngine::OutputMode
+    enum OutputMode {
+        Stereo,
+        Headphone
+    };
+    Q_ENUM(OutputMode)
 
-    void setSource(const QUrl &url);
-    QUrl source() const;
+    QQuick3DSpatialAudioEngine();
+    ~QQuick3DSpatialAudioEngine();
 
-    void setVolume(float volume);
-    float volume() const;
+    void setOutputMode(OutputMode mode);
+    OutputMode outputMode() const;
 
-    QSpatialAudioEngine *engine() const;
+    void setOutputDevice(const QAudioDevice &device);
+    QAudioDevice outputDevice() const;
+
+    void setMasterVolume(float volume);
+    float masterVolume() const;
+
+    static QSpatialAudioEngine *getEngine();
 
 Q_SIGNALS:
-    void sourceChanged();
-    void volumeChanged();
-
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
-
-private:
-    void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioStereoSourcePrivate;
-    QSpatialAudioStereoSourcePrivate *d = nullptr;
+    void outputModeChanged();
+    void outputDeviceChanged();
+    void masterVolumeChanged();
 };
 
 QT_END_NAMESPACE

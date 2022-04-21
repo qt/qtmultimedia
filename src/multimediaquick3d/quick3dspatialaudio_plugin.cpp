@@ -34,51 +34,38 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOSTEREOSOURCE_H
-#define QSPATIALAUDIOSTEREOSOURCE_H
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+#include <QtQml/qqmlextensionplugin.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlengine.h>
+#include <QtQml/qqmlcomponent.h>
+#include "qtquick3dsoundglobal_p.h"
+#include "qquick3dspatialaudiolistener_p.h"
+#include "qquick3dspatialaudiosoundsource_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QAudioOutputStream;
-
-class QSpatialAudioStereoSourcePrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
+class QSpatialAudioQuickModule : public QQmlEngineExtensionPlugin
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PLUGIN_METADATA(IID QQmlEngineExtensionInterface_iid)
 
 public:
-    explicit QSpatialAudioStereoSource(QSpatialAudioEngine *engine);
-    ~QSpatialAudioStereoSource();
+    QSpatialAudioQuickModule(QObject *parent = nullptr)
+        : QQmlEngineExtensionPlugin(parent)
+    {
+        volatile auto registration = qml_register_types_QtQuick3D_SpatialAudio;
+        Q_UNUSED(registration);
+    }
 
-    void setSource(const QUrl &url);
-    QUrl source() const;
-
-    void setVolume(float volume);
-    float volume() const;
-
-    QSpatialAudioEngine *engine() const;
-
-Q_SIGNALS:
-    void sourceChanged();
-    void volumeChanged();
-
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
-
-private:
-    void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioStereoSourcePrivate;
-    QSpatialAudioStereoSourcePrivate *d = nullptr;
+    void initializeEngine(QQmlEngine *engine, const char *uri) override
+    {
+        Q_UNUSED(engine);
+        Q_UNUSED(uri);
+    }
 };
 
 QT_END_NAMESPACE
 
-#endif
+#include "quick3dspatialaudio_plugin.moc"
+

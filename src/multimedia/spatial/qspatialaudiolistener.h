@@ -37,14 +37,11 @@
 #ifndef QSPATIALAUDIOLISTENER_H
 #define QSPATIALAUDIOLISTENER_H
 
-#include <qtmultimediaglobal.h>
-#include <QObject>
-#include <QList>
-#include <QIODevice>
-#include <qaudiodevice.h>
-#include <qaudioformat.h>
-#include <qvector3d.h>
-#include <qquaternion.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/QObject>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtGui/qvector3d.h>
+#include <QtGui/qquaternion.h>
 
 QT_BEGIN_NAMESPACE
 

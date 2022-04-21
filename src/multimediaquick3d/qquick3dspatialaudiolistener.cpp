@@ -34,51 +34,34 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOSTEREOSOURCE_H
-#define QSPATIALAUDIOSTEREOSOURCE_H
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+#include <qquick3dspatialaudiolistener_p.h>
+#include <qquick3dspatialaudiosoundsource_p.h>
+#include <qquick3dspatialaudioengine_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QAudioOutputStream;
-
-class QSpatialAudioStereoSourcePrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
+QQuick3DSpatialAudioListener::QQuick3DSpatialAudioListener()
 {
-    Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    m_listener = new QSpatialAudioListener(QQuick3DSpatialAudioEngine::getEngine());
+    connect(this, &QQuick3DNode::scenePositionChanged, this, &QQuick3DSpatialAudioListener::updatePosition);
+    connect(this, &QQuick3DNode::sceneRotationChanged, this, &QQuick3DSpatialAudioListener::updateRotation);
+    updatePosition();
+    updateRotation();
+}
 
-public:
-    explicit QSpatialAudioStereoSource(QSpatialAudioEngine *engine);
-    ~QSpatialAudioStereoSource();
+QQuick3DSpatialAudioListener::~QQuick3DSpatialAudioListener()
+{
+    delete m_listener;
+}
 
-    void setSource(const QUrl &url);
-    QUrl source() const;
+void QQuick3DSpatialAudioListener::updatePosition()
+{
+    m_listener->setPosition(scenePosition());
+}
 
-    void setVolume(float volume);
-    float volume() const;
-
-    QSpatialAudioEngine *engine() const;
-
-Q_SIGNALS:
-    void sourceChanged();
-    void volumeChanged();
-
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
-
-private:
-    void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioStereoSourcePrivate;
-    QSpatialAudioStereoSourcePrivate *d = nullptr;
-};
+void QQuick3DSpatialAudioListener::updateRotation()
+{
+    m_listener->setRotation(sceneRotation());
+}
 
 QT_END_NAMESPACE
-
-#endif

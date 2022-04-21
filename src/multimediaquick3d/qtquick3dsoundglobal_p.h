@@ -34,51 +34,29 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOSTEREOSOURCE_H
-#define QSPATIALAUDIOSTEREOSOURCE_H
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#ifndef QMULTIMEDIAQUICKDEFS_P_H
+#define QMULTIMEDIAQUICKDEFS_P_H
+
+#include <QtCore/qglobal.h>
+#include <QtMultimediaQuick/qtmultimediaquickexports.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QAudioOutputStream;
-
-class QSpatialAudioStereoSourcePrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
-
-public:
-    explicit QSpatialAudioStereoSource(QSpatialAudioEngine *engine);
-    ~QSpatialAudioStereoSource();
-
-    void setSource(const QUrl &url);
-    QUrl source() const;
-
-    void setVolume(float volume);
-    float volume() const;
-
-    QSpatialAudioEngine *engine() const;
-
-Q_SIGNALS:
-    void sourceChanged();
-    void volumeChanged();
-
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
-
-private:
-    void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioStereoSourcePrivate;
-    QSpatialAudioStereoSourcePrivate *d = nullptr;
-};
+void Q_MULTIMEDIAQUICK_EXPORT qml_register_types_QtQuick3D_SpatialAudio();
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QMULTIMEDIAQUICKDEFS_P_H
+

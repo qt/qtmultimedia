@@ -34,49 +34,40 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOSTEREOSOURCE_H
-#define QSPATIALAUDIOSTEREOSOURCE_H
+#ifndef QQUICK3DSPATIALAUDIOSTEREOSOUND_H
+#define QQUICK3DSPATIALAUDIOSTEREOSOUND_H
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+#include <private/qquick3dnode_p.h>
+#include <QUrl>
+#include <qvector3d.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QAudioOutputStream;
+class QSpatialAudioStereoSource;
 
-class QSpatialAudioStereoSourcePrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
+class QQuick3DSpatialAudioStereoSource : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    QML_NAMED_ELEMENT(SpatialAudioStereoSource)
 
 public:
-    explicit QSpatialAudioStereoSource(QSpatialAudioEngine *engine);
-    ~QSpatialAudioStereoSource();
+    QQuick3DSpatialAudioStereoSource();
+    ~QQuick3DSpatialAudioStereoSource();
 
-    void setSource(const QUrl &url);
+    void setSource(QUrl source);
     QUrl source() const;
 
     void setVolume(float volume);
     float volume() const;
 
-    QSpatialAudioEngine *engine() const;
-
 Q_SIGNALS:
     void sourceChanged();
     void volumeChanged();
 
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
-
 private:
-    void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioStereoSourcePrivate;
-    QSpatialAudioStereoSourcePrivate *d = nullptr;
+    QSpatialAudioStereoSource *m_sound = nullptr;
 };
 
 QT_END_NAMESPACE

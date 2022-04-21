@@ -277,7 +277,7 @@ qt_internal_add_shaders(Multimedia "shaders"
 )
 
 string(REPLACE ".frag" "_linear.frag.qsb" LINEAR_VIDEO_SHADERS "${VIDEO_SHADERS}")
-message(WARNING ${LINEAR_VIDEO_SHADERS})
+
 qt_internal_add_shaders(Multimedia "shaders_linear"
     SILENT
     BATCHABLE
