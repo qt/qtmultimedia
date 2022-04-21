@@ -74,6 +74,7 @@ qt_internal_add_module(Multimedia
         platform
         playback
         recording
+        spatial
         video
     LIBRARIES
         Qt::CorePrivate
@@ -86,6 +87,19 @@ qt_internal_add_module(Multimedia
         Qt::CorePrivate
         Qt::GuiPrivate
     GENERATE_CPP_EXPORTS
+)
+
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_spatialaudio
+    SOURCES
+        spatial/qspatialaudioengine.cpp spatial/qspatialaudioengine.h spatial/qspatialaudioengine_p.h
+        spatial/qspatialaudiolistener.cpp spatial/qspatialaudiolistener.h
+        spatial/qspatialaudiosoundsource.cpp spatial/qspatialaudiosoundsource.h spatial/qspatialaudiosoundsource_p.h
+        spatial/qspatialaudiostereosource.cpp spatial/qspatialaudiostereosource.h spatial/qspatialaudiostereosource_p.h
+    INCLUDE_DIRECTORIES
+        "../3rdparty/resonance-audio/resonance_audio"
+    LIBRARIES
+        Qt::BundledResonanceAudio
 )
 
 qt_internal_add_simd_part(Multimedia SIMD sse2

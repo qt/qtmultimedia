@@ -161,7 +161,13 @@ qt_feature("wmf" PRIVATE
     LABEL "Windows Media Foundation"
     CONDITION WIN32 AND WMF_FOUND AND QT_FEATURE_wmsdk
 )
+
+qt_feature("spatialaudio" PRIVATE
+    LABEL "Spatial Audio"
+)
+
 qt_configure_add_summary_section(NAME "Qt Multimedia")
+qt_configure_add_summary_entry(ARGS "spatialaudio")
 qt_configure_add_summary_section(NAME "Low level Audio Backend")
 qt_configure_add_summary_entry(ARGS "alsa")
 qt_configure_add_summary_entry(ARGS "pulseaudio")
