@@ -169,33 +169,33 @@ static void apply_vaapi(const QMediaEncoderSettings &settings, AVCodecContext *c
         // unfortunately, all VA codecs use different quality scales :/
         switch (settings.videoCodec()) {
         case QMediaFormat::VideoCodec::MPEG2: {
-            const int q[] = { 20, 15, 10, 8, 6 };
+            static const int q[] = { 20, 15, 10, 8, 6 };
             quality = q;
             break;
         }
         case QMediaFormat::VideoCodec::MPEG4:
         case QMediaFormat::VideoCodec::H264: {
-            const int q[] = { 29, 26, 23, 21, 19 };
+            static const int q[] = { 29, 26, 23, 21, 19 };
             quality = q;
             break;
         }
         case QMediaFormat::VideoCodec::H265: {
-            const int q[] = { 40, 34, 28, 26, 24 };
+            static const int q[] = { 40, 34, 28, 26, 24 };
             quality = q;
             break;
         }
         case QMediaFormat::VideoCodec::VP8: {
-            const int q[] = { 56, 48, 40, 34, 28 };
+            static const int q[] = { 56, 48, 40, 34, 28 };
             quality = q;
             break;
         }
         case QMediaFormat::VideoCodec::VP9: {
-            const int q[] = { 124, 112, 100, 88, 76 };
+            static const int q[] = { 124, 112, 100, 88, 76 };
             quality = q;
             break;
         }
         case QMediaFormat::VideoCodec::MotionJPEG: {
-            const int q[] = { 40, 60, 80, 90, 95 };
+            static const int q[] = { 40, 60, 80, 90, 95 };
             quality = q;
             break;
         }
