@@ -91,7 +91,15 @@ void QQnxMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *mediaReco
 {
     if (m_mediaRecorder == mediaRecorder)
         return;
+
+    if (m_mediaRecorder)
+        m_mediaRecorder->setCaptureSession(nullptr);
+
     m_mediaRecorder = static_cast<QQnxMediaRecorder *>(mediaRecorder);
+
+    if (m_mediaRecorder)
+        m_mediaRecorder->setCaptureSession(this);
+
     emit encoderChanged();
 }
 
