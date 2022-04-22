@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQnxMediaRecorder_H
-#define QQnxMediaRecorder_H
+#ifndef QQNXMEDIARECORDER_H
+#define QQNXMEDIARECORDER_H
 
 //
 //  W A R N I N G
@@ -50,11 +50,13 @@
 // We mean it.
 //
 
+#include "qqnxaudiorecorder_p.h"
+
 #include <private/qplatformmediarecorder_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class BbCameraSession;
+class QQnxMediaCaptureSession;
 
 class QQnxMediaRecorder : public QPlatformMediaRecorder
 {
@@ -64,15 +66,18 @@ public:
     bool isLocationWritable(const QUrl &location) const override;
 
     void record(QMediaEncoderSettings &settings) override;
-//    virtual void pause();
-//    virtual void resume();
     void stop() override;
 
-    qint64 duration() const override;
+    void setCaptureSession(QQnxMediaCaptureSession *session);
 
-//    virtual void setMetaData(const QMediaMetaData &) {}
-//    virtual QMediaMetaData metaData() const { return {}; }
+private:
+    bool hasVideo() const;
 
+    void startAudioRecording(QMediaEncoderSettings &settings);
+
+    QQnxAudioRecorder m_audioRecorder;
+
+    QQnxMediaCaptureSession *m_session = nullptr;
 };
 
 QT_END_NAMESPACE

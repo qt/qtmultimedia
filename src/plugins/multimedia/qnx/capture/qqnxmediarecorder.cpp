@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 Research In Motion
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -38,6 +39,7 @@
 ****************************************************************************/
 #include "qqnxmediarecorder_p.h"
 
+#include "qqnxaudioinput_p.h"
 #include "qqnxmediacapturesession_p.h"
 
 #include <QDebug>
@@ -48,10 +50,6 @@ QT_BEGIN_NAMESPACE
 QQnxMediaRecorder::QQnxMediaRecorder(QMediaRecorder *parent)
     : QPlatformMediaRecorder(parent)
 {
-//    connect(m_session, SIGNAL(videoStateChanged(QMediaRecorder::RecorderState)), this, SIGNAL(stateChanged(QMediaRecorder::RecorderState)));
-//    connect(m_session, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
-//    connect(m_session, SIGNAL(actualLocationChanged(QUrl)), this, SIGNAL(actualLocationChanged(QUrl)));
-//    connect(m_session, SIGNAL(videoError(int,QString)), this, SIGNAL(error(int,QString)));
 }
 
 bool QQnxMediaRecorder::isLocationWritable(const QUrl &/*location*/) const
@@ -59,23 +57,62 @@ bool QQnxMediaRecorder::isLocationWritable(const QUrl &/*location*/) const
     return true;
 }
 
-qint64 QQnxMediaRecorder::duration() const
+void QQnxMediaRecorder::setCaptureSession(QQnxMediaCaptureSession *session)
 {
-    return 0; //m_session->duration();
+    m_session = session;
 }
 
-void QQnxMediaRecorder::record(QMediaEncoderSettings &)
+void QQnxMediaRecorder::record(QMediaEncoderSettings &settings)
 {
-//    if (m_session) {
-//        m_session->applyVideoSettings();
-//        m_session->startVideoRecording(outputLocation());
-//    }
+    if (!m_session)
+        return;
+
+    m_audioRecorder.disconnect();
+
+    if (hasVideo()) {
+        //FIXME
+    } else {
+        QObject::connect(&m_audioRecorder, &QQnxAudioRecorder::durationChanged,
+                [this](qint64 d) { durationChanged(d); });
+
+        QObject::connect(&m_audioRecorder, &QQnxAudioRecorder::stateChanged,
+                [this](QMediaRecorder::RecorderState s) { stateChanged(s); });
+
+        QObject::connect(&m_audioRecorder, &QQnxAudioRecorder::actualLocationChanged,
+                [this](const QUrl &l) { actualLocationChanged(l); });
+
+        startAudioRecording(settings);
+    }
 }
 
 void QQnxMediaRecorder::stop()
 {
-//    if (m_session)
-//        m_session->stopVideoRecording();
+    if (hasVideo()) {
+        //FIXME
+    } else {
+        m_audioRecorder.stop();
+    }
+}
+
+void QQnxMediaRecorder::startAudioRecording(QMediaEncoderSettings &settings)
+{
+    if (!m_session)
+        return;
+
+    QQnxAudioInput *audioInput = m_session->audioInput();
+
+    if (!audioInput)
+        return;
+
+    m_audioRecorder.setInputDeviceId(audioInput->device.id());
+    m_audioRecorder.setMediaEncoderSettings(settings);
+    m_audioRecorder.setOutputUrl(outputLocation());
+    m_audioRecorder.record();
+}
+
+bool QQnxMediaRecorder::hasVideo() const
+{
+    return m_session->camera();
 }
 
 QT_END_NAMESPACE

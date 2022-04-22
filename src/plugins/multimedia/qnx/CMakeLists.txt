@@ -12,11 +12,11 @@ qt_internal_add_plugin(QQnxMediaPlugin
         audio/qqnxaudiosource.cpp audio/qqnxaudiosource_p.h
         camera/qqnxcamera.cpp camera/qqnxcamera_p.h
         camera/qqnximagecapture.cpp camera/qqnximagecapture_p.h
-        camera/qqnxmediarecorder.cpp camera/qqnxmediarecorder_p.h
         common/qqnxmediaeventthread.cpp common/qqnxmediaeventthread_p.h
         common/qqnxwindowgrabber.cpp common/qqnxwindowgrabber_p.h
         capture/qqnxaudiorecorder.cpp capture/qqnxaudiorecorder_p.h
         capture/qqnxmediacapturesession.cpp capture/qqnxmediacapturesession_p.h
+        capture/qqnxmediarecorder.cpp capture/qqnxmediarecorder_p.h
         mediaplayer/qqnxmediaplayer.cpp mediaplayer/qqnxmediaplayer_p.h
         mediaplayer/qqnxmediametadata.cpp mediaplayer/qqnxmediametadata_p.h
         mediaplayer/qqnxvideosink.cpp mediaplayer/qqnxvideosink_p.h
