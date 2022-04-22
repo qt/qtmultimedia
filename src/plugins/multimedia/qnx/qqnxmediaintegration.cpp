@@ -40,6 +40,7 @@
 #include "qqnxmediaintegration_p.h"
 #include "qqnxmediacapturesession_p.h"
 #include "qqnxmediadevices_p.h"
+#include "qqnxmediarecorder_p.h"
 #include "qqnxformatinfo_p.h"
 #include "qqnxvideosink_p.h"
 #include "qqnxmediaplayer_p.h"
@@ -103,6 +104,11 @@ QPlatformMediaPlayer *QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
 QPlatformMediaCaptureSession *QQnxMediaIntegration::createCaptureSession()
 {
     return new QQnxMediaCaptureSession();
+}
+
+QPlatformMediaRecorder *QQnxMediaIntegration::createRecorder(QMediaRecorder *parent)
+{
+    return new QQnxMediaRecorder(parent);
 }
 
 QT_END_NAMESPACE

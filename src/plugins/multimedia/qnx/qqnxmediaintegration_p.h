@@ -74,6 +74,8 @@ public:
 
     QPlatformMediaCaptureSession *createCaptureSession();
 
+    QPlatformMediaRecorder *createRecorder(QMediaRecorder *parent) override;
+
     QQnxMediaDevices *m_devices = nullptr;
     QQnxFormatInfo *m_formatInfo = nullptr;
 };
