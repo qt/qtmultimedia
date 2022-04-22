@@ -678,8 +678,8 @@ void QQnxMediaPlayer::readEvents()
         if (event->type == MMR_EVENT_NONE)
             break;
 
-        switch (event->type)
-        case MMR_EVENT_STATUS: {
+        switch (event->type) {
+        case MMR_EVENT_STATUS:
             handleMmEventStatus(event);
             break;
         case MMR_EVENT_STATE:
