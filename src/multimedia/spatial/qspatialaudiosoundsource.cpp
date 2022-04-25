@@ -51,6 +51,7 @@ void QSpatialAudioSoundSourcePrivate::load(QSpatialAudioSoundSource *q)
     buffers.clear();
     auto *ep = QSpatialAudioEnginePrivate::get(engine);
     QAudioFormat f = ep->format;
+    f.setSampleFormat(QAudioFormat::Float);
     decoder->setAudioFormat(f);
     qDebug() << "using format" << f << decoder->audioFormat();
     decoder->setSource(url);
@@ -69,7 +70,7 @@ void QSpatialAudioSoundSourcePrivate::getBuffer(float *buf, int bufSize)
         float *ff = buf;
         while (s) {
             const QAudioBuffer &b = buffers.at(currentBuffer);
-//            qDebug() << s << b.format().sampleRate() << b.format().channelCount() << b.format().sampleFormat();
+//            qDebug() << s << b.format().sampleRate() << b.format().channelCount() << b.format().sampleFormat() << b.sampleCount() << currentBuffer << buffers.size() << bufPos;
             int frames = b.frameCount() - bufPos;
             auto *f = b.constData<QAudioBuffer::F32S>() + bufPos;
             int toCopy = qMin(frames, s);

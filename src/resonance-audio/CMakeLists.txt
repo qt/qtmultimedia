@@ -203,6 +203,7 @@ qt_internal_add_3rdparty_library(BundledResonanceAudio
         ${RA_SOURCES}
         ${PFFFT_SOURCE}
         ${SADIE_HRTFS_SOURCE}
+        resonance_audio_api_extensions.h resonance_audio_api_extensions.cpp
     INCLUDE_DIRECTORIES
         ${RA_TOPLEVEL_DIR}
         ${RA_SOURCE_DIR}

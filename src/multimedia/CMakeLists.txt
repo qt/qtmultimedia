@@ -99,6 +99,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_spatialaudio
         spatial/qspatialaudiostereosource.cpp spatial/qspatialaudiostereosource.h spatial/qspatialaudiostereosource_p.h
     INCLUDE_DIRECTORIES
         "../3rdparty/resonance-audio/resonance_audio"
+        "../resonance-audio"
     LIBRARIES
         Qt::BundledResonanceAudio
 )

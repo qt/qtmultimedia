@@ -37,7 +37,8 @@
 #include <qspatialaudioengine_p.h>
 #include <qspatialaudiosoundsource_p.h>
 #include <qspatialaudiostereosource_p.h>
-#include <api/resonance_audio_api.h>
+#include <resonance_audio_api_extensions.h>
+#include <qambisonicdecoder_p.h>
 #include <qmediadevices.h>
 #include <qiodevice.h>
 #include <qaudiosink.h>
@@ -78,15 +79,16 @@ public:
     Q_INVOKABLE void startOutput() {
         QMutexLocker l(&d->mutex);
         Q_ASSERT(!sink);
-        QAudioFormat f = d->format;
-        f.setSampleFormat(QAudioFormat::Int16);
-        sink.reset(new QAudioSink(QMediaDevices::defaultAudioOutput(), f));
+        d->ambisonicDecoder.reset(new QAmbisonicDecoder(QAmbisonicDecoder::HighQuality, d->format));
+        sink.reset(new QAudioSink(d->device, d->format));
+        sink->setBufferSize(16384);
         sink->start(this);
     }
 
     Q_INVOKABLE void stopOutput() {
         sink->stop();
         sink.reset();
+        d->ambisonicDecoder.reset();
         delete this;
     }
 
@@ -108,13 +110,14 @@ qint64 QAudioOutputStream::writeData(const char *, qint64)
 
 qint64 QAudioOutputStream::readData(char *data, qint64 len)
 {
-    if (len < 2*int(sizeof(float))*QSpatialAudioEnginePrivate::bufferSize)
+    int nChannels = d->ambisonicDecoder ? d->ambisonicDecoder->nOutputChannels() : 2;
+    if (len < nChannels*int(sizeof(float))*QSpatialAudioEnginePrivate::bufferSize)
         return 0;
 
     short *fd = (short *)data;
-    int frames = len / 2 / sizeof(short);
+    qint64 frames = len / nChannels / sizeof(short);
     bool ok = true;
-    while (frames >= QSpatialAudioEnginePrivate::bufferSize) {
+    while (frames >= qint64(QSpatialAudioEnginePrivate::bufferSize)) {
         // Fill input buffers
         for (auto *source : qAsConst(d->sources)) {
             auto *sp = QSpatialAudioSoundSourcePrivate::get(source);
@@ -129,12 +132,19 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
             d->api->SetInterleavedBuffer(sp->sourceId, (float *)buf, 2, QSpatialAudioEnginePrivate::bufferSize);
         }
 
-        ok = d->api->FillInterleavedOutputBuffer(2, QSpatialAudioEnginePrivate::bufferSize, fd);
-        if (!ok) {
-            qWarning() << "    Reading failed!";
-            break;
+        if (d->ambisonicDecoder && d->outputMode == QSpatialAudioEngine::Stereo && d->format.channelCount() != 2) {
+            const float *channels[QAmbisonicDecoder::maxAmbisonicChannels];
+            int nSamples = vraudio::getAmbisonicOutput(d->api, channels, d->ambisonicDecoder->nInputChannels());
+            Q_ASSERT(d->ambisonicDecoder->nOutputChannels() <= 8);
+            d->ambisonicDecoder->processBuffer(channels, fd, nSamples);
+        } else {
+            ok = d->api->FillInterleavedOutputBuffer(2, QSpatialAudioEnginePrivate::bufferSize, fd);
+            if (!ok) {
+                qWarning() << "    Reading failed!";
+                break;
+            }
         }
-        fd += 2*QSpatialAudioEnginePrivate::bufferSize;
+        fd += nChannels*QSpatialAudioEnginePrivate::bufferSize;
         frames -= QSpatialAudioEnginePrivate::bufferSize;
     }
     const int bytesProcessed = ((char *)fd - data);
@@ -145,6 +155,7 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
 
 QSpatialAudioEnginePrivate::QSpatialAudioEnginePrivate()
 {
+    device = QMediaDevices::defaultAudioOutput();
 }
 
 QSpatialAudioEnginePrivate::~QSpatialAudioEnginePrivate()
@@ -260,10 +271,11 @@ void QSpatialAudioEngine::start()
 
     d->format.setChannelCount(2);
     d->format.setSampleRate(d->sampleRate);
-    d->format.setSampleFormat(QAudioFormat::Float);
+    d->format.setSampleFormat(QAudioFormat::Int16);
 
     d->api->SetStereoSpeakerMode(d->outputMode == Stereo);
     d->api->EnableRoomEffects(true);
+    d->api->SetMasterVolume(d->masterVolume);
 
     d->outputStream.reset(new QAudioOutputStream(d));
     d->outputStream->moveToThread(&d->audioThread);

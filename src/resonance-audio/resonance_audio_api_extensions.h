@@ -34,70 +34,16 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef RESONANCE_AUDIO_API_EXTENSIONS_H
+#define RESONANCE_AUDIO_API_EXTENSIONS_H
 
-#ifndef QSPATIALAUDIOENGINE_P_H
-#define QSPATIALAUDIOENGINE_P_H
+#include <api/resonance_audio_api.h>
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <qspatialaudioengine.h>
-#include <qaudiodevice.h>
-#include <qthread.h>
-#include <qmutex.h>
-
-namespace vraudio {
-class ResonanceAudioApi;
-}
-
-QT_BEGIN_NAMESPACE
-
-class QSpatialAudioSoundSource;
-class QSpatialAudioStereoSource;
-class QAudioSink;
-class QAudioOutputStream;
-class QAmbisonicDecoder;
-
-class QSpatialAudioEnginePrivate
+namespace vraudio
 {
-public:
-    static QSpatialAudioEnginePrivate *get(QSpatialAudioEngine *engine) { return engine ? engine->d : nullptr; }
 
-    static constexpr int bufferSize = 128;
+EXPORT_API int getAmbisonicOutput(ResonanceAudioApi *api, const float *buffers[], int nChannels);
 
-    QSpatialAudioEnginePrivate();
-    ~QSpatialAudioEnginePrivate();
-    vraudio::ResonanceAudioApi *api = nullptr;
-    int sampleRate = 44100;
-    float masterVolume = 1.;
-    QSpatialAudioEngine::OutputMode outputMode = QSpatialAudioEngine::Stereo;
-    bool roomEffectsEnabled = true;
-
-    QMutex mutex;
-    QAudioFormat format;
-    QAudioDevice device;
-
-    QThread audioThread;
-    std::unique_ptr<QAudioOutputStream> outputStream;
-    std::unique_ptr<QAmbisonicDecoder> ambisonicDecoder;
-
-    QList<QSpatialAudioSoundSource *> sources;
-    QList<QSpatialAudioStereoSource *> stereoSources;
-
-    void addSpatialSound(QSpatialAudioSoundSource *sound);
-    void removeSpatialSound(QSpatialAudioSoundSource *sound);
-    void addStereoSound(QSpatialAudioStereoSource *sound);
-    void removeStereoSound(QSpatialAudioStereoSource *sound);
-};
-
-QT_END_NAMESPACE
+}
 
 #endif

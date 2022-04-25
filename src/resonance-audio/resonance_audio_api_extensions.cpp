@@ -34,70 +34,25 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#include "resonance_audio_api_extensions.h"
+#include "graph/resonance_audio_api_impl.h"
 
-#ifndef QSPATIALAUDIOENGINE_P_H
-#define QSPATIALAUDIOENGINE_P_H
+namespace vraudio
+{
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
+int getAmbisonicOutput(ResonanceAudioApi *api, const float *buffers[], int nChannels)
+{
+    ResonanceAudioApiImpl *impl = static_cast<ResonanceAudioApiImpl *>(api);
 
-#include <qspatialaudioengine.h>
-#include <qaudiodevice.h>
-#include <qthread.h>
-#include <qmutex.h>
+    impl->ProcessNextBuffer();
+    auto *buffer = impl->GetAmbisonicOutputBuffer();
+    if (nChannels != buffer->num_channels())
+        return -1;
 
-namespace vraudio {
-class ResonanceAudioApi;
+    for (int i = 0; i < nChannels; ++i) {
+        buffers[i] = buffer->begin()[i].begin();
+    }
+    return buffer->num_frames();
 }
 
-QT_BEGIN_NAMESPACE
-
-class QSpatialAudioSoundSource;
-class QSpatialAudioStereoSource;
-class QAudioSink;
-class QAudioOutputStream;
-class QAmbisonicDecoder;
-
-class QSpatialAudioEnginePrivate
-{
-public:
-    static QSpatialAudioEnginePrivate *get(QSpatialAudioEngine *engine) { return engine ? engine->d : nullptr; }
-
-    static constexpr int bufferSize = 128;
-
-    QSpatialAudioEnginePrivate();
-    ~QSpatialAudioEnginePrivate();
-    vraudio::ResonanceAudioApi *api = nullptr;
-    int sampleRate = 44100;
-    float masterVolume = 1.;
-    QSpatialAudioEngine::OutputMode outputMode = QSpatialAudioEngine::Stereo;
-    bool roomEffectsEnabled = true;
-
-    QMutex mutex;
-    QAudioFormat format;
-    QAudioDevice device;
-
-    QThread audioThread;
-    std::unique_ptr<QAudioOutputStream> outputStream;
-    std::unique_ptr<QAmbisonicDecoder> ambisonicDecoder;
-
-    QList<QSpatialAudioSoundSource *> sources;
-    QList<QSpatialAudioStereoSource *> stereoSources;
-
-    void addSpatialSound(QSpatialAudioSoundSource *sound);
-    void removeSpatialSound(QSpatialAudioSoundSource *sound);
-    void addStereoSound(QSpatialAudioStereoSource *sound);
-    void removeStereoSound(QSpatialAudioStereoSource *sound);
-};
-
-QT_END_NAMESPACE
-
-#endif
+}
