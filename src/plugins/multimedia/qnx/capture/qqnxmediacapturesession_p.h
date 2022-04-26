@@ -87,6 +87,8 @@ public:
 
     QQnxAudioInput *audioInput() const;
 
+    QQnxVideoSink *videoSink() const;
+
 private:
     QQnxCamera *m_camera = nullptr;
     QQnxImageCapture *m_imageCapture = nullptr;

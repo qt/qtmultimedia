@@ -131,4 +131,9 @@ QQnxAudioInput * QQnxMediaCaptureSession::audioInput() const
     return m_audioInput;
 }
 
+QQnxVideoSink * QQnxMediaCaptureSession::videoSink() const
+{
+    return m_videoSink;
+}
+
 QT_END_NAMESPACE
