@@ -596,16 +596,6 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
         break;
     }
 
-    // { matrix, colorMatrix, opacity, width, masteringWhite, maxLumPQ, maxLum }
-    const int uniformSize = 64 + 64 + 4 + 4 + 4 + 4;
-    if (dst->size() < uniformSize)
-        dst->resize(uniformSize);
-    char *data = dst->data();
-    memcpy(data, transform.constData(), 64);
-    memcpy(data + 64, cmat.constData(), 64);
-    memcpy(data + 64 + 64, &opacity, 4);
-    float width = format.frameWidth();
-    memcpy(data + 64 + 64 + 4, &width, 4);
     // HDR with a PQ or HLG transfer function uses a BT2390 based tone mapping to cut off the HDR peaks
     // This requires that we pass the max luminance the tonemapper should clip to over to the fragment
     // shader. To reduce computations there, it's precomputed in PQ values here.
@@ -621,10 +611,16 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
         break;
     }
 
-    float masteringWhite = fromLinear(format.maxLuminance()/100.);
-    memcpy(data + 64 + 64 + 8, &masteringWhite, 4);
-    float maxLum = fromLinear(maxNits/100.);
-    memcpy(data + 64 + 64 + 12, &maxLum, 4);
+    if (dst->size() < qsizetype(sizeof(UniformData)))
+        dst->resize(sizeof(UniformData));
+
+    auto ud = reinterpret_cast<UniformData*>(dst->data());
+    memcpy(ud->transformMatrix, transform.constData(), sizeof(ud->transformMatrix));
+    memcpy(ud->colorMatrix, cmat.constData(), sizeof(ud->transformMatrix));
+    ud->opacity = opacity;
+    ud->width = float(format.frameWidth());
+    ud->masteringWhite = fromLinear(float(format.maxLuminance())/100.f);
+    ud->maxLum = fromLinear(float(maxNits)/100.f);
 }
 
 static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)

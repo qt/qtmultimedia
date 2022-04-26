@@ -101,6 +101,15 @@ Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFor
                                            const QMatrix4x4 &transform, float opacity, float maxNits = 100);
 Q_MULTIMEDIA_EXPORT void updateRhiTexture(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex);
 
+struct UniformData {
+    float transformMatrix[4][4];
+    float colorMatrix[4][4];
+    float opacity;
+    float width;
+    float masteringWhite;
+    float maxLum;
+};
+
 struct Q_MULTIMEDIA_EXPORT SubtitleLayout
 {
     QSize videoSize;

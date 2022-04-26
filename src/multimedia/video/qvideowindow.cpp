@@ -198,7 +198,7 @@ void QVideoWindowPrivate::initRhi()
     m_vertexBuf->create();
     m_vertexBufReady = false;
 
-    m_uniformBuf.reset(m_rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 64 + 64 + 4 + 4));
+    m_uniformBuf.reset(m_rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(QVideoTextureHelper::UniformData)));
     m_uniformBuf->create();
 
     m_textureSampler.reset(m_rhi->newSampler(QRhiSampler::Linear, QRhiSampler::Linear, QRhiSampler::None,
@@ -208,7 +208,7 @@ void QVideoWindowPrivate::initRhi()
     m_shaderResourceBindings.reset(m_rhi->newShaderResourceBindings());
     m_subtitleResourceBindings.reset(m_rhi->newShaderResourceBindings());
 
-    m_subtitleUniformBuf.reset(m_rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, 64 + 64 + 4 + 4));
+    m_subtitleUniformBuf.reset(m_rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer, sizeof(QVideoTextureHelper::UniformData)));
     m_subtitleUniformBuf->create();
 
     Q_ASSERT(NVideoFrameSlots >= m_rhi->resourceLimit(QRhi::FramesInFlight));
