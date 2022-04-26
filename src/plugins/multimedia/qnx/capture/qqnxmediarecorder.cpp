@@ -69,7 +69,7 @@ void QQnxMediaRecorder::record(QMediaEncoderSettings &settings)
 
     m_audioRecorder.disconnect();
 
-    if (hasVideo()) {
+    if (hasCamera()) {
         //FIXME
     } else {
         QObject::connect(&m_audioRecorder, &QQnxAudioRecorder::durationChanged,
@@ -87,7 +87,7 @@ void QQnxMediaRecorder::record(QMediaEncoderSettings &settings)
 
 void QQnxMediaRecorder::stop()
 {
-    if (hasVideo()) {
+    if (hasCamera()) {
         //FIXME
     } else {
         m_audioRecorder.stop();
@@ -110,7 +110,7 @@ void QQnxMediaRecorder::startAudioRecording(QMediaEncoderSettings &settings)
     m_audioRecorder.record();
 }
 
-bool QQnxMediaRecorder::hasVideo() const
+bool QQnxMediaRecorder::hasCamera() const
 {
     return m_session->camera();
 }

@@ -71,7 +71,7 @@ public:
     void setCaptureSession(QQnxMediaCaptureSession *session);
 
 private:
-    bool hasVideo() const;
+    bool hasCamera() const;
 
     void startAudioRecording(QMediaEncoderSettings &settings);
 
