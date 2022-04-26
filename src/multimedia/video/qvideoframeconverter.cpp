@@ -441,11 +441,19 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideoFrame::RotationAngle
         return convertCPU(frame, rotation, mirrorX, mirrorY);
     }
 
+    if (!qConverterForFormat(frame.pixelFormat())) {
+        qCDebug(qLcVideoFrameConverter) << "Unsupported pixel format" << frame.pixelFormat();
+        return {};
+    }
+
+    QImage::Format format = pixelFormatHasAlpha(frame.pixelFormat()) ?
+                QImage::Format_ARGB32_Premultiplied : QImage::Format_RGB32;
+
     QByteArray *imageData = new QByteArray(readResult.data);
 
     return QImage(reinterpret_cast<const uchar *>(imageData->constData()),
                   readResult.pixelSize.width(), readResult.pixelSize.height(),
-                  QImage::Format_RGBA8888_Premultiplied, imageCleanupHandler, imageData);
+                  format, imageCleanupHandler, imageData);
 }
 
 QT_END_NAMESPACE
