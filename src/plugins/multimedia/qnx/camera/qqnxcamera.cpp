@@ -282,4 +282,36 @@ void QQnxCamera::updateCameraFeatures()
     supportedFeaturesChanged(features);
 }
 
+QList<camera_vfmode_t> QQnxCamera::supportedVfModes() const
+{
+    return queryValues(camera_get_supported_vf_modes);
+}
+
+QList<camera_res_t> QQnxCamera::supportedVfResolutions() const
+{
+    return queryValues(camera_get_supported_vf_resolutions);
+}
+
+template <typename T>
+QList<T> QQnxCamera::queryValues(QueryFuncPtr<T> func) const
+{
+    if (!isActive())
+        return {};
+
+    uint32_t numSupported = 0;
+
+    if (func(m_handle.get(), 0, &numSupported, nullptr) != CAMERA_EOK) {
+        qWarning("QQnxCamera: unable to query camera value count");
+        return {};
+    }
+
+    QList<T> values(numSupported);
+
+    if (func(m_handle.get(), values.size(), &numSupported, values.data()) != CAMERA_EOK) {
+        qWarning("QQnxCamera: unable to query camera values");
+        return {};
+    }
+
+    return values;
+}
 QT_END_NAMESPACE

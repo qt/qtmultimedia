@@ -52,6 +52,8 @@
 
 #include <private/qplatformcamera_p.h>
 
+#include <QtCore/qlist.h>
+
 #include <camera/camera_api.h>
 
 QT_BEGIN_NAMESPACE
@@ -177,9 +179,18 @@ public:
 
     camera_handle_t handle() const;
 
+    QList<camera_vfmode_t> supportedVfModes() const;
+    QList<camera_res_t> supportedVfResolutions() const;
+
 private:
     void updateCameraFeatures();
     void setColorTemperatureInternal(unsigned temp);
+
+    template <typename T>
+    using QueryFuncPtr = camera_error_t (*)(camera_handle_t, uint32_t, uint32_t *, T *);
+
+    template <typename T>
+    QList<T> queryValues(QueryFuncPtr<T> func) const;
 
     QQnxMediaCaptureSession *m_session;
 
