@@ -53,12 +53,18 @@
 #include <private/qplatformcamera_p.h>
 
 #include <QtCore/qlist.h>
+#include <QtCore/qmutex.h>
 
 #include <camera/camera_api.h>
+#include <camera/camera_3a.h>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
+class QQnxCameraFrameBuffer;
 class QQnxMediaCaptureSession;
+class QQnxVideoSink;
 
 class CameraHandle
 {
@@ -105,7 +111,7 @@ public:
     bool close()
     {
         if (!isOpen())
-            return CAMERA_EOK;
+            return true;
 
         const bool success = cacheError(camera_close, m_handle);
         m_handle = CAMERA_HANDLE_INVALID;
@@ -147,13 +153,16 @@ class QQnxCamera : public QPlatformCamera
     Q_OBJECT
 public:
     explicit QQnxCamera(QCamera *parent);
+    ~QQnxCamera();
 
     bool isActive() const override;
     void setActive(bool active) override;
+    void start();
+    void stop();
 
     void setCamera(const QCameraDevice &camera) override;
 
-//    bool setCameraFormat(const QCameraFormat &/*format*/) override;
+    bool setCameraFormat(const QCameraFormat &format) override;
 
     void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
@@ -162,16 +171,18 @@ public:
 
     void setCustomFocusPoint(const QPointF &point) override;
 
-//    void setFocusDistance(float) override;
+    void setFocusDistance(float distance) override;
 
-//    // smaller 0: zoom instantly, rate in power-of-two/sec
+    int maxFocusDistance() const;
+
     void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
 
-//    void setExposureCompensation(float) override;
-//    int isoSensitivity() const override;
-//    void setManualIsoSensitivity(int) override;
-//    void setManualExposureTime(float) override;
-//    float exposureTime() const override;
+    void setExposureCompensation(float ev) override;
+
+    int isoSensitivity() const override;
+    void setManualIsoSensitivity(int value) override;
+    void setManualExposureTime(float seconds) override;
+    float exposureTime() const override;
 
     bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
     void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
@@ -181,18 +192,40 @@ public:
 
     QList<camera_vfmode_t> supportedVfModes() const;
     QList<camera_res_t> supportedVfResolutions() const;
+    QList<camera_focusmode_t> supportedFocusModes() const;
 
 private:
     void updateCameraFeatures();
     void setColorTemperatureInternal(unsigned temp);
 
-    template <typename T>
-    using QueryFuncPtr = camera_error_t (*)(camera_handle_t, uint32_t, uint32_t *, T *);
+    void handleVfBuffer(camera_buffer_t *buffer);
 
-    template <typename T>
-    QList<T> queryValues(QueryFuncPtr<T> func) const;
+    Q_INVOKABLE void processFrame();
 
-    QQnxMediaCaptureSession *m_session;
+    // viewfinder callback
+    void handleVfStatus(camera_devstatus_t status, uint16_t extraData);
+
+    // our handler running on main thread
+    void handleStatusChange(camera_devstatus_t status, uint16_t extraData);
+
+
+    template <typename T, typename U>
+    using QueryFuncPtr = camera_error_t (*)(camera_handle_t, U, U *, T *);
+
+    template <typename T, typename U>
+    QList<T> queryValues(QueryFuncPtr<T, U> func) const;
+
+    template <typename ...Args>
+    using CamAPIFunc = camera_error_t (*)(camera_handle_t, Args...);
+
+    static void viewfinderCallback(camera_handle_t handle,
+            camera_buffer_t *buffer, void *arg);
+
+    static void statusCallback(camera_handle_t handle, camera_devstatus_t status,
+            uint16_t extraData, void *arg);
+
+    QQnxMediaCaptureSession *m_session = nullptr;
+    QQnxVideoSink *m_videoSink = nullptr;
 
     QCameraDevice m_camera;
     camera_unit_t m_cameraUnit = CAMERA_UNIT_NONE;
@@ -206,8 +239,16 @@ private:
     mutable int minColorTemperature = 0;
     mutable int maxColorTemperature = 0;
     mutable QList<unsigned> manualColorTemperatureValues;
+
+    QMutex m_currentFrameMutex;
+
+    std::unique_ptr<QQnxCameraFrameBuffer> m_currentFrame;
+
+    bool m_viewfinderActive = false;
 };
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(camera_devstatus_t)
 
 #endif
