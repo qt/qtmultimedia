@@ -55,31 +55,22 @@ QQnxCamera::QQnxCamera(QCamera *parent)
 
 bool QQnxCamera::isActive() const
 {
-    return m_handle != CAMERA_HANDLE_INVALID;
+    return m_handle.isOpen();
 }
 
 void QQnxCamera::setActive(bool active)
 {
-    if (active) {
-        if (m_handle)
-            return;
-        auto error = camera_open(m_cameraUnit, CAMERA_MODE_RO|CAMERA_MODE_PWRITE, &m_handle);
-        if (error != CAMERA_EOK) {
-            qWarning() << "Failed to open camera" << error;
-            return;
+    if (active && !isActive()) {
+        if (m_handle.open(m_cameraUnit, CAMERA_MODE_RO|CAMERA_MODE_PWRITE)) {
+            updateCameraFeatures();
+        } else {
+            qWarning() << "Failed to open camera" << m_handle.lastError();
         }
-    } else {
-        if (!m_handle)
-            return;
-        auto error = camera_close(m_handle);
-        m_handle = CAMERA_HANDLE_INVALID;
-        if (error != CAMERA_EOK) {
-            qWarning() << "Failed to close camera" << error;
-            return;
+    } else if (!active && isActive()) {
+        if (!m_handle.close()) {
+            qWarning() << "Failed to close camera" << m_handle.lastError();
         }
     }
-
-    updateCameraFeatures();
 }
 
 void QQnxCamera::setCamera(const QCameraDevice &camera)
@@ -116,12 +107,12 @@ camera_focusmode_t qnxFocusMode(QCamera::FocusMode mode)
 
 bool QQnxCamera::isFocusModeSupported(QCamera::FocusMode mode) const
 {
-    if (!m_handle)
+    if (!m_handle.isOpen())
         return false;
 
     camera_focusmode_t focusModes[CAMERA_FOCUSMODE_NUMFOCUSMODES];
     int nFocusModes = 0;
-    auto error = camera_get_focus_modes(m_handle, CAMERA_FOCUSMODE_NUMFOCUSMODES, &nFocusModes, focusModes);
+    auto error = camera_get_focus_modes(m_handle.get(), CAMERA_FOCUSMODE_NUMFOCUSMODES, &nFocusModes, focusModes);
     if (error != CAMERA_EOK || nFocusModes == 0)
         return false;
 
@@ -135,11 +126,11 @@ bool QQnxCamera::isFocusModeSupported(QCamera::FocusMode mode) const
 
 void QQnxCamera::setFocusMode(QCamera::FocusMode mode)
 {
-    if (!m_handle)
+    if (!m_handle.isOpen())
         return;
 
     auto qnxMode = qnxFocusMode(mode);
-    const camera_error_t result = camera_set_focus_mode(m_handle, qnxMode);
+    const camera_error_t result = camera_set_focus_mode(m_handle.get(), qnxMode);
 
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to set focus mode:" << result;
@@ -154,7 +145,7 @@ void QQnxCamera::setCustomFocusPoint(const QPointF &point)
     // get the size of the viewfinder
     int width = 0;
     int height = 0;
-    auto result = camera_get_vf_property(m_handle,
+    auto result = camera_get_vf_property(m_handle.get(),
                                         CAMERA_IMGPROP_WIDTH, width,
                                         CAMERA_IMGPROP_HEIGHT, height);
     if (result != CAMERA_EOK)
@@ -167,13 +158,13 @@ void QQnxCamera::setCustomFocusPoint(const QPointF &point)
     focusRegion.width = 40;
     focusRegion.height = 40;
 
-    result = camera_set_focus_regions(m_handle, 1, &focusRegion);
+    result = camera_set_focus_regions(m_handle.get(), 1, &focusRegion);
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to set focus region:" << result;
         return;
     }
     auto qnxMode = qnxFocusMode(focusMode());
-    result = camera_set_focus_mode(m_handle, qnxMode);
+    result = camera_set_focus_mode(m_handle.get(), qnxMode);
     if (result != CAMERA_EOK) {
         qWarning() << "Unable to set focus region:" << result;
         return;
@@ -193,7 +184,7 @@ void QQnxCamera::zoomTo(float factor, float)
     factor = qBound(min, factor, max) - min;
     uint zoom = minZoom + (uint)qRound(factor*(maxZoom - minZoom)/(max - min));
 
-    auto error = camera_set_vf_property(m_handle, CAMERA_IMGPROP_ZOOMFACTOR, zoom);
+    auto error = camera_set_vf_property(m_handle.get(), CAMERA_IMGPROP_ZOOMFACTOR, zoom);
     if (error == CAMERA_EOK)
         zoomFactorChanged(factor);
 }
@@ -203,11 +194,11 @@ bool QQnxCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) con
     if (!whiteBalanceModesChecked) {
         whiteBalanceModesChecked = true;
         unsigned numWhiteBalanceValues = 0;
-        auto error = camera_get_supported_manual_white_balance_values(m_handle, 0, &numWhiteBalanceValues,
+        auto error = camera_get_supported_manual_white_balance_values(m_handle.get(), 0, &numWhiteBalanceValues,
                                                                       nullptr, &continuousColorTemperatureSupported);
         if (error == CAMERA_EOK) {
             manualColorTemperatureValues.resize(numWhiteBalanceValues);
-            auto error = camera_get_supported_manual_white_balance_values(m_handle, numWhiteBalanceValues, &numWhiteBalanceValues,
+            auto error = camera_get_supported_manual_white_balance_values(m_handle.get(), numWhiteBalanceValues, &numWhiteBalanceValues,
                                                                           manualColorTemperatureValues.data(),
                                                                           &continuousColorTemperatureSupported);
 
@@ -229,10 +220,10 @@ bool QQnxCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) con
 void QQnxCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 {
     if (mode == QCamera::WhiteBalanceAuto) {
-        camera_set_whitebalance_mode(m_handle, CAMERA_WHITEBALANCEMODE_AUTO);
+        camera_set_whitebalance_mode(m_handle.get(), CAMERA_WHITEBALANCEMODE_AUTO);
         return;
     }
-    camera_set_whitebalance_mode(m_handle, CAMERA_WHITEBALANCEMODE_MANUAL);
+    camera_set_whitebalance_mode(m_handle.get(), CAMERA_WHITEBALANCEMODE_MANUAL);
     setColorTemperature(colorTemperatureForWhiteBalance(mode));
 }
 
@@ -257,12 +248,12 @@ void QQnxCamera::setColorTemperature(int temperature)
         bestTemp = (unsigned)qBound(minColorTemperature, temperature, maxColorTemperature);
     }
 
-    auto error = camera_set_manual_white_balance(m_handle, bestTemp);
+    auto error = camera_set_manual_white_balance(m_handle.get(), bestTemp);
 }
 
 camera_handle_t QQnxCamera::handle() const
 {
-    return m_handle;
+    return m_handle.get();
 }
 
 void QQnxCamera::updateCameraFeatures()
@@ -270,12 +261,12 @@ void QQnxCamera::updateCameraFeatures()
     whiteBalanceModesChecked = false;
 
     bool smooth;
-    auto error = camera_get_zoom_limits(m_handle, &minZoom, &maxZoom, &smooth);
+    auto error = camera_get_zoom_limits(m_handle.get(), &minZoom, &maxZoom, &smooth);
     if (error == CAMERA_EOK) {
         double level;
-        camera_get_zoom_ratio_from_zoom_level(m_handle, minZoom, &level);
+        camera_get_zoom_ratio_from_zoom_level(m_handle.get(), minZoom, &level);
         minimumZoomFactorChanged(level);
-        camera_get_zoom_ratio_from_zoom_level(m_handle, maxZoom, &level);
+        camera_get_zoom_ratio_from_zoom_level(m_handle.get(), maxZoom, &level);
         maximumZoomFactorChanged(level);
     } else {
         minZoom = maxZoom = 1;
@@ -283,7 +274,7 @@ void QQnxCamera::updateCameraFeatures()
 
     QCamera::Features features = {};
 
-    if (camera_has_feature(m_handle, CAMERA_FEATURE_REGIONFOCUS))
+    if (camera_has_feature(m_handle.get(), CAMERA_FEATURE_REGIONFOCUS))
         features |= QCamera::Feature::CustomFocusPoint;
 
     minimumZoomFactorChanged(minZoom);

@@ -58,6 +58,88 @@ QT_BEGIN_NAMESPACE
 
 class QQnxMediaCaptureSession;
 
+class CameraHandle
+{
+public:
+    CameraHandle() = default;
+
+    explicit CameraHandle(camera_handle_t h)
+        : m_handle (h) {}
+
+    explicit CameraHandle(CameraHandle &&other)
+        : m_handle(other.m_handle)
+        , m_lastError(other.m_lastError)
+    {
+        other = CameraHandle();
+    }
+
+    CameraHandle(const CameraHandle&) = delete;
+
+    CameraHandle& operator=(CameraHandle&& other)
+    {
+        m_handle = other.m_handle;
+        m_lastError = other.m_lastError;
+
+        other = CameraHandle();
+
+        return *this;
+    }
+
+    ~CameraHandle()
+    {
+        close();
+    }
+
+    bool open(camera_unit_t unit, uint32_t mode)
+    {
+        if (isOpen()) {
+            m_lastError = CAMERA_EALREADY;
+            return false;
+        }
+
+        return cacheError(camera_open, unit, mode, &m_handle);
+    }
+
+    bool close()
+    {
+        if (!isOpen())
+            return CAMERA_EOK;
+
+        const bool success = cacheError(camera_close, m_handle);
+        m_handle = CAMERA_HANDLE_INVALID;
+
+        return success;
+    }
+
+    camera_handle_t get() const
+    {
+        return m_handle;
+    }
+
+    bool isOpen() const
+    {
+        return m_handle != CAMERA_HANDLE_INVALID;
+    }
+
+    camera_error_t lastError() const
+    {
+        return m_lastError;
+    }
+
+private:
+    template <typename Func, typename ...Args>
+    bool cacheError(Func f, Args &&...args)
+    {
+        m_lastError = f(std::forward<Args>(args)...);
+
+        return m_lastError == CAMERA_EOK;
+    }
+
+    camera_handle_t m_handle = CAMERA_HANDLE_INVALID;
+    camera_error_t m_lastError = CAMERA_EOK;
+};
+
+
 class QQnxCamera : public QPlatformCamera
 {
     Q_OBJECT
@@ -103,7 +185,9 @@ private:
 
     QCameraDevice m_camera;
     camera_unit_t m_cameraUnit = CAMERA_UNIT_NONE;
-    camera_handle_t m_handle = CAMERA_HANDLE_INVALID;
+
+    CameraHandle m_handle;
+
     uint minZoom = 1;
     uint maxZoom = 1;
     mutable bool whiteBalanceModesChecked = false;
