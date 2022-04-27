@@ -97,7 +97,7 @@ private:
 };
 
 struct AVFObjectDeleter {
-    static void cleanup(NSObject *obj)
+    void operator()(NSObject *obj)
     {
         if (obj)
             [obj release];
@@ -105,11 +105,11 @@ struct AVFObjectDeleter {
 };
 
 template<class T>
-class AVFScopedPointer : public QScopedPointer<NSObject, AVFObjectDeleter>
+class AVFScopedPointer : public std::unique_ptr<NSObject, AVFObjectDeleter>
 {
 public:
     AVFScopedPointer() {}
-    explicit AVFScopedPointer(T *ptr) : QScopedPointer(ptr) {}
+    explicit AVFScopedPointer(T *ptr) : std::unique_ptr<NSObject, AVFObjectDeleter>(ptr) {}
     operator T*() const
     {
         // Quite handy operator to enable Obj-C messages: [ptr someMethod];
@@ -118,12 +118,12 @@ public:
 
     T *data() const
     {
-        return static_cast<T *>(QScopedPointer::data());
+        return static_cast<T *>(get());
     }
 
     T *take()
     {
-        return static_cast<T *>(QScopedPointer::take());
+        return static_cast<T *>(release());
     }
 };
 
