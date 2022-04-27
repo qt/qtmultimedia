@@ -183,7 +183,7 @@ private:
     QImageEncoderSettings m_requestedImageSettings;
     QImageEncoderSettings m_actualImageSettings;
     AndroidCamera::FpsRange m_requestedFpsRange;
-    AndroidCamera::ImageFormat m_requestedPixelFromat;
+    AndroidCamera::ImageFormat m_requestedPixelFromat = AndroidCamera::ImageFormat::NV21;
 
     bool m_readyForCapture;
     int m_currentImageCaptureId;
