@@ -92,6 +92,21 @@ void Decoder::stop()
 
 void Decoder::setSource(const QUrl &source)
 {
+    const QJniObject path = QJniObject::callStaticObjectMethod(
+                "org/qtproject/qt/android/multimedia/QtMultimediaUtils",
+                "getMimeType",
+                "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;",
+                QNativeInterface::QAndroidApplication::context(),
+                QJniObject::fromString(source.path()).object());
+
+    const QString mime = path.isValid() ? path.toString() : "";
+
+    if (!mime.isEmpty() && !mime.contains("audio", Qt::CaseInsensitive)) {
+        emit error(QAudioDecoder::FormatError,
+                   tr("Cannot set source, invalid mime type for the provided source."));
+        return;
+    }
+
     if (!m_extractor)
         m_extractor = AMediaExtractor_new();
 
