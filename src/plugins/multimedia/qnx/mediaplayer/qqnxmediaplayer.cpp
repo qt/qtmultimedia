@@ -41,6 +41,10 @@
 #include "qqnxvideosink_p.h"
 #include "qqnxmediautil_p.h"
 #include "qqnxmediaeventthread_p.h"
+#include "qqnxwindowgrabber_p.h"
+
+#include <private/qabstractvideobuffer_p.h>
+
 #include <QtCore/qabstracteventdispatcher.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdir.h>
@@ -94,6 +98,84 @@ static std::tuple<int, int, bool> parseBufferLevel(const QString &value)
     return { level, capacity, true };
 }
 
+class QnxTextureBuffer : public QAbstractVideoBuffer
+{
+public:
+    QnxTextureBuffer(QQnxWindowGrabber *QQnxWindowGrabber)
+        : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle)
+    {
+        m_windowGrabber = QQnxWindowGrabber;
+        m_handle = 0;
+    }
+
+    QVideoFrame::MapMode mapMode() const override
+    {
+        return QVideoFrame::ReadWrite;
+    }
+
+    void unmap() override {}
+
+    MapData map(QVideoFrame::MapMode /*mode*/) override
+    {
+        return {};
+    }
+
+    quint64 textureHandle(int plane) const override
+    {
+        if (plane != 0)
+            return 0;
+        if (!m_handle) {
+            const_cast<QnxTextureBuffer*>(this)->m_handle = m_windowGrabber->getNextTextureId();
+        }
+        return m_handle;
+    }
+
+private:
+    QQnxWindowGrabber *m_windowGrabber;
+    quint64 m_handle;
+};
+
+class QnxRasterBuffer : public QAbstractVideoBuffer
+{
+public:
+    QnxRasterBuffer(QQnxWindowGrabber *windowGrabber)
+        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
+    {
+        m_windowGrabber = windowGrabber;
+    }
+
+    QVideoFrame::MapMode mapMode() const override
+    {
+        return QVideoFrame::ReadOnly;
+    }
+
+    MapData map(QVideoFrame::MapMode /*mode*/) override
+    {
+        if (buffer.data) {
+            qWarning("QnxRasterBuffer: need to unmap before mapping");
+            return {};
+        }
+
+        buffer = m_windowGrabber->getNextBuffer();
+
+        return {
+            .nPlanes = 1,
+            .bytesPerLine = { buffer.stride },
+            .data = { buffer.data },
+            .size = { buffer.width * buffer.height * buffer.pixelSize }
+        };
+    }
+
+    void unmap() override
+    {
+        buffer = {};
+    }
+
+private:
+    QQnxWindowGrabber *m_windowGrabber;
+    QQnxWindowGrabber::BufferView buffer;
+};
+
 static int idCounter = 0;
 
 QT_BEGIN_NAMESPACE
@@ -101,11 +183,14 @@ QT_BEGIN_NAMESPACE
 QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
     : QObject(parent)
     , QPlatformMediaPlayer(parent)
+    , m_windowGrabber(new QQnxWindowGrabber(this))
 {
     m_flushPositionTimer.setSingleShot(true);
     m_flushPositionTimer.setInterval(100);
 
     connect(&m_flushPositionTimer, &QTimer::timeout, this, &QQnxMediaPlayer::flushPosition);
+
+    connect(m_windowGrabber, &QQnxWindowGrabber::updateScene, this, &QQnxMediaPlayer::updateScene);
 
     openConnection();
 }
@@ -150,21 +235,24 @@ void QQnxMediaPlayer::handleMmEventState(const mmr_event_t *event)
     case MMR_STATE_IDLE:
         mediaStatusChanged(QMediaPlayer::NoMedia);
         stateChanged(QMediaPlayer::StoppedState);
-        m_platformVideoSink->detachOutput();
+        detachOutput();
         break;
     case MMR_STATE_STOPPED:
         stateChanged(QMediaPlayer::StoppedState);
-        m_platformVideoSink->stop();
+        m_windowGrabber->stop();
+
+        if (m_platformVideoSink)
+            m_platformVideoSink->setVideoFrame({});
         break;
     case MMR_STATE_PLAYING:
         if (event->speed == 0) {
             stateChanged(QMediaPlayer::PausedState);
-            m_platformVideoSink->pause();
+            m_windowGrabber->pause();
         } else if (state() == QMediaPlayer::PausedState) {
-            m_platformVideoSink->resume();
+            m_windowGrabber->resume();
             stateChanged(QMediaPlayer::PlayingState);
         } else {
-            m_platformVideoSink->start();
+            m_windowGrabber->start();
             stateChanged(QMediaPlayer::PlayingState);
         }
 
@@ -301,8 +389,7 @@ void QQnxMediaPlayer::attach()
 
     resetMonitoring();
 
-    if (m_platformVideoSink)
-        m_platformVideoSink->attachOutput(m_context);
+    attachOutput();
 
     const QByteArray defaultAudioDevice = qgetenv("QQNX_RENDERER_DEFAULT_AUDIO_SINK");
     m_audioId = mmr_output_attach(m_context,
@@ -331,6 +418,45 @@ void QQnxMediaPlayer::attach()
     mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
 
+void QQnxMediaPlayer::attachOutput()
+{
+    if (isOutputAttached()) {
+        qWarning() << "QQnxVideoSink: Video output already attached!";
+        return;
+    }
+
+    if (!m_context) {
+        qWarning() << "QQnxVideoSink: No media player context!";
+        return;
+    }
+
+    const QByteArray windowGroupId = m_windowGrabber->windowGroupId();
+    if (windowGroupId.isEmpty()) {
+        qWarning() << "QQnxVideoSink: Unable to find window group";
+        return;
+    }
+
+    static int winIdCounter = 0;
+
+    const QString windowName = QStringLiteral("QQnxVideoSink_%1_%2")
+                                             .arg(winIdCounter++)
+                                             .arg(QCoreApplication::applicationPid());
+
+    m_windowGrabber->setWindowId(windowName.toLatin1());
+
+    if (m_platformVideoSink)
+        m_windowGrabber->setRhi(m_platformVideoSink->rhi());
+
+    // Start with an invisible window, because we just want to grab the frames from it.
+    const QString videoDeviceUrl = QStringLiteral("screen:?winid=%1&wingrp=%2&initflags=invisible&nodstviewport=1")
+        .arg(windowName, QString::fromLatin1(windowGroupId));
+
+    m_videoId = mmr_output_attach(m_context, videoDeviceUrl.toLatin1(), "video");
+
+    if (m_videoId == -1)
+        qWarning() << "mmr_output_attach() for video failed";
+}
+
 void QQnxMediaPlayer::detach()
 {
     if (m_context) {
@@ -338,13 +464,46 @@ void QQnxMediaPlayer::detach()
             mmr_input_detach(m_context);
             m_inputAttached = false;
         }
-        if (m_platformVideoSink)
-            m_platformVideoSink->detachOutput();
+        if (isOutputAttached())
+            detachOutput();
         if (m_audioId != -1 && m_context) {
             mmr_output_detach(m_context, m_audioId);
             m_audioId = -1;
         }
     }
+}
+
+void QQnxMediaPlayer::detachOutput()
+{
+    m_windowGrabber->stop();
+
+    if (m_platformVideoSink)
+        m_platformVideoSink->setVideoFrame({});
+
+    if (isOutputAttached())
+        mmr_output_detach(m_context, m_videoId);
+
+    m_videoId = -1;
+}
+
+bool QQnxMediaPlayer::isOutputAttached() const
+{
+    return m_videoId != -1;
+}
+
+void QQnxMediaPlayer::updateScene(const QSize &size)
+{
+    if (!m_platformVideoSink)
+        return;
+
+    auto *buffer = m_windowGrabber->isEglImageSupported()
+        ? static_cast<QAbstractVideoBuffer*>(new QnxTextureBuffer(m_windowGrabber))
+        : static_cast<QAbstractVideoBuffer*>(new QnxRasterBuffer(m_windowGrabber));
+
+    const QVideoFrame actualFrame(buffer,
+            QVideoFrameFormat(size, QVideoFrameFormat::Format_BGRX8888));
+
+    m_platformVideoSink->setVideoFrame(actualFrame);
 }
 
 qint64 QQnxMediaPlayer::duration() const
@@ -631,7 +790,7 @@ void QQnxMediaPlayer::handleMmPositionChanged(qint64 newPosition)
     m_position = newPosition;
 
     if (state() == QMediaPlayer::PausedState)
-        m_platformVideoSink->forceUpdate();
+        m_windowGrabber->forceUpdate();
 
     positionChanged(m_position);
 }

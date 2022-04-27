@@ -67,6 +67,7 @@ QT_BEGIN_NAMESPACE
 
 class QQnxVideoSink;
 class QQnxMediaEventThread;
+class QQnxWindowGrabber;
 
 class QQnxMediaPlayer : public QObject
                       , public QPlatformMediaPlayer
@@ -133,7 +134,13 @@ private:
 
     void closeConnection();
     void attach();
+    void attachOutput();
     void detach();
+    void detachOutput();
+
+    bool isOutputAttached() const;
+
+    void updateScene(const QSize &size);
 
     void updateVolume();
 
@@ -165,6 +172,8 @@ private:
 
     int m_bufferLevel = 0;
 
+    int m_videoId = -1;
+
     QTimer m_flushPositionTimer;
 
     QQnxMediaEventThread *m_eventThread = nullptr;
@@ -173,6 +182,8 @@ private:
     int m_configuredSpeed = 1000;
 
     std::optional<int> m_deferredSpeed;
+
+    QQnxWindowGrabber* m_windowGrabber = nullptr;
 
     bool m_inputAttached = false;
     bool m_muted = false;

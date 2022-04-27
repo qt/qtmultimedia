@@ -53,8 +53,6 @@
 
 #include <private/qplatformvideosink_p.h>
 
-typedef struct mmr_context mmr_context_t;
-
 QT_BEGIN_NAMESPACE
 
 class QQnxWindowGrabber;
@@ -65,28 +63,13 @@ class QQnxVideoSink : public QPlatformVideoSink
     Q_OBJECT
 public:
     explicit QQnxVideoSink(QVideoSink *parent = 0);
-    ~QQnxVideoSink() override;
-
-    // Called by media player
-    void attachOutput(mmr_context_t *context);
-    void detachOutput();
-    void pause();
-    void resume();
-    void start();
-    void stop();
-    void forceUpdate();
 
     void setRhi(QRhi *) override;
 
-private Q_SLOTS:
-    void updateScene(const QSize &size);
+    QRhi *rhi() const;
 
 private:
-    QQnxWindowGrabber* m_windowGrabber;
-
-    mmr_context_t *m_context;
-
-    int m_videoId;
+    QRhi *m_rhi = nullptr;
 };
 
 QT_END_NAMESPACE
