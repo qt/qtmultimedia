@@ -53,7 +53,6 @@
 #include "private/qplatformaudiodecoder_p.h"
 
 #include <QtCore/qurl.h>
-#include <QtCore/qmutex.h>
 #include <QThread>
 
 #include "media/NdkMediaCodec.h"
@@ -137,7 +136,6 @@ private:
     QList<QAudioBuffer> m_audioBuffer;
     QUrl m_source;
 
-    mutable QMutex m_buffersMutex;
     qint64 m_position = -1;
     qint64 m_duration = -1;
     long long m_presentationTimeUs = 0;
