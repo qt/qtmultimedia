@@ -121,7 +121,7 @@ private slots:
     }
     void useHeadphoneChanged(int state)
     {
-        engine.setOutputMode(state ? QSpatialAudioEngine::Headphone : QSpatialAudioEngine::Stereo);
+        engine.setOutputMode(state ? QSpatialAudioEngine::Headphone : QSpatialAudioEngine::Normal);
     }
     void fileChanged(const QString &file)
     {

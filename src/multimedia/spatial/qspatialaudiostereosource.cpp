@@ -90,6 +90,19 @@ void QSpatialAudioStereoSourcePrivate::getBuffer(QAudioBuffer::F32S *buf, int bu
     }
 }
 
+/*!
+    \class QSpatialAudioStereoSource
+
+    \brief A stereo overlay sound.
+
+    A QSpatialAudioStereoSource represents a position and orientation independent sound.
+    It's commonly used for background sounds (e.g. music) that is supposed to be independent
+    of the listeners position and orientation.
+  */
+
+/*!
+    Creates a stereo sound source for \a engine.
+ */
 QSpatialAudioStereoSource::QSpatialAudioStereoSource(QSpatialAudioEngine *engine)
     : d(new QSpatialAudioStereoSourcePrivate)
 {
@@ -102,6 +115,11 @@ QSpatialAudioStereoSource::~QSpatialAudioStereoSource()
     delete d;
 }
 
+/*!
+    \property QSpatialAudioStereoSource::volume
+
+    Defines an overall volume for this sound source.
+ */
 void QSpatialAudioStereoSource::setVolume(float volume)
 {
     if (d->volume == volume)
@@ -128,11 +146,19 @@ void QSpatialAudioStereoSource::setSource(const QUrl &url)
     emit sourceChanged();
 }
 
+/*!
+    \property QSpatialAudioStereoSource::source
+
+    The source file for the sound to be played.
+ */
 QUrl QSpatialAudioStereoSource::source() const
 {
     return d->url;
 }
 
+/*!
+    \internal
+ */
 void QSpatialAudioStereoSource::setEngine(QSpatialAudioEngine *engine)
 {
     if (d->engine == engine)
@@ -150,11 +176,17 @@ void QSpatialAudioStereoSource::setEngine(QSpatialAudioEngine *engine)
     }
 }
 
+/*!
+    Returns the engine associated with this listener.
+ */
 QSpatialAudioEngine *QSpatialAudioStereoSource::engine() const
 {
     return d->engine;
 }
 
+/*!
+    \internal
+ */
 void QSpatialAudioStereoSource::bufferReady()
 {
     QMutexLocker l(&d->mutex);
@@ -163,6 +195,9 @@ void QSpatialAudioStereoSource::bufferReady()
     d->buffers.append(b);
 }
 
+/*!
+    \internal
+ */
 void QSpatialAudioStereoSource::finished()
 {
 

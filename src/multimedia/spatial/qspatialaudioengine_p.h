@@ -78,7 +78,7 @@ public:
     vraudio::ResonanceAudioApi *api = nullptr;
     int sampleRate = 44100;
     float masterVolume = 1.;
-    QSpatialAudioEngine::OutputMode outputMode = QSpatialAudioEngine::Stereo;
+    QSpatialAudioEngine::OutputMode outputMode = QSpatialAudioEngine::Normal;
     bool roomEffectsEnabled = true;
 
     QMutex mutex;

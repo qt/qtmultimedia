@@ -93,18 +93,44 @@ void QSpatialAudioSoundSourcePrivate::getBuffer(float *buf, int bufSize)
     }
 }
 
+/*!
+    \class QSpatialAudioSoundSource
+
+    \brief A sound object in 3D space.
+
+    A QSpatialAudioSoundSource represents an audible object in 3D space. You can define
+    it's position and orientation in space, set the sound it is playing and define a
+    volume for the object.
+
+    The object can have different attenuation behavior, emit sound mainly in one direction
+    or spherically, and behave as if occluded by some other object.
+  */
+
+/*!
+    Creates a spatial sound source for \a engine. The object can be placed in
+    3D space and will be louder the closer to the listener it is.
+ */
 QSpatialAudioSoundSource::QSpatialAudioSoundSource(QSpatialAudioEngine *engine)
     : d(new QSpatialAudioSoundSourcePrivate)
 {
     setEngine(engine);
 }
 
+/*!
+    Destroys the sound source.
+ */
 QSpatialAudioSoundSource::~QSpatialAudioSoundSource()
 {
     setEngine(nullptr);
     delete d;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::position
+
+    Defines the position of the sound source in 3D space. All units are
+    assumed to be in meters.
+ */
 void QSpatialAudioSoundSource::setPosition(QVector3D pos)
 {
     d->pos = pos;
@@ -119,6 +145,11 @@ QVector3D QSpatialAudioSoundSource::position() const
     return d->pos;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::rotation
+
+    Defines the orientation of the sound source in 3D space.
+ */
 void QSpatialAudioSoundSource::setRotation(const QQuaternion &q)
 {
     d->rotation = q;
@@ -133,6 +164,11 @@ QQuaternion QSpatialAudioSoundSource::rotation() const
     return d->rotation;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::volume
+
+    Defines an overall volume for this sound source.
+ */
 void QSpatialAudioSoundSource::setVolume(float volume)
 {
     if (d->volume == volume)
@@ -149,6 +185,24 @@ float QSpatialAudioSoundSource::volume() const
     return d->volume;
 }
 
+/*!
+    \enum QSpatialAudioSoundSource::DistanceModel
+
+    Defines how the volume of the sound scales with distance to the listener.
+
+    \value DistanceModel_Logarithmic Volume decreases logarithmically with distance.
+    DistanceModel_Linear Volume decreases linearly with distance.
+    DistanceModel_ManualAttenutation Attenuation is defined manually using the
+    \l manualAttenuation property.
+*/
+
+/*!
+    \property QSpatialAudioSoundSource::distanceModel
+
+    Defines distance model for this sound source.
+
+    \sa QSpatialAudioSoundSource::DistanceModel
+ */
 void QSpatialAudioSoundSource::setDistanceModel(DistanceModel model)
 {
     if (d->distanceModel == model)
@@ -185,6 +239,13 @@ QSpatialAudioSoundSource::DistanceModel QSpatialAudioSoundSource::distanceModel(
     return d->distanceModel;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::minimumDistance
+
+    Defines a minimum distance for the sound source. If the listener is closer to the sound
+    object than the minimum distance, volume will stay constant and the sound source won't
+    be localized in space.
+ */
 void QSpatialAudioSoundSource::setMinimumDistance(float min)
 {
     if (d->minDistance == min)
@@ -200,6 +261,12 @@ float QSpatialAudioSoundSource::minimumDistance() const
     return d->minDistance;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::maximumDistance
+
+    Defines a maximum distance for the sound source. If the listener is further away from
+    the sound object than the maximum distance it won't be audible anymore.
+ */
 void QSpatialAudioSoundSource::setMaximumDistance(float max)
 {
     if (d->maxDistance == max)
@@ -215,6 +282,12 @@ float QSpatialAudioSoundSource::maximumDistance() const
     return d->maxDistance;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::manualAttenuation
+
+    Defines a manual attenuation factor if \l distanceModel is set to
+    QSpatialAudioSoundSource::DistanceModel_ManualAttenutation.
+ */
 void QSpatialAudioSoundSource::setManualAttenuation(float attenuation)
 {
     if (d->manualAttenuation == attenuation)
@@ -231,6 +304,14 @@ float QSpatialAudioSoundSource::manualAttenuation() const
     return d->manualAttenuation;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::occlusionIntensity
+
+    Defines how much the object is occluded. 0 implies the object is
+    not occluded at all, while a large number implies a large occlusion.
+
+    The default is 0.
+ */
 void QSpatialAudioSoundSource::setOcclusionIntensity(float occlusion)
 {
     if (d->occlusionIntensity == occlusion)
@@ -247,6 +328,15 @@ float QSpatialAudioSoundSource::occlusionIntensity() const
     return d->occlusionIntensity;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::directivity
+
+    Defines the directivity of the sound source. A value of 0 implies that the sound is
+    emitted equally in all directions, while a value of 1 implies that the source mainly
+    emits sound in the forward direction.
+
+    Valid values are between 0 and 1, the default is 0.
+ */
 void QSpatialAudioSoundSource::setDirectivity(float alpha)
 {
     alpha = qBound(0., alpha, 1.);
@@ -266,6 +356,14 @@ float QSpatialAudioSoundSource::directivity() const
     return d->directivity;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::directivityOrder
+
+    Defines the order of the directivity of the sound source. A higher order
+    implies a sharper localization of the sound cone.
+
+    The minimum value and default for this property is 1.
+ */
 void QSpatialAudioSoundSource::setDirectivityOrder(float order)
 {
     order = qMax(order, 1.);
@@ -285,6 +383,13 @@ float QSpatialAudioSoundSource::directivityOrder() const
     return d->directivityOrder;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::nearFieldGain
+
+    Defines the near field gain for the sound source. Valid values are between 0 and 1.
+    A near field gain of 1 will raise the volume of the sound signal by approx 20 dB for
+    distances very close to the listener.
+ */
 void QSpatialAudioSoundSource::setNearFieldGain(float gain)
 {
     gain = qBound(0., gain, 1.);
@@ -294,7 +399,7 @@ void QSpatialAudioSoundSource::setNearFieldGain(float gain)
 
     auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
     if (ep)
-        ep->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain);
+        ep->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain/9.);
 
     emit nearFieldGainChanged();
 
@@ -305,6 +410,11 @@ float QSpatialAudioSoundSource::nearFieldGain() const
     return d->nearFieldGain;
 }
 
+/*!
+    \property QSpatialAudioSoundSource::source
+
+    The source file for the sound to be played.
+ */
 void QSpatialAudioSoundSource::setSource(const QUrl &url)
 {
     if (d->url == url)
@@ -320,6 +430,9 @@ QUrl QSpatialAudioSoundSource::source() const
     return d->url;
 }
 
+/*!
+    \internal
+ */
 void QSpatialAudioSoundSource::setEngine(QSpatialAudioEngine *engine)
 {
     if (d->engine == engine)
@@ -342,11 +455,17 @@ void QSpatialAudioSoundSource::setEngine(QSpatialAudioEngine *engine)
     }
 }
 
+/*!
+    Returns the engine associated with this listener.
+ */
 QSpatialAudioEngine *QSpatialAudioSoundSource::engine() const
 {
     return d->engine;
 }
 
+/*!
+    \internal
+ */
 void QSpatialAudioSoundSource::bufferReady()
 {
     QMutexLocker l(&d->mutex);
@@ -355,6 +474,9 @@ void QSpatialAudioSoundSource::bufferReady()
     d->buffers.append(b);
 }
 
+/*!
+    \internal
+ */
 void QSpatialAudioSoundSource::finished()
 {
 

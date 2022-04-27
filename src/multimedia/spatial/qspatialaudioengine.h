@@ -57,7 +57,7 @@ public:
     ~QSpatialAudioEngine();
 
     enum OutputMode {
-        Stereo,
+        Normal,
         Headphone
     };
     Q_ENUM(OutputMode)

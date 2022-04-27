@@ -56,7 +56,7 @@ class QQuick3DSpatialAudioEngine : public QObject
 public:
     // Keep in sync with QSpatialAudioEngine::OutputMode
     enum OutputMode {
-        Stereo,
+        Normal,
         Headphone
     };
     Q_ENUM(OutputMode)

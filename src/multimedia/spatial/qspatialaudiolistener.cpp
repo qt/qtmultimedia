@@ -52,17 +52,37 @@ public:
     QQuaternion rotation;
 };
 
+/*!
+    class QSpatialAudioListener
+
+    \brief Defines the position and orientation of the person listening to a sound field
+    defined by a QSpatialAudioEngine.
+
+    A QSpatialAudioEngine can have exactly one listener, that defines the position and orientation
+    of the person listening to the sounds defined by the objects placed within the audio engine.
+ */
+
+/*!
+    Creates a listener for the spatial audio engine for \a engine.
+ */
 QSpatialAudioListener::QSpatialAudioListener(QSpatialAudioEngine *engine)
     : d(new QSpatialAudioListenerPrivate)
 {
     setEngine(engine);
 }
 
+/*!
+    Destroys the listener.
+ */
 QSpatialAudioListener::~QSpatialAudioListener()
 {
     delete d;
 }
 
+/*!
+    Sets the listener's position in 3D space to \a pos. Units are assumed to
+    represent meters.
+ */
 void QSpatialAudioListener::setPosition(QVector3D pos)
 {
     d->pos = pos;
@@ -71,11 +91,17 @@ void QSpatialAudioListener::setPosition(QVector3D pos)
         ep->api->SetHeadPosition(pos.x(), pos.y(), pos.z());
 }
 
+/*!
+    Returns the current position of the listener.
+ */
 QVector3D QSpatialAudioListener::position() const
 {
     return d->pos;
 }
 
+/*!
+    Sets the listener's orientation in 3D space to \a q.
+ */
 void QSpatialAudioListener::setRotation(const QQuaternion &q)
 {
     d->rotation = q;
@@ -84,16 +110,25 @@ void QSpatialAudioListener::setRotation(const QQuaternion &q)
         ep->api->SetHeadRotation(d->rotation.x(), d->rotation.y(), d->rotation.z(), d->rotation.scalar());
 }
 
+/*!
+    Returns the listener's orientation in 3D space.
+ */
 QQuaternion QSpatialAudioListener::rotation() const
 {
     return d->rotation;
 }
 
+/*!
+    \internal
+ */
 void QSpatialAudioListener::setEngine(QSpatialAudioEngine *engine)
 {
     d->engine = engine;
 }
 
+/*!
+    Returns the engine associated with this listener.
+ */
 QSpatialAudioEngine *QSpatialAudioListener::engine() const
 {
     return d->engine;

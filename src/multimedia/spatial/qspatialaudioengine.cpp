@@ -132,7 +132,7 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
             d->api->SetInterleavedBuffer(sp->sourceId, (float *)buf, 2, QSpatialAudioEnginePrivate::bufferSize);
         }
 
-        if (d->ambisonicDecoder && d->outputMode == QSpatialAudioEngine::Stereo && d->format.channelCount() != 2) {
+        if (d->ambisonicDecoder && d->outputMode == QSpatialAudioEngine::Normal && d->format.channelCount() != 2) {
             const float *channels[QAmbisonicDecoder::maxAmbisonicChannels];
             int nSamples = vraudio::getAmbisonicOutput(d->api, channels, d->ambisonicDecoder->nInputChannels());
             Q_ASSERT(d->ambisonicDecoder->nOutputChannels() <= 8);
@@ -197,6 +197,43 @@ void QSpatialAudioEnginePrivate::removeStereoSound(QSpatialAudioStereoSource *so
     stereoSources.removeOne(sound);
 }
 
+
+/*!
+    \class QSpatialAudioEngine
+
+    \brief QSpatialAudioEngine manages a three dimensional sound field
+
+    You can use an instance of QSpatialAudioEngine to manage a sound field in
+    three dimensions. A sound field is defined by several QSpatialAudioSoundSource
+    objects that define a sound at a specified location in 3D space. You can also
+    add stereo overlays using QSpatialAudioStereoSource.
+
+    You can use QSpatialAudioListener to define the position of the person listening
+    to the sound field relative to the sound sources. Sound sources will be less audible
+    if the listener is further away from source. They will also get mapped to the corresponding
+    loudspeakers depending on the direction between listener and source.
+
+    QSpatialAudioEngine does offer a mode where Qt is using simulating the effects of the ear
+    using head related impulse reponse functions (see also https://en.wikipedia.org/wiki/Sound_localization)
+    to localize the sound in 3D space when using headphones and create a spatial audio effect through
+    headphones.
+
+    The engine is rather versatile allowing you to define amd emulate room properties and reverb settings emulating
+    different types of rooms.
+
+    Sound sources can also be occluded dampening the sound coming from those sources.
+
+*/
+
+/*!
+    Constructs a spatial audio engine with \a parent.
+
+    The engine will operate with a sample rate given by \a sampleRate. Sound content that is
+    not provided at that sample rate will automatically get resampled to \a sampleRate when
+    being processed by the engine. The default sample rate is fine in most cases, but you can define
+    a different rate if most of your sound files are sampled with a different rate, and avoid some
+    CPU overhead for resampling.
+ */
 QSpatialAudioEngine::QSpatialAudioEngine(QObject *parent, int sampleRate)
     : QObject(parent)
     , d(new QSpatialAudioEnginePrivate)
@@ -205,19 +242,36 @@ QSpatialAudioEngine::QSpatialAudioEngine(QObject *parent, int sampleRate)
     d->api = vraudio::CreateResonanceAudioApi(2, QSpatialAudioEnginePrivate::bufferSize, d->sampleRate);
 }
 
+/*!
+    Destroys the spatial audio engine.
+ */
 QSpatialAudioEngine::~QSpatialAudioEngine()
 {
     stop();
     delete d;
 }
 
+/*! \enum QSpatialAudioEngine::OutputMode
+    \value Normal Map the sounds to the loudspeaker configuration of the output device.
+    This is normally a stereo or surround speaker setup.
+    \value Headphone Use Headphone spatialization to create a 3D audio effect when listening
+    to the sound field through headphones
+*/
+
+/*!
+    \property QSpatialAudioEngine::outputMode
+
+    Sets or retrieves the current output mode of the engine.
+
+    \sa QSpatialAudioEngine::OutputMode
+ */
 void QSpatialAudioEngine::setOutputMode(OutputMode mode)
 {
     if (d->outputMode == mode)
         return;
     d->outputMode = mode;
     if (d->api) {
-        d->api->SetStereoSpeakerMode(mode == Stereo);
+        d->api->SetStereoSpeakerMode(mode == Normal);
     }
     emit outputModeChanged();
 }
@@ -227,11 +281,19 @@ QSpatialAudioEngine::OutputMode QSpatialAudioEngine::outputMode() const
     return d->outputMode;
 }
 
+/*!
+    Returns the sample rate the engine has been configured with.
+ */
 int QSpatialAudioEngine::sampleRate() const
 {
     return d->sampleRate;
 }
 
+/*!
+    \property QSpatialAudioEngine::outputDevice
+
+    Sets or returns the device that is being used for outputting the sound field.
+ */
 void QSpatialAudioEngine::setOutputDevice(const QAudioDevice &device)
 {
     if (d->device == device)
@@ -249,6 +311,11 @@ QAudioDevice QSpatialAudioEngine::outputDevice() const
     return d->device;
 }
 
+/*!
+    \property QSpatialAudioEngine::masterVolume
+
+    Sets or returns overall volume being used to render the sound field.
+ */
 void QSpatialAudioEngine::setMasterVolume(float volume)
 {
     if (d->masterVolume == volume)
@@ -263,6 +330,9 @@ float QSpatialAudioEngine::masterVolume() const
     return d->masterVolume;
 }
 
+/*!
+    Starts the engine.
+ */
 void QSpatialAudioEngine::start()
 {
     if (d->outputStream)
@@ -273,7 +343,7 @@ void QSpatialAudioEngine::start()
     d->format.setSampleRate(d->sampleRate);
     d->format.setSampleFormat(QAudioFormat::Int16);
 
-    d->api->SetStereoSpeakerMode(d->outputMode == Stereo);
+    d->api->SetStereoSpeakerMode(d->outputMode == Normal);
     d->api->EnableRoomEffects(true);
     d->api->SetMasterVolume(d->masterVolume);
 
@@ -284,6 +354,9 @@ void QSpatialAudioEngine::start()
     QMetaObject::invokeMethod(d->outputStream.get(), "startOutput");
 }
 
+/*!
+    Stops the engine.
+ */
 void QSpatialAudioEngine::stop()
 {
     QMetaObject::invokeMethod(d->outputStream.get(), "stopOutput", Qt::BlockingQueuedConnection);
@@ -294,6 +367,9 @@ void QSpatialAudioEngine::stop()
     d->api = nullptr;
 }
 
+/*!
+    Enables room effects such as echos and reverb.
+ */
 void QSpatialAudioEngine::setRoomEffectsEnabled(bool enabled)
 {
     if (d->roomEffectsEnabled == enabled)
@@ -302,6 +378,9 @@ void QSpatialAudioEngine::setRoomEffectsEnabled(bool enabled)
     d->api->EnableRoomEffects(d->roomEffectsEnabled);
 }
 
+/*!
+    Returns true if room effects are enabled.
+ */
 bool QSpatialAudioEngine::roomEffectsEnabled() const
 {
     return d->roomEffectsEnabled;
