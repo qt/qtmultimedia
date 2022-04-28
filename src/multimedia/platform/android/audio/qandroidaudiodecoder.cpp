@@ -226,6 +226,15 @@ void Decoder::doDecode()
             // handle output buffer
             AMediaCodecBufferInfo info;
             ssize_t idx = AMediaCodec_dequeueOutputBuffer(m_codec, &info, dequeueTimeout);
+
+            while (idx == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED
+                   || idx == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED) {
+                if (idx == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
+                    qCWarning(adLogger) << "dequeueOutputBuffer() status: outputFormat changed";
+
+                idx = AMediaCodec_dequeueOutputBuffer(m_codec, &info, dequeueTimeout);
+            }
+
             if (idx >= 0) {
                 if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM)
                     break;
@@ -236,24 +245,17 @@ void Decoder::doDecode()
                                                                             &bufferSize);
                     const QByteArray data((const char*)(bufferData + info.offset), info.size);
                     auto audioBuffer = QAudioBuffer(data, m_outputFormat, presentationTimeUs);
-                    if (presentationTimeUs > 0)
+                    if (presentationTimeUs >= 0)
                         emit positionChanged(std::move(audioBuffer), presentationTimeUs / 1000);
+
                     AMediaCodec_releaseOutputBuffer(m_codec, idx, false);
                 }
+            } else if (idx == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
+                qCWarning(adLogger) << "dequeueOutputBuffer() status: try again later";
+                break;
             } else {
-                // The outputIndex doubles as a status return if its value is < 0
-                switch (idx) {
-                case AMEDIACODEC_INFO_TRY_AGAIN_LATER:
-                    qCWarning(adLogger) << "dequeueOutputBuffer() status: try again later";
-                    break;
-                case AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED:
-                    qCWarning(adLogger) << "dequeueOutputBuffer() status: output buffers changed";
-                    break;
-                case AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED:
-                    m_format = AMediaCodec_getOutputFormat(m_codec);
-                    qCWarning(adLogger) << "dequeueOutputBuffer() status: outputFormat changed";
-                    break;
-                }
+                qCWarning(adLogger) <<
+                "AMediaCodec_dequeueOutputBuffer() status: invalid buffer idx " << idx;
             }
         } else {
             qCWarning(adLogger) <<  "dequeueInputBuffer() status: invalid buffer idx " << bufferIdx;
