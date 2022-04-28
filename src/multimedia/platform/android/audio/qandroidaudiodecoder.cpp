@@ -337,16 +337,13 @@ void QAndroidAudioDecoder::stop()
     if (m_threadDecoder && m_threadDecoder->isRunning())
         m_threadDecoder->exit();
 
-    QMutexLocker locker(&m_buffersMutex);
     m_position = -1;
     m_audioBuffer.clear();
-    locker.unlock();
     setIsDecoding(false);
 }
 
 QAudioBuffer QAndroidAudioDecoder::read()
 {
-    QMutexLocker locker(&m_buffersMutex);
     if (m_buffersAvailable && !m_audioBuffer.isEmpty()) {
         --m_buffersAvailable;
         return m_audioBuffer.takeFirst();
@@ -358,38 +355,31 @@ QAudioBuffer QAndroidAudioDecoder::read()
 
 bool QAndroidAudioDecoder::bufferAvailable() const
 {
-    QMutexLocker locker(&m_buffersMutex);
     return m_buffersAvailable;
 }
 
 qint64 QAndroidAudioDecoder::position() const
 {
-    QMutexLocker locker(&m_buffersMutex);
     return m_position;
 }
 
 qint64 QAndroidAudioDecoder::duration() const
 {
-    QMutexLocker locker(&m_buffersMutex);
     return m_duration;
 }
 
 void QAndroidAudioDecoder::positionChanged(QAudioBuffer audioBuffer, qint64 position)
 {
-    QMutexLocker locker(&m_buffersMutex);
     m_audioBuffer.append(audioBuffer);
     m_position = position;
     m_buffersAvailable++;
-    locker.unlock();
     emit bufferReady();
     emit QPlatformAudioDecoder::positionChanged(position);
 }
 
 void QAndroidAudioDecoder::durationChanged(qint64 duration)
 {
-    QMutexLocker locker(&m_buffersMutex);
     m_duration = duration;
-    locker.unlock();
     emit QPlatformAudioDecoder::durationChanged(duration);
 }
 
