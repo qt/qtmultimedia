@@ -275,7 +275,8 @@ QAndroidAudioDecoder::QAndroidAudioDecoder(QAudioDecoder *parent)
 
 QAndroidAudioDecoder::~QAndroidAudioDecoder()
 {
-    m_decoder->thread()->exit();
+    m_decoder->thread()->quit();
+    m_decoder->thread()->wait();
     m_decoder->deleteLater();
 }
 
@@ -321,9 +322,12 @@ void QAndroidAudioDecoder::start()
     setIsDecoding(true);
     m_position = -1;
 
-    m_threadDecoder = new QThread(this);
-    m_decoder->moveToThread(m_threadDecoder);
-    m_threadDecoder->start();
+    if (!m_threadDecoder) {
+        m_threadDecoder = new QThread(this);
+        m_decoder->moveToThread(m_threadDecoder);
+        m_threadDecoder->start();
+    }
+
     decode();
 }
 

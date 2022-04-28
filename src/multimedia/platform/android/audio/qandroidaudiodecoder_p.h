@@ -143,7 +143,7 @@ private:
 
     QByteArray m_deviceBuffer;
 
-    QThread *m_threadDecoder;
+    QThread *m_threadDecoder = nullptr;
 };
 
 QT_END_NAMESPACE
