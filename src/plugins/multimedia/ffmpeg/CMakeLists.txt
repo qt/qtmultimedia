@@ -69,7 +69,11 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
     SOURCES
+        qwindowscamera.cpp qwindowscamera_p.h
         qffmpeghwaccel_d3d11.cpp qffmpeghwaccel_d3d11_p.h
+    LIBRARIES
+        WMF::WMF
+        mfreadwrite
 )
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l

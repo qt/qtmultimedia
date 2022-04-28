@@ -55,6 +55,8 @@
 
 #ifdef Q_OS_DARWIN
 #include "qavfcamera_p.h"
+#elif defined(Q_OS_WINDOWS)
+#include "qwindowscamera_p.h"
 #endif
 
 #if QT_CONFIG(linux_v4l)
@@ -131,6 +133,8 @@ QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera *camera)
     return new QAVFCamera(camera);
 #elif QT_CONFIG(linux_v4l)
     return new QV4L2Camera(camera);
+#elif defined(Q_OS_WINDOWS)
+    return new QWindowsCamera(camera);
 #else
     Q_UNUSED(camera);
     return nullptr;//new QFFmpegCamera(camera);
