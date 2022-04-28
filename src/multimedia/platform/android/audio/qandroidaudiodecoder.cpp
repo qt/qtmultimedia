@@ -53,8 +53,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static const char tempFile[] = "encoded.tmp";
-static const char tempPath[] = "/storage/emulated/0/data/local/tmp/audiodecoder/";
+static const char tempFile[] = "encoded.wav";
 constexpr int dequeueTimeout = 5000;
 Q_LOGGING_CATEGORY(adLogger, "QAndroidAudioDecoder")
 
@@ -404,7 +403,7 @@ void QAndroidAudioDecoder::finished()
 {
     stop();
     // remove temp file when decoding is finished
-    QFile(QString::fromUtf8(tempPath).append(QString::fromUtf8(tempFile))).remove();
+    QFile(QString(QDir::tempPath()).append(QString::fromUtf8(tempFile))).remove();
     emit QPlatformAudioDecoder::finished();
 }
 
@@ -430,22 +429,22 @@ void QAndroidAudioDecoder::decode()
 
 bool QAndroidAudioDecoder::createTempFile()
 {
-    QFile file = QFile(QString::fromUtf8(tempPath).append(QString::fromUtf8(tempFile)));
-    if (!QDir().mkpath(QString::fromUtf8(tempPath)) || !file.open(QIODevice::WriteOnly)) {
-        emit error(QAudioDecoder::ResourceError,
-              QString::fromUtf8("Error while creating or opening tmp file"));
-        return false;
-    }
+    QFile file = QFile(QDir::tempPath().append(QString::fromUtf8(tempFile)), this);
 
-    QDataStream out;
-    out.setDevice(&file);
-    out << m_deviceBuffer;
+    bool success = file.open(QIODevice::QIODevice::ReadWrite);
+    if (!success)
+        emit error(QAudioDecoder::ResourceError, tr("Error while opening tmp file"));
+
+    success &= (file.write(m_deviceBuffer) == m_deviceBuffer.size());
+    if (!success)
+        emit error(QAudioDecoder::ResourceError, tr("Error while writing data to tmp file"));
+
     file.close();
-
     m_deviceBuffer.clear();
-    m_decoder->setSource(file.fileName());
+    if (success)
+        m_decoder->setSource(file.fileName());
 
-    return true;
+    return success;
 }
 
 void QAndroidAudioDecoder::readDevice() {
