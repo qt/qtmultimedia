@@ -361,7 +361,7 @@ bool QAndroidAudioSink::preparePlayer()
     }
 
     SLDataLocator_BufferQueue bufferQueueLocator = { SL_DATALOCATOR_BUFFERQUEUE, BUFFER_COUNT };
-    SLDataFormat_PCM pcmFormat = QOpenSLESEngine::audioFormatToSLFormatPCM(m_format);
+    SLAndroidDataFormat_PCM_EX pcmFormat = QOpenSLESEngine::audioFormatToSLFormatPCM(m_format);
 
     SLDataSource audioSrc = { &bufferQueueLocator, &pcmFormat };
 

@@ -51,6 +51,8 @@
 
 #define CheckError(message) if (result != SL_RESULT_SUCCESS) { qWarning(message); return; }
 
+#define SL_ANDROID_PCM_REPRESENTATION_INVALID 0
+
 Q_GLOBAL_STATIC(QOpenSLESEngine, openslesEngine);
 
 QOpenSLESEngine::QOpenSLESEngine()
@@ -81,12 +83,12 @@ QOpenSLESEngine *QOpenSLESEngine::instance()
     return openslesEngine();
 }
 
-SLDataFormat_PCM QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &format)
+SLAndroidDataFormat_PCM_EX QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &format)
 {
-    SLDataFormat_PCM format_pcm;
-    format_pcm.formatType = SL_DATAFORMAT_PCM;
+    SLAndroidDataFormat_PCM_EX format_pcm;
+    format_pcm.formatType = SL_ANDROID_DATAFORMAT_PCM_EX;
     format_pcm.numChannels = format.channelCount();
-    format_pcm.samplesPerSec = format.sampleRate() * 1000;
+    format_pcm.sampleRate = format.sampleRate() * 1000;
     format_pcm.bitsPerSample = format.bytesPerSample() * 8;
     format_pcm.containerSize = format.bytesPerSample() * 8;
     format_pcm.channelMask = (format.channelCount() == 1 ?
@@ -95,8 +97,25 @@ SLDataFormat_PCM QOpenSLESEngine::audioFormatToSLFormatPCM(const QAudioFormat &f
     format_pcm.endianness = (QSysInfo::ByteOrder == QSysInfo::LittleEndian ?
                                  SL_BYTEORDER_LITTLEENDIAN :
                                  SL_BYTEORDER_BIGENDIAN);
-    return format_pcm;
 
+    switch (format.sampleFormat()) {
+    case QAudioFormat::SampleFormat::UInt8:
+        format_pcm.representation = SL_ANDROID_PCM_REPRESENTATION_UNSIGNED_INT;
+        break;
+    case QAudioFormat::SampleFormat::Int16:
+    case QAudioFormat::SampleFormat::Int32:
+        format_pcm.representation = SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT;
+        break;
+    case QAudioFormat::SampleFormat::Float:
+        format_pcm.representation = SL_ANDROID_PCM_REPRESENTATION_FLOAT;
+        break;
+    case QAudioFormat::SampleFormat::NSampleFormats:
+    case QAudioFormat::SampleFormat::Unknown:
+        format_pcm.representation = SL_ANDROID_PCM_REPRESENTATION_INVALID;
+        break;
+    }
+
+    return format_pcm;
 }
 
 QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudioDevice::Mode mode)
@@ -302,9 +321,9 @@ void QOpenSLESEngine::checkSupportedInputFormats()
     defaultFormat.sampleRate = SL_SAMPLINGRATE_44_1;
     defaultFormat.bitsPerSample = SL_PCMSAMPLEFORMAT_FIXED_32;
     defaultFormat.containerSize = SL_PCMSAMPLEFORMAT_FIXED_32;
-    defaultFormat.representation = SL_ANDROID_PCM_REPRESENTATION_FLOAT;
     defaultFormat.channelMask = SL_ANDROID_MAKE_INDEXED_CHANNEL_MASK(SL_SPEAKER_FRONT_CENTER);
     defaultFormat.endianness = SL_BYTEORDER_LITTLEENDIAN;
+    defaultFormat.representation = SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT;
 
     const SLuint32 rates[13] = { SL_SAMPLINGRATE_8,
                                 SL_SAMPLINGRATE_11_025,
