@@ -195,6 +195,11 @@
     the \l{GNU General Public License, version 2}.
     See \l{Qt Licensing} for further details.
 
+    Furthermore, Qt Multimedia in Qt \QtVersion may contain third party
+    modules under the following permissive licenses:
+
+    \generatelist{groupsbymodule attributions-qtmultimedia}
+
     \section2 Platform notes
 
     For most features, Qt Multimedia builds upon the multimedia framework of the
