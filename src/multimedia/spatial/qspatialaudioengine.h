@@ -52,6 +52,7 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioEngine : public QObject
     Q_PROPERTY(OutputMode outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
     Q_PROPERTY(QAudioDevice outputDevice READ outputDevice WRITE setOutputDevice NOTIFY outputDeviceChanged)
     Q_PROPERTY(float masterVolume READ masterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
+    Q_PROPERTY(bool paused READ paused WRITE setPaused NOTIFY pausedChanged)
 public:
     explicit QSpatialAudioEngine(QObject *parent = nullptr, int sampleRate = 44100);
     ~QSpatialAudioEngine();
@@ -76,6 +77,9 @@ public:
     void start();
     void stop();
 
+    void setPaused(bool paused);
+    bool paused() const;
+
     void setRoomEffectsEnabled(bool enabled);
     bool roomEffectsEnabled() const;
 
@@ -83,6 +87,11 @@ Q_SIGNALS:
     void outputModeChanged();
     void outputDeviceChanged();
     void masterVolumeChanged();
+    void pausedChanged();
+
+public Q_SLOTS:
+    void pause() { setPaused(true); }
+    void resume() { setPaused(false); }
 
 private:
     friend class QSpatialAudioEnginePrivate;

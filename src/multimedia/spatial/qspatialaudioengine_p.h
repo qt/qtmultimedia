@@ -87,6 +87,7 @@ public:
     QMutex mutex;
     QAudioFormat format;
     QAudioDevice device;
+    QAtomicInteger<bool> paused = false;
 
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;
@@ -122,8 +123,27 @@ public:
     QMutex mutex;
     int currentBuffer = 0;
     int bufPos = 0;
+    int m_currentLoop = 0;
     QList<QAudioBuffer> buffers;
     int sourceId = -1; // kInvalidSourceId
+
+    QAtomicInteger<bool> m_autoPlay = true;
+    QAtomicInteger<bool> m_playing = false;
+    QAtomicInt m_loops = 1;
+
+    void play() {
+        m_playing = true;
+    }
+    void pause() {
+        m_playing = false;
+    }
+    void stop() {
+        QMutexLocker locker(&mutex);
+        m_playing = false;
+        currentBuffer = 0;
+        bufPos = 0;
+        m_currentLoop = 0;
+    }
 
     void load();
     void getBuffer(float *buf, int frames, int channels);

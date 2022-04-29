@@ -93,6 +93,13 @@ public:
         delete this;
     }
 
+    void setPaused(bool paused) {
+        if (paused)
+            sink->suspend();
+        else
+            sink->resume();
+    }
+
 private:
     qint64 m_pos = 0;
     QSpatialAudioEnginePrivate *d = nullptr;
@@ -111,6 +118,9 @@ qint64 QAudioOutputStream::writeData(const char *, qint64)
 
 qint64 QAudioOutputStream::readData(char *data, qint64 len)
 {
+    if (d->paused.loadRelaxed())
+        return 0;
+
     int nChannels = d->ambisonicDecoder ? d->ambisonicDecoder->nOutputChannels() : 2;
     if (len < nChannels*int(sizeof(float))*QSpatialAudioEnginePrivate::bufferSize)
         return 0;
@@ -369,6 +379,26 @@ void QSpatialAudioEngine::stop()
 }
 
 /*!
+    \property QSpatialAudioEngine::paused
+
+    Pauses the spatial audio engine.
+ */
+void QSpatialAudioEngine::setPaused(bool paused)
+{
+    bool old = d->paused.fetchAndStoreRelaxed(paused);
+    if (old != paused) {
+        if (d->outputStream)
+            d->outputStream->setPaused(paused);
+        emit pausedChanged();
+    }
+}
+
+bool QSpatialAudioEngine::paused() const
+{
+    return d->paused.loadRelaxed();
+}
+
+/*!
     Enables room effects such as echos and reverb.
  */
 void QSpatialAudioEngine::setRoomEffectsEnabled(bool enabled)
@@ -412,7 +442,7 @@ void QSpatialAudioSound::getBuffer(float *buf, int nframes, int channels)
 {
     Q_ASSERT(channels == nchannels);
     QMutexLocker l(&mutex);
-    if (currentBuffer >= buffers.size()) {
+    if (!m_playing || currentBuffer >= buffers.size()) {
         memset(buf, 0, nframes*sizeof(float));
     } else {
         int frames = nframes;
@@ -433,6 +463,11 @@ void QSpatialAudioSound::getBuffer(float *buf, int nframes, int channels)
             }
             if (currentBuffer == buffers.size()) {
                 currentBuffer = 0;
+                ++m_currentLoop;
+            }
+            if (m_loops > 0 && m_currentLoop >= m_loops) {
+                m_playing = false;
+                m_currentLoop = 0;
             }
         }
         Q_ASSERT(ff - buf == channels*nframes);
@@ -445,6 +480,8 @@ void QSpatialAudioSound::bufferReady()
     auto b = decoder->read();
 //    qDebug() << "read buffer" << b.format() << b.startTime() << b.duration();
     buffers.append(b);
+    if (m_autoPlay)
+        m_playing = true;
 }
 
 void QSpatialAudioSound::finished()

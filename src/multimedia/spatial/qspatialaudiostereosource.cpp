@@ -112,6 +112,71 @@ QUrl QSpatialAudioStereoSource::source() const
 }
 
 /*!
+   \property QSpatialAudioStereoSource::loops
+
+    Determines how often the sound is played before the player stops.
+    Set to QSpatialAudioSoundSource::Infinite to loop the current sound forever.
+
+    The default value is \c 1.
+ */
+int QSpatialAudioStereoSource::loops() const
+{
+    return d->m_loops.loadRelaxed();
+}
+
+void QSpatialAudioStereoSource::setLoops(int loops)
+{
+    int oldLoops = d->m_loops.fetchAndStoreRelaxed(loops);
+    if (oldLoops != loops)
+        emit loopsChanged();
+}
+
+/*!
+   \property QSpatialAudioStereoSource::autoPlay
+
+    Determines whether the sound should automatically start playing when a source
+    gets specified.
+
+    The default value is \c true.
+ */
+bool QSpatialAudioStereoSource::autoPlay() const
+{
+    return d->m_autoPlay.loadRelaxed();
+}
+
+void QSpatialAudioStereoSource::setAutoPlay(bool autoPlay)
+{
+    bool old = d->m_autoPlay.fetchAndStoreRelaxed(autoPlay);
+    if (old != autoPlay)
+        emit autoPlayChanged();
+}
+
+/*!
+    Starts playing back the sound. Does nothing if the sound is already playing.
+ */
+void QSpatialAudioStereoSource::play()
+{
+    d->play();
+}
+
+/*!
+    Pauses sound playback at the current position. Calling play() will continue playback.
+ */
+void QSpatialAudioStereoSource::pause()
+{
+    d->pause();
+}
+
+/*!
+    Stops sound playback and resets the current position and loop count to 0. Calling play() will
+    begin playback at the beginning of the sound file.
+ */
+void QSpatialAudioStereoSource::stop()
+{
+    d->stop();
+}
+
+/*!
     \internal
  */
 void QSpatialAudioStereoSource::setEngine(QSpatialAudioEngine *engine)

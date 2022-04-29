@@ -52,6 +52,7 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioSoundSource : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
     Q_PROPERTY(QVector3D position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(QQuaternion rotation READ rotation WRITE setRotation NOTIFY rotationChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
@@ -70,6 +71,19 @@ public:
 
     void setSource(const QUrl &url);
     QUrl source() const;
+
+    enum Loops
+    {
+        Infinite = -1,
+        Once = 1
+    };
+    Q_ENUM(Loops)
+
+    int loops() const;
+    void setLoops(int loops);
+
+    bool autoPlay() const;
+    void setAutoPlay(bool autoPlay);
 
     void setPosition(QVector3D pos);
     QVector3D position() const;
@@ -115,6 +129,8 @@ public:
 
 Q_SIGNALS:
     void sourceChanged();
+    void loopsChanged();
+    void autoPlayChanged();
     void positionChanged();
     void rotationChanged();
     void volumeChanged();
@@ -126,6 +142,11 @@ Q_SIGNALS:
     void directivityChanged();
     void directivityOrderChanged();
     void nearFieldGainChanged();
+
+public Q_SLOTS:
+    void play();
+    void pause();
+    void stop();
 
 private:
     void setEngine(QSpatialAudioEngine *engine);

@@ -60,6 +60,19 @@ public:
     void setSource(const QUrl &url);
     QUrl source() const;
 
+    enum Loops
+    {
+        Infinite = -1,
+        Once = 1
+    };
+    Q_ENUM(Loops)
+
+    int loops() const;
+    void setLoops(int loops);
+
+    bool autoPlay() const;
+    void setAutoPlay(bool autoPlay);
+
     void setVolume(float volume);
     float volume() const;
 
@@ -67,7 +80,14 @@ public:
 
 Q_SIGNALS:
     void sourceChanged();
+    void loopsChanged();
+    void autoPlayChanged();
     void volumeChanged();
+
+public Q_SLOTS:
+    void play();
+    void pause();
+    void stop();
 
 private:
     void setEngine(QSpatialAudioEngine *engine);
