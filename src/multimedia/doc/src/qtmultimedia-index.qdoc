@@ -88,8 +88,8 @@
     project.
 
    \code
-        find_package(Qt6 COMPONENTS Multimedia REQUIRED)
-        target_link_libraries(my_project PUBLIC Qt::Multimedia)
+        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+        target_link_libraries(my_project PRIVATE Qt6::Multimedia)
    \endcode
 
     \section1 Overviews and Important Topics
@@ -185,9 +185,9 @@
     The other classes are used for capturing audio and video content, where the QMediaCaptureSession is the central
     class managing the whole capture/recording process.
 
-    \section1 Licenses and attributions
+    \section1 Licenses and Attributions
 
-    The Qt Quick Multimedia module is available under commercial licenses from
+    The Qt Multimedia module is available under commercial licenses from
     \l{The Qt Company}.
     In addition, it is available under free software licenses. Since Qt 5.6,
     these free software licenses are
@@ -195,7 +195,7 @@
     the \l{GNU General Public License, version 2}.
     See \l{Qt Licensing} for further details.
 
-    \section2 Platform notes
+    \section1 Platform Notes
 
     For most features, Qt Multimedia builds upon the multimedia framework of the
     underlying operating system. Therefore there are several multimedia back ends
@@ -214,17 +214,10 @@
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
     \endlist
 
-    \section2 Reference
+    \section1 Reference and Examples
     \list
-    \li Qt Multimedia
-    \list
-        \li \l{Qt Multimedia QML Types}{QML Types}
-        \li \l{Qt Multimedia C++ Classes}{C++ Classes}
+      \li \l{Qt Multimedia QML Types}{QML Types}
+      \li \l{Qt Multimedia C++ Classes}{C++ Classes}
+      \li \l{Qt Multimedia Examples}{Examples}
     \endlist
-    \endlist
-
-    \section2 Examples
-     \list
-      \li \l{Qt Multimedia Examples}
-     \endlist
 */
