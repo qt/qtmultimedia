@@ -72,7 +72,7 @@ public:
 
     SLEngineItf slEngine() const { return m_engine; }
 
-    static SLDataFormat_PCM audioFormatToSLFormatPCM(const QAudioFormat &format);
+    static SLAndroidDataFormat_PCM_EX audioFormatToSLFormatPCM(const QAudioFormat &format);
 
     static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode);
     QList<int> supportedChannelCounts(QAudioDevice::Mode mode) const;

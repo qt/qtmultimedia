@@ -220,7 +220,7 @@ bool QAndroidAudioSource::startRecording()
     SLDataLocator_BufferQueue loc_bq = { SL_DATALOCATOR_BUFFERQUEUE, NUM_BUFFERS };
 #endif
 
-    SLDataFormat_PCM format_pcm = QOpenSLESEngine::audioFormatToSLFormatPCM(m_format);
+    SLAndroidDataFormat_PCM_EX format_pcm = QOpenSLESEngine::audioFormatToSLFormatPCM(m_format);
     SLDataSink audioSnk = { &loc_bq, &format_pcm };
 
     // create audio recorder
