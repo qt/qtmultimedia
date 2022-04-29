@@ -50,6 +50,7 @@
 //
 
 #include <qspatialaudiosoundsource.h>
+#include <qspatialaudioengine_p.h>
 #include <qurl.h>
 #include <qvector3d.h>
 #include <qquaternion.h>
@@ -62,16 +63,15 @@ QT_BEGIN_NAMESPACE
 class QAudioDecoder;
 class QSpatialAudioEnginePrivate;
 
-class QSpatialAudioSoundSourcePrivate
+class QSpatialAudioSoundSourcePrivate : public QSpatialAudioSound
 {
 public:
-    static QSpatialAudioSoundSourcePrivate *get(QSpatialAudioSoundSource *sound) { return sound ? sound->d : nullptr; }
-    QUrl url;
+    QSpatialAudioSoundSourcePrivate(QObject *parent)
+        : QSpatialAudioSound(parent, 1)
+    {}
+
     QVector3D pos;
     QQuaternion rotation;
-    float volume = 1.;
-    std::unique_ptr<QAudioDecoder> decoder;
-    QSpatialAudioEngine *engine = nullptr;
     QSpatialAudioSoundSource::DistanceModel distanceModel = QSpatialAudioSoundSource::DistanceModel_Logarithmic;
     float minDistance = 1.;
     float maxDistance = 500.;
@@ -80,15 +80,6 @@ public:
     float directivity = 0.;
     float directivityOrder = 1.;
     float nearFieldGain = 0.;
-
-    QMutex mutex;
-    int currentBuffer = 0;
-    int bufPos = 0;
-    QList<QAudioBuffer> buffers;
-    int sourceId = -1; // kInvalidSourceId
-
-    void load(QSpatialAudioSoundSource *q);
-    void getBuffer(float *buf, int bufSize);
 
     void updateDistanceModel();
 };

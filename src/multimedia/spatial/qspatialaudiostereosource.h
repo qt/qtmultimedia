@@ -44,7 +44,7 @@
 QT_BEGIN_NAMESPACE
 
 class QSpatialAudioEngine;
-class QAudioOutputStream;
+class QSpatialAudioSound;
 
 class QSpatialAudioStereoSourcePrivate;
 class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
@@ -69,14 +69,10 @@ Q_SIGNALS:
     void sourceChanged();
     void volumeChanged();
 
-private Q_SLOTS:
-    void bufferReady();
-    void finished();
-
 private:
     void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioStereoSourcePrivate;
-    QSpatialAudioStereoSourcePrivate *d = nullptr;
+    friend class QSpatialAudioSound;
+    QSpatialAudioSound *d = nullptr;
 };
 
 QT_END_NAMESPACE

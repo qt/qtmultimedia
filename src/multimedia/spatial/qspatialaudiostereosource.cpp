@@ -34,7 +34,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "qspatialaudiostereosource_p.h"
+#include "qspatialaudiostereosource.h"
 #include "qspatialaudiolistener.h"
 #include "qspatialaudioengine_p.h"
 #include "api/resonance_audio_api.h"
@@ -44,51 +44,6 @@
 #include <qaudiodecoder.h>
 
 QT_BEGIN_NAMESPACE
-
-void QSpatialAudioStereoSourcePrivate::load(QSpatialAudioStereoSource *q)
-{
-    decoder.reset(new QAudioDecoder);
-    buffers.clear();
-    auto *ep = QSpatialAudioEnginePrivate::get(engine);
-    QAudioFormat f = ep->format;
-    decoder->setAudioFormat(f);
-    qDebug() << "using format" << f << decoder->audioFormat();
-    decoder->setSource(url);
-    QObject::connect(decoder.get(), &QAudioDecoder::bufferReady, q, &QSpatialAudioStereoSource::bufferReady);
-    QObject::connect(decoder.get(), &QAudioDecoder::finished, q, &QSpatialAudioStereoSource::finished);
-    decoder->start();
-}
-
-void QSpatialAudioStereoSourcePrivate::getBuffer(QAudioBuffer::F32S *buf, int bufSize)
-{
-    QMutexLocker l(&mutex);
-    if (currentBuffer >= buffers.size()) {
-        memset(buf, 0, bufSize*sizeof(float));
-    } else {
-        int s = bufSize;
-        QAudioBuffer::F32S *ff = buf;
-        while (s) {
-            const QAudioBuffer &b = buffers.at(currentBuffer);
-//            qDebug() << s << b.format().sampleRate() << b.format().channelCount() << b.format().sampleFormat();
-            int frames = b.frameCount() - bufPos;
-            auto *f = b.constData<QAudioBuffer::F32S>() + bufPos;
-            int toCopy = qMin(frames, s);
-            memcpy(ff, f, toCopy*sizeof(QAudioBuffer::F32S));
-            ff += toCopy;
-            s -= toCopy;
-            bufPos += toCopy;
-            Q_ASSERT(bufPos <= b.frameCount());
-            if (bufPos == b.frameCount()) {
-                ++currentBuffer;
-                bufPos = 0;
-            }
-            if (currentBuffer == buffers.size()) {
-                currentBuffer = 0;
-            }
-        }
-        Q_ASSERT(ff - buf == bufSize);
-    }
-}
 
 /*!
     \class QSpatialAudioStereoSource
@@ -104,7 +59,7 @@ void QSpatialAudioStereoSourcePrivate::getBuffer(QAudioBuffer::F32S *buf, int bu
     Creates a stereo sound source for \a engine.
  */
 QSpatialAudioStereoSource::QSpatialAudioStereoSource(QSpatialAudioEngine *engine)
-    : d(new QSpatialAudioStereoSourcePrivate)
+    : d(new QSpatialAudioSound(this))
 {
     setEngine(engine);
 }
@@ -142,7 +97,7 @@ void QSpatialAudioStereoSource::setSource(const QUrl &url)
         return;
     d->url = url;
 
-    d->load(this);
+    d->load();
     emit sourceChanged();
 }
 
@@ -182,25 +137,6 @@ void QSpatialAudioStereoSource::setEngine(QSpatialAudioEngine *engine)
 QSpatialAudioEngine *QSpatialAudioStereoSource::engine() const
 {
     return d->engine;
-}
-
-/*!
-    \internal
- */
-void QSpatialAudioStereoSource::bufferReady()
-{
-    QMutexLocker l(&d->mutex);
-    auto b = d->decoder->read();
-//    qDebug() << "read buffer" << b.format() << b.startTime() << b.duration();
-    d->buffers.append(b);
-}
-
-/*!
-    \internal
- */
-void QSpatialAudioStereoSource::finished()
-{
-
 }
 
 QT_END_NAMESPACE

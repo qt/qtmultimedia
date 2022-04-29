@@ -36,9 +36,10 @@
 ****************************************************************************/
 #include <qspatialaudioengine_p.h>
 #include <qspatialaudiosoundsource_p.h>
-#include <qspatialaudiostereosource_p.h>
+#include <qspatialaudiostereosource.h>
 #include <resonance_audio_api_extensions.h>
 #include <qambisonicdecoder_p.h>
+#include <qaudiodecoder.h>
 #include <qmediadevices.h>
 #include <qiodevice.h>
 #include <qaudiosink.h>
@@ -122,14 +123,14 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
         for (auto *source : qAsConst(d->sources)) {
             auto *sp = QSpatialAudioSoundSourcePrivate::get(source);
             float buf[QSpatialAudioEnginePrivate::bufferSize];
-            sp->getBuffer(buf, QSpatialAudioEnginePrivate::bufferSize);
+            sp->getBuffer(buf, QSpatialAudioEnginePrivate::bufferSize, 1);
             d->api->SetInterleavedBuffer(sp->sourceId, buf, 1, QSpatialAudioEnginePrivate::bufferSize);
         }
         for (auto *source : qAsConst(d->stereoSources)) {
-            auto *sp = QSpatialAudioStereoSourcePrivate::get(source);
-            QAudioBuffer::F32S buf[2*QSpatialAudioEnginePrivate::bufferSize];
-            sp->getBuffer(buf, QSpatialAudioEnginePrivate::bufferSize);
-            d->api->SetInterleavedBuffer(sp->sourceId, (float *)buf, 2, QSpatialAudioEnginePrivate::bufferSize);
+            auto *sp = QSpatialAudioSound::get(source);
+            float buf[2*QSpatialAudioEnginePrivate::bufferSize];
+            sp->getBuffer(buf, QSpatialAudioEnginePrivate::bufferSize, 2);
+            d->api->SetInterleavedBuffer(sp->sourceId, buf, 2, QSpatialAudioEnginePrivate::bufferSize);
         }
 
         if (d->ambisonicDecoder && d->outputMode == QSpatialAudioEngine::Normal && d->format.channelCount() != 2) {
@@ -165,7 +166,7 @@ QSpatialAudioEnginePrivate::~QSpatialAudioEnginePrivate()
 
 void QSpatialAudioEnginePrivate::addSpatialSound(QSpatialAudioSoundSource *sound)
 {
-    QSpatialAudioSoundSourcePrivate *sd = QSpatialAudioSoundSourcePrivate::get(sound);
+    QSpatialAudioSound *sd = QSpatialAudioSound::get(sound);
 
     sd->sourceId = api->CreateSoundObjectSource(vraudio::kBinauralHighQuality);
     sources.append(sound);
@@ -173,7 +174,7 @@ void QSpatialAudioEnginePrivate::addSpatialSound(QSpatialAudioSoundSource *sound
 
 void QSpatialAudioEnginePrivate::removeSpatialSound(QSpatialAudioSoundSource *sound)
 {
-    QSpatialAudioSoundSourcePrivate *sd = QSpatialAudioSoundSourcePrivate::get(sound);
+    QSpatialAudioSound *sd = QSpatialAudioSound::get(sound);
 
     api->DestroySource(sd->sourceId);
     sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
@@ -182,7 +183,7 @@ void QSpatialAudioEnginePrivate::removeSpatialSound(QSpatialAudioSoundSource *so
 
 void QSpatialAudioEnginePrivate::addStereoSound(QSpatialAudioStereoSource *sound)
 {
-    QSpatialAudioStereoSourcePrivate *sd = QSpatialAudioStereoSourcePrivate::get(sound);
+    QSpatialAudioSound *sd = QSpatialAudioSound::get(sound);
 
     sd->sourceId = api->CreateStereoSource(2);
     stereoSources.append(sound);
@@ -190,7 +191,7 @@ void QSpatialAudioEnginePrivate::addStereoSound(QSpatialAudioStereoSource *sound
 
 void QSpatialAudioEnginePrivate::removeStereoSound(QSpatialAudioStereoSource *sound)
 {
-    QSpatialAudioStereoSourcePrivate *sd = QSpatialAudioStereoSourcePrivate::get(sound);
+    QSpatialAudioSound *sd = QSpatialAudioSound::get(sound);
 
     api->DestroySource(sd->sourceId);
     sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
@@ -384,6 +385,71 @@ void QSpatialAudioEngine::setRoomEffectsEnabled(bool enabled)
 bool QSpatialAudioEngine::roomEffectsEnabled() const
 {
     return d->roomEffectsEnabled;
+}
+
+
+/*! \class QSpatialAudioSound
+    \internal
+ */
+
+void QSpatialAudioSound::load()
+{
+    decoder.reset(new QAudioDecoder);
+    buffers.clear();
+    auto *ep = QSpatialAudioEnginePrivate::get(engine);
+    QAudioFormat f = ep->format;
+    f.setSampleFormat(QAudioFormat::Float);
+    f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo : QAudioFormat::ChannelConfigMono);
+    decoder->setAudioFormat(f);
+    decoder->setSource(url);
+
+    connect(decoder.get(), &QAudioDecoder::bufferReady, this, &QSpatialAudioSound::bufferReady);
+    connect(decoder.get(), &QAudioDecoder::finished, this, &QSpatialAudioSound::finished);
+    decoder->start();
+}
+
+void QSpatialAudioSound::getBuffer(float *buf, int nframes, int channels)
+{
+    Q_ASSERT(channels == nchannels);
+    QMutexLocker l(&mutex);
+    if (currentBuffer >= buffers.size()) {
+        memset(buf, 0, nframes*sizeof(float));
+    } else {
+        int frames = nframes;
+        float *ff = buf;
+        while (frames) {
+            const QAudioBuffer &b = buffers.at(currentBuffer);
+//            qDebug() << s << b.format().sampleRate() << b.format().channelCount() << b.format().sampleFormat();
+            auto *f = b.constData<float>() + bufPos*nchannels;
+            int toCopy = qMin(b.frameCount() - bufPos, frames);
+            memcpy(ff, f, toCopy*sizeof(float)*nchannels);
+            ff += toCopy*nchannels;
+            frames -= toCopy;
+            bufPos += toCopy;
+            Q_ASSERT(bufPos <= b.frameCount());
+            if (bufPos == b.frameCount()) {
+                ++currentBuffer;
+                bufPos = 0;
+            }
+            if (currentBuffer == buffers.size()) {
+                currentBuffer = 0;
+            }
+        }
+        Q_ASSERT(ff - buf == channels*nframes);
+    }
+}
+
+void QSpatialAudioSound::bufferReady()
+{
+    QMutexLocker l(&mutex);
+    auto b = decoder->read();
+//    qDebug() << "read buffer" << b.format() << b.startTime() << b.duration();
+    buffers.append(b);
+}
+
+void QSpatialAudioSound::finished()
+{
+
 }
 
 QT_END_NAMESPACE

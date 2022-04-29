@@ -45,54 +45,6 @@
 
 QT_BEGIN_NAMESPACE
 
-void QSpatialAudioSoundSourcePrivate::load(QSpatialAudioSoundSource *q)
-{
-    decoder.reset(new QAudioDecoder);
-    buffers.clear();
-    auto *ep = QSpatialAudioEnginePrivate::get(engine);
-    QAudioFormat f = ep->format;
-    f.setSampleFormat(QAudioFormat::Float);
-    decoder->setAudioFormat(f);
-    qDebug() << "using format" << f << decoder->audioFormat();
-    decoder->setSource(url);
-    QObject::connect(decoder.get(), &QAudioDecoder::bufferReady, q, &QSpatialAudioSoundSource::bufferReady);
-    QObject::connect(decoder.get(), &QAudioDecoder::finished, q, &QSpatialAudioSoundSource::finished);
-    decoder->start();
-}
-
-void QSpatialAudioSoundSourcePrivate::getBuffer(float *buf, int bufSize)
-{
-    QMutexLocker l(&mutex);
-    if (currentBuffer >= buffers.size()) {
-        memset(buf, 0, bufSize*sizeof(float));
-    } else {
-        int s = bufSize;
-        float *ff = buf;
-        while (s) {
-            const QAudioBuffer &b = buffers.at(currentBuffer);
-//            qDebug() << s << b.format().sampleRate() << b.format().channelCount() << b.format().sampleFormat() << b.sampleCount() << currentBuffer << buffers.size() << bufPos;
-            int frames = b.frameCount() - bufPos;
-            auto *f = b.constData<QAudioBuffer::F32S>() + bufPos;
-            int toCopy = qMin(frames, s);
-            for (int i = 0; i < toCopy; ++i) {
-                ff[i] = (f[i].channels[0] + f[i].channels[1])/2.;
-            }
-            ff += toCopy;
-            s -= toCopy;
-            bufPos += toCopy;
-            Q_ASSERT(bufPos <= b.frameCount());
-            if (bufPos == b.frameCount()) {
-                ++currentBuffer;
-                bufPos = 0;
-            }
-            if (currentBuffer == buffers.size()) {
-                currentBuffer = 0;
-            }
-        }
-        Q_ASSERT(ff - buf == bufSize);
-    }
-}
-
 /*!
     \class QSpatialAudioSoundSource
 
@@ -111,7 +63,7 @@ void QSpatialAudioSoundSourcePrivate::getBuffer(float *buf, int bufSize)
     3D space and will be louder the closer to the listener it is.
  */
 QSpatialAudioSoundSource::QSpatialAudioSoundSource(QSpatialAudioEngine *engine)
-    : d(new QSpatialAudioSoundSourcePrivate)
+    : d(new QSpatialAudioSoundSourcePrivate(this))
 {
     setEngine(engine);
 }
@@ -122,7 +74,6 @@ QSpatialAudioSoundSource::QSpatialAudioSoundSource(QSpatialAudioEngine *engine)
 QSpatialAudioSoundSource::~QSpatialAudioSoundSource()
 {
     setEngine(nullptr);
-    delete d;
 }
 
 /*!
@@ -421,7 +372,7 @@ void QSpatialAudioSoundSource::setSource(const QUrl &url)
         return;
     d->url = url;
 
-    d->load(this);
+    d->load();
     emit sourceChanged();
 }
 
@@ -461,25 +412,6 @@ void QSpatialAudioSoundSource::setEngine(QSpatialAudioEngine *engine)
 QSpatialAudioEngine *QSpatialAudioSoundSource::engine() const
 {
     return d->engine;
-}
-
-/*!
-    \internal
- */
-void QSpatialAudioSoundSource::bufferReady()
-{
-    QMutexLocker l(&d->mutex);
-    auto b = d->decoder->read();
-//    qDebug() << "read buffer" << b.format() << b.startTime() << b.duration();
-    d->buffers.append(b);
-}
-
-/*!
-    \internal
- */
-void QSpatialAudioSoundSource::finished()
-{
-
 }
 
 QT_END_NAMESPACE

@@ -53,6 +53,8 @@
 #include <qaudiodevice.h>
 #include <qthread.h>
 #include <qmutex.h>
+#include <qurl.h>
+#include <qaudiobuffer.h>
 
 namespace vraudio {
 class ResonanceAudioApi;
@@ -65,6 +67,7 @@ class QSpatialAudioStereoSource;
 class QAudioSink;
 class QAudioOutputStream;
 class QAmbisonicDecoder;
+class QAudioDecoder;
 
 class QSpatialAudioEnginePrivate
 {
@@ -96,6 +99,39 @@ public:
     void removeSpatialSound(QSpatialAudioSoundSource *sound);
     void addStereoSound(QSpatialAudioStereoSource *sound);
     void removeStereoSound(QSpatialAudioStereoSource *sound);
+};
+
+class QSpatialAudioSound : public QObject
+{
+public:
+    QSpatialAudioSound(QObject *parent, int nchannels = 2)
+        : QObject(parent)
+        , nchannels(nchannels)
+    {}
+
+    template<typename T>
+    static QSpatialAudioSound *get(T *soundSource) { return soundSource ? soundSource->d : nullptr; }
+
+
+    QUrl url;
+    float volume = 1.;
+    int nchannels = 2;
+    std::unique_ptr<QAudioDecoder> decoder;
+    QSpatialAudioEngine *engine = nullptr;
+
+    QMutex mutex;
+    int currentBuffer = 0;
+    int bufPos = 0;
+    QList<QAudioBuffer> buffers;
+    int sourceId = -1; // kInvalidSourceId
+
+    void load();
+    void getBuffer(float *buf, int frames, int channels);
+
+private Q_SLOTS:
+    void bufferReady();
+    void finished();
+
 };
 
 QT_END_NAMESPACE
