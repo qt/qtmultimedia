@@ -345,14 +345,14 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 prerolling = false;
                 GST_DEBUG_BIN_TO_DOT_FILE(playerPipeline.bin(), GST_DEBUG_GRAPH_SHOW_ALL, "playerPipeline");
 
-                parseStreamsAndMetadata();
-
                 qint64 d = playerPipeline.duration()/1e6;
                 if (d != m_duration) {
                     m_duration = d;
                     qCDebug(qLcMediaPlayer) << "    duration changed" << d;
                     emit durationChanged(duration());
                 }
+
+                parseStreamsAndMetadata();
 
                 emit tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
