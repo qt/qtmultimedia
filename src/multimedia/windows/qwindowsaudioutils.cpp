@@ -38,8 +38,60 @@
 ****************************************************************************/
 
 #include "qwindowsaudioutils_p.h"
+#include "qdebug.h"
+#include "ks.h"
+#include "ksmedia.h"
 
 QT_BEGIN_NAMESPACE
+
+static QAudioFormat::AudioChannelPosition channelFormatMap[] =
+        { QAudioFormat::FrontLeft         // SPEAKER_FRONT_LEFT (0x1)
+        , QAudioFormat::FrontRight        // SPEAKER_FRONT_RIGHT (0x2)
+        , QAudioFormat::FrontCenter       // SPEAKER_FRONT_CENTER (0x4)
+        , QAudioFormat::LFE               // SPEAKER_LOW_FREQUENCY (0x8)
+        , QAudioFormat::BackLeft          // SPEAKER_BACK_LEFT (0x10)
+        , QAudioFormat::BackRight         // SPEAKER_BACK_RIGHT (0x20)
+        , QAudioFormat::FrontLeftOfCenter // SPEAKER_FRONT_LEFT_OF_CENTER (0x40)
+        , QAudioFormat::FrontRightOfCenter// SPEAKER_FRONT_RIGHT_OF_CENTER (0x80)
+        , QAudioFormat::BackCenter        // SPEAKER_BACK_CENTER (0x100)
+        , QAudioFormat::SideLeft          // SPEAKER_SIDE_LEFT (0x200)
+        , QAudioFormat::SideRight         // SPEAKER_SIDE_RIGHT (0x400)
+        , QAudioFormat::TopCenter         // SPEAKER_TOP_CENTER (0x800)
+        , QAudioFormat::TopFrontLeft      // SPEAKER_TOP_FRONT_LEFT (0x1000)
+        , QAudioFormat::TopFrontCenter    // SPEAKER_TOP_FRONT_CENTER (0x2000)
+        , QAudioFormat::TopFrontRight     // SPEAKER_TOP_FRONT_RIGHT (0x4000)
+        , QAudioFormat::TopBackLeft       // SPEAKER_TOP_BACK_LEFT (0x8000)
+        , QAudioFormat::TopBackCenter     // SPEAKER_TOP_BACK_CENTER (0x10000)
+        , QAudioFormat::TopBackRight      // SPEAKER_TOP_BACK_RIGHT (0x20000)
+        };
+
+static QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count)
+{
+    quint32 config = 0;
+    int set = 0;
+    for (auto c : channelFormatMap) {
+        if (mask & 1) {
+            config |= QAudioFormat::channelConfig(c);
+            ++set;
+        }
+        if (set >= count)
+            break;
+        mask >>= 1;
+    }
+    return QAudioFormat::ChannelConfig(config);
+}
+
+static UINT32 channelConfigToMask(QAudioFormat::ChannelConfig config)
+{
+    UINT32 mask = 0;
+    quint32 i = 0;
+    for (auto c : channelFormatMap) {
+        if (config & QAudioFormat::channelConfig(c))
+            mask |= 1 << i;
+        ++i;
+    }
+    return mask;
+}
 
 bool QWindowsAudioUtils::formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx)
 {
@@ -64,7 +116,8 @@ bool QWindowsAudioUtils::formatToWaveFormatExtensible(const QAudioFormat &format
     if (format.channelCount() > 2) {
         wfx.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
         wfx.Format.cbSize = 22;
-        wfx.dwChannelMask = 0xFFFFFFFF >> (32 - format.channelCount());
+        wfx.dwChannelMask = format.channelConfig() == QAudioFormat::ChannelConfigUnknown ? KSAUDIO_SPEAKER_DIRECTOUT
+                                                                                         : DWORD(format.channelConfig());
     }
 
     return true;
@@ -87,6 +140,8 @@ QAudioFormat QWindowsAudioUtils::waveFormatExToFormat(const WAVEFORMATEX &in)
             auto wfe = reinterpret_cast<const WAVEFORMATEXTENSIBLE &>(in);
             if (wfe.SubFormat == KSDATAFORMAT_SUBTYPE_IEEE_FLOAT)
                 out.setSampleFormat(QAudioFormat::Float);
+            if (qPopulationCount(wfe.dwChannelMask) >= in.nChannels)
+                out.setChannelConfig(maskToChannelConfig(wfe.dwChannelMask, in.nChannels));
         }
     } else if (in.wFormatTag == WAVE_FORMAT_IEEE_FLOAT) {
         out.setSampleFormat(QAudioFormat::Float);
@@ -104,7 +159,16 @@ QAudioFormat QWindowsAudioUtils::mediaTypeToFormat(IMFMediaType *mediaType)
     UINT32 val = 0;
     if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &val))) {
         format.setChannelCount(int(val));
+    } else {
+        qWarning() << "Could not determine channel count from IMFMediaType";
+        return {};
     }
+
+    if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_CHANNEL_MASK, &val))) {
+        if (int(qPopulationCount(val)) >= format.channelCount())
+            format.setChannelConfig(maskToChannelConfig(val, format.channelCount()));
+    }
+
     if (SUCCEEDED(mediaType->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &val))) {
         format.setSampleRate(int(val));
     }
@@ -143,6 +207,8 @@ QWindowsIUPointer<IMFMediaType> QWindowsAudioUtils::formatToMediaType(const QAud
     }
 
     mediaType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, UINT32(format.channelCount()));
+    if (format.channelConfig() != QAudioFormat::ChannelConfigUnknown)
+        mediaType->SetUINT32(MF_MT_AUDIO_CHANNEL_MASK, channelConfigToMask(format.channelConfig()));
     mediaType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, UINT32(format.sampleRate()));
     auto alignmentBlock = UINT32(format.bytesPerFrame());
     mediaType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, alignmentBlock);
