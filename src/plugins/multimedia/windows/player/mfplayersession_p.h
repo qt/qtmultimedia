@@ -243,6 +243,7 @@ private:
         int currentIndex = -1;
         TOPOID sourceNodeId = -1;
         TOPOID outputNodeId = -1;
+        GUID format = GUID_NULL;
     };
     TrackInfo m_trackInfo[QPlatformMediaPlayer::NTrackTypes];
 
@@ -258,7 +259,7 @@ private:
 
     void createSession();
     void setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD);
-    bool getStreamInfo(IMFStreamDescriptor *stream, MFPlayerSession::MediaType *type, QString *name, QString *language) const;
+    bool getStreamInfo(IMFStreamDescriptor *stream, MFPlayerSession::MediaType *type, QString *name, QString *language, GUID *format) const;
     IMFTopologyNode* addSourceNode(IMFTopology* topology, IMFMediaSource* source,
         IMFPresentationDescriptor* presentationDesc, IMFStreamDescriptor *streamDesc);
     IMFTopologyNode* addOutputNode(MediaType mediaType, IMFTopology* topology, DWORD sinkID);
