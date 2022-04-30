@@ -85,10 +85,15 @@ QSpatialAudioListener::~QSpatialAudioListener()
  */
 void QSpatialAudioListener::setPosition(QVector3D pos)
 {
+    if (d->pos == pos)
+        return;
+
     d->pos = pos;
     auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
-    if (ep && ep->api)
+    if (ep && ep->api) {
         ep->api->SetHeadPosition(pos.x(), pos.y(), pos.z());
+        ep->listenerPositionDirty = true;
+    }
 }
 
 /*!
@@ -123,7 +128,20 @@ QQuaternion QSpatialAudioListener::rotation() const
  */
 void QSpatialAudioListener::setEngine(QSpatialAudioEngine *engine)
 {
+    if (d->engine) {
+        auto *ed = QSpatialAudioEnginePrivate::get(d->engine);
+        ed->listener = nullptr;
+    }
     d->engine = engine;
+    if (d->engine) {
+        auto *ed = QSpatialAudioEnginePrivate::get(d->engine);
+        if (ed->listener) {
+            qWarning() << "Ignoring attempt to add a second listener to the spatial audio engine.";
+            d->engine = nullptr;
+            return;
+        }
+        ed->listener = this;
+    }
 }
 
 /*!

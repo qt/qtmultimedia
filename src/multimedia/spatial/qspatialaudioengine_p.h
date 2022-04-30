@@ -51,6 +51,7 @@
 
 #include <qspatialaudioengine.h>
 #include <qaudiodevice.h>
+#include <qaudiodecoder.h>
 #include <qthread.h>
 #include <qmutex.h>
 #include <qurl.h>
@@ -68,6 +69,8 @@ class QAudioSink;
 class QAudioOutputStream;
 class QAmbisonicDecoder;
 class QAudioDecoder;
+class QSpatialAudioRoom;
+class QSpatialAudioListener;
 
 class QSpatialAudioEnginePrivate
 {
@@ -93,13 +96,20 @@ public:
     std::unique_ptr<QAudioOutputStream> outputStream;
     std::unique_ptr<QAmbisonicDecoder> ambisonicDecoder;
 
+    QSpatialAudioListener *listener = nullptr;
     QList<QSpatialAudioSoundSource *> sources;
     QList<QSpatialAudioStereoSource *> stereoSources;
+    QList<QSpatialAudioRoom *> rooms;
+    mutable bool listenerPositionDirty = true;
 
     void addSpatialSound(QSpatialAudioSoundSource *sound);
     void removeSpatialSound(QSpatialAudioSoundSource *sound);
     void addStereoSound(QSpatialAudioStereoSource *sound);
     void removeStereoSound(QSpatialAudioStereoSource *sound);
+
+    void addRoom(QSpatialAudioRoom *room);
+    void removeRoom(QSpatialAudioRoom *room);
+    void updateRooms() const;
 };
 
 class QSpatialAudioSound : public QObject
@@ -130,6 +140,7 @@ public:
     QAtomicInteger<bool> m_autoPlay = true;
     QAtomicInteger<bool> m_playing = false;
     QAtomicInt m_loops = 1;
+    bool m_loading = false;
 
     void play() {
         m_playing = true;

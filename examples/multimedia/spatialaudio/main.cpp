@@ -67,31 +67,66 @@ public:
 
         azimuth = new QSlider(Qt::Horizontal);
         azimuth->setRange(-180, 180);
-        grid->addWidget(new QLabel("Azimuth:"), 1, 0);
+        grid->addWidget(new QLabel(tr("Azimuth (-180 - 180 degree):")), 1, 0);
         grid->addWidget(azimuth, 1, 1);
         elevation = new QSlider(Qt::Horizontal);
         elevation->setRange(-90, 90);
-        grid->addWidget(new QLabel("Elevation:"), 2, 0);
+        grid->addWidget(new QLabel(tr("Elevation (-90 - 90 degree)")), 2, 0);
         grid->addWidget(elevation, 2, 1);
         distance = new QSlider(Qt::Horizontal);
         distance->setRange(0, 10);
-        grid->addWidget(new QLabel("Distance:"), 3, 0);
+        grid->addWidget(new QLabel(tr("Distance (0 - 10 meter):")), 3, 0);
         grid->addWidget(distance, 3, 1);
         occlusion = new QSlider(Qt::Horizontal);
-        occlusion->setRange(0, 1000);
-        grid->addWidget(new QLabel("Occlusion:"), 4, 0);
+        occlusion->setRange(0, 10);
+        grid->addWidget(new QLabel(tr("Occlusion (0 - 10):")), 4, 0);
         grid->addWidget(occlusion, 4, 1);
 
+        roomDimension = new QSlider(Qt::Horizontal);
+        roomDimension->setRange(0, 100);
+        roomDimension->setValue(5);
+        grid->addWidget(new QLabel(tr("Room dimension (0 - 100 meter):")), 5, 0);
+        grid->addWidget(roomDimension, 5, 1);
+
+        reverbGain = new QSlider(Qt::Horizontal);
+        reverbGain->setRange(0, 500);
+        reverbGain->setValue(100);
+        grid->addWidget(new QLabel(tr("Reverb gain (0-5):")), 6, 0);
+        grid->addWidget(reverbGain, 6, 1);
+
+        reflectionGain = new QSlider(Qt::Horizontal);
+        reflectionGain->setRange(0, 500);
+        reflectionGain->setValue(100);
+        grid->addWidget(new QLabel(tr("Reflection gain (0-5):")), 7, 0);
+        grid->addWidget(reflectionGain, 7, 1);
+
         useHeadphone = new QCheckBox(tr("Use headphone spatialization"));
-        grid->addWidget(useHeadphone, 5, 1, 1, 2);
+        grid->addWidget(useHeadphone, 8, 1, 1, 2);
+
+        connect(fileEdit, &QLineEdit::textChanged, this, &AudioWidget::fileChanged);
+        connect(fileDialogButton, &QPushButton::clicked, this, &AudioWidget::openFileDialog);
 
         connect(azimuth, &QSlider::valueChanged, this, &AudioWidget::newPosition);
         connect(elevation, &QSlider::valueChanged, this, &AudioWidget::newPosition);
         connect(distance, &QSlider::valueChanged, this, &AudioWidget::newPosition);
         connect(occlusion, &QSlider::valueChanged, this, &AudioWidget::newOcclusion);
+
+        connect(roomDimension, &QSlider::valueChanged, this, &AudioWidget::updateRoom);
+        connect(reverbGain, &QSlider::valueChanged, this, &AudioWidget::updateRoom);
+        connect(reflectionGain, &QSlider::valueChanged, this, &AudioWidget::updateRoom);
+
         connect(useHeadphone, &QCheckBox::stateChanged, this, &AudioWidget::useHeadphoneChanged);
-        connect(fileEdit, &QLineEdit::textChanged, this, &AudioWidget::fileChanged);
-        connect(fileDialogButton, &QPushButton::clicked, this, &AudioWidget::openFileDialog);
+
+        room = new QSpatialAudioRoom(&engine);
+        room->setDimensions(QVector3D(5, 5, 5));
+        room->setWall(QSpatialAudioRoom::BackWall, QSpatialAudioRoom::Material::BrickBare);
+        room->setWall(QSpatialAudioRoom::FrontWall, QSpatialAudioRoom::Material::BrickBare);
+        room->setWall(QSpatialAudioRoom::LeftWall, QSpatialAudioRoom::Material::BrickBare);
+        room->setWall(QSpatialAudioRoom::RightWall, QSpatialAudioRoom::Material::BrickBare);
+        room->setWall(QSpatialAudioRoom::Floor, QSpatialAudioRoom::Material::Marble);
+        room->setWall(QSpatialAudioRoom::Ceiling, QSpatialAudioRoom::Material::WoodCeiling);
+        room->setReverbGain(1);
+        room->setReflectionGain(1);
 
         listener = new QSpatialAudioListener(&engine);
         listener->setPosition({});
@@ -133,6 +168,13 @@ private slots:
         auto file = QFileDialog::getOpenFileName(this);
         fileEdit->setText(file);
     }
+    void updateRoom()
+    {
+        float d = roomDimension->value();
+        room->setDimensions(QVector3D(d, d, 4));
+        room->setReflectionGain(float(reflectionGain->value())/100);
+        room->setReverbGain(float(reverbGain->value())/100);
+    }
 
     QLineEdit *fileEdit = nullptr;
     QPushButton *fileDialogButton = nullptr;
@@ -140,11 +182,15 @@ private slots:
     QSlider *elevation = nullptr;
     QSlider *distance = nullptr;
     QSlider *occlusion = nullptr;
+    QSlider *roomDimension = nullptr;
+    QSlider *reverbGain = nullptr;
+    QSlider *reflectionGain = nullptr;
     QCheckBox *useHeadphone = nullptr;
 
     QSpatialAudioEngine engine;
     QSpatialAudioListener *listener = nullptr;
     QSpatialAudioSoundSource *sound = nullptr;
+    QSpatialAudioRoom *room = nullptr;
 };
 
 int main(int argc, char **argv)

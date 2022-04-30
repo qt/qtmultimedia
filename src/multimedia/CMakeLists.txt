@@ -95,11 +95,14 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_spatialaudio
         spatial/qambisonicdecoder.cpp spatial/qambisonicdecoder_p.h spatial/qambisonicdecoderdata_p.h
         spatial/qspatialaudioengine.cpp spatial/qspatialaudioengine.h spatial/qspatialaudioengine_p.h
         spatial/qspatialaudiolistener.cpp spatial/qspatialaudiolistener.h
+        spatial/qspatialaudioroom.cpp spatial/qspatialaudioroom.h spatial/qspatialaudioroom_p.h
         spatial/qspatialaudiosoundsource.cpp spatial/qspatialaudiosoundsource.h spatial/qspatialaudiosoundsource_p.h
         spatial/qspatialaudiostereosource.cpp spatial/qspatialaudiostereosource.h
     INCLUDE_DIRECTORIES
         "../3rdparty/resonance-audio/resonance_audio"
+        "../3rdparty/resonance-audio"
         "../resonance-audio"
+        "../3rdparty/eigen"
     LIBRARIES
         Qt::BundledResonanceAudio
 )

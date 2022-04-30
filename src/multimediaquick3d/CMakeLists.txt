@@ -14,6 +14,7 @@ qt_internal_add_qml_module(Quick3DSpatialAudioPrivate
     INTERNAL_MODULE
     SOURCES
         qquick3dspatialaudiolistener.cpp qquick3dspatialaudiolistener_p.h
+        qquick3dspatialaudioroom.cpp qquick3dspatialaudioroom_p.h
         qquick3dspatialaudiosoundsource.cpp qquick3dspatialaudiosoundsource_p.h
         qquick3dspatialaudiostereosource.cpp qquick3dspatialaudiostereosource_p.h
         qquick3dspatialaudioengine.cpp qquick3dspatialaudioengine_p.h

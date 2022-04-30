@@ -37,6 +37,8 @@
 #include <qspatialaudioengine_p.h>
 #include <qspatialaudiosoundsource_p.h>
 #include <qspatialaudiostereosource.h>
+#include <qspatialaudioroom_p.h>
+#include <qspatialaudiolistener.h>
 #include <resonance_audio_api_extensions.h>
 #include <qambisonicdecoder_p.h>
 #include <qaudiodecoder.h>
@@ -120,6 +122,8 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
 {
     if (d->paused.loadRelaxed())
         return 0;
+
+    d->updateRooms();
 
     int nChannels = d->ambisonicDecoder ? d->ambisonicDecoder->nOutputChannels() : 2;
     if (len < nChannels*int(sizeof(float))*QSpatialAudioEnginePrivate::bufferSize)
@@ -206,6 +210,68 @@ void QSpatialAudioEnginePrivate::removeStereoSound(QSpatialAudioStereoSource *so
     api->DestroySource(sd->sourceId);
     sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
     stereoSources.removeOne(sound);
+}
+
+void QSpatialAudioEnginePrivate::addRoom(QSpatialAudioRoom *room)
+{
+    rooms.append(room);
+}
+
+void QSpatialAudioEnginePrivate::removeRoom(QSpatialAudioRoom *room)
+{
+    rooms.removeOne(room);
+}
+
+void QSpatialAudioEnginePrivate::updateRooms() const
+{
+    if (!roomEffectsEnabled)
+        return;
+
+    bool needUpdate = listenerPositionDirty;
+    listenerPositionDirty = false;
+
+    for (const auto &room : rooms) {
+        auto *rd = QSpatialAudioRoomPrivate::get(room);
+        if (rd->dirty) {
+            rd->update();
+            needUpdate = true;
+        }
+    }
+
+    if (!needUpdate)
+        return;
+
+    QVector3D listenerPos;
+    if (listener)
+        listenerPos = listener->position();
+    float roomVolume = float(qInf());
+    const QSpatialAudioRoom *room = nullptr;
+    // Find the smallest room that contains the listener and apply it's room effects
+    for (const auto *r : rooms) {
+        QVector3D dimensions = r->dimensions();
+        float vol = dimensions.x()*dimensions.y()*dimensions.z();
+        if (vol > roomVolume)
+            continue;
+        QVector3D dist = r->position() - listenerPos;
+        // transform into room coordinates
+        dist = r->rotation().rotatedVector(dist);
+        if (qAbs(dist.x()) <= dimensions.x() &&
+            qAbs(dist.y()) <= dimensions.y() &&
+            qAbs(dist.z()) <= dimensions.z()) {
+            room = r;
+            roomVolume = vol;
+        }
+    }
+
+    // apply room to engine
+    if (room) {
+        QSpatialAudioRoomPrivate *rp = QSpatialAudioRoomPrivate::get(room);
+        api->EnableRoomEffects(true);
+        api->SetReflectionProperties(rp->reflections);
+        api->SetReverbProperties(rp->reverb);
+    } else {
+        api->EnableRoomEffects(false);
+    }
 }
 
 
@@ -355,7 +421,6 @@ void QSpatialAudioEngine::start()
     d->format.setSampleFormat(QAudioFormat::Int16);
 
     d->api->SetStereoSpeakerMode(d->outputMode == Normal);
-    d->api->EnableRoomEffects(true);
     d->api->SetMasterVolume(d->masterVolume);
 
     d->outputStream.reset(new QAudioOutputStream(d));
@@ -400,13 +465,16 @@ bool QSpatialAudioEngine::paused() const
 
 /*!
     Enables room effects such as echos and reverb.
+
+    Room effects will only apply if you create one or more \l QSpatialAudioRoom objects
+    and the listener is inside at least one of the rooms. If the listener is inside
+    multiple rooms, the room with the smalles volume will be used.
  */
 void QSpatialAudioEngine::setRoomEffectsEnabled(bool enabled)
 {
     if (d->roomEffectsEnabled == enabled)
         return;
     d->roomEffectsEnabled = enabled;
-    d->api->EnableRoomEffects(d->roomEffectsEnabled);
 }
 
 /*!
@@ -426,6 +494,10 @@ void QSpatialAudioSound::load()
 {
     decoder.reset(new QAudioDecoder);
     buffers.clear();
+    currentBuffer = 0;
+    bufPos = 0;
+    m_playing = false;
+    m_loading = true;
     auto *ep = QSpatialAudioEnginePrivate::get(engine);
     QAudioFormat f = ep->format;
     f.setSampleFormat(QAudioFormat::Float);
@@ -465,7 +537,7 @@ void QSpatialAudioSound::getBuffer(float *buf, int nframes, int channels)
                 currentBuffer = 0;
                 ++m_currentLoop;
             }
-            if (m_loops > 0 && m_currentLoop >= m_loops) {
+            if (!m_loading && m_loops > 0 && m_currentLoop >= m_loops) {
                 m_playing = false;
                 m_currentLoop = 0;
             }
@@ -486,7 +558,7 @@ void QSpatialAudioSound::bufferReady()
 
 void QSpatialAudioSound::finished()
 {
-
+    m_loading = false;
 }
 
 QT_END_NAMESPACE
