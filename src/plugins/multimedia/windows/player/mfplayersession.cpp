@@ -55,6 +55,7 @@
 #include "mfvideorenderercontrol_p.h"
 #include <mfmetadata_p.h>
 #include <private/qwindowsmfdefs_p.h>
+#include <private/qwindowsaudioutils_p.h>
 
 #include "mfplayersession_p.h"
 #include <mferror.h>
@@ -629,38 +630,6 @@ bool MFPlayerSession::setupAudioSampleGrabber(IMFTopology *topology, IMFTopology
     if (typeHandler)
         typeHandler->Release();
     return hr == S_OK;
-}
-
-QAudioFormat MFPlayerSession::audioFormatForMFMediaType(IMFMediaType *mediaType) const
-{
-    WAVEFORMATEX *wfx = 0;
-    UINT32 size;
-    HRESULT hr = MFCreateWaveFormatExFromMFMediaType(mediaType, &wfx, &size, MFWaveFormatExConvertFlag_Normal);
-    if (FAILED(hr))
-        return QAudioFormat();
-
-    if (size < sizeof(WAVEFORMATEX)) {
-        CoTaskMemFree(wfx);
-        return QAudioFormat();
-    }
-
-    if (wfx->wFormatTag != WAVE_FORMAT_PCM) {
-        CoTaskMemFree(wfx);
-        return QAudioFormat();
-    }
-
-    QAudioFormat format;
-    format.setSampleRate(wfx->nSamplesPerSec);
-    format.setChannelCount(wfx->nChannels);
-    if (wfx->wBitsPerSample == 8)
-        format.setSampleFormat(QAudioFormat::UInt8);
-    else if (wfx->wBitsPerSample == 16)
-        format.setSampleFormat(QAudioFormat::Int16);
-    else if (wfx->wBitsPerSample == 32)
-        format.setSampleFormat(QAudioFormat::Int32);
-
-    CoTaskMemFree(wfx);
-    return format;
 }
 
 // BindOutputNode
@@ -1741,7 +1710,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                         if (SUCCEEDED(streamSink->GetMediaTypeHandler((&typeHandler)))) {
                             IMFMediaType *mediaType = 0;
                             if (SUCCEEDED(typeHandler->GetCurrentMediaType(&mediaType))) {
-                                m_audioSampleGrabber->setFormat(audioFormatForMFMediaType(mediaType));
+                                m_audioSampleGrabber->setFormat(QWindowsAudioUtils::mediaTypeToFormat(mediaType));
                                 mediaType->Release();
                             }
                             typeHandler->Release();
