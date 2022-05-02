@@ -110,7 +110,7 @@ public:
     };
 
     template <typename... Args>
-    static ChannelConfig channelConfig(Args... channels)
+    static constexpr ChannelConfig channelConfig(Args... channels)
     {
         return ChannelConfig(QtPrivate::channelConfig(channels...));
     }
