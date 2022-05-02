@@ -50,6 +50,8 @@ class QQuick3DSpatialAudioStereoSource : public QObject
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
     QML_NAMED_ELEMENT(SpatialAudioStereoSource)
 
 public:
@@ -62,9 +64,29 @@ public:
     void setVolume(float volume);
     float volume() const;
 
+    enum Loops
+    {
+        Infinite = -1,
+        Once = 1
+    };
+    Q_ENUM(Loops)
+
+    int loops() const;
+    void setLoops(int loops);
+
+    bool autoPlay() const;
+    void setAutoPlay(bool autoPlay);
+
+public Q_SLOTS:
+    void play();
+    void pause();
+    void stop();
+
 Q_SIGNALS:
     void sourceChanged();
     void volumeChanged();
+    void loopsChanged();
+    void autoPlayChanged();
 
 private:
     QSpatialAudioStereoSource *m_sound = nullptr;

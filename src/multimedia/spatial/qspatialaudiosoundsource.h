@@ -52,7 +52,6 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioSoundSource : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
     Q_PROPERTY(QVector3D position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(QQuaternion rotation READ rotation WRITE setRotation NOTIFY rotationChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
@@ -64,6 +63,8 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioSoundSource : public QObject
     Q_PROPERTY(float directivity READ directivity WRITE setDirectivity NOTIFY directivityChanged)
     Q_PROPERTY(float directivityOrder READ directivityOrder WRITE setDirectivityOrder NOTIFY directivityOrderChanged)
     Q_PROPERTY(float nearFieldGain READ nearFieldGain WRITE setNearFieldGain NOTIFY nearFieldGainChanged)
+    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
 
 public:
     explicit QSpatialAudioSoundSource(QSpatialAudioEngine *engine);

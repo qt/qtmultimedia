@@ -47,10 +47,11 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QSpatialAudioSoundSource
+    \inmodule QtMultimedia
 
     \brief A sound object in 3D space.
 
-    A QSpatialAudioSoundSource represents an audible object in 3D space. You can define
+    QSpatialAudioSoundSource represents an audible object in 3D space. You can define
     it's position and orientation in space, set the sound it is playing and define a
     volume for the object.
 
@@ -118,7 +119,10 @@ QQuaternion QSpatialAudioSoundSource::rotation() const
 /*!
     \property QSpatialAudioSoundSource::volume
 
-    Defines an overall volume for this sound source.
+    Defines the volume of the sound.
+
+    Values between 0 and 1 will attenuate the sound, while values above 1
+    provide an additional gain boost.
  */
 void QSpatialAudioSoundSource::setVolume(float volume)
 {
@@ -142,8 +146,8 @@ float QSpatialAudioSoundSource::volume() const
     Defines how the volume of the sound scales with distance to the listener.
 
     \value DistanceModel_Logarithmic Volume decreases logarithmically with distance.
-    DistanceModel_Linear Volume decreases linearly with distance.
-    DistanceModel_ManualAttenutation Attenuation is defined manually using the
+    \value DistanceModel_Linear Volume decreases linearly with distance.
+    \value DistanceModel_ManualAttenutation Attenuation is defined manually using the
     \l manualAttenuation property.
 */
 
@@ -384,8 +388,8 @@ QUrl QSpatialAudioSoundSource::source() const
 /*!
    \property QSpatialAudioSoundSource::loops
 
-    Determines how often the sound is played before the player stops.
-    Set to QSpatialAudioSoundSource::Infinite to loop the current sound forever.
+    Determines how many times the sound is played before the player stops.
+    Set to QSpatialAudioSoundSource::Infinite to play the current sound in a loop forever.
 
     The default value is \c 1.
  */
@@ -430,7 +434,7 @@ void QSpatialAudioSoundSource::play()
 }
 
 /*!
-    Pauses sound playback at the current position. Calling play() will continue playback.
+    Pauses sound playback. Calling play() will continue playback.
  */
 void QSpatialAudioSoundSource::pause()
 {
@@ -438,8 +442,8 @@ void QSpatialAudioSoundSource::pause()
 }
 
 /*!
-    Stops sound playback and resets the current position and loop count to 0. Calling play() will
-    begin playback at the beginning of the sound file.
+    Stops sound playback and resets the current position and current loop count to 0.
+    Calling play() will start playback at the beginning of the sound file.
  */
 void QSpatialAudioSoundSource::stop()
 {

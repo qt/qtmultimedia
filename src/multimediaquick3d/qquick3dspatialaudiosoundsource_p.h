@@ -57,6 +57,8 @@ class QQuick3DSpatialAudioSoundSource : public QQuick3DNode
     Q_PROPERTY(float directivity READ directivity WRITE setDirectivity NOTIFY directivityChanged)
     Q_PROPERTY(float directivityOrder READ directivityOrder WRITE setDirectivityOrder NOTIFY directivityOrderChanged)
     Q_PROPERTY(float nearFieldGain READ nearFieldGain WRITE setNearFieldGain NOTIFY nearFieldGainChanged)
+    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
     QML_NAMED_ELEMENT(SpatialAudioSoundSource)
 
 public:
@@ -70,9 +72,9 @@ public:
     float volume() const;
 
     enum DistanceModel {
-        DistanceModel_Logarithmic,
-        DistanceModel_Linear,
-        DistanceModel_ManualAttenutation
+        Logarithmic,
+        Linear,
+        ManualAttenutation
     };
     Q_ENUM(DistanceModel);
 
@@ -100,6 +102,24 @@ public:
     void setNearFieldGain(float gain);
     float nearFieldGain() const;
 
+    enum Loops
+    {
+        Infinite = -1,
+        Once = 1
+    };
+    Q_ENUM(Loops)
+
+    int loops() const;
+    void setLoops(int loops);
+
+    bool autoPlay() const;
+    void setAutoPlay(bool autoPlay);
+
+public Q_SLOTS:
+    void play();
+    void pause();
+    void stop();
+
 Q_SIGNALS:
     void sourceChanged();
     void volumeChanged();
@@ -111,8 +131,10 @@ Q_SIGNALS:
     void directivityChanged();
     void directivityOrderChanged();
     void nearFieldGainChanged();
+    void loopsChanged();
+    void autoPlayChanged();
 
-protected Q_SLOTS:
+private Q_SLOTS:
     void updatePosition();
     void updateRotation();
 

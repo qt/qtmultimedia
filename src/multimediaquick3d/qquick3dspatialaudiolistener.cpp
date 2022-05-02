@@ -40,6 +40,20 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \qmltype SpatialAudioListener
+    \inqmlmodule QtQuick3D.SpatialAudio
+
+    \brief defines the position and orientation of the person listening to a sound field
+    defined by a SpatialAudioEngine.
+
+    A SpatialAudioEngine can have exactly one listener, that defines the position and orientation
+    of the person listening to the sounds defined by the objects placed within the audio engine.
+
+    In most cases, the SpatialAudioListener should simply be a child of the Camera element in QtQuick3D.
+    This will ensure that the sound experience is aligned with the visual rendering of the scene.
+ */
+
 QQuick3DSpatialAudioListener::QQuick3DSpatialAudioListener()
 {
     m_listener = new QSpatialAudioListener(QQuick3DSpatialAudioEngine::getEngine());

@@ -277,8 +277,9 @@ void QSpatialAudioEnginePrivate::updateRooms() const
 
 /*!
     \class QSpatialAudioEngine
+    \inmodule QtMultimedia
 
-    \brief QSpatialAudioEngine manages a three dimensional sound field
+    \brief QSpatialAudioEngine manages a three dimensional sound field.
 
     You can use an instance of QSpatialAudioEngine to manage a sound field in
     three dimensions. A sound field is defined by several QSpatialAudioSoundSource
@@ -290,10 +291,20 @@ void QSpatialAudioEnginePrivate::updateRooms() const
     if the listener is further away from source. They will also get mapped to the corresponding
     loudspeakers depending on the direction between listener and source.
 
-    QSpatialAudioEngine does offer a mode where Qt is using simulating the effects of the ear
-    using head related impulse reponse functions (see also https://en.wikipedia.org/wiki/Sound_localization)
-    to localize the sound in 3D space when using headphones and create a spatial audio effect through
-    headphones.
+    QSpatialAudioEngine offers two output modes. The first mode renders the sound field to a set of
+    speakers, either a stereo speaker pair or a surround configuration. The second mode provides
+    an immersive 3D sound experience when using headphones.
+
+    Perception of sound localization is driven mainly by two factors. The first factor is timing
+    differences of the sound waves between left and right ear. The second factor comes from various
+    ways how sounds coming from different direcations create different types of reflections from our
+    ears and heads. See https://en.wikipedia.org/wiki/Sound_localization for more details.
+
+    The spatial audio engine emulates those timing differences and reflections through
+    Head related transfer functions (HRTF, see
+    https://en.wikipedia.org/wiki/Head-related_transfer_function). The functions used emulates those
+    effects for an average persons ears and head. It provides a good and immersive 3D sound localization
+    experience for most persons when using headphones.
 
     The engine is rather versatile allowing you to define amd emulate room properties and reverb settings emulating
     different types of rooms.
@@ -369,7 +380,7 @@ int QSpatialAudioEngine::sampleRate() const
 /*!
     \property QSpatialAudioEngine::outputDevice
 
-    Sets or returns the device that is being used for outputting the sound field.
+    Sets or returns the device that is being used for playing the sound field.
  */
 void QSpatialAudioEngine::setOutputDevice(const QAudioDevice &device)
 {
@@ -391,7 +402,7 @@ QAudioDevice QSpatialAudioEngine::outputDevice() const
 /*!
     \property QSpatialAudioEngine::masterVolume
 
-    Sets or returns overall volume being used to render the sound field.
+    Sets or returns volume being used to render the sound field.
  */
 void QSpatialAudioEngine::setMasterVolume(float volume)
 {
@@ -466,9 +477,10 @@ bool QSpatialAudioEngine::paused() const
 /*!
     Enables room effects such as echos and reverb.
 
+    Enables room effects if \a enabled is true.
     Room effects will only apply if you create one or more \l QSpatialAudioRoom objects
     and the listener is inside at least one of the rooms. If the listener is inside
-    multiple rooms, the room with the smalles volume will be used.
+    multiple rooms, the room with the smallest volume will be used.
  */
 void QSpatialAudioEngine::setRoomEffectsEnabled(bool enabled)
 {

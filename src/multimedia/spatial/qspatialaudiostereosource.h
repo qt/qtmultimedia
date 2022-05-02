@@ -52,6 +52,8 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
 
 public:
     explicit QSpatialAudioStereoSource(QSpatialAudioEngine *engine);

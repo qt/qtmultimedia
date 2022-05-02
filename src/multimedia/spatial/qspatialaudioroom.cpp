@@ -78,6 +78,7 @@ void QSpatialAudioRoomPrivate::update()
 
 /*!
     \class QSpatialAudioRoom
+    \inmodule QtMultimedia
 
     Defines a room for the spatial audio engine.
 
@@ -122,17 +123,17 @@ QSpatialAudioRoom::~QSpatialAudioRoom()
 
     \value Transparent The side of the room is open and won't contribute to reflections or reverb.
     \value AcousticCeilingTiles Acoustic tiles that suppress most reflections and reverb.
-    \value BrickBare A bare brick wall.
-    \value BrickPainted A painted brick wall.
-    \value ConcreteBlockCoarse A raw concrete wall
-    \value ConcreteBlockPainted A painted concrete wall
-    \value CurtainHeavy A heavy curtain. Will mostly reflect low frequencies
+    \value BrickBare Bare brick wall.
+    \value BrickPainted Painted brick wall.
+    \value ConcreteBlockCoarse Raw concrete wall
+    \value ConcreteBlockPainted Painted concrete wall
+    \value CurtainHeavy Heavy curtain. Will mostly reflect low frequencies
     \value FiberGlassInsulation Fiber glass insulation. Only reflects very low frequencies
-    \value GlassThin A thin glass wall
-    \value GlassThick A thick glass wall
+    \value GlassThin Thin glass wall
+    \value GlassThick Thick glass wall
     \value Grass Grass
-    \value LinoleumOnConcrete A Linoleum floor
-    \value Marble A marble floor
+    \value LinoleumOnConcrete Linoleum floor
+    \value Marble Marble floor
     \value Metal Metal
     \value ParquetOnConcrete Parquet wooden floor on concrete
     \value PlasterRough Rough plaster
@@ -141,22 +142,22 @@ QSpatialAudioRoom::~QSpatialAudioRoom()
     \value PolishedConcreteOrTile Polished concrete or tiles
     \value Sheetrock Rock
     \value WaterOrIceSurface Water or ice
-    \value WoodCeiling A wooden ceiling
+    \value WoodCeiling Wooden ceiling
     \value WoodPanel Wooden panel
     \value Uniform Artificial material giving uniform reflections on all frequencies
 */
 
 /*!
-    \enum Wall
+    \enum QSpatialAudioRoom::Wall
 
     An enum defining the 6 walls of the room
 
-    \value Left Left wall (negative x)
-    \value Right Right wall (positive x)
-    \value Bottom Bottom wall (negative y)
-    \value Top Top wall (positive y)
-    \value Back Back wall (negative z)
-    \value Front Front wall (positive z)
+    \value LeftWall Left wall (negative x)
+    \value RightWall Right wall (positive x)
+    \value BackWall Back wall (negative z)
+    \value FrontWall Front wall (positive z)
+    \value Floor Bottom wall (negative y)
+    \value Ceiling Top wall (positive y)
 */
 
 
@@ -225,7 +226,7 @@ QQuaternion QSpatialAudioRoom::rotation() const
     Different wall materials have different reflection and reverb properties
     that influence the sound of the room.
 
-    \sa material(), Material, Wall
+    \sa wall(), Material, QSpatialAudioRoom::Wall
  */
 void QSpatialAudioRoom::setWall(Wall wall, Material material)
 {
@@ -242,7 +243,7 @@ void QSpatialAudioRoom::setWall(Wall wall, Material material)
 /*!
     returns the material being used for \a wall.
 
-    \sa setMaterial(), Material, Wall
+    \sa setWall(), Material, QSpatialAudioRoom::Wall
  */
 QSpatialAudioRoom::Material QSpatialAudioRoom::wall(Wall wall) const
 {
@@ -327,7 +328,7 @@ float QSpatialAudioRoom::reverbTime() const
 }
 
 /*!
-    \property QSpatialAudioRoom::reverbTime
+    \property QSpatialAudioRoom::reverbBrightness
 
     A brightness factor to be applied to the generated reverb.
     A positive value will increase reverb for higher frequencies and

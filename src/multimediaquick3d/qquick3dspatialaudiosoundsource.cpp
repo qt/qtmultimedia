@@ -42,6 +42,20 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \qmltype SpatialAudioSoundSource
+    \inqmlmodule QtQuick3D.SpatialAudio
+
+    \brief A sound object in 3D space.
+
+    A SpatialAudioSoundSource represents an audible object in 3D space. You can define
+    it's position and orientation in space, set the sound it is playing and define a
+    volume for the object.
+
+    The object can have different attenuation behavior, emit sound mainly in one direction
+    or spherically, and behave as if occluded by some other object.
+  */
+
 QQuick3DSpatialAudioSoundSource::QQuick3DSpatialAudioSoundSource()
 {
     m_sound = new QSpatialAudioSoundSource(QQuick3DSpatialAudioEngine::getEngine());
@@ -58,6 +72,8 @@ QQuick3DSpatialAudioSoundSource::QQuick3DSpatialAudioSoundSource()
     connect(m_sound, &QSpatialAudioSoundSource::directivityChanged, this, &QQuick3DSpatialAudioSoundSource::directivityChanged);
     connect(m_sound, &QSpatialAudioSoundSource::directivityOrderChanged, this, &QQuick3DSpatialAudioSoundSource::directivityOrderChanged);
     connect(m_sound, &QSpatialAudioSoundSource::nearFieldGainChanged, this, &QQuick3DSpatialAudioSoundSource::nearFieldGainChanged);
+    connect(m_sound, &QSpatialAudioSoundSource::loopsChanged, this, &QQuick3DSpatialAudioSoundSource::loopsChanged);
+    connect(m_sound, &QSpatialAudioSoundSource::autoPlayChanged, this, &QQuick3DSpatialAudioSoundSource::autoPlayChanged);
 }
 
 QQuick3DSpatialAudioSoundSource::~QQuick3DSpatialAudioSoundSource()
@@ -65,6 +81,11 @@ QQuick3DSpatialAudioSoundSource::~QQuick3DSpatialAudioSoundSource()
     delete m_sound;
 }
 
+/*!
+    \qmlproperty url QSpatialAudioSoundSource::source
+
+    The source file for the sound to be played.
+ */
 QUrl QQuick3DSpatialAudioSoundSource::source() const
 {
     return m_sound->source();
@@ -78,6 +99,11 @@ void QQuick3DSpatialAudioSoundSource::setSource(QUrl source)
     m_sound->setSource(url);
 }
 
+/*!
+    \qmlproperty float QSpatialAudioSoundSource::volume
+
+    Defines an overall volume for this sound source.
+ */
 void QQuick3DSpatialAudioSoundSource::setVolume(float volume)
 {
     m_sound->setVolume(volume);
@@ -88,6 +114,22 @@ float QQuick3DSpatialAudioSoundSource::volume() const
     return m_sound->volume();
 }
 
+/*!
+    \qmlproperty enumeration SpatialAudioSoundSource::distanceModel
+
+    Defines how the volume of the sound scales with distance to the listener.
+
+    \table
+    \header \li Property value
+            \li Description
+    \row \li Logarithmic
+        \li Volume decreases logarithmically with distance.
+    \row \li Linear
+        \li Volume decreases linearly with distance.
+    \row \li ManualAttenutation
+        \li Attenuation is defined manually using the \l manualAttenuation property.
+    \endtable
+ */
 void QQuick3DSpatialAudioSoundSource::setDistanceModel(DistanceModel model)
 {
     m_sound->setDistanceModel(QSpatialAudioSoundSource::DistanceModel(model));
@@ -98,6 +140,13 @@ QQuick3DSpatialAudioSoundSource::DistanceModel QQuick3DSpatialAudioSoundSource::
     return DistanceModel(m_sound->distanceModel());
 }
 
+/*!
+    \qmlproperty float SpatialAudioSoundSource::minimumDistance
+
+    Defines a minimum distance for the sound source. If the listener is closer to the sound
+    object than the minimum distance, volume will stay constant and the sound source won't
+    be localized in space.
+ */
 void QQuick3DSpatialAudioSoundSource::setMinimumDistance(float min)
 {
     m_sound->setMinimumDistance(min);
@@ -108,6 +157,12 @@ float QQuick3DSpatialAudioSoundSource::minimumDistance() const
     return m_sound->minimumDistance();
 }
 
+/*!
+    \qmlproperty float SpatialAudioSoundSource::maximumDistance
+
+    Defines a maximum distance for the sound source. If the listener is further away from
+    the sound object than the maximum distance it won't be audible anymore.
+ */
 void QQuick3DSpatialAudioSoundSource::setMaximumDistance(float max)
 {
     m_sound->setMaximumDistance(max);
@@ -118,6 +173,12 @@ float QQuick3DSpatialAudioSoundSource::maximumDistance() const
     return m_sound->maximumDistance();
 }
 
+/*!
+    \qmlproperty float SpatialAudioSoundSource::manualAttenuation
+
+    Defines a manual attenuation factor if \l distanceModel is set to
+    SpatialAudioSoundSource.ManualAttenutation.
+ */
 void QQuick3DSpatialAudioSoundSource::setManualAttenuation(float attenuation)
 {
     m_sound->setManualAttenuation(attenuation);
@@ -128,6 +189,14 @@ float QQuick3DSpatialAudioSoundSource::manualAttenuation() const
     return m_sound->manualAttenuation();
 }
 
+/*!
+    \qmlproperty float SpatialAudioSoundSource::occlusionIntensity
+
+    Defines how much the object is occluded. 0 implies the object is
+    not occluded at all, while a large number implies a large occlusion.
+
+    The default is 0.
+ */
 void QQuick3DSpatialAudioSoundSource::setOcclusionIntensity(float occlusion)
 {
     m_sound->setOcclusionIntensity(occlusion);
@@ -138,6 +207,15 @@ float QQuick3DSpatialAudioSoundSource::occlusionIntensity() const
     return m_sound->occlusionIntensity();
 }
 
+/*!
+    \qmlproperty float SpatialAudioSoundSource::directivity
+
+    Defines the directivity of the sound source. A value of 0 implies that the sound is
+    emitted equally in all directions, while a value of 1 implies that the source mainly
+    emits sound in the forward direction.
+
+    Valid values are between 0 and 1, the default is 0.
+ */
 void QQuick3DSpatialAudioSoundSource::setDirectivity(float alpha)
 {
     m_sound->setDirectivity(alpha);
@@ -148,6 +226,14 @@ float QQuick3DSpatialAudioSoundSource::directivity() const
     return m_sound->directivity();
 }
 
+/*!
+    \qmlproperty float SpatialAudioSoundSource::directivityOrder
+
+    Defines the order of the directivity of the sound source. A higher order
+    implies a sharper localization of the sound cone.
+
+    The minimum value and default for this property is 1.
+ */
 void QQuick3DSpatialAudioSoundSource::setDirectivityOrder(float alpha)
 {
     m_sound->setDirectivityOrder(alpha);
@@ -158,6 +244,13 @@ float QQuick3DSpatialAudioSoundSource::directivityOrder() const
     return m_sound->directivityOrder();
 }
 
+/*!
+    \qmlproperty float SpatialAudioSoundSource::nearFieldGain
+
+    Defines the near field gain for the sound source. Valid values are between 0 and 1.
+    A near field gain of 1 will raise the volume of the sound signal by approx 20 dB for
+    distances very close to the listener.
+ */
 void QQuick3DSpatialAudioSoundSource::setNearFieldGain(float gain)
 {
     m_sound->setNearFieldGain(gain);
@@ -176,6 +269,73 @@ void QQuick3DSpatialAudioSoundSource::updatePosition()
 void QQuick3DSpatialAudioSoundSource::updateRotation()
 {
     m_sound->setRotation(sceneRotation());
+}
+
+/*!
+   \qmlproperty int QSpatialAudioSoundSource::loops
+
+    Determines how often the sound is played before the player stops.
+    Set to SpatialAudioSoundSource::Infinite to loop the current sound forever.
+
+    The default value is \c 1.
+ */
+int QQuick3DSpatialAudioSoundSource::loops() const
+{
+    return m_sound->loops();
+}
+
+void QQuick3DSpatialAudioSoundSource::setLoops(int loops)
+{
+    m_sound->setLoops(loops);
+}
+
+/*!
+   \qmlproperty bool SpatialAudioSoundSource::autoPlay
+
+    Determines whether the sound should automatically start playing when a source
+    gets specified.
+
+    The default value is \c true.
+ */
+bool QQuick3DSpatialAudioSoundSource::autoPlay() const
+{
+    return m_sound->autoPlay();
+}
+
+void QQuick3DSpatialAudioSoundSource::setAutoPlay(bool autoPlay)
+{
+    m_sound->setAutoPlay(autoPlay);
+}
+
+/*!
+    \qmlmethod SpatialAudioSoundSource::play()
+
+    Starts playing back the sound. Does nothing if the sound is already playing.
+ */
+void QQuick3DSpatialAudioSoundSource::play()
+{
+    m_sound->play();
+}
+
+/*!
+    \qmlmethod SpatialAudioSoundSource::pause()
+
+    Pauses sound playback at the current position. Calling play() will continue playback.
+ */
+void QQuick3DSpatialAudioSoundSource::pause()
+{
+    m_sound->pause();
+}
+
+/*!
+    \qmlmethod SpatialAudioSoundSource::stop()
+
+    Stops sound playback and resets the current position and loop count to 0. Calling play() will
+    begin playback at the beginning of the sound file.
+ */
+void QQuick3DSpatialAudioSoundSource::stop()
+{
+    m_sound->stop();
 }
 
 QT_END_NAMESPACE

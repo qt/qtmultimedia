@@ -47,10 +47,11 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QSpatialAudioStereoSource
+    \inmodule QtMultimedia
 
     \brief A stereo overlay sound.
 
-    A QSpatialAudioStereoSource represents a position and orientation independent sound.
+    QSpatialAudioStereoSource represents a position and orientation independent sound.
     It's commonly used for background sounds (e.g. music) that is supposed to be independent
     of the listeners position and orientation.
   */
@@ -73,7 +74,10 @@ QSpatialAudioStereoSource::~QSpatialAudioStereoSource()
 /*!
     \property QSpatialAudioStereoSource::volume
 
-    Defines an overall volume for this sound source.
+    Defines the volume of the sound.
+
+    Values between 0 and 1 will attenuate the sound, while values above 1
+    provide an additional gain boost.
  */
 void QSpatialAudioStereoSource::setVolume(float volume)
 {
@@ -114,8 +118,9 @@ QUrl QSpatialAudioStereoSource::source() const
 /*!
    \property QSpatialAudioStereoSource::loops
 
-    Determines how often the sound is played before the player stops.
-    Set to QSpatialAudioSoundSource::Infinite to loop the current sound forever.
+    Determines how many times the sound is played before the player stops.
+    Set to QSpatialAudioSoundSource::Infinite to play the current sound in
+    a loop forever.
 
     The default value is \c 1.
  */
@@ -160,7 +165,7 @@ void QSpatialAudioStereoSource::play()
 }
 
 /*!
-    Pauses sound playback at the current position. Calling play() will continue playback.
+    Pauses sound playback. Calling play() will continue playback.
  */
 void QSpatialAudioStereoSource::pause()
 {
@@ -168,8 +173,8 @@ void QSpatialAudioStereoSource::pause()
 }
 
 /*!
-    Stops sound playback and resets the current position and loop count to 0. Calling play() will
-    begin playback at the beginning of the sound file.
+    Stops sound playback and resets the current position and current loop count to 0.
+    Calling play() will start playback at the beginning of the sound file.
  */
 void QSpatialAudioStereoSource::stop()
 {

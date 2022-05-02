@@ -42,6 +42,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype SpatialAudioRoom
+    \inqmlmodule QtQuick3D.SpatialAudio
 
     Defines a room for the spatial audio engine.
 
@@ -57,9 +58,6 @@ QT_BEGIN_NAMESPACE
     volume.
  */
 
-/*!
-    Constructs a QQuick3DSpatialAudioRoom for \a engine.
- */
 QQuick3DSpatialAudioRoom::QQuick3DSpatialAudioRoom()
 {
     m_room = new QSpatialAudioRoom(QQuick3DSpatialAudioEngine::getEngine());
@@ -75,45 +73,10 @@ QQuick3DSpatialAudioRoom::QQuick3DSpatialAudioRoom()
     connect(m_room, &QSpatialAudioRoom::reverbBrightnessChanged, this, &QQuick3DSpatialAudioRoom::reverbBrightnessChanged);
 }
 
-/*!
-    Destroys the room.
- */
 QQuick3DSpatialAudioRoom::~QQuick3DSpatialAudioRoom()
 {
     delete m_room;
 }
-
-/*!
-    \enum SpatialAudioRoom::Material
-
-    Defines different materials that can be applied to the different walls of the room.
-
-    \value Transparent The side of the room is open and won't contribute to reflections or reverb.
-    \value AcousticCeilingTiles Acoustic tiles that suppress most reflections and reverb.
-    \value BrickBare A bare brick wall.
-    \value BrickPainted A painted brick wall.
-    \value ConcreteBlockCoarse A raw concrete wall
-    \value ConcreteBlockPainted A painted concrete wall
-    \value CurtainHeavy A heavy curtain. Will mostly reflect low frequencies
-    \value FiberGlassInsulation Fiber glass insulation. Only reflects very low frequencies
-    \value GlassThin A thin glass wall
-    \value GlassThick A thick glass wall
-    \value Grass Grass
-    \value LinoleumOnConcrete A Linoleum floor
-    \value Marble A marble floor
-    \value Metal Metal
-    \value ParquetOnConcrete Parquet wooden floor on concrete
-    \value PlasterRough Rough plaster
-    \value PlasterSmooth Smooth plaster
-    \value PlywoodPanel Plywodden panel
-    \value PolishedConcreteOrTile Polished concrete or tiles
-    \value Sheetrock Rock
-    \value WaterOrIceSurface Water or ice
-    \value WoodCeiling A wooden ceiling
-    \value WoodPanel Wooden panel
-    \value Uniform Artificial material giving uniform reflections on all frequencies
-*/
-
 
 /*!
     \qmlproperty vector3D SpatialAudioRoom::dimensions
@@ -133,8 +96,58 @@ QVector3D QQuick3DSpatialAudioRoom::dimensions() const
 
 /*!
     \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::left
+    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::right
+    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::front
+    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::back
+    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::floor
+    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::ceiling
 
-    Sets the material to use for the left (negative x) of the room.
+    Sets the material to use for the different sides of the room. Properties correlate to
+    coordinates as follows:
+
+    \table
+    \header
+        \li Property
+        \li Coordinate
+    \row \li left \li Negative x
+    \row \li right \li Positive x
+    \row \li back \li Negative x
+    \row \li front \li Positive z
+    \row \li floor \li Negative y
+    \row \li ceiling \li Positive y
+    \endtable
+
+    Valid values for the material are:
+
+    \table
+    \header
+        \li Property value
+        \li Description
+    \row \li Transparent \li The side of the room is open and won't contribute to reflections or reverb.
+    \row \li AcousticCeilingTiles \li Acoustic tiles that suppress most reflections and reverb.
+    \row \li BrickBare \li A bare brick wall.
+    \row \li BrickPainted \li A painted brick wall.
+    \row \li ConcreteBlockCoarse \li A raw concrete wall
+    \row \li ConcreteBlockPainted \li A painted concrete wall
+    \row \li CurtainHeavy \li A heavy curtain. Will mostly reflect low frequencies
+    \row \li FiberGlassInsulation \li Fiber glass insulation. Only reflects very low frequencies
+    \row \li GlassThin \li A thin glass wall
+    \row \li GlassThick \li A thick glass wall
+    \row \li Grass \li Grass
+    \row \li LinoleumOnConcrete \li A Linoleum floor
+    \row \li Marble \li A marble floor
+    \row \li Metal \li Metal
+    \row \li ParquetOnConcrete \li Parquet wooden floor on concrete
+    \row \li PlasterRough \li Rough plaster
+    \row \li PlasterSmooth \li Smooth plaster
+    \row \li PlywoodPanel \li Plywodden panel
+    \row \li PolishedConcreteOrTile \li Polished concrete or tiles
+    \row \li Sheetrock \li Rock
+    \row \li WaterOrIceSurface \li Water or ice
+    \row \li WoodCeiling \li A wooden ceiling
+    \row \li WoodPanel \li Wooden panel
+    \row \li Uniform \li Artificial material giving uniform reflections on all frequencies
+    \endtable
  */
 void QQuick3DSpatialAudioRoom::setLeft(Material material)
 {
@@ -146,11 +159,6 @@ QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::left() const
     return Material(m_room->wall(QSpatialAudioRoom::LeftWall));
 }
 
-/*!
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::right
-
-    Sets the material to use for the right (positive x) of the room.
- */
 void QQuick3DSpatialAudioRoom::setRight(Material material)
 {
     m_room->setWall(QSpatialAudioRoom::RightWall, QSpatialAudioRoom::Material(material));
@@ -161,11 +169,6 @@ QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::right() const
     return Material(m_room->wall(QSpatialAudioRoom::RightWall));
 }
 
-/*!
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::front
-
-    Sets the material to use for the front (positive z) of the room.
- */
 void QQuick3DSpatialAudioRoom::setFront(Material material)
 {
     m_room->setWall(QSpatialAudioRoom::FrontWall, QSpatialAudioRoom::Material(material));
@@ -176,11 +179,6 @@ QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::front() const
     return Material(m_room->wall(QSpatialAudioRoom::FrontWall));
 }
 
-/*!
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::back
-
-    Sets the material to use for the back (negative z) of the room.
- */
 void QQuick3DSpatialAudioRoom::setBack(Material material)
 {
     m_room->setWall(QSpatialAudioRoom::BackWall, QSpatialAudioRoom::Material(material));
@@ -191,11 +189,6 @@ QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::back() const
     return Material(m_room->wall(QSpatialAudioRoom::BackWall));
 }
 
-/*!
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::floor
-
-    Sets the material to use for the floor of the room.
- */
 void QQuick3DSpatialAudioRoom::setFloor(Material material)
 {
     m_room->setWall(QSpatialAudioRoom::Floor, QSpatialAudioRoom::Material(material));
@@ -206,11 +199,6 @@ QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::floor() const
     return Material(m_room->wall(QSpatialAudioRoom::Floor));
 }
 
-/*!
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::ceiling
-
-    Sets the material to use for the ceiling of the room.
- */
 void QQuick3DSpatialAudioRoom::setCeiling(Material material)
 {
     m_room->setWall(QSpatialAudioRoom::Ceiling, QSpatialAudioRoom::Material(material));
@@ -281,7 +269,7 @@ float QQuick3DSpatialAudioRoom::reverbTime() const
 }
 
 /*!
-    \qmlproperty float SpatialAudioRoom::reverbTime
+    \qmlproperty float SpatialAudioRoom::reverbBrightness
 
     A brightness factor to be applied to the generated reverb.
     A positive value will increase reverb for higher frequencies and

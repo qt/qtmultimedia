@@ -53,13 +53,14 @@ public:
 };
 
 /*!
-    class QSpatialAudioListener
+    \class QSpatialAudioListener
+    \inmodule QtMultimedia
 
     \brief Defines the position and orientation of the person listening to a sound field
-    defined by a QSpatialAudioEngine.
+    defined by QSpatialAudioEngine.
 
-    A QSpatialAudioEngine can have exactly one listener, that defines the position and orientation
-    of the person listening to the sounds defined by the objects placed within the audio engine.
+    A QSpatialAudioEngine can have exactly one listener that defines the position and orientation
+    of the person listening to the sound field.
  */
 
 /*!
