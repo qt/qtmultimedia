@@ -55,7 +55,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegMediaDevices;
 class QFFmpegMediaFormatInfo;
 
 class QFFmpegMediaIntegration : public QPlatformMediaIntegration

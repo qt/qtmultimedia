@@ -47,13 +47,6 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_
         EGL::EGL
 )
 
-#qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND NOT QT_FEATURE_pulseaudio AND NOT APPLE AND NOT WIN32
-#    SOURCES
-#        qffmpegmediadevices.cpp qffmpegmediadevices_p.h
-#    LIBRARIES
-#        FFmpeg::avdevice
-#)
-
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
     SOURCES
         ../darwin/qavfhelpers.mm ../darwin/qavfhelpers_p.h

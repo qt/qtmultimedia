@@ -39,7 +39,6 @@
 
 #include "qffmpegdecoder_p.h"
 #include "qffmpegmediaformatinfo_p.h"
-#include "qffmpegmediadevices_p.h"
 #include "qffmpeg_p.h"
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegvideobuffer_p.h"
