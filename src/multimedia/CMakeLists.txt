@@ -148,6 +148,12 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         OpenSLES
 )
 
+if (ANDROID)
+    set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
+        jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtAudioDeviceManager
+    )
+endif()
+
 qt_internal_extend_target(Multimedia CONDITION APPLE
     SOURCES
         darwin/qdarwinaudiodevice.mm darwin/qdarwinaudiodevice_p.h
