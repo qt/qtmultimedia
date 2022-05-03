@@ -69,27 +69,18 @@ public:
     }
 };
 
-static int g_refCount = 0;
-
 QWindowsMediaIntegration::QWindowsMediaIntegration()
 {
-    g_refCount++;
-    if (g_refCount == 1) {
-        CoInitialize(NULL);
-        MFStartup(MF_VERSION);
-    }
+    CoInitialize(NULL);
+    MFStartup(MF_VERSION);
 }
 
 QWindowsMediaIntegration::~QWindowsMediaIntegration()
 {
     delete m_formatInfo;
 
-    g_refCount--;
-    if (g_refCount == 0) {
-        // ### This currently crashes on exit
-//        MFShutdown();
-//        CoUninitialize();
-    }
+    MFShutdown();
+    CoUninitialize();
 }
 
 QPlatformMediaFormatInfo *QWindowsMediaIntegration::formatInfo()

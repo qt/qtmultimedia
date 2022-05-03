@@ -64,9 +64,6 @@ public:
     QWindowsMediaIntegration();
     ~QWindowsMediaIntegration();
 
-    void addRefCount();
-    void releaseRefCount();
-
     QPlatformMediaFormatInfo *formatInfo() override;
 
     QPlatformMediaCaptureSession *createCaptureSession() override;
