@@ -97,8 +97,8 @@ public:
     }
 
 private:
-    QVideoFrameFormat::PixelFormat m_format;
     QRhi *m_rhi = nullptr;
+    QVideoFrameFormat::PixelFormat m_format;
     ID3D11Texture2D *m_tex = nullptr;
     int m_index = 0;
 };
