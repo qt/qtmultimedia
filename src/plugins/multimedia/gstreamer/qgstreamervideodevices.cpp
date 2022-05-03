@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qgstreamermediadevices_p.h"
+#include "qgstreamervideodevices_p.h"
 #include "qmediadevices.h"
 #include "private/qcameradevice_p.h"
 
@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer m)
 {
-    QGstreamerMediaDevices *manager = static_cast<QGstreamerMediaDevices *>(m);
+    auto *manager = static_cast<QGstreamerVideoDevices *>(m);
     GstDevice *device = nullptr;
 
     switch (GST_MESSAGE_TYPE (message)) {
@@ -71,8 +71,8 @@ static gboolean deviceMonitor(GstBus *, GstMessage *message, gpointer m)
     return G_SOURCE_CONTINUE;
 }
 
-QGstreamerMediaDevices::QGstreamerMediaDevices()
-    : QPlatformMediaDevices()
+QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integration)
+    : QPlatformVideoDevices(integration)
 {
     GstDeviceMonitor *monitor;
     GstBus *bus;
@@ -97,40 +97,7 @@ QGstreamerMediaDevices::QGstreamerMediaDevices()
     }
 }
 
-static QList<QAudioDevice> devicesFromSet(const QSet<GstDevice *> &deviceSet, QAudioDevice::Mode mode)
-{
-    QList<QAudioDevice> devices;
-    for (auto *d : deviceSet) {
-        auto *properties = gst_device_get_properties(d);
-        if (properties) {
-            auto *klass = gst_structure_get_string(properties, "device.class");
-            if (qstrcmp(klass, "monitor")) {
-                auto *name = gst_structure_get_string(properties, "device.bus_path");
-                gboolean def;
-                auto *info = new QGStreamerAudioDeviceInfo(d, name, mode);
-                if (gst_structure_get_boolean(properties, "is-default", &def) && def)
-                    devices.prepend(info->create());
-                else
-                    devices.append(info->create());
-            }
-
-            gst_structure_free(properties);
-        }
-    }
-    return devices;
-};
-
-QList<QAudioDevice> QGstreamerMediaDevices::audioInputs() const
-{
-    return devicesFromSet(m_audioSources, QAudioDevice::Input);
-}
-
-QList<QAudioDevice> QGstreamerMediaDevices::audioOutputs() const
-{
-    return devicesFromSet(m_audioSinks, QAudioDevice::Output);
-}
-
-QList<QCameraDevice> QGstreamerMediaDevices::videoInputs() const
+QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
 {
     QList<QCameraDevice> devices;
 
@@ -185,17 +152,7 @@ QList<QCameraDevice> QGstreamerMediaDevices::videoInputs() const
     return devices;
 }
 
-QPlatformAudioSource *QGstreamerMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
-{
-    return new QGStreamerAudioSource(deviceInfo);
-}
-
-QPlatformAudioSink *QGstreamerMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
-{
-    return new QGStreamerAudioSink(deviceInfo);
-}
-
-void QGstreamerMediaDevices::addDevice(GstDevice *device)
+void QGstreamerVideoDevices::addDevice(GstDevice *device)
 {
     gchar *type = gst_device_get_device_class(device);
 //    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device) << gst_structure_to_string(gst_device_get_properties(device));
@@ -203,28 +160,17 @@ void QGstreamerMediaDevices::addDevice(GstDevice *device)
     if (!strcmp(type, "Video/Source") || !strcmp(type, "Source/Video")) {
         m_videoSources.insert(device);
         videoInputsChanged();
-    } else if (!strcmp(type, "Audio/Source") || !strcmp(type, "Source/Audio")) {
-        m_audioSources.insert(device);
-        audioInputsChanged();
-    } else if (!strcmp(type, "Audio/Sink") || !strcmp(type, "Sink/Audio")) {
-        m_audioSinks.insert(device);
-        audioOutputsChanged();
     } else {
         gst_object_unref(device);
     }
     g_free(type);
 }
 
-void QGstreamerMediaDevices::removeDevice(GstDevice *device)
+void QGstreamerVideoDevices::removeDevice(GstDevice *device)
 {
 //    qDebug() << "removing device:" << device << gst_device_get_display_name(device);
-    if (m_videoSources.remove(device)) {
+    if (m_videoSources.remove(device))
         videoInputsChanged();
-    } else if (m_audioSources.remove(device)) {
-        audioInputsChanged();
-    } else if (m_audioSinks.remove(device)) {
-        audioOutputsChanged();
-    }
 
     gst_object_unref(device);
 }
@@ -245,17 +191,9 @@ static GstDevice *getDevice(const QSet<GstDevice *> &devices, const char *key, c
             break;
     }
     return gstDevice;
-
 }
 
-GstDevice *QGstreamerMediaDevices::audioDevice(const QByteArray &id, QAudioDevice::Mode mode) const
-{
-    const auto devices = (mode == QAudioDevice::Output) ? m_audioSinks : m_audioSources;
-
-    return getDevice(devices, "device.bus_path", id);
-}
-
-GstDevice *QGstreamerMediaDevices::videoDevice(const QByteArray &id) const
+GstDevice *QGstreamerVideoDevices::videoDevice(const QByteArray &id) const
 {
     return getDevice(m_videoSources, "device.path", id);
 }

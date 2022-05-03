@@ -51,34 +51,26 @@
 // We mean it.
 //
 
-#include <private/qplatformmediadevices_p.h>
+#include <private/qplatformvideodevices_p.h>
 #include <gst/gst.h>
 #include <qset.h>
 #include <qaudiodevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerMediaDevices : public QPlatformMediaDevices
+class QGstreamerVideoDevices : public QPlatformVideoDevices
 {
 public:
-    QGstreamerMediaDevices();
+    QGstreamerVideoDevices(QPlatformMediaIntegration *integration);
 
-    QList<QAudioDevice> audioInputs() const override;
-    QList<QAudioDevice> audioOutputs() const override;
-    QList<QCameraDevice> videoInputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
+    QList<QCameraDevice> videoDevices() const override;
+    GstDevice *videoDevice(const QByteArray &id) const;
 
     void addDevice(GstDevice *);
     void removeDevice(GstDevice *);
 
-    GstDevice *audioDevice(const QByteArray &id, QAudioDevice::Mode mode) const;
-    GstDevice *videoDevice(const QByteArray &id) const;
-
 private:
     QSet<GstDevice *> m_videoSources;
-    QSet<GstDevice *> m_audioSources;
-    QSet<GstDevice *> m_audioSinks;
 };
 
 QT_END_NAMESPACE

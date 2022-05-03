@@ -41,7 +41,6 @@
 
 #include <qgstutils_p.h>
 #include <private/qplatformmediaintegration_p.h>
-#include <qgstreamermediadevices_p.h>
 
 QT_BEGIN_NAMESPACE
 

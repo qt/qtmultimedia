@@ -41,7 +41,7 @@
 
 #include "qgstreamercamera_p.h"
 #include "qgstreamerimagecapture_p.h"
-#include <qgstreamermediadevices_p.h>
+#include <qgstreamervideodevices_p.h>
 #include <qgstreamerintegration_p.h>
 #include <qmediacapturesession.h>
 

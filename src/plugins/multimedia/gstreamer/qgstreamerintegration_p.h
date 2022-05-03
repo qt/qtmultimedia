@@ -56,8 +56,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerMediaDevices;
-class QGstreamerPlayerInterface;
 class QGstreamerFormatInfo;
 
 class QGstreamerIntegration : public QPlatformMediaIntegration
@@ -81,17 +79,11 @@ public:
     QPlatformAudioInput *createAudioInput(QAudioInput *) override;
     QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
 
-    QList<QCameraDevice> videoInputs() override;
-
+    const QGstreamerFormatInfo *gstFormatsInfo() const;
     GstDevice *videoDevice(const QByteArray &id) const;
 
-    QGstreamerFormatInfo *m_formatsInfo = nullptr;
 private:
-    void addDevice(GstDevice *device);
-    void removeDevice(GstDevice *device);
-
-    GstDeviceMonitor *monitor = nullptr;
-    QSet<GstDevice *> m_videoSources;
+    QGstreamerFormatInfo *m_formatsInfo;
 };
 
 QT_END_NAMESPACE

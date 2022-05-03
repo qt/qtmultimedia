@@ -140,7 +140,7 @@ qint64 QGstreamerMediaEncoder::duration() const
 
 static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSettings &settings)
 {
-    auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
+    auto *formatInfo = QGstreamerIntegration::instance()->gstFormatsInfo();
 
     QGstMutableCaps caps = formatInfo->formatCaps(settings.fileFormat());
 
@@ -154,7 +154,7 @@ static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSe
 
 static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &settings)
 {
-    auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
+    auto *formatInfo = QGstreamerIntegration::instance()->gstFormatsInfo();
 
     QGstMutableCaps caps = formatInfo->videoCaps(settings.mediaFormat());
     if (caps.isNull())
@@ -174,7 +174,7 @@ static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &setti
 
 static GstEncodingProfile *createAudioProfile(const QMediaEncoderSettings &settings)
 {
-    auto *formatInfo = QGstreamerIntegration::instance()->m_formatsInfo;
+    auto *formatInfo = QGstreamerIntegration::instance()->gstFormatsInfo();
 
     auto caps = formatInfo->audioCaps(settings.mediaFormat());
     if (caps.isNull())

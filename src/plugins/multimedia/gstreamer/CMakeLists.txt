@@ -24,7 +24,7 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         common/qgstvideobuffer.cpp common/qgstvideobuffer_p.h
         common/qgstvideorenderersink.cpp common/qgstvideorenderersink_p.h
         common/qgstsubtitlesink.cpp common/qgstsubtitlesink_p.h
-        qgstreamermediadevices.cpp qgstreamermediadevices_p.h
+        qgstreamervideodevices.cpp qgstreamervideodevices_p.h
         qgstreamerformatinfo.cpp qgstreamerformatinfo_p.h
         qgstreamerintegration.cpp qgstreamerintegration_p.h
         mediacapture/qgstreamercamera.cpp mediacapture/qgstreamercamera_p.h
