@@ -86,7 +86,7 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
     m_formatsInfo = new QFFmpegMediaFormatInfo();
 
 #if QT_CONFIG(linux_v4l)
-    QV4L2CameraDevices::instance(this);
+    m_videoDevices = new QV4L2CameraDevices(this);
 #endif
 #ifdef Q_OS_DARWIN
     m_videoDevices = new QAVFVideoDevices(this);
@@ -145,15 +145,6 @@ QPlatformMediaRecorder *QFFmpegMediaIntegration::createRecorder(QMediaRecorder *
 QPlatformImageCapture *QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QFFmpegImageCapture(imageCapture);
-}
-
-QList<QCameraDevice> QFFmpegMediaIntegration::videoInputs()
-{
-#if QT_CONFIG(linux_v4l)
-    return QV4L2CameraDevices::instance(this)->cameraDevices();
-#else
-    return QPlatformMediaIntegration::videoInputs();
-#endif
 }
 
 QPlatformVideoSink *QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)

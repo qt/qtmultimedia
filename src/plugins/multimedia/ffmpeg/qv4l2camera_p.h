@@ -52,6 +52,7 @@
 //
 
 #include <private/qplatformcamera_p.h>
+#include <private/qplatformvideodevices_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
 #include <qfilesystemwatcher.h>
@@ -60,23 +61,22 @@
 
 QT_BEGIN_NAMESPACE
 
-class QV4L2CameraDevices : public QObject
+class QV4L2CameraDevices : public QObject,
+                           public QPlatformVideoDevices
 {
     Q_OBJECT
 public:
-    static QV4L2CameraDevices *instance(QPlatformMediaIntegration *integration);
+    QV4L2CameraDevices(QPlatformMediaIntegration *integration);
 
-    QList<QCameraDevice> cameraDevices() const;
+    QList<QCameraDevice> videoDevices() const override;
 
 public Q_SLOTS:
     void checkCameras();
 
 private:
     void doCheckCameras();
-    QV4L2CameraDevices(QPlatformMediaIntegration *integration);
 
     QList<QCameraDevice> cameras;
-    QPlatformMediaIntegration *integration;
     QFileSystemWatcher deviceWatcher;
 };
 

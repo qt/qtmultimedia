@@ -60,40 +60,23 @@
 
 QT_BEGIN_NAMESPACE
 
-static struct Holder {
-    ~Holder() { delete instance; }
-    QBasicMutex mutex;
-    QV4L2CameraDevices *instance = nullptr;
-} holder;
-
 QV4L2CameraDevices::QV4L2CameraDevices(QPlatformMediaIntegration *integration)
-    : integration(integration)
+    : QPlatformVideoDevices(integration)
 {
     deviceWatcher.addPath(QLatin1String("/dev"));
     connect(&deviceWatcher, &QFileSystemWatcher::directoryChanged, this, &QV4L2CameraDevices::checkCameras);
     doCheckCameras();
 }
 
-QV4L2CameraDevices *QV4L2CameraDevices::instance(QPlatformMediaIntegration *integration)
+QList<QCameraDevice> QV4L2CameraDevices::videoDevices() const
 {
-    QMutexLocker locker(&holder.mutex);
-    if (!holder.instance)
-        holder.instance = new QV4L2CameraDevices(integration);
-    return holder.instance;
-}
-
-QList<QCameraDevice> QV4L2CameraDevices::cameraDevices() const
-{
-    QMutexLocker locker(&holder.mutex);
     return cameras;
 }
 
 void QV4L2CameraDevices::checkCameras()
 {
-    QMutexLocker locker(&holder.mutex);
     doCheckCameras();
-    locker.unlock();
-    QPlatformMediaDevices::instance()->videoInputsChanged();
+    videoInputsChanged();
 }
 
 const struct {
