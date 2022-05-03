@@ -53,10 +53,8 @@
 
 #include <private/qplatformmediadevices_p.h>
 #include <private/qwindowsiupointer_p.h>
-#include <qset.h>
-#include <qaudio.h>
+
 #include <qaudiodevice.h>
-#include <QtCore/qt_windows.h>
 
 struct IMMDeviceEnumerator;
 
@@ -64,8 +62,6 @@ QT_BEGIN_NAMESPACE
 
 class QWindowsEngine;
 class CMMNotificationClient;
-
-LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 
 class QWindowsMediaDevices : public QPlatformMediaDevices
 {
@@ -75,7 +71,6 @@ public:
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
-    QList<QCameraDevice> videoInputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo) override;
 
@@ -84,11 +79,8 @@ private:
 
     QWindowsIUPointer<IMMDeviceEnumerator> m_deviceEnumerator;
     QWindowsIUPointer<CMMNotificationClient> m_notificationClient;
-    HWND m_videoDeviceMsgWindow;
-    HDEVNOTIFY m_videoDeviceNotification;
 
     friend CMMNotificationClient;
-    friend LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 };
 
 QT_END_NAMESPACE

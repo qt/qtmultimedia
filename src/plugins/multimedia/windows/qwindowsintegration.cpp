@@ -73,6 +73,8 @@ QWindowsMediaIntegration::QWindowsMediaIntegration()
 {
     CoInitialize(NULL);
     MFStartup(MF_VERSION);
+
+    m_videoDevices = new QWindowsVideoDevices(this);
 }
 
 QWindowsMediaIntegration::~QWindowsMediaIntegration()

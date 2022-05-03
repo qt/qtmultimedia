@@ -31,6 +31,7 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         mediacapture/qwindowsmediaencoder_p.h
         qwindowsformatinfo.cpp qwindowsformatinfo_p.h
         qwindowsintegration.cpp qwindowsintegration_p.h
+        qwindowsvideodevices.cpp qwindowsvideodevices_p.h
         sourceresolver.cpp sourceresolver_p.h
     INCLUDE_DIRECTORIES
         audio

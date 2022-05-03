@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2021 The Qt Company Ltd.
+** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QWINDOWSINTEGRATION_H
-#define QWINDOWSINTEGRATION_H
+#ifndef QWINDOWSVIDEODEVICES_H
+#define QWINDOWSVIDEODEVICES_H
 
 //
 //  W A R N I N G
@@ -51,34 +51,29 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
-#include "qwindowsvideodevices_p.h"
+#include <private/qplatformvideodevices_p.h>
+#include <QtCore/qt_windows.h>
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsMediaDevices;
-class QWindowsFormatInfo;
+LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 
-class QWindowsMediaIntegration : public QPlatformMediaIntegration
+class QWindowsVideoDevices : public QPlatformVideoDevices
 {
 public:
-    QWindowsMediaIntegration();
-    ~QWindowsMediaIntegration();
+    QWindowsVideoDevices(QPlatformMediaIntegration *integration);
+    ~QWindowsVideoDevices();
 
-    QPlatformMediaFormatInfo *formatInfo() override;
+    QList<QCameraDevice> videoDevices() const override;
 
-    QPlatformMediaCaptureSession *createCaptureSession() override;
+private:
+    HWND m_videoDeviceMsgWindow = nullptr;
+    HDEVNOTIFY m_videoDeviceNotification = nullptr;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *recorder) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *imageCapture) override;
-
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
-
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+    friend LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND, UINT, WPARAM, LPARAM);
 };
+
+
 
 QT_END_NAMESPACE
 
