@@ -1806,8 +1806,7 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
 
                     if (SUCCEEDED(MFGetService(m_session, MF_RATE_CONTROL_SERVICE, IID_PPV_ARGS(&m_rateControl)))) {
                         if (SUCCEEDED(MFGetService(m_session, MF_RATE_CONTROL_SERVICE, IID_PPV_ARGS(&m_rateSupport)))) {
-                            if ((m_mediaTypes & Video) == Video
-                                && SUCCEEDED(m_rateSupport->IsRateSupported(TRUE, 0, NULL)))
+                            if (SUCCEEDED(m_rateSupport->IsRateSupported(TRUE, 0, NULL)))
                                 m_canScrub = true;
                         }
                         BOOL isThin = FALSE;
