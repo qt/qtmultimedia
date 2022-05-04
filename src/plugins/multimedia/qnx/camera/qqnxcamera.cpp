@@ -44,6 +44,8 @@
 #include <qcameradevice.h>
 #include <qmediadevices.h>
 
+#include <private/qmediastoragelocation_p.h>
+
 static constexpr camera_focusmode_t qnxFocusMode(QCamera::FocusMode mode)
 {
     switch (mode) {
@@ -158,12 +160,18 @@ void QQnxCamera::start()
 
     if (m_session)
         m_videoSink = m_session->videoSink();
+
+    if (isVideoEncodingSupported() && m_outputUrl.isValid())
+        startVideoRecording();
 }
 
 void QQnxCamera::stop()
 {
     if (!isActive())
         return;
+
+    if (m_recordingVideo)
+        stopVideoRecording();
 
     if (camera_stop_viewfinder(m_handle.get()) != CAMERA_EOK)
         qWarning("QQnxCamera: Failed to stop camera");
@@ -437,6 +445,46 @@ void QQnxCamera::setColorTemperature(int temperature)
     }
 
     auto error = camera_set_manual_white_balance(m_handle.get(), bestTemp);
+}
+
+void QQnxCamera::startVideoRecording()
+{
+    const QString container = m_encoderSettings.mimeType().preferredSuffix();
+    const QString location = QMediaStorageLocation::generateFileName(m_outputUrl.toLocalFile(),
+            QStandardPaths::MoviesLocation, container);
+
+    if (camera_start_video(m_handle.get(), qPrintable(location),
+                nullptr, nullptr, nullptr) != CAMERA_EOK) {
+        qWarning("QQnxCamera: failed to start video encoding");
+    } else {
+        m_recordingVideo = true;
+    }
+}
+
+void QQnxCamera::stopVideoRecording()
+{
+    m_recordingVideo = false;
+
+    if (camera_stop_video(m_handle.get()) != CAMERA_EOK)
+        qWarning("QQnxCamera: error when stopping video recording");
+}
+
+bool QQnxCamera::isVideoEncodingSupported() const
+{
+    if (!isActive())
+        return false;
+
+    return camera_has_feature(m_handle.get(), CAMERA_FEATURE_VIDEO);
+}
+
+void QQnxCamera::setOutputUrl(const QUrl &url)
+{
+    m_outputUrl = url;
+}
+
+void QQnxCamera::setMediaEncoderSettings(const QMediaEncoderSettings &settings)
+{
+    m_encoderSettings = settings;
 }
 
 camera_handle_t QQnxCamera::handle() const

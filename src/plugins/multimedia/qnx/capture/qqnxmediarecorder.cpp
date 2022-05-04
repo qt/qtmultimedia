@@ -40,7 +40,10 @@
 #include "qqnxmediarecorder_p.h"
 
 #include "qqnxaudioinput_p.h"
+#include "qqnxcamera_p.h"
 #include "qqnxmediacapturesession_p.h"
+
+#include <private/qplatformcamera_p.h>
 
 #include <QDebug>
 #include <QUrl>
@@ -70,7 +73,7 @@ void QQnxMediaRecorder::record(QMediaEncoderSettings &settings)
     m_audioRecorder.disconnect();
 
     if (hasCamera()) {
-        //FIXME
+        startVideoRecording(settings);
     } else {
         QObject::connect(&m_audioRecorder, &QQnxAudioRecorder::durationChanged,
                 [this](qint64 d) { durationChanged(d); });
@@ -88,7 +91,7 @@ void QQnxMediaRecorder::record(QMediaEncoderSettings &settings)
 void QQnxMediaRecorder::stop()
 {
     if (hasCamera()) {
-        //FIXME
+        stopVideoRecording();
     } else {
         m_audioRecorder.stop();
     }
@@ -110,9 +113,32 @@ void QQnxMediaRecorder::startAudioRecording(QMediaEncoderSettings &settings)
     m_audioRecorder.record();
 }
 
+void QQnxMediaRecorder::startVideoRecording(QMediaEncoderSettings &settings)
+{
+    if (!hasCamera())
+        return;
+
+    auto *camera = static_cast<QQnxCamera*>(m_session->camera());
+
+    camera->setMediaEncoderSettings(settings);
+    camera->setOutputUrl(outputLocation());
+    camera->start();
+}
+
+void QQnxMediaRecorder::stopVideoRecording()
+{
+    if (!hasCamera())
+        return;
+
+    auto *camera = static_cast<QQnxCamera*>(m_session->camera());
+
+    camera->stop();
+
+}
+
 bool QQnxMediaRecorder::hasCamera() const
 {
-    return m_session->camera();
+    return m_session && m_session->camera();
 }
 
 QT_END_NAMESPACE

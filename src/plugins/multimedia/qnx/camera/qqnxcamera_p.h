@@ -51,9 +51,11 @@
 //
 
 #include <private/qplatformcamera_p.h>
+#include <private/qplatformmediarecorder_p.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qurl.h>
 
 #include <camera/camera_api.h>
 #include <camera/camera_3a.h>
@@ -188,6 +190,9 @@ public:
     void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
     void setColorTemperature(int /*temperature*/) override;
 
+    void setOutputUrl(const QUrl &url);
+    void setMediaEncoderSettings(const QMediaEncoderSettings &settings);
+
     camera_handle_t handle() const;
 
     QList<camera_vfmode_t> supportedVfModes() const;
@@ -197,6 +202,11 @@ public:
 private:
     void updateCameraFeatures();
     void setColorTemperatureInternal(unsigned temp);
+
+    void startVideoRecording();
+    void stopVideoRecording();
+
+    bool isVideoEncodingSupported() const;
 
     void handleVfBuffer(camera_buffer_t *buffer);
 
@@ -230,6 +240,10 @@ private:
     QCameraDevice m_camera;
     camera_unit_t m_cameraUnit = CAMERA_UNIT_NONE;
 
+    QUrl m_outputUrl;
+
+    QMediaEncoderSettings m_encoderSettings;
+
     CameraHandle m_handle;
 
     uint minZoom = 1;
@@ -245,6 +259,7 @@ private:
     std::unique_ptr<QQnxCameraFrameBuffer> m_currentFrame;
 
     bool m_viewfinderActive = false;
+    bool m_recordingVideo = false;
 };
 
 QT_END_NAMESPACE

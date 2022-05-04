@@ -74,6 +74,8 @@ private:
     bool hasCamera() const;
 
     void startAudioRecording(QMediaEncoderSettings &settings);
+    void startVideoRecording(QMediaEncoderSettings &settings);
+    void stopVideoRecording();
 
     QQnxAudioRecorder m_audioRecorder;
 
