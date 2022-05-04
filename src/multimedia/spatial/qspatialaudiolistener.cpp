@@ -55,6 +55,7 @@ public:
 /*!
     \class QSpatialAudioListener
     \inmodule QtMultimedia
+    \ingroup multimedia_spatialaudio
 
     \brief Defines the position and orientation of the person listening to a sound field
     defined by QSpatialAudioEngine.

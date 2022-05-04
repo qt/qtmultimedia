@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype SpatialAudioRoom
     \inqmlmodule QtQuick3D.SpatialAudio
+    \ingroup quick3d_spatialaudio
 
     Defines a room for the spatial audio engine.
 
@@ -111,7 +112,7 @@ QVector3D QQuick3DSpatialAudioRoom::dimensions() const
         \li Coordinate
     \row \li left \li Negative x
     \row \li right \li Positive x
-    \row \li back \li Negative x
+    \row \li back \li Negative z
     \row \li front \li Positive z
     \row \li floor \li Negative y
     \row \li ceiling \li Positive y

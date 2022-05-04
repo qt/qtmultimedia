@@ -45,6 +45,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype SpatialAudioStereoSource
     \inqmlmodule QtQuick3D.SpatialAudio
+    \ingroup quick3d_spatialaudio
 
     \brief A stereo overlay sound.
 

@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QSpatialAudioSoundSource
     \inmodule QtMultimedia
+    \ingroup multimedia_spatialaudio
 
     \brief A sound object in 3D space.
 

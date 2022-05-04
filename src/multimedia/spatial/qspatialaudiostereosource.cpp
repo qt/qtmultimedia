@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \class QSpatialAudioStereoSource
     \inmodule QtMultimedia
+    \ingroup multimedia_spatialaudio
 
     \brief A stereo overlay sound.
 

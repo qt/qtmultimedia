@@ -278,6 +278,7 @@ void QSpatialAudioEnginePrivate::updateRooms() const
 /*!
     \class QSpatialAudioEngine
     \inmodule QtMultimedia
+    \ingroup multimedia_spatialaudio
 
     \brief QSpatialAudioEngine manages a three dimensional sound field.
 

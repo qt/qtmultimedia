@@ -43,6 +43,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmltype SpatialAudioListener
     \inqmlmodule QtQuick3D.SpatialAudio
+    \ingroup quick3d_spatialaudio
 
     \brief defines the position and orientation of the person listening to a sound field
     defined by a SpatialAudioEngine.
