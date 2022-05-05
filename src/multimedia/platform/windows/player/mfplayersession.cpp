@@ -1175,6 +1175,7 @@ void MFPlayerSession::createSession()
     if (FAILED(hr)) {
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Unable to create mediasession."), true);
+        return;
     }
 
     hr = m_session->BeginGetEvent(this, m_session);
