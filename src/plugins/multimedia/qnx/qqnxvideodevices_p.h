@@ -37,72 +37,37 @@
 **
 ****************************************************************************/
 
-#include "qqnxmediaintegration_p.h"
-#include "qqnxmediacapturesession_p.h"
-#include "qqnxmediarecorder_p.h"
-#include "qqnxformatinfo_p.h"
-#include "qqnxvideodevices_p.h"
-#include "qqnxvideosink_p.h"
-#include "qqnxmediaplayer_p.h"
-#include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#ifndef QQNXVIDEODEVICES_H
+#define QQNXVIDEODEVICES_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <private/qplatformvideodevices_p.h>
+#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
-class QQnxMediaPlugin : public QPlatformMediaPlugin
+class QQnxVideoDevices : public QPlatformVideoDevices
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "qnx.json")
-
 public:
-    QQnxMediaPlugin()
-      : QPlatformMediaPlugin()
-    {}
+    QQnxVideoDevices(QPlatformMediaIntegration *integration);
 
-    QPlatformMediaIntegration* create(const QString &name) override
-    {
-        if (name == QLatin1String("qnx"))
-            return new QQnxMediaIntegration;
-        return nullptr;
-    }
+    QList<QCameraDevice> videoDevices() const override;
+
+private:
+    mutable bool camerasChecked = false;
+    mutable QList<QCameraDevice> cameras;
 };
-
-QQnxMediaIntegration::QQnxMediaIntegration()
-{
-    m_videoDevices = new QQnxVideoDevices(this);
-}
-
-QQnxMediaIntegration::~QQnxMediaIntegration()
-{
-    delete m_formatInfo;
-}
-
-QPlatformMediaFormatInfo *QQnxMediaIntegration::formatInfo()
-{
-    if (!m_formatInfo)
-        m_formatInfo = new QQnxFormatInfo();
-    return m_formatInfo;
-}
-
-QPlatformVideoSink *QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
-{
-    return new QQnxVideoSink(sink);
-}
-
-QPlatformMediaPlayer *QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
-{
-    return new QQnxMediaPlayer(parent);
-}
-
-QPlatformMediaCaptureSession *QQnxMediaIntegration::createCaptureSession()
-{
-    return new QQnxMediaCaptureSession();
-}
-
-QPlatformMediaRecorder *QQnxMediaIntegration::createRecorder(QMediaRecorder *parent)
-{
-    return new QQnxMediaRecorder(parent);
-}
 
 QT_END_NAMESPACE
 
-#include "qqnxmediaintegration.moc"
+#endif

@@ -189,7 +189,6 @@ qt_internal_extend_target(Multimedia CONDITION QNX
         qnx
     LIBRARIES
         asound
-        camapi
 )
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf

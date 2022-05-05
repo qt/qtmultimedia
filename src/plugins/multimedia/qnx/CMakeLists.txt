@@ -20,6 +20,7 @@ qt_internal_add_plugin(QQnxMediaPlugin
         mediaplayer/qqnxmediautil.cpp mediaplayer/qqnxmediautil_p.h
         qqnxformatinfo.cpp qqnxformatinfo_p.h
         qqnxmediaintegration.cpp qqnxmediaintegration_p.h
+        qqnxvideodevices.cpp qqnxvideodevices_p.h
     INCLUDE_DIRECTORIES
         audio
         camera
@@ -31,4 +32,5 @@ qt_internal_add_plugin(QQnxMediaPlugin
         Qt::CorePrivate
         MMRenderer::MMRenderer
         strm
+        camapi
 )
