@@ -264,7 +264,15 @@ float QSpatialAudioSoundSource::manualAttenuation() const
     \property QSpatialAudioSoundSource::occlusionIntensity
 
     Defines how much the object is occluded. 0 implies the object is
-    not occluded at all, while a large number implies a large occlusion.
+    not occluded at all, 1 implies the sound source is fully occluded by
+    another object.
+
+    A fully occluded object will still be audible, but especially higher
+    frequencies will be dampened. In addition, the object will still
+    participate in generating reverb and reflections in the room.
+
+    Values larger than 1 are possible to further dampen the direct
+    sound coming from the source.
 
     The default is 0.
  */
