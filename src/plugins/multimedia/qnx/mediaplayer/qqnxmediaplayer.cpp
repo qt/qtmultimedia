@@ -740,6 +740,7 @@ void QQnxMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     stop();
     detach();
 
+    stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
 
     m_media = media;
