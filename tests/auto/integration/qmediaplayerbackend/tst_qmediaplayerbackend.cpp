@@ -293,10 +293,8 @@ void tst_QMediaPlayerBackend::unloadMedia()
     QCOMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
     QCOMPARE(player.source(), QUrl());
 
-    QVERIFY(!stateSpy.isEmpty());
     QVERIFY(!statusSpy.isEmpty());
     QVERIFY(!mediaSpy.isEmpty());
-    QVERIFY(!positionSpy.isEmpty());
 }
 
 void tst_QMediaPlayerBackend::loadMediaInLoadingState()
