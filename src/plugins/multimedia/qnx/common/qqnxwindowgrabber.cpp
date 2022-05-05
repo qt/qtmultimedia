@@ -89,7 +89,7 @@ private:
 QQnxWindowGrabber::QQnxWindowGrabber(QObject *parent)
     : QObject(parent),
       m_windowParent(nullptr),
-      m_screenContext(0),
+      m_screenContext(nullptr),
       m_rhi(nullptr),
       m_active(false),
       m_eglImageSupported(false)
