@@ -134,11 +134,19 @@ private:
 
     void closeConnection();
     void attach();
-    void attachOutput();
-    void detach();
-    void detachOutput();
 
-    bool isOutputAttached() const;
+    bool attachVideoOutput();
+    bool attachAudioOutput();
+    bool attachInput();
+
+    void detach();
+    void detachVideoOutput();
+    void detachAudioOutput();
+    void detachInput();
+
+    bool isVideoOutputAttached() const;
+    bool isAudioOutputAttached() const;
+    bool isInputAttached() const;
 
     void updateScene(const QSize &size);
 

@@ -235,7 +235,8 @@ void QQnxMediaPlayer::handleMmEventState(const mmr_event_t *event)
     case MMR_STATE_IDLE:
         mediaStatusChanged(QMediaPlayer::NoMedia);
         stateChanged(QMediaPlayer::StoppedState);
-        detachOutput();
+        detachVideoOutput();
+        detachInput();
         break;
     case MMR_STATE_STOPPED:
         stateChanged(QMediaPlayer::StoppedState);
@@ -380,7 +381,8 @@ QByteArray QQnxMediaPlayer::resourcePathForUrl(const QUrl &url)
 void QQnxMediaPlayer::attach()
 {
     // Should only be called in detached state
-    Q_ASSERT(m_audioId == -1 && !m_inputAttached);
+    if (isInputAttached())
+        return;
 
     if (!m_media.isValid() || !m_context) {
         mediaStatusChanged(QMediaPlayer::NoMedia);
@@ -389,51 +391,30 @@ void QQnxMediaPlayer::attach()
 
     resetMonitoring();
 
-    attachOutput();
-
-    const QByteArray defaultAudioDevice = qgetenv("QQNX_RENDERER_DEFAULT_AUDIO_SINK");
-    m_audioId = mmr_output_attach(m_context,
-            defaultAudioDevice.isEmpty() ? "snd:" : defaultAudioDevice.constData(), "audio");
-    if (m_audioId == -1) {
-        emitMmError("mmr_output_attach() for audio failed");
-        return;
-    }
-
-    const QByteArray resourcePath = resourcePathForUrl(m_media);
-    if (resourcePath.isEmpty()) {
+    if (!(attachVideoOutput() && attachAudioOutput() && attachInput())) {
         detach();
         return;
     }
-
-    if (mmr_input_attach(m_context, resourcePath.constData(), "track") != 0) {
-        emitMmError(QStringLiteral("mmr_input_attach() failed for ")
-                + QString::fromUtf8(resourcePath));
-        mediaStatusChanged(QMediaPlayer::InvalidMedia);
-        detach();
-        return;
-    }
-
-    m_inputAttached = true;
 
     mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
 
-void QQnxMediaPlayer::attachOutput()
+bool QQnxMediaPlayer::attachVideoOutput()
 {
-    if (isOutputAttached()) {
-        qWarning() << "QQnxVideoSink: Video output already attached!";
-        return;
+    if (isVideoOutputAttached()) {
+        qWarning() << "QQnxMediaPlayer: Video output already attached!";
+        return true;
     }
 
     if (!m_context) {
-        qWarning() << "QQnxVideoSink: No media player context!";
-        return;
+        qWarning() << "QQnxMediaPlayer: No media player context!";
+        return false;
     }
 
     const QByteArray windowGroupId = m_windowGrabber->windowGroupId();
     if (windowGroupId.isEmpty()) {
-        qWarning() << "QQnxVideoSink: Unable to find window group";
-        return;
+        qWarning() << "QQnxMediaPlayer: Unable to find window group";
+        return false;
     }
 
     static int winIdCounter = 0;
@@ -453,42 +434,118 @@ void QQnxMediaPlayer::attachOutput()
 
     m_videoId = mmr_output_attach(m_context, videoDeviceUrl.toLatin1(), "video");
 
-    if (m_videoId == -1)
+    if (m_videoId == -1) {
         qWarning() << "mmr_output_attach() for video failed";
+        return false;
+    }
+
+    return true;
+}
+
+bool QQnxMediaPlayer::attachAudioOutput()
+{
+    if (isAudioOutputAttached()) {
+        qWarning() << "QQnxMediaPlayer: Audio output already attached!";
+        return true;
+    }
+
+    const QByteArray defaultAudioDevice = qgetenv("QQNX_RENDERER_DEFAULT_AUDIO_SINK");
+
+    m_audioId = mmr_output_attach(m_context,
+            defaultAudioDevice.isEmpty() ? "snd:" : defaultAudioDevice.constData(), "audio");
+
+    if (m_audioId == -1) {
+        emitMmError("mmr_output_attach() for audio failed");
+
+        return false;
+    }
+
+    return true;
+}
+
+bool QQnxMediaPlayer::attachInput()
+{
+    if (isInputAttached())
+        return true;
+
+    const QByteArray resourcePath = resourcePathForUrl(m_media);
+
+    if (resourcePath.isEmpty())
+        return false;
+
+    if (mmr_input_attach(m_context, resourcePath.constData(), "track") != 0) {
+        emitMmError(QStringLiteral("mmr_input_attach() failed for ")
+                + QString::fromUtf8(resourcePath));
+
+        mediaStatusChanged(QMediaPlayer::InvalidMedia);
+
+        return false;
+    }
+
+    m_inputAttached = true;
+
+    return true;
 }
 
 void QQnxMediaPlayer::detach()
 {
-    if (m_context) {
-        if (m_inputAttached) {
-            mmr_input_detach(m_context);
-            m_inputAttached = false;
-        }
-        if (isOutputAttached())
-            detachOutput();
-        if (m_audioId != -1 && m_context) {
-            mmr_output_detach(m_context, m_audioId);
-            m_audioId = -1;
-        }
-    }
+    if (!m_context)
+        return;
+
+    if (isVideoOutputAttached())
+        detachVideoOutput();
+
+    if (isAudioOutputAttached())
+        detachAudioOutput();
+
+    if (isInputAttached())
+        detachInput();
+
+    resetMonitoring();
 }
 
-void QQnxMediaPlayer::detachOutput()
+void QQnxMediaPlayer::detachVideoOutput()
 {
     m_windowGrabber->stop();
 
     if (m_platformVideoSink)
         m_platformVideoSink->setVideoFrame({});
 
-    if (isOutputAttached())
+    if (isVideoOutputAttached())
         mmr_output_detach(m_context, m_videoId);
 
     m_videoId = -1;
 }
 
-bool QQnxMediaPlayer::isOutputAttached() const
+void QQnxMediaPlayer::detachAudioOutput()
+{
+    if (isAudioOutputAttached())
+        mmr_output_detach(m_context, m_audioId);
+
+    m_audioId = -1;
+}
+
+void QQnxMediaPlayer::detachInput()
+{
+    if (isInputAttached())
+        mmr_input_detach(m_context);
+
+    m_inputAttached = false;
+}
+
+bool QQnxMediaPlayer::isVideoOutputAttached() const
 {
     return m_videoId != -1;
+}
+
+bool QQnxMediaPlayer::isAudioOutputAttached() const
+{
+    return m_audioId != -1;
+}
+
+bool QQnxMediaPlayer::isInputAttached() const
+{
+    return m_inputAttached;
 }
 
 void QQnxMediaPlayer::updateScene(const QSize &size)
