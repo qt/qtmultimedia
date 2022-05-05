@@ -267,7 +267,12 @@ void tst_QMediaPlayerBackend::unloadMedia()
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
     QVERIFY(player.position() == 0);
+#ifdef Q_OS_QNX
+    // QNX mm-renderer only updates the duration when 'play' is triggered
+    QVERIFY(player.duration() == 0);
+#else
     QVERIFY(player.duration() > 0);
+#endif
 
     player.play();
 
