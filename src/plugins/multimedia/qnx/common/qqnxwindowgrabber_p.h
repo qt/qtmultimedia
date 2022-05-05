@@ -142,6 +142,7 @@ private:
 
     bool m_active;
     bool m_eglImageSupported;
+    bool m_startPending;
 };
 
 QT_END_NAMESPACE

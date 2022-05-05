@@ -89,10 +89,12 @@ private:
 QQnxWindowGrabber::QQnxWindowGrabber(QObject *parent)
     : QObject(parent),
       m_windowParent(nullptr),
+      m_window(nullptr),
       m_screenContext(nullptr),
       m_rhi(nullptr),
       m_active(false),
-      m_eglImageSupported(false)
+      m_eglImageSupported(false),
+      m_startPending(false)
 {
     // grab the window frame with 60 frames per second
     m_timer.setInterval(1000/60);
@@ -152,6 +154,13 @@ void QQnxWindowGrabber::start()
 {
     if (m_active)
         return;
+
+    if (!m_window) {
+        m_startPending = true;
+        return;
+    }
+
+    m_startPending = false;
 
     if (!m_screenContext)
         screen_get_window_property_pv(m_window, SCREEN_PROPERTY_CONTEXT, reinterpret_cast<void**>(&m_screenContext));
@@ -220,8 +229,12 @@ bool QQnxWindowGrabber::handleScreenEvent(screen_event_t screen_event)
     }
 
     // Grab windows that have a non-empty ID string and a matching window id to grab
-    if (idString[0] != '\0' && m_windowId == idString)
+    if (idString[0] != '\0' && m_windowId == idString) {
         m_window = window;
+
+        if (m_startPending)
+            start();
+    }
 
     return false;
 }
