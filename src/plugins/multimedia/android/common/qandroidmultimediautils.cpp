@@ -109,43 +109,43 @@ AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrameForma
     }
 }
 
-static bool androidRequestPermission(QtAndroidPrivate::PermissionType key)
+static bool androidRequestPermission(const QString &permission)
 {
     if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return true;
 
     // Permission already granted?
-    if (QtAndroidPrivate::checkPermission(key).result() == QtAndroidPrivate::Authorized)
+    if (QtAndroidPrivate::checkPermission(permission).result() == QtAndroidPrivate::Authorized)
         return true;
 
-    if (QtAndroidPrivate::requestPermission(key).result() != QtAndroidPrivate::Authorized)
+    if (QtAndroidPrivate::requestPermission(permission).result() != QtAndroidPrivate::Authorized)
         return false;
 
     return true;
 }
 
-static bool androidCheckPermission(QtAndroidPrivate::PermissionType key)
+static bool androidCheckPermission(const QString &permission)
 {
     if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
         return true;
 
     // Permission already granted?
-    return (QtAndroidPrivate::checkPermission(key).result() == QtAndroidPrivate::Authorized);
+    return (QtAndroidPrivate::checkPermission(permission).result() == QtAndroidPrivate::Authorized);
 }
 
 bool qt_androidCheckCameraPermission()
 {
-    return androidCheckPermission(QtAndroidPrivate::Camera);
+    return androidCheckPermission(QStringLiteral("android.permission.CAMERA"));
 }
 
 bool qt_androidCheckMicrophonePermission()
 {
-    return androidCheckPermission(QtAndroidPrivate::Microphone);
+    return androidCheckPermission(QStringLiteral("android.permission.MICROPHONE"));
 }
 
 bool qt_androidRequestCameraPermission()
 {
-    if (!androidRequestPermission(QtAndroidPrivate::Camera)) {
+    if (!androidRequestPermission(QStringLiteral("android.permission.CAMERA"))) {
         qCDebug(qtAndroidMediaPlugin, "Camera permission denied by user!");
         return false;
     }
@@ -155,7 +155,7 @@ bool qt_androidRequestCameraPermission()
 
 bool qt_androidRequestRecordingPermission()
 {
-    if (!androidRequestPermission(QtAndroidPrivate::Microphone)) {
+    if (!androidRequestPermission(QStringLiteral("android.permission.MICROPHONE"))) {
         qCDebug(qtAndroidMediaPlugin, "Microphone permission denied by user!");
         return false;
     }
@@ -165,7 +165,7 @@ bool qt_androidRequestRecordingPermission()
 
 bool qt_androidRequestWriteStoragePermission()
 {
-    if (!androidRequestPermission(QtAndroidPrivate::Storage)) {
+    if (!androidRequestPermission(QStringLiteral("android.permission.WRITE_EXTERNAL_STORAGE"))) {
         qCDebug(qtAndroidMediaPlugin, "Storage permission denied by user!");
         return false;
     }

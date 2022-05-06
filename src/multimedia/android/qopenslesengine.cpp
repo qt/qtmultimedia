@@ -149,7 +149,7 @@ QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudioDevice::Mode mode)
 
 static bool hasRecordPermission()
 {
-    const auto recordPerm = QtAndroidPrivate::checkPermission(QtAndroidPrivate::Microphone);
+    const auto recordPerm = QtAndroidPrivate::checkPermission(QStringLiteral("android.permission.MICROPHONE"));
     return recordPerm.result() == QtAndroidPrivate::Authorized;
 }
 

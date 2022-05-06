@@ -411,7 +411,7 @@ void QAndroidAudioDecoder::finished()
 
 bool QAndroidAudioDecoder::requestPermissions()
 {
-    const auto writeRes = QtAndroidPrivate::requestPermission(QtAndroidPrivate::Storage);
+    const auto writeRes = QtAndroidPrivate::requestPermission(QStringLiteral("android.permission.WRITE_EXTERNAL_STORAGE"));
     if (writeRes.result() == QtAndroidPrivate::Authorized)
         return true;
 
