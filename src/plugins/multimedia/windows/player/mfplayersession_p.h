@@ -257,7 +257,7 @@ private:
 
     void setVolumeInternal(float volume);
 
-    void createSession();
+    bool createSession();
     void setupPlaybackTopology(IMFMediaSource *source, IMFPresentationDescriptor *sourcePD);
     bool getStreamInfo(IMFStreamDescriptor *stream, MFPlayerSession::MediaType *type, QString *name, QString *language, GUID *format) const;
     IMFTopologyNode* addSourceNode(IMFTopology* topology, IMFMediaSource* source,
