@@ -212,8 +212,7 @@ void MFPlayerSession::load(const QUrl &url, QIODevice *stream)
         close();
         changeStatus(QMediaPlayer::InvalidMedia);
         emit error(QMediaPlayer::ResourceError, tr("Invalid stream source."), true);
-    } else {
-        createSession();
+    } else if (createSession()) {
         changeStatus(QMediaPlayer::LoadingMedia);
         m_sourceResolver->load(url, stream);
         m_updateRoutingOnStart = true;
@@ -1166,36 +1165,39 @@ QMediaPlayer::MediaStatus MFPlayerSession::status() const
     return m_status;
 }
 
-void MFPlayerSession::createSession()
+bool MFPlayerSession::createSession()
 {
     close();
 
+    Q_ASSERT(m_session == NULL);
+
+    HRESULT hr = MFCreateMediaSession(NULL, &m_session);
+    if (FAILED(hr)) {
+        changeStatus(QMediaPlayer::InvalidMedia);
+        emit error(QMediaPlayer::ResourceError, tr("Unable to create mediasession."), true);
+        return false;
+    }
+
     m_hCloseEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
+    hr = m_session->BeginGetEvent(this, m_session);
+    if (FAILED(hr)) {
+        changeStatus(QMediaPlayer::InvalidMedia);
+        emit error(QMediaPlayer::ResourceError, tr("Unable to pull session events."), false);
+        close();
+        return false;
+    }
+
     m_sourceResolver = new SourceResolver();
-    QObject::connect(m_sourceResolver, SIGNAL(mediaSourceReady()), this, SLOT(handleMediaSourceReady()));
-    QObject::connect(m_sourceResolver, SIGNAL(error(long)), this, SLOT(handleSourceError(long)));
+    QObject::connect(m_sourceResolver, &SourceResolver::mediaSourceReady, this, &MFPlayerSession::handleMediaSourceReady);
+    QObject::connect(m_sourceResolver, &SourceResolver::error, this, &MFPlayerSession::handleSourceError);
 
     m_videoProbeMFT = new MFTransform;
 //    for (int i = 0; i < m_videoProbes.size(); ++i)
 //        m_videoProbeMFT->addProbe(m_videoProbes.at(i));
 
-    Q_ASSERT(m_session == NULL);
-    HRESULT hr = MFCreateMediaSession(NULL, &m_session);
-    if (FAILED(hr)) {
-        changeStatus(QMediaPlayer::InvalidMedia);
-        emit error(QMediaPlayer::ResourceError, tr("Unable to create mediasession."), true);
-        return;
-    }
-
-    hr = m_session->BeginGetEvent(this, m_session);
-
-    if (FAILED(hr)) {
-        changeStatus(QMediaPlayer::InvalidMedia);
-        emit error(QMediaPlayer::ResourceError, tr("Unable to pull session events."), false);
-    }
-
     m_position = 0;
+    return true;
 }
 
 qint64 MFPlayerSession::position()
