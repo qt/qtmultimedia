@@ -305,14 +305,11 @@ bool QWindowsAudioSource::open()
     if (!QWindowsAudioUtils::formatToWaveFormatExtensible(settings, wfx)) {
         qWarning("QAudioSource: open error, invalid format.");
     } else if (buffer_size == 0) {
-        buffer_size
-                = (settings.sampleRate()
-                * settings.channelCount()
-                * settings.bytesPerSample()
-                + 39) / 5;
-        period_size = buffer_size / 5;
+        period_size = settings.sampleRate() / 25 * settings.bytesPerFrame();
+        buffer_size = period_size * 5;
     } else {
-        period_size = buffer_size / 5;
+        if (int bpf = settings.bytesPerFrame())
+            period_size = bpf * (buffer_size / 5 / bpf);
     }
 
     if (period_size == 0) {
@@ -645,7 +642,7 @@ bool QWindowsAudioSource::deviceReady()
 
     if(pullMode) {
         // reads some audio data and writes it to QIODevice
-        read(0, buffer_size);
+        read(0, period_size * (buffer_size / period_size));
     } else {
         // emits readyRead() so user will call read() on QIODevice to get some audio data
         InputPrivate* a = qobject_cast<InputPrivate*>(audioSource);
