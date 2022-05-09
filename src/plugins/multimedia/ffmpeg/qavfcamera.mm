@@ -58,8 +58,6 @@ extern "C" {
 #import <AVFoundation/AVFoundation.h>
 #include <CoreVideo/CoreVideo.h>
 
-QT_BEGIN_NAMESPACE
-
 static void releaseHwFrame(void */*opaque*/, uint8_t *data)
 {
     CVPixelBufferRelease(CVPixelBufferRef(data));
@@ -185,6 +183,8 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 }
 
 @end
+
+QT_BEGIN_NAMESPACE
 
 QAVFCamera::QAVFCamera(QCamera *parent)
     : QAVFCameraBase(parent)

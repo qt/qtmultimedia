@@ -50,6 +50,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+QT_BEGIN_NAMESPACE
+
 namespace QFFmpeg
 {
 
@@ -71,6 +73,8 @@ inline QString err2str(int errnum)
     av_make_error_string(buffer, AV_ERROR_MAX_STRING_SIZE, errnum);
     return QString::fromLocal8Bit(buffer);
 }
+
+QT_END_NAMESPACE
 
 }
 
