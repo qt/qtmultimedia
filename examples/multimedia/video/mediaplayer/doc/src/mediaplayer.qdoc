@@ -168,7 +168,7 @@
     \youtube sf_yv01UtIw
 
     Defined in \c PlaybackSeekControl.qml, this component comprises of an item
-    with a Text, \c mediaTime, and \l{Slider}, \c mediaSlider, in a RowLayout.
+    with a Text, \c mediaTime, and \l[QML]{Slider}, \c mediaSlider, in a RowLayout.
 
     \c mediaTime uses MediaPlayer's \l{MediaPlayer::position}{position} property
     like so:
@@ -194,8 +194,9 @@
     \section2 Audio control
     \image audio-control.gif
     This type is defined in \c AudioControl.qml, and utilizes the
-    \l{MediaPlayer::muted}{muted} and \l{MediaPlayer::volume}{volume} properties
-    of MediaPlayer.
+    \l{AudioOutput::muted}{muted} and \l{AudioOutput::volume}{volume} properties
+    of the AudioOutput instantiated within the MediaPlayer, which is
+    instantiated in \c{main.qml}.
 
     \quotefromfile multimedia/video/mediaplayer/AudioControl.qml
     \skipto required
