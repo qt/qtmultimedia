@@ -320,9 +320,11 @@ inline float FastReciprocalSqrt(float input) {
   const uint32_t kMagicNumber = 0x5f3759df;
 
   // Approximate a logarithm by aliasing to an integer.
-  uint32_t integer = *reinterpret_cast<uint32_t*>(&input);
+  uint32_t integer;
+  memcpy(&integer, &input, sizeof(float));
   integer = kMagicNumber - (integer >> 1);
-  float approximation = *reinterpret_cast<float*>(&integer);
+  float approximation;
+  memcpy(&approximation, &integer, sizeof(float));
   const float half_input = input * 0.5f;
   // One iteration of Newton's method.
   return approximation *
