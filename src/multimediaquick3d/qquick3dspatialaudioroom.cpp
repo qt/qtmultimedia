@@ -152,62 +152,62 @@ QVector3D QQuick3DSpatialAudioRoom::dimensions() const
  */
 void QQuick3DSpatialAudioRoom::setLeft(Material material)
 {
-    m_room->setWall(QSpatialAudioRoom::LeftWall, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QSpatialAudioRoom::LeftWall, QSpatialAudioRoom::Material(material));
 }
 
 QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::left() const
 {
-    return Material(m_room->wall(QSpatialAudioRoom::LeftWall));
+    return Material(m_room->wallMaterial(QSpatialAudioRoom::LeftWall));
 }
 
 void QQuick3DSpatialAudioRoom::setRight(Material material)
 {
-    m_room->setWall(QSpatialAudioRoom::RightWall, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QSpatialAudioRoom::RightWall, QSpatialAudioRoom::Material(material));
 }
 
 QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::right() const
 {
-    return Material(m_room->wall(QSpatialAudioRoom::RightWall));
+    return Material(m_room->wallMaterial(QSpatialAudioRoom::RightWall));
 }
 
 void QQuick3DSpatialAudioRoom::setFront(Material material)
 {
-    m_room->setWall(QSpatialAudioRoom::FrontWall, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QSpatialAudioRoom::FrontWall, QSpatialAudioRoom::Material(material));
 }
 
 QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::front() const
 {
-    return Material(m_room->wall(QSpatialAudioRoom::FrontWall));
+    return Material(m_room->wallMaterial(QSpatialAudioRoom::FrontWall));
 }
 
 void QQuick3DSpatialAudioRoom::setBack(Material material)
 {
-    m_room->setWall(QSpatialAudioRoom::BackWall, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QSpatialAudioRoom::BackWall, QSpatialAudioRoom::Material(material));
 }
 
 QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::back() const
 {
-    return Material(m_room->wall(QSpatialAudioRoom::BackWall));
+    return Material(m_room->wallMaterial(QSpatialAudioRoom::BackWall));
 }
 
 void QQuick3DSpatialAudioRoom::setFloor(Material material)
 {
-    m_room->setWall(QSpatialAudioRoom::Floor, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QSpatialAudioRoom::Floor, QSpatialAudioRoom::Material(material));
 }
 
 QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::floor() const
 {
-    return Material(m_room->wall(QSpatialAudioRoom::Floor));
+    return Material(m_room->wallMaterial(QSpatialAudioRoom::Floor));
 }
 
 void QQuick3DSpatialAudioRoom::setCeiling(Material material)
 {
-    m_room->setWall(QSpatialAudioRoom::Ceiling, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QSpatialAudioRoom::Ceiling, QSpatialAudioRoom::Material(material));
 }
 
 QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::ceiling() const
 {
-    return Material(m_room->wall(QSpatialAudioRoom::Ceiling));
+    return Material(m_room->wallMaterial(QSpatialAudioRoom::Ceiling));
 }
 
 /*!

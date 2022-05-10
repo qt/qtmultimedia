@@ -145,7 +145,7 @@ QSpatialAudioRoom::~QSpatialAudioRoom()
     \value WaterOrIceSurface Water or ice
     \value WoodCeiling Wooden ceiling
     \value WoodPanel Wooden panel
-    \value Uniform Artificial material giving uniform reflections on all frequencies
+    \value UniformMaterial Artificial material giving uniform reflections on all frequencies
 */
 
 /*!
@@ -227,12 +227,12 @@ QQuaternion QSpatialAudioRoom::rotation() const
     Different wall materials have different reflection and reverb properties
     that influence the sound of the room.
 
-    \sa wall(), Material, QSpatialAudioRoom::Wall
+    \sa wallMaterial(), Material, QSpatialAudioRoom::Wall
  */
-void QSpatialAudioRoom::setWall(Wall wall, Material material)
+void QSpatialAudioRoom::setWallMaterial(Wall wall, Material material)
 {
-    static_assert(vraudio::kUniform == int(Material::Uniform));
-    static_assert(vraudio::kTransparent == int(Material::Transparent));
+    static_assert(vraudio::kUniform == int(UniformMaterial));
+    static_assert(vraudio::kTransparent == int(Transparent));
 
     if (d->roomProperties.material_names[int(wall)] == int(material))
         return;
@@ -244,9 +244,9 @@ void QSpatialAudioRoom::setWall(Wall wall, Material material)
 /*!
     returns the material being used for \a wall.
 
-    \sa setWall(), Material, QSpatialAudioRoom::Wall
+    \sa setWallMaterial(), Material, QSpatialAudioRoom::Wall
  */
-QSpatialAudioRoom::Material QSpatialAudioRoom::wall(Wall wall) const
+QSpatialAudioRoom::Material QSpatialAudioRoom::wallMaterial(Wall wall) const
 {
     return Material(d->roomProperties.material_names[int(wall)]);
 }

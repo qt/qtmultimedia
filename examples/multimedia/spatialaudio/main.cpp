@@ -74,7 +74,8 @@ public:
         grid->addWidget(new QLabel(tr("Elevation (-90 - 90 degree)")), 2, 0);
         grid->addWidget(elevation, 2, 1);
         distance = new QSlider(Qt::Horizontal);
-        distance->setRange(0, 10);
+        distance->setRange(0, 100);
+        distance->setValue(10);
         grid->addWidget(new QLabel(tr("Distance (0 - 10 meter):")), 3, 0);
         grid->addWidget(distance, 3, 1);
         occlusion = new QSlider(Qt::Horizontal);
@@ -119,12 +120,12 @@ public:
 
         room = new QSpatialAudioRoom(&engine);
         room->setDimensions(QVector3D(5, 5, 5));
-        room->setWall(QSpatialAudioRoom::BackWall, QSpatialAudioRoom::Material::BrickBare);
-        room->setWall(QSpatialAudioRoom::FrontWall, QSpatialAudioRoom::Material::BrickBare);
-        room->setWall(QSpatialAudioRoom::LeftWall, QSpatialAudioRoom::Material::BrickBare);
-        room->setWall(QSpatialAudioRoom::RightWall, QSpatialAudioRoom::Material::BrickBare);
-        room->setWall(QSpatialAudioRoom::Floor, QSpatialAudioRoom::Material::Marble);
-        room->setWall(QSpatialAudioRoom::Ceiling, QSpatialAudioRoom::Material::WoodCeiling);
+        room->setWallMaterial(QSpatialAudioRoom::BackWall, QSpatialAudioRoom::BrickBare);
+        room->setWallMaterial(QSpatialAudioRoom::FrontWall, QSpatialAudioRoom::BrickBare);
+        room->setWallMaterial(QSpatialAudioRoom::LeftWall, QSpatialAudioRoom::BrickBare);
+        room->setWallMaterial(QSpatialAudioRoom::RightWall, QSpatialAudioRoom::BrickBare);
+        room->setWallMaterial(QSpatialAudioRoom::Floor, QSpatialAudioRoom::Marble);
+        room->setWallMaterial(QSpatialAudioRoom::Ceiling, QSpatialAudioRoom::WoodCeiling);
         room->setReverbGain(1);
         room->setReflectionGain(1);
 

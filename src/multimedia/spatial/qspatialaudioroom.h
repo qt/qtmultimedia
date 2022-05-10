@@ -61,7 +61,7 @@ public:
     QSpatialAudioRoom(QSpatialAudioEngine *engine);
     ~QSpatialAudioRoom();
 
-    enum class Material {
+    enum Material {
       Transparent,
       AcousticCeilingTiles,
       BrickBare,
@@ -85,7 +85,7 @@ public:
       WaterOrIceSurface,
       WoodCeiling,
       WoodPanel,
-      Uniform,
+      UniformMaterial,
     };
 
     enum Wall {
@@ -106,8 +106,8 @@ public:
     void setRotation(const QQuaternion &q);
     QQuaternion rotation() const;
 
-    void setWall(Wall wall, Material material);
-    Material wall(Wall wall) const;
+    void setWallMaterial(Wall wall, Material material);
+    Material wallMaterial(Wall wall) const;
 
     void setReflectionGain(float factor);
     float reflectionGain() const;
