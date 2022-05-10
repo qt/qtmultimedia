@@ -140,7 +140,7 @@ bool qt_androidCheckCameraPermission()
 
 bool qt_androidCheckMicrophonePermission()
 {
-    return androidCheckPermission(QStringLiteral("android.permission.MICROPHONE"));
+    return androidCheckPermission(QStringLiteral("android.permission.RECORD_AUDIO"));
 }
 
 bool qt_androidRequestCameraPermission()
@@ -155,7 +155,7 @@ bool qt_androidRequestCameraPermission()
 
 bool qt_androidRequestRecordingPermission()
 {
-    if (!androidRequestPermission(QStringLiteral("android.permission.MICROPHONE"))) {
+    if (!androidRequestPermission(QStringLiteral("android.permission.RECORD_AUDIO"))) {
         qCDebug(qtAndroidMediaPlugin, "Microphone permission denied by user!");
         return false;
     }
