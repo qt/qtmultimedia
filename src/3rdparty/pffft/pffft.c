@@ -63,6 +63,13 @@
 #include <math.h>
 #include <assert.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
+#ifndef M_SQRT2
+#define M_SQRT2 1.41421356237309504880168872420969808
+#endif
+
 /* detect compiler flavour */
 #if defined(_MSC_VER)
 #  define COMPILER_MSVC
@@ -149,7 +156,9 @@ typedef __m128 v4sf;
 /*
   ARM NEON support macros
 */
-#elif !defined(PFFFT_SIMD_DISABLE) && (defined(__arm__) || defined(__aarch64__) || defined(__arm64__))
+#elif !defined(PFFFT_SIMD_DISABLE) && \
+    (((defined(__arm__) || defined(__TARGET_ARCH_ARM) || defined(_M_ARM)) && defined(__ARM_NEON__)) || \
+     defined(_M_ARM64) || defined(__aarch64__) || defined(__ARM64__))
 #  include <arm_neon.h>
 typedef float32x4_t v4sf;
 #  define SIMD_SZ 4
