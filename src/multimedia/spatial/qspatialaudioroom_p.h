@@ -69,6 +69,12 @@ public:
     vraudio::ReverbProperties reverb;
     vraudio::ReflectionProperties reflections;
 
+    float m_wallOcclusion[6] = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
+    float m_wallDampening[6] = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
+
+    float wallOcclusion(QSpatialAudioRoom::Wall wall) const;
+    float wallDampening(QSpatialAudioRoom::Wall wall) const;
+
     void update();
 };
 

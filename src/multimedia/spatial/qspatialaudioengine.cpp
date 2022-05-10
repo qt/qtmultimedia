@@ -222,7 +222,7 @@ void QSpatialAudioEnginePrivate::removeRoom(QSpatialAudioRoom *room)
     rooms.removeOne(room);
 }
 
-void QSpatialAudioEnginePrivate::updateRooms() const
+void QSpatialAudioEnginePrivate::updateRooms()
 {
     if (!roomEffectsEnabled)
         return;
@@ -230,9 +230,11 @@ void QSpatialAudioEnginePrivate::updateRooms() const
     bool needUpdate = listenerPositionDirty;
     listenerPositionDirty = false;
 
+    bool roomDirty = false;
     for (const auto &room : rooms) {
         auto *rd = QSpatialAudioRoomPrivate::get(room);
         if (rd->dirty) {
+            roomDirty = true;
             rd->update();
             needUpdate = true;
         }
@@ -241,37 +243,51 @@ void QSpatialAudioEnginePrivate::updateRooms() const
     if (!needUpdate)
         return;
 
-    QVector3D listenerPos;
-    if (listener)
-        listenerPos = listener->position();
+    QVector3D listenerPos = listenerPosition();
     float roomVolume = float(qInf());
-    const QSpatialAudioRoom *room = nullptr;
+    QSpatialAudioRoom *room = nullptr;
     // Find the smallest room that contains the listener and apply it's room effects
-    for (const auto *r : rooms) {
-        QVector3D dimensions = r->dimensions();
-        float vol = dimensions.x()*dimensions.y()*dimensions.z();
+    for (auto *r : qAsConst(rooms)) {
+        QVector3D dim2 = r->dimensions()/2.;
+        float vol = dim2.x()*dim2.y()*dim2.z();
         if (vol > roomVolume)
             continue;
         QVector3D dist = r->position() - listenerPos;
         // transform into room coordinates
         dist = r->rotation().rotatedVector(dist);
-        if (qAbs(dist.x()) <= dimensions.x() &&
-            qAbs(dist.y()) <= dimensions.y() &&
-            qAbs(dist.z()) <= dimensions.z()) {
+        if (qAbs(dist.x()) <= dim2.x() &&
+            qAbs(dist.y()) <= dim2.y() &&
+            qAbs(dist.z()) <= dim2.z()) {
             room = r;
             roomVolume = vol;
         }
     }
+    if (room != currentRoom)
+        roomDirty = true;
+    currentRoom = room;
+
+    if (!roomDirty)
+        return;
 
     // apply room to engine
-    if (room) {
-        QSpatialAudioRoomPrivate *rp = QSpatialAudioRoomPrivate::get(room);
-        api->EnableRoomEffects(true);
-        api->SetReflectionProperties(rp->reflections);
-        api->SetReverbProperties(rp->reverb);
-    } else {
+    if (!currentRoom) {
         api->EnableRoomEffects(false);
+        return;
     }
+    QSpatialAudioRoomPrivate *rp = QSpatialAudioRoomPrivate::get(room);
+    api->SetReflectionProperties(rp->reflections);
+    api->SetReverbProperties(rp->reverb);
+
+    // update room effects for all sound sources
+    for (auto *s : qAsConst(sources)) {
+        auto *sp = QSpatialAudioSoundSourcePrivate::get(s);
+        sp->updateRoomEffects();
+    }
+}
+
+QVector3D QSpatialAudioEnginePrivate::listenerPosition() const
+{
+    return listener ? listener->position() : QVector3D();
 }
 
 

@@ -34,9 +34,11 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#include "qspatialaudioroom_p.h"
 #include "qspatialaudiosoundsource_p.h"
 #include "qspatialaudiolistener.h"
 #include "qspatialaudioengine_p.h"
+#include "qspatialaudioroom.h"
 #include "api/resonance_audio_api.h"
 #include <qaudiosink.h>
 #include <qurl.h>
@@ -90,6 +92,7 @@ void QSpatialAudioSoundSource::setPosition(QVector3D pos)
     auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
     if (ep)
         ep->api->SetSourcePosition(d->sourceId, pos.x(), pos.y(), pos.z());
+    d->updateRoomEffects();
     emit positionChanged();
 }
 
@@ -132,7 +135,7 @@ void QSpatialAudioSoundSource::setVolume(float volume)
     d->volume = volume;
     auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
     if (ep)
-        ep->api->SetSourceVolume(d->sourceId, d->volume);
+        ep->api->SetSourceVolume(d->sourceId, d->volume*d->wallDampening);
     emit volumeChanged();
 }
 
@@ -171,9 +174,9 @@ void QSpatialAudioSoundSource::setDistanceModel(DistanceModel model)
 
 void QSpatialAudioSoundSourcePrivate::updateDistanceModel()
 {
-    auto *ep = QSpatialAudioEnginePrivate::get(engine);
     if (!engine || sourceId < 0)
         return;
+    auto *ep = QSpatialAudioEnginePrivate::get(engine);
 
     vraudio::DistanceRolloffModel dm = vraudio::kLogarithmic;
     switch (distanceModel) {
@@ -188,6 +191,110 @@ void QSpatialAudioSoundSourcePrivate::updateDistanceModel()
     }
 
     ep->api->SetSourceDistanceModel(sourceId, dm, minDistance, maxDistance);
+}
+
+void QSpatialAudioSoundSourcePrivate::updateRoomEffects()
+{
+    if (!engine || sourceId < 0)
+        return;
+    auto *ep = QSpatialAudioEnginePrivate::get(engine);
+    if (!ep->currentRoom)
+        return;
+    auto *rp = QSpatialAudioRoomPrivate::get(ep->currentRoom);
+
+    QVector3D roomDim2 = ep->currentRoom->dimensions()/2.;
+    QVector3D roomPos = ep->currentRoom->position();
+    QQuaternion roomRot = ep->currentRoom->rotation();
+    QVector3D dist = pos - roomPos;
+    // transform into room coordinates
+    dist = roomRot.rotatedVector(dist);
+    if (qAbs(dist.x()) <= roomDim2.x() &&
+        qAbs(dist.y()) <= roomDim2.y() &&
+        qAbs(dist.z()) <= roomDim2.z()) {
+        // Source is inside room, apply
+        ep->api->SetSourceRoomEffectsGain(sourceId, 1);
+        wallDampening = 1.;
+        wallOcclusion = 0.;
+    } else {
+        // ### calculate room occlusion and dampening
+        // This is a bit of heuristics on top of the heuristic dampening/occlusion numbers for walls
+        //
+        // We basically cast a ray from the listener through the walls. If walls have different characteristics
+        // and we get close to a corner, we try to use some averaging to avoid abrupt changes
+        auto relativeListenerPos = ep->listenerPosition() - roomPos;
+        relativeListenerPos = roomRot.rotatedVector(relativeListenerPos);
+
+        auto direction = dist.normalized();
+        enum {
+            X, Y, Z
+        };
+        // Very rough approximation, use the size of the source plus twice the size of our head.
+        // One could probably improve upon this.
+        const float transitionDistance = minDistance + 0.4;
+        QSpatialAudioRoom::Wall walls[3];
+        walls[X] = direction.x() > 0 ? QSpatialAudioRoom::RightWall : QSpatialAudioRoom::LeftWall;
+        walls[Y] = direction.y() > 0 ? QSpatialAudioRoom::FrontWall : QSpatialAudioRoom::BackWall;
+        walls[Z] = direction.z() > 0 ? QSpatialAudioRoom::Ceiling : QSpatialAudioRoom::Floor;
+        float factors[3] = { 0., 0., 0. };
+        bool foundWall = false;
+        if (direction.x() != 0) {
+            float sign = direction.x() > 0 ? 1.f : -1.f;
+            float dx = sign * roomDim2.x() - relativeListenerPos.x();
+            QVector3D intersection = relativeListenerPos + direction*dx/direction.x();
+            float dy = roomDim2.y() - qAbs(intersection.y());
+            float dz = roomDim2.z() - qAbs(intersection.z());
+            if (dy > 0 && dz > 0) {
+//                qDebug() << "Hit with wall X" << walls[0] << dy << dz;
+                // Ray is hitting this wall
+                factors[Y] = qMax(0.f, 1.f/3.f - dy/transitionDistance);
+                factors[Z] = qMax(0.f, 1.f/3.f - dz/transitionDistance);
+                factors[X] = 1.f - factors[Y] - factors[Z];
+                foundWall = true;
+            }
+        }
+        if (!foundWall && direction.y() != 0) {
+            float sign = direction.y() > 0 ? 1.f : -1.f;
+            float dy = sign * roomDim2.y() - relativeListenerPos.y();
+            QVector3D intersection = relativeListenerPos + direction*dy/direction.y();
+            float dx = roomDim2.x() - qAbs(intersection.x());
+            float dz = roomDim2.z() - qAbs(intersection.z());
+            if (dx > 0 && dz > 0) {
+                // Ray is hitting this wall
+//                qDebug() << "Hit with wall Y" << walls[1] << dx << dy;
+                factors[X] = qMax(0.f, 1.f/3.f - dx/transitionDistance);
+                factors[Z] = qMax(0.f, 1.f/3.f - dz/transitionDistance);
+                factors[Y] = 1.f - factors[X] - factors[Z];
+                foundWall = true;
+            }
+        }
+        if (!foundWall) {
+            Q_ASSERT(direction.z() != 0);
+            float sign = direction.z() > 0 ? 1.f : -1.f;
+            float dz = sign * roomDim2.z() - relativeListenerPos.z();
+            QVector3D intersection = relativeListenerPos + direction*dz/direction.z();
+            float dx = roomDim2.x() - qAbs(intersection.x());
+            float dy = roomDim2.y() - qAbs(intersection.y());
+            if (dx > 0 && dy > 0) {
+                // Ray is hitting this wall
+//                qDebug() << "Hit with wall Z" << walls[2];
+                factors[X] = qMax(0.f, 1.f/3.f - dx/transitionDistance);
+                factors[Y] = qMax(0.f, 1.f/3.f - dy/transitionDistance);
+                factors[Z] = 1.f - factors[X] - factors[Y];
+                foundWall = true;
+            }
+        }
+        wallDampening = 0;
+        wallOcclusion = 0;
+        for (int i = 0; i < 3; ++i) {
+            wallDampening += factors[i]*rp->wallDampening(walls[i]);
+            wallOcclusion += factors[i]*rp->wallOcclusion(walls[i]);
+        }
+
+//        qDebug() << "intersection with wall" << walls[0] << walls[1] << walls[2] << factors[0] << factors[1] << factors[2] << wallDampening << wallOcclusion;
+        ep->api->SetSourceRoomEffectsGain(sourceId, 0);
+    }
+    ep->api->SetSoundObjectOcclusionIntensity(sourceId, occlusionIntensity + wallOcclusion);
+    ep->api->SetSourceVolume(sourceId, volume*wallDampening);
 }
 
 QSpatialAudioSoundSource::DistanceModel QSpatialAudioSoundSource::distanceModel() const
@@ -283,7 +390,7 @@ void QSpatialAudioSoundSource::setOcclusionIntensity(float occlusion)
     d->occlusionIntensity = occlusion;
     auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
     if (ep)
-        ep->api->SetSoundObjectOcclusionIntensity(d->sourceId, d->occlusionIntensity);
+        ep->api->SetSoundObjectOcclusionIntensity(d->sourceId, d->occlusionIntensity + d->wallOcclusion);
     emit occlusionIntensityChanged();
 }
 

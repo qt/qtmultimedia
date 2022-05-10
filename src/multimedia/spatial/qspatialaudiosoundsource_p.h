@@ -70,18 +70,24 @@ public:
         : QSpatialAudioSound(parent, 1)
     {}
 
+    static QSpatialAudioSoundSourcePrivate *get(QSpatialAudioSoundSource *soundSource)
+    { return soundSource ? soundSource->d : nullptr; }
+
     QVector3D pos;
     QQuaternion rotation;
     QSpatialAudioSoundSource::DistanceModel distanceModel = QSpatialAudioSoundSource::DistanceModel_Logarithmic;
-    float minDistance = 1.;
-    float maxDistance = 500.;
+    float minDistance = .1;
+    float maxDistance = 50.;
     float manualAttenuation = 0;
     float occlusionIntensity = 0.;
     float directivity = 0.;
     float directivityOrder = 1.;
     float nearFieldGain = 0.;
+    float wallDampening = 1.;
+    float wallOcclusion = 0.;
 
     void updateDistanceModel();
+    void updateRoomEffects();
 };
 
 QT_END_NAMESPACE

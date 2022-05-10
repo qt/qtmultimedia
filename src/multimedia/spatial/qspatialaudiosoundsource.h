@@ -152,6 +152,7 @@ public Q_SLOTS:
 private:
     void setEngine(QSpatialAudioEngine *engine);
     friend class QSpatialAudioSound;
+    friend class QSpatialAudioSoundSourcePrivate;
     QSpatialAudioSoundSourcePrivate *d = nullptr;
 };
 

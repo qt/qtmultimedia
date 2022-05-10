@@ -93,6 +93,7 @@ qt_internal_add_module(Multimedia
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_spatialaudio
     SOURCES
         spatial/qambisonicdecoder.cpp spatial/qambisonicdecoder_p.h spatial/qambisonicdecoderdata_p.h
+#        spatial/qacousticgeometry.cpp spatial/qacousticgeometry_p.h
         spatial/qspatialaudioengine.cpp spatial/qspatialaudioengine.h spatial/qspatialaudioengine_p.h
         spatial/qspatialaudiolistener.cpp spatial/qspatialaudiolistener.h
         spatial/qspatialaudioroom.cpp spatial/qspatialaudioroom.h spatial/qspatialaudioroom_p.h

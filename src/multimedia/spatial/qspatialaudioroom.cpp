@@ -64,6 +64,53 @@ inline void toFloats(const QQuaternion &q, float *f)
     f[2] = q.z();
     f[3] = q.scalar();
 }
+
+// Default values for occlusion and dampening of different wall materials.
+// These values are used as defaults if a wall is only defined by a material
+// and define how sound passes through the wall.
+// We define both occlusion and dampening constants to be able to tune the
+// sound. Dampening only reduces the level of the sound without affecting its
+// tone, while occlusion will dampen higher frequencies more than lower ones
+struct {
+    float occlusion;
+    float dampening;
+} occlusionAndDampening[] = {
+    { 0.f, 1.f }, // Transparent,
+    { 0.f, .1f }, // AcousticCeilingTiles,
+    { 2.f, .4f }, // BrickBare,
+    { 2.f, .4f }, // BrickPainted,
+    { 4.f, 1.f }, // ConcreteBlockCoarse,
+    { 4.f, 1.f }, // ConcreteBlockPainted,
+    { .7f, .7f }, // CurtainHeavy,
+    { .5f, .5f }, // FiberGlassInsulation,
+    { .2f, .3f }, // GlassThin,
+    { .5f, .2f }, // GlassThick,
+    { 7.f, 1.f }, // Grass,
+    { 4.f, 1.f }, // LinoleumOnConcrete,
+    { 4.f, 1.f }, // Marble,
+    { 0.f, .2f }, // Metal,
+    { 4.f, 1.f }, // ParquetOnConcrete,
+    { 2.f, .4f }, // PlasterRough,
+    { 2.f, .4f }, // PlasterSmooth,
+    { 1.5f, .2f }, // PlywoodPanel,
+    { 4.f, 1.f }, // PolishedConcreteOrTile,
+    { 4.f, 1.f }, // Sheetrock,
+    { 4.f, 1.f }, // WaterOrIceSurface,
+    { 1.f, .3f }, // WoodCeiling,
+    { 1.f, .3f }, // WoodPanel,
+    { 0.f, .0f }, // UniformMaterial,
+};
+
+}
+
+float QSpatialAudioRoomPrivate::wallOcclusion(QSpatialAudioRoom::Wall wall) const
+{
+    return m_wallOcclusion[wall] < 0 ? occlusionAndDampening[roomProperties.material_names[wall]].occlusion : m_wallOcclusion[wall];
+}
+
+float QSpatialAudioRoomPrivate::wallDampening(QSpatialAudioRoom::Wall wall) const
+{
+    return m_wallDampening[wall] < 0 ? occlusionAndDampening[roomProperties.material_names[wall]].dampening : m_wallDampening[wall];
 }
 
 void QSpatialAudioRoomPrivate::update()
@@ -155,10 +202,10 @@ QSpatialAudioRoom::~QSpatialAudioRoom()
 
     \value LeftWall Left wall (negative x)
     \value RightWall Right wall (positive x)
-    \value BackWall Back wall (negative z)
-    \value FrontWall Front wall (positive z)
-    \value Floor Bottom wall (negative y)
-    \value Ceiling Top wall (positive y)
+    \value BackWall Back wall (negative y)
+    \value FrontWall Front wall (positive y)
+    \value Floor Bottom wall (negative z)
+    \value Ceiling Top wall (positive z)
 */
 
 

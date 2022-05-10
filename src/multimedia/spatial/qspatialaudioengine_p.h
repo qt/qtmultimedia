@@ -56,6 +56,7 @@
 #include <qmutex.h>
 #include <qurl.h>
 #include <qaudiobuffer.h>
+#include <qvector3d.h>
 
 namespace vraudio {
 class ResonanceAudioApi;
@@ -101,6 +102,7 @@ public:
     QList<QSpatialAudioStereoSource *> stereoSources;
     QList<QSpatialAudioRoom *> rooms;
     mutable bool listenerPositionDirty = true;
+    QSpatialAudioRoom *currentRoom = nullptr;
 
     void addSpatialSound(QSpatialAudioSoundSource *sound);
     void removeSpatialSound(QSpatialAudioSoundSource *sound);
@@ -109,7 +111,9 @@ public:
 
     void addRoom(QSpatialAudioRoom *room);
     void removeRoom(QSpatialAudioRoom *room);
-    void updateRooms() const;
+    void updateRooms();
+
+    QVector3D listenerPosition() const;
 };
 
 class QSpatialAudioSound : public QObject
