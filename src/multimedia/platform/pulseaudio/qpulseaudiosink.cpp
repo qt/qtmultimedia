@@ -512,26 +512,29 @@ qint64 QPulseAudioSink::write(const char *data, qint64 len)
 
     pulseEngine->lock();
 
-    len = qMin(len, static_cast<qint64>(pa_stream_writable_size(m_stream)));
+    size_t nbytes = len;
+    void *dest = nullptr;
+
+    if (pa_stream_begin_write(m_stream, &dest, &nbytes) < 0) {
+        qWarning("QAudioSink(pulseaudio): pa_stream_begin_write, error = %s",
+                 pa_strerror(pa_context_errno(pulseEngine->context())));
+        setError(QAudio::IOError);
+        return 0;
+    }
+
+    len = qMin(len, qint64(nbytes));
 
     if (m_volume < 1.0f) {
         // Don't use PulseAudio volume, as it might affect all other streams of the same category
         // or even affect the system volume if flat volumes are enabled
-        void *dest = nullptr;
-        size_t nbytes = len;
-        if (pa_stream_begin_write(m_stream, &dest, &nbytes) < 0) {
-            qWarning("QAudioSink(pulseaudio): pa_stream_begin_write, error = %s",
-                     pa_strerror(pa_context_errno(pulseEngine->context())));
-            setError(QAudio::IOError);
-            return 0;
-        }
-
-        len = int(nbytes);
         QAudioHelperInternal::qMultiplySamples(m_volume, m_format, data, dest, len);
-        data = reinterpret_cast<char *>(dest);
+    } else {
+        memcpy(dest, data, len);
     }
 
-    if (pa_stream_write(m_stream, data, len, nullptr, 0, PA_SEEK_RELATIVE) < 0) {
+    data = reinterpret_cast<char *>(dest);
+
+    if ((pa_stream_write(m_stream, data, len, nullptr, 0, PA_SEEK_RELATIVE)) < 0) {
         qWarning("QAudioSink(pulseaudio): pa_stream_write, error = %s",
                  pa_strerror(pa_context_errno(pulseEngine->context())));
         setError(QAudio::IOError);
@@ -672,18 +675,15 @@ qint64 PulseOutputPrivate::readData(char *data, qint64 len)
 
 qint64 PulseOutputPrivate::writeData(const char *data, qint64 len)
 {
-    int retry = 0;
     qint64 written = 0;
 
     if ((m_audioDevice->m_deviceState == QAudio::ActiveState
          || m_audioDevice->m_deviceState == QAudio::IdleState)) {
-         while(written < len) {
+         while (written < len) {
             int chunk = m_audioDevice->write(data+written, (len-written));
             if (chunk <= 0)
-                retry++;
-            written+=chunk;
-            if (retry > 10)
                 return written;
+            written += chunk;
         }
     }
 
