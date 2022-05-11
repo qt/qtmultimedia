@@ -128,7 +128,7 @@ public:
     QVideoFrameFormat(QVideoFrameFormat &&other) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QVideoFrameFormat);
     void swap(QVideoFrameFormat &other) noexcept
-    { qSwap(d, other.d); }
+    { d.swap(other.d); }
 
     void detach();
 

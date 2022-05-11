@@ -161,7 +161,7 @@ public:
     QAudioBuffer(QAudioBuffer &&other) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QAudioBuffer)
     void swap(QAudioBuffer &other) noexcept
-    { qSwap(d, other.d); }
+    { d.swap(other.d); }
 
     bool isValid() const noexcept { return d != nullptr; };
 
