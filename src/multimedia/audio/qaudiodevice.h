@@ -79,7 +79,7 @@ public:
     QAudioDevice(QAudioDevice &&other) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QAudioDevice)
     void swap(QAudioDevice &other) noexcept
-    { qSwap(d, other.d); }
+    { d.swap(other.d); }
 
     QAudioDevice& operator=(const QAudioDevice& other);
 

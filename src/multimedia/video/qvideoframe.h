@@ -92,7 +92,7 @@ public:
     QVideoFrame(QVideoFrame &&other) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QVideoFrame)
     void swap(QVideoFrame &other) noexcept
-    { qSwap(d, other.d); }
+    { d.swap(other.d); }
 
 
     QVideoFrame &operator =(const QVideoFrame &other);

@@ -107,7 +107,7 @@ public:
     QMediaTimeRange(QMediaTimeRange &&other) noexcept = default;
     QT_MOVE_ASSIGNMENT_OPERATOR_IMPL_VIA_PURE_SWAP(QMediaTimeRange)
     void swap(QMediaTimeRange &other) noexcept
-    { qSwap(d, other.d); }
+    { d.swap(other.d); }
     void detach();
 
     QMediaTimeRange &operator=(const Interval&);
