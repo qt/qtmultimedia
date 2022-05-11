@@ -7,6 +7,6 @@ add_executable(mytarget
 )
 
 # ![0]
-find_package(Qt6 COMPONENTS Multimedia REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Multimedia)
 target_link_libraries(mytarget PRIVATE Qt6::Multimedia)
 # ![0]
