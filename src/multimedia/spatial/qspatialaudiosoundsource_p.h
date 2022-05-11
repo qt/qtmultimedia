@@ -76,15 +76,15 @@ public:
     QVector3D pos;
     QQuaternion rotation;
     QSpatialAudioSoundSource::DistanceModel distanceModel = QSpatialAudioSoundSource::DistanceModel_Logarithmic;
-    float minDistance = .1;
-    float maxDistance = 50.;
-    float manualAttenuation = 0;
-    float occlusionIntensity = 0.;
-    float directivity = 0.;
-    float directivityOrder = 1.;
-    float nearFieldGain = 0.;
-    float wallDampening = 1.;
-    float wallOcclusion = 0.;
+    float size = .1f;
+    float distanceCutoff = 50.f;
+    float manualAttenuation = 0.f;
+    float occlusionIntensity = 0.f;
+    float directivity = 0.f;
+    float directivityOrder = 1.f;
+    float nearFieldGain = 0.f;
+    float wallDampening = 1.f;
+    float wallOcclusion = 0.f;
 
     void updateDistanceModel();
     void updateRoomEffects();

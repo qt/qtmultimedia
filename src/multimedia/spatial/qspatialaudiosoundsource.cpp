@@ -158,7 +158,9 @@ float QSpatialAudioSoundSource::volume() const
 /*!
     \property QSpatialAudioSoundSource::distanceModel
 
-    Defines distance model for this sound source.
+    Defines distance model for this sound source. The volume starts scaling down
+    from \l size to \l distanceCutoff. The volume is constant for distances smaller
+    than size and zero for distances larger than the cutoff distance.
 
     \sa QSpatialAudioSoundSource::DistanceModel
  */
@@ -190,7 +192,7 @@ void QSpatialAudioSoundSourcePrivate::updateDistanceModel()
         break;
     }
 
-    ep->api->SetSourceDistanceModel(sourceId, dm, minDistance, maxDistance);
+    ep->api->SetSourceDistanceModel(sourceId, dm, size, distanceCutoff);
 }
 
 void QSpatialAudioSoundSourcePrivate::updateRoomEffects()
@@ -230,7 +232,7 @@ void QSpatialAudioSoundSourcePrivate::updateRoomEffects()
         };
         // Very rough approximation, use the size of the source plus twice the size of our head.
         // One could probably improve upon this.
-        const float transitionDistance = minDistance + 0.4;
+        const float transitionDistance = size + 0.4;
         QSpatialAudioRoom::Wall walls[3];
         walls[X] = direction.x() > 0 ? QSpatialAudioRoom::RightWall : QSpatialAudioRoom::LeftWall;
         walls[Y] = direction.y() > 0 ? QSpatialAudioRoom::FrontWall : QSpatialAudioRoom::BackWall;
@@ -303,46 +305,47 @@ QSpatialAudioSoundSource::DistanceModel QSpatialAudioSoundSource::distanceModel(
 }
 
 /*!
-    \property QSpatialAudioSoundSource::minimumDistance
+    \property QSpatialAudioSoundSource::size
 
-    Defines a minimum distance for the sound source. If the listener is closer to the sound
-    object than the minimum distance, volume will stay constant and the sound source won't
-    be localized in space.
+    Defines the size of the sound source. If the listener is closer to the sound
+    object than the size, volume will stay constant. The size is also used to for
+    occlusion calculations, where large sources can be partially occluded by a wall.
  */
-void QSpatialAudioSoundSource::setMinimumDistance(float min)
+void QSpatialAudioSoundSource::setSize(float min)
 {
-    if (d->minDistance == min)
+    if (d->size == min)
         return;
-    d->minDistance = min;
+    d->size = min;
 
     d->updateDistanceModel();
-    emit minimumDistanceChanged();
+    emit sizeChanged();
 }
 
-float QSpatialAudioSoundSource::minimumDistance() const
+float QSpatialAudioSoundSource::size() const
 {
-    return d->minDistance;
+    return d->size;
 }
 
 /*!
-    \property QSpatialAudioSoundSource::maximumDistance
+    \property QSpatialAudioSoundSource::distanceCutoff
 
-    Defines a maximum distance for the sound source. If the listener is further away from
-    the sound object than the maximum distance it won't be audible anymore.
+    Defines a distance beyond which sound coming from the source will cutoff.
+    If the listener is further away from the sound object than the cutoff
+    distance it won't be audible anymore.
  */
-void QSpatialAudioSoundSource::setMaximumDistance(float max)
+void QSpatialAudioSoundSource::setDistanceCutoff(float max)
 {
-    if (d->maxDistance == max)
+    if (d->distanceCutoff == max)
         return;
-    d->maxDistance = max;
+    d->distanceCutoff = max;
 
     d->updateDistanceModel();
-    emit maximumDistanceChanged();
+    emit distanceCutoffChanged();
 }
 
-float QSpatialAudioSoundSource::maximumDistance() const
+float QSpatialAudioSoundSource::distanceCutoff() const
 {
-    return d->maxDistance;
+    return d->distanceCutoff;
 }
 
 /*!

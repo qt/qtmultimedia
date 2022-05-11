@@ -50,8 +50,8 @@ class QQuick3DSpatialAudioSoundSource : public QQuick3DNode
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(DistanceModel distanceModel READ distanceModel WRITE setDistanceModel NOTIFY distanceModelChanged)
-    Q_PROPERTY(float minimumDistance READ minimumDistance WRITE setMinimumDistance NOTIFY minimumDistanceChanged)
-    Q_PROPERTY(float maximumDistance READ maximumDistance WRITE setMaximumDistance NOTIFY maximumDistanceChanged)
+    Q_PROPERTY(float size READ size WRITE setSize NOTIFY sizeChanged)
+    Q_PROPERTY(float distanceCutoff READ distanceCutoff WRITE setDistanceCutoff NOTIFY distanceCutoffChanged)
     Q_PROPERTY(float manualAttenuation READ manualAttenuation WRITE setManualAttenuation NOTIFY manualAttenuationChanged)
     Q_PROPERTY(float occlusionIntensity READ occlusionIntensity WRITE setOcclusionIntensity NOTIFY occlusionIntensityChanged)
     Q_PROPERTY(float directivity READ directivity WRITE setDirectivity NOTIFY directivityChanged)
@@ -81,11 +81,11 @@ public:
     void setDistanceModel(DistanceModel model);
     DistanceModel distanceModel() const;
 
-    void setMinimumDistance(float min);
-    float minimumDistance() const;
+    void setSize(float min);
+    float size() const;
 
-    void setMaximumDistance(float max);
-    float maximumDistance() const;
+    void setDistanceCutoff(float max);
+    float distanceCutoff() const;
 
     void setManualAttenuation(float attenuation);
     float manualAttenuation() const;
@@ -124,8 +124,8 @@ Q_SIGNALS:
     void sourceChanged();
     void volumeChanged();
     void distanceModelChanged();
-    void minimumDistanceChanged();
-    void maximumDistanceChanged();
+    void sizeChanged();
+    void distanceCutoffChanged();
     void manualAttenuationChanged();
     void occlusionIntensityChanged();
     void directivityChanged();

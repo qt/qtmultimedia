@@ -66,8 +66,8 @@ QQuick3DSpatialAudioSoundSource::QQuick3DSpatialAudioSoundSource()
     connect(m_sound, &QSpatialAudioSoundSource::sourceChanged, this, &QQuick3DSpatialAudioSoundSource::sourceChanged);
     connect(m_sound, &QSpatialAudioSoundSource::volumeChanged, this, &QQuick3DSpatialAudioSoundSource::volumeChanged);
     connect(m_sound, &QSpatialAudioSoundSource::distanceModelChanged, this, &QQuick3DSpatialAudioSoundSource::distanceModelChanged);
-    connect(m_sound, &QSpatialAudioSoundSource::minimumDistanceChanged, this, &QQuick3DSpatialAudioSoundSource::minimumDistanceChanged);
-    connect(m_sound, &QSpatialAudioSoundSource::maximumDistanceChanged, this, &QQuick3DSpatialAudioSoundSource::maximumDistanceChanged);
+    connect(m_sound, &QSpatialAudioSoundSource::sizeChanged, this, &QQuick3DSpatialAudioSoundSource::sizeChanged);
+    connect(m_sound, &QSpatialAudioSoundSource::distanceCutoffChanged, this, &QQuick3DSpatialAudioSoundSource::distanceCutoffChanged);
     connect(m_sound, &QSpatialAudioSoundSource::manualAttenuationChanged, this, &QQuick3DSpatialAudioSoundSource::manualAttenuationChanged);
     connect(m_sound, &QSpatialAudioSoundSource::occlusionIntensityChanged, this, &QQuick3DSpatialAudioSoundSource::occlusionIntensityChanged);
     connect(m_sound, &QSpatialAudioSoundSource::directivityChanged, this, &QQuick3DSpatialAudioSoundSource::directivityChanged);
@@ -119,6 +119,9 @@ float QQuick3DSpatialAudioSoundSource::volume() const
     \qmlproperty enumeration SpatialAudioSoundSource::distanceModel
 
     Defines how the volume of the sound scales with distance to the listener.
+    The volume starts scaling down
+    from \l size to \l distanceCutoff. The volume is constant for distances smaller
+    than size and zero for distances larger than the cutoff distance.
 
     \table
     \header \li Property value
@@ -142,36 +145,37 @@ QQuick3DSpatialAudioSoundSource::DistanceModel QQuick3DSpatialAudioSoundSource::
 }
 
 /*!
-    \qmlproperty float SpatialAudioSoundSource::minimumDistance
+    \qmlproperty float SpatialAudioSoundSource::size
 
-    Defines a minimum distance for the sound source. If the listener is closer to the sound
-    object than the minimum distance, volume will stay constant and the sound source won't
-    be localized in space.
+    Defines the size of the sound source. If the listener is closer to the sound
+    object than the size, volume will stay constant. The size is also used to for
+    occlusion calculations, where large sources can be partially occluded by a wall.
  */
-void QQuick3DSpatialAudioSoundSource::setMinimumDistance(float min)
+void QQuick3DSpatialAudioSoundSource::setSize(float min)
 {
-    m_sound->setMinimumDistance(min);
+    m_sound->setSize(min);
 }
 
-float QQuick3DSpatialAudioSoundSource::minimumDistance() const
+float QQuick3DSpatialAudioSoundSource::size() const
 {
-    return m_sound->minimumDistance();
+    return m_sound->size();
 }
 
 /*!
-    \qmlproperty float SpatialAudioSoundSource::maximumDistance
+    \qmlproperty float SpatialAudioSoundSource::distanceCutoff
 
-    Defines a maximum distance for the sound source. If the listener is further away from
-    the sound object than the maximum distance it won't be audible anymore.
+    Defines a distance beyond which sound coming from the source will cutoff.
+    If the listener is further away from the sound object than the cutoff
+    distance it won't be audible anymore.
  */
-void QQuick3DSpatialAudioSoundSource::setMaximumDistance(float max)
+void QQuick3DSpatialAudioSoundSource::setDistanceCutoff(float max)
 {
-    m_sound->setMaximumDistance(max);
+    m_sound->setDistanceCutoff(max);
 }
 
-float QQuick3DSpatialAudioSoundSource::maximumDistance() const
+float QQuick3DSpatialAudioSoundSource::distanceCutoff() const
 {
-    return m_sound->maximumDistance();
+    return m_sound->distanceCutoff();
 }
 
 /*!

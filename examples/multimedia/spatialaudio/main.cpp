@@ -79,8 +79,8 @@ public:
         grid->addWidget(new QLabel(tr("Distance (0 - 10 meter):")), 3, 0);
         grid->addWidget(distance, 3, 1);
         occlusion = new QSlider(Qt::Horizontal);
-        occlusion->setRange(0, 200);
-        grid->addWidget(new QLabel(tr("Occlusion (0 - 2):")), 4, 0);
+        occlusion->setRange(0, 400);
+        grid->addWidget(new QLabel(tr("Occlusion (0 - 4):")), 4, 0);
         grid->addWidget(occlusion, 4, 1);
 
         roomDimension = new QSlider(Qt::Horizontal);
@@ -162,7 +162,7 @@ private slots:
     void fileChanged(const QString &file)
     {
         sound->setSource(QUrl::fromLocalFile(file));
-        sound->setMinimumDistance(5);
+        sound->setSize(5);
     }
     void openFileDialog()
     {
