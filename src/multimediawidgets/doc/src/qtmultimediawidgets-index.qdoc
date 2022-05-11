@@ -31,7 +31,7 @@
 \brief An add-on module which provides multimedia-related widgets.
 
 Qt Multimedia Widgets provides additional multimedia-related widgets and
-controls. The classes expand the capabilities of the \l{Qt Multimedia} and
+controls. The classes expand the capabilities of the \l{Qt Multimedia} and
 \l{Qt Widgets} modules.
 
 \section1 Getting Started
@@ -46,7 +46,7 @@ To link against the C++ libraries, add the following to your project's
 \c CMakeLists.txt file. Substitute \c my_project with the name of your project.
 
 \code
-find_package(Qt6 COMPONENTS MultimediaWidgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS MultimediaWidgets)
 target_link_libraries(my_project PUBLIC Qt::MultimediaWidgets)
 \endcode
 
