@@ -124,7 +124,7 @@ void SteppingAudioRenderer::loop()
             if (!atEndEmitted)
                 emit m_decoder->isAtEnd();
             atEndEmitted = true;
-            paused.storeRelease(true);
+            paused = true;
             doneStep();
             timeOut = -1;
             return;
@@ -141,10 +141,10 @@ void SteppingAudioRenderer::loop()
         resampler.reset(new Resampler(frame.codec(), m_format));
 
     auto buffer = resampler->resample(frame.avFrame());
-    emit m_decoder->newAudioBuffer(buffer);
-
-    paused.storeRelaxed(true);
+    paused = true;
     timeOut = -1;
+
+    emit m_decoder->newAudioBuffer(buffer);
 }
 
 }

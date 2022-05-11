@@ -416,8 +416,8 @@ class Renderer : public Thread
 protected:
     QPlatformMediaPlayer::TrackType type;
 
-    QAtomicInteger<bool> step = false;
-    QAtomicInteger<bool> paused = true;
+    bool step = false;
+    bool paused = true;
     StreamDecoder *streamDecoder = nullptr;
     QAtomicInteger<bool> eos = false;
 
@@ -425,18 +425,20 @@ public:
     Renderer(QPlatformMediaPlayer::TrackType type);
 
     void setPaused(bool p) {
-        paused.storeRelease(p);
+        QMutexLocker locker(&mutex);
+        paused = p;
         if (!p)
             wake();
     }
     void singleStep() {
-        if (!paused.loadAcquire())
+        QMutexLocker locker(&mutex);
+        if (!paused)
             return;
-        step.storeRelease(true);
+        step = true;
         wake();
     }
     void doneStep() {
-        step.storeRelease(false);
+        step = false;
     }
     bool isAtEnd() { return !streamDecoder || eos.loadAcquire(); }
 

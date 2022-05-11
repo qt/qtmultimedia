@@ -603,9 +603,9 @@ bool Renderer::shouldWait() const
 {
     if (!streamDecoder)
         return true;
-    if (!paused.loadAcquire())
+    if (!paused)
         return false;
-    if (step.loadAcquire())
+    if (step)
         return false;
     return true;
 }
@@ -860,7 +860,7 @@ void AudioRenderer::loop()
         if (startTime < seekTime())
             return;
 
-        if (!paused.loadAcquire()) {
+        if (!paused) {
             auto buffer = resampler->resample(frame.avFrame());
 
             if (audioMuted)
