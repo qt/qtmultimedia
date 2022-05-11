@@ -562,13 +562,15 @@ void QSpatialAudioSound::getBuffer(float *buf, int nframes, int channels)
                 ++currentBuffer;
                 bufPos = 0;
             }
-            if (currentBuffer == buffers.size()) {
-                currentBuffer = 0;
-                ++m_currentLoop;
-            }
-            if (!m_loading && m_loops > 0 && m_currentLoop >= m_loops) {
-                m_playing = false;
-                m_currentLoop = 0;
+            if (!m_loading) {
+                if (currentBuffer == buffers.size()) {
+                    currentBuffer = 0;
+                    ++m_currentLoop;
+                }
+                if (m_loops > 0 && m_currentLoop >= m_loops) {
+                    m_playing = false;
+                    m_currentLoop = 0;
+                }
             }
         }
         Q_ASSERT(ff - buf == channels*nframes);
@@ -587,6 +589,7 @@ void QSpatialAudioSound::bufferReady()
 
 void QSpatialAudioSound::finished()
 {
+//    qDebug() << "finished";
     m_loading = false;
 }
 
