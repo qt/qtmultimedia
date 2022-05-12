@@ -57,6 +57,7 @@
 #include "qavfcamera_p.h"
 #elif defined(Q_OS_WINDOWS)
 #include "qwindowscamera_p.h"
+#include "qwindowsvideodevices_p.h"
 #endif
 
 #if QT_CONFIG(linux_v4l)
@@ -92,6 +93,8 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 #endif
 #ifdef Q_OS_DARWIN
     m_videoDevices = new QAVFVideoDevices(this);
+#elif defined(Q_OS_WINDOWS)
+    m_videoDevices = new QWindowsVideoDevices(this);
 #endif
 
 #ifndef QT_NO_DEBUG
