@@ -48,14 +48,12 @@
 #include "private/qplatformmediaintegration_p.h"
 
 #include <qjnienvironment.h>
+#include <QJniObject>
+#include <QCoreApplication>
 
 QT_BEGIN_NAMESPACE
 
-QAndroidMediaDevices::QAndroidMediaDevices()
-    : QPlatformMediaDevices()
-{
-    QAndroidMediaDevices::registerNativeMethods();
-}
+QAndroidMediaDevices::QAndroidMediaDevices() : QPlatformMediaDevices() { }
 
 QList<QAudioDevice> QAndroidMediaDevices::audioInputs() const
 {
@@ -97,15 +95,43 @@ static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
     static_cast<QAndroidMediaDevices*>(QPlatformMediaDevices::instance())->forwardAudioOutputsChanged();
 }
 
-bool QAndroidMediaDevices::registerNativeMethods()
+Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 {
-    static const JNINativeMethod methods[] = {
-        {"onAudioInputDevicesUpdated","()V",(void*)onAudioInputDevicesUpdated},
-        {"onAudioOutputDevicesUpdated", "()V",(void*)onAudioOutputDevicesUpdated}
+    static bool initialized = false;
+    if (initialized)
+        return JNI_VERSION_1_6;
+    initialized = true;
+
+    QT_USE_NAMESPACE
+    typedef union {
+        JNIEnv *nativeEnvironment;
+        void *venv;
+    } UnionJNIEnvToVoid;
+
+    UnionJNIEnvToVoid uenv;
+    uenv.venv = NULL;
+
+    if (vm->GetEnv(&uenv.venv, JNI_VERSION_1_6) != JNI_OK)
+        return JNI_ERR;
+
+    const JNINativeMethod methods[] = {
+        { "onAudioInputDevicesUpdated", "()V", (void *)onAudioInputDevicesUpdated },
+        { "onAudioOutputDevicesUpdated", "()V", (void *)onAudioOutputDevicesUpdated }
     };
-    const int size = std::size(methods);
-    return QJniEnvironment().registerNativeMethods(
-                "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", methods, size);
+
+    bool registered = QJniEnvironment().registerNativeMethods(
+            "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", methods,
+            std::size(methods));
+
+    if (!registered)
+        return JNI_ERR;
+
+    QJniObject::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                                       "registerAudioHeadsetStateReceiver",
+                                       "(Landroid/content/Context;)V",
+                                       QNativeInterface::QAndroidApplication::context());
+
+    return JNI_VERSION_1_6;
 }
 
 QT_END_NAMESPACE

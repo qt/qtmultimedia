@@ -68,7 +68,6 @@ public:
 
     void forwardAudioOutputsChanged();
     void forwardAudioInputsChanged();
-    static bool registerNativeMethods();
 };
 
 QT_END_NAMESPACE

@@ -69,7 +69,7 @@ public class QtAudioDeviceManager
         }
     }
 
-    private static void registerAudioHeadsetStateReceiver(Context context)
+    public static void registerAudioHeadsetStateReceiver(Context context)
     {
         IntentFilter audioDevicesFilter = new IntentFilter();
         audioDevicesFilter.addAction(AudioManager.ACTION_HEADSET_PLUG);
@@ -90,7 +90,6 @@ public class QtAudioDeviceManager
     static public void setContext(Context context)
     {
         m_audioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
-        registerAudioHeadsetStateReceiver(context);
     }
 
     private static String[] getAudioOutputDevices()
