@@ -1,8 +1,3 @@
-### SIMD headers (arm_neon.h) are broken on at least QNX/armv7
-if (QNX)
-    set(NO_SIMD_DEFINES PFFFT_SIMD_DISABLE DISABLE_SIMD)
-endif ()
-
 set(PFFFT_DIR "../3rdparty/pffft/" CACHE PATH "Path to pffft library")
 set(PFFFT_INCLUDE_DIR ${PFFFT_DIR})
 set(PFFFT_SOURCE
