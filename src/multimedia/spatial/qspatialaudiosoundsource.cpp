@@ -83,13 +83,16 @@ QSpatialAudioSoundSource::~QSpatialAudioSoundSource()
 /*!
     \property QSpatialAudioSoundSource::position
 
-    Defines the position of the sound source in 3D space. All units are
-    assumed to be in meters.
+    Defines the position of the sound source in 3D space. Units are in centimeters
+    by default.
+
+    \sa QSpatialAudioEngine::distanceScale
  */
 void QSpatialAudioSoundSource::setPosition(QVector3D pos)
 {
-    d->pos = pos;
     auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    pos *= ep->distanceScale;
+    d->pos = pos;
     if (ep)
         ep->api->SetSourcePosition(d->sourceId, pos.x(), pos.y(), pos.z());
     d->updateRoomEffects();
@@ -98,7 +101,8 @@ void QSpatialAudioSoundSource::setPosition(QVector3D pos)
 
 QVector3D QSpatialAudioSoundSource::position() const
 {
-    return d->pos;
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    return d->pos/ep->distanceScale;
 }
 
 /*!
@@ -311,11 +315,13 @@ QSpatialAudioSoundSource::DistanceModel QSpatialAudioSoundSource::distanceModel(
     object than the size, volume will stay constant. The size is also used to for
     occlusion calculations, where large sources can be partially occluded by a wall.
  */
-void QSpatialAudioSoundSource::setSize(float min)
+void QSpatialAudioSoundSource::setSize(float size)
 {
-    if (d->size == min)
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    size *= ep->distanceScale;
+    if (d->size == size)
         return;
-    d->size = min;
+    d->size = size;
 
     d->updateDistanceModel();
     emit sizeChanged();
@@ -323,7 +329,8 @@ void QSpatialAudioSoundSource::setSize(float min)
 
 float QSpatialAudioSoundSource::size() const
 {
-    return d->size;
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    return d->size/ep->distanceScale;
 }
 
 /*!
@@ -333,11 +340,13 @@ float QSpatialAudioSoundSource::size() const
     If the listener is further away from the sound object than the cutoff
     distance it won't be audible anymore.
  */
-void QSpatialAudioSoundSource::setDistanceCutoff(float max)
+void QSpatialAudioSoundSource::setDistanceCutoff(float cutoff)
 {
-    if (d->distanceCutoff == max)
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    cutoff *= ep->distanceScale;
+    if (d->distanceCutoff == cutoff)
         return;
-    d->distanceCutoff = max;
+    d->distanceCutoff = cutoff;
 
     d->updateDistanceModel();
     emit distanceCutoffChanged();
@@ -345,7 +354,8 @@ void QSpatialAudioSoundSource::setDistanceCutoff(float max)
 
 float QSpatialAudioSoundSource::distanceCutoff() const
 {
-    return d->distanceCutoff;
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    return d->distanceCutoff/ep->distanceScale;
 }
 
 /*!

@@ -148,6 +148,7 @@ void QSpatialAudioRoomPrivate::update()
 QSpatialAudioRoom::QSpatialAudioRoom(QSpatialAudioEngine *engine)
     : d(new QSpatialAudioRoomPrivate)
 {
+    Q_ASSERT(engine);
     d->engine = engine;
     auto *ep = QSpatialAudioEnginePrivate::get(engine);
     ep->addRoom(this);
@@ -212,11 +213,15 @@ QSpatialAudioRoom::~QSpatialAudioRoom()
 /*!
     \property QSpatialAudioRoom::position
 
-    Defines the position of the center of the room in 3D space. All units are
-    assumed to be in meters.
+    Defines the position of the center of the room in 3D space. Units are in centimeters
+    by default.
+
+    \sa dimensions, QSpatialAudioEngine::distanceScale
  */
 void QSpatialAudioRoom::setPosition(QVector3D pos)
 {
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    pos *= ep->distanceScale;
     if (toVector(d->roomProperties.position) == pos)
         return;
     toFloats(pos, d->roomProperties.position);
@@ -226,17 +231,24 @@ void QSpatialAudioRoom::setPosition(QVector3D pos)
 
 QVector3D QSpatialAudioRoom::position() const
 {
-    return toVector(d->roomProperties.position);
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto pos = toVector(d->roomProperties.position);
+    pos /= ep->distanceScale;
+    return pos;
 }
 
 /*!
     \property QSpatialAudioRoom::dimensions
 
-    Defines the dimensions of the room in 3D space. All units are
-    assumed to be in meters.
+    Defines the dimensions of the room in 3D space. Units are in centimeters
+    by default.
+
+    \sa position, QSpatialAudioEngine::distanceScale
  */
 void QSpatialAudioRoom::setDimensions(QVector3D dim)
 {
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    dim *= ep->distanceScale;
     if (toVector(d->roomProperties.dimensions) == dim)
         return;
     toFloats(dim, d->roomProperties.dimensions);
@@ -246,7 +258,10 @@ void QSpatialAudioRoom::setDimensions(QVector3D dim)
 
 QVector3D QSpatialAudioRoom::dimensions() const
 {
-    return toVector(d->roomProperties.dimensions);
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto dim = toVector(d->roomProperties.dimensions);
+    dim /= ep->distanceScale;
+    return dim;
 }
 
 /*!

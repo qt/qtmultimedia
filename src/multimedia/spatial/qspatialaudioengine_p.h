@@ -88,6 +88,11 @@ public:
     QSpatialAudioEngine::OutputMode outputMode = QSpatialAudioEngine::Normal;
     bool roomEffectsEnabled = true;
 
+    // Resonance Audio uses meters internally, while Qt Quick 3D and our API uses cm by default.
+    // To make things independent from the scale setting, we store all distances in meters internally
+    // and convert in the setters and getters.
+    float distanceScale = 0.01f;
+
     QMutex mutex;
     QAudioFormat format;
     QAudioDevice device;

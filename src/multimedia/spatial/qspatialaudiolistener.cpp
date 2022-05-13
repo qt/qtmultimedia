@@ -82,16 +82,19 @@ QSpatialAudioListener::~QSpatialAudioListener()
 }
 
 /*!
-    Sets the listener's position in 3D space to \a pos. Units are assumed to
-    represent meters.
+    Sets the listener's position in 3D space to \a pos. Units are in centimeters
+    by default.
+
+    \sa QSpatialAudioEngine::distanceScale
  */
 void QSpatialAudioListener::setPosition(QVector3D pos)
 {
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    pos *= ep->distanceScale;
     if (d->pos == pos)
         return;
 
     d->pos = pos;
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
     if (ep && ep->api) {
         ep->api->SetHeadPosition(pos.x(), pos.y(), pos.z());
         ep->listenerPositionDirty = true;
@@ -103,7 +106,8 @@ void QSpatialAudioListener::setPosition(QVector3D pos)
  */
 QVector3D QSpatialAudioListener::position() const
 {
-    return d->pos;
+    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    return d->pos/ep->distanceScale;
 }
 
 /*!

@@ -514,6 +514,34 @@ bool QSpatialAudioEngine::roomEffectsEnabled() const
     return d->roomEffectsEnabled;
 }
 
+/*!
+    \property QSpatialAudioEngine::distanceScale
+
+    Defines the scale of the coordinate system being used by the spatial audio engine.
+    By default, all units are in centimeters, in line with the default units being
+    used by Qt Quick 3D.
+
+    Set the distance scale to QSpatialAudioEngine::DistanceScaleMeter to get units in meters.
+*/
+void QSpatialAudioEngine::setDistanceScale(float scale)
+{
+    // multiply with 100, to get the conversion to meters that resonance audio uses
+    scale /= 100.f;
+    if (scale <= 0.0f) {
+        qWarning() << "QSpatialAudioEngine: Invalid distance scale.";
+        return;
+    }
+    if (scale == d->distanceScale)
+        return;
+    d->distanceScale = scale;
+    emit distanceScaleChanged();
+}
+
+float QSpatialAudioEngine::distanceScale() const
+{
+    return d->distanceScale*100.f;
+}
+
 
 /*! \class QSpatialAudioSound
     \internal

@@ -53,6 +53,7 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioEngine : public QObject
     Q_PROPERTY(QAudioDevice outputDevice READ outputDevice WRITE setOutputDevice NOTIFY outputDeviceChanged)
     Q_PROPERTY(float masterVolume READ masterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
     Q_PROPERTY(bool paused READ paused WRITE setPaused NOTIFY pausedChanged)
+    Q_PROPERTY(float distanceScale READ distanceScale WRITE setDistanceScale NOTIFY distanceScaleChanged)
 public:
     explicit QSpatialAudioEngine(QObject *parent = nullptr, int sampleRate = 44100);
     ~QSpatialAudioEngine();
@@ -83,11 +84,18 @@ public:
     void setRoomEffectsEnabled(bool enabled);
     bool roomEffectsEnabled() const;
 
+    static constexpr float DistanceScaleCentimeter = 1.f;
+    static constexpr float DistanceScaleMeter = 100.f;
+
+    void setDistanceScale(float scale);
+    float distanceScale() const;
+
 Q_SIGNALS:
     void outputModeChanged();
     void outputDeviceChanged();
     void masterVolumeChanged();
     void pausedChanged();
+    void distanceScaleChanged();
 
 public Q_SLOTS:
     void pause() { setPaused(true); }

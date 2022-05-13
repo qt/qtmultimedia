@@ -82,8 +82,10 @@ QQuick3DSpatialAudioRoom::~QQuick3DSpatialAudioRoom()
 /*!
     \qmlproperty vector3D SpatialAudioRoom::dimensions
 
-    Defines the dimensions of the room in 3D space. All units are
-    assumed to be in meters.
+    Defines the dimensions of the room in 3D space. Units are in centimeters
+    by default.
+
+    \sa position, QSpatialAudioEngine::distanceScale
  */
 void QQuick3DSpatialAudioRoom::setDimensions(QVector3D dim)
 {

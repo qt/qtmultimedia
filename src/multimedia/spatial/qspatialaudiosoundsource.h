@@ -105,10 +105,10 @@ public:
     void setDistanceModel(DistanceModel model);
     DistanceModel distanceModel() const;
 
-    void setSize(float min);
+    void setSize(float size);
     float size() const;
 
-    void setDistanceCutoff(float max);
+    void setDistanceCutoff(float cutoff);
     float distanceCutoff() const;
 
     void setManualAttenuation(float attenuation);

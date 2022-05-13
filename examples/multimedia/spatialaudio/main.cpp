@@ -74,8 +74,8 @@ public:
         grid->addWidget(new QLabel(tr("Elevation (-90 - 90 degree)")), 2, 0);
         grid->addWidget(elevation, 2, 1);
         distance = new QSlider(Qt::Horizontal);
-        distance->setRange(0, 100);
-        distance->setValue(10);
+        distance->setRange(0, 1000);
+        distance->setValue(100);
         grid->addWidget(new QLabel(tr("Distance (0 - 10 meter):")), 3, 0);
         grid->addWidget(distance, 3, 1);
         occlusion = new QSlider(Qt::Horizontal);
@@ -84,8 +84,8 @@ public:
         grid->addWidget(occlusion, 4, 1);
 
         roomDimension = new QSlider(Qt::Horizontal);
-        roomDimension->setRange(0, 100);
-        roomDimension->setValue(5);
+        roomDimension->setRange(0, 10000);
+        roomDimension->setValue(500);
         grid->addWidget(new QLabel(tr("Room dimension (0 - 100 meter):")), 5, 0);
         grid->addWidget(roomDimension, 5, 1);
 
@@ -107,9 +107,9 @@ public:
         connect(fileEdit, &QLineEdit::textChanged, this, &AudioWidget::fileChanged);
         connect(fileDialogButton, &QPushButton::clicked, this, &AudioWidget::openFileDialog);
 
-        connect(azimuth, &QSlider::valueChanged, this, &AudioWidget::newPosition);
-        connect(elevation, &QSlider::valueChanged, this, &AudioWidget::newPosition);
-        connect(distance, &QSlider::valueChanged, this, &AudioWidget::newPosition);
+        connect(azimuth, &QSlider::valueChanged, this, &AudioWidget::updatePosition);
+        connect(elevation, &QSlider::valueChanged, this, &AudioWidget::updatePosition);
+        connect(distance, &QSlider::valueChanged, this, &AudioWidget::updatePosition);
         connect(occlusion, &QSlider::valueChanged, this, &AudioWidget::newOcclusion);
 
         connect(roomDimension, &QSlider::valueChanged, this, &AudioWidget::updateRoom);
@@ -135,16 +135,15 @@ public:
         engine.start();
 
         sound = new QSpatialAudioSoundSource(&engine);
-
-        distance->setValue(1);
+        updatePosition();
     }
     void setFile(const QString &file) { fileEdit->setText(file); }
 private slots:
-    void newPosition()
+    void updatePosition()
     {
         float az = azimuth->value()/180.*M_PI;
         float el = elevation->value()/180.*M_PI;
-        float d = distance->value()/10.;
+        float d = distance->value();
 
         float x = d*sin(az)*cos(el);
         float y = d*cos(az)*cos(el);
@@ -172,7 +171,7 @@ private slots:
     void updateRoom()
     {
         float d = roomDimension->value();
-        room->setDimensions(QVector3D(d, d, 4));
+        room->setDimensions(QVector3D(d, d, 400));
         room->setReflectionGain(float(reflectionGain->value())/100);
         room->setReverbGain(float(reverbGain->value())/100);
     }
