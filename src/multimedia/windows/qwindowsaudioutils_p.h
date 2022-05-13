@@ -68,7 +68,7 @@ namespace QWindowsAudioUtils
     QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in);
     Q_MULTIMEDIA_EXPORT QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
     QWindowsIUPointer<IMFMediaType> formatToMediaType(const QAudioFormat &format);
-
+    QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count);
 }
 
 QT_END_NAMESPACE

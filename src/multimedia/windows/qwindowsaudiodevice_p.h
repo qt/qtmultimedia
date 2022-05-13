@@ -80,12 +80,12 @@ public:
 
     bool testSettings(const QAudioFormat& format) const;
 
-    int waveId() const { return devId; }
-    QWindowsIUPointer<IMMDevice> immDev() const { return immdev; }
+    int waveId() const { return m_devId; }
+    QWindowsIUPointer<IMMDevice> immDev() const { return m_immDev; }
 
 private:
-    quint32 devId;
-    QWindowsIUPointer<IMMDevice> immdev;
+    quint32 m_devId;
+    QWindowsIUPointer<IMMDevice> m_immDev;
 };
 
 

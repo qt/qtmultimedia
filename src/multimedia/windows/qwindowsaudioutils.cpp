@@ -65,7 +65,7 @@ static QAudioFormat::AudioChannelPosition channelFormatMap[] =
         , QAudioFormat::TopBackRight      // SPEAKER_TOP_BACK_RIGHT (0x20000)
         };
 
-static QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count)
+QAudioFormat::ChannelConfig QWindowsAudioUtils::maskToChannelConfig(UINT32 mask, int count)
 {
     quint32 config = 0;
     int set = 0;

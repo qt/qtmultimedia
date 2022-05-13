@@ -54,16 +54,17 @@
 #include <QtCore/QIODevice>
 #include <utility>
 #include <mmsystem.h>
+#include <initguid.h>
 #include <mmdeviceapi.h>
 #include "qwindowsaudiodevice_p.h"
 #include "qwindowsaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPointer<IMMDevice> immdev, int waveID, const QString &description, QAudioDevice::Mode mode)
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPointer<IMMDevice> immDev, int waveID, const QString &description, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(dev, mode),
-      devId(waveID),
-      immdev(std::move(immdev))
+      m_devId(waveID),
+      m_immDev(std::move(immDev))
 {
     this->description = description;
     preferredFormat.setSampleRate(44100);
@@ -74,11 +75,11 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPoint
 
     if(mode == QAudioDevice::Output) {
         WAVEOUTCAPS woc;
-        if (waveOutGetDevCaps(devId, &woc, sizeof(WAVEOUTCAPS)) == MMSYSERR_NOERROR)
+        if (waveOutGetDevCaps(m_devId, &woc, sizeof(WAVEOUTCAPS)) == MMSYSERR_NOERROR)
             fmt = woc.dwFormats;
     } else {
         WAVEINCAPS woc;
-        if (waveInGetDevCaps(devId, &woc, sizeof(WAVEINCAPS)) == MMSYSERR_NOERROR)
+        if (waveInGetDevCaps(m_devId, &woc, sizeof(WAVEINCAPS)) == MMSYSERR_NOERROR)
             fmt = woc.dwFormats;
     }
 
@@ -207,6 +208,20 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPoint
             break;
         }
     }
+
+    channelConfiguration = QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
+
+    QWindowsIUPointer<IPropertyStore> props;
+    if (m_immDev) {
+        HRESULT hr = m_immDev->OpenPropertyStore(STGM_READ, props.address());
+        if (SUCCEEDED(hr)) {
+            PROPVARIANT var;
+            PropVariantInit(&var);
+            hr = props->GetValue(PKEY_AudioEndpoint_PhysicalSpeakers, &var);
+            if (SUCCEEDED(hr) && var.uintVal != 0)
+                channelConfiguration = QWindowsAudioUtils::maskToChannelConfig(var.uintVal, maximumChannelCount);
+        }
+    }
 }
 
 QWindowsAudioDeviceInfo::~QWindowsAudioDeviceInfo()
@@ -219,10 +234,10 @@ bool QWindowsAudioDeviceInfo::testSettings(const QAudioFormat& format) const
     if (QWindowsAudioUtils::formatToWaveFormatExtensible(format, wfx)) {
         // query only, do not open device
         if (mode == QAudioDevice::Output) {
-            return (waveOutOpen(NULL, UINT_PTR(devId), &wfx.Format, 0, 0,
+            return (waveOutOpen(NULL, UINT_PTR(m_devId), &wfx.Format, 0, 0,
                                 WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
         } else { // AudioInput
-            return (waveInOpen(NULL, UINT_PTR(devId), &wfx.Format, 0, 0,
+            return (waveInOpen(NULL, UINT_PTR(m_devId), &wfx.Format, 0, 0,
                                 WAVE_FORMAT_QUERY) == MMSYSERR_NOERROR);
         }
     }
