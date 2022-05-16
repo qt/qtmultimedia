@@ -57,6 +57,7 @@ class CameraReaderCallback : public IMFSourceReaderCallback
 {
 public:
     CameraReaderCallback() : m_cRef(1) {}
+    virtual ~CameraReaderCallback() {}
 
     //from IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override
