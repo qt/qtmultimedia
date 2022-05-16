@@ -299,18 +299,21 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     auto framesContext = d->accel.hwFramesContextAsBuffer();
     if (framesContext)
         d->codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
+}
 
+bool VideoFrameEncoder::open()
+{
     AVDictionary *opts = nullptr;
     applyVideoEncoderOptions(d->settings, d->codec->name, d->codecContext, &opts);
     int res = avcodec_open2(d->codecContext, d->codec, &opts);
     if (res < 0) {
         avcodec_free_context(&d->codecContext);
         qWarning() << "Couldn't open codec for writing" << err2str(res);
-        d = {};
-        return;
+        return false;
     }
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base" << d->codecContext->time_base.num << d->codecContext->time_base.den;
     d->stream->time_base = d->codecContext->time_base;
+    return true;
 }
 
 qint64 VideoFrameEncoder::getPts(qint64 us)

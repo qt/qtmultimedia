@@ -457,6 +457,7 @@ void VideoEncoder::retrievePackets()
 void VideoEncoder::init()
 {
     qCDebug(qLcFFmpegEncoder) << "VideoEncoder::init started video device thread.";
+    frameEncoder->open();
 }
 
 void VideoEncoder::cleanup()

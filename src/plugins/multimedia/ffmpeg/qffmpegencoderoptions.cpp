@@ -214,6 +214,21 @@ static void apply_vaapi(const QMediaEncoderSettings &settings, AVCodecContext *c
 }
 #endif
 
+#ifdef Q_OS_WINDOWS
+static void apply_mf(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **opts)
+{
+    if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
+        codec->bit_rate = settings.videoBitRate();
+        av_dict_set(opts, "rate_control", "cbr", 0);
+    } else {
+        av_dict_set(opts, "rate_control", "quality", 0);
+        const char *scales[] = {
+            "25", "50", "75", "90", "100"
+        };
+        av_dict_set(opts, "quality", scales[settings.quality()], 0);
+    }
+}
+#endif
 
 namespace QFFmpeg {
 
@@ -240,6 +255,10 @@ const struct {
     { "hevc_vaapi", apply_vaapi },
     { "vp8_vaapi", apply_vaapi },
     { "vp9_vaapi", apply_vaapi },
+#endif
+#ifdef Q_OS_WINDOWS
+    { "hevc_mf", apply_mf },
+    { "h264_mf", apply_mf },
 #endif
     { nullptr, nullptr }
 };

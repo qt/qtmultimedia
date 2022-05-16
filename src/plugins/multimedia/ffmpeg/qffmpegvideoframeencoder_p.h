@@ -91,6 +91,7 @@ public:
     ~VideoFrameEncoder();
 
     void initWithFormatContext(AVFormatContext *formatContext);
+    bool open();
 
     bool isNull() const { return !d; }
 
