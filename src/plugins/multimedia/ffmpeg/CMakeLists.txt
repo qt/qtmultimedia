@@ -86,8 +86,13 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
 
 if (ANDROID)
     qt_internal_extend_target(QFFmpegMediaPlugin
+        SOURCES
+            qffmpeghwaccel_mediacodec.cpp qffmpeghwaccel_mediacodec_p.h
+            ../android/wrappers/jni/androidsurfacetexture_p.h
+            ../android/wrappers/jni/androidsurfacetexture.cpp
         INCLUDE_DIRECTORIES
             ${FFMPEG_DIR}/include
+            ../android/wrappers/jni/
     )
 
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES

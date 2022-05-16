@@ -142,6 +142,8 @@ public:
     const AVCodec *hardwareEncoderForCodecId(AVCodecID id) const;
     static HWAccel findHardwareAccelForCodecID(AVCodecID id);
 
+    static const AVCodec *hardwareDecoderForCodecId(AVCodecID id);
+
     void createFramesContext(AVPixelFormat swFormat, const QSize &size);
     AVBufferRef *hwFramesContextAsBuffer() const { return d ? d->hwFramesContext : nullptr; }
     AVHWFramesContext *hwFramesContext() const;

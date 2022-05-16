@@ -309,6 +309,8 @@ QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat
         return QVideoFrameFormat::Format_P010;
     case AV_PIX_FMT_P016:
         return QVideoFrameFormat::Format_P016;
+    case AV_PIX_FMT_MEDIACODEC:
+        return QVideoFrameFormat::Format_SamplerExternalOES;
     }
 
     if (needsConversion)
@@ -382,6 +384,9 @@ AVPixelFormat QFFmpegVideoBuffer::toAVPixelFormat(QVideoFrameFormat::PixelFormat
         return AV_PIX_FMT_P010;
     case QVideoFrameFormat::Format_P016:
         return AV_PIX_FMT_P016;
+
+    case QVideoFrameFormat::Format_SamplerExternalOES:
+        return AV_PIX_FMT_MEDIACODEC;
     }
 }
 

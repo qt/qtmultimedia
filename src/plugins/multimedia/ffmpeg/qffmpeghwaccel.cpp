@@ -47,6 +47,9 @@
 #if QT_CONFIG(wmf)
 #include "qffmpeghwaccel_d3d11_p.h"
 #endif
+#ifdef Q_OS_ANDROID
+#    include "qffmpeghwaccel_mediacodec_p.h"
+#endif
 #include "qffmpeg_p.h"
 #include "qffmpegvideobuffer_p.h"
 
@@ -145,6 +148,10 @@ AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt)
                     if (fmt[n] == AV_PIX_FMT_D3D11)
                         QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(s);
 #endif
+#ifdef Q_OS_ANDROID
+                    if (fmt[n] == AV_PIX_FMT_MEDIACODEC)
+                        QFFmpeg::MediaCodecTextureConverter::setupDecoderSurface(s);
+#endif
                     return fmt[n];
                 }
             }
@@ -230,9 +237,43 @@ AVPixelFormat HWAccel::hwFormat() const
         return AV_PIX_FMT_VIDEOTOOLBOX;
     case AV_HWDEVICE_TYPE_VAAPI:
         return AV_PIX_FMT_VAAPI;
+    case AV_HWDEVICE_TYPE_MEDIACODEC:
+        return AV_PIX_FMT_MEDIACODEC;
     default:
         return AV_PIX_FMT_NONE;
     }
+}
+
+const AVCodec *HWAccel::hardwareDecoderForCodecId(AVCodecID id)
+{
+    const auto getDecoder = [](AVCodecID id) {
+        switch (id) {
+#ifdef Q_OS_ANDROID
+        case AV_CODEC_ID_H264:
+            return avcodec_find_decoder_by_name("h264_mediacodec");
+        case AV_CODEC_ID_HEVC:
+            return avcodec_find_decoder_by_name("hevc_mediacodec");
+        case AV_CODEC_ID_MPEG2VIDEO:
+            return avcodec_find_decoder_by_name("mpeg2_mediacodec");
+        case AV_CODEC_ID_MPEG4:
+            return avcodec_find_decoder_by_name("mpeg4_mediacodec");
+        case AV_CODEC_ID_VP8:
+            return avcodec_find_decoder_by_name("vp8_mediacodec");
+        case AV_CODEC_ID_VP9:
+            return avcodec_find_decoder_by_name("vp9_mediacodec");
+#endif
+        default:
+            return avcodec_find_decoder(id);
+        }
+    };
+
+    const auto *codec = getDecoder(id);
+
+    // only if ffmpeg build was not setup properly
+    if (Q_UNLIKELY(!codec))
+        codec = avcodec_find_decoder(id);
+
+    return codec;
 }
 
 const AVCodec *HWAccel::hardwareEncoderForCodecId(AVCodecID id) const
@@ -372,6 +413,11 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
 #if QT_CONFIG(wmf)
     case AV_PIX_FMT_D3D11:
         d->backend = new D3D11TextureConverter(d->rhi);
+        break;
+#endif
+#ifdef Q_OS_ANDROID
+    case AV_PIX_FMT_MEDIACODEC:
+        d->backend = new MediaCodecTextureConverter(d->rhi);
         break;
 #endif
     default:

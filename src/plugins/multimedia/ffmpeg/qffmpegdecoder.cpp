@@ -90,7 +90,9 @@ Codec::Codec(AVFormatContext *format, int streamIndex)
     Q_ASSERT(streamIndex >= 0 && streamIndex < (int)format->nb_streams);
 
     AVStream *stream = format->streams[streamIndex];
-    const AVCodec *decoder = avcodec_find_decoder(stream->codecpar->codec_id);
+    const AVCodec *decoder =
+            QFFmpeg::HWAccel::hardwareDecoderForCodecId(stream->codecpar->codec_id);
+
     if (!decoder) {
         qCDebug(qLcDecoder) << "Failed to find a valid FFmpeg decoder";
         return;
@@ -705,6 +707,18 @@ void VideoRenderer::loop()
     if (sink) {
         qint64 startTime = frame.pts();
 //        qDebug() << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
+
+        // in practice this only happens with mediacodec
+        if (!frame.codec()->hwAccel().isNull() && !frame.avFrame()->hw_frames_ctx) {
+            HWAccel hwaccel = frame.codec()->hwAccel();
+            AVFrame *avframe = frame.avFrame();
+            if (!hwaccel.hwFramesContext())
+                hwaccel.createFramesContext(AVPixelFormat(avframe->format),
+                                            { avframe->width, avframe->height });
+
+            avframe->hw_frames_ctx = av_buffer_ref(hwaccel.hwFramesContextAsBuffer());
+        }
+
         QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(frame.takeAVFrame());
         QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
         format.setColorSpace(buffer->colorSpace());
