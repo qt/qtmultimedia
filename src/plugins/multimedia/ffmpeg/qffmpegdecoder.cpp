@@ -385,6 +385,21 @@ void StreamDecoder::killHelper()
     demuxer->removeStream(codec.streamIndex());
 }
 
+Packet StreamDecoder::peekPacket()
+{
+    QMutexLocker locker(&packetQueue.mutex);
+    if (packetQueue.queue.isEmpty()) {
+        if (demuxer)
+            demuxer->wake();
+        return {};
+    }
+    auto packet = packetQueue.queue.first();
+
+    if (demuxer)
+        demuxer->wake();
+    return packet;
+}
+
 Packet StreamDecoder::takePacket()
 {
     QMutexLocker locker(&packetQueue.mutex);
@@ -484,13 +499,16 @@ void StreamDecoder::decode()
         av_frame_free(&frame);
     }
 
-    Packet packet = takePacket();
+    Packet packet = peekPacket();
     if (!packet.isValid()) {
         timeOut = -1;
         return;
     }
 
-    avcodec_send_packet(codec.context(), packet.avPacket());
+    res = avcodec_send_packet(codec.context(), packet.avPacket());
+    if (res != AVERROR(EAGAIN)) {
+        takePacket();
+    }
     decoderHasNoFrames = false;
 }
 

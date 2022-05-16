@@ -387,6 +387,8 @@ public:
 
 private:
     Packet takePacket();
+    Packet peekPacket();
+
     void addFrame(const Frame &f);
 
     bool hasEnoughFrames() const
