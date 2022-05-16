@@ -867,8 +867,7 @@ void QV4L2Camera::setV4L2CameraFormat()
     streamParam.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     streamParam.parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-    int num, den;
-    qt_real_to_fraction(1./m_cameraFormat.maxFrameRate(), &num, &den);
+    auto [num, den] = qRealToFraction(1./m_cameraFormat.maxFrameRate());
     streamParam.parm.capture.timeperframe = { (uint)num, (uint)den };
     ioctl(d->v4l2FileDescriptor, VIDIOC_S_PARM, &streamParam);
 

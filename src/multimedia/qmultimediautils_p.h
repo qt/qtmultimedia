@@ -53,10 +53,16 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/private/qglobal_p.h>
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 
-Q_MULTIMEDIA_EXPORT void qt_real_to_fraction(qreal value, int *numerator, int *denominator);
+struct Fraction {
+    int numerator;
+    int denominator;
+};
+
+Q_MULTIMEDIA_EXPORT Fraction qRealToFraction(qreal value);
 
 QT_END_NAMESPACE
 

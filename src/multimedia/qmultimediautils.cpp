@@ -41,10 +41,12 @@
 
 QT_BEGIN_NAMESPACE
 
-void qt_real_to_fraction(qreal value, int *numerator, int *denominator)
+Fraction qRealToFraction(qreal value)
 {
-    if (!numerator || !denominator)
-        return;
+    int integral = int(floor(value));
+    value -= qreal(integral);
+    if (value == 0.)
+        return {integral, 1};
 
     const int dMax = 1000;
     int n1 = 0, d1 = 1, n2 = 1, d2 = 1;
@@ -53,19 +55,7 @@ void qt_real_to_fraction(qreal value, int *numerator, int *denominator)
         mid = qreal(n1 + n2) / (d1 + d2);
 
         if (qAbs(value - mid) < 0.000001) {
-            if (d1 + d2 <= dMax) {
-                *numerator = n1 + n2;
-                *denominator = d1 + d2;
-                return;
-            } else if (d2 > d1) {
-                *numerator = n2;
-                *denominator = d2;
-                return;
-            } else {
-                *numerator = n1;
-                *denominator = d1;
-                return;
-            }
+            break;
         } else if (value > mid) {
             n1 = n1 + n2;
             d1 = d1 + d2;
@@ -75,13 +65,12 @@ void qt_real_to_fraction(qreal value, int *numerator, int *denominator)
         }
     }
 
-    if (d1 > dMax) {
-        *numerator = n2;
-        *denominator = d2;
-    } else {
-        *numerator = n1;
-        *denominator = d1;
-    }
+    if (d1 + d2 <= dMax)
+        return {n1 + n2 + integral * (d1 + d2), d1 + d2};
+    else if (d2 < d1)
+        return { n2 + integral * d2, d2 };
+    else
+        return { n1 + integral * d1, d1 };
 }
 
 QT_END_NAMESPACE

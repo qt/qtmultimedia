@@ -258,13 +258,10 @@ QSize qt_device_format_pixel_aspect_ratio(AVCaptureDeviceFormat *format)
     if (!res.width || !resPAR.width)
         return QSize();
 
-    int n, d;
-    qt_real_to_fraction(resPAR.width > res.width
-                        ? res.width / qreal(resPAR.width)
-                        : resPAR.width / qreal(res.width),
-                        &n, &d);
+    auto frac = qRealToFraction(resPAR.width > res.width ? res.width / qreal(resPAR.width)
+                                                         : resPAR.width / qreal(res.width));
 
-    return QSize(n, d);
+    return QSize(frac.numerator, frac.denominator);
 }
 
 AVCaptureDeviceFormat *qt_find_best_resolution_match(AVCaptureDevice *captureDevice,
@@ -520,9 +517,8 @@ CMTime qt_adjusted_frame_duration(AVFrameRateRange *range, qreal fps)
     if (fps >= range.maxFrameRate)
         return range.minFrameDuration;
 
-    int n, d;
-    qt_real_to_fraction(1. / fps, &n, &d);
-    return CMTimeMake(n, d);
+    auto frac = qRealToFraction(1. / fps);
+    return CMTimeMake(frac.numerator, frac.denominator);
 }
 
 void qt_set_framerate_limits(AVCaptureDevice *captureDevice, qreal minFPS, qreal maxFPS)

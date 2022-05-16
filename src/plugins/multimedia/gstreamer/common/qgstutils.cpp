@@ -357,17 +357,14 @@ QGstMutableCaps QGstMutableCaps::fromCameraFormat(const QCameraFormat &format)
 
     QSize size = format.resolution();
     GstStructure *structure = nullptr;
-//    int num = 0;
-//    int den = 1;
-//    if (format.maxFrameRate() > 0)
-//        qt_real_to_fraction(1. / format.maxFrameRate(), &num, &den);
+//    auto [num, den] = qRealToFraction(format.maxFrameRate());
 //    qDebug() << "fromCameraFormat" << format.maxFrameRate() << num << den;
 
     if (format.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
         structure = gst_structure_new("image/jpeg",
                                       "width"    , G_TYPE_INT, size.width(),
                                       "height"   , G_TYPE_INT, size.height(),
-//                                      "framerate", GST_TYPE_FRACTION, den, num,
+//                                      "framerate", GST_TYPE_FRACTION, num, den,
                                       nullptr);
     } else {
         int index = indexOfVideoFormat(format.pixelFormat());
@@ -378,7 +375,7 @@ QGstMutableCaps QGstMutableCaps::fromCameraFormat(const QCameraFormat &format)
                                       "format"   , G_TYPE_STRING, gst_video_format_to_string(gstFormat),
                                       "width"    , G_TYPE_INT, size.width(),
                                       "height"   , G_TYPE_INT, size.height(),
-//                                      "framerate", GST_TYPE_FRACTION, den, num,
+//                                      "framerate", GST_TYPE_FRACTION, num, den,
                                       nullptr);
     }
     gst_caps_append_structure(caps.caps, structure);

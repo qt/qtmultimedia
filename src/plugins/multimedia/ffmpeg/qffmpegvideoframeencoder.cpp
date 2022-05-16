@@ -290,8 +290,7 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     avcodec_parameters_to_context(d->codecContext, d->stream->codecpar);
     d->codecContext->time_base = d->stream->time_base;
     qCDebug(qLcVideoFrameEncoder) << "requesting time base" << d->codecContext->time_base.num << d->codecContext->time_base.den;
-    int num, den;
-    qt_real_to_fraction(requestedRate, &num, &den);
+    auto [num, den] = qRealToFraction(requestedRate);
     d->codecContext->framerate = { num, den };
     auto deviceContext = d->accel.hwDeviceContextAsBuffer();
     if (deviceContext)
