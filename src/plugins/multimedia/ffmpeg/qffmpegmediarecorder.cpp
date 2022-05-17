@@ -106,6 +106,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     encoder->setMetaData(m_metaData);
     connect(encoder, &QFFmpeg::Encoder::durationChanged, this, &QFFmpegMediaRecorder::newDuration);
     connect(encoder, &QFFmpeg::Encoder::finalizationDone, this, &QFFmpegMediaRecorder::finalizationDone);
+    connect(encoder, &QFFmpeg::Encoder::error, this, &QFFmpegMediaRecorder::handleSessionError);
 
     auto *audioInput = m_session->audioInput();
     if (audioInput)

@@ -110,6 +110,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void durationChanged(qint64 duration);
+    void error(QMediaRecorder::Error code, const QString &description);
     void finalizationDone();
 
 public:
