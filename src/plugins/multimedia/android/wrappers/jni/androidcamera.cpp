@@ -44,6 +44,7 @@
 #include "qandroidmultimediautils_p.h"
 #include "qandroidglobal_p.h"
 
+#include <qhash.h>
 #include <qstringlist.h>
 #include <qdebug.h>
 #include <QtCore/qthread.h>

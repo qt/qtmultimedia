@@ -54,6 +54,8 @@
 
 #include <private/qplatformcamera_p.h>
 
+#include <qmap.h>
+
 QT_BEGIN_NAMESPACE
 
 class QAndroidCameraSession;

@@ -54,6 +54,7 @@
 #include <qglobal.h>
 #include <private/qplatformmediaplayer_p.h>
 #include <qandroidmetadata_p.h>
+#include <qmap.h>
 #include <qsize.h>
 #include <qurl.h>
 
