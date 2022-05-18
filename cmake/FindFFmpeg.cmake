@@ -102,6 +102,18 @@ macro(find_component _component _pkgconfig _library _header)
     pkg_check_modules(PC_${_component} ${_pkgconfig})
   endif ()
 
+  if (FFMPEG_DIR OR FFMPEG_ROOT)
+      set(__find_ffmpeg_backup_root_dir "${CMAKE_FIND_ROOT_PATH}")
+  endif()
+
+  if(FFMPEG_DIR)
+       list(APPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_DIR}")
+  endif()
+
+  if(FFMPEG_ROOT)
+      list(APPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_ROOT}")
+  endif()
+
   find_path(${_component}_INCLUDE_DIRS ${_header}
     HINTS
       ${PC_${_component}_INCLUDEDIR}
@@ -123,6 +135,10 @@ macro(find_component _component _pkgconfig _library _header)
     PATH_SUFFIXES
       lib
   )
+
+  if(FFMPEG_DIR OR FFMPEG_ROOT)
+    set(CMAKE_FIND_ROOT_PATH "${__find_ffmpeg_backup_root_dir}")
+  endif()
 
   get_filename_component(${_component}_LIBRARY_DIR_FROM_FIND ${${_component}_LIBRARY} DIRECTORY)
   get_filename_component(${_component}_LIBRARY_FROM_FIND ${${_component}_LIBRARY} NAME)

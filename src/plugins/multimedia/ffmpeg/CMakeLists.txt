@@ -83,3 +83,20 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
     SOURCES
         qv4l2camera.cpp qv4l2camera_p.h
 )
+
+if (ANDROID)
+    qt_internal_extend_target(QFFmpegMediaPlugin
+        INCLUDE_DIRECTORIES
+            ${FFMPEG_DIR}/include
+    )
+
+    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
+        plugins/multimedia/libplugins_multimedia_ffmegmediaplugin.so
+    )
+
+    set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
+        android.permission.CAMERA android.permission.RECORD_AUDIO
+        android.permission.BLUETOOTH
+        android.permission.MODIFY_AUDIO_SETTINGS
+    )
+endif()

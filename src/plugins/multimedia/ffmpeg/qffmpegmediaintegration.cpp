@@ -60,6 +60,13 @@
 #include "qwindowsvideodevices_p.h"
 #endif
 
+#ifdef Q_OS_ANDROID
+#    include "jni.h"
+extern "C" {
+#    include <libavcodec/jni.h>
+}
+#endif
+
 #if QT_CONFIG(linux_v4l)
 #include "qv4l2camera_p.h"
 #endif
@@ -163,6 +170,27 @@ QPlatformAudioInput *QFFmpegMediaIntegration::createAudioInput(QAudioInput *inpu
 {
     return new QFFmpegAudioInput(input);
 }
+
+#ifdef Q_OS_ANDROID
+Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
+{
+    static bool initialized = false;
+    if (initialized)
+        return JNI_VERSION_1_6;
+    initialized = true;
+
+    QT_USE_NAMESPACE
+    void *environment;
+    if (vm->GetEnv(&environment, JNI_VERSION_1_6))
+        return JNI_ERR;
+
+    // setting our javavm into ffmpeg.
+    if (av_jni_set_java_vm(vm, nullptr))
+        return JNI_ERR;
+
+    return JNI_VERSION_1_6;
+}
+#endif
 
 QT_END_NAMESPACE
 
