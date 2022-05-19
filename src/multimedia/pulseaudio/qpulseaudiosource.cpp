@@ -402,6 +402,8 @@ qsizetype QPulseAudioSource::bytesReady() const
 
 qint64 QPulseAudioSource::read(char *data, qint64 len)
 {
+    Q_ASSERT(data != nullptr || len == 0);
+
     m_bytesAvailable = checkBytesReady();
 
     setError(QAudio::NoError);
@@ -412,7 +414,8 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
 
     if (!m_pullMode && !m_tempBuffer.isEmpty()) {
         readBytes = qMin(static_cast<int>(len), m_tempBuffer.size());
-        memcpy(data, m_tempBuffer.constData(), readBytes);
+        if (readBytes)
+            memcpy(data, m_tempBuffer.constData(), readBytes);
         m_totalTimeValue += readBytes;
 
         if (readBytes < m_tempBuffer.size()) {
@@ -498,9 +501,10 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
 
 void QPulseAudioSource::applyVolume(const void *src, void *dest, int len)
 {
+    Q_ASSERT((src && dest) || len == 0);
     if (m_volume < 1.f)
         QAudioHelperInternal::qMultiplySamples(m_volume, m_format, src, dest, len);
-    else
+    else if (len)
         memcpy(dest, src, len);
 }
 
