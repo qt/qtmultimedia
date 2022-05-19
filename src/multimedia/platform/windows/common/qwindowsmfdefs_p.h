@@ -82,6 +82,7 @@ extern "C" HRESULT WINAPI MFCreateDeviceSource(IMFAttributes *pAttributes, IMFMe
 
 #define QMM_MFSESSION_GETFULLTOPOLOGY_CURRENT 1
 #define QMM_PRESENTATION_CURRENT_POSITION 0x7fffffffffffffff
+#define QMM_WININET_E_CANNOT_CONNECT ((HRESULT)0x80072EFDL)
 
 #ifndef __IMFVideoProcessor_INTERFACE_DEFINED__
 #define __IMFVideoProcessor_INTERFACE_DEFINED__
