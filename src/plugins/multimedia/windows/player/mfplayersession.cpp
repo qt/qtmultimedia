@@ -60,6 +60,7 @@
 #include "mfplayersession_p.h"
 #include <mferror.h>
 #include <nserror.h>
+#include <winerror.h>
 #include "sourceresolver_p.h"
 #include "samplegrabber_p.h"
 #include "mftvideo_p.h"
@@ -216,7 +217,8 @@ void MFPlayerSession::load(const QUrl &url, QIODevice *stream)
     } else if (createSession()) {
         changeStatus(QMediaPlayer::LoadingMedia);
         m_sourceResolver->load(url, stream);
-        m_updateRoutingOnStart = true;
+        if (url.isLocalFile())
+            m_updateRoutingOnStart = true;
     }
     positionChanged(position());
 }
@@ -240,7 +242,13 @@ void MFPlayerSession::handleSourceError(long hr)
         errorCode = QMediaPlayer::FormatError;
         errorString = tr("Unsupported media type.");
         break;
+    case QMM_WININET_E_CANNOT_CONNECT:
+        errorCode = QMediaPlayer::NetworkError;
+        errorString = tr("A connection with the server could not be established.");
+        break;
     default:
+        qWarning() << "handleSourceError:"
+                   << Qt::showbase << Qt::hex << Qt::uppercasedigits << static_cast<quint32>(hr);
         errorString = tr("Failed to load source.");
         break;
     }
@@ -1636,8 +1644,25 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             break;
         }
         changeStatus(QMediaPlayer::InvalidMedia);
-        qWarning() << "handleSessionEvent: serious error = " << hrStatus;
-        emit error(QMediaPlayer::ResourceError, tr("Media session serious error."), true);
+        qWarning() << "handleSessionEvent: serious error = "
+                   << Qt::showbase << Qt::hex << Qt::uppercasedigits << static_cast<quint32>(hrStatus);
+        switch (hrStatus) {
+        case MF_E_NET_READ:
+            emit error(QMediaPlayer::NetworkError, tr("Error reading from the network."), true);
+            break;
+        case MF_E_NET_WRITE:
+            emit error(QMediaPlayer::NetworkError, tr("Error writing to the network."), true);
+            break;
+        case NS_E_FIREWALL:
+            emit error(QMediaPlayer::NetworkError, tr("Network packets might be blocked by a firewall."), true);
+            break;
+        case MF_E_MEDIAPROC_WRONGSTATE:
+            emit error(QMediaPlayer::ResourceError, tr("Media session state error."), true);
+            break;
+        default:
+            emit error(QMediaPlayer::ResourceError, tr("Media session serious error."), true);
+            break;
+        }
         break;
     case MESessionRateChanged:
         // If the rate change succeeded, we've already got the rate
