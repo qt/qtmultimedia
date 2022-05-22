@@ -93,12 +93,15 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-public:
     void streamUnderflowCallback();
+
+protected:
+    void timerEvent(QTimerEvent *event) override;
 
 private:
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
+    void startReading();
 
     bool open();
     void close();
@@ -109,34 +112,36 @@ private Q_SLOTS:
     void onPulseContextFailed();
 
 private:
+    pa_sample_spec m_spec = {};
+    // calculate timing manually, as pulseaudio doesn't give us good enough data
+    mutable timeval lastTimingInfo = {};
+
+    mutable QList<qint64> latencyList; // last latency values
+
     QByteArray m_device;
     QByteArray m_streamName;
     QAudioFormat m_format;
-    QAudio::Error m_errorState;
-    QAudio::State m_deviceState;
-    bool m_pullMode;
-    bool m_opened;
-    QIODevice *m_audioSource;
-    QTimer m_periodTimer;
-    int m_periodTime;
-    pa_stream *m_stream;
-    int m_periodSize;
-    int m_bufferSize;
-    int m_maxBufferSize;
-    qint64 m_totalTimeValue;
-    QTimer *m_tickTimer;
-    char *m_audioBuffer;
-    qint64 m_elapsedTimeOffset;
-    bool m_resuming;
+    QBasicTimer m_tickTimer;
 
-    // calculate timing manually, as pulseaudio doesn't give us good enough data
-    mutable timeval lastTimingInfo = {};
-    mutable QList<qint64> latencyList; // last latency values
+    QIODevice *m_audioSource = nullptr;
+    pa_stream *m_stream = nullptr;
+    char *m_audioBuffer = nullptr;
+
+    qint64 m_totalTimeValue = 0;
+    qint64 m_elapsedTimeOffset = 0;
     mutable qint64 averageLatency = 0; // average latency
     mutable qint64 lastProcessedUSecs = 0;
+    qreal m_volume = 1.0;
 
-    qreal m_volume;
-    pa_sample_spec m_spec;
+    QAudio::Error m_errorState = QAudio::NoError;
+    QAudio::State m_deviceState = QAudio::StoppedState;
+    int m_periodSize = 0;
+    int m_bufferSize = 0;
+    int m_maxBufferSize = 0;
+    int m_periodTime = 0;
+    bool m_pullMode = true;
+    bool m_opened = false;
+    bool m_resuming = false;
 };
 
 class PulseOutputPrivate : public QIODevice

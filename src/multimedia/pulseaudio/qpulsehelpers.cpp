@@ -41,6 +41,8 @@
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(qLcPulseAudioOut, "qt.multimedia.pulseaudio.output")
+
 namespace QPulseAudioInternal
 {
 pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format)
@@ -230,62 +232,6 @@ QAudioFormat sampleSpecToAudioFormat(const pa_sample_spec &spec)
     format.setSampleFormat(sampleFormat);
     return format;
 }
-
-#ifdef DEBUG_PULSE
-QString stateToQString(pa_stream_state_t state)
-{
-    switch (state)
-    {
-    case PA_STREAM_UNCONNECTED: return "Unconnected";
-    case PA_STREAM_CREATING:    return "Creating";
-    case PA_STREAM_READY:       return "Ready";
-    case PA_STREAM_FAILED:      return "Failed";
-    case PA_STREAM_TERMINATED:  return "Terminated";
-    }
-
-    return QString("Unknown state: %0").arg(state);
-}
-
-QString sampleFormatToQString(pa_sample_format format)
-{
-    switch (format)
-    {
-    case PA_SAMPLE_U8:          return "Unsigned 8 Bit PCM.";
-    case PA_SAMPLE_ALAW:        return "8 Bit a-Law ";
-    case PA_SAMPLE_ULAW:        return "8 Bit mu-Law";
-    case PA_SAMPLE_S16LE:       return "Signed 16 Bit PCM, little endian (PC).";
-    case PA_SAMPLE_S16BE:       return "Signed 16 Bit PCM, big endian.";
-    case PA_SAMPLE_FLOAT32LE:   return "32 Bit IEEE floating point, little endian (PC), range -1.0 to 1.0";
-    case PA_SAMPLE_FLOAT32BE:   return "32 Bit IEEE floating point, big endian, range -1.0 to 1.0";
-    case PA_SAMPLE_S32LE:       return "Signed 32 Bit PCM, little endian (PC).";
-    case PA_SAMPLE_S32BE:       return "Signed 32 Bit PCM, big endian.";
-    case PA_SAMPLE_S24LE:       return "Signed 24 Bit PCM packed, little endian (PC).";
-    case PA_SAMPLE_S24BE:       return "Signed 24 Bit PCM packed, big endian.";
-    case PA_SAMPLE_S24_32LE:    return "Signed 24 Bit PCM in LSB of 32 Bit words, little endian (PC).";
-    case PA_SAMPLE_S24_32BE:    return "Signed 24 Bit PCM in LSB of 32 Bit words, big endian.";
-    case PA_SAMPLE_MAX:         return "Upper limit of valid sample types.";
-    case PA_SAMPLE_INVALID:     return "Invalid sample format";
-    }
-
-    return QString("Invalid value: %0").arg(format);
-}
-
-QString stateToQString(pa_context_state_t state)
-{
-    switch (state)
-    {
-    case PA_CONTEXT_UNCONNECTED:  return "Unconnected";
-    case PA_CONTEXT_CONNECTING:   return "Connecting";
-    case PA_CONTEXT_AUTHORIZING:  return "Authorizing";
-    case PA_CONTEXT_SETTING_NAME: return "Setting Name";
-    case PA_CONTEXT_READY:        return "Ready";
-    case PA_CONTEXT_FAILED:       return "Failed";
-    case PA_CONTEXT_TERMINATED:   return "Terminated";
-    }
-
-    return QString("Unknown state: %0").arg(state);
-}
-#endif
 
 }
 
