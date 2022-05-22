@@ -94,6 +94,7 @@ public:
     qreal volume() const override;
 
     void streamUnderflowCallback();
+    void streamDrainedCallback();
 
 protected:
     void timerEvent(QTimerEvent *event) override;

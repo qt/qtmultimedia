@@ -134,6 +134,8 @@ static void outputStreamDrainComplete(pa_stream *stream, int success, void *user
     Q_UNUSED(stream);
 
     qCDebug(qLcPulseAudioOut) << "Stream drained:" << bool(success) << userdata;
+    if (success && userdata)
+        static_cast<QPulseAudioSink *>(userdata)->streamDrainedCallback();
 }
 
 static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *userdata)
@@ -187,10 +189,21 @@ QAudio::State QPulseAudioSink::state() const
 
 void QPulseAudioSink::streamUnderflowCallback()
 {
-    if (m_deviceState != QAudio::IdleState && !m_resuming) {
+    if (m_audioSource && m_audioSource->atEnd()) {
+        qCDebug(qLcPulseAudioOut) << "Draining stream at end of buffer";
+        pa_operation *o = pa_stream_drain(m_stream, outputStreamDrainComplete, this);
+        if (o)
+            pa_operation_unref(o);
+    } else if (m_deviceState != QAudio::IdleState && !m_resuming) {
         setError(QAudio::UnderrunError);
         setState(QAudio::IdleState);
     }
+}
+
+void QPulseAudioSink::streamDrainedCallback()
+{
+    setError(QAudio::NoError);
+    setState(QAudio::IdleState);
 }
 
 void QPulseAudioSink::start(QIODevice *device)
