@@ -678,7 +678,7 @@ void QPulseAudioSink::resume()
 
         m_tickTimer.start(m_periodTime, this);
 
-        setState(m_pullMode ? QAudio::ActiveState : QAudio::IdleState);
+        setState(QAudio::ActiveState);
         setError(QAudio::NoError);
     }
 }
