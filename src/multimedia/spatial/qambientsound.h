@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,38 +34,68 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QAMBIENTSOUND_H
+#define QAMBIENTSOUND_H
 
-#include <QtQml/qqmlextensionplugin.h>
-#include <QtQml/qqml.h>
-#include <QtQml/qqmlengine.h>
-#include <QtQml/qqmlcomponent.h>
-#include "qtquick3dsoundglobal_p.h"
-#include "qquick3dspatialaudiolistener_p.h"
-#include "qquick3dspatialaudiosoundsource_p.h"
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/QUrl>
+#include <QtCore/QObject>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioQuickModule : public QQmlEngineExtensionPlugin
+class QAudioEngine;
+class QAmbientSoundPrivate;
+
+class Q_MULTIMEDIA_EXPORT QAmbientSound : public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID QQmlEngineExtensionInterface_iid)
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
 
 public:
-    QSpatialAudioQuickModule(QObject *parent = nullptr)
-        : QQmlEngineExtensionPlugin(parent)
-    {
-        volatile auto registration = qml_register_types_QtQuick3D_SpatialAudio;
-        Q_UNUSED(registration);
-    }
+    explicit QAmbientSound(QAudioEngine *engine);
+    ~QAmbientSound();
 
-    void initializeEngine(QQmlEngine *engine, const char *uri) override
+    void setSource(const QUrl &url);
+    QUrl source() const;
+
+    enum Loops
     {
-        Q_UNUSED(engine);
-        Q_UNUSED(uri);
-    }
+        Infinite = -1,
+        Once = 1
+    };
+    Q_ENUM(Loops)
+
+    int loops() const;
+    void setLoops(int loops);
+
+    bool autoPlay() const;
+    void setAutoPlay(bool autoPlay);
+
+    void setVolume(float volume);
+    float volume() const;
+
+    QAudioEngine *engine() const;
+
+Q_SIGNALS:
+    void sourceChanged();
+    void loopsChanged();
+    void autoPlayChanged();
+    void volumeChanged();
+
+public Q_SLOTS:
+    void play();
+    void pause();
+    void stop();
+
+private:
+    void setEngine(QAudioEngine *engine);
+    friend class QAmbientSoundPrivate;
+    QAmbientSoundPrivate *d = nullptr;
 };
 
 QT_END_NAMESPACE
 
-#include "quick3dspatialaudio_plugin.moc"
-
+#endif

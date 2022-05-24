@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,63 +34,27 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQUICK3DSPATIALAUDIOSTEREOSOUND_H
-#define QQUICK3DSPATIALAUDIOSTEREOSOUND_H
 
-#include <private/qquick3dnode_p.h>
-#include <QUrl>
-#include <qvector3d.h>
+#ifndef QQUICK3DAUDIOTYPES_H
+#define QQUICK3DAUDIOTYPES_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtQml/qqml.h>
+#include <private/qtquick3daudioglobal_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioStereoSource;
-
-class QQuick3DSpatialAudioStereoSource : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
-    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
-    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
-    QML_NAMED_ELEMENT(SpatialAudioStereoSource)
-
-public:
-    QQuick3DSpatialAudioStereoSource();
-    ~QQuick3DSpatialAudioStereoSource();
-
-    void setSource(QUrl source);
-    QUrl source() const;
-
-    void setVolume(float volume);
-    float volume() const;
-
-    enum Loops
-    {
-        Infinite = -1,
-        Once = 1
-    };
-    Q_ENUM(Loops)
-
-    int loops() const;
-    void setLoops(int loops);
-
-    bool autoPlay() const;
-    void setAutoPlay(bool autoPlay);
-
-public Q_SLOTS:
-    void play();
-    void pause();
-    void stop();
-
-Q_SIGNALS:
-    void sourceChanged();
-    void volumeChanged();
-    void loopsChanged();
-    void autoPlayChanged();
-
-private:
-    QSpatialAudioStereoSource *m_sound = nullptr;
-};
+// Nothing for now
 
 QT_END_NAMESPACE
 

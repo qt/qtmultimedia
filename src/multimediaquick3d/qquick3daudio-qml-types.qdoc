@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-\qmlmodule QtQuick3D.SpatialAudio
+\qmlmodule QtQuick3D.Audio
 \title QtQuick3D.SpatialAudio QML Types
 \ingroup qmlmodules
 \brief Provides QML types for spatial audio in Qt Quick 3D.
@@ -47,10 +47,10 @@ Qt Quick3D Spatial Audio QML types can be imported into your application using t
 following import statement in your .qml file:
 
 \qml \QtMinorVersion
-import QtQuick3D.SpatialAudio
+import QtQuick3D.Audio
 \endqml
 
-\generatelist qmltypesbymodule QtQuick3D.SpatialAudio
+\generatelist qmltypesbymodule QtQuick3D.Audio
 
 \noautolist
 */

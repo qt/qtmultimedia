@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -35,8 +35,8 @@
 **
 ****************************************************************************/
 
-#ifndef QSPATIALAUDIOROOM_H
-#define QSPATIALAUDIOROOM_H
+#ifndef QAUDIOROOM_H
+#define QAUDIOROOM_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
@@ -44,10 +44,10 @@
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QSpatialAudioRoomPrivate;
+class QAudioEngine;
+class QAudioRoomPrivate;
 
-class Q_MULTIMEDIA_EXPORT QSpatialAudioRoom : public QObject
+class Q_MULTIMEDIA_EXPORT QAudioRoom : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QVector3D position READ position WRITE setPosition NOTIFY positionChanged)
@@ -58,8 +58,8 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioRoom : public QObject
     Q_PROPERTY(float reverbTime READ reverbTime WRITE setReverbTime NOTIFY reverbTimeChanged)
     Q_PROPERTY(float reverbBrightness READ reverbBrightness WRITE setReverbBrightness NOTIFY reverbBrightnessChanged)
 public:
-    QSpatialAudioRoom(QSpatialAudioEngine *engine);
-    ~QSpatialAudioRoom();
+    QAudioRoom(QAudioEngine *engine);
+    ~QAudioRoom();
 
     enum Material {
       Transparent,
@@ -132,8 +132,8 @@ Q_SIGNALS:
     void reverbBrightnessChanged();
 
 private:
-    friend class QSpatialAudioRoomPrivate;
-    QSpatialAudioRoomPrivate *d;
+    friend class QAudioRoomPrivate;
+    QAudioRoomPrivate *d;
 };
 
 QT_END_NAMESPACE

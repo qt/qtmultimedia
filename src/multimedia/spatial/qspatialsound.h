@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,20 +34,26 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQUICK3DSOUND_H
-#define QQUICK3DSOUND_H
+#ifndef QSPATIALSOUND_H
+#define QSPATIALSOUND_H
 
-#include <private/qquick3dnode_p.h>
-#include <QUrl>
-#include <qvector3d.h>
-#include <qspatialaudiosoundsource.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/QObject>
+#include <QtGui/qvector3d.h>
+#include <QtGui/qquaternion.h>
 
 QT_BEGIN_NAMESPACE
 
-class QQuick3DSpatialAudioSoundSource : public QQuick3DNode
+class QAudioEngine;
+class QAmbientSoundPrivate;
+
+class QSpatialSoundPrivate;
+class Q_MULTIMEDIA_EXPORT QSpatialSound : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QVector3D position READ position WRITE setPosition NOTIFY positionChanged)
+    Q_PROPERTY(QQuaternion rotation READ rotation WRITE setRotation NOTIFY rotationChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(DistanceModel distanceModel READ distanceModel WRITE setDistanceModel NOTIFY distanceModelChanged)
     Q_PROPERTY(float size READ size WRITE setSize NOTIFY sizeChanged)
@@ -59,32 +65,50 @@ class QQuick3DSpatialAudioSoundSource : public QQuick3DNode
     Q_PROPERTY(float nearFieldGain READ nearFieldGain WRITE setNearFieldGain NOTIFY nearFieldGainChanged)
     Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
     Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
-    QML_NAMED_ELEMENT(SpatialAudioSoundSource)
 
 public:
-    QQuick3DSpatialAudioSoundSource();
-    ~QQuick3DSpatialAudioSoundSource();
+    explicit QSpatialSound(QAudioEngine *engine);
+    ~QSpatialSound();
 
-    void setSource(QUrl source);
+    void setSource(const QUrl &url);
     QUrl source() const;
+
+    enum Loops
+    {
+        Infinite = -1,
+        Once = 1
+    };
+    Q_ENUM(Loops)
+
+    int loops() const;
+    void setLoops(int loops);
+
+    bool autoPlay() const;
+    void setAutoPlay(bool autoPlay);
+
+    void setPosition(QVector3D pos);
+    QVector3D position() const;
+
+    void setRotation(const QQuaternion &q);
+    QQuaternion rotation() const;
 
     void setVolume(float volume);
     float volume() const;
 
     enum DistanceModel {
-        Logarithmic,
-        Linear,
-        ManualAttenutation
+        DistanceModel_Logarithmic,
+        DistanceModel_Linear,
+        DistanceModel_ManualAttenutation
     };
     Q_ENUM(DistanceModel);
 
     void setDistanceModel(DistanceModel model);
     DistanceModel distanceModel() const;
 
-    void setSize(float min);
+    void setSize(float size);
     float size() const;
 
-    void setDistanceCutoff(float max);
+    void setDistanceCutoff(float cutoff);
     float distanceCutoff() const;
 
     void setManualAttenuation(float attenuation);
@@ -102,26 +126,14 @@ public:
     void setNearFieldGain(float gain);
     float nearFieldGain() const;
 
-    enum Loops
-    {
-        Infinite = -1,
-        Once = 1
-    };
-    Q_ENUM(Loops)
-
-    int loops() const;
-    void setLoops(int loops);
-
-    bool autoPlay() const;
-    void setAutoPlay(bool autoPlay);
-
-public Q_SLOTS:
-    void play();
-    void pause();
-    void stop();
+    QAudioEngine *engine() const;
 
 Q_SIGNALS:
     void sourceChanged();
+    void loopsChanged();
+    void autoPlayChanged();
+    void positionChanged();
+    void rotationChanged();
     void volumeChanged();
     void distanceModelChanged();
     void sizeChanged();
@@ -131,18 +143,17 @@ Q_SIGNALS:
     void directivityChanged();
     void directivityOrderChanged();
     void nearFieldGainChanged();
-    void loopsChanged();
-    void autoPlayChanged();
 
-private Q_SLOTS:
-    void updatePosition();
-    void updateRotation();
-
-protected:
-    QSSGRenderGraphObject *updateSpatialNode(QSSGRenderGraphObject *) override { return nullptr; }
+public Q_SLOTS:
+    void play();
+    void pause();
+    void stop();
 
 private:
-    QSpatialAudioSoundSource *m_sound = nullptr;
+    void setEngine(QAudioEngine *engine);
+    friend class QAmbientSoundPrivate;
+    friend class QSpatialSoundPrivate;
+    QSpatialSoundPrivate *d = nullptr;
 };
 
 QT_END_NAMESPACE

@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,49 +34,36 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include <qquick3dspatialaudiolistener_p.h>
-#include <qquick3dspatialaudiosoundsource_p.h>
-#include <qquick3dspatialaudioengine_p.h>
+
+#include <QtQml/qqmlextensionplugin.h>
+#include <QtQml/qqml.h>
+#include <QtQml/qqmlengine.h>
+#include <QtQml/qqmlcomponent.h>
+#include "qtquick3daudioglobal_p.h"
 
 QT_BEGIN_NAMESPACE
 
-/*!
-    \qmltype SpatialAudioListener
-    \inqmlmodule QtQuick3D.SpatialAudio
-    \ingroup quick3d_spatialaudio
-
-    \brief defines the position and orientation of the person listening to a sound field
-    defined by a SpatialAudioEngine.
-
-    A SpatialAudioEngine can have exactly one listener, that defines the position and orientation
-    of the person listening to the sounds defined by the objects placed within the audio engine.
-
-    In most cases, the SpatialAudioListener should simply be a child of the Camera element in QtQuick3D.
-    This will ensure that the sound experience is aligned with the visual rendering of the scene.
- */
-
-QQuick3DSpatialAudioListener::QQuick3DSpatialAudioListener()
+class QQuick3DAudioModule : public QQmlEngineExtensionPlugin
 {
-    m_listener = new QSpatialAudioListener(QQuick3DSpatialAudioEngine::getEngine());
-    connect(this, &QQuick3DNode::scenePositionChanged, this, &QQuick3DSpatialAudioListener::updatePosition);
-    connect(this, &QQuick3DNode::sceneRotationChanged, this, &QQuick3DSpatialAudioListener::updateRotation);
-    updatePosition();
-    updateRotation();
-}
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QQmlEngineExtensionInterface_iid)
 
-QQuick3DSpatialAudioListener::~QQuick3DSpatialAudioListener()
-{
-    delete m_listener;
-}
+public:
+    QQuick3DAudioModule(QObject *parent = nullptr)
+        : QQmlEngineExtensionPlugin(parent)
+    {
+        volatile auto registration = qml_register_types_QtQuick3D_Audio;
+        Q_UNUSED(registration);
+    }
 
-void QQuick3DSpatialAudioListener::updatePosition()
-{
-    m_listener->setPosition(scenePosition());
-}
-
-void QQuick3DSpatialAudioListener::updateRotation()
-{
-    m_listener->setRotation(sceneRotation());
-}
+    void initializeEngine(QQmlEngine *engine, const char *uri) override
+    {
+        Q_UNUSED(engine);
+        Q_UNUSED(uri);
+    }
+};
 
 QT_END_NAMESPACE
+
+#include "quick3daudio_plugin.moc"
+

@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,7 +34,7 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include <qspatialaudioroom_p.h>
+#include <qaudioroom_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -103,17 +103,17 @@ struct {
 
 }
 
-float QSpatialAudioRoomPrivate::wallOcclusion(QSpatialAudioRoom::Wall wall) const
+float QAudioRoomPrivate::wallOcclusion(QAudioRoom::Wall wall) const
 {
     return m_wallOcclusion[wall] < 0 ? occlusionAndDampening[roomProperties.material_names[wall]].occlusion : m_wallOcclusion[wall];
 }
 
-float QSpatialAudioRoomPrivate::wallDampening(QSpatialAudioRoom::Wall wall) const
+float QAudioRoomPrivate::wallDampening(QAudioRoom::Wall wall) const
 {
     return m_wallDampening[wall] < 0 ? occlusionAndDampening[roomProperties.material_names[wall]].dampening : m_wallDampening[wall];
 }
 
-void QSpatialAudioRoomPrivate::update()
+void QAudioRoomPrivate::update()
 {
     if (!dirty)
         return;
@@ -124,7 +124,7 @@ void QSpatialAudioRoomPrivate::update()
 
 
 /*!
-    \class QSpatialAudioRoom
+    \class QAudioRoom
     \inmodule QtMultimedia
     \ingroup multimedia_spatialaudio
 
@@ -143,30 +143,30 @@ void QSpatialAudioRoomPrivate::update()
  */
 
 /*!
-    Constructs a QSpatialAudioRoom for \a engine.
+    Constructs a QAudioRoom for \a engine.
  */
-QSpatialAudioRoom::QSpatialAudioRoom(QSpatialAudioEngine *engine)
-    : d(new QSpatialAudioRoomPrivate)
+QAudioRoom::QAudioRoom(QAudioEngine *engine)
+    : d(new QAudioRoomPrivate)
 {
     Q_ASSERT(engine);
     d->engine = engine;
-    auto *ep = QSpatialAudioEnginePrivate::get(engine);
+    auto *ep = QAudioEnginePrivate::get(engine);
     ep->addRoom(this);
 }
 
 /*!
     Destroys the room.
  */
-QSpatialAudioRoom::~QSpatialAudioRoom()
+QAudioRoom::~QAudioRoom()
 {
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep)
         ep->removeRoom(this);
     delete d;
 }
 
 /*!
-    \enum QSpatialAudioRoom::Material
+    \enum QAudioRoom::Material
 
     Defines different materials that can be applied to the different walls of the room.
 
@@ -197,7 +197,7 @@ QSpatialAudioRoom::~QSpatialAudioRoom()
 */
 
 /*!
-    \enum QSpatialAudioRoom::Wall
+    \enum QAudioRoom::Wall
 
     An enum defining the 6 walls of the room
 
@@ -211,16 +211,16 @@ QSpatialAudioRoom::~QSpatialAudioRoom()
 
 
 /*!
-    \property QSpatialAudioRoom::position
+    \property QAudioRoom::position
 
     Defines the position of the center of the room in 3D space. Units are in centimeters
     by default.
 
-    \sa dimensions, QSpatialAudioEngine::distanceScale
+    \sa dimensions, QAudioEngine::distanceScale
  */
-void QSpatialAudioRoom::setPosition(QVector3D pos)
+void QAudioRoom::setPosition(QVector3D pos)
 {
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     pos *= ep->distanceScale;
     if (toVector(d->roomProperties.position) == pos)
         return;
@@ -229,25 +229,25 @@ void QSpatialAudioRoom::setPosition(QVector3D pos)
     emit positionChanged();
 }
 
-QVector3D QSpatialAudioRoom::position() const
+QVector3D QAudioRoom::position() const
 {
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     auto pos = toVector(d->roomProperties.position);
     pos /= ep->distanceScale;
     return pos;
 }
 
 /*!
-    \property QSpatialAudioRoom::dimensions
+    \property QAudioRoom::dimensions
 
     Defines the dimensions of the room in 3D space. Units are in centimeters
     by default.
 
-    \sa position, QSpatialAudioEngine::distanceScale
+    \sa position, QAudioEngine::distanceScale
  */
-void QSpatialAudioRoom::setDimensions(QVector3D dim)
+void QAudioRoom::setDimensions(QVector3D dim)
 {
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     dim *= ep->distanceScale;
     if (toVector(d->roomProperties.dimensions) == dim)
         return;
@@ -256,20 +256,20 @@ void QSpatialAudioRoom::setDimensions(QVector3D dim)
     emit dimensionsChanged();
 }
 
-QVector3D QSpatialAudioRoom::dimensions() const
+QVector3D QAudioRoom::dimensions() const
 {
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     auto dim = toVector(d->roomProperties.dimensions);
     dim /= ep->distanceScale;
     return dim;
 }
 
 /*!
-    \property QSpatialAudioRoom::rotation
+    \property QAudioRoom::rotation
 
     Defines the orientation of the room in 3D space.
  */
-void QSpatialAudioRoom::setRotation(const QQuaternion &q)
+void QAudioRoom::setRotation(const QQuaternion &q)
 {
     if (toQuaternion(d->roomProperties.rotation) == q)
         return;
@@ -278,7 +278,7 @@ void QSpatialAudioRoom::setRotation(const QQuaternion &q)
     emit rotationChanged();
 }
 
-QQuaternion QSpatialAudioRoom::rotation() const
+QQuaternion QAudioRoom::rotation() const
 {
     return toQuaternion(d->roomProperties.rotation);
 }
@@ -289,9 +289,9 @@ QQuaternion QSpatialAudioRoom::rotation() const
     Different wall materials have different reflection and reverb properties
     that influence the sound of the room.
 
-    \sa wallMaterial(), Material, QSpatialAudioRoom::Wall
+    \sa wallMaterial(), Material, QAudioRoom::Wall
  */
-void QSpatialAudioRoom::setWallMaterial(Wall wall, Material material)
+void QAudioRoom::setWallMaterial(Wall wall, Material material)
 {
     static_assert(vraudio::kUniform == int(UniformMaterial));
     static_assert(vraudio::kTransparent == int(Transparent));
@@ -306,15 +306,15 @@ void QSpatialAudioRoom::setWallMaterial(Wall wall, Material material)
 /*!
     returns the material being used for \a wall.
 
-    \sa setWallMaterial(), Material, QSpatialAudioRoom::Wall
+    \sa setWallMaterial(), Material, QAudioRoom::Wall
  */
-QSpatialAudioRoom::Material QSpatialAudioRoom::wallMaterial(Wall wall) const
+QAudioRoom::Material QAudioRoom::wallMaterial(Wall wall) const
 {
     return Material(d->roomProperties.material_names[int(wall)]);
 }
 
 /*!
-    \property QSpatialAudioRoom::reflectionGain
+    \property QAudioRoom::reflectionGain
 
     A gain factor for reflections generated in this room. A value
     from 0 to 1 will dampen reflections, while a value larger than 1
@@ -323,7 +323,7 @@ QSpatialAudioRoom::Material QSpatialAudioRoom::wallMaterial(Wall wall) const
     The default is 1, a factor of 0 disables reflections. Negative
     values are mapped to 0.
  */
-void QSpatialAudioRoom::setReflectionGain(float factor)
+void QAudioRoom::setReflectionGain(float factor)
 {
     if (factor < 0.)
         factor = 0.;
@@ -334,13 +334,13 @@ void QSpatialAudioRoom::setReflectionGain(float factor)
     reflectionGainChanged();
 }
 
-float QSpatialAudioRoom::reflectionGain() const
+float QAudioRoom::reflectionGain() const
 {
     return d->roomProperties.reflection_scalar;
 }
 
 /*!
-    \property QSpatialAudioRoom::reverbGain
+    \property QAudioRoom::reverbGain
 
     A gain factor for reverb generated in this room. A value
     from 0 to 1 will dampen reverb, while a value larger than 1
@@ -349,7 +349,7 @@ float QSpatialAudioRoom::reflectionGain() const
     The default is 1, a factor of 0 disables reverb. Negative
     values are mapped to 0.
  */
-void QSpatialAudioRoom::setReverbGain(float factor)
+void QAudioRoom::setReverbGain(float factor)
 {
     if (factor < 0)
         factor = 0;
@@ -360,13 +360,13 @@ void QSpatialAudioRoom::setReverbGain(float factor)
     reverbGainChanged();
 }
 
-float QSpatialAudioRoom::reverbGain() const
+float QAudioRoom::reverbGain() const
 {
     return d->roomProperties.reverb_gain;
 }
 
 /*!
-    \property QSpatialAudioRoom::reverbTime
+    \property QAudioRoom::reverbTime
 
     A factor to be applies to all reverb timings generated for this room.
     Larger values will lead to longer reverb timings, making the room sound
@@ -374,7 +374,7 @@ float QSpatialAudioRoom::reverbGain() const
 
     The default is 1. Negative values are mapped to 0.
  */
-void QSpatialAudioRoom::setReverbTime(float factor)
+void QAudioRoom::setReverbTime(float factor)
 {
     if (factor < 0)
         factor = 0;
@@ -385,13 +385,13 @@ void QSpatialAudioRoom::setReverbTime(float factor)
     reverbTimeChanged();
 }
 
-float QSpatialAudioRoom::reverbTime() const
+float QAudioRoom::reverbTime() const
 {
     return d->roomProperties.reverb_time;
 }
 
 /*!
-    \property QSpatialAudioRoom::reverbBrightness
+    \property QAudioRoom::reverbBrightness
 
     A brightness factor to be applied to the generated reverb.
     A positive value will increase reverb for higher frequencies and
@@ -399,7 +399,7 @@ float QSpatialAudioRoom::reverbTime() const
 
     The default is 0.
  */
-void QSpatialAudioRoom::setReverbBrightness(float factor)
+void QAudioRoom::setReverbBrightness(float factor)
 {
     if (d->roomProperties.reverb_brightness == factor)
         return;
@@ -408,11 +408,11 @@ void QSpatialAudioRoom::setReverbBrightness(float factor)
     reverbBrightnessChanged();
 }
 
-float QSpatialAudioRoom::reverbBrightness() const
+float QAudioRoom::reverbBrightness() const
 {
     return d->roomProperties.reverb_brightness;
 }
 
 QT_END_NAMESPACE
 
-#include "moc_qspatialaudioroom.cpp"
+#include "moc_qaudioroom.cpp"

@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -35,8 +35,8 @@
 **
 ****************************************************************************/
 
-#ifndef QSPATIALAUDIOENGINE_P_H
-#define QSPATIALAUDIOENGINE_P_H
+#ifndef QAUDIOENGINE_P_H
+#define QAUDIOENGINE_P_H
 
 //
 //  W A R N I N G
@@ -49,7 +49,7 @@
 // We mean it.
 //
 
-#include <qspatialaudioengine.h>
+#include <qaudioengine.h>
 #include <qaudiodevice.h>
 #include <qaudiodecoder.h>
 #include <qthread.h>
@@ -64,28 +64,28 @@ class ResonanceAudioApi;
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioSoundSource;
-class QSpatialAudioStereoSource;
+class QSpatialSound;
+class QAmbientSound;
 class QAudioSink;
 class QAudioOutputStream;
 class QAmbisonicDecoder;
 class QAudioDecoder;
-class QSpatialAudioRoom;
-class QSpatialAudioListener;
+class QAudioRoom;
+class QAudioListener;
 
-class QSpatialAudioEnginePrivate
+class QAudioEnginePrivate
 {
 public:
-    static QSpatialAudioEnginePrivate *get(QSpatialAudioEngine *engine) { return engine ? engine->d : nullptr; }
+    static QAudioEnginePrivate *get(QAudioEngine *engine) { return engine ? engine->d : nullptr; }
 
     static constexpr int bufferSize = 128;
 
-    QSpatialAudioEnginePrivate();
-    ~QSpatialAudioEnginePrivate();
+    QAudioEnginePrivate();
+    ~QAudioEnginePrivate();
     vraudio::ResonanceAudioApi *api = nullptr;
     int sampleRate = 44100;
     float masterVolume = 1.;
-    QSpatialAudioEngine::OutputMode outputMode = QSpatialAudioEngine::Normal;
+    QAudioEngine::OutputMode outputMode = QAudioEngine::Normal;
     bool roomEffectsEnabled = true;
 
     // Resonance Audio uses meters internally, while Qt Quick 3D and our API uses cm by default.
@@ -102,42 +102,42 @@ public:
     std::unique_ptr<QAudioOutputStream> outputStream;
     std::unique_ptr<QAmbisonicDecoder> ambisonicDecoder;
 
-    QSpatialAudioListener *listener = nullptr;
-    QList<QSpatialAudioSoundSource *> sources;
-    QList<QSpatialAudioStereoSource *> stereoSources;
-    QList<QSpatialAudioRoom *> rooms;
+    QAudioListener *listener = nullptr;
+    QList<QSpatialSound *> sources;
+    QList<QAmbientSound *> stereoSources;
+    QList<QAudioRoom *> rooms;
     mutable bool listenerPositionDirty = true;
-    QSpatialAudioRoom *currentRoom = nullptr;
+    QAudioRoom *currentRoom = nullptr;
 
-    void addSpatialSound(QSpatialAudioSoundSource *sound);
-    void removeSpatialSound(QSpatialAudioSoundSource *sound);
-    void addStereoSound(QSpatialAudioStereoSource *sound);
-    void removeStereoSound(QSpatialAudioStereoSource *sound);
+    void addSpatialSound(QSpatialSound *sound);
+    void removeSpatialSound(QSpatialSound *sound);
+    void addStereoSound(QAmbientSound *sound);
+    void removeStereoSound(QAmbientSound *sound);
 
-    void addRoom(QSpatialAudioRoom *room);
-    void removeRoom(QSpatialAudioRoom *room);
+    void addRoom(QAudioRoom *room);
+    void removeRoom(QAudioRoom *room);
     void updateRooms();
 
     QVector3D listenerPosition() const;
 };
 
-class QSpatialAudioSound : public QObject
+class QAmbientSoundPrivate : public QObject
 {
 public:
-    QSpatialAudioSound(QObject *parent, int nchannels = 2)
+    QAmbientSoundPrivate(QObject *parent, int nchannels = 2)
         : QObject(parent)
         , nchannels(nchannels)
     {}
 
     template<typename T>
-    static QSpatialAudioSound *get(T *soundSource) { return soundSource ? soundSource->d : nullptr; }
+    static QAmbientSoundPrivate *get(T *soundSource) { return soundSource ? soundSource->d : nullptr; }
 
 
     QUrl url;
     float volume = 1.;
     int nchannels = 2;
     std::unique_ptr<QAudioDecoder> decoder;
-    QSpatialAudioEngine *engine = nullptr;
+    QAudioEngine *engine = nullptr;
 
     QMutex mutex;
     int currentBuffer = 0;

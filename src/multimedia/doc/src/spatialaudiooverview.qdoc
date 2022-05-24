@@ -52,28 +52,28 @@ There are both C++ and QML APIs that can be used.
 
 \section1 Creating a sound scene
 
-To create the sound scene, one first instantiates a \l QSpatialAudioEngine. This engine
+To create the sound scene, one first instantiates a \l QAudioEngine. This engine
 processes input sound data and geometries to create a realistic
 representation of the sound scene as it would be experienced by a person placed
 at a specific location inside the scene.
 
-The \l QSpatialAudioEngine::OutputMode property can be used to optimize the output either
+The \l QAudioEngine::OutputMode property can be used to optimize the output either
 for headphones using binaural (virtual 3D) rendering or for a stereo or surround speaker
 configuration.
 
-The output device can be selected using \l QSpatialAudioEngine::outputDevice property.
+The output device can be selected using \l QAudioEngine::outputDevice property.
 
 Once the engine is set up, we can place various sound objects into the scene by creating
-\l QSpatialAudioSoundSource objects and specifying a url to a sound file using the \l
-QSpatialAudioSoundSource::source property.
+\l QSpatialSound objects and specifying a url to a sound file using the \l
+QSpatialSound::source property.
 
-\l QSpatialAudioListener can be used to define the position and orientation of a person
+\l QAudioListener can be used to define the position and orientation of a person
 listening to the sound scene. At max one listener per engine can be used. If no listener
 is specified, the engine assumes that the listener is at the origin of the coordinate system
 facing into a positive z direction, with positive y pointing upwards.
 
 In addition to sound sources and a listener, you can define a geometry that influences how the
-sound is being experienced by the listener through a set of \l QSpatialAudioRoom objects. Rooms
+sound is being experienced by the listener through a set of \l QAudioRoom objects. Rooms
 are rectangular and support a wide variety of materials for each wall giving a different experience
 with different sound reflections and reverb. Room effects will get applied if the listener is
 located inside one of the rooms. If he is inside multiple rooms, the room with the smallest
@@ -81,7 +81,7 @@ geometrical volume will take precedence.
 
 If you need some stereo overlay that is independent of the position and orientation of
 the listener (such as background music or a voice-over), you can use
-\l QSpatialAudioStereoSource to create the sound overlay.
+\l QAmbientSound to create the sound overlay.
 
 \section1 Reference Documentation
 
@@ -91,6 +91,6 @@ the listener (such as background music or a voice-over), you can use
 
 \section2 QML Types
 
-\annotatedlist quick3d_spatialaudio
+\annotatedlist quick3d_audio
 
 */

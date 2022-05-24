@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,16 +34,16 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include <qquick3dspatialaudioroom_p.h>
-#include <qquick3dspatialaudioengine_p.h>
-#include <qspatialaudioroom.h>
+#include <qquick3daudioroom_p.h>
+#include <qquick3daudioengine_p.h>
+#include <qaudioroom.h>
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \qmltype SpatialAudioRoom
-    \inqmlmodule QtQuick3D.SpatialAudio
-    \ingroup quick3d_spatialaudio
+    \qmltype AudioRoom
+    \inqmlmodule QtQuick3D.Audio
+    \ingroup quick3d_audio
 
     Defines a room for the spatial audio engine.
 
@@ -59,51 +59,51 @@ QT_BEGIN_NAMESPACE
     volume.
  */
 
-QQuick3DSpatialAudioRoom::QQuick3DSpatialAudioRoom()
+QQuick3DAudioRoom::QQuick3DAudioRoom()
 {
-    m_room = new QSpatialAudioRoom(QQuick3DSpatialAudioEngine::getEngine());
+    m_room = new QAudioRoom(QQuick3DAudioEngine::getEngine());
 
-    connect(this, &QQuick3DNode::scenePositionChanged, this, &QQuick3DSpatialAudioRoom::updatePosition);
-    connect(this, &QQuick3DNode::sceneRotationChanged, this, &QQuick3DSpatialAudioRoom::updateRotation);
-    connect(m_room, &QSpatialAudioRoom::dimensionsChanged, this, &QQuick3DSpatialAudioRoom::dimensionsChanged);
-    connect(m_room, &QSpatialAudioRoom::rotationChanged, this, &QQuick3DSpatialAudioRoom::rotationChanged);
-    connect(m_room, &QSpatialAudioRoom::wallsChanged, this, &QQuick3DSpatialAudioRoom::wallsChanged);
-    connect(m_room, &QSpatialAudioRoom::reflectionGainChanged, this, &QQuick3DSpatialAudioRoom::reflectionGainChanged);
-    connect(m_room, &QSpatialAudioRoom::reverbGainChanged, this, &QQuick3DSpatialAudioRoom::reverbGainChanged);
-    connect(m_room, &QSpatialAudioRoom::reverbTimeChanged, this, &QQuick3DSpatialAudioRoom::reverbTimeChanged);
-    connect(m_room, &QSpatialAudioRoom::reverbBrightnessChanged, this, &QQuick3DSpatialAudioRoom::reverbBrightnessChanged);
+    connect(this, &QQuick3DNode::scenePositionChanged, this, &QQuick3DAudioRoom::updatePosition);
+    connect(this, &QQuick3DNode::sceneRotationChanged, this, &QQuick3DAudioRoom::updateRotation);
+    connect(m_room, &QAudioRoom::dimensionsChanged, this, &QQuick3DAudioRoom::dimensionsChanged);
+    connect(m_room, &QAudioRoom::rotationChanged, this, &QQuick3DAudioRoom::rotationChanged);
+    connect(m_room, &QAudioRoom::wallsChanged, this, &QQuick3DAudioRoom::wallsChanged);
+    connect(m_room, &QAudioRoom::reflectionGainChanged, this, &QQuick3DAudioRoom::reflectionGainChanged);
+    connect(m_room, &QAudioRoom::reverbGainChanged, this, &QQuick3DAudioRoom::reverbGainChanged);
+    connect(m_room, &QAudioRoom::reverbTimeChanged, this, &QQuick3DAudioRoom::reverbTimeChanged);
+    connect(m_room, &QAudioRoom::reverbBrightnessChanged, this, &QQuick3DAudioRoom::reverbBrightnessChanged);
 }
 
-QQuick3DSpatialAudioRoom::~QQuick3DSpatialAudioRoom()
+QQuick3DAudioRoom::~QQuick3DAudioRoom()
 {
     delete m_room;
 }
 
 /*!
-    \qmlproperty vector3D SpatialAudioRoom::dimensions
+    \qmlproperty vector3D AudioRoom::dimensions
 
     Defines the dimensions of the room in 3D space. Units are in centimeters
     by default.
 
-    \sa position, QSpatialAudioEngine::distanceScale
+    \sa position, QAudioEngine::distanceScale
  */
-void QQuick3DSpatialAudioRoom::setDimensions(QVector3D dim)
+void QQuick3DAudioRoom::setDimensions(QVector3D dim)
 {
     m_room->setDimensions(dim);
 }
 
-QVector3D QQuick3DSpatialAudioRoom::dimensions() const
+QVector3D QQuick3DAudioRoom::dimensions() const
 {
     return m_room->dimensions();
 }
 
 /*!
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::left
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::right
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::front
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::back
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::floor
-    \qmlproperty SpatialAudioRoom::Material SpatialAudioRoom::ceiling
+    \qmlproperty AudioRoom::Material AudioRoom::left
+    \qmlproperty AudioRoom::Material AudioRoom::right
+    \qmlproperty AudioRoom::Material AudioRoom::front
+    \qmlproperty AudioRoom::Material AudioRoom::back
+    \qmlproperty AudioRoom::Material AudioRoom::floor
+    \qmlproperty AudioRoom::Material AudioRoom::ceiling
 
     Sets the material to use for the different sides of the room. Properties correlate to
     coordinates as follows:
@@ -152,68 +152,68 @@ QVector3D QQuick3DSpatialAudioRoom::dimensions() const
     \row \li Uniform \li Artificial material giving uniform reflections on all frequencies
     \endtable
  */
-void QQuick3DSpatialAudioRoom::setLeft(Material material)
+void QQuick3DAudioRoom::setLeftMaterial(Material material)
 {
-    m_room->setWallMaterial(QSpatialAudioRoom::LeftWall, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QAudioRoom::LeftWall, QAudioRoom::Material(material));
 }
 
-QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::left() const
+QQuick3DAudioRoom::Material QQuick3DAudioRoom::leftMaterial() const
 {
-    return Material(m_room->wallMaterial(QSpatialAudioRoom::LeftWall));
+    return Material(m_room->wallMaterial(QAudioRoom::LeftWall));
 }
 
-void QQuick3DSpatialAudioRoom::setRight(Material material)
+void QQuick3DAudioRoom::setRightMaterial(Material material)
 {
-    m_room->setWallMaterial(QSpatialAudioRoom::RightWall, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QAudioRoom::RightWall, QAudioRoom::Material(material));
 }
 
-QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::right() const
+QQuick3DAudioRoom::Material QQuick3DAudioRoom::rightMaterial() const
 {
-    return Material(m_room->wallMaterial(QSpatialAudioRoom::RightWall));
+    return Material(m_room->wallMaterial(QAudioRoom::RightWall));
 }
 
-void QQuick3DSpatialAudioRoom::setFront(Material material)
+void QQuick3DAudioRoom::setFrontMaterial(Material material)
 {
-    m_room->setWallMaterial(QSpatialAudioRoom::FrontWall, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QAudioRoom::FrontWall, QAudioRoom::Material(material));
 }
 
-QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::front() const
+QQuick3DAudioRoom::Material QQuick3DAudioRoom::frontMaterial() const
 {
-    return Material(m_room->wallMaterial(QSpatialAudioRoom::FrontWall));
+    return Material(m_room->wallMaterial(QAudioRoom::FrontWall));
 }
 
-void QQuick3DSpatialAudioRoom::setBack(Material material)
+void QQuick3DAudioRoom::setBackMaterial(Material material)
 {
-    m_room->setWallMaterial(QSpatialAudioRoom::BackWall, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QAudioRoom::BackWall, QAudioRoom::Material(material));
 }
 
-QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::back() const
+QQuick3DAudioRoom::Material QQuick3DAudioRoom::backMaterial() const
 {
-    return Material(m_room->wallMaterial(QSpatialAudioRoom::BackWall));
+    return Material(m_room->wallMaterial(QAudioRoom::BackWall));
 }
 
-void QQuick3DSpatialAudioRoom::setFloor(Material material)
+void QQuick3DAudioRoom::setFloorMaterial(Material material)
 {
-    m_room->setWallMaterial(QSpatialAudioRoom::Floor, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QAudioRoom::Floor, QAudioRoom::Material(material));
 }
 
-QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::floor() const
+QQuick3DAudioRoom::Material QQuick3DAudioRoom::floorMaterial() const
 {
-    return Material(m_room->wallMaterial(QSpatialAudioRoom::Floor));
+    return Material(m_room->wallMaterial(QAudioRoom::Floor));
 }
 
-void QQuick3DSpatialAudioRoom::setCeiling(Material material)
+void QQuick3DAudioRoom::setCeilingMaterial(Material material)
 {
-    m_room->setWallMaterial(QSpatialAudioRoom::Ceiling, QSpatialAudioRoom::Material(material));
+    m_room->setWallMaterial(QAudioRoom::Ceiling, QAudioRoom::Material(material));
 }
 
-QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::ceiling() const
+QQuick3DAudioRoom::Material QQuick3DAudioRoom::ceilingMaterial() const
 {
-    return Material(m_room->wallMaterial(QSpatialAudioRoom::Ceiling));
+    return Material(m_room->wallMaterial(QAudioRoom::Ceiling));
 }
 
 /*!
-    \qmlproperty float SpatialAudioRoom::reflectionGain
+    \qmlproperty float AudioRoom::reflectionGain
 
     A gain factor for reflections generated in this room. A value
     from 0 to 1 will dampen reflections, while a value larger than 1
@@ -222,18 +222,18 @@ QQuick3DSpatialAudioRoom::Material QQuick3DSpatialAudioRoom::ceiling() const
     The default is 1, a factor of 0 disables reflections. Negative
     values are mapped to 0.
  */
-void QQuick3DSpatialAudioRoom::setReflectionGain(float factor)
+void QQuick3DAudioRoom::setReflectionGain(float factor)
 {
     m_room->setReflectionGain(factor);
 }
 
-float QQuick3DSpatialAudioRoom::reflectionGain() const
+float QQuick3DAudioRoom::reflectionGain() const
 {
     return m_room->reflectionGain();
 }
 
 /*!
-    \qmlproperty float SpatialAudioRoom::reverbGain
+    \qmlproperty float AudioRoom::reverbGain
 
     A gain factor for reverb generated in this room. A value
     from 0 to 1 will dampen reverb, while a value larger than 1
@@ -242,18 +242,18 @@ float QQuick3DSpatialAudioRoom::reflectionGain() const
     The default is 1, a factor of 0 disables reverb. Negative
     values are mapped to 0.
  */
-void QQuick3DSpatialAudioRoom::setReverbGain(float factor)
+void QQuick3DAudioRoom::setReverbGain(float factor)
 {
     m_room->setReverbGain(factor);
 }
 
-float QQuick3DSpatialAudioRoom::reverbGain() const
+float QQuick3DAudioRoom::reverbGain() const
 {
     return m_room->reverbGain();
 }
 
 /*!
-    \qmlproperty float SpatialAudioRoom::reverbTime
+    \qmlproperty float AudioRoom::reverbTime
 
     A factor to be applies to all reverb timings generated for this room.
     Larger values will lead to longer reverb timings, making the room sound
@@ -261,18 +261,18 @@ float QQuick3DSpatialAudioRoom::reverbGain() const
 
     The default is 1. Negative values are mapped to 0.
  */
-void QQuick3DSpatialAudioRoom::setReverbTime(float factor)
+void QQuick3DAudioRoom::setReverbTime(float factor)
 {
     m_room->setReverbTime(factor);
 }
 
-float QQuick3DSpatialAudioRoom::reverbTime() const
+float QQuick3DAudioRoom::reverbTime() const
 {
     return m_room->reverbTime();
 }
 
 /*!
-    \qmlproperty float SpatialAudioRoom::reverbBrightness
+    \qmlproperty float AudioRoom::reverbBrightness
 
     A brightness factor to be applied to the generated reverb.
     A positive value will increase reverb for higher frequencies and
@@ -280,22 +280,22 @@ float QQuick3DSpatialAudioRoom::reverbTime() const
 
     The default is 0.
  */
-void QQuick3DSpatialAudioRoom::setReverbBrightness(float factor)
+void QQuick3DAudioRoom::setReverbBrightness(float factor)
 {
     m_room->setReverbBrightness(factor);
 }
 
-float QQuick3DSpatialAudioRoom::reverbBrightness() const
+float QQuick3DAudioRoom::reverbBrightness() const
 {
     return m_room->reverbBrightness();
 }
 
-void QQuick3DSpatialAudioRoom::updatePosition()
+void QQuick3DAudioRoom::updatePosition()
 {
     m_room->setPosition(scenePosition());
 }
 
-void QQuick3DSpatialAudioRoom::updateRotation()
+void QQuick3DAudioRoom::updateRotation()
 {
     m_room->setRotation(sceneRotation());
 }

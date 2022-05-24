@@ -118,23 +118,23 @@ public:
 
         connect(useHeadphone, &QCheckBox::stateChanged, this, &AudioWidget::useHeadphoneChanged);
 
-        room = new QSpatialAudioRoom(&engine);
+        room = new QAudioRoom(&engine);
         room->setDimensions(QVector3D(5, 5, 5));
-        room->setWallMaterial(QSpatialAudioRoom::BackWall, QSpatialAudioRoom::BrickBare);
-        room->setWallMaterial(QSpatialAudioRoom::FrontWall, QSpatialAudioRoom::BrickBare);
-        room->setWallMaterial(QSpatialAudioRoom::LeftWall, QSpatialAudioRoom::BrickBare);
-        room->setWallMaterial(QSpatialAudioRoom::RightWall, QSpatialAudioRoom::BrickBare);
-        room->setWallMaterial(QSpatialAudioRoom::Floor, QSpatialAudioRoom::Marble);
-        room->setWallMaterial(QSpatialAudioRoom::Ceiling, QSpatialAudioRoom::WoodCeiling);
+        room->setWallMaterial(QAudioRoom::BackWall, QAudioRoom::BrickBare);
+        room->setWallMaterial(QAudioRoom::FrontWall, QAudioRoom::BrickBare);
+        room->setWallMaterial(QAudioRoom::LeftWall, QAudioRoom::BrickBare);
+        room->setWallMaterial(QAudioRoom::RightWall, QAudioRoom::BrickBare);
+        room->setWallMaterial(QAudioRoom::Floor, QAudioRoom::Marble);
+        room->setWallMaterial(QAudioRoom::Ceiling, QAudioRoom::WoodCeiling);
         room->setReverbGain(1);
         room->setReflectionGain(1);
 
-        listener = new QSpatialAudioListener(&engine);
+        listener = new QAudioListener(&engine);
         listener->setPosition({});
         listener->setRotation({});
         engine.start();
 
-        sound = new QSpatialAudioSoundSource(&engine);
+        sound = new QSpatialSound(&engine);
         updatePosition();
     }
     void setFile(const QString &file) { fileEdit->setText(file); }
@@ -156,7 +156,7 @@ private slots:
     }
     void useHeadphoneChanged(int state)
     {
-        engine.setOutputMode(state ? QSpatialAudioEngine::Headphone : QSpatialAudioEngine::Normal);
+        engine.setOutputMode(state ? QAudioEngine::Headphone : QAudioEngine::Normal);
     }
     void fileChanged(const QString &file)
     {
@@ -187,10 +187,10 @@ private slots:
     QSlider *reflectionGain = nullptr;
     QCheckBox *useHeadphone = nullptr;
 
-    QSpatialAudioEngine engine;
-    QSpatialAudioListener *listener = nullptr;
-    QSpatialAudioSoundSource *sound = nullptr;
-    QSpatialAudioRoom *room = nullptr;
+    QAudioEngine engine;
+    QAudioListener *listener = nullptr;
+    QSpatialSound *sound = nullptr;
+    QAudioRoom *room = nullptr;
 };
 
 int main(int argc, char **argv)

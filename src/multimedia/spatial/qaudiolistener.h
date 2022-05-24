@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,29 +34,40 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QLISTENER_H
+#define QLISTENER_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#ifndef QMULTIMEDIAQUICKDEFS_P_H
-#define QMULTIMEDIAQUICKDEFS_P_H
-
-#include <QtCore/qglobal.h>
-#include <QtMultimediaQuick/qtmultimediaquickexports.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/QObject>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtGui/qvector3d.h>
+#include <QtGui/qquaternion.h>
 
 QT_BEGIN_NAMESPACE
 
-void Q_MULTIMEDIAQUICK_EXPORT qml_register_types_QtQuick3D_SpatialAudio();
+class QAudioEngine;
+
+class QAudioListenerPrivate;
+class Q_MULTIMEDIA_EXPORT QAudioListener : public QObject
+{
+public:
+    explicit QAudioListener(QAudioEngine *engine);
+    ~QAudioListener();
+
+    QAudioFormat format() const;
+
+    void setPosition(QVector3D pos);
+    QVector3D position() const;
+    void setRotation(const QQuaternion &q);
+    QQuaternion rotation() const;
+
+    QAudioEngine *engine() const;
+
+private:
+    void setEngine(QAudioEngine *engine);
+    QAudioListenerPrivate *d = nullptr;
+};
 
 QT_END_NAMESPACE
 
-#endif // QMULTIMEDIAQUICKDEFS_P_H
-
+#endif

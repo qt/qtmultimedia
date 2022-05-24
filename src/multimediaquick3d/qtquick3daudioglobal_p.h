@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -35,9 +35,6 @@
 **
 ****************************************************************************/
 
-#ifndef QTMULTIMEDIAQUICKTYPES_H
-#define QTMULTIMEDIAQUICKTYPES_H
-
 //
 //  W A R N I N G
 //  -------------
@@ -49,13 +46,17 @@
 // We mean it.
 //
 
-#include <QtQml/qqml.h>
-#include <private/qtquick3dsoundglobal_p.h>
+#ifndef QQUICK3DAUDIOGLOBAL_P_H
+#define QQUICK3DAUDIOGLOBAL_P_H
+
+#include <QtCore/qglobal.h>
+#include <QtMultimediaQuick/qtmultimediaquickexports.h>
 
 QT_BEGIN_NAMESPACE
 
-// Nothing for now
+void Q_MULTIMEDIAQUICK_EXPORT qml_register_types_QtQuick3D_Audio();
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QMULTIMEDIAQUICKDEFS_P_H
+

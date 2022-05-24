@@ -143,8 +143,8 @@ For some quick recipes, see this table:
     \row
         \li Spatial Audio
         \li \l {Spatial Audio example}{spatialaudio},
-        \li \l SpatialAudioEngine, \l SpatialAudioListener, \l SpatialAudioSoundSource
-        \li QSpatialAudioEngine, QSpatialAudioListener, QSpatialAudioSoundSource
+        \li \l AudioEngine, \l AudioListener, \l SpatialSound
+        \li QAudioEngine, QAudioListener, QSpatialSound
 \endtable
 
 \section1 Limitations

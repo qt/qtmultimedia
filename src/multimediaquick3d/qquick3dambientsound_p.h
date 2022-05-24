@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,48 +34,62 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOROOM_P_H
-#define QSPATIALAUDIOROOM_P_H
+#ifndef QQUICK3DAMBIENTSOUND_H
+#define QQUICK3DAMBIENTSOUND_H
 
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <qspatialaudioroom.h>
-#include <qspatialaudioengine_p.h>
-#include <QtGui/qquaternion.h>
-
-#include <resonance_audio_api_extensions.h>
-#include "platforms/common/room_effects_utils.h"
-#include "platforms/common/room_properties.h"
+#include <private/qquick3dnode_p.h>
+#include <QUrl>
+#include <qvector3d.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioRoomPrivate
+class QAmbientSound;
+
+class QQuick3DAmbientSound : public QObject
 {
+    Q_OBJECT
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
+    QML_NAMED_ELEMENT(AmbientSound)
+
 public:
-    static QSpatialAudioRoomPrivate *get(const QSpatialAudioRoom *r) { return r->d; }
+    QQuick3DAmbientSound();
+    ~QQuick3DAmbientSound();
 
-    QSpatialAudioEngine *engine = nullptr;
-    vraudio::RoomProperties roomProperties;
-    bool dirty = true;
+    void setSource(QUrl source);
+    QUrl source() const;
 
-    vraudio::ReverbProperties reverb;
-    vraudio::ReflectionProperties reflections;
+    void setVolume(float volume);
+    float volume() const;
 
-    float m_wallOcclusion[6] = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
-    float m_wallDampening[6] = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
+    enum Loops
+    {
+        Infinite = -1,
+        Once = 1
+    };
+    Q_ENUM(Loops)
 
-    float wallOcclusion(QSpatialAudioRoom::Wall wall) const;
-    float wallDampening(QSpatialAudioRoom::Wall wall) const;
+    int loops() const;
+    void setLoops(int loops);
 
-    void update();
+    bool autoPlay() const;
+    void setAutoPlay(bool autoPlay);
+
+public Q_SLOTS:
+    void play();
+    void pause();
+    void stop();
+
+Q_SIGNALS:
+    void sourceChanged();
+    void volumeChanged();
+    void loopsChanged();
+    void autoPlayChanged();
+
+private:
+    QAmbientSound *m_sound = nullptr;
 };
 
 QT_END_NAMESPACE

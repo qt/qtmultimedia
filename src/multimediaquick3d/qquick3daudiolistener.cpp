@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,40 +34,49 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOLISTENER_H
-#define QSPATIALAUDIOLISTENER_H
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QObject>
-#include <QtMultimedia/qaudioformat.h>
-#include <QtGui/qvector3d.h>
-#include <QtGui/qquaternion.h>
+#include <qquick3daudiolistener_p.h>
+#include <qquick3dspatialsound_p.h>
+#include <qquick3daudioengine_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
+/*!
+    \qmltype AudioListener
+    \inqmlmodule QtQuick3D.Audio
+    \ingroup quick3d_audio
 
-class QSpatialAudioListenerPrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioListener : public QObject
+    \brief defines the position and orientation of the person listening to a sound field
+    defined by a AudioEngine.
+
+    A AudioEngine can have exactly one listener, that defines the position and orientation
+    of the person listening to the sounds defined by the objects placed within the audio engine.
+
+    In most cases, the AudioListener should simply be a child of the Camera element in QtQuick3D.
+    This will ensure that the sound experience is aligned with the visual rendering of the scene.
+ */
+
+QQuick3DAudioListener::QQuick3DAudioListener()
 {
-public:
-    explicit QSpatialAudioListener(QSpatialAudioEngine *engine);
-    ~QSpatialAudioListener();
+    m_listener = new QAudioListener(QQuick3DAudioEngine::getEngine());
+    connect(this, &QQuick3DNode::scenePositionChanged, this, &QQuick3DAudioListener::updatePosition);
+    connect(this, &QQuick3DNode::sceneRotationChanged, this, &QQuick3DAudioListener::updateRotation);
+    updatePosition();
+    updateRotation();
+}
 
-    QAudioFormat format() const;
+QQuick3DAudioListener::~QQuick3DAudioListener()
+{
+    delete m_listener;
+}
 
-    void setPosition(QVector3D pos);
-    QVector3D position() const;
-    void setRotation(const QQuaternion &q);
-    QQuaternion rotation() const;
+void QQuick3DAudioListener::updatePosition()
+{
+    m_listener->setPosition(scenePosition());
+}
 
-    QSpatialAudioEngine *engine() const;
-
-private:
-    void setEngine(QSpatialAudioEngine *engine);
-    QSpatialAudioListenerPrivate *d = nullptr;
-};
+void QQuick3DAudioListener::updateRotation()
+{
+    m_listener->setRotation(sceneRotation());
+}
 
 QT_END_NAMESPACE
-
-#endif

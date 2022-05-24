@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,52 +34,52 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "qquick3dspatialaudiostereosource_p.h"
-#include "qquick3dspatialaudioengine_p.h"
-#include "qspatialaudiostereosource.h"
+#include "qquick3dambientsound_p.h"
+#include "qquick3daudioengine_p.h"
+#include "qambientsound.h"
 #include <QAudioFormat>
 #include <qdir.h>
 
 QT_BEGIN_NAMESPACE
 
 /*!
-    \qmltype SpatialAudioStereoSource
-    \inqmlmodule QtQuick3D.SpatialAudio
-    \ingroup quick3d_spatialaudio
+    \qmltype AmbientSound
+    \inqmlmodule QtQuick3D.Audio
+    \ingroup quick3d_audio
 
     \brief A stereo overlay sound.
 
-    A SpatialAudioStereoSource represents a position and orientation independent sound.
+    A AmbientSound represents a position and orientation independent sound.
     It's commonly used for background sounds (e.g. music) that is supposed to be independent
     of the listeners position and orientation.
   */
 
-QQuick3DSpatialAudioStereoSource::QQuick3DSpatialAudioStereoSource()
+QQuick3DAmbientSound::QQuick3DAmbientSound()
 {
-    m_sound = new QSpatialAudioStereoSource(QQuick3DSpatialAudioEngine::getEngine());
+    m_sound = new QAmbientSound(QQuick3DAudioEngine::getEngine());
 
-    connect(m_sound, &QSpatialAudioStereoSource::sourceChanged, this, &QQuick3DSpatialAudioStereoSource::sourceChanged);
-    connect(m_sound, &QSpatialAudioStereoSource::volumeChanged, this, &QQuick3DSpatialAudioStereoSource::volumeChanged);
-    connect(m_sound, &QSpatialAudioStereoSource::loopsChanged, this, &QQuick3DSpatialAudioStereoSource::loopsChanged);
-    connect(m_sound, &QSpatialAudioStereoSource::autoPlayChanged, this, &QQuick3DSpatialAudioStereoSource::autoPlayChanged);
+    connect(m_sound, &QAmbientSound::sourceChanged, this, &QQuick3DAmbientSound::sourceChanged);
+    connect(m_sound, &QAmbientSound::volumeChanged, this, &QQuick3DAmbientSound::volumeChanged);
+    connect(m_sound, &QAmbientSound::loopsChanged, this, &QQuick3DAmbientSound::loopsChanged);
+    connect(m_sound, &QAmbientSound::autoPlayChanged, this, &QQuick3DAmbientSound::autoPlayChanged);
 }
 
-QQuick3DSpatialAudioStereoSource::~QQuick3DSpatialAudioStereoSource()
+QQuick3DAmbientSound::~QQuick3DAmbientSound()
 {
     delete m_sound;
 }
 
 /*!
-    \qmlproperty url QSpatialAudioStereoSource::source
+    \qmlproperty url QAmbientSound::source
 
     The source file for the sound to be played.
  */
-QUrl QQuick3DSpatialAudioStereoSource::source() const
+QUrl QQuick3DAmbientSound::source() const
 {
     return m_sound->source();
 }
 
-void QQuick3DSpatialAudioStereoSource::setSource(QUrl source)
+void QQuick3DAmbientSound::setSource(QUrl source)
 {
     QUrl url = QUrl::fromLocalFile(QDir::currentPath() + u"/");
     url = url.resolved(source);
@@ -88,83 +88,83 @@ void QQuick3DSpatialAudioStereoSource::setSource(QUrl source)
 }
 
 /*!
-    \qmlproperty float QSpatialAudioStereoSource::volume
+    \qmlproperty float QAmbientSound::volume
 
     Defines an overall volume for this sound source.
  */
-void QQuick3DSpatialAudioStereoSource::setVolume(float volume)
+void QQuick3DAmbientSound::setVolume(float volume)
 {
     m_sound->setVolume(volume);
 }
 
-float QQuick3DSpatialAudioStereoSource::volume() const
+float QQuick3DAmbientSound::volume() const
 {
     return m_sound->volume();
 }
 
 /*!
-   \qmlproperty int QSpatialAudioStereoSource::loops
+   \qmlproperty int QAmbientSound::loops
 
     Determines how often the sound is played before the player stops.
-    Set to SpatialAudioSoundSource::Infinite to loop the current sound forever.
+    Set to QAmbienSound::Infinite to loop the current sound forever.
 
     The default value is \c 1.
  */
-int QQuick3DSpatialAudioStereoSource::loops() const
+int QQuick3DAmbientSound::loops() const
 {
     return m_sound->loops();
 }
 
-void QQuick3DSpatialAudioStereoSource::setLoops(int loops)
+void QQuick3DAmbientSound::setLoops(int loops)
 {
     m_sound->setLoops(loops);
 }
 
 /*!
-   \qmlproperty bool SpatialAudioStereoSource::autoPlay
+   \qmlproperty bool AmbientSound::autoPlay
 
     Determines whether the sound should automatically start playing when a source
     gets specified.
 
     The default value is \c true.
  */
-bool QQuick3DSpatialAudioStereoSource::autoPlay() const
+bool QQuick3DAmbientSound::autoPlay() const
 {
     return m_sound->autoPlay();
 }
 
-void QQuick3DSpatialAudioStereoSource::setAutoPlay(bool autoPlay)
+void QQuick3DAmbientSound::setAutoPlay(bool autoPlay)
 {
     m_sound->setAutoPlay(autoPlay);
 }
 
 /*!
-    \qmlmethod SpatialAudioStereoSource::play()
+    \qmlmethod AmbientSound::play()
 
     Starts playing back the sound. Does nothing if the sound is already playing.
  */
-void QQuick3DSpatialAudioStereoSource::play()
+void QQuick3DAmbientSound::play()
 {
     m_sound->play();
 }
 
 /*!
-    \qmlmethod SpatialAudioStereoSource::pause()
+    \qmlmethod AmbientSound::pause()
 
     Pauses sound playback at the current position. Calling play() will continue playback.
  */
-void QQuick3DSpatialAudioStereoSource::pause()
+void QQuick3DAmbientSound::pause()
 {
     m_sound->pause();
 }
 
 /*!
-    \qmlmethod SpatialAudioStereoSource::stop()
+    \qmlmethod AmbientSound::stop()
 
     Stops sound playback and resets the current position and loop count to 0. Calling play() will
     begin playback at the beginning of the sound file.
  */
-void QQuick3DSpatialAudioStereoSource::stop()
+void QQuick3DAmbientSound::stop()
 {
     m_sound->stop();
 }

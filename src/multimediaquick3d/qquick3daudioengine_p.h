@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,37 +34,51 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQUICK3DLISTENER_H
-#define QQUICK3DLISTENER_H
+#ifndef QQUICK3DAUDIOENGINE_H
+#define QQUICK3DAUDIOENGINE_H
 
 #include <private/qquick3dnode_p.h>
 #include <QtGui/qvector3d.h>
-
-#include <qspatialaudiolistener.h>
+#include <qaudioengine.h>
 
 QT_BEGIN_NAMESPACE
 
-class QQuick3DSpatialAudioSoundSource;
+class QQuick3DSpatialSound;
 
-class QQuick3DSpatialAudioListener : public QQuick3DNode
+class QQuick3DAudioEngine : public QObject
 {
     Q_OBJECT
-    QML_NAMED_ELEMENT(SpatialAudioListener)
+    QML_NAMED_ELEMENT(AudioEngine)
+    Q_PROPERTY(OutputMode outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
+    Q_PROPERTY(QAudioDevice outputDevice READ outputDevice WRITE setOutputDevice NOTIFY outputDeviceChanged)
+    Q_PROPERTY(float masterVolume READ masterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
 
 public:
-    QQuick3DSpatialAudioListener();
-    ~QQuick3DSpatialAudioListener();
+    // Keep in sync with QAudioEngine::OutputMode
+    enum OutputMode {
+        Normal,
+        Headphone
+    };
+    Q_ENUM(OutputMode)
 
-    QSpatialAudioListener *listener() { return m_listener; }
-protected:
-    QSSGRenderGraphObject *updateSpatialNode(QSSGRenderGraphObject *) override { return nullptr; }
+    QQuick3DAudioEngine();
+    ~QQuick3DAudioEngine();
 
-protected Q_SLOTS:
-    void updatePosition();
-    void updateRotation();
+    void setOutputMode(OutputMode mode);
+    OutputMode outputMode() const;
 
-private:
-    QSpatialAudioListener *m_listener;
+    void setOutputDevice(const QAudioDevice &device);
+    QAudioDevice outputDevice() const;
+
+    void setMasterVolume(float volume);
+    float masterVolume() const;
+
+    static QAudioEngine *getEngine();
+
+Q_SIGNALS:
+    void outputModeChanged();
+    void outputDeviceChanged();
+    void masterVolumeChanged();
 };
 
 QT_END_NAMESPACE

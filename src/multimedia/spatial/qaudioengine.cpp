@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,11 +34,11 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include <qspatialaudioengine_p.h>
-#include <qspatialaudiosoundsource_p.h>
-#include <qspatialaudiostereosource.h>
-#include <qspatialaudioroom_p.h>
-#include <qspatialaudiolistener.h>
+#include <qaudioengine_p.h>
+#include <qspatialsound_p.h>
+#include <qambientsound.h>
+#include <qaudioroom_p.h>
+#include <qaudiolistener.h>
 #include <resonance_audio_api_extensions.h>
 #include <qambisonicdecoder_p.h>
 #include <qaudiodecoder.h>
@@ -54,7 +54,7 @@ class QAudioOutputStream : public QIODevice
 {
     Q_OBJECT
 public:
-    explicit QAudioOutputStream(QSpatialAudioEnginePrivate *d)
+    explicit QAudioOutputStream(QAudioEnginePrivate *d)
         : d(d)
     {
         open(QIODevice::ReadOnly);
@@ -104,7 +104,7 @@ public:
 
 private:
     qint64 m_pos = 0;
-    QSpatialAudioEnginePrivate *d = nullptr;
+    QAudioEnginePrivate *d = nullptr;
     std::unique_ptr<QAudioSink> sink;
 };
 
@@ -126,41 +126,41 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
     d->updateRooms();
 
     int nChannels = d->ambisonicDecoder ? d->ambisonicDecoder->nOutputChannels() : 2;
-    if (len < nChannels*int(sizeof(float))*QSpatialAudioEnginePrivate::bufferSize)
+    if (len < nChannels*int(sizeof(float))*QAudioEnginePrivate::bufferSize)
         return 0;
 
     short *fd = (short *)data;
     qint64 frames = len / nChannels / sizeof(short);
     bool ok = true;
-    while (frames >= qint64(QSpatialAudioEnginePrivate::bufferSize)) {
+    while (frames >= qint64(QAudioEnginePrivate::bufferSize)) {
         // Fill input buffers
         for (auto *source : qAsConst(d->sources)) {
-            auto *sp = QSpatialAudioSoundSourcePrivate::get(source);
-            float buf[QSpatialAudioEnginePrivate::bufferSize];
-            sp->getBuffer(buf, QSpatialAudioEnginePrivate::bufferSize, 1);
-            d->api->SetInterleavedBuffer(sp->sourceId, buf, 1, QSpatialAudioEnginePrivate::bufferSize);
+            auto *sp = QSpatialSoundPrivate::get(source);
+            float buf[QAudioEnginePrivate::bufferSize];
+            sp->getBuffer(buf, QAudioEnginePrivate::bufferSize, 1);
+            d->api->SetInterleavedBuffer(sp->sourceId, buf, 1, QAudioEnginePrivate::bufferSize);
         }
         for (auto *source : qAsConst(d->stereoSources)) {
-            auto *sp = QSpatialAudioSound::get(source);
-            float buf[2*QSpatialAudioEnginePrivate::bufferSize];
-            sp->getBuffer(buf, QSpatialAudioEnginePrivate::bufferSize, 2);
-            d->api->SetInterleavedBuffer(sp->sourceId, buf, 2, QSpatialAudioEnginePrivate::bufferSize);
+            auto *sp = QAmbientSoundPrivate::get(source);
+            float buf[2*QAudioEnginePrivate::bufferSize];
+            sp->getBuffer(buf, QAudioEnginePrivate::bufferSize, 2);
+            d->api->SetInterleavedBuffer(sp->sourceId, buf, 2, QAudioEnginePrivate::bufferSize);
         }
 
-        if (d->ambisonicDecoder && d->outputMode == QSpatialAudioEngine::Normal && d->format.channelCount() != 2) {
+        if (d->ambisonicDecoder && d->outputMode == QAudioEngine::Normal && d->format.channelCount() != 2) {
             const float *channels[QAmbisonicDecoder::maxAmbisonicChannels];
             int nSamples = vraudio::getAmbisonicOutput(d->api, channels, d->ambisonicDecoder->nInputChannels());
             Q_ASSERT(d->ambisonicDecoder->nOutputChannels() <= 8);
             d->ambisonicDecoder->processBuffer(channels, fd, nSamples);
         } else {
-            ok = d->api->FillInterleavedOutputBuffer(2, QSpatialAudioEnginePrivate::bufferSize, fd);
+            ok = d->api->FillInterleavedOutputBuffer(2, QAudioEnginePrivate::bufferSize, fd);
             if (!ok) {
                 qWarning() << "    Reading failed!";
                 break;
             }
         }
-        fd += nChannels*QSpatialAudioEnginePrivate::bufferSize;
-        frames -= QSpatialAudioEnginePrivate::bufferSize;
+        fd += nChannels*QAudioEnginePrivate::bufferSize;
+        frames -= QAudioEnginePrivate::bufferSize;
     }
     const int bytesProcessed = ((char *)fd - data);
     m_pos += bytesProcessed;
@@ -168,61 +168,61 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
 }
 
 
-QSpatialAudioEnginePrivate::QSpatialAudioEnginePrivate()
+QAudioEnginePrivate::QAudioEnginePrivate()
 {
     device = QMediaDevices::defaultAudioOutput();
 }
 
-QSpatialAudioEnginePrivate::~QSpatialAudioEnginePrivate()
+QAudioEnginePrivate::~QAudioEnginePrivate()
 {
     delete api;
 }
 
-void QSpatialAudioEnginePrivate::addSpatialSound(QSpatialAudioSoundSource *sound)
+void QAudioEnginePrivate::addSpatialSound(QSpatialSound *sound)
 {
-    QSpatialAudioSound *sd = QSpatialAudioSound::get(sound);
+    QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
     sd->sourceId = api->CreateSoundObjectSource(vraudio::kBinauralHighQuality);
     sources.append(sound);
 }
 
-void QSpatialAudioEnginePrivate::removeSpatialSound(QSpatialAudioSoundSource *sound)
+void QAudioEnginePrivate::removeSpatialSound(QSpatialSound *sound)
 {
-    QSpatialAudioSound *sd = QSpatialAudioSound::get(sound);
+    QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
     api->DestroySource(sd->sourceId);
     sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
     sources.removeOne(sound);
 }
 
-void QSpatialAudioEnginePrivate::addStereoSound(QSpatialAudioStereoSource *sound)
+void QAudioEnginePrivate::addStereoSound(QAmbientSound *sound)
 {
-    QSpatialAudioSound *sd = QSpatialAudioSound::get(sound);
+    QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
     sd->sourceId = api->CreateStereoSource(2);
     stereoSources.append(sound);
 }
 
-void QSpatialAudioEnginePrivate::removeStereoSound(QSpatialAudioStereoSource *sound)
+void QAudioEnginePrivate::removeStereoSound(QAmbientSound *sound)
 {
-    QSpatialAudioSound *sd = QSpatialAudioSound::get(sound);
+    QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
     api->DestroySource(sd->sourceId);
     sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
     stereoSources.removeOne(sound);
 }
 
-void QSpatialAudioEnginePrivate::addRoom(QSpatialAudioRoom *room)
+void QAudioEnginePrivate::addRoom(QAudioRoom *room)
 {
     rooms.append(room);
 }
 
-void QSpatialAudioEnginePrivate::removeRoom(QSpatialAudioRoom *room)
+void QAudioEnginePrivate::removeRoom(QAudioRoom *room)
 {
     rooms.removeOne(room);
 }
 
-void QSpatialAudioEnginePrivate::updateRooms()
+void QAudioEnginePrivate::updateRooms()
 {
     if (!roomEffectsEnabled)
         return;
@@ -232,7 +232,7 @@ void QSpatialAudioEnginePrivate::updateRooms()
 
     bool roomDirty = false;
     for (const auto &room : rooms) {
-        auto *rd = QSpatialAudioRoomPrivate::get(room);
+        auto *rd = QAudioRoomPrivate::get(room);
         if (rd->dirty) {
             roomDirty = true;
             rd->update();
@@ -245,7 +245,7 @@ void QSpatialAudioEnginePrivate::updateRooms()
 
     QVector3D listenerPos = listenerPosition();
     float roomVolume = float(qInf());
-    QSpatialAudioRoom *room = nullptr;
+    QAudioRoom *room = nullptr;
     // Find the smallest room that contains the listener and apply it's room effects
     for (auto *r : qAsConst(rooms)) {
         QVector3D dim2 = r->dimensions()/2.;
@@ -274,41 +274,41 @@ void QSpatialAudioEnginePrivate::updateRooms()
         api->EnableRoomEffects(false);
         return;
     }
-    QSpatialAudioRoomPrivate *rp = QSpatialAudioRoomPrivate::get(room);
+    QAudioRoomPrivate *rp = QAudioRoomPrivate::get(room);
     api->SetReflectionProperties(rp->reflections);
     api->SetReverbProperties(rp->reverb);
 
     // update room effects for all sound sources
     for (auto *s : qAsConst(sources)) {
-        auto *sp = QSpatialAudioSoundSourcePrivate::get(s);
+        auto *sp = QSpatialSoundPrivate::get(s);
         sp->updateRoomEffects();
     }
 }
 
-QVector3D QSpatialAudioEnginePrivate::listenerPosition() const
+QVector3D QAudioEnginePrivate::listenerPosition() const
 {
     return listener ? listener->position() : QVector3D();
 }
 
 
 /*!
-    \class QSpatialAudioEngine
+    \class QAudioEngine
     \inmodule QtMultimedia
     \ingroup multimedia_spatialaudio
 
-    \brief QSpatialAudioEngine manages a three dimensional sound field.
+    \brief QAudioEngine manages a three dimensional sound field.
 
-    You can use an instance of QSpatialAudioEngine to manage a sound field in
-    three dimensions. A sound field is defined by several QSpatialAudioSoundSource
+    You can use an instance of QAudioEngine to manage a sound field in
+    three dimensions. A sound field is defined by several QSpatialSound
     objects that define a sound at a specified location in 3D space. You can also
-    add stereo overlays using QSpatialAudioStereoSource.
+    add stereo overlays using QAmbientSound.
 
-    You can use QSpatialAudioListener to define the position of the person listening
+    You can use QAudioListener to define the position of the person listening
     to the sound field relative to the sound sources. Sound sources will be less audible
     if the listener is further away from source. They will also get mapped to the corresponding
     loudspeakers depending on the direction between listener and source.
 
-    QSpatialAudioEngine offers two output modes. The first mode renders the sound field to a set of
+    QAudioEngine offers two output modes. The first mode renders the sound field to a set of
     speakers, either a stereo speaker pair or a surround configuration. The second mode provides
     an immersive 3D sound experience when using headphones.
 
@@ -339,24 +339,24 @@ QVector3D QSpatialAudioEnginePrivate::listenerPosition() const
     a different rate if most of your sound files are sampled with a different rate, and avoid some
     CPU overhead for resampling.
  */
-QSpatialAudioEngine::QSpatialAudioEngine(QObject *parent, int sampleRate)
+QAudioEngine::QAudioEngine(QObject *parent, int sampleRate)
     : QObject(parent)
-    , d(new QSpatialAudioEnginePrivate)
+    , d(new QAudioEnginePrivate)
 {
     d->sampleRate = sampleRate;
-    d->api = vraudio::CreateResonanceAudioApi(2, QSpatialAudioEnginePrivate::bufferSize, d->sampleRate);
+    d->api = vraudio::CreateResonanceAudioApi(2, QAudioEnginePrivate::bufferSize, d->sampleRate);
 }
 
 /*!
     Destroys the spatial audio engine.
  */
-QSpatialAudioEngine::~QSpatialAudioEngine()
+QAudioEngine::~QAudioEngine()
 {
     stop();
     delete d;
 }
 
-/*! \enum QSpatialAudioEngine::OutputMode
+/*! \enum QAudioEngine::OutputMode
     \value Normal Map the sounds to the loudspeaker configuration of the output device.
     This is normally a stereo or surround speaker setup.
     \value Headphone Use Headphone spatialization to create a 3D audio effect when listening
@@ -364,13 +364,13 @@ QSpatialAudioEngine::~QSpatialAudioEngine()
 */
 
 /*!
-    \property QSpatialAudioEngine::outputMode
+    \property QAudioEngine::outputMode
 
     Sets or retrieves the current output mode of the engine.
 
-    \sa QSpatialAudioEngine::OutputMode
+    \sa QAudioEngine::OutputMode
  */
-void QSpatialAudioEngine::setOutputMode(OutputMode mode)
+void QAudioEngine::setOutputMode(OutputMode mode)
 {
     if (d->outputMode == mode)
         return;
@@ -381,7 +381,7 @@ void QSpatialAudioEngine::setOutputMode(OutputMode mode)
     emit outputModeChanged();
 }
 
-QSpatialAudioEngine::OutputMode QSpatialAudioEngine::outputMode() const
+QAudioEngine::OutputMode QAudioEngine::outputMode() const
 {
     return d->outputMode;
 }
@@ -389,17 +389,17 @@ QSpatialAudioEngine::OutputMode QSpatialAudioEngine::outputMode() const
 /*!
     Returns the sample rate the engine has been configured with.
  */
-int QSpatialAudioEngine::sampleRate() const
+int QAudioEngine::sampleRate() const
 {
     return d->sampleRate;
 }
 
 /*!
-    \property QSpatialAudioEngine::outputDevice
+    \property QAudioEngine::outputDevice
 
     Sets or returns the device that is being used for playing the sound field.
  */
-void QSpatialAudioEngine::setOutputDevice(const QAudioDevice &device)
+void QAudioEngine::setOutputDevice(const QAudioDevice &device)
 {
     if (d->device == device)
         return;
@@ -411,17 +411,17 @@ void QSpatialAudioEngine::setOutputDevice(const QAudioDevice &device)
     emit outputDeviceChanged();
 }
 
-QAudioDevice QSpatialAudioEngine::outputDevice() const
+QAudioDevice QAudioEngine::outputDevice() const
 {
     return d->device;
 }
 
 /*!
-    \property QSpatialAudioEngine::masterVolume
+    \property QAudioEngine::masterVolume
 
     Sets or returns volume being used to render the sound field.
  */
-void QSpatialAudioEngine::setMasterVolume(float volume)
+void QAudioEngine::setMasterVolume(float volume)
 {
     if (d->masterVolume == volume)
         return;
@@ -430,7 +430,7 @@ void QSpatialAudioEngine::setMasterVolume(float volume)
     emit masterVolumeChanged();
 }
 
-float QSpatialAudioEngine::masterVolume() const
+float QAudioEngine::masterVolume() const
 {
     return d->masterVolume;
 }
@@ -438,7 +438,7 @@ float QSpatialAudioEngine::masterVolume() const
 /*!
     Starts the engine.
  */
-void QSpatialAudioEngine::start()
+void QAudioEngine::start()
 {
     if (d->outputStream)
         // already started
@@ -461,7 +461,7 @@ void QSpatialAudioEngine::start()
 /*!
     Stops the engine.
  */
-void QSpatialAudioEngine::stop()
+void QAudioEngine::stop()
 {
     QMetaObject::invokeMethod(d->outputStream.get(), "stopOutput", Qt::BlockingQueuedConnection);
     d->outputStream.reset();
@@ -472,11 +472,11 @@ void QSpatialAudioEngine::stop()
 }
 
 /*!
-    \property QSpatialAudioEngine::paused
+    \property QAudioEngine::paused
 
     Pauses the spatial audio engine.
  */
-void QSpatialAudioEngine::setPaused(bool paused)
+void QAudioEngine::setPaused(bool paused)
 {
     bool old = d->paused.fetchAndStoreRelaxed(paused);
     if (old != paused) {
@@ -486,7 +486,7 @@ void QSpatialAudioEngine::setPaused(bool paused)
     }
 }
 
-bool QSpatialAudioEngine::paused() const
+bool QAudioEngine::paused() const
 {
     return d->paused.loadRelaxed();
 }
@@ -495,11 +495,11 @@ bool QSpatialAudioEngine::paused() const
     Enables room effects such as echos and reverb.
 
     Enables room effects if \a enabled is true.
-    Room effects will only apply if you create one or more \l QSpatialAudioRoom objects
+    Room effects will only apply if you create one or more \l QAudioRoom objects
     and the listener is inside at least one of the rooms. If the listener is inside
     multiple rooms, the room with the smallest volume will be used.
  */
-void QSpatialAudioEngine::setRoomEffectsEnabled(bool enabled)
+void QAudioEngine::setRoomEffectsEnabled(bool enabled)
 {
     if (d->roomEffectsEnabled == enabled)
         return;
@@ -509,26 +509,26 @@ void QSpatialAudioEngine::setRoomEffectsEnabled(bool enabled)
 /*!
     Returns true if room effects are enabled.
  */
-bool QSpatialAudioEngine::roomEffectsEnabled() const
+bool QAudioEngine::roomEffectsEnabled() const
 {
     return d->roomEffectsEnabled;
 }
 
 /*!
-    \property QSpatialAudioEngine::distanceScale
+    \property QAudioEngine::distanceScale
 
     Defines the scale of the coordinate system being used by the spatial audio engine.
     By default, all units are in centimeters, in line with the default units being
     used by Qt Quick 3D.
 
-    Set the distance scale to QSpatialAudioEngine::DistanceScaleMeter to get units in meters.
+    Set the distance scale to QAudioEngine::DistanceScaleMeter to get units in meters.
 */
-void QSpatialAudioEngine::setDistanceScale(float scale)
+void QAudioEngine::setDistanceScale(float scale)
 {
     // multiply with 100, to get the conversion to meters that resonance audio uses
     scale /= 100.f;
     if (scale <= 0.0f) {
-        qWarning() << "QSpatialAudioEngine: Invalid distance scale.";
+        qWarning() << "QAudioEngine: Invalid distance scale.";
         return;
     }
     if (scale == d->distanceScale)
@@ -537,17 +537,13 @@ void QSpatialAudioEngine::setDistanceScale(float scale)
     emit distanceScaleChanged();
 }
 
-float QSpatialAudioEngine::distanceScale() const
+float QAudioEngine::distanceScale() const
 {
     return d->distanceScale*100.f;
 }
 
 
-/*! \class QSpatialAudioSound
-    \internal
- */
-
-void QSpatialAudioSound::load()
+void QAmbientSoundPrivate::load()
 {
     decoder.reset(new QAudioDecoder);
     buffers.clear();
@@ -555,19 +551,19 @@ void QSpatialAudioSound::load()
     bufPos = 0;
     m_playing = false;
     m_loading = true;
-    auto *ep = QSpatialAudioEnginePrivate::get(engine);
+    auto *ep = QAudioEnginePrivate::get(engine);
     QAudioFormat f = ep->format;
     f.setSampleFormat(QAudioFormat::Float);
     f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo : QAudioFormat::ChannelConfigMono);
     decoder->setAudioFormat(f);
     decoder->setSource(url);
 
-    connect(decoder.get(), &QAudioDecoder::bufferReady, this, &QSpatialAudioSound::bufferReady);
-    connect(decoder.get(), &QAudioDecoder::finished, this, &QSpatialAudioSound::finished);
+    connect(decoder.get(), &QAudioDecoder::bufferReady, this, &QAmbientSoundPrivate::bufferReady);
+    connect(decoder.get(), &QAudioDecoder::finished, this, &QAmbientSoundPrivate::finished);
     decoder->start();
 }
 
-void QSpatialAudioSound::getBuffer(float *buf, int nframes, int channels)
+void QAmbientSoundPrivate::getBuffer(float *buf, int nframes, int channels)
 {
     Q_ASSERT(channels == nchannels);
     QMutexLocker l(&mutex);
@@ -605,7 +601,7 @@ void QSpatialAudioSound::getBuffer(float *buf, int nframes, int channels)
     }
 }
 
-void QSpatialAudioSound::bufferReady()
+void QAmbientSoundPrivate::bufferReady()
 {
     QMutexLocker l(&mutex);
     auto b = decoder->read();
@@ -615,7 +611,7 @@ void QSpatialAudioSound::bufferReady()
         m_playing = true;
 }
 
-void QSpatialAudioSound::finished()
+void QAmbientSoundPrivate::finished()
 {
 //    qDebug() << "finished";
     m_loading = false;
@@ -623,5 +619,5 @@ void QSpatialAudioSound::finished()
 
 QT_END_NAMESPACE
 
-#include "moc_qspatialaudioengine.cpp"
-#include "qspatialaudioengine.moc"
+#include "moc_qaudioengine.cpp"
+#include "qaudioengine.moc"

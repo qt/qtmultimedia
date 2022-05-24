@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,8 +34,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "qspatialaudiolistener.h"
-#include "qspatialaudioengine_p.h"
+#include "qaudiolistener.h"
+#include "qaudioengine_p.h"
 #include "api/resonance_audio_api.h"
 #include <qaudiosink.h>
 #include <qurl.h>
@@ -44,31 +44,31 @@
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioListenerPrivate
+class QAudioListenerPrivate
 {
 public:
-    QSpatialAudioEngine *engine = nullptr;
+    QAudioEngine *engine = nullptr;
     QVector3D pos;
     QQuaternion rotation;
 };
 
 /*!
-    \class QSpatialAudioListener
+    \class QAudioListener
     \inmodule QtMultimedia
     \ingroup multimedia_spatialaudio
 
     \brief Defines the position and orientation of the person listening to a sound field
-    defined by QSpatialAudioEngine.
+    defined by QAudioEngine.
 
-    A QSpatialAudioEngine can have exactly one listener that defines the position and orientation
+    A QAudioEngine can have exactly one listener that defines the position and orientation
     of the person listening to the sound field.
  */
 
 /*!
     Creates a listener for the spatial audio engine for \a engine.
  */
-QSpatialAudioListener::QSpatialAudioListener(QSpatialAudioEngine *engine)
-    : d(new QSpatialAudioListenerPrivate)
+QAudioListener::QAudioListener(QAudioEngine *engine)
+    : d(new QAudioListenerPrivate)
 {
     setEngine(engine);
 }
@@ -76,7 +76,7 @@ QSpatialAudioListener::QSpatialAudioListener(QSpatialAudioEngine *engine)
 /*!
     Destroys the listener.
  */
-QSpatialAudioListener::~QSpatialAudioListener()
+QAudioListener::~QAudioListener()
 {
     delete d;
 }
@@ -85,11 +85,11 @@ QSpatialAudioListener::~QSpatialAudioListener()
     Sets the listener's position in 3D space to \a pos. Units are in centimeters
     by default.
 
-    \sa QSpatialAudioEngine::distanceScale
+    \sa QAudioEngine::distanceScale
  */
-void QSpatialAudioListener::setPosition(QVector3D pos)
+void QAudioListener::setPosition(QVector3D pos)
 {
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     pos *= ep->distanceScale;
     if (d->pos == pos)
         return;
@@ -104,19 +104,19 @@ void QSpatialAudioListener::setPosition(QVector3D pos)
 /*!
     Returns the current position of the listener.
  */
-QVector3D QSpatialAudioListener::position() const
+QVector3D QAudioListener::position() const
 {
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     return d->pos/ep->distanceScale;
 }
 
 /*!
     Sets the listener's orientation in 3D space to \a q.
  */
-void QSpatialAudioListener::setRotation(const QQuaternion &q)
+void QAudioListener::setRotation(const QQuaternion &q)
 {
     d->rotation = q;
-    auto *ep = QSpatialAudioEnginePrivate::get(d->engine);
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep && ep->api)
         ep->api->SetHeadRotation(d->rotation.x(), d->rotation.y(), d->rotation.z(), d->rotation.scalar());
 }
@@ -124,7 +124,7 @@ void QSpatialAudioListener::setRotation(const QQuaternion &q)
 /*!
     Returns the listener's orientation in 3D space.
  */
-QQuaternion QSpatialAudioListener::rotation() const
+QQuaternion QAudioListener::rotation() const
 {
     return d->rotation;
 }
@@ -132,15 +132,15 @@ QQuaternion QSpatialAudioListener::rotation() const
 /*!
     \internal
  */
-void QSpatialAudioListener::setEngine(QSpatialAudioEngine *engine)
+void QAudioListener::setEngine(QAudioEngine *engine)
 {
     if (d->engine) {
-        auto *ed = QSpatialAudioEnginePrivate::get(d->engine);
+        auto *ed = QAudioEnginePrivate::get(d->engine);
         ed->listener = nullptr;
     }
     d->engine = engine;
     if (d->engine) {
-        auto *ed = QSpatialAudioEnginePrivate::get(d->engine);
+        auto *ed = QAudioEnginePrivate::get(d->engine);
         if (ed->listener) {
             qWarning() << "Ignoring attempt to add a second listener to the spatial audio engine.";
             d->engine = nullptr;
@@ -153,7 +153,7 @@ void QSpatialAudioListener::setEngine(QSpatialAudioEngine *engine)
 /*!
     Returns the engine associated with this listener.
  */
-QSpatialAudioEngine *QSpatialAudioListener::engine() const
+QAudioEngine *QAudioListener::engine() const
 {
     return d->engine;
 }

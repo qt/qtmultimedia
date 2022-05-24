@@ -2,24 +2,24 @@
 ## Quick3D.Sound Module:
 #####################################################################
 
-qt_internal_add_qml_module(Quick3DSpatialAudioPrivate
-    URI "QtQuick3D.SpatialAudio"
+qt_internal_add_qml_module(Quick3DAudioPrivate
+    URI "QtQuick3D.Audio"
     VERSION "${PROJECT_VERSION}"
-    CLASS_NAME QQuick3DSpatialAudioModule
-    PLUGIN_TARGET quick3dspatialaudio
+    CLASS_NAME QQuick3DAudioModule
+    PLUGIN_TARGET quick3daudio
     NO_GENERATE_PLUGIN_SOURCE
     NO_PLUGIN_OPTIONAL
     DEPENDENCIES QtQuick QtQuick3DPrivate QtMultimedia
-    CONFIG_MODULE_NAME quick3dspatialaudio
+    CONFIG_MODULE_NAME quick3daudio
     INTERNAL_MODULE
     SOURCES
-        qquick3dspatialaudiolistener.cpp qquick3dspatialaudiolistener_p.h
-        qquick3dspatialaudioroom.cpp qquick3dspatialaudioroom_p.h
-        qquick3dspatialaudiosoundsource.cpp qquick3dspatialaudiosoundsource_p.h
-        qquick3dspatialaudiostereosource.cpp qquick3dspatialaudiostereosource_p.h
-        qquick3dspatialaudioengine.cpp qquick3dspatialaudioengine_p.h
-        qtquick3dsoundglobal_p.h
-        qtquick3dsoundtypes_p.h
+        qquick3daudiolistener.cpp qquick3daudiolistener_p.h
+        qquick3daudioroom.cpp qquick3daudioroom_p.h
+        qquick3dspatialsound.cpp qquick3dspatialsound_p.h
+        qquick3dambientsound.cpp qquick3dambientsound_p.h
+        qquick3daudioengine.cpp qquick3daudioengine_p.h
+        qtquick3daudioglobal_p.h
+        qtquick3daudiotypes_p.h
     QML_FILES
     PUBLIC_LIBRARIES
         Qt::Quick3DPrivate
@@ -27,4 +27,4 @@ qt_internal_add_qml_module(Quick3DSpatialAudioPrivate
     GENERATE_CPP_EXPORTS
 )
 
-target_sources(quick3dspatialaudio PRIVATE quick3dspatialaudio_plugin.cpp)
+target_sources(quick3daudio PRIVATE quick3daudio_plugin.cpp)

@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,51 +34,35 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQUICK3DENGINE_H
-#define QQUICK3DENGINE_H
+#ifndef QQUICK3DLISTENER_H
+#define QQUICK3DLISTENER_H
 
 #include <private/qquick3dnode_p.h>
 #include <QtGui/qvector3d.h>
-#include <qspatialaudioengine.h>
+
+#include <qaudiolistener.h>
 
 QT_BEGIN_NAMESPACE
 
-class QQuick3DSpatialAudioSoundSource;
-
-class QQuick3DSpatialAudioEngine : public QObject
+class QQuick3DAudioListener : public QQuick3DNode
 {
     Q_OBJECT
-    QML_NAMED_ELEMENT(SpatialAudioEngine)
-    Q_PROPERTY(OutputMode outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
-    Q_PROPERTY(QAudioDevice outputDevice READ outputDevice WRITE setOutputDevice NOTIFY outputDeviceChanged)
-    Q_PROPERTY(float masterVolume READ masterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
+    QML_NAMED_ELEMENT(AudioListener)
 
 public:
-    // Keep in sync with QSpatialAudioEngine::OutputMode
-    enum OutputMode {
-        Normal,
-        Headphone
-    };
-    Q_ENUM(OutputMode)
+    QQuick3DAudioListener();
+    ~QQuick3DAudioListener();
 
-    QQuick3DSpatialAudioEngine();
-    ~QQuick3DSpatialAudioEngine();
+    QAudioListener *listener() { return m_listener; }
+protected:
+    QSSGRenderGraphObject *updateSpatialNode(QSSGRenderGraphObject *) override { return nullptr; }
 
-    void setOutputMode(OutputMode mode);
-    OutputMode outputMode() const;
+protected Q_SLOTS:
+    void updatePosition();
+    void updateRotation();
 
-    void setOutputDevice(const QAudioDevice &device);
-    QAudioDevice outputDevice() const;
-
-    void setMasterVolume(float volume);
-    float masterVolume() const;
-
-    static QSpatialAudioEngine *getEngine();
-
-Q_SIGNALS:
-    void outputModeChanged();
-    void outputDeviceChanged();
-    void masterVolumeChanged();
+private:
+    QAudioListener *m_listener;
 };
 
 QT_END_NAMESPACE

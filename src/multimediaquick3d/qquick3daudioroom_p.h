@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Quick3D Audio module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -35,38 +35,38 @@
 **
 ****************************************************************************/
 
-#ifndef QQUICK3DSPATIALAUDIOROOM_H
-#define QQUICK3DSPATIALAUDIOROOM_H
+#ifndef QQUICK3DAUDIOROOM_H
+#define QQUICK3DAUDIOROOM_H
 
 #include <private/qquick3dnode_p.h>
 #include <QtGui/qvector3d.h>
-#include <qspatialaudioroom.h>
+#include <qaudioroom.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QSpatialAudioRoomPrivate;
+class QAudioEngine;
+class QAudioRoomPrivate;
 
-class QQuick3DSpatialAudioRoom : public QQuick3DNode
+class QQuick3DAudioRoom : public QQuick3DNode
 {
     Q_OBJECT
     Q_PROPERTY(QVector3D position READ position WRITE setPosition NOTIFY positionChanged)
     Q_PROPERTY(QVector3D dimensions READ dimensions WRITE setDimensions NOTIFY dimensionsChanged)
     Q_PROPERTY(QQuaternion rotation READ rotation WRITE setRotation NOTIFY rotationChanged)
-    Q_PROPERTY(Material left READ left WRITE setLeft NOTIFY wallsChanged)
-    Q_PROPERTY(Material right READ right WRITE setRight NOTIFY wallsChanged)
-    Q_PROPERTY(Material front READ front WRITE setFront NOTIFY wallsChanged)
-    Q_PROPERTY(Material back READ back WRITE setBack NOTIFY wallsChanged)
-    Q_PROPERTY(Material floor READ floor WRITE setFloor NOTIFY wallsChanged)
-    Q_PROPERTY(Material ceiling READ ceiling WRITE setCeiling NOTIFY wallsChanged)
+    Q_PROPERTY(Material leftMaterial READ leftMaterial WRITE setLeftMaterial NOTIFY wallsChanged)
+    Q_PROPERTY(Material rightMaterial READ rightMaterial WRITE setRightMaterial NOTIFY wallsChanged)
+    Q_PROPERTY(Material frontMaterial READ frontMaterial WRITE setFrontMaterial NOTIFY wallsChanged)
+    Q_PROPERTY(Material backMaterial READ backMaterial WRITE setBackMaterial NOTIFY wallsChanged)
+    Q_PROPERTY(Material floorMaterial READ floorMaterial WRITE setFloorMaterial NOTIFY wallsChanged)
+    Q_PROPERTY(Material ceilingMaterial READ ceilingMaterial WRITE setCeilingMaterial NOTIFY wallsChanged)
     Q_PROPERTY(float reflectionGain READ reflectionGain WRITE setReflectionGain NOTIFY reflectionGainChanged)
     Q_PROPERTY(float reverbGain READ reverbGain WRITE setReverbGain NOTIFY reverbGainChanged)
     Q_PROPERTY(float reverbTime READ reverbTime WRITE setReverbTime NOTIFY reverbTimeChanged)
     Q_PROPERTY(float reverbBrightness READ reverbBrightness WRITE setReverbBrightness NOTIFY reverbBrightnessChanged)
-    QML_NAMED_ELEMENT(SpatialAudioRoom)
+    QML_NAMED_ELEMENT(AudioRoom)
 public:
-    QQuick3DSpatialAudioRoom();
-    ~QQuick3DSpatialAudioRoom();
+    QQuick3DAudioRoom();
+    ~QQuick3DAudioRoom();
 
     enum Material {
       Transparent,
@@ -99,23 +99,23 @@ public:
     void setDimensions(QVector3D pos);
     QVector3D dimensions() const;
 
-    void setLeft(Material material);
-    Material left() const;
+    void setLeftMaterial(Material material);
+    Material leftMaterial() const;
 
-    void setRight(Material material);
-    Material right() const;
+    void setRightMaterial(Material material);
+    Material rightMaterial() const;
 
-    void setFront(Material material);
-    Material front() const;
+    void setFrontMaterial(Material material);
+    Material frontMaterial() const;
 
-    void setBack(Material material);
-    Material back() const;
+    void setBackMaterial(Material material);
+    Material backMaterial() const;
 
-    void setFloor(Material material);
-    Material floor() const;
+    void setFloorMaterial(Material material);
+    Material floorMaterial() const;
 
-    void setCeiling(Material material);
-    Material ceiling() const;
+    void setCeilingMaterial(Material material);
+    Material ceilingMaterial() const;
 
     void setReflectionGain(float factor);
     float reflectionGain() const;
@@ -144,7 +144,7 @@ protected Q_SLOTS:
     void updateRotation();
 
 private:
-    QSpatialAudioRoom *m_room;
+    QAudioRoom *m_room;
 };
 
 QT_END_NAMESPACE

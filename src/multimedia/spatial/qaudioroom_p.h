@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,60 +34,48 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+#ifndef QAUDIOROOM_P_H
+#define QAUDIOROOM_P_H
 
-#ifndef QSPATIALAUDIOSOUNDSOURCE_P_H
-#define QSPATIALAUDIOSOUNDSOURCE_P_H
-
-//
 //  W A R N I N G
 //  -------------
 //
-// This file is not part of the Qt API.  It exists for the convenience
-// of other Qt classes.  This header file may change from version to
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
-#include <qspatialaudiosoundsource.h>
-#include <qspatialaudioengine_p.h>
-#include <qurl.h>
-#include <qvector3d.h>
-#include <qquaternion.h>
-#include <qaudiobuffer.h>
-#include <qaudiodevice.h>
-#include <qmutex.h>
+#include <qaudioroom.h>
+#include <qaudioengine_p.h>
+#include <QtGui/qquaternion.h>
+
+#include <resonance_audio_api_extensions.h>
+#include "platforms/common/room_effects_utils.h"
+#include "platforms/common/room_properties.h"
 
 QT_BEGIN_NAMESPACE
 
-class QAudioDecoder;
-class QSpatialAudioEnginePrivate;
-
-class QSpatialAudioSoundSourcePrivate : public QSpatialAudioSound
+class QAudioRoomPrivate
 {
 public:
-    QSpatialAudioSoundSourcePrivate(QObject *parent)
-        : QSpatialAudioSound(parent, 1)
-    {}
+    static QAudioRoomPrivate *get(const QAudioRoom *r) { return r->d; }
 
-    static QSpatialAudioSoundSourcePrivate *get(QSpatialAudioSoundSource *soundSource)
-    { return soundSource ? soundSource->d : nullptr; }
+    QAudioEngine *engine = nullptr;
+    vraudio::RoomProperties roomProperties;
+    bool dirty = true;
 
-    QVector3D pos;
-    QQuaternion rotation;
-    QSpatialAudioSoundSource::DistanceModel distanceModel = QSpatialAudioSoundSource::DistanceModel_Logarithmic;
-    float size = .1f;
-    float distanceCutoff = 50.f;
-    float manualAttenuation = 0.f;
-    float occlusionIntensity = 0.f;
-    float directivity = 0.f;
-    float directivityOrder = 1.f;
-    float nearFieldGain = 0.f;
-    float wallDampening = 1.f;
-    float wallOcclusion = 0.f;
+    vraudio::ReverbProperties reverb;
+    vraudio::ReflectionProperties reflections;
 
-    void updateDistanceModel();
-    void updateRoomEffects();
+    float m_wallOcclusion[6] = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
+    float m_wallDampening[6] = { -1.f, -1.f, -1.f, -1.f, -1.f, -1.f };
+
+    float wallOcclusion(QAudioRoom::Wall wall) const;
+    float wallDampening(QAudioRoom::Wall wall) const;
+
+    void update();
 };
 
 QT_END_NAMESPACE

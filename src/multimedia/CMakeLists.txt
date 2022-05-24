@@ -93,12 +93,11 @@ qt_internal_add_module(Multimedia
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_spatialaudio
     SOURCES
         spatial/qambisonicdecoder.cpp spatial/qambisonicdecoder_p.h spatial/qambisonicdecoderdata_p.h
-#        spatial/qacousticgeometry.cpp spatial/qacousticgeometry_p.h
-        spatial/qspatialaudioengine.cpp spatial/qspatialaudioengine.h spatial/qspatialaudioengine_p.h
-        spatial/qspatialaudiolistener.cpp spatial/qspatialaudiolistener.h
-        spatial/qspatialaudioroom.cpp spatial/qspatialaudioroom.h spatial/qspatialaudioroom_p.h
-        spatial/qspatialaudiosoundsource.cpp spatial/qspatialaudiosoundsource.h spatial/qspatialaudiosoundsource_p.h
-        spatial/qspatialaudiostereosource.cpp spatial/qspatialaudiostereosource.h
+        spatial/qaudioengine.cpp spatial/qaudioengine.h spatial/qaudioengine_p.h
+        spatial/qaudiolistener.cpp spatial/qaudiolistener.h
+        spatial/qaudioroom.cpp spatial/qaudioroom.h spatial/qaudioroom_p.h
+        spatial/qspatialsound.cpp spatial/qspatialsound.h spatial/qspatialsound.h
+        spatial/qambientsound.cpp spatial/qambientsound.h
     INCLUDE_DIRECTORIES
         "../3rdparty/resonance-audio/resonance_audio"
         "../3rdparty/resonance-audio"

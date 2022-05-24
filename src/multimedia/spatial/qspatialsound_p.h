@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -34,67 +34,60 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QSPATIALAUDIOSTEREOSOURCE_H
-#define QSPATIALAUDIOSTEREOSOURCE_H
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtCore/QUrl>
-#include <QtCore/QObject>
+#ifndef QSPATIALAUDIOSOUNDSOURCE_P_H
+#define QSPATIALAUDIOSOUNDSOURCE_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists for the convenience
+// of other Qt classes.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <qspatialsound.h>
+#include <qaudioengine_p.h>
+#include <qurl.h>
+#include <qvector3d.h>
+#include <qquaternion.h>
+#include <qaudiobuffer.h>
+#include <qaudiodevice.h>
+#include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEngine;
-class QSpatialAudioSound;
+class QAudioDecoder;
+class QAudioEnginePrivate;
 
-class QSpatialAudioStereoSourcePrivate;
-class Q_MULTIMEDIA_EXPORT QSpatialAudioStereoSource : public QObject
+class QSpatialSoundPrivate : public QAmbientSoundPrivate
 {
-    Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
-    Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
-    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged)
-
 public:
-    explicit QSpatialAudioStereoSource(QSpatialAudioEngine *engine);
-    ~QSpatialAudioStereoSource();
+    QSpatialSoundPrivate(QObject *parent)
+        : QAmbientSoundPrivate(parent, 1)
+    {}
 
-    void setSource(const QUrl &url);
-    QUrl source() const;
+    static QSpatialSoundPrivate *get(QSpatialSound *soundSource)
+    { return soundSource ? soundSource->d : nullptr; }
 
-    enum Loops
-    {
-        Infinite = -1,
-        Once = 1
-    };
-    Q_ENUM(Loops)
+    QVector3D pos;
+    QQuaternion rotation;
+    QSpatialSound::DistanceModel distanceModel = QSpatialSound::DistanceModel_Logarithmic;
+    float size = .1f;
+    float distanceCutoff = 50.f;
+    float manualAttenuation = 0.f;
+    float occlusionIntensity = 0.f;
+    float directivity = 0.f;
+    float directivityOrder = 1.f;
+    float nearFieldGain = 0.f;
+    float wallDampening = 1.f;
+    float wallOcclusion = 0.f;
 
-    int loops() const;
-    void setLoops(int loops);
-
-    bool autoPlay() const;
-    void setAutoPlay(bool autoPlay);
-
-    void setVolume(float volume);
-    float volume() const;
-
-    QSpatialAudioEngine *engine() const;
-
-Q_SIGNALS:
-    void sourceChanged();
-    void loopsChanged();
-    void autoPlayChanged();
-    void volumeChanged();
-
-public Q_SLOTS:
-    void play();
-    void pause();
-    void stop();
-
-private:
-    void setEngine(QSpatialAudioEngine *engine);
-    friend class QSpatialAudioSound;
-    QSpatialAudioSound *d = nullptr;
+    void updateDistanceModel();
+    void updateRoomEffects();
 };
 
 QT_END_NAMESPACE

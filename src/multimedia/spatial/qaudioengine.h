@@ -3,7 +3,7 @@
 ** Copyright (C) 2022 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the Spatial Audio module of the Qt Toolkit.
+** This file is part of the Multimedia module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL-NOGPL2$
 ** Commercial License Usage
@@ -35,18 +35,18 @@
 **
 ****************************************************************************/
 
-#ifndef QSPATIALAUDIOENGINE_H
-#define QSPATIALAUDIOENGINE_H
+#ifndef QAUDIOENGINE_H
+#define QAUDIOENGINE_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSpatialAudioEnginePrivate;
+class QAudioEnginePrivate;
 class QAudioDevice;
 
-class Q_MULTIMEDIA_EXPORT QSpatialAudioEngine : public QObject
+class Q_MULTIMEDIA_EXPORT QAudioEngine : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(OutputMode outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
@@ -55,8 +55,8 @@ class Q_MULTIMEDIA_EXPORT QSpatialAudioEngine : public QObject
     Q_PROPERTY(bool paused READ paused WRITE setPaused NOTIFY pausedChanged)
     Q_PROPERTY(float distanceScale READ distanceScale WRITE setDistanceScale NOTIFY distanceScaleChanged)
 public:
-    explicit QSpatialAudioEngine(QObject *parent = nullptr, int sampleRate = 44100);
-    ~QSpatialAudioEngine();
+    explicit QAudioEngine(QObject *parent = nullptr, int sampleRate = 44100);
+    ~QAudioEngine();
 
     enum OutputMode {
         Normal,
@@ -102,8 +102,8 @@ public Q_SLOTS:
     void resume() { setPaused(false); }
 
 private:
-    friend class QSpatialAudioEnginePrivate;
-    QSpatialAudioEnginePrivate *d;
+    friend class QAudioEnginePrivate;
+    QAudioEnginePrivate *d;
 };
 
 QT_END_NAMESPACE
