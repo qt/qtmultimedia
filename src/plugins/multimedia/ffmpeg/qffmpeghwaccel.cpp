@@ -246,9 +246,10 @@ AVPixelFormat HWAccel::hwFormat() const
 
 const AVCodec *HWAccel::hardwareDecoderForCodecId(AVCodecID id)
 {
+    const AVCodec *codec = nullptr;
+#ifdef Q_OS_ANDROID
     const auto getDecoder = [](AVCodecID id) {
         switch (id) {
-#ifdef Q_OS_ANDROID
         case AV_CODEC_ID_H264:
             return avcodec_find_decoder_by_name("h264_mediacodec");
         case AV_CODEC_ID_HEVC:
@@ -261,16 +262,14 @@ const AVCodec *HWAccel::hardwareDecoderForCodecId(AVCodecID id)
             return avcodec_find_decoder_by_name("vp8_mediacodec");
         case AV_CODEC_ID_VP9:
             return avcodec_find_decoder_by_name("vp9_mediacodec");
-#endif
         default:
             return avcodec_find_decoder(id);
         }
     };
+    codec = getDecoder(id);
+#endif
 
-    const auto *codec = getDecoder(id);
-
-    // only if ffmpeg build was not setup properly
-    if (Q_UNLIKELY(!codec))
+    if (!codec)
         codec = avcodec_find_decoder(id);
 
     return codec;
