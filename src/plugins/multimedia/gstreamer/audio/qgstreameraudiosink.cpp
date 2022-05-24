@@ -310,7 +310,7 @@ void QGStreamerAudioSink::resume()
         m_appSrc->resume();
         gstPipeline.setState(GST_STATE_PLAYING);
 
-        setState(m_pullMode ? QAudio::ActiveState : QAudio::IdleState);
+        setState(QAudio::ActiveState);
         setError(QAudio::NoError);
     }
 }
