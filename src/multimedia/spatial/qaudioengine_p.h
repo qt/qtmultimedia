@@ -85,7 +85,7 @@ public:
     vraudio::ResonanceAudioApi *api = nullptr;
     int sampleRate = 44100;
     float masterVolume = 1.;
-    QAudioEngine::OutputMode outputMode = QAudioEngine::Normal;
+    QAudioEngine::OutputMode outputMode = QAudioEngine::Surround;
     bool roomEffectsEnabled = true;
 
     // Resonance Audio uses meters internally, while Qt Quick 3D and our API uses cm by default.

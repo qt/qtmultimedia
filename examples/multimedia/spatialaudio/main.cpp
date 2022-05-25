@@ -85,24 +85,28 @@ public:
 
         roomDimension = new QSlider(Qt::Horizontal);
         roomDimension->setRange(0, 10000);
-        roomDimension->setValue(500);
+        roomDimension->setValue(1000);
         grid->addWidget(new QLabel(tr("Room dimension (0 - 100 meter):")), 5, 0);
         grid->addWidget(roomDimension, 5, 1);
 
         reverbGain = new QSlider(Qt::Horizontal);
         reverbGain->setRange(0, 500);
-        reverbGain->setValue(100);
+        reverbGain->setValue(0);
         grid->addWidget(new QLabel(tr("Reverb gain (0-5):")), 6, 0);
         grid->addWidget(reverbGain, 6, 1);
 
         reflectionGain = new QSlider(Qt::Horizontal);
         reflectionGain->setRange(0, 500);
-        reflectionGain->setValue(100);
+        reflectionGain->setValue(0);
         grid->addWidget(new QLabel(tr("Reflection gain (0-5):")), 7, 0);
         grid->addWidget(reflectionGain, 7, 1);
 
-        useHeadphone = new QCheckBox(tr("Use headphone spatialization"));
-        grid->addWidget(useHeadphone, 8, 1, 1, 2);
+        mode = new QComboBox;
+        mode->addItem(tr("Surround"), QVariant::fromValue(QAudioEngine::Surround));
+        mode->addItem(tr("Stereo"), QVariant::fromValue(QAudioEngine::Stereo));
+        mode->addItem(tr("Headphone"), QVariant::fromValue(QAudioEngine::Headphone));
+        grid->addWidget(new QLabel(tr("Output mode:")), 8, 0);
+        grid->addWidget(mode, 8, 1);
 
         connect(fileEdit, &QLineEdit::textChanged, this, &AudioWidget::fileChanged);
         connect(fileDialogButton, &QPushButton::clicked, this, &AudioWidget::openFileDialog);
@@ -116,18 +120,16 @@ public:
         connect(reverbGain, &QSlider::valueChanged, this, &AudioWidget::updateRoom);
         connect(reflectionGain, &QSlider::valueChanged, this, &AudioWidget::updateRoom);
 
-        connect(useHeadphone, &QCheckBox::stateChanged, this, &AudioWidget::useHeadphoneChanged);
+        connect(mode, &QComboBox::currentIndexChanged, this, &AudioWidget::modeChanged);
 
         room = new QAudioRoom(&engine);
-        room->setDimensions(QVector3D(5, 5, 5));
         room->setWallMaterial(QAudioRoom::BackWall, QAudioRoom::BrickBare);
         room->setWallMaterial(QAudioRoom::FrontWall, QAudioRoom::BrickBare);
         room->setWallMaterial(QAudioRoom::LeftWall, QAudioRoom::BrickBare);
         room->setWallMaterial(QAudioRoom::RightWall, QAudioRoom::BrickBare);
         room->setWallMaterial(QAudioRoom::Floor, QAudioRoom::Marble);
         room->setWallMaterial(QAudioRoom::Ceiling, QAudioRoom::WoodCeiling);
-        room->setReverbGain(1);
-        room->setReflectionGain(1);
+        updateRoom();
 
         listener = new QAudioListener(&engine);
         listener->setPosition({});
@@ -185,7 +187,7 @@ private slots:
     QSlider *roomDimension = nullptr;
     QSlider *reverbGain = nullptr;
     QSlider *reflectionGain = nullptr;
-    QCheckBox *useHeadphone = nullptr;
+    QComboBox *mode = nullptr;
 
     QAudioEngine engine;
     QAudioListener *listener = nullptr;

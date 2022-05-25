@@ -94,9 +94,13 @@ QQuick3DAudioEngine::~QQuick3DAudioEngine()
     \table
     \header \li Property value
             \li Description
-    \row \li Normal
+    \row \li Surround
         \li Map the sounds to the loudspeaker configuration of the output device.
             This is normally a stereo or surround speaker setup.
+    \row \li Stereo
+        \li Map the sounds to the stereo loudspeaker configuration of the output device.
+            This will ignore any additional speakers and only use the left and right channels
+            to create a stero rendering of the sound field.
     \row \li Headphone
         \li Use Headphone spatialization to create a 3D audio effect when listening
             to the sound field through headphones.

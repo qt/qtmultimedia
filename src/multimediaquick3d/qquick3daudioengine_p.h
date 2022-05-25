@@ -56,7 +56,8 @@ class QQuick3DAudioEngine : public QObject
 public:
     // Keep in sync with QAudioEngine::OutputMode
     enum OutputMode {
-        Normal,
+        Surround,
+        Stereo,
         Headphone
     };
     Q_ENUM(OutputMode)

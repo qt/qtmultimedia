@@ -147,7 +147,7 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
             d->api->SetInterleavedBuffer(sp->sourceId, buf, 2, QAudioEnginePrivate::bufferSize);
         }
 
-        if (d->ambisonicDecoder && d->outputMode == QAudioEngine::Normal && d->format.channelCount() != 2) {
+        if (d->ambisonicDecoder && d->outputMode == QAudioEngine::Surround) {
             const float *channels[QAmbisonicDecoder::maxAmbisonicChannels];
             int nSamples = vraudio::getAmbisonicOutput(d->api, channels, d->ambisonicDecoder->nInputChannels());
             Q_ASSERT(d->ambisonicDecoder->nOutputChannels() <= 8);
@@ -361,10 +361,13 @@ QAudioEngine::~QAudioEngine()
 }
 
 /*! \enum QAudioEngine::OutputMode
-    \value Normal Map the sounds to the loudspeaker configuration of the output device.
-    This is normally a stereo or surround speaker setup.
+    \value Surround Map the sounds to the loudspeaker configuration of the output device.
+        This is normally a stereo or surround speaker setup.
+    \value Stereo Map the sounds to the stereo loudspeaker configuration of the output device.
+        This will ignore any additional speakers and only use the left and right channels
+        to create a stero rendering of the sound field.
     \value Headphone Use Headphone spatialization to create a 3D audio effect when listening
-    to the sound field through headphones
+        to the sound field through headphones
 */
 
 /*!
@@ -379,9 +382,9 @@ void QAudioEngine::setOutputMode(OutputMode mode)
     if (d->outputMode == mode)
         return;
     d->outputMode = mode;
-    if (d->api) {
-        d->api->SetStereoSpeakerMode(mode == Normal);
-    }
+    if (d->api)
+        d->api->SetStereoSpeakerMode(mode != Headphone);
+
     emit outputModeChanged();
 }
 
@@ -452,7 +455,7 @@ void QAudioEngine::start()
     d->format.setSampleRate(d->sampleRate);
     d->format.setSampleFormat(QAudioFormat::Int16);
 
-    d->api->SetStereoSpeakerMode(d->outputMode == Normal);
+    d->api->SetStereoSpeakerMode(d->outputMode != Headphone);
     d->api->SetMasterVolume(d->masterVolume);
 
     d->outputStream.reset(new QAudioOutputStream(d));
