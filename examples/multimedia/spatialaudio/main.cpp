@@ -146,17 +146,17 @@ private slots:
         float d = distance->value();
 
         float x = d*sin(az)*cos(el);
-        float y = d*cos(az)*cos(el);
-        float z = d*sin(el);
+        float y = d*sin(el);
+        float z = -d*cos(az)*cos(el);
         sound->setPosition({x, y, z});
     }
     void newOcclusion()
     {
         sound->setOcclusionIntensity(occlusion->value()/100.);
     }
-    void useHeadphoneChanged(int state)
+    void modeChanged()
     {
-        engine.setOutputMode(state ? QAudioEngine::Headphone : QAudioEngine::Normal);
+        engine.setOutputMode(mode->currentData().value<QAudioEngine::OutputMode>());
     }
     void fileChanged(const QString &file)
     {

@@ -67,6 +67,10 @@ static QAudioEngine *globalEngine = nullptr;
     using head related impulse reponse functions (see also https://en.wikipedia.org/wiki/Sound_localization)
     to localize the sound in 3D space when using headphones and create a spatial audio effect through
     headphones.
+
+    As the rest of Qt Quick 3D, the audio engine uses a coordinate system that is in centimeters by default.
+    The axes are defined so that positive x points to the right, positive y points up and positive z points
+    backwards.
 */
 
 

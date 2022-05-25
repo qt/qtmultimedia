@@ -323,10 +323,14 @@ QVector3D QAudioEnginePrivate::listenerPosition() const
     effects for an average persons ears and head. It provides a good and immersive 3D sound localization
     experience for most persons when using headphones.
 
-    The engine is rather versatile allowing you to define amd emulate room properties and reverb settings emulating
+    The engine is rather versatile allowing you to define room properties and reverb settings to emulate
     different types of rooms.
 
     Sound sources can also be occluded dampening the sound coming from those sources.
+
+    The audio engine uses a coordinate system that is in centimeters by default. The axes are aligned with the
+    typical coordinate system used in 3D. Positive x points to the right, positive y points up and positive z points
+    backwards.
 
 */
 

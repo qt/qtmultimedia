@@ -103,6 +103,15 @@ struct {
 
 }
 
+// make sure the wall definitions agree with resonance audio
+
+static_assert(QAudioRoom::LeftWall == 0);
+static_assert(QAudioRoom::RightWall == 1);
+static_assert(QAudioRoom::Floor == 2);
+static_assert(QAudioRoom::Ceiling == 3);
+static_assert(QAudioRoom::FrontWall == 4);
+static_assert(QAudioRoom::BackWall == 5);
+
 float QAudioRoomPrivate::wallOcclusion(QAudioRoom::Wall wall) const
 {
     return m_wallOcclusion[wall] < 0 ? occlusionAndDampening[roomProperties.material_names[wall]].occlusion : m_wallOcclusion[wall];
@@ -203,10 +212,10 @@ QAudioRoom::~QAudioRoom()
 
     \value LeftWall Left wall (negative x)
     \value RightWall Right wall (positive x)
-    \value BackWall Back wall (negative y)
-    \value FrontWall Front wall (positive y)
-    \value Floor Bottom wall (negative z)
-    \value Ceiling Top wall (positive z)
+    \value Floor Bottom wall (negative y)
+    \value Ceiling Top wall (positive y)
+    \value FrontWall Front wall (negative z)
+    \value BackWall Back wall (positive z)
 */
 
 
