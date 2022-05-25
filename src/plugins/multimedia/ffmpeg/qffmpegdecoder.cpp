@@ -685,7 +685,9 @@ void VideoRenderer::loop()
         if (streamDecoder->isAtEnd()) {
             timeOut = -1;
             eos.storeRelease(true);
+            mutex.unlock();
             emit atEnd();
+            mutex.lock();
             return;
         }
         timeOut = 1;
@@ -877,7 +879,9 @@ void AudioRenderer::loop()
                     processedUSecs = audioSink->processedUSecs();
                 timeOut = -1;
                 eos.storeRelease(true);
+                mutex.unlock();
                 emit atEnd();
+                mutex.lock();
                 return;
             }
             timeOut = 1;
