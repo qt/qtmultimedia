@@ -104,6 +104,8 @@ public:
         ChannelConfigMono = QtPrivate::channelConfig(FrontCenter),
         ChannelConfigStereo = QtPrivate::channelConfig(FrontLeft, FrontRight),
         ChannelConfig2Dot1 = QtPrivate::channelConfig(FrontLeft, FrontRight, LFE),
+        ChannelConfig3Dot0 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter),
+        ChannelConfig3Dot1 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter, LFE),
         ChannelConfigSurround5Dot0 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter, BackLeft, BackRight),
         ChannelConfigSurround5Dot1 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter, LFE, BackLeft, BackRight),
         ChannelConfigSurround7Dot0 = QtPrivate::channelConfig(FrontLeft, FrontRight, FrontCenter, BackLeft, BackRight, SideLeft, SideRight),

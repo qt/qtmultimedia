@@ -98,34 +98,6 @@ function adt_generate_qt()
     fprintf(outfile, "\n\n");
     fprintf(outfile, "QT_BEGIN_NAMESPACE\n\n");
 
-    % cover top/bottom and back for mono and stereo
-    imag_speakers = [0,0,radius; 0,0,-radius; 0,radius,0; 0,-radius,0; -radius,0,0];
-
-    % Mono, one speaker up front
-    S = ambi_spkr_array(...
-        ... % array name
-        'mono', ...
-        ... % coordinate codes, unit codes
-        ... % Azimuth, Elevation, Radius; Degrees, Degrees, Meters
-        'AER', 'DDM', ...
-        ... % speaker name, [azimuth, elevation, radius]
-        'C',  [  0, 0, radius] ...
-    );
-    createDecoders(S, imag_speakers, outfile);
-
-    % Stereo, assume -30 and 30 degree speakers
-    S = ambi_spkr_array(...
-        'stereo', ...
-        'AER', 'DDM', ...
-        'L',  [  30, 0, radius], ...
-        'R',  [ -30, 0, radius] ...
-    );
-    createDecoders(S, imag_speakers, outfile);
-
-    S.lfeRow = 3;
-    S.name = "2dot1";
-    createDecoders(S, imag_speakers, outfile);
-
     % cover top/bottom for surround
     imag_speakers = [0,0,radius; 0,0,-radius];
 
@@ -197,6 +169,24 @@ function writeLFERow(outfile, m, suffix)
     fprintf(outfile, "// LFE\n");
 end
 
+function [n, m] = getnm(l)
+% Computes spherical harmonic degree and order from Ambisonic Channel Number.
+    n = floor(sqrt(l));
+    m = l-n.^2-n;
+end
+
+function channels = normalizeSN3D(channels)
+    for i = 1:columns(channels)
+        [n, m] = getnm(i-1);
+        if (m == 0)
+            factor = 1;
+        else
+            factor = sqrt(2 * factorial(n - abs(m)) / (factorial(n + abs(m))));
+        endif
+        channels(i) *= factor;
+    endfor
+end
+
 function writeMatrix(outfile, level, S, M, suffix)
     m = trimMatrix(M);
     hasLFE = isfield(S, "lfeRow");
@@ -208,7 +198,8 @@ function writeMatrix(outfile, level, S, M, suffix)
     fprintf(outfile, "// Decoder matrix for %s, ambisonic level %d\n", S.name, level);
     fprintf(outfile, "static constexpr float decoderMatrix_%s_%d_%s[%d*%d] = {\n", S.name, level, suffix, r, c);
     for i = 1:rows(S.id)
-        fprintf(outfile, "%ff, ", m(i, :));
+        channels = normalizeSN3D(m(i, :))
+        fprintf(outfile, "%ff, ", channels);
         fprintf(outfile, "// %s\n", S.id(i, 1){1});
         if (hasLFE && S.lfeRow == i + 1)
             writeLFERow(outfile, m, suffix);
@@ -218,7 +209,8 @@ function writeMatrix(outfile, level, S, M, suffix)
 end
 
 function createOneDecoder(S, imag_speakers, outfile, level)
-    [D,S,M,C] = ambi_run_allrad(S, level, imag_speakers, [S.name '_' int2str(level)], false, "amb", 1, 3);
+    ambi_order = ambi_channel_definitions_convention(level, 'ambix2011')
+    [D,S,M,C] = ambi_run_allrad(S, ambi_order, imag_speakers, [S.name '_' int2str(level)], false, "amb", 1, 3);
     writeMatrix(outfile, level, S, M.lf, "lf");
     m = ambi_apply_gamma(M.hf, D.hf_gains, C);
     writeMatrix(outfile, level, S, m, "hf");

@@ -40,6 +40,7 @@
 
 #include "qambisonicdecoderdata_p.h"
 #include <cmath>
+#include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -50,7 +51,10 @@ QT_BEGIN_NAMESPACE
 //
 // We are currently not using a near field compensation filter, something that could potentially
 // improve sound quality further.
-
+//
+// For mono and stereo decoding, we use a simpler algorithm to avoid artificially dampening signals
+// coming from the back, as we do not have any speakers in that direction and the calculations
+// through matlab would give us audible 'holes'.
 
 struct QAmbisonicDecoderData
 {
@@ -61,18 +65,6 @@ struct QAmbisonicDecoderData
 
 static const QAmbisonicDecoderData decoderMap[] =
 {
-    { QAudioFormat::ChannelConfigMono,
-      { decoderMatrix_mono_1_lf, decoderMatrix_mono_2_lf, decoderMatrix_mono_3_lf },
-      { decoderMatrix_mono_1_hf, decoderMatrix_mono_2_hf, decoderMatrix_mono_3_hf }
-    },
-    { QAudioFormat::ChannelConfigStereo,
-      { decoderMatrix_stereo_1_lf, decoderMatrix_stereo_2_lf, decoderMatrix_stereo_3_lf },
-      { decoderMatrix_stereo_1_hf, decoderMatrix_stereo_2_hf, decoderMatrix_stereo_3_hf }
-    },
-    { QAudioFormat::ChannelConfig2Dot1,
-      { decoderMatrix_2dot1_1_lf, decoderMatrix_2dot1_2_lf, decoderMatrix_2dot1_3_lf },
-      { decoderMatrix_2dot1_1_hf, decoderMatrix_2dot1_2_hf, decoderMatrix_2dot1_3_hf }
-    },
     { QAudioFormat::ChannelConfigSurround5Dot0,
       { decoderMatrix_5dot0_1_lf, decoderMatrix_5dot0_2_lf, decoderMatrix_5dot0_3_lf },
       { decoderMatrix_5dot0_1_hf, decoderMatrix_5dot0_2_hf, decoderMatrix_5dot0_3_hf }
@@ -90,7 +82,6 @@ static const QAmbisonicDecoderData decoderMap[] =
       { decoderMatrix_7dot1_1_hf, decoderMatrix_7dot1_2_hf, decoderMatrix_7dot1_3_hf }
     }
 };
-
 
 // Implements a split second order IIR filter
 // The audio data is split into a phase synced low and high frequency part
@@ -161,25 +152,72 @@ private:
 QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicLevel ambisonicLevel, const QAudioFormat &format)
     : level(ambisonicLevel)
 {
-    auto outputConfiguration = format.channelConfig();
-    if (outputConfiguration == QAudioFormat::ChannelConfigUnknown)
-        outputConfiguration = format.defaultChannelConfigForChannelCount(format.channelCount());
-    for (const  auto &d : decoderMap) {
-        if (d.config == outputConfiguration) {
+    Q_ASSERT(level > 0 && level <= 3);
+    inputChannels = (level+1)*(level+1);
+    outputChannels = format.channelCount();
+
+    channelConfig = format.channelConfig();
+    if (channelConfig == QAudioFormat::ChannelConfigUnknown)
+        channelConfig = format.defaultChannelConfigForChannelCount(format.channelCount());
+
+    if (channelConfig == QAudioFormat::ChannelConfigMono ||
+        channelConfig == QAudioFormat::ChannelConfigStereo ||
+        channelConfig == QAudioFormat::ChannelConfig2Dot1 ||
+        channelConfig == QAudioFormat::ChannelConfig3Dot0 ||
+        channelConfig == QAudioFormat::ChannelConfig3Dot1) {
+        // these are non surround configs and handled manually to avoid
+        // audible holes for sounds coming from behing
+        //
+        // We use a simpler decoding process here, only taking first order
+        // ambisonics into account
+        //
+        // Left and right channels get 50% W and 50% X
+        // Center gets 50% W and 50% Y
+        // LFE gets 50% W
+        simpleDecoderFactors = new float[4*outputChannels];
+        float *f = simpleDecoderFactors;
+        if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::FrontLeft)) {
+            f[0] = 0.5f; f[1] = 0.5f; f[2] = 0.; f[3] = 0.f;
+            f += 4;
+        }
+        if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::FrontRight)) {
+            f[0] = 0.5f; f[1] = -0.5f; f[2] = 0.; f[3] = 0.f;
+            f += 4;
+        }
+        if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::FrontCenter)) {
+            f[0] = 0.5f; f[1] = -0.f; f[2] = 0.; f[3] = 0.5f;
+            f += 4;
+        }
+        if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::LFE)) {
+            f[0] = 0.5f; f[1] = -0.f; f[2] = 0.; f[3] = 0.0f;
+            f += 4;
+        }
+        Q_UNUSED(f);
+        Q_ASSERT((f - simpleDecoderFactors) == 4*outputChannels);
+
+        return;
+    }
+
+    for (const auto &d : decoderMap) {
+        if (d.config == channelConfig) {
             decoderData = &d;
             break;
         }
     }
     if (!decoderData) {
-        // ### FIXME: use a stereo config, fill other channels with 0
+        // can't handle this,
+        outputChannels = 0;
+        return;
     }
-
-    inputChannels = (level+1)*(level+1);
-    outputChannels = format.channelCount();
 
     filters = new QAmbisonicDecoderFilter[inputChannels];
     for (int i = 0; i < inputChannels; ++i)
         filters[i].configure(format.sampleRate());
+}
+
+QAmbisonicDecoder::~QAmbisonicDecoder()
+{
+    delete simpleDecoderFactors;
 }
 
 void QAmbisonicDecoder::processBuffer(const float *input[], float *output, int nSamples)
@@ -187,15 +225,26 @@ void QAmbisonicDecoder::processBuffer(const float *input[], float *output, int n
     float *o = output;
     memset(o, 0, nSamples*outputChannels*sizeof(float));
 
-    const float *matrix_hi = decoderData->hf[level];
-    const float *matrix_lo = decoderData->hf[level];
+    if (simpleDecoderFactors) {
+        for (int i = 0; i < nSamples; ++i) {
+            for (int j = 0; j < 4; ++j) {
+                for (int k = 0; k < outputChannels; ++k)
+                    o[k] += simpleDecoderFactors[k*4 + j]*input[j][i];
+            }
+            o += outputChannels;
+        }
+        return;
+    }
+
+    const float *matrix_hi = decoderData->hf[level - 1];
+    const float *matrix_lo = decoderData->lf[level - 1];
     for (int i = 0; i < nSamples; ++i) {
         QAmbisonicDecoderFilter::Output buf[maxAmbisonicChannels];
         for (int j = 0; j < inputChannels; ++j)
             buf[j] = filters[j].next(input[j][i]);
         for (int j = 0; j < inputChannels; ++j) {
             for (int k = 0; k < outputChannels; ++k)
-                o[k] += matrix_lo[k*outputChannels + j]*buf[j].lf + matrix_hi[k*outputChannels + j]*buf[j].hf;
+                o[k] += matrix_lo[k*inputChannels + j]*buf[j].lf + matrix_hi[k*inputChannels + j]*buf[j].hf;
         }
         o += outputChannels;
     }
@@ -203,21 +252,31 @@ void QAmbisonicDecoder::processBuffer(const float *input[], float *output, int n
 
 void QAmbisonicDecoder::processBuffer(const float *input[], short *output, int nSamples)
 {
-    if (level == 0) {
-        // ### copy W data
+    if (simpleDecoderFactors) {
+        for (int i = 0; i < nSamples; ++i) {
+            float o[4] = {};
+            for (int k = 0; k < outputChannels; ++k) {
+                for (int j = 0; j < 4; ++j)
+                    o[k] += simpleDecoderFactors[k*4 + j]*input[j][i];
+            }
+            for (int k = 0; k < outputChannels; ++k)
+                output[k] = static_cast<short>(o[k]*32768.);
+            output += outputChannels;
+        }
         return;
     }
+
+    //    qDebug() << "XXX" << inputChannels << outputChannels;
     const float *matrix_hi = decoderData->hf[level - 1];
-    const float *matrix_lo = decoderData->hf[level - 1];
+    const float *matrix_lo = decoderData->lf[level - 1];
     for (int i = 0; i < nSamples; ++i) {
         QAmbisonicDecoderFilter::Output buf[maxAmbisonicChannels];
         for (int j = 0; j < inputChannels; ++j)
             buf[j] = filters[j].next(input[j][i]);
-        float o[32]; // we can't support more than 32 channels from our API
-        memset(o, 0, 32*sizeof(short));
+        float o[32] = {}; // we can't support more than 32 channels from our API
         for (int j = 0; j < inputChannels; ++j) {
             for (int k = 0; k < outputChannels; ++k)
-                o[k] += matrix_lo[k*outputChannels + j]*buf[j].lf + matrix_hi[k*outputChannels + j]*buf[j].hf;
+                o[k] += matrix_lo[k*inputChannels + j]*buf[j].lf + matrix_hi[k*inputChannels + j]*buf[j].hf;
         }
         for (int k = 0; k < outputChannels; ++k)
             output[k] = static_cast<short>(o[k]*32768.);

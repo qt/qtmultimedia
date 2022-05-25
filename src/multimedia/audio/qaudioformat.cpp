@@ -185,6 +185,8 @@ QT_BEGIN_NAMESPACE
     \value ChannelConfigMono The audio has one Center channel
     \value ChannelConfigStereo The audio has two channels, Left and Right
     \value ChannelConfig2Dot1 The audio has three channels, Left, Right and LFE (low frequency effect)
+    \value ChannelConfig3Dot0 The audio has three channels, Left, Right and Center
+    \value ChannelConfig3Dot1 The audio has four channels, Left, Right, Center and LFE (low frequency effect)
     \value ChannelConfigSurround5Dot0 The audio has five channels, Left, Right, Center, BackLeft, BackRight
     \value ChannelConfigSurround5Dot1 The audio has 6 channels, Left, Right, Center, LFE, BackLeft and BackRight
     \value ChannelConfigSurround7Dot0 The audio has 7 channels, Left, Right, Center, BackLeft, BackRight, SideLeft and SideRight

@@ -71,6 +71,9 @@ public:
         HighQuality = AmbisonicLevel3
     };
     QAmbisonicDecoder(AmbisonicLevel ambisonicLevel, const QAudioFormat &format);
+    ~QAmbisonicDecoder();
+
+    bool hasValidConfig() const { return outputChannels > 0; }
 
     int nInputChannels() const { return inputChannels; }
     int nOutputChannels() const { return outputChannels; }
@@ -84,12 +87,13 @@ public:
     static constexpr int maxAmbisonicChannels = 16;
     static constexpr int maxAmbisonicLevel = 3;
 private:
-    QAudioFormat format;
+    QAudioFormat::ChannelConfig channelConfig;
     AmbisonicLevel level = AmbisonicLevel1;
     int inputChannels = 0;
     int outputChannels = 0;
     const QAmbisonicDecoderData *decoderData = nullptr;
     QAmbisonicDecoderFilter *filters = nullptr;
+    float *simpleDecoderFactors = nullptr;
 
 };
 
