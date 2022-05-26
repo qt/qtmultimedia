@@ -51,7 +51,9 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "private/qgstvideobuffer_p.h"
+#if GST_CHECK_VERSION(1,14,0)
 #include <gst/allocators/gstphysmemory.h>
+#endif
 
 //#define QT_VIVANTE_VIDEO_DEBUG
 
