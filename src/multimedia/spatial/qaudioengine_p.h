@@ -94,7 +94,6 @@ public:
     float distanceScale = 0.01f;
 
     QMutex mutex;
-    QAudioFormat format;
     QAudioDevice device;
     QAtomicInteger<bool> paused = false;
 

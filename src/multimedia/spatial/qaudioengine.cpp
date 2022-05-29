@@ -50,6 +50,11 @@
 
 QT_BEGIN_NAMESPACE
 
+// We'd like to have short buffer times, so the sound adjusts itself to changes
+// quickly, but times below 100ms seem to give stuttering on macOS.
+// It might be possible to set this value lower on other OSes.
+const int bufferTimeMs = 100;
+
 class QAudioOutputStream : public QIODevice
 {
     Q_OBJECT
@@ -82,9 +87,14 @@ public:
     Q_INVOKABLE void startOutput() {
         QMutexLocker l(&d->mutex);
         Q_ASSERT(!sink);
-        d->ambisonicDecoder.reset(new QAmbisonicDecoder(QAmbisonicDecoder::HighQuality, d->format));
-        sink.reset(new QAudioSink(d->device, d->format));
-        sink->setBufferSize(16384);
+        QAudioFormat format;
+        format.setChannelConfig(d->outputMode == QAudioEngine::Surround ?
+                                    d->device.channelConfiguration() : QAudioFormat::ChannelConfigStereo);
+        format.setSampleRate(d->sampleRate);
+        format.setSampleFormat(QAudioFormat::Int16);
+        d->ambisonicDecoder.reset(new QAmbisonicDecoder(QAmbisonicDecoder::HighQuality, format));
+        sink.reset(new QAudioSink(d->device, format));
+        sink->setBufferSize(d->sampleRate*bufferTimeMs/1000*sizeof(qint16)*format.channelCount());
         sink->start(this);
     }
 
@@ -92,7 +102,11 @@ public:
         sink->stop();
         sink.reset();
         d->ambisonicDecoder.reset();
-        delete this;
+    }
+
+    Q_INVOKABLE void restartOutput() {
+        stopOutput();
+        startOutput();
     }
 
     void setPaused(bool paused) {
@@ -171,6 +185,7 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
 QAudioEnginePrivate::QAudioEnginePrivate()
 {
     device = QMediaDevices::defaultAudioOutput();
+    audioThread.setPriority(QThread::TimeCriticalPriority);
 }
 
 QAudioEnginePrivate::~QAudioEnginePrivate()
@@ -385,6 +400,8 @@ void QAudioEngine::setOutputMode(OutputMode mode)
     if (d->api)
         d->api->SetStereoSpeakerMode(mode != Headphone);
 
+    QMetaObject::invokeMethod(d->outputStream.get(), "restartOutput", Qt::BlockingQueuedConnection);
+
     emit outputModeChanged();
 }
 
@@ -450,10 +467,6 @@ void QAudioEngine::start()
     if (d->outputStream)
         // already started
         return;
-
-    d->format.setChannelCount(2);
-    d->format.setSampleRate(d->sampleRate);
-    d->format.setSampleFormat(QAudioFormat::Int16);
 
     d->api->SetStereoSpeakerMode(d->outputMode != Headphone);
     d->api->SetMasterVolume(d->masterVolume);
@@ -559,8 +572,9 @@ void QAmbientSoundPrivate::load()
     m_playing = false;
     m_loading = true;
     auto *ep = QAudioEnginePrivate::get(engine);
-    QAudioFormat f = ep->format;
+    QAudioFormat f;
     f.setSampleFormat(QAudioFormat::Float);
+    f.setSampleRate(ep->sampleRate);
     f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo : QAudioFormat::ChannelConfigMono);
     decoder->setAudioFormat(f);
     decoder->setSource(url);
