@@ -1193,11 +1193,13 @@ qint64 MFPlayerSession::position()
         if (FAILED(m_presentationClock->GetCorrelatedTime(0, &time, &sysTime)))
             return m_position / 10000;
 
-        if (time > 0 && qint64(time) < m_lastSeekPos)
-            m_altTiming = true;
+        if (m_state.rate > 0) {
+            if (time > 0 && qint64(time) < m_lastSeekPos)
+                m_altTiming = true;
 
-        if (m_altTiming)
-            return (m_lastSeekPos + MFGetSystemTime() - m_lastSeekSysTime) / 10000;
+            if (m_altTiming)
+                return (m_lastSeekPos + MFGetSystemTime() - m_lastSeekSysTime) / 10000;
+        }
 
         return qint64(time / 10000);
     }
