@@ -448,7 +448,11 @@ const AudioBuffer* ResonanceAudioApiImpl::GetAmbisonicOutputBuffer() const {
 }
 
 const AudioBuffer* ResonanceAudioApiImpl::GetStereoOutputBuffer() const {
-  return graph_manager_->GetStereoBuffer();
+    return graph_manager_->GetStereoBuffer();
+}
+
+const AudioBuffer *ResonanceAudioApiImpl::GetReverbBuffer() const {
+    return graph_manager_->GetReverbBuffer();
 }
 
 void ResonanceAudioApiImpl::ProcessNextBuffer() {

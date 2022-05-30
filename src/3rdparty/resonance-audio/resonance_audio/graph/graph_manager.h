@@ -227,6 +227,15 @@ class GraphManager {
   // @return Output audio buffer of the stereo mix, or nullptr if no output.
   const AudioBuffer* GetStereoBuffer() const;
 
+  // Returns the last processed buffer containing the reverb data for the room.
+  // The buffer contains stereo data.
+  // Note that, this method will *not* trigger the processing of the audio
+  // graph. |GraphManager::Process| must be called prior to this method call to
+  // ensure that the buffer is up-to-date.
+  //
+  // @return Room reverb audio buffer, or nullptr if no output.
+  const AudioBuffer* GetReverbBuffer() const;
+
   // Returns the maximum allowed number of ambisonic channels.
   //
   // @return Number of channels based on Ambisonic order in the global config.

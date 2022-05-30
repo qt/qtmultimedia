@@ -95,6 +95,11 @@ void ReverbNode::Update() {
   }
 }
 
+const AudioBuffer* ReverbNode::GetOutputBuffer() const
+{
+    return &output_buffer_;
+}
+
 const AudioBuffer* ReverbNode::AudioProcess(const NodeInput& input) {
   if (rt60_updating_) {
     for (size_t i = 0; i < kNumReverbOctaveBands; ++i) {

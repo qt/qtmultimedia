@@ -164,7 +164,12 @@ const AudioBuffer* GraphManager::GetAmbisonicBuffer() const {
 }
 
 const AudioBuffer* GraphManager::GetStereoBuffer() const {
-  return stereo_mixer_node_->GetOutputBuffer();
+    return stereo_mixer_node_->GetOutputBuffer();
+}
+
+const AudioBuffer *GraphManager::GetReverbBuffer() const
+{
+    return reverb_node_->GetOutputBuffer();
 }
 
 size_t GraphManager::GetNumMaxAmbisonicChannels() const {

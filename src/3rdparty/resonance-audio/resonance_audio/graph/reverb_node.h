@@ -41,6 +41,8 @@ class ReverbNode : public ProcessingNode {
   // values depending on the system settings.
   void Update();
 
+  const AudioBuffer *GetOutputBuffer() const;
+
  protected:
   // Implements ProcessingNode.
   const AudioBuffer* AudioProcess(const NodeInput& input) override;

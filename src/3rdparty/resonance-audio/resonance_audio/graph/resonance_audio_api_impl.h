@@ -124,6 +124,11 @@ class ResonanceAudioApiImpl : public ResonanceAudioApi {
   // @return Pointer to stereo output buffer.
   const AudioBuffer* GetStereoOutputBuffer() const;
 
+  // Returns the last processed buffer containing stereo data for the room reverb
+  //
+  // @return Pointer to room reverb stereo buffer.
+  const AudioBuffer* GetReverbBuffer() const;
+
   // Triggers processing of the audio graph with the updated system properties.
   void ProcessNextBuffer();
 
