@@ -39,7 +39,7 @@
 #include <qambientsound.h>
 #include <qaudioroom_p.h>
 #include <qaudiolistener.h>
-#include <resonance_audio_api_extensions.h>
+#include <resonance_audio.h>
 #include <qambisonicdecoder_p.h>
 #include <qaudiodecoder.h>
 #include <qmediadevices.h>
@@ -152,22 +152,23 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
             auto *sp = QSpatialSoundPrivate::get(source);
             float buf[QAudioEnginePrivate::bufferSize];
             sp->getBuffer(buf, QAudioEnginePrivate::bufferSize, 1);
-            d->api->SetInterleavedBuffer(sp->sourceId, buf, 1, QAudioEnginePrivate::bufferSize);
+            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf, 1, QAudioEnginePrivate::bufferSize);
         }
         for (auto *source : qAsConst(d->stereoSources)) {
             auto *sp = QAmbientSoundPrivate::get(source);
             float buf[2*QAudioEnginePrivate::bufferSize];
             sp->getBuffer(buf, QAudioEnginePrivate::bufferSize, 2);
-            d->api->SetInterleavedBuffer(sp->sourceId, buf, 2, QAudioEnginePrivate::bufferSize);
+            d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf, 2, QAudioEnginePrivate::bufferSize);
         }
 
         if (d->ambisonicDecoder && d->outputMode == QAudioEngine::Surround) {
             const float *channels[QAmbisonicDecoder::maxAmbisonicChannels];
-            int nSamples = vraudio::getAmbisonicOutput(d->api, channels, d->ambisonicDecoder->nInputChannels());
+            const float *reverbBuffers[2];
+            int nSamples = d->resonanceAudio->getAmbisonicOutput(channels, reverbBuffers, d->ambisonicDecoder->nInputChannels());
             Q_ASSERT(d->ambisonicDecoder->nOutputChannels() <= 8);
-            d->ambisonicDecoder->processBuffer(channels, fd, nSamples);
+            d->ambisonicDecoder->processBufferWithReverb(channels, reverbBuffers, fd, nSamples);
         } else {
-            ok = d->api->FillInterleavedOutputBuffer(2, QAudioEnginePrivate::bufferSize, fd);
+            ok = d->resonanceAudio->api->FillInterleavedOutputBuffer(2, QAudioEnginePrivate::bufferSize, fd);
             if (!ok) {
                 qWarning() << "    Reading failed!";
                 break;
@@ -190,14 +191,14 @@ QAudioEnginePrivate::QAudioEnginePrivate()
 
 QAudioEnginePrivate::~QAudioEnginePrivate()
 {
-    delete api;
+    delete resonanceAudio;
 }
 
 void QAudioEnginePrivate::addSpatialSound(QSpatialSound *sound)
 {
     QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
-    sd->sourceId = api->CreateSoundObjectSource(vraudio::kBinauralHighQuality);
+    sd->sourceId = resonanceAudio->api->CreateSoundObjectSource(vraudio::kBinauralHighQuality);
     sources.append(sound);
 }
 
@@ -205,7 +206,7 @@ void QAudioEnginePrivate::removeSpatialSound(QSpatialSound *sound)
 {
     QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
-    api->DestroySource(sd->sourceId);
+    resonanceAudio->api->DestroySource(sd->sourceId);
     sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
     sources.removeOne(sound);
 }
@@ -214,7 +215,7 @@ void QAudioEnginePrivate::addStereoSound(QAmbientSound *sound)
 {
     QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
-    sd->sourceId = api->CreateStereoSource(2);
+    sd->sourceId = resonanceAudio->api->CreateStereoSource(2);
     stereoSources.append(sound);
 }
 
@@ -222,7 +223,7 @@ void QAudioEnginePrivate::removeStereoSound(QAmbientSound *sound)
 {
     QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
-    api->DestroySource(sd->sourceId);
+    resonanceAudio->api->DestroySource(sd->sourceId);
     sd->sourceId = vraudio::ResonanceAudioApi::kInvalidSourceId;
     stereoSources.removeOne(sound);
 }
@@ -286,12 +287,12 @@ void QAudioEnginePrivate::updateRooms()
 
     // apply room to engine
     if (!currentRoom) {
-        api->EnableRoomEffects(false);
+        resonanceAudio->api->EnableRoomEffects(false);
         return;
     }
     QAudioRoomPrivate *rp = QAudioRoomPrivate::get(room);
-    api->SetReflectionProperties(rp->reflections);
-    api->SetReverbProperties(rp->reverb);
+    resonanceAudio->api->SetReflectionProperties(rp->reflections);
+    resonanceAudio->api->SetReverbProperties(rp->reverb);
 
     // update room effects for all sound sources
     for (auto *s : qAsConst(sources)) {
@@ -363,7 +364,7 @@ QAudioEngine::QAudioEngine(QObject *parent, int sampleRate)
     , d(new QAudioEnginePrivate)
 {
     d->sampleRate = sampleRate;
-    d->api = vraudio::CreateResonanceAudioApi(2, QAudioEnginePrivate::bufferSize, d->sampleRate);
+    d->resonanceAudio = new vraudio::ResonanceAudio(2, QAudioEnginePrivate::bufferSize, d->sampleRate);
 }
 
 /*!
@@ -397,8 +398,8 @@ void QAudioEngine::setOutputMode(OutputMode mode)
     if (d->outputMode == mode)
         return;
     d->outputMode = mode;
-    if (d->api)
-        d->api->SetStereoSpeakerMode(mode != Headphone);
+    if (d->resonanceAudio->api)
+        d->resonanceAudio->api->SetStereoSpeakerMode(mode != Headphone);
 
     QMetaObject::invokeMethod(d->outputStream.get(), "restartOutput", Qt::BlockingQueuedConnection);
 
@@ -427,7 +428,7 @@ void QAudioEngine::setOutputDevice(const QAudioDevice &device)
 {
     if (d->device == device)
         return;
-    if (d->api) {
+    if (d->resonanceAudio->api) {
         qWarning() << "Changing device on a running engine not implemented";
         return;
     }
@@ -450,7 +451,7 @@ void QAudioEngine::setMasterVolume(float volume)
     if (d->masterVolume == volume)
         return;
     d->masterVolume = volume;
-    d->api->SetMasterVolume(volume);
+    d->resonanceAudio->api->SetMasterVolume(volume);
     emit masterVolumeChanged();
 }
 
@@ -468,8 +469,8 @@ void QAudioEngine::start()
         // already started
         return;
 
-    d->api->SetStereoSpeakerMode(d->outputMode != Headphone);
-    d->api->SetMasterVolume(d->masterVolume);
+    d->resonanceAudio->api->SetStereoSpeakerMode(d->outputMode != Headphone);
+    d->resonanceAudio->api->SetMasterVolume(d->masterVolume);
 
     d->outputStream.reset(new QAudioOutputStream(d));
     d->outputStream->moveToThread(&d->audioThread);
@@ -487,8 +488,8 @@ void QAudioEngine::stop()
     d->outputStream.reset();
     d->audioThread.exit(0);
     d->audioThread.wait();
-    delete d->api;
-    d->api = nullptr;
+    delete d->resonanceAudio->api;
+    d->resonanceAudio->api = nullptr;
 }
 
 /*!
@@ -524,6 +525,7 @@ void QAudioEngine::setRoomEffectsEnabled(bool enabled)
     if (d->roomEffectsEnabled == enabled)
         return;
     d->roomEffectsEnabled = enabled;
+    d->resonanceAudio->roomEffectsEnabled = enabled;
 }
 
 /*!

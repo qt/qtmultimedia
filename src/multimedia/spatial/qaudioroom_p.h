@@ -51,7 +51,7 @@
 #include <qaudioengine_p.h>
 #include <QtGui/qquaternion.h>
 
-#include <resonance_audio_api_extensions.h>
+#include <resonance_audio.h>
 #include "platforms/common/room_effects_utils.h"
 #include "platforms/common/room_properties.h"
 

@@ -59,7 +59,7 @@
 #include <qvector3d.h>
 
 namespace vraudio {
-class ResonanceAudioApi;
+class ResonanceAudio;
 }
 
 QT_BEGIN_NAMESPACE
@@ -82,7 +82,7 @@ public:
 
     QAudioEnginePrivate();
     ~QAudioEnginePrivate();
-    vraudio::ResonanceAudioApi *api = nullptr;
+    vraudio::ResonanceAudio *resonanceAudio = nullptr;
     int sampleRate = 44100;
     float masterVolume = 1.;
     QAudioEngine::OutputMode outputMode = QAudioEngine::Surround;

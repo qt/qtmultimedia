@@ -36,7 +36,7 @@
 ****************************************************************************/
 #include "qambientsound.h"
 #include "qaudioengine_p.h"
-#include "api/resonance_audio_api.h"
+#include "resonance_audio.h"
 #include <qaudiosink.h>
 #include <qurl.h>
 #include <qdebug.h>
@@ -86,7 +86,7 @@ void QAmbientSound::setVolume(float volume)
     d->volume = volume;
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep)
-        ep->api->SetSourceVolume(d->sourceId, d->volume);
+        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
     emit volumeChanged();
 }
 
@@ -197,7 +197,7 @@ void QAmbientSound::setEngine(QAudioEngine *engine)
     ep = QAudioEnginePrivate::get(engine);
     if (ep) {
         ep->addStereoSound(this);
-        ep->api->SetSourceVolume(d->sourceId, d->volume);
+        ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
     }
 }
 

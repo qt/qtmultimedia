@@ -61,25 +61,53 @@ struct QAmbisonicDecoderData
     QAudioFormat::ChannelConfig config;
     const float *lf[3];
     const float *hf[3];
+    const float *reverb;
+};
+
+const float reverb_x_0[] =
+{
+    1.f, 0.f, // L
+    0.f, 1.f, // R
+    .7f, .7f, // C
+    1.f, 0.f, // Ls
+    0.f, 1.f, // Rs
+    1.f, 0.f, // Lb
+    0.f, 1.f, // Rb
+};
+
+const float reverb_x_1[] =
+{
+    1.f, 0.f, // L
+    0.f, 1.f, // R
+    .7f, .7f, // C
+    .0f, .0f, // LFE
+    1.f, 0.f, // Ls
+    0.f, 1.f, // Rs
+    1.f, 0.f, // Lb
+    0.f, 1.f, // Rb
 };
 
 static const QAmbisonicDecoderData decoderMap[] =
 {
     { QAudioFormat::ChannelConfigSurround5Dot0,
       { decoderMatrix_5dot0_1_lf, decoderMatrix_5dot0_2_lf, decoderMatrix_5dot0_3_lf },
-      { decoderMatrix_5dot0_1_hf, decoderMatrix_5dot0_2_hf, decoderMatrix_5dot0_3_hf }
+      { decoderMatrix_5dot0_1_hf, decoderMatrix_5dot0_2_hf, decoderMatrix_5dot0_3_hf },
+      reverb_x_0
     },
     { QAudioFormat::ChannelConfigSurround5Dot1,
       { decoderMatrix_5dot1_1_lf, decoderMatrix_5dot1_2_lf, decoderMatrix_5dot1_3_lf },
-      { decoderMatrix_5dot1_1_hf, decoderMatrix_5dot1_2_hf, decoderMatrix_5dot1_3_hf }
+      { decoderMatrix_5dot1_1_hf, decoderMatrix_5dot1_2_hf, decoderMatrix_5dot1_3_hf },
+      reverb_x_1
     },
     { QAudioFormat::ChannelConfigSurround7Dot0,
       { decoderMatrix_7dot0_1_lf, decoderMatrix_7dot0_2_lf, decoderMatrix_7dot0_3_lf },
-      { decoderMatrix_7dot0_1_hf, decoderMatrix_7dot0_2_hf, decoderMatrix_7dot0_3_hf }
+      { decoderMatrix_7dot0_1_hf, decoderMatrix_7dot0_2_hf, decoderMatrix_7dot0_3_hf },
+      reverb_x_0
     },
     { QAudioFormat::ChannelConfigSurround7Dot1,
       { decoderMatrix_7dot1_1_lf, decoderMatrix_7dot1_2_lf, decoderMatrix_7dot1_3_lf },
-      { decoderMatrix_7dot1_1_hf, decoderMatrix_7dot1_2_hf, decoderMatrix_7dot1_3_hf }
+      { decoderMatrix_7dot1_1_hf, decoderMatrix_7dot1_2_hf, decoderMatrix_7dot1_3_hf },
+      reverb_x_1
     }
 };
 
@@ -175,25 +203,37 @@ QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicLevel ambisonicLevel, const QAudio
         // Center gets 50% W and 50% Y
         // LFE gets 50% W
         simpleDecoderFactors = new float[4*outputChannels];
+        float *r = new float[2*outputChannels]; // reverb output is in stereo
         float *f = simpleDecoderFactors;
+        reverbFactors = r;
         if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::FrontLeft)) {
             f[0] = 0.5f; f[1] = 0.5f; f[2] = 0.; f[3] = 0.f;
             f += 4;
+            r[0] = 1.; r[1] = 0.;
+            r += 2;
         }
         if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::FrontRight)) {
             f[0] = 0.5f; f[1] = -0.5f; f[2] = 0.; f[3] = 0.f;
             f += 4;
+            r[0] = 0.; r[1] = 1.;
+            r += 2;
         }
         if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::FrontCenter)) {
             f[0] = 0.5f; f[1] = -0.f; f[2] = 0.; f[3] = 0.5f;
             f += 4;
+            r[0] = .5; r[1] = .5;
+            r += 2;
         }
         if (channelConfig & QAudioFormat::channelConfig(QAudioFormat::LFE)) {
             f[0] = 0.5f; f[1] = -0.f; f[2] = 0.; f[3] = 0.0f;
             f += 4;
+            r[0] = 0.; r[1] = 0.;
+            r += 2;
         }
         Q_UNUSED(f);
+        Q_UNUSED(r);
         Q_ASSERT((f - simpleDecoderFactors) == 4*outputChannels);
+        Q_ASSERT((r - reverbFactors) == 2*outputChannels);
 
         return;
     }
@@ -201,6 +241,7 @@ QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicLevel ambisonicLevel, const QAudio
     for (const auto &d : decoderMap) {
         if (d.config == channelConfig) {
             decoderData = &d;
+            reverbFactors = decoderData->reverb;
             break;
         }
     }
@@ -217,7 +258,10 @@ QAmbisonicDecoder::QAmbisonicDecoder(AmbisonicLevel ambisonicLevel, const QAudio
 
 QAmbisonicDecoder::~QAmbisonicDecoder()
 {
-    delete simpleDecoderFactors;
+    if (simpleDecoderFactors) {
+        delete simpleDecoderFactors;
+        delete reverbFactors;
+    }
 }
 
 void QAmbisonicDecoder::processBuffer(const float *input[], float *output, int nSamples)
@@ -252,6 +296,12 @@ void QAmbisonicDecoder::processBuffer(const float *input[], float *output, int n
 
 void QAmbisonicDecoder::processBuffer(const float *input[], short *output, int nSamples)
 {
+    const float *reverb[] = { nullptr, nullptr };
+    return processBufferWithReverb(input, reverb, output, nSamples);
+}
+
+void QAmbisonicDecoder::processBufferWithReverb(const float *input[], const float *reverb[], short *output, int nSamples)
+{
     if (simpleDecoderFactors) {
         for (int i = 0; i < nSamples; ++i) {
             float o[4] = {};
@@ -259,6 +309,12 @@ void QAmbisonicDecoder::processBuffer(const float *input[], short *output, int n
                 for (int j = 0; j < 4; ++j)
                     o[k] += simpleDecoderFactors[k*4 + j]*input[j][i];
             }
+            if (reverb[0]) {
+                for (int k = 0; k < outputChannels; ++k) {
+                    o[k] += reverb[0][i]*reverbFactors[2*k] + reverb[1][i]*reverbFactors[2*k+1];
+                }
+            }
+
             for (int k = 0; k < outputChannels; ++k)
                 output[k] = static_cast<short>(o[k]*32768.);
             output += outputChannels;
@@ -278,10 +334,16 @@ void QAmbisonicDecoder::processBuffer(const float *input[], short *output, int n
             for (int k = 0; k < outputChannels; ++k)
                 o[k] += matrix_lo[k*inputChannels + j]*buf[j].lf + matrix_hi[k*inputChannels + j]*buf[j].hf;
         }
+        if (reverb[0]) {
+            for (int k = 0; k < outputChannels; ++k) {
+                o[k] += reverb[0][i]*reverbFactors[2*k] + reverb[1][i]*reverbFactors[2*k+1];
+            }
+        }
         for (int k = 0; k < outputChannels; ++k)
             output[k] = static_cast<short>(o[k]*32768.);
         output += outputChannels;
     }
+
 }
 
 QT_END_NAMESPACE

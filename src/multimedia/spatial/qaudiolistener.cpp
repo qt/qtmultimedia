@@ -36,7 +36,7 @@
 ****************************************************************************/
 #include "qaudiolistener.h"
 #include "qaudioengine_p.h"
-#include "api/resonance_audio_api.h"
+#include "resonance_audio.h"
 #include <qaudiosink.h>
 #include <qurl.h>
 #include <qdebug.h>
@@ -95,8 +95,8 @@ void QAudioListener::setPosition(QVector3D pos)
         return;
 
     d->pos = pos;
-    if (ep && ep->api) {
-        ep->api->SetHeadPosition(pos.x(), pos.y(), pos.z());
+    if (ep && ep->resonanceAudio->api) {
+        ep->resonanceAudio->api->SetHeadPosition(pos.x(), pos.y(), pos.z());
         ep->listenerPositionDirty = true;
     }
 }
@@ -117,8 +117,8 @@ void QAudioListener::setRotation(const QQuaternion &q)
 {
     d->rotation = q;
     auto *ep = QAudioEnginePrivate::get(d->engine);
-    if (ep && ep->api)
-        ep->api->SetHeadRotation(d->rotation.x(), d->rotation.y(), d->rotation.z(), d->rotation.scalar());
+    if (ep && ep->resonanceAudio->api)
+        ep->resonanceAudio->api->SetHeadRotation(d->rotation.x(), d->rotation.y(), d->rotation.z(), d->rotation.scalar());
 }
 
 /*!

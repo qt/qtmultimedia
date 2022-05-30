@@ -84,6 +84,8 @@ public:
     void processBuffer(const float *input[], float *output, int nSamples);
     void processBuffer(const float *input[], short *output, int nSamples);
 
+    void processBufferWithReverb(const float *input[], const float *reverb[2], short *output, int nSamples);
+
     static constexpr int maxAmbisonicChannels = 16;
     static constexpr int maxAmbisonicLevel = 3;
 private:
@@ -94,7 +96,7 @@ private:
     const QAmbisonicDecoderData *decoderData = nullptr;
     QAmbisonicDecoderFilter *filters = nullptr;
     float *simpleDecoderFactors = nullptr;
-
+    const float *reverbFactors = nullptr;
 };
 
 

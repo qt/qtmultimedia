@@ -34,25 +34,34 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#include "resonance_audio_api_extensions.h"
-#include "graph/resonance_audio_api_impl.h"
+#ifndef RESONANCE_AUDIO_H
+#define RESONANCE_AUDIO_H
+
+#include <api/resonance_audio_api.h>
 
 namespace vraudio
 {
 
-int getAmbisonicOutput(ResonanceAudioApi *api, const float *buffers[], int nChannels)
+class ResonanceAudioExtensions;
+class ResonanceAudioApiImpl;
+
+class EXPORT_API ResonanceAudio
 {
-    ResonanceAudioApiImpl *impl = static_cast<ResonanceAudioApiImpl *>(api);
+public:
+    ResonanceAudio(size_t num_channels, size_t frames_per_buffer, int sample_rate_hz);
+    ~ResonanceAudio();
 
-    impl->ProcessNextBuffer();
-    auto *buffer = impl->GetAmbisonicOutputBuffer();
-    if (nChannels != buffer->num_channels())
-        return -1;
+    // reverb is only calculated in stereo. We get it here as well, and our ambisonic
+    // decoder will then add it to the generated surround signal.
+    int getAmbisonicOutput(const float *buffers[], const float *reverb[], int nChannels);
 
-    for (int i = 0; i < nChannels; ++i) {
-        buffers[i] = buffer->begin()[i].begin();
-    }
-    return buffer->num_frames();
+    ResonanceAudioApi *api = nullptr;
+    ResonanceAudioApiImpl *impl = nullptr;
+    bool roomEffectsEnabled = true;
+};
+
+
+
 }
 
-}
+#endif
