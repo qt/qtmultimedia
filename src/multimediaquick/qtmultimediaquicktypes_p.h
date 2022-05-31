@@ -126,6 +126,13 @@ struct QCameraFormatForeign
     QML_NAMED_ELEMENT(cameraFormat)
 };
 
+struct QScreenCaptureForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QScreenCapture)
+    QML_NAMED_ELEMENT(ScreenCapture)
+};
+
 QT_END_NAMESPACE
 
 #endif

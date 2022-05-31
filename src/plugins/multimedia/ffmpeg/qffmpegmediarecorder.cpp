@@ -5,6 +5,7 @@
 #include "qaudiodevice.h"
 #include <private/qmediastoragelocation_p.h>
 #include <private/qplatformcamera_p.h>
+#include <private/qplatformscreencapture_p.h>
 #include "qaudiosource.h"
 #include "qffmpegaudioinput_p.h"
 #include "qaudiobuffer.h"
@@ -46,11 +47,12 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     if (!m_session || state() != QMediaRecorder::StoppedState)
         return;
 
-    const auto hasVideo = m_session->camera() && m_session->camera()->isActive();
+    const auto hasVideo = (m_session->camera() && m_session->camera()->isActive())
+            || (m_session->screenCapture() && m_session->screenCapture()->isActive());
     const auto hasAudio = m_session->audioInput() != nullptr;
 
     if (!hasVideo && !hasAudio) {
-        error(QMediaRecorder::ResourceError, QMediaRecorder::tr("No camera or audio input"));
+        error(QMediaRecorder::ResourceError, QMediaRecorder::tr("No video or audio input"));
         return;
     }
 
@@ -78,7 +80,11 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 
     auto *camera = m_session->camera();
     if (camera)
-        encoder->addVideoSource(camera);
+        encoder->addCamera(camera);
+
+    auto *screenCapture = m_session->screenCapture();
+    if (screenCapture)
+        encoder->addScreenCapture(screenCapture);
 
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);

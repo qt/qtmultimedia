@@ -58,10 +58,22 @@ void Encoder::addAudioInput(QFFmpegAudioInput *input)
     input->setRunning(true);
 }
 
-void Encoder::addVideoSource(QPlatformCamera *source)
+void Encoder::addCamera(QPlatformCamera *camera)
 {
-    videoEncode = new VideoEncoder(this, source, settings);
-    connect(source, &QPlatformCamera::newVideoFrame, this, &Encoder::newVideoFrame);
+    auto cf = camera->cameraFormat();
+    QVideoFrameFormat vff(cf.resolution(), cf.pixelFormat());
+    vff.setFrameRate(cf.maxFrameRate());
+
+    auto *hwAccel = static_cast<const QFFmpeg::HWAccel *>(camera->ffmpegHWAccel());
+
+    videoEncode = new VideoEncoder(this, settings, vff, hwAccel);
+    connect(camera, &QPlatformCamera::newVideoFrame, this, &Encoder::newVideoFrame);
+}
+
+void Encoder::addScreenCapture(QPlatformScreenCapture *screenCapture)
+{
+    videoEncode = new VideoEncoder(this, settings, screenCapture->format(), nullptr);
+    connect(screenCapture, &QPlatformScreenCapture::newVideoFrame, this, &Encoder::newVideoFrame);
 }
 
 void Encoder::start()
@@ -382,20 +394,17 @@ void AudioEncoder::loop()
     }
 }
 
-VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMediaEncoderSettings &settings)
-    : m_encoderSettings(settings)
-    , m_camera(camera)
+VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
+                           const QVideoFrameFormat &format, const QFFmpeg::HWAccel *hwAccel)
 {
     this->encoder = encoder;
 
     setObjectName(QLatin1String("VideoEncoder"));
     qCDebug(qLcFFmpegEncoder) << "VideoEncoder" << settings.videoCodec();
 
-    auto format = m_camera->cameraFormat();
-    auto *hwAccel = static_cast<const QFFmpeg::HWAccel *>(camera->ffmpegHWAccel());
     AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
-    AVPixelFormat pixelFormat = hwAccel ? hwAccel->hwFormat() : swFormat;
-    frameEncoder = new VideoFrameEncoder(settings, format.resolution(), format.maxFrameRate(), pixelFormat, swFormat);
+    AVPixelFormat ffmpegPixelFormat = hwAccel ? hwAccel->hwFormat() : swFormat;
+    frameEncoder = new VideoFrameEncoder(settings, format.frameSize(), float(format.frameRate()), ffmpegPixelFormat, swFormat);
     frameEncoder->initWithFormatContext(encoder->formatContext);
 }
 
@@ -529,7 +538,7 @@ void VideoEncoder::loop()
 
     encoder->newTimeStamp(time/1000);
 
-//    qCDebug(qLcFFmpegEncoder) << ">>> sending frame" << avFrame->pts << time;
+    qCDebug(qLcFFmpegEncoder) << ">>> sending frame" << avFrame->pts << time << lastFrameTime;
     int ret = frameEncoder->sendFrame(avFrame);
     if (ret < 0) {
         qCDebug(qLcFFmpegEncoder) << "error sending frame" << ret << err2str(ret);

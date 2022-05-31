@@ -34,6 +34,7 @@ public:
     QPlatformMediaCaptureSession *createCaptureSession() override;
     QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
     QPlatformCamera *createCamera(QCamera *) override;
+    QPlatformScreenCapture *createScreenCapture(QScreenCapture *) override;
     QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
     QPlatformImageCapture *createImageCapture(QImageCapture *) override;
 

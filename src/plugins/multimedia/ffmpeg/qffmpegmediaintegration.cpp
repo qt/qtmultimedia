@@ -12,6 +12,7 @@
 #include "qffmpegimagecapture_p.h"
 #include "qffmpegaudioinput_p.h"
 #include "qffmpegaudiodecoder_p.h"
+#include "qffmpegscreencapture_p.h"
 
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
@@ -113,6 +114,11 @@ QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera *camera)
     Q_UNUSED(camera);
     return nullptr;//new QFFmpegCamera(camera);
 #endif
+}
+
+QPlatformScreenCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *screenCapture)
+{
+    return new QFFmpegScreenCapture(screenCapture);
 }
 
 QPlatformMediaRecorder *QFFmpegMediaIntegration::createRecorder(QMediaRecorder *recorder)

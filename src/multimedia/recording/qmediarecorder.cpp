@@ -8,6 +8,7 @@
 #include <qcamera.h>
 #include <qmediacapturesession.h>
 #include <private/qplatformcamera_p.h>
+#include <private/qplatformscreencapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
 
@@ -321,9 +322,10 @@ void QMediaRecorder::record()
     } else {
         auto oldMediaFormat = d->encoderSettings.mediaFormat();
         auto camera = d->captureSession->camera();
-        auto flags = camera && camera->isActive() ? QMediaFormat::RequiresVideo
-                                                  : QMediaFormat::NoFlags;
-        d->encoderSettings.resolveFormat(flags);
+        auto screenCapture = d->captureSession->screenCapture();
+        bool hasVideo = (camera && camera->isActive()) || (screenCapture && screenCapture->isActive());
+
+        d->encoderSettings.resolveFormat(hasVideo ? QMediaFormat::RequiresVideo : QMediaFormat::NoFlags);
         d->control->clearActualLocation();
         d->control->clearError();
 

@@ -22,6 +22,7 @@ QT_BEGIN_NAMESPACE
 class QMediaPlayer;
 class QAudioDecoder;
 class QCamera;
+class QScreenCapture;
 class QMediaRecorder;
 class QImageCapture;
 class QMediaDevices;
@@ -30,6 +31,7 @@ class QPlatformMediaCaptureSession;
 class QPlatformMediaPlayer;
 class QPlatformAudioDecoder;
 class QPlatformCamera;
+class QPlatformScreenCapture;
 class QPlatformMediaRecorder;
 class QPlatformImageCapture;
 class QPlatformMediaFormatInfo;
@@ -55,6 +57,7 @@ public:
 
     virtual QList<QCameraDevice> videoInputs();
     virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
+    virtual QPlatformScreenCapture *createScreenCapture(QScreenCapture *) { return nullptr; }
 
     virtual QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *) { return nullptr; }
     virtual QPlatformMediaCaptureSession *createCaptureSession() { return nullptr; }

@@ -19,6 +19,7 @@
 #include "qffmpeghwaccel_p.h"
 
 #include <private/qplatformmediarecorder_p.h>
+#include <private/qplatformscreencapture_p.h>
 #include <qaudioformat.h>
 #include <qaudiobuffer.h>
 
@@ -58,7 +59,8 @@ public:
     ~Encoder();
 
     void addAudioInput(QFFmpegAudioInput *input);
-    void addVideoSource(QPlatformCamera *source);
+    void addCamera(QPlatformCamera *source);
+    void addScreenCapture(QPlatformScreenCapture *screenCapture);
 
     void start();
     void finalize();
@@ -164,7 +166,8 @@ class VideoEncoder : public EncoderThread
     mutable QMutex queueMutex;
     QQueue<QVideoFrame> videoFrameQueue;
 public:
-    VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMediaEncoderSettings &settings);
+    VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
+                 const QVideoFrameFormat &format, const QFFmpeg::HWAccel *hwAccel);
     ~VideoEncoder();
 
     void addFrame(const QVideoFrame &frame);
@@ -185,8 +188,6 @@ private:
     bool shouldWait() const override;
     void loop() override;
 
-    QMediaEncoderSettings m_encoderSettings;
-    QPlatformCamera *m_camera = nullptr;
     VideoFrameEncoder *frameEncoder = nullptr;
 
     QAtomicInteger<qint64> baseTime = -1;
