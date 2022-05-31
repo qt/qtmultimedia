@@ -153,9 +153,19 @@ static bool hasRecordPermission()
     return recordPerm.result() == QtAndroidPrivate::Authorized;
 }
 
+static bool requestPermissions()
+{
+    const auto recordPerm = QtAndroidPrivate::requestPermission(QStringLiteral("android.permission.RECORD_AUDIO"));
+    return recordPerm.result() == QtAndroidPrivate::Authorized;
+}
+
 QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) const
 {
-    if (mode == QAudioDevice::Input && hasRecordPermission()) {
+    bool hasRecordPermissions = hasRecordPermission();
+    if (!hasRecordPermissions)
+        hasRecordPermissions = requestPermissions();
+
+    if (mode == QAudioDevice::Input && hasRecordPermissions) {
         if (!m_checkedInputFormats)
             const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputChannelCounts;
