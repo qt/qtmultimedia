@@ -311,8 +311,10 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 {
     QMutexLocker locker(&queueMutex);
-    audioBufferQueue.enqueue(buffer);
-    wake();
+    if (!paused.loadRelaxed()) {
+        audioBufferQueue.enqueue(buffer);
+        wake();
+    }
 }
 
 QAudioBuffer AudioEncoder::takeBuffer()
@@ -434,8 +436,10 @@ VideoEncoder::~VideoEncoder()
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
     QMutexLocker locker(&queueMutex);
-    videoFrameQueue.enqueue(frame);
-    wake();
+    if (!paused.loadRelaxed()) {
+        videoFrameQueue.enqueue(frame);
+        wake();
+    }
 }
 
 QVideoFrame VideoEncoder::takeFrame()
