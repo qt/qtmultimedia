@@ -482,7 +482,7 @@ void QSpatialSound::setNearFieldGain(float gain)
 
     auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep)
-        ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain/9.);
+        ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain*9.f);
 
     emit nearFieldGainChanged();
 
