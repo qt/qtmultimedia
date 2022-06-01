@@ -17,7 +17,7 @@ ios {
         "    <key>CFBundleExecutable</key>" \
         "    <string>$$TARGET</string>" \
         "    <key>CFBundleIdentifier</key>" \
-        "    <string>com.digia.$${LITERAL_DOLLAR}{PRODUCT_NAME:rfc1034identifier}</string>" \
+        "    <string>${PRODUCT_BUNDLE_IDENTIFIER}</string>" \
         "    <key>CFBundleDisplayName</key>" \
         "    <string>$$PRODUCT_NAME</string>" \
         "    <key>CFBundleName</key>" \
@@ -68,7 +68,7 @@ macos {
         "    <key>CFBundleExecutable</key>" \
         "    <string>$$TARGET</string>" \
         "    <key>CFBundleIdentifier</key>" \
-        "    <string>com.digia.$${LITERAL_DOLLAR}{PRODUCT_NAME:rfc1034identifier}</string>" \
+        "    <string>${PRODUCT_BUNDLE_IDENTIFIER}</string>" \
         "    <key>CFBundleDisplayName</key>" \
         "    <string>$$PRODUCT_NAME</string>" \
         "    <key>CFBundleName</key>" \

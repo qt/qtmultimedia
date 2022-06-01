@@ -13,7 +13,7 @@
     <key>CFBundleExecutable</key>
     <string>declarative-camera</string>
     <key>CFBundleIdentifier</key>
-    <string>com.digia.${PRODUCT_NAME:rfc1034identifier}</string>
+    <string>${PRODUCT_BUNDLE_IDENTIFIER}</string>
     <key>CFBundleDisplayName</key>
     <string>declarative-camera</string>
     <key>CFBundleName</key>
