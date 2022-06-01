@@ -145,41 +145,42 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
         }
     }
 
-    CFStringRef cTransfer = reinterpret_cast<CFStringRef>(
-                CVBufferGetAttachment(buffer, kCVImageBufferTransferFunctionKey, nullptr));
+    if (CFStringRef cTransfer = reinterpret_cast<CFStringRef>(
+        CVBufferGetAttachment(buffer, kCVImageBufferTransferFunctionKey, nullptr))) {
 
-    if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_709_2)) {
-        colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
-    } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_SMPTE_240M_1995)) {
-        colorTransfer = QVideoFrameFormat::ColorTransfer_BT601;
-    } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_sRGB)) {
-        colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
-    } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_UseGamma)) {
-        auto gamma = reinterpret_cast<CFNumberRef>(
-                    CVBufferGetAttachment(buffer, kCVImageBufferGammaLevelKey, nullptr));
-        double g;
-        CFNumberGetValue(gamma, kCFNumberFloat32Type, &g);
-        // These are best fit values given what we have in our enum
-        if (g < 0.8)
-            ; // unknown
-        else if (g < 1.5)
-            colorTransfer = QVideoFrameFormat::ColorTransfer_Linear;
-        else if (g < 2.1)
+        if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_709_2)) {
             colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
-        else if (g < 2.5)
+        } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_SMPTE_240M_1995)) {
+            colorTransfer = QVideoFrameFormat::ColorTransfer_BT601;
+        } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_sRGB)) {
             colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
-        else if (g < 3.2)
-            colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma28;
-    }
-    if (@available(macOS 10.12, iOS 11.0, *)) {
-        if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_2020))
-            colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
-    }
-    if (@available(macOS 10.12, iOS 11.0, *)) {
-        if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_2100_HLG)) {
-            colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
-        } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ)) {
-            colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
+        } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_UseGamma)) {
+            auto gamma = reinterpret_cast<CFNumberRef>(
+                        CVBufferGetAttachment(buffer, kCVImageBufferGammaLevelKey, nullptr));
+            double g;
+            CFNumberGetValue(gamma, kCFNumberFloat32Type, &g);
+            // These are best fit values given what we have in our enum
+            if (g < 0.8)
+                ; // unknown
+            else if (g < 1.5)
+                colorTransfer = QVideoFrameFormat::ColorTransfer_Linear;
+            else if (g < 2.1)
+                colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
+            else if (g < 2.5)
+                colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
+            else if (g < 3.2)
+                colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma28;
+        }
+        if (@available(macOS 10.12, iOS 11.0, *)) {
+            if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_2020))
+                colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
+        }
+        if (@available(macOS 10.12, iOS 11.0, *)) {
+            if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_2100_HLG)) {
+                colorTransfer = QVideoFrameFormat::ColorTransfer_STD_B67;
+            } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_SMPTE_ST_2084_PQ)) {
+                colorTransfer = QVideoFrameFormat::ColorTransfer_ST2084;
+            }
         }
     }
 
