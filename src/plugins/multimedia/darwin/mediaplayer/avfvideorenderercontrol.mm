@@ -208,8 +208,10 @@ static NSDictionary* const AVF_OUTPUT_SETTINGS = @{
             @(q_kCVPixelFormatType_OneComponent16),
             @(kCVPixelFormatType_420YpCbCr8Planar),
             @(kCVPixelFormatType_420YpCbCr8PlanarFullRange)
-        ],
-        (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
+        ]
+#ifndef Q_OS_IOS // This key is not supported and generates a warning.
+        , (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
+#endif // Q_OS_IOS
 };
 
 CVPixelBufferRef AVFVideoRendererControl::copyPixelBufferFromLayer(size_t& width, size_t& height)

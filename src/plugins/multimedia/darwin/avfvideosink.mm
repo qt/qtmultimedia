@@ -93,10 +93,10 @@ void AVFVideoSink::setVideoSinkInterface(AVFVideoSinkInterface *interface)
 
 // The OpengGL texture cache can apparently only handle single plane formats, so lets simply restrict to BGRA
 static NSDictionary* const AVF_OUTPUT_SETTINGS_OPENGL = @{
-        (NSString *)kCVPixelBufferPixelFormatTypeKey: @[
-            @(kCVPixelFormatType_32BGRA),
-        ],
-        (NSString *)kCVPixelBufferOpenGLCompatibilityKey: @true
+        (NSString *)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)
+#ifndef Q_OS_IOS // On iOS this key generates a warning about unsupported key.
+        , (NSString *)kCVPixelBufferOpenGLCompatibilityKey: @true
+#endif // Q_OS_IOS
 };
 
 AVFVideoSinkInterface::~AVFVideoSinkInterface()
