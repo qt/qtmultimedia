@@ -257,6 +257,7 @@ static AVSampleFormat bestMatchingSampleFormat(AVSampleFormat requested, const A
 
 AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings)
     : input(input)
+    , settings(settings)
 {
     this->encoder = encoder;
 
@@ -267,7 +268,8 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
     auto codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
     Q_ASSERT(avformat_query_codec(encoder->formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
 
-    auto *avCodec = avcodec_find_encoder(codecID);
+    avCodec = avcodec_find_encoder(codecID);
+    Q_ASSERT(avCodec);
 
     AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
     AVSampleFormat bestSampleFormat = bestMatchingSampleFormat(requested, avCodec->sample_fmts);
@@ -282,8 +284,12 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
     stream->codecpar->frame_size = 1024;
     stream->codecpar->format = bestSampleFormat;
     stream->time_base = AVRational{ 1, format.sampleRate() };
+}
 
-    Q_ASSERT(avCodec);
+void AudioEncoder::open()
+{
+    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
+
     codec = avcodec_alloc_context3(avCodec);
     avcodec_parameters_to_context(codec, stream->codecpar);
 
@@ -327,6 +333,7 @@ QAudioBuffer AudioEncoder::takeBuffer()
 
 void AudioEncoder::init()
 {
+    open();
     if (input) {
         input->setFrameSize(codec->frame_size);
     }

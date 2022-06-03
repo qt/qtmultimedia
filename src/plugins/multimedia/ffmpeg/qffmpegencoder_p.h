@@ -169,6 +169,7 @@ class AudioEncoder : public EncoderThread
 public:
     AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings);
 
+    void open();
     void addBuffer(const QAudioBuffer &buffer);
 
     QFFmpegAudioInput *audioInput() const { return input; }
@@ -189,6 +190,8 @@ private:
 
     SwrContext *resampler = nullptr;
     qint64 samplesWritten = 0;
+    const AVCodec *avCodec = nullptr;
+    QMediaEncoderSettings settings;
 };
 
 
