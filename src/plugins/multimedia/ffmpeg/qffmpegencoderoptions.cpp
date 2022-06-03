@@ -206,10 +206,8 @@ static void apply_vaapi(const QMediaEncoderSettings &settings, AVCodecContext *c
             break;
         }
 
-        if (quality) {
-            qDebug() << "using quality" << settings.quality() << quality[settings.quality()];
+        if (quality)
             codec->global_quality = quality[settings.quality()];
-        }
     }
 }
 #endif

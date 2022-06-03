@@ -98,7 +98,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 
     QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(location);
     qCDebug(qLcMediaEncoder) << "recording new video to" << actualSink;
-    qDebug() << "requested format:" << settings.fileFormat() << settings.audioCodec();
+    qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat() << settings.audioCodec();
 
     Q_ASSERT(!actualSink.isEmpty());
 

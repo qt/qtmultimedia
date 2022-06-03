@@ -131,7 +131,7 @@ void EncodingFinalizer::run()
         qWarning() << "could not write trailer" << res;
 
     avformat_free_context(encoder->formatContext);
-    qDebug() << "    done finalizing.";
+    qCDebug(qLcFFmpegEncoder) << "    done finalizing.";
     emit encoder->finalizationDone();
     delete encoder;
     deleteLater();
@@ -139,7 +139,7 @@ void EncodingFinalizer::run()
 
 void Encoder::finalize()
 {
-    qDebug() << ">>>>>>>>>>>>>>> finalize";
+    qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
 
     isRecording = false;
     auto *finalizer = new EncodingFinalizer(this);

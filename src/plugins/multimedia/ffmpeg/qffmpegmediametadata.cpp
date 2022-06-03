@@ -44,7 +44,11 @@
 #include <qurl.h>
 #include <qlocale.h>
 
+#include <qloggingcategory.h>
+
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qLcMetaData, "qt.multimedia.ffmpeg.metadata")
 
 namespace  {
 
@@ -103,12 +107,12 @@ static const char *keyToTag(QMediaMetaData::Key key)
 //internal
 void QFFmpegMetaData::addEntry(QMediaMetaData &metaData, AVDictionaryEntry *entry)
 {
-//    qDebug() << "   checking:" << entry->key << entry->value;
+    qCDebug(qLcMetaData) << "   checking:" << entry->key << entry->value;
     QByteArray tag(entry->key);
     QMediaMetaData::Key key = tagToKey(tag.toLower());
     if (key == QMediaMetaData::Key(-1))
         return;
-//    qDebug() << "       adding" << key;
+    qCDebug(qLcMetaData) << "       adding" << key;
 
     auto *map = &metaData;
 
@@ -165,8 +169,6 @@ QMediaMetaData QFFmpegMetaData::fromAVMetaData(const AVDictionary *tags)
 
 QByteArray QFFmpegMetaData::value(const QMediaMetaData &metaData, QMediaMetaData::Key key)
 {
-//    qDebug() << "   checking:" << entry->key << entry->value;
-
     const int metaTypeId = keyType(key).id();
     const QVariant val = metaData.value(key);
     switch (metaTypeId) {

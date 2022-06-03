@@ -474,7 +474,7 @@ void StreamDecoder::decode()
 
     AVFrame *frame = av_frame_alloc();
 //    if (type() == 0)
-//        qDebug() << "receiving frame";
+//        qCDebug(qLcDecoder) << "receiving frame";
     int res = avcodec_receive_frame(codec.context(), frame);
 
     if (res >= 0) {
@@ -691,7 +691,7 @@ void VideoRenderer::loop()
             return;
         }
         timeOut = 1;
-//        qDebug() << "no valid frame" << timer.elapsed();
+//        qCDebug(qLcVideoRenderer) << "no valid frame" << timer.elapsed();
         return;
     }
     eos.storeRelease(false);
@@ -708,7 +708,7 @@ void VideoRenderer::loop()
 
     if (sink) {
         qint64 startTime = frame.pts();
-//        qDebug() << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
+//        qCDebug(qLcVideoRenderer) << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
 
         // in practice this only happens with mediacodec
         if (!frame.codec()->hwAccel().isNull() && !frame.avFrame()->hw_frames_ctx) {
@@ -730,7 +730,7 @@ void VideoRenderer::loop()
         QVideoFrame videoFrame(buffer, format);
         videoFrame.setStartTime(startTime);
         videoFrame.setEndTime(startTime + duration);
-//        qDebug() << "Creating video frame" << startTime << (startTime + duration) << subtitleStreamDecoder;
+//        qCDebug(qLcVideoRenderer) << "Creating video frame" << startTime << (startTime + duration) << subtitleStreamDecoder;
 
         // add in subtitles
         const Frame *currentSubtitle = nullptr;
@@ -738,7 +738,7 @@ void VideoRenderer::loop()
             currentSubtitle = subtitleStreamDecoder->lockAndPeekFrame();
 
         if (currentSubtitle && currentSubtitle->isValid()) {
-//            qDebug() << "frame: subtitle" << currentSubtitle->text() << currentSubtitle->pts() << currentSubtitle->duration();
+//            qCDebug(qLcVideoRenderer) << "frame: subtitle" << currentSubtitle->text() << currentSubtitle->pts() << currentSubtitle->duration();
             qCDebug(qLcVideoRenderer) << "    " << currentSubtitle->pts() << currentSubtitle->duration() << currentSubtitle->text();
             if (currentSubtitle->pts() <= startTime && currentSubtitle->end() > startTime) {
 //                qCDebug(qLcVideoRenderer) << "        setting text";
@@ -768,7 +768,7 @@ void VideoRenderer::loop()
     streamDecoder->unlockAndReleaseFrame();
     qint64 mtime = timeUpdated(startTime);
     timeOut = usecsTo(mtime, nextFrameTime)/1000;
-//    qDebug() << "    next video frame in" << startTime << nextFrameTime << currentTime() << timeOut;
+//    qCDebug(qLcVideoRenderer) << "    next video frame in" << startTime << nextFrameTime << currentTime() << timeOut;
 }
 
 AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
@@ -922,10 +922,10 @@ void AudioRenderer::loop()
         timeOut = bytesWritten > 0 ? 0 : 10;
 
 //    if (!bufferedData.isEmpty())
-//        qDebug() << ">>>>>>>>>>>>>>>>>>>>>>>> could not write all data" << (bufferedData.size() - bufferWritten);
-//    qDebug() << "Audio: processed" << processedUSecs << "written" << writtenUSecs
+//        qCDebug(qLcAudioRenderer) << ">>>>>>>>>>>>>>>>>>>>>>>> could not write all data" << (bufferedData.size() - bufferWritten);
+//    qCDebug(qLcAudioRenderer) << "Audio: processed" << processedUSecs << "written" << writtenUSecs
 //             << "delta" << (writtenUSecs - processedUSecs) << "timeOut" << timeOut;
-//    qDebug() << "    updating time to" << currentTimeNoLock();
+//    qCDebug(qLcAudioRenderer) << "    updating time to" << currentTimeNoLock();
     timeUpdated(audioBaseTime + (processedUSecs - processedBase)*playbackRate());
 }
 

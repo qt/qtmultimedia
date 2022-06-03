@@ -79,8 +79,6 @@ void QFFmpegVideoBuffer::convertSWFrame()
     Q_ASSERT(swFrame);
     bool needsConversion = false;
     auto pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format), &needsConversion);
-//    qDebug() << "SW frame format:" << pixelFormat << swFrame->format << needsConversion;
-
     if (pixelFormat != m_pixelFormat) {
         AVPixelFormat newFormat = toAVPixelFormat(m_pixelFormat);
         // convert the format into something we can handle
@@ -213,7 +211,6 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 
     m_mode = mode;
 
-//    qDebug() << "MAP:";
     MapData mapData;
     auto *desc = QVideoTextureHelper::textureDescription(pixelFormat());
     mapData.nPlanes = desc->nplanes;
@@ -221,7 +218,6 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
         mapData.data[i] = swFrame->data[i];
         mapData.bytesPerLine[i] = swFrame->linesize[i];
         mapData.size[i] = mapData.bytesPerLine[i]*desc->heightForPlane(swFrame->height, i);
-//        qDebug() << "    " << i << mapData.data[i] << mapData.size[i];
     }
     return mapData;
 }
@@ -235,7 +231,6 @@ void QFFmpegVideoBuffer::mapTextures()
 {
     if (textures || !hwFrame)
         return;
-//    qDebug() << ">>>>> mapTextures";
     textures = textureConverter.getTextures(hwFrame);
     if (!textures)
         qWarning() << "    failed to get textures for frame" << textureConverter.isNull();
