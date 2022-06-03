@@ -988,6 +988,8 @@ void tst_QMediaCaptureSession::testAudioMute()
 
     recorder.stop();
 
+    QTRY_COMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
+
     QString actualLocation = recorder.actualLocation().toLocalFile();
 
     QVERIFY2(!actualLocation.isEmpty(), "Recorder did not save a file");
