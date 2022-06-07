@@ -244,7 +244,7 @@ void MFPlayerSession::handleSourceError(long hr)
         break;
     case QMM_WININET_E_CANNOT_CONNECT:
         errorCode = QMediaPlayer::NetworkError;
-        errorString = tr("A connection with the server could not be established.");
+        errorString = tr("Connection to server could not be established.");
         break;
     default:
         qWarning() << "handleSourceError:"
