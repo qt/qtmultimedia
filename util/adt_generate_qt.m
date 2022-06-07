@@ -1,31 +1,6 @@
 %{
-****************************************************************************
-**
 ** Copyright (C) 2021 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is the build configuration utility of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:GPL-EXCEPT$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3 as published by the Free Software
-** Foundation with exceptions as appearing in the file LICENSE.GPL3-EXCEPT
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-3.0.html.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************
+** SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 %}
 
 % Create mapping matrixes to convert ambisonic to different speaker layouts supported in Qt Multimedia
@@ -43,44 +18,8 @@ function adt_generate_qt()
     radius = 2;
 
     [outfile,msg] = fopen("qambisonicdecoderdata_p.h",'w');
-    fprintf(outfile, "/****************************************************************************\n");
-    fprintf(outfile, "**\n");
-    fprintf(outfile, "** Copyright (C) 2016 The Qt Company Ltd.\n");
-    fprintf(outfile, "** Contact: https://www.qt.io/licensing/\n");
-    fprintf(outfile, "**\n");
-    fprintf(outfile, "** This file is part of the Qt Toolkit.\n");
-    fprintf(outfile, "**\n");
-    fprintf(outfile, "** $QT_BEGIN_LICENSE:LGPL$\n");
-    fprintf(outfile, "** Commercial License Usage\n");
-    fprintf(outfile, "** Licensees holding valid commercial Qt licenses may use this file in\n");
-    fprintf(outfile, "** accordance with the commercial license agreement provided with the\n");
-    fprintf(outfile, "** Software or, alternatively, in accordance with the terms contained in\n");
-    fprintf(outfile, "** a written agreement between you and The Qt Company. For licensing terms\n");
-    fprintf(outfile, "** and conditions see https://www.qt.io/terms-conditions. For further\n");
-    fprintf(outfile, "** information use the contact form at https://www.qt.io/contact-us.\n");
-    fprintf(outfile, "**\n");
-    fprintf(outfile, "** GNU Lesser General Public License Usage\n");
-    fprintf(outfile, "** Alternatively, this file may be used under the terms of the GNU Lesser\n");
-    fprintf(outfile, "** General Public License version 3 as published by the Free Software\n");
-    fprintf(outfile, "** Foundation and appearing in the file LICENSE.LGPL3 included in the\n");
-    fprintf(outfile, "** packaging of this file. Please review the following information to\n");
-    fprintf(outfile, "** ensure the GNU Lesser General Public License version 3 requirements\n");
-    fprintf(outfile, "** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.\n");
-    fprintf(outfile, "**\n");
-    fprintf(outfile, "** GNU General Public License Usage\n");
-    fprintf(outfile, "** Alternatively, this file may be used under the terms of the GNU\n");
-    fprintf(outfile, "** General Public License version 2.0 or (at your option) the GNU General\n");
-    fprintf(outfile, "** Public license version 3 or any later version approved by the KDE Free\n");
-    fprintf(outfile, "** Qt Foundation. The licenses are as published by the Free Software\n");
-    fprintf(outfile, "** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3\n");
-    fprintf(outfile, "** included in the packaging of this file. Please review the following\n");
-    fprintf(outfile, "** information to ensure the GNU General Public License requirements will\n");
-    fprintf(outfile, "** be met: https://www.gnu.org/licenses/gpl-2.0.html and\n");
-    fprintf(outfile, "** https://www.gnu.org/licenses/gpl-3.0.html.\n");
-    fprintf(outfile, "**\n");
-    fprintf(outfile, "** $QT_END_LICENSE$\n");
-    fprintf(outfile, "**\n");
-    fprintf(outfile, "****************************************************************************/\n");
+    fprintf(outfile, "// Copyright (C) 2016 The Qt Company Ltd.\n");
+    fprintf(outfile, "//SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only\n");
     fprintf(outfile, "#ifndef QAMBISONICDECODERDATA_P_H\n");
     fprintf(outfile, "#define QAMBISONICDECODERDATA_P_H\n\n");
     fprintf(outfile, "#include <qtspatialaudioglobal_p.h>\n\n");
