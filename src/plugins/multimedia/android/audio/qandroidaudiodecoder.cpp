@@ -101,7 +101,7 @@ void Decoder::setSource(const QUrl &source)
     const QString mime = path.isValid() ? path.toString() : "";
 
     if (!mime.isEmpty() && !mime.contains("audio", Qt::CaseInsensitive)) {
-        m_formatError = tr("Cannot set source, invalid mime type for the provided source.");
+        m_formatError = tr("Cannot set source, invalid mime type for the source provided.");
         return;
     }
 
@@ -445,11 +445,11 @@ bool QAndroidAudioDecoder::createTempFile()
 
     bool success = file.open(QIODevice::QIODevice::ReadWrite);
     if (!success)
-        emit error(QAudioDecoder::ResourceError, tr("Error while opening tmp file"));
+        emit error(QAudioDecoder::ResourceError, tr("Error opening temporary file: %1").arg(file.errorString()));
 
     success &= (file.write(m_deviceBuffer) == m_deviceBuffer.size());
     if (!success)
-        emit error(QAudioDecoder::ResourceError, tr("Error while writing data to tmp file"));
+        emit error(QAudioDecoder::ResourceError, tr("Error while writing data to temporary file"));
 
     file.close();
     m_deviceBuffer.clear();
