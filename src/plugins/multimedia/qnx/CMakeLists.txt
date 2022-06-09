@@ -5,6 +5,7 @@ qt_internal_add_plugin(QQnxMediaPlugin
     SOURCES
     SOURCES
         camera/qqnxcamera.cpp camera/qqnxcamera_p.h
+        camera/qqnxplatformcamera.cpp camera/qqnxplatformcamera_p.h
         camera/qqnxcameraframebuffer.cpp camera/qqnxcameraframebuffer_p.h
         camera/qqnximagecapture.cpp camera/qqnximagecapture_p.h
         common/qqnxaudioinput.cpp common/qqnxaudioinput_p.h
