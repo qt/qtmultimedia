@@ -38,6 +38,7 @@
 ****************************************************************************/
 #include "qqnximagecapture_p.h"
 
+#include "qqnxplatformcamera_p.h"
 #include "qqnxmediacapturesession_p.h"
 #include "qqnxcamera_p.h"
 #include "qfile.h"
@@ -55,7 +56,7 @@ bool QQnxImageCapture::isReadyForCapture() const
 {
     if (!m_session)
         return false;
-    auto *camera = static_cast<QQnxCamera *>(m_session->camera());
+    auto *camera = static_cast<QQnxPlatformCamera *>(m_session->camera());
     // ### add can take photo
     return camera && camera->isActive();
 }
@@ -141,7 +142,7 @@ static void imageCaptureImageCallback(camera_handle_t handle, camera_buffer_t *b
 
 int QQnxImageCapture::capture(const QString &fileName)
 {
-    auto *camera = static_cast<QQnxCamera *>(m_session->camera());
+    auto *camera = static_cast<QQnxPlatformCamera *>(m_session->camera());
     // ### add can take photo
     if (!camera || !camera->isActive()) {
         emit error(-1, QImageCapture::NotReadyError, QPlatformImageCapture::msgCameraNotReady());

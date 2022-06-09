@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQNXMEDIACAPTURESESSION_H
-#define QQNXMEDIACAPTURESESSION_H
+#ifndef QQNXPLATFORMCAMERA_H
+#define QQNXPLATFORMCAMERA_H
 
 //
 //  W A R N I N G
@@ -50,52 +50,91 @@
 // We mean it.
 //
 
-#include <QObject>
+#include "qqnxcamera_p.h"
 
-#include <private/qplatformmediacapture_p.h>
+#include <private/qplatformcamera_p.h>
+#include <private/qplatformmediarecorder_p.h>
+
+#include <QtCore/qlist.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qurl.h>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class QQnxAudioInput;
-class QQnxPlatformCamera;
-class QQnxImageCapture;
-class QQnxMediaRecorder;
+class QQnxPlatformCameraFrameBuffer;
+class QQnxMediaCaptureSession;
 class QQnxVideoSink;
+class QQnxCameraFrameBuffer;
 
-class QQnxMediaCaptureSession : public QPlatformMediaCaptureSession
+class QQnxPlatformCamera : public QPlatformCamera
 {
     Q_OBJECT
-
 public:
-    QQnxMediaCaptureSession();
-    ~QQnxMediaCaptureSession();
+    explicit QQnxPlatformCamera(QCamera *parent);
+    ~QQnxPlatformCamera();
 
-    QPlatformCamera *camera() override;
-    void setCamera(QPlatformCamera *camera) override;
+    bool isActive() const override;
+    void setActive(bool active) override;
+    void start();
+    void stop();
 
-    QPlatformImageCapture *imageCapture() override;
-    void setImageCapture(QPlatformImageCapture *imageCapture) override;
+    void setCamera(const QCameraDevice &camera) override;
 
-    QPlatformMediaRecorder *mediaRecorder() override;
-    void setMediaRecorder(QPlatformMediaRecorder *mediaRecorder) override;
+    bool setCameraFormat(const QCameraFormat &format) override;
 
-    void setAudioInput(QPlatformAudioInput *input) override;
+    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
 
-    void setVideoPreview(QVideoSink *sink) override;
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
+    void setFocusMode(QCamera::FocusMode mode) override;
 
-    void setAudioOutput(QPlatformAudioOutput *output) override;
+    void setCustomFocusPoint(const QPointF &point) override;
 
-    QQnxAudioInput *audioInput() const;
+    void setFocusDistance(float distance) override;
 
-    QQnxVideoSink *videoSink() const;
+    void zoomTo(float newZoomFactor, float rate = -1.) override;
+
+    void setExposureCompensation(float ev) override;
+
+    int isoSensitivity() const override;
+    void setManualIsoSensitivity(int value) override;
+    void setManualExposureTime(float seconds) override;
+    float exposureTime() const override;
+
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override;
+    void setColorTemperature(int temperature) override;
+
+    void setOutputUrl(const QUrl &url);
+    void setMediaEncoderSettings(const QMediaEncoderSettings &settings);
+
+    bool startVideoRecording();
 
 private:
-    QQnxPlatformCamera *m_camera = nullptr;
-    QQnxImageCapture *m_imageCapture = nullptr;
-    QQnxMediaRecorder *m_mediaRecorder = nullptr;
-    QQnxAudioInput *m_audioInput = nullptr;
-    QPlatformAudioOutput *m_audioOutput = nullptr;
+    void updateCameraFeatures();
+    void setColorTemperatureInternal(unsigned temp);
+
+    bool isVideoEncodingSupported() const;
+
+    void onFrameAvailable();
+
+    QQnxMediaCaptureSession *m_session = nullptr;
     QQnxVideoSink *m_videoSink = nullptr;
+
+    QCameraDevice m_cameraDevice;
+
+    QUrl m_outputUrl;
+
+    QMediaEncoderSettings m_encoderSettings;
+
+    uint32_t m_minColorTemperature = 0;
+    uint32_t m_maxColorTemperature = 0;
+
+    QMutex m_currentFrameMutex;
+
+    std::unique_ptr<QQnxCamera> m_qnxCamera;
+    std::unique_ptr<QQnxCameraFrameBuffer> m_currentFrame;
 };
 
 QT_END_NAMESPACE

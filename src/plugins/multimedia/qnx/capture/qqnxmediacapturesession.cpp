@@ -39,7 +39,7 @@
 #include "qqnxmediacapturesession_p.h"
 
 #include "qqnxaudioinput_p.h"
-#include "qqnxcamera_p.h"
+#include "qqnxplatformcamera_p.h"
 #include "qqnximagecapture_p.h"
 #include "qqnxmediarecorder_p.h"
 #include "qqnxvideosink_p.h"
@@ -65,7 +65,8 @@ void QQnxMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
     if (camera == m_camera)
         return;
-    m_camera = static_cast<QQnxCamera *>(camera);
+    m_camera = static_cast<QQnxPlatformCamera *>(camera);
+    m_camera->setCaptureSession(this);
     emit cameraChanged();
 }
 

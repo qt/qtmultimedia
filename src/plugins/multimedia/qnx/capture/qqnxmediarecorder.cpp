@@ -39,6 +39,7 @@
 ****************************************************************************/
 #include "qqnxmediarecorder_p.h"
 
+#include "qqnxplatformcamera_p.h"
 #include "qqnxaudioinput_p.h"
 #include "qqnxcamera_p.h"
 #include "qqnxmediacapturesession_p.h"
@@ -118,11 +119,13 @@ void QQnxMediaRecorder::startVideoRecording(QMediaEncoderSettings &settings)
     if (!hasCamera())
         return;
 
-    auto *camera = static_cast<QQnxCamera*>(m_session->camera());
+    auto *camera = static_cast<QQnxPlatformCamera*>(m_session->camera());
 
     camera->setMediaEncoderSettings(settings);
     camera->setOutputUrl(outputLocation());
-    camera->start();
+
+    if (camera->startVideoRecording())
+        stateChanged(QMediaRecorder::RecordingState);
 }
 
 void QQnxMediaRecorder::stopVideoRecording()
@@ -130,10 +133,11 @@ void QQnxMediaRecorder::stopVideoRecording()
     if (!hasCamera())
         return;
 
-    auto *camera = static_cast<QQnxCamera*>(m_session->camera());
+    auto *camera = static_cast<QQnxPlatformCamera*>(m_session->camera());
 
     camera->stop();
 
+    stateChanged(QMediaRecorder::StoppedState);
 }
 
 bool QQnxMediaRecorder::hasCamera() const

@@ -44,6 +44,8 @@
 #include "qqnxvideodevices_p.h"
 #include "qqnxvideosink_p.h"
 #include "qqnxmediaplayer_p.h"
+#include "qqnximagecapture_p.h"
+#include "qqnxplatformcamera_p.h"
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -101,6 +103,11 @@ QPlatformMediaCaptureSession *QQnxMediaIntegration::createCaptureSession()
 QPlatformMediaRecorder *QQnxMediaIntegration::createRecorder(QMediaRecorder *parent)
 {
     return new QQnxMediaRecorder(parent);
+}
+
+QPlatformCamera *QQnxMediaIntegration::createCamera(QCamera *parent)
+{
+    return new QQnxPlatformCamera(parent);
 }
 
 QT_END_NAMESPACE

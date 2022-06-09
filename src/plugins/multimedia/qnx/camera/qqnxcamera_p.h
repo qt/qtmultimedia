@@ -36,8 +36,8 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-#ifndef QQnxCamera_H
-#define QQnxCamera_H
+#ifndef QQNXCAMERA_H
+#define QQNXCAMERA_H
 
 //
 //  W A R N I N G
@@ -50,17 +50,18 @@
 // We mean it.
 //
 
-#include <private/qplatformcamera_p.h>
-#include <private/qplatformmediarecorder_p.h>
+#include "qqnxcamerahandle_p.h"
 
 #include <QtCore/qlist.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qurl.h>
 
 #include <camera/camera_api.h>
 #include <camera/camera_3a.h>
 
 #include <memory>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -68,165 +69,134 @@ class QQnxCameraFrameBuffer;
 class QQnxMediaCaptureSession;
 class QQnxVideoSink;
 
-class CameraHandle
-{
-public:
-    CameraHandle() = default;
-
-    explicit CameraHandle(camera_handle_t h)
-        : m_handle (h) {}
-
-    explicit CameraHandle(CameraHandle &&other)
-        : m_handle(other.m_handle)
-        , m_lastError(other.m_lastError)
-    {
-        other = CameraHandle();
-    }
-
-    CameraHandle(const CameraHandle&) = delete;
-
-    CameraHandle& operator=(CameraHandle&& other)
-    {
-        m_handle = other.m_handle;
-        m_lastError = other.m_lastError;
-
-        other = CameraHandle();
-
-        return *this;
-    }
-
-    ~CameraHandle()
-    {
-        close();
-    }
-
-    bool open(camera_unit_t unit, uint32_t mode)
-    {
-        if (isOpen()) {
-            m_lastError = CAMERA_EALREADY;
-            return false;
-        }
-
-        return cacheError(camera_open, unit, mode, &m_handle);
-    }
-
-    bool close()
-    {
-        if (!isOpen())
-            return true;
-
-        const bool success = cacheError(camera_close, m_handle);
-        m_handle = CAMERA_HANDLE_INVALID;
-
-        return success;
-    }
-
-    camera_handle_t get() const
-    {
-        return m_handle;
-    }
-
-    bool isOpen() const
-    {
-        return m_handle != CAMERA_HANDLE_INVALID;
-    }
-
-    camera_error_t lastError() const
-    {
-        return m_lastError;
-    }
-
-private:
-    template <typename Func, typename ...Args>
-    bool cacheError(Func f, Args &&...args)
-    {
-        m_lastError = f(std::forward<Args>(args)...);
-
-        return m_lastError == CAMERA_EOK;
-    }
-
-    camera_handle_t m_handle = CAMERA_HANDLE_INVALID;
-    camera_error_t m_lastError = CAMERA_EOK;
-};
-
-
-class QQnxCamera : public QPlatformCamera
+class QQnxCamera : public QObject
 {
     Q_OBJECT
 public:
-    explicit QQnxCamera(QCamera *parent);
+    explicit QQnxCamera(camera_unit_t unit, QObject *parent = nullptr);
     ~QQnxCamera();
 
-    bool isActive() const override;
-    void setActive(bool active) override;
+    camera_unit_t unit() const;
+
+    QString name() const;
+
+    bool isValid() const;
+
+    bool isActive() const;
     void start();
     void stop();
 
-    void setCamera(const QCameraDevice &camera) override;
+    bool startVideoRecording(const QString &filename);
+    void stopVideoRecording();
 
-    bool setCameraFormat(const QCameraFormat &format) override;
+    bool setCameraFormat(uint32_t width, uint32_t height, double frameRate);
 
-    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
+    bool isFocusModeSupported(camera_focusmode_t mode) const;
+    bool setFocusMode(camera_focusmode_t mode);
+    camera_focusmode_t focusMode() const;
 
-    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
-    void setFocusMode(QCamera::FocusMode mode) override;
+    void setCustomFocusPoint(const QPointF &point);
 
-    void setCustomFocusPoint(const QPointF &point) override;
+    void setManualFocusStep(int step);
+    int manualFocusStep() const;
+    int maxFocusStep() const;
 
-    void setFocusDistance(float distance) override;
+    QSize viewFinderSize() const;
 
-    int maxFocusDistance() const;
+    uint32_t minimumZoomLevel() const;
+    uint32_t maximumZoomLevel() const;
+    bool isSmoothZoom() const;
+    double zoomRatio(uint32_t zoomLevel) const;
+    bool setZoomFactor(uint32_t factor);
 
-    void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
+    void setEvOffset(float ev);
 
-    void setExposureCompensation(float ev) override;
+    uint32_t manualIsoSensitivity() const;
+    void setManualIsoSensitivity(uint32_t value);
+    void setManualExposureTime(double seconds);
+    double manualExposureTime() const;
 
-    int isoSensitivity() const override;
-    void setManualIsoSensitivity(int value) override;
-    void setManualExposureTime(float seconds) override;
-    float exposureTime() const override;
+    void setWhiteBalanceMode(camera_whitebalancemode_t mode);
+    camera_whitebalancemode_t whiteBalanceMode() const;
 
-    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
-    void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
-    void setColorTemperature(int /*temperature*/) override;
+    void setManualWhiteBalance(uint32_t value);
+    uint32_t manualWhiteBalance() const;
 
-    void setOutputUrl(const QUrl &url);
-    void setMediaEncoderSettings(const QMediaEncoderSettings &settings);
+    bool hasFeature(camera_feature_t feature) const;
 
     camera_handle_t handle() const;
 
     QList<camera_vfmode_t> supportedVfModes() const;
     QList<camera_res_t> supportedVfResolutions() const;
+    QList<camera_frametype_t> supportedVfFrameTypes() const;
     QList<camera_focusmode_t> supportedFocusModes() const;
+    QList<double> specifiedVfFrameRates(camera_frametype_t frameType,
+            camera_res_t resolution) const;
+
+    QList<camera_frametype_t> supportedRecordingFrameTypes() const;
+
+    QList<uint32_t> supportedWhiteBalanceValues() const;
+
+    bool hasContinuousWhiteBalanceValues() const;
+
+    static QList<camera_unit_t> supportedUnits();
+
+    std::unique_ptr<QQnxCameraFrameBuffer> takeCurrentFrame();
+
+Q_SIGNALS:
+    void focusModeChanged(camera_focusmode_t mode);
+    void customFocusPointChanged(const QPointF &point);
+    void minimumZoomFactorChanged(double factor);
+
+    double maximumZoomFactorChanged(double factor);
+
+    void frameAvailable();
 
 private:
-    void updateCameraFeatures();
-    void setColorTemperatureInternal(unsigned temp);
+    struct FocusStep
+    {
+        int step; // current step
+        int maxStep; // max supported step
+    };
 
-    void startVideoRecording();
-    void stopVideoRecording();
+    FocusStep focusStep() const;
+
+    struct VideoFormat
+    {
+        uint32_t width;
+        uint32_t height;
+        uint32_t rotation;
+        double frameRate;
+        camera_frametype_t frameType;
+    };
+
+    friend QDebug &operator<<(QDebug&, const VideoFormat&);
+
+    VideoFormat vfFormat() const;
+    void setVfFormat(const VideoFormat &format);
+
+    VideoFormat recordingFormat() const;
+    void setRecordingFormat(const VideoFormat &format);
+
+    void updateZoomLimits();
+    void updateSupportedWhiteBalanceValues();
+    void setColorTemperatureInternal(unsigned temp);
 
     bool isVideoEncodingSupported() const;
 
     void handleVfBuffer(camera_buffer_t *buffer);
 
-    Q_INVOKABLE void processFrame();
-
     // viewfinder callback
     void handleVfStatus(camera_devstatus_t status, uint16_t extraData);
 
     // our handler running on main thread
-    void handleStatusChange(camera_devstatus_t status, uint16_t extraData);
-
+    Q_INVOKABLE void handleStatusChange(camera_devstatus_t status, uint16_t extraData);
 
     template <typename T, typename U>
     using QueryFuncPtr = camera_error_t (*)(camera_handle_t, U, U *, T *);
 
     template <typename T, typename U>
     QList<T> queryValues(QueryFuncPtr<T, U> func) const;
-
-    template <typename ...Args>
-    using CamAPIFunc = camera_error_t (*)(camera_handle_t, Args...);
 
     static void viewfinderCallback(camera_handle_t handle,
             camera_buffer_t *buffer, void *arg);
@@ -235,35 +205,32 @@ private:
             uint16_t extraData, void *arg);
 
     QQnxMediaCaptureSession *m_session = nullptr;
-    QQnxVideoSink *m_videoSink = nullptr;
 
-    QCameraDevice m_camera;
     camera_unit_t m_cameraUnit = CAMERA_UNIT_NONE;
 
-    QUrl m_outputUrl;
+    QQnxCameraHandle m_handle;
 
-    QMediaEncoderSettings m_encoderSettings;
-
-    CameraHandle m_handle;
-
-    uint minZoom = 1;
-    uint maxZoom = 1;
-    mutable bool whiteBalanceModesChecked = false;
-    mutable bool continuousColorTemperatureSupported = false;
-    mutable int minColorTemperature = 0;
-    mutable int maxColorTemperature = 0;
-    mutable QList<unsigned> manualColorTemperatureValues;
+    uint32_t m_minZoom = 0;
+    uint32_t m_maxZoom = 0;
 
     QMutex m_currentFrameMutex;
 
+    QList<uint32_t> m_supportedWhiteBalanceValues;
+
     std::unique_ptr<QQnxCameraFrameBuffer> m_currentFrame;
+
+    std::optional<VideoFormat> m_originalVfFormat;
 
     bool m_viewfinderActive = false;
     bool m_recordingVideo = false;
+    bool m_valid = false;
+    bool m_smoothZoom = false;
+    bool m_continuousWhiteBalanceValues = false;
 };
 
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(camera_devstatus_t)
+Q_DECLARE_METATYPE(uint16_t)
 
 #endif

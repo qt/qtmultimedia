@@ -38,13 +38,14 @@
 ****************************************************************************/
 
 #include "qqnxvideodevices_p.h"
+#include "qqnxcamera_p.h"
 #include "private/qcameradevice_p.h"
 #include "qcameradevice.h"
 
-#include <camera/camera_api.h>
-
 #include <qdir.h>
 #include <qdebug.h>
+
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -71,77 +72,51 @@ static QVideoFrameFormat::PixelFormat fromCameraFrametype(camera_frametype_t typ
     }
 }
 
-static QList<QCameraDevice> enumerateCameras()
+static std::optional<QCameraDevice> createCameraDevice(camera_unit_t unit, bool isDefault)
 {
+    const QQnxCamera camera(unit);
 
-    camera_unit_t cameraUnits[64];
-
-    unsigned int knownCameras = 0;
-    const camera_error_t result = camera_get_supported_cameras(64, &knownCameras, cameraUnits);
-    if (result != CAMERA_EOK) {
-        qWarning() << "Unable to retrieve supported camera types:" << result;
+    if (!camera.isValid()) {
+        qWarning() << "Invalid camera unit:" << unit;
         return {};
     }
 
-    QList<QCameraDevice> cameras;
-    for (unsigned int i = 0; i < knownCameras; ++i) {
-        QCameraDevicePrivate *p = new QCameraDevicePrivate;
-        p->id = QByteArray::number(cameraUnits[i]);
+    auto *p = new QCameraDevicePrivate;
 
-        char name[CAMERA_LOCATION_NAMELEN];
-        camera_get_location_property(cameraUnits[i], CAMERA_LOCATION_NAME, &name, CAMERA_LOCATION_END);
-        p->description = QString::fromUtf8(name);
+    p->id = QByteArray::number(camera.unit());
+    p->description = camera.name();
+    p->isDefault = isDefault;
 
-        if (i == 0)
-            p->isDefault = true;
+    const QList<camera_frametype_t> frameTypes = camera.supportedVfFrameTypes();
 
-        camera_handle_t handle;
-        if (camera_open(cameraUnits[i], CAMERA_MODE_PREAD, &handle) == CAMERA_EOK) {
-            // query camera properties
+    for (camera_res_t res : camera.supportedVfResolutions()) {
+        const QSize resolution(res.width, res.height);
 
-            uint32_t nResolutions = 0;
-            camera_get_supported_vf_resolutions(handle, 0, &nResolutions, nullptr);
-            QVarLengthArray<camera_res_t> resolutions(nResolutions);
-            camera_get_supported_vf_resolutions(handle, nResolutions, &nResolutions, resolutions.data());
+        p->photoResolutions.append(resolution);
 
-            uint32_t nFrameTypes;
-            camera_get_supported_vf_frame_types(handle, 0, &nFrameTypes, nullptr);
-            QVarLengthArray<camera_frametype_t> frameTypes(nFrameTypes);
-            camera_get_supported_vf_frame_types(handle, nFrameTypes, &nFrameTypes, frameTypes.data());
+        for (camera_frametype_t frameType : camera.supportedVfFrameTypes()) {
+            const QVideoFrameFormat::PixelFormat pixelFormat = fromCameraFrametype(frameType);
 
-            for (auto res : resolutions) {
-                QSize resolution(res.width, res.height);
-                p->photoResolutions.append(resolution);
+            if (pixelFormat == QVideoFrameFormat::Format_Invalid)
+                continue;
 
-                for (auto frameType : frameTypes) {
-                    auto pixelFormat = fromCameraFrametype(frameType);
-                    if (pixelFormat == QVideoFrameFormat::Format_Invalid)
-                        continue;
+            auto *f = new QCameraFormatPrivate;
+            p->videoFormats.append(f->create());
 
-                    uint32_t nFrameRates;
-                    camera_get_specified_vf_framerates(handle, frameType, res, 0, &nFrameRates, nullptr, nullptr);
-                    QVarLengthArray<double> frameRates(nFrameRates);
-                    bool continuous = false;
-                    camera_get_specified_vf_framerates(handle, frameType, res, nFrameRates, &nFrameRates, frameRates.data(), &continuous);
+            f->resolution = resolution;
+            f->pixelFormat = pixelFormat;
+            f->minFrameRate = 1.e10;
 
-                    QCameraFormatPrivate *f = new QCameraFormatPrivate;
-                    f->resolution = resolution;
-                    f->pixelFormat = pixelFormat;
-                    f->minFrameRate = 1.e10;
-                    for (auto fr : frameRates) {
-                        if (fr < f->minFrameRate)
-                            f->minFrameRate = fr;
-                        if (fr > f->maxFrameRate)
-                            f->maxFrameRate = fr;
-                    }
-                    p->videoFormats.append(f->create());
-                }
+            for (double fr : camera.specifiedVfFrameRates(frameType, res)) {
+                if (fr < f->minFrameRate)
+                    f->minFrameRate = fr;
+                if (fr > f->maxFrameRate)
+                    f->maxFrameRate = fr;
             }
         }
-
-        cameras.append(p->create());
     }
-    return cameras;
+
+    return p->create();
 }
 
 QQnxVideoDevices::QQnxVideoDevices(QPlatformMediaIntegration *integration)
@@ -151,10 +126,21 @@ QQnxVideoDevices::QQnxVideoDevices(QPlatformMediaIntegration *integration)
 
 QList<QCameraDevice> QQnxVideoDevices::videoDevices() const
 {
-    if (!camerasChecked) {
-        camerasChecked = true;
-        cameras = enumerateCameras();
+    QList<QCameraDevice> cameras;
+
+    bool isDefault = true;
+
+    for (const camera_unit_t cameraUnit : QQnxCamera::supportedUnits()) {
+        const std::optional<QCameraDevice> cameraDevice = createCameraDevice(cameraUnit, isDefault);
+
+        if (!cameraDevice)
+            continue;
+
+        cameras.append(*cameraDevice);
+
+        isDefault = false;
     }
+
     return cameras;
 }
 

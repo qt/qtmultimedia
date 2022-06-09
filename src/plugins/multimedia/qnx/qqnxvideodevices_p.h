@@ -52,20 +52,15 @@
 //
 
 #include <private/qplatformvideodevices_p.h>
-#include <qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 
 class QQnxVideoDevices : public QPlatformVideoDevices
 {
 public:
-    QQnxVideoDevices(QPlatformMediaIntegration *integration);
+    explicit QQnxVideoDevices(QPlatformMediaIntegration *integration);
 
     QList<QCameraDevice> videoDevices() const override;
-
-private:
-    mutable bool camerasChecked = false;
-    mutable QList<QCameraDevice> cameras;
 };
 
 QT_END_NAMESPACE
