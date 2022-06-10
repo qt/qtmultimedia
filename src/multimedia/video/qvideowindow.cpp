@@ -213,6 +213,7 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
         m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(QByteArray{4, 0}, 4),
                                      QVideoFrameFormat(QSize(1,1), QVideoFrameFormat::Format_RGBA8888));
 
+    m_currentFrame.mapTextures(m_rhi.get());
     for (int i = 0; i < QVideoTextureHelper::TextureDescription::maxPlanes; ++i)
         QVideoTextureHelper::updateRhiTexture(m_currentFrame, m_rhi.get(), rub, i, m_frameTextures[i]);
 

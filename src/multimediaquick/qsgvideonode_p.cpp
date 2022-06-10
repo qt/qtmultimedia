@@ -123,6 +123,7 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
     m_videoFrameSlots[rhi->currentFrameSlot()] = m_currentFrame;
 
     // update and upload all textures
+    m_currentFrame.mapTextures(rhi);
     for (int plane = 0; plane < 3; ++plane) {
         QSGVideoTexture *sgTex = m_textures[plane].get();
         if (sgTex) {

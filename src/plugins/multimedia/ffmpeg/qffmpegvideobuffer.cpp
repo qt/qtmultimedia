@@ -191,13 +191,16 @@ void QFFmpegVideoBuffer::unmap()
     // nothing to do here for SW buffers
 }
 
-void QFFmpegVideoBuffer::mapTextures()
+bool QFFmpegVideoBuffer::mapTextures(QRhi *)
 {
-    if (textures || !hwFrame)
-        return;
+    if (textures)
+        return true;
+    if (!hwFrame)
+        return false;
     textures = textureConverter.getTextures(hwFrame);
     if (!textures)
         qWarning() << "    failed to get textures for frame" << textureConverter.isNull();
+    return bool(textures);
 }
 
 quint64 QFFmpegVideoBuffer::textureHandle(int plane) const

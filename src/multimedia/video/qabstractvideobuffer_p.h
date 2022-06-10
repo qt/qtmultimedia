@@ -52,7 +52,7 @@ public:
     virtual MapData map(QVideoFrame::MapMode mode) = 0;
     virtual void unmap() = 0;
 
-    virtual void mapTextures() {}
+    virtual bool mapTextures(QRhi *) { return false; }
     virtual quint64 textureHandle(int /*plane*/) const { return 0; }
     virtual std::unique_ptr<QRhiTexture> texture(int /*plane*/) const;
 

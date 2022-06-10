@@ -186,7 +186,7 @@ static bool updateTextures(QRhi *rhi,
                            std::unique_ptr<QRhiShaderResourceBindings> &shaderResourceBindings,
                            std::unique_ptr<QRhiGraphicsPipeline> &graphicsPipeline,
                            std::unique_ptr<QRhiRenderPassDescriptor> &renderPass,
-                           const QVideoFrame &frame,
+                           QVideoFrame &frame,
                            std::unique_ptr<QRhiTexture> (&textures)[QVideoTextureHelper::TextureDescription::maxPlanes])
 {
     auto format = frame.surfaceFormat();
@@ -194,6 +194,7 @@ static bool updateTextures(QRhi *rhi,
 
     auto textureDesc = QVideoTextureHelper::textureDescription(pixelFormat);
 
+    frame.mapTextures(rhi);
     for (int i = 0; i < QVideoTextureHelper::TextureDescription::maxPlanes; ++i)
         QVideoTextureHelper::updateRhiTexture(frame, rhi, rub, i, textures[i]);
 
@@ -357,8 +358,10 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideoFrame::RotationAngle
 
     rub->uploadStaticBuffer(vertexBuffer.get(), g_quad);
 
+    QVideoFrame frameTmp = frame;
+
     if (!updateTextures(rhi, rub, uniformBuffer, textureSampler, shaderResourceBindings,
-                        graphicsPipeline, renderPass, frame, frameTextures)) {
+                        graphicsPipeline, renderPass, frameTmp, frameTextures)) {
         qCDebug(qLcVideoFrameConverter) << "Failed to update textures. Using CPU conversion.";
         return convertCPU(frame, rotation, mirrorX, mirrorY);
     }

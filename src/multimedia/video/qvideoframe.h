@@ -90,6 +90,7 @@ public:
     int mappedBytes(int plane) const;
     int planeCount() const;
 
+    bool mapTextures(QRhi *);
     quint64 textureHandle(int plane) const;
     std::unique_ptr<QRhiTexture> rhiTexture(int plane) const;
 

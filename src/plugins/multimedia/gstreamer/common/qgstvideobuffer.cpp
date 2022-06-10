@@ -228,10 +228,10 @@ fourccFromVideoInfo(const GstVideoInfo * info, int plane)
 }
 #endif
 
-void QGstVideoBuffer::mapTextures()
+bool QGstVideoBuffer::mapTextures(QRhi *)
 {
     if (!m_rhi)
-        return;
+        return false;
 
 #if QT_CONFIG(gstreamer_gl)
     if (memoryFormat == QGstCaps::GLTexture) {
@@ -259,7 +259,7 @@ void QGstVideoBuffer::mapTextures()
 #if GST_GL_HAVE_PLATFORM_EGL && QT_CONFIG(linux_dmabuf)
     else if (memoryFormat == QGstCaps::DMABuf) {
         if (m_textures[0])
-            return;
+            return true;
         Q_ASSERT(gst_is_dmabuf_memory(gst_buffer_peek_memory(m_buffer, 0)));
         Q_ASSERT(eglDisplay);
         Q_ASSERT(eglImageTargetTexture2D);
@@ -268,12 +268,12 @@ void QGstVideoBuffer::mapTextures()
         glContext = nativeHandles->context;
         if (!glContext) {
             qWarning() << "no GL context";
-            return;
+            return false;
         }
 
         if (!gst_video_frame_map(&m_frame, &m_videoInfo, m_buffer, GstMapFlags(GST_MAP_READ))) {
             qDebug() << "Couldn't map DMA video frame";
-            return;
+            return false;
         }
 
         int nPlanes = GST_VIDEO_FRAME_N_PLANES(&m_frame);
@@ -330,6 +330,7 @@ void QGstVideoBuffer::mapTextures()
 #endif
 #endif
     m_texturesUploaded = true;
+    return true;
 }
 
 std::unique_ptr<QRhiTexture> QGstVideoBuffer::texture(int plane) const

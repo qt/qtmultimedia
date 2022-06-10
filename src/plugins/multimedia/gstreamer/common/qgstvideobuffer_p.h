@@ -44,7 +44,7 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    void mapTextures() override;
+    bool mapTextures(QRhi *) override;
     std::unique_ptr<QRhiTexture> texture(int plane) const override;
 private:
     QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;

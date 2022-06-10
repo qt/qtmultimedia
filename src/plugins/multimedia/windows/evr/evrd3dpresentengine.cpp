@@ -183,33 +183,33 @@ public:
         }
     }
 
-    void mapTextures() override
+    bool mapTextures(QRhi *) override
     {
         if (!QOpenGLContext::currentContext())
-            return;
+            return false;
 
         if (m_d3dglHandle)
-            return;
+            return true;
 
         QWindowsIUPointer<IMFMediaBuffer> buffer;
         HRESULT hr = m_sample->GetBufferByIndex(0, buffer.address());
         if (FAILED(hr))
-            return;
+            return false;
 
         QWindowsIUPointer<IDirect3DSurface9> surface;
         hr = MFGetService(buffer.get(), MR_BUFFER_SERVICE, IID_IDirect3DSurface9, (void **)(surface.address()));
         if (FAILED(hr))
-            return;
+            return false;
 
         hr = surface->GetContainer(IID_IDirect3DTexture9, (void **)m_texture.address());
         if (FAILED(hr))
-            return;
+            return false;
 
         m_d3dglHandle = m_wgl.wglDXOpenDeviceNV(m_device.get());
         if (!m_d3dglHandle) {
             m_texture.reset();
             qCDebug(qLcEvrD3DPresentEngine) << "Failed to open D3D device";
-            return;
+            return false;
         }
 
         m_wgl.wglDXSetResourceShareHandleNV(m_texture.get(), m_sharedHandle);
@@ -221,7 +221,7 @@ public:
                                                      GL_TEXTURE_2D, WglNvDxInterop::WGL_ACCESS_READ_ONLY_NV);
             if (m_glHandle) {
                 if (m_wgl.wglDXLockObjectsNV(m_d3dglHandle, 1, &m_glHandle))
-                    return;
+                    return true;
 
                 qCDebug(qLcEvrD3DPresentEngine) << "Failed to lock OpenGL texture";
                 m_wgl.wglDXUnregisterObjectNV(m_d3dglHandle, m_glHandle);
@@ -235,6 +235,7 @@ public:
         } else {
             qCDebug(qLcEvrD3DPresentEngine) << "Failed generate texture names, OpenGL context functions missing";
         }
+        return false;
     }
 
     std::unique_ptr<QRhiTexture> texture(int plane) const override

@@ -36,7 +36,7 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    virtual void mapTextures() override;
+    virtual bool mapTextures(QRhi *) override;
     virtual quint64 textureHandle(int plane) const override;
     std::unique_ptr<QRhiTexture> texture(int plane) const override;
 
