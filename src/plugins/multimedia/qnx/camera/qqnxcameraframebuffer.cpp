@@ -41,6 +41,27 @@
 
 #include <limits>
 
+template <typename T>
+static constexpr int toInt(T value)
+{
+    if constexpr (sizeof(T) >= sizeof(int)) {
+        if (std::is_signed_v<T>) {
+            return static_cast<int>(std::clamp<T>(value,
+                        std::numeric_limits<int>::min(), std::numeric_limits<int>::max()));
+        } else {
+            return static_cast<int>(std::min<T>(value, std::numeric_limits<int>::max()));
+        }
+    } else {
+        return static_cast<int>(value);
+    }
+}
+
+template <typename T>
+static constexpr QSize frameSize(const T &frame)
+{
+    return { toInt(frame.width), toInt(frame.height) };
+}
+
 static constexpr QVideoFrameFormat::PixelFormat frameTypeToPixelFormat(camera_frametype_t type)
 {
     switch (type) {
@@ -122,16 +143,16 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_nv12_t &frame,
     return {
         .nPlanes = 2,
         .bytesPerLine = {
-            frame.stride,
-            frame.uv_stride
+            toInt(frame.stride),
+            toInt(frame.uv_stride)
         },
         .data = {
             baseAddress,
             baseAddress + frame.uv_offset
         },
         .size = {
-            frame.stride * frame.height,
-            frame.uv_stride * frame.height / 2
+            toInt(frame.stride * frame.height),
+            toInt(frame.uv_stride * frame.height / 2)
         }
     };
 }
@@ -142,13 +163,13 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_rgb8888_t &frame
     return {
         .nPlanes = 1,
         .bytesPerLine = {
-            frame.stride
+            toInt(frame.stride)
         },
         .data = {
             baseAddress
         },
         .size = {
-            frame.stride * frame.height,
+            toInt(frame.stride * frame.height),
         }
     };
 }
@@ -159,13 +180,13 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_gray8_t &frame,
     return {
         .nPlanes = 1,
         .bytesPerLine = {
-            frame.stride
+            toInt(frame.stride)
         },
         .data = {
             baseAddress
         },
         .size = {
-            frame.stride * frame.height
+            toInt(frame.stride * frame.height)
         }
     };
 }
@@ -176,13 +197,13 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_cbycry_t &frame,
     return {
         .nPlanes = 1,
         .bytesPerLine = {
-            frame.stride
+            toInt(frame.stride)
         },
         .data = {
             baseAddress
         },
         .size = {
-            frame.bufsize,
+            toInt(frame.bufsize),
         }
     };
 }
@@ -193,7 +214,7 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_ycbcr420p_t &fra
     return {
         .nPlanes = 3,
         .bytesPerLine = {
-            frame.y_stride,
+            toInt(frame.y_stride),
             frame.cb_stride,
             frame.cr_stride,
         },
@@ -203,9 +224,9 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_ycbcr420p_t &fra
             baseAddress + frame.cr_offset,
         },
         .size = {
-            frame.y_stride * frame.height,
-            frame.cb_stride * frame.height / 2,
-            frame.cr_stride * frame.height / 2
+            toInt(frame.y_stride * frame.height),
+            toInt(frame.cb_stride * frame.height / 2),
+            toInt(frame.cr_stride * frame.height / 2)
         }
     };
 }
@@ -216,13 +237,13 @@ static QAbstractVideoBuffer::MapData mapData(const camera_frame_ycbycr_t &frame,
     return {
         .nPlanes = 1,
         .bytesPerLine = {
-            frame.stride
+            toInt(frame.stride)
         },
         .data = {
             baseAddress
         },
         .size = {
-            frame.stride * frame.height
+            toInt(frame.stride * frame.height)
         }
     };
 }
@@ -248,17 +269,6 @@ static QAbstractVideoBuffer::MapData mapData(const camera_buffer_t *buffer,
     }
 
     return {};
-}
-
-static constexpr int toInt(uint32_t value)
-{
-    return static_cast<int>(std::min<uint32_t>(value, std::numeric_limits<int>::max()));
-}
-
-template <typename T>
-static constexpr QSize frameSize(const T &frame)
-{
-    return { toInt(frame.width), toInt(frame.height) };
 }
 
 static constexpr QSize frameSize(const camera_buffer_t *buffer)
