@@ -23,6 +23,7 @@
 #elif defined(Q_OS_WINDOWS)
 #include "qwindowscamera_p.h"
 #include "qwindowsvideodevices_p.h"
+#include "qffmpegscreencapture_dxgi_p.h"
 #endif
 
 #ifdef Q_OS_ANDROID
@@ -126,7 +127,11 @@ QPlatformScreenCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapt
     if (QFFmpegScreenCaptureUwp::isSupported())
         return new QFFmpegScreenCaptureUwp(screenCapture);
 #endif
+#if defined(Q_OS_WINDOWS)
+    return new QFFmpegScreenCaptureDxgi(screenCapture);
+#else
     return new QFFmpegScreenCapture(screenCapture);
+#endif
 }
 
 QPlatformMediaRecorder *QFFmpegMediaIntegration::createRecorder(QMediaRecorder *recorder)
