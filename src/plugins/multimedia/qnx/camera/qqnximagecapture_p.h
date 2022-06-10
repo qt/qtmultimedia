@@ -51,11 +51,15 @@
 //
 
 #include <private/qplatformimagecapture_p.h>
-#include <qqueue.h>
+
+#include <QtCore/qfuture.h>
 
 QT_BEGIN_NAMESPACE
 
 class QQnxMediaCaptureSession;
+class QQnxPlatformCamera;
+
+class QThread;
 
 class QQnxImageCapture : public QPlatformImageCapture
 {
@@ -73,18 +77,21 @@ public:
 
     void setCaptureSession(QQnxMediaCaptureSession *session);
 
-    struct PendingImage {
-        int id;
-        QString filename;
-        QMediaMetaData metaData;
-        QQnxImageCapture *imageCapture;
-    };
-
 private:
+    QFuture<QImage> decodeFrame(int id, const QVideoFrame &frame);
+    void saveFrame(int id, const QVideoFrame &frame, const QString &fileName);
+
+    void onCameraChanged();
+    void onCameraActiveChanged(bool active);
+    void updateReadyForCapture();
+
     QQnxMediaCaptureSession *m_session = nullptr;
+    QQnxPlatformCamera *m_camera = nullptr;
 
     int m_lastId = 0;
     QImageEncoderSettings m_settings;
+
+    bool m_lastReadyForCapture = false;
 };
 
 QT_END_NAMESPACE

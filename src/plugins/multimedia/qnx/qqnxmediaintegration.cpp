@@ -110,6 +110,11 @@ QPlatformCamera *QQnxMediaIntegration::createCamera(QCamera *parent)
     return new QQnxPlatformCamera(parent);
 }
 
+QPlatformImageCapture *QQnxMediaIntegration::createImageCapture(QImageCapture *parent)
+{
+    return new QQnxImageCapture(parent);
+}
+
 QT_END_NAMESPACE
 
 #include "qqnxmediaintegration.moc"

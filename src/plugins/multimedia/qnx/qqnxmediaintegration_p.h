@@ -76,6 +76,8 @@ public:
 
     QPlatformCamera *createCamera(QCamera *parent) override;
 
+    QPlatformImageCapture *createImageCapture(QImageCapture *parent) override;
+
     QQnxFormatInfo *m_formatInfo = nullptr;
 };
 
