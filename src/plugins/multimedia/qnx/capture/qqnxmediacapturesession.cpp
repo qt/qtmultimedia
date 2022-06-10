@@ -65,8 +65,15 @@ void QQnxMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
     if (camera == m_camera)
         return;
+
+    if (m_camera)
+        m_camera->setCaptureSession(nullptr);
+
     m_camera = static_cast<QQnxPlatformCamera *>(camera);
-    m_camera->setCaptureSession(this);
+
+    if (m_camera)
+        m_camera->setCaptureSession(this);
+
     emit cameraChanged();
 }
 
