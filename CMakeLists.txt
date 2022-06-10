@@ -21,5 +21,10 @@ if(NOT TARGET Qt::Network)
     message(NOTICE "Skipping the build as the condition \"TARGET Qt::Network\" is not met.")
     return()
 endif()
+if(NOT QT_FEATURE_thread)
+    message(NOTICE "Skipping the build as the QT_FEATURE_thread is not met.")
+    return()
+endif()
+
 
 qt_build_repo()

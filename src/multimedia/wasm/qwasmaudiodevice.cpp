@@ -3,6 +3,9 @@
 
 #include "qwasmaudiodevice_p.h"
 #include <emscripten.h>
+#include <emscripten/val.h>
+#include <emscripten/bind.h>
+
 #include <AL/al.h>
 #include <AL/alc.h>
 
@@ -16,8 +19,8 @@ QWasmAudioDevice::QWasmAudioDevice(const char *device, const char *desc, bool is
 
     minimumChannelCount = 1;
     maximumChannelCount = 2;
-    minimumSampleRate = 1;
-    maximumSampleRate = 192'000;
+    minimumSampleRate = 8000;
+    maximumSampleRate = 96000; // js AudioContext max according to docs
 
     // native openAL formats
     supportedSampleFormats.append(QAudioFormat::UInt8);
@@ -29,13 +32,18 @@ QWasmAudioDevice::QWasmAudioDevice(const char *device, const char *desc, bool is
 
     preferredFormat.setChannelCount(2);
 
-    preferredFormat.setSampleRate(EM_ASM_INT({
-        var AudioContext = window.AudioContext || window.webkitAudioContext;
-        var ctx = new AudioContext();
-        var sr = ctx.sampleRate;
-        ctx.close();
-        return sr;
-    }));
+    // FIXME: firefox
+    // An AudioContext was prevented from starting automatically.
+    // It must be created or resumed after a user gesture on the page.
+    emscripten::val audioContext = emscripten::val::global("window")["AudioContext"].new_();
+    if (audioContext == emscripten::val::undefined())
+        audioContext = emscripten::val::global("window")["webkitAudioContext"].new_();
+
+    if (audioContext != emscripten::val::undefined()) {
+        int sRate = audioContext["sampleRate"].as<int>();
+        audioContext.call<void>("close");
+        preferredFormat.setSampleRate(sRate);
+    }
 
     auto f = QAudioFormat::Float;
 
