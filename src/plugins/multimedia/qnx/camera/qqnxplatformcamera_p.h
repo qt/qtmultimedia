@@ -59,6 +59,8 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 
+#include <deque>
+#include <functional>
 #include <memory>
 
 QT_BEGIN_NAMESPACE
@@ -111,6 +113,9 @@ public:
 
     bool startVideoRecording();
 
+    using VideoFrameCallback = std::function<void(const QVideoFrame&)>;
+    void requestVideoFrame(VideoFrameCallback cb);
+
 private:
     void updateCameraFeatures();
     void setColorTemperatureInternal(unsigned temp);
@@ -135,6 +140,8 @@ private:
 
     std::unique_ptr<QQnxCamera> m_qnxCamera;
     std::unique_ptr<QQnxCameraFrameBuffer> m_currentFrame;
+
+    std::deque<VideoFrameCallback> m_videoFrameRequests;
 };
 
 QT_END_NAMESPACE

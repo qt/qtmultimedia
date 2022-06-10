@@ -383,6 +383,11 @@ bool QQnxPlatformCamera::startVideoRecording()
     return m_qnxCamera->startVideoRecording(location);
 }
 
+void QQnxPlatformCamera::requestVideoFrame(VideoFrameCallback cb)
+{
+    m_videoFrameRequests.emplace_back(std::move(cb));
+}
+
 bool QQnxPlatformCamera::isVideoEncodingSupported() const
 {
     return m_qnxCamera && m_qnxCamera->hasFeature(CAMERA_FEATURE_VIDEO);
@@ -442,6 +447,12 @@ void QQnxPlatformCamera::onFrameAvailable()
                             // buffer
 
     m_videoSink->setVideoFrame(actualFrame);
+
+    if (!m_videoFrameRequests.empty()) {
+        VideoFrameCallback cb = std::move(m_videoFrameRequests.front());
+        m_videoFrameRequests.pop_front();
+        cb(actualFrame);
+    }
 }
 
 QT_END_NAMESPACE
