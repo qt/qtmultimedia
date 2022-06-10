@@ -86,7 +86,15 @@ void QQnxMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCaptur
 {
     if (m_imageCapture == imageCapture)
         return;
+
+    if (m_imageCapture)
+        m_imageCapture->setCaptureSession(nullptr);
+
     m_imageCapture = static_cast<QQnxImageCapture *>(imageCapture);
+
+    if (m_imageCapture)
+        m_imageCapture->setCaptureSession(this);
+
     emit imageCaptureChanged();
 }
 
