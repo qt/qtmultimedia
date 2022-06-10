@@ -41,7 +41,8 @@ protected:
     qint64 writeData(const char *data, qint64 len) override;
 };
 
-QWasmAudioSink::QWasmAudioSink(const QByteArray &device) : m_name(device)
+QWasmAudioSink::QWasmAudioSink(const QByteArray &device)
+    : m_name(device)
 {
     m_timer.setSingleShot(false);
     aldata = new ALData();
@@ -140,7 +141,6 @@ void QWasmAudioSink::start(bool mode)
         return setError(QAudio::OpenError);
     }
     alcMakeContextCurrent(aldata->context);
-
 
     alGenSources(1, &aldata->source);
 
@@ -298,8 +298,12 @@ void QWasmAudioSink::loadALBuffers()
     if (m_bufferFragmentsBusyCount == m_bufferFragmentsCount)
         return;
 
+    if (m_device->bytesAvailable() == 0) {
+        return;
+    }
+
     auto size = m_device->read(m_tmpData + m_tmpDataOffset, m_bufferFragmentSize -
-                                      m_tmpDataOffset);
+                               m_tmpDataOffset);
     m_tmpDataOffset += size;
     if (!m_tmpDataOffset || (m_tmpDataOffset != m_bufferFragmentSize &&
                              m_bufferFragmentsBusyCount >= m_bufferFragmentsCount * 2 / 3))
@@ -357,7 +361,7 @@ void QWasmAudioSink::nextALBuffers()
     loadALBuffers();
     ALint state;
     alGetSourcei(aldata->source, AL_SOURCE_STATE, &state);
-    if (state != AL_PLAYING)
+    if (state != AL_PLAYING && m_error == QAudio::NoError)
         alSourcePlay(aldata->source);
     updateState();
 }
@@ -369,7 +373,7 @@ void QWasmAudioSink::updateState()
         return;
     m_state = current;
 
-    if (m_state == QAudio::IdleState && m_running)
+    if (m_state == QAudio::IdleState && m_running && m_device->bytesAvailable() == 0)
         setError(QAudio::UnderrunError);
 
     emit stateChanged(m_state);
@@ -381,10 +385,16 @@ void QWasmAudioSink::setError(QAudio::Error error)
     if (error == m_error)
         return;
     m_error = error;
+    if (error != QAudio::NoError) {
+        m_timer.stop();
+        alSourceRewind(aldata->source);
+    }
+
     emit errorChanged(error);
 }
 
-QWasmAudioSinkDevice::QWasmAudioSinkDevice(QWasmAudioSink *parent) : QIODevice(parent),
+QWasmAudioSinkDevice::QWasmAudioSinkDevice(QWasmAudioSink *parent)
+    : QIODevice(parent),
     m_out(parent)
 {
 }
