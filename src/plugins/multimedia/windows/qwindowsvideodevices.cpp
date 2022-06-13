@@ -49,6 +49,8 @@
 #include <mfreadwrite.h>
 #include <Mferror.h>
 
+QT_BEGIN_NAMESPACE
+
 LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if (message == WM_DEVICECHANGE) {
@@ -250,3 +252,5 @@ QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
 
     return cameras;
 }
+
+QT_END_NAMESPACE
