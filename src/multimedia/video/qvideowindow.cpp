@@ -188,9 +188,9 @@ void QVideoWindowPrivate::initRhi()
         return;
 
     m_swapChain.reset(m_rhi->newSwapChain());
+    m_swapChain->setWindow(q);
     if (m_swapChain->isFormatSupported(QRhiSwapChain::HDRExtendedSrgbLinear))
         m_swapChain->setFormat(QRhiSwapChain::HDRExtendedSrgbLinear);
-    m_swapChain->setWindow(q);
     m_renderPass.reset(m_swapChain->newCompatibleRenderPassDescriptor());
     m_swapChain->setRenderPassDescriptor(m_renderPass.get());
 
