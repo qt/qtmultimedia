@@ -83,7 +83,7 @@ QQuick3DSpatialSound::~QQuick3DSpatialSound()
 }
 
 /*!
-    \qmlproperty url QSpatialSound::source
+    \qmlproperty url SpatialSound::source
 
     The source file for the sound to be played.
  */
@@ -101,9 +101,12 @@ void QQuick3DSpatialSound::setSource(QUrl source)
 }
 
 /*!
-    \qmlproperty float QSpatialSound::volume
+    \qmlproperty float SpatialSound::volume
 
     Defines an overall volume for this sound source.
+
+    Values between 0 and 1 will attenuate the sound, while values above 1
+    provide an additional gain boost.
  */
 void QQuick3DSpatialSound::setVolume(float volume)
 {
@@ -277,7 +280,7 @@ void QQuick3DSpatialSound::updateRotation()
 }
 
 /*!
-   \qmlproperty int QSpatialSound::loops
+   \qmlproperty int SpatialSound::loops
 
     Determines how often the sound is played before the player stops.
     Set to SpatialSound::Infinite to loop the current sound forever.

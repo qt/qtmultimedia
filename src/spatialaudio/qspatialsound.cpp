@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
     \brief A sound object in 3D space.
 
     QSpatialSound represents an audible object in 3D space. You can define
-    it's position and orientation in space, set the sound it is playing and define a
+    its position and orientation in space, set the sound it is playing and define a
     volume for the object.
 
     The object can have different attenuation behavior, emit sound mainly in one direction

@@ -142,7 +142,7 @@ void QAudioRoomPrivate::update()
     If the listener is inside a room, first order sound reflections and reverb
     matching the rooms properties will get applied to the sound field.
 
-    A room is always square and defined by it's center position, it's orientation and dimensions.
+    A room is always square and defined by its center position, its orientation and dimensions.
     Each of the 6 walls of the room can be made of different materials that will contribute
     to the computed reflections and reverb that the listener will experience while being inside
     the room.

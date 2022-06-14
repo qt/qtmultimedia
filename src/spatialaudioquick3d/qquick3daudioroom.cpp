@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
     If the listener is inside a room, first order sound reflections and reverb
     matching the rooms properties will get applied to the sound field.
 
-    A room is always square and defined by it's center position, it's orientation and dimensions.
+    A room is always square and defined by its center position, its orientation and dimensions.
     Each of the 6 walls of the room can be made of different materials that will contribute
     to the computed reflections and reverb that the listener will experience while being inside
     the room.
@@ -98,12 +98,12 @@ QVector3D QQuick3DAudioRoom::dimensions() const
 }
 
 /*!
-    \qmlproperty AudioRoom::Material AudioRoom::left
-    \qmlproperty AudioRoom::Material AudioRoom::right
-    \qmlproperty AudioRoom::Material AudioRoom::front
-    \qmlproperty AudioRoom::Material AudioRoom::back
-    \qmlproperty AudioRoom::Material AudioRoom::floor
-    \qmlproperty AudioRoom::Material AudioRoom::ceiling
+    \qmlproperty AudioRoom::Material AudioRoom::leftMaterial
+    \qmlproperty AudioRoom::Material AudioRoom::rightMaterial
+    \qmlproperty AudioRoom::Material AudioRoom::frontMaterial
+    \qmlproperty AudioRoom::Material AudioRoom::backMaterial
+    \qmlproperty AudioRoom::Material AudioRoom::floorMaterial
+    \qmlproperty AudioRoom::Material AudioRoom::ceilingMaterial
 
     Sets the material to use for the different sides of the room. Properties correlate to
     coordinates as follows:
