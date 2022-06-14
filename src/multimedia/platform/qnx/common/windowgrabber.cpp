@@ -393,8 +393,12 @@ GLuint
 WindowGrabberImage::getTexture(screen_window_t window, const QSize &size)
 {
     if (size != m_size) {
-        if (!m_glTexture)
-            glGenTextures(1, &m_glTexture);
+        // create a brand new texture to be the KHR image sibling, as
+        // previously used textures cannot be reused with new KHR image
+        // sources - note that glDeleteTextures handles nullptr gracefully
+        glDeleteTextures(1, &m_glTexture);
+        glGenTextures(1, &m_glTexture);
+
         glBindTexture(GL_TEXTURE_2D, m_glTexture);
         if (m_eglImage) {
             glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, 0);
