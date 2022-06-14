@@ -83,7 +83,7 @@ function adt_generate_qt()
     fprintf(outfile, "****************************************************************************/\n");
     fprintf(outfile, "#ifndef QAMBISONICDECODERDATA_P_H\n");
     fprintf(outfile, "#define QAMBISONICDECODERDATA_P_H\n\n");
-    fprintf(outfile, "#include <qtmultimediaglobal_p.h>\n\n");
+    fprintf(outfile, "#include <qtspatialaudioglobal_p.h>\n\n");
     fprintf(outfile, "//  W A R N I N G\n");
     fprintf(outfile, "//  -------------\n");
     fprintf(outfile, "//\n");

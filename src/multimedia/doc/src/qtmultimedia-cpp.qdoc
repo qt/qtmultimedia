@@ -41,7 +41,10 @@
     \snippet doc_src_qtmultimedia.cpp 0
 
     \include module-use.qdocinc using qt module
-    \snippet ../src/multimedia/doc/snippets/CMakeLists.txt 0
+    \code
+        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+        target_link_libraries(mytarget PRIVATE Qt6::Multimedia)
+    \endcode
 */
 
 /*!

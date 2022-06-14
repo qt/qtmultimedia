@@ -11,8 +11,7 @@ qtHaveModule(widgets) {
         spectrum \
         audiorecorder \
         audiodevices \
-        audiooutput \
-        spatialaudio
+        audiooutput
 }
 
 qtHaveModule(quick) {

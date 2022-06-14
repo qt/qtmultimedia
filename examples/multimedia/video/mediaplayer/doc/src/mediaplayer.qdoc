@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example multimedia/video/mediaplayer
+    \example video/mediaplayer
     \title QML Media Player Example
     \ingroup multimedia_examples
     \ingroup video_examples_qml
@@ -52,7 +52,7 @@
     In \c main.qml a MediaPlayer instance is connected to a VideoOutput to
     play back the video:
 
-    \quotefromfile multimedia/video/mediaplayer/main.qml
+    \quotefromfile video/mediaplayer/main.qml
     \skipto MediaPlayer
     \printuntil videoOutput: videoOutput
 
@@ -67,7 +67,7 @@
     application, viewing meta data, and the selection of available video, audio
     or subtitle tracks.
 
-    \quotefromfile multimedia/video/mediaplayer/PlayerMenuBar.qml
+    \quotefromfile video/mediaplayer/PlayerMenuBar.qml
     Accessing the mediaPlayer object is done through properties:
     \skipto required property
     \printuntil TracksInfo subtitleTracksInfo
@@ -87,7 +87,7 @@
     \image url.png
     While \c urlPopup handles prompting and capturing a url, it is the \c loadUrl
     function that interacts with \c mediaPlayer like so:
-    \quotefromfile multimedia/video/mediaplayer/PlayerMenuBar.qml
+    \quotefromfile video/mediaplayer/PlayerMenuBar.qml
     \skipto function loadUrl
     \printto function closeOverlays(){
 
@@ -97,7 +97,7 @@
     In the declaration of \c mediaPlayer, in \c main.qml, there is the function
     \c updateMetadata():
 
-    \quotefromfile multimedia/video/mediaplayer/main.qml
+    \quotefromfile video/mediaplayer/main.qml
     \skipto function updateMetadata(
     \printto }
 
@@ -106,7 +106,7 @@
     \printto onActiveTracksChanged: { updateMetadata() }
 
     Reading MetaData is done by the \c MetadataInfo type's \c read() function
-    \quotefromfile multimedia/video/mediaplayer/MetadataInfo.qml
+    \quotefromfile video/mediaplayer/MetadataInfo.qml
     \skipto function read(metadata) {
     \printto ListModel
 
@@ -116,7 +116,7 @@
     \youtube OqosZsDqvzQ
     This is defined in \c TracksInfo.qml and reading available tracks is done in
     a similar way to \c MetadataInfo:
-    \quotefromfile multimedia/video/mediaplayer/TracksInfo.qml
+    \quotefromfile video/mediaplayer/TracksInfo.qml
     \skipto function read(metadata
     \printto ListModel
 
@@ -126,7 +126,7 @@
 
     The \c onSelectectedTrackChanged signal, in each relevant \c TracksInfo
     instance in \c main.qml, is what makes changes to \c mediaPlayer like so:
-    \quotefromfile multimedia/video/mediaplayer/main.qml
+    \quotefromfile video/mediaplayer/main.qml
     \skipto id: audioTracksInfo
     \printuntil audioTracksInfo.selectedTrack
 
@@ -141,7 +141,7 @@
     \c main.qml.
 
     Here are the property definitions.
-    \quotefromfile multimedia/video/mediaplayer/PlaybackControl.qml
+    \quotefromfile video/mediaplayer/PlaybackControl.qml
     \skipto required property
     \printto property alias
 
@@ -172,7 +172,7 @@
 
     \c mediaTime uses MediaPlayer's \l{MediaPlayer::position}{position} property
     like so:
-    \quotefromfile multimedia/video/mediaplayer/PlaybackSeekControl.qml
+    \quotefromfile video/mediaplayer/PlaybackSeekControl.qml
     \skipto Text {
     \printto Slider
 
@@ -187,7 +187,7 @@
 
     This type is defined in \c PlaybackRateControl.qml like so:
 
-    \quotefromfile multimedia/video/mediaplayer/PlaybackRateControl.qml
+    \quotefromfile video/mediaplayer/PlaybackRateControl.qml
     \skipto Slider
     \printuntil text:
 
@@ -198,7 +198,7 @@
     of the AudioOutput instantiated within the MediaPlayer, which is
     instantiated in \c{main.qml}.
 
-    \quotefromfile multimedia/video/mediaplayer/AudioControl.qml
+    \quotefromfile video/mediaplayer/AudioControl.qml
     \skipto required
     \printuntil value: 100.0
 */

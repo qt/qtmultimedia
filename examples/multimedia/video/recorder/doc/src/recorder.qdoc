@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example multimedia/video/recorder
+    \example video/recorder
     \title QML Recorder Example
     \ingroup multimedia_examples
     \ingroup video_examples_qml

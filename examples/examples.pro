@@ -1,3 +1,3 @@
 TEMPLATE = subdirs
-SUBDIRS += multimedia multimediawidgets
+SUBDIRS += multimedia multimediawidgets spatialaudio
 

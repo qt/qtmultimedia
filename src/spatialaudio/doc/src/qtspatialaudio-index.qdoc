@@ -1,0 +1,147 @@
+/****************************************************************************
+**
+** Copyright (C) 2022 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of the Qt for Multimedia module of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \page qtspatialaudio-index.html
+    \title Qt Spatial Audio
+    \brief The Qt Spatial Audio module provides APIs for modeling sound source
+    and their surrounds in 3D space
+
+    Qt Spatial Audio is an add-on module that provides a rich set of QML types
+    and C++ classes to implement sound fields in 3D space. It contains an easy to use
+    API for positing a listener in space, adding localized sound sources around the
+    listener and emulating virtual rooms with reverb and reflections.
+
+    \section1 Getting started
+
+    If you are new to Qt Spatial Audio, the QML types can be
+    \l{qtqml import syntax}{imported} into an application using the following
+    statement in your \c {.qml} file.
+
+    \qml
+     import QtQuick3D.SpatialAudio
+    \endqml
+
+    If you want to use the C++ classes in your application, include the C++
+    definitions using the following directive:
+
+    \code
+      #include <QtSpatialAudio>
+    \endcode
+
+    To link against the C++ libraries, add the following to your project's
+    \c CMakeLists.txt file. Substitute \c my_project with the name of your
+    project.
+
+   \code
+        find_package(Qt6 REQUIRED COMPONENTS SpatialAudio)
+        target_link_libraries(my_project PRIVATE Qt6::SpatialAudio)
+   \endcode
+
+   \l{Spatial Audio Overview} provides a more detailed description about how
+   to use the different classes listed below.
+
+    \section1 QML Types
+
+    The following table outlines some important QML types.
+
+    \table
+    \header
+     \li Type
+     \li Description
+    \row
+     \li \l{AudioEngine}
+     \li The engine doing the processing of the audio scene
+    \row
+     \li \l {SpatialSound}
+     \li A sound source located in 3D space.
+    \row
+     \li \l {AmbientSound}
+     \li A location independent stereo sound track.
+    \row
+     \li \l {AudioRoom}
+     \li Defines a room that generates audio reverb and reflections.
+    \endtable
+
+    \section1 C++ Classes
+
+    The following table outlines some important C++ Classes
+
+    \table
+    \header
+     \li Class
+     \li Description
+    \row
+     \li \l{QAudioEngine}
+     \li The engine doing the processing of the audio scene
+    \row
+     \li \l {QSpatialSound}
+     \li A sound source located in 3D space.
+    \row
+     \li \l {QAmbientSound}
+     \li A location independent stereo sound track.
+    \row
+     \li \l {QAudioRoom}
+     \li Defines a room that generates audio reverb and reflections.
+    \endtable
+
+    \section1 Licenses and Attributions
+
+    The Qt Spatial Audio module is available under commercial licenses from
+    \l{The Qt Company}.
+    In addition, it is available under free software licenses. These free software
+    licenses are
+    \l{GNU Lesser General Public License, version 3}, or
+    the \l{GNU General Public License, version 3}.
+    See \l{Qt Licensing} for further details.
+
+    Note that Qt Spatial Audio is not available under the \l{GNU General Public License, version 2}.
+
+    Furthermore, Qt Spatial Audio in Qt \QtVersion contains third party
+    modules under the following permissive licenses:
+
+    \generatelist{groupsbymodule attributions-qtspatialaudio}
+
+    \section1 Reference and Examples
+    \list
+      \li \l{Qt Spatial Audio QML Types}{QML Types}
+      \li \l{Qt Spatial Audio C++ Classes}{C++ Classes}
+      \li \l{Qt Spatial Audio Examples}{Examples}
+    \endlist
+*/
