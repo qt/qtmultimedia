@@ -262,7 +262,7 @@ void QAudioEnginePrivate::updateRooms()
     QVector3D listenerPos = listenerPosition();
     float roomVolume = float(qInf());
     QAudioRoom *room = nullptr;
-    // Find the smallest room that contains the listener and apply it's room effects
+    // Find the smallest room that contains the listener and apply its room effects
     for (auto *r : qAsConst(rooms)) {
         QVector3D dim2 = r->dimensions()/2.;
         float vol = dim2.x()*dim2.y()*dim2.z();
