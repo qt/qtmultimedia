@@ -2,7 +2,7 @@ The QML painting rate is calculated by the FrequencyMonitor class, which
 turns a stream of events (received via the notify() slot), into an
 instantaneous and an averaged frequency:
 
-\quotefromfile multimedia/video/qmlvideo/frequencymonitor.h
+\quotefromfile video/qmlvideo/frequencymonitor.h
 \skipto class FrequencyMonitor : public QObject
 \printuntil Q_OBJECT
 \skipto Q_PROPERTY(qreal instantaneousFrequency
@@ -19,13 +19,13 @@ instantaneous and an averaged frequency:
 
 The FrequencyMonitor class is exposed to QML like this
 
-\quotefromfile multimedia/video/qmlvideo/frequencymonitordeclarative.cpp
+\quotefromfile video/qmlvideo/frequencymonitordeclarative.cpp
 \skipto FrequencyMonitor::qmlRegisterType
 \printuntil }
 
 and its data is displayed by defining a QML item called FrequencyItem, like this:
 
-\quotefromfile multimedia/video/qmlvideo/qml/frequencymonitor/FrequencyItem.qml
+\quotefromfile video/qmlvideo/qml/frequencymonitor/FrequencyItem.qml
 \skipto import FrequencyMonitor
 \printuntil id: root
 \dots

@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \example multimedia/audiodevices
+    \example audiodevices
     \title Audio Devices Example
     \ingroup multimedia_examples
     \brief Testing the available audio devices and their configuration.

@@ -2,7 +2,7 @@
     {
         "Id": "resonance-audio",
         "Name": "Resonance Audio",
-        "QDocModule": "qtmultimedia",
+        "QDocModule": "qtspatialaudio",
         "Description": "3D audio support.",
         "QtUsage": "Used to implement spatial audio.",
 

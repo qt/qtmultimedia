@@ -6,7 +6,7 @@ project                 = QtMultimedia
 description             = Qt Multimedia Documentation
 version                 = $QT_VERSION
 
-moduleheader            = QtMultimediaDoc
+moduleheader            = QtMultimedia
 includepaths           += .
 
 # The following parameters are for creating a qhp file, the qhelpgenerator
@@ -45,7 +45,8 @@ qhp.QtMultimedia.subprojects.examples.indexTitle = Qt Multimedia Examples
 qhp.QtMultimedia.subprojects.examples.selectors = doc:example
 qhp.QtMultimedia.subprojects.examples.sortPages = true
 
-exampledirs += ../../../examples \
+exampledirs += ../../../examples/multimedia \
+               ../../../examples/multimediawidgets \
                snippets \
                ../../multimediawidgets/doc/snippets
 
@@ -54,15 +55,17 @@ manifestmeta.highlighted.names  = "QtMultimedia/QML Media Player Example" \
                                   "QtMultimedia/Camera Example" \
                                   "QtMultimedia/QML Recorder Example" \
 
-headerdirs += ../..
+headerdirs += .. \
+              ../../multimediawidgets \
+              ../../multimediaquick
 
 imagedirs += src/images \
 
-sourcedirs += ../..
+sourcedirs += .. \
+              ../../multimediawidgets \
+              ../../multimediaquick
 
-excludedirs += ../../gsttools
-
-depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork qmake qtcmake qtquickcontrols
+depends                 += qtcore qtdoc qtgui qtquick qtqml qtwidgets qtnetwork qmake qtcmake qtquickcontrols qtspatialaudio
 
 # Ignore \since commands for versions earlier than 6.3
 ignoresince = 6.3

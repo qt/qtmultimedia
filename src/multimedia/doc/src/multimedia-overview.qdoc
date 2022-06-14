@@ -72,8 +72,10 @@ can also take a look at some \l{Multimedia Recipes}{recipes}.
 \li \l {Audio Overview}
 \li \l {Video Overview}
 \li \l {Camera Overview}
-\li \l {Spatial Audio Overview}
 \endlist
+
+If you're interested in adding spatial audio experiences to your application, have
+a look at the \l {Qt Spatial Audio} module.
 
 \section1 Multimedia Recipes
 
@@ -140,11 +142,6 @@ For some quick recipes, see this table:
             \l {QML Recorder Example}{recorder}
         \li \l CaptureSession, \l Camera, \l MediaRecorder
         \li QMediaCaptureSession, QCamera, QMediaRecorder
-    \row
-        \li Spatial Audio
-        \li \l {Spatial Audio example}{spatialaudio},
-        \li \l AudioEngine, \l AudioListener, \l SpatialSound
-        \li QAudioEngine, QAudioListener, QSpatialSound
 \endtable
 
 \section1 Limitations

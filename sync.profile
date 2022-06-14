@@ -2,7 +2,8 @@
     "QtMultimedia" => "$basedir/src/multimedia",
     "QtMultimediaWidgets" => "$basedir/src/multimediawidgets",
     "QtMultimediaQuick" => "$basedir/src/multimediaquick",
-    "QtQuick3DAudio" => "$basedir/src/multimediaquick3d",
+    "QtSpatialAudio" => "$basedir/src/spatialaudio",
+    "QtQuick3DSpatialAudio" => "$basedir/src/spatialaudioquick3d",
 );
 
 %moduleheaders = ( # restrict the module headers to those found in relative path

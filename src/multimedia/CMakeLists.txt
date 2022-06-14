@@ -25,7 +25,7 @@ qt_internal_add_module(Multimedia
         audio/qaudiohelpers.cpp audio/qaudiohelpers_p.h
         audio/qaudiosource.cpp audio/qaudiosource.h
         audio/qaudiosink.cpp audio/qaudiosink.h
-        audio/qaudiosystem.cpp audio/qaudiosystem_p.h
+        audio/qaudiosystem_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
         audio/qwavedecoder.cpp audio/qwavedecoder.h
@@ -74,7 +74,6 @@ qt_internal_add_module(Multimedia
         platform
         playback
         recording
-        spatial
         video
     LIBRARIES
         Qt::CorePrivate
@@ -87,24 +86,6 @@ qt_internal_add_module(Multimedia
         Qt::CorePrivate
         Qt::GuiPrivate
     GENERATE_CPP_EXPORTS
-)
-
-
-qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_spatialaudio
-    SOURCES
-        spatial/qambisonicdecoder.cpp spatial/qambisonicdecoder_p.h spatial/qambisonicdecoderdata_p.h
-        spatial/qaudioengine.cpp spatial/qaudioengine.h spatial/qaudioengine_p.h
-        spatial/qaudiolistener.cpp spatial/qaudiolistener.h
-        spatial/qaudioroom.cpp spatial/qaudioroom.h spatial/qaudioroom_p.h
-        spatial/qspatialsound.cpp spatial/qspatialsound.h spatial/qspatialsound.h
-        spatial/qambientsound.cpp spatial/qambientsound.h
-    INCLUDE_DIRECTORIES
-        "../3rdparty/resonance-audio/resonance_audio"
-        "../3rdparty/resonance-audio"
-        "../resonance-audio"
-        "../3rdparty/eigen"
-    LIBRARIES
-        Qt::BundledResonanceAudio
 )
 
 qt_internal_add_simd_part(Multimedia SIMD sse2

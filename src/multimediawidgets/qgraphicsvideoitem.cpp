@@ -235,12 +235,6 @@ QSizeF QGraphicsVideoItem::nativeSize() const
 }
 
 /*!
-    \fn QGraphicsVideoItem::nativeSizeChanged(const QSizeF &size)
-
-    Signals that the native \a size of the video has changed.
-*/
-
-/*!
     \reimp
 */
 QRectF QGraphicsVideoItem::boundingRect() const

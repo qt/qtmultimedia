@@ -2,7 +2,7 @@
     {
         "Id": "eigen",
         "Name": "Eigen",
-        "QDocModule": "qtmultimedia",
+        "QDocModule": "qtspatialaudio",
         "Description": "The Eigen C++ linear algebra library.",
         "QtUsage": "Used for mathematics to support spatial audio.",
 
