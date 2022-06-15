@@ -41,24 +41,6 @@
 
 QT_BEGIN_NAMESPACE
 
-/*!
-    \class QPlatformCamera
-    \obsolete
-
-
-
-    \brief The QPlatformCamera class is an abstract base class for
-    classes that control still cameras or video cameras.
-
-    \inmodule QtMultimedia
-
-    \ingroup multimedia_control
-*/
-
-/*!
-    Constructs a camera control object with \a parent.
-*/
-
 QPlatformCamera::QPlatformCamera(QCamera *parent)
   : QObject(parent),
     m_camera(parent)
@@ -83,13 +65,6 @@ QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera)
     }
     return f;
 }
-
-/*!
-    \fn void QPlatformCamera::error(int error, const QString &errorString)
-
-    Signal emitted when an error occurs with error code \a error and
-    a description of the error \a errorString.
-*/
 
 void QPlatformCamera::supportedFeaturesChanged(QCamera::Features f)
 {
@@ -257,8 +232,6 @@ int QPlatformCamera::colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode m
     }
     return 0;
 }
-
-
 
 QT_END_NAMESPACE
 
