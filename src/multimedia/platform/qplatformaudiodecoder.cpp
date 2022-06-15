@@ -42,81 +42,11 @@
 
 QT_BEGIN_NAMESPACE
 
-
-/*!
-    \class QPlatformAudioDecoder
-    \obsolete
-    \inmodule QtMultimedia
-
-
-    \ingroup multimedia_control
-
-    \brief The QPlatformAudioDecoder class provides access to audio decoding
-    functionality.
-
-    \preliminary
-*/
-
-/*!
-    Constructs a new audio decoder control with the given \a parent.
-*/
 QPlatformAudioDecoder::QPlatformAudioDecoder(QAudioDecoder *parent)
     : QObject(parent),
     q(parent)
 {
 }
-
-/*!
-    \fn QPlatformAudioDecoder::source() const
-
-    Returns the current media source filename, or a null QString if none (or a device)
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::setSource(const QUrl &fileName)
-
-    Sets the current source to \a fileName.  Changing the source will
-    stop any current decoding and discard any buffers.
-
-    Sources are exclusive, so only one can be set.
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::sourceDevice() const
-
-    Returns the current media source QIODevice, or 0 if none (or a file).
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::setSourceDevice(QIODevice *device)
-
-    Sets the current source to \a device.  Changing the source will
-    stop any current decoding and discard any buffers.
-
-    Sources are exclusive, so only one can be set.
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::start()
-
-    Starts decoding the current media.
-
-    \sa read()
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::stop()
-
-    Stops playback of the current media and discards any buffers.
-
-    If successful, the player control will immediately stop decoding.
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::error(int error, const QString &errorString)
-
-    Signals that an \a error has occurred.  The \a errorString provides a more detailed explanation.
-*/
 
 void QPlatformAudioDecoder::error(int error, const QString &errorString)
 {
@@ -131,11 +61,6 @@ void QPlatformAudioDecoder::error(int error, const QString &errorString)
     }
 }
 
-/*!
-    \fn QPlatformAudioDecoder::bufferAvailableChanged(bool available)
-
-    Signals that the bufferAvailable property has changed to \a available.
-*/
 void QPlatformAudioDecoder::bufferAvailableChanged(bool available)
 {
     if (m_bufferAvailable == available)
@@ -148,11 +73,6 @@ void QPlatformAudioDecoder::bufferAvailableChanged(bool available)
         emit q->bufferAvailableChanged(available);
 }
 
-/*!
-    \fn QPlatformAudioDecoder::bufferReady()
-
-    Signals that a new buffer is ready for reading.
-*/
 void QPlatformAudioDecoder::bufferReady()
 {
     if (QThread::currentThread() != q->thread())
@@ -161,36 +81,16 @@ void QPlatformAudioDecoder::bufferReady()
         emit q->bufferReady();
 }
 
-/*!
-    \fn QPlatformAudioDecoder::sourceChanged()
-
-    Signals that the current source of the decoder has changed.
-
-    \sa source(), sourceDevice()
-*/
 void QPlatformAudioDecoder::sourceChanged()
 {
     emit q->sourceChanged();
 }
 
-/*!
-    \fn QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
-
-    Signals that the current audio format of the decoder has changed to \a format.
-*/
 void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 {
     emit q->formatChanged(format);
 }
 
-/*!
-    \fn void QPlatformAudioDecoder::finished()
-
-    Signals that the decoding has finished successfully.
-    If decoding fails, error signal is emitted instead.
-
-    \sa start(), stop(), error()
-*/
 void QPlatformAudioDecoder::finished()
 {
     durationChanged(-1);
@@ -198,52 +98,20 @@ void QPlatformAudioDecoder::finished()
     emit q->finished();
 }
 
-/*!
-    \fn void QPlatformAudioDecoder::positionChanged(qint64 position)
-
-    Signals that the current \a position of the decoder has changed.
-
-    \sa durationChanged()
-*/
 void QPlatformAudioDecoder::positionChanged(qint64 position)
 {
     if (m_position == position)
         return;
     m_position = position;
-    q->positionChanged(position);
+    emit q->positionChanged(position);
 }
 
-/*!
-    \fn void QPlatformAudioDecoder::durationChanged(qint64 duration)
-
-    Signals that the estimated \a duration of the decoded data has changed.
-
-    \sa positionChanged()
-*/
 void QPlatformAudioDecoder::durationChanged(qint64 duration)
 {
     if (m_duration == duration)
         return;
     m_duration = duration;
-    q->durationChanged(duration);
+    emit q->durationChanged(duration);
 }
-
-/*!
-    \fn QPlatformAudioDecoder::read()
-    Attempts to read a buffer from the decoder, without blocking. Returns invalid buffer if there are
-    no decoded buffers available, or on error.
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::position() const
-    Returns position (in milliseconds) of the last buffer read from
-    the decoder or -1 if no buffers have been read.
-*/
-
-/*!
-    \fn QPlatformAudioDecoder::duration() const
-    Returns total duration (in milliseconds) of the audio stream
-    or -1 if not available.
-*/
 
 QT_END_NAMESPACE
