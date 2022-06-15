@@ -71,7 +71,6 @@ public:
 
 public Q_SLOTS:
     void newAudioBuffer(const QAudioBuffer &buffer);
-    void newVideoFrame(const QVideoFrame &frame);
     void newTimeStamp(qint64 time);
 
 Q_SIGNALS:
@@ -88,7 +87,8 @@ public:
     bool isRecording = false;
 
     AudioEncoder *audioEncode = nullptr;
-    VideoEncoder *videoEncode = nullptr;
+    QList<VideoEncoder *> videoEncoders;
+    QList<QMetaObject::Connection> connections;
 
     QMutex timeMutex;
     qint64 timeRecorded = 0;

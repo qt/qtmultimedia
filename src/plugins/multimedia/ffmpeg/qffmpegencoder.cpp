@@ -65,15 +65,20 @@ void Encoder::addCamera(QPlatformCamera *camera)
     vff.setFrameRate(cf.maxFrameRate());
 
     auto *hwAccel = static_cast<const QFFmpeg::HWAccel *>(camera->ffmpegHWAccel());
-
-    videoEncode = new VideoEncoder(this, settings, vff, hwAccel);
-    connect(camera, &QPlatformCamera::newVideoFrame, this, &Encoder::newVideoFrame);
+    auto *ve = new VideoEncoder(this, settings, vff, hwAccel);
+    auto conn = connect(camera, &QPlatformCamera::newVideoFrame,
+            [=](const QVideoFrame &frame){ ve->addFrame(frame); });
+    videoEncoders.append(ve);
+    connections.append(conn);
 }
 
 void Encoder::addScreenCapture(QPlatformScreenCapture *screenCapture)
 {
-    videoEncode = new VideoEncoder(this, settings, screenCapture->format(), nullptr);
-    connect(screenCapture, &QPlatformScreenCapture::newVideoFrame, this, &Encoder::newVideoFrame);
+    auto *ve = new VideoEncoder(this, settings, screenCapture->format(), nullptr);
+    auto conn = connect(screenCapture, &QPlatformScreenCapture::newVideoFrame,
+            [=](const QVideoFrame &frame){ ve->addFrame(frame); });
+    videoEncoders.append(ve);
+    connections.append(conn);
 }
 
 void Encoder::start()
@@ -89,8 +94,9 @@ void Encoder::start()
     muxer->start();
     if (audioEncode)
         audioEncode->start();
-    if (videoEncode)
-        videoEncode->start();
+    for (auto *videoEncoder : videoEncoders)
+        videoEncoder->start();
+
     isRecording = true;
 }
 
@@ -98,8 +104,8 @@ void EncodingFinalizer::run()
 {
     if (encoder->audioEncode)
         encoder->audioEncode->kill();
-    if (encoder->videoEncode)
-        encoder->videoEncode->kill();
+    for (auto &videoEncoder : encoder->videoEncoders)
+        videoEncoder->kill();
     encoder->muxer->kill();
 
     int res = av_write_trailer(encoder->formatContext);
@@ -117,6 +123,9 @@ void Encoder::finalize()
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
 
+    for (auto &conn : connections)
+        disconnect(conn);
+
     isRecording = false;
     auto *finalizer = new EncodingFinalizer(this);
     finalizer->start();
@@ -126,8 +135,8 @@ void Encoder::setPaused(bool p)
 {
     if (audioEncode)
        audioEncode->setPaused(p);
-    if (videoEncode)
-       videoEncode->setPaused(p);
+    for (auto &videoEncoder : videoEncoders)
+       videoEncoder->setPaused(p);
 }
 
 void Encoder::setMetaData(const QMediaMetaData &metaData)
@@ -139,12 +148,6 @@ void Encoder::newAudioBuffer(const QAudioBuffer &buffer)
 {
     if (audioEncode && isRecording)
         audioEncode->addBuffer(buffer);
-}
-
-void Encoder::newVideoFrame(const QVideoFrame &frame)
-{
-    if (videoEncode && isRecording)
-        videoEncode->addFrame(frame);
 }
 
 void Encoder::newTimeStamp(qint64 time)
