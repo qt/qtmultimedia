@@ -49,6 +49,7 @@
 ****************************************************************************/
 #include <QtWidgets/QtWidgets>
 #include <QtSpatialAudio/QtSpatialAudio>
+#include <QtCore/QPropertyAnimation>
 
 class AudioWidget : public QWidget
 {
@@ -108,6 +109,9 @@ public:
         grid->addWidget(new QLabel(tr("Output mode:")), 8, 0);
         grid->addWidget(mode, 8, 1);
 
+        animateButton = new QCheckBox(tr("Animate sound position"));
+        grid->addWidget(animateButton, 9, 0);
+
         connect(fileEdit, &QLineEdit::textChanged, this, &AudioWidget::fileChanged);
         connect(fileDialogButton, &QPushButton::clicked, this, &AudioWidget::openFileDialog);
 
@@ -138,6 +142,13 @@ public:
 
         sound = new QSpatialSound(&engine);
         updatePosition();
+
+        animation = new QPropertyAnimation(azimuth, "value");
+        animation->setDuration(10000);
+        animation->setStartValue(-180);
+        animation->setEndValue(180);
+        animation->setLoopCount(-1);
+        connect(animateButton, &QCheckBox::toggled, this, &AudioWidget::animateChanged);
     }
     void setFile(const QString &file) { fileEdit->setText(file); }
 private slots:
@@ -164,6 +175,7 @@ private slots:
     {
         sound->setSource(QUrl::fromLocalFile(file));
         sound->setSize(5);
+        sound->setLoops(QSpatialSound::Infinite);
     }
     void openFileDialog()
     {
@@ -177,6 +189,13 @@ private slots:
         room->setReflectionGain(float(reflectionGain->value())/100);
         room->setReverbGain(float(reverbGain->value())/100);
     }
+    void animateChanged()
+    {
+        if (animateButton->isChecked())
+            animation->start();
+        else
+            animation->stop();
+    }
 
     QLineEdit *fileEdit = nullptr;
     QPushButton *fileDialogButton = nullptr;
@@ -188,6 +207,8 @@ private slots:
     QSlider *reverbGain = nullptr;
     QSlider *reflectionGain = nullptr;
     QComboBox *mode = nullptr;
+    QCheckBox *animateButton = nullptr;
+    QPropertyAnimation *animation = nullptr;
 
     QAudioEngine engine;
     QAudioListener *listener = nullptr;
