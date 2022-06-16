@@ -44,6 +44,7 @@
 
 
 #include <private/qvideotexturehelper_p.h>
+#include <private/qwindowsiupointer_p.h>
 #include <private/qrhi_p.h>
 #include <private/qrhid3d11_p.h>
 
@@ -62,17 +63,11 @@ namespace QFFmpeg {
 class D3D11TextureSet : public TextureSet
 {
 public:
-    D3D11TextureSet(QRhi *rhi, QVideoFrameFormat::PixelFormat format, ID3D11Texture2D *tex, int index)
+    D3D11TextureSet(QRhi *rhi, QVideoFrameFormat::PixelFormat format, QWindowsIUPointer<ID3D11Texture2D> &&tex)
         : m_rhi(rhi)
         , m_format(format)
         , m_tex(tex)
-        , m_index(index)
     {}
-
-    ~D3D11TextureSet() override {
-        if (m_tex)
-            m_tex->Release();
-    }
 
     std::unique_ptr<QRhiTexture> texture(int plane) override {
         auto desc = QVideoTextureHelper::textureDescription(m_format);
@@ -89,8 +84,7 @@ public:
                                                                 int(d3d11desc.ArraySize),
                                                                 planeSize, 1, {}));
         if (tex) {
-            tex->setArrayRange(m_index, 1);
-            if (!tex->createFrom({quint64(m_tex), 0}))
+            if (!tex->createFrom({quint64(m_tex.get()), 0}))
                 tex.reset();
         }
         return tex;
@@ -99,14 +93,64 @@ public:
 private:
     QRhi *m_rhi = nullptr;
     QVideoFrameFormat::PixelFormat m_format;
-    ID3D11Texture2D *m_tex = nullptr;
-    int m_index = 0;
+    QWindowsIUPointer<ID3D11Texture2D> m_tex;
 };
 
 
 D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi)
     : TextureConverterBackend(rhi)
 {
+}
+
+static QWindowsIUPointer<ID3D11Texture2D> getSharedTextureForDevice(ID3D11Device *dev, ID3D11Texture2D *tex)
+{
+    QWindowsIUPointer<IDXGIResource> dxgiResource;
+    HRESULT hr = tex->QueryInterface(__uuidof(IDXGIResource), reinterpret_cast<void **>(dxgiResource.address()));
+    if (FAILED(hr)) {
+        qCDebug(qLcMediaFFmpegHWAccel) << "Failed to obtain resource handle from FFMpeg texture" << hr;
+        return {};
+    }
+    HANDLE shared = nullptr;
+    hr = dxgiResource->GetSharedHandle(&shared);
+    if (FAILED(hr)) {
+        qCDebug(qLcMediaFFmpegHWAccel) << "Failed to obtain shared handle for FFmpeg texture" << hr;
+        return {};
+    }
+
+    QWindowsIUPointer<ID3D11Texture2D> sharedTex;
+    hr = dev->OpenSharedResource(shared, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(sharedTex.address()));
+    if (FAILED(hr))
+        qCDebug(qLcMediaFFmpegHWAccel) << "Failed to share FFmpeg texture" << hr;
+    return sharedTex;
+}
+
+static QWindowsIUPointer<ID3D11Texture2D> copyTextureFromArray(ID3D11Device *dev, ID3D11Texture2D *array, int index)
+{
+    D3D11_TEXTURE2D_DESC arrayDesc = {};
+    array->GetDesc(&arrayDesc);
+
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = arrayDesc.Width;
+    texDesc.Height = arrayDesc.Height;
+    texDesc.Format = arrayDesc.Format;
+    texDesc.ArraySize = 1;
+    texDesc.MipLevels = 1;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    texDesc.MiscFlags = 0;
+    texDesc.SampleDesc = { 1, 0};
+
+    QWindowsIUPointer<ID3D11Texture2D> texCopy;
+    HRESULT hr = dev->CreateTexture2D(&texDesc, nullptr, texCopy.address());
+    if (FAILED(hr)) {
+        qCDebug(qLcMediaFFmpegHWAccel) << "Failed to create texture" << hr;
+        return {};
+    }
+
+    QWindowsIUPointer<ID3D11DeviceContext> ctx;
+    dev->GetImmediateContext(ctx.address());
+    ctx->CopySubresourceRegion(texCopy.get(), 0, 0, 0, 0, array, index, nullptr);
+
+    return texCopy;
 }
 
 TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
@@ -130,32 +174,17 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
     auto ffmpegTex = (ID3D11Texture2D *)frame->data[0];
     int index = (intptr_t)frame->data[1];
 
-    IDXGIResource *dxgiResource = nullptr;
-    HRESULT hr = ffmpegTex->QueryInterface(__uuidof(IDXGIResource), (void **)&dxgiResource);
-    if (FAILED(hr)) {
-        qCDebug(qLcMediaFFmpegHWAccel) << "Failed to obtain resource handle from FFMpeg texture" << hr;
-        return nullptr;
-    }
-    HANDLE shared = nullptr;
-    hr = dxgiResource->GetSharedHandle(&shared);
-    dxgiResource->Release();
-    if (FAILED(hr)) {
-        qCDebug(qLcMediaFFmpegHWAccel) << "Failed to obtain shared handle for FFmpeg texture" << hr;
-        return nullptr;
-    }
+    auto sharedTex = getSharedTextureForDevice(dev, ffmpegTex);
+    if (sharedTex) {
+        auto tex = copyTextureFromArray(dev, sharedTex.get(), index);
+        if (tex) {
+            if (rhi->backend() == QRhi::D3D11) {
+                QVideoFrameFormat::PixelFormat format = QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat(fCtx->sw_format));
+                return new D3D11TextureSet(rhi, format, std::move(tex));
+            } else if (rhi->backend() == QRhi::OpenGLES2) {
 
-    if (rhi->backend() == QRhi::D3D11) {
-        ID3D11Texture2D *sharedTex = nullptr;
-        hr = dev->OpenSharedResource(shared, __uuidof(ID3D11Texture2D), (void **)(&sharedTex));
-        if (FAILED(hr)) {
-            qCDebug(qLcMediaFFmpegHWAccel) << "Failed to share FFmpeg texture" << hr;
-            return nullptr;
+            }
         }
-
-        QVideoFrameFormat::PixelFormat format = QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat(fCtx->sw_format));
-        return new D3D11TextureSet(rhi, format, sharedTex, index);
-    } else if (rhi->backend() == QRhi::OpenGLES2) {
-
     }
 
     return nullptr;
