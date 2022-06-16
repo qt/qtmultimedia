@@ -302,9 +302,20 @@ void QAndroidCaptureSession::start()
         m_cameraSession->camera()->setupPreviewFrameCallback();
     }
 
+    QMediaRecorder::State oldState = m_state;
+    QMediaRecorder::Status oldStatus = m_status;
+
     m_state = QMediaRecorder::RecordingState;
-    emit stateChanged(m_state);
-    setStatus(QMediaRecorder::RecordingStatus);
+    m_status = QMediaRecorder::RecordingStatus;
+
+    m_actualOutputLocation = m_usedOutputLocation;
+    emit actualLocationChanged(m_actualOutputLocation);
+
+    if (m_state != oldState)
+        emit stateChanged(m_state);
+
+    if (m_status != oldStatus)
+        emit statusChanged(m_status);
 }
 
 void QAndroidCaptureSession::stop(bool error)
