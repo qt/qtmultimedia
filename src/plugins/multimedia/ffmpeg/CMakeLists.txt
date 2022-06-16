@@ -8,7 +8,7 @@ qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox) # special c
 qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special case
 
 qt_internal_add_plugin(QFFmpegMediaPlugin
-    OUTPUT_NAME ffmegmediaplugin
+    OUTPUT_NAME ffmpegmediaplugin
     PLUGIN_TYPE multimedia
     SOURCES
         qffmpeg_p.h
@@ -96,7 +96,7 @@ if (ANDROID)
     )
 
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
-        plugins/multimedia/libplugins_multimedia_ffmegmediaplugin.so
+        plugins/multimedia/libplugins_multimedia_ffmpegmediaplugin.so
     )
 
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
