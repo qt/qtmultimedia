@@ -60,7 +60,7 @@ template<class T> struct signedVersion {};
 template<> struct signedVersion<quint8>
 {
     using TS = qint8;
-    enum {offset = 0x80};
+    static constexpr int offset = 0x80;
 };
 
 template<class T> void adjustUnsignedSamples(qreal factor, const void *src, void *dst, int samples)
