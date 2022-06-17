@@ -195,13 +195,16 @@
     the \l{GNU General Public License, version 2}.
     See \l{Qt Licensing} for further details.
 
-    \section1 Platform Notes
+    \section1 Target platform and backend notes
 
-    For most features, Qt Multimedia builds upon the multimedia framework of the
-    underlying operating system. Therefore there are several multimedia back ends
-    based on different technologies and APIs.
+    On most platforms, there are two different backends that can be used for Qt Multimedia.
 
-    While we try to support our full API on all platforms, platform specific limitations do
+    The first one is the backend built on the native multimedia framework of the underlying
+    operating system. This is currently the default, and will use gstreamer on Linux,
+    AVFoundation on macOS/iOS, WMF on Windows, and the MediaCodec framework on Android.
+
+    While we try to support our full API on all backends using the native multimedia framework,
+    platform specific limitations do
     exist in a few places. This is due to the fact that the feature set supported by those
     frameworks varies, implying that some functionality
     might not be available on all platforms. This is especially true for the set of
@@ -209,6 +212,20 @@
 
     Where limitations exist, we aim to document those in the respective classes and
     methods.
+
+    With Qt 6.4, we are adding a new, more platform independent backend based on the
+    \l {http://ffmpeg.org}{FFmpeg framework}. The FFmpeg backend is currently available as a
+    technology preview. This backend has the advantage that we can offer proper cross-platform
+    support for all features of Qt Multimedia, going beyond the limitations that exist with many
+    of the native frameworks.
+
+    You can test the FFmpeg backend right now by using a Qt build that has FFmpeg enabled and
+    setting the \c{QT_MEDIA_BACKEND} environment variable to ffmpeg:
+
+    \code
+    export QT_MEDIA_BACKEND=ffmpeg
+    \endcode
+
 
     \list
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
