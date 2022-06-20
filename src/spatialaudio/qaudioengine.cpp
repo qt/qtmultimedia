@@ -280,6 +280,7 @@ void QAudioEnginePrivate::updateRooms()
     }
     if (room != currentRoom)
         roomDirty = true;
+    const bool previousRoom = currentRoom;
     currentRoom = room;
 
     if (!roomDirty)
@@ -290,6 +291,9 @@ void QAudioEnginePrivate::updateRooms()
         resonanceAudio->api->EnableRoomEffects(false);
         return;
     }
+    if (!previousRoom)
+        resonanceAudio->api->EnableRoomEffects(true);
+
     QAudioRoomPrivate *rp = QAudioRoomPrivate::get(room);
     resonanceAudio->api->SetReflectionProperties(rp->reflections);
     resonanceAudio->api->SetReverbProperties(rp->reverb);
