@@ -95,10 +95,10 @@ public:
     void setVolume(float volume);
     float volume() const;
 
-    enum DistanceModel {
-        DistanceModel_Logarithmic,
-        DistanceModel_Linear,
-        DistanceModel_ManualAttenutation
+    enum class DistanceModel {
+        Logarithmic,
+        Linear,
+        ManualAttenuation
     };
     Q_ENUM(DistanceModel);
 

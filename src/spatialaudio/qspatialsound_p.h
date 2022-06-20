@@ -75,7 +75,7 @@ public:
 
     QVector3D pos;
     QQuaternion rotation;
-    QSpatialSound::DistanceModel distanceModel = QSpatialSound::DistanceModel_Logarithmic;
+    QSpatialSound::DistanceModel distanceModel = QSpatialSound::DistanceModel::Logarithmic;
     float size = .1f;
     float distanceCutoff = 50.f;
     float manualAttenuation = 0.f;
