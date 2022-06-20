@@ -133,7 +133,7 @@ float QQuick3DSpatialSound::volume() const
         \li Volume decreases logarithmically with distance.
     \row \li Linear
         \li Volume decreases linearly with distance.
-    \row \li ManualAttenutation
+    \row \li ManualAttenuation
         \li Attenuation is defined manually using the \l manualAttenuation property.
     \endtable
  */
@@ -185,7 +185,7 @@ float QQuick3DSpatialSound::distanceCutoff() const
     \qmlproperty float SpatialSound::manualAttenuation
 
     Defines a manual attenuation factor if \l distanceModel is set to
-    SpatialSound.ManualAttenutation.
+    SpatialSound.ManualAttenuation.
  */
 void QQuick3DSpatialSound::setManualAttenuation(float attenuation)
 {

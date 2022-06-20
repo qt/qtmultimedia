@@ -74,7 +74,7 @@ public:
     enum DistanceModel {
         Logarithmic,
         Linear,
-        ManualAttenutation
+        ManualAttenuation
     };
     Q_ENUM(DistanceModel);
 

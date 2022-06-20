@@ -152,9 +152,9 @@ float QSpatialSound::volume() const
 
     Defines how the volume of the sound scales with distance to the listener.
 
-    \value DistanceModel_Logarithmic Volume decreases logarithmically with distance.
-    \value DistanceModel_Linear Volume decreases linearly with distance.
-    \value DistanceModel_ManualAttenutation Attenuation is defined manually using the
+    \value Logarithmic Volume decreases logarithmically with distance.
+    \value Linear Volume decreases linearly with distance.
+    \value ManualAttenuation Attenuation is defined manually using the
     \l manualAttenuation property.
 */
 
@@ -185,10 +185,10 @@ void QSpatialSoundPrivate::updateDistanceModel()
 
     vraudio::DistanceRolloffModel dm = vraudio::kLogarithmic;
     switch (distanceModel) {
-    case QSpatialSound::DistanceModel_Linear:
+    case QSpatialSound::DistanceModel::Linear:
         dm = vraudio::kLinear;
         break;
-    case QSpatialSound::DistanceModel_ManualAttenutation:
+    case QSpatialSound::DistanceModel::ManualAttenuation:
         dm = vraudio::kNone;
         break;
     default:
@@ -361,7 +361,7 @@ float QSpatialSound::distanceCutoff() const
     \property QSpatialSound::manualAttenuation
 
     Defines a manual attenuation factor if \l distanceModel is set to
-    QSpatialSound::DistanceModel_ManualAttenutation.
+    QSpatialSound::DistanceModel::ManualAttenuation.
  */
 void QSpatialSound::setManualAttenuation(float attenuation)
 {
