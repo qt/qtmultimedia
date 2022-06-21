@@ -54,8 +54,6 @@ public:
     explicit QAudioListener(QAudioEngine *engine);
     ~QAudioListener();
 
-    QAudioFormat format() const;
-
     void setPosition(QVector3D pos);
     QVector3D position() const;
     void setRotation(const QQuaternion &q);
