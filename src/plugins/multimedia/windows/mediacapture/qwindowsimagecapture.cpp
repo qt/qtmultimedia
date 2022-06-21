@@ -130,13 +130,23 @@ void QWindowsImageCapture::handleVideoFrameChanged(const QVideoFrame &frame)
 
         QImage image = frame.toImage();
 
+        QSize size = m_settings.resolution();
+        if (size.isValid() && image.size() != size) {
+            image = image.scaled(size, Qt::KeepAspectRatioByExpanding);
+            if (image.size() != size) {
+                int xoff = (image.size().width() - size.width()) / 2;
+                int yoff = (image.size().height() - size.height()) / 2;
+                image = image.copy(xoff, yoff, size.width(), size.height());
+            }
+        }
+
         emit imageExposed(m_captureId);
         emit imageAvailable(m_captureId, frame);
         emit imageCaptured(m_captureId, image);
 
         QMediaMetaData metaData = this->metaData();
         metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
-        metaData.insert(QMediaMetaData::Resolution, frame.size());
+        metaData.insert(QMediaMetaData::Resolution, size);
 
         emit imageMetadataAvailable(m_captureId, metaData);
 
