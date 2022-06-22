@@ -71,13 +71,6 @@ struct QCameraForeign
     QML_NAMED_ELEMENT(Camera)
 };
 
-struct QImageCaptureForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QImageCapture)
-    QML_NAMED_ELEMENT(ImageCapture)
-};
-
 struct QMediaRecorderForeign
 {
     Q_GADGET
