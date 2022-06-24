@@ -362,8 +362,11 @@ static bool readWglNvDxInteropProc(WglNvDxInterop &f)
         return false;
     }
 
-    auto dc = ::GetDC(::GetShellWindow());
-    if (!strstr(wglGetExtensionsStringARB(dc), "WGL_NV_DX_interop")) {
+    HWND hwnd = ::GetShellWindow();
+    auto dc = ::GetDC(hwnd);
+    bool hasExtension = strstr(wglGetExtensionsStringARB(dc), "WGL_NV_DX_interop");
+    ReleaseDC(hwnd, dc);
+    if (!hasExtension) {
         qCDebug(qLcEvrD3DPresentEngine) << "WGL_NV_DX_interop missing";
         return false;
     }
