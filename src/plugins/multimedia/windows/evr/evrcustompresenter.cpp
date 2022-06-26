@@ -587,7 +587,7 @@ ULONG EVRCustomPresenter::Release()
 {
     ULONG uCount = InterlockedDecrement(&m_refCount);
     if (uCount == 0)
-        delete this;
+        deleteLater();
     return uCount;
 }
 
