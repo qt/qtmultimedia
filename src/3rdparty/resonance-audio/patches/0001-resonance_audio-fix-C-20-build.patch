@@ -1,0 +1,36 @@
+From f8c9ec7cfabb59977629f303edf7cf90ca8521d3 Mon Sep 17 00:00:00 2001
+From: Marc Mutz <marc.mutz@qt.io>
+Date: Tue, 28 Jun 2022 19:38:13 +0200
+Subject: [PATCH] AlignedAllocator: fix C++20 build
+
+C++17 deprecated, and C++20 removed, the nested pointer, size_type
+etc. typedefs in std::allocator. Since C++11, the way to get these
+types is to go via allocator_traits, so do that.
+
+This breaks compatibility with C++ < 11.
+
+Fixes #61
+---
+ .../resonance_audio/base/aligned_allocator.h                | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/resonance_audio/base/aligned_allocator.h b/resonance_audio/base/aligned_allocator.h
+index ac60e8292..628ccaa02 100644
+--- a/resonance_audio/base/aligned_allocator.h
++++ b/resonance_audio/base/aligned_allocator.h
+@@ -72,9 +72,9 @@ void AllignedFree(PointerType mem_block_aligned) {
+ template <typename Type, size_t Alignment>
+ class AlignedAllocator : public std::allocator<Type> {
+  public:
+-  typedef typename std::allocator<Type>::pointer Pointer;
+-  typedef typename std::allocator<Type>::const_pointer ConstPointer;
+-  typedef typename std::allocator<Type>::size_type SizeType;
++  using Pointer = typename std::allocator_traits<std::allocator<Type>>::pointer;
++  using ConstPointer = typename std::allocator_traits<std::allocator<Type>>::const_pointer;
++  using SizeType = typename std::allocator_traits<std::allocator<Type>>::size_type;
+ 
+   AlignedAllocator() { StaticAlignmentCheck<sizeof(Type), Alignment>(); }
+ 
+-- 
+2.25.1
+
