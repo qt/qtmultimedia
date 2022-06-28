@@ -578,23 +578,32 @@ void QAmbientSoundPrivate::getBuffer(float *buf, int nframes, int channels)
     Q_ASSERT(channels == nchannels);
     QMutexLocker l(&mutex);
     if (!m_playing || currentBuffer >= buffers.size()) {
-        memset(buf, 0, nframes*sizeof(float));
+        memset(buf, 0, channels * nframes * sizeof(float));
     } else {
         int frames = nframes;
         float *ff = buf;
         while (frames) {
-            const QAudioBuffer &b = buffers.at(currentBuffer);
+            if (currentBuffer < buffers.size()) {
+                const QAudioBuffer &b = buffers.at(currentBuffer);
 //            qDebug() << s << b.format().sampleRate() << b.format().channelCount() << b.format().sampleFormat();
-            auto *f = b.constData<float>() + bufPos*nchannels;
-            int toCopy = qMin(b.frameCount() - bufPos, frames);
-            memcpy(ff, f, toCopy*sizeof(float)*nchannels);
-            ff += toCopy*nchannels;
-            frames -= toCopy;
-            bufPos += toCopy;
-            Q_ASSERT(bufPos <= b.frameCount());
-            if (bufPos == b.frameCount()) {
-                ++currentBuffer;
-                bufPos = 0;
+                auto *f = b.constData<float>() + bufPos*nchannels;
+                int toCopy = qMin(b.frameCount() - bufPos, frames);
+                memcpy(ff, f, toCopy*sizeof(float)*nchannels);
+                ff += toCopy*nchannels;
+                frames -= toCopy;
+                bufPos += toCopy;
+                Q_ASSERT(bufPos <= b.frameCount());
+                if (bufPos == b.frameCount()) {
+                    ++currentBuffer;
+                    bufPos = 0;
+                }
+            } else {
+                // no more data available
+                if (m_loading)
+                    qDebug() << "underrun" << frames << "frames when loading" << url;
+                memset(ff, 0, frames * channels * sizeof(float));
+                ff += frames * channels;
+                frames = 0;
             }
             if (!m_loading) {
                 if (currentBuffer == buffers.size()) {
@@ -623,7 +632,6 @@ void QAmbientSoundPrivate::bufferReady()
 
 void QAmbientSoundPrivate::finished()
 {
-//    qDebug() << "finished";
     m_loading = false;
 }
 
