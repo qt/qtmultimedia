@@ -66,7 +66,7 @@ public:
     void setPosition(QVector3D pos);
     QVector3D position() const;
 
-    void setDimensions(QVector3D pos);
+    void setDimensions(QVector3D dim);
     QVector3D dimensions() const;
 
     void setRotation(const QQuaternion &q);
