@@ -16,7 +16,10 @@
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qcoreapplication.h>
-#include <QtCore/qjniobject.h>
+
+#if defined(Q_OS_ANDROID)
+#  include <QtCore/qjniobject.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
