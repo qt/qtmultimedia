@@ -5,6 +5,8 @@
 #include "qambientsound.h"
 #include <QAudioFormat>
 #include <qdir.h>
+#include <QQmlContext>
+#include <QQmlFile>
 
 QT_BEGIN_NAMESPACE
 
@@ -47,9 +49,14 @@ QUrl QQuick3DAmbientSound::source() const
 
 void QQuick3DAmbientSound::setSource(QUrl source)
 {
-    QUrl url = QUrl::fromLocalFile(QDir::currentPath() + u"/");
-    url = url.resolved(source);
-
+    const QQmlContext *context = qmlContext(this);
+    QUrl url;
+    if (context) {
+        url = context->resolvedUrl(source);
+    } else {
+        url = QUrl::fromLocalFile(QDir::currentPath() + u"/");
+        url = url.resolved(source);
+    }
     m_sound->setSource(url);
 }
 
