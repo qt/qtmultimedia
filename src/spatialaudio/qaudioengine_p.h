@@ -24,6 +24,7 @@
 #include <qurl.h>
 #include <qaudiobuffer.h>
 #include <qvector3d.h>
+#include <qfile.h>
 
 namespace vraudio {
 class ResonanceAudio;
@@ -98,11 +99,11 @@ public:
     template<typename T>
     static QAmbientSoundPrivate *get(T *soundSource) { return soundSource ? soundSource->d : nullptr; }
 
-
     QUrl url;
     float volume = 1.;
     int nchannels = 2;
     std::unique_ptr<QAudioDecoder> decoder;
+    std::unique_ptr<QFile> sourceDeviceFile;
     QAudioEngine *engine = nullptr;
 
     QMutex mutex;

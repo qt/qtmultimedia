@@ -14,6 +14,8 @@
 #include <qdebug.h>
 #include <qelapsedtimer.h>
 
+#include <QFile>
+
 QT_BEGIN_NAMESPACE
 
 // We'd like to have short buffer times, so the sound adjusts itself to changes
@@ -540,6 +542,7 @@ void QAmbientSoundPrivate::load()
     decoder.reset(new QAudioDecoder);
     buffers.clear();
     currentBuffer = 0;
+    sourceDeviceFile.reset(nullptr);
     bufPos = 0;
     m_playing = false;
     m_loading = true;
@@ -549,8 +552,15 @@ void QAmbientSoundPrivate::load()
     f.setSampleRate(ep->sampleRate);
     f.setChannelConfig(nchannels == 2 ? QAudioFormat::ChannelConfigStereo : QAudioFormat::ChannelConfigMono);
     decoder->setAudioFormat(f);
-    decoder->setSource(url);
-
+    if (url.scheme().compare(u"qrc", Qt::CaseInsensitive) == 0) {
+        auto qrcFile = std::make_unique<QFile>(u':' + url.path());
+        if (!qrcFile->open(QFile::ReadOnly))
+            return;
+        sourceDeviceFile = std::move(qrcFile);
+        decoder->setSourceDevice(sourceDeviceFile.get());
+    } else {
+        decoder->setSource(url);
+    }
     connect(decoder.get(), &QAudioDecoder::bufferReady, this, &QAmbientSoundPrivate::bufferReady);
     connect(decoder.get(), &QAudioDecoder::finished, this, &QAmbientSoundPrivate::finished);
     decoder->start();
