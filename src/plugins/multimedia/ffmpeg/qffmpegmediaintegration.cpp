@@ -36,6 +36,10 @@ extern "C" {
 #include "qv4l2camera_p.h"
 #endif
 
+#if QT_CONFIG(cpp_winrt)
+#include "qffmpegscreencapture_uwp_p.h"
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class QFFmpegMediaPlugin : public QPlatformMediaPlugin
@@ -118,6 +122,10 @@ QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera *camera)
 
 QPlatformScreenCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *screenCapture)
 {
+#if QT_CONFIG(cpp_winrt)
+    if (QFFmpegScreenCaptureUwp::isSupported())
+        return new QFFmpegScreenCaptureUwp(screenCapture);
+#endif
     return new QFFmpegScreenCapture(screenCapture);
 }
 

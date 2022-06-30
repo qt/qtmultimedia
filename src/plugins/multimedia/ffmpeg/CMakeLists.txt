@@ -80,6 +80,16 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
         mfreadwrite
 )
 
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
+    SOURCES
+        qffmpegscreencapture_uwp.cpp qffmpegscreencapture_uwp_p.h
+    INCLUDE_DIRECTORIES
+        ../windows
+    LIBRARIES
+        Dwmapi
+        Dxva2
+)
+
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
     SOURCES
         qv4l2camera.cpp qv4l2camera_p.h
