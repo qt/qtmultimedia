@@ -77,6 +77,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
     INCLUDE_DIRECTORIES
         ../windows
     LIBRARIES
+        Qt::MultimediaPrivate
         WMF::WMF
         mfreadwrite
 )

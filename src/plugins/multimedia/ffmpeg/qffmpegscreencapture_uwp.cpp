@@ -34,6 +34,8 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 #include <qwindow.h>
 #include <qloggingcategory.h>
 #include <qguiapplication.h>
+#include <private/qmultimediautils_p.h>
+#include <private/qwindowsmultimediautils_p.h>
 
 #include <memory>
 #include <system_error>
@@ -50,33 +52,8 @@ namespace winrt {
 }
 
 using namespace Windows::Graphics::DirectX::Direct3D11;
-
 using namespace std::chrono;
-
-
-static QString errorStringHr(const QString& desc, HRESULT hr)
-{
-    return QString("%1 %2 %3").arg(desc).arg(quint32(hr), 8, 16).arg(std::system_category().message(hr).c_str());
-}
-
-template <typename Value> class Maybe
-{
-public:
-    Maybe(const Value &v) : m_value(v) {}
-    Maybe(Value &&v) : m_value(v) {}
-    Maybe(const QString &error) : m_error(error) {}
-
-    constexpr operator bool() const { return bool(m_value); }
-    constexpr Value *operator->() { return &*m_value; }
-    constexpr const Value *operator->() const { return &*m_value; }
-    constexpr Value &operator*() { return *m_value; }
-    constexpr const Value &operator*() const { return *m_value; }
-
-    const QString &error() const { return m_error; }
-private:
-    std::optional<Value> m_value;
-    const QString m_error;
-};
+using namespace QWindowsMultimediaUtils;
 
 struct DeviceFramePool
 {
@@ -122,7 +99,7 @@ public:
 
                 return md;
             } else {
-                qCDebug(qLcScreenCaptureUwp) << errorStringHr("Failed to map DXGI surface", hr);
+                qCDebug(qLcScreenCaptureUwp) << "Failed to map DXGI surface" << errorString(hr);
                 return {};
             }
         }
@@ -137,7 +114,7 @@ public:
 
         HRESULT hr = m_surface->Unmap();
         if (FAILED(hr)) {
-            qCDebug(qLcScreenCaptureUwp) << errorStringHr("Failed to unmap surface", hr);
+            qCDebug(qLcScreenCaptureUwp) << "Failed to unmap surface" << errorString(hr);
         }
         m_mapMode = QVideoFrame::NotMapped;
     }
@@ -260,7 +237,7 @@ QFFmpegScreenCaptureUwp::QFFmpegScreenCaptureUwp(QScreenCapture *screenCapture)
 QFFmpegScreenCaptureUwp::~QFFmpegScreenCaptureUwp()
 {}
 
-static Maybe<DeviceFramePool>
+static QMaybe<DeviceFramePool>
 createCaptureFramePool(IDXGIAdapter1 *adapter, const winrt::GraphicsCaptureItem &item)
 {
     winrt::com_ptr<ID3D11Device> d3d11dev;
@@ -268,25 +245,25 @@ createCaptureFramePool(IDXGIAdapter1 *adapter, const winrt::GraphicsCaptureItem 
             D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_DEBUG,
                               nullptr, 0, D3D11_SDK_VERSION, d3d11dev.put(), nullptr, nullptr);
     if (FAILED(hr))
-        return errorStringHr("Failed to create ID3D11Device device", hr);
+        return { "Failed to create ID3D11Device device" + errorString(hr) };
 
     winrt::com_ptr<IDXGIDevice> dxgiDevice;
     hr = d3d11dev->QueryInterface(__uuidof(IDXGIDevice), dxgiDevice.put_void());
     if (FAILED(hr))
-        return {"Failed to obtain dxgi for D3D11Device face"};
+        return { "Failed to obtain dxgi for D3D11Device face" };
 
     winrt::IDirect3DDevice iDirect3DDevice{};
     hr = CreateDirect3D11DeviceFromDXGIDevice(
             dxgiDevice.get(), reinterpret_cast<::IInspectable **>(winrt::put_abi(iDirect3DDevice)));
     if (FAILED(hr))
-        return errorStringHr("Failed to create IDirect3DDevice device", hr);
+        return { "Failed to create IDirect3DDevice device" + errorString(hr) };
 
     auto pool = winrt::Direct3D11CaptureFramePool::Create(
         iDirect3DDevice, winrt::DirectXPixelFormat::R8G8B8A8UIntNormalized, 1, item.Size());
     if (pool)
         return DeviceFramePool{ iDirect3DDevice, d3d11dev, pool };
     else
-        return {"Failed to create capture frame pool"};
+        return { "Failed to create capture frame pool" };
 }
 
 struct Monitor {
@@ -294,15 +271,15 @@ struct Monitor {
     HMONITOR handle = nullptr;
 };
 
-static Maybe<Monitor> findScreen(const QScreen *screen)
+static QMaybe<Monitor> findScreen(const QScreen *screen)
 {
     if (!screen)
-        return {"Cannot find nullptr screen"};
+        return { "Cannot find nullptr screen" };
 
     winrt::com_ptr<IDXGIFactory1> factory;
     HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), factory.put_void());
     if (FAILED(hr))
-        return errorStringHr("Failed to create IDXGIFactory", hr);
+        return { "Failed to create IDXGIFactory" + errorString(hr) };
 
     winrt::com_ptr<IDXGIAdapter1> adapter;
     for (quint32 i = 0; SUCCEEDED(factory->EnumAdapters1(i, adapter.put())); i++, adapter = {}) {
@@ -316,19 +293,19 @@ static Maybe<Monitor> findScreen(const QScreen *screen)
         }
     }
     // TODO: handle user friendly names on screen->name(), see qwindowsscreen.cpp
-    return QString("%1 %2").arg("Could not find screen adapter ", screen->name());
+    return { "Could not find screen adapter " + screen->name() };
 }
 
-static Maybe<Monitor> findScreenForWindow(HWND wh)
+static QMaybe<Monitor> findScreenForWindow(HWND wh)
 {
     HMONITOR handle = MonitorFromWindow(wh, MONITOR_DEFAULTTONULL);
     if (!handle)
-        return {"Cannot find window screen"};
+        return { "Cannot find window screen" };
 
     winrt::com_ptr<IDXGIFactory1> factory;
     HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), factory.put_void());
     if (FAILED(hr))
-        return errorStringHr("Failed to create IDXGIFactory", hr);
+        return { "Failed to create IDXGIFactory" + errorString(hr) };
 
     winrt::com_ptr<IDXGIAdapter1> adapter;
     for (quint32 i = 0; SUCCEEDED(factory->EnumAdapters1(i, adapter.put())); i++, adapter = {}) {
@@ -342,10 +319,10 @@ static Maybe<Monitor> findScreenForWindow(HWND wh)
         }
     }
 
-    return {"Could not find window screen adapter"};
+    return { "Could not find window screen adapter" };
 }
 
-static Maybe<winrt::GraphicsCaptureItem> createScreenCaptureItem(HMONITOR handle)
+static QMaybe<winrt::GraphicsCaptureItem> createScreenCaptureItem(HMONITOR handle)
 {
     auto factory = winrt::get_activation_factory<winrt::GraphicsCaptureItem>();
     auto interop = factory.as<IGraphicsCaptureItemInterop>();
@@ -353,12 +330,12 @@ static Maybe<winrt::GraphicsCaptureItem> createScreenCaptureItem(HMONITOR handle
     winrt::GraphicsCaptureItem item = {nullptr};
     HRESULT hr = interop->CreateForMonitor(handle, __uuidof(ABI::Windows::Graphics::Capture::IGraphicsCaptureItem), winrt::put_abi(item));
     if (FAILED(hr))
-        return errorStringHr("Failed to create capture item for monitor", hr);
+        return "Failed to create capture item for monitor" + errorString(hr);
     else
         return item;
 }
 
-static Maybe<winrt::GraphicsCaptureItem> createWindowCaptureItem(HWND handle)
+static QMaybe<winrt::GraphicsCaptureItem> createWindowCaptureItem(HWND handle)
 {
     auto factory = winrt::get_activation_factory<winrt::GraphicsCaptureItem>();
     auto interop = factory.as<IGraphicsCaptureItemInterop>();
@@ -366,7 +343,7 @@ static Maybe<winrt::GraphicsCaptureItem> createWindowCaptureItem(HWND handle)
     winrt::GraphicsCaptureItem item = {nullptr};
     HRESULT hr = interop->CreateForWindow(handle, __uuidof(ABI::Windows::Graphics::Capture::IGraphicsCaptureItem), winrt::put_abi(item));
     if (FAILED(hr))
-        return errorStringHr("Failed to create capture item for window", hr);
+        return "Failed to create capture item for window" + errorString(hr);
     else
         return item;
 }
@@ -548,7 +525,7 @@ QVideoFrameFormat QFFmpegScreenCaptureUwp::format() const
 
 void QFFmpegScreenCaptureUwp::emitError(QScreenCapture::Error code, const QString &desc, HRESULT hr)
 {
-    QString text = errorStringHr(desc, hr);
+    QString text = desc + QWindowsMultimediaUtils::errorString(hr);
     qCDebug(qLcScreenCaptureUwp) << text;
     emit updateError(code, text);
 }
