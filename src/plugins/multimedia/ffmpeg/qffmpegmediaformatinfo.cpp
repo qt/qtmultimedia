@@ -225,6 +225,15 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
     // can encode. That's a safe subset.
     decoders = encoders;
 
+#ifdef Q_OS_WINDOWS
+    // MediaFoundation HVEC encoder fails when processing frames
+    for (auto &encoder : encoders) {
+        auto h265index = encoder.video.indexOf(QMediaFormat::VideoCodec::H265);
+        if (h265index >= 0)
+            encoder.video.removeAt(h265index);
+    }
+#endif
+
 //    qCDebug(qLcMediaFormatInfo) << "extraDecoders:" << extraAudioDecoders << extraVideoDecoders;
     // FFmpeg can currently only decode WMA and WMV, not encode
     if (extraAudioDecoders.contains(QMediaFormat::AudioCodec::WMA)) {
