@@ -36,6 +36,7 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 #include <qguiapplication.h>
 #include <private/qmultimediautils_p.h>
 #include <private/qwindowsmultimediautils_p.h>
+#include <qpa/qplatformscreen_p.h>
 
 #include <memory>
 #include <system_error>
@@ -276,6 +277,9 @@ static QMaybe<Monitor> findScreen(const QScreen *screen)
     if (!screen)
         return { "Cannot find nullptr screen" };
 
+    auto *winScreen = screen->nativeInterface<QNativeInterface::Private::QWindowsScreen>();
+    HMONITOR handle = winScreen ? winScreen->handle() : nullptr;
+
     winrt::com_ptr<IDXGIFactory1> factory;
     HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), factory.put_void());
     if (FAILED(hr))
@@ -288,11 +292,12 @@ static QMaybe<Monitor> findScreen(const QScreen *screen)
             DXGI_OUTPUT_DESC desc = {};
             output->GetDesc(&desc);
             qCDebug(qLcScreenCaptureUwp) << i << j << QString::fromWCharArray(desc.DeviceName);
-            if (QString::fromWCharArray(desc.DeviceName) == screen->name())
+            auto match = handle ? handle == desc.Monitor
+                                : QString::fromWCharArray(desc.DeviceName) == screen->name();
+            if (match)
                 return Monitor { adapter, desc.Monitor };
         }
     }
-    // TODO: handle user friendly names on screen->name(), see qwindowsscreen.cpp
     return { "Could not find screen adapter " + screen->name() };
 }
 
