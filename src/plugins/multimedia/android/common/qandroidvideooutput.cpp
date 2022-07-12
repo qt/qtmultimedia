@@ -87,10 +87,12 @@ static QMatrix4x4 extTransformMatrix(AndroidSurfaceTexture *surfaceTexture)
 
 quint64 AndroidTextureVideoBuffer::textureHandle(int plane) const
 {
-    if (plane != 0 || !m_rhi || !m_output->m_nativeSize.isValid())
+    if (plane != 0 || !m_rhi || !m_output->m_nativeSize.isValid() || !m_output->m_readbackRhi
+        || !m_output->m_surfaceTexture)
         return 0;
 
-    m_output->ensureExternalTexture(m_rhi);
+    m_output->m_readbackRhi->makeThreadLocalNativeContextCurrent();
+    m_output->ensureExternalTexture(m_output->m_readbackRhi);
     m_output->m_surfaceTexture->updateTexImage();
     m_externalMatrix = extTransformMatrix(m_output->m_surfaceTexture);
     return m_output->m_externalTex->nativeTexture().object;
@@ -197,15 +199,13 @@ void QAndroidTextureVideoOutput::setVideoSize(const QSize &size)
     if (m_nativeSize == size)
         return;
 
-    stop();
-
     m_nativeSize = size;
 }
 
 void QAndroidTextureVideoOutput::start()
 {
     m_started = true;
-    renderAndReadbackFrame();
+    QMetaObject::invokeMethod(this, "onFrameAvailable", Qt::QueuedConnection);
 }
 
 void QAndroidTextureVideoOutput::stop()
@@ -268,6 +268,22 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
     if (!(m_nativeSize.isValid() && m_sink) || !(m_started || m_renderFrame))
         return;
 
+    const bool needsToBeInOpenGLThread =
+            !m_readbackRhi || !m_readbackTex || !m_readbackSrb || !m_readbackPs;
+
+    const bool movedToOpenGLThread = needsToBeInOpenGLThread && moveToOpenGLContextThread();
+
+    if (movedToOpenGLThread || QThread::currentThread() != m_thread) {
+        // the render thread may get blocked waiting for events, force refresh until get back to
+        // original thread.
+        QMetaObject::invokeMethod(this, "onFrameAvailable", Qt::QueuedConnection);
+
+        if (!needsToBeInOpenGLThread) {
+            parent()->moveToThread(m_thread);
+            moveToThread(m_thread);
+        }
+    }
+
     m_renderFrame = false;
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
 
@@ -276,8 +292,6 @@ void QAndroidTextureVideoOutput::onFrameAvailable()
                                                       : QVideoFrameFormat::Format_RGBA8888;
     QVideoFrame frame(buffer, QVideoFrameFormat(m_nativeSize, format));
     m_sink->platformVideoSink()->setVideoFrame(frame);
-
-    QMetaObject::invokeMethod(m_surfaceTexture, "frameAvailable", Qt::QueuedConnection);
 }
 
 static const float g_quad[] = {
@@ -302,12 +316,6 @@ bool QAndroidTextureVideoOutput::renderAndReadbackFrame()
 
     if (!m_nativeSize.isValid() || !m_surfaceTexture)
         return false;
-
-    if (moveToOpenGLContextThread()) {
-        // just moved to another thread, must close the execution of this method
-        QMetaObject::invokeMethod(this, "onFrameAvailable", Qt::ConnectionType::DirectConnection);
-        return false;
-    }
 
     if (!m_readbackRhi) {
         QRhi *sinkRhi = m_sink ? m_sink->rhi() : nullptr;
