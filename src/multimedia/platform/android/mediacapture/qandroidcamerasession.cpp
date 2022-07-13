@@ -269,6 +269,8 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
 
     // -- adjust resolution
     QSize adjustedViewfinderResolution;
+    const QList<QSize> previewSizes = m_camera->getSupportedPreviewSizes();
+
     const bool validCaptureSize = captureSize.width() > 0 && captureSize.height() > 0;
     if (validCaptureSize
             && m_camera->getPreferredPreviewSizeForVideo().isEmpty()) {
@@ -279,8 +281,6 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
         qreal captureAspectRatio = 0;
         if (validCaptureSize)
             captureAspectRatio = qreal(captureSize.width()) / qreal(captureSize.height());
-
-        const QList<QSize> previewSizes = m_camera->getSupportedPreviewSizes();
 
         if (validCaptureSize) {
             // search for viewfinder resolution with the same aspect ratio
@@ -328,7 +328,8 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
     // fix the resolution of output based on the orientation
     QSize outputResolution = adjustedViewfinderResolution;
     const int rotation = currentCameraRotation();
-    if (rotation == 90 || rotation == 270)
+    // only transpose if it's valid for the preview
+    if ((rotation == 90 || rotation == 270) && previewSizes.contains(outputResolution.transposed()))
         outputResolution.transpose();
 
     if (currentViewfinderResolution != outputResolution
@@ -613,7 +614,6 @@ int QAndroidCameraSession::captureImage()
 
     m_currentImageCaptureId = newImageCaptureId;
 
-    applyImageSettings();
     applyResolution(m_actualImageSettings.resolution());
     m_camera->takePicture();
 

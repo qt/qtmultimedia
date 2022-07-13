@@ -160,7 +160,6 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     // Set audio/video sources
     if (validCameraSession) {
         m_cameraSession->camera()->stopPreviewSynchronous();
-        m_cameraSession->applyResolution(settings.videoResolution(), false);
         m_cameraSession->camera()->unlock();
 
         m_mediaRecorder->setCamera(m_cameraSession->camera());
@@ -434,6 +433,10 @@ void QAndroidCaptureSession::onCameraOpened()
 
     std::sort(m_supportedResolutions.begin(), m_supportedResolutions.end(), qt_sizeLessThan);
     std::sort(m_supportedFramerates.begin(), m_supportedFramerates.end());
+
+    QMediaEncoderSettings defaultSettings;
+    applySettings(defaultSettings);
+    m_cameraSession->applyResolution(defaultSettings.videoResolution());
 }
 
 QAndroidCaptureSession::CaptureProfile QAndroidCaptureSession::getProfile(int id)
