@@ -147,6 +147,15 @@ QList<QAudioDevice> QOpenSLESEngine::availableDevices(QAudioDevice::Mode mode)
     return devices;
 }
 
+bool QOpenSLESEngine::setAudioOutput(const QByteArray &deviceId)
+{
+    return QJniObject::callStaticMethod<jboolean>(
+                                    "org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                                    "setAudioOutput",
+                                    "(I)Z",
+                                    deviceId.toInt());
+}
+
 static bool hasRecordPermission()
 {
     const auto recordPerm = QtAndroidPrivate::checkPermission(QtAndroidPrivate::Microphone);

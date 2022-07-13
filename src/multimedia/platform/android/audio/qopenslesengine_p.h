@@ -75,6 +75,7 @@ public:
     static SLAndroidDataFormat_PCM_EX audioFormatToSLFormatPCM(const QAudioFormat &format);
 
     static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode);
+    static bool setAudioOutput(const QByteArray &deviceId);
     QList<int> supportedChannelCounts(QAudioDevice::Mode mode) const;
     QList<int> supportedSampleRates(QAudioDevice::Mode mode) const;
 
