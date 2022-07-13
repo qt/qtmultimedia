@@ -3,7 +3,6 @@ qt_internal_add_plugin(QQnxMediaPlugin
     OUTPUT_NAME qnxmediaplugin
     PLUGIN_TYPE multimedia
     SOURCES
-    SOURCES
         camera/qqnxcamera.cpp camera/qqnxcamera_p.h
         camera/qqnxplatformcamera.cpp camera/qqnxplatformcamera_p.h
         camera/qqnxcameraframebuffer.cpp camera/qqnxcameraframebuffer_p.h
