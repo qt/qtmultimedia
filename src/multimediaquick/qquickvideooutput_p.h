@@ -75,6 +75,7 @@ Q_SIGNALS:
     void orientationChanged();
     void sourceRectChanged();
     void contentRectChanged();
+    void frameUpdated(QSize);
 
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
@@ -88,7 +89,7 @@ private:
     QRectF adjustedViewport() const;
 
     friend class QSGVideoItemSurface;
-    void present(const QVideoFrame &frame);
+    void setFrame(const QVideoFrame &frame);
     void stop();
 
     void invalidateSceneGraph();
@@ -96,7 +97,7 @@ private:
     void initRhiForSink();
 
 private Q_SLOTS:
-    void _q_newFrame(const QVideoFrame &);
+    void _q_newFrame(QSize);
     void _q_updateGeometry();
     void _q_invalidateSceneGraph();
     void _q_sceneGraphInitialized();
@@ -115,6 +116,7 @@ private:
     QVideoSink *m_sink = nullptr;
     QVideoFrameFormat m_surfaceFormat;
 
+    QList<QVideoFrame> m_videoFrameQueue;
     QVideoFrame m_frame;
     bool m_frameChanged = false;
     QMutex m_frameMutex;
