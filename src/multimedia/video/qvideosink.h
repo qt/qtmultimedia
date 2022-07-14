@@ -21,6 +21,8 @@ class QRhi;
 class Q_MULTIMEDIA_EXPORT QVideoSink : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(QString subtitleText READ subtitleText WRITE setSubtitleText NOTIFY subtitleTextChanged)
+    Q_PROPERTY(QSize videoSize READ videoSize NOTIFY videoSizeChanged)
 public:
     QVideoSink(QObject *parent = nullptr);
     ~QVideoSink();
