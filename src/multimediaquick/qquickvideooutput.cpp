@@ -105,8 +105,14 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
 
     m_sink = new QVideoSink(this);
     qRegisterMetaType<QVideoFrameFormat>();
-    QObject::connect(m_sink, SIGNAL(videoFrameChanged(const QVideoFrame &)),
-                     this, SLOT(_q_newFrame(const QVideoFrame &)), Qt::QueuedConnection);
+    QObject::connect(m_sink, &QVideoSink::videoFrameChanged,
+                     [&](const QVideoFrame &frame) {
+                         setFrame(frame);
+                         emit frameUpdated(frame.size());
+                     });
+
+    QObject::connect(this, &QQuickVideoOutput::frameUpdated,
+                     this, &QQuickVideoOutput::_q_newFrame);
 
     initRhiForSink();
 }
@@ -161,10 +167,10 @@ void QQuickVideoOutput::setFillMode(FillMode mode)
     emit fillModeChanged(mode);
 }
 
-void QQuickVideoOutput::_q_newFrame(const QVideoFrame &frame)
+void QQuickVideoOutput::_q_newFrame(QSize size)
 {
-    present(frame);
-    QSize size = frame.size();
+    update();
+
     if (!qIsDefaultAspect(m_orientation + m_frameOrientation)) {
         size.transpose();
     }
@@ -517,7 +523,7 @@ QRectF QQuickVideoOutput::adjustedViewport() const
     return m_surfaceFormat.viewport();
 }
 
-void QQuickVideoOutput::present(const QVideoFrame &frame)
+void QQuickVideoOutput::setFrame(const QVideoFrame &frame)
 {
     m_frameMutex.lock();
     m_surfaceFormat = frame.surfaceFormat();
@@ -525,13 +531,12 @@ void QQuickVideoOutput::present(const QVideoFrame &frame)
     m_frameOrientation = frame.rotationAngle();
     m_frameChanged = true;
     m_frameMutex.unlock();
-
-    update();
 }
 
 void QQuickVideoOutput::stop()
 {
-    present(QVideoFrame());
+    setFrame({});
+    update();
 }
 
 QT_END_NAMESPACE
