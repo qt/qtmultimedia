@@ -201,7 +201,8 @@ bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
         return true;
     }
 
-    Q_ASSERT(m_resampler);
+    if (!m_resampler)
+        return false;
 
     QWindowsIUPointer<IMFMediaType> min = QWindowsAudioUtils::formatToMediaType(fin);
     QWindowsIUPointer<IMFMediaType> mout = QWindowsAudioUtils::formatToMediaType(fout);
