@@ -168,6 +168,8 @@ private:
 
     GraphicsResourceDeleter *m_graphicsDeleter = nullptr;
 
+    QThread *m_thread = QThread::currentThread();
+
     friend class AndroidTextureVideoBuffer;
 };
 
