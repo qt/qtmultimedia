@@ -131,22 +131,19 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
     if (!nh)
         return nullptr;
 
-    auto dev = reinterpret_cast<ID3D11Device *>(nh->dev);
-    if (!dev)
-        return nullptr;
-
     auto ffmpegTex = (ID3D11Texture2D *)frame->data[0];
     int index = (intptr_t)frame->data[1];
 
-    auto sharedTex = getSharedTextureForDevice(dev, ffmpegTex);
-    if (sharedTex) {
-        auto tex = copyTextureFromArray(dev, sharedTex.get(), index);
-        if (tex) {
-            if (rhi->backend() == QRhi::D3D11) {
+    if (rhi->backend() == QRhi::D3D11) {
+        auto dev = reinterpret_cast<ID3D11Device *>(nh->dev);
+        if (!dev)
+            return nullptr;
+        auto sharedTex = getSharedTextureForDevice(dev, ffmpegTex);
+        if (sharedTex) {
+            auto tex = copyTextureFromArray(dev, sharedTex.get(), index);
+            if (tex) {
                 QVideoFrameFormat::PixelFormat format = QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat(fCtx->sw_format));
                 return new D3D11TextureSet(rhi, format, std::move(tex));
-            } else if (rhi->backend() == QRhi::OpenGLES2) {
-
             }
         }
     }
