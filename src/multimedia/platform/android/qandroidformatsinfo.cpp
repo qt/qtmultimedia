@@ -81,7 +81,6 @@ QAndroidFormatInfo::QAndroidFormatInfo()
     {
         const QMediaFormat::AudioCodec aac = hasDecoder(QMediaFormat::AudioCodec::AAC);
         const QMediaFormat::AudioCodec mp3 = hasDecoder(QMediaFormat::AudioCodec::MP3);
-        const QMediaFormat::AudioCodec flac = hasDecoder(QMediaFormat::AudioCodec::FLAC);
         const QMediaFormat::AudioCodec opus = hasDecoder(QMediaFormat::AudioCodec::Opus);
         const QMediaFormat::AudioCodec vorbis = hasDecoder(QMediaFormat::AudioCodec::Vorbis);
 
@@ -94,12 +93,12 @@ QAndroidFormatInfo::QAndroidFormatInfo()
         decoders = {
             { QMediaFormat::AAC, {aac}, {} },
             { QMediaFormat::MP3, {mp3}, {} },
-            { QMediaFormat::FLAC, {flac}, {} },
-            { QMediaFormat::Mpeg4Audio, {mp3, aac, flac, vorbis}, {} },
-            { QMediaFormat::MPEG4, {mp3, aac, flac, vorbis}, {h264, h265, av1} },
-            { QMediaFormat::Ogg, {opus, vorbis, flac}, {} },
-            { QMediaFormat::Matroska, {mp3, opus, vorbis}, {vp8, vp9, h264, h265, av1} },
-            { QMediaFormat::WebM, {opus, vorbis}, {vp8, vp9} }
+            // FLAC encoder is not supported by the MediaRecorder used for recording
+            // { QMediaFormat::FLAC, {flac}, {} },
+            { QMediaFormat::Mpeg4Audio, {mp3, aac, vorbis}, {} },
+            { QMediaFormat::MPEG4, {mp3, aac, vorbis}, {h264, h265, av1} },
+            { QMediaFormat::Ogg, {opus, vorbis}, {} },
+            { QMediaFormat::Matroska, {mp3, opus}, {vp8, vp9, h264, h265, av1} },
         };
 
         removeUnspecifiedValues(decoders);
