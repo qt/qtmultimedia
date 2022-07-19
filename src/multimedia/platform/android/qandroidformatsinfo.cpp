@@ -108,7 +108,6 @@ QAndroidFormatInfo::QAndroidFormatInfo()
     {
         const QMediaFormat::AudioCodec aac = hasEncoder(QMediaFormat::AudioCodec::AAC);
         const QMediaFormat::AudioCodec mp3 = hasEncoder(QMediaFormat::AudioCodec::MP3);
-        const QMediaFormat::AudioCodec flac = hasEncoder(QMediaFormat::AudioCodec::FLAC);
         const QMediaFormat::AudioCodec opus = hasEncoder(QMediaFormat::AudioCodec::Opus);
         const QMediaFormat::AudioCodec vorbis = hasEncoder(QMediaFormat::AudioCodec::Vorbis);
 
@@ -123,11 +122,12 @@ QAndroidFormatInfo::QAndroidFormatInfo()
         encoders = {
             { QMediaFormat::AAC, {aac}, {} },
             { QMediaFormat::MP3, {mp3}, {} },
-            { QMediaFormat::FLAC, {flac}, {} },
-            { QMediaFormat::Mpeg4Audio, {mp3, aac, flac, vorbis}, {} },
-            { QMediaFormat::MPEG4, {mp3, aac, flac, vorbis}, {h264, h265, av1} },
-            { QMediaFormat::Ogg, {opus, vorbis, flac}, {} },
-            { QMediaFormat::Matroska, {mp3, opus, flac}, {vp8, vp9, h264, h265, av1} },
+            // FLAC encoder is not supported by the MediaRecorder used for recording
+            // { QMediaFormat::FLAC, {flac}, {} },
+            { QMediaFormat::Mpeg4Audio, {mp3, aac, vorbis}, {} },
+            { QMediaFormat::MPEG4, {mp3, aac, vorbis}, {h264, h265, av1} },
+            { QMediaFormat::Ogg, {opus, vorbis}, {} },
+            { QMediaFormat::Matroska, {mp3, opus}, {vp8, vp9, h264, h265, av1} },
             // NOTE: WebM seems to be documented to supported with VP8 encoder,
             // but the Camera API doesn't work with it, keep it commented for now.
             // { QMediaFormat::WebM, {vorbis, opus}, {vp8, vp9} }
