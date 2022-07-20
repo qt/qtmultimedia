@@ -24,6 +24,7 @@ QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
 class QTextLayout;
+class QVideoFrameTextures;
 
 namespace QVideoTextureHelper
 {
@@ -63,7 +64,7 @@ Q_MULTIMEDIA_EXPORT QString vertexShaderFileName(const QVideoFrameFormat &format
 Q_MULTIMEDIA_EXPORT QString fragmentShaderFileName(const QVideoFrameFormat &format, QRhiSwapChain::Format surfaceFormat = QRhiSwapChain::SDR);
 Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const QVideoFrame &frame,
                                            const QMatrix4x4 &transform, float opacity, float maxNits = 100);
-Q_MULTIMEDIA_EXPORT void updateRhiTexture(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex);
+Q_MULTIMEDIA_EXPORT std::unique_ptr<QVideoFrameTextures> createTextures(QVideoFrame &frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, std::unique_ptr<QVideoFrameTextures> &&oldTextures);
 
 struct UniformData {
     float transformMatrix[4][4];

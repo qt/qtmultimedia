@@ -114,68 +114,106 @@ private:
     QVideoFrame::MapMode m_mapMode;
 };
 
+class QVideoFrameD3D11Textures: public QVideoFrameTextures
+{
+public:
+    QVideoFrameD3D11Textures(std::unique_ptr<QRhiTexture> &&tex, QWindowsIUPointer<ID3D11Texture2D> &&d3d11tex)
+       : m_tex(std::move(tex))
+       , m_d3d11tex(std::move(d3d11tex))
+    {}
+
+    QRhiTexture *texture(uint plane) const override
+    {
+        return plane == 0 ? m_tex.get() : nullptr;
+    };
+
+private:
+    std::unique_ptr<QRhiTexture> m_tex;
+    QWindowsIUPointer<ID3D11Texture2D> m_d3d11tex;
+};
+
 class D3D11TextureVideoBuffer: public IMFSampleVideoBuffer
 {
 public:
     D3D11TextureVideoBuffer(QWindowsIUPointer<IDirect3DDevice9Ex> device, IMFSample *sample,
-                            QWindowsIUPointer<ID3D11Texture2D> d2d11tex, QRhi *rhi)
-        : IMFSampleVideoBuffer(device, sample, rhi, QVideoFrame::RhiTextureHandle)
-        , m_d2d11tex(d2d11tex)
+                            HANDLE sharedHandle, QRhi *rhi)
+        : IMFSampleVideoBuffer(std::move(device), sample, rhi, QVideoFrame::RhiTextureHandle)
+        , m_sharedHandle(sharedHandle)
     {}
 
-    std::unique_ptr<QRhiTexture> texture(int plane) const override
+    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *rhi) override
     {
-        if (!m_rhi || !m_d2d11tex || plane > 0)
-            return {};
-        D3D11_TEXTURE2D_DESC desc = {};
-        m_d2d11tex->GetDesc(&desc);
-        QRhiTexture::Format format;
-        if (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM)
-            format = QRhiTexture::BGRA8;
-        else if (desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
-            format = QRhiTexture::RGBA8;
-        else
+        if (!rhi || rhi->backend() != QRhi::D3D11)
             return {};
 
-        std::unique_ptr<QRhiTexture> tex(m_rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
-        tex->createFrom({quint64(m_d2d11tex.get()), 0});
-        return tex;
+        auto nh = static_cast<const QRhiD3D11NativeHandles*>(rhi->nativeHandles());
+        if (!nh)
+            return {};
+
+        auto dev = reinterpret_cast<ID3D11Device *>(nh->dev);
+        if (!dev)
+            return {};
+
+        QWindowsIUPointer<ID3D11Texture2D> d3d11tex;
+        HRESULT hr = dev->OpenSharedResource(m_sharedHandle, __uuidof(ID3D11Texture2D), (void**)(d3d11tex.address()));
+        if (SUCCEEDED(hr)) {
+            D3D11_TEXTURE2D_DESC desc = {};
+            d3d11tex->GetDesc(&desc);
+            QRhiTexture::Format format;
+            if (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM)
+                format = QRhiTexture::BGRA8;
+            else if (desc.Format == DXGI_FORMAT_R8G8B8A8_UNORM)
+                format = QRhiTexture::RGBA8;
+            else
+                return {};
+
+            std::unique_ptr<QRhiTexture> tex(rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
+            tex->createFrom({quint64(d3d11tex.get()), 0});
+            return std::make_unique<QVideoFrameD3D11Textures>(std::move(tex), std::move(d3d11tex));
+
+        } else {
+            qCDebug(qLcEvrD3DPresentEngine) << "Failed to obtain D3D11Texture2D from D3D9Texture2D handle";
+        }
+        return {};
     }
 
 private:
-    QWindowsIUPointer<ID3D11Texture2D> m_d2d11tex;
+    HANDLE m_sharedHandle = nullptr;
 };
 
 #if QT_CONFIG(opengl)
-class OpenGlVideoBuffer: public IMFSampleVideoBuffer
+class QVideoFrameOpenGlTextures : public QVideoFrameTextures
 {
+    struct InterOpHandles {
+        GLuint textureName = 0;
+        HANDLE device = nullptr;
+        HANDLE texture = nullptr;
+    };
+
 public:
-    OpenGlVideoBuffer(QWindowsIUPointer<IDirect3DDevice9Ex> device, IMFSample *sample,
-                      const WglNvDxInterop &wglNvDxInterop, HANDLE sharedHandle, QRhi *rhi)
-        : IMFSampleVideoBuffer(device, sample, rhi, QVideoFrame::RhiTextureHandle)
-        , m_sharedHandle(sharedHandle)
-        , m_wgl(wglNvDxInterop)
+    Q_DISABLE_COPY(QVideoFrameOpenGlTextures);
+
+    QVideoFrameOpenGlTextures(std::unique_ptr<QRhiTexture> &&tex, const WglNvDxInterop &wgl, InterOpHandles &handles)
+        : m_tex(std::move(tex))
+        , m_wgl(wgl)
+        , m_handles(handles)
     {}
 
-    ~OpenGlVideoBuffer() override
-    {
-        if (!m_d3dglHandle)
-            return;
-
+    ~QVideoFrameOpenGlTextures() override {
         if (QOpenGLContext::currentContext()) {
-            if (m_glHandle) {
-                if (!m_wgl.wglDXUnlockObjectsNV(m_d3dglHandle, 1, &m_glHandle))
-                    qCDebug(qLcEvrD3DPresentEngine) << "Failed to unlock OpenGL texture";
-                if (!m_wgl.wglDXUnregisterObjectNV(m_d3dglHandle, m_glHandle))
-                    qCDebug(qLcEvrD3DPresentEngine) << "Failed to unregister OpenGL texture";
+            if (!m_wgl.wglDXUnlockObjectsNV(m_handles.device, 1, &m_handles.texture))
+                qCDebug(qLcEvrD3DPresentEngine) << "Failed to unlock OpenGL texture";
 
-                QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
-                if (funcs)
-                    funcs->glDeleteTextures(1, &m_glTextureName);
-                else
-                    qCDebug(qLcEvrD3DPresentEngine) << "Could not delete texture, OpenGL context functions missing";
-            }
-            if (!m_wgl.wglDXCloseDeviceNV(m_d3dglHandle))
+            if (!m_wgl.wglDXUnregisterObjectNV(m_handles.device, m_handles.texture))
+                qCDebug(qLcEvrD3DPresentEngine) << "Failed to unregister OpenGL texture";
+
+            QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
+            if (funcs)
+                funcs->glDeleteTextures(1, &m_handles.textureName);
+            else
+                qCDebug(qLcEvrD3DPresentEngine) << "Could not delete texture, OpenGL context functions missing";
+
+            if (!m_wgl.wglDXCloseDeviceNV(m_handles.device))
                 qCDebug(qLcEvrD3DPresentEngine) << "Failed to close D3D-GL device";
 
         } else {
@@ -183,84 +221,103 @@ public:
         }
     }
 
-    void mapTextures() override
+    static std::unique_ptr<QVideoFrameOpenGlTextures> create(const WglNvDxInterop &wgl, QRhi *rhi,
+                                                             IDirect3DDevice9Ex *device, IDirect3DTexture9 *texture,
+                                                             HANDLE sharedHandle)
     {
+        if (!rhi || rhi->backend() != QRhi::OpenGLES2)
+            return {};
+
         if (!QOpenGLContext::currentContext())
-            return;
+            return {};
 
-        if (m_d3dglHandle)
-            return;
-
-        QWindowsIUPointer<IMFMediaBuffer> buffer;
-        HRESULT hr = m_sample->GetBufferByIndex(0, buffer.address());
-        if (FAILED(hr))
-            return;
-
-        QWindowsIUPointer<IDirect3DSurface9> surface;
-        hr = MFGetService(buffer.get(), MR_BUFFER_SERVICE, IID_IDirect3DSurface9, (void **)(surface.address()));
-        if (FAILED(hr))
-            return;
-
-        hr = surface->GetContainer(IID_IDirect3DTexture9, (void **)m_texture.address());
-        if (FAILED(hr))
-            return;
-
-        m_d3dglHandle = m_wgl.wglDXOpenDeviceNV(m_device.get());
-        if (!m_d3dglHandle) {
-            m_texture.reset();
+        InterOpHandles handles = {};
+        handles.device = wgl.wglDXOpenDeviceNV(device);
+        if (!handles.device) {
             qCDebug(qLcEvrD3DPresentEngine) << "Failed to open D3D device";
-            return;
+            return {};
         }
 
-        m_wgl.wglDXSetResourceShareHandleNV(m_texture.get(), m_sharedHandle);
+        wgl.wglDXSetResourceShareHandleNV(texture, sharedHandle);
 
         QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
         if (funcs) {
-            funcs->glGenTextures(1, &m_glTextureName);
-            m_glHandle = m_wgl.wglDXRegisterObjectNV(m_d3dglHandle, m_texture.get(), m_glTextureName,
-                                                     GL_TEXTURE_2D, WglNvDxInterop::WGL_ACCESS_READ_ONLY_NV);
-            if (m_glHandle) {
-                if (m_wgl.wglDXLockObjectsNV(m_d3dglHandle, 1, &m_glHandle))
-                    return;
+            funcs->glGenTextures(1, &handles.textureName);
+            handles.texture = wgl.wglDXRegisterObjectNV(handles.device, texture, handles.textureName,
+                                                        GL_TEXTURE_2D, WglNvDxInterop::WGL_ACCESS_READ_ONLY_NV);
+            if (handles.texture) {
+                if (wgl.wglDXLockObjectsNV(handles.device, 1, &handles.texture)) {
+                    D3DSURFACE_DESC desc;
+                    texture->GetLevelDesc(0, &desc);
+                    QRhiTexture::Format format;
+                    if (desc.Format == D3DFMT_A8R8G8B8)
+                        format = QRhiTexture::BGRA8;
+                    else if (desc.Format == D3DFMT_A8B8G8R8)
+                        format = QRhiTexture::RGBA8;
+                    else
+                        return {};
+
+                    std::unique_ptr<QRhiTexture> tex(rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
+                    tex->createFrom({quint64(handles.textureName), 0});
+                    return std::make_unique<QVideoFrameOpenGlTextures>(std::move(tex), wgl, handles);
+                }
 
                 qCDebug(qLcEvrD3DPresentEngine) << "Failed to lock OpenGL texture";
-                m_wgl.wglDXUnregisterObjectNV(m_d3dglHandle, m_glHandle);
-                m_glHandle = nullptr;
+                wgl.wglDXUnregisterObjectNV(handles.device, handles.texture);
             } else {
                 qCDebug(qLcEvrD3DPresentEngine) << "Could not register D3D9 texture in OpenGL";
             }
 
-            funcs->glDeleteTextures(1, &m_glTextureName);
-            m_glTextureName = 0;
+            funcs->glDeleteTextures(1, &handles.textureName);
         } else {
             qCDebug(qLcEvrD3DPresentEngine) << "Failed generate texture names, OpenGL context functions missing";
         }
+        return {};
     }
 
-    std::unique_ptr<QRhiTexture> texture(int plane) const override
+    QRhiTexture *texture(uint plane) const override
     {
-        if (!m_rhi || !m_texture || plane > 0)
-            return {};
+        return plane == 0 ? m_tex.get() : nullptr;
+    };
+private:
+    std::unique_ptr<QRhiTexture> m_tex;
+    WglNvDxInterop m_wgl;
+    InterOpHandles m_handles;
+};
 
-        D3DSURFACE_DESC desc;
-        m_texture->GetLevelDesc(0, &desc);
-        QRhiTexture::Format format;
-        if (desc.Format == D3DFMT_A8R8G8B8)
-            format = QRhiTexture::BGRA8;
-        else if (desc.Format == D3DFMT_A8B8G8R8)
-            format = QRhiTexture::RGBA8;
-        else
-            return {};
+class OpenGlVideoBuffer: public IMFSampleVideoBuffer
+{
+public:
+    OpenGlVideoBuffer(QWindowsIUPointer<IDirect3DDevice9Ex> device, IMFSample *sample,
+                      const WglNvDxInterop &wglNvDxInterop, HANDLE sharedHandle, QRhi *rhi)
+        : IMFSampleVideoBuffer(std::move(device), sample, rhi, QVideoFrame::RhiTextureHandle)
+        , m_sharedHandle(sharedHandle)
+        , m_wgl(wglNvDxInterop)
+    {}
 
-        std::unique_ptr<QRhiTexture> tex(m_rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
-        tex->createFrom({quint64(m_glTextureName), 0});
-        return tex;
+    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *rhi) override
+    {
+        if (!m_texture) {
+            QWindowsIUPointer<IMFMediaBuffer> buffer;
+            HRESULT hr = m_sample->GetBufferByIndex(0, buffer.address());
+            if (FAILED(hr))
+                return {};
+
+            QWindowsIUPointer<IDirect3DSurface9> surface;
+            hr = MFGetService(buffer.get(), MR_BUFFER_SERVICE, IID_IDirect3DSurface9,
+                              (void **)(surface.address()));
+            if (FAILED(hr))
+                return {};
+
+            hr = surface->GetContainer(IID_IDirect3DTexture9, (void **)m_texture.address());
+            if (FAILED(hr))
+                return {};
+        }
+
+        return QVideoFrameOpenGlTextures::create(m_wgl, rhi, m_device.get(), m_texture.get(), m_sharedHandle);
     }
 
 private:
-    GLuint m_glTextureName = 0;
-    HANDLE m_d3dglHandle = nullptr;
-    HANDLE m_glHandle = nullptr;
     HANDLE m_sharedHandle = nullptr;
     WglNvDxInterop m_wgl;
     QWindowsIUPointer<IDirect3DTexture9> m_texture;
@@ -590,18 +647,7 @@ QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
     QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
     if (m_useTextureRendering && sharedHandle && rhi) {
         if (rhi->backend() == QRhi::D3D11) {
-            auto nh = static_cast<const QRhiD3D11NativeHandles*>(rhi->nativeHandles());
-            if (nh) {
-                auto dev = reinterpret_cast<ID3D11Device *>(nh->dev);
-                if (dev) {
-                    QWindowsIUPointer<ID3D11Texture2D> d3d11tex;
-                    HRESULT hr = dev->OpenSharedResource(sharedHandle, __uuidof(ID3D11Texture2D), (void**)(d3d11tex.address()));
-                    if (SUCCEEDED(hr))
-                        vb = new D3D11TextureVideoBuffer(m_device, sample, d3d11tex, rhi);
-                    else
-                        qCDebug(qLcEvrD3DPresentEngine) << "Failed to obtain D3D11Texture2D from D3D9Texture2D handle";
-                }
-            }
+            vb = new D3D11TextureVideoBuffer(m_device, sample, sharedHandle, rhi);
 #if QT_CONFIG(opengl)
         } else if (rhi->backend() == QRhi::OpenGLES2) {
             vb = new OpenGlVideoBuffer(m_device, sample, m_wglNvDxInterop, sharedHandle, rhi);

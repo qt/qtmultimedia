@@ -27,36 +27,16 @@ namespace QFFmpeg {
 class D3D11TextureSet : public TextureSet
 {
 public:
-    D3D11TextureSet(QRhi *rhi, QVideoFrameFormat::PixelFormat format, QWindowsIUPointer<ID3D11Texture2D> &&tex)
-        : m_rhi(rhi)
-        , m_format(format)
-        , m_tex(tex)
+    D3D11TextureSet(QWindowsIUPointer<ID3D11Texture2D> &&tex)
+        : m_tex(tex)
     {}
 
-    std::unique_ptr<QRhiTexture> texture(int plane) override {
-        auto desc = QVideoTextureHelper::textureDescription(m_format);
-        if (!m_tex || !m_rhi || !desc || plane >= desc->nplanes)
-            return {};
-
-        D3D11_TEXTURE2D_DESC d3d11desc = {};
-        m_tex->GetDesc(&d3d11desc);
-
-        QSize planeSize(desc->widthForPlane(int(d3d11desc.Width), plane),
-                        desc->heightForPlane(int(d3d11desc.Height), plane));
-
-        std::unique_ptr<QRhiTexture> tex(m_rhi->newTextureArray(desc->textureFormat[plane],
-                                                                int(d3d11desc.ArraySize),
-                                                                planeSize, 1, {}));
-        if (tex) {
-            if (!tex->createFrom({quint64(m_tex.get()), 0}))
-                tex.reset();
-        }
-        return tex;
+    qint64 textureHandle(int plane) override
+    {
+        return qint64(m_tex.get());
     }
 
 private:
-    QRhi *m_rhi = nullptr;
-    QVideoFrameFormat::PixelFormat m_format;
     QWindowsIUPointer<ID3D11Texture2D> m_tex;
 };
 
@@ -143,7 +123,7 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
             auto tex = copyTextureFromArray(dev, sharedTex.get(), index);
             if (tex) {
                 QVideoFrameFormat::PixelFormat format = QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat(fCtx->sw_format));
-                return new D3D11TextureSet(rhi, format, std::move(tex));
+                return new D3D11TextureSet(std::move(tex));
             }
         }
     }

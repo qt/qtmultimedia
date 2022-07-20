@@ -214,12 +214,9 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
         m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(QByteArray{4, 0}, 4),
                                      QVideoFrameFormat(QSize(1,1), QVideoFrameFormat::Format_RGBA8888));
 
-    QAbstractVideoBuffer *vb =  m_currentFrame.videoBuffer();
-    if (!vb)
+    m_frameTextures = QVideoTextureHelper::createTextures(m_currentFrame, m_rhi.get(), rub, std::move(m_frameTextures));
+    if (!m_frameTextures)
         return;
-    vb->mapTextures();
-    for (int i = 0; i < QVideoTextureHelper::TextureDescription::maxPlanes; ++i)
-        QVideoTextureHelper::updateRhiTexture(m_currentFrame, m_rhi.get(), rub, i, m_frameTextures[i]);
 
     QRhiShaderResourceBinding bindings[4];
     auto *b = bindings;
@@ -231,7 +228,7 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
 
     for (int i = 0; i < textureDesc->nplanes; ++i)
         (*b++) = QRhiShaderResourceBinding::sampledTexture(i + 1, QRhiShaderResourceBinding::FragmentStage,
-                                                           m_frameTextures[i].get(), m_textureSampler.get());
+                                                           m_frameTextures->texture(i), m_textureSampler.get());
     m_shaderResourceBindings->setBindings(bindings, b);
     m_shaderResourceBindings->create();
 

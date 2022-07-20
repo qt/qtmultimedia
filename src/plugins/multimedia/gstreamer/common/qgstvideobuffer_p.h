@@ -44,8 +44,7 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    void mapTextures() override;
-    std::unique_ptr<QRhiTexture> texture(int plane) const override;
+    virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) override;
 private:
     QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
     QVideoFrameFormat m_frameFormat;
@@ -53,14 +52,9 @@ private:
     mutable GstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame;
     GstBuffer *m_buffer = nullptr;
-    GstBuffer *m_syncBuffer = nullptr;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    QOpenGLContext *glContext = nullptr;
     Qt::HANDLE eglDisplay = nullptr;
     QFunctionPointer eglImageTargetTexture2D = nullptr;
-    uint m_textures[3] = {};
-    bool m_texturesUploaded = false;
-    bool m_ownTextures = false;
 };
 
 QT_END_NAMESPACE

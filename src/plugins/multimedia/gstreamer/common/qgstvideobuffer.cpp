@@ -74,23 +74,6 @@ QGstVideoBuffer::~QGstVideoBuffer()
     unmap();
 
     gst_buffer_unref(m_buffer);
-    if (m_syncBuffer)
-        gst_buffer_unref(m_syncBuffer);
-
-    if (m_ownTextures && glContext) {
-        int planes = 0;
-        for (planes = 0; planes < 3; ++planes) {
-            if (m_textures[planes] == 0)
-                break;
-        }
-#if QT_CONFIG(gstreamer_gl)
-        if (m_rhi) {
-            m_rhi->makeThreadLocalNativeContextCurrent();
-            QOpenGLFunctions functions(glContext);
-            functions.glDeleteTextures(planes, m_textures);
-        }
-#endif
-    }
 }
 
 
@@ -228,122 +211,181 @@ fourccFromVideoInfo(const GstVideoInfo * info, int plane)
 }
 #endif
 
-void QGstVideoBuffer::mapTextures()
+#if QT_CONFIG(gstreamer_gl)
+struct GlTextures
 {
-    if (!m_rhi)
-        return;
+    uint count = 0;
+    bool owned = false;
+    std::array<guint32, QVideoTextureHelper::TextureDescription::maxPlanes> names;
+};
+
+class QGstQVideoFrameTextures : public QVideoFrameTextures
+{
+public:
+    QGstQVideoFrameTextures(QRhi *rhi, QSize size, QVideoFrameFormat::PixelFormat format, GlTextures &textures)
+        : m_rhi(rhi)
+        , m_glTextures(textures)
+    {
+        auto desc = QVideoTextureHelper::textureDescription(format);
+        for (uint i = 0; i < textures.count; ++i) {
+            QSize planeSize(desc->widthForPlane(size.width(), int(i)),
+                            desc->heightForPlane(size.height(), int(i)));
+            m_textures[i].reset(rhi->newTexture(desc->textureFormat[i], planeSize, 1, {}));
+            m_textures[i]->createFrom({textures.names[i], 0});
+        }
+    }
+
+    ~QGstQVideoFrameTextures()
+    {
+        m_rhi->makeThreadLocalNativeContextCurrent();
+        auto ctx = QOpenGLContext::currentContext();
+        if (m_glTextures.owned && ctx)
+            ctx->functions()->glDeleteTextures(int(m_glTextures.count), m_glTextures.names.data());
+    }
+
+    QRhiTexture *texture(uint plane) const override
+    {
+        return plane < m_glTextures.count ? m_textures[plane].get() : nullptr;
+    }
+
+private:
+    QRhi *m_rhi = nullptr;
+    GlTextures m_glTextures;
+    std::unique_ptr<QRhiTexture> m_textures[QVideoTextureHelper::TextureDescription::maxPlanes];
+};
+
+
+static GlTextures mapFromGlTexture(GstBuffer *buffer, GstVideoFrame &frame, GstVideoInfo &videoInfo)
+{
+    auto *mem = GST_GL_BASE_MEMORY_CAST(gst_buffer_peek_memory(buffer, 0));
+    if (!mem)
+        return {};
+
+    if (!gst_video_frame_map(&frame, &videoInfo, buffer, GstMapFlags(GST_MAP_READ|GST_MAP_GL))) {
+        qWarning() << "Could not map GL textures";
+        return {};
+    }
+
+    auto *sync_meta = gst_buffer_get_gl_sync_meta(buffer);
+    GstBuffer *sync_buffer = nullptr;
+    if (!sync_meta) {
+        sync_buffer = gst_buffer_new();
+        sync_meta = gst_buffer_add_gl_sync_meta(mem->context, sync_buffer);
+    }
+    gst_gl_sync_meta_set_sync_point (sync_meta, mem->context);
+    gst_gl_sync_meta_wait (sync_meta, mem->context);
+    if (sync_buffer)
+        gst_buffer_unref(sync_buffer);
+
+    GlTextures textures;
+    textures.count = frame.info.finfo->n_planes;
+
+    for (uint i = 0; i < textures.count; ++i)
+        textures.names[i] = *(guint32 *)frame.data[i];
+
+    gst_video_frame_unmap(&frame);
+
+    return textures;
+}
+
+#if GST_GL_HAVE_PLATFORM_EGL && QT_CONFIG(linux_dmabuf)
+static GlTextures mapFromDmaBuffer(QRhi *rhi, GstBuffer *buffer, GstVideoFrame &frame,
+                                   GstVideoInfo &videoInfo, Qt::HANDLE eglDisplay,
+                                   QFunctionPointer eglImageTargetTexture2D)
+{
+    Q_ASSERT(gst_is_dmabuf_memory(gst_buffer_peek_memory(buffer, 0)));
+    Q_ASSERT(eglDisplay);
+    Q_ASSERT(eglImageTargetTexture2D);
+
+    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
+    auto glContext = nativeHandles->context;
+    if (!glContext) {
+        qWarning() << "no GL context";
+        return {};
+    }
+
+    if (!gst_video_frame_map(&frame, &videoInfo, buffer, GstMapFlags(GST_MAP_READ))) {
+        qDebug() << "Couldn't map DMA video frame";
+        return {};
+    }
+
+    GlTextures textures = {};
+    textures.owned = true;
+    textures.count = GST_VIDEO_FRAME_N_PLANES(&frame);
+    //        int width = GST_VIDEO_FRAME_WIDTH(&frame);
+    //        int height = GST_VIDEO_FRAME_HEIGHT(&frame);
+    Q_ASSERT(GST_VIDEO_FRAME_N_PLANES(&frame) == gst_buffer_n_memory(buffer));
+
+    QOpenGLFunctions functions(glContext);
+    functions.glGenTextures(int(textures.count), textures.names.data());
+
+    //        qDebug() << Qt::hex << "glGenTextures: glerror" << glGetError() << "egl error" << eglGetError();
+    //        qDebug() << "converting DMA buffer nPlanes=" << nPlanes << m_textures[0] << m_textures[1] << m_textures[2];
+
+    for (int i = 0; i < int(textures.count); ++i) {
+        auto offset = GST_VIDEO_FRAME_PLANE_OFFSET(&frame, i);
+        auto stride = GST_VIDEO_FRAME_PLANE_STRIDE(&frame, i);
+        int planeWidth = GST_VIDEO_FRAME_COMP_WIDTH(&frame, i);
+        int planeHeight = GST_VIDEO_FRAME_COMP_HEIGHT(&frame, i);
+        auto mem = gst_buffer_peek_memory(buffer, i);
+        int fd = gst_dmabuf_memory_get_fd(mem);
+
+        //            qDebug() << "    plane" << i << "size" << width << height << "stride" << stride << "offset" << offset << "fd=" << fd;
+        // ### do we need to open/close the fd?
+        // ### can we convert several planes at once?
+        // Get the correct DRM_FORMATs from the texture format in the description
+        EGLAttrib const attribute_list[] = {
+            EGL_WIDTH, planeWidth,
+            EGL_HEIGHT, planeHeight,
+            EGL_LINUX_DRM_FOURCC_EXT, fourccFromVideoInfo(&videoInfo, i),
+            EGL_DMA_BUF_PLANE0_FD_EXT, fd,
+            EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLAttrib)offset,
+            EGL_DMA_BUF_PLANE0_PITCH_EXT, stride,
+            EGL_NONE
+        };
+        EGLImage image = eglCreateImage(eglDisplay,
+                                        EGL_NO_CONTEXT,
+                                        EGL_LINUX_DMA_BUF_EXT,
+                                        nullptr,
+                                        attribute_list);
+        if (image == EGL_NO_IMAGE_KHR) {
+            qWarning() << "could not create EGL image for plane" << i << Qt::hex << eglGetError();
+        }
+        //            qDebug() << Qt::hex << "eglCreateImage: glerror" << glGetError() << "egl error" << eglGetError();
+        functions.glBindTexture(GL_TEXTURE_2D, textures.names[i]);
+        //            qDebug() << Qt::hex << "bind texture: glerror" << glGetError() << "egl error" << eglGetError();
+        auto EGLImageTargetTexture2D = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglImageTargetTexture2D;
+        EGLImageTargetTexture2D(GL_TEXTURE_2D, image);
+        //            qDebug() << Qt::hex << "glerror" << glGetError() << "egl error" << eglGetError();
+        eglDestroyImage(eglDisplay, image);
+    }
+    gst_video_frame_unmap(&frame);
+
+    return textures;
+}
+#endif
+#endif
+
+std::unique_ptr<QVideoFrameTextures> QGstVideoBuffer::mapTextures(QRhi *rhi)
+{
+    if (!rhi)
+        return {};
 
 #if QT_CONFIG(gstreamer_gl)
+    GlTextures textures = {};
     if (memoryFormat == QGstCaps::GLTexture) {
-        auto *mem = GST_GL_BASE_MEMORY_CAST(gst_buffer_peek_memory(m_buffer, 0));
-        Q_ASSERT(mem);
-        if (!gst_video_frame_map(&m_frame, &m_videoInfo, m_buffer, GstMapFlags(GST_MAP_READ|GST_MAP_GL))) {
-            qWarning() << "Could not map GL textures";
-        } else {
-            auto *sync_meta = gst_buffer_get_gl_sync_meta(m_buffer);
-
-            if (!sync_meta) {
-                m_syncBuffer = gst_buffer_new();
-                sync_meta = gst_buffer_add_gl_sync_meta(mem->context, m_syncBuffer);
-            }
-            gst_gl_sync_meta_set_sync_point (sync_meta, mem->context);
-            gst_gl_sync_meta_wait (sync_meta, mem->context);
-
-            int nPlanes = m_frame.info.finfo->n_planes;
-            for (int i = 0; i < nPlanes; ++i) {
-                m_textures[i] = *(guint32 *)m_frame.data[i];
-            }
-            gst_video_frame_unmap(&m_frame);
-        }
+        textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo);
     }
 #if GST_GL_HAVE_PLATFORM_EGL && QT_CONFIG(linux_dmabuf)
     else if (memoryFormat == QGstCaps::DMABuf) {
-        if (m_textures[0])
-            return;
-        Q_ASSERT(gst_is_dmabuf_memory(gst_buffer_peek_memory(m_buffer, 0)));
-        Q_ASSERT(eglDisplay);
-        Q_ASSERT(eglImageTargetTexture2D);
-
-        auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(m_rhi->nativeHandles());
-        glContext = nativeHandles->context;
-        if (!glContext) {
-            qWarning() << "no GL context";
-            return;
-        }
-
-        if (!gst_video_frame_map(&m_frame, &m_videoInfo, m_buffer, GstMapFlags(GST_MAP_READ))) {
-            qDebug() << "Couldn't map DMA video frame";
-            return;
-        }
-
-        int nPlanes = GST_VIDEO_FRAME_N_PLANES(&m_frame);
-//        int width = GST_VIDEO_FRAME_WIDTH(&m_frame);
-//        int height = GST_VIDEO_FRAME_HEIGHT(&m_frame);
-        Q_ASSERT(GST_VIDEO_FRAME_N_PLANES(&m_frame) == gst_buffer_n_memory(m_buffer));
-
-        QOpenGLFunctions functions(glContext);
-        functions.glGenTextures(nPlanes, m_textures);
-        m_ownTextures = true;
-
-//        qDebug() << Qt::hex << "glGenTextures: glerror" << glGetError() << "egl error" << eglGetError();
-//        qDebug() << "converting DMA buffer nPlanes=" << nPlanes << m_textures[0] << m_textures[1] << m_textures[2];
-
-        for (int i = 0; i < nPlanes; ++i) {
-            auto offset = GST_VIDEO_FRAME_PLANE_OFFSET(&m_frame, i);
-            auto stride = GST_VIDEO_FRAME_PLANE_STRIDE(&m_frame, i);
-            int planeWidth = GST_VIDEO_FRAME_COMP_WIDTH(&m_frame, i);
-            int planeHeight = GST_VIDEO_FRAME_COMP_HEIGHT(&m_frame, i);
-            auto mem = gst_buffer_peek_memory(m_buffer, i);
-            int fd = gst_dmabuf_memory_get_fd(mem);
-
-//            qDebug() << "    plane" << i << "size" << width << height << "stride" << stride << "offset" << offset << "fd=" << fd;
-            // ### do we need to open/close the fd?
-            // ### can we convert several planes at once?
-            // Get the correct DRM_FORMATs from the texture format in the description
-            EGLAttrib const attribute_list[] = {
-                EGL_WIDTH, planeWidth,
-                EGL_HEIGHT, planeHeight,
-                EGL_LINUX_DRM_FOURCC_EXT, fourccFromVideoInfo(&m_videoInfo, i),
-                EGL_DMA_BUF_PLANE0_FD_EXT, fd,
-                EGL_DMA_BUF_PLANE0_OFFSET_EXT, (EGLAttrib)offset,
-                EGL_DMA_BUF_PLANE0_PITCH_EXT, stride,
-                EGL_NONE
-            };
-            EGLImage image = eglCreateImage(eglDisplay,
-                                            EGL_NO_CONTEXT,
-                                            EGL_LINUX_DMA_BUF_EXT,
-                                            nullptr,
-                                            attribute_list);
-            if (image == EGL_NO_IMAGE_KHR) {
-                qWarning() << "could not create EGL image for plane" << i << Qt::hex << eglGetError();
-            }
-//            qDebug() << Qt::hex << "eglCreateImage: glerror" << glGetError() << "egl error" << eglGetError();
-            functions.glBindTexture(GL_TEXTURE_2D, m_textures[i]);
-//            qDebug() << Qt::hex << "bind texture: glerror" << glGetError() << "egl error" << eglGetError();
-            auto EGLImageTargetTexture2D = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglImageTargetTexture2D;
-            EGLImageTargetTexture2D(GL_TEXTURE_2D, image);
-//            qDebug() << Qt::hex << "glerror" << glGetError() << "egl error" << eglGetError();
-            eglDestroyImage(eglDisplay, image);
-        }
-        gst_video_frame_unmap(&m_frame);
+        textures = mapFromDmaBuffer(m_rhi, m_buffer, m_frame, m_videoInfo, eglDisplay, eglImageTargetTexture2D);
     }
 #endif
+    if (textures.count > 0)
+        return std::make_unique<QGstQVideoFrameTextures>(rhi, QSize{m_videoInfo.width, m_videoInfo.height},
+                                                         m_frameFormat.pixelFormat(), textures);
 #endif
-    m_texturesUploaded = true;
-}
-
-std::unique_ptr<QRhiTexture> QGstVideoBuffer::texture(int plane) const
-{
-    auto desc = QVideoTextureHelper::textureDescription(m_frameFormat.pixelFormat());
-    if (!m_rhi || !desc || plane >= desc->nplanes)
-        return {};
-    QSize size(desc->widthForPlane(m_videoInfo.width, plane), desc->heightForPlane(m_videoInfo.height, plane));
-    std::unique_ptr<QRhiTexture> tex(m_rhi->newTexture(desc->textureFormat[plane], size, 1, {}));
-    if (tex) {
-        if (!tex->createFrom({m_textures[plane], 0}))
-            return {};
-    }
-    return tex;
+    return {};
 }
 
 QT_END_NAMESPACE

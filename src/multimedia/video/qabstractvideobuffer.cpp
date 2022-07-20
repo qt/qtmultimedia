@@ -100,11 +100,6 @@ QVideoFrame::HandleType QAbstractVideoBuffer::handleType() const
     return m_type;
 }
 
-std::unique_ptr<QRhiTexture> QAbstractVideoBuffer::texture(int /*plane*/) const
-{
-    return {};
-}
-
 /*!
     Returns the QRhi instance.
 */

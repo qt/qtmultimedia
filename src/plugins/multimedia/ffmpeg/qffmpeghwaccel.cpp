@@ -389,11 +389,6 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     d->format = fmt;
 }
 
-std::unique_ptr<QRhiTexture> TextureSet::texture(int /*plane*/)
-{
-    return {};
-}
-
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

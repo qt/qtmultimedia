@@ -78,7 +78,7 @@ public:
     std::unique_ptr<QRhiBuffer> m_vertexBuf;
     bool m_vertexBufReady = false;
     std::unique_ptr<QRhiBuffer> m_uniformBuf;
-    std::unique_ptr<QRhiTexture> m_frameTextures[3];
+    std::unique_ptr<QVideoFrameTextures> m_frameTextures;
     std::unique_ptr<QRhiSampler> m_textureSampler;
     std::unique_ptr<QRhiShaderResourceBindings> m_shaderResourceBindings;
     std::unique_ptr<QRhiGraphicsPipeline> m_graphicsPipeline;

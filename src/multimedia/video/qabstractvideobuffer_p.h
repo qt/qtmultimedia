@@ -31,6 +31,13 @@ class QVariant;
 class QRhi;
 class QRhiTexture;
 
+class Q_MULTIMEDIA_EXPORT QVideoFrameTextures
+{
+public:
+    virtual ~QVideoFrameTextures() {}
+    virtual QRhiTexture *texture(uint plane) const = 0;
+};
+
 class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 {
 public:
@@ -52,9 +59,8 @@ public:
     virtual MapData map(QVideoFrame::MapMode mode) = 0;
     virtual void unmap() = 0;
 
-    virtual void mapTextures() {}
+    virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) { return {}; }
     virtual quint64 textureHandle(int /*plane*/) const { return 0; }
-    virtual std::unique_ptr<QRhiTexture> texture(int /*plane*/) const;
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
 protected:
