@@ -220,6 +220,12 @@ endfunction()
   find_component(POSTPROC   libpostproc   postproc libpostproc/postprocess.h)
   find_component(SWRESAMPLE libswresample swresample libswresample/swresample.h)
 
+  # Linking to private FFmpeg libraries is only needed if it was built statically
+  # Only one of the components needs to be tested
+  if(AVCODEC_LIBRARY AND ${AVCODEC_LIBRARY} MATCHES "\\${CMAKE_STATIC_LIBRARY_SUFFIX}$")
+      set(__ffmpeg_is_static TRUE)
+  endif()
+
   # Check if the required components were found and add their stuff to the FFMPEG_* vars.
   foreach (_component ${FFmpeg_FIND_COMPONENTS})
     if (${_component}_FOUND)
@@ -241,7 +247,9 @@ endfunction()
             INTERFACE_LINK_LIBRARIES "${${_component}_LIBRARIES}"
             INTERFACE_LINK_DIRECTORIES "${${_component}_LIBRARY_DIRS}"
         )
-        __ffmpeg_internal_set_dependencies(${_lowerComponent})
+        if(__ffmpeg_is_static)
+            __ffmpeg_internal_set_dependencies(${_lowerComponent})
+        endif()
         target_link_libraries(FFmpeg::${_lowerComponent} INTERFACE "${${_component}_LIBRARY}")
         if (UNIX AND NOT APPLE)
           target_link_options(FFmpeg::${_lowerComponent} INTERFACE  "-Wl,--exclude-libs=lib${_lowerComponent}")
