@@ -10,17 +10,13 @@ QT_BEGIN_NAMESPACE
 class QSGVideoTexturePrivate
 {
     Q_DECLARE_PUBLIC(QSGVideoTexture)
-public:
-    void updateRhiTexture(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates);
 
 private:
     QSGVideoTexture *q_ptr = nullptr;
     QRhiTexture::Format m_format;
     QSize m_size;
     QByteArray m_data;
-
-    std::unique_ptr<QRhiTexture> m_texture;
-    quint64 m_nativeObject = 0;
+    QRhiTexture *m_texture = nullptr;
 };
 
 QSGVideoTexture::QSGVideoTexture()
@@ -37,11 +33,8 @@ QSGVideoTexture::~QSGVideoTexture() = default;
 qint64 QSGVideoTexture::comparisonKey() const
 {
     Q_D(const QSGVideoTexture);
-    if (d->m_nativeObject)
-        return d->m_nativeObject;
-
     if (d->m_texture)
-        return qint64(qintptr(d->m_texture.get()));
+        return qint64(qintptr(d->m_texture));
 
     // two textures (and so materials) with not-yet-created texture underneath are never equal
     return qint64(qintptr(this));
@@ -49,7 +42,7 @@ qint64 QSGVideoTexture::comparisonKey() const
 
 QRhiTexture *QSGVideoTexture::rhiTexture() const
 {
-    return d_func()->m_texture.get();
+    return d_func()->m_texture;
 }
 
 QSize QSGVideoTexture::textureSize() const
@@ -76,66 +69,9 @@ void QSGVideoTexture::setData(QRhiTexture::Format f, const QSize &s, const uchar
     d->m_data = {reinterpret_cast<const char *>(data), bytes};
 }
 
-void QSGVideoTexture::setNativeObject(quint64 obj, const QSize &s, QRhiTexture::Format f)
-{
-    Q_D(QSGVideoTexture);
-    setData(f, s, nullptr, 0);
-    if (d->m_nativeObject != obj) {
-        d->m_nativeObject = obj;
-        d->m_texture.reset();
-    }
-}
-
-void QSGVideoTexturePrivate::updateRhiTexture(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
-{
-    Q_Q(QSGVideoTexture);
-
-    bool needsRebuild = m_texture && m_texture->pixelSize() != m_size;
-    if (!m_texture) {
-        QRhiTexture::Flags flags;
-        if (q->hasMipmaps())
-            flags |= QRhiTexture::MipMapped | QRhiTexture::UsedWithGenerateMips;
-
-        m_texture.reset(rhi->newTexture(m_format, m_size, 1, flags));
-        needsRebuild = true;
-    }
-
-    if (needsRebuild) {
-        m_texture->setPixelSize(m_size);
-        bool created = m_nativeObject
-            ? m_texture->createFrom({m_nativeObject, 0})
-            : m_texture->create();
-        if (!created) {
-            qWarning("Failed to build texture (size %dx%d)",
-                m_size.width(), m_size.height());
-            return;
-        }
-    }
-
-    if (!m_data.isEmpty()) {
-        QRhiTextureSubresourceUploadDescription subresDesc(m_data.constData(), m_data.size());
-        subresDesc.setSourceSize(m_size);
-        subresDesc.setDestinationTopLeft(QPoint(0, 0));
-        QRhiTextureUploadEntry entry(0, 0, subresDesc);
-        QRhiTextureUploadDescription desc({ entry });
-        resourceUpdates->uploadTexture(m_texture.get(), desc);
-        m_data.clear();
-    }
-}
-
-void QSGVideoTexture::commitTextureOperations(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
-{
-    d_func()->updateRhiTexture(rhi, resourceUpdates);
-}
-
-QRhiTexture *QSGVideoTexture::releaseTexture()
-{
-    return d_func()->m_texture.release();
-}
-
 void QSGVideoTexture::setRhiTexture(QRhiTexture *texture)
 {
-    d_func()->m_texture.reset(texture);
+    d_func()->m_texture = texture;
 }
 
 QT_END_NAMESPACE

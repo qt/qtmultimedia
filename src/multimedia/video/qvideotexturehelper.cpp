@@ -638,7 +638,7 @@ static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdat
     return true;
 }
 
-static bool updateTextureWithHandle(QVideoFrame frame, QRhi *rhi, int plane, std::unique_ptr<QRhiTexture> &tex)
+static std::unique_ptr<QRhiTexture> createTextureFromHandle(const QVideoFrame &frame, QRhi *rhi, int plane)
 {
     QVideoFrameFormat fmt = frame.surfaceFormat();
     QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
@@ -662,37 +662,78 @@ static bool updateTextureWithHandle(QVideoFrame frame, QRhi *rhi, int plane, std
     }
 
     if (quint64 handle = frame.textureHandle(plane); handle) {
-        tex.reset(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, textureFlags));
-        if (!tex->createFrom({handle, 0})) {
-            qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu",handle);
-            return false;
-        }
+        std::unique_ptr<QRhiTexture> tex(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, textureFlags));
+        if (tex->createFrom({handle, 0}))
+            return tex;
+
+        qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu",handle);
     } else {
         qCDebug(qLcVideoTextureHelper) << "Incorrect texture handle from QVideoFrame, trying to map and upload texture";
-        return false;
     }
-    return true;
+    return {};
 }
 
-void updateRhiTexture(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)
+class QVideoFrameTexturesArray : public QVideoFrameTextures
+{
+public:
+    using TextureArray = std::array<std::unique_ptr<QRhiTexture>, TextureDescription::maxPlanes>;
+    QVideoFrameTexturesArray(TextureArray &&textures)
+        : m_textures(std::move(textures))
+    {}
+
+    QRhiTexture *texture(uint plane) const override
+    {
+        return plane < std::size(m_textures) ? m_textures[plane].get() : nullptr;
+    }
+
+    TextureArray takeTextures() { return std::move(m_textures); }
+
+private:
+    TextureArray m_textures;
+};
+
+static std::unique_ptr<QVideoFrameTextures> createTexturesFromHandles(const QVideoFrame &frame, QRhi *rhi)
 {
     const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
-    if (plane >= texDesc.nplanes) {
-        tex.reset();
-        return;
+    bool ok = true;
+    QVideoFrameTexturesArray::TextureArray textures;
+    for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
+        textures[plane] = QVideoTextureHelper::createTextureFromHandle(frame, rhi, plane);
+        ok &= bool(textures[plane]);
     }
+    if (ok)
+        return std::make_unique<QVideoFrameTexturesArray>(std::move(textures));
+    else
+        return {};
+}
 
-    if (frame.handleType() == QVideoFrame::RhiTextureHandle) {
-        if (std::unique_ptr<QRhiTexture> ftex = frame.rhiTexture(plane); ftex) {
-            tex = std::move(ftex);
-            return;
-        }
+std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(const QVideoFrame &frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, QVideoFrameTextures *old)
+{
+    const TextureDescription &texDesc = descriptions[frame.surfaceFormat().pixelFormat()];
+    QVideoFrameTexturesArray::TextureArray textures;
+    auto oldArray = dynamic_cast<QVideoFrameTexturesArray *>(old);
+    if (oldArray)
+        textures = oldArray->takeTextures();
 
-        if (QVideoTextureHelper::updateTextureWithHandle(frame, rhi, plane, tex))
-            return;
+    bool ok = true;
+    for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
+        ok &= updateTextureWithMap(frame, rhi, rub, plane, textures[plane]);
     }
+    if (ok)
+        return std::make_unique<QVideoFrameTexturesArray>(std::move(textures));
+    else
+        return {};
+}
 
-    QVideoTextureHelper::updateTextureWithMap(frame, rhi, rub, plane, tex);
+std::unique_ptr<QVideoFrameTextures> createTextures(QVideoFrame &frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, std::unique_ptr<QVideoFrameTextures> &&oldTextures)
+{
+    if (auto vft = frame.mapTextures(rhi))
+        return vft;
+
+    if (auto vft = createTexturesFromHandles(frame, rhi))
+        return vft;
+
+    return createTexturesFromMemory(frame, rhi, rub, oldTextures.get());
 }
 
 bool SubtitleLayout::update(const QSize &frameSize, QString text)

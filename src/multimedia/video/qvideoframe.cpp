@@ -568,9 +568,12 @@ int QVideoFrame::planeCount() const
     \internal
     Map video frame textures to the given QRhi device
 */
-bool QVideoFrame::mapTextures(QRhi *rhi)
+std::unique_ptr<QVideoFrameTextures> QVideoFrame::mapTextures(QRhi *rhi)
 {
-    return d && d->buffer && d->buffer->mapTextures(rhi);
+    if (d && d->buffer)
+        return d->buffer->mapTextures(rhi);
+    else
+        return {};
 }
 
 /*!
@@ -582,17 +585,6 @@ quint64 QVideoFrame::textureHandle(int plane) const
     if (!d || !d->buffer)
         return 0;
     return d->buffer->textureHandle(plane);
-}
-
-/*!
-    \internal
-    Returns a QRhiTexture of the video frame
-*/
-std::unique_ptr<QRhiTexture> QVideoFrame::rhiTexture(int plane) const
-{
-    if (!d || !d->buffer)
-        return {};
-    return d->buffer->texture(plane);
 }
 
 /*!

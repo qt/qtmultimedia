@@ -35,11 +35,8 @@ public:
     QSize textureSize() const override;
     bool hasAlphaChannel() const override;
     bool hasMipmaps() const override;
-    void commitTextureOperations(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates) override;
-    QRhiTexture *releaseTexture();
     void setRhiTexture(QRhiTexture *texture);
     void setData(QRhiTexture::Format f, const QSize &s, const uchar *data, int bytes);
-    void setNativeObject(quint64 obj, const QSize &s, QRhiTexture::Format f = QRhiTexture::RGBA8);
 
 protected:
     QScopedPointer<QSGVideoTexturePrivate> d_ptr;

@@ -184,23 +184,18 @@ static QRhi *initializeRHI(QRhi *videoFrameRhi)
 }
 
 static bool updateTextures(QRhi *rhi,
-                           QRhiResourceUpdateBatch *rub,
                            std::unique_ptr<QRhiBuffer> &uniformBuffer,
                            std::unique_ptr<QRhiSampler> &textureSampler,
                            std::unique_ptr<QRhiShaderResourceBindings> &shaderResourceBindings,
                            std::unique_ptr<QRhiGraphicsPipeline> &graphicsPipeline,
                            std::unique_ptr<QRhiRenderPassDescriptor> &renderPass,
                            QVideoFrame &frame,
-                           std::unique_ptr<QRhiTexture> (&textures)[QVideoTextureHelper::TextureDescription::maxPlanes])
+                           const std::unique_ptr<QVideoFrameTextures> &videoFrameTextures)
 {
     auto format = frame.surfaceFormat();
     auto pixelFormat = format.pixelFormat();
 
     auto textureDesc = QVideoTextureHelper::textureDescription(pixelFormat);
-
-    frame.mapTextures(rhi);
-    for (int i = 0; i < QVideoTextureHelper::TextureDescription::maxPlanes; ++i)
-        QVideoTextureHelper::updateRhiTexture(frame, rhi, rub, i, textures[i]);
 
     QRhiShaderResourceBinding bindings[4];
     auto *b = bindings;
@@ -208,7 +203,7 @@ static bool updateTextures(QRhi *rhi,
                                                     uniformBuffer.get());
     for (int i = 0; i < textureDesc->nplanes; ++i)
         *b++ = QRhiShaderResourceBinding::sampledTexture(i + 1, QRhiShaderResourceBinding::FragmentStage,
-                                                         textures[i].get(), textureSampler.get());
+                                                         videoFrameTextures->texture(i), textureSampler.get());
     shaderResourceBindings->setBindings(bindings, b);
     shaderResourceBindings->create();
 
@@ -297,7 +292,6 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideoFrame::RotationAngle
     std::unique_ptr<QRhiSampler> textureSampler;
     std::unique_ptr<QRhiShaderResourceBindings> shaderResourceBindings;
     std::unique_ptr<QRhiGraphicsPipeline> graphicsPipeline;
-    std::unique_ptr<QRhiTexture> frameTextures[QVideoTextureHelper::TextureDescription::maxPlanes];
 
     if (frame.size().isEmpty() || frame.pixelFormat() == QVideoFrameFormat::Format_Invalid)
         return {};
@@ -359,9 +353,14 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideoFrame::RotationAngle
     rub->uploadStaticBuffer(vertexBuffer.get(), g_quad);
 
     QVideoFrame frameTmp = frame;
+    auto videoFrameTextures = QVideoTextureHelper::createTextures(frameTmp, rhi, rub, {});
+    if (!videoFrameTextures) {
+        qCDebug(qLcVideoFrameConverter) << "Failed obtain textures. Using CPU conversion.";
+        return convertCPU(frame, rotation, mirrorX, mirrorY);
+    }
 
-    if (!updateTextures(rhi, rub, uniformBuffer, textureSampler, shaderResourceBindings,
-                        graphicsPipeline, renderPass, frameTmp, frameTextures)) {
+    if (!updateTextures(rhi, uniformBuffer, textureSampler, shaderResourceBindings,
+                        graphicsPipeline, renderPass, frameTmp, videoFrameTextures)) {
         qCDebug(qLcVideoFrameConverter) << "Failed to update textures. Using CPU conversion.";
         return convertCPU(frame, rotation, mirrorX, mirrorY);
     }

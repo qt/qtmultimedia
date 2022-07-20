@@ -16,6 +16,7 @@
 
 #include "qffmpeg_p.h"
 #include "qvideoframeformat.h"
+#include <private/qabstractvideobuffer_p.h>
 #include <qshareddata.h>
 #include <memory>
 
@@ -37,7 +38,6 @@ public:
     // ### Should add QVideoFrameFormat::PixelFormat here
     virtual ~TextureSet() {}
     virtual qint64 textureHandle(int /*plane*/) { return 0; }
-    virtual std::unique_ptr<QRhiTexture> texture(int plane);
 };
 
 class TextureConverterBackend

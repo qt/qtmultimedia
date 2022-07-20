@@ -7,6 +7,7 @@
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 #include <private/qquicktextnode_p.h>
 #include <private/qquickvideooutput_p.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
@@ -110,6 +111,7 @@ public:
     enum { NVideoFrameSlots = 4 };
     QVideoFrame m_videoFrameSlots[NVideoFrameSlots];
     QScopedPointer<QSGVideoTexture> m_textures[3];
+    std::unique_ptr<QVideoFrameTextures> m_videoFrameTextures;
 };
 
 void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
@@ -123,15 +125,9 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
     m_videoFrameSlots[rhi->currentFrameSlot()] = m_currentFrame;
 
     // update and upload all textures
-    m_currentFrame.mapTextures(rhi);
-    for (int plane = 0; plane < 3; ++plane) {
-        QSGVideoTexture *sgTex = m_textures[plane].get();
-        if (sgTex) {
-            std::unique_ptr<QRhiTexture> tex(sgTex->releaseTexture());
-            QVideoTextureHelper::updateRhiTexture(m_currentFrame, rhi, resourceUpdates, plane, tex);
-            sgTex->setRhiTexture(tex.release());
-        }
-    }
+    m_videoFrameTextures = QVideoTextureHelper::createTextures(m_currentFrame, rhi, resourceUpdates, std::move(m_videoFrameTextures));
+    for (int plane = 0; plane < 3; ++plane)
+        m_textures[plane]->setRhiTexture(m_videoFrameTextures->texture(plane));
 }
 
 

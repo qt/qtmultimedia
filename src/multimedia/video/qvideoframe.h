@@ -15,6 +15,7 @@ QT_BEGIN_NAMESPACE
 
 class QSize;
 class QVideoFramePrivate;
+class QVideoFrameTextures;
 class QAbstractVideoBuffer;
 class QRhi;
 class QRhiResourceUpdateBatch;
@@ -90,9 +91,8 @@ public:
     int mappedBytes(int plane) const;
     int planeCount() const;
 
-    bool mapTextures(QRhi *);
+    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *);
     quint64 textureHandle(int plane) const;
-    std::unique_ptr<QRhiTexture> rhiTexture(int plane) const;
 
     qint64 startTime() const;
     void setStartTime(qint64 time);
