@@ -59,8 +59,6 @@
 # Copyright (c) 2011, Michael Jansen, <kde@michael-jansen.biz>
 # Copyright (c) 2017, Alexander Drozdov, <adrozdoff@gmail.com>
 #
-# Redistribution and use is allowed according to the terms of the BSD license.
-# For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
 include(FindPackageHandleStandardArgs)
 
