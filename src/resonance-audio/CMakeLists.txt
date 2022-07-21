@@ -206,6 +206,25 @@ qt_internal_add_3rdparty_library(BundledResonanceAudio
         ${SADIE_HRTFS_DIR}
         ../3rdparty/eigen
 )
+
+# Required by pffft on certain PowerPC archs
+qt_internal_extend_target(BundledResonanceAudio CONDITION GCC AND (${CMAKE_SYSTEM_PROCESSOR} MATCHES "(ppc|ppc64)$")
+    COMPILE_OPTIONS
+        -maltivec
+)
+
+# Required by eigen on certain PowerPC archs
+qt_internal_extend_target(BundledResonanceAudio CONDITION (${CMAKE_SYSTEM_PROCESSOR} MATCHES "(ppc|ppc64)$")
+    COMPILE_OPTIONS
+        -mvsx
+)
+
+# Use fallback mode if SSE is not available
+qt_internal_extend_target(BundledResonanceAudio CONDITION (${CMAKE_SYSTEM_PROCESSOR} MATCHES "i[3-6]86$")
+    COMPILE_OPTIONS
+        -DPFFFT_SIMD_DISABLE
+)
+
 qt_disable_warnings(BundledResonanceAudio)
 qt_set_symbol_visibility_hidden(BundledResonanceAudio)
 
