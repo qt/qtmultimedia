@@ -30,7 +30,7 @@ The \c main.qml file creates a UI which includes the following items:
 
 \list
     \li Two \c Button instances, each of which displays a filename, and can be
-        used to launch a \c FileBrowser.
+        used to launch a \c FileDialog.
     \li An exit \c Button.
     \li A \c SceneSelectionPanel, which is a flickable list displaying the
         available scenes.
