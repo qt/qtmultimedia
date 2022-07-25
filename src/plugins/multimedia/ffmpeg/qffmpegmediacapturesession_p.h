@@ -51,7 +51,8 @@ public:
     void setAudioOutput(QPlatformAudioOutput *output) override;
 
 public Q_SLOTS:
-    void newVideoFrame(const QVideoFrame &frame);
+    void newCameraVideoFrame(const QVideoFrame &frame);
+    void newScreenCaptureVideoFrame(const QVideoFrame &frame);
 
 private:
     QPlatformCamera *m_camera = nullptr;

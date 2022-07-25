@@ -44,7 +44,7 @@ void QFFmpegMediaCaptureSession::setCamera(QPlatformCamera *camera)
     m_camera = camera;
 
     if (m_camera) {
-        connect(m_camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegMediaCaptureSession::newVideoFrame);
+        connect(m_camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegMediaCaptureSession::newCameraVideoFrame);
         m_camera->setCaptureSession(this);
     }
 
@@ -66,7 +66,7 @@ void QFFmpegMediaCaptureSession::setScreenCapture(QPlatformScreenCapture *screen
     m_screenCapture = screenCapture;
 
     if (m_screenCapture)
-        connect(m_screenCapture, &QPlatformScreenCapture::newVideoFrame, this, &QFFmpegMediaCaptureSession::newVideoFrame);
+        connect(m_screenCapture, &QPlatformScreenCapture::newVideoFrame, this, &QFFmpegMediaCaptureSession::newScreenCaptureVideoFrame);
 
     emit screenCaptureChanged();
 }
@@ -136,9 +136,15 @@ void QFFmpegMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
     m_audioOutput = output;
 }
 
-void QFFmpegMediaCaptureSession::newVideoFrame(const QVideoFrame &frame)
+void QFFmpegMediaCaptureSession::newCameraVideoFrame(const QVideoFrame &frame)
 {
     if (m_videoSink)
+        m_videoSink->setVideoFrame(frame);
+}
+
+void QFFmpegMediaCaptureSession::newScreenCaptureVideoFrame(const QVideoFrame &frame)
+{
+    if (m_videoSink && !(m_camera && m_camera->isActive()))
         m_videoSink->setVideoFrame(frame);
 }
 
