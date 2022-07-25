@@ -135,10 +135,12 @@ static void imageCleanupHandler(void *info)
     delete imageData;
 }
 
-static QRhi *initializeRHI(QRhi::Implementation backend)
+static QRhi *initializeRHI(QRhi *videoFrameRhi)
 {
     if (g_state.localData().rhi || g_state.localData().cpuOnly)
         return g_state.localData().rhi;
+
+    QRhi::Implementation backend = videoFrameRhi ? videoFrameRhi->backend() : QRhi::Null;
 
     if (QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::RhiBasedRendering)) {
 
@@ -165,6 +167,8 @@ static QRhi *initializeRHI(QRhi::Implementation backend)
                 g_state.localData().fallbackSurface = QRhiGles2InitParams::newFallbackSurface();
                 QRhiGles2InitParams params;
                 params.fallbackSurface = g_state.localData().fallbackSurface;
+                if (backend == QRhi::OpenGLES2)
+                    params.shareContext = static_cast<const QRhiGles2NativeHandles*>(videoFrameRhi->nativeHandles())->context;
                 g_state.localData().rhi = QRhi::create(QRhi::OpenGLES2, &params);
             }
         }
@@ -296,16 +300,12 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideoFrame::RotationAngle
         return convertJPEG(frame, rotation, mirrorX, mirrorY);
 
     QRhi *rhi = nullptr;
-    QRhi::Implementation backend = QRhi::Null;
 
-    if (frame.videoBuffer()) {
+    if (frame.videoBuffer())
         rhi = frame.videoBuffer()->rhi();
-        if (rhi)
-            backend = rhi->backend();
-    }
 
     if (!rhi || rhi->thread() != QThread::currentThread())
-        rhi = initializeRHI(backend);
+        rhi = initializeRHI(rhi);
 
     if (!rhi || rhi->isRecordingFrame())
         return convertCPU(frame, rotation, mirrorX, mirrorY);
