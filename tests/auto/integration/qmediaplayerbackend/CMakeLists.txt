@@ -17,7 +17,7 @@ qt_internal_add_test(tst_qmediaplayerbackend
     SOURCES
         ../shared/mediafileselector.h
         tst_qmediaplayerbackend.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
     TESTDATA ${testdata_resource_files}

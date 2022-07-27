@@ -12,7 +12,7 @@ qt_internal_add_test(tst_qml
     QMLTEST
     SOURCES
         tst_qml.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
 )
 

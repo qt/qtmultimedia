@@ -10,7 +10,7 @@
 qt_internal_add_test(tst_qaudioformat
     SOURCES
         tst_qaudioformat.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
 )

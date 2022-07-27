@@ -10,7 +10,7 @@
 qt_internal_add_test(tst_qcamerabackend
     SOURCES
         tst_qcamerabackend.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::Widgets

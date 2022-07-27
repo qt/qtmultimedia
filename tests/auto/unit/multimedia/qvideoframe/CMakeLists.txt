@@ -10,7 +10,7 @@
 qt_internal_add_test(tst_qvideoframe
     SOURCES
         tst_qvideoframe.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
 )

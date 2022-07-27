@@ -10,7 +10,7 @@
 qt_internal_add_test(tst_qabstractvideobuffer
     SOURCES
         tst_qabstractvideobuffer.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
 )

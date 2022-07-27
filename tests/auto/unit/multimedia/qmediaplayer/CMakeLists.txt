@@ -12,7 +12,7 @@ qt_internal_add_test(tst_qmediaplayer
         tst_qmediaplayer.cpp
     INCLUDE_DIRECTORIES
         ../../mockbackend
-    PUBLIC_LIBRARIES
+    LIBRARIES
         # Remove: L${CMAKE_CURRENT_SOURCE_DIR}
         Qt::Gui
         Qt::MultimediaPrivate

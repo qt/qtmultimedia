@@ -10,7 +10,7 @@
 qt_internal_add_test(tst_qmediacapturesession
     SOURCES
         tst_qmediacapturesession.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::MultimediaWidgets

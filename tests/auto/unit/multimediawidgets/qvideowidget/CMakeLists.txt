@@ -12,7 +12,7 @@ qt_internal_add_test(tst_qvideowidget
         tst_qvideowidget.cpp
     INCLUDE_DIRECTORIES
         ../../mockbackend
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::MultimediaWidgetsPrivate

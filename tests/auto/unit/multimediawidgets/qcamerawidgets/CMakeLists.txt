@@ -12,7 +12,7 @@ qt_internal_add_test(tst_qcamerawidgets
         tst_qcamerawidgets.cpp
     INCLUDE_DIRECTORIES
         ../../mockbackend
-    PUBLIC_LIBRARIES
+    LIBRARIES
         # Remove: L${CMAKE_CURRENT_SOURCE_DIR}
         Qt::Gui
         Qt::MultimediaPrivate
