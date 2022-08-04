@@ -320,13 +320,11 @@ void QAndroidMediaPlayer::setVideoSink(QVideoSink *sink)
         mMediaPlayer->setDisplay(nullptr);
     }
 
-    mVideoOutput = new QAndroidTextureVideoOutput(this);
+    mVideoOutput = new QAndroidTextureVideoOutput(sink, this);
     connect(mVideoOutput, &QAndroidTextureVideoOutput::readyChanged, this,
             &QAndroidMediaPlayer::onVideoOutputReady);
     connect(mMediaPlayer, &AndroidMediaPlayer::timedTextChanged, mVideoOutput,
             &QAndroidTextureVideoOutput::setSubtitle);
-
-    mVideoOutput->setSurface(sink);
 
     if (mVideoOutput->isReady())
         mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
@@ -401,8 +399,6 @@ void QAndroidMediaPlayer::pause()
         mPendingState = QMediaPlayer::PausedState;
         return;
     }
-    if (mVideoOutput)
-        mVideoOutput->renderFrame();
 
     const qint64 currentPosition = mMediaPlayer->getCurrentPosition();
     setPosition(currentPosition);
