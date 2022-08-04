@@ -93,6 +93,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
     LIBRARIES
         Dwmapi
         Dxva2
+        windowsapp
 )
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
