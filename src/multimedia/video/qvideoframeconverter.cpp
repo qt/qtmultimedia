@@ -194,6 +194,10 @@ static bool updateTextures(QRhi *rhi,
 
     auto textureDesc = QVideoTextureHelper::textureDescription(pixelFormat);
 
+    QAbstractVideoBuffer *vb = frame.videoBuffer();
+    if (!vb)
+        return false;
+    vb->mapTextures();
     for (int i = 0; i < QVideoTextureHelper::TextureDescription::maxPlanes; ++i)
         QVideoTextureHelper::updateRhiTexture(frame, rhi, rub, i, textures[i]);
 

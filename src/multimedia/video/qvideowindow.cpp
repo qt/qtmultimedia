@@ -6,6 +6,7 @@
 #include <qfile.h>
 #include <qpainter.h>
 #include <private/qguiapplication_p.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <qpa/qplatformintegration.h>
 
@@ -213,6 +214,10 @@ void QVideoWindowPrivate::updateTextures(QRhiResourceUpdateBatch *rub)
         m_currentFrame = QVideoFrame(new QMemoryVideoBuffer(QByteArray{4, 0}, 4),
                                      QVideoFrameFormat(QSize(1,1), QVideoFrameFormat::Format_RGBA8888));
 
+    QAbstractVideoBuffer *vb =  m_currentFrame.videoBuffer();
+    if (!vb)
+        return;
+    vb->mapTextures();
     for (int i = 0; i < QVideoTextureHelper::TextureDescription::maxPlanes; ++i)
         QVideoTextureHelper::updateRhiTexture(m_currentFrame, m_rhi.get(), rub, i, m_frameTextures[i]);
 

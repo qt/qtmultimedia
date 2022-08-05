@@ -5,6 +5,7 @@
 #include <QtQuick/qsgmaterial.h>
 #include "qsgvideotexture_p.h"
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <private/qabstractvideobuffer_p.h>
 #include <private/qquicktextnode_p.h>
 #include <private/qquickvideooutput_p.h>
 #include <qmutex.h>
@@ -123,6 +124,10 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
     m_videoFrameSlots[rhi->currentFrameSlot()] = m_currentFrame;
 
     // update and upload all textures
+    QAbstractVideoBuffer *vb =  m_currentFrame.videoBuffer();
+    if (!vb)
+        return;
+    vb->mapTextures();
     for (int plane = 0; plane < 3; ++plane) {
         QSGVideoTexture *sgTex = m_textures[plane].get();
         if (sgTex) {

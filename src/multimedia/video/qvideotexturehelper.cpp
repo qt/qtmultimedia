@@ -638,7 +638,7 @@ static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdat
     return true;
 }
 
-static bool updateTextureWithHandle(QVideoFrame frame, QRhi *rhi, int plane, std::unique_ptr<QRhiTexture> &tex)
+static bool updateTextureWithHandle(QVideoFrame frame, quint64 handle, QRhi *rhi, int plane, std::unique_ptr<QRhiTexture> &tex)
 {
     QVideoFrameFormat fmt = frame.surfaceFormat();
     QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
@@ -661,7 +661,7 @@ static bool updateTextureWithHandle(QVideoFrame frame, QRhi *rhi, int plane, std
 #endif
     }
 
-    if (quint64 handle = frame.textureHandle(plane); handle) {
+    if (handle) {
         tex.reset(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, textureFlags));
         if (!tex->createFrom({handle, 0})) {
             qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu",handle);
@@ -682,13 +682,17 @@ void updateRhiTexture(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdateBatch *rub
         return;
     }
 
+    QAbstractVideoBuffer *vb = frame.videoBuffer();
+    if (!vb)
+        return;
+
     if (frame.handleType() == QVideoFrame::RhiTextureHandle) {
-        if (std::unique_ptr<QRhiTexture> ftex = frame.rhiTexture(plane); ftex) {
+        if (std::unique_ptr<QRhiTexture> ftex = vb->texture(plane); ftex) {
             tex = std::move(ftex);
             return;
         }
 
-        if (QVideoTextureHelper::updateTextureWithHandle(frame, rhi, plane, tex))
+        if (QVideoTextureHelper::updateTextureWithHandle(frame, vb->textureHandle(plane), rhi, plane, tex))
             return;
     }
 

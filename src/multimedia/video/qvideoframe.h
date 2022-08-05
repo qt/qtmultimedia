@@ -90,9 +90,6 @@ public:
     int mappedBytes(int plane) const;
     int planeCount() const;
 
-    quint64 textureHandle(int plane) const;
-    std::unique_ptr<QRhiTexture> rhiTexture(int plane) const;
-
     qint64 startTime() const;
     void setStartTime(qint64 time);
 
