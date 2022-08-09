@@ -20,7 +20,7 @@
 #include <QUrl>
 
 #include <QtCore/qobject.h>
-#include <QtCore/qtnamespacemacros.h>
+#include <QtCore/qtconfigmacros.h>
 
 #include <QtMultimedia/qmediarecorder.h>
 
