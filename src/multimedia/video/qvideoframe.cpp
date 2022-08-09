@@ -565,29 +565,6 @@ int QVideoFrame::planeCount() const
 }
 
 /*!
-    \internal
-    Map video frame textures to the given QRhi device
-*/
-std::unique_ptr<QVideoFrameTextures> QVideoFrame::mapTextures(QRhi *rhi)
-{
-    if (d && d->buffer)
-        return d->buffer->mapTextures(rhi);
-    else
-        return {};
-}
-
-/*!
-    \internal
-    Returns a texture id to the video frame's buffers.
-*/
-quint64 QVideoFrame::textureHandle(int plane) const
-{
-    if (!d || !d->buffer)
-        return 0;
-    return d->buffer->textureHandle(plane);
-}
-
-/*!
     Returns the presentation time (in microseconds) when the frame should be displayed.
 
     An invalid time is represented as -1.

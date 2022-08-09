@@ -661,7 +661,7 @@ static std::unique_ptr<QRhiTexture> createTextureFromHandle(const QVideoFrame &f
 #endif
     }
 
-    if (quint64 handle = frame.textureHandle(plane); handle) {
+    if (quint64 handle = frame.videoBuffer()->textureHandle(plane); handle) {
         std::unique_ptr<QRhiTexture> tex(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, textureFlags));
         if (tex->createFrom({handle, 0}))
             return tex;
@@ -727,7 +727,11 @@ std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(const QVideoFrame 
 
 std::unique_ptr<QVideoFrameTextures> createTextures(QVideoFrame &frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, std::unique_ptr<QVideoFrameTextures> &&oldTextures)
 {
-    if (auto vft = frame.mapTextures(rhi))
+    QAbstractVideoBuffer *vf = frame.videoBuffer();
+    if (!vf)
+        return {};
+
+    if (auto vft = vf->mapTextures(rhi))
         return vft;
 
     if (auto vft = createTexturesFromHandles(frame, rhi))

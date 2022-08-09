@@ -91,9 +91,6 @@ public:
     int mappedBytes(int plane) const;
     int planeCount() const;
 
-    std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *);
-    quint64 textureHandle(int plane) const;
-
     qint64 startTime() const;
     void setStartTime(qint64 time);
 
