@@ -142,7 +142,9 @@ QSample* QSampleCache::requestSample(const QUrl& url)
             m_loadingThread.start();
         sample = new QSample(url, this);
         m_samples.insert(url, sample);
+#if QT_CONFIG(thread)
         sample->moveToThread(&m_loadingThread);
+#endif
     } else {
         sample = *it;
     }
@@ -300,7 +302,9 @@ void QSample::addRef()
 // Called in loading thread
 void QSample::readSample()
 {
+#if QT_CONFIG(thread)
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
+#endif
     QMutexLocker m(&m_mutex);
     qint64 read = m_waveDecoder->read(m_soundData.data() + m_sampleReadLength,
                       qMin(m_waveDecoder->bytesAvailable(),
@@ -317,7 +321,9 @@ void QSample::readSample()
 // Called in loading thread
 void QSample::decoderReady()
 {
+#if QT_CONFIG(thread)
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
+#endif
     QMutexLocker m(&m_mutex);
     qCDebug(qLcSampleCache) << "QSample: decoder ready";
     m_parent->refresh(m_waveDecoder->size());
@@ -343,7 +349,9 @@ QSample::State QSample::state() const
 // Essentially a second ctor, doesn't need locks (?)
 void QSample::load()
 {
+#if QT_CONFIG(thread)
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
+#endif
     qCDebug(qLcSampleCache) << "QSample: load [" << m_url << "]";
     m_stream = m_parent->networkAccessManager().get(QNetworkRequest(m_url));
     connect(m_stream, SIGNAL(errorOccurred(QNetworkReply::NetworkError)), SLOT(loadingError(QNetworkReply::NetworkError)));
@@ -357,7 +365,9 @@ void QSample::load()
 
 void QSample::loadingError(QNetworkReply::NetworkError errorCode)
 {
+#if QT_CONFIG(thread)
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
+#endif
     QMutexLocker m(&m_mutex);
     qCDebug(qLcSampleCache) << "QSample: loading error" << errorCode;
     cleanup();
@@ -369,7 +379,9 @@ void QSample::loadingError(QNetworkReply::NetworkError errorCode)
 // Called in loading thread
 void QSample::decoderError()
 {
+#if QT_CONFIG(thread)
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
+#endif
     QMutexLocker m(&m_mutex);
     qCDebug(qLcSampleCache) << "QSample: decoder error";
     cleanup();
@@ -381,7 +393,9 @@ void QSample::decoderError()
 // Called in loading thread from decoder when sample is done. Locked already.
 void QSample::onReady()
 {
+#if QT_CONFIG(thread)
     Q_ASSERT(QThread::currentThread()->objectName() == QLatin1String("QSampleCache::LoadingThread"));
+#endif
     m_audioFormat = m_waveDecoder->audioFormat();
     qCDebug(qLcSampleCache) << "QSample: load ready format:" << m_audioFormat;
     cleanup();
