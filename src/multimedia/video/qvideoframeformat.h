@@ -157,8 +157,10 @@ public:
     void setFrameRate(qreal rate);
 
 #if QT_DEPRECATED_SINCE(6, 4)
-    QT_DEPRECATED_VERSION_X_6_0("Use colorSpace()") YCbCrColorSpace yCbCrColorSpace() const;
-    QT_DEPRECATED_VERSION_X_6_0("Use setColorSpace()") void setYCbCrColorSpace(YCbCrColorSpace colorSpace);
+    QT_DEPRECATED_VERSION_X_6_4("Use colorSpace()")
+    YCbCrColorSpace yCbCrColorSpace() const;
+    QT_DEPRECATED_VERSION_X_6_4("Use setColorSpace()")
+    void setYCbCrColorSpace(YCbCrColorSpace colorSpace);
 #endif
 
     ColorSpace colorSpace() const;
@@ -194,8 +196,10 @@ Q_DECLARE_SHARED(QVideoFrameFormat)
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrameFormat &);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::Direction);
-QT_DEPRECATED_VERSION_X_6_0("Use QVideoFrameFormat::ColorSpace")
+#if QT_DEPRECATED_SINCE(6, 4)
+QT_DEPRECATED_VERSION_X_6_4("Use QVideoFrameFormat::ColorSpace")
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::YCbCrColorSpace);
+#endif
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::ColorSpace);
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrameFormat::PixelFormat);
 #endif
