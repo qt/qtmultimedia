@@ -21,7 +21,9 @@ class Q_SPATIALAUDIO_EXPORT QAudioEngine : public QObject
     Q_PROPERTY(bool paused READ paused WRITE setPaused NOTIFY pausedChanged)
     Q_PROPERTY(float distanceScale READ distanceScale WRITE setDistanceScale NOTIFY distanceScaleChanged)
 public:
-    explicit QAudioEngine(QObject *parent = nullptr, int sampleRate = 44100);
+    QAudioEngine() : QAudioEngine(nullptr) {};
+    explicit QAudioEngine(QObject *parent) : QAudioEngine(44100, parent) {}
+    explicit QAudioEngine(int sampleRate, QObject *parent = nullptr);
     ~QAudioEngine();
 
     enum OutputMode {
