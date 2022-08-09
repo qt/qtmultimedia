@@ -323,15 +323,22 @@ QVector3D QAudioEnginePrivate::listenerPosition() const
 */
 
 /*!
-    Constructs a spatial audio engine with \a parent.
+    \fn QAudioEngine::QAudioEngine()
+    \fn QAudioEngine::QAudioEngine(QObject *parent)
+    \fn QAudioEngine::QAudioEngine(int sampleRate, QObject *parent = nullptr)
 
-    The engine will operate with a sample rate given by \a sampleRate. Sound content that is
-    not provided at that sample rate will automatically get resampled to \a sampleRate when
-    being processed by the engine. The default sample rate is fine in most cases, but you can define
-    a different rate if most of your sound files are sampled with a different rate, and avoid some
-    CPU overhead for resampling.
+    Constructs a spatial audio engine with \a parent, if any.
+
+    The engine will operate with a sample rate given by \a sampleRate. The
+    default sample rate, if none is provided, is 44100 (44.1kHz).
+
+    Sound content that is not provided at that sample rate will automatically
+    get resampled to \a sampleRate when being processed by the engine. The
+    default sample rate is fine in most cases, but you can define a different
+    rate if most of your sound files are sampled with a different rate, and
+    avoid some CPU overhead for resampling.
  */
-QAudioEngine::QAudioEngine(QObject *parent, int sampleRate)
+QAudioEngine::QAudioEngine(int sampleRate, QObject *parent)
     : QObject(parent)
     , d(new QAudioEnginePrivate)
 {
