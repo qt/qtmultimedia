@@ -889,6 +889,7 @@ QString QVideoFrameFormat::pixelFormatToString(QVideoFrameFormat::PixelFormat pi
 }
 
 #ifndef QT_NO_DEBUG_STREAM
+# if QT_DEPRECATED_SINCE(6, 4)
 QDebug operator<<(QDebug dbg, QVideoFrameFormat::YCbCrColorSpace cs)
 {
     QDebugStateSaver saver(dbg);
@@ -918,6 +919,7 @@ QDebug operator<<(QDebug dbg, QVideoFrameFormat::YCbCrColorSpace cs)
     }
     return dbg;
 }
+# endif // QT_DEPRECATED_SINCE(6, 4)
 
 QDebug operator<<(QDebug dbg, QVideoFrameFormat::ColorSpace cs)
 {
