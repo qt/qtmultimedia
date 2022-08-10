@@ -549,6 +549,7 @@ void QVideoFrameFormat::setFrameRate(qreal rate)
     d->frameRate = rate;
 }
 
+#if QT_DEPRECATED_SINCE(6, 4)
 /*!
     \deprecated Use colorSpace() instead
 
@@ -570,6 +571,7 @@ void QVideoFrameFormat::setYCbCrColorSpace(QVideoFrameFormat::YCbCrColorSpace sp
     detach();
     d->colorSpace = ColorSpace(space);
 }
+#endif // QT_DEPRECATED_SINCE(6, 4)
 
 /*!
     Returns the color space of a video stream.
