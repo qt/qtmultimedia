@@ -159,6 +159,12 @@
     the \l{GNU General Public License, version 2}.
     See \l{Qt Licensing} for further details.
 
+    The FFmpeg backend uses the \l {https://ffmpeg.org}{FFmpeg framework}. FFmpeg is licensed under
+    LGPLv2.1, GPLv2, or later versions of the licenses. Some optional components of FFmpeg are only
+    available under GPL. The FFmpeg backend shipped with the Qt binary packages is configured to not
+    contain any of the components that are available under GPLv2 only.
+    See the \l {https://ffmpeg.org/legal.html}{FFmpeg licensing page} for further details.
+
     \section1 Target platform and backend notes
 
     On most platforms, there are two different backends that can be used for Qt Multimedia.
