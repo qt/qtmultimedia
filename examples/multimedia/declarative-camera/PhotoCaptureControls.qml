@@ -116,7 +116,7 @@ FocusScope {
 
         currentZoom: camera.zoomFactor
         maximumZoom: camera.maximumZoomFactor
-        onZoomTo: camera.setDigitalZoom(value)
+        onZoomTo: camera.zoomFactor = value
     }
 
     states: [
