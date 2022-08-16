@@ -47,6 +47,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qbuffer.h>
+#include <QtMultimedia/qmediametadata.h>
 
 #include "mfplayercontrol.h"
 #include "mfevrvideowindowcontrol.h"
@@ -428,9 +429,15 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
     if (mediaType == Audio) {
         activate = m_playerService->audioEndpointControl()->createActivate();
     } else if (mediaType == Video) {
+
+        QSize resolution = m_playerService->metaDataControl()->metaData(QMediaMetaData::Resolution).toSize();
+        QRect cropRect = QRect(QPoint(), resolution);
+
         if (m_playerService->videoRendererControl()) {
+            m_playerService->videoRendererControl()->setCropRect(cropRect);
             activate = m_playerService->videoRendererControl()->createActivate();
         } else if (m_playerService->videoWindowControl()) {
+            m_playerService->videoWindowControl()->setCropRect(cropRect);
             activate = m_playerService->videoWindowControl()->createActivate();
         } else {
             qWarning() << "no videoWindowControl or videoRendererControl, unable to add output node for video data";

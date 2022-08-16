@@ -2239,10 +2239,12 @@ public:
     STDMETHODIMP DetachObject();
 
     void setSurface(QAbstractVideoSurface *surface);
+    void setCropRect(QRect cropRect);
 
 private:
     EVRCustomPresenter *m_presenter;
     QAbstractVideoSurface *m_surface;
+    QRect m_cropRect;
     QMutex m_mutex;
 };
 
@@ -2305,6 +2307,14 @@ void MFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
         static_cast<VideoRendererActivate*>(m_currentActivate)->setSurface(m_surface);
 }
 
+void MFVideoRendererControl::setCropRect(QRect cropRect)
+{
+    m_cropRect = cropRect;
+
+    if (m_presenterActivate)
+        m_presenterActivate->setCropRect(cropRect);
+}
+
 void MFVideoRendererControl::customEvent(QEvent *event)
 {
     if (m_presenterActivate)
@@ -2365,6 +2375,7 @@ IMFActivate* MFVideoRendererControl::createActivate()
     if (SUCCEEDED(MFCreateVideoRendererActivate(::GetShellWindow(), &m_currentActivate))) {
         m_presenterActivate = new EVRCustomPresenterActivate;
         m_currentActivate->SetUnknown(MF_ACTIVATE_CUSTOM_VIDEO_PRESENTER_ACTIVATE, m_presenterActivate);
+        m_presenterActivate->setCropRect(m_cropRect);
     } else {
         m_currentActivate = new VideoRendererActivate(this);
     }
@@ -2388,6 +2399,7 @@ HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
     QMutexLocker locker(&m_mutex);
     if (!m_presenter) {
         m_presenter = new EVRCustomPresenter;
+        m_presenter->setCropRect(m_cropRect);
         if (m_surface)
             m_presenter->setSurface(m_surface);
     }
@@ -2421,6 +2433,18 @@ void EVRCustomPresenterActivate::setSurface(QAbstractVideoSurface *surface)
 
     if (m_presenter)
         m_presenter->setSurface(surface);
+}
+
+void EVRCustomPresenterActivate::setCropRect(QRect cropRect)
+{
+    QMutexLocker locker(&m_mutex);
+    if (m_cropRect == cropRect)
+        return;
+
+    m_cropRect = cropRect;
+
+    if (m_presenter)
+        m_presenter->setCropRect(cropRect);
 }
 
 #include "moc_mfvideorenderercontrol.cpp"

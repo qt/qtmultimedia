@@ -43,6 +43,7 @@
 #include "qvideorenderercontrol.h"
 #include <mfapi.h>
 #include <mfidl.h>
+#include <qrect.h>
 
 QT_USE_NAMESPACE
 
@@ -61,6 +62,8 @@ public:
     IMFActivate* createActivate();
     void releaseActivate();
 
+    void setCropRect(QRect cropRect);
+
 protected:
     void customEvent(QEvent *event);
 
@@ -74,8 +77,8 @@ private:
     QAbstractVideoSurface *m_surface;
     IMFActivate *m_currentActivate;
     IMFSampleGrabberSinkCallback *m_callback;
-
     EVRCustomPresenterActivate *m_presenterActivate;
+    QRect m_cropRect;
 };
 
 #endif

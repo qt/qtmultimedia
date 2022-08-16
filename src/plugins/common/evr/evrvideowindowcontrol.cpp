@@ -134,26 +134,29 @@ void EvrVideoWindowControl::setDisplayRect(const QRect &rect)
 
     if (m_displayControl) {
         RECT displayRect = { rect.left(), rect.top(), rect.right() + 1, rect.bottom() + 1 };
-        QSize sourceSize = nativeSize();
+        QSize fullSize = nativeSize();
 
-        RECT sourceRect = { 0, 0, sourceSize.width(), sourceSize.height() };
+        RECT sourceRect;
+        if (m_cropRect.isValid())
+            sourceRect = { m_cropRect.x(), m_cropRect.y(), m_cropRect.right() + 1, m_cropRect.bottom() + 1 };
+        else
+            sourceRect = { 0, 0, fullSize.width(), fullSize.height() };
 
         if (m_aspectRatioMode == Qt::KeepAspectRatioByExpanding) {
             QSize clippedSize = rect.size();
             clippedSize.scale(sourceRect.right, sourceRect.bottom, Qt::KeepAspectRatio);
-
             sourceRect.left = (sourceRect.right - clippedSize.width()) / 2;
             sourceRect.top = (sourceRect.bottom - clippedSize.height()) / 2;
             sourceRect.right = sourceRect.left + clippedSize.width();
             sourceRect.bottom = sourceRect.top + clippedSize.height();
         }
 
-        if (sourceSize.width() > 0 && sourceSize.height() > 0) {
+        if (sourceRect.right - sourceRect.left > 0 && sourceRect.bottom - sourceRect.top > 0) {
             MFVideoNormalizedRect sourceNormRect;
-            sourceNormRect.left = float(sourceRect.left) / float(sourceRect.right);
-            sourceNormRect.top = float(sourceRect.top) / float(sourceRect.bottom);
-            sourceNormRect.right = float(sourceRect.right) / float(sourceRect.right);
-            sourceNormRect.bottom = float(sourceRect.bottom) / float(sourceRect.bottom);
+            sourceNormRect.left = float(sourceRect.left) / float(fullSize.width());
+            sourceNormRect.top = float(sourceRect.top) / float(fullSize.height());
+            sourceNormRect.right = float(sourceRect.right) / float(fullSize.width());
+            sourceNormRect.bottom = float(sourceRect.bottom) / float(fullSize.height());
             m_displayControl->SetVideoPosition(&sourceNormRect, &displayRect);
         } else {
             m_displayControl->SetVideoPosition(NULL, &displayRect);
@@ -162,6 +165,11 @@ void EvrVideoWindowControl::setDisplayRect(const QRect &rect)
         // To refresh content immediately.
         repaint();
     }
+}
+
+void EvrVideoWindowControl::setCropRect(QRect cropRect)
+{
+    m_cropRect = cropRect;
 }
 
 bool EvrVideoWindowControl::isFullScreen() const
