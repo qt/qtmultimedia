@@ -522,6 +522,12 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
         }
     } else if (mediaType == Video) {
         activate = m_videoRendererControl->createActivate();
+
+        QSize resolution = m_metaData.value(QMediaMetaData::Resolution).toSize();
+
+        if (resolution.isValid())
+            m_videoRendererControl->setCropRect(QRect(QPoint(), resolution));
+
     } else {
         // Unknown stream type.
         emit error(QMediaPlayer::FormatError, tr("Unknown stream type."), false);
