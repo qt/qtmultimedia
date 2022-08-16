@@ -2136,10 +2136,12 @@ public:
     STDMETHODIMP DetachObject() override;
 
     void setSink(QVideoSink *sink);
+    void setCropRect(QRect cropRect);
 
 private:
     EVRCustomPresenter *m_presenter;
     QVideoSink *m_videoSink;
+    QRect m_cropRect;
     QMutex m_mutex;
 };
 
@@ -2190,6 +2192,12 @@ void MFVideoRendererControl::setSink(QVideoSink *sink)
         m_presenterActivate->setSink(m_sink);
     else if (m_currentActivate)
         static_cast<VideoRendererActivate*>(m_currentActivate)->setSink(m_sink);
+}
+
+void MFVideoRendererControl::setCropRect(QRect cropRect)
+{
+    if (m_presenterActivate)
+        m_presenterActivate->setCropRect(cropRect);
 }
 
 void MFVideoRendererControl::customEvent(QEvent *event)
@@ -2261,6 +2269,7 @@ HRESULT EVRCustomPresenterActivate::ActivateObject(REFIID riid, void **ppv)
     QMutexLocker locker(&m_mutex);
     if (!m_presenter) {
         m_presenter = new EVRCustomPresenter(m_videoSink);
+        m_presenter->setCropRect(m_cropRect);
     }
     return m_presenter->QueryInterface(riid, ppv);
 }
@@ -2292,6 +2301,18 @@ void EVRCustomPresenterActivate::setSink(QVideoSink *sink)
 
     if (m_presenter)
         m_presenter->setSink(sink);
+}
+
+void EVRCustomPresenterActivate::setCropRect(QRect cropRect)
+{
+    QMutexLocker locker(&m_mutex);
+    if (m_cropRect == cropRect)
+        return;
+
+    m_cropRect = cropRect;
+
+    if (m_presenter)
+        m_presenter->setCropRect(cropRect);
 }
 
 #include "moc_mfvideorenderercontrol_p.cpp"
