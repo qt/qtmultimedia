@@ -32,14 +32,12 @@ public:
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
-    QList<QCameraDevice> videoInputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &info) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &info) override;
 
 private:
     QList<QAudioDevice> m_inputDevices;
     QList<QAudioDevice> m_outputDevices;
-    QList<QCameraDevice> m_cameraDevices;
 };
 
 QT_END_NAMESPACE
