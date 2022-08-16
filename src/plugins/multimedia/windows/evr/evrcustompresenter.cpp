@@ -1016,6 +1016,13 @@ void EVRCustomPresenter::setSink(QVideoSink *sink)
     supportedFormatsChanged();
 }
 
+void EVRCustomPresenter::setCropRect(QRect cropRect)
+{
+    m_mutex.lock();
+    m_cropRect = cropRect;
+    m_mutex.unlock();
+}
+
 HRESULT EVRCustomPresenter::configureMixer(IMFTransform *mixer)
 {
     // Set the zoom rectangle (ie, the source clipping rectangle).
@@ -1306,13 +1313,30 @@ HRESULT EVRCustomPresenter::createOptimalVideoType(IMFMediaType *proposedType, I
     hr = proposedType->GetUINT64(MF_MT_FRAME_SIZE, &size);
     width = int(HI32(size));
     height = int(LO32(size));
-    rcOutput.left = 0;
-    rcOutput.top = 0;
-    rcOutput.right = width;
-    rcOutput.bottom = height;
+
+    if (m_cropRect.isValid()) {
+        rcOutput.left = m_cropRect.x();
+        rcOutput.top = m_cropRect.y();
+        rcOutput.right = m_cropRect.x() + m_cropRect.width();
+        rcOutput.bottom = m_cropRect.y() + m_cropRect.height();
+
+        m_sourceRect.left = float(m_cropRect.x()) / width;
+        m_sourceRect.top = float(m_cropRect.y()) / height;
+        m_sourceRect.right = float(m_cropRect.x() + m_cropRect.width()) / width;
+        m_sourceRect.bottom = float(m_cropRect.y() + m_cropRect.height()) / height;
+
+        if (m_mixer)
+            configureMixer(m_mixer);
+    } else {
+        rcOutput.left = 0;
+        rcOutput.top = 0;
+        rcOutput.right = width;
+        rcOutput.bottom = height;
+    }
 
     // Set the geometric aperture, and disable pan/scan.
-    displayArea = qt_evr_makeMFArea(0, 0, rcOutput.right, rcOutput.bottom);
+    displayArea = qt_evr_makeMFArea(0, 0, rcOutput.right - rcOutput.left,
+                                    rcOutput.bottom - rcOutput.top);
 
     hr = mtOptimal->SetUINT32(MF_MT_PAN_SCAN_ENABLED, FALSE);
     if (FAILED(hr))
@@ -1378,7 +1402,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     // Initialize the presenter engine with the new media type.
     // The presenter engine allocates the samples.
 
-    hr = m_presentEngine->createVideoSamples(mediaType, sampleQueue);
+    hr = m_presentEngine->createVideoSamples(mediaType, sampleQueue, m_cropRect.size());
     if (FAILED(hr))
         goto done;
 
