@@ -142,6 +142,8 @@ void QVideoWidget::setAspectRatioMode(Qt::AspectRatioMode mode)
 void QVideoWidget::setFullScreen(bool fullScreen)
 {
     Q_D(QVideoWidget);
+    if (isFullScreen() == fullScreen)
+        return;
 
     Qt::WindowFlags flags = windowFlags();
 
@@ -167,7 +169,6 @@ void QVideoWidget::setFullScreen(bool fullScreen)
         move(d_ptr->nonFullscreenPos);
         d_ptr->nonFullscreenPos = {};
     }
-    d->wasFullScreen = fullScreen;
 }
 
 /*!
@@ -201,12 +202,10 @@ bool QVideoWidget::event(QEvent *event)
     Q_D(QVideoWidget);
 
     if (event->type() == QEvent::WindowStateChange) {
-        if (windowState() & Qt::WindowFullScreen) {
-            if (!d->wasFullScreen)
-                emit fullScreenChanged(d->wasFullScreen = true);
-        } else {
-            if (d->wasFullScreen)
-                emit fullScreenChanged(d->wasFullScreen = false);
+        bool fullScreen = bool(windowState() & Qt::WindowFullScreen);
+        if (fullScreen != d->wasFullScreen) {
+            emit fullScreenChanged(fullScreen);
+            d->wasFullScreen = fullScreen;
         }
     }
 
