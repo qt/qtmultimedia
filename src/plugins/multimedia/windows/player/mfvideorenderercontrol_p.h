@@ -16,6 +16,7 @@
 //
 
 #include "qobject.h"
+#include <qrect.h>
 #include <mfapi.h>
 #include <mfidl.h>
 
@@ -36,6 +37,8 @@ public:
 
     QVideoSink *sink() const;
     void setSink(QVideoSink *surface);
+
+    void setCropRect(QRect cropRect);
 
     IMFActivate* createActivate();
     void releaseActivate();
