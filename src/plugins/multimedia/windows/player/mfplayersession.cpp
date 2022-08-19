@@ -59,7 +59,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     , m_videoProbeMFT(0)
 
 {
-    QObject::connect(this, SIGNAL(sessionEvent(IMFMediaEvent*)), this, SLOT(handleSessionEvent(IMFMediaEvent*)));
+    connect(this, &MFPlayerSession::sessionEvent, this, &MFPlayerSession::handleSessionEvent);
 
     m_signalPositionChangeTimer.setInterval(10);
     m_signalPositionChangeTimer.setTimerType(Qt::PreciseTimer);

@@ -12,8 +12,8 @@ MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)
     , m_sourceResolver(new SourceResolver)
 {
-    connect(m_sourceResolver, SIGNAL(mediaSourceReady()), this, SLOT(handleMediaSourceReady()));
-    connect(m_sourceResolver, SIGNAL(error(long)), this, SLOT(handleMediaSourceError(long)));
+    connect(m_sourceResolver, &SourceResolver::mediaSourceReady, this, &MFAudioDecoderControl::handleMediaSourceReady);
+    connect(m_sourceResolver, &SourceResolver::error, this, &MFAudioDecoderControl::handleMediaSourceError);
 }
 
 MFAudioDecoderControl::~MFAudioDecoderControl()
@@ -113,8 +113,8 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
         return;
     }
 
-    connect(m_decoderSourceReader.get(), SIGNAL(finished()), this, SLOT(handleSourceFinished()));
-    connect(m_decoderSourceReader.get(), SIGNAL(newSample(QWindowsIUPointer<IMFSample>)), this, SLOT(handleNewSample(QWindowsIUPointer<IMFSample>)));
+    connect(m_decoderSourceReader.get(), &MFDecoderSourceReader::finished, this, &MFAudioDecoderControl::handleSourceFinished);
+    connect(m_decoderSourceReader.get(), &MFDecoderSourceReader::newSample, this, &MFAudioDecoderControl::handleNewSample);
 
     setIsDecoding(true);
 

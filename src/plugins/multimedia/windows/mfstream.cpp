@@ -17,7 +17,7 @@ MFStream::MFStream(QIODevice *stream, bool ownStream)
     //to make sure invocations on stream
     //are happened in the same thread of stream object
     this->moveToThread(stream->thread());
-    connect(stream, SIGNAL(readyRead()), this, SLOT(handleReadyRead()));
+    connect(stream, &QIODevice::readyRead, this, &MFStream::handleReadyRead);
 }
 
 MFStream::~MFStream()

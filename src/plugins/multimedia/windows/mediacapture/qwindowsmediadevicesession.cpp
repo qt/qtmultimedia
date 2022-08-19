@@ -17,14 +17,22 @@ QWindowsMediaDeviceSession::QWindowsMediaDeviceSession(QObject *parent)
     : QObject(parent)
 {
     m_mediaDeviceReader = new QWindowsMediaDeviceReader(this);
-    connect(m_mediaDeviceReader, SIGNAL(streamingStarted()), this, SLOT(handleStreamingStarted()));
-    connect(m_mediaDeviceReader, SIGNAL(streamingStopped()), this, SLOT(handleStreamingStopped()));
-    connect(m_mediaDeviceReader, SIGNAL(streamingError(int)), this, SLOT(handleStreamingError(int)));
-    connect(m_mediaDeviceReader, SIGNAL(videoFrameChanged(QVideoFrame)), this, SLOT(handleVideoFrameChanged(QVideoFrame)));
-    connect(m_mediaDeviceReader, SIGNAL(recordingStarted()), this, SIGNAL(recordingStarted()));
-    connect(m_mediaDeviceReader, SIGNAL(recordingStopped()), this, SIGNAL(recordingStopped()));
-    connect(m_mediaDeviceReader, SIGNAL(recordingError(int)), this, SIGNAL(recordingError(int)));
-    connect(m_mediaDeviceReader, SIGNAL(durationChanged(qint64)), this, SIGNAL(durationChanged(qint64)));
+    connect(m_mediaDeviceReader, &QWindowsMediaDeviceReader::streamingStarted,
+            this, &QWindowsMediaDeviceSession::handleStreamingStarted);
+    connect(m_mediaDeviceReader, &QWindowsMediaDeviceReader::streamingStopped,
+            this, &QWindowsMediaDeviceSession::handleStreamingStopped);
+    connect(m_mediaDeviceReader, &QWindowsMediaDeviceReader::streamingError,
+            this, &QWindowsMediaDeviceSession::handleStreamingError);
+    connect(m_mediaDeviceReader, &QWindowsMediaDeviceReader::videoFrameChanged,
+            this, &QWindowsMediaDeviceSession::handleVideoFrameChanged);
+    connect(m_mediaDeviceReader, &QWindowsMediaDeviceReader::recordingStarted,
+            this, &QWindowsMediaDeviceSession::recordingStarted);
+    connect(m_mediaDeviceReader, &QWindowsMediaDeviceReader::recordingStopped,
+            this, &QWindowsMediaDeviceSession::recordingStopped);
+    connect(m_mediaDeviceReader, &QWindowsMediaDeviceReader::recordingError,
+            this, &QWindowsMediaDeviceSession::recordingError);
+    connect(m_mediaDeviceReader, &QWindowsMediaDeviceReader::durationChanged,
+            this, &QWindowsMediaDeviceSession::durationChanged);
 }
 
 QWindowsMediaDeviceSession::~QWindowsMediaDeviceSession()
