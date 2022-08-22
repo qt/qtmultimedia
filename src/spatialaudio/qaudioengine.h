@@ -44,9 +44,6 @@ public:
     void setMasterVolume(float volume);
     float masterVolume() const;
 
-    void start();
-    void stop();
-
     void setPaused(bool paused);
     bool paused() const;
 
@@ -67,6 +64,9 @@ Q_SIGNALS:
     void distanceScaleChanged();
 
 public Q_SLOTS:
+    void start();
+    void stop();
+
     void pause() { setPaused(true); }
     void resume() { setPaused(false); }
 
