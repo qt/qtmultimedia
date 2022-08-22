@@ -410,6 +410,7 @@ void tst_QMediaPlayerBackend::playPauseStop()
 
     //ensure the position is reset to 0 at stop and positionChanged(0) is emitted
     QTRY_COMPARE(player.position(), qint64(0));
+    QTRY_VERIFY(positionSpy.count() > 0);
     QCOMPARE(positionSpy.last()[0].value<qint64>(), qint64(0));
     QVERIFY(player.duration() > 0);
 
@@ -446,9 +447,12 @@ void tst_QMediaPlayerBackend::playPauseStop()
     player.setSource(localWavFile);
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QTRY_VERIFY(statusSpy.count() > 0);
     QCOMPARE(statusSpy.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::LoadedMedia);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_VERIFY(stateSpy.count() > 0);
     QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
+    QTRY_VERIFY(positionSpy.count() > 0);
     QCOMPARE(player.position(), 0);
     QCOMPARE(positionSpy.last()[0].value<qint64>(), 0);
 
@@ -463,9 +467,12 @@ void tst_QMediaPlayerBackend::playPauseStop()
     player.setSource(QUrl());
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
+    QTRY_VERIFY(statusSpy.count() > 0);
     QCOMPARE(statusSpy.last()[0].value<QMediaPlayer::MediaStatus>(), QMediaPlayer::NoMedia);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_VERIFY(stateSpy.count() > 0);
     QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
+    QTRY_VERIFY(positionSpy.count() > 0);
     QCOMPARE(player.position(), 0);
     QCOMPARE(positionSpy.last()[0].value<qint64>(), 0);
     QCOMPARE(player.duration(), 0);
