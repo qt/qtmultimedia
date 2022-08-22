@@ -188,6 +188,7 @@ void MFPlayerSession::close()
         CloseHandle(m_hCloseEvent);
     m_hCloseEvent = 0;
     m_lastPosition = -1;
+    m_position = 0;
 }
 
 MFPlayerSession::~MFPlayerSession()
