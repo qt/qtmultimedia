@@ -782,7 +782,11 @@ void AudioRenderer::updateOutput(const Codec *codec)
     // formats agree.
     AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
 
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
     qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat << audioStream->codecpar->channels;
+#else
+    qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat << audioStream->codecpar->ch_layout.nb_channels;
+#endif
     resampler.reset(new Resampler(codec, format));
 }
 
