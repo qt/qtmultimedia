@@ -102,7 +102,7 @@ static AVBufferRef *hardwareContextForCodec(const AVCodec *codec)
 AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt)
 {
     // First check HW accelerated codecs, the HW device context must be set
-    if (s->hw_device_ctx && s->codec->hw_configs) {
+    if (s->hw_device_ctx) {
         auto *device_ctx = (AVHWDeviceContext*)s->hw_device_ctx->data;
         for (int i = 0; const AVCodecHWConfig *config = avcodec_get_hw_config(s->codec, i); i++) {
             if (!(config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX))

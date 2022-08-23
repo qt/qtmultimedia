@@ -257,8 +257,12 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
     stream->id = encoder->formatContext->nb_streams - 1;
     stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
     stream->codecpar->codec_id = codecID;
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
     stream->codecpar->channel_layout = av_get_default_channel_layout(format.channelCount());
     stream->codecpar->channels = format.channelCount();
+#else
+    av_channel_layout_default(&stream->codecpar->ch_layout, format.channelCount());
+#endif
     stream->codecpar->sample_rate = format.sampleRate();
     stream->codecpar->frame_size = 1024;
     stream->codecpar->format = bestSampleFormat;
@@ -280,6 +284,7 @@ void AudioEncoder::open()
     qCDebug(qLcFFmpegEncoder) << "audio codec params: fmt=" << codec->sample_fmt << "rate=" << codec->sample_rate;
 
     if (codec->sample_fmt != requested) {
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
         resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
                                        codec->channel_layout,  // out_ch_layout
                                        codec->sample_fmt,    // out_sample_fmt
@@ -289,6 +294,15 @@ void AudioEncoder::open()
                                        format.sampleRate(),                // in_sample_rate
                                        0,                    // log_offset
                                        nullptr);
+#else
+        AVChannelLayout in_ch_layout = {};
+        av_channel_layout_default(&in_ch_layout, format.channelCount());
+        swr_alloc_set_opts2(&resampler,  // we're allocating a new context
+                            &codec->ch_layout, codec->sample_fmt, codec->sample_rate,
+                            &in_ch_layout, requested, format.sampleRate(),
+                            0, nullptr);
+#endif
+
         swr_init(resampler);
     }
 }
@@ -368,8 +382,12 @@ void AudioEncoder::loop()
 
     AVFrame *frame = av_frame_alloc();
     frame->format = codec->sample_fmt;
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
     frame->channel_layout = codec->channel_layout;
     frame->channels = codec->channels;
+#else
+    frame->ch_layout = codec->ch_layout;
+#endif
     frame->sample_rate = codec->sample_rate;
     frame->nb_samples = buffer.frameCount();
     if (frame->nb_samples)
