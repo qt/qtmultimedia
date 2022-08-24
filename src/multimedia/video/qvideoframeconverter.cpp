@@ -32,6 +32,9 @@
 #include <private/qguiapplication_p.h>
 #include <private/qrhi_p.h>
 
+#ifdef Q_OS_DARWIN
+#include <QtCore/private/qcore_mac_p.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
