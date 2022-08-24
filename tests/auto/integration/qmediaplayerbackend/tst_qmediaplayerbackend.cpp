@@ -15,6 +15,8 @@
 
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 
+#include <array>
+
 QT_USE_NAMESPACE
 
 /*
@@ -58,6 +60,8 @@ private slots:
     void videoDimensions();
     void position();
     void multipleMediaPlayback();
+    void multiplePlaybackRateChangingStressTest();
+    void playbackRateChanging();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -71,6 +75,9 @@ private:
     QUrl videoDimensionTestFile;
     QUrl localCompressedSoundFile;
     QUrl localFileWithMetadata;
+    QUrl localVideoFile3ColorsWithSound;
+
+    const std::array<QRgb, 3> video3Colors = { { 0xFF0000, 0x00FF00, 0x0000FF } };
 
     bool m_inCISystem;
 };
@@ -89,8 +96,22 @@ public:
         connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::addVideoFrame);
     }
 
+    QVideoFrame waitForFrame()
+    {
+        QSignalSpy spy(this, &TestVideoSink::videoFrameChanged);
+        return spy.wait() ? spy.at(0).at(0).value<QVideoFrame>() : QVideoFrame{};
+    }
+
 public Q_SLOTS:
     void addVideoFrame(const QVideoFrame &frame) {
+        // qDebug() << m_elapsedTimer.elapsed() << frame.startTime() << frame.endTime() <<
+        // frame.toImage().pixelColor(1, 1);
+
+        if (!m_elapsedTimer.isValid())
+            m_elapsedTimer.start();
+        else
+            m_elapsedTimer.restart();
+
         if (m_storeFrames)
             m_frameList.append(frame);
         ++m_totalFrames;
@@ -99,6 +120,7 @@ public Q_SLOTS:
 public:
     QList<QVideoFrame> m_frameList;
     int m_totalFrames = 0; // used instead of the list when frames are not stored
+    QElapsedTimer m_elapsedTimer;
 
 private:
     bool m_storeFrames;
@@ -156,6 +178,10 @@ void tst_QMediaPlayerBackend::initTestCase()
     mediaCandidates << "qrc:/testdata/colors.mp4";
     mediaCandidates << "qrc:/testdata/colors.ogv";
     localVideoFile = MediaFileSelector::selectMediaFile(mediaCandidates);
+
+    mediaCandidates.clear();
+    mediaCandidates << "qrc:/testdata/3colors_with_sound_1s.mp4";
+    localVideoFile3ColorsWithSound = MediaFileSelector::selectMediaFile(mediaCandidates);
 
     mediaCandidates.clear();
     mediaCandidates << "qrc:/testdata/BigBuckBunny.mp4";
@@ -1032,6 +1058,158 @@ void tst_QMediaPlayerBackend::multipleMediaPlayback()
     player.stop();
 
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
+{
+    if (localVideoFile3ColorsWithSound.isEmpty())
+        QSKIP("Video format is not supported");
+
+    TestVideoSink surface(false);
+    QAudioOutput output;
+    QMediaPlayer player;
+
+    player.setAudioOutput(&output);
+    player.setVideoOutput(&surface);
+
+    player.setSource(localVideoFile3ColorsWithSound);
+
+    player.play();
+
+    surface.waitForFrame();
+
+    QSignalSpy spy(&player, &QMediaPlayer::playbackStateChanged);
+
+    constexpr qint64 expectedVideoDuration = 3000;
+    constexpr int waitingInterval = 200;
+    constexpr qint64 maxDuration = expectedVideoDuration + 2000;
+    constexpr qint64 minDuration = expectedVideoDuration - 100;
+    constexpr qint64 maxFrameDelay = 2000;
+
+    surface.m_elapsedTimer.start();
+
+    qint64 duration = 0;
+
+    for (int i = 0; !spy.wait(waitingInterval); ++i) {
+        duration += waitingInterval * player.playbackRate();
+
+        player.setPlaybackRate(0.5 * (i % 4 + 1));
+
+        QCOMPARE_LE(duration, maxDuration);
+
+        QVERIFY2(surface.m_elapsedTimer.elapsed() < maxFrameDelay,
+                 "If the delay is more than 2s, we consider the video playing is hanging.");
+
+        /* Some debug code for windows. Use the code instead of the check above to debug the bug.
+         * https://bugreports.qt.io/browse/QTBUG-105940.
+         * TODO: fix hanging on windows and remove.
+        if ( surface.m_elapsedTimer.elapsed() > maxFrameDelay ) {
+            qDebug() << "pause/play";
+            player.pause();
+            player.play();
+            surface.m_elapsedTimer.restart();
+            spy.clear();
+        }*/
+    }
+
+    QCOMPARE_GT(duration, minDuration);
+
+    QCOMPARE(spy.size(), 1);
+    QCOMPARE(spy.at(0).size(), 1);
+    QCOMPARE(spy.at(0).at(0).value<QMediaPlayer::PlaybackState>(),
+             QMediaPlayer::PlaybackState::StoppedState);
+
+    QCOMPARE(player.playbackState(), QMediaPlayer::PlaybackState::StoppedState);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::MediaStatus::EndOfMedia);
+}
+
+static qreal colorDifference(QRgb first, QRgb second)
+{
+    const auto diffVector = QVector3D(qRed(first), qGreen(first), qBlue(first)) - QVector3D(qRed(second), qGreen(second), qBlue(second));
+    static const auto normalizationFactor = 1. / ( 255 * qSqrt(3.) );
+    return diffVector.length() * normalizationFactor;
+}
+
+template<typename It>
+It findSimilarColor(It it, It end, QRgb color)
+{
+    return std::min_element(it, end, [color](QRgb first, QRgb second) {
+        return colorDifference(first, color) < colorDifference(second, color);
+    });
+}
+
+void tst_QMediaPlayerBackend::playbackRateChanging()
+{
+    if (localVideoFile3ColorsWithSound.isEmpty())
+        QSKIP("Video format is not supported");
+
+    TestVideoSink surface(false);
+    QAudioOutput output;
+    QMediaPlayer player;
+
+    player.setAudioOutput(&output); // TODO: mock audio output and check sound by frequency
+    player.setVideoOutput(&surface);
+    player.setSource(localVideoFile3ColorsWithSound);
+
+    QImage frameImage;
+    connect(&surface, &QVideoSink::videoFrameChanged, [&frameImage](const QVideoFrame& frame) {
+        frameImage = frame.toImage();
+    });
+
+    auto checkColorAndPosition = [&](int colorIndex, QString errorTag) {
+        QVERIFY(!frameImage.isNull());
+        const auto expectedColor = video3Colors[colorIndex];
+        const auto actualColor = frameImage.pixel(1, 1);
+
+        bool failed = true;
+
+        auto guard = qScopeGuard([&]() {
+            if (failed) {
+                qDebug() << "Error Tag:" << errorTag;
+                qDebug() << "Actual Color:" << QColor(actualColor)
+                         << "Expected Color:" << QColor(expectedColor);
+                qDebug() << "Most probable actual color index:"
+                         << std::distance(video3Colors.begin(),
+                                          findSimilarColor(video3Colors.begin(), video3Colors.end(),
+                                                           actualColor))
+                         << " Expected color index:" << colorIndex;
+                qDebug() << "Actual position:" << player.position();
+            }
+        });
+
+        constexpr qint64 intervalTime = 1000;
+
+        // TODO: investigate why frames sometimes are not delivered in time on windows
+        constexpr qreal maxColorDifference = 0.18;
+        QCOMPARE_LE(colorDifference(actualColor, expectedColor), maxColorDifference);
+        QCOMPARE_GT(player.position(), intervalTime * colorIndex);
+        QCOMPARE_LT(player.position(), intervalTime * (colorIndex + 1));
+
+        failed = false;
+    };
+
+    player.play();
+
+    auto waitUntil = [&](quint64 t) {
+        surface.waitForFrame();
+
+        QTest::qWait((t - player.position()) / player.playbackRate());
+    };
+
+    waitUntil(400);
+    checkColorAndPosition(0, "Check default playback rate");
+
+    player.setPlaybackRate(2.);
+
+    waitUntil(1400);
+    checkColorAndPosition(1, "Check 2.0 playback rate");
+
+    player.setPlaybackRate(0.5);
+
+    waitUntil(1900);
+    checkColorAndPosition(1, "Check 0.5 playback rate");
+
+    player.stop();
 }
 
 void tst_QMediaPlayerBackend::surfaceTest()
