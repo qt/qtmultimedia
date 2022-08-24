@@ -164,6 +164,9 @@ void QWindowsAudioSink::start(QIODevice* device)
     if (deviceState != QAudio::StoppedState)
         close();
 
+    if (device == nullptr)
+        return;
+
     if (!open()) {
         errorState = QAudio::OpenError;
         emit errorChanged(QAudio::OpenError);
@@ -175,7 +178,7 @@ void QWindowsAudioSink::start(QIODevice* device)
     connect(device, &QIODevice::readyRead, this, &QWindowsAudioSink::pullSource);
     m_timer.disconnect();
     m_timer.callOnTimeout(this, &QWindowsAudioSink::pullSource);
-    m_timer.start(0);
+    pullSource();
 }
 
 qint64 QWindowsAudioSink::push(const char *data, qint64 len)
