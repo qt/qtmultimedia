@@ -81,7 +81,7 @@ void QWindowsMediaEncoder::record(QMediaEncoderSettings &settings)
     if (m_state != QMediaRecorder::StoppedState)
         return;
 
-    m_sessionWasActive = m_mediaDeviceSession->isActive();
+    m_sessionWasActive = m_mediaDeviceSession->isActive() || m_mediaDeviceSession->isActivating();
 
     if (!m_sessionWasActive) {
 
