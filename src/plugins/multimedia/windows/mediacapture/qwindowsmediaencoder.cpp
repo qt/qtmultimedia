@@ -104,10 +104,11 @@ void QWindowsMediaEncoder::resume()
 
 void QWindowsMediaEncoder::stop()
 {
-    if (m_mediaDeviceSession && m_state != QMediaRecorder::StoppedState)
+    if (m_mediaDeviceSession && m_state != QMediaRecorder::StoppedState) {
         m_mediaDeviceSession->stopRecording();
-    if (!m_sessionWasActive)
-        m_mediaDeviceSession->setActive(false);
+        if (!m_sessionWasActive)
+            m_mediaDeviceSession->setActive(false);
+    }
 }
 
 
