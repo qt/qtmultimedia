@@ -6,6 +6,7 @@
 #include <private/qcameradevice_p.h>
 #include <private/qwindowsmfdefs_p.h>
 #include <private/qwindowsmultimediautils_p.h>
+#include <private/qwindowsiupointer_p.h>
 
 #include <Dbt.h>
 
@@ -146,8 +147,6 @@ QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
                         QList<QSize> photoResolutions;
                         QList<QCameraFormat> videoFormats;
 
-                        DWORD dwMediaTypeIndex = 0;
-                        IMFMediaType *mediaFormat = NULL;
                         GUID subtype = GUID_NULL;
                         HRESULT mediaFormatResult = S_OK;
 
@@ -157,11 +156,12 @@ QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
                         UINT32 width = 0u;
                         UINT32 height = 0u;
 
-                        while (SUCCEEDED(mediaFormatResult)) {
+                        for (DWORD mediaTypeIndex = 0; SUCCEEDED(mediaFormatResult); ++mediaTypeIndex) {
                             // Loop through the supported formats for the video device
+                            QWindowsIUPointer<IMFMediaType> mediaFormat;
                             mediaFormatResult = reader->GetNativeMediaType(
-                                    (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, dwMediaTypeIndex,
-                                    &mediaFormat);
+                                    (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, mediaTypeIndex,
+                                    mediaFormat.address());
                             if (mediaFormatResult == MF_E_NO_MORE_TYPES)
                                 break;
                             else if (SUCCEEDED(mediaFormatResult)) {
@@ -173,17 +173,22 @@ QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
                                 if (SUCCEEDED(mediaFormat->GetGUID(MF_MT_SUBTYPE, &subtype)))
                                     pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
 
-                                if (SUCCEEDED(MFGetAttributeSize(mediaFormat, MF_MT_FRAME_SIZE, &width,
+                                if (pixelFormat == QVideoFrameFormat::Format_Invalid)
+                                    continue;
+
+                                if (SUCCEEDED(MFGetAttributeSize(mediaFormat.get(), MF_MT_FRAME_SIZE, &width,
                                                                  &height))) {
                                     resolution.rheight() = (int)height;
                                     resolution.rwidth() = (int)width;
                                     photoResolutions << resolution;
+                                } else {
+                                    continue;
                                 }
 
-                                if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MIN,
+                                if (SUCCEEDED(MFGetAttributeRatio(mediaFormat.get(), MF_MT_FRAME_RATE_RANGE_MIN,
                                                                   &frameRateMin, &denominator)))
                                     minFr = qreal(frameRateMin) / denominator;
-                                if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MAX,
+                                if (SUCCEEDED(MFGetAttributeRatio(mediaFormat.get(), MF_MT_FRAME_RATE_RANGE_MAX,
                                                                   &frameRateMax, &denominator)))
                                     maxFr = qreal(frameRateMax) / denominator;
 
@@ -191,10 +196,7 @@ QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
                                                                     resolution, minFr, maxFr };
                                 videoFormats << f->create();
                             }
-                            ++dwMediaTypeIndex;
                         }
-                        if (mediaFormat)
-                            mediaFormat->Release();
 
                         info->videoFormats = videoFormats;
                         info->photoResolutions = photoResolutions;
