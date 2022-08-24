@@ -51,6 +51,8 @@ QVideoFrameFormat::PixelFormat QWindowsMultimediaUtils::pixelFormatFromMediaSubt
         return QVideoFrameFormat::Format_Y8;
     if (subtype == MFVideoFormat_L16)
         return QVideoFrameFormat::Format_Y16;
+    if (subtype == MFVideoFormat_MJPG)
+        return QVideoFrameFormat::Format_Jpeg;
 
     return QVideoFrameFormat::Format_Invalid;
 }
