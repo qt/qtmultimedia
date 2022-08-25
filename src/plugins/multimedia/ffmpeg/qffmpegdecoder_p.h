@@ -474,6 +474,7 @@ private slots:
 
 private:
     void updateOutput(const Codec *codec);
+    void initResempler(const Codec *codec);
     void freeOutput();
 
     void init() override;

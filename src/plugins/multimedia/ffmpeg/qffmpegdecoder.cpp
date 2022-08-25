@@ -775,24 +775,35 @@ void AudioRenderer::updateOutput(const Codec *codec)
     format = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(audioStream->codecpar);
     format.setChannelConfig(dev.channelConfiguration());
 
+    initResempler(codec);
+
     audioSink = new QAudioSink(dev, format);
     audioSink->setVolume(output->volume());
 
     audioSink->setBufferSize(format.bytesForDuration(100000));
     audioDevice = audioSink->start();
+
     latencyUSecs = format.durationForBytes(audioSink->bufferSize()); // ### ideally get full latency
     qCDebug(qLcAudioRenderer) << "   -> have an audio sink" << audioDevice;
+}
 
+void AudioRenderer::initResempler(const Codec *codec)
+{
     // init resampler. It's ok to always do this, as the resampler will be a no-op if
     // formats agree.
     AVSampleFormat requiredFormat = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
 
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat << audioStream->codecpar->channels;
+    qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat
+                              << codec->stream()->codecpar->channels;
 #else
-    qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat << audioStream->codecpar->ch_layout.nb_channels;
+    qCDebug(qLcAudioRenderer) << "init resampler" << requiredFormat
+                              << codec->stream()->codecpar->ch_layout.nb_channels;
 #endif
-    resampler.reset(new Resampler(codec, format));
+
+    auto resamplerFormat = format;
+    resamplerFormat.setSampleRate(qRound(format.sampleRate() / playbackRate()));
+    resampler.reset(new Resampler(codec, resamplerFormat));
 }
 
 void AudioRenderer::freeOutput()
