@@ -109,10 +109,12 @@ void QWindowsMediaDeviceSession::setVideoSink(QVideoSink *surface)
 
 void QWindowsMediaDeviceSession::handleStreamingStarted()
 {
-    m_active = true;
-    m_activating = false;
-    emit activeChanged(m_active);
-    emit readyForCaptureChanged(m_active);
+    if (m_activating) {
+        m_active = true;
+        m_activating = false;
+        emit activeChanged(m_active);
+        emit readyForCaptureChanged(m_active);
+    }
 }
 
 void QWindowsMediaDeviceSession::handleStreamingStopped()
