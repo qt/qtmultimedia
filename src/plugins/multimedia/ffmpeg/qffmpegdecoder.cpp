@@ -731,8 +731,9 @@ void VideoRenderer::loop()
         nextFrameTime = startTime + duration;
     streamDecoder->unlockAndReleaseFrame();
     qint64 mtime = timeUpdated(startTime);
-    timeOut = usecsTo(mtime, nextFrameTime)/1000;
-//    qCDebug(qLcVideoRenderer) << "    next video frame in" << startTime << nextFrameTime << currentTime() << timeOut;
+    timeOut = usecsTo(mtime, nextFrameTime) / 1000;
+    //    qCDebug(qLcVideoRenderer) << "    next video frame in" << startTime << nextFrameTime <<
+    //    currentTime() << timeOut;
 }
 
 AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
@@ -745,6 +746,8 @@ AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
 
 void AudioRenderer::syncTo(qint64 usecs)
 {
+    QMutexLocker locker(&mutex);
+
     Clock::syncTo(usecs);
     audioBaseTime = usecs;
     processedBase = processedUSecs;
@@ -752,6 +755,8 @@ void AudioRenderer::syncTo(qint64 usecs)
 
 void AudioRenderer::setPlaybackRate(float rate, qint64 currentTime)
 {
+    QMutexLocker locker(&mutex);
+
     audioBaseTime = currentTime;
     processedBase = processedUSecs;
     Clock::setPlaybackRate(rate, currentTime);
@@ -894,7 +899,7 @@ void AudioRenderer::loop()
 //    qCDebug(qLcAudioRenderer) << "Audio: processed" << processedUSecs << "written" << writtenUSecs
 //             << "delta" << (writtenUSecs - processedUSecs) << "timeOut" << timeOut;
 //    qCDebug(qLcAudioRenderer) << "    updating time to" << currentTimeNoLock();
-    timeUpdated(audioBaseTime + (processedUSecs - processedBase)*playbackRate());
+    timeUpdated(audioBaseTime + qRound((processedUSecs - processedBase) * playbackRate()));
 }
 
 void AudioRenderer::streamChanged()
@@ -1324,11 +1329,7 @@ void Decoder::seek(qint64 pos)
 
 void Decoder::setPlaybackRate(float rate)
 {
-    if (m_state == QMediaPlayer::PlayingState)
-        setPaused(true);
     clockController.setPlaybackRate(rate);
-    if (m_state == QMediaPlayer::PlayingState)
-        setPaused(false);
 }
 
 void Decoder::updateCurrentTime(qint64 time)

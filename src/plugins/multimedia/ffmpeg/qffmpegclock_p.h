@@ -5,6 +5,7 @@
 
 #include "qffmpeg_p.h"
 
+#include <qatomic.h>
 #include <qelapsedtimer.h>
 #include <qlist.h>
 #include <qmutex.h>
@@ -59,9 +60,9 @@ class ClockController
 {
     mutable QMutex m_mutex;
     QList<Clock *> m_clocks;
-    Clock *m_master = nullptr;
+    QAtomicPointer<Clock> m_master = nullptr;
 
-    QElapsedTimer m_timer;
+    QElapsedTimer m_elapsedTimer;
     qint64 m_baseTime = 0;
     qint64 m_seekTime = 0;
     float m_playbackRate = 1.;
@@ -70,15 +71,17 @@ class ClockController
     qint64 m_lastMasterTime = 0;
     QObject *notifyObject = nullptr;
     QMetaMethod notify;
-    qint64 currentTimeNoLock() const { return m_isPaused ? m_baseTime : m_baseTime + m_timer.elapsed()/m_playbackRate; }
+    qint64 currentTimeNoLock() const;
 
     friend class Clock;
     qint64 timeUpdated(Clock *clock, qint64 time);
     void addClock(Clock *provider);
     void removeClock(Clock *provider);
+    bool isMaster(const Clock *clock) const;
+
 public:
-    // max 25 msecs tolerance for the clock
-    enum { ClockTolerance = 25000 };
+    // max 5 msecs tolerance for the clock
+    enum { NotificationTolerance = 5000 };
     ClockController() = default;
     ~ClockController();
 
@@ -91,11 +94,7 @@ public:
     float playbackRate() const { return m_playbackRate; }
     void setPaused(bool paused);
 
-    void setNotify(QObject *object, QMetaMethod method)
-    {
-        notifyObject = object;
-        notify = method;
-    }
+    void setNotify(QObject *object, QMetaMethod method);
 };
 
 inline float Clock::playbackRate() const
@@ -105,7 +104,7 @@ inline float Clock::playbackRate() const
 
 inline bool Clock::isMaster() const
 {
-    return controller ? controller->m_master == this : false;
+    return controller && controller->isMaster(this);
 }
 
 inline qint64 Clock::seekTime() const
