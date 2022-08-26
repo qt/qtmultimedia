@@ -740,6 +740,7 @@ AudioRenderer::AudioRenderer(Decoder *decoder, QAudioOutput *output)
     , output(output)
 {
     connect(output, &QAudioOutput::deviceChanged, this, &AudioRenderer::updateAudio);
+    connect(output, &QAudioOutput::volumeChanged, this, &AudioRenderer::setSoundVolume);
 }
 
 void AudioRenderer::syncTo(qint64 usecs)
@@ -769,10 +770,9 @@ void AudioRenderer::updateOutput(const Codec *codec)
     format = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(audioStream->codecpar);
     format.setChannelConfig(dev.channelConfiguration());
 
-    if (playbackRate() < 0.5 || playbackRate() > 2)
-        audioMuted = true;
-
     audioSink = new QAudioSink(dev, format);
+    audioSink->setVolume(output->volume());
+
     audioSink->setBufferSize(format.bytesForDuration(100000));
     audioDevice = audioSink->start();
     latencyUSecs = format.durationForBytes(audioSink->bufferSize()); // ### ideally get full latency
@@ -798,7 +798,7 @@ void AudioRenderer::freeOutput()
         audioSink = nullptr;
         audioDevice = nullptr;
     }
-    audioMuted = false;
+
     bufferedData = {};
     bufferWritten = 0;
 
@@ -867,7 +867,7 @@ void AudioRenderer::loop()
         if (!paused) {
             auto buffer = resampler->resample(frame.avFrame());
 
-            if (audioMuted)
+            if (output->isMuted())
                 // This is somewhat inefficient, but it'll work
                 memset(buffer.data<char>(), 0, buffer.byteCount());
 
@@ -907,6 +907,14 @@ void AudioRenderer::updateAudio()
 {
     QMutexLocker locker(&mutex);
     deviceChanged = true;
+}
+
+void AudioRenderer::setSoundVolume(float volume)
+{
+    QMutexLocker locker(&mutex);
+
+    if (audioSink)
+        audioSink->setVolume(volume);
 }
 
 Decoder::Decoder()

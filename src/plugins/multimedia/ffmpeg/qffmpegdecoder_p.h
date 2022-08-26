@@ -470,6 +470,7 @@ public:
 
 private slots:
     void updateAudio();
+    void setSoundVolume(float volume);
 
 private:
     void updateOutput(const Codec *codec);
@@ -492,7 +493,6 @@ private:
 
     bool deviceChanged = false;
     QAudioOutput *output = nullptr;
-    bool audioMuted = false;
     qint64 writtenUSecs = 0;
     qint64 latencyUSecs = 0;
 
