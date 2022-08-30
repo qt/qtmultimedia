@@ -14,6 +14,7 @@
 #include <QtWidgets/QSlider>
 
 #include <QtCore/QPropertyAnimation>
+#include <QtCore/QLibraryInfo>
 
 class AudioWidget : public QWidget
 {
