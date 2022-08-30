@@ -10,7 +10,7 @@ if(NOT DEFINED INSTALL_EXAMPLESDIR)
     set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
-set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimediawidgets/player")
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/player")
 
 find_package(Qt6 REQUIRED COMPONENTS MultimediaWidgets Network)
 

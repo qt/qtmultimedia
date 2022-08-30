@@ -11,7 +11,7 @@ if(NOT DEFINED INSTALL_EXAMPLESDIR)
     set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
-set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimediawidgets/camera")
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/camera")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Multimedia MultimediaWidgets Widgets)
 
