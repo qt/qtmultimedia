@@ -30,7 +30,7 @@ android|ios {
 }
 RESOURCES += camera.qrc
 
-target.path = $$[QT_INSTALL_EXAMPLES]/multimediawidgets/camera
+target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/camera
 INSTALLS += target
 
 QT += widgets

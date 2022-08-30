@@ -8,10 +8,14 @@ SUBDIRS += \
 # These examples all need widgets for now (using creator templates that use widgets)
 qtHaveModule(widgets) {
     SUBDIRS += \
-        spectrum \
-        audiorecorder \
         audiodevices \
-        audiooutput
+        audiooutput \
+        audiorecorder \
+        camera \
+        player \
+        spectrum \
+        videographicsitem \
+        videowidget
 }
 
 qtHaveModule(quick) {

@@ -23,5 +23,5 @@ SOURCES = main.cpp \
     qmediaplaylist.cpp \
     qplaylistfileparser.cpp
 
-target.path = $$[QT_INSTALL_EXAMPLES]/multimediawidgets/player
+target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/player
 INSTALLS += target
