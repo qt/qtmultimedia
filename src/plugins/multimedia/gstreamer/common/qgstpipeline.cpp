@@ -293,10 +293,12 @@ bool QGstPipeline::seek(qint64 pos, double rate)
     // always adjust the rate, so it can be  set before playback starts
     // setting position needs a loaded media file that's seekable
     d->m_rate = rate;
+    qint64 from = rate > 0 ? pos : 0;
+    qint64 to = rate > 0 ? duration() : pos;
     bool success = gst_element_seek(element(), rate, GST_FORMAT_TIME,
                                     GstSeekFlags(GST_SEEK_FLAG_FLUSH),
-                                    GST_SEEK_TYPE_SET, pos,
-                                    GST_SEEK_TYPE_SET, -1);
+                                    GST_SEEK_TYPE_SET, from,
+                                    GST_SEEK_TYPE_SET, to);
     if (!success)
         return false;
 
