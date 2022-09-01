@@ -183,7 +183,7 @@ void Engine::startRecording()
             m_audioInput->resume();
         } else {
             m_spectrumAnalyser.cancelCalculation();
-            spectrumChanged(0, 0, FrequencySpectrum());
+            emit spectrumChanged(0, 0, FrequencySpectrum());
 
             m_buffer.fill(0);
             setRecordPosition(0, true);
@@ -220,7 +220,7 @@ void Engine::startPlayback()
             m_audioOutput->resume();
         } else {
             m_spectrumAnalyser.cancelCalculation();
-            spectrumChanged(0, 0, FrequencySpectrum());
+            emit spectrumChanged(0, 0, FrequencySpectrum());
             setPlayPosition(0, true);
             stopRecording();
             m_mode = QAudioDevice::Output;
