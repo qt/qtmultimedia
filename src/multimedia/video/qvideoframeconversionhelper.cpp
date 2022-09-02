@@ -503,11 +503,11 @@ static void qInitConvertFuncsAsm()
         qConvertFuncs[QVideoFrameFormat::Format_XRGB8888] = qt_convert_ARGB8888_to_ARGB32_sse2;
         qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_sse2;
         qConvertFuncs[QVideoFrameFormat::Format_BGRA8888_Premultiplied] = qt_convert_BGRA8888_to_ARGB32_sse2;
-        qConvertFuncs[QVideoFrameFormat::Format_XBGR8888] = qt_convert_BGRA8888_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRX8888] = qt_convert_BGRA8888_to_ARGB32_sse2;
         qConvertFuncs[QVideoFrameFormat::Format_ABGR8888] = qt_convert_ABGR8888_to_ARGB32_sse2;
         qConvertFuncs[QVideoFrameFormat::Format_XBGR8888] = qt_convert_ABGR8888_to_ARGB32_sse2;
-        qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_sse2;
-        qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrameFormat::Format_RGBA8888] = qt_convert_RGBA8888_to_ARGB32_sse2;
+        qConvertFuncs[QVideoFrameFormat::Format_RGBX8888] = qt_convert_RGBA8888_to_ARGB32_sse2;
     }
 #endif
 #ifdef QT_COMPILER_SUPPORTS_SSSE3
@@ -521,11 +521,11 @@ static void qInitConvertFuncsAsm()
         qConvertFuncs[QVideoFrameFormat::Format_XRGB8888] = qt_convert_ARGB8888_to_ARGB32_ssse3;
         qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_ssse3;
         qConvertFuncs[QVideoFrameFormat::Format_BGRA8888_Premultiplied] = qt_convert_BGRA8888_to_ARGB32_ssse3;
-        qConvertFuncs[QVideoFrameFormat::Format_XBGR8888] = qt_convert_BGRA8888_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRX8888] = qt_convert_BGRA8888_to_ARGB32_ssse3;
         qConvertFuncs[QVideoFrameFormat::Format_ABGR8888] = qt_convert_ABGR8888_to_ARGB32_ssse3;
         qConvertFuncs[QVideoFrameFormat::Format_XBGR8888] = qt_convert_ABGR8888_to_ARGB32_ssse3;
-        qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_ssse3;
-        qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrameFormat::Format_RGBA8888] = qt_convert_RGBA8888_to_ARGB32_ssse3;
+        qConvertFuncs[QVideoFrameFormat::Format_RGBX8888] = qt_convert_RGBA8888_to_ARGB32_ssse3;
     }
 #endif
 #ifdef QT_COMPILER_SUPPORTS_AVX2
@@ -539,11 +539,11 @@ static void qInitConvertFuncsAsm()
         qConvertFuncs[QVideoFrameFormat::Format_XRGB8888] = qt_convert_ARGB8888_to_ARGB32_avx2;
         qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_avx2;
         qConvertFuncs[QVideoFrameFormat::Format_BGRA8888_Premultiplied] = qt_convert_BGRA8888_to_ARGB32_avx2;
-        qConvertFuncs[QVideoFrameFormat::Format_XBGR8888] = qt_convert_BGRA8888_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrameFormat::Format_BGRX8888] = qt_convert_BGRA8888_to_ARGB32_avx2;
         qConvertFuncs[QVideoFrameFormat::Format_ABGR8888] = qt_convert_ABGR8888_to_ARGB32_avx2;
         qConvertFuncs[QVideoFrameFormat::Format_XBGR8888] = qt_convert_ABGR8888_to_ARGB32_avx2;
-        qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_avx2;
-        qConvertFuncs[QVideoFrameFormat::Format_BGRA8888] = qt_convert_BGRA8888_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrameFormat::Format_RGBA8888] = qt_convert_RGBA8888_to_ARGB32_avx2;
+        qConvertFuncs[QVideoFrameFormat::Format_RGBX8888] = qt_convert_RGBA8888_to_ARGB32_avx2;
     }
 #endif
 }
