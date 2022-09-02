@@ -12,7 +12,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \class QAmbientSound
-    \inmodule QtMultimedia
+    \inmodule QtSpatialAudio
     \ingroup spatialaudio
 
     \brief A stereo overlay sound.

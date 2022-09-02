@@ -20,7 +20,7 @@ public:
 
 /*!
     \class QAudioListener
-    \inmodule QtMultimedia
+    \inmodule QtSpatialAudio
     \ingroup spatialaudio
 
     \brief Defines the position and orientation of the person listening to a sound field
