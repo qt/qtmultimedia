@@ -16,46 +16,34 @@
 //
 
 #include <QtCore/qnamespace.h>
-#include <private/qplatformscreencapture_p.h>
+#include "qffmpegscreencapturebase_p.h"
 #include "qvideoframeformat.h"
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
 class ScreenGrabberActiveUwp;
-class QFFmpegScreenCaptureUwp: public QPlatformScreenCapture
+class QFFmpegScreenCaptureUwp : public QFFmpegScreenCaptureBase
 {
 public:
     explicit QFFmpegScreenCaptureUwp(QScreenCapture *screenCapture);
     ~QFFmpegScreenCaptureUwp();
 
-    void setActive(bool active) override;
-    bool isActive() const override { return m_active; }
     QVideoFrameFormat format() const override;
 
-    void setScreen(QScreen *screen) override;
-    QScreen *screen() const override { return m_screen; }
-
-    void setWindowId(WId id) override;
-    WId windowId() const override { return m_wId; }
-
-    void setWindow(QWindow *w) override;
-    QWindow *window() const { return m_window; }
-
     static bool isSupported();
+
+private:
+    void resetGrabber();
 
 private:
     friend ScreenGrabberActiveUwp;
 
     void emitError(QScreenCapture::Error code, const QString &desc);
 
-    bool setActiveInternal(bool active);
+    bool setActiveInternal(bool active) override;
 
     std::unique_ptr<ScreenGrabberActiveUwp> m_screenGrabber;
-    bool m_active = false;
-    QScreen *m_screen = nullptr;
-    QWindow *m_window = nullptr;
-    WId m_wId = 0;
     QVideoFrameFormat m_format;
 };
 

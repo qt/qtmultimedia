@@ -247,13 +247,15 @@ private:
 };
 
 QFFmpegScreenCaptureUwp::QFFmpegScreenCaptureUwp(QScreenCapture *screenCapture)
-    : QPlatformScreenCapture(screenCapture)
+    : QFFmpegScreenCaptureBase(screenCapture)
 {
     qCDebug(qLcScreenCaptureUwp) << "Creating UWP screen capture";
 }
 
 QFFmpegScreenCaptureUwp::~QFFmpegScreenCaptureUwp()
-{}
+{
+    resetGrabber();
+}
 
 static QMaybe<DeviceFramePool>
 createCaptureFramePool(IDXGIAdapter1 *adapter, const winrt::GraphicsCaptureItem &item)
@@ -370,54 +372,6 @@ static QMaybe<winrt::GraphicsCaptureItem> createWindowCaptureItem(HWND handle)
         return item;
 }
 
-void QFFmpegScreenCaptureUwp::setScreen(QScreen *screen)
-{
-    QScreen *oldScreen = m_screen;
-    if (oldScreen == screen)
-        return;
-
-    if (m_active)
-        setActiveInternal(false);
-
-    m_screen = screen;
-    if (m_active && screen)
-        setActiveInternal(true);
-
-    emit screenCapture()->screenChanged(screen);
-}
-
-void QFFmpegScreenCaptureUwp::setWindowId(WId id)
-{
-    WId oldId = m_wId;
-    if (oldId == id)
-        return;
-
-    if (m_active)
-        setActiveInternal(false);
-
-    m_wId = id;
-    if (m_active && id)
-        setActiveInternal(true);
-
-    emit screenCapture()->windowIdChanged(id);
-}
-
-void QFFmpegScreenCaptureUwp::setWindow(QWindow* w)
-{
-    QWindow *oldWindow = m_window;
-    if (oldWindow == w)
-        return;
-
-    if (m_active)
-        setActiveInternal(false);
-
-    m_window = w;
-    if (m_active && w)
-        setActiveInternal(true);
-
-    emit screenCapture()->windowChanged(w);
-}
-
 static QString isCapturableWindow(HWND hwnd)
 {
     if (hwnd == GetShellWindow())
@@ -472,17 +426,18 @@ bool QFFmpegScreenCaptureUwp::setActiveInternal(bool active)
         return false;
 
     if (m_screenGrabber) {
-        m_screenGrabber->quit();
-        m_screenGrabber->wait();
-        m_screenGrabber.reset();
+        resetGrabber();
+        m_format = {};
         return true;
     }
 
-    QScreen *screen = m_screen;
-    if (!screen && !m_wId && !m_window)
+    QScreen *screen = this->screen();
+    QWindow *window = this->window();
+    WId wid = windowId();
+    if (!screen && !wid && !window)
         screen = QGuiApplication::primaryScreen();
 
-    auto windowHandle = m_window ? HWND(m_window->winId()) : HWND(m_wId);
+    auto windowHandle = window ? HWND(window->winId()) : HWND(wid);
     if (windowHandle) {
         QString error = isCapturableWindow(windowHandle);
         if (!error.isEmpty()) {
@@ -522,18 +477,6 @@ bool QFFmpegScreenCaptureUwp::setActiveInternal(bool active)
     return true;
 }
 
-void QFFmpegScreenCaptureUwp::setActive(bool active)
-{
-    if (m_active == active)
-        return;
-
-    m_format = {};
-    if (setActiveInternal(active)) {
-        m_active = active;
-        emit screenCapture()->activeChanged(active);
-    }
-}
-
 bool QFFmpegScreenCaptureUwp::isSupported()
 {
     return winrt::GraphicsCaptureSession::IsSupported();
@@ -548,6 +491,15 @@ void QFFmpegScreenCaptureUwp::emitError(QScreenCapture::Error code, const QStrin
 {
     qCDebug(qLcScreenCaptureUwp) << desc;
     updateError(code, desc);
+}
+
+void QFFmpegScreenCaptureUwp::resetGrabber()
+{
+    if (m_screenGrabber) {
+        m_screenGrabber->quit();
+        m_screenGrabber->wait();
+        m_screenGrabber.reset();
+    }
 }
 
 QT_END_NAMESPACE

@@ -1,6 +1,12 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include "qvideoframe.h"
+#include "qffmpegscreencapture_p.h"
+#include "qscreencapture.h"
+
+#include "private/qabstractvideobuffer_p.h"
+
 #include "qscreen.h"
 #include "qthread.h"
 #include "qmutex.h"
@@ -8,26 +14,27 @@
 #include "qpixmap.h"
 #include "qguiapplication.h"
 #include "qdatetime.h"
+#include "qwindow.h"
+#include "qtimer.h"
+#include "qelapsedtimer.h"
 
-#include "qvideoframe.h"
-#include "qffmpegvideobuffer_p.h"
-#include "qffmpegscreencapture_p.h"
-#include "qscreencapture.h"
+#include <QtCore/qloggingcategory.h>
 
-#include <thread>
-#include <chrono>
+Q_LOGGING_CATEGORY(qLcFfmpegScreenCapture, "qt.multimedia.ffmpeg.screencapture")
 
 QT_BEGIN_NAMESPACE
 
-using namespace std::chrono;
+namespace {
+
+using WindowUPtr = std::unique_ptr<QWindow>;
 
 class QImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     QImageVideoBuffer(QImage &&image)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
-        , m_image(image)
-    {}
+        : QAbstractVideoBuffer(QVideoFrame::NoHandle), m_image(std::move(image))
+    {
+    }
 
     QVideoFrame::MapMode mapMode() const override
     {
@@ -58,135 +65,239 @@ public:
     QImage m_image;
 };
 
-class ScreenGrabberActive : public QThread
+}
+
+class QFFmpegScreenCapture::Grabber : public QThread
 {
 public:
-    ScreenGrabberActive(QPlatformScreenCapture &screenCapture, const QString &screenName)
-        : m_screenCapture(screenCapture)
-        , m_screenName(screenName)
-    {}
-
-    void run() override {
-        QScreen *screen = nullptr;
-        for (auto s : QGuiApplication::screens()) {
-            if (s->name() == m_screenName) {
-                screen = s;
-                break;
-            }
-        }
-        if (!screen) {
-            emit m_screenCapture.updateError(QScreenCapture::Error::NotFound,
-                                             "Screen not found");
-            return;
-        }
-
-        const microseconds frameTime(quint64(1000000. / screen->refreshRate()));
-        time_point frameStartTime = steady_clock::now();
-        time_point frameStopTime = steady_clock::time_point{};
-
-        while (!isInterruptionRequested()) {
-            QPixmap p = screen->grabWindow(0);
-            QImage img = p.toImage();
-            QVideoFrameFormat format(img.size(), QVideoFrameFormat::pixelFormatFromImageFormat(img.format()));
-
-            if (!format.isValid()) {
-                emit m_screenCapture.updateError(QScreenCapture::Error::CaptureFailed,
-                                                 "Failed to grab the screen content");
-                continue;
-            }
-
-            if (!m_format.isValid()) {
-                m_formatMutex.lock();
-                m_format = format;
-                m_format.setFrameRate(screen->refreshRate());
-                m_formatMutex.unlock();
-                m_waitForFormat.wakeAll();
-            }
-
-            frameStopTime = steady_clock::now();
-
-            QVideoFrame frame(new QImageVideoBuffer(std::move(img)), format);
-
-            frame.setStartTime(duration_cast<microseconds>(frameStartTime.time_since_epoch()).count());
-            frame.setEndTime(duration_cast<microseconds>(frameStopTime.time_since_epoch()).count());
-            emit m_screenCapture.newVideoFrame(frame);
-
-            std::this_thread::sleep_until(frameStartTime + frameTime);
-            frameStartTime = frameStopTime;
-        }
+    Grabber(QFFmpegScreenCapture &capture, QScreen *screen) : Grabber(capture, screen, nullptr)
+    {
+        Q_ASSERT(screen);
     }
 
-    QVideoFrameFormat format() {
+    Grabber(QFFmpegScreenCapture &capture, WindowUPtr window)
+        : Grabber(capture, nullptr, std::move(window))
+    {
+        Q_ASSERT(m_window);
+    }
+
+    ~Grabber() { Q_ASSERT(!m_screenRemovingLocked); }
+
+    const QVideoFrameFormat &format()
+    {
         QMutexLocker locker(&m_formatMutex);
-        if (!m_format.isValid())
+        while (!m_format)
             m_waitForFormat.wait(&m_formatMutex);
-        return m_format;
+        return *m_format;
     }
 
 private:
-    QPlatformScreenCapture &m_screenCapture;
+    Grabber(QFFmpegScreenCapture &capture, QScreen *screen, WindowUPtr window)
+        : QThread(&capture), m_capture(capture), m_screen(screen), m_window(std::move(window))
+    {
+        connect(qApp, &QGuiApplication::screenRemoved, this, &Grabber::onScreenRemoved);
+    }
+
+    void onScreenRemoved(QScreen *screen)
+    {
+        /* The hack allows to lock screens removing while QScreen::grabWindow is in progress.
+         * The current solution works since QGuiApplication::screenRemoved is emitted from
+         *     the destructor of QScreen before destruction members of the object.
+         * Note, QGuiApplication works with screens in the main thread, and any removing of a screen
+         *    must be synchronized with grabbing thread.
+         */
+        QMutexLocker locker(&m_screenRemovingMutex);
+
+        if (m_screenRemovingLocked) {
+            qDebug() << "Screen" << screen->name()
+                     << "is removed while screen window grabbing lock is active";
+        }
+
+        while (m_screenRemovingLocked)
+            m_screenRemovingWc.wait(&m_screenRemovingMutex);
+    }
+
+    void setScreenRemovingLocked(bool locked)
+    {
+        Q_ASSERT(locked != m_screenRemovingLocked);
+
+        {
+            QMutexLocker locker(&m_screenRemovingMutex);
+            m_screenRemovingLocked = locked;
+        }
+
+        if (!locked)
+            m_screenRemovingWc.wakeAll();
+    }
+
+    void updateFormat(const QVideoFrameFormat &format)
+    {
+        if (m_format && m_format->isValid())
+            return;
+
+        {
+            QMutexLocker locker(&m_formatMutex);
+            m_format = format;
+        }
+
+        m_waitForFormat.wakeAll();
+    }
+
+    void run() override
+    {
+        qCDebug(qLcFfmpegScreenCapture) << "Start screen grabbing";
+
+        QTimer timer;
+        QElapsedTimer elapsedTimer;
+        qint64 lastFrameTime = 0;
+
+        timer.callOnTimeout([&]() { grabWindow(elapsedTimer, lastFrameTime, timer); });
+
+        timer.start();
+
+        exec();
+
+        qCDebug(qLcFfmpegScreenCapture) << "Stop screen grabbing";
+    }
+
+    void grabWindow(const QElapsedTimer &elapsedTimer, qint64 &lastFrameTime, QTimer &timer)
+    {
+        constexpr int timerIntervalAfterFailure = 500;
+
+        setScreenRemovingLocked(true);
+        auto screenGuard = qScopeGuard(std::bind(&Grabber::setScreenRemovingLocked, this, false));
+
+        WId wid = m_window ? m_window->winId() : 0;
+        QScreen *screen = m_window ? m_window->screen() : m_screen ? m_screen.data() : nullptr;
+
+        if (!screen) {
+            m_capture.updateError(QScreenCapture::Error::CaptureFailed, "Screen not found");
+
+            timer.setInterval(timerIntervalAfterFailure);
+            return;
+        }
+
+        const int frameTimeInterval = static_cast<int>(1000. / screen->refreshRate());
+        if (frameTimeInterval != timer.interval()) {
+            qCDebug(qLcFfmpegScreenCapture)
+                    << "Screen capturing: timer interval has been set to" << frameTimeInterval;
+
+            // Update timer interval in case the window screen has been changed
+            timer.setInterval(frameTimeInterval);
+        }
+
+        QPixmap p = screen->grabWindow(wid);
+        QImage img = p.toImage();
+
+        QVideoFrameFormat format(img.size(),
+                                 QVideoFrameFormat::pixelFormatFromImageFormat(img.format()));
+        format.setFrameRate(screen->refreshRate());
+        updateFormat(format);
+
+        if (!format.isValid()) {
+            m_capture.updateError(QScreenCapture::Error::CaptureFailed,
+                                  "Failed to grab the screen content");
+
+            timer.setInterval(timerIntervalAfterFailure);
+            return;
+        }
+
+        QVideoFrame frame(new QImageVideoBuffer(std::move(img)), format);
+
+        const auto endTime = elapsedTimer.nsecsElapsed() / 1000;
+
+        frame.setStartTime(lastFrameTime);
+        frame.setEndTime(endTime);
+        emit m_capture.newVideoFrame(frame);
+
+        lastFrameTime = endTime;
+    }
+
+private:
+    QFFmpegScreenCapture &m_capture;
+    QPointer<QScreen> m_screen;
+    WindowUPtr m_window;
+
     QMutex m_formatMutex;
     QWaitCondition m_waitForFormat;
-    QVideoFrameFormat m_format;
-    QString m_screenName;
+    std::optional<QVideoFrameFormat> m_format;
+
+    QMutex m_screenRemovingMutex;
+    bool m_screenRemovingLocked = false;
+    QWaitCondition m_screenRemovingWc;
 };
 
 QFFmpegScreenCapture::QFFmpegScreenCapture(QScreenCapture *screenCapture)
-    : QPlatformScreenCapture(screenCapture)
+    : QFFmpegScreenCaptureBase(screenCapture)
 {
 }
 
-QFFmpegScreenCapture::~QFFmpegScreenCapture() = default;
+QFFmpegScreenCapture::~QFFmpegScreenCapture()
+{
+    resetGrabber();
+}
 
 QVideoFrameFormat QFFmpegScreenCapture::format() const
 {
-    if (m_active)
-        return m_active->format();
+    if (m_grabber)
+        return m_grabber->format();
     else
         return {};
 }
 
-void QFFmpegScreenCapture::setScreen(QScreen *screen)
+bool QFFmpegScreenCapture::setActiveInternal(bool active)
 {
-    QScreen *oldScreen = m_screen;
-    if (oldScreen == screen)
-        return;
+    if (active == bool(m_grabber))
+        return true;
 
-    bool active = bool(m_active);
-    if (active)
-        setActiveInternal(false);
+    if (m_grabber) {
+        resetGrabber();
+        return true;
+    }
 
-    m_screen = screen;
-    if (active)
-        setActiveInternal(true);
+    if (auto wid = window() ? window()->winId() : windowId()) {
+        // create a copy of QWindow anyway since Grabber has to own the object
+        if (auto wnd = WindowUPtr(QWindow::fromWinId(wid))) {
+            if (!wnd->screen()) {
+                updateError(QScreenCapture::InternalError,
+                            "Window " + QString::number(wid) + " doesn't belong to any screen");
+                return false;
+            }
 
-    emit screenCapture()->screenChanged(screen);
+            m_grabber = std::make_unique<Grabber>(*this, std::move(wnd));
+            m_grabber->start();
+            return true;
+        } else {
+            updateError(QScreenCapture::NotFound,
+                        "Window " + QString::number(wid) + "doesn't exist or permissions denied");
+            return false;
+        }
+    }
+
+    if (auto scrn = screen() ? screen() : QGuiApplication::primaryScreen()) {
+        m_grabber = std::make_unique<Grabber>(*this, scrn);
+        m_grabber->start();
+        return true;
+    }
+
+    updateError(QScreenCapture::NotFound, "Screen not found");
+    return false;
 }
 
-void QFFmpegScreenCapture::setActiveInternal(bool active)
+void QFFmpegScreenCapture::resetGrabber()
 {
-    if (bool(m_active) == active)
-        return;
-
-    if (m_active) {
-        m_active->requestInterruption();
-        m_active->quit();
-        m_active->wait();
-        m_active.reset();
-    } else {
-        QScreen *screen = m_screen ? m_screen : QGuiApplication::primaryScreen();
-        m_active.reset(new ScreenGrabberActive(*this, screen->name()));
-        m_active->start();
+    if (m_grabber) {
+        m_grabber->quit();
+        m_grabber->wait();
+        m_grabber.reset();
     }
 }
 
-void QFFmpegScreenCapture::setActive(bool active)
+void QFFmpegScreenCapture::updateError(QScreenCapture::Error error, const QString &description)
 {
-    if (bool(m_active) == active)
-        return;
-
-    setActiveInternal(active);
-    emit screenCapture()->activeChanged(active);
+    qCDebug(qLcFfmpegScreenCapture) << description;
+    QMetaObject::invokeMethod(this, "updateError", Q_ARG(QScreenCapture::Error, error),
+                              Q_ARG(QString, description));
 }
 
 QT_END_NAMESPACE

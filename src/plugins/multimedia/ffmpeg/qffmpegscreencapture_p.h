@@ -15,32 +15,33 @@
 // We mean it.
 //
 
+#include "qffmpegscreencapturebase_p.h"
 #include "qvideoframeformat.h"
-#include <private/qplatformscreencapture_p.h>
+
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class ScreenGrabberActive;
-class QFFmpegScreenCapture : public QPlatformScreenCapture
+class QFFmpegScreenCapture : public QFFmpegScreenCaptureBase
 {
+    class Grabber;
+
 public:
     explicit QFFmpegScreenCapture(QScreenCapture *screenCapture);
-    ~QFFmpegScreenCapture();
+    ~QFFmpegScreenCapture() override;
 
-    void setActive(bool active) override;
-    bool isActive() const override { return bool(m_active); }
     QVideoFrameFormat format() const override;
 
-    void setScreen(QScreen *screen) override;
-    QScreen *screen() const override { return m_screen; }
+protected:
+    bool setActiveInternal(bool active) override;
+
+    void updateError(QScreenCapture::Error error, const QString &description);
 
 private:
-    void setActiveInternal(bool active);
+    void resetGrabber();
 
-    std::unique_ptr<ScreenGrabberActive> m_active;
-    QScreen *m_screen = nullptr;
-    QVideoFrameFormat m_format;
+private:
+    std::unique_ptr<Grabber> m_grabber;
 };
 
 QT_END_NAMESPACE
