@@ -281,7 +281,7 @@ QVector3D QAudioEnginePrivate::listenerPosition() const
 
 /*!
     \class QAudioEngine
-    \inmodule QtMultimedia
+    \inmodule QtSpatialAudio
     \ingroup spatialaudio
 
     \brief QAudioEngine manages a three dimensional sound field.
