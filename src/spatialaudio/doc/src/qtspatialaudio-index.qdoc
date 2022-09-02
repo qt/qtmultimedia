@@ -22,13 +22,6 @@
      import QtQuick3D.SpatialAudio
     \endqml
 
-    If you want to use the C++ classes in your application, include the C++
-    definitions using the following directive:
-
-    \code
-      #include <QtSpatialAudio>
-    \endcode
-
     To link against the C++ libraries, add the following to your project's
     \c CMakeLists.txt file. Substitute \c my_project with the name of your
     project.

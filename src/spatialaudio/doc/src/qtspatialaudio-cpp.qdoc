@@ -10,13 +10,6 @@
 
     \brief The \l {Qt Spatial Audio} module provides functionality for 3D audio.
 
-    To enable Qt Spatial Audio in a project, add this directive into your
-    C++ files:
-
-    \code
-        #include <QtSpatialAudio>
-    \endcode
-
     \include module-use.qdocinc using qt module
 
     \code
