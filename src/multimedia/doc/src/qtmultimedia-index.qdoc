@@ -36,17 +36,6 @@
      import QtMultimedia
     \endqml
 
-    If you want to use the C++ classes in your application, include the C++
-    definitions using the following directive:
-
-    \code
-      #include <QtMultimedia>
-      #include <QtMultimediaWidgets>
-    \endcode
-
-    \note If you are using a few classes from this module, we recommend
-    including those specific classes only instead of the module.
-
     To link against the C++ libraries, add the following to your project's
     \c CMakeLists.txt file. Substitute \c my_project with the name of your
     project.

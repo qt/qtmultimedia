@@ -11,11 +11,6 @@
     \brief The \l {Qt Multimedia} module provides audio, video and camera
     functionality.
 
-    To enable Qt Multimedia in a project, add this directive into your
-    C++ files:
-
-    \snippet doc_src_qtmultimedia.cpp 0
-
     \include module-use.qdocinc using qt module
     \code
         find_package(Qt6 REQUIRED COMPONENTS Multimedia)
