@@ -47,7 +47,6 @@ public:
 private:
     friend ScreenGrabberActiveUwp;
 
-    void emitError(QScreenCapture::Error code, const QString &desc, HRESULT hr);
     void emitError(QScreenCapture::Error code, const QString &desc);
 
     bool setActiveInternal(bool active);

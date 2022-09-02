@@ -127,29 +127,37 @@ private:
 
 class ScreenGrabberActiveUwp : public QThread
 {
+    Q_OBJECT
 public:
     ScreenGrabberActiveUwp(QFFmpegScreenCaptureUwp &screenCapture, DeviceFramePool &devicePool,
                            winrt::GraphicsCaptureItem item, qreal maxFrameRate)
         : m_screenCapture(screenCapture)
         , m_devicePool(devicePool)
-        , m_session(devicePool.framePool.CreateCaptureSession(item)),
-          m_frameSize(item.Size())
+        , m_session(devicePool.framePool.CreateCaptureSession(item))
+        , m_frameSize(item.Size())
         , m_maxFrameRate(maxFrameRate)
     {
-        const microseconds interval(quint64(1000000. / m_maxFrameRate));
+        connect(this, &ScreenGrabberActiveUwp::error, &screenCapture, &QPlatformScreenCapture::updateError);
+    }
 
-        m_timer.setInterval(duration_cast<milliseconds>(interval));
-        m_timer.setTimerType(Qt::PreciseTimer);
-        m_timer.callOnTimeout(this, &ScreenGrabberActiveUwp::grabFrame);
-        m_timer.start();
-
+    void run() override
+    {
         m_session.IsCursorCaptureEnabled(false);
         m_session.StartCapture();
         m_lastFrameTime = steady_clock::now();
-    }
 
-    ~ScreenGrabberActiveUwp()
-    {
+        QTimer timer;
+        const microseconds interval(quint64(1000000. / m_maxFrameRate));
+
+        timer.setInterval(duration_cast<milliseconds>(interval));
+        timer.setTimerType(Qt::PreciseTimer);
+        timer.callOnTimeout(this, &ScreenGrabberActiveUwp::grabFrame, Qt::DirectConnection);
+        timer.start();
+
+        ScreenGrabberActiveUwp::grabFrame();
+
+        exec();
+
         m_session.Close();
     }
 
@@ -174,14 +182,14 @@ public:
         winrt::com_ptr<IDXGISurface> dxgiSurface;
         HRESULT hr = dxgiInterfaceAccess->GetInterface(__uuidof(dxgiSurface), dxgiSurface.put_void());
         if (FAILED(hr)) {
-            m_screenCapture.emitError(QScreenCapture::CaptureFailed, "Failed to get DXGI surface interface", hr);
+            emitError(QScreenCapture::CaptureFailed, "Failed to get DXGI surface interface", hr);
             return;
         }
 
         DXGI_SURFACE_DESC desc = {};
         hr = dxgiSurface->GetDesc(&desc);
         if (FAILED(hr)) {
-            m_screenCapture.emitError(QScreenCapture::CaptureFailed, "Failed to get DXGI surface description", hr);
+            emitError(QScreenCapture::CaptureFailed, "Failed to get DXGI surface description", hr);
             return;
         }
 
@@ -200,7 +208,7 @@ public:
         winrt::com_ptr<ID3D11Texture2D> texture;
         hr = m_devicePool.d3d11dev->CreateTexture2D(&texDesc, nullptr, texture.put());
         if (FAILED(hr)) {
-            m_screenCapture.emitError(QScreenCapture::CaptureFailed, "Failed to create ID3D11Texture2D", hr);
+            emitError(QScreenCapture::CaptureFailed, "Failed to create ID3D11Texture2D", hr);
             return;
         }
 
@@ -219,14 +227,23 @@ public:
         emit m_screenCapture.newVideoFrame(frame);
     }
 
+signals:
+    void error(QScreenCapture::Error code, const QString &desc);
+
 private:
+    void emitError(QScreenCapture::Error code, const QString &desc, HRESULT hr)
+    {
+        QString text = desc + QWindowsMultimediaUtils::errorString(hr);
+        qCDebug(qLcScreenCaptureUwp) << text;
+        emit error(code, text);
+    }
+
     QFFmpegScreenCaptureUwp &m_screenCapture;
     DeviceFramePool m_devicePool;
     winrt::GraphicsCaptureSession m_session;
     winrt::Windows::Graphics::SizeInt32 m_frameSize;
     time_point<steady_clock> m_lastFrameTime = {};
     qreal m_maxFrameRate;
-    QTimer m_timer;
 };
 
 QFFmpegScreenCaptureUwp::QFFmpegScreenCaptureUwp(QScreenCapture *screenCapture)
@@ -455,7 +472,6 @@ bool QFFmpegScreenCaptureUwp::setActiveInternal(bool active)
         return false;
 
     if (m_screenGrabber) {
-        m_screenGrabber->requestInterruption();
         m_screenGrabber->quit();
         m_screenGrabber->wait();
         m_screenGrabber.reset();
@@ -528,17 +544,12 @@ QVideoFrameFormat QFFmpegScreenCaptureUwp::format() const
     return m_format;
 }
 
-void QFFmpegScreenCaptureUwp::emitError(QScreenCapture::Error code, const QString &desc, HRESULT hr)
-{
-    QString text = desc + QWindowsMultimediaUtils::errorString(hr);
-    qCDebug(qLcScreenCaptureUwp) << text;
-    emit updateError(code, text);
-}
-
 void QFFmpegScreenCaptureUwp::emitError(QScreenCapture::Error code, const QString &desc)
 {
     qCDebug(qLcScreenCaptureUwp) << desc;
-    emit updateError(code, desc);
+    updateError(code, desc);
 }
 
 QT_END_NAMESPACE
+
+#include "qffmpegscreencapture_uwp.moc"
