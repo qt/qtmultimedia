@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QWINDOWSMEDIAFUNDATION_H
-#define QWINDOWSMEDIAFUNDATION_H
+#ifndef QWINDOWSMEDIAFOUNDATION_H
+#define QWINDOWSMEDIAFOUNDATION_H
 
 #include <private/qtmultimediaglobal_p.h>
 #include <QtCore/qt_windows.h>
@@ -14,23 +14,23 @@ struct IMFMediaType;
 
 QT_BEGIN_NAMESPACE
 
-class QWindowsMediaFundation
+class QWindowsMediaFoundation
 {
 public:
-    ~QWindowsMediaFundation();
+    ~QWindowsMediaFoundation();
 
-    static QWindowsMediaFundation *instance();
+    static QWindowsMediaFoundation *instance();
 
     decltype(&::MFCreateMediaType) mfCreateMediaType = nullptr;
     decltype(&::MFCreateMemoryBuffer) mfCreateMemoryBuffer = nullptr;
     decltype(&::MFCreateSample) mfCreateSample = nullptr;
 
 private:
-    QWindowsMediaFundation() : m_mfplat(QStringLiteral("Mfplat.dll")) {}
+    QWindowsMediaFoundation() : m_mfplat(QStringLiteral("Mfplat.dll")) {}
 
     QLibrary m_mfplat;
 };
 
 QT_END_NAMESPACE
 
-#endif // QWINDOWSMEDIAFUNDATION_H
+#endif // QWINDOWSMEDIAFOUNDATION_H

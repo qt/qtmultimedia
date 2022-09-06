@@ -3,6 +3,7 @@
 
 #include "qwindowsresampler_p.h"
 #include <qwindowsaudioutils_p.h>
+#include <qwindowsmediafoundation_p.h>
 #include <qloggingcategory.h>
 #include <QUuid>
 
@@ -18,7 +19,7 @@ QUuid qCLSID_CResamplerMediaObject("f447b69e-1884-4a7e-8055-346f74d6edb3");
 Q_LOGGING_CATEGORY(qLcAudioResampler, "qt.multimedia.audioresampler")
 
 QWindowsResampler::QWindowsResampler()
-    : m_wmf(QWindowsMediaFundation::instance())
+    : m_wmf(QWindowsMediaFoundation::instance())
 {
     CoCreateInstance(qCLSID_CResamplerMediaObject, nullptr, CLSCTX_INPROC_SERVER,
                      qIID_IMFTransform, (LPVOID*)(m_resampler.address()));

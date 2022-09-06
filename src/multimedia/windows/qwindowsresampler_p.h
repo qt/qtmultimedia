@@ -20,12 +20,12 @@
 #include <qbytearrayview.h>
 #include <qaudioformat.h>
 #include <private/qwindowsiupointer_p.h>
-#include <private/qwindowsmediafundation_p.h>
 #include <qt_windows.h>
 #include <mftransform.h>
 
 struct IMFSample;
 struct IMFTransform;
+class QWindowsMediaFoundation;
 
 QT_BEGIN_NAMESPACE
 
@@ -54,7 +54,7 @@ private:
     HRESULT processOutput(QByteArray &out);
 
     QWindowsIUPointer<IMFTransform> m_resampler;
-    QWindowsMediaFundation *m_wmf = nullptr;
+    QWindowsMediaFoundation *m_wmf = nullptr;
 
     bool m_resamplerNeedsSampleBuffer = false;
     quint64 m_totalInputBytes = 0;
