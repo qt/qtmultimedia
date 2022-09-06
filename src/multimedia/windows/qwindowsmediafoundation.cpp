@@ -1,7 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qwindowsmediafundation_p.h"
+#include "qwindowsmediafoundation_p.h"
 #include "qwindowdefs_win.h"
 #include <QDebug>
 #include <QMutex>
@@ -17,12 +17,12 @@ struct Holder {
     }
     bool loadFailed = false;
     QBasicMutex mutex;
-    std::unique_ptr<QWindowsMediaFundation> instance;
+    std::unique_ptr<QWindowsMediaFoundation> instance;
 } holder;
 
 }
 
-QWindowsMediaFundation::~QWindowsMediaFundation() = default;
+QWindowsMediaFoundation::~QWindowsMediaFoundation() = default;
 
 template<typename T> bool setProcAddress(QLibrary &lib, T &f, std::string_view name)
 {
@@ -30,7 +30,7 @@ template<typename T> bool setProcAddress(QLibrary &lib, T &f, std::string_view n
     return bool(f);
 }
 
-QWindowsMediaFundation *QWindowsMediaFundation::instance()
+QWindowsMediaFoundation *QWindowsMediaFoundation::instance()
 {
     QMutexLocker locker(&holder.mutex);
     if (holder.instance)
@@ -39,7 +39,7 @@ QWindowsMediaFundation *QWindowsMediaFundation::instance()
     if (holder.loadFailed)
         return nullptr;
 
-    std::unique_ptr<QWindowsMediaFundation> wmf(new QWindowsMediaFundation);
+    std::unique_ptr<QWindowsMediaFoundation> wmf(new QWindowsMediaFoundation);
     if (wmf->m_mfplat.load()) {
         if (setProcAddress(wmf->m_mfplat, wmf->mfCreateMediaType, "MFCreateMediaType")
             && setProcAddress(wmf->m_mfplat, wmf->mfCreateMemoryBuffer, "MFCreateMemoryBuffer")
