@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsaudioutils_p.h"
+#include "qwindowsmediafundation_p.h"
 #include "qdebug.h"
 #include "ks.h"
 #include "ksmedia.h"
@@ -154,14 +155,14 @@ QAudioFormat QWindowsAudioUtils::mediaTypeToFormat(IMFMediaType *mediaType)
     return format;
 }
 
-QWindowsIUPointer<IMFMediaType> QWindowsAudioUtils::formatToMediaType(const QAudioFormat &format)
+QWindowsIUPointer<IMFMediaType> QWindowsAudioUtils::formatToMediaType(QWindowsMediaFundation &wmf, const QAudioFormat &format)
 {
     QWindowsIUPointer<IMFMediaType> mediaType;
 
     if (!format.isValid())
         return mediaType;
 
-    MFCreateMediaType(mediaType.address());
+    wmf.mfCreateMediaType(mediaType.address());
 
     mediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
     if (format.sampleFormat() == QAudioFormat::Float) {

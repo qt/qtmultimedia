@@ -4,20 +4,24 @@
 #include "qwindowsresampler_p.h"
 #include <qwindowsaudioutils_p.h>
 #include <qloggingcategory.h>
+#include <QUuid>
 
 #include <Wmcodecdsp.h>
 #include <mftransform.h>
-#include <mfapi.h>
 #include <mferror.h>
 
 QT_BEGIN_NAMESPACE
 
+QUuid qIID_IMFTransform(0xbf94c121, 0x5b05, 0x4e6f, 0x80,0x00, 0xba,0x59,0x89,0x61,0x41,0x4d);
+QUuid qCLSID_CResamplerMediaObject("f447b69e-1884-4a7e-8055-346f74d6edb3");
+
 Q_LOGGING_CATEGORY(qLcAudioResampler, "qt.multimedia.audioresampler")
 
 QWindowsResampler::QWindowsResampler()
+    : m_wmf(QWindowsMediaFundation::instance())
 {
-    CoCreateInstance(CLSID_CResamplerMediaObject, nullptr, CLSCTX_INPROC_SERVER,
-                     IID_IMFTransform, (LPVOID*)(m_resampler.address()));
+    CoCreateInstance(qCLSID_CResamplerMediaObject, nullptr, CLSCTX_INPROC_SERVER,
+                     qIID_IMFTransform, (LPVOID*)(m_resampler.address()));
     if (m_resampler)
         m_resampler->AddInputStreams(1, &m_inputStreamID);
 }
@@ -43,12 +47,12 @@ quint64 QWindowsResampler::inputBufferSize(quint64 outputBufferSize) const
 HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
 {
     QWindowsIUPointer<IMFSample> sample;
-    HRESULT hr = MFCreateSample(sample.address());
+    HRESULT hr = m_wmf->mfCreateSample(sample.address());
     if (FAILED(hr))
         return hr;
 
     QWindowsIUPointer<IMFMediaBuffer> buffer;
-    hr = MFCreateMemoryBuffer(in.size(), buffer.address());
+    hr = m_wmf->mfCreateMemoryBuffer(in.size(), buffer.address());
     if (FAILED(hr))
         return hr;
 
@@ -82,12 +86,12 @@ HRESULT QWindowsResampler::processOutput(QByteArray &out)
     QWindowsIUPointer<IMFMediaBuffer> buffer;
 
     if (m_resamplerNeedsSampleBuffer) {
-        HRESULT hr = MFCreateSample(sample.address());
+        HRESULT hr = m_wmf->mfCreateSample(sample.address());
         if (FAILED(hr))
             return hr;
 
         auto expectedOutputSize = outputBufferSize(m_totalInputBytes) - m_totalOutputBytes;
-        hr = MFCreateMemoryBuffer(expectedOutputSize, buffer.address());
+        hr = m_wmf->mfCreateMemoryBuffer(expectedOutputSize, buffer.address());
         if (FAILED(hr))
             return hr;
 
@@ -133,7 +137,7 @@ QByteArray QWindowsResampler::resample(const QByteArrayView &in)
         return {in.data(), in.size()};
 
     } else {
-        Q_ASSERT(m_resampler);
+        Q_ASSERT(m_resampler && m_wmf);
 
         QByteArray out;
         HRESULT hr = processInput(in);
@@ -172,7 +176,7 @@ QByteArray QWindowsResampler::resample(IMFSample *sample)
         outputBuffer->Unlock();
 
     } else {
-        Q_ASSERT(m_resampler);
+        Q_ASSERT(m_resampler && m_wmf);
 
         hr = m_resampler->ProcessInput(m_inputStreamID, sample, 0);
         if (SUCCEEDED(hr))
@@ -201,11 +205,11 @@ bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
         return true;
     }
 
-    if (!m_resampler)
+    if (!m_resampler || !m_wmf)
         return false;
 
-    QWindowsIUPointer<IMFMediaType> min = QWindowsAudioUtils::formatToMediaType(fin);
-    QWindowsIUPointer<IMFMediaType> mout = QWindowsAudioUtils::formatToMediaType(fout);
+    QWindowsIUPointer<IMFMediaType> min = QWindowsAudioUtils::formatToMediaType(*m_wmf, fin);
+    QWindowsIUPointer<IMFMediaType> mout = QWindowsAudioUtils::formatToMediaType(*m_wmf, fout);
 
     HRESULT hr = m_resampler->SetInputType(m_inputStreamID, min.get(), 0);
     if (FAILED(hr)) {
