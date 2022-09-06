@@ -34,13 +34,13 @@ class Q_MULTIMEDIA_EXPORT QPlatformScreenCapture : public QObject
 
 public:
     QPlatformScreenCapture(QScreenCapture *screenCapture)
-        : m_screenCapture(screenCapture)
+        : QObject(screenCapture), m_screenCapture(screenCapture)
     {}
 
     virtual void setActive(bool active) = 0;
     virtual bool isActive() const = 0;
 
-    virtual void setScreen(QScreen *) = 0;
+    virtual void setScreen(QScreen *s) = 0;
     virtual QScreen *screen() const = 0;
 
     virtual void setWindow(QWindow *w) {

@@ -9,6 +9,7 @@
 #include "qmockvideosink.h"
 #include "qmockimagecapture.h"
 #include "qmockaudiooutput.h"
+#include "qmockscreencapture.h"
 #include <private/qcameradevice_p.h>
 #include <private/qplatformvideodevices_p.h>
 
@@ -110,6 +111,16 @@ QPlatformImageCapture *QMockIntegration::createImageCapture(QImageCapture *captu
 QPlatformMediaRecorder *QMockIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QMockMediaEncoder(recorder);
+}
+
+QPlatformScreenCapture *QMockIntegration::createScreenCapture(QScreenCapture *capture)
+{
+    if (m_flags & NoCaptureInterface)
+        m_lastScreenCapture = nullptr;
+    else
+        m_lastScreenCapture = new QMockScreenCapture(capture);
+
+    return m_lastScreenCapture;
 }
 
 QPlatformMediaCaptureSession *QMockIntegration::createCaptureSession()

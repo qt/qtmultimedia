@@ -71,6 +71,7 @@ QScreenCapture::QScreenCapture(QObject *parent)
 
 QScreenCapture::~QScreenCapture()
 {
+    delete d->platformScreenCapture;
     delete d;
 }
 
