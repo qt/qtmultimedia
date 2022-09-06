@@ -4,34 +4,35 @@
 #include "imagesettings.h"
 #include "ui_imagesettings.h"
 
+#include <QCamera>
 #include <QComboBox>
 #include <QDebug>
 #include <QImageCapture>
-#include <QCamera>
 #include <QMediaCaptureSession>
 
-ImageSettings::ImageSettings(QImageCapture *imageCapture, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::ImageSettingsUi),
-    imagecapture(imageCapture)
+ImageSettings::ImageSettings(QImageCapture *imageCapture, QWidget *parent)
+    : QDialog(parent), ui(new Ui::ImageSettingsUi), imagecapture(imageCapture)
 {
     ui->setupUi(this);
 
-    //image codecs
+    // image codecs
     ui->imageCodecBox->addItem(tr("Default image format"), QVariant(QString()));
     const auto supportedImageFormats = QImageCapture::supportedFormats();
     for (const auto &f : supportedImageFormats) {
         QString description = QImageCapture::fileFormatDescription(f);
-        ui->imageCodecBox->addItem(QImageCapture::fileFormatName(f) + ": " + description, QVariant::fromValue(f));
+        ui->imageCodecBox->addItem(QImageCapture::fileFormatName(f) + ": " + description,
+                                   QVariant::fromValue(f));
     }
 
     ui->imageQualitySlider->setRange(0, int(QImageCapture::VeryHighQuality));
 
     ui->imageResolutionBox->addItem(tr("Default Resolution"));
-    const QList<QSize> supportedResolutions = imagecapture->captureSession()->camera()->cameraDevice().photoResolutions();
+    const QList<QSize> supportedResolutions =
+            imagecapture->captureSession()->camera()->cameraDevice().photoResolutions();
     for (const QSize &resolution : supportedResolutions) {
-        ui->imageResolutionBox->addItem(QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
-                                        QVariant(resolution));
+        ui->imageResolutionBox->addItem(
+                QString("%1x%2").arg(resolution.width()).arg(resolution.height()),
+                QVariant(resolution));
     }
 
     selectComboBoxItem(ui->imageCodecBox, QVariant::fromValue(imagecapture->fileFormat()));

@@ -4,8 +4,9 @@
 #ifndef TONEGENERATOR_H
 #define TONEGENERATOR_H
 
-#include <qglobal.h>
 #include "spectrum.h"
+
+#include <QtGlobal>
 
 QT_BEGIN_NAMESPACE
 class QAudioFormat;
@@ -18,4 +19,3 @@ QT_END_NAMESPACE
 void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray &buffer);
 
 #endif // TONEGENERATOR_H
-

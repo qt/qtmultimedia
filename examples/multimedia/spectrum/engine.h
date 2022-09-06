@@ -13,17 +13,17 @@
 #include <QByteArray>
 #include <QDir>
 #include <QList>
-#include <QObject>
 #include <QMediaDevices>
-#include <QWaveDecoder>
+#include <QObject>
 #include <QTimer>
+#include <QWaveDecoder>
 
 #ifdef DUMP_CAPTURED_AUDIO
-#define DUMP_DATA
+#    define DUMP_DATA
 #endif
 
 #ifdef DUMP_SPECTRUM
-#define DUMP_DATA
+#    define DUMP_DATA
 #endif
 
 class FrequencySpectrum;
@@ -43,14 +43,18 @@ class Engine : public QObject
     Q_OBJECT
 
 public:
-    explicit Engine(QObject *parent = 0);
+    explicit Engine(QObject *parent = nullptr);
     ~Engine();
 
     const QList<QAudioDevice> &availableAudioInputDevices() const
-                                    { return m_availableAudioInputDevices; }
+    {
+        return m_availableAudioInputDevices;
+    }
 
     const QList<QAudioDevice> &availableAudioOutputDevices() const
-                                    { return m_availableAudioOutputDevices; }
+    {
+        return m_availableAudioOutputDevices;
+    }
 
     QAudioDevice::Mode mode() const { return m_mode; }
     QAudio::State state() const { return m_state; }
@@ -59,7 +63,7 @@ public:
      * \return Current audio format
      * \note May be QAudioFormat() if engine is not initialized
      */
-    const QAudioFormat& format() const { return m_format; }
+    const QAudioFormat &format() const { return m_format; }
 
     /**
      * Stop any ongoing recording or playback, and reset to ground state.
@@ -222,7 +226,10 @@ private:
 
 #ifdef DUMP_DATA
     void createOutputDir();
-    QString outputPath() const { return m_outputDir.path(); }
+    QString outputPath() const
+    {
+        return m_outputDir.path();
+    }
 #endif
 
 #ifdef DUMP_CAPTURED_AUDIO
@@ -230,53 +237,52 @@ private:
 #endif
 
 private:
-    QAudioDevice::Mode        m_mode;
-    QAudio::State       m_state;
-    QMediaDevices      *m_devices;
+    QAudioDevice::Mode m_mode;
+    QAudio::State m_state;
+    QMediaDevices *m_devices;
 
-    bool                m_generateTone;
-    SweptTone           m_tone;
+    bool m_generateTone;
+    SweptTone m_tone;
 
-    QWaveDecoder*       m_file;
+    QWaveDecoder *m_file;
     // We need a second file handle via which to read data into m_buffer
     // for analysis
-    QWaveDecoder*       m_analysisFile;
+    QWaveDecoder *m_analysisFile;
 
-    QAudioFormat        m_format;
+    QAudioFormat m_format;
 
     const QList<QAudioDevice> m_availableAudioInputDevices;
-    QAudioDevice    m_audioInputDevice;
-    QAudioSource*        m_audioInput;
-    QIODevice*          m_audioInputIODevice;
-    qint64              m_recordPosition;
+    QAudioDevice m_audioInputDevice;
+    QAudioSource *m_audioInput;
+    QIODevice *m_audioInputIODevice;
+    qint64 m_recordPosition;
 
     const QList<QAudioDevice> m_availableAudioOutputDevices;
-    QAudioDevice    m_audioOutputDevice;
-    QAudioSink*       m_audioOutput;
-    qint64              m_playPosition;
-    QBuffer             m_audioOutputIODevice;
+    QAudioDevice m_audioOutputDevice;
+    QAudioSink *m_audioOutput;
+    qint64 m_playPosition;
+    QBuffer m_audioOutputIODevice;
 
-    QByteArray          m_buffer;
-    qint64              m_bufferPosition;
-    qint64              m_bufferLength;
-    qint64              m_dataLength;
+    QByteArray m_buffer;
+    qint64 m_bufferPosition;
+    qint64 m_bufferLength;
+    qint64 m_dataLength;
 
-    int                 m_levelBufferLength;
-    qreal               m_rmsLevel;
-    qreal               m_peakLevel;
+    int m_levelBufferLength;
+    qreal m_rmsLevel;
+    qreal m_peakLevel;
 
-    int                 m_spectrumBufferLength;
-    QByteArray          m_spectrumBuffer;
-    SpectrumAnalyser    m_spectrumAnalyser;
-    qint64              m_spectrumPosition;
+    int m_spectrumBufferLength;
+    QByteArray m_spectrumBuffer;
+    SpectrumAnalyser m_spectrumAnalyser;
+    qint64 m_spectrumPosition;
 
-    int                 m_count;
+    int m_count;
     QTimer *m_notifyTimer = nullptr;
 
 #ifdef DUMP_DATA
-    QDir                m_outputDir;
+    QDir m_outputDir;
 #endif
-
 };
 
 #endif // ENGINE_H

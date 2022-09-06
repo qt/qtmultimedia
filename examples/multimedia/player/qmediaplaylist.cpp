@@ -5,12 +5,11 @@
 #include "qmediaplaylist_p.h"
 #include "qplaylistfileparser_p.h"
 
-#include <QtCore/qlist.h>
-#include <QtCore/qfile.h>
-#include <QtCore/qurl.h>
-#include <QtCore/qcoreevent.h>
-#include <QtCore/qcoreapplication.h>
+#include <QCoreApplication>
+#include <QFile>
+#include <QList>
 #include <QRandomGenerator>
+#include <QUrl>
 
 QT_BEGIN_NAMESPACE
 
@@ -18,16 +17,13 @@ class QM3uPlaylistWriter
 {
 public:
     QM3uPlaylistWriter(QIODevice *device)
-        :m_device(device), m_textStream(new QTextStream(m_device))
+        : m_device(device), m_textStream(new QTextStream(m_device))
     {
     }
 
-    ~QM3uPlaylistWriter()
-    {
-        delete m_textStream;
-    }
+    ~QM3uPlaylistWriter() { delete m_textStream; }
 
-    bool writeItem(const QUrl& item)
+    bool writeItem(const QUrl &item)
     {
         *m_textStream << item.toString() << Qt::endl;
         return true;
@@ -37,7 +33,6 @@ private:
     QIODevice *m_device;
     QTextStream *m_textStream;
 };
-
 
 int QMediaPlaylistPrivate::nextPosition(int steps) const
 {
@@ -117,7 +112,6 @@ int QMediaPlaylistPrivate::prevPosition(int steps) const
     \sa QUrl
 */
 
-
 /*!
     \enum QMediaPlaylist::PlaybackMode
 
@@ -127,23 +121,21 @@ int QMediaPlaylistPrivate::prevPosition(int steps) const
 
     \value CurrentItemInLoop  The current item is played repeatedly in a loop.
 
-    \value Sequential         Playback starts from the current and moves through each successive item until the last is reached and then stops.
-                              The next item is a null item when the last one is currently playing.
+    \value Sequential         Playback starts from the current and moves through each successive
+   item until the last is reached and then stops. The next item is a null item when the last one is
+   currently playing.
 
-    \value Loop               Playback restarts at the first item after the last has finished playing.
+    \value Loop               Playback restarts at the first item after the last has finished
+   playing.
 
     \value Random             Play items in random order.
 */
-
-
 
 /*!
   Create a new playlist object with the given \a parent.
 */
 
-QMediaPlaylist::QMediaPlaylist(QObject *parent)
-    : QObject(parent)
-    , d_ptr(new QMediaPlaylistPrivate)
+QMediaPlaylist::QMediaPlaylist(QObject *parent) : QObject(parent), d_ptr(new QMediaPlaylistPrivate)
 {
     Q_D(QMediaPlaylist);
 
@@ -229,7 +221,6 @@ int QMediaPlaylist::previousIndex(int steps) const
 {
     return d_func()->prevPosition(steps);
 }
-
 
 /*!
   Returns the number of items in the playlist.
@@ -344,8 +335,7 @@ bool QMediaPlaylist::insertMedia(int pos, const QList<QUrl> &items)
 bool QMediaPlaylist::moveMedia(int from, int to)
 {
     Q_D(QMediaPlaylist);
-    if (from < 0 || from > d->playlist.count() ||
-        to < 0 || to > d->playlist.count())
+    if (from < 0 || from > d->playlist.count() || to < 0 || to > d->playlist.count())
         return false;
 
     d->playlist.move(from, to);
@@ -515,14 +505,14 @@ void QMediaPlaylist::shuffle()
         current = d->playlist.takeAt(d->currentPos);
 
     while (!d->playlist.isEmpty())
-        playlist.append(d->playlist.takeAt(QRandomGenerator::global()->bounded(int(d->playlist.size()))));
+        playlist.append(
+                d->playlist.takeAt(QRandomGenerator::global()->bounded(int(d->playlist.size()))));
 
     if (d->currentPos != -1)
         playlist.insert(d->currentPos, current);
     d->playlist = playlist;
     emit mediaChanged(0, d->playlist.count());
 }
-
 
 /*!
     Advance to the next media content in playlist.

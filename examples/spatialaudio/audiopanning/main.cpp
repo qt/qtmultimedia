@@ -1,20 +1,23 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include <QtSpatialAudio/QtSpatialAudio>
-
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QCheckBox>
-#include <QtWidgets/QComboBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QFormLayout>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QLineEdit>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QSlider>
-
-#include <QtCore/QPropertyAnimation>
-#include <QtCore/QLibraryInfo>
+#include <QApplication>
+#include <QAudioEngine>
+#include <QAudioListener>
+#include <QAudioRoom>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QCommandLineParser>
+#include <QFileDialog>
+#include <QFormLayout>
+#include <QHBoxLayout>
+#include <QLibraryInfo>
+#include <QLineEdit>
+#include <QPropertyAnimation>
+#include <QPushButton>
+#include <QSlider>
+#include <QSpatialSound>
+#include <QStandardPaths>
 
 class AudioWidget : public QWidget
 {

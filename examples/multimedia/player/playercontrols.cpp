@@ -3,15 +3,14 @@
 
 #include "playercontrols.h"
 
+#include <QAudio>
 #include <QBoxLayout>
+#include <QComboBox>
 #include <QSlider>
 #include <QStyle>
 #include <QToolButton>
-#include <QComboBox>
-#include <QAudio>
 
-PlayerControls::PlayerControls(QWidget *parent)
-    : QWidget(parent)
+PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent)
 {
     m_playButton = new QToolButton(this);
     m_playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
@@ -42,7 +41,8 @@ PlayerControls::PlayerControls(QWidget *parent)
     m_volumeSlider = new QSlider(Qt::Horizontal, this);
     m_volumeSlider->setRange(0, 100);
 
-    connect(m_volumeSlider, &QSlider::valueChanged, this, &PlayerControls::onVolumeSliderValueChanged);
+    connect(m_volumeSlider, &QSlider::valueChanged, this,
+            &PlayerControls::onVolumeSliderValueChanged);
 
     m_rateBox = new QComboBox(this);
     m_rateBox->addItem("0.5x", QVariant(0.5));
@@ -50,7 +50,8 @@ PlayerControls::PlayerControls(QWidget *parent)
     m_rateBox->addItem("2.0x", QVariant(2.0));
     m_rateBox->setCurrentIndex(1);
 
-    connect(m_rateBox, QOverload<int>::of(&QComboBox::activated), this, &PlayerControls::updateRate);
+    connect(m_rateBox, QOverload<int>::of(&QComboBox::activated), this,
+            &PlayerControls::updateRate);
 
     QBoxLayout *layout = new QHBoxLayout;
     layout->setContentsMargins(0, 0, 0, 0);
@@ -93,17 +94,16 @@ void PlayerControls::setState(QMediaPlayer::PlaybackState state)
 
 float PlayerControls::volume() const
 {
-    qreal linearVolume =  QAudio::convertVolume(m_volumeSlider->value() / qreal(100),
-                                                QAudio::LogarithmicVolumeScale,
-                                                QAudio::LinearVolumeScale);
+    qreal linearVolume =
+            QAudio::convertVolume(m_volumeSlider->value() / qreal(100),
+                                  QAudio::LogarithmicVolumeScale, QAudio::LinearVolumeScale);
 
     return linearVolume;
 }
 
 void PlayerControls::setVolume(float volume)
 {
-    qreal logarithmicVolume = QAudio::convertVolume(volume,
-                                                    QAudio::LinearVolumeScale,
+    qreal logarithmicVolume = QAudio::convertVolume(volume, QAudio::LinearVolumeScale,
                                                     QAudio::LogarithmicVolumeScale);
 
     m_volumeSlider->setValue(qRound(logarithmicVolume * 100));
@@ -119,9 +119,8 @@ void PlayerControls::setMuted(bool muted)
     if (muted != m_playerMuted) {
         m_playerMuted = muted;
 
-        m_muteButton->setIcon(style()->standardIcon(muted
-                ? QStyle::SP_MediaVolumeMuted
-                : QStyle::SP_MediaVolume));
+        m_muteButton->setIcon(style()->standardIcon(muted ? QStyle::SP_MediaVolumeMuted
+                                                          : QStyle::SP_MediaVolume));
     }
 }
 

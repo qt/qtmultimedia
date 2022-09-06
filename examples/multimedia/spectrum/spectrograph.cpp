@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "spectrograph.h"
+
 #include <QDebug>
 #include <QMouseEvent>
 #include <QPainter>
@@ -12,17 +13,16 @@ const int NullIndex = -1;
 const int BarSelectionInterval = 2000;
 
 Spectrograph::Spectrograph(QWidget *parent)
-    :   QWidget(parent)
-    ,   m_barSelected(NullIndex)
-    ,   m_timerId(NullTimerId)
-    ,   m_lowFreq(0.0)
-    ,   m_highFreq(0.0)
+    : QWidget(parent),
+      m_barSelected(NullIndex),
+      m_timerId(NullTimerId),
+      m_lowFreq(0.0),
+      m_highFreq(0.0)
 {
     setMinimumHeight(100);
 }
 
-Spectrograph::~Spectrograph()
-= default;
+Spectrograph::~Spectrograph() = default;
 
 void Spectrograph::setParams(int numBars, qreal lowFreq, qreal highFreq)
 {
@@ -85,8 +85,8 @@ void Spectrograph::paintEvent(QPaintEvent *event)
     if (numBars) {
         const int numHorizontalSections = numBars;
         QLine line(rect().topLeft(), rect().bottomLeft());
-        for (int i=1; i<numHorizontalSections; ++i) {
-            line.translate(rect().width()/numHorizontalSections, 0);
+        for (int i = 1; i < numHorizontalSections; ++i) {
+            line.translate(rect().width() / numHorizontalSections, 0);
             painter.drawLine(line);
         }
     }
@@ -94,8 +94,8 @@ void Spectrograph::paintEvent(QPaintEvent *event)
     // Draw horizontal lines
     const int numVerticalSections = 10;
     QLine line(rect().topLeft(), rect().topRight());
-    for (int i=1; i<numVerticalSections; ++i) {
-        line.translate(0, rect().height()/numVerticalSections);
+    for (int i = 1; i < numVerticalSections; ++i) {
+        line.translate(0, rect().height() / numVerticalSections);
         painter.drawLine(line);
     }
 
@@ -114,7 +114,7 @@ void Spectrograph::paintEvent(QPaintEvent *event)
         const int leftPaddingWidth = (paddingWidth + gapWidth) / 2;
         const int barHeight = rect().height() - 2 * gapWidth;
 
-        for (int i=0; i<numBars; ++i) {
+        for (int i = 0; i < numBars; ++i) {
             const qreal value = m_bars[i].value;
             Q_ASSERT(value >= 0.0 && value <= 1.0);
             QRect bar = rect();
@@ -156,7 +156,7 @@ int Spectrograph::barIndex(qreal frequency) const
     Q_ASSERT(frequency >= m_lowFreq && frequency < m_highFreq);
     const qreal bandWidth = (m_highFreq - m_lowFreq) / m_bars.count();
     const int index = (frequency - m_lowFreq) / bandWidth;
-    if (index <0 || index >= m_bars.count())
+    if (index < 0 || index >= m_bars.count())
         Q_ASSERT(false);
     return index;
 }
@@ -165,7 +165,7 @@ QPair<qreal, qreal> Spectrograph::barRange(int index) const
 {
     Q_ASSERT(index >= 0 && index < m_bars.count());
     const qreal bandWidth = (m_highFreq - m_lowFreq) / m_bars.count();
-    return QPair<qreal, qreal>(index * bandWidth, (index+1) * bandWidth);
+    return QPair<qreal, qreal>(index * bandWidth, (index + 1) * bandWidth);
 }
 
 void Spectrograph::updateBars()
@@ -173,7 +173,7 @@ void Spectrograph::updateBars()
     m_bars.fill(Bar());
     FrequencySpectrum::const_iterator i = m_spectrum.begin();
     const FrequencySpectrum::const_iterator end = m_spectrum.end();
-    for ( ; i != end; ++i) {
+    for (; i != end; ++i) {
         const FrequencySpectrum::Element e = *i;
         if (e.frequency >= m_lowFreq && e.frequency < m_highFreq) {
             Bar &bar = m_bars[barIndex(e.frequency)];
@@ -184,11 +184,11 @@ void Spectrograph::updateBars()
     update();
 }
 
-void Spectrograph::selectBar(int index) {
+void Spectrograph::selectBar(int index)
+{
     const QPair<qreal, qreal> frequencyRange = barRange(index);
-    const QString message = QString("%1 - %2 Hz")
-                                .arg(frequencyRange.first)
-                                .arg(frequencyRange.second);
+    const QString message =
+            QString("%1 - %2 Hz").arg(frequencyRange.first).arg(frequencyRange.second);
     emit infoMessage(message, BarSelectionInterval);
 
     if (NullTimerId != m_timerId)
@@ -198,5 +198,3 @@ void Spectrograph::selectBar(int index) {
     m_barSelected = index;
     update();
 }
-
-

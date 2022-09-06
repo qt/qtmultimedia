@@ -13,9 +13,13 @@ struct State
     State() : valid(true), logging(false), visible(true) { }
     State(bool l, bool v) : valid(true), logging(l), visible(v) { }
     bool operator==(const State &other) const
-    { return logging == other.logging && visible == other.visible; }
+    {
+        return logging == other.logging && visible == other.visible;
+    }
     bool operator!=(const State &other) const
-    { return logging != other.logging || visible != other.visible; }
+    {
+        return logging != other.logging || visible != other.visible;
+    }
 
     bool parseArgument(const QByteArray &arg);
 
@@ -27,4 +31,3 @@ struct State
 } // namespace PerformanceMonitor
 
 #endif // PERFORMANCEMONITOR_H
-

@@ -5,8 +5,9 @@
 #define SETTINGSDIALOG_H
 
 #include "spectrum.h"
-#include <QDialog>
+
 #include <QAudioDevice>
+#include <QDialog>
 
 QT_BEGIN_NAMESPACE
 class QComboBox;
@@ -26,8 +27,7 @@ class SettingsDialog : public QDialog
 
 public:
     SettingsDialog(const QList<QAudioDevice> &availableInputDevices,
-                   const QList<QAudioDevice> &availableOutputDevices,
-                   QWidget *parent = 0);
+                   const QList<QAudioDevice> &availableOutputDevices, QWidget *parent = nullptr);
     ~SettingsDialog();
 
     WindowFunction windowFunction() const { return m_windowFunction; }
@@ -40,7 +40,7 @@ private slots:
     void outputDeviceChanged(int index);
 
 private:
-    WindowFunction   m_windowFunction;
+    WindowFunction m_windowFunction;
     QAudioDevice m_inputDevice;
     QAudioDevice m_outputDevice;
 

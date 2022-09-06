@@ -3,16 +3,12 @@
 
 #include "frequencyspectrum.h"
 
-FrequencySpectrum::FrequencySpectrum(int numPoints)
-    :   m_elements(numPoints)
-{
-
-}
+FrequencySpectrum::FrequencySpectrum(int numPoints) : m_elements(numPoints) { }
 
 void FrequencySpectrum::reset()
 {
     iterator i = begin();
-    for ( ; i != end(); ++i)
+    for (; i != end(); ++i)
         *i = Element();
 }
 

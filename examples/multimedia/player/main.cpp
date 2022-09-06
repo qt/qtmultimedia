@@ -4,8 +4,8 @@
 #include "player.h"
 
 #include <QApplication>
-#include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QCommandLineParser>
 #include <QDir>
 #include <QUrl>
 
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 
     if (!parser.positionalArguments().isEmpty() && player.isPlayerAvailable()) {
         QList<QUrl> urls;
-        for (auto &a: parser.positionalArguments())
+        for (auto &a : parser.positionalArguments())
             urls.append(QUrl::fromUserInput(a, QDir::currentPath()));
         player.addToPlaylist(urls);
     }

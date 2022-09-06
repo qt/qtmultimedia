@@ -7,13 +7,15 @@
 #include <QFileInfo>
 #include <QUrl>
 
-PlaylistModel::PlaylistModel(QObject *parent)
-    : QAbstractItemModel(parent)
+PlaylistModel::PlaylistModel(QObject *parent) : QAbstractItemModel(parent)
 {
     m_playlist.reset(new QMediaPlaylist);
-    connect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeInserted, this, &PlaylistModel::beginInsertItems);
-    connect(m_playlist.data(), &QMediaPlaylist::mediaInserted, this, &PlaylistModel::endInsertItems);
-    connect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeRemoved, this, &PlaylistModel::beginRemoveItems);
+    connect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeInserted, this,
+            &PlaylistModel::beginInsertItems);
+    connect(m_playlist.data(), &QMediaPlaylist::mediaInserted, this,
+            &PlaylistModel::endInsertItems);
+    connect(m_playlist.data(), &QMediaPlaylist::mediaAboutToBeRemoved, this,
+            &PlaylistModel::beginRemoveItems);
     connect(m_playlist.data(), &QMediaPlaylist::mediaRemoved, this, &PlaylistModel::endRemoveItems);
     connect(m_playlist.data(), &QMediaPlaylist::mediaChanged, this, &PlaylistModel::changeItems);
 }
@@ -32,11 +34,10 @@ int PlaylistModel::columnCount(const QModelIndex &parent) const
 
 QModelIndex PlaylistModel::index(int row, int column, const QModelIndex &parent) const
 {
-    return m_playlist && !parent.isValid()
-            && row >= 0 && row < m_playlist->mediaCount()
-            && column >= 0 && column < ColumnCount
-        ? createIndex(row, column)
-        : QModelIndex();
+    return m_playlist && !parent.isValid() && row >= 0 && row < m_playlist->mediaCount()
+                    && column >= 0 && column < ColumnCount
+            ? createIndex(row, column)
+            : QModelIndex();
 }
 
 QModelIndex PlaylistModel::parent(const QModelIndex &child) const
@@ -98,5 +99,5 @@ void PlaylistModel::endRemoveItems()
 void PlaylistModel::changeItems(int start, int end)
 {
     m_data.clear();
-    emit dataChanged(index(start,0), index(end,ColumnCount));
+    emit dataChanged(index(start, 0), index(end, ColumnCount));
 }

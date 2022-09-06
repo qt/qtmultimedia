@@ -17,7 +17,7 @@ class Spectrograph : public QWidget
     Q_OBJECT
 
 public:
-    explicit Spectrograph(QWidget *parent = 0);
+    explicit Spectrograph(QWidget *parent = nullptr);
     ~Spectrograph();
 
     void setParams(int numBars, qreal lowFreq, qreal highFreq);
@@ -44,18 +44,19 @@ private:
     void selectBar(int index);
 
 private:
-    struct Bar {
+    struct Bar
+    {
         Bar() : value(0.0), clipped(false) { }
-        qreal   value;
-        bool    clipped;
+        qreal value;
+        bool clipped;
     };
 
-    QList<Bar>          m_bars;
-    int                 m_barSelected;
-    int                 m_timerId;
-    qreal               m_lowFreq;
-    qreal               m_highFreq;
-    FrequencySpectrum   m_spectrum;
+    QList<Bar> m_bars;
+    int m_barSelected;
+    int m_timerId;
+    qreal m_lowFreq;
+    qreal m_highFreq;
+    FrequencySpectrum m_spectrum;
 };
 
 #endif // SPECTROGRAPH_H

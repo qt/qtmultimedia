@@ -35,7 +35,7 @@ private slots:
     void handleError();
 
 private:
-    QMediaPlayer* m_mediaPlayer;
+    QMediaPlayer *m_mediaPlayer;
     QAbstractButton *m_playButton;
     QSlider *m_positionSlider;
     QLabel *m_errorLabel;

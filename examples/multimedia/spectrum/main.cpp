@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "mainwidget.h"
+
 #include <QApplication>
 
 int main(int argc, char *argv[])

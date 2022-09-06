@@ -8,10 +8,10 @@
 #include <QFileInfo>
 #include <QTextStream>
 #ifdef Q_OS_ANDROID
-#include <QApplication>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <qstandardpaths.h>
+#    include <QApplication>
+#    include <QFileDialog>
+#    include <QMessageBox>
+#    include <QStandardPaths>
 #endif
 
 #include <stdio.h>
@@ -34,8 +34,10 @@ int main(int argc, char *argv[])
     if (app.arguments().size() < 2) {
         cout << "Usage: audiodecoder [-p] [-pd] SOURCEFILE [TARGETFILE]\n";
         cout << "Set -p option if you want to play output file.\n";
-        cout << "Set -pd option if you want to play output file and delete it after successful playback.\n";
-        cout << "Default TARGETFILE name is \"out.wav\" in the same directory as the source file.\n";
+        cout << "Set -pd option if you want to play output file and delete it after successful "
+                "playback.\n";
+        cout << "Default TARGETFILE name is \"out.wav\" in the same directory as the source "
+                "file.\n";
         return 0;
     }
 
@@ -64,15 +66,14 @@ int main(int argc, char *argv[])
                             "which will be decoded and played back to you.";
     QMessageBox messageBox(QMessageBox::Information, "Audio Decoder", message, QMessageBox::Ok);
     messageBox.exec();
-    sourceFile = QFileInfo(QFileDialog::getOpenFileName(messageBox.parentWidget(),
-                                                        "Select Audio File"));
+    sourceFile =
+            QFileInfo(QFileDialog::getOpenFileName(messageBox.parentWidget(), "Select Audio File"));
     auto musicPath = QStandardPaths::writableLocation(QStandardPaths::MusicLocation);
     targetFile = QFileInfo(musicPath.append("/out.wav"));
     isPlayback = true;
 #endif
     AudioDecoder decoder(isPlayback, isDelete, targetFile.absoluteFilePath());
-    QObject::connect(&decoder, &AudioDecoder::done,
-                     &app, &QCoreApplication::quit);
+    QObject::connect(&decoder, &AudioDecoder::done, &app, &QCoreApplication::quit);
     decoder.setSource(sourceFile.absoluteFilePath());
     decoder.start();
     if (decoder.getError() != QAudioDecoder::NoError)

@@ -4,8 +4,8 @@
 #include "videoplayer.h"
 
 #include <QApplication>
-#include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <QCommandLineParser>
 #include <QDir>
 #include <QUrl>
 
@@ -26,9 +26,8 @@ int main(int argc, char **argv)
     VideoPlayer player;
 
     if (!parser.positionalArguments().isEmpty() && player.isPlayerAvailable()) {
-        const QUrl url =
-            QUrl::fromUserInput(parser.positionalArguments().constFirst(),
-                                QDir::currentPath(), QUrl::AssumeLocalFile);
+        const QUrl url = QUrl::fromUserInput(parser.positionalArguments().constFirst(),
+                                             QDir::currentPath(), QUrl::AssumeLocalFile);
         player.load(url);
     }
 
@@ -36,4 +35,3 @@ int main(int argc, char **argv)
 
     return app.exec();
 }
-

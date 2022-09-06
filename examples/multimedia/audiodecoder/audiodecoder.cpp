@@ -2,33 +2,28 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "audiodecoder.h"
+
 #include <QFile>
+
 #include <stdio.h>
 
 AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete, const QString &targetFileName)
-    : m_cout(stdout, QIODevice::WriteOnly),
-    m_targetFilename(targetFileName)
+    : m_cout(stdout, QIODevice::WriteOnly), m_targetFilename(targetFileName)
 {
     m_isPlayback = isPlayback;
     m_isDelete = isDelete;
 
-    connect(&m_decoder, &QAudioDecoder::bufferReady,
-            this, &AudioDecoder::bufferReady);
-    connect(&m_decoder, QOverload<QAudioDecoder::Error>::of(&QAudioDecoder::error),
-            this, QOverload<QAudioDecoder::Error>::of(&AudioDecoder::error));
-    connect(&m_decoder, &QAudioDecoder::isDecodingChanged,
-            this, &AudioDecoder::isDecodingChanged);
-    connect(&m_decoder, &QAudioDecoder::finished,
-            this, &AudioDecoder::finished);
-    connect(&m_decoder, &QAudioDecoder::positionChanged,
-            this, &AudioDecoder::updateProgress);
-    connect(&m_decoder, &QAudioDecoder::durationChanged,
-            this, &AudioDecoder::updateProgress);
+    connect(&m_decoder, &QAudioDecoder::bufferReady, this, &AudioDecoder::bufferReady);
+    connect(&m_decoder, QOverload<QAudioDecoder::Error>::of(&QAudioDecoder::error), this,
+            QOverload<QAudioDecoder::Error>::of(&AudioDecoder::error));
+    connect(&m_decoder, &QAudioDecoder::isDecodingChanged, this, &AudioDecoder::isDecodingChanged);
+    connect(&m_decoder, &QAudioDecoder::finished, this, &AudioDecoder::finished);
+    connect(&m_decoder, &QAudioDecoder::positionChanged, this, &AudioDecoder::updateProgress);
+    connect(&m_decoder, &QAudioDecoder::durationChanged, this, &AudioDecoder::updateProgress);
 
-    connect(&m_soundEffect, &QSoundEffect::statusChanged,
-            this, &AudioDecoder::playbackStatusChanged);
-    connect(&m_soundEffect, &QSoundEffect::playingChanged,
-            this, &AudioDecoder::playingChanged);
+    connect(&m_soundEffect, &QSoundEffect::statusChanged, this,
+            &AudioDecoder::playbackStatusChanged);
+    connect(&m_soundEffect, &QSoundEffect::playingChanged, this, &AudioDecoder::playingChanged);
 
     m_progress = -1.0;
 }
@@ -71,7 +66,7 @@ void AudioDecoder::bufferReady()
         return;
 
     if (!m_waveDecoder) {
-        QIODevice* target = new QFile(m_targetFilename, this);
+        QIODevice *target = new QFile(m_targetFilename, this);
         if (!target->open(QIODevice::WriteOnly)) {
             qWarning() << "target file is not writable";
             m_decoder.stop();
@@ -80,8 +75,8 @@ void AudioDecoder::bufferReady()
         m_waveDecoder = new QWaveDecoder(target, buffer.format());
     }
 
-    if (!m_waveDecoder || (!m_waveDecoder->isOpen()
-                        && !m_waveDecoder->open(QIODevice::WriteOnly))) {
+    if (!m_waveDecoder
+        || (!m_waveDecoder->isOpen() && !m_waveDecoder->open(QIODevice::WriteOnly))) {
         m_decoder.stop();
         return;
     }

@@ -3,35 +3,32 @@
 
 #include "levelmeter.h"
 
-#include <math.h>
-
+#include <QDebug>
 #include <QPainter>
 #include <QTimer>
-#include <QDebug>
 
+#include <math.h>
 
 // Constants
 const int RedrawInterval = 100; // ms
 const qreal PeakDecayRate = 0.001;
 const int PeakHoldLevelDuration = 2000; // ms
 
-
 LevelMeter::LevelMeter(QWidget *parent)
-    :   QWidget(parent)
-    ,   m_rmsLevel(0.0)
-    ,   m_peakLevel(0.0)
-    ,   m_decayedPeakLevel(0.0)
-    ,   m_peakDecayRate(PeakDecayRate)
-    ,   m_peakHoldLevel(0.0)
-    ,   m_redrawTimer(new QTimer(this))
-    ,   m_rmsColor(Qt::red)
-    ,   m_peakColor(255, 200, 200, 255)
+    : QWidget(parent),
+      m_rmsLevel(0.0),
+      m_peakLevel(0.0),
+      m_decayedPeakLevel(0.0),
+      m_peakDecayRate(PeakDecayRate),
+      m_peakHoldLevel(0.0),
+      m_redrawTimer(new QTimer(this)),
+      m_rmsColor(Qt::red),
+      m_peakColor(255, 200, 200, 255)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     setMinimumWidth(30);
 
-    connect(m_redrawTimer, &QTimer::timeout,
-            this, &LevelMeter::redrawTimerExpired);
+    connect(m_redrawTimer, &QTimer::timeout, this, &LevelMeter::redrawTimerExpired);
     m_redrawTimer->start(RedrawInterval);
 }
 
@@ -47,7 +44,8 @@ void LevelMeter::reset()
 void LevelMeter::levelChanged(qreal rmsLevel, qreal peakLevel, int numSamples)
 {
     // Smooth the RMS signal
-    const qreal smooth = pow(qreal(0.9), static_cast<qreal>(numSamples) / 256); // TODO: remove this magic number
+    const qreal smooth =
+            pow(qreal(0.9), static_cast<qreal>(numSamples) / 256); // TODO: remove this magic number
     m_rmsLevel = (m_rmsLevel * smooth) + (rmsLevel * (1.0 - smooth));
 
     if (peakLevel > m_decayedPeakLevel) {

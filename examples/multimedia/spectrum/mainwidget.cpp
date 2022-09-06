@@ -1,55 +1,55 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+#include "mainwidget.h"
 #include "engine.h"
 #include "levelmeter.h"
-#include "mainwidget.h"
-#include "waveform.h"
 #include "progressbar.h"
 #include "settingsdialog.h"
 #include "spectrograph.h"
 #include "tonegeneratordialog.h"
 #include "utils.h"
+#include "waveform.h"
 
-#include <QLabel>
-#include <QPushButton>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QStyle>
-#include <QMenu>
 #include <QFileDialog>
-#include <QTimerEvent>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QMenu>
 #include <QMessageBox>
+#include <QPushButton>
+#include <QStyle>
+#include <QTimerEvent>
+#include <QVBoxLayout>
 
 const int NullTimerId = -1;
 
 MainWidget::MainWidget(QWidget *parent)
-    :   QWidget(parent)
-    ,   m_mode(NoMode)
-    ,   m_engine(new Engine(this))
+    : QWidget(parent),
+      m_mode(NoMode),
+      m_engine(new Engine(this))
 #ifndef DISABLE_WAVEFORM
-    ,   m_waveform(new Waveform(this))
+      ,
+      m_waveform(new Waveform(this))
 #endif
-    ,   m_progressBar(new ProgressBar(this))
-    ,   m_spectrograph(new Spectrograph(this))
-    ,   m_levelMeter(new LevelMeter(this))
-    ,   m_modeButton(new QPushButton(this))
-    ,   m_recordButton(new QPushButton(this))
-    ,   m_pauseButton(new QPushButton(this))
-    ,   m_playButton(new QPushButton(this))
-    ,   m_settingsButton(new QPushButton(this))
-    ,   m_infoMessage(new QLabel(tr("Select a mode to begin"), this))
-    ,   m_infoMessageTimerId(NullTimerId)
-    ,   m_settingsDialog(new SettingsDialog(
-            m_engine->availableAudioInputDevices(),
-            m_engine->availableAudioOutputDevices(),
-            this))
-    ,   m_toneGeneratorDialog(new ToneGeneratorDialog(this))
-    ,   m_modeMenu(new QMenu(this))
-    ,   m_loadFileAction(nullptr)
-    ,   m_generateToneAction(nullptr)
-    ,   m_recordAction(nullptr)
-    ,   m_errorOccurred(false)
+      ,
+      m_progressBar(new ProgressBar(this)),
+      m_spectrograph(new Spectrograph(this)),
+      m_levelMeter(new LevelMeter(this)),
+      m_modeButton(new QPushButton(this)),
+      m_recordButton(new QPushButton(this)),
+      m_pauseButton(new QPushButton(this)),
+      m_playButton(new QPushButton(this)),
+      m_settingsButton(new QPushButton(this)),
+      m_infoMessage(new QLabel(tr("Select a mode to begin"), this)),
+      m_infoMessageTimerId(NullTimerId),
+      m_settingsDialog(new SettingsDialog(m_engine->availableAudioInputDevices(),
+                                          m_engine->availableAudioOutputDevices(), this)),
+      m_toneGeneratorDialog(new ToneGeneratorDialog(this)),
+      m_modeMenu(new QMenu(this)),
+      m_loadFileAction(nullptr),
+      m_generateToneAction(nullptr),
+      m_recordAction(nullptr),
+      m_errorOccurred(false)
 {
     m_spectrograph->setParams(SpectrumNumBands, SpectrumLowFreq, SpectrumHighFreq);
 
@@ -58,7 +58,6 @@ MainWidget::MainWidget(QWidget *parent)
 }
 
 MainWidget::~MainWidget() = default;
-
 
 //-----------------------------------------------------------------------------
 // Public slots
@@ -70,8 +69,7 @@ void MainWidget::stateChanged(QAudioDevice::Mode mode, QAudio::State state)
 
     updateButtonStates();
 
-    if (QAudio::ActiveState != state &&
-        QAudio::SuspendedState != state) {
+    if (QAudio::ActiveState != state && QAudio::SuspendedState != state) {
         m_levelMeter->reset();
         m_spectrograph->reset();
     }
@@ -79,18 +77,16 @@ void MainWidget::stateChanged(QAudioDevice::Mode mode, QAudio::State state)
 
 void MainWidget::formatChanged(const QAudioFormat &format)
 {
-   infoMessage(formatToString(format), NullMessageTimeout);
+    infoMessage(formatToString(format), NullMessageTimeout);
 
 #ifndef DISABLE_WAVEFORM
     if (QAudioFormat() != format) {
-        m_waveform->initialize(format, WaveformTileLength,
-                               WaveformWindowDuration);
+        m_waveform->initialize(format, WaveformTileLength, WaveformWindowDuration);
     }
 #endif
 }
 
-void MainWidget::spectrumChanged(qint64 position, qint64 length,
-                                 const FrequencySpectrum &spectrum)
+void MainWidget::spectrumChanged(qint64 position, qint64 length, const FrequencySpectrum &spectrum)
 {
     m_progressBar->windowChanged(position, length);
     m_spectrograph->spectrumChanged(spectrum);
@@ -139,7 +135,6 @@ void MainWidget::bufferLengthChanged(qint64 length)
     m_progressBar->bufferLengthChanged(length);
 }
 
-
 //-----------------------------------------------------------------------------
 // Private slots
 //-----------------------------------------------------------------------------
@@ -148,7 +143,8 @@ void MainWidget::showFileDialog()
 {
     m_errorOccurred = false;
     const QString dir;
-    const QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open WAV file"), dir, "*.wav");
+    const QStringList fileNames =
+            QFileDialog::getOpenFileNames(this, tr("Open WAV file"), dir, "*.wav");
     if (fileNames.count()) {
         reset();
         setMode(LoadFileMode);
@@ -200,7 +196,6 @@ void MainWidget::initializeRecord()
         updateButtonStates();
 }
 
-
 //-----------------------------------------------------------------------------
 // Private functions
 //-----------------------------------------------------------------------------
@@ -225,9 +220,9 @@ void MainWidget::createUi()
     m_waveform->setLayout(waveformLayout.release());
     windowLayout->addWidget(m_waveform);
 #else
-#ifndef DISABLE_WAVEFORM
+#    ifndef DISABLE_WAVEFORM
     windowLayout->addWidget(m_waveform);
-#endif // DISABLE_WAVEFORM
+#    endif // DISABLE_WAVEFORM
     windowLayout->addWidget(m_progressBar);
 #endif // SUPERIMPOSE_PROGRESS_ON_WAVEFORM
 
@@ -291,62 +286,49 @@ void MainWidget::createUi()
 
 void MainWidget::connectUi()
 {
-    connect(m_recordButton, &QPushButton::clicked,
-            m_engine, &Engine::startRecording);
+    connect(m_recordButton, &QPushButton::clicked, m_engine, &Engine::startRecording);
 
-    connect(m_pauseButton, &QPushButton::clicked,
-            m_engine, &Engine::suspend);
+    connect(m_pauseButton, &QPushButton::clicked, m_engine, &Engine::suspend);
 
-    connect(m_playButton, &QPushButton::clicked,
-            m_engine, &Engine::startPlayback);
+    connect(m_playButton, &QPushButton::clicked, m_engine, &Engine::startPlayback);
 
-    connect(m_settingsButton, &QPushButton::clicked,
-            this, &MainWidget::showSettingsDialog);
+    connect(m_settingsButton, &QPushButton::clicked, this, &MainWidget::showSettingsDialog);
 
-    connect(m_engine, &Engine::stateChanged,
-            this, &MainWidget::stateChanged);
+    connect(m_engine, &Engine::stateChanged, this, &MainWidget::stateChanged);
 
-    connect(m_engine, &Engine::formatChanged,
-            this, &MainWidget::formatChanged);
+    connect(m_engine, &Engine::formatChanged, this, &MainWidget::formatChanged);
 
     m_progressBar->bufferLengthChanged(m_engine->bufferLength());
 
-    connect(m_engine, &Engine::bufferLengthChanged,
-            this, &MainWidget::bufferLengthChanged);
+    connect(m_engine, &Engine::bufferLengthChanged, this, &MainWidget::bufferLengthChanged);
 
-    connect(m_engine, &Engine::dataLengthChanged,
-            this, &MainWidget::updateButtonStates);
+    connect(m_engine, &Engine::dataLengthChanged, this, &MainWidget::updateButtonStates);
 
-    connect(m_engine, &Engine::recordPositionChanged,
-            m_progressBar, &ProgressBar::recordPositionChanged);
+    connect(m_engine, &Engine::recordPositionChanged, m_progressBar,
+            &ProgressBar::recordPositionChanged);
 
-    connect(m_engine, &Engine::playPositionChanged,
-            m_progressBar, &ProgressBar::playPositionChanged);
+    connect(m_engine, &Engine::playPositionChanged, m_progressBar,
+            &ProgressBar::playPositionChanged);
 
-    connect(m_engine, &Engine::recordPositionChanged,
-            this, &MainWidget::audioPositionChanged);
+    connect(m_engine, &Engine::recordPositionChanged, this, &MainWidget::audioPositionChanged);
 
-    connect(m_engine, &Engine::playPositionChanged,
-            this, &MainWidget::audioPositionChanged);
+    connect(m_engine, &Engine::playPositionChanged, this, &MainWidget::audioPositionChanged);
 
-    connect(m_engine, &Engine::levelChanged,
-            m_levelMeter, &LevelMeter::levelChanged);
+    connect(m_engine, &Engine::levelChanged, m_levelMeter, &LevelMeter::levelChanged);
 
-    connect(m_engine, QOverload<qint64, qint64, const FrequencySpectrum&>::of(&Engine::spectrumChanged),
-            this, QOverload<qint64, qint64, const FrequencySpectrum&>::of(&MainWidget::spectrumChanged));
+    connect(m_engine,
+            QOverload<qint64, qint64, const FrequencySpectrum &>::of(&Engine::spectrumChanged),
+            this,
+            QOverload<qint64, qint64, const FrequencySpectrum &>::of(&MainWidget::spectrumChanged));
 
-    connect(m_engine, &Engine::infoMessage,
-            this, &MainWidget::infoMessage);
+    connect(m_engine, &Engine::infoMessage, this, &MainWidget::infoMessage);
 
-    connect(m_engine, &Engine::errorMessage,
-            this, &MainWidget::errorMessage);
+    connect(m_engine, &Engine::errorMessage, this, &MainWidget::errorMessage);
 
-    connect(m_spectrograph, &Spectrograph::infoMessage,
-            this, &MainWidget::infoMessage);
+    connect(m_spectrograph, &Spectrograph::infoMessage, this, &MainWidget::infoMessage);
 
 #ifndef DISABLE_WAVEFORM
-    connect(m_engine, &Engine::bufferChanged,
-            m_waveform, &Waveform::bufferChanged);
+    connect(m_engine, &Engine::bufferChanged, m_waveform, &Waveform::bufferChanged);
 #endif
 }
 
@@ -369,20 +351,20 @@ void MainWidget::createMenus()
 
 void MainWidget::updateButtonStates()
 {
-    const bool recordEnabled = ((QAudioDevice::Output == m_engine->mode() ||
-                                (QAudio::ActiveState != m_engine->state() &&
-                                 QAudio::IdleState != m_engine->state())) &&
-                                RecordMode == m_mode);
+    const bool recordEnabled = ((QAudioDevice::Output == m_engine->mode()
+                                 || (QAudio::ActiveState != m_engine->state()
+                                     && QAudio::IdleState != m_engine->state()))
+                                && RecordMode == m_mode);
     m_recordButton->setEnabled(m_errorOccurred ? false : recordEnabled);
 
-    const bool pauseEnabled = (QAudio::ActiveState == m_engine->state() ||
-                               QAudio::IdleState == m_engine->state());
+    const bool pauseEnabled =
+            (QAudio::ActiveState == m_engine->state() || QAudio::IdleState == m_engine->state());
     m_pauseButton->setEnabled(m_errorOccurred ? false : pauseEnabled);
 
     const bool playEnabled = (/*m_engine->dataLength() &&*/
-                              (QAudioDevice::Output != m_engine->mode() ||
-                               (QAudio::ActiveState != m_engine->state() &&
-                                QAudio::IdleState != m_engine->state())));
+                              (QAudioDevice::Output != m_engine->mode()
+                               || (QAudio::ActiveState != m_engine->state()
+                                   && QAudio::IdleState != m_engine->state())));
 
     m_playButton->setEnabled(m_errorOccurred ? false : playEnabled);
 }

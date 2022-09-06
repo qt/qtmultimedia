@@ -3,7 +3,7 @@
 
 #include "audiosource.h"
 
-#include <QtWidgets/QApplication>
+#include <QApplication>
 
 int main(int argv, char **args)
 {

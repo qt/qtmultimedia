@@ -3,39 +3,41 @@
 
 #include "camera.h"
 #if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
-#include "ui_camera_mobile.h"
+#    include "ui_camera_mobile.h"
 #else
-#include "ui_camera.h"
+#    include "ui_camera.h"
 #endif
-#include "videosettings.h"
+
 #include "imagesettings.h"
 #include "metadatadialog.h"
+#include "videosettings.h"
 
-#include <QMediaRecorder>
-#include <QVideoWidget>
-#include <QCameraDevice>
-#include <QMediaMetaData>
-#include <QMediaDevices>
+#include <QAction>
+#include <QActionGroup>
 #include <QAudioDevice>
 #include <QAudioInput>
-
-#include <QMessageBox>
-#include <QPalette>
+#include <QCameraDevice>
+#include <QDir>
 #include <QImage>
-
-#include <QtWidgets>
+#include <QKeyEvent>
+#include <QLineEdit>
 #include <QMediaDevices>
 #include <QMediaFormat>
+#include <QMediaMetaData>
+#include <QMediaRecorder>
+#include <QMessageBox>
+#include <QPalette>
+#include <QTimer>
+#include <QVideoWidget>
 
-Camera::Camera()
-    : ui(new Ui::Camera)
+Camera::Camera() : ui(new Ui::Camera)
 {
     ui->setupUi(this);
 
     m_audioInput.reset(new QAudioInput);
     m_captureSession.setAudioInput(m_audioInput.get());
 
-    //Camera devices:
+    // Camera devices:
 
     videoDevicesGroup = new QActionGroup(this);
     videoDevicesGroup->setExclusive(true);
@@ -61,16 +63,20 @@ void Camera::setCamera(const QCameraDevice &cameraDevice)
     if (!m_mediaRecorder) {
         m_mediaRecorder.reset(new QMediaRecorder);
         m_captureSession.setRecorder(m_mediaRecorder.data());
-        connect(m_mediaRecorder.data(), &QMediaRecorder::recorderStateChanged, this, &Camera::updateRecorderState);
+        connect(m_mediaRecorder.data(), &QMediaRecorder::recorderStateChanged, this,
+                &Camera::updateRecorderState);
     }
 
     m_imageCapture = new QImageCapture;
     m_captureSession.setImageCapture(m_imageCapture);
 
-    connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
-    connect(m_mediaRecorder.data(), &QMediaRecorder::errorChanged, this, &Camera::displayRecorderError);
+    connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this,
+            &Camera::updateRecordTime);
+    connect(m_mediaRecorder.data(), &QMediaRecorder::errorChanged, this,
+            &Camera::displayRecorderError);
 
-    connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
+    connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this,
+            &Camera::setExposureCompensation);
 
     m_captureSession.setVideoOutput(ui->viewfinder);
 
@@ -92,11 +98,12 @@ void Camera::setCamera(const QCameraDevice &cameraDevice)
             // we use 29 FPS to compare against as some cameras report 29.97 FPS...
             QCameraFormat bestFormat;
             for (const auto &fmt : formats) {
-                if (bestFormat.maxFrameRate() < 29 && fmt.maxFrameRate() > bestFormat.maxFrameRate())
+                if (bestFormat.maxFrameRate() < 29
+                    && fmt.maxFrameRate() > bestFormat.maxFrameRate())
                     bestFormat = fmt;
-                else if (bestFormat.maxFrameRate() == fmt.maxFrameRate() &&
-                         bestFormat.resolution().width()*bestFormat.resolution().height() <
-                             fmt.resolution().width()*fmt.resolution().height())
+                else if (bestFormat.maxFrameRate() == fmt.maxFrameRate()
+                         && bestFormat.resolution().width() * bestFormat.resolution().height()
+                                 < fmt.resolution().width() * fmt.resolution().height())
                     bestFormat = fmt;
             }
 
@@ -108,7 +115,7 @@ void Camera::setCamera(const QCameraDevice &cameraDevice)
     m_camera->start();
 }
 
-void Camera::keyPressEvent(QKeyEvent * event)
+void Camera::keyPressEvent(QKeyEvent *event)
 {
     if (event->isAutoRepeat())
         return;
@@ -141,16 +148,15 @@ void Camera::keyReleaseEvent(QKeyEvent *event)
 
 void Camera::updateRecordTime()
 {
-    QString str = QString("Recorded %1 sec").arg(m_mediaRecorder->duration()/1000);
+    QString str = QString("Recorded %1 sec").arg(m_mediaRecorder->duration() / 1000);
     ui->statusbar->showMessage(str);
 }
 
-void Camera::processCapturedImage(int requestId, const QImage& img)
+void Camera::processCapturedImage(int requestId, const QImage &img)
 {
     Q_UNUSED(requestId);
-    QImage scaledImage = img.scaled(ui->viewfinder->size(),
-                                    Qt::KeepAspectRatio,
-                                    Qt::SmoothTransformation);
+    QImage scaledImage =
+            img.scaled(ui->viewfinder->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     ui->lastImagePreviewLabel->setPixmap(QPixmap::fromImage(scaledImage));
 
@@ -213,7 +219,8 @@ void Camera::takeImage()
     m_imageCapture->captureToFile();
 }
 
-void Camera::displayCaptureError(int id, const QImageCapture::Error error, const QString &errorString)
+void Camera::displayCaptureError(int id, const QImageCapture::Error error,
+                                 const QString &errorString)
 {
     Q_UNUSED(id);
     Q_UNUSED(error);
@@ -278,7 +285,7 @@ void Camera::updateRecorderState(QMediaRecorder::RecorderState state)
 
 void Camera::setExposureCompensation(int index)
 {
-    m_camera->setExposureCompensation(index*0.5);
+    m_camera->setExposureCompensation(index * 0.5);
 }
 
 void Camera::displayRecorderError()
@@ -368,20 +375,16 @@ void Camera::saveMetaData()
             if (i == QMediaMetaData::CoverArtImage) {
                 QImage coverArt(val);
                 data.insert(key, coverArt);
-            }
-            else if (i == QMediaMetaData::ThumbnailImage) {
+            } else if (i == QMediaMetaData::ThumbnailImage) {
                 QImage thumbnail(val);
                 data.insert(key, thumbnail);
-            }
-            else if (i == QMediaMetaData::Date) {
+            } else if (i == QMediaMetaData::Date) {
                 QDateTime date = QDateTime::fromString(val);
                 data.insert(key, date);
-            }
-            else {
+            } else {
                 data.insert(key, val);
             }
         }
     }
     m_mediaRecorder->setMetaData(data);
 }
-

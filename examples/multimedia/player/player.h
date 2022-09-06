@@ -6,9 +6,9 @@
 
 #include "qmediaplaylist.h"
 
-#include <QWidget>
-#include <QMediaPlayer>
 #include <QMediaMetaData>
+#include <QMediaPlayer>
+#include <QWidget>
 
 QT_BEGIN_NAMESPACE
 class QAbstractItemView;

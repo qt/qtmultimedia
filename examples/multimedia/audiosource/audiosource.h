@@ -42,7 +42,6 @@ private:
     qreal m_level = 0.0; // 0.0 <= m_level <= 1.0
 };
 
-
 class RenderArea : public QWidget
 {
     Q_OBJECT
@@ -58,7 +57,6 @@ protected:
 private:
     qreal m_level = 0;
 };
-
 
 class InputTest : public QWidget
 {

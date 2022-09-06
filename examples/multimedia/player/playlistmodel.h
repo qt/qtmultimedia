@@ -16,11 +16,7 @@ class PlaylistModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
-    enum Column
-    {
-        Title = 0,
-        ColumnCount
-    };
+    enum Column { Title = 0, ColumnCount };
 
     explicit PlaylistModel(QObject *parent = nullptr);
     ~PlaylistModel();
@@ -28,14 +24,16 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex index(int row, int column,
+                      const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &child) const override;
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     QMediaPlaylist *playlist() const;
 
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::DisplayRole) override;
+    bool setData(const QModelIndex &index, const QVariant &value,
+                 int role = Qt::DisplayRole) override;
 
 private slots:
     void beginInsertItems(int start, int end);

@@ -1,10 +1,10 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
 #include <QCommandLineParser>
 #include <QDir>
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
 
 int main(int argc, char *argv[])
 {
@@ -25,10 +25,11 @@ int main(int argc, char *argv[])
 
     if (!parser.positionalArguments().isEmpty()) {
         QUrl source = QUrl::fromUserInput(parser.positionalArguments().at(0), QDir::currentPath());
-        QObject::connect(&engine, &QQmlApplicationEngine::objectCreated, [source](QObject *object, const QUrl &){
-            qDebug() << "setting source";
-            object->setProperty("source", source);
-        });
+        QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+                         [source](QObject *object, const QUrl &) {
+                             qDebug() << "setting source";
+                             object->setProperty("source", source);
+                         });
     }
 
     engine.load(url);

@@ -34,7 +34,7 @@ class MainWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit MainWidget(QWidget *parent = 0);
+    explicit MainWidget(QWidget *parent = nullptr);
     ~MainWidget();
 
     // QObject
@@ -43,8 +43,7 @@ public:
 public slots:
     void stateChanged(QAudioDevice::Mode mode, QAudio::State state);
     void formatChanged(const QAudioFormat &format);
-    void spectrumChanged(qint64 position, qint64 length,
-                         const FrequencySpectrum &spectrum);
+    void spectrumChanged(qint64 position, qint64 length, const FrequencySpectrum &spectrum);
     void infoMessage(const QString &message, int timeoutMs);
     void errorMessage(const QString &heading, const QString &detail);
     void audioPositionChanged(qint64 position);
@@ -64,49 +63,43 @@ private:
     void connectUi();
     void reset();
 
-    enum Mode {
-        NoMode,
-        RecordMode,
-        GenerateToneMode,
-        LoadFileMode
-    };
+    enum Mode { NoMode, RecordMode, GenerateToneMode, LoadFileMode };
 
     void setMode(Mode mode);
 
 private:
-    Mode                    m_mode;
+    Mode m_mode;
 
-    Engine*                 m_engine;
+    Engine *m_engine;
 
 #ifndef DISABLE_WAVEFORM
-    Waveform*               m_waveform;
+    Waveform *m_waveform;
 #endif
-    ProgressBar*            m_progressBar;
-    Spectrograph*           m_spectrograph;
-    LevelMeter*             m_levelMeter;
+    ProgressBar *m_progressBar;
+    Spectrograph *m_spectrograph;
+    LevelMeter *m_levelMeter;
 
-    QPushButton*            m_modeButton;
-    QPushButton*            m_recordButton;
-    QIcon                   m_recordIcon;
-    QPushButton*            m_pauseButton;
-    QIcon                   m_pauseIcon;
-    QPushButton*            m_playButton;
-    QIcon                   m_playIcon;
-    QPushButton*            m_settingsButton;
-    QIcon                   m_settingsIcon;
+    QPushButton *m_modeButton;
+    QPushButton *m_recordButton;
+    QIcon m_recordIcon;
+    QPushButton *m_pauseButton;
+    QIcon m_pauseIcon;
+    QPushButton *m_playButton;
+    QIcon m_playIcon;
+    QPushButton *m_settingsButton;
+    QIcon m_settingsIcon;
 
-    QLabel*                 m_infoMessage;
-    int                     m_infoMessageTimerId;
+    QLabel *m_infoMessage;
+    int m_infoMessageTimerId;
 
-    SettingsDialog*         m_settingsDialog;
-    ToneGeneratorDialog*    m_toneGeneratorDialog;
+    SettingsDialog *m_settingsDialog;
+    ToneGeneratorDialog *m_toneGeneratorDialog;
 
-    QMenu*                  m_modeMenu;
-    QAction*                m_loadFileAction;
-    QAction*                m_generateToneAction;
-    QAction*                m_recordAction;
-    bool                    m_errorOccurred;
-
+    QMenu *m_modeMenu;
+    QAction *m_loadFileAction;
+    QAction *m_generateToneAction;
+    QAction *m_recordAction;
+    bool m_errorOccurred;
 };
 
 #endif // MAINWIDGET_H

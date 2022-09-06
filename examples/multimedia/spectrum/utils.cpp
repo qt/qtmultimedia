@@ -1,8 +1,8 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include <QAudioFormat>
 #include "utils.h"
+#include <QAudioFormat>
 
 qreal nyquistFrequency(const QAudioFormat &format)
 {
@@ -45,17 +45,17 @@ QString formatToString(const QAudioFormat &format)
         }
 
         result = QString("%1 Hz %2 bit %3 %4")
-            .arg(format.sampleRate())
-            .arg(format.bytesPerSample() * 8)
-            .arg(formatType)
-            .arg(formatChannels);
+                         .arg(format.sampleRate())
+                         .arg(format.bytesPerSample() * 8)
+                         .arg(formatType)
+                         .arg(formatChannels);
     }
 
     return result;
 }
 
-const qint16  PCMS16MaxValue     =  32767;
-const quint16 PCMS16MaxAmplitude =  32768; // because minimum is -32768
+const qint16 PCMS16MaxValue = 32767;
+const quint16 PCMS16MaxAmplitude = 32768; // because minimum is -32768
 
 qreal pcmToReal(qint16 pcm)
 {

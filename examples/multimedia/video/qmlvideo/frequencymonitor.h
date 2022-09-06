@@ -22,13 +22,16 @@ class FrequencyMonitor : public QObject
     Q_DECLARE_PRIVATE(FrequencyMonitor)
     Q_PROPERTY(QString label READ label WRITE setLabel NOTIFY labelChanged)
     Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged)
-    Q_PROPERTY(int samplingInterval READ samplingInterval WRITE setSamplingInterval NOTIFY samplingIntervalChanged)
-    Q_PROPERTY(int traceInterval READ traceInterval WRITE setTraceInterval NOTIFY traceIntervalChanged)
-    Q_PROPERTY(qreal instantaneousFrequency READ instantaneousFrequency NOTIFY instantaneousFrequencyChanged)
+    Q_PROPERTY(int samplingInterval READ samplingInterval WRITE setSamplingInterval NOTIFY
+                       samplingIntervalChanged)
+    Q_PROPERTY(
+            int traceInterval READ traceInterval WRITE setTraceInterval NOTIFY traceIntervalChanged)
+    Q_PROPERTY(qreal instantaneousFrequency READ instantaneousFrequency NOTIFY
+                       instantaneousFrequencyChanged)
     Q_PROPERTY(qreal averageFrequency READ averageFrequency NOTIFY averageFrequencyChanged)
 
 public:
-    FrequencyMonitor(QObject *parent = 0);
+    FrequencyMonitor(QObject *parent = nullptr);
     ~FrequencyMonitor();
 
     static void qmlRegisterType();

@@ -3,12 +3,12 @@
 
 #include "videoplayer.h"
 
-#include <QtWidgets/QApplication>
-#include <QtCore/QCommandLineParser>
-#include <QtCore/QCommandLineOption>
-#include <QtCore/QDir>
-#include <QtCore/QUrl>
+#include <QApplication>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+#include <QDir>
 #include <QScreen>
+#include <QUrl>
 
 int main(int argc, char *argv[])
 {
@@ -27,9 +27,8 @@ int main(int argc, char *argv[])
 
     VideoPlayer player;
     if (!parser.positionalArguments().isEmpty()) {
-        const QUrl url =
-            QUrl::fromUserInput(parser.positionalArguments().constFirst(),
-                                QDir::currentPath(), QUrl::AssumeLocalFile);
+        const QUrl url = QUrl::fromUserInput(parser.positionalArguments().constFirst(),
+                                             QDir::currentPath(), QUrl::AssumeLocalFile);
         player.setUrl(url);
     }
 

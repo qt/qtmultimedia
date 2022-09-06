@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "frequencymonitor.h"
+
 #include <QDebug>
 #include <QElapsedTimer>
 #include <QString>
@@ -10,11 +11,20 @@
 
 //#define VERBOSE_TRACE
 
-inline QDebug qtTrace() { return qDebug() << "[frequencymonitor]"; }
+inline QDebug qtTrace()
+{
+    return qDebug() << "[frequencymonitor]";
+}
 #ifdef VERBOSE_TRACE
-inline QDebug qtVerboseTrace() { return qtTrace(); }
+inline QDebug qtVerboseTrace()
+{
+    return qtTrace();
+}
 #else
-inline QNoDebug qtVerboseTrace() { return QNoDebug(); }
+inline QNoDebug qtVerboseTrace()
+{
+    return QNoDebug();
+}
 #endif
 
 static const int DefaultSamplingInterval = 100;
@@ -47,29 +57,27 @@ public:
 };
 
 FrequencyMonitorPrivate::FrequencyMonitorPrivate(FrequencyMonitor *parent)
-:   QObject(parent)
-,   q_ptr(parent)
-,   m_active(false)
-,   m_instantaneousFrequency(0)
-,   m_averageTimer(new QTimer(this))
-,   m_count(0)
-,   m_averageFrequency(0)
-,   m_traceTimer(new QTimer(this))
-,   m_stalledTimer(new QTimer(this))
+    : QObject(parent),
+      q_ptr(parent),
+      m_active(false),
+      m_instantaneousFrequency(0),
+      m_averageTimer(new QTimer(this)),
+      m_count(0),
+      m_averageFrequency(0),
+      m_traceTimer(new QTimer(this)),
+      m_stalledTimer(new QTimer(this))
 {
     m_instantaneousElapsed.start();
-    connect(m_averageTimer, &QTimer::timeout,
-            this, &FrequencyMonitorPrivate::calculateAverageFrequency);
+    connect(m_averageTimer, &QTimer::timeout, this,
+            &FrequencyMonitorPrivate::calculateAverageFrequency);
     if (DefaultSamplingInterval)
         m_averageTimer->start(DefaultSamplingInterval);
     m_averageElapsed.start();
-    connect(m_traceTimer, &QTimer::timeout,
-            q_ptr, &FrequencyMonitor::trace);
+    connect(m_traceTimer, &QTimer::timeout, q_ptr, &FrequencyMonitor::trace);
     if (DefaultTraceInterval)
         m_traceTimer->start(DefaultTraceInterval);
     m_stalledTimer->setSingleShot(true);
-    connect(m_stalledTimer, &QTimer::timeout,
-            this, &FrequencyMonitorPrivate::stalled);
+    connect(m_stalledTimer, &QTimer::timeout, this, &FrequencyMonitorPrivate::stalled);
 }
 
 void FrequencyMonitorPrivate::calculateInstantaneousFrequency()
@@ -101,8 +109,7 @@ void FrequencyMonitorPrivate::stalled()
     }
 }
 
-FrequencyMonitor::FrequencyMonitor(QObject *parent)
-:   QObject(parent)
+FrequencyMonitor::FrequencyMonitor(QObject *parent) : QObject(parent)
 {
     d_ptr = new FrequencyMonitorPrivate(this);
 }
@@ -150,12 +157,13 @@ void FrequencyMonitor::trace()
 {
     Q_D(FrequencyMonitor);
     const QString value = QString::fromLatin1("instant %1 average %2")
-                            .arg(d->m_instantaneousFrequency, 0, 'f', 2)
-                            .arg(d->m_averageFrequency, 0, 'f', 2);
+                                  .arg(d->m_instantaneousFrequency, 0, 'f', 2)
+                                  .arg(d->m_averageFrequency, 0, 'f', 2);
     if (d->m_label.isEmpty())
         qtTrace() << "FrequencyMonitor::trace" << value;
     else
-        qtTrace() << "FrequencyMonitor::trace" << "label" << d->m_label << value;
+        qtTrace() << "FrequencyMonitor::trace"
+                  << "label" << d->m_label << value;
 }
 
 void FrequencyMonitor::setLabel(const QString &value)

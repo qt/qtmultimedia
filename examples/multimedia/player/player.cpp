@@ -2,45 +2,59 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "player.h"
-
 #include "playercontrols.h"
 #include "playlistmodel.h"
 #include "qmediaplaylist.h"
 #include "videowidget.h"
 
-#include <QMediaMetaData>
-#include <QMediaDevices>
+#include <QApplication>
 #include <QAudioDevice>
 #include <QAudioOutput>
+#include <QBoxLayout>
+#include <QComboBox>
+#include <QDir>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QListView>
+#include <QMediaDevices>
 #include <QMediaFormat>
-#include <QtWidgets>
+#include <QMediaMetaData>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QSlider>
+#include <QStandardPaths>
+#include <QStatusBar>
+#include <QVBoxLayout>
 
-Player::Player(QWidget *parent)
-    : QWidget(parent)
+Player::Player(QWidget *parent) : QWidget(parent)
 {
-//! [create-objs]
+    //! [create-objs]
     m_player = new QMediaPlayer(this);
     m_audioOutput = new QAudioOutput(this);
     m_player->setAudioOutput(m_audioOutput);
-//! [create-objs]
+    //! [create-objs]
     connect(m_player, &QMediaPlayer::durationChanged, this, &Player::durationChanged);
     connect(m_player, &QMediaPlayer::positionChanged, this, &Player::positionChanged);
-    connect(m_player, QOverload<>::of(&QMediaPlayer::metaDataChanged), this, &Player::metaDataChanged);
+    connect(m_player, QOverload<>::of(&QMediaPlayer::metaDataChanged), this,
+            &Player::metaDataChanged);
     connect(m_player, &QMediaPlayer::mediaStatusChanged, this, &Player::statusChanged);
     connect(m_player, &QMediaPlayer::bufferProgressChanged, this, &Player::bufferingProgress);
     connect(m_player, &QMediaPlayer::hasVideoChanged, this, &Player::videoAvailableChanged);
     connect(m_player, &QMediaPlayer::errorChanged, this, &Player::displayErrorMessage);
     connect(m_player, &QMediaPlayer::tracksChanged, this, &Player::tracksChanged);
 
-//! [2]
+    //! [2]
     m_videoWidget = new VideoWidget(this);
     m_videoWidget->resize(1280, 720);
     m_player->setVideoOutput(m_videoWidget);
 
     m_playlistModel = new PlaylistModel(this);
     m_playlist = m_playlistModel->playlist();
-//! [2]
-    connect(m_playlist, &QMediaPlaylist::currentIndexChanged, this, &Player::playlistPositionChanged);
+    //! [2]
+    connect(m_playlist, &QMediaPlaylist::currentIndexChanged, this,
+            &Player::playlistPositionChanged);
 
     // player layout
     QBoxLayout *layout = new QVBoxLayout(this);
@@ -108,7 +122,7 @@ Player::Player(QWidget *parent)
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     m_audioOutputCombo = new QComboBox(this);
     m_audioOutputCombo->addItem(QString::fromUtf8("Default"), QVariant::fromValue(QAudioDevice()));
-    for (auto &deviceInfo: QMediaDevices::audioOutputs())
+    for (auto &deviceInfo : QMediaDevices::audioOutputs())
         m_audioOutputCombo->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     connect(m_audioOutputCombo, QOverload<int>::of(&QComboBox::activated), this,
             &Player::audioOutputChanged);
@@ -180,7 +194,7 @@ Player::Player(QWidget *parent)
 
     if (!isPlayerAvailable()) {
         QMessageBox::warning(this, tr("Service not available"),
-                             tr("The QMediaPlayer object does not have a valid service.\n"\
+                             tr("The QMediaPlayer object does not have a valid service.\n"
                                 "Please check the media service plugins are installed."));
 
         controls->setEnabled(false);
@@ -203,7 +217,8 @@ void Player::open()
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle(tr("Open Files"));
-    fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
+    fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation)
+                                    .value(0, QDir::homePath()));
     if (fileDialog.exec() == QDialog::Accepted)
         addToPlaylist(fileDialog.selectedUrls());
 }
@@ -213,13 +228,14 @@ static bool isPlaylist(const QUrl &url) // Check for ".m3u" playlists.
     if (!url.isLocalFile())
         return false;
     const QFileInfo fileInfo(url.toLocalFile());
-    return fileInfo.exists() && !fileInfo.suffix().compare(QLatin1String("m3u"), Qt::CaseInsensitive);
+    return fileInfo.exists()
+            && !fileInfo.suffix().compare(QLatin1String("m3u"), Qt::CaseInsensitive);
 }
 
 void Player::addToPlaylist(const QList<QUrl> &urls)
 {
     const int previousMediaCount = m_playlist->mediaCount();
-    for (auto &url: urls) {
+    for (auto &url : urls) {
         if (isPlaylist(url))
             m_playlist->load(url);
         else
@@ -251,14 +267,14 @@ void Player::metaDataChanged()
 {
     auto metaData = m_player->metaData();
     setTrackInfo(QString("%1 - %2")
-            .arg(metaData.value(QMediaMetaData::AlbumArtist).toString())
-            .arg(metaData.value(QMediaMetaData::Title).toString()));
+                         .arg(metaData.value(QMediaMetaData::AlbumArtist).toString())
+                         .arg(metaData.value(QMediaMetaData::Title).toString()));
 
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     for (int i = 0; i < QMediaMetaData::NumMetaData; i++) {
-        if (QLineEdit* field = qobject_cast<QLineEdit*>(m_metaDataFields[i]))
+        if (QLineEdit *field = qobject_cast<QLineEdit *>(m_metaDataFields[i]))
             field->clear();
-        else if (QLabel* label = qobject_cast<QLabel*>(m_metaDataFields[i]))
+        else if (QLabel *label = qobject_cast<QLabel *>(m_metaDataFields[i]))
             label->clear();
         m_metaDataFields[i]->setDisabled(true);
         m_metaDataLabels[i]->setDisabled(true);
@@ -268,17 +284,17 @@ void Player::metaDataChanged()
         int i = int(key);
         if (key == QMediaMetaData::CoverArtImage) {
             QVariant v = metaData.value(key);
-            if (QLabel *cover = qobject_cast<QLabel*>(m_metaDataFields[key])) {
+            if (QLabel *cover = qobject_cast<QLabel *>(m_metaDataFields[key])) {
                 QImage coverImage = v.value<QImage>();
                 cover->setPixmap(QPixmap::fromImage(coverImage));
             }
         } else if (key == QMediaMetaData::ThumbnailImage) {
             QVariant v = metaData.value(key);
-            if (QLabel *thumbnail = qobject_cast<QLabel*>(m_metaDataFields[key])) {
+            if (QLabel *thumbnail = qobject_cast<QLabel *>(m_metaDataFields[key])) {
                 QImage thumbnailImage = v.value<QImage>();
                 thumbnail->setPixmap(QPixmap::fromImage(thumbnailImage));
             }
-        } else if (QLineEdit *field = qobject_cast<QLineEdit*>(m_metaDataFields[key])) {
+        } else if (QLineEdit *field = qobject_cast<QLineEdit *>(m_metaDataFields[key])) {
             QString stringValue = metaData.stringValue(key);
             field->setText(stringValue);
         }
@@ -296,7 +312,7 @@ QString Player::trackName(const QMediaMetaData &metaData, int index)
 
     if (title.isEmpty()) {
         if (lang == QLocale::Language::AnyLanguage)
-            name = tr("Track %1").arg(index+1);
+            name = tr("Track %1").arg(index + 1);
         else
             name = QLocale::languageToString(lang);
     } else {
@@ -378,10 +394,10 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
         break;
     case QMediaPlayer::BufferingMedia:
     case QMediaPlayer::BufferedMedia:
-        setStatusInfo(tr("Buffering %1%").arg(qRound(m_player->bufferProgress()*100.)));
+        setStatusInfo(tr("Buffering %1%").arg(qRound(m_player->bufferProgress() * 100.)));
         break;
     case QMediaPlayer::StalledMedia:
-        setStatusInfo(tr("Stalled %1%").arg(qRound(m_player->bufferProgress()*100.)));
+        setStatusInfo(tr("Stalled %1%").arg(qRound(m_player->bufferProgress() * 100.)));
         break;
     case QMediaPlayer::EndOfMedia:
         QApplication::alert(this);
@@ -396,9 +412,8 @@ void Player::statusChanged(QMediaPlayer::MediaStatus status)
 void Player::handleCursor(QMediaPlayer::MediaStatus status)
 {
 #ifndef QT_NO_CURSOR
-    if (status == QMediaPlayer::LoadingMedia ||
-        status == QMediaPlayer::BufferingMedia ||
-        status == QMediaPlayer::StalledMedia)
+    if (status == QMediaPlayer::LoadingMedia || status == QMediaPlayer::BufferingMedia
+        || status == QMediaPlayer::StalledMedia)
         setCursor(QCursor(Qt::BusyCursor));
     else
         unsetCursor();
@@ -408,20 +423,24 @@ void Player::handleCursor(QMediaPlayer::MediaStatus status)
 void Player::bufferingProgress(float progress)
 {
     if (m_player->mediaStatus() == QMediaPlayer::StalledMedia)
-        setStatusInfo(tr("Stalled %1%").arg(qRound(progress*100.)));
+        setStatusInfo(tr("Stalled %1%").arg(qRound(progress * 100.)));
     else
-        setStatusInfo(tr("Buffering %1%").arg(qRound(progress*100.)));
+        setStatusInfo(tr("Buffering %1%").arg(qRound(progress * 100.)));
 }
 
 void Player::videoAvailableChanged(bool available)
 {
     if (!available) {
-        disconnect(m_fullScreenButton, &QPushButton::clicked, m_videoWidget, &QVideoWidget::setFullScreen);
-        disconnect(m_videoWidget, &QVideoWidget::fullScreenChanged, m_fullScreenButton, &QPushButton::setChecked);
+        disconnect(m_fullScreenButton, &QPushButton::clicked, m_videoWidget,
+                   &QVideoWidget::setFullScreen);
+        disconnect(m_videoWidget, &QVideoWidget::fullScreenChanged, m_fullScreenButton,
+                   &QPushButton::setChecked);
         m_videoWidget->setFullScreen(false);
     } else {
-        connect(m_fullScreenButton, &QPushButton::clicked, m_videoWidget, &QVideoWidget::setFullScreen);
-        connect(m_videoWidget, &QVideoWidget::fullScreenChanged, m_fullScreenButton, &QPushButton::setChecked);
+        connect(m_fullScreenButton, &QPushButton::clicked, m_videoWidget,
+                &QVideoWidget::setFullScreen);
+        connect(m_videoWidget, &QVideoWidget::fullScreenChanged, m_fullScreenButton,
+                &QPushButton::setChecked);
 
         if (m_fullScreenButton->isChecked())
             m_videoWidget->setFullScreen(true);
@@ -487,10 +506,10 @@ void Player::updateDurationInfo(qint64 currentInfo)
 {
     QString tStr;
     if (currentInfo || m_duration) {
-        QTime currentTime((currentInfo / 3600) % 60, (currentInfo / 60) % 60,
-            currentInfo % 60, (currentInfo * 1000) % 1000);
-        QTime totalTime((m_duration / 3600) % 60, (m_duration / 60) % 60,
-            m_duration % 60, (m_duration * 1000) % 1000);
+        QTime currentTime((currentInfo / 3600) % 60, (currentInfo / 60) % 60, currentInfo % 60,
+                          (currentInfo * 1000) % 1000);
+        QTime totalTime((m_duration / 3600) % 60, (m_duration / 60) % 60, m_duration % 60,
+                        (m_duration * 1000) % 1000);
         QString format = "mm:ss";
         if (m_duration > 3600)
             format = "hh:mm:ss";

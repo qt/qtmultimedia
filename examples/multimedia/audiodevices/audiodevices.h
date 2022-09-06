@@ -4,17 +4,17 @@
 #ifndef AUDIODEVICES_H
 #define AUDIODEVICES_H
 
-#include <QAudioDevice>
-#include <QMediaDevices>
-#include <QMainWindow>
-#include <QObject>
-
 #include "ui_audiodevicesbase.h"
+
+#include <QAudioDevice>
+#include <QMainWindow>
+#include <QMediaDevices>
+#include <QObject>
 
 class AudioDevicesBase : public QMainWindow, public Ui::AudioDevicesBase
 {
 public:
-    AudioDevicesBase(QWidget *parent = 0);
+    AudioDevicesBase(QWidget *parent = nullptr);
     virtual ~AudioDevicesBase();
 };
 
@@ -40,8 +40,6 @@ private slots:
     void sampleFormatChanged(int idx);
     void test();
     void populateTable();
-
 };
 
 #endif
-

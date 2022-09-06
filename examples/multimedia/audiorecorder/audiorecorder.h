@@ -5,12 +5,14 @@
 #define AUDIORECORDER_H
 
 #include <QMainWindow>
-#include <QMediaRecorder>
 #include <QMediaCaptureSession>
+#include <QMediaRecorder>
 #include <QUrl>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class AudioRecorder; }
+namespace Ui {
+class AudioRecorder;
+}
 class QAudioBuffer;
 QT_END_NAMESPACE
 
@@ -24,7 +26,7 @@ public:
     AudioRecorder();
 
 public slots:
-    void processBuffer(const QAudioBuffer&);
+    void processBuffer(const QAudioBuffer &);
 
 private slots:
     void setOutputLocation();
@@ -45,7 +47,7 @@ private:
 
     QMediaCaptureSession m_captureSession;
     QMediaRecorder *m_audioRecorder = nullptr;
-    QList<AudioLevel*> m_audioLevels;
+    QList<AudioLevel *> m_audioLevels;
     bool m_outputLocationSet = false;
     bool m_updatingFormats = false;
 };

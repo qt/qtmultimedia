@@ -7,8 +7,8 @@
 #include <QAudioSink>
 #include <QDebug>
 #include <QVBoxLayout>
-#include <qmath.h>
-#include <qendian.h>
+#include <QtEndian>
+#include <QtMath>
 
 Generator::Generator(const QAudioFormat &format, qint64 durationUs, int sampleRate)
 {
@@ -41,9 +41,10 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int 
 
     while (length) {
         // Produces value (-1..1)
-        const qreal x = qSin(2 * M_PI * sampleRate * qreal(sampleIndex++ % format.sampleRate()) / format.sampleRate());
-        for (int i=0; i<format.channelCount(); ++i) {
-            switch(format.sampleFormat()) {
+        const qreal x = qSin(2 * M_PI * sampleRate * qreal(sampleIndex++ % format.sampleRate())
+                             / format.sampleRate());
+        for (int i = 0; i < format.channelCount(); ++i) {
+            switch (format.sampleFormat()) {
             case QAudioFormat::UInt8:
                 *reinterpret_cast<quint8 *>(ptr) = static_cast<quint8>((1.0 + x) / 2 * 255);
                 break;
@@ -51,7 +52,8 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs, int 
                 *reinterpret_cast<qint16 *>(ptr) = static_cast<qint16>(x * 32767);
                 break;
             case QAudioFormat::Int32:
-                *reinterpret_cast<qint32 *>(ptr) = static_cast<qint32>(x * std::numeric_limits<qint32>::max());
+                *reinterpret_cast<qint32 *>(ptr) =
+                        static_cast<qint32>(x * std::numeric_limits<qint32>::max());
                 break;
             case QAudioFormat::Float:
                 *reinterpret_cast<float *>(ptr) = x;
@@ -93,9 +95,7 @@ qint64 Generator::bytesAvailable() const
     return m_buffer.size() + QIODevice::bytesAvailable();
 }
 
-AudioTest::AudioTest()
-    : m_devices(new QMediaDevices(this)),
-      m_pushTimer(new QTimer(this))
+AudioTest::AudioTest() : m_devices(new QMediaDevices(this)), m_pushTimer(new QTimer(this))
 {
     initializeWindow();
     initializeAudio(m_devices->defaultAudioOutput());
@@ -114,11 +114,12 @@ void AudioTest::initializeWindow()
     m_deviceBox = new QComboBox(this);
     const QAudioDevice &defaultDeviceInfo = m_devices->defaultAudioOutput();
     m_deviceBox->addItem(defaultDeviceInfo.description(), QVariant::fromValue(defaultDeviceInfo));
-    for (auto &deviceInfo: m_devices->audioOutputs()) {
+    for (auto &deviceInfo : m_devices->audioOutputs()) {
         if (deviceInfo != defaultDeviceInfo)
             m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
     }
-    connect(m_deviceBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::deviceChanged);
+    connect(m_deviceBox, QOverload<int>::of(&QComboBox::activated), this,
+            &AudioTest::deviceChanged);
     connect(m_devices, &QMediaDevices::audioOutputsChanged, this, &AudioTest::updateAudioDevices);
     layout->addWidget(m_deviceBox);
 
@@ -158,8 +159,7 @@ void AudioTest::initializeAudio(const QAudioDevice &deviceInfo)
     m_audioOutput.reset(new QAudioSink(deviceInfo, format));
     m_generator->start();
 
-    qreal initialVolume = QAudio::convertVolume(m_audioOutput->volume(),
-                                                QAudio::LinearVolumeScale,
+    qreal initialVolume = QAudio::convertVolume(m_audioOutput->volume(), QAudio::LinearVolumeScale,
                                                 QAudio::LogarithmicVolumeScale);
     m_volumeSlider->setValue(qRound(initialVolume * 100));
     toggleMode();
@@ -175,8 +175,7 @@ void AudioTest::deviceChanged(int index)
 
 void AudioTest::volumeChanged(int value)
 {
-    qreal linearVolume = QAudio::convertVolume(value / qreal(100),
-                                               QAudio::LogarithmicVolumeScale,
+    qreal linearVolume = QAudio::convertVolume(value / qreal(100), QAudio::LogarithmicVolumeScale,
                                                QAudio::LinearVolumeScale);
 
     m_audioOutput->setVolume(linearVolume);
@@ -186,7 +185,7 @@ void AudioTest::updateAudioDevices()
 {
     m_deviceBox->clear();
     const QList<QAudioDevice> devices = m_devices->audioOutputs();
-    for (const QAudioDevice &deviceInfo: devices)
+    for (const QAudioDevice &deviceInfo : devices)
         m_deviceBox->addItem(deviceInfo.description(), QVariant::fromValue(deviceInfo));
 }
 
@@ -197,11 +196,11 @@ void AudioTest::toggleMode()
     toggleSuspendResume();
 
     if (m_pullMode) {
-        //switch to pull mode (QAudioSink pulls from Generator as needed)
+        // switch to pull mode (QAudioSink pulls from Generator as needed)
         m_modeButton->setText(tr("Enable push mode"));
         m_audioOutput->start(m_generator.data());
     } else {
-        //switch to push mode (periodically push to QAudioSink using a timer)
+        // switch to push mode (periodically push to QAudioSink using a timer)
         m_modeButton->setText(tr("Enable pull mode"));
         auto io = m_audioOutput->start();
         m_pushTimer->disconnect();
@@ -214,7 +213,7 @@ void AudioTest::toggleMode()
             QByteArray buffer(len, 0);
             len = m_generator->read(buffer.data(), len);
             if (len)
-               io->write(buffer.data(), len);
+                io->write(buffer.data(), len);
         });
 
         m_pushTimer->start(10);
@@ -225,7 +224,8 @@ void AudioTest::toggleMode()
 
 void AudioTest::toggleSuspendResume()
 {
-    if (m_audioOutput->state() == QAudio::SuspendedState || m_audioOutput->state() == QAudio::StoppedState) {
+    if (m_audioOutput->state() == QAudio::SuspendedState
+        || m_audioOutput->state() == QAudio::StoppedState) {
         m_audioOutput->resume();
         m_suspendResumeButton->setText(tr("Suspend playback"));
     } else if (m_audioOutput->state() == QAudio::ActiveState) {
@@ -235,4 +235,3 @@ void AudioTest::toggleSuspendResume()
         // no-op
     }
 }
-

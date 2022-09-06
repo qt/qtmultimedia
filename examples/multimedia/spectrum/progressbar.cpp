@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "progressbar.h"
-#include "spectrum.h"
 #include <QPainter>
 
 ProgressBar::ProgressBar(QWidget *parent)
-    :   QWidget(parent)
-    ,   m_bufferLength(0)
-    ,   m_recordPosition(0)
-    ,   m_playPosition(0)
-    ,   m_windowPosition(0)
-    ,   m_windowLength(0)
+    : QWidget(parent),
+      m_bufferLength(0),
+      m_recordPosition(0),
+      m_playPosition(0),
+      m_windowPosition(0),
+      m_windowLength(0)
 {
     setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setMinimumHeight(30);

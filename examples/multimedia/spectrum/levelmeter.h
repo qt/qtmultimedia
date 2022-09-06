@@ -17,7 +17,7 @@ class LevelMeter : public QWidget
     Q_OBJECT
 
 public:
-    explicit LevelMeter(QWidget *parent = 0);
+    explicit LevelMeter(QWidget *parent = nullptr);
     ~LevelMeter();
 
     void paintEvent(QPaintEvent *event) override;
@@ -75,7 +75,6 @@ private:
 
     QColor m_rmsColor;
     QColor m_peakColor;
-
 };
 
 #endif // LEVELMETER_H

@@ -3,10 +3,11 @@
 
 #include "spectrum.h"
 #include "utils.h"
-#include <QByteArray>
+
 #include <QAudioFormat>
-#include <qmath.h>
-#include <qendian.h>
+#include <QByteArray>
+#include <QtEndian>
+#include <QtMath>
 
 void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray &buffer)
 {
@@ -39,7 +40,7 @@ void generateTone(const SweptTone &tone, const QAudioFormat &format, QByteArray 
     while (length) {
         const qreal x = tone.amplitude * qSin(phase);
         const qint16 value = realToPcm(x);
-        for (int i=0; i<format.channelCount(); ++i) {
+        for (int i = 0; i < format.channelCount(); ++i) {
             qToLittleEndian<qint16>(value, ptr);
             ptr += channelBytes;
             length -= channelBytes;

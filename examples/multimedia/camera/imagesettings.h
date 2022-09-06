@@ -9,7 +9,9 @@
 QT_BEGIN_NAMESPACE
 class QComboBox;
 class QImageCapture;
-namespace Ui { class ImageSettingsUi; }
+namespace Ui {
+class ImageSettingsUi;
+}
 QT_END_NAMESPACE
 
 class ImageSettings : public QDialog

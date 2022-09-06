@@ -4,8 +4,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <QtCore/qglobal.h>
 #include <QDebug>
+#include <QtGlobal>
 
 QT_FORWARD_DECLARE_CLASS(QAudioFormat)
 
@@ -25,12 +25,19 @@ qint16 realToPcm(qreal real);
 
 // Compile-time calculation of powers of two
 
-template<int N> class PowerOfTwo
-{ public: static const int Result = PowerOfTwo<N-1>::Result * 2; };
+template<int N>
+class PowerOfTwo
+{
+public:
+    static const int Result = PowerOfTwo<N - 1>::Result * 2;
+};
 
-template<> class PowerOfTwo<0>
-{ public: static const int Result = 1; };
-
+template<>
+class PowerOfTwo<0>
+{
+public:
+    static const int Result = 1;
+};
 
 //-----------------------------------------------------------------------------
 // Debug output
@@ -39,28 +46,34 @@ template<> class PowerOfTwo<0>
 class NullDebug
 {
 public:
-    template <typename T>
-    NullDebug& operator<<(const T&) { return *this; }
+    template<typename T>
+    NullDebug &operator<<(const T &)
+    {
+        return *this;
+    }
 };
 
-inline NullDebug nullDebug() { return NullDebug(); }
+inline NullDebug nullDebug()
+{
+    return NullDebug();
+}
 
 #ifdef LOG_ENGINE
-#   define ENGINE_DEBUG qDebug()
+#    define ENGINE_DEBUG qDebug()
 #else
-#   define ENGINE_DEBUG nullDebug()
+#    define ENGINE_DEBUG nullDebug()
 #endif
 
 #ifdef LOG_SPECTRUMANALYSER
-#   define SPECTRUMANALYSER_DEBUG qDebug()
+#    define SPECTRUMANALYSER_DEBUG qDebug()
 #else
-#   define SPECTRUMANALYSER_DEBUG nullDebug()
+#    define SPECTRUMANALYSER_DEBUG nullDebug()
 #endif
 
 #ifdef LOG_WAVEFORM
-#   define WAVEFORM_DEBUG qDebug()
+#    define WAVEFORM_DEBUG qDebug()
 #else
-#   define WAVEFORM_DEBUG nullDebug()
+#    define WAVEFORM_DEBUG nullDebug()
 #endif
 
 #endif // UTILS_H

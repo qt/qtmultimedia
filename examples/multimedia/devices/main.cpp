@@ -1,13 +1,12 @@
 // Copyright (C) 2020 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include <QTextStream>
-#include <QString>
-#include <QAudioFormat>
-
 #include <QAudioDevice>
+#include <QAudioFormat>
 #include <QCameraDevice>
-#include <qmediadevices.h>
+#include <QMediaDevices>
+#include <QString>
+#include <QTextStream>
 
 #include <stdio.h>
 
@@ -30,12 +29,12 @@ QString formatToString(QAudioFormat::SampleFormat sampleFormat)
 QString positionToString(QCameraDevice::Position position)
 {
     switch (position) {
-        case QCameraDevice::BackFace:
-            return "BackFace";
-        case QCameraDevice::FrontFace:
-            return "FrontFace";
-        default:
-            return "Unspecified";
+    case QCameraDevice::BackFace:
+        return "BackFace";
+    case QCameraDevice::FrontFace:
+        return "FrontFace";
+    default:
+        return "Unspecified";
     }
 }
 
@@ -48,26 +47,28 @@ void printAudioDeviceInfo(QTextStream &out, const QAudioDevice &deviceInfo)
     out.setFieldAlignment(QTextStream::AlignLeft);
     out << "Name: " << deviceInfo.description() << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
-    out << "Id: " <<  QString::fromLatin1(deviceInfo.id()) << qSetFieldWidth(0) << Qt::endl;
+    out << "Id: " << QString::fromLatin1(deviceInfo.id()) << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
-    out << "Default: " <<  isDefault << qSetFieldWidth(0) << Qt::endl;
+    out << "Default: " << isDefault << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
-    out << "Preferred Format: " << formatToString(preferredFormat.sampleFormat()) << qSetFieldWidth(0) << Qt::endl;
+    out << "Preferred Format: " << formatToString(preferredFormat.sampleFormat())
+        << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
     out << "Preferred Rate: " << preferredFormat.sampleRate() << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
-    out << "Preferred Channels: " << preferredFormat.channelCount() << qSetFieldWidth(0) << Qt::endl;
+    out << "Preferred Channels: " << preferredFormat.channelCount() << qSetFieldWidth(0)
+        << Qt::endl;
     out.setFieldWidth(30);
     out << "Supported Formats: ";
-    for (auto &format: supportedFormats)
+    for (auto &format : supportedFormats)
         out << qSetFieldWidth(0) << formatToString(format) << " ";
     out << Qt::endl;
     out.setFieldWidth(30);
     out << "Supported Rates: " << qSetFieldWidth(0) << deviceInfo.minimumSampleRate() << " - "
-                                                    << deviceInfo.maximumSampleRate() << Qt::endl;
+        << deviceInfo.maximumSampleRate() << Qt::endl;
     out.setFieldWidth(30);
     out << "Supported Channels: " << qSetFieldWidth(0) << deviceInfo.minimumChannelCount() << " - "
-                                                       << deviceInfo.maximumChannelCount() << Qt::endl;
+        << deviceInfo.maximumChannelCount() << Qt::endl;
 
     out << Qt::endl;
 }
@@ -83,32 +84,32 @@ void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDevice)
     out.setFieldAlignment(QTextStream::AlignLeft);
     out << "Name: " << cameraDevice.description() << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
-    out << "Id: " <<  QString::fromLatin1(cameraDevice.id()) << qSetFieldWidth(0) << Qt::endl;
+    out << "Id: " << QString::fromLatin1(cameraDevice.id()) << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
-    out << "Default: " <<  isDefault << qSetFieldWidth(0) << Qt::endl;
+    out << "Default: " << isDefault << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
     out << "Position: " << positionToString(position) << qSetFieldWidth(0) << Qt::endl;
     out.setFieldWidth(30);
     out << "Photo Resolutions: ";
-    for (auto &resolution: photoResolutions) {
+    for (auto &resolution : photoResolutions) {
         QString s = QString("%1x%2").arg(resolution.width()).arg(resolution.height());
         out << qSetFieldWidth(0) << s << ", ";
     }
     out.setFieldWidth(10);
     out << Qt::endl << Qt::endl;
     out << "Supported Video Formats: " << qSetFieldWidth(0) << Qt::endl;
-    for (auto &format: videoFormats) {
+    for (auto &format : videoFormats) {
         out.setFieldWidth(30);
-        QString s = QString("%1x%2").arg(format.resolution().width()).arg(format.resolution().height());
+        QString s =
+                QString("%1x%2").arg(format.resolution().width()).arg(format.resolution().height());
         out << "Resolution: " << s << qSetFieldWidth(0) << Qt::endl;
         out.setFieldWidth(30);
-        out << "Frame Rate: " << qSetFieldWidth(0) << "Min:" << format.minFrameRate() << " Max:" << format.maxFrameRate() << Qt::endl;
+        out << "Frame Rate: " << qSetFieldWidth(0) << "Min:" << format.minFrameRate()
+            << " Max:" << format.maxFrameRate() << Qt::endl;
     }
 
     out << Qt::endl;
-
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -122,10 +123,10 @@ int main(int argc, char *argv[])
 
     out << "Audio devices detected: " << Qt::endl;
     out << Qt::endl << "Input" << Qt::endl;
-    for (auto &deviceInfo: audioInputDevices)
+    for (auto &deviceInfo : audioInputDevices)
         printAudioDeviceInfo(out, deviceInfo);
     out << Qt::endl << "Output" << Qt::endl;
-    for (auto &deviceInfo: audioOutputDevices)
+    for (auto &deviceInfo : audioOutputDevices)
         printAudioDeviceInfo(out, deviceInfo);
 
     out << Qt::endl << "Video devices detected: " << Qt::endl;

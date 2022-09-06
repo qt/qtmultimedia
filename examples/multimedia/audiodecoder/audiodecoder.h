@@ -7,7 +7,6 @@
 #include <QAudioDecoder>
 #include <QSoundEffect>
 #include <QTextStream>
-#include <QAudioDecoder>
 #include <QWaveDecoder>
 
 class AudioDecoder : public QObject

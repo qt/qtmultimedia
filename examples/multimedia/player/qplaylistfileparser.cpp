@@ -1,15 +1,16 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qplaylistfileparser_p.h"
-#include <qfileinfo.h>
-#include <QtCore/QDebug>
-#include <QtCore/qiodevice.h>
-#include <QtCore/qpointer.h>
-#include <QtNetwork/QNetworkReply>
-#include <QtNetwork/QNetworkRequest>
-#include "qmediaplayer.h"
 #include "qmediametadata.h"
+#include "qmediaplayer.h"
+#include "qplaylistfileparser_p.h"
+
+#include <QDebug>
+#include <QFileInfo>
+#include <QIODevice>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QPointer>
 
 QT_BEGIN_NAMESPACE
 
@@ -18,14 +19,12 @@ namespace {
 class ParserBase
 {
 public:
-    explicit ParserBase(QPlaylistFileParser *parent)
-        : m_parent(parent)
-        , m_aborted(false)
+    explicit ParserBase(QPlaylistFileParser *parent) : m_parent(parent), m_aborted(false)
     {
         Q_ASSERT(m_parent);
     }
 
-    bool parseLine(int lineIndex, const QString& line, const QUrl& root)
+    bool parseLine(int lineIndex, const QString &line, const QUrl &root)
     {
         if (m_aborted)
             return false;
@@ -38,7 +37,7 @@ public:
     virtual ~ParserBase() = default;
 
 protected:
-    virtual bool parseLineImpl(int lineIndex, const QString& line, const QUrl& root) = 0;
+    virtual bool parseLineImpl(int lineIndex, const QString &line, const QUrl &root) = 0;
 
     static QUrl expandToFullPath(const QUrl &root, const QString &line)
     {
@@ -52,7 +51,8 @@ protected:
         if (url.scheme().isEmpty()) {
             // Resolve it relative to root
             if (root.isLocalFile())
-                return QUrl::fromUserInput(line, root.adjusted(QUrl::RemoveFilename).toLocalFile(), QUrl::AssumeLocalFile);
+                return QUrl::fromUserInput(line, root.adjusted(QUrl::RemoveFilename).toLocalFile(),
+                                           QUrl::AssumeLocalFile);
             return root.resolved(url);
         }
         if (url.scheme().length() == 1)
@@ -62,8 +62,7 @@ protected:
         return url;
     }
 
-    void newItemFound(const QVariant& content) { Q_EMIT m_parent->newItem(content); }
-
+    void newItemFound(const QVariant &content) { Q_EMIT m_parent->newItem(content); }
 
     QPlaylistFileParser *m_parent;
     bool m_aborted;
@@ -72,11 +71,7 @@ protected:
 class M3UParser : public ParserBase
 {
 public:
-    explicit M3UParser(QPlaylistFileParser *q)
-        : ParserBase(q)
-        , m_extendedFormat(false)
-    {
-    }
+    explicit M3UParser(QPlaylistFileParser *q) : ParserBase(q), m_extendedFormat(false) { }
 
     /*
      *
@@ -95,31 +90,41 @@ public:
     C:\Documents and Settings\I\My Music\Greatest Hits\Example.ogg
 
      */
-    bool parseLineImpl(int lineIndex, const QString& line, const QUrl& root) override
+    bool parseLineImpl(int lineIndex, const QString &line, const QUrl &root) override
     {
-        if (line[0] == u'#' ) {
+        if (line[0] == u'#') {
             if (m_extendedFormat) {
                 if (line.startsWith(QLatin1String("#EXTINF:"))) {
                     m_extraInfo.clear();
                     int artistStart = line.indexOf(QLatin1String(","), 8);
                     bool ok = false;
-                    QStringView lineView { line };
-                    int length = lineView.mid(8, artistStart < 8 ? -1 : artistStart - 8).trimmed().toInt(&ok);
+                    QStringView lineView{ line };
+                    int length = lineView.mid(8, artistStart < 8 ? -1 : artistStart - 8)
+                                         .trimmed()
+                                         .toInt(&ok);
                     if (ok && length > 0) {
-                        //convert from second to milisecond
+                        // convert from second to milisecond
                         m_extraInfo[QMediaMetaData::Duration] = QVariant(length * 1000);
                     }
                     if (artistStart > 0) {
                         int titleStart = getSplitIndex(line, artistStart);
                         if (titleStart > artistStart) {
-                            m_extraInfo[QMediaMetaData::Author] = lineView.mid(artistStart + 1,
-                                                             titleStart - artistStart - 1).trimmed().toString().
-                                                             replace(QLatin1String("--"), QLatin1String("-"));
-                            m_extraInfo[QMediaMetaData::Title] = lineView.mid(titleStart + 1).trimmed().toString().
-                                                   replace(QLatin1String("--"), QLatin1String("-"));
+                            m_extraInfo[QMediaMetaData::Author] =
+                                    lineView.mid(artistStart + 1, titleStart - artistStart - 1)
+                                            .trimmed()
+                                            .toString()
+                                            .replace(QLatin1String("--"), QLatin1String("-"));
+                            m_extraInfo[QMediaMetaData::Title] =
+                                    lineView.mid(titleStart + 1)
+                                            .trimmed()
+                                            .toString()
+                                            .replace(QLatin1String("--"), QLatin1String("-"));
                         } else {
-                            m_extraInfo[QMediaMetaData::Title] = lineView.mid(artistStart + 1).trimmed().toString().
-                                                   replace(QLatin1String("--"), QLatin1String("-"));
+                            m_extraInfo[QMediaMetaData::Title] =
+                                    lineView.mid(artistStart + 1)
+                                            .trimmed()
+                                            .toString()
+                                            .replace(QLatin1String("--"), QLatin1String("-"));
                         }
                     }
                 }
@@ -137,11 +142,11 @@ public:
         return true;
     }
 
-    int getSplitIndex(const QString& line, int startPos)
+    int getSplitIndex(const QString &line, int startPos)
     {
         if (startPos < 0)
             startPos = 0;
-        const QChar* buf = line.data();
+        const QChar *buf = line.data();
         for (int i = startPos; i < line.length(); ++i) {
             if (buf[i] == u'-') {
                 if (i == line.length() - 1)
@@ -155,56 +160,53 @@ public:
     }
 
 private:
-    QMediaMetaData  m_extraInfo;
-    bool            m_extendedFormat;
+    QMediaMetaData m_extraInfo;
+    bool m_extendedFormat;
 };
 
 class PLSParser : public ParserBase
 {
 public:
-    explicit PLSParser(QPlaylistFileParser *q)
-        : ParserBase(q)
-    {
-    }
+    explicit PLSParser(QPlaylistFileParser *q) : ParserBase(q) { }
 
-/*
- *
-The format is essentially that of an INI file structured as follows:
+    /*
+     *
+    The format is essentially that of an INI file structured as follows:
 
-Header
+    Header
 
-    * [playlist] : This tag indicates that it is a Playlist File
+        * [playlist] : This tag indicates that it is a Playlist File
 
-Track Entry
-Assuming track entry #X
+    Track Entry
+    Assuming track entry #X
 
-    * FileX : Variable defining location of stream.
-    * TitleX : Defines track title.
-    * LengthX : Length in seconds of track. Value of -1 indicates indefinite.
+        * FileX : Variable defining location of stream.
+        * TitleX : Defines track title.
+        * LengthX : Length in seconds of track. Value of -1 indicates indefinite.
 
-Footer
+    Footer
 
-    * NumberOfEntries : This variable indicates the number of tracks.
-    * Version : Playlist version. Currently only a value of 2 is valid.
+        * NumberOfEntries : This variable indicates the number of tracks.
+        * Version : Playlist version. Currently only a value of 2 is valid.
 
-[playlist]
+    [playlist]
 
-File1=Alternative\everclear - SMFTA.mp3
+    File1=Alternative\everclear - SMFTA.mp3
 
-Title1=Everclear - So Much For The Afterglow
+    Title1=Everclear - So Much For The Afterglow
 
-Length1=233
+    Length1=233
 
-File2=http://www.site.com:8000/listen.pls
+    File2=http://www.site.com:8000/listen.pls
 
-Title2=My Cool Stream
+    Title2=My Cool Stream
 
-Length5=-1
+    Length5=-1
 
-NumberOfEntries=2
+    NumberOfEntries=2
 
-Version=2
-*/
+    Version=2
+    */
     bool parseLineImpl(int, const QString &line, const QUrl &root) override
     {
         // We ignore everything but 'File' entries, since that's the only thing we care about.
@@ -222,7 +224,8 @@ Version=2
         return true;
     }
 
-    QString getValue(QStringView line) {
+    QString getValue(QStringView line)
+    {
         int start = line.indexOf(u'=');
         if (start < 0)
             return QString();
@@ -238,13 +241,13 @@ class QPlaylistFileParserPrivate
     Q_DECLARE_PUBLIC(QPlaylistFileParser)
 public:
     QPlaylistFileParserPrivate(QPlaylistFileParser *q)
-        : q_ptr(q)
-        , m_stream(nullptr)
-        , m_type(QPlaylistFileParser::UNKNOWN)
-        , m_scanIndex(0)
-        , m_lineIndex(-1)
-        , m_utf8(false)
-        , m_aborted(false)
+        : q_ptr(q),
+          m_stream(nullptr),
+          m_type(QPlaylistFileParser::UNKNOWN),
+          m_scanIndex(0),
+          m_lineIndex(-1),
+          m_utf8(false),
+          m_aborted(false)
     {
     }
 
@@ -255,8 +258,8 @@ public:
 
     QScopedPointer<QNetworkReply, QScopedPointerDeleteLater> m_source;
     QScopedPointer<ParserBase> m_currentParser;
-    QByteArray      m_buffer;
-    QUrl            m_root;
+    QByteArray m_buffer;
+    QUrl m_root;
     QNetworkAccessManager m_mgr;
     QString m_mimeType;
     QPlaylistFileParser *q_ptr;
@@ -268,7 +271,12 @@ public:
         QUrl m_media;
         QString m_mimeType;
         [[nodiscard]] bool isValid() const { return m_stream || !m_media.isEmpty(); }
-        void reset() { m_stream = nullptr; m_media = QUrl(); m_mimeType = QString(); }
+        void reset()
+        {
+            m_stream = nullptr;
+            m_media = QUrl();
+            m_mimeType = QString();
+        }
     } m_pendingJob;
     int m_scanIndex;
     int m_lineIndex;
@@ -279,8 +287,8 @@ private:
     bool processLine(int startIndex, int length);
 };
 
-#define LINE_LIMIT  4096
-#define READ_LIMIT  64
+#define LINE_LIMIT 4096
+#define READ_LIMIT 64
 
 bool QPlaylistFileParserPrivate::processLine(int startIndex, int length)
 {
@@ -293,7 +301,9 @@ bool QPlaylistFileParserPrivate::processLine(int startIndex, int length)
         QString mimeType;
         if (m_source)
             mimeType = m_source->header(QNetworkRequest::ContentTypeHeader).toString();
-        m_type = QPlaylistFileParser::findPlaylistType(suffix, !mimeType.isEmpty() ?  mimeType : m_mimeType, m_buffer.constData(), quint32(m_buffer.size()));
+        m_type = QPlaylistFileParser::findPlaylistType(
+                suffix, !mimeType.isEmpty() ? mimeType : m_mimeType, m_buffer.constData(),
+                quint32(m_buffer.size()));
 
         switch (m_type) {
         case QPlaylistFileParser::UNKNOWN:
@@ -334,8 +344,9 @@ void QPlaylistFileParserPrivate::handleData()
 {
     Q_Q(QPlaylistFileParser);
     while (m_stream->bytesAvailable() && !m_aborted) {
-        int expectedBytes = qMin(READ_LIMIT, int(qMin(m_stream->bytesAvailable(),
-                                                      qint64(LINE_LIMIT - m_buffer.size()))));
+        int expectedBytes =
+                qMin(READ_LIMIT,
+                     int(qMin(m_stream->bytesAvailable(), qint64(LINE_LIMIT - m_buffer.size()))));
         m_buffer.push_back(m_stream->read(expectedBytes));
         int processedBytes = 0;
         while (m_scanIndex < m_buffer.length() && !m_aborted) {
@@ -348,7 +359,7 @@ void QPlaylistFileParserPrivate::handleData()
                 }
                 processedBytes = m_scanIndex + 1;
                 if (!m_stream) {
-                    //some error happened, so exit parsing
+                    // some error happened, so exit parsing
                     return;
                 }
             }
@@ -359,13 +370,14 @@ void QPlaylistFileParserPrivate::handleData()
             break;
 
         if (m_buffer.length() - processedBytes >= LINE_LIMIT) {
-            emit q->error(QMediaPlaylist::FormatError, QMediaPlaylist::tr("invalid line in playlist file"));
+            emit q->error(QMediaPlaylist::FormatError,
+                          QMediaPlaylist::tr("invalid line in playlist file"));
             q->abort();
             break;
         }
 
         if (!m_stream->bytesAvailable() && (!m_source || !m_source->isFinished())) {
-            //last line
+            // last line
             processLine(processedBytes, -1);
             break;
         }
@@ -388,20 +400,20 @@ void QPlaylistFileParserPrivate::handleData()
 }
 
 QPlaylistFileParser::QPlaylistFileParser(QObject *parent)
-    : QObject(parent)
-    , d_ptr(new QPlaylistFileParserPrivate(this))
+    : QObject(parent), d_ptr(new QPlaylistFileParserPrivate(this))
 {
-
 }
 
 QPlaylistFileParser::~QPlaylistFileParser() = default;
 
 QPlaylistFileParser::FileType QPlaylistFileParser::findByMimeType(const QString &mime)
 {
-    if (mime == QLatin1String("text/uri-list") || mime == QLatin1String("audio/x-mpegurl") || mime == QLatin1String("audio/mpegurl"))
+    if (mime == QLatin1String("text/uri-list") || mime == QLatin1String("audio/x-mpegurl")
+        || mime == QLatin1String("audio/mpegurl"))
         return QPlaylistFileParser::M3U;
 
-    if (mime == QLatin1String("application/x-mpegURL") || mime == QLatin1String("application/vnd.apple.mpegurl"))
+    if (mime == QLatin1String("application/x-mpegURL")
+        || mime == QLatin1String("application/vnd.apple.mpegurl"))
         return QPlaylistFileParser::M3U8;
 
     if (mime == QLatin1String("audio/x-scpls"))
@@ -440,10 +452,9 @@ QPlaylistFileParser::FileType QPlaylistFileParser::findByDataHeader(const char *
     return QPlaylistFileParser::UNKNOWN;
 }
 
-QPlaylistFileParser::FileType QPlaylistFileParser::findPlaylistType(const QString& suffix,
-                                                                    const QString& mime,
-                                                                    const char *data,
-                                                                    quint32 size)
+QPlaylistFileParser::FileType QPlaylistFileParser::findPlaylistType(const QString &suffix,
+                                                                    const QString &mime,
+                                                                    const char *data, quint32 size)
 {
 
     FileType dataHeaderType = findByDataHeader(data, size);
@@ -500,13 +511,14 @@ void QPlaylistFileParser::start(QIODevice *stream, const QString &mimeType)
     d->handleData();
 }
 
-void QPlaylistFileParser::start(const QUrl& request, const QString &mimeType)
+void QPlaylistFileParser::start(const QUrl &request, const QString &mimeType)
 {
     Q_D(QPlaylistFileParser);
     const QUrl &url = request.url();
 
     if (url.isLocalFile() && !QFile::exists(url.toLocalFile())) {
-        emit error(QMediaPlaylist::AccessDeniedError, QString(QMediaPlaylist::tr("%1 does not exist")).arg(url.toString()));
+        emit error(QMediaPlaylist::AccessDeniedError,
+                   QString(QMediaPlaylist::tr("%1 does not exist")).arg(url.toString()));
         return;
     }
 
@@ -523,7 +535,8 @@ void QPlaylistFileParser::start(const QUrl& request, const QString &mimeType)
     d->m_stream = d->m_source.get();
     connect(d->m_source.data(), SIGNAL(readyRead()), this, SLOT(handleData()));
     connect(d->m_source.data(), SIGNAL(finished()), this, SLOT(handleData()));
-    connect(d->m_source.data(), SIGNAL(errorOccurred(QNetworkReply::NetworkError)), this, SLOT(handleError()));
+    connect(d->m_source.data(), SIGNAL(errorOccurred(QNetworkReply::NetworkError)), this,
+            SLOT(handleError()));
 
     if (url.isLocalFile())
         d->handleData();
@@ -554,7 +567,8 @@ void QPlaylistFileParserPrivate::handleParserFinished()
     Q_Q(QPlaylistFileParser);
     const bool isParserValid = !m_currentParser.isNull();
     if (!isParserValid && !m_aborted)
-        emit q->error(QMediaPlaylist::FormatNotSupportedError, QMediaPlaylist::tr("Empty file provided"));
+        emit q->error(QMediaPlaylist::FormatNotSupportedError,
+                      QMediaPlaylist::tr("Empty file provided"));
 
     if (isParserValid && !m_aborted) {
         m_currentParser.reset();

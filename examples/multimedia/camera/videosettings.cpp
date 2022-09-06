@@ -3,21 +3,21 @@
 
 #include "videosettings.h"
 #if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
-#include "ui_videosettings_mobile.h"
+#    include "ui_videosettings_mobile.h"
 #else
-#include "ui_videosettings.h"
+#    include "ui_videosettings.h"
 #endif
 
-#include <QComboBox>
-#include <QSpinBox>
-#include <QDebug>
-#include <QMediaRecorder>
-#include <QMediaFormat>
 #include <QAudioDevice>
-#include <QMediaCaptureSession>
-#include <QCameraDevice>
-#include <QCamera>
 #include <QAudioInput>
+#include <QCamera>
+#include <QCameraDevice>
+#include <QComboBox>
+#include <QDebug>
+#include <QMediaCaptureSession>
+#include <QMediaFormat>
+#include <QMediaRecorder>
+#include <QSpinBox>
 
 QString toFormattedString(const QCameraFormat &cameraFormat)
 {
@@ -41,13 +41,11 @@ QString toFormattedString(const QCameraFormat &cameraFormat)
 }
 
 VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
-    : QDialog(parent),
-      ui(new Ui::VideoSettingsUi),
-      mediaRecorder(mediaRecorder)
+    : QDialog(parent), ui(new Ui::VideoSettingsUi), mediaRecorder(mediaRecorder)
 {
     ui->setupUi(this);
 
-    //sample rate:
+    // sample rate:
     auto audioDevice = mediaRecorder->captureSession()->audioInput()->device();
     ui->audioSampleRateBox->setRange(audioDevice.minimumSampleRate(),
                                      audioDevice.maximumSampleRate());
@@ -77,9 +75,12 @@ VideoSettings::VideoSettings(QMediaRecorder *mediaRecorder, QWidget *parent)
     connect(ui->fpsSpinBox, &QSpinBox::valueChanged, ui->fpsSlider, &QSlider::setValue);
 
     updateFormatsAndCodecs();
-    connect(ui->audioCodecBox, &QComboBox::currentIndexChanged, this, &VideoSettings::updateFormatsAndCodecs);
-    connect(ui->videoCodecBox, &QComboBox::currentIndexChanged, this, &VideoSettings::updateFormatsAndCodecs);
-    connect(ui->containerFormatBox, &QComboBox::currentIndexChanged, this, &VideoSettings::updateFormatsAndCodecs);
+    connect(ui->audioCodecBox, &QComboBox::currentIndexChanged, this,
+            &VideoSettings::updateFormatsAndCodecs);
+    connect(ui->videoCodecBox, &QComboBox::currentIndexChanged, this,
+            &VideoSettings::updateFormatsAndCodecs);
+    connect(ui->containerFormatBox, &QComboBox::currentIndexChanged, this,
+            &VideoSettings::updateFormatsAndCodecs);
 
     ui->qualitySlider->setRange(0, int(QMediaRecorder::VeryHighQuality));
 
@@ -149,36 +150,41 @@ void VideoSettings::updateFormatsAndCodecs()
 
     int currentIndex = 0;
     ui->audioCodecBox->clear();
-    ui->audioCodecBox->addItem(tr("Default audio codec"), QVariant::fromValue(QMediaFormat::AudioCodec::Unspecified));
+    ui->audioCodecBox->addItem(tr("Default audio codec"),
+                               QVariant::fromValue(QMediaFormat::AudioCodec::Unspecified));
     for (auto codec : format.supportedAudioCodecs(QMediaFormat::Encode)) {
         if (codec == format.audioCodec())
             currentIndex = ui->audioCodecBox->count();
-        ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec), QVariant::fromValue(codec));
+        ui->audioCodecBox->addItem(QMediaFormat::audioCodecDescription(codec),
+                                   QVariant::fromValue(codec));
     }
     ui->audioCodecBox->setCurrentIndex(currentIndex);
 
     currentIndex = 0;
     ui->videoCodecBox->clear();
-    ui->videoCodecBox->addItem(tr("Default video codec"), QVariant::fromValue(QMediaFormat::VideoCodec::Unspecified));
+    ui->videoCodecBox->addItem(tr("Default video codec"),
+                               QVariant::fromValue(QMediaFormat::VideoCodec::Unspecified));
     for (auto codec : format.supportedVideoCodecs(QMediaFormat::Encode)) {
         if (codec == format.videoCodec())
             currentIndex = ui->videoCodecBox->count();
-        ui->videoCodecBox->addItem(QMediaFormat::videoCodecDescription(codec), QVariant::fromValue(codec));
+        ui->videoCodecBox->addItem(QMediaFormat::videoCodecDescription(codec),
+                                   QVariant::fromValue(codec));
     }
     ui->videoCodecBox->setCurrentIndex(currentIndex);
 
     currentIndex = 0;
     ui->containerFormatBox->clear();
-    ui->containerFormatBox->addItem(tr("Default file format"), QVariant::fromValue(QMediaFormat::UnspecifiedFormat));
+    ui->containerFormatBox->addItem(tr("Default file format"),
+                                    QVariant::fromValue(QMediaFormat::UnspecifiedFormat));
     for (auto container : format.supportedFileFormats(QMediaFormat::Encode)) {
         if (container == format.fileFormat())
             currentIndex = ui->containerFormatBox->count();
-        ui->containerFormatBox->addItem(QMediaFormat::fileFormatDescription(container), QVariant::fromValue(container));
+        ui->containerFormatBox->addItem(QMediaFormat::fileFormatDescription(container),
+                                        QVariant::fromValue(container));
     }
     ui->containerFormatBox->setCurrentIndex(currentIndex);
 
     m_updatingFormats = false;
-
 }
 
 QVariant VideoSettings::boxValue(const QComboBox *box) const

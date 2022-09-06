@@ -4,10 +4,8 @@
 #ifndef PERFORMANCEMONITORDECLARATIVE_H
 #define PERFORMANCEMONITORDECLARATIVE_H
 
-#include "performancemonitor.h"
-
 namespace PerformanceMonitor {
-    void qmlRegisterTypes();
+void qmlRegisterTypes();
 }
 
 #endif // PERFORMANCEMONITORDECLARATIVE_H

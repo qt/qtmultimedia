@@ -4,11 +4,9 @@
 #ifndef QMEDIAPLAYLIST_H
 #define QMEDIAPLAYLIST_H
 
-#include <QtCore/qobject.h>
+#include <QObject>
 
-#include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qmediaenumdebug.h>
-
+#include <qmediaenumdebug.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -16,7 +14,8 @@ class QMediaPlaylistPrivate;
 class QMediaPlaylist : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QMediaPlaylist::PlaybackMode playbackMode READ playbackMode WRITE setPlaybackMode NOTIFY playbackModeChanged)
+    Q_PROPERTY(QMediaPlaylist::PlaybackMode playbackMode READ playbackMode WRITE setPlaybackMode
+                       NOTIFY playbackModeChanged)
     Q_PROPERTY(QUrl currentMedia READ currentMedia NOTIFY currentMediaChanged)
     Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
 
@@ -61,7 +60,7 @@ public:
     Error error() const;
     QString errorString() const;
 
-public Q_SLOTS:
+public slots:
     void shuffle();
 
     void next();
@@ -69,10 +68,10 @@ public Q_SLOTS:
 
     void setCurrentIndex(int index);
 
-Q_SIGNALS:
+signals:
     void currentIndexChanged(int index);
     void playbackModeChanged(QMediaPlaylist::PlaybackMode mode);
-    void currentMediaChanged(const QUrl&);
+    void currentMediaChanged(const QUrl &);
 
     void mediaAboutToBeInserted(int start, int end);
     void mediaInserted(int start, int end);
@@ -93,4 +92,4 @@ QT_END_NAMESPACE
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, PlaybackMode)
 Q_MEDIA_ENUM_DEBUG(QMediaPlaylist, Error)
 
-#endif  // QMEDIAPLAYLIST_H
+#endif // QMEDIAPLAYLIST_H

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "settingsdialog.h"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -11,26 +12,22 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-SettingsDialog::SettingsDialog(
-            const QList<QAudioDevice> &availableInputDevices,
-            const QList<QAudioDevice> &availableOutputDevices,
-            QWidget *parent)
-    :   QDialog(parent)
-    ,   m_windowFunction(DefaultWindowFunction)
-    ,   m_inputDeviceComboBox(new QComboBox(this))
-    ,   m_outputDeviceComboBox(new QComboBox(this))
-    ,   m_windowFunctionComboBox(new QComboBox(this))
+SettingsDialog::SettingsDialog(const QList<QAudioDevice> &availableInputDevices,
+                               const QList<QAudioDevice> &availableOutputDevices, QWidget *parent)
+    : QDialog(parent),
+      m_windowFunction(DefaultWindowFunction),
+      m_inputDeviceComboBox(new QComboBox(this)),
+      m_outputDeviceComboBox(new QComboBox(this)),
+      m_windowFunctionComboBox(new QComboBox(this))
 {
     QVBoxLayout *dialogLayout = new QVBoxLayout(this);
 
     // Populate combo boxes
 
     for (const QAudioDevice &device : availableInputDevices)
-        m_inputDeviceComboBox->addItem(device.description(),
-                                       QVariant::fromValue(device));
+        m_inputDeviceComboBox->addItem(device.description(), QVariant::fromValue(device));
     for (const QAudioDevice &device : availableOutputDevices)
-        m_outputDeviceComboBox->addItem(device.description(),
-                                       QVariant::fromValue(device));
+        m_outputDeviceComboBox->addItem(device.description(), QVariant::fromValue(device));
 
     m_windowFunctionComboBox->addItem(tr("None"), QVariant::fromValue(int(NoWindow)));
     m_windowFunctionComboBox->addItem("Hann", QVariant::fromValue(int(HannWindow)));
@@ -63,12 +60,12 @@ SettingsDialog::SettingsDialog(
     dialogLayout->addLayout(windowFunctionLayout.release());
 
     // Connect
-    connect(m_inputDeviceComboBox, QOverload<int>::of(&QComboBox::activated),
-            this, &SettingsDialog::inputDeviceChanged);
-    connect(m_outputDeviceComboBox, QOverload<int>::of(&QComboBox::activated),
-            this, &SettingsDialog::outputDeviceChanged);
-    connect(m_windowFunctionComboBox, QOverload<int>::of(&QComboBox::activated),
-            this, &SettingsDialog::windowFunctionChanged);
+    connect(m_inputDeviceComboBox, QOverload<int>::of(&QComboBox::activated), this,
+            &SettingsDialog::inputDeviceChanged);
+    connect(m_outputDeviceComboBox, QOverload<int>::of(&QComboBox::activated), this,
+            &SettingsDialog::outputDeviceChanged);
+    connect(m_windowFunctionComboBox, QOverload<int>::of(&QComboBox::activated), this,
+            &SettingsDialog::windowFunctionChanged);
 
     // Add standard buttons to layout
     QDialogButtonBox *buttonBox = new QDialogButtonBox(this);
@@ -76,10 +73,10 @@ SettingsDialog::SettingsDialog(
     dialogLayout->addWidget(buttonBox);
 
     // Connect standard buttons
-    connect(buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked,
-            this, &SettingsDialog::accept);
-    connect(buttonBox->button(QDialogButtonBox::Cancel), &QPushButton::clicked,
-            this, &SettingsDialog::reject);
+    connect(buttonBox->button(QDialogButtonBox::Ok), &QPushButton::clicked, this,
+            &SettingsDialog::accept);
+    connect(buttonBox->button(QDialogButtonBox::Cancel), &QPushButton::clicked, this,
+            &SettingsDialog::reject);
 
     setLayout(dialogLayout);
 }
@@ -88,8 +85,8 @@ SettingsDialog::~SettingsDialog() = default;
 
 void SettingsDialog::windowFunctionChanged(int index)
 {
-    m_windowFunction = static_cast<WindowFunction>(
-            m_windowFunctionComboBox->itemData(index).value<int>());
+    m_windowFunction =
+            static_cast<WindowFunction>(m_windowFunctionComboBox->itemData(index).value<int>());
 }
 
 void SettingsDialog::inputDeviceChanged(int index)
@@ -101,4 +98,3 @@ void SettingsDialog::outputDeviceChanged(int index)
 {
     m_outputDevice = m_outputDeviceComboBox->itemData(index).value<QAudioDevice>();
 }
-

@@ -4,20 +4,20 @@
 #ifndef AUDIOOUTPUT_H
 #define AUDIOOUTPUT_H
 
-#include <math.h>
-
 #include <QAudioSink>
 #include <QByteArray>
 #include <QComboBox>
 #include <QIODevice>
 #include <QLabel>
 #include <QMainWindow>
+#include <QMediaDevices>
 #include <QObject>
 #include <QPushButton>
+#include <QScopedPointer>
 #include <QSlider>
 #include <QTimer>
-#include <QScopedPointer>
-#include <QMediaDevices>
+
+#include <math.h>
 
 class Generator : public QIODevice
 {

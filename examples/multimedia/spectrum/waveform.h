@@ -23,7 +23,7 @@ class Waveform : public QWidget
     Q_OBJECT
 
 public:
-    explicit Waveform(QWidget *parent = 0);
+    explicit Waveform(QWidget *parent = nullptr);
     ~Waveform();
 
     // QWidget
@@ -68,17 +68,18 @@ private:
     struct TilePoint
     {
         TilePoint(int idx = 0, qint64 pos = 0, qint64 pix = 0)
-        :   index(idx), positionOffset(pos), pixelOffset(pix)
-        { }
+            : index(idx), positionOffset(pos), pixelOffset(pix)
+        {
+        }
 
         // Index of tile
-        int     index;
+        int index;
 
         // Number of bytes from start of tile
-        qint64  positionOffset;
+        qint64 positionOffset;
 
         // Number of pixels from left of corresponding pixmap
-        int     pixelOffset;
+        int pixelOffset;
     };
 
     /*
@@ -130,36 +131,37 @@ private:
     void resetTiles(qint64 newStartPos);
 
 private:
-    qint64                  m_bufferPosition;
-    qint64                  m_bufferLength;
-    QByteArray              m_buffer;
+    qint64 m_bufferPosition;
+    qint64 m_bufferLength;
+    QByteArray m_buffer;
 
-    qint64                  m_audioPosition;
-    QAudioFormat            m_format;
+    qint64 m_audioPosition;
+    QAudioFormat m_format;
 
-    bool                    m_active;
+    bool m_active;
 
-    QSize                   m_pixmapSize;
-    QList<QPixmap*>         m_pixmaps;
+    QSize m_pixmapSize;
+    QList<QPixmap *> m_pixmaps;
 
-    struct Tile {
+    struct Tile
+    {
         // Pointer into parent m_pixmaps array
-        QPixmap*            pixmap;
+        QPixmap *pixmap;
 
         // Flag indicating whether this tile has been painted
-        bool                painted;
+        bool painted;
     };
 
-    QList<Tile>             m_tiles;
+    QList<Tile> m_tiles;
 
     // Length of audio data in bytes depicted by each tile
-    qint64                  m_tileLength;
+    qint64 m_tileLength;
 
     // Position in bytes of the first tile, relative to m_buffer
-    qint64                  m_tileArrayStart;
+    qint64 m_tileArrayStart;
 
-    qint64                  m_windowPosition;
-    qint64                  m_windowLength;
+    qint64 m_windowPosition;
+    qint64 m_windowLength;
 };
 
 #endif // WAVEFORM_H

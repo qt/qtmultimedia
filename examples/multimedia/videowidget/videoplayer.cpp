@@ -3,11 +3,20 @@
 
 #include "videoplayer.h"
 
-#include <QtWidgets>
+#include <QBoxLayout>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QMediaPlayer>
+#include <QPushButton>
+#include <QSizePolicy>
+#include <QSlider>
+#include <QStandardPaths>
+#include <QString>
+#include <QStyle>
 #include <QVideoWidget>
 
-VideoPlayer::VideoPlayer(QWidget *parent)
-    : QWidget(parent)
+VideoPlayer::VideoPlayer(QWidget *parent) : QWidget(parent)
 {
     m_mediaPlayer = new QMediaPlayer(this);
     QVideoWidget *videoWidget = new QVideoWidget;
@@ -19,14 +28,12 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     m_playButton->setEnabled(false);
     m_playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
 
-    connect(m_playButton, &QAbstractButton::clicked,
-            this, &VideoPlayer::play);
+    connect(m_playButton, &QAbstractButton::clicked, this, &VideoPlayer::play);
 
     m_positionSlider = new QSlider(Qt::Horizontal);
     m_positionSlider->setRange(0, 0);
 
-    connect(m_positionSlider, &QAbstractSlider::sliderMoved,
-            this, &VideoPlayer::setPosition);
+    connect(m_positionSlider, &QAbstractSlider::sliderMoved, this, &VideoPlayer::setPosition);
 
     m_errorLabel = new QLabel;
     m_errorLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
@@ -45,24 +52,22 @@ VideoPlayer::VideoPlayer(QWidget *parent)
     setLayout(layout);
 
     m_mediaPlayer->setVideoOutput(videoWidget);
-    connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged,
-            this, &VideoPlayer::mediaStateChanged);
+    connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged, this,
+            &VideoPlayer::mediaStateChanged);
     connect(m_mediaPlayer, &QMediaPlayer::positionChanged, this, &VideoPlayer::positionChanged);
     connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, &VideoPlayer::durationChanged);
-    connect(m_mediaPlayer, &QMediaPlayer::errorChanged,
-            this, &VideoPlayer::handleError);
+    connect(m_mediaPlayer, &QMediaPlayer::errorChanged, this, &VideoPlayer::handleError);
 }
 
-VideoPlayer::~VideoPlayer()
-{
-}
+VideoPlayer::~VideoPlayer() { }
 
 void VideoPlayer::openFile()
 {
     QFileDialog fileDialog(this);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     fileDialog.setWindowTitle(tr("Open Movie"));
-    fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation).value(0, QDir::homePath()));
+    fileDialog.setDirectory(QStandardPaths::standardLocations(QStandardPaths::MoviesLocation)
+                                    .value(0, QDir::homePath()));
     if (fileDialog.exec() == QDialog::Accepted)
         setUrl(fileDialog.selectedUrls().constFirst());
 }
@@ -89,7 +94,7 @@ void VideoPlayer::play()
 
 void VideoPlayer::mediaStateChanged(QMediaPlayer::PlaybackState state)
 {
-    switch(state) {
+    switch (state) {
     case QMediaPlayer::PlayingState:
         m_playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
         break;

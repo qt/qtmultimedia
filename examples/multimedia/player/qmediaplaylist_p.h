@@ -18,14 +18,13 @@
 #include "qmediaplaylist.h"
 #include "qplaylistfileparser_p.h"
 
-#include <QtCore/qdebug.h>
+#include <QDebug>
 
 #ifdef Q_MOC_RUN
-# pragma Q_MOC_EXPAND_MACROS
+#    pragma Q_MOC_EXPAND_MACROS
 #endif
 
 QT_BEGIN_NAMESPACE
-
 
 class QMediaPlaylistControl;
 
@@ -33,10 +32,7 @@ class QMediaPlaylistPrivate
 {
     Q_DECLARE_PUBLIC(QMediaPlaylist)
 public:
-    QMediaPlaylistPrivate()
-        : error(QMediaPlaylist::NoError)
-    {
-    }
+    QMediaPlaylistPrivate() : error(QMediaPlaylist::NoError) { }
 
     virtual ~QMediaPlaylistPrivate()
     {
@@ -62,13 +58,14 @@ public:
     bool checkFormat(const char *format) const
     {
         QLatin1String f(format);
-        QPlaylistFileParser::FileType type = format ? QPlaylistFileParser::UNKNOWN : QPlaylistFileParser::M3U8;
+        QPlaylistFileParser::FileType type =
+                format ? QPlaylistFileParser::UNKNOWN : QPlaylistFileParser::M3U8;
         if (format) {
-            if (f == QLatin1String("m3u") || f == QLatin1String("text/uri-list") ||
-                f == QLatin1String("audio/x-mpegurl") || f == QLatin1String("audio/mpegurl"))
+            if (f == QLatin1String("m3u") || f == QLatin1String("text/uri-list")
+                || f == QLatin1String("audio/x-mpegurl") || f == QLatin1String("audio/mpegurl"))
                 type = QPlaylistFileParser::M3U;
-            else if (f == QLatin1String("m3u8") || f == QLatin1String("application/x-mpegURL") ||
-                     f == QLatin1String("application/vnd.apple.mpegurl"))
+            else if (f == QLatin1String("m3u8") || f == QLatin1String("application/x-mpegURL")
+                     || f == QLatin1String("application/vnd.apple.mpegurl"))
                 type = QPlaylistFileParser::M3U8;
         }
 
@@ -88,7 +85,9 @@ public:
         parser = new QPlaylistFileParser(q_ptr);
         QObject::connect(parser, &QPlaylistFileParser::finished, [this]() { loadFinished(); });
         QObject::connect(parser, &QPlaylistFileParser::error,
-                [this](QMediaPlaylist::Error err, const QString& errorMsg) { loadFailed(err, errorMsg); });
+                         [this](QMediaPlaylist::Error err, const QString &errorMsg) {
+                             loadFailed(err, errorMsg);
+                         });
     }
 
     int nextPosition(int steps) const;
@@ -107,6 +106,5 @@ public:
 };
 
 QT_END_NAMESPACE
-
 
 #endif // QMEDIAPLAYLIST_P_H

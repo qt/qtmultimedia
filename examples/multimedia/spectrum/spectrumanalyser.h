@@ -4,21 +4,21 @@
 #ifndef SPECTRUMANALYSER_H
 #define SPECTRUMANALYSER_H
 
-#include <QByteArray>
-#include <QObject>
-#include <QList>
-
-#ifdef DUMP_SPECTRUMANALYSER
-#include <QDir>
-#include <QFile>
-#include <QTextStream>
-#endif
-
 #include "frequencyspectrum.h"
 #include "spectrum.h"
 
+#include <QByteArray>
+#include <QList>
+#include <QObject>
+
+#ifdef DUMP_SPECTRUMANALYSER
+#    include <QDir>
+#    include <QFile>
+#    include <QTextStream>
+#endif
+
 #ifndef DISABLE_FFT
-#include "FFTRealFixLenParam.h"
+#    include "FFTRealFixLenParam.h"
 #endif
 
 QT_FORWARD_DECLARE_CLASS(QAudioFormat)
@@ -42,9 +42,7 @@ public:
 
 public slots:
     void setWindowFunction(WindowFunction type);
-    void calculateSpectrum(const QByteArray &buffer,
-                           int inputFrequency,
-                           int bytesPerSample);
+    void calculateSpectrum(const QByteArray &buffer, int inputFrequency, int bytesPerSample);
 
 signals:
     void calculationComplete(const FrequencySpectrum &spectrum);
@@ -54,27 +52,27 @@ private:
 
 private:
 #ifndef DISABLE_FFT
-    FFTRealWrapper*                             m_fft;
+    FFTRealWrapper *m_fft;
 #endif
 
-    const int                                   m_numSamples;
+    const int m_numSamples;
 
-    WindowFunction                              m_windowFunction;
+    WindowFunction m_windowFunction;
 
 #ifdef DISABLE_FFT
-    typedef qreal                               DataType;
+    typedef qreal DataType;
 #else
-    typedef FFTRealFixLenParam::DataType        DataType;
+    typedef FFTRealFixLenParam::DataType DataType;
 #endif
-    QList<DataType>                             m_window;
+    QList<DataType> m_window;
 
-    QList<DataType>                             m_input;
-    QList<DataType>                             m_output;
+    QList<DataType> m_input;
+    QList<DataType> m_output;
 
-    FrequencySpectrum                           m_spectrum;
+    FrequencySpectrum m_spectrum;
 
 #ifdef SPECTRUM_ANALYSER_SEPARATE_THREAD
-    QThread*                                    m_thread;
+    QThread *m_thread;
 #endif
 };
 
@@ -87,7 +85,7 @@ class SpectrumAnalyser : public QObject
     Q_OBJECT
 
 public:
-    SpectrumAnalyser(QObject *parent = 0);
+    SpectrumAnalyser(QObject *parent = nullptr);
     ~SpectrumAnalyser();
 
 #ifdef DUMP_SPECTRUMANALYSER
@@ -136,24 +134,18 @@ private:
     void calculateWindow();
 
 private:
+    SpectrumAnalyserThread *m_thread;
 
-    SpectrumAnalyserThread*    m_thread;
+    enum State { Idle, Busy, Cancelled };
 
-    enum State {
-        Idle,
-        Busy,
-        Cancelled
-    };
-
-    State              m_state;
+    State m_state;
 
 #ifdef DUMP_SPECTRUMANALYSER
-    QDir                m_outputDir;
-    int                 m_count;
-    QFile               m_textFile;
-    QTextStream         m_textStream;
+    QDir m_outputDir;
+    int m_count;
+    QFile m_textFile;
+    QTextStream m_textStream;
 #endif
 };
 
 #endif // SPECTRUMANALYSER_H
-

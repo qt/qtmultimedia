@@ -5,6 +5,7 @@
 #define TONEGENERATORDIALOG_H
 
 #include "spectrum.h"
+
 #include <QAudioDevice>
 #include <QDialog>
 
@@ -23,7 +24,7 @@ class ToneGeneratorDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ToneGeneratorDialog(QWidget *parent = 0);
+    explicit ToneGeneratorDialog(QWidget *parent = nullptr);
     ~ToneGeneratorDialog();
 
     bool isFrequencySweepEnabled() const;

@@ -2,14 +2,21 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "metadatadialog.h"
-#include "camera.h"
 
-#include <QtWidgets>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFileDialog>
 #include <QFormLayout>
+#include <QHBoxLayout>
+#include <QLineEdit>
 #include <QMediaMetaData>
+#include <QPushButton>
+#include <QScrollArea>
+#include <QString>
+#include <QVBoxLayout>
+#include <QWidget>
 
-MetaDataDialog::MetaDataDialog(QWidget *parent)
-    : QDialog(parent)
+MetaDataDialog::MetaDataDialog(QWidget *parent) : QDialog(parent)
 {
     QFormLayout *metaDataLayout = new QFormLayout;
     for (int key = 0; key < QMediaMetaData::NumMetaData; key++) {
@@ -17,21 +24,20 @@ MetaDataDialog::MetaDataDialog(QWidget *parent)
         m_metaDataFields[key] = new QLineEdit;
         if (key == QMediaMetaData::ThumbnailImage) {
             QPushButton *openThumbnail = new QPushButton(tr("Open"));
-            connect(openThumbnail, &QPushButton::clicked, this, &MetaDataDialog::openThumbnailImage);
+            connect(openThumbnail, &QPushButton::clicked, this,
+                    &MetaDataDialog::openThumbnailImage);
             QHBoxLayout *layout = new QHBoxLayout;
             layout->addWidget(m_metaDataFields[key]);
             layout->addWidget(openThumbnail);
             metaDataLayout->addRow(label, layout);
-        }
-        else if (key == QMediaMetaData::CoverArtImage) {
+        } else if (key == QMediaMetaData::CoverArtImage) {
             QPushButton *openCoverArt = new QPushButton(tr("Open"));
             connect(openCoverArt, &QPushButton::clicked, this, &MetaDataDialog::openCoverArtImage);
             QHBoxLayout *layout = new QHBoxLayout;
             layout->addWidget(m_metaDataFields[key]);
             layout->addWidget(openCoverArt);
             metaDataLayout->addRow(label, layout);
-        }
-        else {
+        } else {
             if (key == QMediaMetaData::Title)
                 m_metaDataFields[key]->setText(tr("Qt Camera Example"));
             else if (key == QMediaMetaData::Author)
@@ -52,8 +58,7 @@ MetaDataDialog::MetaDataDialog(QWidget *parent)
     this->setLayout(dialogLayout);
     this->layout()->addWidget(scrollArea);
 
-    auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok
-                                    | QDialogButtonBox::Cancel);
+    auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     this->layout()->addWidget(buttonBox);
 
     this->setWindowTitle(tr("Set Metadata"));
@@ -65,16 +70,16 @@ MetaDataDialog::MetaDataDialog(QWidget *parent)
 
 void MetaDataDialog::openThumbnailImage()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-    tr("Open Image"), QDir::currentPath(), tr("Image Files (*.png *.jpg *.bmp)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), QDir::currentPath(),
+                                                    tr("Image Files (*.png *.jpg *.bmp)"));
     if (!fileName.isEmpty())
         m_metaDataFields[QMediaMetaData::ThumbnailImage]->setText(fileName);
 }
 
 void MetaDataDialog::openCoverArtImage()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-    tr("Open Image"), QDir::currentPath(), tr("Image Files (*.png *.jpg *.bmp)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), QDir::currentPath(),
+                                                    tr("Image Files (*.png *.jpg *.bmp)"));
     if (!fileName.isEmpty())
         m_metaDataFields[QMediaMetaData::CoverArtImage]->setText(fileName);
 }

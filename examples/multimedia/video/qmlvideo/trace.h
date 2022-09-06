@@ -4,7 +4,7 @@
 #ifndef TRACE_H
 #define TRACE_H
 
-#include <QtCore/QDebug>
+#include <QDebug>
 
 #define ENABLE_TRACE
 //#define VERBOSE_TRACE
@@ -14,13 +14,19 @@ namespace Trace {
 class NullDebug
 {
 public:
-    template <typename T>
-    NullDebug& operator<<(const T&) { return *this; }
+    template<typename T>
+    NullDebug &operator<<(const T &)
+    {
+        return *this;
+    }
 };
 
-inline NullDebug nullDebug() { return NullDebug(); }
+inline NullDebug nullDebug()
+{
+    return NullDebug();
+}
 
-template <typename T>
+template<typename T>
 struct PtrWrapper
 {
     PtrWrapper(const T *ptr) : m_ptr(ptr) { }
@@ -29,8 +35,8 @@ struct PtrWrapper
 
 } // namespace Trace
 
-template <typename T>
-inline QDebug& operator<<(QDebug &debug, const Trace::PtrWrapper<T> &wrapper)
+template<typename T>
+inline QDebug &operator<<(QDebug &debug, const Trace::PtrWrapper<T> &wrapper)
 {
     QDebugStateSaver saver(debug);
     debug.nospace() << '[' << static_cast<const void *>(wrapper.m_ptr) << ']';
@@ -39,20 +45,37 @@ inline QDebug& operator<<(QDebug &debug, const Trace::PtrWrapper<T> &wrapper)
 
 template<typename T>
 inline const void *qtVoidPtr(const T *ptr)
-{ return static_cast<const void *>(ptr); }
+{
+    return static_cast<const void *>(ptr);
+}
 
 #define qtThisPtr() qtVoidPtr(this)
 
 #ifdef ENABLE_TRACE
-        inline QDebug qtTrace() { return qDebug() << "[qmlvideo]"; }
+inline QDebug qtTrace()
+{
+    return qDebug() << "[qmlvideo]";
+}
 #    ifdef VERBOSE_TRACE
-        inline QDebug qtVerboseTrace() { return qtTrace(); }
+inline QDebug qtVerboseTrace()
+{
+    return qtTrace();
+}
 #    else
-        inline Trace::NullDebug qtVerboseTrace() { return Trace::nullDebug(); }
+inline Trace::NullDebug qtVerboseTrace()
+{
+    return Trace::nullDebug();
+}
 #    endif
 #else
-    inline Trace::NullDebug qtTrace() { return Trace::nullDebug(); }
-    inline Trace::NullDebug qtVerboseTrace() { return Trace::nullDebug(); }
+inline Trace::NullDebug qtTrace()
+{
+    return Trace::nullDebug();
+}
+inline Trace::NullDebug qtVerboseTrace()
+{
+    return Trace::nullDebug();
+}
 #endif
 
 #endif // TRACE_H
