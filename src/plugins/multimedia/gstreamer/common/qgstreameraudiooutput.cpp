@@ -14,20 +14,45 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <utility>
+
 Q_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerAudioOutput::QGstreamerAudioOutput(QAudioOutput *parent)
-  : QObject(parent),
-    QPlatformAudioOutput(parent),
-    gstAudioOutput("audioOutput")
+QMaybe<QPlatformAudioOutput *> QGstreamerAudioOutput::create(QAudioOutput *parent)
+{
+    QGstElement audioconvert("audioconvert", "audioConvert");
+    if (!audioconvert)
+        return errorMessageCannotFindElement("audioconvert");
+
+    QGstElement audioresample("audioresample", "audioResample");
+    if (!audioresample)
+        return errorMessageCannotFindElement("audioresample");
+
+    QGstElement volume("volume", "volume");
+    if (!volume)
+        return errorMessageCannotFindElement("volume");
+
+    QGstElement autoaudiosink("autoaudiosink", "autoAudioSink");
+    if (!autoaudiosink)
+        return errorMessageCannotFindElement("autoaudiosink");
+
+    return new QGstreamerAudioOutput(audioconvert, audioresample, volume, autoaudiosink, parent);
+}
+
+QGstreamerAudioOutput::QGstreamerAudioOutput(QGstElement audioconvert, QGstElement audioresample,
+                                             QGstElement volume, QGstElement autoaudiosink,
+                                             QAudioOutput *parent)
+    : QObject(parent),
+      QPlatformAudioOutput(parent),
+      gstAudioOutput("audioOutput"),
+      audioConvert(std::move(audioconvert)),
+      audioResample(std::move(audioresample)),
+      audioVolume(std::move(volume)),
+      audioSink(std::move(autoaudiosink))
 {
     audioQueue = QGstElement("queue", "audioQueue");
-    audioConvert = QGstElement("audioconvert", "audioConvert");
-    audioResample = QGstElement("audioresample", "audioResample");
-    audioVolume = QGstElement("volume", "volume");
-    audioSink = QGstElement("autoaudiosink", "autoAudioSink");
     gstAudioOutput.add(audioQueue, audioConvert, audioResample, audioVolume, audioSink);
     audioQueue.link(audioConvert, audioResample, audioVolume, audioSink);
 

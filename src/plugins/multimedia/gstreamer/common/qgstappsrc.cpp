@@ -10,12 +10,18 @@
 
 Q_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc")
 
-QGstAppSrc::QGstAppSrc(QObject *parent)
-    : QObject(parent)
+QMaybe<QGstAppSrc *> QGstAppSrc::create(QObject *parent)
 {
-    m_appSrc = QGstElement("appsrc", "appsrc");
-    if (m_appSrc.isNull())
-        qWarning() << "Could not create GstAppSrc.";
+    QGstElement appsrc("appsrc", "appsrc");
+    if (!appsrc)
+        return errorMessageCannotFindElement("appsrc");
+
+    return new QGstAppSrc(appsrc, parent);
+}
+
+QGstAppSrc::QGstAppSrc(QGstElement appsrc, QObject *parent)
+    : QObject(parent), m_appSrc(std::move(appsrc))
+{
 }
 
 QGstAppSrc::~QGstAppSrc()

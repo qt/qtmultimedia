@@ -20,7 +20,8 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 
-#include "private/qplatformaudiodecoder_p.h"
+#include <private/qplatformaudiodecoder_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qgstpipeline_p.h>
 #include "qaudiodecoder.h"
 
@@ -42,7 +43,7 @@ class QGstreamerAudioDecoder
     Q_OBJECT
 
 public:
-    QGstreamerAudioDecoder(QAudioDecoder *parent);
+    static QMaybe<QPlatformAudioDecoder *> create(QAudioDecoder *parent);
     virtual ~QGstreamerAudioDecoder();
 
     QUrl source() const override;
@@ -77,6 +78,8 @@ private slots:
     void updateDuration();
 
 private:
+    QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement audioconvert, QAudioDecoder *parent);
+
     void setAudioFlags(bool wantNativeAudio);
     void addAppSink();
     void removeAppSink();

@@ -29,9 +29,8 @@ Q_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player")
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerMediaPlayer::TrackSelector::TrackSelector(TrackType type, const char *name)
-    : selector(QGstElement("input-selector", name)),
-      type(type)
+QGstreamerMediaPlayer::TrackSelector::TrackSelector(TrackType type, QGstElement selector)
+    : selector(selector), type(type)
 {
     selector.set("sync-streams", true);
     selector.set("sync-mode", 1 /*clock*/);
@@ -74,17 +73,49 @@ QGstreamerMediaPlayer::TrackSelector &QGstreamerMediaPlayer::trackSelector(Track
     return ts;
 }
 
-QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
+QMaybe<QPlatformMediaPlayer *> QGstreamerMediaPlayer::create(QMediaPlayer *parent)
+{
+    auto videoOutput = QGstreamerVideoOutput::create();
+    if (!videoOutput)
+        return videoOutput.error();
+
+    QGstElement decodebin("decodebin", nullptr);
+    if (!decodebin)
+        return errorMessageCannotFindElement("decodebin");
+
+    QGstElement videoInputSelector("input-selector", "videoInputSelector");
+    if (!videoInputSelector)
+        return errorMessageCannotFindElement("input-selector");
+
+    QGstElement audioInputSelector("input-selector", "audioInputSelector");
+    if (!audioInputSelector)
+        return errorMessageCannotFindElement("input-selector");
+
+    QGstElement subTitleInputSelector("input-selector", "subTitleInputSelector");
+    if (!subTitleInputSelector)
+        return errorMessageCannotFindElement("input-selector");
+
+    return new QGstreamerMediaPlayer(videoOutput.value(), decodebin, videoInputSelector,
+                                     audioInputSelector, subTitleInputSelector, parent);
+}
+
+QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
+                                             QGstElement decodebin,
+                                             QGstElement videoInputSelector,
+                                             QGstElement audioInputSelector,
+                                             QGstElement subTitleInputSelector,
+                                             QMediaPlayer *parent)
     : QObject(parent),
       QPlatformMediaPlayer(parent),
-      trackSelectors{{{ VideoStream, "videoInputSelector" },
-                      { AudioStream, "audioInputSelector" },
-                      { SubtitleStream, "subTitleInputSelector" }}},
-      playerPipeline("playerPipeline")
+      trackSelectors{ { { VideoStream, videoInputSelector },
+                        { AudioStream, audioInputSelector },
+                        { SubtitleStream, subTitleInputSelector } } },
+      playerPipeline("playerPipeline"),
+      gstVideoOutput(videoOutput)
 {
     playerPipeline.setFlushOnConfigChanges(true);
 
-    gstVideoOutput = new QGstreamerVideoOutput(this);
+    gstVideoOutput->setParent(this);
     gstVideoOutput->setPipeline(playerPipeline);
 
     for (auto &ts : trackSelectors)
@@ -100,7 +131,6 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QMediaPlayer *parent)
      * This is ugly. We get the GType of decodebin so we can quickly detect
      * when a decodebin is added to uridecodebin so we can set the
      * post-stream-topology setting to TRUE */
-    auto decodebin = QGstElement("decodebin", nullptr);
     decodebinType = G_OBJECT_TYPE(decodebin.element());
     connect(&positionUpdateTimer, &QTimer::timeout, this, &QGstreamerMediaPlayer::updatePosition);
 }
@@ -639,10 +669,21 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         return;
 
     if (m_stream) {
-        if (!m_appSrc)
-            m_appSrc = new QGstAppSrc(this);
+        if (!m_appSrc) {
+            auto maybeAppSrc = QGstAppSrc::create(this);
+            if (maybeAppSrc) {
+                m_appSrc = maybeAppSrc.value();
+            } else {
+                emit error(QMediaPlayer::ResourceError, maybeAppSrc.error());
+                return;
+            }
+        }
         src = m_appSrc->element();
         decoder = QGstElement("decodebin", "decoder");
+        if (!decoder) {
+            emit error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("decodebin"));
+            return;
+        }
         decoder.set("post-stream-topology", true);
         playerPipeline.add(src, decoder);
         src.link(decoder);
@@ -652,6 +693,10 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     } else {
         // use uridecodebin
         decoder = QGstElement("uridecodebin", "uridecoder");
+        if (!decoder) {
+            emit error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("uridecodebin"));
+            return;
+        }
         playerPipeline.add(decoder);
         // can't set post-stream-topology to true, as uridecodebin doesn't have the property. Use a hack
         decoder.connect("element-added", GCallback(QGstreamerMediaPlayer::uridecodebinElementAddedCallback), this);

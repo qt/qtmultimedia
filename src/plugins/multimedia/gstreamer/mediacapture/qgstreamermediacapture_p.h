@@ -38,7 +38,7 @@ class QGstreamerMediaCapture : public QPlatformMediaCaptureSession
     Q_OBJECT
 
 public:
-    QGstreamerMediaCapture();
+    static QMaybe<QPlatformMediaCaptureSession *> create();
     virtual ~QGstreamerMediaCapture();
 
     QPlatformCamera *camera() override;
@@ -64,6 +64,8 @@ public:
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
 private:
+    QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput);
+
     friend QGstreamerMediaEncoder;
     // Gst elements
     QGstPipeline gstPipeline;

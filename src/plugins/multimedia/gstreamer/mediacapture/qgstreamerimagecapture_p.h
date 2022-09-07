@@ -1,7 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-
 #ifndef QGSTREAMERIMAGECAPTURECONTROL_H
 #define QGSTREAMERIMAGECAPTURECONTROL_H
 
@@ -17,6 +16,7 @@
 //
 
 #include <private/qplatformimagecapture_p.h>
+#include <private/qmultimediautils_p.h>
 #include "qgstreamermediacapture_p.h"
 #include "qgstreamerbufferprobe_p.h"
 
@@ -32,7 +32,7 @@ class QGstreamerImageCapture : public QPlatformImageCapture, private QGstreamerB
 {
     Q_OBJECT
 public:
-    QGstreamerImageCapture(QImageCapture *parent);
+    static QMaybe<QPlatformImageCapture *> create(QImageCapture *parent);
     virtual ~QGstreamerImageCapture();
 
     bool isReadyForCapture() const override;
@@ -53,6 +53,9 @@ public Q_SLOTS:
     void onCameraChanged();
 
 private:
+    QGstreamerImageCapture(QGstElement videoconvert, QGstElement jpegenc, QGstElement jifmux,
+                           QImageCapture *parent);
+
     int doCapture(const QString &fileName);
     static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad, void *appdata);
 

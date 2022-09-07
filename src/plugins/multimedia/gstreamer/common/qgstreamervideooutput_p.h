@@ -17,6 +17,7 @@
 
 #include <QtCore/qobject.h>
 #include <private/qtmultimediaglobal_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qgst_p.h>
 #include <qgstpipeline_p.h>
 #include <qwaitcondition.h>
@@ -33,7 +34,7 @@ class Q_MULTIMEDIA_EXPORT QGstreamerVideoOutput : public QObject
     Q_OBJECT
 
 public:
-    QGstreamerVideoOutput(QObject *parent = 0);
+    static QMaybe<QGstreamerVideoOutput *> create(QObject *parent = nullptr);
     ~QGstreamerVideoOutput();
 
     void setVideoSink(QVideoSink *sink);
@@ -49,6 +50,8 @@ public:
     void flushSubtitles();
 
 private:
+    QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoSink, QObject *parent);
+
     void doLinkSubtitleStream();
 
     QPointer<QGstreamerVideoSink> m_videoSink;

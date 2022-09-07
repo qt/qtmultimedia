@@ -1,7 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-
 #ifndef QGSTREAMERCAMERACONTROL_H
 #define QGSTREAMERCAMERACONTROL_H
 
@@ -18,6 +17,7 @@
 
 #include <QHash>
 #include <private/qplatformcamera_p.h>
+#include <private/qmultimediautils_p.h>
 #include "qgstreamermediacapture_p.h"
 #include <qgst_p.h>
 
@@ -27,7 +27,8 @@ class QGstreamerCamera : public QPlatformCamera
 {
     Q_OBJECT
 public:
-    QGstreamerCamera(QCamera *camera);
+    static QMaybe<QPlatformCamera *> create(QCamera *camera);
+
     virtual ~QGstreamerCamera();
 
     bool isActive() const override;
@@ -64,6 +65,9 @@ public:
     bool isV4L2Camera() const { return !m_v4l2Device.isEmpty(); }
 
 private:
+    QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFilter, QGstElement videoconvert,
+                     QGstElement videoscale, QCamera *camera);
+
     void updateCameraProperties();
 #if QT_CONFIG(linux_v4l)
     void initV4L2Controls();

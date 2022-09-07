@@ -18,6 +18,7 @@
 #include <QtCore/qstack.h>
 #include <private/qplatformmediaplayer_p.h>
 #include <private/qtmultimediaglobal_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qurl.h>
 #include <qgst_p.h>
 #include <qgstpipeline_p.h>
@@ -43,7 +44,7 @@ class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer
     Q_OBJECT
 
 public:
-    QGstreamerMediaPlayer(QMediaPlayer *parent = 0);
+    static QMaybe<QPlatformMediaPlayer *> create(QMediaPlayer *parent = nullptr);
     ~QGstreamerMediaPlayer();
 
     qint64 position() const override;
@@ -86,8 +87,12 @@ public Q_SLOTS:
     void updatePosition() { positionChanged(position()); }
 
 private:
+    QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput, QGstElement decodebin,
+                          QGstElement videoInputSelector, QGstElement audioInputSelector,
+                          QGstElement subTitleInputSelector, QMediaPlayer *parent);
+
     struct TrackSelector {
-        TrackSelector(TrackType, const char *name);
+        TrackSelector(TrackType, QGstElement selector);
         QGstPad createInputPad();
         void removeInputPad(QGstPad pad);
         void removeAllInputPads();

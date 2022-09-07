@@ -13,13 +13,27 @@ Q_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput")
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerVideoOutput::QGstreamerVideoOutput(QObject *parent)
+QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
+{
+    QGstElement videoConvert("videoconvert", "videoConvert");
+    if (!videoConvert)
+        return errorMessageCannotFindElement("videoconvert");
+
+    QGstElement videoSink("fakesink", "fakeVideoSink");
+    if (!videoSink)
+        return errorMessageCannotFindElement("fakesink");
+
+    return new QGstreamerVideoOutput(videoConvert, videoSink, parent);
+}
+
+QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement sink,
+                                             QObject *parent)
     : QObject(parent),
-      gstVideoOutput("videoOutput")
+      gstVideoOutput("videoOutput"),
+      videoConvert(std::move(convert)),
+      videoSink(std::move(sink))
 {
     videoQueue = QGstElement("queue", "videoQueue");
-    videoConvert = QGstElement("videoconvert", "videoConvert");
-    videoSink = QGstElement("fakesink", "fakeVideoSink");
     videoSink.set("sync", true);
     gstVideoOutput.add(videoQueue, videoConvert, videoSink);
     if (!videoQueue.link(videoConvert, videoSink))
@@ -52,6 +66,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         isFakeSink = false;
     } else {
         gstSink = QGstElement("fakesink", "fakevideosink");
+        Q_ASSERT(gstSink);
         gstSink.set("sync", true);
         isFakeSink = true;
     }

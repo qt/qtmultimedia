@@ -14,17 +14,33 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <utility>
+
 Q_LOGGING_CATEGORY(qLcMediaAudioInput, "qt.multimedia.audioInput")
 
 QT_BEGIN_NAMESPACE
 
-QGstreamerAudioInput::QGstreamerAudioInput(QAudioInput *parent)
-  : QObject(parent),
-    QPlatformAudioInput(parent),
-    gstAudioInput("audioInput")
+QMaybe<QPlatformAudioInput *> QGstreamerAudioInput::create(QAudioInput *parent)
 {
-    audioSrc = QGstElement("autoaudiosrc", "autoaudiosrc");
-    audioVolume = QGstElement("volume", "volume");
+    QGstElement autoaudiosrc("autoaudiosrc", "autoaudiosrc");
+    if (!autoaudiosrc)
+        return errorMessageCannotFindElement("autoaudiosrc");
+
+    QGstElement volume("volume", "volume");
+    if (!volume)
+        return errorMessageCannotFindElement("volume");
+
+    return new QGstreamerAudioInput(autoaudiosrc, volume, parent);
+}
+
+QGstreamerAudioInput::QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement volume,
+                                           QAudioInput *parent)
+    : QObject(parent),
+      QPlatformAudioInput(parent),
+      gstAudioInput("audioInput"),
+      audioSrc(std::move(autoaudiosrc)),
+      audioVolume(std::move(volume))
+{
     gstAudioInput.add(audioSrc, audioVolume);
     audioSrc.link(audioVolume);
 

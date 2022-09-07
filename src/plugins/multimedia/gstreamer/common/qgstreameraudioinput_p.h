@@ -16,6 +16,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qaudiodevice.h>
 
 #include <QtCore/qobject.h>
@@ -34,7 +35,7 @@ class Q_MULTIMEDIA_EXPORT QGstreamerAudioInput : public QObject, public QPlatfor
     Q_OBJECT
 
 public:
-    QGstreamerAudioInput(QAudioInput *parent);
+    static QMaybe<QPlatformAudioInput *> create(QAudioInput *parent);
     ~QGstreamerAudioInput();
 
     int volume() const;
@@ -54,6 +55,8 @@ Q_SIGNALS:
     void volumeChanged(int);
 
 private:
+    QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement volume, QAudioInput *parent);
+
     float m_volume = 1.;
     bool m_muted = false;
 

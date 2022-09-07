@@ -159,6 +159,7 @@ bool QGStreamerAudioSource::open()
 
     QGstElement conv("audioconvert", "conv");
     gstVolume = QGstElement("volume", "volume");
+    Q_ASSERT(gstVolume);
     if (m_volume != 1.)
         gstVolume.set("volume", m_volume);
 

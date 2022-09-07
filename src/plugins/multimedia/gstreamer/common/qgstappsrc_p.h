@@ -16,6 +16,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qaudioformat.h>
 
 #include <QtCore/qobject.h>
@@ -34,7 +35,7 @@ class Q_MULTIMEDIA_EXPORT QGstAppSrc  : public QObject
 {
     Q_OBJECT
 public:
-    QGstAppSrc(QObject *parent = 0);
+    static QMaybe<QGstAppSrc *> create(QObject *parent = nullptr);
     ~QGstAppSrc();
 
     bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
@@ -61,6 +62,8 @@ private Q_SLOTS:
 
     void streamDestroyed();
 private:
+    QGstAppSrc(QGstElement appsrc, QObject *parent);
+
     bool setStream(QIODevice *, qint64 offset);
     bool isStreamValid() const
     {
