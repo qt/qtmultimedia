@@ -24,7 +24,7 @@ struct Holder {
 
 QWindowsMediaFoundation::~QWindowsMediaFoundation() = default;
 
-template<typename T> bool setProcAddress(QLibrary &lib, T &f, std::string_view name)
+template<typename T> bool setProcAddress(QSystemLibrary &lib, T &f, std::string_view name)
 {
     f = reinterpret_cast<T>(lib.resolve(name.data()));
     return bool(f);
