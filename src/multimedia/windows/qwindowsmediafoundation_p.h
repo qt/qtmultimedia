@@ -6,7 +6,7 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <QtCore/qt_windows.h>
-#include <QLibrary>
+#include <QtCore/private/qsystemlibrary_p.h>
 #include <memory>
 #include <mfapi.h>
 
@@ -28,7 +28,7 @@ public:
 private:
     QWindowsMediaFoundation() : m_mfplat(QStringLiteral("Mfplat.dll")) {}
 
-    QLibrary m_mfplat;
+    QSystemLibrary m_mfplat;
 };
 
 QT_END_NAMESPACE
