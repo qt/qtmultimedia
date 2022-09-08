@@ -91,6 +91,9 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 
 - (void) setURL:(NSURL *)url mimeType:(NSString *)mimeType
 {
+    if (!m_session)
+        return;
+
     [m_mimeType release];
     m_mimeType = [mimeType retain];
 
@@ -109,18 +112,17 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 
         __block NSArray *requestedKeys = [[NSArray arrayWithObjects:AVF_TRACKS_KEY, AVF_PLAYABLE_KEY, nil] retain];
 
-        __block AVFMediaPlayerObserver *blockSelf = self;
-        QPointer<AVFMediaPlayer> session(m_session);
+        __block AVFMediaPlayerObserver *blockSelf = [self retain];
 
         // Tells the asset to load the values of any of the specified keys that are not already loaded.
         [asset loadValuesAsynchronouslyForKeys:requestedKeys completionHandler:
          ^{
              dispatch_async( dispatch_get_main_queue(),
                            ^{
-                                if (session)
-                                    [blockSelf prepareToPlayAsset:asset withKeys:requestedKeys];
+                                 [blockSelf prepareToPlayAsset:asset withKeys:requestedKeys];
                                  [asset release];
                                  [requestedKeys release];
+                                 [blockSelf release];
                             });
          }];
     }
@@ -157,6 +159,9 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (void) prepareToPlayAsset:(AVURLAsset *)asset
                    withKeys:(NSArray *)requestedKeys
 {
+    if (!m_session)
+        return;
+
     //Make sure that the value of each key has loaded successfully.
     for (NSString *thisKey in requestedKeys)
     {
