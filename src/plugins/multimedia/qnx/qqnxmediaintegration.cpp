@@ -49,32 +49,32 @@ QPlatformMediaFormatInfo *QQnxMediaIntegration::formatInfo()
     return m_formatInfo;
 }
 
-QPlatformVideoSink *QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
+QMaybe<QPlatformVideoSink *> QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QQnxVideoSink(sink);
 }
 
-QPlatformMediaPlayer *QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
+QMaybe<QPlatformMediaPlayer *> QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)
 {
     return new QQnxMediaPlayer(parent);
 }
 
-QPlatformMediaCaptureSession *QQnxMediaIntegration::createCaptureSession()
+QMaybe<QPlatformMediaCaptureSession *> QQnxMediaIntegration::createCaptureSession()
 {
     return new QQnxMediaCaptureSession();
 }
 
-QPlatformMediaRecorder *QQnxMediaIntegration::createRecorder(QMediaRecorder *parent)
+QMaybe<QPlatformMediaRecorder *> QQnxMediaIntegration::createRecorder(QMediaRecorder *parent)
 {
     return new QQnxMediaRecorder(parent);
 }
 
-QPlatformCamera *QQnxMediaIntegration::createCamera(QCamera *parent)
+QMaybe<QPlatformCamera *> QQnxMediaIntegration::createCamera(QCamera *parent)
 {
     return new QQnxPlatformCamera(parent);
 }
 
-QPlatformImageCapture *QQnxMediaIntegration::createImageCapture(QImageCapture *parent)
+QMaybe<QPlatformImageCapture *> QQnxMediaIntegration::createImageCapture(QImageCapture *parent)
 {
     return new QQnxImageCapture(parent);
 }

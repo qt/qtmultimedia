@@ -57,37 +57,37 @@ QPlatformMediaFormatInfo *QDarwinIntegration::formatInfo()
     return m_formatInfo;
 }
 
-QPlatformAudioDecoder *QDarwinIntegration::createAudioDecoder(QAudioDecoder *decoder)
+QMaybe<QPlatformAudioDecoder *> QDarwinIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new AVFAudioDecoder(decoder);
 }
 
-QPlatformMediaCaptureSession *QDarwinIntegration::createCaptureSession()
+QMaybe<QPlatformMediaCaptureSession *> QDarwinIntegration::createCaptureSession()
 {
     return new AVFCameraService;
 }
 
-QPlatformMediaPlayer *QDarwinIntegration::createPlayer(QMediaPlayer *player)
+QMaybe<QPlatformMediaPlayer *> QDarwinIntegration::createPlayer(QMediaPlayer *player)
 {
     return new AVFMediaPlayer(player);
 }
 
-QPlatformCamera *QDarwinIntegration::createCamera(QCamera *camera)
+QMaybe<QPlatformCamera *> QDarwinIntegration::createCamera(QCamera *camera)
 {
     return new AVFCamera(camera);
 }
 
-QPlatformMediaRecorder *QDarwinIntegration::createRecorder(QMediaRecorder *recorder)
+QMaybe<QPlatformMediaRecorder *> QDarwinIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new AVFMediaEncoder(recorder);
 }
 
-QPlatformImageCapture *QDarwinIntegration::createImageCapture(QImageCapture *imageCapture)
+QMaybe<QPlatformImageCapture *> QDarwinIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new AVFImageCapture(imageCapture);
 }
 
-QPlatformVideoSink *QDarwinIntegration::createVideoSink(QVideoSink *sink)
+QMaybe<QPlatformVideoSink *> QDarwinIntegration::createVideoSink(QVideoSink *sink)
 {
     return new AVFVideoSink(sink);
 }

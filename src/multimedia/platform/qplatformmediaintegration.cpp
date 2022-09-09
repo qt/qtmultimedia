@@ -104,12 +104,12 @@ QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
     return m_videoDevices ? m_videoDevices->videoDevices() : QList<QCameraDevice>{};
 }
 
-QPlatformAudioInput *QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
+QMaybe<QPlatformAudioInput *> QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
 {
     return new QPlatformAudioInput(q);
 }
 
-QPlatformAudioOutput *QPlatformMediaIntegration::createAudioOutput(QAudioOutput *q)
+QMaybe<QPlatformAudioOutput *> QPlatformMediaIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QPlatformAudioOutput(q);
 }

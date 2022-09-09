@@ -76,7 +76,7 @@ Q_SIGNALS:
 
 private:
     Q_DISABLE_COPY(QAudioDecoder)
-    QPlatformAudioDecoder *decoder;
+    QPlatformAudioDecoder *decoder = nullptr;
 };
 
 QT_END_NAMESPACE

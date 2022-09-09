@@ -31,15 +31,15 @@ public:
 
     QPlatformMediaFormatInfo *formatInfo() override;
 
-    QPlatformMediaCaptureSession *createCaptureSession() override;
+    QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *parent) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *recorder) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *imageCapture) override;
+    QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
+    QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *parent) override;
+    QMaybe<QPlatformCamera *> createCamera(QCamera *camera) override;
+    QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *recorder) override;
+    QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *imageCapture) override;
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+    QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *sink) override;
 
     QWindowsFormatInfo *m_formatInfo = nullptr;
 };

@@ -54,7 +54,7 @@ QAndroidIntegration::~QAndroidIntegration()
     delete m_formatInfo;
 }
 
-QPlatformAudioDecoder *QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
+QMaybe<QPlatformAudioDecoder *> QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new QAndroidAudioDecoder(decoder);
 }
@@ -67,42 +67,42 @@ QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()
 
 }
 
-QPlatformMediaCaptureSession *QAndroidIntegration::createCaptureSession()
+QMaybe<QPlatformMediaCaptureSession *> QAndroidIntegration::createCaptureSession()
 {
     return new QAndroidMediaCaptureSession();
 }
 
-QPlatformMediaPlayer *QAndroidIntegration::createPlayer(QMediaPlayer *player)
+QMaybe<QPlatformMediaPlayer *> QAndroidIntegration::createPlayer(QMediaPlayer *player)
 {
     return new QAndroidMediaPlayer(player);
 }
 
-QPlatformCamera *QAndroidIntegration::createCamera(QCamera *camera)
+QMaybe<QPlatformCamera *> QAndroidIntegration::createCamera(QCamera *camera)
 {
     return new QAndroidCamera(camera);
 }
 
-QPlatformMediaRecorder *QAndroidIntegration::createRecorder(QMediaRecorder *recorder)
+QMaybe<QPlatformMediaRecorder *> QAndroidIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QAndroidMediaEncoder(recorder);
 }
 
-QPlatformImageCapture *QAndroidIntegration::createImageCapture(QImageCapture *imageCapture)
+QMaybe<QPlatformImageCapture *> QAndroidIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QAndroidImageCapture(imageCapture);
 }
 
-QPlatformAudioOutput *QAndroidIntegration::createAudioOutput(QAudioOutput *q)
+QMaybe<QPlatformAudioOutput *> QAndroidIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QAndroidAudioOutput(q);
 }
 
-QPlatformAudioInput *QAndroidIntegration::createAudioInput(QAudioInput *audioInput)
+QMaybe<QPlatformAudioInput *> QAndroidIntegration::createAudioInput(QAudioInput *audioInput)
 {
     return new QAndroidAudioInput(audioInput);
 }
 
-QPlatformVideoSink *QAndroidIntegration::createVideoSink(QVideoSink *sink)
+QMaybe<QPlatformVideoSink *> QAndroidIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QAndroidVideoSink(sink);
 }

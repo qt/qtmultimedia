@@ -56,11 +56,17 @@ QAudioInput::QAudioInput(QObject *parent)
 {}
 
 QAudioInput::QAudioInput(const QAudioDevice &device, QObject *parent)
-    : QObject(parent),
-    d(QPlatformMediaIntegration::instance()->createAudioInput(this))
+    : QObject(parent)
 {
-    d->device = device.mode() == QAudioDevice::Input ? device : QMediaDevices::defaultAudioInput();
-    d->setAudioDevice(d->device);
+    auto maybeAudioInput = QPlatformMediaIntegration::instance()->createAudioInput(this);
+    if (maybeAudioInput) {
+        d = maybeAudioInput.value();
+        d->device = device.mode() == QAudioDevice::Input ? device : QMediaDevices::defaultAudioInput();
+        d->setAudioDevice(d->device);
+    } else {
+        d = new QPlatformAudioInput(nullptr);
+        qWarning() << "Failed to initialize QAudioInput" << maybeAudioInput.error();
+    }
 }
 
 QAudioInput::~QAudioInput()

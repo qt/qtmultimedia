@@ -56,37 +56,37 @@ QPlatformMediaFormatInfo *QWindowsMediaIntegration::formatInfo()
     return m_formatInfo;
 }
 
-QPlatformMediaCaptureSession *QWindowsMediaIntegration::createCaptureSession()
+QMaybe<QPlatformMediaCaptureSession *> QWindowsMediaIntegration::createCaptureSession()
 {
     return new QWindowsMediaCaptureService();
 }
 
-QPlatformAudioDecoder *QWindowsMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
+QMaybe<QPlatformAudioDecoder *> QWindowsMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new MFAudioDecoderControl(decoder);
 }
 
-QPlatformMediaPlayer *QWindowsMediaIntegration::createPlayer(QMediaPlayer *parent)
+QMaybe<QPlatformMediaPlayer *> QWindowsMediaIntegration::createPlayer(QMediaPlayer *parent)
 {
     return new MFPlayerControl(parent);
 }
 
-QPlatformCamera *QWindowsMediaIntegration::createCamera(QCamera *camera)
+QMaybe<QPlatformCamera *> QWindowsMediaIntegration::createCamera(QCamera *camera)
 {
     return new QWindowsCamera(camera);
 }
 
-QPlatformMediaRecorder *QWindowsMediaIntegration::createRecorder(QMediaRecorder *recorder)
+QMaybe<QPlatformMediaRecorder *> QWindowsMediaIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QWindowsMediaEncoder(recorder);
 }
 
-QPlatformImageCapture *QWindowsMediaIntegration::createImageCapture(QImageCapture *imageCapture)
+QMaybe<QPlatformImageCapture *> QWindowsMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QWindowsImageCapture(imageCapture);
 }
 
-QPlatformVideoSink *QWindowsMediaIntegration::createVideoSink(QVideoSink *sink)
+QMaybe<QPlatformVideoSink *> QWindowsMediaIntegration::createVideoSink(QVideoSink *sink)
 {
     return new MFEvrVideoWindowControl(sink);
 }

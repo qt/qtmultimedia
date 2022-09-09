@@ -55,11 +55,17 @@ QAudioOutput::QAudioOutput(QObject *parent)
 {}
 
 QAudioOutput::QAudioOutput(const QAudioDevice &device, QObject *parent)
-    : QObject(parent),
-    d(QPlatformMediaIntegration::instance()->createAudioOutput(this))
+    : QObject(parent)
 {
-    d->device = device.mode() == QAudioDevice::Output ? device : QMediaDevices::defaultAudioOutput();
-    d->setAudioDevice(d->device);
+    auto maybeAudioOutput = QPlatformMediaIntegration::instance()->createAudioOutput(this);
+    if (maybeAudioOutput) {
+        d = maybeAudioOutput.value();
+        d->device = device.mode() == QAudioDevice::Output ? device : QMediaDevices::defaultAudioOutput();
+        d->setAudioDevice(d->device);
+    } else {
+        d = new QPlatformAudioOutput(nullptr);
+        qWarning() << "Failed to initialize QAudioOutput" << maybeAudioOutput.error();
+    }
 }
 
 QAudioOutput::~QAudioOutput()

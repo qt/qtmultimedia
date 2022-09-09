@@ -29,17 +29,17 @@ public:
 
     QPlatformMediaFormatInfo *formatInfo() override;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *camera) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *recorder) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *imageCapture) override;
+    QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
+    QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
+    QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *player) override;
+    QMaybe<QPlatformCamera *> createCamera(QCamera *camera) override;
+    QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *recorder) override;
+    QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *imageCapture) override;
 
-    QPlatformAudioOutput *createAudioOutput(QAudioOutput *q) override;
-    QPlatformAudioInput *createAudioInput(QAudioInput *audioInput) override;
+    QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *q) override;
+    QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *audioInput) override;
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *) override;
+    QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) override;
     QList<QCameraDevice> videoInputs() override;
 
     QPlatformMediaFormatInfo  *m_formatInfo = nullptr;

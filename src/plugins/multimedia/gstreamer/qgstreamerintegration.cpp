@@ -59,47 +59,47 @@ const QGstreamerFormatInfo *QGstreamerIntegration::gstFormatsInfo() const
     return m_formatsInfo;
 }
 
-QPlatformAudioDecoder *QGstreamerIntegration::createAudioDecoder(QAudioDecoder *decoder)
+QMaybe<QPlatformAudioDecoder *> QGstreamerIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new QGstreamerAudioDecoder(decoder);
 }
 
-QPlatformMediaCaptureSession *QGstreamerIntegration::createCaptureSession()
+QMaybe<QPlatformMediaCaptureSession *> QGstreamerIntegration::createCaptureSession()
 {
     return new QGstreamerMediaCapture();
 }
 
-QPlatformMediaPlayer *QGstreamerIntegration::createPlayer(QMediaPlayer *player)
+QMaybe<QPlatformMediaPlayer *> QGstreamerIntegration::createPlayer(QMediaPlayer *player)
 {
     return new QGstreamerMediaPlayer(player);
 }
 
-QPlatformCamera *QGstreamerIntegration::createCamera(QCamera *camera)
+QMaybe<QPlatformCamera *> QGstreamerIntegration::createCamera(QCamera *camera)
 {
     return new QGstreamerCamera(camera);
 }
 
-QPlatformMediaRecorder *QGstreamerIntegration::createRecorder(QMediaRecorder *recorder)
+QMaybe<QPlatformMediaRecorder *> QGstreamerIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QGstreamerMediaEncoder(recorder);
 }
 
-QPlatformImageCapture *QGstreamerIntegration::createImageCapture(QImageCapture *imageCapture)
+QMaybe<QPlatformImageCapture *> QGstreamerIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QGstreamerImageCapture(imageCapture);
 }
 
-QPlatformVideoSink *QGstreamerIntegration::createVideoSink(QVideoSink *sink)
+QMaybe<QPlatformVideoSink *> QGstreamerIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QGstreamerVideoSink(sink);
 }
 
-QPlatformAudioInput *QGstreamerIntegration::createAudioInput(QAudioInput *q)
+QMaybe<QPlatformAudioInput *> QGstreamerIntegration::createAudioInput(QAudioInput *q)
 {
     return new QGstreamerAudioInput(q);
 }
 
-QPlatformAudioOutput *QGstreamerIntegration::createAudioOutput(QAudioOutput *q)
+QMaybe<QPlatformAudioOutput *> QGstreamerIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QGstreamerAudioOutput(q);
 }

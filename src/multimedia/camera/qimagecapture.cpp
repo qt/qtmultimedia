@@ -82,8 +82,16 @@ QImageCapture::QImageCapture(QObject *parent)
 {
     Q_D(QImageCapture);
     d->q_ptr = this;
-    d->control = QPlatformMediaIntegration::instance()->createImageCapture(this);
 
+    auto maybeControl = QPlatformMediaIntegration::instance()->createImageCapture(this);
+    if (!maybeControl) {
+        qWarning() << "Failed to initialize QImageCapture" << maybeControl.error();
+        d->errorString = maybeControl.error();
+        d->error = NotReadyError;
+        return;
+    }
+
+    d->control = maybeControl.value();
     connect(d->control, SIGNAL(imageExposed(int)),
             this, SIGNAL(imageExposed(int)));
     connect(d->control, SIGNAL(imageCaptured(int,QImage)),
@@ -125,7 +133,7 @@ QImageCapture::~QImageCapture()
 */
 bool QImageCapture::isAvailable() const
 {
-    return d_func()->captureSession && d_func()->captureSession->camera();
+    return d_func()->control && d_func()->captureSession && d_func()->captureSession->camera();
 }
 
 /*!
@@ -183,7 +191,8 @@ void QImageCapture::setMetaData(const QMediaMetaData &metaData)
 {
     Q_D(QImageCapture);
     d->metaData = metaData;
-    d->control->setMetaData(d->metaData);
+    if (d->control)
+        d->control->setMetaData(d->metaData);
     emit metaDataChanged();
 }
 
@@ -249,13 +258,12 @@ bool QImageCapture::isReadyForCapture() const
 int QImageCapture::captureToFile(const QString &file)
 {
     Q_D(QImageCapture);
-
-    d->unsetError();
-
     if (!d->control) {
-        d->_q_error(-1, NotSupportedFeatureError, QPlatformImageCapture::msgCameraNotReady());
+        d->_q_error(-1, d->error, d->errorString);
         return -1;
     }
+
+    d->unsetError();
 
     if (!isReadyForCapture()) {
         d->_q_error(-1, NotReadyError, tr("Could not capture in stopped state"));
@@ -280,18 +288,13 @@ int QImageCapture::captureToFile(const QString &file)
 int QImageCapture::capture()
 {
     Q_D(QImageCapture);
-
-    d->unsetError();
-
-    if (d->control)
+    if (!d->control) {
+        d->_q_error(-1, d->error, d->errorString);
+        return -1;
+    } else {
+        d->unsetError();
         return d->control->captureToBuffer();
-
-    d->error = NotSupportedFeatureError;
-    d->errorString = tr("Device does not support images capture.");
-
-    d->_q_error(-1, d->error, d->errorString);
-
-    return -1;
+    }
 }
 
 /*!
@@ -346,9 +349,7 @@ int QImageCapture::capture()
 QImageCapture::FileFormat QImageCapture::fileFormat() const
 {
     Q_D(const QImageCapture);
-    if (!d->control)
-        return UnspecifiedFormat;
-    return d->control->imageSettings().format();
+    return d->control ? d->control->imageSettings().format() : UnspecifiedFormat;
 }
 
 /*!
@@ -425,9 +426,7 @@ QString QImageCapture::fileFormatDescription(QImageCapture::FileFormat f)
 QSize QImageCapture::resolution() const
 {
     Q_D(const QImageCapture);
-    if (!d->control)
-        return QSize();
-    return d->control->imageSettings().resolution();
+    return d->control ? d->control->imageSettings().resolution() : QSize{};
 }
 
 /*!
@@ -478,9 +477,7 @@ void QImageCapture::setResolution(int width, int height)
 QImageCapture::Quality QImageCapture::quality() const
 {
     Q_D(const QImageCapture);
-    if (!d->control)
-        return NormalQuality;
-    return d->control->imageSettings().quality();
+    return d->control ? d->control->imageSettings().quality() : NormalQuality;
 }
 
 /*!
