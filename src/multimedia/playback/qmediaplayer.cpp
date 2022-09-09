@@ -233,14 +233,14 @@ QMediaPlayer::QMediaPlayer(QObject *parent)
 {
     Q_D(QMediaPlayer);
 
-    d->control = QPlatformMediaIntegration::instance()->createPlayer(this);
-    if (!d->control) { // ### Should this be an assertion?
-        d->setError(QMediaPlayer::ResourceError, QMediaPlayer::tr("Platform does not support media playback."));
-        return;
+    auto maybeControl = QPlatformMediaIntegration::instance()->createPlayer(this);
+    if (maybeControl) {
+        d->control = maybeControl.value();
+        d->state = d->control->state();
+    } else {
+        qWarning() << "Failed to initialize QMediaPlayer" << maybeControl.error();
+        d->setError(QMediaPlayer::ResourceError, maybeControl.error());
     }
-    Q_ASSERT(d->control);
-
-    d->state = d->control->state();
 }
 
 
@@ -289,7 +289,7 @@ QMediaPlayer::PlaybackState QMediaPlayer::playbackState() const
 
     // In case if EndOfMedia status is already received
     // but state is not.
-    if (d->control != nullptr
+    if (d->control
         && d->control->mediaStatus() == QMediaPlayer::EndOfMedia
         && d->state != d->control->state()) {
         return d->control->state();
@@ -314,11 +314,7 @@ QMediaPlayer::MediaStatus QMediaPlayer::mediaStatus() const
 qint64 QMediaPlayer::duration() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->duration();
-
-    return 0;
+    return d->control ? d->control->duration() : 0;
 }
 
 /*!
@@ -331,11 +327,7 @@ qint64 QMediaPlayer::duration() const
 qint64 QMediaPlayer::position() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->position();
-
-    return 0;
+    return d->control ? d->control->position() : 0;
 }
 
 /*!
@@ -350,11 +342,7 @@ qint64 QMediaPlayer::position() const
 float QMediaPlayer::bufferProgress() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->bufferProgress();
-
-    return 0.;
+    return d->control ? d->control->bufferProgress() : 0;
 }
 
 /*!
@@ -369,11 +357,7 @@ float QMediaPlayer::bufferProgress() const
 QMediaTimeRange QMediaPlayer::bufferedTimeRange() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control)
-        return d->control->availablePlaybackRanges();
-
-    return {};
+    return d->control ? d->control->availablePlaybackRanges() : QMediaTimeRange{};
 }
 
 /*!
@@ -389,11 +373,7 @@ QMediaTimeRange QMediaPlayer::bufferedTimeRange() const
 bool QMediaPlayer::hasAudio() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->isAudioAvailable();
-
-    return false;
+    return d->control && d->control->isAudioAvailable();
 }
 
 /*!
@@ -409,11 +389,7 @@ bool QMediaPlayer::hasAudio() const
 bool QMediaPlayer::hasVideo() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->isVideoAvailable();
-
-    return false;
+    return d->control && d->control->isVideoAvailable();
 }
 
 /*!
@@ -425,11 +401,7 @@ bool QMediaPlayer::hasVideo() const
 bool QMediaPlayer::isSeekable() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->isSeekable();
-
-    return false;
+    return d->control && d->control->isSeekable();
 }
 
 /*!
@@ -438,11 +410,7 @@ bool QMediaPlayer::isSeekable() const
 qreal QMediaPlayer::playbackRate() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control != nullptr)
-        return d->control->playbackRate();
-
-    return 0.0;
+    return d->control ? d->control->playbackRate() : 0.;
 }
 
 /*!
@@ -474,11 +442,7 @@ qreal QMediaPlayer::playbackRate() const
 int QMediaPlayer::loops() const
 {
     Q_D(const QMediaPlayer);
-
-    if (d->control)
-        return d->control->loops();
-
-    return 1;
+    return d->control ? d->control->loops() : 1;
 }
 
 void QMediaPlayer::setLoops(int loops)
@@ -559,7 +523,7 @@ void QMediaPlayer::pause()
 {
     Q_D(QMediaPlayer);
 
-    if (d->control != nullptr)
+    if (d->control)
         d->control->pause();
 }
 
@@ -580,7 +544,7 @@ void QMediaPlayer::stop()
 {
     Q_D(QMediaPlayer);
 
-    if (d->control != nullptr)
+    if (d->control)
         d->control->stop();
 }
 
@@ -588,7 +552,7 @@ void QMediaPlayer::setPosition(qint64 position)
 {
     Q_D(QMediaPlayer);
 
-    if (d->control == nullptr)
+    if (!d->control)
         return;
     if (!d->control->isSeekable())
         return;
@@ -599,7 +563,7 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
 {
     Q_D(QMediaPlayer);
 
-    if (d->control != nullptr)
+    if (d->control)
         d->control->setPlaybackRate(rate);
 }
 
@@ -696,12 +660,14 @@ void QMediaPlayer::setAudioOutput(QAudioOutput *output)
     if (oldOutput == output)
         return;
     d->audioOutput = output;
-    d->control->setAudioOutput(nullptr);
+    if (d->control)
+        d->control->setAudioOutput(nullptr);
     if (oldOutput)
         oldOutput->setDisconnectFunction({});
     if (output) {
         output->setDisconnectFunction([this](){ setAudioOutput(nullptr); });
-        d->control->setAudioOutput(output->handle());
+        if (d->control)
+            d->control->setAudioOutput(output->handle());
     }
     emit audioOutputChanged();
 }
@@ -807,9 +773,7 @@ QList<QMediaMetaData> QMediaPlayer::subtitleTracks() const
 int QMediaPlayer::activeAudioTrack() const
 {
     Q_D(const QMediaPlayer);
-    if (d->control)
-        return d->control->activeTrack(QPlatformMediaPlayer::AudioStream);
-    return 0;
+    return d->control ? d->control->activeTrack(QPlatformMediaPlayer::AudioStream) : 0;
 }
 
 /*!
@@ -833,9 +797,7 @@ int QMediaPlayer::activeAudioTrack() const
 int QMediaPlayer::activeVideoTrack() const
 {
     Q_D(const QMediaPlayer);
-    if (d->control)
-        return d->control->activeTrack(QPlatformMediaPlayer::VideoStream);
-    return -1;
+    return d->control ? d->control->activeTrack(QPlatformMediaPlayer::VideoStream) : -1;
 }
 
 /*!
@@ -859,9 +821,7 @@ int QMediaPlayer::activeVideoTrack() const
 int QMediaPlayer::activeSubtitleTrack() const
 {
     Q_D(const QMediaPlayer);
-    if (d->control)
-        return d->control->activeTrack(QPlatformMediaPlayer::SubtitleStream);
-    return -1;
+    return d->control ? d->control->activeTrack(QPlatformMediaPlayer::SubtitleStream) : -1;
 }
 
 void QMediaPlayer::setActiveAudioTrack(int index)
@@ -925,16 +885,13 @@ QObject *QMediaPlayer::videoOutput() const
 void QMediaPlayer::setVideoOutput(QObject *output)
 {
     Q_D(QMediaPlayer);
-    if (!d->control)
-        return;
     if (d->videoOutput == output)
         return;
 
-    QVideoSink *sink = qobject_cast<QVideoSink *>(output);
+    auto *sink = qobject_cast<QVideoSink *>(output);
     if (!sink && output) {
         auto *mo = output->metaObject();
-        if (output)
-            mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
+        mo->invokeMethod(output, "videoSink", Q_RETURN_ARG(QVideoSink *, sink));
     }
     d->videoOutput = output;
     d->setVideoSink(sink);
@@ -943,9 +900,6 @@ void QMediaPlayer::setVideoOutput(QObject *output)
 void QMediaPlayer::setVideoSink(QVideoSink *sink)
 {
     Q_D(QMediaPlayer);
-    if (!d->control)
-        return;
-
     d->videoOutput = nullptr;
     d->setVideoSink(sink);
 }
@@ -980,11 +934,7 @@ void QMediaPlayer::setVideoOutput(const QList<QVideoSink *> &sinks)
 bool QMediaPlayer::isAvailable() const
 {
     Q_D(const QMediaPlayer);
-
-    if (!d->control)
-        return false;
-
-    return true;
+    return bool(d->control);
 }
 
 /*!
@@ -1009,7 +959,7 @@ bool QMediaPlayer::isAvailable() const
 QMediaMetaData QMediaPlayer::metaData() const
 {
     Q_D(const QMediaPlayer);
-    return d->control->metaData();
+    return d->control ? d->control->metaData() : QMediaMetaData{};
 }
 
 // Enums

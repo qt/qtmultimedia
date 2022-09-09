@@ -22,7 +22,12 @@ public:
     QVideoSinkPrivate(QVideoSink *q)
         : q_ptr(q)
     {
-        videoSink = QPlatformMediaIntegration::instance()->createVideoSink(q);
+        auto maybeVideoSink = QPlatformMediaIntegration::instance()->createVideoSink(q);
+        if (maybeVideoSink) {
+            videoSink = maybeVideoSink.value();
+        } else {
+            qWarning() << "Failed to create QVideoSink" << maybeVideoSink.error();
+        }
     }
     ~QVideoSinkPrivate()
     {
@@ -109,7 +114,8 @@ void QVideoSink::setRhi(QRhi *rhi)
     if (d->rhi == rhi)
         return;
     d->rhi = rhi;
-    d->videoSink->setRhi(rhi);
+    if (d->videoSink)
+        d->videoSink->setRhi(rhi);
 }
 
 /*!
@@ -125,7 +131,7 @@ QPlatformVideoSink *QVideoSink::platformVideoSink() const
  */
 QVideoFrame QVideoSink::videoFrame() const
 {
-    return d->videoSink->currentVideoFrame();
+    return d->videoSink ? d->videoSink->currentVideoFrame() : QVideoFrame{};
 }
 
 /*!
@@ -133,7 +139,8 @@ QVideoFrame QVideoSink::videoFrame() const
 */
 void QVideoSink::setVideoFrame(const QVideoFrame &frame)
 {
-    d->videoSink->setVideoFrame(frame);
+    if (d->videoSink)
+        d->videoSink->setVideoFrame(frame);
 }
 
 /*!
@@ -141,7 +148,7 @@ void QVideoSink::setVideoFrame(const QVideoFrame &frame)
 */
 QString QVideoSink::subtitleText() const
 {
-    return d->videoSink->subtitleText();
+    return d->videoSink ? d->videoSink->subtitleText() : QString{};
 }
 
 /*!
@@ -149,7 +156,8 @@ QString QVideoSink::subtitleText() const
 */
 void QVideoSink::setSubtitleText(const QString &subtitle)
 {
-    d->videoSink->setSubtitleText(subtitle);
+    if (d->videoSink)
+        d->videoSink->setSubtitleText(subtitle);
 }
 
 /*!

@@ -33,15 +33,15 @@ public:
 
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *) override;
-    QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformVideoSink *createVideoSink(QVideoSink *) override;
+    QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
+    QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *) override;
+    QMaybe<QPlatformCamera *> createCamera(QCamera *) override;
+    QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) override;
+    QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *) override;
+    QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
+    QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) override;
 
-    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
+    QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *) override;
 
     enum Flag {
         NoPlayerInterface = 0x1,

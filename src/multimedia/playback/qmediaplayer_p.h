@@ -72,7 +72,8 @@ public:
         videoSink = sink;
         if (sink)
             sink->setSource(q);
-        control->setVideoSink(sink);
+        if (control)
+            control->setVideoSink(sink);
         emit q->videoOutputChanged();
     }
 };

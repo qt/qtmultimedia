@@ -31,17 +31,17 @@ public:
     static QGstreamerIntegration *instance() { return static_cast<QGstreamerIntegration *>(QPlatformMediaIntegration::instance()); }
     QPlatformMediaFormatInfo *formatInfo() override;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *) override;
+    QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
+    QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
+    QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *player) override;
+    QMaybe<QPlatformCamera *> createCamera(QCamera *) override;
+    QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) override;
+    QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *) override;
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+    QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *sink) override;
 
-    QPlatformAudioInput *createAudioInput(QAudioInput *) override;
-    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
+    QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *) override;
+    QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *) override;
 
     const QGstreamerFormatInfo *gstFormatsInfo() const;
     GstDevice *videoDevice(const QByteArray &id) const;

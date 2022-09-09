@@ -37,6 +37,7 @@ public:
 
     QMediaCaptureSession *captureSession = nullptr;
     QPlatformMediaRecorder *control = nullptr;
+    QString initErrorMessage;
 
     bool settingsChanged = false;
 

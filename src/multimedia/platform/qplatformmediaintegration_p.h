@@ -15,7 +15,9 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qmediarecorder.h>
+#include <qstring.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -44,6 +46,7 @@ class QPlatformVideoDevices;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 {
+    inline static const QString notAvailable = QStringLiteral("Not available");
 public:
     static QPlatformMediaIntegration *instance();
 
@@ -54,18 +57,18 @@ public:
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
     virtual QList<QCameraDevice> videoInputs();
-    virtual QPlatformCamera *createCamera(QCamera *) { return nullptr; }
+    virtual QMaybe<QPlatformCamera *> createCamera(QCamera *) { return notAvailable; }
 
-    virtual QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *) { return nullptr; }
-    virtual QPlatformMediaCaptureSession *createCaptureSession() { return nullptr; }
-    virtual QPlatformMediaPlayer *createPlayer(QMediaPlayer *) { return nullptr; }
-    virtual QPlatformMediaRecorder *createRecorder(QMediaRecorder *) { return nullptr; }
-    virtual QPlatformImageCapture *createImageCapture(QImageCapture *) { return nullptr; }
+    virtual QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *) { return notAvailable; }
+    virtual QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() { return notAvailable; }
+    virtual QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *) { return notAvailable; }
+    virtual QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) { return notAvailable; }
+    virtual QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *) { return notAvailable; }
 
-    virtual QPlatformAudioInput *createAudioInput(QAudioInput *);
-    virtual QPlatformAudioOutput *createAudioOutput(QAudioOutput *);
+    virtual QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *);
+    virtual QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *);
 
-    virtual QPlatformVideoSink *createVideoSink(QVideoSink *) { return nullptr; }
+    virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) { return notAvailable; }
 
 protected:
     QPlatformVideoDevices *m_videoDevices = nullptr;

@@ -107,7 +107,13 @@ QMediaRecorder::QMediaRecorder(QObject *parent)
 {
     Q_D(QMediaRecorder);
     d->q_ptr = this;
-    d->control = QPlatformMediaIntegration::instance()->createRecorder(this);
+    auto maybeControl = QPlatformMediaIntegration::instance()->createRecorder(this);
+    if (maybeControl) {
+        d->control = maybeControl.value();
+    } else {
+        d->initErrorMessage = maybeControl.error();
+        qWarning() << "Failed to initialize QMediaRecorder" << maybeControl.error();
+    }
 }
 
 /*!
@@ -191,7 +197,7 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 */
 bool QMediaRecorder::isAvailable() const
 {
-    return d_func()->control != nullptr && d_func()->captureSession;
+    return d_func()->control && d_func()->captureSession;
 }
 
 QUrl QMediaRecorder::outputLocation() const
@@ -203,7 +209,7 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
 {
     Q_D(QMediaRecorder);
     if (!d->control) {
-        emit errorOccurred(QMediaRecorder::ResourceError, tr("Not available"));
+        emit errorOccurred(QMediaRecorder::ResourceError, d->initErrorMessage);
         return;
     }
     d->control->setOutputLocation(location);
@@ -257,7 +263,7 @@ QString QMediaRecorder::errorString() const
 {
     Q_D(const QMediaRecorder);
 
-    return d->control ? d->control->errorString() : tr("QMediaRecorder not supported on this platform");
+    return d->control ? d->control->errorString() : d->initErrorMessage;
 }
 /*!
     \qmlproperty qint64 QtMultimedia::MediaRecorder::duration

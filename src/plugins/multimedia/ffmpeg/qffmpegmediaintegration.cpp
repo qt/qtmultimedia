@@ -86,22 +86,22 @@ QPlatformMediaFormatInfo *QFFmpegMediaIntegration::formatInfo()
     return m_formatsInfo;
 }
 
-QPlatformAudioDecoder *QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
+QMaybe<QPlatformAudioDecoder *> QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new QFFmpegAudioDecoder(decoder);
 }
 
-QPlatformMediaCaptureSession *QFFmpegMediaIntegration::createCaptureSession()
+QMaybe<QPlatformMediaCaptureSession *> QFFmpegMediaIntegration::createCaptureSession()
 {
     return new QFFmpegMediaCaptureSession();
 }
 
-QPlatformMediaPlayer *QFFmpegMediaIntegration::createPlayer(QMediaPlayer *player)
+QMaybe<QPlatformMediaPlayer *> QFFmpegMediaIntegration::createPlayer(QMediaPlayer *player)
 {
     return new QFFmpegMediaPlayer(player);
 }
 
-QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera *camera)
+QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 {
 #ifdef Q_OS_DARWIN
     return new QAVFCamera(camera);
@@ -115,22 +115,22 @@ QPlatformCamera *QFFmpegMediaIntegration::createCamera(QCamera *camera)
 #endif
 }
 
-QPlatformMediaRecorder *QFFmpegMediaIntegration::createRecorder(QMediaRecorder *recorder)
+QMaybe<QPlatformMediaRecorder *> QFFmpegMediaIntegration::createRecorder(QMediaRecorder *recorder)
 {
     return new QFFmpegMediaRecorder(recorder);
 }
 
-QPlatformImageCapture *QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
+QMaybe<QPlatformImageCapture *> QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
     return new QFFmpegImageCapture(imageCapture);
 }
 
-QPlatformVideoSink *QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)
+QMaybe<QPlatformVideoSink *> QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)
 {
     return new QFFmpegVideoSink(sink);
 }
 
-QPlatformAudioInput *QFFmpegMediaIntegration::createAudioInput(QAudioInput *input)
+QMaybe<QPlatformAudioInput *> QFFmpegMediaIntegration::createAudioInput(QAudioInput *input)
 {
     return new QFFmpegAudioInput(input);
 }

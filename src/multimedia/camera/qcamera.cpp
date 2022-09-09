@@ -168,12 +168,14 @@ void QCameraPrivate::init(const QCameraDevice &device)
 {
     Q_Q(QCamera);
 
-    control = QPlatformMediaIntegration::instance()->createCamera(q);
-    if (!control) {
-        _q_error(QCamera::CameraError, QString::fromUtf8("Camera not supported"));
+    auto maybeControl = QPlatformMediaIntegration::instance()->createCamera(q);
+    if (!maybeControl) {
+        qWarning() << "Failed to initialize QCamera" << maybeControl.error();
+        error = QCamera::CameraError;
+        errorString =  maybeControl.error();
         return;
     }
-
+    control = maybeControl.value();
     cameraDevice = !device.isNull() ? device : QMediaDevices::defaultVideoInput();
     if (cameraDevice.isNull())
         _q_error(QCamera::CameraError, QString::fromUtf8("No camera detected"));
@@ -243,7 +245,6 @@ QCamera::~QCamera()
     Q_D(QCamera);
     if (d->captureSession)
         d->captureSession->setCamera(nullptr);
-    Q_ASSERT(!d->captureSession);
 }
 
 /*!
@@ -631,9 +632,8 @@ QPointF QCamera::customFocusPoint() const
 void QCamera::setCustomFocusPoint(const QPointF &point)
 {
     Q_D(QCamera);
-    if (!d->control)
-        return;
-    d->control->setCustomFocusPoint(point);
+    if (d->control)
+        d->control->setCustomFocusPoint(point);
 }
 
 /*!
@@ -691,7 +691,7 @@ float QCamera::focusDistance() const
 float QCamera::maximumZoomFactor() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->maxZoomFactor() : 1.;
+    return d->control ? d->control->maxZoomFactor() : 1.f;
 }
 
 /*!
@@ -713,7 +713,7 @@ float QCamera::maximumZoomFactor() const
 float QCamera::minimumZoomFactor() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->minZoomFactor() : 1.;
+    return d->control ? d->control->minZoomFactor() : 1.f;
 }
 
 /*!
@@ -733,14 +733,14 @@ float QCamera::minimumZoomFactor() const
 float QCamera::zoomFactor() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->zoomFactor() : 1.;
+    return d->control ? d->control->zoomFactor() : 1.f;
 }
 /*!
     Zooms to a zoom factor \a factor at a rate of 1 factor per second.
  */
 void QCamera::setZoomFactor(float factor)
 {
-    zoomTo(factor, 0.);
+    zoomTo(factor, 0.f);
 }
 
 /*!
@@ -766,9 +766,9 @@ void QCamera::setZoomFactor(float factor)
 */
 void QCamera::zoomTo(float factor, float rate)
 {
-    Q_ASSERT(rate >= 0.);
-    if (rate < 0.)
-        rate = 0.;
+    Q_ASSERT(rate >= 0.f);
+    if (rate < 0.f)
+        rate = 0.f;
 
     Q_D(QCamera);
     if (!d->control)
@@ -941,10 +941,7 @@ void QCamera::setExposureMode(QCamera::ExposureMode mode)
 bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 {
     Q_D(const QCamera);
-    if (!d->control)
-        return false;
-
-    return d->control->isExposureModeSupported(mode);
+    return d->control && d->control->isExposureModeSupported(mode);
 }
 
 /*!
@@ -966,7 +963,7 @@ bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 float QCamera::exposureCompensation() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->exposureCompensation() : 0.;
+    return d->control ? d->control->exposureCompensation() : 0.f;
 }
 
 void QCamera::setExposureCompensation(float ev)
@@ -1064,7 +1061,7 @@ int QCamera::maximumIsoSensitivity() const
 float QCamera::minimumExposureTime() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->minExposureTime() : -1.;
+    return d->control ? d->control->minExposureTime() : -1.f;
 }
 
 /*!
@@ -1073,7 +1070,7 @@ float QCamera::minimumExposureTime() const
 float QCamera::maximumExposureTime() const
 {
     Q_D(const QCamera);
-    return d->control ? d->control->maxExposureTime() : -1.;
+    return d->control ? d->control->maxExposureTime() : -1.f;
 }
 
 /*!
@@ -1263,9 +1260,7 @@ void QCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 {
     Q_D(const QCamera);
-    if (!d->control)
-        return false;
-    return d->control->isWhiteBalanceModeSupported(mode);
+    return d->control && d->control->isWhiteBalanceModeSupported(mode);
 }
 
 /*!

@@ -30,16 +30,17 @@ public:
     static QFFmpegMediaIntegration *instance() { return static_cast<QFFmpegMediaIntegration *>(QPlatformMediaIntegration::instance()); }
     QPlatformMediaFormatInfo *formatInfo() override;
 
-    QPlatformAudioDecoder *createAudioDecoder(QAudioDecoder *decoder) override;
-    QPlatformMediaCaptureSession *createCaptureSession() override;
-    QPlatformMediaPlayer *createPlayer(QMediaPlayer *player) override;
-    QPlatformCamera *createCamera(QCamera *) override;
-    QPlatformMediaRecorder *createRecorder(QMediaRecorder *) override;
-    QPlatformImageCapture *createImageCapture(QImageCapture *) override;
 
-    QPlatformVideoSink *createVideoSink(QVideoSink *sink) override;
+    QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
+    QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
+    QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *player) override;
+    QMaybe<QPlatformCamera *> createCamera(QCamera *) override;
+    QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) override;
+    QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *) override;
 
-    QPlatformAudioInput *createAudioInput(QAudioInput *input) override;
+    QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *sink) override;
+
+    QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *input) override;
 //    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
 
     QFFmpegMediaFormatInfo *m_formatsInfo = nullptr;
