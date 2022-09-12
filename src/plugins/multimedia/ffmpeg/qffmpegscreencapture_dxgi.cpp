@@ -191,7 +191,7 @@ public:
             ctxMutex->unlock();
 
             if (maybeTex) {
-                auto buffer = new QD3D11TextureVideoBuffer(m_device, ctxMutex, *maybeTex, frameSize);
+                auto buffer = new QD3D11TextureVideoBuffer(m_device, ctxMutex, maybeTex.value(), frameSize);
                 QVideoFrame frame(buffer, format);
                 frame.setStartTime(duration_cast<microseconds>(frameStartTime.time_since_epoch()).count());
                 frame.setEndTime(duration_cast<microseconds>(frameStopTime.time_since_epoch()).count());
@@ -340,14 +340,14 @@ void QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
             return;
         }
 
-        auto maybeDev = createD3D11Device(maybeDxgiScreen->adapter.get());
+        auto maybeDev = createD3D11Device(maybeDxgiScreen.value().adapter.get());
         if (!maybeDev) {
             qCDebug(qLcScreenCaptureDxgi) << maybeDev.error();
             emit updateError(QScreenCapture::InternalError, maybeDev.error());
             return;
         }
 
-        auto maybeDupOutput = duplicateOutput(maybeDev->get(), maybeDxgiScreen->output.get());
+        auto maybeDupOutput = duplicateOutput(maybeDev.value().get(), maybeDxgiScreen.value().output.get());
         if (!maybeDupOutput) {
             qCDebug(qLcScreenCaptureDxgi) << maybeDupOutput.error();
             emit updateError(QScreenCapture::InternalError, maybeDupOutput.error());
@@ -355,7 +355,7 @@ void QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
         }
 
         qreal maxFrameRate = screen->refreshRate();
-        m_active.reset(new DxgiScreenGrabberActive(*this, *maybeDev, *maybeDupOutput, maxFrameRate));
+        m_active.reset(new DxgiScreenGrabberActive(*this, maybeDev.value(), maybeDupOutput.value(), maxFrameRate));
         m_active->start();
     }
 }

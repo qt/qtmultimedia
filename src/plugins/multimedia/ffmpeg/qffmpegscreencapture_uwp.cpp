@@ -453,25 +453,26 @@ bool QFFmpegScreenCaptureUwp::setActiveInternal(bool active)
         return false;
     }
 
-    auto maybeItem = screen ? createScreenCaptureItem(maybeMonitor->handle)
+    auto maybeItem = screen ? createScreenCaptureItem(maybeMonitor.value().handle)
                             : createWindowCaptureItem(windowHandle);
     if (!maybeItem) {
         emitError(QScreenCapture::NotFound, maybeItem.error());
         return false;
     }
 
-    auto maybePool = createCaptureFramePool(maybeMonitor->adapter.get(), *maybeItem);
+    auto maybePool = createCaptureFramePool(maybeMonitor.value().adapter.get(), maybeItem.value());
     if (!maybePool) {
         emitError(QScreenCapture::InternalError, maybePool.error());
         return false;
     }
 
-    qreal refreshRate = getMonitorRefreshRateHz(maybeMonitor->handle);
+    qreal refreshRate = getMonitorRefreshRateHz(maybeMonitor.value().handle);
 
-    m_format = QVideoFrameFormat({ maybeItem->Size().Width, maybeItem->Size().Height }, QVideoFrameFormat::Format_RGBX8888);
+    m_format = QVideoFrameFormat({ maybeItem.value().Size().Width, maybeItem.value().Size().Height },
+                                 QVideoFrameFormat::Format_RGBX8888);
     m_format.setFrameRate(refreshRate);
 
-    m_screenGrabber = std::make_unique<ScreenGrabberActiveUwp>(*this, *maybePool, *maybeItem, refreshRate);
+    m_screenGrabber = std::make_unique<ScreenGrabberActiveUwp>(*this, maybePool.value(), maybeItem.value(), refreshRate);
     m_screenGrabber->start();
 
     return true;
