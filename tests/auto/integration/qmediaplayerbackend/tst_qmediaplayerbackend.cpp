@@ -418,8 +418,11 @@ void tst_QMediaPlayerBackend::playPauseStop()
     QCOMPARE(stateSpy.count(), 0);
 
     player.play();
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
-    QTRY_VERIFY(player.position() > 100);
+    QTRY_VERIFY(positionSpy.count() > 0 && positionSpy.last()[0].value<qint64>() > 100);
+    QVERIFY(player.position() > 100);
+    positionSpy.clear();
 
     player.setSource(localWavFile);
 
@@ -429,9 +432,8 @@ void tst_QMediaPlayerBackend::playPauseStop()
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QTRY_VERIFY(stateSpy.count() > 0);
     QCOMPARE(stateSpy.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
-    QTRY_VERIFY(positionSpy.count() > 0);
+    QTRY_VERIFY(positionSpy.count() > 0 && positionSpy.last()[0].value<qint64>() == 0);
     QCOMPARE(player.position(), 0);
-    QCOMPARE(positionSpy.last()[0].value<qint64>(), 0);
 
     stateSpy.clear();
     statusSpy.clear();
@@ -509,8 +511,7 @@ void tst_QMediaPlayerBackend::processEOS()
 
     positionSpy.clear();
     QTRY_VERIFY(player.position() > 100);
-    QTRY_VERIFY(positionSpy.count() > 0);
-    QVERIFY(positionSpy.last()[0].value<qint64>() > 100);
+    QTRY_VERIFY(positionSpy.count() > 0 && positionSpy.last()[0].value<qint64>() > 100);
     player.setPosition(900);
     //wait up to 5 seconds for EOS
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
