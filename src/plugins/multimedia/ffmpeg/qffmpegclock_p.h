@@ -68,9 +68,6 @@ class ClockController
     float m_playbackRate = 1.;
     bool m_isPaused = true;
 
-    qint64 m_lastMasterTime = 0;
-    QObject *notifyObject = nullptr;
-    QMetaMethod notify;
     qint64 currentTimeNoLock() const;
 
     friend class Clock;
@@ -80,8 +77,6 @@ class ClockController
     bool isMaster(const Clock *clock) const;
 
 public:
-    // max 5 msecs tolerance for the clock
-    enum { NotificationTolerance = 5000 };
     ClockController() = default;
     ~ClockController();
 
@@ -93,8 +88,6 @@ public:
     void setPlaybackRate(float s);
     float playbackRate() const { return m_playbackRate; }
     void setPaused(bool paused);
-
-    void setNotify(QObject *object, QMetaMethod method);
 };
 
 inline float Clock::playbackRate() const
