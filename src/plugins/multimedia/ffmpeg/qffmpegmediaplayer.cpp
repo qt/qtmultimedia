@@ -30,6 +30,9 @@ using namespace QFFmpeg;
 QFFmpegMediaPlayer::QFFmpegMediaPlayer(QMediaPlayer *player)
     : QPlatformMediaPlayer(player)
 {
+    positionUpdateTimer.setInterval(100);
+    positionUpdateTimer.setTimerType(Qt::PreciseTimer);
+    connect(&positionUpdateTimer, &QTimer::timeout, this, &QFFmpegMediaPlayer::updatePosition);
 }
 
 QFFmpegMediaPlayer::~QFFmpegMediaPlayer()
@@ -48,6 +51,11 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
         decoder->seek(position*1000);
     if (state() == QMediaPlayer::StoppedState)
         mediaStatusChanged(QMediaPlayer::LoadedMedia);
+}
+
+void QFFmpegMediaPlayer::updatePosition()
+{
+    positionChanged(decoder ? decoder->clockController.currentTime() / 1000 : 0);
 }
 
 float QFFmpegMediaPlayer::bufferProgress() const
@@ -126,6 +134,7 @@ void QFFmpegMediaPlayer::play()
     if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState)
         decoder->seek(0);
     decoder->play();
+    positionUpdateTimer.start();
     stateChanged(QMediaPlayer::PlayingState);
     mediaStatusChanged(QMediaPlayer::BufferedMedia);
 }
@@ -137,6 +146,7 @@ void QFFmpegMediaPlayer::pause()
     if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState)
         decoder->seek(0);
     decoder->pause();
+    positionUpdateTimer.stop();
     stateChanged(QMediaPlayer::PausedState);
     mediaStatusChanged(QMediaPlayer::BufferedMedia);
 }
@@ -146,6 +156,7 @@ void QFFmpegMediaPlayer::stop()
     if (!decoder)
         return;
     decoder->stop();
+    positionUpdateTimer.stop();
     stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }

@@ -93,14 +93,6 @@ qint64 QFFmpeg::ClockController::timeUpdated(Clock *clock, qint64 time)
     m_baseTime = time;
     m_elapsedTimer.restart();
 
-    // Avoid posting too many updates to the notifyObject, or we can overload
-    // the event queue with too many notifications
-    if (qAbs(time - m_lastMasterTime) < 5000)
-        return time;
-    m_lastMasterTime = time;
-//        qCDebug(qLcClock) << "ClockController::timeUpdated(master)" << time << "skew" << skew();
-    if (notifyObject)
-        notify.invoke(notifyObject, Qt::QueuedConnection, Q_ARG(qint64, time));
     return time;
 }
 
@@ -196,14 +188,6 @@ void QFFmpeg::ClockController::setPaused(bool paused)
 
     for (auto *p : qAsConst(m_clocks))
         p->setPaused(paused);
-}
-
-void QFFmpeg::ClockController::setNotify(QObject *object, QMetaMethod method)
-{
-    QMutexLocker l(&m_mutex);
-
-    notifyObject = object;
-    notify = method;
 }
 
 QT_END_NAMESPACE

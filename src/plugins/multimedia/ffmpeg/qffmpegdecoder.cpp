@@ -1031,9 +1031,6 @@ void Decoder::setMedia(const QUrl &media, QIODevice *stream)
 
     demuxer = new Demuxer(this, context);
     demuxer->start();
-
-    qCDebug(qLcDecoder) << ">>>>>> index:" << metaObject()->indexOfSlot("updateCurrentTime(qint64)");
-    clockController.setNotify(this, metaObject()->method(metaObject()->indexOfSlot("updateCurrentTime(qint64)")));
 }
 
 static void insertVideoData(QMediaMetaData &metaData, AVStream *stream)
