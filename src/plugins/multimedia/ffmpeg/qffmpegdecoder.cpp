@@ -116,7 +116,7 @@ Demuxer::~Demuxer()
 {
     if (context) {
         if (context->pb) {
-            av_free(context->pb);
+            avio_context_free(&context->pb);
             context->pb = nullptr;
         }
         avformat_free_context(context);
