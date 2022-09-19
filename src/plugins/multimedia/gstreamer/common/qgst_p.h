@@ -271,6 +271,20 @@ public:
         m_object = other.m_object;
         return *this;
     }
+
+    QGstObject(QGstObject &&other) noexcept
+        : m_object(std::exchange(other.m_object, nullptr))
+    {}
+    QGstObject &operator=(QGstObject &&other)
+    {
+        if (this != &other) {
+            if (m_object)
+                gst_object_unref(m_object);
+            m_object = std::exchange(other.m_object, nullptr);
+        }
+        return *this;
+    }
+
     virtual ~QGstObject() {
         if (m_object)
             gst_object_unref(m_object);
