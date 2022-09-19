@@ -33,8 +33,8 @@ Q_LOGGING_CATEGORY(qLcDecoder, "qt.multimedia.ffmpeg.decoder")
 Q_LOGGING_CATEGORY(qLcVideoRenderer, "qt.multimedia.ffmpeg.videoRenderer")
 Q_LOGGING_CATEGORY(qLcAudioRenderer, "qt.multimedia.ffmpeg.audioRenderer")
 
-Codec::Data::Data(AVCodecContext *context, AVStream *stream, const HWAccel &hwAccel)
-    : context(context)
+Codec::Data::Data(UniqueAVCodecContext &&context, AVStream *stream, const HWAccel &hwAccel)
+    : context(std::move(context))
     , stream(stream)
     , hwAccel(hwAccel)
 {
@@ -42,42 +42,37 @@ Codec::Data::Data(AVCodecContext *context, AVStream *stream, const HWAccel &hwAc
 
 Codec::Data::~Data()
 {
-    if (!context)
-        return;
-    avcodec_close(context);
-    avcodec_free_context(&context);
+    avcodec_close(context.get());
 }
 
-Codec::Codec(AVFormatContext *format, int streamIndex)
+QMaybe<Codec> Codec::create(AVStream *stream)
 {
-    qCDebug(qLcDecoder) << "Codec::Codec" << streamIndex;
-    Q_ASSERT(streamIndex >= 0 && streamIndex < (int)format->nb_streams);
+    if (!stream)
+        return { "Invalid stream" };
 
-    AVStream *stream = format->streams[streamIndex];
     const AVCodec *decoder =
             QFFmpeg::HWAccel::hardwareDecoderForCodecId(stream->codecpar->codec_id);
-
-    if (!decoder) {
-        qCDebug(qLcDecoder) << "Failed to find a valid FFmpeg decoder";
-        return;
-    }
+    if (!decoder)
+        return { "Failed to find a valid FFmpeg decoder" };
 
     QFFmpeg::HWAccel hwAccel;
-    if (decoder->type == AVMEDIA_TYPE_VIDEO) {
+    if (decoder->type == AVMEDIA_TYPE_VIDEO)
         hwAccel = QFFmpeg::HWAccel(decoder);
+
+    //avcodec_free_context
+    UniqueAVCodecContext context(avcodec_alloc_context3(decoder));
+    if (!context)
+        return { "Failed to allocate a FFmpeg codec context" };
+
+    if (context->codec_type != AVMEDIA_TYPE_AUDIO &&
+        context->codec_type != AVMEDIA_TYPE_VIDEO &&
+        context->codec_type != AVMEDIA_TYPE_SUBTITLE) {
+        return { "Unknown codec type" };
     }
 
-    auto *context = avcodec_alloc_context3(decoder);
-    if (!context) {
-        qCDebug(qLcDecoder) << "Failed to allocate a FFmpeg codec context";
-        return;
-    }
-
-    int ret = avcodec_parameters_to_context(context, stream->codecpar);
-    if (ret < 0) {
-        qCDebug(qLcDecoder) << "Failed to set FFmpeg codec parameters";
-        return;
-    }
+    int ret = avcodec_parameters_to_context(context.get(), stream->codecpar);
+    if (ret < 0)
+        return { "Failed to set FFmpeg codec parameters" };
 
     auto *buf = hwAccel.hwDeviceContextAsBuffer();
     if (buf)
@@ -90,14 +85,11 @@ Codec::Codec(AVFormatContext *format, int streamIndex)
     AVDictionary *opts = nullptr;
     av_dict_set(&opts, "refcounted_frames", "1", 0);
     av_dict_set(&opts, "threads", "auto", 0);
-    ret = avcodec_open2(context, decoder, &opts);
-    if (ret < 0) {
-        qCDebug(qLcDecoder) << "Failed to open FFmpeg codec context.";
-        avcodec_free_context(&context);
-        return;
-    }
+    ret = avcodec_open2(context.get(), decoder, &opts);
+    if (ret < 0)
+        return "Failed to open FFmpeg codec context " + err2str(ret);
 
-    d = new Data(context, stream, hwAccel);
+    return Codec(new Data(std::move(context), stream, hwAccel));
 }
 
 
@@ -125,19 +117,20 @@ Demuxer::~Demuxer()
 
 StreamDecoder *Demuxer::addStream(int streamIndex)
 {
-    if (streamIndex < 0)
+    if (streamIndex < 0 || streamIndex >= (int)context->nb_streams)
         return nullptr;
+
+    AVStream *avStream = context->streams[streamIndex];
+    if (!avStream)
+        return nullptr;
+
     QMutexLocker locker(&mutex);
-    Codec codec(context, streamIndex);
-    if (!codec.isValid()) {
-        decoder->error(QMediaPlayer::FormatError, "Invalid media file");
+    auto maybeCodec = Codec::create(avStream);
+    if (!maybeCodec) {
+        decoder->error(QMediaPlayer::FormatError, "Cannot open codec; " + maybeCodec.error());
         return nullptr;
     }
-
-    Q_ASSERT(codec.context()->codec_type == AVMEDIA_TYPE_AUDIO ||
-             codec.context()->codec_type == AVMEDIA_TYPE_VIDEO ||
-             codec.context()->codec_type == AVMEDIA_TYPE_SUBTITLE);
-    auto *stream = new StreamDecoder(this, codec);
+    auto *stream = new StreamDecoder(this, maybeCodec.value());
     Q_ASSERT(!streamDecoders.at(streamIndex));
     streamDecoders[streamIndex] = stream;
     stream->start();
@@ -278,10 +271,6 @@ StreamDecoder::StreamDecoder(Demuxer *demuxer, const Codec &codec)
     , demuxer(demuxer)
     , codec(codec)
 {
-    Q_ASSERT(codec.context()->codec_type == AVMEDIA_TYPE_AUDIO ||
-             codec.context()->codec_type == AVMEDIA_TYPE_VIDEO ||
-             codec.context()->codec_type == AVMEDIA_TYPE_SUBTITLE);
-
     QString objectName;
     switch (codec.context()->codec_type) {
     case AVMEDIA_TYPE_AUDIO:
