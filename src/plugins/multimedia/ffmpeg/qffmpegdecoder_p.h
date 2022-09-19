@@ -22,6 +22,7 @@
 #include "qaudiobuffer.h"
 #include "qffmpegresampler_p.h"
 
+#include <private/qmultimediautils_p.h>
 #include <qshareddata.h>
 #include <qtimer.h>
 #include <qqueue.h>
@@ -67,21 +68,20 @@ private:
 
 struct Codec
 {
+    struct AVCodecFreeContext { void operator()(AVCodecContext *ctx) { avcodec_free_context(&ctx); } };
+    using UniqueAVCodecContext = std::unique_ptr<AVCodecContext, AVCodecFreeContext>;
     struct Data {
-        Data(AVCodecContext *context, AVStream *stream, const QFFmpeg::HWAccel &hwAccel);
+        Data(UniqueAVCodecContext &&context, AVStream *stream, const QFFmpeg::HWAccel &hwAccel);
         ~Data();
         QAtomicInt ref;
-        AVCodecContext *context = nullptr;
+        UniqueAVCodecContext context;
         AVStream *stream = nullptr;
         QFFmpeg::HWAccel hwAccel;
-        int streamIndex = -1;
     };
 
-    Codec() = default;
-    Codec(AVFormatContext *format, int streamIndex);
-    bool isValid() const { return !!d; }
+    static QMaybe<Codec> create(AVStream *);
 
-    AVCodecContext *context() const { return d->context; }
+    AVCodecContext *context() const { return d->context.get(); }
     AVStream *stream() const { return d->stream; }
     uint streamIndex() const { return d->stream->index; }
     HWAccel hwAccel() const { return d->hwAccel; }
@@ -89,6 +89,7 @@ struct Codec
     qint64 toUs(qint64 ts) const { return timeStampUs(ts, d->stream->time_base); }
 
 private:
+    Codec(Data *data) : d(data) {}
     QExplicitlySharedDataPointer<Data> d;
 };
 
@@ -109,7 +110,7 @@ struct Frame
                 av_frame_free(&frame);
         }
         QAtomicInt ref;
-        Codec codec;
+        std::optional<Codec> codec;
         AVFrame *frame = nullptr;
         QString text;
         qint64 pts = -1;
@@ -130,7 +131,7 @@ struct Frame
         d->frame = nullptr;
         return f;
     }
-    const Codec *codec() const { return &d->codec; }
+    const Codec *codec() const { return d->codec ? &d->codec.value() : nullptr; }
     qint64 pts() const { return d->pts; }
     qint64 duration() const { return d->duration; }
     qint64 end() const { return d->pts + d->duration; }
