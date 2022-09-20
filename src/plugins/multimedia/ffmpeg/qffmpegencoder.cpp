@@ -403,10 +403,14 @@ VideoEncoder::VideoEncoder(Encoder *encoder, QPlatformCamera *camera, const QMed
     qCDebug(qLcFFmpegEncoder) << "VideoEncoder" << settings.videoCodec();
 
     auto format = m_camera->cameraFormat();
-    auto *hwAccel = static_cast<const QFFmpeg::HWAccel *>(camera->ffmpegHWAccel());
+    std::optional<AVPixelFormat> hwFormat = camera->ffmpegHWPixelFormat()
+            ? AVPixelFormat(*camera->ffmpegHWPixelFormat())
+            : std::optional<AVPixelFormat>{};
+
     AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
-    AVPixelFormat pixelFormat = hwAccel ? hwAccel->hwFormat() : swFormat;
+    AVPixelFormat pixelFormat = hwFormat ? *hwFormat : swFormat;
     frameEncoder = new VideoFrameEncoder(settings, format.resolution(), format.maxFrameRate(), pixelFormat, swFormat);
+
     frameEncoder->initWithFormatContext(encoder->formatContext);
 }
 

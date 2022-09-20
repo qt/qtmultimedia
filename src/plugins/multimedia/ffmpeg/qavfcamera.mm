@@ -60,7 +60,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
          didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
          fromConnection:(AVCaptureConnection *)connection;
 
-- (void) setHWAccel:(QFFmpeg::HWAccel *)accel;
+- (void) setHWAccel:(std::unique_ptr<QFFmpeg::HWAccel> &&)accel;
 
 @end
 
@@ -69,7 +69,7 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
 @private
     QAVFCamera *m_camera;
     AVBufferRef *hwFramesContext;
-    QFFmpeg::HWAccel m_accel;
+    std::unique_ptr<QFFmpeg::HWAccel> m_accel;
     qint64 startTime;
     qint64 baseTime;
 }
@@ -107,7 +107,10 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
         return;
     }
 
-    AVFrame *avFrame = allocHWFrame(m_accel.hwFramesContextAsBuffer(), imageBuffer);
+    if (!m_accel)
+        return;
+
+    AVFrame *avFrame = allocHWFrame(m_accel->hwFramesContextAsBuffer(), imageBuffer);
     if (!avFrame)
         return;
 
@@ -141,9 +144,9 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     m_camera->syncHandleFrame(frame);
 }
 
-- (void) setHWAccel:(QFFmpeg::HWAccel *)accel
+- (void) setHWAccel:(std::unique_ptr<QFFmpeg::HWAccel> &&)accel
 {
-    m_accel = *accel;
+    m_accel = std::move(accel);
 }
 
 @end
@@ -367,9 +370,15 @@ void QAVFCamera::updateCameraFormat()
         avPixelFormat = setPixelFormat(m_cameraFormat.pixelFormat());
     }
 
-    hwAccel = QFFmpeg::HWAccel(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
-    hwAccel.createFramesContext(av_map_videotoolbox_format_to_pixfmt(avPixelFormat), m_cameraFormat.resolution());
-    [m_sampleBufferDelegate setHWAccel:&hwAccel];
+    auto hwAccel = QFFmpeg::HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
+    if (hwAccel) {
+        hwAccel->createFramesContext(av_map_videotoolbox_format_to_pixfmt(avPixelFormat),
+                                     m_cameraFormat.resolution());
+        hwPixelFormat = hwAccel->hwFormat();
+    } else {
+        hwPixelFormat = AV_PIX_FMT_NONE;
+    }
+    [m_sampleBufferDelegate setHWAccel:std::move(hwAccel)];
 }
 
 uint QAVFCamera::setPixelFormat(const QVideoFrameFormat::PixelFormat pixelFormat)

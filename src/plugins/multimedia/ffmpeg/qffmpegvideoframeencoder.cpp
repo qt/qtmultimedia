@@ -48,11 +48,13 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
 #ifndef QT_DISABLE_HW_ENCODING
     const auto *accels = HWAccel::preferredDeviceTypes();
     while (*accels != AV_HWDEVICE_TYPE_NONE) {
-        auto accel = HWAccel(*accels);
+        auto accel = HWAccel::create(*accels);
         ++accels;
+        if (!accel)
+            continue;
 
         auto matchesSizeConstraints = [&]() -> bool {
-            auto *constraints = av_hwdevice_get_hwframe_constraints(accel.hwDeviceContextAsBuffer(), nullptr);
+            auto *constraints = av_hwdevice_get_hwframe_constraints(accel->hwDeviceContextAsBuffer(), nullptr);
             if (!constraints)
                 return true;
                 // Check size constraints
@@ -65,15 +67,15 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
         if (!matchesSizeConstraints())
             continue;
 
-        d->codec = accel.hardwareEncoderForCodecId(codecID);
+        d->codec = accel->hardwareEncoderForCodecId(codecID);
         if (!d->codec)
             continue;
-        d->accel = accel;
+        d->accel = std::move(accel);
         break;
     }
 #endif
 
-    if (d->accel.isNull()) {
+    if (!d->accel) {
         d->codec = avcodec_find_encoder(codecID);
         if (!d->codec) {
             qWarning() << "Could not find encoder for codecId" << codecID;
@@ -122,7 +124,7 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
     }
 
     if (d->targetFormatIsHWFormat) {
-        Q_ASSERT(!d->accel.isNull());
+        Q_ASSERT(d->accel);
         // if source and target formats don't agree, but the target is a HW format, we need to upload
         if (d->sourceFormat != d->targetFormat || needToScale) {
             d->uploadToHW = true;
@@ -135,7 +137,7 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
 
             d->targetSWFormat = AV_PIX_FMT_NONE;
 
-            auto *constraints = av_hwdevice_get_hwframe_constraints(d->accel.hwDeviceContextAsBuffer(), nullptr);
+            auto *constraints = av_hwdevice_get_hwframe_constraints(d->accel->hwDeviceContextAsBuffer(), nullptr);
             auto *f = constraints->valid_sw_formats;
             int score = INT_MIN;
             while (*f != AV_PIX_FMT_NONE) {
@@ -183,7 +185,7 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
 
             av_hwframe_constraints_free(&constraints);
             // need to create a frames context to convert the input data
-            d->accel.createFramesContext(d->targetSWFormat, sourceSize);
+            d->accel->createFramesContext(d->targetSWFormat, sourceSize);
         }
     } else {
         d->targetSWFormat = d->targetFormat;
@@ -256,12 +258,14 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     qCDebug(qLcVideoFrameEncoder) << "requesting time base" << d->codecContext->time_base.num << d->codecContext->time_base.den;
     auto [num, den] = qRealToFraction(requestedRate);
     d->codecContext->framerate = { num, den };
-    auto deviceContext = d->accel.hwDeviceContextAsBuffer();
-    if (deviceContext)
-        d->codecContext->hw_device_ctx = av_buffer_ref(deviceContext);
-    auto framesContext = d->accel.hwFramesContextAsBuffer();
-    if (framesContext)
-        d->codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
+    if (d->accel) {
+        auto deviceContext = d->accel->hwDeviceContextAsBuffer();
+        if (deviceContext)
+            d->codecContext->hw_device_ctx = av_buffer_ref(deviceContext);
+        auto framesContext = d->accel->hwFramesContextAsBuffer();
+        if (framesContext)
+            d->codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
+    }
 }
 
 bool VideoFrameEncoder::open()
@@ -316,7 +320,7 @@ int VideoFrameEncoder::sendFrame(AVFrame *frame)
     }
 
     if (d->uploadToHW) {
-        auto *hwFramesContext = d->accel.hwFramesContextAsBuffer();
+        auto *hwFramesContext = d->accel->hwFramesContextAsBuffer();
         Q_ASSERT(hwFramesContext);
         auto *f = av_frame_alloc();
         if (!f)

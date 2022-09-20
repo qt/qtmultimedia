@@ -116,7 +116,7 @@ public:
     static int colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode mode);
 
     // Can't use FFmpeg specific struct here, use void * for now.
-    virtual const void *ffmpegHWAccel() const { return nullptr; }
+    virtual std::optional<int> ffmpegHWPixelFormat() const { return {}; }
 
 Q_SIGNALS:
     void activeChanged(bool);

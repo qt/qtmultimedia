@@ -71,12 +71,12 @@ struct Codec
     struct AVCodecFreeContext { void operator()(AVCodecContext *ctx) { avcodec_free_context(&ctx); } };
     using UniqueAVCodecContext = std::unique_ptr<AVCodecContext, AVCodecFreeContext>;
     struct Data {
-        Data(UniqueAVCodecContext &&context, AVStream *stream, const QFFmpeg::HWAccel &hwAccel);
+        Data(UniqueAVCodecContext &&context, AVStream *stream, std::unique_ptr<QFFmpeg::HWAccel> &&hwAccel);
         ~Data();
         QAtomicInt ref;
         UniqueAVCodecContext context;
         AVStream *stream = nullptr;
-        QFFmpeg::HWAccel hwAccel;
+        std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
     };
 
     static QMaybe<Codec> create(AVStream *);
@@ -84,7 +84,7 @@ struct Codec
     AVCodecContext *context() const { return d->context.get(); }
     AVStream *stream() const { return d->stream; }
     uint streamIndex() const { return d->stream->index; }
-    HWAccel hwAccel() const { return d->hwAccel; }
+    HWAccel *hwAccel() const { return d->hwAccel.get(); }
     qint64 toMs(qint64 ts) const { return timeStamp(ts, d->stream->time_base); }
     qint64 toUs(qint64 ts) const { return timeStampUs(ts, d->stream->time_base); }
 

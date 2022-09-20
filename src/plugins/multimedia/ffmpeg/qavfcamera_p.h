@@ -58,7 +58,7 @@ public:
 
     void deviceOrientationChanged(int angle = -1);
 
-    const void *ffmpegHWAccel() const override { return &hwAccel; }
+    std::optional<int> ffmpegHWPixelFormat() const override { return hwPixelFormat; }
 
 private:
     void requestCameraPermissionIfNeeded();
@@ -77,7 +77,7 @@ private:
     QAVFSampleBufferDelegate *m_sampleBufferDelegate = nullptr;
     dispatch_queue_t m_delegateQueue;
     QVideoOutputOrientationHandler m_orientationHandler;
-    QFFmpeg::HWAccel hwAccel;
+    AVPixelFormat hwPixelFormat = AV_PIX_FMT_NONE;
 };
 
 QT_END_NAMESPACE
