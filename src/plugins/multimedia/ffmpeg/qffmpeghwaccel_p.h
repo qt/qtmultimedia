@@ -106,7 +106,8 @@ public:
     AVHWFramesContext *hwFramesContext() const;
 
     static AVPixelFormat format(AVFrame *frame);
-    static const AVHWDeviceType *preferredDeviceTypes();
+    static std::pair<const AVHWDeviceType*, qsizetype> preferredDeviceTypes();
+
 private:
     HWAccel(AVBufferRef *hwDeviceContext, AVBufferRef *hwFrameContext = nullptr)
         : m_hwDeviceContext(hwDeviceContext), m_hwFramesContext(hwFrameContext)

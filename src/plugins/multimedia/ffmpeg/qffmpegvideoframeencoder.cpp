@@ -46,10 +46,9 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
     auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
 
 #ifndef QT_DISABLE_HW_ENCODING
-    const auto *accels = HWAccel::preferredDeviceTypes();
-    while (*accels != AV_HWDEVICE_TYPE_NONE) {
-        auto accel = HWAccel::create(*accels);
-        ++accels;
+    auto [preferredTypes, size] = HWAccel::preferredDeviceTypes();
+    for (qsizetype i = 0; i < size; i++) {
+        auto accel = HWAccel::create(preferredTypes[i]);
         if (!accel)
             continue;
 
