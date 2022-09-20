@@ -29,11 +29,7 @@ Q_LOGGING_CATEGORY(qLHWAccel, "qt.multimedia.ffmpeg.hwaccel");
 
 namespace QFFmpeg {
 
-// HW context initialization
-
-// preferred order of HW accelerators to use
 static const AVHWDeviceType preferredHardwareAccelerators[] = {
-// Linux/Unix
 #if defined(Q_OS_LINUX)
     AV_HWDEVICE_TYPE_VAAPI,
 //    AV_HWDEVICE_TYPE_DRM,
@@ -44,7 +40,6 @@ static const AVHWDeviceType preferredHardwareAccelerators[] = {
 #elif defined (Q_OS_ANDROID)
     AV_HWDEVICE_TYPE_MEDIACODEC,
 #endif
-    AV_HWDEVICE_TYPE_NONE
 };
 
 static AVBufferRef *loadHWContext(const AVHWDeviceType type)
@@ -66,20 +61,18 @@ static AVBufferRef *hardwareContextForCodec(const AVCodec *codec)
 
     // First try our preferred accelerators. Those are the ones where we can
     // set up a zero copy pipeline
-    auto *preferred = preferredHardwareAccelerators;
-    while (*preferred != AV_HWDEVICE_TYPE_NONE) {
+    for (auto type : preferredHardwareAccelerators) {
         for (int i = 0;; ++i) {
             const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i);
             if (!config)
                 break;
-            if (config->device_type == *preferred) {
+            if (config->device_type == type) {
                 auto *hwContext = loadHWContext(config->device_type);
                 if (hwContext)
                     return hwContext;
                 break;
             }
         }
-        ++preferred;
     }
 
     // Ok, let's see if we can get any HW acceleration at all. It'll still involve one buffer copy,
@@ -177,9 +170,10 @@ AVPixelFormat HWAccel::format(AVFrame *frame)
     return AVPixelFormat(hwFramesContext->sw_format);
 }
 
-const AVHWDeviceType *HWAccel::preferredDeviceTypes()
+std::pair<const AVHWDeviceType*, qsizetype> HWAccel::preferredDeviceTypes()
 {
-    return preferredHardwareAccelerators;
+    return { preferredHardwareAccelerators,
+             sizeof(preferredHardwareAccelerators) / sizeof(AVHWDeviceType) };
 }
 
 AVHWDeviceContext *HWAccel::hwDeviceContext() const
@@ -292,12 +286,10 @@ const AVCodec *HWAccel::hardwareEncoderForCodecId(AVCodecID id) const
 
 std::unique_ptr<HWAccel> HWAccel::findHardwareAccelForCodecID(AVCodecID id)
 {
-    auto *accels = preferredHardwareAccelerators;
-    while (*accels != AV_HWDEVICE_TYPE_NONE) {
-        auto accel = HWAccel::create(*accels);
+    for (auto type : preferredHardwareAccelerators) {
+        auto accel = HWAccel::create(type);
         if (accel && accel->hardwareEncoderForCodecId(id))
             return accel;
-        ++accels;
     }
     return {};
 }
