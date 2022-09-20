@@ -64,8 +64,10 @@ void Encoder::addCamera(QPlatformCamera *camera)
     QVideoFrameFormat vff(cf.resolution(), cf.pixelFormat());
     vff.setFrameRate(cf.maxFrameRate());
 
-    auto *hwAccel = static_cast<const QFFmpeg::HWAccel *>(camera->ffmpegHWAccel());
-    auto *ve = new VideoEncoder(this, settings, vff, hwAccel);
+    std::optional<AVPixelFormat> hwPixelFormat = camera->ffmpegHWPixelFormat()
+            ? AVPixelFormat(*camera->ffmpegHWPixelFormat())
+            : std::optional<AVPixelFormat>{};
+    auto *ve = new VideoEncoder(this, settings, vff, hwPixelFormat);
     auto conn = connect(camera, &QPlatformCamera::newVideoFrame,
             [=](const QVideoFrame &frame){ ve->addFrame(frame); });
     videoEncoders.append(ve);
@@ -74,7 +76,7 @@ void Encoder::addCamera(QPlatformCamera *camera)
 
 void Encoder::addScreenCapture(QPlatformScreenCapture *screenCapture)
 {
-    auto *ve = new VideoEncoder(this, settings, screenCapture->format(), nullptr);
+    auto *ve = new VideoEncoder(this, settings, screenCapture->format(), {});
     auto conn = connect(screenCapture, &QPlatformScreenCapture::newVideoFrame,
             [=](const QVideoFrame &frame){ ve->addFrame(frame); });
     videoEncoders.append(ve);
@@ -416,7 +418,7 @@ void AudioEncoder::loop()
 }
 
 VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
-                           const QVideoFrameFormat &format, const QFFmpeg::HWAccel *hwAccel)
+                           const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat)
 {
     this->encoder = encoder;
 
@@ -424,7 +426,7 @@ VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settin
     qCDebug(qLcFFmpegEncoder) << "VideoEncoder" << settings.videoCodec();
 
     AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
-    AVPixelFormat ffmpegPixelFormat = hwAccel ? hwAccel->hwFormat() : swFormat;
+    AVPixelFormat ffmpegPixelFormat = hwFormat ? *hwFormat : swFormat;
     frameEncoder = new VideoFrameEncoder(settings, format.frameSize(), float(format.frameRate()), ffmpegPixelFormat, swFormat);
     frameEncoder->initWithFormatContext(encoder->formatContext);
 }

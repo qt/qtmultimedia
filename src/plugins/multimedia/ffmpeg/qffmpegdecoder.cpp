@@ -33,10 +33,10 @@ Q_LOGGING_CATEGORY(qLcDecoder, "qt.multimedia.ffmpeg.decoder")
 Q_LOGGING_CATEGORY(qLcVideoRenderer, "qt.multimedia.ffmpeg.videoRenderer")
 Q_LOGGING_CATEGORY(qLcAudioRenderer, "qt.multimedia.ffmpeg.audioRenderer")
 
-Codec::Data::Data(UniqueAVCodecContext &&context, AVStream *stream, const HWAccel &hwAccel)
+Codec::Data::Data(UniqueAVCodecContext &&context, AVStream *stream, std::unique_ptr<QFFmpeg::HWAccel> &&hwAccel)
     : context(std::move(context))
     , stream(stream)
-    , hwAccel(hwAccel)
+    , hwAccel(std::move(hwAccel))
 {
 }
 
@@ -55,10 +55,6 @@ QMaybe<Codec> Codec::create(AVStream *stream)
     if (!decoder)
         return { "Failed to find a valid FFmpeg decoder" };
 
-    QFFmpeg::HWAccel hwAccel;
-    if (decoder->type == AVMEDIA_TYPE_VIDEO)
-        hwAccel = QFFmpeg::HWAccel(decoder);
-
     //avcodec_free_context
     UniqueAVCodecContext context(avcodec_alloc_context3(decoder));
     if (!context)
@@ -74,9 +70,12 @@ QMaybe<Codec> Codec::create(AVStream *stream)
     if (ret < 0)
         return { "Failed to set FFmpeg codec parameters" };
 
-    auto *buf = hwAccel.hwDeviceContextAsBuffer();
-    if (buf)
-        context->hw_device_ctx = av_buffer_ref(buf);
+    std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
+    if (decoder->type == AVMEDIA_TYPE_VIDEO) {
+        hwAccel = QFFmpeg::HWAccel::create(decoder);
+        if (hwAccel)
+            context->hw_device_ctx = av_buffer_ref(hwAccel->hwDeviceContextAsBuffer());
+    }
     // ### This still gives errors about wrong HW formats (as we accept all of them)
     // But it would be good to get so we can filter out pixel format we don't support natively
     context->get_format = QFFmpeg::getFormat;
@@ -89,7 +88,7 @@ QMaybe<Codec> Codec::create(AVStream *stream)
     if (ret < 0)
         return "Failed to open FFmpeg codec context " + err2str(ret);
 
-    return Codec(new Data(std::move(context), stream, hwAccel));
+    return Codec(new Data(std::move(context), stream, std::move(hwAccel)));
 }
 
 
@@ -662,14 +661,14 @@ void VideoRenderer::loop()
 //        qCDebug(qLcVideoRenderer) << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
 
         // in practice this only happens with mediacodec
-        if (!frame.codec()->hwAccel().isNull() && !frame.avFrame()->hw_frames_ctx) {
-            HWAccel hwaccel = frame.codec()->hwAccel();
+        if (frame.codec()->hwAccel() && !frame.avFrame()->hw_frames_ctx) {
+            HWAccel *hwaccel = frame.codec()->hwAccel();
             AVFrame *avframe = frame.avFrame();
-            if (!hwaccel.hwFramesContext())
-                hwaccel.createFramesContext(AVPixelFormat(avframe->format),
+            if (!hwaccel->hwFramesContext())
+                hwaccel->createFramesContext(AVPixelFormat(avframe->format),
                                             { avframe->width, avframe->height });
 
-            avframe->hw_frames_ctx = av_buffer_ref(hwaccel.hwFramesContextAsBuffer());
+            avframe->hw_frames_ctx = av_buffer_ref(hwaccel->hwFramesContextAsBuffer());
         }
 
         QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(frame.takeAVFrame());

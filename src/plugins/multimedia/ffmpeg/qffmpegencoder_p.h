@@ -167,7 +167,7 @@ class VideoEncoder : public EncoderThread
     QQueue<QVideoFrame> videoFrameQueue;
 public:
     VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
-                 const QVideoFrameFormat &format, const QFFmpeg::HWAccel *hwAccel);
+                 const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
     ~VideoEncoder();
 
     void addFrame(const QVideoFrame &frame);

@@ -82,40 +82,35 @@ private:
 
 class HWAccel
 {
-    struct Data {
-        ~Data();
-        QAtomicInt ref = 0;
-        AVBufferRef *hwDeviceContext = nullptr;
-        AVBufferRef *hwFramesContext = nullptr;
-    };
+    AVBufferRef *m_hwDeviceContext = nullptr;
+    AVBufferRef *m_hwFramesContext = nullptr;
 
 public:
-    HWAccel() = default;
-    explicit HWAccel(AVHWDeviceType deviceType);
-    explicit HWAccel(const AVCodec *codec);
     ~HWAccel();
 
-    bool isNull() const { return !d || !d->hwDeviceContext; }
+    static std::unique_ptr<HWAccel> create(const AVCodec *decoder);
+    static std::unique_ptr<HWAccel> create(AVHWDeviceType deviceType);
+    static std::unique_ptr<HWAccel> findHardwareAccelForCodecID(AVCodecID id);
+
+    static const AVCodec *hardwareDecoderForCodecId(AVCodecID id);
+    const AVCodec *hardwareEncoderForCodecId(AVCodecID id) const;
 
     AVHWDeviceType deviceType() const;
 
-    AVBufferRef *hwDeviceContextAsBuffer() const { return d ? d->hwDeviceContext : nullptr; }
+    AVBufferRef *hwDeviceContextAsBuffer() const { return m_hwDeviceContext; }
     AVHWDeviceContext *hwDeviceContext() const;
     AVPixelFormat hwFormat() const;
 
-    const AVCodec *hardwareEncoderForCodecId(AVCodecID id) const;
-    static HWAccel findHardwareAccelForCodecID(AVCodecID id);
-
-    static const AVCodec *hardwareDecoderForCodecId(AVCodecID id);
-
     void createFramesContext(AVPixelFormat swFormat, const QSize &size);
-    AVBufferRef *hwFramesContextAsBuffer() const { return d ? d->hwFramesContext : nullptr; }
+    AVBufferRef *hwFramesContextAsBuffer() const { return m_hwFramesContext; }
     AVHWFramesContext *hwFramesContext() const;
 
     static AVPixelFormat format(AVFrame *frame);
     static const AVHWDeviceType *preferredDeviceTypes();
 private:
-    QExplicitlySharedDataPointer<Data> d;
+    HWAccel(AVBufferRef *hwDeviceContext, AVBufferRef *hwFrameContext = nullptr)
+        : m_hwDeviceContext(hwDeviceContext), m_hwFramesContext(hwFrameContext)
+    {}
 };
 
 }

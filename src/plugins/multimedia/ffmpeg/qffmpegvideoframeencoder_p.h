@@ -33,7 +33,7 @@ class VideoFrameEncoder
         float frameRate = 0.;
         QSize sourceSize;
 
-        HWAccel accel;
+        std::unique_ptr<HWAccel> accel;
         const AVCodec *codec = nullptr;
         AVStream *stream = nullptr;
         AVCodecContext *codecContext = nullptr;
