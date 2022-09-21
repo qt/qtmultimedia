@@ -253,7 +253,9 @@ void Demuxer::loop()
 
     if (last_pts < 0 && packet->pts != AV_NOPTS_VALUE) {
         auto *stream = context->streams[packet->stream_index];
-        last_pts = timeStamp(packet->pts, stream->time_base);
+        auto pts = timeStampMs(packet->pts, stream->time_base);
+        if (pts)
+            last_pts = *pts;
     }
 
     auto *streamDecoder = streamDecoders.at(packet->stream_index);
@@ -484,9 +486,9 @@ void StreamDecoder::decodeSubtitle()
             start = codec.toUs(packet.avPacket()->pts);
             end = start + codec.toUs(packet.avPacket()->duration);
         } else {
-            qint64 pts = timeStampUs(subtitle.pts, AVRational{1, AV_TIME_BASE});
-            start = pts + qint64(subtitle.start_display_time)*1000;
-            end = pts + qint64(subtitle.end_display_time)*1000;
+            auto pts = timeStampUs(subtitle.pts, AVRational{1, AV_TIME_BASE});
+            start = *pts + qint64(subtitle.start_display_time)*1000;
+            end = *pts + qint64(subtitle.end_display_time)*1000;
         }
         //        qCDebug(qLcDecoder) << "    got subtitle (" << start << "--" << end << "):";
         QString text;
@@ -969,8 +971,9 @@ static void insertVideoData(QMediaMetaData &metaData, AVStream *stream)
     metaData.insert(QMediaMetaData::VideoBitRate, (int)codecPar->bit_rate);
     metaData.insert(QMediaMetaData::VideoCodec, QVariant::fromValue(QFFmpegMediaFormatInfo::videoCodecForAVCodecId(codecPar->codec_id)));
     metaData.insert(QMediaMetaData::Resolution, QSize(codecPar->width, codecPar->height));
-    metaData.insert(QMediaMetaData::VideoFrameRate,
-                    qreal(stream->avg_frame_rate.num)/qreal(stream->avg_frame_rate.den));
+    auto fr = toFloat(stream->avg_frame_rate);
+    if (fr)
+        metaData.insert(QMediaMetaData::VideoFrameRate, *fr);
 };
 
 static void insertAudioData(QMediaMetaData &metaData, AVStream *stream)
@@ -1030,7 +1033,9 @@ static void readStreams(const AVFormatContext *context,
         }
 
         map[type].append({ (int)i, isDefault, metaData });
-        maxDuration = qMax(maxDuration, timeStampUs(stream->duration, stream->time_base));
+        auto maybeDuration = mul(1'000'000ll * stream->duration, stream->time_base);
+        if (maybeDuration)
+            maxDuration = qMax(maxDuration, *maybeDuration);
     }
 }
 

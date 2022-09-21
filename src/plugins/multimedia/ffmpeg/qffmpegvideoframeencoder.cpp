@@ -226,22 +226,22 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     float delta = 1e10;
     if (d->codec->supported_framerates) {
         // codec only supports fixed frame rates
-        auto *f = d->codec->supported_framerates;
-        auto *best = f;
+        auto *best = d->codec->supported_framerates;
         qCDebug(qLcVideoFrameEncoder) << "Finding fixed rate:";
-        while (f->num != 0) {
-            float rate = float(f->num)/float(f->den);
-            float d = qAbs(rate - requestedRate);
+        for (auto *f = d->codec->supported_framerates; f->num != 0; f++) {
+            auto maybeRate = toFloat(*f);
+            if (!maybeRate)
+                continue;
+            float d = qAbs(*maybeRate - requestedRate);
             qCDebug(qLcVideoFrameEncoder) << "    " << f->num << f->den << d;
             if (d < delta) {
                 best = f;
                 delta = d;
             }
-            ++f;
         }
         qCDebug(qLcVideoFrameEncoder) << "Fixed frame rate required. Requested:" << requestedRate << "Using:" << best->num << "/" << best->den;
-        d->stream->time_base = { best->den, best->num };
-        requestedRate = float(best->num)/float(best->den);
+        d->stream->time_base = *best;
+        requestedRate = toFloat(*best).value_or(0.f);
     }
 
     Q_ASSERT(d->codec);
@@ -285,8 +285,8 @@ bool VideoFrameEncoder::open()
 qint64 VideoFrameEncoder::getPts(qint64 us)
 {
     Q_ASSERT(d);
-    qint64 div = 1000000*d->stream->time_base.num;
-    return (us*d->stream->time_base.den + (div>>1))/div;
+    qint64 div = 1'000'000 * d->stream->time_base.num;
+    return div != 0 ? (us * d->stream->time_base.den + div / 2) / div : 0;
 }
 
 int VideoFrameEncoder::sendFrame(AVFrame *frame)
@@ -363,7 +363,8 @@ AVPacket *VideoFrameEncoder::retrievePacket()
             qCDebug(qLcVideoFrameEncoder) << "Error receiving packet" << ret << err2str(ret);
         return nullptr;
     }
-    qCDebug(qLcVideoFrameEncoder) << "got a packet" << packet->pts << timeStamp(packet->pts, d->stream->time_base);
+    auto ts = timeStampMs(packet->pts, d->stream->time_base);
+    qCDebug(qLcVideoFrameEncoder) << "got a packet" << packet->pts << (ts ? *ts : 0);
     packet->stream_index = d->stream->id;
     return packet;
 }

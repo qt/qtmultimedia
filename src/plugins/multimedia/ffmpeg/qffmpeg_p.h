@@ -21,17 +21,30 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg
 {
 
-inline qint64 timeStamp(qint64 ts, AVRational base)
+inline std::optional<qint64> mul(qint64 a, AVRational b)
 {
-    return (1000*ts*base.num + 500)/base.den;
+    return b.den != 0 ? (a * b.num + b.den / 2) / b.den : std::optional<qint64>{};
 }
 
-inline qint64 timeStampUs(qint64 ts, AVRational base)
+inline std::optional<qreal> mul(qreal a, AVRational b)
 {
-    return (1000000*ts*base.num + 500000)/base.den;
+    return b.den != 0 ? a * qreal(b.num) / qreal(b.den) : std::optional<qreal>{};
 }
 
-inline float toFloat(AVRational r) { return float(r.num)/float(r.den); }
+inline std::optional<qint64> timeStampMs(qint64 ts, AVRational base)
+{
+    return mul(1'000 * ts, base);
+}
+
+inline std::optional<qint64> timeStampUs(qint64 ts, AVRational base)
+{
+    return mul(1'000'000 * ts, base);
+}
+
+inline std::optional<float> toFloat(AVRational r)
+{
+    return r.den != 0 ? float(r.num) / float(r.den) : std::optional<float>{};
+}
 
 inline QString err2str(int errnum)
 {
