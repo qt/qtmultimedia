@@ -180,12 +180,10 @@ public:
     void setVideoSink(QVideoSink *sink);
     void setAudioSink(QPlatformAudioOutput *output);
 
-    void changeAVTrack(QPlatformMediaPlayer::TrackType type, int index);
+    void changeAVTrack(QPlatformMediaPlayer::TrackType type);
 
     void seek(qint64 pos);
     void setPlaybackRate(float rate);
-
-    void checkStreams(AVFormatContext *context);
 
     int activeTrack(QPlatformMediaPlayer::TrackType type);
     void setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
@@ -204,6 +202,11 @@ public Q_SLOTS:
     void streamAtEnd();
 
 public:
+    struct StreamInfo {
+        int avStreamIndex = -1;
+        bool isDefault = false;
+        QMediaMetaData metaData;
+    };
 
     // Accessed from multiple threads, but API is threadsafe
     ClockController clockController;
@@ -221,8 +224,6 @@ protected:
     bool m_isSeekable = false;
 
     Demuxer *demuxer = nullptr;
-    int m_currentAVStreamIndex[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
-
     QVideoSink *videoSink = nullptr;
     Renderer *videoRenderer = nullptr;
 
@@ -231,16 +232,16 @@ protected:
 
     bool playing = false;
 
-    struct StreamInfo {
-        int avStreamIndex = -1;
-        bool isDefault = false;
-        QMediaMetaData metaData;
-    };
-
     QList<StreamInfo> m_streamMap[QPlatformMediaPlayer::NTrackTypes];
-    int m_requestedStreams[3] = { -1, -1, -1 };
+    int m_requestedStreams[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
     qint64 m_duration = 0;
     QMediaMetaData m_metaData;
+
+    int avStreamIndex(QPlatformMediaPlayer::TrackType type)
+    {
+        int i = m_requestedStreams[type];
+        return i < 0 || i >= m_streamMap[type].size() ? -1 : m_streamMap[type][i].avStreamIndex;
+    }
 };
 
 class Demuxer : public Thread

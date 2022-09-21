@@ -49,7 +49,7 @@ public:
         m_format = format;
         audioRenderer = new SteppingAudioRenderer(this, format);
         audioRenderer->start();
-        auto *stream = demuxer->addStream(m_currentAVStreamIndex[QPlatformMediaPlayer::AudioStream]);
+        auto *stream = demuxer->addStream(avStreamIndex(QPlatformMediaPlayer::AudioStream));
         audioRenderer->setStream(stream);
     }
 
