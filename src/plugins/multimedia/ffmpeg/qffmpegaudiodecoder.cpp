@@ -175,6 +175,7 @@ void QFFmpegAudioDecoder::start()
     if (error() != QAudioDecoder::NoError)
         goto error;
 
+    durationChanged(duration());
     setIsDecoding(true);
     return;
 

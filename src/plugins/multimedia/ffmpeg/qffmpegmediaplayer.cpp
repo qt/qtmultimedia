@@ -117,6 +117,8 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     decoder->setAudioSink(m_audioOutput);
     decoder->setVideoSink(m_videoSink);
 
+    durationChanged(duration());
+    tracksChanged();
     metaDataChanged();
     seekableChanged(decoder->isSeekable());
 
