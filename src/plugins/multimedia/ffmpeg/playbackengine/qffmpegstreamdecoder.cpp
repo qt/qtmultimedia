@@ -160,9 +160,9 @@ void StreamDecoder::decodeSubtitle(Packet packet)
         start = m_codec.toUs(packet.avPacket()->pts);
         end = start + m_codec.toUs(packet.avPacket()->duration);
     } else {
-        qint64 pts = timeStampUs(subtitle.pts, AVRational{ 1, AV_TIME_BASE });
-        start = pts + qint64(subtitle.start_display_time) * 1000;
-        end = pts + qint64(subtitle.end_display_time) * 1000;
+        auto pts = timeStampUs(subtitle.pts, AVRational{ 1, AV_TIME_BASE });
+        start = *pts + qint64(subtitle.start_display_time) * 1000;
+        end = *pts + qint64(subtitle.end_display_time) * 1000;
     }
 
     if (end <= start) {

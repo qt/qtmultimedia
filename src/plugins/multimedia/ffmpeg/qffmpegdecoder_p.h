@@ -86,8 +86,8 @@ struct Codec
     AVStream *stream() const { return d->stream; }
     uint streamIndex() const { return d->stream->index; }
     HWAccel *hwAccel() const { return d->hwAccel.get(); }
-    qint64 toMs(qint64 ts) const { return timeStamp(ts, d->stream->time_base); }
-    qint64 toUs(qint64 ts) const { return timeStampUs(ts, d->stream->time_base); }
+    qint64 toMs(qint64 ts) const { return timeStampMs(ts, d->stream->time_base).value_or(0); }
+    qint64 toUs(qint64 ts) const { return timeStampUs(ts, d->stream->time_base).value_or(0); }
 
 private:
     Codec(Data *data) : d(data) {}
