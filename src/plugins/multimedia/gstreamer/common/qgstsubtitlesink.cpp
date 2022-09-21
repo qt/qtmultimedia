@@ -29,30 +29,30 @@ QGstSubtitleSink *QGstSubtitleSink::createSink(QGstreamerVideoSink *sink)
 
 GType QGstSubtitleSink::get_type()
 {
-    static GType type = 0;
+    static const GTypeInfo info =
+    {
+        sizeof(QGstSubtitleSinkClass),                    // class_size
+        base_init,                                         // base_init
+        nullptr,                                           // base_finalize
+        class_init,                                        // class_init
+        nullptr,                                           // class_finalize
+        nullptr,                                           // class_data
+        sizeof(QGstSubtitleSink),                         // instance_size
+        0,                                                 // n_preallocs
+        instance_init,                                     // instance_init
+        nullptr                                                  // value_table
+    };
 
-    if (type == 0) {
-        static const GTypeInfo info =
-        {
-            sizeof(QGstSubtitleSinkClass),                    // class_size
-            base_init,                                         // base_init
-            nullptr,                                           // base_finalize
-            class_init,                                        // class_init
-            nullptr,                                           // class_finalize
-            nullptr,                                           // class_data
-            sizeof(QGstSubtitleSink),                         // instance_size
-            0,                                                 // n_preallocs
-            instance_init,                                     // instance_init
-            nullptr                                                  // value_table
-        };
-
-        type = g_type_register_static(
+    static const GType type = []() {
+        const auto result = g_type_register_static(
                 GST_TYPE_BASE_SINK, "QGstSubtitleSink", &info, GTypeFlags(0));
 
         // Register the sink type to be used in custom piplines.
         // When surface is ready the sink can be used.
-        gst_element_register(nullptr, "qtsubtitlesink", GST_RANK_PRIMARY, type);
-    }
+        gst_element_register(nullptr, "qtsubtitlesink", GST_RANK_PRIMARY, result);
+
+        return result;
+    }();
 
     return type;
 }
