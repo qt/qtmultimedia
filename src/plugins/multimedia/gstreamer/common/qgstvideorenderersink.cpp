@@ -422,35 +422,34 @@ QGstVideoRendererSink *QGstVideoRendererSink::createSink(QGstreamerVideoSink *si
 void QGstVideoRendererSink::setSink(QGstreamerVideoSink *sink)
 {
     current_sink = sink;
-    get_type();
 }
 
 GType QGstVideoRendererSink::get_type()
 {
-    static GType type = 0;
+    static const GTypeInfo info =
+    {
+        sizeof(QGstVideoRendererSinkClass),                // class_size
+        base_init,                                         // base_init
+        nullptr,                                           // base_finalize
+        class_init,                                        // class_init
+        nullptr,                                           // class_finalize
+        nullptr,                                           // class_data
+        sizeof(QGstVideoRendererSink),                     // instance_size
+        0,                                                 // n_preallocs
+        instance_init,                                     // instance_init
+        nullptr                                            // value_table
+    };
 
-    if (type == 0) {
-        static const GTypeInfo info =
-        {
-            sizeof(QGstVideoRendererSinkClass),                    // class_size
-            base_init,                                         // base_init
-            nullptr,                                           // base_finalize
-            class_init,                                        // class_init
-            nullptr,                                           // class_finalize
-            nullptr,                                           // class_data
-            sizeof(QGstVideoRendererSink),                         // instance_size
-            0,                                                 // n_preallocs
-            instance_init,                                     // instance_init
-            nullptr                                                  // value_table
-        };
-
-        type = g_type_register_static(
+    static const GType type = []() {
+        const auto result = g_type_register_static(
                 GST_TYPE_VIDEO_SINK, "QGstVideoRendererSink", &info, GTypeFlags(0));
 
         // Register the sink type to be used in custom piplines.
         // When surface is ready the sink can be used.
-        gst_element_register(nullptr, "qtvideosink", GST_RANK_PRIMARY, type);
-    }
+        gst_element_register(nullptr, "qtvideosink", GST_RANK_PRIMARY, result);
+
+        return result;
+    }();
 
     return type;
 }
