@@ -1083,8 +1083,7 @@ void Decoder::setMedia(const QUrl &media, QIODevice *stream)
     av_dump_format(context, 0, url.constData(), 0);
 #endif
 
-    qint64 duration = 0;
-    readStreams(context, m_streamMap, duration);
+    readStreams(context, m_streamMap, m_duration);
 
     m_requestedStreams[QPlatformMediaPlayer::VideoStream] = getDefaultStreamIndex(m_streamMap[QPlatformMediaPlayer::VideoStream]);
     m_requestedStreams[QPlatformMediaPlayer::AudioStream] = getDefaultStreamIndex(m_streamMap[QPlatformMediaPlayer::AudioStream]);
@@ -1099,17 +1098,6 @@ void Decoder::setMedia(const QUrl &media, QIODevice *stream)
 
     if (m_requestedStreams[QPlatformMediaPlayer::AudioStream] >= 0)
         insertAudioData(m_metaData, context->streams[avStreamIndex(QPlatformMediaPlayer::AudioStream)]);
-
-    if (player)
-        player->tracksChanged();
-
-    if (m_duration != duration) {
-        m_duration = duration;
-        if (player)
-            player->durationChanged(duration/1000);
-        else if (audioDecoder)
-            audioDecoder->durationChanged(duration/1000);
-    }
 
     m_isSeekable = !(context->ctx_flags & AVFMTCTX_UNSEEKABLE);
 
