@@ -102,7 +102,7 @@ private:
     int mPendingMute = -1;
     bool mReloadingMedia = false;
     int mActiveStateChangeNotifiers = 0;
-    qreal mPendingPlaybackRate = 1.;
+    qreal mCurrentPlaybackRate = 1.;
     bool mHasPendingPlaybackRate = false; // we need this because the rate can theoretically be negative
     QMap<TrackType, QList<QAndroidMetaData>> mTracksMetadata;
 

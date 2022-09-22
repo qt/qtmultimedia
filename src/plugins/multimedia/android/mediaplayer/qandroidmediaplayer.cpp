@@ -213,43 +213,24 @@ void QAndroidMediaPlayer::updateAvailablePlaybackRanges()
 
 qreal QAndroidMediaPlayer::playbackRate() const
 {
-    if (mHasPendingPlaybackRate ||
-            (mState & (AndroidMediaPlayer::Initialized
-                       | AndroidMediaPlayer::Prepared
-                       | AndroidMediaPlayer::Started
-                       | AndroidMediaPlayer::Paused
-                       | AndroidMediaPlayer::PlaybackCompleted
-                       | AndroidMediaPlayer::Error)) == 0) {
-        return mPendingPlaybackRate;
-    }
-
-    return mMediaPlayer->playbackRate();
+    return mCurrentPlaybackRate;
 }
 
 void QAndroidMediaPlayer::setPlaybackRate(qreal rate)
 {
-   if ((mState & (AndroidMediaPlayer::Initialized
-                   | AndroidMediaPlayer::Prepared
-                   | AndroidMediaPlayer::Started
-                   | AndroidMediaPlayer::Paused
-                   | AndroidMediaPlayer::PlaybackCompleted
-                   | AndroidMediaPlayer::Error)) == 0) {
-        if (mPendingPlaybackRate != rate) {
-            mPendingPlaybackRate = rate;
+    if (mState != AndroidMediaPlayer::Started) {
+        // If video isn't playing, changing speed rate may start it automatically
+        // It need to be postponed
+        if (mCurrentPlaybackRate != rate) {
+            mCurrentPlaybackRate = rate;
             mHasPendingPlaybackRate = true;
             Q_EMIT playbackRateChanged(rate);
         }
         return;
     }
 
-    bool succeeded = mMediaPlayer->setPlaybackRate(rate);
-
-    if (mHasPendingPlaybackRate) {
-        mHasPendingPlaybackRate = false;
-        mPendingPlaybackRate = qreal(1.0);
-        if (!succeeded)
-             Q_EMIT playbackRateChanged(playbackRate());
-    } else if (succeeded) {
+    if (mMediaPlayer->setPlaybackRate(rate)) {
+        mCurrentPlaybackRate = rate;
         Q_EMIT playbackRateChanged(rate);
     }
 }
@@ -378,6 +359,14 @@ void QAndroidMediaPlayer::play()
 
     updateAudioDevice();
 
+    if (mHasPendingPlaybackRate) {
+        mHasPendingPlaybackRate = false;
+        if (mMediaPlayer->setPlaybackRate(mCurrentPlaybackRate))
+            return;
+        mCurrentPlaybackRate = mMediaPlayer->playbackRate();
+        Q_EMIT playbackRateChanged(mCurrentPlaybackRate);
+    }
+
     mMediaPlayer->play();
 }
 
@@ -421,6 +410,10 @@ void QAndroidMediaPlayer::stop()
             mPendingState = QMediaPlayer::StoppedState;
         return;
     }
+
+    if (mCurrentPlaybackRate != 1.)
+        // Playback rate need to by reapplied
+        mHasPendingPlaybackRate = true;
 
     if (mVideoOutput)
         mVideoOutput->stop();
@@ -941,8 +934,6 @@ void QAndroidMediaPlayer::flushPendingStates()
         setVolume(mPendingVolume);
     if (mPendingMute != -1)
         setMuted((mPendingMute == 1));
-    if (mHasPendingPlaybackRate)
-        setPlaybackRate(mPendingPlaybackRate);
 
     switch (newState) {
     case QMediaPlayer::PlayingState:
