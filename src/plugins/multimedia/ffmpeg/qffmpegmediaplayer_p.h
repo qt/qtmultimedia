@@ -71,6 +71,11 @@ public:
 
 private slots:
     void updatePosition();
+    void endOfStream();
+    void error(int error, const QString &errorString)
+    {
+        QPlatformMediaPlayer::error(error, errorString);
+    }
 
 private:
     friend class QFFmpeg::Decoder;

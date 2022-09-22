@@ -126,7 +126,7 @@ StreamDecoder *Demuxer::addStream(int streamIndex)
     QMutexLocker locker(&mutex);
     auto maybeCodec = Codec::create(avStream);
     if (!maybeCodec) {
-        decoder->error(QMediaPlayer::FormatError, "Cannot open codec; " + maybeCodec.error());
+        decoder->errorOccured(QMediaPlayer::FormatError, "Cannot open codec; " + maybeCodec.error());
         return nullptr;
     }
     auto *stream = new StreamDecoder(this, maybeCodec.value());
@@ -858,7 +858,6 @@ void AudioRenderer::loop()
             return;
         }
         eos.storeRelease(false);
-
         if (!audioSink)
             updateOutput(frame.codec());
 
@@ -914,7 +913,6 @@ void AudioRenderer::updateAudio()
 void AudioRenderer::setSoundVolume(float volume)
 {
     QMutexLocker locker(&mutex);
-
     if (audioSink)
         audioSink->setVolume(volume);
 }
@@ -1041,11 +1039,11 @@ void Decoder::setMedia(const QUrl &media, QIODevice *stream)
     QByteArray url = media.toEncoded(QUrl::PreferLocalFile);
 
     AVFormatContext *context = nullptr;
-
     if (stream) {
         if (!stream->isOpen()) {
             if (!stream->open(QIODevice::ReadOnly)) {
-                emitError(QMediaPlayer::ResourceError, QLatin1String("Could not open source device."));
+                emit errorOccured(QMediaPlayer::ResourceError,
+                                  QLatin1String("Could not open source device."));
                 return;
             }
         }
@@ -1065,13 +1063,14 @@ void Decoder::setMedia(const QUrl &media, QIODevice *stream)
         else if (ret == AVERROR(EINVAL))
             code = QMediaPlayer::FormatError;
 
-        emitError(code, QMediaPlayer::tr("Could not open file"));
+        emit errorOccured(code, QMediaPlayer::tr("Could not open file"));
         return;
     }
 
     ret = avformat_find_stream_info(context, nullptr);
     if (ret < 0) {
-        emitError(QMediaPlayer::FormatError, QMediaPlayer::tr("Could not find stream information for media file"));
+        emit errorOccured(QMediaPlayer::FormatError,
+                          QMediaPlayer::tr("Could not find stream information for media file"));
         avformat_free_context(context);
         return;
     }
@@ -1117,39 +1116,6 @@ void Decoder::setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNum
     changeAVTrack(type);
 }
 
-void Decoder::error(int errorCode, const QString &errorString)
-{
-    QMetaObject::invokeMethod(this, "emitError", Q_ARG(int, errorCode), Q_ARG(QString, errorString));
-}
-
-void Decoder::emitError(int error, const QString &errorString)
-{
-    if (player)
-        player->error(error, errorString);
-    else if (audioDecoder) {
-        // unfortunately the error enums for QAudioDecoder and QMediaPlayer aren't identical.
-        // Map them.
-        switch (QMediaPlayer::Error(error)) {
-        case QMediaPlayer::NoError:
-            error = QAudioDecoder::NoError;
-            break;
-        case QMediaPlayer::ResourceError:
-            error = QAudioDecoder::ResourceError;
-            break;
-        case QMediaPlayer::FormatError:
-            error = QAudioDecoder::FormatError;
-            break;
-        case QMediaPlayer::NetworkError:
-            // fall through, Network error doesn't exist in QAudioDecoder
-        case QMediaPlayer::AccessDeniedError:
-            error = QAudioDecoder::AccessDeniedError;
-            break;
-        }
-
-        audioDecoder->error(error, errorString);
-    }
-}
-
 void Decoder::setState(QMediaPlayer::PlaybackState state)
 {
     if (m_state == state)
@@ -1164,7 +1130,6 @@ void Decoder::setState(QMediaPlayer::PlaybackState state)
         seek(0);
         if (videoSink)
             videoSink->setVideoFrame({});
-        updateCurrentTime(0);
         qCDebug(qLcDecoder) << "Decoder::stop: done";
         break;
     case QMediaPlayer::PausedState:
@@ -1213,7 +1178,7 @@ void Decoder::setVideoSink(QVideoSink *sink)
         }
     } else if (!videoRenderer) {
         videoRenderer = new VideoRenderer(this, sink);
-        connect(audioRenderer, &Renderer::atEnd, this, &Decoder::streamAtEnd);
+        connect(videoRenderer, &Renderer::atEnd, this, &Decoder::streamAtEnd);
         videoRenderer->start();
         StreamDecoder *stream = demuxer->addStream(avStreamIndex(QPlatformMediaPlayer::VideoStream));
         videoRenderer->setStream(stream);
@@ -1278,8 +1243,6 @@ void Decoder::seek(qint64 pos)
     pos = qBound(0, pos, m_duration);
     demuxer->seek(pos);
     clockController.syncTo(pos);
-    if (player)
-        player->positionChanged(pos/1000);
     demuxer->wake();
     if (m_state == QMediaPlayer::PausedState)
         triggerStep();
@@ -1290,12 +1253,6 @@ void Decoder::setPlaybackRate(float rate)
     clockController.setPlaybackRate(rate);
 }
 
-void Decoder::updateCurrentTime(qint64 time)
-{
-    if (player)
-        player->positionChanged(time/1000);
-}
-
 void Decoder::streamAtEnd()
 {
     if (audioRenderer && !audioRenderer->isAtEnd())
@@ -1303,13 +1260,8 @@ void Decoder::streamAtEnd()
     if (videoRenderer && !videoRenderer->isAtEnd())
         return;
     pause();
-    // take a local copy, as the signals below could lead to this object being deleted
-    auto *p = player;
-    if (p) {
-        p->positionChanged(m_duration/1000);
-        p->stateChanged(QMediaPlayer::StoppedState);
-        p->mediaStatusChanged(QMediaPlayer::EndOfMedia);
-    }
+
+    emit endOfStream();
 }
 
 QT_END_NAMESPACE

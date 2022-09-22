@@ -38,8 +38,7 @@ class AudioDecoder : public Decoder
 {
     Q_OBJECT
 public:
-    explicit AudioDecoder(QFFmpegAudioDecoder *audioDecoder)
-        : Decoder(audioDecoder)
+    explicit AudioDecoder(QFFmpegAudioDecoder *audioDecoder) : Decoder(), audioDecoder(audioDecoder)
     {}
 
     void setup(const QAudioFormat &format)
@@ -63,6 +62,7 @@ Q_SIGNALS:
     void isAtEnd();
 
 private:
+    QFFmpegAudioDecoder *audioDecoder = nullptr;
     QAudioFormat m_format;
 };
 
@@ -175,6 +175,7 @@ void QFFmpegAudioDecoder::start()
     if (error() != QAudioDecoder::NoError)
         goto error;
 
+    connect(decoder, &QFFmpeg::Decoder::errorOccured, this, &QFFmpegAudioDecoder::errorSignal);
     durationChanged(duration());
     setIsDecoding(true);
     return;
@@ -235,6 +236,28 @@ void QFFmpegAudioDecoder::done()
 {
     qCDebug(qLcAudioDecoder) << ">>>>> DONE!";
     finished();
+}
+
+void QFFmpegAudioDecoder::errorSignal(int err, const QString &errorString)
+{
+    // unfortunately the error enums for QAudioDecoder and QMediaPlayer aren't identical.
+    // Map them.
+    switch (QMediaPlayer::Error(err)) {
+    case QMediaPlayer::NoError:
+        error(QAudioDecoder::NoError, errorString);
+        break;
+    case QMediaPlayer::ResourceError:
+        error(QAudioDecoder::ResourceError, errorString);
+        break;
+    case QMediaPlayer::FormatError:
+        error(QAudioDecoder::FormatError, errorString);
+        break;
+    case QMediaPlayer::NetworkError:
+        // fall through, Network error doesn't exist in QAudioDecoder
+    case QMediaPlayer::AccessDeniedError:
+        error(QAudioDecoder::AccessDeniedError, errorString);
+        break;
+    }
 }
 
 QT_END_NAMESPACE

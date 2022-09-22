@@ -47,8 +47,10 @@ qint64 QFFmpegMediaPlayer::duration() const
 
 void QFFmpegMediaPlayer::setPosition(qint64 position)
 {
-    if (decoder)
-        decoder->seek(position*1000);
+    if (decoder) {
+        decoder->seek(position * 1000);
+        updatePosition();
+    }
     if (state() == QMediaPlayer::StoppedState)
         mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
@@ -56,6 +58,13 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
 void QFFmpegMediaPlayer::updatePosition()
 {
     positionChanged(decoder ? decoder->clockController.currentTime() / 1000 : 0);
+}
+
+void QFFmpegMediaPlayer::endOfStream()
+{
+    positionChanged(duration());
+    stateChanged(QMediaPlayer::StoppedState);
+    mediaStatusChanged(QMediaPlayer::EndOfMedia);
 }
 
 float QFFmpegMediaPlayer::bufferProgress() const
@@ -112,7 +121,9 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     }
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
-    decoder = new Decoder(this);
+    decoder = new Decoder;
+    connect(decoder, &Decoder::endOfStream, this, &QFFmpegMediaPlayer::endOfStream);
+    connect(decoder, &Decoder::errorOccured, this, &QFFmpegMediaPlayer::error);
     decoder->setMedia(media, stream);
     decoder->setAudioSink(m_audioOutput);
     decoder->setVideoSink(m_videoSink);
@@ -125,6 +136,7 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     audioAvailableChanged(!decoder->m_streamMap[QPlatformMediaPlayer::AudioStream].isEmpty());
     videoAvailableChanged(!decoder->m_streamMap[QPlatformMediaPlayer::VideoStream].isEmpty());
 
+
     QMetaObject::invokeMethod(this, "delayedLoadedStatus", Qt::QueuedConnection);
 }
 
@@ -133,8 +145,10 @@ void QFFmpegMediaPlayer::play()
     if (!decoder)
         return;
 
-    if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState)
+    if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState) {
         decoder->seek(0);
+        positionChanged(0);
+    }
     decoder->play();
     positionUpdateTimer.start();
     stateChanged(QMediaPlayer::PlayingState);
@@ -145,8 +159,10 @@ void QFFmpegMediaPlayer::pause()
 {
     if (!decoder)
         return;
-    if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState)
+    if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState) {
         decoder->seek(0);
+        positionChanged(0);
+    }
     decoder->pause();
     positionUpdateTimer.stop();
     stateChanged(QMediaPlayer::PausedState);
@@ -159,6 +175,7 @@ void QFFmpegMediaPlayer::stop()
         return;
     decoder->stop();
     positionUpdateTimer.stop();
+    positionChanged(0);
     stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
