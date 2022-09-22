@@ -210,7 +210,7 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
                     // and the stride, which we need to convert the frame later
                     hr = MFGetStrideForBitmapInfoHeader(subtype.Data1, m_frameWidth, &m_stride);
                     if (SUCCEEDED(hr)) {
-
+                        m_stride = qAbs(m_stride);
                         UINT32 frameRateNum, frameRateDen;
                         hr = MFGetAttributeRatio(m_videoMediaType, MF_MT_FRAME_RATE, &frameRateNum, &frameRateDen);
                         if (SUCCEEDED(hr)) {
