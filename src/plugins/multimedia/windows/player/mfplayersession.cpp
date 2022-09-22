@@ -207,6 +207,10 @@ void MFPlayerSession::handleSourceError(long hr)
         errorCode = QMediaPlayer::FormatError;
         errorString = tr("Unsupported media type.");
         break;
+    case MF_E_UNSUPPORTED_SCHEME:
+        errorCode = QMediaPlayer::ResourceError;
+        errorString = tr("Unsupported URL scheme.");
+        break;
     case QMM_WININET_E_CANNOT_CONNECT:
         errorCode = QMediaPlayer::NetworkError;
         errorString = tr("Connection to server could not be established.");
