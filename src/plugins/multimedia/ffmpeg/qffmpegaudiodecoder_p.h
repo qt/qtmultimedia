@@ -53,6 +53,7 @@ public:
 public Q_SLOTS:
     void newAudioBuffer(const QAudioBuffer &b);
     void done();
+    void errorSignal(int err, const QString &errorString);
 
 private:
     QUrl m_url;

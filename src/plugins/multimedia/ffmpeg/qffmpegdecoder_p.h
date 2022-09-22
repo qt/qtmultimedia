@@ -151,14 +151,6 @@ class Decoder : public QObject
     Q_OBJECT
 public:
     Decoder();
-    Decoder(QFFmpegMediaPlayer *player)
-        : player(player)
-    {
-    }
-    Decoder(QFFmpegAudioDecoder *decoder)
-        : audioDecoder(decoder)
-    {
-    }
     ~Decoder();
 
     void setMedia(const QUrl &media, QIODevice *stream);
@@ -193,12 +185,12 @@ public:
         return m_isSeekable;
     }
 
-    // threadsafe
-    void error(int errorCode, const QString &errorString);
+signals:
+    void endOfStream();
+    void errorOccured(int error, const QString &errorString);
+    void positionChanged(qint64 time);
 
-public Q_SLOTS:
-    void emitError(int error, const QString &errorString);
-    void updateCurrentTime(qint64 time);
+public slots:
     void streamAtEnd();
 
 public:
@@ -217,20 +209,14 @@ private:
 protected:
     friend QFFmpegMediaPlayer;
 
-    QFFmpegMediaPlayer *player = nullptr;
-    QFFmpegAudioDecoder *audioDecoder = nullptr;
-
     QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
     bool m_isSeekable = false;
 
     Demuxer *demuxer = nullptr;
     QVideoSink *videoSink = nullptr;
     Renderer *videoRenderer = nullptr;
-
     QPlatformAudioOutput *audioOutput = nullptr;
     Renderer *audioRenderer = nullptr;
-
-    bool playing = false;
 
     QList<StreamInfo> m_streamMap[QPlatformMediaPlayer::NTrackTypes];
     int m_requestedStreams[QPlatformMediaPlayer::NTrackTypes] = { -1, -1, -1 };
