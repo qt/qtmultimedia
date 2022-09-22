@@ -124,7 +124,7 @@ static int calculateVideoFrameStride(IMFSourceReader *sourceReader, qsizetype fo
             LONG stride = 0;
             hr = MFGetStrideForBitmapInfoHeader(subtype.Data1, width, &stride);
             if (SUCCEEDED(hr))
-                return int(stride);
+                return int(qAbs(stride));
         }
     }
 
