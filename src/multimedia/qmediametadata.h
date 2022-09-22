@@ -4,6 +4,10 @@
 #ifndef QMEDIAMETADATA_H
 #define QMEDIAMETADATA_H
 
+#if 0
+#pragma qt_class(QMediaMetaData)
+#endif
+
 #include <QtCore/qpair.h>
 #include <QtCore/qvariant.h>
 #include <QtCore/qstring.h>

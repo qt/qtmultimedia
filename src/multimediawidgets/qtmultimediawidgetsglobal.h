@@ -4,6 +4,10 @@
 #ifndef QTMULTIMEDIAWIDGETSGLOBAL_H
 #define QTMULTIMEDIAWIDGETSGLOBAL_H
 
+#if 0
+#pragma qt_deprecates(qtmultimediawidgetdefs.h)
+#endif
+
 #include <QtMultimediaWidgets/qtmultimediawidgetsexports.h>
 
 #endif // QTMULTIMEDIAWIDGETSGLOBAL_H

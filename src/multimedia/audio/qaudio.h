@@ -5,6 +5,10 @@
 #ifndef QAUDIO_H
 #define QAUDIO_H
 
+#if 0
+#pragma qt_class(QAudio)
+#endif
+
 #include <QtMultimedia/qtmultimediaglobal.h>
 
 #include <QtCore/qmetatype.h>
