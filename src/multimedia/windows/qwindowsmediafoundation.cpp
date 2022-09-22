@@ -40,7 +40,7 @@ QWindowsMediaFoundation *QWindowsMediaFoundation::instance()
         return nullptr;
 
     std::unique_ptr<QWindowsMediaFoundation> wmf(new QWindowsMediaFoundation);
-    if (wmf->m_mfplat.load()) {
+    if (wmf->m_mfplat.load(false)) {
         if (setProcAddress(wmf->m_mfplat, wmf->mfCreateMediaType, "MFCreateMediaType")
             && setProcAddress(wmf->m_mfplat, wmf->mfCreateMemoryBuffer, "MFCreateMemoryBuffer")
             && setProcAddress(wmf->m_mfplat, wmf->mfCreateSample, "MFCreateSample"))
