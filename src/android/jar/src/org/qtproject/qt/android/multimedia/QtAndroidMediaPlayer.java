@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.MediaFormat;
+import android.media.PlaybackParams;
 import android.media.AudioAttributes;
 import android.media.TimedText;
 import android.net.Uri;
@@ -722,5 +723,29 @@ public class QtAndroidMediaPlayer
         } catch (final IllegalArgumentException exception) {
             Log.w(TAG, exception);
         }
+    }
+
+    public boolean setPlaybackRate(float rate)
+    {
+        PlaybackParams playbackParams = mMediaPlayer.getPlaybackParams();
+        playbackParams.setSpeed(rate);
+        // According to discussion under the patch from QTBUG-61115: At least with DirectShow
+        // and GStreamer, it changes both speed and pitch. (...) need to be consistent
+        if (rate != 0.0)
+            playbackParams.setPitch(Math.abs(rate));
+
+        try {
+            mMediaPlayer.setPlaybackParams(playbackParams);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            Log.e(TAG, "Cannot set playback rate " + rate + " :" + e.toString());
+            return false;
+        }
+
+        if ((mState & State.Started) == 0 && mMediaPlayer.isPlaying()) {
+            setState(State.Started);
+            startProgressWatcher();
+        }
+
+        return true;
     }
 }
