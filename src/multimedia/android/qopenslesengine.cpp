@@ -133,11 +133,7 @@ static bool requestPermissions()
 
 QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) const
 {
-    bool hasRecordPermissions = hasRecordPermission();
-    if (!hasRecordPermissions)
-        hasRecordPermissions = requestPermissions();
-
-    if (mode == QAudioDevice::Input && hasRecordPermissions) {
+    if (mode == QAudioDevice::Input) {
         if (!m_checkedInputFormats)
             const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputChannelCounts;
@@ -148,7 +144,7 @@ QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) cons
 
 QList<int> QOpenSLESEngine::supportedSampleRates(QAudioDevice::Mode mode) const
 {
-    if (mode == QAudioDevice::Input && hasRecordPermission()) {
+    if (mode == QAudioDevice::Input) {
         if (!m_checkedInputFormats)
             const_cast<QOpenSLESEngine *>(this)->checkSupportedInputFormats();
         return m_supportedInputSampleRates;
@@ -355,6 +351,14 @@ bool QOpenSLESEngine::inputFormatIsSupported(SLAndroidDataFormat_PCM_EX format)
 
     SLDataLocator_AndroidSimpleBufferQueue loc_bq = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 1 };
     SLDataSink audioSnk = { &loc_bq, &format };
+
+    // only ask permission when it is about to create the audiorecorder
+    bool hasRecordPermissions = hasRecordPermission();
+    if (!hasRecordPermissions)
+        hasRecordPermissions = requestPermissions();
+
+    if (!hasRecordPermissions)
+        return false;
 
     result = (*m_engine)->CreateAudioRecorder(m_engine, &recorder, &audioSrc, &audioSnk, 0, 0, 0);
     if (result == SL_RESULT_SUCCESS)
