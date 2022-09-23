@@ -667,8 +667,6 @@ static std::unique_ptr<QRhiTexture> createTextureFromHandle(const QVideoFrame &f
             return tex;
 
         qWarning("Failed to initialize QRhiTexture wrapper for native texture object %llu",handle);
-    } else {
-        qCDebug(qLcVideoTextureHelper) << "Incorrect texture handle from QVideoFrame, trying to map and upload texture";
     }
     return {};
 }
