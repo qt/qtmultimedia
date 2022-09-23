@@ -39,7 +39,7 @@ qhp.QtMultimedia.subprojects.widgetclasses.sortPages = true
 
 qhp.QtMultimedia.subprojects.qmltypes.title = QML Types
 qhp.QtMultimedia.subprojects.qmltypes.indexTitle = Qt Multimedia QML Types
-qhp.QtMultimedia.subprojects.qmltypes.selectors = qmlclass
+qhp.QtMultimedia.subprojects.qmltypes.selectors = qmltype
 qhp.QtMultimedia.subprojects.qmltypes.sortPages = true
 
 qhp.QtMultimedia.subprojects.examples.title = Examples

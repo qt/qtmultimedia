@@ -452,7 +452,7 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 
     Gets or sets the currently active camera format.
 
-    \sa CameraDevice::videoFormats
+    \sa cameraDevice::videoFormats
 */
 
 /*!
@@ -620,14 +620,14 @@ void QCamera::setCustomFocusPoint(const QPointF &point)
 }
 
 /*!
-    \qmlproperty float QCamera::focusDistance
+    \qmlproperty float QtMultimedia::Camera::focusDistance
 
     This property return an approximate focus distance of the camera. The value reported
     is between 0 and 1, 0 being the closest possible focus distance, 1 being as far away
     as possible. Note that 1 is often, but not always infinity.
 
     Setting the focus distance will be ignored unless the focus mode is set to
-    \l FocusModeManual.
+    \l {focusMode}{FocusModeManual}.
 */
 
 /*!
@@ -770,11 +770,15 @@ void QCamera::zoomTo(float factor, float rate)
 */
 
 /*!
-    \qmlproperty Camera::FlashMode QtMultimedia::Camera::flashMode
+    \qmlproperty enumeration QtMultimedia::Camera::flashMode
 
     Gets or sets a certain flash mode if the camera has a flash.
 
-    \sa QCamera::FlashMode, Camera::isFlashModeSupported, Camera::isFlashReady
+    \value Camera.FlashOff      Flash is Off.
+    \value Camera.FlashOn       Flash is On.
+    \value Camera.FlashAuto     Automatic flash.
+
+    \sa isFlashModeSupported, isFlashReady
 */
 
 /*!
@@ -920,7 +924,7 @@ bool QCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 }
 
 /*!
-    \qmlproperty real QCamera::exposureCompensation
+    \qmlproperty real QtMultimedia::Camera::exposureCompensation
 
     Gets or sets the exposure compensation in EV units.
 
