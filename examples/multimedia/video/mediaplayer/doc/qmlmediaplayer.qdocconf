@@ -1,7 +1,4 @@
-HTML.extraimages           += images/OqosZsDqvzQ.jpg \
-                            images/sf_yv01UtIw.jpg \
-                            images/nHrBbW0H-pc.jpg
-
-qhp.QtMultimedia.extraFiles += images/OqosZsDqvzQ.jpg \
-                            images/sf_yv01UtIw.jpg \
-                            images/nHrBbW0H-pc.jpg
+{HTML.extraimages,DocBook.extraFiles,qhp.QtMultimedia.extraFiles} += \
+    images/OqosZsDqvzQ.jpg \
+    images/sf_yv01UtIw.jpg \
+    images/nHrBbW0H-pc.jpg

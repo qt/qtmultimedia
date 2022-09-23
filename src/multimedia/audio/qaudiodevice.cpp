@@ -314,7 +314,7 @@ QAudioDevice::QAudioDevice(QAudioDevicePrivate *p) : d(p) { }
 /*!
     \enum QAudioDevice::Mode
 
-    Describes the mode of a QAudioDevice
+    Describes the mode of this device.
 
     \value Null
          A null device.
