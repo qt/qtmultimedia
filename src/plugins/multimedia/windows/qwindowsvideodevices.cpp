@@ -95,126 +95,130 @@ QWindowsVideoDevices::~QWindowsVideoDevices()
     }
 }
 
+static std::optional<QCameraFormat> createCameraFormat(IMFMediaType *mediaFormat)
+{
+    GUID subtype = GUID_NULL;
+    if (FAILED(mediaFormat->GetGUID(MF_MT_SUBTYPE, &subtype)))
+        return {};
+
+    auto pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
+    if (pixelFormat == QVideoFrameFormat::Format_Invalid)
+        return {};
+
+    UINT32 width = 0u;
+    UINT32 height = 0u;
+    if (FAILED(MFGetAttributeSize(mediaFormat, MF_MT_FRAME_SIZE, &width, &height)))
+        return {};
+    QSize resolution{ int(width), int(height) };
+
+    UINT32 num = 0u;
+    UINT32 den = 0u;
+    float minFr = 0.f;
+    float maxFr = 0.f;
+
+    if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MIN, &num, &den)))
+        minFr = float(num) / float(den);
+
+    if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MAX, &num, &den)))
+        maxFr = float(num) / float(den);
+
+    auto *f = new QCameraFormatPrivate{ QSharedData(), pixelFormat, resolution, minFr, maxFr };
+    return f->create();
+}
+
+static QString getString(IMFActivate *device, const IID &id)
+{
+    WCHAR *str = NULL;
+    UINT32 length = 0;
+    HRESULT hr = device->GetAllocatedString(id, &str, &length);
+    if (SUCCEEDED(hr)) {
+        auto qstr = QString::fromWCharArray(str);
+        CoTaskMemFree(str);
+        return qstr;
+    } else {
+        return {};
+    }
+}
+
+static std::optional<QCameraDevice> createCameraDevice(IMFActivate *device)
+{
+    auto info = std::make_unique<QCameraDevicePrivate>();
+    info->description = getString(device, MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME);
+    info->id = getString(device, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK).toUtf8();
+
+    IMFMediaSource *source = NULL;
+    HRESULT hr = device->ActivateObject(IID_PPV_ARGS(&source));
+    if (FAILED(hr))
+        return {};
+
+    QWindowsIUPointer<IMFSourceReader> reader;
+    hr = MFCreateSourceReaderFromMediaSource(source, NULL, reader.address());
+    if (FAILED(hr))
+        return {};
+
+    QList<QSize> photoResolutions;
+    QList<QCameraFormat> videoFormats;
+    for (DWORD i = 0;; ++i) {
+        // Loop through the supported formats for the video device
+        QWindowsIUPointer<IMFMediaType> mediaFormat;
+        hr = reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, i,
+                                        mediaFormat.address());
+        if (FAILED(hr))
+            break;
+
+        auto maybeCamera = createCameraFormat(mediaFormat.get());
+        if (maybeCamera) {
+            videoFormats << *maybeCamera;
+            photoResolutions << maybeCamera->resolution();
+        }
+    }
+
+    info->videoFormats = videoFormats;
+    info->photoResolutions = photoResolutions;
+    return info.release()->create();
+}
+
+static QList<QCameraDevice> readCameraDevices(IMFAttributes *attr)
+{
+    QList<QCameraDevice> cameras;
+    UINT32 count = 0;
+    IMFActivate **devices = NULL;
+    HRESULT hr = MFEnumDeviceSources(attr, &devices, &count);
+    if (SUCCEEDED(hr)) {
+        for (UINT32 i = 0; i < count; i++) {
+            IMFActivate *device = devices[i];
+            if (device) {
+                auto maybeCamera = createCameraDevice(device);
+                if (maybeCamera)
+                    cameras << *maybeCamera;
+
+                device->Release();
+            }
+        }
+        CoTaskMemFree(devices);
+    }
+    return cameras;
+}
+
 QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
 {
     QList<QCameraDevice> cameras;
 
-    IMFAttributes *pAttributes = NULL;
-    IMFActivate **ppDevices = NULL;
+    QWindowsIUPointer<IMFAttributes> attr;
+    HRESULT hr = MFCreateAttributes(attr.address(), 2);
+    if (FAILED(hr))
+        return {};
 
-    // Create an attribute store to specify the enumeration parameters.
-    HRESULT hr = MFCreateAttributes(&pAttributes, 1);
+    hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+                       MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
     if (SUCCEEDED(hr)) {
-        // Source type: video capture devices
-        hr = pAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-                                  MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+        cameras << readCameraDevices(attr.get());
 
-        if (SUCCEEDED(hr)) {
-            // Enumerate devices.
-            UINT32 count;
-            hr = MFEnumDeviceSources(pAttributes, &ppDevices, &count);
-            if (SUCCEEDED(hr)) {
-                // Iterate through devices.
-                for (int index = 0; index < int(count); index++) {
-                    QCameraDevicePrivate *info = new QCameraDevicePrivate;
-
-                    IMFMediaSource *pSource = NULL;
-                    IMFSourceReader *reader = NULL;
-
-                    WCHAR *deviceName = NULL;
-                    UINT32 deviceNameLength = 0;
-                    UINT32 deviceIdLength = 0;
-                    WCHAR *deviceId = NULL;
-
-                    hr = ppDevices[index]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
-                                                              &deviceName, &deviceNameLength);
-                    if (SUCCEEDED(hr))
-                        info->description = QString::fromWCharArray(deviceName);
-                    CoTaskMemFree(deviceName);
-
-                    hr = ppDevices[index]->GetAllocatedString(
-                            MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &deviceId,
-                            &deviceIdLength);
-                    if (SUCCEEDED(hr))
-                        info->id = QString::fromWCharArray(deviceId).toUtf8();
-                    CoTaskMemFree(deviceId);
-
-                    // Create the media source object.
-                    ppDevices[index]->ActivateObject(IID_PPV_ARGS(&pSource));
-                    // Create the media source reader.
-                    hr = MFCreateSourceReaderFromMediaSource(pSource, NULL, &reader);
-                    if (SUCCEEDED(hr)) {
-                        QList<QSize> photoResolutions;
-                        QList<QCameraFormat> videoFormats;
-
-                        GUID subtype = GUID_NULL;
-                        HRESULT mediaFormatResult = S_OK;
-
-                        UINT32 frameRateMin = 0u;
-                        UINT32 frameRateMax = 0u;
-                        UINT32 denominator = 0u;
-                        UINT32 width = 0u;
-                        UINT32 height = 0u;
-
-                        for (DWORD mediaTypeIndex = 0; SUCCEEDED(mediaFormatResult); ++mediaTypeIndex) {
-                            // Loop through the supported formats for the video device
-                            QWindowsIUPointer<IMFMediaType> mediaFormat;
-                            mediaFormatResult = reader->GetNativeMediaType(
-                                    (DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, mediaTypeIndex,
-                                    mediaFormat.address());
-                            if (mediaFormatResult == MF_E_NO_MORE_TYPES)
-                                break;
-                            else if (SUCCEEDED(mediaFormatResult)) {
-                                QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
-                                QSize resolution;
-                                float minFr = .0;
-                                float maxFr = .0;
-
-                                if (SUCCEEDED(mediaFormat->GetGUID(MF_MT_SUBTYPE, &subtype)))
-                                    pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
-
-                                if (pixelFormat == QVideoFrameFormat::Format_Invalid)
-                                    continue;
-
-                                if (SUCCEEDED(MFGetAttributeSize(mediaFormat.get(), MF_MT_FRAME_SIZE, &width,
-                                                                 &height))) {
-                                    resolution.rheight() = (int)height;
-                                    resolution.rwidth() = (int)width;
-                                    photoResolutions << resolution;
-                                } else {
-                                    continue;
-                                }
-
-                                if (SUCCEEDED(MFGetAttributeRatio(mediaFormat.get(), MF_MT_FRAME_RATE_RANGE_MIN,
-                                                                  &frameRateMin, &denominator)))
-                                    minFr = qreal(frameRateMin) / denominator;
-                                if (SUCCEEDED(MFGetAttributeRatio(mediaFormat.get(), MF_MT_FRAME_RATE_RANGE_MAX,
-                                                                  &frameRateMax, &denominator)))
-                                    maxFr = qreal(frameRateMax) / denominator;
-
-                                auto *f = new QCameraFormatPrivate { QSharedData(), pixelFormat,
-                                                                    resolution, minFr, maxFr };
-                                videoFormats << f->create();
-                            }
-                        }
-
-                        info->videoFormats = videoFormats;
-                        info->photoResolutions = photoResolutions;
-                    }
-                    if (reader)
-                        reader->Release();
-                    cameras.append(info->create());
-                }
-            }
-            for (DWORD i = 0; i < count; i++) {
-                if (ppDevices[i])
-                    ppDevices[i]->Release();
-            }
-            CoTaskMemFree(ppDevices);
-        }
+        hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_CATEGORY,
+                           QMM_KSCATEGORY_SENSOR_CAMERA);
+        if (SUCCEEDED(hr))
+            cameras << readCameraDevices(attr.get());
     }
-    if (pAttributes)
-        pAttributes->Release();
 
     return cameras;
 }
