@@ -7,6 +7,7 @@
 
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qwindowsmfdefs_p.h>
+#include <private/qwindowsmultimediautils_p.h>
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -16,6 +17,8 @@
 #include <system_error>
 
 QT_BEGIN_NAMESPACE
+
+using namespace QWindowsMultimediaUtils;
 
 class CameraReaderCallback : public IMFSourceReaderCallback
 {
@@ -111,47 +114,64 @@ static QWindowsIUPointer<IMFMediaSource> createCameraSource(const QString &devic
     return mediaSource;
 }
 
-static int calculateVideoFrameStride(IMFSourceReader *sourceReader, qsizetype formatIndex, int width)
+static int calculateVideoFrameStride(IMFMediaType *videoType, int width)
 {
-    Q_ASSERT(sourceReader);
-    QWindowsIUPointer<IMFMediaType> videoType;
-    HRESULT hr = sourceReader->GetNativeMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                                  formatIndex, videoType.address());
+    Q_ASSERT(videoType);
+
+    GUID subtype = GUID_NULL;
+    HRESULT hr = videoType->GetGUID(MF_MT_SUBTYPE, &subtype);
     if (SUCCEEDED(hr)) {
-        GUID subtype = GUID_NULL;
-        hr = videoType->GetGUID(MF_MT_SUBTYPE, &subtype);
-        if (SUCCEEDED(hr)) {
-            LONG stride = 0;
-            hr = MFGetStrideForBitmapInfoHeader(subtype.Data1, width, &stride);
-            if (SUCCEEDED(hr))
-                return int(qAbs(stride));
-        }
+        LONG stride = 0;
+        hr = MFGetStrideForBitmapInfoHeader(subtype.Data1, width, &stride);
+        if (SUCCEEDED(hr))
+            return int(qAbs(stride));
     }
 
-    qWarning() << "Failed to calculate video stride" << hr;
+    qWarning() << "Failed to calculate video stride" << errorString(hr);
     return 0;
 }
 
-static bool setCameraReaderFormat(IMFSourceReader *sourceReader, qsizetype formatIndex)
+static bool setCameraReaderFormat(IMFSourceReader *sourceReader, IMFMediaType *videoType)
 {
     Q_ASSERT(sourceReader);
+    Q_ASSERT(videoType);
 
-    QWindowsIUPointer<IMFMediaType> videoType;
-    HRESULT hr = sourceReader->GetNativeMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                                  formatIndex, videoType.address());
-    if (SUCCEEDED(hr)) {
-        hr = sourceReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                               nullptr, videoType.get());
-        if (SUCCEEDED(hr)) {
-            return true;
-        } else {
-            qWarning() << "Failed to set video format" << hr << std::system_category().message(hr).c_str();
-        }
-    } else {
-        qWarning() << "Failed to select video format at index" << formatIndex << hr << std::system_category().message(hr).c_str();
+    HRESULT hr = sourceReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr,
+                                                   videoType);
+    if (FAILED(hr))
+        qWarning() << "Failed to set video format" << errorString(hr);
+
+    return SUCCEEDED(hr);
+}
+
+static QWindowsIUPointer<IMFMediaType> findVideoType(IMFSourceReader *reader,
+                                                     const QCameraFormat &format)
+{
+    for (DWORD i = 0;; ++i) {
+        QWindowsIUPointer<IMFMediaType> candidate;
+        HRESULT hr = reader->GetNativeMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, i,
+                                                candidate.address());
+        if (FAILED(hr))
+            break;
+
+        GUID subtype = GUID_NULL;
+        if (FAILED(candidate->GetGUID(MF_MT_SUBTYPE, &subtype)))
+            continue;
+
+        if (format.pixelFormat() != pixelFormatFromMediaSubtype(subtype))
+            continue;
+
+        UINT32 width = 0u;
+        UINT32 height = 0u;
+        if (FAILED(MFGetAttributeSize(candidate.get(), MF_MT_FRAME_SIZE, &width, &height)))
+            continue;
+
+        if (format.resolution() != QSize{ int(width), int(height) })
+            continue;
+
+        return candidate;
     }
-
-    return false;
+    return {};
 }
 
 class ActiveCamera {
@@ -171,29 +191,28 @@ public:
         if (!ac->m_reader)
             return {};
 
-        qsizetype index = device.videoFormats().indexOf(format);
-        if (index < 0)
-            return {};
-
-        if (!ac->setFormat(format, index))
+        if (!ac->setFormat(format))
             return {};
 
         return ac;
     }
 
-    bool setFormat(const QCameraFormat &format, int formatIndex)
+    bool setFormat(const QCameraFormat &format)
     {
         m_reader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
         m_flushWait.acquire();
 
-        if (!setCameraReaderFormat(m_reader.get(), formatIndex))
-            return false;
+        auto videoType = findVideoType(m_reader.get(), format);
+        if (videoType) {
+            if (setCameraReaderFormat(m_reader.get(), videoType.get())) {
+                m_frameFormat = { format.resolution(), format.pixelFormat() };
+                m_videoFrameStride =
+                        calculateVideoFrameStride(videoType.get(), format.resolution().width());
+            }
+        }
 
-        m_frameFormat = { format.resolution(), format.pixelFormat() };
-        m_videoFrameStride = calculateVideoFrameStride(m_reader.get(), formatIndex, format.resolution().width());
-
-        m_reader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr,
-                             nullptr, nullptr, nullptr);
+        m_reader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, nullptr, nullptr,
+                             nullptr);
         return true;
     }
 
@@ -321,11 +340,10 @@ void QWindowsCamera::setCamera(const QCameraDevice &camera)
 
 bool QWindowsCamera::setCameraFormat(const QCameraFormat &format)
 {
-    qsizetype index = m_cameraDevice.videoFormats().indexOf(format);
-    if (index < 0)
+    if (format.isNull())
         return false;
 
-    bool ok = m_active ? m_active->setFormat(format, index) : true;
+    bool ok = m_active ? m_active->setFormat(format) : true;
     if (ok)
         m_cameraFormat = format;
 
