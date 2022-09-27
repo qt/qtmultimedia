@@ -26,6 +26,7 @@
 #include <qshareddata.h>
 #include <qtimer.h>
 #include <qqueue.h>
+#include <qpointer.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -97,13 +98,21 @@ private:
 struct Frame
 {
     struct Data {
-        Data(AVFrame *f, const Codec &codec, qint64 pts)
-            : codec(codec)
-            , frame(f)
-            , pts(pts)
-        {}
-        Data(const QString &text, qint64 pts, qint64 duration)
-            : text(text), pts(pts), duration(duration)
+        Data(AVFrame *f, const Codec &codec, qint64, const QObject *source)
+            : codec(codec), frame(f), source(source)
+        {
+            Q_ASSERT(frame);
+            if (frame->pts != AV_NOPTS_VALUE)
+                pts = codec.toUs(frame->pts);
+            else
+                pts = codec.toUs(frame->best_effort_timestamp);
+            const auto &avgFrameRate = codec.stream()->avg_frame_rate;
+            duration = avgFrameRate.num
+                    ? (1000000 * avgFrameRate.den + avgFrameRate.num / 2) / avgFrameRate.num
+                    : 0;
+        }
+        Data(const QString &text, qint64 pts, qint64 duration, const QObject *source)
+            : text(text), pts(pts), duration(duration), source(source)
         {}
         ~Data() {
             if (frame)
@@ -115,13 +124,14 @@ struct Frame
         QString text;
         qint64 pts = -1;
         qint64 duration = -1;
+        QPointer<const QObject> source;
     };
     Frame() = default;
-    Frame(AVFrame *f, const Codec &codec, qint64 pts)
-        : d(new Data(f, codec, pts))
+    Frame(AVFrame *f, const Codec &codec, qint64 pts, const QObject *source = nullptr)
+        : d(new Data(f, codec, pts, source))
     {}
-    Frame(const QString &text, qint64 pts, qint64 duration)
-        : d(new Data(text, pts, duration))
+    Frame(const QString &text, qint64 pts, qint64 duration, const QObject *source = nullptr)
+        : d(new Data(text, pts, duration, source))
     {}
     bool isValid() const { return !!d; }
 
@@ -136,6 +146,8 @@ struct Frame
     qint64 duration() const { return d->duration; }
     qint64 end() const { return d->pts + d->duration; }
     QString text() const { return d->text; }
+    const QObject *source() const { return d->source; };
+
 private:
     QExplicitlySharedDataPointer<Data> d;
 };
@@ -177,6 +189,8 @@ public:
     void seek(qint64 pos);
     void setPlaybackRate(float rate);
 
+    qint64 currentPosition() const;
+
     int activeTrack(QPlatformMediaPlayer::TrackType type);
     void setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
@@ -191,6 +205,7 @@ signals:
     void positionChanged(qint64 time);
 
 public slots:
+
     void streamAtEnd();
 
 public:
@@ -496,6 +511,9 @@ private:
 }
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QFFmpeg::Packet)
+Q_DECLARE_METATYPE(QFFmpeg::Frame)
 
 #endif
 

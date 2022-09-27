@@ -1113,6 +1113,8 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
         }*/
     }
 
+    duration += waitingInterval * player.playbackRate();
+
     QCOMPARE_GT(duration, minDuration);
 
     QCOMPARE(spy.size(), 1);

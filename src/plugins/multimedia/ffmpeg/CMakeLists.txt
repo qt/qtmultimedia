@@ -36,6 +36,17 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
         qffmpegscreencapturebase.cpp qffmpegscreencapturebase_p.h
         qffmpegscreencapture.cpp qffmpegscreencapture_p.h
+
+        qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
+        playbackengine/qffmpegplaybackengineobject.cpp playbackengine/qffmpegplaybackengineobject_p.h
+        playbackengine/qffmpegdemuxer.cpp playbackengine/qffmpegdemuxer_p.h
+        playbackengine/qffmpegstreamdecoder.cpp playbackengine/qffmpegstreamdecoder_p.h
+        playbackengine/qffmpegrenderer.cpp playbackengine/qffmpegrenderer_p.h
+        playbackengine/qffmpegaudiorenderer.cpp playbackengine/qffmpegaudiorenderer_p.h
+        playbackengine/qffmpegvideorenderer.cpp playbackengine/qffmpegvideorenderer_p.h
+        playbackengine/qffmpegsubtitleenderer.cpp playbackengine/qffmpegsubtitlerenderer_p.h
+        playbackengine/qffmpegtimecontroller.cpp playbackengine/qffmpegtimecontroller_p.h
+        playbackengine/qffmpegmediadataholder.cpp playbackengine/qffmpegmediadataholder_p.h
     DEFINES
         QT_COMPILING_FFMPEG
     LIBRARIES

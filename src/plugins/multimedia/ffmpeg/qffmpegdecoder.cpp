@@ -1264,4 +1264,8 @@ void Decoder::streamAtEnd()
     emit endOfStream();
 }
 
+qint64 Decoder::currentPosition() const {
+    return clockController.currentTime();
+}
+
 QT_END_NAMESPACE

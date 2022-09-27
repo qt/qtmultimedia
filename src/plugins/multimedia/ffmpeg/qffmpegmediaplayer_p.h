@@ -24,6 +24,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 class Decoder;
+class PlaybackEngine;
 }
 class QPlatformAudioOutput;
 
@@ -31,6 +32,7 @@ class QFFmpegMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:
+    using Decoder = QFFmpeg::PlaybackEngine;
     QFFmpegMediaPlayer(QMediaPlayer *player);
     ~QFFmpegMediaPlayer();
 
@@ -82,7 +84,7 @@ private:
 
     QTimer positionUpdateTimer;
 
-    QFFmpeg::Decoder *decoder = nullptr;
+    std::unique_ptr<Decoder> decoder;
     QPlatformAudioOutput *m_audioOutput = nullptr;
     QVideoSink *m_videoSink = nullptr;
 

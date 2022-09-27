@@ -13,6 +13,8 @@
 #include "qaudiosink.h"
 #include "qaudiooutput.h"
 
+#include "qffmpegplaybackengine_p.h"
+
 #include <qlocale.h>
 #include <qthread.h>
 #include <qatomic.h>
@@ -30,19 +32,16 @@ using namespace QFFmpeg;
 QFFmpegMediaPlayer::QFFmpegMediaPlayer(QMediaPlayer *player)
     : QPlatformMediaPlayer(player)
 {
-    positionUpdateTimer.setInterval(100);
+    positionUpdateTimer.setInterval(50);
     positionUpdateTimer.setTimerType(Qt::PreciseTimer);
     connect(&positionUpdateTimer, &QTimer::timeout, this, &QFFmpegMediaPlayer::updatePosition);
 }
 
-QFFmpegMediaPlayer::~QFFmpegMediaPlayer()
-{
-    delete decoder;
-}
+QFFmpegMediaPlayer::~QFFmpegMediaPlayer() = default;
 
 qint64 QFFmpegMediaPlayer::duration() const
 {
-    return decoder ? decoder->m_duration/1000 : 0;
+    return decoder ? decoder->m_duration / 1000 : 0;
 }
 
 void QFFmpegMediaPlayer::setPosition(qint64 position)
@@ -57,7 +56,7 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
 
 void QFFmpegMediaPlayer::updatePosition()
 {
-    positionChanged(decoder ? decoder->clockController.currentTime() / 1000 : 0);
+    positionChanged(decoder ? decoder->currentPosition() / 1000 : 0);
 }
 
 void QFFmpegMediaPlayer::endOfStream()
@@ -105,8 +104,6 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 {
     m_url = media;
     m_device = stream;
-    if (decoder)
-        delete decoder;
     decoder = nullptr;
 
     positionChanged(0);
@@ -121,9 +118,9 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     }
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
-    decoder = new Decoder;
-    connect(decoder, &Decoder::endOfStream, this, &QFFmpegMediaPlayer::endOfStream);
-    connect(decoder, &Decoder::errorOccured, this, &QFFmpegMediaPlayer::error);
+    decoder = std::make_unique<Decoder>();
+    connect(decoder.get(), &Decoder::endOfStream, this, &QFFmpegMediaPlayer::endOfStream);
+    connect(decoder.get(), &Decoder::errorOccured, this, &QFFmpegMediaPlayer::error);
     decoder->setMedia(media, stream);
     decoder->setAudioSink(m_audioOutput);
     decoder->setVideoSink(m_videoSink);
@@ -224,7 +221,7 @@ QMediaMetaData QFFmpegMediaPlayer::trackMetaData(TrackType type, int streamNumbe
 
 int QFFmpegMediaPlayer::activeTrack(TrackType type)
 {
-    return decoder ? decoder->m_requestedStreams[type] : -1;
+    return decoder ? decoder->activeTrack(type) : -1;
 }
 
 void QFFmpegMediaPlayer::setActiveTrack(TrackType type, int streamNumber)
