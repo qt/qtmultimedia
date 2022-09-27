@@ -105,6 +105,12 @@ QAudioSource::QAudioSource(const QAudioDevice &audioDevice, const QAudioFormat &
 }
 
 /*!
+    \fn bool QAudioSource::isNull() const
+
+    Returns \c true if the audio source is \c null, otherwise returns \c false.
+*/
+
+/*!
     Destroy this audio input.
 */
 

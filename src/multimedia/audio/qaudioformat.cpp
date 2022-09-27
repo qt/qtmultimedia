@@ -81,9 +81,15 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \fn QAudioFormat& QAudioFormat::operator=(const QAudioFormat &other)
+    \fn bool QAudioFormat::operator==(const QAudioFormat &a, const QAudioFormat &b)
 
-    Assigns \a other to this QAudioFormat implementation.
+    Returns \c true if audio format \a a is equal to \a b, otherwise returns \c false.
+*/
+
+/*!
+    \fn bool QAudioFormat::operator!=(const QAudioFormat &a, const QAudioFormat &b)
+
+    Returns \c true if audio format \a a is not equal to \a b, otherwise returns \c false.
 */
 
 /*!
@@ -136,7 +142,10 @@ QT_BEGIN_NAMESPACE
     \value BottomFrontLeft
     \value BottomFrontRight
 */
-
+/*!
+    \variable QAudioFormat::NChannelPositions
+    \internal
+*/
 
 /*!
     \enum QAudioFormat::ChannelConfig
@@ -146,15 +155,22 @@ QT_BEGIN_NAMESPACE
     and 7.1 surround configurations.
 
     \value ChannelConfigUnknown The channel configuration is not known.
-    \value ChannelConfigMono The audio has one Center channel
-    \value ChannelConfigStereo The audio has two channels, Left and Right
-    \value ChannelConfig2Dot1 The audio has three channels, Left, Right and LFE (low frequency effect)
-    \value ChannelConfig3Dot0 The audio has three channels, Left, Right and Center
-    \value ChannelConfig3Dot1 The audio has four channels, Left, Right, Center and LFE (low frequency effect)
-    \value ChannelConfigSurround5Dot0 The audio has five channels, Left, Right, Center, BackLeft, BackRight
-    \value ChannelConfigSurround5Dot1 The audio has 6 channels, Left, Right, Center, LFE, BackLeft and BackRight
-    \value ChannelConfigSurround7Dot0 The audio has 7 channels, Left, Right, Center, BackLeft, BackRight, SideLeft and SideRight
-    \value ChannelConfigSurround7Dot1 The audio has 8 channels, Left, Right, Center, LFE, BackLeft, BackRight, SideLeft and SideRight
+    \value ChannelConfigMono The audio has one Center channel.
+    \value ChannelConfigStereo The audio has two channels, Left and Right.
+    \value ChannelConfig2Dot1 The audio has three channels, Left, Right and
+           LFE (low frequency effect).
+    \value ChannelConfig3Dot0 The audio has three channels, Left, Right, and
+           Center.
+    \value ChannelConfig3Dot1 The audio has four channels, Left, Right, Center,
+           and LFE (low frequency effect).
+    \value ChannelConfigSurround5Dot0 The audio has five channels, Left, Right,
+           Center, BackLeft, and BackRight.
+    \value ChannelConfigSurround5Dot1 The audio has 6 channels, Left, Right,
+           Center, LFE, BackLeft, and BackRight.
+    \value ChannelConfigSurround7Dot0 The audio has 7 channels, Left, Right,
+           Center, BackLeft, BackRight, SideLeft, and SideRight.
+    \value ChannelConfigSurround7Dot1 The audio has 8 channels, Left, Right,
+           Center, LFE, BackLeft, BackRight, SideLeft, and SideRight.
 */
 
 /*!
@@ -194,7 +210,11 @@ int QAudioFormat::channelOffset(AudioChannelPosition channel) const noexcept
     config to ChannelConfigUnknown.
 */
 
+/*!
+    \fn template <typename... Args> QAudioFormat::ChannelConfig QAudioFormat::channelConfig(Args... channels)
 
+    Returns the current channel configuration for the given \a channels.
+*/
 /*!
     \fn QAudioFormat::ChannelConfig QAudioFormat::channelConfig() const noexcept
 
@@ -340,11 +360,15 @@ float QAudioFormat::normalizedSampleValue(const void *sample) const
 {
     switch (m_sampleFormat) {
     case UInt8:
-        return ((float)*reinterpret_cast<const quint8 *>(sample))/(float)std::numeric_limits<qint8>::max() - 1.;
+        return ((float)*reinterpret_cast<const quint8 *>(sample))
+                / (float)std::numeric_limits<qint8>::max()
+                - 1.;
     case Int16:
-        return ((float)*reinterpret_cast<const qint16 *>(sample))/(float)std::numeric_limits<qint16>::max();
+        return ((float)*reinterpret_cast<const qint16 *>(sample))
+                / (float)std::numeric_limits<qint16>::max();
     case Int32:
-        return ((float)*reinterpret_cast<const qint32 *>(sample))/(float)std::numeric_limits<qint32>::max();
+        return ((float)*reinterpret_cast<const qint32 *>(sample))
+                / (float)std::numeric_limits<qint32>::max();
     case Float:
         return *reinterpret_cast<const float *>(sample);
     case Unknown:
@@ -442,12 +466,10 @@ QDebug operator<<(QDebug dbg, QAudioFormat::SampleFormat type)
 
 QDebug operator<<(QDebug dbg, const QAudioFormat &f)
 {
-    dbg << "QAudioFormat(" << f.sampleRate() << "Hz, " << f.channelCount() << "Channels, " << f.sampleFormat() << "Format )";
+    dbg << "QAudioFormat(" << f.sampleRate() << "Hz, " << f.channelCount() << "Channels, "
+        << f.sampleFormat() << "Format )";
     return dbg;
 }
 #endif
 
-
-
 QT_END_NAMESPACE
-
