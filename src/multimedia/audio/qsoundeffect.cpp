@@ -450,6 +450,11 @@ void QSoundEffect::setLoopCount(int loopCount)
     emit loopCountChanged();
 }
 
+/*!
+    \property QSoundEffect::audioDevice
+
+    Returns the QAudioDevice instance.
+*/
 QAudioDevice QSoundEffect::audioDevice()
 {
     return d->m_audioDevice;

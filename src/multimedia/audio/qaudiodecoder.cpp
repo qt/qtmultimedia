@@ -73,8 +73,8 @@ bool QAudioDecoder::isDecoding() const
 }
 
 /*!
-    \property QAudioDecoder::error
-    \brief The current error state.
+
+    Returns the current error state of the QAudioDecoder.
 */
 QAudioDecoder::Error QAudioDecoder::error() const
 {
@@ -82,6 +82,8 @@ QAudioDecoder::Error QAudioDecoder::error() const
 }
 
 /*!
+    \property QAudioDecoder::error
+
     Returns a human readable description of the current error, or
     an empty string is there is no error.
 */
@@ -276,7 +278,7 @@ QAudioBuffer QAudioDecoder::read() const
 
 // Signals
 /*!
-    \fn QAudioDecoder::error(QAudioDecoder::Error error)
+    \fn void QAudioDecoder::error(QAudioDecoder::Error error)
 
     Signals that an \a error condition has occurred.
 

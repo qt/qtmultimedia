@@ -94,6 +94,13 @@ QAudioSink::QAudioSink(const QAudioDevice &audioDevice, const QAudioFormat &form
 }
 
 /*!
+    \fn bool QAudioSink::isNull() const
+
+    Returns \c true is the QAudioSink instance is \c null, otherwise returns
+    \c false.
+*/
+
+/*!
     Destroys this audio output.
 
     This will release any system resources used and free any buffers.

@@ -16,12 +16,14 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
 
 /*!
     \class QAudioDevice
-    \brief The QAudioDevice class provides an information about audio devices and their functionality.
+    \brief The QAudioDevice class provides an information about audio devices and their
+           functionality.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 
-    QAudioDevice describes an audio device available in the system, either for input or for playback.
+    QAudioDevice describes an audio device available in the system, either for input or for
+    playback.
 
     A QAudioDevice is used by Qt to construct
     classes that communicate with the device -- such as
@@ -51,7 +53,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QAudioDevicePrivate);
     sound, i.e., play an audio stream in a supported format. For each device we
     find, we simply print the deviceName().
 
-    \sa QAudioSink, QAudioSource QAudioFormat
+    \sa QAudioSink,QAudioSource,QAudioFormat
 */
 
 /*!
@@ -91,14 +93,18 @@ QAudioDevice::QAudioDevice() = default;
 /*!
     Constructs a copy of \a other.
 */
-QAudioDevice::QAudioDevice(const QAudioDevice& other) = default;
+QAudioDevice::QAudioDevice(const QAudioDevice &other) = default;
 
 /*!
     \fn QAudioDevice::QAudioDevice(QAudioDevice &&other)
 
     Move constructs from \a other.
 */
+/*!
+    \fn void QAudioDevice::swap(QAudioDevice &other) noexcept
 
+    Swaps the audio device with the \a other.
+*/
 /*!
     Destroy this audio device info.
 */
@@ -107,7 +113,7 @@ QAudioDevice::~QAudioDevice() = default;
 /*!
     Sets the QAudioDevice object to be equal to \a other.
 */
-QAudioDevice& QAudioDevice::operator=(const QAudioDevice &other) = default;
+QAudioDevice &QAudioDevice::operator=(const QAudioDevice &other) = default;
 
 /*!
     \fn QAudioDevice& QAudioDevice::operator=(QAudioDevice &&other)
@@ -119,7 +125,7 @@ QAudioDevice& QAudioDevice::operator=(const QAudioDevice &other) = default;
     Returns true if this QAudioDevice class represents the
     same audio device as \a other.
 */
-bool QAudioDevice::operator ==(const QAudioDevice &other) const
+bool QAudioDevice::operator==(const QAudioDevice &other) const
 {
     if (d == other.d)
         return true;
@@ -134,7 +140,7 @@ bool QAudioDevice::operator ==(const QAudioDevice &other) const
     Returns true if this QAudioDevice class represents a
     different audio device than \a other
 */
-bool QAudioDevice::operator !=(const QAudioDevice &other) const
+bool QAudioDevice::operator!=(const QAudioDevice &other) const
 {
     return !operator==(other);
 }
@@ -158,6 +164,8 @@ bool QAudioDevice::isNull() const
 */
 
 /*!
+    \property QAudioDevice::id
+
     Returns an identifier for the audio device.
 
     Device names vary depending on the platform/audio plugin being used.
@@ -178,6 +186,8 @@ QByteArray QAudioDevice::id() const
 */
 
 /*!
+    \property QAudioDevice::description
+
     Returns a human readable name of the audio device.
 
     Use this string to present the device to the user.
@@ -194,6 +204,8 @@ QString QAudioDevice::description() const
 */
 
 /*!
+    \property QAudioDevice::isDefault
+
     Returns true if this is the default audio device.
 */
 bool QAudioDevice::isDefault() const
@@ -209,9 +221,11 @@ bool QAudioDevice::isFormatSupported(const QAudioFormat &settings) const
 {
     if (isNull())
         return false;
-    if (settings.sampleRate() < d->minimumSampleRate || settings.sampleRate() > d->maximumSampleRate)
+    if (settings.sampleRate() < d->minimumSampleRate
+        || settings.sampleRate() > d->maximumSampleRate)
         return false;
-    if (settings.channelCount() < d->minimumChannelCount || settings.channelCount() > d->maximumChannelCount)
+    if (settings.channelCount() < d->minimumChannelCount
+        || settings.channelCount() > d->maximumChannelCount)
         return false;
     if (!d->supportedSampleFormats.contains(settings.sampleFormat()))
         return false;
@@ -289,11 +303,13 @@ QAudioFormat::ChannelConfig QAudioDevice::channelConfiguration() const
 }
 
 /*!
+    \fn QAudioDevicePrivate QAudioDevice::handle() const
     \internal
 */
-QAudioDevice::QAudioDevice(QAudioDevicePrivate *p)
-    : d(p)
-{}
+/*!
+    \internal
+*/
+QAudioDevice::QAudioDevice(QAudioDevicePrivate *p) : d(p) { }
 
 /*!
     \enum QAudioDevice::Mode
@@ -323,7 +339,9 @@ QAudioDevice::QAudioDevice(QAudioDevicePrivate *p)
 */
 
 /*!
-    returns whether this device is an input or output device.
+    \property QAudioDevice::mode
+
+    Returns whether this device is an input or output device.
 */
 QAudioDevice::Mode QAudioDevice::mode() const
 {

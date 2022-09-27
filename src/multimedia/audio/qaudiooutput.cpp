@@ -1,5 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
-// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR
+// GPL-3.0-only
 
 #include <qaudiooutput.h>
 #include <qaudiodevice.h>
@@ -31,10 +32,11 @@
     }
     \endqml
 
-    You can use AudioOutput together with a QtMultiMedia::MediaPlayer to play audio content, or you can use it
-    in conjunction with a MultiMedia::CaptureSession to monitor the audio processed by the capture session.
+    You can use AudioOutput together with a QtMultiMedia::MediaPlayer to play audio content, or you
+   can use it in conjunction with a MultiMedia::CaptureSession to monitor the audio processed by the
+   capture session.
 
-    \sa VideoOutput AudioInput
+    \sa VideoOutput, AudioInput
 */
 
 /*!
@@ -52,7 +54,8 @@
 */
 QAudioOutput::QAudioOutput(QObject *parent)
     : QAudioOutput(QMediaDevices::defaultAudioOutput(), parent)
-{}
+{
+}
 
 QAudioOutput::QAudioOutput(const QAudioDevice &device, QObject *parent)
     : QObject(parent)
@@ -73,7 +76,6 @@ QAudioOutput::~QAudioOutput()
     setDisconnectFunction({});
     delete d;
 }
-
 
 /*!
     \qmlproperty real QtMultimedia::AudioOutput::volume
@@ -204,6 +206,5 @@ void QAudioOutput::setDisconnectFunction(std::function<void()> disconnectFunctio
     }
     d->disconnectFunction = std::move(disconnectFunction);
 }
-
 
 #include "moc_qaudiooutput.cpp"

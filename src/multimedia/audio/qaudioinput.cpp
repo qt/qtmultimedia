@@ -1,5 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
-// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR
+// GPL-3.0-only
 
 #include <qaudioinput.h>
 #include <qaudiodevice.h>
@@ -33,10 +34,10 @@
     }
     \endqml
 
-    You can use AudioInput together with a QtMultiMedia::CaptureSession to capture audio from an audio
-    input device.
+    You can use AudioInput together with a QtMultiMedia::CaptureSession to capture audio from an
+   audio input device.
 
-    \sa Camera AudioOutput
+    \sa Camera, AudioOutput
 */
 
 /*!
@@ -51,9 +52,9 @@
     to be used, muting the channel, and changing the channel's volume.
 */
 
-QAudioInput::QAudioInput(QObject *parent)
-    : QAudioInput(QMediaDevices::defaultAudioInput(), parent)
-{}
+QAudioInput::QAudioInput(QObject *parent) : QAudioInput(QMediaDevices::defaultAudioInput(), parent)
+{
+}
 
 QAudioInput::QAudioInput(const QAudioDevice &device, QObject *parent)
     : QObject(parent)
@@ -87,6 +88,11 @@ QAudioInput::~QAudioInput()
     using a logarithmic scale will produce linear changes in perceived loudness,
     which is what a user would normally expect from a volume control.
     \sa QAudio::convertVolume()
+*/
+/*!
+    \property QAudioInput::volume
+
+    The property returns the volume of the audio input.
 */
 float QAudioInput::volume() const
 {
