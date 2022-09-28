@@ -414,7 +414,7 @@ QPlatformCamera *QCamera::platformCamera()
     return d->control;
 }
 
-/*! \qmlproperty CameraDevice QtMultimedia::Camera::cameraDevice
+/*! \qmlproperty cameraDevice QtMultimedia::Camera::cameraDevice
 
     Gets or sets the currently active camera device.
 */
@@ -448,7 +448,7 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
     setCameraFormat({});
 }
 
-/*! \qmlproperty CameraDevice QtMultimedia::Camera::cameraFormat
+/*! \qmlproperty cameraDevice QtMultimedia::Camera::cameraFormat
 
     Gets or sets the currently active camera format.
 
