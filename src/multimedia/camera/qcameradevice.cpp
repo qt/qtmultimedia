@@ -78,7 +78,7 @@ QCameraFormat::~QCameraFormat() = default;
 */
 
 /*!
-    \qmlproperty enumeration QtMultimedia::CameraFormat::pixelFormat
+    \qmlproperty enumeration QtMultimedia::cameraFormat::pixelFormat
 
     Holds the pixel format.
 
@@ -104,7 +104,7 @@ QVideoFrameFormat::PixelFormat QCameraFormat::pixelFormat() const noexcept
 }
 
 /*!
-    \qmlproperty size QtMultimedia::CameraFormat::resolution
+    \qmlproperty size QtMultimedia::cameraFormat::resolution
 
     Returns the resolution.
 */
@@ -120,7 +120,7 @@ QSize QCameraFormat::resolution() const noexcept
 }
 
 /*!
-    \qmlproperty real QtMultimedia::CameraFormat::minFrameRate
+    \qmlproperty real QtMultimedia::cameraFormat::minFrameRate
 
     Returns the lowest frame rate defined by this format.
 */
@@ -136,7 +136,7 @@ float QCameraFormat::minFrameRate() const noexcept
 }
 
 /*!
-    \qmlproperty real QtMultimedia::CameraFormat::maxFrameRate
+    \qmlproperty real QtMultimedia::cameraFormat::maxFrameRate
 
     Returns the highest frame rate defined by this format.
 
@@ -391,7 +391,7 @@ QList<QSize> QCameraDevice::photoResolutions() const
 }
 
 /*!
-    \qmlproperty CameraFormat QtMultiMedia::CameraDevice::videoFormats
+    \qmlproperty CameraFormat QtMultiMedia::cameraDevice::videoFormats
 
     Holds the video formats supported by the camera.
 */
