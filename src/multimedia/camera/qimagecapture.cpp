@@ -101,6 +101,12 @@ QImageCapture::QImageCapture(QObject *parent)
 }
 
 /*!
+    \fn void QImageCapture::imageMetadataAvailable(int id, const QMediaMetaData &metaData)
+
+    Signals that an image identified by \a id has \a metaData.
+*/
+
+/*!
     \internal
 */
 void QImageCapture::setCaptureSession(QMediaCaptureSession *session)
@@ -141,6 +147,8 @@ QMediaCaptureSession *QImageCapture::captureSession() const
 }
 
 /*!
+    \property QImageCapture::error
+
     Returns the current error state.
 
     \sa errorString()
@@ -152,6 +160,8 @@ QImageCapture::Error QImageCapture::error() const
 }
 
 /*!
+    \property QImageCapture::errorString
+
     Returns a string describing the current error state.
 
     \sa error()
@@ -339,6 +349,20 @@ int QImageCapture::capture()
 */
 
 /*!
+    \enum QImageCapture::FileFormat
+
+    Choose one of the following image formats:
+
+    \value UnspecifiedFormat No format specified
+    \value JPEG \c .jpg or \c .jpeg format
+    \value PNG \c .png format
+    \value WebP \c .webp format
+    \value Tiff \c .tiff format
+    \omitvalue LastFileFormat
+*/
+
+
+/*!
     \property QImageCapture::fileFormat
     \brief The image format.
 */
@@ -367,11 +391,19 @@ void QImageCapture::setFileFormat(QImageCapture::FileFormat format)
     emit fileFormatChanged();
 }
 
+/*!
+    Returns a list of supported file formats.
+
+    \sa {QImageCapture::}{FileFormat}
+*/
 QList<QImageCapture::FileFormat> QImageCapture::supportedFormats()
 {
     return QPlatformMediaIntegration::instance()->formatInfo()->imageFormats;
 }
 
+/*!
+    Returns the name of the given format, \a f.
+*/
 QString QImageCapture::fileFormatName(QImageCapture::FileFormat f)
 {
     const char *name = nullptr;
@@ -395,6 +427,9 @@ QString QImageCapture::fileFormatName(QImageCapture::FileFormat f)
     return QString::fromUtf8(name);
 }
 
+/*!
+    Returns the description of the given file format, \a f.
+*/
 QString QImageCapture::fileFormatDescription(QImageCapture::FileFormat f)
 {
     const char *name = nullptr;
@@ -429,6 +464,12 @@ QSize QImageCapture::resolution() const
         return QSize();
     return d->control->imageSettings().resolution();
 }
+
+/*!
+    \fn void QImageCapture::resolutionChanged()
+
+    Signals when the image resolution changes.
+*/
 
 /*!
     Sets the \a resolution of the encoded image.
