@@ -5,6 +5,7 @@
     \example audiorecorder
     \title Audio Recorder Example
     \ingroup multimedia_examples
+    \ingroup audio_examples
     \brief Discovering the available devices and supported codecs.
     \meta {tag} {widgets}
 

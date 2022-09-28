@@ -102,6 +102,7 @@ void QAudioRoomPrivate::update()
     \class QAudioRoom
     \inmodule QtSpatialAudio
     \ingroup spatialaudio
+    \ingroup multimedia_audio
 
     Defines a room for the spatial audio engine.
 

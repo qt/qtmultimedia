@@ -14,6 +14,7 @@ QT_BEGIN_NAMESPACE
     \qmltype AmbientSound
     \inqmlmodule QtQuick3D.SpatialAudio
     \ingroup quick3d_spatialaudio
+    \ingroup multimedia_audio_qml
 
     \brief A stereo overlay sound.
 
@@ -38,7 +39,7 @@ QQuick3DAmbientSound::~QQuick3DAmbientSound()
 }
 
 /*!
-    \qmlproperty url QAmbientSound::source
+    \qmlproperty url AmbientSound::source
 
     The source file for the sound to be played.
  */
@@ -61,7 +62,7 @@ void QQuick3DAmbientSound::setSource(QUrl source)
 }
 
 /*!
-    \qmlproperty float QAmbientSound::volume
+    \qmlproperty float AmbientSound::volume
 
     Defines an overall volume for this sound source.
  */
@@ -76,7 +77,7 @@ float QQuick3DAmbientSound::volume() const
 }
 
 /*!
-   \qmlproperty int QAmbientSound::loops
+   \qmlproperty int AmbientSound::loops
 
     Determines how often the sound is played before the player stops.
     Set to QAmbienSound::Infinite to loop the current sound forever.

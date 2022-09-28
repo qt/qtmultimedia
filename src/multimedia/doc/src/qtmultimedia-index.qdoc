@@ -19,10 +19,14 @@
     \table
      \row
       \li \l{Multimedia Overview}{Qt Multimedia}
-      \li Provides API for multimedia-specific use cases.
+      \li Provides an API for multimedia-specific use cases.
      \row
       \li \l{Qt Multimedia Widgets}
-      \li Provides the widget-based multimedia API.
+      \li Provides a widget-based multimedia API.
+    \row
+      \li \l{Qt Spatial Audio}
+      \li (Technology Preview)
+          Provides an API for implementing sound fields in 3D space.
     \endtable
 
     \section1 Getting started
@@ -51,6 +55,7 @@
       \li \l{Changes to Qt Multimedia}{Changes in Qt 6}
       \li \l{Multimedia Overview}
       \li \l{Audio Overview}
+      \li \l{Spatial Audio Overview} (Technology Preview)
       \li \l{Video Overview}
       \li \l{Camera Overview}
       \li \l{Supported Media Formats}

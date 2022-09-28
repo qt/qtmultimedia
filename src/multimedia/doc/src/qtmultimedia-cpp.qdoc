@@ -39,4 +39,7 @@
 
     \section2 Qt Multimedia Widgets Module
     \generatelist {classesbymodule QtMultimediaWidgets}
+
+    \section2 Qt Spatial Audio Module
+    \generatelist {classesbymodule QtSpatialAudio}
 */

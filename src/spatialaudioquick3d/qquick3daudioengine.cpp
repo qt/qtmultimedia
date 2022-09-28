@@ -11,6 +11,7 @@ static QAudioEngine *globalEngine = nullptr;
     \qmltype AudioEngine
     \inqmlmodule QtQuick3D.SpatialAudio
     \ingroup quick3d_spatialaudio
+    \ingroup multimedia_audio_qml
 
     \brief AudioEngine manages sound objects inside a 3D scene.
 

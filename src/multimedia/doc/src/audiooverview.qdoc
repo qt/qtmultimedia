@@ -120,13 +120,10 @@ Here's an example of decoding a local file:
 
     \snippet multimedia-snippets/audio.cpp Local audio decoding
 
-\section1 Examples
+\section2 Spatial Audio
 
-There are both C++ and QML examples available.
-
-\section2 C++ Examples
-
-\annotatedlist audio_examples
+The \l {Qt Spatial Audio} module provides an API for implementation sound
+fields in 3D space.
 
 \section1 Reference Documentation
 
@@ -138,5 +135,8 @@ There are both C++ and QML examples available.
 
 \annotatedlist multimedia_audio_qml
 
+\section2 Examples
+
+\annotatedlist audio_examples
 */
 
