@@ -10,6 +10,7 @@ QT_BEGIN_NAMESPACE
     \qmltype AudioRoom
     \inqmlmodule QtQuick3D.SpatialAudio
     \ingroup quick3d_spatialaudio
+    \ingroup multimedia_audio_qml
 
     Defines a room for the spatial audio engine.
 

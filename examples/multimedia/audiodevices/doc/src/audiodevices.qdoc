@@ -5,6 +5,7 @@
     \example audiodevices
     \title Audio Devices Example
     \ingroup multimedia_examples
+    \ingroup audio_examples
     \brief Testing the available audio devices and their configuration.
     \meta {tag} {widgets}
 

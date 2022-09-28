@@ -16,11 +16,11 @@ Qt Spatial Audio QML types are designed to be used together with \l{Qt Quick 3D}
 can be imported into your application using the following import statement in your
 .qml file:
 
-\qml \QtMinorVersion
+\qml
 import QtQuick3D.SpatialAudio
 \endqml
 
-\generatelist qmltypesbymodule QtSpatialAudio
+\generatelist qmltypesbymodule QtQuick3D.SpatialAudio
 
 \noautolist
 */

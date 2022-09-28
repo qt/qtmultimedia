@@ -20,6 +20,7 @@ Here are some things you can do with the Qt Multimedia APIs:
 \list
 \li Access raw audio devices for input and output.
 \li Play low latency sound effects.
+\li Play 3D spatial audio.
 \li Play media files in playlists (such as compressed audio or video files).
 \li Record audio and compress it.
 \li Use a camera, including viewfinder, image capture, and movie recording
@@ -36,10 +37,8 @@ can also take a look at some \l{Multimedia Recipes}{recipes}.
 \li \l {Audio Overview}
 \li \l {Video Overview}
 \li \l {Camera Overview}
+\li \l {Spatial Audio Overview} (Technology Preview)
 \endlist
-
-If you're interested in adding spatial audio experiences to your application, have
-a look at the \l {Qt Spatial Audio} module.
 
 \section1 Multimedia Recipes
 
@@ -56,6 +55,11 @@ For some quick recipes, see this table:
         \li
         \li \l{SoundEffect}
         \li QSoundEffect
+    \row
+        \li Playing 3D sound
+        \li \l{Spatial Audio Panning Example}{audiopanning}
+        \li SpatialSound, AudioEngine
+        \li QSpatialSound, QAudioEngine
     \row
         \li Playing encoded audio (MP3, AAC etc)
         \li \l{Media Player Example}{player}
@@ -123,14 +127,8 @@ you might need to change when porting code to Qt 6.
 
 \section1 Reference Documentation
 
-\section2 QML Types
-The QML types are accessed by using:
-\code
-import QtMultimedia
-\endcode
-
-\section2 Multimedia Classes
-
-\annotatedlist multimedia
-
+\list
+    \li {Qt Multimedia C++ Classes}{C++ Classes}
+    \li {Qt Multimedia QML types}{QML Types}
+\endlist
 */

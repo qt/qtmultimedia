@@ -3,6 +3,7 @@ include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
 project                 = QtSpatialAudio
 description             = Qt Spatial Audio Documentation
 version                 = $QT_VERSION
+buildversion            = "Technology Preview"
 
 moduleheader            = QtSpatialAudio
 includepaths           += .
