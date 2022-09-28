@@ -149,6 +149,12 @@ QVideoFrame::QVideoFrame(const QVideoFrame &other) = default;
 */
 
 /*!
+    \fn void QVideoFrame::swap(QVideoFrame &other) noexcept
+
+    Swaps the current video frame with \a other.
+*/
+
+/*!
     \fn  QVideoFrame &QVideoFrame::operator=(QVideoFrame &&other)
 
     Moves \a other into this QVideoFrame.

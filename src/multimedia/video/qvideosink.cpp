@@ -135,6 +135,11 @@ QVideoFrame QVideoSink::videoFrame() const
 }
 
 /*!
+    \fn void QVideoSink::videoFrameChanged(const QVideoFrame &frame) const
+
+    Signals when the video \a frame changes.
+*/
+/*!
     Sets the current video \a frame.
 */
 void QVideoSink::setVideoFrame(const QVideoFrame &frame)
@@ -144,6 +149,8 @@ void QVideoSink::setVideoFrame(const QVideoFrame &frame)
 }
 
 /*!
+    \property QVideoSink::subtitleText
+
     Returns the current subtitle text.
 */
 QString QVideoSink::subtitleText() const
@@ -161,6 +168,8 @@ void QVideoSink::setSubtitleText(const QString &subtitle)
 }
 
 /*!
+    \property QVideoSink::videoSize
+
     Returns the size of the video currently being played back. If no video is
     being played, this method returns an invalid size.
  */
