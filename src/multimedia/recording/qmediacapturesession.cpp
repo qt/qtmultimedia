@@ -157,6 +157,8 @@ QMediaCaptureSession::~QMediaCaptureSession()
 */
 
 /*!
+    \property QMediaCaptureSession::audioInput
+
     Returns the device that is being used to capture audio.
 */
 QAudioInput *QMediaCaptureSession::audioInput() const
@@ -374,6 +376,11 @@ void QMediaCaptureSession::setRecorder(QMediaRecorder *recorder)
     The previously set preview is detached.
 
 */
+/*!
+    \property QMediaCaptureSession::videoOutput
+
+    Returns the video output for the session.
+*/
 QObject *QMediaCaptureSession::videoOutput() const
 {
     Q_D(const QMediaCaptureSession);
@@ -415,6 +422,10 @@ void QMediaCaptureSession::setVideoSink(QVideoSink *sink)
     d->videoOutput = nullptr;
     d->setVideoSink(sink);
 }
+
+/*!
+    Returns the QVideoSink for the session.
+*/
 QVideoSink *QMediaCaptureSession::videoSink() const
 {
     Q_D(const QMediaCaptureSession);
@@ -443,6 +454,11 @@ void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
 /*!
     \qmlproperty AudioOutput QtMultimedia::CaptureSession::audioOutput
     \brief The audio output device for the capture session.
+*/
+/*!
+    \property QMediaCaptureSession::audioOutput
+
+    Returns the audio output for the session.
 */
 QAudioOutput *QMediaCaptureSession::audioOutput() const
 {

@@ -209,6 +209,11 @@ QScreenCapture::Error QScreenCapture::error() const
 }
 
 /*!
+    \fn void errorOccurred(QScreenCapture::Error error, const QString &errorString)
+
+    Signals when an \a error occurs, along with the \a errorString.
+*/
+/*!
     \qmlproperty string QScreenCapture::ScreenCapture::errorString
     Returns a human readable string describing the cause of error.
 */
@@ -222,7 +227,16 @@ QString QScreenCapture::errorString() const
     return d->platformScreenCapture ? d->platformScreenCapture->errorString()
                                     : QLatin1StringView("Capturing is not support on this platform");
 }
+/*!
+    \fn void QScreenCapture::start()
 
+    Starts screen capture.
+*/
+/*!
+    \fn void QScreenCapture::stop()
+
+    Stops screen capture.
+*/
 /*!
     \internal
 */

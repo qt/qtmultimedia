@@ -237,6 +237,8 @@ QMediaRecorder::RecorderState QMediaRecorder::recorderState() const
 }
 
 /*!
+    \property QMediaRecorder::error
+
     Returns the current error state.
 
     \sa errorString()
@@ -255,6 +257,8 @@ QMediaRecorder::Error QMediaRecorder::error() const
     \sa error
 */
 /*!
+    \property QMediaRecorder::errorString
+
     Returns a string describing the current error state.
 
     \sa error()
@@ -282,6 +286,11 @@ qint64 QMediaRecorder::duration() const
 {
     return d_func()->control ? d_func()->control->duration() : 0;
 }
+/*!
+    \fn void QMediaRecorder::encoderSettingsChanged()
+
+    Signals when the encoder settings change.
+*/
 /*!
     \qmlmethod QtMultimedia::MediaRecorder::record()
     \brief Starts recording.
@@ -498,6 +507,8 @@ void QMediaRecorder::stop()
 */
 
 /*!
+    \property QMediaRecorder::metaData
+
     Returns the metaData associated with the recording.
 */
 QMediaMetaData QMediaRecorder::metaData() const
@@ -521,6 +532,9 @@ void QMediaRecorder::setMetaData(const QMediaMetaData &metaData)
         d->control->setMetaData(metaData);
 }
 
+/*!
+    Adds \a metaData to the recorded media.
+*/
 void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
 {
     auto data = this->metaData();
@@ -546,6 +560,9 @@ void QMediaRecorder::addMetaData(const QMediaMetaData &metaData)
     once.
 */
 
+/*!
+    Returns the media capture session.
+*/
 QMediaCaptureSession *QMediaRecorder::captureSession() const
 {
     Q_D(const QMediaRecorder);
@@ -594,7 +611,11 @@ QMediaCaptureSession *QMediaRecorder::captureSession() const
 
     \brief This property holds the current MediaFormat of the recorder.
 */
+/*!
+    \property QMediaRecorder::mediaFormat
 
+    Returns the recording media format.
+*/
 QMediaFormat QMediaRecorder::mediaFormat() const
 {
     Q_D(const QMediaRecorder);
@@ -622,6 +643,11 @@ QMediaRecorder::EncodingMode QMediaRecorder::encodingMode() const
 }
 
 /*!
+    \fn void QMediaRecorder::encodingModeChanged()
+
+    Signals when the encoding mode changes.
+*/
+/*!
     Sets the encoding \a mode setting.
 
     If ConstantQualityEncoding is set, the quality
@@ -639,12 +665,22 @@ void QMediaRecorder::setEncodingMode(EncodingMode mode)
     emit encodingModeChanged();
 }
 
+/*!
+    \property QMediaRecorder::quality
+
+    Returns the recording quality.
+*/
 QMediaRecorder::Quality QMediaRecorder::quality() const
 {
     Q_D(const QMediaRecorder);
     return d->encoderSettings.quality();
 }
 
+/*!
+    \fn void QMediaRecorder::qualityChanged()
+
+    Signals when the recording quality changes.
+*/
 void QMediaRecorder::setQuality(Quality quality)
 {
     Q_D(QMediaRecorder);
@@ -664,6 +700,11 @@ QSize QMediaRecorder::videoResolution() const
     return d->encoderSettings.videoResolution();
 }
 
+/*!
+    \fn void QMediaRecorder::videoResolutionChanged()
+
+    Signals when the video recording resolution changes.
+*/
 /*!
     Sets the resolution of the encoded video to \a{size}.
 
@@ -696,6 +737,11 @@ qreal QMediaRecorder::videoFrameRate() const
 }
 
 /*!
+    \fn void QMediaRecorder::videoFrameRateChanged()
+
+    Signals when the recording video frame rate changes.
+*/
+/*!
     Sets the video \a frameRate.
 
     A value of 0 indicates the recorder should make an optimal choice based on what is available
@@ -720,6 +766,11 @@ int QMediaRecorder::videoBitRate() const
 }
 
 /*!
+    \fn void QMediaRecorder::videoBitRateChanged()
+
+    Signals when the recording video bit rate changes.
+*/
+/*!
     Sets the video \a bitRate in bits per second.
 */
 void QMediaRecorder::setVideoBitRate(int bitRate)
@@ -741,6 +792,11 @@ int QMediaRecorder::audioBitRate() const
 }
 
 /*!
+    \fn void QMediaRecorder::audioBitRateChanged()
+
+    Signals when the recording audio bit rate changes.
+*/
+/*!
     Sets the audio \a bitRate in bits per second.
 */
 void QMediaRecorder::setAudioBitRate(int bitRate)
@@ -761,6 +817,11 @@ int QMediaRecorder::audioChannelCount() const
     return d->encoderSettings.audioChannelCount();
 }
 
+/*!
+    \fn void QMediaRecorder::audioChannelCountChanged()
+
+    Signals when the recording audio channel count changes.
+*/
 /*!
     Sets the number of audio \a channels.
 
@@ -784,7 +845,11 @@ int QMediaRecorder::audioSampleRate() const
     Q_D(const QMediaRecorder);
     return d->encoderSettings.audioSampleRate();
 }
+/*!
+    \fn void QMediaRecorder::audioSampleRateChanged()
 
+    Signals when the recording audio sample rate changes.
+*/
 /*!
     Sets the audio \a sampleRate in Hz.
 
