@@ -372,6 +372,12 @@ QVideoFrameFormat::QVideoFrameFormat(const QVideoFrameFormat &other) = default;
 */
 
 /*!
+    \fn void QVideoFrameFormat::swap(QVideoFrameFormat &other) noexcept
+
+    Swaps the current video frame format with the \a other.
+*/
+
+/*!
     Assigns the values of \a other to this object.
 */
 QVideoFrameFormat &QVideoFrameFormat::operator =(const QVideoFrameFormat &other) = default;
@@ -699,7 +705,9 @@ float QVideoFrameFormat::maxLuminance() const
     }
     return d->maxLuminance;
 }
-
+/*!
+    Sets the maximum luminance to the given value, \a lum.
+*/
 void QVideoFrameFormat::setMaxLuminance(float lum)
 {
     detach();
