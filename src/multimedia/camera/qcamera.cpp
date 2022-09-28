@@ -294,6 +294,8 @@ void QCamera::setActive(bool active)
 */
 
 /*!
+    \property QCamera::error
+
     Returns the error state of the camera.
 */
 
@@ -309,6 +311,8 @@ QCamera::Error QCamera::error() const
 */
 
 /*!
+    \property QCamera::errorString
+
     Returns a human readable string describing a camera's error state.
 */
 QString QCamera::errorString() const
@@ -343,6 +347,8 @@ QString QCamera::errorString() const
 */
 
 /*!
+    \property QCamera::supportedFeatures
+
     Returns the features supported by this camera.
 
     \sa QCamera::Feature
@@ -420,6 +426,8 @@ QPlatformCamera *QCamera::platformCamera()
 */
 
 /*!
+    \property QCamera::cameraDevice
+
     Returns the QCameraDevice object associated with this camera.
  */
 QCameraDevice QCamera::cameraDevice() const
@@ -456,6 +464,8 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 */
 
 /*!
+    \property QCamera::cameraFormat
+
     Returns the camera format currently used by the camera.
 
     \sa QCameraDevice::videoFormats
@@ -543,6 +553,11 @@ QCamera::FocusMode QCamera::focusMode() const
     return d->control ? d->control->focusMode() : QCamera::FocusModeAuto;
 }
 
+/*!
+    \fn void QCamera::focusModeChanged()
+
+    Signals when the focusMode changes.
+*/
 void QCamera::setFocusMode(QCamera::FocusMode mode)
 {
     Q_D(QCamera);
@@ -573,6 +588,8 @@ bool QCamera::isFocusModeSupported(FocusMode mode) const
 */
 
 /*!
+    \property QCamera::focusPoint
+
     Returns the point currently used by the auto focus system to focus onto.
  */
 QPointF QCamera::focusPoint() const
@@ -664,6 +681,8 @@ float QCamera::focusDistance() const
 
 
 /*!
+    \property QCamera::maximumZoomFactor
+
     Returns the maximum zoom factor.
 
     This will be \c 1.0 on cameras that do not support zooming.
@@ -684,6 +703,8 @@ float QCamera::maximumZoomFactor() const
 */
 
 /*!
+    \property QCamera::minimumZoomFactor
+
     Returns the minimum zoom factor.
 
     This will be \c 1.0 on cameras that do not support zooming.
@@ -1092,6 +1113,8 @@ float QCamera::exposureTime() const
 */
 
 /*!
+    \property QCamera::manualExposureTime
+
     Set the manual exposure time to \a seconds
 */
 
@@ -1200,6 +1223,8 @@ void QCamera::setAutoExposureTime()
 */
 
 /*!
+    \property QCamera::whiteBalanceMode
+
     Returns the white balance mode being used.
 */
 QCamera::WhiteBalanceMode QCamera::whiteBalanceMode() const
@@ -1250,6 +1275,8 @@ bool QCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 */
 
 /*!
+    \property QCamera::colorTemperature
+
     Returns the current color temperature if the
     current white balance mode is \c WhiteBalanceManual. For other modes the
     return value is undefined.
@@ -1302,6 +1329,22 @@ void QCamera::setColorTemperature(int colorTemperature)
     \value WhiteBalanceSunset       Sunset white balance mode.
 */
 
+/*!
+    \fn void QCamera::brightnessChanged()
+    \internal
+*/
+/*!
+    \fn void QCamera::contrastChanged()
+    \internal
+*/
+/*!
+    \fn void QCamera::hueChanged()
+    \internal
+*/
+/*!
+    \fn void QCamera::saturationChanged()
+    \internal
+*/
 QT_END_NAMESPACE
 
 #include "moc_qcamera.cpp"
