@@ -49,7 +49,10 @@ QT_BEGIN_NAMESPACE
 
     \sa QCamera, QMediaPlayer, QGraphicsVideoItem
 */
-
+/*!
+    \variable QVideoWidget::d_ptr
+    \internal
+*/
 /*!
     Constructs a new video widget.
 
@@ -78,6 +81,9 @@ QVideoWidget::~QVideoWidget()
     delete d_ptr;
 }
 
+/*!
+    Returns the QVideoSink instance.
+*/
 QVideoSink *QVideoWidget::videoSink() const
 {
     return d_ptr->videoWindow->videoSink();

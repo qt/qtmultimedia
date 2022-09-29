@@ -6,7 +6,7 @@ project                 = QtMultimedia
 description             = Qt Multimedia Documentation
 version                 = $QT_VERSION
 
-moduleheader            = QtMultimedia
+moduleheader            = QtMultimediaDoc
 includepaths           += .
 
 examplesinstallpath     = multimedia
