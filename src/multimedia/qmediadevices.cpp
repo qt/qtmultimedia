@@ -104,6 +104,8 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
+    \property QMediaDevices::audioInputs
+
     Returns a list of available audio input devices on the system.
 
     Those devices are usually microphones. Devices can be either built-in, or
@@ -123,6 +125,8 @@ QList<QAudioDevice> QMediaDevices::audioInputs()
 */
 
 /*!
+    \property QMediaDevices::audioOutputs
+
     Returns a list of available audio output devices on the system.
 
     Those devices are usually loudspeakers or head sets. Devices can be either
@@ -139,6 +143,8 @@ QList<QAudioDevice> QMediaDevices::audioOutputs()
 */
 
 /*!
+    \property QMediaDevices::videoInputs
+
     Returns a list of available cameras on the system.
 */
 QList<QCameraDevice> QMediaDevices::videoInputs()
@@ -155,6 +161,8 @@ QList<QCameraDevice> QMediaDevices::videoInputs()
 */
 
 /*!
+    \property QMediaDevices::defaultAudioInput
+
     Returns the default audio input device.
 
     The default device can change during the runtime of the application.
@@ -180,6 +188,8 @@ QAudioDevice QMediaDevices::defaultAudioInput()
 */
 
 /*!
+    \property QMediaDevices::defaultAudioOutput
+
     Returns the default audio output device.
 
     The default device can change during the runtime of the application. The
@@ -208,9 +218,11 @@ QAudioDevice QMediaDevices::defaultAudioOutput()
 */
 
 /*!
+    \property QMediaDevices::defaultVideoInput
+
     Returns the default camera on the system.
 
-    /note The returned object should be checked using isNull() before being used,
+    \note The returned object should be checked using isNull() before being used,
     in case there is no default camera or no cameras at all.
 
     The default device can change during the runtime of the application. The
