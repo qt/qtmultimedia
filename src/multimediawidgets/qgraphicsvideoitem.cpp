@@ -220,6 +220,22 @@ void QGraphicsVideoItem::paint(QPainter *painter, const QStyleOptionGraphicsItem
 }
 
 /*!
+    \fn int QGraphicsVideoItem::type() const
+    \reimp
+
+    Returns an int representing the type of the video item.
+*/
+/*!
+    \variable QGraphicsVideoItem::d_ptr
+    \internal
+*/
+/*!
+    \enum QGraphicsVideoItem::anonymous
+    \internal
+
+    \omitvalue Type
+*/
+/*!
     \reimp
 
     \internal
@@ -240,3 +256,5 @@ void QGraphicsVideoItem::timerEvent(QTimerEvent *event)
 QT_END_NAMESPACE
 
 #include "moc_qgraphicsvideoitem.cpp"
+
+
