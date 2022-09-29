@@ -367,6 +367,11 @@ QMediaFormat::~QMediaFormat() = default;
 QMediaFormat::QMediaFormat(const QMediaFormat &other) noexcept = default;
 
 /*!
+    \fn void swap(QMediaFormat &other) noexcept
+
+    Swaps the media format with \a other.
+*/
+/*!
     Copies \a other into this QMediaFormat object.
 */
 QMediaFormat &QMediaFormat::operator=(const QMediaFormat &other) noexcept = default;
@@ -722,6 +727,17 @@ QString QMediaFormat::videoCodecDescription(QMediaFormat::VideoCodec codec)
     return QString::fromUtf8(descriptions[int(codec) + 1]);
 }
 
+/*!
+    \fn bool QMediaFormat::operator!=(const QMediaFormat &other) const
+
+    Returns \c true if \a other is not equal to the current media format,
+    otherwise returns \c false.
+*/
+
+/*!
+    Returns \c true if \a other is equal to the current media format, otherwise
+    returns \c false.
+*/
 bool QMediaFormat::operator==(const QMediaFormat &other) const
 {
     Q_ASSERT(!d);
@@ -857,4 +873,20 @@ void QMediaFormat::resolveForEncoding(ResolveFlags flags)
     }
 }
 
+/*!
+    \variable QMediaFormat::audio
+    \internal
+*/
+/*!
+    \variable QMediaFormat::d
+    \internal
+*/
+/*!
+    \variable QMediaFormat::video
+    \internal
+*/
+/*!
+    \variable QMediaFormat::fmt
+    \internal
+*/
 QT_END_NAMESPACE

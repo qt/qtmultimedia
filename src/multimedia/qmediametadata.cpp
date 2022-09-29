@@ -244,6 +244,46 @@ QMetaType QMediaMetaData::keyType(Key key)
 */
 
 /*!
+    \enum QMediaMetaData::Key
+
+    The following meta data keys can be used:
+
+    \value Title Media title
+    \value Author Media author
+    \value Comment Comment
+    \value Description Brief desripttion
+    \value Genre Genre the media belongs to
+    \value Date Creation date
+    \value Language Media language
+    \value Publisher Media publisher info.
+    \value Copyright Media copyright info.
+    \value Url Publisher's website URL
+    \value Duration Media playback duration
+    \value MediaType Type of the media
+    \value FileFormat File format
+    \value AudioBitRate
+    \value AudioCodec
+    \value VideoBitRate
+    \value VideoCodec
+    \value VideoFrameRate
+    \value AlbumTitle Album's title
+    \value AlbumArtist Artist's info.
+    \value ContributingArtist
+    \value TrackNumber
+    \value Composer Media composer's info.
+    \value LeadPerformer
+    \value ThumbnailImage Media thumbnail image
+    \value CoverArtImage Media cover art
+    \value Orientation
+    \value Resolution
+*/
+
+/*!
+    \variable QMediaMetaData::NumMetaData
+    \internal
+*/
+
+/*!
     \qmlmethod variant QtMultimedia::mediaMetaData::value(Key key)
 
     Returns the meta data value for Key \a key, or a null QVariant if no

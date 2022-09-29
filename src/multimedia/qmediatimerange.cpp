@@ -260,6 +260,12 @@ QMediaTimeRange::QMediaTimeRange(const QMediaTimeRange &range) noexcept = defaul
 */
 
 /*!
+    \fn void QMediaTimeRange::swap(QMediaTimeRange &other) noexcept
+
+    Swaps the current instance with the \a other.
+*/
+
+/*!
     \fn QMediaTimeRange::~QMediaTimeRange()
 
     Destructor.
