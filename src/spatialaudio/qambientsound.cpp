@@ -81,7 +81,14 @@ QUrl QAmbientSound::source() const
 {
     return d->url;
 }
+/*!
+    \enum QAmbientSound::Loops
 
+    Lets you control the playback loop using the following values:
+
+    \value Infinite Loops infinitely
+    \value Once Stops playback after running once
+*/
 /*!
    \property QAmbientSound::loops
 

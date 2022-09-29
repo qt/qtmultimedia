@@ -260,6 +260,11 @@ QQuaternion QAudioRoom::rotation() const
 }
 
 /*!
+    \fn void QAudioRoom::wallsChanged()
+
+    Signals when the wall material changes.
+*/
+/*!
     Sets \a wall to \a material.
 
     Different wall materials have different reflection and reverb properties
