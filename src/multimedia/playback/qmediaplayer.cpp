@@ -283,6 +283,11 @@ const QIODevice *QMediaPlayer::sourceDevice() const
     return d->stream;
 }
 
+/*!
+    \property QMediaPlayer::playbackState
+
+    Returns the \l{QMediaPlayer::}{PlaybackState}.
+*/
 QMediaPlayer::PlaybackState QMediaPlayer::playbackState() const
 {
     Q_D(const QMediaPlayer);
@@ -692,6 +697,8 @@ QAudioOutput *QMediaPlayer::audioOutput() const
 */
 
 /*!
+    \property QMediaPlayer::audioTracks
+
     Lists the set of available audio tracks inside the media.
 
     The QMediaMetaData returned describes the properties of individual
@@ -742,6 +749,8 @@ QList<QMediaMetaData> QMediaPlayer::videoTracks() const
 */
 
 /*!
+    \property QMediaPlayer::subtitleTracks
+
     Lists the set of available subtitle tracks inside the media.
 
     The QMediaMetaData returned describes the properties of individual
@@ -897,6 +906,10 @@ void QMediaPlayer::setVideoOutput(QObject *output)
     d->setVideoSink(sink);
 }
 
+/*!
+    Sets \a sink to be the QVideoSink instance to
+    retrieve video data.
+*/
 void QMediaPlayer::setVideoSink(QVideoSink *sink)
 {
     Q_D(QMediaPlayer);
@@ -904,6 +917,9 @@ void QMediaPlayer::setVideoSink(QVideoSink *sink)
     d->setVideoSink(sink);
 }
 
+/*!
+    Returns the QVedioSink instance.
+*/
 QVideoSink *QMediaPlayer::videoSink() const
 {
     Q_D(const QMediaPlayer);
@@ -949,6 +965,8 @@ bool QMediaPlayer::isAvailable() const
 */
 
 /*!
+    \property QMediaPlayer::metaData
+
     Returns meta data for the current media used by the media player.
 
     Meta data can contain information such as the title of the video or its creation date.
