@@ -481,6 +481,14 @@ QUrl QSpatialSound::source() const
 }
 
 /*!
+    \enum QSpatialSound::Loops
+
+    Lets you control the sound playback loop using the following values:
+
+    \value Infinite Playback infinitely
+    \value Once Playback once
+*/
+/*!
    \property QSpatialSound::loops
 
     Determines how many times the sound is played before the player stops.

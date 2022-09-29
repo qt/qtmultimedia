@@ -636,6 +636,25 @@ void QAmbientSoundPrivate::finished()
     m_loading = false;
 }
 
+/*!
+    \fn void QAudioEngine::pause()
+
+    Pauses playback.
+*/
+/*!
+    \fn void QAudioEngine::resume()
+
+    Resumes playback.
+*/
+/*!
+    \variable QAudioEngine::DistanceScaleCentimeter
+    \internal
+*/
+/*!
+    \variable QAudioEngine::DistanceScaleMeter
+    \internal
+*/
+
 QT_END_NAMESPACE
 
 #include "moc_qaudioengine.cpp"
