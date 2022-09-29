@@ -443,9 +443,7 @@ void StreamDecoder::decode()
         timeOut = -1;
         return;
     } else if (res != AVERROR(EAGAIN)) {
-        char buf[512];
-        av_make_error_string(buf, 512, res);
-        qWarning() << "error in decoder" << res << buf;
+        qWarning() << "error in decoder" << res << err2str(res);
         av_frame_free(&frame);
         return;
     } else {
