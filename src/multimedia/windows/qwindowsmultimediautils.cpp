@@ -13,6 +13,7 @@
 #include <mfapi.h>
 #include <mfidl.h>
 #include <qwindowsmfdefs_p.h>
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 
@@ -199,6 +200,13 @@ GUID QWindowsMultimediaUtils::containerForAudioFileFormat(QMediaFormat::FileForm
     default:
         return QMM_MFTranscodeContainerType_MPEG4;
     }
+}
+
+QString QWindowsMultimediaUtils::errorString(HRESULT hr)
+{
+    return QStringLiteral("%1 %2")
+            .arg(quint32(hr), 8, 16)
+            .arg(QString::fromStdString(std::system_category().message(hr)));
 }
 
 QT_END_NAMESPACE

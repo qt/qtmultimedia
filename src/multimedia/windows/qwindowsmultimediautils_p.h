@@ -19,6 +19,7 @@
 #include <private/qplatformmediaformatinfo_p.h>
 #include <qvideoframeformat.h>
 #include <guiddef.h>
+#include <qstring.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -37,6 +38,8 @@ namespace QWindowsMultimediaUtils {
     Q_MULTIMEDIA_EXPORT GUID containerForVideoFileFormat(QMediaFormat::FileFormat format);
 
     Q_MULTIMEDIA_EXPORT GUID containerForAudioFileFormat(QMediaFormat::FileFormat format);
+
+    Q_MULTIMEDIA_EXPORT QString errorString(HRESULT hr);
 }
 
 QT_END_NAMESPACE
