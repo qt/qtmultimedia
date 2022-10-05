@@ -35,7 +35,7 @@ static QString generateFileName(const QDir &dir, const QString &prefix, const QS
     auto lastMediaIndex = 0;
     const auto list = dir.entryList({ QString::fromLatin1("%1*.%2").arg(prefix, extension) });
     for (const QString &fileName : list) {
-        auto mediaIndex = QStringView{fileName}.mid(prefix.length(), fileName.size() - prefix.length() - extension.length() - 1).toInt();
+        auto mediaIndex = QStringView{fileName}.mid(prefix.size(), fileName.size() - prefix.size() - extension.size() - 1).toInt();
         lastMediaIndex = qMax(lastMediaIndex, mediaIndex);
     }
 

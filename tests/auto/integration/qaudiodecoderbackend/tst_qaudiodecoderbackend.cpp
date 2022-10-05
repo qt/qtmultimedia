@@ -169,13 +169,13 @@ void tst_QAudioDecoderBackend::fileTest()
     QCOMPARE(byteCount, 44094 * 2);
     QVERIFY(qAbs(qint64(duration) - 1000000) < 20000);
     QVERIFY(qAbs((d.position() + (buffer.duration() / 1000)) - 1000) < 20);
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     QVERIFY(!d.bufferAvailable());
     QTRY_VERIFY(!d.isDecoding());
 
     d.stop();
     QTRY_VERIFY(!d.isDecoding());
-    QTRY_COMPARE(durationSpy.count(), 2);
+    QTRY_COMPARE(durationSpy.size(), 2);
     QCOMPARE(d.duration(), qint64(-1));
     QVERIFY(!d.bufferAvailable());
     readySpy.clear();
@@ -256,13 +256,13 @@ void tst_QAudioDecoderBackend::fileTest()
     QVERIFY(qAbs(byteCount - 22047) < 100);
     QVERIFY(qAbs(qint64(duration) - 1000000) < 20000);
     QVERIFY(qAbs((d.position() + (buffer.duration() / 1000)) - 1000) < 20);
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     QVERIFY(!d.bufferAvailable());
     QVERIFY(!d.isDecoding());
 
     d.stop();
     QTRY_VERIFY(!d.isDecoding());
-    QTRY_COMPARE(durationSpy.count(), 2);
+    QTRY_COMPARE(durationSpy.size(), 2);
     QCOMPARE(d.duration(), qint64(-1));
     QVERIFY(!d.bufferAvailable());
 }
@@ -320,7 +320,7 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
     // Either reject the file directly, or set the duration to 5secs on setUrl() and back to -1 on start()
-    QVERIFY(durationSpy.isEmpty() || durationSpy.count() == 2);
+    QVERIFY(durationSpy.isEmpty() || durationSpy.size() == 2);
 
     errorSpy.clear();
 
@@ -337,7 +337,7 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
     QVERIFY(isDecodingSpy.isEmpty());
     QVERIFY(finishedSpy.isEmpty());
     QVERIFY(positionSpy.isEmpty());
-    QVERIFY(durationSpy.isEmpty() || durationSpy.count() == 2);
+    QVERIFY(durationSpy.isEmpty() || durationSpy.size() == 2);
 
 
     d.stop();
@@ -598,14 +598,14 @@ void tst_QAudioDecoderBackend::deviceTest()
     QCOMPARE(sampleCount, 44094);
     QVERIFY(qAbs(qint64(duration) - 1000000) < 20000);
     QVERIFY(qAbs((d.position() + (buffer.duration() / 1000)) - 1000) < 20);
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     QVERIFY(!d.bufferAvailable());
     QTRY_VERIFY(!d.isDecoding());
 
     d.stop();
     QTRY_VERIFY(!d.isDecoding());
     QVERIFY(!d.bufferAvailable());
-    QTRY_COMPARE(durationSpy.count(), 2);
+    QTRY_COMPARE(durationSpy.size(), 2);
     QCOMPARE(d.duration(), qint64(-1));
     readySpy.clear();
     bufferChangedSpy.clear();
@@ -651,7 +651,7 @@ void tst_QAudioDecoderBackend::deviceTest()
     d.stop();
     QTRY_VERIFY(!d.isDecoding());
     QVERIFY(!d.bufferAvailable());
-    QTRY_COMPARE(durationSpy.count(), 2);
+    QTRY_COMPARE(durationSpy.size(), 2);
     QCOMPARE(d.duration(), qint64(-1));
 }
 

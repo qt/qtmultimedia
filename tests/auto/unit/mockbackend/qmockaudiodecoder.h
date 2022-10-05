@@ -101,7 +101,7 @@ public:
     QAudioBuffer read() override
     {
         QAudioBuffer a;
-        if (mBuffers.length() > 0) {
+        if (mBuffers.size() > 0) {
             a = mBuffers.takeFirst();
             mPosition = a.startTime() / 1000;
             positionChanged(mPosition);
@@ -120,7 +120,7 @@ public:
 
     bool bufferAvailable() const override
     {
-        return mBuffers.length() > 0;
+        return mBuffers.size() > 0;
     }
 
     qint64 position() const override
@@ -141,14 +141,14 @@ private slots:
             return;
 
         // We just keep the length of mBuffers to 3 or less.
-        if (mBuffers.length() < 3) {
+        if (mBuffers.size() < 3) {
             QByteArray b(sizeof(mSerial), 0);
             memcpy(b.data(), &mSerial, sizeof(mSerial));
             qint64 position = (sizeof(mSerial) * mSerial * qint64(1000000)) / (mFormat.sampleRate() * mFormat.channelCount());
             mSerial++;
             mBuffers.push_back(QAudioBuffer(b, mFormat, position));
             emit bufferReady();
-            if (mBuffers.count() == 1)
+            if (mBuffers.size() == 1)
                 emit bufferAvailableChanged(true);
         }
     }

@@ -94,7 +94,7 @@ void tst_QCameraDevice::defaultCamera()
 void tst_QCameraDevice::availableCameras()
 {
     QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
-    QCOMPARE(cameras.count(), 3);
+    QCOMPARE(cameras.size(), 3);
 
     QCameraDevice info = cameras.at(0);
     QVERIFY(!info.isNull());
@@ -108,7 +108,7 @@ void tst_QCameraDevice::availableCameras()
     QCOMPARE(info.description(), QStringLiteral("frontCamera"));
     QCOMPARE(info.position(), QCameraDevice::FrontFace);
 
-    QCOMPARE(cameras.count(), 3);
+    QCOMPARE(cameras.size(), 3);
     info = cameras.at(2);
     QVERIFY(!info.isNull());
     QCOMPARE(info.id(), QStringLiteral("back"));

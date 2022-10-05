@@ -206,7 +206,7 @@ void tst_QImageCapture::error()
     QSignalSpy spy(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
     imageCapture.captureToFile();
     QTest::qWait(30);
-    QVERIFY(spy.count() == 1);
+    QVERIFY(spy.size() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) == -1);
     QVERIFY(qvariant_cast<QImageCapture::Error>(spy.at(0).at(1)) == QImageCapture::NotReadyError);
     QVERIFY(qvariant_cast<QString>(spy.at(0).at(2)) == "Could not capture in stopped state");
@@ -228,7 +228,7 @@ void tst_QImageCapture::imageCaptured()
     imageCapture.captureToFile();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
-    QVERIFY(spy.count() == 1);
+    QVERIFY(spy.size() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) > 0);
     QImage image = qvariant_cast<QImage>(spy.at(0).at(1));
     QVERIFY(image.isNull() == true);
@@ -251,7 +251,7 @@ void tst_QImageCapture::imageExposed()
     imageCapture.captureToFile();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
-    QVERIFY(spy.count() == 1);
+    QVERIFY(spy.size() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) > 0);
     spy.clear();
     camera.stop();
@@ -272,7 +272,7 @@ void tst_QImageCapture::imageSaved()
     imageCapture.captureToFile(QString::fromLatin1("/usr/share"));
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
-    QVERIFY(spy.count() == 1);
+    QVERIFY(spy.size() == 1);
     QVERIFY(qvariant_cast<int>(spy.at(0).at(0)) > 0);
     QVERIFY(qvariant_cast<QString>(spy.at(0).at(1)) == "/usr/share");
     spy.clear();
@@ -291,13 +291,13 @@ void tst_QImageCapture::readyForCaptureChanged()
     QVERIFY(imageCapture.isReadyForCapture() == false);
     imageCapture.captureToFile();
     QTest::qWait(100);
-    QVERIFY(spy.count() == 0);
+    QVERIFY(spy.size() == 0);
     QVERIFY2(!imageCapture.errorString().isEmpty(),"Could not capture in stopped state" );
     camera.start();
     QTest::qWait(100);
     imageCapture.captureToFile();
     QTest::qWait(100);
-    QVERIFY(spy.count() == 2);
+    QVERIFY(spy.size() == 2);
     QVERIFY(spy.at(0).at(0).toBool() == false);
     QVERIFY(spy.at(1).at(0).toBool() == true);
     camera.stop();
