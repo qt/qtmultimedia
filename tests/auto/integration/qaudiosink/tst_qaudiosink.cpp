@@ -199,7 +199,7 @@ void tst_QAudioSink::initTestCase()
     QVERIFY(m_temporaryDir->isValid());
 
     const QString temporaryAudioPath = m_temporaryDir->path() + slash;
-    for (const QAudioFormat &format : qAsConst(testFormats)) {
+    for (const QAudioFormat &format : std::as_const(testFormats)) {
         qint64 len = format.sampleRate()*format.bytesPerFrame(); // 1 second
         createSineWaveData(format, len);
         // Write generate sine wave data to file

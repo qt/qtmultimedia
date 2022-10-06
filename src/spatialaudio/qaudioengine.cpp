@@ -116,13 +116,13 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
     bool ok = true;
     while (frames >= qint64(QAudioEnginePrivate::bufferSize)) {
         // Fill input buffers
-        for (auto *source : qAsConst(d->sources)) {
+        for (auto *source : std::as_const(d->sources)) {
             auto *sp = QSpatialSoundPrivate::get(source);
             float buf[QAudioEnginePrivate::bufferSize];
             sp->getBuffer(buf, QAudioEnginePrivate::bufferSize, 1);
             d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf, 1, QAudioEnginePrivate::bufferSize);
         }
-        for (auto *source : qAsConst(d->stereoSources)) {
+        for (auto *source : std::as_const(d->stereoSources)) {
             auto *sp = QAmbientSoundPrivate::get(source);
             float buf[2*QAudioEnginePrivate::bufferSize];
             sp->getBuffer(buf, QAudioEnginePrivate::bufferSize, 2);
@@ -231,7 +231,7 @@ void QAudioEnginePrivate::updateRooms()
     float roomVolume = float(qInf());
     QAudioRoom *room = nullptr;
     // Find the smallest room that contains the listener and apply its room effects
-    for (auto *r : qAsConst(rooms)) {
+    for (auto *r : std::as_const(rooms)) {
         QVector3D dim2 = r->dimensions()/2.;
         float vol = dim2.x()*dim2.y()*dim2.z();
         if (vol > roomVolume)
@@ -267,7 +267,7 @@ void QAudioEnginePrivate::updateRooms()
     resonanceAudio->api->SetReverbProperties(rp->reverb);
 
     // update room effects for all sound sources
-    for (auto *s : qAsConst(sources)) {
+    for (auto *s : std::as_const(sources)) {
         auto *sp = QSpatialSoundPrivate::get(s);
         sp->updateRoomEffects();
     }

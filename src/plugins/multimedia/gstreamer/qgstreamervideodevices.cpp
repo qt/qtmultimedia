@@ -65,7 +65,7 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
 {
     QList<QCameraDevice> devices;
 
-    for (auto *d : qAsConst(m_videoSources)) {
+    for (auto *d : std::as_const(m_videoSources)) {
         QGstStructure properties = gst_device_get_properties(d);
         if (!properties.isNull()) {
             QCameraDevicePrivate *info = new QCameraDevicePrivate;

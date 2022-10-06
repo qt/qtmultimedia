@@ -76,7 +76,7 @@ QFFmpeg::Clock::Type QFFmpeg::Clock::type() const
 
 QFFmpeg::ClockController::~ClockController()
 {
-    for (auto *p : qAsConst(m_clocks))
+    for (auto *p : std::as_const(m_clocks))
         p->setController(nullptr);
 }
 
@@ -149,7 +149,7 @@ void QFFmpeg::ClockController::syncTo(qint64 usecs)
         m_elapsedTimer.restart();
     }
 
-    for (auto *p : qAsConst(m_clocks))
+    for (auto *p : std::as_const(m_clocks))
         p->syncTo(usecs);
 }
 
@@ -166,7 +166,7 @@ void QFFmpeg::ClockController::setPlaybackRate(float rate)
         m_playbackRate = rate;
     }
 
-    for (auto *p : qAsConst(m_clocks))
+    for (auto *p : std::as_const(m_clocks))
         p->setPlaybackRate(rate, baseTime);
 }
 
@@ -186,7 +186,7 @@ void QFFmpeg::ClockController::setPaused(bool paused)
         }
     }
 
-    for (auto *p : qAsConst(m_clocks))
+    for (auto *p : std::as_const(m_clocks))
         p->setPaused(paused);
 }
 

@@ -157,15 +157,15 @@ void Demuxer::stopDecoding()
 int Demuxer::seek(qint64 pos)
 {
     QMutexLocker locker(&mutex);
-    for (StreamDecoder *d : qAsConst(streamDecoders)) {
+    for (StreamDecoder *d : std::as_const(streamDecoders)) {
         if (d)
             d->mutex.lock();
     }
-    for (StreamDecoder *d : qAsConst(streamDecoders)) {
+    for (StreamDecoder *d : std::as_const(streamDecoders)) {
         if (d)
             d->flush();
     }
-    for (StreamDecoder *d : qAsConst(streamDecoders)) {
+    for (StreamDecoder *d : std::as_const(streamDecoders)) {
         if (d)
             d->mutex.unlock();
     }
@@ -193,7 +193,7 @@ void Demuxer::sendFinalPacketToStreams()
 {
     if (m_isStopped.loadAcquire())
         return;
-    for (auto *streamDecoder : qAsConst(streamDecoders)) {
+    for (auto *streamDecoder : std::as_const(streamDecoders)) {
         qCDebug(qLcDemuxer) << "Demuxer: sending last packet to stream" << streamDecoder;
         if (!streamDecoder)
             continue;
@@ -211,7 +211,7 @@ void Demuxer::cleanup()
 {
     qCDebug(qLcDemuxer) << "Demuxer::cleanup";
 #ifndef QT_NO_DEBUG
-    for (auto *streamDecoder : qAsConst(streamDecoders)) {
+    for (auto *streamDecoder : std::as_const(streamDecoders)) {
         Q_ASSERT(!streamDecoder);
     }
 #endif
