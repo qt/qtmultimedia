@@ -133,7 +133,7 @@ if (ANDROID)
     )
 
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
-        plugins/multimedia/libplugins_multimedia_ffmpegmediaplugin.so
+        ${INSTALL_PLUGINSDIR}/multimedia/libplugins_multimedia_ffmpegmediaplugin.so
     )
 
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
