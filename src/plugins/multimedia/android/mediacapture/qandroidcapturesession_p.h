@@ -143,6 +143,7 @@ private:
     QList<QSize> m_supportedResolutions;
     QList<qreal> m_supportedFramerates;
 
+    QMetaObject::Connection m_audioInputChanged;
     QMetaObject::Connection m_connOpenCamera;
     QMetaObject::Connection m_connActiveChangedCamera;
 
