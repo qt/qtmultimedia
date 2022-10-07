@@ -5,6 +5,7 @@
 
 #include "androidcamera_p.h"
 #include "qandroidcamerasession_p.h"
+#include "qaudioinput.h"
 #include "androidmediaplayer_p.h"
 #include "androidmultimediautils_p.h"
 #include "qandroidmultimediautils_p.h"
@@ -61,7 +62,21 @@ void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSessi
 
 void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
+    if (m_audioInput == input)
+        return;
+
+    if (m_audioInput) {
+        disconnect(m_audioInputChanged);
+    }
+
     m_audioInput = input;
+
+    if (m_audioInput) {
+        m_audioInputChanged = connect(m_audioInput->q, &QAudioInput::deviceChanged, this, [this]() {
+            if (m_state == QMediaRecorder::RecordingState)
+                m_mediaRecorder->setAudioInput(m_audioInput->device.id());
+        });
+    }
 }
 
 void QAndroidCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
