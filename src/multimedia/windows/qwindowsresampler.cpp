@@ -21,13 +21,20 @@ Q_LOGGING_CATEGORY(qLcAudioResampler, "qt.multimedia.audioresampler")
 QWindowsResampler::QWindowsResampler()
     : m_wmf(QWindowsMediaFoundation::instance())
 {
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    if (hr == RPC_E_CHANGED_MODE)
+        qWarning() << "Failed attempt to change apartment concurrency model";
+
     CoCreateInstance(qCLSID_CResamplerMediaObject, nullptr, CLSCTX_INPROC_SERVER,
                      qIID_IMFTransform, (LPVOID*)(m_resampler.address()));
     if (m_resampler)
         m_resampler->AddInputStreams(1, &m_inputStreamID);
 }
 
-QWindowsResampler::~QWindowsResampler() = default;
+QWindowsResampler::~QWindowsResampler()
+{
+    CoUninitialize();
+};
 
 quint64 QWindowsResampler::outputBufferSize(quint64 inputBufferSize) const
 {
