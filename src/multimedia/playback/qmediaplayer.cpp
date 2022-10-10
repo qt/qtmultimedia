@@ -724,6 +724,8 @@ QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 */
 
 /*!
+    \property QMediaPlayer::videoTracks
+
     Lists the set of available video tracks inside the media.
 
     The QMediaMetaData returned describes the properties of individual

@@ -209,7 +209,7 @@ QScreenCapture::Error QScreenCapture::error() const
 }
 
 /*!
-    \fn void errorOccurred(QScreenCapture::Error error, const QString &errorString)
+    \fn void QScreenCapture::errorOccurred(QScreenCapture::Error error, const QString &errorString)
 
     Signals when an \a error occurs, along with the \a errorString.
 */

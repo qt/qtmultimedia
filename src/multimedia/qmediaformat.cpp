@@ -367,7 +367,7 @@ QMediaFormat::~QMediaFormat() = default;
 QMediaFormat::QMediaFormat(const QMediaFormat &other) noexcept = default;
 
 /*!
-    \fn void swap(QMediaFormat &other) noexcept
+    \fn void QMediaFormat::swap(QMediaFormat &other) noexcept
 
     Swaps the media format with \a other.
 */
