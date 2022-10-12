@@ -55,6 +55,7 @@
 #include <gst/gst.h>
 #include <qset.h>
 #include <qaudiodevice.h>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 
@@ -76,7 +77,14 @@ public:
     GstDevice *videoDevice(const QByteArray &id) const;
 
 private:
-    QSet<GstDevice *> m_videoSources;
+    struct QGstDevice {
+        GstDevice *gstDevice = nullptr;
+        QByteArray id;
+    };
+
+    quint64 m_idGenerator = 0;
+    std::vector<QGstDevice> m_videoSources;
+
     QSet<GstDevice *> m_audioSources;
     QSet<GstDevice *> m_audioSinks;
 };

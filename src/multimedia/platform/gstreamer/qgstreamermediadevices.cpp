@@ -136,52 +136,53 @@ QList<QCameraDevice> QGstreamerMediaDevices::videoInputs() const
 {
     QList<QCameraDevice> devices;
 
-    for (auto *d : qAsConst(m_videoSources)) {
-        QGstStructure properties = gst_device_get_properties(d);
-        if (!properties.isNull()) {
-            QCameraDevicePrivate *info = new QCameraDevicePrivate;
-            auto *desc = gst_device_get_display_name(d);
-            info->description = QString::fromUtf8(desc);
-            g_free(desc);
+    for (auto device : m_videoSources) {
+        QCameraDevicePrivate *info = new QCameraDevicePrivate;
+        auto *desc = gst_device_get_display_name(device.gstDevice);
+        info->description = QString::fromUtf8(desc);
+        g_free(desc);
+        info->id = device.id;
 
-            info->id = properties["device.path"].toString();
+        if (QGstStructure properties = gst_device_get_properties(device.gstDevice); !properties.isNull()) {
             auto def = properties["is-default"].toBool();
             info->isDefault = def && *def;
-            if (def)
-                devices.prepend(info->create());
-            else
-                devices.append(info->create());
             properties.free();
-            QGstCaps caps = gst_device_get_caps(d);
-            if (!caps.isNull()) {
-                QList<QCameraFormat> formats;
-                QSet<QSize> photoResolutions;
+        }
 
-                int size = caps.size();
-                for (int i = 0; i < size; ++i) {
-                    auto cap = caps.at(i);
+        if (info->isDefault)
+            devices.prepend(info->create());
+        else
+            devices.append(info->create());
 
-                    QSize resolution = cap.resolution();
-                    if (!resolution.isValid())
-                        continue;
+        QGstCaps caps = gst_device_get_caps(device.gstDevice);
+        if (!caps.isNull()) {
+            QList<QCameraFormat> formats;
+            QSet<QSize> photoResolutions;
 
-                    auto pixelFormat = cap.pixelFormat();
-                    auto frameRate = cap.frameRateRange();
+            int size = caps.size();
+            for (int i = 0; i < size; ++i) {
+                auto cap = caps.at(i);
 
-                    auto *f = new QCameraFormatPrivate{
-                        QSharedData(),
-                        pixelFormat,
-                        resolution,
-                        frameRate.min,
-                        frameRate.max
-                    };
-                    formats << f->create();
-                    photoResolutions.insert(resolution);
-                }
-                info->videoFormats = formats;
-                // ### sort resolutions?
-                info->photoResolutions = photoResolutions.values();
+                QSize resolution = cap.resolution();
+                if (!resolution.isValid())
+                    continue;
+
+                auto pixelFormat = cap.pixelFormat();
+                auto frameRate = cap.frameRateRange();
+
+                auto *f = new QCameraFormatPrivate{
+                    QSharedData(),
+                    pixelFormat,
+                    resolution,
+                    frameRate.min,
+                    frameRate.max
+                };
+                formats << f->create();
+                photoResolutions.insert(resolution);
             }
+            info->videoFormats = formats;
+            // ### sort resolutions?
+            info->photoResolutions = photoResolutions.values();
         }
     }
     return devices;
@@ -203,8 +204,9 @@ void QGstreamerMediaDevices::addDevice(GstDevice *device)
 //    qDebug() << "adding device:" << device << type << gst_device_get_display_name(device) << gst_structure_to_string(gst_device_get_properties(device));
     gst_object_ref(device);
     if (!strcmp(type, "Video/Source")) {
-        m_videoSources.insert(device);
+        m_videoSources.push_back({device, QByteArray::number(m_idGenerator)});
         videoInputsChanged();
+        m_idGenerator++;
     } else if (!strcmp(type, "Audio/Source")) {
         m_audioSources.insert(device);
         audioInputsChanged();
@@ -220,7 +222,11 @@ void QGstreamerMediaDevices::addDevice(GstDevice *device)
 void QGstreamerMediaDevices::removeDevice(GstDevice *device)
 {
 //    qDebug() << "removing device:" << device << gst_device_get_display_name(device);
-    if (m_videoSources.remove(device)) {
+    auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
+                           [=](const QGstDevice &a) { return a.gstDevice == device; });
+
+    if (it != m_videoSources.end()) {
+        m_videoSources.erase(it);
         videoInputsChanged();
     } else if (m_audioSources.remove(device)) {
         audioInputsChanged();
@@ -259,7 +265,9 @@ GstDevice *QGstreamerMediaDevices::audioDevice(const QByteArray &id, QAudioDevic
 
 GstDevice *QGstreamerMediaDevices::videoDevice(const QByteArray &id) const
 {
-    return getDevice(m_videoSources, "device.path", id);
+    auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
+                           [=](const QGstDevice &a) { return a.id == id; });
+    return it != m_videoSources.end() ? it->gstDevice : nullptr;
 }
 
 QT_END_NAMESPACE
