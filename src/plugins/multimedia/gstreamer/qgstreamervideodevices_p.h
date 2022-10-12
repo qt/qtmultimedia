@@ -17,8 +17,8 @@
 
 #include <private/qplatformvideodevices_p.h>
 #include <gst/gst.h>
-#include <qset.h>
 #include <qaudiodevice.h>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 
@@ -34,7 +34,13 @@ public:
     void removeDevice(GstDevice *);
 
 private:
-    QSet<GstDevice *> m_videoSources;
+    struct QGstDevice {
+        GstDevice *gstDevice = nullptr;
+        QByteArray id;
+    };
+
+    quint64 m_idGenerator = 0;
+    std::vector<QGstDevice> m_videoSources;
 };
 
 QT_END_NAMESPACE
