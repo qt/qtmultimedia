@@ -71,9 +71,11 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
         auto *integration = static_cast<QGstreamerIntegration *>(QGstreamerIntegration::instance());
         auto *device = integration->videoDevice(camera.id());
         gstNewCamera = gst_device_create_element(device, "camerasrc");
-        QGstStructure properties = gst_device_get_properties(device);
-        if (properties.name() == "v4l2deviceprovider")
-            m_v4l2Device = QString::fromUtf8(properties["device.path"].toString());
+        if (QGstStructure properties = gst_device_get_properties(device); !properties.isNull()) {
+            if (properties.name() == "v4l2deviceprovider")
+                m_v4l2Device = QString::fromUtf8(properties["device.path"].toString());
+            properties.free();
+        }
     }
 
     QCameraFormat f = findBestCameraFormat(camera);
