@@ -276,6 +276,10 @@ void tst_QScreenCaptureIntegration::initTestCase()
 {
     if (!QApplication::primaryScreen())
         QSKIP("No screens found");
+
+    QScreenCapture sc;
+    if (sc.error() == QScreenCapture::CapturingNotSupported)
+        QSKIP("Screen capturing not supported");
 }
 
 void tst_QScreenCaptureIntegration::captureWindowById()
