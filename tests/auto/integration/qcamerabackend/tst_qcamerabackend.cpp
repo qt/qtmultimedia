@@ -545,7 +545,7 @@ void tst_QCameraBackend::testVideoRecording()
     session.setRecorder(&recorder);
 
     QSignalSpy errorSignal(camera.data(), SIGNAL(errorOccurred(QCamera::Error, const QString &)));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
+    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(QMediaRecorder::Error, const QString &)));
     QSignalSpy recorderStateChanged(&recorder, SIGNAL(recorderStateChanged(RecorderState)));
     QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
 
@@ -565,12 +565,16 @@ void tst_QCameraBackend::testVideoRecording()
     QTRY_VERIFY(camera->isActive());
 
     QTRY_VERIFY(camera->isActive());
-
     for (int recordings = 0; recordings < 2; ++recordings) {
         //record 200ms clip
         recorder.record();
         durationChanged.clear();
-        QTRY_VERIFY(durationChanged.count());
+        if (!recorderErrorSignal.empty() || recorderErrorSignal.wait(100)) {
+            QCOMPARE(recorderErrorSignal.last().first().toInt(), QMediaRecorder::FormatError);
+            break;
+        }
+
+        QTRY_VERIFY(durationChanged.size());
 
         QCOMPARE(recorder.metaData(), metaData);
 
