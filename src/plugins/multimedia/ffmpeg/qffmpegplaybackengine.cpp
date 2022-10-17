@@ -89,6 +89,9 @@ void PlaybackEngine::onRendererSynchronized(std::chrono::steady_clock::time_poin
 }
 
 void PlaybackEngine::setState(QMediaPlayer::PlaybackState state) {
+    if (!m_context)
+        return;
+
     if ( state == m_state )
         return;
 
@@ -388,7 +391,7 @@ void PlaybackEngine::deleteFreeThreads() {
         thr->wait();
 }
 
-void PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
+bool PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
 {
     forEachExistingObject([](auto &object) { object.reset(); });
     deleteFreeThreads();
@@ -397,10 +400,11 @@ void PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
 
     if (auto error = recreateAVFormatContext(media, stream)) {
         emit errorOccured(error->code, error->description);
-        return;
+        return false;
     }
 
     forceUpdate();
+    return true;
 }
 
 void PlaybackEngine::setVideoSink(QVideoSink *sink)

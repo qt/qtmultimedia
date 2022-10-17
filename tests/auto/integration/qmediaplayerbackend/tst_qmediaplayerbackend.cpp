@@ -36,6 +36,7 @@ public slots:
 
 private slots:
     void construction();
+    void loadInvalidMedia();
     void loadMedia();
     void unloadMedia();
     void loadMediaInLoadingState();
@@ -211,6 +212,47 @@ void tst_QMediaPlayerBackend::construction()
 {
     QMediaPlayer player;
     QTRY_VERIFY(player.isAvailable());
+}
+
+void tst_QMediaPlayerBackend::loadInvalidMedia()
+{
+    if (!isWavSupported())
+        QSKIP("Sound format is not supported");
+
+    QMediaPlayer player;
+    QAudioOutput output;
+    TestVideoSink surface;
+
+    QSignalSpy stateSpy(&player, &QMediaPlayer::playbackStateChanged);
+    QSignalSpy errorSpy(&player, &QMediaPlayer::errorOccurred);
+
+    player.setAudioOutput(&output);
+    player.setVideoOutput(&surface);
+
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::NoMedia);
+
+    player.setSource(QUrl("Some not existing media"));
+
+    QCOMPARE(player.source(), QUrl("Some not existing media"));
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::InvalidMedia);
+    QCOMPARE(player.error(), QMediaPlayer::ResourceError);
+
+    QCOMPARE(errorSpy.size(), 1);
+    QCOMPARE(stateSpy.size(), 0);
+
+    player.pause();
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+
+    player.play();
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+
+    QTest::qWait(150); // wait a bit and check position is not changed
+
+    QCOMPARE(player.position(), 0);
+    QCOMPARE(surface.m_totalFrames, 0);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::InvalidMedia);
 }
 
 void tst_QMediaPlayerBackend::loadMedia()

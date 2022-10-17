@@ -69,7 +69,7 @@ public:
 
     ~PlaybackEngine() override;
 
-    void setMedia(const QUrl &media, QIODevice *stream);
+    bool setMedia(const QUrl &media, QIODevice *stream);
 
     void setVideoSink(QVideoSink *sink);
 

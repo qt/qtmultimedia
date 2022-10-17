@@ -108,12 +108,16 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     positionChanged(0);
 
-    if (media.isEmpty() && !stream) {
+    auto handleIncorrectMedia = [this](QMediaPlayer::MediaStatus status) {
         seekableChanged(false);
         audioAvailableChanged(false);
         videoAvailableChanged(false);
         metaDataChanged();
-        mediaStatusChanged(QMediaPlayer::NoMedia);
+        mediaStatusChanged(status);
+    };
+
+    if (media.isEmpty() && !stream) {
+        handleIncorrectMedia(QMediaPlayer::NoMedia);
         return;
     }
 
@@ -121,7 +125,13 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     decoder = std::make_unique<Decoder>();
     connect(decoder.get(), &Decoder::endOfStream, this, &QFFmpegMediaPlayer::endOfStream);
     connect(decoder.get(), &Decoder::errorOccured, this, &QFFmpegMediaPlayer::error);
-    decoder->setMedia(media, stream);
+
+    if (!decoder->setMedia(media, stream)) {
+        decoder.reset();
+        handleIncorrectMedia(QMediaPlayer::InvalidMedia);
+        return;
+    }
+
     decoder->setAudioSink(m_audioOutput);
     decoder->setVideoSink(m_videoSink);
 
