@@ -25,9 +25,10 @@
 
 struct IMFSample;
 struct IMFTransform;
-class QWindowsMediaFoundation;
 
 QT_BEGIN_NAMESPACE
+
+class QWindowsMediaFoundation;
 
 class Q_MULTIMEDIA_EXPORT QWindowsResampler
 {

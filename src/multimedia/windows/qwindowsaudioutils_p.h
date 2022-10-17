@@ -23,9 +23,10 @@
 #include <mmreg.h>
 
 struct IMFMediaType;
-class QWindowsMediaFoundation;
 
 QT_BEGIN_NAMESPACE
+
+class QWindowsMediaFoundation;
 
 namespace QWindowsAudioUtils
 {
