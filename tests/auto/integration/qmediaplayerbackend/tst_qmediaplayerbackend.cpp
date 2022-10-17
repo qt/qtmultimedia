@@ -62,6 +62,7 @@ private slots:
     void position();
     void multipleMediaPlayback();
     void multiplePlaybackRateChangingStressTest();
+    void multipleSeekStressTest();
     void playbackRateChanging();
 
 private:
@@ -1183,6 +1184,99 @@ It findSimilarColor(It it, It end, QRgb color)
     });
 }
 
+void tst_QMediaPlayerBackend::multipleSeekStressTest()
+{
+    if (localVideoFile3ColorsWithSound.isEmpty())
+        QSKIP("Video format is not supported");
+
+    TestVideoSink surface(false);
+    QAudioOutput output;
+    QMediaPlayer player;
+
+    player.setAudioOutput(&output);
+    player.setVideoOutput(&surface);
+
+    player.setSource(localVideoFile3ColorsWithSound);
+
+    player.play();
+
+    auto waitAndCheckFrame = [&](qint64 pos, QString checkInfo) {
+        auto errorPrintingGuard = qScopeGuard([&]() {
+            qDebug() << "Error:" << checkInfo;
+            qDebug() << "Position:" << pos;
+        });
+
+        auto frame = surface.waitForFrame();
+        QVERIFY(frame.isValid());
+
+        const auto trackTime = pos * 1000;
+
+        // in theory, previous frame might be received, in this case we wait for a new one that is
+        // expected to be relevant
+        if (frame.endTime() < trackTime || frame.startTime() > trackTime) {
+            frame = surface.waitForFrame();
+            QVERIFY(frame.isValid());
+        }
+
+        QCOMPARE_GE(frame.endTime(), trackTime);
+        QCOMPARE_LE(frame.startTime(), trackTime);
+
+        auto frameImage = frame.toImage();
+        const auto actualColor = frameImage.pixel(1, 1);
+
+        const auto actualColorIndex = std::distance(
+                video3Colors.begin(),
+                findSimilarColor(video3Colors.begin(), video3Colors.end(), actualColor));
+
+        const auto expectedColorIndex = pos / 1000;
+
+        QCOMPARE(actualColorIndex, expectedColorIndex);
+
+        errorPrintingGuard.dismiss();
+    };
+
+    auto seekAndCheck = [&](qint64 pos) {
+        QTest::qWait(5); // wait some small time; process events
+
+        player.setPosition(pos);
+        QCOMPARE(player.position(), pos);
+    };
+
+    constexpr qint64 posInterval = 10;
+
+    {
+        for (qint64 pos = 0; pos <= 2200; pos += posInterval)
+            seekAndCheck(pos);
+
+        waitAndCheckFrame(2200, "emulate fast moving of a seek slider forward");
+
+        QCOMPARE_NE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+        QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+    }
+
+    {
+        for (qint64 pos = 2100; pos >= 800; pos -= posInterval)
+            seekAndCheck(pos);
+
+        waitAndCheckFrame(800, "emulate fast moving of a seek slider backward");
+
+        QCOMPARE_NE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+        QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+    }
+
+    {
+        player.pause();
+
+        for (qint64 pos = 500; pos <= 1100; pos += posInterval)
+            seekAndCheck(pos);
+
+        waitAndCheckFrame(1100, "emulate fast moving of a seek slider forward on paused state");
+
+        QCOMPARE_NE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+        QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
+    }
+}
+
 void tst_QMediaPlayerBackend::playbackRateChanging()
 {
     if (localVideoFile3ColorsWithSound.isEmpty())
@@ -1206,20 +1300,16 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
         const auto expectedColor = video3Colors[colorIndex];
         const auto actualColor = frameImage.pixel(1, 1);
 
-        bool failed = true;
-
-        auto guard = qScopeGuard([&]() {
-            if (failed) {
-                qDebug() << "Error Tag:" << errorTag;
-                qDebug() << "Actual Color:" << QColor(actualColor)
-                         << "Expected Color:" << QColor(expectedColor);
-                qDebug() << "Most probable actual color index:"
-                         << std::distance(video3Colors.begin(),
-                                          findSimilarColor(video3Colors.begin(), video3Colors.end(),
-                                                           actualColor))
-                         << " Expected color index:" << colorIndex;
-                qDebug() << "Actual position:" << player.position();
-            }
+        auto errorPrintingGuard = qScopeGuard([&]() {
+            qDebug() << "Error Tag:" << errorTag;
+            qDebug() << "Actual Color:" << QColor(actualColor)
+                     << "Expected Color:" << QColor(expectedColor);
+            qDebug() << "Most probable actual color index:"
+                     << std::distance(video3Colors.begin(),
+                                      findSimilarColor(video3Colors.begin(), video3Colors.end(),
+                                                       actualColor))
+                     << " Expected color index:" << colorIndex;
+            qDebug() << "Actual position:" << player.position();
         });
 
         constexpr qint64 intervalTime = 1000;
@@ -1230,7 +1320,7 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
         QCOMPARE_GT(player.position(), intervalTime * colorIndex);
         QCOMPARE_LT(player.position(), intervalTime * (colorIndex + 1));
 
-        failed = false;
+        errorPrintingGuard.dismiss();
     };
 
     player.play();

@@ -1,116 +1,85 @@
 // Copyright (C) 2020 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-//#define DEBUG_DECODER
-
 #include "qffmpegaudiodecoder_p.h"
 #include "qffmpegdecoder_p.h"
-#include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegresampler_p.h"
 #include "qaudiobuffer.h"
+
+#include "qffmpegplaybackengine_p.h"
+#include "playbackengine/qffmpegrenderer_p.h"
 
 #include <qloggingcategory.h>
 
 Q_LOGGING_CATEGORY(qLcAudioDecoder, "qt.multimedia.ffmpeg.audioDecoder")
-
-#define MAX_BUFFERS_IN_QUEUE 4
 
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg
 {
 
-class SteppingAudioRenderer : public Renderer
-{
-public:
-    SteppingAudioRenderer(AudioDecoder *decoder, const QAudioFormat &format);
-    ~SteppingAudioRenderer()
-    {
-    }
-
-    void loop() override;
-    AudioDecoder *m_decoder;
-    QAudioFormat m_format;
-    std::unique_ptr<Resampler> resampler;
-    bool atEndEmitted = false;
-};
-
-class AudioDecoder : public Decoder
+class SteppingAudioRenderer : public PlaybackEngineInternal::Renderer
 {
     Q_OBJECT
 public:
-    explicit AudioDecoder(QFFmpegAudioDecoder *audioDecoder) : Decoder(), audioDecoder(audioDecoder)
-    {}
+    SteppingAudioRenderer(const QAudioFormat &format) : Renderer({}), m_format(format) { }
 
-    void setup(const QAudioFormat &format)
+    RenderingResult renderInternal(Frame frame) override
     {
-        connect(this, &AudioDecoder::newAudioBuffer, audioDecoder, &QFFmpegAudioDecoder::newAudioBuffer);
-        connect(this, &AudioDecoder::isAtEnd, audioDecoder, &QFFmpegAudioDecoder::done);
-        m_format = format;
-        audioRenderer = new SteppingAudioRenderer(this, format);
-        audioRenderer->start();
-        auto *stream = demuxer->addStream(avStreamIndex(QPlatformMediaPlayer::AudioStream));
-        audioRenderer->setStream(stream);
+        if (!frame.isValid())
+            return {};
+
+        if (!m_resampler)
+            m_resampler = std::make_unique<Resampler>(frame.codec(), m_format);
+
+        emit newAudioBuffer(m_resampler->resample(frame.avFrame()));
+
+        return {};
+    }
+
+signals:
+    void newAudioBuffer(QAudioBuffer);
+
+private:
+    QAudioFormat m_format;
+    std::unique_ptr<Resampler> m_resampler;
+};
+
+class AudioDecoder : public PlaybackEngine
+{
+    Q_OBJECT
+public:
+    explicit AudioDecoder(const QAudioFormat &format) : m_format(format) { }
+
+    RendererPtr createRenderer(QPlatformMediaPlayer::TrackType trackType) override
+    {
+        if (trackType != QPlatformMediaPlayer::AudioStream)
+            return RendererPtr{ {}, {} };
+
+        auto result = createPlaybackEngineObject<SteppingAudioRenderer>(m_format);
+        m_audioRenderer = result.get();
+
+        connect(result.get(), &SteppingAudioRenderer::newAudioBuffer, this,
+                &AudioDecoder::newAudioBuffer);
+
+        return result;
     }
 
     void nextBuffer()
     {
-        audioRenderer->setPaused(false);
+        Q_ASSERT(m_audioRenderer);
+        Q_ASSERT(!m_audioRenderer->isStepForced());
+
+        m_audioRenderer->doForceStep();
+        // updateObjectsPausedState();
     }
 
-Q_SIGNALS:
-    void newAudioBuffer(const QAudioBuffer &b);
-    void isAtEnd();
+signals:
+    void newAudioBuffer(QAudioBuffer);
 
 private:
-    QFFmpegAudioDecoder *audioDecoder = nullptr;
+    QPointer<PlaybackEngineInternal::Renderer> m_audioRenderer;
     QAudioFormat m_format;
 };
-
-SteppingAudioRenderer::SteppingAudioRenderer(AudioDecoder *decoder, const QAudioFormat &format)
-    : Renderer(QPlatformMediaPlayer::AudioStream)
-    , m_decoder(decoder)
-    , m_format(format)
-{
-}
-
-
-void SteppingAudioRenderer::loop()
-{
-    if (!streamDecoder) {
-        qCDebug(qLcAudioDecoder) << "no stream";
-        timeOut = -1; // Avoid CPU load before play()
-        return;
-    }
-
-    Frame frame = streamDecoder->takeFrame();
-    if (!frame.isValid()) {
-        if (streamDecoder->isAtEnd()) {
-            if (!atEndEmitted)
-                emit m_decoder->isAtEnd();
-            atEndEmitted = true;
-            paused = true;
-            doneStep();
-            timeOut = -1;
-            return;
-        }
-        timeOut = 10;
-        streamDecoder->wake();
-        return;
-    }
-    qCDebug(qLcAudioDecoder) << "    got frame";
-
-    doneStep();
-
-    if (!resampler)
-        resampler.reset(new Resampler(frame.codec(), m_format));
-
-    auto buffer = resampler->resample(frame.avFrame());
-    paused = true;
-    timeOut = -1;
-
-    emit m_decoder->newAudioBuffer(buffer);
-}
-
 }
 
 
@@ -119,10 +88,7 @@ QFFmpegAudioDecoder::QFFmpegAudioDecoder(QAudioDecoder *parent)
 {
 }
 
-QFFmpegAudioDecoder::~QFFmpegAudioDecoder()
-{
-    delete decoder;
-}
+QFFmpegAudioDecoder::~QFFmpegAudioDecoder() = default;
 
 QUrl QFFmpegAudioDecoder::source() const
 {
@@ -134,11 +100,8 @@ void QFFmpegAudioDecoder::setSource(const QUrl &fileName)
     stop();
     m_sourceDevice = nullptr;
 
-    if (m_url == fileName)
-        return;
-    m_url = fileName;
-
-    emit sourceChanged();
+    if (std::exchange(m_url, fileName) != fileName)
+        sourceChanged();
 }
 
 QIODevice *QFFmpegAudioDecoder::sourceDevice() const
@@ -150,49 +113,52 @@ void QFFmpegAudioDecoder::setSourceDevice(QIODevice *device)
 {
     stop();
     m_url.clear();
-    bool isSignalRequired = (m_sourceDevice != device);
-    m_sourceDevice = device;
-    if (isSignalRequired)
+    if (std::exchange(m_sourceDevice, device) != device)
         sourceChanged();
 }
 
 void QFFmpegAudioDecoder::start()
 {
     qCDebug(qLcAudioDecoder) << "start";
-    delete decoder;
-    decoder = new QFFmpeg::AudioDecoder(this);
-    decoder->setMedia(m_url, m_sourceDevice);
-    if (error() != QAudioDecoder::NoError)
-        goto error;
+    auto checkNoError = [this]() {
+        if (error() == QAudioDecoder::NoError)
+            return true;
 
-    decoder->setup(m_audioFormat);
-    if (error() != QAudioDecoder::NoError)
-        goto error;
-    decoder->play();
-    if (error() != QAudioDecoder::NoError)
-        goto error;
-    decoder->nextBuffer();
-    if (error() != QAudioDecoder::NoError)
-        goto error;
+        durationChanged(-1);
+        positionChanged(-1);
 
-    connect(decoder, &QFFmpeg::Decoder::errorOccured, this, &QFFmpegAudioDecoder::errorSignal);
-    durationChanged(duration());
+        m_decoder.reset();
+
+        return false;
+    };
+
+    m_decoder = std::make_unique<AudioDecoder>(m_audioFormat);
+    connect(m_decoder.get(), &AudioDecoder::errorOccured, this, &QFFmpegAudioDecoder::errorSignal);
+    connect(m_decoder.get(), &AudioDecoder::endOfStream, this, &QFFmpegAudioDecoder::done);
+    connect(m_decoder.get(), &AudioDecoder::newAudioBuffer, this,
+            &QFFmpegAudioDecoder::newAudioBuffer);
+
+    m_decoder->setMedia(m_url, m_sourceDevice);
+    if (!checkNoError())
+        return;
+
+    m_decoder->setState(QMediaPlayer::PausedState);
+    if (!checkNoError())
+        return;
+
+    m_decoder->nextBuffer();
+    if (!checkNoError())
+        return;
+
+    durationChanged(m_decoder->m_duration / 1000);
     setIsDecoding(true);
-    return;
-
-  error:
-    durationChanged(-1);
-    positionChanged(-1);
-    delete decoder;
-    decoder = nullptr;
-
 }
 
 void QFFmpegAudioDecoder::stop()
 {
     qCDebug(qLcAudioDecoder) << ">>>>> stop";
-    if (decoder) {
-        decoder->stop();
+    if (m_decoder) {
+        m_decoder.reset();
         done();
     }
 }
@@ -204,26 +170,28 @@ QAudioFormat QFFmpegAudioDecoder::audioFormat() const
 
 void QFFmpegAudioDecoder::setAudioFormat(const QAudioFormat &format)
 {
-    if (m_audioFormat == format)
-        return;
-
-    m_audioFormat = format;
-    formatChanged(m_audioFormat);
+    if (std::exchange(m_audioFormat, format) != format)
+        formatChanged(m_audioFormat);
 }
 
 QAudioBuffer QFFmpegAudioDecoder::read()
 {
-    auto b = m_audioBuffer;
-    qCDebug(qLcAudioDecoder) << "reading buffer" << b.startTime();
-    m_audioBuffer = {};
+    auto buffer = std::exchange(m_audioBuffer, QAudioBuffer{});
+    if (!buffer.isValid())
+        return buffer;
+    qCDebug(qLcAudioDecoder) << "reading buffer" << buffer.startTime();
     bufferAvailableChanged(false);
-    if (decoder)
-        decoder->nextBuffer();
-    return b;
+    if (m_decoder)
+        m_decoder->nextBuffer();
+    return buffer;
 }
 
 void QFFmpegAudioDecoder::newAudioBuffer(const QAudioBuffer &b)
 {
+    Q_ASSERT(b.isValid());
+    Q_ASSERT(!m_audioBuffer.isValid());
+    Q_ASSERT(!bufferAvailable());
+
     qCDebug(qLcAudioDecoder) << "new audio buffer" << b.startTime();
     m_audioBuffer = b;
     const qint64 pos = b.startTime();

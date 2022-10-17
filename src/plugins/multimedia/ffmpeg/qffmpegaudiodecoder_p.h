@@ -17,10 +17,7 @@
 
 #include "private/qplatformaudiodecoder_p.h"
 #include <qffmpeg_p.h>
-
-#include <qmutex.h>
 #include <qurl.h>
-#include <qqueue.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -56,9 +53,11 @@ public Q_SLOTS:
     void errorSignal(int err, const QString &errorString);
 
 private:
+    using AudioDecoder = QFFmpeg::AudioDecoder;
+
     QUrl m_url;
     QIODevice *m_sourceDevice = nullptr;
-    QFFmpeg::AudioDecoder *decoder = nullptr;
+    std::unique_ptr<AudioDecoder> m_decoder;
     QAudioFormat m_audioFormat;
 
     QAudioBuffer m_audioBuffer;
