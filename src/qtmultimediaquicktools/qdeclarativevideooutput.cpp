@@ -421,9 +421,8 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
     }
 
     if (m_backend) {
-        if (!m_backend->videoSurface() || m_backend->videoSurface()->isActive())
-            m_backend->updateGeometry();
-        else
+        m_backend->updateGeometry();
+        if (m_backend->videoSurface() && !m_backend->videoSurface()->isActive())
             m_geometryDirty = true;
     }
 
