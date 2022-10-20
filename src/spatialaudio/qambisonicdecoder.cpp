@@ -264,7 +264,7 @@ void QAmbisonicDecoder::processBuffer(const float *input[], short *output, int n
     return processBufferWithReverb(input, reverb, output, nSamples);
 }
 
-void QAmbisonicDecoder::processBufferWithReverb(const float *input[], const float *reverb[], short *output, int nSamples)
+void QAmbisonicDecoder::processBufferWithReverb(const float *input[], const float *reverb[2], short *output, int nSamples)
 {
     if (simpleDecoderFactors) {
         for (int i = 0; i < nSamples; ++i) {
