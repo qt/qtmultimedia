@@ -243,7 +243,7 @@ void tst_QAudioDecoderBackend::restartOnBufferReady()
     decoder.setSource(testFileUrl(TEST_FILE_NAME));
     decoder.start();
 
-    QVERIFY(finishSpy.wait());
+    QTRY_VERIFY2(finishSpy.size() == 2, "Wait for signals after restart and after finishing");
     QVERIFY(!decoder.isDecoding());
 
     checkNoMoreChanges(decoder);
@@ -285,7 +285,7 @@ void tst_QAudioDecoderBackend::restartOnFinish()
     decoder.setSource(testFileUrl(TEST_FILE_NAME));
     decoder.start();
 
-    QVERIFY(QTest::qWaitFor([&finishSpy]() { return finishSpy.size() == 2; }));
+    QTRY_VERIFY(finishSpy.size() == 2);
 
     QVERIFY(!decoder.isDecoding());
 

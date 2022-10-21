@@ -144,6 +144,9 @@ void tst_QAudioSink::generate_audiofile_testrows()
 
 void tst_QAudioSink::initTestCase()
 {
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("SKIP on CI. To be fixed.");
+
     // Only perform tests if audio output device exists
     const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
 

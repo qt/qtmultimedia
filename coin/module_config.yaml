@@ -9,4 +9,5 @@ instructions:
     - !include "{{qt/qtbase}}/coin_module_build_template_v2.yaml"
 
   Test:
+    - !include "{{qt/qtmultimedia}}/run_ffmpeg_backend_tests.yaml"
     - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"
