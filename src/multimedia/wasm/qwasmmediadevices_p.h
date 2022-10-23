@@ -16,9 +16,11 @@
 //
 
 #include <private/qplatformmediadevices_p.h>
-#include <qset.h>
+#include <QtCore/private/qstdweb_p.h>
 #include <qaudio.h>
 #include <qaudiodevice.h>
+#include <qcameradevice.h>
+#include <qset.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -38,8 +40,14 @@ public:
                                         QObject *parent) override;
 
 private:
+    void updateCameraDevices();
+    void getMediaDevices();
+    void getAlAudioDevices();
+
+    QList<QCameraDevice> m_cameraDevices;
     QList<QAudioDevice> m_outs;
     QList<QAudioDevice> m_ins;
+    std::unique_ptr<qstdweb::EventCallback> windowCallback;
 };
 
 QT_END_NAMESPACE
