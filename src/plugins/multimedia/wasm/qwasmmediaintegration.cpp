@@ -4,6 +4,9 @@
 #include "qwasmmediaintegration_p.h"
 #include <QLoggingCategory>
 
+#include <QCamera>
+#include <QCameraDevice>
+
 #include <private/qplatformmediaformatinfo_p.h>
 #include <private/qplatformmediaplugin_p.h>
 #include <private/qplatformmediadevices_p.h>
@@ -13,6 +16,12 @@
 #include "mediaplayer/qwasmvideosink_p.h"
 #include "qwasmaudioinput_p.h"
 #include "common/qwasmaudiooutput_p.h"
+
+#include "mediacapture/qwasmmediacapturesession_p.h"
+#include "mediacapture/qwasmmediarecorder_p.h"
+#include "mediacapture/qwasmcamera_p.h"
+#include "mediacapture/qwasmmediacapturesession_p.h"
+#include "mediacapture/qwasmimagecapture_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -39,6 +48,7 @@ public:
 
 QWasmMediaIntegration::QWasmMediaIntegration()
 {
+   m_videoDevices = std::make_unique<QWasmCameraDevices>(this);
 }
 
 QWasmMediaIntegration::~QWasmMediaIntegration()
@@ -72,6 +82,32 @@ QPlatformMediaFormatInfo *QWasmMediaIntegration::formatInfo()
         m_formatInfo = new QPlatformMediaFormatInfo();
     }
     return m_formatInfo;
+}
+
+QMaybe<QPlatformMediaCaptureSession *> QWasmMediaIntegration::createCaptureSession()
+{
+    return new QWasmMediaCaptureSession();
+}
+
+QMaybe<QPlatformMediaRecorder *> QWasmMediaIntegration::createRecorder(QMediaRecorder *recorder)
+{
+    return new QWasmMediaRecorder(recorder);
+}
+
+QMaybe<QPlatformCamera *> QWasmMediaIntegration::createCamera(QCamera *camera)
+{
+    return new QWasmCamera(camera);
+}
+
+QMaybe<QPlatformImageCapture *>
+QWasmMediaIntegration::createImageCapture(QImageCapture *imageCapture)
+{
+    return new QWasmImageCapture(imageCapture);
+}
+
+QList<QCameraDevice> QWasmMediaIntegration::videoInputs()
+{
+    return m_videoDevices->videoDevices();
 }
 
 QT_END_NAMESPACE
