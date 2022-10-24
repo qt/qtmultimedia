@@ -8,10 +8,14 @@ qt_internal_add_plugin(QWasmMediaPlugin
         common/qwasmvideooutput.cpp common/qwasmvideooutput_p.h
         common/qwasmaudiooutput.cpp common/qwasmaudiooutput_p.h
         common/qwasmaudioinput.cpp common/qwasmaudioinput_p.h
-
+        mediacapture/qwasmmediacapturesession.cpp mediacapture/qwasmmediacapturesession_p.h
+        mediacapture/qwasmmediarecorder.cpp mediacapture/qwasmmediarecorder_p.h
+        mediacapture/qwasmcamera.cpp mediacapture/qwasmcamera_p.h
+        mediacapture/qwasmimagecapture.cpp  mediacapture/qwasmimagecapture_p.h
     INCLUDE_DIRECTORIES
         common
         mediaplayer
+        mediacapture
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate

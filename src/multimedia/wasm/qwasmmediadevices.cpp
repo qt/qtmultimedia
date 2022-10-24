@@ -10,24 +10,43 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
+#include <QMap>
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
-QWasmMediaDevices::QWasmMediaDevices()
-    : QPlatformMediaDevices()
+Q_LOGGING_CATEGORY(qWasmMediaDevices, "qt.multimedia.wasm.mediadevices")
+
+QWasmCameraDevices::QWasmCameraDevices(QPlatformMediaIntegration *integration)
+    : QPlatformVideoDevices(integration)
+{
+    m_mediaDevices = QPlatformMediaDevices::instance();
+}
+
+QList<QCameraDevice> QWasmCameraDevices::videoDevices() const
+{
+    QWasmMediaDevices *wasmMediaDevices = reinterpret_cast<QWasmMediaDevices *>(m_mediaDevices);
+    return wasmMediaDevices ? wasmMediaDevices->videoInputs() : QList<QCameraDevice>();
+}
+
+QWasmMediaDevices::QWasmMediaDevices() : QPlatformMediaDevices()
 {
     getMediaDevices(); // asynchronous
 }
 
 QList<QAudioDevice> QWasmMediaDevices::audioInputs() const
 {
-    return m_ins;
+    return m_audioInputs.values();
 }
 
 QList<QAudioDevice> QWasmMediaDevices::audioOutputs() const
 {
-    return m_outs;
+    return m_audioOutputs.values();
+}
+
+QList<QCameraDevice> QWasmMediaDevices::videoInputs() const
+{
+    return m_cameraDevices.values();
 }
 
 QPlatformAudioSource *QWasmMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
@@ -45,108 +64,191 @@ QPlatformAudioSink *QWasmMediaDevices::createAudioSink(const QAudioDevice &devic
 void QWasmMediaDevices::getMediaDevices()
 {
     emscripten::val navigator = emscripten::val::global("navigator");
-    emscripten::val mediaDevices = navigator["mediaDevices"];
+    m_jsMediaDevicesInterface = navigator["mediaDevices"];
 
-    if (mediaDevices.isNull() || mediaDevices.isUndefined()) {
+    if (m_jsMediaDevicesInterface.isNull() || m_jsMediaDevicesInterface.isUndefined()) {
         qWarning() << "No media devices found";
         return;
     }
 
-    qstdweb::PromiseCallbacks getUserMediaCallback{
+    qstdweb::PromiseCallbacks enumerateDevicesCallback{
         .thenFunc =
-                [this, navigator, mediaDevices](emscripten::val video) {
-            Q_UNUSED(video);
-            qstdweb::PromiseCallbacks enumerateDevicesCallback{
-                .thenFunc =
-                        [&](emscripten::val devices) {
+                [&](emscripten::val devices) {
+                    if (devices.isNull() || devices.isUndefined()) {
+                        qWarning() << "Something went wrong enumerating devices";
+                        return;
+                    }
 
-                    std::string defaultDeviceLabel;
+                    QList<std::string> cameraDevicesToRemove = m_cameraDevices.keys();
+                    QList<std::string> audioInputsToRemove = m_audioInputs.keys();
+                    QList<std::string> audioOutputsToRemove = m_audioOutputs.keys();
+
+                    m_videoInputsAdded = false;
+                    m_audioInputsAdded = false;
+                    m_audioOutputsAdded = false;
+
+                    bool m_videoInputsRemoved = false;
+                    bool m_audioInputsRemoved = false;
+                    bool m_audioOutputsRemoved = false;
+
                     for (int i = 0; i < devices["length"].as<int>(); i++) {
-                        const std::string deviceKind =
-                                devices[i]["kind"].as<std::string>();
-                        const std::string label =
-                                devices[i]["label"].as<std::string>();
-                        const std::string deviceId =
-                                devices[i]["deviceId"].as<std::string>();
+
+                        emscripten::val mediaDevice = devices[i];
+
+                        std::string defaultDeviceLabel = "";
+
+                        const std::string deviceKind = mediaDevice["kind"].as<std::string>();
+                        const std::string label = mediaDevice["label"].as<std::string>();
+                        const std::string deviceId = mediaDevice["deviceId"].as<std::string>();
+
+                        qCDebug(qWasmMediaDevices) << QString::fromStdString(deviceKind)
+                                                   << QString::fromStdString(deviceId)
+                                                   << QString::fromStdString(label);
+
+                        if (deviceKind.empty())
+                            continue;
 
                         if (deviceId == std::string("default")) {
-                            defaultDeviceLabel = label.substr(10);
+                            // chrome specifies the default device with this as deviceId
+                            // and then prepends "Default - " with the name of the device
+                            // in the label
+                            if (label.empty())
+                                continue;
+
+                            defaultDeviceLabel = label;
                             continue;
                         }
 
                         const bool isDefault =
-                                (defaultDeviceLabel.compare(label) == 0);
+                                (defaultDeviceLabel.find(label) != std::string::npos);
 
                         if (deviceKind == std::string("videoinput")) {
-                            QScopedPointer<QCameraDevicePrivate> camera(
-                                        new QCameraDevicePrivate);
-                            camera->id = QString::fromStdString(deviceId).toUtf8();
-                            camera->description = QString::fromUtf8(label.c_str());
-                            camera->isDefault = isDefault;
-                            m_cameraDevices.append(camera->create());
-                            emit videoInputsChanged();
+                            if (!m_cameraDevices.contains(deviceId)) {
+                                QCameraDevicePrivate *camera = new QCameraDevicePrivate; // QSharedData
+                                camera->id = QString::fromStdString(deviceId).toUtf8();
+                                camera->description = QString::fromUtf8(label.c_str());
+                                camera->isDefault = isDefault;
+
+                                m_cameraDevices.insert(deviceId, camera->create());
+                                m_videoInputsAdded = true;
+                            }
+                            cameraDevicesToRemove.removeOne(deviceId);
 
                         } else if (deviceKind == std::string("audioinput")) {
+                            if (!m_audioInputs.contains(deviceId)) {
+                                m_audioInputs.insert(deviceId,
+                                        (new QWasmAudioDevice(deviceId.c_str(), label.c_str(),
+                                                              isDefault, QAudioDevice::Input))
+                                                ->create());
 
-                            m_ins.append((new QWasmAudioDevice(
-                                              deviceId.c_str(), label.c_str(),
-                                              isDefault, QAudioDevice::Input))
-                                         ->create());
-                            emit audioInputsChanged();
+                                m_audioInputsAdded = true;
+                            }
+                            audioInputsToRemove.removeOne(deviceId);
+                        } else if (deviceKind == std::string("audiooutput")) {
+                            if (!m_audioOutputs.contains(deviceId)) {
+                                m_audioOutputs.insert(deviceId,
+                                        (new QWasmAudioDevice(deviceId.c_str(), label.c_str(),
+                                                              isDefault, QAudioDevice::Input))
+                                                ->create());
+
+                                m_audioOutputsAdded = true;
+                            }
+                            audioOutputsToRemove.removeOne(deviceId);
                         }
                         // if permissions are given label will hold the actual
                         // camera name, such as "Live! Cam Sync 1080p (041e:409d)"
                     }
-                    getAlAudioDevices();
+
+                    // any left here were removed
+                    int j = 0;
+                    for (; j < cameraDevicesToRemove.count(); j++) {
+                        m_cameraDevices.remove(cameraDevicesToRemove.at(j));
+                    }
+                    m_videoInputsRemoved = !cameraDevicesToRemove.isEmpty();
+
+                    for (j = 0; j < audioInputsToRemove.count(); j++) {
+                        m_audioInputs.remove(audioInputsToRemove.at(j));
+                    }
+                    m_audioInputsRemoved = !audioInputsToRemove.isEmpty();
+
+                    for (j = 0; j < audioOutputsToRemove.count(); j++) {
+                        m_audioOutputs.remove(audioOutputsToRemove.at(j));
+                    }
+                    m_audioOutputsRemoved = !audioOutputsToRemove.isEmpty();
+
+                    if (m_videoInputsAdded || m_videoInputsRemoved)
+                        emit videoInputsChanged();
+                    if (m_audioInputsAdded || m_audioInputsRemoved)
+                        emit audioInputsChanged();
+                    if (m_audioOutputsAdded || m_audioOutputsRemoved)
+                        emit audioOutputsChanged();
                 },
-                .catchFunc =
-                        [](emscripten::val error) {
-                    qWarning() << "enumerateDevices fail"
-                               << QString::fromStdString(
-                                      error["name"].as<std::string>())
-                            << QString::fromStdString(
-                                   error["message"].as<std::string>());
-                }
-
-            };
-
-            qstdweb::Promise::make(mediaDevices, QStringLiteral("enumerateDevices"),
-                                   std::move(enumerateDevicesCallback));
-
-        },
-                .catchFunc =
+        .catchFunc =
                 [](emscripten::val error) {
-            qWarning() << "getUserMedia fail"
-                       << QString::fromStdString(error["name"].as<std::string>())
-                    << QString::fromStdString(error["message"].as<std::string>());
-        }
+                    qWarning() << "mediadevices enumerateDevices fail"
+                               << QString::fromStdString(error["name"].as<std::string>())
+                               << QString::fromStdString(error["message"].as<std::string>());
+                }
+    };
+
+    qstdweb::PromiseCallbacks getUserMediaCallback{
+        .thenFunc =
+                [this, navigator, enumerateDevicesCallback](emscripten::val video) {
+                    Q_UNUSED(video);
+
+                    qstdweb::Promise::make(m_jsMediaDevicesInterface,
+                                           QStringLiteral("enumerateDevices"),
+                                           std::move(enumerateDevicesCallback));
+                },
+        .catchFunc =
+                [](emscripten::val error) {
+                    qWarning() << "mediadevices getUserMedia fail"
+                               << QString::fromStdString(error["name"].as<std::string>())
+                               << QString::fromStdString(error["message"].as<std::string>());
+                }
     };
 
     emscripten::val constraints = emscripten::val::object();
     constraints.set("video", true);
     constraints.set("audio", true);
 
-    // getUserMedia will permissions user permissions
-    qstdweb::Promise::make(mediaDevices, QStringLiteral("getUserMedia"),
+    // getUserMedia will ask for user permissions
+    qstdweb::Promise::make(m_jsMediaDevicesInterface, QStringLiteral("getUserMedia"),
                            std::move(getUserMediaCallback), constraints);
+
+    // setup devicechange monitor
+    m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
+            m_jsMediaDevicesInterface, "devicechange",
+            [this, enumerateDevicesCallback](emscripten::val) {
+                qstdweb::Promise::make(m_jsMediaDevicesInterface,
+                                       QStringLiteral("enumerateDevices"),
+                                       std::move(enumerateDevicesCallback));
+            });
 }
 
-void QWasmMediaDevices::getAlAudioDevices()
+void QWasmMediaDevices::getOpenALAudioDevices()
 {
     // VM3959:4 The AudioContext was not allowed to start.
     // It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
     auto capture = alcGetString(nullptr, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
     // present even if there is no capture device
-    if (capture) {
-        m_ins.append((new QWasmAudioDevice(capture, "WebAssembly audio capture device", true,
-                                           QAudioDevice::Input))->create());
+    if (capture && !m_audioOutputs.contains(capture)) {
+        m_audioInputs.insert(capture,
+                             (new QWasmAudioDevice(capture, "WebAssembly audio capture device",
+                                                   true, QAudioDevice::Input))
+                                     ->create());
+        emit audioInputsChanged();
     }
 
     auto playback = alcGetString(nullptr, ALC_DEFAULT_DEVICE_SPECIFIER);
     // present even if there is no playback device
-    if (playback)
-        m_outs.append((new QWasmAudioDevice(playback, "WebAssembly audio playback device", true,
-                                            QAudioDevice::Output))->create());
+    if (playback && !m_audioOutputs.contains(capture)) {
+        m_audioOutputs.insert(playback,
+                              (new QWasmAudioDevice(playback, "WebAssembly audio playback device",
+                                                    true, QAudioDevice::Output))
+                                      ->create());
+        emit audioOutputsChanged();
+    }
 }
 
 QT_END_NAMESPACE

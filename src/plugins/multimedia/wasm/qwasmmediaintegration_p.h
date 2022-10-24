@@ -17,6 +17,8 @@
 
 #include <private/qplatformmediaintegration_p.h>
 
+#include <private/qwasmmediadevices_p.h>
+
 QT_BEGIN_NAMESPACE
 
 class QWasmMediaDevices;
@@ -36,6 +38,12 @@ public:
 
     QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *audioInput) override;
     QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *q) override;
+
+    QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
+    QMaybe<QPlatformCamera *> createCamera(QCamera *camera) override;
+    QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *recorder) override;
+    QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *imageCapture) override;
+    QList<QCameraDevice> videoInputs() override;
 };
 
 QT_END_NAMESPACE

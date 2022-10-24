@@ -48,7 +48,7 @@ public:
     void pause();
 
     void setSurface(QVideoSink *surface);
-    emscripten::val surfaceElement(); // ?
+    emscripten::val surfaceElement();
 
     bool isReady() const;
 
@@ -71,8 +71,15 @@ public:
     void doElementCallbacks();
     void updateVideoElementGeometry(const QRect &windowGeometry);
     void addSourceElement(const QString &urlString);
+    void addCameraSourceElement(const std::string &id);
     void removeSourceElement();
     void setVideoMode(QWasmVideoOutput::WasmVideoMode mode);
+
+    void setHasAudio(bool needsAudio) { m_hasAudio = needsAudio; }
+
+    bool hasCapability(const QString &cap);
+    emscripten::val getDeviceCapabilities();
+    bool setDeviceSetting(const std::string &key, emscripten::val value);
 
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
@@ -92,6 +99,7 @@ private:
     void checkNetworkState();
     void videoComputeFrame(void *context);
     void videoFrameTimerCallback();
+    void getDeviceSettings();
 
     emscripten::val m_video = emscripten::val::undefined();
     emscripten::val m_videoElementSource = emscripten::val::undefined();
@@ -103,6 +111,7 @@ private:
     bool m_shouldStop = false;
     bool m_toBePaused = false;
     bool m_isSeeking = false;
+    bool m_hasAudio = false;
     emscripten::val m_offscreenContext = emscripten::val::undefined();
     QSize m_pendingVideoSize;
     QWasmVideoOutput::WasmVideoMode m_currentVideoMode = QWasmVideoOutput::VideoOutput;

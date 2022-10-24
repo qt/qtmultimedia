@@ -61,20 +61,16 @@ public:
     QUrl media() const override;
     const QIODevice *mediaStream() const override;
     void setMedia(const QUrl &mediaContent, QIODevice *stream) override;
-
     void setVideoSink(QVideoSink *surface) override;
-
     void setAudioOutput(QPlatformAudioOutput *output) override;
-    void updateAudioDevice();
-
     void setPosition(qint64 position) override;
     void play() override;
     void pause() override;
     void stop() override;
-
     bool isSeekable() const override;
-
     int trackCount(TrackType trackType) override;
+
+    void updateAudioDevice();
 
 private Q_SLOTS:
     void volumeChanged(float volume);

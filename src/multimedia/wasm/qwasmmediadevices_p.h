@@ -16,15 +16,38 @@
 //
 
 #include <private/qplatformmediadevices_p.h>
+
+#include <private/qplatformvideodevices_p.h>
+
 #include <QtCore/private/qstdweb_p.h>
 #include <qaudio.h>
 #include <qaudiodevice.h>
 #include <qcameradevice.h>
 #include <qset.h>
+#include <QtCore/qloggingcategory.h>
 
+#include <emscripten.h>
+#include <emscripten/val.h>
+#include <emscripten/bind.h>
+#include <QMapIterator>
 QT_BEGIN_NAMESPACE
 
+Q_DECLARE_LOGGING_CATEGORY(qWasmMediaDevices)
+
 class QWasmAudioEngine;
+
+class QWasmCameraDevices : public QObject,
+                           public QPlatformVideoDevices
+{
+    Q_OBJECT
+public:
+    QWasmCameraDevices(QPlatformMediaIntegration *integration);
+
+    QList<QCameraDevice> videoDevices() const override;
+private:
+    // weak
+    QPlatformMediaDevices *m_mediaDevices;
+};
 
 class QWasmMediaDevices : public QPlatformMediaDevices
 {
@@ -33,6 +56,8 @@ public:
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
+    QList<QCameraDevice> videoInputs() const;
+
     QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
                                             QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
@@ -41,12 +66,19 @@ public:
 private:
     void updateCameraDevices();
     void getMediaDevices();
-    void getAlAudioDevices();
+    void getOpenALAudioDevices();
 
-    QList<QCameraDevice> m_cameraDevices;
-    QList<QAudioDevice> m_outs;
-    QList<QAudioDevice> m_ins;
-    std::unique_ptr<qstdweb::EventCallback> windowCallback;
+    QMap <std::string, QAudioDevice> m_audioOutputs;
+    QMap <std::string, QAudioDevice> m_audioInputs;
+    QMap <std::string, QCameraDevice> m_cameraDevices;
+
+
+    std::unique_ptr<qstdweb::EventCallback> m_deviceChangedCallback;
+
+    bool m_videoInputsAdded = false;
+    bool m_audioInputsAdded = false;
+    bool m_audioOutputsAdded = false;
+    emscripten::val m_jsMediaDevicesInterface = emscripten::val::undefined();
 };
 
 QT_END_NAMESPACE
