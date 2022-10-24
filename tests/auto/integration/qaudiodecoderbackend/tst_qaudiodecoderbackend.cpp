@@ -120,6 +120,7 @@ void tst_QAudioDecoderBackend::directBruteForceReading()
     QVERIFY(!decoder.bufferAvailable());
 
     decoder.start();
+    QTRY_VERIFY(decoder.isDecoding());
 
     auto waitAndCheck = [](auto &&predicate) { QVERIFY(QTest::qWaitFor(predicate)); };
 
@@ -170,7 +171,7 @@ void tst_QAudioDecoderBackend::indirectReading()
     QVERIFY(!decoder.bufferAvailable());
 
     decoder.start();
-    QVERIFY(decoder.isDecoding());
+    QTRY_VERIFY(decoder.isDecoding());
 
     QVERIFY(finishSpy.wait());
     QVERIFY(!decoder.isDecoding());
@@ -201,7 +202,7 @@ void tst_QAudioDecoderBackend::stopOnBufferReady()
     decoder.setSource(testFileUrl(TEST_FILE_NAME));
     decoder.start();
 
-    QVERIFY(finishSpy.wait());
+    bufferReadySpy.wait();
     QVERIFY(!decoder.isDecoding());
 
     checkNoMoreChanges(decoder);
@@ -232,6 +233,7 @@ void tst_QAudioDecoderBackend::restartOnBufferReady()
 
         std::call_once(restartOnce, [&]() {
             sampleCount = 0;
+            decoder.stop();
             decoder.start();
         });
     });
