@@ -336,7 +336,7 @@ qint64 QMediaPlayer::position() const
 }
 
 /*!
-    Returns a number betwee 0 and 1 when buffering data.
+    Returns a number between 0 and 1 when buffering data.
 
     0 means that there is no buffered data available, playback is usually
     stalled in this case. Playback will resume once the buffer reaches 1,
@@ -918,7 +918,7 @@ void QMediaPlayer::setVideoSink(QVideoSink *sink)
 }
 
 /*!
-    Returns the QVedioSink instance.
+    Returns the QVideoSink instance.
 */
 QVideoSink *QMediaPlayer::videoSink() const
 {
