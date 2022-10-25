@@ -1,6 +1,8 @@
 # Media player plugin not built at the moment on this platform
 opensuse-13.1 64bit
 
+[metadata]
+windows
 
 [playlist]
 redhatenterpriselinuxworkstation-6.6
