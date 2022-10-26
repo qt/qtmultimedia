@@ -236,9 +236,9 @@ void tst_QMediaPlayerBackend::loadInvalidMedia()
     player.setSource(QUrl("Some not existing media"));
 
     QCOMPARE(player.source(), QUrl("Some not existing media"));
-    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(player.mediaStatus(), QMediaPlayer::InvalidMedia);
-    QCOMPARE(player.error(), QMediaPlayer::ResourceError);
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::InvalidMedia);
+    QTRY_COMPARE(player.error(), QMediaPlayer::ResourceError);
 
     QCOMPARE(errorSpy.size(), 1);
     QCOMPARE(stateSpy.size(), 0);
@@ -247,7 +247,7 @@ void tst_QMediaPlayerBackend::loadInvalidMedia()
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
 
     player.play();
-    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
 
     QTest::qWait(150); // wait a bit and check position is not changed
 
@@ -1224,8 +1224,8 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
             QVERIFY(frame.isValid());
         }
 
-        QCOMPARE_GE(frame.endTime(), trackTime);
-        QCOMPARE_LE(frame.startTime(), trackTime);
+        QCOMPARE_GE(frame.startTime(), trackTime - 200'000);
+        QCOMPARE_LE(frame.endTime(), trackTime + 200'000);
 
         auto frameImage = frame.toImage();
         const auto actualColor = frameImage.pixel(1, 1);
@@ -1242,16 +1242,19 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
     };
 
     auto seekAndCheck = [&](qint64 pos) {
-        QTest::qWait(5); // wait some small time; process events
-
+        QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
         player.setPosition(pos);
-        QCOMPARE(player.position(), pos);
+
+        QTRY_VERIFY(positionSpy.size() >= 1);
+        int setPosition = positionSpy.first().first().toInt();
+        QCOMPARE_GT(setPosition, pos - 100);
+        QCOMPARE_LT(setPosition, pos + 100);
     };
 
     constexpr qint64 posInterval = 10;
 
     {
-        for (qint64 pos = 0; pos <= 2200; pos += posInterval)
+        for (qint64 pos = posInterval; pos <= 2200; pos += posInterval)
             seekAndCheck(pos);
 
         waitAndCheckFrame(2200, "emulate fast moving of a seek slider forward");
