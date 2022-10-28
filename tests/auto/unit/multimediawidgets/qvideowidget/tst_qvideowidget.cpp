@@ -22,6 +22,9 @@ QT_USE_NAMESPACE
 class tst_QVideoWidget : public QObject
 {
     Q_OBJECT
+public slots:
+    void initTestCase();
+
 private slots:
     void nullObject();
 
@@ -56,6 +59,15 @@ public:
         resize(320, 240);
     }
 };
+
+void tst_QVideoWidget::initTestCase()
+{
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("SKIP on macOS CI since metal is not supported, otherwise it often crashes. To be "
+              "fixed.");
+#endif
+}
 
 void tst_QVideoWidget::nullObject()
 {

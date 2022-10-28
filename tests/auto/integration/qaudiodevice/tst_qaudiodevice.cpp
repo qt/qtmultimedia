@@ -20,7 +20,6 @@ public:
 
 private slots:
     void initTestCase();
-    void cleanupTestCase();
     void checkAvailableDefaultInput();
     void checkAvailableDefaultOutput();
     void channels();
@@ -34,7 +33,7 @@ private slots:
     void equalityOperator();
 
 private:
-    QAudioDevice* device;
+    std::unique_ptr<QAudioDevice> device;
 };
 
 void tst_QAudioDevice::initTestCase()
@@ -44,13 +43,8 @@ void tst_QAudioDevice::initTestCase()
     if (devices.size() == 0) {
         QSKIP("NOTE: no audio output device found, no tests will be performed");
     } else {
-        device = new QAudioDevice(devices.at(0));
+        device = std::make_unique<QAudioDevice>(devices.at(0));
     }
-}
-
-void tst_QAudioDevice::cleanupTestCase()
-{
-    delete device;
 }
 
 void tst_QAudioDevice::checkAvailableDefaultInput()

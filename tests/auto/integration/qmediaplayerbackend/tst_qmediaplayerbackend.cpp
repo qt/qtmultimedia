@@ -1109,6 +1109,12 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
     if (localVideoFile3ColorsWithSound.isEmpty())
         QSKIP("Video format is not supported");
 
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To be "
+              "investigated.");
+#endif
+
     TestVideoSink surface(false);
     QAudioOutput output;
     QMediaPlayer player;
@@ -1281,6 +1287,12 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
 {
     if (localVideoFile3ColorsWithSound.isEmpty())
         QSKIP("Video format is not supported");
+
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To be "
+              "investigated.");
+#endif
 
     TestVideoSink surface(false);
     QAudioOutput output;
