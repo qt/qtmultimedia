@@ -314,7 +314,7 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
 
     constexpr auto masterStreamType = QPlatformMediaPlayer::AudioStream;
 
-    auto connectMasterWithSlave = [this](auto &slave) {
+    auto connectMasterWithSlave = [&](auto &slave) {
         auto master = m_renderers[masterStreamType].get();
         if (master && master != slave.get())
             connect(master, &Renderer::synchronized, slave.get(), &Renderer::syncSoft);
