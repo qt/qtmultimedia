@@ -232,19 +232,27 @@ QAudioFormat::ChannelConfig CoreAudioUtils::fromAudioChannelLayout(const AudioCh
             return QAudioFormat::ChannelConfigStereo;
 
         for (uint i = 0; i < layout->mNumberChannelDescriptions; ++i) {
-            bool found = false;
-            for (const auto &m : channelMap) {
-                if (layout->mChannelDescriptions[i].mChannelLabel == m.label) {
-                    channels |= QAudioFormat::channelConfig(m.pos);
-                    found = true;
-                    break;
-                }
+            const auto channelLabel = layout->mChannelDescriptions[i].mChannelLabel;
+            if (channelLabel == kAudioChannelLabel_Unknown) {
+                // Any number of unknown channel labels occurs for loopback audio devices.
+                // E.g. the case is reproduced with installed software Soundflower.
+                continue;
             }
-            if (!found)
-                qWarning() << "audio device has unknown channel" << layout->mChannelDescriptions[i].mChannelLabel;
+
+            const auto found = std::find_if(channelMap, std::end(channelMap),
+                                            [channelLabel](const auto &labelWithPos) {
+                                                return labelWithPos.label == channelLabel;
+                                            });
+
+            if (found == std::end(channelMap))
+                qWarning() << "audio device has unrecognized channel, index:" << i
+                           << "label:" << channelLabel;
+            else
+                channels |= QAudioFormat::channelConfig(found->pos);
         }
     } else {
-        qWarning() << "Channel layout uses unimplemented format";
+        qWarning() << "Channel layout uses unimplemented format, channelLayoutTag:"
+                   << layout->mChannelLayoutTag;
     }
     return QAudioFormat::ChannelConfig(channels);
 }
