@@ -40,7 +40,7 @@ public:
     int minimumChannelCount = 0;
     int maximumChannelCount = 0;
     QList<QAudioFormat::SampleFormat> supportedSampleFormats;
-    QAudioFormat::ChannelConfig channelConfiguration;
+    QAudioFormat::ChannelConfig channelConfiguration = QAudioFormat::ChannelConfigUnknown;
 
     QAudioDevice create() { return QAudioDevice(this); }
 };
