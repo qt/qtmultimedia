@@ -456,7 +456,7 @@ void QAVFCameraBase::updateCameraConfiguration()
     }
 
     minimumZoomFactorChanged(captureDevice.minAvailableVideoZoomFactor);
-    maximumZoomFactorChanged(captureDevice.maxAvailableVideoZoomFactor);
+    maximumZoomFactorChanged(captureDevice.activeFormat.videoMaxZoomFactor);
 
     captureDevice.videoZoomFactor = zoomFactor();
 
@@ -570,7 +570,8 @@ void QAVFCameraBase::zoomTo(float factor, float rate)
     if (!captureDevice || !captureDevice.activeFormat)
         return;
 
-    factor = qBound(captureDevice.minAvailableVideoZoomFactor, factor, captureDevice.maxAvailableVideoZoomFactor);
+    factor = qBound(captureDevice.minAvailableVideoZoomFactor, factor,
+                    captureDevice.activeFormat.videoMaxZoomFactor);
 
     const AVFConfigurationLock lock(captureDevice);
     if (!lock) {
@@ -578,10 +579,10 @@ void QAVFCameraBase::zoomTo(float factor, float rate)
         return;
     }
 
-    if (rate < 0)
+   if (rate <= 0)
         captureDevice.videoZoomFactor = factor;
-    else
-        [captureDevice rampToVideoZoomFactor:factor withRate:rate];
+   else
+       [captureDevice rampToVideoZoomFactor:factor withRate:rate];
 #endif
 }
 
