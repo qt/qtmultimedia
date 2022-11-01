@@ -23,7 +23,11 @@
 #include <CoreVideo/CVImageBuffer.h>
 
 #include <CoreVideo/CVMetalTexture.h>
+#if defined(Q_OS_MACOS)
 #include <CoreVideo/CVOpenGLTextureCache.h>
+#elif defined(Q_OS_IOS)
+#include <CoreVideo/CVOpenGLESTextureCache.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 

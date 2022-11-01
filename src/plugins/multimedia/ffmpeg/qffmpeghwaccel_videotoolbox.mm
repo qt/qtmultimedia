@@ -19,8 +19,9 @@
 #include <CoreVideo/CVMetalTextureCache.h>
 
 #include <qopenglcontext.h>
-
+#ifdef Q_OS_MACOS
 #import <AppKit/AppKit.h>
+#endif
 #import <Metal/Metal.h>
 
 QT_BEGIN_NAMESPACE
