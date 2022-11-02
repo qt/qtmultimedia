@@ -7,6 +7,7 @@
 #include <private/qcameradevice_p.h>
 #include "qavfhelpers_p.h"
 #include <private/qplatformmediaintegration_p.h>
+#include <QtCore/qset.h>
 
 QT_USE_NAMESPACE
 
