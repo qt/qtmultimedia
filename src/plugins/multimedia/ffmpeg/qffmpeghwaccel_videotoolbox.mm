@@ -22,6 +22,9 @@
 #ifdef Q_OS_MACOS
 #import <AppKit/AppKit.h>
 #endif
+#ifdef Q_OS_IOS
+#import <OpenGLES/EAGL.h>
+#endif
 #import <Metal/Metal.h>
 
 QT_BEGIN_NAMESPACE
