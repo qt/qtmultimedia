@@ -291,10 +291,10 @@ public slots:
         if (m_surfaceTexture)
             return m_surfaceTexture.get();
 
-        if (!rhi)
-            return nullptr;
-
-        initRhi(static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles())->context);
+        QOpenGLContext *ctx = rhi
+                ? static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles())->context
+                : nullptr;
+        initRhi(ctx);
 
         m_texture.reset(m_rhi->newTexture(QRhiTexture::RGBA8, m_size, 1, QRhiTexture::ExternalOES));
         m_texture->create();
@@ -352,7 +352,7 @@ void QAndroidTextureVideoOutput::setSubtitle(const QString &subtitle)
 
 AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
 {
-    if (!m_sink || !m_sink->rhi())
+    if (!m_sink)
         return nullptr;
 
     AndroidSurfaceTexture *surface = nullptr;
