@@ -110,9 +110,6 @@ public:
 
     void setVideoOutput(QObject *);
     QObject *videoOutput() const;
-#if 0
-    void setVideoOutput(const QList<QVideoSink *> &sinks);
-#endif
 
     void setVideoSink(QVideoSink *sink);
     QVideoSink *videoSink() const;
