@@ -41,12 +41,14 @@ protected:
     qint64 writeData(const char *data, qint64 len) override;
 };
 
-QWasmAudioSink::QWasmAudioSink(const QByteArray &device)
-    : m_name(device)
+QWasmAudioSink::QWasmAudioSink(const QByteArray &device, QObject *parent)
+    : QPlatformAudioSink(parent),
+      m_name(device),
+      m_timer(new QTimer(this))
 {
-    m_timer.setSingleShot(false);
+    m_timer->setSingleShot(false);
     aldata = new ALData();
-    connect(&m_timer, &QTimer::timeout, this, [this](){
+    connect(m_timer, &QTimer::timeout, this, [this](){
         if (m_pullMode)
             nextALBuffers();
         else {
@@ -156,8 +158,8 @@ void QWasmAudioSink::start(bool mode)
     alSourcef(aldata->source, AL_GAIN, m_volume);
     if (m_pullMode)
         loadALBuffers();
-    m_timer.setInterval(DEFAULT_BUFFER_DURATION / 3000);
-    m_timer.start();
+    m_timer->setInterval(DEFAULT_BUFFER_DURATION / 3000);
+    m_timer->start();
     if (m_pullMode)
         alSourcePlay(aldata->source);
     m_running = true;
@@ -172,7 +174,7 @@ void QWasmAudioSink::stop()
     m_elapsedTimer.invalidate();
     alSourceStop(aldata->source);
     alSourceRewind(aldata->source);
-    m_timer.stop();
+    m_timer->stop();
     m_bufferFragmentsBusyCount = 0;
     alDeleteSources(1, &aldata->source);
     alDeleteBuffers(m_bufferFragmentsCount, aldata->buffers);
@@ -386,7 +388,7 @@ void QWasmAudioSink::setError(QAudio::Error error)
         return;
     m_error = error;
     if (error != QAudio::NoError) {
-        m_timer.stop();
+        m_timer->stop();
         alSourceRewind(aldata->source);
     }
 

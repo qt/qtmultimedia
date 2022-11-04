@@ -30,7 +30,7 @@ class QWasmAudioSink : public QPlatformAudioSink
 
     QByteArray m_name;
     ALData *aldata = nullptr;
-    QTimer m_timer;
+    QTimer *m_timer = nullptr;
     QIODevice *m_device = nullptr;
     QAudioFormat m_format;
     QAudio::Error m_error = QAudio::NoError;
@@ -58,7 +58,7 @@ private slots:
     void setError(QAudio::Error);
 
 public:
-    QWasmAudioSink(const QByteArray &device);
+    QWasmAudioSink(const QByteArray &device, QObject *parent);
     ~QWasmAudioSink();
 
 public:

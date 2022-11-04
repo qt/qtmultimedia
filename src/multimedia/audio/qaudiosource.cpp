@@ -96,7 +96,7 @@ QAudioSource::QAudioSource(const QAudioFormat &format, QObject *parent)
 QAudioSource::QAudioSource(const QAudioDevice &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QPlatformMediaDevices::instance()->audioInputDevice(format, audioDevice);
+    d = QPlatformMediaDevices::instance()->audioInputDevice(format, audioDevice, parent);
     if (d)
         connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
     else

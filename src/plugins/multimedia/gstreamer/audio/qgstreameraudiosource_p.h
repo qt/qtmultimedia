@@ -43,7 +43,7 @@ class QGStreamerAudioSource
     Q_OBJECT
     friend class GStreamerInputPrivate;
 public:
-    QGStreamerAudioSource(const QAudioDevice &device);
+    QGStreamerAudioSource(const QAudioDevice &device, QObject *parent);
     ~QGStreamerAudioSource();
 
     void start(QIODevice *device) override;

@@ -40,7 +40,7 @@ class QAndroidAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QAndroidAudioSource(const QByteArray &device);
+    QAndroidAudioSource(const QByteArray &device, QObject *parent);
     ~QAndroidAudioSource();
 
     void start(QIODevice *device);

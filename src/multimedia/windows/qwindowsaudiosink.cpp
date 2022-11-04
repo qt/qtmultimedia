@@ -39,7 +39,7 @@ class OutputPrivate : public QIODevice
 {
     Q_OBJECT
 public:
-    OutputPrivate(QWindowsAudioSink& audio) : audioDevice(audio) {}
+    OutputPrivate(QWindowsAudioSink &audio) : QIODevice(&audio), audioDevice(audio) {}
     ~OutputPrivate() override = default;
 
     qint64 readData(char *, qint64) override { return 0; }
@@ -77,13 +77,15 @@ std::optional<quint32> audioClientFramesAvailable(IAudioClient *client)
     return {};
 }
 
-QWindowsAudioSink::QWindowsAudioSink(QWindowsIUPointer<IMMDevice> device) :
+QWindowsAudioSink::QWindowsAudioSink(QWindowsIUPointer<IMMDevice> device, QObject *parent) :
+    QPlatformAudioSink(parent),
+    m_timer(new QTimer(this)),
     m_pushSource(new OutputPrivate(*this)),
     m_device(std::move(device))
 {
     m_pushSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
-    m_timer.setSingleShot(true);
-    m_timer.setTimerType(Qt::PreciseTimer);
+    m_timer->setSingleShot(true);
+    m_timer->setTimerType(Qt::PreciseTimer);
 }
 
 QWindowsAudioSink::~QWindowsAudioSink()
@@ -105,7 +107,7 @@ void QWindowsAudioSink::deviceStateChange(QAudio::State state, QAudio::Error err
             qCDebug(qLcAudioOutput) << "Audio client started";
 
         } else if (deviceState == QAudio::ActiveState) {
-            m_timer.stop();
+            m_timer->stop();
             m_audioClient->Stop();
             qCDebug(qLcAudioOutput) << "Audio client stopped";
         }
@@ -154,7 +156,7 @@ void QWindowsAudioSink::pullSource()
         deviceStateChange(QAudio::IdleState, m_pullSource->atEnd() ? QAudio::NoError : QAudio::UnderrunError);
     } else {
         deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-        m_timer.start(playTimeUs / 2000);
+        m_timer->start(playTimeUs / 2000);
     }
 }
 
@@ -176,8 +178,8 @@ void QWindowsAudioSink::start(QIODevice* device)
     m_pullSource = device;
 
     connect(device, &QIODevice::readyRead, this, &QWindowsAudioSink::pullSource);
-    m_timer.disconnect();
-    m_timer.callOnTimeout(this, &QWindowsAudioSink::pullSource);
+    m_timer->disconnect();
+    m_timer->callOnTimeout(this, &QWindowsAudioSink::pullSource);
     pullSource();
 }
 
@@ -189,7 +191,7 @@ qint64 QWindowsAudioSink::push(const char *data, qint64 len)
     qint64 written = write(data, len);
     if (written > 0) {
         deviceStateChange(QAudio::ActiveState, QAudio::NoError);
-        m_timer.start(remainingPlayTimeUs() /1000);
+        m_timer->start(remainingPlayTimeUs() /1000);
     }
 
     return written;
@@ -209,8 +211,8 @@ QIODevice* QWindowsAudioSink::start()
 
     deviceStateChange(QAudio::IdleState, QAudio::NoError);
 
-    m_timer.disconnect();
-    m_timer.callOnTimeout([&](){
+    m_timer->disconnect();
+    m_timer->callOnTimeout([&](){
         deviceStateChange(QAudio::IdleState, QAudio::UnderrunError);
     });
 

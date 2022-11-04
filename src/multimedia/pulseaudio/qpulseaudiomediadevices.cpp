@@ -38,14 +38,16 @@ QList<QCameraDevice> QPulseAudioMediaDevices::videoInputs() const
     return {};
 }
 
-QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
+QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
+                                                                 QObject *parent)
 {
-    return new QPulseAudioSource(deviceInfo.id());
+    return new QPulseAudioSource(deviceInfo.id(), parent);
 }
 
-QPlatformAudioSink *QPulseAudioMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
+QPlatformAudioSink *QPulseAudioMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
+                                                             QObject *parent)
 {
-    return new QPulseAudioSink(deviceInfo.id());
+    return new QPulseAudioSink(deviceInfo.id(), parent);
 }
 
 QT_END_NAMESPACE

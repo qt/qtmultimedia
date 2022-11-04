@@ -24,7 +24,8 @@ QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(lcAlsaOutput, "qt.multimedia.alsa.output")
 //#define DEBUG_AUDIO 1
 
-QAlsaAudioSink::QAlsaAudioSink(const QByteArray &device)
+QAlsaAudioSink::QAlsaAudioSink(const QByteArray &device, QObject *parent)
+    : QPlatformAudioSink(parent)
 {
     bytesAvailable = 0;
     handle = 0;

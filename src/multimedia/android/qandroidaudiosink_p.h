@@ -29,7 +29,7 @@ class QAndroidAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QAndroidAudioSink(const QByteArray &device);
+    QAndroidAudioSink(const QByteArray &device, QObject *parent);
     ~QAndroidAudioSink();
 
     void start(QIODevice *device) override;

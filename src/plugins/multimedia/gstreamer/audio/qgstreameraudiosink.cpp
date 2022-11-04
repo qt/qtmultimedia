@@ -21,7 +21,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QMaybe<QPlatformAudioSink *> QGStreamerAudioSink::create(const QAudioDevice &device)
+QMaybe<QPlatformAudioSink *> QGStreamerAudioSink::create(const QAudioDevice &device, QObject *parent)
 {
     auto maybeAppSrc = QGstAppSrc::create();
     if (!maybeAppSrc)
@@ -35,12 +35,13 @@ QMaybe<QPlatformAudioSink *> QGStreamerAudioSink::create(const QAudioDevice &dev
     if (!volume)
         return errorMessageCannotFindElement("volume");
 
-    return new QGStreamerAudioSink(device, maybeAppSrc.value(), audioconvert, volume);
+    return new QGStreamerAudioSink(device, maybeAppSrc.value(), audioconvert, volume, parent);
 }
 
 QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc *appsrc,
-                                         QGstElement audioconvert, QGstElement volume)
-    : m_device(device.id()),
+                                         QGstElement audioconvert, QGstElement volume, QObject *parent)
+    : QPlatformAudioSink(parent),
+      m_device(device.id()),
       gstPipeline("pipeline"),
       gstVolume(std::move(volume)),
       m_appSrc(appsrc)

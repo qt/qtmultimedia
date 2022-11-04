@@ -37,7 +37,7 @@ class QPulseAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QPulseAudioSource(const QByteArray &device);
+    QPulseAudioSource(const QByteArray &device, QObject *parent);
     ~QPulseAudioSource();
 
     qint64 read(char *data, qint64 len);

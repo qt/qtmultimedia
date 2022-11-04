@@ -270,16 +270,18 @@ QList<QAudioDevice> QWindowsMediaDevices::audioOutputs() const
     return availableDevices(QAudioDevice::Output);
 }
 
-QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
+QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
+                                                              QObject *parent)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
-    return new QWindowsAudioSource(devInfo->waveId());
+    return new QWindowsAudioSource(devInfo->waveId(), parent);
 }
 
-QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
+QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
+                                                          QObject *parent)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
-    return new QWindowsAudioSink(devInfo->immDev());
+    return new QWindowsAudioSink(devInfo->immDev(), parent);
 }
 
 QT_END_NAMESPACE

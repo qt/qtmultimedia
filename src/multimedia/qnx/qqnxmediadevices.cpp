@@ -55,14 +55,16 @@ QList<QAudioDevice> QQnxMediaDevices::audioOutputs() const
     return ::enumeratePcmDevices(QAudioDevice::Output);
 }
 
-QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
+QPlatformAudioSource *QQnxMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
+                                                          QObject *parent)
 {
-    return new QQnxAudioSource(deviceInfo);
+    return new QQnxAudioSource(deviceInfo, parent);
 }
 
-QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
+QPlatformAudioSink *QQnxMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
+                                                      QObject *parent)
 {
-    return new QQnxAudioSink(deviceInfo);
+    return new QQnxAudioSink(deviceInfo, parent);
 }
 
 QT_END_NAMESPACE

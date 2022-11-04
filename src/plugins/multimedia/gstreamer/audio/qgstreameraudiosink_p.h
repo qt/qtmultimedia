@@ -43,7 +43,7 @@ class QGStreamerAudioSink
     Q_OBJECT
 
 public:
-    static QMaybe<QPlatformAudioSink *> create(const QAudioDevice &device);
+    static QMaybe<QPlatformAudioSink *> create(const QAudioDevice &device, QObject *parent);
     ~QGStreamerAudioSink();
 
     void start(QIODevice *device) override;
@@ -70,7 +70,7 @@ private Q_SLOTS:
 
 private:
     QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc *appsrc, QGstElement audioconvert,
-                        QGstElement volume);
+                        QGstElement volume, QObject *parent);
 
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
@@ -89,7 +89,6 @@ private:
     bool m_pullMode = true;
     bool m_opened = false;
     QIODevice *m_audioSource = nullptr;
-    QTimer m_periodTimer;
     int m_bufferSize = 0;
     qint64 m_bytesProcessed = 0;
     QElapsedTimer m_timeStamp;
