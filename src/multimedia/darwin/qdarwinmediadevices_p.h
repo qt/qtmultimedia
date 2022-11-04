@@ -27,22 +27,19 @@ class QDarwinMediaDevices : public QPlatformMediaDevices
 {
 public:
     QDarwinMediaDevices();
-    ~QDarwinMediaDevices();
+    ~QDarwinMediaDevices() override;
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
     QPlatformAudioSource *createAudioSource(const QAudioDevice &info) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &info) override;
 
-    void updateAudioDevices();
+    void onInputsUpdated();
+    void onOutputsUpdated();
 
 private:
-    QList<QAudioDevice> m_audioInputs;
-    QList<QAudioDevice> m_audioOutputs;
-
-#ifdef Q_OS_MACOS
-    void *m_audioDevicesProperty;
-#endif
+    QList<QAudioDevice> m_cachedAudioInputs;
+    QList<QAudioDevice> m_cachedAudioOutputs;
 };
 
 QT_END_NAMESPACE
