@@ -58,7 +58,9 @@ void tst_QAudioDevice::checkAvailableDefaultInput()
     // Only perform tests if audio input device exists!
     QList<QAudioDevice> devices = QMediaDevices::audioInputs();
     if (devices.size() > 0) {
-        QVERIFY(!QMediaDevices::defaultAudioInput().isNull());
+        auto defaultInput = QMediaDevices::defaultAudioInput();
+        QVERIFY(!defaultInput.isNull());
+        QCOMPARE(std::count(devices.begin(), devices.end(), defaultInput), 1);
     }
 }
 
@@ -67,7 +69,9 @@ void tst_QAudioDevice::checkAvailableDefaultOutput()
     // Only perform tests if audio input device exists!
     QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
     if (devices.size() > 0) {
-        QVERIFY(!QMediaDevices::defaultAudioOutput().isNull());
+        auto defaultOutput = QMediaDevices::defaultAudioOutput();
+        QVERIFY(!defaultOutput.isNull());
+        QCOMPARE(std::count(devices.begin(), devices.end(), defaultOutput), 1);
     }
 }
 
