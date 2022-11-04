@@ -89,7 +89,7 @@ class QDarwinAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QDarwinAudioSink(const QAudioDevice &device);
+    QDarwinAudioSink(const QAudioDevice &device, QObject *parent);
     ~QDarwinAudioSink();
 
     void start(QIODevice *device);

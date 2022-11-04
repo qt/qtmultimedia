@@ -279,14 +279,16 @@ void QDarwinMediaDevices::onOutputsUpdated()
     }
 }
 
-QPlatformAudioSource *QDarwinMediaDevices::createAudioSource(const QAudioDevice &info)
+QPlatformAudioSource *QDarwinMediaDevices::createAudioSource(const QAudioDevice &info,
+                                                             QObject *parent)
 {
-    return new QDarwinAudioSource(info);
+    return new QDarwinAudioSource(info, parent);
 }
 
-QPlatformAudioSink *QDarwinMediaDevices::createAudioSink(const QAudioDevice &info)
+QPlatformAudioSink *QDarwinMediaDevices::createAudioSink(const QAudioDevice &info,
+                                                         QObject *parent)
 {
-    return new QDarwinAudioSink(info);
+    return new QDarwinAudioSink(info, parent);
 }
 
 QT_END_NAMESPACE

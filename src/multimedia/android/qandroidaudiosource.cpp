@@ -48,8 +48,9 @@ static void bufferQueueCallback(SLBufferQueueItf, void *context)
     QMetaObject::invokeMethod(reinterpret_cast<QAndroidAudioSource*>(context), "processBuffer");
 }
 
-QAndroidAudioSource::QAndroidAudioSource(const QByteArray &device)
-    : m_device(device)
+QAndroidAudioSource::QAndroidAudioSource(const QByteArray &device, QObject *parent)
+    : QPlatformAudioSource(parent)
+    , m_device(device)
     , m_engine(QOpenSLESEngine::instance())
     , m_recorderObject(0)
     , m_recorder(0)
@@ -144,7 +145,7 @@ QIODevice *QAndroidAudioSource::start()
 
     m_pullMode = false;
     m_pushBuffer.clear();
-    m_bufferIODevice = new QBuffer(&m_pushBuffer);
+    m_bufferIODevice = new QBuffer(&m_pushBuffer, this);
     m_bufferIODevice->open(QIODevice::ReadOnly);
 
     if (startRecording()) {

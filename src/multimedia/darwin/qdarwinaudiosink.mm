@@ -183,8 +183,8 @@ qint64 QDarwinAudioSinkDevice::writeData(const char *data, qint64 len)
     return m_audioBuffer->writeBytes(data, len);
 }
 
-QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device)
-    : m_audioDeviceInfo(device)
+QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, QObject *parent)
+    : QPlatformAudioSink(parent), m_audioDeviceInfo(device)
 {
     QAudioDevice di = device;
     if (di.isNull())

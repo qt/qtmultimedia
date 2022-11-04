@@ -36,7 +36,7 @@ class QQnxAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    explicit QQnxAudioSink(const QAudioDevice &deviceInfo);
+    explicit QQnxAudioSink(const QAudioDevice &deviceInfo, QObject *parent);
     ~QQnxAudioSink();
 
     void start(QIODevice *source) override;
@@ -79,7 +79,7 @@ private:
 
     QIODevice *m_source;
     bool m_pushSource;
-    QTimer m_timer;
+    QTimer *m_timer;
 
     QAudio::Error m_error;
     QAudio::State m_state;

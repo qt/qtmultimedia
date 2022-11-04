@@ -22,7 +22,8 @@ QT_BEGIN_NAMESPACE
 
 //#define DEBUG_AUDIO 1
 
-QWindowsAudioSource::QWindowsAudioSource(int deviceId)
+QWindowsAudioSource::QWindowsAudioSource(int deviceId, QObject *parent)
+    : QPlatformAudioSource(parent)
 {
     bytesAvailable = 0;
     buffer_size = 0;

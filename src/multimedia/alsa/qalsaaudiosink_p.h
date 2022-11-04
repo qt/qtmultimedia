@@ -36,7 +36,7 @@ class QAlsaAudioSink : public QPlatformAudioSink
     friend class AlsaOutputPrivate;
     Q_OBJECT
 public:
-    QAlsaAudioSink(const QByteArray &device);
+    QAlsaAudioSink(const QByteArray &device, QObject *parent);
     ~QAlsaAudioSink();
 
     qint64 write( const char *data, qint64 len );

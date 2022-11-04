@@ -33,6 +33,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QObject
     Q_OBJECT
 
 public:
+    QPlatformAudioSink(QObject *parent) : QObject(parent) {}
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
@@ -62,6 +63,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QObject
     Q_OBJECT
 
 public:
+    QPlatformAudioSource(QObject *parent) : QObject(parent) {}
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;

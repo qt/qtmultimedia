@@ -14,9 +14,11 @@
 
 QT_BEGIN_NAMESPACE
 
-QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo)
-    : m_source(0)
+QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo, QObject *parent)
+    : QPlatformAudioSink(parent)
+    , m_source(0)
     , m_pushSource(false)
+    , m_timer(new QTimer(this))
     , m_error(QAudio::NoError)
     , m_state(QAudio::StoppedState)
     , m_volume(1.0)
@@ -26,9 +28,9 @@ QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo)
     , m_deviceInfo(deviceInfo)
     , m_pcmNotifier(0)
 {
-    m_timer.setSingleShot(false);
-    m_timer.setInterval(20);
-    connect(&m_timer, &QTimer::timeout, this, &QQnxAudioSink::pullData);
+    m_timer->setSingleShot(false);
+    m_timer->setInterval(20);
+    connect(m_timer, &QTimer::timeout, this, &QQnxAudioSink::pullData);
 
     const std::optional<snd_pcm_channel_info_t> info = QnxAudioUtils::pcmChannelInfo(
             m_deviceInfo.id(), QAudioDevice::Output);
@@ -52,7 +54,7 @@ void QQnxAudioSink::start(QIODevice *source)
 
     if (open()) {
         changeState(QAudio::ActiveState, QAudio::NoError);
-        m_timer.start();
+        m_timer->start();
     } else {
         changeState(QAudio::StoppedState, QAudio::OpenError);
     }
@@ -308,7 +310,7 @@ bool QQnxAudioSink::open()
 void QQnxAudioSink::close()
 {
     if (!m_pushSource)
-        m_timer.stop();
+        m_timer->stop();
 
     destroyPcmNotifiers();
 
@@ -412,7 +414,7 @@ qint64 QQnxAudioSink::write(const char *data, qint64 len)
 void QQnxAudioSink::suspendInternal(QAudio::State suspendState)
 {
     if (!m_pushSource)
-        m_timer.stop();
+        m_timer->stop();
 
     changeState(suspendState, QAudio::NoError);
 }
@@ -423,7 +425,7 @@ void QQnxAudioSink::resumeInternal()
 
     changeState(state, QAudio::NoError);
 
-    m_timer.start();
+    m_timer->start();
 }
 
 QAudio::State suspendState(const snd_pcm_event_t &event)

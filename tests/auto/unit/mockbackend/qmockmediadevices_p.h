@@ -32,8 +32,10 @@ public:
 
     QList<QAudioDevice> audioInputs() const override;
     QList<QAudioDevice> audioOutputs() const override;
-    QPlatformAudioSource *createAudioSource(const QAudioDevice &info) override;
-    QPlatformAudioSink *createAudioSink(const QAudioDevice &info) override;
+    QPlatformAudioSource *createAudioSource(const QAudioDevice &info,
+                                            QObject *parent) override;
+    QPlatformAudioSink *createAudioSink(const QAudioDevice &info,
+                                        QObject *parent) override;
 
 private:
     QList<QAudioDevice> m_inputDevices;

@@ -28,8 +28,9 @@ static inline void openSlDebugInfo()
              << "\nDefault buffer size: " << QOpenSLESEngine::getDefaultBufferSize(format);
 }
 
-QAndroidAudioSink::QAndroidAudioSink(const QByteArray &device)
-    : m_deviceName(device),
+QAndroidAudioSink::QAndroidAudioSink(const QByteArray &device, QObject *parent)
+    : QPlatformAudioSink(parent),
+      m_deviceName(device),
       m_state(QAudio::StoppedState),
       m_error(QAudio::NoError),
       m_outputMixObject(nullptr),

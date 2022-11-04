@@ -22,7 +22,8 @@ QT_BEGIN_NAMESPACE
 
 //#define DEBUG_AUDIO 1
 
-QAlsaAudioSource::QAlsaAudioSource(const QByteArray &device)
+QAlsaAudioSource::QAlsaAudioSource(const QByteArray &device, QObject *parent)
+    : QPlatformAudioSource(parent)
 {
     bytesAvailable = 0;
     handle = 0;

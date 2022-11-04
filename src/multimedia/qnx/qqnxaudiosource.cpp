@@ -9,8 +9,9 @@
 
 QT_BEGIN_NAMESPACE
 
-QQnxAudioSource::QQnxAudioSource(const QAudioDevice &deviceInfo)
-    : m_audioSource(0)
+QQnxAudioSource::QQnxAudioSource(const QAudioDevice &deviceInfo, QObject *parent)
+    : QPlatformAudioSource(parent)
+    , m_audioSource(0)
     , m_pcmNotifier(0)
     , m_error(QAudio::NoError)
     , m_state(QAudio::StoppedState)

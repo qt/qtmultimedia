@@ -87,25 +87,29 @@ QList<QCameraDevice> QPlatformMediaDevices::videoInputs() const
     return {};
 }
 
-QPlatformAudioSource* QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo)
+QPlatformAudioSource *QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format,
+                                                              const QAudioDevice &deviceInfo,
+                                                              QObject *parent)
 {
     QAudioDevice info = deviceInfo;
     if (info.isNull())
         info = audioInputs().value(0);
 
-    QPlatformAudioSource* p = !info.isNull() ? createAudioSource(info) : nullptr;
+    QPlatformAudioSource* p = !info.isNull() ? createAudioSource(info, parent) : nullptr;
     if (p)
         p->setFormat(format);
     return p;
 }
 
-QPlatformAudioSink* QPlatformMediaDevices::audioOutputDevice(const QAudioFormat &format, const QAudioDevice &deviceInfo)
+QPlatformAudioSink *QPlatformMediaDevices::audioOutputDevice(const QAudioFormat &format,
+                                                             const QAudioDevice &deviceInfo,
+                                                             QObject *parent)
 {
     QAudioDevice info = deviceInfo;
     if (info.isNull())
         info = audioOutputs().value(0);
 
-    QPlatformAudioSink* p = !info.isNull() ? createAudioSink(info) : nullptr;
+    QPlatformAudioSink* p = !info.isNull() ? createAudioSink(info, parent) : nullptr;
     if (p)
         p->setFormat(format);
     return p;

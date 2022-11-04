@@ -29,14 +29,16 @@ QList<QAudioDevice> QAndroidMediaDevices::audioOutputs() const
     return QOpenSLESEngine::availableDevices(QAudioDevice::Output);
 }
 
-QPlatformAudioSource *QAndroidMediaDevices::createAudioSource(const QAudioDevice &deviceInfo)
+QPlatformAudioSource *QAndroidMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
+                                                              QObject *parent)
 {
-    return new QAndroidAudioSource(deviceInfo.id());
+    return new QAndroidAudioSource(deviceInfo.id(), parent);
 }
 
-QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDevice &deviceInfo)
+QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,
+                                                          QObject *parent)
 {
-    return new QAndroidAudioSink(deviceInfo.id());
+    return new QAndroidAudioSink(deviceInfo.id(), parent);
 }
 
 void QAndroidMediaDevices::forwardAudioOutputsChanged()

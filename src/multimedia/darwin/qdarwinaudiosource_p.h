@@ -165,7 +165,7 @@ class QDarwinAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    QDarwinAudioSource(const QAudioDevice &device);
+    QDarwinAudioSource(const QAudioDevice &device, QObject *parent);
     ~QDarwinAudioSource();
 
     void start(QIODevice *device);

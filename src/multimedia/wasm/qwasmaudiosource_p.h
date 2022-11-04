@@ -29,7 +29,7 @@ class QWasmAudioSource : public QPlatformAudioSource
 
     QByteArray m_name;
     ALData *aldata = nullptr;
-    QTimer m_timer;
+    QTimer *m_timer = nullptr;
     QIODevice *m_device = nullptr;
     QAudioFormat m_format;
     qreal m_volume = 1;
@@ -45,7 +45,7 @@ class QWasmAudioSource : public QPlatformAudioSource
 
     void writeBuffer();
 public:
-    QWasmAudioSource(const QByteArray &device);
+    QWasmAudioSource(const QByteArray &device, QObject *parent);
 
 public:
     void start(QIODevice *device) override;

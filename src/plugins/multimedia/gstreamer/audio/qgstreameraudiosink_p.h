@@ -42,7 +42,7 @@ class QGStreamerAudioSink
     Q_OBJECT
 
 public:
-    QGStreamerAudioSink(const QAudioDevice &device);
+    QGStreamerAudioSink(const QAudioDevice &device, QObject *parent);
     ~QGStreamerAudioSink();
 
     void start(QIODevice *device) override;
@@ -85,7 +85,6 @@ private:
     bool m_pullMode = true;
     bool m_opened = false;
     QIODevice *m_audioSource = nullptr;
-    QTimer m_periodTimer;
     int m_bufferSize = 0;
     qint64 m_bytesProcessed = 0;
     QElapsedTimer m_timeStamp;

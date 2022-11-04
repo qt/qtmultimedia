@@ -112,8 +112,9 @@ static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *
 }
 
 
-QPulseAudioSink::QPulseAudioSink(const QByteArray &device)
-    : m_device(device)
+QPulseAudioSink::QPulseAudioSink(const QByteArray &device, QObject *parent)
+    : QPlatformAudioSink(parent),
+      m_device(device)
 {
 }
 

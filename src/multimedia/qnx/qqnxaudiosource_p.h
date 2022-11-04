@@ -33,7 +33,7 @@ class QQnxAudioSource : public QPlatformAudioSource
     Q_OBJECT
 
 public:
-    explicit QQnxAudioSource(const QAudioDevice &deviceInfo);
+    explicit QQnxAudioSource(const QAudioDevice &deviceInfo, QObject *parent);
     ~QQnxAudioSource();
 
     void start(QIODevice*) override;

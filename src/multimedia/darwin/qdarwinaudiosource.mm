@@ -412,8 +412,9 @@ qint64 QDarwinAudioSourceDevice::writeData(const char *data, qint64 len)
     return 0;
 }
 
-QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device)
-    : m_audioDeviceInfo(device)
+QDarwinAudioSource::QDarwinAudioSource(const QAudioDevice &device, QObject *parent)
+    : QPlatformAudioSource(parent)
+    , m_audioDeviceInfo(device)
     , m_isOpen(false)
     , m_internalBufferSize(DEFAULT_BUFFER_SIZE)
     , m_totalFrames(0)

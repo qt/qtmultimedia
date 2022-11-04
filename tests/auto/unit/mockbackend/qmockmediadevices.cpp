@@ -24,15 +24,19 @@ QList<QAudioDevice> QMockMediaDevices::audioOutputs() const
     return m_outputDevices;
 }
 
-QPlatformAudioSource *QMockMediaDevices::createAudioSource(const QAudioDevice &info)
+QPlatformAudioSource *QMockMediaDevices::createAudioSource(const QAudioDevice &info,
+                                                           QObject *parent)
 {
     Q_UNUSED(info);
+    Q_UNUSED(parent);
     return nullptr;// ###
 }
 
-QPlatformAudioSink *QMockMediaDevices::createAudioSink(const QAudioDevice &info)
+QPlatformAudioSink *QMockMediaDevices::createAudioSink(const QAudioDevice &info,
+                                                       QObject *parent)
 {
     Q_UNUSED(info);
+    Q_UNUSED(parent);
     return nullptr; //###
 }
 

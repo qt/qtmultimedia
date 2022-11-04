@@ -36,7 +36,7 @@ class QPulseAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QPulseAudioSink(const QByteArray &device);
+    QPulseAudioSink(const QByteArray &device, QObject *parent);
     ~QPulseAudioSink();
 
     void start(QIODevice *device) override;

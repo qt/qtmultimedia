@@ -19,8 +19,9 @@
 
 QT_BEGIN_NAMESPACE
 
-QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device)
-    : m_device(device.id()),
+QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QObject *parent)
+    : QPlatformAudioSink(parent),
+    m_device(device.id()),
     gstPipeline("pipeline")
 {
     gstPipeline.installMessageFilter(this);

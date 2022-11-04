@@ -64,11 +64,13 @@ void QWasmAudioSource::writeBuffer()
     m_device->write(m_tmpData,bytes);
 }
 
-QWasmAudioSource::QWasmAudioSource(const QByteArray &device)
-    : QPlatformAudioSource(), m_name(device)
+QWasmAudioSource::QWasmAudioSource(const QByteArray &device , QObject *parent)
+    : QPlatformAudioSource(parent),
+      m_name(device),
+      m_timer(new QTimer(this))
 {
     aldata = new ALData();
-    connect(&m_timer, &QTimer::timeout, this, [this](){
+    connect(m_timer, &QTimer::timeout, this, [this](){
         Q_ASSERT(m_running);
         if (m_pullMode)
             writeBuffer();
@@ -146,7 +148,7 @@ void QWasmAudioSource::start(bool mode)
         m_tmpData = new char[m_bufferSize];
     else
         m_tmpData = nullptr;
-    m_timer.setInterval(m_format.durationForBytes(m_bufferSize) / 3'000);
+    m_timer->setInterval(m_format.durationForBytes(m_bufferSize) / 3'000);
 
     aldata->device = alcCaptureOpenDevice(m_name.data(), m_format.sampleRate(), format,
                                           m_format.framesForBytes(m_bufferSize));
@@ -165,7 +167,7 @@ void QWasmAudioSource::start(bool mode)
     }
     m_processed = 0;
     m_running = true;
-    m_timer.start();
+    m_timer->start();
 }
 
 void QWasmAudioSource::stop()
@@ -181,7 +183,7 @@ void QWasmAudioSource::stop()
     }
     if (!m_pullMode)
         m_device->deleteLater();
-    m_timer.stop();
+    m_timer->stop();
     m_running = false;
 }
 

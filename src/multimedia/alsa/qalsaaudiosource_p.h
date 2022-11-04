@@ -62,7 +62,7 @@ class QAlsaAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 public:
-    QAlsaAudioSource(const QByteArray &device);
+    QAlsaAudioSource(const QByteArray &device, QObject *parent);
     ~QAlsaAudioSource();
 
     qint64 read(char* data, qint64 len);

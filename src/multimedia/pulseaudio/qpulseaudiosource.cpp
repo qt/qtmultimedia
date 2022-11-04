@@ -89,8 +89,9 @@ static void inputStreamSuccessCallback(pa_stream *stream, int success, void *use
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
-QPulseAudioSource::QPulseAudioSource(const QByteArray &device)
-    : m_totalTimeValue(0)
+QPulseAudioSource::QPulseAudioSource(const QByteArray &device, QObject *parent)
+    : QPlatformAudioSource(parent)
+    , m_totalTimeValue(0)
     , m_audioSource(nullptr)
     , m_errorState(QAudio::NoError)
     , m_deviceState(QAudio::StoppedState)
