@@ -166,6 +166,8 @@ public:
 
     void run() override
     {
+        // TODO: refactor with QTimer
+
         qCDebug(qLcScreenCaptureDxgi) << "ScreenGrabberActive started";
 
         DXGI_OUTDUPL_DESC outputDesc = {};
@@ -293,7 +295,10 @@ QFFmpegScreenCaptureDxgi::QFFmpegScreenCaptureDxgi(QScreenCapture *screenCapture
 {
 }
 
-QFFmpegScreenCaptureDxgi::~QFFmpegScreenCaptureDxgi() = default;
+QFFmpegScreenCaptureDxgi::~QFFmpegScreenCaptureDxgi()
+{
+    resetGrabber();
+}
 
 QVideoFrameFormat QFFmpegScreenCaptureDxgi::format() const
 {
@@ -326,11 +331,7 @@ void QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
         return;
 
     if (m_active) {
-        m_active->requestInterruption();
-        m_active->quit();
-        m_active->wait();
-        m_active.reset();
-
+        resetGrabber();
     } else {
         QScreen *screen = m_screen ? m_screen : QGuiApplication::primaryScreen();
         auto maybeDxgiScreen = findDxgiScreen(screen);
@@ -369,6 +370,16 @@ void QFFmpegScreenCaptureDxgi::setActive(bool active)
 
     setActiveInternal(active);
     emit screenCapture()->activeChanged(active);
+}
+
+void QFFmpegScreenCaptureDxgi::resetGrabber()
+{
+    if (m_active) {
+        m_active->requestInterruption();
+        m_active->quit();
+        m_active->wait();
+        m_active.reset();
+    }
 }
 
 QT_END_NAMESPACE

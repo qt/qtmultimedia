@@ -31,7 +31,7 @@ public:
         : m_tex(tex)
     {}
 
-    qint64 textureHandle(int plane) override
+    qint64 textureHandle(int /*plane*/) override
     {
         return qint64(m_tex.get());
     }
@@ -122,7 +122,6 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
         if (sharedTex) {
             auto tex = copyTextureFromArray(dev, sharedTex.get(), index);
             if (tex) {
-                QVideoFrameFormat::PixelFormat format = QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat(fCtx->sw_format));
                 return new D3D11TextureSet(std::move(tex));
             }
         }

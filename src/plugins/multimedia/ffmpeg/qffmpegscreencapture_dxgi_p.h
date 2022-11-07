@@ -40,6 +40,9 @@ public:
 private:
     void setActiveInternal(bool active);
 
+    void resetGrabber();
+
+private:
     std::unique_ptr<DxgiScreenGrabberActive> m_active;
     QScreen *m_screen = nullptr;
     QVideoFrameFormat m_format;
