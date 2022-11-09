@@ -31,6 +31,7 @@ static inline void planarYUV420_to_ARGB32(const uchar *y, int yStride,
                                           quint32 *rgb,
                                           int width, int height)
 {
+    height &= ~1;
     quint32 *rgb0 = rgb;
     quint32 *rgb1 = rgb + width;
 
@@ -379,6 +380,7 @@ static inline void planarYUV420_16bit_to_ARGB32(const uchar *y, int yStride,
                                           quint32 *rgb,
                                           int width, int height)
 {
+    height &= ~1;
     quint32 *rgb0 = rgb;
     quint32 *rgb1 = rgb + width;
 
