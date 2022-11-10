@@ -298,8 +298,14 @@ AVHWDeviceType HWAccel::deviceType() const
 
 void HWAccel::createFramesContext(AVPixelFormat swFormat, const QSize &size)
 {
-    if (m_hwDeviceContext)
+    if (m_hwFramesContext) {
+        qWarning() << "Frames context has been already created!";
         return;
+    }
+
+    if (!m_hwDeviceContext)
+        return;
+
     m_hwFramesContext = av_hwframe_ctx_alloc(m_hwDeviceContext);
     auto *c = (AVHWFramesContext *)m_hwFramesContext->data;
     c->format = hwFormat();
