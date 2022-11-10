@@ -119,16 +119,12 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
 
 void QGstreamerVideoDevices::addDevice(GstDevice *device)
 {
-    gchar *type = gst_device_get_device_class(device);
-    gst_object_ref(device);
-    if (!strcmp(type, "Video/Source") || !strcmp(type, "Source/Video")) {
+    if (gst_device_has_classes(device, "Video/Source")) {
+        gst_object_ref(device);
         m_videoSources.push_back({device, QByteArray::number(m_idGenerator)});
         videoInputsChanged();
         m_idGenerator++;
-    } else {
-        gst_object_unref(device);
     }
-    g_free(type);
 }
 
 void QGstreamerVideoDevices::removeDevice(GstDevice *device)
