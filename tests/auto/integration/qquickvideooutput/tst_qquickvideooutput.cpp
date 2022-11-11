@@ -99,19 +99,19 @@ void tst_QQuickVideoOutput::fillMode()
 
     // Default is preserveaspectfit
     QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FillMode>(), QQuickVideoOutput::PreserveAspectFit);
-    QCOMPARE(propSpy.count(), 0);
+    QCOMPARE(propSpy.size(), 0);
 
     videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::PreserveAspectCrop)));
     QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FillMode>(), QQuickVideoOutput::PreserveAspectCrop);
-    QCOMPARE(propSpy.count(), 1);
+    QCOMPARE(propSpy.size(), 1);
 
     videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::Stretch)));
     QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FillMode>(), QQuickVideoOutput::Stretch);
-    QCOMPARE(propSpy.count(), 2);
+    QCOMPARE(propSpy.size(), 2);
 
     videoOutput->setProperty("fillMode", QVariant(int(QQuickVideoOutput::Stretch)));
     QCOMPARE(videoOutput->property("fillMode").value<QQuickVideoOutput::FillMode>(), QQuickVideoOutput::Stretch);
-    QCOMPARE(propSpy.count(), 2);
+    QCOMPARE(propSpy.size(), 2);
 
     delete videoOutput;
 }
@@ -128,43 +128,43 @@ void tst_QQuickVideoOutput::orientation()
 
     // Default orientation is 0
     QCOMPARE(videoOutput->property("orientation").toInt(), 0);
-    QCOMPARE(propSpy.count(), 0);
+    QCOMPARE(propSpy.size(), 0);
 
     videoOutput->setProperty("orientation", QVariant(90));
     QCOMPARE(videoOutput->property("orientation").toInt(), 90);
-    QCOMPARE(propSpy.count(), 1);
+    QCOMPARE(propSpy.size(), 1);
 
     videoOutput->setProperty("orientation", QVariant(180));
     QCOMPARE(videoOutput->property("orientation").toInt(), 180);
-    QCOMPARE(propSpy.count(), 2);
+    QCOMPARE(propSpy.size(), 2);
 
     videoOutput->setProperty("orientation", QVariant(270));
     QCOMPARE(videoOutput->property("orientation").toInt(), 270);
-    QCOMPARE(propSpy.count(), 3);
+    QCOMPARE(propSpy.size(), 3);
 
     videoOutput->setProperty("orientation", QVariant(360));
     QCOMPARE(videoOutput->property("orientation").toInt(), 360);
-    QCOMPARE(propSpy.count(), 4);
+    QCOMPARE(propSpy.size(), 4);
 
     // More than 360 should be fine
     videoOutput->setProperty("orientation", QVariant(540));
     QCOMPARE(videoOutput->property("orientation").toInt(), 540);
-    QCOMPARE(propSpy.count(), 5);
+    QCOMPARE(propSpy.size(), 5);
 
     // Negative should be fine
     videoOutput->setProperty("orientation", QVariant(-180));
     QCOMPARE(videoOutput->property("orientation").toInt(), -180);
-    QCOMPARE(propSpy.count(), 6);
+    QCOMPARE(propSpy.size(), 6);
 
     // Same value should not reemit
     videoOutput->setProperty("orientation", QVariant(-180));
     QCOMPARE(videoOutput->property("orientation").toInt(), -180);
-    QCOMPARE(propSpy.count(), 6);
+    QCOMPARE(propSpy.size(), 6);
 
     // Non multiples of 90 should not work
     videoOutput->setProperty("orientation", QVariant(-1));
     QCOMPARE(videoOutput->property("orientation").toInt(), -180);
-    QCOMPARE(propSpy.count(), 6);
+    QCOMPARE(propSpy.size(), 6);
 
     delete videoOutput;
 }
@@ -292,11 +292,11 @@ void tst_QQuickVideoOutput::sourceRect()
     presentDummyFrame(holder.videoSink(), QSize(200,100));
 
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF(0, 0, 200, 100));
-    QCOMPARE(propSpy.count(), 1);
+    QCOMPARE(propSpy.size(), 1);
 
     // Another frame shouldn't cause a source rect change
     presentDummyFrame(holder.videoSink(), QSize(200,100));
-    QCOMPARE(propSpy.count(), 1);
+    QCOMPARE(propSpy.size(), 1);
     QCOMPARE(videoOutput->property("sourceRect").toRectF(), QRectF(0, 0, 200, 100));
 
     // Changing orientation and stretch modes should not affect this

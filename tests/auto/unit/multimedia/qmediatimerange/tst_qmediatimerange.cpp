@@ -145,7 +145,7 @@ void tst_QMediaTimeRange::testGetters()
     // isEmpty + isContinuous + intervals + start + end
     QVERIFY(!x.isEmpty());
     QVERIFY(!x.isContinuous());
-    QVERIFY(x.intervals().count() == 2);
+    QVERIFY(x.intervals().size() == 2);
     QVERIFY(x.intervals()[0].start() == 10);
     QVERIFY(x.intervals()[0].end() == 20);
     QVERIFY(x.intervals()[1].start() == 30);
@@ -291,7 +291,7 @@ void tst_QMediaTimeRange::testAddInterval()
 
     QVERIFY(!x.isEmpty());
     QVERIFY(!x.isContinuous());
-    QVERIFY(x.intervals().count() == 2);
+    QVERIFY(x.intervals().size() == 2);
     QVERIFY(x.intervals()[0].start() == 10);
     QVERIFY(x.intervals()[0].end() == 40);
     QVERIFY(x.intervals()[1].start() == 50);
@@ -441,7 +441,7 @@ void tst_QMediaTimeRange::testRemoveInterval()
 
     QVERIFY(!x.isEmpty());
     QVERIFY(!x.isContinuous());
-    QVERIFY(x.intervals().count() == 2);
+    QVERIFY(x.intervals().size() == 2);
     QVERIFY(x.intervals()[0].start() == 10);
     QVERIFY(x.intervals()[0].end() == 19);
     QVERIFY(x.intervals()[1].start() == 41);
@@ -489,7 +489,7 @@ void tst_QMediaTimeRange::testRemoveInterval()
 
     QVERIFY(!x.isEmpty());
     QVERIFY(!x.isContinuous());
-    QVERIFY(x.intervals().count() == 2);
+    QVERIFY(x.intervals().size() == 2);
     QVERIFY(x.intervals()[0].start() == 10);
     QVERIFY(x.intervals()[0].end() == 14);
     QVERIFY(x.intervals()[1].start() == 36);
@@ -511,7 +511,7 @@ void tst_QMediaTimeRange::testRemoveInterval()
 
     QVERIFY(!x.isEmpty());
     QVERIFY(!x.isContinuous());
-    QVERIFY(x.intervals().count() == 2);
+    QVERIFY(x.intervals().size() == 2);
     QVERIFY(x.intervals()[0].start() == 10);
     QVERIFY(x.intervals()[0].end() == 19);
     QVERIFY(x.intervals()[1].start() == 41);
@@ -572,7 +572,7 @@ void tst_QMediaTimeRange::testRemoveTimeRange()
 
     QVERIFY(!b.isEmpty());
     QVERIFY(!b.isContinuous());
-    QVERIFY(b.intervals().count() == 2);
+    QVERIFY(b.intervals().size() == 2);
     QVERIFY(b.intervals()[0].start() == 10);
     QVERIFY(b.intervals()[0].end() == 19);
     QVERIFY(b.intervals()[1].start() == 51);
@@ -593,7 +593,7 @@ void tst_QMediaTimeRange::testRemoveTimeRange()
 
     QVERIFY(!b.isEmpty());
     QVERIFY(!b.isContinuous());
-    QVERIFY(b.intervals().count() == 2);
+    QVERIFY(b.intervals().size() == 2);
     QVERIFY(b.intervals()[0].start() == 10);
     QVERIFY(b.intervals()[0].end() == 19);
     QVERIFY(b.intervals()[1].start() == 91);

@@ -225,7 +225,7 @@ void tst_QGraphicsVideoItem::nativeSize()
 
     QCoreApplication::processEvents();
     QCOMPARE(item.nativeSize(), nativeSize);
-    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.size(), 1);
     QCOMPARE(spy.last().first().toSizeF(), nativeSize);
 }
 

@@ -262,7 +262,7 @@ void tst_QCamera::testCameraCaptureMetadata()
     QVariantList metadata = metadataSignal[0];
     QCOMPARE(metadata[0].toInt(), id);
     QMediaMetaData data = metadata[1].value<QMediaMetaData>();
-    QCOMPARE(data.keys().length(), 2);
+    QCOMPARE(data.keys().size(), 2);
     QCOMPARE(data[QMediaMetaData::Author].toString(), "Author");
     QCOMPARE(data[QMediaMetaData::Date].toDateTime().date().year(), 2021);
 }
@@ -423,7 +423,7 @@ void tst_QCamera::testCameraEncodingProperyChange()
 
     camera.start();
     QCOMPARE(camera.isActive(), true);
-    QCOMPARE(activeChangedSignal.count(), 1);
+    QCOMPARE(activeChangedSignal.size(), 1);
 }
 
 void tst_QCamera::testSetVideoOutput()
@@ -609,7 +609,7 @@ void tst_QCamera::testErrorSignal()
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("Camera Error"));
 
-    QVERIFY(spyError.count() == 1);
+    QVERIFY(spyError.size() == 1);
     QCamera::Error err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
     QVERIFY(err == QCamera::CameraError);
 
@@ -617,7 +617,7 @@ void tst_QCamera::testErrorSignal()
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("InvalidRequestError Error"));
-    QVERIFY(spyError.count() == 1);
+    QVERIFY(spyError.size() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
     QVERIFY(err == QCamera::CameraError);
 
@@ -625,7 +625,7 @@ void tst_QCamera::testErrorSignal()
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QString("NotSupportedFeatureError Error"));
-    QVERIFY(spyError.count() == 1);
+    QVERIFY(spyError.size() == 1);
     err = qvariant_cast<QCamera::Error >(spyError.at(0).at(0));
     QVERIFY(err == QCamera::CameraError);
 
@@ -679,34 +679,34 @@ void tst_QCamera::testSetCameraFormat()
     QCamera camera;
     QCameraDevice device = camera.cameraDevice();
     auto videoFormats = device.videoFormats();
-    QVERIFY(videoFormats.count());
+    QVERIFY(videoFormats.size());
     QCameraFormat cameraFormat = videoFormats.first();
     QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
-    QVERIFY(spy.count() == 0);
+    QVERIFY(spy.size() == 0);
     camera.setCameraFormat(cameraFormat);
-    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.size(), 1);
     QCOMPARE(camera.cameraFormat(), cameraFormat);
     QCOMPARE(camera.cameraFormat().pixelFormat(), QVideoFrameFormat::Format_ARGB8888);
     QCOMPARE(camera.cameraFormat().resolution(), QSize(640, 480));
     QCOMPARE(camera.cameraFormat().minFrameRate(), 0);
     QCOMPARE(camera.cameraFormat().maxFrameRate(), 30);
-    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.size(), 1);
 
     spy.clear();
     camera.setCameraFormat({});
-    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.size(), 1);
     QCOMPARE(camera.cameraFormat(), QCameraFormat());
 
     spy.clear();
     camera.setCameraDevice(QMediaDevices::videoInputs().at(1));
-    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.size(), 1);
     QCOMPARE(camera.cameraFormat(), QCameraFormat());
     camera.setCameraFormat(camera.cameraDevice().videoFormats().first());
     QCOMPARE(camera.cameraFormat().pixelFormat(), QVideoFrameFormat::Format_XRGB8888);
     QCOMPARE(camera.cameraFormat().resolution(), QSize(1280, 720));
     QCOMPARE(camera.cameraFormat().minFrameRate(), 0);
     QCOMPARE(camera.cameraFormat().maxFrameRate(), 30);
-    QCOMPARE(spy.count(), 2);
+    QCOMPARE(spy.size(), 2);
 }
 
 //Added this code to cover QCamera::FocusModeHyperfocal and QCamera::FocusModeAutoNear
@@ -734,13 +734,13 @@ void tst_QCamera::testZoomChanged()
     session.setCamera(&camera);
 
     QSignalSpy spy(&camera, SIGNAL(zoomFactorChanged(float)));
-    QVERIFY(spy.count() == 0);
+    QVERIFY(spy.size() == 0);
     camera.setZoomFactor(2.0);
-    QVERIFY(spy.count() == 1);
+    QVERIFY(spy.size() == 1);
     camera.zoomTo(3.0, 1);
-    QVERIFY(spy.count() == 2);
+    QVERIFY(spy.size() == 2);
     camera.zoomTo(1.0, 0);
-    QVERIFY(spy.count() == 3);
+    QVERIFY(spy.size() == 3);
 }
 
 void tst_QCamera::testMaxZoomChangedSignal()
@@ -753,7 +753,7 @@ void tst_QCamera::testMaxZoomChangedSignal()
     // ### change max zoom factor on backend, e.g. by changing camera
     QSignalSpy spy(&camera, SIGNAL(maximumZoomFactorChanged(float)));
     mock->maximumZoomFactorChanged(55);
-    QVERIFY(spy.count() == 1);
+    QVERIFY(spy.size() == 1);
     QCOMPARE(camera.maximumZoomFactor(), 55);
 }
 
@@ -765,7 +765,7 @@ void tst_QCamera::testSignalExposureCompensationChanged()
 
     QSignalSpy spyExposureCompensationChanged(&camera, SIGNAL(exposureCompensationChanged(float)));
 
-    QVERIFY(spyExposureCompensationChanged.count() ==0);
+    QVERIFY(spyExposureCompensationChanged.size() ==0);
 
     QVERIFY(camera.exposureCompensation() != 800);
     camera.setExposureCompensation(2.0);
@@ -774,14 +774,14 @@ void tst_QCamera::testSignalExposureCompensationChanged()
 
     QVERIFY(camera.exposureCompensation() == 2.0);
 
-    QCOMPARE(spyExposureCompensationChanged.count(),1);
+    QCOMPARE(spyExposureCompensationChanged.size(),1);
 
     // Setting the same should not result in a signal
     camera.setExposureCompensation(2.0);
     QTest::qWait(100);
 
     QVERIFY(camera.exposureCompensation() == 2.0);
-    QCOMPARE(spyExposureCompensationChanged.count(),1);
+    QCOMPARE(spyExposureCompensationChanged.size(),1);
 }
 
 void tst_QCamera::testSignalIsoSensitivityChanged()
@@ -792,11 +792,11 @@ void tst_QCamera::testSignalIsoSensitivityChanged()
 
     QSignalSpy spyisoSensitivityChanged(&camera, SIGNAL(isoSensitivityChanged(int)));
 
-    QVERIFY(spyisoSensitivityChanged.count() ==0);
+    QVERIFY(spyisoSensitivityChanged.size() ==0);
 
     camera.setManualIsoSensitivity(800); //set the manualiso sentivity to 800
     QTest::qWait(100);
-    QVERIFY(spyisoSensitivityChanged.count() ==1);
+    QVERIFY(spyisoSensitivityChanged.size() ==1);
 
 }
 void tst_QCamera::testSignalShutterSpeedChanged()
@@ -807,12 +807,12 @@ void tst_QCamera::testSignalShutterSpeedChanged()
 
     QSignalSpy spySignalExposureTimeChanged(&camera, SIGNAL(exposureTimeChanged(float)));
 
-    QVERIFY(spySignalExposureTimeChanged.count() ==0);
+    QVERIFY(spySignalExposureTimeChanged.size() ==0);
 
     camera.setManualExposureTime(2.0);//set the ManualShutterSpeed to 2.0
     QTest::qWait(100);
 
-    QVERIFY(spySignalExposureTimeChanged.count() ==1);
+    QVERIFY(spySignalExposureTimeChanged.size() ==1);
 }
 
 void tst_QCamera::testSignalFlashReady()
@@ -823,7 +823,7 @@ void tst_QCamera::testSignalFlashReady()
 
     QSignalSpy spyflashReady(&camera,SIGNAL(flashReady(bool)));
 
-    QVERIFY(spyflashReady.count() == 0);
+    QVERIFY(spyflashReady.size() == 0);
 
     QVERIFY(camera.flashMode() == QCamera::FlashAuto);
 
@@ -831,7 +831,7 @@ void tst_QCamera::testSignalFlashReady()
 
     QVERIFY(camera.flashMode() == QCamera::FlashOff);
 
-    QCOMPARE(spyflashReady.count(), 1);
+    QCOMPARE(spyflashReady.size(), 1);
 }
 
 QTEST_MAIN(tst_QCamera)

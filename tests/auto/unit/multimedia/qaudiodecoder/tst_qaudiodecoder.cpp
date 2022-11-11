@@ -62,9 +62,9 @@ void tst_QAudioDecoder::read()
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
-    QCOMPARE(readySpy.count(), 0);
-    QCOMPARE(bufferChangedSpy.count(), 0);
-    QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(readySpy.size(), 0);
+    QCOMPARE(bufferChangedSpy.size(), 0);
+    QCOMPARE(errorSpy.size(), 1);
 
     // Set the source to something
     d.setSource(QUrl::fromLocalFile("Blah"));
@@ -97,13 +97,13 @@ void tst_QAudioDecoder::read()
     QVERIFY(b.format().channelCount() == 1);
     QVERIFY(b.sampleCount() == 4);
 
-    QVERIFY(readySpy.count() >= 1);
-    QVERIFY(errorSpy.count() == 0);
+    QVERIFY(readySpy.size() >= 1);
+    QVERIFY(errorSpy.size() == 0);
 
     if (d.bufferAvailable()) {
-        QVERIFY(bufferChangedSpy.count() == 1);
+        QVERIFY(bufferChangedSpy.size() == 1);
     } else {
-        QVERIFY(bufferChangedSpy.count() == 2);
+        QVERIFY(bufferChangedSpy.size() == 2);
     }
 }
 
@@ -123,9 +123,9 @@ void tst_QAudioDecoder::stop()
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
-    QCOMPARE(readySpy.count(), 0);
-    QCOMPARE(bufferChangedSpy.count(), 0);
-    QCOMPARE(errorSpy.count(), 1);
+    QCOMPARE(readySpy.size(), 0);
+    QCOMPARE(bufferChangedSpy.size(), 0);
+    QCOMPARE(errorSpy.size(), 1);
 
     // Set the source to something
     d.setSource(QUrl::fromLocalFile("Blah"));
@@ -262,10 +262,10 @@ void tst_QAudioDecoder::readAll()
     int i = 0;
     forever {
         QVERIFY(d.isDecoding());
-        QCOMPARE(isDecodingSpy.count(), 1);
-        QCOMPARE(durationSpy.count(), 1);
+        QCOMPARE(isDecodingSpy.size(), 1);
+        QCOMPARE(durationSpy.size(), 1);
         QVERIFY(finishedSpy.isEmpty());
-        QTRY_VERIFY(bufferAvailableSpy.count() >= 1);
+        QTRY_VERIFY(bufferAvailableSpy.size() >= 1);
         if (d.bufferAvailable()) {
             QAudioBuffer b = d.read();
             QVERIFY(b.isValid());
@@ -276,8 +276,8 @@ void tst_QAudioDecoder::readAll()
 
             i++;
             if (i == MOCK_DECODER_MAX_BUFFERS) {
-                QCOMPARE(finishedSpy.count(), 1);
-                QCOMPARE(isDecodingSpy.count(), 2);
+                QCOMPARE(finishedSpy.size(), 1);
+                QCOMPARE(isDecodingSpy.size(), 2);
                 QVERIFY(!d.isDecoding());
                 QList<QVariant> arguments = isDecodingSpy.takeLast();
                 QVERIFY(arguments.at(0).toBool() == false);

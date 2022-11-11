@@ -241,8 +241,8 @@ void tst_QCameraBackend::testCameraStartParallel()
     QCOMPARE(camera2.isActive(), true);
     QCOMPARE(camera2.error(), QCamera::NoError);
 
-    QCOMPARE(errorSpy1.count(), 0);
-    QCOMPARE(errorSpy2.count(), 0);
+    QCOMPARE(errorSpy1.size(), 0);
+    QCOMPARE(errorSpy2.size(), 0);
 }
 
 void tst_QCameraBackend::testCameraFormat()
@@ -254,14 +254,14 @@ void tst_QCameraBackend::testCameraFormat()
         QSKIP("No Camera available, skipping test.");
     QCameraFormat cameraFormat = videoFormats.first();
     QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
-    QVERIFY(spy.count() == 0);
+    QVERIFY(spy.size() == 0);
 
     QMediaCaptureSession session;
     session.setCamera(&camera);
-    QVERIFY(videoFormats.count());
+    QVERIFY(videoFormats.size());
     camera.setCameraFormat(cameraFormat);
     QCOMPARE(camera.cameraFormat(), cameraFormat);
-    QVERIFY(spy.count() == 1);
+    QVERIFY(spy.size() == 1);
 
     TestVideoFormat videoFormatTester(cameraFormat);
     session.setVideoOutput(&videoFormatTester);
@@ -271,11 +271,11 @@ void tst_QCameraBackend::testCameraFormat()
     spy.clear();
     camera.stop();
     // Change camera format
-    if (videoFormats.count() > 1) {
+    if (videoFormats.size() > 1) {
         QCameraFormat secondFormat = videoFormats.at(1);
         camera.setCameraFormat(secondFormat);
         QCOMPARE(camera.cameraFormat(), secondFormat);
-        QCOMPARE(spy.count(), 1);
+        QCOMPARE(spy.size(), 1);
         QCOMPARE(camera.cameraFormat(), secondFormat);
         videoFormatTester.setCameraFormatToTest(secondFormat);
         camera.start();
@@ -290,7 +290,7 @@ void tst_QCameraBackend::testCameraFormat()
     spy.clear();
     camera.stop();
     camera.setCameraFormat({});
-    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.size(), 1);
     videoFormatTester.setCameraFormatToTest({});
     camera.start();
     // In case of a null format, the backend should have picked
@@ -301,7 +301,7 @@ void tst_QCameraBackend::testCameraFormat()
     spy.clear();
     // Shouldn't change anything as it's the same device
     camera.setCameraDevice(device);
-    QCOMPARE(spy.count(), 0);
+    QCOMPARE(spy.size(), 0);
 }
 
 void tst_QCameraBackend::testCameraCapture()
@@ -454,13 +454,13 @@ void tst_QCameraBackend::testExposureCompensation()
 
     camera.setExposureCompensation(1.0);
     QCOMPARE(camera.exposureCompensation(), 1.0);
-    QTRY_COMPARE(exposureCompensationSignal.count(), 1);
+    QTRY_COMPARE(exposureCompensationSignal.size(), 1);
     QCOMPARE(exposureCompensationSignal.last().first().toReal(), 1.0);
 
     //exposureCompensationChanged should not be emitted when value is not changed
     camera.setExposureCompensation(1.0);
     QTest::qWait(50);
-    QCOMPARE(exposureCompensationSignal.count(), 1);
+    QCOMPARE(exposureCompensationSignal.size(), 1);
 
     //exposure compensation should be preserved during start
     camera.start();
@@ -471,7 +471,7 @@ void tst_QCameraBackend::testExposureCompensation()
     exposureCompensationSignal.clear();
     camera.setExposureCompensation(-1.0);
     QCOMPARE(camera.exposureCompensation(), -1.0);
-    QTRY_COMPARE(exposureCompensationSignal.count(), 1);
+    QTRY_COMPARE(exposureCompensationSignal.size(), 1);
     QCOMPARE(exposureCompensationSignal.last().first().toReal(), -1.0);
 }
 
@@ -630,7 +630,7 @@ void tst_QCameraBackend::testNativeMetadata()
 
     recorder.record();
     durationChanged.clear();
-    QTRY_VERIFY(durationChanged.count());
+    QTRY_VERIFY(durationChanged.size());
 
     QCOMPARE(recorder.metaData(), metaData);
 
@@ -657,7 +657,7 @@ void tst_QCameraBackend::testNativeMetadata()
     player.setSource(QUrl::fromLocalFile(fileName));
     player.play();
 
-    QTRY_VERIFY(metadataChangedSpy.count() > 0);
+    QTRY_VERIFY(metadataChangedSpy.size() > 0);
 
     QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), metaData.value(QMediaMetaData::Title).toString());
     auto lang = player.metaData().value(QMediaMetaData::Language).value<QLocale::Language>();

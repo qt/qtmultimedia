@@ -645,24 +645,24 @@ void tst_QVideoFrame::mapPlanes()
     QFETCH(QList<int>, strides);
     QFETCH(QList<int>, offsets);
 
-    QCOMPARE(strides.count(), offsets.count() + 1);
+    QCOMPARE(strides.size(), offsets.size() + 1);
 
     QCOMPARE(frame.map(QVideoFrame::ReadOnly), true);
-    QCOMPARE(frame.planeCount(), strides.count());
+    QCOMPARE(frame.planeCount(), strides.size());
 
-    QVERIFY(strides.count() > 0);
+    QVERIFY(strides.size() > 0);
     QCOMPARE(frame.bytesPerLine(0), strides.at(0));
     QVERIFY(frame.bits(0));
 
-    if (strides.count() > 1) {
+    if (strides.size() > 1) {
         QCOMPARE(frame.bytesPerLine(1), strides.at(1));
         QCOMPARE(int(frame.bits(1) - frame.bits(0)), offsets.at(0));
     }
-    if (strides.count() > 2) {
+    if (strides.size() > 2) {
         QCOMPARE(frame.bytesPerLine(2), strides.at(2));
         QCOMPARE(int(frame.bits(2) - frame.bits(0)), offsets.at(1));
     }
-    if (strides.count() > 3) {
+    if (strides.size() > 3) {
         QCOMPARE(frame.bytesPerLine(3), strides.at(3));
         QCOMPARE(int(frame.bits(3) - frame.bits(0)), offsets.at(0));
     }

@@ -130,7 +130,7 @@ void QMediaTimeRangePrivate::addInterval(const QMediaTimeRange::Interval &interv
 
     // Find a place to insert the interval
     int i;
-    for (i = 0; i < intervals.count(); i++) {
+    for (i = 0; i < intervals.size(); i++) {
         // Insert before this element
         if(interval.s < intervals[i].s) {
             intervals.insert(i, interval);
@@ -139,7 +139,7 @@ void QMediaTimeRangePrivate::addInterval(const QMediaTimeRange::Interval &interv
     }
 
     // Interval needs to be added to the end of the list
-    if (i == intervals.count())
+    if (i == intervals.size())
         intervals.append(interval);
 
     // Do we need to correct the element before us?
@@ -147,7 +147,7 @@ void QMediaTimeRangePrivate::addInterval(const QMediaTimeRange::Interval &interv
         i--;
 
     // Merge trailing ranges
-    while (i < intervals.count() - 1
+    while (i < intervals.size() - 1
           && intervals[i].e >= intervals[i + 1].s - 1) {
         intervals[i].e = qMax(intervals[i].e, intervals[i + 1].e);
         intervals.removeAt(i + 1);
@@ -160,7 +160,7 @@ void QMediaTimeRangePrivate::removeInterval(const QMediaTimeRange::Interval &int
     if (!interval.isNormal())
         return;
 
-    for (int i = 0; i < intervals.count(); i++) {
+    for (int i = 0; i < intervals.size(); i++) {
         const QMediaTimeRange::Interval r = intervals.at(i);
 
         if (r.e < interval.s) {
@@ -317,7 +317,7 @@ qint64 QMediaTimeRange::earliestTime() const
 qint64 QMediaTimeRange::latestTime() const
 {
     if (!d->intervals.isEmpty())
-        return d->intervals[d->intervals.count() - 1].end();
+        return d->intervals[d->intervals.size() - 1].end();
 
     return 0;
 }
@@ -506,7 +506,7 @@ bool QMediaTimeRange::isEmpty() const
 */
 bool QMediaTimeRange::isContinuous() const
 {
-    return (d->intervals.count() <= 1);
+    return (d->intervals.size() <= 1);
 }
 
 /*!
@@ -516,7 +516,7 @@ bool QMediaTimeRange::isContinuous() const
 */
 bool QMediaTimeRange::contains(qint64 time) const
 {
-    for (int i = 0; i < d->intervals.count(); i++) {
+    for (int i = 0; i < d->intervals.size(); i++) {
         if (d->intervals[i].contains(time))
             return true;
 

@@ -112,7 +112,7 @@ void tst_QMediaCaptureSession::recordFail(QMediaCaptureSession &session)
     session.setRecorder(&recorder);
     recorder.record();
 
-    QTRY_VERIFY_WITH_TIMEOUT(recorderErrorSignal.count() == 1, 2000);
+    QTRY_VERIFY_WITH_TIMEOUT(recorderErrorSignal.size() == 1, 2000);
     QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 2000);
 }
 
@@ -153,13 +153,13 @@ void tst_QMediaCaptureSession::record_video_without_preview()
 
     session.setCamera(&camera);
     camera.setActive(true);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
 
     session.setCamera(nullptr);
-    QTRY_COMPARE(cameraChanged.count(), 2);
+    QTRY_COMPARE(cameraChanged.size(), 2);
 
     // can't record without audio and video
     recordFail(session);
@@ -177,25 +177,25 @@ void tst_QMediaCaptureSession::can_add_and_remove_AudioInput_with_and_without_Au
     QSignalSpy audioOutputChanged(&session, SIGNAL(audioOutputChanged()));
 
     session.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged.count(), 1);
+    QTRY_COMPARE(audioInputChanged.size(), 1);
     session.setAudioInput(nullptr);
-    QTRY_COMPARE(audioInputChanged.count(), 2);
+    QTRY_COMPARE(audioInputChanged.size(), 2);
 
     QAudioOutput output;
     if (output.device().isNull())
         return;
 
     session.setAudioOutput(&output);
-    QTRY_COMPARE(audioOutputChanged.count(), 1);
+    QTRY_COMPARE(audioOutputChanged.size(), 1);
 
     session.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged.count(), 3);
+    QTRY_COMPARE(audioInputChanged.size(), 3);
 
     session.setAudioOutput(nullptr);
-    QTRY_COMPARE(audioOutputChanged.count(), 2);
+    QTRY_COMPARE(audioOutputChanged.size(), 2);
 
     session.setAudioInput(nullptr);
-    QTRY_COMPARE(audioInputChanged.count(), 4);
+    QTRY_COMPARE(audioInputChanged.size(), 4);
 }
 
 void tst_QMediaCaptureSession::can_change_AudioDevices_on_attached_AudioInput()
@@ -211,19 +211,19 @@ void tst_QMediaCaptureSession::can_change_AudioDevices_on_attached_AudioInput()
     QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
 
     session.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged.count(), 1);
+    QTRY_COMPARE(audioInputChanged.size(), 1);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
 
     input.setDevice(audioInputs[1]);
-    QTRY_COMPARE(deviceChanged.count(), 1);
+    QTRY_COMPARE(deviceChanged.size(), 1);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
 
     input.setDevice(audioInputs[0]);
-    QTRY_COMPARE(deviceChanged.count(), 2);
+    QTRY_COMPARE(deviceChanged.size(), 2);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
@@ -245,22 +245,22 @@ void tst_QMediaCaptureSession::can_change_AudioInput_during_recording()
     QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
 
     session.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged.count(), 1);
+    QTRY_COMPARE(audioInputChanged.size(), 1);
 
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
     QVERIFY(durationChanged.wait(2000));
     session.setAudioInput(nullptr);
-    QTRY_COMPARE(audioInputChanged.count(), 2);
+    QTRY_COMPARE(audioInputChanged.size(), 2);
     session.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged.count(), 3);
+    QTRY_COMPARE(audioInputChanged.size(), 3);
     recorder.stop();
 
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
     QVERIFY(recorderErrorSignal.isEmpty());
 
     session.setAudioInput(nullptr);
-    QTRY_COMPARE(audioInputChanged.count(), 4);
+    QTRY_COMPARE(audioInputChanged.size(), 4);
 
     QString fileName = recorder.actualLocation().toLocalFile();
     QVERIFY(!fileName.isEmpty());
@@ -278,10 +278,10 @@ void tst_QMediaCaptureSession::disconnects_deleted_AudioInput()
     {
         QAudioInput input;
         session.setAudioInput(&input);
-        QTRY_COMPARE(audioInputChanged.count(), 1);
+        QTRY_COMPARE(audioInputChanged.size(), 1);
     }
     QVERIFY(session.audioInput() == nullptr);
-    QTRY_COMPARE(audioInputChanged.count(), 2);
+    QTRY_COMPARE(audioInputChanged.size(), 2);
 }
 
 void tst_QMediaCaptureSession::can_move_AudioInput_between_sessions()
@@ -299,16 +299,16 @@ void tst_QMediaCaptureSession::can_move_AudioInput_between_sessions()
         QMediaCaptureSession session2;
         QSignalSpy audioInputChanged2(&session2, SIGNAL(audioInputChanged()));
         session2.setAudioInput(&input);
-        QTRY_COMPARE(audioInputChanged2.count(), 1);
+        QTRY_COMPARE(audioInputChanged2.size(), 1);
     }
     session0.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged0.count(), 1);
+    QTRY_COMPARE(audioInputChanged0.size(), 1);
     QVERIFY(session0.audioInput() != nullptr);
 
     session1.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged0.count(), 2);
+    QTRY_COMPARE(audioInputChanged0.size(), 2);
     QVERIFY(session0.audioInput() == nullptr);
-    QTRY_COMPARE(audioInputChanged1.count(), 1);
+    QTRY_COMPARE(audioInputChanged1.size(), 1);
     QVERIFY(session1.audioInput() != nullptr);
 }
 
@@ -322,10 +322,10 @@ void tst_QMediaCaptureSession::disconnects_deleted_AudioOutput()
     {
         QAudioOutput output;
         session.setAudioOutput(&output);
-        QTRY_COMPARE(audioOutputChanged.count(), 1);
+        QTRY_COMPARE(audioOutputChanged.size(), 1);
     }
     QVERIFY(session.audioOutput() == nullptr);
-    QTRY_COMPARE(audioOutputChanged.count(), 2);
+    QTRY_COMPARE(audioOutputChanged.size(), 2);
 }
 
 void tst_QMediaCaptureSession::can_move_AudioOutput_between_sessions_and_player()
@@ -345,31 +345,31 @@ void tst_QMediaCaptureSession::can_move_AudioOutput_between_sessions_and_player(
         QMediaCaptureSession session2;
         QSignalSpy audioOutputChanged2(&session2, SIGNAL(audioOutputChanged()));
         session2.setAudioOutput(&output);
-        QTRY_COMPARE(audioOutputChanged2.count(), 1);
+        QTRY_COMPARE(audioOutputChanged2.size(), 1);
     }
 
     session0.setAudioOutput(&output);
-    QTRY_COMPARE(audioOutputChanged0.count(), 1);
+    QTRY_COMPARE(audioOutputChanged0.size(), 1);
     QVERIFY(session0.audioOutput() != nullptr);
 
     session1.setAudioOutput(&output);
-    QTRY_COMPARE(audioOutputChanged0.count(), 2);
+    QTRY_COMPARE(audioOutputChanged0.size(), 2);
     QVERIFY(session0.audioOutput() == nullptr);
-    QTRY_COMPARE(audioOutputChanged1.count(), 1);
+    QTRY_COMPARE(audioOutputChanged1.size(), 1);
     QVERIFY(session1.audioOutput() != nullptr);
 
     player.setAudioOutput(&output);
-    QTRY_COMPARE(audioOutputChanged0.count(), 2);
+    QTRY_COMPARE(audioOutputChanged0.size(), 2);
     QVERIFY(session0.audioOutput() == nullptr);
-    QTRY_COMPARE(audioOutputChanged1.count(), 2);
+    QTRY_COMPARE(audioOutputChanged1.size(), 2);
     QVERIFY(session1.audioOutput() == nullptr);
-    QTRY_COMPARE(audioOutputChangedPlayer.count(), 1);
+    QTRY_COMPARE(audioOutputChangedPlayer.size(), 1);
     QVERIFY(player.audioOutput() != nullptr);
 
     session0.setAudioOutput(&output);
-    QTRY_COMPARE(audioOutputChanged0.count(), 3);
+    QTRY_COMPARE(audioOutputChanged0.size(), 3);
     QVERIFY(session0.audioOutput() != nullptr);
-    QTRY_COMPARE(audioOutputChangedPlayer.count(), 2);
+    QTRY_COMPARE(audioOutputChangedPlayer.size(), 2);
     QVERIFY(player.audioOutput() == nullptr);
 }
 
@@ -390,13 +390,13 @@ void tst_QMediaCaptureSession::can_add_and_remove_Camera()
 
     session.setCamera(&camera);
     camera.setActive(true);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
 
     session.setCamera(nullptr);
-    QTRY_COMPARE(cameraChanged.count(), 2);
+    QTRY_COMPARE(cameraChanged.size(), 2);
 
     session.setCamera(&camera);
-    QTRY_COMPARE(cameraChanged.count(), 3);
+    QTRY_COMPARE(cameraChanged.size(), 3);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
@@ -414,23 +414,23 @@ void tst_QMediaCaptureSession::can_move_Camera_between_sessions()
             QMediaCaptureSession session2;
             QSignalSpy cameraChanged2(&session2, SIGNAL(cameraChanged()));
             session2.setCamera(&camera);
-            QTRY_COMPARE(cameraChanged2.count(), 1);
+            QTRY_COMPARE(cameraChanged2.size(), 1);
         }
         QVERIFY(camera.captureSession() == nullptr);
 
         session0.setCamera(&camera);
-        QTRY_COMPARE(cameraChanged0.count(), 1);
+        QTRY_COMPARE(cameraChanged0.size(), 1);
         QVERIFY(session0.camera() == &camera);
         QVERIFY(camera.captureSession() == &session0);
 
         session1.setCamera(&camera);
-        QTRY_COMPARE(cameraChanged0.count(), 2);
+        QTRY_COMPARE(cameraChanged0.size(), 2);
         QVERIFY(session0.camera() == nullptr);
-        QTRY_COMPARE(cameraChanged1.count(), 1);
+        QTRY_COMPARE(cameraChanged1.size(), 1);
         QVERIFY(session1.camera() == &camera);
         QVERIFY(camera.captureSession() == &session1);
     }
-    QTRY_COMPARE(cameraChanged1.count(), 2);
+    QTRY_COMPARE(cameraChanged1.size(), 2);
     QVERIFY(session1.camera() == nullptr);
 }
 
@@ -452,15 +452,15 @@ void tst_QMediaCaptureSession::can_disconnect_Camera_when_recording()
 
     camera.setActive(true);
     session.setCamera(&camera);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
 
     durationChanged.clear();
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
-    QTRY_VERIFY(durationChanged.count() > 0);
+    QTRY_VERIFY(durationChanged.size() > 0);
 
     session.setCamera(nullptr);
-    QTRY_COMPARE(cameraChanged.count(), 2);
+    QTRY_COMPARE(cameraChanged.size(), 2);
 
     recorder.stop();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
@@ -491,14 +491,14 @@ void tst_QMediaCaptureSession::can_add_and_remove_different_Cameras()
 
     camera.setActive(true);
     session.setCamera(&camera);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
 
     session.setCamera(nullptr);
-    QTRY_COMPARE(cameraChanged.count(), 2);
+    QTRY_COMPARE(cameraChanged.size(), 2);
 
     session.setCamera(&camera2);
     camera2.setActive(true);
-    QTRY_COMPARE(cameraChanged.count(), 3);
+    QTRY_COMPARE(cameraChanged.size(), 3);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
@@ -522,7 +522,7 @@ void tst_QMediaCaptureSession::can_change_CameraDevice_on_attached_Camera()
     QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
 
     session.setCamera(&camera);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
 
     recordFail(session);
     QVERIFY(!QTest::currentTestFailed());
@@ -533,7 +533,7 @@ void tst_QMediaCaptureSession::can_change_CameraDevice_on_attached_Camera()
 
     camera.setCameraDevice(cameraDevices[1]);
     camera.setActive(true);
-    QTRY_COMPARE(cameraDeviceChanged.count(), 1);
+    QTRY_COMPARE(cameraDeviceChanged.size(), 1);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
@@ -556,22 +556,22 @@ void tst_QMediaCaptureSession::can_change_VideoOutput_with_and_without_camera()
     QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
 
     session.setCamera(&camera);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
 
     session.setVideoOutput(&videoOutput);
-    QTRY_COMPARE(videoOutputChanged.count(), 1);
+    QTRY_COMPARE(videoOutputChanged.size(), 1);
 
     session.setVideoOutput(nullptr);
-    QTRY_COMPARE(videoOutputChanged.count(), 2);
+    QTRY_COMPARE(videoOutputChanged.size(), 2);
 
     session.setVideoOutput(&videoOutput2);
-    QTRY_COMPARE(videoOutputChanged.count(), 3);
+    QTRY_COMPARE(videoOutputChanged.size(), 3);
 
     session.setCamera(nullptr);
-    QTRY_COMPARE(cameraChanged.count(), 2);
+    QTRY_COMPARE(cameraChanged.size(), 2);
 
     session.setVideoOutput(nullptr);
-    QTRY_COMPARE(videoOutputChanged.count(), 4);
+    QTRY_COMPARE(videoOutputChanged.size(), 4);
 }
 
 void tst_QMediaCaptureSession::can_change_VideoOutput_when_recording()
@@ -595,20 +595,20 @@ void tst_QMediaCaptureSession::can_change_VideoOutput_when_recording()
 
     camera.setActive(true);
     session.setCamera(&camera);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
 
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
     QVERIFY(durationChanged.wait(2000));
 
     session.setVideoOutput(&videoOutput);
-    QTRY_COMPARE(videoOutputChanged.count(), 1);
+    QTRY_COMPARE(videoOutputChanged.size(), 1);
 
     session.setVideoOutput(nullptr);
-    QTRY_COMPARE(videoOutputChanged.count(), 2);
+    QTRY_COMPARE(videoOutputChanged.size(), 2);
 
     session.setVideoOutput(&videoOutput);
-    QTRY_COMPARE(videoOutputChanged.count(), 3);
+    QTRY_COMPARE(videoOutputChanged.size(), 3);
 
     recorder.stop();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
@@ -634,16 +634,16 @@ void tst_QMediaCaptureSession::can_add_and_remove_recorders()
     QSignalSpy recorderChanged(&session, SIGNAL(recorderChanged()));
 
     session.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged.count(), 1);
+    QTRY_COMPARE(audioInputChanged.size(), 1);
 
     session.setRecorder(&recorder);
-    QTRY_COMPARE(recorderChanged.count(), 1);
+    QTRY_COMPARE(recorderChanged.size(), 1);
 
     session.setRecorder(&recorder2);
-    QTRY_COMPARE(recorderChanged.count(), 2);
+    QTRY_COMPARE(recorderChanged.size(), 2);
 
     session.setRecorder(&recorder);
-    QTRY_COMPARE(recorderChanged.count(), 3);
+    QTRY_COMPARE(recorderChanged.size(), 3);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
@@ -661,23 +661,23 @@ void tst_QMediaCaptureSession::can_move_Recorder_between_sessions()
             QMediaCaptureSession session2;
             QSignalSpy recorderChanged2(&session2, SIGNAL(recorderChanged()));
             session2.setRecorder(&recorder);
-            QTRY_COMPARE(recorderChanged2.count(), 1);
+            QTRY_COMPARE(recorderChanged2.size(), 1);
         }
         QVERIFY(recorder.captureSession() == nullptr);
 
         session0.setRecorder(&recorder);
-        QTRY_COMPARE(recorderChanged0.count(), 1);
+        QTRY_COMPARE(recorderChanged0.size(), 1);
         QVERIFY(session0.recorder() == &recorder);
         QVERIFY(recorder.captureSession() == &session0);
 
         session1.setRecorder(&recorder);
-        QTRY_COMPARE(recorderChanged0.count(), 2);
+        QTRY_COMPARE(recorderChanged0.size(), 2);
         QVERIFY(session0.recorder() == nullptr);
-        QTRY_COMPARE(recorderChanged1.count(), 1);
+        QTRY_COMPARE(recorderChanged1.size(), 1);
         QVERIFY(session1.recorder() == &recorder);
         QVERIFY(recorder.captureSession() == &session1);
     }
-    QTRY_COMPARE(recorderChanged1.count(), 2);
+    QTRY_COMPARE(recorderChanged1.size(), 2);
     QVERIFY(session1.recorder() == nullptr);
 }
 
@@ -699,7 +699,7 @@ void tst_QMediaCaptureSession::can_record_AudioInput_with_null_AudioDevice()
     QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
 
     session.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged.count(), 1);
+    QTRY_COMPARE(audioInputChanged.size(), 1);
 
     recordOk(session);
     QVERIFY(!QTest::currentTestFailed());
@@ -717,7 +717,7 @@ void tst_QMediaCaptureSession::can_record_Camera_with_null_CameraDevice()
     QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
 
     session.setCamera(&camera);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
 
     camera.setActive(true);
     recordOk(session);
@@ -739,17 +739,17 @@ void tst_QMediaCaptureSession::recording_stops_when_recorder_removed()
     QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
 
     session.setAudioInput(&input);
-    QTRY_COMPARE(audioInputChanged.count(), 1);
+    QTRY_COMPARE(audioInputChanged.size(), 1);
 
     session.setRecorder(&recorder);
-    QTRY_COMPARE(recorderChanged.count(), 1);
+    QTRY_COMPARE(recorderChanged.size(), 1);
 
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
     QVERIFY(durationChanged.wait(2000));
 
     session.setRecorder(nullptr);
-    QTRY_COMPARE(recorderChanged.count(), 2);
+    QTRY_COMPARE(recorderChanged.size(), 2);
 
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
     QVERIFY(recorderErrorSignal.isEmpty());
@@ -778,30 +778,30 @@ void tst_QMediaCaptureSession::can_add_and_remove_ImageCapture()
     QVERIFY(!capture.isReadyForCapture());
 
     session.setImageCapture(&capture);
-    QTRY_COMPARE(imageCaptureChanged.count(), 1);
+    QTRY_COMPARE(imageCaptureChanged.size(), 1);
     QVERIFY(!capture.isAvailable());
     QVERIFY(!capture.isReadyForCapture());
 
     session.setCamera(&camera);
-    QTRY_COMPARE(cameraChanged.count(), 1);
+    QTRY_COMPARE(cameraChanged.size(), 1);
     QVERIFY(capture.isAvailable());
 
     QVERIFY(!capture.isReadyForCapture());
 
     camera.setActive(true);
-    QTRY_COMPARE(readyForCaptureChanged.count(), 1);
+    QTRY_COMPARE(readyForCaptureChanged.size(), 1);
     QVERIFY(capture.isReadyForCapture());
 
     session.setImageCapture(nullptr);
-    QTRY_COMPARE(imageCaptureChanged.count(), 2);
-    QTRY_COMPARE(readyForCaptureChanged.count(), 2);
+    QTRY_COMPARE(imageCaptureChanged.size(), 2);
+    QTRY_COMPARE(readyForCaptureChanged.size(), 2);
 
     QVERIFY(!capture.isAvailable());
     QVERIFY(!capture.isReadyForCapture());
 
     session.setImageCapture(&capture);
-    QTRY_COMPARE(imageCaptureChanged.count(), 3);
-    QTRY_COMPARE(readyForCaptureChanged.count(), 3);
+    QTRY_COMPARE(imageCaptureChanged.size(), 3);
+    QTRY_COMPARE(readyForCaptureChanged.size(), 3);
     QVERIFY(capture.isAvailable());
     QVERIFY(capture.isReadyForCapture());
 }
@@ -818,23 +818,23 @@ void tst_QMediaCaptureSession::can_move_ImageCapture_between_sessions()
             QMediaCaptureSession session2;
             QSignalSpy imageCaptureChanged2(&session2, SIGNAL(imageCaptureChanged()));
             session2.setImageCapture(&imageCapture);
-            QTRY_COMPARE(imageCaptureChanged2.count(), 1);
+            QTRY_COMPARE(imageCaptureChanged2.size(), 1);
         }
         QVERIFY(imageCapture.captureSession() == nullptr);
 
         session0.setImageCapture(&imageCapture);
-        QTRY_COMPARE(imageCaptureChanged0.count(), 1);
+        QTRY_COMPARE(imageCaptureChanged0.size(), 1);
         QVERIFY(session0.imageCapture() == &imageCapture);
         QVERIFY(imageCapture.captureSession() == &session0);
 
         session1.setImageCapture(&imageCapture);
-        QTRY_COMPARE(imageCaptureChanged0.count(), 2);
+        QTRY_COMPARE(imageCaptureChanged0.size(), 2);
         QVERIFY(session0.imageCapture() == nullptr);
-        QTRY_COMPARE(imageCaptureChanged1.count(), 1);
+        QTRY_COMPARE(imageCaptureChanged1.size(), 1);
         QVERIFY(session1.imageCapture() == &imageCapture);
         QVERIFY(imageCapture.captureSession() == &session1);
     }
-    QTRY_COMPARE(imageCaptureChanged1.count(), 2);
+    QTRY_COMPARE(imageCaptureChanged1.size(), 2);
     QVERIFY(session1.imageCapture() == nullptr);
 }
 
@@ -857,18 +857,18 @@ void tst_QMediaCaptureSession::capture_is_not_available_when_Camera_is_null()
     session.setCamera(&camera);
     camera.setActive(true);
 
-    QTRY_COMPARE(readyForCaptureChanged.count(), 1);
+    QTRY_COMPARE(readyForCaptureChanged.size(), 1);
     QVERIFY(capture.isReadyForCapture());
 
     QVERIFY(capture.capture() >= 0);
-    QTRY_COMPARE(capturedSignal.count(), 1);
+    QTRY_COMPARE(capturedSignal.size(), 1);
 
     QVERIFY(capture.isReadyForCapture());
-    int readyCount = readyForCaptureChanged.count();
+    int readyCount = readyForCaptureChanged.size();
 
     session.setCamera(nullptr);
 
-    QTRY_COMPARE(readyForCaptureChanged.count(), readyCount + 1);
+    QTRY_COMPARE(readyForCaptureChanged.size(), readyCount + 1);
     QVERIFY(!capture.isReadyForCapture());
     QVERIFY(!capture.isAvailable());
     QVERIFY(capture.capture() < 0);
@@ -896,22 +896,22 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
     camera.setActive(true);
 
     session.setRecorder(&recorder);
-    QTRY_COMPARE(recorderChanged.count(), 1);
+    QTRY_COMPARE(recorderChanged.size(), 1);
 
     recorder.record();
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecordingState);
     QVERIFY(durationChanged.wait(2000));
 
     session.setImageCapture(&capture);
-    QTRY_COMPARE(imageCaptureChanged.count(), 1);
-    QTRY_COMPARE(readyForCaptureChanged.count(), 1);
+    QTRY_COMPARE(imageCaptureChanged.size(), 1);
+    QTRY_COMPARE(readyForCaptureChanged.size(), 1);
     QVERIFY(capture.isReadyForCapture());
 
     QVERIFY(capture.capture() >= 0);
-    QTRY_COMPARE(capturedSignal.count(), 1);
+    QTRY_COMPARE(capturedSignal.size(), 1);
 
     session.setImageCapture(nullptr);
-    QVERIFY(readyForCaptureChanged.count() >= 2);
+    QVERIFY(readyForCaptureChanged.size() >= 2);
     QVERIFY(!capture.isReadyForCapture());
 
     recorder.stop();
@@ -950,7 +950,7 @@ void tst_QMediaCaptureSession::testAudioMute()
     recorder.record();
     audioInput.setMuted(true);
 
-    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.size(), 1);
     QCOMPARE(spy.last()[0], true);
 
     QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 2000);
@@ -958,7 +958,7 @@ void tst_QMediaCaptureSession::testAudioMute()
 
     audioInput.setMuted(false);
 
-    QCOMPARE(spy.count(), 2);
+    QCOMPARE(spy.size(), 2);
     QCOMPARE(spy.last()[0], false);
 
     recorder.stop();

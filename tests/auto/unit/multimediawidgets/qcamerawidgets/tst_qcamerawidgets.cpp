@@ -60,7 +60,7 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     camera.start();
     QCOMPARE(camera.isActive(), true);
 
-    QCOMPARE(activeChangedSignal.count(), 1);
+    QCOMPARE(activeChangedSignal.size(), 1);
 }
 
 void tst_QCameraWidgets::testSetVideoOutput()
