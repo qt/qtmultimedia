@@ -51,7 +51,7 @@ public:
         Q_UNUSED(bus);
         QMutexLocker lock(&d->filterMutex);
 
-        for (QGstreamerSyncMessageFilter *filter : qAsConst(d->syncFilters)) {
+        for (QGstreamerSyncMessageFilter *filter : std::as_const(d->syncFilters)) {
             if (filter->processSyncMessage(QGstreamerMessage(message))) {
                 gst_message_unref(message);
                 return GST_BUS_DROP;
@@ -72,7 +72,7 @@ private Q_SLOTS:
     }
     void doProcessMessage(const QGstreamerMessage& msg)
     {
-        for (QGstreamerBusMessageFilter *filter : qAsConst(busFilters)) {
+        for (QGstreamerBusMessageFilter *filter : std::as_const(busFilters)) {
             if (filter->processBusMessage(msg))
                 break;
         }

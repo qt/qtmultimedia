@@ -207,7 +207,7 @@ void AudioRecorder::updateFormats()
 
 void AudioRecorder::clearAudioLevels()
 {
-    for (auto m_audioLevel : qAsConst(m_audioLevels))
+    for (auto m_audioLevel : std::as_const(m_audioLevels))
         m_audioLevel->setLevel(0);
 }
 

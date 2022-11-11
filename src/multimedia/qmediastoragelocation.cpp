@@ -21,7 +21,7 @@ QDir QMediaStorageLocation::defaultDirectory(QStandardPaths::StandardLocation ty
     dirCandidates << QDir::currentPath();
     dirCandidates << QDir::tempPath();
 
-    for (const QString &path : qAsConst(dirCandidates)) {
+    for (const QString &path : std::as_const(dirCandidates)) {
         QDir dir(path);
         if (dir.exists() && QFileInfo(path).isWritable())
             return dir;

@@ -159,7 +159,7 @@ void tst_QAudioSource::initTestCase()
     QVERIFY(m_temporaryDir->isValid());
 
     const QString temporaryAudioPath = m_temporaryDir->path() + slash;
-    for (const QAudioFormat &format : qAsConst(testFormats)) {
+    for (const QAudioFormat &format : std::as_const(testFormats)) {
         const QString fileName = temporaryAudioPath + formatToFileName(format) + QStringLiteral(".wav");
         audioFiles.append(FilePtr::create(fileName));
     }

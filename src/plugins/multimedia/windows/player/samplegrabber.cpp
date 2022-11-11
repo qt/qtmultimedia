@@ -131,7 +131,7 @@ STDMETHODIMP AudioSampleGrabberCallback::OnProcessSample(REFGUID guidMajorMediaT
         llSampleTime /= 10;
     }
 
-//    for (MFAudioProbeControl* probe : qAsConst(m_audioProbes))
+//    for (MFAudioProbeControl* probe : std::as_const(m_audioProbes))
 //        probe->bufferProbed((const char*)pSampleBuffer, dwSampleSize, m_format, llSampleTime);
 
     return S_OK;

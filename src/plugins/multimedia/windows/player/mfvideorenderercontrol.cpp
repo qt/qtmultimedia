@@ -954,7 +954,7 @@ namespace
 
         void clearMediaTypes()
         {
-            for (IMFMediaType* mediaType : qAsConst(m_mediaTypes))
+            for (IMFMediaType* mediaType : std::as_const(m_mediaTypes))
                 mediaType->Release();
             m_mediaTypes.clear();
         }
@@ -1172,7 +1172,7 @@ namespace
         bool m_prerolling = false;
 
         void clearSampleQueue() {
-            for (IUnknown* sample : qAsConst(m_sampleQueue))
+            for (IUnknown* sample : std::as_const(m_sampleQueue))
                 sample->Release();
             m_sampleQueue.clear();
         }
@@ -1279,7 +1279,7 @@ namespace
 
         void clearBufferCache()
         {
-            for (SampleBuffer sb : qAsConst(m_bufferCache))
+            for (SampleBuffer sb : std::as_const(m_bufferCache))
                 sb.m_buffer->Release();
             m_bufferCache.clear();
 

@@ -489,7 +489,7 @@ STDMETHODIMP MFTransform::ProcessInput(DWORD dwInputStreamID, IMFSample *pSample
 //    if (!m_videoProbes.isEmpty()) {
 //        QVideoFrame frame = makeVideoFrame();
 
-//        for (MFVideoProbeControl* probe : qAsConst(m_videoProbes))
+//        for (MFVideoProbeControl* probe : std::as_const(m_videoProbes))
 //            probe->bufferProbed(frame);
 //    }
 
@@ -540,7 +540,7 @@ STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount,
 //    if (!m_videoProbes.isEmpty()) {
 //        QVideoFrame frame = makeVideoFrame();
 
-//        for (MFVideoProbeControl* probe : qAsConst(m_videoProbes))
+//        for (MFVideoProbeControl* probe : std::as_const(m_videoProbes))
 //            probe->bufferProbed(frame);
 //    }
     m_videoProbeMutex.unlock();

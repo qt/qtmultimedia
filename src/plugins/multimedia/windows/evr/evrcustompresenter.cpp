@@ -482,14 +482,14 @@ HRESULT SamplePool::initialize(QList<IMFSample*> &samples)
         return MF_E_INVALIDREQUEST;
 
     // Move these samples into our allocated queue.
-    for (auto sample : qAsConst(samples)) {
+    for (auto sample : std::as_const(samples)) {
         sample->AddRef();
         m_videoSampleQueue.append(sample);
     }
 
     m_initialized = true;
 
-    for (auto sample : qAsConst(samples))
+    for (auto sample : std::as_const(samples))
         sample->Release();
     samples.clear();
     return S_OK;
@@ -499,7 +499,7 @@ HRESULT SamplePool::clear()
 {
     QMutexLocker locker(&m_mutex);
 
-    for (auto sample : qAsConst(m_videoSampleQueue))
+    for (auto sample : std::as_const(m_videoSampleQueue))
         sample->Release();
     m_videoSampleQueue.clear();
     m_initialized = false;
@@ -896,7 +896,7 @@ HRESULT EVRCustomPresenter::OnClockSetRate(MFTIME, float rate)
     // frame-step operation.
     if ((m_playbackRate == 0.0f) && (rate != 0.0f)) {
         cancelFrameStep();
-        for (auto sample : qAsConst(m_frameStep.samples))
+        for (auto sample : std::as_const(m_frameStep.samples))
             sample->Release();
         m_frameStep.samples.clear();
     }
@@ -1100,7 +1100,7 @@ HRESULT EVRCustomPresenter::flush()
     m_scheduler.flush();
 
     // Flush the frame-step queue.
-    for (auto sample : qAsConst(m_frameStep.samples))
+    for (auto sample : std::as_const(m_frameStep.samples))
         sample->Release();
     m_frameStep.samples.clear();
 
@@ -1408,7 +1408,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
 
     // Mark each sample with our token counter. If this batch of samples becomes
     // invalid, we increment the counter, so that we know they should be discarded.
-    for (auto sample : qAsConst(sampleQueue)) {
+    for (auto sample : std::as_const(sampleQueue)) {
         hr = sample->SetUINT32(MFSamplePresenter_SampleCounter, m_tokenCounter);
         if (FAILED(hr))
             goto done;

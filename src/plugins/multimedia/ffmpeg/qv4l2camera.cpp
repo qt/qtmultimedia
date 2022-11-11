@@ -257,7 +257,7 @@ void QV4L2CameraBuffers::release(int index)
 
 void QV4L2CameraBuffers::unmapBuffers()
 {
-    for (const auto &b : qAsConst(mappedBuffers))
+    for (const auto &b : std::as_const(mappedBuffers))
         munmap(b.data, b.size);
     mappedBuffers.clear();
 }

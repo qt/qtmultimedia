@@ -254,7 +254,7 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
             }
         }
         if (!audioCodecs.isEmpty() || !videoCodecs.isEmpty()) {
-            for (auto f : qAsConst(fileFormats)) {
+            for (auto f : std::as_const(fileFormats)) {
                 muxers.append({f, audioCodecs, videoCodecs});
                 if (f == QMediaFormat::MPEG4 && !fileFormats.contains(QMediaFormat::Mpeg4Audio)) {
                     muxers.append({QMediaFormat::Mpeg4Audio, audioCodecs, {}});
