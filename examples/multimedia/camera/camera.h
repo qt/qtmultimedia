@@ -76,7 +76,6 @@ private slots:
 
 protected:
     void keyPressEvent(QKeyEvent *event) override;
-    void keyReleaseEvent(QKeyEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
 
 private:
@@ -85,10 +84,10 @@ private:
     QActionGroup *videoDevicesGroup  = nullptr;
 
     QMediaDevices m_devices;
+    QScopedPointer<QImageCapture> m_imageCapture;
     QMediaCaptureSession m_captureSession;
     QScopedPointer<QCamera> m_camera;
     QScopedPointer<QAudioInput> m_audioInput;
-    QImageCapture *m_imageCapture;
     QScopedPointer<QMediaRecorder> m_mediaRecorder;
 
     bool m_isCapturingImage = false;

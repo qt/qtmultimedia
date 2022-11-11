@@ -46,6 +46,8 @@ Camera::Camera()
     connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);
 
     connect(ui->metaDataButton, &QPushButton::clicked, this, &Camera::showMetaDataDialog);
+    connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this,
+            &Camera::setExposureCompensation);
 
     setCamera(QMediaDevices::defaultVideoInput());
 }
@@ -61,26 +63,31 @@ void Camera::setCamera(const QCameraDevice &cameraDevice)
     if (!m_mediaRecorder) {
         m_mediaRecorder.reset(new QMediaRecorder);
         m_captureSession.setRecorder(m_mediaRecorder.data());
-        connect(m_mediaRecorder.data(), &QMediaRecorder::recorderStateChanged, this, &Camera::updateRecorderState);
+
+        connect(m_mediaRecorder.data(), &QMediaRecorder::recorderStateChanged, this,
+                &Camera::updateRecorderState);
+        connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this,
+                &Camera::updateRecordTime);
+        connect(m_mediaRecorder.data(), &QMediaRecorder::errorChanged, this,
+                &Camera::displayRecorderError);
     }
 
-    m_imageCapture = new QImageCapture;
-    m_captureSession.setImageCapture(m_imageCapture);
-
-    connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
-    connect(m_mediaRecorder.data(), &QMediaRecorder::errorChanged, this, &Camera::displayRecorderError);
-
-    connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
+    if (!m_imageCapture) {
+        m_imageCapture.reset(new QImageCapture);
+        m_captureSession.setImageCapture(m_imageCapture.get());
+        connect(m_imageCapture.get(), &QImageCapture::readyForCaptureChanged, this,
+                &Camera::readyForCapture);
+        connect(m_imageCapture.get(), &QImageCapture::imageCaptured, this,
+                &Camera::processCapturedImage);
+        connect(m_imageCapture.get(), &QImageCapture::imageSaved, this, &Camera::imageSaved);
+        connect(m_imageCapture.get(), &QImageCapture::errorOccurred, this,
+                &Camera::displayCaptureError);
+    }
 
     m_captureSession.setVideoOutput(ui->viewfinder);
 
     updateCameraActive(m_camera->isActive());
     updateRecorderState(m_mediaRecorder->recorderState());
-
-    connect(m_imageCapture, &QImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
-    connect(m_imageCapture, &QImageCapture::imageCaptured, this, &Camera::processCapturedImage);
-    connect(m_imageCapture, &QImageCapture::imageSaved, this, &Camera::imageSaved);
-    connect(m_imageCapture, &QImageCapture::errorOccurred, this, &Camera::displayCaptureError);
     readyForCapture(m_imageCapture->isReadyForCapture());
 
     updateCaptureMode();
@@ -134,11 +141,6 @@ void Camera::keyPressEvent(QKeyEvent * event)
     }
 }
 
-void Camera::keyReleaseEvent(QKeyEvent *event)
-{
-    QMainWindow::keyReleaseEvent(event);
-}
-
 void Camera::updateRecordTime()
 {
     QString str = QString("Recorded %1 sec").arg(m_mediaRecorder->duration()/1000);
@@ -178,7 +180,7 @@ void Camera::configureVideoSettings()
 
 void Camera::configureImageSettings()
 {
-    ImageSettings settingsDialog(m_imageCapture);
+    ImageSettings settingsDialog(m_imageCapture.get());
     settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     if (settingsDialog.exec()) {
