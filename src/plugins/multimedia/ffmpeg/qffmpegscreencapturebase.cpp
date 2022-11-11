@@ -79,7 +79,7 @@ void QFFmpegScreenCaptureBase::setSource(Source &source, NewSource newSource, Si
     if (m_active && newSource)
         setActiveInternal(true);
 
-    emit(screenCapture()->*sig)(newSource);
+    emit (screenCapture()->*sig)(newSource);
 }
 
 QT_END_NAMESPACE
