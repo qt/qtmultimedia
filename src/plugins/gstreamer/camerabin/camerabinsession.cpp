@@ -479,6 +479,15 @@ GstElement *CameraBinSession::buildCameraSource()
     m_inputDeviceHasChanged = false;
     m_usingWrapperCameraBinSrc = false;
 
+    if (m_videoSrc) {
+        gst_object_unref(GST_OBJECT(m_videoSrc));
+        m_videoSrc = 0;
+    }
+    if (m_cameraSrc) {
+        gst_object_unref(GST_OBJECT(m_cameraSrc));
+        m_cameraSrc = 0;
+    }
+
     GstElement *camSrc = 0;
     g_object_get(G_OBJECT(m_camerabin), CAMERA_SOURCE_PROPERTY, &camSrc, NULL);
 

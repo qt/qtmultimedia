@@ -40,11 +40,7 @@
 #include "avfvideorenderercontrol.h"
 #include "avfdisplaylink.h"
 
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-#include "avfvideoframerenderer_ios.h"
-#else
 #include "avfvideoframerenderer.h"
-#endif
 
 #include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtMultimedia/qabstractvideosurface.h>
@@ -58,50 +54,16 @@
 
 QT_USE_NAMESPACE
 
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-class TextureCacheVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    TextureCacheVideoBuffer(CVOGLTextureRef texture)
-        : QAbstractVideoBuffer(GLTextureHandle)
-        , m_texture(texture)
-    {}
-
-    virtual ~TextureCacheVideoBuffer()
-    {
-        // absolutely critical that we drop this
-        // reference of textures will stay in the cache
-        CFRelease(m_texture);
-    }
-
-    MapMode mapMode() const { return NotMapped; }
-    uchar *map(MapMode, int*, int*) { return nullptr; }
-    void unmap() {}
-
-    QVariant handle() const
-    {
-        GLuint texId = CVOGLTextureGetName(m_texture);
-        return QVariant::fromValue<unsigned int>(texId);
-    }
-
-private:
-    CVOGLTextureRef m_texture;
-};
-#else
 class TextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    TextureVideoBuffer(GLuint  tex)
-        : QAbstractVideoBuffer(GLTextureHandle)
-        , m_texture(tex)
+    TextureVideoBuffer(GLuint texture, QAbstractVideoBuffer::HandleType type)
+        : QAbstractVideoBuffer(type)
+        , m_texture(texture)
     {}
 
-    virtual ~TextureVideoBuffer()
-    {
-    }
-
     MapMode mapMode() const { return NotMapped; }
-    uchar *map(MapMode, int*, int*) { return 0; }
+    uchar *map(MapMode, int*, int*) { return nullptr; }
     void unmap() {}
 
     QVariant handle() const
@@ -112,15 +74,32 @@ public:
 private:
     GLuint m_texture;
 };
-#endif
+
+class CoreVideoTextureVideoBuffer : public TextureVideoBuffer
+{
+public:
+    CoreVideoTextureVideoBuffer(CVOGLTextureRef texture, QAbstractVideoBuffer::HandleType type)
+        : TextureVideoBuffer(CVOGLTextureGetName(texture), type)
+        , m_coreVideoTexture(texture)
+    {}
+
+    virtual ~CoreVideoTextureVideoBuffer()
+    {
+        // absolutely critical that we drop this
+        // reference of textures will stay in the cache
+        CFRelease(m_coreVideoTexture);
+    }
+
+private:
+    CVOGLTextureRef m_coreVideoTexture;
+};
+
 
 AVFVideoRendererControl::AVFVideoRendererControl(QObject *parent)
     : QVideoRendererControl(parent)
     , m_surface(nullptr)
     , m_playerLayer(nullptr)
     , m_frameRenderer(nullptr)
-    , m_enableOpenGL(false)
-
 {
     m_displayLink = new AVFDisplayLink(this);
     connect(m_displayLink, SIGNAL(tick(CVTimeStamp)), SLOT(updateVideoFrame(CVTimeStamp)));
@@ -170,18 +149,26 @@ void AVFVideoRendererControl::setSurface(QAbstractVideoSurface *surface)
 
     //Surface changed, so we need a new frame renderer
     m_frameRenderer = new AVFVideoFrameRenderer(m_surface, this);
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-    if (m_playerLayer) {
-        m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(m_playerLayer));
-    }
-#endif
 
-    //Check for needed formats to render as OpenGL Texture
-    auto handleGlEnabled = [this] {
-        m_enableOpenGL = m_surface->supportedPixelFormats(QAbstractVideoBuffer::GLTextureHandle).contains(QVideoFrame::Format_BGR32);
+    auto updateSurfaceType = [this] {
+        auto preferredOpenGLSurfaceTypes = {
+#ifdef Q_OS_MACOS
+            QAbstractVideoBuffer::GLTextureRectangleHandle, // GL_TEXTURE_RECTANGLE
+#endif
+            QAbstractVideoBuffer::GLTextureHandle // GL_TEXTURE_2D
+        };
+
+        for (auto surfaceType : preferredOpenGLSurfaceTypes) {
+            auto supportedFormats = m_surface->supportedPixelFormats(surfaceType);
+            if (supportedFormats.contains(QVideoFrame::Format_BGR32)) {
+                m_surfaceType = surfaceType;
+                return;
+            }
+            m_surfaceType = QAbstractVideoBuffer::NoHandle; // QImage
+        }
     };
-    handleGlEnabled();
-    connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged, this, handleGlEnabled);
+    updateSurfaceType();
+    connect(m_surface, &QAbstractVideoSurface::supportedFormatsChanged, this, updateSurfaceType);
 
     //If we already have a layer, but changed surfaces start rendering again
     if (m_playerLayer && !m_displayLink->isActive()) {
@@ -203,12 +190,6 @@ void AVFVideoRendererControl::setLayer(void *playerLayer)
     //we can update it's state with the new content.
     if (m_surface && m_surface->isActive())
         m_surface->stop();
-
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-    if (m_frameRenderer) {
-        m_frameRenderer->setPlayerLayer(static_cast<AVPlayerLayer*>(playerLayer));
-    }
-#endif
 
     //If there is no layer to render, stop scheduling updates
     if (m_playerLayer == nullptr) {
@@ -238,36 +219,39 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     if (!playerLayer.readyForDisplay)
         return;
 
-    if (m_enableOpenGL) {
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
-        CVOGLTextureRef tex = m_frameRenderer->renderLayerToTexture(playerLayer);
+    if (m_surfaceType == QAbstractVideoBuffer::GLTextureHandle
+     || m_surfaceType == QAbstractVideoBuffer::GLTextureRectangleHandle) {
+        QSize size;
+        QAbstractVideoBuffer *buffer = nullptr;
 
-        //Make sure we got a valid texture
-        if (tex == nullptr)
-            return;
-
-        QAbstractVideoBuffer *buffer = new TextureCacheVideoBuffer(tex);
+#ifdef Q_OS_MACOS
+        if (m_surfaceType == QAbstractVideoBuffer::GLTextureRectangleHandle) {
+            // Render to GL_TEXTURE_RECTANGLE directly
+            if (CVOGLTextureRef tex = m_frameRenderer->renderLayerToTexture(playerLayer, &size))
+                buffer = new CoreVideoTextureVideoBuffer(tex, m_surfaceType);
+        } else {
+            // Render to GL_TEXTURE_2D via FBO
+            if (GLuint tex = m_frameRenderer->renderLayerToFBO(playerLayer, &size))
+                buffer = new TextureVideoBuffer(tex, m_surfaceType);
+        }
 #else
-        GLuint tex = m_frameRenderer->renderLayerToTexture(playerLayer);
-        //Make sure we got a valid texture
-        if (tex == 0)
+        Q_ASSERT(m_surfaceType != QAbstractVideoBuffer::GLTextureRectangleHandle);
+        // Render to GL_TEXTURE_2D directly
+        if (CVOGLTextureRef tex = m_frameRenderer->renderLayerToTexture(playerLayer, &size))
+            buffer = new CoreVideoTextureVideoBuffer(tex, m_surfaceType);
+#endif
+        if (!buffer)
             return;
 
-        QAbstractVideoBuffer *buffer = new TextureVideoBuffer(tex);
-#endif
-        QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_BGR32);
+        QVideoFrame frame = QVideoFrame(buffer, size, QVideoFrame::Format_BGR32);
 
         if (m_surface && frame.isValid()) {
             if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
                 m_surface->stop();
 
             if (!m_surface->isActive()) {
-                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::GLTextureHandle);
-#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
+                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), m_surfaceType);
                 format.setScanLineDirection(QVideoSurfaceFormat::TopToBottom);
-#else
-                format.setScanLineDirection(QVideoSurfaceFormat::BottomToTop);
-#endif
                 if (!m_surface->start(format)) {
                     //Surface doesn't support GLTextureHandle
                     qWarning("Failed to activate video surface");
@@ -279,20 +263,21 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
         }
     } else {
         //fallback to rendering frames to QImages
-        QImage frameData = m_frameRenderer->renderLayerToImage(playerLayer);
+        QSize size;
+        QImage frameData = m_frameRenderer->renderLayerToImage(playerLayer, &size);
 
         if (frameData.isNull()) {
             return;
         }
 
         QAbstractVideoBuffer *buffer = new QImageVideoBuffer(frameData);
-        QVideoFrame frame = QVideoFrame(buffer, m_nativeSize, QVideoFrame::Format_ARGB32);
+        QVideoFrame frame = QVideoFrame(buffer, size, QVideoFrame::Format_ARGB32);
         if (m_surface && frame.isValid()) {
             if (m_surface->isActive() && m_surface->surfaceFormat().pixelFormat() != frame.pixelFormat())
                 m_surface->stop();
 
             if (!m_surface->isActive()) {
-                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), QAbstractVideoBuffer::NoHandle);
+                QVideoSurfaceFormat format(frame.size(), frame.pixelFormat(), m_surfaceType);
 
                 if (!m_surface->start(format)) {
                     qWarning("Failed to activate video surface");
@@ -308,7 +293,4 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
 
 void AVFVideoRendererControl::setupVideoOutput()
 {
-    AVPlayerLayer *playerLayer = static_cast<AVPlayerLayer*>(m_playerLayer);
-    if (playerLayer)
-        m_nativeSize = QSize(playerLayer.bounds.size.width, playerLayer.bounds.size.height);
 }

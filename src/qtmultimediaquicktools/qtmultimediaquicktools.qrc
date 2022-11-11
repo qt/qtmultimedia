@@ -11,7 +11,6 @@
         <file>shaders/triplanaryuvvideo.vert</file>
         <file>shaders/uyvyvideo.frag</file>
         <file>shaders/yuyvvideo.frag</file>
-
         <file>shaders/monoplanarvideo_core.vert</file>
         <file>shaders/rgbvideo_core.frag</file>
         <file>shaders/rgbvideo_swizzle_core.frag</file>
@@ -23,5 +22,9 @@
         <file>shaders/triplanaryuvvideo_core.vert</file>
         <file>shaders/uyvyvideo_core.frag</file>
         <file>shaders/yuyvvideo_core.frag</file>
+        <file>shaders/rectsampler.vert</file>
+        <file>shaders/rectsampler_rgb.frag</file>
+        <file>shaders/rectsampler_core.vert</file>
+        <file>shaders/rectsampler_rgb_core.frag</file>
     </qresource>
 </RCC>

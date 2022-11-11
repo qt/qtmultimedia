@@ -43,21 +43,47 @@
 #include <QtCore/QObject>
 #include <QtGui/QImage>
 #include <QtGui/QOpenGLContext>
+#include <QtGui/QOpenGLTextureBlitter>
 #include <QtCore/QSize>
 
-#import "Metal/Metal.h"
-#import "MetalKit/MetalKit.h"
-
-@class CARenderer;
 @class AVPlayerLayer;
+@class AVPlayerItemVideoOutput;
 
 QT_BEGIN_NAMESPACE
 
+class QOpenGLContext;
 class QOpenGLFramebufferObject;
 class QOpenGLShaderProgram;
-class QWindow;
-class QOpenGLContext;
+class QOffscreenSurface;
 class QAbstractVideoSurface;
+
+typedef struct __CVBuffer *CVBufferRef;
+typedef CVBufferRef CVImageBufferRef;
+typedef CVImageBufferRef CVPixelBufferRef;
+
+#if defined(Q_OS_IOS) || defined(Q_OS_TVOS)
+    typedef struct __CVOpenGLESTextureCache *CVOpenGLESTextureCacheRef;
+    typedef CVImageBufferRef CVOpenGLESTextureRef;
+    // helpers to avoid boring if def
+    typedef CVOpenGLESTextureCacheRef CVOGLTextureCacheRef;
+    typedef CVOpenGLESTextureRef CVOGLTextureRef;
+    #define CVOGLTextureGetTarget CVOpenGLESTextureGetTarget
+    #define CVOGLTextureGetName CVOpenGLESTextureGetName
+    #define CVOGLTextureCacheCreate CVOpenGLESTextureCacheCreate
+    #define CVOGLTextureCacheCreateTextureFromImage CVOpenGLESTextureCacheCreateTextureFromImage
+    #define CVOGLTextureCacheFlush CVOpenGLESTextureCacheFlush
+#else
+    typedef struct __CVOpenGLTextureCache *CVOpenGLTextureCacheRef;
+    typedef CVImageBufferRef CVOpenGLTextureRef;
+    // helpers to avoid boring if def
+    typedef CVOpenGLTextureCacheRef CVOGLTextureCacheRef;
+    typedef CVOpenGLTextureRef CVOGLTextureRef;
+    #define CVOGLTextureGetTarget CVOpenGLTextureGetTarget
+    #define CVOGLTextureGetName CVOpenGLTextureGetName
+    #define CVOGLTextureCacheCreate CVOpenGLTextureCacheCreate
+    #define CVOGLTextureCacheCreateTextureFromImage CVOpenGLTextureCacheCreateTextureFromImage
+    #define CVOGLTextureCacheFlush CVOpenGLTextureCacheFlush
+#endif
 
 class AVFVideoFrameRenderer : public QObject
 {
@@ -66,57 +92,31 @@ public:
 
     virtual ~AVFVideoFrameRenderer();
 
-    GLuint renderLayerToTexture(AVPlayerLayer *layer);
-    QImage renderLayerToImage(AVPlayerLayer *layer);
+    void setPlayerLayer(AVPlayerLayer *layer);
 
-    static GLuint createGLTexture(CGLContextObj cglContextObj, CGLPixelFormatObj cglPixelFormtObj,
-                                  CVOpenGLTextureCacheRef cvglTextureCache,
-                                  CVPixelBufferRef cvPixelBufferRef,
-                                  CVOpenGLTextureRef cvOpenGLTextureRef);
-
-    static id<MTLTexture> createMetalTexture(id<MTLDevice> mtlDevice,
-                                             CVMetalTextureCacheRef cvMetalTextureCacheRef,
-                                             CVPixelBufferRef cvPixelBufferRef,
-                                             MTLPixelFormat pixelFormat, size_t width, size_t height,
-                                             CVMetalTextureRef cvMetalTextureRef);
+    CVOGLTextureRef renderLayerToTexture(AVPlayerLayer *layer, QSize *size);
+#ifdef Q_OS_MACOS
+    GLuint renderLayerToFBO(AVPlayerLayer *layer, QSize *size);
+#endif
+    QImage renderLayerToImage(AVPlayerLayer *layer, QSize *size);
 
 private:
-    QOpenGLFramebufferObject* initRenderer(AVPlayerLayer *layer);
-    void renderLayerToFBO(AVPlayerLayer *layer, QOpenGLFramebufferObject *fbo);
-    void renderLayerToFBOCoreOpenGL(AVPlayerLayer *layer, QOpenGLFramebufferObject *fbo);
+    void initRenderer();
+    CVPixelBufferRef copyPixelBufferFromLayer(AVPlayerLayer *layer, size_t& width, size_t& height);
+    CVOGLTextureRef createCacheTextureFromLayer(AVPlayerLayer *layer, size_t& width, size_t& height);
 
-    CARenderer *m_videoLayerRenderer;
-    QAbstractVideoSurface *m_surface;
-    QOpenGLFramebufferObject *m_fbo[2];
-    QOpenGLShaderProgram *m_shader = nullptr;
-    QWindow *m_offscreenSurface;
     QOpenGLContext *m_glContext;
-    QSize m_targetSize;
-
-    bool m_useCoreProfile = false;
-
-    // Shared pixel buffer
-    CVPixelBufferRef m_CVPixelBuffer;
-
-    // OpenGL Texture
-    CVOpenGLTextureCacheRef m_CVGLTextureCache;
-    CVOpenGLTextureRef m_CVGLTexture;
-    CGLPixelFormatObj m_CGLPixelFormat;
-    GLuint m_textureName = 0;
-
-    // Metal Texture
-    CVMetalTextureRef m_CVMTLTexture;
-    CVMetalTextureCacheRef m_CVMTLTextureCache;
-    id<MTLDevice> m_metalDevice = nil;
-    id<MTLTexture> m_metalTexture = nil;
-
-    NSOpenGLContext *m_NSGLContext = nullptr;
-
-    GLuint m_quadVao = 0;
-    GLuint m_quadVbos[2];
-
-    uint m_currentBuffer;
+    QOffscreenSurface *m_offscreenSurface;
+    QAbstractVideoSurface *m_surface;
+    CVOGLTextureCacheRef m_textureCache;
+    AVPlayerItemVideoOutput* m_videoOutput;
     bool m_isContextShared;
+
+#ifdef Q_OS_MACOS
+    QOpenGLFramebufferObject *m_fbo[2];
+    uint m_currentFBO;
+    QOpenGLTextureBlitter m_blitter;
+#endif
 };
 
 QT_END_NAMESPACE
