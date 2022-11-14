@@ -188,18 +188,29 @@ void QAndroidCaptureSession::setState(QMediaRecorder::State state)
         start();
         break;
     case QMediaRecorder::PausedState:
-        // Not supported by Android API
-        qWarning("QMediaRecorder::PausedState is not supported on Android");
+        pause();
         break;
     }
 }
 
 void QAndroidCaptureSession::start()
 {
-    if (m_state == QMediaRecorder::RecordingState || m_status != QMediaRecorder::LoadedStatus)
+    if (m_state == QMediaRecorder::RecordingState
+        || (m_status != QMediaRecorder::LoadedStatus && m_status != QMediaRecorder::PausedStatus))
         return;
 
     setStatus(QMediaRecorder::StartingStatus);
+
+    if (m_state == QMediaRecorder::PausedState) {
+        if (!m_mediaRecorder || !m_mediaRecorder->resume()) {
+            emit error(QMediaRecorder::FormatError, QLatin1String("Unable to resume the media recorder."));
+            if (m_cameraSession)
+                restartViewfinder();
+        } else {
+            updateStartState();
+        }
+        return;
+    }
 
     if (m_mediaRecorder) {
         m_mediaRecorder->release();
@@ -289,7 +300,11 @@ void QAndroidCaptureSession::start()
             restartViewfinder();
         return;
     }
+    updateStartState();
+}
 
+void QAndroidCaptureSession::updateStartState()
+{
     m_elapsedTime.start();
     m_notifyTimer.start();
     updateDuration();
@@ -328,6 +343,7 @@ void QAndroidCaptureSession::stop(bool error)
     m_mediaRecorder->stop();
     m_notifyTimer.stop();
     updateDuration();
+    m_previousElapsedTime = 0;
     m_elapsedTime.invalidate();
     m_mediaRecorder->release();
     delete m_mediaRecorder;
@@ -356,6 +372,23 @@ void QAndroidCaptureSession::stop(bool error)
     emit stateChanged(m_state);
     if (!m_cameraSession)
         setStatus(QMediaRecorder::LoadedStatus);
+}
+
+void QAndroidCaptureSession::pause()
+{
+    if (m_state == QMediaRecorder::PausedState || m_mediaRecorder == 0)
+        return;
+
+    setStatus(QMediaRecorder::PausedStatus);
+
+    m_mediaRecorder->pause();
+    m_notifyTimer.stop();
+    updateDuration();
+    m_previousElapsedTime = m_duration;
+    m_elapsedTime.invalidate();
+
+    m_state = QMediaRecorder::PausedState;
+    emit stateChanged(m_state);
 }
 
 void QAndroidCaptureSession::setStatus(QMediaRecorder::Status status)
@@ -514,7 +547,7 @@ void QAndroidCaptureSession::restartViewfinder()
 void QAndroidCaptureSession::updateDuration()
 {
     if (m_elapsedTime.isValid())
-        m_duration = m_elapsedTime.elapsed();
+        m_duration = m_elapsedTime.elapsed() + m_previousElapsedTime;
 
     emit durationChanged(m_duration);
 }

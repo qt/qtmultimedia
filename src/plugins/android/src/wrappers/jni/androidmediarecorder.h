@@ -138,6 +138,8 @@ public:
 
     bool start();
     void stop();
+    void pause();
+    bool resume();
 
     void setAudioChannels(int numChannels);
     void setAudioEncoder(AudioEncoder encoder);

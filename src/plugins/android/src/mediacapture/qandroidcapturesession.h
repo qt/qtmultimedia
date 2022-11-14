@@ -136,7 +136,9 @@ private:
     CaptureProfile getProfile(int id);
 
     void start();
+    void updateStartState();
     void stop(bool error = false);
+    void pause();
 
     void setStatus(QMediaRecorder::Status status);
 
@@ -154,6 +156,7 @@ private:
     QElapsedTimer m_elapsedTime;
     QTimer m_notifyTimer;
     qint64 m_duration;
+    qint64 m_previousElapsedTime = 0;
 
     QMediaRecorder::State m_state;
     QMediaRecorder::Status m_status;
