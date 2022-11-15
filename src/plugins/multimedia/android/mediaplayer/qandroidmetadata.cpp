@@ -134,15 +134,7 @@ QLocale::Language getLocaleLanguage(const QString &language)
     if (language == QLatin1String("und") || language == QStringLiteral("mis"))
         return QLocale::AnyLanguage;
 
-    QLocale locale(language);
-
-    if (locale == QLocale::c()) {
-        qCWarning(lcaMetadata) << "Could not parse language:" << language
-                               << ". It is not a valid Unicode CLDR language code.";
-        return QLocale::AnyLanguage;
-    }
-
-    return locale.language();
+    return QLocale::codeToLanguage(language, QLocale::ISO639Part2);
 }
 
 QAndroidMetaData::QAndroidMetaData(int trackType, int androidTrackType, int androidTrackNumber,
