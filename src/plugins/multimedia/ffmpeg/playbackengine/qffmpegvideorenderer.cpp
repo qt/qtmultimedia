@@ -24,7 +24,12 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
 
     //        qCDebug(qLcVideoRenderer) << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
 
-    // in practice this only happens with mediacodec
+#ifdef Q_OS_ANDROID
+    // QTBUG-108446
+    // In general case, just creation of frames context is not correct since
+    //   frames may require additional specific data for hw contexts, so
+    //   just setting of hw_frames_ctx is not enough.
+    // TODO: investigate the case in order to remove or fix the code.
     if (frame.codec()->hwAccel() && !frame.avFrame()->hw_frames_ctx) {
         HWAccel *hwaccel = frame.codec()->hwAccel();
         AVFrame *avframe = frame.avFrame();
@@ -35,6 +40,7 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
         if (hwaccel->hwFramesContext())
             avframe->hw_frames_ctx = av_buffer_ref(hwaccel->hwFramesContextAsBuffer());
     }
+#endif
 
     auto buffer = std::make_unique<QFFmpegVideoBuffer>(frame.takeAVFrame());
     QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
