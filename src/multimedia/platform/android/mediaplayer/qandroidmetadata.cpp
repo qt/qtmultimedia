@@ -46,6 +46,7 @@
 #include <QtCore/qlist.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <QLoggingCategory>
+#include <private/qiso639_2_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -170,15 +171,7 @@ QLocale::Language getLocaleLanguage(const QString &language)
     if (language == QLatin1String("und") || language == QStringLiteral("mis"))
         return QLocale::AnyLanguage;
 
-    QLocale locale(language);
-
-    if (locale == QLocale::c()) {
-        qCWarning(lcaMetadata) << "Could not parse language:" << language
-                               << ". It is not a valid Unicode CLDR language code.";
-        return QLocale::AnyLanguage;
-    }
-
-    return locale.language();
+    return QtMultimediaPrivate::fromIso639(language.toStdString().c_str());
 }
 
 QAndroidMetaData::QAndroidMetaData(int trackType, int androidTrackType, int androidTrackNumber,
