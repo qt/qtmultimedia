@@ -48,6 +48,8 @@ QAndroidMediaPlayer::QAndroidMediaPlayer(QMediaPlayer *parent)
       mMediaPlayer(new AndroidMediaPlayer),
       mState(AndroidMediaPlayer::Uninitialized)
 {
+    // Set seekable to True by default. It changes if MEDIA_INFO_NOT_SEEKABLE is received
+    seekableChanged(true);
     connect(mMediaPlayer, &AndroidMediaPlayer::bufferingChanged, this,
             &QAndroidMediaPlayer::onBufferingChanged);
     connect(mMediaPlayer, &AndroidMediaPlayer::info, this, &QAndroidMediaPlayer::onInfo);
@@ -419,11 +421,6 @@ void QAndroidMediaPlayer::stop()
         mVideoOutput->stop();
 
     mMediaPlayer->stop();
-}
-
-bool QAndroidMediaPlayer::isSeekable() const
-{
-    return true;
 }
 
 void QAndroidMediaPlayer::onInfo(qint32 what, qint32 extra)
