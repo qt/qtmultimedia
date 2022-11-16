@@ -96,8 +96,6 @@ public:
     void pause() override;
     void stop() override;
 
-    bool isSeekable() const override;
-
     int trackCount(TrackType trackType) override;
     QMediaMetaData trackMetaData(TrackType trackType, int streamNumber) override;
     int activeTrack(TrackType trackType) override;
