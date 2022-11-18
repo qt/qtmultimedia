@@ -128,7 +128,7 @@ you might need to change when porting code to Qt 6.
 \section1 Reference Documentation
 
 \list
-    \li {Qt Multimedia C++ Classes}{C++ Classes}
-    \li {Qt Multimedia QML types}{QML Types}
+    \li \l{Qt Multimedia C++ Classes}{C++ Classes}
+    \li \l{Qt Multimedia QML types}{QML Types}
 \endlist
 */
