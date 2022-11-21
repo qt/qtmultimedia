@@ -13,7 +13,7 @@
 #include <QImage>
 #include <QtMultimedia/qvideoframe.h>
 
-#if QT_HAS_INCLUDE(<AppKit/AppKit.h>)
+#if __has_include(<AppKit/AppKit.h>)
 #include <AppKit/AppKit.h>
 #endif
 

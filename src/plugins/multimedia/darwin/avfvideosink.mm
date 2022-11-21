@@ -11,11 +11,11 @@
 #include <AVFoundation/AVFoundation.h>
 #import <QuartzCore/CATransaction.h>
 
-#if QT_HAS_INCLUDE(<AppKit/AppKit.h>)
+#if __has_include(<AppKit/AppKit.h>)
 #include <AppKit/AppKit.h>
 #endif
 
-#if QT_HAS_INCLUDE(<UIKit/UIKit.h>)
+#if __has_include(<UIKit/UIKit.h>)
 #include <UIKit/UIKit.h>
 #endif
 
