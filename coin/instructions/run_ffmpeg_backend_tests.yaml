@@ -8,6 +8,9 @@ enable_if:
     - condition: runtime
       env_var: NON_QTBASE_CMAKE_ARGS
       contains_value: "-DFFMPEG_DIR=C:"
+    - condition: property
+      property: target.os
+      in_values: ["MacOS"]
 instructions:
   - type: EnvironmentVariable
     variableName: QT_MEDIA_BACKEND
