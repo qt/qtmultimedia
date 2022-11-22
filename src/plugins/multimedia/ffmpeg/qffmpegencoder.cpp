@@ -358,7 +358,7 @@ void AudioEncoder::loop()
 //    qCDebug(qLcFFmpegEncoder) << "new audio buffer" << buffer.byteCount() << buffer.format() << buffer.frameCount() << codec->frame_size;
     retrievePackets();
 
-    AVFrame *frame = av_frame_alloc();
+    auto frame = makeAVFrame();
     frame->format = codec->sample_fmt;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
     frame->channel_layout = codec->channel_layout;
@@ -369,7 +369,7 @@ void AudioEncoder::loop()
     frame->sample_rate = codec->sample_rate;
     frame->nb_samples = buffer.frameCount();
     if (frame->nb_samples)
-        av_frame_get_buffer(frame, 0);
+        av_frame_get_buffer(frame.get(), 0);
 
     if (resampler) {
         const uint8_t *data = buffer.constData<uint8_t>();
@@ -385,7 +385,7 @@ void AudioEncoder::loop()
     encoder->newTimeStamp(time/1000);
 
 //    qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts << ((double)buffer.frameCount()/frame->sample_rate);
-    int ret = avcodec_send_frame(codec, frame);
+    int ret = avcodec_send_frame(codec, frame.get());
     if (ret < 0) {
         char errStr[1024];
         av_strerror(ret, errStr, 1024);
@@ -496,24 +496,24 @@ void VideoEncoder::loop()
 
 //    qCDebug(qLcFFmpegEncoder) << "new video buffer" << frame.startTime();
 
-    AVFrame *avFrame = nullptr;
+    AVFrameUPtr avFrame;
 
     auto *videoBuffer = dynamic_cast<QFFmpegVideoBuffer *>(frame.videoBuffer());
     if (videoBuffer) {
         // ffmpeg video buffer, let's use the native AVFrame stored in there
         auto *hwFrame = videoBuffer->getHWFrame();
         if (hwFrame && hwFrame->format == frameEncoder->sourceFormat())
-            avFrame = av_frame_clone(hwFrame);
+            avFrame.reset(av_frame_clone(hwFrame));
     }
 
     if (!avFrame) {
         frame.map(QVideoFrame::ReadOnly);
         auto size = frame.size();
-        avFrame = av_frame_alloc();
+        avFrame = makeAVFrame();
         avFrame->format = frameEncoder->sourceFormat();
         avFrame->width = size.width();
         avFrame->height = size.height();
-        av_frame_get_buffer(avFrame, 0);
+        av_frame_get_buffer(avFrame.get(), 0);
 
         for (int i = 0; i < 4; ++i) {
             avFrame->data[i] = const_cast<uint8_t *>(frame.bits(i));
@@ -544,8 +544,8 @@ void VideoEncoder::loop()
 
     encoder->newTimeStamp(time/1000);
 
-//    qCDebug(qLcFFmpegEncoder) << ">>> sending frame" << avFrame->pts << time;
-    int ret = frameEncoder->sendFrame(avFrame);
+    qCDebug(qLcFFmpegEncoder) << ">>> sending frame" << avFrame->pts << time << lastFrameTime;
+    int ret = frameEncoder->sendFrame(std::move(avFrame));
     if (ret < 0) {
         qCDebug(qLcFFmpegEncoder) << "error sending frame" << ret << err2str(ret);
         encoder->error(QMediaRecorder::ResourceError, err2str(ret));

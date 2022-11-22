@@ -13,30 +13,22 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
-QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrame *frame)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle)
-    , frame(frame)
+QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame)
+    : QAbstractVideoBuffer(QVideoFrame::NoHandle), frame(frame.get())
 {
     if (frame->hw_frames_ctx) {
-        hwFrame = frame;
-        m_pixelFormat = toQtPixelFormat(QFFmpeg::HWAccel::format(frame));
+        hwFrame = std::move(frame);
+        m_pixelFormat = toQtPixelFormat(QFFmpeg::HWAccel::format(hwFrame.get()));
         return;
     }
 
-    swFrame = frame;
+    swFrame = std::move(frame);
     m_pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format));
 
     convertSWFrame();
 }
 
-QFFmpegVideoBuffer::~QFFmpegVideoBuffer()
-{
-    delete textures;
-    if (swFrame)
-        av_frame_free(&swFrame);
-    if (hwFrame)
-        av_frame_free(&hwFrame);
-}
+QFFmpegVideoBuffer::~QFFmpegVideoBuffer() = default;
 
 void QFFmpegVideoBuffer::convertSWFrame()
 {
@@ -52,15 +44,16 @@ void QFFmpegVideoBuffer::convertSWFrame()
                                        swFrame->width, swFrame->height, newFormat,
                                        SWS_BICUBIC, nullptr, nullptr, nullptr);
 
-        AVFrame *newFrame = av_frame_alloc();
+        auto newFrame = QFFmpeg::makeAVFrame();
         newFrame->width = swFrame->width;
         newFrame->height = swFrame->height;
         newFrame->format = newFormat;
-        av_frame_get_buffer(newFrame, 0);
+        av_frame_get_buffer(newFrame.get(), 0);
 
         sws_scale(c, swFrame->data, swFrame->linesize, 0, swFrame->height, newFrame->data, newFrame->linesize);
-        av_frame_free(&swFrame);
-        swFrame = newFrame;
+        if (frame == swFrame.get())
+            frame = newFrame.get();
+        swFrame = std::move(newFrame);
         sws_freeContext(c);
     }
 }
@@ -68,7 +61,7 @@ void QFFmpegVideoBuffer::convertSWFrame()
 void QFFmpegVideoBuffer::setTextureConverter(const QFFmpeg::TextureConverter &converter)
 {
     textureConverter = converter;
-    textureConverter.init(hwFrame);
+    textureConverter.init(hwFrame.get());
     m_type = converter.isNull() ? QVideoFrame::NoHandle : QVideoFrame::RhiTextureHandle;
 }
 
@@ -145,7 +138,7 @@ QVideoFrameFormat::ColorRange QFFmpegVideoBuffer::colorRange() const
 float QFFmpegVideoBuffer::maxNits()
 {
     float maxNits = -1;
-    for (int i = 0; i <frame->nb_side_data; ++i) {
+    for (int i = 0; i < frame->nb_side_data; ++i) {
         AVFrameSideData *sd = frame->side_data[i];
         // TODO: Longer term we might want to also support HDR10+ dynamic metadata
         if (sd->type == AV_FRAME_DATA_MASTERING_DISPLAY_METADATA) {
@@ -167,11 +160,11 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     if (!swFrame) {
         Q_ASSERT(hwFrame && hwFrame->hw_frames_ctx);
-        swFrame = av_frame_alloc();
+        swFrame = QFFmpeg::makeAVFrame();
         /* retrieve data from GPU to CPU */
-        int ret = av_hwframe_transfer_data(swFrame, hwFrame, 0);
+        int ret = av_hwframe_transfer_data(swFrame.get(), hwFrame.get(), 0);
         if (ret < 0) {
-            qWarning() << "Error transferring the data to system memory\n";
+            qWarning() << "Error transferring the data to system memory:" << ret;
             return {};
         }
         convertSWFrame();
@@ -203,7 +196,7 @@ std::unique_ptr<QVideoFrameTextures> QFFmpegVideoBuffer::mapTextures(QRhi *)
         return {};
     if (!hwFrame)
         return {};
-    textures = textureConverter.getTextures(hwFrame);
+    textures.reset(textureConverter.getTextures(hwFrame.get()));
     if (!textures)
         qWarning() << "    failed to get textures for frame" << textureConverter.isNull();
     return {};

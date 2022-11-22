@@ -53,6 +53,22 @@ inline QString err2str(int errnum)
     return QString::fromLocal8Bit(buffer);
 }
 
+struct AVFrameDeleter
+{
+    void operator()(AVFrame *frame) const
+    {
+        if (frame)
+            av_frame_free(&frame);
+    }
+};
+
+using AVFrameUPtr = std::unique_ptr<AVFrame, AVFrameDeleter>;
+
+inline AVFrameUPtr makeAVFrame()
+{
+    return AVFrameUPtr(av_frame_alloc());
+}
+
 QT_END_NAMESPACE
 
 }

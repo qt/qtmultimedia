@@ -97,40 +97,33 @@ private:
 struct Frame
 {
     struct Data {
-        Data(AVFrame *f, const Codec &codec, qint64 pts)
+        Data(AVFrameUPtr f, const Codec &codec, qint64 pts)
             : codec(codec)
-            , frame(f)
+            , frame(std::move(f))
             , pts(pts)
         {}
         Data(const QString &text, qint64 pts, qint64 duration)
             : text(text), pts(pts), duration(duration)
         {}
-        ~Data() {
-            if (frame)
-                av_frame_free(&frame);
-        }
+
         QAtomicInt ref;
         std::optional<Codec> codec;
-        AVFrame *frame = nullptr;
+        AVFrameUPtr frame;
         QString text;
         qint64 pts = -1;
         qint64 duration = -1;
     };
     Frame() = default;
-    Frame(AVFrame *f, const Codec &codec, qint64 pts)
-        : d(new Data(f, codec, pts))
+    Frame(AVFrameUPtr f, const Codec &codec, qint64 pts)
+        : d(new Data(std::move(f), codec, pts))
     {}
     Frame(const QString &text, qint64 pts, qint64 duration)
         : d(new Data(text, pts, duration))
     {}
     bool isValid() const { return !!d; }
 
-    AVFrame *avFrame() const { return d->frame; }
-    AVFrame *takeAVFrame() const {
-        AVFrame *f = d->frame;
-        d->frame = nullptr;
-        return f;
-    }
+    AVFrame *avFrame() const { return d->frame.get(); }
+    AVFrameUPtr takeAVFrame() { return std::move(d->frame); }
     const Codec *codec() const { return d->codec ? &d->codec.value() : nullptr; }
     qint64 pts() const { return d->pts; }
     qint64 duration() const { return d->duration; }
