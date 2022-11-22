@@ -64,7 +64,7 @@ public:
 
     qint64 getPts(qint64 ms);
 
-    int sendFrame(AVFrame *frame);
+    int sendFrame(AVFrameUPtr frame);
     AVPacket *retrievePacket();
 };
 

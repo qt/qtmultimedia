@@ -28,10 +28,10 @@ static void releaseHwFrame(void */*opaque*/, uint8_t *data)
 }
 
 // Make sure this is compatible with the layout used in ffmpeg's hwcontext_videotoolbox
-static AVFrame *allocHWFrame(AVBufferRef *hwContext, const CVPixelBufferRef &pixbuf)
+static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBufferRef &pixbuf)
 {
     AVHWFramesContext *ctx = (AVHWFramesContext*)hwContext->data;
-    AVFrame *frame = av_frame_alloc();
+    auto frame = QFFmpeg::makeAVFrame();
     frame->hw_frames_ctx = av_buffer_ref(hwContext);
     frame->extended_data = frame->data;
 
@@ -44,7 +44,6 @@ static AVFrame *allocHWFrame(AVBufferRef *hwContext, const CVPixelBufferRef &pix
     if (frame->width != (int)CVPixelBufferGetWidth(pixbuf) ||
         frame->height != (int)CVPixelBufferGetHeight(pixbuf)) {
         // This can happen while changing camera format
-        av_frame_free(&frame);
         return nullptr;
     }
     return frame;
@@ -110,32 +109,31 @@ static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatus
     if (!m_accel)
         return;
 
-    AVFrame *avFrame = allocHWFrame(m_accel->hwFramesContextAsBuffer(), imageBuffer);
+    auto avFrame = allocHWFrame(m_accel->hwFramesContextAsBuffer(), imageBuffer);
     if (!avFrame)
         return;
 
 #ifdef USE_SW_FRAMES
-    auto *swFrame = av_frame_alloc();
-    /* retrieve data from GPU to CPU */
-    int ret = av_hwframe_transfer_data(swFrame, avFrame, 0);
-    if (ret < 0) {
-        qWarning() << "Error transferring the data to system memory\n";
-        av_frame_unref(swFrame);
-    } else {
-        av_frame_unref(avFrame);
-        avFrame = swFrame;
+    {
+        auto swFrame = QFFmpeg::makeAVFrame();
+        /* retrieve data from GPU to CPU */
+        const int ret = av_hwframe_transfer_data(swFrame.get(), avFrame.get(), 0);
+        if (ret < 0) {
+            qWarning() << "Error transferring the data to system memory:" << ret;
+        } else {
+            avFrame = std::move(swFrame);
+        }
     }
 #endif
 
     QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(imageBuffer);
     if (!format.isValid()) {
-        av_frame_unref(avFrame);
         return;
     }
 
     avFrame->pts = startTime;
 
-    QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(avFrame);
+    QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(std::move(avFrame));
     QVideoFrame frame(buffer, format);
     frame.setStartTime(startTime);
     frame.setEndTime(frameTime);

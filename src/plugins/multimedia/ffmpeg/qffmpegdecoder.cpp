@@ -426,10 +426,10 @@ void StreamDecoder::decode()
 {
     Q_ASSERT(codec.context());
 
-    AVFrame *frame = av_frame_alloc();
-//    if (type() == 0)
-//        qCDebug(qLcDecoder) << "receiving frame";
-    int res = avcodec_receive_frame(codec.context(), frame);
+    auto frame = makeAVFrame();
+    //    if (type() == 0)
+    //        qCDebug(qLcDecoder) << "receiving frame";
+    int res = avcodec_receive_frame(codec.context(), frame.get());
 
     if (res >= 0) {
         qint64 pts;
@@ -437,20 +437,17 @@ void StreamDecoder::decode()
             pts = codec.toUs(frame->pts);
         else
             pts = codec.toUs(frame->best_effort_timestamp);
-        addFrame(Frame{frame, codec, pts});
+        addFrame(Frame{ std::move(frame), codec, pts });
     } else if (res == AVERROR(EOF) || res == AVERROR_EOF) {
         eos.storeRelease(true);
-        av_frame_free(&frame);
         timeOut = -1;
         return;
     } else if (res != AVERROR(EAGAIN)) {
         qWarning() << "error in decoder" << res << err2str(res);
-        av_frame_free(&frame);
         return;
     } else {
         // EAGAIN
         decoderHasNoFrames = true;
-        av_frame_free(&frame);
     }
 
     Packet packet = peekPacket();

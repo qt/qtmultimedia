@@ -119,10 +119,9 @@ int StreamDecoder::sendAVPacket(Packet packet)
 void StreamDecoder::receiveAVFrames()
 {
     while (true) {
-        auto deleter = [](auto frame) { av_frame_free(&frame); };
-        auto rawFrame = std::unique_ptr<AVFrame, decltype(deleter)>(av_frame_alloc(), deleter);
+        auto avFrame = makeAVFrame();
 
-        const auto receiveFrameResult = avcodec_receive_frame(m_codec.context(), rawFrame.get());
+        const auto receiveFrameResult = avcodec_receive_frame(m_codec.context(), avFrame.get());
 
         if (receiveFrameResult == AVERROR_EOF || receiveFrameResult == AVERROR(EAGAIN))
             break;
@@ -132,7 +131,7 @@ void StreamDecoder::receiveAVFrames()
             break;
         }
 
-        onFrameFound({ rawFrame.release(), m_codec, 0, this });
+        onFrameFound({ std::move(avFrame), m_codec, 0, this });
     }
 }
 

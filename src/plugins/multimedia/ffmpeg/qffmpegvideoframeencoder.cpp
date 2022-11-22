@@ -83,11 +83,10 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
         }
     }
     auto supportsFormat = [&](AVPixelFormat fmt) {
-        auto *f = d->codec->pix_fmts;
-        while (*f != -1) {
-            if (*f == fmt)
-                return true;
-            ++f;
+        if (auto fmts = d->codec->pix_fmts) {
+            for (; *fmts != AV_PIX_FMT_NONE; ++fmts)
+                if (*fmts == fmt)
+                    return true;
         }
         return false;
     };
@@ -97,9 +96,11 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
     if (!supportsFormat(d->sourceFormat)) {
         if (supportsFormat(swFormat))
             d->targetFormat = swFormat;
-        else
+        else if (d->codec->pix_fmts)
             // Take first format the encoder supports. Might want to improve upon this
             d->targetFormat = *d->codec->pix_fmts;
+        else
+            qWarning() << "Cannot set target format";
     }
 
     auto desc = av_pix_fmt_desc_get(d->sourceFormat);
@@ -289,42 +290,49 @@ qint64 VideoFrameEncoder::getPts(qint64 us)
     return div != 0 ? (us * d->stream->time_base.den + div / 2) / div : 0;
 }
 
-int VideoFrameEncoder::sendFrame(AVFrame *frame)
+int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
 {
+    if (!d->codecContext) {
+        qWarning() << "codec context is not initialized!";
+        return AVERROR(EINVAL);
+    }
+
     if (!frame)
-        return avcodec_send_frame(d->codecContext, frame);
+        return avcodec_send_frame(d->codecContext, frame.get());
     auto pts = frame->pts;
 
     if (d->downloadFromHW) {
-        auto *f = av_frame_alloc();
+        auto f = makeAVFrame();
+
         f->format = d->sourceSWFormat;
-        int err = av_hwframe_transfer_data(f, frame, 0);
+        int err = av_hwframe_transfer_data(f.get(), frame.get(), 0);
         if (err < 0) {
             qCDebug(qLcVideoFrameEncoder) << "Error transferring frame data to surface." << err2str(err);
             return err;
         }
-        av_frame_free(&frame);
-        frame = f;
+
+        frame = std::move(f);
     }
 
     if (d->converter) {
-        auto *f = av_frame_alloc();
+        auto f = makeAVFrame();
+
         f->format = d->targetSWFormat;
         f->width = d->settings.videoResolution().width();
         f->height = d->settings.videoResolution().height();
-        av_frame_get_buffer(f, 0);
+        av_frame_get_buffer(f.get(), 0);
         sws_scale(d->converter, frame->data, frame->linesize, 0, f->height, f->data, f->linesize);
-        av_frame_free(&frame);
-        frame = f;
+        frame = std::move(f);
     }
 
     if (d->uploadToHW) {
         auto *hwFramesContext = d->accel->hwFramesContextAsBuffer();
         Q_ASSERT(hwFramesContext);
-        auto *f = av_frame_alloc();
+        auto f = makeAVFrame();
+
         if (!f)
             return AVERROR(ENOMEM);
-        int err = av_hwframe_get_buffer(hwFramesContext, f, 0);
+        int err = av_hwframe_get_buffer(hwFramesContext, f.get(), 0);
         if (err < 0) {
             qCDebug(qLcVideoFrameEncoder) << "Error getting HW buffer" << err2str(err);
             return err;
@@ -335,20 +343,17 @@ int VideoFrameEncoder::sendFrame(AVFrame *frame)
             qCDebug(qLcVideoFrameEncoder) << "no hw frames context";
             return AVERROR(ENOMEM);
         }
-        err = av_hwframe_transfer_data(f, frame, 0);
+        err = av_hwframe_transfer_data(f.get(), frame.get(), 0);
         if (err < 0) {
             qCDebug(qLcVideoFrameEncoder) << "Error transferring frame data to surface." << err2str(err);
             return err;
         }
-        av_frame_free(&frame);
-        frame = f;
+        frame = std::move(f);
     }
 
     qCDebug(qLcVideoFrameEncoder) << "sending frame" << pts;
     frame->pts = pts;
-    int ret = avcodec_send_frame(d->codecContext, frame);
-    av_frame_free(&frame);
-    return ret;
+    return avcodec_send_frame(d->codecContext, frame.get());
 }
 
 AVPacket *VideoFrameEncoder::retrievePacket()
