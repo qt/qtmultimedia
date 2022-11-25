@@ -22,6 +22,10 @@
 #include <qmediaplayer.h>
 #include <qaudiooutput.h>
 
+#ifdef Q_OS_DARWIN
+#include <QtCore/private/qcore_mac_p.h>
+#endif
+
 QT_USE_NAMESPACE
 
 /*
@@ -57,6 +61,8 @@ private slots:
     void testVideoRecording();
 
     void testNativeMetadata();
+
+    void multipleCameraSet();
 
 private:
     bool noCamera = false;
@@ -670,6 +676,31 @@ void tst_QCameraBackend::testNativeMetadata()
     player.stop();
     player.setSource({});
     QFile(fileName).remove();
+}
+
+void tst_QCameraBackend::multipleCameraSet()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    QMediaCaptureSession session;
+    QCameraDevice device = QMediaDevices::defaultVideoInput();
+
+    QMediaRecorder recorder;
+    session.setRecorder(&recorder);
+
+    for (int i = 0; i < 5; ++i) {
+#ifdef Q_OS_DARWIN
+        QMacAutoReleasePool releasePool;
+#endif
+
+        QCamera camera(device);
+        session.setCamera(&camera);
+
+        camera.start();
+
+        QTest::qWait(100);
+    }
 }
 
 QTEST_MAIN(tst_QCameraBackend)

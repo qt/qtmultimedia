@@ -87,6 +87,8 @@ AVFCameraRenderer::~AVFCameraRenderer()
 {
     [m_cameraSession->captureSession() removeOutput:m_videoDataOutput];
     [m_viewfinderFramesDelegate release];
+    [m_videoDataOutput release];
+
     if (m_delegateQueue)
         dispatch_release(m_delegateQueue);
 #ifdef Q_OS_IOS
@@ -123,7 +125,7 @@ void AVFCameraRenderer::configureAVCaptureSession(AVFCameraSession *cameraSessio
 
     m_needsHorizontalMirroring = false;
 
-    m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
+    m_videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
 
     // Configure video output
     m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);

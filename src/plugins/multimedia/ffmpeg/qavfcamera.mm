@@ -220,7 +220,7 @@ void QAVFCamera::updateVideoInput()
     attachVideoInputDevice();
 
     if (!m_videoDataOutput) {
-        m_videoDataOutput = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
+        m_videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
 
         // Configure video output
         m_delegateQueue = dispatch_queue_create("vf_queue", nullptr);
