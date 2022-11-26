@@ -208,10 +208,11 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
         LPWSTR id = nullptr;
         QString sid;
 
-        if (SUCCEEDED(m_deviceEnumerator->GetDefaultAudioEndpoint(dataFlow, ERole::eMultimedia, dev.address()))
-            && SUCCEEDED(dev->GetId(&id))) {
-            sid = QString::fromWCharArray(id);
-            CoTaskMemFree(id);
+        if (SUCCEEDED(m_deviceEnumerator->GetDefaultAudioEndpoint(dataFlow, ERole::eMultimedia, dev.address()))) {
+            if (dev && SUCCEEDED(dev->GetId(&id))) {
+                sid = QString::fromWCharArray(id);
+                CoTaskMemFree(id);
+            }
         }
         return sid.toUtf8();
     }();
