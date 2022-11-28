@@ -24,7 +24,7 @@ QWindowsIUPointer<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource 
 
     HRESULT hr = MFCreateSourceReaderFromMediaSource(source, attr.get(), m_sourceReader.address());
     if (FAILED(hr)) {
-        qWarning() << "MFDecoderSourceReader: failed to setup source reader: "
+        qWarning() << "MFDecoderSourceReader: failed to set up source reader: "
                    << std::system_category().message(hr).c_str();
         return mediaType;
     }

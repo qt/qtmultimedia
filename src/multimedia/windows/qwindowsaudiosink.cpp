@@ -236,7 +236,7 @@ bool QWindowsAudioSink::open()
     }
 
     if (!m_resampler.setup(m_format, QWindowsAudioUtils::waveFormatExToFormat(*pwfx))) {
-        qCWarning(qLcAudioOutput) << "Failed to setup resampler";
+        qCWarning(qLcAudioOutput) << "Failed to set up resampler";
         CoTaskMemFree(pwfx);
         return false;
     }

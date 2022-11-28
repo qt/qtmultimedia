@@ -109,7 +109,7 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
     }
 
     if (!m_resampler.setup(mediaFormat, m_outputFormat.isValid() ? m_outputFormat : mediaFormat)) {
-        qWarning() << "Failed to setup resampler";
+        qWarning() << "Failed to set up resampler";
         return;
     }
 

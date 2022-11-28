@@ -322,7 +322,7 @@ bool QAndroidAudioSink::preparePlayer()
         return true;
 
     if (!QOpenSLESEngine::setAudioOutput(m_deviceName))
-        qWarning() << "Unable to setup Audio Output Device";
+        qWarning() << "Unable to set up Audio Output Device";
 
     SLEngineItf engine = QOpenSLESEngine::instance()->slEngine();
     if (!engine) {
