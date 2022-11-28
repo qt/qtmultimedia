@@ -225,6 +225,9 @@ QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat
     switch (avPixelFormat) {
     default:
         break;
+    case AV_PIX_FMT_NONE:
+        Q_ASSERT(!"Invalid avPixelFormat!");
+        return QVideoFrameFormat::Format_Invalid;
     case AV_PIX_FMT_ARGB:
         return QVideoFrameFormat::Format_ARGB8888;
     case AV_PIX_FMT_0RGB:

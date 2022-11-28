@@ -66,7 +66,7 @@ private:
     void updateCameraFormat();
     void updateVideoInput();
     void attachVideoInputDevice();
-    uint setPixelFormat(const QVideoFrameFormat::PixelFormat pixelFormat);
+    std::uint32_t setPixelFormat(const QVideoFrameFormat::PixelFormat pixelFormat);
 
     AVCaptureDevice *device() const;
 
