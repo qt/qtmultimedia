@@ -76,7 +76,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
     A video sink presents a stream of video frames.  QVideoFrameFormat describes the type of
     the frames and determines how they should be presented.
 
-    The core properties of a video stream required to setup a video sink are the pixel format
+    The core properties of a video stream required to set up a video sink are the pixel format
     given by pixelFormat(), and the frame dimensions given by frameSize().
 
     The region of a frame that is actually displayed on a video surface is given by the viewport().

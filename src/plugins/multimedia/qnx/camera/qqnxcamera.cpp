@@ -411,7 +411,7 @@ void QQnxCamera::setEvOffset(float ev)
         return;
 
     if (camera_set_ev_offset(m_handle.get(), ev) != CAMERA_EOK)
-        qWarning("QQnxCamera: Failed to setup exposure compensation");
+        qWarning("QQnxCamera: Failed to set up exposure compensation");
 }
 
 uint32_t QQnxCamera::manualIsoSensitivity() const
