@@ -167,9 +167,9 @@ void AudioDeviceInfo()
     //! [Setting audio format]
 
     //! [Dumping audio formats]
-    const auto deviceInfos = QMediaDevices::availableDevices(QAudioDevice::Output);
-    for (const QAudioDevice &deviceInfo : deviceInfos)
-        qDebug() << "Device: " << deviceInfo.description();
+    const auto devices = QMediaDevices::audioOutputs();
+    for (const QAudioDevice &device : devices)
+        qDebug() << "Device: " << device.description();
     //! [Dumping audio formats]
 }
 
