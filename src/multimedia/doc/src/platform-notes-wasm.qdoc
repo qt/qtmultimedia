@@ -1,0 +1,54 @@
+// Copyright (C) 2022 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+/*!
+\page qtmultimedia-wasm.html
+\title Qt Multimedia on WebAssembly
+\brief Platform notes for WebAssembly
+
+This page covers the availability of Qt Multimedia features on WebAssembly.
+
+\section1 Limitations
+
+Due to the asynchronous nature of javascript, some features such as getting the list of
+QMediaDevices, will not be readily available and may take some time to request permissions and
+gather the list of devices.
+
+Playing video currently works by using an html 2d context, so all operations are on the CPU.
+This also means that only QGraphicsVideoItem/QGraphicsScene will work.
+There is no current support for QMultimediaWidgets / QVideoWidget which uses a webgl
+context to take processing onto the GPU.
+
+Performance is acceptable, although there is a copy on every frame, so it may be
+less performant than desktop platforms when playing hi-def video.
+
+Using and selecting different Codecs/video formats have not yet been tested, but whatever
+video formats the browser supports will most likely work.
+
+Playing streaming bytes instead of a url. e.g. setSource(QIOStream) is also not currently supported.
+Some advanced features may or may not work at this time.
+
+To setup playing a video file:
+
+   QMediaPlayer *player = new QMediaPlayer(this);
+   QAudioOutput audioOutput; // chooses the default audio routing
+   player->setAudioOutput(&audioOutput);
+
+   QGraphicsVideoItem *item = new QGraphicsVideoItem();
+   player->setVideoOutput(item);
+
+   QGraphicsScene *scene = new QGraphicsScene(this);
+
+   ui->graphicsView->setScene(scene);
+   ui->graphicsView->scene()->addItem(item);
+   ui->graphicsView->show();
+
+and then to play the url:
+
+   player->setSource(QUrl(urlStr));
+   player->play();
+
+Files can be served from the/any web server. Because of the restriction on local file storage,
+playing local files is discouraged.
+
+ */

@@ -193,6 +193,7 @@
 
     \list
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
+      \li \l{Qt Multimedia on WebAssembly}{WebAssembly}
     \endlist
 
     \section1 Reference and Examples
