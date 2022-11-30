@@ -25,7 +25,7 @@ Item {
         if (Qt.platform.os == "android" || Qt.platform.os == "ios")
             return;
 
-        if (playbackControlHoover.hovered || mediaPlayerState != MediaPlayer.PlayingState || !mediaPlayer.hasVideo)
+        if (playbackControlHover.hovered || mediaPlayerState != MediaPlayer.PlayingState || !mediaPlayer.hasVideo)
             root.opacity = 1;
         else
             root.opacity = 1; // 0; TODO: enable opacity change when HoverHandle is fixed
@@ -38,7 +38,7 @@ Item {
     }
 
     HoverHandler {
-        id: playbackControlHoover
+        id: playbackControlHover
         margin: 50
         onHoveredChanged: updateOpacity()
     }
