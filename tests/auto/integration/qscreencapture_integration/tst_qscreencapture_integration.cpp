@@ -161,7 +161,7 @@ void tst_QScreenCaptureIntegration::startStop()
         sink.setStoreImagesEnabled(true);
 
         QVERIFY(!sc.isActive());
-        QCOMPARE(sink.images().size(), 0);
+        QCOMPARE(sink.images().size(), 0u);
         QCOMPARE(activeStateSpy.size(), 1);
         QCOMPARE(activeStateSpy.front().front().toBool(), false);
         QCOMPARE(errorsSpy.size(), 0);
