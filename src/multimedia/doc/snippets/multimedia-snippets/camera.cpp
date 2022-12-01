@@ -165,8 +165,6 @@ void camera_info()
         qDebug() << "The camera is on the front face of the hardware system.";
     else if (cameraDevice.position() == QCameraDevice::BackFace)
         qDebug() << "The camera is on the back face of the hardware system.";
-
-    qDebug() << "The camera sensor orientation is " << cameraDevice.orientation() << " degrees.";
     //! [Camera info]
 }
 
