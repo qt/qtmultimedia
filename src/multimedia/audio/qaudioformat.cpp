@@ -391,6 +391,9 @@ QAudioFormat::ChannelConfig QAudioFormat::defaultChannelConfigForChannelCount(in
 {
     QAudioFormat::ChannelConfig config;
     switch (channelCount) {
+    case 0:
+        config = QAudioFormat::ChannelConfigUnknown;
+        break;
     case 1:
         config = QAudioFormat::ChannelConfigMono;
         break;
