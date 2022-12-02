@@ -155,6 +155,7 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
                 break;
 
             case GST_MESSAGE_EOS:
+                m_playbin.setState(GST_STATE_NULL);
                 finished();
                 break;
 
