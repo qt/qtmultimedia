@@ -117,11 +117,17 @@ if (ANDROID)
     qt_internal_extend_target(QFFmpegMediaPlugin
         SOURCES
             qffmpeghwaccel_mediacodec.cpp qffmpeghwaccel_mediacodec_p.h
+            qandroidcamera_p.h qandroidcamera.cpp
+            qandroidvideodevices.cpp qandroidvideodevices_p.h
             ../android/wrappers/jni/androidsurfacetexture_p.h
             ../android/wrappers/jni/androidsurfacetexture.cpp
         INCLUDE_DIRECTORIES
             ${FFMPEG_DIR}/include
             ../android/wrappers/jni/
+        LIBRARIES
+            OpenSLES
+            mediandk
+            android
     )
 
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES
@@ -129,7 +135,8 @@ if (ANDROID)
     )
 
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_PERMISSIONS
-        android.permission.CAMERA android.permission.RECORD_AUDIO
+        android.permission.CAMERA
+        android.permission.RECORD_AUDIO
         android.permission.BLUETOOTH
         android.permission.MODIFY_AUDIO_SETTINGS
     )

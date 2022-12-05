@@ -28,6 +28,8 @@
 
 #ifdef Q_OS_ANDROID
 #    include "jni.h"
+#    include "qandroidvideodevices_p.h"
+#    include "qandroidcamera_p.h"
 extern "C" {
 #    include <libavcodec/jni.h>
 }
@@ -70,6 +72,8 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 #endif
 #ifdef Q_OS_DARWIN
     m_videoDevices = new QAVFVideoDevices(this);
+#elif defined(Q_OS_ANDROID)
+    m_videoDevices = new QAndroidVideoDevices(this);
 #elif defined(Q_OS_WINDOWS)
     m_videoDevices = new QWindowsVideoDevices(this);
 #endif
@@ -111,6 +115,8 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 {
 #ifdef Q_OS_DARWIN
     return new QAVFCamera(camera);
+#elif defined(Q_OS_ANDROID)
+    return new QAndroidCamera(camera);
 #elif QT_CONFIG(linux_v4l)
     return new QV4L2Camera(camera);
 #elif defined(Q_OS_WINDOWS)
@@ -169,6 +175,9 @@ Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 
     // setting our javavm into ffmpeg.
     if (av_jni_set_java_vm(vm, nullptr))
+        return JNI_ERR;
+
+    if (!QAndroidCamera::registerNativeMethods())
         return JNI_ERR;
 
     return JNI_VERSION_1_6;
