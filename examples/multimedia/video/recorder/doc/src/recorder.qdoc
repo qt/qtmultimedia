@@ -27,7 +27,7 @@
 
 /*!
     \example multimedia/video/recorder
-    \title QML Recorder Example
+    \title QML Video Recorder
     \ingroup multimedia_examples
     \ingroup video_examples_qml
     \ingroup camera_examples_qml
@@ -37,10 +37,88 @@
     \image qmlrecorder.jpg
 
     \e{QML Recorder} demonstrates a simple application that can record
-    audio and or video files using the camera and microphone.
+    audio and video separate or together, using a microphone, a camera.
 
     \include examples-run.qdocinc
 
-    The example uses the QML Camera and AudioInput objects connected to a MediaCaptureSession.
-    A MediaRecorder object is then used to record the captured audio and video.
+    \section1 Overview
+    At its core, this is a QML application, see
+    \l{Getting Started Programming with Qt Quick}. This documentation is focused
+    on how this example uses the \l{Qt Multimedia QML types}.
+
+    \image qml-recorder-overview.gif "Animation cycling through qml objects declared in main.qml"
+
+    The example uses the QML \l Camera and \l AudioInput types connected to a
+    \l CaptureSession. A \l MediaRecorder object is then used to record the
+    captured audio and video.
+
+    In addition to QtMultimedia, features of Qt Quick Windows, Controls, and
+    Layouts are used to implement the graphic user interface and functionality.
+    Playback won't be covered here, for that see the \l{QML Media Player Example}.
+
+    The example demonstrates the following:
+    \list
+        \li Input devices can be selected.
+        \li An input type switched off.
+        \li Settings for capturing such as quality, codec choice, file format,
+        and assigning metadata.
+        \li Captured files are stored and can be played back.
+    \endlist
+
+    \section1 Recording
+
+    The application implements recording.
+
+    \section2 captureSession
+
+    In \c main.qml, \c captureSession is declared like so:
+
+    \quotefromfile video/recorder/main.qml
+    \skipto CaptureSession
+    \printto MediaRecorder
+
+    \section2 recorder
+
+    In \c main.qml, the \l MediaRecorder \c recorder handles recording media
+    as well as capturing a thumbnail for the file and appending it to a ListModel,
+    \c mediaList.
+    \printto Playback
+
+    \c mediaList is declared in the \l Frame \c mediaListFrame
+    \quotefromfile video/recorder/main.qml
+    \skipto Frame
+    \printuntil playback: playback
+
+    \section2 controls
+
+    \image qml-recorder-control-bar-overview.gif
+
+    These are defined in \c Controls.qml and declared in main.qml.
+
+    Its root is a \l Row that contains the \l{Column}{Columns} \c inputControls,
+    \c recordButton, \c optionButtons, each defined in their own .qml files.
+
+    \section3 Selecting a video source
+
+    Defined in \c VideoSourceSelect.qml, \c VideoSourceSlect is comprised of a
+    \l Switch and a \l ComboBox and enables the user to select from available
+    cameras.
+
+    \quotefromfile video/recorder/VideoSourceSelect.qml
+    \skipto Row
+    \printto ComboBox
+
+    \c comboBox, declared in the above snippet, assigns the current video source.
+
+    \printuntil camera.cameraDevice = currentValue.camera
+
+    \section3 Selecting an audio input
+
+    Implemented in the same way as \l{Selecting a camera} and defined in
+    \c AudioInputSelect.qml like so:
+
+    \quotefromfile video/recorder/AudioInputSelect.qml
+    \skipto Row
+    \printto audioInput.device = currentValue
+
 */
