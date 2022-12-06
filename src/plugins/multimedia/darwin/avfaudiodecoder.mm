@@ -6,58 +6,32 @@
 #include <QtCore/qmutex.h>
 #include <QtCore/qiodevice.h>
 #include <QMimeDatabase>
+#include <QThread>
 #include "private/qcoreaudioutils_p.h"
+#include <QtCore/qloggingcategory.h>
 
 #include <AVFoundation/AVFoundation.h>
 
-#define MAX_BUFFERS_IN_QUEUE 10
-
 QT_USE_NAMESPACE
 
-@interface AVFResourceReaderDelegate : NSObject <AVAssetResourceLoaderDelegate>
-{
-    AVFAudioDecoder *m_decoder;
-    QMutex m_mutex;
-}
+Q_LOGGING_CATEGORY(qLcAVFAudioDecoder, "qt.multimedia.darwin.AVFAudioDecoder")
+constexpr static int MAX_BUFFERS_IN_QUEUE = 5;
 
--(void)handleNextSampleBuffer:(CMSampleBufferRef)sampleBuffer;
-
--(BOOL)resourceLoader:(AVAssetResourceLoader *)resourceLoader
-       shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;
-
-@end
-
-@implementation AVFResourceReaderDelegate
-
--(id)initWithDecoder: (AVFAudioDecoder *)decoder {
-    if (!(self = [super init]))
-        return nil;
-
-    m_decoder = decoder;
-
-    return self;
-}
-
--(void)dealloc {
-    m_decoder = nil;
-    [super dealloc];
-}
-
--(void)handleNextSampleBuffer:(CMSampleBufferRef)sampleBuffer
+QAudioBuffer handleNextSampleBuffer(CMSampleBufferRef sampleBuffer)
 {
     if (!sampleBuffer)
-        return;
+        return {};
 
     // Check format
     CMFormatDescriptionRef formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer);
     if (!formatDescription)
-        return;
+        return {};
     const AudioStreamBasicDescription* const asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription);
     QAudioFormat qtFormat = CoreAudioUtils::toQAudioFormat(*asbd);
     if (qtFormat.sampleFormat() == QAudioFormat::Unknown && asbd->mBitsPerChannel == 8)
         qtFormat.setSampleFormat(QAudioFormat::UInt8);
     if (!qtFormat.isValid())
-        return;
+        return {};
 
     // Get the required size to allocate to audioBufferList
     size_t audioBufferListSize = 0;
@@ -70,7 +44,7 @@ QT_USE_NAMESPACE
                         kCMSampleBufferFlag_AudioBufferList_Assure16ByteAlignment,
                         NULL);
     if (err != noErr)
-        return;
+        return {};
 
     CMBlockBufferRef blockBuffer = NULL;
     AudioBufferList* audioBufferList = (AudioBufferList*) malloc(audioBufferListSize);
@@ -85,7 +59,7 @@ QT_USE_NAMESPACE
                         &blockBuffer);
     if (err != noErr) {
         free(audioBufferList);
-        return;
+        return {};
     }
 
     QByteArray abuf;
@@ -101,12 +75,29 @@ QT_USE_NAMESPACE
     CMTime sampleStartTime = (CMSampleBufferGetPresentationTimeStamp(sampleBuffer));
     float sampleStartTimeSecs = CMTimeGetSeconds(sampleStartTime);
 
-    QAudioBuffer audioBuffer;
-    audioBuffer = QAudioBuffer(abuf, qtFormat, qint64(sampleStartTimeSecs * 1000000));
-    if (!audioBuffer.isValid())
-        return;
+    return QAudioBuffer(abuf, qtFormat, qint64(sampleStartTimeSecs * 1000000));
+}
 
-    emit m_decoder->newAudioBuffer(audioBuffer);
+@interface AVFResourceReaderDelegate : NSObject <AVAssetResourceLoaderDelegate> {
+    AVFAudioDecoder *m_decoder;
+    QMutex m_mutex;
+}
+
+- (BOOL)resourceLoader:(AVAssetResourceLoader *)resourceLoader
+        shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;
+
+@end
+
+@implementation AVFResourceReaderDelegate
+
+- (id)initWithDecoder:(AVFAudioDecoder *)decoder
+{
+    if (!(self = [super init]))
+        return nil;
+
+    m_decoder = decoder;
+
+    return self;
 }
 
 -(BOOL)resourceLoader:(AVAssetResourceLoader *)resourceLoader
@@ -190,6 +181,22 @@ QAudioFormat qt_format_for_audio_track(AVAssetTrack *track)
 
 }
 
+struct AVFAudioDecoder::DecodingContext
+{
+    AVAssetReader *m_reader = nullptr;
+    AVAssetReaderTrackOutput *m_readerOutput = nullptr;
+
+    ~DecodingContext()
+    {
+        if (m_reader) {
+            [m_reader cancelReading];
+            [m_reader release];
+        }
+
+        [m_readerOutput release];
+    }
+};
+
 AVFAudioDecoder::AVFAudioDecoder(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)
 {
@@ -197,31 +204,17 @@ AVFAudioDecoder::AVFAudioDecoder(QAudioDecoder *parent)
     m_decodingQueue = dispatch_queue_create("decoder_queue", DISPATCH_QUEUE_SERIAL);
 
     m_readerDelegate = [[AVFResourceReaderDelegate alloc] initWithDecoder:this];
-
-    connect(this, &AVFAudioDecoder::readyToRead, this, &AVFAudioDecoder::startReading);
-    connect(this, &AVFAudioDecoder::newAudioBuffer, this, &AVFAudioDecoder::handleNewAudioBuffer);
 }
 
 AVFAudioDecoder::~AVFAudioDecoder()
 {
     stop();
 
-    [m_readerOutput release];
-    m_readerOutput = nil;
-
-    [m_reader release];
-    m_reader = nil;
-
     [m_readerDelegate release];
-    m_readerDelegate = nil;
-
     [m_asset release];
-    m_asset = nil;
 
-    if (m_readingQueue)
-        dispatch_release(m_readingQueue);
-    if (m_decodingQueue)
-        dispatch_release(m_decodingQueue);
+    dispatch_release(m_readingQueue);
+    dispatch_release(m_decodingQueue);
 }
 
 QUrl AVFAudioDecoder::source() const
@@ -246,7 +239,7 @@ void AVFAudioDecoder::setSource(const QUrl &fileName)
         m_asset = [[AVURLAsset alloc] initWithURL:nsURL options:nil];
     }
 
-    emit sourceChanged();
+    sourceChanged();
 }
 
 QIODevice *AVFAudioDecoder::sourceDevice() const
@@ -273,76 +266,83 @@ void AVFAudioDecoder::setSourceDevice(QIODevice *device)
         NSURL *nsURL = [NSURL URLWithString:urlString];
 
         m_asset = [[AVURLAsset alloc] initWithURL:nsURL options:nil];
-        [m_asset.resourceLoader setDelegate:m_readerDelegate queue:m_readingQueue];
 
-        m_loadingSource = true;
+        // use decoding queue instead of reading queue in order to fix random stucks.
+        // Anyway, decoding queue is empty in the moment.
+        [m_asset.resourceLoader setDelegate:m_readerDelegate queue:m_decodingQueue];
     }
 
-    emit sourceChanged();
+    sourceChanged();
 }
 
 void AVFAudioDecoder::start()
 {
-    Q_ASSERT(!m_buffersAvailable);
-    if (isDecoding())
+    if (m_decodingContext) {
+        qCDebug(qLcAVFAudioDecoder()) << "AVFAudioDecoder has been already started";
         return;
-
-    if (m_position != -1) {
-        m_position = -1;
-        emit positionChanged(-1);
     }
+
+    positionChanged(-1);
 
     if (m_device && (!m_device->isOpen() || !m_device->isReadable())) {
         processInvalidMedia(QAudioDecoder::ResourceError, tr("Unable to read from specified device"));
         return;
     }
 
-    [m_asset loadValuesAsynchronouslyForKeys:@[@"tracks"] completionHandler:
-        ^{
-            dispatch_async(m_readingQueue,
-            ^{
-                NSError *error = nil;
-                AVKeyValueStatus status = [m_asset statusOfValueForKey:@"tracks" error:&error];
-                if (status != AVKeyValueStatusLoaded) {
-                    if (status == AVKeyValueStatusFailed) {
-                        if (error.domain == NSURLErrorDomain)
-                            processInvalidMedia(QAudioDecoder::ResourceError, QString::fromNSString(error.localizedDescription));
-                        else
-                            processInvalidMedia(QAudioDecoder::FormatError, tr("Could not load media source's tracks"));
-                    }
-                    return;
-                }
-                initAssetReader();
-            });
-        }
-    ];
+    m_decodingContext = std::make_shared<DecodingContext>();
+    std::weak_ptr<DecodingContext> weakContext(m_decodingContext);
 
-    if (m_device && m_loadingSource) {
-        setIsDecoding(true);
-        return;
+    auto handleLoadingResult = [=]() {
+        NSError *error = nil;
+        AVKeyValueStatus status = [m_asset statusOfValueForKey:@"tracks" error:&error];
+
+        if (status == AVKeyValueStatusFailed) {
+            if (error.domain == NSURLErrorDomain)
+                processInvalidMedia(QAudioDecoder::ResourceError,
+                                    QString::fromNSString(error.localizedDescription));
+            else
+                processInvalidMedia(QAudioDecoder::FormatError,
+                                    tr("Could not load media source's tracks"));
+        } else if (status != AVKeyValueStatusLoaded) {
+            qWarning() << "Unexpected AVKeyValueStatus:" << status;
+            stop();
+        }
+        else {
+            initAssetReader();
+        }
+    };
+
+    [m_asset loadValuesAsynchronouslyForKeys:@[ @"tracks" ]
+                           completionHandler:[=]() {
+                               invokeWithDecodingContext(weakContext, handleLoadingResult);
+                           }];
+}
+
+void AVFAudioDecoder::decBuffersCounter(uint val)
+{
+    if (val) {
+        QMutexLocker locker(&m_buffersCounterMutex);
+        m_buffersCounter -= val;
     }
+
+    Q_ASSERT(m_buffersCounter >= 0);
+
+    m_buffersCounterCondition.wakeAll();
 }
 
 void AVFAudioDecoder::stop()
 {
+    qCDebug(qLcAVFAudioDecoder()) << "stop decoding";
+
+    m_decodingContext.reset();
+    decBuffersCounter(m_cachedBuffers.size());
     m_cachedBuffers.clear();
 
-    if (m_reader)
-        [m_reader cancelReading];
+    bufferAvailableChanged(false);
+    positionChanged(-1);
+    durationChanged(-1);
 
-    if (m_buffersAvailable != 0) {
-        m_buffersAvailable = 0;
-        emit bufferAvailableChanged(false);
-    }
-    if (m_position != -1) {
-        m_position = -1;
-        emit positionChanged(m_position);
-    }
-    if (m_duration != -1) {
-        m_duration = -1;
-        emit durationChanged(m_duration);
-    }
-    setIsDecoding(false);
+    onFinished();
 }
 
 QAudioFormat AVFAudioDecoder::audioFormat() const
@@ -354,140 +354,189 @@ void AVFAudioDecoder::setAudioFormat(const QAudioFormat &format)
 {
     if (m_format != format) {
         m_format = format;
-        emit formatChanged(m_format);
+        formatChanged(m_format);
     }
 }
 
 QAudioBuffer AVFAudioDecoder::read()
 {
-    if (!m_buffersAvailable)
+    if (m_cachedBuffers.empty())
         return QAudioBuffer();
 
     Q_ASSERT(m_cachedBuffers.size() > 0);
-    QAudioBuffer buffer = m_cachedBuffers.takeFirst();
+    QAudioBuffer buffer = m_cachedBuffers.dequeue();
+    decBuffersCounter(1);
 
-    m_position = qint64(buffer.startTime() / 1000);
-    emit positionChanged(m_position);
-
-    m_buffersAvailable--;
-    if (!m_buffersAvailable)
-        emit bufferAvailableChanged(false);
+    positionChanged(buffer.startTime() / 1000);
+    bufferAvailableChanged(!m_cachedBuffers.empty());
     return buffer;
 }
 
-bool AVFAudioDecoder::bufferAvailable() const
+void AVFAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode,
+                                          const QString &errorString)
 {
-    return m_buffersAvailable > 0;
-}
+    qCDebug(qLcAVFAudioDecoder()) << "Invalid media. Error code:" << errorCode
+                                  << "Description:" << errorString;
 
-qint64 AVFAudioDecoder::position() const
-{
-    return m_position;
-}
+    Q_ASSERT(QThread::currentThread() == thread());
 
-qint64 AVFAudioDecoder::duration() const
-{
-    return m_duration;
-}
+    error(int(errorCode), errorString);
 
-void AVFAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
-{
+    // TODO: may be check if decodingCondext was changed by
+    // user's action (restart) from the emitted error.
+    // We should handle it somehow (don't run stop, print warning or etc...)
+
     stop();
-    emit error(int(errorCode), errorString);
+}
+
+void AVFAudioDecoder::onFinished()
+{
+    m_decodingContext.reset();
+
+    if (isDecoding())
+        finished();
 }
 
 void AVFAudioDecoder::initAssetReader()
 {
-    if (!m_asset)
-        return;
+    qCDebug(qLcAVFAudioDecoder()) << "Init asset reader";
+
+    Q_ASSERT(m_asset);
+    Q_ASSERT(QThread::currentThread() == thread());
 
     NSArray<AVAssetTrack *> *tracks = [m_asset tracksWithMediaType:AVMediaTypeAudio];
     if (!tracks.count) {
         processInvalidMedia(QAudioDecoder::FormatError, tr("No audio tracks found"));
         return;
     }
+
     AVAssetTrack *track = [tracks objectAtIndex:0];
-
-    // Set format
-    QAudioFormat format;
-    if (m_format.isValid()) {
-        format = m_format;
-    } else {
-        format = qt_format_for_audio_track(track);
-        if (!format.isValid())
-        {
-            processInvalidMedia(QAudioDecoder::FormatError, tr("Unsupported source format"));
-            return;
-        }
+    QAudioFormat format = m_format.isValid() ? m_format : qt_format_for_audio_track(track);
+    if (!format.isValid()) {
+        processInvalidMedia(QAudioDecoder::FormatError, tr("Unsupported source format"));
+        return;
     }
 
-    // Set duration
-    qint64 duration = CMTimeGetSeconds(track.timeRange.duration) * 1000;
-    if (m_duration != duration) {
-        m_duration = duration;
-        emit durationChanged(m_duration);
-    }
-
-    // Initialize asset reader and output
-    [m_reader release];
-    m_reader = nil;
-    [m_readerOutput release];
-    m_readerOutput = nil;
+    durationChanged(CMTimeGetSeconds(track.timeRange.duration) * 1000);
 
     NSError *error = nil;
     NSDictionary *audioSettings = av_audio_settings_for_format(format);
-    m_readerOutput = [[AVAssetReaderTrackOutput alloc] initWithTrack:track outputSettings:audioSettings];
-    m_reader = [[AVAssetReader alloc] initWithAsset:m_asset error:&error];
+
+    AVAssetReaderTrackOutput *readerOutput =
+            [[AVAssetReaderTrackOutput alloc] initWithTrack:track outputSettings:audioSettings];
+    AVAssetReader *reader = [[AVAssetReader alloc] initWithAsset:m_asset error:&error];
     if (error) {
         processInvalidMedia(QAudioDecoder::ResourceError, QString::fromNSString(error.localizedDescription));
         return;
     }
-    if (![m_reader canAddOutput:m_readerOutput]) {
+    if (![reader canAddOutput:readerOutput]) {
         processInvalidMedia(QAudioDecoder::ResourceError, tr("Failed to add asset reader output"));
         return;
     }
-    [m_reader addOutput:m_readerOutput];
 
-    emit readyToRead();
+    [reader addOutput:readerOutput];
+
+    Q_ASSERT(m_decodingContext);
+    m_decodingContext->m_reader = reader;
+    m_decodingContext->m_readerOutput = readerOutput;
+
+    startReading();
 }
 
 void AVFAudioDecoder::startReading()
 {
-    m_loadingSource = false;
+    Q_ASSERT(m_decodingContext);
+    Q_ASSERT(m_decodingContext->m_reader);
+    Q_ASSERT(QThread::currentThread() == thread());
 
     // Prepares the receiver for obtaining sample buffers from the asset.
-    if (!m_reader || ![m_reader startReading]) {
+    if (![m_decodingContext->m_reader startReading]) {
         processInvalidMedia(QAudioDecoder::ResourceError, tr("Could not start reading"));
         return;
     }
 
     setIsDecoding(true);
 
+    std::weak_ptr<DecodingContext> weakContext = m_decodingContext;
+
     // Since copyNextSampleBuffer is synchronous, submit it to an async dispatch queue
     // to run in a separate thread. Call the handleNextSampleBuffer "callback" on another
     // thread when new audio sample is read.
-    dispatch_async(m_readingQueue, ^{
-        CMSampleBufferRef sampleBuffer;
-        while ((sampleBuffer = [m_readerOutput copyNextSampleBuffer])) {
-            dispatch_async(m_decodingQueue, ^{
-                if (CMSampleBufferDataIsReady(sampleBuffer))
-                    [m_readerDelegate handleNextSampleBuffer:sampleBuffer];
-                CFRelease(sampleBuffer);
-            });
-        }
-        if (m_reader.status == AVAssetReaderStatusCompleted)
-            emit finished();
+    auto copyNextSampleBuffer = [=]() {
+        auto decodingContext = weakContext.lock();
+        if (!decodingContext)
+            return false;
+
+        CMSampleBufferRef sampleBuffer = [decodingContext->m_readerOutput copyNextSampleBuffer];
+        if (!sampleBuffer)
+            return false;
+
+        dispatch_async(m_decodingQueue, [=]() {
+            if (!weakContext.expired() && CMSampleBufferDataIsReady(sampleBuffer)) {
+                auto audioBuffer = handleNextSampleBuffer(sampleBuffer);
+
+                if (audioBuffer.isValid())
+                    invokeWithDecodingContext(weakContext,
+                                              [=]() { handleNewAudioBuffer(audioBuffer); });
+            }
+
+            CFRelease(sampleBuffer);
+        });
+
+        return true;
+    };
+
+    dispatch_async(m_readingQueue, [=]() {
+        qCDebug(qLcAVFAudioDecoder()) << "start reading thread";
+
+        do {
+            // Note, waiting here doesn't ensure strong contol of the counter.
+            // However, it doesn't affect the logic: the reading flow works fine
+            // even if the counter is time-to-time more than max value
+            waitUntilBuffersCounterLessMax();
+        } while (copyNextSampleBuffer());
+
+        // TODO: check m_reader.status == AVAssetReaderStatusFailed
+        invokeWithDecodingContext(weakContext, [this]() { onFinished(); });
     });
+}
+
+void AVFAudioDecoder::waitUntilBuffersCounterLessMax()
+{
+    if (m_buffersCounter >= MAX_BUFFERS_IN_QUEUE) {
+        // the check avoids extra mutex lock.
+
+        QMutexLocker locker(&m_buffersCounterMutex);
+
+        while (m_buffersCounter >= MAX_BUFFERS_IN_QUEUE)
+            m_buffersCounterCondition.wait(&m_buffersCounterMutex);
+    }
 }
 
 void AVFAudioDecoder::handleNewAudioBuffer(QAudioBuffer buffer)
 {
-    Q_ASSERT(m_cachedBuffers.size() <= MAX_BUFFERS_IN_QUEUE);
-    m_cachedBuffers.push_back(buffer);
+    m_cachedBuffers.enqueue(buffer);
+    ++m_buffersCounter;
 
-    m_buffersAvailable++;
-    Q_ASSERT(m_buffersAvailable <= MAX_BUFFERS_IN_QUEUE);
+    Q_ASSERT(m_cachedBuffers.size() == m_buffersCounter);
 
-    emit bufferAvailableChanged(true);
-    emit bufferReady();
+    bufferAvailableChanged(true);
+    bufferReady();
+}
+
+/*
+ * The method calls the passed functor in the thread of AVFAudioDecoder and guarantees that
+ * the passed decoding context is not expired. In other words, it helps avoiding all callbacks
+ * after stopping of the decoder.
+ */
+template<typename F>
+void AVFAudioDecoder::invokeWithDecodingContext(std::weak_ptr<DecodingContext> weakContext, F &&f)
+{
+    if (!weakContext.expired())
+        QMetaObject::invokeMethod(this, [=]() {
+            // strong check: compare with actual decoding context.
+            // Otherwise, the context can be temporary locked by one of dispatch queues.
+            if (auto context = weakContext.lock(); context && context == m_decodingContext)
+                f();
+        });
 }

@@ -125,7 +125,12 @@ void tst_QAudioDecoderBackend::fileTest()
     QTRY_VERIFY(!bufferChangedSpy.isEmpty());
     QVERIFY(d.bufferAvailable());
     QTRY_VERIFY(!durationSpy.isEmpty());
-    QVERIFY(qAbs(d.duration() - 1000) < 20);
+
+    QVERIFY(qAbs(durationSpy.front().front().value<qint64>() - 1000) < 20);
+    if (finishedSpy.empty())
+        QVERIFY(qAbs(d.duration() - 1000) < 20);
+    else
+        QCOMPARE(d.duration(), -1);
 
     buffer = d.read();
     QVERIFY(buffer.isValid());
@@ -207,13 +212,16 @@ void tst_QAudioDecoderBackend::fileTest()
     byteCount = 0;
 
     d.start();
-    QTRY_VERIFY(d.isDecoding());
     QTRY_VERIFY(!isDecodingSpy.isEmpty());
     QTRY_VERIFY(!readySpy.isEmpty());
     QTRY_VERIFY(!bufferChangedSpy.isEmpty());
     QVERIFY(d.bufferAvailable());
     QTRY_VERIFY(!durationSpy.isEmpty());
-    QVERIFY(qAbs(d.duration() - 1000) < 20);
+    QVERIFY(qAbs(durationSpy.front().front().value<qint64>() - 1000) < 20);
+    if (finishedSpy.empty())
+        QVERIFY(qAbs(d.duration() - 1000) < 20);
+    else
+        QCOMPARE(d.duration(), -1);
 
     buffer = d.read();
     QVERIFY(buffer.isValid());
@@ -560,7 +568,10 @@ void tst_QAudioDecoderBackend::deviceTest()
     QTRY_VERIFY(!bufferChangedSpy.isEmpty());
     QVERIFY(d.bufferAvailable());
     QTRY_VERIFY(!durationSpy.isEmpty());
-    QVERIFY(qAbs(d.duration() - 1000) < 20);
+    if (finishedSpy.empty())
+        QVERIFY(qAbs(d.duration() - 1000) < 20);
+    else
+        QCOMPARE(d.duration(), -1);
 
     buffer = d.read();
     QVERIFY(buffer.isValid());
@@ -630,13 +641,17 @@ void tst_QAudioDecoderBackend::deviceTest()
 
     d.start();
     QVERIFY(d.error() == QAudioDecoder::NoError);
-    QTRY_VERIFY(d.isDecoding());
     QTRY_VERIFY(!isDecodingSpy.isEmpty());
     QTRY_VERIFY(!readySpy.isEmpty());
     QTRY_VERIFY(!bufferChangedSpy.isEmpty());
     QVERIFY(d.bufferAvailable());
     QTRY_VERIFY(!durationSpy.isEmpty());
-    QVERIFY(qAbs(d.duration() - 1000) < 20);
+
+    QVERIFY(qAbs(durationSpy.front().front().value<qint64>() - 1000) < 20);
+    if (finishedSpy.empty())
+        QVERIFY(qAbs(d.duration() - 1000) < 20);
+    else
+        QCOMPARE(d.duration(), -1);
 
     buffer = d.read();
     QVERIFY(buffer.isValid());

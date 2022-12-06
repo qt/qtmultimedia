@@ -18,6 +18,9 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QObject>
 #include <QtCore/qurl.h>
+#include <QWaitCondition>
+#include <QMutex>
+#include <QQueue>
 
 #include "private/qplatformaudiodecoder_p.h"
 #include "qaudiodecoder.h"
@@ -34,6 +37,8 @@ QT_BEGIN_NAMESPACE
 class AVFAudioDecoder : public QPlatformAudioDecoder
 {
     Q_OBJECT
+
+    struct DecodingContext;
 
 public:
     AVFAudioDecoder(QAudioDecoder *parent);
@@ -52,41 +57,41 @@ public:
     void setAudioFormat(const QAudioFormat &format) override;
 
     QAudioBuffer read() override;
-    bool bufferAvailable() const override;
 
-    qint64 position() const override;
-    qint64 duration() const override;
-
-private slots:
+private:
     void handleNewAudioBuffer(QAudioBuffer);
     void startReading();
 
-signals:
-    void newAudioBuffer(QAudioBuffer);
-    void readyToRead();
-
-private:
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
     void initAssetReader();
+    void onFinished();
 
+    void waitUntilBuffersCounterLessMax();
+
+    void decBuffersCounter(uint val);
+
+    template<typename F>
+    void invokeWithDecodingContext(std::weak_ptr<DecodingContext> weakContext, F &&f);
+
+private:
     QUrl m_source;
     QIODevice *m_device = nullptr;
     QAudioFormat m_format;
 
-    int m_buffersAvailable = 0;
-    QList<QAudioBuffer> m_cachedBuffers;
-
-    qint64 m_position = -1;
-    qint64 m_duration = -1;
-
-    bool m_loadingSource = false;
+    // Use a separate counter instead of buffers queue size in order to
+    // ensure atomic access and also make mutex locking shorter
+    std::atomic<int> m_buffersCounter = 0;
+    QQueue<QAudioBuffer> m_cachedBuffers;
 
     AVURLAsset *m_asset = nullptr;
-    AVAssetReader *m_reader = nullptr;
-    AVAssetReaderTrackOutput *m_readerOutput = nullptr;
+
     AVFResourceReaderDelegate *m_readerDelegate = nullptr;
     dispatch_queue_t m_readingQueue;
     dispatch_queue_t m_decodingQueue;
+
+    std::shared_ptr<DecodingContext> m_decodingContext;
+    QMutex m_buffersCounterMutex;
+    QWaitCondition m_buffersCounterCondition;
 };
 
 QT_END_NAMESPACE
