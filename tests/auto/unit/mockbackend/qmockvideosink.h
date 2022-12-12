@@ -21,8 +21,6 @@ QT_BEGIN_NAMESPACE
 
 class QMockVideoSink : public QPlatformVideoSink
 {
-    Q_OBJECT
-
 public:
     explicit QMockVideoSink(QVideoSink *parent)
         : QPlatformVideoSink(parent)

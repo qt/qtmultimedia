@@ -7,6 +7,8 @@
 #include <qimagecapture.h>
 #include <qcamera.h>
 
+QT_BEGIN_NAMESPACE
+
 QMockImageCapture::QMockImageCapture(QImageCapture *parent)
     : QPlatformImageCapture(parent)
 {
@@ -51,3 +53,7 @@ void QMockImageCapture::captured()
 
     emit imageSaved(m_captureRequest, m_fileName);
 }
+
+QT_END_NAMESPACE
+
+#include "moc_qmockimagecapture.cpp"

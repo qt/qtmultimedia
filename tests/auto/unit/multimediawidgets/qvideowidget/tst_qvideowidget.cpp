@@ -15,7 +15,7 @@
 
 #include <QtWidgets/qapplication.h>
 
-#include <qmockintegration_p.h>
+#include <qmockintegration.h>
 #include <qmockvideosink.h>
 
 QT_USE_NAMESPACE

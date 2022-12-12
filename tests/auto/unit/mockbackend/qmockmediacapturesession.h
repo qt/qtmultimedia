@@ -15,7 +15,6 @@ QT_BEGIN_NAMESPACE
 
 class QMockMediaCaptureSession : public QPlatformMediaCaptureSession
 {
-    Q_OBJECT
 public:
     QMockMediaCaptureSession()
         : hasControls(true)

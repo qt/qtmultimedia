@@ -8,7 +8,7 @@
 #include <qcameradevice.h>
 #include <qmediadevices.h>
 
-#include "qmockintegration_p.h"
+#include "qmockintegration.h"
 #include "qmockmediacapturesession.h"
 
 QT_USE_NAMESPACE

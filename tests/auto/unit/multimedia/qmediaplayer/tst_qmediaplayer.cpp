@@ -13,7 +13,7 @@
 #include <private/qplatformmediaplayer_p.h>
 #include <qobject.h>
 
-#include "qmockintegration_p.h"
+#include "qmockintegration.h"
 #include "qmockmediaplayer.h"
 #include "qmockaudiooutput.h"
 #include "qvideosink.h"

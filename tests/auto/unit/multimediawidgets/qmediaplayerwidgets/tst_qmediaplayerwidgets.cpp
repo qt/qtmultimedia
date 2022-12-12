@@ -13,7 +13,7 @@
 #include <private/qplatformmediaplayer_p.h>
 
 #include "qvideosink.h"
-#include "qmockintegration_p.h"
+#include "qmockintegration.h"
 
 QT_USE_NAMESPACE
 

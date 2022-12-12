@@ -7,7 +7,7 @@
 
 #include "qaudiodecoder.h"
 #include "qmockaudiodecoder.h"
-#include "qmockintegration_p.h"
+#include "qmockintegration.h"
 
 class tst_QAudioDecoder : public QObject
 {
