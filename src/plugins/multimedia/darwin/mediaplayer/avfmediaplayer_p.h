@@ -132,7 +132,6 @@ private:
     QUrl m_resources;
     QMediaMetaData m_metaData;
 
-    bool m_tryingAsync;
     qreal m_rate;
     qint64 m_requestedPosition;
 

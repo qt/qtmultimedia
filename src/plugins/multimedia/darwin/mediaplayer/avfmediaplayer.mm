@@ -441,19 +441,18 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 @end
 
 AVFMediaPlayer::AVFMediaPlayer(QMediaPlayer *player)
-    : QObject(player)
-    , QPlatformMediaPlayer(player)
-    , m_state(QMediaPlayer::StoppedState)
-    , m_mediaStatus(QMediaPlayer::NoMedia)
-    , m_mediaStream(nullptr)
-    , m_tryingAsync(false)
-    , m_rate(1.0)
-    , m_requestedPosition(-1)
-    , m_duration(0)
-    , m_bufferProgress(0)
-    , m_videoAvailable(false)
-    , m_audioAvailable(false)
-    , m_seekable(false)
+    : QObject(player),
+      QPlatformMediaPlayer(player),
+      m_state(QMediaPlayer::StoppedState),
+      m_mediaStatus(QMediaPlayer::NoMedia),
+      m_mediaStream(nullptr),
+      m_rate(1.0),
+      m_requestedPosition(-1),
+      m_duration(0),
+      m_bufferProgress(0),
+      m_videoAvailable(false),
+      m_audioAvailable(false),
+      m_seekable(false)
 {
     m_observer = [[AVFMediaPlayerObserver alloc] initWithMediaPlayerSession:this];
     connect(&m_playbackTimer, &QTimer::timeout, this, &AVFMediaPlayer::processPositionChange);
@@ -1223,3 +1222,5 @@ void AVFMediaPlayer::videoOrientationForAssetTrack(AVAssetTrack *videoTrack,
         }
     }
 }
+
+#include "moc_avfmediaplayer_p.cpp"
