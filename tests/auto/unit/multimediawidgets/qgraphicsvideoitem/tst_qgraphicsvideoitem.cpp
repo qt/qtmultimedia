@@ -16,7 +16,7 @@
 #include <QtWidgets/qgraphicsscene.h>
 #include <QtWidgets/qgraphicsview.h>
 
-#include <qmockintegration_p.h>
+#include <qmockintegration.h>
 
 QT_USE_NAMESPACE
 class tst_QGraphicsVideoItem : public QObject

@@ -17,7 +17,7 @@
 #include <qvideosink.h>
 
 #include "qmockmediacapturesession.h"
-#include "qmockintegration_p.h"
+#include "qmockintegration.h"
 
 QT_USE_NAMESPACE
 

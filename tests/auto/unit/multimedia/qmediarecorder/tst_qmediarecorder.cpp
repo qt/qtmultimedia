@@ -10,7 +10,7 @@
 #include "private/qguiapplication_p.h"
 #include <qmediarecorder.h>
 #include <qaudioformat.h>
-#include <qmockintegration_p.h>
+#include <qmockintegration.h>
 #include <qmediacapturesession.h>
 
 #include "qguiapplication_platform.h"

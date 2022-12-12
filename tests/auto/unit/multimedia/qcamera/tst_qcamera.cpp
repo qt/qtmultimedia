@@ -16,7 +16,7 @@
 #include <qobject.h>
 #include <qmediadevices.h>
 
-#include "qmockintegration_p.h"
+#include "qmockintegration.h"
 #include "qmockmediacapturesession.h"
 #include "qmockcamera.h"
 

@@ -16,18 +16,16 @@ target_link_libraries(QtMultimediaMockBackend INTERFACE
     Qt::MultimediaPrivate
 )
 target_sources(QtMultimediaMockBackend INTERFACE
-    qmockaudiodecoder.h
+    qmockaudiodecoder.cpp qmockaudiodecoder.h
     qmockaudiooutput.h
-    qmockcamera.h
-    qmockimagecapture.h qmockimagecapture.cpp
+    qmockcamera.cpp qmockcamera.h
+    qmockimagecapture.cpp qmockimagecapture.h
     qmockmediaplayer.h
     qmockmediaencoder.h
     qmockmediacapturesession.h
     qmockvideosink.h
-    qmockmediadevices.cpp
-    qmockmediadevices_p.h
-    qmockintegration.cpp
-    qmockintegration_p.h
+    qmockmediadevices.cpp qmockmediadevices.h
+    qmockintegration.cpp qmockintegration.h
 )
 # special case end
 

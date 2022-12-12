@@ -6,7 +6,7 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 
-#include "qmockintegration_p.h"
+#include "qmockintegration.h"
 #include "qscreencapture.h"
 #include "qmockscreencapture.h"
 #include "qatomic.h"

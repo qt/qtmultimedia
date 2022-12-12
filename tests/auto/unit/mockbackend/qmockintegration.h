@@ -46,11 +46,7 @@ public:
 
     QPlatformScreenCapture *createScreenCapture(QScreenCapture *) override;
 
-    enum Flag {
-        NoPlayerInterface = 0x1,
-        NoAudioDecoderInterface = 0x2,
-        NoCaptureInterface = 0x4
-    };
+    enum Flag { NoPlayerInterface = 0x1, NoAudioDecoderInterface = 0x2, NoCaptureInterface = 0x4 };
     Q_DECLARE_FLAGS(Flags, Flag);
 
     void setFlags(Flags f) { m_flags = f; }

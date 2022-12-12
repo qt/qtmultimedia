@@ -23,135 +23,56 @@ public:
         ~Simple() { simpleCamera = false; }
     };
 
-    QMockCamera(QCamera *parent)
-        : QPlatformCamera(parent),
-          m_propertyChangesSupported(false)
-    {
-        if (!simpleCamera) {
-            minIsoChanged(100);
-            maxIsoChanged(800);
-            minExposureTimeChanged(.001f);
-            maxExposureTimeChanged(1.f);
-            exposureCompensationRangeChanged(-2, 2);
-            maximumZoomFactorChanged(4.);
-            setFlashMode(QCamera::FlashAuto);
-        }
-    }
+    QMockCamera(QCamera *parent);
 
-    ~QMockCamera() {}
+    ~QMockCamera() override;
 
-    bool isActive() const override { return m_active; }
-    void setActive(bool active) override {
-        if (m_active == active)
-            return;
-        m_active = active;
-        emit activeChanged(active);
-    }
+    bool isActive() const override;
+
+    void setActive(bool active) override;
 
     /* helper method to emit the signal error */
-    void setError(QCamera::Error err, QString errorString)
-    {
-        emit error(err, errorString);
-    }
+    void setError(QCamera::Error err, QString errorString);
 
-    void setCamera(const QCameraDevice &camera) override
-    {
-        m_camera = camera;
-    }
+    void setCamera(const QCameraDevice &camera) override;
 
-    bool setCameraFormat(const QCameraFormat& format) override
-    {
-        if (!format.isNull() && !m_camera.videoFormats().contains(format))
-            return false;
-        return true;
-    }
+    bool setCameraFormat(const QCameraFormat &format) override;
 
-    void setFocusMode(QCamera::FocusMode mode) override
-    {
-        if (isFocusModeSupported(mode))
-            focusModeChanged(mode);
-    }
-    bool isFocusModeSupported(QCamera::FocusMode mode) const override
-    { return simpleCamera ? mode == QCamera::FocusModeAuto : mode != QCamera::FocusModeInfinity; }
+    void setFocusMode(QCamera::FocusMode mode) override;
 
-    void setCustomFocusPoint(const QPointF &point) override
-    {
-        if (!simpleCamera)
-            customFocusPointChanged(point);
-    }
+    bool isFocusModeSupported(QCamera::FocusMode mode) const override;
 
-    void setFocusDistance(float d) override
-    {
-        if (!simpleCamera)
-            focusDistanceChanged(d);
-    }
+    void setCustomFocusPoint(const QPointF &point) override;
 
-    void zoomTo(float newZoomFactor, float /*rate*/) override { zoomFactorChanged(newZoomFactor); }
+    void setFocusDistance(float d) override;
 
-    void setFlashMode(QCamera::FlashMode mode) override
-    {
-        if (!simpleCamera)
-            flashModeChanged(mode);
-        flashReadyChanged(mode != QCamera::FlashOff);
-    }
-    bool isFlashModeSupported(QCamera::FlashMode mode) const override { return simpleCamera ? mode == QCamera::FlashOff : true; }
-    bool isFlashReady() const override { return flashMode() != QCamera::FlashOff; }
+    void zoomTo(float newZoomFactor, float /*rate*/) override;
 
-    void setExposureMode(QCamera::ExposureMode mode) override
-    {
-        if (!simpleCamera && isExposureModeSupported(mode))
-            exposureModeChanged(mode);
-    }
-    bool isExposureModeSupported(QCamera::ExposureMode mode) const override
-    {
-        return simpleCamera ? mode == QCamera::ExposureAuto : mode <= QCamera::ExposureBeach;
-    }
-    void setExposureCompensation(float c) override
-    {
-        if (!simpleCamera)
-            exposureCompensationChanged(qBound(-2., c, 2.));
-    }
-    int isoSensitivity() const override
-    {
-        if (simpleCamera)
-            return -1;
-        return manualIsoSensitivity() > 0 ? manualIsoSensitivity() : 100;
-    }
-    void setManualIsoSensitivity(int iso) override
-    {
-        if (!simpleCamera)
-            isoSensitivityChanged(qBound(100, iso, 800));
-    }
-    void setManualExposureTime(float secs) override
-    {
-        if (!simpleCamera)
-            exposureTimeChanged(qBound(0.001, secs, 1.));
-    }
-    float exposureTime() const override
-    {
-        if (simpleCamera)
-            return -1.;
-        return manualExposureTime() > 0 ? manualExposureTime() : .05;
-    }
+    void setFlashMode(QCamera::FlashMode mode) override;
 
-    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override
-    {
-        if (simpleCamera)
-            return mode == QCamera::WhiteBalanceAuto;
-        return mode == QCamera::WhiteBalanceAuto ||
-               mode == QCamera::WhiteBalanceManual ||
-               mode == QCamera::WhiteBalanceSunlight;
-    }
-    void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override
-    {
-        if (isWhiteBalanceModeSupported(mode))
-            whiteBalanceModeChanged(mode);
-    }
-    void setColorTemperature(int temperature) override
-    {
-        if (!simpleCamera)
-            colorTemperatureChanged(temperature);
-    }
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
+
+    bool isFlashReady() const override;
+
+    void setExposureMode(QCamera::ExposureMode mode) override;
+
+    bool isExposureModeSupported(QCamera::ExposureMode mode) const override;
+
+    void setExposureCompensation(float c) override;
+
+    int isoSensitivity() const override;
+
+    void setManualIsoSensitivity(int iso) override;
+
+    void setManualExposureTime(float secs) override;
+
+    float exposureTime() const override;
+
+    bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const override;
+
+    void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override;
+
+    void setColorTemperature(int temperature) override;
 
     bool m_active = false;
     QCameraDevice m_camera;
