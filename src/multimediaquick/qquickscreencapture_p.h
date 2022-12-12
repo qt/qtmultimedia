@@ -29,19 +29,11 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickScreenCatpure : public QScreenCapture
     QML_NAMED_ELEMENT(ScreenCapture)
 
 public:
-    QQuickScreenCatpure(QObject *parent = nullptr) : QScreenCapture(parent)
-    {
-        connect(this, &QScreenCapture::screenChanged, [&](QScreen *screen) {
-            emit QQuickScreenCatpure::screenChanged(new QQuickScreenInfo(this, screen));
-        });
-    }
+    QQuickScreenCatpure(QObject *parent = nullptr);
 
-    void qmlSetScreen(const QQuickScreenInfo *info)
-    {
-        setScreen(info ? info->wrappedScreen() : nullptr);
-    }
+    void qmlSetScreen(const QQuickScreenInfo *info);
 
-    QQuickScreenInfo *qmlScreen() { return new QQuickScreenInfo(this, screen()); }
+    QQuickScreenInfo *qmlScreen();
 
 Q_SIGNALS:
     void screenChanged(QQuickScreenInfo *);

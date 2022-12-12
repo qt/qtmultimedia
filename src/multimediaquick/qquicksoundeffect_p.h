@@ -17,8 +17,8 @@
 
 #include <QSoundEffect>
 #include <QtQml/qqml.h>
-#include <QtQml/qqmlcontext.h>
 #include <qtmultimediaquickexports.h>
+#include <qurl.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -29,20 +29,11 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickSoundEffect : public QSoundEffect
     QML_NAMED_ELEMENT(SoundEffect)
 
 public:
-    QQuickSoundEffect(QObject *parent = nullptr) : QSoundEffect(parent) {}
+    QQuickSoundEffect(QObject *parent = nullptr);
 
-    void qmlSetSource(const QUrl &source)
-    {
-        if (m_source == source)
-            return;
+    void qmlSetSource(const QUrl &source);
 
-        m_source = source;
-        const QQmlContext *context = qmlContext(this);
-        setSource(context ? context->resolvedUrl(source) : source);
-        emit sourceChanged(source);
-    }
-
-    QUrl qmlSource() const { return m_source; }
+    QUrl qmlSource() const;
 
 Q_SIGNALS:
     void sourceChanged(const QUrl &source);

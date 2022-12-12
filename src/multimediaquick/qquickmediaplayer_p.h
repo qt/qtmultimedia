@@ -17,8 +17,8 @@
 
 #include <QMediaPlayer>
 #include <QtQml/qqml.h>
-#include <QtQml/qqmlcontext.h>
 #include <qtmultimediaquickexports.h>
+#include <qurl.h>
 #include <private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -30,20 +30,11 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickMediaPlayer : public QMediaPlayer
     QML_NAMED_ELEMENT(MediaPlayer)
 
 public:
-    QQuickMediaPlayer(QObject *parent = nullptr) : QMediaPlayer(parent) {}
+    QQuickMediaPlayer(QObject *parent = nullptr);
 
-    void qmlSetSource(const QUrl &source)
-    {
-        if (m_source == source)
-            return;
+    void qmlSetSource(const QUrl &source);
 
-        m_source = source;
-        const QQmlContext *context = qmlContext(this);
-        setSource(context ? context->resolvedUrl(source) : source);
-        emit sourceChanged(source);
-    }
-
-    QUrl qmlSource() const { return m_source; }
+    QUrl qmlSource() const;
 
 Q_SIGNALS:
     void sourceChanged(const QUrl &source);

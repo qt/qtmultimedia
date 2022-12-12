@@ -14,3 +14,4 @@ QPlatformMediaCaptureSession::~QPlatformMediaCaptureSession()
 
 QT_END_NAMESPACE
 
+#include "moc_qplatformmediacapture_p.cpp"

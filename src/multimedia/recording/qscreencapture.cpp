@@ -254,3 +254,5 @@ class QPlatformScreenCapture *QScreenCapture::platformScreenCapture() const
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qscreencapture.cpp"

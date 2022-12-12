@@ -48,3 +48,5 @@ void QVideoOutputOrientationHandler::screenOrientationChanged(Qt::ScreenOrientat
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qvideooutputorientationhandler_p.cpp"
