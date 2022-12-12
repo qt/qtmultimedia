@@ -30,10 +30,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformMediaPlugin : public QObject
 {
     Q_OBJECT
 public:
-    explicit QPlatformMediaPlugin(QObject *parent = nullptr)
-        : QObject(parent)
-    {}
-    ~QPlatformMediaPlugin() = default;
+    explicit QPlatformMediaPlugin(QObject *parent = nullptr);
+    ~QPlatformMediaPlugin() override;
 
     virtual QPlatformMediaIntegration *create(const QString &key) = 0;
 

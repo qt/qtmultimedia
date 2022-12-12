@@ -79,3 +79,5 @@ void QPlatformAudioDecoder::durationChanged(qint64 duration)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qplatformaudiodecoder_p.cpp"

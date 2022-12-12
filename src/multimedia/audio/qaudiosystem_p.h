@@ -33,7 +33,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QObject
     Q_OBJECT
 
 public:
-    QPlatformAudioSink(QObject *parent) : QObject(parent) {}
+    QPlatformAudioSink(QObject *parent);
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;
@@ -49,7 +49,7 @@ public:
     virtual void setFormat(const QAudioFormat& fmt) = 0;
     virtual QAudioFormat format() const = 0;
     virtual void setVolume(qreal) {}
-    virtual qreal volume() const { return 1.0; }
+    virtual qreal volume() const;
 
     QElapsedTimer elapsedTime;
 
@@ -63,7 +63,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QObject
     Q_OBJECT
 
 public:
-    QPlatformAudioSource(QObject *parent) : QObject(parent) {}
+    QPlatformAudioSource(QObject *parent);
     virtual void start(QIODevice *device) = 0;
     virtual QIODevice* start() = 0;
     virtual void stop() = 0;

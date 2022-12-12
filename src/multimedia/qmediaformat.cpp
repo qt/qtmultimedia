@@ -890,3 +890,5 @@ void QMediaFormat::resolveForEncoding(ResolveFlags flags)
     \internal
 */
 QT_END_NAMESPACE
+
+#include "moc_qmediaformat.cpp"
