@@ -3,6 +3,7 @@
 
 #include <qmediametadata.h>
 #include <qdatetime.h>
+#include <qtimezone.h>
 #include <qimage.h>
 #include <quuid.h>
 
@@ -41,7 +42,7 @@ static QVariant convertValue(const PROPVARIANT& var)
 
         value = QDateTime(QDate(t.wYear, t.wMonth, t.wDay),
                           QTime(t.wHour, t.wMinute, t.wSecond, t.wMilliseconds),
-                          Qt::UTC);
+                          QTimeZone(QTimeZone::UTC));
         break;
     case VT_STREAM:
     {
