@@ -213,3 +213,5 @@ void InputTest::sliderChanged(int value)
 
     m_audioInput->setVolume(linearVolume);
 }
+
+#include "moc_audiosource.cpp"

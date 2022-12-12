@@ -102,3 +102,5 @@ void ToneGeneratorDialog::frequencySweepEnabled(bool enabled)
     m_frequencySweepEnabled = enabled;
     m_toneGeneratorFrequencyControl->setEnabled(!enabled);
 }
+
+#include "moc_tonegeneratordialog.cpp"

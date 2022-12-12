@@ -396,3 +396,5 @@ void Waveform::resetTiles(qint64 newStartPos)
 
     m_tileArrayStart = newStartPos;
 }
+
+#include "moc_waveform.cpp"

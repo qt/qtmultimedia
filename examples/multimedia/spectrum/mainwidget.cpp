@@ -396,3 +396,5 @@ void MainWidget::updateModeMenu()
     m_generateToneAction->setChecked(GenerateToneMode == m_mode);
     m_recordAction->setChecked(RecordMode == m_mode);
 }
+
+#include "moc_mainwidget.cpp"

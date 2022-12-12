@@ -235,3 +235,5 @@ void AudioTest::toggleSuspendResume()
         // no-op
     }
 }
+
+#include "moc_audiooutput.cpp"

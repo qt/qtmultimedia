@@ -169,3 +169,5 @@ void PlayerControls::onVolumeSliderValueChanged()
 {
     emit changeVolume(volume());
 }
+
+#include "moc_playercontrols.cpp"

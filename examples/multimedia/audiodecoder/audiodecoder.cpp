@@ -159,3 +159,5 @@ void AudioDecoder::updateProgress()
         m_progress = progress;
     }
 }
+
+#include "moc_audiodecoder.cpp"

@@ -213,3 +213,4 @@ void FrequencyMonitor::setTraceInterval(int value)
 }
 
 #include "frequencymonitor.moc"
+#include "moc_frequencymonitor.cpp"

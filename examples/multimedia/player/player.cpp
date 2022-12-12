@@ -523,3 +523,5 @@ void Player::audioOutputChanged(int index)
     auto device = m_audioOutputCombo->itemData(index).value<QAudioDevice>();
     m_player->audioOutput()->setDevice(device);
 }
+
+#include "moc_player.cpp"

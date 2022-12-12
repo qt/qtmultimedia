@@ -144,3 +144,5 @@ void VideoPlayer::rotateVideo(int angle)
     qreal y = m_videoItem->boundingRect().height() / 2.0;
     m_videoItem->setTransform(QTransform().translate(x, y).rotate(angle).translate(-x, -y));
 }
+
+#include "moc_videoplayer.cpp"

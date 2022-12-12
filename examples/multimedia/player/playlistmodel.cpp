@@ -101,3 +101,5 @@ void PlaylistModel::changeItems(int start, int end)
     m_data.clear();
     emit dataChanged(index(start, 0), index(end, ColumnCount));
 }
+
+#include "moc_playlistmodel.cpp"

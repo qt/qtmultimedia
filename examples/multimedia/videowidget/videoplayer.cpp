@@ -133,3 +133,5 @@ void VideoPlayer::handleError()
         message += errorString;
     m_errorLabel->setText(message);
 }
+
+#include "moc_videoplayer.cpp"

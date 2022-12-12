@@ -99,3 +99,5 @@ void LevelMeter::paintEvent(QPaintEvent *event)
     bar.setTop(rect().top() + (1.0 - m_rmsLevel) * rect().height());
     painter.fillRect(bar, m_rmsColor);
 }
+
+#include "moc_levelmeter.cpp"
