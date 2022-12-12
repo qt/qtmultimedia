@@ -540,3 +540,5 @@ void AVFAudioDecoder::invokeWithDecodingContext(std::weak_ptr<DecodingContext> w
                 f();
         });
 }
+
+#include "moc_avfaudiodecoder_p.cpp"
