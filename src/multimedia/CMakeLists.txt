@@ -39,7 +39,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformaudioinput_p.h
         platform/qplatformaudiooutput_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
-        platform/qplatformscreencapture_p.h
+        platform/qplatformscreencapture.cpp platform/qplatformscreencapture_p.h
         platform/qplatformimagecapture.cpp platform/qplatformimagecapture_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
         platform/qplatformmediadevices.cpp platform/qplatformmediadevices_p.h
@@ -48,7 +48,6 @@ qt_internal_add_module(Multimedia
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
         platform/qplatformmediaplugin_p.h
-        platform/qplatformscreencapture_p.h
         platform/qplatformvideodevices.cpp platform/qplatformvideodevices_p.h
         platform/qplatformvideosink.cpp platform/qplatformvideosink_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h

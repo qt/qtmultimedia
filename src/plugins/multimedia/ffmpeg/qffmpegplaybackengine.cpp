@@ -41,6 +41,8 @@ PlaybackEngine::PlaybackEngine()
       m_streams(defaultObjectsArray<decltype(m_streams)>()),
       m_renderers(defaultObjectsArray<decltype(m_renderers)>())
 {
+    qRegisterMetaType<QFFmpeg::Packet>();
+    qRegisterMetaType<QFFmpeg::Frame>();
 }
 
 PlaybackEngine::~PlaybackEngine() {

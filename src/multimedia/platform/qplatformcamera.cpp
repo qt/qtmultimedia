@@ -9,6 +9,7 @@ QPlatformCamera::QPlatformCamera(QCamera *parent)
   : QObject(parent),
     m_camera(parent)
 {
+    qRegisterMetaType<QVideoFrame>();
 }
 
 QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera)

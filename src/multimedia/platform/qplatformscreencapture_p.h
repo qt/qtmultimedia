@@ -33,9 +33,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformScreenCapture : public QObject
     Q_OBJECT
 
 public:
-    QPlatformScreenCapture(QScreenCapture *screenCapture)
-        : QObject(screenCapture), m_screenCapture(screenCapture)
-    {}
+    explicit QPlatformScreenCapture(QScreenCapture *screenCapture);
 
     virtual void setActive(bool active) = 0;
     virtual bool isActive() const = 0;
@@ -43,43 +41,21 @@ public:
     virtual void setScreen(QScreen *s) = 0;
     virtual QScreen *screen() const = 0;
 
-    virtual void setWindow(QWindow *w) {
-        if (w) {
-            emit m_screenCapture->errorOccurred(QScreenCapture::WindowCapturingNotSupported,
-                                                QLatin1String("Window capture is not supported"));
-        }
-    }
+    virtual void setWindow(QWindow *w);
+    virtual QWindow *window() const;
 
-    virtual QWindow *window() const { return nullptr; }
+    virtual void setWindowId(WId id);
+    virtual WId windowId() const;
 
-    virtual void setWindowId(WId id) {
-        if (id) {
-            emit m_screenCapture->errorOccurred(QScreenCapture::WindowCapturingNotSupported,
-                                                QLatin1String("Window capture is not supported"));
-        }
-    }
-
-    virtual WId windowId() const { return 0; }
-
-    virtual QScreenCapture::Error error() const { return m_error; }
-    virtual QString errorString() const { return m_errorString; }
+    virtual QScreenCapture::Error error() const;
+    virtual QString errorString() const;
 
     virtual QVideoFrameFormat format() const = 0;
 
-    QScreenCapture *screenCapture() const { return m_screenCapture; }
+    QScreenCapture *screenCapture() const;
 
 public Q_SLOTS:
-    void updateError(QScreenCapture::Error error, const QString &errorString)
-    {
-        bool changed = error != m_error || errorString != m_errorString;
-        m_error = error;
-        m_errorString = errorString;
-        if (changed) {
-            if (m_error != QScreenCapture::NoError)
-                emit m_screenCapture->errorOccurred(error, errorString);
-            emit m_screenCapture->errorChanged();
-        }
-    }
+    void updateError(QScreenCapture::Error error, const QString &errorString);
 
 Q_SIGNALS:
     void newVideoFrame(const QVideoFrame &);
