@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
 #include <QtCore/qdatetime.h>
+#include <QtCore/qtimezone.h>
 
 #include <gst/gstversion.h>
 #include <qgstutils_p.h>
@@ -152,7 +153,7 @@ static void addTagToMap(const GstTagList *list,
                     tz = gst_date_time_get_time_zone_offset(dateTime);
                 }
                 QDateTime qDateTime(QDate(year, month, day), QTime(hour, minute, second),
-                                   Qt::OffsetFromUTC, tz * 60 * 60);
+                                    QTimeZone(tz * 60 * 60));
                 map->insert(key, qDateTime);
             } else if (G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE) {
                 GstSample *sample = (GstSample *)g_value_get_boxed(&val);
