@@ -21,13 +21,13 @@ qt_internal_add_qml_module(MultimediaQuickPrivate
         qquickimagecapture.cpp qquickimagecapture_p.h
         qquickimagepreviewprovider.cpp qquickimagepreviewprovider_p.h
 #        qquickplaylist.cpp qquickplaylist_p.h
-        qquickmediaplayer_p.h
-        qquicksoundeffect_p.h
+        qquickmediaplayer.cpp qquickmediaplayer_p.h
+        qquicksoundeffect.cpp qquicksoundeffect_p.h
         qquickvideooutput.cpp qquickvideooutput_p.h
         qsgvideonode_p.cpp qsgvideonode_p.h
         qsgvideotexture.cpp qsgvideotexture_p.h
         qtmultimediaquickglobal_p.h
-        qtmultimediaquicktypes_p.h
+        qtmultimediaquicktypes.cpp qtmultimediaquicktypes_p.h
     QML_FILES
         ${qml_files}
     PUBLIC_LIBRARIES

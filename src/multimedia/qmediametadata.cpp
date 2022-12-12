@@ -512,3 +512,5 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
 */
 
 QT_END_NAMESPACE
+
+#include "moc_qmediametadata.cpp"

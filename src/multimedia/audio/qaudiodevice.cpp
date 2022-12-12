@@ -369,3 +369,5 @@ QDebug operator<<(QDebug dbg, QAudioDevice::Mode mode)
 #endif
 
 QT_END_NAMESPACE
+
+#include "moc_qaudiodevice.cpp"

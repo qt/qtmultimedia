@@ -432,3 +432,5 @@ QDebug operator<<(QDebug d, const QCameraDevice &camera)
 #endif
 
 QT_END_NAMESPACE
+
+#include "moc_qcameradevice.cpp"

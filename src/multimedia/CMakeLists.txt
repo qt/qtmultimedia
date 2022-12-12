@@ -25,7 +25,7 @@ qt_internal_add_module(Multimedia
         audio/qaudiohelpers.cpp audio/qaudiohelpers_p.h
         audio/qaudiosource.cpp audio/qaudiosource.h
         audio/qaudiosink.cpp audio/qaudiosink.h
-        audio/qaudiosystem_p.h
+        audio/qaudiosystem.cpp audio/qaudiosystem_p.h
         audio/qsamplecache_p.cpp audio/qsamplecache_p.h
         audio/qsoundeffect.cpp audio/qsoundeffect.h
         audio/qwavedecoder.cpp audio/qwavedecoder.h
@@ -43,7 +43,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
-        platform/qplatformmediaplugin_p.h
+        platform/qplatformmediaplugin.cpp platform/qplatformmediaplugin_p.h
         platform/qplatformvideodevices.cpp platform/qplatformvideodevices_p.h
         platform/qplatformvideosink.cpp platform/qplatformvideosink_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h

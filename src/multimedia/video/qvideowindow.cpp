@@ -518,3 +518,5 @@ void QVideoWindow::setVideoFrame(const QVideoFrame &frame)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qvideowindow_p.cpp"
