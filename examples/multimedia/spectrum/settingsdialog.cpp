@@ -98,3 +98,5 @@ void SettingsDialog::outputDeviceChanged(int index)
 {
     m_outputDevice = m_outputDeviceComboBox->itemData(index).value<QAudioDevice>();
 }
+
+#include "moc_settingsdialog.cpp"

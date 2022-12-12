@@ -97,3 +97,5 @@ void ProgressBar::windowChanged(qint64 position, qint64 length)
     m_windowLength = length;
     repaint();
 }
+
+#include "moc_progressbar.cpp"

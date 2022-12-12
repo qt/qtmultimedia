@@ -385,3 +385,5 @@ void Camera::saveMetaData()
     }
     m_mediaRecorder->setMetaData(data);
 }
+
+#include "moc_camera.cpp"

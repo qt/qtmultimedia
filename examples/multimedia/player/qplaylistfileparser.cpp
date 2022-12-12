@@ -3,7 +3,7 @@
 
 #include "qmediametadata.h"
 #include "qmediaplayer.h"
-#include "qplaylistfileparser_p.h"
+#include "qplaylistfileparser.h"
 
 #include <QDebug>
 #include <QFileInfo>
@@ -617,3 +617,5 @@ void QPlaylistFileParser::handleError()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qplaylistfileparser.cpp"

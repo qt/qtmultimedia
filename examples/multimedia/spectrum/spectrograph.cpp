@@ -198,3 +198,5 @@ void Spectrograph::selectBar(int index)
     m_barSelected = index;
     update();
 }
+
+#include "moc_spectrograph.cpp"

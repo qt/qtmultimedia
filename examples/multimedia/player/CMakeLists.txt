@@ -20,8 +20,9 @@ qt_add_executable(player
     playercontrols.cpp playercontrols.h
     playlistmodel.cpp playlistmodel.h
     videowidget.cpp videowidget.h
-    qmediaplaylist.cpp qmediaplaylist.h qmediaplaylist_p.h
-    qplaylistfileparser.cpp qplaylistfileparser_p.h
+    qmediaplaylist.cpp qmediaplaylist.h
+    qmediaplaylist_p.cpp qmediaplaylist_p.h
+    qplaylistfileparser.cpp qplaylistfileparser.h
 )
 
 set_target_properties(player PROPERTIES

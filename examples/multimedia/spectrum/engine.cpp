@@ -723,3 +723,5 @@ void Engine::dumpData()
     pcmFile.write(m_buffer.constData(), m_dataLength);
 }
 #endif // DUMP_AUDIO
+
+#include "moc_engine.cpp"

@@ -229,3 +229,5 @@ void SpectrumAnalyser::calculationComplete(const FrequencySpectrum &spectrum)
         emit spectrumChanged(spectrum);
     m_state = Idle;
 }
+
+#include "moc_spectrumanalyser.cpp"

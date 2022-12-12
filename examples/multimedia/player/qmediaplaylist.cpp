@@ -3,7 +3,7 @@
 
 #include "qmediaplaylist.h"
 #include "qmediaplaylist_p.h"
-#include "qplaylistfileparser_p.h"
+#include "qplaylistfileparser.h"
 
 #include <QCoreApplication>
 #include <QFile>

@@ -205,3 +205,5 @@ void VideoSettings::selectComboBoxItem(QComboBox *box, const QVariant &value)
         }
     }
 }
+
+#include "moc_videosettings.cpp"

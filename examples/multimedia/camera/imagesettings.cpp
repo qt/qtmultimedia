@@ -82,3 +82,5 @@ void ImageSettings::selectComboBoxItem(QComboBox *box, const QVariant &value)
         }
     }
 }
+
+#include "moc_imagesettings.cpp"

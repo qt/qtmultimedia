@@ -171,3 +171,5 @@ void AudioTest::sampleFormatChanged(int idx)
     auto formats = m_deviceInfo.supportedSampleFormats();
     m_settings.setSampleFormat(formats.at(idx));
 }
+
+#include "moc_audiodevices.cpp"
