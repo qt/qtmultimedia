@@ -59,3 +59,5 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegvideorenderer_p.cpp"

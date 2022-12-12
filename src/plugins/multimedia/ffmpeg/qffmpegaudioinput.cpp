@@ -186,4 +186,6 @@ void QFFmpegAudioInput::setRunning(bool b)
 
 QT_END_NAMESPACE
 
+#include "moc_qffmpegaudioinput_p.cpp"
+
 #include "qffmpegaudioinput.moc"

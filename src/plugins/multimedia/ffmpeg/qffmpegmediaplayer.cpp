@@ -241,3 +241,5 @@ void QFFmpegMediaPlayer::setActiveTrack(TrackType type, int streamNumber)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegmediaplayer_p.cpp"

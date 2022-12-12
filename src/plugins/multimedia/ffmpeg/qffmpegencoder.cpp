@@ -572,3 +572,5 @@ void VideoEncoder::loop()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegencoder_p.cpp"

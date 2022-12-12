@@ -154,3 +154,5 @@ void Renderer::doNextStep()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegrenderer_p.cpp"

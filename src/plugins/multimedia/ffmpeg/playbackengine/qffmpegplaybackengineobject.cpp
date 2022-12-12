@@ -85,3 +85,5 @@ void PlaybackEngineObject::scheduleNextStep(bool allowDoImmediatelly)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegplaybackengineobject_p.cpp"
