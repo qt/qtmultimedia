@@ -123,3 +123,5 @@ void QFFmpegMediaCaptureSession::newVideoFrame(const QVideoFrame &frame)
 
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegmediacapturesession_p.cpp"

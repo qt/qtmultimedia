@@ -19,6 +19,8 @@
 
 Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 
+QT_BEGIN_NAMESPACE
+
 QFFmpegMediaRecorder::QFFmpegMediaRecorder(QMediaRecorder *parent)
   : QPlatformMediaRecorder(parent)
 {
@@ -155,3 +157,7 @@ void QFFmpegMediaRecorder::setCaptureSession(QPlatformMediaCaptureSession *sessi
     if (!m_session)
         return;
 }
+
+QT_END_NAMESPACE
+
+#include "moc_qffmpegmediarecorder_p.cpp"

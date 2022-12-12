@@ -29,3 +29,5 @@ void QFFmpegVideoSink::setVideoFrame(const QVideoFrame &frame)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegvideosink_p.cpp"

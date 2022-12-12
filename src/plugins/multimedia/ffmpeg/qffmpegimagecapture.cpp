@@ -267,3 +267,5 @@ void QFFmpegImageCapture::setImageSettings(const QImageEncoderSettings &settings
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegimagecapture_p.cpp"

@@ -1266,3 +1266,5 @@ void Decoder::streamAtEnd()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegdecoder_p.cpp"

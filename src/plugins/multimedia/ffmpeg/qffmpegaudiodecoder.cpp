@@ -262,4 +262,6 @@ void QFFmpegAudioDecoder::errorSignal(int err, const QString &errorString)
 
 QT_END_NAMESPACE
 
+#include "moc_qffmpegaudiodecoder_p.cpp"
+
 #include "qffmpegaudiodecoder.moc"
