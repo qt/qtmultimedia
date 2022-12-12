@@ -457,3 +457,5 @@ void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, i
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegplaybackengine_p.cpp"

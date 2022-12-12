@@ -1278,3 +1278,5 @@ qint64 Decoder::currentPosition() const {
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegdecoder_p.cpp"

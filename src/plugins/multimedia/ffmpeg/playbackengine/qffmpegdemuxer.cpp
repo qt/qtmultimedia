@@ -131,3 +131,5 @@ Demuxer::RequestingSignal Demuxer::signalByTrackType(QPlatformMediaPlayer::Track
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegdemuxer_p.cpp"

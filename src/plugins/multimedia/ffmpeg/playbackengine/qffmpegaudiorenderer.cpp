@@ -151,3 +151,5 @@ void AudioRenderer::updateOutput(const Codec *codec)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegaudiorenderer_p.cpp"

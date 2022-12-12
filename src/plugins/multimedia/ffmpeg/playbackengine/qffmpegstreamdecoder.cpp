@@ -204,3 +204,5 @@ void StreamDecoder::decodeSubtitle(Packet packet)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegstreamdecoder_p.cpp"

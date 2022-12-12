@@ -32,3 +32,5 @@ Renderer::RenderingResult SubtitleRenderer::renderInternal(Frame frame)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qffmpegsubtitlerenderer_p.cpp"
