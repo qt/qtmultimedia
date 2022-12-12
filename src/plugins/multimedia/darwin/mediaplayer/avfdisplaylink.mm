@@ -203,3 +203,5 @@ bool AVFDisplayLink::event(QEvent *event)
     }
     return QObject::event(event);
 }
+
+#include "moc_avfdisplaylink_p.cpp"
