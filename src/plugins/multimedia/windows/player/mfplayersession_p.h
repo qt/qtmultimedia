@@ -138,9 +138,6 @@ private:
     qint64 m_timeCounter = 0;
     UINT64 m_duration = 0;
     bool m_updatingTopology = false;
-    qint64 m_lastSeekPos = 0;
-    MFTIME m_lastSeekSysTime = 0;
-    bool m_altTiming = false;
     bool m_updateRoutingOnStart = false;
 
     enum Command
