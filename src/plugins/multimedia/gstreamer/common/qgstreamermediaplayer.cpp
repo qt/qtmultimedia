@@ -847,3 +847,5 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreamermediaplayer_p.cpp"

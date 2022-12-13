@@ -16,6 +16,8 @@
 
 #include <QtCore/qdebug.h>
 
+QT_BEGIN_NAMESPACE
+
 QGstreamerCamera::QGstreamerCamera(QCamera *camera)
         : QPlatformCamera(camera)
 {
@@ -699,3 +701,7 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
 }
 
 #endif
+
+QT_END_NAMESPACE
+
+#include "moc_qgstreamercamera_p.cpp"

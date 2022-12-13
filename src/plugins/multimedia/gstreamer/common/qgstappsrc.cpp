@@ -9,6 +9,8 @@
 #include "qloggingcategory.h"
 
 Q_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc")
+  
+QT_BEGIN_NAMESPACE
 
 QGstAppSrc::QGstAppSrc(QObject *parent)
     : QObject(parent)
@@ -270,3 +272,7 @@ void QGstAppSrc::eosOrIdle()
     m_noMoreData = true;
     emit noMoreData();
 }
+
+QT_END_NAMESPACE
+
+#include "moc_qgstappsrc_p.cpp"

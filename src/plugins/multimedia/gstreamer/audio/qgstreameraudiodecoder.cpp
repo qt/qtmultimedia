@@ -504,3 +504,5 @@ qint64 QGstreamerAudioDecoder::getPositionFromBuffer(GstBuffer* buffer)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreameraudiodecoder_p.cpp"

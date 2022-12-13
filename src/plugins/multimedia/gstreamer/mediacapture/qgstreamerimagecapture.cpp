@@ -270,3 +270,5 @@ void QGstreamerImageCapture::setImageSettings(const QImageEncoderSettings &setti
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreamerimagecapture_p.cpp"

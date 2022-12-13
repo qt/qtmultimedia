@@ -232,3 +232,5 @@ void QGstreamerVideoSink::updateGstContexts()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreamervideosink_p.cpp"

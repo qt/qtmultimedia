@@ -161,3 +161,5 @@ void QGstreamerVideoOutput::flushSubtitles()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreamervideooutput_p.cpp"

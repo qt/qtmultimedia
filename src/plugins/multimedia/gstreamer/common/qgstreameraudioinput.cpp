@@ -110,3 +110,5 @@ QAudioDevice QGstreamerAudioInput::audioInput() const
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreameraudioinput_p.cpp"

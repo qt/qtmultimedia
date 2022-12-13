@@ -302,3 +302,5 @@ QGstreamerVideoSink *QGstreamerMediaCapture::gstreamerVideoSink() const
 
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreamermediacapture_p.cpp"
