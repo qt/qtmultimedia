@@ -542,7 +542,9 @@ void QAndroidMediaPlayer::onError(qint32 what, qint32 extra)
         setMediaStatus(QMediaPlayer::InvalidMedia);
         break;
     case AndroidMediaPlayer::MEDIA_ERROR_BAD_THINGS_ARE_GOING_TO_HAPPEN:
-        errorString += QLatin1String(" (Unknown error/Insufficient resources)");
+        errorString += mMediaContent.scheme() == QLatin1String("rtsp")
+            ? QLatin1String(" (Unknown error/Insufficient resources or RTSP may not be supported)")
+            : QLatin1String(" (Unknown error/Insufficient resources)");
         error = QMediaPlayer::ResourceError;
         break;
     }
