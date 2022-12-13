@@ -3,6 +3,8 @@
 
 #include "evrvideowindowcontrol_p.h"
 
+QT_BEGIN_NAMESPACE
+
 EvrVideoWindowControl::EvrVideoWindowControl(QVideoSink *parent)
     : QPlatformVideoSink(parent)
     , m_windowId(0)
@@ -220,3 +222,7 @@ DXVA2_Fixed32 EvrVideoWindowControl::scaleProcAmpValue(DWORD prop, float value) 
 
     return DXVA2FloatToFixed(scaledValue);
 }
+
+QT_END_NAMESPACE
+
+#include "moc_evrvideowindowcontrol_p.cpp"

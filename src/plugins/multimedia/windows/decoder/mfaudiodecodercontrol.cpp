@@ -8,6 +8,8 @@
 #include "mfaudiodecodercontrol_p.h"
 #include <private/qwindowsaudioutils_p.h>
 
+QT_BEGIN_NAMESPACE
+
 MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)
     , m_sourceResolver(new SourceResolver)
@@ -217,3 +219,7 @@ QAudioBuffer MFAudioDecoderControl::read()
 
     return buffer;
 }
+
+QT_END_NAMESPACE
+
+#include "moc_mfaudiodecodercontrol_p.cpp"

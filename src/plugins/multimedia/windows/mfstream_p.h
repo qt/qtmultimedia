@@ -22,7 +22,7 @@
 #include <QtCore/qcoreevent.h>
 #include <QtCore/qpointer.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class MFStream : public QObject, public IMFByteStream
 {
@@ -121,5 +121,7 @@ protected:
     void customEvent(QEvent *event) override;
     IMFAsyncResult *m_currentReadResult;
 };
+
+QT_END_NAMESPACE
 
 #endif

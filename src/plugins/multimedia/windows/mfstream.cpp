@@ -4,6 +4,7 @@
 #include "mfstream_p.h"
 #include <QtCore/qcoreapplication.h>
 
+QT_BEGIN_NAMESPACE
 //MFStream is added for supporting QIODevice type of media source.
 //It is used to delegate invocations from media foundation(through IMFByteStream) to QIODevice.
 
@@ -326,3 +327,7 @@ void MFStream::AsyncReadState::setBytesRead(ULONG cbRead)
 {
     m_cbRead = cbRead;
 }
+
+QT_END_NAMESPACE
+
+#include "moc_mfstream_p.cpp"

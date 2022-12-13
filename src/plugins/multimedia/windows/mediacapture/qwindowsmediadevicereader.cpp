@@ -1012,3 +1012,5 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnMarker(DWORD, LPVOID)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwindowsmediadevicereader_p.cpp"
