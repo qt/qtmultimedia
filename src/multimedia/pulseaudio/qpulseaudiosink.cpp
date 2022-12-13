@@ -473,6 +473,9 @@ void QPulseAudioSink::userFeed()
             setError(m_audioSource->atEnd() ? QAudio::NoError : QAudio::UnderrunError);
             setState(QAudio::IdleState);
         }
+    } else {
+        if (state() == QAudio::IdleState)
+            setError(QAudio::UnderrunError);
     }
 
     if (m_deviceState != QAudio::ActiveState)
@@ -643,7 +646,7 @@ void QPulseAudioSink::resume()
 
         m_tickTimer.start(m_periodTime, this);
 
-        setState(QAudio::ActiveState);
+        setState(m_pullMode ? QAudio::ActiveState : QAudio::IdleState);
         setError(QAudio::NoError);
     }
 }
