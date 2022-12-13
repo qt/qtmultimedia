@@ -122,6 +122,7 @@ QVideoSink::QVideoSink(QObject *parent)
  */
 QVideoSink::~QVideoSink()
 {
+    disconnect(this);
     d->unregisterSource();
     delete d;
 }
