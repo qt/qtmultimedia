@@ -23,6 +23,8 @@
 
 Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 
+QT_BEGIN_NAMESPACE
+
 QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
   : QPlatformMediaRecorder(parent),
     audioPauseControl(*this),
@@ -396,3 +398,5 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
     gstPipeline.set("message-forward", true);
     gstPipeline.installMessageFilter(this);
 }
+
+QT_END_NAMESPACE

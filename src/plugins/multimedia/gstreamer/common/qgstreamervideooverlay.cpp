@@ -215,3 +215,5 @@ bool QGstreamerVideoOverlay::processSyncMessage(const QGstreamerMessage &message
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstreamervideooverlay_p.cpp"

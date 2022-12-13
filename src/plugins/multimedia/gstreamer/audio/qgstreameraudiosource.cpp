@@ -17,7 +17,6 @@ Q_DECLARE_METATYPE(GstSample *);
 
 QT_BEGIN_NAMESPACE
 
-
 QGStreamerAudioSource::QGStreamerAudioSource(const QAudioDevice &device, QObject *parent)
     : QPlatformAudioSource(parent),
       m_info(device),

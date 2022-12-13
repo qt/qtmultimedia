@@ -16,6 +16,8 @@
 
 #include <QtCore/qdebug.h>
 
+QT_BEGIN_NAMESPACE
+
 QMaybe<QPlatformCamera *> QGstreamerCamera::create(QCamera *camera)
 {
     QGstElement videotestsrc("videotestsrc");
@@ -722,3 +724,7 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
 }
 
 #endif
+
+QT_END_NAMESPACE
+
+#include "moc_qgstreamercamera_p.cpp"
