@@ -10,6 +10,8 @@
 
 Q_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc")
 
+QT_BEGIN_NAMESPACE
+
 QMaybe<QGstAppSrc *> QGstAppSrc::create(QObject *parent)
 {
     QGstElement appsrc("appsrc", "appsrc");
@@ -276,3 +278,7 @@ void QGstAppSrc::eosOrIdle()
     m_noMoreData = true;
     emit noMoreData();
 }
+
+QT_END_NAMESPACE
+
+#include "moc_qgstappsrc_p.cpp"

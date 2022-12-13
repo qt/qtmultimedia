@@ -629,3 +629,5 @@ gboolean QGstVideoRendererSink::event(GstBaseSink *base, GstEvent * event)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qgstvideorenderersink_p.cpp"
