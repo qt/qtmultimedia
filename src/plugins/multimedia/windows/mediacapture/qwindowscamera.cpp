@@ -97,3 +97,5 @@ void QWindowsCamera::onActiveChanged(bool active)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwindowscamera_p.cpp"

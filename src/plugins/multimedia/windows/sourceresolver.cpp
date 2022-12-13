@@ -9,6 +9,8 @@
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/qmediaplayer.h>
 
+QT_BEGIN_NAMESPACE
+
 /*
     SourceResolver is separated from MFPlayerSession to handle the work of resolving a media source
     asynchronously. You call SourceResolver::load to request resolving a media source asynchronously,
@@ -287,3 +289,6 @@ bool SourceResolver::State::fromStream() const
     return m_fromStream;
 }
 
+QT_END_NAMESPACE
+
+#include "moc_sourceresolver_p.cpp"

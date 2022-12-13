@@ -221,3 +221,5 @@ void QWindowsMediaEncoder::onRecordingStopped()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwindowsmediaencoder_p.cpp"

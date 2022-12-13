@@ -105,3 +105,5 @@ QWindowsMediaDeviceSession *QWindowsMediaCaptureService::session() const
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwindowsmediacapture_p.cpp"
