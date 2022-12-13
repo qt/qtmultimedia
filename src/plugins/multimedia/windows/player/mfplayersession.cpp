@@ -2059,3 +2059,4 @@ QMediaMetaData MFPlayerSession::trackMetaData(QPlatformMediaPlayer::TrackType ty
     return m_trackInfo[type].metaData.at(trackNumber);
 }
 
+#include "moc_mfplayersession_p.cpp"

@@ -364,3 +364,5 @@ quint32 QWindowsMediaDeviceSession::estimateAudioBitRate(const GUID &audioFormat
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwindowsmediadevicesession_p.cpp"

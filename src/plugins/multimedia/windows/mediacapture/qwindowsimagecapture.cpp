@@ -203,3 +203,5 @@ int QWindowsImageCapture::writerQuality(const QString &writerFormat,
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwindowsimagecapture_p.cpp"

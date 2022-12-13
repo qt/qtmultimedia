@@ -23,7 +23,7 @@
 #include "qaudioformat.h"
 #include <private/qwindowsiupointer_p.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class MFDecoderSourceReader : public QObject, public IMFSourceReaderCallback
 {
@@ -57,4 +57,7 @@ private:
     QWindowsIUPointer<IMFSourceReader> m_sourceReader;
 
 };
+
+QT_END_NAMESPACE
+
 #endif//MFDECODERSOURCEREADER_H

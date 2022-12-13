@@ -7,6 +7,8 @@
 #include <qdebug.h>
 #include "mfdecodersourcereader_p.h"
 
+QT_BEGIN_NAMESPACE
+
 QWindowsIUPointer<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QAudioFormat::SampleFormat sampleFormat)
 {
     QWindowsIUPointer<IMFMediaType> mediaType;
@@ -96,3 +98,7 @@ STDMETHODIMP MFDecoderSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStrea
     }
     return S_OK;
 }
+
+QT_END_NAMESPACE
+
+#include "moc_mfdecodersourcereader_p.cpp"
