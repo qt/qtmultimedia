@@ -280,3 +280,5 @@ void QQnxAudioRecorder::handleMmEventError(const mmr_event_t *event)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qqnxaudiorecorder_p.cpp"

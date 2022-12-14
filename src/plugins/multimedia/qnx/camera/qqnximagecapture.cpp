@@ -253,3 +253,5 @@ void QQnxImageCapture::updateReadyForCapture()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qqnximagecapture_p.cpp"
