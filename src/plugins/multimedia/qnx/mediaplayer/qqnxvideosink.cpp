@@ -22,3 +22,5 @@ QRhi *QQnxVideoSink::rhi() const
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qqnxvideosink_p.cpp"

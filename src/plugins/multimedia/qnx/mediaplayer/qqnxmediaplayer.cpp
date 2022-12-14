@@ -890,3 +890,5 @@ void QQnxMediaPlayer::readEvents()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qqnxmediaplayer_p.cpp"

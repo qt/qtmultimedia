@@ -816,3 +816,5 @@ void QQnxCamera::statusCallback(camera_handle_t handle, camera_devstatus_t statu
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qqnxcamera_p.cpp"
