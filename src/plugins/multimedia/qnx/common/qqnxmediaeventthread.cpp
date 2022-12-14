@@ -16,6 +16,8 @@ int mmr_event_arm(mmr_context_t *ctxt,
                   struct sigevent const *sev);
 }
 
+QT_BEGIN_NAMESPACE
+
 static const int c_mmrCode = _PULSE_CODE_MINAVAIL + 0;
 static const int c_readCode = _PULSE_CODE_MINAVAIL + 1;
 static const int c_quitCode = _PULSE_CODE_MINAVAIL + 2;
@@ -90,3 +92,7 @@ void QQnxMediaEventThread::shutdown()
     // block until thread terminates
     wait();
 }
+
+QT_END_NAMESPACE
+
+#include "moc_qqnxmediaeventthread_p.cpp"

@@ -420,3 +420,5 @@ void QQnxPlatformCamera::onFrameAvailable()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qqnxplatformcamera_p.cpp"

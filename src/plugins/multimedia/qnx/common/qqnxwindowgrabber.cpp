@@ -432,3 +432,5 @@ GLuint QQnxWindowGrabberImage::getTexture(screen_window_t window, const QSize &s
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qqnxwindowgrabber_p.cpp"
