@@ -517,3 +517,5 @@ bool AndroidMediaPlayer::registerNativeMethods()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_androidmediaplayer_p.cpp"

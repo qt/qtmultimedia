@@ -393,3 +393,4 @@ void QAndroidTextureVideoOutput::newFrame(const QVideoFrame &frame)
 QT_END_NAMESPACE
 
 #include "qandroidvideooutput.moc"
+#include "moc_qandroidvideooutput_p.cpp"

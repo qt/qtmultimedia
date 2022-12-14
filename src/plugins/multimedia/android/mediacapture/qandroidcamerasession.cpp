@@ -778,3 +778,5 @@ void QAndroidCameraSession::setVideoSink(QVideoSink *sink)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qandroidcamerasession_p.cpp"

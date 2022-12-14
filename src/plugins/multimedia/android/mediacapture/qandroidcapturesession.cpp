@@ -477,3 +477,5 @@ void QAndroidCaptureSession::onInfo(int what, int extra)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qandroidcapturesession_p.cpp"
