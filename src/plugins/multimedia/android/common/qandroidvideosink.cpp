@@ -32,3 +32,5 @@ void QAndroidVideoSink::setRhi(QRhi *rhi)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qandroidvideosink_p.cpp"

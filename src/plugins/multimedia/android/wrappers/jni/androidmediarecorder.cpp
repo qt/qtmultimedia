@@ -333,3 +333,5 @@ bool AndroidMediaRecorder::registerNativeMethods()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_androidmediarecorder_p.cpp"

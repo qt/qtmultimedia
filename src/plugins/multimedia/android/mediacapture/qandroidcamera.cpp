@@ -552,3 +552,5 @@ void QAndroidCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qandroidcamera_p.cpp"

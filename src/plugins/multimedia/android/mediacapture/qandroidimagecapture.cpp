@@ -69,3 +69,5 @@ void QAndroidImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessi
             this, &QAndroidImageCapture::error);
 }
 QT_END_NAMESPACE
+
+#include "moc_qandroidimagecapture_p.cpp"
