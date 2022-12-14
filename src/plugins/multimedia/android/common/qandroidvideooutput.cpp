@@ -267,12 +267,15 @@ public:
 public slots:
     void onFrameAvailable()
     {
-        m_surfaceTexture->updateTexImage();
-        auto matrix = extTransformMatrix(m_surfaceTexture.get());
-        auto tex = m_textureCopy->copyExternalTexture(m_size, matrix);
-        auto *buffer = new AndroidTextureVideoBuffer(m_rhi.get(), std::move(tex), m_size);
-        QVideoFrame frame(buffer, QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888));
-        emit newFrame(frame);
+        // Check if 'm_surfaceTexture' is not reset because there can be pending frames in queue.
+        if (m_surfaceTexture) {
+            m_surfaceTexture->updateTexImage();
+            auto matrix = extTransformMatrix(m_surfaceTexture.get());
+            auto tex = m_textureCopy->copyExternalTexture(m_size, matrix);
+            auto *buffer = new AndroidTextureVideoBuffer(m_rhi.get(), std::move(tex), m_size);
+            QVideoFrame frame(buffer, QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888));
+            emit newFrame(frame);
+        }
     }
 
     void clearFrame() { emit newFrame({}); }
@@ -284,6 +287,7 @@ public slots:
         m_surfaceTexture.reset();
         m_texture.reset();
         m_textureCopy.reset();
+        m_rhi.reset();
     }
 
     AndroidSurfaceTexture *createSurfaceTexture(QRhi *rhi)
@@ -328,8 +332,8 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject
     : QAndroidVideoOutput(parent)
     , m_sink(sink)
 {
-    if (!m_sink || !m_sink->rhi()) {
-        qDebug() << "Cannot create QAndroidTextureVideoOutput without a sink and a rhi";
+    if (!m_sink) {
+        qDebug() << "Cannot create QAndroidTextureVideoOutput without a sink.";
         m_surfaceThread = nullptr;
         return;
     }
@@ -344,8 +348,9 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject
 
 QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
-    if (m_surfaceThread)
-        m_surfaceThread->wait();
+    QMetaObject::invokeMethod(m_surfaceThread.get(), &AndroidTextureThread::clearSurfaceTexture);
+    m_surfaceThread->quit();
+    m_surfaceThread->wait();
 }
 
 void QAndroidTextureVideoOutput::setSubtitle(const QString &subtitle)
