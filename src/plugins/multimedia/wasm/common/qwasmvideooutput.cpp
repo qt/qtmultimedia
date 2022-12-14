@@ -814,3 +814,5 @@ void QWasmVideoOutput::videoFrameTimerCallback()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwasmvideooutput_p.cpp"
