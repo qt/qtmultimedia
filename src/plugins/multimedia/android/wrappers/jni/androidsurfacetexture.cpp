@@ -145,3 +145,5 @@ void AndroidSurfaceTexture::setOnFrameAvailableListener(const QJniObject &listen
 }
 
 QT_END_NAMESPACE
+
+#include "moc_androidsurfacetexture_p.cpp"

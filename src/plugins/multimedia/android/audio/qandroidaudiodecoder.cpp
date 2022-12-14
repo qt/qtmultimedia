@@ -437,3 +437,5 @@ void QAndroidAudioDecoder::readDevice() {
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qandroidaudiodecoder_p.cpp"

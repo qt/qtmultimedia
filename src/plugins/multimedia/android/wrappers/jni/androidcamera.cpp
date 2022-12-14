@@ -1780,3 +1780,4 @@ bool AndroidCamera::registerNativeMethods()
 QT_END_NAMESPACE
 
 #include "androidcamera.moc"
+#include "moc_androidcamera_p.cpp"

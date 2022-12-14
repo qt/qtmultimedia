@@ -113,3 +113,5 @@ void QAndroidMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qandroidmediacapturesession_p.cpp"

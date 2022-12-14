@@ -983,3 +983,5 @@ void QAndroidMediaPlayer::updateTrackInfo()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qandroidmediaplayer_p.cpp"
