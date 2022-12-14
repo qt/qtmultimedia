@@ -3,6 +3,8 @@
 
 #include "qwasmvideosink_p.h"
 
+QT_BEGIN_NAMESPACE
+
 QWasmVideoSink::QWasmVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
@@ -16,3 +18,7 @@ void QWasmVideoSink::setRhi(QRhi *rhi)
         return;
     m_rhi = rhi;
 }
+
+QT_END_NAMESPACE
+
+#include "moc_qwasmvideosink_p.cpp"

@@ -30,3 +30,5 @@ bool QWasmAudioInput::isMuted() const
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwasmaudioinput_p.cpp"

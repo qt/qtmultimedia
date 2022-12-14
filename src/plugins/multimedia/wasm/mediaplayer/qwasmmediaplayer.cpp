@@ -415,3 +415,5 @@ void QWasmMediaPlayer::videoMetaDataChanged()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qwasmmediaplayer_p.cpp"
