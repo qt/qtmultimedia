@@ -28,9 +28,9 @@ public:
     QGstreamerFormatInfo();
     ~QGstreamerFormatInfo();
 
-    QGstMutableCaps formatCaps(const QMediaFormat &f) const;
-    QGstMutableCaps audioCaps(const QMediaFormat &f) const;
-    QGstMutableCaps videoCaps(const QMediaFormat &f) const;
+    QGstCaps formatCaps(const QMediaFormat &f) const;
+    QGstCaps audioCaps(const QMediaFormat &f) const;
+    QGstCaps videoCaps(const QMediaFormat &f) const;
 
     static QMediaFormat::AudioCodec audioCodecForCaps(QGstStructure structure);
     static QMediaFormat::VideoCodec videoCodecForCaps(QGstStructure structure);

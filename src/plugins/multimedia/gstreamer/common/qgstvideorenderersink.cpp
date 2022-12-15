@@ -53,8 +53,7 @@ void QGstVideoRenderer::createSurfaceCaps()
     QRhi *rhi = m_sink->rhi();
     Q_UNUSED(rhi);
 
-    QGstMutableCaps caps;
-    caps.create();
+    auto caps = QGstCaps::create();
 
     // All the formats that both we and gstreamer support
     auto formats = QList<QVideoFrameFormat::PixelFormat>()
@@ -110,16 +109,16 @@ void QGstVideoRenderer::createSurfaceCaps()
     m_surfaceCaps = caps;
 }
 
-QGstMutableCaps QGstVideoRenderer::caps()
+QGstCaps QGstVideoRenderer::caps()
 {
     QMutexLocker locker(&m_mutex);
 
     return m_surfaceCaps;
 }
 
-bool QGstVideoRenderer::start(GstCaps *caps)
+bool QGstVideoRenderer::start(const QGstCaps& caps)
 {
-    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << QGstCaps(caps).toString();
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << caps.toString();
     QMutexLocker locker(&m_mutex);
 
     m_frameMirrored = false;
@@ -130,7 +129,7 @@ bool QGstVideoRenderer::start(GstCaps *caps)
         m_stop = true;
     }
 
-    m_startCaps = QGstMutableCaps(caps, QGstMutableCaps::NeedsRef);
+    m_startCaps = caps;
 
     /*
     Waiting for start() to be invoked in the main thread may block
@@ -311,7 +310,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
         Q_ASSERT(!m_active);
 
         auto startCaps = m_startCaps;
-        m_startCaps = nullptr;
+        m_startCaps = {};
 
         if (m_sink) {
             locker->unlock();
@@ -561,21 +560,23 @@ GstCaps *QGstVideoRendererSink::get_caps(GstBaseSink *base, GstCaps *filter)
 {
     VO_SINK(base);
 
-    QGstMutableCaps caps = sink->renderer->caps();
+    QGstCaps caps = sink->renderer->caps();
     if (filter)
-        caps = gst_caps_intersect(caps.get(), filter);
+        caps = QGstCaps(gst_caps_intersect(caps.get(), filter), QGstCaps::HasRef);
 
     gst_caps_ref(caps.get());
     return caps.get();
 }
 
-gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *caps)
+gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *gcaps)
 {
     VO_SINK(base);
 
-    qCDebug(qLcGstVideoRenderer) << "set_caps:" << QGstCaps(caps).toString();
+    auto caps = QGstCaps(gcaps, QGstCaps::NeedsRef);
 
-    if (!caps) {
+    qCDebug(qLcGstVideoRenderer) << "set_caps:" << caps.toString();
+
+    if (caps.isNull()) {
         sink->renderer->stop();
 
         return TRUE;

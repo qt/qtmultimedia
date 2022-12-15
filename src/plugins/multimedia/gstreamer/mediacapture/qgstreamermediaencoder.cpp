@@ -108,7 +108,7 @@ static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSe
 {
     auto *formatInfo = QGstreamerIntegration::instance()->gstFormatsInfo();
 
-    QGstMutableCaps caps = formatInfo->formatCaps(settings.fileFormat());
+    auto caps = formatInfo->formatCaps(settings.fileFormat());
 
     GstEncodingContainerProfile *profile = (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
         "container_profile",
@@ -122,7 +122,7 @@ static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &setti
 {
     auto *formatInfo = QGstreamerIntegration::instance()->gstFormatsInfo();
 
-    QGstMutableCaps caps = formatInfo->videoCaps(settings.mediaFormat());
+    auto caps = formatInfo->videoCaps(settings.mediaFormat());
     if (caps.isNull())
         return nullptr;
 
