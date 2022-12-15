@@ -38,13 +38,11 @@ public:
     static void setDevices(QPlatformMediaDevices *);
     static QPlatformMediaDevices *instance();
 
-    virtual QList<QAudioDevice> audioInputs() const = 0;
-    virtual QList<QAudioDevice> audioOutputs() const = 0;
-    virtual QList<QCameraDevice> videoInputs() const;
-    virtual QPlatformAudioSource *createAudioSource(const QAudioDevice &deviceInfo,
-                                                    QObject *parent) = 0;
-    virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
-                                                QObject *parent) = 0;
+    virtual QList<QAudioDevice> audioInputs() const;
+    virtual QList<QAudioDevice> audioOutputs() const;
+
+    virtual QPlatformAudioSource *createAudioSource(const QAudioDevice &, QObject *parent);
+    virtual QPlatformAudioSink *createAudioSink(const QAudioDevice &, QObject *parent);
 
     QPlatformAudioSource *audioInputDevice(const QAudioFormat &format,
                                            const QAudioDevice &deviceInfo, QObject *parent);

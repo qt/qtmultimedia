@@ -74,11 +74,6 @@ QList<QAudioDevice> QAlsaMediaDevices::audioOutputs() const
     return availableDevices(QAudioDevice::Output);
 }
 
-QList<QCameraDevice> QAlsaMediaDevices::videoInputs() const
-{
-    return {};
-}
-
 QPlatformAudioSource *QAlsaMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
                                                            QObject *parent)
 {
