@@ -30,11 +30,6 @@ QList<QAudioDevice> QWasmMediaDevices::audioOutputs() const
     return m_outs;
 }
 
-QList<QCameraDevice> QWasmMediaDevices::videoInputs() const
-{
-    return m_cameraDevices;
-}
-
 QPlatformAudioSource *QWasmMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
                                                            QObject *parent)
 {

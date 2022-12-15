@@ -6,6 +6,7 @@
 #include "qaudiodevice.h"
 #include "qcameradevice.h"
 #include "qaudiosystem_p.h"
+#include "qaudiodevice.h"
 
 #include <qmutex.h>
 #include <qloggingcategory.h>
@@ -65,6 +66,8 @@ QPlatformMediaDevices *QPlatformMediaDevices::instance()
     holder.nativeInstance = new QQnxMediaDevices;
 #elif defined(Q_OS_WASM)
     holder.nativeInstance = new QWasmMediaDevices;
+#else
+    holder.nativeInstance = new QPlatformMediaDevices;
 #endif
 
     holder.instance = holder.nativeInstance;
@@ -82,9 +85,23 @@ void QPlatformMediaDevices::setDevices(QPlatformMediaDevices *devices)
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;
 
-QList<QCameraDevice> QPlatformMediaDevices::videoInputs() const
+QList<QAudioDevice> QPlatformMediaDevices::audioInputs() const
 {
     return {};
+}
+
+QList<QAudioDevice> QPlatformMediaDevices::audioOutputs() const
+{
+    return {};
+}
+
+QPlatformAudioSource *QPlatformMediaDevices::createAudioSource(const QAudioDevice &, QObject *)
+{
+    return nullptr;
+}
+QPlatformAudioSink *QPlatformMediaDevices::createAudioSink(const QAudioDevice &, QObject *)
+{
+    return nullptr;
 }
 
 QPlatformAudioSource *QPlatformMediaDevices::audioInputDevice(const QAudioFormat &format,
