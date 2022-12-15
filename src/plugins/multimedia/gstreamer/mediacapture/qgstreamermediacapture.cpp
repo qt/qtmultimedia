@@ -190,7 +190,7 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
 
         encoderVideoCapsFilter = QGstElement("capsfilter", "encoderVideoCapsFilter");
         Q_ASSERT(encoderVideoCapsFilter);
-        encoderVideoCapsFilter.set("caps", QGstMutableCaps(caps));
+        encoderVideoCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
 
         gstPipeline.add(encoderVideoCapsFilter);
 
@@ -205,7 +205,7 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
 
         encoderAudioCapsFilter = QGstElement("capsfilter", "encoderAudioCapsFilter");
         Q_ASSERT(encoderAudioCapsFilter);
-        encoderAudioCapsFilter.set("caps", QGstMutableCaps(caps));
+        encoderAudioCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
 
         gstPipeline.add(encoderAudioCapsFilter);
 

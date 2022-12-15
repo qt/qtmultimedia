@@ -83,7 +83,7 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
         else
             devices.append(info->create());
 
-        QGstCaps caps = gst_device_get_caps(device.gstDevice);
+        auto caps = QGstCaps(gst_device_get_caps(device.gstDevice), QGstCaps::HasRef);
         if (!caps.isNull()) {
             QList<QCameraFormat> formats;
             QSet<QSize> photoResolutions;
@@ -129,7 +129,6 @@ void QGstreamerVideoDevices::addDevice(GstDevice *device)
 
 void QGstreamerVideoDevices::removeDevice(GstDevice *device)
 {
-//    qDebug() << "removing device:" << device << gst_device_get_display_name(device);
     auto it = std::find_if(m_videoSources.begin(), m_videoSources.end(),
                            [=](const QGstDevice &a) { return a.gstDevice == device; });
 

@@ -19,7 +19,7 @@ QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteAr
     description = QString::fromUtf8(n);
     g_free(n);
 
-    QGstCaps caps = gst_device_get_caps(gstDevice);
+    auto caps = QGstCaps(gst_device_get_caps(gstDevice),QGstCaps::HasRef);
     int size = caps.size();
     for (int i = 0; i < size; ++i) {
         auto c = caps.at(i);
