@@ -81,7 +81,7 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
     }
 
     QCameraFormat f = findBestCameraFormat(camera);
-    auto caps = QGstMutableCaps::fromCameraFormat(f);
+    auto caps = QGstCaps::fromCameraFormat(f);
     auto gstNewDecode = QGstElement(f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
     gstCamera.unlink(gstCapsFilter);
@@ -125,7 +125,7 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
     if (f.isNull())
         f = findBestCameraFormat(m_cameraDevice);
 
-    auto caps = QGstMutableCaps::fromCameraFormat(f);
+    auto caps = QGstCaps::fromCameraFormat(f);
 
     auto newGstDecode = QGstElement(f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
     gstCameraBin.add(newGstDecode);

@@ -63,13 +63,13 @@ static QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
 */
 QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
 {
-    QGstCaps caps = gst_sample_get_caps(sample);
+    auto caps = QGstCaps(gst_sample_get_caps(sample), QGstCaps::NeedsRef);
     if (caps.isNull())
-        return QAudioFormat();
+        return {};
     return audioFormatForCaps(caps);
 }
 
-QAudioFormat QGstUtils::audioFormatForCaps(QGstCaps caps)
+QAudioFormat QGstUtils::audioFormatForCaps(const QGstCaps &caps)
 {
     QAudioFormat format;
     QGstStructure s = caps.at(0);
@@ -96,19 +96,21 @@ QAudioFormat QGstUtils::audioFormatForCaps(QGstCaps caps)
   \note Caller must unreference GstCaps.
 */
 
-QGstMutableCaps QGstUtils::capsForAudioFormat(const QAudioFormat &format)
+QGstCaps QGstUtils::capsForAudioFormat(const QAudioFormat &format)
 {
     if (!format.isValid())
         return {};
 
     auto sampleFormat = format.sampleFormat();
-    return gst_caps_new_simple(
+    auto caps = gst_caps_new_simple(
                 "audio/x-raw",
                 "format"  , G_TYPE_STRING, audioSampleFormatNames[sampleFormat],
                 "rate"    , G_TYPE_INT   , format.sampleRate(),
                 "channels", G_TYPE_INT   , format.channelCount(),
                 "layout"  , G_TYPE_STRING, "interleaved",
                 nullptr);
+
+    return QGstCaps(caps, QGstCaps::HasRef);
 }
 
 QList<QAudioFormat::SampleFormat> QGValue::getSampleFormats() const
@@ -284,8 +286,11 @@ QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
     return QVideoFrameFormat();
 }
 
-void QGstMutableCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier)
+void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier)
 {
+    if (!gst_caps_is_writable(caps))
+        caps = gst_caps_make_writable(caps);
+
     GValue list = {};
     g_value_init(&list, GST_TYPE_LIST);
 
@@ -300,7 +305,7 @@ void QGstMutableCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat
         gst_value_list_append_value(&list, &item);
         g_value_unset(&item);
     }
-    QGValue v(&list);
+
     auto *structure = gst_structure_new("video/x-raw",
                                         "framerate", GST_TYPE_FRACTION_RANGE, 0, 1, INT_MAX, 1,
                                         "width"    , GST_TYPE_INT_RANGE, 1, INT_MAX,
@@ -314,34 +319,27 @@ void QGstMutableCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat
         gst_caps_set_features(caps, size() - 1, gst_caps_features_from_string(modifier));
 }
 
-QGstMutableCaps QGstMutableCaps::fromCameraFormat(const QCameraFormat &format)
+QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
 {
-    QGstMutableCaps caps;
-    caps.create();
-
     QSize size = format.resolution();
     GstStructure *structure = nullptr;
-//    auto [num, den] = qRealToFraction(format.maxFrameRate());
-//    qDebug() << "fromCameraFormat" << format.maxFrameRate() << num << den;
-
     if (format.pixelFormat() == QVideoFrameFormat::Format_Jpeg) {
         structure = gst_structure_new("image/jpeg",
                                       "width"    , G_TYPE_INT, size.width(),
                                       "height"   , G_TYPE_INT, size.height(),
-//                                      "framerate", GST_TYPE_FRACTION, num, den,
                                       nullptr);
     } else {
         int index = indexOfVideoFormat(format.pixelFormat());
         if (index < 0)
-            return QGstMutableCaps();
+            return {};
         auto gstFormat = qt_videoFormatLookup[index].gstFormat;
         structure = gst_structure_new("video/x-raw",
                                       "format"   , G_TYPE_STRING, gst_video_format_to_string(gstFormat),
                                       "width"    , G_TYPE_INT, size.width(),
                                       "height"   , G_TYPE_INT, size.height(),
-//                                      "framerate", GST_TYPE_FRACTION, num, den,
                                       nullptr);
     }
+    auto caps = QGstCaps::create();
     gst_caps_append_structure(caps.caps, structure);
     return caps;
 }
@@ -450,12 +448,9 @@ QGRange<float> QGstStructure::frameRateRange() const
 
 GList *qt_gst_video_sinks()
 {
-    GList *list = nullptr;
-
-    list = gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_SINK | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO,
+    return gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_SINK
+                                                         | GST_ELEMENT_FACTORY_TYPE_MEDIA_VIDEO,
                                                  GST_RANK_MARGINAL);
-
-    return list;
 }
 
 QT_END_NAMESPACE

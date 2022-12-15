@@ -158,29 +158,48 @@ public:
 };
 
 class QGstCaps {
-    const GstCaps *caps = nullptr;
+    GstCaps *caps = nullptr;
 public:
-    enum MemoryFormat {
-        CpuMemory,
-        GLTexture,
-        DMABuf
-    };
+    enum RefMode { HasRef, NeedsRef };
+    enum MemoryFormat { CpuMemory, GLTexture, DMABuf };
 
     QGstCaps() = default;
-    QGstCaps(const GstCaps *c) : caps(c) {}
+
+    explicit QGstCaps(GstCaps *c, RefMode mode) : caps(c)
+    {
+        if (mode == NeedsRef)
+            gst_caps_ref(caps);
+    }
+
+    QGstCaps(const QGstCaps &other) : caps(other.caps)
+    {
+        if (caps)
+            gst_caps_ref(caps);
+    }
+
+    ~QGstCaps() {
+        if (caps)
+            gst_caps_unref(caps);
+    }
+
+    QGstCaps &operator=(const QGstCaps &other)
+    {
+        if (this != &other) {
+            if (other.caps)
+                gst_caps_ref(other.caps);
+            if (caps)
+                gst_caps_unref(caps);
+            caps = other.caps;
+        }
+        return *this;
+    }
 
     bool isNull() const { return !caps; }
 
-    int size() const { return gst_caps_get_size(caps); }
-    QGstStructure at(int index) { return gst_caps_get_structure(caps, index); }
-    const GstCaps *get() const { return caps; }
-    QByteArray toString() const
-    {
-        gchar *c = gst_caps_to_string(caps);
-        QByteArray b(c);
-        g_free(c);
-        return b;
-    }
+    QByteArray toString() const { return toString(caps); }
+    int size() const { return int(gst_caps_get_size(caps)); }
+    QGstStructure at(int index) const { return gst_caps_get_structure(caps, index); }
+    GstCaps *get() const { return caps; }
     MemoryFormat memoryFormat() const {
         auto *features = gst_caps_get_features(caps, 0);
         if (gst_caps_features_contains(features, "memory:GLMemory"))
@@ -190,53 +209,22 @@ public:
         return CpuMemory;
     }
     QVideoFrameFormat formatForCaps(GstVideoInfo *info) const;
-};
-
-class QGstMutableCaps : public QGstCaps {
-    GstCaps *caps = nullptr;
-public:
-    enum RefMode { HasRef, NeedsRef };
-    QGstMutableCaps() = default;
-    QGstMutableCaps(GstCaps *c, RefMode mode = HasRef)
-        : QGstCaps(c), caps(c)
-    {
-        Q_ASSERT(QGstCaps::get() == caps);
-        if (mode == NeedsRef)
-            gst_caps_ref(caps);
-    }
-    QGstMutableCaps(const QGstMutableCaps &other)
-        : QGstCaps(other), caps(other.caps)
-    {
-        Q_ASSERT(QGstCaps::get() == caps);
-        if (caps)
-            gst_caps_ref(caps);
-    }
-    QGstMutableCaps &operator=(const QGstMutableCaps &other)
-    {
-        QGstCaps::operator=(other);
-        if (other.caps)
-            gst_caps_ref(other.caps);
-        if (caps)
-            gst_caps_unref(caps);
-        caps = other.caps;
-        Q_ASSERT(QGstCaps::get() == caps);
-        return *this;
-    }
-    ~QGstMutableCaps() {
-        Q_ASSERT(QGstCaps::get() == caps);
-        if (caps)
-            gst_caps_unref(caps);
-    }
-
-    void create() {
-        caps = gst_caps_new_empty();
-        QGstCaps::operator=(QGstCaps(caps));
-    }
 
     void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier = nullptr);
-    static QGstMutableCaps fromCameraFormat(const QCameraFormat &format);
 
-    GstCaps *get() const { return caps; }
+    static QGstCaps create() {
+        return QGstCaps(gst_caps_new_empty(), HasRef);
+    }
+
+    static QByteArray toString(const GstCaps *caps)
+    {
+        gchar *c = gst_caps_to_string(caps);
+        QByteArray b(c);
+        g_free(c);
+        return b;
+    }
+
+    static QGstCaps fromCameraFormat(const QCameraFormat &format);
 };
 
 class QGstObject
@@ -305,7 +293,7 @@ public:
     void set(const char *property, quint64 i) { g_object_set(m_object, property, guint64(i), nullptr); }
     void set(const char *property, double d) { g_object_set(m_object, property, gdouble(d), nullptr); }
     void set(const char *property, const QGstObject &o) { g_object_set(m_object, property, o.object(), nullptr); }
-    void set(const char *property, const QGstMutableCaps &c) { g_object_set(m_object, property, c.get(), nullptr); }
+    void set(const char *property, const QGstCaps &c) { g_object_set(m_object, property, c.get(), nullptr); }
 
     QGString getString(const char *property) const
     { char *s = nullptr; g_object_get(m_object, property, &s, nullptr); return s; }
@@ -339,10 +327,10 @@ public:
         : QGstObject(&pad->object, mode)
     {}
 
-    QGstMutableCaps currentCaps() const
-    { return QGstMutableCaps(gst_pad_get_current_caps(pad())); }
+    QGstCaps currentCaps() const
+    { return QGstCaps(gst_pad_get_current_caps(pad()), QGstCaps::HasRef); }
     QGstCaps queryCaps() const
-    { return QGstCaps(gst_pad_query_caps(pad(), nullptr)); }
+    { return QGstCaps(gst_pad_query_caps(pad(), nullptr), QGstCaps::HasRef); }
 
     bool isLinked() const { return gst_pad_is_linked(pad()); }
     bool link(const QGstPad &sink) const { return gst_pad_link(pad(), sink.pad()) == GST_PAD_LINK_OK; }
@@ -432,8 +420,6 @@ public:
     {
     }
 
-    bool linkFiltered(const QGstElement &next, const QGstMutableCaps &caps)
-    { return gst_element_link_filtered(element(), next.element(), caps.get()); }
     bool link(const QGstElement &next)
     { return gst_element_link(element(), next.element()); }
     bool link(const QGstElement &n1, const QGstElement &n2)
@@ -591,8 +577,8 @@ inline QGstStructure QGValue::toStructure() const
 inline QGstCaps QGValue::toCaps() const
 {
     if (!value || !GST_VALUE_HOLDS_CAPS(value))
-        return QGstCaps();
-    return QGstCaps(gst_value_get_caps(value));
+        return {};
+    return QGstCaps(gst_caps_copy(gst_value_get_caps(value)), QGstCaps::HasRef);
 }
 
 QT_END_NAMESPACE

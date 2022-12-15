@@ -290,7 +290,7 @@ void QGstreamerAudioDecoder::start()
     if (m_appSink) {
         if (mFormat.isValid()) {
             setAudioFlags(false);
-            QGstMutableCaps caps = QGstUtils::capsForAudioFormat(mFormat);
+            auto caps = QGstUtils::capsForAudioFormat(mFormat);
             gst_app_sink_set_caps(m_appSink, caps.get());
         } else {
             // We want whatever the native audio format is

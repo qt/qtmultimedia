@@ -39,9 +39,9 @@ public:
     QGstVideoRenderer(QGstreamerVideoSink *sink);
     ~QGstVideoRenderer();
 
-    QGstMutableCaps caps();
+    QGstCaps caps();
 
-    bool start(GstCaps *caps);
+    bool start(const QGstCaps& caps);
     void stop();
     void unlock();
     bool proposeAllocation(GstQuery *query);
@@ -72,9 +72,9 @@ private:
     GstFlowReturn m_renderReturn = GST_FLOW_OK;
     bool m_active = false;
 
-    QGstMutableCaps m_surfaceCaps;
+    QGstCaps m_surfaceCaps;
 
-    QGstMutableCaps m_startCaps;
+    QGstCaps m_startCaps;
     GstBuffer *m_renderBuffer = nullptr;
 
     bool m_notified = false;
