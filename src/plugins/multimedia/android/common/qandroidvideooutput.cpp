@@ -328,6 +328,12 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject
     : QAndroidVideoOutput(parent)
     , m_sink(sink)
 {
+    if (!m_sink || !m_sink->rhi()) {
+        qDebug() << "Cannot create QAndroidTextureVideoOutput without a sink and a rhi";
+        m_surfaceThread = nullptr;
+        return;
+    }
+
     m_surfaceThread = std::make_unique<AndroidTextureThread>();
     connect(m_surfaceThread.get(), &AndroidTextureThread::newFrame,
             this, &QAndroidTextureVideoOutput::newFrame);
@@ -338,7 +344,8 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject
 
 QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
-    m_surfaceThread->wait();
+    if (m_surfaceThread)
+        m_surfaceThread->wait();
 }
 
 void QAndroidTextureVideoOutput::setSubtitle(const QString &subtitle)
