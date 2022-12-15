@@ -33,11 +33,6 @@ QList<QAudioDevice> QPulseAudioMediaDevices::audioOutputs() const
     return pulseEngine->availableDevices(QAudioDevice::Output);
 }
 
-QList<QCameraDevice> QPulseAudioMediaDevices::videoInputs() const
-{
-    return {};
-}
-
 QPlatformAudioSource *QPulseAudioMediaDevices::createAudioSource(const QAudioDevice &deviceInfo,
                                                                  QObject *parent)
 {
