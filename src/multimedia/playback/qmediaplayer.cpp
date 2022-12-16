@@ -102,6 +102,8 @@ void QMediaPlayerPrivate::setState(QMediaPlayer::PlaybackState ps)
     Q_Q(QMediaPlayer);
 
     if (ps != state) {
+        if (ps == QMediaPlayer::PlayingState || state == QMediaPlayer::PlayingState)
+            emit q->playingChanged(ps == QMediaPlayer::PlayingState);
         state = ps;
         emit q->playbackStateChanged(ps);
     }
@@ -407,6 +409,15 @@ bool QMediaPlayer::isSeekable() const
 {
     Q_D(const QMediaPlayer);
     return d->control && d->control->isSeekable();
+}
+
+/*!
+    Returns true if the media is currently playing.
+*/
+bool QMediaPlayer::isPlaying() const
+{
+    Q_D(const QMediaPlayer);
+    return d->state == QMediaPlayer::PlayingState;
 }
 
 /*!
@@ -1016,6 +1027,12 @@ QMediaMetaData QMediaPlayer::metaData() const
     \qmlsignal QtMultimedia::MediaPlayer::playbackStateChanged()
 
     This signal is emitted when the \l playbackState property is altered.
+*/
+
+/*!
+    \qmlsignal QtMultimedia::MediaPlayer::playingChanged()
+
+    This signal is emitted when the media playback starts or stops.
 */
 
 /*!

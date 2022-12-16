@@ -29,6 +29,7 @@ class Q_MULTIMEDIA_EXPORT QMediaPlayer : public QObject
     Q_PROPERTY(bool hasAudio READ hasAudio NOTIFY hasAudioChanged)
     Q_PROPERTY(bool hasVideo READ hasVideo NOTIFY hasVideoChanged)
     Q_PROPERTY(bool seekable READ isSeekable NOTIFY seekableChanged)
+    Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(qreal playbackRate READ playbackRate WRITE setPlaybackRate NOTIFY playbackRateChanged)
     Q_PROPERTY(int loops READ loops WRITE setLoops NOTIFY loopsChanged)
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
@@ -132,6 +133,8 @@ public:
     bool isSeekable() const;
     qreal playbackRate() const;
 
+    bool isPlaying() const;
+
     int loops() const;
     void setLoops(int loops);
 
@@ -167,6 +170,7 @@ Q_SIGNALS:
     void bufferProgressChanged(float progress);
 
     void seekableChanged(bool seekable);
+    void playingChanged(bool playing);
     void playbackRateChanged(qreal rate);
     void loopsChanged();
 
