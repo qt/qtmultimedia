@@ -226,7 +226,7 @@ std::unique_ptr<QRhiTexture> TextureCopy::copyExternalTexture(QSize size, const 
     cb->setShaderResources(m_srb.get());
     cb->setVertexInput(0, 1, &vbufBinding);
     cb->draw(4);
-    cb->endPass(rub);
+    cb->endPass();
     m_rhi->endOffscreenFrame();
 
     QOpenGLContext *ctx = QOpenGLContext::currentContext();
