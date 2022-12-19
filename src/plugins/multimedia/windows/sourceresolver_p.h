@@ -18,6 +18,8 @@
 #include "mfstream_p.h"
 #include <QUrl>
 
+QT_BEGIN_NAMESPACE
+
 class SourceResolver: public QObject, public IMFAsyncCallback
 {
     Q_OBJECT
@@ -75,5 +77,7 @@ private:
     MFStream          *m_stream;
     QMutex            m_mutex;
 };
+
+QT_END_NAMESPACE
 
 #endif

@@ -21,6 +21,8 @@
 #include <mfapi.h>
 #include <mfidl.h>
 
+QT_BEGIN_NAMESPACE
+
 class SampleGrabberCallback : public IMFSampleGrabberSinkCallback
 {
 public:
@@ -63,5 +65,7 @@ private:
     QMutex m_audioProbeMutex;
     QAudioFormat m_format;
 };
+
+QT_END_NAMESPACE
 
 #endif // SAMPLEGRABBER_H

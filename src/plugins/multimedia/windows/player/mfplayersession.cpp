@@ -36,6 +36,7 @@
 
 //#define DEBUG_MEDIAFOUNDATION
 
+QT_BEGIN_NAMESPACE
 
 MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     : m_cRef(1)
@@ -2046,5 +2047,7 @@ QMediaMetaData MFPlayerSession::trackMetaData(QPlatformMediaPlayer::TrackType ty
 
     return m_trackInfo[type].metaData.at(trackNumber);
 }
+
+QT_END_NAMESPACE
 
 #include "moc_mfplayersession_p.cpp"
