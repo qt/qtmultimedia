@@ -939,7 +939,7 @@ Decoder::~Decoder()
         demuxer->kill();
 }
 
-static int read(void *opaque, uint8_t *buf, int buf_size)
+static int readQIODevice(void *opaque, uint8_t *buf, int buf_size)
 {
     auto *dev = static_cast<QIODevice *>(opaque);
     if (dev->atEnd())
@@ -947,7 +947,7 @@ static int read(void *opaque, uint8_t *buf, int buf_size)
     return dev->read(reinterpret_cast<char *>(buf), buf_size);
 }
 
-static int64_t seek(void *opaque, int64_t offset, int whence)
+static int64_t seekQIODevice(void *opaque, int64_t offset, int whence)
 {
     QIODevice *dev = static_cast<QIODevice *>(opaque);
 
@@ -1062,7 +1062,7 @@ void Decoder::setMedia(const QUrl &media, QIODevice *stream)
         context = avformat_alloc_context();
         constexpr int bufferSize = 32768;
         unsigned char *buffer = (unsigned char *)av_malloc(bufferSize);
-        context->pb = avio_alloc_context(buffer, bufferSize, false, stream, ::read, nullptr, ::seek);
+        context->pb = avio_alloc_context(buffer, bufferSize, false, stream, &readQIODevice, nullptr, &seekQIODevice);
     }
 
     int ret = avformat_open_input(&context, url.constData(), nullptr, nullptr);
