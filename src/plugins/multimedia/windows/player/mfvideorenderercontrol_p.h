@@ -20,13 +20,9 @@
 #include <mfapi.h>
 #include <mfidl.h>
 
-QT_USE_NAMESPACE
-
-class EVRCustomPresenterActivate;
-
 QT_BEGIN_NAMESPACE
+class EVRCustomPresenterActivate;
 class QVideoSink;
-QT_END_NAMESPACE
 
 class MFVideoRendererControl : public QObject
 {
@@ -58,5 +54,7 @@ private:
 
     EVRCustomPresenterActivate *m_presenterActivate = nullptr;
 };
+
+QT_END_NAMESPACE
 
 #endif

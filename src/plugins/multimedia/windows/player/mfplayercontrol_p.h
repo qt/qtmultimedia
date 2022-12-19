@@ -20,7 +20,7 @@
 
 #include <QtCore/qcoreevent.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class MFPlayerSession;
 
@@ -97,5 +97,7 @@ private:
     QUrl m_media;
     MFPlayerSession *m_session;
 };
+
+QT_END_NAMESPACE
 
 #endif
