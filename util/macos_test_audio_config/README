@@ -1,0 +1,25 @@
+This utility tests stability of audio configuration on macOS, and prints it.
+It reads audio config via AudioObjectGetPropertyData many times, checks if it changes, and dumps results.
+It might be useful to check the configuration if specific audio devices are installed on your PC
+and Qt multimedia handles them incorrectly or writes warnings to the console.
+It's a good idea to attach a text file with the utility's output when creating a bug for audio on macOS.
+In order to test an unstable config, set some sufficient testing time and just attach/detach a device.
+
+
+Build:
+
+mkdir build
+cd build
+cmake ..
+make
+
+
+Run:
+
+./test_audio_config
+Running without parameters performs some default testing. Use --help to see customization details.
+
+
+Lazy build, run, and dump the result to file test_audio_config_res.txt:
+
+./compile_and_run.sh
