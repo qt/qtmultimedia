@@ -32,10 +32,8 @@
 #include "mfplayercontrol_p.h"
 
 QT_BEGIN_NAMESPACE
-class QUrl;
-QT_END_NAMESPACE
 
-QT_USE_NAMESPACE
+class QUrl;
 
 class SourceResolver;
 class MFVideoRendererControl;
@@ -242,5 +240,6 @@ private:
     qint64 m_lastPosition = -1;
 };
 
+QT_END_NAMESPACE
 
 #endif

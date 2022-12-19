@@ -22,6 +22,8 @@
 //#define DEBUG_MEDIAFOUNDATION
 #define PAD_TO_DWORD(x)  (((x) + 3) & ~3)
 
+QT_BEGIN_NAMESPACE
+
 namespace
 {
     class MediaSampleVideoBuffer : public QAbstractVideoBuffer
@@ -2278,6 +2280,8 @@ void EVRCustomPresenterActivate::setCropRect(QRect cropRect)
     if (m_presenter)
         m_presenter->setCropRect(cropRect);
 }
+
+QT_END_NAMESPACE
 
 #include "moc_mfvideorenderercontrol_p.cpp"
 #include "mfvideorenderercontrol.moc"

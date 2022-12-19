@@ -44,13 +44,13 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 
 Q_LOGGING_CATEGORY(qLcScreenCaptureUwp, "qt.multimedia.ffmpeg.screencapture.uwp")
 
-QT_BEGIN_NAMESPACE
-
 namespace winrt {
     using namespace winrt::Windows::Graphics::Capture;
     using namespace winrt::Windows::Graphics::DirectX;
     using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 }
+
+QT_BEGIN_NAMESPACE
 
 using namespace Windows::Graphics::DirectX::Direct3D11;
 using namespace std::chrono;

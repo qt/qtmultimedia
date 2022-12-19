@@ -21,13 +21,12 @@
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/qvideoframeformat.h>
 
-QT_USE_NAMESPACE
+
+QT_BEGIN_NAMESPACE
 
 class MFVideoProbeControl;
 
-QT_BEGIN_NAMESPACE
 class QVideoFrame;
-QT_END_NAMESPACE
 
 class MFTransform: public IMFTransform
 {
@@ -91,5 +90,7 @@ private:
     QVideoFrameFormat m_format;
     int m_bytesPerLine;
 };
+
+QT_END_NAMESPACE
 
 #endif

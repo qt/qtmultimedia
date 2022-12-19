@@ -21,7 +21,7 @@
 #include <private/qwindowsiupointer_p.h>
 #include <private/qwindowsresampler_p.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class MFAudioDecoderControl : public QPlatformAudioDecoder
 {
@@ -69,5 +69,7 @@ private:
     bool                    m_loadingSource = false;
     bool                    m_deferredStart = false;
 };
+
+QT_END_NAMESPACE
 
 #endif//MFAUDIODECODERCONTROL_H
