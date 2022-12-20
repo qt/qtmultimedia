@@ -15,7 +15,8 @@ qtHaveModule(widgets) {
         player \
         spectrum \
         videographicsitem \
-        videowidget
+        videowidget \
+        screencapture
 }
 
 qtHaveModule(quick) {
