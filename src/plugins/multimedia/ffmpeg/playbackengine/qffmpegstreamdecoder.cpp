@@ -6,7 +6,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 StreamDecoder::StreamDecoder(const Codec &codec, qint64 seekPos)
     : m_codec(codec),
@@ -201,7 +201,7 @@ void StreamDecoder::decodeSubtitle(Packet packet)
     // TODO: maybe optimize
     onFrameFound({ QString(), end, 0, this });
 }
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

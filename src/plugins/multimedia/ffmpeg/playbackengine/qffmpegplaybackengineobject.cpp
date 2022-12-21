@@ -5,7 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 bool PlaybackEngineObject::isPaused() const
 {
@@ -82,7 +82,7 @@ void PlaybackEngineObject::scheduleNextStep(bool allowDoImmediatelly)
         timer().stop();
     }
 }
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

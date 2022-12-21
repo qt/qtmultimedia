@@ -9,7 +9,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::TrackType trackType,
                             const AVStream *stream)
@@ -232,6 +232,6 @@ int MediaDataHolder::activeTrack(QPlatformMediaPlayer::TrackType type) const
     return type < QPlatformMediaPlayer::NTrackTypes ? m_requestedStreams[type] : -1;
 }
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE

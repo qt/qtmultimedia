@@ -22,7 +22,7 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg
 {
 
-struct Codec;
+class Codec;
 
 class Resampler
 {

@@ -1,7 +1,6 @@
 // Copyright (C) 2020 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegaudiodecoder_p.h"
-#include "qffmpegdecoder_p.h"
 #include "qffmpegresampler_p.h"
 #include "qaudiobuffer.h"
 
@@ -17,7 +16,7 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg
 {
 
-class SteppingAudioRenderer : public PlaybackEngineInternal::Renderer
+class SteppingAudioRenderer : public Renderer
 {
     Q_OBJECT
 public:
@@ -77,7 +76,7 @@ signals:
     void newAudioBuffer(QAudioBuffer);
 
 private:
-    QPointer<PlaybackEngineInternal::Renderer> m_audioRenderer;
+    QPointer<Renderer> m_audioRenderer;
     QAudioFormat m_format;
 };
 }

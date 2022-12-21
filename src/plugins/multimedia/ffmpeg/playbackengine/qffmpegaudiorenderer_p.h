@@ -27,7 +27,7 @@ namespace QFFmpeg {
 class Resampler;
 };
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 class AudioRenderer : public Renderer
 {
@@ -65,7 +65,7 @@ private:
     bool m_deviceChanged = false;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

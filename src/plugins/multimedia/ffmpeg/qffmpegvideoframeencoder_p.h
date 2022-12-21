@@ -36,7 +36,7 @@ class VideoFrameEncoder
         std::unique_ptr<HWAccel> accel;
         const AVCodec *codec = nullptr;
         AVStream *stream = nullptr;
-        AVCodecContext *codecContext = nullptr;
+        AVCodecContextUPtr codecContext;
         SwsContext *converter = nullptr;
         AVPixelFormat sourceFormat = AV_PIX_FMT_NONE;
         AVPixelFormat sourceSWFormat = AV_PIX_FMT_NONE;

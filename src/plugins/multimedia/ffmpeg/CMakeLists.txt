@@ -18,7 +18,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegaudiodecoder.cpp qffmpegaudiodecoder_p.h
         qffmpegaudioinput.cpp qffmpegaudioinput_p.h
         qffmpegclock.cpp qffmpegclock_p.h
-        qffmpegdecoder.cpp qffmpegdecoder_p.h
         qffmpeghwaccel.cpp qffmpeghwaccel_p.h
         qffmpegencoderoptions.cpp qffmpegencoderoptions_p.h
         qffmpegmediametadata.cpp qffmpegmediametadata_p.h
@@ -47,6 +46,9 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         playbackengine/qffmpegsubtitlerenderer.cpp playbackengine/qffmpegsubtitlerenderer_p.h
         playbackengine/qffmpegtimecontroller.cpp playbackengine/qffmpegtimecontroller_p.h
         playbackengine/qffmpegmediadataholder.cpp playbackengine/qffmpegmediadataholder_p.h
+        playbackengine/qffmpegcodec.cpp playbackengine/qffmpegcodec_p.h
+        playbackengine/qffmpegpacket_p.h
+        playbackengine/qffmpegframe_p.h
     DEFINES
         QT_COMPILING_FFMPEG
     LIBRARIES

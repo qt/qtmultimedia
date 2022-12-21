@@ -21,7 +21,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 class TimeController
 {
@@ -87,7 +87,7 @@ private:
     std::optional<SoftSyncData> m_softSyncData;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

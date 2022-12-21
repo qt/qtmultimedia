@@ -11,7 +11,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 constexpr std::chrono::microseconds audioSinkBufferSize(100000);
 
@@ -148,7 +148,7 @@ void AudioRenderer::updateOutput(const Codec *codec)
     }
 }
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

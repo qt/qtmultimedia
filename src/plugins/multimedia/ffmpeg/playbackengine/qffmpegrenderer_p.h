@@ -16,13 +16,13 @@
 
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
 #include "playbackengine/qffmpegtimecontroller_p.h"
-#include "qffmpegdecoder_p.h" // to be removed
+#include "playbackengine/qffmpegframe_p.h"
 
 #include <chrono>
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 class Renderer : public PlaybackEngineObject
 {
@@ -87,7 +87,7 @@ private:
     std::atomic_bool m_isStepForced = false;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

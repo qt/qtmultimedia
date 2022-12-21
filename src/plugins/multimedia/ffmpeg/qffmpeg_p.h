@@ -69,6 +69,28 @@ inline AVFrameUPtr makeAVFrame()
     return AVFrameUPtr(av_frame_alloc());
 }
 
+struct AVPacketDeleter
+{
+    void operator()(AVPacket *packet) const
+    {
+        if (packet)
+            av_packet_free(&packet);
+    }
+};
+
+using AVPacketUPtr = std::unique_ptr<AVPacket, AVPacketDeleter>;
+
+struct AVCodecContextDeleter
+{
+    void operator()(AVCodecContext *context) const
+    {
+        if (context)
+            avcodec_free_context(&context);
+    }
+};
+
+using AVCodecContextUPtr = std::unique_ptr<AVCodecContext, AVCodecContextDeleter>;
+
 QT_END_NAMESPACE
 
 }

@@ -5,7 +5,11 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+// queue up max 16M of encoded data, that should always be enough
+// (it's around 2 secs of 4K HDR video, longer for almost all other formats)
+static constexpr quint64 MaxQueueSize = 16 * 1024 * 1024;
+
+namespace QFFmpeg {
 
 Demuxer::Demuxer(AVFormatContext *context, qint64 seekPos, const StreamIndexes &streamIndexes)
     : m_context(context), m_seekPos(seekPos)
@@ -22,7 +26,7 @@ void Demuxer::doNextStep()
 {
     ensureSeeked();
 
-    Packet packet(av_packet_alloc());
+    Packet packet(AVPacketUPtr{ av_packet_alloc() });
     if (av_read_frame(m_context, packet.avPacket()) < 0) {
         setAtEnd(true);
         return;
@@ -85,7 +89,7 @@ bool Demuxer::canDoNextStep() const
         return true;
 
     const auto dataSize =
-            std::accumulate(m_streams.begin(), m_streams.end(), 0,
+            std::accumulate(m_streams.begin(), m_streams.end(), quint64(0),
                             [](quint64 value, const auto &s) { return value + s.second.dataSize; });
 
     if (dataSize > MaxQueueSize)
@@ -128,7 +132,7 @@ Demuxer::RequestingSignal Demuxer::signalByTrackType(QPlatformMediaPlayer::Track
     return nullptr;
 }
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

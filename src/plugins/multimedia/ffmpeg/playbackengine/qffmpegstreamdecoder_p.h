@@ -13,16 +13,16 @@
 //
 // We mean it.
 //
-
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
-
-#include "qffmpegdecoder_p.h" // to be removed
+#include "playbackengine/qffmpegframe_p.h"
+#include "playbackengine/qffmpegpacket_p.h"
+#include "private/qplatformmediaplayer_p.h"
 
 #include <optional>
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 class StreamDecoder : public PlaybackEngineObject
 {
@@ -72,7 +72,7 @@ private:
     QQueue<Packet> m_packets;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

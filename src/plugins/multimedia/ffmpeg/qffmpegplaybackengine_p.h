@@ -48,6 +48,7 @@
 #include "playbackengine/qffmpegplaybackenginedefs_p.h"
 #include "playbackengine/qffmpegtimecontroller_p.h"
 #include "playbackengine/qffmpegmediadataholder_p.h"
+#include "playbackengine/qffmpegcodec_p.h"
 
 #include <unordered_map>
 
@@ -61,7 +62,7 @@ class QFFmpegMediaPlayer;
 namespace QFFmpeg
 {
 
-class PlaybackEngine : public QObject, protected PlaybackEngineInternal::MediaDataHolder
+class PlaybackEngine : public QObject, protected MediaDataHolder
 {
     Q_OBJECT
 public:
@@ -115,15 +116,6 @@ signals:
     void errorOccured(int, const QString &);
 
 protected: // objects managing
-    using Demuxer = PlaybackEngineInternal::Demuxer;
-    using PlaybackEngineObject = PlaybackEngineInternal::PlaybackEngineObject;
-    using Renderer = PlaybackEngineInternal::Renderer;
-    using AudioRenderer = PlaybackEngineInternal::AudioRenderer;
-    using VideoRenderer = PlaybackEngineInternal::VideoRenderer;
-    using SubtitleRenderer = PlaybackEngineInternal::SubtitleRenderer;
-    using StreamDecoder = PlaybackEngineInternal::StreamDecoder;
-    using TimeController = PlaybackEngineInternal::TimeController;
-
     struct ObjectDeleter
     {
         void operator()(PlaybackEngineObject *) const;

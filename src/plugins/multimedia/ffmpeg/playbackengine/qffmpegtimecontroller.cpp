@@ -10,7 +10,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 TimeController::TimeController()
 {
@@ -157,6 +157,6 @@ TimeController::TrackTime TimeController::toTrackTime(const T &t)
     return std::chrono::duration_cast<TrackTime>(t);
 }
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
