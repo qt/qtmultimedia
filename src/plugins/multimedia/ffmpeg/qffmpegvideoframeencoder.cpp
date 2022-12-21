@@ -25,7 +25,6 @@ VideoFrameEncoder::Data::~Data()
 {
     if (converter)
         sws_freeContext(converter);
-    avcodec_free_context(&codecContext);
 }
 
 VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSettings,
@@ -246,14 +245,14 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     }
 
     Q_ASSERT(d->codec);
-    d->codecContext = avcodec_alloc_context3(d->codec);
+    d->codecContext.reset(avcodec_alloc_context3(d->codec));
     if (!d->codecContext) {
         qWarning() << "Could not allocate codec context";
         d = {};
         return;
     }
 
-    avcodec_parameters_to_context(d->codecContext, d->stream->codecpar);
+    avcodec_parameters_to_context(d->codecContext.get(), d->stream->codecpar);
     d->codecContext->time_base = d->stream->time_base;
     qCDebug(qLcVideoFrameEncoder) << "requesting time base" << d->codecContext->time_base.num << d->codecContext->time_base.den;
     auto [num, den] = qRealToFraction(requestedRate);
@@ -271,10 +270,10 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
 bool VideoFrameEncoder::open()
 {
     AVDictionary *opts = nullptr;
-    applyVideoEncoderOptions(d->settings, d->codec->name, d->codecContext, &opts);
-    int res = avcodec_open2(d->codecContext, d->codec, &opts);
+    applyVideoEncoderOptions(d->settings, d->codec->name, d->codecContext.get(), &opts);
+    int res = avcodec_open2(d->codecContext.get(), d->codec, &opts);
     if (res < 0) {
-        avcodec_free_context(&d->codecContext);
+        d->codecContext.reset();
         qWarning() << "Couldn't open codec for writing" << err2str(res);
         return false;
     }
@@ -298,7 +297,7 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
     }
 
     if (!frame)
-        return avcodec_send_frame(d->codecContext, frame.get());
+        return avcodec_send_frame(d->codecContext.get(), frame.get());
     auto pts = frame->pts;
 
     if (d->downloadFromHW) {
@@ -353,7 +352,7 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
 
     qCDebug(qLcVideoFrameEncoder) << "sending frame" << pts;
     frame->pts = pts;
-    return avcodec_send_frame(d->codecContext, frame.get());
+    return avcodec_send_frame(d->codecContext.get(), frame.get());
 }
 
 AVPacket *VideoFrameEncoder::retrievePacket()
@@ -361,7 +360,7 @@ AVPacket *VideoFrameEncoder::retrievePacket()
     if (!d || !d->codecContext)
         return nullptr;
     AVPacket *packet = av_packet_alloc();
-    int ret = avcodec_receive_packet(d->codecContext, packet);
+    int ret = avcodec_receive_packet(d->codecContext.get(), packet);
     if (ret < 0) {
         av_packet_free(&packet);
         if (ret != AVERROR(EOF) && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)

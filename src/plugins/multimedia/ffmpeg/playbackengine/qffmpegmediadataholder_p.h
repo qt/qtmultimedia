@@ -17,15 +17,14 @@
 
 #include "qmediametadata.h"
 #include "private/qplatformmediaplayer_p.h"
-
-#include "qffmpegdecoder_p.h" // TODO: align headers and remove
+#include "qffmpeg_p.h"
 
 #include <array>
 #include <optional>
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 struct AVFormatContextDeleter
 {
@@ -75,7 +74,7 @@ protected:
     QMediaMetaData m_metaData;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

@@ -25,7 +25,7 @@ namespace QFFmpeg {
 class PlaybackEngine;
 }
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 using StreamIndexes = std::array<int, 3>;
 
@@ -38,6 +38,6 @@ class SubtitleRenderer;
 class AudioRenderer;
 class VideoRenderer;
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE

@@ -8,7 +8,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 SubtitleRenderer::SubtitleRenderer(const TimeController &tc, QVideoSink *sink)
     : Renderer(tc), m_sink(sink)
@@ -29,7 +29,7 @@ Renderer::RenderingResult SubtitleRenderer::renderInternal(Frame frame)
     return {};
 }
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

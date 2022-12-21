@@ -22,7 +22,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 class PlaybackEngineObject : public QObject
 {
@@ -66,7 +66,7 @@ private:
     std::atomic_bool m_atEnd = false;
     std::atomic_bool m_deleting = false;
 };
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

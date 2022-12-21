@@ -16,14 +16,13 @@
 
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
 #include "private/qplatformmediaplayer_p.h"
-
-#include "qffmpegdecoder_p.h" // TODO: remove
+#include "playbackengine/qffmpegpacket_p.h"
 
 #include <unordered_map>
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 class Demuxer : public PlaybackEngineObject
 {
@@ -63,7 +62,7 @@ private:
     const qint64 m_seekPos = 0;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE // QFFMPEGDEMUXER_P_H
 

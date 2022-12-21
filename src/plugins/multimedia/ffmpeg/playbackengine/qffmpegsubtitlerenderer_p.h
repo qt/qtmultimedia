@@ -20,7 +20,7 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 class SubtitleRenderer : public Renderer
 {
@@ -37,7 +37,7 @@ private:
     QPointer<QVideoSink> m_sink;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

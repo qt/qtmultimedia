@@ -5,7 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QFFmpeg::PlaybackEngineInternal {
+namespace QFFmpeg {
 
 Renderer::Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset)
     : m_timeController(tc),
@@ -151,7 +151,7 @@ void Renderer::doNextStep()
 
     scheduleNextStep(false);
 }
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 
