@@ -18,8 +18,6 @@
 #include <qaudioformat.h>
 #include <QtCore/qt_windows.h>
 #include <private/qwindowsiupointer_p.h>
-#include <mfapi.h>
-#include <mmsystem.h>
 #include <mmreg.h>
 
 struct IMFMediaType;
