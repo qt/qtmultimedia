@@ -10,6 +10,7 @@
 
 #include "qwindowsmultimediautils_p.h"
 
+#include <initguid.h>
 #include <mfapi.h>
 #include <mfidl.h>
 #include <qwindowsmfdefs_p.h>

@@ -12,16 +12,20 @@
 // INTERNAL USE ONLY: Do NOT use for any other purpose.
 //
 
+#include "qwindowsaudiodevice_p.h"
+#include "qwindowsaudioutils_p.h"
 
 #include <QtCore/qt_windows.h>
 #include <QtCore/QDataStream>
 #include <QtCore/QIODevice>
-#include <utility>
+
+#include <audioclient.h>
 #include <mmsystem.h>
+
 #include <initguid.h>
+#include <wtypes.h>
+#include <propkeydef.h>
 #include <mmdeviceapi.h>
-#include "qwindowsaudiodevice_p.h"
-#include "qwindowsaudioutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -30,10 +34,25 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPoint
       m_devId(waveID),
       m_immDev(std::move(immDev))
 {
+    Q_ASSERT(m_immDev);
+
     this->description = description;
-    preferredFormat.setSampleRate(44100);
-    preferredFormat.setChannelCount(2);
-    preferredFormat.setSampleFormat(QAudioFormat::Int16);
+
+    QWindowsIUPointer<IAudioClient> audioClient;
+    HRESULT hr = m_immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
+                                    (void **)audioClient.address());
+    if (SUCCEEDED(hr)) {
+        WAVEFORMATEX *pwfx = nullptr;
+        hr = audioClient->GetMixFormat(&pwfx);
+        if (SUCCEEDED(hr))
+            preferredFormat = QWindowsAudioUtils::waveFormatExToFormat(*pwfx);
+    }
+
+    if (!preferredFormat.isValid()) {
+        preferredFormat.setSampleRate(44100);
+        preferredFormat.setChannelCount(2);
+        preferredFormat.setSampleFormat(QAudioFormat::Int16);
+    }
 
     DWORD fmt = 0;
 
@@ -176,15 +195,13 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPoint
     channelConfiguration = QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
 
     QWindowsIUPointer<IPropertyStore> props;
-    if (m_immDev) {
-        HRESULT hr = m_immDev->OpenPropertyStore(STGM_READ, props.address());
-        if (SUCCEEDED(hr)) {
-            PROPVARIANT var;
-            PropVariantInit(&var);
-            hr = props->GetValue(PKEY_AudioEndpoint_PhysicalSpeakers, &var);
-            if (SUCCEEDED(hr) && var.uintVal != 0)
-                channelConfiguration = QWindowsAudioUtils::maskToChannelConfig(var.uintVal, maximumChannelCount);
-        }
+    hr = m_immDev->OpenPropertyStore(STGM_READ, props.address());
+    if (SUCCEEDED(hr)) {
+        PROPVARIANT var;
+        PropVariantInit(&var);
+        hr = props->GetValue(PKEY_AudioEndpoint_PhysicalSpeakers, &var);
+        if (SUCCEEDED(hr) && var.uintVal != 0)
+            channelConfiguration = QWindowsAudioUtils::maskToChannelConfig(var.uintVal, maximumChannelCount);
     }
 }
 
