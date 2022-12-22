@@ -275,7 +275,7 @@ QPlatformAudioSource *QWindowsMediaDevices::createAudioSource(const QAudioDevice
                                                               QObject *parent)
 {
     const auto *devInfo = static_cast<const QWindowsAudioDeviceInfo *>(deviceInfo.handle());
-    return new QWindowsAudioSource(devInfo->waveId(), parent);
+    return new QWindowsAudioSource(devInfo->immDev(), parent);
 }
 
 QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDevice &deviceInfo,

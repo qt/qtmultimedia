@@ -24,29 +24,26 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qbytearray.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <private/qaudiosystem_p.h>
 
+#include <qwindowsresampler_p.h>
+
+struct IMMDevice;
+struct IAudioClient;
+struct IAudioCaptureClient;
 
 QT_BEGIN_NAMESPACE
-
-
-// For compat with 4.6
-#if !defined(QT_WIN_CALLBACK)
-#  if defined(Q_CC_MINGW)
-#    define QT_WIN_CALLBACK CALLBACK __attribute__ ((force_align_arg_pointer))
-#  else
-#    define QT_WIN_CALLBACK CALLBACK
-#  endif
-#endif
+class QTimer;
 
 class QWindowsAudioSource : public QPlatformAudioSource
 {
     Q_OBJECT
 public:
-    QWindowsAudioSource(int deviceId, QObject *parent);
+    QWindowsAudioSource(QWindowsIUPointer<IMMDevice> device, QObject *parent);
     ~QWindowsAudioSource();
 
     qint64 read(char* data, qint64 len);
@@ -68,65 +65,30 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-    QIODevice* audioSource;
-    QAudioFormat settings;
-    QAudio::Error errorState;
-    QAudio::State deviceState;
-
 private:
-    qint32 buffer_size;
-    qint32 period_size;
-    qint32 header;
-    int m_deviceId;
-    int bytesAvailable;
-    qint64 elapsedTimeOffset;
-    qint64 totalTimeValue;
-    bool pullMode;
-    bool resuming;
-    WAVEFORMATEXTENSIBLE wfx;
-    HWAVEIN hWaveIn;
-    MMRESULT result;
-    WAVEHDR* waveBlocks;
-    volatile bool finished;
-    volatile int waveFreeBlockCount;
-    int waveBlockOffset;
+    void deviceStateChange(QAudio::State state, QAudio::Error error);
+    void pullCaptureClient();
+    void schedulePull();
+    QByteArray readCaptureClientBuffer();
 
-    QMutex mutex;
-    static void QT_WIN_CALLBACK waveInProc( HWAVEIN hWaveIn, UINT uMsg,
-            DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2 );
+    QTimer *m_timer = nullptr;
+    QWindowsIUPointer<IMMDevice> m_device;
+    QWindowsIUPointer<IAudioClient> m_audioClient;
+    QWindowsIUPointer<IAudioCaptureClient> m_captureClient;
+    QWindowsResampler m_resampler;
+    int m_bufferSize = 0;
+    qreal m_volume = 1.0;
 
-    WAVEHDR* allocateBlocks(int size, int count);
-    void freeBlocks(WAVEHDR* blockArray);
+    QIODevice* m_ourSink = nullptr;
+    QIODevice* m_clientSink = nullptr;
+    QAudioFormat m_format;
+    QAudio::Error m_errorState = QAudio::NoError;
+    QAudio::State m_deviceState = QAudio::StoppedState;
+
+    QByteArray m_clientBufferResidue;
+
     bool open();
     void close();
-
-    void initMixer();
-    void closeMixer();
-    HMIXEROBJ mixerID;
-    MIXERLINECONTROLS mixerLineControls;
-    qreal cachedVolume;
-
-private slots:
-    void feedback();
-    bool deviceReady();
-
-signals:
-    void processMore();
-};
-
-class InputPrivate : public QIODevice
-{
-    Q_OBJECT
-public:
-    InputPrivate(QWindowsAudioSource* audio);
-    ~InputPrivate();
-
-    qint64 readData( char* data, qint64 len) override;
-    qint64 writeData(const char* data, qint64 len) override;
-
-    void trigger();
-private:
-    QWindowsAudioSource *audioDevice;
 };
 
 QT_END_NAMESPACE
