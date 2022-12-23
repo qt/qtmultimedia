@@ -13,27 +13,23 @@
 //
 
 #include "qwindowsaudiosink_p.h"
-#include "qwindowsaudiodevice_p.h"
 #include "qwindowsaudioutils_p.h"
-#include <QtEndian>
+#include "qwindowsmultimediautils_p.h"
+
 #include <QtCore/QDataStream>
 #include <QtCore/qtimer.h>
+#include <QtCore/qloggingcategory.h>
 
 #include <private/qaudiohelpers_p.h>
 
-#include <qloggingcategory.h>
-
-#include <system_error>
 #include <audioclient.h>
 #include <mmdeviceapi.h>
-
 
 QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcAudioOutput, "qt.multimedia.audiooutput")
 
-const IID IID_IAudioClient = __uuidof(IAudioClient);
-const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
+using namespace QWindowsMultimediaUtils;
 
 class OutputPrivate : public QIODevice
 {
@@ -221,17 +217,17 @@ QIODevice* QWindowsAudioSink::start()
 
 bool QWindowsAudioSink::open()
 {
-    HRESULT hr = m_device->Activate(IID_IAudioClient, CLSCTX_INPROC_SERVER,
+    HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER,
                             nullptr, (void**)m_audioClient.address());
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to activate audio device";
+        qCWarning(qLcAudioOutput) << "Failed to activate audio device" << errorString(hr);
         return false;
     }
 
     WAVEFORMATEX *pwfx = nullptr;
     hr = m_audioClient->GetMixFormat(&pwfx);
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Format unsupported" << hr;
+        qCWarning(qLcAudioOutput) << "Format unsupported" << errorString(hr);
         return false;
     }
 
@@ -257,7 +253,7 @@ bool QWindowsAudioSink::open()
     CoTaskMemFree(pwfx);
 
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to initialize audio client" << hr;
+        qCWarning(qLcAudioOutput) << "Failed to initialize audio client" << errorString(hr);
         return false;
     }
 
@@ -270,9 +266,10 @@ bool QWindowsAudioSink::open()
     m_bufferSize = m_format.bytesForDuration(
             m_resampler.outputFormat().durationForFrames(*framesAllocated));
 
-    hr = m_audioClient->GetService(IID_IAudioRenderClient, (void**)m_renderClient.address());
+    hr = m_audioClient->GetService(__uuidof(IAudioRenderClient), (void**)m_renderClient.address());
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to obtain audio client rendering service" << hr;
+        qCWarning(qLcAudioOutput) << "Failed to obtain audio client rendering service"
+                                  << errorString(hr);
         return false;
     }
 
@@ -340,8 +337,7 @@ qint64 QWindowsAudioSink::write(const char *data, qint64 len)
     quint8 *buffer = nullptr;
     HRESULT hr = m_renderClient->GetBuffer(writeFramesNum, &buffer);
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to get buffer"
-                                  << std::system_category().message(hr).c_str();
+        qCWarning(qLcAudioOutput) << "Failed to get buffer" << errorString(hr);
         return -1;
     }
 
@@ -353,8 +349,7 @@ qint64 QWindowsAudioSink::write(const char *data, qint64 len)
     DWORD flags = writeBytes.isEmpty() ? AUDCLNT_BUFFERFLAGS_SILENT : 0;
     hr = m_renderClient->ReleaseBuffer(writeFramesNum, flags);
     if (FAILED(hr)) {
-        qCWarning(qLcAudioOutput) << "Failed to return buffer"
-                                  << std::system_category().message(hr).c_str();
+        qCWarning(qLcAudioOutput) << "Failed to return buffer" << errorString(hr);
         return -1;
     }
 
