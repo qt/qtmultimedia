@@ -150,6 +150,7 @@ void QV4L2CameraDevices::doCheckCameras()
             frameSize.pixel_format = formatDesc.pixelformat;
 
             while (!ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
+                ++frameSize.index;
                 if (frameSize.type != V4L2_FRMSIZE_TYPE_DISCRETE)
                     continue;
 
@@ -163,9 +164,9 @@ void QV4L2CameraDevices::doCheckCameras()
                 frameInterval.height = frameSize.discrete.height;
 
                 while (!ioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
+                    ++frameInterval.index;
                     if (frameInterval.type != V4L2_FRMIVAL_TYPE_DISCRETE)
                         continue;
-                    ++frameInterval.index;
                     float rate = float(frameInterval.discrete.denominator)/float(frameInterval.discrete.numerator);
                     if (rate > max)
                         max = rate;
@@ -174,7 +175,6 @@ void QV4L2CameraDevices::doCheckCameras()
                 }
 
 //                qCDebug(qLV4L2Camera) << "    " << resolution << min << max;
-                ++frameSize.index;
 
                 if (min <= max) {
                     QCameraFormatPrivate *fmt = new QCameraFormatPrivate;
