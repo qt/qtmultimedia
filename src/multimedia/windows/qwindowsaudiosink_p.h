@@ -15,8 +15,6 @@
 #ifndef QWINDOWSAUDIOOUTPUT_H
 #define QWINDOWSAUDIOOUTPUT_H
 
-#include "qwindowsaudioutils_p.h"
-
 #include <QtCore/qdebug.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qiodevice.h>
@@ -32,20 +30,8 @@
 #include <qwindowsiupointer_p.h>
 #include <qwindowsresampler_p.h>
 
-#include <queue>
-#include <utility>
-
 #include <audioclient.h>
 #include <mmdeviceapi.h>
-
-// For compat with 4.6
-#if !defined(QT_WIN_CALLBACK)
-#  if defined(Q_CC_MINGW)
-#    define QT_WIN_CALLBACK CALLBACK __attribute__ ((force_align_arg_pointer))
-#  else
-#    define QT_WIN_CALLBACK CALLBACK
-#  endif
-#endif
 
 QT_BEGIN_NAMESPACE
 
