@@ -3,7 +3,6 @@
 
 #include <qtmultimediaglobal_p.h>
 #include "qplatformmediaintegration_p.h"
-#include "qplatformmediadevices_p.h"
 #include <qatomic.h>
 #include <qmutex.h>
 #include <qplatformaudioinput_p.h>
@@ -29,7 +28,9 @@ Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
                           (QPlatformMediaPlugin_iid,
                            QLatin1String("/multimedia")))
 
-static QStringList backends()
+static const auto FFmpegBackend = QStringLiteral("ffmpeg");
+
+static QStringList availableBackends()
 {
     QStringList list;
 
@@ -42,6 +43,22 @@ static QStringList backends()
 
     qCDebug(qLcMediaPlugin) << "Available backends" << list;
     return list;
+}
+
+static QString defaultBackend(const QStringList &backends)
+{
+#if defined(Q_OS_DARWIN) || defined(Q_OS_LINUX) || defined(Q_OS_WINDOWS) || defined(Q_OS_ANDROID)
+    // Return ffmpeg backend by default.
+    // Platform backends for the OS list are optionally available but have limited support.
+    if (backends.contains(FFmpegBackend))
+        return FFmpegBackend;
+#else
+    // Return platform backend (non-ffmpeg) by default.
+    if (backends.size() > 1 && backends[0] == FFmpegBackend)
+        return backends[1];
+#endif
+
+    return backends[0];
 }
 
 QT_BEGIN_NAMESPACE
@@ -66,21 +83,17 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
     if (holder.instance)
         return holder.instance;
 
-    auto plugins = backends();
+    const auto backends = availableBackends();
+    QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
+    if (backend.isEmpty() && !backends.isEmpty())
+        backend = defaultBackend(backends);
 
-    QString type = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
-    if (type.isEmpty() && !plugins.isEmpty()) {
-        type = plugins.first();
-        // FIXME: prefer platform specific backend if available over ffmpeg until it becomes mature
-        if (type == QStringLiteral("ffmpeg") && plugins.size() > 1)
-            type = plugins[1];
-    }
-
-    qCDebug(qLcMediaPlugin) << "loading backend" << type;
-    holder.nativeInstance = qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), type);
+    qCDebug(qLcMediaPlugin) << "loading backend" << backend;
+    holder.nativeInstance =
+            qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), backend);
 
     if (!holder.nativeInstance) {
-        qWarning() << "could not load multimedia backend" << type;
+        qWarning() << "could not load multimedia backend" << backend;
         holder.nativeInstance = new QDummyIntegration;
     }
 
