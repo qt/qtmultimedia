@@ -170,6 +170,11 @@ qt_internal_extend_target(Multimedia CONDITION APPLE
         ${FWCoreFoundation}
 )
 
+qt_internal_extend_target(Multimedia CONDITION MACOS
+    SOURCES
+        darwin/qmacosaudiodatautils_p.h
+)
+
 qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS
     SOURCES
         darwin/qcoreaudiosessionmanager.mm darwin/qcoreaudiosessionmanager_p.h

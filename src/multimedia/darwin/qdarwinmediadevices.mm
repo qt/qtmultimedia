@@ -15,6 +15,8 @@
 #if defined(Q_OS_IOS)
 #include "qcoreaudiosessionmanager_p.h"
 #import <AVFoundation/AVFoundation.h>
+#else
+#include "qmacosaudiodatautils_p.h"
 #endif
 
 Q_LOGGING_CATEGORY(qLcDarwinMediaDevices, "qt.multimedia.darwin.mediaDevices")
@@ -33,45 +35,31 @@ QAudioDevice createAudioDevice(bool isDefault, Args &&...args)
 
 static AudioDeviceID defaultAudioDevice(QAudioDevice::Mode mode)
 {
-    AudioDeviceID audioDevice;
-    UInt32 size = sizeof(audioDevice);
     const AudioObjectPropertySelector selector = (mode == QAudioDevice::Output) ? kAudioHardwarePropertyDefaultOutputDevice
                                                                                : kAudioHardwarePropertyDefaultInputDevice;
-    const AudioObjectPropertyAddress defaultDevicePropertyAddress = {
-        selector, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster
-    };
+    const AudioObjectPropertyAddress propertyAddress = { selector, kAudioObjectPropertyScopeGlobal,
+                                                         kAudioObjectPropertyElementMaster };
 
-    if (AudioObjectGetPropertyData(kAudioObjectSystemObject,
-                                   &defaultDevicePropertyAddress,
-                                   0, NULL, &size, &audioDevice) != noErr) {
-        qWarning("QAudioDevice: Unable to find default %s device",  (mode == QAudioDevice::Output) ? "output" : "input");
-        return 0;
+    if (auto audioDevice = getAudioObject<AudioDeviceID>(kAudioObjectSystemObject, propertyAddress,
+                                                         "Default Device")) {
+        return *audioDevice;
     }
 
-    return audioDevice;
+    return 0;
 }
 
 static QByteArray uniqueId(AudioDeviceID device, QAudioDevice::Mode mode)
 {
-    CFStringRef name;
-    UInt32 size = sizeof(CFStringRef);
+    const AudioObjectPropertyAddress propertyAddress =
+            makePropertyAddress(kAudioDevicePropertyDeviceUID, mode);
 
-    const AudioObjectPropertyScope audioPropertyScope = mode == QAudioDevice::Input
-            ? kAudioDevicePropertyScopeInput
-            : kAudioDevicePropertyScopeOutput;
-
-    const AudioObjectPropertyAddress audioDeviceNamePropertyAddress = {
-        kAudioDevicePropertyDeviceUID, audioPropertyScope, kAudioObjectPropertyElementMaster
-    };
-
-    if (AudioObjectGetPropertyData(device, &audioDeviceNamePropertyAddress, 0, NULL, &size, &name) != noErr) {
-        qWarning() << "QAudioDevice: Unable to get device UID";
-        return QByteArray();
+    if (auto name = getAudioObject<CFStringRef>(device, propertyAddress, "Device UID")) {
+        QString s = QString::fromCFString(*name);
+        CFRelease(*name);
+        return s.toUtf8();
     }
 
-    QString s = QString::fromCFString(name);
-    CFRelease(name);
-    return s.toUtf8();
+    return QByteArray();
 }
 
 static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
@@ -82,42 +70,24 @@ static QList<QAudioDevice> availableAudioDevices(QAudioDevice::Mode mode)
     if (defaultDevice != 0)
         devices << createAudioDevice(true, defaultDevice, uniqueId(defaultDevice, mode), mode);
 
-    UInt32 propSize = 0;
     const AudioObjectPropertyAddress audioDevicesPropertyAddress = {
         kAudioHardwarePropertyDevices, kAudioObjectPropertyScopeGlobal,
         kAudioObjectPropertyElementMaster
     };
 
-    if (AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &audioDevicesPropertyAddress, 0,
-                                       nullptr, &propSize)
-        == noErr) {
+    if (auto audioDevices = getAudioData<AudioDeviceID>(
+                kAudioObjectSystemObject, audioDevicesPropertyAddress, "Audio Devices")) {
+        const AudioObjectPropertyAddress audioDeviceStreamFormatPropertyAddress =
+                makePropertyAddress(kAudioDevicePropertyStreamFormat, mode);
 
-        std::vector<AudioDeviceID> audioDevices(propSize / sizeof(AudioDeviceID));
+        for (const auto &device : *audioDevices) {
+            if (device == defaultDevice)
+                continue;
 
-        if (!audioDevices.empty()
-            && AudioObjectGetPropertyData(kAudioObjectSystemObject, &audioDevicesPropertyAddress, 0,
-                                          nullptr, &propSize, audioDevices.data())
-                    == noErr) {
-
-            const auto propertyScope = mode == QAudioDevice::Input
-                    ? kAudioDevicePropertyScopeInput
-                    : kAudioDevicePropertyScopeOutput;
-
-            for (const auto &device : audioDevices) {
-                if (device == defaultDevice)
-                    continue;
-
-                AudioStreamBasicDescription sf = {};
-                UInt32 size = sizeof(AudioStreamBasicDescription);
-                const AudioObjectPropertyAddress audioDeviceStreamFormatPropertyAddress = {
-                    kAudioDevicePropertyStreamFormat, propertyScope,
-                    kAudioObjectPropertyElementMaster
-                };
-
-                if (AudioObjectGetPropertyData(device, &audioDeviceStreamFormatPropertyAddress, 0,
-                                               nullptr, &size, &sf)
-                    == noErr)
-                    devices << createAudioDevice(false, device, uniqueId(device, mode), mode);
+            if (getAudioObject<AudioStreamBasicDescription>(device,
+                                                            audioDeviceStreamFormatPropertyAddress,
+                                                            nullptr /*don't print logs*/)) {
+                devices << createAudioDevice(false, device, uniqueId(device, mode), mode);
             }
         }
     }
