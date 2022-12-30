@@ -120,7 +120,7 @@ void AudioOutputExample::setup()
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::UInt8);
 
-    QAudioDevice info(QAudioDevice::defaultOutputDevice());
+    QAudioDevice info(QMediaDevices::defaultAudioOutput());
     if (!info.isFormatSupported(format)) {
         qWarning() << "Raw audio format not supported by backend, cannot play audio.";
         return;
