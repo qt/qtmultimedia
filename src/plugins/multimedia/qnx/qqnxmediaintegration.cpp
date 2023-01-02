@@ -34,7 +34,7 @@ public:
 
 QQnxMediaIntegration::QQnxMediaIntegration()
 {
-    m_videoDevices = new QQnxVideoDevices(this);
+    m_videoDevices = std::make_unique<QQnxVideoDevices>(this);
 }
 
 QQnxMediaIntegration::~QQnxMediaIntegration()

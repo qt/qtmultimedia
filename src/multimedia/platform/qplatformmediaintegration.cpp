@@ -127,9 +127,8 @@ QMaybe<QPlatformAudioOutput *> QPlatformMediaIntegration::createAudioOutput(QAud
     return new QPlatformAudioOutput(q);
 }
 
-QPlatformMediaIntegration::~QPlatformMediaIntegration()
-{
-    delete m_videoDevices;
-}
+QPlatformMediaIntegration::QPlatformMediaIntegration() = default;
+
+QPlatformMediaIntegration::~QPlatformMediaIntegration() = default;
 
 QT_END_NAMESPACE

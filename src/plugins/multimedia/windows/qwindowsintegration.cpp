@@ -38,7 +38,7 @@ QWindowsMediaIntegration::QWindowsMediaIntegration()
     CoInitialize(NULL);
     MFStartup(MF_VERSION);
 
-    m_videoDevices = new QWindowsVideoDevices(this);
+    m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
 }
 
 QWindowsMediaIntegration::~QWindowsMediaIntegration()
