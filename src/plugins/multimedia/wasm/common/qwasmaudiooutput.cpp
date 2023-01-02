@@ -21,12 +21,16 @@ QWasmAudioOutput::QWasmAudioOutput(QAudioOutput *parent)
 
 QWasmAudioOutput::~QWasmAudioOutput() { }
 
-void QWasmAudioOutput::setAudioDevice(const QAudioDevice &device) { }
+void QWasmAudioOutput::setAudioDevice(const QAudioDevice &device) {
+    Q_UNUSED(device);
+}
 
-void QWasmAudioOutput::setMuted(bool muted) { }
+void QWasmAudioOutput::setMuted(bool muted) {
+    Q_UNUSED(muted);
+}
 
-void QWasmAudioOutput::setVolume(float volume){
-
-};
+void QWasmAudioOutput::setVolume(float volume) {
+    Q_UNUSED(volume);
+}
 
 QT_END_NAMESPACE
