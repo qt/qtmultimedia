@@ -40,7 +40,7 @@ public:
 QGstreamerIntegration::QGstreamerIntegration()
 {
     gst_init(nullptr, nullptr);
-    m_videoDevices = new QGstreamerVideoDevices(this);
+    m_videoDevices = std::make_unique<QGstreamerVideoDevices>(this);
     m_formatsInfo = new QGstreamerFormatInfo();
 }
 
@@ -106,7 +106,9 @@ QMaybe<QPlatformAudioOutput *> QGstreamerIntegration::createAudioOutput(QAudioOu
 
 GstDevice *QGstreamerIntegration::videoDevice(const QByteArray &id) const
 {
-    return m_videoDevices ? static_cast<QGstreamerVideoDevices*>(m_videoDevices)->videoDevice(id) : nullptr;
+    return m_videoDevices
+        ? static_cast<QGstreamerVideoDevices *>(m_videoDevices.get())->videoDevice(id)
+        : nullptr;
 }
 
 QT_END_NAMESPACE

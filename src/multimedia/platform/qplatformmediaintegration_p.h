@@ -19,6 +19,8 @@
 #include <qmediarecorder.h>
 #include <qstring.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QMediaPlayer;
@@ -55,6 +57,7 @@ public:
     // API to be able to test with a mock backend
     static void setIntegration(QPlatformMediaIntegration *);
 
+    QPlatformMediaIntegration();
     virtual ~QPlatformMediaIntegration();
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
 
@@ -74,7 +77,7 @@ public:
     virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) { return notAvailable; }
 
 protected:
-    QPlatformVideoDevices *m_videoDevices = nullptr;
+    std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
 };
 
 QT_END_NAMESPACE

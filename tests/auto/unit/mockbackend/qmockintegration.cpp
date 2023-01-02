@@ -68,7 +68,7 @@ private:
 QMockIntegration::QMockIntegration()
 {
     setIntegration(this);
-    m_videoDevices = new QMockVideoDevices(this);
+    m_videoDevices = std::make_unique<QMockVideoDevices>(this);
 }
 
 QMockIntegration::~QMockIntegration()
