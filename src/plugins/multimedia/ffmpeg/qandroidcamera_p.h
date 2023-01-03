@@ -17,7 +17,6 @@
 
 #include <private/qplatformcamera_p.h>
 #include <QObject>
-#include <qffmpegdecoder_p.h>
 #include <QJniObject>
 
 QT_BEGIN_NAMESPACE
