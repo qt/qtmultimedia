@@ -40,17 +40,20 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
     sinkBin = QGstBin("videoSinkBin");
-    // This is a hack for some iMX platforms. Thos require the use of a special video
+    // This is a hack for some iMX and NVidia platforms. These require the use of a special video
     // conversion element in the pipeline before the video sink, as they unfortunately
-    // output some proprietary format from the decoder even though it's marked as
+    // output some proprietary format from the decoder even though it's sometimes marked as
     // a regular supported video/x-raw format.
     //
     // To fix this, simply insert the element into the pipeline if it's available. Otherwise
     // we simply use an identity element.
     gstQueue = QGstElement("queue");
     auto imxVideoConvert = QGstElement("imxvideoconvert_g2d");
+    auto nvidiaVideoConvert = QGstElement("nvvidconv");
     if (!imxVideoConvert.isNull())
         gstPreprocess = imxVideoConvert;
+    else if (!nvidiaVideoConvert.isNull())
+        gstPreprocess = nvidiaVideoConvert;
     else
         gstPreprocess = QGstElement("identity");
     sinkBin.add(gstQueue, gstPreprocess);
