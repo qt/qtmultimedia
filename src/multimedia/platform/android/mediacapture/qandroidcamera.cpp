@@ -60,8 +60,11 @@ QAndroidCamera::~QAndroidCamera()
 
 void QAndroidCamera::setActive(bool active)
 {
-    if (m_cameraSession)
+    if (m_cameraSession) {
         m_cameraSession->setActive(active);
+    } else {
+        isPendingSetActive = active;
+    }
 }
 
 bool QAndroidCamera::isActive() const
@@ -135,6 +138,11 @@ void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
     connect(m_cameraSession, &QAndroidCameraSession::activeChanged, this, &QAndroidCamera::activeChanged);
     connect(m_cameraSession, &QAndroidCameraSession::error, this, &QAndroidCamera::error);
     connect(m_cameraSession, &QAndroidCameraSession::opened, this, &QAndroidCamera::onCameraOpened);
+
+    if (isPendingSetActive) {
+        setActive(true);
+        isPendingSetActive = false;
+    }
 }
 
 void QAndroidCamera::setFocusMode(QCamera::FocusMode mode)
