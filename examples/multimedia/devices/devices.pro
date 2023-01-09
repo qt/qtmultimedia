@@ -1,3 +1,5 @@
+android|ios: error("This is a commandline tool that is not supported on mobile platforms")
+
 TEMPLATE = app
 TARGET = devices
 
