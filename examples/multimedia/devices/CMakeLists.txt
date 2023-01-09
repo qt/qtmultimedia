@@ -3,6 +3,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(devices LANGUAGES CXX)
 
+if(ANDROID OR IOS)
+    message(FATAL_ERROR "This is a commandline tool that is not supported on mobile platforms")
+endif()
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_AUTOMOC ON)
