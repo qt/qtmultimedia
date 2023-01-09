@@ -70,14 +70,14 @@ QT_BEGIN_NAMESPACE
 \qml
     CameraButton {
         text: "Record"
-        visible: recorder.status !== MediaRecorder.RecordingStatus
+        visible: recorder.recorderState !== MediaRecorder.RecordingState
         onClicked: recorder.record()
     }
 
     CameraButton {
         id: stopButton
         text: "Stop"
-        visible: recorder.status === MediaRecorder.RecordingStatus
+        visible: recorder.recorderState === MediaRecorder.RecordingState
         onClicked: recorder.stop()
     }
 \endqml
