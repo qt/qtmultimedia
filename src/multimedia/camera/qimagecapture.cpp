@@ -96,8 +96,8 @@ QImageCapture::QImageCapture(QObject *parent)
             this, SIGNAL(imageExposed(int)));
     connect(d->control, SIGNAL(imageCaptured(int,QImage)),
             this, SIGNAL(imageCaptured(int,QImage)));
-    connect(d->control, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)),
-            this, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
+    connect(d->control, SIGNAL(imageMetadataAvailable(int,QMediaMetaData)),
+            this, SIGNAL(imageMetadataAvailable(int,QMediaMetaData)));
     connect(d->control, SIGNAL(imageAvailable(int,QVideoFrame)),
             this, SIGNAL(imageAvailable(int,QVideoFrame)));
     connect(d->control, SIGNAL(imageSaved(int,QString)),
