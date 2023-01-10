@@ -120,3 +120,5 @@ void ScreenCapturePreview::onStartStopButtonClicked()
         startStopButton->setText("Stop screencapture");
     }
 }
+
+#include "moc_screencapturepreview.cpp"

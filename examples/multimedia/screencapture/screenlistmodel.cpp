@@ -33,3 +33,5 @@ QScreen *ScreenListModel::screen(const QModelIndex &index) const
 {
     return screenList.at(index.row());
 }
+
+#include "moc_screenlistmodel.cpp"

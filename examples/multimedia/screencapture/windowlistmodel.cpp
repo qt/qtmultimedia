@@ -35,3 +35,5 @@ QWindow *WindowListModel::window(const QModelIndex &index) const
 {
     return windowList.at(index.row());
 }
+
+#include "moc_windowlistmodel.cpp"
