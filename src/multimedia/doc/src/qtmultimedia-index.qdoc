@@ -163,28 +163,30 @@
 
     On most platforms, there are two different backends that can be used for Qt Multimedia.
 
-    The first one is the backend built on the native multimedia framework of the underlying
-    operating system. This is currently the default, and will use gstreamer on Linux,
-    AVFoundation on macOS/iOS, WMF on Windows, and the MediaCodec framework on Android.
+    In Qt 6.5, we're setting \l {http://ffmpeg.org}{FFmpeg framework} as the default backend on
+    Windows, Linux, macOS/iOS, and Android. Native backends, namely gstreamer on Linux,
+    AVFoundation on macOS/iOS, WMF on Windows, and the MediaCodec framework on Android,
+    were the default in 6.4. These are still available but with limited support.
+    This means that we will strive to fix critical issues with the native backends, but don't
+    guarantee fixing minor issues and won't implement new features with native backends.
+    Furthermore, even some major issues with the gstreamer backend (on Linux) won't be fixed
+    since gstreamer is the hardest for debugging and is dependent on linux distributives issues.
 
-    While we try to support our full API on all backends using the native multimedia framework,
-    platform specific limitations do
-    exist in a few places. This is due to the fact that the feature set supported by those
-    frameworks varies, implying that some functionality
-    might not be available on all platforms. This is especially true for the set of
-    supported file formats and codecs, as well as advanced camera functionality.
+    We aim to align the behavior on all the platforms, especially, with the ffmpeg backend.
+    Despite this fact we still have platform-dependent issues with formats, codecs, advanced camera
+    features, and screen capturing. This happens since we use some platform API anyway,
+    even with ffmpeg, and there are specific problems with ffmpeg hardware acceleration.
+    Known backend-dependent limitations will be documented in the respective classes and methods.
 
-    Where limitations exist, we aim to document those in the respective classes and
-    methods.
+    In the case of issues with the default ffmpeg backend, we suggest testing with a native backend.
+    You can switch to native backends by setting the \c{QT_MEDIA_BACKEND} environment variable
+    to \c windows, \c gstreamer (on Linux), \c darwin (on macOS/iOS), or \c android:
 
-    With Qt 6.4, we are adding a new, more platform independent backend based on the
-    \l {http://ffmpeg.org}{FFmpeg framework}. The FFmpeg backend is currently available as a
-    technology preview. This backend has the advantage that we can offer proper cross-platform
-    support for all features of Qt Multimedia, going beyond the limitations that exist with many
-    of the native frameworks.
+    \code
+    export QT_MEDIA_BACKEND=darwin
+    \endcode
 
-    You can test the FFmpeg backend right now by using a Qt build that has FFmpeg enabled and
-    setting the \c{QT_MEDIA_BACKEND} environment variable to ffmpeg:
+    In order to force assign ffmpeg as the used backend, set the variable to ffmpeg:
 
     \code
     export QT_MEDIA_BACKEND=ffmpeg
