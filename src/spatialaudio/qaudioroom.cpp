@@ -312,7 +312,7 @@ void QAudioRoom::setReflectionGain(float factor)
         return;
     d->roomProperties.reflection_scalar = factor;
     d->dirty = true;
-    reflectionGainChanged();
+    emit reflectionGainChanged();
 }
 
 float QAudioRoom::reflectionGain() const
@@ -338,7 +338,7 @@ void QAudioRoom::setReverbGain(float factor)
         return;
     d->roomProperties.reverb_gain = factor;
     d->dirty = true;
-    reverbGainChanged();
+    emit reverbGainChanged();
 }
 
 float QAudioRoom::reverbGain() const
@@ -363,7 +363,7 @@ void QAudioRoom::setReverbTime(float factor)
         return;
     d->roomProperties.reverb_time = factor;
     d->dirty = true;
-    reverbTimeChanged();
+    emit reverbTimeChanged();
 }
 
 float QAudioRoom::reverbTime() const
@@ -386,7 +386,7 @@ void QAudioRoom::setReverbBrightness(float factor)
         return;
     d->roomProperties.reverb_brightness = factor;
     d->dirty = true;
-    reverbBrightnessChanged();
+    emit reverbBrightnessChanged();
 }
 
 float QAudioRoom::reverbBrightness() const

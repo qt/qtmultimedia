@@ -61,7 +61,7 @@ public:
         if (m_nativeSize == s)
             return;
         m_nativeSize = s;
-        sink->videoSizeChanged();
+        emit sink->videoSizeChanged();
     }
     virtual void setVideoFrame(const QVideoFrame &frame) {
         setNativeSize(frame.size());
@@ -69,7 +69,7 @@ public:
             return;
         m_currentVideoFrame = frame;
         m_currentVideoFrame.setSubtitleText(subtitleText());
-        sink->videoFrameChanged(m_currentVideoFrame);
+        emit sink->videoFrameChanged(m_currentVideoFrame);
     }
     QVideoFrame currentVideoFrame() const { return m_currentVideoFrame; }
 
@@ -79,7 +79,7 @@ public:
         if (m_subtitleText == subtitleText)
             return;
         m_subtitleText = subtitleText;
-        sink->subtitleTextChanged(subtitleText);
+        emit sink->subtitleTextChanged(subtitleText);
     }
     QString subtitleText() const
     {

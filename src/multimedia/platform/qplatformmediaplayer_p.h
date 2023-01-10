@@ -76,36 +76,36 @@ public:
     virtual int activeTrack(TrackType) { return -1; }
     virtual void setActiveTrack(TrackType, int /*streamNumber*/) {}
 
-    void durationChanged(qint64 duration) { player->durationChanged(duration); }
+    void durationChanged(qint64 duration) { emit player->durationChanged(duration); }
     void positionChanged(qint64 position) {
         if (m_position == position)
             return;
         m_position = position;
-        player->positionChanged(position);
+        emit player->positionChanged(position);
     }
     void audioAvailableChanged(bool audioAvailable) {
         if (m_audioAvailable == audioAvailable)
             return;
         m_audioAvailable = audioAvailable;
-        player->hasAudioChanged(audioAvailable);
+        emit player->hasAudioChanged(audioAvailable);
     }
     void videoAvailableChanged(bool videoAvailable) {
         if (m_videoAvailable == videoAvailable)
             return;
         m_videoAvailable = videoAvailable;
-        player->hasVideoChanged(videoAvailable);
+        emit player->hasVideoChanged(videoAvailable);
     }
     void seekableChanged(bool seekable) {
         if (m_seekable == seekable)
             return;
         m_seekable = seekable;
-        player->seekableChanged(seekable);
+        emit player->seekableChanged(seekable);
     }
-    void playbackRateChanged(qreal rate) { player->playbackRateChanged(rate); }
-    void bufferProgressChanged(float progress) { player->bufferProgressChanged(progress); }
-    void metaDataChanged() { player->metaDataChanged(); }
-    void tracksChanged() { player->tracksChanged(); }
-    void activeTracksChanged() { player->activeTracksChanged(); }
+    void playbackRateChanged(qreal rate) { emit player->playbackRateChanged(rate); }
+    void bufferProgressChanged(float progress) { emit player->bufferProgressChanged(progress); }
+    void metaDataChanged() { emit player->metaDataChanged(); }
+    void tracksChanged() { emit player->tracksChanged(); }
+    void activeTracksChanged() { emit player->activeTracksChanged(); }
 
     void stateChanged(QMediaPlayer::PlaybackState newState);
     void mediaStatusChanged(QMediaPlayer::MediaStatus status);

@@ -159,7 +159,7 @@ void MFAudioDecoderControl::stop()
     if (bufferAvailable()) {
         QAudioBuffer buffer;
         m_audioBuffer.swap(buffer);
-        emit bufferAvailableChanged(false);
+        bufferAvailableChanged(false);
     }
     setIsDecoding(false);
 
@@ -186,15 +186,15 @@ void MFAudioDecoderControl::handleNewSample(QWindowsIUPointer<IMFSample> sample)
     } else {
         m_audioBuffer = QAudioBuffer(out, m_resampler.outputFormat(), sampleStartTimeUs);
 
-        emit bufferAvailableChanged(true);
-        emit bufferReady();
+        bufferAvailableChanged(true);
+        bufferReady();
     }
 }
 
 void MFAudioDecoderControl::handleSourceFinished()
 {
     stop();
-    emit finished();
+    finished();
 }
 
 void MFAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
@@ -202,7 +202,7 @@ void MFAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
     if (m_outputFormat == format)
         return;
     m_outputFormat = format;
-    emit formatChanged(m_outputFormat);
+    formatChanged(m_outputFormat);
 }
 
 QAudioBuffer MFAudioDecoderControl::read()
@@ -212,8 +212,8 @@ QAudioBuffer MFAudioDecoderControl::read()
     if (bufferAvailable()) {
         buffer.swap(m_audioBuffer);
         m_position = buffer.startTime() / 1000;
-        emit positionChanged(m_position);
-        emit bufferAvailableChanged(false);
+        positionChanged(m_position);
+        bufferAvailableChanged(false);
         m_decoderSourceReader->readNextSample();
     }
 

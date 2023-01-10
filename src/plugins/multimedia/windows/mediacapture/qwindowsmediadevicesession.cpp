@@ -127,14 +127,14 @@ void QWindowsMediaDeviceSession::handleStreamingStopped()
 void QWindowsMediaDeviceSession::handleStreamingError(int errorCode)
 {
     if (m_surface)
-        emit m_surface->platformVideoSink()->setVideoFrame(QVideoFrame());
+        m_surface->platformVideoSink()->setVideoFrame(QVideoFrame());
     emit streamingError(errorCode);
 }
 
 void QWindowsMediaDeviceSession::handleVideoFrameChanged(const QVideoFrame &frame)
 {
     if (m_surface)
-        emit m_surface->platformVideoSink()->setVideoFrame(frame);
+        m_surface->platformVideoSink()->setVideoFrame(frame);
     emit videoFrameChanged(frame);
 }
 
