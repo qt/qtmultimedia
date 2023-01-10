@@ -123,7 +123,7 @@ void MFPlayerControl::refreshState()
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "MFPlayerControl::emit stateChanged" << m_state;
 #endif
-    emit stateChanged(m_state);
+    stateChanged(m_state);
 }
 
 void MFPlayerControl::handleStatusChanged()
@@ -149,7 +149,7 @@ void MFPlayerControl::handleStatusChanged()
     default:
         break;
     }
-    emit mediaStatusChanged(m_session->status());
+    mediaStatusChanged(m_session->status());
     refreshState();
 }
 
@@ -163,7 +163,7 @@ void MFPlayerControl::handleVideoAvailable()
     if (m_videoAvailable)
         return;
     m_videoAvailable = true;
-    emit videoAvailableChanged(m_videoAvailable);
+    videoAvailableChanged(m_videoAvailable);
 }
 
 void MFPlayerControl::handleAudioAvailable()
@@ -171,7 +171,7 @@ void MFPlayerControl::handleAudioAvailable()
     if (m_audioAvailable)
         return;
     m_audioAvailable = true;
-    emit audioAvailableChanged(m_audioAvailable);
+    audioAvailableChanged(m_audioAvailable);
 }
 
 void MFPlayerControl::resetAudioVideoAvailable()
@@ -183,10 +183,10 @@ void MFPlayerControl::resetAudioVideoAvailable()
     }
     if (m_audioAvailable) {
         m_audioAvailable = false;
-        emit audioAvailableChanged(m_audioAvailable);
+        audioAvailableChanged(m_audioAvailable);
     }
     if (videoDirty)
-        emit videoAvailableChanged(m_videoAvailable);
+        videoAvailableChanged(m_videoAvailable);
 }
 
 void MFPlayerControl::handleDurationUpdate(qint64 duration)
@@ -194,7 +194,7 @@ void MFPlayerControl::handleDurationUpdate(qint64 duration)
     if (m_duration == duration)
         return;
     m_duration = duration;
-    emit durationChanged(m_duration);
+    durationChanged(m_duration);
 }
 
 void MFPlayerControl::handleSeekableUpdate(bool seekable)
@@ -202,7 +202,7 @@ void MFPlayerControl::handleSeekableUpdate(bool seekable)
     if (m_seekable == seekable)
         return;
     m_seekable = seekable;
-    emit seekableChanged(m_seekable);
+    seekableChanged(m_seekable);
 }
 
 QMediaPlayer::PlaybackState MFPlayerControl::state() const
@@ -281,7 +281,7 @@ void MFPlayerControl::handleError(QMediaPlayer::Error errorCode, const QString& 
 {
     if (isFatal)
         stop();
-    emit error(int(errorCode), errorString);
+    error(int(errorCode), errorString);
 }
 
 void MFPlayerControl::setActiveTrack(TrackType type, int index)
