@@ -2080,7 +2080,6 @@ namespace
 
     private:
         long    m_cRef;
-        bool    m_shutdown;
         MediaSink *m_sink;
         MFVideoRendererControl *m_rendererControl;
         IMFAttributes *m_attributes;
