@@ -11,6 +11,15 @@ extern "C" {
 #include <libavutil/mastering_display_metadata.h>
 }
 
+static bool isFrameFlipped(const AVFrame& frame) {
+    for (int i = 0; i < AV_NUM_DATA_POINTERS && frame.data[i]; ++i) {
+        if (frame.linesize[i] < 0)
+            return true;
+    }
+
+    return false;
+}
+
 QT_BEGIN_NAMESPACE
 
 QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame)
@@ -35,9 +44,7 @@ void QFFmpegVideoBuffer::convertSWFrame()
     Q_ASSERT(swFrame);
     bool needsConversion = false;
     auto pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format), &needsConversion);
-//    qDebug() << "SW frame format:" << pixelFormat << swFrame->format << needsConversion;
-
-    if (pixelFormat != m_pixelFormat) {
+    if (pixelFormat != m_pixelFormat || isFrameFlipped(*swFrame)) {
         AVPixelFormat newFormat = toAVPixelFormat(m_pixelFormat);
         // convert the format into something we can handle
         SwsContext *c = sws_getContext(swFrame->width, swFrame->height, AVPixelFormat(swFrame->format),
@@ -177,6 +184,8 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
     auto *desc = QVideoTextureHelper::textureDescription(pixelFormat());
     mapData.nPlanes = desc->nplanes;
     for (int i = 0; i < mapData.nPlanes; ++i) {
+        Q_ASSERT(swFrame->linesize[i] >= 0);
+
         mapData.data[i] = swFrame->data[i];
         mapData.bytesPerLine[i] = swFrame->linesize[i];
         mapData.size[i] = mapData.bytesPerLine[i]*desc->heightForPlane(swFrame->height, i);
