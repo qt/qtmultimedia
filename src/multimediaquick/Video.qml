@@ -78,6 +78,8 @@ import QtMultimedia
 
 Item {
     id: video
+    implicitWidth: videoOut.implicitWidth
+    implicitHeight: videoOut.implicitHeight
 
     /*** Properties of VideoOutput ***/
     /*!
