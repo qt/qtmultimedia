@@ -380,7 +380,9 @@ void QAndroidTextureVideoOutput::setVideoSize(const QSize &size)
         return;
 
     m_nativeSize = size;
-    QMetaObject::invokeMethod(m_surfaceThread.get(), [&](){ m_surfaceThread->setFrameSize(size); });
+    QMetaObject::invokeMethod(m_surfaceThread.get(),
+            [&](){ m_surfaceThread->setFrameSize(size); },
+            Qt::BlockingQueuedConnection);
 }
 
 void QAndroidTextureVideoOutput::stop()
