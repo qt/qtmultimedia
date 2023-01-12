@@ -15,7 +15,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcMediaCapture, "qt.multimedia.capture")
+Q_LOGGING_CATEGORY(qLcMediaCaptureGst, "qt.multimedia.capture")
 
 
 static void linkTeeToPad(QGstElement tee, QGstPad sink)

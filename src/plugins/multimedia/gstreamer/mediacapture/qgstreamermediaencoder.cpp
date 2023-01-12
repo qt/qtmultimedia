@@ -21,7 +21,7 @@
 #include <gst/video/video.h>
 #include <gst/pbutils/encoding-profile.h>
 
-Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
+Q_LOGGING_CATEGORY(qLcMediaEncoderGst, "qt.multimedia.encoder")
 
 QT_BEGIN_NAMESPACE
 
@@ -60,17 +60,17 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
         return false;
     auto msg = message;
 
-//    qCDebug(qLcMediaEncoder) << "received event from" << message.source().name() << Qt::hex << message.type();
+//    qCDebug(qLcMediaEncoderGst) << "received event from" << message.source().name() << Qt::hex << message.type();
 //    if (message.type() == GST_MESSAGE_STATE_CHANGED) {
 //        GstState    oldState;
 //        GstState    newState;
 //        GstState    pending;
 //        gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
-//        qCDebug(qLcMediaEncoder) << "received state change from" << message.source().name() << oldState << newState << pending;
+//        qCDebug(qLcMediaEncoderGst) << "received state change from" << message.source().name() << oldState << newState << pending;
 //    }
     if (msg.type() == GST_MESSAGE_ELEMENT) {
         QGstStructure s = msg.structure();
-        qCDebug(qLcMediaEncoder) << "received element message from" << msg.source().name() << s.name();
+        qCDebug(qLcMediaEncoderGst) << "received element message from" << msg.source().name() << s.name();
         if (s.name() == "GstBinForwarded")
             msg = QGstreamerMessage(s);
         if (msg.isNull())
@@ -78,7 +78,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
     }
 
     if (msg.type() == GST_MESSAGE_EOS) {
-        qCDebug(qLcMediaEncoder) << "received EOS from" << msg.source().name();
+        qCDebug(qLcMediaEncoderGst) << "received EOS from" << msg.source().name();
         finalize();
         return false;
     }
@@ -258,7 +258,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     auto location = QMediaStorageLocation::generateFileName(outputLocation().toLocalFile(), primaryLocation, container);
 
     QUrl actualSink = QUrl::fromLocalFile(QDir::currentPath()).resolved(location);
-    qCDebug(qLcMediaEncoder) << "recording new video to" << actualSink;
+    qCDebug(qLcMediaEncoderGst) << "recording new video to" << actualSink;
 
     Q_ASSERT(!actualSink.isEmpty());
 
@@ -334,12 +334,12 @@ void QGstreamerMediaEncoder::stop()
 {
     if (!m_session || m_finalizing || state() == QMediaRecorder::StoppedState)
         return;
-    qCDebug(qLcMediaEncoder) << "stop";
+    qCDebug(qLcMediaEncoderGst) << "stop";
     m_finalizing = true;
     m_session->unlinkEncoder();
     signalDurationChangedTimer.stop();
 
-    qCDebug(qLcMediaEncoder) << ">>>>>>>>>>>>> sending EOS";
+    qCDebug(qLcMediaEncoderGst) << ">>>>>>>>>>>>> sending EOS";
     gstEncoder.sendEos();
 }
 
@@ -348,7 +348,7 @@ void QGstreamerMediaEncoder::finalize()
     if (!m_session || gstEncoder.isNull())
         return;
 
-    qCDebug(qLcMediaEncoder) << "finalize";
+    qCDebug(qLcMediaEncoderGst) << "finalize";
 
     gstPipeline.remove(gstEncoder);
     gstPipeline.remove(gstFileSink);
