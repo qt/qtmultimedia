@@ -248,8 +248,16 @@ Q_SIGNALS:
     void exposureCompensationChanged(float);
     void exposureModeChanged();
 
-    void whiteBalanceModeChanged() const;
-    void colorTemperatureChanged() const;
+    void whiteBalanceModeChanged()
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+    const
+#endif
+    ;
+    void colorTemperatureChanged()
+#if QT_VERSION < QT_VERSION_CHECK(7, 0, 0)
+    const
+#endif
+    ;
 
     void brightnessChanged();
     void contrastChanged();
