@@ -18,7 +18,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcImageCapture, "qt.multimedia.imageCapture")
+Q_LOGGING_CATEGORY(qLcImageCaptureGst, "qt.multimedia.imageCapture")
 
 QGstreamerImageCapture::QGstreamerImageCapture(QImageCapture *parent)
   : QPlatformImageCapture(parent),
@@ -75,7 +75,7 @@ int QGstreamerImageCapture::captureToBuffer()
 
 int QGstreamerImageCapture::doCapture(const QString &fileName)
 {
-    qCDebug(qLcImageCapture) << "do capture";
+    qCDebug(qLcImageCaptureGst) << "do capture";
     if (!m_session) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
@@ -84,7 +84,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
                                   Q_ARG(int, QImageCapture::ResourceError),
                                   Q_ARG(QString, QPlatformImageCapture::msgImageCaptureNotSet()));
 
-        qCDebug(qLcImageCapture) << "error 1";
+        qCDebug(qLcImageCaptureGst) << "error 1";
         return -1;
     }
     if (!m_session->camera()) {
@@ -95,7 +95,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
                                   Q_ARG(int, QImageCapture::ResourceError),
                                   Q_ARG(QString,tr("No camera available.")));
 
-        qCDebug(qLcImageCapture) << "error 2";
+        qCDebug(qLcImageCaptureGst) << "error 2";
         return -1;
     }
     if (passImage) {
@@ -106,7 +106,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
                                   Q_ARG(int, QImageCapture::NotReadyError),
                                   Q_ARG(QString, QPlatformImageCapture::msgCameraNotReady()));
 
-        qCDebug(qLcImageCapture) << "error 3";
+        qCDebug(qLcImageCaptureGst) << "error 3";
         return -1;
     }
     m_lastId++;
@@ -123,7 +123,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 {
     if (!passImage)
         return false;
-    qCDebug(qLcImageCapture) << "probe buffer";
+    qCDebug(qLcImageCaptureGst) << "probe buffer";
 
     passImage = false;
 
@@ -148,7 +148,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 
     emit imageExposed(imageData.id);
 
-    qCDebug(qLcImageCapture) << "Image available!";
+    qCDebug(qLcImageCaptureGst) << "Image available!";
     emit imageAvailable(imageData.id, frame);
 
     emit imageCaptured(imageData.id, img);
@@ -195,11 +195,11 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
 
 void QGstreamerImageCapture::cameraActiveChanged(bool active)
 {
-    qCDebug(qLcImageCapture) << "cameraActiveChanged" << cameraActive << active;
+    qCDebug(qLcImageCaptureGst) << "cameraActiveChanged" << cameraActive << active;
     if (cameraActive == active)
         return;
     cameraActive = active;
-    qCDebug(qLcImageCapture) << "isReady" << isReadyForCapture();
+    qCDebug(qLcImageCaptureGst) << "isReady" << isReadyForCapture();
     emit readyForCaptureChanged(isReadyForCapture());
 }
 
@@ -233,7 +233,7 @@ gboolean QGstreamerImageCapture::saveImageFilter(GstElement *element,
         return true;
     }
 
-    qCDebug(qLcImageCapture) << "saving image as" << imageData.filename;
+    qCDebug(qLcImageCaptureGst) << "saving image as" << imageData.filename;
 
     QFile f(imageData.filename);
     if (f.open(QFile::WriteOnly)) {
@@ -250,7 +250,7 @@ gboolean QGstreamerImageCapture::saveImageFilter(GstElement *element,
                            Q_ARG(int, imageData.id),
                            Q_ARG(QString, imageData.filename));
     } else {
-        qCDebug(qLcImageCapture) << "   could not open image file for writing";
+        qCDebug(qLcImageCaptureGst) << "   could not open image file for writing";
     }
 
     return TRUE;
