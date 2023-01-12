@@ -2,25 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegmediaplayer_p.h"
-#include "qffmpegmediaformatinfo_p.h"
-#include "qlocale.h"
-#include "qffmpeg_p.h"
-#include "qffmpegmediametadata_p.h"
-#include "qffmpegvideobuffer_p.h"
 #include "private/qplatformaudiooutput_p.h"
 #include "qvideosink.h"
-#include "qaudiosink.h"
 #include "qaudiooutput.h"
 
 #include "qffmpegplaybackengine_p.h"
 
-#include <qlocale.h>
-#include <qthread.h>
-#include <qatomic.h>
-#include <qwaitcondition.h>
-#include <qmutex.h>
 #include <qtimer.h>
-#include <qqueue.h>
 
 #include <qloggingcategory.h>
 
@@ -60,6 +48,7 @@ void QFFmpegMediaPlayer::updatePosition()
 
 void QFFmpegMediaPlayer::endOfStream()
 {
+    positionUpdateTimer.stop();
     positionChanged(duration());
     stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(QMediaPlayer::EndOfMedia);
