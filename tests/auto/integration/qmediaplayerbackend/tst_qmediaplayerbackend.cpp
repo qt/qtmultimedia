@@ -64,6 +64,7 @@ private slots:
     void multiplePlaybackRateChangingStressTest();
     void multipleSeekStressTest();
     void playbackRateChanging();
+    void durationDetectionIssues();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -78,6 +79,8 @@ private:
     QUrl localCompressedSoundFile;
     QUrl localFileWithMetadata;
     QUrl localVideoFile3ColorsWithSound;
+    QUrl videoWithDurationIssues; // ffmpeg detects stream an incorrect stream duration, so we take
+                                  // the correct duration from the metadata
 
     const std::array<QRgb, 3> video3Colors = { { 0xFF0000, 0x00FF00, 0x0000FF } };
 
@@ -201,6 +204,9 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     localFileWithMetadata =
             MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/nokia-tune.mp3");
+
+    videoWithDurationIssues = MediaFileSelector::selectMediaFile(
+            QStringList() << "qrc:/testdata/duration_issues.webm");
 
     qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
@@ -1417,6 +1423,7 @@ void tst_QMediaPlayerBackend::metadata()
     QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
     QCOMPARE(player.metaData().value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
     QCOMPARE(player.metaData().value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
+    QCOMPARE(player.metaData().value(QMediaMetaData::Duration), QVariant(7696));
 
     metadataChangedSpy.clear();
 
@@ -1584,6 +1591,32 @@ void tst_QMediaPlayerBackend::position()
     QTest::qWait(200);
     QVERIFY(player.position() > 450);
     QVERIFY(player.position() < 550);
+}
+
+void tst_QMediaPlayerBackend::durationDetectionIssues()
+{
+    if (videoWithDurationIssues.isEmpty())
+        QSKIP("No supported video file");
+
+    TestVideoSink surface(false);
+    QAudioOutput output;
+    QMediaPlayer player;
+
+    QSignalSpy durationSpy(&player, &QMediaPlayer::durationChanged);
+
+    player.setVideoOutput(&surface);
+    player.setAudioOutput(&output);
+    player.setSource(videoWithDurationIssues);
+
+    QCOMPARE(durationSpy.size(), 1);
+    QCOMPARE(durationSpy.front().front(), QVariant(qint64(400)));
+
+    QCOMPARE(player.duration(), 400);
+    QCOMPARE(player.metaData().value(QMediaMetaData::Duration), QVariant(qint64(400)));
+
+    auto videoTracks = player.videoTracks();
+    QCOMPARE(videoTracks.size(), 1);
+    QCOMPARE(videoTracks.front().value(QMediaMetaData::Duration), QVariant(qint64(400)));
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

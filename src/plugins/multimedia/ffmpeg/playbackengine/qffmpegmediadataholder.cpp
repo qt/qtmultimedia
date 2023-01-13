@@ -6,10 +6,40 @@
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qiodevice.h"
+#include "qdatetime.h"
+#include "qloggingcategory.h"
+
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(qLcMediaDataHolder, "qt.multimedia.ffmpeg.mediadataholder")
+
 namespace QFFmpeg {
+
+static std::optional<qint64> streamDuration(const AVStream &stream)
+{
+    const auto &factor = stream.time_base;
+
+    if (stream.duration > 0 && factor.num > 0 && factor.den > 0) {
+        return qint64(1000000) * stream.duration * factor.num / factor.den;
+    }
+
+    // In some cases ffmpeg reports negative duration that is definitely invalid.
+    // However, the correct duration may be read from the metadata.
+
+    if (stream.duration < 0) {
+        qCWarning(qLcMediaDataHolder) << "AVStream duration" << stream.duration
+                                      << "is invalid. Taking it from the metadata";
+    }
+
+    if (const auto duration = av_dict_get(stream.metadata, "DURATION", nullptr, 0)) {
+        const auto time = QTime::fromString(QString::fromUtf8(duration->value));
+        return qint64(1000) * time.msecsSinceStartOfDay();
+    }
+
+    return {};
+}
 
 static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::TrackType trackType,
                             const AVStream *stream)
@@ -149,6 +179,7 @@ void MediaDataHolder::updateStreams()
     }
 
     for (unsigned int i = 0; i < m_context->nb_streams; ++i) {
+
         const auto *stream = m_context->streams[i];
         const auto trackType = trackTypeFromMediaType(stream->codecpar->codec_type);
 
@@ -165,10 +196,12 @@ void MediaDataHolder::updateStreams()
                 m_requestedStreams[trackType] = m_streamMap[trackType].size();
         }
 
+        if (auto duration = streamDuration(*stream)) {
+            m_duration = qMax(m_duration, *duration);
+            metaData.insert(QMediaMetaData::Duration, *duration / qint64(1000));
+        }
+
         m_streamMap[trackType].append({ (int)i, isDefault, metaData });
-        m_duration =
-                qMax(m_duration,
-                     1000000 * stream->duration * stream->time_base.num / stream->time_base.den);
     }
 
     for (auto trackType :
@@ -195,10 +228,11 @@ void MediaDataHolder::updateMetaData()
     m_metaData.insert(QMediaMetaData::FileFormat,
                       QVariant::fromValue(QFFmpegMediaFormatInfo::fileFormatForAVInputFormat(
                               m_context->iformat)));
+    m_metaData.insert(QMediaMetaData::Duration, m_duration / qint64(1000));
 
     for (auto trackType :
          { QPlatformMediaPlayer::AudioStream, QPlatformMediaPlayer::VideoStream }) {
-        const auto streamIndex = m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream];
+        const auto streamIndex = m_currentAVStreamIndex[trackType];
         if (streamIndex >= 0)
             insertMediaData(m_metaData, trackType, m_context->streams[streamIndex]);
     }
@@ -217,7 +251,8 @@ bool MediaDataHolder::setActiveTrack(QPlatformMediaPlayer::TrackType type, int s
     const int avStreamIndex = m_streamMap[type].value(streamNumber).avStreamIndex;
 
     const int oldIndex = m_currentAVStreamIndex[type];
-    qDebug() << ">>>>> change track" << type << "from" << oldIndex << "to" << avStreamIndex;
+    qCDebug(qLcMediaDataHolder) << ">>>>> change track" << type << "from" << oldIndex << "to"
+                                << avStreamIndex;
 
     // TODO: maybe add additional verifications
     m_currentAVStreamIndex[type] = avStreamIndex;
