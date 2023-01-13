@@ -514,9 +514,6 @@ STDMETHODIMP MFTransform::ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount,
         return MF_E_TRANSFORM_STREAM_CHANGE;
     }
 
-    IMFMediaBuffer *input = NULL;
-    IMFMediaBuffer *output = NULL;
-
     if (dwFlags == MFT_PROCESS_OUTPUT_DISCARD_WHEN_NO_BUFFER)
         goto done;
     else if (dwFlags != 0)
@@ -551,11 +548,6 @@ done:
 
     m_sample->Release();
     m_sample = 0;
-
-    if (input)
-        input->Release();
-    if (output)
-        output->Release();
 
     return S_OK;
 }
