@@ -13,7 +13,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(lcaMetadata, "qt.multimedia.android.metadata")
+static Q_LOGGING_CATEGORY(lcaMetadata, "qt.multimedia.android.metadata")
 
 // Genre name ordered by ID
 // see: http://id3.org/id3v2.3.0#Appendix_A_-_Genre_List_from_ID3v1

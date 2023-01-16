@@ -9,7 +9,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcMediaFormatInfo, "qt.multimedia.ffmpeg.mediaformatinfo")
+static Q_LOGGING_CATEGORY(qLcMediaFormatInfo, "qt.multimedia.ffmpeg.mediaformatinfo")
 
 static struct {
     AVCodecID id;

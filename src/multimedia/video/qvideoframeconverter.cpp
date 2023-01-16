@@ -38,7 +38,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcVideoFrameConverter, "qt.multimedia.video.frameconverter")
+static Q_LOGGING_CATEGORY(qLcVideoFrameConverter, "qt.multimedia.video.frameconverter")
 
 namespace {
 

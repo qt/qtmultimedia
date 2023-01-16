@@ -24,7 +24,7 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder")
+static Q_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder")
 
 namespace QFFmpeg
 {

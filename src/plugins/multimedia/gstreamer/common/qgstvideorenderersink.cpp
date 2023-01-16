@@ -34,7 +34,7 @@
 
 //#define DEBUG_VIDEO_SURFACE_SINK
 
-Q_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer")
+static Q_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer")
 
 QT_BEGIN_NAMESPACE
 

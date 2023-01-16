@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-Q_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player")
+static Q_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player")
 
 QT_BEGIN_NAMESPACE
 

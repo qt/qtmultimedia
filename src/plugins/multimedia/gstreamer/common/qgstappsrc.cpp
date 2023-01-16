@@ -8,7 +8,7 @@
 #include "qnetworkreply.h"
 #include "qloggingcategory.h"
 
-Q_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc")
+static Q_LOGGING_CATEGORY(qLcAppSrc, "qt.multimedia.appsrc")
 
 QT_BEGIN_NAMESPACE
 

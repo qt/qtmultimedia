@@ -13,7 +13,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-Q_DECLARE_LOGGING_CATEGORY(qLcPulseAudio)
 
 QT_BEGIN_NAMESPACE
 

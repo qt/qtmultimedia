@@ -9,7 +9,7 @@
 #include <QtCore/qloggingcategory.h>
 #include <qthread.h>
 
-Q_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput")
+static Q_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput")
 
 QT_BEGIN_NAMESPACE
 

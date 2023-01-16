@@ -18,7 +18,7 @@
 #include <qmimetype.h>
 #include <qloggingcategory.h>
 
-Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
+static Q_LOGGING_CATEGORY(qLcMediaEncoder, "qt.multimedia.encoder")
 
 QT_BEGIN_NAMESPACE
 

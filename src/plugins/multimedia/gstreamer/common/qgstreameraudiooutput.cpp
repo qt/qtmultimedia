@@ -16,7 +16,7 @@
 
 #include <utility>
 
-Q_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
+static Q_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
 
 QT_BEGIN_NAMESPACE
 

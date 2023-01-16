@@ -34,7 +34,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
+static Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
 
 QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)

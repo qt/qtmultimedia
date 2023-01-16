@@ -12,7 +12,7 @@
 #include <QJniEnvironment>
 #include <jni.h>
 
-Q_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices")
+static Q_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.videoDevices")
 
 Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
                     "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");

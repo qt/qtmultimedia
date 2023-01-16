@@ -21,7 +21,7 @@
 #include <gst/video/video.h>
 #include <gst/pbutils/encoding-profile.h>
 
-Q_LOGGING_CATEGORY(qLcMediaEncoderGst, "qt.multimedia.encoder")
+static Q_LOGGING_CATEGORY(qLcMediaEncoderGst, "qt.multimedia.encoder")
 
 QT_BEGIN_NAMESPACE
 

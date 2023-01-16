@@ -25,7 +25,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcEvrD3DPresentEngine, "qt.multimedia.evrd3dpresentengine")
+static Q_LOGGING_CATEGORY(qLcEvrD3DPresentEngine, "qt.multimedia.evrd3dpresentengine")
 
 class IMFSampleVideoBuffer: public QAbstractVideoBuffer
 {

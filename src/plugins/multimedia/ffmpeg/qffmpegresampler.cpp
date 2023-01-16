@@ -9,7 +9,7 @@ extern "C" {
 #include <libavutil/opt.h>
 }
 
-Q_LOGGING_CATEGORY(qLcResampler, "qt.multimedia.ffmpeg.resampler")
+static Q_LOGGING_CATEGORY(qLcResampler, "qt.multimedia.ffmpeg.resampler")
 
 QT_BEGIN_NAMESPACE
 
