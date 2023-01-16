@@ -20,7 +20,7 @@ QWasmMediaPlayer::QWasmMediaPlayer(QMediaPlayer *parent)
       m_State(QWasmMediaPlayer::Idle)
 {
      qCDebug(lcMediaPlayer) << Q_FUNC_INFO << this;
-    initVideo();
+
 }
 
 QWasmMediaPlayer::~QWasmMediaPlayer()
@@ -44,7 +44,7 @@ void QWasmMediaPlayer::initVideo()
     connect(m_videoOutput, &QWasmVideoOutput::errorOccured, this,
             &QWasmMediaPlayer::errorOccured);
     connect(m_videoOutput, &QWasmVideoOutput::stateChanged, this,
-            &QWasmMediaPlayer::videoStateChanged);
+            &QWasmMediaPlayer::mediaStateChanged);
     connect(m_videoOutput, &QWasmVideoOutput::progressChanged, this,
             &QWasmMediaPlayer::setPositionChanged);
     connect(m_videoOutput, &QWasmVideoOutput::durationChanged, this,
@@ -58,8 +58,32 @@ void QWasmMediaPlayer::initVideo()
     connect(m_videoOutput, &QWasmVideoOutput::metaDataLoaded, this,
             &QWasmMediaPlayer::videoMetaDataChanged);
 
+    setVideoAvailable(true);
 }
 
+void QWasmMediaPlayer::initAudio()
+{
+    connect(m_audioOutput->q, &QAudioOutput::deviceChanged,
+            this, &QWasmMediaPlayer::updateAudioDevice);
+    connect(m_audioOutput->q, &QAudioOutput::volumeChanged,
+            this, &QWasmMediaPlayer::volumeChanged);
+    connect(m_audioOutput->q, &QAudioOutput::mutedChanged,
+            this, &QWasmMediaPlayer::mutedChanged);
+
+    connect(m_audioOutput, &QWasmAudioOutput::bufferingChanged, this,
+            &QWasmMediaPlayer::bufferingChanged);
+    connect(m_audioOutput, &QWasmAudioOutput::errorOccured, this,
+            &QWasmMediaPlayer::errorOccured);
+    connect(m_audioOutput, &QWasmAudioOutput::progressChanged, this,
+            &QWasmMediaPlayer::setPositionChanged);
+    connect(m_audioOutput, &QWasmAudioOutput::durationChanged, this,
+            &QWasmMediaPlayer::setDurationChanged);
+    connect(m_audioOutput, &QWasmAudioOutput::statusChanged, this,
+            &QWasmMediaPlayer::onMediaStatusChanged);
+    connect(m_audioOutput, &QWasmAudioOutput::stateChanged, this,
+            &QWasmMediaPlayer::mediaStateChanged);
+   setAudioAvailable(true);
+}
 
 qint64 QWasmMediaPlayer::duration() const
 {
@@ -178,17 +202,25 @@ const QIODevice *QWasmMediaPlayer::mediaStream() const
 
 void QWasmMediaPlayer::setMedia(const QUrl &mediaContent, QIODevice *stream)
 {
-    qDebug() << Q_FUNC_INFO << mediaContent;
+    qDebug() << Q_FUNC_INFO << mediaContent << isVideoAvailable()
+             << isAudioAvailable();
     if (mediaContent.isEmpty()) {
         if (stream) {
             m_mediaStream = stream;
-            m_videoOutput->setSource(m_mediaStream);
+            if (isVideoAvailable())
+                m_videoOutput->setSource(m_mediaStream);
+            else
+                m_audioOutput->setSource(m_mediaStream);
         } else {
             setMediaStatus(QMediaPlayer::NoMedia);
         }
     } else {
-        m_videoOutput->setSource(mediaContent);
+        if (isVideoAvailable())
+            m_videoOutput->setSource(mediaContent);
+        else
+            m_audioOutput->setSource(mediaContent);
     }
+
     resetBufferingProgress();
 }
 
@@ -202,6 +234,7 @@ void QWasmMediaPlayer::setVideoSink(QVideoSink *sink)
     if (!m_videoSink)
         return;
 
+    initVideo();
     m_videoOutput->setSurface(sink);
 }
 
@@ -213,22 +246,12 @@ void QWasmMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
     if (m_audioOutput)
         m_audioOutput->q->disconnect(this);
     m_audioOutput = static_cast<QWasmAudioOutput *>(output);
-
-    if (!m_audioOutput)
-        return;
-
-    connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this,
-            &QWasmMediaPlayer::updateAudioDevice);
-    connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this, &QWasmMediaPlayer::volumeChanged);
-    connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this, &QWasmMediaPlayer::mutedChanged);
-    updateAudioDevice();
 }
 
 void QWasmMediaPlayer::updateAudioDevice()
 {
     if (m_audioOutput) {
-        // we have only one audio device
-        // mMediaPlayer->setAudioOutput(m_audioOutput->device.id());
+       m_audioOutput->setAudioDevice(m_audioOutput->q->device());
     }
 }
 
@@ -239,6 +262,11 @@ void QWasmMediaPlayer::play()
     if (isVideoAvailable()) {
         m_videoOutput->start();
         m_playWhenReady = true;
+    } else {
+        initAudio();
+        if (isAudioAvailable()) {
+            m_audioOutput->start();
+        }
     }
 
 #ifdef DEBUG_AUDIOENGINE
@@ -248,15 +276,17 @@ void QWasmMediaPlayer::play()
 
 void QWasmMediaPlayer::pause()
 {
-    stateChanged(QMediaPlayer::PausedState);
-
     if ((m_State
          & (QWasmMediaPlayer::Started | QWasmMediaPlayer::Paused
-            | QWasmMediaPlayer::PlaybackCompleted))
-        == 0) {
+            | QWasmMediaPlayer::PlaybackCompleted)) == 0) {
         return;
     }
-    m_videoOutput->pause();
+    if (isVideoAvailable()) {
+        m_videoOutput->pause();
+    } else {
+        m_audioOutput->pause();
+        stateChanged(QMediaPlayer::PausedState);
+    }
 }
 
 void QWasmMediaPlayer::stop()
@@ -265,10 +295,16 @@ void QWasmMediaPlayer::stop()
 
     if (m_State == QWasmMediaPlayer::Idle || m_State == QWasmMediaPlayer::PlaybackCompleted
         || m_State == QWasmMediaPlayer::Stopped) {
+          qWarning() << Q_FUNC_INFO << __LINE__;
         return;
     }
 
-    m_videoOutput->stop();
+    if (isVideoAvailable()) {
+        m_videoOutput->stop();
+    } else {
+        m_audioOutput->stop();
+    }
+
 }
 
 bool QWasmMediaPlayer::isSeekable() const
@@ -316,7 +352,7 @@ void QWasmMediaPlayer::videoSizeChanged(qint32 width, qint32 height)
     m_videoSize = newSize;
 }
 
-void QWasmMediaPlayer::videoStateChanged(QWasmMediaPlayer::QWasmMediaPlayerState state)
+void QWasmMediaPlayer::mediaStateChanged(QWasmMediaPlayer::QWasmMediaPlayerState state)
 {
     m_State = state;
     QMediaPlayer::PlaybackState m_mediaPlayerState;

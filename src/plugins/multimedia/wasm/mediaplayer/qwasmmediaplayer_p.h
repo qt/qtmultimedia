@@ -79,7 +79,7 @@ private Q_SLOTS:
     void errorOccured(qint32 code, const QString &message);
     void bufferingChanged(qint32 percent);
     void videoSizeChanged(qint32 width, qint32 height);
-    void videoStateChanged(QWasmMediaPlayer::QWasmMediaPlayerState state);
+    void mediaStateChanged(QWasmMediaPlayer::QWasmMediaPlayerState state);
     void setPositionChanged(qint64 position);
     void setDurationChanged(qint64 duration);
     void videoMetaDataChanged();
@@ -96,6 +96,7 @@ private:
     void setSubtitle(QString subtitle);
     void disableTrack(TrackType trackType);
     void initVideo();
+    void initAudio();
 
     friend class StateChangeNotifier;
 

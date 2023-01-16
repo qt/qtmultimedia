@@ -15,8 +15,8 @@ QWasmAudioDevice::QWasmAudioDevice(const char *device, const char *desc, bool is
     : QAudioDevicePrivate(device, mode)
 {
     description = QString::fromUtf8(desc);
-    isDefault = isDef;
 
+    isDefault = isDef;
     minimumChannelCount = 1;
     maximumChannelCount = 2;
     minimumSampleRate = 8000;
@@ -40,6 +40,7 @@ QWasmAudioDevice::QWasmAudioDevice(const char *device, const char *desc, bool is
         audioContext = emscripten::val::global("window")["webkitAudioContext"].new_();
 
     if (audioContext != emscripten::val::undefined()) {
+        audioContext.call<void>("resume");
         int sRate = audioContext["sampleRate"].as<int>();
         audioContext.call<void>("close");
         preferredFormat.setSampleRate(sRate);

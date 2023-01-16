@@ -31,6 +31,7 @@ QList<QCameraDevice> QWasmCameraDevices::videoDevices() const
 
 QWasmMediaDevices::QWasmMediaDevices() : QPlatformMediaDevices()
 {
+    getOpenALAudioDevices();
     getMediaDevices(); // asynchronous
 }
 
