@@ -42,7 +42,7 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 #include <system_error>
 #include <variant>
 
-Q_LOGGING_CATEGORY(qLcScreenCaptureUwp, "qt.multimedia.ffmpeg.screencapture.uwp")
+static Q_LOGGING_CATEGORY(qLcScreenCaptureUwp, "qt.multimedia.ffmpeg.screencapture.uwp")
 
 namespace winrt {
     using namespace winrt::Windows::Graphics::Capture;

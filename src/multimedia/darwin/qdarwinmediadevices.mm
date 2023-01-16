@@ -19,7 +19,7 @@
 #include "qmacosaudiodatautils_p.h"
 #endif
 
-Q_LOGGING_CATEGORY(qLcDarwinMediaDevices, "qt.multimedia.darwin.mediaDevices")
+static Q_LOGGING_CATEGORY(qLcDarwinMediaDevices, "qt.multimedia.darwin.mediaDevices")
 
 QT_BEGIN_NAMESPACE
 

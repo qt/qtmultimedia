@@ -20,7 +20,7 @@
 
 #include <QtCore/qloggingcategory.h>
 
-Q_LOGGING_CATEGORY(qLcFfmpegScreenCapture, "qt.multimedia.ffmpeg.screencapture")
+static Q_LOGGING_CATEGORY(qLcFfmpegScreenCapture, "qt.multimedia.ffmpeg.screencapture")
 
 QT_BEGIN_NAMESPACE
 

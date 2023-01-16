@@ -22,7 +22,7 @@ public:
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 };
 
-Q_LOGGING_CATEGORY(qLcMediaPlugin, "qt.multimedia.plugin")
+static Q_LOGGING_CATEGORY(qLcMediaPlugin, "qt.multimedia.plugin")
 
 Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
                           (QPlatformMediaPlugin_iid,

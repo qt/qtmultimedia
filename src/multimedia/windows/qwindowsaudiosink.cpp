@@ -30,7 +30,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcAudioOutput, "qt.multimedia.audiooutput")
+static Q_LOGGING_CATEGORY(qLcAudioOutput, "qt.multimedia.audiooutput")
 
 const IID IID_IAudioClient = __uuidof(IAudioClient);
 const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);

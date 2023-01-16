@@ -17,7 +17,7 @@ Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(lcAudio, "qt.multimedia.audio")
+static Q_LOGGING_CATEGORY(lcAudio, "qt.multimedia.audio")
 
 AndroidMediaPlayer::AndroidMediaPlayer()
     : QObject()

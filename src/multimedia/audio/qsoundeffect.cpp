@@ -9,7 +9,7 @@
 #include "qmediadevices.h"
 #include <QtCore/qloggingcategory.h>
 
-Q_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
+static Q_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
 
 QT_BEGIN_NAMESPACE
 

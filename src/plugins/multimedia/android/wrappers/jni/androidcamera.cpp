@@ -21,7 +21,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(lcAndroidCamera, "qt.multimedia.android.camera")
+static Q_LOGGING_CATEGORY(lcAndroidCamera, "qt.multimedia.android.camera")
 
 static const char QtCameraListenerClassName[] = "org/qtproject/qt/android/multimedia/QtCameraListener";
 

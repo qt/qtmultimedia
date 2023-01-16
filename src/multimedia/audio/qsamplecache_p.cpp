@@ -11,7 +11,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/qloggingcategory.h>
 
-Q_LOGGING_CATEGORY(qLcSampleCache, "qt.multimedia.samplecache")
+static Q_LOGGING_CATEGORY(qLcSampleCache, "qt.multimedia.samplecache")
 
 #include <mutex>
 

@@ -25,7 +25,7 @@ Q_DECLARE_JNI_TYPE(AndroidImagePlaneArray, "[Landroid/media/Image$Plane;")
 Q_DECLARE_JNI_TYPE(JavaByteBuffer, "Ljava/nio/ByteBuffer;")
 
 QT_BEGIN_NAMESPACE
-Q_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera")
+static Q_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera")
 
 typedef QMap<QString, QAndroidCamera *> QAndroidCameraMap;
 Q_GLOBAL_STATIC(QAndroidCameraMap, g_qcameras)

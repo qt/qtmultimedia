@@ -60,7 +60,7 @@ extern "C" {
 
 #include <qloggingcategory.h>
 
-Q_LOGGING_CATEGORY(qLHWAccelVAAPI, "qt.multimedia.ffmpeg.hwaccelvaapi");
+static Q_LOGGING_CATEGORY(qLHWAccelVAAPI, "qt.multimedia.ffmpeg.hwaccelvaapi");
 
 namespace QFFmpeg {
 

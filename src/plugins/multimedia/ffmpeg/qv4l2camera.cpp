@@ -26,7 +26,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLV4L2Camera, "qt.multimedia.ffmpeg.v4l2camera");
+static Q_LOGGING_CATEGORY(qLV4L2Camera, "qt.multimedia.ffmpeg.v4l2camera");
 
 QV4L2CameraDevices::QV4L2CameraDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)

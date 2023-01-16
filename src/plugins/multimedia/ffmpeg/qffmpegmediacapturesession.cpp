@@ -15,10 +15,6 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcMediaCapture, "qt.multimedia.capture")
-
-
-
 QFFmpegMediaCaptureSession::QFFmpegMediaCaptureSession()
 {
 }

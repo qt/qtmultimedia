@@ -10,8 +10,6 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcVideoTextureHelper, "qt.multimedia.video.texturehelper")
-
 namespace QVideoTextureHelper
 {
 

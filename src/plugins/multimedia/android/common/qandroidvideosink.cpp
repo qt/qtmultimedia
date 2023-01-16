@@ -10,7 +10,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
+static Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
 
 QAndroidVideoSink::QAndroidVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)

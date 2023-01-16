@@ -3,7 +3,7 @@
 #include <qffmpegclock_p.h>
 #include <qloggingcategory.h>
 
-Q_LOGGING_CATEGORY(qLcClock, "qt.multimedia.ffmpeg.clock")
+static Q_LOGGING_CATEGORY(qLcClock, "qt.multimedia.ffmpeg.clock")
 
 QT_BEGIN_NAMESPACE
 
