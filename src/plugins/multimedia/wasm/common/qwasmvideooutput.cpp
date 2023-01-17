@@ -661,29 +661,7 @@ void QWasmVideoOutput::doElementCallbacks()
 
 void QWasmVideoOutput::updateVideoElementGeometry(const QRect &windowGeometry)
 {
-    qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO;
-
-    //    if (m_videoElementSource.isUndefined() || m_videoElementSource.isNull())
-    //        return;
-    // Resolve the geometry against Qt canvas geometry, in case the canvas
-    // is offset (not at (0,0)) relative to the body element. The id for the
-    // canvas is set in the .html file, in this case "qtcanvas" when using the
-    // default generated html.
-
-    emscripten::val document = emscripten::val::global("document");
-
-    emscripten::val canvas =
-            document.call<emscripten::val>("getElementById", std::string("qtcanvas"));
-
-    emscripten::val contextAttributes = emscripten::val::array();
-    contextAttributes.set("preserveDrawingBuffer", true);
-
-    if (canvas.isUndefined())
-        qFatal("Could not find canvas element");
-
-    emscripten::val rect = canvas.call<emscripten::val>("getBoundingClientRect");
-    QPoint canvasPosition(rect["left"].as<int>(), rect["top"].as<int>());
-    QRect m_videoElementSource(windowGeometry.topLeft() + canvasPosition, windowGeometry.size());
+    QRect m_videoElementSource(windowGeometry.topLeft(), windowGeometry.size());
 
     emscripten::val style = m_video["style"];
     style.set("left", QString("%1px").arg(m_videoElementSource.left()).toStdString());
