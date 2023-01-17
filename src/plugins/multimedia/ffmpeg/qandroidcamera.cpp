@@ -144,12 +144,15 @@ QAndroidCamera::QAndroidCamera(QCamera *camera) : QPlatformCamera(camera)
 
 QAndroidCamera::~QAndroidCamera()
 {
-    QWriteLocker locker(rwLock);
-    g_qcameras->remove(m_cameraDevice.id());
+    {
+        QWriteLocker locker(rwLock);
+        g_qcameras->remove(m_cameraDevice.id());
 
-    m_jniCamera.callMethod<void>("stopAndClose");
+        m_jniCamera.callMethod<void>("stopAndClose");
+        setState(State::Closed);
+    }
+
     m_jniCamera.callMethod<void>("stopBackgroundThread");
-    setState(State::Closed);
 }
 
 void QAndroidCamera::setCamera(const QCameraDevice &camera)
