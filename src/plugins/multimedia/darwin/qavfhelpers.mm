@@ -96,16 +96,17 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
     auto colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
     auto colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
 
-    CFStringRef cSpace = reinterpret_cast<CFStringRef>(
-                CVBufferGetAttachment(buffer, kCVImageBufferYCbCrMatrixKey, nullptr));
-    if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_709_2)) {
-        colorSpace = QVideoFrameFormat::ColorSpace_BT709;
-    } else if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_601_4) ||
-               CFEqual(cSpace, kCVImageBufferYCbCrMatrix_SMPTE_240M_1995)) {
-        colorSpace = QVideoFrameFormat::ColorSpace_BT601;
-    } else if (@available(macOS 10.11, iOS 9.0, *)) {
-        if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_2020)) {
-            colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+    if (CFStringRef cSpace = reinterpret_cast<CFStringRef>(
+                CVBufferGetAttachment(buffer, kCVImageBufferYCbCrMatrixKey, nullptr))) {
+        if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_709_2)) {
+            colorSpace = QVideoFrameFormat::ColorSpace_BT709;
+        } else if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_601_4)
+                   || CFEqual(cSpace, kCVImageBufferYCbCrMatrix_SMPTE_240M_1995)) {
+            colorSpace = QVideoFrameFormat::ColorSpace_BT601;
+        } else if (@available(macOS 10.11, iOS 9.0, *)) {
+            if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_2020)) {
+                colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+            }
         }
     }
 
