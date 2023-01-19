@@ -81,22 +81,24 @@ public class QtCamera2 {
         public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
             onCaptureSessionConfigureFailed(mCameraId);
         }
+
+        @Override
+        public void onActive(CameraCaptureSession cameraCaptureSession) {
+           super.onActive(cameraCaptureSession);
+           onSessionActive(mCameraId);
+        }
+
+        @Override
+        public void onClosed(CameraCaptureSession cameraCaptureSession) {
+            super.onClosed(cameraCaptureSession);
+            onSessionClosed(mCameraId);
+        }
     };
 
-    native void onCaptureSessionStarted(String cameraId, long timestamp, long frameNumber);
-    native void onCaptureSessionCompleted(String cameraId, long frameNumber);
+    native void onSessionActive(String cameraId);
+    native void onSessionClosed(String cameraId);
     native void onCaptureSessionFailed(String cameraId, int reason, long frameNumber);
     CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
-        @Override
-        public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
-            super.onCaptureStarted(session, request, timestamp, frameNumber);
-            onCaptureSessionStarted(mCameraId,timestamp,frameNumber);
-        }
-        public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request,  TotalCaptureResult result) {
-            super.onCaptureCompleted(session,request,result);
-            onCaptureSessionCompleted(mCameraId,result.getFrameNumber());
-        }
-
         public void onCaptureFailed(CameraCaptureSession session,  CaptureRequest request,  CaptureFailure failure) {
             super.onCaptureFailed(session, request, failure);
             onCaptureSessionFailed(mCameraId, failure.getReason(), failure.getFrameNumber());
