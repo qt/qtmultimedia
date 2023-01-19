@@ -456,7 +456,7 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
     setCameraFormat({});
 }
 
-/*! \qmlproperty cameraDevice QtMultimedia::Camera::cameraFormat
+/*! \qmlproperty cameraFormat QtMultimedia::Camera::cameraFormat
 
     Gets or sets the currently active camera format.
 
