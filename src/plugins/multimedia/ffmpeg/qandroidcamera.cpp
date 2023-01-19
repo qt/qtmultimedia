@@ -352,21 +352,15 @@ void QAndroidCamera::onCameraError(int reason)
                QString("Capture error with Camera %1. Camera2 Api error code: %2")
                        .arg(m_cameraDevice.description())
                        .arg(reason));
-    setState(State::Closed);
 }
 
-void QAndroidCamera::onCaptureSessionStarted(long timestamp, long frameNumber)
+void QAndroidCamera::onSessionActive()
 {
-    Q_UNUSED(timestamp);
-    Q_UNUSED(frameNumber);
-
     setState(State::Started);
 }
 
-void QAndroidCamera::onCaptureSessionCompleted(long frameNumber)
+void QAndroidCamera::onSessionClosed()
 {
-    Q_UNUSED(frameNumber);
-
     setState(State::Closed);
 }
 
@@ -453,16 +447,25 @@ static void onCaptureSessionConfigureFailed(JNIEnv *env, jobject obj, jstring ca
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed)
 
-static void onCaptureSessionStarted(JNIEnv *env, jobject obj, jstring cameraId, jlong timestamp,
-                                    jlong framenumber)
+static void onSessionActive(JNIEnv *env, jobject obj, jstring cameraId)
 {
     Q_UNUSED(env);
     Q_UNUSED(obj);
     GET_CAMERA(cameraId);
 
-    camera->onCaptureSessionStarted(timestamp, framenumber);
+    camera->onSessionActive();
 }
-Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionStarted)
+Q_DECLARE_JNI_NATIVE_METHOD(onSessionActive)
+
+static void onSessionClosed(JNIEnv *env, jobject obj, jstring cameraId)
+{
+    Q_UNUSED(env);
+    Q_UNUSED(obj);
+    GET_CAMERA(cameraId);
+
+    camera->onSessionClosed();
+}
+Q_DECLARE_JNI_NATIVE_METHOD(onSessionClosed)
 
 static void onCaptureSessionFailed(JNIEnv *env, jobject obj, jstring cameraId, jint reason,
                                    jlong framenumber)
@@ -475,16 +478,6 @@ static void onCaptureSessionFailed(JNIEnv *env, jobject obj, jstring cameraId, j
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionFailed)
 
-static void onCaptureSessionCompleted(JNIEnv *env, jobject obj, jstring cameraId, jlong framenumber)
-{
-    Q_UNUSED(env);
-    Q_UNUSED(obj);
-    GET_CAMERA(cameraId);
-
-    camera->onCaptureSessionCompleted(framenumber);
-}
-Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionCompleted)
-
 bool QAndroidCamera::registerNativeMethods()
 {
     static const bool registered = []() {
@@ -496,10 +489,10 @@ bool QAndroidCamera::registerNativeMethods()
                         Q_JNI_NATIVE_METHOD(onCameraError),
                         Q_JNI_NATIVE_METHOD(onCaptureSessionConfigured),
                         Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
-                        Q_JNI_NATIVE_METHOD(onCaptureSessionStarted),
                         Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
-                        Q_JNI_NATIVE_METHOD(onCaptureSessionCompleted),
                         Q_JNI_NATIVE_METHOD(onFrameAvailable),
+                        Q_JNI_NATIVE_METHOD(onSessionActive),
+                        Q_JNI_NATIVE_METHOD(onSessionClosed),
 
                 });
     }();

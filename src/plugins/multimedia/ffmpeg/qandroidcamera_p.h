@@ -43,9 +43,9 @@ public slots:
     void onFrameAvailable(QJniObject frame);
     void onCaptureSessionConfigured();
     void onCaptureSessionConfigureFailed();
-    void onCaptureSessionStarted(long timestamp, long frameNumber);
-    void onCaptureSessionCompleted(long frameNumber);
     void onCaptureSessionFailed(int reason, long frameNumber);
+    void onSessionActive();
+    void onSessionClosed();
 
 private:
     void setState(State newState);
