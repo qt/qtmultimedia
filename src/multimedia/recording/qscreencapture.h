@@ -16,7 +16,7 @@ QT_BEGIN_NAMESPACE
 
 class QMediaCaptureSession;
 class QPlatformScreenCapture;
-struct QScreenCapturePrivate;
+class QScreenCapturePrivate;
 
 class Q_MULTIMEDIA_EXPORT QScreenCapture : public QObject
 {
@@ -29,19 +29,18 @@ class Q_MULTIMEDIA_EXPORT QScreenCapture : public QObject
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
 
 public:
-    enum Error
-    {
+    enum Error {
         NoError,
         InternalError,
         CapturingNotSupported,
         WindowCapturingNotSupported,
         CaptureFailed,
-        NotFound
+        NotFound,
     };
     Q_ENUM(Error)
 
     explicit QScreenCapture(QObject *parent = nullptr);
-    ~QScreenCapture();
+    ~QScreenCapture() override;
 
     QMediaCaptureSession *captureSession() const;
 
@@ -75,9 +74,9 @@ Q_SIGNALS:
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);
     QPlatformScreenCapture *platformScreenCapture() const;
-    QScreenCapturePrivate *d = nullptr;
     friend class QMediaCaptureSession;
     Q_DISABLE_COPY(QScreenCapture)
+    Q_DECLARE_PRIVATE(QScreenCapture)
 };
 
 QT_END_NAMESPACE
