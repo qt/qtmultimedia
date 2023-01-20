@@ -4,13 +4,15 @@
 #include "qscreencapture.h"
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformscreencapture_p.h>
+#include <private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-struct QScreenCapturePrivate
+class QScreenCapturePrivate : public QObjectPrivate
 {
+public:
     QMediaCaptureSession *captureSession = nullptr;
-    QPlatformScreenCapture *platformScreenCapture = nullptr;
+    std::unique_ptr<QPlatformScreenCapture> platformScreenCapture;
 };
 
 /*!
@@ -63,16 +65,20 @@ struct QScreenCapturePrivate
 */
 
 QScreenCapture::QScreenCapture(QObject *parent)
-    : QObject(parent)
-    , d(new QScreenCapturePrivate)
+    : QObject(*new QScreenCapturePrivate, parent)
 {
-    d->platformScreenCapture = QPlatformMediaIntegration::instance()->createScreenCapture(this);
+    Q_D(QScreenCapture);
+
+    d->platformScreenCapture.reset(
+            QPlatformMediaIntegration::instance()->createScreenCapture(this));
 }
 
 QScreenCapture::~QScreenCapture()
 {
-    delete d->platformScreenCapture;
-    delete d;
+    Q_D(QScreenCapture);
+
+    // Reset platformScreenCapture in the destructor to avoid having broken ref in the object.
+    d->platformScreenCapture.reset();
 }
 
 /*!
@@ -97,6 +103,8 @@ QScreenCapture::~QScreenCapture()
 */
 QMediaCaptureSession *QScreenCapture::captureSession() const
 {
+    Q_D(const QScreenCapture);
+
     return d->captureSession;
 }
 
@@ -111,6 +119,8 @@ QMediaCaptureSession *QScreenCapture::captureSession() const
 */
 void QScreenCapture::setWindow(QWindow *window)
 {
+    Q_D(QScreenCapture);
+
     if (d->platformScreenCapture) {
         d->platformScreenCapture->setScreen(nullptr);
         d->platformScreenCapture->setWindowId(0);
@@ -120,6 +130,8 @@ void QScreenCapture::setWindow(QWindow *window)
 
 QWindow *QScreenCapture::window() const
 {
+    Q_D(const QScreenCapture);
+
     return d->platformScreenCapture ? d->platformScreenCapture->window()
                                     : nullptr;
 }
@@ -135,6 +147,8 @@ QWindow *QScreenCapture::window() const
 */
 void QScreenCapture::setWindowId(WId id)
 {
+    Q_D(QScreenCapture);
+
     if (d->platformScreenCapture) {
         d->platformScreenCapture->setScreen(nullptr);
         d->platformScreenCapture->setWindow(nullptr);
@@ -144,6 +158,8 @@ void QScreenCapture::setWindowId(WId id)
 
 WId QScreenCapture::windowId() const
 {
+    Q_D(const QScreenCapture);
+
     return d->platformScreenCapture ? d->platformScreenCapture->windowId()
                                     : 0;
 }
@@ -159,12 +175,16 @@ WId QScreenCapture::windowId() const
 */
 void QScreenCapture::setActive(bool active)
 {
+    Q_D(QScreenCapture);
+
     if (d->platformScreenCapture)
         d->platformScreenCapture->setActive(active);
 }
 
 bool QScreenCapture::isActive() const
 {
+    Q_D(const QScreenCapture);
+
     return d->platformScreenCapture && d->platformScreenCapture->isActive();
 }
 
@@ -180,6 +200,8 @@ bool QScreenCapture::isActive() const
 
 void QScreenCapture::setScreen(QScreen *screen)
 {
+    Q_D(QScreenCapture);
+
     if (d->platformScreenCapture) {
         d->platformScreenCapture->setWindow(nullptr);
         d->platformScreenCapture->setWindowId(0);
@@ -189,6 +211,8 @@ void QScreenCapture::setScreen(QScreen *screen)
 
 QScreen *QScreenCapture::screen() const
 {
+    Q_D(const QScreenCapture);
+
     return d->platformScreenCapture ? d->platformScreenCapture->screen()
                                     : nullptr;
 }
@@ -204,6 +228,8 @@ QScreen *QScreenCapture::screen() const
 */
 QScreenCapture::Error QScreenCapture::error() const
 {
+    Q_D(const QScreenCapture);
+
     return d->platformScreenCapture ? d->platformScreenCapture->error()
                                     : CapturingNotSupported;
 }
@@ -224,6 +250,8 @@ QScreenCapture::Error QScreenCapture::error() const
 */
 QString QScreenCapture::errorString() const
 {
+    Q_D(const QScreenCapture);
+
     return d->platformScreenCapture ? d->platformScreenCapture->errorString()
                                     : QLatin1StringView("Capturing is not support on this platform");
 }
@@ -242,6 +270,8 @@ QString QScreenCapture::errorString() const
 */
 void QScreenCapture::setCaptureSession(QMediaCaptureSession *captureSession)
 {
+    Q_D(QScreenCapture);
+
     d->captureSession = captureSession;
 }
 
@@ -250,7 +280,9 @@ void QScreenCapture::setCaptureSession(QMediaCaptureSession *captureSession)
 */
 class QPlatformScreenCapture *QScreenCapture::platformScreenCapture() const
 {
-    return d->platformScreenCapture;
+    Q_D(const QScreenCapture);
+
+    return d->platformScreenCapture.get();
 }
 
 QT_END_NAMESPACE
