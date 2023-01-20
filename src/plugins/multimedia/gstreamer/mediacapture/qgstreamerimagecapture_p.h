@@ -53,6 +53,7 @@ public Q_SLOTS:
     void onCameraChanged();
 
 private:
+    void setResolution(const QSize &resolution);
     int doCapture(const QString &fileName);
     static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad, void *appdata);
 
@@ -70,6 +71,7 @@ private:
 
     QGstBin bin;
     QGstElement queue;
+    QGstElement filter;
     QGstElement videoConvert;
     QGstElement encoder;
     QGstElement muxer;
