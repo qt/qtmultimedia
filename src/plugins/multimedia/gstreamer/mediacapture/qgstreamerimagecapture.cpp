@@ -57,12 +57,13 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
     queue.set("max-size-time", quint64(0));
 
     sink = QGstElement("fakesink","imageCaptureSink");
+    filter = QGstElement("capsfilter", "filter");
     // imageCaptureSink do not wait for a preroll buffer when going READY -> PAUSED
     // as no buffer will arrive until capture() is called
     sink.set("async", false);
 
-    bin.add(queue, videoConvert, encoder, muxer, sink);
-    queue.link(videoConvert, encoder, muxer, sink);
+    bin.add(queue, filter, videoConvert, encoder, muxer, sink);
+    queue.link(filter, videoConvert, encoder, muxer, sink);
     bin.addGhostPad(queue, "sink");
 
     addProbeToPad(queue.staticPad("src").pad(), false);
@@ -136,6 +137,24 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
 
     emit readyForCaptureChanged(false);
     return m_lastId;
+}
+
+void QGstreamerImageCapture::setResolution(const QSize &resolution)
+{
+    auto padCaps = QGstCaps(gst_pad_get_current_caps(bin.staticPad("sink").pad()), QGstCaps::HasRef);
+    if (padCaps.isNull()) {
+        qDebug() << "Camera not ready";
+        return;
+    }
+    auto caps = QGstCaps(gst_caps_copy(padCaps.get()), QGstCaps::HasRef);
+    if (caps.isNull()) {
+        return;
+    }
+    gst_caps_set_simple(caps.get(),
+        "width", G_TYPE_INT, resolution.width(),
+        "height", G_TYPE_INT, resolution.height(),
+        nullptr);
+    filter.set("caps", caps);
 }
 
 bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
@@ -283,8 +302,11 @@ QImageEncoderSettings QGstreamerImageCapture::imageSettings() const
 void QGstreamerImageCapture::setImageSettings(const QImageEncoderSettings &settings)
 {
     if (m_settings != settings) {
+        QSize resolution = settings.resolution();
+        if (m_settings.resolution() != resolution && !resolution.isEmpty()) {
+            setResolution(resolution);
+        }
         m_settings = settings;
-        // ###
     }
 }
 
