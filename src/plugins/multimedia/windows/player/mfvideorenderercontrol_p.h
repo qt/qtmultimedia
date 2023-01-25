@@ -15,7 +15,8 @@
 // We mean it.
 //
 
-#include "qobject.h"
+#include <qobject.h>
+#include <qpointer.h>
 #include <qrect.h>
 #include <mfapi.h>
 #include <mfidl.h>
@@ -48,7 +49,7 @@ private Q_SLOTS:
 private:
     void clear();
 
-    QVideoSink *m_sink = nullptr;
+    QPointer<QVideoSink> m_sink;
     IMFActivate *m_currentActivate = nullptr;
     IMFSampleGrabberSinkCallback *m_callback = nullptr;
 
