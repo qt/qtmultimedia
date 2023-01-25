@@ -22,6 +22,7 @@
 #include <qrect.h>
 #include <qvideoframeformat.h>
 #include <qvideosink.h>
+#include <qpointer.h>
 
 #include <d3d9.h>
 #include <dxva2api.h>
@@ -347,7 +348,7 @@ private:
     IMediaEventSink *m_mediaEventSink; // The EVR's event-sink interface.
     IMFMediaType *m_mediaType; // Output media type
 
-    QVideoSink *m_videoSink;
+    QPointer<QVideoSink> m_videoSink;
     bool m_canRenderToSurface;
     qint64 m_positionOffset; // Seek position in microseconds.
     QRect m_cropRect;  // Video crop rectangle

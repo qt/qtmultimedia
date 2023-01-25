@@ -19,6 +19,7 @@
 #include <QSize>
 #include <QVideoFrameFormat>
 #include <private/qwindowsiupointer_p.h>
+#include <qpointer.h>
 
 #include <d3d9.h>
 
@@ -130,7 +131,7 @@ private:
 
     QVideoFrameFormat m_surfaceFormat;
 
-    class QVideoSink *m_sink = nullptr;
+    QPointer<QVideoSink> m_sink;
     bool m_useTextureRendering = false;
 #if QT_CONFIG(opengl)
     WglNvDxInterop m_wglNvDxInterop;
