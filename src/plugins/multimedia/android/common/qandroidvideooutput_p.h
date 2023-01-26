@@ -60,6 +60,7 @@ public:
     ~QAndroidTextureVideoOutput() override;
 
     QVideoSink *surface() const { return m_sink; }
+    bool shouldTextureBeUpdated() const;
 
     AndroidSurfaceTexture *surfaceTexture() override;
 
@@ -74,6 +75,7 @@ private Q_SLOTS:
 private:
     QVideoSink *m_sink = nullptr;
     QSize m_nativeSize;
+    bool m_surfaceCreatedWithoutRhi = false;
 
     std::unique_ptr<class AndroidTextureThread> m_surfaceThread;
 };

@@ -362,14 +362,28 @@ void QAndroidTextureVideoOutput::setSubtitle(const QString &subtitle)
     }
 }
 
+bool QAndroidTextureVideoOutput::shouldTextureBeUpdated() const
+{
+    return m_sink->rhi() && m_surfaceCreatedWithoutRhi;
+}
+
 AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
 {
     if (!m_sink)
         return nullptr;
 
     AndroidSurfaceTexture *surface = nullptr;
-    QMetaObject::invokeMethod(m_surfaceThread.get(),
-            [&](){ surface = m_surfaceThread->createSurfaceTexture(m_sink->rhi()); },
+    QMetaObject::invokeMethod(m_surfaceThread.get(), [&]() {
+                auto rhi = m_sink->rhi();
+                if (!rhi) {
+                    m_surfaceCreatedWithoutRhi = true;
+                }
+                else if (m_surfaceCreatedWithoutRhi) {
+                    m_surfaceThread->clearSurfaceTexture();
+                    m_surfaceCreatedWithoutRhi = false;
+                }
+                surface = m_surfaceThread->createSurfaceTexture(rhi);
+            },
             Qt::BlockingQueuedConnection);
     return surface;
 }
