@@ -272,7 +272,8 @@ void QAndroidMediaPlayer::setMedia(const QUrl &mediaContent,
         if (mVideoSize.isValid() && mVideoOutput)
             mVideoOutput->setVideoSize(mVideoSize);
 
-        if ((mMediaPlayer->display() == 0) && mVideoOutput)
+        if (mVideoOutput &&
+                        (mMediaPlayer->display() == 0 || mVideoOutput->shouldTextureBeUpdated()))
             mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
         mMediaPlayer->setDataSource(QNetworkRequest(mediaContent));
         mMediaPlayer->prepareAsync();
