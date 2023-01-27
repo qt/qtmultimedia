@@ -136,6 +136,7 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
             height = textureDescription->heightForPlane(height, plane);
 
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
+            QMutexLocker locker(sink->textureCacheMutex());
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
                             kCFAllocatorDefault,
                             sink->cvMetalTextureCache,
