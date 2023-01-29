@@ -381,7 +381,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideoFrame::RotationAngle
     QVideoTextureHelper::updateUniformData(&uniformData, frame.surfaceFormat(), frame, transform, 1.f);
     rub->updateDynamicBuffer(uniformBuffer.get(), 0, uniformData.size(), uniformData.constData());
 
-    cb->beginPass(renderTarget.get(), Qt::black, { 1.0f, 0 }, rub);
+    cb->beginPass(renderTarget.get(), Qt::transparent, { 1.0f, 0 }, rub);
     cb->setGraphicsPipeline(graphicsPipeline.get());
 
     cb->setViewport({ 0, 0, float(frameSize.width()), float(frameSize.height()) });
