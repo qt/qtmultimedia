@@ -316,7 +316,7 @@ AndroidCamera::~AndroidCamera()
 
 AndroidCamera *AndroidCamera::open(int cameraId)
 {
-    if (!qt_androidRequestCameraPermission())
+    if (!qt_androidCheckCameraPermission())
         return nullptr;
 
     AndroidCameraPrivate *d = new AndroidCameraPrivate();
@@ -765,7 +765,7 @@ QJniObject AndroidCamera::getCameraObject()
 
 int AndroidCamera::getNumberOfCameras()
 {
-    if (!qt_androidRequestCameraPermission())
+    if (!qt_androidCheckCameraPermission())
         return 0;
 
     return QJniObject::callStaticMethod<jint>("android/hardware/Camera",

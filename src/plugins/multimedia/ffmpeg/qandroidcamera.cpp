@@ -11,6 +11,7 @@
 #include <qloggingcategory.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qpermissions.h>
 #include <QtCore/private/qandroidextras_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qcameradevice_p.h>
@@ -115,19 +116,15 @@ QCameraFormat getDefaultCameraFormat()
     return defaultFormat->create();
 }
 
-bool checkAndRequestCameraPermission()
+bool checkCameraPermission()
 {
-    const auto key = QStringLiteral("android.permission.CAMERA");
+    QCameraPermission permission;
 
-    if (QtAndroidPrivate::checkPermission(key).result() == QtAndroidPrivate::Authorized)
-        return true;
+    const bool granted = qApp->checkPermission(permission) == Qt::PermissionStatus::Granted;
+    if (!granted)
+        qCWarning(qLCAndroidCamera) << "Access to camera not granted!";
 
-    if (QtAndroidPrivate::requestPermission(key).result() != QtAndroidPrivate::Authorized) {
-        qCWarning(qLCAndroidCamera) << "User has denied access to camera";
-        return false;
-    }
-
-    return true;
+    return granted;
 }
 
 } // namespace
@@ -243,7 +240,7 @@ void QAndroidCamera::setActive(bool active)
         return;
     }
 
-    if (active && checkAndRequestCameraPermission()) {
+    if (active && checkCameraPermission()) {
         QWriteLocker locker(rwLock);
         int width = m_cameraFormat.resolution().width();
         int height = m_cameraFormat.resolution().height();

@@ -30,8 +30,6 @@ bool qt_sizeLessThan(const QSize &s1, const QSize &s2);
 QVideoFrameFormat::PixelFormat qt_pixelFormatFromAndroidImageFormat(AndroidCamera::ImageFormat f);
 AndroidCamera::ImageFormat qt_androidImageFormatFromPixelFormat(QVideoFrameFormat::PixelFormat f);
 
-bool qt_androidRequestCameraPermission();
-bool qt_androidRequestRecordingPermission();
 bool qt_androidRequestWriteStoragePermission();
 
 bool qt_androidCheckCameraPermission();

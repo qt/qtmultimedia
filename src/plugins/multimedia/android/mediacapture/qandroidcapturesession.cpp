@@ -116,13 +116,13 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
 
     const bool validCameraSession = m_cameraSession && m_cameraSession->camera();
 
-    if (validCameraSession && !qt_androidRequestCameraPermission()) {
+    if (validCameraSession && !qt_androidCheckCameraPermission()) {
         emit error(QMediaRecorder::ResourceError, QLatin1String("Camera permission denied."));
         setKeepAlive(false);
         return;
     }
 
-    if (m_audioInput && !qt_androidRequestRecordingPermission()) {
+    if (m_audioInput && !qt_androidCheckMicrophonePermission()) {
         emit error(QMediaRecorder::ResourceError, QLatin1String("Microphone permission denied."));
         setKeepAlive(false);
         return;

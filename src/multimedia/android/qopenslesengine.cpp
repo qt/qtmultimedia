@@ -6,7 +6,9 @@
 #include "qandroidaudiosource_p.h"
 #include "qandroidaudiodevice_p.h"
 
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qjniobject.h>
+#include <QtCore/qpermissions.h>
 #include <QtCore/private/qandroidextras_p.h>
 #include <qdebug.h>
 
@@ -121,14 +123,7 @@ bool QOpenSLESEngine::setAudioOutput(const QByteArray &deviceId)
 
 static bool hasRecordPermission()
 {
-    const auto recordPerm = QtAndroidPrivate::checkPermission(QStringLiteral("android.permission.RECORD_AUDIO"));
-    return recordPerm.result() == QtAndroidPrivate::Authorized;
-}
-
-static bool requestPermissions()
-{
-    const auto recordPerm = QtAndroidPrivate::requestPermission(QStringLiteral("android.permission.RECORD_AUDIO"));
-    return recordPerm.result() == QtAndroidPrivate::Authorized;
+    return qApp->checkPermission(QMicrophonePermission{}) == Qt::PermissionStatus::Granted;
 }
 
 QList<int> QOpenSLESEngine::supportedChannelCounts(QAudioDevice::Mode mode) const
@@ -353,11 +348,7 @@ bool QOpenSLESEngine::inputFormatIsSupported(SLAndroidDataFormat_PCM_EX format)
     SLDataSink audioSnk = { &loc_bq, &format };
 
     // only ask permission when it is about to create the audiorecorder
-    bool hasRecordPermissions = hasRecordPermission();
-    if (!hasRecordPermissions)
-        hasRecordPermissions = requestPermissions();
-
-    if (!hasRecordPermissions)
+    if (!hasRecordPermission())
         return false;
 
     result = (*m_engine)->CreateAudioRecorder(m_engine, &recorder, &audioSrc, &audioSnk, 0, 0, 0);

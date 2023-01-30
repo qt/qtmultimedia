@@ -5,14 +5,17 @@
 
 #include "qopenslesengine_p.h"
 #include <private/qaudiohelpers_p.h>
-#include <QtCore/private/qandroidextras_p.h>
 #include <qbuffer.h>
 #include <qdebug.h>
+#include <qloggingcategory.h>
 
 #ifdef ANDROID
 #include <SLES/OpenSLES_AndroidConfiguration.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qpermissions.h>
 #endif
+
+static Q_LOGGING_CATEGORY(qLcAndroidAudioSource, "qt.multimedia.android.audiosource")
 
 QT_BEGIN_NAMESPACE
 
@@ -23,20 +26,13 @@ QT_BEGIN_NAMESPACE
 #ifdef ANDROID
 static bool hasRecordingPermission()
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
-        return true;
+    QMicrophonePermission permission;
 
-    const auto key = QStringLiteral("android.permission.RECORD_AUDIO");
-    // Permission already granted?
-    if (QtAndroidPrivate::checkPermission(key).result() == QtAndroidPrivate::Authorized)
-        return true;
+    const bool permitted = qApp->checkPermission(permission) == Qt::PermissionStatus::Granted;
+    if (!permitted)
+        qCWarning(qLcAndroidAudioSource, "Missing microphone permission!");
 
-    if (QtAndroidPrivate::requestPermission(key).result() != QtAndroidPrivate::Authorized) {
-        qDebug("Microphone permission denied by user!");
-        return false;
-    }
-
-    return true;
+    return permitted;
 }
 
 static void bufferQueueCallback(SLAndroidSimpleBufferQueueItf, void *context)

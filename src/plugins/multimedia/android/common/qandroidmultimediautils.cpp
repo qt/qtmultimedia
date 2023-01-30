@@ -6,6 +6,7 @@
 
 #include <qlist.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qpermissions.h>
 #include <QtCore/private/qandroidextras_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -88,43 +89,27 @@ static bool androidRequestPermission(const QString &permission)
     return true;
 }
 
-static bool androidCheckPermission(const QString &permission)
+static bool androidCheckPermission(const QPermission &permission)
 {
-    if (QNativeInterface::QAndroidApplication::sdkVersion() < 23)
-        return true;
-
-    // Permission already granted?
-    return (QtAndroidPrivate::checkPermission(permission).result() == QtAndroidPrivate::Authorized);
+    return qApp->checkPermission(permission) == Qt::PermissionStatus::Granted;
 }
 
 bool qt_androidCheckCameraPermission()
 {
-    return androidCheckPermission(QStringLiteral("android.permission.CAMERA"));
+    const QCameraPermission permission;
+    const auto granted = androidCheckPermission(permission);
+    if (!granted)
+        qCDebug(qtAndroidMediaPlugin, "Camera permission not granted!");
+    return granted;
 }
 
 bool qt_androidCheckMicrophonePermission()
 {
-    return androidCheckPermission(QStringLiteral("android.permission.RECORD_AUDIO"));
-}
-
-bool qt_androidRequestCameraPermission()
-{
-    if (!androidRequestPermission(QStringLiteral("android.permission.CAMERA"))) {
-        qCDebug(qtAndroidMediaPlugin, "Camera permission denied by user!");
-        return false;
-    }
-
-    return true;
-}
-
-bool qt_androidRequestRecordingPermission()
-{
-    if (!androidRequestPermission(QStringLiteral("android.permission.RECORD_AUDIO"))) {
-        qCDebug(qtAndroidMediaPlugin, "Microphone permission denied by user!");
-        return false;
-    }
-
-    return true;
+    const QMicrophonePermission permission;
+    const auto granted = androidCheckPermission(permission);
+    if (!granted)
+        qCDebug(qtAndroidMediaPlugin, "Microphone permission not granted!");
+    return granted;
 }
 
 bool qt_androidRequestWriteStoragePermission()
