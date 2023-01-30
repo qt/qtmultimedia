@@ -14,9 +14,11 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <Foundation/Foundation.h>
 
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qelapsedtimer.h>
+#include <QtCore/qpermissions.h>
 #include <QtCore/qpointer.h>
 
 #include <private/qplatformaudioinput_p.h>
@@ -144,8 +146,7 @@ void AVFCameraSession::setActiveCamera(const QCameraDevice &info)
     if (m_activeCameraDevice != info) {
         m_activeCameraDevice = info;
 
-        requestCameraPermissionIfNeeded();
-        if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
+        if (checkCameraPermission())
             updateVideoInput();
     }
 }
@@ -336,8 +337,7 @@ AVCaptureDevice *AVFCameraSession::createAudioCaptureDevice()
 
 void AVFCameraSession::attachVideoInputDevice()
 {
-    requestCameraPermissionIfNeeded();
-    if (m_cameraAuthorizationStatus != AVAuthorizationStatusAuthorized)
+    if (!checkCameraPermission())
         return;
 
     if (m_videoInput) {
@@ -363,9 +363,6 @@ void AVFCameraSession::attachVideoInputDevice()
 
 void AVFCameraSession::attachAudioInputDevice()
 {
-    if (m_microphoneAuthorizationStatus != AVAuthorizationStatusAuthorized)
-        return;
-
     if (m_audioInput) {
         [m_captureSession removeInput:m_audioInput];
         [m_audioInput release];
@@ -448,8 +445,7 @@ void AVFCameraSession::updateVideoInput()
 
 void AVFCameraSession::updateAudioInput()
 {
-    requestMicrophonePermissionIfNeeded();
-    if (m_microphoneAuthorizationStatus != AVAuthorizationStatusAuthorized)
+    if (!checkMicrophonePermission())
         return;
 
     auto recorder = m_service->recorderControl();
@@ -492,93 +488,24 @@ void AVFCameraSession::updateVideoOutput()
         m_videoOutput->setVideoSink(m_videoSink);
 }
 
-void AVFCameraSession::requestCameraPermissionIfNeeded()
+bool AVFCameraSession::checkCameraPermission()
 {
-    if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
-        return;
+    const QCameraPermission permission;
+    const bool granted = qApp->checkPermission(permission) == Qt::PermissionStatus::Granted;
+    if (!granted)
+        qWarning() << "Access to camera not granted";
 
-    switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo])
-    {
-        case AVAuthorizationStatusAuthorized:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
-            break;
-        }
-        case AVAuthorizationStatusNotDetermined:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
-            QPointer<AVFCameraSession> guard(this);
-            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    if (guard)
-                        cameraAuthorizationChanged(granted);
-                });
-            }];
-            break;
-        }
-        case AVAuthorizationStatusDenied:
-        case AVAuthorizationStatusRestricted:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
-            return;
-        }
-    }
+    return granted;
 }
 
-void AVFCameraSession::requestMicrophonePermissionIfNeeded()
+bool AVFCameraSession::checkMicrophonePermission()
 {
-    if (m_microphoneAuthorizationStatus == AVAuthorizationStatusAuthorized)
-        return;
+    const QMicrophonePermission permission;
+    const bool granted = qApp->checkPermission(permission) == Qt::PermissionStatus::Granted;
+    if (!granted)
+        qWarning() << "Access to microphone not granted";
 
-    switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio])
-    {
-        case AVAuthorizationStatusAuthorized:
-        {
-            m_microphoneAuthorizationStatus = AVAuthorizationStatusAuthorized;
-            break;
-        }
-        case AVAuthorizationStatusNotDetermined:
-        {
-            m_microphoneAuthorizationStatus = AVAuthorizationStatusNotDetermined;
-            QPointer<AVFCameraSession> guard(this);
-            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    if (guard)
-                        microphoneAuthorizationChanged(granted);
-                });
-            }];
-            break;
-        }
-        case AVAuthorizationStatusDenied:
-        case AVAuthorizationStatusRestricted:
-        {
-            m_microphoneAuthorizationStatus = AVAuthorizationStatusDenied;
-            return;
-        }
-    }
-}
-
-void AVFCameraSession::cameraAuthorizationChanged(bool authorized)
-{
-    if (authorized) {
-        m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
-        updateVideoInput();
-        updateCameraFormat(m_cameraFormat);
-    } else {
-        m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
-        qWarning() << "User has denied access to camera";
-    }
-}
-
-void AVFCameraSession::microphoneAuthorizationChanged(bool authorized)
-{
-    if (authorized) {
-        m_microphoneAuthorizationStatus = AVAuthorizationStatusAuthorized;
-        updateAudioInput();
-    } else {
-        m_microphoneAuthorizationStatus = AVAuthorizationStatusDenied;
-        qWarning() << "User has denied access to microphone";
-    }
+    return granted;
 }
 
 #include "moc_avfcamerasession_p.cpp"

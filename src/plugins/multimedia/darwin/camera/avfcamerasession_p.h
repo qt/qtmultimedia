@@ -79,9 +79,6 @@ public Q_SLOTS:
     void processSessionStarted();
     void processSessionStopped();
 
-    void cameraAuthorizationChanged(bool authorized);
-    void microphoneAuthorizationChanged(bool authorized);
-
 Q_SIGNALS:
     void readyToConfigureConnections();
     void activeChanged(bool);
@@ -100,8 +97,8 @@ private:
     AVCaptureDevice *createAudioCaptureDevice();
     void attachVideoInputDevice();
     void attachAudioInputDevice();
-    void requestCameraPermissionIfNeeded();
-    void requestMicrophonePermissionIfNeeded();
+    bool checkCameraPermission();
+    bool checkMicrophonePermission();
 
     bool applyImageEncoderSettings();
 
@@ -127,9 +124,6 @@ private:
     bool m_inputMuted = false;
 
     FourCharCode m_defaultCodec;
-
-    AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
-    AVAuthorizationStatus m_microphoneAuthorizationStatus = AVAuthorizationStatusNotDetermined;
 };
 
 QT_END_NAMESPACE

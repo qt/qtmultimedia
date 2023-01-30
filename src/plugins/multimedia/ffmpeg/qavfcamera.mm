@@ -9,6 +9,8 @@
 #include "qavfsamplebufferdelegate_p.h"
 #include <qvideosink.h>
 #include <private/qrhi_p.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qpermissions.h>
 #define AVMediaType XAVMediaType
 #include "qffmpegvideobuffer_p.h"
 #include "qffmpegvideosink_p.h"
@@ -17,8 +19,6 @@ extern "C" {
 #include <libavutil/hwcontext.h>
 }
 #undef AVMediaType
-
-static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
 
 QT_BEGIN_NAMESPACE
 
@@ -38,53 +38,19 @@ QAVFCamera::~QAVFCamera()
     [m_captureSession release];
 }
 
-void QAVFCamera::requestCameraPermissionIfNeeded()
+bool QAVFCamera::checkCameraPermission()
 {
-    if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
-        return;
+    const QCameraPermission permission;
+    const bool granted = qApp->checkPermission(permission) == Qt::PermissionStatus::Granted;
+    if (!granted)
+        qWarning() << "Access to camera not granted";
 
-    switch ([AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo])
-    {
-        case AVAuthorizationStatusAuthorized:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
-            break;
-        }
-        case AVAuthorizationStatusNotDetermined:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
-            QPointer<QAVFCamera> guard(this);
-            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    if (guard)
-                        cameraAuthorizationChanged(granted);
-                });
-            }];
-            break;
-        }
-        case AVAuthorizationStatusDenied:
-        case AVAuthorizationStatusRestricted:
-        {
-            m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
-            return;
-        }
-    }
-}
-
-void QAVFCamera::cameraAuthorizationChanged(bool authorized)
-{
-    if (authorized) {
-        m_cameraAuthorizationStatus = AVAuthorizationStatusAuthorized;
-    } else {
-        m_cameraAuthorizationStatus = AVAuthorizationStatusDenied;
-        qWarning() << "User has denied access to camera";
-    }
+    return granted;
 }
 
 void QAVFCamera::updateVideoInput()
 {
-    requestCameraPermissionIfNeeded();
-    if (m_cameraAuthorizationStatus != AVAuthorizationStatusAuthorized)
+    if (!checkCameraPermission())
         return;
 
     [m_captureSession beginConfiguration];
@@ -179,8 +145,7 @@ void QAVFCamera::setActive(bool active)
 {
     if (m_active == active)
         return;
-    requestCameraPermissionIfNeeded();
-    if (m_cameraAuthorizationStatus != AVAuthorizationStatusAuthorized)
+    if (!checkCameraPermission())
         return;
 
     m_active = active;
@@ -211,8 +176,7 @@ void QAVFCamera::setCamera(const QCameraDevice &camera)
 
     m_cameraDevice = camera;
 
-    requestCameraPermissionIfNeeded();
-    if (m_cameraAuthorizationStatus == AVAuthorizationStatusAuthorized)
+    if (checkCameraPermission())
         updateVideoInput();
     setCameraFormat({});
 }

@@ -61,8 +61,7 @@ public:
     std::optional<int> ffmpegHWPixelFormat() const override { return hwPixelFormat; }
 
 private:
-    void requestCameraPermissionIfNeeded();
-    void cameraAuthorizationChanged(bool authorized);
+    bool checkCameraPermission();
     void updateCameraFormat();
     void updateVideoInput();
     void attachVideoInputDevice();
