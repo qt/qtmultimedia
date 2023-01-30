@@ -32,6 +32,7 @@ private:
     QMediaDevices *m_devices = nullptr;
 
 private slots:
+    void init();
     void updateAudioDevices();
     void modeChanged(int idx);
     void deviceChanged(int idx);

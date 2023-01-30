@@ -21,6 +21,7 @@ qt_add_executable(recorder
 
 set(resource_files
     "main.qml"
+    "main_no_permissions.qml"
     "qmldir"
     "MediaList.qml"
     "AudioInputSelect.qml"

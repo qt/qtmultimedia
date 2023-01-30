@@ -14,6 +14,10 @@
 #include <QSet>
 #include <QThread>
 
+#if QT_CONFIG(permissions)
+  #include <QPermission>
+#endif
+
 #include <math.h>
 
 //-----------------------------------------------------------------------------
@@ -37,13 +41,9 @@ Engine::Engine(QObject *parent)
       m_generateTone(false),
       m_file(nullptr),
       m_analysisFile(nullptr),
-      m_availableAudioInputDevices(m_devices->audioInputs()),
-      m_audioInputDevice(m_devices->defaultAudioInput()),
       m_audioInput(nullptr),
       m_audioInputIODevice(nullptr),
       m_recordPosition(0),
-      m_availableAudioOutputDevices(m_devices->audioOutputs()),
-      m_audioOutputDevice(m_devices->defaultAudioOutput()),
       m_audioOutput(nullptr),
       m_playPosition(0),
       m_bufferPosition(0),
@@ -67,6 +67,8 @@ Engine::Engine(QObject *parent)
         if (arguments.at(i) == QStringLiteral("--"))
             break;
     }
+
+    initAudioDevices();
 
     initialize();
 
@@ -271,6 +273,27 @@ void Engine::setAudioOutputDevice(const QAudioDevice &device)
 //-----------------------------------------------------------------------------
 // Private slots
 //-----------------------------------------------------------------------------
+
+void Engine::initAudioDevices()
+{
+#if QT_CONFIG(permissions)
+    QMicrophonePermission microphonePermission;
+    switch (qApp->checkPermission(microphonePermission)) {
+    case Qt::PermissionStatus::Undetermined:
+        qApp->requestPermission(microphonePermission, this, &Engine::initAudioDevices);
+        return;
+    case Qt::PermissionStatus::Denied:
+        qWarning("Microphone permission is not granted!");
+        return;
+    case Qt::PermissionStatus::Granted:
+        break;
+    }
+#endif
+    m_availableAudioInputDevices = m_devices->audioInputs();
+    m_audioInputDevice = m_devices->defaultAudioInput();
+    m_availableAudioOutputDevices = m_devices->audioOutputs();
+    m_audioOutputDevice = m_devices->defaultAudioOutput();
+}
 
 void Engine::audioNotify()
 {

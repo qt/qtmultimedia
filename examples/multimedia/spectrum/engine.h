@@ -203,6 +203,7 @@ signals:
     void bufferChanged(qint64 position, qint64 length, const QByteArray &buffer);
 
 private slots:
+    void initAudioDevices();
     void audioNotify();
     void audioStateChanged(QAudio::State state);
     void audioDataReady();
@@ -251,13 +252,13 @@ private:
 
     QAudioFormat m_format;
 
-    const QList<QAudioDevice> m_availableAudioInputDevices;
+    QList<QAudioDevice> m_availableAudioInputDevices;
     QAudioDevice m_audioInputDevice;
     QAudioSource *m_audioInput;
     QIODevice *m_audioInputIODevice;
     qint64 m_recordPosition;
 
-    const QList<QAudioDevice> m_availableAudioOutputDevices;
+    QList<QAudioDevice> m_availableAudioOutputDevices;
     QAudioDevice m_audioOutputDevice;
     QAudioSink *m_audioOutput;
     qint64 m_playPosition;

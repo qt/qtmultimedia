@@ -30,9 +30,53 @@
 #include <QTimer>
 #include <QVideoWidget>
 
+#if QT_CONFIG(permissions)
+  #include <QPermission>
+#endif
+
 Camera::Camera() : ui(new Ui::Camera)
 {
     ui->setupUi(this);
+    // disable all buttons by default
+    updateCameraActive(false);
+    readyForCapture(false);
+    ui->recordButton->setEnabled(false);
+    ui->pauseButton->setEnabled(false);
+    ui->stopButton->setEnabled(false);
+    ui->metaDataButton->setEnabled(false);
+
+    // try to actually initialize camera & mic
+    init();
+}
+
+void Camera::init()
+{
+#if QT_CONFIG(permissions)
+    // camera
+    QCameraPermission cameraPermission;
+    switch (qApp->checkPermission(cameraPermission)) {
+    case Qt::PermissionStatus::Undetermined:
+        qApp->requestPermission(cameraPermission, this, &Camera::init);
+        return;
+    case Qt::PermissionStatus::Denied:
+        qWarning("Camera permission is not granted!");
+        return;
+    case Qt::PermissionStatus::Granted:
+        break;
+    }
+    // microphone
+    QMicrophonePermission microphonePermission;
+    switch (qApp->checkPermission(microphonePermission)) {
+    case Qt::PermissionStatus::Undetermined:
+        qApp->requestPermission(microphonePermission, this, &Camera::init);
+        return;
+    case Qt::PermissionStatus::Denied:
+        qWarning("Microphone permission is not granted!");
+        return;
+    case Qt::PermissionStatus::Granted:
+        break;
+    }
+#endif
 
     m_audioInput.reset(new QAudioInput);
     m_captureSession.setAudioInput(m_audioInput.get());

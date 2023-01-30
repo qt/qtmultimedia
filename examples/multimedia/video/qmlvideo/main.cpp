@@ -16,6 +16,10 @@
 #include <QString>
 #include <QStringList>
 
+#if QT_CONFIG(permissions)
+  #include <QPermission>
+#endif
+
 static const QString DefaultFileName1 = "";
 static const QString DefaultFileName2 = "";
 
@@ -99,8 +103,23 @@ int main(int argc, char *argv[])
 
     QMetaObject::invokeMethod(rootObject, "init");
 
-    viewer.setMinimumSize(QSize(640, 360));
-    viewer.show();
+    auto setupView = [&viewer]() {
+        viewer.setMinimumSize(QSize(640, 360));
+        viewer.show();
+    };
+
+#if QT_CONFIG(permissions)
+    QCameraPermission cameraPermission;
+    qApp->requestPermission(cameraPermission, [&setupView](const QPermission &permission) {
+        // Show UI in any case. If there is no permission, the UI will just
+        // be disabled.
+        if (permission.status() != Qt::PermissionStatus::Granted)
+            qWarning("Camera permission is not granted! Camera will not be available.");
+        setupView();
+    });
+#else
+    setupView();
+#endif
 
     return app.exec();
 }

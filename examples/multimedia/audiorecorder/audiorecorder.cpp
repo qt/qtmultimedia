@@ -17,11 +17,52 @@
 #include <QMimeType>
 #include <QStandardPaths>
 
+#if QT_CONFIG(permissions)
+  #include <QPermission>
+#endif
+
 static QList<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
 AudioRecorder::AudioRecorder() : ui(new Ui::AudioRecorder)
 {
     ui->setupUi(this);
+
+    // channels
+    ui->channelsBox->addItem(tr("Default"), QVariant(-1));
+    ui->channelsBox->addItem(QStringLiteral("1"), QVariant(1));
+    ui->channelsBox->addItem(QStringLiteral("2"), QVariant(2));
+    ui->channelsBox->addItem(QStringLiteral("4"), QVariant(4));
+
+    // quality
+    ui->qualitySlider->setRange(0, int(QImageCapture::VeryHighQuality));
+    ui->qualitySlider->setValue(int(QImageCapture::NormalQuality));
+
+    // bit rates:
+    ui->bitrateBox->addItem(tr("Default"), QVariant(0));
+    ui->bitrateBox->addItem(QStringLiteral("32000"), QVariant(32000));
+    ui->bitrateBox->addItem(QStringLiteral("64000"), QVariant(64000));
+    ui->bitrateBox->addItem(QStringLiteral("96000"), QVariant(96000));
+    ui->bitrateBox->addItem(QStringLiteral("128000"), QVariant(128000));
+
+    // audio input initialization
+    init();
+}
+
+void AudioRecorder::init()
+{
+#if QT_CONFIG(permissions)
+    QMicrophonePermission microphonePermission;
+    switch (qApp->checkPermission(microphonePermission)) {
+    case Qt::PermissionStatus::Undetermined:
+        qApp->requestPermission(microphonePermission, this, &AudioRecorder::init);
+        return;
+    case Qt::PermissionStatus::Denied:
+        qWarning("Microphone permission is not granted!");
+        return;
+    case Qt::PermissionStatus::Granted:
+        break;
+    }
+#endif
 
     m_audioRecorder = new QMediaRecorder(this);
     m_captureSession.setRecorder(m_audioRecorder);
@@ -51,23 +92,6 @@ AudioRecorder::AudioRecorder() : ui(new Ui::AudioRecorder)
     ui->sampleRateBox->setValue(
             qBound(m_captureSession.audioInput()->device().minimumSampleRate(), 44100,
                    m_captureSession.audioInput()->device().maximumSampleRate()));
-
-    // channels
-    ui->channelsBox->addItem(tr("Default"), QVariant(-1));
-    ui->channelsBox->addItem(QStringLiteral("1"), QVariant(1));
-    ui->channelsBox->addItem(QStringLiteral("2"), QVariant(2));
-    ui->channelsBox->addItem(QStringLiteral("4"), QVariant(4));
-
-    // quality
-    ui->qualitySlider->setRange(0, int(QImageCapture::VeryHighQuality));
-    ui->qualitySlider->setValue(int(QImageCapture::NormalQuality));
-
-    // bit rates:
-    ui->bitrateBox->addItem(tr("Default"), QVariant(0));
-    ui->bitrateBox->addItem(QStringLiteral("32000"), QVariant(32000));
-    ui->bitrateBox->addItem(QStringLiteral("64000"), QVariant(64000));
-    ui->bitrateBox->addItem(QStringLiteral("96000"), QVariant(96000));
-    ui->bitrateBox->addItem(QStringLiteral("128000"), QVariant(128000));
 
     connect(m_audioRecorder, &QMediaRecorder::durationChanged, this,
             &AudioRecorder::updateProgress);

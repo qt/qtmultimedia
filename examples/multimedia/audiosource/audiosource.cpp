@@ -7,9 +7,15 @@
 #include <QAudioSource>
 #include <QDateTime>
 #include <QDebug>
+#include <QLabel>
 #include <QPainter>
 #include <QVBoxLayout>
 #include <QtEndian>
+
+#if QT_CONFIG(permissions)
+  #include <QCoreApplication>
+  #include <QPermission>
+#endif
 
 #include <math.h>
 #include <stdlib.h>
@@ -92,8 +98,7 @@ void RenderArea::setLevel(qreal value)
 
 InputTest::InputTest() : m_devices(new QMediaDevices(this))
 {
-    initializeWindow();
-    initializeAudio(QMediaDevices::defaultAudioInput());
+    init();
 }
 
 void InputTest::initializeWindow()
@@ -145,6 +150,35 @@ void InputTest::initializeAudio(const QAudioDevice &deviceInfo)
     m_volumeSlider->setValue(qRound(initialVolume * 100));
     m_audioInfo->start();
     toggleMode();
+}
+
+void InputTest::initializeErrorWindow()
+{
+    QVBoxLayout *layout = new QVBoxLayout(this);
+    QLabel *errorLabel = new QLabel(tr("Microphone permission is not granted!"));
+    errorLabel->setWordWrap(true);
+    errorLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(errorLabel);
+}
+
+void InputTest::init()
+{
+#if QT_CONFIG(permissions)
+    QMicrophonePermission microphonePermission;
+    switch (qApp->checkPermission(microphonePermission)) {
+    case Qt::PermissionStatus::Undetermined:
+        qApp->requestPermission(microphonePermission, this, &InputTest::init);
+        return;
+    case Qt::PermissionStatus::Denied:
+        qWarning("Microphone permission is not granted!");
+        initializeErrorWindow();
+        return;
+    case Qt::PermissionStatus::Granted:
+        break;
+    }
+#endif
+    initializeWindow();
+    initializeAudio(QMediaDevices::defaultAudioInput());
 }
 
 void InputTest::toggleMode()

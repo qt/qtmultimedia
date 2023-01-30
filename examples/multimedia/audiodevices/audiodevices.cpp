@@ -7,6 +7,10 @@
 #include <QMediaDevices>
 #include <QMediaFormat>
 
+#if QT_CONFIG(permissions)
+  #include <QPermission>
+#endif
+
 // Utility functions for converting QAudioFormat fields into text
 
 static QString toString(QAudioFormat::SampleFormat sampleFormat)
@@ -34,6 +38,37 @@ AudioDevicesBase::~AudioDevicesBase() = default;
 
 AudioTest::AudioTest(QWidget *parent) : AudioDevicesBase(parent), m_devices(new QMediaDevices(this))
 {
+    init();
+}
+
+void AudioTest::init()
+{
+#if QT_CONFIG(permissions)
+    // camera
+    QCameraPermission cameraPermission;
+    switch (qApp->checkPermission(cameraPermission)) {
+    case Qt::PermissionStatus::Undetermined:
+        qApp->requestPermission(cameraPermission, this, &AudioTest::init);
+        return;
+    case Qt::PermissionStatus::Denied:
+        qWarning("Camera permission is not granted!");
+        return;
+    case Qt::PermissionStatus::Granted:
+        break;
+    }
+    // microphone
+    QMicrophonePermission microphonePermission;
+    switch (qApp->checkPermission(microphonePermission)) {
+    case Qt::PermissionStatus::Undetermined:
+        qApp->requestPermission(microphonePermission, this, &AudioTest::init);
+        return;
+    case Qt::PermissionStatus::Denied:
+        qWarning("Microphone permission is not granted!");
+        return;
+    case Qt::PermissionStatus::Granted:
+        break;
+    }
+#endif
     m_devices->videoInputs();
     qDebug() << "<<<<<<<<<<<<<<<<<<";
     QMediaFormat().supportedFileFormats(QMediaFormat::Encode);

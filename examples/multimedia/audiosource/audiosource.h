@@ -68,8 +68,10 @@ public:
 private:
     void initializeWindow();
     void initializeAudio(const QAudioDevice &deviceInfo);
+    void initializeErrorWindow();
 
 private slots:
+    void init();
     void toggleMode();
     void toggleSuspend();
     void deviceChanged(int index);
