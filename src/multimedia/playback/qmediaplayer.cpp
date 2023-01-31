@@ -289,6 +289,8 @@ const QIODevice *QMediaPlayer::sourceDevice() const
     \property QMediaPlayer::playbackState
 
     Returns the \l{QMediaPlayer::}{PlaybackState}.
+
+    \sa playing
 */
 QMediaPlayer::PlaybackState QMediaPlayer::playbackState() const
 {
@@ -411,9 +413,6 @@ bool QMediaPlayer::isSeekable() const
     return d->control && d->control->isSeekable();
 }
 
-/*!
-    Returns true if the media is currently playing.
-*/
 bool QMediaPlayer::isPlaying() const
 {
     Q_D(const QMediaPlayer);
@@ -500,7 +499,8 @@ QString QMediaPlayer::errorString() const
 
     Starts or resumes playback of the media.
 
-    Sets the \l playbackState property to PlayingState.
+    Sets the \l playbackState property to PlayingState, and changes
+    \l playing to \c true.
 */
 
 /*!
@@ -527,7 +527,8 @@ void QMediaPlayer::play()
 
     Pauses playback of the media.
 
-    Sets the \l playbackState property to PausedState.
+    Sets the \l playbackState property to PausedState,
+    and changes \l playing to \c false.
 */
 
 /*!
@@ -548,7 +549,8 @@ void QMediaPlayer::pause()
 
     Stops playback of the media.
 
-    Sets the \l playbackState property to StoppedState.
+    Sets the \l playbackState property to StoppedState,
+    and changes \l playing to \c false.
 */
 
 /*!
@@ -1001,7 +1003,7 @@ QMediaMetaData QMediaPlayer::metaData() const
 
     \value StoppedState The media player is not playing content, playback will begin from the start
     of the current track.
-    \value PlayingState The media player is currently playing content.
+    \value PlayingState The media player is currently playing content. This indicates the same as the \l playing property.
     \value PausedState The media player has paused playback, playback of the current track will
     resume from the position the player was paused at.
 */
@@ -1015,7 +1017,7 @@ QMediaMetaData QMediaPlayer::metaData() const
     \header \li Property value
             \li Description
     \row \li PlayingState
-        \li The media is currently playing.
+        \li The media is currently playing. This indicates the same as the \l playing property.
     \row \li PausedState
         \li Playback of the media has been suspended.
     \row \li StoppedState
@@ -1027,12 +1029,6 @@ QMediaMetaData QMediaPlayer::metaData() const
     \qmlsignal QtMultimedia::MediaPlayer::playbackStateChanged()
 
     This signal is emitted when the \l playbackState property is altered.
-*/
-
-/*!
-    \qmlsignal QtMultimedia::MediaPlayer::playingChanged()
-
-    This signal is emitted when the media playback starts or stops.
 */
 
 /*!
@@ -1278,6 +1274,23 @@ QMediaMetaData QMediaPlayer::metaData() const
     If seeking is supported this property will be true; false otherwise. The
     status of this property may change across the life time of the QMediaPlayer
     object, use the seekableChanged signal to monitor changes.
+*/
+
+/*!
+    \qmlproperty bool QtMultimedia::MediaPlayer::playing
+    \since 6.5
+
+    Indicates whether the media is currently playing.
+
+    \sa playbackState
+*/
+
+/*!
+    \property QMediaPlayer::playing
+    \brief Whether the media is playing.
+    \since 6.5
+
+    \sa playbackState, PlayingState
 */
 
 /*!
