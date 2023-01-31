@@ -236,6 +236,7 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
 
 /*!
     \qmlproperty ScreenCapture QtMultimedia::CaptureSession::screenCapture
+    \since 6.5
 
     \brief The object used to capture a window or screen view.
 
@@ -245,6 +246,7 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
 
 /*!
     \property QMediaCaptureSession::screenCapture
+    \since 6.5
 
     \brief The object used to capture a window or screen view.
 
