@@ -198,6 +198,17 @@
       \li \l{Qt Multimedia on WebAssembly}{WebAssembly}
     \endlist
 
+    \section1 Permissions
+
+    Starting from Qt 6.6, the Qt Multimedia module uses new \l QPermission API
+    to handle \l {QCameraPermission}{camera} and
+    \l {QMicrophonePermission}{microphone} permissions. This means that Qt
+    itself no longer queries for these permissions, so this needs to be done
+    directly from the client application.
+
+    Please refer to the \l {Application Permissions} page for an example of how
+    to integrate the new \l QPermission API into the application.
+
     \section1 Reference and Examples
     \list
       \li \l{Qt Multimedia QML Types}{QML Types}
