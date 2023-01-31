@@ -15,7 +15,6 @@ QT_BEGIN_NAMESPACE
 
 class QSize;
 class QVideoFramePrivate;
-class QVideoFrameTextures;
 class QAbstractVideoBuffer;
 class QRhi;
 class QRhiResourceUpdateBatch;
