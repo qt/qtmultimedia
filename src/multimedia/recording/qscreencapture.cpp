@@ -20,6 +20,7 @@ public:
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_video
+    \since 6.5
 
     \brief The QScreenCapture class is used for capturing a screen view or
     a window view.
