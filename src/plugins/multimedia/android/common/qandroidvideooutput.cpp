@@ -348,7 +348,8 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject
 
 QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
-    QMetaObject::invokeMethod(m_surfaceThread.get(), &AndroidTextureThread::clearSurfaceTexture);
+    QMetaObject::invokeMethod(m_surfaceThread.get(),
+            &AndroidTextureThread::clearSurfaceTexture, Qt::BlockingQueuedConnection);
     m_surfaceThread->quit();
     m_surfaceThread->wait();
 }
