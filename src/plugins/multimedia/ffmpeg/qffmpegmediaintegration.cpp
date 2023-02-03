@@ -78,6 +78,9 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
     m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
 #endif
 
+    if (qgetenv("QT_FFMPEG_DEBUG").toInt())
+        av_log_set_level(AV_LOG_DEBUG);
+
 #ifndef QT_NO_DEBUG
     qDebug() << "Available HW decoding frameworks:";
     AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
