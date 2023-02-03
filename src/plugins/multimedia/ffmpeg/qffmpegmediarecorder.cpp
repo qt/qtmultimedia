@@ -75,8 +75,12 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     connect(encoder, &QFFmpeg::Encoder::error, this, &QFFmpegMediaRecorder::handleSessionError);
 
     auto *audioInput = m_session->audioInput();
-    if (audioInput)
-        encoder->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
+    if (audioInput) {
+        if (audioInput->device.isNull())
+            qWarning() << "Audio input device is null; cannot encode audio";
+        else
+            encoder->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
+    }
 
     auto *camera = m_session->camera();
     if (camera)
