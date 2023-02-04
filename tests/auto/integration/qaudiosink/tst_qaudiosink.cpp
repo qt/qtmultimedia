@@ -491,68 +491,73 @@ void tst_QAudioSink::pullSuspendResume()
     audioFile->close();
 }
 
-class AudioPullSource : public QIODevice
-{
-    Q_OBJECT
-public:
-    qint64 readData(char *data, qint64 len) override {
-        qint64 read = qMin(len, available);
-        available -= read;
-        memset(data, 0, read);
-        return read;
-    }
-    qint64 writeData(const char *, qint64) override { return 0; }
-    bool isSequential() const override { return true; }
-
-    qint64 bytesAvailable() const override { return available; }
-    bool atEnd() const override { return signalEnd && available == 0; }
-
-    qint64 available = 0;
-    bool signalEnd = false;
-};
-
 void tst_QAudioSink::pullResumeFromUnderrun()
 {
-    AudioPullSource audioSource;
+    class AudioPullSource : public QIODevice
+    {
+    public:
+        qint64 readData(char *data, qint64 len) override {
+            qint64 read = qMin(len, available);
+            available -= read;
+            memset(data, 0, read);
+            return read;
+        }
+        qint64 writeData(const char *, qint64) override { return 0; }
+        bool isSequential() const override { return true; }
+
+        qint64 bytesAvailable() const override { return available; }
+        bool atEnd() const override { return signalEnd && available == 0; }
+
+        qint64 available = 0;
+        bool signalEnd = false;
+    };
+
+    constexpr int chunkSize = 128;
+
     QAudioFormat format;
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::UInt8);
     format.setSampleRate(1024);
-    QAudioSink audioOutput(format, this);
 
+    QAudioSink audioOutput(format, this);
     QSignalSpy stateSignal(&audioOutput, SIGNAL(stateChanged(QAudio::State)));
 
+    AudioPullSource audioSource;
     audioSource.open(QIODeviceBase::ReadOnly);
-    audioSource.available = 128;
+    audioSource.available = chunkSize;
+    QCOMPARE(audioOutput.state(), QAudio::StoppedState);
     audioOutput.start(&audioSource);
 
-    QTRY_VERIFY(stateSignal.size() == 1);
-    QVERIFY(audioOutput.state() == QAudio::ActiveState);
-    QVERIFY(audioOutput.error() == QAudio::NoError);
+    QTRY_COMPARE(stateSignal.size(), 1);
+    QCOMPARE(audioOutput.state(), QAudio::ActiveState);
+    QCOMPARE(audioOutput.error(), QAudio::NoError);
     stateSignal.clear();
 
-    QTRY_VERIFY(stateSignal.size() == 1);
-    QVERIFY(audioOutput.state() == QAudio::IdleState);
-    QVERIFY(audioOutput.error() == QAudio::UnderrunError);
+    QTRY_COMPARE(stateSignal.size(), 1);
+    QCOMPARE(audioOutput.state(), QAudio::IdleState);
+    QCOMPARE(audioOutput.error(), QAudio::UnderrunError);
     stateSignal.clear();
 
     QTest::qWait(300);
-    audioSource.available = 128;
+    audioSource.available = chunkSize;
     audioSource.signalEnd = true;
 
     // Resume pull
     emit audioSource.readyRead();
 
-    QTRY_VERIFY(stateSignal.size() == 1);
-    QVERIFY(audioOutput.state() == QAudio::ActiveState);
-    QVERIFY(audioOutput.error() == QAudio::NoError);
+    QTRY_COMPARE(stateSignal.size(), 1);
+    QCOMPARE(audioOutput.state(), QAudio::ActiveState);
+    QCOMPARE(audioOutput.error(), QAudio::NoError);
     stateSignal.clear();
 
-    QTRY_VERIFY(stateSignal.size() == 1);
-    QVERIFY(audioOutput.state() == QAudio::IdleState);
-    QVERIFY(audioOutput.error() == QAudio::NoError);
+    QTRY_COMPARE(stateSignal.size(), 1);
+    QCOMPARE(audioOutput.state(), QAudio::IdleState);
+    QCOMPARE(audioOutput.error(), QAudio::UnderrunError);
 
-    QTRY_COMPARE(audioOutput.processedUSecs(), 250000);
+    // we played two chunks, sample rate is per second
+    const int expectedUSecs = (double(chunkSize) / double(format.sampleRate()))
+                            * 2 * 1000 * 1000;
+    QTRY_COMPARE(audioOutput.processedUSecs(), expectedUSecs);
 }
 
 void tst_QAudioSink::push()
