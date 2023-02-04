@@ -27,27 +27,6 @@ static Q_LOGGING_CATEGORY(lcAlsaOutput, "qt.multimedia.alsa.output")
 QAlsaAudioSink::QAlsaAudioSink(const QByteArray &device, QObject *parent)
     : QPlatformAudioSink(parent)
 {
-    bytesAvailable = 0;
-    handle = 0;
-    access = SND_PCM_ACCESS_RW_INTERLEAVED;
-    pcmformat = SND_PCM_FORMAT_S16;
-    buffer_frames = 0;
-    period_frames = 0;
-    buffer_size = 0;
-    period_size = 0;
-    buffer_time = 100000;
-    period_time = 20000;
-    totalTimeValue = 0;
-    audioBuffer = 0;
-    errorState = QAudio::NoError;
-    deviceState = QAudio::StoppedState;
-    audioSource = 0;
-    pullMode = true;
-    resuming = false;
-    opened = false;
-
-    m_volume = 1.0f;
-
     m_device = device;
 
     timer = new QTimer(this);
@@ -551,8 +530,7 @@ void QAlsaAudioSink::resume()
         }
         resuming = true;
 
-        deviceState = pullMode ? QAudio::ActiveState : QAudio::IdleState;
-
+        deviceState = suspendedInState;
         errorState = QAudio::NoError;
         timer->start(period_time/1000);
         emit stateChanged(deviceState);
@@ -572,6 +550,7 @@ QAudioFormat QAlsaAudioSink::format() const
 void QAlsaAudioSink::suspend()
 {
     if(deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState || resuming) {
+        suspendedInState = deviceState;
         snd_pcm_drain(handle);
         timer->stop();
         deviceState = QAudio::SuspendedState;

@@ -697,6 +697,7 @@ void tst_QAudioSink::pushSuspendResume()
     }
     stateSignal.clear();
 
+    const auto suspendedInState = audioOutput.state();
     audioOutput.suspend();
 
     QTRY_VERIFY2((stateSignal.size() == 1),
@@ -722,7 +723,7 @@ void tst_QAudioSink::pushSuspendResume()
     // Check that QAudioSink immediately transitions to IdleState
     QVERIFY2((stateSignal.size() == 1),
              QString("didn't emit signal after resume(), got %1 signals instead").arg(stateSignal.size()).toUtf8().constData());
-    QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transition to IdleState after resume()");
+    QVERIFY2((audioOutput.state() == suspendedInState), "resume() didn't transition to state before suspend()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after resume()");
     stateSignal.clear();
 

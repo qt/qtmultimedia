@@ -363,9 +363,7 @@ void QWindowsAudioSink::resume()
         if (m_pullSource) {
             pullSource();
         } else {
-            // FIXME: Set IdleState to be consistent with implementations on other platforms
-            //        even when playing the audio part that was in the buffer when suspended
-            deviceStateChange(QAudio::IdleState, QAudio::NoError);
+            deviceStateChange(suspendedInState, QAudio::NoError);
             if (remainingPlayTimeUs() > 0)
                 m_audioClient->Start();
         }
@@ -375,8 +373,10 @@ void QWindowsAudioSink::resume()
 void QWindowsAudioSink::suspend()
 {
     qCDebug(qLcAudioOutput) << "suspend()";
-    if (deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState)
+    if (deviceState == QAudio::ActiveState || deviceState == QAudio::IdleState) {
+        suspendedInState = deviceState;
         deviceStateChange(QAudio::SuspendedState, QAudio::NoError);
+    }
 }
 
 void QWindowsAudioSink::setVolume(qreal v)

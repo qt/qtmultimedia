@@ -645,7 +645,7 @@ void QPulseAudioSink::resume()
 
         m_tickTimer.start(m_periodTime, this);
 
-        setState(m_pullMode ? QAudio::ActiveState : QAudio::IdleState);
+        setState(m_suspendedInState);
         setError(QAudio::NoError);
     }
 }
@@ -663,6 +663,7 @@ QAudioFormat QPulseAudioSink::format() const
 void QPulseAudioSink::suspend()
 {
     if (m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::IdleState) {
+        m_suspendedInState = m_deviceState;
         setError(QAudio::NoError);
         setState(QAudio::SuspendedState);
 

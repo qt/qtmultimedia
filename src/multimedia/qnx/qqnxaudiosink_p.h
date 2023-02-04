@@ -83,6 +83,7 @@ private:
 
     QAudio::Error m_error;
     QAudio::State m_state;
+    QAudio::State m_suspendedInState;
     QAudioFormat m_format;
     qreal m_volume;
     int m_periodSize;
