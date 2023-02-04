@@ -294,7 +294,7 @@ void QGStreamerAudioSink::resume()
         m_appSrc->resume();
         gstPipeline.setState(GST_STATE_PLAYING);
 
-        setState(QAudio::ActiveState);
+        setState(m_suspendedInState);
         setError(QAudio::NoError);
     }
 }
@@ -312,6 +312,7 @@ QAudioFormat QGStreamerAudioSink::format() const
 void QGStreamerAudioSink::suspend()
 {
     if (m_deviceState == QAudio::ActiveState || m_deviceState == QAudio::IdleState) {
+        m_suspendedInState = m_deviceState;
         setError(QAudio::NoError);
         setState(QAudio::SuspendedState);
 

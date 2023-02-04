@@ -59,10 +59,11 @@ public:
     qreal volume() const override;
 
 
-    QIODevice* audioSource;
+    QIODevice* audioSource = nullptr;
     QAudioFormat settings;
-    QAudio::Error errorState;
-    QAudio::State deviceState;
+    QAudio::Error errorState = QAudio::NoError;
+    QAudio::State deviceState = QAudio::StoppedState;
+    QAudio::State suspendedInState = QAudio::SuspendedState;
 
 private slots:
     void userFeed();
@@ -72,14 +73,14 @@ signals:
     void processMore();
 
 private:
-    bool opened;
-    bool pullMode;
-    bool resuming;
-    int buffer_size;
-    int period_size;
-    qint64 totalTimeValue;
-    unsigned int buffer_time;
-    unsigned int period_time;
+    bool opened = false;
+    bool pullMode = true;
+    bool resuming = false;
+    int buffer_size = 0;
+    int period_size = 0;
+    qint64 totalTimeValue = 0;
+    unsigned int buffer_time = 100000;
+    unsigned int period_time = 20000;
     snd_pcm_uframes_t buffer_frames;
     snd_pcm_uframes_t period_frames;
     int xrun_recovery(int err);
@@ -88,16 +89,16 @@ private:
     bool open();
     void close();
 
-    QTimer* timer;
+    QTimer* timer = nullptr;
     QByteArray m_device;
-    int bytesAvailable;
-    qint64 elapsedTimeOffset;
-    char* audioBuffer;
-    snd_pcm_t* handle;
-    snd_pcm_access_t access;
-    snd_pcm_format_t pcmformat;
-    snd_pcm_hw_params_t *hwparams;
-    qreal m_volume;
+    int bytesAvailable = 0;
+    qint64 elapsedTimeOffset = 0;
+    char* audioBuffer = nullptr;
+    snd_pcm_t* handle = nullptr;
+    snd_pcm_access_t access SND_PCM_ACCESS_RW_INTERLEAVED;
+    snd_pcm_format_t pcmformat SND_PCM_FORMAT_S16;
+    snd_pcm_hw_params_t *hwparams = nullptr;
+    qreal m_volume = 1.0f;
 };
 
 class AlsaOutputPrivate : public QIODevice

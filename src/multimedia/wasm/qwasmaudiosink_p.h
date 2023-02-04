@@ -36,6 +36,7 @@ class QWasmAudioSink : public QPlatformAudioSink
     QAudio::Error m_error = QAudio::NoError;
     bool m_running = false;
     QAudio::State m_state = QAudio::StoppedState;
+    QAudio::State m_suspendedInState = QAudio::SuspendedState;
     int m_bufferSize = 0;
     quint64 m_processed = 0;
     QElapsedTimer m_elapsedTimer;

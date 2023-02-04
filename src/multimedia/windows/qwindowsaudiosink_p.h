@@ -77,6 +77,7 @@ private:
     QAudioFormat m_format;
     QAudio::Error errorState = QAudio::NoError;
     QAudio::State deviceState = QAudio::StoppedState;
+    QAudio::State suspendedInState = QAudio::SuspendedState;
 
     qsizetype m_bufferSize = 0;
     qreal m_volume = 1.0;

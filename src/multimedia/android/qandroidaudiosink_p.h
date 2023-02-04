@@ -71,25 +71,28 @@ private:
 
     SLmillibel adjustVolume(qreal vol);
 
+    static constexpr int BufferCount = 2;
+
     QByteArray m_deviceName;
-    QAudio::State m_state;
-    QAudio::Error m_error;
-    SLObjectItf m_outputMixObject;
-    SLObjectItf m_playerObject;
-    SLPlayItf m_playItf;
-    SLVolumeItf m_volumeItf;
-    SLBufferQueueItf m_bufferQueueItf;
-    QIODevice *m_audioSource;
-    char *m_buffers;
-    qreal m_volume;
-    bool m_pullMode;
-    int m_nextBuffer;
-    int m_bufferSize;
-    qint64 m_elapsedTime;
-    qint64 m_processedBytes;
-    QAtomicInt m_availableBuffers;
-    SLuint32 m_eventMask;
-    bool m_startRequiresInit;
+    QAudio::State m_state = QAudio::StoppedState;
+    QAudio::State m_suspendedInState = QAudio::SuspendedState;
+    QAudio::Error m_error = QAudio::NoError;
+    SLObjectItf m_outputMixObject = nullptr;
+    SLObjectItf m_playerObject = nullptr;
+    SLPlayItf m_playItf = nullptr;
+    SLVolumeItf m_volumeItf = nullptr;
+    SLBufferQueueItf m_bufferQueueItf = nullptr;
+    QIODevice *m_audioSource = nullptr;
+    char *m_buffers = nullptr;
+    qreal m_volume = 1.0;
+    bool m_pullMode = false;
+    int m_nextBuffer = 0;
+    int m_bufferSize = 0;
+    qint64 m_elapsedTime = 0;
+    qint64 m_processedBytes = 0;
+    QAtomicInt m_availableBuffers = BufferCount;
+    SLuint32 m_eventMask = SL_PLAYEVENT_HEADATEND;
+    bool m_startRequiresInit = true;
 
     qint32 m_streamType;
     QAudioFormat m_format;

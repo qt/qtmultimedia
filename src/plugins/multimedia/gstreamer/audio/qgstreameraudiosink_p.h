@@ -86,6 +86,7 @@ private:
     QAudioFormat m_format;
     QAudio::Error m_errorState = QAudio::NoError;
     QAudio::State m_deviceState = QAudio::StoppedState;
+    QAudio::State m_suspendedInState = QAudio::SuspendedState;
     bool m_pullMode = true;
     bool m_opened = false;
     QIODevice *m_audioSource = nullptr;

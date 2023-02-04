@@ -21,6 +21,7 @@ QQnxAudioSink::QQnxAudioSink(const QAudioDevice &deviceInfo, QObject *parent)
     , m_timer(new QTimer(this))
     , m_error(QAudio::NoError)
     , m_state(QAudio::StoppedState)
+    , m_suspendedInState(QAudio::SuspendedState)
     , m_volume(1.0)
     , m_periodSize(0)
     , m_bytesWritten(0)
@@ -416,14 +417,13 @@ void QQnxAudioSink::suspendInternal(QAudio::State suspendState)
     if (!m_pushSource)
         m_timer->stop();
 
+    m_suspendedInState = m_state;
     changeState(suspendState, QAudio::NoError);
 }
 
 void QQnxAudioSink::resumeInternal()
 {
-    const QAudio::State state = m_pushSource ? QAudio::IdleState : QAudio::ActiveState;
-
-    changeState(state, QAudio::NoError);
+    changeState(m_suspendedInState, QAudio::NoError);
 
     m_timer->start();
 }

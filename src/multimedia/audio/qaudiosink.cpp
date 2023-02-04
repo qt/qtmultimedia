@@ -203,10 +203,9 @@ void QAudioSink::suspend()
 /*!
     Resumes processing audio data after a suspend().
 
-    Sets error() to QAudio::NoError.
-    Sets state() to QAudio::ActiveState if you previously called start(QIODevice*).
-    Sets state() to QAudio::IdleState if you previously called start().
-    emits stateChanged() signal.
+    Sets state() to the state the sink had when suspend() was called, and sets
+    error() to QAudioError::NoError. This function does nothing if the audio sink's
+    state is not QAudio::SuspendedState.
 */
 void QAudioSink::resume()
 {

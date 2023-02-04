@@ -292,6 +292,7 @@ void QDarwinAudioSink::suspend()
 
     audioThreadStop();
 
+    m_suspendedInStateCode = m_stateCode;
     m_stateCode = QAudio::SuspendedState;
     m_errorCode = QAudio::NoError;
     emit stateChanged(m_stateCode);
@@ -304,7 +305,7 @@ void QDarwinAudioSink::resume()
 
     audioThreadStart();
 
-    m_stateCode = m_pullMode ? QAudio::ActiveState : QAudio::IdleState;
+    m_stateCode = m_suspendedInStateCode;
     m_errorCode = QAudio::NoError;
     emit stateChanged(m_stateCode);
 }

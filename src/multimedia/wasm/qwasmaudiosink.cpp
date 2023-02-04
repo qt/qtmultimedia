@@ -200,6 +200,7 @@ void QWasmAudioSink::suspend()
     if (!m_running)
         return;
 
+    m_suspendedInState = m_state;
     alSourcePause(aldata->source);
 }
 

@@ -100,6 +100,7 @@ private:
 
     QAudio::Error m_errorState = QAudio::NoError;
     QAudio::State m_deviceState = QAudio::StoppedState;
+    QAudio::State m_suspendedInState = QAudio::SuspendedState;
     int m_periodSize = 0;
     int m_bufferSize = 0;
     int m_maxBufferSize = 0;
