@@ -3,6 +3,7 @@
 
 #include "platform/qplatformscreencapture_p.h"
 #include "qvideoframe.h"
+#include "qdebug.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -58,6 +59,8 @@ void QPlatformScreenCapture::updateError(QScreenCapture::Error error, const QStr
     m_error = error;
     m_errorString = errorString;
     if (changed) {
+        qWarning() << "Screen capture fail:" << error << "," << errorString;
+
         if (m_error != QScreenCapture::NoError)
             emit m_screenCapture->errorOccurred(error, errorString);
         emit m_screenCapture->errorChanged();

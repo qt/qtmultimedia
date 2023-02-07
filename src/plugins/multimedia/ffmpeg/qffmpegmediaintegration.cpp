@@ -20,6 +20,7 @@
 
 #ifdef Q_OS_DARWIN
 #include "qavfcamera_p.h"
+#include "qavfscreencapture_p.h"
 #elif defined(Q_OS_WINDOWS)
 #include "qwindowscamera_p.h"
 #include "qwindowsvideodevices_p.h"
@@ -138,6 +139,8 @@ QPlatformScreenCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapt
 #endif
 #if defined(Q_OS_WINDOWS)
     return new QFFmpegScreenCaptureDxgi(screenCapture);
+#elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
+    return new QAVFScreenCapture(screenCapture);
 #else
     return new QFFmpegScreenCapture(screenCapture);
 #endif

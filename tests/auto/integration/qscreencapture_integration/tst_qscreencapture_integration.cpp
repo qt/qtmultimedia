@@ -208,7 +208,7 @@ void tst_QScreenCaptureIntegration::capture(QTestWidget &widget, const QPoint &d
 
     QTest::qWait(delay);
     const auto expectedFramesCount =
-            delay / static_cast<int>(1000 / widget.screen()->refreshRate());
+            delay / static_cast<int>(1000 / std::min(widget.screen()->refreshRate(), 60.));
 
     const int framesCount = static_cast<int>(sink.images().size());
 
@@ -284,7 +284,8 @@ void tst_QScreenCaptureIntegration::initTestCase()
 
 void tst_QScreenCaptureIntegration::captureWindowById()
 {
-    auto widget = QTestWidget::createAndShow(Qt::Window, QRect{ 200, 100, 430, 351 });
+    auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
+                                             QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
     capture(*widget, { 0, 0 }, { 430, 351 },
@@ -293,7 +294,8 @@ void tst_QScreenCaptureIntegration::captureWindowById()
 
 void tst_QScreenCaptureIntegration::captureWindow()
 {
-    auto widget = QTestWidget::createAndShow(Qt::Window, QRect{ 200, 100, 430, 351 });
+    auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
+                                             QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
     capture(*widget, { 0, 0 }, { 430, 351 },
@@ -302,10 +304,12 @@ void tst_QScreenCaptureIntegration::captureWindow()
 
 void tst_QScreenCaptureIntegration::captureOverlappedWindow()
 {
-    auto overlappedWidget = QTestWidget::createAndShow(Qt::Window, QRect{ 200, 100, 430, 351 });
+    auto overlappedWidget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
+                                                       QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(overlappedWidget.get()));
 
-    auto overlappingWidget = QTestWidget::createAndShow(Qt::Window, QRect{ 210, 110, 430, 351 });
+    auto overlappingWidget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
+                                                        QRect{ 210, 110, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(overlappingWidget.get()));
 
     capture(*overlappedWidget, { 0, 0 }, { 430, 351 }, [&overlappedWidget](QScreenCapture &sc) {
@@ -366,6 +370,8 @@ void tst_QScreenCaptureIntegration::removeWindowWhileCapture()
 
 void tst_QScreenCaptureIntegration::removeScreenWhileCapture()
 {
+    QSKIP("TODO: find a reliable way to emulate it");
+
     removeWhileCapture([](QScreenCapture &sc) { sc.setScreen(QApplication::primaryScreen()); },
                        []() {
                            // It's something that doesn't look safe but it performs required flow

@@ -65,6 +65,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_
         EGL::EGL
 )
 
+
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
     SOURCES
         ../darwin/qavfhelpers.mm ../darwin/qavfhelpers_p.h
@@ -72,6 +73,8 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         ../darwin/camera/avfcamerautility_p.h ../darwin/camera/avfcamerautility.mm
         qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
         qavfcamera.mm qavfcamera_p.h
+        qavfsamplebufferdelegate.mm qavfsamplebufferdelegate_p.h
+        qavfscreencapture.mm qavfscreencapture_p.h
     INCLUDE_DIRECTORIES
         ../darwin
         ../darwin/camera
