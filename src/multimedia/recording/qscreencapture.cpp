@@ -22,10 +22,10 @@ public:
     \ingroup multimedia_video
     \since 6.5
 
-    \brief The QScreenCapture class is used for capturing a screen view or
-    a window view.
+    \brief The QScreenCapture class is used for capturing a screen or
+    a window.
 
-    The class captures a screen view or window view. It is managed by
+    The class captures a screen or window. It is managed by
     the QMediaCaptureSession class where the captured view can be displayed
     in a window or recorded to a file.
 
@@ -34,14 +34,14 @@ public:
 /*!
     \qmltype ScreenCapture
     \instantiates QScreenCapture
-    \brief The ScreenCapture type is used for capturing a screen view or
-    a window view.
+    \brief The ScreenCapture type is used for capturing a screen or
+    a window.
 
     \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
 
-    ScreenCapture captures a screen view or a window view. It is managed by
+    ScreenCapture captures a screen or a window. It is managed by
     MediaCaptureSession where the captured view can be displayed in a window
     or recorded to a file.
 
@@ -91,7 +91,8 @@ QScreenCapture::~QScreenCapture()
     \value NoError                      No error
     \value InternalError                Internal screen capturing driver error
     \value CapturingNotSupported        Capturing is not supported
-    \value WindowCapturingNotSupported  Window capturing is not supported
+    \value WindowCapturingNotSupported  Window capturing is not supported.
+                                        This enum value was added in Qt 6.6.
     \value CaptureFailed                Capturing screen or window view failed
     \value NotFound                     Selected screen or window not found
 */
@@ -112,11 +113,15 @@ QMediaCaptureSession *QScreenCapture::captureSession() const
 /*!
     \qmlproperty Window QtMultimedia::ScreenCapture::window
     Describes the window for capturing.
+
+    \since 6.6
 */
 
 /*!
     \property QScreenCapture::window
     \brief the window for capturing.
+
+    \since 6.6
 */
 void QScreenCapture::setWindow(QWindow *window)
 {
@@ -145,6 +150,8 @@ QWindow *QScreenCapture::window() const
 /*!
     \property QScreenCapture::windowId
     \brief the window ID for capturing.
+
+    \since 6.6
 */
 void QScreenCapture::setWindowId(WId id)
 {
