@@ -116,7 +116,7 @@ QMediaCaptureSession *QScreenCapture::captureSession() const
 
 /*!
     \property QScreenCapture::window
-    Describes the window for capturing.
+    \brief the window for capturing.
 */
 void QScreenCapture::setWindow(QWindow *window)
 {
@@ -144,7 +144,7 @@ QWindow *QScreenCapture::window() const
 
 /*!
     \property QScreenCapture::windowId
-    Describes the window ID for capturing.
+    \brief the window ID for capturing.
 */
 void QScreenCapture::setWindowId(WId id)
 {
@@ -172,7 +172,7 @@ WId QScreenCapture::windowId() const
 
 /*!
     \property QScreenCapture::active
-    Describes whether the capturing is currently active.
+    \brief whether the capturing is currently active.
 */
 void QScreenCapture::setActive(bool active)
 {
@@ -196,7 +196,7 @@ bool QScreenCapture::isActive() const
 
 /*!
     \property QScreenCapture::screen
-    Describes the screen for capturing.
+    \brief the screen for capturing.
 */
 
 void QScreenCapture::setScreen(QScreen *screen)
@@ -225,7 +225,7 @@ QScreen *QScreenCapture::screen() const
 
 /*!
     \property QScreenCapture::error
-    Returns a code of the last error.
+    \brief the code of the last error.
 */
 QScreenCapture::Error QScreenCapture::error() const
 {
@@ -247,7 +247,7 @@ QScreenCapture::Error QScreenCapture::error() const
 
 /*!
     \property QScreenCapture::errorString
-    Returns a human readable string describing the cause of error.
+    \brief a human readable string describing the cause of error.
 */
 QString QScreenCapture::errorString() const
 {
