@@ -22,8 +22,6 @@ class Q_MULTIMEDIA_EXPORT QScreenCapture : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
-    Q_PROPERTY(WId windowId READ windowId WRITE setWindowId NOTIFY windowIdChanged)
-    Q_PROPERTY(QWindow *window READ window WRITE setWindow NOTIFY windowChanged)
     Q_PROPERTY(QScreen *screen READ screen WRITE setScreen NOTIFY screenChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
@@ -44,12 +42,6 @@ public:
 
     QMediaCaptureSession *captureSession() const;
 
-    void setWindow(QWindow *window);
-    QWindow *window() const;
-
-    void setWindowId(WId id);
-    WId windowId() const;
-
     void setScreen(QScreen *screen);
     QScreen *screen() const;
 
@@ -66,8 +58,6 @@ public Q_SLOTS:
 Q_SIGNALS:
     void activeChanged(bool);
     void errorChanged();
-    void windowIdChanged(WId);
-    void windowChanged(QWindow *);
     void screenChanged(QScreen *);
     void errorOccurred(QScreenCapture::Error error, const QString &errorString);
 

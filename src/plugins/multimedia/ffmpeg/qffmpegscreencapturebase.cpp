@@ -38,7 +38,7 @@ QScreen *QFFmpegScreenCaptureBase::screen() const
 
 void QFFmpegScreenCaptureBase::setWindow(QWindow *w)
 {
-    setSource(m_window, w, &QScreenCapture::windowChanged);
+    setSource(m_window, w, nullptr);
 }
 
 QWindow *QFFmpegScreenCaptureBase::window() const
@@ -48,7 +48,7 @@ QWindow *QFFmpegScreenCaptureBase::window() const
 
 void QFFmpegScreenCaptureBase::setWindowId(WId id)
 {
-    setSource(m_wid, id, &QScreenCapture::windowIdChanged);
+    setSource(m_wid, id, nullptr);
 }
 
 WId QFFmpegScreenCaptureBase::windowId() const
@@ -79,7 +79,10 @@ void QFFmpegScreenCaptureBase::setSource(Source &source, NewSource newSource, Si
     if (m_active && newSource)
         setActiveInternal(true);
 
-    emit (screenCapture()->*sig)(newSource);
+    if constexpr (!std::is_same_v<Signal, std::nullptr_t>)
+        emit (screenCapture()->*sig)(newSource);
+    else
+        Q_UNUSED(sig);
 }
 
 QT_END_NAMESPACE

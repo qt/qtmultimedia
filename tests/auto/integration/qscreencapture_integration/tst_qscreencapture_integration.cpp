@@ -108,13 +108,9 @@ class tst_QScreenCaptureIntegration : public QObject
 private slots:
     void initTestCase();
     void startStop();
-    void captureWindowById();
-    void captureWindow();
-    void captureOverlappedWindow();
     void captureScreen();
     void captureScreenByDefault();
     void captureSecondaryScreen();
-    void removeWindowWhileCapture();
 
     void removeScreenWhileCapture(); // Keep the test last defined. TODO: find a way to restore
                                      // application screens.
@@ -282,41 +278,6 @@ void tst_QScreenCaptureIntegration::initTestCase()
         QSKIP("Screen capturing not supported");
 }
 
-void tst_QScreenCaptureIntegration::captureWindowById()
-{
-    auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
-                                             QRect{ 200, 100, 430, 351 });
-    QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
-
-    capture(*widget, { 0, 0 }, { 430, 351 },
-            [&widget](QScreenCapture &sc) { sc.setWindowId(widget->winId()); });
-}
-
-void tst_QScreenCaptureIntegration::captureWindow()
-{
-    auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
-                                             QRect{ 200, 100, 430, 351 });
-    QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
-
-    capture(*widget, { 0, 0 }, { 430, 351 },
-            [&widget](QScreenCapture &sc) { sc.setWindow(widget->windowHandle()); });
-}
-
-void tst_QScreenCaptureIntegration::captureOverlappedWindow()
-{
-    auto overlappedWidget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
-                                                       QRect{ 200, 100, 430, 351 });
-    QVERIFY(QTest::qWaitForWindowExposed(overlappedWidget.get()));
-
-    auto overlappingWidget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
-                                                        QRect{ 210, 110, 430, 351 });
-    QVERIFY(QTest::qWaitForWindowExposed(overlappingWidget.get()));
-
-    capture(*overlappedWidget, { 0, 0 }, { 430, 351 }, [&overlappedWidget](QScreenCapture &sc) {
-        sc.setWindow(overlappedWidget->windowHandle());
-    });
-}
-
 void tst_QScreenCaptureIntegration::captureScreen()
 {
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint
@@ -357,15 +318,6 @@ void tst_QScreenCaptureIntegration::captureSecondaryScreen()
 
     capture(*widgetOnSecondaryScreen, { 200, 100 }, QApplication::primaryScreen()->size(),
             [&screens](QScreenCapture &sc) { sc.setScreen(screens.back()); });
-}
-
-void tst_QScreenCaptureIntegration::removeWindowWhileCapture()
-{
-    auto widget = QTestWidget::createAndShow(Qt::Window, QRect{ 200, 100, 430, 351 });
-    QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
-
-    removeWhileCapture([&widget](QScreenCapture &sc) { sc.setWindowId(widget->winId()); },
-                       [&widget]() { widget.reset(); });
 }
 
 void tst_QScreenCaptureIntegration::removeScreenWhileCapture()
