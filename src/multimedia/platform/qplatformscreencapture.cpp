@@ -59,10 +59,11 @@ void QPlatformScreenCapture::updateError(QScreenCapture::Error error, const QStr
     m_error = error;
     m_errorString = errorString;
     if (changed) {
-        qWarning() << "Screen capture fail:" << error << "," << errorString;
-
         if (m_error != QScreenCapture::NoError)
             emit m_screenCapture->errorOccurred(error, errorString);
+        else
+            qWarning() << "Screen capture fail:" << error << "," << errorString;
+
         emit m_screenCapture->errorChanged();
     }
 }

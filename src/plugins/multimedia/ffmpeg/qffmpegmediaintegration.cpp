@@ -44,6 +44,10 @@ extern "C" {
 #include "qffmpegscreencapture_uwp_p.h"
 #endif
 
+#if QT_CONFIG(xlib)
+#include "qx11screencapture_p.h"
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class QFFmpegMediaPlugin : public QPlatformMediaPlugin
@@ -137,6 +141,12 @@ QPlatformScreenCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapt
     if (QFFmpegScreenCaptureUwp::isSupported())
         return new QFFmpegScreenCaptureUwp(screenCapture);
 #endif
+
+#if QT_CONFIG(xlib)
+    if (QX11ScreenCapture::isSupported())
+        return new QX11ScreenCapture(screenCapture);
+#endif
+
 #if defined(Q_OS_WINDOWS)
     return new QFFmpegScreenCaptureDxgi(screenCapture);
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well

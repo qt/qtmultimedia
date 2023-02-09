@@ -1,1 +1,3 @@
-ci
+macos ci
+windows ci
+android ci
