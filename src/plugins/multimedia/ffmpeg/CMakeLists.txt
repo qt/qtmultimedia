@@ -113,6 +113,15 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
         windowsapp
 )
 
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
+    SOURCES
+        qx11screencapture.cpp qx11screencapture_p.h
+    LIBRARIES
+        X11
+        Xrandr
+        Xext
+)
+
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
     SOURCES
         qv4l2camera.cpp qv4l2camera_p.h
