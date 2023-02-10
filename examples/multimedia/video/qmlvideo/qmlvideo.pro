@@ -20,6 +20,8 @@ include($$SNIPPETS_PATH/performancemonitor/performancemonitordeclarative.pri)
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/video/qmlvideo
 INSTALLS += target
 
+macos: QMAKE_INFO_PLIST = Info.plist
+
 EXAMPLE_FILES += \
     qmlvideo.png \
     qmlvideo.svg
