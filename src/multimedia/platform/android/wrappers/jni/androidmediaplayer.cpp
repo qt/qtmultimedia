@@ -288,6 +288,21 @@ void AndroidMediaPlayer::unblockAudio()
     mAudioBlocked = false;
 }
 
+void AndroidMediaPlayer::startSoundStreaming(const int inputId, const int outputId)
+{
+    QJniObject::callStaticMethod<void>("org/qtproject/qt/android/multimedia/QtAudioDeviceManager",
+                                       "startSoundStreaming",
+                                       "(II)V",
+                                       inputId,
+                                       outputId);
+}
+
+void AndroidMediaPlayer::stopSoundStreaming()
+{
+    QJniObject::callStaticMethod<void>(
+        "org/qtproject/qt/android/multimedia/QtAudioDeviceManager", "stopSoundStreaming");
+}
+
 bool AndroidMediaPlayer::setPlaybackRate(qreal rate)
 {
     if (QNativeInterface::QAndroidApplication::sdkVersion() < 23) {
