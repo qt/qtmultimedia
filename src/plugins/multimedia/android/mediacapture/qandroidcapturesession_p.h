@@ -117,6 +117,7 @@ private:
     CaptureProfile getProfile(int id);
 
     void restartViewfinder();
+    void updateStreamingState();
 
     QAndroidMediaEncoder *m_mediaEncoder = nullptr;
     std::shared_ptr<AndroidMediaRecorder> m_mediaRecorder;
@@ -144,6 +145,7 @@ private:
     QList<qreal> m_supportedFramerates;
 
     QMetaObject::Connection m_audioInputChanged;
+    QMetaObject::Connection m_audioOutputChanged;
     QMetaObject::Connection m_connOpenCamera;
     QMetaObject::Connection m_connActiveChangedCamera;
 

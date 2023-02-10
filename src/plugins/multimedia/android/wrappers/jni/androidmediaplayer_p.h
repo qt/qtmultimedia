@@ -100,6 +100,8 @@ public:
     void setDataSource(const QNetworkRequest &request);
     void prepareAsync();
     void setVolume(int volume);
+    static void startSoundStreaming(const int inputId, const int outputId);
+    static void stopSoundStreaming();
     bool setPlaybackRate(qreal rate);
     void setDisplay(AndroidSurfaceTexture *surfaceTexture);
     static bool setAudioOutput(const QByteArray &deviceId);
