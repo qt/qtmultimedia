@@ -13,7 +13,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioDeviceInfo;
+import android.media.AudioFormat;
 import android.media.AudioManager;
+import android.media.AudioRecord;
+import android.media.AudioTrack;
 import android.media.MediaRecorder;
 import android.util.Log;
 
@@ -22,6 +25,14 @@ public class QtAudioDeviceManager
     private static final String TAG = "QtAudioDeviceManager";
     static private AudioManager m_audioManager = null;
     static private final AudioDevicesReceiver m_audioDevicesReceiver = new AudioDevicesReceiver();
+    static private AudioRecord m_recorder = null;
+    static private AudioTrack m_streamPlayer = null;
+    static private Thread m_streamingThread = null;
+    static private boolean m_isStreaming = false;
+    static private final int m_sampleRate = 8000;
+    static private final int m_channels = AudioFormat.CHANNEL_CONFIGURATION_MONO;
+    static private final int m_audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+    static private final int m_bufferSize = AudioRecord.getMinBufferSize(m_sampleRate, m_channels, m_audioFormat);
 
     public static native void onAudioInputDevicesUpdated();
     public static native void onAudioOutputDevicesUpdated();
@@ -250,5 +261,66 @@ public class QtAudioDeviceManager
         m_audioManager.setBluetoothScoOn(bluetoothOn);
         m_audioManager.setSpeakerphoneOn(speakerOn);
 
+    }
+
+    private static void streamSound()
+    {
+        byte data[] = new byte[m_bufferSize];
+        while (m_isStreaming) {
+            m_recorder.read(data, 0, m_bufferSize);
+            m_streamPlayer.play();
+            m_streamPlayer.write(data, 0, m_bufferSize);
+            m_streamPlayer.stop();
+        }
+    }
+
+    private static void startSoundStreaming(int inputId, int outputId)
+    {
+        if (m_isStreaming)
+            stopSoundStreaming();
+
+        m_recorder = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, m_sampleRate, m_channels,
+                                           m_audioFormat, m_bufferSize);
+        m_streamPlayer = new AudioTrack(AudioManager.STREAM_MUSIC, m_sampleRate, m_channels,
+                                           m_audioFormat, m_bufferSize, AudioTrack.MODE_STREAM);
+
+        final AudioDeviceInfo[] devices = m_audioManager.getDevices(AudioManager.GET_DEVICES_ALL);
+        for (AudioDeviceInfo deviceInfo : devices) {
+            if (deviceInfo.getId() == outputId) {
+                m_streamPlayer.setPreferredDevice(deviceInfo);
+            } else if (deviceInfo.getId() == inputId) {
+                m_recorder.setPreferredDevice(deviceInfo);
+            }
+        }
+
+        m_recorder.startRecording();
+        m_isStreaming = true;
+
+        m_streamingThread = new Thread(new Runnable() {
+            public void run() {
+                streamSound();
+            }
+        });
+
+        m_streamingThread.start();
+    }
+
+    private static void stopSoundStreaming()
+    {
+        if (!m_isStreaming)
+            return;
+
+        m_isStreaming = false;
+        try {
+            m_streamingThread.join();
+            m_streamingThread = null;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        m_recorder.stop();
+        m_recorder.release();
+        m_streamPlayer.release();
+        m_streamPlayer = null;
+        m_recorder = null;
     }
 }
