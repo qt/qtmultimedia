@@ -6,6 +6,7 @@
 #include "androidcamera_p.h"
 #include "qandroidcamerasession_p.h"
 #include "qaudioinput.h"
+#include "qaudiooutput.h"
 #include "androidmediaplayer_p.h"
 #include "androidmultimediautils_p.h"
 #include "qandroidmultimediautils_p.h"
@@ -39,6 +40,8 @@ QAndroidCaptureSession::~QAndroidCaptureSession()
 {
     stop();
     m_mediaRecorder = nullptr;
+    if (m_audioInput && m_audioOutput)
+        AndroidMediaPlayer::stopSoundStreaming();
 }
 
 void QAndroidCaptureSession::setCameraSession(QAndroidCameraSession *cameraSession)
@@ -75,8 +78,10 @@ void QAndroidCaptureSession::setAudioInput(QPlatformAudioInput *input)
         m_audioInputChanged = connect(m_audioInput->q, &QAudioInput::deviceChanged, this, [this]() {
             if (m_state == QMediaRecorder::RecordingState)
                 m_mediaRecorder->setAudioInput(m_audioInput->device.id());
+            updateStreamingState();
         });
     }
+    updateStreamingState();
 }
 
 void QAndroidCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
@@ -84,10 +89,30 @@ void QAndroidCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
     if (m_audioOutput == output)
         return;
 
+    if (m_audioOutput)
+        disconnect(m_audioOutputChanged);
+
     m_audioOutput = output;
 
-    if (m_audioOutput)
+    if (m_audioOutput) {
+        m_audioOutputChanged = connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this,
+            [this] () {
+                AndroidMediaPlayer::setAudioOutput(m_audioOutput->device.id());
+                updateStreamingState();
+            });
         AndroidMediaPlayer::setAudioOutput(m_audioOutput->device.id());
+    }
+    updateStreamingState();
+}
+
+void QAndroidCaptureSession::updateStreamingState()
+{
+    if (m_audioInput && m_audioOutput) {
+        AndroidMediaPlayer::startSoundStreaming(m_audioInput->device.id().toInt(),
+                                                m_audioOutput->device.id().toInt());
+    } else {
+        AndroidMediaPlayer::stopSoundStreaming();
+    }
 }
 
 QMediaRecorder::RecorderState QAndroidCaptureSession::state() const
