@@ -122,6 +122,9 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
         Xext
 )
 
+set_source_files_properties(qx11screencapture.cpp # X headers
+                            PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
     SOURCES
         qv4l2camera.cpp qv4l2camera_p.h
