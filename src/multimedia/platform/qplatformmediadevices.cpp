@@ -31,8 +31,8 @@
 QT_BEGIN_NAMESPACE
 
 namespace {
-struct Holder {
-    ~Holder()
+struct DevicesHolder {
+    ~DevicesHolder()
     {
         QMutexLocker locker(&mutex);
         delete nativeInstance;
@@ -42,36 +42,36 @@ struct Holder {
     QBasicMutex mutex;
     QPlatformMediaDevices *instance = nullptr;
     QPlatformMediaDevices *nativeInstance = nullptr;
-} holder;
+} devicesHolder;
 
 }
 
 QPlatformMediaDevices *QPlatformMediaDevices::instance()
 {
-    QMutexLocker locker(&holder.mutex);
-    if (holder.instance)
-        return holder.instance;
+    QMutexLocker locker(&devicesHolder.mutex);
+    if (devicesHolder.instance)
+        return devicesHolder.instance;
 
 #ifdef Q_OS_DARWIN
-    holder.nativeInstance = new QDarwinMediaDevices;
+    devicesHolder.nativeInstance = new QDarwinMediaDevices;
 #elif defined(Q_OS_WINDOWS)
-    holder.nativeInstance = new QWindowsMediaDevices;
+    devicesHolder.nativeInstance = new QWindowsMediaDevices;
 #elif defined(Q_OS_ANDROID)
-    holder.nativeInstance = new QAndroidMediaDevices;
+    devicesHolder.nativeInstance = new QAndroidMediaDevices;
 #elif QT_CONFIG(alsa)
-    holder.nativeInstance = new QAlsaMediaDevices;
+    devicesHolder.nativeInstance = new QAlsaMediaDevices;
 #elif QT_CONFIG(pulseaudio)
-    holder.nativeInstance = new QPulseAudioMediaDevices;
+    devicesHolder.nativeInstance = new QPulseAudioMediaDevices;
 #elif defined(Q_OS_QNX)
-    holder.nativeInstance = new QQnxMediaDevices;
+    devicesHolder.nativeInstance = new QQnxMediaDevices;
 #elif defined(Q_OS_WASM)
-    holder.nativeInstance = new QWasmMediaDevices;
+    devicesHolder.nativeInstance = new QWasmMediaDevices;
 #else
-    holder.nativeInstance = new QPlatformMediaDevices;
+    devicesHolder.nativeInstance = new QPlatformMediaDevices;
 #endif
 
-    holder.instance = holder.nativeInstance;
-    return holder.instance;
+    devicesHolder.instance = devicesHolder.nativeInstance;
+    return devicesHolder.instance;
 }
 
 
@@ -80,7 +80,7 @@ QPlatformMediaDevices::QPlatformMediaDevices()
 
 void QPlatformMediaDevices::setDevices(QPlatformMediaDevices *devices)
 {
-    holder.instance = devices;
+    devicesHolder.instance = devices;
 }
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;

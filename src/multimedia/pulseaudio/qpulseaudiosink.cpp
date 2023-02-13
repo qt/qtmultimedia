@@ -16,7 +16,7 @@
 
 QT_BEGIN_NAMESPACE
 
-const int PeriodTimeMs = 20;
+const int SinkPeriodTimeMs = 20;
 
 #define LOW_LATENCY_CATEGORY_NAME "game"
 
@@ -338,7 +338,7 @@ bool QPulseAudioSink::open()
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
 
     const pa_buffer_attr *buffer = pa_stream_get_buffer_attr(m_stream);
-    m_periodTime = PeriodTimeMs;
+    m_periodTime = SinkPeriodTimeMs;
     m_periodSize = pa_usec_to_bytes(m_periodTime * 1000, &m_spec);
     m_bufferSize = buffer->tlength;
     m_maxBufferSize = buffer->maxlength;
