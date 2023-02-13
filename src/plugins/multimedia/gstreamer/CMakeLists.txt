@@ -47,6 +47,9 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         GStreamer::App
 )
 
+set_source_files_properties(common/qgstreamervideosink.cpp # X headers
+                            PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+
 qt_internal_extend_target(QGstreamerMediaPlugin CONDITION QT_FEATURE_gstreamer_photography
     LIBRARIES
         -lgstphotography-1.0
