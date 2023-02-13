@@ -102,7 +102,7 @@ static bool pixelFormatHasAlpha(QVideoFrameFormat::PixelFormat format)
     }
 };
 
-static QShader getShader(const QString &name)
+static QShader vfcGetShader(const QString &name)
 {
     QShader shader = g_shaderCache.value(name);
     if (shader.isValid())
@@ -213,11 +213,11 @@ static bool updateTextures(QRhi *rhi,
     graphicsPipeline.reset(rhi->newGraphicsPipeline());
     graphicsPipeline->setTopology(QRhiGraphicsPipeline::TriangleStrip);
 
-    QShader vs = getShader(QVideoTextureHelper::vertexShaderFileName(format));
+    QShader vs = vfcGetShader(QVideoTextureHelper::vertexShaderFileName(format));
     if (!vs.isValid())
         return false;
 
-    QShader fs = getShader(QVideoTextureHelper::fragmentShaderFileName(format));
+    QShader fs = vfcGetShader(QVideoTextureHelper::fragmentShaderFileName(format));
     if (!fs.isValid())
         return false;
 

@@ -64,8 +64,8 @@ static QString defaultBackend(const QStringList &backends)
 QT_BEGIN_NAMESPACE
 
 namespace {
-struct Holder {
-    ~Holder()
+struct InstanceHolder {
+    ~InstanceHolder()
     {
         QMutexLocker locker(&mutex);
         instance = nullptr;
@@ -73,15 +73,15 @@ struct Holder {
     QBasicMutex mutex;
     QPlatformMediaIntegration *instance = nullptr;
     QPlatformMediaIntegration *nativeInstance = nullptr;
-} holder;
+} instanceHolder;
 
 }
 
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-    QMutexLocker locker(&holder.mutex);
-    if (holder.instance)
-        return holder.instance;
+    QMutexLocker locker(&instanceHolder.mutex);
+    if (instanceHolder.instance)
+        return instanceHolder.instance;
 
     const auto backends = availableBackends();
     QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
@@ -89,16 +89,16 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
         backend = defaultBackend(backends);
 
     qCDebug(qLcMediaPlugin) << "loading backend" << backend;
-    holder.nativeInstance =
+    instanceHolder.nativeInstance =
             qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), backend);
 
-    if (!holder.nativeInstance) {
+    if (!instanceHolder.nativeInstance) {
         qWarning() << "could not load multimedia backend" << backend;
-        holder.nativeInstance = new QDummyIntegration;
+        instanceHolder.nativeInstance = new QDummyIntegration;
     }
 
-    holder.instance = holder.nativeInstance;
-    return holder.instance;
+    instanceHolder.instance = instanceHolder.nativeInstance;
+    return instanceHolder.instance;
 }
 
 /*
@@ -107,9 +107,9 @@ QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 void QPlatformMediaIntegration::setIntegration(QPlatformMediaIntegration *integration)
 {
     if (integration)
-        holder.instance = integration;
+        instanceHolder.instance = integration;
     else
-        holder.instance = holder.nativeInstance;
+        instanceHolder.instance = instanceHolder.nativeInstance;
 }
 
 QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()

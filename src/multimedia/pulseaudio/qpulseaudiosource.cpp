@@ -15,7 +15,7 @@
 
 QT_BEGIN_NAMESPACE
 
-const int PeriodTimeMs = 50;
+const int SourcePeriodTimeMs = 50;
 
 static void inputStreamReadCallback(pa_stream *stream, size_t length, void *userdata)
 {
@@ -101,7 +101,7 @@ QPulseAudioSource::QPulseAudioSource(const QByteArray &device, QObject *parent)
     , m_bytesAvailable(0)
     , m_bufferSize(0)
     , m_periodSize(0)
-    , m_periodTime(PeriodTimeMs)
+    , m_periodTime(SourcePeriodTimeMs)
     , m_stream(nullptr)
     , m_device(device)
 {
@@ -262,7 +262,7 @@ bool QPulseAudioSource::open()
     pa_stream_set_underflow_callback(m_stream, inputStreamUnderflowCallback, this);
     pa_stream_set_overflow_callback(m_stream, inputStreamOverflowCallback, this);
 
-    m_periodSize = pa_usec_to_bytes(PeriodTimeMs*1000, &spec);
+    m_periodSize = pa_usec_to_bytes(SourcePeriodTimeMs*1000, &spec);
 
     int flags = 0;
     pa_buffer_attr buffer_attr;

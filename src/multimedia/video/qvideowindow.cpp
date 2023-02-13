@@ -73,7 +73,7 @@ QVideoWindowPrivate::~QVideoWindowPrivate()
             q, &QVideoWindow::setVideoFrame);
 }
 
-static const float g_quad[] = {
+static const float g_vw_quad[] = {
     // 4 clockwise rotation of texture vertexes (the second pair)
     // Rotation 0
     -1.f, -1.f,   0.f, 0.f,
@@ -98,7 +98,7 @@ static const float g_quad[] = {
     1.f, 1.f,     0.f, 1.f
 };
 
-static QShader getShader(const QString &name)
+static QShader vwGetShader(const QString &name)
 {
     QFile f(name);
     if (f.open(QIODevice::ReadOnly))
@@ -158,7 +158,7 @@ void QVideoWindowPrivate::initRhi()
     m_renderPass.reset(m_swapChain->newCompatibleRenderPassDescriptor());
     m_swapChain->setRenderPassDescriptor(m_renderPass.get());
 
-    m_vertexBuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_quad)));
+    m_vertexBuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_vw_quad)));
     m_vertexBuf->create();
     m_vertexBufReady = false;
 
@@ -182,9 +182,9 @@ void QVideoWindowPrivate::setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, 
 {
 
     pipeline->setTopology(QRhiGraphicsPipeline::TriangleStrip);
-    QShader vs = getShader(QVideoTextureHelper::vertexShaderFileName(fmt));
+    QShader vs = vwGetShader(QVideoTextureHelper::vertexShaderFileName(fmt));
     Q_ASSERT(vs.isValid());
-    QShader fs = getShader(QVideoTextureHelper::fragmentShaderFileName(fmt, m_swapChain->format()));
+    QShader fs = vwGetShader(QVideoTextureHelper::fragmentShaderFileName(fmt, m_swapChain->format()));
     Q_ASSERT(fs.isValid());
     pipeline->setShaderStages({
         { QRhiShaderStage::Vertex, vs },
@@ -368,7 +368,7 @@ void QVideoWindowPrivate::render()
 
     if (!m_vertexBufReady) {
         m_vertexBufReady = true;
-        rub->uploadStaticBuffer(m_vertexBuf.get(), g_quad);
+        rub->uploadStaticBuffer(m_vertexBuf.get(), g_vw_quad);
     }
 
     if (m_texturesDirty)

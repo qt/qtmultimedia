@@ -11,14 +11,14 @@
 
 QT_BEGIN_NAMESPACE
 
-static GstBaseSinkClass *sink_parent_class;
-static thread_local QGstreamerVideoSink *current_sink;
+static GstBaseSinkClass *gst_sink_parent_class;
+static thread_local QGstreamerVideoSink *gst_current_sink;
 
 #define ST_SINK(s) QGstSubtitleSink *sink(reinterpret_cast<QGstSubtitleSink *>(s))
 
 QGstSubtitleSink *QGstSubtitleSink::createSink(QGstreamerVideoSink *sink)
 {
-    current_sink = sink;
+    gst_current_sink = sink;
 
     QGstSubtitleSink *gstSink = reinterpret_cast<QGstSubtitleSink *>(
             g_object_new(QGstSubtitleSink::get_type(), nullptr));
@@ -61,7 +61,7 @@ void QGstSubtitleSink::class_init(gpointer g_class, gpointer class_data)
 {
     Q_UNUSED(class_data);
 
-    sink_parent_class = reinterpret_cast<GstBaseSinkClass *>(g_type_class_peek_parent(g_class));
+    gst_sink_parent_class = reinterpret_cast<GstBaseSinkClass *>(g_type_class_peek_parent(g_class));
 
     GstBaseSinkClass *base_sink_class = reinterpret_cast<GstBaseSinkClass *>(g_class);
     base_sink_class->render = QGstSubtitleSink::render;
@@ -96,41 +96,41 @@ void QGstSubtitleSink::instance_init(GTypeInstance *instance, gpointer g_class)
     Q_UNUSED(g_class);
     ST_SINK(instance);
 
-    Q_ASSERT(current_sink);
-    sink->sink = current_sink;
-    current_sink = nullptr;
+    Q_ASSERT(gst_current_sink);
+    sink->sink = gst_current_sink;
+    gst_current_sink = nullptr;
 }
 
 void QGstSubtitleSink::finalize(GObject *object)
 {
     // Chain up
-    G_OBJECT_CLASS(sink_parent_class)->finalize(object);
+    G_OBJECT_CLASS(gst_sink_parent_class)->finalize(object);
 }
 
 GstStateChangeReturn QGstSubtitleSink::change_state(GstElement *element, GstStateChange transition)
 {
-    return GST_ELEMENT_CLASS(sink_parent_class)->change_state(element, transition);
+    return GST_ELEMENT_CLASS(gst_sink_parent_class)->change_state(element, transition);
 }
 
 GstCaps *QGstSubtitleSink::get_caps(GstBaseSink *base, GstCaps *filter)
 {
-    return sink_parent_class->get_caps(base, filter);
+    return gst_sink_parent_class->get_caps(base, filter);
 }
 
 gboolean QGstSubtitleSink::set_caps(GstBaseSink *base, GstCaps *caps)
 {
     qDebug() << "set_caps:" << QGstCaps::toString(caps);
-    return sink_parent_class->set_caps(base, caps);
+    return gst_sink_parent_class->set_caps(base, caps);
 }
 
 gboolean QGstSubtitleSink::propose_allocation(GstBaseSink *base, GstQuery *query)
 {
-    return sink_parent_class->propose_allocation(base, query);
+    return gst_sink_parent_class->propose_allocation(base, query);
 }
 
 GstFlowReturn QGstSubtitleSink::wait_event(GstBaseSink *base, GstEvent *event)
 {
-    GstFlowReturn retval = sink_parent_class->wait_event(base, event);
+    GstFlowReturn retval = gst_sink_parent_class->wait_event(base, event);
     ST_SINK(base);
     if (event->type == GST_EVENT_GAP) {
 //        qDebug() << "gap, clearing subtitle";
