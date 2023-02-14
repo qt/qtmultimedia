@@ -31,7 +31,7 @@ public:
     static AudioStreamBasicDescription toAudioStreamBasicDescription(QAudioFormat const& audioFormat);
 
     // ownership is transferred to caller, free with ::free()
-    static std::unique_ptr<AudioChannelLayout> toAudioChannelLayout(const QAudioFormat &format, UInt32 *size);
+    static Q_MULTIMEDIA_EXPORT std::unique_ptr<AudioChannelLayout> toAudioChannelLayout(const QAudioFormat &format, UInt32 *size);
     static QAudioFormat::ChannelConfig fromAudioChannelLayout(const AudioChannelLayout *layout);
 
 private:
