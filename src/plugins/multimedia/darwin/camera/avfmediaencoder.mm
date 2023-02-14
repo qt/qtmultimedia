@@ -16,10 +16,13 @@
 #include "private/qmediarecorder_p.h"
 #include "qdarwinformatsinfo_p.h"
 #include "private/qplatformaudiooutput_p.h"
+#include <private/qplatformaudioinput_p.h>
 
 #include <QtCore/qmath.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmimetype.h>
+
+#include <private/qcoreaudioutils_p.h>
 
 QT_USE_NAMESPACE
 
@@ -99,7 +102,7 @@ void AVFMediaEncoder::updateDuration(qint64 duration)
     durationChanged(m_duration);
 }
 
-static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettings)
+static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettings, const QAudioFormat &format)
 {
     NSMutableDictionary *settings = [NSMutableDictionary dictionary];
 
@@ -183,22 +186,36 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
                 }
             }
         }
+
+        // if channel count is provided and it's bigger than 2
+        // provide a supported channel layout
+        if (isChannelCountSupported && channelCount > 2) {
+            AudioChannelLayout channelLayout;
+            memset(&channelLayout, 0, sizeof(AudioChannelLayout));
+            auto channelLayoutTags = qt_supported_channel_layout_tags_for_format(codecId, channelCount);
+            if (channelLayoutTags.size()) {
+                channelLayout.mChannelLayoutTag = channelLayoutTags.first();
+                [settings setObject:[NSData dataWithBytes: &channelLayout length: sizeof(channelLayout)] forKey:AVChannelLayoutKey];
+            } else {
+                isChannelCountSupported = false;
+            }
+        }
+
+        if (isChannelCountSupported)
+            [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
     }
 
-    if (isChannelCountSupported && channelCount > 2) {
-        AudioChannelLayout channelLayout;
-        memset(&channelLayout, 0, sizeof(AudioChannelLayout));
-        auto channelLayoutTags = qt_supported_channel_layout_tags_for_format(codecId, channelCount);
-        if (channelLayoutTags.size()) {
-            channelLayout.mChannelLayoutTag = channelLayoutTags.first();
-            [settings setObject:[NSData dataWithBytes: &channelLayout length: sizeof(channelLayout)] forKey:AVChannelLayoutKey];
+    if (!isChannelCountSupported) {
+        // fallback to providing channel layout if channel count is not specified or supported
+        UInt32 size = 0;
+        if (format.isValid()) {
+            auto layout = CoreAudioUtils::toAudioChannelLayout(format, &size);
+            [settings setObject:[NSData dataWithBytes:layout.get() length:sizeof(AudioChannelLayout)] forKey:AVChannelLayoutKey];
         } else {
-            isChannelCountSupported = false;
+            // finally default to setting channel count to 1
+            [settings setObject:[NSNumber numberWithInt:1] forKey:AVNumberOfChannelsKey];
         }
     }
-    if (!isChannelCountSupported)
-        channelCount = 2;
-    [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
 
     if (codecId == kAudioFormatAppleLossless)
         [settings setObject:[NSNumber numberWithInt:24] forKey:AVEncoderBitDepthHintKey];
@@ -385,7 +402,9 @@ void AVFMediaEncoder::applySettings(QMediaEncoderSettings &settings)
     AVFCameraSession *session = m_service->session();
 
     // audio settings
-    m_audioSettings = avfAudioSettings(settings);
+    const auto audioInput = m_service->audioInput();
+    const QAudioFormat audioFormat = audioInput ? audioInput->device.preferredFormat() : QAudioFormat();
+    m_audioSettings = avfAudioSettings(settings, audioFormat);
     if (m_audioSettings)
         [m_audioSettings retain];
 
