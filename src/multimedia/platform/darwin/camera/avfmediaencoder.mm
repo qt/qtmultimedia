@@ -52,6 +52,7 @@
 #include "private/qmediarecorder_p.h"
 #include "private/qdarwinformatsinfo_p.h"
 #include "private/qplatformaudiooutput_p.h"
+#include <private/qplatformaudioinput_p.h>
 
 #include <QtCore/qmath.h>
 #include <QtCore/qdebug.h>
@@ -135,7 +136,7 @@ void AVFMediaEncoder::updateDuration(qint64 duration)
     durationChanged(m_duration);
 }
 
-static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettings)
+static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettings, const QAudioFormat &format)
 {
     NSMutableDictionary *settings = [NSMutableDictionary dictionary];
 
@@ -204,6 +205,10 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
 
     // Channels
     int channelCount = encoderSettings.audioChannelCount();
+    // if no channel count is set in the encoder settings,
+    // set it to the device's format channel count
+    if (channelCount <= 0)
+        channelCount = format.channelCount();
     bool isChannelCountSupported = false;
     if (channelCount > 0) {
         std::optional<QList<UInt32>> channelCounts = qt_supported_channel_counts_for_format(codecId);
@@ -221,7 +226,7 @@ static NSDictionary *avfAudioSettings(const QMediaEncoderSettings &encoderSettin
         }
     }
 
-if (isChannelCountSupported && channelCount > 2) {
+    if (isChannelCountSupported && channelCount > 2) {
         AudioChannelLayout channelLayout;
         memset(&channelLayout, 0, sizeof(AudioChannelLayout));
         auto channelLayoutTags = qt_supported_channel_layout_tags_for_format(codecId, channelCount);
@@ -233,7 +238,7 @@ if (isChannelCountSupported && channelCount > 2) {
         }
     }
     if (!isChannelCountSupported)
-        channelCount = 2;
+        channelCount = 1;
     [settings setObject:[NSNumber numberWithInt:channelCount] forKey:AVNumberOfChannelsKey];
 
     if (codecId == kAudioFormatAppleLossless)
@@ -421,7 +426,9 @@ void AVFMediaEncoder::applySettings(QMediaEncoderSettings &settings)
     AVFCameraSession *session = m_service->session();
 
     // audio settings
-    m_audioSettings = avfAudioSettings(settings);
+    const auto audioInput = m_service->audioInput();
+    const QAudioFormat audioFormat = audioInput ? audioInput->device.preferredFormat() : QAudioFormat();
+    m_audioSettings = avfAudioSettings(settings, audioFormat);
     if (m_audioSettings)
         [m_audioSettings retain];
 
