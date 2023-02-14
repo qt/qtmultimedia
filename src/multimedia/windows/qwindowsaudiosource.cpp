@@ -45,24 +45,6 @@ private:
     QWindowsAudioSource &m_audioSource;
 };
 
-static std::optional<quint32> audioClientFramesInUse(IAudioClient *client)
-{
-    Q_ASSERT(client);
-    UINT32 framesPadding = 0;
-    if (SUCCEEDED(client->GetCurrentPadding(&framesPadding)))
-        return framesPadding;
-    return {};
-}
-
-static std::optional<quint32> audioClientFramesAllocated(IAudioClient *client)
-{
-    Q_ASSERT(client);
-    UINT32 bufferFrameCount = 0;
-    if (SUCCEEDED(client->GetBufferSize(&bufferFrameCount)))
-        return bufferFrameCount;
-    return {};
-}
-
 QWindowsAudioSource::QWindowsAudioSource(QWindowsIUPointer<IMMDevice> device, QObject *parent)
     : QPlatformAudioSource(parent),
       m_timer(new QTimer(this)),
@@ -181,8 +163,8 @@ QByteArray QWindowsAudioSource::readCaptureClientBuffer()
 
 void QWindowsAudioSource::schedulePull()
 {
-    auto allocated = audioClientFramesAllocated(m_audioClient.get());
-    auto inUse = audioClientFramesInUse(m_audioClient.get());
+    auto allocated = QWindowsAudioUtils::audioClientFramesAllocated(m_audioClient.get());
+    auto inUse = QWindowsAudioUtils::audioClientFramesInUse(m_audioClient.get());
 
     if (!allocated || !inUse) {
         deviceStateChange(QAudio::IdleState, QAudio::IOError);
@@ -301,7 +283,7 @@ bool QWindowsAudioSource::open()
         return false;
     }
 
-    auto framesAllocated = audioClientFramesAllocated(m_audioClient.get());
+    auto framesAllocated = QWindowsAudioUtils::audioClientFramesAllocated(m_audioClient.get());
     if (!framesAllocated) {
         qCWarning(qLcAudioSource) << "Failed to get audio client buffer size";
         return false;
@@ -338,7 +320,7 @@ qsizetype QWindowsAudioSource::bytesReady() const
     if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
         return 0;
 
-    auto frames = audioClientFramesInUse(m_audioClient.get());
+    auto frames = QWindowsAudioUtils::audioClientFramesInUse(m_audioClient.get());
     if (frames) {
         auto clientBufferSize = m_resampler.outputFormat().bytesForDuration(
                 m_resampler.inputFormat().durationForFrames(*frames));

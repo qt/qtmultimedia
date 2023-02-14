@@ -45,28 +45,10 @@ private:
     QWindowsAudioSink &audioDevice;
 };
 
-std::optional<quint32> audioClientFramesInUse(IAudioClient *client)
-{
-    Q_ASSERT(client);
-    UINT32 framesPadding = 0;
-    if (SUCCEEDED(client->GetCurrentPadding(&framesPadding)))
-        return framesPadding;
-    return {};
-}
-
-std::optional<quint32> audioClientFramesAllocated(IAudioClient *client)
-{
-    Q_ASSERT(client);
-    UINT32 bufferFrameCount = 0;
-    if (SUCCEEDED(client->GetBufferSize(&bufferFrameCount)))
-        return bufferFrameCount;
-    return {};
-}
-
 std::optional<quint32> audioClientFramesAvailable(IAudioClient *client)
 {
-    auto framesAllocated = audioClientFramesAllocated(client);
-    auto framesInUse = audioClientFramesInUse(client);
+    auto framesAllocated = QWindowsAudioUtils::audioClientFramesAllocated(client);
+    auto framesInUse = QWindowsAudioUtils::audioClientFramesInUse(client);
 
     if (framesAllocated && framesInUse)
         return *framesAllocated - *framesInUse;
@@ -91,7 +73,7 @@ QWindowsAudioSink::~QWindowsAudioSink()
 
 qint64 QWindowsAudioSink::remainingPlayTimeUs()
 {
-    auto framesInUse = audioClientFramesInUse(m_audioClient.get());
+    auto framesInUse = QWindowsAudioUtils::audioClientFramesInUse(m_audioClient.get());
     return m_resampler.outputFormat().durationForFrames(framesInUse ? *framesInUse : 0);
 }
 
@@ -257,7 +239,7 @@ bool QWindowsAudioSink::open()
         return false;
     }
 
-    auto framesAllocated = audioClientFramesAllocated(m_audioClient.get());
+    auto framesAllocated = QWindowsAudioUtils::audioClientFramesAllocated(m_audioClient.get());
     if (!framesAllocated) {
         qCWarning(qLcAudioOutput) << "Failed to get audio client buffer size";
         return false;
