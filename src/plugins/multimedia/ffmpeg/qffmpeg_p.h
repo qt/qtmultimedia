@@ -53,43 +53,33 @@ inline QString err2str(int errnum)
     return QString::fromLocal8Bit(buffer);
 }
 
-struct AVFrameDeleter
+template<typename FunctionType, FunctionType F>
+struct AVDeleter
 {
-    void operator()(AVFrame *frame) const
+    template<typename T>
+    void operator()(T *object) const
     {
-        if (frame)
-            av_frame_free(&frame);
+        if (object)
+            F(&object);
     }
 };
 
-using AVFrameUPtr = std::unique_ptr<AVFrame, AVFrameDeleter>;
+using AVFrameUPtr = std::unique_ptr<AVFrame, AVDeleter<decltype(&av_frame_free), &av_frame_free>>;
 
 inline AVFrameUPtr makeAVFrame()
 {
     return AVFrameUPtr(av_frame_alloc());
 }
 
-struct AVPacketDeleter
-{
-    void operator()(AVPacket *packet) const
-    {
-        if (packet)
-            av_packet_free(&packet);
-    }
-};
+using AVPacketUPtr =
+        std::unique_ptr<AVPacket, AVDeleter<decltype(&av_packet_free), &av_packet_free>>;
 
-using AVPacketUPtr = std::unique_ptr<AVPacket, AVPacketDeleter>;
+using AVCodecContextUPtr =
+        std::unique_ptr<AVCodecContext,
+                        AVDeleter<decltype(&avcodec_free_context), &avcodec_free_context>>;
 
-struct AVCodecContextDeleter
-{
-    void operator()(AVCodecContext *context) const
-    {
-        if (context)
-            avcodec_free_context(&context);
-    }
-};
-
-using AVCodecContextUPtr = std::unique_ptr<AVCodecContext, AVCodecContextDeleter>;
+using AVBufferUPtr =
+        std::unique_ptr<AVBufferRef, AVDeleter<decltype(&av_buffer_unref), &av_buffer_unref>>;
 
 QT_END_NAMESPACE
 

@@ -135,13 +135,7 @@ TextureConverter::Data::~Data()
     delete backend;
 }
 
-HWAccel::~HWAccel()
-{
-    if (m_hwDeviceContext)
-        av_buffer_unref(&m_hwDeviceContext);
-    if (m_hwFramesContext)
-        av_buffer_unref(&m_hwFramesContext);
-}
+HWAccel::~HWAccel() = default;
 
 std::unique_ptr<HWAccel> HWAccel::create(const AVCodec *codec)
 {
@@ -309,14 +303,14 @@ void HWAccel::createFramesContext(AVPixelFormat swFormat, const QSize &size)
     if (!m_hwDeviceContext)
         return;
 
-    m_hwFramesContext = av_hwframe_ctx_alloc(m_hwDeviceContext);
+    m_hwFramesContext.reset(av_hwframe_ctx_alloc(m_hwDeviceContext.get()));
     auto *c = (AVHWFramesContext *)m_hwFramesContext->data;
     c->format = hwFormat();
     c->sw_format = swFormat;
     c->width = size.width();
     c->height = size.height();
     qCDebug(qLHWAccel) << "init frames context";
-    int err = av_hwframe_ctx_init(m_hwFramesContext);
+    int err = av_hwframe_ctx_init(m_hwFramesContext.get());
     if (err < 0)
         qWarning() << "failed to init HW frame context" << err << err2str(err);
     else
