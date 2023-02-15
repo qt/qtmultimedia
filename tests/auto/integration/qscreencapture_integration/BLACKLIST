@@ -1,3 +1,7 @@
 macos ci
 windows ci
 android ci
+
+#QTBUG-111190, v4l2m2m issues
+[recordToFile]
+linux ci

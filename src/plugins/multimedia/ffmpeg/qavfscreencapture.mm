@@ -139,6 +139,11 @@ QVideoFrameFormat QAVFScreenCapture::format() const
     return *m_format;
 }
 
+std::optional<int> QAVFScreenCapture::ffmpegHWPixelFormat() const
+{
+    return AV_PIX_FMT_VIDEOTOOLBOX;
+}
+
 class QCGImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
@@ -305,9 +310,11 @@ public:
 
         [m_sampleBufferDelegate setHWAccel:std::move(hwAccel)];
 
+        const auto frameRate = std::min(screen->refreshRate(), MaxFrameRate);
+        [m_sampleBufferDelegate setVideoFormatFrameRate:frameRate];
+
         m_screenInput = [[AVCaptureScreenInput alloc] initWithDisplayID:screenID];
-        [m_screenInput
-                setMinFrameDuration:CMTimeMake(1, std::min(screen->refreshRate(), MaxFrameRate))];
+        [m_screenInput setMinFrameDuration:CMTimeMake(1, static_cast<int32_t>(frameRate))];
         [m_captureSession addInput:m_screenInput];
 
         [m_captureSession startRunning];

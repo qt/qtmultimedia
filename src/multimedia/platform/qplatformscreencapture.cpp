@@ -53,6 +53,11 @@ QScreenCapture *QPlatformScreenCapture::screenCapture() const
     return m_screenCapture;
 }
 
+std::optional<int> QPlatformScreenCapture::ffmpegHWPixelFormat() const
+{
+    return {};
+}
+
 void QPlatformScreenCapture::updateError(QScreenCapture::Error error, const QString &errorString)
 {
     bool changed = error != m_error || errorString != m_errorString;

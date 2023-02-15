@@ -52,9 +52,12 @@ tests/auto/cmake/build
 # Generated static plugin import sources
 *_plugin_import.cpp
 
-# Build artifacts
+# IDE artifacts
 CMakeLists.txt.user
 CMakeLists.txt.user.*
 .vscode
+.xdp_CMakeLists.txt.*
+
+# Build artifacts
 build-*-Debug
 build-*-Release
