@@ -82,8 +82,8 @@ private:
 
 class HWAccel
 {
-    AVBufferRef *m_hwDeviceContext = nullptr;
-    AVBufferRef *m_hwFramesContext = nullptr;
+    AVBufferUPtr m_hwDeviceContext;
+    AVBufferUPtr m_hwFramesContext;
 
 public:
     ~HWAccel();
@@ -97,12 +97,12 @@ public:
 
     AVHWDeviceType deviceType() const;
 
-    AVBufferRef *hwDeviceContextAsBuffer() const { return m_hwDeviceContext; }
+    AVBufferRef *hwDeviceContextAsBuffer() const { return m_hwDeviceContext.get(); }
     AVHWDeviceContext *hwDeviceContext() const;
     AVPixelFormat hwFormat() const;
 
     void createFramesContext(AVPixelFormat swFormat, const QSize &size);
-    AVBufferRef *hwFramesContextAsBuffer() const { return m_hwFramesContext; }
+    AVBufferRef *hwFramesContextAsBuffer() const { return m_hwFramesContext.get(); }
     AVHWFramesContext *hwFramesContext() const;
 
     static AVPixelFormat format(AVFrame *frame);
