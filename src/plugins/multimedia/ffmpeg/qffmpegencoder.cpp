@@ -41,8 +41,8 @@ Encoder::Encoder(const QMediaEncoderSettings &settings, const QUrl &url)
     formatContext->url = (char *)av_malloc(encoded.size() + 1);
     memcpy(formatContext->url, encoded.constData(), encoded.size() + 1);
     formatContext->pb = nullptr;
-    avio_open2(&formatContext->pb, formatContext->url, AVIO_FLAG_WRITE, nullptr, nullptr);
-    qCDebug(qLcFFmpegEncoder) << "opened" << formatContext->url;
+    auto result = avio_open2(&formatContext->pb, formatContext->url, AVIO_FLAG_WRITE, nullptr, nullptr);
+    qCDebug(qLcFFmpegEncoder) << "opened" << result << formatContext->url;
 
     muxer = new Muxer(this);
 }
@@ -76,7 +76,10 @@ void Encoder::addCamera(QPlatformCamera *camera)
 
 void Encoder::addScreenCapture(QPlatformScreenCapture *screenCapture)
 {
-    auto *ve = new VideoEncoder(this, settings, screenCapture->format(), {});
+    std::optional<AVPixelFormat> hwPixelFormat = screenCapture->ffmpegHWPixelFormat()
+            ? AVPixelFormat(*screenCapture->ffmpegHWPixelFormat())
+            : std::optional<AVPixelFormat>{};
+    auto *ve = new VideoEncoder(this, settings, screenCapture->format(), hwPixelFormat);
     auto conn = connect(screenCapture, &QPlatformScreenCapture::newVideoFrame,
             [=](const QVideoFrame &frame){ ve->addFrame(frame); });
     videoEncoders.append(ve);
@@ -423,11 +426,19 @@ VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settin
     this->encoder = encoder;
 
     setObjectName(QLatin1String("VideoEncoder"));
-    qCDebug(qLcFFmpegEncoder) << "VideoEncoder" << settings.videoCodec();
 
     AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
     AVPixelFormat ffmpegPixelFormat = hwFormat ? *hwFormat : swFormat;
-    frameEncoder = new VideoFrameEncoder(settings, format.frameSize(), float(format.frameRate()), ffmpegPixelFormat, swFormat);
+    auto frameRate = format.frameRate();
+    if (frameRate <= 0.) {
+        qWarning() << "Invalid frameRate" << frameRate << "; Using the default instead";
+
+        // set some default frame rate since ffmpeg has UB if it's 0.
+        frameRate = 30.;
+    }
+
+    frameEncoder = new VideoFrameEncoder(settings, format.frameSize(), frameRate, ffmpegPixelFormat,
+                                         swFormat);
     frameEncoder->initWithFormatContext(encoder->formatContext);
 }
 

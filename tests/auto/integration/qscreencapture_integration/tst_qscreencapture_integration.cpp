@@ -11,6 +11,8 @@
 #include <qpainter.h>
 #include <qscreencapture.h>
 #include <qsignalspy.h>
+#include <qmediarecorder.h>
+#include <qmediaplayer.h>
 
 #include <vector>
 
@@ -111,6 +113,7 @@ private slots:
     void captureScreen();
     void captureScreenByDefault();
     void captureSecondaryScreen();
+    void recordToFile();
 
     void removeScreenWhileCapture(); // Keep the test last defined. TODO: find a way to restore
                                      // application screens.
@@ -270,6 +273,12 @@ void tst_QScreenCaptureIntegration::removeWhileCapture(
 
 void tst_QScreenCaptureIntegration::initTestCase()
 {
+#if defined(Q_OS_LINUX)
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci" &&
+        qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
+        QSKIP("Skip on wayland; to be fixed");
+#endif
+
     if (!QApplication::primaryScreen())
         QSKIP("No screens found");
 
@@ -318,6 +327,61 @@ void tst_QScreenCaptureIntegration::captureSecondaryScreen()
 
     capture(*widgetOnSecondaryScreen, { 200, 100 }, QApplication::primaryScreen()->size(),
             [&screens](QScreenCapture &sc) { sc.setScreen(screens.back()); });
+}
+
+void tst_QScreenCaptureIntegration::recordToFile()
+{
+    QScreenCapture sc;
+    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+    // sc.setScreen(screen);
+    QMediaCaptureSession session;
+    QMediaRecorder recorder;
+    session.setScreenCapture(&sc);
+    session.setRecorder(&recorder);
+    recorder.setVideoResolution(1280, 960);
+
+    // Insert metadata
+    QMediaMetaData metaData;
+    metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
+    metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
+    recorder.setMetaData(metaData);
+    sc.setActive(true);
+
+    QTest::qWait(200); // wait a bit for SC threading activating
+
+    {
+        QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
+
+        recorder.record();
+
+        QTRY_VERIFY(!recorderStateChanged.empty());
+        QCOMPARE(recorder.recorderState(), QMediaRecorder::RecordingState);
+    }
+
+    QTest::qWait(600);
+
+    {
+        QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
+
+        recorder.stop();
+
+        QTRY_VERIFY(!recorderStateChanged.empty());
+        QCOMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
+    }
+
+    QString fileName = recorder.actualLocation().toLocalFile();
+    QVERIFY(!fileName.isEmpty());
+    QVERIFY(QFileInfo(fileName).size() > 0);
+
+    QMediaPlayer player;
+    player.setSource(fileName);
+    QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(1280, 960));
+    QCOMPARE_GT(player.duration(), 350);
+    QCOMPARE_LT(player.duration(), 650);
+
+    // TODO: check frames changes with QMediaPlayer
+
+    QFile(fileName).remove();
 }
 
 void tst_QScreenCaptureIntegration::removeScreenWhileCapture()

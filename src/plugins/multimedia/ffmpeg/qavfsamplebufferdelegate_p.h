@@ -19,6 +19,7 @@
 #import <CoreVideo/CoreVideo.h>
 
 #include <qtconfigmacros.h>
+#include <qtypes.h>
 
 #include <memory>
 #include <functional>
@@ -42,6 +43,8 @@ QT_END_NAMESPACE
                fromConnection:(AVCaptureConnection *)connection;
 
 - (void)setHWAccel:(std::unique_ptr<QT_PREPEND_NAMESPACE(QFFmpeg::HWAccel)> &&)accel;
+
+- (void)setVideoFormatFrameRate:(qreal)frameRate;
 
 @end
 

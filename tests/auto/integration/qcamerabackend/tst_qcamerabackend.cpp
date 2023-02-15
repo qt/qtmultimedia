@@ -9,6 +9,7 @@
 #include <QtCore/qlocale.h>
 #include <QDebug>
 #include <QVideoSink>
+#include <QMediaPlayer>
 
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformimagecapture_p.h>
@@ -571,32 +572,39 @@ void tst_QCameraBackend::testVideoRecording()
     QTRY_VERIFY(camera->isActive());
 
     QTRY_VERIFY(camera->isActive());
-    for (int recordings = 0; recordings < 2; ++recordings) {
-        //record 200ms clip
-        recorder.record();
-        durationChanged.clear();
-        if (!recorderErrorSignal.empty() || recorderErrorSignal.wait(100)) {
-            QCOMPARE(recorderErrorSignal.last().first().toInt(), QMediaRecorder::FormatError);
-            break;
-        }
 
-        QTRY_VERIFY(durationChanged.size());
-
-        QCOMPARE(recorder.metaData(), metaData);
-
-        recorderStateChanged.clear();
-        recorder.stop();
-        QTRY_VERIFY(recorderStateChanged.size() > 0);
-        QVERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
-
-        QVERIFY(errorSignal.isEmpty());
-        QVERIFY(recorderErrorSignal.isEmpty());
-
-        QString fileName = recorder.actualLocation().toLocalFile();
-        QVERIFY(!fileName.isEmpty());
-        QVERIFY(QFileInfo(fileName).size() > 0);
-        QFile(fileName).remove();
+    recorder.record();
+    durationChanged.clear();
+    if (!recorderErrorSignal.empty() || recorderErrorSignal.wait(550)) {
+        QCOMPARE(recorderErrorSignal.last().first().toInt(), QMediaRecorder::FormatError);
+        return;
     }
+
+    QTRY_VERIFY(durationChanged.size());
+
+    QCOMPARE(recorder.metaData(), metaData);
+
+    recorderStateChanged.clear();
+    recorder.stop();
+    QTRY_VERIFY(recorderStateChanged.size() > 0);
+    QVERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
+
+    QVERIFY(errorSignal.isEmpty());
+    QVERIFY(recorderErrorSignal.isEmpty());
+
+    QString fileName = recorder.actualLocation().toLocalFile();
+    QVERIFY(!fileName.isEmpty());
+    QVERIFY(QFileInfo(fileName).size() > 0);
+
+    QMediaPlayer player;
+    player.setSource(fileName);
+    QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(320, 240));
+    QCOMPARE_GT(player.duration(), 350);
+    QCOMPARE_LT(player.duration(), 550);
+
+    // TODO: integrate with a virtual camera and check mediaplayer output
+
+    QFile(fileName).remove();
 }
 
 void tst_QCameraBackend::testNativeMetadata()

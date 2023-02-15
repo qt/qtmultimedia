@@ -261,6 +261,7 @@ void QAVFCamera::updateCameraFormat()
         hwPixelFormat = AV_PIX_FMT_NONE;
     }
     [m_sampleBufferDelegate setHWAccel:std::move(hwAccel)];
+    [m_sampleBufferDelegate setVideoFormatFrameRate:m_cameraFormat.maxFrameRate()];
 }
 
 std::uint32_t QAVFCamera::setPixelFormat(const QVideoFrameFormat::PixelFormat pixelFormat)

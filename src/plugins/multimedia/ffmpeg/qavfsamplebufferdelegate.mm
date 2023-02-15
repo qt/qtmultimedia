@@ -9,6 +9,8 @@
 #include "qavfhelpers_p.h"
 #include "qffmpegvideobuffer_p.h"
 
+#include <optional>
+
 #undef AVMediaType
 
 QT_USE_NAMESPACE
@@ -47,7 +49,8 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBu
     AVBufferRef *hwFramesContext;
     std::unique_ptr<QFFmpeg::HWAccel> m_accel;
     qint64 startTime;
-    qint64 baseTime;
+    std::optional<qint64> baseTime;
+    qreal frameRate;
 }
 
 - (instancetype)initWithFrameHandler:(std::function<void(const QVideoFrame &)>)handler
@@ -55,10 +58,12 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBu
     if (!(self = [super init]))
         return nil;
 
+    Q_ASSERT(handler);
+
     frameHandler = std::move(handler);
     hwFramesContext = nullptr;
     startTime = 0;
-    baseTime = 0;
+    frameRate = 0.;
     return self;
 }
 
@@ -74,12 +79,12 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBu
 
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
 
-    CMTime time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
-    qint64 frameTime = time.timescale ? time.value * 1000 / time.timescale : 0;
-    if (baseTime == 0) {
+    const CMTime time = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    const qint64 frameTime = time.timescale ? time.value * 1000000 / time.timescale : 0;
+    if (!baseTime) {
         // drop the first frame to get a valid frame start time
         baseTime = frameTime;
-        startTime = 0;
+        startTime = frameTime;
         return;
     }
 
@@ -108,12 +113,14 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBu
         return;
     }
 
-    avFrame->pts = startTime;
+    format.setFrameRate(frameRate);
+
+    avFrame->pts = startTime - *baseTime;
 
     QFFmpegVideoBuffer *buffer = new QFFmpegVideoBuffer(std::move(avFrame));
     QVideoFrame frame(buffer, format);
-    frame.setStartTime(startTime);
-    frame.setEndTime(frameTime);
+    frame.setStartTime(startTime - *baseTime);
+    frame.setEndTime(frameTime - *baseTime);
     startTime = frameTime;
 
     frameHandler(frame);
@@ -122,6 +129,11 @@ static QFFmpeg::AVFrameUPtr allocHWFrame(AVBufferRef *hwContext, const CVPixelBu
 - (void)setHWAccel:(std::unique_ptr<QFFmpeg::HWAccel> &&)accel
 {
     m_accel = std::move(accel);
+}
+
+- (void)setVideoFormatFrameRate:(qreal)rate
+{
+    frameRate = rate;
 }
 
 @end

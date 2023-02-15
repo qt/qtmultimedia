@@ -37,6 +37,8 @@ public:
 
     QVideoFrameFormat format() const override;
 
+    std::optional<int> ffmpegHWPixelFormat() const override;
+
 protected:
     bool setActiveInternal(bool active) override;
 

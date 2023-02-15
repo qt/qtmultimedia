@@ -24,6 +24,8 @@
 #include "qscreencapture.h"
 #include "qvideoframeformat.h"
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
@@ -53,6 +55,8 @@ public:
     virtual QVideoFrameFormat format() const = 0;
 
     QScreenCapture *screenCapture() const;
+
+    virtual std::optional<int> ffmpegHWPixelFormat() const;
 
 public Q_SLOTS:
     void updateError(QScreenCapture::Error error, const QString &errorString);
