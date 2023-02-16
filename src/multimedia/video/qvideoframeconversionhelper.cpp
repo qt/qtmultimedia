@@ -4,6 +4,8 @@
 #include "qvideoframeconversionhelper_p.h"
 #include "qrgb.h"
 
+#include <mutex>
+
 QT_BEGIN_NAMESPACE
 
 #define CLAMP(n) (n > 255 ? 255 : (n < 0 ? 0 : n))
@@ -552,11 +554,9 @@ static void qInitConvertFuncsAsm()
 
 VideoFrameConvertFunc qConverterForFormat(QVideoFrameFormat::PixelFormat format)
 {
-    static bool initAsmFuncsDone = false;
-    if (!initAsmFuncsDone) {
-        qInitConvertFuncsAsm();
-        initAsmFuncsDone = true;
-    }
+    static std::once_flag once;
+    std::call_once(once, &qInitConvertFuncsAsm);
+
     VideoFrameConvertFunc convert = qConvertFuncs[format];
     return convert;
 }
