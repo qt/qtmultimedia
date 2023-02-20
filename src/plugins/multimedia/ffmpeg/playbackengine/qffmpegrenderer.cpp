@@ -16,7 +16,7 @@ Renderer::Renderer(const TimeController &tc, const std::chrono::microseconds &se
 
 void Renderer::syncSoft(TimePoint tp, qint64 trackTime)
 {
-    QMetaObject::invokeMethod(this, [=]() {
+    QMetaObject::invokeMethod(this, [this, tp, trackTime]() {
         m_timeController.syncSoft(tp, trackTime);
         scheduleNextStep(true);
     });
@@ -34,7 +34,7 @@ qint64 Renderer::lastPosition() const
 
 void Renderer::setPlaybackRate(float rate)
 {
-    QMetaObject::invokeMethod(this, [=]() {
+    QMetaObject::invokeMethod(this, [this, rate]() {
         m_timeController.setPlaybackRate(rate);
         onPlaybackRateChanged();
         scheduleNextStep();
@@ -44,7 +44,7 @@ void Renderer::setPlaybackRate(float rate)
 void Renderer::doForceStep()
 {
     if (!m_isStepForced.exchange(true))
-        QMetaObject::invokeMethod(this, [=]() {
+        QMetaObject::invokeMethod(this, [this]() {
             // maybe set m_forceStepMaxPos
 
             if (isAtEnd())
