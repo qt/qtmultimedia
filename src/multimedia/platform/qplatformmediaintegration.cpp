@@ -47,6 +47,12 @@ static QStringList availableBackends()
 
 static QString defaultBackend(const QStringList &backends)
 {
+#ifdef QT_DEFAULT_MEDIA_BACKEND
+    auto backend = QString::fromUtf8(QT_DEFAULT_MEDIA_BACKEND);
+    if (backends.contains(backend))
+        return backend;
+#endif
+
 #if defined(Q_OS_DARWIN) || defined(Q_OS_LINUX) || defined(Q_OS_WINDOWS) || defined(Q_OS_ANDROID)
     // Return ffmpeg backend by default.
     // Platform backends for the OS list are optionally available but have limited support.
