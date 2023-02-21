@@ -319,3 +319,8 @@ qt_internal_add_shaders(Multimedia "shaders_gl_macos_linear"
     OUTPUTS
         "shaders/rectsampler_bgra_linear.frag.qsb"
 )
+
+if (DEFINED QT_DEFAULT_MEDIA_BACKEND)
+    target_compile_definitions(Multimedia
+        PRIVATE QT_DEFAULT_MEDIA_BACKEND="${QT_DEFAULT_MEDIA_BACKEND}")
+endif()
