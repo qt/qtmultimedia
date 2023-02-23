@@ -51,9 +51,9 @@ void AudioInputExample::setup()
     }
 
     audio = new QAudioSource(format, this);
-    connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
+    connect(audio, &QAudioSource::stateChanged, this, &AudioInputExample::handleStateChanged);
 
-    QTimer::singleShot(3000, this, SLOT(stopRecording()));
+    QTimer::singleShot(3000, this, &AudioInputExample::stopRecording);
     audio->start(&destinationFile);
     // Records audio for 3000ms
 }
@@ -127,7 +127,7 @@ void AudioOutputExample::setup()
     }
 
     audio = new QAudioSink(format, this);
-    connect(audio, SIGNAL(stateChanged(QAudio::State)), this, SLOT(handleStateChanged(QAudio::State)));
+    connect(audio, QAudioSink::stateChanged, this, &AudioInputExample::handleStateChanged);
     audio->start(&sourceFile);
 }
 //! [Audio output setup]
@@ -195,7 +195,7 @@ void AudioDecodingExample::decode()
     decoder->setAudioFormat(desiredFormat);
     decoder->setSource("level1.mp3");
 
-    connect(decoder, SIGNAL(bufferReady()), this, SLOT(readBuffer()));
+    connect(decoder, &QAudioDecoder::bufferReady, this, &AudioDecodingExample::readBuffer);
     decoder->start();
 
     // Now wait for bufferReady() signal and call decoder->read()

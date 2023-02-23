@@ -76,7 +76,7 @@ void MediaExample::MediaPlayer()
     player = new QMediaPlayer;
     audioOutput = new QAudioOutput;
     player->setAudioOutput(audioOutput);
-    connect(player, SIGNAL(positionChanged(qint64)), this, SLOT(positionChanged(qint64)));
+    connect(player, &QMediaPlayer::positionChanged, this, &MediaExample::positionChanged);
     player->setSource(QUrl::fromLocalFile("/Users/me/Music/coolsong.mp3"));
     audioOutput->setVolume(50);
     player->play();
