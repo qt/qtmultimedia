@@ -321,6 +321,38 @@ bool QCameraDevice::isDefault() const
 }
 
 /*!
+    \since 6.7
+    \qmlproperty QVideo::RotationAngle QtMultimedia::cameraDevice::correctionAngle
+
+    Returns the rotation angle needed to compensate for the physical camera rotation of the camera
+    compared to its native orientation. In other words, the property represents the clockwise angle
+    through which the output image needs to be rotated to be upright on the device screen in its
+    native orientation. Since \a correctionAngle is relative to the native orientation, this value
+    does not change with altering the device orientation (portrait/landscape). The correction angle
+    may be non-zero mostly on Android, where native and camera orientations are defined by the manufacturer.
+
+    \image camera_correctionAngle_90.png Example with 90 degrees \a correctionAngle
+*/
+
+/*!
+    \since 6.7
+    \property QCameraDevice::correctionAngle
+
+    Returns the rotation angle needed to compensate for the physical camera rotation of the camera
+    compared to its native orientation. In other words, the property represents the clockwise angle
+    through which the output image needs to be rotated to be upright on the device screen in its
+    native orientation. Since \a correctionAngle is relative to the native orientation, this value
+    does not change with altering the device orientation (portrait/landscape). The correction angle
+    may be non-zero mostly on Android, where native and camera orientations are defined by the manufacturer.
+
+    \image camera_correctionAngle_90.png Example with 90 degrees \a correctionAngle
+*/
+QVideo::RotationAngle QCameraDevice::correctionAngle() const
+{
+    return d ? QVideo::RotationAngle(d->orientation) : QVideo::Rotation0;
+}
+
+/*!
     \qmlproperty string QtMultimedia::cameraDevice::description
 
     Holds a human readable name of the camera.

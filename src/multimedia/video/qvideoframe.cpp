@@ -45,7 +45,7 @@ public:
     int mappedCount = 0;
     QMutex mapMutex;
     QString subtitleText;
-    QVideoFrame::RotationAngle rotationAngle = QVideoFrame::Rotation0;
+    QVideo::RotationAngle rotationAngle = QVideo::Rotation0;
     bool mirrored = false;
     QImage image;
     std::once_flag imageOnceFlag;
@@ -626,8 +626,10 @@ void QVideoFrame::setEndTime(qint64 time)
     d->endTime = time;
 }
 
+#if QT_DEPRECATED_SINCE(6, 7)
 /*!
     \enum QVideoFrame::RotationAngle
+    \deprecated [6.7] Use QVideo::RotationAngle instead.
 
     The angle of the clockwise rotation that should be applied to a video
     frame before displaying.
@@ -639,9 +641,19 @@ void QVideoFrame::setEndTime(qint64 time)
 */
 
 /*!
+    \fn void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle)
+    \deprecated [6.7] Use QVideoFrame::setRotationAngle(QVideo::RotationAngle) instead.
+
     Sets the \a angle the frame should be rotated clockwise before displaying.
 */
-void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
+
+#endif
+
+
+/*!
+    Sets the \a angle the frame should be rotated clockwise before displaying.
+*/
+void QVideoFrame::setRotationAngle(QVideo::RotationAngle angle)
 {
     if (d)
         d->rotationAngle = angle;
@@ -652,7 +664,7 @@ void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
  */
 QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
 {
-    return d ? d->rotationAngle : Rotation0;
+    return QVideoFrame::RotationAngle(d ? d->rotationAngle : QVideo::Rotation0);
 }
 
 /*!
@@ -683,7 +695,7 @@ QImage QVideoFrame::toImage() const
 
     std::call_once(d->imageOnceFlag, [this]() {
         const bool mirrorY = surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom;
-        d->image = qImageFromVideoFrame(*this, rotationAngle(), mirrored(), mirrorY);
+        d->image = qImageFromVideoFrame(*this, QVideo::RotationAngle(rotationAngle()), mirrored(), mirrorY);
     });
 
     return d->image;

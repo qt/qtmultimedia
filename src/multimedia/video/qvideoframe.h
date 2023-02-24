@@ -6,6 +6,7 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/qvideo.h>
 
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
@@ -38,14 +39,6 @@ public:
         ReadOnly  = 0x01,
         WriteOnly = 0x02,
         ReadWrite = ReadOnly | WriteOnly
-    };
-
-    enum RotationAngle
-    {
-        Rotation0 = 0,
-        Rotation90 = 90,
-        Rotation180 = 180,
-        Rotation270 = 270
     };
 
     QVideoFrame();
@@ -96,7 +89,20 @@ public:
     qint64 endTime() const;
     void setEndTime(qint64 time);
 
-    void setRotationAngle(RotationAngle);
+#if QT_DEPRECATED_SINCE(6, 7)
+    enum RotationAngle
+    {
+        Rotation0 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QVideo::Rotation0 instead") = QVideo::Rotation0,
+        Rotation90 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QVideo::Rotation90 instead") = QVideo::Rotation90,
+        Rotation180 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QVideo::Rotation180 instead") = QVideo::Rotation180,
+        Rotation270 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QVideo::Rotation270 instead") = QVideo::Rotation270
+    };
+
+    QT_DEPRECATED_VERSION_X_6_7("Use QVideoFrame::setRotationAngle(QVideo::RotationAngle) instead")
+    void setRotationAngle(RotationAngle angle) { setRotationAngle(QVideo::RotationAngle(angle)); }
+#endif
+
+    void setRotationAngle(QVideo::RotationAngle);
     RotationAngle rotationAngle() const;
 
     void setMirrored(bool);

@@ -4,6 +4,7 @@
 #ifndef QCAMERAINFO_H
 #define QCAMERAINFO_H
 
+#include <QtMultimedia/qvideo.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qsharedpointer.h>
 
@@ -49,6 +50,7 @@ class Q_MULTIMEDIA_EXPORT QCameraDevice
     Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
     Q_PROPERTY(Position position READ position CONSTANT)
     Q_PROPERTY(QList<QCameraFormat> videoFormats READ videoFormats CONSTANT)
+    Q_PROPERTY(QVideo::RotationAngle correctionAngle READ correctionAngle CONSTANT)
 public:
     QCameraDevice();
     QCameraDevice(const QCameraDevice& other);
@@ -82,6 +84,7 @@ public:
     QList<QSize> photoResolutions() const;
     QList<QCameraFormat> videoFormats() const;
 
+    QVideo::RotationAngle correctionAngle() const;
     // ### Add zoom and other camera information
 
 private:

@@ -79,6 +79,7 @@ qt_internal_add_module(Multimedia
         video/qvideoframeconverter.cpp video/qvideoframeconverter_p.h
         video/qvideoframeformat.cpp video/qvideoframeformat.h
         video/qvideowindow.cpp video/qvideowindow_p.h
+        video/qvideo.cpp video/qvideo.h
     INCLUDE_DIRECTORIES
         audio
         camera
