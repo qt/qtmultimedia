@@ -30,7 +30,9 @@ static Q_LOGGING_CATEGORY(qLHWAccel, "qt.multimedia.ffmpeg.hwaccel");
 namespace QFFmpeg {
 
 static const std::initializer_list<AVHWDeviceType> preferredHardwareAccelerators = {
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_ANDROID)
+    AV_HWDEVICE_TYPE_MEDIACODEC,
+#elif defined(Q_OS_LINUX)
     AV_HWDEVICE_TYPE_VAAPI,
     AV_HWDEVICE_TYPE_VDPAU,
     AV_HWDEVICE_TYPE_CUDA,
@@ -38,8 +40,6 @@ static const std::initializer_list<AVHWDeviceType> preferredHardwareAccelerators
     AV_HWDEVICE_TYPE_D3D11VA,
 #elif defined (Q_OS_DARWIN)
     AV_HWDEVICE_TYPE_VIDEOTOOLBOX,
-#elif defined (Q_OS_ANDROID)
-    AV_HWDEVICE_TYPE_MEDIACODEC,
 #endif
 };
 

@@ -138,6 +138,7 @@ if (ANDROID)
             qffmpeghwaccel_mediacodec.cpp qffmpeghwaccel_mediacodec_p.h
             qandroidcamera_p.h qandroidcamera.cpp
             qandroidvideodevices.cpp qandroidvideodevices_p.h
+            qandroidcameraframe_p.h  qandroidcameraframe.cpp
             ../android/wrappers/jni/androidsurfacetexture_p.h
             ../android/wrappers/jni/androidsurfacetexture.cpp
         INCLUDE_DIRECTORIES

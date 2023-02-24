@@ -17,6 +17,7 @@ static Q_LOGGING_CATEGORY(qLCAndroidVideoDevices, "qt.multimedia.ffmpeg.android.
 Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
                     "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");
 Q_DECLARE_JNI_TYPE(StringArray, "[Ljava/lang/String;")
+Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat");
 
 QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
 {
@@ -27,7 +28,7 @@ QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
     format->minFrameRate = fpsMin;
     format->maxFrameRate = fpsMax;
 
-    format->pixelFormat = QVideoFrameFormat::PixelFormat::Format_BGRA8888;
+    format->pixelFormat = QVideoFrameFormat::PixelFormat::Format_YUV420P;
 
     return format->create();
 }
@@ -109,18 +110,17 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoDevices()
             int min = split[0].toInt();
             int max = split[1].toInt();
 
-            int distance = max - min;
-            int maxDistance = maxFps - minFps;
-            if (maxDistance < distance) {
+            if (max > maxFps) {
                 maxFps = max;
                 minFps = min;
             }
         }
 
-        const int IMAGEFORMAT_JPEG = 256;
+        const static int imageFormat =
+                QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
 
         QJniObject sizesObject = deviceManager.callMethod<QtJniTypes::StringArray>(
-                "getStreamConfigurationsSizes", cameraId, IMAGEFORMAT_JPEG);
+                "getStreamConfigurationsSizes", cameraId, imageFormat);
 
         jobjectArray streamSizes = sizesObject.object<jobjectArray>();
         int numSizes = jniEnv->GetArrayLength(streamSizes);

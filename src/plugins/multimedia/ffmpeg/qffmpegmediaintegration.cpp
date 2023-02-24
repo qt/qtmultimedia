@@ -32,7 +32,8 @@
 #    include "qandroidvideodevices_p.h"
 #    include "qandroidcamera_p.h"
 extern "C" {
-#    include <libavcodec/jni.h>
+#  include <libavutil/log.h>
+#  include <libavcodec/jni.h>
 }
 #endif
 
@@ -68,6 +69,30 @@ public:
     }
 };
 
+static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl)
+{
+    Q_UNUSED(ptr)
+
+    // filter logs above the chosen level and AV_LOG_QUIET (negative level)
+    if (level < 0 || level > av_log_get_level())
+        return;
+
+    QString message = QString("FFmpeg log: %1").arg(QString::vasprintf(fmt, vl));
+    if (message.endsWith("\n"))
+        message.removeLast();
+
+    if (level == AV_LOG_DEBUG || level == AV_LOG_TRACE)
+        qDebug() << message;
+    else if (level == AV_LOG_VERBOSE || level == AV_LOG_INFO)
+        qInfo() << message;
+    else if (level == AV_LOG_WARNING)
+        qWarning() << message;
+    else if (level == AV_LOG_ERROR)
+        qCritical() << message;
+    else if (level == AV_LOG_FATAL || level == AV_LOG_PANIC)
+        qFatal() << message;
+}
+
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
     m_formatsInfo = new QFFmpegMediaFormatInfo();
@@ -83,8 +108,10 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
     m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
 #endif
 
-    if (qgetenv("QT_FFMPEG_DEBUG").toInt())
+    if (qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG")) {
         av_log_set_level(AV_LOG_DEBUG);
+        av_log_set_callback(&qffmpegLogCallback);
+    }
 
 #ifndef QT_NO_DEBUG
     qDebug() << "Available HW decoding frameworks:";
@@ -177,6 +204,7 @@ QMaybe<QPlatformAudioInput *> QFFmpegMediaIntegration::createAudioInput(QAudioIn
 }
 
 #ifdef Q_OS_ANDROID
+
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)
 {
     static bool initialized = false;

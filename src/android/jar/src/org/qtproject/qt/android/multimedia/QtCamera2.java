@@ -2,21 +2,27 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 package org.qtproject.qt.android.multimedia;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.media.Image;
 import android.media.ImageReader;
+import android.graphics.ImageFormat;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
-
+import android.view.Surface;
+import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
+import android.media.MediaFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 @TargetApi(23)
@@ -25,21 +31,15 @@ public class QtCamera2 {
     CameraDevice mCameraDevice = null;
     HandlerThread mBackgroundThread;
     Handler mBackgroundHandler;
-    ImageReader mImageReader;
+    ImageReader mImageReader = null;
     CameraManager mCameraManager;
     CameraCaptureSession mCaptureSession;
     CaptureRequest.Builder mPreviewRequestBuilder;
     CaptureRequest mPreviewRequest;
     String mCameraId;
+    List<Surface> mTargetSurfaces = new ArrayList<>();
 
-    native void onFrameAvailable(String cameraId, Image image);
-
-    ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            QtCamera2.this.onFrameAvailable(mCameraId, reader.acquireLatestImage());
-        }
-    };
+    private static int MaxNumberFrames = 10;
 
     native void onCameraOpened(String cameraId);
     native void onCameraDisconnect(String cameraId);
@@ -127,12 +127,9 @@ public class QtCamera2 {
         }
     }
 
-    public boolean open(String cameraId, int width, int height) {
-
+    @SuppressLint("MissingPermission")
+    public boolean open(String cameraId) {
         try {
-            mImageReader = ImageReader.newInstance(width, height, ImageFormat.JPEG, /*maxImages*/10);
-            mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
-
             mCameraId = cameraId;
             mCameraManager.openCamera(cameraId,mStateCallback,mBackgroundHandler);
             return true;
@@ -143,17 +140,53 @@ public class QtCamera2 {
         return false;
     }
 
+
+    native void onFrameAvailable(String cameraId, Image frame);
+
+    ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            QtCamera2.this.onFrameAvailable(mCameraId, reader.acquireLatestImage());
+        }
+    };
+
+    public boolean addImageReader(int width, int height, int format) {
+
+        if (mImageReader != null)
+            removeSurface(mImageReader.getSurface());
+
+        mImageReader = ImageReader.newInstance(width, height, format, MaxNumberFrames);
+        mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
+        addSurface(mImageReader.getSurface());
+
+        return true;
+    }
+
+    public boolean addSurface(Surface surface) {
+        if (mTargetSurfaces.contains(surface))
+            return true;
+
+        return mTargetSurfaces.add(surface);
+    }
+
+    public boolean removeSurface(Surface surface) {
+        return  mTargetSurfaces.remove(surface);
+    }
+
+    public void clearSurfaces() {
+        mTargetSurfaces.clear();
+    }
+
     public boolean createSession() {
         if (mCameraDevice == null)
             return false;
 
         try {
-            mCameraDevice.createCaptureSession(List.of(mImageReader.getSurface()), mCaptureStateCallback, mBackgroundHandler);
+            mCameraDevice.createCaptureSession(mTargetSurfaces, mCaptureStateCallback, mBackgroundHandler);
             return true;
         } catch (Exception exception) {
             Log.w("QtCamera2", "Failed to create a capture session:" + exception);
         }
-
         return false;
     }
 
@@ -167,8 +200,13 @@ public class QtCamera2 {
 
         try {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
-            mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
+            for (Surface surface : mTargetSurfaces) {
+                mPreviewRequestBuilder.addTarget(surface);
+            }
+
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
+
             mPreviewRequest = mPreviewRequestBuilder.build();
             mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
             return true;
@@ -189,11 +227,8 @@ public class QtCamera2 {
                 mCameraDevice.close();
                 mCameraDevice = null;
             }
-            if (null != mImageReader) {
-                mImageReader.close();
-                mImageReader = null;
-            }
             mCameraId = "";
+            mTargetSurfaces.clear();
         } catch (Exception exception) {
             Log.w("QtCamera2", "Failed to stop and close:" + exception);
         }
