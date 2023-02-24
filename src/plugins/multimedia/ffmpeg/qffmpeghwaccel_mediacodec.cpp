@@ -75,8 +75,10 @@ TextureSet *MediaCodecTextureConverter::getTextures(AVFrame *frame)
 
     // release a MediaCodec buffer and render it to the surface
     AVMediaCodecBuffer *buffer = (AVMediaCodecBuffer *)frame->data[3];
-    int result = av_mediacodec_release_buffer(buffer, 1);
-    if (result < 0) {
+
+    if (!buffer) {
+        qWarning() << "Received a frame without AVMediaCodecBuffer.";
+    } else if (av_mediacodec_release_buffer(buffer, 1) < 0) {
         qWarning() << "Failed to render buffer to surface.";
         return {};
     }
