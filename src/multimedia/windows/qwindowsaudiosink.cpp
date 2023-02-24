@@ -19,6 +19,7 @@
 #include <QtCore/QDataStream>
 #include <QtCore/qtimer.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qpointer.h>
 
 #include <private/qaudiohelpers_p.h>
 
@@ -90,8 +91,11 @@ void QWindowsAudioSink::deviceStateChange(QAudio::State state, QAudio::Error err
             qCDebug(qLcAudioOutput) << "Audio client stopped";
         }
 
+        QPointer<QWindowsAudioSink> thisGuard(this);
         deviceState = state;
         emit stateChanged(deviceState);
+        if (!thisGuard)
+            return;
     }
 
     if (error != errorState) {
