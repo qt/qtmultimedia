@@ -3,7 +3,7 @@
 
 #include "qffmpeghwaccel_mediacodec_p.h"
 
-#include <androidsurfacetexture_p.h>
+#include "androidsurfacetexture_p.h"
 #include <QtGui/private/qrhi_p.h>
 
 extern "C" {

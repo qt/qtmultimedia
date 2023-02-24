@@ -5,101 +5,45 @@
 
 #include <jni.h>
 #include <QMediaFormat>
+#include <memory>
+#include <optional>
 #include <qmediadevices.h>
 #include <qguiapplication.h>
 #include <qscreen.h>
+#include <QDebug>
 #include <qloggingcategory.h>
-#include <private/qabstractvideobuffer_p.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/private/qandroidextras_p.h>
-#include <private/qmemoryvideobuffer_p.h>
 #include <private/qcameradevice_p.h>
 #include <QReadWriteLock>
+#include <private/qvideoframeconverter_p.h>
+#include <private/qvideotexturehelper_p.h>
+#include <qffmpegvideobuffer_p.h>
+
+#include <qandroidcameraframe_p.h>
+#include <utility>
+
+extern "C" {
+#include "libavutil/hwcontext.h"
+#include "libavutil/pixfmt.h"
+}
 
 Q_DECLARE_JNI_CLASS(QtCamera2, "org/qtproject/qt/android/multimedia/QtCamera2");
 Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
                     "org/qtproject/qt/android/multimedia/QtVideoDeviceManager");
+
+Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat");
 
 Q_DECLARE_JNI_TYPE(AndroidImage, "Landroid/media/Image;")
 Q_DECLARE_JNI_TYPE(AndroidImagePlaneArray, "[Landroid/media/Image$Plane;")
 Q_DECLARE_JNI_TYPE(JavaByteBuffer, "Ljava/nio/ByteBuffer;")
 
 QT_BEGIN_NAMESPACE
-static Q_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera")
+static Q_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
 
 typedef QMap<QString, QAndroidCamera *> QAndroidCameraMap;
 Q_GLOBAL_STATIC(QAndroidCameraMap, g_qcameras)
 Q_GLOBAL_STATIC(QReadWriteLock, rwLock)
-
-class JavaImageVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    JavaImageVideoBuffer(const QJniObject &image, const QCameraDevice &device)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle, nullptr),
-          m_image(generateImage(image, device)){};
-
-    virtual ~JavaImageVideoBuffer() = default;
-
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
-    MapData map(QVideoFrame::MapMode mode) override
-    {
-        MapData mapData;
-        if (m_mapMode == QVideoFrame::NotMapped && mode != QVideoFrame::NotMapped
-            && !m_image.isNull()) {
-            m_mapMode = mode;
-
-            mapData.nPlanes = 1;
-            mapData.bytesPerLine[0] = m_image.bytesPerLine();
-            mapData.data[0] = m_image.bits();
-            mapData.size[0] = m_image.sizeInBytes();
-        }
-
-        return mapData;
-    }
-
-    void unmap() override { m_mapMode = QVideoFrame::NotMapped; }
-
-    QImage generateImage(const QJniObject &image, const QCameraDevice &device)
-    {
-        if (!image.isValid())
-            return {};
-
-        QJniEnvironment jniEnv;
-
-        QJniObject planes = image.callMethod<QtJniTypes::AndroidImagePlaneArray>("getPlanes");
-        if (!planes.isValid())
-            return {};
-
-        // this assumes that this image is a JPEG - single plane, that is taken care of in Java
-        QJniObject plane = jniEnv->GetObjectArrayElement(planes.object<jobjectArray>(), 0);
-        if (jniEnv.checkAndClearExceptions() || !plane.isValid())
-            return {};
-
-        QJniObject byteBuffer = plane.callMethod<QtJniTypes::JavaByteBuffer>("getBuffer");
-        if (!byteBuffer.isValid())
-            return {};
-
-        // Uses direct access which is garanteed by android to work with ImageReader bytebuffer
-        uchar *data =
-                reinterpret_cast<uchar *>(jniEnv->GetDirectBufferAddress(byteBuffer.object()));
-        if (jniEnv.checkAndClearExceptions())
-            return {};
-
-        QTransform transform;
-        if (device.position() == QCameraDevice::Position::FrontFace)
-            transform.scale(-1, 1);
-
-        return QImage::fromData(data, byteBuffer.callMethod<jint>("remaining"))
-                .transformed(transform);
-    }
-
-    const QImage &image() { return m_image; }
-
-private:
-    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
-    QImage m_image;
-};
 
 namespace {
 
@@ -107,7 +51,7 @@ QCameraFormat getDefaultCameraFormat()
 {
     // default settings
     QCameraFormatPrivate *defaultFormat = new QCameraFormatPrivate{
-        .pixelFormat = QVideoFrameFormat::Format_BGRA8888,
+        .pixelFormat = QVideoFrameFormat::Format_YUV420P,
         .resolution = { 1920, 1080 },
         .minFrameRate = 30,
         .maxFrameRate = 60,
@@ -130,16 +74,35 @@ bool checkAndRequestCameraPermission()
     return true;
 }
 
+int sensorOrientation(QString cameraId)
+{
+    QJniObject deviceManager(QtJniTypes::className<QtJniTypes::QtVideoDeviceManager>(),
+                             QNativeInterface::QAndroidApplication::context());
+
+    if (!deviceManager.isValid()) {
+        qCWarning(qLCAndroidCamera) << "Failed to connect to Qt Video Device Manager.";
+        return 0;
+    }
+
+    return deviceManager.callMethod<jint>("getSensorOrientation",
+                                          QJniObject::fromString(cameraId).object<jstring>());
+}
 } // namespace
 
 // QAndroidCamera
+
 QAndroidCamera::QAndroidCamera(QCamera *camera) : QPlatformCamera(camera)
 {
-    m_cameraDevice = (camera ? camera->cameraDevice() : QCameraDevice());
-    m_cameraFormat = getDefaultCameraFormat();
+    if (camera) {
+        m_cameraDevice = camera->cameraDevice();
+        m_cameraFormat = !camera->cameraFormat().isNull() ? camera->cameraFormat()
+                                                          : getDefaultCameraFormat();
+    }
 
     m_jniCamera = QJniObject(QtJniTypes::className<QtJniTypes::QtCamera2>(),
                              QNativeInterface::QAndroidApplication::context());
+
+    m_hwAccel = QFFmpeg::HWAccel::create(AVHWDeviceType::AV_HWDEVICE_TYPE_MEDIACODEC);
 };
 
 QAndroidCamera::~QAndroidCamera()
@@ -162,30 +125,71 @@ void QAndroidCamera::setCamera(const QCameraDevice &camera)
     setActive(true);
 }
 
-void QAndroidCamera::onFrameAvailable(QJniObject frame)
+std::optional<int> QAndroidCamera::ffmpegHWPixelFormat() const
 {
-    if (!frame.isValid())
+    return QFFmpegVideoBuffer::toAVPixelFormat(m_androidFramePixelFormat);
+}
+
+static void deleteFrame(void *opaque, uint8_t *data)
+{
+    Q_UNUSED(data);
+
+    auto frame = reinterpret_cast<QAndroidCameraFrame *>(opaque);
+
+    if (frame)
+        delete frame;
+}
+
+void QAndroidCamera::frameAvailable(QJniObject image)
+{
+    if (!(m_state == State::WaitingStart || m_state == State::Started)) {
+        qCWarning(qLCAndroidCamera) << "Received frame when not active... ignoring";
+        qCWarning(qLCAndroidCamera) << "state:" << m_state;
+        image.callMethod<void>("close");
         return;
+    }
 
-    long timestamp = frame.callMethod<jlong>("getTimestamp");
-    int width = frame.callMethod<jint>("getWidth");
-    int height = frame.callMethod<jint>("getHeight");
+    auto androidFrame = new QAndroidCameraFrame(image);
+    if (!androidFrame->isParsed()) {
+        qCWarning(qLCAndroidCamera) << "Failed to parse frame.. dropping frame";
+        delete androidFrame;
+        return;
+    }
 
-    QVideoFrameFormat::PixelFormat pixelFormat =
-            QVideoFrameFormat::PixelFormat::Format_BGRA8888_Premultiplied;
+    int timestamp = androidFrame->timestamp();
+    m_androidFramePixelFormat = androidFrame->format();
 
-    QVideoFrameFormat format({ width, height }, pixelFormat);
+    auto avframe = QFFmpeg::makeAVFrame();
 
-    QVideoFrame videoFrame(new JavaImageVideoBuffer(frame, m_cameraDevice), format);
+    avframe->width = androidFrame->size().width();
+    avframe->height = androidFrame->size().height();
+    avframe->format = QFFmpegVideoBuffer::toAVPixelFormat(androidFrame->format());
 
-    timestamp = timestamp / 1000000;
+    avframe->extended_data = avframe->data;
+    avframe->pts = androidFrame->timestamp();
+
+    for (int planeNumber = 0; planeNumber < androidFrame->numberPlanes(); planeNumber++) {
+        QAndroidCameraFrame::Plane plane = androidFrame->plane(planeNumber);
+        avframe->linesize[planeNumber] = plane.rowStride;
+        avframe->data[planeNumber] = plane.data;
+    }
+
+    avframe->data[3] = nullptr;
+    avframe->buf[0] = nullptr;
+
+    avframe->opaque_ref = av_buffer_create(NULL, 1, deleteFrame, androidFrame, 0);
+    avframe->extended_data = avframe->data;
+    avframe->pts = timestamp;
+
+    QVideoFrameFormat format(androidFrame->size(), androidFrame->format());
+
+    QVideoFrame videoFrame(new QFFmpegVideoBuffer(std::move(avframe)), format);
+
     if (lastTimestamp == 0)
         lastTimestamp = timestamp;
 
-    videoFrame.setRotationAngle(QVideoFrame::RotationAngle(orientation()));
-
-    if (m_cameraDevice.position() == QCameraDevice::Position::FrontFace)
-        videoFrame.setMirrored(true);
+    videoFrame.setRotationAngle(rotation());
+    videoFrame.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
 
     videoFrame.setStartTime(lastTimestamp);
     videoFrame.setEndTime(timestamp);
@@ -193,24 +197,19 @@ void QAndroidCamera::onFrameAvailable(QJniObject frame)
     emit newVideoFrame(videoFrame);
 
     lastTimestamp = timestamp;
-
-    // must call close at the end
-    frame.callMethod<void>("close");
 }
 
-// based on https://developer.android.com/training/camera2/camera-preview#relative_rotation
-int QAndroidCamera::orientation()
+QVideoFrame::RotationAngle QAndroidCamera::rotation()
 {
-    QJniObject deviceManager(QtJniTypes::className<QtJniTypes::QtVideoDeviceManager>(),
-                             QNativeInterface::QAndroidApplication::context());
-
-    QString cameraId = m_cameraDevice.id();
-    int sensorOrientation = deviceManager.callMethod<jint>(
-            "getSensorOrientation", QJniObject::fromString(cameraId).object<jstring>());
+    auto screen = QGuiApplication::primaryScreen();
+    auto screenOrientation = screen->orientation();
+    if (screenOrientation == Qt::PrimaryOrientation)
+        screenOrientation = screen->primaryOrientation();
 
     int deviceOrientation = 0;
+    bool isFrontCamera = m_cameraDevice.position() == QCameraDevice::Position::FrontFace;
 
-    switch (QGuiApplication::primaryScreen()->orientation()) {
+    switch (screenOrientation) {
     case Qt::PrimaryOrientation:
     case Qt::PortraitOrientation:
         break;
@@ -225,9 +224,15 @@ int QAndroidCamera::orientation()
         break;
     }
 
-    int sign = m_cameraDevice.position() == QCameraDevice::Position::FrontFace ? 1 : -1;
-
-    return (sensorOrientation - deviceOrientation * sign + 360) % 360;
+    int rotation;
+    // subtract natural camera orientation and physical device orientation
+    if (isFrontCamera) {
+        rotation = (sensorOrientation(m_cameraDevice.id()) - deviceOrientation + 360) % 360;
+        rotation = (180 + rotation) % 360; // compensate the mirror
+    } else { // back-facing camera
+        rotation = (sensorOrientation(m_cameraDevice.id()) - deviceOrientation + 360) % 360;
+    }
+    return QVideoFrame::RotationAngle(rotation);
 }
 
 void QAndroidCamera::setActive(bool active)
@@ -251,12 +256,14 @@ void QAndroidCamera::setActive(bool active)
             height = m_cameraFormat.resolution().height();
         }
 
+        width = FFALIGN(width, 16);
+        height = FFALIGN(height, 16);
+
         setState(State::WaitingOpen);
         g_qcameras->insert(m_cameraDevice.id(), this);
 
         bool canOpen = m_jniCamera.callMethod<jboolean>(
-                "open", QJniObject::fromString(m_cameraDevice.id()).object<jstring>(), width,
-                height);
+                "open", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
 
         if (!canOpen) {
             g_qcameras->remove(m_cameraDevice.id());
@@ -265,8 +272,17 @@ void QAndroidCamera::setActive(bool active)
                        QString("Failed to start camera: ").append(m_cameraDevice.description()));
         }
 
+        // this should use the camera format.
+        // but there is only 2 fully supported formats on android - JPG and YUV420P
+        // and JPEG is not supported for encoding in FFMpeg, so it's locked for YUV for now.
+        const static int imageFormat =
+                QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
+        m_jniCamera.callMethod<jboolean>("addImageReader", jint(width), jint(height),
+                                         jint(imageFormat));
+
     } else {
         m_jniCamera.callMethod<void>("stopAndClose");
+        m_jniCamera.callMethod<void>("clearSurfaces");
         setState(State::Closed);
     }
 }
@@ -305,20 +321,17 @@ void QAndroidCamera::setState(QAndroidCamera::State newState)
 
 bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
 {
-    bool wasActive = isActive();
+    if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
+        return false;
 
-    setActive(false);
-    m_cameraFormat = format;
-
-    if (wasActive)
-        setActive(true);
+    m_cameraFormat = format.isNull() ? getDefaultCameraFormat() : format;
 
     return true;
 }
 
 void QAndroidCamera::onCaptureSessionConfigured()
 {
-    bool canStart = m_jniCamera.callMethod<jboolean>("start", 5);
+    bool canStart = m_jniCamera.callMethod<jboolean>("start", 3);
     setState(canStart ? State::WaitingStart : State::Closed);
 }
 
@@ -329,11 +342,6 @@ void QAndroidCamera::onCaptureSessionConfigureFailed()
 
 void QAndroidCamera::onCameraOpened()
 {
-    if (m_state == State::WaitingOpen) {
-        emit error(QCamera::CameraError, "Camera Open in incorrect state.");
-        setState(State::Closed);
-    }
-
     bool canStart = m_jniCamera.callMethod<jboolean>("createSession");
     setState(canStart ? State::WaitingStart : State::Closed);
 }
@@ -369,7 +377,6 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
                QString("Capture session failure with Camera %1. Camera2 Api error code: %2")
                        .arg(m_cameraDevice.description())
                        .arg(reason));
-    setState(State::Closed);
 }
 
 // JNI logic
@@ -390,7 +397,7 @@ static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
     Q_UNUSED(obj);
     GET_CAMERA(cameraId);
 
-    camera->onFrameAvailable(QJniObject(image));
+    camera->frameAvailable(QJniObject(image));
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onFrameAvailable)
 
@@ -490,7 +497,6 @@ bool QAndroidCamera::registerNativeMethods()
                         Q_JNI_NATIVE_METHOD(onFrameAvailable),
                         Q_JNI_NATIVE_METHOD(onSessionActive),
                         Q_JNI_NATIVE_METHOD(onSessionClosed),
-
                 });
     }();
     return registered;

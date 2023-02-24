@@ -204,6 +204,49 @@ static void apply_mf(const QMediaEncoderSettings &settings, AVCodecContext *code
 }
 #endif
 
+#ifdef Q_OS_ANDROID
+static void apply_mediacodec(const QMediaEncoderSettings &settings, AVCodecContext *codec,
+                             AVDictionary **opts)
+{
+    codec->bit_rate = settings.videoBitRate();
+
+    const int quality[] = { 25, 50, 75, 90, 100 };
+    codec->global_quality = quality[settings.quality()];
+
+    switch (settings.encodingMode()) {
+    case QMediaRecorder::EncodingMode::AverageBitRateEncoding:
+        av_dict_set(opts, "bitrate_mode", "vbr", 1);
+        break;
+    case QMediaRecorder::EncodingMode::ConstantBitRateEncoding:
+        av_dict_set(opts, "bitrate_mode", "cbr", 1);
+        break;
+    case QMediaRecorder::EncodingMode::ConstantQualityEncoding:
+        //        av_dict_set(opts, "bitrate_mode", "cq", 1);
+        av_dict_set(opts, "bitrate_mode", "cbr", 1);
+        break;
+    default:
+        break;
+    }
+
+    switch (settings.videoCodec()) {
+    case QMediaFormat::VideoCodec::H264: {
+        const char *levels[] = { "2.2", "3.2", "4.2", "5.2", "6.2" };
+        av_dict_set(opts, "level", levels[settings.quality()], 1);
+        codec->profile = FF_PROFILE_H264_HIGH;
+        break;
+    }
+    case QMediaFormat::VideoCodec::H265: {
+        const char *levels[] = { "h2.1", "h3.1", "h4.1", "h5.1", "h6.1" };
+        av_dict_set(opts, "level", levels[settings.quality()], 1);
+        codec->profile = FF_PROFILE_HEVC_MAIN;
+        break;
+    }
+    default:
+        break;
+    }
+}
+#endif
+
 namespace QFFmpeg {
 
 using ApplyOptions = void (*)(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **opts);
@@ -235,7 +278,11 @@ const struct {
                               { "hevc_mf", apply_mf },
                               { "h264_mf", apply_mf },
 #endif
-                              { nullptr, nullptr } };
+#ifdef Q_OS_ANDROID
+                              { "hevc_mediacodec", apply_mediacodec},
+                              { "h264_mediacodec", apply_mediacodec },
+#endif
+    { nullptr, nullptr } };
 
 const struct {
     const char *name;

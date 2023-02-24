@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include "qffmpeghwaccel_p.h"
 #include <private/qplatformcamera_p.h>
 #include <QObject>
 #include <QJniObject>
@@ -34,13 +35,15 @@ public:
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
 
+    std::optional<int> ffmpegHWPixelFormat() const override;
+
     static bool registerNativeMethods();
 
 public slots:
     void onCameraOpened();
     void onCameraDisconnect();
     void onCameraError(int error);
-    void onFrameAvailable(QJniObject frame);
+    void frameAvailable(QJniObject image);
     void onCaptureSessionConfigured();
     void onCaptureSessionConfigureFailed();
     void onCaptureSessionFailed(int reason, long frameNumber);
@@ -48,13 +51,19 @@ public slots:
     void onSessionClosed();
 
 private:
+    bool isActivating() const { return m_state != State::Closed; }
+
     void setState(State newState);
-    int orientation();
+    QVideoFrame::RotationAngle rotation();
 
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
     long lastTimestamp = 0;
     QJniObject m_jniCamera;
+
+    std::unique_ptr<QFFmpeg::HWAccel> m_hwAccel;
+
+    QVideoFrameFormat::PixelFormat m_androidFramePixelFormat;
 };
 
 QT_END_NAMESPACE
