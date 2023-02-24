@@ -75,11 +75,11 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoDevices()
         case LENS_FACING_EXTERNAL:
         case LENS_FACING_BACK:
             info->position = QCameraDevice::BackFace;
-            info->description = "Rear Camera";
+            info->description = QString("Rear Camera: %1").arg(cameraIndex);
             break;
         case LENS_FACING_FRONT:
             info->position = QCameraDevice::FrontFace;
-            info->description = "Front Camera";
+            info->description = QString("Front Camera: %1").arg(cameraIndex);
             break;
         }
 
