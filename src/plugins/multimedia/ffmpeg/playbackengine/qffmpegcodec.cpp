@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "playbackengine/qffmpegcodec_p.h"
+#include "qloggingcategory.h"
 
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcPlaybackEngineCodec, "qt.multimedia.playbackengine.codec");
 
 namespace QFFmpeg {
 
@@ -25,14 +28,26 @@ QMaybe<Codec> Codec::create(AVStream *stream)
     if (!stream)
         return { "Invalid stream" };
 
-    const AVCodec *decoder =
-            QFFmpeg::HWAccel::hardwareDecoderForCodecId(stream->codecpar->codec_id);
+    const AVCodec *decoder = nullptr;
+    std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
+
+    if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+        std::tie(decoder, hwAccel) = HWAccel::findDecoderWithHwAccel(stream->codecpar->codec_id);
+
+    if (!decoder)
+        decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
+
     if (!decoder)
         return { "Failed to find a valid FFmpeg decoder" };
+
+    qCDebug(qLcPlaybackEngineCodec) << "found decoder" << decoder->name << "for id" << decoder->id;
 
     AVCodecContextUPtr context(avcodec_alloc_context3(decoder));
     if (!context)
         return { "Failed to allocate a FFmpeg codec context" };
+
+    if (hwAccel)
+        context->hw_device_ctx = av_buffer_ref(hwAccel->hwDeviceContextAsBuffer());
 
     if (context->codec_type != AVMEDIA_TYPE_AUDIO && context->codec_type != AVMEDIA_TYPE_VIDEO
         && context->codec_type != AVMEDIA_TYPE_SUBTITLE) {
@@ -43,12 +58,6 @@ QMaybe<Codec> Codec::create(AVStream *stream)
     if (ret < 0)
         return { "Failed to set FFmpeg codec parameters" };
 
-    std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
-    if (decoder->type == AVMEDIA_TYPE_VIDEO) {
-        hwAccel = QFFmpeg::HWAccel::create(decoder);
-        if (hwAccel)
-            context->hw_device_ctx = av_buffer_ref(hwAccel->hwDeviceContextAsBuffer());
-    }
     // ### This still gives errors about wrong HW formats (as we accept all of them)
     // But it would be good to get so we can filter out pixel format we don't support natively
     context->get_format = QFFmpeg::getFormat;

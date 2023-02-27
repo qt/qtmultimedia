@@ -41,59 +41,44 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
     d->sourceFormat = sourceFormat;
     d->sourceSWFormat = swFormat;
 
-    auto qVideoCodec = encoderSettings.videoCodec();
-    auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
+    const auto qVideoCodec = encoderSettings.videoCodec();
+    const auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
 
-#ifndef QT_DISABLE_HW_ENCODING
-    auto [preferredTypes, size] = HWAccel::preferredDeviceTypes();
-    for (qsizetype i = 0; i < size; i++) {
-        auto accel = HWAccel::create(preferredTypes[i]);
-        if (!accel)
-            continue;
+    auto matchesSizeConstraints = [&sourceSize](const HWAccel &accel) {
+        AVHWFramesConstraintsUPtr constraints(
+                av_hwdevice_get_hwframe_constraints(accel.hwDeviceContextAsBuffer(), nullptr));
+        if (!constraints)
+            return true;
 
-        auto matchesSizeConstraints = [&]() -> bool {
-            auto *constraints = av_hwdevice_get_hwframe_constraints(accel->hwDeviceContextAsBuffer(), nullptr);
-            if (!constraints)
-                return true;
-                // Check size constraints
-            bool result = (d->sourceSize.width() >= constraints->min_width && d->sourceSize.height() >= constraints->min_height &&
-                           d->sourceSize.width() <= constraints->max_width && d->sourceSize.height() <= constraints->max_height);
-            av_hwframe_constraints_free(&constraints);
-            return result;
-        };
-
-        if (!matchesSizeConstraints())
-            continue;
-
-        d->codec = accel->hardwareEncoderForCodecId(codecID);
-        if (!d->codec)
-            continue;
-        d->accel = std::move(accel);
-        break;
-    }
-#endif
-
-    if (!d->accel) {
-        d->codec = avcodec_find_encoder(codecID);
-        if (!d->codec) {
-            qWarning() << "Could not find encoder for codecId" << codecID;
-            d = {};
-            return;
-        }
-    }
-    auto supportsFormat = [&](AVPixelFormat fmt) {
-        if (auto fmts = d->codec->pix_fmts) {
-            for (; *fmts != AV_PIX_FMT_NONE; ++fmts)
-                if (*fmts == fmt)
-                    return true;
-        }
-        return false;
+        return sourceSize.width() >= constraints->min_width
+                && sourceSize.height() >= constraints->min_height
+                && sourceSize.width() <= constraints->max_width
+                && sourceSize.height() <= constraints->max_height;
     };
+
+    std::tie(d->codec, d->accel) = HWAccel::findEncoderWithHwAccel(codecID, matchesSizeConstraints);
+
+    if (!d->codec)
+        d->codec = findAVEncoder(codecID, {}, d->targetFormat);
+
+    if (!d->codec)
+        d->codec = findAVEncoder(codecID, {}, swFormat);
+
+    if (!d->codec)
+        d->codec = findAVEncoder(codecID);
+
+    if (!d->codec) {
+        qWarning() << "Could not find encoder for codecId" << codecID;
+        d = {};
+        return;
+    }
+
+    qCDebug(qLcVideoFrameEncoder) << "found encoder" << d->codec->name << "for id" << d->codec->id;
 
     d->targetFormat = d->sourceFormat;
 
-    if (!supportsFormat(d->sourceFormat)) {
-        if (supportsFormat(swFormat))
+    if (!isAVFormatSupported(d->codec, d->sourceFormat)) {
+        if (isAVFormatSupported(d->codec, swFormat))
             d->targetFormat = swFormat;
         else if (d->codec->pix_fmts)
             // Take first format the encoder supports. Might want to improve upon this
@@ -382,7 +367,14 @@ AVPacket *VideoFrameEncoder::retrievePacket()
         return nullptr;
     }
     auto ts = timeStampMs(packet->pts, d->stream->time_base);
-    qCDebug(qLcVideoFrameEncoder) << "got a packet" << packet->pts << (ts ? *ts : 0);
+
+    qCDebug(qLcVideoFrameEncoder) << "got a packet" << packet->pts << packet->dts << (ts ? *ts : 0);
+
+    if (packet->dts != AV_NOPTS_VALUE && packet->pts < packet->dts) {
+        // the case seems to be an ffmpeg bug
+        packet->dts = AV_NOPTS_VALUE;
+    }
+
     packet->stream_index = d->stream->id;
     return packet;
 }

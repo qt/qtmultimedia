@@ -138,8 +138,8 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
 
     const AVCodecDescriptor *descriptor = nullptr;
     while ((descriptor = avcodec_descriptor_next(descriptor))) {
-        bool canEncode = (avcodec_find_encoder(descriptor->id) != nullptr);
-        bool canDecode = (avcodec_find_decoder(descriptor->id) != nullptr);
+        const bool canEncode = QFFmpeg::findAVEncoder(descriptor->id) != nullptr;
+        const bool canDecode = QFFmpeg::findAVDecoder(descriptor->id) != nullptr;
         auto videoCodec = videoCodecForAVCodecId(descriptor->id);
         auto audioCodec = audioCodecForAVCodecId(descriptor->id);
         if (descriptor->type == AVMEDIA_TYPE_VIDEO && videoCodec != QMediaFormat::VideoCodec::Unspecified) {
@@ -150,9 +150,8 @@ QFFmpegMediaFormatInfo::QFFmpegMediaFormatInfo()
                 if (!extraVideoDecoders.contains(videoCodec))
                     extraVideoDecoders.append(videoCodec);
             }
-        }
-
-        else if (descriptor->type == AVMEDIA_TYPE_AUDIO && audioCodec != QMediaFormat::AudioCodec::Unspecified) {
+        } else if (descriptor->type == AVMEDIA_TYPE_AUDIO
+                   && audioCodec != QMediaFormat::AudioCodec::Unspecified) {
             if (canEncode) {
                 if (!audioEncoders.contains(audioCodec))
                     audioEncoders.append(audioCodec);

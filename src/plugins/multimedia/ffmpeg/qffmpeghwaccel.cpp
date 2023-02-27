@@ -19,7 +19,7 @@
 
 #include <private/qrhi_p.h>
 #include <qloggingcategory.h>
-
+#include <set>
 
 /* Infrastructure for HW acceleration goes into this file. */
 
@@ -29,10 +29,11 @@ static Q_LOGGING_CATEGORY(qLHWAccel, "qt.multimedia.ffmpeg.hwaccel");
 
 namespace QFFmpeg {
 
-static const AVHWDeviceType preferredHardwareAccelerators[] = {
+static const std::initializer_list<AVHWDeviceType> preferredHardwareAccelerators = {
 #if defined(Q_OS_LINUX)
     AV_HWDEVICE_TYPE_VAAPI,
-//    AV_HWDEVICE_TYPE_DRM,
+    AV_HWDEVICE_TYPE_VDPAU,
+    AV_HWDEVICE_TYPE_CUDA,
 #elif defined (Q_OS_WIN)
     AV_HWDEVICE_TYPE_D3D11VA,
 #elif defined (Q_OS_DARWIN)
@@ -41,6 +42,55 @@ static const AVHWDeviceType preferredHardwareAccelerators[] = {
     AV_HWDEVICE_TYPE_MEDIACODEC,
 #endif
 };
+
+static std::vector<AVHWDeviceType> deviceTypes(const char *envVarName)
+{
+    std::vector<AVHWDeviceType> result;
+
+    const auto definedDeviceTypes = qgetenv(envVarName);
+    if (!definedDeviceTypes.isNull()) {
+        const auto definedDeviceTypesString = QString::fromUtf8(definedDeviceTypes).toLower();
+        for (const auto &deviceType : definedDeviceTypesString.split(',')) {
+            constexpr std::array<std::pair<AVHWDeviceType, const char *>, 11> map = {
+                std::make_pair(AV_HWDEVICE_TYPE_CUDA, "cuda"),
+                std::make_pair(AV_HWDEVICE_TYPE_VAAPI, "vaapi"),
+                std::make_pair(AV_HWDEVICE_TYPE_DXVA2, "dxva2"),
+                std::make_pair(AV_HWDEVICE_TYPE_QSV, "qsv"),
+                std::make_pair(AV_HWDEVICE_TYPE_VAAPI, "vaapi"),
+                std::make_pair(AV_HWDEVICE_TYPE_VIDEOTOOLBOX, "videotoolbox"),
+                std::make_pair(AV_HWDEVICE_TYPE_D3D11VA, "d3d11va"),
+                std::make_pair(AV_HWDEVICE_TYPE_DRM, "drm"),
+                std::make_pair(AV_HWDEVICE_TYPE_OPENCL, "opencl"),
+                std::make_pair(AV_HWDEVICE_TYPE_MEDIACODEC, "mediacodec"),
+                std::make_pair(AV_HWDEVICE_TYPE_VULKAN, "vulkan")
+            };
+
+            const auto found =
+                    std::find_if(map.begin(), map.end(), [&deviceType](const auto &hwTypeToStr) {
+                        return deviceType == hwTypeToStr.second;
+                    });
+
+            if (found != map.end())
+                result.emplace_back(found->first);
+        }
+
+        return result;
+    } else {
+        std::set<AVHWDeviceType> deviceTypesSet;
+        AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
+        while ((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
+            deviceTypesSet.insert(type);
+
+        for (const auto preffered : preferredHardwareAccelerators)
+            if (deviceTypesSet.erase(preffered))
+                result.push_back(preffered);
+
+        result.insert(result.end(), deviceTypesSet.begin(), deviceTypesSet.end());
+    }
+
+    result.shrink_to_fit();
+    return result;
+}
 
 static AVBufferRef *loadHWContext(const AVHWDeviceType type)
 {
@@ -55,66 +105,90 @@ static AVBufferRef *loadHWContext(const AVHWDeviceType type)
     return nullptr;
 }
 
-static AVBufferRef *hardwareContextForCodec(const AVCodec *codec)
+template<typename CodecFinder>
+std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
+findCodecWithHwAccel(AVCodecID id, const std::vector<AVHWDeviceType> &deviceTypes,
+                     CodecFinder codecFinder,
+                     const std::function<bool(const HWAccel &)> &hwAccelPredicate)
 {
-    qCDebug(qLHWAccel) << "Checking HW acceleration for decoder" << codec->name;
+    for (auto type : deviceTypes) {
+        const auto codec = codecFinder(id, type, {});
 
-    // First try our preferred accelerators. Those are the ones where we can
-    // set up a zero copy pipeline
-    for (auto type : preferredHardwareAccelerators) {
-        for (int i = 0;; ++i) {
-            const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i);
-            if (!config)
-                break;
-            if (config->device_type == type) {
-                auto *hwContext = loadHWContext(config->device_type);
-                if (hwContext)
-                    return hwContext;
-                break;
-            }
+        if (!codec)
+            continue;
+
+        qCDebug(qLHWAccel) << "Found potential codec" << codec->name << "for hw accel" << type
+                           << "; Checking the hw device...";
+
+        auto hwAccel = QFFmpeg::HWAccel::create(type);
+
+        if (!hwAccel)
+            continue;
+
+        if (hwAccelPredicate && !hwAccelPredicate(*hwAccel)) {
+            qCDebug(qLHWAccel) << "HW device is available but doesn't suit due to restrictions";
+            continue;
         }
+
+        qCDebug(qLHWAccel) << "HW device is OK";
+
+        return { codec, std::move(hwAccel) };
     }
 
-    // Ok, let's see if we can get any HW acceleration at all. It'll still involve one buffer copy,
-    // as we can't move the data into RHI textures without a CPU copy
-    for (int i = 0;; ++i) {
-        const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i);
-        if (!config)
-            break;
+    qCDebug(qLHWAccel) << "No hw acceleration found for codec id" << id;
 
-        auto *hwContext = loadHWContext(config->device_type);
-        if (hwContext)
-            return hwContext;
-    }
-    qCDebug(qLHWAccel) << "    No HW accelerators found, using SW decoding.";
-    return nullptr;
-
+    return { nullptr, nullptr };
 }
 
 // Used for the AVCodecContext::get_format callback
-AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt)
+AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
 {
     // First check HW accelerated codecs, the HW device context must be set
-    if (s->hw_device_ctx) {
-        auto *device_ctx = (AVHWDeviceContext*)s->hw_device_ctx->data;
-        for (int i = 0; const AVCodecHWConfig *config = avcodec_get_hw_config(s->codec, i); i++) {
+    if (codecContext->hw_device_ctx) {
+        auto *device_ctx = (AVHWDeviceContext *)codecContext->hw_device_ctx->data;
+        auto formatForDeprecatedHw = AV_PIX_FMT_NONE;
+        auto format = AV_PIX_FMT_NONE;
+        for (int i = 0;
+             const AVCodecHWConfig *config = avcodec_get_hw_config(codecContext->codec, i); i++) {
             if (!(config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX))
                 continue;
+
             if (device_ctx->type != config->device_type)
                 continue;
-            for (int n = 0; fmt[n] != AV_PIX_FMT_NONE; n++) {
-                if (config->pix_fmt == fmt[n]) {
-#if QT_CONFIG(wmf)
-                    if (fmt[n] == AV_PIX_FMT_D3D11)
-                        QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(s);
-#endif
-#ifdef Q_OS_ANDROID
-                    if (fmt[n] == AV_PIX_FMT_MEDIACODEC)
-                        QFFmpeg::MediaCodecTextureConverter::setupDecoderSurface(s);
-#endif
-                    return fmt[n];
+
+            const bool isDeprecated = (config->methods & AV_CODEC_HW_CONFIG_METHOD_AD_HOC) != 0;
+
+            for (int n = 0; fmt[n] != AV_PIX_FMT_NONE && format == AV_PIX_FMT_NONE; n++) {
+                const auto pixFmt = config->pix_fmt;
+                if ((pixFmt != AV_PIX_FMT_NONE && pixFmt == fmt[n])
+                    || (pixFmt == AV_PIX_FMT_NONE
+                        && isAVFormatSupported(codecContext->codec, fmt[n]))) {
+
+                    if (!isDeprecated)
+                        format = *fmt;
+                    else if (formatForDeprecatedHw == AV_PIX_FMT_NONE)
+                        formatForDeprecatedHw = *fmt;
                 }
             }
+
+            if (format != AV_PIX_FMT_NONE)
+                break;
+        }
+
+        if (format == AV_PIX_FMT_NONE)
+            format = formatForDeprecatedHw;
+
+        if (format != AV_PIX_FMT_NONE) {
+#if QT_CONFIG(wmf)
+            if (format == AV_PIX_FMT_D3D11)
+                QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(codecContext);
+#endif
+#ifdef Q_OS_ANDROID
+            if (format == AV_PIX_FMT_MEDIACODEC)
+                QFFmpeg::MediaCodecTextureConverter::setupDecoderSurface(codecContext);
+#endif
+            qCDebug(qLHWAccel) << "Selected format" << format << "for hw" << device_ctx->type;
+            return format;
         }
     }
 
@@ -122,9 +196,13 @@ AVPixelFormat getFormat(AVCodecContext *s, const AVPixelFormat *fmt)
     for (int n = 0; fmt[n] != AV_PIX_FMT_NONE; n++) {
         bool needsConversion = true;
         QFFmpegVideoBuffer::toQtPixelFormat(fmt[n], &needsConversion);
-        if (!needsConversion)
+        if (!needsConversion) {
+            qCDebug(qLHWAccel) << "Selected format with no conversion" << fmt[n];
             return fmt[n];
+        }
     }
+
+    qCDebug(qLHWAccel) << "Selected format with conversion" << *fmt;
 
     // take the native format, this will involve one additional format conversion on the CPU side
     return *fmt;
@@ -136,15 +214,6 @@ TextureConverter::Data::~Data()
 }
 
 HWAccel::~HWAccel() = default;
-
-std::unique_ptr<HWAccel> HWAccel::create(const AVCodec *codec)
-{
-    if (codec->type == AVMEDIA_TYPE_VIDEO) {
-        if (auto *ctx = hardwareContextForCodec(codec))
-            return std::unique_ptr<HWAccel>(new HWAccel(ctx));
-    }
-    return {};
-}
 
 std::unique_ptr<HWAccel> HWAccel::create(AVHWDeviceType deviceType)
 {
@@ -164,10 +233,16 @@ AVPixelFormat HWAccel::format(AVFrame *frame)
     return AVPixelFormat(hwFramesContext->sw_format);
 }
 
-std::pair<const AVHWDeviceType*, qsizetype> HWAccel::preferredDeviceTypes()
+const std::vector<AVHWDeviceType> &HWAccel::encodingDeviceTypes()
 {
-    return { preferredHardwareAccelerators,
-             sizeof(preferredHardwareAccelerators) / sizeof(AVHWDeviceType) };
+    static const auto &result = deviceTypes("QT_FFMPEG_ENCODING_HW_DEVICE_TYPES");
+    return result;
+}
+
+const std::vector<AVHWDeviceType> &HWAccel::decodingDeviceTypes()
+{
+    static const auto &result = deviceTypes("QT_FFMPEG_DECODING_HW_DEVICE_TYPES");
+    return result;
 }
 
 AVHWDeviceContext *HWAccel::hwDeviceContext() const
@@ -184,108 +259,39 @@ AVPixelFormat HWAccel::hwFormat() const
         return AV_PIX_FMT_VAAPI;
     case AV_HWDEVICE_TYPE_MEDIACODEC:
         return AV_PIX_FMT_MEDIACODEC;
+    case AV_HWDEVICE_TYPE_CUDA:
+        return AV_PIX_FMT_CUDA;
+    case AV_HWDEVICE_TYPE_VDPAU:
+        return AV_PIX_FMT_VDPAU;
+    case AV_HWDEVICE_TYPE_OPENCL:
+        return AV_PIX_FMT_OPENCL;
+    case AV_HWDEVICE_TYPE_VULKAN:
+        return AV_PIX_FMT_VULKAN;
+    case AV_HWDEVICE_TYPE_QSV:
+        return AV_PIX_FMT_QSV;
+    case AV_HWDEVICE_TYPE_D3D11VA:
+        return AV_PIX_FMT_D3D11;
+    case AV_HWDEVICE_TYPE_DXVA2:
+        return AV_PIX_FMT_DXVA2_VLD;
+    case AV_HWDEVICE_TYPE_DRM:
+        return AV_PIX_FMT_DRM_PRIME;
     default:
         return AV_PIX_FMT_NONE;
     }
 }
 
-const AVCodec *HWAccel::hardwareDecoderForCodecId(AVCodecID id)
+std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
+HWAccel::findEncoderWithHwAccel(AVCodecID id, const std::function<bool(const HWAccel &)>& hwAccelPredicate)
 {
-    const AVCodec *codec = nullptr;
-#ifdef Q_OS_ANDROID
-    const auto getDecoder = [](AVCodecID id) {
-        switch (id) {
-        case AV_CODEC_ID_H264:
-            return avcodec_find_decoder_by_name("h264_mediacodec");
-        case AV_CODEC_ID_HEVC:
-            return avcodec_find_decoder_by_name("hevc_mediacodec");
-        case AV_CODEC_ID_MPEG2VIDEO:
-            return avcodec_find_decoder_by_name("mpeg2_mediacodec");
-        case AV_CODEC_ID_MPEG4:
-            return avcodec_find_decoder_by_name("mpeg4_mediacodec");
-        case AV_CODEC_ID_VP8:
-            return avcodec_find_decoder_by_name("vp8_mediacodec");
-        case AV_CODEC_ID_VP9:
-            return avcodec_find_decoder_by_name("vp9_mediacodec");
-        default:
-            return avcodec_find_decoder(id);
-        }
-    };
-    codec = getDecoder(id);
-#endif
-
-    if (!codec)
-        codec = avcodec_find_decoder(id);
-
-    return codec;
+    return findCodecWithHwAccel(id, encodingDeviceTypes(), &QFFmpeg::findAVEncoder,
+                                hwAccelPredicate);
 }
 
-const AVCodec *HWAccel::hardwareEncoderForCodecId(AVCodecID id) const
+std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
+HWAccel::findDecoderWithHwAccel(AVCodecID id, const std::function<bool(const HWAccel &)>& hwAccelPredicate)
 {
-    const char *codec = nullptr;
-    switch (deviceType()) {
-#ifdef Q_OS_DARWIN
-    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
-        switch (id) {
-        case AV_CODEC_ID_H264:
-            codec = "h264_videotoolbox";
-            break;
-        case AV_CODEC_ID_HEVC:
-            codec = "hevc_videotoolbox";
-            break;
-        case AV_CODEC_ID_PRORES:
-            codec = "prores_videotoolbox";
-            break;
-        case AV_CODEC_ID_VP9:
-            codec = "vp9_videotoolbox";
-            break;
-        default:
-            break;
-        }
-        break;
-#endif
-    case AV_HWDEVICE_TYPE_VAAPI:
-        switch (id) {
-        case AV_CODEC_ID_H264:
-            codec = "h264_vaapi";
-            break;
-        case AV_CODEC_ID_HEVC:
-            codec = "hevc_vaapi";
-            break;
-        case AV_CODEC_ID_MJPEG:
-            codec = "mjpeg_vaapi";
-            break;
-        case AV_CODEC_ID_MPEG2VIDEO:
-            codec = "mpeg2_vaapi";
-            break;
-        case AV_CODEC_ID_VP8:
-            codec = "vp8_vaapi";
-            break;
-        case AV_CODEC_ID_VP9:
-            codec = "vp9_vaapi";
-            break;
-        default:
-            break;
-        }
-        break;
-    default:
-        break;
-    }
-    if (!codec)
-        return nullptr;
-    const AVCodec *c = avcodec_find_encoder_by_name(codec);
-    qCDebug(qLHWAccel) << "searching for HW codec" << codec << "got" << c;
-    return c;
-}
-
-std::unique_ptr<HWAccel> HWAccel::findHardwareAccelForCodecID(AVCodecID id)
-{
-    for (auto type : preferredHardwareAccelerators) {
-        auto accel = HWAccel::create(type);
-        if (accel && accel->hardwareEncoderForCodecId(id))
-            return accel;
-    }
-    return {};
+    return findCodecWithHwAccel(id, decodingDeviceTypes(), &QFFmpeg::findAVDecoder,
+                                hwAccelPredicate);
 }
 
 AVHWDeviceType HWAccel::deviceType() const

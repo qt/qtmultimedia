@@ -19,6 +19,7 @@
 #include <private/qabstractvideobuffer_p.h>
 #include <qshareddata.h>
 #include <memory>
+#include <functional>
 
 QT_BEGIN_NAMESPACE
 
@@ -88,12 +89,15 @@ class HWAccel
 public:
     ~HWAccel();
 
-    static std::unique_ptr<HWAccel> create(const AVCodec *decoder);
     static std::unique_ptr<HWAccel> create(AVHWDeviceType deviceType);
-    static std::unique_ptr<HWAccel> findHardwareAccelForCodecID(AVCodecID id);
 
-    static const AVCodec *hardwareDecoderForCodecId(AVCodecID id);
-    const AVCodec *hardwareEncoderForCodecId(AVCodecID id) const;
+    static std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
+    findEncoderWithHwAccel(AVCodecID id,
+                           const std::function<bool(const HWAccel &)>& hwAccelPredicate = nullptr);
+
+    static std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
+    findDecoderWithHwAccel(AVCodecID id,
+                           const std::function<bool(const HWAccel &)>& hwAccelPredicate = nullptr);
 
     AVHWDeviceType deviceType() const;
 
@@ -106,7 +110,9 @@ public:
     AVHWFramesContext *hwFramesContext() const;
 
     static AVPixelFormat format(AVFrame *frame);
-    static std::pair<const AVHWDeviceType*, qsizetype> preferredDeviceTypes();
+    static const std::vector<AVHWDeviceType> &encodingDeviceTypes();
+
+    static const std::vector<AVHWDeviceType> &decodingDeviceTypes();
 
 private:
     HWAccel(AVBufferRef *hwDeviceContext, AVBufferRef *hwFrameContext = nullptr)

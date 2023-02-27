@@ -204,7 +204,8 @@ bool QFFmpeg::Muxer::shouldWait() const
 void Muxer::loop()
 {
     auto *packet = takePacket();
-//    qCDebug(qLcFFmpegEncoder) << "writing packet to file" << packet->pts << packet->duration << packet->stream_index;
+    //   qCDebug(qLcFFmpegEncoder) << "writing packet to file" << packet->pts << packet->duration <<
+    //   packet->stream_index;
     av_interleaved_write_frame(encoder->formatContext, packet);
 }
 
@@ -252,10 +253,17 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
     auto codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
     Q_ASSERT(avformat_query_codec(encoder->formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
 
-    avCodec = avcodec_find_encoder(codecID);
+    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
+
+    avCodec = QFFmpeg::findAVEncoder(codecID, {}, requested);
+
+    if (!avCodec)
+        avCodec = QFFmpeg::findAVEncoder(codecID);
+
+    qCDebug(qLcFFmpegEncoder) << "found audio codec" << avCodec->name;
+
     Q_ASSERT(avCodec);
 
-    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
     AVSampleFormat bestSampleFormat = bestMatchingSampleFormat(requested, avCodec->sample_fmts);
 
     stream = avformat_new_stream(encoder->formatContext, nullptr);
