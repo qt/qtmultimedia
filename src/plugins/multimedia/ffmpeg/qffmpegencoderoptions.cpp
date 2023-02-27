@@ -176,6 +176,18 @@ static void apply_vaapi(const QMediaEncoderSettings &settings, AVCodecContext *c
 }
 #endif
 
+static void apply_nvenc(const QMediaEncoderSettings &settings, AVCodecContext *codec,
+                        AVDictionary ** /*opts*/)
+{
+    if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding
+        || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
+        codec->bit_rate = settings.videoBitRate();
+    } else {
+        static const int q[] = { 51, 48, 35, 15, 1 };
+        codec->global_quality = q[settings.quality()];
+    }
+}
+
 #ifdef Q_OS_WINDOWS
 static void apply_mf(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **opts)
 {
@@ -199,31 +211,31 @@ using ApplyOptions = void (*)(const QMediaEncoderSettings &settings, AVCodecCont
 const struct {
     const char *name;
     ApplyOptions apply;
-} videoCodecOptionTable[] = {
-    { "libx264", apply_x264 },
-    { "libx265xx", apply_x265 },
-    { "libvpx", apply_libvpx },
-    { "libvpx_vp9", apply_libvpx },
+} videoCodecOptionTable[] = { { "libx264", apply_x264 },
+                              { "libx265xx", apply_x265 },
+                              { "libvpx", apply_libvpx },
+                              { "libvpx_vp9", apply_libvpx },
+                              { "h264_nvenc", apply_nvenc },
+                              { "hevc_nvenc", apply_nvenc },
 #ifdef Q_OS_DARWIN
-    { "h264_videotoolbox", apply_videotoolbox },
-    { "hevc_videotoolbox", apply_videotoolbox },
-    { "prores_videotoolbox", apply_videotoolbox },
-    { "vp9_videotoolbox", apply_videotoolbox },
+                              { "h264_videotoolbox", apply_videotoolbox },
+                              { "hevc_videotoolbox", apply_videotoolbox },
+                              { "prores_videotoolbox", apply_videotoolbox },
+                              { "vp9_videotoolbox", apply_videotoolbox },
 #endif
 #if QT_CONFIG(vaapi)
-    { "mpeg2_vaapi", apply_vaapi },
-    { "mjpeg_vaapi", apply_vaapi },
-    { "h264_vaapi", apply_vaapi },
-    { "hevc_vaapi", apply_vaapi },
-    { "vp8_vaapi", apply_vaapi },
-    { "vp9_vaapi", apply_vaapi },
+                              { "mpeg2_vaapi", apply_vaapi },
+                              { "mjpeg_vaapi", apply_vaapi },
+                              { "h264_vaapi", apply_vaapi },
+                              { "hevc_vaapi", apply_vaapi },
+                              { "vp8_vaapi", apply_vaapi },
+                              { "vp9_vaapi", apply_vaapi },
 #endif
 #ifdef Q_OS_WINDOWS
-    { "hevc_mf", apply_mf },
-    { "h264_mf", apply_mf },
+                              { "hevc_mf", apply_mf },
+                              { "h264_mf", apply_mf },
 #endif
-    { nullptr, nullptr }
-};
+                              { nullptr, nullptr } };
 
 const struct {
     const char *name;

@@ -14,7 +14,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     OUTPUT_NAME ffmpegmediaplugin
     PLUGIN_TYPE multimedia
     SOURCES
-        qffmpeg_p.h
+        qffmpeg.cpp qffmpeg_p.h
         qffmpegaudiodecoder.cpp qffmpegaudiodecoder_p.h
         qffmpegaudioinput.cpp qffmpegaudioinput_p.h
         qffmpegclock.cpp qffmpegclock_p.h

@@ -5,6 +5,7 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <qstring.h>
+#include <optional>
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -81,8 +82,23 @@ using AVCodecContextUPtr =
 using AVBufferUPtr =
         std::unique_ptr<AVBufferRef, AVDeleter<decltype(&av_buffer_unref), &av_buffer_unref>>;
 
-QT_END_NAMESPACE
+using AVHWFramesConstraintsUPtr = std::unique_ptr<
+        AVHWFramesConstraints,
+        AVDeleter<decltype(&av_hwframe_constraints_free), &av_hwframe_constraints_free>>;
 
+using PixelOrSampleFormat = int;
+
+const AVCodec *findAVDecoder(AVCodecID codecId,
+                             const std::optional<AVHWDeviceType> &deviceType = {},
+                             const std::optional<PixelOrSampleFormat> &format = {});
+
+const AVCodec *findAVEncoder(AVCodecID codecId,
+                             const std::optional<AVHWDeviceType> &deviceType = {},
+                             const std::optional<PixelOrSampleFormat> &format = {});
+
+bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format);
 }
+
+QT_END_NAMESPACE
 
 #endif
