@@ -52,6 +52,13 @@ public:
         return widget;
     }
 
+    void setColors(QColor firstColor, QColor secondColor)
+    {
+        m_firstColor = firstColor;
+        m_secondColor = secondColor;
+        this->repaint();
+    }
+
 protected:
     void paintEvent(QPaintEvent * /*event*/) override
     {
@@ -331,20 +338,29 @@ void tst_QScreenCaptureIntegration::captureSecondaryScreen()
 
 void tst_QScreenCaptureIntegration::recordToFile()
 {
+    // Create widget with blue color
+    auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
+                                                 QRect{ 200, 100, 430, 351 });
+    widget->setColors(QColor(0, 0, 0xFF), QColor(0, 0, 0xFF));
+
     QScreenCapture sc;
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
-    // sc.setScreen(screen);
     QMediaCaptureSession session;
     QMediaRecorder recorder;
     session.setScreenCapture(&sc);
     session.setRecorder(&recorder);
-    recorder.setVideoResolution(1280, 960);
+    auto screen = QApplication::primaryScreen();
+    QSize screenSize = screen->geometry().size();
+    QSize videoResolution = QSize(1920, 1080);
+    recorder.setVideoResolution(videoResolution);
+    recorder.setQuality(QMediaRecorder::VeryHighQuality);
 
     // Insert metadata
     QMediaMetaData metaData;
     metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
     metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
     recorder.setMetaData(metaData);
+
     sc.setActive(true);
 
     QTest::qWait(200); // wait a bit for SC threading activating
@@ -358,7 +374,9 @@ void tst_QScreenCaptureIntegration::recordToFile()
         QCOMPARE(recorder.recorderState(), QMediaRecorder::RecordingState);
     }
 
-    QTest::qWait(600);
+    QTest::qWait(300);
+    widget->setColors(QColor(0, 0xFF, 0), QColor(0, 0xFF, 0)); // Change widget color
+    QTest::qWait(300);
 
     {
         QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
@@ -375,11 +393,49 @@ void tst_QScreenCaptureIntegration::recordToFile()
 
     QMediaPlayer player;
     player.setSource(fileName);
-    QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(1280, 960));
+    QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(videoResolution));
     QCOMPARE_GT(player.duration(), 350);
     QCOMPARE_LT(player.duration(), 650);
 
-    // TODO: check frames changes with QMediaPlayer
+    // Convert video frames to QImages
+    TestVideoSink sink;
+    player.setVideoSink(&sink);
+    sink.setStoreImagesEnabled();
+    player.setPlaybackRate(10);
+    player.play();
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    const int framesCount = sink.images().size();
+
+    // Find pixel point at center of widget
+    int x = 415 * videoResolution.width() / screenSize.width();
+    int y = 275 * videoResolution.height() / screenSize.height();
+    auto point = QPoint(x, y);
+
+    // Verify color of first fourth of the video frames
+    for (int i = 0; i <= static_cast<int>(framesCount * 0.25); i++) {
+        QImage image = sink.images().at(i);
+        QVERIFY(!image.isNull());
+        QRgb rgb = image.pixel(point);
+//        qDebug() << QString("RGB: %1, %2, %3").arg(qRed(rgb)).arg(qGreen(rgb)).arg(qBlue(rgb));
+
+        // RGB values should be 0, 0, 255. Compensating for inaccurate video encoding.
+        QVERIFY(qRed(rgb) <= 60);
+        QVERIFY(qGreen(rgb) <= 60);
+        QVERIFY(qBlue(rgb) >= 200);
+    }
+
+    // Verify color of last fourth of the video frames
+    for (int i = static_cast<int>(framesCount * 0.75); i < framesCount; i++) {
+        QImage image = sink.images().at(i);
+        QVERIFY(!image.isNull());
+        QRgb rgb = image.pixel(point);
+//        qDebug() << QString("RGB: %1, %2, %3").arg(qRed(rgb)).arg(qGreen(rgb)).arg(qBlue(rgb));
+
+        // RGB values should be 0, 255, 0. Compensating for inaccurate video encoding.
+        QVERIFY(qRed(rgb) <= 60);
+        QVERIFY(qGreen(rgb) >= 200);
+        QVERIFY(qBlue(rgb) <= 60);
+    }
 
     QFile(fileName).remove();
 }
