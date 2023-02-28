@@ -76,8 +76,13 @@ void QWasmMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
     if (m_audioInput == input)
         return;
 
-    m_needsAudio = !input;
+    m_needsAudio = (bool)input;
     m_audioInput = input;
+}
+
+bool QWasmMediaCaptureSession::hasAudio()
+{
+    return m_needsAudio;
 }
 
 void QWasmMediaCaptureSession::setVideoPreview(QVideoSink *sink)

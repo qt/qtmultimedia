@@ -3,11 +3,15 @@
 
 #include "qwasmmediarecorder_p.h"
 #include "qwasmmediacapturesession_p.h"
+#include <private/qplatformmediadevices_p.h>
 #include "qwasmcamera_p.h"
+#include "qwasmaudioinput_p.h"
+
 #include <private/qstdweb_p.h>
 #include <QtCore/QIODevice>
 #include <QFile>
 #include <QTimer>
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 
@@ -17,6 +21,7 @@ QWasmMediaRecorder::QWasmMediaRecorder(QMediaRecorder *parent)
     : QPlatformMediaRecorder(parent)
 {
     m_durationTimer.reset(new QElapsedTimer());
+    QPlatformMediaDevices::instance(); // initialize getUserMedia
 }
 
 QWasmMediaRecorder::~QWasmMediaRecorder()
@@ -112,18 +117,47 @@ void QWasmMediaRecorder::initUserMedia()
     emscripten::val navigator = emscripten::val::global("navigator");
     emscripten::val mediaDevices = navigator["mediaDevices"];
 
-    QWasmCamera *wasmCamera = reinterpret_cast<QWasmCamera *>(m_session->camera());
-    emscripten::val m_video = wasmCamera->cameraOutput()->surfaceElement();
-    if (m_video.isNull() || m_video.isUndefined()) {
-        qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO  << "video element not found";
+    if (mediaDevices.isNull() || mediaDevices.isUndefined()) {
+        qCDebug(qWasmMediaRecorder) << "MediaDevices are undefined or null";
         return;
     }
 
-    emscripten::val stream = m_video["srcObject"];
-    if (stream.isNull() || stream.isUndefined()) {
-        qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO  << "video stream not found";
+    if (!m_session)
         return;
+    qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << m_session;
+
+    emscripten::val stream = emscripten::val::undefined();
+    if (hasCamera()) {
+        qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "has camera";
+        QWasmCamera *wasmCamera = reinterpret_cast<QWasmCamera *>(m_session->camera());
+
+        if (wasmCamera) {
+            emscripten::val m_video = wasmCamera->cameraOutput()->surfaceElement();
+            if (m_video.isNull() || m_video.isUndefined()) {
+                qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO  << "video element not found";
+                return;
+            }
+
+            stream = m_video["srcObject"];
+            if (stream.isNull() || stream.isUndefined()) {
+                qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO  << "Video input stream not found";
+                return;
+            }
+        }
+    } else {
+        qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "has audio";
+        stream = static_cast<QWasmAudioInput *>(m_session->audioInput())->mediaStream();
+
+        if (stream.isNull() || stream.isUndefined()) {
+            qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "Audio input stream not found";
+            return;
+        }
     }
+    if (stream.isNull() || stream.isUndefined()) {
+         qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "No input stream found";
+         return;
+    }
+
     setStream(stream);
 }
 
@@ -166,8 +200,24 @@ void QWasmMediaRecorder::setStream(emscripten::val stream)
     // create the MediaRecorder, and set up data callback
     m_mediaRecorder = emscripten::val::global("MediaRecorder").new_(stream, emMediaSettings);
 
+    qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "m_mediaRecorder state:"
+        << QString::fromStdString(m_mediaRecorder["state"].as<std::string>());
+
+    if (m_mediaRecorder.isNull() || m_mediaRecorder.isUndefined()) {
+        qWarning() << "MediaRecorder could not be found";
+        return;
+    }
     m_mediaRecorder.set("data-mediarecordercontext",
                         emscripten::val(quintptr(reinterpret_cast<void *>(this))));
+
+    if (!m_mediaStreamDataAvailable.isNull()) {
+        m_mediaStreamDataAvailable.reset();
+        m_mediaStreamStopped.reset();
+        m_mediaStreamError.reset();
+        m_mediaStreamStart.reset();
+        m_mediaStreamPause.reset();
+        m_mediaStreamResume.reset();
+    }
 
     // dataavailable
     auto callback = [](emscripten::val blob) {
@@ -175,37 +225,39 @@ void QWasmMediaRecorder::setStream(emscripten::val stream)
             qCDebug(qWasmMediaRecorder) << "blob is null";
             return;
         }
-
         if (blob["target"].isUndefined() || blob["target"].isNull())
             return;
         if (blob["data"].isUndefined() || blob["data"].isNull())
             return;
         if (blob["target"]["data-mediarecordercontext"].isUndefined()
-                || blob["target"]["data-mediarecordercontext"].isNull())
+            || blob["target"]["data-mediarecordercontext"].isNull())
             return;
 
         QWasmMediaRecorder *recorder = reinterpret_cast<QWasmMediaRecorder *>(
-                    blob["target"]["data-mediarecordercontext"].as<quintptr>());
+                blob["target"]["data-mediarecordercontext"].as<quintptr>());
 
         if (recorder) {
-            const double timeCode = blob.hasOwnProperty("timecode")
-                    ? blob["timecode"].as<double>() : 0;
-            recorder->audioDataAvailable(blob["data"],timeCode);
+            const double timeCode =
+                    blob.hasOwnProperty("timecode") ? blob["timecode"].as<double>() : 0;
+            recorder->audioDataAvailable(blob["data"], timeCode);
         }
     };
 
     m_mediaStreamDataAvailable.reset(
-                new qstdweb::EventCallback(m_mediaRecorder, "dataavailable", callback));
+            new qstdweb::EventCallback(m_mediaRecorder, "dataavailable", callback));
 
     // stopped
     auto stoppedCallback = [](emscripten::val event) {
-
         if (event.isUndefined() || event.isNull()) {
             qCDebug(qWasmMediaRecorder) << "event is null";
             return;
         }
+        qCDebug(qWasmMediaRecorder)
+                << "STOPPED: state changed"
+                << QString::fromStdString(event["target"]["state"].as<std::string>());
+
         QWasmMediaRecorder *recorder = reinterpret_cast<QWasmMediaRecorder *>(
-                    event["target"]["data-mediarecordercontext"].as<quintptr>());
+                event["target"]["data-mediarecordercontext"].as<quintptr>());
 
         if (recorder) {
             recorder->m_isRecording = false;
@@ -216,11 +268,10 @@ void QWasmMediaRecorder::setStream(emscripten::val stream)
     };
 
     m_mediaStreamStopped.reset(
-                new qstdweb::EventCallback(m_mediaRecorder, "stop", stoppedCallback));
+            new qstdweb::EventCallback(m_mediaRecorder, "stop", stoppedCallback));
 
     // error
     auto errorCallback = [](emscripten::val theError) {
-
         if (theError.isUndefined() || theError.isNull()) {
             qCDebug(qWasmMediaRecorder) << "error is null";
             return;
@@ -230,27 +281,30 @@ void QWasmMediaRecorder::setStream(emscripten::val stream)
                 << QString::fromStdString(theError["message"].as<std::string>());
 
         QWasmMediaRecorder *recorder = reinterpret_cast<QWasmMediaRecorder *>(
-                    theError["target"]["data-mediarecordercontext"].as<quintptr>());
+                theError["target"]["data-mediarecordercontext"].as<quintptr>());
 
         if (recorder) {
-            recorder->error(QMediaRecorder::ResourceError, QString::fromStdString(theError["message"].as<std::string>()));
+            recorder->error(QMediaRecorder::ResourceError,
+                            QString::fromStdString(theError["message"].as<std::string>()));
             emit recorder->stateChanged(recorder->state());
         }
     };
 
-    m_mediaStreamError.reset(
-                new qstdweb::EventCallback(m_mediaRecorder, "error", errorCallback));
+    m_mediaStreamError.reset(new qstdweb::EventCallback(m_mediaRecorder, "error", errorCallback));
 
     // start
-    auto startCallback = [](emscripten::val eventVal) {
-
-        if (eventVal.isUndefined() || eventVal.isNull()) {
-            qCDebug(qWasmMediaRecorder) << "eventVal is null";
+    auto startCallback = [](emscripten::val event) {
+        if (event.isUndefined() || event.isNull()) {
+            qCDebug(qWasmMediaRecorder) << "event is null";
             return;
         }
 
+        qCDebug(qWasmMediaRecorder)
+                << "START: state changed"
+                << QString::fromStdString(event["target"]["state"].as<std::string>());
+
         QWasmMediaRecorder *recorder = reinterpret_cast<QWasmMediaRecorder *>(
-                    eventVal["target"]["data-mediarecordercontext"].as<quintptr>());
+                event["target"]["data-mediarecordercontext"].as<quintptr>());
 
         if (recorder) {
             recorder->m_isRecording = true;
@@ -259,11 +313,60 @@ void QWasmMediaRecorder::setStream(emscripten::val stream)
         }
     };
 
-    m_mediaStreamStart.reset(
-                new qstdweb::EventCallback(m_mediaRecorder, "start", startCallback));
+    m_mediaStreamStart.reset(new qstdweb::EventCallback(m_mediaRecorder, "start", startCallback));
+
+    // pause
+    auto pauseCallback = [](emscripten::val event) {
+        if (event.isUndefined() || event.isNull()) {
+            qCDebug(qWasmMediaRecorder) << "event is null";
+            return;
+        }
+
+        qCDebug(qWasmMediaRecorder)
+                << "pause: state changed"
+                << QString::fromStdString(event["target"]["state"].as<std::string>());
+
+        QWasmMediaRecorder *recorder = reinterpret_cast<QWasmMediaRecorder *>(
+                event["target"]["data-mediarecordercontext"].as<quintptr>());
+
+        if (recorder) {
+            recorder->m_isRecording = true;
+            recorder->m_durationTimer->start();
+            emit recorder->stateChanged(recorder->state());
+        }
+    };
+
+    m_mediaStreamPause.reset(new qstdweb::EventCallback(m_mediaRecorder, "pause", pauseCallback));
+
+    // resume
+    auto resumeCallback = [](emscripten::val event) {
+        if (event.isUndefined() || event.isNull()) {
+            qCDebug(qWasmMediaRecorder) << "event is null";
+            return;
+        }
+
+        qCDebug(qWasmMediaRecorder)
+                << "resume: state changed"
+                << QString::fromStdString(event["target"]["state"].as<std::string>());
+
+        QWasmMediaRecorder *recorder = reinterpret_cast<QWasmMediaRecorder *>(
+                event["target"]["data-mediarecordercontext"].as<quintptr>());
+
+        if (recorder) {
+            recorder->m_isRecording = true;
+            recorder->m_durationTimer->start();
+            emit recorder->stateChanged(recorder->state());
+        }
+    };
+
+    m_mediaStreamResume.reset(
+            new qstdweb::EventCallback(m_mediaRecorder, "resume", resumeCallback));
 
     // set up what options we can
-    setTrackContraints(m_mediaSettings, stream);
+    if (hasCamera())
+        setTrackContraints(m_mediaSettings, stream);
+    else
+        startStream();
 }
 
 void QWasmMediaRecorder::audioDataAvailable(emscripten::val blob, double timeCodeDifference)
@@ -276,20 +379,16 @@ void QWasmMediaRecorder::audioDataAvailable(emscripten::val blob, double timeCod
 
     auto fileReader = std::make_shared<qstdweb::FileReader>();
 
-    fileReader->onError(
-                [=](emscripten::val theError) {
-
-        error(QMediaRecorder::ResourceError, QString::fromStdString(theError["message"].as<std::string>()));
+    fileReader->onError([=](emscripten::val theError) {
+        error(QMediaRecorder::ResourceError,
+              QString::fromStdString(theError["message"].as<std::string>()));
     });
 
-    fileReader->onAbort(
-                [=](emscripten::val ) {
+    fileReader->onAbort([=](emscripten::val) {
         error(QMediaRecorder::ResourceError, QStringLiteral("File read aborted"));
     });
 
-    fileReader->onLoad(
-                [=](emscripten::val) {
-
+    fileReader->onLoad([=](emscripten::val) {
         if (fileReader->val().isNull() || fileReader->val().isUndefined())
             return;
         qstdweb::ArrayBuffer result = fileReader->result();
@@ -303,6 +402,7 @@ void QWasmMediaRecorder::audioDataAvailable(emscripten::val blob, double timeCod
                 m_outputTarget->write(fileContent, fileContent.length());
             // we've read everything
             emit durationChanged(m_durationMs);
+            qCDebug(qWasmMediaRecorder) << "duration changed" << m_durationMs;
         }
     });
 
@@ -312,6 +412,8 @@ void QWasmMediaRecorder::audioDataAvailable(emscripten::val blob, double timeCod
 // constraints are suggestions, as not all hardware supports all settings
 void QWasmMediaRecorder::setTrackContraints(QMediaEncoderSettings &settings, emscripten::val stream)
 {
+    qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << settings.audioSampleRate();
+
     if (stream.isUndefined() || stream.isNull()) {
         qCDebug(qWasmMediaRecorder)<< Q_FUNC_INFO << "could not find MediaStream";
         return;
@@ -360,12 +462,12 @@ void QWasmMediaRecorder::setTrackContraints(QMediaEncoderSettings &settings, ems
             // try to apply the video options
             qstdweb::Promise::make(videoTracks[0], QStringLiteral("applyConstraints"),
             { .thenFunc =
-                        [=](emscripten::val result) {
+                        [this](emscripten::val result) {
                     Q_UNUSED(result)
                     startStream();
                 },
                         .catchFunc =
-                        [=](emscripten::val theError) {
+                        [this](emscripten::val theError) {
                     qWarning() << "setting video params failed error";
                     qCDebug(qWasmMediaRecorder)
                             << theError["code"].as<int>()
@@ -384,6 +486,8 @@ void QWasmMediaRecorder::startStream()
         qCDebug(qWasmMediaRecorder) << Q_FUNC_INFO << "could not find MediaStream";
         return;
     }
+    qCDebug(qWasmMediaRecorder) << "m_mediaRecorder state:" <<
+               QString::fromStdString(m_mediaRecorder["state"].as<std::string>());
 
     constexpr int sliceSizeInMs = 250; // TODO find what size is best
     m_mediaRecorder.call<void>("start", emscripten::val(sliceSizeInMs));
@@ -398,12 +502,9 @@ void QWasmMediaRecorder::startStream()
 void QWasmMediaRecorder::setUpFileSink()
 {
     QString m_targetFileName = outputLocation().toLocalFile();
+    QString suffix = m_mediaSettings.mimeType().preferredSuffix();
     if (m_targetFileName.isEmpty()) {
-        if (hasCamera()) {
-            m_targetFileName = "/home/web_user/tmp.mp4";
-        } else {
-            m_targetFileName = "/home/web_user/tmp.mp3";
-        }
+        m_targetFileName = "/home/web_user/tmp." + suffix;
         QPlatformMediaRecorder::setOutputLocation(m_targetFileName);
     }
 

@@ -46,10 +46,11 @@ public:
     void setMediaRecorder(QPlatformMediaRecorder *recorder) override;
 
     void setAudioInput(QPlatformAudioInput *input) override;
+    QPlatformAudioInput * audioInput() const { return m_audioInput; }
     void setVideoPreview(QVideoSink *sink) override;
     void setAudioOutput(QPlatformAudioOutput *output) override;
 
-    bool hasAudio() { return m_needsAudio; }
+    bool hasAudio();
     QVideoSink *videoSink() { return m_wasmSink; }
 
 private:

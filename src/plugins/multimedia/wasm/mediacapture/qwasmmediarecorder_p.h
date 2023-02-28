@@ -65,6 +65,8 @@ private:
     void setUpFileSink();
 
     emscripten::val m_mediaRecorder = emscripten::val::undefined();
+    emscripten::val m_mediaStream = emscripten::val::undefined();
+
     QWasmMediaCaptureSession *m_session = nullptr;
     QMediaEncoderSettings m_mediaSettings;
     QIODevice *m_outputTarget;
@@ -72,6 +74,9 @@ private:
     QScopedPointer<qstdweb::EventCallback> m_mediaStreamStopped;
     QScopedPointer<qstdweb::EventCallback> m_mediaStreamError;
     QScopedPointer<qstdweb::EventCallback> m_mediaStreamStart;
+    QScopedPointer<qstdweb::EventCallback> m_mediaStreamPause;
+    QScopedPointer<qstdweb::EventCallback> m_mediaStreamResume;
+
     qint64 m_durationMs = 0;
     bool m_isRecording = false;
     QScopedPointer <QElapsedTimer> m_durationTimer;
