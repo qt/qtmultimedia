@@ -290,25 +290,30 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
     // -- Set values on camera
 
     // fix the resolution of output based on the orientation
-    QSize outputResolution = adjustedViewfinderResolution;
+    QSize cameraOutputResolution = adjustedViewfinderResolution;
+    QSize videoOutputResolution = adjustedViewfinderResolution;
+    QSize currentVideoOutputResolution = m_videoOutput ? m_videoOutput->getVideoSize() : QSize(0, 0);
     const int rotation = currentCameraRotation();
     // only transpose if it's valid for the preview
-    if ((rotation == 90 || rotation == 270) && previewSizes.contains(outputResolution.transposed()))
-        outputResolution.transpose();
+    if (rotation == 90 || rotation == 270) {
+        videoOutputResolution.transpose();
+        if (previewSizes.contains(cameraOutputResolution.transposed()))
+            cameraOutputResolution.transpose();
+    }
 
-    if (currentViewfinderResolution != outputResolution
+    if (currentViewfinderResolution != cameraOutputResolution
+        || (m_videoOutput && currentVideoOutputResolution != videoOutputResolution)
         || currentPreviewFormat != adjustedPreviewFormat || currentFpsRange.min != adjustedFps.min
         || currentFpsRange.max != adjustedFps.max) {
-
         if (m_videoOutput) {
-            m_videoOutput->setVideoSize(outputResolution);
+            m_videoOutput->setVideoSize(videoOutputResolution);
         }
 
         // if preview is started, we have to stop it first before changing its size
         if (m_previewStarted && restartPreview)
             m_camera->stopPreview();
 
-        m_camera->setPreviewSize(outputResolution);
+        m_camera->setPreviewSize(cameraOutputResolution);
         m_camera->setPreviewFormat(adjustedPreviewFormat);
         m_camera->setPreviewFpsRange(adjustedFps);
 
