@@ -52,9 +52,15 @@ public:
 
     static QPlatformMediaPlayer::TrackType trackTypeFromMediaType(int mediaType);
 
-    bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
-
     int activeTrack(QPlatformMediaPlayer::TrackType type) const;
+
+    const QList<StreamInfo> &streamInfo(QPlatformMediaPlayer::TrackType trackType) const;
+
+    qint64 duration() const { return m_duration; }
+
+    const QMediaMetaData &metaData() const { return m_metaData; }
+
+    bool isSeekable() const { return m_isSeekable; }
 
 protected:
     std::optional<ContextError> recreateAVFormatContext(const QUrl &media, QIODevice *stream);
@@ -62,6 +68,8 @@ protected:
     void updateStreams();
 
     void updateMetaData();
+
+    bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
 protected:
     std::unique_ptr<AVFormatContext, AVFormatContextDeleter> m_context;

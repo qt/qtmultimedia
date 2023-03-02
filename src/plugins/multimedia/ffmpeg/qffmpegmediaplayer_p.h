@@ -18,12 +18,12 @@
 #include <private/qplatformmediaplayer_p.h>
 #include <qmediametadata.h>
 #include <qtimer.h>
+#include <qpointer.h>
 #include "qffmpeg_p.h"
 
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
-class Decoder;
 class PlaybackEngine;
 }
 class QPlatformAudioOutput;
@@ -32,7 +32,6 @@ class QFFmpegMediaPlayer : public QObject, public QPlatformMediaPlayer
 {
     Q_OBJECT
 public:
-    using Decoder = QFFmpeg::PlaybackEngine;
     QFFmpegMediaPlayer(QMediaPlayer *player);
     ~QFFmpegMediaPlayer();
 
@@ -55,8 +54,6 @@ public:
     void pause() override;
     void stop() override;
 
-//    bool streamPlaybackSupported() const { return false; }
-
     void setAudioOutput(QPlatformAudioOutput *) override;
 
     QMediaMetaData metaData() const override;
@@ -71,6 +68,9 @@ public:
 
     Q_INVOKABLE void delayedLoadedStatus() { mediaStatusChanged(QMediaPlayer::LoadedMedia); }
 
+private:
+    void runPlayback();
+
 private slots:
     void updatePosition();
     void endOfStream();
@@ -80,16 +80,16 @@ private slots:
     }
 
 private:
-    friend class QFFmpeg::Decoder;
+    QTimer m_positionUpdateTimer;
 
-    QTimer positionUpdateTimer;
+    using PlaybackEngine = QFFmpeg::PlaybackEngine;
 
-    std::unique_ptr<Decoder> decoder;
+    std::unique_ptr<PlaybackEngine> m_playbackEngine;
     QPlatformAudioOutput *m_audioOutput = nullptr;
-    QVideoSink *m_videoSink = nullptr;
+    QPointer<QVideoSink> m_videoSink;
 
     QUrl m_url;
-    QIODevice *m_device = nullptr;
+    QPointer<QIODevice> m_device;
     float m_playbackRate = 1.;
 };
 
