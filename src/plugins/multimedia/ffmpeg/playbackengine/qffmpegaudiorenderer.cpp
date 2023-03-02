@@ -106,8 +106,9 @@ void AudioRenderer::initResempler(const Codec *codec)
 void AudioRenderer::freeOutput()
 {
     if (m_sink) {
-        m_sink->stop();
         m_sink->reset();
+
+        // TODO: inestigate if it's enough to reset the sink without deleting
         m_sink.reset();
     }
 
