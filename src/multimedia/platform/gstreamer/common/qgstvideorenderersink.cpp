@@ -334,6 +334,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             if (m_sink && !m_flushed)
                 m_sink->setVideoFrame(QVideoFrame());
             m_flushed = true;
+            locker->relock();
         }
     } else if (m_stop) {
         m_stop = false;

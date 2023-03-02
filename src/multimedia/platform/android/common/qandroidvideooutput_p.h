@@ -166,6 +166,8 @@ private:
     QString m_subtitleText;
     QPixmap m_subtitlePixmap;
 
+    QThread *m_thread = QThread::currentThread();
+
     GraphicsResourceDeleter *m_graphicsDeleter = nullptr;
 
     friend class AndroidTextureVideoBuffer;

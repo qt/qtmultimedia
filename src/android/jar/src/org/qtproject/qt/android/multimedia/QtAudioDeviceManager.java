@@ -51,9 +51,11 @@ import android.content.IntentFilter;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.media.MediaRecorder;
+import android.util.Log;
 
 public class QtAudioDeviceManager
 {
+    private static final String TAG = "QtAudioDeviceManager";
     static private AudioManager m_audioManager = null;
     static private final AudioDevicesReceiver m_audioDevicesReceiver = new AudioDevicesReceiver();
 
@@ -252,7 +254,7 @@ public class QtAudioDeviceManager
                        setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, true, false);
                        return true;
                    case AudioDeviceInfo.TYPE_BUILTIN_SPEAKER:
-                       setAudioOutput(AudioManager.MODE_NORMAL, false, true);
+                       setAudioOutput(AudioManager.STREAM_MUSIC, false, true);
                        return true;
                    case AudioDeviceInfo.TYPE_WIRED_HEADSET:
                    case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
@@ -262,6 +264,8 @@ public class QtAudioDeviceManager
                        // It doesn't work when WIRED HEADPHONES are connected
                        // Earpiece has the lowest priority and setWiredHeadsetOn(boolean)
                        // method to force it is deprecated
+                       Log.w(TAG, "Built in Earpiece may not work when "
+                             + "Wired Headphones are connected");
                        setAudioOutput(AudioManager.MODE_IN_CALL, false, false);
                        return true;
                    default:

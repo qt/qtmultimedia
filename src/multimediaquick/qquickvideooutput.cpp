@@ -356,7 +356,7 @@ QRectF QQuickVideoOutput::sourceRect() const
     if (!size.isValid())
         return {};
 
-    if (!qIsDefaultAspect(m_orientation))
+    if (!qIsDefaultAspect(m_orientation + m_frameOrientation))
         size.transpose();
 
 

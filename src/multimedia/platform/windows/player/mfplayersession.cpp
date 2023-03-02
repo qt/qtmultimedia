@@ -187,6 +187,7 @@ void MFPlayerSession::close()
         CloseHandle(m_hCloseEvent);
     m_hCloseEvent = 0;
     m_lastPosition = -1;
+    m_position = 0;
 }
 
 MFPlayerSession::~MFPlayerSession()
@@ -514,6 +515,12 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
         }
     } else if (mediaType == Video) {
         activate = m_videoRendererControl->createActivate();
+
+        QSize resolution = m_metaData.value(QMediaMetaData::Resolution).toSize();
+
+        if (resolution.isValid())
+            m_videoRendererControl->setCropRect(QRect(QPoint(), resolution));
+
     } else {
         // Unknown stream type.
         emit error(QMediaPlayer::FormatError, tr("Unknown stream type."), false);
