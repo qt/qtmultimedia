@@ -65,6 +65,8 @@ private slots:
     void multipleSeekStressTest();
     void playbackRateChanging();
     void durationDetectionIssues();
+    void finiteLoops();
+    void infiteLoops();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -1617,6 +1619,118 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
     auto videoTracks = player.videoTracks();
     QCOMPARE(videoTracks.size(), 1);
     QCOMPARE(videoTracks.front().value(QMediaMetaData::Duration), QVariant(qint64(400)));
+}
+
+static std::vector<std::pair<qint64, qint64>>
+positionChangingIntervals(const QSignalSpy &positionSpy)
+{
+    std::vector<std::pair<qint64, qint64>> result;
+    for (auto &params : positionSpy) {
+        const auto pos = params.front().value<qint64>();
+
+        if (result.empty() || pos < result.back().second)
+            result.emplace_back(pos, pos);
+        else
+            result.back().second = pos;
+    }
+
+    return result;
+}
+
+void tst_QMediaPlayerBackend::finiteLoops()
+{
+    if (localVideoFile3ColorsWithSound.isEmpty())
+        QSKIP("Video format is not supported");
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+
+    QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
+
+    player.setVideoOutput(&surface);
+
+    QCOMPARE(player.loops(), 1);
+    player.setLoops(3);
+    QCOMPARE(player.loops(), 3);
+
+    player.setSource(localVideoFile3ColorsWithSound);
+    player.setPlaybackRate(5);
+
+    player.play();
+    surface.waitForFrame();
+
+    // check pause doesn't affect looping
+    {
+        QTest::qWait(static_cast<int>(player.duration() * 3
+                                      * 0.6 /*relative pos*/ / player.playbackRate()));
+        player.pause();
+        player.play();
+    }
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+
+    auto intervals = positionChangingIntervals(positionSpy);
+
+    QCOMPARE(intervals.size(), 3);
+    QCOMPARE_GT(intervals[0].first, 0);
+    QCOMPARE(intervals[0].second, player.duration());
+    QCOMPARE(intervals[1].first, 0);
+    QCOMPARE(intervals[1].second, player.duration());
+    QCOMPARE(intervals[2].first, 0);
+    QCOMPARE(intervals[2].second, player.duration());
+
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+
+    // be sure that counter is reset if repeat the same
+    {
+        positionSpy.clear();
+        player.play();
+        player.setPlaybackRate(10);
+        surface.waitForFrame();
+
+        QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+        QCOMPARE(positionChangingIntervals(positionSpy).size(), 3);
+        QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    }
+}
+
+void tst_QMediaPlayerBackend::infiteLoops()
+{
+    if (localVideoFile2.isEmpty())
+        QSKIP("Video format is not supported");
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+
+    player.setVideoOutput(&surface);
+
+    QCOMPARE(player.loops(), 1);
+    player.setLoops(QMediaPlayer::Infinite);
+    QCOMPARE(player.loops(), QMediaPlayer::Infinite);
+
+    // select some small file
+    player.setSource(localVideoFile2);
+    player.setPlaybackRate(20);
+
+    player.play();
+    surface.waitForFrame();
+
+    for (int i = 0; i < 2; ++i) {
+        QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
+
+        QTest::qWait(
+                std::max(static_cast<int>(player.duration() / player.playbackRate() * 4),
+                         300 /*ensure some minimum waiting time to reduce threading flakiness*/));
+        QCOMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+        QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+
+        const auto intervals = positionChangingIntervals(positionSpy);
+        QVERIFY(!intervals.empty());
+        QCOMPARE(intervals.front().second, player.duration());
+    }
+
+    player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

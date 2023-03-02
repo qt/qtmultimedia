@@ -62,7 +62,7 @@ class QFFmpegMediaPlayer;
 namespace QFFmpeg
 {
 
-class PlaybackEngine : public QObject, protected MediaDataHolder
+class PlaybackEngine : public QObject, public MediaDataHolder
 {
     Q_OBJECT
 public:
@@ -100,16 +100,7 @@ public:
 
     using MediaDataHolder::activeTrack;
 
-    bool isSeekable() const;
-
     qint64 currentPosition() const;
-
-    // To be removed after aligning with Decoder
-    using MediaDataHolder::m_currentAVStreamIndex;
-    using MediaDataHolder::m_duration;
-    using MediaDataHolder::m_metaData;
-    using MediaDataHolder::m_requestedStreams;
-    using MediaDataHolder::m_streamMap;
 
 signals:
     void endOfStream();

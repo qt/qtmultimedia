@@ -425,10 +425,6 @@ void PlaybackEngine::setAudioSink(QAudioOutput *output)
         forceUpdate();
 }
 
-bool PlaybackEngine::isSeekable() const {
-    return m_isSeekable;
-}
-
 qint64 PlaybackEngine::currentPosition() const {
     auto pos = std::numeric_limits<qint64>::max();
 

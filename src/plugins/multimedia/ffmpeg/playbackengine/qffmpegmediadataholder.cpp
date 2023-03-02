@@ -267,6 +267,14 @@ int MediaDataHolder::activeTrack(QPlatformMediaPlayer::TrackType type) const
     return type < QPlatformMediaPlayer::NTrackTypes ? m_requestedStreams[type] : -1;
 }
 
+const QList<MediaDataHolder::StreamInfo> &MediaDataHolder::streamInfo(
+        QPlatformMediaPlayer::TrackType trackType) const
+{
+    Q_ASSERT(trackType < QPlatformMediaPlayer::NTrackTypes);
+
+    return m_streamMap[trackType];
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE
