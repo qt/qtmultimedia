@@ -133,6 +133,7 @@ private:
     void audioThreadStart();
     void audioThreadStop();
     void audioThreadDrain();
+    void audioDeviceStart();
     void audioDeviceStop();
     void audioDeviceIdle();
     void audioDeviceError();
