@@ -4,6 +4,7 @@
     "QDocModule": "qtspatialaudio",
     "Description": "A pretty fast FFT.",
     "QtUsage": "Used to support spatial audio.",
+    "SecurityCritical": true,
 
     "Homepage": "https://bitbucket.org/jpommier/pffft.git",
     "Version": "7c3b5a7dc510",
