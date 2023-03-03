@@ -4,6 +4,7 @@
     "QDocModule": "qtspatialaudio",
     "Description": "3D audio support.",
     "QtUsage": "Used to implement spatial audio.",
+    "SecurityCritical": true,
 
     "Homepage": "https://resonance-audio.github.io/resonance-audio/",
     "Version": "e225aedb5ec7",
