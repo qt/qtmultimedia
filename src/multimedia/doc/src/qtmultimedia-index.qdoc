@@ -164,8 +164,8 @@
     On most platforms, there are two different backends that can be used for Qt Multimedia.
 
     In Qt 6.5, we're setting \l {http://ffmpeg.org}{FFmpeg framework} as the default backend on
-    Windows, Linux, macOS/iOS, and Android. Native backends, namely gstreamer on Linux,
-    AVFoundation on macOS/iOS, WMF on Windows, and the MediaCodec framework on Android,
+    Windows, macOS, Android, and Linux except Yocto distribution. Native backends, namely gstreamer on Linux,
+    AVFoundation on macOS, WMF on Windows, and the MediaCodec framework on Android,
     were the default in 6.4. These are still available but with limited support.
     This means that we will strive to fix critical issues with the native backends, but don't
     guarantee fixing minor issues and won't implement new features with native backends.
@@ -174,13 +174,13 @@
 
     We aim to align the behavior on all the platforms, especially, with the ffmpeg backend.
     Despite this fact we still have platform-dependent issues with formats, codecs, advanced camera
-    features, and screen capturing. This happens since we use some platform API anyway,
-    even with ffmpeg, and there are specific problems with ffmpeg hardware acceleration.
+    features, and screen capturing. This happens since we use some platform API anyway, even with ffmpeg,
+    and there are specific problems with ffmpeg hardware acceleration, mostly on Linux run on ARM architectures.
     Known backend-dependent limitations will be documented in the respective classes and methods.
 
     In the case of issues with the default ffmpeg backend, we suggest testing with a native backend.
     You can switch to native backends by setting the \c{QT_MEDIA_BACKEND} environment variable
-    to \c windows, \c gstreamer (on Linux), \c darwin (on macOS/iOS), or \c android:
+    to \c windows, \c gstreamer (on Linux), \c darwin (on macOS), or \c android:
 
     \code
     export QT_MEDIA_BACKEND=darwin
@@ -192,6 +192,8 @@
     export QT_MEDIA_BACKEND=ffmpeg
     \endcode
 
+    On the Qt Multimedia compilation stage the default media backend can be configured
+    via cmake variable \c{QT_DEFAULT_MEDIA_BACKEND}.
 
     \list
       \li \l{Qt Multimedia on macOS and iOS}{macOS and iOS}
