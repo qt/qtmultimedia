@@ -55,18 +55,12 @@ void AVFVideoSink::setVideoSinkInterface(AVFVideoSinkInterface *interface)
         m_interface->setRhi(m_rhi);
 }
 
-// The OpengGL texture cache can apparently only handle single plane formats, so lets simply restrict to BGRA
-static NSDictionary* const AVF_OUTPUT_SETTINGS_OPENGL = @{
-        (NSString *)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)
-#ifndef Q_OS_IOS // On iOS this key generates a warning about unsupported key.
-        , (NSString *)kCVPixelBufferOpenGLCompatibilityKey: @true
-#endif // Q_OS_IOS
-};
-
 AVFVideoSinkInterface::~AVFVideoSinkInterface()
 {
     if (m_layer)
         [m_layer release];
+    if (m_outputSettings)
+        [m_outputSettings release];
     freeTextureCaches();
 }
 
@@ -124,8 +118,6 @@ void AVFVideoSinkInterface::setRhi(QRhi *rhi)
         }
     } else if (rhi->backend() == QRhi::OpenGLES2) {
 #if QT_CONFIG(opengl)
-        setOutputSettings(AVF_OUTPUT_SETTINGS_OPENGL);
-
 #ifdef Q_OS_MACOS
         const auto *gl = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
 
@@ -160,6 +152,7 @@ void AVFVideoSinkInterface::setRhi(QRhi *rhi)
         m_rhi = nullptr;
 #endif // QT_CONFIG(opengl)
     }
+    setOutputSettings();
 }
 
 void AVFVideoSinkInterface::setLayer(CALayer *layer)
@@ -177,9 +170,48 @@ void AVFVideoSinkInterface::setLayer(CALayer *layer)
     reconfigure();
 }
 
-void AVFVideoSinkInterface::setOutputSettings(NSDictionary *settings)
+void AVFVideoSinkInterface::setOutputSettings()
 {
-    m_outputSettings = settings;
+    if (!m_rhi)
+        return;
+
+    if (m_outputSettings)
+        [m_outputSettings release];
+    m_outputSettings = nil;
+
+    // Set pixel format
+    NSDictionary *dictionary = nil;
+    if (m_rhi->backend() == QRhi::Metal) {
+        dictionary = @{(NSString *)kCVPixelBufferPixelFormatTypeKey:
+        @[
+            @(kCVPixelFormatType_32BGRA),
+            @(kCVPixelFormatType_32RGBA),
+            @(kCVPixelFormatType_422YpCbCr8),
+            @(kCVPixelFormatType_422YpCbCr8_yuvs),
+            @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange),
+            @(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange),
+            @(kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange),
+            @(kCVPixelFormatType_420YpCbCr10BiPlanarFullRange),
+            @(kCVPixelFormatType_OneComponent8),
+            @(kCVPixelFormatType_OneComponent16),
+            @(kCVPixelFormatType_420YpCbCr8Planar),
+            @(kCVPixelFormatType_420YpCbCr8PlanarFullRange)
+        ]
+#ifndef Q_OS_IOS // This key is not supported and generates a warning.
+        , (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
+#endif // Q_OS_IOS
+        };
+    } else if (m_rhi->backend() == QRhi::OpenGLES2) {
+#if QT_CONFIG(opengl)
+        dictionary = @{(NSString *)kCVPixelBufferPixelFormatTypeKey:
+            @(kCVPixelFormatType_32BGRA)
+#ifndef Q_OS_IOS // On iOS this key generates a warning about unsupported key.
+            , (NSString *)kCVPixelBufferOpenGLCompatibilityKey: @true
+#endif // Q_OS_IOS
+        };
+#endif
+    }
+    m_outputSettings = [[NSDictionary alloc] initWithDictionary:dictionary];
 }
 
 void AVFVideoSinkInterface::updateLayerBounds()

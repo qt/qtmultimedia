@@ -80,13 +80,13 @@ bool QAVFHelpers::toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsig
 QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL)
 {
     auto avPixelFormat = CVPixelBufferGetPixelFormatType(buffer);
+    auto pixelFormat = fromCVPixelFormat(avPixelFormat);
     if (openGL) {
         if (avPixelFormat == kCVPixelFormatType_32BGRA)
-            avPixelFormat = QVideoFrameFormat::Format_SamplerRect;
+            pixelFormat = QVideoFrameFormat::Format_SamplerRect;
         else
             qWarning() << "Accelerated macOS OpenGL video supports BGRA only, got CV pixel format" << avPixelFormat;
     }
-    auto pixelFormat = fromCVPixelFormat(avPixelFormat);
 
     size_t width = CVPixelBufferGetWidth(buffer);
     size_t height = CVPixelBufferGetHeight(buffer);

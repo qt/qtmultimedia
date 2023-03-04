@@ -108,13 +108,25 @@ void AVFCameraRenderer::reconfigure()
     deviceOrientationChanged();
 }
 
-void AVFCameraRenderer::setOutputSettings(NSDictionary *settings)
+void AVFCameraRenderer::setOutputSettings()
 {
     if (!m_videoDataOutput)
         return;
 
-    m_videoDataOutput.videoSettings = settings;
-    AVFVideoSinkInterface::setOutputSettings(settings);
+    const auto cameraPixelFormat = m_cameraSession ? m_cameraSession->cameraFormat().pixelFormat()
+                                                   : QVideoFrameFormat::Format_Invalid;
+    if (cameraPixelFormat != QVideoFrameFormat::Format_Invalid)
+        setPixelFormat(cameraPixelFormat);
+
+    // If no output settings set from above,
+    // it's most likely because the rhi is OpenGL
+    // and the pixel format is not BGRA.
+    // We force this in the base class implementation
+    if (!m_outputSettings)
+        AVFVideoSinkInterface::setOutputSettings();
+
+    if (m_outputSettings)
+        m_videoDataOutput.videoSettings = m_outputSettings;
 }
 
 void AVFCameraRenderer::configureAVCaptureSession(AVFCameraSession *cameraSession)
@@ -267,7 +279,7 @@ void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat pixe
             , (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
 #endif // Q_OS_IOS
         };
-        setOutputSettings(outputSettings);
+        m_outputSettings = outputSettings;
     } else {
         qWarning() << "QCamera::setCameraFormat: requested pixel format not supported. Did you use a camera format from another camera?";
     }
