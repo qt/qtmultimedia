@@ -44,6 +44,7 @@ public:
     void setActiveCamera(const QCameraDevice &info);
 
     void setCameraFormat(const QCameraFormat &format);
+    QCameraFormat cameraFormat() const;
 
     AVFCameraRenderer *videoOutput() const { return m_videoOutput; }
     AVCaptureAudioDataOutput *audioOutput() const { return m_audioOutput; }

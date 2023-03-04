@@ -20,6 +20,11 @@ qt_internal_add_test(tst_qmediaplayerbackend
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
+        Qt::MultimediaPrivate
+        Qt::MultimediaQuickPrivate
+        Qt::Qml
+        Qt::Quick
+        Qt::QuickPrivate
     TESTDATA ${testdata_resource_files}
 )
 
@@ -28,6 +33,7 @@ qt_internal_add_resource(tst_qmediaplayerbackend "testdata"
         "/"
     FILES
         ${testdata_resource_files}
+        "LazyLoad.qml"
 )
 
 ## Scopes:

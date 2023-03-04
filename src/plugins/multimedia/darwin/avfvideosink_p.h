@@ -65,7 +65,7 @@ public:
     virtual void reconfigure() = 0;
     virtual void setRhi(QRhi *);
     virtual void setLayer(CALayer *layer);
-    virtual void setOutputSettings(NSDictionary *settings);
+    virtual void setOutputSettings();
 
     QMutex *textureCacheMutex() { return &m_textureCacheMutex; }
 

@@ -158,6 +158,11 @@ void AVFCameraSession::setCameraFormat(const QCameraFormat &format)
     updateCameraFormat(format);
 }
 
+QCameraFormat AVFCameraSession::cameraFormat() const
+{
+    return m_cameraFormat;
+}
+
 void AVFCameraSession::updateCameraFormat(const QCameraFormat &format)
 {
     m_cameraFormat = format;
@@ -167,11 +172,8 @@ void AVFCameraSession::updateCameraFormat(const QCameraFormat &format)
         return;
 
     AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(captureDevice, format);
-    if (newFormat) {
+    if (newFormat)
         qt_set_active_format(captureDevice, newFormat, false);
-        if (m_videoOutput)
-            m_videoOutput->setPixelFormat(format.pixelFormat());
-    }
 }
 
 void AVFCameraSession::setVideoOutput(AVFCameraRenderer *output)
