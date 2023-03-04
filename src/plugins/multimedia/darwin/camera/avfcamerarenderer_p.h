@@ -49,7 +49,7 @@ public:
     ~AVFCameraRenderer();
 
     void reconfigure() override;
-    void setOutputSettings(NSDictionary *settings) override;
+    void setOutputSettings() override;
 
     void configureAVCaptureSession(AVFCameraSession *cameraSession);
     void syncHandleViewfinderFrame(const QVideoFrame &frame);

@@ -10,10 +10,18 @@
 #include <qvideoframe.h>
 #include <qaudiooutput.h>
 
+#include <QtQml/qqmlengine.h>
+#include <QtQml/qqmlcomponent.h>
+#include <QtQml/qqmlproperty.h>
+#include <QtQuick/qquickitem.h>
+#include <QtQuick/qquickview.h>
+#include <QtQuick/private/qquickloader_p.h>
+
 #include "../shared/mediafileselector.h"
 //TESTED_COMPONENT=src/multimedia
 
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
+#include "private/qquickvideooutput_p.h"
 
 #include <array>
 
@@ -67,6 +75,7 @@ private slots:
     void durationDetectionIssues();
     void finiteLoops();
     void infiteLoops();
+    void lazyLoadVideo();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -1743,6 +1752,42 @@ void tst_QMediaPlayerBackend::infiteLoops()
 
     player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::lazyLoadVideo()
+{
+    QQmlEngine engine;
+    QQmlComponent component(&engine);
+    component.loadUrl(QUrl("qrc:/LazyLoad.qml"));
+    QScopedPointer<QObject> root(component.create());
+    QQuickItem *rootItem = qobject_cast<QQuickItem *>(root.get());
+    QVERIFY(rootItem);
+
+    QQuickView view;
+    rootItem->setParentItem(view.contentItem());
+    view.resize(600, 800);
+    view.show();
+
+    QQuickLoader *loader = qobject_cast<QQuickLoader *>(rootItem->findChild<QQuickItem *>("loader"));
+    QVERIFY(loader);
+    QCOMPARE(QQmlProperty::read(loader, "active").toBool(), false);
+    loader->setProperty("active", true);
+    QCOMPARE(QQmlProperty::read(loader, "active").toBool(), true);
+
+    QQuickItem *videoPlayer = qobject_cast<QQuickItem *>(loader->findChild<QQuickItem *>("videoPlayer"));
+    QVERIFY(videoPlayer);
+
+    QCOMPARE(QQmlProperty::read(videoPlayer, "playbackState").value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PlayingState);
+    QCOMPARE(QQmlProperty::read(videoPlayer, "error").value<QMediaPlayer::Error>(), QMediaPlayer::NoError);
+
+    QVideoSink *videoSink = QQmlProperty::read(videoPlayer, "videoSink").value<QVideoSink *>();
+    QVERIFY(videoSink);
+
+    QSignalSpy spy(videoSink, &QVideoSink::videoFrameChanged);
+    QVERIFY(spy.wait());
+
+    QVideoFrame frame = spy.at(0).at(0).value<QVideoFrame>();
+    QVERIFY(frame.isValid());
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
