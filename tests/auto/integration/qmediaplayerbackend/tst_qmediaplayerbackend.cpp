@@ -1302,7 +1302,7 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
         QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To be "
-              "investigated.");
+              "investigated: QTBUG-111744");
 #endif
 
     TestVideoSink surface(false);
@@ -1642,6 +1642,12 @@ void tst_QMediaPlayerBackend::finiteLoops()
     if (localVideoFile3ColorsWithSound.isEmpty())
         QSKIP("Video format is not supported");
 
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
+              "investigated: QTBUG-111744");
+#endif
+
     TestVideoSink surface(false);
     QMediaPlayer player;
 
@@ -1698,6 +1704,12 @@ void tst_QMediaPlayerBackend::infiteLoops()
 {
     if (localVideoFile2.isEmpty())
         QSKIP("Video format is not supported");
+
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
+              "investigated: QTBUG-111744");
+#endif
 
     TestVideoSink surface(false);
     QMediaPlayer player;
