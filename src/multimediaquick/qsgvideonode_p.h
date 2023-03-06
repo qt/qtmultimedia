@@ -50,6 +50,8 @@ private:
     QRectF m_rect;
     QRectF m_textureRect;
     int m_orientation;
+    int m_frameOrientation;
+    bool m_frameMirrored;
 
     QVideoFrameFormat m_format;
     QSGVideoMaterial *m_material;
