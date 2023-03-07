@@ -4,11 +4,12 @@
 qt_find_package(EGL)
 qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VA VAAPI::DRM MODULE_NAME multimedia QMAKE_LIB vaapi)
 
-qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia) # special case
-qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio) # special case
-qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit) # special case
-qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox) # special case
-qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation) # special case
+qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia)
+qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio)
+qt_internal_find_apple_system_framework(FWAudioUnit AudioUnit)
+qt_internal_find_apple_system_framework(FWVideoToolbox VideoToolbox)
+qt_internal_find_apple_system_framework(FWAVFoundation AVFoundation)
+qt_internal_find_apple_system_framework(FWSecurity Security)
 
 qt_internal_add_plugin(QFFmpegMediaPlugin
     OUTPUT_NAME ffmpegmediaplugin
@@ -85,6 +86,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         ${FWCoreMedia}
         ${FWCoreVideo}
         ${FWVideoToolbox}
+        ${FWSecurity}
         AVFoundation::AVFoundation
 )
 
