@@ -215,7 +215,8 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     d->stream->codecpar->height = d->settings.videoResolution().height();
     d->stream->codecpar->sample_aspect_ratio = AVRational{1, 1};
     float requestedRate = d->frameRate;
-    d->stream->time_base = AVRational{ 1, (int)(requestedRate*1000) };
+    constexpr int TimeScaleFactor = 1000; // Allows not to follow fixed rate
+    d->stream->time_base = AVRational{ 1, static_cast<int>(requestedRate * TimeScaleFactor) };
 
     float delta = 1e10;
     if (d->codec->supported_framerates) {
@@ -272,15 +273,20 @@ bool VideoFrameEncoder::open()
         return false;
     }
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base" << d->codecContext->time_base.num << d->codecContext->time_base.den;
-    d->stream->time_base = d->codecContext->time_base;
+    d->stream->time_base = d->stream->time_base;
     return true;
 }
 
-qint64 VideoFrameEncoder::getPts(qint64 us)
+qint64 VideoFrameEncoder::getPts(qint64 us) const
 {
     Q_ASSERT(d);
     qint64 div = 1'000'000 * d->stream->time_base.num;
     return div != 0 ? (us * d->stream->time_base.den + div / 2) / div : 0;
+}
+
+const AVRational &VideoFrameEncoder::getTimeBase() const
+{
+    return d->stream->time_base;
 }
 
 int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
@@ -292,7 +298,8 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
 
     if (!frame)
         return avcodec_send_frame(d->codecContext.get(), frame.get());
-    auto pts = frame->pts;
+    const auto pts = frame->pts;
+    const auto timeBase = frame->time_base;
 
     if (d->downloadFromHW) {
         auto f = makeAVFrame();
@@ -349,8 +356,10 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
         frame = std::move(f);
     }
 
-    qCDebug(qLcVideoFrameEncoder) << "sending frame" << pts;
+    qCDebug(qLcVideoFrameEncoder) << "sending frame" << pts << "*" << timeBase.num << "/"
+                                  << timeBase.den;
     frame->pts = pts;
+    frame->time_base = timeBase;
     return avcodec_send_frame(d->codecContext.get(), frame.get());
 }
 

@@ -190,7 +190,7 @@ private:
 
     VideoFrameEncoder *frameEncoder = nullptr;
 
-    QAtomicInteger<qint64> baseTime = -1;
+    QAtomicInteger<qint64> baseTime = std::numeric_limits<qint64>::min();
     qint64 lastFrameTime = 0;
 };
 
