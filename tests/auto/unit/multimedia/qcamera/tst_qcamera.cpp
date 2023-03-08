@@ -79,6 +79,10 @@ private:
 
 void tst_QCamera::initTestCase()
 {
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("Flakiness on macOS CI, to be investigated, QTBUG-111812");
+#endif
 }
 
 void tst_QCamera::init()
