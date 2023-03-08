@@ -62,7 +62,9 @@ public:
     AVPixelFormat sourceFormat() const { return d ? d->sourceFormat : AV_PIX_FMT_NONE; }
     AVPixelFormat targetFormat() const { return d ? d->targetFormat : AV_PIX_FMT_NONE; }
 
-    qint64 getPts(qint64 ms);
+    qint64 getPts(qint64 ms) const;
+
+    const AVRational &getTimeBase() const;
 
     int sendFrame(AVFrameUPtr frame);
     AVPacket *retrievePacket();

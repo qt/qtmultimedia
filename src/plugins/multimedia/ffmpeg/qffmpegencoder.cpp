@@ -280,6 +280,9 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMe
     stream->codecpar->frame_size = 1024;
     stream->codecpar->format = bestSampleFormat;
     stream->time_base = AVRational{ 1, format.sampleRate() };
+
+    qCDebug(qLcFFmpegEncoder) << "set stream time_base" << stream->time_base.num << "/"
+                              << stream->time_base.den;
 }
 
 void AudioEncoder::open()
@@ -287,6 +290,15 @@ void AudioEncoder::open()
     AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
 
     codec = avcodec_alloc_context3(avCodec);
+
+    if (stream->time_base.num != 1 || stream->time_base.den != format.sampleRate()) {
+        qCDebug(qLcFFmpegEncoder) << "Most likely, av_format_write_header changed time base from"
+                                  << 1 << "/" << format.sampleRate() << "to"
+                                  << stream->time_base.num << "/" << stream->time_base.den;
+    }
+
+    codec->time_base = stream->time_base;
+
     avcodec_parameters_to_context(codec, stream->codecpar);
 
     AVDictionary *opts = nullptr;
@@ -378,7 +390,7 @@ void AudioEncoder::retrievePackets()
             break;
         }
 
-        //        qCDebug(qLcFFmpegEncoder) << "writing video packet" << packet->size << packet->pts << timeStamp(packet->pts, stream->time_base) << packet->stream_index;
+        // qCDebug(qLcFFmpegEncoder) << "writing audio packet" << packet->size << packet->pts << packet->dts;
         packet->stream_index = stream->id;
         encoder->muxer->addPacket(packet);
     }
@@ -413,13 +425,20 @@ void AudioEncoder::loop()
         memcpy(frame->buf[0]->data, buffer.constData<uint8_t>(), buffer.byteCount());
     }
 
-    frame->pts = samplesWritten;
+    const auto &timeBase = stream->time_base;
+
+    frame->pts = timeBase.den && timeBase.num
+            ? timeBase.den * samplesWritten / (codec->sample_rate * timeBase.num)
+            : samplesWritten;
+    frame->time_base = timeBase;
     samplesWritten += buffer.frameCount();
 
     qint64 time = format.durationForFrames(samplesWritten);
     encoder->newTimeStamp(time/1000);
 
-//    qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts << ((double)buffer.frameCount()/frame->sample_rate);
+    //    qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
+    //    ((double)buffer.frameCount()/frame->sample_rate);
+
     int ret = avcodec_send_frame(codec, frame.get());
     if (ret < 0) {
         char errStr[1024];
@@ -569,14 +588,16 @@ void VideoEncoder::loop()
         avFrame->opaque_ref = av_buffer_create(nullptr, 0, freeQVideoFrame, new QVideoFrameHolder{frame, img}, 0);
     }
 
-    if (baseTime.loadAcquire() < 0) {
+    if (baseTime.loadAcquire() == std::numeric_limits<qint64>::min()) {
         baseTime.storeRelease(frame.startTime() - lastFrameTime);
-//        qCDebug(qLcFFmpegEncoder) << ">>>> adjusting base time to" << baseTime.loadAcquire() << frame.startTime() << lastFrameTime;
+        qCDebug(qLcFFmpegEncoder) << ">>>> adjusting base time to" << baseTime.loadAcquire()
+                                  << frame.startTime() << lastFrameTime;
     }
 
     qint64 time = frame.startTime() - baseTime.loadAcquire();
     lastFrameTime = frame.endTime() - baseTime.loadAcquire();
     avFrame->pts = frameEncoder->getPts(time);
+    avFrame->time_base = frameEncoder->getTimeBase();
 
     encoder->newTimeStamp(time/1000);
 
