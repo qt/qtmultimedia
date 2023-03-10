@@ -142,7 +142,7 @@ static void deleteFrame(void *opaque, uint8_t *data)
 
 void QAndroidCamera::frameAvailable(QJniObject image)
 {
-    if (!(m_state == State::WaitingStart || m_state == State::Started)) {
+    if (!(m_state == State::WaitingStart || m_state == State::Started) && !m_waitingForFirstFrame) {
         qCWarning(qLCAndroidCamera) << "Received frame when not active... ignoring";
         qCWarning(qLCAndroidCamera) << "state:" << m_state;
         image.callMethod<void>("close");
@@ -158,7 +158,10 @@ void QAndroidCamera::frameAvailable(QJniObject image)
 
     int timestamp = androidFrame->timestamp();
     m_androidFramePixelFormat = androidFrame->format();
-
+    if (m_waitingForFirstFrame) {
+        m_waitingForFirstFrame = false;
+        setState(State::Started);
+    }
     auto avframe = QFFmpeg::makeAVFrame();
 
     avframe->width = androidFrame->size().width();
@@ -361,11 +364,12 @@ void QAndroidCamera::onCameraError(int reason)
 
 void QAndroidCamera::onSessionActive()
 {
-    setState(State::Started);
+    m_waitingForFirstFrame = true;
 }
 
 void QAndroidCamera::onSessionClosed()
 {
+    m_waitingForFirstFrame = false;
     setState(State::Closed);
 }
 
