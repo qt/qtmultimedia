@@ -172,6 +172,8 @@ public:
 
     void addFrame(const QVideoFrame &frame);
 
+    bool isValid() const;
+
     void setPaused(bool b) override
     {
         EncoderThread::setPaused(b);

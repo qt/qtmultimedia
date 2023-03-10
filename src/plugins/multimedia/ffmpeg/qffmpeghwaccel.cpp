@@ -140,14 +140,22 @@ findCodecWithHwAccel(AVCodecID id, const std::vector<AVHWDeviceType> &deviceType
     return { nullptr, nullptr };
 }
 
+static bool isNoConversionFormat(AVPixelFormat f)
+{
+    bool needsConversion = true;
+    QFFmpegVideoBuffer::toQtPixelFormat(f, &needsConversion);
+    return !needsConversion;
+};
+
 // Used for the AVCodecContext::get_format callback
-AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
+AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *suggestedFormats)
 {
     // First check HW accelerated codecs, the HW device context must be set
     if (codecContext->hw_device_ctx) {
         auto *device_ctx = (AVHWDeviceContext *)codecContext->hw_device_ctx->data;
-        auto formatForDeprecatedHw = AV_PIX_FMT_NONE;
-        auto format = AV_PIX_FMT_NONE;
+        std::pair formatAndScore(AV_PIX_FMT_NONE, NotSuitableAVScore);
+
+        // to be rewritten via findBestAVFormat
         for (int i = 0;
              const AVCodecHWConfig *config = avcodec_get_hw_config(codecContext->codec, i); i++) {
             if (!(config->methods & AV_CODEC_HW_CONFIG_METHOD_HW_DEVICE_CTX))
@@ -157,27 +165,32 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
                 continue;
 
             const bool isDeprecated = (config->methods & AV_CODEC_HW_CONFIG_METHOD_AD_HOC) != 0;
+            const bool shouldCheckCodecFormats = config->pix_fmt == AV_PIX_FMT_NONE;
 
-            for (int n = 0; fmt[n] != AV_PIX_FMT_NONE && format == AV_PIX_FMT_NONE; n++) {
-                const auto pixFmt = config->pix_fmt;
-                if ((pixFmt != AV_PIX_FMT_NONE && pixFmt == fmt[n])
-                    || (pixFmt == AV_PIX_FMT_NONE
-                        && isAVFormatSupported(codecContext->codec, fmt[n]))) {
+            auto scoresGettor = [&](AVPixelFormat format) {
+                if (shouldCheckCodecFormats && !isAVFormatSupported(codecContext->codec, format))
+                    return NotSuitableAVScore;
 
-                    if (!isDeprecated)
-                        format = *fmt;
-                    else if (formatForDeprecatedHw == AV_PIX_FMT_NONE)
-                        formatForDeprecatedHw = *fmt;
-                }
-            }
+                if (!shouldCheckCodecFormats && config->pix_fmt != format)
+                    return NotSuitableAVScore;
 
-            if (format != AV_PIX_FMT_NONE)
-                break;
+                auto result = DefaultAVScore;
+
+                if (isDeprecated)
+                    result -= 10000;
+                if (isHwPixelFormat(format))
+                    result += 10;
+
+                return result;
+            };
+
+            const auto found = findBestAVFormat(suggestedFormats, scoresGettor);
+
+            if (found.second > formatAndScore.second)
+                formatAndScore = found;
         }
 
-        if (format == AV_PIX_FMT_NONE)
-            format = formatForDeprecatedHw;
-
+        const auto &format = formatAndScore.first;
         if (format != AV_PIX_FMT_NONE) {
 #if QT_CONFIG(wmf)
             if (format == AV_PIX_FMT_D3D11)
@@ -193,19 +206,16 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *fmt)
     }
 
     // prefer video formats we can handle directly
-    for (int n = 0; fmt[n] != AV_PIX_FMT_NONE; n++) {
-        bool needsConversion = true;
-        QFFmpegVideoBuffer::toQtPixelFormat(fmt[n], &needsConversion);
-        if (!needsConversion) {
-            qCDebug(qLHWAccel) << "Selected format with no conversion" << fmt[n];
-            return fmt[n];
-        }
+    const auto noConversionFormat = findAVFormat(suggestedFormats, &isNoConversionFormat);
+    if (noConversionFormat != AV_PIX_FMT_NONE) {
+        qCDebug(qLHWAccel) << "Selected format with no conversion" << noConversionFormat;
+        return noConversionFormat;
     }
 
-    qCDebug(qLHWAccel) << "Selected format with conversion" << *fmt;
+    qCDebug(qLHWAccel) << "Selected format with conversion" << *suggestedFormats;
 
     // take the native format, this will involve one additional format conversion on the CPU side
-    return *fmt;
+    return *suggestedFormats;
 }
 
 TextureConverter::Data::~Data()
@@ -252,39 +262,21 @@ AVHWDeviceContext *HWAccel::hwDeviceContext() const
 
 AVPixelFormat HWAccel::hwFormat() const
 {
-    switch (deviceType()) {
-    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
-        return AV_PIX_FMT_VIDEOTOOLBOX;
-    case AV_HWDEVICE_TYPE_VAAPI:
-        return AV_PIX_FMT_VAAPI;
-    case AV_HWDEVICE_TYPE_MEDIACODEC:
-        return AV_PIX_FMT_MEDIACODEC;
-    case AV_HWDEVICE_TYPE_CUDA:
-        return AV_PIX_FMT_CUDA;
-    case AV_HWDEVICE_TYPE_VDPAU:
-        return AV_PIX_FMT_VDPAU;
-    case AV_HWDEVICE_TYPE_OPENCL:
-        return AV_PIX_FMT_OPENCL;
-    case AV_HWDEVICE_TYPE_VULKAN:
-        return AV_PIX_FMT_VULKAN;
-    case AV_HWDEVICE_TYPE_QSV:
-        return AV_PIX_FMT_QSV;
-    case AV_HWDEVICE_TYPE_D3D11VA:
-        return AV_PIX_FMT_D3D11;
-    case AV_HWDEVICE_TYPE_DXVA2:
-        return AV_PIX_FMT_DXVA2_VLD;
-    case AV_HWDEVICE_TYPE_DRM:
-        return AV_PIX_FMT_DRM_PRIME;
-    default:
-        return AV_PIX_FMT_NONE;
-    }
+    return pixelFormatForHwDevice(deviceType());
+}
+
+AVHWFramesConstraintsUPtr HWAccel::constraints() const
+{
+    return AVHWFramesConstraintsUPtr(
+            av_hwdevice_get_hwframe_constraints(hwDeviceContextAsBuffer(), nullptr));
 }
 
 std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
 HWAccel::findEncoderWithHwAccel(AVCodecID id, const std::function<bool(const HWAccel &)>& hwAccelPredicate)
 {
-    return findCodecWithHwAccel(id, encodingDeviceTypes(), &QFFmpeg::findAVEncoder,
-                                hwAccelPredicate);
+    auto finder = qOverload<AVCodecID, const std::optional<AVHWDeviceType> &,
+                            const std::optional<PixelOrSampleFormat> &>(&QFFmpeg::findAVEncoder);
+    return findCodecWithHwAccel(id, encodingDeviceTypes(), finder, hwAccelPredicate);
 }
 
 std::pair<const AVCodec *, std::unique_ptr<HWAccel>>
