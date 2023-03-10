@@ -64,6 +64,7 @@ private:
     std::unique_ptr<QFFmpeg::HWAccel> m_hwAccel;
 
     QVideoFrameFormat::PixelFormat m_androidFramePixelFormat;
+    bool m_waitingForFirstFrame = false;
 };
 
 QT_END_NAMESPACE
