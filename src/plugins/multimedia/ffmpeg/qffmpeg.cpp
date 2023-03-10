@@ -4,13 +4,21 @@
 #include "qffmpeg_p.h"
 
 #include <qdebug.h>
+#include <qloggingcategory.h>
 
 #include <algorithm>
 #include <vector>
 #include <array>
 #include <optional>
 
+extern "C" {
+#include <libavutil/pixdesc.h>
+#include <libavutil/samplefmt.h>
+}
+
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcFFmpegUtils, "qt.multimedia.ffmpeg.utils");
 
 namespace QFFmpeg {
 
@@ -34,6 +42,50 @@ struct CodecsComparator
     bool operator()(const AVCodec *a, AVCodecID id) const { return a->id < id; }
 };
 
+static void dumpCodecInfo(const AVCodec *codec)
+{
+    const auto mediaType = codec->type == AVMEDIA_TYPE_VIDEO ? "video"
+            : codec->type == AVMEDIA_TYPE_AUDIO              ? "audio"
+            : codec->type == AVMEDIA_TYPE_SUBTITLE           ? "subtitle"
+                                                             : "other_type";
+    qCDebug(qLcFFmpegUtils) << mediaType << (av_codec_is_encoder(codec) ? "encoder:" : "decoder:")
+                            << codec->name << "id:" << codec->id
+                            << "capabilities:" << codec->capabilities;
+    if (codec->pix_fmts) {
+        qCDebug(qLcFFmpegUtils) << "  pix_fmts:";
+        for (auto f = codec->pix_fmts; *f != AV_PIX_FMT_NONE; ++f) {
+            auto desc = av_pix_fmt_desc_get(*f);
+            qCDebug(qLcFFmpegUtils) << "    id:" << *f << desc->name
+                                    << ((desc->flags & AV_PIX_FMT_FLAG_HWACCEL) ? "hw" : "sw")
+                                    << "depth:" << desc->comp[0].depth << "flags:" << desc->flags;
+        }
+    }
+
+    if (codec->sample_fmts) {
+        qCDebug(qLcFFmpegUtils) << "  sample_fmts:";
+        for (auto f = codec->sample_fmts; *f != AV_SAMPLE_FMT_NONE; ++f) {
+            const auto name = av_get_sample_fmt_name(*f);
+            qCDebug(qLcFFmpegUtils) << "    id:" << *f << (name ? name : "unknown")
+                                    << "bytes_per_sample:" << av_get_bytes_per_sample(*f)
+                                    << "is_planar:" << av_sample_fmt_is_planar(*f);
+        }
+    }
+
+    if (avcodec_get_hw_config(codec, 0)) {
+        qCDebug(qLcFFmpegUtils) << "  hw config:";
+        for (int index = 0; auto config = avcodec_get_hw_config(codec, index); ++index) {
+            const auto pixFmtForDevice = pixelFormatForHwDevice(config->device_type);
+            auto pixFmtDesc = av_pix_fmt_desc_get(config->pix_fmt);
+            auto pixFmtForDeviceDesc = av_pix_fmt_desc_get(pixFmtForDevice);
+            qCDebug(qLcFFmpegUtils)
+                    << "    device_type:" << config->device_type << "pix_fmt:" << config->pix_fmt
+                    << (pixFmtDesc ? pixFmtDesc->name : "unknown")
+                    << "pixelFormatForHwDevice:" << pixelFormatForHwDevice(config->device_type)
+                    << (pixFmtForDeviceDesc ? pixFmtForDeviceDesc->name : "unknown");
+        }
+    }
+}
+
 const CodecsStorage &codecsStorage(CodecStorageType codecsType)
 {
     static const auto &storages = []() {
@@ -41,6 +93,14 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
         void *opaque = nullptr;
 
         while (auto codec = av_codec_iterate(&opaque)) {
+            // TODO: to be investigated
+            // FFmpeg functions avcodec_find_decoder/avcodec_find_encoder
+            // find experimental codecs in the last order,
+            // now we don't consider them at all since they are supposed to
+            // be not stable, maybe we shouldn't.
+            if (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL)
+                continue;
+
             if (av_codec_is_decoder(codec))
                 result[DECODERS].emplace_back(codec);
             if (av_codec_is_encoder(codec))
@@ -52,6 +112,18 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
 
             // we should ensure the original order
             std::stable_sort(storage.begin(), storage.end(), CodecsComparator{});
+        }
+
+        // It print pretty much logs, so let's print it only for special case
+        const bool shouldDumpCodecsInfo = qLcFFmpegUtils().isEnabled(QtDebugMsg)
+                && qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG");
+
+        if (shouldDumpCodecsInfo) {
+            qCDebug(qLcFFmpegUtils) << "Advanced ffmpeg codecs info:";
+            for (auto &storage : result) {
+                std::for_each(storage.begin(), storage.end(), &dumpCodecInfo);
+                qCDebug(qLcFFmpegUtils) << "---------------------------";
+            }
         }
 
         return result;
@@ -80,10 +152,6 @@ static const char *preferredHwCodecNameSuffix(bool isEncoder, AVHWDeviceType dev
     }
 }
 
-using CodecScore = int;
-constexpr CodecScore BestCodec = std::numeric_limits<CodecScore>::max();
-constexpr CodecScore NotSuitableCodec = std::numeric_limits<CodecScore>::min();
-
 template<typename CodecScoreGetter>
 const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
                            const CodecScoreGetter &scoreGetter)
@@ -92,9 +160,9 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
     auto it = std::lower_bound(storage.begin(), storage.end(), codecId, CodecsComparator{});
 
     const AVCodec *result = nullptr;
-    CodecScore resultScore = NotSuitableCodec;
+    AVScore resultScore = NotSuitableAVScore;
 
-    for (; it != storage.end() && (*it)->id == codecId && resultScore != BestCodec; ++it) {
+    for (; it != storage.end() && (*it)->id == codecId && resultScore != BestAVScore; ++it) {
         const auto score = scoreGetter(*it);
 
         if (score > resultScore) {
@@ -106,17 +174,17 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
     return result;
 }
 
-CodecScore hwCodecNameScores(const AVCodec *codec, AVHWDeviceType deviceType)
+AVScore hwCodecNameScores(const AVCodec *codec, AVHWDeviceType deviceType)
 {
     if (auto suffix = preferredHwCodecNameSuffix(av_codec_is_encoder(codec), deviceType)) {
         const auto substr = strstr(codec->name, suffix);
         if (substr && !substr[strlen(suffix)])
-            return BestCodec;
+            return BestAVScore;
 
-        return 0;
+        return DefaultAVScore;
     }
 
-    return BestCodec;
+    return BestAVScore;
 }
 
 const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
@@ -124,17 +192,15 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
                            const std::optional<PixelOrSampleFormat> &format)
 {
     return findAVCodec(codecsType, codecId, [&](const AVCodec *codec) {
-        if (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL)
-            return NotSuitableCodec; //TODO: maybe check additionally
-
         if (format && !isAVFormatSupported(codec, *format))
-            return NotSuitableCodec;
+            return NotSuitableAVScore;
 
         if (!deviceType)
-            return BestCodec; // find any codec with the id
+            return BestAVScore; // find any codec with the id
 
-        if (*deviceType == AV_HWDEVICE_TYPE_NONE && !avcodec_get_hw_config(codec, 0))
-            return BestCodec;
+        if (*deviceType == AV_HWDEVICE_TYPE_NONE
+            && findAVFormat(codec->pix_fmts, &isSwPixelFormat) != AV_PIX_FMT_NONE)
+            return BestAVScore;
 
         if (*deviceType != AV_HWDEVICE_TYPE_NONE) {
             for (int index = 0; auto config = avcodec_get_hw_config(codec, index); ++index) {
@@ -146,9 +212,15 @@ const AVCodec *findAVCodec(CodecStorageType codecsType, AVCodecID codecId,
 
                 return hwCodecNameScores(codec, *deviceType);
             }
+
+            // The situation happens mostly with encoders
+            // Probably, it's ffmpeg bug: avcodec_get_hw_config returns null even though
+            // hw acceleration is supported
+            if (hasAVFormat(codec->pix_fmts, pixelFormatForHwDevice(*deviceType)))
+                return hwCodecNameScores(codec, *deviceType);
         }
 
-        return NotSuitableCodec;
+        return NotSuitableAVScore;
     });
 }
 
@@ -166,24 +238,57 @@ const AVCodec *findAVEncoder(AVCodecID codecId, const std::optional<AVHWDeviceTy
     return findAVCodec(ENCODERS, codecId, deviceType, format);
 }
 
+const AVCodec *findAVEncoder(AVCodecID codecId,
+                             const std::function<AVScore(const AVCodec *)> &scoresGetter)
+{
+    return findAVCodec(ENCODERS, codecId, scoresGetter);
+}
+
 bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format)
 {
-    auto isFormatSupportedImpl = [format](auto fmts) {
-        if (fmts)
-            for (; *fmts != -1; ++fmts)
-                if (*fmts == format)
-                    return true;
-
-        return false;
-    };
-
     if (codec->type == AVMEDIA_TYPE_VIDEO)
-        return isFormatSupportedImpl(codec->pix_fmts);
+        return hasAVFormat(codec->pix_fmts, AVPixelFormat(format));
 
     if (codec->type == AVMEDIA_TYPE_AUDIO)
-        return isFormatSupportedImpl(codec->sample_fmts);
+        return hasAVFormat(codec->sample_fmts, AVSampleFormat(format));
 
     return false;
+}
+
+bool isHwPixelFormat(AVPixelFormat format)
+{
+    const auto desc = av_pix_fmt_desc_get(format);
+    return desc && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL) != 0;
+}
+
+AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
+{
+    switch (deviceType) {
+    case AV_HWDEVICE_TYPE_VIDEOTOOLBOX:
+        return AV_PIX_FMT_VIDEOTOOLBOX;
+    case AV_HWDEVICE_TYPE_VAAPI:
+        return AV_PIX_FMT_VAAPI;
+    case AV_HWDEVICE_TYPE_MEDIACODEC:
+        return AV_PIX_FMT_MEDIACODEC;
+    case AV_HWDEVICE_TYPE_CUDA:
+        return AV_PIX_FMT_CUDA;
+    case AV_HWDEVICE_TYPE_VDPAU:
+        return AV_PIX_FMT_VDPAU;
+    case AV_HWDEVICE_TYPE_OPENCL:
+        return AV_PIX_FMT_OPENCL;
+    case AV_HWDEVICE_TYPE_VULKAN:
+        return AV_PIX_FMT_VULKAN;
+    case AV_HWDEVICE_TYPE_QSV:
+        return AV_PIX_FMT_QSV;
+    case AV_HWDEVICE_TYPE_D3D11VA:
+        return AV_PIX_FMT_D3D11;
+    case AV_HWDEVICE_TYPE_DXVA2:
+        return AV_PIX_FMT_DXVA2_VLD;
+    case AV_HWDEVICE_TYPE_DRM:
+        return AV_PIX_FMT_DRM_PRIME;
+    default:
+        return AV_PIX_FMT_NONE;
+    }
 }
 
 } // namespace QFFmpeg

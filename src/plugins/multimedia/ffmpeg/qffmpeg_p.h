@@ -87,6 +87,11 @@ using AVHWFramesConstraintsUPtr = std::unique_ptr<
         AVDeleter<decltype(&av_hwframe_constraints_free), &av_hwframe_constraints_free>>;
 
 using PixelOrSampleFormat = int;
+using AVScore = int;
+constexpr AVScore BestAVScore = std::numeric_limits<AVScore>::max();
+constexpr AVScore DefaultAVScore = 0;
+constexpr AVScore NotSuitableAVScore = std::numeric_limits<AVScore>::min();
+constexpr AVScore MinAVScore = NotSuitableAVScore + 1;
 
 const AVCodec *findAVDecoder(AVCodecID codecId,
                              const std::optional<AVHWDeviceType> &deviceType = {},
@@ -96,7 +101,50 @@ const AVCodec *findAVEncoder(AVCodecID codecId,
                              const std::optional<AVHWDeviceType> &deviceType = {},
                              const std::optional<PixelOrSampleFormat> &format = {});
 
+const AVCodec *findAVEncoder(AVCodecID codecId,
+                             const std::function<AVScore(const AVCodec *)> &scoresGetter);
+
 bool isAVFormatSupported(const AVCodec *codec, PixelOrSampleFormat format);
+
+template<typename Format>
+bool hasAVFormat(const Format *fmts, Format format)
+{
+    return findAVFormat(fmts, [format](Format f) { return f == format; }) != Format(-1);
+}
+
+template<typename Format, typename Predicate>
+Format findAVFormat(const Format *fmts, const Predicate &predicate)
+{
+    auto scoresGetter = [&predicate](Format fmt) {
+        return predicate(fmt) ? BestAVScore : NotSuitableAVScore;
+    };
+    return findBestAVFormat(fmts, scoresGetter).first;
+}
+
+template<typename Format, typename CalculateScore>
+std::pair<Format, AVScore> findBestAVFormat(const Format *fmts,
+                                            const CalculateScore &calculateScore)
+{
+    std::pair result(Format(-1), NotSuitableAVScore);
+    if (fmts) {
+        for (; *fmts != -1 && result.second != BestAVScore; ++fmts) {
+            const auto score = calculateScore(*fmts);
+            if (score > result.second)
+                result = std::pair(*fmts, score);
+        }
+    }
+
+    return result;
+}
+
+bool isHwPixelFormat(AVPixelFormat format);
+
+inline bool isSwPixelFormat(AVPixelFormat format)
+{
+    return !isHwPixelFormat(format);
+}
+
+AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType);
 }
 
 QT_END_NAMESPACE

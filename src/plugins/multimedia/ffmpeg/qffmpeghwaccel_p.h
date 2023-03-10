@@ -104,6 +104,7 @@ public:
     AVBufferRef *hwDeviceContextAsBuffer() const { return m_hwDeviceContext.get(); }
     AVHWDeviceContext *hwDeviceContext() const;
     AVPixelFormat hwFormat() const;
+    AVHWFramesConstraintsUPtr constraints() const;
 
     void createFramesContext(AVPixelFormat swFormat, const QSize &size);
     AVBufferRef *hwFramesContextAsBuffer() const { return m_hwFramesContext.get(); }

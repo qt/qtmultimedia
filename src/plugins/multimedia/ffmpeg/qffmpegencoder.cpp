@@ -67,11 +67,14 @@ void Encoder::addCamera(QPlatformCamera *camera)
     std::optional<AVPixelFormat> hwPixelFormat = camera->ffmpegHWPixelFormat()
             ? AVPixelFormat(*camera->ffmpegHWPixelFormat())
             : std::optional<AVPixelFormat>{};
-    auto *ve = new VideoEncoder(this, settings, vff, hwPixelFormat);
-    auto conn = connect(camera, &QPlatformCamera::newVideoFrame,
-            [=](const QVideoFrame &frame){ ve->addFrame(frame); });
-    videoEncoders.append(ve);
-    connections.append(conn);
+    auto veUPtr = std::make_unique<VideoEncoder>(this, settings, vff, hwPixelFormat);
+    if (veUPtr->isValid()) {
+        auto ve = veUPtr.release();
+        auto conn = connect(camera, &QPlatformCamera::newVideoFrame,
+                            [=](const QVideoFrame &frame) { ve->addFrame(frame); });
+        videoEncoders.append(ve);
+        connections.append(conn);
+    }
 }
 
 void Encoder::addScreenCapture(QPlatformScreenCapture *screenCapture)
@@ -79,11 +82,15 @@ void Encoder::addScreenCapture(QPlatformScreenCapture *screenCapture)
     std::optional<AVPixelFormat> hwPixelFormat = screenCapture->ffmpegHWPixelFormat()
             ? AVPixelFormat(*screenCapture->ffmpegHWPixelFormat())
             : std::optional<AVPixelFormat>{};
-    auto *ve = new VideoEncoder(this, settings, screenCapture->format(), hwPixelFormat);
-    auto conn = connect(screenCapture, &QPlatformScreenCapture::newVideoFrame,
-            [=](const QVideoFrame &frame){ ve->addFrame(frame); });
-    videoEncoders.append(ve);
-    connections.append(conn);
+    auto veUPtr =
+            std::make_unique<VideoEncoder>(this, settings, screenCapture->format(), hwPixelFormat);
+    if (veUPtr->isValid()) {
+        auto ve = veUPtr.release();
+        auto conn = connect(screenCapture, &QPlatformScreenCapture::newVideoFrame,
+                            [=](const QVideoFrame &frame) { ve->addFrame(frame); });
+        videoEncoders.append(ve);
+        connections.append(conn);
+    }
 }
 
 void Encoder::start()
@@ -93,14 +100,18 @@ void Encoder::start()
     formatContext->metadata = QFFmpegMetaData::toAVMetaData(metaData);
 
     int res = avformat_write_header(formatContext, nullptr);
-    if (res < 0)
-        qWarning() << "could not write header" << res;
+    if (res < 0) {
+        qWarning() << "could not write header, error:" << res << err2str(res);
+        emit error(QMediaRecorder::ResourceError, "Cannot start writing the stream");
+        return;
+    }
 
     muxer->start();
     if (audioEncode)
         audioEncode->start();
     for (auto *videoEncoder : videoEncoders)
-        videoEncoder->start();
+        if (videoEncoder->isValid())
+            videoEncoder->start();
 
     isRecording = true;
 }
@@ -131,9 +142,10 @@ void Encoder::finalize()
     for (auto &conn : connections)
         disconnect(conn);
 
-    isRecording = false;
-    auto *finalizer = new EncodingFinalizer(this);
-    finalizer->start();
+    if (std::exchange(isRecording, false)) {
+        auto *finalizer = new EncodingFinalizer(this);
+        finalizer->start();
+    }
 }
 
 void Encoder::setPaused(bool p)
@@ -483,6 +495,11 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
     }
 }
 
+bool VideoEncoder::isValid() const
+{
+    return !frameEncoder->isNull();
+}
+
 QVideoFrame VideoEncoder::takeFrame()
 {
     QMutexLocker locker(&queueMutex);
@@ -504,7 +521,7 @@ void VideoEncoder::init()
     qCDebug(qLcFFmpegEncoder) << "VideoEncoder::init started video device thread.";
     bool ok = frameEncoder->open();
     if (!ok)
-        encoder->error(QMediaRecorder::ResourceError, "Could not initialize encoder");
+        emit encoder->error(QMediaRecorder::ResourceError, "Could not initialize encoder");
 }
 
 void VideoEncoder::cleanup()

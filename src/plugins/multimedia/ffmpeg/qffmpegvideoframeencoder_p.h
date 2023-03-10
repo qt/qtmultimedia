@@ -28,6 +28,7 @@ class VideoFrameEncoder
     {
     public:
         ~Data();
+
         QAtomicInt ref = 0;
         QMediaEncoderSettings settings;
         float frameRate = 0.;
@@ -42,8 +43,6 @@ class VideoFrameEncoder
         AVPixelFormat sourceSWFormat = AV_PIX_FMT_NONE;
         AVPixelFormat targetFormat = AV_PIX_FMT_NONE;
         AVPixelFormat targetSWFormat = AV_PIX_FMT_NONE;
-        bool sourceFormatIsHWFormat = false;
-        bool targetFormatIsHWFormat = false;
         bool downloadFromHW = false;
         bool uploadToHW = false;
     };
