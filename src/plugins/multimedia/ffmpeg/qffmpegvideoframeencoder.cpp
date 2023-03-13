@@ -232,8 +232,10 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
 
     if (!frame)
         return avcodec_send_frame(d->codecContext.get(), frame.get());
-    const auto pts = frame->pts;
-    const auto timeBase = frame->time_base;
+
+    int64_t pts = 0;
+    AVRational timeBase = {};
+    getAVFrameTime(*frame, pts, timeBase);
 
     if (d->downloadFromHW) {
         auto f = makeAVFrame();
@@ -292,8 +294,8 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
 
     qCDebug(qLcVideoFrameEncoder) << "sending frame" << pts << "*" << timeBase.num << "/"
                                   << timeBase.den;
-    frame->pts = pts;
-    frame->time_base = timeBase;
+
+    setAVFrameTime(*frame, pts, timeBase);
     return avcodec_send_frame(d->codecContext.get(), frame.get());
 }
 

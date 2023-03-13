@@ -1,6 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include "libavutil/version.h"
+
 #include "qffmpeghwaccel_p.h"
 #if QT_CONFIG(vaapi)
 #include "qffmpeghwaccel_vaapi_p.h"
@@ -51,27 +53,13 @@ static std::vector<AVHWDeviceType> deviceTypes(const char *envVarName)
     if (!definedDeviceTypes.isNull()) {
         const auto definedDeviceTypesString = QString::fromUtf8(definedDeviceTypes).toLower();
         for (const auto &deviceType : definedDeviceTypesString.split(',')) {
-            constexpr std::array<std::pair<AVHWDeviceType, const char *>, 11> map = {
-                std::make_pair(AV_HWDEVICE_TYPE_CUDA, "cuda"),
-                std::make_pair(AV_HWDEVICE_TYPE_VAAPI, "vaapi"),
-                std::make_pair(AV_HWDEVICE_TYPE_DXVA2, "dxva2"),
-                std::make_pair(AV_HWDEVICE_TYPE_QSV, "qsv"),
-                std::make_pair(AV_HWDEVICE_TYPE_VAAPI, "vaapi"),
-                std::make_pair(AV_HWDEVICE_TYPE_VIDEOTOOLBOX, "videotoolbox"),
-                std::make_pair(AV_HWDEVICE_TYPE_D3D11VA, "d3d11va"),
-                std::make_pair(AV_HWDEVICE_TYPE_DRM, "drm"),
-                std::make_pair(AV_HWDEVICE_TYPE_OPENCL, "opencl"),
-                std::make_pair(AV_HWDEVICE_TYPE_MEDIACODEC, "mediacodec"),
-                std::make_pair(AV_HWDEVICE_TYPE_VULKAN, "vulkan")
-            };
-
-            const auto found =
-                    std::find_if(map.begin(), map.end(), [&deviceType](const auto &hwTypeToStr) {
-                        return deviceType == hwTypeToStr.second;
-                    });
-
-            if (found != map.end())
-                result.emplace_back(found->first);
+            if (!deviceType.isEmpty()) {
+                const auto foundType = av_hwdevice_find_type_by_name(deviceType.toUtf8().data());
+                if (foundType == AV_HWDEVICE_TYPE_NONE)
+                    qWarning() << "Unknown hw device type" << deviceType;
+                else
+                    result.emplace_back(foundType);
+            }
         }
 
         return result;
