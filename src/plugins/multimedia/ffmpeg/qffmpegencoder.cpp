@@ -438,11 +438,10 @@ void AudioEncoder::loop()
     }
 
     const auto &timeBase = stream->time_base;
-
-    frame->pts = timeBase.den && timeBase.num
+    const auto pts = timeBase.den && timeBase.num
             ? timeBase.den * samplesWritten / (codec->sample_rate * timeBase.num)
             : samplesWritten;
-    frame->time_base = timeBase;
+    setAVFrameTime(*frame, pts, timeBase);
     samplesWritten += buffer.frameCount();
 
     qint64 time = format.durationForFrames(samplesWritten);
@@ -613,8 +612,8 @@ void VideoEncoder::loop()
 
     qint64 time = frame.startTime() - baseTime.loadAcquire();
     lastFrameTime = frame.endTime() - baseTime.loadAcquire();
-    avFrame->pts = frameEncoder->getPts(time);
-    avFrame->time_base = frameEncoder->getTimeBase();
+
+    setAVFrameTime(*avFrame, frameEncoder->getPts(time), frameEncoder->getTimeBase());
 
     encoder->newTimeStamp(time/1000);
 

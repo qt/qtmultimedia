@@ -276,8 +276,6 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
         return AV_PIX_FMT_VDPAU;
     case AV_HWDEVICE_TYPE_OPENCL:
         return AV_PIX_FMT_OPENCL;
-    case AV_HWDEVICE_TYPE_VULKAN:
-        return AV_PIX_FMT_VULKAN;
     case AV_HWDEVICE_TYPE_QSV:
         return AV_PIX_FMT_QSV;
     case AV_HWDEVICE_TYPE_D3D11VA:
@@ -286,6 +284,10 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
         return AV_PIX_FMT_DXVA2_VLD;
     case AV_HWDEVICE_TYPE_DRM:
         return AV_PIX_FMT_DRM_PRIME;
+#if QT_FFMPEG_HAS_VULKAN
+    case AV_HWDEVICE_TYPE_VULKAN:
+        return AV_PIX_FMT_VULKAN;
+#endif
     default:
         return AV_PIX_FMT_NONE;
     }

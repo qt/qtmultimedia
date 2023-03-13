@@ -16,6 +16,10 @@ extern "C" {
 }
 
 #define QT_FFMPEG_OLD_CHANNEL_LAYOUT (LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59,24,100))
+#define QT_FFMPEG_HAS_VULKAN \
+  (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(58, 91, 100)) // since ffmpeg n4.3
+#define QT_FFMPEG_HAS_FRAME_TIME_BASE \
+  (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 18, 100)) // since ffmpeg n5.0
 
 QT_BEGIN_NAMESPACE
 
@@ -52,6 +56,26 @@ inline QString err2str(int errnum)
     char buffer[AV_ERROR_MAX_STRING_SIZE + 1] = {};
     av_make_error_string(buffer, AV_ERROR_MAX_STRING_SIZE, errnum);
     return QString::fromLocal8Bit(buffer);
+}
+
+inline void setAVFrameTime(AVFrame &frame, int64_t pts, const AVRational &timeBase)
+{
+    frame.pts = pts;
+#if QT_FFMPEG_HAS_FRAME_TIME_BASE
+    frame.time_base = timeBase;
+#else
+    Q_UNUSED(timeBase);
+#endif
+}
+
+inline void getAVFrameTime(AVFrame &frame, int64_t &pts, AVRational &timeBase)
+{
+    pts = frame.pts;
+#if QT_FFMPEG_HAS_FRAME_TIME_BASE
+    timeBase = frame.time_base;
+#else
+    timeBase = { 0, 1 };
+#endif
 }
 
 template<typename FunctionType, FunctionType F>
