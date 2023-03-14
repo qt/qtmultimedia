@@ -61,6 +61,14 @@ void Encoder::addAudioInput(QFFmpegAudioInput *input)
 void Encoder::addCamera(QPlatformCamera *camera)
 {
     auto cf = camera->cameraFormat();
+
+    qCDebug(qLcFFmpegEncoder) << "adding camera:"
+                              << "resolution=" << cf.resolution()
+                              << "pixelFormat=" << cf.pixelFormat()
+                              << "maxFrameRate=" << cf.maxFrameRate() << "ffmpegHWPixelFormat="
+                              << (camera->ffmpegHWPixelFormat() ? *camera->ffmpegHWPixelFormat()
+                                                                : std::numeric_limits<int>::min());
+
     QVideoFrameFormat vff(cf.resolution(), cf.pixelFormat());
     vff.setFrameRate(cf.maxFrameRate());
 
@@ -79,11 +87,20 @@ void Encoder::addCamera(QPlatformCamera *camera)
 
 void Encoder::addScreenCapture(QPlatformScreenCapture *screenCapture)
 {
+    auto scf = screenCapture->format();
+
+    qCDebug(qLcFFmpegEncoder) << "adding screen capture:"
+                              << "pixelFormat=" << scf.pixelFormat()
+                              << "frameSize=" << scf.frameSize() << "frameRate=" << scf.frameRate()
+                              << "ffmpegHWPixelFormat="
+                              << (screenCapture->ffmpegHWPixelFormat()
+                                          ? *screenCapture->ffmpegHWPixelFormat()
+                                          : std::numeric_limits<int>::min());
+
     std::optional<AVPixelFormat> hwPixelFormat = screenCapture->ffmpegHWPixelFormat()
             ? AVPixelFormat(*screenCapture->ffmpegHWPixelFormat())
             : std::optional<AVPixelFormat>{};
-    auto veUPtr =
-            std::make_unique<VideoEncoder>(this, settings, screenCapture->format(), hwPixelFormat);
+    auto veUPtr = std::make_unique<VideoEncoder>(this, settings, scf, hwPixelFormat);
     if (veUPtr->isValid()) {
         auto ve = veUPtr.release();
         auto conn = connect(screenCapture, &QPlatformScreenCapture::newVideoFrame,
@@ -105,6 +122,8 @@ void Encoder::start()
         emit error(QMediaRecorder::ResourceError, "Cannot start writing the stream");
         return;
     }
+
+    qCDebug(qLcFFmpegEncoder) << "stream header is successfully written";
 
     muxer->start();
     if (audioEncode)
@@ -201,6 +220,7 @@ AVPacket *Muxer::takePacket()
 
 void Muxer::init()
 {
+    qCDebug(qLcFFmpegEncoder) << "Muxer::init started thread.";
 }
 
 void Muxer::cleanup()
