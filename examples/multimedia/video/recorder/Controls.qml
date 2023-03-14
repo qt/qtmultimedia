@@ -14,7 +14,8 @@ Row {
     property bool capturesVisible: false
 
     property alias audioInput: audioInputSelect.selected
-    property alias camera: cameraSelect.selected
+    property alias camera: videoSourceSelect.selectedCamera
+    property alias screenCapture: videoSourceSelect.selectedScreenCapture
 
     spacing: Style.interSpacing * Style.ratio
 
@@ -22,7 +23,7 @@ Row {
         id: inputControls
         spacing: Style.intraSpacing
 
-        CameraSelect { id: cameraSelect }
+        VideoSourceSelect { id: videoSourceSelect }
         AudioInputSelect { id: audioInputSelect }
     }
 

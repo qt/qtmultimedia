@@ -13,7 +13,7 @@
     \image qmlrecorder.jpg
 
     \e{QML Recorder} demonstrates a simple application that can record
-    audio and or video files using the camera and microphone.
+    audio and or video files using a microphone, a camera, or screen capturing.
 
     \include examples-run.qdocinc
 

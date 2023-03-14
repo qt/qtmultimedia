@@ -25,7 +25,7 @@ set(resource_files
     "qmldir"
     "MediaList.qml"
     "AudioInputSelect.qml"
-    "CameraSelect.qml"
+    "VideoSourceSelect.qml"
     "RecordButton.qml"
     "Controls.qml"
     "StyleParameter.qml"
