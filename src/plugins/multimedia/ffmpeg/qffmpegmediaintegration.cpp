@@ -165,8 +165,9 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 QPlatformScreenCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *screenCapture)
 {
 #if QT_CONFIG(cpp_winrt)
-    if (QFFmpegScreenCaptureUwp::isSupported())
-        return new QFFmpegScreenCaptureUwp(screenCapture);
+    // Turned off since it's not stable: produce crashes and different side effects
+    // if (QFFmpegScreenCaptureUwp::isSupported())
+    //    return new QFFmpegScreenCaptureUwp(screenCapture);
 #endif
 
 #if QT_CONFIG(xlib)
