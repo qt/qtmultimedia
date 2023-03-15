@@ -329,6 +329,15 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     d->backend = nullptr;
     if (!d->rhi)
         return;
+
+    // HW textures conversions are not stable in specific cases, dependent on the hardware and OS.
+    // We need the env var for testing with no textures conversion on the user's side.
+    static const bool disableConversion =
+            qEnvironmentVariableIsSet("QT_DISABLE_HW_TEXTURES_CONVERSION");
+
+    if (disableConversion)
+        return;
+
     switch (fmt) {
 #if QT_CONFIG(vaapi)
     case AV_PIX_FMT_VAAPI:
