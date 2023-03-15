@@ -5,10 +5,16 @@
 #include "mediacapture/qwasmimagecapture_p.h"
 
 #include "qwasmcamera_p.h"
+#include <private/qplatformmediadevices_p.h>
+#include <private/qwasmmediadevices_p.h>
 
 Q_LOGGING_CATEGORY(qWasmMediaCaptureSession, "qt.multimedia.wasm.capturesession")
 
-QWasmMediaCaptureSession::QWasmMediaCaptureSession() = default;
+QWasmMediaCaptureSession::QWasmMediaCaptureSession()
+{
+    QWasmMediaDevices *wasmMediaDevices = static_cast<QWasmMediaDevices *>(QPlatformMediaDevices::instance());
+    wasmMediaDevices->initDevices();
+}
 
 QWasmMediaCaptureSession::~QWasmMediaCaptureSession() = default;
 

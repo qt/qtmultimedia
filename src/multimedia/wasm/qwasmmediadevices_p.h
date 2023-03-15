@@ -62,6 +62,7 @@ public:
                                             QObject *parent) override;
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
                                         QObject *parent) override;
+    void initDevices();
 
 private:
     void updateCameraDevices();
@@ -79,6 +80,7 @@ private:
     bool m_audioInputsAdded = false;
     bool m_audioOutputsAdded = false;
     emscripten::val m_jsMediaDevicesInterface = emscripten::val::undefined();
+    bool m_initDone = false;
 };
 
 QT_END_NAMESPACE

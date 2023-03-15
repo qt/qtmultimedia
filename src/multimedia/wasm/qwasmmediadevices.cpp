@@ -29,8 +29,14 @@ QList<QCameraDevice> QWasmCameraDevices::videoDevices() const
     return wasmMediaDevices ? wasmMediaDevices->videoInputs() : QList<QCameraDevice>();
 }
 
-QWasmMediaDevices::QWasmMediaDevices() : QPlatformMediaDevices()
+QWasmMediaDevices::QWasmMediaDevices() = default;
+
+void QWasmMediaDevices::initDevices()
 {
+    if (m_initDone)
+        return;
+
+    m_initDone = true;
     getOpenALAudioDevices();
     getMediaDevices(); // asynchronous
 }
@@ -183,39 +189,20 @@ void QWasmMediaDevices::getMediaDevices()
                         emit audioInputsChanged();
                     if (m_audioOutputsAdded || m_audioOutputsRemoved)
                         emit audioOutputsChanged();
+
                 },
         .catchFunc =
-                [](emscripten::val error) {
+                [this](emscripten::val error) {
                     qWarning() << "mediadevices enumerateDevices fail"
                                << QString::fromStdString(error["name"].as<std::string>())
                                << QString::fromStdString(error["message"].as<std::string>());
+                    m_initDone = false;
                 }
     };
 
-    qstdweb::PromiseCallbacks getUserMediaCallback{
-        .thenFunc =
-                [this, navigator, enumerateDevicesCallback](emscripten::val video) {
-                    Q_UNUSED(video);
-
-                    qstdweb::Promise::make(m_jsMediaDevicesInterface,
-                                           QStringLiteral("enumerateDevices"),
-                                           std::move(enumerateDevicesCallback));
-                },
-        .catchFunc =
-                [](emscripten::val error) {
-                    qWarning() << "mediadevices getUserMedia fail"
-                               << QString::fromStdString(error["name"].as<std::string>())
-                               << QString::fromStdString(error["message"].as<std::string>());
-                }
-    };
-
-    emscripten::val constraints = emscripten::val::object();
-    constraints.set("video", true);
-    constraints.set("audio", true);
-
-    // getUserMedia will ask for user permissions
-    qstdweb::Promise::make(m_jsMediaDevicesInterface, QStringLiteral("getUserMedia"),
-                           std::move(getUserMediaCallback), constraints);
+    qstdweb::Promise::make(m_jsMediaDevicesInterface,
+                           QStringLiteral("enumerateDevices"),
+                           std::move(enumerateDevicesCallback));
 
     // setup devicechange monitor
     m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
