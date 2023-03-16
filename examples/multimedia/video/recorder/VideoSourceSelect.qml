@@ -10,8 +10,8 @@ Row {
     height: Style.height
     property Camera selectedCamera: cameraAvailable ? camera : null
     property ScreenCapture selectedScreenCapture: screenAvailable ? screenCapture : null
-    property bool cameraAvailable: (comboBox.currentValue === 'camera') && cameraSwitch.checked
-    property bool screenAvailable: (comboBox.currentValue === 'screen') && cameraSwitch.checked
+    property bool cameraAvailable: (comboBox.currentValue.type === 'camera') && cameraSwitch.checked
+    property bool screenAvailable: (comboBox.currentValue.type === 'screen') && cameraSwitch.checked
     Component.onCompleted: {
         videoSourceModel.populate()
         comboBox.currentIndex = 0
@@ -44,10 +44,12 @@ Row {
             videoSourceModel.clear()
 
             for (var camera of cameras)
-                videoSourceModel.append({ text: camera.description, value: 'camera' })
+                videoSourceModel.append({ text: camera.description, value:
+                                        { type: 'camera', camera: camera } })
 
             for (var screen of screens)
-                videoSourceModel.append({ text: screen.name, value: 'screen' })
+                videoSourceModel.append({ text: screen.name,
+                                          value: { type: 'screen', screen: screen }})
         }
     }
 
@@ -62,10 +64,10 @@ Row {
         textRole: "text"
         valueRole: "value"
         onCurrentValueChanged: {
-            if (currentValue === 'screen')
-                screenCapture.screen = videoSourceModel.screens[currentIndex - videoSourceModel.cameras.length]
-            else if (currentValue === 'camera')
-                camera.cameraDevice = videoSourceModel.cameras[currentIndex]
+            if (currentValue.type === 'screen')
+                screenCapture.screen = currentValue.screen
+            else if (currentValue.type === 'camera')
+                camera.cameraDevice = currentValue.camera
         }
     }
 }
