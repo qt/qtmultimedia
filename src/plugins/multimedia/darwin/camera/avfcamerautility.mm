@@ -95,8 +95,10 @@ Float64 qt_find_min_framerate_distance(AVCaptureDeviceFormat *format, Float64 fp
 
 } // Unnamed namespace.
 
-AVCaptureDeviceFormat *qt_convert_to_capture_device_format(AVCaptureDevice *captureDevice,
-                                                        const QCameraFormat &cameraFormat)
+AVCaptureDeviceFormat *
+qt_convert_to_capture_device_format(AVCaptureDevice *captureDevice,
+                                    const QCameraFormat &cameraFormat,
+                                    const std::function<bool(uint32_t)> &cvFormatValidator)
 {
     AVCaptureDeviceFormat *newFormat = nil;
     NSArray<AVCaptureDeviceFormat *> *formats = captureDevice.formats;
@@ -106,7 +108,8 @@ AVCaptureDeviceFormat *qt_convert_to_capture_device_format(AVCaptureDevice *capt
         FourCharCode formatCodec = CMVideoFormatDescriptionGetCodecType(formatDesc);
         if (QAVFHelpers::fromCVPixelFormat(formatCodec) == cameraFormat.pixelFormat()
             && cameraFormat.resolution().width() == dim.width
-            && cameraFormat.resolution().height() == dim.height) {
+            && cameraFormat.resolution().height() == dim.height
+            && (!cvFormatValidator || cvFormatValidator(formatCodec))) {
             for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
                 if (frameRateRange.minFrameRate >= cameraFormat.minFrameRate()
                     && frameRateRange.maxFrameRate <= cameraFormat.maxFrameRate()) {

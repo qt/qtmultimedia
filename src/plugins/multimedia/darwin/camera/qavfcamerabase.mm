@@ -141,12 +141,14 @@ void QAVFVideoDevices::updateCameraDevices()
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
 
     for (AVCaptureDevice *device in videoDevices) {
-
-        QCameraDevicePrivate *info = new QCameraDevicePrivate;
+        auto info = std::make_unique<QCameraDevicePrivate>();
         if (defaultDevice && [defaultDevice.uniqueID isEqualToString:device.uniqueID])
             info->isDefault = true;
         info->id = QByteArray([[device uniqueID] UTF8String]);
         info->description = QString::fromNSString([device localizedName]);
+
+        qCDebug(qLcCamera) << "Handling camera info" << info->description
+                           << (info->isDefault ? "(default)" : "");
 
         QSet<QSize> photoResolutions;
         QList<QCameraFormat> videoFormats;
@@ -165,8 +167,11 @@ void QAVFVideoDevices::updateCameraDevices()
             auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
             auto pixelFormat = QAVFHelpers::fromCVPixelFormat(encoding);
             // Ignore pixel formats we can't handle
-            if (pixelFormat == QVideoFrameFormat::Format_Invalid)
+            if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
+                qCDebug(qLcCamera) << "ignore camera CV format" << encoding
+                                   << "as no matching video format found";
                 continue;
+            }
 
             for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
                 if (frameRateRange.minFrameRate < minFrameRate)
@@ -186,6 +191,10 @@ void QAVFVideoDevices::updateCameraDevices()
                 photoResolutions.insert(hrRes);
 #endif
 
+            qCDebug(qLcCamera) << "Add camera format. pixelFormat:" << pixelFormat
+                               << "cvPixelFormat" << encoding << "resolution:" << resolution
+                               << "frameRate: [" << minFrameRate << maxFrameRate << "]";
+
             auto *f = new QCameraFormatPrivate{
                 QSharedData(),
                 pixelFormat,
@@ -197,13 +206,14 @@ void QAVFVideoDevices::updateCameraDevices()
         }
         if (videoFormats.isEmpty()) {
             // skip broken cameras without valid formats
-            delete info;
+            qCWarning(qLcCamera())
+                    << "Skip camera" << info->description << "without supported formats";
             continue;
         }
         info->videoFormats = videoFormats;
         info->photoResolutions = photoResolutions.values();
 
-        cameras.append(info->create());
+        cameras.append(info.release()->create());
     }
 
     if (cameras != m_cameraDevices) {

@@ -14,6 +14,10 @@
 extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/samplefmt.h>
+
+#ifdef Q_OS_DARWIN
+#include <libavutil/hwcontext_videotoolbox.h>
+#endif
 }
 
 QT_BEGIN_NAMESPACE
@@ -292,6 +296,20 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
         return AV_PIX_FMT_NONE;
     }
 }
+
+#ifdef Q_OS_DARWIN
+bool isCVFormatSupported(uint32_t cvFormat)
+{
+    return av_map_videotoolbox_format_to_pixfmt(cvFormat) != AV_PIX_FMT_NONE;
+}
+
+std::string cvFormatToString(uint32_t cvFormat)
+{
+    auto formatDescIt = std::make_reverse_iterator(reinterpret_cast<const char *>(&cvFormat));
+    return std::string(formatDescIt - 4, formatDescIt);
+}
+
+#endif
 
 } // namespace QFFmpeg
 

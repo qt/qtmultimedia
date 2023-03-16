@@ -131,8 +131,9 @@ private:
 typedef QPair<qreal, qreal> AVFPSRange;
 AVFPSRange qt_connection_framerates(AVCaptureConnection *videoConnection);
 
-AVCaptureDeviceFormat *qt_convert_to_capture_device_format(AVCaptureDevice *captureDevice,
-                                                        const QCameraFormat &format);
+AVCaptureDeviceFormat *qt_convert_to_capture_device_format(
+        AVCaptureDevice *captureDevice, const QCameraFormat &format,
+        const std::function<bool(uint32_t)> &cvFormatValidator = nullptr);
 QList<AVCaptureDeviceFormat *> qt_unique_device_formats(AVCaptureDevice *captureDevice,
                                                         FourCharCode preferredFormat);
 QSize qt_device_format_resolution(AVCaptureDeviceFormat *format);

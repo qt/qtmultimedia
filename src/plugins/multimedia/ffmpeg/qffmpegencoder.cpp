@@ -69,13 +69,11 @@ void Encoder::addCamera(QPlatformCamera *camera)
                               << (camera->ffmpegHWPixelFormat() ? *camera->ffmpegHWPixelFormat()
                                                                 : std::numeric_limits<int>::min());
 
-    QVideoFrameFormat vff(cf.resolution(), cf.pixelFormat());
-    vff.setFrameRate(cf.maxFrameRate());
-
     std::optional<AVPixelFormat> hwPixelFormat = camera->ffmpegHWPixelFormat()
             ? AVPixelFormat(*camera->ffmpegHWPixelFormat())
             : std::optional<AVPixelFormat>{};
-    auto veUPtr = std::make_unique<VideoEncoder>(this, settings, vff, hwPixelFormat);
+    auto veUPtr =
+            std::make_unique<VideoEncoder>(this, settings, camera->frameFormat(), hwPixelFormat);
     if (veUPtr->isValid()) {
         auto ve = veUPtr.release();
         auto conn = connect(camera, &QPlatformCamera::newVideoFrame,

@@ -19,6 +19,7 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 
 #include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qvideoframeformat.h>
 #include <QtCore/private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -65,6 +66,8 @@ public:
     virtual bool isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const { return mode == QCamera::WhiteBalanceAuto; }
     virtual void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) {}
     virtual void setColorTemperature(int /*temperature*/) {}
+
+    QVideoFrameFormat frameFormat() const;
 
     QCamera::Features supportedFeatures() const { return m_supportedFeatures; }
 
@@ -126,8 +129,12 @@ Q_SIGNALS:
 protected:
     explicit QPlatformCamera(QCamera *parent);
 
-    static QCameraFormat findBestCameraFormat(const QCameraDevice &camera);
+    virtual int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat /*format*/) const { return 0; }
+
+    QCameraFormat findBestCameraFormat(const QCameraDevice &camera) const;
     QCameraFormat m_cameraFormat;
+    QVideoFrameFormat::PixelFormat m_framePixelFormat = QVideoFrameFormat::Format_Invalid;
+
 private:
     QCamera *m_camera = nullptr;
     QCamera::Features m_supportedFeatures = {};
