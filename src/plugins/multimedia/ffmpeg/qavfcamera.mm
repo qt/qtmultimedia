@@ -6,6 +6,7 @@
 #include <private/qplatformmediacapture_p.h>
 #include "avfcamerautility_p.h"
 #include "qavfhelpers_p.h"
+#include "avfcameradebug_p.h"
 #include "qavfsamplebufferdelegate_p.h"
 #include <qvideosink.h>
 #include <private/qrhi_p.h>
@@ -21,6 +22,8 @@ extern "C" {
 static AVAuthorizationStatus m_cameraAuthorizationStatus = AVAuthorizationStatusNotDetermined;
 
 QT_BEGIN_NAMESPACE
+
+using namespace QFFmpeg;
 
 QAVFCamera::QAVFCamera(QCamera *parent)
     : QAVFCameraBase(parent)
@@ -222,83 +225,137 @@ bool QAVFCamera::setCameraFormat(const QCameraFormat &format)
     if (m_cameraFormat == format && !format.isNull())
         return true;
 
-    QAVFCameraBase::setCameraFormat(format);
+    if (!QAVFCameraBase::setCameraFormat(format))
+        return false;
+
     updateCameraFormat();
     return true;
 }
 
 void QAVFCamera::updateCameraFormat()
 {
+    m_framePixelFormat = QVideoFrameFormat::Format_Invalid;
+
     AVCaptureDevice *captureDevice = device();
     if (!captureDevice)
         return;
 
+    AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(
+            captureDevice, m_cameraFormat, &isCVFormatSupported);
+
+    if (!newFormat)
+        newFormat = qt_convert_to_capture_device_format(captureDevice, m_cameraFormat);
+
     std::uint32_t cvPixelFormat = 0;
-    AVCaptureDeviceFormat *newFormat = qt_convert_to_capture_device_format(captureDevice, m_cameraFormat);
     if (newFormat) {
         qt_set_active_format(captureDevice, newFormat, false);
-        cvPixelFormat = setPixelFormat(m_cameraFormat.pixelFormat());
+        const auto captureDeviceCVFormat =
+                CMVideoFormatDescriptionGetCodecType(newFormat.formatDescription);
+        cvPixelFormat = setPixelFormat(m_cameraFormat.pixelFormat(), captureDeviceCVFormat);
+        if (captureDeviceCVFormat != cvPixelFormat) {
+            qCWarning(qLcCamera) << "Output CV format differs with capture device format!"
+                                 << cvPixelFormat << cvFormatToString(cvPixelFormat) << "vs"
+                                 << captureDeviceCVFormat
+                                 << cvFormatToString(captureDeviceCVFormat);
+
+            m_framePixelFormat = QAVFHelpers::fromCVPixelFormat(cvPixelFormat);
+        }
+    } else {
+        qWarning() << "Cannot find AVCaptureDeviceFormat; Did you use format from another camera?";
     }
 
     const AVPixelFormat avPixelFormat = av_map_videotoolbox_format_to_pixfmt(cvPixelFormat);
 
-    std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
+    std::unique_ptr<HWAccel> hwAccel;
 
     if (avPixelFormat == AV_PIX_FMT_NONE) {
-        auto formatDescIt =
-                std::make_reverse_iterator(reinterpret_cast<const char *>(&cvPixelFormat));
-        qWarning() << "Videotoolbox desn't support cvPixelFormat:" << cvPixelFormat
-                   << std::string(formatDescIt - 4, formatDescIt)
-                   << " Camera pix format:" << m_cameraFormat.pixelFormat();
+        qCWarning(qLcCamera) << "Videotoolbox doesn't support cvPixelFormat:" << cvPixelFormat
+                             << cvFormatToString(cvPixelFormat)
+                             << "Camera pix format:" << m_cameraFormat.pixelFormat();
     } else {
-        hwAccel = QFFmpeg::HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
+        hwAccel = HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
+        qCDebug(qLcCamera) << "Create VIDEOTOOLBOX hw context" << hwAccel.get() << "for camera";
     }
 
     if (hwAccel) {
         hwAccel->createFramesContext(avPixelFormat, m_cameraFormat.resolution());
-        hwPixelFormat = hwAccel->hwFormat();
+        m_hwPixelFormat = hwAccel->hwFormat();
     } else {
-        hwPixelFormat = AV_PIX_FMT_NONE;
+        m_hwPixelFormat = AV_PIX_FMT_NONE;
     }
+
     [m_sampleBufferDelegate setHWAccel:std::move(hwAccel)];
     [m_sampleBufferDelegate setVideoFormatFrameRate:m_cameraFormat.maxFrameRate()];
 }
 
-std::uint32_t QAVFCamera::setPixelFormat(const QVideoFrameFormat::PixelFormat pixelFormat)
+uint32_t QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFormat,
+                                    uint32_t inputCvPixFormat)
 {
-    // Default to 32BGRA pixel formats on the viewfinder, in case the requested
-    // format can't be used (shouldn't happen unless the developers sets a wrong camera
-    // format on the camera).
-    std::uint32_t cvPixelFormat = kCVPixelFormatType_32BGRA;
-    if (!QAVFHelpers::toCVPixelFormat(pixelFormat, cvPixelFormat))
-        qWarning() << "QCamera::setCameraFormat: couldn't convert requested pixel format, using ARGB32";
+    auto bestScore = MinAVScore;
+    NSNumber *bestFormat = nullptr;
+    for (NSNumber *cvPixFmtNumber in m_videoDataOutput.availableVideoCVPixelFormatTypes) {
+        auto cvPixFmt = [cvPixFmtNumber unsignedIntValue];
+        const auto pixFmt = QAVFHelpers::fromCVPixelFormat(cvPixFmt);
+        if (pixFmt == QVideoFrameFormat::Format_Invalid)
+            continue;
 
-    bool isSupported = false;
-    NSArray *supportedPixelFormats = m_videoDataOutput.availableVideoCVPixelFormatTypes;
-    for (NSNumber *currentPixelFormat in supportedPixelFormats)
-    {
-        if ([currentPixelFormat unsignedIntValue] == cvPixelFormat) {
-            isSupported = true;
-            break;
+        auto score = DefaultAVScore;
+        if (cvPixFmt == inputCvPixFormat)
+            score += 100;
+        if (pixFmt == cameraPixelFormat)
+            score += 10;
+        // if (cvPixFmt == kCVPixelFormatType_32BGRA)
+        //     score += 1;
+
+        // This flag determines priorities of using ffmpeg hw frames or
+        // the exact camera format match.
+        // Maybe configure more, e.g. by some env var?
+        constexpr bool ShouldSuppressNotSupportedByFFmpeg = false;
+
+        if (!isCVFormatSupported(cvPixFmt))
+            score -= ShouldSuppressNotSupportedByFFmpeg ? 100000 : 5;
+
+        // qDebug() << "----FMT:" << pixFmt << cvPixFmt << score;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestFormat = cvPixFmtNumber;
         }
     }
 
-    if (isSupported) {
-        NSDictionary *outputSettings = @{
-            (NSString *)
-            kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithUnsignedInt:cvPixelFormat],
-            (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
-        };
-        m_videoDataOutput.videoSettings = outputSettings;
-    } else {
-        qWarning() << "QCamera::setCameraFormat: requested pixel format not supported. Did you use a camera format from another camera?";
+    if (!bestFormat) {
+        qWarning() << "QCamera::setCameraFormat: availableVideoCVPixelFormatTypes empty";
+        return 0;
     }
-    return cvPixelFormat;
+
+    if (bestScore < DefaultAVScore)
+        qWarning() << "QCamera::setCameraFormat: Cannot find hw ffmpeg supported cv pix format";
+
+    NSDictionary *outputSettings = @{
+        (NSString *)kCVPixelBufferPixelFormatTypeKey : bestFormat,
+        (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
+    };
+    m_videoDataOutput.videoSettings = outputSettings;
+
+    return [bestFormat unsignedIntValue];
 }
 
 void QAVFCamera::syncHandleFrame(const QVideoFrame &frame)
 {
     Q_EMIT newVideoFrame(frame);
+}
+
+std::optional<int> QAVFCamera::ffmpegHWPixelFormat() const
+{
+    return m_hwPixelFormat == AV_PIX_FMT_NONE ? std::optional<int>{} : m_hwPixelFormat;
+}
+
+int QAVFCamera::cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixFmt) const
+{
+    unsigned cvFormat = 0;
+    const auto isSupported =
+            QAVFHelpers::toCVPixelFormat(pixFmt, cvFormat) && isCVFormatSupported(cvFormat);
+    return static_cast<int>(isSupported);
 }
 
 QT_END_NAMESPACE

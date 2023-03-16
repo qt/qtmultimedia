@@ -169,6 +169,13 @@ inline bool isSwPixelFormat(AVPixelFormat format)
 }
 
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType);
+
+#ifdef Q_OS_DARWIN
+bool isCVFormatSupported(uint32_t format);
+
+std::string cvFormatToString(uint32_t format);
+
+#endif
 }
 
 QT_END_NAMESPACE

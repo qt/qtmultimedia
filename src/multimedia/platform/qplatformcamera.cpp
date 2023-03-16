@@ -12,23 +12,45 @@ QPlatformCamera::QPlatformCamera(QCamera *parent)
     qRegisterMetaType<QVideoFrame>();
 }
 
-QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera)
+QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera) const
 {
-    QCameraFormat f;
+    // check if fmt is better. We try to find the highest resolution that offers
+    // at least 30 FPS
+    // we use 29 FPS to compare against as some cameras report 29.97 FPS...
+
+    auto makeCriteria = [this](const QCameraFormat &fmt) {
+        constexpr float MinSufficientFrameRate = 29.f;
+
+        const auto isValid = fmt.pixelFormat() != QVideoFrameFormat::Format_Invalid;
+        const auto resolution = fmt.resolution();
+        const auto sufficientFrameRate = std::min(fmt.maxFrameRate(), MinSufficientFrameRate);
+
+        return std::make_tuple(
+                isValid, // 1st: ensure valid formats
+                sufficientFrameRate, // 2nd: ensure the highest frame rate in the range [0; 29]*/
+                resolution.width() * resolution.height(), // 3rd: ensure the highest resolution
+                cameraPixelFormatScore(fmt.pixelFormat()),
+                fmt.maxFrameRate()); // 4th: ensure the highest framerate in the whole range
+    };
+
     const auto formats = camera.videoFormats();
-    for (const auto &fmt : formats) {
-        if (fmt.pixelFormat() == QVideoFrameFormat::Format_Invalid)
-            continue;
-        // check if fmt is better. We try to find the highest resolution that offers
-        // at least 30 FPS
-        // we use 29 FPS to compare against as some cameras report 29.97 FPS...
-        if (f.maxFrameRate() < 29 && fmt.maxFrameRate() > f.maxFrameRate())
-            f = fmt;
-        else if (f.maxFrameRate() == fmt.maxFrameRate() &&
-                 f.resolution().width()*f.resolution().height() < fmt.resolution().width()*fmt.resolution().height())
-            f = fmt;
-    }
-    return f;
+    const auto found =
+            std::max_element(formats.begin(), formats.end(),
+                             [makeCriteria](const QCameraFormat &fmtA, const QCameraFormat &fmtB) {
+                                 return makeCriteria(fmtA) < makeCriteria(fmtB);
+                             });
+
+    return found == formats.end() ? QCameraFormat{} : *found;
+}
+
+QVideoFrameFormat QPlatformCamera::frameFormat() const
+{
+    QVideoFrameFormat result(m_cameraFormat.resolution(),
+                             m_framePixelFormat == QVideoFrameFormat::Format_Invalid
+                                     ? m_cameraFormat.pixelFormat()
+                                     : m_framePixelFormat);
+    result.setFrameRate(m_cameraFormat.maxFrameRate());
+    return result;
 }
 
 void QPlatformCamera::supportedFeaturesChanged(QCamera::Features f)
