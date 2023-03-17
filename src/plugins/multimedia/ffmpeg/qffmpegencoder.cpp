@@ -604,7 +604,6 @@ void VideoEncoder::loop()
         avFrame->format = frameEncoder->sourceFormat();
         avFrame->width = size.width();
         avFrame->height = size.height();
-        av_frame_get_buffer(avFrame.get(), 0);
 
         for (int i = 0; i < 4; ++i) {
             avFrame->data[i] = const_cast<uint8_t *>(frame.bits(i));
