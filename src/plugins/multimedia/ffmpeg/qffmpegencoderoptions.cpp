@@ -96,7 +96,7 @@ static void apply_libvpx(const QMediaEncoderSettings &settings, AVCodecContext *
 }
 
 #ifdef Q_OS_DARWIN
-static void apply_videotoolbox(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **)
+static void apply_videotoolbox(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **opts)
 {
     if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
         codec->bit_rate = settings.videoBitRate();
@@ -116,6 +116,13 @@ static void apply_videotoolbox(const QMediaEncoderSettings &settings, AVCodecCon
         codec->bit_rate = bitrateForSettings(settings);
 #endif
     }
+
+    // Videotooldox hw acceleration fails of some hardwares,
+    // allow_sw makes sw encoding available if hw encoding failed.
+    // Under the hood, ffmpeg sets
+    // kVTVideoEncoderSpecification_EnableHardwareAcceleratedVideoEncoder instead of
+    // kVTVideoEncoderSpecification_RequireHardwareAcceleratedVideoEncoder
+    av_dict_set(opts, "allow_sw", "1", 0);
 }
 #endif
 
