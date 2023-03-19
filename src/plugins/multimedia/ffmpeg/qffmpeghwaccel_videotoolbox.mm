@@ -9,6 +9,7 @@
 
 #include <qvideoframeformat.h>
 #include <qffmpegvideobuffer_p.h>
+#include <qloggingcategory.h>
 #include "private/qvideotexturehelper_p.h"
 
 #include <private/qrhi_p.h>
@@ -28,6 +29,8 @@
 #import <Metal/Metal.h>
 
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcVideotoolbox, "qt.multimedia.ffmpeg.videotoolbox")
 
 namespace QFFmpeg
 {
@@ -175,7 +178,7 @@ TextureSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame)
 
     CVPixelBufferRef buffer = (CVPixelBufferRef)frame->data[3];
 
-    VideoToolBoxTextureSet *textureSet = new VideoToolBoxTextureSet;
+    auto textureSet = std::make_unique<VideoToolBoxTextureSet>();
     textureSet->m_buffer = buffer;
     textureSet->rhi = rhi;
     CVPixelBufferRetain(buffer);
@@ -218,8 +221,10 @@ TextureSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame)
                         buffer,
                         nil,
                         &textureSet->cvOpenGLTexture);
-        if (cvret != kCVReturnSuccess)
-            qWarning() << "OpenGL texture creation failed" << cvret;
+        if (cvret != kCVReturnSuccess) {
+            qCWarning(qLcVideotoolbox) << "OpenGL texture creation failed" << cvret;
+            return nullptr;
+        }
 
         Q_ASSERT(CVOpenGLTextureGetTarget(textureSet->cvOpenGLTexture) == GL_TEXTURE_RECTANGLE);
 #endif
@@ -239,13 +244,15 @@ TextureSet *VideoToolBoxTextureConverter::getTextures(AVFrame *frame)
                         GL_UNSIGNED_BYTE,
                         0,
                         &textureSet->cvOpenGLESTexture);
-        if (cvret != kCVReturnSuccess)
-            qWarning() << "OpenGL ES texture creation failed" << cvret;
+        if (cvret != kCVReturnSuccess) {
+            qCWarning(qLcVideotoolbox) << "OpenGL ES texture creation failed" << cvret;
+            return nullptr;
+        }
 #endif
 #endif
     }
 
-    return textureSet;
+    return textureSet.release();
 }
 
 VideoToolBoxTextureSet::~VideoToolBoxTextureSet()
