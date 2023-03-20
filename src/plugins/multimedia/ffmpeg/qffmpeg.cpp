@@ -5,6 +5,7 @@
 
 #include <qdebug.h>
 #include <qloggingcategory.h>
+#include <qffmpeghwaccel_p.h> // TODO: probably decompose HWAccel and get rid of the header in the base utils
 
 #include <algorithm>
 #include <vector>
@@ -90,6 +91,29 @@ static void dumpCodecInfo(const AVCodec *codec)
     }
 }
 
+static bool isCodecValid(const AVCodec *encoder,
+                         const std::vector<AVHWDeviceType> &availableHwDeviceTypes)
+{
+    if (encoder->type != AVMEDIA_TYPE_VIDEO)
+        return true;
+
+    if (!encoder->pix_fmts)
+        return true; // To be investigated. This happens for RAW_VIDEO, that is supposed to be OK,
+                     // and with v4l2m2m codec, that is suspicious.
+
+    auto checkFormat = [&](AVPixelFormat pixelFormat) {
+        if (isSwPixelFormat(pixelFormat))
+            return true; // If a codec supports sw pixel formats, it can be used without hw accel
+
+        return std::any_of(availableHwDeviceTypes.begin(), availableHwDeviceTypes.end(),
+                           [&pixelFormat](AVHWDeviceType type) {
+                               return pixelFormatForHwDevice(type) == pixelFormat;
+                           });
+    };
+
+    return findAVFormat(encoder->pix_fmts, checkFormat) != AV_PIX_FMT_NONE;
+}
+
 const CodecsStorage &codecsStorage(CodecStorageType codecsType)
 {
     static const auto &storages = []() {
@@ -102,13 +126,26 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
             // find experimental codecs in the last order,
             // now we don't consider them at all since they are supposed to
             // be not stable, maybe we shouldn't.
-            if (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL)
+            if (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) {
+                qCDebug(qLcFFmpegUtils) << "Skip experimental codec" << codec->name;
                 continue;
+            }
 
-            if (av_codec_is_decoder(codec))
-                result[DECODERS].emplace_back(codec);
-            if (av_codec_is_encoder(codec))
-                result[ENCODERS].emplace_back(codec);
+            if (av_codec_is_decoder(codec)) {
+                if (isCodecValid(codec, HWAccel::decodingDeviceTypes()))
+                    result[DECODERS].emplace_back(codec);
+                else
+                    qCDebug(qLcFFmpegUtils) << "Skip decoder" << codec->name
+                                            << "due to disabled matching hw acceleration";
+            }
+
+            if (av_codec_is_encoder(codec)) {
+                if (isCodecValid(codec, HWAccel::encodingDeviceTypes()))
+                    result[ENCODERS].emplace_back(codec);
+                else
+                    qCDebug(qLcFFmpegUtils) << "Skip encoder" << codec->name
+                                            << "due to disabled matching hw acceleration";
+            }
         }
 
         for (auto &storage : result) {
