@@ -48,6 +48,9 @@ private:
     bool isWavSupported();
     QUrl testFileUrl(const QString filePath);
     void checkNoMoreChanges(QAudioDecoder &decoder);
+#ifdef Q_OS_ANDROID
+    QTemporaryFile *temporaryFile = nullptr;
+#endif
 };
 
 void tst_QAudioDecoderBackend::init()
@@ -63,6 +66,12 @@ void tst_QAudioDecoderBackend::initTestCase()
 
 void tst_QAudioDecoderBackend::cleanup()
 {
+#ifdef Q_OS_ANDROID
+    if (temporaryFile) {
+        delete temporaryFile;
+        temporaryFile = nullptr;
+    }
+#endif
 }
 
 bool tst_QAudioDecoderBackend::isWavSupported()
@@ -82,12 +91,14 @@ QUrl tst_QAudioDecoderBackend::testFileUrl(const QString filePath)
     url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
 #else
     QFile file(":/" + filePath);
-    QTemporaryFile *temporaryFile = nullptr;
+    if (temporaryFile) {
+        delete temporaryFile;
+        temporaryFile = nullptr;
+    }
     if (file.open(QIODevice::ReadOnly)) {
         temporaryFile = QTemporaryFile::createNativeFile(file);
         url = QUrl(temporaryFile->fileName());
     }
-    temporaryFile->deleteLater();
 #endif
     return url;
 }
@@ -546,8 +557,7 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
-    QFileInfo fileInfo(QFINDTESTDATA(TEST_UNSUPPORTED_FILE_NAME));
-    QUrl url = QUrl::fromLocalFile(fileInfo.absoluteFilePath());
+    QUrl url = testFileUrl(TEST_UNSUPPORTED_FILE_NAME);
     d.setSource(url);
     QVERIFY(!d.isDecoding());
     QVERIFY(!d.bufferAvailable());
