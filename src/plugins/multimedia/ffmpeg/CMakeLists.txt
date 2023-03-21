@@ -37,6 +37,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
         qffmpegscreencapturebase.cpp qffmpegscreencapturebase_p.h
         qffmpegscreencapture.cpp qffmpegscreencapture_p.h
+        qffmpegscreencapturethread.cpp qffmpegscreencapturethread_p.h
 
         qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
         playbackengine/qffmpegplaybackengineobject.cpp playbackengine/qffmpegplaybackengineobject_p.h

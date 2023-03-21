@@ -38,9 +38,6 @@ protected:
     void updateError(QScreenCapture::Error error, const QString &description);
 
 private:
-    void resetGrabber();
-
-private:
     std::unique_ptr<Grabber> m_grabber;
 };
 

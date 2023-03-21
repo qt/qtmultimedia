@@ -2,12 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qx11screencapture_p.h"
+#include "qffmpegscreencapturethread_p.h"
 
 #include <qvideoframe.h>
-#include <qthread.h>
 #include <qscreen.h>
 #include <qwindow.h>
-#include <qtimer.h>
 #include <qdebug.h>
 #include <QGuiApplication>
 #include <qloggingcategory.h>
@@ -27,8 +26,6 @@ QT_BEGIN_NAMESPACE
 static Q_LOGGING_CATEGORY(qLcX11ScreenCapture, "qt.multimedia.ffmpeg.x11screencapture")
 
 namespace {
-
-const qreal MaxFrameRate = 60.;
 
 void destroyXImage(XImage* image) {
     XDestroyImage(image); // macro
@@ -120,7 +117,7 @@ private:
 
 } // namespace
 
-class QX11ScreenCapture::Grabber : private QThread
+class QX11ScreenCapture::Grabber : private QFFmpegScreenCaptureThread
 {
 public:
     static std::unique_ptr<Grabber> create(QX11ScreenCapture &capture, QScreen *screen)
@@ -137,8 +134,7 @@ public:
 
     ~Grabber() override
     {
-        quit();
-        wait();
+        stop();
 
         detachShm();
     }
@@ -146,7 +142,11 @@ public:
     const QVideoFrameFormat &format() const { return m_format; }
 
 private:
-    Grabber(QX11ScreenCapture &capture) : m_capture(capture) { }
+    Grabber(QX11ScreenCapture &capture) : m_capture(capture)
+    {
+        addFrameCallback(capture, &QX11ScreenCapture::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &capture, &QX11ScreenCapture::updateError);
+    }
 
     bool createDisplay()
     {
@@ -158,7 +158,7 @@ private:
 
     bool init(WId wid) {
         if (auto screen = QGuiApplication::primaryScreen())
-            m_frameRate = std::min(screen->refreshRate(), MaxFrameRate);
+            setFrameRate(screen->refreshRate());
 
         return createDisplay() && initWithXID(static_cast<XID>(wid));
     }
@@ -173,7 +173,7 @@ private:
         if (screenNumber < 0)
             return false;
 
-        m_frameRate = std::min(screen->refreshRate(), MaxFrameRate);
+        setFrameRate(screen->refreshRate());
 
         return initWithXID(RootWindow(m_display.get(), screenNumber));
     }
@@ -268,71 +268,30 @@ private:
 
             m_format = QVideoFrameFormat(QSize(m_xImage->width, m_xImage->height),
                                          pixelFormat);
-            m_format.setFrameRate(m_frameRate);
+            m_format.setFrameRate(frameRate());
         }
 
         return m_attached;
     }
 
-private:
-    void updateError(QScreenCapture::Error error, const QString &description)
+protected:
+    QVideoFrame grabFrame() override
     {
-        if (error != QScreenCapture::NoError) {
-            if (m_timer)
-                m_timer->setInterval(1000);
-        }
-
-        const auto prevError = std::exchange(m_prevGrabberError, error);
-
-        if (error != QScreenCapture::NoError || prevError != QScreenCapture::NoError) {
-            QMetaObject::invokeMethod(&m_capture,
-                                      std::bind(&QPlatformScreenCapture::updateError, &m_capture,
-                                                error, description));
-        }
-    }
-
-    void run() override
-    {
-        m_timer = std::make_unique<QTimer>();
-        auto deleter = qScopeGuard([&]() { m_timer.reset(); });
-        m_timer->setTimerType(Qt::PreciseTimer);
-        QElapsedTimer elapsedTimer;
-        qint64 lastFrameTime = 0;
-
-        m_timer->callOnTimeout([&]() { grab(elapsedTimer, lastFrameTime); });
-        m_timer->start();
-
-        exec();
-    }
-
-    void grab(const QElapsedTimer &elapsedTimer, qint64 &lastFrameTime)
-    {
-        m_timer->setInterval(1000 / m_frameRate);
-
         if (!update())
-            return;
+            return {};
 
         if (!XShmGetImage(m_display.get(), m_xid, m_xImage.get(), m_xOffset, m_yOffset,
                           AllPlanes)) {
             updateError(QScreenCapture::CaptureFailed,
                         QLatin1String(
                                 "Cannot get ximage; the window may be out of the screen borders"));
-            return;
+            return {};
         }
 
         auto buffer = new DataVideoBuffer(m_xImage->data, m_xImage->bytes_per_line,
                                           m_xImage->bytes_per_line * m_xImage->height);
 
-        QVideoFrame frame(buffer, m_format);
-
-        const auto endTime = elapsedTimer.nsecsElapsed() / 1000;
-        frame.setStartTime(lastFrameTime);
-        frame.setEndTime(endTime);
-        emit m_capture.newVideoFrame(frame);
-
-        updateError(QScreenCapture::NoError, {});
-
-        lastFrameTime = endTime;
+        return QVideoFrame(buffer, m_format);
     }
 
 private:
@@ -345,9 +304,7 @@ private:
     std::unique_ptr<XImage, decltype(&destroyXImage)> m_xImage{nullptr, &destroyXImage};
     XShmSegmentInfo m_shmInfo;
     bool m_attached = false;
-    qreal m_frameRate = MaxFrameRate;
     VisualID m_visualID = None;
-    std::unique_ptr<QTimer> m_timer;
     QVideoFrameFormat m_format;
 };
 
