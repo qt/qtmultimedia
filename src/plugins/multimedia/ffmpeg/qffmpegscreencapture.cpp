@@ -4,18 +4,17 @@
 #include "qvideoframe.h"
 #include "qffmpegscreencapture_p.h"
 #include "qscreencapture.h"
+#include "qffmpegscreencapturethread_p.h"
 
 #include "private/qabstractvideobuffer_p.h"
 
 #include "qscreen.h"
-#include "qthread.h"
 #include "qmutex.h"
 #include "qwaitcondition.h"
 #include "qpixmap.h"
 #include "qguiapplication.h"
 #include "qdatetime.h"
 #include "qwindow.h"
-#include "qtimer.h"
 #include "qelapsedtimer.h"
 
 #include <QtCore/qloggingcategory.h>
@@ -67,7 +66,7 @@ public:
 
 }
 
-class QFFmpegScreenCapture::Grabber : public QThread
+class QFFmpegScreenCapture::Grabber : public QFFmpegScreenCaptureThread
 {
 public:
     Grabber(QFFmpegScreenCapture &capture, QScreen *screen) : Grabber(capture, screen, nullptr)
@@ -81,7 +80,11 @@ public:
         Q_ASSERT(m_window);
     }
 
-    ~Grabber() { Q_ASSERT(!m_screenRemovingLocked); }
+    ~Grabber() override {
+        stop();
+
+        Q_ASSERT(!m_screenRemovingLocked);
+    }
 
     const QVideoFrameFormat &format()
     {
@@ -93,9 +96,11 @@ public:
 
 private:
     Grabber(QFFmpegScreenCapture &capture, QScreen *screen, WindowUPtr window)
-        : QThread(&capture), m_capture(capture), m_screen(screen), m_window(std::move(window))
+        : m_capture(capture), m_screen(screen), m_window(std::move(window))
     {
         connect(qApp, &QGuiApplication::screenRemoved, this, &Grabber::onScreenRemoved);
+        addFrameCallback(m_capture, &QFFmpegScreenCapture::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &m_capture, &QFFmpegScreenCapture::updateError);
     }
 
     void onScreenRemoved(QScreen *screen)
@@ -143,27 +148,8 @@ private:
         m_waitForFormat.wakeAll();
     }
 
-    void run() override
+    QVideoFrame grabFrame() override
     {
-        qCDebug(qLcFfmpegScreenCapture) << "Start screen grabbing";
-
-        QTimer timer;
-        QElapsedTimer elapsedTimer;
-        qint64 lastFrameTime = 0;
-
-        timer.callOnTimeout([&]() { grabWindow(elapsedTimer, lastFrameTime, timer); });
-
-        timer.start();
-
-        exec();
-
-        qCDebug(qLcFfmpegScreenCapture) << "Stop screen grabbing";
-    }
-
-    void grabWindow(const QElapsedTimer &elapsedTimer, qint64 &lastFrameTime, QTimer &timer)
-    {
-        constexpr int timerIntervalAfterFailure = 500;
-
         setScreenRemovingLocked(true);
         auto screenGuard = qScopeGuard(std::bind(&Grabber::setScreenRemovingLocked, this, false));
 
@@ -171,20 +157,11 @@ private:
         QScreen *screen = m_window ? m_window->screen() : m_screen ? m_screen.data() : nullptr;
 
         if (!screen) {
-            m_capture.updateError(QScreenCapture::Error::CaptureFailed, "Screen not found");
-
-            timer.setInterval(timerIntervalAfterFailure);
-            return;
+            updateError(QScreenCapture::Error::CaptureFailed, "Screen not found");
+            return {};
         }
 
-        const int frameTimeInterval = static_cast<int>(1000. / screen->refreshRate());
-        if (frameTimeInterval != timer.interval()) {
-            qCDebug(qLcFfmpegScreenCapture)
-                    << "Screen capturing: timer interval has been set to" << frameTimeInterval;
-
-            // Update timer interval in case the window screen has been changed
-            timer.setInterval(frameTimeInterval);
-        }
+        setFrameRate(screen->refreshRate());
 
         QPixmap p = screen->grabWindow(wid);
         QImage img = p.toImage();
@@ -195,22 +172,12 @@ private:
         updateFormat(format);
 
         if (!format.isValid()) {
-            m_capture.updateError(QScreenCapture::Error::CaptureFailed,
+            updateError(QScreenCapture::Error::CaptureFailed,
                                   "Failed to grab the screen content");
-
-            timer.setInterval(timerIntervalAfterFailure);
-            return;
+            return {};
         }
 
-        QVideoFrame frame(new QImageVideoBuffer(std::move(img)), format);
-
-        const auto endTime = elapsedTimer.nsecsElapsed() / 1000;
-
-        frame.setStartTime(lastFrameTime);
-        frame.setEndTime(endTime);
-        emit m_capture.newVideoFrame(frame);
-
-        lastFrameTime = endTime;
+        return QVideoFrame(new QImageVideoBuffer(std::move(img)), format);
     }
 
 private:
@@ -232,10 +199,7 @@ QFFmpegScreenCapture::QFFmpegScreenCapture(QScreenCapture *screenCapture)
 {
 }
 
-QFFmpegScreenCapture::~QFFmpegScreenCapture()
-{
-    resetGrabber();
-}
+QFFmpegScreenCapture::~QFFmpegScreenCapture() = default;
 
 QVideoFrameFormat QFFmpegScreenCapture::format() const
 {
@@ -251,7 +215,7 @@ bool QFFmpegScreenCapture::setActiveInternal(bool active)
         return true;
 
     if (m_grabber) {
-        resetGrabber();
+        m_grabber.reset();
         return true;
     }
 
@@ -282,15 +246,6 @@ bool QFFmpegScreenCapture::setActiveInternal(bool active)
 
     updateError(QScreenCapture::NotFound, "Screen not found");
     return false;
-}
-
-void QFFmpegScreenCapture::resetGrabber()
-{
-    if (m_grabber) {
-        m_grabber->quit();
-        m_grabber->wait();
-        m_grabber.reset();
-    }
 }
 
 void QFFmpegScreenCapture::updateError(QScreenCapture::Error error, const QString &description)

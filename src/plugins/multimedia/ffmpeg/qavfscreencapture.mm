@@ -5,11 +5,10 @@
 #include <qpointer.h>
 #include <qscreencapture.h>
 #include <qscreen.h>
-#include <qthread.h>
-#include <qtimer.h>
 #include <QGuiApplication>
 #include <private/qrhi_p.h>
 #include "qavfsamplebufferdelegate_p.h"
+#include "qffmpegscreencapturethread_p.h"
 
 #define AVMediaType XAVMediaType
 #include "qffmpeghwaccel_p.h"
@@ -28,15 +27,11 @@ extern "C" {
 
 #include <dispatch/dispatch.h>
 
+#include <optional>
+
 namespace {
 
 const auto DefaultCVPixelFormat = kCVPixelFormatType_32BGRA;
-
-// Mac screens often support 120 frames per sec; it looks, this is not
-// needed for the capturing now since it just affects CPI without valuable
-// advantages. In the future, the frame rate should be customized by
-// user's API.
-const qreal MaxFrameRate = 60.;
 
 CGDirectDisplayID findDisplayByName(const QString &name)
 {
@@ -60,7 +55,7 @@ CGWindowID findNativeWindowID(WId wid)
     return static_cast<CGWindowID>(wid);
 }
 
-qreal frameRateForWindow(CGWindowID /*wid*/)
+std::optional<qreal> frameRateForWindow(CGWindowID /*wid*/)
 {
     // TODO: detect the frame rate
     // if (window && window.screen) {
@@ -70,7 +65,7 @@ qreal frameRateForWindow(CGWindowID /*wid*/)
     //     displayRefreshRate < frameRate) frameRate = displayRefreshRate;
     // }
 
-    return MaxFrameRate;
+    return {};
 }
 
 }
@@ -187,49 +182,35 @@ public:
     virtual ~Grabber() = default;
 };
 
-class QAVFScreenCapture::WindowGrabber : public QThread, public QAVFScreenCapture::Grabber
+class QAVFScreenCapture::WindowGrabber : public QFFmpegScreenCaptureThread,
+                                         public QAVFScreenCapture::Grabber
 {
 public:
-    WindowGrabber(QAVFScreenCapture &capture, CGWindowID wid) : m_capture(capture), m_wid(wid)
+    WindowGrabber(QAVFScreenCapture &capture, CGWindowID wid) : m_wid(wid)
     {
+        addFrameCallback(capture, &QAVFScreenCapture::onNewFrame);
+        connect(this, &WindowGrabber::errorUpdated, &capture, &QAVFScreenCapture::updateError);
+
+        if (auto screen = QGuiApplication::primaryScreen())
+            setFrameRate(screen->refreshRate());
+
         start();
     }
 
-    ~WindowGrabber() override
+    ~WindowGrabber() override { stop(); }
+
+protected:
+    QVideoFrame grabFrame() override
     {
-        quit();
-        wait();
-    }
-
-private:
-    void run() override
-    {
-        m_timer = std::make_unique<QTimer>();
-        // should be deleted in this thread
-        auto deleter = qScopeGuard([this]() { m_timer.reset(); });
-        m_timer->setTimerType(Qt::PreciseTimer);
-
-        QElapsedTimer elapsedTimer;
-        qint64 lastFrameTime = 0;
-
-        m_timer->callOnTimeout([&]() { grabWindow(elapsedTimer, lastFrameTime); });
-        m_timer->start();
-
-        exec();
-    }
-
-    void grabWindow(const QElapsedTimer &elapsedTimer, qint64 &lastFrameTime)
-    {
-        const auto frameRate = frameRateForWindow(m_wid);
-
-        m_timer->setInterval(1000 / frameRate);
+        if (auto rate = frameRateForWindow(m_wid))
+            setFrameRate(*rate);
 
         auto imageRef = CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow,
                                                 m_wid, kCGWindowImageBoundsIgnoreFraming);
         if (!imageRef) {
             updateError(QScreenCapture::CaptureFailed,
                         QLatin1String("Cannot create image by window"));
-            return;
+            return {};
         }
 
         auto imageDeleter = qScopeGuard([imageRef]() { CGImageRelease(imageRef); });
@@ -245,39 +226,18 @@ private:
 
             updateError(QScreenCapture::WindowCapturingNotSupported,
                         QLatin1String("Not supported pixel format"));
-            return;
+            return {};
         }
 
         QVideoFrameFormat format(QSize(CGImageGetWidth(imageRef), CGImageGetHeight(imageRef)),
                                  QVideoFrameFormat::Format_BGRA8888);
-        format.setFrameRate(frameRate);
+        format.setFrameRate(frameRate());
 
-        QVideoFrame frame(new QCGImageVideoBuffer(imageRef), format);
-
-        const auto endTime = elapsedTimer.nsecsElapsed() / 1000;
-
-        frame.setStartTime(lastFrameTime);
-        frame.setEndTime(endTime);
-
-        m_capture.onNewFrame(frame);
-
-        lastFrameTime = endTime;
+        return QVideoFrame(new QCGImageVideoBuffer(imageRef), format);
     }
 
 private:
-    void updateError(QScreenCapture::Error error, const QString &description)
-    {
-        m_timer->setInterval(1000); // set some big interval in order not to overdo with the updates
-
-        QMetaObject::invokeMethod(&m_capture, [&capture = m_capture, error, description]() {
-            capture.updateError(error, description);
-        });
-    }
-
-private:
-    QAVFScreenCapture &m_capture;
     CGWindowID m_wid;
-    std::unique_ptr<QTimer> m_timer;
 };
 
 class QAVFScreenCapture::ScreenGrabber : public QAVFScreenCapture::Grabber
@@ -310,7 +270,7 @@ public:
 
         [m_sampleBufferDelegate setHWAccel:std::move(hwAccel)];
 
-        const auto frameRate = std::min(screen->refreshRate(), MaxFrameRate);
+        const auto frameRate = std::min(screen->refreshRate(), MaxScreenCaptureFrameRate);
         [m_sampleBufferDelegate setVideoFormatFrameRate:frameRate];
 
         m_screenInput = [[AVCaptureScreenInput alloc] initWithDisplayID:screenID];

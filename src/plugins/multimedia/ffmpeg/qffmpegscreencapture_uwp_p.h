@@ -34,17 +34,14 @@ public:
     static bool isSupported();
 
 private:
-    void resetGrabber();
-
-private:
     friend ScreenGrabberActiveUwp;
 
     void emitError(QScreenCapture::Error code, const QString &desc);
 
     bool setActiveInternal(bool active) override;
 
-    std::unique_ptr<ScreenGrabberActiveUwp> m_screenGrabber;
     QVideoFrameFormat m_format;
+    std::unique_ptr<ScreenGrabberActiveUwp> m_screenGrabber;
 };
 
 QT_END_NAMESPACE
