@@ -55,7 +55,7 @@ private:
 
     Q_INVOKABLE void onEOSEvent();
     Q_INVOKABLE void onBytesProcessed(qint64 bytes);
-    void bufferAvailable(quint32 count, quint32 playIndex);
+    void bufferAvailable();
 
     static void playCallback(SLPlayItf playItf, void *ctx, SLuint32 event);
     static void bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx);
@@ -63,6 +63,7 @@ private:
     bool preparePlayer();
     void destroyPlayer();
     void stopPlayer();
+    void readyRead();
     void startPlayer();
     qint64 writeData(const char *data, qint64 len);
 
