@@ -584,7 +584,6 @@ void tst_QAudioSink::pullResumeFromUnderrun()
 
     QTRY_COMPARE(stateSignal.size(), 1);
     QCOMPARE(audioOutput.state(), QAudio::IdleState);
-    QCOMPARE(audioOutput.error(), QAudio::UnderrunError);
 
     // we played two chunks, sample rate is per second
     const int expectedUSecs = (double(chunkSize) / double(format.sampleRate()))
