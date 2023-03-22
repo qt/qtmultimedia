@@ -32,7 +32,7 @@ public:
 
     void setActive(bool active) override;
     bool isActive() const override { return bool(m_active); }
-    QVideoFrameFormat format() const override;
+    QVideoFrameFormat frameFormat() const override;
 
     void setScreen(QScreen *screen) override;
     QScreen *screen() const override { return m_screen; }

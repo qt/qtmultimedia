@@ -60,7 +60,7 @@ public:
 
     bool isActive() const override { return bool(m_grabber); }
 
-    QVideoFrameFormat format() const override
+    QVideoFrameFormat frameFormat() const override
     {
         return m_grabber ? QVideoFrameFormat(
                        m_imageSize, QVideoFrameFormat::pixelFormatFromImageFormat(m_imageFormat))

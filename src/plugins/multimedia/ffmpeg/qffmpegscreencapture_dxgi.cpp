@@ -300,7 +300,7 @@ QFFmpegScreenCaptureDxgi::~QFFmpegScreenCaptureDxgi()
     resetGrabber();
 }
 
-QVideoFrameFormat QFFmpegScreenCaptureDxgi::format() const
+QVideoFrameFormat QFFmpegScreenCaptureDxgi::frameFormat() const
 {
     if (m_active)
         return m_active->format();

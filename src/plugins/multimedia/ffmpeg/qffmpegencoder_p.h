@@ -19,7 +19,6 @@
 #include "qffmpeghwaccel_p.h"
 
 #include <private/qplatformmediarecorder_p.h>
-#include <private/qplatformscreencapture_p.h>
 #include <qaudioformat.h>
 #include <qaudiobuffer.h>
 
@@ -29,7 +28,7 @@ QT_BEGIN_NAMESPACE
 
 class QFFmpegAudioInput;
 class QVideoFrame;
-class QPlatformCamera;
+class QPlatformVideoSource;
 
 namespace QFFmpeg
 {
@@ -59,8 +58,7 @@ public:
     ~Encoder();
 
     void addAudioInput(QFFmpegAudioInput *input);
-    void addCamera(QPlatformCamera *source);
-    void addScreenCapture(QPlatformScreenCapture *screenCapture);
+    void addVideoSource(QPlatformVideoSource *source);
 
     void start();
     void finalize();
@@ -78,7 +76,12 @@ Q_SIGNALS:
     void error(QMediaRecorder::Error code, const QString &description);
     void finalizationDone();
 
-public:
+private:
+    // TODO: improve the encasulation
+    friend class EncodingFinalizer;
+    friend class AudioEncoder;
+    friend class VideoEncoder;
+    friend class Muxer;
 
     QMediaEncoderSettings settings;
     QMediaMetaData metaData;
@@ -168,7 +171,7 @@ class VideoEncoder : public EncoderThread
 public:
     VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
                  const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
-    ~VideoEncoder();
+    ~VideoEncoder() override;
 
     void addFrame(const QVideoFrame &frame);
 

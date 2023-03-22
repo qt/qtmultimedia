@@ -201,7 +201,7 @@ QFFmpegScreenCapture::QFFmpegScreenCapture(QScreenCapture *screenCapture)
 
 QFFmpegScreenCapture::~QFFmpegScreenCapture() = default;
 
-QVideoFrameFormat QFFmpegScreenCapture::format() const
+QVideoFrameFormat QFFmpegScreenCapture::frameFormat() const
 {
     if (m_grabber)
         return m_grabber->format();

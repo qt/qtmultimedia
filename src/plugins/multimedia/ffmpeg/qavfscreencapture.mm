@@ -123,7 +123,7 @@ void QAVFScreenCapture::onNewFrame(const QVideoFrame &frame)
     emit newVideoFrame(frame);
 }
 
-QVideoFrameFormat QAVFScreenCapture::format() const
+QVideoFrameFormat QAVFScreenCapture::frameFormat() const
 {
     if (!m_grabber)
         return {};

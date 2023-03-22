@@ -457,7 +457,7 @@ bool QFFmpegScreenCaptureUwp::isSupported()
     return winrt::GraphicsCaptureSession::IsSupported();
 }
 
-QVideoFrameFormat QFFmpegScreenCaptureUwp::format() const
+QVideoFrameFormat QFFmpegScreenCaptureUwp::frameFormat() const
 {
     return m_format;
 }

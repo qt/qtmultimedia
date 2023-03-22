@@ -27,7 +27,7 @@ public:
     explicit QX11ScreenCapture(QScreenCapture *screenCapture);
     ~QX11ScreenCapture() override;
 
-    QVideoFrameFormat format() const override;
+    QVideoFrameFormat frameFormat() const override;
 
     static bool isSupported();
 

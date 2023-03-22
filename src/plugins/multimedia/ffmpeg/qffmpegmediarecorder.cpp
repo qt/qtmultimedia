@@ -86,11 +86,11 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 
     auto *camera = m_session->camera();
     if (camera)
-        encoder->addCamera(camera);
+        encoder->addVideoSource(camera);
 
     auto *screenCapture = m_session->screenCapture();
     if (screenCapture)
-        encoder->addScreenCapture(screenCapture);
+        encoder->addVideoSource(screenCapture);
 
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);

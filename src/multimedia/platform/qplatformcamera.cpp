@@ -5,9 +5,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QPlatformCamera::QPlatformCamera(QCamera *parent)
-  : QObject(parent),
-    m_camera(parent)
+QPlatformCamera::QPlatformCamera(QCamera *parent) : QPlatformVideoSource(parent), m_camera(parent)
 {
     qRegisterMetaType<QVideoFrame>();
 }

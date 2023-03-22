@@ -29,7 +29,7 @@ public:
     explicit QFFmpegScreenCaptureUwp(QScreenCapture *screenCapture);
     ~QFFmpegScreenCaptureUwp();
 
-    QVideoFrameFormat format() const override;
+    QVideoFrameFormat frameFormat() const override;
 
     static bool isSupported();
 

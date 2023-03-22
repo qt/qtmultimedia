@@ -35,7 +35,7 @@ public:
     explicit QAVFScreenCapture(QScreenCapture *screenCapture);
     ~QAVFScreenCapture() override;
 
-    QVideoFrameFormat format() const override;
+    QVideoFrameFormat frameFormat() const override;
 
     std::optional<int> ffmpegHWPixelFormat() const override;
 
