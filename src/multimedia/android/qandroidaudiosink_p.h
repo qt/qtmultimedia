@@ -55,7 +55,7 @@ private:
 
     Q_INVOKABLE void onEOSEvent();
     Q_INVOKABLE void onBytesProcessed(qint64 bytes);
-    void bufferAvailable();
+    Q_INVOKABLE void bufferAvailable();
 
     static void playCallback(SLPlayItf playItf, void *ctx, SLuint32 event);
     static void bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx);
