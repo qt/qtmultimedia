@@ -98,7 +98,7 @@ void QAndroidAudioSink::readyRead()
     if (m_pullMode && m_state == QAudio::IdleState) {
         setState(QAudio::ActiveState);
         setError(QAudio::NoError);
-        bufferAvailable();
+        QMetaObject::invokeMethod(this, "bufferAvailable", Qt::QueuedConnection);
     }
 }
 
