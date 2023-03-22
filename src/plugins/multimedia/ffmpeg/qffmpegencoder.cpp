@@ -11,6 +11,7 @@
 #include <qaudiobuffer.h>
 #include "qffmpegaudioinput_p.h"
 #include <private/qplatformcamera_p.h>
+#include <private/qplatformvideosource_p.h>
 #include "qffmpegvideobuffer_p.h"
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegencoderoptions_p.h"
@@ -58,50 +59,29 @@ void Encoder::addAudioInput(QFFmpegAudioInput *input)
     input->setRunning(true);
 }
 
-void Encoder::addCamera(QPlatformCamera *camera)
+void Encoder::addVideoSource(QPlatformVideoSource * source)
 {
-    auto cf = camera->cameraFormat();
+    auto frameFormat = source->frameFormat();
 
-    qCDebug(qLcFFmpegEncoder) << "adding camera:"
-                              << "resolution=" << cf.resolution()
-                              << "pixelFormat=" << cf.pixelFormat()
-                              << "maxFrameRate=" << cf.maxFrameRate() << "ffmpegHWPixelFormat="
-                              << (camera->ffmpegHWPixelFormat() ? *camera->ffmpegHWPixelFormat()
-                                                                : std::numeric_limits<int>::min());
-
-    std::optional<AVPixelFormat> hwPixelFormat = camera->ffmpegHWPixelFormat()
-            ? AVPixelFormat(*camera->ffmpegHWPixelFormat())
-            : std::optional<AVPixelFormat>{};
-    auto veUPtr =
-            std::make_unique<VideoEncoder>(this, settings, camera->frameFormat(), hwPixelFormat);
-    if (veUPtr->isValid()) {
-        auto ve = veUPtr.release();
-        auto conn = connect(camera, &QPlatformCamera::newVideoFrame,
-                            [=](const QVideoFrame &frame) { ve->addFrame(frame); });
-        videoEncoders.append(ve);
-        connections.append(conn);
+    if (!frameFormat.isValid()) {
+        qCWarning(qLcFFmpegEncoder) << "Cannot add source; invalid vide frame format";
+        return;
     }
-}
 
-void Encoder::addScreenCapture(QPlatformScreenCapture *screenCapture)
-{
-    auto scf = screenCapture->format();
-
-    qCDebug(qLcFFmpegEncoder) << "adding screen capture:"
-                              << "pixelFormat=" << scf.pixelFormat()
-                              << "frameSize=" << scf.frameSize() << "frameRate=" << scf.frameRate()
-                              << "ffmpegHWPixelFormat="
-                              << (screenCapture->ffmpegHWPixelFormat()
-                                          ? *screenCapture->ffmpegHWPixelFormat()
-                                          : std::numeric_limits<int>::min());
-
-    std::optional<AVPixelFormat> hwPixelFormat = screenCapture->ffmpegHWPixelFormat()
-            ? AVPixelFormat(*screenCapture->ffmpegHWPixelFormat())
+    std::optional<AVPixelFormat> hwPixelFormat = source->ffmpegHWPixelFormat()
+            ? AVPixelFormat(*source->ffmpegHWPixelFormat())
             : std::optional<AVPixelFormat>{};
-    auto veUPtr = std::make_unique<VideoEncoder>(this, settings, scf, hwPixelFormat);
+
+    qCDebug(qLcFFmpegEncoder) << "adding video source" << source->metaObject()->className() << ":"
+                              << "pixelFormat=" << frameFormat.pixelFormat()
+                              << "frameSize=" << frameFormat.frameSize()
+                              << "frameRate=" << frameFormat.frameRate() << "ffmpegHWPixelFormat="
+                              << (hwPixelFormat ? *hwPixelFormat : AV_PIX_FMT_NONE);
+
+    auto veUPtr = std::make_unique<VideoEncoder>(this, settings, frameFormat, hwPixelFormat);
     if (veUPtr->isValid()) {
         auto ve = veUPtr.release();
-        auto conn = connect(screenCapture, &QPlatformScreenCapture::newVideoFrame,
+        auto conn = connect(source, &QPlatformVideoSource::newVideoFrame,
                             [=](const QVideoFrame &frame) { ve->addFrame(frame); });
         videoEncoders.append(ve);
         connections.append(conn);
@@ -484,7 +464,8 @@ VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settin
     setObjectName(QLatin1String("VideoEncoder"));
 
     AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
-    AVPixelFormat ffmpegPixelFormat = hwFormat ? *hwFormat : swFormat;
+    AVPixelFormat ffmpegPixelFormat =
+            hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
     auto frameRate = format.frameRate();
     if (frameRate <= 0.) {
         qWarning() << "Invalid frameRate" << frameRate << "; Using the default instead";

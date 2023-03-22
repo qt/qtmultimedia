@@ -30,7 +30,7 @@ public:
     explicit QFFmpegScreenCapture(QScreenCapture *screenCapture);
     ~QFFmpegScreenCapture() override;
 
-    QVideoFrameFormat format() const override;
+    QVideoFrameFormat frameFormat() const override;
 
 protected:
     bool setActiveInternal(bool active) override;

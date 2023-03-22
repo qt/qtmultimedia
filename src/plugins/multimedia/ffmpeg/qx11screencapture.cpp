@@ -320,7 +320,7 @@ QX11ScreenCapture::QX11ScreenCapture(QScreenCapture *screenCapture)
 
 QX11ScreenCapture::~QX11ScreenCapture() = default;
 
-QVideoFrameFormat QX11ScreenCapture::format() const
+QVideoFrameFormat QX11ScreenCapture::frameFormat() const
 {
     return m_grabber ? m_grabber->format() : QVideoFrameFormat{};
 }

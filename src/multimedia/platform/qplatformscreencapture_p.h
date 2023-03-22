@@ -15,30 +15,19 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
-#include <QtCore/qnativeinterface.h>
-#include <QtCore/private/qglobal_p.h>
-
-#include <QtMultimedia/qtmultimediaglobal.h>
-
+#include "qplatformvideosource_p.h"
 #include "qscreencapture.h"
-#include "qvideoframeformat.h"
-
-#include <optional>
 
 QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
 
-class Q_MULTIMEDIA_EXPORT QPlatformScreenCapture : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformScreenCapture : public QPlatformVideoSource
 {
     Q_OBJECT
 
 public:
     explicit QPlatformScreenCapture(QScreenCapture *screenCapture);
-
-    virtual void setActive(bool active) = 0;
-    virtual bool isActive() const = 0;
 
     virtual void setScreen(QScreen *s) = 0;
     virtual QScreen *screen() const = 0;
@@ -52,17 +41,10 @@ public:
     virtual QScreenCapture::Error error() const;
     virtual QString errorString() const;
 
-    virtual QVideoFrameFormat format() const = 0;
-
     QScreenCapture *screenCapture() const;
-
-    virtual std::optional<int> ffmpegHWPixelFormat() const;
 
 public Q_SLOTS:
     void updateError(QScreenCapture::Error error, const QString &errorString);
-
-Q_SIGNALS:
-    void newVideoFrame(const QVideoFrame &);
 
 private:
     QScreenCapture::Error m_error = QScreenCapture::NoError;
