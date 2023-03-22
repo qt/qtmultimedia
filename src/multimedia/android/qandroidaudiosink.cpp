@@ -90,6 +90,16 @@ void QAndroidAudioSink::start(QIODevice *device)
     // Change the state to playing.
     // We need to do this after filling the buffers or processedBytes might get corrupted.
     startPlayer();
+    connect(m_audioSource, &QIODevice::readyRead, this, &QAndroidAudioSink::readyRead);
+}
+
+void QAndroidAudioSink::readyRead()
+{
+    if (m_pullMode && m_state == QAudio::IdleState) {
+        setState(QAudio::ActiveState);
+        setError(QAudio::NoError);
+        bufferAvailable();
+    }
 }
 
 QIODevice *QAndroidAudioSink::start()
@@ -237,11 +247,8 @@ void QAndroidAudioSink::onBytesProcessed(qint64 bytes)
     m_processedBytes += bytes;
 }
 
-void QAndroidAudioSink::bufferAvailable(quint32 count, quint32 playIndex)
+void QAndroidAudioSink::bufferAvailable()
 {
-    Q_UNUSED(count);
-    Q_UNUSED(playIndex);
-
     if (m_state == QAudio::StoppedState)
         return;
 
@@ -289,10 +296,8 @@ void QAndroidAudioSink::playCallback(SLPlayItf player, void *ctx, SLuint32 event
 
 void QAndroidAudioSink::bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx)
 {
-    SLBufferQueueState state;
-    (*bufferQueue)->GetState(bufferQueue, &state);
     QAndroidAudioSink *audioOutput = reinterpret_cast<QAndroidAudioSink *>(ctx);
-    audioOutput->bufferAvailable(state.count, state.playIndex);
+    audioOutput->bufferAvailable();
 }
 
 bool QAndroidAudioSink::preparePlayer()
@@ -488,10 +493,14 @@ void QAndroidAudioSink::stopPlayer()
 {
     setState(QAudio::StoppedState);
 
-    if (m_audioSource && !m_pullMode) {
-        m_audioSource->close();
-        delete m_audioSource;
-        m_audioSource = nullptr;
+    if (m_audioSource) {
+        if (m_pullMode) {
+            disconnect(m_audioSource, &QIODevice::readyRead, this, &QAndroidAudioSink::readyRead);
+        } else {
+            m_audioSource->close();
+            delete m_audioSource;
+            m_audioSource = nullptr;
+        }
     }
 
     // We need to change the state manually...
