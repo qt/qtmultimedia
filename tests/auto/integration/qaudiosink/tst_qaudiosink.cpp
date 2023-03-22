@@ -549,7 +549,7 @@ void tst_QAudioSink::pullResumeFromUnderrun()
     QAudioFormat format;
     format.setChannelCount(1);
     format.setSampleFormat(QAudioFormat::UInt8);
-    format.setSampleRate(1024);
+    format.setSampleRate(8000);
 
     QAudioSink audioOutput(format, this);
     QSignalSpy stateSignal(&audioOutput, SIGNAL(stateChanged(QAudio::State)));
