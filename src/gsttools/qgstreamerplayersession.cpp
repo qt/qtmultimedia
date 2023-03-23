@@ -1587,7 +1587,7 @@ void QGstreamerPlayerSession::updateVideoResolutionTag()
 void QGstreamerPlayerSession::updateDuration()
 {
     gint64 gstDuration = 0;
-    int duration = 0;
+    qint64 duration = 0;
 
     if (m_pipeline && qt_gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &gstDuration))
         duration = gstDuration / 1000000;
