@@ -113,6 +113,10 @@ void Encoder::start()
     isRecording = true;
 }
 
+EncodingFinalizer::EncodingFinalizer(Encoder *e) : encoder(e) {
+    connect(this, &QThread::finished, this, &QObject::deleteLater);
+}
+
 void EncodingFinalizer::run()
 {
     if (encoder->audioEncode)
@@ -129,7 +133,6 @@ void EncodingFinalizer::run()
     qCDebug(qLcFFmpegEncoder) << "    done finalizing.";
     emit encoder->finalizationDone();
     delete encoder;
-    deleteLater();
 }
 
 void Encoder::finalize()
@@ -139,10 +142,8 @@ void Encoder::finalize()
     for (auto &conn : connections)
         disconnect(conn);
 
-    if (std::exchange(isRecording, false)) {
-        auto *finalizer = new EncodingFinalizer(this);
-        finalizer->start();
-    }
+    auto *finalizer = new EncodingFinalizer(this);
+    finalizer->start();
 }
 
 void Encoder::setPaused(bool p)
