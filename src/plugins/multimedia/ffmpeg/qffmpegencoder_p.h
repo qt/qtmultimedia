@@ -42,11 +42,11 @@ class VideoFrameEncoder;
 class EncodingFinalizer : public QThread
 {
 public:
-    EncodingFinalizer(Encoder *e)
-        : encoder(e)
-    {}
+    EncodingFinalizer(Encoder *e);
+
     void run() override;
 
+private:
     Encoder *encoder = nullptr;
 };
 
