@@ -228,6 +228,10 @@ void tst_QCameraBackend::testCameraActive()
 
 void tst_QCameraBackend::testCameraStartParallel()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("Multi-camera feature is currently not supported on Android. "
+          "Cannot open same device twice.");
+#endif
     if (noCamera)
         QSKIP("No camera available");
 
