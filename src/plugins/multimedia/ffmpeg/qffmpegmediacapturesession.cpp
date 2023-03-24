@@ -10,10 +10,26 @@
 #include "qffmpegmediarecorder_p.h"
 #include "private/qplatformcamera_p.h"
 #include "qvideosink.h"
+#include "qffmpegaudioinput_p.h"
+#include "qaudiosink.h"
+#include "qaudiobuffer.h"
+#include "qaudiooutput.h"
 
 #include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcFFmpegMediaCaptureSession, "qt.multimedia.ffmpeg.mediacapturesession")
+
+static int preferredAudioSinkBufferSize(const QFFmpegAudioInput &input)
+{
+    // Heuristic params to avoid jittering
+    // TODO: investigate the reason of jittering and probably reduce the factor
+    constexpr int BufferSizeFactor = 2;
+    constexpr int BufferSizeExceeding = 4096;
+
+    return input.bufferSize() * BufferSizeFactor + BufferSizeExceeding;
+}
 
 QFFmpegMediaCaptureSession::QFFmpegMediaCaptureSession()
 {
@@ -110,10 +126,88 @@ QPlatformMediaRecorder *QFFmpegMediaCaptureSession::mediaRecorder()
 
 void QFFmpegMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 {
-    if (m_audioInput == input)
+    qCDebug(qLcFFmpegMediaCaptureSession)
+            << "set audio input:" << (input ? input->device.description() : "null");
+
+    auto ffmpegAudioInput = dynamic_cast<QFFmpegAudioInput *>(input);
+    Q_ASSERT(!!input == !!ffmpegAudioInput);
+
+    if (m_audioInput == ffmpegAudioInput)
         return;
 
-    m_audioInput = input;
+    if (m_audioInput)
+        m_audioInput->q->disconnect(this);
+
+    m_audioInput = ffmpegAudioInput;
+    if (m_audioInput)
+        // TODO: implement the signal in QPlatformAudioInput and connect to it, QTBUG-112294
+        connect(m_audioInput->q, &QAudioInput::deviceChanged, this,
+                &QFFmpegMediaCaptureSession::updateAudioSink);
+
+    updateAudioSink();
+}
+
+void QFFmpegMediaCaptureSession::updateAudioSink()
+{
+
+    if (m_audioSink) {
+        m_audioSink->reset();
+        m_audioSink.reset();
+    };
+
+    if (!m_audioInput || !m_audioOutput)
+        return;
+
+    auto format = m_audioInput->device.preferredFormat();
+
+    if (!m_audioOutput->device.isFormatSupported(format))
+        qWarning() << "Audio source format" << format << "is not compatible with the audio output";
+
+    m_audioSink = std::make_unique<QAudioSink>(m_audioOutput->device, format);
+
+    m_audioBufferSize = preferredAudioSinkBufferSize(*m_audioInput);
+    m_audioSink->setBufferSize(m_audioBufferSize);
+
+    qCDebug(qLcFFmpegMediaCaptureSession)
+            << "Create audiosink, format:" << format << "bufferSize:" << m_audioSink->bufferSize()
+            << "output device:" << m_audioOutput->device.description();
+
+    m_audioIODevice = m_audioSink->start();
+    if (m_audioIODevice) {
+        connect(m_audioInput, &QFFmpegAudioInput::newAudioBuffer, m_audioSink.get(),
+                [=](const QAudioBuffer &buffer) {
+                    if (m_audioBufferSize < preferredAudioSinkBufferSize(*m_audioInput)) {
+                        qCDebug(qLcFFmpegMediaCaptureSession)
+                                << "Recreate audiosink due to small buffer size:"
+                                << m_audioBufferSize;
+
+                        updateAudioSink();
+                    }
+
+                    const auto written =
+                            m_audioIODevice->write(buffer.data<const char>(), buffer.byteCount());
+
+                    if (written < buffer.byteCount())
+                        qCWarning(qLcFFmpegMediaCaptureSession)
+                                << "Not all bytes written:" << written << "vs"
+                                << buffer.byteCount();
+                });
+    } else {
+        qWarning() << "Failed to start audiosink push mode";
+    }
+
+    updateVolume();
+}
+
+void QFFmpegMediaCaptureSession::updateVolume()
+{
+    if (m_audioSink)
+        m_audioSink->setVolume(m_audioOutput->muted ? 0.f : m_audioOutput->volume);
+}
+
+QPlatformAudioInput *QFFmpegMediaCaptureSession::audioInput()
+{
+    return m_audioInput;
 }
 
 void QFFmpegMediaCaptureSession::setVideoPreview(QVideoSink *sink)
@@ -126,10 +220,27 @@ void QFFmpegMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 
 void QFFmpegMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
 {
+    qCDebug(qLcFFmpegMediaCaptureSession)
+            << "set audio output:" << (output ? output->device.description() : "null");
+
     if (m_audioOutput == output)
         return;
 
+    if (m_audioOutput)
+        m_audioOutput->q->disconnect(this);
+
     m_audioOutput = output;
+    if (m_audioOutput) {
+        // TODO: implement the signals in QPlatformAudioOutput and connect to them, QTBUG-112294
+        connect(m_audioOutput->q, &QAudioOutput::deviceChanged, this,
+                &QFFmpegMediaCaptureSession::updateAudioSink);
+        connect(m_audioOutput->q, &QAudioOutput::volumeChanged, this,
+                &QFFmpegMediaCaptureSession::updateVolume);
+        connect(m_audioOutput->q, &QAudioOutput::mutedChanged, this,
+                &QFFmpegMediaCaptureSession::updateVolume);
+    }
+
+    updateAudioSink();
 }
 
 void QFFmpegMediaCaptureSession::newCameraVideoFrame(const QVideoFrame &frame)
