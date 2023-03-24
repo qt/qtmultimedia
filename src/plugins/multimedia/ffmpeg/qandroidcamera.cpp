@@ -117,12 +117,15 @@ QAndroidCamera::~QAndroidCamera()
 
 void QAndroidCamera::setCamera(const QCameraDevice &camera)
 {
-    setActive(false);
+    const bool active = isActive();
+    if (active)
+        setActive(false);
 
     m_cameraDevice = camera;
     m_cameraFormat = getDefaultCameraFormat();
 
-    setActive(true);
+    if (active)
+        setActive(true);
 }
 
 std::optional<int> QAndroidCamera::ffmpegHWPixelFormat() const
