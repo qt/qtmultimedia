@@ -26,6 +26,8 @@ namespace QFFmpeg {
 class AudioSourceIO;
 }
 
+constexpr int DefaultAudioInputBufferSize = 4096;
+
 class QFFmpegAudioInput : public QObject, public QPlatformAudioInput
 {
     Q_OBJECT
@@ -37,15 +39,17 @@ public:
     void setMuted(bool /*muted*/) override;
     void setVolume(float /*volume*/) override;
 
-    void setFrameSize(int s);
+    void setFrameSize(int frameSize);
     void setRunning(bool b);
+
+    int bufferSize() const;
 
 Q_SIGNALS:
     void newAudioBuffer(const QAudioBuffer &buffer);
 
 private:
-    QThread *inputThread = nullptr;
-    QFFmpeg::AudioSourceIO *audioIO = nullptr;
+    std::unique_ptr<QFFmpeg::AudioSourceIO> audioIO;
+    std::unique_ptr<QThread> inputThread;
 };
 
 QT_END_NAMESPACE

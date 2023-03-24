@@ -13,37 +13,32 @@ namespace QFFmpeg {
 class AudioSourceIO : public QIODevice
 {
     Q_OBJECT
-        public:
-    AudioSourceIO(QFFmpegAudioInput *audioInput)
-        : QIODevice()
-        , input(audioInput)
+public:
+    AudioSourceIO(QFFmpegAudioInput *audioInput) : QIODevice(), m_input(audioInput)
     {
-        m_muted = input->muted;
-        m_volume = input->volume;
+        m_muted = m_input->muted;
+        m_volume = m_input->volume;
         updateVolume();
         open(QIODevice::WriteOnly);
     }
-    ~AudioSourceIO()
-    {
-        delete m_src;
-    }
+
+    ~AudioSourceIO() override = default;
 
     void setDevice(const QAudioDevice &device)
     {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
         if (m_device == device)
             return;
         m_device = device;
         QMetaObject::invokeMethod(this, "updateSource");
     }
-    void setFrameSize(int s)
+    void setFrameSize(int frameSize)
     {
-        QMutexLocker locker(&mutex);
-        frameSize = s;
-        bufferSize = m_format.bytesForFrames(frameSize);
+        QMutexLocker locker(&m_mutex);
+        m_bufferSize = m_format.bytesForFrames(frameSize);
     }
     void setRunning(bool r) {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
         if (m_running == r)
             return;
         m_running = r;
@@ -51,16 +46,17 @@ class AudioSourceIO : public QIODevice
     }
 
     void setVolume(float vol) {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
         m_volume = vol;
         QMetaObject::invokeMethod(this, "updateVolume");
     }
     void setMuted(bool muted) {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
         m_muted = muted;
         QMetaObject::invokeMethod(this, "updateVolume");
     }
 
+    int bufferSize() const { return m_bufferSize; }
 
 protected:
     qint64 readData(char *, qint64) override
@@ -71,11 +67,11 @@ protected:
     {
         int l = len;
         while (len > 0) {
-            int toAppend = qMin(len, bufferSize - pcm.size());
-            pcm.append(data, toAppend);
+            int toAppend = qMin(len, m_bufferSize - m_pcm.size());
+            m_pcm.append(data, toAppend);
             data += toAppend;
             len -= toAppend;
-            if (pcm.size() == bufferSize)
+            if (m_pcm.size() == m_bufferSize)
                 sendBuffer();
         }
 
@@ -84,13 +80,12 @@ protected:
 
 private Q_SLOTS:
     void updateSource() {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
         m_format = m_device.preferredFormat();
-        if (m_src) {
-            delete m_src;
-            pcm.clear();
-        }
-        m_src = new QAudioSource(m_device, m_format);
+        if (std::exchange(m_src, nullptr))
+            m_pcm.clear();
+
+        m_src = std::make_unique<QAudioSource>(m_device, m_format);
         updateVolume();
         if (m_running)
             m_src->start(this);
@@ -102,7 +97,7 @@ private Q_SLOTS:
     }
     void updateRunning()
     {
-        QMutexLocker locker(&mutex);
+        QMutexLocker locker(&m_mutex);
         if (m_running) {
             if (!m_src)
                 updateSource();
@@ -117,26 +112,25 @@ private:
     void sendBuffer()
     {
         QAudioFormat fmt = m_src->format();
-        qint64 time = fmt.durationForBytes(processed);
-        QAudioBuffer buffer(pcm, fmt, time);
-        emit input->newAudioBuffer(buffer);
-        processed += bufferSize;
-        pcm.clear();
+        qint64 time = fmt.durationForBytes(m_processed);
+        QAudioBuffer buffer(m_pcm, fmt, time);
+        emit m_input->newAudioBuffer(buffer);
+        m_processed += m_bufferSize;
+        m_pcm.clear();
     }
 
-    QMutex mutex;
+    QMutex m_mutex;
     QAudioDevice m_device;
     float m_volume = 1.;
     bool m_muted = false;
     bool m_running = false;
 
-    QFFmpegAudioInput *input = nullptr;
-    QAudioSource *m_src = nullptr;
+    QFFmpegAudioInput *m_input = nullptr;
+    std::unique_ptr<QAudioSource> m_src;
     QAudioFormat m_format;
-    int frameSize = 0;
-    int bufferSize = 0;
-    qint64 processed = 0;
-    QByteArray pcm;
+    std::atomic<int> m_bufferSize = DefaultAudioInputBufferSize;
+    qint64 m_processed = 0;
+    QByteArray m_pcm;
 };
 
 }
@@ -146,9 +140,9 @@ QFFmpegAudioInput::QFFmpegAudioInput(QAudioInput *qq)
 {
     qRegisterMetaType<QAudioBuffer>();
 
-    inputThread = new QThread;
-    audioIO = new QFFmpeg::AudioSourceIO(this);
-    audioIO->moveToThread(inputThread);
+    inputThread = std::make_unique<QThread>();
+    audioIO = std::make_unique<QFFmpeg::AudioSourceIO>(this);
+    audioIO->moveToThread(inputThread.get());
     inputThread->start();
 }
 
@@ -156,7 +150,6 @@ QFFmpegAudioInput::~QFFmpegAudioInput()
 {
     inputThread->exit();
     inputThread->wait();
-    delete inputThread;
 }
 
 void QFFmpegAudioInput::setAudioDevice(const QAudioDevice &device)
@@ -182,6 +175,11 @@ void QFFmpegAudioInput::setFrameSize(int s)
 void QFFmpegAudioInput::setRunning(bool b)
 {
     audioIO->setRunning(b);
+}
+
+int QFFmpegAudioInput::bufferSize() const
+{
+    return audioIO->bufferSize();
 }
 
 QT_END_NAMESPACE

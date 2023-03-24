@@ -17,12 +17,18 @@
 
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
+#include "qpointer.h"
+#include "qiodevice.h"
 
 QT_BEGIN_NAMESPACE
 
 class QFFmpegMediaRecorder;
 class QFFmpegImageCapture;
 class QVideoFrame;
+class QAudioSink;
+class QFFmpegAudioInput;
+class QAudioBuffer;
+class QPlatformVideoSource;
 
 class QFFmpegMediaCaptureSession : public QPlatformMediaCaptureSession
 {
@@ -45,7 +51,7 @@ public:
     void setMediaRecorder(QPlatformMediaRecorder *recorder) override;
 
     void setAudioInput(QPlatformAudioInput *input) override;
-    QPlatformAudioInput *audioInput() { return m_audioInput; }
+    QPlatformAudioInput *audioInput();
 
     void setVideoPreview(QVideoSink *sink) override;
     void setAudioOutput(QPlatformAudioOutput *output) override;
@@ -53,15 +59,20 @@ public:
 public Q_SLOTS:
     void newCameraVideoFrame(const QVideoFrame &frame);
     void newScreenCaptureVideoFrame(const QVideoFrame &frame);
+    void updateAudioSink();
+    void updateVolume();
 
 private:
     QPlatformCamera *m_camera = nullptr;
     QPlatformScreenCapture *m_screenCapture = nullptr;
-    QPlatformAudioInput *m_audioInput = nullptr;
+    QFFmpegAudioInput *m_audioInput = nullptr;
     QFFmpegImageCapture *m_imageCapture = nullptr;
     QFFmpegMediaRecorder *m_mediaRecorder = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;
     QVideoSink *m_videoSink = nullptr;
+    std::unique_ptr<QAudioSink> m_audioSink;
+    QPointer<QIODevice> m_audioIODevice;
+    qsizetype m_audioBufferSize = 0;
 };
 
 QT_END_NAMESPACE

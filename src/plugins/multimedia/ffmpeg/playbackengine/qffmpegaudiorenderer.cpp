@@ -21,6 +21,7 @@ AudioRenderer::AudioRenderer(const TimeController &tc, QAudioOutput *output)
       m_output(output)
 {
     if (output) {
+        // TODO: implement the signals in QPlatformAudioOutput and connect to them, QTBUG-112294
         connect(output, &QAudioOutput::deviceChanged, this, &AudioRenderer::onDeviceChanged);
         connect(output, &QAudioOutput::volumeChanged, this, &AudioRenderer::updateVolume);
         connect(output, &QAudioOutput::mutedChanged, this, &AudioRenderer::updateVolume);
