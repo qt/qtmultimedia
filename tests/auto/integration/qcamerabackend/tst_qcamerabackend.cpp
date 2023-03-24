@@ -215,7 +215,7 @@ void tst_QCameraBackend::testCameraActive()
     QCOMPARE(camera.error(), QCamera::NoError);
 
     camera.start();
-    QCOMPARE(camera.isActive(), true);
+    QTRY_COMPARE(camera.isActive(), true);
     QTRY_COMPARE(activeChangedSignal.size(), 1);
     QCOMPARE(activeChangedSignal.last().first().value<bool>(), true);
 
@@ -507,7 +507,7 @@ void tst_QCameraBackend::testExposureMode()
     camera.setExposureMode(QCamera::ExposureAuto);
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
     camera.start();
-    QVERIFY(camera.isActive());
+    QTRY_VERIFY(camera.isActive());
     QCOMPARE(camera.exposureMode(), QCamera::ExposureAuto);
 
     // Manual
