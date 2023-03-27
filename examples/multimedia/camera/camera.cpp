@@ -12,23 +12,26 @@
 #include "metadatadialog.h"
 #include "videosettings.h"
 
-#include <QAction>
-#include <QActionGroup>
 #include <QAudioDevice>
 #include <QAudioInput>
 #include <QCameraDevice>
-#include <QDir>
-#include <QImage>
-#include <QKeyEvent>
-#include <QLineEdit>
 #include <QMediaDevices>
 #include <QMediaFormat>
 #include <QMediaMetaData>
 #include <QMediaRecorder>
-#include <QMessageBox>
-#include <QPalette>
-#include <QTimer>
 #include <QVideoWidget>
+
+#include <QLineEdit>
+#include <QMessageBox>
+
+#include <QAction>
+#include <QActionGroup>
+#include <QImage>
+#include <QKeyEvent>
+#include <QPalette>
+
+#include <QDir>
+#include <QTimer>
 
 #if QT_CONFIG(permissions)
   #include <QPermission>
@@ -168,7 +171,7 @@ void Camera::keyPressEvent(QKeyEvent *event)
 
 void Camera::updateRecordTime()
 {
-    QString str = QString("Recorded %1 sec").arg(m_mediaRecorder->duration() / 1000);
+    QString str = tr("Recorded %1 sec").arg(m_mediaRecorder->duration() / 1000);
     ui->statusbar->showMessage(str);
 }
 
@@ -196,7 +199,6 @@ void Camera::configureCaptureSettings()
 void Camera::configureVideoSettings()
 {
     VideoSettings settingsDialog(m_mediaRecorder.data());
-    settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
     if (settingsDialog.exec())
         settingsDialog.applySettings();
@@ -205,11 +207,9 @@ void Camera::configureVideoSettings()
 void Camera::configureImageSettings()
 {
     ImageSettings settingsDialog(m_imageCapture.get());
-    settingsDialog.setWindowFlags(settingsDialog.windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-    if (settingsDialog.exec()) {
+    if (settingsDialog.exec() == QDialog::Accepted)
         settingsDialog.applyImageSettings();
-    }
 }
 
 void Camera::record()

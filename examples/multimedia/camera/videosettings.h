@@ -7,6 +7,7 @@
 #include <QDialog>
 
 QT_BEGIN_NAMESPACE
+class QCameraFormat;
 class QComboBox;
 class QMediaRecorder;
 namespace Ui {
@@ -29,6 +30,7 @@ protected:
     void changeEvent(QEvent *e) override;
 
 private:
+    void setFpsRange(const QCameraFormat &format);
     QVariant boxValue(const QComboBox *) const;
     void selectComboBoxItem(QComboBox *box, const QVariant &value);
 
