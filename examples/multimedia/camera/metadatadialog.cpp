@@ -3,66 +3,84 @@
 
 #include "metadatadialog.h"
 
+#include <QMediaMetaData>
+
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLineEdit>
-#include <QMediaMetaData>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QString>
 #include <QVBoxLayout>
 #include <QWidget>
 
+#include <QString>
+
+static QString defaultValue(QMediaMetaData::Key key)
+{
+    switch (key) {
+    case QMediaMetaData::Title:
+        return MetaDataDialog::tr("Qt Camera Example");
+    case QMediaMetaData::Author:
+        return MetaDataDialog::tr("The Qt Company");
+    case QMediaMetaData::Date:
+        return QDateTime::currentDateTime().toString();
+    default:
+        break;
+    }
+    return {};
+}
+
 MetaDataDialog::MetaDataDialog(QWidget *parent) : QDialog(parent)
 {
-    QFormLayout *metaDataLayout = new QFormLayout;
-    for (int key = 0; key < QMediaMetaData::NumMetaData; key++) {
-        QString label = QMediaMetaData::metaDataKeyToString(static_cast<QMediaMetaData::Key>(key));
-        m_metaDataFields[key] = new QLineEdit;
-        if (key == QMediaMetaData::ThumbnailImage) {
+    auto *viewport = new QWidget;
+    auto *metaDataLayout = new QFormLayout(viewport);
+
+    for (int i = 0; i < QMediaMetaData::NumMetaData; ++i) {
+        const auto key = static_cast<QMediaMetaData::Key>(i);
+        QString label = QMediaMetaData::metaDataKeyToString(key);
+        auto *lineEdit = new QLineEdit(defaultValue(key));
+        lineEdit->setClearButtonEnabled(true);
+        m_metaDataFields[key] = lineEdit;
+
+        switch (key) {
+        case QMediaMetaData::ThumbnailImage: {
             QPushButton *openThumbnail = new QPushButton(tr("Open"));
             connect(openThumbnail, &QPushButton::clicked, this,
                     &MetaDataDialog::openThumbnailImage);
             QHBoxLayout *layout = new QHBoxLayout;
-            layout->addWidget(m_metaDataFields[key]);
+            layout->addWidget(lineEdit);
             layout->addWidget(openThumbnail);
             metaDataLayout->addRow(label, layout);
-        } else if (key == QMediaMetaData::CoverArtImage) {
+        }
+        break;
+        case QMediaMetaData::CoverArtImage: {
             QPushButton *openCoverArt = new QPushButton(tr("Open"));
             connect(openCoverArt, &QPushButton::clicked, this, &MetaDataDialog::openCoverArtImage);
             QHBoxLayout *layout = new QHBoxLayout;
-            layout->addWidget(m_metaDataFields[key]);
+            layout->addWidget(lineEdit);
             layout->addWidget(openCoverArt);
             metaDataLayout->addRow(label, layout);
-        } else {
-            if (key == QMediaMetaData::Title)
-                m_metaDataFields[key]->setText(tr("Qt Camera Example"));
-            else if (key == QMediaMetaData::Author)
-                m_metaDataFields[key]->setText(tr("The Qt Company"));
-            else if (key == QMediaMetaData::Date)
-                m_metaDataFields[key]->setText(QDateTime::currentDateTime().toString());
-            else if (key == QMediaMetaData::Date)
-                m_metaDataFields[key]->setText(QDate::currentDate().toString());
-            metaDataLayout->addRow(label, m_metaDataFields[key]);
+        }
+        break;
+        default:
+            metaDataLayout->addRow(label, lineEdit);
+            break;
         }
     }
 
-    QWidget *viewport = new QWidget;
-    viewport->setLayout(metaDataLayout);
     QScrollArea *scrollArea = new QScrollArea;
     scrollArea->setWidget(viewport);
-    QVBoxLayout *dialogLayout = new QVBoxLayout();
-    this->setLayout(dialogLayout);
-    this->layout()->addWidget(scrollArea);
+    auto *dialogLayout = new QVBoxLayout(this);
+    dialogLayout->addWidget(scrollArea);
 
     auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-    this->layout()->addWidget(buttonBox);
+    dialogLayout->addWidget(buttonBox);
 
-    this->setWindowTitle(tr("Set Metadata"));
-    this->resize(400, 300);
+    setWindowTitle(tr("Set Metadata"));
+    resize(400, 300);
 
     connect(buttonBox, &QDialogButtonBox::accepted, this, &MetaDataDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &MetaDataDialog::reject);
