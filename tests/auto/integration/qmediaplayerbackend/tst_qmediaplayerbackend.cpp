@@ -1686,7 +1686,7 @@ void tst_QMediaPlayerBackend::finiteLoops()
 
     auto intervals = positionChangingIntervals(positionSpy);
 
-    QCOMPARE(intervals.size(), 3);
+    QCOMPARE(intervals.size(), 3u);
     QCOMPARE_GT(intervals[0].first, 0);
     QCOMPARE(intervals[0].second, player.duration());
     QCOMPARE(intervals[1].first, 0);
