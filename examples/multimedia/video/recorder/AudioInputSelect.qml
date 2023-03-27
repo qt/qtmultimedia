@@ -7,9 +7,14 @@ import QtMultimedia
 
 Row {
     id: root
-
+    height: Style.height
     property AudioInput selected: available ? audioInput : null
     property bool available: (typeof comboBox.currentValue !== 'undefined') && audioSwitch.checked
+
+    Component.onCompleted: {
+        audioInputModel.populate()
+        comboBox.currentIndex = 0
+    }
 
     MediaDevices { id: mediaDevices }
 
@@ -21,15 +26,28 @@ Row {
         checked: true
     }
 
+    ListModel {
+        id: audioInputModel
+        property var audioInputs: mediaDevices.audioInputs
+
+        function populate() {
+            audioInputModel.clear()
+
+            for (var audioInput of audioInputs)
+                audioInputModel.append({ text: audioInput.description, value:
+                                        { type: 'audioInput', audioInput: audioInput } })
+        }
+    }
     ComboBox {
         id: comboBox
         width: Style.widthLong
         height: Style.height
         background: StyleRectangle { anchors.fill: parent }
-        model: mediaDevices.audioInputs
-        textRole: "description"
+        model: audioInputModel
+        textRole: "text"
         font.pointSize: Style.fontSize
-        displayText: typeof currentValue === 'undefined' ? "unavailable" : currentValue.description
+        displayText: typeof currentValue === 'undefined' ? "unavailable" : currentText
+        valueRole: "value"
         onCurrentValueChanged: if (typeof comboBox.currentValue !== 'undefined') audioInput.device = currentValue
     }
 }
