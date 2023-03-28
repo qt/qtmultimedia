@@ -31,4 +31,3 @@ void AudioLevel::paintEvent(QPaintEvent *event)
     painter.fillRect(widthLevel, 0, width(), height(), Qt::black);
 }
 
-#include "moc_audiolevel.cpp"

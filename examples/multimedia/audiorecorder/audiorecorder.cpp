@@ -271,4 +271,3 @@ void AudioRecorder::processBuffer(const QAudioBuffer &buffer)
         m_audioLevels.at(i)->setLevel(levels.at(i));
 }
 
-#include "moc_audiorecorder.cpp"
