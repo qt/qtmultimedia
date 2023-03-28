@@ -32,7 +32,7 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
     , wIdButton(new QPushButton("Confirm", this))
     , startStopButton(new QPushButton("Stop screencapture", this))
     , gridLayout(new QGridLayout(this))
-    , hBoxLayout(new QHBoxLayout(this))
+    , hBoxLayout(new QHBoxLayout)
 {
     // Get lists of screens and windows:
 
