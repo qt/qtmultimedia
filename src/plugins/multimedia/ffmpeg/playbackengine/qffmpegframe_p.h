@@ -17,6 +17,7 @@
 
 #include "qffmpeg_p.h"
 #include "playbackengine/qffmpegcodec_p.h"
+#include "playbackengine/qffmpegpositionwithoffset_p.h"
 #include "QtCore/qsharedpointer.h"
 #include "qpointer.h"
 #include "qobject.h"
@@ -31,8 +32,9 @@ struct Frame
 {
     struct Data
     {
-        Data(AVFrameUPtr f, const Codec &codec, qint64, const QObject *source)
-            : codec(codec), frame(std::move(f)), source(source)
+        Data(const LoopOffset &offset, AVFrameUPtr f, const Codec &codec, qint64,
+             const QObject *source)
+            : loopOffset(offset), codec(codec), frame(std::move(f)), source(source)
         {
             Q_ASSERT(frame);
             if (frame->pts != AV_NOPTS_VALUE)
@@ -44,12 +46,14 @@ struct Frame
                     ? (1000000 * avgFrameRate.den + avgFrameRate.num / 2) / avgFrameRate.num
                     : 0;
         }
-        Data(const QString &text, qint64 pts, qint64 duration, const QObject *source)
-            : text(text), pts(pts), duration(duration), source(source)
+        Data(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
+             const QObject *source)
+            : loopOffset(offset), text(text), pts(pts), duration(duration), source(source)
         {
         }
 
         QAtomicInt ref;
+        LoopOffset loopOffset;
         std::optional<Codec> codec;
         AVFrameUPtr frame;
         QString text;
@@ -59,12 +63,14 @@ struct Frame
     };
     Frame() = default;
 
-    Frame(AVFrameUPtr f, const Codec &codec, qint64 pts, const QObject *source = nullptr)
-        : d(new Data(std::move(f), codec, pts, source))
+    Frame(const LoopOffset &offset, AVFrameUPtr f, const Codec &codec, qint64 pts,
+          const QObject *source = nullptr)
+        : d(new Data(offset, std::move(f), codec, pts, source))
     {
     }
-    Frame(const QString &text, qint64 pts, qint64 duration, const QObject *source = nullptr)
-        : d(new Data(text, pts, duration, source))
+    Frame(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
+          const QObject *source = nullptr)
+        : d(new Data(offset, text, pts, duration, source))
     {
     }
     bool isValid() const { return !!d; }
@@ -77,6 +83,9 @@ struct Frame
     qint64 end() const { return data().pts + data().duration; }
     QString text() const { return data().text; }
     const QObject *source() const { return data().source; };
+    const LoopOffset &loopOffset() const { return data().loopOffset; };
+    qint64 absolutePts() const { return pts() + loopOffset().pos; }
+    qint64 absoluteEnd() const { return end() + loopOffset().pos; }
 
 private:
     Data &data() const

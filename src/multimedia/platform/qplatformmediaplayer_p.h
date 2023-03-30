@@ -116,7 +116,8 @@ public:
         return isSeekable() && (m_loops < 0 || ++m_currentLoop < m_loops);
     }
     int loops() { return m_loops; }
-    void setLoops(int loops) {
+    virtual void setLoops(int loops)
+    {
         if (m_loops == loops)
             return;
         m_loops = loops;

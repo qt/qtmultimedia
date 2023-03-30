@@ -53,15 +53,21 @@ void QFFmpegMediaPlayer::endOfStream()
     m_positionUpdateTimer.stop();
     positionChanged(duration());
 
-    if (doLoop()) {
-        m_playbackEngine->seek(0);
-        positionChanged(0);
+    stateChanged(QMediaPlayer::StoppedState);
+    mediaStatusChanged(QMediaPlayer::EndOfMedia);
+}
 
-        runPlayback();
-    } else {
-        stateChanged(QMediaPlayer::StoppedState);
-        mediaStatusChanged(QMediaPlayer::EndOfMedia);
-    }
+void QFFmpegMediaPlayer::onLoopChanged()
+{
+    // report about finish and start
+    // reporting both signals is a bit contraversial
+    // but it eshures the idea of notifications about
+    // imporatant position points.
+    // Also, it ensures more predictable flow for testing.
+    positionChanged(duration());
+    positionChanged(0);
+    m_positionUpdateTimer.stop();
+    m_positionUpdateTimer.start();
 }
 
 float QFFmpegMediaPlayer::bufferProgress() const
@@ -121,10 +127,13 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
     m_playbackEngine = std::make_unique<PlaybackEngine>();
+
     connect(m_playbackEngine.get(), &PlaybackEngine::endOfStream, this,
             &QFFmpegMediaPlayer::endOfStream);
     connect(m_playbackEngine.get(), &PlaybackEngine::errorOccured, this,
             &QFFmpegMediaPlayer::error);
+    connect(m_playbackEngine.get(), &PlaybackEngine::loopChanged, this,
+            &QFFmpegMediaPlayer::onLoopChanged);
 
     if (!m_playbackEngine->setMedia(media, stream)) {
         m_playbackEngine.reset();
@@ -134,6 +143,8 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     m_playbackEngine->setAudioSink(m_audioOutput);
     m_playbackEngine->setVideoSink(m_videoSink);
+    m_playbackEngine->setLoops(loops());
+    m_playbackEngine->setPlaybackRate(m_playbackRate);
 
     durationChanged(duration());
     tracksChanged();
@@ -145,6 +156,7 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     videoAvailableChanged(
             !m_playbackEngine->streamInfo(QPlatformMediaPlayer::VideoStream).isEmpty());
 
+    // TODO: get rid of the delayed update
     QMetaObject::invokeMethod(this, "delayedLoadedStatus", Qt::QueuedConnection);
 }
 
@@ -156,7 +168,6 @@ void QFFmpegMediaPlayer::play()
     if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState) {
         m_playbackEngine->seek(0);
         positionChanged(0);
-        resetCurrentLoop();
     }
 
     runPlayback();
@@ -247,6 +258,16 @@ void QFFmpegMediaPlayer::setActiveTrack(TrackType type, int streamNumber)
 {
     if (m_playbackEngine)
         m_playbackEngine->setActiveTrack(type, streamNumber);
+    else
+        qWarning() << "Cannot set active track without open source";
+}
+
+void QFFmpegMediaPlayer::setLoops(int loops)
+{
+    if (m_playbackEngine)
+        m_playbackEngine->setLoops(loops);
+
+    QPlatformMediaPlayer::setLoops(loops);
 }
 
 QT_END_NAMESPACE
