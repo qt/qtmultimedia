@@ -74,7 +74,9 @@ private slots:
     void playbackRateChanging();
     void durationDetectionIssues();
     void finiteLoops();
-    void infiteLoops();
+    void infiniteLoops();
+    void seekOnLoops();
+    void changeLoopsOnTheFly();
     void lazyLoadVideo();
 
 private:
@@ -1322,15 +1324,16 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
     player.setVideoOutput(&surface);
     player.setSource(localVideoFile3ColorsWithSound);
 
-    QImage frameImage;
-    connect(&surface, &QVideoSink::videoFrameChanged, [&frameImage](const QVideoFrame& frame) {
-        frameImage = frame.toImage();
+    std::optional<QRgb> color;
+    connect(&surface, &QVideoSink::videoFrameChanged, [&](const QVideoFrame& frame) {
+        auto image = frame.toImage();
+        color = image.isNull() ? std::optional<QRgb>{} : image.pixel(1, 1);
     });
 
     auto checkColorAndPosition = [&](int colorIndex, QString errorTag) {
-        QVERIFY(!frameImage.isNull());
+        QVERIFY(color);
         const auto expectedColor = video3Colors[colorIndex];
-        const auto actualColor = frameImage.pixel(1, 1);
+        const auto actualColor = *color;
 
         auto errorPrintingGuard = qScopeGuard([&]() {
             qDebug() << "Error Tag:" << errorTag;
@@ -1677,10 +1680,8 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QCOMPARE(intervals.size(), 3u);
     QCOMPARE_GT(intervals[0].first, 0);
     QCOMPARE(intervals[0].second, player.duration());
-    QCOMPARE(intervals[1].first, 0);
-    QCOMPARE(intervals[1].second, player.duration());
-    QCOMPARE(intervals[2].first, 0);
-    QCOMPARE(intervals[2].second, player.duration());
+    QCOMPARE(intervals[1], std::make_pair(qint64(0), player.duration()));
+    QCOMPARE(intervals[2], std::make_pair(qint64(0), player.duration()));
 
     QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
@@ -1697,7 +1698,7 @@ void tst_QMediaPlayerBackend::finiteLoops()
     }
 }
 
-void tst_QMediaPlayerBackend::infiteLoops()
+void tst_QMediaPlayerBackend::infiniteLoops()
 {
     if (localVideoFile2.isEmpty())
         QSKIP("Video format is not supported");
@@ -1740,6 +1741,100 @@ void tst_QMediaPlayerBackend::infiteLoops()
 
     player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+}
+
+void tst_QMediaPlayerBackend::seekOnLoops()
+{
+    if (localVideoFile3ColorsWithSound.isEmpty())
+        QSKIP("Video format is not supported");
+
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
+              "investigated: QTBUG-111744");
+#endif
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+
+    QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
+
+    player.setVideoOutput(&surface);
+    player.setLoops(3);
+    player.setPlaybackRate(2);
+
+    player.setSource(localVideoFile3ColorsWithSound);
+
+    player.play();
+    surface.waitForFrame();
+
+    // seek in the 1st loop
+    player.setPosition(player.duration() * 4 / 5);
+
+    // wait for the 2nd loop and seek
+    surface.waitForFrame();
+    QTRY_VERIFY(player.position() < player.duration() / 2);
+    player.setPosition(player.duration() * 8 / 9);
+
+    // wait for the 3rd loop and seek
+    surface.waitForFrame();
+    QTRY_VERIFY(player.position() < player.duration() / 2);
+    player.setPosition(player.duration() * 4 / 5);
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+
+    auto intervals = positionChangingIntervals(positionSpy);
+
+    QCOMPARE(intervals.size(), 3);
+    QCOMPARE_GT(intervals[0].first, 0);
+    QCOMPARE(intervals[0].second, player.duration());
+    QCOMPARE(intervals[1], std::make_pair(qint64(0), player.duration()));
+    QCOMPARE(intervals[2], std::make_pair(qint64(0), player.duration()));
+
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+}
+
+void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
+{
+    if (localVideoFile3ColorsWithSound.isEmpty())
+        QSKIP("Video format is not supported");
+
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
+              "investigated: QTBUG-111744");
+#endif
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+
+    QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
+
+    player.setVideoOutput(&surface);
+    player.setLoops(4);
+    player.setPlaybackRate(5);
+
+    player.setSource(localVideoFile3ColorsWithSound);
+
+    player.play();
+    surface.waitForFrame();
+
+    player.setPosition(player.duration() * 4 / 5);
+
+    // wait for the 2nd loop
+    surface.waitForFrame();
+    QTRY_VERIFY(player.position() < player.duration() / 2);
+    player.setPosition(player.duration() * 8 / 9);
+
+    player.setLoops(1);
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+
+    auto intervals = positionChangingIntervals(positionSpy);
+    QCOMPARE(intervals.size(), 2);
+
+    QCOMPARE(intervals[1], std::make_pair(qint64(0), player.duration()));
 }
 
 void tst_QMediaPlayerBackend::lazyLoadVideo()

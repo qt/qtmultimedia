@@ -2,23 +2,46 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "playbackengine/qffmpegdemuxer_p.h"
+#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
-// queue up max 16M of encoded data, that should always be enough
-// (it's around 2 secs of 4K HDR video, longer for almost all other formats)
-static constexpr quint64 MaxQueueSize = 16 * 1024 * 1024;
+// 4 sec for buffering. TODO: maybe move to env var customization
+static constexpr qint64 MaxBufferingTimeUs = 4'000'000;
+
+// Currently, consider only time. TODO: maybe move to env var customization
+static constexpr qint64 MaxBufferingSize = std::numeric_limits<qint64>::max();
 
 namespace QFFmpeg {
 
-Demuxer::Demuxer(AVFormatContext *context, qint64 seekPos, const StreamIndexes &streamIndexes)
-    : m_context(context), m_seekPos(seekPos)
+static Q_LOGGING_CATEGORY(qLcDemuxer, "qt.multimedia.ffmpeg.demuxer");
+
+static qint64 streamTimeToUs(const AVStream *stream, qint64 time)
 {
+    Q_ASSERT(stream);
+
+    const auto res = mul(time * 1000000, stream->time_base);
+    return res ? *res : time;
+}
+
+Demuxer::Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffset,
+                 const StreamIndexes &streamIndexes, int loops)
+    : m_context(context), m_posWithOffset(posWithOffset)
+{
+    qCDebug(qLcDemuxer) << "Create demuxer."
+                        << "pos:" << posWithOffset.pos << "loop offset:" << posWithOffset.offset.pos
+                        << "loop index:" << posWithOffset.offset.index << "loops:" << loops;
+    m_loops = loops;
+
     Q_ASSERT(m_context);
+    Q_ASSERT(m_loops < 0 || m_posWithOffset.offset.index < m_loops);
 
     for (auto i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
-        if (streamIndexes[i] >= 0)
-            m_streams[streamIndexes[i]] = { static_cast<QPlatformMediaPlayer::TrackType>(i) };
+        if (streamIndexes[i] >= 0) {
+            const auto trackType = static_cast<QPlatformMediaPlayer::TrackType>(i);
+            qCDebug(qLcDemuxer) << "Activate demuxing stream" << i << ", trackType:" << trackType;
+            m_streams[streamIndexes[i]] = { trackType };
+        }
     }
 }
 
@@ -26,33 +49,43 @@ void Demuxer::doNextStep()
 {
     ensureSeeked();
 
-    Packet packet(AVPacketUPtr{ av_packet_alloc() });
+    Packet packet(m_posWithOffset.offset, AVPacketUPtr{ av_packet_alloc() });
     if (av_read_frame(m_context, packet.avPacket()) < 0) {
-        setAtEnd(true);
+        ++m_posWithOffset.offset.index;
+
+        if (m_loops >= 0 && m_posWithOffset.offset.index >= m_loops) {
+            qCDebug(qLcDemuxer) << "finish demuxing";
+            setAtEnd(true);
+        } else {
+            m_seeked = false;
+            m_posWithOffset.pos = 0;
+            m_posWithOffset.offset.pos = m_endPts;
+            m_endPts = 0;
+
+            ensureSeeked();
+
+            qCDebug(qLcDemuxer) << "Demuxer loops changed. Index:" << m_posWithOffset.offset.index
+                                << "Offset:" << m_posWithOffset.offset.pos;
+        }
+
         return;
     }
 
     const auto streamIndex = packet.avPacket()->stream_index;
+    const auto stream = m_context->streams[streamIndex];
 
     auto it = m_streams.find(streamIndex);
 
     if (it != m_streams.end()) {
-        it->second.dataSize += packet.avPacket()->size;
-        it->second.duration += packet.avPacket()->duration;
+        const auto packetEndPos =
+                streamTimeToUs(stream, packet.avPacket()->pts + packet.avPacket()->duration);
+        m_endPts = std::max(m_endPts, m_posWithOffset.offset.pos + packetEndPos);
 
-        switch (it->second.trackType) {
-        case QPlatformMediaPlayer::TrackType::VideoStream:
-            emit requestProcessVideoPacket(packet);
-            break;
-        case QPlatformMediaPlayer::TrackType::AudioStream:
-            emit requestProcessAudioPacket(packet);
-            break;
-        case QPlatformMediaPlayer::TrackType::SubtitleStream:
-            emit requestProcessSubtitlePacket(packet);
-            break;
-        default:
-            Q_ASSERT(!"Unknown track type");
-        }
+        it->second.bufferingTime += streamTimeToUs(stream, packet.avPacket()->duration);
+        it->second.bufferingSize += packet.avPacket()->size;
+
+        auto signal = signalByTrackType(it->second.trackType);
+        emit (this->*signal)(packet);
     }
 
     scheduleNextStep(false);
@@ -65,11 +98,12 @@ void Demuxer::onPacketProcessed(Packet packet)
         auto it = m_streams.find(streamIndex);
 
         if (it != m_streams.end()) {
-            it->second.dataSize -= packet.avPacket()->size;
-            it->second.duration -= packet.avPacket()->duration;
+            it->second.bufferingTime -=
+                    streamTimeToUs(m_context->streams[streamIndex], packet.avPacket()->duration);
+            it->second.bufferingSize -= packet.avPacket()->size;
 
-            Q_ASSERT(it->second.dataSize >= 0);
-            Q_ASSERT(it->second.duration >= 0);
+            Q_ASSERT(it->second.bufferingTime >= 0);
+            Q_ASSERT(it->second.bufferingSize >= 0);
         }
     }
 
@@ -81,21 +115,12 @@ bool Demuxer::canDoNextStep() const
     if (!PlaybackEngineObject::canDoNextStep() || isAtEnd() || m_streams.empty())
         return false;
 
-    const bool hasSmallDuration =
-            std::any_of(m_streams.begin(), m_streams.end(),
-                        [](const auto &s) { return s.second.duration < 200; });
+    auto checkBufferingTime = [](const auto &streamIndexToData) {
+        return streamIndexToData.second.bufferingTime < MaxBufferingTimeUs &&
+               streamIndexToData.second.bufferingSize < MaxBufferingSize;
+    };
 
-    if (hasSmallDuration)
-        return true;
-
-    const auto dataSize =
-            std::accumulate(m_streams.begin(), m_streams.end(), quint64(0),
-                            [](quint64 value, const auto &s) { return value + s.second.dataSize; });
-
-    if (dataSize > MaxQueueSize)
-        return false;
-
-    return true;
+    return std::all_of(m_streams.begin(), m_streams.end(), checkBufferingTime);
 }
 
 void Demuxer::ensureSeeked()
@@ -103,7 +128,7 @@ void Demuxer::ensureSeeked()
     if (std::exchange(m_seeked, true))
         return;
 
-    const qint64 seekPos = m_seekPos * AV_TIME_BASE / 1000000;
+    const qint64 seekPos = m_posWithOffset.pos * AV_TIME_BASE / 1000000;
     auto err = av_seek_frame(m_context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
 
     if (err < 0) {
@@ -130,6 +155,12 @@ Demuxer::RequestingSignal Demuxer::signalByTrackType(QPlatformMediaPlayer::Track
     }
 
     return nullptr;
+}
+
+void Demuxer::setLoops(int loopsCount)
+{
+    qCDebug(qLcDemuxer) << "setLoops to demuxer" << loopsCount;
+    m_loops = loopsCount;
 }
 
 } // namespace QFFmpeg

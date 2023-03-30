@@ -17,6 +17,7 @@
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
 #include "private/qplatformmediaplayer_p.h"
 #include "playbackengine/qffmpegpacket_p.h"
+#include "playbackengine/qffmpegpositionwithoffset_p.h"
 
 #include <unordered_map>
 
@@ -28,10 +29,13 @@ class Demuxer : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    Demuxer(AVFormatContext *context, qint64 seekPos, const StreamIndexes &streamIndexes);
+    Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffset,
+            const StreamIndexes &streamIndexes, int loops);
 
     using RequestingSignal = void (Demuxer::*)(Packet);
     static RequestingSignal signalByTrackType(QPlatformMediaPlayer::TrackType trackType);
+
+    void setLoops(int loopsCount);
 
 public slots:
     void onPacketProcessed(Packet);
@@ -52,14 +56,16 @@ private:
     struct StreamData
     {
         QPlatformMediaPlayer::TrackType trackType = QPlatformMediaPlayer::TrackType::NTrackTypes;
-        qint64 duration = 0;
-        qint64 dataSize = 0;
+        qint64 bufferingTime = 0;
+        qint64 bufferingSize = 0;
     };
 
     AVFormatContext *m_context = nullptr;
     bool m_seeked = false;
     std::unordered_map<int, StreamData> m_streams;
-    const qint64 m_seekPos = 0;
+    PositionWithOffset m_posWithOffset;
+    qint64 m_endPts = 0;
+    std::atomic<int> m_loops = QMediaPlayer::Once;
 };
 
 } // namespace QFFmpeg

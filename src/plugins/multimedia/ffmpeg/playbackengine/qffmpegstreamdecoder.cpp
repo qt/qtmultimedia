@@ -3,16 +3,21 @@
 
 #include "playbackengine/qffmpegstreamdecoder_p.h"
 #include "playbackengine/qffmpegmediadataholder_p.h"
+#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
+static Q_LOGGING_CATEGORY(qLcStreamDecoder, "qt.multimedia.ffmpeg.streamdecoder");
+
 namespace QFFmpeg {
 
-StreamDecoder::StreamDecoder(const Codec &codec, qint64 seekPos)
+StreamDecoder::StreamDecoder(const Codec &codec, qint64 absSeekPos)
     : m_codec(codec),
-      m_seekPos(seekPos),
+      m_absSeekPos(absSeekPos),
       m_trackType(MediaDataHolder::trackTypeFromMediaType(codec.context()->codec_type))
 {
+    qCDebug(qLcStreamDecoder) << "Create stream decoder, trackType" << m_trackType
+                              << "absSeekPos:" << absSeekPos;
     Q_ASSERT(m_trackType != QPlatformMediaPlayer::NTrackTypes);
 }
 
@@ -36,10 +41,24 @@ void StreamDecoder::decode(Packet packet)
 void StreamDecoder::doNextStep()
 {
     auto packet = m_packets.dequeue();
-    if (trackType() == QPlatformMediaPlayer::SubtitleStream)
-        decodeSubtitle(packet);
-    else
-        decodeMedia(packet);
+
+    auto decodePacket = [this](Packet packet) {
+        if (trackType() == QPlatformMediaPlayer::SubtitleStream)
+            decodeSubtitle(packet);
+        else
+            decodeMedia(packet);
+    };
+
+    if (packet.isValid() && packet.loopOffset().index != m_offset.index) {
+        decodePacket({});
+
+        qCDebug(qLcStreamDecoder) << "flush buffers due to new loop:" << packet.loopOffset().index;
+
+        avcodec_flush_buffers(m_codec.context());
+        m_offset = packet.loopOffset();
+    }
+
+    decodePacket(packet);
 
     setAtEnd(!packet.isValid());
 
@@ -82,7 +101,7 @@ bool StreamDecoder::canDoNextStep() const
 
 void StreamDecoder::onFrameFound(Frame frame)
 {
-    if (frame.isValid() && frame.end() < m_seekPos)
+    if (frame.isValid() && frame.absoluteEnd() < m_absSeekPos)
         return;
 
     Q_ASSERT(m_pendingFramesCount >= 0);
@@ -131,7 +150,7 @@ void StreamDecoder::receiveAVFrames()
             break;
         }
 
-        onFrameFound({ std::move(avFrame), m_codec, 0, this });
+        onFrameFound({ m_offset, std::move(avFrame), m_codec, 0, this });
     }
 }
 
@@ -196,10 +215,10 @@ void StreamDecoder::decodeSubtitle(Packet packet)
     if (text.endsWith(QLatin1Char('\n')))
         text.chop(1);
 
-    onFrameFound({ text, start, end - start, this });
+    onFrameFound({ m_offset, text, start, end - start, this });
 
     // TODO: maybe optimize
-    onFrameFound({ QString(), end, 0, this });
+    onFrameFound({ m_offset, QString(), end, 0, this });
 }
 } // namespace QFFmpeg
 

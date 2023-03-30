@@ -2,10 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "playbackengine/qffmpegrenderer_p.h"
+#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
+
+static Q_LOGGING_CATEGORY(qLcRenderer, "qt.multimedia.ffmpeg.renderer");
 
 Renderer::Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset)
     : m_timeController(tc),
@@ -68,9 +71,11 @@ void Renderer::render(Frame frame)
 {
     using namespace std::chrono;
 
-    const auto isFrameOutdated = frame.isValid() && frame.end() < m_seekPos;
+    const auto isFrameOutdated = frame.isValid() && frame.absoluteEnd() < m_seekPos;
 
     if (isFrameOutdated) {
+        qCDebug(qLcRenderer) << "frame outdated! absEnd:" << frame.absoluteEnd() << "absPts"
+                             << frame.absolutePts() << "seekPos:" << m_seekPos;
         emit frameProcessed(frame);
         return;
     }
@@ -101,7 +106,8 @@ int Renderer::timerInterval() const
 {
     if (auto frame = m_frames.front(); frame.isValid() && !m_isStepForced) {
         using namespace std::chrono;
-        const auto delay = m_timeController.timeFromPosition(frame.pts()) - steady_clock::now();
+        const auto delay =
+                m_timeController.timeFromPosition(frame.absolutePts()) - steady_clock::now();
         return std::max(0, static_cast<int>(duration_cast<milliseconds>(delay).count()));
     }
 
@@ -133,16 +139,23 @@ void Renderer::doNextStep()
 
     if (result.timeLeft.count() && frame.isValid()) {
         const auto now = std::chrono::steady_clock::now();
-        m_timeController.sync(now + result.timeLeft, frame.pts());
-        emit synchronized(now + result.timeLeft, frame.pts());
+        m_timeController.sync(now + result.timeLeft, frame.absolutePts());
+        emit synchronized(now + result.timeLeft, frame.absolutePts());
     }
 
     if (done) {
         m_frames.dequeue();
 
         if (frame.isValid()) {
-            m_lastPosition = std::max(frame.pts(), m_lastPosition.load());
-            m_seekPos = frame.end();
+            m_lastPosition = std::max(frame.absolutePts(), m_lastPosition.load());
+            m_seekPos = frame.absoluteEnd();
+
+            const auto loopIndex = frame.loopOffset().index;
+            if (m_loopIndex < loopIndex) {
+                m_loopIndex = loopIndex;
+                emit loopChanged(frame.loopOffset().pos, m_loopIndex);
+            }
+
             emit frameProcessed(frame);
         }
     }

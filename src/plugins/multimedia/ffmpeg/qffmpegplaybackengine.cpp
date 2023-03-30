@@ -18,6 +18,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
+static Q_LOGGING_CATEGORY(qLcPlaybackEngine, "qt.multimedia.ffmpeg.playbackengine");
+
 // The helper is needed since on some compilers std::unique_ptr
 // doesn't have a default constructor in the case of sizeof(CustomDeleter) > 0
 template<typename Array>
@@ -41,11 +43,13 @@ PlaybackEngine::PlaybackEngine()
       m_streams(defaultObjectsArray<decltype(m_streams)>()),
       m_renderers(defaultObjectsArray<decltype(m_renderers)>())
 {
+    qCDebug(qLcPlaybackEngine) << "Create PlaybackEngine";
     qRegisterMetaType<QFFmpeg::Packet>();
     qRegisterMetaType<QFFmpeg::Frame>();
 }
 
 PlaybackEngine::~PlaybackEngine() {
+    qCDebug(qLcPlaybackEngine) << "Delete PlaybackEngine";
     forEachExistingObject([](auto &object) { object.reset(); });
     deleteFreeThreads();
 }
@@ -62,20 +66,31 @@ void PlaybackEngine::onRendererFinished()
     if (!isAtEnd(QPlatformMediaPlayer::AudioStream))
         return;
 
-    if (!isAtEnd(QPlatformMediaPlayer::SubtitleStream)
-        && !m_renderers[QPlatformMediaPlayer::AudioStream]
-        && !m_renderers[QPlatformMediaPlayer::VideoStream])
+    if (!isAtEnd(QPlatformMediaPlayer::SubtitleStream) && !hasMediaStream())
         return;
 
     if (std::exchange(m_state, QMediaPlayer::StoppedState) == QMediaPlayer::StoppedState)
         return;
 
-    m_timeController.setPaused(true);
-    m_timeController.sync(m_duration);
+    finilizeTime(duration());
 
     forceUpdate();
 
+    qCDebug(qLcPlaybackEngine) << "Playback engine end of stream";
+
     emit endOfStream();
+}
+
+void PlaybackEngine::onRendererLoopChanged(qint64 offset, int loopIndex)
+{
+    if (loopIndex > m_currentLoopOffset.index) {
+        m_currentLoopOffset = { offset, loopIndex };
+        emit loopChanged();
+    } else if (loopIndex == m_currentLoopOffset.index && offset != m_currentLoopOffset.pos) {
+        qWarning() << "Unexpected offset for loop" << loopIndex << ":" << offset << "vs"
+                   << m_currentLoopOffset.pos;
+        m_currentLoopOffset.pos = offset;
+    }
 }
 
 void PlaybackEngine::onRendererSynchronized(std::chrono::steady_clock::time_point tp, qint64 pos)
@@ -94,15 +109,13 @@ void PlaybackEngine::setState(QMediaPlayer::PlaybackState state) {
     if (!m_context)
         return;
 
-    if ( state == m_state )
+    if (state == m_state)
         return;
 
     const auto prevState = std::exchange(m_state, state);
 
-    if (m_state == QMediaPlayer::StoppedState) {
-        m_timeController.setPaused(true);
-        m_timeController.sync();
-    }
+    if (m_state == QMediaPlayer::StoppedState)
+        finilizeTime(0);
 
     if (prevState == QMediaPlayer::StoppedState || m_state == QMediaPlayer::StoppedState)
         recreateObjects();
@@ -208,12 +221,29 @@ void PlaybackEngine::forEachExistingObject(Action &&action)
 
 void PlaybackEngine::seek(qint64 pos)
 {
-    pos = qBound(0, pos, m_duration);
+    pos = qBound(0, pos, duration());
 
     m_timeController.setPaused(true);
-    m_timeController.sync(pos);
+    m_timeController.sync(m_currentLoopOffset.pos + pos);
 
     forceUpdate();
+}
+
+void PlaybackEngine::setLoops(int loops)
+{
+    if (!isSeekable()) {
+        qWarning() << "Cannot set loops for non-seekable source";
+        return;
+    }
+
+    if (std::exchange(m_loops, loops) == loops)
+        return;
+
+    qCDebug(qLcPlaybackEngine) << "set playback engine loops:" << loops << "prev loops:" << m_loops
+                               << "index:" << m_currentLoopOffset.index;
+
+    if (m_demuxer)
+        m_demuxer->setLoops(loops);
 }
 
 void PlaybackEngine::triggerStepIfNeeded()
@@ -295,6 +325,9 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
         connect(renderer.get(), &Renderer::synchronized, this,
                 &PlaybackEngine::onRendererSynchronized);
 
+        connect(renderer.get(), &Renderer::loopChanged, this,
+                &PlaybackEngine::onRendererLoopChanged);
+
         if constexpr (shouldPauseStreams)
             connect(renderer.get(), &Renderer::forceStepDone, this,
                     &PlaybackEngine::updateObjectsPausedState);
@@ -337,6 +370,8 @@ std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackTy
     auto &result = m_codecs[trackType];
 
     if (!result) {
+        qCDebug(qLcPlaybackEngine)
+                << "Create codec for stream:" << streamIndex << "trackType:" << trackType;
         auto maybeCodec = Codec::create(m_context->streams[streamIndex]);
 
         if (!maybeCodec) {
@@ -349,6 +384,12 @@ std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackTy
     }
 
     return result;
+}
+
+bool PlaybackEngine::hasMediaStream() const
+{
+    return m_renderers[QPlatformMediaPlayer::AudioStream]
+            || m_renderers[QPlatformMediaPlayer::VideoStream];
 }
 
 void PlaybackEngine::createDemuxer()
@@ -365,8 +406,10 @@ void PlaybackEngine::createDemuxer()
     if (!hasStreams)
         return;
 
-    m_demuxer =
-            createPlaybackEngineObject<Demuxer>(m_context.get(), currentPosition(), streamIndexes);
+    const PositionWithOffset positionWithOffset{ currentPosition(false), m_currentLoopOffset };
+
+    m_demuxer = createPlaybackEngineObject<Demuxer>(m_context.get(), positionWithOffset,
+                                                    streamIndexes, m_loops);
 
     forEachExistingObject<StreamDecoder>([&](auto &stream) {
         connect(m_demuxer.get(), Demuxer::signalByTrackType(stream->trackType()), stream.get(),
@@ -425,14 +468,28 @@ void PlaybackEngine::setAudioSink(QAudioOutput *output)
         forceUpdate();
 }
 
-qint64 PlaybackEngine::currentPosition() const {
-    auto pos = std::numeric_limits<qint64>::max();
+qint64 PlaybackEngine::currentPosition(bool topPos) const {
+    std::optional<qint64> pos;
 
-    for (auto trackType : { QPlatformMediaPlayer::VideoStream, QPlatformMediaPlayer::AudioStream })
-        if (auto &renderer = m_renderers[trackType])
-            pos = std::min(pos, renderer->lastPosition());
+    for (size_t i = 0; i < m_renderers.size(); ++i) {
+        const auto &renderer = m_renderers[i];
+        if (!renderer)
+            continue;
 
-    return pos == std::numeric_limits<qint64>::max() ? m_timeController.currentPosition() : pos;
+        // skip subtitle stream for finding lower rendering position
+        if (!topPos && i == QPlatformMediaPlayer::SubtitleStream && hasMediaStream())
+            continue;
+
+        const auto rendererPos = renderer->lastPosition();
+        pos = !pos       ? rendererPos
+                : topPos ? std::max(*pos, rendererPos)
+                         : std::min(*pos, rendererPos);
+    }
+
+    if (!pos)
+        pos = m_timeController.currentPosition();
+
+    return qBound(0, *pos - m_currentLoopOffset.pos, duration());
 }
 
 void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, int streamNumber)
@@ -450,6 +507,14 @@ void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, i
     updateObjectsPausedState();
 }
 
+void PlaybackEngine::finilizeTime(qint64 pos)
+{
+    Q_ASSERT(pos >= 0 && pos <= duration());
+
+    m_timeController.setPaused(true);
+    m_timeController.sync(pos);
+    m_currentLoopOffset = {};
+}
 }
 
 QT_END_NAMESPACE

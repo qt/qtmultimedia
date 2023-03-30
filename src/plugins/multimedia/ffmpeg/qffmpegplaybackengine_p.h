@@ -49,6 +49,7 @@
 #include "playbackengine/qffmpegtimecontroller_p.h"
 #include "playbackengine/qffmpegmediadataholder_p.h"
 #include "playbackengine/qffmpegcodec_p.h"
+#include "playbackengine/qffmpegpositionwithoffset_p.h"
 
 #include <unordered_map>
 
@@ -92,6 +93,8 @@ public:
 
     void seek(qint64 pos);
 
+    void setLoops(int loopsCount);
+
     void setPlaybackRate(float rate);
 
     float playbackRate() const;
@@ -100,11 +103,12 @@ public:
 
     using MediaDataHolder::activeTrack;
 
-    qint64 currentPosition() const;
+    qint64 currentPosition(bool topPos = true) const;
 
 signals:
     void endOfStream();
     void errorOccured(int, const QString &);
+    void loopChanged();
 
 protected: // objects managing
     struct ObjectDeleter
@@ -152,11 +156,17 @@ private:
 
     void onRendererFinished();
 
+    void onRendererLoopChanged(qint64 offset, int loopIndex);
+
     void triggerStepIfNeeded();
 
     static QString objectThreadName(const PlaybackEngineObject &object);
 
     std::optional<Codec> codecForTrack(QPlatformMediaPlayer::TrackType trackType);
+
+    bool hasMediaStream() const;
+
+    void finilizeTime(qint64 pos);
 
 private:
     TimeController m_timeController;
@@ -174,6 +184,8 @@ private:
     std::array<RendererPtr, QPlatformMediaPlayer::NTrackTypes> m_renderers;
 
     std::array<std::optional<Codec>, QPlatformMediaPlayer::NTrackTypes> m_codecs;
+    int m_loops = QMediaPlayer::Once;
+    LoopOffset m_currentLoopOffset;
 };
 
 template<typename T, typename... Args>

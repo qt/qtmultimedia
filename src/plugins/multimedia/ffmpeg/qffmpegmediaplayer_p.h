@@ -65,8 +65,12 @@ public:
     QMediaMetaData trackMetaData(TrackType type, int streamNumber) override;
     int activeTrack(TrackType) override;
     void setActiveTrack(TrackType, int streamNumber) override;
+    void setLoops(int loops) override;
 
-    Q_INVOKABLE void delayedLoadedStatus() { mediaStatusChanged(QMediaPlayer::LoadedMedia); }
+    Q_INVOKABLE void delayedLoadedStatus() {
+        if (mediaStatus() == QMediaPlayer::LoadingMedia)
+            mediaStatusChanged(QMediaPlayer::LoadedMedia);
+    }
 
 private:
     void runPlayback();
@@ -78,6 +82,7 @@ private slots:
     {
         QPlatformMediaPlayer::error(error, errorString);
     }
+    void onLoopChanged();
 
 private:
     QTimer m_positionUpdateTimer;

@@ -52,6 +52,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         playbackengine/qffmpegcodec.cpp playbackengine/qffmpegcodec_p.h
         playbackengine/qffmpegpacket_p.h
         playbackengine/qffmpegframe_p.h
+        playbackengine/qffmpegpositionwithoffset_p.h
     DEFINES
         QT_COMPILING_FFMPEG
     LIBRARIES

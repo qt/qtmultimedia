@@ -16,6 +16,7 @@
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
 #include "playbackengine/qffmpegframe_p.h"
 #include "playbackengine/qffmpegpacket_p.h"
+#include "playbackengine/qffmpegpositionwithoffset_p.h"
 #include "private/qplatformmediaplayer_p.h"
 
 #include <optional>
@@ -28,7 +29,7 @@ class StreamDecoder : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
-    StreamDecoder(const Codec &codec, qint64 seekPos);
+    StreamDecoder(const Codec &codec, qint64 absSeekPos);
 
     ~StreamDecoder();
 
@@ -64,10 +65,12 @@ private:
 
 private:
     Codec m_codec;
-    qint64 m_seekPos = 0;
+    const qint64 m_absSeekPos = 0;
     const QPlatformMediaPlayer::TrackType m_trackType;
 
     qint32 m_pendingFramesCount = 0;
+
+    LoopOffset m_offset;
 
     QQueue<Packet> m_packets;
 };
