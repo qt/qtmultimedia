@@ -82,6 +82,8 @@ public:
     bool setDeviceSetting(const std::string &key, emscripten::val value);
     bool isCameraReady() { return m_cameraIsReady; }
 
+    static void videoFrameCallback(emscripten::val now, emscripten::val metadata);
+    void videoFrameTimerCallback();
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
 
@@ -99,8 +101,9 @@ Q_SIGNALS:
 private:
     void checkNetworkState();
     void videoComputeFrame(void *context);
-    void videoFrameTimerCallback();
     void getDeviceSettings();
+
+    static QVideoFrameFormat::PixelFormat fromJsPixelFormat(std::string videoFormat);
 
     emscripten::val m_video = emscripten::val::undefined();
     emscripten::val m_videoElementSource = emscripten::val::undefined();

@@ -22,3 +22,4 @@ qt_internal_add_plugin(QWasmMediaPlugin
         openal
 )
 
+target_link_libraries(QWasmMediaPlugin PUBLIC embind)
