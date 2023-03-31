@@ -97,8 +97,11 @@ static void outputStreamDrainComplete(pa_stream *stream, int success, void *user
     Q_UNUSED(stream);
 
     qCDebug(qLcPulseAudioOut) << "Stream drained:" << bool(success) << userdata;
-    if (success && userdata)
-        static_cast<QPulseAudioSink *>(userdata)->streamDrainedCallback();
+
+    std::unique_ptr<QObject> object(static_cast<QObject *>(userdata));
+
+    if (object && !success)
+        object->disconnect();
 }
 
 static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *userdata)
@@ -155,9 +158,14 @@ void QPulseAudioSink::streamUnderflowCallback()
 {
     if (m_audioSource && m_audioSource->atEnd()) {
         qCDebug(qLcPulseAudioOut) << "Draining stream at end of buffer";
-        pa_operation *o = pa_stream_drain(m_stream, outputStreamDrainComplete, this);
-        if (o)
+
+        auto object = std::make_unique<QObject>();
+        connect(object.get(), &QObject::destroyed, this, &QPulseAudioSink::streamDrainedCallback);
+        pa_operation *o = pa_stream_drain(m_stream, outputStreamDrainComplete, object.get());
+        if (o) {
+            object.release();
             pa_operation_unref(o);
+        }
     } else if (m_deviceState != QAudio::IdleState && !m_resuming) {
         setError(QAudio::UnderrunError);
         setState(QAudio::IdleState);
