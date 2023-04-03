@@ -279,7 +279,9 @@ void AVFCameraRenderer::setPixelFormat(const QVideoFrameFormat::PixelFormat pixe
             , (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
 #endif // Q_OS_IOS
         };
-        m_outputSettings = outputSettings;
+        if (m_outputSettings)
+            [m_outputSettings release];
+        m_outputSettings = [[NSDictionary alloc] initWithDictionary:outputSettings];
     } else {
         qWarning() << "QCamera::setCameraFormat: requested pixel format not supported. Did you use a camera format from another camera?";
     }
