@@ -41,8 +41,11 @@ void AVFCameraService::setCamera(QPlatformCamera *camera)
     if (m_cameraControl == control)
         return;
 
-    if (m_cameraControl)
+    if (m_cameraControl) {
+        if (m_encoder)
+            m_cameraControl->disconnect(m_encoder);
         m_cameraControl->setCaptureSession(nullptr);
+    }
 
     m_cameraControl = control;
 
