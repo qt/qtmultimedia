@@ -1520,9 +1520,6 @@ void tst_QMediaPlayerBackend::isSeekable()
     TestVideoSink surface(false);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
-#ifdef Q_OS_ANDROID
-    QEXPECT_FAIL("", "On Android isSeekable() is always set to true due to QTBUG-96952", Continue);
-#endif
     QVERIFY(!player.isSeekable());
     player.setSource(localVideoFile);
     QTRY_VERIFY(player.isSeekable());
@@ -1536,9 +1533,6 @@ void tst_QMediaPlayerBackend::positionAfterSeek()
     TestVideoSink surface(false);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
-#ifdef Q_OS_ANDROID
-    QEXPECT_FAIL("", "On Android isSeekable() is always set to true due to QTBUG-96952", Continue);
-#endif
     QVERIFY(!player.isSeekable());
     player.setSource(localVideoFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
@@ -1563,9 +1557,6 @@ void tst_QMediaPlayerBackend::videoDimensions()
     TestVideoSink surface(true);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
-#ifdef Q_OS_ANDROID
-    QEXPECT_FAIL("", "On Android isSeekable() is always set to true due to QTBUG-96952", Continue);
-#endif
     QVERIFY(!player.isSeekable());
     player.setSource(videoDimensionTestFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
@@ -1585,9 +1576,6 @@ void tst_QMediaPlayerBackend::position()
     TestVideoSink surface(true);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
-#ifdef Q_OS_ANDROID
-    QEXPECT_FAIL("", "On Android isSeekable() is always set to true due to QTBUG-96952", Continue);
-#endif
     QVERIFY(!player.isSeekable());
     player.setSource(localVideoFile);
     QTRY_VERIFY(player.isSeekable());
