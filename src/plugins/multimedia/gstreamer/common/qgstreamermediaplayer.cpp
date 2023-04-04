@@ -32,8 +32,8 @@ QT_BEGIN_NAMESPACE
 QGstreamerMediaPlayer::TrackSelector::TrackSelector(TrackType type, QGstElement selector)
     : selector(selector), type(type)
 {
-    selector.set("sync-streams", true);
-    selector.set("sync-mode", 1 /*clock*/);
+    selector.set("sync-streams", false);
+    selector.set("sync-mode", 0 /*clock*/);
 
     if (type == SubtitleStream)
         selector.set("cache-buffers", true);
