@@ -846,6 +846,9 @@ void tst_QMediaPlayerBackend::initialVolume()
 
 void tst_QMediaPlayerBackend::seekPauseSeek()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("frame.toImage will return null image because of QTBUG-108446");
+#endif
     if (localVideoFile.isEmpty())
         QSKIP("No supported video file");
 
@@ -1212,6 +1215,9 @@ It findSimilarColor(It it, It end, QRgb color)
 
 void tst_QMediaPlayerBackend::multipleSeekStressTest()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("frame.toImage will return null image because of QTBUG-108446");
+#endif
     if (localVideoFile3ColorsWithSound.isEmpty())
         QSKIP("Video format is not supported");
 
@@ -1308,6 +1314,9 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
 
 void tst_QMediaPlayerBackend::playbackRateChanging()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("frame.toImage will return null image because of QTBUG-108446");
+#endif
     if (localVideoFile3ColorsWithSound.isEmpty())
         QSKIP("Video format is not supported");
 
