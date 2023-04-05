@@ -17,14 +17,14 @@ class ScreenListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit ScreenListModel(const QList<QScreen *> &data, QObject *parent = nullptr);
+    explicit ScreenListModel(QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QScreen *screen(const QModelIndex &index) const;
 
-private:
-    QList<QScreen *> screenList;
+private Q_SLOTS:
+    void screensChanged();
 };
 
 #endif // SCREENLISTMODEL_H

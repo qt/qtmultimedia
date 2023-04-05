@@ -21,7 +21,6 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
     : QWidget(parent),
       screenListView(new QListView(this)),
       screenCapture(new QScreenCapture(this)),
-      screens(QGuiApplication::screens()),
       mediaCaptureSession(new QMediaCaptureSession(this)),
       videoWidget(new QVideoWidget(this)),
       gridLayout(new QGridLayout(this)),
@@ -30,8 +29,7 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
       videoWidgetLabel(new QLabel("QScreenCapture output:", this))
 {
     // Get list of screens:
-    screenListModel = new ScreenListModel(screens, this);
-    qDebug() << "return value from QGuiApplication::screens(): " << screens;
+    screenListModel = new ScreenListModel(this);
 
     // Setup QScreenCapture with initial source:
 

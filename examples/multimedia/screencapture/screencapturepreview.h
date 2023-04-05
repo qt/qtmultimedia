@@ -38,7 +38,7 @@ private:
     ScreenListModel *screenListModel = nullptr;
     QListView *screenListView = nullptr;
     QScreenCapture *screenCapture = nullptr;
-    QList<QScreen *> screens;
+    QWindowList windows;
     QMediaCaptureSession *mediaCaptureSession = nullptr;
     QVideoWidget *videoWidget = nullptr;
     QGridLayout *gridLayout = nullptr;
