@@ -45,7 +45,6 @@ private:
     QListView *screenListView = nullptr;
     QListView *windowListView = nullptr;
     QScreenCapture *screenCapture = nullptr;
-    QList<QScreen *> screens;
     QWindowList windows;
     QMediaCaptureSession *mediaCaptureSession = nullptr;
     QVideoWidget *videoWidget = nullptr;
