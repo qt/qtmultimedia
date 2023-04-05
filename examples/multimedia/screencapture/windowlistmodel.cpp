@@ -10,15 +10,15 @@ WindowListModel::WindowListModel(QList<QWindow *> data, QObject *parent)
 {
 }
 
-int WindowListModel::rowCount(const QModelIndex &parent) const
+int WindowListModel::rowCount(const QModelIndex &) const
 {
-    return windowList.count();
+    return windowList.size();
 }
 
 QVariant WindowListModel::data(const QModelIndex &index, int role) const
 {
     Q_ASSERT(index.isValid());
-    Q_ASSERT(index.row() <= windowList.count());
+    Q_ASSERT(index.row() <= windowList.size());
 
     if (role == Qt::DisplayRole) {
         auto window = windowList.at(index.row());
@@ -26,9 +26,9 @@ QVariant WindowListModel::data(const QModelIndex &index, int role) const
                 .arg(window->metaObject()->className())
                 .arg(window->winId())
                 .arg(window->objectName());
-    } else {
-        return QVariant();
     }
+
+    return {};
 }
 
 QWindow *WindowListModel::window(const QModelIndex &index) const

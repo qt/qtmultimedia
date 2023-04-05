@@ -17,7 +17,7 @@ class ScreenListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit ScreenListModel(QList<QScreen *> data = QList<QScreen *>(), QObject *parent = nullptr);
+    explicit ScreenListModel(const QList<QScreen *> &data, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;

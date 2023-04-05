@@ -5,22 +5,26 @@
 #include "screenlistmodel.h"
 #include "windowlistmodel.h"
 
-#include <QGuiApplication>
-#include <QGridLayout>
-#include <QListWidget>
 #include <QMediaCaptureSession>
-#include <QPushButton>
 #include <QScreenCapture>
-#include <QLineEdit>
 #include <QVideoWidget>
-#include <QMessageBox>
+
+#include <QGridLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QMessageBox>
+#include <QPushButton>
+
+#include <QGuiApplication>
 
 ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
     : QWidget(parent),
       screenListView(new QListView(this)),
       windowListView(new QListView(this)),
       screenCapture(new QScreenCapture(this)),
+      screens(QGuiApplication::screens()),
+      windows(QGuiApplication::allWindows()),
       mediaCaptureSession(new QMediaCaptureSession(this)),
       videoWidget(new QVideoWidget(this)),
       gridLayout(new QGridLayout(this)),
@@ -34,9 +38,6 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
       videoWidgetLabel(new QLabel("QScreenCapture output:", this))
 {
     // Get lists of screens and windows:
-
-    screens = QGuiApplication::screens();
-    windows = QGuiApplication::allWindows();
     screenListModel = new ScreenListModel(screens, this);
     windowListModel = new WindowListModel(windows, this);
     qDebug() << "return value from QGuiApplication::screens(): " << screens;
@@ -44,7 +45,7 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
 
     // Setup QScreenCapture with initial source:
 
-    screenCapture->setScreen((!screens.isEmpty()) ? screens.first() : nullptr);
+    screenCapture->setScreen(QGuiApplication::primaryScreen());
     screenCapture->start();
     mediaCaptureSession->setScreenCapture(screenCapture);
     mediaCaptureSession->setVideoOutput(videoWidget);
@@ -54,7 +55,7 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
     screenListView->setModel(screenListModel);
     windowListView->setModel(windowListModel);
     // Sets initial lineEdit text to the WId of the second QWindow from QGuiApplication::allWindows()
-    if (windows.count() > 1)
+    if (windows.size() > 1)
         lineEdit->setText(QString::number(windows[1]->winId()));
 
     gridLayout->addWidget(screenLabel, 0, 0);
@@ -81,12 +82,9 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
     connect(startStopButton, &QPushButton::clicked, this, &ScreenCapturePreview::onStartStopButtonClicked);
     connect(lineEdit, &QLineEdit::returnPressed, this, &ScreenCapturePreview::onWindowIdSelectionChanged);
     connect(screenCapture, &QScreenCapture::errorOccurred, this, &ScreenCapturePreview::onScreenCaptureErrorOccured);
-
 }
 
-ScreenCapturePreview::~ScreenCapturePreview()
-{
-}
+ScreenCapturePreview::~ScreenCapturePreview() = default;
 
 void ScreenCapturePreview::onScreenSelectionChanged(QModelIndex index)
 {
@@ -100,7 +98,7 @@ void ScreenCapturePreview::onWindowSelectionChanged(QModelIndex index)
 
 void ScreenCapturePreview::onWindowIdSelectionChanged()
 {
-    unsigned long long input = lineEdit->text().toULongLong(nullptr, 0);
+    unsigned long long input = lineEdit->text().trimmed().toULongLong(nullptr, 0);
     screenCapture->setWindowId(input);
 }
 
@@ -114,10 +112,10 @@ void ScreenCapturePreview::onStartStopButtonClicked()
 {
     if (screenCapture->isActive()) {
         screenCapture->stop();
-        startStopButton->setText("Start screencapture");
+        startStopButton->setText(tr("Start screencapture"));
     } else {
         screenCapture->start();
-        startStopButton->setText("Stop screencapture");
+        startStopButton->setText(tr("Stop screencapture"));
     }
 }
 
