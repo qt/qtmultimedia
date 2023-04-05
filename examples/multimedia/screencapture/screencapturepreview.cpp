@@ -4,21 +4,24 @@
 #include "screencapturepreview.h"
 #include "screenlistmodel.h"
 
-#include <QGuiApplication>
-#include <QGridLayout>
-#include <QListWidget>
 #include <QMediaCaptureSession>
-#include <QPushButton>
 #include <QScreenCapture>
-#include <QLineEdit>
 #include <QVideoWidget>
-#include <QMessageBox>
+
+#include <QGridLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
+#include <QMessageBox>
+#include <QPushButton>
+
+#include <QGuiApplication>
 
 ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
     : QWidget(parent),
       screenListView(new QListView(this)),
       screenCapture(new QScreenCapture(this)),
+      screens(QGuiApplication::screens()),
       mediaCaptureSession(new QMediaCaptureSession(this)),
       videoWidget(new QVideoWidget(this)),
       gridLayout(new QGridLayout(this)),
@@ -26,15 +29,13 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
       screenLabel(new QLabel("Double-click screen to capture:", this)),
       videoWidgetLabel(new QLabel("QScreenCapture output:", this))
 {
-    // Get lists of screens:
-
-    screens = QGuiApplication::screens();
+    // Get list of screens:
     screenListModel = new ScreenListModel(screens, this);
     qDebug() << "return value from QGuiApplication::screens(): " << screens;
 
     // Setup QScreenCapture with initial source:
 
-    screenCapture->setScreen((!screens.isEmpty()) ? screens.first() : nullptr);
+    screenCapture->setScreen(QGuiApplication::primaryScreen());
     screenCapture->start();
     mediaCaptureSession->setScreenCapture(screenCapture);
     mediaCaptureSession->setVideoOutput(videoWidget);
@@ -56,12 +57,9 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
     connect(screenListView, &QAbstractItemView::activated, this, &ScreenCapturePreview::onScreenSelectionChanged);
     connect(startStopButton, &QPushButton::clicked, this, &ScreenCapturePreview::onStartStopButtonClicked);
     connect(screenCapture, &QScreenCapture::errorOccurred, this, &ScreenCapturePreview::onScreenCaptureErrorOccured);
-
 }
 
-ScreenCapturePreview::~ScreenCapturePreview()
-{
-}
+ScreenCapturePreview::~ScreenCapturePreview() = default;
 
 void ScreenCapturePreview::onScreenSelectionChanged(QModelIndex index)
 {
@@ -78,10 +76,10 @@ void ScreenCapturePreview::onStartStopButtonClicked()
 {
     if (screenCapture->isActive()) {
         screenCapture->stop();
-        startStopButton->setText("Start screencapture");
+        startStopButton->setText(tr("Start screencapture"));
     } else {
         screenCapture->start();
-        startStopButton->setText("Stop screencapture");
+        startStopButton->setText(tr("Stop screencapture"));
     }
 }
 

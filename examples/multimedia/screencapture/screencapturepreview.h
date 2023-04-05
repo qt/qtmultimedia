@@ -26,28 +26,25 @@ class ScreenCapturePreview : public QWidget
     Q_OBJECT
 
 public:
-
-    ScreenCapturePreview(QWidget *parent = nullptr);
+    explicit ScreenCapturePreview(QWidget *parent = nullptr);
     ~ScreenCapturePreview();
 
 public slots:
-
     void onScreenSelectionChanged(QModelIndex index);
     void onScreenCaptureErrorOccured(QScreenCapture::Error error, const QString &errorString);
     void onStartStopButtonClicked();
 
 private:
-
     ScreenListModel *screenListModel = nullptr;
     QListView *screenListView = nullptr;
     QScreenCapture *screenCapture = nullptr;
-    QList<QScreen *> screens = QList<QScreen *>();
+    QList<QScreen *> screens;
     QMediaCaptureSession *mediaCaptureSession = nullptr;
     QVideoWidget *videoWidget = nullptr;
     QGridLayout *gridLayout = nullptr;
     QPushButton *startStopButton = nullptr;
     QLabel *screenLabel = nullptr;
     QLabel *videoWidgetLabel = nullptr;
-
 };
+
 #endif // SCREENCAPTUREPREVIEW_H
