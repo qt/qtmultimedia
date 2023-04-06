@@ -16,15 +16,15 @@
 #include <QLabel>
 
 ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
-    : QWidget(parent)
-    , screenCapture(new QScreenCapture(this))
-    , mediaCaptureSession(new QMediaCaptureSession(this))
-    , videoWidget(new QVideoWidget(this))
-    , screenListView(new QListView(this))
-    , screenLabel(new QLabel("Double-click screen to capture:", this))
-    , videoWidgetLabel(new QLabel("QScreenCapture output:", this))
-    , startStopButton(new QPushButton("Stop screencapture", this))
-    , gridLayout(new QGridLayout(this))
+    : QWidget(parent),
+      screenListView(new QListView(this)),
+      screenCapture(new QScreenCapture(this)),
+      mediaCaptureSession(new QMediaCaptureSession(this)),
+      videoWidget(new QVideoWidget(this)),
+      gridLayout(new QGridLayout(this)),
+      startStopButton(new QPushButton("Stop screencapture", this)),
+      screenLabel(new QLabel("Double-click screen to capture:", this)),
+      videoWidgetLabel(new QLabel("QScreenCapture output:", this))
 {
     // Get lists of screens:
 
@@ -68,7 +68,8 @@ void ScreenCapturePreview::onScreenSelectionChanged(QModelIndex index)
     screenCapture->setScreen(screenListModel->screen(index));
 }
 
-void ScreenCapturePreview::onScreenCaptureErrorOccured(QScreenCapture::Error error, const QString &errorString)
+void ScreenCapturePreview::onScreenCaptureErrorOccured([[maybe_unused]] QScreenCapture::Error error,
+                                                       const QString &errorString)
 {
     QMessageBox::warning(this, "QScreenCapture: Error occurred", errorString);
 }
