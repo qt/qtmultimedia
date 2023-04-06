@@ -17,22 +17,21 @@
 #include <QLabel>
 
 ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
-    : QWidget(parent)
-    , screenCapture(new QScreenCapture(this))
-    , mediaCaptureSession(new QMediaCaptureSession(this))
-    , videoWidget(new QVideoWidget(this))
-    , screenListView(new QListView(this))
-    , windowListView(new QListView(this))
-    , lineEdit(new QLineEdit(this))
-    , screenLabel(new QLabel("Double-click screen to capture:", this))
-    , windowLabel(new QLabel("Double-click window to capture:", this))
-    , windowIdLabel(
-            new QLabel("Enter window ID: (e.g. 0x13C009E10 or 5301640720)", this))
-    , videoWidgetLabel(new QLabel("QScreenCapture output:", this))
-    , wIdButton(new QPushButton("Confirm", this))
-    , startStopButton(new QPushButton("Stop screencapture", this))
-    , gridLayout(new QGridLayout(this))
-    , hBoxLayout(new QHBoxLayout)
+    : QWidget(parent),
+      screenListView(new QListView(this)),
+      windowListView(new QListView(this)),
+      screenCapture(new QScreenCapture(this)),
+      mediaCaptureSession(new QMediaCaptureSession(this)),
+      videoWidget(new QVideoWidget(this)),
+      gridLayout(new QGridLayout(this)),
+      hBoxLayout(new QHBoxLayout),
+      lineEdit(new QLineEdit(this)),
+      wIdButton(new QPushButton("Confirm", this)),
+      startStopButton(new QPushButton("Stop screencapture", this)),
+      screenLabel(new QLabel("Double-click screen to capture:", this)),
+      windowLabel(new QLabel("Double-click window to capture:", this)),
+      windowIdLabel(new QLabel("Enter window ID: (e.g. 0x13C009E10 or 5301640720)", this)),
+      videoWidgetLabel(new QLabel("QScreenCapture output:", this))
 {
     // Get lists of screens and windows:
 
@@ -105,7 +104,8 @@ void ScreenCapturePreview::onWindowIdSelectionChanged()
     screenCapture->setWindowId(input);
 }
 
-void ScreenCapturePreview::onScreenCaptureErrorOccured(QScreenCapture::Error error, const QString &errorString)
+void ScreenCapturePreview::onScreenCaptureErrorOccured([[maybe_unused]] QScreenCapture::Error error,
+                                                       const QString &errorString)
 {
     QMessageBox::warning(this, "QScreenCapture: Error occurred", errorString);
 }
