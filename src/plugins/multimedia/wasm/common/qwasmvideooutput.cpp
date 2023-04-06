@@ -669,7 +669,7 @@ void QWasmVideoOutput::doElementCallbacks()
         m_currentMediaStatus = QMediaPlayer::StalledMedia;
         emit statusChanged(m_currentMediaStatus);
     };
-    m_stalledChangeEvent.reset(new qstdweb::EventCallback(m_video, "waiting", stalledCallback));
+    m_stalledChangeEvent.reset(new qstdweb::EventCallback(m_video, "stalled", stalledCallback));
 
     // waiting
     auto waitingCallback = [=](emscripten::val event) {
