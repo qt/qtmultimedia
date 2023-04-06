@@ -25,7 +25,6 @@ ToneGeneratorDialog::ToneGeneratorDialog(QWidget *parent)
       m_toneGeneratorFrequencyControl(new QWidget(this)),
       m_frequencySlider(new QSlider(Qt::Horizontal, this)),
       m_frequencySpinBox(new QSpinBox(this)),
-      m_frequency(ToneGeneratorFreqDefault),
       m_amplitudeSlider(new QSlider(Qt::Horizontal, this))
 {
     QVBoxLayout *dialogLayout = new QVBoxLayout(this);
