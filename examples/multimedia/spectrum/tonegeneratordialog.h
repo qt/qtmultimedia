@@ -41,7 +41,6 @@ private:
     QWidget *m_toneGeneratorFrequencyControl;
     QSlider *m_frequencySlider;
     QSpinBox *m_frequencySpinBox;
-    qreal m_frequency;
     QSlider *m_amplitudeSlider;
 };
 
