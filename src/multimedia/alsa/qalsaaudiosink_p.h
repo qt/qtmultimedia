@@ -95,8 +95,8 @@ private:
     qint64 elapsedTimeOffset = 0;
     char* audioBuffer = nullptr;
     snd_pcm_t* handle = nullptr;
-    snd_pcm_access_t access SND_PCM_ACCESS_RW_INTERLEAVED;
-    snd_pcm_format_t pcmformat SND_PCM_FORMAT_S16;
+    snd_pcm_access_t access = SND_PCM_ACCESS_RW_INTERLEAVED;
+    snd_pcm_format_t pcmformat = SND_PCM_FORMAT_S16;
     snd_pcm_hw_params_t *hwparams = nullptr;
     qreal m_volume = 1.0f;
 };
