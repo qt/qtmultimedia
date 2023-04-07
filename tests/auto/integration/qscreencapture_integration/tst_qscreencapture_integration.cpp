@@ -132,6 +132,13 @@ private slots:
 
 void tst_QScreenCaptureIntegration::startStop()
 {
+#ifdef Q_OS_ANDROID
+    // Should be removed after fixing QTBUG-112855
+    auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
+                                             QRect{ 200, 100, 430, 351 });
+    QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
+    QTest::qWait(100);
+#endif
     TestVideoSink sink;
     QScreenCapture sc;
 
