@@ -13,7 +13,7 @@
 #include <mmddk.h>
 #include <mfobjects.h>
 #include <mfidl.h>
-#include <Mferror.h>
+#include <mferror.h>
 #include <mmdeviceapi.h>
 #include <qwindowsmfdefs_p.h>
 

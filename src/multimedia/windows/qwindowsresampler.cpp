@@ -7,7 +7,7 @@
 #include <qloggingcategory.h>
 #include <QUuid>
 
-#include <Wmcodecdsp.h>
+#include <wmcodecdsp.h>
 #include <mftransform.h>
 #include <mferror.h>
 

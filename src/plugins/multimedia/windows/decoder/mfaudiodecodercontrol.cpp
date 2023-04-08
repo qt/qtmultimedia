@@ -4,7 +4,7 @@
 #include <system_error>
 #include <mferror.h>
 #include <qglobal.h>
-#include "Wmcodecdsp.h"
+#include "wmcodecdsp.h"
 #include "mfaudiodecodercontrol_p.h"
 #include <private/qwindowsaudioutils_p.h>
 

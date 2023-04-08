@@ -8,7 +8,7 @@
 #include "mfmetadata_p.h"
 #include <QtCore/QUrl>
 #include <QtCore/QMimeType>
-#include <Mferror.h>
+#include <mferror.h>
 #include <shobjidl.h>
 #include <private/qmediastoragelocation_p.h>
 #include <private/qmediarecorder_p.h>

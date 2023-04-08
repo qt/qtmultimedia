@@ -32,7 +32,7 @@
 
 #include <mmdeviceapi.h>
 #include <propvarutil.h>
-#include <Functiondiscoverykeys_devpkey.h>
+#include <functiondiscoverykeys_devpkey.h>
 
 //#define DEBUG_MEDIAFOUNDATION
 

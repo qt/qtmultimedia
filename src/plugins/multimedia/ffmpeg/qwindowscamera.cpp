@@ -11,8 +11,8 @@
 
 #include <mfapi.h>
 #include <mfidl.h>
-#include <Mferror.h>
-#include <Mfreadwrite.h>
+#include <mferror.h>
+#include <mfreadwrite.h>
 
 #include <system_error>
 

@@ -16,7 +16,7 @@
 //
 
 #include <qmediametadata.h>
-#include "Mfidl.h"
+#include "mfidl.h"
 
 QT_USE_NAMESPACE
 

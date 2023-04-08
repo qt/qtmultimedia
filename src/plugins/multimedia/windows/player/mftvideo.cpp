@@ -7,7 +7,7 @@
 #include <mferror.h>
 #include <strmif.h>
 #include <uuids.h>
-#include <InitGuid.h>
+#include <initguid.h>
 #include <d3d9.h>
 #include <qdebug.h>
 

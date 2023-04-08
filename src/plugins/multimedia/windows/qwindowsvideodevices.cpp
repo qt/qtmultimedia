@@ -8,11 +8,11 @@
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qwindowsiupointer_p.h>
 
-#include <Dbt.h>
+#include <dbt.h>
 
 #include <mfapi.h>
 #include <mfreadwrite.h>
-#include <Mferror.h>
+#include <mferror.h>
 
 QT_BEGIN_NAMESPACE
 

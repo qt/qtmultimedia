@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "QUrl.h"
+#include "qurl.h"
 #include "private/qplatformmediaplayer_p.h"
 
 #include <QtCore/qcoreevent.h>

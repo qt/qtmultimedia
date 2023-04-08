@@ -17,8 +17,8 @@
 
 #include <mfapi.h>
 #include <mfidl.h>
-#include <Mferror.h>
-#include <Mfreadwrite.h>
+#include <mferror.h>
+#include <mfreadwrite.h>
 
 #include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
