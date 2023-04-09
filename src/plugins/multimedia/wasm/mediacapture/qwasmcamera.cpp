@@ -16,6 +16,7 @@
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
 #include <QUuid>
+#include <QTimer>
 
 #include <private/qstdweb_p.h>
 
@@ -172,6 +173,9 @@ void QWasmCamera::setTorchMode(QCamera::TorchMode mode)
 
 bool QWasmCamera::isTorchModeSupported(QCamera::TorchMode mode) const
 {
+    if (!m_cameraIsReady)
+        return false;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     if (caps.isUndefined())
         return false;
@@ -215,6 +219,9 @@ void QWasmCamera::setExposureMode(QCamera::ExposureMode mode)
 
 bool QWasmCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 {
+    if (!m_cameraIsReady)
+        return false;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     if (caps.isUndefined())
         return false;
@@ -247,6 +254,9 @@ bool QWasmCamera::isExposureModeSupported(QCamera::ExposureMode mode) const
 
 void QWasmCamera::setExposureCompensation(float bias)
 {
+    if (!m_cameraIsReady)
+        return;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     if (caps.isUndefined())
         return;
@@ -268,6 +278,9 @@ void QWasmCamera::setManualExposureTime(float secs)
     if (m_wasmExposureTime == secs)
         return;
 
+    if (!m_cameraIsReady)
+        return;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     emscripten::val exposureTime = caps["exposureTime"];
     if (exposureTime.isUndefined())
@@ -280,6 +293,9 @@ void QWasmCamera::setManualExposureTime(float secs)
 
 int QWasmCamera::isoSensitivity() const
 {
+    if (!m_cameraIsReady)
+        return 0;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     if (caps.isUndefined())
         return false;
@@ -293,6 +309,9 @@ int QWasmCamera::isoSensitivity() const
 
 void QWasmCamera::setManualIsoSensitivity(int sens)
 {
+    if (!m_cameraIsReady)
+        return;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     if (caps.isUndefined())
         return;
@@ -310,6 +329,9 @@ void QWasmCamera::setManualIsoSensitivity(int sens)
 
 bool QWasmCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 {
+    if (!m_cameraIsReady)
+        return false;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     if (caps.isUndefined())
         return false;
@@ -355,6 +377,9 @@ void QWasmCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 
 void QWasmCamera::setColorTemperature(int temperature)
 {
+    if (!m_cameraIsReady)
+        return;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     if (caps.isUndefined())
         return;
@@ -374,10 +399,17 @@ void QWasmCamera::setColorTemperature(int temperature)
 void QWasmCamera::createCamera(const QCameraDevice &camera)
 {
     m_cameraOutput->addCameraSourceElement(camera.id().toStdString());
+    // getUserMedia is async
+    QTimer::singleShot(100,[this, &camera] () {
+        m_cameraIsReady = m_cameraOutput->isCameraReady();
+    });
 }
 
 void QWasmCamera::updateCameraFeatures()
 {
+    if (!m_cameraIsReady)
+        return;
+
     emscripten::val caps = m_cameraOutput->getDeviceCapabilities();
     if (caps.isUndefined())
         return;

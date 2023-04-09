@@ -80,6 +80,7 @@ public:
     bool hasCapability(const QString &cap);
     emscripten::val getDeviceCapabilities();
     bool setDeviceSetting(const std::string &key, emscripten::val value);
+    bool isCameraReady() { return m_cameraIsReady; }
 
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
@@ -112,6 +113,8 @@ private:
     bool m_toBePaused = false;
     bool m_isSeeking = false;
     bool m_hasAudio = false;
+    bool m_cameraIsReady = false;
+
     emscripten::val m_offscreenContext = emscripten::val::undefined();
     QSize m_pendingVideoSize;
     QWasmVideoOutput::WasmVideoMode m_currentVideoMode = QWasmVideoOutput::VideoOutput;
