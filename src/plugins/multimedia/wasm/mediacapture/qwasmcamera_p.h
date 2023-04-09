@@ -88,6 +88,7 @@ private:
     int m_wasmIsoSensitivity;
     QCamera::WhiteBalanceMode m_wasmWhiteBalanceMode;
     int m_wasmColorTemperature;
+    bool m_cameraIsReady = false;
 };
 
 QT_END_NAMESPACE

@@ -239,6 +239,7 @@ void QWasmVideoOutput::addSourceElement(const QString &urlString)
 
 void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
 {
+    m_cameraIsReady = false;
     emscripten::val navigator = emscripten::val::global("navigator");
     emscripten::val mediaDevices = navigator["mediaDevices"];
 
@@ -254,44 +255,7 @@ void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
             qCDebug(qWasmMediaVideoOutput) << "getUserMediaSuccess";
 
             m_video.set("srcObject", stream);
-
-            emscripten::val videoTracksObject = stream.call<emscripten::val>("getVideoTracks");
-            if (videoTracksObject.isNull() || videoTracksObject.isUndefined()) {
-                emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
-                return;
-            }
-
-            if (videoTracksObject.call<emscripten::val>("length").as<int>() == 0)  {
-                emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
-                return;
-            }
-            emscripten::val tracks = stream.call<emscripten::val>("getVideoTracks");
-            if (tracks.isNull() || tracks.isUndefined())
-                return;
-            if (tracks["length"].as<int>() == 0)
-                return;
-            emscripten::val videoTrack = tracks[0];
-            if (videoTrack.isNull() || videoTrack.isUndefined()) {
-                emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
-                return;
-            }
-
-            emscripten::val currentVideoCapabilities = videoTrack.call<emscripten::val>("getCapabilities");
-            if (currentVideoCapabilities.isNull() || currentVideoCapabilities.isUndefined()) {
-                emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
-                return;
-            }
-
-            emscripten::val videoSettings = videoTrack.call<emscripten::val>("getSettings");
-            if (videoSettings.isNull() || videoSettings.isUndefined()) {
-                emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
-                return;
-            }
-
-            // TODO double fRate = videoSettings["frameRate"].as<double>();
-            // const int width = videoSettings["width"].as<int>();
-            // const int height = videoSettings["height"].as<int>();
-
+            m_cameraIsReady = true;
         },
         .catchFunc =
                 [](emscripten::val error) {
