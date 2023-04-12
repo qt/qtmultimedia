@@ -346,7 +346,11 @@ void tst_QScreenCaptureIntegration::captureOverlappedWindow()
 void tst_QScreenCaptureIntegration::captureScreen()
 {
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint
-                                                     | Qt::WindowStaysOnTopHint,
+                                                     | Qt::WindowStaysOnTopHint
+#ifdef Q_OS_ANDROID
+                                                     | Qt::Popup
+#endif
+                                                     ,
                                              QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
@@ -357,7 +361,11 @@ void tst_QScreenCaptureIntegration::captureScreen()
 void tst_QScreenCaptureIntegration::captureScreenByDefault()
 {
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint
-                                                     | Qt::WindowStaysOnTopHint,
+                                                     | Qt::WindowStaysOnTopHint
+#ifdef Q_OS_ANDROID
+                                                     | Qt::Popup
+#endif
+                                                     ,
                                              QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
