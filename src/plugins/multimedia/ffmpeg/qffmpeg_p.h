@@ -78,6 +78,19 @@ inline void getAVFrameTime(AVFrame &frame, int64_t &pts, AVRational &timeBase)
 #endif
 }
 
+struct AVDictionaryHolder
+{
+    AVDictionary *opts = nullptr;
+
+    operator AVDictionary **() { return &opts; }
+
+    ~AVDictionaryHolder()
+    {
+        if (opts)
+            av_dict_free(&opts);
+    }
+};
+
 template<typename FunctionType, FunctionType F>
 struct AVDeleter
 {

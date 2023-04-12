@@ -855,13 +855,13 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
 
-    TestVideoSink *surface = new TestVideoSink;
-    player.setVideoOutput(surface);
+    TestVideoSink surface;
+    player.setVideoOutput(&surface);
 
     player.setSource(localVideoFile);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
-    QVERIFY(surface->m_frameList.isEmpty()); // frame must not appear until we call pause() or play()
+    QVERIFY(surface.m_frameList.isEmpty()); // frame must not appear until we call pause() or play()
 
     positionSpy.clear();
     qint64 position = 7000;
@@ -870,18 +870,19 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
     QTRY_COMPARE(player.position(), position);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QTest::qWait(250); // wait a bit to ensure the frame is not rendered
-    QVERIFY(surface->m_frameList.isEmpty()); // still no frame, we must call pause() or play() to see a frame
+    QVERIFY(surface.m_frameList
+                    .isEmpty()); // still no frame, we must call pause() or play() to see a frame
 
     player.pause();
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::PausedState); // it might take some time for the operation to be completed
-    QTRY_VERIFY(!surface->m_frameList.isEmpty()); // we must see a frame at position 7000 here
+    QTRY_VERIFY(!surface.m_frameList.isEmpty()); // we must see a frame at position 7000 here
 
     // Make sure that the frame has a timestamp before testing - not all backends provides this
-    if (!surface->m_frameList.back().isValid() || surface->m_frameList.back().startTime() < 0)
+    if (!surface.m_frameList.back().isValid() || surface.m_frameList.back().startTime() < 0)
         QSKIP("No timestamp");
 
     {
-        QVideoFrame frame = surface->m_frameList.back();
+        QVideoFrame frame = surface.m_frameList.back();
         const qint64 elapsed = (frame.startTime() / 1000) - position; // frame.startTime() is microsecond, position is milliseconds.
         QVERIFY2(qAbs(elapsed) < (qint64)500, QByteArray::number(elapsed).constData());
         QCOMPARE(frame.width(), 160);
@@ -895,16 +896,16 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QVERIFY(qBlue(image.pixel(0, 0)) < 20);
     }
 
-    surface->m_frameList.clear();
+    surface.m_frameList.clear();
     positionSpy.clear();
     position = 12000;
     player.setPosition(position);
     QTRY_VERIFY(!positionSpy.isEmpty() && qAbs(player.position() - position) < (qint64)500);
     QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
-    QTRY_VERIFY(!surface->m_frameList.isEmpty());
+    QTRY_VERIFY(!surface.m_frameList.isEmpty());
 
     {
-        QVideoFrame frame = surface->m_frameList.back();
+        QVideoFrame frame = surface.m_frameList.back();
         const qint64 elapsed = (frame.startTime() / 1000) - position;
         QVERIFY2(qAbs(elapsed) < (qint64)500, QByteArray::number(elapsed).constData());
         QCOMPARE(frame.width(), 160);

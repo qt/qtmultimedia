@@ -63,10 +63,11 @@ QMaybe<Codec> Codec::create(AVStream *stream)
     context->get_format = QFFmpeg::getFormat;
 
     /* Init the decoder, with reference counting and threading */
-    AVDictionary *opts = nullptr;
-    av_dict_set(&opts, "refcounted_frames", "1", 0);
-    av_dict_set(&opts, "threads", "auto", 0);
-    ret = avcodec_open2(context.get(), decoder, &opts);
+    AVDictionaryHolder opts;
+    av_dict_set(opts, "refcounted_frames", "1", 0);
+    av_dict_set(opts, "threads", "auto", 0);
+
+    ret = avcodec_open2(context.get(), decoder, opts);
     if (ret < 0)
         return "Failed to open FFmpeg codec context " + err2str(ret);
 

@@ -198,9 +198,9 @@ bool VideoFrameEncoder::open()
         qWarning() << "Cannot open null VideoFrameEncoder";
         return false;
     }
-    AVDictionary *opts = nullptr;
-    applyVideoEncoderOptions(d->settings, d->codec->name, d->codecContext.get(), &opts);
-    int res = avcodec_open2(d->codecContext.get(), d->codec, &opts);
+    AVDictionaryHolder opts;
+    applyVideoEncoderOptions(d->settings, d->codec->name, d->codecContext.get(), opts);
+    int res = avcodec_open2(d->codecContext.get(), d->codec, opts);
     if (res < 0) {
         d->codecContext.reset();
         qWarning() << "Couldn't open codec for writing" << err2str(res);
