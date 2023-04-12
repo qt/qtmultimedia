@@ -232,12 +232,15 @@ void tst_QScreenCaptureIntegration::capture(QTestWidget &widget, const QPoint &d
     QCOMPARE_LE(framesCount, expectedFramesCount + 2);
     QCOMPARE_GE(framesCount, expectedFramesCount / 2);
 
+    const QSize expectedSizeForComparison(qFloor(expectedSize.width() * pixelRatio),
+                                           qFloor(expectedSize.height() * pixelRatio));
+
     for (const auto &image : sink.images()) {
         auto pixelColor = [&drawingOffset, pixelRatio, &image](int x, int y) {
             return image.pixelColor((QPoint(x, y) + drawingOffset) * pixelRatio).toRgb();
         };
 
-        QCOMPARE(image.size(), expectedSize * pixelRatio);
+        QCOMPARE(image.size(), expectedSizeForComparison);
         QCOMPARE(pixelColor(0, 0), QColor(0xFF, 0, 0));
 
         QCOMPARE(pixelColor(39, 50), QColor(0xFF, 0, 0));
