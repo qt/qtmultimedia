@@ -312,10 +312,10 @@ void AudioEncoder::open()
 
     avcodec_parameters_to_context(codec, stream->codecpar);
 
-    AVDictionary *opts = nullptr;
-    applyAudioEncoderOptions(settings, avCodec->name, codec, &opts);
+    AVDictionaryHolder opts;
+    applyAudioEncoderOptions(settings, avCodec->name, codec, opts);
 
-    int res = avcodec_open2(codec, avCodec, &opts);
+    int res = avcodec_open2(codec, avCodec, opts);
     qCDebug(qLcFFmpegEncoder) << "audio codec opened" << res;
     qCDebug(qLcFFmpegEncoder) << "audio codec params: fmt=" << codec->sample_fmt << "rate=" << codec->sample_rate;
 
