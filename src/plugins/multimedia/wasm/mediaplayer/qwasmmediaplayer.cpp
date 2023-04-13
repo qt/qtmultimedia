@@ -207,11 +207,13 @@ void QWasmMediaPlayer::setMedia(const QUrl &mediaContent, QIODevice *stream)
     if (mediaContent.isEmpty()) {
         if (stream) {
             m_mediaStream = stream;
-            if (isVideoAvailable())
+            if (isVideoAvailable()) {
                 m_videoOutput->setSource(m_mediaStream);
-            else
+            }  else {
                 m_audioOutput->setSource(m_mediaStream);
+            }
         } else {
+
             setMediaStatus(QMediaPlayer::NoMedia);
         }
     } else {

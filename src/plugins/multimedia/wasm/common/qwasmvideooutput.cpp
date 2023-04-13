@@ -7,6 +7,9 @@
 #include <QRect>
 #include <QMediaPlayer>
 #include <QVideoFrame>
+#include <QFile>
+#include <QBuffer>
+#include <QMimeDatabase>
 #include "qwasmvideooutput_p.h"
 
 #include <qvideosink.h>
@@ -14,6 +17,7 @@
 #include <private/qplatformvideosink_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qvideotexturehelper_p.h>
+#include <private/qstdweb_p.h>
 
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
@@ -60,7 +64,8 @@ void QWasmVideoOutput::setVideoMode(QWasmVideoOutput::WasmVideoMode mode)
 
 void QWasmVideoOutput::start()
 {
-    if (m_video.isUndefined() || m_video.isNull()) {
+    if (m_video.isUndefined() || m_video.isNull()
+        || !m_wasmSink) {
         // error
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
@@ -68,12 +73,10 @@ void QWasmVideoOutput::start()
 
     switch (m_currentVideoMode) {
     case QWasmVideoOutput::VideoOutput: {
-        emscripten::val sourceObj =
-                m_video.call<emscripten::val>("getAttribute", emscripten::val("src"));
-
+        emscripten::val sourceObj = m_video["src"];
         if ((sourceObj.isUndefined() || sourceObj.isNull()) && !m_source.isEmpty()) {
             qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "calling load" << m_source;
-            m_video.call<void>("setAttribute", emscripten::val("src"), m_source.toStdString());
+            m_video.set("src", m_source);
             m_video.call<void>("load");
         }
     } break;
@@ -206,12 +209,13 @@ void QWasmVideoOutput::setSource(const QUrl &url)
         return;
     }
     if (url.isLocalFile()) {
-        qDebug() << "no local files allowed, so we need to blob";
-        //        QFile mFile(url.toString());
-        //        if (!mFile.open(QIODevice::readOnly)) {// some error
-        //            return;
-        //        QDataStream dStream(&mFile); // ?
-        //        setSource(dStream);
+        QFile localFile(url.toLocalFile());
+        if (localFile.open(QIODevice::ReadOnly)) {
+            QDataStream buffer(&localFile);   // we will serialize the data into the file
+            setSource(buffer.device());
+        } else {
+            qWarning() << "Failed to open file";
+        }
         return;
     }
 
@@ -282,27 +286,34 @@ void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
 
 void QWasmVideoOutput::setSource(QIODevice *stream)
 {
-    Q_UNUSED(stream)
-
-    if (m_video.isUndefined() || m_video.isNull() || m_videoElementSource.isUndefined()
-        || m_videoElementSource.isNull()) {
+    if (stream->bytesAvailable() == 0) {
+        qWarning() << "data not available";
+        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("data not available"));
+        return;
+    }
+    if (m_video.isUndefined() || m_video.isNull()) {
         emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
 
-    // src (depreciated) or srcObject
-    // MediaStream, MediaSource Blob or File
+    QMimeDatabase db;
+    QMimeType mime = db.mimeTypeForData(stream);
 
-    // TODO QIOStream to
-    // SourceBuffer.appendBuffer() // ArrayBuffer
-    // SourceBuffer.appendStream() // WriteableStream ReadableStream (to sink)
-    // SourceBuffer.appendBufferAsync()
-    //    emscripten::val document = emscripten::val::global("document");
+    QByteArray buffer = stream->readAll();
 
-    // stream to blob
+    qstdweb::Blob contentBlob = qstdweb::Blob::copyFrom(buffer.data(), buffer.size(), mime.name().toStdString());
 
-    // Create/add video source
-    m_video.call<void>("setAttribute", emscripten::val("srcObject"), m_source.toStdString());
+    emscripten::val window = qstdweb::window();
+
+    if (window["safari"].isUndefined()) {
+        emscripten::val contentUrl = window["URL"].call<emscripten::val>("createObjectURL", contentBlob.val());
+        m_video.set("src", contentUrl);
+        m_source = QString::fromStdString(contentUrl.as<std::string>());
+    } else {
+        // only Safari currently supports Blob with srcObject
+        m_video.set("srcObject", contentBlob.val());
+    }
+
     m_video.call<void>("load");
 }
 
@@ -372,6 +383,7 @@ bool QWasmVideoOutput::isVideoSeekable()
 
 void QWasmVideoOutput::createVideoElement(const std::string &id)
 {
+    // TODO: there can be more than one element !!
     qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << id;
     // Create <video> element and add it to the page body
     emscripten::val document = emscripten::val::global("document");
