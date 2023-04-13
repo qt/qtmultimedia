@@ -310,6 +310,9 @@ void tst_QScreenCaptureIntegration::initTestCase()
 
 void tst_QScreenCaptureIntegration::captureWindowById()
 {
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
+    QSKIP("It is not the underlying windowing system");
+#endif
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
                                              QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
@@ -320,6 +323,9 @@ void tst_QScreenCaptureIntegration::captureWindowById()
 
 void tst_QScreenCaptureIntegration::captureWindow()
 {
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
+    QSKIP("It is not the underlying windowing system");
+#endif
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
                                              QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
@@ -330,6 +336,9 @@ void tst_QScreenCaptureIntegration::captureWindow()
 
 void tst_QScreenCaptureIntegration::captureOverlappedWindow()
 {
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
+    QSKIP("It is not the underlying windowing system");
+#endif
     auto overlappedWidget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint,
                                                        QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(overlappedWidget.get()));
@@ -395,6 +404,9 @@ void tst_QScreenCaptureIntegration::captureSecondaryScreen()
 
 void tst_QScreenCaptureIntegration::removeWindowWhileCapture()
 {
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
+    QSKIP("It is not the underlying windowing system");
+#endif
     auto widget = QTestWidget::createAndShow(Qt::Window, QRect{ 200, 100, 430, 351 });
     QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
