@@ -1,7 +1,8 @@
 macos ci
 windows ci
-android ci
 
+#QTBUG-112827 on Android
 #QTBUG-111190, v4l2m2m issues
 [recordToFile]
 linux ci
+android ci
