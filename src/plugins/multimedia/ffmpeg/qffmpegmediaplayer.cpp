@@ -204,8 +204,6 @@ void QFFmpegMediaPlayer::stop()
     positionChanged(0);
     stateChanged(QMediaPlayer::StoppedState);
     mediaStatusChanged(QMediaPlayer::LoadedMedia);
-    if (m_videoSink)
-        m_videoSink->setVideoFrame(QVideoFrame());
 }
 
 void QFFmpegMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
