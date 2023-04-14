@@ -78,6 +78,7 @@ private slots:
     void seekOnLoops();
     void changeLoopsOnTheFly();
     void lazyLoadVideo();
+    void videoSinkSignals();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -1881,6 +1882,40 @@ void tst_QMediaPlayerBackend::lazyLoadVideo()
 
     QVideoFrame frame = spy.at(0).at(0).value<QVideoFrame>();
     QVERIFY(frame.isValid());
+}
+
+void tst_QMediaPlayerBackend::videoSinkSignals()
+{
+    // TODO: come up with custom frames source,
+    // create the test target tst_QVideoSinkBackend,
+    // and move the test there
+
+    if (localVideoFile2.isEmpty())
+        QSKIP("Video format is not supported");
+
+    QVideoSink sink;
+    QMediaPlayer player;
+    player.setVideoSink(&sink);
+
+    std::atomic<int> videoFrameCounter = 0;
+    std::atomic<int> videoSizeCounter = 0;
+
+    connect(&sink, &QVideoSink::videoFrameChanged, [&](const QVideoFrame &frame) {
+        QCOMPARE(sink.videoFrame(), frame);
+        QCOMPARE(sink.videoSize(), frame.size());
+        ++videoFrameCounter;
+    });
+
+    connect(&sink, &QVideoSink::videoSizeChanged, [&]() {
+        QCOMPARE(sink.videoSize(), sink.videoFrame().size());
+        ++videoSizeCounter;
+    });
+
+    player.setSource(localVideoFile2);
+    player.play();
+
+    QTRY_COMPARE_GE(videoFrameCounter, 2);
+    QCOMPARE(videoSizeCounter, 1);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
