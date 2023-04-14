@@ -36,6 +36,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformVideoSink : public QObject
     Q_OBJECT
 
 public:
+    ~QPlatformVideoSink() override;
+
     virtual void setRhi(QRhi * /*rhi*/) {}
 
     virtual void setWinId(WId) {}
@@ -43,55 +45,31 @@ public:
     virtual void setFullScreen(bool) {}
     virtual void setAspectRatioMode(Qt::AspectRatioMode) {}
 
-    QSize nativeSize() const
-    {
-        QMutexLocker locker(&mutex);
-        return m_nativeSize;
-    }
+    QSize nativeSize() const;
 
     virtual void setBrightness(float /*brightness*/) {}
     virtual void setContrast(float /*contrast*/) {}
     virtual void setHue(float /*hue*/) {}
     virtual void setSaturation(float /*saturation*/) {}
 
-    QVideoSink *videoSink() { return sink; }
+    QVideoSink *videoSink() { return m_sink; }
 
-    void setNativeSize(QSize s) {
-        QMutexLocker locker(&mutex);
-        if (m_nativeSize == s)
-            return;
-        m_nativeSize = s;
-        emit sink->videoSizeChanged();
-    }
-    virtual void setVideoFrame(const QVideoFrame &frame) {
-        setNativeSize(frame.size());
-        if (frame == m_currentVideoFrame)
-            return;
-        m_currentVideoFrame = frame;
-        m_currentVideoFrame.setSubtitleText(subtitleText());
-        emit sink->videoFrameChanged(m_currentVideoFrame);
-    }
-    QVideoFrame currentVideoFrame() const { return m_currentVideoFrame; }
+    void setNativeSize(QSize s);
 
-    void setSubtitleText(const QString &subtitleText)
-    {
-        QMutexLocker locker(&mutex);
-        if (m_subtitleText == subtitleText)
-            return;
-        m_subtitleText = subtitleText;
-        emit sink->subtitleTextChanged(subtitleText);
-    }
-    QString subtitleText() const
-    {
-        QMutexLocker locker(&mutex);
-        return m_subtitleText;
-    }
+    virtual void setVideoFrame(const QVideoFrame &frame);
+
+    QVideoFrame currentVideoFrame() const;
+
+    void setSubtitleText(const QString &subtitleText);
+
+    QString subtitleText() const;
 
 protected:
     explicit QPlatformVideoSink(QVideoSink *parent);
-    QVideoSink *sink = nullptr;
-    mutable QMutex mutex;
+
 private:
+    QVideoSink *m_sink = nullptr;
+    mutable QMutex m_mutex;
     QSize m_nativeSize;
     QString m_subtitleText;
     QVideoFrame m_currentVideoFrame;
