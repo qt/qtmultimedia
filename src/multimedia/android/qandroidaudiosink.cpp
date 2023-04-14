@@ -296,6 +296,7 @@ void QAndroidAudioSink::playCallback(SLPlayItf player, void *ctx, SLuint32 event
 
 void QAndroidAudioSink::bufferQueueCallback(SLBufferQueueItf bufferQueue, void *ctx)
 {
+    Q_UNUSED(bufferQueue);
     QAndroidAudioSink *audioOutput = reinterpret_cast<QAndroidAudioSink *>(ctx);
     audioOutput->bufferAvailable();
 }
