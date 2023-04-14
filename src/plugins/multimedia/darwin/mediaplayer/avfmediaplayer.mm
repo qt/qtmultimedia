@@ -107,6 +107,9 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 
         // use __block to avoid maintaining strong references on variables captured by the
         // following block callback
+#if defined(Q_OS_IOS)
+        BOOL isAccessing = [m_URL startAccessingSecurityScopedResource];
+#endif
         __block AVURLAsset *asset = [[AVURLAsset URLAssetWithURL:m_URL options:nil] retain];
         [asset.resourceLoader setDelegate:self queue:dispatch_get_main_queue()];
 
@@ -119,6 +122,10 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
          ^{
              dispatch_async( dispatch_get_main_queue(),
                            ^{
+#if defined(Q_OS_IOS)
+                                 if (isAccessing)
+                                    [m_URL stopAccessingSecurityScopedResource];
+#endif
                                  [blockSelf prepareToPlayAsset:asset withKeys:requestedKeys];
                                  [asset release];
                                  [requestedKeys release];
