@@ -130,6 +130,7 @@ QSample* QSampleCache::requestSample(const QUrl& url)
 {
     //lock and add first to make sure live loadingThread will not be killed during this function call
     m_loadingMutex.lock();
+    const bool needsThreadStart = m_loadingRefCount == 0;
     m_loadingRefCount++;
     m_loadingMutex.unlock();
 
@@ -138,8 +139,11 @@ QSample* QSampleCache::requestSample(const QUrl& url)
     QMap<QUrl, QSample*>::iterator it = m_samples.find(url);
     QSample* sample;
     if (it == m_samples.end()) {
-        if (!m_loadingThread.isRunning())
+        if (needsThreadStart) {
+            // Previous thread might be finishing, need to wait for it. If not, this is a no-op.
+            m_loadingThread.wait();
             m_loadingThread.start();
+        }
         sample = new QSample(url, this);
         m_samples.insert(url, sample);
 #if QT_CONFIG(thread)
