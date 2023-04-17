@@ -7,17 +7,16 @@
 
 QT_BEGIN_NAMESPACE
 
-QPlatformAudioSink::QPlatformAudioSink(QObject *parent) : QObject(parent)
-{
-    QPlatformMediaDevices::instance()->prepareAudio();
-}
+QAudioStateChangeNotifier::QAudioStateChangeNotifier(QObject *parent) : QObject(parent) { }
+
+QPlatformAudioSink::QPlatformAudioSink(QObject *parent) : QAudioStateChangeNotifier(parent) { }
 
 qreal QPlatformAudioSink::volume() const
 {
     return 1.0;
 }
 
-QPlatformAudioSource::QPlatformAudioSource(QObject *parent) : QObject(parent) { }
+QPlatformAudioSource::QPlatformAudioSource(QObject *parent) : QAudioStateChangeNotifier(parent) { }
 
 QT_END_NAMESPACE
 

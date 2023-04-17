@@ -28,7 +28,18 @@ QT_BEGIN_NAMESPACE
 
 class QIODevice;
 
-class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QObject
+class Q_MULTIMEDIA_EXPORT QAudioStateChangeNotifier : public QObject
+{
+    Q_OBJECT
+public:
+    QAudioStateChangeNotifier(QObject *parent = nullptr);
+
+signals:
+    void errorChanged(QAudio::Error error);
+    void stateChanged(QAudio::State state);
+};
+
+class Q_MULTIMEDIA_EXPORT QPlatformAudioSink : public QAudioStateChangeNotifier
 {
     Q_OBJECT
 
@@ -52,13 +63,9 @@ public:
     virtual qreal volume() const;
 
     QElapsedTimer elapsedTime;
-
-Q_SIGNALS:
-    void errorChanged(QAudio::Error error);
-    void stateChanged(QAudio::State state);
 };
 
-class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QObject
+class Q_MULTIMEDIA_EXPORT QPlatformAudioSource : public QAudioStateChangeNotifier
 {
     Q_OBJECT
 
@@ -82,10 +89,6 @@ public:
     virtual qreal volume() const = 0;
 
     QElapsedTimer elapsedTime;
-
-Q_SIGNALS:
-    void errorChanged(QAudio::Error error);
-    void stateChanged(QAudio::State state);
 };
 
 QT_END_NAMESPACE
