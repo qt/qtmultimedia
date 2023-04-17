@@ -247,6 +247,9 @@ qt_internal_extend_target(Multimedia CONDITION WASM
         wasm
     PUBLIC_LIBRARIES
         openal
+    NO_UNITY_BUILD_SOURCES
+        wasm/qwasmaudiosink.cpp
+        # To avoid collision between symbols defined in wasm/qwasmaudiosource.cpp.
 )
 
 set(VIDEO_VERTEX_SHADERS
