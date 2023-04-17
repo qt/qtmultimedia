@@ -15,11 +15,12 @@ QT_BEGIN_NAMESPACE
 
 namespace MediaFileSelector {
 
-static QUrl selectMediaFile(const QStringList& mediaCandidates)
+// TODO: refactor or remove the function
+inline QUrl selectMediaFile(const QStringList &mediaCandidates)
 {
-    QMediaPlayer player;
     QAudioOutput audioOutput;
     QVideoSink videoOutput;
+    QMediaPlayer player;
     player.setAudioOutput(&audioOutput);
     player.setVideoOutput(&videoOutput);
 

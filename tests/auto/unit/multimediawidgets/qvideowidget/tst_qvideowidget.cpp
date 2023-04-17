@@ -104,8 +104,8 @@ void tst_QVideoWidget::show()
 
 void tst_QVideoWidget::aspectRatio()
 {
-    QMediaPlayer player;
     QtTestVideoWidget widget;
+    QMediaPlayer player;
     player.setVideoOutput(&widget);
 
     // Test the aspect ratio defaults to keeping the aspect ratio.
@@ -160,8 +160,9 @@ void tst_QVideoWidget::sizeHint()
     QFETCH(QSize, expectedSize);
 
     QMockIntegration mock;
-    QMediaPlayer player;
     QtTestVideoWidget widget;
+    QMediaPlayer player;
+
     player.setVideoOutput(&widget);
     auto mockSink = mock.lastVideoSink();
 
@@ -175,8 +176,8 @@ void tst_QVideoWidget::sizeHint()
 
 void tst_QVideoWidget::fullScreen()
 {
-    QMediaPlayer player;
     QtTestVideoWidget widget;
+    QMediaPlayer player;
     player.setVideoOutput(&widget);
     widget.showNormal();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));
@@ -243,8 +244,8 @@ static const uchar rgb32ImageData[] =
 
 void tst_QVideoWidget::paint()
 {
-    QMediaPlayer player;
     QtTestVideoWidget widget;
+    QMediaPlayer player;
     player.setVideoOutput(&widget);
     widget.resize(640,480);
     widget.show();

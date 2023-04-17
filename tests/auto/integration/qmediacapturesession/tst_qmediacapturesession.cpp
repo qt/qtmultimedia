@@ -334,6 +334,8 @@ void tst_QMediaCaptureSession::can_move_AudioOutput_between_sessions_and_player(
     if (QMediaDevices::audioOutputs().isEmpty())
         QSKIP("No audio output available");
 
+    QAudioOutput output;
+
     QMediaCaptureSession session0;
     QMediaCaptureSession session1;
     QMediaPlayer player;
@@ -341,7 +343,6 @@ void tst_QMediaCaptureSession::can_move_AudioOutput_between_sessions_and_player(
     QSignalSpy audioOutputChanged1(&session1, SIGNAL(audioOutputChanged()));
     QSignalSpy audioOutputChangedPlayer(&player, SIGNAL(audioOutputChanged()));
 
-    QAudioOutput output;
     {
         QMediaCaptureSession session2;
         QSignalSpy audioOutputChanged2(&session2, SIGNAL(audioOutputChanged()));

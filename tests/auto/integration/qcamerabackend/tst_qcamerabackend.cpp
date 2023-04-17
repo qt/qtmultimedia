@@ -662,8 +662,8 @@ void tst_QCameraBackend::testNativeMetadata()
 
     // QMediaRecorder::metaData() can only test that QMediaMetaData is set properly on the recorder.
     // Use QMediaPlayer to test that the native metadata is properly set on the track
-    QMediaPlayer player;
     QAudioOutput output;
+    QMediaPlayer player;
     player.setAudioOutput(&output);
 
     QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));

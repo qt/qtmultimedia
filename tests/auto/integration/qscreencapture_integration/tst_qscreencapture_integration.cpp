@@ -391,6 +391,7 @@ void tst_QScreenCaptureIntegration::recordToFile()
     QVERIFY(!fileName.isEmpty());
     QVERIFY(QFileInfo(fileName).size() > 0);
 
+    TestVideoSink sink;
     QMediaPlayer player;
     player.setSource(fileName);
     QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(videoResolution));
@@ -398,7 +399,6 @@ void tst_QScreenCaptureIntegration::recordToFile()
     QCOMPARE_LT(player.duration(), 650);
 
     // Convert video frames to QImages
-    TestVideoSink sink;
     player.setVideoSink(&sink);
     sink.setStoreImagesEnabled();
     player.setPlaybackRate(10);
