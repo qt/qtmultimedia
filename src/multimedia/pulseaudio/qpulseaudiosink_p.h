@@ -27,9 +27,8 @@
 #include "pulseaudio/qpulsehelpers_p.h"
 
 #include <private/qaudiosystem_p.h>
-
+#include <private/qaudiostatemachine_p.h>
 #include <pulse/pulseaudio.h>
-#include <atomic>
 
 QT_BEGIN_NAMESPACE
 
@@ -67,7 +66,6 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
-    void setStateAndError(QAudio::State state, QAudio::Error error, bool forceEmitState = false);
     void startReading();
 
     bool open();
@@ -102,9 +100,6 @@ private:
     mutable qint64 lastProcessedUSecs = 0;
     qreal m_volume = 1.0;
 
-    std::atomic<QAudio::Error> m_errorState = QAudio::NoError;
-    std::atomic<QAudio::State> m_deviceState = QAudio::StoppedState;
-    QAudio::State m_suspendedInState = QAudio::SuspendedState;
     std::atomic<pa_operation *> m_drainOperation = nullptr;
     int m_periodSize = 0;
     int m_bufferSize = 0;
@@ -112,6 +107,8 @@ private:
     bool m_pullMode = true;
     bool m_opened = false;
     bool m_resuming = false;
+
+    QAudioStateMachine m_stateMachine;
 };
 
 class PulseOutputPrivate : public QIODevice

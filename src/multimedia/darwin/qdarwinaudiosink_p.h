@@ -15,6 +15,7 @@
 //
 
 #include <private/qaudiosystem_p.h>
+#include <private/qaudiostatemachine_p.h>
 
 #if defined(Q_OS_MACOS)
 # include <CoreAudio/CoreAudio.h>
@@ -50,6 +51,8 @@ public:
 
     void setPrefetchDevice(QIODevice *device);
 
+    QIODevice *prefetchDevice() const;
+
     void startFillTimer();
     void stopFillTimer();
 
@@ -66,7 +69,7 @@ private:
     int m_periodTime;
     QIODevice *m_device;
     QTimer *m_fillTimer;
-    CoreAudioRingBuffer *m_buffer;
+    std::unique_ptr<CoreAudioRingBuffer> m_buffer;
 };
 
 class QDarwinAudioSinkDevice : public QIODevice
@@ -111,15 +114,10 @@ public:
     qreal volume() const;
 
 private slots:
-    void deviceStopped();
     void inputReady();
 
 private:
-    enum {
-        Running,
-        Draining,
-        Stopped
-    };
+    enum ThreadState { Running, Draining, Stopped };
 
     static OSStatus renderCallback(void *inRefCon,
                                     AudioUnitRenderActionFlags *ioActionFlags,
@@ -131,12 +129,12 @@ private:
     bool open();
     void close();
     void audioThreadStart();
-    void audioThreadStop();
-    void audioThreadDrain();
+    void audioThreadStop(QAudio::State prevState = QAudio::ActiveState);
     void audioDeviceStart();
     void audioDeviceStop();
-    void audioDeviceIdle();
-    void audioDeviceError();
+    void onAudioDeviceIdle();
+    void onAudioDeviceError();
+    void onAudioDeviceDrained();
 
     void startTimers();
     void stopTimers();
@@ -158,19 +156,14 @@ private:
     AudioUnit m_audioUnit = 0;
     Float64 m_clockFrequency = 0;
     AudioStreamBasicDescription m_streamFormat;
-    QDarwinAudioSinkBuffer *m_audioBuffer = nullptr;
-    QAtomicInt m_audioThreadState;
-    QWaitCondition m_threadFinished;
-    QMutex m_mutex;
+    std::unique_ptr<QDarwinAudioSinkBuffer> m_audioBuffer;
     qreal m_cachedVolume = 1.;
 #if defined(Q_OS_MACOS)
     qreal m_volume = 1.;
 #endif
     bool m_pullMode = false;
 
-    QAudio::Error m_errorCode = QAudio::NoError;
-    QAudio::State m_stateCode = QAudio::StoppedState;
-    QAudio::State m_suspendedInStateCode = QAudio::SuspendedState;
+    QAudioStateMachine m_stateMachine;
 };
 
 QT_END_NAMESPACE
