@@ -24,9 +24,12 @@
 
 #include "qaudio.h"
 #include "qaudiodevice.h"
+#include "pulseaudio/qpulsehelpers_p.h"
+
 #include <private/qaudiosystem_p.h>
 
 #include <pulse/pulseaudio.h>
+#include <atomic>
 
 QT_BEGIN_NAMESPACE
 
@@ -64,8 +67,7 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
-    void setState(QAudio::State state);
-    void setError(QAudio::Error error);
+    void setStateAndError(QAudio::State state, QAudio::Error error, bool forceEmitState = false);
     void startReading();
 
     bool open();
@@ -75,6 +77,8 @@ private:
 private Q_SLOTS:
     void userFeed();
     void onPulseContextFailed();
+
+    PAOperationUPtr exchangeDrainOperation(pa_operation *newOperation);
 
 private:
     pa_sample_spec m_spec = {};
@@ -90,7 +94,7 @@ private:
 
     QIODevice *m_audioSource = nullptr;
     pa_stream *m_stream = nullptr;
-    char *m_audioBuffer = nullptr;
+    std::vector<char> m_audioBuffer;
 
     qint64 m_totalTimeValue = 0;
     qint64 m_elapsedTimeOffset = 0;
@@ -98,12 +102,12 @@ private:
     mutable qint64 lastProcessedUSecs = 0;
     qreal m_volume = 1.0;
 
-    QAudio::Error m_errorState = QAudio::NoError;
-    QAudio::State m_deviceState = QAudio::StoppedState;
+    std::atomic<QAudio::Error> m_errorState = QAudio::NoError;
+    std::atomic<QAudio::State> m_deviceState = QAudio::StoppedState;
     QAudio::State m_suspendedInState = QAudio::SuspendedState;
+    std::atomic<pa_operation *> m_drainOperation = nullptr;
     int m_periodSize = 0;
     int m_bufferSize = 0;
-    int m_maxBufferSize = 0;
     int m_periodTime = 0;
     bool m_pullMode = true;
     bool m_opened = false;

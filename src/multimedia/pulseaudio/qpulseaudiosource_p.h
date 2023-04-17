@@ -102,7 +102,7 @@ class PulseInputPrivate : public QIODevice
     Q_OBJECT
 public:
     PulseInputPrivate(QPulseAudioSource *audio);
-    ~PulseInputPrivate() {};
+    ~PulseInputPrivate() override = default;
 
     qint64 readData(char *data, qint64 len) override;
     qint64 writeData(const char *data, qint64 len) override;

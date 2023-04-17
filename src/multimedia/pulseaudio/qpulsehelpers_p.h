@@ -24,6 +24,13 @@ QT_BEGIN_NAMESPACE
 
 Q_DECLARE_LOGGING_CATEGORY(qLcPulseAudioOut)
 
+struct PAOperationDeleter
+{
+    void operator()(pa_operation *op) const { pa_operation_unref(op); }
+};
+
+using PAOperationUPtr = std::unique_ptr<pa_operation, PAOperationDeleter>;
+
 namespace QPulseAudioInternal
 {
 pa_sample_spec audioFormatToSampleSpec(const QAudioFormat &format);

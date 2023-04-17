@@ -10,6 +10,7 @@
 #include "qpulsehelpers_p.h"
 #include <sys/types.h>
 #include <unistd.h>
+#include <mutex> // for lock_guard
 
 QT_BEGIN_NAMESPACE
 
@@ -153,26 +154,22 @@ static void event_cb(pa_context* context, pa_subscription_event_type_t t, uint32
     case PA_SUBSCRIPTION_EVENT_CHANGE:
         switch (facility) {
         case PA_SUBSCRIPTION_EVENT_SERVER: {
-            pa_operation *op = pa_context_get_server_info(context, serverInfoCallback, userdata);
-            if (op)
-                pa_operation_unref(op);
-            else
+            PAOperationUPtr op(pa_context_get_server_info(context, serverInfoCallback, userdata));
+            if (!op)
                 qWarning("PulseAudioService: failed to get server info");
             break;
         }
         case PA_SUBSCRIPTION_EVENT_SINK: {
-            pa_operation *op = pa_context_get_sink_info_by_index(context, index, sinkInfoCallback, userdata);
-            if (op)
-                pa_operation_unref(op);
-            else
+            PAOperationUPtr op(
+                    pa_context_get_sink_info_by_index(context, index, sinkInfoCallback, userdata));
+            if (!op)
                 qWarning("PulseAudioService: failed to get sink info");
             break;
         }
         case PA_SUBSCRIPTION_EVENT_SOURCE: {
-            pa_operation *op = pa_context_get_source_info_by_index(context, index, sourceInfoCallback, userdata);
-            if (op)
-                pa_operation_unref(op);
-            else
+            PAOperationUPtr op(pa_context_get_source_info_by_index(context, index,
+                                                                   sourceInfoCallback, userdata));
+            if (!op)
                 qWarning("PulseAudioService: failed to get source info");
             break;
         }
@@ -324,14 +321,12 @@ void QPulseAudioEngine::prepare()
         pa_context_set_state_callback(m_context, contextStateCallback, this);
 
         pa_context_set_subscribe_callback(m_context, event_cb, this);
-        pa_operation *op = pa_context_subscribe(m_context,
-                                                pa_subscription_mask_t(PA_SUBSCRIPTION_MASK_SINK |
-                                                                       PA_SUBSCRIPTION_MASK_SOURCE |
-                                                                       PA_SUBSCRIPTION_MASK_SERVER),
-                                                nullptr, nullptr);
-        if (op)
-            pa_operation_unref(op);
-        else
+        PAOperationUPtr op(pa_context_subscribe(
+                m_context,
+                pa_subscription_mask_t(PA_SUBSCRIPTION_MASK_SINK | PA_SUBSCRIPTION_MASK_SOURCE
+                                       | PA_SUBSCRIPTION_MASK_SERVER),
+                nullptr, nullptr));
+        if (!op)
             qWarning("PulseAudioService: failed to subscribe to context notifications");
     } else {
         pa_context_unref(m_context);
@@ -372,39 +367,34 @@ void QPulseAudioEngine::release()
 
 void QPulseAudioEngine::updateDevices()
 {
-    lock();
+    std::lock_guard lock(*this);
 
     // Get default input and output devices
-    pa_operation *operation = pa_context_get_server_info(m_context, serverInfoCallback, this);
+    PAOperationUPtr operation(pa_context_get_server_info(m_context, serverInfoCallback, this));
     if (operation) {
-        while (pa_operation_get_state(operation) == PA_OPERATION_RUNNING)
+        while (pa_operation_get_state(operation.get()) == PA_OPERATION_RUNNING)
             pa_threaded_mainloop_wait(m_mainLoop);
-        pa_operation_unref(operation);
     } else {
         qWarning("PulseAudioService: failed to get server info");
     }
 
     // Get output devices
-    operation = pa_context_get_sink_info_list(m_context, sinkInfoCallback, this);
+    operation.reset(pa_context_get_sink_info_list(m_context, sinkInfoCallback, this));
     if (operation) {
-        while (pa_operation_get_state(operation) == PA_OPERATION_RUNNING)
+        while (pa_operation_get_state(operation.get()) == PA_OPERATION_RUNNING)
             pa_threaded_mainloop_wait(m_mainLoop);
-        pa_operation_unref(operation);
     } else {
         qWarning("PulseAudioService: failed to get sink info");
     }
 
     // Get input devices
-    operation = pa_context_get_source_info_list(m_context, sourceInfoCallback, this);
+    operation.reset(pa_context_get_source_info_list(m_context, sourceInfoCallback, this));
     if (operation) {
-        while (pa_operation_get_state(operation) == PA_OPERATION_RUNNING)
+        while (pa_operation_get_state(operation.get()) == PA_OPERATION_RUNNING)
             pa_threaded_mainloop_wait(m_mainLoop);
-        pa_operation_unref(operation);
     } else {
         qWarning("PulseAudioService: failed to get source info");
     }
-
-    unlock();
 }
 
 void QPulseAudioEngine::onContextFailed()
