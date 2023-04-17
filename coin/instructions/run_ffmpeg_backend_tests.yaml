@@ -6,6 +6,15 @@ enable_if:
       env_var: TARGET_OS_COIN
       equals_value: macos
     - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
+      contains_value: ubuntu
+    - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
+      contains_value: rhel
+    - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
+      contains_value: opensuse
+    - condition: runtime
       env_var: NON_QTBASE_CMAKE_ARGS
       contains_value: "-DFFMPEG_DIR=/"
     - condition: runtime
