@@ -2,3 +2,5 @@
 
 [deviceName]
 redhatenterpriselinuxworkstation-6.6
+[codecs]
+sles-15.4 # QTBUG-111296
