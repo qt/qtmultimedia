@@ -113,11 +113,12 @@ public:
         : m_storeFrames(storeFrames)
     {
         connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::addVideoFrame);
+        connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::videoFrameChangedSync);
     }
 
     QVideoFrame waitForFrame()
     {
-        QSignalSpy spy(this, &TestVideoSink::videoFrameChanged);
+        QSignalSpy spy(this, &TestVideoSink::videoFrameChangedSync);
         return spy.wait() ? spy.at(0).at(0).value<QVideoFrame>() : QVideoFrame{};
     }
 
@@ -135,6 +136,9 @@ public Q_SLOTS:
             m_frameList.append(frame);
         ++m_totalFrames;
     }
+
+signals:
+    void videoFrameChangedSync(const QVideoFrame &frame);
 
 public:
     QList<QVideoFrame> m_frameList;
