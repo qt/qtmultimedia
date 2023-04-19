@@ -117,7 +117,7 @@ MediaDataHolder::recreateAVFormatContext(const QUrl &media, QIODevice *stream)
 {
     *this = MediaDataHolder{};
 
-    QByteArray url = media.toEncoded(QUrl::PreferLocalFile);
+    QByteArray url = media.toString(QUrl::PreferLocalFile).toUtf8();
 
     AVFormatContext *context = nullptr;
 
