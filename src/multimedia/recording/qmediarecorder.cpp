@@ -59,6 +59,7 @@ QT_BEGIN_NAMESPACE
         id: captureSession
         camera: Camera {
             id: camera
+            active: true
         }
         audioInput: AudioInput {}
         recorder: MediaRecorder {
