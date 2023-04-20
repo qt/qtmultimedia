@@ -25,8 +25,7 @@
       \li Provides a widget-based multimedia API.
     \row
       \li \l{Qt Spatial Audio}
-      \li (Technology Preview)
-          Provides an API for implementing sound fields in 3D space.
+      \li Provides an API for implementing sound fields in 3D space.
     \endtable
 
     \section1 Getting started
@@ -55,7 +54,7 @@
       \li \l{Changes to Qt Multimedia}{Changes in Qt 6}
       \li \l{Multimedia Overview}
       \li \l{Audio Overview}
-      \li \l{Spatial Audio Overview} (Technology Preview)
+      \li \l{Spatial Audio Overview}
       \li \l{Video Overview}
       \li \l{Camera Overview}
       \li \l{Supported Media Formats}
