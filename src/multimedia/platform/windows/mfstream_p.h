@@ -150,9 +150,6 @@ private:
 
     void doRead();
 
-private Q_SLOTS:
-    void handleReadyRead();
-
 protected:
     void customEvent(QEvent *event) override;
     IMFAsyncResult *m_currentReadResult;
