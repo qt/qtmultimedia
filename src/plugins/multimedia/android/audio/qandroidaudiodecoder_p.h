@@ -107,7 +107,6 @@ private:
 
     qint64 m_position = -1;
     qint64 m_duration = -1;
-    long long m_presentationTimeUs = 0;
 
     QByteArray m_deviceBuffer;
 
