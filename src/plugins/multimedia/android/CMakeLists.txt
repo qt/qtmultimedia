@@ -29,6 +29,12 @@ qt_internal_add_plugin(QAndroidMediaPlugin
         wrappers/jni/androidmultimediautils.cpp wrappers/jni/androidmultimediautils_p.h
         wrappers/jni/androidsurfacetexture.cpp wrappers/jni/androidsurfacetexture_p.h
         wrappers/jni/androidsurfaceview.cpp wrappers/jni/androidsurfaceview_p.h
+    NO_UNITY_BUILD_SOURCES
+        # Resolves two problems:
+        #   - Collision of `rwLock` with wrappers/jni/androidmediaplayer.cpp
+        #   - and redefinition of `notifyFrameAvailable` with different signature
+        #     with wrappers/jni/androidsurfacetexture.cpp
+        wrappers/jni/androidcamera.cpp
     INCLUDE_DIRECTORIES
         audio
         common
