@@ -482,7 +482,7 @@ void tst_QScreenCaptureIntegration::recordToFile()
     player.setPlaybackRate(10);
     player.play();
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
-    const int framesCount = sink.images().size();
+    const size_t framesCount = sink.images().size();
 
     // Find pixel point at center of widget
     int x = 415 * videoResolution.width() / screenSize.width();
@@ -490,7 +490,7 @@ void tst_QScreenCaptureIntegration::recordToFile()
     auto point = QPoint(x, y);
 
     // Verify color of first fourth of the video frames
-    for (int i = 0; i <= static_cast<int>(framesCount * 0.25); i++) {
+    for (size_t i = 0; i <= static_cast<size_t>(framesCount * 0.25); i++) {
         QImage image = sink.images().at(i);
         QVERIFY(!image.isNull());
         QRgb rgb = image.pixel(point);
@@ -503,7 +503,7 @@ void tst_QScreenCaptureIntegration::recordToFile()
     }
 
     // Verify color of last fourth of the video frames
-    for (int i = static_cast<int>(framesCount * 0.75); i < framesCount; i++) {
+    for (size_t i = static_cast<size_t>(framesCount * 0.75); i < framesCount; i++) {
         QImage image = sink.images().at(i);
         QVERIFY(!image.isNull());
         QRgb rgb = image.pixel(point);

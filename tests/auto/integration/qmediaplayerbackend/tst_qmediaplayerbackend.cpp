@@ -1708,7 +1708,7 @@ void tst_QMediaPlayerBackend::finiteLoops()
         surface.waitForFrame();
 
         QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
-        QCOMPARE(positionChangingIntervals(positionSpy).size(), 3);
+        QCOMPARE(positionChangingIntervals(positionSpy).size(), 3u);
         QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
     }
 }
@@ -1800,7 +1800,7 @@ void tst_QMediaPlayerBackend::seekOnLoops()
 
     auto intervals = positionChangingIntervals(positionSpy);
 
-    QCOMPARE(intervals.size(), 3);
+    QCOMPARE(intervals.size(), 3u);
     QCOMPARE_GT(intervals[0].first, 0);
     QCOMPARE(intervals[0].second, player.duration());
     QCOMPARE(intervals[1], std::make_pair(qint64(0), player.duration()));
@@ -1847,7 +1847,7 @@ void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
     QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
     auto intervals = positionChangingIntervals(positionSpy);
-    QCOMPARE(intervals.size(), 2);
+    QCOMPARE(intervals.size(), 2u);
 
     QCOMPARE(intervals[1], std::make_pair(qint64(0), player.duration()));
 }
