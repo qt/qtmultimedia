@@ -34,6 +34,10 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         mediacapture/qgstreamerimagecapture.cpp mediacapture/qgstreamerimagecapture_p.h
         mediacapture/qgstreamermediacapture.cpp mediacapture/qgstreamermediacapture_p.h
         mediacapture/qgstreamermediaencoder.cpp mediacapture/qgstreamermediaencoder_p.h
+    NO_UNITY_BUILD_SOURCES
+        # Conflicts with macros defined in X11.h, and Xlib.h
+        common/qgstvideobuffer.cpp
+        common/qgstreamervideosink.cpp
     DEFINES
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
     INCLUDE_DIRECTORIES
@@ -46,9 +50,6 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         GStreamer::GStreamer
         GStreamer::App
 )
-
-set_source_files_properties(common/qgstreamervideosink.cpp # X headers
-                            PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 qt_internal_extend_target(QGstreamerMediaPlugin CONDITION QT_FEATURE_gstreamer_photography
     LIBRARIES
