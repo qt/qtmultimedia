@@ -64,6 +64,9 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_FEATURE_vaapi
     SOURCES
         qffmpeghwaccel_vaapi.cpp qffmpeghwaccel_vaapi_p.h
+    NO_UNITY_BUILD_SOURCES
+        # Conflicts with macros defined in X11.h, and Xlib.h
+        qffmpeghwaccel_vaapi.cpp
     LIBRARIES
         VAAPI::VAAPI
         EGL::EGL
