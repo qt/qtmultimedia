@@ -7,6 +7,23 @@
 
 #import <CoreVideo/CoreVideo.h>
 
+static QVideoFrameFormat::ColorRange colorRangeForPixelFormat(unsigned avPixelFormat)
+{
+    switch (avPixelFormat) {
+    case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
+    case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
+    case kCVPixelFormatType_420YpCbCr10BiPlanarFullRange:
+        return QVideoFrameFormat::ColorRange_Full;
+    case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
+    case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange:
+    case kCVPixelFormatType_422YpCbCr8:
+    case kCVPixelFormatType_422YpCbCr8_yuvs:
+        return QVideoFrameFormat::ColorRange_Video;
+    default:
+        return QVideoFrameFormat::ColorRange_Unknown;
+    }
+}
+
 QVideoFrameFormat::PixelFormat QAVFHelpers::fromCVPixelFormat(unsigned avPixelFormat)
 {
     switch (avPixelFormat) {
@@ -149,6 +166,7 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
         }
     }
 
+    format.setColorRange(colorRangeForPixelFormat(avPixelFormat));
     format.setColorSpace(colorSpace);
     format.setColorTransfer(colorTransfer);
     return format;
