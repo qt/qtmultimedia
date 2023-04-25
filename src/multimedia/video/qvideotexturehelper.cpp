@@ -398,7 +398,7 @@ static QMatrix4x4 colorMatrix(const QVideoFrameFormat &format)
                 0.0f,    0.000f,  0.000f,  1.0000f);
         return QMatrix4x4(
             1.1644f,  0.000f,  1.7928f, -0.9731f,
-            1.1644f, -0.5329f, -0.2132f,  0.3015f,
+            1.1644f, -0.2132f, -0.5329f,  0.3015f,
             1.1644f,  2.1124f,  0.000f, -1.1335f,
             0.0f,    0.000f,  0.000f,  1.0000f);
     case QVideoFrameFormat::ColorSpace_BT2020:
