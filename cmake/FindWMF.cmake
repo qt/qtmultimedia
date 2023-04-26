@@ -44,7 +44,8 @@ find_package_handle_standard_args(WMF REQUIRED_VARS
 if(WMF_FOUND AND NOT TARGET WMF::WMF)
     add_library(WMF::WMF INTERFACE IMPORTED)
     set_target_properties(WMF::WMF PROPERTIES
-                          INTERFACE_LINK_LIBRARIES "${WMF_LIBRARIES}")
+                          INTERFACE_LINK_LIBRARIES "${WMF_LIBRARIES}"
+                          IMPORTED_LINK_INTERFACE_LANGUAGES C)
 endif()
 
 mark_as_advanced(WMF_LIBRARIES)
