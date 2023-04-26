@@ -43,7 +43,6 @@ public:
         auto widget = std::make_unique<QTestWidget>(firstColor, secondColor);
 
         widget->setWindowTitle("Test QScreenCapture");
-
         widget->setScreen(screen ? screen : QApplication::primaryScreen());
         widget->setWindowFlags(flags);
         widget->setGeometry(geometry);
@@ -226,9 +225,7 @@ void tst_QScreenCaptureIntegration::capture(QTestWidget &widget, const QPoint &d
     QTest::qWait(delay);
     const auto expectedFramesCount =
             delay / static_cast<int>(1000 / std::min(widget.screen()->refreshRate(), 60.));
-
     const int framesCount = static_cast<int>(sink.images().size());
-
     QCOMPARE_LE(framesCount, expectedFramesCount + 2);
     QCOMPARE_GE(framesCount, expectedFramesCount / 2);
 
@@ -384,21 +381,21 @@ void tst_QScreenCaptureIntegration::captureScreenByDefault()
 void tst_QScreenCaptureIntegration::captureSecondaryScreen()
 {
     const auto screens = QApplication::screens();
-
     if (screens.size() < 2)
         QSKIP("2 or more screens required");
 
+    auto topLeft = screens.back()->geometry().topLeft().x();
+
     auto widgetOnSecondaryScreen = QTestWidget::createAndShow(
             Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
-            QRect{ 200, 100, 430, 351 }, screens.back());
+            QRect{ topLeft + 200, 100, 430, 351 }, screens.back());
     QVERIFY(QTest::qWaitForWindowExposed(widgetOnSecondaryScreen.get()));
 
     auto widgetOnPrimaryScreen = QTestWidget::createAndShow(
             Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
             QRect{ 200, 100, 430, 351 }, screens.front(), QColor(0, 0, 0), QColor(0, 0, 0));
     QVERIFY(QTest::qWaitForWindowExposed(widgetOnPrimaryScreen.get()));
-
-    capture(*widgetOnSecondaryScreen, { 200, 100 }, QApplication::primaryScreen()->size(),
+    capture(*widgetOnSecondaryScreen, { 200, 100 }, screens.back()->size(),
             [&screens](QScreenCapture &sc) { sc.setScreen(screens.back()); });
 }
 
