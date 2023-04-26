@@ -157,6 +157,7 @@ private:
     QMutex m_videoFrameCallbackMutex;
     PreviewCallback *m_previewCallback;
     bool m_keepActive;
+    QMetaObject::Connection m_retryPreviewConnection;
 };
 
 QT_END_NAMESPACE

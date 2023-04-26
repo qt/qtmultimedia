@@ -33,9 +33,6 @@ public:
 
     void setVideoFrame(const QVideoFrame &frame) override;
 
-Q_SIGNALS:
-    void rhiChanged(QRhi *rhi);
-
 private:
     QFFmpeg::TextureConverter textureConverter;
     QRhi *m_rhi = nullptr;
