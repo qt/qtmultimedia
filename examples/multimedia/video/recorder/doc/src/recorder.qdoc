@@ -91,7 +91,7 @@
 
     \section3 Selecting an audio input
 
-    Implemented in the same way as \l{Selecting a camera} and defined in
+    Implemented in the same way as \l{Selecting a video source} and defined in
     \c AudioInputSelect.qml like so:
 
     \quotefromfile video/recorder/AudioInputSelect.qml
