@@ -95,19 +95,19 @@ For some quick recipes, see this table:
     \row
         \li Capturing audio and video
         \li \l {Camera Example}{camera},
-            \l {QML Recorder Example}{recorder}
+        \li \l {QML Video Recorder}{recorder}
         \li \l CaptureSession, \l Camera, \l AudioInput \l VideoOutput
         \li QMediaCaptureSession, QCamera, QAudioInput, QVideoWidget
     \row
         \li Capturing photos
         \li \l {Camera Example}{camera},
-            \l {QML Recorder Example}{recorder}
+        \li \l {QML Video Recorder}{recorder}
         \li \l CaptureSession, \l Camera, \l ImageCapture
         \li QMediaCaptureSession, QCamera, QImageCapture
     \row
         \li Capturing movies
         \li \l {Camera Example}{camera},
-            \l {QML Recorder Example}{recorder}
+        \li \l {QML Video Recorder}{recorder}
         \li \l CaptureSession, \l Camera, \l MediaRecorder
         \li QMediaCaptureSession, QCamera, QMediaRecorder
 \endtable
