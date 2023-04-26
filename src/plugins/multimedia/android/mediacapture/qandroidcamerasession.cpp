@@ -17,6 +17,7 @@
 #include <qdebug.h>
 #include <qvideoframe.h>
 #include <private/qplatformimagecapture_p.h>
+#include <private/qplatformvideosink_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qcameradevice_p.h>
 #include <private/qmediastoragelocation_p.h>
@@ -53,6 +54,8 @@ QAndroidCameraSession::QAndroidCameraSession(QObject *parent)
 
 QAndroidCameraSession::~QAndroidCameraSession()
 {
+    if (m_sink)
+        disconnect(m_retryPreviewConnection);
     close();
 }
 
@@ -786,8 +789,20 @@ void QAndroidCameraSession::setVideoSink(QVideoSink *sink)
     if (m_sink == sink)
         return;
 
+    if (m_sink)
+        disconnect(m_retryPreviewConnection);
+
     m_sink = sink;
 
+    if (m_sink)
+        m_retryPreviewConnection =
+                connect(m_sink->platformVideoSink(), &QPlatformVideoSink::rhiChanged, [&]()
+                        {
+                            if (m_active) {
+                                setActive(false);
+                                setActive(true);
+                            }
+                        });
     if (m_sink) {
         delete m_textureOutput;
         m_textureOutput = nullptr;
