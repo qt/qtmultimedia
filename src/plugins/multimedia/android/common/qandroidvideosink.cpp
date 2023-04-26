@@ -27,6 +27,7 @@ void QAndroidVideoSink::setRhi(QRhi *rhi)
         return;
 
     m_rhi = rhi;
+    emit rhiChanged(rhi);
 }
 
 QT_END_NAMESPACE
