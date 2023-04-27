@@ -189,25 +189,16 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
             qWarning("Qt was built with -no-feature-temporaryfile: playback from resource file is not supported!");
 #endif
         }
-#if defined(Q_OS_ANDROID)
-    } else if (media.scheme() == QLatin1String("content") && !stream) {
-        // content scheme should happen only on android
-        const int fd = QJniObject::callStaticMethod<jint>(
-                "org/qtproject/qt/android/QtNative", "openFdForContentUrl",
-                "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)I",
-                QNativeInterface::QAndroidApplication::context(),
-                QJniObject::fromString(media.toString()).object(),
-                QJniObject::fromString(QLatin1String("r")).object());
-
-        file.reset(new QFile(QLatin1Char(':') + media.path()));
-        file->open(fd, QFile::ReadOnly, QFile::FileHandleFlag::AutoCloseHandle);
-        control->setMedia(media, file.get());
-#endif
     } else {
         qrcMedia = QUrl();
         QUrl url = media;
         if (url.scheme().isEmpty() || url.scheme() == QLatin1String("file"))
             url = QUrl::fromUserInput(media.path(), QDir::currentPath(), QUrl::AssumeLocalFile);
+        if (url.scheme() == QLatin1String("content") && !stream) {
+            file.reset(new QFile(media.url()));
+            stream = file.get();
+        }
+
         control->setMedia(url, stream);
     }
 
