@@ -23,6 +23,7 @@
 #include <QtCore/qdatetime.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qtimer.h>
+#include <QtCore/qpointer.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
@@ -48,7 +49,7 @@ public:
     QAudioFormat format() const override;
     QIODevice* start() override;
     void start(QIODevice* device) override;
-    void stop() override { close(); }
+    void stop() override;
     void reset() override;
     void suspend() override;
     void resume() override;
@@ -83,7 +84,7 @@ private:
     qreal m_volume = 1.0;
     QTimer *m_timer = nullptr;
     QScopedPointer<QIODevice> m_pushSource;
-    QIODevice *m_pullSource = nullptr;
+    QPointer<QIODevice> m_pullSource;
     QComPtr<IMMDevice> m_device;
     QComPtr<IAudioClient> m_audioClient;
     QComPtr<IAudioRenderClient> m_renderClient;
