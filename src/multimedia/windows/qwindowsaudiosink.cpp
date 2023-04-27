@@ -203,12 +203,17 @@ QIODevice* QWindowsAudioSink::start()
 
 bool QWindowsAudioSink::open()
 {
+    if (m_audioClient)
+        return true;
+
     HRESULT hr = m_device->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER,
                             nullptr, (void**)m_audioClient.address());
     if (FAILED(hr)) {
         qCWarning(qLcAudioOutput) << "Failed to activate audio device" << errorString(hr);
         return false;
     }
+
+    auto resetClient = qScopeGuard([this](){ m_audioClient.reset(); });
 
     WAVEFORMATEX *pwfx = nullptr;
     hr = m_audioClient->GetMixFormat(&pwfx);
@@ -258,6 +263,8 @@ bool QWindowsAudioSink::open()
                                   << errorString(hr);
         return false;
     }
+
+    resetClient.dismiss();
 
     return true;
 }
@@ -373,12 +380,14 @@ void QWindowsAudioSink::setVolume(qreal v)
     m_volume = qBound(qreal(0), v, qreal(1));
 }
 
+void QWindowsAudioSink::stop() {
+    // TODO: investigate and find a way to drain and stop instead of closing
+    close();
+}
+
 void QWindowsAudioSink::reset()
 {
-    if (m_audioClient) {
-        m_audioClient->Stop();
-        m_audioClient->Reset();
-    }
+    close();
 }
 
 QT_END_NAMESPACE
