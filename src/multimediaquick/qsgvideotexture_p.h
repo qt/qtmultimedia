@@ -17,7 +17,7 @@
 
 #include <QtQuick/QSGTexture>
 #include <QImage>
-#include <private/qrhi_p.h>
+#include <rhi/qrhi.h>
 #include <private/qtmultimediaquickglobal_p.h>
 
 QT_BEGIN_NAMESPACE

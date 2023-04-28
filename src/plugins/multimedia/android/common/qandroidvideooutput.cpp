@@ -4,7 +4,7 @@
 #include "qandroidvideooutput_p.h"
 #include "androidsurfacetexture_p.h"
 
-#include <QtGui/private/qrhigles2_p.h>
+#include <rhi/qrhi.h>
 #include <QtGui/private/qopenglextensions_p.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qvideoframeconverter_p.h>

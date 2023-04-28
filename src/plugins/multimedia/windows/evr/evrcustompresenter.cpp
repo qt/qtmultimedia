@@ -9,7 +9,7 @@
 #include <private/qplatformvideosink_p.h>
 #include <private/qwindowsmfdefs_p.h>
 
-#include <QtGui/private/qrhi_p.h>
+#include <rhi/qrhi.h>
 
 #include <QtCore/qmutex.h>
 #include <QtCore/qvarlengtharray.h>

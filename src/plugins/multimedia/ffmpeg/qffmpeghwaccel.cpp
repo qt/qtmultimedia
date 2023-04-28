@@ -19,7 +19,7 @@
 #include "qffmpeg_p.h"
 #include "qffmpegvideobuffer_p.h"
 
-#include <private/qrhi_p.h>
+#include <rhi/qrhi.h>
 #include <qloggingcategory.h>
 #include <set>
 

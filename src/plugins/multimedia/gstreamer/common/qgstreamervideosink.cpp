@@ -5,10 +5,9 @@
 #include "qgstvideorenderersink_p.h"
 #include "qgstsubtitlesink_p.h"
 #include <qgstutils_p.h>
-#include <QtGui/private/qrhi_p.h>
+#include <rhi/qrhi.h>
 
 #if QT_CONFIG(gstreamer_gl)
-#include <QtGui/private/qrhigles2_p.h>
 #include <QGuiApplication>
 #include <QtGui/qopenglcontext.h>
 #include <QWindow>

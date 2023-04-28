@@ -17,11 +17,10 @@
 
 #include <private/qplatformvideosink_p.h>
 
-#include <QtGui/private/qrhigles2_p.h>
-
 QT_BEGIN_NAMESPACE
 
 class QVideoSink;
+class QRhi;
 
 class QWasmVideoSink : public QPlatformVideoSink
 {

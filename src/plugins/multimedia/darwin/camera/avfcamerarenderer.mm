@@ -12,7 +12,7 @@
 #include "qvideosink.h"
 #include "qavfhelpers_p.h"
 
-#include <QtGui/private/qrhi_p.h>
+#include <rhi/qrhi.h>
 
 #import <AVFoundation/AVFoundation.h>
 

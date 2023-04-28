@@ -4,7 +4,7 @@
 #include "qabstractvideobuffer_p.h"
 
 #include <qvariant.h>
-#include <private/qrhi_p.h>
+#include <rhi/qrhi.h>
 
 #include <QDebug>
 

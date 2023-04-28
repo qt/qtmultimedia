@@ -9,7 +9,7 @@
 #include <QtMultimedia/qvideoframeformat.h>
 
 #include <avfvideosink_p.h>
-#include <QtGui/private/qrhi_p.h>
+#include <rhi/qrhi.h>
 
 #include <QtCore/qdebug.h>
 

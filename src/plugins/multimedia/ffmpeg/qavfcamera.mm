@@ -9,7 +9,7 @@
 #include "avfcameradebug_p.h"
 #include "qavfsamplebufferdelegate_p.h"
 #include <qvideosink.h>
-#include <private/qrhi_p.h>
+#include <rhi/qrhi.h>
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qpermissions.h>
 #define AVMediaType XAVMediaType

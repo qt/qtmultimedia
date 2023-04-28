@@ -3,9 +3,7 @@
 
 #include "avfvideosink_p.h"
 
-#include <private/qrhi_p.h>
-#include <private/qrhimetal_p.h>
-#include <private/qrhigles2_p.h>
+#include <rhi/qrhi.h>
 #include <QtGui/qopenglcontext.h>
 
 #include <AVFoundation/AVFoundation.h>

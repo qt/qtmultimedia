@@ -13,8 +13,7 @@
 #include "qffmpegvideobuffer_p.h"
 #include "private/qvideotexturehelper_p.h"
 
-#include <private/qrhi_p.h>
-#include <private/qrhigles2_p.h>
+#include <rhi/qrhi.h>
 
 #include <qguiapplication.h>
 #include <qpa/qplatformnativeinterface.h>

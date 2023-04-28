@@ -12,9 +12,7 @@
 #include <qloggingcategory.h>
 #include "private/qvideotexturehelper_p.h"
 
-#include <private/qrhi_p.h>
-#include <private/qrhimetal_p.h>
-#include <private/qrhigles2_p.h>
+#include <rhi/qrhi.h>
 
 #include <CoreVideo/CVMetalTexture.h>
 #include <CoreVideo/CVMetalTextureCache.h>

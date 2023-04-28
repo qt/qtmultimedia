@@ -3,6 +3,8 @@
 
 #include "qwasmvideosink_p.h"
 
+#include <QtGui/rhi/qrhi.h>
+
 QT_BEGIN_NAMESPACE
 
 QWasmVideoSink::QWasmVideoSink(QVideoSink *parent)

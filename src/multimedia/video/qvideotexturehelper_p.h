@@ -16,7 +16,7 @@
 //
 
 #include <qvideoframeformat.h>
-#include <private/qrhi_p.h>
+#include <rhi/qrhi.h>
 
 #include <QtGui/qtextlayout.h>
 

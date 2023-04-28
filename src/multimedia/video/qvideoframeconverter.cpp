@@ -5,32 +5,18 @@
 #include "qvideoframeconversionhelper_p.h"
 #include "qvideoframeformat.h"
 
-#include <QtGui/private/qrhinull_p.h>
-#if QT_CONFIG(opengl)
-#include <QtGui/private/qrhigles2_p.h>
-#include <QOffscreenSurface>
-#endif
-#if QT_CONFIG(vulkan)
-#include <QtGui/private/qrhivulkan_p.h>
-#endif
-#ifdef Q_OS_WIN
-#include <QtGui/private/qrhid3d11_p.h>
-#endif
-#if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
-#include <QtGui/private/qrhimetal_p.h>
-#endif
-
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qthreadstorage.h>
 #include <QtGui/qimage.h>
+#include <QtGui/qoffscreensurface.h>
 #include <qpa/qplatformintegration.h>
 #include <private/qvideotexturehelper_p.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qguiapplication_p.h>
-#include <private/qrhi_p.h>
+#include <rhi/qrhi.h>
 
 #ifdef Q_OS_DARWIN
 #include <QtCore/private/qcore_mac_p.h>

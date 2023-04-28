@@ -6,7 +6,7 @@
 #include <qscreencapture.h>
 #include <qscreen.h>
 #include <QGuiApplication>
-#include <private/qrhi_p.h>
+#include <rhi/qrhi.h>
 #include "qavfsamplebufferdelegate_p.h"
 #include "qffmpegscreencapturethread_p.h"
 

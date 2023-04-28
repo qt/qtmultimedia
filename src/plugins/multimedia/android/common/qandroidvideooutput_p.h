@@ -20,8 +20,8 @@
 #include <qreadwritelock.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <qmatrix4x4.h>
-#include <QtGui/private/qrhi_p.h>
-#include <QtGui/qoffscreensurface.h>
+#include <qoffscreensurface.h>
+#include <rhi/qrhi.h>
 
 QT_BEGIN_NAMESPACE
 

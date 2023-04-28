@@ -97,7 +97,6 @@ QVideoSink::~QVideoSink()
 }
 
 /*!
-    \internal
     Returns the QRhi instance being used to create texture data in the video frames.
  */
 QRhi *QVideoSink::rhi() const

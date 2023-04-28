@@ -15,8 +15,7 @@
 #include "qgstutils_p.h"
 
 #if QT_CONFIG(gstreamer_gl)
-#include <QtGui/private/qrhi_p.h>
-#include <QtGui/private/qrhigles2_p.h>
+#include <rhi/qrhi.h>
 #include <QtGui/qopenglcontext.h>
 #include <QtGui/qopenglfunctions.h>
 #include <QtGui/qopengl.h>

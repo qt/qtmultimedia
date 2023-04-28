@@ -9,8 +9,7 @@
 
 #include <private/qvideotexturehelper_p.h>
 #include <private/qcomptr_p.h>
-#include <private/qrhi_p.h>
-#include <private/qrhid3d11_p.h>
+#include <rhi/qrhi.h>
 
 #include <qopenglfunctions.h>
 #include <qdebug.h>

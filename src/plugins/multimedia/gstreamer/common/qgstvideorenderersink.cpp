@@ -22,7 +22,7 @@
 
 #include "qgstutils_p.h"
 
-#include <QtGui/private/qrhi_p.h>
+#include <rhi/qrhi.h>
 #if QT_CONFIG(gstreamer_gl)
 #include <gst/gl/gl.h>
 #endif // #if QT_CONFIG(gstreamer_gl)

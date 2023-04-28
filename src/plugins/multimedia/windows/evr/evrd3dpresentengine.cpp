@@ -14,8 +14,7 @@
 
 #include <d3d11_1.h>
 
-#include <private/qrhi_p.h>
-#include <private/qrhid3d11_p.h>
+#include <rhi/qrhi.h>
 
 #if QT_CONFIG(opengl)
 #  include <qopenglcontext.h>
