@@ -32,11 +32,14 @@ public:
 
     QAudioBuffer resample(const AVFrame *frame);
     qint64 samplesProcessed() const { return m_samplesProcessed; }
+    void setSampleCompensation(qint32 delta, quint32 distance);
+    bool isSampleCompensationActive() const;
 
 private:
     QAudioFormat m_outputFormat;
     SwrContext *resampler = nullptr;
     qint64 m_samplesProcessed = 0;
+    qint64 m_endCompensationSample = std::numeric_limits<qint64>::min();
 };
 
 }

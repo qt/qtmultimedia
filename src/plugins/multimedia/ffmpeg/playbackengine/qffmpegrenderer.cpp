@@ -164,6 +164,12 @@ void Renderer::doNextStep()
 
     scheduleNextStep(false);
 }
+
+std::chrono::microseconds Renderer::frameDelay(const Frame &frame) const
+{
+    return std::chrono::duration_cast<std::chrono::microseconds>(
+            TimeController::Clock::now() - m_timeController.timeFromPosition(frame.absolutePts()));
+}
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

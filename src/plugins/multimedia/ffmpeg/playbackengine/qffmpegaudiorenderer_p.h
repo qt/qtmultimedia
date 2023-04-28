@@ -52,6 +52,8 @@ protected:
 
     void updateVolume();
 
+    void updateSampleCompensation(const Frame &currentFrame);
+
 private:
     QPointer<QAudioOutput> m_output;
     std::unique_ptr<QAudioSink> m_sink;
