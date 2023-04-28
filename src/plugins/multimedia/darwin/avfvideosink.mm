@@ -172,36 +172,13 @@ void AVFVideoSinkInterface::setLayer(CALayer *layer)
 
 void AVFVideoSinkInterface::setOutputSettings()
 {
-    if (!m_rhi)
-        return;
-
     if (m_outputSettings)
         [m_outputSettings release];
     m_outputSettings = nil;
 
     // Set pixel format
     NSDictionary *dictionary = nil;
-    if (m_rhi->backend() == QRhi::Metal) {
-        dictionary = @{(NSString *)kCVPixelBufferPixelFormatTypeKey:
-        @[
-            @(kCVPixelFormatType_32BGRA),
-            @(kCVPixelFormatType_32RGBA),
-            @(kCVPixelFormatType_422YpCbCr8),
-            @(kCVPixelFormatType_422YpCbCr8_yuvs),
-            @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange),
-            @(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange),
-            @(kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange),
-            @(kCVPixelFormatType_420YpCbCr10BiPlanarFullRange),
-            @(kCVPixelFormatType_OneComponent8),
-            @(kCVPixelFormatType_OneComponent16),
-            @(kCVPixelFormatType_420YpCbCr8Planar),
-            @(kCVPixelFormatType_420YpCbCr8PlanarFullRange)
-        ]
-#ifndef Q_OS_IOS // This key is not supported and generates a warning.
-        , (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
-#endif // Q_OS_IOS
-        };
-    } else if (m_rhi->backend() == QRhi::OpenGLES2) {
+    if (m_rhi && m_rhi->backend() == QRhi::OpenGLES2) {
 #if QT_CONFIG(opengl)
         dictionary = @{(NSString *)kCVPixelBufferPixelFormatTypeKey:
             @(kCVPixelFormatType_32BGRA)
@@ -210,7 +187,28 @@ void AVFVideoSinkInterface::setOutputSettings()
 #endif // Q_OS_IOS
         };
 #endif
+    } else {
+        dictionary = @{(NSString *)kCVPixelBufferPixelFormatTypeKey:
+       @[
+           @(kCVPixelFormatType_32BGRA),
+           @(kCVPixelFormatType_32RGBA),
+           @(kCVPixelFormatType_422YpCbCr8),
+           @(kCVPixelFormatType_422YpCbCr8_yuvs),
+           @(kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange),
+           @(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange),
+           @(kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange),
+           @(kCVPixelFormatType_420YpCbCr10BiPlanarFullRange),
+           @(kCVPixelFormatType_OneComponent8),
+           @(kCVPixelFormatType_OneComponent16),
+           @(kCVPixelFormatType_420YpCbCr8Planar),
+           @(kCVPixelFormatType_420YpCbCr8PlanarFullRange)
+       ]
+#ifndef Q_OS_IOS // This key is not supported and generates a warning.
+       , (NSString *)kCVPixelBufferMetalCompatibilityKey: @true
+#endif // Q_OS_IOS
+        };
     }
+
     m_outputSettings = [[NSDictionary alloc] initWithDictionary:dictionary];
 }
 
