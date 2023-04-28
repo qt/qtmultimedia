@@ -5,20 +5,29 @@
 #include "qaudiosink.h"
 #include "qaudiooutput.h"
 #include "private/qplatformaudiooutput_p.h"
+#include <QtCore/qloggingcategory.h>
 
 #include "qffmpegresampler_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 
 QT_BEGIN_NAMESPACE
 
+static Q_LOGGING_CATEGORY(qLcAudioRenderer, "qt.multimedia.ffmpeg.audiorenderer");
+
 namespace QFFmpeg {
 
-constexpr std::chrono::microseconds audioSinkBufferSize(100000);
+using namespace std::chrono_literals;
+
+namespace {
+constexpr auto AudioSinkBufferTime = 100000us;
+constexpr auto MinDesiredBufferTime = AudioSinkBufferTime / 10;
+
+// actual playback rate chang during the soft compensation
+constexpr qreal CompensationAngleFactor = 0.01;
+} // namespace
 
 AudioRenderer::AudioRenderer(const TimeController &tc, QAudioOutput *output)
-    : Renderer(tc,
-               audioSinkBufferSize / 2 /*Ensures kind of "spring" in order to avoid chopy sound*/),
-      m_output(output)
+    : Renderer(tc, MinDesiredBufferTime), m_output(output)
 {
     if (output) {
         // TODO: implement the signals in QPlatformAudioOutput and connect to them, QTBUG-112294
@@ -56,6 +65,7 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
         if (!frame.isValid())
             return {};
 
+        updateSampleCompensation(frame);
         m_bufferedData = m_resampler->resample(frame.avFrame());
         m_bufferWritten = 0;
     }
@@ -106,6 +116,7 @@ void AudioRenderer::initResempler(const Codec *codec)
 
 void AudioRenderer::freeOutput()
 {
+    qCDebug(qLcAudioRenderer) << "Free audio output";
     if (m_sink) {
         m_sink->reset();
 
@@ -141,12 +152,54 @@ void AudioRenderer::updateOutput(const Codec *codec)
     if (!m_sink) {
         m_sink = std::make_unique<QAudioSink>(m_output->device(), m_format);
         updateVolume();
-        m_sink->setBufferSize(m_format.bytesForDuration(audioSinkBufferSize.count()));
+        m_sink->setBufferSize(m_format.bytesForDuration(AudioSinkBufferTime.count()));
         m_ioDevice = m_sink->start();
     }
 
     if (!m_resampler) {
         initResempler(codec);
+    }
+}
+
+void AudioRenderer::updateSampleCompensation(const Frame &currentFrame)
+{
+    // Currently we use "soft" compensation with a positive delta
+    // for slight increasing of the buffer loading if it's too low
+    // in order to avoid choppy sound. If the bufer loading is too low,
+    // QAudioSink sometimes utilizes all written data earlier than new data delivered,
+    // that produces sound clicks (most hearable on Windows).
+    //
+    // TODO:
+    // 1. Probably, use "hard" compensation (inject silence) on the start and after pause
+    // 2. Probably, use "soft" compensation with a negative delta for decreasing buffer loading.
+    //    Currently, we use renderers synchronizations, but the suggested approach might imrove
+    //    the sound rendering and avoid changing of the current rendering position.
+
+    Q_ASSERT(m_sink);
+    Q_ASSERT(m_resampler);
+    Q_ASSERT(currentFrame.isValid());
+
+    const auto loadBufferTime = AudioSinkBufferTime
+            * qMax(m_sink->bufferSize() - m_sink->bytesFree(), 0) / m_sink->bufferSize();
+
+    constexpr auto frameDelayThreshold = MinDesiredBufferTime / 2;
+    const bool positiveCompensationNeeded = loadBufferTime < MinDesiredBufferTime
+            && !m_resampler->isSampleCompensationActive()
+            && frameDelay(currentFrame) < frameDelayThreshold;
+
+    if (positiveCompensationNeeded) {
+        constexpr auto targetBufferTime = MinDesiredBufferTime * 2;
+        const auto delta = m_format.sampleRate() * (targetBufferTime - loadBufferTime) / 1s;
+        const auto interval = delta / CompensationAngleFactor;
+
+        qCDebug(qLcAudioRenderer) << "Enable audio sample speed up compensation. Delta:" << delta
+                                  << "Interval:" << interval
+                                  << "SampleRate:" << m_format.sampleRate()
+                                  << "SinkLoadTime(us):" << loadBufferTime.count()
+                                  << "SamplesProcessed:" << m_resampler->samplesProcessed();
+
+        m_resampler->setSampleCompensation(static_cast<qint32>(delta),
+                                           static_cast<quint32>(interval));
     }
 }
 

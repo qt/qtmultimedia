@@ -75,6 +75,8 @@ protected:
 
     float playbackRate() const;
 
+    std::chrono::microseconds frameDelay(const Frame &frame) const;
+
 private:
     void doNextStep() override;
 

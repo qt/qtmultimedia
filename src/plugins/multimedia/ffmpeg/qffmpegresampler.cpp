@@ -85,11 +85,22 @@ QAudioBuffer Resampler::resample(const AVFrame *frame)
     m_samplesProcessed += out_samples;
 
     qCDebug(qLcResampler) << "    new frame" << startTime << "in_samples" << frame->nb_samples << out_samples << outSamples;
-    QAudioBuffer buffer(samples, m_outputFormat, startTime);
-    return buffer;
+    return QAudioBuffer(samples, m_outputFormat, startTime);
 }
 
+void Resampler::setSampleCompensation(qint32 delta, quint32 distance)
+{
+    const int res = swr_set_compensation(resampler, delta, static_cast<int>(distance));
+    if (res < 0)
+        qCWarning(qLcResampler) << "swr_set_compensation fail:" << res;
+    else
+        m_endCompensationSample = m_samplesProcessed + distance;
+}
 
+bool Resampler::isSampleCompensationActive() const
+{
+    return m_samplesProcessed < m_endCompensationSample;
+}
 }
 
 QT_END_NAMESPACE
