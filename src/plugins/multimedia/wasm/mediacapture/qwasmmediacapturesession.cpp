@@ -25,14 +25,18 @@ QPlatformCamera *QWasmMediaCaptureSession::camera()
 
 void QWasmMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
-    if (!camera)
-        return;
-    QWasmCamera *wasmCamera = static_cast<QWasmCamera *>(camera);
-    if (!wasmCamera || m_camera.data() == wasmCamera)
-        return;
-    m_camera.reset(wasmCamera);
+    if (!camera) {
+        if (m_camera == nullptr)
+            return;
+        m_camera.reset(nullptr);
+    } else {
+        QWasmCamera *wasmCamera = static_cast<QWasmCamera *>(camera);
+        if (m_camera.data() == wasmCamera)
+            return;
+        m_camera.reset(wasmCamera);
+        m_camera->setCaptureSession(this);
+    }
     emit cameraChanged();
-    m_camera->setCaptureSession(this);
 }
 
 QPlatformImageCapture *QWasmMediaCaptureSession::imageCapture()
