@@ -50,6 +50,8 @@ PlaybackEngine::PlaybackEngine()
 
 PlaybackEngine::~PlaybackEngine() {
     qCDebug(qLcPlaybackEngine) << "Delete PlaybackEngine";
+
+    finalizeOutputs();
     forEachExistingObject([](auto &object) { object.reset(); });
     deleteFreeThreads();
 }
@@ -127,8 +129,10 @@ void PlaybackEngine::setState(QMediaPlayer::PlaybackState state) {
 
     const auto prevState = std::exchange(m_state, state);
 
-    if (m_state == QMediaPlayer::StoppedState)
+    if (m_state == QMediaPlayer::StoppedState) {
+        finalizeOutputs();
         finilizeTime(0);
+    }
 
     if (prevState == QMediaPlayer::StoppedState || m_state == QMediaPlayer::StoppedState)
         recreateObjects();
@@ -438,8 +442,7 @@ void PlaybackEngine::deleteFreeThreads() {
 
 bool PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
 {
-    forEachExistingObject([](auto &object) { object.reset(); });
-    deleteFreeThreads();
+    stop();
 
     m_codecs = {};
 
@@ -448,14 +451,21 @@ bool PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
         return false;
     }
 
-    forceUpdate();
     return true;
 }
 
 void PlaybackEngine::setVideoSink(QVideoSink *sink)
 {
-    if (std::exchange(m_videoSink, sink) != sink)
+    auto prev = std::exchange(m_videoSink, sink);
+    if (prev == sink)
+        return;
+
+    updateActiveVideoOutput(sink);
+
+    if (!sink || !prev) {
+        // might need some improvements
         forceUpdate();
+    }
 }
 
 void PlaybackEngine::setAudioSink(QPlatformAudioOutput *output) {
@@ -464,8 +474,16 @@ void PlaybackEngine::setAudioSink(QPlatformAudioOutput *output) {
 
 void PlaybackEngine::setAudioSink(QAudioOutput *output)
 {
-    if (std::exchange(m_audioOutput, output) != output)
+    auto prev = std::exchange(m_audioOutput, output);
+    if (prev == output)
+        return;
+
+    updateActiveAudioOutput(output);
+
+    if (!output || !prev) {
+        // might need some improvements
         forceUpdate();
+    }
 }
 
 qint64 PlaybackEngine::currentPosition(bool topPos) const {
@@ -516,10 +534,33 @@ void PlaybackEngine::finilizeTime(qint64 pos)
     m_currentLoopOffset = {};
 }
 
+void PlaybackEngine::finalizeOutputs()
+{
+    updateActiveAudioOutput(nullptr);
+    updateActiveVideoOutput(nullptr, true);
+}
+
 bool PlaybackEngine::hasRenderer(quint64 id) const
 {
     return std::any_of(m_renderers.begin(), m_renderers.end(),
                        [id](auto &renderer) { return renderer && renderer->id() == id; });
+}
+
+void PlaybackEngine::updateActiveAudioOutput(QAudioOutput *output)
+{
+    if (auto renderer =
+                qobject_cast<AudioRenderer *>(m_renderers[QPlatformMediaPlayer::AudioStream].get()))
+        renderer->setOutput(output);
+}
+
+void PlaybackEngine::updateActiveVideoOutput(QVideoSink *sink, bool cleanOutput)
+{
+    if (auto renderer = qobject_cast<SubtitleRenderer *>(
+                m_renderers[QPlatformMediaPlayer::SubtitleStream].get()))
+        renderer->setOutput(sink, cleanOutput);
+    if (auto renderer =
+                qobject_cast<VideoRenderer *>(m_renderers[QPlatformMediaPlayer::VideoStream].get()))
+        renderer->setOutput(sink, cleanOutput);
 }
 }
 

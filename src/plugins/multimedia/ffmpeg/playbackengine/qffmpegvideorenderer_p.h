@@ -28,6 +28,8 @@ class VideoRenderer : public Renderer
 public:
     VideoRenderer(const TimeController &tc, QVideoSink *sink);
 
+    void setOutput(QVideoSink *sink, bool cleanPrevSink = false);
+
 protected:
     RenderingResult renderInternal(Frame frame) override;
 

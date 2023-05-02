@@ -35,6 +35,8 @@ class AudioRenderer : public Renderer
 public:
     AudioRenderer(const TimeController &tc, QAudioOutput *output);
 
+    void setOutput(QAudioOutput *output);
+
     ~AudioRenderer() override;
 
 protected:

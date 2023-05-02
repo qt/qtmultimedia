@@ -14,13 +14,23 @@ VideoRenderer::VideoRenderer(const TimeController &tc, QVideoSink *sink)
 {
 }
 
+void VideoRenderer::setOutput(QVideoSink *sink, bool cleanPrevSink)
+{
+    setOutputInternal(m_sink, sink, [cleanPrevSink](QVideoSink *prev) {
+        if (prev && cleanPrevSink)
+            prev->setVideoFrame({});
+    });
+}
+
 VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
 {
-    if (!frame.isValid())
-        return {};
-
     if (!m_sink)
         return {};
+
+    if (!frame.isValid()) {
+        m_sink->setVideoFrame({});
+        return {};
+    }
 
     //        qCDebug(qLcVideoRenderer) << "RHI:" << accel.isNull() << accel.rhi() << sink->rhi();
 
