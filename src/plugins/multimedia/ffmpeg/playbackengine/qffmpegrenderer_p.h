@@ -77,6 +77,20 @@ protected:
 
     std::chrono::microseconds frameDelay(const Frame &frame) const;
 
+    template<typename Output, typename ChangeHandler>
+    void setOutputInternal(QPointer<Output> &actual, Output *desired, ChangeHandler &&changeHandler)
+    {
+        const auto connectionType = thread() == QThread::currentThread()
+                ? Qt::AutoConnection
+                : Qt::BlockingQueuedConnection;
+        auto doer = [desired, changeHandler, &actual]() {
+            const auto prev = std::exchange(actual, desired);
+            if (prev != desired)
+                changeHandler(prev);
+        };
+        QMetaObject::invokeMethod(this, doer, connectionType);
+    }
+
 private:
     void doNextStep() override;
 

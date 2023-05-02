@@ -129,6 +129,10 @@ protected: // objects managing
 
     virtual RendererPtr createRenderer(QPlatformMediaPlayer::TrackType trackType);
 
+    void updateActiveAudioOutput(QAudioOutput *output);
+
+    void updateActiveVideoOutput(QVideoSink *sink, bool cleanOutput = false);
+
 private:
     void createStreamAndRenderer(QPlatformMediaPlayer::TrackType trackType);
 
@@ -167,6 +171,8 @@ private:
     bool hasMediaStream() const;
 
     void finilizeTime(qint64 pos);
+
+    void finalizeOutputs();
 
 private:
     TimeController m_timeController;

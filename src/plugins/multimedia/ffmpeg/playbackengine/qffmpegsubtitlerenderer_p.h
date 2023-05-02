@@ -30,6 +30,8 @@ public:
 
     ~SubtitleRenderer() override;
 
+    void setOutput(QVideoSink *sink, bool cleanPrevSink = false);
+
 protected:
     RenderingResult renderInternal(Frame frame) override;
 

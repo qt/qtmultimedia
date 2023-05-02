@@ -37,6 +37,11 @@ AudioRenderer::AudioRenderer(const TimeController &tc, QAudioOutput *output)
     }
 }
 
+void AudioRenderer::setOutput(QAudioOutput *output)
+{
+    setOutputInternal(m_output, output, [this](QAudioOutput *) { onDeviceChanged(); });
+}
+
 AudioRenderer::~AudioRenderer()
 {
     freeOutput();
