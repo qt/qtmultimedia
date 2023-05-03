@@ -79,6 +79,7 @@ private slots:
     void changeLoopsOnTheFly();
     void lazyLoadVideo();
     void videoSinkSignals();
+    void nonAsciiFileName();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -1920,6 +1921,32 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
 
     QTRY_COMPARE_GE(videoFrameCounter, 2);
     QCOMPARE(videoSizeCounter, 1);
+}
+
+void tst_QMediaPlayerBackend::nonAsciiFileName()
+{
+    QFile resourceFile(":/testdata/test.wav");
+    if (!resourceFile.open(QIODeviceBase::ReadOnly))
+        QSKIP("Could not open a resource file");
+
+    QTemporaryFile temporaryFile("äöüØøÆ中文");
+    if (!temporaryFile.open())
+        QSKIP("Could not open a temporary file");
+
+    QByteArray bytes = resourceFile.readAll();
+    QDataStream stream(&temporaryFile);
+    stream.writeRawData(bytes.data(), bytes.length());
+
+    QMediaPlayer player;
+
+    QSignalSpy errorOccurredSpy(&player, &QMediaPlayer::errorOccurred);
+
+    player.setSource(temporaryFile.fileName());
+    player.play();
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    QCOMPARE(errorOccurredSpy.size(), 0);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
