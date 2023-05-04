@@ -116,14 +116,18 @@ void QMediaPlayerPrivate::setStatus(QMediaPlayer::MediaStatus s)
     emit q->mediaStatusChanged(s);
 }
 
-void QMediaPlayerPrivate::setError(int error, const QString &errorString)
+void QMediaPlayerPrivate::setError(QMediaPlayer::Error error, const QString &errorString)
 {
     Q_Q(QMediaPlayer);
 
-    this->error = QMediaPlayer::Error(error);
-    this->errorString = errorString;
-    emit q->errorChanged();
-    emit q->errorOccurred(this->error, errorString);
+    auto prevError = std::exchange(this->error, error);
+    auto prevErrorString = std::exchange(this->errorString, errorString);
+
+    if (prevError != error || prevErrorString != errorString)
+        emit q->errorChanged();
+
+    if (error != QMediaPlayer::NoError)
+        emit q->errorOccurred(error, errorString);
 }
 
 void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
@@ -507,8 +511,7 @@ void QMediaPlayer::play()
         return;
 
     // Reset error conditions
-    d->error = NoError;
-    d->errorString = QString();
+    d->setError(NoError, QString());
 
     d->control->play();
 }
