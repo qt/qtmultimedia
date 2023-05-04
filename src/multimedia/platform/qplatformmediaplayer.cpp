@@ -29,7 +29,7 @@ void QPlatformMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
 
 void QPlatformMediaPlayer::error(int error, const QString &errorString)
 {
-    player->d_func()->setError(error, errorString);
+    player->d_func()->setError(QMediaPlayer::Error(error), errorString);
 }
 
 QT_END_NAMESPACE

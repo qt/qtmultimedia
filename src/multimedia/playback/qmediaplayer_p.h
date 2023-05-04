@@ -60,7 +60,7 @@ public:
 
     void setState(QMediaPlayer::PlaybackState state);
     void setStatus(QMediaPlayer::MediaStatus status);
-    void setError(int error, const QString &errorString);
+    void setError(QMediaPlayer::Error error, const QString &errorString);
 
     void setVideoSink(QVideoSink *sink)
     {
