@@ -282,7 +282,7 @@ static QMaybe<QWindowsIUPointer<ID3D11Device>> createD3D11Device(IDXGIAdapter1 *
 {
     QWindowsIUPointer<ID3D11Device> d3d11dev;
     HRESULT hr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-                                   D3D11_CREATE_DEVICE_DEBUG , nullptr, 0, D3D11_SDK_VERSION,
+                                   0, nullptr, 0, D3D11_SDK_VERSION,
                                    d3d11dev.address(), nullptr, nullptr);
     if (SUCCEEDED(hr))
         return d3d11dev;
