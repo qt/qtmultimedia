@@ -3,6 +3,7 @@
 // GPL-3.0-only
 
 #include "qffmpegscreencapture_dxgi_p.h"
+#include "qffmpegscreencapturethread_p.h"
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qmultimediautils_p.h>
 #include <private/qwindowsmultimediautils_p.h>
@@ -152,64 +153,40 @@ static QMaybe<QWindowsIUPointer<ID3D11Texture2D>> getNextFrame(ID3D11Device *dev
     return texCopy;
 }
 
-class DxgiScreenGrabberActive : public QThread
+class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegScreenCaptureThread
 {
 public:
-    DxgiScreenGrabberActive(QPlatformScreenCapture &screenCapture, QWindowsIUPointer<ID3D11Device> &device,
-                        QWindowsIUPointer<IDXGIOutputDuplication> &duplication, qreal maxFrameRate)
-        : QThread()
-        , m_screenCapture(screenCapture)
+    Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen, QWindowsIUPointer<ID3D11Device> &device,
+            QWindowsIUPointer<IDXGIOutputDuplication> &duplication)
+        : QFFmpegScreenCaptureThread()
         , m_duplication(duplication)
         , m_device(device)
-        , m_maxFrameRate(maxFrameRate)
-    {}
+        , m_ctxMutex(std::make_shared<QMutex>())
+    {
+        setFrameRate(screen->refreshRate());
+        addFrameCallback(screenCapture, &QFFmpegScreenCaptureDxgi::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &screenCapture, &QFFmpegScreenCaptureDxgi::updateError);
+    }
+
+    ~Grabber() {
+        stop();
+    }
 
     void run() override
     {
-        // TODO: refactor with QTimer
-
-        qCDebug(qLcScreenCaptureDxgi) << "ScreenGrabberActive started";
-
         DXGI_OUTDUPL_DESC outputDesc = {};
         m_duplication->GetDesc(&outputDesc);
 
-        QSize frameSize = { int(outputDesc.ModeDesc.Width), int(outputDesc.ModeDesc.Height) };
-        QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_BGRA8888);
+        m_frameSize = { int(outputDesc.ModeDesc.Width), int(outputDesc.ModeDesc.Height) };
+        QVideoFrameFormat frameFormat(m_frameSize, QVideoFrameFormat::Format_BGRA8888);
 
         m_formatMutex.lock();
-        m_format = format;
-        m_format.setFrameRate(int(m_maxFrameRate));
+        m_format = frameFormat;
+        m_format.setFrameRate(int(frameRate()));
         m_formatMutex.unlock();
         m_waitForFormat.wakeAll();
 
-        const microseconds frameTime(quint64(1000000. / m_maxFrameRate));
-        time_point frameStopTime = steady_clock::now();
-        time_point frameStartTime = frameStopTime - frameTime;
-
-        std::shared_ptr<QMutex> ctxMutex(new QMutex);
-        while (!isInterruptionRequested()) {
-            ctxMutex->lock();
-            auto maybeTex = getNextFrame(m_device.get(), m_duplication.get());
-            ctxMutex->unlock();
-
-            if (maybeTex) {
-                auto buffer = new QD3D11TextureVideoBuffer(m_device, ctxMutex, maybeTex.value(), frameSize);
-                QVideoFrame frame(buffer, format);
-                frame.setStartTime(duration_cast<microseconds>(frameStartTime.time_since_epoch()).count());
-                frame.setEndTime(duration_cast<microseconds>(frameStopTime.time_since_epoch()).count());
-                emit m_screenCapture.newVideoFrame(frame);
-            } else {
-                emit m_screenCapture.updateError(maybeTex.error().isEmpty() ? QScreenCapture::NoError
-                                                                            : QScreenCapture::CaptureFailed,
-                                                 maybeTex.error());
-            }
-
-            frameStartTime = frameStopTime;
-            std::this_thread::sleep_until(frameStartTime + frameTime);
-            frameStopTime = steady_clock::now();
-        }
-
-        qCDebug(qLcScreenCaptureDxgi) << "ScreenGrabberActive finished";
+        QFFmpegScreenCaptureThread::run();
     }
 
     QVideoFrameFormat format() {
@@ -219,14 +196,30 @@ public:
         return m_format;
     }
 
+    QVideoFrame grabFrame() override {
+        m_ctxMutex->lock();
+        auto maybeTex = getNextFrame(m_device.get(), m_duplication.get());
+        m_ctxMutex->unlock();
+
+        if (maybeTex) {
+            auto buffer = new QD3D11TextureVideoBuffer(m_device, m_ctxMutex, maybeTex.value(), m_frameSize);
+            return QVideoFrame(buffer, format());
+        } else {
+            const auto status = maybeTex.error().isEmpty() ? QScreenCapture::NoError
+                                                           : QScreenCapture::CaptureFailed;
+            updateError(status, maybeTex.error());
+        }
+        return {};
+    };
+
 private:
-    QPlatformScreenCapture &m_screenCapture;
     QWindowsIUPointer<IDXGIOutputDuplication> m_duplication;
     QWindowsIUPointer<ID3D11Device> m_device;
-    qreal m_maxFrameRate;
     QWaitCondition m_waitForFormat;
     QVideoFrameFormat m_format;
     QMutex m_formatMutex;
+    std::shared_ptr<QMutex> m_ctxMutex;
+    QSize m_frameSize;
 };
 
 static QMaybe<QWindowsIUPointer<IDXGIOutputDuplication>> duplicateOutput(ID3D11Device* device, IDXGIOutput *output)
@@ -291,94 +284,52 @@ static QMaybe<QWindowsIUPointer<ID3D11Device>> createD3D11Device(IDXGIAdapter1 *
 }
 
 QFFmpegScreenCaptureDxgi::QFFmpegScreenCaptureDxgi(QScreenCapture *screenCapture)
-    : QPlatformScreenCapture(screenCapture)
+    : QFFmpegScreenCaptureBase(screenCapture)
 {
-}
-
-QFFmpegScreenCaptureDxgi::~QFFmpegScreenCaptureDxgi()
-{
-    resetGrabber();
 }
 
 QVideoFrameFormat QFFmpegScreenCaptureDxgi::frameFormat() const
 {
-    if (m_active)
-        return m_active->format();
+    if (m_grabber)
+        return m_grabber->format();
     else
         return {};
 }
 
-void QFFmpegScreenCaptureDxgi::setScreen(QScreen *screen)
+bool QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
 {
-    QScreen *oldScreen = m_screen;
-    if (oldScreen == screen)
-        return;
+    if (bool(m_grabber) == active)
+        return true;
 
-    bool active = bool(m_active);
-    if (active)
-        setActiveInternal(false);
-
-    m_screen = screen;
-    if (active)
-        setActiveInternal(true);
-
-    emit screenCapture()->screenChanged(screen);
-}
-
-void QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
-{
-    if (bool(m_active) == active)
-        return;
-
-    if (m_active) {
-        resetGrabber();
+    if (m_grabber) {
+        m_grabber.reset();
+        return true;
     } else {
-        QScreen *screen = m_screen ? m_screen : QGuiApplication::primaryScreen();
+        QScreen *screen = this->screen() ? this->screen() : QGuiApplication::primaryScreen();
         auto maybeDxgiScreen = findDxgiScreen(screen);
         if (!maybeDxgiScreen) {
             qCDebug(qLcScreenCaptureDxgi) << maybeDxgiScreen.error();
-            emit updateError(QScreenCapture::NotFound, maybeDxgiScreen.error());
-            return;
+            updateError(QScreenCapture::NotFound, maybeDxgiScreen.error());
+            return false;
         }
 
         auto maybeDev = createD3D11Device(maybeDxgiScreen.value().adapter.get());
         if (!maybeDev) {
             qCDebug(qLcScreenCaptureDxgi) << maybeDev.error();
-            emit updateError(QScreenCapture::InternalError, maybeDev.error());
-            return;
+            updateError(QScreenCapture::InternalError, maybeDev.error());
+            return false;
         }
 
         auto maybeDupOutput = duplicateOutput(maybeDev.value().get(), maybeDxgiScreen.value().output.get());
         if (!maybeDupOutput) {
             qCDebug(qLcScreenCaptureDxgi) << maybeDupOutput.error();
-            emit updateError(QScreenCapture::InternalError, maybeDupOutput.error());
-            return;
+            updateError(QScreenCapture::InternalError, maybeDupOutput.error());
+            return false;
         }
 
-        qreal maxFrameRate = screen->refreshRate();
-        m_active.reset(new DxgiScreenGrabberActive(*this, maybeDev.value(), maybeDupOutput.value(), maxFrameRate));
-        m_active->start();
-    }
-}
-
-void QFFmpegScreenCaptureDxgi::setActive(bool active)
-{
-    if (bool(m_active) == active)
-        return;
-
-    emit updateError(QScreenCapture::NoError, {});
-
-    setActiveInternal(active);
-    emit screenCapture()->activeChanged(active);
-}
-
-void QFFmpegScreenCaptureDxgi::resetGrabber()
-{
-    if (m_active) {
-        m_active->requestInterruption();
-        m_active->quit();
-        m_active->wait();
-        m_active.reset();
+        m_grabber.reset(new Grabber(*this, screen, maybeDev.value(), maybeDupOutput.value()));
+        m_grabber->start();
+        return true;
     }
 }
 

@@ -44,10 +44,6 @@ public:
 
     ~QFFmpegScreenCaptureThread() override;
 
-    void setFrameRate(qreal rate);
-
-    qreal frameRate() const;
-
     void stop();
 
     template<typename Object, typename Method>
@@ -69,6 +65,10 @@ protected:
     virtual QVideoFrame grabFrame() = 0;
 
 protected:
+    void setFrameRate(qreal rate);
+
+    qreal frameRate() const;
+
     void updateTimerInterval();
 
 private:
