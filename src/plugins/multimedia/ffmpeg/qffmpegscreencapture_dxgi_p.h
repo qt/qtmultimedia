@@ -17,35 +17,26 @@
 //
 
 #include "qvideoframeformat.h"
+#include "qffmpegscreencapturebase_p.h"
 #include <private/qwindowsiupointer_p.h>
 #include <private/qplatformscreencapture_p.h>
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class DxgiScreenGrabberActive;
-class QFFmpegScreenCaptureDxgi : public QPlatformScreenCapture
+class QFFmpegScreenCaptureDxgi : public QFFmpegScreenCaptureBase
 {
 public:
-    explicit QFFmpegScreenCaptureDxgi(QScreenCapture *screenCapture);
-    ~QFFmpegScreenCaptureDxgi();
+    QFFmpegScreenCaptureDxgi(QScreenCapture *screenCapture);
 
-    void setActive(bool active) override;
-    bool isActive() const override { return bool(m_active); }
     QVideoFrameFormat frameFormat() const override;
 
-    void setScreen(QScreen *screen) override;
-    QScreen *screen() const override { return m_screen; }
+private:
+    bool setActiveInternal(bool active) override;
 
 private:
-    void setActiveInternal(bool active);
-
-    void resetGrabber();
-
-private:
-    std::unique_ptr<DxgiScreenGrabberActive> m_active;
-    QScreen *m_screen = nullptr;
-    QVideoFrameFormat m_format;
+    class Grabber;
+    std::unique_ptr<Grabber> m_grabber;
 };
 
 QT_END_NAMESPACE
