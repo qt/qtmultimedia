@@ -29,6 +29,7 @@ class Renderer : public PlaybackEngineObject
     Q_OBJECT
 public:
     using TimePoint = TimeController::TimePoint;
+    using Clock = TimeController::Clock;
     Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset = {});
 
     void syncSoft(TimePoint tp, qint64 trackPos);
@@ -68,7 +69,8 @@ protected:
 
     struct RenderingResult
     {
-        std::chrono::microseconds timeLeft = {};
+        bool done = true;
+        std::chrono::microseconds recheckInterval = std::chrono::microseconds(0);
     };
 
     virtual RenderingResult renderInternal(Frame frame) = 0;
@@ -76,6 +78,8 @@ protected:
     float playbackRate() const;
 
     std::chrono::microseconds frameDelay(const Frame &frame) const;
+
+    void changeRendererTime(std::chrono::microseconds offset);
 
     template<typename Output, typename ChangeHandler>
     void setOutputInternal(QPointer<Output> &actual, Output *desired, ChangeHandler &&changeHandler)
@@ -104,6 +108,7 @@ private:
     QQueue<Frame> m_frames;
 
     std::atomic_bool m_isStepForced = false;
+    std::optional<TimePoint> m_explicitNextFrameTime;
 };
 
 } // namespace QFFmpeg
