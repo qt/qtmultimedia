@@ -60,7 +60,6 @@ Resampler::Resampler(const Codec *codec, const QAudioFormat &outputFormat)
                         0,
                         nullptr);
 #endif
-
     swr_init(resampler);
 }
 
@@ -71,19 +70,41 @@ Resampler::~Resampler()
 
 QAudioBuffer Resampler::resample(const AVFrame *frame)
 {
-    const int outSamples = swr_get_out_samples(resampler, frame->nb_samples);
-    QByteArray samples(m_outputFormat.bytesForFrames(outSamples), Qt::Uninitialized);
+    const int maxOutSamples = adjustMaxOutSamples(frame);
+
+    QByteArray samples(m_outputFormat.bytesForFrames(maxOutSamples), Qt::Uninitialized);
     auto **in = const_cast<const uint8_t **>(frame->extended_data);
     auto *out = reinterpret_cast<uint8_t *>(samples.data());
-    const int out_samples = swr_convert(resampler, &out, outSamples,
-                                  in, frame->nb_samples);
-    samples.resize(m_outputFormat.bytesForFrames(out_samples));
+    const int outSamples = swr_convert(resampler, &out, maxOutSamples, in, frame->nb_samples);
+
+    samples.resize(m_outputFormat.bytesForFrames(outSamples));
 
     qint64 startTime = m_outputFormat.durationForFrames(m_samplesProcessed);
-    m_samplesProcessed += out_samples;
+    m_samplesProcessed += outSamples;
 
-    qCDebug(qLcResampler) << "    new frame" << startTime << "in_samples" << frame->nb_samples << out_samples << outSamples;
+    qCDebug(qLcResampler) << "    new frame" << startTime << "in_samples" << frame->nb_samples
+                          << outSamples << maxOutSamples;
     return QAudioBuffer(samples, m_outputFormat, startTime);
+}
+
+int Resampler::adjustMaxOutSamples(const AVFrame *frame)
+{
+    int maxOutSamples = swr_get_out_samples(resampler, frame->nb_samples);
+
+    const auto remainingCompensationDistance = m_endCompensationSample - m_samplesProcessed;
+
+    if (remainingCompensationDistance > 0 && maxOutSamples > remainingCompensationDistance) {
+        // If the remaining compensation distance less than output frame,
+        // the ffmpeg resampler bufferises the rest of frames that makes
+        // unexpected delays on large frames.
+        // The hack might cause some compensation bias on large frames,
+        // however it's not significant for our logic, in fact.
+        // TODO: probably, it will need some improvements
+        setSampleCompensation(0, 0);
+        maxOutSamples = swr_get_out_samples(resampler, frame->nb_samples);
+    }
+
+    return maxOutSamples;
 }
 
 void Resampler::setSampleCompensation(qint32 delta, quint32 distance)
@@ -91,13 +112,15 @@ void Resampler::setSampleCompensation(qint32 delta, quint32 distance)
     const int res = swr_set_compensation(resampler, delta, static_cast<int>(distance));
     if (res < 0)
         qCWarning(qLcResampler) << "swr_set_compensation fail:" << res;
-    else
+    else {
+        m_sampleCompensationDelta = delta;
         m_endCompensationSample = m_samplesProcessed + distance;
+    }
 }
 
-bool Resampler::isSampleCompensationActive() const
+qint32 Resampler::activeSampleCompensationDelta() const
 {
-    return m_samplesProcessed < m_endCompensationSample;
+    return m_samplesProcessed < m_endCompensationSample ? m_sampleCompensationDelta : 0;
 }
 }
 

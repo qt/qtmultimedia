@@ -21,9 +21,13 @@ using namespace std::chrono_literals;
 namespace {
 constexpr auto AudioSinkBufferTime = 100000us;
 constexpr auto MinDesiredBufferTime = AudioSinkBufferTime / 10;
+constexpr auto MaxDesiredBufferTime = 6 * AudioSinkBufferTime / 10;
+constexpr auto SampleCompenationOffset = AudioSinkBufferTime / 10;
 
 // actual playback rate chang during the soft compensation
 constexpr qreal CompensationAngleFactor = 0.01;
+
+constexpr auto DurationBias = 2ms; // avoids extra timer events
 } // namespace
 
 AudioRenderer::AudioRenderer(const TimeController &tc, QAudioOutput *output)
@@ -65,7 +69,7 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
         if (!frame.isValid())
             return {};
 
-        updateSampleCompensation(frame);
+        updateSynchronization(frame);
         m_bufferedData = m_resampler->resample(frame.avFrame());
         m_bufferWritten = 0;
     }
@@ -73,16 +77,20 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
     if (m_bufferedData.isValid()) {
         auto bytesWritten = m_ioDevice->write(m_bufferedData.constData<char>() + m_bufferWritten,
                                               m_bufferedData.byteCount() - m_bufferWritten);
+
         m_bufferWritten += bytesWritten;
 
         if (m_bufferWritten >= m_bufferedData.byteCount()) {
             m_bufferedData = {};
             m_bufferWritten = 0;
+
             return {};
         }
 
-        return Renderer::RenderingResult{ std::chrono::microseconds(m_format.durationForBytes(
-                m_sink->bufferSize() / 2 + m_bufferedData.byteCount() - m_bufferWritten)) };
+        const auto remainingDuration = std::chrono::microseconds(
+                m_format.durationForBytes(m_bufferedData.byteCount() - m_bufferWritten));
+
+        return { false, std::min(remainingDuration + DurationBias, AudioSinkBufferTime / 2) };
     }
 
     return {};
@@ -109,8 +117,14 @@ void AudioRenderer::initResempler(const Codec *codec)
     #endif
     */
 
+    // Test purposes:
+    // Set PlaybackRateDeviation > 1 (e.g. 1.01) to test high buffer loading
+    // or PlaybackRateDeviation < 1 to test low buffer loading.
+    constexpr qreal PlaybackRateDeviation = 1.;
+
     auto resamplerFormat = m_format;
-    resamplerFormat.setSampleRate(qRound(m_format.sampleRate() / playbackRate()));
+    resamplerFormat.setSampleRate(
+            qRound(m_format.sampleRate() / playbackRate() * PlaybackRateDeviation));
     m_resampler = std::make_unique<Resampler>(codec, resamplerFormat);
 }
 
@@ -150,6 +164,7 @@ void AudioRenderer::updateOutput(const Codec *codec)
     }
 
     if (!m_sink) {
+        // Insert a delay here to test time offset synchronization, e.g. QThread::sleep(1)
         m_sink = std::make_unique<QAudioSink>(m_output->device(), m_format);
         updateVolume();
         m_sink->setBufferSize(m_format.bytesForDuration(AudioSinkBufferTime.count()));
@@ -161,46 +176,80 @@ void AudioRenderer::updateOutput(const Codec *codec)
     }
 }
 
-void AudioRenderer::updateSampleCompensation(const Frame &currentFrame)
+void AudioRenderer::updateSynchronization(const Frame &currentFrame)
 {
-    // Currently we use "soft" compensation with a positive delta
-    // for slight increasing of the buffer loading if it's too low
-    // in order to avoid choppy sound. If the bufer loading is too low,
-    // QAudioSink sometimes utilizes all written data earlier than new data delivered,
-    // that produces sound clicks (most hearable on Windows).
+    // Currently we use "soft" compensation with a positive/negative delta
+    // for slight increasing/decreasing of the sound delay (roughly equal to buffer loading on a
+    // normal playng) if it's out of the range [min; max]. If the delay more than
+    // AudioSinkBufferTime we synchronize rendering time to ensure free buffer size and than
+    // decrease it more with "soft" synchronization.
     //
     // TODO:
     // 1. Probably, use "hard" compensation (inject silence) on the start and after pause
-    // 2. Probably, use "soft" compensation with a negative delta for decreasing buffer loading.
-    //    Currently, we use renderers synchronizations, but the suggested approach might imrove
-    //    the sound rendering and avoid changing of the current rendering position.
+    // 2. Make a delay as much stable as possible. For this aim, we should make
+    //    CompensationAngleFactor flexible, and all the time to the narrower range of desired
+    //    QAudioSink loading time.
 
-    Q_ASSERT(m_sink);
     Q_ASSERT(m_resampler);
     Q_ASSERT(currentFrame.isValid());
 
-    const auto loadBufferTime = AudioSinkBufferTime
-            * qMax(m_sink->bufferSize() - m_sink->bytesFree(), 0) / m_sink->bufferSize();
+    const auto bufferLoadingTime = currentBufferLoadingTime();
+    const auto currentFrameDelay = frameDelay(currentFrame);
+    auto soundDelay = currentFrameDelay + bufferLoadingTime;
 
-    constexpr auto frameDelayThreshold = MinDesiredBufferTime / 2;
-    const bool positiveCompensationNeeded = loadBufferTime < MinDesiredBufferTime
-            && !m_resampler->isSampleCompensationActive()
-            && frameDelay(currentFrame) < frameDelayThreshold;
+    const auto activeCompensationDelta = m_resampler->activeSampleCompensationDelta();
 
-    if (positiveCompensationNeeded) {
-        constexpr auto targetBufferTime = MinDesiredBufferTime * 2;
-        const auto delta = m_format.sampleRate() * (targetBufferTime - loadBufferTime) / 1s;
-        const auto interval = delta / CompensationAngleFactor;
+    if (soundDelay > AudioSinkBufferTime) {
+        const auto targetSoundDelay = (AudioSinkBufferTime + MaxDesiredBufferTime) / 2;
+        changeRendererTime(soundDelay - targetSoundDelay);
+        qCDebug(qLcAudioRenderer) << "Change rendering time: Audio time offset."
+                                  << "Prev sound delay:" << soundDelay.count()
+                                  << "Target sound delay:" << targetSoundDelay.count()
+                                  << "New actual sound delay:"
+                                  << (frameDelay(currentFrame) + bufferLoadingTime).count();
 
-        qCDebug(qLcAudioRenderer) << "Enable audio sample speed up compensation. Delta:" << delta
-                                  << "Interval:" << interval
-                                  << "SampleRate:" << m_format.sampleRate()
-                                  << "SinkLoadTime(us):" << loadBufferTime.count()
-                                  << "SamplesProcessed:" << m_resampler->samplesProcessed();
+        soundDelay = targetSoundDelay;
+    }
+
+    constexpr auto AvgDesiredBufferTime = (MinDesiredBufferTime + MaxDesiredBufferTime) / 2;
+
+    std::optional<int> newCompensationSign;
+    if (soundDelay < MinDesiredBufferTime && activeCompensationDelta <= 0)
+        newCompensationSign = 1;
+    else if (soundDelay > MaxDesiredBufferTime && activeCompensationDelta >= 0)
+        newCompensationSign = -1;
+    else if ((soundDelay <= AvgDesiredBufferTime && activeCompensationDelta < 0)
+             || (soundDelay >= AvgDesiredBufferTime && activeCompensationDelta > 0))
+        newCompensationSign = 0;
+
+    // qDebug() << soundDelay.count() << bufferLoadingTime.count();
+
+    if (newCompensationSign) {
+        const auto target = *newCompensationSign == 0 ? soundDelay
+                : *newCompensationSign > 0 ? MinDesiredBufferTime + SampleCompenationOffset
+                                           : MaxDesiredBufferTime - SampleCompenationOffset;
+        const auto delta = m_format.sampleRate() * (target - soundDelay) / 1s;
+        const auto interval = std::abs(delta) / CompensationAngleFactor;
+
+        qDebug(qLcAudioRenderer) << "Set audio sample compensation. Delta (samples and us):"
+                                 << delta << (target - soundDelay).count()
+                                 << "PrevDelta:" << activeCompensationDelta
+                                 << "Interval:" << interval
+                                 << "SampleRate:" << m_format.sampleRate()
+                                 << "Delay(us):" << soundDelay.count()
+                                 << "SamplesProcessed:" << m_resampler->samplesProcessed();
 
         m_resampler->setSampleCompensation(static_cast<qint32>(delta),
                                            static_cast<quint32>(interval));
     }
+}
+
+std::chrono::microseconds AudioRenderer::currentBufferLoadingTime() const
+{
+    Q_ASSERT(m_sink);
+
+    return AudioSinkBufferTime * qMax(m_sink->bufferSize() - m_sink->bytesFree(), 0)
+            / m_sink->bufferSize();
 }
 
 } // namespace QFFmpeg

@@ -50,10 +50,13 @@ void Renderer::doForceStep()
         QMetaObject::invokeMethod(this, [=]() {
             // maybe set m_forceStepMaxPos
 
-            if (isAtEnd())
+            if (isAtEnd()) {
                 setForceStepDone();
-            else
+            }
+            else {
+                m_explicitNextFrameTime = Clock::now();
                 scheduleNextStep();
+            }
         });
 }
 
@@ -69,8 +72,6 @@ void Renderer::onFinalFrameReceived()
 
 void Renderer::render(Frame frame)
 {
-    using namespace std::chrono;
-
     const auto isFrameOutdated = frame.isValid() && frame.absoluteEnd() < m_seekPos;
 
     if (isFrameOutdated) {
@@ -104,10 +105,15 @@ float Renderer::playbackRate() const
 
 int Renderer::timerInterval() const
 {
-    if (auto frame = m_frames.front(); frame.isValid() && !m_isStepForced) {
+    auto frame = !m_frames.empty() ? m_frames.front() : Frame();
+    if (frame.isValid()) {
         using namespace std::chrono;
-        const auto delay =
-                m_timeController.timeFromPosition(frame.absolutePts()) - steady_clock::now();
+
+        const auto nextTime = m_explicitNextFrameTime
+                ? *m_explicitNextFrameTime
+                : m_timeController.timeFromPosition(frame.absolutePts());
+
+        const auto delay = nextTime - Clock::now();
         return std::max(0, static_cast<int>(duration_cast<milliseconds>(delay).count()));
     }
 
@@ -119,6 +125,7 @@ bool Renderer::setForceStepDone()
     if (!m_isStepForced.exchange(false))
         return false;
 
+    m_explicitNextFrameTime.reset();
     emit forceStepDone();
     return true;
 }
@@ -135,15 +142,9 @@ void Renderer::doNextStep()
     }
 
     const auto result = renderInternal(frame);
-    const bool done = result.timeLeft.count() <= 0;
 
-    if (result.timeLeft.count() && frame.isValid()) {
-        const auto now = std::chrono::steady_clock::now();
-        m_timeController.sync(now + result.timeLeft, frame.absolutePts());
-        emit synchronized(now + result.timeLeft, frame.absolutePts());
-    }
-
-    if (done) {
+    if (result.done) {
+        m_explicitNextFrameTime.reset();
         m_frames.dequeue();
 
         if (frame.isValid()) {
@@ -158,9 +159,11 @@ void Renderer::doNextStep()
 
             emit frameProcessed(frame);
         }
+    } else {
+        m_explicitNextFrameTime = Clock::now() + result.recheckInterval;
     }
 
-    setAtEnd(done && !frame.isValid());
+    setAtEnd(result.done && !frame.isValid());
 
     scheduleNextStep(false);
 }
@@ -168,8 +171,17 @@ void Renderer::doNextStep()
 std::chrono::microseconds Renderer::frameDelay(const Frame &frame) const
 {
     return std::chrono::duration_cast<std::chrono::microseconds>(
-            TimeController::Clock::now() - m_timeController.timeFromPosition(frame.absolutePts()));
+            Clock::now() - m_timeController.timeFromPosition(frame.absolutePts()));
 }
+
+void Renderer::changeRendererTime(std::chrono::microseconds offset)
+{
+    const auto now = Clock::now();
+    const auto pos = m_timeController.positionFromTime(now);
+    m_timeController.sync(now + offset, pos);
+    emit synchronized(now + offset, pos);
+}
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

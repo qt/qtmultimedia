@@ -52,7 +52,9 @@ protected:
 
     void updateVolume();
 
-    void updateSampleCompensation(const Frame &currentFrame);
+    void updateSynchronization(const Frame &currentFrame);
+
+    std::chrono::microseconds currentBufferLoadingTime() const;
 
 private:
     QPointer<QAudioOutput> m_output;
