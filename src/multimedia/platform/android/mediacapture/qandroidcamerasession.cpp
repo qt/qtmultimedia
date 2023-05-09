@@ -698,6 +698,22 @@ void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)
 
 void QAndroidCameraSession::onCameraPictureCaptured(const QVideoFrame &frame)
 {
+    // Frame needs to be correctly rotated before image proccessing. We are using
+    // the same rotation angle that was used for preview with setDisplayOrientation
+    auto rotation = QVideoFrame::Rotation0;
+    switch (currentCameraRotation()) {
+        case 90:
+            rotation = QVideoFrame::Rotation90;
+            break;
+        case 180:
+            rotation = QVideoFrame::Rotation180;
+            break;
+        case 270:
+            rotation = QVideoFrame::Rotation270;
+            break;
+    }
+    const_cast<QVideoFrame&>(frame).setRotationAngle(rotation);
+
     // Loading and saving the captured image can be slow, do it in a separate thread
     (void)QtConcurrent::run(&QAndroidCameraSession::processCapturedImage, this,
                             m_currentImageCaptureId, frame, m_imageCaptureToBuffer,

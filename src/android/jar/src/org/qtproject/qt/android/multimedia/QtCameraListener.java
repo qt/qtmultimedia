@@ -45,15 +45,7 @@ import android.hardware.Camera.CameraInfo;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.lang.Math;
-import android.media.ExifInterface;
-import java.io.ByteArrayOutputStream;
-import java.lang.String;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 
 public class QtCameraListener implements Camera.ShutterCallback,
                                          Camera.PictureCallback,
@@ -208,68 +200,6 @@ public class QtCameraListener implements Camera.ShutterCallback,
     @Override
     public void onPictureTaken(byte[] data, Camera camera)
     {
-        File outputFile = null;
-        try {
-            outputFile = File.createTempFile("pic_", ".jpg", QtMultimediaUtils.getCacheDirectory());
-            FileOutputStream out = new FileOutputStream(outputFile);
-
-            // we just want to read the exif...
-            BitmapFactory.decodeByteArray(data, 0, data.length)
-                    .compress(Bitmap.CompressFormat.JPEG, 10, out);
-
-            ExifInterface exif = new ExifInterface(outputFile.getAbsolutePath());
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION,
-                                                   ExifInterface.ORIENTATION_UNDEFINED);
-
-            int degree = 0;
-
-            switch (orientation) {
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                degree = 90;
-                break;
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                degree = 180;
-                break;
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                degree = 270;
-                break;
-            }
-
-            Camera.CameraInfo info = new Camera.CameraInfo();
-            Camera.getCameraInfo(m_cameraId, info);
-
-            int rotation = (info.orientation - degree + 360) % 360;
-
-            Bitmap source = BitmapFactory.decodeByteArray(data, 0, data.length);
-            Matrix matrix = new Matrix();
-            matrix.postRotate(rotation);
-
-            if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
-                matrix.postScale(-1, 1, source.getWidth() / 2.0f, source.getHeight() / 2.0f);
-            }
-
-            Bitmap rotatedBitmap = Bitmap.createBitmap(source, 0, 0, source.getWidth(),
-                                                       source.getHeight(), matrix, true);
-
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-            byte[] byteArray = outputStream.toByteArray();
-
-            rotatedBitmap.recycle();
-            source.recycle();
-
-            notifyPictureCaptured(m_cameraId, byteArray);
-
-            return;
-
-        } catch (Exception e) {
-            Log.w(TAG, "Error fixing bitmap orientation.");
-            e.printStackTrace();
-        } finally {
-            if (outputFile != null && outputFile.exists())
-                outputFile.delete();
-        }
-
         notifyPictureCaptured(m_cameraId, data);
     }
 
