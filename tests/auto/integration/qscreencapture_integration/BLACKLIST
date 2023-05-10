@@ -3,5 +3,5 @@ windows ci
 android ci
 
 #QTBUG-111190, v4l2m2m issues
-[recordToFile]
+[capture_capturesToFile_whenConnectedToMediaRecorder]
 linux ci
