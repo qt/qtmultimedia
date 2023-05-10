@@ -115,21 +115,21 @@ class tst_QScreenCaptureIntegration : public QObject
 
 private slots:
     void initTestCase();
-    void startStop();
-    void captureWindowById();
-    void captureWindow();
-    void captureOverlappedWindow();
-    void captureScreen();
-    void captureScreenByDefault();
-    void captureSecondaryScreen();
-    void removeWindowWhileCapture();
-    void recordToFile();
+    void setActive_startsAndStopsCapture();
+    void setWindowId_selectsCaptureWindow();
+    void setWindow_selectsCaptureWindow();
+    void setWindow_selectsWindow_whenWindowIsOverlapped();
+    void setScreen_selectsScreen_whenCalledWithWidgetsScreen();
+    void constructor_selectsPrimaryScreenAsDefault();
+    void setScreen_selectsSecondaryScreen_whenCalledWithSecondaryScreen();
+    void capture_fails_whenCapturedWindowIsRemoved();
+    void capture_capturesToFile_whenConnectedToMediaRecorder();
 
     void removeScreenWhileCapture(); // Keep the test last defined. TODO: find a way to restore
                                      // application screens.
 };
 
-void tst_QScreenCaptureIntegration::startStop()
+void tst_QScreenCaptureIntegration::setActive_startsAndStopsCapture()
 {
 #ifdef Q_OS_ANDROID
     // Should be removed after fixing QTBUG-112855
@@ -305,7 +305,7 @@ void tst_QScreenCaptureIntegration::initTestCase()
         QSKIP("Screen capturing not supported");
 }
 
-void tst_QScreenCaptureIntegration::captureWindowById()
+void tst_QScreenCaptureIntegration::setWindowId_selectsCaptureWindow()
 {
 #if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
     QSKIP("It is not the underlying windowing system");
@@ -318,7 +318,7 @@ void tst_QScreenCaptureIntegration::captureWindowById()
             [&widget](QScreenCapture &sc) { sc.setWindowId(widget->winId()); });
 }
 
-void tst_QScreenCaptureIntegration::captureWindow()
+void tst_QScreenCaptureIntegration::setWindow_selectsCaptureWindow()
 {
 #if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
     QSKIP("It is not the underlying windowing system");
@@ -331,7 +331,7 @@ void tst_QScreenCaptureIntegration::captureWindow()
             [&widget](QScreenCapture &sc) { sc.setWindow(widget->windowHandle()); });
 }
 
-void tst_QScreenCaptureIntegration::captureOverlappedWindow()
+void tst_QScreenCaptureIntegration::setWindow_selectsWindow_whenWindowIsOverlapped()
 {
 #if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
     QSKIP("It is not the underlying windowing system");
@@ -349,7 +349,7 @@ void tst_QScreenCaptureIntegration::captureOverlappedWindow()
     });
 }
 
-void tst_QScreenCaptureIntegration::captureScreen()
+void tst_QScreenCaptureIntegration::setScreen_selectsScreen_whenCalledWithWidgetsScreen()
 {
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint
                                                      | Qt::WindowStaysOnTopHint
@@ -364,7 +364,7 @@ void tst_QScreenCaptureIntegration::captureScreen()
             [&widget](QScreenCapture &sc) { sc.setScreen(widget->screen()); });
 }
 
-void tst_QScreenCaptureIntegration::captureScreenByDefault()
+void tst_QScreenCaptureIntegration::constructor_selectsPrimaryScreenAsDefault()
 {
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint
                                                      | Qt::WindowStaysOnTopHint
@@ -378,7 +378,7 @@ void tst_QScreenCaptureIntegration::captureScreenByDefault()
     capture(*widget, { 200, 100 }, QApplication::primaryScreen()->size(), nullptr);
 }
 
-void tst_QScreenCaptureIntegration::captureSecondaryScreen()
+void tst_QScreenCaptureIntegration::setScreen_selectsSecondaryScreen_whenCalledWithSecondaryScreen()
 {
     const auto screens = QApplication::screens();
     if (screens.size() < 2)
@@ -399,7 +399,7 @@ void tst_QScreenCaptureIntegration::captureSecondaryScreen()
             [&screens](QScreenCapture &sc) { sc.setScreen(screens.back()); });
 }
 
-void tst_QScreenCaptureIntegration::removeWindowWhileCapture()
+void tst_QScreenCaptureIntegration::capture_fails_whenCapturedWindowIsRemoved()
 {
 #if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
     QSKIP("It is not the underlying windowing system");
@@ -411,7 +411,7 @@ void tst_QScreenCaptureIntegration::removeWindowWhileCapture()
                        [&widget]() { widget.reset(); });
 }
 
-void tst_QScreenCaptureIntegration::recordToFile()
+void tst_QScreenCaptureIntegration::capture_capturesToFile_whenConnectedToMediaRecorder()
 {
     // Create widget with blue color
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
