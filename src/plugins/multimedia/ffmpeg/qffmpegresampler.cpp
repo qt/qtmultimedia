@@ -60,8 +60,6 @@ Resampler::Resampler(const Codec *codec, const QAudioFormat &outputFormat)
                         0,
                         nullptr);
 #endif
-    // if we're not the master clock, we might need to handle clock adjustments, initialize for that
-    av_opt_set_double(resampler, "async", m_outputFormat.sampleRate()/50, 0);
 
     swr_init(resampler);
 }
