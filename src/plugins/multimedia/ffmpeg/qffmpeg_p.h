@@ -20,6 +20,8 @@ extern "C" {
   (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(58, 91, 100)) // since ffmpeg n4.3
 #define QT_FFMPEG_HAS_FRAME_TIME_BASE \
   (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 18, 100)) // since ffmpeg n5.0
+#define QT_FFMPEG_HAS_FRAME_DURATION \
+  (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(60, 3, 100)) // since ffmpeg n6.0
 
 QT_BEGIN_NAMESPACE
 
@@ -68,13 +70,22 @@ inline void setAVFrameTime(AVFrame &frame, int64_t pts, const AVRational &timeBa
 #endif
 }
 
-inline void getAVFrameTime(AVFrame &frame, int64_t &pts, AVRational &timeBase)
+inline void getAVFrameTime(const AVFrame &frame, int64_t &pts, AVRational &timeBase)
 {
     pts = frame.pts;
 #if QT_FFMPEG_HAS_FRAME_TIME_BASE
     timeBase = frame.time_base;
 #else
     timeBase = { 0, 1 };
+#endif
+}
+
+inline int64_t getAVFrameDuration(const AVFrame &frame)
+{
+#if QT_FFMPEG_HAS_FRAME_DURATION
+    return frame.duration;
+#else
+    return 0;
 #endif
 }
 
