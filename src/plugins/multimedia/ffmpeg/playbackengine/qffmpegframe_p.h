@@ -41,10 +41,13 @@ struct Frame
                 pts = codec.toUs(frame->pts);
             else
                 pts = codec.toUs(frame->best_effort_timestamp);
-            const auto &avgFrameRate = codec.stream()->avg_frame_rate;
-            duration = avgFrameRate.num
-                    ? (1000000 * avgFrameRate.den + avgFrameRate.num / 2) / avgFrameRate.num
-                    : 0;
+
+            if (auto frameDuration = getAVFrameDuration(*frame)) {
+                duration = codec.toUs(frameDuration);
+            } else {
+                const auto &avgFrameRate = codec.stream()->avg_frame_rate;
+                duration = mul(qint64(1000000), { avgFrameRate.den, avgFrameRate.num }).value_or(0);
+            }
         }
         Data(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
              const QObject *source)
