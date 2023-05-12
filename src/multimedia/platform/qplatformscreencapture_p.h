@@ -32,9 +32,11 @@ public:
     virtual void setScreen(QScreen *s) = 0;
     virtual QScreen *screen() const = 0;
 
+    // TODO: move the methods and implementations to QPlatformWindowCapture
     virtual void setWindow(QWindow *w);
     virtual QWindow *window() const;
 
+    // to be removed
     virtual void setWindowId(WId id);
     virtual WId windowId() const;
 

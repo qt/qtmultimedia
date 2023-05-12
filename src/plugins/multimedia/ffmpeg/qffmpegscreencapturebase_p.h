@@ -34,14 +34,6 @@ public:
 
     QScreen *screen() const final;
 
-    void setWindow(QWindow *w) final;
-
-    QWindow *window() const final;
-
-    void setWindowId(WId id) final;
-
-    WId windowId() const final;
-
 protected:
     virtual bool setActiveInternal(bool active) = 0;
 
@@ -52,8 +44,6 @@ private:
 private:
     bool m_active = false;
     QPointer<QScreen> m_screen;
-    QPointer<QWindow> m_window;
-    WId m_wid = 0;
 };
 
 QT_END_NAMESPACE

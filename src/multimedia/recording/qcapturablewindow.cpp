@@ -1,0 +1,149 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+#include "qcapturablewindow.h"
+#include "qcapturablewindow_p.h"
+#include "qplatformmediaintegration_p.h"
+
+QT_BEGIN_NAMESPACE
+
+QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCapturableWindowPrivate)
+
+/*!
+    \class QCapturableWindow
+    \inmodule QtMultimedia
+    \ingroup multimedia
+    \ingroup multimedia_video
+    \since 6.6
+
+    \brief Used for getting the basic information of a capturable window.
+
+    The class contains a set of window information, except the method
+    QCapturableWindow::isValid which pulls the current state
+    whenever it's called.
+
+    \sa QWindowCapture
+*/
+/*!
+    \qmlvaluetype CapturableWindow
+    \instantiates QCapturableWindow
+    \brief The CapturableWindow type is used getting basic
+    of a window that is available for capturing via WindowCapture.
+
+    \inqmlmodule QtMultimedia
+    \ingroup multimedia_qml
+    \ingroup multimedia_video_qml
+
+    The class contains a dump of window information, except the property
+    'isValid' which pulls the actual window state every time.
+
+    \sa WindowCapture
+*/
+
+/*!
+    \fn  QCapturableWindow::QCapturableWindow(QCapturableWindow &&other)
+
+    Constructs a QCapturableWindow by moving from \a other.
+*/
+
+/*!
+    \fn void QCapturableWindow::swap(QCapturableWindow &other) noexcept
+
+    Swaps the current window information with \a other.
+*/
+
+/*!
+    \fn  QCapturableWindow &QCapturableWindow::operator=(QCapturableWindow &&other)
+
+    Moves \a other into this QCapturableWindow.
+*/
+
+/*!
+    Constructs a null capturable window information that doesn't refer to any window.
+*/
+QCapturableWindow::QCapturableWindow() = default;
+
+/*!
+    Destroys the window information.
+ */
+QCapturableWindow::~QCapturableWindow() = default;
+
+/*!
+    Construct a new window information using \a other QCapturableWindow.
+*/
+QCapturableWindow::QCapturableWindow(const QCapturableWindow &other) = default;
+
+/*!
+    Assigns the \a other window information to this QCapturableWindow.
+*/
+QCapturableWindow& QCapturableWindow::operator=(const QCapturableWindow &other) = default;
+
+/*!
+    Returns \c true if current window information and \a other refer to the same window,
+    otherwise returns \c false.
+*/
+bool QCapturableWindow::operator==(const QCapturableWindow &other) const
+{
+    return d == other.d || (d && other.d && d->id == other.d->id);
+}
+
+/*!
+    Returns \c true if current window information and \a other refer to different windows,
+    otherwise returns \c false.
+*/
+bool QCapturableWindow::operator!=(const QCapturableWindow &other) const
+{
+    return !(*this == other);
+}
+
+/*!
+    \qmlproperty string QtMultimedia::QCapturableWindow::isValid
+
+    This property identifies whether a window information is valid.
+
+    An invalid window information refers to non-existing window or doesn't refer to any one.
+*/
+
+/*!
+    Identifies whether a window information is valid.
+
+    An invalid window information refers to non-existing window or doesn't refer to any one.
+
+    Returns true if the window is valid, and false if it is not.
+*/
+bool QCapturableWindow::isValid() const
+{
+    return d && QPlatformMediaIntegration::instance()->isCapturableWindowValid(*d);
+}
+
+/*!
+    \qmlproperty string QtMultimedia::QCapturableWindow::description
+
+    This property holds the description of the reffered window.
+*/
+
+/*!
+    Returns a description of the window. In most cases it represents the window title.
+*/
+QString QCapturableWindow::description() const
+{
+    return d ? d->description : QString{};
+}
+
+QCapturableWindow::QCapturableWindow(QCapturableWindowPrivate *capturablePrivate)
+    : d(capturablePrivate)
+{
+}
+
+#ifndef QT_NO_DEBUG_STREAM
+QDebug operator<<(QDebug dbg, const QCapturableWindow &window)
+{
+    dbg << QString::fromUtf8("Capturable window '%1'").arg(window.description());
+    return dbg;
+}
+#endif
+
+
+QT_END_NAMESPACE
+
+#include "moc_qcapturablewindow.cpp"

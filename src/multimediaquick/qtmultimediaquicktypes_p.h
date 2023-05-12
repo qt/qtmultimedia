@@ -147,6 +147,27 @@ struct QVideoSinkForeign
     QML_NAMED_ELEMENT(VideoSink)
 };
 
+struct QCapturableWindowForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QCapturableWindow)
+    QML_NAMED_ELEMENT(capturableWindow)
+};
+
+namespace QCapturableWindowNamespaceForeign
+{
+    Q_NAMESPACE
+    QML_FOREIGN_NAMESPACE(QCapturableWindow)
+    QML_NAMED_ELEMENT(CapturableWindow)
+};
+
+struct QWindowCaptureForeign
+{
+    Q_GADGET
+    QML_FOREIGN(QWindowCapture)
+    QML_NAMED_ELEMENT(WindowCapture)
+};
+
 QT_END_NAMESPACE
 
 #endif

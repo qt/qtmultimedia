@@ -5,7 +5,7 @@
 
 #include <QWindow>
 
-WindowListModel::WindowListModel(QList<QWindow *> data, QObject *parent)
+WindowListModel::WindowListModel(QList<QCapturableWindow> data, QObject *parent)
     : QAbstractListModel(parent), windowList(data)
 {
 }
@@ -22,16 +22,13 @@ QVariant WindowListModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         auto window = windowList.at(index.row());
-        return QString("%1: %2, %3")
-                .arg(window->metaObject()->className())
-                .arg(window->winId())
-                .arg(window->objectName());
+        return window.description();
     }
 
     return {};
 }
 
-QWindow *WindowListModel::window(const QModelIndex &index) const
+QCapturableWindow WindowListModel::window(const QModelIndex &index) const
 {
     return windowList.at(index.row());
 }

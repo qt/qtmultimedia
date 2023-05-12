@@ -16,6 +16,7 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qmultimediautils_p.h>
+#include <qcapturablewindow.h>
 #include <qmediarecorder.h>
 #include <qstring.h>
 
@@ -47,6 +48,7 @@ class QAudioOutput;
 class QPlatformAudioInput;
 class QPlatformAudioOutput;
 class QPlatformVideoDevices;
+class QCapturableWindow;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 {
@@ -75,6 +77,10 @@ public:
     virtual QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *);
 
     virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) { return notAvailable; }
+
+    virtual QList<QCapturableWindow> capturableWindows() { return {}; };
+
+    bool isCapturableWindowValid(const QCapturableWindowPrivate &) { return false; }
 
 protected:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;

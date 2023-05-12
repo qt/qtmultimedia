@@ -8,6 +8,7 @@
 #include "qimagecapture.h"
 #include "qvideosink.h"
 #include "qscreencapture.h"
+#include "qwindowcapture.h"
 
 #include <qpointer.h>
 
@@ -27,6 +28,7 @@ public:
     QAudioOutput *audioOutput = nullptr;
     QCamera *camera = nullptr;
     QScreenCapture *screenCapture = nullptr;
+    QWindowCapture *windowCapture = nullptr;
     QImageCapture *imageCapture = nullptr;
     QMediaRecorder *recorder = nullptr;
     QVideoSink *videoSink = nullptr;
@@ -45,7 +47,6 @@ public:
             captureSession->setVideoPreview(sink);
         emit q->videoOutputChanged();
     }
-
 };
 
 /*!
@@ -59,14 +60,16 @@ public:
 
     The QMediaCaptureSession is the central class that manages capturing of media on the local device.
 
-    You can connect a camera and a microphone to QMediaCaptureSession using setCamera() and setAudioInput().
-    A preview of the captured media can be seen by setting a QVideoSink of QVideoWidget using setVideoOutput()
-    and heard by routing the audio to an output device using setAudioOutput().
+    You can connect a video input to QMediaCaptureSession using setCamera(), setScreenCapture() or setWindowCapture().
+    A preview of the captured media can be seen by setting a QVideoWidget or QGraphicsVideoItem using setVideoOutput().
+
+    You can connect a microphone to QMediaCaptureSession using setAudioInput().
+    The captured sound can be heard by routing the audio to an output device using setAudioOutput().
 
     You can capture still images from a camera by setting a QImageCapture object on the capture session,
     and record audio/video using a QMediaRecorder.
 
-    \sa QCamera, QAudioDevice, QMediaRecorder, QImageCapture, QMediaRecorder
+    \sa QCamera, QAudioDevice, QMediaRecorder, QImageCapture, QScreenCapture, QWindowCapture, QMediaRecorder, QGraphicsVideoItem
 */
 
 /*!
@@ -85,8 +88,11 @@ public:
     Connect a camera and a microphone to a CaptureSession by assigning Camera
     and AudioInput objects to the relevant properties.
 
-    Capture a screen or window view by connecting a ScreenCapture object to
+    Capture a screen by connecting a ScreenCapture object to
     the screenCapture property.
+
+    Capture a window by connecting a WindowCapture object to
+    the windowCapture property.
 
     Enable a preview of the captured media by assigning a VideoOutput element to
     the videoOutput property.
@@ -116,7 +122,7 @@ public:
     }
 \endqml
 
-    \sa Camera, MediaDevices, MediaRecorder, ImageCapture, AudioInput, VideoOutput
+    \sa Camera, MediaDevices, MediaRecorder, ImageCapture, ScreenCapture, WindowCapture, AudioInput, VideoOutput
 */
 
 /*!
@@ -204,7 +210,7 @@ void QMediaCaptureSession::setAudioInput(QAudioInput *input)
     \brief The camera used to capture video.
 
     Record video or take images by adding a camera to the capture session
-    using this property,
+    using this property.
 */
 QCamera *QMediaCaptureSession::camera() const
 {
@@ -238,9 +244,9 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
     \qmlproperty ScreenCapture QtMultimedia::CaptureSession::screenCapture
     \since 6.5
 
-    \brief The object used to capture a window or screen view.
+    \brief The object used to capture a screen.
 
-    Record a screen or window view by adding a screen capture objet
+    Record a screen by adding a screen capture objet
     to the capture session using this property.
 */
 
@@ -248,9 +254,9 @@ void QMediaCaptureSession::setCamera(QCamera *camera)
     \property QMediaCaptureSession::screenCapture
     \since 6.5
 
-    \brief The object used to capture a window or screen view.
+    \brief The object used to capture a screen.
 
-    Record a screen or window view by adding a screen capture objet
+    Record a screen by adding a screen capture object
     to the capture session using this property.
 */
 QScreenCapture *QMediaCaptureSession::screenCapture()
@@ -280,6 +286,34 @@ void QMediaCaptureSession::setScreenCapture(QScreenCapture *screenCapture)
     }
     emit screenCaptureChanged();
 }
+
+/*!
+    \qmlproperty WindowCapture QtMultimedia::CaptureSession::windowCapture
+    \since 6.6
+
+    \brief The object used to capture a window.
+
+    Record a window by adding a window capture object
+    to the capture session using this property.
+*/
+
+/*!
+    \property QMediaCaptureSession::windowCapture
+    \since 6.6
+
+    \brief The object used to capture a window.
+
+    Record a window by adding a window capture objet
+    to the capture session using this property.
+*/
+QWindowCapture *QMediaCaptureSession::windowCapture() {
+    return d_ptr ? d_ptr->windowCapture : nullptr;
+}
+
+void QMediaCaptureSession::setWindowCapture(QWindowCapture *) {
+    // TODO: implement
+}
+
 /*!
     \qmlproperty ImageCapture QtMultimedia::CaptureSession::imageCapture
 

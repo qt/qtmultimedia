@@ -5,6 +5,7 @@
 #define WINDOWLISTMODEL_H
 
 #include <QAbstractListModel>
+#include <QCapturableWindow>
 
 QT_BEGIN_NAMESPACE
 class QWindow;
@@ -17,14 +18,14 @@ class WindowListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    explicit WindowListModel(QList<QWindow *> data = QList<QWindow *>(), QObject *parent = nullptr);
+    explicit WindowListModel(QList<QCapturableWindow> data = {}, QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-    QWindow *window(const QModelIndex &index) const;
+    QCapturableWindow window(const QModelIndex &index) const;
 
 private:
-    QList<QWindow *> windowList;
+    QList<QCapturableWindow> windowList;
 };
 
 #endif // WINDOWLISTMODEL_H

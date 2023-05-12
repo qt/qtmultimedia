@@ -5,6 +5,7 @@
 #define SCREENCAPTUREPREVIEW_H
 
 #include <QScreenCapture>
+#include <QWindowCapture>
 #include <QWidget>
 #include <QModelIndex>
 
@@ -35,9 +36,11 @@ public:
 public slots:
     void onScreenSelectionChanged(QModelIndex index);
     void onWindowSelectionChanged(QModelIndex index);
-    void onWindowIdSelectionChanged();
     void onScreenCaptureErrorOccured(QScreenCapture::Error error, const QString &errorString);
     void onStartStopButtonClicked();
+
+private:
+    void updateCapture();
 
 private:
     ScreenListModel *screenListModel = nullptr;
@@ -45,18 +48,17 @@ private:
     QListView *screenListView = nullptr;
     QListView *windowListView = nullptr;
     QScreenCapture *screenCapture = nullptr;
-    QWindowList windows;
+    QWindowCapture *windowCapture = nullptr;
+    QList<QCapturableWindow> windows;
     QMediaCaptureSession *mediaCaptureSession = nullptr;
     QVideoWidget *videoWidget = nullptr;
     QGridLayout *gridLayout = nullptr;
-    QHBoxLayout *hBoxLayout = nullptr;
-    QLineEdit *lineEdit = nullptr;
-    QPushButton *wIdButton = nullptr;
     QPushButton *startStopButton = nullptr;
     QLabel *screenLabel = nullptr;
     QLabel *windowLabel = nullptr;
-    QLabel *windowIdLabel = nullptr;
     QLabel *videoWidgetLabel = nullptr;
+    bool screenSelected = true;
+    bool started = true;
 };
 
 #endif // SCREENCAPTUREPREVIEW_H

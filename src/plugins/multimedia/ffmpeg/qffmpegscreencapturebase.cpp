@@ -36,26 +36,6 @@ QScreen *QFFmpegScreenCaptureBase::screen() const
     return m_screen;
 }
 
-void QFFmpegScreenCaptureBase::setWindow(QWindow *w)
-{
-    setSource(m_window, w, &QScreenCapture::windowChanged);
-}
-
-QWindow *QFFmpegScreenCaptureBase::window() const
-{
-    return m_window;
-}
-
-void QFFmpegScreenCaptureBase::setWindowId(WId id)
-{
-    setSource(m_wid, id, &QScreenCapture::windowIdChanged);
-}
-
-WId QFFmpegScreenCaptureBase::windowId() const
-{
-    return m_wid;
-}
-
 template<typename Source, typename NewSource, typename Signal>
 void QFFmpegScreenCaptureBase::setSource(Source &source, NewSource newSource, Signal sig)
 {
@@ -70,8 +50,6 @@ void QFFmpegScreenCaptureBase::setSource(Source &source, NewSource newSource, Si
         source = {};
 
         Q_ASSERT(!m_screen);
-        Q_ASSERT(!m_wid);
-        Q_ASSERT(!m_window);
     }
 
     source = newSource;

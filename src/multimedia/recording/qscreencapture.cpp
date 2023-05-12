@@ -22,28 +22,26 @@ public:
     \ingroup multimedia_video
     \since 6.5
 
-    \brief The QScreenCapture class is used for capturing a screen or
-    a window.
+    \brief This class is used for capturing a screen.
 
-    The class captures a screen or window. It is managed by
-    the QMediaCaptureSession class where the captured view can be displayed
-    in a window or recorded to a file.
+    The class captures a screen. It is managed by
+    the QMediaCaptureSession class where the captured screen can be displayed
+    in a video preview object or recorded to a file.
 
     \snippet multimedia-snippets/media.cpp Media recorder
 */
 /*!
     \qmltype ScreenCapture
     \instantiates QScreenCapture
-    \brief The ScreenCapture type is used for capturing a screen or
-    a window.
+    \brief This type is used for capturing a screen.
 
     \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
 
-    ScreenCapture captures a screen or a window. It is managed by
-    MediaCaptureSession where the captured view can be displayed in a window
-    or recorded to a file.
+    ScreenCapture captures a screen. It is managed by
+    MediaCaptureSession where the captured screen can be displayed
+    in a video preview object or recorded to a file.
 
     \since 6.5
     The code below shows a simple capture session with ScreenCapture playing
@@ -91,10 +89,8 @@ QScreenCapture::~QScreenCapture()
     \value NoError                      No error
     \value InternalError                Internal screen capturing driver error
     \value CapturingNotSupported        Capturing is not supported
-    \value WindowCapturingNotSupported  Window capturing is not supported.
-                                        This enum value was added in Qt 6.6.
-    \value CaptureFailed                Capturing screen or window view failed
-    \value NotFound                     Selected screen or window not found
+    \value CaptureFailed                Capturing screen failed
+    \value NotFound                     Selected screen not found
 */
 
 /*!
@@ -108,68 +104,6 @@ QMediaCaptureSession *QScreenCapture::captureSession() const
     Q_D(const QScreenCapture);
 
     return d->captureSession;
-}
-
-/*!
-    \qmlproperty Window QtMultimedia::ScreenCapture::window
-    Describes the window for capturing.
-
-    \since 6.6
-*/
-
-/*!
-    \property QScreenCapture::window
-    \brief the window for capturing.
-
-    \since 6.6
-*/
-void QScreenCapture::setWindow(QWindow *window)
-{
-    Q_D(QScreenCapture);
-
-    if (d->platformScreenCapture) {
-        d->platformScreenCapture->setScreen(nullptr);
-        d->platformScreenCapture->setWindowId(0);
-        d->platformScreenCapture->setWindow(window);
-    }
-}
-
-QWindow *QScreenCapture::window() const
-{
-    Q_D(const QScreenCapture);
-
-    return d->platformScreenCapture ? d->platformScreenCapture->window()
-                                    : nullptr;
-}
-
-/*!
-    \qmlproperty Window QtMultimedia::ScreenCapture::windowId
-    Describes the window ID for capturing.
-*/
-
-/*!
-    \property QScreenCapture::windowId
-    \brief the window ID for capturing.
-
-    \since 6.6
-*/
-void QScreenCapture::setWindowId(WId id)
-{
-    Q_D(QScreenCapture);
-
-    if (d->platformScreenCapture) {
-        d->platformScreenCapture->setScreen(nullptr);
-        d->platformScreenCapture->setWindow(nullptr);
-        d->platformScreenCapture->setWindowId(id);
-    }
-}
-
-WId QScreenCapture::windowId() const
-{
-    Q_D(const QScreenCapture);
-
-    return d->platformScreenCapture ? d->platformScreenCapture->windowId()
-                                    : 0;
 }
 
 /*!
@@ -197,7 +131,7 @@ bool QScreenCapture::isActive() const
 }
 
 /*!
-    \qmlproperty bool QtMultimedia::ScreenCapture::screen
+    \qmlproperty Screen QtMultimedia::ScreenCapture::screen
     Describes the screen for capturing.
 */
 

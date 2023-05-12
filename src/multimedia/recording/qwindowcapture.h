@@ -1,30 +1,23 @@
-// Copyright (C) 2022 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QSCREENCAPTURE_H
-#define QSCREENCAPTURE_H
-
+#include <QtMultimedia/qtmultimediaexports.h>
+#include <QtMultimedia/qcapturablewindow.h>
 #include <QtCore/qobject.h>
-#include <QtCore/qnamespace.h>
-#include <QtGui/qscreen.h>
-#include <QtGui/qwindow.h>
-#include <QtGui/qwindowdefs.h>
-#include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qlist.h>
+
+#ifndef QWINDOWCAPTURE_H
+#define QWINDOWCAPTURE_H
 
 QT_BEGIN_NAMESPACE
 
-class QMediaCaptureSession;
-class QPlatformScreenCapture;
-class QScreenCapturePrivate;
-
-class Q_MULTIMEDIA_EXPORT QScreenCapture : public QObject
+class Q_MULTIMEDIA_EXPORT QWindowCapture : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
-    Q_PROPERTY(QScreen *screen READ screen WRITE setScreen NOTIFY screenChanged)
+    Q_PROPERTY(QCapturableWindow window READ window WRITE setWindow NOTIFY windowChanged)
     Q_PROPERTY(Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
-
 public:
     enum Error {
         NoError,
@@ -35,13 +28,16 @@ public:
     };
     Q_ENUM(Error)
 
-    explicit QScreenCapture(QObject *parent = nullptr);
-    ~QScreenCapture() override;
+    explicit QWindowCapture(QObject *parent = nullptr);
+    ~QWindowCapture() override;
+
+    Q_INVOKABLE static QList<QCapturableWindow> capturableWindows();
 
     QMediaCaptureSession *captureSession() const;
 
-    void setScreen(QScreen *screen);
-    QScreen *screen() const;
+    void setWindow(QCapturableWindow window);
+
+    QCapturableWindow window() const;
 
     bool isActive() const;
 
@@ -55,18 +51,18 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void activeChanged(bool);
+    void windowChanged(QCapturableWindow window);
     void errorChanged();
-    void screenChanged(QScreen *);
-    void errorOccurred(QScreenCapture::Error error, const QString &errorString);
+    void errorOccurred(QWindowCapture::Error error, const QString &errorString);
 
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);
-    QPlatformScreenCapture *platformScreenCapture() const;
+
     friend class QMediaCaptureSession;
-    Q_DISABLE_COPY(QScreenCapture)
-    Q_DECLARE_PRIVATE(QScreenCapture)
+    Q_DISABLE_COPY(QWindowCapture)
+    Q_DECLARE_PRIVATE(QWindowCapture)
 };
 
 QT_END_NAMESPACE
 
-#endif // QSCREENCAPTURE_H
+#endif // QWINDOWCAPTURE_H
