@@ -207,7 +207,8 @@ QAudioFormat QAudioDecoder::audioFormat() const
     audio file, you can specify an invalid \a format.
 
     \warning Setting a desired audio format is not yet supported
-    on Android.
+    on the Android backend. It does work with the default FFMPEG
+    backend.
 */
 void QAudioDecoder::setAudioFormat(const QAudioFormat &format)
 {
