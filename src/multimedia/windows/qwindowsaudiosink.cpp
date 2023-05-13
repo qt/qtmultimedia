@@ -56,7 +56,7 @@ std::optional<quint32> audioClientFramesAvailable(IAudioClient *client)
     return {};
 }
 
-QWindowsAudioSink::QWindowsAudioSink(QWindowsIUPointer<IMMDevice> device, QObject *parent) :
+QWindowsAudioSink::QWindowsAudioSink(QComPtr<IMMDevice> device, QObject *parent) :
     QPlatformAudioSink(parent),
     m_timer(new QTimer(this)),
     m_pushSource(new OutputPrivate(*this)),

@@ -9,15 +9,15 @@
 
 QT_BEGIN_NAMESPACE
 
-QWindowsIUPointer<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QAudioFormat::SampleFormat sampleFormat)
+QComPtr<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QAudioFormat::SampleFormat sampleFormat)
 {
-    QWindowsIUPointer<IMFMediaType> mediaType;
+    QComPtr<IMFMediaType> mediaType;
     m_sourceReader.reset();
 
     if (!source)
         return mediaType;
 
-    QWindowsIUPointer<IMFAttributes> attr;
+    QComPtr<IMFAttributes> attr;
     MFCreateAttributes(attr.address(), 1);
     if (FAILED(attr->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, this)))
         return mediaType;
@@ -34,7 +34,7 @@ QWindowsIUPointer<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource 
     m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_ALL_STREAMS), FALSE);
     m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), TRUE);
 
-    QWindowsIUPointer<IMFMediaType> pPartialType;
+    QComPtr<IMFMediaType> pPartialType;
     MFCreateMediaType(pPartialType.address());
     pPartialType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
     pPartialType->SetGUID(MF_MT_SUBTYPE, sampleFormat == QAudioFormat::Float ? MFAudioFormat_Float : MFAudioFormat_PCM);
@@ -92,7 +92,7 @@ STDMETHODIMP MFDecoderSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStrea
     Q_UNUSED(llTimestamp);
     if (pSample) {
         pSample->AddRef();
-        emit newSample(QWindowsIUPointer{pSample});
+        emit newSample(QComPtr{pSample});
     } else if ((dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) == MF_SOURCE_READERF_ENDOFSTREAM) {
         emit finished();
     }

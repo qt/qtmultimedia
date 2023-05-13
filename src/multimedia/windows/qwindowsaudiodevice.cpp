@@ -29,7 +29,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPointer<IMMDevice> immDev, int waveID, const QString &description, QAudioDevice::Mode mode)
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QComPtr<IMMDevice> immDev, int waveID, const QString &description, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(dev, mode),
       m_devId(waveID),
       m_immDev(std::move(immDev))
@@ -38,7 +38,7 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPoint
 
     this->description = description;
 
-    QWindowsIUPointer<IAudioClient> audioClient;
+    QComPtr<IAudioClient> audioClient;
     HRESULT hr = m_immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
                                     (void **)audioClient.address());
     if (SUCCEEDED(hr)) {
@@ -194,7 +194,7 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QWindowsIUPoint
 
     channelConfiguration = QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
 
-    QWindowsIUPointer<IPropertyStore> props;
+    QComPtr<IPropertyStore> props;
     hr = m_immDev->OpenPropertyStore(STGM_READ, props.address());
     if (SUCCEEDED(hr)) {
         PROPVARIANT var;

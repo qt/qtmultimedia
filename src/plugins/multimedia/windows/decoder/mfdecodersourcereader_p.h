@@ -33,7 +33,7 @@ public:
     ~MFDecoderSourceReader() override {}
 
     void clearSource() { m_sourceReader.reset(); }
-    QWindowsIUPointer<IMFMediaType> setSource(IMFMediaSource *source, QAudioFormat::SampleFormat);
+    QComPtr<IMFMediaType> setSource(IMFMediaSource *source, QAudioFormat::SampleFormat);
 
     void readNextSample();
 
@@ -49,12 +49,12 @@ public:
     STDMETHODIMP OnEvent(DWORD, IMFMediaEvent *) override { return S_OK; }
 
 Q_SIGNALS:
-    void newSample(QWindowsIUPointer<IMFSample>);
+    void newSample(QComPtr<IMFSample>);
     void finished();
 
 private:
     long m_cRef = 1;
-    QWindowsIUPointer<IMFSourceReader> m_sourceReader;
+    QComPtr<IMFSourceReader> m_sourceReader;
 
 };
 

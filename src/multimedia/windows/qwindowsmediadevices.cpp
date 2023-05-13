@@ -24,13 +24,13 @@ QT_BEGIN_NAMESPACE
 class CMMNotificationClient : public IMMNotificationClient
 {
     LONG m_cRef;
-    QWindowsIUPointer<IMMDeviceEnumerator> m_enumerator;
+    QComPtr<IMMDeviceEnumerator> m_enumerator;
     QWindowsMediaDevices *m_windowsMediaDevices;
     QMap<QString, DWORD> m_deviceState;
 
 public:
     CMMNotificationClient(QWindowsMediaDevices *windowsMediaDevices,
-                          QWindowsIUPointer<IMMDeviceEnumerator> enumerator,
+                          QComPtr<IMMDeviceEnumerator> enumerator,
                           QMap<QString, DWORD> &&deviceState) :
         m_cRef(1),
         m_enumerator(enumerator),
@@ -132,8 +132,8 @@ public:
 
     void emitAudioDevicesChanged(LPCWSTR deviceID)
     {
-        QWindowsIUPointer<IMMDevice> device;
-        QWindowsIUPointer<IMMEndpoint> endpoint;
+        QComPtr<IMMDevice> device;
+        QComPtr<IMMEndpoint> endpoint;
         EDataFlow flow;
 
         if (SUCCEEDED(m_enumerator->GetDevice(deviceID, device.address()))
@@ -156,14 +156,14 @@ QWindowsMediaDevices::QWindowsMediaDevices()
 
     if (SUCCEEDED(hr)) {
         QMap<QString, DWORD> devState;
-        QWindowsIUPointer<IMMDeviceCollection> devColl;
+        QComPtr<IMMDeviceCollection> devColl;
         UINT count = 0;
 
         if (SUCCEEDED(m_deviceEnumerator->EnumAudioEndpoints(EDataFlow::eAll, DEVICE_STATEMASK_ALL, devColl.address()))
             && SUCCEEDED(devColl->GetCount(&count)))
         {
             for (UINT i = 0; i < count; i++) {
-                QWindowsIUPointer<IMMDevice> device;
+                QComPtr<IMMDevice> device;
                 DWORD state = 0;
                 LPWSTR id = nullptr;
 
@@ -204,7 +204,7 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
 
     const auto defaultAudioDeviceID = [this, audioOut]{
         const auto dataFlow = audioOut ? EDataFlow::eRender : EDataFlow::eCapture;
-        QWindowsIUPointer<IMMDevice> dev;
+        QComPtr<IMMDevice> dev;
         LPWSTR id = nullptr;
         QString sid;
 
@@ -236,8 +236,8 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
         if (waveMessage(DRV_QUERYFUNCTIONINSTANCEID, id.data(), len) != MMSYSERR_NOERROR)
             continue;
 
-        QWindowsIUPointer<IMMDevice> device;
-        QWindowsIUPointer<IPropertyStore> props;
+        QComPtr<IMMDevice> device;
+        QComPtr<IPropertyStore> props;
         if (FAILED(m_deviceEnumerator->GetDevice(id.data(), device.address()))
             || FAILED(device->OpenPropertyStore(STGM_READ, props.address()))) {
             continue;

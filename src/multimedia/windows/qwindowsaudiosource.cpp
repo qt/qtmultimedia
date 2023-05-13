@@ -45,7 +45,7 @@ private:
     QWindowsAudioSource &m_audioSource;
 };
 
-QWindowsAudioSource::QWindowsAudioSource(QWindowsIUPointer<IMMDevice> device, QObject *parent)
+QWindowsAudioSource::QWindowsAudioSource(QComPtr<IMMDevice> device, QObject *parent)
     : QPlatformAudioSource(parent),
       m_timer(new QTimer(this)),
       m_device(std::move(device)),

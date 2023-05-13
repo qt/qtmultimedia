@@ -125,9 +125,9 @@ private:
     UINT m_deviceResetToken;
     D3DDISPLAYMODE m_displayMode;
 
-    QWindowsIUPointer<IDirect3D9Ex> m_D3D9;
-    QWindowsIUPointer<IDirect3DDevice9Ex> m_device;
-    QWindowsIUPointer<IDirect3DDeviceManager9> m_devices;
+    QComPtr<IDirect3D9Ex> m_D3D9;
+    QComPtr<IDirect3DDevice9Ex> m_device;
+    QComPtr<IDirect3DDeviceManager9> m_devices;
 
     QVideoFrameFormat m_surfaceFormat;
 

@@ -27,7 +27,7 @@ namespace QFFmpeg {
 class D3D11TextureSet : public TextureSet
 {
 public:
-    D3D11TextureSet(QWindowsIUPointer<ID3D11Texture2D> &&tex)
+    D3D11TextureSet(QComPtr<ID3D11Texture2D> &&tex)
         : m_tex(tex)
     {}
 
@@ -37,7 +37,7 @@ public:
     }
 
 private:
-    QWindowsIUPointer<ID3D11Texture2D> m_tex;
+    QComPtr<ID3D11Texture2D> m_tex;
 };
 
 
@@ -46,9 +46,9 @@ D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi)
 {
 }
 
-static QWindowsIUPointer<ID3D11Texture2D> getSharedTextureForDevice(ID3D11Device *dev, ID3D11Texture2D *tex)
+static QComPtr<ID3D11Texture2D> getSharedTextureForDevice(ID3D11Device *dev, ID3D11Texture2D *tex)
 {
-    QWindowsIUPointer<IDXGIResource> dxgiResource;
+    QComPtr<IDXGIResource> dxgiResource;
     HRESULT hr = tex->QueryInterface(__uuidof(IDXGIResource), reinterpret_cast<void **>(dxgiResource.address()));
     if (FAILED(hr)) {
         qCDebug(qLcMediaFFmpegHWAccel) << "Failed to obtain resource handle from FFMpeg texture" << hr;
@@ -61,14 +61,14 @@ static QWindowsIUPointer<ID3D11Texture2D> getSharedTextureForDevice(ID3D11Device
         return {};
     }
 
-    QWindowsIUPointer<ID3D11Texture2D> sharedTex;
+    QComPtr<ID3D11Texture2D> sharedTex;
     hr = dev->OpenSharedResource(shared, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(sharedTex.address()));
     if (FAILED(hr))
         qCDebug(qLcMediaFFmpegHWAccel) << "Failed to share FFmpeg texture" << hr;
     return sharedTex;
 }
 
-static QWindowsIUPointer<ID3D11Texture2D> copyTextureFromArray(ID3D11Device *dev, ID3D11Texture2D *array, int index)
+static QComPtr<ID3D11Texture2D> copyTextureFromArray(ID3D11Device *dev, ID3D11Texture2D *array, int index)
 {
     D3D11_TEXTURE2D_DESC arrayDesc = {};
     array->GetDesc(&arrayDesc);
@@ -83,14 +83,14 @@ static QWindowsIUPointer<ID3D11Texture2D> copyTextureFromArray(ID3D11Device *dev
     texDesc.MiscFlags = 0;
     texDesc.SampleDesc = { 1, 0};
 
-    QWindowsIUPointer<ID3D11Texture2D> texCopy;
+    QComPtr<ID3D11Texture2D> texCopy;
     HRESULT hr = dev->CreateTexture2D(&texDesc, nullptr, texCopy.address());
     if (FAILED(hr)) {
         qCDebug(qLcMediaFFmpegHWAccel) << "Failed to create texture" << hr;
         return {};
     }
 
-    QWindowsIUPointer<ID3D11DeviceContext> ctx;
+    QComPtr<ID3D11DeviceContext> ctx;
     dev->GetImmediateContext(ctx.address());
     ctx->CopySubresourceRegion(texCopy.get(), 0, 0, 0, 0, array, index, nullptr);
 

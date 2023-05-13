@@ -40,13 +40,13 @@ static QSet<T> getCodecSet(GUID category)
 
     if (SUCCEEDED(hr)) {
         for (UINT32 i = 0; i < num; ++i) {
-            QWindowsIUPointer<IMFTransform> transform;
+            QComPtr<IMFTransform> transform;
             UINT32 typeIndex = 0;
 
             hr = activateArray[i]->ActivateObject(IID_PPV_ARGS(transform.address()));
 
             while (SUCCEEDED(hr)) {
-                QWindowsIUPointer<IMFMediaType> mediaType;
+                QComPtr<IMFMediaType> mediaType;
 
                 if (category == MFT_CATEGORY_AUDIO_ENCODER || category == MFT_CATEGORY_VIDEO_ENCODER)
                     hr = transform->GetOutputAvailableType(0, typeIndex++, mediaType.address());

@@ -43,8 +43,8 @@ public:
 private:
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
-    QWindowsIUPointer<IMMDeviceEnumerator> m_deviceEnumerator;
-    QWindowsIUPointer<CMMNotificationClient> m_notificationClient;
+    QComPtr<IMMDeviceEnumerator> m_deviceEnumerator;
+    QComPtr<CMMNotificationClient> m_notificationClient;
 
     friend CMMNotificationClient;
 };

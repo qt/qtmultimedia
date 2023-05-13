@@ -157,9 +157,9 @@ QAudioFormat QWindowsAudioUtils::mediaTypeToFormat(IMFMediaType *mediaType)
     return format;
 }
 
-QWindowsIUPointer<IMFMediaType> QWindowsAudioUtils::formatToMediaType(QWindowsMediaFoundation &wmf, const QAudioFormat &format)
+QComPtr<IMFMediaType> QWindowsAudioUtils::formatToMediaType(QWindowsMediaFoundation &wmf, const QAudioFormat &format)
 {
-    QWindowsIUPointer<IMFMediaType> mediaType;
+    QComPtr<IMFMediaType> mediaType;
 
     if (!format.isValid())
         return mediaType;
