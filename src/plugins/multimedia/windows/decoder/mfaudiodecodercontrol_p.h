@@ -51,13 +51,13 @@ public:
 private Q_SLOTS:
     void handleMediaSourceReady();
     void handleMediaSourceError(long hr);
-    void handleNewSample(QWindowsIUPointer<IMFSample>);
+    void handleNewSample(QComPtr<IMFSample>);
     void handleSourceFinished();
 
 private:
     void startReadingSource(IMFMediaSource *source);
 
-    QWindowsIUPointer<MFDecoderSourceReader>  m_decoderSourceReader;
+    QComPtr<MFDecoderSourceReader>  m_decoderSourceReader;
     SourceResolver         *m_sourceResolver;
     QWindowsResampler       m_resampler;
     QUrl                    m_source;

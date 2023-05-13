@@ -16,16 +16,16 @@
 //
 
 template <class T>
-class QWindowsIUPointer
+class QComPtr
 {
 public:
-    explicit QWindowsIUPointer(T *ptr) : m_ptr(ptr) {}
-    QWindowsIUPointer() : m_ptr(nullptr) {}
-    QWindowsIUPointer(const QWindowsIUPointer<T> &uiPtr) : m_ptr(uiPtr.m_ptr) { if (m_ptr) m_ptr->AddRef(); }
-    QWindowsIUPointer(QWindowsIUPointer<T> &&uiPtr) : m_ptr(uiPtr.m_ptr) { uiPtr.m_ptr = nullptr; }
-    ~QWindowsIUPointer() { if (m_ptr) m_ptr->Release(); }
+    explicit QComPtr(T *ptr) : m_ptr(ptr) {}
+    QComPtr() : m_ptr(nullptr) {}
+    QComPtr(const QComPtr<T> &uiPtr) : m_ptr(uiPtr.m_ptr) { if (m_ptr) m_ptr->AddRef(); }
+    QComPtr(QComPtr<T> &&uiPtr) : m_ptr(uiPtr.m_ptr) { uiPtr.m_ptr = nullptr; }
+    ~QComPtr() { if (m_ptr) m_ptr->Release(); }
 
-    QWindowsIUPointer& operator=(const QWindowsIUPointer<T> &rhs) {
+    QComPtr& operator=(const QComPtr<T> &rhs) {
         if (this != &rhs) {
             if (m_ptr)
                 m_ptr->Release();
@@ -35,7 +35,7 @@ public:
         return *this;
     }
 
-    QWindowsIUPointer& operator=(QWindowsIUPointer<T> &&rhs) noexcept {
+    QComPtr& operator=(QComPtr<T> &&rhs) noexcept {
         if (m_ptr)
             m_ptr->Release();
         m_ptr = rhs.m_ptr;

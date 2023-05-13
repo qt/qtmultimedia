@@ -73,11 +73,11 @@ private:
     QMutex m_mutex;
 };
 
-static QWindowsIUPointer<IMFSourceReader> createCameraReader(IMFMediaSource *mediaSource,
-                                                             const QWindowsIUPointer<CameraReaderCallback> &callback)
+static QComPtr<IMFSourceReader> createCameraReader(IMFMediaSource *mediaSource,
+                                                             const QComPtr<CameraReaderCallback> &callback)
 {
-    QWindowsIUPointer<IMFSourceReader> sourceReader;
-    QWindowsIUPointer<IMFAttributes> readerAttributes;
+    QComPtr<IMFSourceReader> sourceReader;
+    QComPtr<IMFAttributes> readerAttributes;
 
     HRESULT hr = MFCreateAttributes(readerAttributes.address(), 1);
     if (SUCCEEDED(hr)) {
@@ -93,10 +93,10 @@ static QWindowsIUPointer<IMFSourceReader> createCameraReader(IMFMediaSource *med
     return sourceReader;
 }
 
-static QWindowsIUPointer<IMFMediaSource> createCameraSource(const QString &deviceId)
+static QComPtr<IMFMediaSource> createCameraSource(const QString &deviceId)
 {
-    QWindowsIUPointer<IMFMediaSource> mediaSource;
-    QWindowsIUPointer<IMFAttributes> sourceAttributes;
+    QComPtr<IMFMediaSource> mediaSource;
+    QComPtr<IMFAttributes> sourceAttributes;
     HRESULT hr = MFCreateAttributes(sourceAttributes.address(), 2);
     if (SUCCEEDED(hr)) {
         hr = sourceAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
@@ -144,11 +144,11 @@ static bool setCameraReaderFormat(IMFSourceReader *sourceReader, IMFMediaType *v
     return SUCCEEDED(hr);
 }
 
-static QWindowsIUPointer<IMFMediaType> findVideoType(IMFSourceReader *reader,
+static QComPtr<IMFMediaType> findVideoType(IMFSourceReader *reader,
                                                      const QCameraFormat &format)
 {
     for (DWORD i = 0;; ++i) {
-        QWindowsIUPointer<IMFMediaType> candidate;
+        QComPtr<IMFMediaType> candidate;
         HRESULT hr = reader->GetNativeMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, i,
                                                 candidate.address());
         if (FAILED(hr))
@@ -185,7 +185,7 @@ public:
         if (!ac->m_source)
             return {};
 
-        ac->m_readerCallback = QWindowsIUPointer<CameraReaderCallback>(new CameraReaderCallback);
+        ac->m_readerCallback = QComPtr<CameraReaderCallback>(new CameraReaderCallback);
         ac->m_readerCallback->setActiveCamera(ac.get());
         ac->m_reader = createCameraReader(ac->m_source.get(), ac->m_readerCallback);
         if (!ac->m_reader)
@@ -224,7 +224,7 @@ public:
         }
 
         if (sample) {
-            QWindowsIUPointer<IMFMediaBuffer> mediaBuffer;
+            QComPtr<IMFMediaBuffer> mediaBuffer;
             if (SUCCEEDED(sample->ConvertToContiguousBuffer(mediaBuffer.address()))) {
 
                 DWORD bufLen = 0;
@@ -269,9 +269,9 @@ private:
 
     QSemaphore m_flushWait;
 
-    QWindowsIUPointer<IMFMediaSource> m_source;
-    QWindowsIUPointer<IMFSourceReader> m_reader;
-    QWindowsIUPointer<CameraReaderCallback> m_readerCallback;
+    QComPtr<IMFMediaSource> m_source;
+    QComPtr<IMFSourceReader> m_reader;
+    QComPtr<CameraReaderCallback> m_readerCallback;
 
     QVideoFrameFormat m_frameFormat;
     int m_videoFrameStride = 0;

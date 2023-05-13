@@ -101,7 +101,7 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
         return;
     }
 
-    QWindowsIUPointer<IMFPresentationDescriptor> pd;
+    QComPtr<IMFPresentationDescriptor> pd;
     if (SUCCEEDED(source->CreatePresentationDescriptor(pd.address()))) {
         UINT64 duration = 0;
         pd->GetUINT64(MF_PD_DURATION, &duration);
@@ -173,7 +173,7 @@ void MFAudioDecoderControl::stop()
     }
 }
 
-void MFAudioDecoderControl::handleNewSample(QWindowsIUPointer<IMFSample> sample)
+void MFAudioDecoderControl::handleNewSample(QComPtr<IMFSample> sample)
 {
     Q_ASSERT(sample);
 

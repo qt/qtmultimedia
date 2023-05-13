@@ -155,7 +155,7 @@ static std::optional<QCameraDevice> createCameraDevice(IMFActivate *device)
     if (FAILED(hr))
         return {};
 
-    QWindowsIUPointer<IMFSourceReader> reader;
+    QComPtr<IMFSourceReader> reader;
     hr = MFCreateSourceReaderFromMediaSource(source, NULL, reader.address());
     if (FAILED(hr))
         return {};
@@ -164,7 +164,7 @@ static std::optional<QCameraDevice> createCameraDevice(IMFActivate *device)
     QList<QCameraFormat> videoFormats;
     for (DWORD i = 0;; ++i) {
         // Loop through the supported formats for the video device
-        QWindowsIUPointer<IMFMediaType> mediaFormat;
+        QComPtr<IMFMediaType> mediaFormat;
         hr = reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, i,
                                         mediaFormat.address());
         if (FAILED(hr))
@@ -208,7 +208,7 @@ QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
 {
     QList<QCameraDevice> cameras;
 
-    QWindowsIUPointer<IMFAttributes> attr;
+    QComPtr<IMFAttributes> attr;
     HRESULT hr = MFCreateAttributes(attr.address(), 2);
     if (FAILED(hr))
         return {};

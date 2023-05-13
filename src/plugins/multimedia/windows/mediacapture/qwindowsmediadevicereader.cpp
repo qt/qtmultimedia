@@ -638,7 +638,7 @@ QMediaRecorder::Error QWindowsMediaDeviceReader::startRecording(
     if (!m_active || m_recording || (videoFormat == GUID_NULL && audioFormat == GUID_NULL))
         return QMediaRecorder::ResourceError;
 
-    QWindowsIUPointer<IMFAttributes> writerAttributes;
+    QComPtr<IMFAttributes> writerAttributes;
 
     HRESULT hr = MFCreateAttributes(writerAttributes.address(), 2);
     if (FAILED(hr))
@@ -654,7 +654,7 @@ QMediaRecorder::Error QWindowsMediaDeviceReader::startRecording(
     if (FAILED(hr))
         return QMediaRecorder::ResourceError;
 
-    QWindowsIUPointer<IMFSinkWriter> sinkWriter;
+    QComPtr<IMFSinkWriter> sinkWriter;
     hr = MFCreateSinkWriterFromURL(reinterpret_cast<LPCWSTR>(fileName.utf16()),
                                    nullptr, writerAttributes.get(), sinkWriter.address());
     if (FAILED(hr))

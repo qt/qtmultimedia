@@ -54,12 +54,12 @@ quint64 QWindowsResampler::inputBufferSize(quint64 outputBufferSize) const
 
 HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
 {
-    QWindowsIUPointer<IMFSample> sample;
+    QComPtr<IMFSample> sample;
     HRESULT hr = m_wmf->mfCreateSample(sample.address());
     if (FAILED(hr))
         return hr;
 
-    QWindowsIUPointer<IMFMediaBuffer> buffer;
+    QComPtr<IMFMediaBuffer> buffer;
     hr = m_wmf->mfCreateMemoryBuffer(in.size(), buffer.address());
     if (FAILED(hr))
         return hr;
@@ -90,8 +90,8 @@ HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
 
 HRESULT QWindowsResampler::processOutput(QByteArray &out)
 {
-    QWindowsIUPointer<IMFSample> sample;
-    QWindowsIUPointer<IMFMediaBuffer> buffer;
+    QComPtr<IMFSample> sample;
+    QComPtr<IMFMediaBuffer> buffer;
 
     if (m_resamplerNeedsSampleBuffer) {
         HRESULT hr = m_wmf->mfCreateSample(sample.address());
@@ -119,7 +119,7 @@ HRESULT QWindowsResampler::processOutput(QByteArray &out)
         DWORD status = 0;
         hr = m_resampler->ProcessOutput(0, 1, &outputDataBuffer, &status);
         if (SUCCEEDED(hr)) {
-            QWindowsIUPointer<IMFMediaBuffer> outputBuffer;
+            QComPtr<IMFMediaBuffer> outputBuffer;
             outputDataBuffer.pSample->ConvertToContiguousBuffer(outputBuffer.address());
             DWORD len = 0;
             BYTE *data = nullptr;
@@ -174,7 +174,7 @@ QByteArray QWindowsResampler::resample(IMFSample *sample)
     QByteArray out;
 
     if (m_inputFormat == m_outputFormat) {
-        QWindowsIUPointer<IMFMediaBuffer> outputBuffer;
+        QComPtr<IMFMediaBuffer> outputBuffer;
         sample->ConvertToContiguousBuffer(outputBuffer.address());
         DWORD len = 0;
         BYTE *data = nullptr;
@@ -216,8 +216,8 @@ bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
     if (!m_resampler || !m_wmf)
         return false;
 
-    QWindowsIUPointer<IMFMediaType> min = QWindowsAudioUtils::formatToMediaType(*m_wmf, fin);
-    QWindowsIUPointer<IMFMediaType> mout = QWindowsAudioUtils::formatToMediaType(*m_wmf, fout);
+    QComPtr<IMFMediaType> min = QWindowsAudioUtils::formatToMediaType(*m_wmf, fin);
+    QComPtr<IMFMediaType> mout = QWindowsAudioUtils::formatToMediaType(*m_wmf, fout);
 
     HRESULT hr = m_resampler->SetInputType(m_inputStreamID, min.get(), 0);
     if (FAILED(hr)) {

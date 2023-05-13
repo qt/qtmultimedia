@@ -32,8 +32,8 @@ using namespace QWindowsMultimediaUtils;
 class QD3D11TextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QD3D11TextureVideoBuffer(QWindowsIUPointer<ID3D11Device> &device, std::shared_ptr<QMutex> &mutex,
-                             QWindowsIUPointer<ID3D11Texture2D> &texture, QSize size)
+    QD3D11TextureVideoBuffer(QComPtr<ID3D11Device> &device, std::shared_ptr<QMutex> &mutex,
+                             QComPtr<ID3D11Texture2D> &texture, QSize size)
         : QAbstractVideoBuffer(QVideoFrame::NoHandle)
         , m_device(device)
         , m_texture(texture)
@@ -108,25 +108,25 @@ public:
     }
 
 private:
-    QWindowsIUPointer<ID3D11Device> m_device;
-    QWindowsIUPointer<ID3D11Texture2D> m_texture;
-    QWindowsIUPointer<ID3D11Texture2D> m_cpuTexture;
-    QWindowsIUPointer<ID3D11DeviceContext> m_ctx;
+    QComPtr<ID3D11Device> m_device;
+    QComPtr<ID3D11Texture2D> m_texture;
+    QComPtr<ID3D11Texture2D> m_cpuTexture;
+    QComPtr<ID3D11DeviceContext> m_ctx;
     std::shared_ptr<QMutex> m_ctxMutex;
     QSize m_size;
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
 };
 
-static QMaybe<QWindowsIUPointer<ID3D11Texture2D>> getNextFrame(ID3D11Device *dev, IDXGIOutputDuplication *dup)
+static QMaybe<QComPtr<ID3D11Texture2D>> getNextFrame(ID3D11Device *dev, IDXGIOutputDuplication *dup)
 {
-    QWindowsIUPointer<IDXGIResource> frame;
+    QComPtr<IDXGIResource> frame;
     DXGI_OUTDUPL_FRAME_INFO info;
     HRESULT hr = dup->AcquireNextFrame(0, &info, frame.address());
     if (FAILED(hr))
         return hr == DXGI_ERROR_WAIT_TIMEOUT ? QString{}
                                              : "Failed to grab the screen content" + errorString(hr);
 
-    QWindowsIUPointer<ID3D11Texture2D> tex;
+    QComPtr<ID3D11Texture2D> tex;
     hr = frame->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(tex.address()));
     if (FAILED(hr)) {
         dup->ReleaseFrame();
@@ -137,14 +137,14 @@ static QMaybe<QWindowsIUPointer<ID3D11Texture2D>> getNextFrame(ID3D11Device *dev
     tex->GetDesc(&texDesc);
     texDesc.MiscFlags = 0;
     texDesc.BindFlags = 0;
-    QWindowsIUPointer<ID3D11Texture2D> texCopy;
+    QComPtr<ID3D11Texture2D> texCopy;
     hr = dev->CreateTexture2D(&texDesc, nullptr, texCopy.address());
     if (FAILED(hr)) {
         dup->ReleaseFrame();
         return "Failed to create texture with CPU access" + errorString(hr);
     }
 
-    QWindowsIUPointer<ID3D11DeviceContext> ctx;
+    QComPtr<ID3D11DeviceContext> ctx;
     dev->GetImmediateContext(ctx.address());
     ctx->CopyResource(texCopy.get(), tex.get());
 
@@ -156,8 +156,8 @@ static QMaybe<QWindowsIUPointer<ID3D11Texture2D>> getNextFrame(ID3D11Device *dev
 class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegScreenCaptureThread
 {
 public:
-    Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen, QWindowsIUPointer<ID3D11Device> &device,
-            QWindowsIUPointer<IDXGIOutputDuplication> &duplication)
+    Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen, QComPtr<ID3D11Device> &device,
+            QComPtr<IDXGIOutputDuplication> &duplication)
         : QFFmpegScreenCaptureThread()
         , m_duplication(duplication)
         , m_device(device)
@@ -213,8 +213,8 @@ public:
     };
 
 private:
-    QWindowsIUPointer<IDXGIOutputDuplication> m_duplication;
-    QWindowsIUPointer<ID3D11Device> m_device;
+    QComPtr<IDXGIOutputDuplication> m_duplication;
+    QComPtr<ID3D11Device> m_device;
     QWaitCondition m_waitForFormat;
     QVideoFrameFormat m_format;
     QMutex m_formatMutex;
@@ -222,14 +222,14 @@ private:
     QSize m_frameSize;
 };
 
-static QMaybe<QWindowsIUPointer<IDXGIOutputDuplication>> duplicateOutput(ID3D11Device* device, IDXGIOutput *output)
+static QMaybe<QComPtr<IDXGIOutputDuplication>> duplicateOutput(ID3D11Device* device, IDXGIOutput *output)
 {
-    QWindowsIUPointer<IDXGIOutput1> output1;
+    QComPtr<IDXGIOutput1> output1;
     HRESULT hr = output->QueryInterface(__uuidof(IDXGIOutput1), reinterpret_cast<void**>(output1.address()));
     if (FAILED(hr))
         return  { "Failed to create IDXGIOutput1" + QString(std::system_category().message(hr).c_str()) };
 
-    QWindowsIUPointer<IDXGIOutputDuplication> dup;
+    QComPtr<IDXGIOutputDuplication> dup;
     hr = output1->DuplicateOutput(device, dup.address());
     if (SUCCEEDED(hr))
         return dup;
@@ -238,8 +238,8 @@ static QMaybe<QWindowsIUPointer<IDXGIOutputDuplication>> duplicateOutput(ID3D11D
 }
 
 struct DxgiScreen {
-    QWindowsIUPointer<IDXGIAdapter1> adapter;
-    QWindowsIUPointer<IDXGIOutput> output;
+    QComPtr<IDXGIAdapter1> adapter;
+    QComPtr<IDXGIOutput> output;
 };
 
 static QMaybe<DxgiScreen> findDxgiScreen(const QScreen *screen)
@@ -250,14 +250,14 @@ static QMaybe<DxgiScreen> findDxgiScreen(const QScreen *screen)
     auto *winScreen = screen->nativeInterface<QNativeInterface::Private::QWindowsScreen>();
     HMONITOR handle = winScreen ? winScreen->handle() : nullptr;
 
-    QWindowsIUPointer<IDXGIFactory1> factory;
+    QComPtr<IDXGIFactory1> factory;
     HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(factory.address()));
     if (FAILED(hr))
         return "Failed to create IDXGIFactory" + errorString(hr);
 
-    QWindowsIUPointer<IDXGIAdapter1> adapter;
+    QComPtr<IDXGIAdapter1> adapter;
     for (quint32 i = 0; SUCCEEDED(factory->EnumAdapters1(i, adapter.address())); i++, adapter.reset()) {
-        QWindowsIUPointer<IDXGIOutput> output;
+        QComPtr<IDXGIOutput> output;
         for (quint32 j = 0; SUCCEEDED(adapter->EnumOutputs(j, output.address())); j++, output.reset()) {
             DXGI_OUTPUT_DESC desc = {};
             output->GetDesc(&desc);
@@ -271,9 +271,9 @@ static QMaybe<DxgiScreen> findDxgiScreen(const QScreen *screen)
     return "Could not find screen adapter" + screen->name();
 }
 
-static QMaybe<QWindowsIUPointer<ID3D11Device>> createD3D11Device(IDXGIAdapter1 *adapter)
+static QMaybe<QComPtr<ID3D11Device>> createD3D11Device(IDXGIAdapter1 *adapter)
 {
-    QWindowsIUPointer<ID3D11Device> d3d11dev;
+    QComPtr<ID3D11Device> d3d11dev;
     HRESULT hr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
                                    0, nullptr, 0, D3D11_SDK_VERSION,
                                    d3d11dev.address(), nullptr, nullptr);
