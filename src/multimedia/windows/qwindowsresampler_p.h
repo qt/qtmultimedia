@@ -19,7 +19,7 @@
 #include <qbytearray.h>
 #include <qbytearrayview.h>
 #include <qaudioformat.h>
-#include <private/qwindowsiupointer_p.h>
+#include <private/qcomptr_p.h>
 #include <qt_windows.h>
 #include <mftransform.h>
 

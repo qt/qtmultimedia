@@ -6,7 +6,7 @@
 #include <private/qcameradevice_p.h>
 #include <private/qwindowsmfdefs_p.h>
 #include <private/qwindowsmultimediautils_p.h>
-#include <private/qwindowsiupointer_p.h>
+#include <private/qcomptr_p.h>
 
 #include <Dbt.h>
 
