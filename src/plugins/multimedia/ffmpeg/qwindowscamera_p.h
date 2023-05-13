@@ -16,7 +16,7 @@
 //
 
 #include <private/qplatformcamera_p.h>
-#include <private/qwindowsiupointer_p.h>
+#include <private/qcomptr_p.h>
 
 QT_BEGIN_NAMESPACE
 

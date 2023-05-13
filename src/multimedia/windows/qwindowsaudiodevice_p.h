@@ -24,7 +24,7 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <private/qaudiosystem_p.h>
 #include <private/qaudiodevice_p.h>
-#include <qwindowsiupointer_p.h>
+#include <qcomptr_p.h>
 
 struct IMMDevice;
 

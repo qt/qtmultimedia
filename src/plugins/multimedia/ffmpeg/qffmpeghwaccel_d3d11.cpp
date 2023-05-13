@@ -8,7 +8,7 @@
 
 
 #include <private/qvideotexturehelper_p.h>
-#include <private/qwindowsiupointer_p.h>
+#include <private/qcomptr_p.h>
 #include <private/qrhi_p.h>
 #include <private/qrhid3d11_p.h>
 

@@ -21,7 +21,7 @@
 
 #include <QtCore/qobject.h>
 #include "qaudioformat.h"
-#include <private/qwindowsiupointer_p.h>
+#include <private/qcomptr_p.h>
 
 QT_BEGIN_NAMESPACE
 

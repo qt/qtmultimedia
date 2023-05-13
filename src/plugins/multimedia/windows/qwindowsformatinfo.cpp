@@ -5,7 +5,7 @@
 
 #include <mfapi.h>
 #include <mftransform.h>
-#include <private/qwindowsiupointer_p.h>
+#include <private/qcomptr_p.h>
 #include <private/qwindowsmultimediautils_p.h>
 
 #include <QtCore/qlist.h>

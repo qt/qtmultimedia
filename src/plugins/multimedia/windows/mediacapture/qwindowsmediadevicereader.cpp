@@ -9,7 +9,7 @@
 #include <qaudiodevice.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qwindowsmfdefs_p.h>
-#include <private/qwindowsiupointer_p.h>
+#include <private/qcomptr_p.h>
 #include <QtCore/qdebug.h>
 
 #include <mmdeviceapi.h>
