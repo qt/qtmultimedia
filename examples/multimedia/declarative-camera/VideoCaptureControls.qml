@@ -91,14 +91,14 @@ FocusScope {
     }
 
     ZoomControl {
-        x : 0
+        x : 10
         y : captureControls.state === "MobilePortrait" ? -buttonPaneShadow.height : 0
         width : 100
-        height: parent.height
+        height: 500
 
         currentZoom: captureSession.camera.zoomFactor
         maximumZoom: captureSession.camera.maximumZoomFactor
-        onZoomTo: captureSession.camera.zoomFactor = value
+        onZoomTo: captureSession.camera.zoomFactor = target
     }
 
     states: [
