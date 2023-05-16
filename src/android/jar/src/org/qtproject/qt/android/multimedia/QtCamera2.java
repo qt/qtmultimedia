@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 package org.qtproject.qt.android.multimedia;
 
+import org.qtproject.qt.android.multimedia.QtVideoDeviceManager;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraMetadata;
@@ -29,6 +32,7 @@ import java.util.List;
 public class QtCamera2 {
 
     CameraDevice mCameraDevice = null;
+    QtVideoDeviceManager mVideoDeviceManager = null;
     HandlerThread mBackgroundThread;
     Handler mBackgroundHandler;
     ImageReader mImageReader = null;
@@ -39,6 +43,8 @@ public class QtCamera2 {
     String mCameraId;
     List<Surface> mTargetSurfaces = new ArrayList<>();
 
+    private Object mStartMutex = new Object();
+    private boolean mIsStarted = false;
     private static int MaxNumberFrames = 10;
 
     native void onCameraOpened(String cameraId);
@@ -107,6 +113,7 @@ public class QtCamera2 {
 
     public QtCamera2(Context context) {
         mCameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+        mVideoDeviceManager = new QtVideoDeviceManager(context);
         startBackgroundThread();
     }
 
@@ -198,39 +205,70 @@ public class QtCamera2 {
         if (mCaptureSession == null)
             return false;
 
-        try {
-            mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
-            for (Surface surface : mTargetSurfaces) {
-                mPreviewRequestBuilder.addTarget(surface);
+        synchronized (mStartMutex) {
+            try {
+                mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
+                for (Surface surface : mTargetSurfaces) {
+                    mPreviewRequestBuilder.addTarget(surface);
+                }
+
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
+
+                mPreviewRequest = mPreviewRequestBuilder.build();
+                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+                mIsStarted = true;
+                return true;
+
+            } catch (Exception exception) {
+                Log.w("QtCamera2", "Failed to start preview:" + exception);
             }
-
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
-
-            mPreviewRequest = mPreviewRequestBuilder.build();
-            mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
-            return true;
-
-        } catch (Exception exception) {
-            Log.w("QtCamera2", "Failed to start preview:" + exception);
+            return false;
         }
-        return false;
     }
 
     public void stopAndClose() {
-        try {
-            if (null != mCaptureSession) {
-                mCaptureSession.close();
-                mCaptureSession = null;
+        synchronized (mStartMutex) {
+            try {
+                if (null != mCaptureSession) {
+                    mCaptureSession.close();
+                    mCaptureSession = null;
+                }
+                if (null != mCameraDevice) {
+                    mCameraDevice.close();
+                    mCameraDevice = null;
+                }
+                mCameraId = "";
+                mTargetSurfaces.clear();
+            } catch (Exception exception) {
+                Log.w("QtCamera2", "Failed to stop and close:" + exception);
             }
-            if (null != mCameraDevice) {
-                mCameraDevice.close();
-                mCameraDevice = null;
+            mIsStarted = false;
+        }
+    }
+
+    public void zoomTo(float factor)
+    {
+        synchronized (mStartMutex) {
+            if (!mIsStarted) {
+                Log.w("QtCamera2", "Cannot set zoom on invalid camera");
+                return;
             }
-            mCameraId = "";
-            mTargetSurfaces.clear();
-        } catch (Exception exception) {
-            Log.w("QtCamera2", "Failed to stop and close:" + exception);
+
+            Rect activePixels = mVideoDeviceManager.getActiveArraySize(mCameraId);
+            float zoomRatio = 1/factor;
+            int croppedWidth = activePixels.width() - (int)(activePixels.width() * zoomRatio);
+            int croppedHeight = activePixels.height() - (int)(activePixels.height() * zoomRatio);
+            Rect zoom = new Rect(croppedWidth/2, croppedHeight/2, activePixels.width() - croppedWidth/2,
+                                 activePixels.height() - croppedHeight/2);
+            mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+            mPreviewRequest = mPreviewRequestBuilder.build();
+
+            try {
+                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+            } catch (Exception exception) {
+                Log.w("QtCamera2", "Failed to set zoom:" + exception);
+            }
         }
     }
 }
