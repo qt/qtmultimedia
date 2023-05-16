@@ -89,7 +89,12 @@ QAudioSink::QAudioSink(const QAudioDevice &audioDevice, const QAudioFormat &form
 {
     d = QPlatformMediaDevices::instance()->audioOutputDevice(format, audioDevice, parent);
     if (d)
-        connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
+        connect(d, &QPlatformAudioSink::stateChanged, this, [this](QAudio::State state) {
+            // if the signal has been emitted from another thread,
+            // the state may be already changed by main one
+            if (state == d->state())
+                emit stateChanged(state);
+        });
     else
         qWarning() << ("No audio device detected");
 }
