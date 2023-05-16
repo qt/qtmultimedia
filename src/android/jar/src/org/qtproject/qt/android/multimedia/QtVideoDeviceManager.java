@@ -6,6 +6,7 @@ package org.qtproject.qt.android.multimedia;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.params.StreamConfigurationMap;
@@ -81,6 +82,23 @@ public class QtVideoDeviceManager {
         }
 
         return fps;
+    }
+
+    public float getMaxZoom(String cameraId) {
+
+        float maxZoom = 1.0f;
+        final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
+        if (characteristics != null)
+            maxZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+        return maxZoom;
+    }
+
+    public Rect getActiveArraySize(String cameraId) {
+        Rect activeArraySize = new Rect();
+        final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
+        if (characteristics != null)
+            activeArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+        return activeArraySize;
     }
 
     public String[] getStreamConfigurationsSizes(String cameraId, int imageFormat) {

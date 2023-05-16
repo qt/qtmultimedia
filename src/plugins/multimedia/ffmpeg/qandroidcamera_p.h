@@ -34,6 +34,7 @@ public:
     void setActive(bool active) override;
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
+    void zoomTo(float factor, float rate) override;
 
     std::optional<int> ffmpegHWPixelFormat() const override;
 
@@ -55,6 +56,7 @@ private:
 
     void setState(State newState);
     QVideoFrame::RotationAngle rotation();
+    void updateCameraCharacteristics();
 
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
