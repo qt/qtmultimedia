@@ -147,6 +147,11 @@ if (ANDROID)
             qandroidcameraframe_p.h  qandroidcameraframe.cpp
             ../android/wrappers/jni/androidsurfacetexture_p.h
             ../android/wrappers/jni/androidsurfacetexture.cpp
+        NO_UNITY_BUILD_SOURCES
+            # Duplicate declration of JNI Classes using `Q_DECLARE_JNI_CLASS`
+            qandroidcamera.cpp
+            qandroidvideodevices.cpp
+            qandroidcameraframe.cpp
         INCLUDE_DIRECTORIES
             ${FFMPEG_DIR}/include
             ../android/wrappers/jni/
