@@ -118,4 +118,12 @@ public class QtVideoDeviceManager {
 
         return stream;
     }
+
+    public boolean isTorchModeSupported(String cameraId) {
+        boolean ret = false;
+        final CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
+        if (characteristics != null)
+            ret = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+        return ret;
+    }
 }

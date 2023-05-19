@@ -46,6 +46,7 @@ public class QtCamera2 {
     private Object mStartMutex = new Object();
     private boolean mIsStarted = false;
     private static int MaxNumberFrames = 10;
+    private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
 
     native void onCameraOpened(String cameraId);
     native void onCameraDisconnect(String cameraId);
@@ -212,6 +213,7 @@ public class QtCamera2 {
                     mPreviewRequestBuilder.addTarget(surface);
                 }
 
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mTorchMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
 
@@ -268,6 +270,29 @@ public class QtCamera2 {
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
             } catch (Exception exception) {
                 Log.w("QtCamera2", "Failed to set zoom:" + exception);
+            }
+        }
+    }
+
+    private int getTorchModeValue(boolean mode)
+    {
+        return mode ? CameraMetadata.FLASH_MODE_TORCH : CameraMetadata.FLASH_MODE_OFF;
+    }
+
+    public void setTorchMode(boolean torchMode)
+    {
+        synchronized (mStartMutex) {
+            mTorchMode = getTorchModeValue(torchMode);
+
+            if (mIsStarted) {
+                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mTorchMode);
+                mPreviewRequest = mPreviewRequestBuilder.build();
+
+                try {
+                    mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+                } catch (Exception exception) {
+                    Log.w("QtCamera2", "Failed to set flash mode:" + exception);
+                }
             }
         }
     }
