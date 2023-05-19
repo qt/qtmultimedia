@@ -31,9 +31,11 @@ public:
     ~QAndroidCamera() override;
 
     bool isActive() const override { return m_state == State::Started; }
+    bool isTorchModeSupported(QCamera::TorchMode mode) const override;
     void setActive(bool active) override;
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
+    void setTorchMode(QCamera::TorchMode mode) override;
     void zoomTo(float factor, float rate) override;
 
     std::optional<int> ffmpegHWPixelFormat() const override;
@@ -57,6 +59,7 @@ private:
     void setState(State newState);
     QVideoFrame::RotationAngle rotation();
     void updateCameraCharacteristics();
+    void cleanCameraCharacteristics();
 
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
@@ -67,6 +70,7 @@ private:
 
     QVideoFrameFormat::PixelFormat m_androidFramePixelFormat;
     bool m_waitingForFirstFrame = false;
+    bool m_TorchModeSupported = false;
 };
 
 QT_END_NAMESPACE
