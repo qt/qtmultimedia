@@ -101,6 +101,14 @@ FocusScope {
         onZoomTo: captureSession.camera.zoomFactor = value
     }
 
+    FlashControl {
+        x : 10
+        y : captureControls.state === "MobilePortrait" ?
+                parent.height - (buttonPaneShadow.height + height) : parent.height - height
+
+        cameraDevice: captureSession.camera
+    }
+
     states: [
         State {
             name: "MobilePortrait"
