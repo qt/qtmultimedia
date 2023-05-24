@@ -117,42 +117,6 @@ private:
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
 };
 
-static QMaybe<QComPtr<ID3D11Texture2D>> getNextFrame(ID3D11Device *dev, IDXGIOutputDuplication *dup)
-{
-    QComPtr<IDXGIResource> frame;
-    DXGI_OUTDUPL_FRAME_INFO info;
-    HRESULT hr = dup->AcquireNextFrame(0, &info, frame.address());
-    if (FAILED(hr))
-        return hr == DXGI_ERROR_WAIT_TIMEOUT ? QString{}
-                                             : "Failed to grab the screen content" + errorString(hr);
-
-    QComPtr<ID3D11Texture2D> tex;
-    hr = frame->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(tex.address()));
-    if (FAILED(hr)) {
-        dup->ReleaseFrame();
-        return "Failed to obtain D3D11 texture" + errorString(hr);
-    }
-
-    D3D11_TEXTURE2D_DESC texDesc = {};
-    tex->GetDesc(&texDesc);
-    texDesc.MiscFlags = 0;
-    texDesc.BindFlags = 0;
-    QComPtr<ID3D11Texture2D> texCopy;
-    hr = dev->CreateTexture2D(&texDesc, nullptr, texCopy.address());
-    if (FAILED(hr)) {
-        dup->ReleaseFrame();
-        return "Failed to create texture with CPU access" + errorString(hr);
-    }
-
-    QComPtr<ID3D11DeviceContext> ctx;
-    dev->GetImmediateContext(ctx.address());
-    ctx->CopyResource(texCopy.get(), tex.get());
-
-    dup->ReleaseFrame();
-
-    return texCopy;
-}
-
 class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegScreenCaptureThread
 {
 public:
@@ -198,7 +162,7 @@ public:
 
     QVideoFrame grabFrame() override {
         m_ctxMutex->lock();
-        auto maybeTex = getNextFrame(m_device.get(), m_duplication.get());
+        auto maybeTex = getNextFrame();
         m_ctxMutex->unlock();
 
         if (maybeTex) {
@@ -213,6 +177,42 @@ public:
     };
 
 private:
+    QMaybe<QComPtr<ID3D11Texture2D>> getNextFrame()
+    {
+        QComPtr<IDXGIResource> frame;
+        DXGI_OUTDUPL_FRAME_INFO info;
+        HRESULT hr = m_duplication->AcquireNextFrame(0, &info, frame.address());
+        if (FAILED(hr))
+            return hr == DXGI_ERROR_WAIT_TIMEOUT ? QString{}
+                                                : "Failed to grab the screen content" + ::errorString(hr);
+
+        QComPtr<ID3D11Texture2D> tex;
+        hr = frame->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(tex.address()));
+        if (FAILED(hr)) {
+            m_duplication->ReleaseFrame();
+            return "Failed to obtain D3D11 texture" + ::errorString(hr);
+        }
+
+        D3D11_TEXTURE2D_DESC texDesc = {};
+        tex->GetDesc(&texDesc);
+        texDesc.MiscFlags = 0;
+        texDesc.BindFlags = 0;
+        QComPtr<ID3D11Texture2D> texCopy;
+        hr = m_device->CreateTexture2D(&texDesc, nullptr, texCopy.address());
+        if (FAILED(hr)) {
+            m_duplication->ReleaseFrame();
+            return "Failed to create texture with CPU access" + ::errorString(hr);
+        }
+
+        QComPtr<ID3D11DeviceContext> ctx;
+        m_device->GetImmediateContext(ctx.address());
+        ctx->CopyResource(texCopy.get(), tex.get());
+
+        m_duplication->ReleaseFrame();
+
+        return texCopy;
+    }
+
     QComPtr<IDXGIOutputDuplication> m_duplication;
     QComPtr<ID3D11Device> m_device;
     QWaitCondition m_waitForFormat;
