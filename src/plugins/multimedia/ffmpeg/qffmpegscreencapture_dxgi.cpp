@@ -134,6 +134,8 @@ public:
 
     ~Grabber() {
         stop();
+        if (m_releaseFrame)
+            m_duplication->ReleaseFrame();
     }
 
     void run() override
@@ -179,19 +181,27 @@ public:
 private:
     QMaybe<QComPtr<ID3D11Texture2D>> getNextFrame()
     {
+        if (m_releaseFrame) {
+            HRESULT hr = m_duplication->ReleaseFrame();
+            if (FAILED(hr))
+                return "Failed to release duplication frame. " + ::errorString(hr);
+
+            m_releaseFrame = false;
+        }
+
         QComPtr<IDXGIResource> frame;
         DXGI_OUTDUPL_FRAME_INFO info;
         HRESULT hr = m_duplication->AcquireNextFrame(0, &info, frame.address());
         if (FAILED(hr))
             return hr == DXGI_ERROR_WAIT_TIMEOUT ? QString{}
-                                                : "Failed to grab the screen content" + ::errorString(hr);
+                                                 : "Failed to grab the screen content" + ::errorString(hr);
+
+        m_releaseFrame = true;
 
         QComPtr<ID3D11Texture2D> tex;
         hr = frame->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(tex.address()));
-        if (FAILED(hr)) {
-            m_duplication->ReleaseFrame();
+        if (FAILED(hr))
             return "Failed to obtain D3D11 texture" + ::errorString(hr);
-        }
 
         D3D11_TEXTURE2D_DESC texDesc = {};
         tex->GetDesc(&texDesc);
@@ -199,16 +209,12 @@ private:
         texDesc.BindFlags = 0;
         QComPtr<ID3D11Texture2D> texCopy;
         hr = m_device->CreateTexture2D(&texDesc, nullptr, texCopy.address());
-        if (FAILED(hr)) {
-            m_duplication->ReleaseFrame();
+        if (FAILED(hr))
             return "Failed to create texture with CPU access" + ::errorString(hr);
-        }
 
         QComPtr<ID3D11DeviceContext> ctx;
         m_device->GetImmediateContext(ctx.address());
         ctx->CopyResource(texCopy.get(), tex.get());
-
-        m_duplication->ReleaseFrame();
 
         return texCopy;
     }
@@ -220,6 +226,7 @@ private:
     QMutex m_formatMutex;
     std::shared_ptr<QMutex> m_ctxMutex;
     QSize m_frameSize;
+    bool m_releaseFrame = false;
 };
 
 static QMaybe<QComPtr<IDXGIOutputDuplication>> duplicateOutput(ID3D11Device* device, IDXGIOutput *output)
