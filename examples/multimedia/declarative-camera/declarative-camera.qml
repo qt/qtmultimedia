@@ -104,11 +104,7 @@ Rectangle {
     VideoOutput {
         id: viewfinder
         visible: ((cameraUI.state === "PhotoCapture") || (cameraUI.state === "VideoCapture"))
-
-        x: 0
-        y: 0
-        width: ((stillControls.state === "MobilePortrait") ? parent.width : (parent.width-buttonsPanelLandscapeWidth))
-        height: ((stillControls.state === "MobilePortrait") ? parent.height - buttonsPanelPortraitHeight : parent.height)
+        anchors.fill: parent
         //        autoOrientation: true
     }
 
