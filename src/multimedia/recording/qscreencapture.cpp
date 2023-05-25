@@ -88,9 +88,8 @@ QScreenCapture::~QScreenCapture()
     \value NoError                      No error
     \value InternalError                Internal screen capturing driver error
     \value CapturingNotSupported        Capturing is not supported
-    \omitvalue WindowCapturingNotSupported  Window capturing is not supported
-    \value CaptureFailed                Capturing screen or window view failed
-    \value NotFound                     Selected screen or window not found
+    \value CaptureFailed                Capturing screen failed
+    \value NotFound                     Selected screen not found
 */
 
 /*!
@@ -105,11 +104,6 @@ QMediaCaptureSession *QScreenCapture::captureSession() const
 
     return d->captureSession;
 }
-
-/*!
-    \qmlproperty Window QtMultimedia::ScreenCapture::window
-    Describes the window for capturing.
-*/
 
 /*!
     \qmlproperty bool QtMultimedia::ScreenCapture::active
@@ -136,7 +130,7 @@ bool QScreenCapture::isActive() const
 }
 
 /*!
-    \qmlproperty bool QtMultimedia::ScreenCapture::screen
+    \qmlproperty Screen QtMultimedia::ScreenCapture::screen
     Describes the screen for capturing.
 */
 

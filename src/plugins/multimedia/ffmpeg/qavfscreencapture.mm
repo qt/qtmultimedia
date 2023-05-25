@@ -224,7 +224,7 @@ protected:
                        << CGImageGetAlphaInfo(imageRef)
                        << "ByteOrderInfo:" << CGImageGetByteOrderInfo(imageRef);
 
-            updateError(QScreenCapture::WindowCapturingNotSupported,
+            updateError(QScreenCapture::CapturingNotSupported,
                         QLatin1String("Not supported pixel format"));
             return {};
         }

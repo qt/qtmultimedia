@@ -31,7 +31,6 @@ public:
         NoError,
         InternalError,
         CapturingNotSupported,
-        WindowCapturingNotSupported,
         CaptureFailed,
         NotFound,
     };

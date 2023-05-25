@@ -16,7 +16,7 @@ QPlatformScreenCapture::QPlatformScreenCapture(QScreenCapture *screenCapture)
 void QPlatformScreenCapture::setWindow(QWindow *w)
 {
     if (w) {
-        emit m_screenCapture->errorOccurred(QScreenCapture::WindowCapturingNotSupported,
+        emit m_screenCapture->errorOccurred(QScreenCapture::InternalError,
                                             QLatin1String("Window capture is not supported"));
     }
 }
@@ -29,7 +29,7 @@ QWindow *QPlatformScreenCapture::window() const
 void QPlatformScreenCapture::setWindowId(WId id)
 {
     if (id) {
-        emit m_screenCapture->errorOccurred(QScreenCapture::WindowCapturingNotSupported,
+        emit m_screenCapture->errorOccurred(QScreenCapture::InternalError,
                                             QLatin1String("Window capture is not supported"));
     }
 }
