@@ -3,9 +3,14 @@
 
 #include "qaudiosystem_p.h"
 
+#include <private/qplatformmediadevices_p.h>
+
 QT_BEGIN_NAMESPACE
 
-QPlatformAudioSink::QPlatformAudioSink(QObject *parent) : QObject(parent) { }
+QPlatformAudioSink::QPlatformAudioSink(QObject *parent) : QObject(parent)
+{
+    QPlatformMediaDevices::instance()->prepareAudio();
+}
 
 qreal QPlatformAudioSink::volume() const
 {

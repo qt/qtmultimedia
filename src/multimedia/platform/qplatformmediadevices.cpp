@@ -153,5 +153,6 @@ void QPlatformMediaDevices::videoInputsChanged() const
         emit m->videoInputsChanged();
 }
 
+void QPlatformMediaDevices::prepareAudio() { }
 
 QT_END_NAMESPACE

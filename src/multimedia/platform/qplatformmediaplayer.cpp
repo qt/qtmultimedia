@@ -4,8 +4,14 @@
 #include "qplatformmediaplayer_p.h"
 #include <private/qmediaplayer_p.h>
 #include "qmediaplayer.h"
+#include "qplatformmediadevices_p.h"
 
 QT_BEGIN_NAMESPACE
+
+QPlatformMediaPlayer::QPlatformMediaPlayer(QMediaPlayer *parent) : player(parent)
+{
+    QPlatformMediaDevices::instance()->prepareAudio();
+}
 
 QPlatformMediaPlayer::~QPlatformMediaPlayer()
 {
