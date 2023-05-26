@@ -62,6 +62,8 @@ public:
 
     void videoInputsChanged() const;
 
+    virtual void prepareAudio();
+
 protected:
     void audioInputsChanged() const;
     void audioOutputsChanged() const;

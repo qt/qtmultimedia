@@ -125,9 +125,8 @@ public:
     }
 
 protected:
-    explicit QPlatformMediaPlayer(QMediaPlayer *parent = nullptr)
-        : player(parent)
-    {}
+    explicit QPlatformMediaPlayer(QMediaPlayer *parent = nullptr);
+
 private:
     QMediaPlayer *player = nullptr;
     QMediaPlayer::MediaStatus m_status = QMediaPlayer::NoMedia;

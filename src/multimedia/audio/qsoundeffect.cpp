@@ -8,6 +8,7 @@
 #include "qaudiosink.h"
 #include "qmediadevices.h"
 #include <QtCore/qloggingcategory.h>
+#include <private/qplatformmediadevices_p.h>
 
 static Q_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
 
@@ -72,6 +73,8 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
     , m_audioDevice(audioDevice)
 {
     open(QIODevice::ReadOnly);
+
+    QPlatformMediaDevices::instance()->prepareAudio();
 }
 
 void QSoundEffectPrivate::sampleReady()

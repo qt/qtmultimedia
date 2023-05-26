@@ -26,6 +26,7 @@ QT_BEGIN_NAMESPACE
 
 class QWindowsEngine;
 class CMMNotificationClient;
+struct IAudioClient3;
 
 class QWindowsMediaDevices : public QPlatformMediaDevices
 {
@@ -40,11 +41,17 @@ public:
     QPlatformAudioSink *createAudioSink(const QAudioDevice &deviceInfo,
                                         QObject *parent) override;
 
+    void prepareAudio() override;
+
 private:
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
     QComPtr<IMMDeviceEnumerator> m_deviceEnumerator;
     QComPtr<CMMNotificationClient> m_notificationClient;
+    // The "warm-up" audio client is required to run in the background in order to keep audio engine
+    // ready for audio output immediately after creating any other subsequent audio client.
+    QComPtr<IAudioClient3> m_warmUpAudioClient;
+    std::atomic_bool m_isAudioClientWarmedUp = false;
 
     friend CMMNotificationClient;
 };

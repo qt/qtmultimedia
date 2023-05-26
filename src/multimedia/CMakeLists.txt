@@ -214,6 +214,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf
         windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
         windows/qwindowsmfdefs.cpp windows/qwindowsmfdefs_p.h
         windows/qcomptr_p.h
+        windows/qcomtaskresource_p.h
     INCLUDE_DIRECTORIES
         windows
     LIBRARIES
@@ -235,6 +236,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_wmf AND MINGW
         windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
         windows/qwindowsmfdefs.cpp windows/qwindowsmfdefs_p.h
         windows/qcomptr_p.h
+        windows/qcomtaskresource_p.h
 )
 
 qt_internal_extend_target(Multimedia CONDITION WASM
