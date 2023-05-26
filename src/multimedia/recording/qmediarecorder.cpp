@@ -633,6 +633,14 @@ void QMediaRecorder::setMediaFormat(const QMediaFormat &format)
 }
 
 /*!
+
+    \qmlproperty MediaRecorder::EncodingMode QtMultimedia::MediaRecorder::encodingMode
+    \since 6.6
+    \brief This property holds the encoding mode.
+    \sa EncodingMode
+*/
+
+/*!
     Returns the encoding mode.
 
     \sa EncodingMode
@@ -691,6 +699,15 @@ void QMediaRecorder::setQuality(Quality quality)
     emit qualityChanged();
 }
 
+/*!
+    \qmlproperty Size QtMultimedia::MediaRecorder::videoResolution
+    \since 6.6
+    \brief This property holds the resolution of the encoded video.
+
+    Set an empty Size to make the recorder choose an optimal resolution based
+    on what is available from the video source and the limitations of the codec.
+*/
+
 
 /*!
     Returns the resolution of the encoded video.
@@ -729,6 +746,15 @@ void QMediaRecorder::setVideoResolution(const QSize &size)
 */
 
 /*!
+    \qmlproperty real QtMultimedia::MediaRecorder::videoFrameRate
+    \since 6.6
+    \brief This property holds the video frame rate.
+
+    A value of 0 indicates the recorder should make an optimal choice based on what is available
+    from the video source and the limitations of the codec.
+*/
+
+/*!
     Returns the video frame rate.
 */
 qreal QMediaRecorder::videoFrameRate() const
@@ -758,6 +784,12 @@ void QMediaRecorder::setVideoFrameRate(qreal frameRate)
 }
 
 /*!
+    \qmlproperty int QtMultimedia::MediaRecorder::videoBitRate
+    \since 6.6
+    \brief This property holds the bit rate of the compressed video stream in bits per second.
+*/
+
+/*!
     Returns the bit rate of the compressed video stream in bits per second.
 */
 int QMediaRecorder::videoBitRate() const
@@ -784,6 +816,12 @@ void QMediaRecorder::setVideoBitRate(int bitRate)
 }
 
 /*!
+    \qmlproperty int QtMultimedia::MediaRecorder::audioBitRate
+    \since 6.6
+    \brief This property holds the bit rate of the compressed audio stream in bits per second.
+*/
+
+/*!
     Returns the bit rate of the compressed audio stream in bits per second.
 */
 int QMediaRecorder::audioBitRate() const
@@ -808,6 +846,12 @@ void QMediaRecorder::setAudioBitRate(int bitRate)
     d->encoderSettings.setAudioBitRate(bitRate);
     emit audioBitRateChanged();
 }
+
+/*!
+    \qmlproperty int QtMultimedia::MediaRecorder::audioChannelCount
+    \since 6.6
+    \brief This property holds the number of audio channels.
+*/
 
 /*!
     Returns the number of audio channels.
@@ -837,6 +881,12 @@ void QMediaRecorder::setAudioChannelCount(int channels)
     d->encoderSettings.setAudioChannelCount(channels);
     emit audioChannelCountChanged();
 }
+
+/*!
+    \qmlproperty int QtMultimedia::MediaRecorder::audioSampleRate
+    \since 6.6
+    \brief This property holds the audio sample rate in Hz.
+*/
 
 /*!
     Returns the audio sample rate in Hz.

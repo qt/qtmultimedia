@@ -36,7 +36,14 @@ class Q_MULTIMEDIA_EXPORT QMediaRecorder : public QObject
     Q_PROPERTY(QMediaRecorder::Error error READ error NOTIFY errorChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY errorChanged)
     Q_PROPERTY(QMediaFormat mediaFormat READ mediaFormat WRITE setMediaFormat NOTIFY mediaFormatChanged)
-    Q_PROPERTY(Quality quality READ quality WRITE setQuality)
+    Q_PROPERTY(Quality quality READ quality WRITE setQuality NOTIFY qualityChanged)
+    Q_PROPERTY(QMediaRecorder::EncodingMode encodingMode READ encodingMode WRITE setEncodingMode NOTIFY encodingModeChanged)
+    Q_PROPERTY(QSize videoResolution READ videoResolution WRITE setVideoResolution NOTIFY videoResolutionChanged)
+    Q_PROPERTY(qreal videoFrameRate READ videoFrameRate WRITE setVideoFrameRate NOTIFY videoFrameRateChanged)
+    Q_PROPERTY(int videoBitRate READ videoBitRate WRITE setVideoBitRate NOTIFY videoBitRateChanged)
+    Q_PROPERTY(int audioBitRate READ audioBitRate WRITE setAudioBitRate NOTIFY audioBitRateChanged)
+    Q_PROPERTY(int audioChannelCount READ audioChannelCount WRITE setAudioChannelCount NOTIFY audioChannelCountChanged)
+    Q_PROPERTY(int audioSampleRate READ audioSampleRate WRITE setAudioSampleRate NOTIFY audioSampleRateChanged)
 public:
     enum Quality
     {
