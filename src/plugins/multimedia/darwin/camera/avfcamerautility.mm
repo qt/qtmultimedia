@@ -69,9 +69,9 @@ struct ByResolution
     }
 };
 
-struct FormatHasNoFPSRange : std::unary_function<AVCaptureDeviceFormat *, bool>
+struct FormatHasNoFPSRange
 {
-    bool operator() (AVCaptureDeviceFormat *format)
+    bool operator() (AVCaptureDeviceFormat *format) const
     {
         Q_ASSERT(format);
         return !format.videoSupportedFrameRateRanges || !format.videoSupportedFrameRateRanges.count;
