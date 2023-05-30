@@ -139,7 +139,8 @@ qint64 QWaveDecoder::headerLength()
 
 qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
 {
-    if (!haveFormat || format.bytesPerSample() == 0)
+    const int bytesPerSample = format.bytesPerSample();
+    if (!haveFormat || bytesPerSample == 0)
         return 0;
 
     if (bps == 24) {
@@ -163,15 +164,15 @@ qint64 QWaveDecoder::readData(char *data, qint64 maxlen)
         return l;
     }
 
-    qint64 nSamples = maxlen / format.bytesPerSample();
-    maxlen = nSamples * format.bytesPerSample();
+    qint64 nSamples = maxlen / bytesPerSample;
+    maxlen = nSamples * bytesPerSample;
     int read = device->read(data, maxlen);
 
     if (!byteSwap || format.bytesPerFrame() == 1)
         return read;
 
-    nSamples = read / format.bytesPerSample();
-    switch (format.bytesPerSample()) {
+    nSamples = read / bytesPerSample;
+    switch (bytesPerSample) {
     case 2:
         bswap2(data, nSamples);
         break;
