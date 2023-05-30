@@ -488,8 +488,17 @@ VideoEncoder::~VideoEncoder()
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
     QMutexLocker locker(&queueMutex);
-    if (!paused.loadRelaxed()) {
+
+    // Drop frames if encoder can not keep up with the video source data rate
+    const bool queueFull = videoFrameQueue.size() >= maxQueueSize;
+
+    if (queueFull) {
+        qCDebug(qLcFFmpegEncoder) << "Encoder frame queue full. Frame lost.";
+    } else if (!paused.loadRelaxed()) {
         videoFrameQueue.enqueue(frame);
+
+        locker.unlock(); // Avoid context switch on wake wake-up
+
         wake();
     }
 }
@@ -502,9 +511,12 @@ bool VideoEncoder::isValid() const
 QVideoFrame VideoEncoder::takeFrame()
 {
     QMutexLocker locker(&queueMutex);
-    if (videoFrameQueue.isEmpty())
-        return QVideoFrame();
-    return videoFrameQueue.dequeue();
+
+    QVideoFrame frame;
+    if (!videoFrameQueue.isEmpty())
+        frame = videoFrameQueue.dequeue();
+
+    return frame;
 }
 
 void VideoEncoder::retrievePackets()
