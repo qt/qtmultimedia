@@ -168,6 +168,8 @@ class VideoEncoder : public EncoderThread
 {
     mutable QMutex queueMutex;
     QQueue<QVideoFrame> videoFrameQueue;
+    const qsizetype maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
+
 public:
     VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
                  const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
