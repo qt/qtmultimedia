@@ -140,8 +140,6 @@ private:
     QQnxWindowGrabber::BufferView buffer;
 };
 
-static int idCounter = 0;
-
 QT_BEGIN_NAMESPACE
 
 QQnxMediaPlayer::QQnxMediaPlayer(QMediaPlayer *parent)
@@ -168,6 +166,8 @@ QQnxMediaPlayer::~QQnxMediaPlayer()
 
 void QQnxMediaPlayer::openConnection()
 {
+    static int idCounter = 0;
+
     m_connection = mmr_connect(nullptr);
     if (!m_connection) {
         emitPError(QString::fromLatin1("Unable to connect to the multimedia renderer"));

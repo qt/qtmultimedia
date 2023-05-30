@@ -12,8 +12,6 @@
 #include <sys/stat.h>
 #include <sys/strm.h>
 
-static int idCounter = 0;
-
 static QByteArray buildDevicePath(const QByteArray &deviceId, const QMediaEncoderSettings &settings)
 {
     QByteArray devicePath = QByteArrayLiteral("snd:/dev/snd/") + deviceId + QByteArrayLiteral("?");
@@ -43,6 +41,8 @@ QQnxAudioRecorder::~QQnxAudioRecorder()
 
 void QQnxAudioRecorder::openConnection()
 {
+    static int idCounter = 0;
+
     m_connection = ConnectionUniquePtr { mmr_connect(nullptr) };
 
     if (!m_connection) {
