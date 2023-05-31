@@ -7,6 +7,7 @@
 #include <mftransform.h>
 #include <private/qcomptr_p.h>
 #include <private/qwindowsmultimediautils_p.h>
+#include <private/qcomtaskresource_p.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qset.h>
@@ -33,12 +34,14 @@ template<typename T>
 static QSet<T> getCodecSet(GUID category)
 {
     QSet<T> codecSet;
-    IMFActivate **activateArray = nullptr;
+    IMFActivate **activateArrayRaw = nullptr;
     UINT32 num = 0;
 
-    HRESULT hr = MFTEnumEx(category, MFT_ENUM_FLAG_ALL, nullptr, nullptr, &activateArray, &num);
+    HRESULT hr = MFTEnumEx(category, MFT_ENUM_FLAG_ALL, nullptr, nullptr, &activateArrayRaw, &num);
 
     if (SUCCEEDED(hr)) {
+        QComTaskResource<IMFActivate *[], QComDeleter> activateArray(activateArrayRaw, num);
+
         for (UINT32 i = 0; i < num; ++i) {
             ComPtr<IMFTransform> transform;
             UINT32 typeIndex = 0;
@@ -61,11 +64,6 @@ static QSet<T> getCodecSet(GUID category)
                 }
             }
         }
-
-        for (UINT32 i = 0; i < num; ++i)
-            activateArray[i]->Release();
-
-        CoTaskMemFree(activateArray);
     }
 
     return codecSet;

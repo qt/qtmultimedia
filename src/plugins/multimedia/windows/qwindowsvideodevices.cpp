@@ -7,6 +7,7 @@
 #include <private/qwindowsmfdefs_p.h>
 #include <private/qwindowsmultimediautils_p.h>
 #include <private/qcomptr_p.h>
+#include <private/qcomtaskresource_p.h>
 
 #include <Dbt.h>
 
@@ -132,13 +133,11 @@ static std::optional<QCameraFormat> createCameraFormat(IMFMediaType *mediaFormat
 
 static QString getString(IMFActivate *device, const IID &id)
 {
-    WCHAR *str = NULL;
+    QComTaskResource<WCHAR> str;
     UINT32 length = 0;
-    HRESULT hr = device->GetAllocatedString(id, &str, &length);
+    HRESULT hr = device->GetAllocatedString(id, str.address(), &length);
     if (SUCCEEDED(hr)) {
-        auto qstr = QString::fromWCharArray(str);
-        CoTaskMemFree(str);
-        return qstr;
+        return QString::fromWCharArray(str.get());
     } else {
         return {};
     }
@@ -186,20 +185,19 @@ static QList<QCameraDevice> readCameraDevices(IMFAttributes *attr)
 {
     QList<QCameraDevice> cameras;
     UINT32 count = 0;
-    IMFActivate **devices = NULL;
-    HRESULT hr = MFEnumDeviceSources(attr, &devices, &count);
+    IMFActivate **devicesRaw = nullptr;
+    HRESULT hr = MFEnumDeviceSources(attr, &devicesRaw, &count);
     if (SUCCEEDED(hr)) {
+        QComTaskResource<IMFActivate *[], QComDeleter> devices(devicesRaw, count);
+
         for (UINT32 i = 0; i < count; i++) {
             IMFActivate *device = devices[i];
             if (device) {
                 auto maybeCamera = createCameraDevice(device);
                 if (maybeCamera)
                     cameras << *maybeCamera;
-
-                device->Release();
             }
         }
-        CoTaskMemFree(devices);
     }
     return cameras;
 }

@@ -166,14 +166,12 @@ QWindowsMediaDevices::QWindowsMediaDevices()
             for (UINT i = 0; i < count; i++) {
                 ComPtr<IMMDevice> device;
                 DWORD state = 0;
-                LPWSTR id = nullptr;
+                QComTaskResource<WCHAR> id;
 
                 if (SUCCEEDED(devColl->Item(i, device.GetAddressOf()))
                     && SUCCEEDED(device->GetState(&state))
-                    && SUCCEEDED(device->GetId(&id)))
-                {
-                    devState.insert(QString::fromWCharArray(id), state);
-                    CoTaskMemFree(id);
+                    && SUCCEEDED(device->GetId(id.address()))) {
+                    devState.insert(QString::fromWCharArray(id.get()), state);
                 }
             }
         }
@@ -214,13 +212,12 @@ QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mo
     const auto defaultAudioDeviceID = [this, audioOut]{
         const auto dataFlow = audioOut ? EDataFlow::eRender : EDataFlow::eCapture;
         ComPtr<IMMDevice> dev;
-        LPWSTR id = nullptr;
+        QComTaskResource<WCHAR> id;
         QString sid;
 
         if (SUCCEEDED(m_deviceEnumerator->GetDefaultAudioEndpoint(dataFlow, ERole::eMultimedia, dev.GetAddressOf()))) {
-            if (dev && SUCCEEDED(dev->GetId(&id))) {
-                sid = QString::fromWCharArray(id);
-                CoTaskMemFree(id);
+            if (dev && SUCCEEDED(dev->GetId(id.address()))) {
+                sid = QString::fromWCharArray(id.get());
             }
         }
         return sid.toUtf8();

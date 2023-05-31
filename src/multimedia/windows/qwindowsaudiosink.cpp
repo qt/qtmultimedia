@@ -15,6 +15,7 @@
 #include "qwindowsaudiosink_p.h"
 #include "qwindowsaudioutils_p.h"
 #include "qwindowsmultimediautils_p.h"
+#include "qcomtaskresource_p.h"
 
 #include <QtCore/QDataStream>
 #include <QtCore/qtimer.h>
@@ -215,8 +216,8 @@ bool QWindowsAudioSink::open()
 
     auto resetClient = qScopeGuard([this](){ m_audioClient.Reset(); });
 
-    WAVEFORMATEX *pwfx = nullptr;
-    hr = m_audioClient->GetMixFormat(&pwfx);
+    QComTaskResource<WAVEFORMATEX> pwfx;
+    hr = m_audioClient->GetMixFormat(pwfx.address());
     if (FAILED(hr)) {
         qCWarning(qLcAudioOutput) << "Format unsupported" << errorString(hr);
         return false;
@@ -224,7 +225,6 @@ bool QWindowsAudioSink::open()
 
     if (!m_resampler.setup(m_format, QWindowsAudioUtils::waveFormatExToFormat(*pwfx))) {
         qCWarning(qLcAudioOutput) << "Failed to set up resampler";
-        CoTaskMemFree(pwfx);
         return false;
     }
 
@@ -233,15 +233,8 @@ bool QWindowsAudioSink::open()
 
     REFERENCE_TIME requestedDuration = m_format.durationForBytes(m_bufferSize) * 10;
 
-    hr = m_audioClient->Initialize(
-            AUDCLNT_SHAREMODE_SHARED,
-            0,
-            requestedDuration,
-            0,
-            pwfx,
-            nullptr);
-
-    CoTaskMemFree(pwfx);
+    hr = m_audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, 0, requestedDuration, 0, pwfx.get(),
+                                   nullptr);
 
     if (FAILED(hr)) {
         qCWarning(qLcAudioOutput) << "Failed to initialize audio client" << errorString(hr);
