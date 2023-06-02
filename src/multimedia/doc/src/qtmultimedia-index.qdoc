@@ -99,6 +99,9 @@
     \row
      \li \l {QtMultimedia::ScreenCapture}{ScreenCapture}
      \li Captures a screen.
+    \row
+     \li \l {QtMultimedia::WindowCapture}{WindowCapture}
+     \li Captures a top-level window.
     \endtable
 
     \section1 C++ classes
@@ -142,6 +145,9 @@
     \row
      \li QScreenCapture
      \li Captures a screen.
+    \row
+     \li QWindowCapture
+     \li Captures a top-level window.
     \endtable
 
     For playback QMediaPlayer, QAudioOutput and QVideoOutput contain all the required functionality.
