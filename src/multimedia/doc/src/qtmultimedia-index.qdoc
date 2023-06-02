@@ -96,6 +96,9 @@
      \li \l {QtMultimedia::Video}{Video}
      \li Add Video playback functionality to a scene. Uses MediaPlayer and
      VideoOutput types to provide video playback functionality.
+    \row
+     \li \l {QtMultimedia::ScreenCapture}{ScreenCapture}
+     \li Captures a screen.
     \endtable
 
     \section1 C++ Classes
@@ -136,6 +139,9 @@
     \row
      \li QAudioSink
      \li Sends raw audio data to an audio output device.
+    \row
+     \li QScreenCapture
+     \li Captures a screen.
     \endtable
 
     For playback QMediaPlayer, QAudioOutput and QVideoOutput contain all the required functionality.
