@@ -41,7 +41,8 @@ INCLUDEPATH += $${fftreal_dir}
 RESOURCES = spectrum.qrc
 
 LIBS += -L./$${spectrum_build_dir}
-LIBS += -lfftreal
+android:LIBS += -lfftreal_$$QT_ARCH
+else:LIBS += -lfftreal
 
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/spectrum
 INSTALLS += target
