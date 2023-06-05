@@ -179,7 +179,8 @@ QWindowsMediaDevices::QWindowsMediaDevices()
         }
 
 
-        m_notificationClient.attach(new CMMNotificationClient(this, m_deviceEnumerator, std::move(devState)));
+        m_notificationClient =
+                makeComObject<CMMNotificationClient>(this, m_deviceEnumerator, std::move(devState));
         m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient.get());
 
     } else {

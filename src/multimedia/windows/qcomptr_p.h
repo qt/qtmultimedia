@@ -77,4 +77,12 @@ private:
     T *m_ptr;
 };
 
+template<typename T, typename... Args>
+QComPtr<T> makeComObject(Args &&...args)
+{
+    QComPtr<T> p;
+    p.attach(new T(std::forward<Args>(args)...));
+    return p;
+}
+
 #endif
