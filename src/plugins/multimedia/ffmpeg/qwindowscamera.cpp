@@ -185,7 +185,7 @@ public:
         if (!ac->m_source)
             return {};
 
-        ac->m_readerCallback.reset(new CameraReaderCallback);
+        ac->m_readerCallback.attach(new CameraReaderCallback);
         ac->m_readerCallback->setActiveCamera(ac.get());
         ac->m_reader = createCameraReader(ac->m_source.get(), ac->m_readerCallback);
         if (!ac->m_reader)
