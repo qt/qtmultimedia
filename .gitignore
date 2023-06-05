@@ -57,6 +57,7 @@ CMakeLists.txt.user
 CMakeLists.txt.user.*
 .vscode
 .xdp_CMakeLists.txt.*
+CMakeUserPresets.json
 
 # Build artifacts
 build-*-Debug
