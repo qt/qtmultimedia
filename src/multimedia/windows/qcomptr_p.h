@@ -15,11 +15,18 @@
 // We mean it.
 //
 
+#include <qt_windows.h>
+
 template <class T>
 class QComPtr
 {
 public:
-    explicit QComPtr(T *ptr) : m_ptr(ptr) {}
+    // Calls AddRef on ptr if it is not a nullptr
+    explicit QComPtr(T *ptr) : m_ptr(ptr)
+    {
+        if (m_ptr)
+            m_ptr->AddRef();
+    }
     QComPtr() : m_ptr(nullptr) {}
     QComPtr(const QComPtr<T> &uiPtr) : m_ptr(uiPtr.m_ptr) { if (m_ptr) m_ptr->AddRef(); }
     QComPtr(QComPtr<T> &&uiPtr) : m_ptr(uiPtr.m_ptr) { uiPtr.m_ptr = nullptr; }
