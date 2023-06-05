@@ -91,7 +91,6 @@ STDMETHODIMP MFDecoderSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStrea
     Q_UNUSED(dwStreamIndex);
     Q_UNUSED(llTimestamp);
     if (pSample) {
-        pSample->AddRef();
         emit newSample(QComPtr{pSample});
     } else if ((dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) == MF_SOURCE_READERF_ENDOFSTREAM) {
         emit finished();
