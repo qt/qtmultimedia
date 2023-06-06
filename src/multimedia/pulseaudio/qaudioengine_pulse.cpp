@@ -132,7 +132,7 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
     // skip monitor channels
     if (info->monitor_of_sink != PA_INVALID_INDEX)
         return;
-    bool isDefault = pulseEngine->m_defaultSink == info->name;
+    bool isDefault = pulseEngine->m_defaultSource == info->name;
     auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Input);
     dinfo->channelMap = info->channel_map;
     dinfo->channelConfiguration = QPulseAudioInternal::channelConfigFromMap(info->channel_map);
