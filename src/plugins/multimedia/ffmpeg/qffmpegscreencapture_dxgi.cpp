@@ -182,11 +182,11 @@ private:
     QMaybe<QComPtr<ID3D11Texture2D>> getNextFrame()
     {
         if (m_releaseFrame) {
+            m_releaseFrame = false;
+
             HRESULT hr = m_duplication->ReleaseFrame();
             if (FAILED(hr))
                 return "Failed to release duplication frame. " + ::errorString(hr);
-
-            m_releaseFrame = false;
         }
 
         QComPtr<IDXGIResource> frame;
