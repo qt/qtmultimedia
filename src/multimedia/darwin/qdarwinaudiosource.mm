@@ -7,7 +7,7 @@
 #include "qdarwinmediadevices_p.h"
 #include <qmediadevices.h>
 
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
 # include <AudioUnit/AudioComponent.h>
 #endif
 
@@ -454,7 +454,7 @@ bool QDarwinAudioSource::open()
 
     AudioComponentDescription componentDescription;
     componentDescription.componentType = kAudioUnitType_Output;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     componentDescription.componentSubType = kAudioUnitSubType_HALOutput;
 #else
     componentDescription.componentSubType = kAudioUnitSubType_RemoteIO;
@@ -513,7 +513,7 @@ bool QDarwinAudioSource::open()
         return false;
     }
 
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     //Set Audio Device
     if (AudioUnitSetProperty(m_audioUnit,
                              kAudioOutputUnitProperty_CurrentDevice,
@@ -529,7 +529,7 @@ bool QDarwinAudioSource::open()
     //set format
     m_streamFormat = CoreAudioUtils::toAudioStreamBasicDescription(m_audioFormat);
 
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     UInt32 size = 0;
 
     if (m_audioFormat == m_audioDeviceInfo.preferredFormat()) {
@@ -542,7 +542,7 @@ bool QDarwinAudioSource::open()
                          1,
                          &m_deviceFormat,
                          sizeof(m_deviceFormat));
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     } else {
         size = sizeof(m_deviceFormat);
         if (AudioUnitGetProperty(m_audioUnit,
@@ -569,7 +569,7 @@ bool QDarwinAudioSource::open()
 
     //setup buffers
     UInt32 numberOfFrames;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     size = sizeof(UInt32);
     if (AudioUnitGetProperty(m_audioUnit,
                              kAudioDevicePropertyBufferFrameSize,
