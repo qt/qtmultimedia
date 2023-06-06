@@ -29,7 +29,10 @@ QList<QCameraDevice> QWasmCameraDevices::videoDevices() const
     return wasmMediaDevices ? wasmMediaDevices->videoInputs() : QList<QCameraDevice>();
 }
 
-QWasmMediaDevices::QWasmMediaDevices() = default;
+QWasmMediaDevices::QWasmMediaDevices()
+{
+    initDevices();
+}
 
 void QWasmMediaDevices::initDevices()
 {
