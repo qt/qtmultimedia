@@ -23,41 +23,69 @@
 
 QT_BEGIN_NAMESPACE
 
-template<typename Value>
+struct QUnexpect
+{
+};
+
+static constexpr QUnexpect unexpect{};
+
+template<typename Value, typename Error = QString>
 class QMaybe
 {
 public:
-    QMaybe(const Value &v) : m_value(v) { }
-    QMaybe(Value &&v) : m_value(std::move(v)) { }
-    QMaybe(QString error) : m_error(std::move(error)) { }
+    QMaybe(const Value &v)
+    {
+        if constexpr (std::is_pointer_v<Value>) {
+            if (!v)
+                return; // nullptr is treated as nullopt (for raw pointer types only)
+        }
+        m_value = v;
+    }
 
-    constexpr explicit operator bool() const { return bool(m_value); }
-    constexpr Value &value() { return *m_value; }
-    constexpr const Value &value() const { return *m_value; }
-    constexpr const QString &error() const { return m_error; }
+    QMaybe(Value &&v)
+    {
+        if constexpr (std::is_pointer_v<Value>) {
+            if (!v)
+                return; // nullptr is treated as nullopt (for raw pointer types only)
+        }
+        m_value = std::move(v);
+    }
+
+    QMaybe(const Error& error) : m_error(error) { }
+
+    template<class... Args>
+    QMaybe(QUnexpect, Args &&...args) : m_error{ std::forward<Args>(args)... }
+    {
+        static_assert(std::is_constructible_v<Error, Args &&...>,
+                      "Invalid arguments for creating an error type");
+    }
+
+    constexpr explicit operator bool() const noexcept { return m_value.has_value(); }
+
+    constexpr Value &value()
+    {
+        Q_ASSERT(m_value.has_value());
+        return *m_value;
+    }
+
+    constexpr const Value &value() const
+    {
+        Q_ASSERT(m_value.has_value());
+        return *m_value;
+    }
+
+    constexpr Value *operator->() noexcept { return &value(); }
+    constexpr const Value *operator->() const noexcept { return &value(); }
+
+    constexpr Value &operator*() & noexcept { return value(); }
+    constexpr const Value &operator*() const & noexcept { return value(); }
+
+    constexpr const Error &error() const { return m_error; }
 
 private:
     std::optional<Value> m_value;
-    const QString m_error;
+    const Error m_error;
 };
-
-template<typename Value>
-class QMaybe<Value *>
-{
-public:
-    QMaybe(Value *v) : m_value(v) { }
-    QMaybe(QString error) : m_error(std::move(error)) { }
-
-    constexpr explicit operator bool() const { return bool(m_value); }
-    constexpr Value *value() { return m_value; }
-    constexpr const Value *value() const { return m_value; }
-    constexpr const QString &error() const { return m_error; }
-
-private:
-    Value *m_value = nullptr;
-    const QString m_error;
-};
-
 
 struct Fraction {
     int numerator;
