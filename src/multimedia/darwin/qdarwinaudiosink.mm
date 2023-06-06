@@ -13,7 +13,7 @@
 
 #include <AudioUnit/AudioUnit.h>
 #include <AudioToolbox/AudioToolbox.h>
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
 # include <AudioUnit/AudioComponent.h>
 #endif
 
@@ -358,7 +358,7 @@ void QDarwinAudioSink::setVolume(qreal volume)
     if (!m_isOpen)
         return;
 
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     //on OS X the volume can be set directly on the AudioUnit
     if (AudioUnitSetParameter(m_audioUnit,
                               kHALOutputParam_Volume,
@@ -473,7 +473,7 @@ bool QDarwinAudioSink::open()
 
     AudioComponentDescription componentDescription;
     componentDescription.componentType = kAudioUnitType_Output;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     componentDescription.componentSubType = kAudioUnitSubType_HALOutput;
 #else
     componentDescription.componentSubType = kAudioUnitSubType_RemoteIO;
@@ -508,7 +508,7 @@ bool QDarwinAudioSink::open()
         return false;
     }
 
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     //Set Audio Device
     if (AudioUnitSetProperty(m_audioUnit,
                              kAudioOutputUnitProperty_CurrentDevice,
@@ -539,7 +539,7 @@ bool QDarwinAudioSink::open()
 
     // Allocate buffer
     UInt32 numberOfFrames = 0;
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
     size = sizeof(UInt32);
     if (AudioUnitGetProperty(m_audioUnit,
                              kAudioDevicePropertyBufferFrameSize,
