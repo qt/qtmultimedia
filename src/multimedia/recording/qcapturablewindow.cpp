@@ -79,21 +79,21 @@ QCapturableWindow::QCapturableWindow(const QCapturableWindow &other) = default;
 QCapturableWindow& QCapturableWindow::operator=(const QCapturableWindow &other) = default;
 
 /*!
-    Returns \c true if current window information and \a other refer to the same window,
+    \fn bool QCapturableWindow::operator==(const QCapturableWindow &lhs, const QCapturableWindow &rhs)
+
+    Returns \c true if window information \a lhs and \a rhs refer to the same window,
     otherwise returns \c false.
 */
-bool QCapturableWindow::operator==(const QCapturableWindow &other) const
-{
-    return d == other.d || (d && other.d && d->id == other.d->id);
-}
 
 /*!
-    Returns \c true if current window information and \a other refer to different windows,
+    \fn bool QCapturableWindow::operator!=(const QCapturableWindow &lhs, const QCapturableWindow &rhs)
+
+    Returns \c true if window information \a lhs and \a rhs refer to different windows,
     otherwise returns \c false.
 */
-bool QCapturableWindow::operator!=(const QCapturableWindow &other) const
+bool operator==(const QCapturableWindow &lhs, const QCapturableWindow &rhs) noexcept
 {
-    return !(*this == other);
+    return lhs.d == rhs.d || (lhs.d && rhs.d && lhs.d->id == rhs.d->id);
 }
 
 /*!
