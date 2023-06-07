@@ -29,7 +29,7 @@ public:
           mode(m)
     {}
     virtual ~QAudioDevicePrivate();
-    QByteArray  id;
+    QByteArray id;
     QAudioDevice::Mode mode = QAudioDevice::Output;
     bool isDefault = false;
 
@@ -41,6 +41,18 @@ public:
     int maximumChannelCount = 0;
     QList<QAudioFormat::SampleFormat> supportedSampleFormats;
     QAudioFormat::ChannelConfig channelConfiguration = QAudioFormat::ChannelConfigUnknown;
+
+    bool operator == (const QAudioDevicePrivate &other) const
+    {
+        return id == other.id && mode == other.mode && isDefault == other.isDefault
+                && preferredFormat == other.preferredFormat && description == other.description
+                && minimumSampleRate == other.minimumSampleRate
+                && maximumSampleRate == other.maximumSampleRate
+                && minimumChannelCount == other.minimumChannelCount
+                && maximumChannelCount == other.maximumChannelCount
+                && supportedSampleFormats == other.supportedSampleFormats
+                && channelConfiguration == other.channelConfiguration;
+    }
 
     QAudioDevice create() { return QAudioDevice(this); }
 };
