@@ -16,6 +16,13 @@ QPulseAudioMediaDevices::QPulseAudioMediaDevices()
     : QPlatformMediaDevices()
 {
     pulseEngine = new QPulseAudioEngine();
+
+    // TODO: it might make sense to connect device changing signals
+    // to each added QMediaDevices
+    QObject::connect(pulseEngine, &QPulseAudioEngine::audioInputsChanged,
+                     [this]() { audioInputsChanged(); });
+    QObject::connect(pulseEngine, &QPulseAudioEngine::audioOutputsChanged,
+                     [this]() { audioOutputsChanged(); });
 }
 
 QPulseAudioMediaDevices::~QPulseAudioMediaDevices()

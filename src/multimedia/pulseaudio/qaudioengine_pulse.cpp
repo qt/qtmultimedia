@@ -14,6 +14,50 @@
 
 QT_BEGIN_NAMESPACE
 
+template<typename Info>
+static bool updateDevicesMap(QReadWriteLock &lock, QByteArray defaultDeviceId,
+                             QMap<int, QAudioDevice> &devices, QAudioDevice::Mode mode,
+                             const Info &info)
+{
+    QWriteLocker locker(&lock);
+
+    bool isDefault = defaultDeviceId == info.name;
+    auto newDeviceInfo = std::make_unique<QPulseAudioDeviceInfo>(info.name, info.description, isDefault, mode);
+    newDeviceInfo->channelConfiguration = QPulseAudioInternal::channelConfigFromMap(info.channel_map);
+    newDeviceInfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info.sample_spec);
+    newDeviceInfo->preferredFormat.setChannelConfig(newDeviceInfo->channelConfiguration);
+
+    auto &device = devices[info.index];
+    if (device.handle() && *newDeviceInfo == *device.handle())
+        return false;
+
+    device = newDeviceInfo.release()->create();
+    return true;
+}
+
+static bool updateDevicesMap(QReadWriteLock &lock, QByteArray defaultDeviceId,
+                             QMap<int, QAudioDevice> &devices)
+{
+    QWriteLocker locker(&lock);
+
+    bool result = false;
+
+    for (QAudioDevice &device : devices) {
+        auto deviceInfo = device.handle();
+        const auto isDefault = deviceInfo->id == defaultDeviceId;
+        if (deviceInfo->isDefault != isDefault) {
+            Q_ASSERT(dynamic_cast<const QPulseAudioDeviceInfo *>(deviceInfo));
+            auto newDeviceInfo = std::make_unique<QPulseAudioDeviceInfo>(
+                    *static_cast<const QPulseAudioDeviceInfo *>(deviceInfo));
+            newDeviceInfo->isDefault = isDefault;
+            device = newDeviceInfo.release()->create();
+            result = true;
+        }
+    }
+
+    return result;
+};
+
 static void serverInfoCallback(pa_context *context, const pa_server_info *info, void *userdata)
 {
     if (!info) {
@@ -46,11 +90,33 @@ static void serverInfoCallback(pa_context *context, const pa_server_info *info, 
 #endif
 
     QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine*>(userdata);
-    pulseEngine->m_serverLock.lockForWrite();
-    pulseEngine->m_defaultSink = info->default_sink_name;
-    pulseEngine->m_defaultSource = info->default_source_name;
-    // ### ensure the QAudioDevices are updated if default changes and emit changed signal in the device manager
-    pulseEngine->m_serverLock.unlock();
+
+    bool defaultSinkChanged = false;
+    bool defaultSourceChanged = false;
+
+    {
+        QWriteLocker locker(&pulseEngine->m_serverLock);
+
+        if (pulseEngine->m_defaultSink != info->default_sink_name) {
+            pulseEngine->m_defaultSink = info->default_sink_name;
+            defaultSinkChanged = true;
+        }
+
+        if (pulseEngine->m_defaultSource != info->default_source_name) {
+            pulseEngine->m_defaultSource = info->default_source_name;
+            defaultSourceChanged = true;
+        }
+    }
+
+    if (defaultSinkChanged
+        && updateDevicesMap(pulseEngine->m_sinkLock, pulseEngine->m_defaultSink,
+                            pulseEngine->m_sinks))
+        emit pulseEngine->audioOutputsChanged();
+
+    if (defaultSourceChanged
+        && updateDevicesMap(pulseEngine->m_sourceLock, pulseEngine->m_defaultSource,
+                            pulseEngine->m_sources))
+        emit pulseEngine->audioInputsChanged();
 
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
@@ -72,11 +138,11 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
     Q_ASSERT(info);
 
 #ifdef DEBUG_PULSE
-    QMap<pa_sink_state, QString> stateMap;
-    stateMap[PA_SINK_INVALID_STATE] = "n/a";
-    stateMap[PA_SINK_RUNNING] = "RUNNING";
-    stateMap[PA_SINK_IDLE] = "IDLE";
-    stateMap[PA_SINK_SUSPENDED] = "SUSPENDED";
+    static const QMap<pa_sink_state, QString> stateMap{
+        { PA_SINK_INVALID_STATE, "n/a" }, { PA_SINK_RUNNING, "RUNNING" },
+        { PA_SINK_IDLE, "IDLE" },         { PA_SINK_SUSPENDED, "SUSPENDED" },
+        { PA_SINK_UNLINKED, "UNLINKED" },
+    };
 
     qDebug() << QString("Sink #%1\n"
              "\tState: %2\n"
@@ -88,15 +154,9 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
                   info->description);
 #endif
 
-    QWriteLocker locker(&pulseEngine->m_sinkLock);
-    bool isDefault = pulseEngine->m_defaultSink == info->name;
-    auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Output);
-    dinfo->channelMap = info->channel_map;
-    dinfo->channelConfiguration = QPulseAudioInternal::channelConfigFromMap(info->channel_map);
-    dinfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
-    dinfo->preferredFormat.setChannelConfig(dinfo->channelConfiguration);
-    pulseEngine->m_sinks.insert(info->index, dinfo->create());
-    emit pulseEngine->audioOutputsChanged();
+    if (updateDevicesMap(pulseEngine->m_sinkLock, pulseEngine->m_defaultSink, pulseEngine->m_sinks,
+                         QAudioDevice::Output, *info))
+        emit pulseEngine->audioOutputsChanged();
 }
 
 static void sourceInfoCallback(pa_context *context, const pa_source_info *info, int isLast, void *userdata)
@@ -112,11 +172,11 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
     Q_ASSERT(info);
 
 #ifdef DEBUG_PULSE
-    QMap<pa_source_state, QString> stateMap;
-    stateMap[PA_SOURCE_INVALID_STATE] = "n/a";
-    stateMap[PA_SOURCE_RUNNING] = "RUNNING";
-    stateMap[PA_SOURCE_IDLE] = "IDLE";
-    stateMap[PA_SOURCE_SUSPENDED] = "SUSPENDED";
+    static const QMap<pa_source_state, QString> stateMap{ { PA_SOURCE_INVALID_STATE, "n/a" },
+                                                          { PA_SOURCE_RUNNING, "RUNNING" },
+                                                          { PA_SOURCE_IDLE, "IDLE" },
+                                                          { PA_SOURCE_SUSPENDED, "SUSPENDED" },
+                                                          { PA_SOURCE_UNLINKED, "UNLINKED" } };
 
     qDebug() << QString("Source #%1\n"
          "\tState: %2\n"
@@ -128,18 +188,13 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
               info->description);
 #endif
 
-    QWriteLocker locker(&pulseEngine->m_sourceLock);
     // skip monitor channels
     if (info->monitor_of_sink != PA_INVALID_INDEX)
         return;
-    bool isDefault = pulseEngine->m_defaultSource == info->name;
-    auto *dinfo = new QPulseAudioDeviceInfo(info->name, info->description, isDefault, QAudioDevice::Input);
-    dinfo->channelMap = info->channel_map;
-    dinfo->channelConfiguration = QPulseAudioInternal::channelConfigFromMap(info->channel_map);
-    dinfo->preferredFormat = QPulseAudioInternal::sampleSpecToAudioFormat(info->sample_spec);
-    dinfo->preferredFormat.setChannelConfig(dinfo->channelConfiguration);
-    pulseEngine->m_sources.insert(info->index, dinfo->create());
-    emit pulseEngine->audioInputsChanged();
+
+    if (updateDevicesMap(pulseEngine->m_sourceLock, pulseEngine->m_defaultSource,
+                         pulseEngine->m_sources, QAudioDevice::Input, *info))
+        emit pulseEngine->audioInputsChanged();
 }
 
 static void event_cb(pa_context* context, pa_subscription_event_type_t t, uint32_t index, void* userdata)
@@ -179,16 +234,16 @@ static void event_cb(pa_context* context, pa_subscription_event_type_t t, uint32
         break;
     case PA_SUBSCRIPTION_EVENT_REMOVE:
         switch (facility) {
-        case PA_SUBSCRIPTION_EVENT_SINK:
-            pulseEngine->m_sinkLock.lockForWrite();
+        case PA_SUBSCRIPTION_EVENT_SINK: {
+            QWriteLocker locker(&pulseEngine->m_sinkLock);
             pulseEngine->m_sinks.remove(index);
-            pulseEngine->m_sinkLock.unlock();
             break;
-        case PA_SUBSCRIPTION_EVENT_SOURCE:
-            pulseEngine->m_sourceLock.lockForWrite();
+        }
+        case PA_SUBSCRIPTION_EVENT_SOURCE: {
+            QWriteLocker locker(&pulseEngine->m_sourceLock);
             pulseEngine->m_sources.remove(index);
-            pulseEngine->m_sourceLock.unlock();
             break;
+        }
         default:
             break;
         }
@@ -415,24 +470,17 @@ QPulseAudioEngine *QPulseAudioEngine::instance()
 
 QList<QAudioDevice> QPulseAudioEngine::availableDevices(QAudioDevice::Mode mode) const
 {
-    QList<QAudioDevice> devices;
-    QByteArray defaultDevice;
-
-    m_serverLock.lockForRead();
-
     if (mode == QAudioDevice::Output) {
         QReadLocker locker(&m_sinkLock);
-        devices = m_sinks.values();
-        defaultDevice = m_defaultSink;
-    } else {
-        QReadLocker locker(&m_sourceLock);
-        devices = m_sources.values();
-        defaultDevice = m_defaultSource;
+        return m_sinks.values();
     }
 
-    m_serverLock.unlock();
+    if (mode == QAudioDevice::Input) {
+        QReadLocker locker(&m_sourceLock);
+        return m_sources.values();
+    }
 
-    return devices;
+    return {};
 }
 
 QByteArray QPulseAudioEngine::defaultDevice(QAudioDevice::Mode mode) const
