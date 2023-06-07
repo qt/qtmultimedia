@@ -33,8 +33,6 @@ class QPulseAudioDeviceInfo : public QAudioDevicePrivate
 public:
     QPulseAudioDeviceInfo(const char *device, const char *description, bool isDefault, QAudioDevice::Mode mode);
     ~QPulseAudioDeviceInfo() {}
-
-    pa_channel_map channelMap;
 };
 
 QT_END_NAMESPACE
