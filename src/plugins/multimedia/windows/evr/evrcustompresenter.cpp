@@ -1898,9 +1898,9 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
             frame.setEndTime(frame.endTime() + m_positionOffset);
     }
 
-    QComPtr<IMFMediaType> inputStreamType;
-    if (SUCCEEDED(m_mixer->GetInputCurrentType(0, inputStreamType.address()))) {
-        auto rotation = static_cast<MFVideoRotationFormat>(MFGetAttributeUINT32(inputStreamType.get(), MF_MT_VIDEO_ROTATION, 0));
+    ComPtr<IMFMediaType> inputStreamType;
+    if (SUCCEEDED(m_mixer->GetInputCurrentType(0, inputStreamType.GetAddressOf()))) {
+        auto rotation = static_cast<MFVideoRotationFormat>(MFGetAttributeUINT32(inputStreamType.Get(), MF_MT_VIDEO_ROTATION, 0));
         switch (rotation) {
         case MFVideoRotationFormat_0: frame.setRotationAngle(QVideoFrame::Rotation0); break;
         case MFVideoRotationFormat_90: frame.setRotationAngle(QVideoFrame::Rotation90); break;

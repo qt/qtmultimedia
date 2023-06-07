@@ -32,8 +32,8 @@ using namespace QWindowsMultimediaUtils;
 class QD3D11TextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QD3D11TextureVideoBuffer(QComPtr<ID3D11Device> &device, std::shared_ptr<QMutex> &mutex,
-                             QComPtr<ID3D11Texture2D> &texture, QSize size)
+    QD3D11TextureVideoBuffer(ComPtr<ID3D11Device> &device, std::shared_ptr<QMutex> &mutex,
+                             ComPtr<ID3D11Texture2D> &texture, QSize size)
         : QAbstractVideoBuffer(QVideoFrame::NoHandle)
         , m_device(device)
         , m_texture(texture)
@@ -62,7 +62,7 @@ public:
             texDesc.MiscFlags = 0;
             texDesc.BindFlags = 0;
 
-            HRESULT hr = m_device->CreateTexture2D(&texDesc, nullptr, m_cpuTexture.address());
+            HRESULT hr = m_device->CreateTexture2D(&texDesc, nullptr, m_cpuTexture.GetAddressOf());
             if (FAILED(hr)) {
                 qCDebug(qLcScreenCaptureDxgi) << "Failed to create texture with CPU access"
                                               << std::system_category().message(hr).c_str();
@@ -70,15 +70,15 @@ public:
                 return {};
             }
 
-            m_device->GetImmediateContext(m_ctx.address());
+            m_device->GetImmediateContext(m_ctx.GetAddressOf());
             m_ctxMutex->lock();
-            m_ctx->CopyResource(m_cpuTexture.get(), m_texture.get());
+            m_ctx->CopyResource(m_cpuTexture.Get(), m_texture.Get());
 
             D3D11_MAPPED_SUBRESOURCE resource = {};
-            hr = m_ctx->Map(m_cpuTexture.get(), 0, D3D11_MAP_READ, 0, &resource);
+            hr = m_ctx->Map(m_cpuTexture.Get(), 0, D3D11_MAP_READ, 0, &resource);
             m_ctxMutex->unlock();
             if (FAILED(hr)) {
-                qCDebug(qLcScreenCaptureDxgi) << "Failed to map texture" << m_cpuTexture.get()
+                qCDebug(qLcScreenCaptureDxgi) << "Failed to map texture" << m_cpuTexture.Get()
                                               << std::system_category().message(hr).c_str();
                 return {};
             }
@@ -99,19 +99,19 @@ public:
             return;
         if (m_ctx) {
             m_ctxMutex->lock();
-            m_ctx->Unmap(m_cpuTexture.get(), 0);
+            m_ctx->Unmap(m_cpuTexture.Get(), 0);
             m_ctxMutex->unlock();
-            m_ctx.reset();
+            m_ctx.Reset();
         }
-        m_cpuTexture.reset();
+        m_cpuTexture.Reset();
         m_mapMode = QVideoFrame::NotMapped;
     }
 
 private:
-    QComPtr<ID3D11Device> m_device;
-    QComPtr<ID3D11Texture2D> m_texture;
-    QComPtr<ID3D11Texture2D> m_cpuTexture;
-    QComPtr<ID3D11DeviceContext> m_ctx;
+    ComPtr<ID3D11Device> m_device;
+    ComPtr<ID3D11Texture2D> m_texture;
+    ComPtr<ID3D11Texture2D> m_cpuTexture;
+    ComPtr<ID3D11DeviceContext> m_ctx;
     std::shared_ptr<QMutex> m_ctxMutex;
     QSize m_size;
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
@@ -120,8 +120,8 @@ private:
 class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegScreenCaptureThread
 {
 public:
-    Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen, QComPtr<ID3D11Device> &device,
-            QComPtr<IDXGIOutputDuplication> &duplication)
+    Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen, ComPtr<ID3D11Device> &device,
+            ComPtr<IDXGIOutputDuplication> &duplication)
         : QFFmpegScreenCaptureThread()
         , m_duplication(duplication)
         , m_device(device)
@@ -179,7 +179,7 @@ public:
     };
 
 private:
-    QMaybe<QComPtr<ID3D11Texture2D>> getNextFrame()
+    QMaybe<ComPtr<ID3D11Texture2D>> getNextFrame()
     {
         if (m_releaseFrame) {
             m_releaseFrame = false;
@@ -189,17 +189,17 @@ private:
                 return "Failed to release duplication frame. " + ::errorString(hr);
         }
 
-        QComPtr<IDXGIResource> frame;
+        ComPtr<IDXGIResource> frame;
         DXGI_OUTDUPL_FRAME_INFO info;
-        HRESULT hr = m_duplication->AcquireNextFrame(0, &info, frame.address());
+        HRESULT hr = m_duplication->AcquireNextFrame(0, &info, frame.GetAddressOf());
         if (FAILED(hr))
             return hr == DXGI_ERROR_WAIT_TIMEOUT ? QString{}
                                                  : "Failed to grab the screen content" + ::errorString(hr);
 
         m_releaseFrame = true;
 
-        QComPtr<ID3D11Texture2D> tex;
-        hr = frame->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(tex.address()));
+        ComPtr<ID3D11Texture2D> tex;
+        hr = frame->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(tex.GetAddressOf()));
         if (FAILED(hr))
             return "Failed to obtain D3D11 texture" + ::errorString(hr);
 
@@ -207,20 +207,20 @@ private:
         tex->GetDesc(&texDesc);
         texDesc.MiscFlags = 0;
         texDesc.BindFlags = 0;
-        QComPtr<ID3D11Texture2D> texCopy;
-        hr = m_device->CreateTexture2D(&texDesc, nullptr, texCopy.address());
+        ComPtr<ID3D11Texture2D> texCopy;
+        hr = m_device->CreateTexture2D(&texDesc, nullptr, texCopy.GetAddressOf());
         if (FAILED(hr))
             return "Failed to create texture with CPU access" + ::errorString(hr);
 
-        QComPtr<ID3D11DeviceContext> ctx;
-        m_device->GetImmediateContext(ctx.address());
-        ctx->CopyResource(texCopy.get(), tex.get());
+        ComPtr<ID3D11DeviceContext> ctx;
+        m_device->GetImmediateContext(ctx.GetAddressOf());
+        ctx->CopyResource(texCopy.Get(), tex.Get());
 
         return texCopy;
     }
 
-    QComPtr<IDXGIOutputDuplication> m_duplication;
-    QComPtr<ID3D11Device> m_device;
+    ComPtr<IDXGIOutputDuplication> m_duplication;
+    ComPtr<ID3D11Device> m_device;
     QWaitCondition m_waitForFormat;
     QVideoFrameFormat m_format;
     QMutex m_formatMutex;
@@ -229,15 +229,15 @@ private:
     bool m_releaseFrame = false;
 };
 
-static QMaybe<QComPtr<IDXGIOutputDuplication>> duplicateOutput(ID3D11Device* device, IDXGIOutput *output)
+static QMaybe<ComPtr<IDXGIOutputDuplication>> duplicateOutput(ID3D11Device* device, IDXGIOutput *output)
 {
-    QComPtr<IDXGIOutput1> output1;
-    HRESULT hr = output->QueryInterface(__uuidof(IDXGIOutput1), reinterpret_cast<void**>(output1.address()));
+    ComPtr<IDXGIOutput1> output1;
+    HRESULT hr = output->QueryInterface(__uuidof(IDXGIOutput1), reinterpret_cast<void**>(output1.GetAddressOf()));
     if (FAILED(hr))
         return  { "Failed to create IDXGIOutput1" + QString(std::system_category().message(hr).c_str()) };
 
-    QComPtr<IDXGIOutputDuplication> dup;
-    hr = output1->DuplicateOutput(device, dup.address());
+    ComPtr<IDXGIOutputDuplication> dup;
+    hr = output1->DuplicateOutput(device, dup.GetAddressOf());
     if (SUCCEEDED(hr))
         return dup;
     else
@@ -245,8 +245,8 @@ static QMaybe<QComPtr<IDXGIOutputDuplication>> duplicateOutput(ID3D11Device* dev
 }
 
 struct DxgiScreen {
-    QComPtr<IDXGIAdapter1> adapter;
-    QComPtr<IDXGIOutput> output;
+    ComPtr<IDXGIAdapter1> adapter;
+    ComPtr<IDXGIOutput> output;
 };
 
 static QMaybe<DxgiScreen> findDxgiScreen(const QScreen *screen)
@@ -257,15 +257,15 @@ static QMaybe<DxgiScreen> findDxgiScreen(const QScreen *screen)
     auto *winScreen = screen->nativeInterface<QNativeInterface::Private::QWindowsScreen>();
     HMONITOR handle = winScreen ? winScreen->handle() : nullptr;
 
-    QComPtr<IDXGIFactory1> factory;
-    HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(factory.address()));
+    ComPtr<IDXGIFactory1> factory;
+    HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(factory.GetAddressOf()));
     if (FAILED(hr))
         return "Failed to create IDXGIFactory" + errorString(hr);
 
-    QComPtr<IDXGIAdapter1> adapter;
-    for (quint32 i = 0; SUCCEEDED(factory->EnumAdapters1(i, adapter.address())); i++, adapter.reset()) {
-        QComPtr<IDXGIOutput> output;
-        for (quint32 j = 0; SUCCEEDED(adapter->EnumOutputs(j, output.address())); j++, output.reset()) {
+    ComPtr<IDXGIAdapter1> adapter;
+    for (quint32 i = 0; SUCCEEDED(factory->EnumAdapters1(i, adapter.GetAddressOf())); i++, adapter.Reset()) {
+        ComPtr<IDXGIOutput> output;
+        for (quint32 j = 0; SUCCEEDED(adapter->EnumOutputs(j, output.GetAddressOf())); j++, output.Reset()) {
             DXGI_OUTPUT_DESC desc = {};
             output->GetDesc(&desc);
             qCDebug(qLcScreenCaptureDxgi) << i << j << QString::fromWCharArray(desc.DeviceName);
@@ -278,12 +278,12 @@ static QMaybe<DxgiScreen> findDxgiScreen(const QScreen *screen)
     return "Could not find screen adapter" + screen->name();
 }
 
-static QMaybe<QComPtr<ID3D11Device>> createD3D11Device(IDXGIAdapter1 *adapter)
+static QMaybe<ComPtr<ID3D11Device>> createD3D11Device(IDXGIAdapter1 *adapter)
 {
-    QComPtr<ID3D11Device> d3d11dev;
+    ComPtr<ID3D11Device> d3d11dev;
     HRESULT hr = D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
                                    0, nullptr, 0, D3D11_SDK_VERSION,
-                                   d3d11dev.address(), nullptr, nullptr);
+                                   d3d11dev.GetAddressOf(), nullptr, nullptr);
     if (SUCCEEDED(hr))
         return d3d11dev;
     else
@@ -320,14 +320,14 @@ bool QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
             return false;
         }
 
-        auto maybeDev = createD3D11Device(maybeDxgiScreen.value().adapter.get());
+        auto maybeDev = createD3D11Device(maybeDxgiScreen.value().adapter.Get());
         if (!maybeDev) {
             qCDebug(qLcScreenCaptureDxgi) << maybeDev.error();
             updateError(QScreenCapture::InternalError, maybeDev.error());
             return false;
         }
 
-        auto maybeDupOutput = duplicateOutput(maybeDev.value().get(), maybeDxgiScreen.value().output.get());
+        auto maybeDupOutput = duplicateOutput(maybeDev.value().Get(), maybeDxgiScreen.value().output.Get());
         if (!maybeDupOutput) {
             qCDebug(qLcScreenCaptureDxgi) << maybeDupOutput.error();
             updateError(QScreenCapture::InternalError, maybeDupOutput.error());

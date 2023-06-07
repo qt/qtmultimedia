@@ -32,8 +32,8 @@ public:
     MFDecoderSourceReader() {}
     ~MFDecoderSourceReader() override {}
 
-    void clearSource() { m_sourceReader.reset(); }
-    QComPtr<IMFMediaType> setSource(IMFMediaSource *source, QAudioFormat::SampleFormat);
+    void clearSource() { m_sourceReader.Reset(); }
+    ComPtr<IMFMediaType> setSource(IMFMediaSource *source, QAudioFormat::SampleFormat);
 
     void readNextSample();
 
@@ -49,12 +49,12 @@ public:
     STDMETHODIMP OnEvent(DWORD, IMFMediaEvent *) override { return S_OK; }
 
 Q_SIGNALS:
-    void newSample(QComPtr<IMFSample>);
+    void newSample(ComPtr<IMFSample>);
     void finished();
 
 private:
     long m_cRef = 1;
-    QComPtr<IMFSourceReader> m_sourceReader;
+    ComPtr<IMFSourceReader> m_sourceReader;
 
 };
 

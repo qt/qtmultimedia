@@ -54,7 +54,7 @@ private:
     HRESULT processInput(const QByteArrayView &in);
     HRESULT processOutput(QByteArray &out);
 
-    QComPtr<IMFTransform> m_resampler;
+    ComPtr<IMFTransform> m_resampler;
     QWindowsMediaFoundation *m_wmf = nullptr;
 
     bool m_resamplerNeedsSampleBuffer = false;

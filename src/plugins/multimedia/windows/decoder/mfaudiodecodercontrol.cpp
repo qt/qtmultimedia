@@ -94,15 +94,15 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
     }
 
     auto mediaType = m_decoderSourceReader->setSource(source, m_outputFormat.sampleFormat());
-    QAudioFormat mediaFormat = QWindowsAudioUtils::mediaTypeToFormat(mediaType.get());
+    QAudioFormat mediaFormat = QWindowsAudioUtils::mediaTypeToFormat(mediaType.Get());
     if (!mediaFormat.isValid()) {
         error(QAudioDecoder::FormatError, tr("Invalid media format"));
-        m_decoderSourceReader.reset();
+        m_decoderSourceReader.Reset();
         return;
     }
 
-    QComPtr<IMFPresentationDescriptor> pd;
-    if (SUCCEEDED(source->CreatePresentationDescriptor(pd.address()))) {
+    ComPtr<IMFPresentationDescriptor> pd;
+    if (SUCCEEDED(source->CreatePresentationDescriptor(pd.GetAddressOf()))) {
         UINT64 duration = 0;
         pd->GetUINT64(MF_PD_DURATION, &duration);
         duration /= 10000;
@@ -115,8 +115,8 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
         return;
     }
 
-    connect(m_decoderSourceReader.get(), &MFDecoderSourceReader::finished, this, &MFAudioDecoderControl::handleSourceFinished);
-    connect(m_decoderSourceReader.get(), &MFDecoderSourceReader::newSample, this, &MFAudioDecoderControl::handleNewSample);
+    connect(m_decoderSourceReader.Get(), &MFDecoderSourceReader::finished, this, &MFAudioDecoderControl::handleSourceFinished);
+    connect(m_decoderSourceReader.Get(), &MFDecoderSourceReader::newSample, this, &MFAudioDecoderControl::handleNewSample);
 
     setIsDecoding(true);
 
@@ -152,9 +152,9 @@ void MFAudioDecoderControl::stop()
     if (!isDecoding())
         return;
 
-    disconnect(m_decoderSourceReader.get());
+    disconnect(m_decoderSourceReader.Get());
     m_decoderSourceReader->clearSource();
-    m_decoderSourceReader.reset();
+    m_decoderSourceReader.Reset();
 
     if (bufferAvailable()) {
         QAudioBuffer buffer;
@@ -173,12 +173,12 @@ void MFAudioDecoderControl::stop()
     }
 }
 
-void MFAudioDecoderControl::handleNewSample(QComPtr<IMFSample> sample)
+void MFAudioDecoderControl::handleNewSample(ComPtr<IMFSample> sample)
 {
     Q_ASSERT(sample);
 
     qint64 sampleStartTimeUs = m_resampler.outputFormat().durationForBytes(m_resampler.totalOutputBytes());
-    QByteArray out = m_resampler.resample(sample.get());
+    QByteArray out = m_resampler.resample(sample.Get());
 
     if (out.isEmpty()) {
         error(QAudioDecoder::Error::ResourceError, tr("Failed processing a sample"));

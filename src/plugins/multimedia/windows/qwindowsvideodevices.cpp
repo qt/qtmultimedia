@@ -154,8 +154,8 @@ static std::optional<QCameraDevice> createCameraDevice(IMFActivate *device)
     if (FAILED(hr))
         return {};
 
-    QComPtr<IMFSourceReader> reader;
-    hr = MFCreateSourceReaderFromMediaSource(source, NULL, reader.address());
+    ComPtr<IMFSourceReader> reader;
+    hr = MFCreateSourceReaderFromMediaSource(source, NULL, reader.GetAddressOf());
     if (FAILED(hr))
         return {};
 
@@ -163,13 +163,13 @@ static std::optional<QCameraDevice> createCameraDevice(IMFActivate *device)
     QList<QCameraFormat> videoFormats;
     for (DWORD i = 0;; ++i) {
         // Loop through the supported formats for the video device
-        QComPtr<IMFMediaType> mediaFormat;
+        ComPtr<IMFMediaType> mediaFormat;
         hr = reader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, i,
-                                        mediaFormat.address());
+                                        mediaFormat.GetAddressOf());
         if (FAILED(hr))
             break;
 
-        auto maybeCamera = createCameraFormat(mediaFormat.get());
+        auto maybeCamera = createCameraFormat(mediaFormat.Get());
         if (maybeCamera) {
             videoFormats << *maybeCamera;
             photoResolutions << maybeCamera->resolution();
@@ -206,20 +206,20 @@ QList<QCameraDevice> QWindowsVideoDevices::videoDevices() const
 {
     QList<QCameraDevice> cameras;
 
-    QComPtr<IMFAttributes> attr;
-    HRESULT hr = MFCreateAttributes(attr.address(), 2);
+    ComPtr<IMFAttributes> attr;
+    HRESULT hr = MFCreateAttributes(attr.GetAddressOf(), 2);
     if (FAILED(hr))
         return {};
 
     hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                        MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
     if (SUCCEEDED(hr)) {
-        cameras << readCameraDevices(attr.get());
+        cameras << readCameraDevices(attr.Get());
 
         hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_CATEGORY,
                            QMM_KSCATEGORY_SENSOR_CAMERA);
         if (SUCCEEDED(hr))
-            cameras << readCameraDevices(attr.get());
+            cameras << readCameraDevices(attr.Get());
     }
 
     return cameras;
