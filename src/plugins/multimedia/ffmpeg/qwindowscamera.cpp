@@ -73,17 +73,17 @@ private:
     QMutex m_mutex;
 };
 
-static QComPtr<IMFSourceReader> createCameraReader(IMFMediaSource *mediaSource,
-                                                             const QComPtr<CameraReaderCallback> &callback)
+static ComPtr<IMFSourceReader> createCameraReader(IMFMediaSource *mediaSource,
+                                                             const ComPtr<CameraReaderCallback> &callback)
 {
-    QComPtr<IMFSourceReader> sourceReader;
-    QComPtr<IMFAttributes> readerAttributes;
+    ComPtr<IMFSourceReader> sourceReader;
+    ComPtr<IMFAttributes> readerAttributes;
 
-    HRESULT hr = MFCreateAttributes(readerAttributes.address(), 1);
+    HRESULT hr = MFCreateAttributes(readerAttributes.GetAddressOf(), 1);
     if (SUCCEEDED(hr)) {
-        hr = readerAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, callback.get());
+        hr = readerAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, callback.Get());
         if (SUCCEEDED(hr)) {
-            hr = MFCreateSourceReaderFromMediaSource(mediaSource, readerAttributes.get(), sourceReader.address());
+            hr = MFCreateSourceReaderFromMediaSource(mediaSource, readerAttributes.Get(), sourceReader.GetAddressOf());
             if (SUCCEEDED(hr))
                 return sourceReader;
         }
@@ -93,18 +93,18 @@ static QComPtr<IMFSourceReader> createCameraReader(IMFMediaSource *mediaSource,
     return sourceReader;
 }
 
-static QComPtr<IMFMediaSource> createCameraSource(const QString &deviceId)
+static ComPtr<IMFMediaSource> createCameraSource(const QString &deviceId)
 {
-    QComPtr<IMFMediaSource> mediaSource;
-    QComPtr<IMFAttributes> sourceAttributes;
-    HRESULT hr = MFCreateAttributes(sourceAttributes.address(), 2);
+    ComPtr<IMFMediaSource> mediaSource;
+    ComPtr<IMFAttributes> sourceAttributes;
+    HRESULT hr = MFCreateAttributes(sourceAttributes.GetAddressOf(), 2);
     if (SUCCEEDED(hr)) {
         hr = sourceAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, QMM_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
         if (SUCCEEDED(hr)) {
             hr = sourceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK,
                                              reinterpret_cast<LPCWSTR>(deviceId.utf16()));
             if (SUCCEEDED(hr)) {
-                hr = MFCreateDeviceSource(sourceAttributes.get(), mediaSource.address());
+                hr = MFCreateDeviceSource(sourceAttributes.Get(), mediaSource.GetAddressOf());
                 if (SUCCEEDED(hr))
                     return mediaSource;
             }
@@ -144,13 +144,13 @@ static bool setCameraReaderFormat(IMFSourceReader *sourceReader, IMFMediaType *v
     return SUCCEEDED(hr);
 }
 
-static QComPtr<IMFMediaType> findVideoType(IMFSourceReader *reader,
+static ComPtr<IMFMediaType> findVideoType(IMFSourceReader *reader,
                                                      const QCameraFormat &format)
 {
     for (DWORD i = 0;; ++i) {
-        QComPtr<IMFMediaType> candidate;
+        ComPtr<IMFMediaType> candidate;
         HRESULT hr = reader->GetNativeMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, i,
-                                                candidate.address());
+                                                candidate.GetAddressOf());
         if (FAILED(hr))
             break;
 
@@ -163,7 +163,7 @@ static QComPtr<IMFMediaType> findVideoType(IMFSourceReader *reader,
 
         UINT32 width = 0u;
         UINT32 height = 0u;
-        if (FAILED(MFGetAttributeSize(candidate.get(), MF_MT_FRAME_SIZE, &width, &height)))
+        if (FAILED(MFGetAttributeSize(candidate.Get(), MF_MT_FRAME_SIZE, &width, &height)))
             continue;
 
         if (format.resolution() != QSize{ int(width), int(height) })
@@ -187,7 +187,7 @@ public:
 
         ac->m_readerCallback = makeComObject<CameraReaderCallback>();
         ac->m_readerCallback->setActiveCamera(ac.get());
-        ac->m_reader = createCameraReader(ac->m_source.get(), ac->m_readerCallback);
+        ac->m_reader = createCameraReader(ac->m_source.Get(), ac->m_readerCallback);
         if (!ac->m_reader)
             return {};
 
@@ -202,12 +202,12 @@ public:
         m_reader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
         m_flushWait.acquire();
 
-        auto videoType = findVideoType(m_reader.get(), format);
+        auto videoType = findVideoType(m_reader.Get(), format);
         if (videoType) {
-            if (setCameraReaderFormat(m_reader.get(), videoType.get())) {
+            if (setCameraReaderFormat(m_reader.Get(), videoType.Get())) {
                 m_frameFormat = { format.resolution(), format.pixelFormat() };
                 m_videoFrameStride =
-                        calculateVideoFrameStride(videoType.get(), format.resolution().width());
+                        calculateVideoFrameStride(videoType.Get(), format.resolution().width());
             }
         }
 
@@ -224,8 +224,8 @@ public:
         }
 
         if (sample) {
-            QComPtr<IMFMediaBuffer> mediaBuffer;
-            if (SUCCEEDED(sample->ConvertToContiguousBuffer(mediaBuffer.address()))) {
+            ComPtr<IMFMediaBuffer> mediaBuffer;
+            if (SUCCEEDED(sample->ConvertToContiguousBuffer(mediaBuffer.GetAddressOf()))) {
 
                 DWORD bufLen = 0;
                 BYTE *buffer = nullptr;
@@ -269,9 +269,9 @@ private:
 
     QSemaphore m_flushWait;
 
-    QComPtr<IMFMediaSource> m_source;
-    QComPtr<IMFSourceReader> m_reader;
-    QComPtr<CameraReaderCallback> m_readerCallback;
+    ComPtr<IMFMediaSource> m_source;
+    ComPtr<IMFSourceReader> m_reader;
+    ComPtr<CameraReaderCallback> m_readerCallback;
 
     QVideoFrameFormat m_frameFormat;
     int m_videoFrameStride = 0;

@@ -26,17 +26,17 @@ namespace QFFmpeg {
 class D3D11TextureSet : public TextureSet
 {
 public:
-    D3D11TextureSet(QComPtr<ID3D11Texture2D> &&tex)
+    D3D11TextureSet(ComPtr<ID3D11Texture2D> &&tex)
         : m_tex(tex)
     {}
 
     qint64 textureHandle(int /*plane*/) override
     {
-        return qint64(m_tex.get());
+        return qint64(m_tex.Get());
     }
 
 private:
-    QComPtr<ID3D11Texture2D> m_tex;
+    ComPtr<ID3D11Texture2D> m_tex;
 };
 
 
@@ -45,10 +45,10 @@ D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi)
 {
 }
 
-static QComPtr<ID3D11Texture2D> getSharedTextureForDevice(ID3D11Device *dev, ID3D11Texture2D *tex)
+static ComPtr<ID3D11Texture2D> getSharedTextureForDevice(ID3D11Device *dev, ID3D11Texture2D *tex)
 {
-    QComPtr<IDXGIResource> dxgiResource;
-    HRESULT hr = tex->QueryInterface(__uuidof(IDXGIResource), reinterpret_cast<void **>(dxgiResource.address()));
+    ComPtr<IDXGIResource> dxgiResource;
+    HRESULT hr = tex->QueryInterface(__uuidof(IDXGIResource), reinterpret_cast<void **>(dxgiResource.GetAddressOf()));
     if (FAILED(hr)) {
         qCDebug(qLcMediaFFmpegHWAccel) << "Failed to obtain resource handle from FFMpeg texture" << hr;
         return {};
@@ -60,14 +60,14 @@ static QComPtr<ID3D11Texture2D> getSharedTextureForDevice(ID3D11Device *dev, ID3
         return {};
     }
 
-    QComPtr<ID3D11Texture2D> sharedTex;
-    hr = dev->OpenSharedResource(shared, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(sharedTex.address()));
+    ComPtr<ID3D11Texture2D> sharedTex;
+    hr = dev->OpenSharedResource(shared, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(sharedTex.GetAddressOf()));
     if (FAILED(hr))
         qCDebug(qLcMediaFFmpegHWAccel) << "Failed to share FFmpeg texture" << hr;
     return sharedTex;
 }
 
-static QComPtr<ID3D11Texture2D> copyTextureFromArray(ID3D11Device *dev, ID3D11Texture2D *array, int index)
+static ComPtr<ID3D11Texture2D> copyTextureFromArray(ID3D11Device *dev, ID3D11Texture2D *array, int index)
 {
     D3D11_TEXTURE2D_DESC arrayDesc = {};
     array->GetDesc(&arrayDesc);
@@ -82,16 +82,16 @@ static QComPtr<ID3D11Texture2D> copyTextureFromArray(ID3D11Device *dev, ID3D11Te
     texDesc.MiscFlags = 0;
     texDesc.SampleDesc = { 1, 0};
 
-    QComPtr<ID3D11Texture2D> texCopy;
-    HRESULT hr = dev->CreateTexture2D(&texDesc, nullptr, texCopy.address());
+    ComPtr<ID3D11Texture2D> texCopy;
+    HRESULT hr = dev->CreateTexture2D(&texDesc, nullptr, texCopy.GetAddressOf());
     if (FAILED(hr)) {
         qCDebug(qLcMediaFFmpegHWAccel) << "Failed to create texture" << hr;
         return {};
     }
 
-    QComPtr<ID3D11DeviceContext> ctx;
-    dev->GetImmediateContext(ctx.address());
-    ctx->CopySubresourceRegion(texCopy.get(), 0, 0, 0, 0, array, index, nullptr);
+    ComPtr<ID3D11DeviceContext> ctx;
+    dev->GetImmediateContext(ctx.GetAddressOf());
+    ctx->CopySubresourceRegion(texCopy.Get(), 0, 0, 0, 0, array, index, nullptr);
 
     return texCopy;
 }
@@ -119,7 +119,7 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
             return nullptr;
         auto sharedTex = getSharedTextureForDevice(dev, ffmpegTex);
         if (sharedTex) {
-            auto tex = copyTextureFromArray(dev, sharedTex.get(), index);
+            auto tex = copyTextureFromArray(dev, sharedTex.Get(), index);
             if (tex) {
                 return new D3D11TextureSet(std::move(tex));
             }

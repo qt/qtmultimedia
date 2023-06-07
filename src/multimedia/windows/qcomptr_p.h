@@ -16,72 +16,15 @@
 //
 
 #include <qt_windows.h>
+#include <wrl/client.h>
 
-template <class T>
-class QComPtr
-{
-public:
-    // Calls AddRef on ptr if it is not a nullptr
-    explicit QComPtr(T *ptr) : m_ptr(ptr)
-    {
-        if (m_ptr)
-            m_ptr->AddRef();
-    }
-    QComPtr() : m_ptr(nullptr) {}
-    QComPtr(const QComPtr<T> &uiPtr) : m_ptr(uiPtr.m_ptr) { if (m_ptr) m_ptr->AddRef(); }
-    QComPtr(QComPtr<T> &&uiPtr) : m_ptr(uiPtr.m_ptr) { uiPtr.m_ptr = nullptr; }
-    ~QComPtr() { if (m_ptr) m_ptr->Release(); }
-
-    QComPtr& operator=(const QComPtr<T> &rhs) {
-        if (this != &rhs) {
-            if (m_ptr)
-                m_ptr->Release();
-            m_ptr = rhs.m_ptr;
-            m_ptr->AddRef();
-        }
-        return *this;
-    }
-
-    QComPtr& operator=(QComPtr<T> &&rhs) noexcept {
-        if (m_ptr)
-            m_ptr->Release();
-        m_ptr = rhs.m_ptr;
-        rhs.m_ptr = nullptr;
-        return *this;
-    }
-
-    explicit operator bool() const { return m_ptr != nullptr; }
-    T *operator->() const { return m_ptr; }
-
-    T **address() { Q_ASSERT(m_ptr == nullptr); return &m_ptr; }
-
-    void reset()
-    {
-        if (m_ptr)
-            m_ptr->Release();
-        m_ptr = nullptr;
-    }
-
-    // Takes ownership of interface without calling AddRef
-    void attach(T *ptr)
-    {
-        if (m_ptr)
-            m_ptr->Release();
-        m_ptr = ptr;
-    }
-
-    T *release() { T *ptr = m_ptr; m_ptr = nullptr; return ptr; }
-    T *get() const { return m_ptr; }
-
-private:
-    T *m_ptr;
-};
+using Microsoft::WRL::ComPtr;
 
 template<typename T, typename... Args>
-QComPtr<T> makeComObject(Args &&...args)
+ComPtr<T> makeComObject(Args &&...args)
 {
-    QComPtr<T> p;
-    p.attach(new T(std::forward<Args>(args)...));
+    ComPtr<T> p;
+    p.Attach(new T(std::forward<Args>(args)...));
     return p;
 }
 

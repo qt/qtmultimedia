@@ -34,7 +34,7 @@ namespace QWindowsAudioUtils
     bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
     QAudioFormat waveFormatExToFormat(const WAVEFORMATEX &in);
     Q_MULTIMEDIA_EXPORT QAudioFormat mediaTypeToFormat(IMFMediaType *mediaType);
-    QComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &, const QAudioFormat &format);
+    ComPtr<IMFMediaType> formatToMediaType(QWindowsMediaFoundation &, const QAudioFormat &format);
     QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count);
     std::optional<quint32> audioClientFramesInUse(IAudioClient *client);
     std::optional<quint32> audioClientFramesAllocated(IAudioClient *client);

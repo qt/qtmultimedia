@@ -26,7 +26,7 @@ QWindowsResampler::QWindowsResampler()
         qWarning() << "Failed attempt to change apartment concurrency model";
 
     CoCreateInstance(qCLSID_CResamplerMediaObject, nullptr, CLSCTX_INPROC_SERVER,
-                     qIID_IMFTransform, (LPVOID*)(m_resampler.address()));
+                     qIID_IMFTransform, (LPVOID*)(m_resampler.GetAddressOf()));
     if (m_resampler)
         m_resampler->AddInputStreams(1, &m_inputStreamID);
 }
@@ -54,13 +54,13 @@ quint64 QWindowsResampler::inputBufferSize(quint64 outputBufferSize) const
 
 HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
 {
-    QComPtr<IMFSample> sample;
-    HRESULT hr = m_wmf->mfCreateSample(sample.address());
+    ComPtr<IMFSample> sample;
+    HRESULT hr = m_wmf->mfCreateSample(sample.GetAddressOf());
     if (FAILED(hr))
         return hr;
 
-    QComPtr<IMFMediaBuffer> buffer;
-    hr = m_wmf->mfCreateMemoryBuffer(in.size(), buffer.address());
+    ComPtr<IMFMediaBuffer> buffer;
+    hr = m_wmf->mfCreateMemoryBuffer(in.size(), buffer.GetAddressOf());
     if (FAILED(hr))
         return hr;
 
@@ -81,29 +81,29 @@ HRESULT QWindowsResampler::processInput(const QByteArrayView &in)
     if (FAILED(hr))
         return hr;
 
-    hr = sample->AddBuffer(buffer.get());
+    hr = sample->AddBuffer(buffer.Get());
     if (FAILED(hr))
         return hr;
 
-    return m_resampler->ProcessInput(m_inputStreamID, sample.get(), 0);
+    return m_resampler->ProcessInput(m_inputStreamID, sample.Get(), 0);
 }
 
 HRESULT QWindowsResampler::processOutput(QByteArray &out)
 {
-    QComPtr<IMFSample> sample;
-    QComPtr<IMFMediaBuffer> buffer;
+    ComPtr<IMFSample> sample;
+    ComPtr<IMFMediaBuffer> buffer;
 
     if (m_resamplerNeedsSampleBuffer) {
-        HRESULT hr = m_wmf->mfCreateSample(sample.address());
+        HRESULT hr = m_wmf->mfCreateSample(sample.GetAddressOf());
         if (FAILED(hr))
             return hr;
 
         auto expectedOutputSize = outputBufferSize(m_totalInputBytes) - m_totalOutputBytes;
-        hr = m_wmf->mfCreateMemoryBuffer(expectedOutputSize, buffer.address());
+        hr = m_wmf->mfCreateMemoryBuffer(expectedOutputSize, buffer.GetAddressOf());
         if (FAILED(hr))
             return hr;
 
-        hr = sample->AddBuffer(buffer.get());
+        hr = sample->AddBuffer(buffer.Get());
         if (FAILED(hr))
             return hr;
     }
@@ -115,12 +115,12 @@ HRESULT QWindowsResampler::processOutput(QByteArray &out)
     do {
         outputDataBuffer.pEvents = nullptr;
         outputDataBuffer.dwStatus = 0;
-        outputDataBuffer.pSample = m_resamplerNeedsSampleBuffer ? sample.get() : nullptr;
+        outputDataBuffer.pSample = m_resamplerNeedsSampleBuffer ? sample.Get() : nullptr;
         DWORD status = 0;
         hr = m_resampler->ProcessOutput(0, 1, &outputDataBuffer, &status);
         if (SUCCEEDED(hr)) {
-            QComPtr<IMFMediaBuffer> outputBuffer;
-            outputDataBuffer.pSample->ConvertToContiguousBuffer(outputBuffer.address());
+            ComPtr<IMFMediaBuffer> outputBuffer;
+            outputDataBuffer.pSample->ConvertToContiguousBuffer(outputBuffer.GetAddressOf());
             DWORD len = 0;
             BYTE *data = nullptr;
             hr = outputBuffer->Lock(&data, nullptr, &len);
@@ -174,8 +174,8 @@ QByteArray QWindowsResampler::resample(IMFSample *sample)
     QByteArray out;
 
     if (m_inputFormat == m_outputFormat) {
-        QComPtr<IMFMediaBuffer> outputBuffer;
-        sample->ConvertToContiguousBuffer(outputBuffer.address());
+        ComPtr<IMFMediaBuffer> outputBuffer;
+        sample->ConvertToContiguousBuffer(outputBuffer.GetAddressOf());
         DWORD len = 0;
         BYTE *data = nullptr;
         hr = outputBuffer->Lock(&data, nullptr, &len);
@@ -216,16 +216,16 @@ bool QWindowsResampler::setup(const QAudioFormat &fin, const QAudioFormat &fout)
     if (!m_resampler || !m_wmf)
         return false;
 
-    QComPtr<IMFMediaType> min = QWindowsAudioUtils::formatToMediaType(*m_wmf, fin);
-    QComPtr<IMFMediaType> mout = QWindowsAudioUtils::formatToMediaType(*m_wmf, fout);
+    ComPtr<IMFMediaType> min = QWindowsAudioUtils::formatToMediaType(*m_wmf, fin);
+    ComPtr<IMFMediaType> mout = QWindowsAudioUtils::formatToMediaType(*m_wmf, fout);
 
-    HRESULT hr = m_resampler->SetInputType(m_inputStreamID, min.get(), 0);
+    HRESULT hr = m_resampler->SetInputType(m_inputStreamID, min.Get(), 0);
     if (FAILED(hr)) {
         qCWarning(qLcAudioResampler) << "Failed to set input type" << hr;
         return false;
     }
 
-    hr = m_resampler->SetOutputType(0, mout.get(), 0);
+    hr = m_resampler->SetOutputType(0, mout.Get(), 0);
     if (FAILED(hr)) {
         qCWarning(qLcAudioResampler) << "Failed to set output type" << hr;
         return false;
