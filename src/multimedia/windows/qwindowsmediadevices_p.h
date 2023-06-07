@@ -46,11 +46,11 @@ public:
 private:
     QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode) const;
 
-    QComPtr<IMMDeviceEnumerator> m_deviceEnumerator;
-    QComPtr<CMMNotificationClient> m_notificationClient;
+    ComPtr<IMMDeviceEnumerator> m_deviceEnumerator;
+    ComPtr<CMMNotificationClient> m_notificationClient;
     // The "warm-up" audio client is required to run in the background in order to keep audio engine
     // ready for audio output immediately after creating any other subsequent audio client.
-    QComPtr<IAudioClient3> m_warmUpAudioClient;
+    ComPtr<IAudioClient3> m_warmUpAudioClient;
     std::atomic_bool m_isAudioClientWarmedUp = false;
 
     friend CMMNotificationClient;

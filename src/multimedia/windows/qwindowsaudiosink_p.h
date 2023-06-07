@@ -42,7 +42,7 @@ class QWindowsAudioSink : public QPlatformAudioSink
 {
     Q_OBJECT
 public:
-    QWindowsAudioSink(QComPtr<IMMDevice> device, QObject *parent);
+    QWindowsAudioSink(ComPtr<IMMDevice> device, QObject *parent);
     ~QWindowsAudioSink();
 
     void setFormat(const QAudioFormat& fmt) override;
@@ -85,9 +85,9 @@ private:
     QTimer *m_timer = nullptr;
     QScopedPointer<QIODevice> m_pushSource;
     QPointer<QIODevice> m_pullSource;
-    QComPtr<IMMDevice> m_device;
-    QComPtr<IAudioClient> m_audioClient;
-    QComPtr<IAudioRenderClient> m_renderClient;
+    ComPtr<IMMDevice> m_device;
+    ComPtr<IAudioClient> m_audioClient;
+    ComPtr<IAudioRenderClient> m_renderClient;
     QWindowsResampler m_resampler;
 };
 

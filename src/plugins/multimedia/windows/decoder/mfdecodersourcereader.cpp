@@ -9,22 +9,22 @@
 
 QT_BEGIN_NAMESPACE
 
-QComPtr<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QAudioFormat::SampleFormat sampleFormat)
+ComPtr<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QAudioFormat::SampleFormat sampleFormat)
 {
-    QComPtr<IMFMediaType> mediaType;
-    m_sourceReader.reset();
+    ComPtr<IMFMediaType> mediaType;
+    m_sourceReader.Reset();
 
     if (!source)
         return mediaType;
 
-    QComPtr<IMFAttributes> attr;
-    MFCreateAttributes(attr.address(), 1);
+    ComPtr<IMFAttributes> attr;
+    MFCreateAttributes(attr.GetAddressOf(), 1);
     if (FAILED(attr->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, this)))
         return mediaType;
     if (FAILED(attr->SetUINT32(MF_SOURCE_READER_DISCONNECT_MEDIASOURCE_ON_SHUTDOWN, TRUE)))
         return mediaType;
 
-    HRESULT hr = MFCreateSourceReaderFromMediaSource(source, attr.get(), m_sourceReader.address());
+    HRESULT hr = MFCreateSourceReaderFromMediaSource(source, attr.Get(), m_sourceReader.GetAddressOf());
     if (FAILED(hr)) {
         qWarning() << "MFDecoderSourceReader: failed to set up source reader: "
                    << std::system_category().message(hr).c_str();
@@ -34,12 +34,12 @@ QComPtr<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, Q
     m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_ALL_STREAMS), FALSE);
     m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), TRUE);
 
-    QComPtr<IMFMediaType> pPartialType;
-    MFCreateMediaType(pPartialType.address());
+    ComPtr<IMFMediaType> pPartialType;
+    MFCreateMediaType(pPartialType.GetAddressOf());
     pPartialType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
     pPartialType->SetGUID(MF_MT_SUBTYPE, sampleFormat == QAudioFormat::Float ? MFAudioFormat_Float : MFAudioFormat_PCM);
-    m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), nullptr, pPartialType.get());
-    m_sourceReader->GetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), mediaType.address());
+    m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), nullptr, pPartialType.Get());
+    m_sourceReader->GetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), mediaType.GetAddressOf());
     // Ensure the stream is selected.
     m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), TRUE);
 
@@ -91,7 +91,7 @@ STDMETHODIMP MFDecoderSourceReader::OnReadSample(HRESULT hrStatus, DWORD dwStrea
     Q_UNUSED(dwStreamIndex);
     Q_UNUSED(llTimestamp);
     if (pSample) {
-        emit newSample(QComPtr{pSample});
+        emit newSample(ComPtr<IMFSample>{pSample});
     } else if ((dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) == MF_SOURCE_READERF_ENDOFSTREAM) {
         emit finished();
     }

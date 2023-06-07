@@ -40,18 +40,18 @@ static QSet<T> getCodecSet(GUID category)
 
     if (SUCCEEDED(hr)) {
         for (UINT32 i = 0; i < num; ++i) {
-            QComPtr<IMFTransform> transform;
+            ComPtr<IMFTransform> transform;
             UINT32 typeIndex = 0;
 
-            hr = activateArray[i]->ActivateObject(IID_PPV_ARGS(transform.address()));
+            hr = activateArray[i]->ActivateObject(IID_PPV_ARGS(transform.GetAddressOf()));
 
             while (SUCCEEDED(hr)) {
-                QComPtr<IMFMediaType> mediaType;
+                ComPtr<IMFMediaType> mediaType;
 
                 if (category == MFT_CATEGORY_AUDIO_ENCODER || category == MFT_CATEGORY_VIDEO_ENCODER)
-                    hr = transform->GetOutputAvailableType(0, typeIndex++, mediaType.address());
+                    hr = transform->GetOutputAvailableType(0, typeIndex++, mediaType.GetAddressOf());
                 else
-                    hr = transform->GetInputAvailableType(0, typeIndex++, mediaType.address());
+                    hr = transform->GetInputAvailableType(0, typeIndex++, mediaType.GetAddressOf());
 
                 if (SUCCEEDED(hr)) {
                     GUID subtype = GUID_NULL;

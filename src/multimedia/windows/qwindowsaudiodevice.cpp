@@ -29,7 +29,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QComPtr<IMMDevice> immDev, int waveID, const QString &description, QAudioDevice::Mode mode)
+QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, ComPtr<IMMDevice> immDev, int waveID, const QString &description, QAudioDevice::Mode mode)
     : QAudioDevicePrivate(dev, mode),
       m_devId(waveID),
       m_immDev(std::move(immDev))
@@ -38,9 +38,9 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QComPtr<IMMDevi
 
     this->description = description;
 
-    QComPtr<IAudioClient> audioClient;
+    ComPtr<IAudioClient> audioClient;
     HRESULT hr = m_immDev->Activate(__uuidof(IAudioClient), CLSCTX_INPROC_SERVER, nullptr,
-                                    (void **)audioClient.address());
+                                    (void **)audioClient.GetAddressOf());
     if (SUCCEEDED(hr)) {
         WAVEFORMATEX *pwfx = nullptr;
         hr = audioClient->GetMixFormat(&pwfx);
@@ -194,8 +194,8 @@ QWindowsAudioDeviceInfo::QWindowsAudioDeviceInfo(QByteArray dev, QComPtr<IMMDevi
 
     channelConfiguration = QAudioFormat::defaultChannelConfigForChannelCount(maximumChannelCount);
 
-    QComPtr<IPropertyStore> props;
-    hr = m_immDev->OpenPropertyStore(STGM_READ, props.address());
+    ComPtr<IPropertyStore> props;
+    hr = m_immDev->OpenPropertyStore(STGM_READ, props.GetAddressOf());
     if (SUCCEEDED(hr)) {
         PROPVARIANT var;
         PropVariantInit(&var);
