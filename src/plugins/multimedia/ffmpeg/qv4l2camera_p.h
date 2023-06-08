@@ -38,10 +38,11 @@ public Q_SLOTS:
     void checkCameras();
 
 private:
-    void doCheckCameras();
+    bool doCheckCameras();
 
-    QList<QCameraDevice> cameras;
-    QFileSystemWatcher deviceWatcher;
+private:
+    QList<QCameraDevice> m_cameras;
+    QFileSystemWatcher m_deviceWatcher;
 };
 
 struct QV4L2CameraBuffers
