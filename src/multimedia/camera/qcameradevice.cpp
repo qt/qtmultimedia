@@ -390,7 +390,7 @@ QList<QSize> QCameraDevice::photoResolutions() const
 }
 
 /*!
-    \qmlproperty CameraFormat QtMultiMedia::cameraDevice::videoFormats
+    \qmlproperty CameraFormat QtMultimedia::cameraDevice::videoFormats
 
     Holds the video formats supported by the camera.
 */
