@@ -159,7 +159,7 @@ QScreen *QScreenCapture::screen() const
 }
 
 /*!
-    \qmlproperty string QScreenCapture::ScreenCapture::error
+    \qmlproperty string QtMultimedia::ScreenCapture::error
     Returns a code of the last error.
 */
 
@@ -181,7 +181,7 @@ QScreenCapture::Error QScreenCapture::error() const
     Signals when an \a error occurs, along with the \a errorString.
 */
 /*!
-    \qmlproperty string QScreenCapture::ScreenCapture::errorString
+    \qmlproperty string QtMultimedia::ScreenCapture::errorString
     Returns a human readable string describing the cause of error.
 */
 
