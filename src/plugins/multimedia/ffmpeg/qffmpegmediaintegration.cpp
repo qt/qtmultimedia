@@ -87,10 +87,8 @@ static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl
         qInfo() << message;
     else if (level == AV_LOG_WARNING)
         qWarning() << message;
-    else if (level == AV_LOG_ERROR)
+    else if (level == AV_LOG_ERROR || level == AV_LOG_FATAL || level == AV_LOG_PANIC)
         qCritical() << message;
-    else if (level == AV_LOG_FATAL || level == AV_LOG_PANIC)
-        qFatal() << message;
 }
 
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
