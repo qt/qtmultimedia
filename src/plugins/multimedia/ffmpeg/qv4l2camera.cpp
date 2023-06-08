@@ -28,26 +28,36 @@ QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLV4L2Camera, "qt.multimedia.ffmpeg.v4l2camera");
 
+static bool areCamerasEqual(QList<QCameraDevice> a, QList<QCameraDevice> b) {
+    auto areCamerasDataEqual = [](const QCameraDevice& a, const QCameraDevice& b) {
+        Q_ASSERT(QCameraDevicePrivate::handle(a));
+        Q_ASSERT(QCameraDevicePrivate::handle(b));
+        return *QCameraDevicePrivate::handle(a) == *QCameraDevicePrivate::handle(b);
+    };
+
+    return std::equal(a.cbegin(), a.cend(), b.cbegin(), b.cend(), areCamerasDataEqual);
+}
+
 QV4L2CameraDevices::QV4L2CameraDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)
 {
-    deviceWatcher.addPath(QLatin1String("/dev"));
-    connect(&deviceWatcher, &QFileSystemWatcher::directoryChanged, this, &QV4L2CameraDevices::checkCameras);
+    m_deviceWatcher.addPath(QLatin1String("/dev"));
+    connect(&m_deviceWatcher, &QFileSystemWatcher::directoryChanged, this, &QV4L2CameraDevices::checkCameras);
     doCheckCameras();
 }
 
 QList<QCameraDevice> QV4L2CameraDevices::videoDevices() const
 {
-    return cameras;
+    return m_cameras;
 }
 
 void QV4L2CameraDevices::checkCameras()
 {
-    doCheckCameras();
-    videoInputsChanged();
+    if (doCheckCameras())
+        videoInputsChanged();
 }
 
-const struct {
+static const struct {
     QVideoFrameFormat::PixelFormat fmt;
     uint32_t v4l2Format;
 } formatMap[] = {
@@ -96,9 +106,9 @@ static uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format)
 }
 
 
-void QV4L2CameraDevices::doCheckCameras()
+bool QV4L2CameraDevices::doCheckCameras()
 {
-    cameras.clear();
+    QList<QCameraDevice> newCameras;
 
     QDir dir(QLatin1String("/dev"));
     const auto devices = dir.entryList(QDir::System);
@@ -111,25 +121,27 @@ void QV4L2CameraDevices::doCheckCameras()
             continue;
 
         QByteArray file = QFile::encodeName(dir.filePath(device));
-        int fd = open(file.constData(), O_RDONLY);
+        const int fd = open(file.constData(), O_RDONLY);
         if (fd < 0)
             continue;
 
-        QCameraDevicePrivate *camera = nullptr;
+        auto fileCloseGuard = qScopeGuard([fd](){ close(fd); });
+
         v4l2_fmtdesc formatDesc = {};
 
         struct v4l2_capability cap;
         if (ioctl(fd, VIDIOC_QUERYCAP, &cap) < 0)
-            goto fail;
+            continue;
 
         if (cap.device_caps & V4L2_CAP_META_CAPTURE)
-            goto fail;
+            continue;
         if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-            goto fail;
+            continue;
         if (!(cap.capabilities & V4L2_CAP_STREAMING))
-            goto fail;
+            continue;
 
-        camera = new QCameraDevicePrivate;
+        auto camera = std::make_unique<QCameraDevicePrivate>();
+
         camera->id = file;
         camera->description = QString::fromUtf8((const char *)cap.card);
 //        qCDebug(qLV4L2Camera) << "found camera" << camera->id << camera->description;
@@ -177,12 +189,12 @@ void QV4L2CameraDevices::doCheckCameras()
 //                qCDebug(qLV4L2Camera) << "    " << resolution << min << max;
 
                 if (min <= max) {
-                    QCameraFormatPrivate *fmt = new QCameraFormatPrivate;
+                    auto fmt = std::make_unique<QCameraFormatPrivate>();
                     fmt->pixelFormat = pixelFmt;
                     fmt->resolution = resolution;
                     fmt->minFrameRate = min;
                     fmt->maxFrameRate = max;
-                    camera->videoFormats.append(fmt->create());
+                    camera->videoFormats.append(fmt.release()->create());
                     camera->photoResolutions.append(resolution);
                 }
             }
@@ -191,19 +203,16 @@ void QV4L2CameraDevices::doCheckCameras()
         }
 
         // first camera is default
-        camera->isDefault = first;
-        first = false;
+        camera->isDefault = std::exchange(first, false);
 
-        cameras.append(camera->create());
-
-        close(fd);
-        continue;
-
-      fail:
-        if (camera)
-              delete camera;
-        close(fd);
+        newCameras.append(camera.release()->create());
     }
+
+    if (areCamerasEqual(m_cameras, newCameras))
+        return false;
+
+    m_cameras = std::move(newCameras);
+    return true;
 }
 
 class QV4L2VideoBuffer : public QAbstractVideoBuffer

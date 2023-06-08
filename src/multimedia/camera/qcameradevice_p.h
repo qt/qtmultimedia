@@ -43,6 +43,18 @@ public:
     QList<QSize> photoResolutions;
     QList<QCameraFormat> videoFormats;
 
+    static const QCameraDevicePrivate *handle(const QCameraDevice &device)
+    {
+        return device.d.data();
+    }
+
+    bool operator==(const QCameraDevicePrivate &other) const
+    {
+        return id == other.id && description == other.description && isDefault == other.isDefault
+                && position == other.position && orientation == other.orientation
+                && photoResolutions == other.photoResolutions && videoFormats == other.videoFormats;
+    }
+
     QCameraDevice create() { return QCameraDevice(this); }
 };
 
