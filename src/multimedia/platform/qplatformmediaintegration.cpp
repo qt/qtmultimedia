@@ -18,7 +18,10 @@
 class QDummyIntegration : public QPlatformMediaIntegration
 {
 public:
-    QDummyIntegration() { qFatal("QtMultimedia is not currently supported on this platform or compiler."); }
+    QDummyIntegration()
+    {
+        qCritical("QtMultimedia is not currently supported on this platform or compiler.");
+    }
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 };
 
