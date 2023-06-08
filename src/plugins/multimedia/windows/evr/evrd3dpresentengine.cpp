@@ -34,10 +34,9 @@ public:
                           IMFSample *sample, QRhi *rhi, QVideoFrame::HandleType type = QVideoFrame::NoHandle)
         : QAbstractVideoBuffer(type, rhi)
         , m_device(device)
+        , m_sample(sample)
         , m_mapMode(QVideoFrame::NotMapped)
     {
-        sample->AddRef();
-        m_sample.reset(sample);
     }
 
     ~IMFSampleVideoBuffer() override

@@ -179,7 +179,7 @@ QWindowsMediaDevices::QWindowsMediaDevices()
         }
 
 
-        m_notificationClient.reset(new CMMNotificationClient(this, m_deviceEnumerator, std::move(devState)));
+        m_notificationClient.attach(new CMMNotificationClient(this, m_deviceEnumerator, std::move(devState)));
         m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient.get());
 
     } else {
