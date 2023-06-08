@@ -87,7 +87,7 @@ void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
 {
     Q_ASSERT(source);
 
-    m_decoderSourceReader.reset(new MFDecoderSourceReader());
+    m_decoderSourceReader.attach(new MFDecoderSourceReader());
     if (!m_decoderSourceReader) {
         error(QAudioDecoder::ResourceError, tr("Could not instantiate MFDecoderSourceReader"));
         return;
