@@ -634,10 +634,10 @@ void QMediaRecorder::setMediaFormat(const QMediaFormat &format)
 
 /*!
 
-    \qmlproperty MediaRecorder::EncodingMode QtMultimedia::MediaRecorder::encodingMode
+    \qmlproperty enumeration QtMultimedia::MediaRecorder::encodingMode
     \since 6.6
     \brief This property holds the encoding mode.
-    \sa EncodingMode
+    \sa QMediaRecorder::EncodingMode
 */
 
 /*!

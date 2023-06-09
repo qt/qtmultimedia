@@ -33,6 +33,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QCapturableWindowPrivate)
     \inqmlmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_video_qml
+    \since 6.6
 
     The class contains a dump of window information, except the property
     'isValid' which pulls the actual window state every time.
@@ -97,7 +98,7 @@ bool operator==(const QCapturableWindow &lhs, const QCapturableWindow &rhs) noex
 }
 
 /*!
-    \qmlproperty string QtMultimedia::QCapturableWindow::isValid
+    \qmlproperty string QtMultimedia::CapturableWindow::isValid
 
     This property identifies whether a window information is valid.
 
@@ -117,7 +118,7 @@ bool QCapturableWindow::isValid() const
 }
 
 /*!
-    \qmlproperty string QtMultimedia::QCapturableWindow::description
+    \qmlproperty string QtMultimedia::CapturableWindow::description
 
     This property holds the description of the reffered window.
 */

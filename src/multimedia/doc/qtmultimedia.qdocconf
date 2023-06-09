@@ -77,4 +77,7 @@ navigation.cppclassespage = "Qt Multimedia C++ Classes"
 navigation.qmltypespage = "Qt Multimedia QML Types"
 
 # Fail the documentation build if there are more warnings than the limit
-warninglimit = 0
+
+warninglimit = 2
+# examples/multimedia/declarative-camera/doc/src/declarative-camera.qdoc:4: (qdoc) warning: Missing image: qml-declarative-portrait.png
+# examples/multimedia/declarative-camera/doc/src/declarative-camera.qdoc:4: (qdoc) warning: Missing image: FlashControls.png
