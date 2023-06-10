@@ -20,7 +20,7 @@
     At its core this is a QML application, see
     \l{Getting Started Programming with Qt Quick} for information specific to
     that. This documentation is focused on how this example utilizes the
-    \l{Qt Multimedia QML types}.
+    \l{Qt Multimedia QML Types}.
 
     \image architecture-overview.gif
 
