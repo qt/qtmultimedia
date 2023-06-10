@@ -8,11 +8,11 @@
     \brief Capturing a screen or window.
     \meta {tag} {widgets}
 
-    \e{Screen Capture} demonstrates how to capture a screen or window using QScreenCapture.
-    The example shows a list of screens and windows and displays a live preview of the
-    selected item using a QMediaCaptureSession and a QVideoWidget. There is also a field
-    for inputting a window ID manually including a confirm button, and a button
-    to start and stop the capturing.
+    \e{Screen Capture} demonstrates how to capture a screen or window using
+    QScreenCapture and QWindowCapture. The example shows a list of screens and
+    windows and displays a live preview of the selected item using a
+    QMediaCaptureSession and a QVideoWidget. Capturing can be started and stopped
+    with a \l{QPushButton}{button}.
 
     \image screencapture.jpg
 
@@ -20,26 +20,28 @@
 
     \section1 Application Structure
 
-    The example consists of three custom classes. The UI and all screen capture functionality
-    is implemented in the class ScreenCapturePreview. The classes ScreenlListModel and
-    WindowListModel only serves as models behind the two QListView widgets. The main function
-    creates a ScreenCapturePreview object, which in turn creates an instance of QScreenCapture,
-    QMediaCaptureSession and QVideoWidget in addition to all the UI widgets.
+    The example consists of three custom classes. The UI and all screen capture
+    functionality is implemented in the class ScreenCapturePreview. The classes
+    ScreenlListModel and WindowListModel only serves as models behind the two
+    QListView widgets. The main function creates a ScreenCapturePreview object,
+    which in turn creates an instance of either QScreenCapture or QWindowCapture,
+    and a QMediaCaptureSession and QVideoWidget, in addition to all the UI widgets.
 
-    The lists are populated with the return values of \l QGuiApplication::screens() and
-    \l QGuiApplication::allWindows(). The input field is prefilled with a window ID from the latter.
+    The screen and window models are populated with the return values of
+    \l QGuiApplication::screens() and \l QWindowCapture::capturableWindows(),
+    respectively.
 
-    When a list item is selected or a window ID is input, it is connected to the QScreenCapture object with
-    \l QScreenCapture::setScreen(), \l QScreenCapture::setWindow() or \l QScreenCapture::setWindowId().
-    The QScreenCapture object is connected to the QMediaCaptureSession object with
-    \l QMediaCaptureSession::setScreenCapture(), which in turn is connected to the
-    QVideoWidget object with \l QMediaCaptureSession::setVideoOutput(). Thus the
-    screen capture output is previewed in the video widget on the right hand side of the UI.
+    When a list item is selected, it is connected to the QScreenCapture object
+    with \l{QScreenCapture::}{setScreen()}, or to the QWindowCapture object
+    with \l{QWindowCapture::}{setWindow()}. The capture object is connected to
+    the QMediaCaptureSession object with \l{QMediaCaptureSession::}{setScreenCapture()}
+    and \l{QMediaCaptureSession::}{setWindowCapture()}, respectively.
+    The capture session in turn is connected to the QVideoWidget object with
+    \l{QMediaCaptureSession::}{setVideoOutput()}. Thus, the capture output is
+    previewed in the video widget on the right hand side of the UI.
 
-    The Window ID input field is a QLineEdit object that handles both HEX and
-    decimal numbers.
+    The start/stop button calls \l QScreenCapture::start() and \l QScreenCapture::stop(),
+    or \l QWindowCapture::start() and \l QWindowCapture::stop().
 
-    The start/stop button calls \l QScreenCapture::start() and \l QScreenCapture::stop().
-
-    A QMessageBox pops up if the QScreenCapture::errorOccurred signal is emitted.
+    A QMessageBox pops up if the \l{QScreenCapture::}{errorOccurred} signal is emitted.
 */
