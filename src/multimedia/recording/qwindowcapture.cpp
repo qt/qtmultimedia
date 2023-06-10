@@ -68,7 +68,7 @@ QWindowCapture::QWindowCapture(QObject *parent) : QObject(parent) { }
 QWindowCapture::~QWindowCapture() = default;
 
 /*!
-    \qmlmethod list<CapturableWindow> QtMultimedia::CapturableWindow::capturableWindows()
+    \qmlmethod list<CapturableWindow> QtMultimedia::WindowCapture::capturableWindows()
 
     Returns a list of CapturableWindow objects that is available for capturing.
 */
@@ -115,6 +115,8 @@ void QWindowCapture::setWindow(QCapturableWindow /*window*/) { }
 /*!
     \property QWindowCapture::active
     \brief whether the capturing is currently active.
+
+    \sa start(), stop()
 */
 bool QWindowCapture::isActive() const
 {
@@ -122,6 +124,31 @@ bool QWindowCapture::isActive() const
 }
 
 void QWindowCapture::setActive(bool /*active*/) { }
+
+/*!
+    \qmlmethod QtMultimedia::WindowCapture::start
+*/
+
+/*!
+    \fn void QWindowCapture::start()
+
+    Starts capturing the \l window.
+
+    This is equivalent to setting the \l active property to true.
+*/
+
+/*!
+    \qmlmethod QtMultimedia::WindowCapture::stop
+*/
+
+/*!
+    \fn void QWindowCapture::stop()
+
+    Stops capturing.
+
+    This is equivalent to setting the \l active property to false.
+*/
+
 
 /*!
     \qmlproperty string QtMultimedia::WindowCapture::error
