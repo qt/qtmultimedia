@@ -247,17 +247,19 @@ QCameraDevice QMediaDevices::defaultVideoInput()
 QMediaDevices::QMediaDevices(QObject *parent)
     : QObject(parent)
 {
-    QPlatformMediaDevices::instance()->addMediaDevices(this);
+    auto platformDevices = QPlatformMediaDevices::instance();
+    connect(platformDevices, &QPlatformMediaDevices::videoInputsChanged, this,
+            &QMediaDevices::videoInputsChanged);
+    connect(platformDevices, &QPlatformMediaDevices::audioInputsChanged, this,
+            &QMediaDevices::audioInputsChanged);
+    connect(platformDevices, &QPlatformMediaDevices::audioOutputsChanged, this,
+            &QMediaDevices::audioOutputsChanged);
 }
 
 /*!
     \internal
 */
-QMediaDevices::~QMediaDevices()
-{
-    QPlatformMediaDevices::instance()->removeMediaDevices(this);
-}
-
+QMediaDevices::~QMediaDevices() = default;
 
 QT_END_NAMESPACE
 

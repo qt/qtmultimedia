@@ -54,7 +54,7 @@ QList<QCameraDevice> QV4L2CameraDevices::videoDevices() const
 void QV4L2CameraDevices::checkCameras()
 {
     if (doCheckCameras())
-        videoInputsChanged();
+        emit videoInputsChanged();
 }
 
 static const struct {

@@ -132,27 +132,8 @@ QPlatformAudioSink *QPlatformMediaDevices::audioOutputDevice(const QAudioFormat 
     return p;
 }
 
-void QPlatformMediaDevices::audioInputsChanged() const
-{
-    const auto devices = allMediaDevices();
-    for (auto m : devices)
-        emit m->audioInputsChanged();
-}
-
-void QPlatformMediaDevices::audioOutputsChanged() const
-{
-    const auto devices = allMediaDevices();
-    for (auto m : devices)
-        emit m->audioOutputsChanged();
-}
-
-void QPlatformMediaDevices::videoInputsChanged() const
-{
-    const auto devices = allMediaDevices();
-    for (auto m : devices)
-        emit m->videoInputsChanged();
-}
-
 void QPlatformMediaDevices::prepareAudio() { }
 
 QT_END_NAMESPACE
+
+#include "moc_qplatformmediadevices_p.cpp"

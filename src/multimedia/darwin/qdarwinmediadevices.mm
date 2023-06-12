@@ -238,7 +238,7 @@ void QDarwinMediaDevices::onInputsUpdated()
     auto inputs = availableAudioDevices(QAudioDevice::Input);
     if (m_cachedAudioInputs != inputs) {
         m_cachedAudioInputs = inputs;
-        audioInputsChanged();
+        emit audioInputsChanged();
     }
 }
 
@@ -247,7 +247,7 @@ void QDarwinMediaDevices::onOutputsUpdated()
     auto outputs = availableAudioDevices(QAudioDevice::Output);
     if (m_cachedAudioOutputs != outputs) {
         m_cachedAudioOutputs = outputs;
-        audioOutputsChanged();
+        emit audioOutputsChanged();
     }
 }
 

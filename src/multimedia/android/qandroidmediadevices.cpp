@@ -43,12 +43,12 @@ QPlatformAudioSink *QAndroidMediaDevices::createAudioSink(const QAudioDevice &de
 
 void QAndroidMediaDevices::forwardAudioOutputsChanged()
 {
-    audioOutputsChanged();
+    emit audioOutputsChanged();
 }
 
 void QAndroidMediaDevices::forwardAudioInputsChanged()
 {
-    audioInputsChanged();
+    emit audioInputsChanged();
 }
 
 static void onAudioInputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
