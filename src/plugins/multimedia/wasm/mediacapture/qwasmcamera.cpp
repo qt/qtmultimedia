@@ -400,7 +400,7 @@ void QWasmCamera::createCamera(const QCameraDevice &camera)
 {
     m_cameraOutput->addCameraSourceElement(camera.id().toStdString());
     // getUserMedia is async
-    QTimer::singleShot(100,[this, &camera] () {
+    QTimer::singleShot(100, [this] () {
         m_cameraIsReady = m_cameraOutput->isCameraReady();
     });
 }

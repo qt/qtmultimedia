@@ -26,8 +26,6 @@
 QT_BEGIN_NAMESPACE
 
 
-static Q_LOGGING_CATEGORY(qtWasmMediaPlugin, "qt.multimedia.wasm")
-
 class QWasmMediaPlugin : public QPlatformMediaPlugin
 {
     Q_OBJECT
