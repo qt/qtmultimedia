@@ -122,7 +122,7 @@ void QGstreamerVideoDevices::addDevice(GstDevice *device)
     if (gst_device_has_classes(device, "Video/Source")) {
         gst_object_ref(device);
         m_videoSources.push_back({device, QByteArray::number(m_idGenerator)});
-        videoInputsChanged();
+        emit videoInputsChanged();
         m_idGenerator++;
     }
 }
@@ -134,7 +134,7 @@ void QGstreamerVideoDevices::removeDevice(GstDevice *device)
 
     if (it != m_videoSources.end()) {
         m_videoSources.erase(it);
-        videoInputsChanged();
+        emit videoInputsChanged();
     }
 
     gst_object_unref(device);

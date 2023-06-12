@@ -218,7 +218,7 @@ void QAVFVideoDevices::updateCameraDevices()
 
     if (cameras != m_cameraDevices) {
         m_cameraDevices = cameras;
-        videoInputsChanged();
+        emit videoInputsChanged();
     }
 }
 

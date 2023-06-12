@@ -24,7 +24,7 @@ LRESULT QT_WIN_CALLBACK deviceNotificationWndProc(HWND hWnd, UINT message, WPARA
             auto wmd = reinterpret_cast<QWindowsVideoDevices *>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
             if (wmd) {
                 if (wParam == DBT_DEVICEARRIVAL || wParam == DBT_DEVICEREMOVECOMPLETE) {
-                    wmd->videoInputsChanged();
+                    emit wmd->videoInputsChanged();
                 }
             }
         }
