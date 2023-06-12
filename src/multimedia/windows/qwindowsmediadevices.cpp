@@ -125,9 +125,9 @@ public:
     {
         // windowsMediaDevice may be deleted as we are executing the callback
         if (flow == EDataFlow::eCapture) {
-            m_windowsMediaDevices->audioInputsChanged();
+            emit m_windowsMediaDevices->audioInputsChanged();
         } else if (flow == EDataFlow::eRender) {
-            m_windowsMediaDevices->audioOutputsChanged();
+            emit m_windowsMediaDevices->audioOutputsChanged();
         }
     }
 

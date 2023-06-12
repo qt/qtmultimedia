@@ -13,7 +13,7 @@ QPlatformVideoDevices::~QPlatformVideoDevices()
 
 void QPlatformVideoDevices::videoInputsChanged()
 {
-    QPlatformMediaDevices::instance()->videoInputsChanged();
+    emit QPlatformMediaDevices::instance()->videoInputsChanged();
 }
 
 QT_END_NAMESPACE
