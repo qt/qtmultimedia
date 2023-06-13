@@ -20,13 +20,13 @@
 
 #include <qaudiodevice.h>
 
+struct IAudioClient3;
 struct IMMDeviceEnumerator;
 
 QT_BEGIN_NAMESPACE
 
 class QWindowsEngine;
 class CMMNotificationClient;
-struct IAudioClient3;
 
 class QWindowsMediaDevices : public QPlatformMediaDevices
 {
