@@ -141,7 +141,7 @@ static void deleteFrame(void *opaque, uint8_t *data)
         delete frame;
 }
 
-void QAndroidCamera::frameAvailable(QJniObject image)
+void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
 {
     if (!(m_state == State::WaitingStart || m_state == State::Started) && !m_waitingForFirstFrame) {
         qCWarning(qLCAndroidCamera) << "Received frame when not active... ignoring";
@@ -198,7 +198,10 @@ void QAndroidCamera::frameAvailable(QJniObject image)
     videoFrame.setStartTime(lastTimestamp);
     videoFrame.setEndTime(timestamp);
 
-    emit newVideoFrame(videoFrame);
+    if (!takePhoto)
+        emit newVideoFrame(videoFrame);
+    else
+        emit onCaptured(videoFrame);
 
     lastTimestamp = timestamp;
 }
@@ -440,6 +443,11 @@ void QAndroidCamera::onSessionClosed()
     setState(State::Closed);
 }
 
+void QAndroidCamera::capture()
+{
+    m_jniCamera.callMethod<void>("takePhoto");
+}
+
 void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
 {
     Q_UNUSED(frameNumber);
@@ -471,6 +479,18 @@ static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
     camera->frameAvailable(QJniObject(image));
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onFrameAvailable)
+
+static void onPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
+                             QtJniTypes::AndroidImage image)
+{
+    Q_UNUSED(env);
+    Q_UNUSED(obj);
+    GET_CAMERA(cameraId);
+
+    camera->frameAvailable(QJniObject(image), true);
+}
+Q_DECLARE_JNI_NATIVE_METHOD(onPhotoAvailable)
+
 
 static void onCameraOpened(JNIEnv *env, jobject obj, jstring cameraId)
 {
@@ -566,6 +586,7 @@ bool QAndroidCamera::registerNativeMethods()
                         Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
                         Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
                         Q_JNI_NATIVE_METHOD(onFrameAvailable),
+                        Q_JNI_NATIVE_METHOD(onPhotoAvailable),
                         Q_JNI_NATIVE_METHOD(onSessionActive),
                         Q_JNI_NATIVE_METHOD(onSessionClosed),
                 });

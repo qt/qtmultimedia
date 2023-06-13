@@ -22,6 +22,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QVideoFrame;
+
 class QAndroidCamera : public QPlatformCamera
 {
     Q_OBJECT
@@ -42,16 +44,20 @@ public:
 
     static bool registerNativeMethods();
 
+    void capture();
 public slots:
     void onCameraOpened();
     void onCameraDisconnect();
     void onCameraError(int error);
-    void frameAvailable(QJniObject image);
+    void frameAvailable(QJniObject image, bool takePhoto = false);
     void onCaptureSessionConfigured();
     void onCaptureSessionConfigureFailed();
     void onCaptureSessionFailed(int reason, long frameNumber);
     void onSessionActive();
     void onSessionClosed();
+
+Q_SIGNALS:
+    void onCaptured(const QVideoFrame&);
 
 private:
     bool isActivating() const { return m_state != State::Closed; }
