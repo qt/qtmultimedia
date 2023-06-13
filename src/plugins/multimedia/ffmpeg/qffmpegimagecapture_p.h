@@ -47,13 +47,15 @@ public Q_SLOTS:
     void newVideoFrame(const QVideoFrame &frame);
     void onCameraChanged();
 
-private:
-    int doCapture(const QString &fileName);
+protected:
+    virtual int doCapture(const QString &fileName);
+    virtual void setupCameraConnections();
+    QPlatformCamera *m_camera = nullptr;
 
+private:
     QFFmpegMediaCaptureSession *m_session = nullptr;
     int m_lastId = 0;
     QImageEncoderSettings m_settings;
-    QPlatformCamera *m_camera = nullptr;
 
     struct PendingImage {
         int id;

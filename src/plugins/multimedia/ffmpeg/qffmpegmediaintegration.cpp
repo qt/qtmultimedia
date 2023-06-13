@@ -31,6 +31,7 @@
 #    include "jni.h"
 #    include "qandroidvideodevices_p.h"
 #    include "qandroidcamera_p.h"
+#    include "qandroidimagecapture_p.h"
 extern "C" {
 #  include <libavutil/log.h>
 #  include <libavcodec/jni.h>
@@ -189,7 +190,11 @@ QMaybe<QPlatformMediaRecorder *> QFFmpegMediaIntegration::createRecorder(QMediaR
 
 QMaybe<QPlatformImageCapture *> QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 {
+#if defined(Q_OS_ANDROID)
+    return new QAndroidImageCapture(imageCapture);
+#else
     return new QFFmpegImageCapture(imageCapture);
+#endif
 }
 
 QMaybe<QPlatformVideoSink *> QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)
