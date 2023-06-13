@@ -145,6 +145,7 @@ if (ANDROID)
             qandroidcamera_p.h qandroidcamera.cpp
             qandroidvideodevices.cpp qandroidvideodevices_p.h
             qandroidcameraframe_p.h  qandroidcameraframe.cpp
+            qandroidimagecapture_p.h qandroidimagecapture.cpp
             ../android/wrappers/jni/androidsurfacetexture_p.h
             ../android/wrappers/jni/androidsurfacetexture.cpp
         NO_UNITY_BUILD_SOURCES

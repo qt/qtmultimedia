@@ -221,6 +221,12 @@ void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
     updateReadyForCapture();
 }
 
+void QFFmpegImageCapture::setupCameraConnections()
+{
+    connect(m_camera, &QPlatformCamera::activeChanged, this, &QFFmpegImageCapture::cameraActiveChanged);
+    connect(m_camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegImageCapture::newVideoFrame);
+}
+
 void QFFmpegImageCapture::onCameraChanged()
 {
     auto *camera = m_session ? m_session->camera() : nullptr;
@@ -232,10 +238,9 @@ void QFFmpegImageCapture::onCameraChanged()
 
     m_camera = camera;
 
-    if (camera) {
-        cameraActiveChanged(camera->isActive());
-        connect(camera, &QPlatformCamera::activeChanged, this, &QFFmpegImageCapture::cameraActiveChanged);
-        connect(camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegImageCapture::newVideoFrame);
+    if (m_camera) {
+        cameraActiveChanged(m_camera->isActive());
+        setupCameraConnections();
     } else {
         cameraActiveChanged(false);
     }
