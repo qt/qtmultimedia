@@ -9,6 +9,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.util.Range;
 import android.util.Size;
@@ -117,6 +118,57 @@ public class QtVideoDeviceManager {
         }
 
         return stream;
+    }
+
+    public int stringToControlAEMode(String mode) {
+        switch (mode) {
+            case "off":
+                return CaptureRequest.CONTROL_AE_MODE_ON;
+            case "auto":
+                return CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH;
+            case "on":
+                return CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH;
+            case "redeye":
+                return CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE;
+            case "external":
+                return CaptureRequest.CONTROL_AE_MODE_ON_EXTERNAL_FLASH;
+            default:
+                return -1;
+        }
+    }
+
+    public String controlAEModeToString(int mode) {
+        switch (mode) {
+            case CaptureRequest.CONTROL_AE_MODE_ON:
+                return "off";
+            case CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH:
+                return "auto";
+            case CaptureRequest.CONTROL_AE_MODE_ON_ALWAYS_FLASH:
+                return "on";
+            case CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE:
+                return "redeye";
+            case CaptureRequest.CONTROL_AE_MODE_ON_EXTERNAL_FLASH:
+                return "external";
+            case CaptureRequest.CONTROL_AE_MODE_OFF:
+            default:
+                return "unknown";
+        }
+    }
+
+    public String[] getSupportedFlashModes(String cameraId) {
+
+        CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
+        if (characteristics == null)
+            return new String[0];
+
+        int supportedFlashModes[] = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES);
+        ArrayList<String> supportedFlashModesList = new ArrayList<String>();
+        for (int index = 0; index < supportedFlashModes.length; index++) {
+            supportedFlashModesList.add(controlAEModeToString(supportedFlashModes[index]));
+        }
+
+        String[] ret = new String[ supportedFlashModesList.size() ];
+        return supportedFlashModesList.toArray(ret);
     }
 
     public boolean isTorchModeSupported(String cameraId) {
