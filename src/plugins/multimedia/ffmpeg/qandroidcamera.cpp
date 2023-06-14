@@ -38,6 +38,7 @@ Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat");
 Q_DECLARE_JNI_TYPE(AndroidImage, "Landroid/media/Image;")
 Q_DECLARE_JNI_TYPE(AndroidImagePlaneArray, "[Landroid/media/Image$Plane;")
 Q_DECLARE_JNI_TYPE(JavaByteBuffer, "Ljava/nio/ByteBuffer;")
+Q_DECLARE_JNI_TYPE(StringArray, "[Ljava/lang/String;")
 
 QT_BEGIN_NAMESPACE
 static Q_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
@@ -361,16 +362,71 @@ void QAndroidCamera::updateCameraCharacteristics()
 
     m_TorchModeSupported = deviceManager.callMethod<jboolean>(
             "isTorchModeSupported", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+
+    m_supportedFlashModes.append(QCamera::FlashOff);
+    QJniObject flashModesObj = deviceManager.callMethod<QtJniTypes::StringArray>(
+            "getSupportedFlashModes",
+            QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
+    QJniEnvironment jniEnv;
+    jobjectArray flashModes = flashModesObj.object<jobjectArray>();
+    int size = jniEnv->GetArrayLength(flashModes);
+    for (int i = 0; i < size; ++i) {
+        QJniObject flashModeObj = jniEnv->GetObjectArrayElement(flashModes, i);
+        QString flashMode = flashModeObj.toString();
+        if (flashMode == QLatin1String("auto"))
+            m_supportedFlashModes.append(QCamera::FlashAuto);
+        else if (flashMode == QLatin1String("on"))
+            m_supportedFlashModes.append(QCamera::FlashOn);
+    }
 }
 
 void QAndroidCamera::cleanCameraCharacteristics()
 {
     maximumZoomFactorChanged(1.0);
-    if (!m_TorchModeSupported) {
+    if (torchMode() != QCamera::TorchOff) {
         setTorchMode(QCamera::TorchOff);
-        m_TorchModeSupported = false;
     }
-    torchModeChanged(QCamera::TorchOff);
+    m_TorchModeSupported = false;
+
+    if (flashMode() != QCamera::FlashOff) {
+        setFlashMode(QCamera::FlashOff);
+    }
+    m_supportedFlashModes.clear();
+}
+
+void QAndroidCamera::setFlashMode(QCamera::FlashMode mode)
+{
+    if (!isFlashModeSupported(mode))
+        return;
+
+    QString flashMode;
+    switch (mode) {
+        case QCamera::FlashAuto:
+            flashMode = QLatin1String("auto");
+            break;
+        case QCamera::FlashOn:
+            flashMode = QLatin1String("on");
+            break;
+        case QCamera::FlashOff:
+        default:
+            flashMode = QLatin1String("off");
+            break;
+    }
+
+    m_jniCamera.callMethod<void>("setFlashMode", QJniObject::fromString(flashMode).object<jstring>());
+    flashModeChanged(mode);
+}
+
+bool QAndroidCamera::isFlashModeSupported(QCamera::FlashMode mode) const
+{
+    return m_supportedFlashModes.contains(mode);
+}
+
+bool QAndroidCamera::isFlashReady() const
+{
+    // Android doesn't have an API for that.
+    // Only check if device supports more flash modes than just FlashOff.
+    return m_supportedFlashModes.size() > 1;
 }
 
 bool QAndroidCamera::isTorchModeSupported(QCamera::TorchMode mode) const

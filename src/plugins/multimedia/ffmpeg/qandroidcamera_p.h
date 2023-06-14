@@ -33,10 +33,13 @@ public:
     ~QAndroidCamera() override;
 
     bool isActive() const override { return m_state == State::Started; }
+    bool isFlashModeSupported(QCamera::FlashMode mode) const override;
+    bool isFlashReady() const override;
     bool isTorchModeSupported(QCamera::TorchMode mode) const override;
     void setActive(bool active) override;
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
+    void setFlashMode(QCamera::FlashMode mode) override;
     void setTorchMode(QCamera::TorchMode mode) override;
     void zoomTo(float factor, float rate) override;
 
@@ -75,6 +78,7 @@ private:
     std::unique_ptr<QFFmpeg::HWAccel> m_hwAccel;
 
     QVideoFrameFormat::PixelFormat m_androidFramePixelFormat;
+    QList<QCamera::FlashMode> m_supportedFlashModes;
     bool m_waitingForFirstFrame = false;
     bool m_TorchModeSupported = false;
 };

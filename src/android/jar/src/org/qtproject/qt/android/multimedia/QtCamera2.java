@@ -56,6 +56,7 @@ public class QtCamera2 {
     private Object mStartMutex = new Object();
     private boolean mIsStarted = false;
     private static int MaxNumberFrames = 10;
+    private int mFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
     private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
 
     native void onCameraOpened(String cameraId);
@@ -290,6 +291,7 @@ public class QtCamera2 {
                 mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
                 mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
 
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
                 mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mTorchMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
@@ -332,6 +334,7 @@ public class QtCamera2 {
             final CaptureRequest.Builder captureBuilder =
                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mCapturedPhotoReader.getSurface());
+            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
 
             CameraCaptureSession.CaptureCallback captureCallback
                         = new CameraCaptureSession.CaptureCallback() {
@@ -392,6 +395,30 @@ public class QtCamera2 {
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
             } catch (Exception exception) {
                 Log.w("QtCamera2", "Failed to set zoom:" + exception);
+            }
+        }
+    }
+    public void setFlashMode(String flashMode)
+    {
+        synchronized (mStartMutex) {
+
+            int flashModeValue = mVideoDeviceManager.stringToControlAEMode(flashMode);
+            if (flashModeValue < 0) {
+                Log.w("QtCamera2", "Unknown flash mode");
+                return;
+            }
+            mFlashMode = flashModeValue;
+
+            if (!mIsStarted)
+                return;
+
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
+            mPreviewRequest = mPreviewRequestBuilder.build();
+
+            try {
+                mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
+            } catch (Exception exception) {
+                Log.w("QtCamera2", "Failed to set flash mode:" + exception);
             }
         }
     }
