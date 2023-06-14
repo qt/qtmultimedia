@@ -69,7 +69,7 @@ QMaybe<Codec> Codec::create(AVStream *stream)
 
     ret = avcodec_open2(context.get(), decoder, opts);
     if (ret < 0)
-        return "Failed to open FFmpeg codec context " + err2str(ret);
+        return QString("Failed to open FFmpeg codec context " + err2str(ret));
 
     return Codec(new Data(std::move(context), stream, std::move(hwAccel)));
 }
