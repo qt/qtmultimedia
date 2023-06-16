@@ -24,7 +24,9 @@ template<typename T, typename... Args>
 ComPtr<T> makeComObject(Args &&...args)
 {
     ComPtr<T> p;
-    p.Attach(new T(std::forward<Args>(args)...));
+    // Don't use Attach because of MINGW64 bug
+    // #892 Microsoft::WRL::ComPtr::Attach leaks references
+    *p.GetAddressOf() = new T(std::forward<Args>(args)...);
     return p;
 }
 
