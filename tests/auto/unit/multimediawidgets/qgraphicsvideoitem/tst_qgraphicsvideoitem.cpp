@@ -43,7 +43,7 @@ private slots:
     void paint();
 
 public:
-    QMockIntegration integration;
+    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 class QtTestGraphicsVideoItem : public QGraphicsVideoItem

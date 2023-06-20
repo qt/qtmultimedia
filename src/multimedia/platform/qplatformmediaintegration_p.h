@@ -58,9 +58,6 @@ class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 public:
     static QPlatformMediaIntegration *instance();
 
-    // API to be able to test with a mock backend
-    static void setIntegration(QPlatformMediaIntegration *);
-
     QPlatformMediaIntegration();
     virtual ~QPlatformMediaIntegration();
     virtual QPlatformMediaFormatInfo *formatInfo() = 0;
@@ -83,6 +80,15 @@ public:
 
     QList<QCapturableWindow> capturableWindows();
     bool isCapturableWindowValid(const QCapturableWindowPrivate &);
+
+    QPlatformVideoDevices *videoDevices() { return m_videoDevices.get(); }
+
+private:
+    friend class QMockIntegrationFactory;
+    // API to be able to test with a mock backend
+    using Factory = std::function<std::unique_ptr<QPlatformMediaIntegration>()>;
+    struct InstanceHolder;
+    static void setPlatformFactory(Factory factory);
 
 protected:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;

@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qplatformmediadevices_p.h"
+#include "qplatformmediaintegration_p.h"
 #include "qmediadevices.h"
 #include "qaudiodevice.h"
 #include "qcameradevice.h"
 #include "qaudiosystem_p.h"
 #include "qaudiodevice.h"
+#include "qplatformvideodevices_p.h"
 
 #include <qmutex.h>
 #include <qloggingcategory.h>
@@ -75,8 +77,18 @@ QPlatformMediaDevices *QPlatformMediaDevices::instance()
 }
 
 
-QPlatformMediaDevices::QPlatformMediaDevices()
-{}
+QPlatformMediaDevices::QPlatformMediaDevices() = default;
+
+void QPlatformMediaDevices::initVideoDevicesConnection() {
+    std::call_once(m_videoDevicesConnectionFlag, [this]() {
+        QMetaObject::invokeMethod(this, [this]() {
+            auto videoDevices = QPlatformMediaIntegration::instance()->videoDevices();
+            if (videoDevices)
+                connect(videoDevices, &QPlatformVideoDevices::videoInputsChanged, this,
+                        &QPlatformMediaDevices::videoInputsChanged);
+        }, Qt::QueuedConnection);
+    });
+}
 
 void QPlatformMediaDevices::setDevices(QPlatformMediaDevices *devices)
 {

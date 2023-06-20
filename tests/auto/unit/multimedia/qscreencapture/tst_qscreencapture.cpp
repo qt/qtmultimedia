@@ -39,7 +39,7 @@ private slots:
     void destructionOfActiveCapture();
 
 private:
-    QMockIntegration integration;
+    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QScreenCapture::initTestCase() { }
@@ -53,7 +53,7 @@ void tst_QScreenCapture::destructionOfActiveCapture()
     // Run a few times in order to catch random UB on deletion
     for (int i = 0; i < 10; ++i) {
         auto sc = std::make_unique<QScreenCapture>();
-        QPointer<QPlatformSurfaceCapture> psc = integration.lastScreenCapture();
+        QPointer<QPlatformSurfaceCapture> psc = QMockIntegration::instance()->lastScreenCapture();
         QVERIFY(psc);
 
         sc->setActive(true);

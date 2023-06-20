@@ -25,8 +25,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QV4L2CameraDevices : public QObject,
-                           public QPlatformVideoDevices
+class QV4L2CameraDevices : public QPlatformVideoDevices
 {
     Q_OBJECT
 public:
