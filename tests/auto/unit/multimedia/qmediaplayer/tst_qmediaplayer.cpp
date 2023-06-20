@@ -98,7 +98,7 @@ private slots:
 private:
     void setupCommonTestData();
 
-    QMockIntegration *mockIntegration;
+    QMockIntegrationFactory mockIntegrationFactory;
     QMockMediaPlayer *mockPlayer;
     QAudioOutput *audioOutput = nullptr;
     QMediaPlayer *player;
@@ -188,9 +188,8 @@ void tst_QMediaPlayer::cleanupTestCase()
 
 void tst_QMediaPlayer::init()
 {
-    mockIntegration = new QMockIntegration;
     player = new QMediaPlayer;
-    mockPlayer = mockIntegration->lastPlayer();
+    mockPlayer = QMockIntegration::instance()->lastPlayer();
     Q_ASSERT(mockPlayer);
     audioOutput = new QAudioOutput;
     player->setAudioOutput(audioOutput);
@@ -200,7 +199,6 @@ void tst_QMediaPlayer::init()
 void tst_QMediaPlayer::cleanup()
 {
     delete player;
-    delete mockIntegration;
 }
 
 void tst_QMediaPlayer::testValid()

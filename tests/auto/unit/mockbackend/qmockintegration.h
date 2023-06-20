@@ -29,8 +29,12 @@ class QMockSurfaceCapture;
 class QMockIntegration : public QPlatformMediaIntegration
 {
 public:
-    QMockIntegration();
     ~QMockIntegration();
+
+    static QMockIntegration *instance()
+    {
+        return static_cast<QMockIntegration *>(QPlatformMediaIntegration::instance());
+    }
 
     QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 
@@ -45,6 +49,8 @@ public:
     QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *) override;
 
     QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) override;
+
+    void addNewCamera();
 
     enum Flag { NoPlayerInterface = 0x1, NoAudioDecoderInterface = 0x2, NoCaptureInterface = 0x4 };
     Q_DECLARE_FLAGS(Flags, Flag);
@@ -61,6 +67,9 @@ public:
     QMockSurfaceCapture *lastScreenCapture() { return m_lastScreenCapture; }
 
 private:
+    friend class QMockIntegrationFactory;
+    QMockIntegration();
+
     Flags m_flags = {};
     QMockMediaPlayer *m_lastPlayer = nullptr;
     QMockAudioDecoder *m_lastAudioDecoderControl = nullptr;
@@ -72,6 +81,28 @@ private:
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);
+
+class QMockIntegrationFactory
+{
+public:
+    QMockIntegrationFactory() { QMockIntegration::setPlatformFactory(std::ref(*this)); }
+
+    ~QMockIntegrationFactory() { QMockIntegration::setPlatformFactory(nullptr); }
+
+    std::unique_ptr<QPlatformMediaIntegration> operator()()
+    {
+        Q_ASSERT(!m_wasRun);
+        m_wasRun = true;
+        return std::unique_ptr<QPlatformMediaIntegration>(new QMockIntegration);
+    }
+
+    bool wasRun() const { return m_wasRun; }
+
+    Q_DISABLE_COPY(QMockIntegrationFactory);
+
+private:
+    bool m_wasRun = false;
+};
 
 QT_END_NAMESPACE
 

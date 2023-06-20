@@ -18,6 +18,7 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <qlist.h>
 #include <qobject.h>
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -52,10 +53,15 @@ public:
 
     virtual void prepareAudio();
 
+    void initVideoDevicesConnection();
+
 Q_SIGNALS:
     void audioInputsChanged();
     void audioOutputsChanged();
     void videoInputsChanged();
+
+private:
+    std::once_flag m_videoDevicesConnectionFlag;
 };
 
 QT_END_NAMESPACE

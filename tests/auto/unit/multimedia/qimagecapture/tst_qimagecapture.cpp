@@ -40,13 +40,10 @@ private slots:
     void readyForCaptureChanged();
 
 private:
-    QMockIntegration *mockIntegration;
+    QMockIntegrationFactory mockIntegrationFactory;
 };
 
-void tst_QImageCapture::initTestCase()
-{
-    mockIntegration = new QMockIntegration;
-}
+void tst_QImageCapture::initTestCase() { }
 
 void tst_QImageCapture::init()
 {
@@ -56,10 +53,7 @@ void tst_QImageCapture::cleanup()
 {
 }
 
-void tst_QImageCapture::cleanupTestCase()
-{
-    delete mockIntegration;
-}
+void tst_QImageCapture::cleanupTestCase() { }
 
 void tst_QImageCapture::constructor()
 {

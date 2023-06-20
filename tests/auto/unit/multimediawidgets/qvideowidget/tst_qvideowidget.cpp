@@ -159,12 +159,12 @@ void tst_QVideoWidget::sizeHint()
 //    QFETCH(QRect, viewport);
     QFETCH(QSize, expectedSize);
 
-    QMockIntegration mock;
+    QMockIntegrationFactory mockCreator;
     QtTestVideoWidget widget;
     QMediaPlayer player;
 
     player.setVideoOutput(&widget);
-    auto mockSink = mock.lastVideoSink();
+    auto mockSink = QMockIntegration::instance()->lastVideoSink();
 
     widget.show();
     QVERIFY(QTest::qWaitForWindowExposed(&widget));

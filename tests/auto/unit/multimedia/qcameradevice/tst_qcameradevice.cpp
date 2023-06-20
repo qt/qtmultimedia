@@ -29,7 +29,7 @@ private slots:
     void equality_operators();
 
 private:
-    QMockIntegration integration;
+    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QCameraDevice::initTestCase()
