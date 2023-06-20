@@ -33,18 +33,12 @@ private slots:
     void testSetVideoOutputNoControl();
 
 private:
-    QMockIntegration *mockIntegration;
+    QMockIntegrationFactory mockIntegrationFactory;
 };
 
-void tst_QMediaPlayerWidgets::initTestCase()
-{
-    mockIntegration = new QMockIntegration;
-}
+void tst_QMediaPlayerWidgets::initTestCase() { }
 
-void tst_QMediaPlayerWidgets::cleanupTestCase()
-{
-    delete mockIntegration;
-}
+void tst_QMediaPlayerWidgets::cleanupTestCase() { }
 
 void tst_QMediaPlayerWidgets::init()
 {
@@ -103,9 +97,9 @@ void tst_QMediaPlayerWidgets::testSetVideoOutputNoService()
     QGraphicsVideoItem item;
     QVideoSink surface;
 
-    mockIntegration->setFlags(QMockIntegration::NoPlayerInterface);
+    QMockIntegration::instance()->setFlags(QMockIntegration::NoPlayerInterface);
     QMediaPlayer player;
-    mockIntegration->setFlags({});
+    QMockIntegration::instance()->setFlags({});
 
     player.setVideoOutput(&widget);
 

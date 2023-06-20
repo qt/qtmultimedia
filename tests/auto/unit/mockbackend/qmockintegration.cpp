@@ -56,6 +56,18 @@ public:
         m_cameraDevices.append(info->create());
     }
 
+    void addNewCamera()
+    {
+        auto info = new QCameraDevicePrivate;
+        info->description = QLatin1String("newCamera") + QString::number(m_cameraDevices.size());
+        info->id =
+                QString(QLatin1String("camera") + QString::number(m_cameraDevices.size())).toUtf8();
+        info->isDefault = false;
+        m_cameraDevices.append(info->create());
+
+        emit videoInputsChanged();
+    }
+
     QList<QCameraDevice> videoDevices() const override
     {
         return m_cameraDevices;
@@ -67,14 +79,10 @@ private:
 
 QMockIntegration::QMockIntegration()
 {
-    setIntegration(this);
     m_videoDevices = std::make_unique<QMockVideoDevices>(this);
 }
 
-QMockIntegration::~QMockIntegration()
-{
-    setIntegration(nullptr);
-}
+QMockIntegration::~QMockIntegration() = default;
 
 QMaybe<QPlatformAudioDecoder *> QMockIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
@@ -151,6 +159,11 @@ QMaybe<QPlatformVideoSink *> QMockIntegration::createVideoSink(QVideoSink *sink)
 QMaybe<QPlatformAudioOutput *> QMockIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QMockAudioOutput(q);
+}
+
+void QMockIntegration::addNewCamera()
+{
+    static_cast<QMockVideoDevices &>(*m_videoDevices).addNewCamera();
 }
 
 bool QMockCamera::simpleCamera = false;

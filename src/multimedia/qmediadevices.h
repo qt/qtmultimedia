@@ -42,6 +42,9 @@ Q_SIGNALS:
     void audioOutputsChanged();
     void videoInputsChanged();
 
+protected:
+    void connectNotify(const QMetaMethod &signal) override;
+
 private:
     friend class QMediaDevicesPrivate;
 };

@@ -16,23 +16,28 @@
 
 #include <private/qtmultimediaglobal_p.h>
 #include <qmediarecorder.h>
+#include <qobject.h>
 
 QT_BEGIN_NAMESPACE
 
 class QPlatformMediaIntegration;
 
-class Q_MULTIMEDIA_EXPORT QPlatformVideoDevices
+class Q_MULTIMEDIA_EXPORT QPlatformVideoDevices : public QObject
 {
+    Q_OBJECT
 public:
     QPlatformVideoDevices(QPlatformMediaIntegration *integration)
         : m_integration(integration)
     {}
-    virtual ~QPlatformVideoDevices();
+
+    ~QPlatformVideoDevices() override;
 
     virtual QList<QCameraDevice> videoDevices() const = 0;
 
-protected:
+Q_SIGNALS:
     void videoInputsChanged();
+
+protected:
     QPlatformMediaIntegration *m_integration = nullptr;
 };
 

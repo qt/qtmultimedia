@@ -36,8 +36,7 @@ Q_DECLARE_LOGGING_CATEGORY(qWasmMediaDevices)
 
 class QWasmAudioEngine;
 
-class QWasmCameraDevices : public QObject,
-                           public QPlatformVideoDevices
+class QWasmCameraDevices : public QPlatformVideoDevices
 {
     Q_OBJECT
 public:

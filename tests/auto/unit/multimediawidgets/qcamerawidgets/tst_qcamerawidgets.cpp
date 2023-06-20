@@ -35,7 +35,7 @@ private slots:
     void testSetVideoOutput();
 
 private:
-    QMockIntegration mockIntegration;
+    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QCameraWidgets::initTestCase()

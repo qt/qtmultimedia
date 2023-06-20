@@ -51,7 +51,7 @@ private slots:
     void testApplicationInative();
 
 private:
-    QMockIntegration *mockIntegration = nullptr;
+    QMockIntegrationFactory mockIntegrationFactory;
     QMediaCaptureSession *captureSession;
     QCamera *object = nullptr;
     QMockMediaCaptureSession *service = nullptr;
@@ -61,13 +61,12 @@ private:
 
 void tst_QMediaRecorder::initTestCase()
 {
-    mockIntegration = new QMockIntegration;
     captureSession = new QMediaCaptureSession;
     object = new QCamera;
     encoder = new QMediaRecorder;
     captureSession->setCamera(object);
     captureSession->setRecorder(encoder);
-    service = mockIntegration->lastCaptureService();
+    service = QMockIntegration::instance()->lastCaptureService();
     mock = service->mockControl;
 }
 
@@ -76,7 +75,6 @@ void tst_QMediaRecorder::cleanupTestCase()
     delete encoder;
     delete object;
     delete captureSession;
-    delete mockIntegration;
 }
 
 void tst_QMediaRecorder::testBasicSession()
