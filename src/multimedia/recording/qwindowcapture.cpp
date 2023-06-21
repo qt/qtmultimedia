@@ -245,6 +245,20 @@ QString QWindowCapture::errorString() const
             : QLatin1StringView("Capturing is not support on this platform");
 }
 
+void QWindowCapture::setCaptureSession(QMediaCaptureSession *captureSession)
+{
+    Q_D(QWindowCapture);
+
+    d->captureSession = captureSession;
+}
+
+QPlatformSurfaceCapture *QWindowCapture::platformWindowCapture() const
+{
+    Q_D(const QWindowCapture);
+
+    return d->platformWindowCapture.get();
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qwindowcapture.cpp"

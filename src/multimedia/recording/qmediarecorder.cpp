@@ -332,7 +332,7 @@ void QMediaRecorder::record()
 {
     Q_D(QMediaRecorder);
 
-    if (!d->control || ! d->captureSession)
+    if (!d->control || !d->captureSession)
         return;
 
     if (d->control->state() == QMediaRecorder::PausedState) {
@@ -340,10 +340,8 @@ void QMediaRecorder::record()
     } else {
         auto oldMediaFormat = d->encoderSettings.mediaFormat();
 
-        auto isSourceActive = [](auto *source) { return source && source->isActive(); };
-        const bool hasVideo = isSourceActive(d->captureSession->camera())
-                || isSourceActive(d->captureSession->screenCapture())
-                || isSourceActive(d->captureSession->windowCapture());
+        auto platformSession = d->captureSession->platformSession();
+        const bool hasVideo = platformSession && !platformSession->activeVideoSources().empty();
 
         d->encoderSettings.resolveFormat(hasVideo ? QMediaFormat::RequiresVideo : QMediaFormat::NoFlags);
         d->control->clearActualLocation();
