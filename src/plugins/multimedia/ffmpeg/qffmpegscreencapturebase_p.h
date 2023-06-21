@@ -15,16 +15,16 @@
 // We mean it.
 //
 
-#include <private/qplatformscreencapture_p.h>
+#include <private/qplatformsurfacecapture_p.h>
 
 #include "qpointer.h"
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegScreenCaptureBase : public QPlatformScreenCapture
+class QFFmpegScreenCaptureBase : public QPlatformSurfaceCapture
 {
 public:
-    using QPlatformScreenCapture::QPlatformScreenCapture;
+    using QPlatformSurfaceCapture::QPlatformSurfaceCapture;
 
     void setActive(bool active) final;
 

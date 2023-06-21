@@ -1,14 +1,14 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qffmpegscreencapturethread_p.h"
+#include "qffmpegsurfacecapturethread_p.h"
 
 #include <qtimer.h>
 #include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcScreenCaptureThread, "qt.multimedia.ffmpeg.screencapturethread");
+static Q_LOGGING_CATEGORY(qLcScreenCaptureThread, "qt.multimedia.ffmpeg.surfacecapturethread");
 
 namespace {
 
@@ -48,14 +48,14 @@ private:
 
 } // namespace
 
-QFFmpegScreenCaptureThread::QFFmpegScreenCaptureThread()
+QFFmpegSurfaceCaptureThread::QFFmpegSurfaceCaptureThread()
 {
     setFrameRate(DefaultScreenCaptureFrameRate);
 }
 
-QFFmpegScreenCaptureThread::~QFFmpegScreenCaptureThread() = default;
+QFFmpegSurfaceCaptureThread::~QFFmpegSurfaceCaptureThread() = default;
 
-void QFFmpegScreenCaptureThread::setFrameRate(qreal rate)
+void QFFmpegSurfaceCaptureThread::setFrameRate(qreal rate)
 {
     rate = qBound(MinScreenCaptureFrameRate, rate, MaxScreenCaptureFrameRate);
     if (std::exchange(m_rate, rate) != rate) {
@@ -65,18 +65,18 @@ void QFFmpegScreenCaptureThread::setFrameRate(qreal rate)
     }
 }
 
-qreal QFFmpegScreenCaptureThread::frameRate() const
+qreal QFFmpegSurfaceCaptureThread::frameRate() const
 {
     return m_rate;
 }
 
-void QFFmpegScreenCaptureThread::stop()
+void QFFmpegSurfaceCaptureThread::stop()
 {
     quit();
     wait();
 }
 
-void QFFmpegScreenCaptureThread::run()
+void QFFmpegSurfaceCaptureThread::run()
 {
     qCDebug(qLcScreenCaptureThread) << "start screen capture thread";
 
@@ -121,7 +121,7 @@ void QFFmpegScreenCaptureThread::run()
             << "ms, grabbings number:" << profiler.number();
 }
 
-void QFFmpegScreenCaptureThread::updateError(QScreenCapture::Error error,
+void QFFmpegSurfaceCaptureThread::updateError(QScreenCapture::Error error,
                                              const QString &description)
 {
     const auto prevError = std::exchange(m_prevError, error);
@@ -133,7 +133,7 @@ void QFFmpegScreenCaptureThread::updateError(QScreenCapture::Error error,
     updateTimerInterval();
 }
 
-void QFFmpegScreenCaptureThread::updateTimerInterval()
+void QFFmpegSurfaceCaptureThread::updateTimerInterval()
 {
     const qreal rate = m_prevError && *m_prevError != QScreenCapture::NoError
             ? MinScreenCaptureFrameRate
@@ -145,4 +145,4 @@ void QFFmpegScreenCaptureThread::updateTimerInterval()
 
 QT_END_NAMESPACE
 
-#include "moc_qffmpegscreencapturethread_p.cpp"
+#include "moc_qffmpegsurfacecapturethread_p.cpp"

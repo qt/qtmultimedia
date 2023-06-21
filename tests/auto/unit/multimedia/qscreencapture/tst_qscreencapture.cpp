@@ -8,7 +8,7 @@
 
 #include "qmockintegration.h"
 #include "qscreencapture.h"
-#include "qmockscreencapture.h"
+#include "qmocksurfacecapture.h"
 #include "qatomic.h"
 
 QT_USE_NAMESPACE
@@ -20,11 +20,11 @@ class tst_QScreenCapture : public QObject
 private:
     // Use custom waiting instead of QSignalSpy since the spy tries copying not sharable object
     // QVideoFrame to QVariant and gets an assert
-    bool waitForFrame(QPlatformScreenCapture &psc)
+    bool waitForFrame(QPlatformSurfaceCapture &psc)
     {
         QAtomicInteger<bool> newFrameReceived = false;
         QObject o;
-        auto connection = connect(&psc, &QPlatformScreenCapture::newVideoFrame, &o,
+        auto connection = connect(&psc, &QPlatformSurfaceCapture::newVideoFrame, &o,
                                   [&newFrameReceived]() { newFrameReceived = true; });
 
         return QTest::qWaitFor([&newFrameReceived]() { return newFrameReceived; });
@@ -53,7 +53,7 @@ void tst_QScreenCapture::destructionOfActiveCapture()
     // Run a few times in order to catch random UB on deletion
     for (int i = 0; i < 10; ++i) {
         auto sc = std::make_unique<QScreenCapture>();
-        QPointer<QPlatformScreenCapture> psc = integration.lastScreenCapture();
+        QPointer<QPlatformSurfaceCapture> psc = integration.lastScreenCapture();
         QVERIFY(psc);
 
         sc->setActive(true);

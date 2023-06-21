@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QPLATFORMSCREENCAPTURE_H
-#define QPLATFORMSCREENCAPTURE_H
+#ifndef QPLATFORMSURFACEAPTURE_H
+#define QPLATFORMSURFACEAPTURE_H
 
 //
 //  W A R N I N G
@@ -22,12 +22,12 @@ QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
 
-class Q_MULTIMEDIA_EXPORT QPlatformScreenCapture : public QPlatformVideoSource
+class Q_MULTIMEDIA_EXPORT QPlatformSurfaceCapture : public QPlatformVideoSource
 {
     Q_OBJECT
 
 public:
-    explicit QPlatformScreenCapture(QScreenCapture *screenCapture);
+    explicit QPlatformSurfaceCapture(QScreenCapture *screenCapture);
 
     virtual void setScreen(QScreen *s) = 0;
     virtual QScreen *screen() const = 0;
@@ -56,4 +56,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QPLATFORMSCREENCAPTURE_H
+#endif // QPLATFORMSURFACEAPTURE_H

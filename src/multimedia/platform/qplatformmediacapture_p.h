@@ -27,7 +27,7 @@ class QVideoSink;
 class QPlatformAudioInput;
 class QPlatformAudioOutput;
 class QMediaCaptureSession;
-class QPlatformScreenCapture;
+class QPlatformSurfaceCapture;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
@@ -42,8 +42,8 @@ public:
     virtual QPlatformCamera *camera() = 0;
     virtual void setCamera(QPlatformCamera *) {}
 
-    virtual QPlatformScreenCapture *screenCapture() { return nullptr; }
-    virtual void setScreenCapture(QPlatformScreenCapture *) {}
+    virtual QPlatformSurfaceCapture *screenCapture() { return nullptr; }
+    virtual void setScreenCapture(QPlatformSurfaceCapture *) {}
 
     virtual QPlatformImageCapture *imageCapture() = 0;
     virtual void setImageCapture(QPlatformImageCapture *) {}

@@ -19,7 +19,7 @@
 #include "qvideoframeformat.h"
 #include "qffmpegscreencapturebase_p.h"
 #include <private/qcomptr_p.h>
-#include <private/qplatformscreencapture_p.h>
+#include <private/qplatformsurfacecapture_p.h>
 #include <memory>
 
 QT_BEGIN_NAMESPACE

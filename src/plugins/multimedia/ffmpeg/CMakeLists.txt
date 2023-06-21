@@ -36,8 +36,8 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
         qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
         qffmpegscreencapturebase.cpp qffmpegscreencapturebase_p.h
-        qffmpegscreencapture.cpp qffmpegscreencapture_p.h
-        qffmpegscreencapturethread.cpp qffmpegscreencapturethread_p.h
+        qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
+        qffmpegsurfacecapturethread.cpp qffmpegsurfacecapturethread_p.h
 
         qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
         playbackengine/qffmpegplaybackengineobject.cpp playbackengine/qffmpegplaybackengineobject_p.h
@@ -112,7 +112,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
     SOURCES
-        qffmpegscreencapture_uwp.cpp qffmpegscreencapture_uwp_p.h
+        qffmpegwindowcapture_uwp.cpp qffmpegwindowcapture_uwp_p.h
     INCLUDE_DIRECTORIES
         ../windows
     LIBRARIES
@@ -123,14 +123,14 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
     SOURCES
-        qx11screencapture.cpp qx11screencapture_p.h
+        qx11surfacecapture.cpp qx11surfacecapture_p.h
     LIBRARIES
         X11
         Xrandr
         Xext
 )
 
-set_source_files_properties(qx11screencapture.cpp # X headers
+set_source_files_properties(qx11surfacecapture.cpp # X headers
                             PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
