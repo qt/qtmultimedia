@@ -35,7 +35,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegresampler.cpp qffmpegresampler_p.h
         qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
         qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
-        qffmpegscreencapturebase.cpp qffmpegscreencapturebase_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
         qffmpegsurfacecapturethread.cpp qffmpegsurfacecapturethread_p.h
 
@@ -111,8 +110,6 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
 )
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
-    SOURCES
-        qffmpegwindowcapture_uwp.cpp qffmpegwindowcapture_uwp_p.h
     INCLUDE_DIRECTORIES
         ../windows
     LIBRARIES

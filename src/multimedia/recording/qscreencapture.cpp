@@ -8,6 +8,11 @@
 
 QT_BEGIN_NAMESPACE
 
+static QScreenCapture::Error toScreenCaptureError(QPlatformSurfaceCapture::Error error)
+{
+    return static_cast<QScreenCapture::Error>(error);
+}
+
 class QScreenCapturePrivate : public QObjectPrivate
 {
 public:
@@ -67,8 +72,24 @@ QScreenCapture::QScreenCapture(QObject *parent)
 {
     Q_D(QScreenCapture);
 
-    d->platformScreenCapture.reset(
-            QPlatformMediaIntegration::instance()->createScreenCapture(this));
+    auto platformCapture = QPlatformMediaIntegration::instance()->createScreenCapture(this);
+    if (platformCapture) {
+        connect(platformCapture, &QPlatformSurfaceCapture::activeChanged, this,
+                &QScreenCapture::activeChanged);
+        connect(platformCapture, &QPlatformSurfaceCapture::errorChanged, this,
+                &QScreenCapture::errorChanged);
+        connect(platformCapture, &QPlatformSurfaceCapture::errorOccurred, this,
+                [this](QPlatformSurfaceCapture::Error error, QString errorString) {
+                    emit errorOccurred(toScreenCaptureError(error), errorString);
+                });
+
+        connect(platformCapture,
+                qOverload<QPlatformSurfaceCapture::ScreenSource>(
+                        &QPlatformSurfaceCapture::sourceChanged),
+                this, &QScreenCapture::screenChanged);
+
+        d->platformScreenCapture.reset(platformCapture);
+    }
 }
 
 QScreenCapture::~QScreenCapture()
@@ -143,19 +164,17 @@ void QScreenCapture::setScreen(QScreen *screen)
 {
     Q_D(QScreenCapture);
 
-    if (d->platformScreenCapture) {
-        d->platformScreenCapture->setWindow(nullptr);
-        d->platformScreenCapture->setWindowId(0);
-        d->platformScreenCapture->setScreen(screen);
-    }
+    if (d->platformScreenCapture)
+        d->platformScreenCapture->setSource(QPlatformSurfaceCapture::ScreenSource(screen));
 }
 
 QScreen *QScreenCapture::screen() const
 {
     Q_D(const QScreenCapture);
 
-    return d->platformScreenCapture ? d->platformScreenCapture->screen()
-                                    : nullptr;
+    return d->platformScreenCapture
+            ? d->platformScreenCapture->source<QPlatformSurfaceCapture::ScreenSource>()
+            : nullptr;
 }
 
 /*!
@@ -171,7 +190,7 @@ QScreenCapture::Error QScreenCapture::error() const
 {
     Q_D(const QScreenCapture);
 
-    return d->platformScreenCapture ? d->platformScreenCapture->error()
+    return d->platformScreenCapture ? toScreenCaptureError(d->platformScreenCapture->error())
                                     : CapturingNotSupported;
 }
 

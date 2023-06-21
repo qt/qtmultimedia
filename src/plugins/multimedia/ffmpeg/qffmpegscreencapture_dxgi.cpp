@@ -10,14 +10,13 @@
 #include <qpa/qplatformscreen_p.h>
 #include "qvideoframe.h"
 
-#include <qguiapplication.h>
 #include <qloggingcategory.h>
-#include <qthread.h>
 #include <qwaitcondition.h>
 #include <qmutex.h>
 
 #include "D3d11.h"
 #include "dxgi1_2.h"
+
 #include <system_error>
 #include <thread>
 #include <chrono>
@@ -340,7 +339,7 @@ public:
         m_waitForFormat.wakeAll();
 
         if (!status) {
-            updateError(QScreenCapture::CaptureFailed, status.str());
+            updateError(QPlatformSurfaceCapture::CaptureFailed, status.str());
             return;
         }
         QFFmpegSurfaceCaptureThread::run();
@@ -361,7 +360,7 @@ public:
             if (!status) {
                 if (status.code() == E_ACCESSDENIED) {
                     // May occur for some time after pushing Ctrl+Alt+Del.
-                    updateError(QScreenCapture::NoError, status.str());
+                    updateError(QPlatformSurfaceCapture::NoError, status.str());
                     qCWarning(qLcScreenCaptureDxgi) << status.str();
                 }
                 return frame;
@@ -373,14 +372,14 @@ public:
 
         if (status.code() == DXGI_ERROR_WAIT_TIMEOUT) {
             // All is good, we just didn't get a new frame yet
-            updateError(QScreenCapture::NoError, status.str());
+            updateError(QPlatformSurfaceCapture::NoError, status.str());
         } else if (status.code() == DXGI_ERROR_ACCESS_LOST) {
             // Can happen for example when pushing Ctrl + Alt + Del
             m_duplication = {};
-            updateError(QScreenCapture::NoError, status.str());
+            updateError(QPlatformSurfaceCapture::NoError, status.str());
             qCWarning(qLcScreenCaptureDxgi) << status.str();
         } else if (!status) {
-            updateError(QScreenCapture::CaptureFailed, status.str());
+            updateError(QPlatformSurfaceCapture::CaptureFailed, status.str());
             qCWarning(qLcScreenCaptureDxgi) << status.str();
         } else if (maybeBuf) {
             std::unique_ptr<QD3D11TextureVideoBuffer> buffer = std::move(*maybeBuf);
@@ -398,10 +397,9 @@ private:
     DxgiDuplication m_duplication;
 };
 
-QFFmpegScreenCaptureDxgi::QFFmpegScreenCaptureDxgi(QScreenCapture *screenCapture)
-    : QFFmpegScreenCaptureBase(screenCapture)
-{
-}
+QFFmpegScreenCaptureDxgi::QFFmpegScreenCaptureDxgi() : QPlatformSurfaceCapture(ScreenSource{}) { }
+
+QFFmpegScreenCaptureDxgi::~QFFmpegScreenCaptureDxgi() = default;
 
 QVideoFrameFormat QFFmpegScreenCaptureDxgi::frameFormat() const
 {
@@ -417,13 +415,17 @@ bool QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
 
     if (m_grabber) {
         m_grabber.reset();
-        return true;
     } else {
-        QScreen *screen = this->screen() ? this->screen() : QGuiApplication::primaryScreen();
+        auto screen = source<ScreenSource>();
+
+        if (!checkScreenWithError(screen))
+            return false;
+
         m_grabber.reset(new Grabber(*this, screen));
         m_grabber->start();
-        return true;
     }
+
+    return true;
 }
 
 QT_END_NAMESPACE

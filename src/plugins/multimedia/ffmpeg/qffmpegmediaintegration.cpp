@@ -42,10 +42,6 @@ extern "C" {
 #include "qv4l2camera_p.h"
 #endif
 
-#if QT_CONFIG(cpp_winrt)
-#include "qffmpegwindowcapture_uwp_p.h"
-#endif
-
 #if QT_CONFIG(xlib)
 #include "qx11surfacecapture_p.h"
 #endif
@@ -161,25 +157,19 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 #endif
 }
 
-QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *screenCapture)
+QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *)
 {
-#if QT_CONFIG(cpp_winrt)
-    // Turned off since it's not stable: produce crashes and different side effects
-    // if (QFFmpegWindowCaptureUwp::isSupported())
-    //    return new QFFmpegWindowCaptureUwp(screenCapture);
-#endif
-
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
-        return new QX11SurfaceCapture(screenCapture);
+        return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 #endif
 
 #if defined(Q_OS_WINDOWS)
-    return new QFFmpegScreenCaptureDxgi(screenCapture);
+    return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
-    return new QAVFScreenCapture(screenCapture);
+    return new QAVFScreenCapture;
 #else
-    return new QGrabWindowSurfaceCapture(screenCapture);
+    return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 #endif
 }
 

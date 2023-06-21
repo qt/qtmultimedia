@@ -2,13 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qavfscreencapture_p.h"
-#include <qpointer.h>
-#include <qscreencapture.h>
-#include <qscreen.h>
-#include <QGuiApplication>
-#include <private/qrhi_p.h>
 #include "qavfsamplebufferdelegate_p.h"
 #include "qffmpegsurfacecapturethread_p.h"
+
+#include <qscreen.h>
 
 #define AVMediaType XAVMediaType
 #include "qffmpeghwaccel_p.h"
@@ -19,15 +16,9 @@ extern "C" {
 }
 #undef AVMediaType
 
-#include <ApplicationServices/ApplicationServices.h>
-#include <IOKit/graphics/IOGraphicsLib.h>
 #include <AppKit/NSScreen.h>
-#include <AppKit/NSApplication.h>
-#include <AppKit/NSWindow.h>
 
 #include <dispatch/dispatch.h>
-
-#include <optional>
 
 namespace {
 
@@ -41,39 +32,11 @@ CGDirectDisplayID findDisplayByName(const QString &name)
     }
     return kCGNullDirectDisplay;
 }
-
-CGWindowID findNativeWindowID(WId wid)
-{
-    // qtbase functionality sets QWidget::winId to the pointer
-    // value of the matching NSView. This is kind of mess,
-    // so we're trying resolving it via this lookup.
-    for (NSWindow *window in NSApp.windows) {
-        if (window.initialFirstResponder == (NSView *)wid)
-            return static_cast<CGWindowID>(window.windowNumber);
-    }
-
-    return static_cast<CGWindowID>(wid);
-}
-
-std::optional<qreal> frameRateForWindow(CGWindowID /*wid*/)
-{
-    // TODO: detect the frame rate
-    // if (window && window.screen) {
-    //     CGDirectDisplayID displayID = [window.screen.deviceDescription[@"NSScreenNumber"]
-    //     unsignedIntValue]; const auto displayRefreshRate =
-    //     CGDisplayModeGetRefreshRate(CGDisplayCopyDisplayMode(displayID)); if (displayRefreshRate > 0 &&
-    //     displayRefreshRate < frameRate) frameRate = displayRefreshRate;
-    // }
-
-    return {};
-}
-
 }
 
 QT_BEGIN_NAMESPACE
 
-QAVFScreenCapture::QAVFScreenCapture(QScreenCapture *screenCapture)
-    : QFFmpegScreenCaptureBase(screenCapture)
+QAVFScreenCapture::QAVFScreenCapture() : QPlatformSurfaceCapture(ScreenSource{})
 {
     CGRequestScreenCaptureAccess();
 }
@@ -87,18 +50,16 @@ bool QAVFScreenCapture::setActiveInternal(bool active)
 {
     if (active) {
         if (!CGPreflightScreenCaptureAccess()) {
-            updateError(QScreenCapture::CaptureFailed, QLatin1String("Permissions denied"));
+            updateError(CaptureFailed, QLatin1String("Permissions denied"));
             return false;
         }
 
-        if (auto winId = window() ? window()->winId() : windowId())
-            return initWindowCapture(winId);
-        else if (auto scrn = screen() ? screen() : QGuiApplication::primaryScreen())
-            return initScreenCapture(scrn);
-        else {
-            updateError(QScreenCapture::NotFound, QLatin1String("Primary screen not found"));
+        auto screen = source<ScreenSource>();
+
+        if (!checkScreenWithError(screen))
             return false;
-        }
+
+        return initScreenCapture(screen);
     } else {
         resetCapture();
     }
@@ -139,112 +100,11 @@ std::optional<int> QAVFScreenCapture::ffmpegHWPixelFormat() const
     return AV_PIX_FMT_VIDEOTOOLBOX;
 }
 
-class QCGImageVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    QCGImageVideoBuffer(CGImageRef image) : QAbstractVideoBuffer(QVideoFrame::NoHandle)
-    {
-        auto provider = CGImageGetDataProvider(image);
-        m_data = CGDataProviderCopyData(provider);
-        m_bytesPerLine = CGImageGetBytesPerRow(image);
-    }
-
-    ~QCGImageVideoBuffer() override { CFRelease(m_data); }
-
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
-    MapData map(QVideoFrame::MapMode mode) override
-    {
-        MapData mapData;
-        if (m_mapMode == QVideoFrame::NotMapped) {
-            m_mapMode = mode;
-
-            mapData.nPlanes = 1;
-            mapData.bytesPerLine[0] = static_cast<int>(m_bytesPerLine);
-            mapData.data[0] = (uchar *)CFDataGetBytePtr(m_data);
-            mapData.size[0] = static_cast<int>(CFDataGetLength(m_data));
-        }
-
-        return mapData;
-    }
-
-    void unmap() override { m_mapMode = QVideoFrame::NotMapped; }
-
-private:
-    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
-    CFDataRef m_data;
-    size_t m_bytesPerLine = 0;
-};
-
 class QAVFScreenCapture::Grabber
 {
 public:
-    virtual ~Grabber() = default;
-};
-
-class QAVFScreenCapture::WindowGrabber : public QFFmpegSurfaceCaptureThread,
-                                         public QAVFScreenCapture::Grabber
-{
-public:
-    WindowGrabber(QAVFScreenCapture &capture, CGWindowID wid) : m_wid(wid)
-    {
-        addFrameCallback(capture, &QAVFScreenCapture::onNewFrame);
-        connect(this, &WindowGrabber::errorUpdated, &capture, &QAVFScreenCapture::updateError);
-
-        if (auto screen = QGuiApplication::primaryScreen())
-            setFrameRate(screen->refreshRate());
-
-        start();
-    }
-
-    ~WindowGrabber() override { stop(); }
-
-protected:
-    QVideoFrame grabFrame() override
-    {
-        if (auto rate = frameRateForWindow(m_wid))
-            setFrameRate(*rate);
-
-        auto imageRef = CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow,
-                                                m_wid, kCGWindowImageBoundsIgnoreFraming);
-        if (!imageRef) {
-            updateError(QScreenCapture::CaptureFailed,
-                        QLatin1String("Cannot create image by window"));
-            return {};
-        }
-
-        auto imageDeleter = qScopeGuard([imageRef]() { CGImageRelease(imageRef); });
-
-        if (CGImageGetBitsPerPixel(imageRef) != 32
-            || CGImageGetPixelFormatInfo(imageRef) != kCGImagePixelFormatPacked
-            || CGImageGetByteOrderInfo(imageRef) != kCGImageByteOrder32Little) {
-            qWarning() << "Unexpected image format. PixelFormatInfo:"
-                       << CGImageGetPixelFormatInfo(imageRef)
-                       << "BitsPerPixel:" << CGImageGetBitsPerPixel(imageRef) << "AlphaInfo"
-                       << CGImageGetAlphaInfo(imageRef)
-                       << "ByteOrderInfo:" << CGImageGetByteOrderInfo(imageRef);
-
-            updateError(QScreenCapture::CapturingNotSupported,
-                        QLatin1String("Not supported pixel format"));
-            return {};
-        }
-
-        QVideoFrameFormat format(QSize(CGImageGetWidth(imageRef), CGImageGetHeight(imageRef)),
-                                 QVideoFrameFormat::Format_BGRA8888);
-        format.setFrameRate(frameRate());
-
-        return QVideoFrame(new QCGImageVideoBuffer(imageRef), format);
-    }
-
-private:
-    CGWindowID m_wid;
-};
-
-class QAVFScreenCapture::ScreenGrabber : public QAVFScreenCapture::Grabber
-{
-public:
-    ScreenGrabber(QAVFScreenCapture &capture, QScreen *screen, CGDirectDisplayID screenID,
-                  std::unique_ptr<QFFmpeg::HWAccel> hwAccel)
+    Grabber(QAVFScreenCapture &capture, QScreen *screen, CGDirectDisplayID screenID,
+            std::unique_ptr<QFFmpeg::HWAccel> hwAccel)
     {
         m_captureSession = [[AVCaptureSession alloc] init];
 
@@ -280,7 +140,7 @@ public:
         [m_captureSession startRunning];
     }
 
-    ~ScreenGrabber() override
+    ~Grabber()
     {
         if (m_captureSession)
             [m_captureSession stopRunning];
@@ -307,16 +167,14 @@ bool QAVFScreenCapture::initScreenCapture(QScreen *screen)
     const auto screenID = findDisplayByName(screen->name());
 
     if (screenID == kCGNullDirectDisplay) {
-        updateError(QScreenCapture::InternalError,
-                    QLatin1String("Screen exists but couldn't been found by name"));
+        updateError(InternalError, QLatin1String("Screen exists but couldn't been found by name"));
         return false;
     }
 
     auto hwAccel = QFFmpeg::HWAccel::create(AV_HWDEVICE_TYPE_VIDEOTOOLBOX);
 
     if (!hwAccel) {
-        updateError(QScreenCapture::CaptureFailed,
-                    QLatin1String("Couldn't create videotoolbox hw acceleration"));
+        updateError(CaptureFailed, QLatin1String("Couldn't create videotoolbox hw acceleration"));
         return false;
     }
 
@@ -324,25 +182,11 @@ bool QAVFScreenCapture::initScreenCapture(QScreen *screen)
                                  screen->size() * screen->devicePixelRatio());
 
     if (!hwAccel->hwFramesContextAsBuffer()) {
-        updateError(QScreenCapture::CaptureFailed,
-                    QLatin1String("Couldn't create hw frames context"));
+        updateError(CaptureFailed, QLatin1String("Couldn't create hw frames context"));
         return false;
     }
 
-    m_grabber = std::make_unique<ScreenGrabber>(*this, screen, screenID, std::move(hwAccel));
-    return true;
-}
-
-bool QAVFScreenCapture::initWindowCapture(WId wid)
-{
-    const auto nativeWindowID = findNativeWindowID(wid);
-
-    if (!nativeWindowID) {
-        updateError(QScreenCapture::NotFound, QLatin1String("No native windows found"));
-        return false;
-    }
-
-    m_grabber = std::make_unique<WindowGrabber>(*this, nativeWindowID);
+    m_grabber = std::make_unique<Grabber>(*this, screen, screenID, std::move(hwAccel));
     return true;
 }
 
