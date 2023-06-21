@@ -97,8 +97,14 @@ QAudioSource::QAudioSource(const QAudioDevice &audioDevice, const QAudioFormat &
     QObject(parent)
 {
     d = QPlatformMediaDevices::instance()->audioInputDevice(format, audioDevice, parent);
-    if (d)
-        connect(d, SIGNAL(stateChanged(QAudio::State)), SIGNAL(stateChanged(QAudio::State)));
+    if (d) {
+        connect(d, &QPlatformAudioSource::stateChanged, this, [this](QAudio::State state) {
+            // if the signal has been emitted from another thread,
+            // the state may be already changed by main one
+            if (state == d->state())
+                emit stateChanged(state);
+        });
+    }
     else
         qWarning() << ("No audio device detected");
 
