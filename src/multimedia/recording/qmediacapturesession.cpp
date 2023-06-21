@@ -150,6 +150,8 @@ QMediaCaptureSession::~QMediaCaptureSession()
     setCamera(nullptr);
     setRecorder(nullptr);
     setImageCapture(nullptr);
+    setScreenCapture(nullptr);
+    setWindowCapture(nullptr);
     setAudioInput(nullptr);
     setAudioOutput(nullptr);
     d_ptr->setVideoSink(nullptr);
@@ -219,6 +221,7 @@ QCamera *QMediaCaptureSession::camera() const
 
 void QMediaCaptureSession::setCamera(QCamera *camera)
 {
+    // TODO: come up with an unification of the captures setup
     QCamera *oldCamera = d_ptr->camera;
     if (oldCamera == camera)
         return;
@@ -266,6 +269,7 @@ QScreenCapture *QMediaCaptureSession::screenCapture()
 
 void QMediaCaptureSession::setScreenCapture(QScreenCapture *screenCapture)
 {
+    // TODO: come up with an unification of the captures setup
     QScreenCapture *oldScreenCapture = d_ptr->screenCapture;
     if (oldScreenCapture == screenCapture)
         return;
@@ -310,8 +314,28 @@ QWindowCapture *QMediaCaptureSession::windowCapture() {
     return d_ptr ? d_ptr->windowCapture : nullptr;
 }
 
-void QMediaCaptureSession::setWindowCapture(QWindowCapture *) {
-    // TODO: implement
+void QMediaCaptureSession::setWindowCapture(QWindowCapture *windowCapture)
+{
+    // TODO: come up with an unification of the captures setup
+    QWindowCapture *oldCapture = d_ptr->windowCapture;
+    if (oldCapture == windowCapture)
+        return;
+    d_ptr->windowCapture = windowCapture;
+    if (d_ptr->captureSession)
+        d_ptr->captureSession->setWindowCapture(nullptr);
+    if (oldCapture) {
+        if (oldCapture->captureSession() && oldCapture->captureSession() != this)
+            oldCapture->captureSession()->setWindowCapture(nullptr);
+        oldCapture->setCaptureSession(nullptr);
+    }
+    if (windowCapture) {
+        if (windowCapture->captureSession())
+            windowCapture->captureSession()->setWindowCapture(nullptr);
+        if (d_ptr->captureSession)
+            d_ptr->captureSession->setWindowCapture(windowCapture->platformWindowCapture());
+        windowCapture->setCaptureSession(this);
+    }
+    emit windowCaptureChanged();
 }
 
 /*!
@@ -337,6 +361,7 @@ QImageCapture *QMediaCaptureSession::imageCapture()
 
 void QMediaCaptureSession::setImageCapture(QImageCapture *imageCapture)
 {
+    // TODO: come up with an unification of the captures setup
     QImageCapture *oldImageCapture = d_ptr->imageCapture;
     if (oldImageCapture == imageCapture)
         return;

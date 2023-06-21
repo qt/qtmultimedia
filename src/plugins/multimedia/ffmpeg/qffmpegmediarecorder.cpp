@@ -49,8 +49,8 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     if (!m_session || state() != QMediaRecorder::StoppedState)
         return;
 
-    const auto hasVideo = (m_session->camera() && m_session->camera()->isActive())
-            || (m_session->screenCapture() && m_session->screenCapture()->isActive());
+    auto videoSources = m_session->activeVideoSources();
+    const auto hasVideo = !videoSources.empty();
     const auto hasAudio = m_session->audioInput() != nullptr;
 
     if (!hasVideo && !hasAudio) {
@@ -84,13 +84,8 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
             encoder->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
     }
 
-    auto *camera = m_session->camera();
-    if (camera)
-        encoder->addVideoSource(camera);
-
-    auto *screenCapture = m_session->screenCapture();
-    if (screenCapture)
-        encoder->addVideoSource(screenCapture);
+    for (auto source : videoSources)
+        encoder->addVideoSource(source);
 
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);

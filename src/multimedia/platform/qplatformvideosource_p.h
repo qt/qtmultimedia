@@ -26,6 +26,7 @@
 QT_BEGIN_NAMESPACE
 
 class QVideoFrame;
+class QPlatformMediaCaptureSession;
 
 class Q_MULTIMEDIA_EXPORT QPlatformVideoSource : public QObject
 {
@@ -40,8 +41,11 @@ public:
 
     virtual std::optional<int> ffmpegHWPixelFormat() const;
 
+    virtual void setCaptureSession(QPlatformMediaCaptureSession *) { }
+
 Q_SIGNALS:
     void newVideoFrame(const QVideoFrame &);
+    void activeChanged(bool);
 };
 
 QT_END_NAMESPACE

@@ -31,9 +31,7 @@ static int preferredAudioSinkBufferSize(const QFFmpegAudioInput &input)
     return input.bufferSize() * BufferSizeFactor + BufferSizeExceeding;
 }
 
-QFFmpegMediaCaptureSession::QFFmpegMediaCaptureSession()
-{
-}
+QFFmpegMediaCaptureSession::QFFmpegMediaCaptureSession() = default;
 
 QFFmpegMediaCaptureSession::~QFFmpegMediaCaptureSession()
 {
@@ -46,21 +44,8 @@ QPlatformCamera *QFFmpegMediaCaptureSession::camera()
 
 void QFFmpegMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
-    if (m_camera == camera)
-        return;
-    if (m_camera) {
-        m_camera->disconnect(this);
-        m_camera->setCaptureSession(nullptr);
-    }
-
-    m_camera = camera;
-
-    if (m_camera) {
-        connect(m_camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegMediaCaptureSession::newCameraVideoFrame);
-        m_camera->setCaptureSession(this);
-    }
-
-    emit cameraChanged();
+    if (setVideoSource(m_camera, camera))
+        emit cameraChanged();
 }
 
 QPlatformSurfaceCapture *QFFmpegMediaCaptureSession::screenCapture()
@@ -70,18 +55,19 @@ QPlatformSurfaceCapture *QFFmpegMediaCaptureSession::screenCapture()
 
 void QFFmpegMediaCaptureSession::setScreenCapture(QPlatformSurfaceCapture *screenCapture)
 {
-    if (m_screenCapture == screenCapture)
-        return;
-    if (m_screenCapture)
-        m_screenCapture->disconnect(this);
+    if (setVideoSource(m_screenCapture, screenCapture))
+        emit screenCaptureChanged();
+}
 
-    m_screenCapture = screenCapture;
+QPlatformSurfaceCapture *QFFmpegMediaCaptureSession::windowCapture()
+{
+    return m_windowCapture;
+}
 
-    if (m_screenCapture)
-        connect(m_screenCapture, &QPlatformSurfaceCapture::newVideoFrame, this,
-                &QFFmpegMediaCaptureSession::newScreenCaptureVideoFrame);
-
-    emit screenCaptureChanged();
+void QFFmpegMediaCaptureSession::setWindowCapture(QPlatformSurfaceCapture *windowCapture)
+{
+    if (setVideoSource(m_windowCapture, windowCapture))
+        emit windowCaptureChanged();
 }
 
 QPlatformImageCapture *QFFmpegMediaCaptureSession::imageCapture()
@@ -150,11 +136,10 @@ void QFFmpegMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 
 void QFFmpegMediaCaptureSession::updateAudioSink()
 {
-
     if (m_audioSink) {
         m_audioSink->reset();
         m_audioSink.reset();
-    };
+    }
 
     if (!m_audioInput || !m_audioOutput)
         return;
@@ -213,10 +198,10 @@ QPlatformAudioInput *QFFmpegMediaCaptureSession::audioInput()
 
 void QFFmpegMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 {
-    if (m_videoSink == sink)
+    if (std::exchange(m_videoSink, sink) == sink)
         return;
 
-    m_videoSink = sink;
+    updateVideoFrameConnection();
 }
 
 void QFFmpegMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
@@ -244,18 +229,43 @@ void QFFmpegMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
     updateAudioSink();
 }
 
-void QFFmpegMediaCaptureSession::newCameraVideoFrame(const QVideoFrame &frame)
+void QFFmpegMediaCaptureSession::updateVideoFrameConnection()
 {
-    if (m_videoSink)
-        m_videoSink->setVideoFrame(frame);
+    disconnect(m_videoFrameConnection);
+
+    if (auto sources = activeVideoSources(); !sources.empty() && m_videoSink) {
+        // deliver frames directly to video sink;
+        // AutoConnection type might be a pessimization due to an extra queuing
+        // TODO: investigate and integrate direct connection
+        m_videoFrameConnection = connect(sources.front(), &QPlatformVideoSource::newVideoFrame,
+                                         m_videoSink, &QVideoSink::setVideoFrame);
+    }
 }
 
-void QFFmpegMediaCaptureSession::newScreenCaptureVideoFrame(const QVideoFrame &frame)
+template<typename VideoSource>
+bool QFFmpegMediaCaptureSession::setVideoSource(QPointer<VideoSource> &source,
+                                                VideoSource *newSource)
 {
-    if (m_videoSink && !(m_camera && m_camera->isActive()))
-        m_videoSink->setVideoFrame(frame);
-}
+    if (source == newSource)
+        return false;
 
+    if (auto prevSource = std::exchange(source, newSource)) {
+        prevSource->setCaptureSession(nullptr);
+        prevSource->disconnect(this);
+    }
+
+    if (source) {
+        source->setCaptureSession(this);
+        connect(source, &QPlatformVideoSource::activeChanged, this,
+                &QFFmpegMediaCaptureSession::updateVideoFrameConnection);
+        connect(source, &QObject::destroyed, this,
+                &QFFmpegMediaCaptureSession::updateVideoFrameConnection, Qt::QueuedConnection);
+    }
+
+    updateVideoFrameConnection();
+
+    return true;
+}
 
 QT_END_NAMESPACE
 
