@@ -15,19 +15,18 @@
 // We mean it.
 //
 
-#include "qffmpegscreencapturebase_p.h"
-#include "qvideoframeformat.h"
+#include "private/qplatformsurfacecapture_p.h"
 
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class QGrabWindowSurfaceCapture : public QFFmpegScreenCaptureBase
+class QGrabWindowSurfaceCapture : public QPlatformSurfaceCapture
 {
     class Grabber;
 
 public:
-    explicit QGrabWindowSurfaceCapture(QScreenCapture *screenCapture);
+    explicit QGrabWindowSurfaceCapture(Source initialSource);
     ~QGrabWindowSurfaceCapture() override;
 
     QVideoFrameFormat frameFormat() const override;
@@ -35,7 +34,10 @@ public:
 protected:
     bool setActiveInternal(bool active) override;
 
-    void updateError(QScreenCapture::Error error, const QString &description);
+private:
+    void activate(ScreenSource);
+
+    void activate(WindowSource);
 
 private:
     std::unique_ptr<Grabber> m_grabber;

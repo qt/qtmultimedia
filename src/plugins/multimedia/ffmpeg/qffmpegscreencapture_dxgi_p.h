@@ -17,17 +17,18 @@
 //
 
 #include "qvideoframeformat.h"
-#include "qffmpegscreencapturebase_p.h"
 #include <private/qcomptr_p.h>
 #include <private/qplatformsurfacecapture_p.h>
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegScreenCaptureDxgi : public QFFmpegScreenCaptureBase
+class QFFmpegScreenCaptureDxgi : public QPlatformSurfaceCapture
 {
 public:
-    QFFmpegScreenCaptureDxgi(QScreenCapture *screenCapture);
+    explicit QFFmpegScreenCaptureDxgi();
+
+    ~QFFmpegScreenCaptureDxgi() override;
 
     QVideoFrameFormat frameFormat() const override;
 

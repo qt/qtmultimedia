@@ -1,8 +1,8 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef X11SURFACECAPTURE_P_H
-#define X11SURFACECAPTURE_P_H
+#ifndef QCGWINDOWCAPTURE_H
+#define QCGWINDOWCAPTURE_H
 
 //
 //  W A R N I N G
@@ -19,25 +19,20 @@
 
 QT_BEGIN_NAMESPACE
 
-class QX11SurfaceCapture : public QPlatformSurfaceCapture
+class QCGWindowCapture : public QPlatformSurfaceCapture
 {
+    Q_OBJECT
+
     class Grabber;
 
 public:
-    explicit QX11SurfaceCapture(Source initialSource);
-    ~QX11SurfaceCapture() override;
+    explicit QCGWindowCapture();
+    ~QCGWindowCapture() override;
 
     QVideoFrameFormat frameFormat() const override;
 
-    static bool isSupported();
-
 protected:
     bool setActiveInternal(bool active) override;
-
-private:
-    void activate(ScreenSource);
-
-    void activate(WindowSource);
 
 private:
     std::unique_ptr<Grabber> m_grabber;
@@ -45,4 +40,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // X11SURFACECAPTURE_P_H
+#endif // QCGWINDOWCAPTURE_H

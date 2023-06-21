@@ -16,18 +16,17 @@
 //
 
 #include <QtCore/qnamespace.h>
-#include "qffmpegscreencapturebase_p.h"
+#include "private/qplatformsurfacecapture_p.h"
 #include "qvideoframeformat.h"
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class Grabber;
-class QFFmpegWindowCaptureUwp : public QFFmpegScreenCaptureBase
+class QFFmpegWindowCaptureUwp : public QPlatformSurfaceCapture
 {
 public:
-    explicit QFFmpegWindowCaptureUwp(QScreenCapture *screenCapture);
-    ~QFFmpegWindowCaptureUwp();
+    QFFmpegWindowCaptureUwp();
+    ~QFFmpegWindowCaptureUwp() override;
 
     QVideoFrameFormat frameFormat() const override;
 
@@ -36,14 +35,13 @@ public:
 private:
     class Grabber;
 
-    void emitError(QScreenCapture::Error code, const QString &desc);
-
     bool setActiveInternal(bool active) override;
 
+private:
     QVideoFrameFormat m_format;
-    std::unique_ptr<Grabber> m_screenGrabber;
+    std::unique_ptr<Grabber> m_grabber;
 };
 
 QT_END_NAMESPACE
 
-#endif // QFFMPEGSCREENCAPTURE_UWP_P_H
+#endif // QFFMPEGWINDOWCAPTURE_UWP_P_H
