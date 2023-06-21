@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QFFMPEGSCREENCAPTURE_UWP_P_H
-#define QFFMPEGSCREENCAPTURE_UWP_P_H
+#ifndef QGRABWINDOWSURFACECAPTURE_P_H
+#define QGRABWINDOWSURFACECAPTURE_P_H
 
 //
 //  W A R N I N G
@@ -15,35 +15,32 @@
 // We mean it.
 //
 
-#include <QtCore/qnamespace.h>
 #include "qffmpegscreencapturebase_p.h"
 #include "qvideoframeformat.h"
+
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class ScreenGrabberActiveUwp;
-class QFFmpegScreenCaptureUwp : public QFFmpegScreenCaptureBase
+class QGrabWindowSurfaceCapture : public QFFmpegScreenCaptureBase
 {
+    class Grabber;
+
 public:
-    explicit QFFmpegScreenCaptureUwp(QScreenCapture *screenCapture);
-    ~QFFmpegScreenCaptureUwp();
+    explicit QGrabWindowSurfaceCapture(QScreenCapture *screenCapture);
+    ~QGrabWindowSurfaceCapture() override;
 
     QVideoFrameFormat frameFormat() const override;
 
-    static bool isSupported();
-
-private:
-    friend ScreenGrabberActiveUwp;
-
-    void emitError(QScreenCapture::Error code, const QString &desc);
-
+protected:
     bool setActiveInternal(bool active) override;
 
-    QVideoFrameFormat m_format;
-    std::unique_ptr<ScreenGrabberActiveUwp> m_screenGrabber;
+    void updateError(QScreenCapture::Error error, const QString &description);
+
+private:
+    std::unique_ptr<Grabber> m_grabber;
 };
 
 QT_END_NAMESPACE
 
-#endif // QFFMPEGSCREENCAPTURE_UWP_P_H
+#endif // QGRABWINDOWSURFACECAPTURE_P_H

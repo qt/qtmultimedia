@@ -8,7 +8,7 @@
 #include <QGuiApplication>
 #include <rhi/qrhi.h>
 #include "qavfsamplebufferdelegate_p.h"
-#include "qffmpegscreencapturethread_p.h"
+#include "qffmpegsurfacecapturethread_p.h"
 
 #define AVMediaType XAVMediaType
 #include "qffmpeghwaccel_p.h"
@@ -182,7 +182,7 @@ public:
     virtual ~Grabber() = default;
 };
 
-class QAVFScreenCapture::WindowGrabber : public QFFmpegScreenCaptureThread,
+class QAVFScreenCapture::WindowGrabber : public QFFmpegSurfaceCaptureThread,
                                          public QAVFScreenCapture::Grabber
 {
 public:

@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qffmpegscreencapture_uwp_p.h"
-#include "qffmpegscreencapturethread_p.h"
+#include "qffmpegwindowcapture_uwp_p.h"
+#include "qffmpegsurfacecapturethread_p.h"
 #include <private/qabstractvideobuffer_p.h>
 
 #include <unknwn.h>
@@ -42,7 +42,7 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 #include <system_error>
 #include <variant>
 
-static Q_LOGGING_CATEGORY(qLcScreenCaptureUwp, "qt.multimedia.ffmpeg.screencapture.uwp")
+static Q_LOGGING_CATEGORY(qLcWindowCaptureUwp, "qt.multimedia.ffmpeg.windowcapture.uwp")
 
 namespace winrt {
     using namespace winrt::Windows::Graphics::Capture;
@@ -100,7 +100,7 @@ public:
 
                 return md;
             } else {
-                qCDebug(qLcScreenCaptureUwp) << "Failed to map DXGI surface" << errorString(hr);
+                qCDebug(qLcWindowCaptureUwp) << "Failed to map DXGI surface" << errorString(hr);
                 return {};
             }
         }
@@ -115,7 +115,7 @@ public:
 
         HRESULT hr = m_surface->Unmap();
         if (FAILED(hr)) {
-            qCDebug(qLcScreenCaptureUwp) << "Failed to unmap surface" << errorString(hr);
+            qCDebug(qLcWindowCaptureUwp) << "Failed to unmap surface" << errorString(hr);
         }
         m_mapMode = QVideoFrame::NotMapped;
     }
@@ -125,23 +125,23 @@ private:
     winrt::com_ptr<IDXGISurface> m_surface;
 };
 
-class ScreenGrabberActiveUwp : public QFFmpegScreenCaptureThread
+class QFFmpegWindowCaptureUwp::Grabber : public QFFmpegSurfaceCaptureThread
 {
     Q_OBJECT
 public:
-    ScreenGrabberActiveUwp(QFFmpegScreenCaptureUwp &screenCapture, DeviceFramePool &devicePool,
+    Grabber(QFFmpegWindowCaptureUwp &windowCapture, DeviceFramePool &devicePool,
                            winrt::GraphicsCaptureItem item, qreal maxFrameRate)
-        : m_screenCapture(screenCapture)
+        : m_windowCapture(windowCapture)
         , m_devicePool(devicePool)
         , m_session(devicePool.framePool.CreateCaptureSession(item))
         , m_frameSize(item.Size())
     {
         setFrameRate(maxFrameRate);
-        addFrameCallback(screenCapture, &QFFmpegScreenCaptureUwp::newVideoFrame);
-        connect(this, &ScreenGrabberActiveUwp::errorUpdated, &screenCapture, &QFFmpegScreenCaptureUwp::emitError);
+        addFrameCallback(windowCapture, &QFFmpegWindowCaptureUwp::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &windowCapture, &QFFmpegWindowCaptureUwp::emitError);
     }
 
-    ~ScreenGrabberActiveUwp() override { stop(); }
+    ~Grabber() override { stop(); }
 
 protected:
 
@@ -150,7 +150,7 @@ protected:
         m_session.IsCursorCaptureEnabled(false);
         m_session.StartCapture();
 
-        QFFmpegScreenCaptureThread::run();
+        QFFmpegSurfaceCaptureThread::run();
 
         m_session.Close();
     }
@@ -217,19 +217,19 @@ protected:
     }
 
 private:
-    QFFmpegScreenCaptureUwp &m_screenCapture;
+    QFFmpegWindowCaptureUwp &m_windowCapture;
     DeviceFramePool m_devicePool;
     winrt::GraphicsCaptureSession m_session;
     winrt::Windows::Graphics::SizeInt32 m_frameSize;
 };
 
-QFFmpegScreenCaptureUwp::QFFmpegScreenCaptureUwp(QScreenCapture *screenCapture)
+QFFmpegWindowCaptureUwp::QFFmpegWindowCaptureUwp(QScreenCapture *screenCapture)
     : QFFmpegScreenCaptureBase(screenCapture)
 {
-    qCDebug(qLcScreenCaptureUwp) << "Creating UWP screen capture";
+    qCDebug(qLcWindowCaptureUwp) << "Creating UWP screen capture";
 }
 
-QFFmpegScreenCaptureUwp::~QFFmpegScreenCaptureUwp() = default;
+QFFmpegWindowCaptureUwp::~QFFmpegWindowCaptureUwp() = default;
 
 static QMaybe<DeviceFramePool>
 createCaptureFramePool(IDXGIAdapter1 *adapter, const winrt::GraphicsCaptureItem &item)
@@ -284,7 +284,7 @@ static QMaybe<Monitor> findScreen(const QScreen *screen)
         for (quint32 j = 0; SUCCEEDED(adapter->EnumOutputs(j, output.put())); j++, output = {}) {
             DXGI_OUTPUT_DESC desc = {};
             output->GetDesc(&desc);
-            qCDebug(qLcScreenCaptureUwp) << i << j << QString::fromWCharArray(desc.DeviceName);
+            qCDebug(qLcWindowCaptureUwp) << i << j << QString::fromWCharArray(desc.DeviceName);
             auto match = handle ? handle == desc.Monitor
                                 : QString::fromWCharArray(desc.DeviceName) == screen->name();
             if (match)
@@ -311,7 +311,7 @@ static QMaybe<Monitor> findScreenForWindow(HWND wh)
         for (quint32 j = 0; SUCCEEDED(adapter->EnumOutputs(j, output.put())); j++, output = {}) {
             DXGI_OUTPUT_DESC desc = {};
             output->GetDesc(&desc);
-            qCDebug(qLcScreenCaptureUwp) << i << j << QString::fromWCharArray(desc.DeviceName);
+            qCDebug(qLcWindowCaptureUwp) << i << j << QString::fromWCharArray(desc.DeviceName);
             if (desc.Monitor == handle)
                 return Monitor { adapter, handle };
         }
@@ -394,7 +394,7 @@ static qreal getMonitorRefreshRateHz(HMONITOR handle)
     return 60.;
 }
 
-bool QFFmpegScreenCaptureUwp::setActiveInternal(bool active)
+bool QFFmpegWindowCaptureUwp::setActiveInternal(bool active)
 {
     if (bool(m_screenGrabber) == active)
         return false;
@@ -446,28 +446,28 @@ bool QFFmpegScreenCaptureUwp::setActiveInternal(bool active)
                                  QVideoFrameFormat::Format_RGBX8888);
     m_format.setFrameRate(refreshRate);
 
-    m_screenGrabber = std::make_unique<ScreenGrabberActiveUwp>(*this, maybePool.value(), maybeItem.value(), refreshRate);
+    m_screenGrabber = std::make_unique<Grabber>(*this, maybePool.value(), maybeItem.value(), refreshRate);
     m_screenGrabber->start();
 
     return true;
 }
 
-bool QFFmpegScreenCaptureUwp::isSupported()
+bool QFFmpegWindowCaptureUwp::isSupported()
 {
     return winrt::GraphicsCaptureSession::IsSupported();
 }
 
-QVideoFrameFormat QFFmpegScreenCaptureUwp::frameFormat() const
+QVideoFrameFormat QFFmpegWindowCaptureUwp::frameFormat() const
 {
     return m_format;
 }
 
-void QFFmpegScreenCaptureUwp::emitError(QScreenCapture::Error code, const QString &desc)
+void QFFmpegWindowCaptureUwp::emitError(QScreenCapture::Error code, const QString &desc)
 {
-    qCDebug(qLcScreenCaptureUwp) << desc;
+    qCDebug(qLcWindowCaptureUwp) << desc;
     updateError(code, desc);
 }
 
 QT_END_NAMESPACE
 
-#include "qffmpegscreencapture_uwp.moc"
+#include "qffmpegwindowcapture_uwp.moc"

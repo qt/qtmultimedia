@@ -5,7 +5,7 @@
 
 #include "private/qplatformaudioinput_p.h"
 #include "private/qplatformaudiooutput_p.h"
-#include "private/qplatformscreencapture_p.h"
+#include "private/qplatformsurfacecapture_p.h"
 #include "qffmpegimagecapture_p.h"
 #include "qffmpegmediarecorder_p.h"
 #include "private/qplatformcamera_p.h"
@@ -63,12 +63,12 @@ void QFFmpegMediaCaptureSession::setCamera(QPlatformCamera *camera)
     emit cameraChanged();
 }
 
-QPlatformScreenCapture *QFFmpegMediaCaptureSession::screenCapture()
+QPlatformSurfaceCapture *QFFmpegMediaCaptureSession::screenCapture()
 {
     return m_screenCapture;
 }
 
-void QFFmpegMediaCaptureSession::setScreenCapture(QPlatformScreenCapture *screenCapture)
+void QFFmpegMediaCaptureSession::setScreenCapture(QPlatformSurfaceCapture *screenCapture)
 {
     if (m_screenCapture == screenCapture)
         return;
@@ -78,7 +78,7 @@ void QFFmpegMediaCaptureSession::setScreenCapture(QPlatformScreenCapture *screen
     m_screenCapture = screenCapture;
 
     if (m_screenCapture)
-        connect(m_screenCapture, &QPlatformScreenCapture::newVideoFrame, this, &QFFmpegMediaCaptureSession::newScreenCaptureVideoFrame);
+        connect(m_screenCapture, &QPlatformSurfaceCapture::newVideoFrame, this, &QFFmpegMediaCaptureSession::newScreenCaptureVideoFrame);
 
     emit screenCaptureChanged();
 }

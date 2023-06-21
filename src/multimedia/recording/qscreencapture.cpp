@@ -3,7 +3,7 @@
 
 #include "qscreencapture.h"
 #include <private/qplatformmediaintegration_p.h>
-#include <private/qplatformscreencapture_p.h>
+#include <private/qplatformsurfacecapture_p.h>
 #include <private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -12,7 +12,7 @@ class QScreenCapturePrivate : public QObjectPrivate
 {
 public:
     QMediaCaptureSession *captureSession = nullptr;
-    std::unique_ptr<QPlatformScreenCapture> platformScreenCapture;
+    std::unique_ptr<QPlatformSurfaceCapture> platformScreenCapture;
 };
 
 /*!
@@ -220,7 +220,7 @@ void QScreenCapture::setCaptureSession(QMediaCaptureSession *captureSession)
 /*!
     \internal
 */
-class QPlatformScreenCapture *QScreenCapture::platformScreenCapture() const
+class QPlatformSurfaceCapture *QScreenCapture::platformScreenCapture() const
 {
     Q_D(const QScreenCapture);
 

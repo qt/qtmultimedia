@@ -3,7 +3,7 @@
 // GPL-3.0-only
 
 #include "qffmpegscreencapture_dxgi_p.h"
-#include "qffmpegscreencapturethread_p.h"
+#include "qffmpegsurfacecapturethread_p.h"
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qmultimediautils_p.h>
 #include <private/qwindowsmultimediautils_p.h>
@@ -309,11 +309,11 @@ private:
 };
 } // namespace
 
-class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegScreenCaptureThread
+class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegSurfaceCaptureThread
 {
 public:
     Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen)
-        : QFFmpegScreenCaptureThread()
+        : QFFmpegSurfaceCaptureThread()
         , m_screen(screen)
     {
         setFrameRate(screen->refreshRate());
@@ -343,7 +343,7 @@ public:
             updateError(QScreenCapture::CaptureFailed, status.str());
             return;
         }
-        QFFmpegScreenCaptureThread::run();
+        QFFmpegSurfaceCaptureThread::run();
     }
 
     QVideoFrameFormat format() {

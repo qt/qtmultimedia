@@ -36,20 +36,20 @@ static constexpr qreal DefaultScreenCaptureFrameRate = 60.;
 static constexpr qreal MaxScreenCaptureFrameRate = 60.;
 static constexpr qreal MinScreenCaptureFrameRate = 1.;
 
-class QFFmpegScreenCaptureThread : public QThread
+class QFFmpegSurfaceCaptureThread : public QThread
 {
     Q_OBJECT
 public:
-    QFFmpegScreenCaptureThread();
+    QFFmpegSurfaceCaptureThread();
 
-    ~QFFmpegScreenCaptureThread() override;
+    ~QFFmpegSurfaceCaptureThread() override;
 
     void stop();
 
     template<typename Object, typename Method>
     void addFrameCallback(Object &object, Method method)
     {
-        connect(this, &QFFmpegScreenCaptureThread::frameGrabbed,
+        connect(this, &QFFmpegSurfaceCaptureThread::frameGrabbed,
                 std::bind(method, &object, std::placeholders::_1));
     }
 

@@ -1,19 +1,19 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "platform/qplatformscreencapture_p.h"
+#include "platform/qplatformsurfacecapture_p.h"
 #include "qvideoframe.h"
 #include "qdebug.h"
 
 QT_BEGIN_NAMESPACE
 
-QPlatformScreenCapture::QPlatformScreenCapture(QScreenCapture *screenCapture)
+QPlatformSurfaceCapture::QPlatformSurfaceCapture(QScreenCapture *screenCapture)
     : QPlatformVideoSource(screenCapture), m_screenCapture(screenCapture)
 {
     qRegisterMetaType<QVideoFrame>();
 }
 
-void QPlatformScreenCapture::setWindow(QWindow *w)
+void QPlatformSurfaceCapture::setWindow(QWindow *w)
 {
     if (w) {
         emit m_screenCapture->errorOccurred(QScreenCapture::InternalError,
@@ -21,12 +21,12 @@ void QPlatformScreenCapture::setWindow(QWindow *w)
     }
 }
 
-QWindow *QPlatformScreenCapture::window() const
+QWindow *QPlatformSurfaceCapture::window() const
 {
     return nullptr;
 }
 
-void QPlatformScreenCapture::setWindowId(WId id)
+void QPlatformSurfaceCapture::setWindowId(WId id)
 {
     if (id) {
         emit m_screenCapture->errorOccurred(QScreenCapture::InternalError,
@@ -34,26 +34,26 @@ void QPlatformScreenCapture::setWindowId(WId id)
     }
 }
 
-WId QPlatformScreenCapture::windowId() const
+WId QPlatformSurfaceCapture::windowId() const
 {
     return 0;
 }
 
-QScreenCapture::Error QPlatformScreenCapture::error() const
+QScreenCapture::Error QPlatformSurfaceCapture::error() const
 {
     return m_error;
 }
-QString QPlatformScreenCapture::errorString() const
+QString QPlatformSurfaceCapture::errorString() const
 {
     return m_errorString;
 }
 
-QScreenCapture *QPlatformScreenCapture::screenCapture() const
+QScreenCapture *QPlatformSurfaceCapture::screenCapture() const
 {
     return m_screenCapture;
 }
 
-void QPlatformScreenCapture::updateError(QScreenCapture::Error error, const QString &errorString)
+void QPlatformSurfaceCapture::updateError(QScreenCapture::Error error, const QString &errorString)
 {
     bool changed = error != m_error || errorString != m_errorString;
     m_error = error;
@@ -70,4 +70,4 @@ void QPlatformScreenCapture::updateError(QScreenCapture::Error error, const QStr
 
 QT_END_NAMESPACE
 
-#include "moc_qplatformscreencapture_p.cpp"
+#include "moc_qplatformsurfacecapture_p.cpp"
