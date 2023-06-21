@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qffmpegscreencapturebase_p.h"
+#include "private/qplatformsurfacecapture_p.h"
 #include <qmutex.h>
 #include <qwaitcondition.h>
 
@@ -23,16 +23,14 @@ QT_BEGIN_NAMESPACE
 
 class QFFmpegVideoSink;
 
-class QAVFScreenCapture : public QFFmpegScreenCaptureBase
+class QAVFScreenCapture : public QPlatformSurfaceCapture
 {
     Q_OBJECT
 
     class Grabber;
-    class WindowGrabber;
-    class ScreenGrabber;
 
 public:
-    explicit QAVFScreenCapture(QScreenCapture *screenCapture);
+    explicit QAVFScreenCapture();
     ~QAVFScreenCapture() override;
 
     QVideoFrameFormat frameFormat() const override;
@@ -46,8 +44,6 @@ private:
     void onNewFrame(const QVideoFrame &frame);
 
     bool initScreenCapture(QScreen *screen);
-
-    bool initWindowCapture(WId wid);
 
     void resetCapture();
 

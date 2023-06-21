@@ -6,6 +6,7 @@
 
 #include <QtGui/qwindowdefs.h>
 #include <QtCore/QSharedData>
+#include <QtMultimedia/qcapturablewindow.h>
 
 //
 //  W A R N I N G
@@ -26,6 +27,11 @@ public:
 
     QString description;
     Id id = 0;
+
+    static const QCapturableWindowPrivate *handle(const QCapturableWindow &window)
+    {
+        return window.d.get();
+    }
 };
 
 QT_END_NAMESPACE

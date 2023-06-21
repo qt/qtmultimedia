@@ -28,6 +28,7 @@ class QMediaPlayer;
 class QAudioDecoder;
 class QCamera;
 class QScreenCapture;
+class QWindowCapture;
 class QMediaRecorder;
 class QImageCapture;
 class QMediaDevices;
@@ -66,6 +67,7 @@ public:
     virtual QList<QCameraDevice> videoInputs();
     virtual QMaybe<QPlatformCamera *> createCamera(QCamera *) { return notAvailable; }
     virtual QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) { return nullptr; }
+    virtual QPlatformSurfaceCapture *createWindowCapture(QWindowCapture *) { return nullptr; }
 
     virtual QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *) { return notAvailable; }
     virtual QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() { return notAvailable; }

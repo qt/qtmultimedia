@@ -78,7 +78,8 @@ void QFFmpegMediaCaptureSession::setScreenCapture(QPlatformSurfaceCapture *scree
     m_screenCapture = screenCapture;
 
     if (m_screenCapture)
-        connect(m_screenCapture, &QPlatformSurfaceCapture::newVideoFrame, this, &QFFmpegMediaCaptureSession::newScreenCaptureVideoFrame);
+        connect(m_screenCapture, &QPlatformSurfaceCapture::newVideoFrame, this,
+                &QFFmpegMediaCaptureSession::newScreenCaptureVideoFrame);
 
     emit screenCaptureChanged();
 }

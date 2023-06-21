@@ -43,19 +43,16 @@ public:
 
     ~QMockSurfaceCapture() { resetGrabber(); }
 
-    void setActive(bool active) override
+    bool setActiveInternal(bool active) override
     {
-        if (active == bool(m_grabber))
-            return;
-
-        if (m_grabber) {
-            resetGrabber();
-        } else {
+        if (active) {
             m_grabber = std::make_unique<Grabber>(*this);
             m_grabber->start();
+        } else {
+            resetGrabber();
         }
 
-        emit screenCapture()->activeChanged(bool(m_grabber));
+        return true;
     }
 
     bool isActive() const override { return bool(m_grabber); }
@@ -66,10 +63,6 @@ public:
                        m_imageSize, QVideoFrameFormat::pixelFormatFromImageFormat(m_imageFormat))
                          : QVideoFrameFormat{};
     }
-
-    void setScreen(QScreen *) override { }
-
-    QScreen *screen() const override { return nullptr; }
 
 private:
     void resetGrabber()
@@ -90,4 +83,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QMOCKSCREENCAPTURE_H
+#endif // QMOCKSURFACECAPTURE_H

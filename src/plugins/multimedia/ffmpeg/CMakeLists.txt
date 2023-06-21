@@ -35,7 +35,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegresampler.cpp qffmpegresampler_p.h
         qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
         qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
-        qffmpegscreencapturebase.cpp qffmpegscreencapturebase_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
         qffmpegsurfacecapturethread.cpp qffmpegsurfacecapturethread_p.h
 
@@ -82,6 +81,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         qavfcamera.mm qavfcamera_p.h
         qavfsamplebufferdelegate.mm qavfsamplebufferdelegate_p.h
         qavfscreencapture.mm qavfscreencapture_p.h
+        qcgwindowcapture.mm qcgwindowcapture_p.h
     INCLUDE_DIRECTORIES
         ../darwin
         ../darwin/camera

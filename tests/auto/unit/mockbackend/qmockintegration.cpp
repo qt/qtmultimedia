@@ -113,14 +113,24 @@ QMaybe<QPlatformMediaRecorder *> QMockIntegration::createRecorder(QMediaRecorder
     return new QMockMediaEncoder(recorder);
 }
 
-QPlatformSurfaceCapture *QMockIntegration::createScreenCapture(QScreenCapture *capture)
+QPlatformSurfaceCapture *QMockIntegration::createScreenCapture(QScreenCapture * /*capture*/)
 {
     if (m_flags & NoCaptureInterface)
         m_lastScreenCapture = nullptr;
     else
-        m_lastScreenCapture = new QMockSurfaceCapture(capture);
+        m_lastScreenCapture = new QMockSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 
     return m_lastScreenCapture;
+}
+
+QPlatformSurfaceCapture *QMockIntegration::createWindowCapture(QWindowCapture *)
+{
+    if (m_flags & NoCaptureInterface)
+        m_lastWindowCapture = nullptr;
+    else
+        m_lastWindowCapture = new QMockSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
+
+    return m_lastWindowCapture;
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QMockIntegration::createCaptureSession()

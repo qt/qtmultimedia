@@ -52,6 +52,7 @@ public:
 
 private:
     Q_MULTIMEDIA_EXPORT QCapturableWindow(QCapturableWindowPrivate *capturablePrivate);
+    friend class QCapturableWindowPrivate;
 
     QExplicitlySharedDataPointer<QCapturableWindowPrivate> d;
 };

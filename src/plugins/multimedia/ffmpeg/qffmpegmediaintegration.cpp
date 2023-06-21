@@ -21,6 +21,7 @@
 #ifdef Q_OS_DARWIN
 #include "qavfcamera_p.h"
 #include "qavfscreencapture_p.h"
+#include "qcgwindowcapture_p.h"
 #elif defined(Q_OS_WINDOWS)
 #include "qwindowscamera_p.h"
 #include "qwindowsvideodevices_p.h"
@@ -161,25 +162,40 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 #endif
 }
 
-QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *screenCapture)
+QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *)
 {
-#if QT_CONFIG(cpp_winrt)
-    // Turned off since it's not stable: produce crashes and different side effects
-    // if (QFFmpegWindowCaptureUwp::isSupported())
-    //    return new QFFmpegWindowCaptureUwp(screenCapture);
-#endif
-
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
-        return new QX11SurfaceCapture(screenCapture);
+        return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 #endif
 
 #if defined(Q_OS_WINDOWS)
-    return new QFFmpegScreenCaptureDxgi(screenCapture);
+    return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
-    return new QAVFScreenCapture(screenCapture);
+    return new QAVFScreenCapture;
 #else
-    return new QGrabWindowSurfaceCapture(screenCapture);
+    return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
+#endif
+}
+
+QPlatformSurfaceCapture *QFFmpegMediaIntegration::createWindowCapture(QWindowCapture *)
+{
+#if QT_CONFIG(xlib)
+    if (QX11SurfaceCapture::isSupported())
+        return new QX11SurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
+#endif
+
+#if defined(Q_OS_WINDOWS)
+#  if QT_CONFIG(cpp_winrt)
+//    if (QFFmpegWindowCaptureUwp::isSupported())
+//        return new QFFmpegWindowCaptureUwp;
+#  endif
+    // TODO: replace with other one
+    return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
+#elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
+    return new QCGWindowCapture;
+#else
+    return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
 #endif
 }
 

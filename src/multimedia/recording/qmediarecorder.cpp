@@ -6,6 +6,8 @@
 #include <private/qplatformmediarecorder_p.h>
 #include <qaudiodevice.h>
 #include <qcamera.h>
+#include <qscreencapture.h>
+#include <qwindowcapture.h>
 #include <qmediacapturesession.h>
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformsurfacecapture_p.h>
@@ -337,9 +339,11 @@ void QMediaRecorder::record()
         d->control->resume();
     } else {
         auto oldMediaFormat = d->encoderSettings.mediaFormat();
-        auto camera = d->captureSession->camera();
-        auto screenCapture = d->captureSession->screenCapture();
-        bool hasVideo = (camera && camera->isActive()) || (screenCapture && screenCapture->isActive());
+
+        auto isSourceActive = [](auto *source) { return source && source->isActive(); };
+        const bool hasVideo = isSourceActive(d->captureSession->camera())
+                || isSourceActive(d->captureSession->screenCapture())
+                || isSourceActive(d->captureSession->windowCapture());
 
         d->encoderSettings.resolveFormat(hasVideo ? QMediaFormat::RequiresVideo : QMediaFormat::NoFlags);
         d->control->clearActualLocation();

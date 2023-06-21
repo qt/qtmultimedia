@@ -45,6 +45,7 @@ public:
     QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *) override;
 
     QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) override;
+    QPlatformSurfaceCapture *createWindowCapture(QWindowCapture *) override;
 
     enum Flag { NoPlayerInterface = 0x1, NoAudioDecoderInterface = 0x2, NoCaptureInterface = 0x4 };
     Q_DECLARE_FLAGS(Flags, Flag);
@@ -59,6 +60,7 @@ public:
     QMockMediaCaptureSession *lastCaptureService() const { return m_lastCaptureService; }
     QMockVideoSink *lastVideoSink() const { return m_lastVideoSink; }
     QMockSurfaceCapture *lastScreenCapture() { return m_lastScreenCapture; }
+    QMockSurfaceCapture *lastWindowCapture() { return m_lastWindowCapture; }
 
 private:
     Flags m_flags = {};
@@ -69,6 +71,7 @@ private:
     QMockMediaCaptureSession *m_lastCaptureService = nullptr;
     QMockVideoSink *m_lastVideoSink = nullptr;
     QMockSurfaceCapture *m_lastScreenCapture = nullptr;
+    QMockSurfaceCapture *m_lastWindowCapture = nullptr;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);

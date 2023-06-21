@@ -103,7 +103,7 @@ void QFFmpegSurfaceCaptureThread::run()
             frame.setEndTime(elapsedTimer.nsecsElapsed() / 1000);
             lastFrameTime = frame.endTime();
 
-            updateError(QScreenCapture::NoError);
+            updateError(QPlatformSurfaceCapture::NoError);
 
             emit frameGrabbed(frame);
         }
@@ -121,12 +121,13 @@ void QFFmpegSurfaceCaptureThread::run()
             << "ms, grabbings number:" << profiler.number();
 }
 
-void QFFmpegSurfaceCaptureThread::updateError(QScreenCapture::Error error,
+void QFFmpegSurfaceCaptureThread::updateError(QPlatformSurfaceCapture::Error error,
                                              const QString &description)
 {
     const auto prevError = std::exchange(m_prevError, error);
 
-    if (error != QScreenCapture::NoError || prevError != QScreenCapture::NoError) {
+    if (error != QPlatformSurfaceCapture::NoError
+        || prevError != QPlatformSurfaceCapture::NoError) {
         emit errorUpdated(error, description);
     }
 
@@ -135,7 +136,7 @@ void QFFmpegSurfaceCaptureThread::updateError(QScreenCapture::Error error,
 
 void QFFmpegSurfaceCaptureThread::updateTimerInterval()
 {
-    const qreal rate = m_prevError && *m_prevError != QScreenCapture::NoError
+    const qreal rate = m_prevError && *m_prevError != QPlatformSurfaceCapture::NoError
             ? MinScreenCaptureFrameRate
             : m_rate;
     const int interval = static_cast<int>(1000 / rate);

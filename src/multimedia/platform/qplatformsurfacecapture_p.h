@@ -1,8 +1,8 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QPLATFORMSURFACEAPTURE_H
-#define QPLATFORMSURFACEAPTURE_H
+#ifndef QPLATFORMSURFACECAPTURE_H
+#define QPLATFORMSURFACECAPTURE_H
 
 //
 //  W A R N I N G
@@ -16,7 +16,12 @@
 //
 
 #include "qplatformvideosource_p.h"
-#include "qscreencapture.h"
+#include "qscreen.h"
+#include "qcapturablewindow.h"
+#include "qpointer.h"
+
+#include <optional>
+#include <variant>
 
 QT_BEGIN_NAMESPACE
 
@@ -27,33 +32,58 @@ class Q_MULTIMEDIA_EXPORT QPlatformSurfaceCapture : public QPlatformVideoSource
     Q_OBJECT
 
 public:
-    explicit QPlatformSurfaceCapture(QScreenCapture *screenCapture);
+    enum Error {
+        NoError = 0,
+        InternalError = 1,
+        CapturingNotSupported = 2,
+        CaptureFailed = 4,
+        NotFound = 5,
+    };
 
-    virtual void setScreen(QScreen *s) = 0;
-    virtual QScreen *screen() const = 0;
+    using ScreenSource = QPointer<QScreen>;
+    using WindowSource = QCapturableWindow;
 
-    // TODO: move the methods and implementations to QPlatformWindowCapture
-    virtual void setWindow(QWindow *w);
-    virtual QWindow *window() const;
+    using Source = std::variant<ScreenSource, WindowSource>;
 
-    // to be removed
-    virtual void setWindowId(WId id);
-    virtual WId windowId() const;
+    explicit QPlatformSurfaceCapture(Source initialSource);
 
-    virtual QScreenCapture::Error error() const;
-    virtual QString errorString() const;
+    void setActive(bool active) override;
+    bool isActive() const override;
 
-    QScreenCapture *screenCapture() const;
+    void setSource(Source source);
+
+    template<typename Type>
+    Type source() const {
+        return *q_check_ptr(std::get_if<Type>(&m_source));
+    }
+
+    Source source() const { return m_source; }
+
+    Error error() const;
+    QString errorString() const;
+
+protected:
+    virtual bool setActiveInternal(bool) = 0;
+
+    bool checkScreenWithError(ScreenSource &screen);
 
 public Q_SLOTS:
-    void updateError(QScreenCapture::Error error, const QString &errorString);
+    void updateError(Error error, const QString &errorString);
+
+Q_SIGNALS:
+    void sourceChanged(WindowSource);
+    void sourceChanged(ScreenSource);
+    void activeChanged(bool);
+    void errorChanged();
+    void errorOccurred(Error error, QString errorString);
 
 private:
-    QScreenCapture::Error m_error = QScreenCapture::NoError;
+    Error m_error = NoError;
     QString m_errorString;
-    QScreenCapture *m_screenCapture = nullptr;
+    Source m_source;
+    bool m_active = false;
 };
 
 QT_END_NAMESPACE
 
-#endif // QPLATFORMSURFACEAPTURE_H
+#endif // QPLATFORMSURFACECAPTURE_H

@@ -3,69 +3,79 @@
 
 #include "platform/qplatformsurfacecapture_p.h"
 #include "qvideoframe.h"
+#include "qguiapplication.h"
 #include "qdebug.h"
 
 QT_BEGIN_NAMESPACE
 
-QPlatformSurfaceCapture::QPlatformSurfaceCapture(QScreenCapture *screenCapture)
-    : QPlatformVideoSource(screenCapture), m_screenCapture(screenCapture)
+QPlatformSurfaceCapture::QPlatformSurfaceCapture(Source initialSource) : m_source(initialSource)
 {
+    Q_ASSERT(std::visit([](auto source) { return source == decltype(source){}; }, initialSource));
     qRegisterMetaType<QVideoFrame>();
 }
 
-void QPlatformSurfaceCapture::setWindow(QWindow *w)
+void QPlatformSurfaceCapture::setActive(bool active)
 {
-    if (w) {
-        emit m_screenCapture->errorOccurred(QScreenCapture::InternalError,
-                                            QLatin1String("Window capture is not supported"));
+    if (m_active == active)
+        return;
+
+    if (!setActiveInternal(active)) {
+        qWarning() << "Failed to change active status to value" << active;
+        return;
     }
+
+    m_active = active;
+    emit activeChanged(active);
 }
 
-QWindow *QPlatformSurfaceCapture::window() const
+bool QPlatformSurfaceCapture::isActive() const
 {
-    return nullptr;
+    return m_active;
 }
 
-void QPlatformSurfaceCapture::setWindowId(WId id)
+void QPlatformSurfaceCapture::setSource(Source source)
 {
-    if (id) {
-        emit m_screenCapture->errorOccurred(QScreenCapture::InternalError,
-                                            QLatin1String("Window capture is not supported"));
-    }
+    Q_ASSERT(source.index() == m_source.index());
+
+    if (std::exchange(m_source, source) != source)
+        std::visit([this](auto source) { emit sourceChanged(source); }, m_source);
 }
 
-WId QPlatformSurfaceCapture::windowId() const
-{
-    return 0;
-}
-
-QScreenCapture::Error QPlatformSurfaceCapture::error() const
+QPlatformSurfaceCapture::Error QPlatformSurfaceCapture::error() const
 {
     return m_error;
 }
+
 QString QPlatformSurfaceCapture::errorString() const
 {
     return m_errorString;
 }
 
-QScreenCapture *QPlatformSurfaceCapture::screenCapture() const
-{
-    return m_screenCapture;
-}
-
-void QPlatformSurfaceCapture::updateError(QScreenCapture::Error error, const QString &errorString)
+void QPlatformSurfaceCapture::updateError(Error error, const QString &errorString)
 {
     bool changed = error != m_error || errorString != m_errorString;
     m_error = error;
     m_errorString = errorString;
     if (changed) {
-        if (m_error != QScreenCapture::NoError) {
-            emit m_screenCapture->errorOccurred(error, errorString);
+        if (m_error != NoError) {
+            emit errorOccurred(error, errorString);
             qWarning() << "Screen capture fail:" << error << "," << errorString;
         }
 
-        emit m_screenCapture->errorChanged();
+        emit errorChanged();
     }
+}
+
+bool QPlatformSurfaceCapture::checkScreenWithError(ScreenSource &screen)
+{
+    if (!screen)
+        screen = QGuiApplication::primaryScreen();
+
+    if (screen)
+        return true;
+
+    updateError(NotFound, QLatin1String("No screens found"));
+    return false;
 }
 
 QT_END_NAMESPACE

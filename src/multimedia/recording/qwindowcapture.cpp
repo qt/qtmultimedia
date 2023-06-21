@@ -3,13 +3,21 @@
 
 #include "qwindowcapture.h"
 #include "qplatformmediaintegration_p.h"
+#include "private/qobject_p.h"
+#include "private/qplatformsurfacecapture_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QWindowCapturePrivate : public QObjectData
+static QWindowCapture::Error toWindowCaptureError(QPlatformSurfaceCapture::Error error)
+{
+    return static_cast<QWindowCapture::Error>(error);
+}
+
+class QWindowCapturePrivate : public QObjectPrivate
 {
 public:
-    // TODO add impl
+    QMediaCaptureSession *captureSession = nullptr;
+    std::unique_ptr<QPlatformSurfaceCapture> platformWindowCapture;
 };
 
 /*!
@@ -60,12 +68,40 @@ public:
 /*!
     Constructs a new QWindowCapture object with \a parent.
 */
-QWindowCapture::QWindowCapture(QObject *parent) : QObject(parent) { }
+QWindowCapture::QWindowCapture(QObject *parent) : QObject(*new QWindowCapturePrivate, parent)
+{
+    Q_D(QWindowCapture);
+
+    qRegisterMetaType<QCapturableWindow>();
+
+    auto platformCapture = QPlatformMediaIntegration::instance()->createWindowCapture(this);
+
+    if (platformCapture) {
+        connect(platformCapture, &QPlatformSurfaceCapture::activeChanged, this,
+                &QWindowCapture::activeChanged);
+        connect(platformCapture, &QPlatformSurfaceCapture::errorChanged, this,
+                &QWindowCapture::errorChanged);
+        connect(platformCapture, &QPlatformSurfaceCapture::errorOccurred, this,
+                [this](QPlatformSurfaceCapture::Error error, QString errorString) {
+                    emit errorOccurred(toWindowCaptureError(error), errorString);
+                });
+        connect(platformCapture,
+                qOverload<QCapturableWindow>(&QPlatformSurfaceCapture::sourceChanged), this,
+                &QWindowCapture::windowChanged);
+
+        d->platformWindowCapture.reset(platformCapture);
+    }
+}
 
 /*!
     Destroys the object.
  */
-QWindowCapture::~QWindowCapture() = default;
+QWindowCapture::~QWindowCapture()
+{
+    Q_D(QWindowCapture);
+
+    d->platformWindowCapture.reset();
+}
 
 /*!
     \qmlmethod list<CapturableWindow> QtMultimedia::WindowCapture::capturableWindows()
@@ -84,7 +120,9 @@ QList<QCapturableWindow> QWindowCapture::capturableWindows()
 
 QMediaCaptureSession *QWindowCapture::captureSession() const
 {
-    return nullptr;
+    Q_D(const QWindowCapture);
+
+    return d->captureSession;
 }
 
 /*!
@@ -102,10 +140,19 @@ QMediaCaptureSession *QWindowCapture::captureSession() const
 */
 QCapturableWindow QWindowCapture::window() const
 {
-    return {};
+    Q_D(const QWindowCapture);
+
+    return d->platformWindowCapture ? d->platformWindowCapture->source<QCapturableWindow>()
+                                    : QCapturableWindow();
 }
 
-void QWindowCapture::setWindow(QCapturableWindow /*window*/) { }
+void QWindowCapture::setWindow(QCapturableWindow window)
+{
+    Q_D(QWindowCapture);
+
+    if (d->platformWindowCapture)
+        d->platformWindowCapture->setSource(window);
+}
 
 /*!
     \qmlproperty bool QtMultimedia::WindowCapture::active
@@ -120,10 +167,18 @@ void QWindowCapture::setWindow(QCapturableWindow /*window*/) { }
 */
 bool QWindowCapture::isActive() const
 {
-    return false;
+    Q_D(const QWindowCapture);
+
+    return d->platformWindowCapture && d->platformWindowCapture->isActive();
 }
 
-void QWindowCapture::setActive(bool /*active*/) { }
+void QWindowCapture::setActive(bool active)
+{
+    Q_D(QWindowCapture);
+
+    if (d->platformWindowCapture)
+        d->platformWindowCapture->setActive(active);
+}
 
 /*!
     \qmlmethod QtMultimedia::WindowCapture::start
@@ -161,7 +216,10 @@ void QWindowCapture::setActive(bool /*active*/) { }
 */
 QWindowCapture::Error QWindowCapture::error() const
 {
-    return NoError;
+    Q_D(const QWindowCapture);
+
+    return d->platformWindowCapture ? toWindowCaptureError(d->platformWindowCapture->error())
+                                    : CapturingNotSupported;
 }
 
 /*!
@@ -180,7 +238,11 @@ QWindowCapture::Error QWindowCapture::error() const
 */
 QString QWindowCapture::errorString() const
 {
-    return {};
+    Q_D(const QWindowCapture);
+
+    return d->platformWindowCapture
+            ? d->platformWindowCapture->errorString()
+            : QLatin1StringView("Capturing is not support on this platform");
 }
 
 QT_END_NAMESPACE
