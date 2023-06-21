@@ -34,7 +34,7 @@ public:
     QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
     QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *player) override;
     QMaybe<QPlatformCamera *> createCamera(QCamera *) override;
-    QPlatformScreenCapture *createScreenCapture(QScreenCapture *) override;
+    QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) override;
     QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) override;
     QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *) override;
 

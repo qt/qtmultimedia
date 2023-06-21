@@ -8,7 +8,7 @@
 #include <qcamera.h>
 #include <qmediacapturesession.h>
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformscreencapture_p.h>
+#include <private/qplatformsurfacecapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformmediacapture_p.h>
 

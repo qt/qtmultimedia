@@ -12,7 +12,7 @@
 #include "qffmpegimagecapture_p.h"
 #include "qffmpegaudioinput_p.h"
 #include "qffmpegaudiodecoder_p.h"
-#include "qffmpegscreencapture_p.h"
+#include "qgrabwindowsurfacecapture_p.h"
 
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
@@ -43,11 +43,11 @@ extern "C" {
 #endif
 
 #if QT_CONFIG(cpp_winrt)
-#include "qffmpegscreencapture_uwp_p.h"
+#include "qffmpegwindowcapture_uwp_p.h"
 #endif
 
 #if QT_CONFIG(xlib)
-#include "qx11screencapture_p.h"
+#include "qx11surfacecapture_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -161,17 +161,17 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 #endif
 }
 
-QPlatformScreenCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *screenCapture)
+QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *screenCapture)
 {
 #if QT_CONFIG(cpp_winrt)
     // Turned off since it's not stable: produce crashes and different side effects
-    // if (QFFmpegScreenCaptureUwp::isSupported())
-    //    return new QFFmpegScreenCaptureUwp(screenCapture);
+    // if (QFFmpegWindowCaptureUwp::isSupported())
+    //    return new QFFmpegWindowCaptureUwp(screenCapture);
 #endif
 
 #if QT_CONFIG(xlib)
-    if (QX11ScreenCapture::isSupported())
-        return new QX11ScreenCapture(screenCapture);
+    if (QX11SurfaceCapture::isSupported())
+        return new QX11SurfaceCapture(screenCapture);
 #endif
 
 #if defined(Q_OS_WINDOWS)
@@ -179,7 +179,7 @@ QPlatformScreenCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapt
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
     return new QAVFScreenCapture(screenCapture);
 #else
-    return new QFFmpegScreenCapture(screenCapture);
+    return new QGrabWindowSurfaceCapture(screenCapture);
 #endif
 }
 

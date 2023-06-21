@@ -24,7 +24,7 @@ class QMockAudioDecoder;
 class QMockCamera;
 class QMockMediaCaptureSession;
 class QMockVideoSink;
-class QMockScreenCapture;
+class QMockSurfaceCapture;
 
 class QMockIntegration : public QPlatformMediaIntegration
 {
@@ -44,7 +44,7 @@ public:
 
     QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *) override;
 
-    QPlatformScreenCapture *createScreenCapture(QScreenCapture *) override;
+    QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) override;
 
     enum Flag { NoPlayerInterface = 0x1, NoAudioDecoderInterface = 0x2, NoCaptureInterface = 0x4 };
     Q_DECLARE_FLAGS(Flags, Flag);
@@ -58,7 +58,7 @@ public:
     // QMockMediaEncoder *lastEncoder const { return m_lastEncoder; }
     QMockMediaCaptureSession *lastCaptureService() const { return m_lastCaptureService; }
     QMockVideoSink *lastVideoSink() const { return m_lastVideoSink; }
-    QMockScreenCapture *lastScreenCapture() { return m_lastScreenCapture; }
+    QMockSurfaceCapture *lastScreenCapture() { return m_lastScreenCapture; }
 
 private:
     Flags m_flags = {};
@@ -68,7 +68,7 @@ private:
     // QMockMediaEncoder *m_lastEncoder = nullptr;
     QMockMediaCaptureSession *m_lastCaptureService = nullptr;
     QMockVideoSink *m_lastVideoSink = nullptr;
-    QMockScreenCapture *m_lastScreenCapture = nullptr;
+    QMockSurfaceCapture *m_lastScreenCapture = nullptr;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);

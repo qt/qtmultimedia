@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qvideoframe.h"
-#include "qffmpegscreencapture_p.h"
+#include "qgrabwindowsurfacecapture_p.h"
 #include "qscreencapture.h"
-#include "qffmpegscreencapturethread_p.h"
+#include "qffmpegsurfacecapturethread_p.h"
 
 #include "private/qabstractvideobuffer_p.h"
 
@@ -19,7 +19,7 @@
 
 #include <QtCore/qloggingcategory.h>
 
-static Q_LOGGING_CATEGORY(qLcFfmpegScreenCapture, "qt.multimedia.ffmpeg.screencapture")
+static Q_LOGGING_CATEGORY(qLcGrabWindowSurfaceCapture, "qt.multimedia.ffmpeg.grabwindowsurfacecapture")
 
 QT_BEGIN_NAMESPACE
 
@@ -66,15 +66,15 @@ public:
 
 }
 
-class QFFmpegScreenCapture::Grabber : public QFFmpegScreenCaptureThread
+class QGrabWindowSurfaceCapture::Grabber : public QFFmpegSurfaceCaptureThread
 {
 public:
-    Grabber(QFFmpegScreenCapture &capture, QScreen *screen) : Grabber(capture, screen, nullptr)
+    Grabber(QGrabWindowSurfaceCapture &capture, QScreen *screen) : Grabber(capture, screen, nullptr)
     {
         Q_ASSERT(screen);
     }
 
-    Grabber(QFFmpegScreenCapture &capture, WindowUPtr window)
+    Grabber(QGrabWindowSurfaceCapture &capture, WindowUPtr window)
         : Grabber(capture, nullptr, std::move(window))
     {
         Q_ASSERT(m_window);
@@ -95,12 +95,12 @@ public:
     }
 
 private:
-    Grabber(QFFmpegScreenCapture &capture, QScreen *screen, WindowUPtr window)
+    Grabber(QGrabWindowSurfaceCapture &capture, QScreen *screen, WindowUPtr window)
         : m_capture(capture), m_screen(screen), m_window(std::move(window))
     {
         connect(qApp, &QGuiApplication::screenRemoved, this, &Grabber::onScreenRemoved);
-        addFrameCallback(m_capture, &QFFmpegScreenCapture::newVideoFrame);
-        connect(this, &Grabber::errorUpdated, &m_capture, &QFFmpegScreenCapture::updateError);
+        addFrameCallback(m_capture, &QGrabWindowSurfaceCapture::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &m_capture, &QGrabWindowSurfaceCapture::updateError);
     }
 
     void onScreenRemoved(QScreen *screen)
@@ -181,7 +181,7 @@ private:
     }
 
 private:
-    QFFmpegScreenCapture &m_capture;
+    QGrabWindowSurfaceCapture &m_capture;
     QPointer<QScreen> m_screen;
     WindowUPtr m_window;
 
@@ -194,14 +194,14 @@ private:
     QWaitCondition m_screenRemovingWc;
 };
 
-QFFmpegScreenCapture::QFFmpegScreenCapture(QScreenCapture *screenCapture)
+QGrabWindowSurfaceCapture::QGrabWindowSurfaceCapture(QScreenCapture *screenCapture)
     : QFFmpegScreenCaptureBase(screenCapture)
 {
 }
 
-QFFmpegScreenCapture::~QFFmpegScreenCapture() = default;
+QGrabWindowSurfaceCapture::~QGrabWindowSurfaceCapture() = default;
 
-QVideoFrameFormat QFFmpegScreenCapture::frameFormat() const
+QVideoFrameFormat QGrabWindowSurfaceCapture::frameFormat() const
 {
     if (m_grabber)
         return m_grabber->format();
@@ -209,7 +209,7 @@ QVideoFrameFormat QFFmpegScreenCapture::frameFormat() const
         return {};
 }
 
-bool QFFmpegScreenCapture::setActiveInternal(bool active)
+bool QGrabWindowSurfaceCapture::setActiveInternal(bool active)
 {
     if (active == bool(m_grabber))
         return true;
@@ -248,9 +248,9 @@ bool QFFmpegScreenCapture::setActiveInternal(bool active)
     return false;
 }
 
-void QFFmpegScreenCapture::updateError(QScreenCapture::Error error, const QString &description)
+void QGrabWindowSurfaceCapture::updateError(QScreenCapture::Error error, const QString &description)
 {
-    qCDebug(qLcFfmpegScreenCapture) << description;
+    qCDebug(qLcGrabWindowSurfaceCapture) << description;
     QMetaObject::invokeMethod(this, "updateError", Q_ARG(QScreenCapture::Error, error),
                               Q_ARG(QString, description));
 }

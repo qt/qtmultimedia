@@ -15,7 +15,7 @@ QT_BEGIN_NAMESPACE
 
 
 class QMediaCaptureSession;
-class QPlatformScreenCapture;
+class QPlatformSurfaceCapture;
 class QScreenCapturePrivate;
 
 class Q_MULTIMEDIA_EXPORT QScreenCapture : public QObject
@@ -62,7 +62,7 @@ Q_SIGNALS:
 
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);
-    QPlatformScreenCapture *platformScreenCapture() const;
+    QPlatformSurfaceCapture *platformScreenCapture() const;
     friend class QMediaCaptureSession;
     Q_DISABLE_COPY(QScreenCapture)
     Q_DECLARE_PRIVATE(QScreenCapture)

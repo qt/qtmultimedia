@@ -5,7 +5,7 @@
 #include "qaudiodevice.h"
 #include <private/qmediastoragelocation_p.h>
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformscreencapture_p.h>
+#include <private/qplatformsurfacecapture_p.h>
 #include "qaudiosource.h"
 #include "qffmpegaudioinput_p.h"
 #include "qaudiobuffer.h"

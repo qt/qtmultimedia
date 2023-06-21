@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qx11screencapture_p.h"
-#include "qffmpegscreencapturethread_p.h"
+#include "qx11surfacecapture_p.h"
+#include "qffmpegsurfacecapturethread_p.h"
 
 #include <qvideoframe.h>
 #include <qscreen.h>
@@ -23,7 +23,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcX11ScreenCapture, "qt.multimedia.ffmpeg.x11screencapture")
+static Q_LOGGING_CATEGORY(qLcX11SurfaceCapture, "qt.multimedia.ffmpeg.x11surfacecapture")
 
 namespace {
 
@@ -117,16 +117,16 @@ private:
 
 } // namespace
 
-class QX11ScreenCapture::Grabber : private QFFmpegScreenCaptureThread
+class QX11SurfaceCapture::Grabber : private QFFmpegSurfaceCaptureThread
 {
 public:
-    static std::unique_ptr<Grabber> create(QX11ScreenCapture &capture, QScreen *screen)
+    static std::unique_ptr<Grabber> create(QX11SurfaceCapture &capture, QScreen *screen)
     {
         std::unique_ptr<Grabber> result(new Grabber(capture));
         return result->init(screen) ? std::move(result) : nullptr;
     }
 
-    static std::unique_ptr<Grabber> create(QX11ScreenCapture &capture, WId wid)
+    static std::unique_ptr<Grabber> create(QX11SurfaceCapture &capture, WId wid)
     {
         std::unique_ptr<Grabber> result(new Grabber(capture));
         return result->init(wid) ? std::move(result) : nullptr;
@@ -142,10 +142,10 @@ public:
     const QVideoFrameFormat &format() const { return m_format; }
 
 private:
-    Grabber(QX11ScreenCapture &capture) : m_capture(capture)
+    Grabber(QX11SurfaceCapture &capture) : m_capture(capture)
     {
-        addFrameCallback(capture, &QX11ScreenCapture::newVideoFrame);
-        connect(this, &Grabber::errorUpdated, &capture, &QX11ScreenCapture::updateError);
+        addFrameCallback(capture, &QX11SurfaceCapture::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &capture, &QX11SurfaceCapture::updateError);
     }
 
     bool createDisplay()
@@ -233,7 +233,7 @@ private:
         if (!m_xImage || wndattr.width != m_xImage->width || wndattr.height != m_xImage->height
             || wndattr.depth != m_xImage->depth || wndattr.visual->visualid != m_visualID) {
 
-            qCDebug(qLcX11ScreenCapture) << "recreate ximage: " << wndattr.width << wndattr.height << wndattr.depth
+            qCDebug(qLcX11SurfaceCapture) << "recreate ximage: " << wndattr.width << wndattr.height << wndattr.depth
                      << wndattr.visual->visualid;
 
             detachShm();
@@ -295,7 +295,7 @@ protected:
     }
 
 private:
-    QX11ScreenCapture &m_capture;
+    QX11SurfaceCapture &m_capture;
     std::optional<QScreenCapture::Error> m_prevGrabberError;
     XID m_xid = None;
     int m_xOffset = 0;
@@ -308,7 +308,7 @@ private:
     QVideoFrameFormat m_format;
 };
 
-QX11ScreenCapture::QX11ScreenCapture(QScreenCapture *screenCapture)
+QX11SurfaceCapture::QX11SurfaceCapture(QScreenCapture *screenCapture)
     : QFFmpegScreenCaptureBase(screenCapture)
 {
     // For debug
@@ -318,16 +318,16 @@ QX11ScreenCapture::QX11ScreenCapture(QScreenCapture *screenCapture)
     //  });
 }
 
-QX11ScreenCapture::~QX11ScreenCapture() = default;
+QX11SurfaceCapture::~QX11SurfaceCapture() = default;
 
-QVideoFrameFormat QX11ScreenCapture::frameFormat() const
+QVideoFrameFormat QX11SurfaceCapture::frameFormat() const
 {
     return m_grabber ? m_grabber->format() : QVideoFrameFormat{};
 }
 
-bool QX11ScreenCapture::setActiveInternal(bool active)
+bool QX11SurfaceCapture::setActiveInternal(bool active)
 {
-    qCDebug(qLcX11ScreenCapture) << "set active" << active;
+    qCDebug(qLcX11SurfaceCapture) << "set active" << active;
 
     if (active) {
         if (auto wid = window() ? window()->winId() : windowId())
@@ -341,7 +341,7 @@ bool QX11ScreenCapture::setActiveInternal(bool active)
     return static_cast<bool>(m_grabber) == active;
 }
 
-bool QX11ScreenCapture::isSupported()
+bool QX11SurfaceCapture::isSupported()
 {
     return qgetenv("XDG_SESSION_TYPE").compare(QLatin1String("x11"), Qt::CaseInsensitive) == 0;
 }

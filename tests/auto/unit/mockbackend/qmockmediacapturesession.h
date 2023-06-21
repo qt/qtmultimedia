@@ -8,7 +8,7 @@
 #include "qmockimagecapture.h"
 #include "qmockcamera.h"
 #include "qmockimagecapture.h"
-#include "qmockscreencapture.h"
+#include "qmocksurfacecapture.h"
 #include <private/qplatformmediacapture_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -62,14 +62,14 @@ public:
         m_audioInput = input;
     }
 
-    QPlatformScreenCapture *screenCapture() override { return m_screenCapture; }
-    void setScreenCapture(QPlatformScreenCapture *capture) override { m_screenCapture = capture; }
+    QPlatformSurfaceCapture *screenCapture() override { return m_screenCapture; }
+    void setScreenCapture(QPlatformSurfaceCapture *capture) override { m_screenCapture = capture; }
 
     QMockCamera *mockCameraControl = nullptr;
     QPlatformImageCapture *mockImageCapture = nullptr;
     QMockMediaEncoder *mockControl = nullptr;
     QPlatformAudioInput *m_audioInput = nullptr;
-    QPlatformScreenCapture *m_screenCapture = nullptr;
+    QPlatformSurfaceCapture *m_screenCapture = nullptr;
     bool hasControls;
 };
 

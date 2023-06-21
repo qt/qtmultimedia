@@ -1,22 +1,22 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
 
-#ifndef QMOCKSCREENCAPTURE_H
-#define QMOCKSCREENCAPTURE_H
+#ifndef QMOCKSURFACECAPTURE_H
+#define QMOCKSURFACECAPTURE_H
 
-#include "private/qplatformscreencapture_p.h"
+#include "private/qplatformsurfacecapture_p.h"
 
 #include "qmockvideobuffer.h"
 #include "qthread.h"
 
 QT_BEGIN_NAMESPACE
 
-class QMockScreenCapture : public QPlatformScreenCapture
+class QMockSurfaceCapture : public QPlatformSurfaceCapture
 {
     class Grabber : public QThread
     {
     public:
-        Grabber(QMockScreenCapture &capture) : QThread(&capture), m_capture(capture) { }
+        Grabber(QMockSurfaceCapture &capture) : QThread(&capture), m_capture(capture) { }
 
         void run() override
         {
@@ -35,13 +35,13 @@ class QMockScreenCapture : public QPlatformScreenCapture
         }
 
     private:
-        QMockScreenCapture &m_capture;
+        QMockSurfaceCapture &m_capture;
     };
 
 public:
-    using QPlatformScreenCapture::QPlatformScreenCapture;
+    using QPlatformSurfaceCapture::QPlatformSurfaceCapture;
 
-    ~QMockScreenCapture() { resetGrabber(); }
+    ~QMockSurfaceCapture() { resetGrabber(); }
 
     void setActive(bool active) override
     {
