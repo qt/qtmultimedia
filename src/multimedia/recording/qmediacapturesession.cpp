@@ -146,6 +146,7 @@ QMediaCaptureSession::~QMediaCaptureSession()
     setCamera(nullptr);
     setRecorder(nullptr);
     setImageCapture(nullptr);
+    setScreenCapture(nullptr);
     setAudioInput(nullptr);
     setAudioOutput(nullptr);
     d_ptr->setVideoSink(nullptr);
@@ -215,6 +216,7 @@ QCamera *QMediaCaptureSession::camera() const
 
 void QMediaCaptureSession::setCamera(QCamera *camera)
 {
+    // TODO: come up with an unification of the captures setup
     QCamera *oldCamera = d_ptr->camera;
     if (oldCamera == camera)
         return;
@@ -262,6 +264,7 @@ QScreenCapture *QMediaCaptureSession::screenCapture()
 
 void QMediaCaptureSession::setScreenCapture(QScreenCapture *screenCapture)
 {
+    // TODO: come up with an unification of the captures setup
     QScreenCapture *oldScreenCapture = d_ptr->screenCapture;
     if (oldScreenCapture == screenCapture)
         return;
@@ -282,6 +285,7 @@ void QMediaCaptureSession::setScreenCapture(QScreenCapture *screenCapture)
     }
     emit screenCaptureChanged();
 }
+
 /*!
     \qmlproperty ImageCapture QtMultimedia::CaptureSession::imageCapture
 
@@ -305,6 +309,7 @@ QImageCapture *QMediaCaptureSession::imageCapture()
 
 void QMediaCaptureSession::setImageCapture(QImageCapture *imageCapture)
 {
+    // TODO: come up with an unification of the captures setup
     QImageCapture *oldImageCapture = d_ptr->imageCapture;
     if (oldImageCapture == imageCapture)
         return;

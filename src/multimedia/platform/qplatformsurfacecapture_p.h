@@ -70,7 +70,6 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void sourceChanged(ScreenSource);
-    void activeChanged(bool);
     void errorChanged();
     void errorOccurred(Error error, QString errorString);
 

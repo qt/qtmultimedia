@@ -35,8 +35,10 @@ class QFFmpegMediaCaptureSession : public QPlatformMediaCaptureSession
     Q_OBJECT
 
 public:
+    using VideoSources = std::vector<QPointer<QPlatformVideoSource>>;
+
     QFFmpegMediaCaptureSession();
-    virtual ~QFFmpegMediaCaptureSession();
+    ~QFFmpegMediaCaptureSession() override;
 
     QPlatformCamera *camera() override;
     void setCamera(QPlatformCamera *camera) override;
@@ -57,14 +59,17 @@ public:
     void setAudioOutput(QPlatformAudioOutput *output) override;
 
 public Q_SLOTS:
-    void newCameraVideoFrame(const QVideoFrame &frame);
-    void newScreenCaptureVideoFrame(const QVideoFrame &frame);
     void updateAudioSink();
     void updateVolume();
+    void updateVideoFrameConnection();
 
 private:
-    QPlatformCamera *m_camera = nullptr;
-    QPlatformSurfaceCapture *m_screenCapture = nullptr;
+    template<typename VideoSource>
+    bool setVideoSource(QPointer<VideoSource> &source, VideoSource *newSource);
+
+    QPointer<QPlatformCamera> m_camera;
+    QPointer<QPlatformSurfaceCapture> m_screenCapture;
+
     QFFmpegAudioInput *m_audioInput = nullptr;
     QFFmpegImageCapture *m_imageCapture = nullptr;
     QFFmpegMediaRecorder *m_mediaRecorder = nullptr;
@@ -73,6 +78,8 @@ private:
     std::unique_ptr<QAudioSink> m_audioSink;
     QPointer<QIODevice> m_audioIODevice;
     qsizetype m_audioBufferSize = 0;
+
+    QMetaObject::Connection m_videoFrameConnection;
 };
 
 QT_END_NAMESPACE

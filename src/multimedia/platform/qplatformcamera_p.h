@@ -30,8 +30,6 @@ public:
     virtual bool setCameraFormat(const QCameraFormat &/*format*/) { return false; }
     QCameraFormat cameraFormat() const { return m_cameraFormat; }
 
-    virtual void setCaptureSession(QPlatformMediaCaptureSession *) {}
-
     virtual bool isFocusModeSupported(QCamera::FocusMode mode) const { return mode == QCamera::FocusModeAuto; }
     virtual void setFocusMode(QCamera::FocusMode /*mode*/) {}
 
@@ -113,7 +111,6 @@ public:
     static int colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode mode);
 
 Q_SIGNALS:
-    void activeChanged(bool);
     void error(int error, const QString &errorString);
 
 protected:

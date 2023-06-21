@@ -28,13 +28,14 @@ class QPlatformAudioInput;
 class QPlatformAudioOutput;
 class QMediaCaptureSession;
 class QPlatformSurfaceCapture;
+class QPlatformVideoSource;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
     Q_OBJECT
 public:
     QPlatformMediaCaptureSession() = default;
-    virtual ~QPlatformMediaCaptureSession();
+    ~QPlatformMediaCaptureSession() override;
 
     void setCaptureSession(QMediaCaptureSession *session) { m_session = session; }
     QMediaCaptureSession *captureSession() const { return m_session; }
@@ -56,6 +57,9 @@ public:
     virtual void setVideoPreview(QVideoSink * /*sink*/) {}
 
     virtual void setAudioOutput(QPlatformAudioOutput *) {}
+
+    // TBD: implement ordering of the sources basing on the order of adding
+    std::vector<QPlatformVideoSource *> activeVideoSources();
 
 Q_SIGNALS:
     void cameraChanged();
