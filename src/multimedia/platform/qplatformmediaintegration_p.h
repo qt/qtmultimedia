@@ -50,6 +50,7 @@ class QPlatformAudioInput;
 class QPlatformAudioOutput;
 class QPlatformVideoDevices;
 class QCapturableWindow;
+class QPlatformCapturableWindows;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
 {
@@ -80,12 +81,12 @@ public:
 
     virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) { return notAvailable; }
 
-    virtual QList<QCapturableWindow> capturableWindows() { return {}; };
-
-    bool isCapturableWindowValid(const QCapturableWindowPrivate &) { return false; }
+    QList<QCapturableWindow> capturableWindows();
+    bool isCapturableWindowValid(const QCapturableWindowPrivate &);
 
 protected:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
+    std::unique_ptr<QPlatformCapturableWindows> m_capturableWindows;
 };
 
 QT_END_NAMESPACE
