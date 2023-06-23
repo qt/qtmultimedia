@@ -19,10 +19,8 @@ void QPlatformSurfaceCapture::setActive(bool active)
     if (m_active == active)
         return;
 
-    if (!setActiveInternal(active)) {
-        qWarning() << "Failed to change active status to value" << active;
+    if (!setActiveInternal(active))
         return;
-    }
 
     m_active = active;
     emit activeChanged(active);
@@ -37,8 +35,20 @@ void QPlatformSurfaceCapture::setSource(Source source)
 {
     Q_ASSERT(source.index() == m_source.index());
 
-    if (std::exchange(m_source, source) != source)
-        std::visit([this](auto source) { emit sourceChanged(source); }, m_source);
+    if (m_source == source)
+        return;
+
+    if (m_active)
+        setActiveInternal(false);
+
+    m_source = source;
+
+    if (m_active && !setActiveInternal(true)) {
+        m_active = false;
+        emit activeChanged(false);
+    }
+
+    std::visit([this](auto source) { emit sourceChanged(source); }, m_source);
 }
 
 QPlatformSurfaceCapture::Error QPlatformSurfaceCapture::error() const
