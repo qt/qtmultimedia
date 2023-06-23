@@ -12,6 +12,7 @@
 #include <qcameradevice.h>
 #include <qloggingcategory.h>
 
+#include "qplatformcapturablewindows_p.h"
 #include "QtCore/private/qfactoryloader_p.h"
 #include "qplatformmediaplugin_p.h"
 
@@ -134,6 +135,16 @@ QMaybe<QPlatformAudioInput *> QPlatformMediaIntegration::createAudioInput(QAudio
 QMaybe<QPlatformAudioOutput *> QPlatformMediaIntegration::createAudioOutput(QAudioOutput *q)
 {
     return new QPlatformAudioOutput(q);
+}
+
+QList<QCapturableWindow> QPlatformMediaIntegration::capturableWindows()
+{
+    return m_capturableWindows ? m_capturableWindows->windows() : QList<QCapturableWindow>{};
+}
+
+bool QPlatformMediaIntegration::isCapturableWindowValid(const QCapturableWindowPrivate &window)
+{
+    return m_capturableWindows && m_capturableWindows->isWindowValid(window);
 }
 
 QPlatformMediaIntegration::QPlatformMediaIntegration() = default;

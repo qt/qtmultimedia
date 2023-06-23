@@ -82,6 +82,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         qavfsamplebufferdelegate.mm qavfsamplebufferdelegate_p.h
         qavfscreencapture.mm qavfscreencapture_p.h
         qcgwindowcapture.mm qcgwindowcapture_p.h
+        qcgcapturablewindows.mm qcgcapturablewindows_p.h
     INCLUDE_DIRECTORIES
         ../darwin
         ../darwin/camera
@@ -102,6 +103,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
         qwindowscamera.cpp qwindowscamera_p.h
         qffmpeghwaccel_d3d11.cpp qffmpeghwaccel_d3d11_p.h
         qffmpegscreencapture_dxgi.cpp qffmpegscreencapture_dxgi_p.h
+        qwincapturablewindows.cpp qwincapturablewindows_p.h
     INCLUDE_DIRECTORIES
         ../windows
     LIBRARIES
@@ -124,13 +126,14 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_cpp_winrt
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
     SOURCES
         qx11surfacecapture.cpp qx11surfacecapture_p.h
+        qx11capturablewindows.cpp qx11capturablewindows_p.h
     LIBRARIES
         X11
         Xrandr
         Xext
 )
 
-set_source_files_properties(qx11surfacecapture.cpp # X headers
+set_source_files_properties(qx11surfacecapture.cpp qx11capturablewindows.cpp # X headers
                             PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l

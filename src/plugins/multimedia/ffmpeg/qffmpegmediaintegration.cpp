@@ -22,10 +22,13 @@
 #include "qavfcamera_p.h"
 #include "qavfscreencapture_p.h"
 #include "qcgwindowcapture_p.h"
+#include "qcgcapturablewindows_p.h"
+
 #elif defined(Q_OS_WINDOWS)
 #include "qwindowscamera_p.h"
 #include "qwindowsvideodevices_p.h"
 #include "qffmpegscreencapture_dxgi_p.h"
+#include "qwincapturablewindows_p.h"
 #endif
 
 #ifdef Q_OS_ANDROID
@@ -49,6 +52,7 @@ extern "C" {
 
 #if QT_CONFIG(xlib)
 #include "qx11surfacecapture_p.h"
+#include "qx11capturablewindows_p.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -99,13 +103,21 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 
 #if QT_CONFIG(linux_v4l)
     m_videoDevices = std::make_unique<QV4L2CameraDevices>(this);
-#endif
-#ifdef Q_OS_DARWIN
+#elif defined Q_OS_DARWIN
     m_videoDevices = std::make_unique<QAVFVideoDevices>(this);
 #elif defined(Q_OS_ANDROID)
     m_videoDevices = std::make_unique<QAndroidVideoDevices>(this);
 #elif defined(Q_OS_WINDOWS)
     m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
+#endif
+
+#if QT_CONFIG(xlib)
+    if (QX11SurfaceCapture::isSupported())
+        m_capturableWindows = std::make_unique<QX11CapturableWindows>();
+#elif defined Q_OS_DARWIN
+    m_capturableWindows = std::make_unique<QCGCapturableWindows>();
+#elif defined(Q_OS_WINDOWS)
+    m_capturableWindows = std::make_unique<QWinCapturableWindows>();
 #endif
 
     if (qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG")) {

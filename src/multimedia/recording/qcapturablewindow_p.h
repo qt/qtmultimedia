@@ -32,6 +32,8 @@ public:
     {
         return window.d.get();
     }
+
+    QCapturableWindow create() { return QCapturableWindow(this); }
 };
 
 QT_END_NAMESPACE
