@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "windowlistmodel.h"
+#include <QWindowCapture>
 
-#include <QWindow>
-
-WindowListModel::WindowListModel(QList<QCapturableWindow> data, QObject *parent)
-    : QAbstractListModel(parent), windowList(data)
+WindowListModel::WindowListModel(QObject *parent)
+    : QAbstractListModel(parent), windowList(QWindowCapture::capturableWindows())
 {
 }
 
@@ -31,6 +30,13 @@ QVariant WindowListModel::data(const QModelIndex &index, int role) const
 QCapturableWindow WindowListModel::window(const QModelIndex &index) const
 {
     return windowList.at(index.row());
+}
+
+void WindowListModel::populate()
+{
+    beginResetModel();
+    windowList = QWindowCapture::capturableWindows();
+    endResetModel();
 }
 
 #include "moc_windowlistmodel.cpp"
