@@ -7,7 +7,7 @@
 #include <QScreenCapture>
 #include <QWindowCapture>
 #include <QWidget>
-#include <QModelIndex>
+#include <QItemSelection>
 
 class ScreenListModel;
 class WindowListModel;
@@ -31,16 +31,21 @@ class ScreenCapturePreview : public QWidget
 
 public:
     explicit ScreenCapturePreview(QWidget *parent = nullptr);
-    ~ScreenCapturePreview();
+    ~ScreenCapturePreview() override;
 
-public slots:
-    void onScreenSelectionChanged(QModelIndex index);
-    void onWindowSelectionChanged(QModelIndex index);
+private slots:
+    void onCurrentScreenSelectionChanged(QItemSelection index);
+    void onCurrentWindowSelectionChanged(QItemSelection index);
+    void onWindowCaptureErrorOccured(QWindowCapture::Error error, const QString &errorString);
     void onScreenCaptureErrorOccured(QScreenCapture::Error error, const QString &errorString);
     void onStartStopButtonClicked();
 
 private:
-    void updateCapture();
+    enum class SourceType { Screen, Window };
+
+    void updateActive(SourceType sourceType, bool active);
+    void updateStartStopButtonText();
+    bool isActive() const;
 
 private:
     ScreenListModel *screenListModel = nullptr;
@@ -49,7 +54,6 @@ private:
     QListView *windowListView = nullptr;
     QScreenCapture *screenCapture = nullptr;
     QWindowCapture *windowCapture = nullptr;
-    QList<QCapturableWindow> windows;
     QMediaCaptureSession *mediaCaptureSession = nullptr;
     QVideoWidget *videoWidget = nullptr;
     QGridLayout *gridLayout = nullptr;
@@ -57,8 +61,7 @@ private:
     QLabel *screenLabel = nullptr;
     QLabel *windowLabel = nullptr;
     QLabel *videoWidgetLabel = nullptr;
-    bool screenSelected = true;
-    bool started = true;
+    SourceType sourceType = SourceType::Screen;
 };
 
 #endif // SCREENCAPTUREPREVIEW_H
