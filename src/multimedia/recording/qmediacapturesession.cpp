@@ -26,12 +26,12 @@ public:
     QPlatformMediaCaptureSession *captureSession = nullptr;
     QAudioInput *audioInput = nullptr;
     QAudioOutput *audioOutput = nullptr;
-    QCamera *camera = nullptr;
-    QScreenCapture *screenCapture = nullptr;
-    QWindowCapture *windowCapture = nullptr;
-    QImageCapture *imageCapture = nullptr;
-    QMediaRecorder *recorder = nullptr;
-    QVideoSink *videoSink = nullptr;
+    QPointer<QCamera> camera;
+    QPointer<QScreenCapture> screenCapture;
+    QPointer<QWindowCapture> windowCapture;
+    QPointer<QImageCapture> imageCapture;
+    QPointer<QMediaRecorder> recorder;
+    QPointer<QVideoSink> videoSink;
     QPointer<QObject> videoOutput;
 
     void setVideoSink(QVideoSink *sink)
