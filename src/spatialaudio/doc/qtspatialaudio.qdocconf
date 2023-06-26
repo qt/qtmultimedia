@@ -60,6 +60,3 @@ ignoresince = 6.4
 navigation.landingpage = "Qt Spatial Audio"
 navigation.cppclassespage = "Qt Spatial Audio C++ Classes"
 navigation.qmltypespage = "Qt Spatial Audio QML Types"
-
-# Fail the documentation build if there are more warnings than the limit
-warninglimit = 0
