@@ -128,7 +128,13 @@ bool QCapturableWindow::isValid() const
 */
 QString QCapturableWindow::description() const
 {
-    return d ? d->description : QString{};
+    if (!d)
+        return {};
+
+    if (d->description.isEmpty() && d->id)
+        return QLatin1String("Window 0x") + QString::number(d->id, 16);
+
+    return d->description;
 }
 
 QCapturableWindow::QCapturableWindow(QCapturableWindowPrivate *capturablePrivate)

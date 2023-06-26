@@ -16,15 +16,28 @@
 //
 
 #include "private/qplatformcapturablewindows_p.h"
+#include <mutex>
+
+struct _XDisplay;
+typedef struct _XDisplay Display;
 
 QT_BEGIN_NAMESPACE
 
 class QX11CapturableWindows : public QPlatformCapturableWindows
 {
 public:
+    ~QX11CapturableWindows() override;
+
     QList<QCapturableWindow> windows() const override;
 
     bool isWindowValid(const QCapturableWindowPrivate &window) const override;
+
+private:
+    Display *display() const;
+
+private:
+    mutable std::once_flag m_displayOnceFlag;
+    mutable Display *m_display = nullptr;
 };
 
 QT_END_NAMESPACE
