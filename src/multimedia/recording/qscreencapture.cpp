@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qscreencapture.h"
+#include "qmediacapturesession.h"
 #include <private/qplatformmediaintegration_p.h>
 #include <private/qplatformsurfacecapture_p.h>
 #include <private/qobject_p.h>
@@ -98,6 +99,9 @@ QScreenCapture::~QScreenCapture()
 
     // Reset platformScreenCapture in the destructor to avoid having broken ref in the object.
     d->platformScreenCapture.reset();
+
+    if (d->captureSession)
+        d->captureSession->setScreenCapture(nullptr);
 }
 
 /*!
