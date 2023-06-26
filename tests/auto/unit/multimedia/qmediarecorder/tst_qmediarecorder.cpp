@@ -13,6 +13,7 @@
 #include <qmockintegration.h>
 #include <qmediacapturesession.h>
 #include <qscreencapture.h>
+#include <qwindowcapture.h>
 
 #include "qguiapplication_platform.h"
 #include "qmockmediacapturesession.h"
@@ -181,6 +182,9 @@ void tst_QMediaRecorder::testDeleteMediaCapture()
     checkSourceDeleting(&QMediaCaptureSession::setScreenCapture,
                         &QMediaCaptureSession::screenCapture,
                         &QMediaCaptureSession::screenCaptureChanged);
+    checkSourceDeleting(&QMediaCaptureSession::setWindowCapture,
+                        &QMediaCaptureSession::windowCapture,
+                        &QMediaCaptureSession::windowCaptureChanged);
 }
 
 void tst_QMediaRecorder::testError()
