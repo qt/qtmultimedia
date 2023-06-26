@@ -3,6 +3,7 @@
 
 #include "qwindowcapture.h"
 #include "qplatformmediaintegration_p.h"
+#include "qmediacapturesession.h"
 #include "private/qobject_p.h"
 #include "private/qplatformsurfacecapture_p.h"
 
@@ -101,6 +102,9 @@ QWindowCapture::~QWindowCapture()
     Q_D(QWindowCapture);
 
     d->platformWindowCapture.reset();
+
+    if (d->captureSession)
+        d->captureSession->setWindowCapture(nullptr);
 }
 
 /*!
