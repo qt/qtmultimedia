@@ -17,6 +17,9 @@
 
 QT_BEGIN_NAMESPACE
 
+// Probably, might be increased. To be investigated and tested on Android implementation
+static constexpr int MaxPendingImagesCount = 1;
+
 static Q_LOGGING_CATEGORY(qLcImageCapture, "qt.multimedia.imageCapture")
 
 QFFmpegImageCapture::QFFmpegImageCapture(QImageCapture *parent)
@@ -80,7 +83,7 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
         qCDebug(qLcImageCapture) << "error 1";
         return -1;
     }
-    if (!m_camera) {
+    if (!m_videoSource) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
@@ -91,7 +94,7 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
         qCDebug(qLcImageCapture) << "error 2";
         return -1;
     }
-    if (passImage) {
+    if (m_pendingImages.size() >= MaxPendingImagesCount) {
         //emit error in the next event loop,
         //so application can associate it with returned request id.
         QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
@@ -102,13 +105,12 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
         qCDebug(qLcImageCapture) << "error 3";
         return -1;
     }
+
     m_lastId++;
 
-    pendingImages.enqueue({m_lastId, fileName, QMediaMetaData{}});
-    // let one image pass the pipeline
-    passImage = true;
-
+    m_pendingImages.enqueue({ m_lastId, fileName, QMediaMetaData{} });
     updateReadyForCapture();
+
     return m_lastId;
 }
 
@@ -119,48 +121,39 @@ void QFFmpegImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessio
         return;
 
     if (m_session) {
-        disconnect(m_session, nullptr, this, nullptr);
+        m_session->disconnect(this);
         m_lastId = 0;
-        pendingImages.clear();
-        passImage = false;
-        cameraActive = false;
+        m_pendingImages.clear();
     }
 
     m_session = captureSession;
-    if (m_session)
-        connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QFFmpegImageCapture::onCameraChanged);
 
-    onCameraChanged();
-    updateReadyForCapture();
+    if (m_session)
+        connect(m_session, &QFFmpegMediaCaptureSession::primaryActiveVideoSourceChanged, this,
+                &QFFmpegImageCapture::onVideoSourceChanged);
+
+    onVideoSourceChanged();
 }
 
 void QFFmpegImageCapture::updateReadyForCapture()
 {
-    bool ready = m_session && !passImage && cameraActive;
-    if (ready == m_isReadyForCapture)
-        return;
-    m_isReadyForCapture = ready;
-    emit readyForCaptureChanged(m_isReadyForCapture);
-}
+    const bool ready = m_session && m_pendingImages.size() < MaxPendingImagesCount && m_videoSource
+            && m_videoSource->isActive();
 
-void QFFmpegImageCapture::cameraActiveChanged(bool active)
-{
-    qCDebug(qLcImageCapture) << "cameraActiveChanged" << cameraActive << active;
-    if (cameraActive == active)
-        return;
-    cameraActive = active;
-    qCDebug(qLcImageCapture) << "isReady" << isReadyForCapture();
-    updateReadyForCapture();
+    qCDebug(qLcImageCapture) << "updateReadyForCapture" << ready;
+
+    if (std::exchange(m_isReadyForCapture, ready) != ready)
+        emit readyForCaptureChanged(ready);
 }
 
 void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
 {
-    if (!passImage)
+    if (m_pendingImages.empty())
         return;
 
-    passImage = false;
-    Q_ASSERT(!pendingImages.isEmpty());
-    auto pending = pendingImages.dequeue();
+    auto pending = m_pendingImages.dequeue();
+
+    qCDebug(qLcImageCapture) << "Taking image" << pending.id;
 
     emit imageExposed(pending.id);
     // ### Add metadata from the AVFrame
@@ -218,32 +211,33 @@ void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
             emit error(pending.id, err, writer.errorString());
         }
     }
+
     updateReadyForCapture();
 }
 
-void QFFmpegImageCapture::setupCameraConnections()
+void QFFmpegImageCapture::setupVideoSourceConnections()
 {
-    connect(m_camera, &QPlatformCamera::activeChanged, this, &QFFmpegImageCapture::cameraActiveChanged);
-    connect(m_camera, &QPlatformCamera::newVideoFrame, this, &QFFmpegImageCapture::newVideoFrame);
+    connect(m_videoSource, &QPlatformCamera::newVideoFrame, this,
+            &QFFmpegImageCapture::newVideoFrame);
 }
 
-void QFFmpegImageCapture::onCameraChanged()
+QPlatformVideoSource *QFFmpegImageCapture::videoSource() const
 {
-    auto *camera = m_session ? m_session->camera() : nullptr;
-    if (m_camera == camera)
-        return;
+    return m_videoSource;
+}
 
-    if (m_camera)
-        disconnect(m_camera);
+void QFFmpegImageCapture::onVideoSourceChanged()
+{
+    if (m_videoSource)
+        m_videoSource->disconnect(this);
 
-    m_camera = camera;
+    m_videoSource = m_session ? m_session->primaryActiveVideoSource() : nullptr;
 
-    if (m_camera) {
-        cameraActiveChanged(m_camera->isActive());
-        setupCameraConnections();
-    } else {
-        cameraActiveChanged(false);
-    }
+    // TODO: optimize, setup the connection only when the capture is ready
+    if (m_videoSource)
+        setupVideoSourceConnections();
+
+    updateReadyForCapture();
 }
 
 QImageEncoderSettings QFFmpegImageCapture::imageSettings() const

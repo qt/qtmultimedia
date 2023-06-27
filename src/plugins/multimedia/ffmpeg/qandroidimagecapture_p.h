@@ -27,7 +27,7 @@ public:
     ~QAndroidImageCapture() override;
 
 protected:
-    void setupCameraConnections() override;
+    void setupVideoSourceConnections() override;
     int doCapture(const QString &fileName) override;
 };
 

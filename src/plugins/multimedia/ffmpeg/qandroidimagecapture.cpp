@@ -19,7 +19,7 @@ int QAndroidImageCapture::doCapture(const QString &fileName)
 {
     auto ret = QFFmpegImageCapture::doCapture(fileName);
     if (ret >= 0) {
-        auto androidCamera = static_cast<QAndroidCamera *>(m_camera);
+        auto androidCamera = qobject_cast<QAndroidCamera *>(videoSource());
         if (androidCamera)
             androidCamera->capture();
     }
@@ -27,11 +27,11 @@ int QAndroidImageCapture::doCapture(const QString &fileName)
     return ret;
 }
 
-
-void QAndroidImageCapture::setupCameraConnections()
+void QAndroidImageCapture::setupVideoSourceConnections()
 {
-    connect(m_camera, &QPlatformCamera::activeChanged, this, &QFFmpegImageCapture::cameraActiveChanged);
-    auto androidCamera = static_cast<QAndroidCamera *>(m_camera);
+    auto androidCamera = qobject_cast<QAndroidCamera *>(videoSource());
     if (androidCamera)
         connect(androidCamera, &QAndroidCamera::onCaptured, this, &QAndroidImageCapture::newVideoFrame);
+    else
+        QFFmpegImageCapture::setupVideoSourceConnections();
 }
