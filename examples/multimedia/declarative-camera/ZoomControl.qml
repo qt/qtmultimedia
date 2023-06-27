@@ -8,7 +8,7 @@ Item {
     id : zoomControl
     property real currentZoom : 1
     property real maximumZoom : 1
-    signal zoomTo(real value)
+    signal zoomTo(real target)
 
     visible: zoomControl.maximumZoom > 1
 
