@@ -92,13 +92,13 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
     m_formatsInfo = new QFFmpegMediaFormatInfo();
 
-#if QT_CONFIG(linux_v4l)
+#if defined(Q_OS_ANDROID)
+    m_videoDevices = std::make_unique<QAndroidVideoDevices>(this);
+#elif QT_CONFIG(linux_v4l)
     m_videoDevices = std::make_unique<QV4L2CameraDevices>(this);
 #endif
 #ifdef Q_OS_DARWIN
     m_videoDevices = std::make_unique<QAVFVideoDevices>(this);
-#elif defined(Q_OS_ANDROID)
-    m_videoDevices = std::make_unique<QAndroidVideoDevices>(this);
 #elif defined(Q_OS_WINDOWS)
     m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
 #endif
