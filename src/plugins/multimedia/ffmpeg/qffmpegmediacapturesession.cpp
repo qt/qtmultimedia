@@ -31,11 +31,13 @@ static int preferredAudioSinkBufferSize(const QFFmpegAudioInput &input)
     return input.bufferSize() * BufferSizeFactor + BufferSizeExceeding;
 }
 
-QFFmpegMediaCaptureSession::QFFmpegMediaCaptureSession() = default;
-
-QFFmpegMediaCaptureSession::~QFFmpegMediaCaptureSession()
+QFFmpegMediaCaptureSession::QFFmpegMediaCaptureSession()
 {
+    connect(this, &QFFmpegMediaCaptureSession::primaryActiveVideoSourceChanged, this,
+            &QFFmpegMediaCaptureSession::updateVideoFrameConnection);
 }
+
+QFFmpegMediaCaptureSession::~QFFmpegMediaCaptureSession() = default;
 
 QPlatformCamera *QFFmpegMediaCaptureSession::camera()
 {
@@ -233,13 +235,22 @@ void QFFmpegMediaCaptureSession::updateVideoFrameConnection()
 {
     disconnect(m_videoFrameConnection);
 
-    if (auto sources = activeVideoSources(); !sources.empty() && m_videoSink) {
+    if (m_primaryActiveVideoSource && m_videoSink) {
         // deliver frames directly to video sink;
         // AutoConnection type might be a pessimization due to an extra queuing
         // TODO: investigate and integrate direct connection
-        m_videoFrameConnection = connect(sources.front(), &QPlatformVideoSource::newVideoFrame,
-                                         m_videoSink, &QVideoSink::setVideoFrame);
+        m_videoFrameConnection =
+                connect(m_primaryActiveVideoSource, &QPlatformVideoSource::newVideoFrame,
+                        m_videoSink, &QVideoSink::setVideoFrame);
     }
+}
+
+void QFFmpegMediaCaptureSession::updatePrimaryActiveVideoSource()
+{
+    auto sources = activeVideoSources();
+    auto source = sources.empty() ? nullptr : sources.front();
+    if (std::exchange(m_primaryActiveVideoSource, source) != source)
+        emit primaryActiveVideoSourceChanged();
 }
 
 template<typename VideoSource>
@@ -257,14 +268,19 @@ bool QFFmpegMediaCaptureSession::setVideoSource(QPointer<VideoSource> &source,
     if (source) {
         source->setCaptureSession(this);
         connect(source, &QPlatformVideoSource::activeChanged, this,
-                &QFFmpegMediaCaptureSession::updateVideoFrameConnection);
+                &QFFmpegMediaCaptureSession::updatePrimaryActiveVideoSource);
         connect(source, &QObject::destroyed, this,
-                &QFFmpegMediaCaptureSession::updateVideoFrameConnection, Qt::QueuedConnection);
+                &QFFmpegMediaCaptureSession::updatePrimaryActiveVideoSource, Qt::QueuedConnection);
     }
 
-    updateVideoFrameConnection();
+    updatePrimaryActiveVideoSource();
 
     return true;
+}
+
+QPlatformVideoSource *QFFmpegMediaCaptureSession::primaryActiveVideoSource()
+{
+    return m_primaryActiveVideoSource;
 }
 
 QT_END_NAMESPACE

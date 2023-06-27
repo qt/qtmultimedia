@@ -24,7 +24,6 @@
 QT_BEGIN_NAMESPACE
 
 class QFFmpegImageCapture : public QPlatformImageCapture
-
 {
     Q_OBJECT
 public:
@@ -40,20 +39,19 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    void updateReadyForCapture();
-
-public Q_SLOTS:
-    void cameraActiveChanged(bool active);
-    void newVideoFrame(const QVideoFrame &frame);
-    void onCameraChanged();
-
 protected:
     virtual int doCapture(const QString &fileName);
-    virtual void setupCameraConnections();
-    QPlatformCamera *m_camera = nullptr;
+    virtual void setupVideoSourceConnections();
+    QPlatformVideoSource *videoSource() const;
+    void updateReadyForCapture();
+
+protected Q_SLOTS:
+    void newVideoFrame(const QVideoFrame &frame);
+    void onVideoSourceChanged();
 
 private:
     QFFmpegMediaCaptureSession *m_session = nullptr;
+    QPointer<QPlatformVideoSource> m_videoSource;
     int m_lastId = 0;
     QImageEncoderSettings m_settings;
 
@@ -63,9 +61,7 @@ private:
         QMediaMetaData metaData;
     };
 
-    QQueue<PendingImage> pendingImages;
-    bool passImage = false;
-    bool cameraActive = false;
+    QQueue<PendingImage> m_pendingImages;
     bool m_isReadyForCapture = false;
 };
 
