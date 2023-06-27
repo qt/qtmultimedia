@@ -58,10 +58,16 @@ public:
     void setVideoPreview(QVideoSink *sink) override;
     void setAudioOutput(QPlatformAudioOutput *output) override;
 
-public Q_SLOTS:
+    QPlatformVideoSource *primaryActiveVideoSource();
+
+private Q_SLOTS:
     void updateAudioSink();
     void updateVolume();
     void updateVideoFrameConnection();
+    void updatePrimaryActiveVideoSource();
+
+Q_SIGNALS:
+    void primaryActiveVideoSourceChanged();
 
 private:
     template<typename VideoSource>
@@ -69,6 +75,7 @@ private:
 
     QPointer<QPlatformCamera> m_camera;
     QPointer<QPlatformSurfaceCapture> m_screenCapture;
+    QPointer<QPlatformVideoSource> m_primaryActiveVideoSource;
 
     QFFmpegAudioInput *m_audioInput = nullptr;
     QFFmpegImageCapture *m_imageCapture = nullptr;
