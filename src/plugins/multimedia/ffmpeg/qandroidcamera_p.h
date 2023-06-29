@@ -49,6 +49,7 @@ public:
 
     void capture();
 public slots:
+    void onApplicationStateChanged();
     void onCameraOpened();
     void onCameraDisconnect();
     void onCameraError(int error);
@@ -81,6 +82,7 @@ private:
     QList<QCamera::FlashMode> m_supportedFlashModes;
     bool m_waitingForFirstFrame = false;
     bool m_TorchModeSupported = false;
+    bool m_wasActive = false;
 };
 
 QT_END_NAMESPACE

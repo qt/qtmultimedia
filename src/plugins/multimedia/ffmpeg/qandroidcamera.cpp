@@ -104,6 +104,11 @@ QAndroidCamera::QAndroidCamera(QCamera *camera) : QPlatformCamera(camera)
                                                           : getDefaultCameraFormat();
         updateCameraCharacteristics();
     }
+
+    if (qApp) {
+        connect(qApp, &QGuiApplication::applicationStateChanged,
+                this, &QAndroidCamera::onApplicationStateChanged);
+    }
 };
 
 QAndroidCamera::~QAndroidCamera()
@@ -456,6 +461,26 @@ void QAndroidCamera::zoomTo(float factor, float rate)
     Q_UNUSED(rate);
     m_jniCamera.callMethod<void>("zoomTo", factor);
     zoomFactorChanged(factor);
+}
+
+void QAndroidCamera::onApplicationStateChanged()
+{
+    switch (QGuiApplication::applicationState()) {
+        case Qt::ApplicationInactive:
+            if (isActive()) {
+                setActive(false);
+                m_wasActive = true;
+            }
+            break;
+        case Qt::ApplicationActive:
+            if (m_wasActive) {
+                setActive(true);
+                m_wasActive = false;
+            }
+            break;
+        default:
+            break;
+    }
 }
 
 void QAndroidCamera::onCaptureSessionConfigured()
