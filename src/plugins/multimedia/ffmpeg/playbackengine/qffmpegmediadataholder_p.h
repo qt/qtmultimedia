@@ -18,6 +18,7 @@
 #include "qmediametadata.h"
 #include "private/qplatformmediaplayer_p.h"
 #include "qffmpeg_p.h"
+#include "qvideoframe.h"
 
 #include <array>
 #include <optional>
@@ -61,6 +62,8 @@ public:
     const QMediaMetaData &metaData() const { return m_metaData; }
 
     bool isSeekable() const { return m_isSeekable; }
+
+    QVideoFrame::RotationAngle getRotationAngle() const;
 
 protected:
     std::optional<ContextError> recreateAVFormatContext(const QUrl &media, QIODevice *stream);
