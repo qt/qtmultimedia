@@ -9,7 +9,12 @@
 #include "qdatetime.h"
 #include "qloggingcategory.h"
 
+#include <math.h>
 #include <optional>
+
+extern "C" {
+#include "libavutil/display.h"
+}
 
 QT_BEGIN_NAMESPACE
 
@@ -41,6 +46,28 @@ static std::optional<qint64> streamDuration(const AVStream &stream)
     return {};
 }
 
+static int streamOrientation(const AVStream *stream)
+{
+    Q_ASSERT(stream);
+    size_t dataSize = 0;
+    constexpr int32_t displayMatrixSize = sizeof(int32_t) * 9;
+    const uint8_t *sideData = av_stream_get_side_data(stream, AV_PKT_DATA_DISPLAYMATRIX, &dataSize);
+    if (dataSize < displayMatrixSize)
+        return 0;
+    auto displayMatrix = reinterpret_cast<const int32_t *>(sideData);
+    auto rotation = static_cast<int>(std::round(av_display_rotation_get(displayMatrix)));
+    // Convert counterclockwise rotation angle to clockwise, restricted to 0, 90, 180 and 270
+    if (rotation % 90 != 0)
+        return 0;
+    return rotation < 0 ? -rotation % 360 : -rotation % 360 + 360;
+}
+
+QVideoFrame::RotationAngle MediaDataHolder::getRotationAngle() const
+{
+    int orientation = m_metaData.value(QMediaMetaData::Orientation).toInt();
+    return static_cast<QVideoFrame::RotationAngle>(orientation);
+}
+
 static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::TrackType trackType,
                             const AVStream *stream)
 {
@@ -56,6 +83,7 @@ static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::Trac
         metaData.insert(QMediaMetaData::Resolution, QSize(codecPar->width, codecPar->height));
         metaData.insert(QMediaMetaData::VideoFrameRate,
                         qreal(stream->avg_frame_rate.num) / qreal(stream->avg_frame_rate.den));
+        metaData.insert(QMediaMetaData::Orientation, QVariant::fromValue(streamOrientation(stream)));
         break;
     case QPlatformMediaPlayer::AudioStream:
         metaData.insert(QMediaMetaData::AudioBitRate, (int)codecPar->bit_rate);
