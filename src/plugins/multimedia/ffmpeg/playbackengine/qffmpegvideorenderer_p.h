@@ -26,7 +26,7 @@ class VideoRenderer : public Renderer
 {
     Q_OBJECT
 public:
-    VideoRenderer(const TimeController &tc, QVideoSink *sink);
+    VideoRenderer(const TimeController &tc, QVideoSink *sink, QVideoFrame::RotationAngle rotationAngle);
 
     void setOutput(QVideoSink *sink, bool cleanPrevSink = false);
 
@@ -35,6 +35,7 @@ protected:
 
 private:
     QPointer<QVideoSink> m_sink;
+    QVideoFrame::RotationAngle m_rotationAngle;
 };
 
 } // namespace QFFmpeg
