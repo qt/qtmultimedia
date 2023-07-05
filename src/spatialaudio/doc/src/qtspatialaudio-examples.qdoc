@@ -3,7 +3,6 @@
 
 /*!
     \group spatialaudio_examples
-    \ingroup all-examples
     \ingroup multimedia_examples
     \title Qt Spatial Audio Examples
     \brief Demonstrates the spatial audio functionality provided by Qt.
