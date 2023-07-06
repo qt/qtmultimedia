@@ -4,10 +4,6 @@
 #ifndef QTMULTIMEDIAGLOBAL_H
 #define QTMULTIMEDIAGLOBAL_H
 
-#if 0
-#pragma qt_deprecates(qtmultimediadefs.h)
-#endif
-
 #include <QtGui/qtguiglobal.h>
 #include <QtMultimedia/qtmultimedia-config.h>
 #include <QtMultimedia/qtmultimediaexports.h>
