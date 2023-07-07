@@ -156,11 +156,12 @@ private:
 
     void deleteFreeThreads();
 
-    void onRendererSynchronized(std::chrono::steady_clock::time_point time, qint64 trackTime);
+    void onRendererSynchronized(quint64 id, std::chrono::steady_clock::time_point time,
+                                qint64 trackTime);
 
     void onRendererFinished();
 
-    void onRendererLoopChanged(qint64 offset, int loopIndex);
+    void onRendererLoopChanged(quint64 id, qint64 offset, int loopIndex);
 
     void triggerStepIfNeeded();
 
@@ -173,6 +174,8 @@ private:
     void finilizeTime(qint64 pos);
 
     void finalizeOutputs();
+
+    bool hasRenderer(quint64 id) const;
 
 private:
     TimeController m_timeController;

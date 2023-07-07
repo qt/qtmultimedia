@@ -30,6 +30,9 @@ class PlaybackEngineObject : public QObject
 public:
     using TimePoint = std::chrono::steady_clock::time_point;
     using TimePointOpt = std::optional<TimePoint>;
+    using Id = quint64;
+
+    PlaybackEngineObject();
 
     bool isPaused() const;
 
@@ -38,6 +41,8 @@ public:
     void kill();
 
     void setPaused(bool isPaused);
+
+    Id id() const;
 
 signals:
     void atEnd();
@@ -65,6 +70,7 @@ private:
     std::atomic_bool m_paused = true;
     std::atomic_bool m_atEnd = false;
     std::atomic_bool m_deleting = false;
+    const Id m_id;
 };
 } // namespace QFFmpeg
 
