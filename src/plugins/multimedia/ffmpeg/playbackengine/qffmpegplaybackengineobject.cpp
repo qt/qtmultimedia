@@ -7,6 +7,10 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
+static std::atomic<PlaybackEngineObject::Id> PersistentId = 0;
+
+PlaybackEngineObject::PlaybackEngineObject() : m_id(++PersistentId) { }
+
 bool PlaybackEngineObject::isPaused() const
 {
     return m_paused;
@@ -21,6 +25,11 @@ void PlaybackEngineObject::setAtEnd(bool isAtEnd)
 bool PlaybackEngineObject::isAtEnd() const
 {
     return m_atEnd;
+}
+
+PlaybackEngineObject::Id PlaybackEngineObject::id() const
+{
+    return m_id;
 }
 
 void PlaybackEngineObject::setPaused(bool isPaused)

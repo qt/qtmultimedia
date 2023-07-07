@@ -27,19 +27,26 @@ struct Packet
 {
     struct Data
     {
-        Data(const LoopOffset &offset, AVPacketUPtr p)
-            : loopOffset(offset), packet(std::move(p)) { }
+        Data(const LoopOffset &offset, AVPacketUPtr p, quint64 sourceId)
+            : loopOffset(offset), packet(std::move(p)), sourceId(sourceId)
+        {
+        }
 
         QAtomicInt ref;
         LoopOffset loopOffset;
         AVPacketUPtr packet;
+        quint64 sourceId;
     };
     Packet() = default;
-    Packet(const LoopOffset &offset, AVPacketUPtr p) : d(new Data(offset, std::move(p))) { }
+    Packet(const LoopOffset &offset, AVPacketUPtr p, quint64 sourceId)
+        : d(new Data(offset, std::move(p), sourceId))
+    {
+    }
 
     bool isValid() const { return !!d; }
     AVPacket *avPacket() const { return d->packet.get(); }
     const LoopOffset &loopOffset() const { return d->loopOffset; }
+    quint64 sourceId() const { return d->sourceId; }
 
 private:
     QExplicitlySharedDataPointer<Data> d;

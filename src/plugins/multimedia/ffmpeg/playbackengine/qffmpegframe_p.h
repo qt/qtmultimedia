@@ -32,9 +32,8 @@ struct Frame
 {
     struct Data
     {
-        Data(const LoopOffset &offset, AVFrameUPtr f, const Codec &codec, qint64,
-             const QObject *source)
-            : loopOffset(offset), codec(codec), frame(std::move(f)), source(source)
+        Data(const LoopOffset &offset, AVFrameUPtr f, const Codec &codec, qint64, quint64 sourceId)
+            : loopOffset(offset), codec(codec), frame(std::move(f)), sourceId(sourceId)
         {
             Q_ASSERT(frame);
             if (frame->pts != AV_NOPTS_VALUE)
@@ -50,8 +49,8 @@ struct Frame
             }
         }
         Data(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
-             const QObject *source)
-            : loopOffset(offset), text(text), pts(pts), duration(duration), source(source)
+             quint64 sourceId)
+            : loopOffset(offset), text(text), pts(pts), duration(duration), sourceId(sourceId)
         {
         }
 
@@ -62,18 +61,18 @@ struct Frame
         QString text;
         qint64 pts = -1;
         qint64 duration = -1;
-        QPointer<const QObject> source;
+        quint64 sourceId = 0;
     };
     Frame() = default;
 
     Frame(const LoopOffset &offset, AVFrameUPtr f, const Codec &codec, qint64 pts,
-          const QObject *source = nullptr)
-        : d(new Data(offset, std::move(f), codec, pts, source))
+          quint64 sourceIndex)
+        : d(new Data(offset, std::move(f), codec, pts, sourceIndex))
     {
     }
     Frame(const LoopOffset &offset, const QString &text, qint64 pts, qint64 duration,
-          const QObject *source = nullptr)
-        : d(new Data(offset, text, pts, duration, source))
+          quint64 sourceIndex)
+        : d(new Data(offset, text, pts, duration, sourceIndex))
     {
     }
     bool isValid() const { return !!d; }
@@ -85,7 +84,7 @@ struct Frame
     qint64 duration() const { return data().duration; }
     qint64 end() const { return data().pts + data().duration; }
     QString text() const { return data().text; }
-    const QObject *source() const { return data().source; };
+    quint64 sourceId() const { return data().sourceId; };
     const LoopOffset &loopOffset() const { return data().loopOffset; };
     qint64 absolutePts() const { return pts() + loopOffset().pos; }
     qint64 absoluteEnd() const { return end() + loopOffset().pos; }

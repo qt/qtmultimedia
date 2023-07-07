@@ -52,11 +52,11 @@ public slots:
 signals:
     void frameProcessed(Frame);
 
-    void synchronized(TimePoint tp, qint64 pos);
+    void synchronized(Id id, TimePoint tp, qint64 pos);
 
     void forceStepDone();
 
-    void loopChanged(qint64 offset, int index);
+    void loopChanged(Id id, qint64 offset, int index);
 
 protected:
     bool setForceStepDone();
