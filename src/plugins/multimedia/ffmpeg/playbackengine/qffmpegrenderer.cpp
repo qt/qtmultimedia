@@ -154,7 +154,7 @@ void Renderer::doNextStep()
             const auto loopIndex = frame.loopOffset().index;
             if (m_loopIndex < loopIndex) {
                 m_loopIndex = loopIndex;
-                emit loopChanged(frame.loopOffset().pos, m_loopIndex);
+                emit loopChanged(id(), frame.loopOffset().pos, m_loopIndex);
             }
 
             emit frameProcessed(frame);
@@ -179,7 +179,7 @@ void Renderer::changeRendererTime(std::chrono::microseconds offset)
     const auto now = Clock::now();
     const auto pos = m_timeController.positionFromTime(now);
     m_timeController.sync(now + offset, pos);
-    emit synchronized(now + offset, pos);
+    emit synchronized(id(), now + offset, pos);
 }
 
 } // namespace QFFmpeg

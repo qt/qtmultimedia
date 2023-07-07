@@ -81,8 +81,11 @@ void PlaybackEngine::onRendererFinished()
     emit endOfStream();
 }
 
-void PlaybackEngine::onRendererLoopChanged(qint64 offset, int loopIndex)
+void PlaybackEngine::onRendererLoopChanged(quint64 id, qint64 offset, int loopIndex)
 {
+    if (!hasRenderer(id))
+        return;
+
     if (loopIndex > m_currentLoopOffset.index) {
         m_currentLoopOffset = { offset, loopIndex };
         emit loopChanged();
@@ -93,9 +96,14 @@ void PlaybackEngine::onRendererLoopChanged(qint64 offset, int loopIndex)
     }
 }
 
-void PlaybackEngine::onRendererSynchronized(std::chrono::steady_clock::time_point tp, qint64 pos)
+void PlaybackEngine::onRendererSynchronized(quint64 id, std::chrono::steady_clock::time_point tp,
+                                            qint64 pos)
 {
-    Q_ASSERT(QObject::sender() == m_renderers[QPlatformMediaPlayer::AudioStream].get());
+    if (!hasRenderer(id))
+        return;
+
+    Q_ASSERT(m_renderers[QPlatformMediaPlayer::AudioStream]
+             && m_renderers[QPlatformMediaPlayer::AudioStream]->id() == id);
 
     if (m_timeController.positionFromTime(tp) < pos) {
         // TODO: maybe check with an asset
@@ -103,6 +111,11 @@ void PlaybackEngine::onRendererSynchronized(std::chrono::steady_clock::time_poin
     }
 
     m_timeController.sync(tp, pos);
+
+    forEachExistingObject<Renderer>([&](auto &renderer) {
+        if (id != renderer->id())
+            renderer->syncSoft(tp, pos);
+    });
 }
 
 void PlaybackEngine::setState(QMediaPlayer::PlaybackState state) {
@@ -346,19 +359,6 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
             &Renderer::onFinalFrameReceived);
     connect(renderer.get(), &Renderer::frameProcessed, stream.get(),
             &StreamDecoder::onFrameProcessed);
-
-    constexpr auto masterStreamType = QPlatformMediaPlayer::AudioStream;
-
-    auto connectMasterWithSlave = [&](auto &slave) {
-        auto master = m_renderers[masterStreamType].get();
-        if (master && master != slave.get())
-            connect(master, &Renderer::synchronized, slave.get(), &Renderer::syncSoft);
-    };
-
-    if (trackType == masterStreamType)
-        forEachExistingObject<Renderer>(connectMasterWithSlave);
-    else
-        connectMasterWithSlave(renderer);
 }
 
 std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackType trackType)
@@ -514,6 +514,12 @@ void PlaybackEngine::finilizeTime(qint64 pos)
     m_timeController.setPaused(true);
     m_timeController.sync(pos);
     m_currentLoopOffset = {};
+}
+
+bool PlaybackEngine::hasRenderer(quint64 id) const
+{
+    return std::any_of(m_renderers.begin(), m_renderers.end(),
+                       [id](auto &renderer) { return renderer && renderer->id() == id; });
 }
 }
 

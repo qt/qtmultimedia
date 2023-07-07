@@ -75,7 +75,7 @@ QPlatformMediaPlayer::TrackType StreamDecoder::trackType() const
 
 void StreamDecoder::onFrameProcessed(Frame frame)
 {
-    if (frame.source() != this)
+    if (frame.sourceId() != id())
         return;
 
     --m_pendingFramesCount;
@@ -150,7 +150,7 @@ void StreamDecoder::receiveAVFrames()
             break;
         }
 
-        onFrameFound({ m_offset, std::move(avFrame), m_codec, 0, this });
+        onFrameFound({ m_offset, std::move(avFrame), m_codec, 0, id() });
     }
 }
 
@@ -215,10 +215,10 @@ void StreamDecoder::decodeSubtitle(Packet packet)
     if (text.endsWith(QLatin1Char('\n')))
         text.chop(1);
 
-    onFrameFound({ m_offset, text, start, end - start, this });
+    onFrameFound({ m_offset, text, start, end - start, id() });
 
     // TODO: maybe optimize
-    onFrameFound({ m_offset, QString(), end, 0, this });
+    onFrameFound({ m_offset, QString(), end, 0, id() });
 }
 } // namespace QFFmpeg
 

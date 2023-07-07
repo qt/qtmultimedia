@@ -49,7 +49,7 @@ void Demuxer::doNextStep()
 {
     ensureSeeked();
 
-    Packet packet(m_posWithOffset.offset, AVPacketUPtr{ av_packet_alloc() });
+    Packet packet(m_posWithOffset.offset, AVPacketUPtr{ av_packet_alloc() }, id());
     if (av_read_frame(m_context, packet.avPacket()) < 0) {
         ++m_posWithOffset.offset.index;
 
@@ -93,18 +93,21 @@ void Demuxer::doNextStep()
 
 void Demuxer::onPacketProcessed(Packet packet)
 {
-    if (packet.isValid()) {
-        const auto streamIndex = packet.avPacket()->stream_index;
-        auto it = m_streams.find(streamIndex);
+    Q_ASSERT(packet.isValid());
 
-        if (it != m_streams.end()) {
-            it->second.bufferingTime -=
-                    streamTimeToUs(m_context->streams[streamIndex], packet.avPacket()->duration);
-            it->second.bufferingSize -= packet.avPacket()->size;
+    if (packet.sourceId() != id())
+        return;
 
-            Q_ASSERT(it->second.bufferingTime >= 0);
-            Q_ASSERT(it->second.bufferingSize >= 0);
-        }
+    const auto streamIndex = packet.avPacket()->stream_index;
+    auto it = m_streams.find(streamIndex);
+
+    if (it != m_streams.end()) {
+        it->second.bufferingTime -=
+                streamTimeToUs(m_context->streams[streamIndex], packet.avPacket()->duration);
+        it->second.bufferingSize -= packet.avPacket()->size;
+
+        Q_ASSERT(it->second.bufferingTime >= 0);
+        Q_ASSERT(it->second.bufferingSize >= 0);
     }
 
     scheduleNextStep();
