@@ -84,24 +84,26 @@ private:
 class TestVideoSink : public QVideoSink
 {
 public:
-    TestVideoSink()
-    {
-        connect(this, &QVideoSink::videoFrameChanged, [this](const QVideoFrame &frame) {
-            if (m_storeImages) {
-                auto image = frame.toImage();
-                image.detach();
-                m_images.push_back(std::move(image));
-            }
-        });
-    }
+    TestVideoSink() = default;
 
-    void setStoreImagesEnabled(bool storeImages = true) { m_storeImages = storeImages; }
+    void setStoreImagesEnabled(bool storeImages = true) {
+        if (storeImages)
+            connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::storeImage, Qt::UniqueConnection);
+        else
+            disconnect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::storeImage);
+    }
 
     const std::vector<QImage> &images() const { return m_images; }
 
 private:
+    void storeImage(const QVideoFrame &frame) {
+        auto image = frame.toImage();
+        image.detach();
+        m_images.push_back(std::move(image));
+    }
+
+private:
     std::vector<QImage> m_images;
-    bool m_storeImages = false;
 };
 
 class tst_QScreenCaptureIntegration : public QObject
@@ -425,7 +427,7 @@ void tst_QScreenCaptureIntegration::capture_capturesToFile_whenConnectedToMediaR
     }
 
     // Verify color of last fourth of the video frames
-    for (int i = static_cast<int>(framesCount * 0.75); i < framesCount; i++) {
+    for (size_t i = static_cast<size_t>(framesCount * 0.75); i < framesCount - 1; i++) {
         QImage image = sink.images().at(i);
         QVERIFY(!image.isNull());
         QRgb rgb = image.pixel(point);
