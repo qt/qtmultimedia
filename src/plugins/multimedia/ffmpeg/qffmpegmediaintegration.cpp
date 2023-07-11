@@ -98,6 +98,27 @@ static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl
         qCritical() << message;
 }
 
+static QPlatformSurfaceCapture *createWindowCaptureByBackend(QString backend) {
+    if (backend == QLatin1String("grabwindow"))
+        return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
+
+#if QT_CONFIG(xlib)
+    if (backend == QLatin1String("x11"))
+        return new QX11SurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
+#elif defined(Q_OS_WINDOWS)
+    if (backend == QLatin1String("gdi"))
+        return new QGdiWindowCapture;
+#if QT_CONFIG(cpp_winrt)
+    if (backend == QLatin1String("uwp"))
+        return new QFFmpegWindowCaptureUwp;
+#endif
+#elif defined(Q_OS_MACOS)
+    if (backend == QLatin1String("cg"))
+        return new QCGWindowCapture;
+#endif
+    return nullptr;
+}
+
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
     m_formatsInfo = new QFFmpegMediaFormatInfo();
@@ -193,6 +214,15 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 
 QPlatformSurfaceCapture *QFFmpegMediaIntegration::createWindowCapture(QWindowCapture *)
 {
+    static const QString windowCaptureBackend = qgetenv("QT_WINDOW_CAPTURE_BACKEND").toLower();
+
+    if (!windowCaptureBackend.isEmpty()) {
+        if (auto windowCapture = createWindowCaptureByBackend(windowCaptureBackend))
+            return windowCapture;
+
+        qWarning() << "Not supported QT_WINDOW_CAPTURE_BACKEND:" << windowCaptureBackend;
+    }
+
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
