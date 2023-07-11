@@ -102,6 +102,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
         ../windows/qwindowsvideodevices.cpp ../windows/qwindowsvideodevices_p.h
         qwindowscamera.cpp qwindowscamera_p.h
         qffmpeghwaccel_d3d11.cpp qffmpeghwaccel_d3d11_p.h
+        qgdiwindowcapture.cpp qgdiwindowcapture_p.h
         qffmpegscreencapture_dxgi.cpp qffmpegscreencapture_dxgi_p.h
         qwincapturablewindows.cpp qwincapturablewindows_p.h
     INCLUDE_DIRECTORIES
