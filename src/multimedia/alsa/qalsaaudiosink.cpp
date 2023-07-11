@@ -30,7 +30,7 @@ QAlsaAudioSink::QAlsaAudioSink(const QByteArray &device, QObject *parent)
     m_device = device;
 
     timer = new QTimer(this);
-    connect(timer,SIGNAL(timeout()),SLOT(userFeed()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(userFeed()));
 }
 
 QAlsaAudioSink::~QAlsaAudioSink()

@@ -54,6 +54,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         playbackengine/qffmpegpositionwithoffset_p.h
     DEFINES
         QT_COMPILING_FFMPEG
+        QT_NO_CONTEXTLESS_CONNECT
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
