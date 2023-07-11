@@ -40,6 +40,7 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         common/qgstreamervideosink.cpp
     DEFINES
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
+        QT_NO_CONTEXTLESS_CONNECT
     INCLUDE_DIRECTORIES
         audio
         common

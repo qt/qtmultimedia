@@ -82,7 +82,7 @@ void Encoder::addVideoSource(QPlatformVideoSource * source)
     if (veUPtr->isValid()) {
         auto ve = veUPtr.release();
         auto conn = connect(source, &QPlatformVideoSource::newVideoFrame,
-                            [=](const QVideoFrame &frame) { ve->addFrame(frame); });
+                            ve, &VideoEncoder::addFrame, Qt::DirectConnection);
         videoEncoders.append(ve);
         connections.append(conn);
     }
