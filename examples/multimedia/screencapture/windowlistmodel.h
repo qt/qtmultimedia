@@ -20,6 +20,8 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
     QCapturableWindow window(const QModelIndex &index) const;
+
+public Q_SLOTS:
     void populate();
 
 private:
