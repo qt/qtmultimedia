@@ -8,6 +8,28 @@
 
 QT_BEGIN_NAMESPACE
 
+static bool isTopLevelWindow(HWND hwnd)
+{
+    return hwnd && ::GetAncestor(hwnd, GA_ROOT) == hwnd;
+}
+
+static bool canCaptureWindow(HWND hwnd)
+{
+    Q_ASSERT(hwnd);
+
+    if (!::IsWindowVisible(hwnd))
+        return false;
+
+    RECT rect{};
+    if (!::GetWindowRect(hwnd, &rect))
+        return false;
+
+    if (rect.left >= rect.right || rect.top >= rect.bottom)
+        return false;
+
+    return true;
+}
+
 static QString windowTitle(HWND hwnd) {
     // QTBUG-114890
     // TODO: investigate the case when hwnd is inner and belows to another thread.
@@ -25,6 +47,9 @@ QList<QCapturableWindow> QWinCapturableWindows::windows() const
     QList<QCapturableWindow> result;
 
     auto windowHandler = [](HWND hwnd, LPARAM lParam) {
+        if (!canCaptureWindow(hwnd))
+            return TRUE; // Ignore window and continue enumerating
+
         auto& windows = *reinterpret_cast<QList<QCapturableWindow>*>(lParam);
 
         auto windowData = std::make_unique<QCapturableWindowPrivate>();
@@ -43,7 +68,7 @@ QList<QCapturableWindow> QWinCapturableWindows::windows() const
 bool QWinCapturableWindows::isWindowValid(const QCapturableWindowPrivate &window) const
 {
     const auto hwnd = reinterpret_cast<HWND>(window.id);
-    return hwnd && ::GetAncestor(hwnd, GA_ROOT) == hwnd;
+    return isTopLevelWindow(hwnd) && canCaptureWindow(hwnd);
 }
 
 QT_END_NAMESPACE
