@@ -15,6 +15,7 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QAction>
 
 ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
     : QWidget(parent),
@@ -44,6 +45,11 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
 
     screenListView->setModel(screenListModel);
     windowListView->setModel(windowListModel);
+
+    auto updateAction = new QAction(tr("Update Windows List"), this);
+    connect(updateAction, &QAction::triggered, windowListModel, &WindowListModel::populate);
+    windowListView->addAction(updateAction);
+    windowListView->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     gridLayout->addWidget(screenLabel, 0, 0);
     gridLayout->addWidget(screenListView, 1, 0);
@@ -91,7 +97,6 @@ void ScreenCapturePreview::onCurrentWindowSelectionChanged(QItemSelection select
 {
     if (auto indexes = selection.indexes(); !indexes.empty()) {
         auto window = windowListModel->window(indexes.front());
-        qDebug() << indexes.front() << window.description();
         if (!window.isValid()) {
             const auto questionResust = QMessageBox::question(
                     this, tr("Invalid window"),
