@@ -29,6 +29,7 @@
 #include "qwindowsvideodevices_p.h"
 #include "qffmpegscreencapture_dxgi_p.h"
 #include "qwincapturablewindows_p.h"
+#include "qgdiwindowcapture_p.h"
 #endif
 
 #ifdef Q_OS_ANDROID
@@ -199,11 +200,12 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createWindowCapture(QWindowCap
 
 #if defined(Q_OS_WINDOWS)
 #  if QT_CONFIG(cpp_winrt)
+//    TODO: fix Uwp for winrt
 //    if (QFFmpegWindowCaptureUwp::isSupported())
 //        return new QFFmpegWindowCaptureUwp;
 #  endif
-    // TODO: replace with other one
-    return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
+
+    return new QGdiWindowCapture;
 #elif defined(Q_OS_MACOS) // TODO: probably use it for iOS as well
     return new QCGWindowCapture;
 #else
