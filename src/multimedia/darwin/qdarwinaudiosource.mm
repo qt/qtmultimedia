@@ -169,7 +169,7 @@ QDarwinAudioSourceBuffer::QDarwinAudioSourceBuffer(int bufferSize, int maxPeriod
     m_inputBufferList = new QCoreAudioBufferList(m_inputFormat);
 
     m_flushTimer = new QTimer(this);
-    connect(m_flushTimer, SIGNAL(timeout()), SLOT(flushBuffer()));
+    connect(m_flushTimer, SIGNAL(timeout()), this, SLOT(flushBuffer()));
 
     if (CoreAudioUtils::toQAudioFormat(inputFormat) != CoreAudioUtils::toQAudioFormat(outputFormat)) {
         if (AudioConverterNew(&m_inputFormat, &m_outputFormat, &m_audioConverter) != noErr) {
@@ -396,7 +396,7 @@ QDarwinAudioSourceDevice::QDarwinAudioSourceDevice(QDarwinAudioSourceBuffer *aud
     , m_audioBuffer(audioBuffer)
 {
     open(QIODevice::ReadOnly | QIODevice::Unbuffered);
-    connect(m_audioBuffer, SIGNAL(readyRead()), SIGNAL(readyRead()));
+    connect(m_audioBuffer, SIGNAL(readyRead()), this, SIGNAL(readyRead()));
 }
 
 qint64 QDarwinAudioSourceDevice::readData(char *data, qint64 len)

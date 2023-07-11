@@ -111,7 +111,7 @@ void QFFmpegSurfaceCaptureThread::run()
 
     doGrab();
 
-    m_timer->callOnTimeout(doGrab);
+    m_timer->callOnTimeout(m_timer.get(), doGrab);
     m_timer->start();
 
     exec();

@@ -7,7 +7,7 @@ QT_BEGIN_NAMESPACE
 
 QQuickScreenCatpure::QQuickScreenCatpure(QObject *parent) : QScreenCapture(parent)
 {
-    connect(this, &QScreenCapture::screenChanged, [this](QScreen *screen) {
+    connect(this, &QScreenCapture::screenChanged, this, [this](QScreen *screen) {
         emit QQuickScreenCatpure::screenChanged(new QQuickScreenInfo(this, screen));
     });
 }

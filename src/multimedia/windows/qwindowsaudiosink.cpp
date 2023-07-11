@@ -195,7 +195,7 @@ QIODevice* QWindowsAudioSink::start()
     deviceStateChange(QAudio::IdleState, QAudio::NoError);
 
     m_timer->disconnect();
-    m_timer->callOnTimeout([&](){
+    m_timer->callOnTimeout(this, [this](){
         deviceStateChange(QAudio::IdleState, QAudio::UnderrunError);
     });
 

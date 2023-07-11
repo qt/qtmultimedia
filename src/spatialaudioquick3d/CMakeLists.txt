@@ -23,6 +23,8 @@ qt_internal_add_qml_module(Quick3DSpatialAudioPrivate
         qquick3daudioengine.cpp qquick3daudioengine_p.h
         qtquick3daudioglobal_p.h
         qtquick3daudiotypes_p.h
+    DEFINES
+        QT_NO_CONTEXTLESS_CONNECT
     QML_FILES
     PUBLIC_LIBRARIES
         Qt::Quick3DPrivate

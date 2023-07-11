@@ -50,7 +50,7 @@ public:
     void addFrameCallback(Object &object, Method method)
     {
         connect(this, &QFFmpegSurfaceCaptureThread::frameGrabbed,
-                std::bind(method, &object, std::placeholders::_1));
+                &object, method, Qt::DirectConnection);
     }
 
 signals:
