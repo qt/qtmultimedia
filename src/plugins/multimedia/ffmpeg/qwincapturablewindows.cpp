@@ -13,8 +13,8 @@ static QString windowTitle(HWND hwnd) {
     // TODO: investigate the case when hwnd is inner and belows to another thread.
     // It might causes deadlocks in specific cases.
     auto titleLength = ::GetWindowTextLengthW(hwnd);
-    std::wstring buffer(titleLength, L'\0');
-    titleLength = ::GetWindowTextW(hwnd, buffer.data(), titleLength);
+    std::wstring buffer(titleLength + 1, L'\0');
+    titleLength = ::GetWindowTextW(hwnd, buffer.data(), titleLength + 1);
     buffer.resize(titleLength);
 
     return QString::fromStdWString(buffer);
