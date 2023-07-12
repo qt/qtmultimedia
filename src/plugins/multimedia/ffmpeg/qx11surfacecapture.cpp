@@ -11,7 +11,7 @@
 #include <qguiapplication.h>
 #include <qloggingcategory.h>
 
-#include "private/qabstractvideobuffer_p.h"
+#include "private/qmemoryvideobuffer_p.h"
 
 #include <X11/Xlib.h>
 #include <sys/shm.h>
@@ -78,43 +78,6 @@ QVideoFrameFormat::PixelFormat xImagePixelFormat(const XImage &image)
     return QVideoFrameFormat::Format_Invalid;
 }
 
-class DataVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    DataVideoBuffer(const char *data, int bytesPerLine, int size)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle),
-          m_data(data, size),
-          m_size(size),
-          m_bytesPerLine(bytesPerLine)
-    {
-    }
-
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
-    MapData map(QVideoFrame::MapMode mode) override
-    {
-        MapData mapData;
-        if (m_mapMode == QVideoFrame::NotMapped) {
-            m_mapMode = mode;
-
-            mapData.nPlanes = 1;
-            mapData.bytesPerLine[0] = m_bytesPerLine;
-            mapData.data[0] = (uchar *)m_data.data();
-            mapData.size[0] = m_size;
-        }
-
-        return mapData;
-    }
-
-    void unmap() override { m_mapMode = QVideoFrame::NotMapped; }
-
-private:
-    QByteArray m_data;
-    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
-    int m_size;
-    int m_bytesPerLine;
-};
-
 } // namespace
 
 class QX11SurfaceCapture::Grabber : private QFFmpegSurfaceCaptureThread
@@ -142,7 +105,7 @@ public:
     const QVideoFrameFormat &format() const { return m_format; }
 
 private:
-    Grabber(QX11SurfaceCapture &capture) : m_capture(capture)
+    Grabber(QX11SurfaceCapture &capture)
     {
         addFrameCallback(capture, &QX11SurfaceCapture::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &capture, &QX11SurfaceCapture::updateError);
@@ -299,14 +262,13 @@ protected:
             return {};
         }
 
-        auto buffer = new DataVideoBuffer(m_xImage->data, m_xImage->bytes_per_line,
-                                          m_xImage->bytes_per_line * m_xImage->height);
+        const QByteArray data(m_xImage->data, m_xImage->bytes_per_line * m_xImage->height);
+        auto buffer = new QMemoryVideoBuffer(data, m_xImage->bytes_per_line);
 
         return QVideoFrame(buffer, m_format);
     }
 
 private:
-    QX11SurfaceCapture &m_capture;
     std::optional<QPlatformSurfaceCapture::Error> m_prevGrabberError;
     XID m_xid = None;
     int m_xOffset = 0;
