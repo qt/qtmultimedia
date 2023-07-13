@@ -462,6 +462,14 @@ static void QT_FASTCALL qt_convert_Y_to_ARGB32(const QVideoFrame &frame, uchar *
     MERGE_LOOPS(width, height, stride, 1)
 }
 
+template<typename Pixel>
+static void QT_FASTCALL qt_copy_pixels_with_mask(Pixel *dst, const Pixel *src, size_t size,
+                                                 Pixel mask)
+{
+    for (size_t x = 0; x < size; ++x)
+        dst[x] = src[x] | mask;
+}
+
 static VideoFrameConvertFunc qConvertFuncs[QVideoFrameFormat::NPixelFormats] = {
     /* Format_Invalid */                nullptr, // Not needed
     /* Format_ARGB8888 */                 qt_convert_to_ARGB32<ARGB8888>,
@@ -494,13 +502,19 @@ static VideoFrameConvertFunc qConvertFuncs[QVideoFrameFormat::NPixelFormats] = {
     /* Format_Jpeg */                   nullptr, // Not needed
 };
 
-static void qInitConvertFuncsAsm()
+static PixelsCopyFunc qPixelsCopyFunc = qt_copy_pixels_with_mask<uint32_t>;
+
+static std::once_flag InitFuncsAsmFlag;
+
+static void qInitFuncsAsm()
 {
 #ifdef QT_COMPILER_SUPPORTS_SSE2
     extern void QT_FASTCALL  qt_convert_ARGB8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output);
     extern void QT_FASTCALL  qt_convert_ABGR8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output);
     extern void QT_FASTCALL  qt_convert_RGBA8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output);
     extern void QT_FASTCALL  qt_convert_BGRA8888_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output);
+    extern void QT_FASTCALL  qt_copy_pixels_with_mask_sse2(uint32_t * dst, const uint32_t *src, size_t size, uint32_t mask);
+
     if (qCpuHasFeature(SSE2)){
         qConvertFuncs[QVideoFrameFormat::Format_ARGB8888] = qt_convert_ARGB8888_to_ARGB32_sse2;
         qConvertFuncs[QVideoFrameFormat::Format_ARGB8888_Premultiplied] = qt_convert_ARGB8888_to_ARGB32_sse2;
@@ -512,6 +526,8 @@ static void qInitConvertFuncsAsm()
         qConvertFuncs[QVideoFrameFormat::Format_XBGR8888] = qt_convert_ABGR8888_to_ARGB32_sse2;
         qConvertFuncs[QVideoFrameFormat::Format_RGBA8888] = qt_convert_RGBA8888_to_ARGB32_sse2;
         qConvertFuncs[QVideoFrameFormat::Format_RGBX8888] = qt_convert_RGBA8888_to_ARGB32_sse2;
+
+        qPixelsCopyFunc = qt_copy_pixels_with_mask_sse2;
     }
 #endif
 #ifdef QT_COMPILER_SUPPORTS_SSSE3
@@ -537,6 +553,7 @@ static void qInitConvertFuncsAsm()
     extern void QT_FASTCALL  qt_convert_ABGR8888_to_ARGB32_avx2(const QVideoFrame &frame, uchar *output);
     extern void QT_FASTCALL  qt_convert_RGBA8888_to_ARGB32_avx2(const QVideoFrame &frame, uchar *output);
     extern void QT_FASTCALL  qt_convert_BGRA8888_to_ARGB32_avx2(const QVideoFrame &frame, uchar *output);
+    extern void QT_FASTCALL  qt_copy_pixels_with_mask_avx2(uint32_t * dst, const uint32_t *src, size_t size, uint32_t mask);
     if (qCpuHasFeature(AVX2)){
         qConvertFuncs[QVideoFrameFormat::Format_ARGB8888] = qt_convert_ARGB8888_to_ARGB32_avx2;
         qConvertFuncs[QVideoFrameFormat::Format_ARGB8888_Premultiplied] = qt_convert_ARGB8888_to_ARGB32_avx2;
@@ -548,18 +565,70 @@ static void qInitConvertFuncsAsm()
         qConvertFuncs[QVideoFrameFormat::Format_XBGR8888] = qt_convert_ABGR8888_to_ARGB32_avx2;
         qConvertFuncs[QVideoFrameFormat::Format_RGBA8888] = qt_convert_RGBA8888_to_ARGB32_avx2;
         qConvertFuncs[QVideoFrameFormat::Format_RGBX8888] = qt_convert_RGBA8888_to_ARGB32_avx2;
+
+        qPixelsCopyFunc = qt_copy_pixels_with_mask_avx2;
     }
 #endif
 }
 
 VideoFrameConvertFunc qConverterForFormat(QVideoFrameFormat::PixelFormat format)
 {
-    static std::once_flag once;
-    std::call_once(once, &qInitConvertFuncsAsm);
+    std::call_once(InitFuncsAsmFlag, &qInitFuncsAsm);
 
     VideoFrameConvertFunc convert = qConvertFuncs[format];
     return convert;
 }
 
+void Q_MULTIMEDIA_EXPORT qCopyPixelsWithAlphaMask(uint32_t *dst,
+                                                  const uint32_t *src,
+                                                  size_t pixCount,
+                                                  QVideoFrameFormat::PixelFormat format,
+                                                  bool srcAlphaVaries)
+{
+    if (pixCount == 0)
+        return;
+
+    const auto mask = qAlphaMask(format);
+
+    if (srcAlphaVaries || (src[0] & mask) != mask)
+        qCopyPixelsWithMask(dst, src, pixCount, mask);
+    else
+        memcpy(dst, src, pixCount * 4);
+}
+
+void qCopyPixelsWithMask(uint32_t *dst, const uint32_t *src, size_t size, uint32_t mask)
+{
+    std::call_once(InitFuncsAsmFlag, &qInitFuncsAsm);
+
+    qPixelsCopyFunc(dst, src, size, mask);
+}
+
+uint32_t qAlphaMask(QVideoFrameFormat::PixelFormat format)
+{
+    switch (format) {
+    case QVideoFrameFormat::Format_ARGB8888:
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
+    case QVideoFrameFormat::Format_XRGB8888:
+    case QVideoFrameFormat::Format_ABGR8888:
+    case QVideoFrameFormat::Format_XBGR8888:
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        return 0xff;
+#else
+        return 0xff000000;
+#endif
+    case QVideoFrameFormat::Format_BGRA8888:
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
+    case QVideoFrameFormat::Format_BGRX8888:
+    case QVideoFrameFormat::Format_RGBA8888:
+    case QVideoFrameFormat::Format_RGBX8888:
+#if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
+        return 0xff000000;
+#else
+        return 0xff;
+#endif
+    default:
+        return 0;
+    }
+}
 
 QT_END_NAMESPACE

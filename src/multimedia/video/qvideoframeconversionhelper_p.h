@@ -22,8 +22,19 @@ QT_BEGIN_NAMESPACE
 
 // Converts to RGB32 or ARGB32_Premultiplied
 typedef void (QT_FASTCALL *VideoFrameConvertFunc)(const QVideoFrame &frame, uchar *output);
+typedef void(QT_FASTCALL *PixelsCopyFunc)(uint32_t *dst, const uint32_t *src, size_t size, uint32_t mask);
 
 VideoFrameConvertFunc qConverterForFormat(QVideoFrameFormat::PixelFormat format);
+
+void Q_MULTIMEDIA_EXPORT qCopyPixelsWithAlphaMask(uint32_t *dst,
+                                                  const uint32_t *src,
+                                                  size_t size,
+                                                  QVideoFrameFormat::PixelFormat format,
+                                                  bool srcAlphaVaries);
+
+void Q_MULTIMEDIA_EXPORT qCopyPixelsWithMask(uint32_t *dst, const uint32_t *src, size_t size, uint32_t mask);
+
+uint32_t Q_MULTIMEDIA_EXPORT qAlphaMask(QVideoFrameFormat::PixelFormat format);
 
 template<int a, int r, int g, int b>
 struct ArgbPixel
