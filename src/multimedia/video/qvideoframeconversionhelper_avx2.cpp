@@ -93,6 +93,43 @@ void QT_FASTCALL qt_convert_BGRA8888_to_ARGB32_avx2(const QVideoFrame &frame, uc
     convert_to_ARGB32_avx2<3, 2, 1, 0>(frame, output);
 }
 
+void QT_FASTCALL qt_copy_pixels_with_mask_avx2(uint32_t *dst, const uint32_t *src, size_t size, uint32_t mask)
+{
+    const auto mask256 = _mm256_set_epi32(mask, mask, mask, mask, mask, mask, mask, mask);
+
+    size_t x = 0;
+
+    ALIGN(32, dst, x, size)
+        *(dst++) = *(src++) | mask;
+
+    for (; x < size - (8 * 4 + 1); x += 8 * 4) {
+        const auto srcData1 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src));
+        const auto srcData2 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src += 8));
+        const auto srcData3 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src += 8));
+        const auto srcData4 = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src += 8));
+
+        _mm256_store_si256(reinterpret_cast<__m256i *>(dst), _mm256_or_si256(srcData1, mask256));
+        _mm256_store_si256(reinterpret_cast<__m256i *>(dst += 8), _mm256_or_si256(srcData2, mask256));
+        _mm256_store_si256(reinterpret_cast<__m256i *>(dst += 8), _mm256_or_si256(srcData3, mask256));
+        _mm256_store_si256(reinterpret_cast<__m256i *>(dst += 8), _mm256_or_si256(srcData4, mask256));
+
+        src += 8;
+        dst += 8;
+    }
+
+    // leftovers
+    for (; x < size - 7; x += 8) {
+        const auto srcData = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(src));
+        _mm256_store_si256(reinterpret_cast<__m256i *>(dst), _mm256_or_si256(srcData, mask256));
+
+        src += 8;
+        dst += 8;
+    }
+
+    for (; x < size; ++x)
+        *(dst++) = *(src++) | mask;
+}
+
 QT_END_NAMESPACE
 
 #endif
