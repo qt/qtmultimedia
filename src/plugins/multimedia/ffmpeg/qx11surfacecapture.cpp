@@ -14,6 +14,7 @@
 #include "private/qabstractvideobuffer_p.h"
 #include "private/qcapturablewindow_p.h"
 #include "private/qmemoryvideobuffer_p.h"
+#include "private/qvideoframeconversionhelper_p.h"
 
 #include <X11/Xlib.h>
 #include <sys/shm.h>
@@ -265,9 +266,17 @@ protected:
             return {};
         }
 
-        const QByteArray data(m_xImage->data, m_xImage->bytes_per_line * m_xImage->height);
-        auto buffer = new QMemoryVideoBuffer(data, m_xImage->bytes_per_line);
+        QByteArray data(m_xImage->bytes_per_line * m_xImage->height, Qt::Uninitialized);
 
+        const auto pixelSrc = reinterpret_cast<const uint32_t *>(m_xImage->data);
+        const auto pixelDst = reinterpret_cast<uint32_t *>(data.data());
+        const auto pixelCount = data.size() / 4;
+        const auto xImageAlphaVaries = false; // In known cases it doesn't vary - it's 0xff or 0xff
+
+        qCopyPixelsWithAlphaMask(pixelDst, pixelSrc, pixelCount, m_format.pixelFormat(),
+                                       xImageAlphaVaries);
+
+        auto buffer = new QMemoryVideoBuffer(data, m_xImage->bytes_per_line);
         return QVideoFrame(buffer, m_format);
     }
 

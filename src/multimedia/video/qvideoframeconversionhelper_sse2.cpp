@@ -80,6 +80,44 @@ void QT_FASTCALL qt_convert_BGRA8888_to_ARGB32_sse2(const QVideoFrame &frame, uc
     convert_to_ARGB32_sse2<3, 2, 1, 0>(frame, output);
 }
 
+void QT_FASTCALL qt_copy_pixels_with_mask_sse2(uint32_t *dst, const uint32_t *src, size_t size, uint32_t mask)
+{
+    const auto mask128 = _mm_set_epi32(mask, mask, mask, mask);
+
+    size_t x = 0;
+
+    ALIGN(16, dst, x, size)
+        *(dst++) = *(src++) | mask;
+
+    for (; x < size - (4 * 4 - 1); x += 4 * 4) {
+        const auto srcData0 = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src));
+        const auto srcData1 = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src += 4));
+        const auto srcData2 = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src += 4));
+        const auto srcData3 = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src += 4));
+
+        _mm_store_si128(reinterpret_cast<__m128i *>(dst), _mm_or_si128(srcData0, mask128));
+        _mm_store_si128(reinterpret_cast<__m128i *>(dst += 4), _mm_or_si128(srcData1, mask128));
+        _mm_store_si128(reinterpret_cast<__m128i *>(dst += 4), _mm_or_si128(srcData2, mask128));
+        _mm_store_si128(reinterpret_cast<__m128i *>(dst += 4), _mm_or_si128(srcData3, mask128));
+
+        src += 4;
+        dst += 4;
+    }
+
+    for (; x < size - 3; x += 4) {
+        const auto srcData = _mm_loadu_si128(reinterpret_cast<const __m128i *>(src));
+
+        _mm_store_si128(reinterpret_cast<__m128i *>(dst), _mm_or_si128(srcData, mask128));
+
+        src += 4;
+        dst += 4;
+    }
+
+    // leftovers
+    for (; x < size; ++x)
+        *(dst++) = *(src++) | mask;
+}
+
 QT_END_NAMESPACE
 
 #endif
