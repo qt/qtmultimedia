@@ -69,15 +69,16 @@ QWasmAudioSource::QWasmAudioSource(const QByteArray &device , QObject *parent)
       m_name(device),
       m_timer(new QTimer(this))
 {
-    aldata = new ALData();
-    connect(m_timer, &QTimer::timeout, this, [this](){
-        Q_ASSERT(m_running);
-        if (m_pullMode)
-            writeBuffer();
-        else
-            if (bytesReady() > 0)
+    if (device.contains("Emscripten")) {
+        aldata = new ALData();
+        connect(m_timer, &QTimer::timeout, this, [this](){
+            Q_ASSERT(m_running);
+            if (m_pullMode)
+                writeBuffer();
+            else if (bytesReady() > 0)
                 emit m_device->readyRead();
-    });
+        });
+    }
 }
 
 void QWasmAudioSource::start(QIODevice *device)
@@ -148,8 +149,10 @@ void QWasmAudioSource::start(bool mode)
         m_tmpData = new char[m_bufferSize];
     else
         m_tmpData = nullptr;
-    m_timer->setInterval(m_format.durationForBytes(m_bufferSize) / 3'000);
+    m_timer->setInterval(m_format.durationForBytes(m_bufferSize) / 3000);
+    m_timer->start();
 
+    alcGetError(aldata->device); // clear error state
     aldata->device = alcCaptureOpenDevice(m_name.data(), m_format.sampleRate(), format,
                                           m_format.framesForBytes(m_bufferSize));
 
@@ -167,7 +170,6 @@ void QWasmAudioSource::start(bool mode)
     }
     m_processed = 0;
     m_running = true;
-    m_timer->start();
 }
 
 void QWasmAudioSource::stop()

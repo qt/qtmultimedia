@@ -243,6 +243,7 @@ void QWasmMediaDevices::getMediaDevices()
                                            std::move(enumerateDevicesCallback));
                 });
     }
+
 }
 
 void QWasmMediaDevices::getOpenALAudioDevices()
