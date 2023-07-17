@@ -6,6 +6,7 @@
 \title Audio Overview
 \inlineimage sound-wave-small.jpg
 \brief Playback, recording and processing of Audio.
+\ingroup explanation
 
 \section1 Audio Features
 
