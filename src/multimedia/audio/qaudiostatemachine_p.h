@@ -54,7 +54,7 @@ public:
         ~StateChangeGuard() { reset(); }
 
         StateChangeGuard(const StateChangeGuard &) = delete;
-        StateChangeGuard(StateChangeGuard &&other)
+        StateChangeGuard(StateChangeGuard &&other) noexcept
             : m_stateMachine(std::exchange(other.m_stateMachine, nullptr)),
               m_state(other.m_state),
               m_prevState(other.m_prevState),
