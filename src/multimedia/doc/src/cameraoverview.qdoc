@@ -5,6 +5,7 @@
 \page cameraoverview.html
 \title Camera Overview
 \brief Camera viewfinder, still image capture, and video recording.
+\ingroup explanation
 
 The Qt Multimedia API provides a number of camera related classes, so you
 can access images and videos from mobile device cameras or web cameras.
