@@ -219,32 +219,27 @@ QVideoFrame::RotationAngle QAndroidCamera::rotation()
     if (screenOrientation == Qt::PrimaryOrientation)
         screenOrientation = screen->primaryOrientation();
 
+    // Display rotation is the opposite direction of the physical device rotation. We need the
+    // device rotation, that's why Landscape is 270 and InvertedLandscape is 90
     int deviceOrientation = 0;
-    bool isFrontCamera = m_cameraDevice.position() == QCameraDevice::Position::FrontFace;
-
     switch (screenOrientation) {
     case Qt::PrimaryOrientation:
     case Qt::PortraitOrientation:
         break;
     case Qt::LandscapeOrientation:
-        deviceOrientation = 90;
+        deviceOrientation = 270;
         break;
     case Qt::InvertedPortraitOrientation:
         deviceOrientation = 180;
         break;
     case Qt::InvertedLandscapeOrientation:
-        deviceOrientation = 270;
+        deviceOrientation = 90;
         break;
     }
 
-    int rotation;
-    // subtract natural camera orientation and physical device orientation
-    if (isFrontCamera) {
-        rotation = (sensorOrientation(m_cameraDevice.id()) - deviceOrientation + 360) % 360;
-        rotation = (180 + rotation) % 360; // compensate the mirror
-    } else { // back-facing camera
-        rotation = (sensorOrientation(m_cameraDevice.id()) - deviceOrientation + 360) % 360;
-    }
+    int sign = (m_cameraDevice.position() == QCameraDevice::Position::FrontFace) ? 1 : -1;
+    int rotation = (sensorOrientation(m_cameraDevice.id()) - deviceOrientation * sign + 360) % 360;
+
     return QVideoFrame::RotationAngle(rotation);
 }
 
