@@ -5,6 +5,7 @@
     \example screencapture
     \title Screen Capture Example
     \ingroup multimedia_examples
+    \examplecategory {Graphics & Multimedia}
     \brief Capturing a screen or window.
     \meta {tag} {widgets}
 

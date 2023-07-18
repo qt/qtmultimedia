@@ -6,6 +6,7 @@
     \title Audio Source Example
     \ingroup multimedia_examples
     \ingroup audio_examples
+    \examplecategory {Graphics & Multimedia}
     \brief Recording audio using the QAudioSource class.
     \meta {tag} {widgets}
 

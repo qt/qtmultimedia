@@ -5,6 +5,7 @@
     \example videographicsitem
     \title Video Graphics Item Example
     \ingroup multimedia_examples
+    \examplecategory {Graphics & Multimedia}
     \brief Streaming video on a graphics scene.
     \meta {tag} {widgets}
 
