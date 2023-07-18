@@ -33,7 +33,7 @@ class QWasmAudioSource : public QPlatformAudioSource
     QIODevice *m_device = nullptr;
     QAudioFormat m_format;
     qreal m_volume = 1;
-    int m_bufferSize;
+    qsizetype m_bufferSize;
     bool m_running = false;
     bool m_suspended = false;
     QAudio::Error m_error;
@@ -55,9 +55,9 @@ public:
     void reset() override;
     void suspend() override;
     void resume() override;
-    int bytesReady() const override;
-    void setBufferSize(int value) override;
-    int bufferSize() const override;
+    qsizetype bytesReady() const override;
+    void setBufferSize(qsizetype value) override;
+    qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;
