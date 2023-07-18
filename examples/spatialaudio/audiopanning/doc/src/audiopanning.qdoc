@@ -6,6 +6,7 @@
 \title Spatial Audio Panning Example
 \ingroup spatialaudio_examples
 \ingroup audio_examples
+\examplecategory {Graphics & Multimedia}
 \meta {tag} {widgets}
 \brief Shows some of the capabilities of the spatial audio engine in Qt.
 
