@@ -70,9 +70,9 @@ public:
     void reset() override;
     void suspend() override;
     void resume() override;
-    int bytesFree() const override;
-    void setBufferSize(int value) override;
-    int bufferSize() const override;
+    qsizetype bytesFree() const override;
+    void setBufferSize(qsizetype value) override;
+    qsizetype bufferSize() const override;
     qint64 processedUSecs() const override;
     QAudio::Error error() const override;
     QAudio::State state() const override;

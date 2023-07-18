@@ -219,7 +219,7 @@ void QWasmAudioSource::resume()
     alcCaptureStart(aldata->device);
 }
 
-int QWasmAudioSource::bytesReady() const
+qsizetype QWasmAudioSource::bytesReady() const
 {
     if (!m_running)
         return 0;
@@ -228,14 +228,14 @@ int QWasmAudioSource::bytesReady() const
     return m_format.bytesForFrames(samples);
 }
 
-void QWasmAudioSource::setBufferSize(int value)
+void QWasmAudioSource::setBufferSize(qsizetype value)
 {
     if (!m_running)
         return;
     m_bufferSize = value;
 }
 
-int QWasmAudioSource::bufferSize() const
+qsizetype QWasmAudioSource::bufferSize() const
 {
     return m_bufferSize;
 }

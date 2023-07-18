@@ -212,15 +212,15 @@ void QWasmAudioSink::resume()
     alSourcePlay(aldata->source);
 }
 
-int QWasmAudioSink::bytesFree() const
+qsizetype QWasmAudioSink::bytesFree() const
 {
     int processed;
     alGetSourcei(aldata->source, AL_BUFFERS_PROCESSED, &processed);
     return m_running ? m_bufferFragmentSize * (m_bufferFragmentsCount - m_bufferFragmentsBusyCount
-                                               + processed) : 0;
+                                               + (qsizetype)processed) : 0;
 }
 
-void QWasmAudioSink::setBufferSize(int value)
+void QWasmAudioSink::setBufferSize(qsizetype value)
 {
     if (m_running)
         return;
@@ -228,7 +228,7 @@ void QWasmAudioSink::setBufferSize(int value)
     m_bufferSize = value;
 }
 
-int QWasmAudioSink::bufferSize() const
+qsizetype QWasmAudioSink::bufferSize() const
 {
     return m_bufferSize;
 }
