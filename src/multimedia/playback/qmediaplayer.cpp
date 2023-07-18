@@ -197,7 +197,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
         qrcMedia = QUrl();
         QUrl url = media;
         if (url.scheme().isEmpty() || url.scheme() == QLatin1String("file"))
-            url = QUrl::fromUserInput(media.path(), QDir::currentPath(), QUrl::AssumeLocalFile);
+            url = QUrl::fromUserInput(media.toString(), QDir::currentPath(), QUrl::AssumeLocalFile);
         if (url.scheme() == QLatin1String("content") && !stream) {
             file.reset(new QFile(media.url()));
             stream = file.get();
