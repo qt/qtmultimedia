@@ -16,8 +16,6 @@ constexpr RawState DrainingFlag = 1 << 16;
 constexpr RawState InProgressFlag = 1 << 17;
 constexpr RawState WaitingFlags = DrainingFlag | InProgressFlag;
 
-const auto IgnoreError = static_cast<QAudio::Error>(-1);
-
 inline bool isWaitingState(RawState state)
 {
     return (state & WaitingFlags) != 0;
@@ -246,7 +244,7 @@ void QAudioStateMachine::reset(RawState state, RawState prevState, QAudio::Error
     if (!m_sychronizer && m_state != state)
         return;
 
-    const auto isErrorChanged = error != IgnoreError && m_error.exchange(error) != error;
+    const auto isErrorChanged = m_error.exchange(error) != error;
 
     if (m_sychronizer)
         m_sychronizer->changeState([&](){ m_state = state; });
