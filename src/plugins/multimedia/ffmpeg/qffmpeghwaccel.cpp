@@ -324,18 +324,43 @@ TextureSet *TextureConverter::getTextures(AVFrame *frame)
     return d->backend->getTextures(frame);
 }
 
+namespace {
+
+bool hwTextureConversionEnabled(AVPixelFormat fmt) {
+
+    // HW textures conversions are not stable in specific cases, dependent on the hardware and OS.
+    // We need the env var for testing with no textures conversion on the user's side.
+    static bool isDisableConversionSet = false;
+    static const int disableHwConversion = qEnvironmentVariableIntValue(
+            "QT_DISABLE_HW_TEXTURES_CONVERSION", &isDisableConversionSet);
+
+    if (disableHwConversion)
+        return false;
+
+#if QT_CONFIG(wmf)
+    if (fmt == AV_PIX_FMT_D3D11) {
+        // On Windows, HW texture conversion currently causes stuttering video display and possibly
+        // crash on AMD GPUs. See for example QTBUG-113832 and QTBUG-111543. On this platform, HW
+        // texture conversions have to be explicitly enabled for debugging and testing.
+        if (!isDisableConversionSet)
+            return false;
+    }
+#else
+    Q_UNUSED(fmt);
+#endif
+
+    return true;
+}
+
+} // namespace
+
 void TextureConverter::updateBackend(AVPixelFormat fmt)
 {
     d->backend = nullptr;
     if (!d->rhi)
         return;
 
-    // HW textures conversions are not stable in specific cases, dependent on the hardware and OS.
-    // We need the env var for testing with no textures conversion on the user's side.
-    static const bool disableConversion =
-            qEnvironmentVariableIsSet("QT_DISABLE_HW_TEXTURES_CONVERSION");
-
-    if (disableConversion)
+    if (!hwTextureConversionEnabled(fmt))
         return;
 
     switch (fmt) {
