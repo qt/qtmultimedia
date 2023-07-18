@@ -5,6 +5,7 @@
 \example video/qmlvideo
 \title QML Video Example
 \ingroup multimedia_examples
+\examplecategory {Graphics & Multimedia}
 \brief Transforming video and camera viewfinder content.
 
 \e{QML Video} demonstrates the various transformations (move; resize; rotate;

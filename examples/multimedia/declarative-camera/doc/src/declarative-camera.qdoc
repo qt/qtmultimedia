@@ -6,6 +6,7 @@
 \title QML Camera Application
 \ingroup multimedia_examples
 \ingroup camera_examples_qml
+\examplecategory {Graphics & Multimedia}
 \brief This Qt Quick based application shows how to use the API to capture a
 still image or video.
 
