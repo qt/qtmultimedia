@@ -230,9 +230,8 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createWindowCapture(QWindowCap
 
 #if defined(Q_OS_WINDOWS)
 #  if QT_CONFIG(cpp_winrt)
-//    TODO: fix Uwp for winrt
-//    if (QFFmpegWindowCaptureUwp::isSupported())
-//        return new QFFmpegWindowCaptureUwp;
+    if (QFFmpegWindowCaptureUwp::isSupported())
+        return new QFFmpegWindowCaptureUwp;
 #  endif
 
     return new QGdiWindowCapture;

@@ -15,7 +15,6 @@ namespace winrt::impl
 template <typename Async>
 auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 }
-#include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Graphics.Capture.h>
 #include <winrt/Windows.Graphics.DirectX.h>
@@ -25,7 +24,6 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 #include <windows.graphics.directx.direct3d11.interop.h>
 
 #include <D3d11.h>
-#include <dxgi1_2.h>
 #include <dwmapi.h>
 #include <lowlevelmonitorconfigurationapi.h>
 #include <physicalmonitorenumerationapi.h>
@@ -41,41 +39,54 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 
 #include <memory>
 #include <system_error>
-#include <variant>
-
-static Q_LOGGING_CATEGORY(qLcWindowCaptureUwp, "qt.multimedia.ffmpeg.windowcapture.uwp");
-
-namespace winrt {
-    using namespace winrt::Windows::Graphics::Capture;
-    using namespace winrt::Windows::Graphics::DirectX;
-    using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
-}
 
 QT_BEGIN_NAMESPACE
 
+using namespace winrt::Windows::Graphics::Capture;
+using namespace winrt::Windows::Graphics::DirectX;
+using namespace winrt::Windows::Graphics::DirectX::Direct3D11;
 using namespace Windows::Graphics::DirectX::Direct3D11;
-using namespace std::chrono;
 using namespace QWindowsMultimediaUtils;
 
-struct DeviceFramePool
+using winrt::check_hresult;
+using winrt::com_ptr;
+using winrt::guid_of;
+
+namespace {
+
+Q_LOGGING_CATEGORY(qLcWindowCaptureUwp, "qt.multimedia.ffmpeg.windowcapture.uwp");
+
+winrt::Windows::Graphics::SizeInt32 getWindowSize(HWND hwnd)
 {
-    winrt::IDirect3DDevice iDirect3DDevice;
-    winrt::com_ptr<ID3D11Device> d3d11dev;
-    winrt::Direct3D11CaptureFramePool framePool;
+    RECT windowRect{};
+    ::GetWindowRect(hwnd, &windowRect);
+
+    return { windowRect.right - windowRect.left, windowRect.bottom - windowRect.top };
+}
+
+QSize asQSize(winrt::Windows::Graphics::SizeInt32 size)
+{
+    return { size.Width, size.Height };
+}
+
+struct MultithreadedApartment
+{
+    MultithreadedApartment(const MultithreadedApartment &) = delete;
+    MultithreadedApartment &operator=(const MultithreadedApartment &) = delete;
+
+    MultithreadedApartment() { winrt::init_apartment(); }
+    ~MultithreadedApartment() { winrt::uninit_apartment(); }
 };
 
 class QUwpTextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QUwpTextureVideoBuffer(winrt::com_ptr<IDXGISurface> &&surface)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
-        , m_surface(surface)
+    QUwpTextureVideoBuffer(com_ptr<IDXGISurface> &&surface)
+        : QAbstractVideoBuffer(QVideoFrame::NoHandle), m_surface(surface)
     {
     }
-    ~QUwpTextureVideoBuffer()
-    {
-        QUwpTextureVideoBuffer::unmap();
-    }
+
+    ~QUwpTextureVideoBuffer() override { QUwpTextureVideoBuffer::unmap(); }
 
     QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
 
@@ -114,81 +125,97 @@ public:
         if (m_mapMode == QVideoFrame::NotMapped)
             return;
 
-        HRESULT hr = m_surface->Unmap();
-        if (FAILED(hr)) {
+        const HRESULT hr = m_surface->Unmap();
+        if (FAILED(hr))
             qCDebug(qLcWindowCaptureUwp) << "Failed to unmap surface" << errorString(hr);
-        }
+
         m_mapMode = QVideoFrame::NotMapped;
     }
 
 private:
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
-    winrt::com_ptr<IDXGISurface> m_surface;
+    com_ptr<IDXGISurface> m_surface;
 };
 
-class QFFmpegWindowCaptureUwp::Grabber : public QFFmpegSurfaceCaptureThread
+struct WindowGrabber
 {
-    Q_OBJECT
-public:
-    Grabber(QFFmpegWindowCaptureUwp &capture, DeviceFramePool &devicePool,
-            winrt::GraphicsCaptureItem item, qreal maxFrameRate)
-        : m_capture(capture),
-          m_devicePool(devicePool),
-          m_session(devicePool.framePool.CreateCaptureSession(item)),
-          m_frameSize(item.Size())
+    WindowGrabber() = default;
+
+    WindowGrabber(IDXGIAdapter1 *adapter, HWND hwnd) : m_frameSize{ getWindowSize(hwnd) }
     {
-        setFrameRate(maxFrameRate);
-        addFrameCallback(capture, &QFFmpegWindowCaptureUwp::newVideoFrame);
-        connect(this, &Grabber::errorUpdated, &capture, &QFFmpegWindowCaptureUwp::updateError);
-    }
+        check_hresult(D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, nullptr, 0,
+                                        D3D11_SDK_VERSION, m_device.put(), nullptr, nullptr));
 
-    ~Grabber() override { stop(); }
+        const auto captureItem = createCaptureItem(hwnd);
 
-protected:
+        m_framePool = Direct3D11CaptureFramePool::CreateFreeThreaded(
+                getCaptureDevice(m_device), m_pixelFormat, 1,
+                captureItem.Size());
 
-    void run() override
-    {
-        m_session.IsCursorCaptureEnabled(false);
+        m_session = m_framePool.CreateCaptureSession(captureItem);
+
+        // If supported, enable cursor capture
+        if (const auto session2 = m_session.try_as<IGraphicsCaptureSession2>())
+            session2.IsCursorCaptureEnabled(true);
+
+        // If supported, disable colored border around captured window to match other platforms
+        if (const auto session3 = m_session.try_as<IGraphicsCaptureSession3>())
+            session3.IsBorderRequired(false);
+
         m_session.StartCapture();
-
-        QFFmpegSurfaceCaptureThread::run();
-
-        m_session.Close();
     }
 
-    QVideoFrame grabFrame() override
+    ~WindowGrabber() { m_session.Close(); }
+
+    com_ptr<IDXGISurface> tryGetFrame()
     {
-        auto d3dFrame = m_devicePool.framePool.TryGetNextFrame();
-        if (!d3dFrame)
+        const Direct3D11CaptureFrame frame = m_framePool.TryGetNextFrame();
+        if (!frame)
             return {};
 
-        if (m_frameSize != d3dFrame.ContentSize()) {
-            m_frameSize = d3dFrame.ContentSize();
-            m_devicePool.framePool.Recreate(m_devicePool.iDirect3DDevice,
-                                            winrt::DirectXPixelFormat::R8G8B8A8UIntNormalized, 1,
-                                            d3dFrame.ContentSize());
-        }
-
-        auto d3dSurface = d3dFrame.Surface();
-        winrt::com_ptr<IDirect3DDxgiInterfaceAccess> dxgiInterfaceAccess{ d3dSurface.as<IDirect3DDxgiInterfaceAccess>() };
-        if (!dxgiInterfaceAccess)
-            return {};
-
-        winrt::com_ptr<IDXGISurface> dxgiSurface;
-        HRESULT hr = dxgiInterfaceAccess->GetInterface(__uuidof(dxgiSurface), dxgiSurface.put_void());
-        if (FAILED(hr)) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
-                        "Failed to get DXGI surface interface");
+        if (m_frameSize != frame.ContentSize()) {
+            m_frameSize = frame.ContentSize();
+            m_framePool.Recreate(getCaptureDevice(m_device), m_pixelFormat, 1, frame.ContentSize());
             return {};
         }
+
+        return copyTexture(m_device, frame.Surface());
+    }
+
+private:
+    static GraphicsCaptureItem createCaptureItem(HWND hwnd)
+    {
+        const auto factory = winrt::get_activation_factory<GraphicsCaptureItem>();
+        const auto interop = factory.as<IGraphicsCaptureItemInterop>();
+
+        GraphicsCaptureItem item = { nullptr };
+        check_hresult(interop->CreateForWindow(hwnd, winrt::guid_of<GraphicsCaptureItem>(),
+                                               winrt::put_abi(item)));
+        return item;
+    }
+
+    static IDirect3DDevice getCaptureDevice(const com_ptr<ID3D11Device> &d3dDevice)
+    {
+        const auto dxgiDevice = d3dDevice.as<IDXGIDevice>();
+
+        com_ptr<IInspectable> device;
+        check_hresult(CreateDirect3D11DeviceFromDXGIDevice(dxgiDevice.get(), device.put()));
+
+        return device.as<IDirect3DDevice>();
+    }
+
+    static com_ptr<IDXGISurface> copyTexture(const com_ptr<ID3D11Device> &device,
+                                             const IDirect3DSurface &capturedTexture)
+    {
+        const auto dxgiInterop{ capturedTexture.as<IDirect3DDxgiInterfaceAccess>() };
+        if (!dxgiInterop)
+            return {};
+
+        com_ptr<IDXGISurface> dxgiSurface;
+        check_hresult(dxgiInterop->GetInterface(guid_of<IDXGISurface>(), dxgiSurface.put_void()));
 
         DXGI_SURFACE_DESC desc = {};
-        hr = dxgiSurface->GetDesc(&desc);
-        if (FAILED(hr)) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed,
-                        "Failed to get DXGI surface description");
-            return {};
-        }
+        check_hresult(dxgiSurface->GetDesc(&desc));
 
         D3D11_TEXTURE2D_DESC texDesc = {};
         texDesc.Width = desc.Width;
@@ -202,28 +229,152 @@ protected:
         texDesc.MipLevels = 1;
         texDesc.SampleDesc = { 1, 0 };
 
-        winrt::com_ptr<ID3D11Texture2D> texture;
-        hr = m_devicePool.d3d11dev->CreateTexture2D(&texDesc, nullptr, texture.put());
-        if (FAILED(hr)) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed, "Failed to create ID3D11Texture2D");
-            return {};
+        com_ptr<ID3D11Texture2D> texture;
+        check_hresult(device->CreateTexture2D(&texDesc, nullptr, texture.put()));
+
+        com_ptr<ID3D11DeviceContext> ctx;
+        device->GetImmediateContext(ctx.put());
+        ctx->CopyResource(texture.get(), dxgiSurface.as<ID3D11Resource>().get());
+
+        return texture.as<IDXGISurface>();
+    }
+
+    winrt::Windows::Graphics::SizeInt32 m_frameSize{};
+    com_ptr<ID3D11Device> m_device;
+    Direct3D11CaptureFramePool m_framePool{ nullptr };
+    GraphicsCaptureSession m_session{ nullptr };
+    const DirectXPixelFormat m_pixelFormat = DirectXPixelFormat::R8G8B8A8UIntNormalized;
+};
+
+} // namespace
+
+class QFFmpegWindowCaptureUwp::Grabber : public QFFmpegSurfaceCaptureThread
+{
+    Q_OBJECT
+public:
+    Grabber(QFFmpegWindowCaptureUwp &capture, HWND hwnd)
+        : m_hwnd(hwnd),
+          m_format(QVideoFrameFormat(asQSize(getWindowSize(hwnd)),
+                                     QVideoFrameFormat::Format_RGBX8888))
+    {
+        const HMONITOR monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONULL);
+        m_adapter = getAdapter(monitor);
+
+        const qreal refreshRate = getMonitorRefreshRateHz(monitor);
+
+        m_format.setFrameRate(refreshRate);
+        setFrameRate(refreshRate);
+
+        addFrameCallback(capture, &QFFmpegWindowCaptureUwp::newVideoFrame);
+        connect(this, &Grabber::errorUpdated, &capture, &QFFmpegWindowCaptureUwp::updateError);
+    }
+
+    ~Grabber() override { stop(); }
+
+    QVideoFrameFormat frameFormat() const { return m_format; }
+
+protected:
+
+    void run() override
+    {
+        if (!m_adapter || !IsWindow(m_hwnd))
+            return; // Error already logged
+
+        try {
+            MultithreadedApartment comApartment;
+
+            m_windowGrabber = std::make_unique<WindowGrabber>(m_adapter.get(), m_hwnd);
+
+            QFFmpegSurfaceCaptureThread::run();
+
+            m_windowGrabber = nullptr;
+        } catch (const winrt::hresult_error &err) {
+
+            const QString message = QLatin1String("Unable to capture window: ")
+                    + QString::fromWCharArray(err.message().c_str());
+
+            updateError(InternalError, message);
+        }
+    }
+
+    QVideoFrame grabFrame() override
+    {
+        try {
+            com_ptr<IDXGISurface> texture = m_windowGrabber->tryGetFrame();
+            if (!texture)
+                return {}; // No frame available yet
+
+            const QSize size = getTextureSize(texture);
+
+            m_format.setFrameSize(size);
+
+            return QVideoFrame(new QUwpTextureVideoBuffer(std::move(texture)), m_format);
+
+        } catch (const winrt::hresult_error &err) {
+
+            const QString message = QLatin1String("Window capture failed: ")
+                    + QString::fromWCharArray(err.message().c_str());
+
+            updateError(InternalError, message);
         }
 
-        winrt::com_ptr<ID3D11DeviceContext> ctx;
-        m_devicePool.d3d11dev->GetImmediateContext(ctx.put());
-        ctx->CopyResource(texture.as<ID3D11Resource>().get(), dxgiSurface.as<ID3D11Resource>().get());
-
-        QVideoFrameFormat format(QSize{ int(desc.Width), int(desc.Height) }, QVideoFrameFormat::Format_RGBX8888);
-        format.setFrameRate(frameRate());
-
-        return QVideoFrame(new QUwpTextureVideoBuffer(std::move(texture.as<IDXGISurface>())), format);
+        return {};
     }
 
 private:
-    QFFmpegWindowCaptureUwp &m_capture;
-    DeviceFramePool m_devicePool;
-    winrt::GraphicsCaptureSession m_session;
-    winrt::Windows::Graphics::SizeInt32 m_frameSize;
+    static com_ptr<IDXGIAdapter1> getAdapter(HMONITOR handle)
+    {
+        com_ptr<IDXGIFactory1> factory;
+        check_hresult(CreateDXGIFactory1(guid_of<IDXGIFactory1>(), factory.put_void()));
+
+        com_ptr<IDXGIAdapter1> adapter;
+        for (quint32 i = 0; factory->EnumAdapters1(i, adapter.put()) == S_OK; adapter = nullptr, i++) {
+            com_ptr<IDXGIOutput> output;
+            for (quint32 j = 0; adapter->EnumOutputs(j, output.put()) == S_OK; output = nullptr, j++) {
+                DXGI_OUTPUT_DESC desc = {};
+                HRESULT hr = output->GetDesc(&desc);
+                if (hr == S_OK && desc.Monitor == handle)
+                    return adapter;
+            }
+        }
+        return {};
+    }
+
+    static QSize getTextureSize(const com_ptr<IDXGISurface> &surf)
+    {
+        if (!surf)
+            return {};
+
+        DXGI_SURFACE_DESC desc;
+        check_hresult(surf->GetDesc(&desc));
+
+        return { static_cast<int>(desc.Width), static_cast<int>(desc.Height) };
+    }
+
+    static qreal getMonitorRefreshRateHz(HMONITOR handle)
+    {
+        DWORD count = 0;
+        if (GetNumberOfPhysicalMonitorsFromHMONITOR(handle, &count)) {
+            std::vector<PHYSICAL_MONITOR> monitors{ count };
+            if (GetPhysicalMonitorsFromHMONITOR(handle, count, monitors.data())) {
+                for (const auto &monitor : std::as_const(monitors)) {
+                    MC_TIMING_REPORT screenTiming = {};
+                    if (GetTimingReport(monitor.hPhysicalMonitor, &screenTiming)) {
+                        // Empirically we found that GetTimingReport does not return
+                        // the frequency in updates per second as documented, but in
+                        // updates per 100 seconds.
+                        return static_cast<qreal>(screenTiming.dwVerticalFrequencyInHZ) / 100.0;
+                    }
+                }
+            }
+        }
+        return DefaultScreenCaptureFrameRate;
+    }
+
+    HWND m_hwnd{};
+    com_ptr<IDXGIAdapter1> m_adapter{};
+    std::unique_ptr<WindowGrabber> m_windowGrabber;
+    QVideoFrameFormat m_format;
 };
 
 QFFmpegWindowCaptureUwp::QFFmpegWindowCaptureUwp() : QPlatformSurfaceCapture(WindowSource{})
@@ -233,123 +384,11 @@ QFFmpegWindowCaptureUwp::QFFmpegWindowCaptureUwp() : QPlatformSurfaceCapture(Win
 
 QFFmpegWindowCaptureUwp::~QFFmpegWindowCaptureUwp() = default;
 
-static QMaybe<DeviceFramePool>
-createCaptureFramePool(IDXGIAdapter1 *adapter, const winrt::GraphicsCaptureItem &item)
-{
-    winrt::com_ptr<ID3D11Device> d3d11dev;
-    HRESULT hr =
-            D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0,
-                              nullptr, 0, D3D11_SDK_VERSION, d3d11dev.put(), nullptr, nullptr);
-    if (FAILED(hr))
-        return { "Failed to create ID3D11Device device" + errorString(hr) };
-
-    winrt::com_ptr<IDXGIDevice> dxgiDevice;
-    hr = d3d11dev->QueryInterface(__uuidof(IDXGIDevice), dxgiDevice.put_void());
-    if (FAILED(hr))
-        return { "Failed to obtain dxgi for D3D11Device face" };
-
-    winrt::IDirect3DDevice iDirect3DDevice{};
-    hr = CreateDirect3D11DeviceFromDXGIDevice(
-            dxgiDevice.get(), reinterpret_cast<::IInspectable **>(winrt::put_abi(iDirect3DDevice)));
-    if (FAILED(hr))
-        return { "Failed to create IDirect3DDevice device" + errorString(hr) };
-
-    auto pool = winrt::Direct3D11CaptureFramePool::Create(
-        iDirect3DDevice, winrt::DirectXPixelFormat::R8G8B8A8UIntNormalized, 1, item.Size());
-    if (pool)
-        return DeviceFramePool{ iDirect3DDevice, d3d11dev, pool };
-    else
-        return { "Failed to create capture frame pool" };
-}
-
-struct Monitor {
-    winrt::com_ptr<IDXGIAdapter1> adapter;
-    HMONITOR handle = nullptr;
-};
-
-static QMaybe<Monitor> findScreen(const QScreen *screen)
-{
-    if (!screen)
-        return { "Cannot find nullptr screen" };
-
-    auto *winScreen = screen->nativeInterface<QNativeInterface::Private::QWindowsScreen>();
-    HMONITOR handle = winScreen ? winScreen->handle() : nullptr;
-
-    winrt::com_ptr<IDXGIFactory1> factory;
-    HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), factory.put_void());
-    if (FAILED(hr))
-        return { "Failed to create IDXGIFactory" + errorString(hr) };
-
-    winrt::com_ptr<IDXGIAdapter1> adapter;
-    for (quint32 i = 0; SUCCEEDED(factory->EnumAdapters1(i, adapter.put())); i++, adapter = {}) {
-        winrt::com_ptr<IDXGIOutput> output;
-        for (quint32 j = 0; SUCCEEDED(adapter->EnumOutputs(j, output.put())); j++, output = {}) {
-            DXGI_OUTPUT_DESC desc = {};
-            output->GetDesc(&desc);
-            qCDebug(qLcWindowCaptureUwp) << i << j << QString::fromWCharArray(desc.DeviceName);
-            auto match = handle ? handle == desc.Monitor
-                                : QString::fromWCharArray(desc.DeviceName) == screen->name();
-            if (match)
-                return Monitor { adapter, desc.Monitor };
-        }
-    }
-    return { "Could not find screen adapter " + screen->name() };
-}
-
-static QMaybe<Monitor> findScreenForWindow(HWND wh)
-{
-    HMONITOR handle = MonitorFromWindow(wh, MONITOR_DEFAULTTONULL);
-    if (!handle)
-        return { "Cannot find window screen" };
-
-    winrt::com_ptr<IDXGIFactory1> factory;
-    HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), factory.put_void());
-    if (FAILED(hr))
-        return { "Failed to create IDXGIFactory" + errorString(hr) };
-
-    winrt::com_ptr<IDXGIAdapter1> adapter;
-    for (quint32 i = 0; SUCCEEDED(factory->EnumAdapters1(i, adapter.put())); i++, adapter = {}) {
-        winrt::com_ptr<IDXGIOutput> output;
-        for (quint32 j = 0; SUCCEEDED(adapter->EnumOutputs(j, output.put())); j++, output = {}) {
-            DXGI_OUTPUT_DESC desc = {};
-            output->GetDesc(&desc);
-            qCDebug(qLcWindowCaptureUwp) << i << j << QString::fromWCharArray(desc.DeviceName);
-            if (desc.Monitor == handle)
-                return Monitor { adapter, handle };
-        }
-    }
-
-    return { "Could not find window screen adapter" };
-}
-
-static QMaybe<winrt::GraphicsCaptureItem> createScreenCaptureItem(HMONITOR handle)
-{
-    auto factory = winrt::get_activation_factory<winrt::GraphicsCaptureItem>();
-    auto interop = factory.as<IGraphicsCaptureItemInterop>();
-
-    winrt::GraphicsCaptureItem item = {nullptr};
-    HRESULT hr = interop->CreateForMonitor(handle, __uuidof(ABI::Windows::Graphics::Capture::IGraphicsCaptureItem), winrt::put_abi(item));
-    if (FAILED(hr))
-        return "Failed to create capture item for monitor" + errorString(hr);
-    else
-        return item;
-}
-
-static QMaybe<winrt::GraphicsCaptureItem> createWindowCaptureItem(HWND handle)
-{
-    auto factory = winrt::get_activation_factory<winrt::GraphicsCaptureItem>();
-    auto interop = factory.as<IGraphicsCaptureItemInterop>();
-
-    winrt::GraphicsCaptureItem item = {nullptr};
-    HRESULT hr = interop->CreateForWindow(handle, __uuidof(ABI::Windows::Graphics::Capture::IGraphicsCaptureItem), winrt::put_abi(item));
-    if (FAILED(hr))
-        return "Failed to create capture item for window" + errorString(hr);
-    else
-        return item;
-}
-
 static QString isCapturableWindow(HWND hwnd)
 {
+    if (!IsWindow(hwnd))
+        return "Invalid window handle";
+
     if (hwnd == GetShellWindow())
         return "Cannot capture the shell window";
 
@@ -361,89 +400,45 @@ static QString isCapturableWindow(HWND hwnd)
     if (!IsWindowVisible(hwnd))
         return "Cannot capture invisible windows";
 
-    if (GetParent(hwnd) != 0)
+    if (GetAncestor(hwnd, GA_ROOT) != hwnd)
         return "Can only capture root windows";
 
-    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    const LONG_PTR style = GetWindowLongPtr(hwnd, GWL_STYLE);
     if (style & WS_DISABLED)
         return "Cannot capture disabled windows";
 
-    LONG exStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+    const LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
     if (exStyle & WS_EX_TOOLWINDOW)
         return "No tooltips";
 
     DWORD cloaked = FALSE;
-    HRESULT hr = DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &cloaked, sizeof(cloaked));
+    const HRESULT hr = DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &cloaked, sizeof(cloaked));
     if (SUCCEEDED(hr) && cloaked == DWM_CLOAKED_SHELL)
         return "Cannot capture cloaked windows";
 
     return {};
 }
 
-static qreal getMonitorRefreshRateHz(HMONITOR handle)
-{
-    DWORD count = 0;
-    if (GetNumberOfPhysicalMonitorsFromHMONITOR(handle, &count)) {
-        std::vector<PHYSICAL_MONITOR> monitors{ count };
-        if (GetPhysicalMonitorsFromHMONITOR(handle, count, monitors.data())) {
-            for (auto monitor : monitors) {
-                MC_TIMING_REPORT screenTiming = {};
-                if (GetTimingReport(monitor.hPhysicalMonitor, &screenTiming))
-                    return qreal(screenTiming.dwVerticalFrequencyInHZ) / 100.;
-            }
-        }
-    }
-    return 60.;
-}
-
 bool QFFmpegWindowCaptureUwp::setActiveInternal(bool active)
 {
-    if (bool(m_grabber) == active)
+    if (static_cast<bool>(m_grabber) == active)
         return false;
 
     if (m_grabber) {
         m_grabber.reset();
-        m_format = {};
         return true;
     }
 
-    auto window = source<WindowSource>();
-    auto handle = QCapturableWindowPrivate::handle(window);
+    const auto window = source<WindowSource>();
+    const auto handle = QCapturableWindowPrivate::handle(window);
 
-    const auto windowHandle = reinterpret_cast<HWND>(handle ? handle->id : 0);
-    if (windowHandle) {
-        QString error = isCapturableWindow(windowHandle);
-        if (!error.isEmpty()) {
-            updateError(InternalError, error);
-            return false;
-        }
-    }
-
-    auto maybeMonitor = findScreenForWindow(windowHandle);
-    if (!maybeMonitor) {
-        updateError(NotFound, maybeMonitor.error());
+    const auto hwnd = reinterpret_cast<HWND>(handle ? handle->id : 0);
+    if (const QString error = isCapturableWindow(hwnd); !error.isEmpty()) {
+        updateError(InternalError, error);
         return false;
     }
 
-    auto maybeItem = createWindowCaptureItem(windowHandle);
-    if (!maybeItem) {
-        updateError(NotFound, maybeItem.error());
-        return false;
-    }
-
-    auto maybePool = createCaptureFramePool(maybeMonitor.value().adapter.get(), maybeItem.value());
-    if (!maybePool) {
-        updateError(InternalError, maybePool.error());
-        return false;
-    }
-
-    qreal refreshRate = getMonitorRefreshRateHz(maybeMonitor.value().handle);
-
-    m_format = QVideoFrameFormat({ maybeItem.value().Size().Width, maybeItem.value().Size().Height },
-                                 QVideoFrameFormat::Format_RGBX8888);
-    m_format.setFrameRate(refreshRate);
-
-    m_grabber = std::make_unique<Grabber>(*this, maybePool.value(), maybeItem.value(), refreshRate);
+    m_grabber = std::make_unique<Grabber>(*this, hwnd);
     m_grabber->start();
 
     return true;
@@ -451,12 +446,14 @@ bool QFFmpegWindowCaptureUwp::setActiveInternal(bool active)
 
 bool QFFmpegWindowCaptureUwp::isSupported()
 {
-    return winrt::GraphicsCaptureSession::IsSupported();
+    return GraphicsCaptureSession::IsSupported();
 }
 
 QVideoFrameFormat QFFmpegWindowCaptureUwp::frameFormat() const
 {
-    return m_format;
+    if (m_grabber)
+        return m_grabber->frameFormat();
+    return {};
 }
 
 QT_END_NAMESPACE
