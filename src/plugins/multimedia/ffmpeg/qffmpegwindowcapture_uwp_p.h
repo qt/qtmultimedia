@@ -38,7 +38,6 @@ private:
     bool setActiveInternal(bool active) override;
 
 private:
-    QVideoFrameFormat m_format;
     std::unique_ptr<Grabber> m_grabber;
 };
 
