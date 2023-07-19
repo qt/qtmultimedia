@@ -36,6 +36,7 @@ Window {
         audioInput: controls.audioInput
         camera: controls.camera
         screenCapture: controls.screenCapture
+        windowCapture: controls.windowCapture
         videoOutput: videoOutput
     }
 

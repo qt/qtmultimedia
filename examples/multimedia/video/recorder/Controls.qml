@@ -16,6 +16,7 @@ Row {
     property alias audioInput: audioInputSelect.selected
     property alias camera: videoSourceSelect.selectedCamera
     property alias screenCapture: videoSourceSelect.selectedScreenCapture
+    property alias windowCapture: videoSourceSelect.selectedWindowCapture
 
     spacing: Style.interSpacing * Style.ratio
 
