@@ -143,6 +143,17 @@ public:
         m_mapMode = QVideoFrame::NotMapped;
     }
 
+    QSize getSize() const
+    {
+        if (!m_texture)
+            return {};
+
+        D3D11_TEXTURE2D_DESC desc{};
+        m_texture->GetDesc(&desc);
+
+        return { static_cast<int>(desc.Width), static_cast<int>(desc.Height) };
+    }
+
 private:
     ComPtr<ID3D11Device> m_device;
     ComPtr<ID3D11Texture2D> m_texture;
@@ -306,14 +317,46 @@ private:
     bool m_releaseFrame = false;
     std::shared_ptr<QMutex> m_ctxMutex = std::make_shared<QMutex>();
 };
+
+QSize getPhysicalSizePixels(const QScreen *screen)
+{
+    const auto *winScreen = screen->nativeInterface<QNativeInterface::Private::QWindowsScreen>();
+    if (!winScreen)
+        return {};
+
+    const HMONITOR handle = winScreen->handle();
+    if (!handle)
+        return {};
+
+    MONITORINFO info{};
+    info.cbSize = sizeof(info);
+
+    if (!GetMonitorInfoW(handle, &info))
+        return {};
+
+    return { info.rcMonitor.right - info.rcMonitor.left,
+             info.rcMonitor.bottom - info.rcMonitor.top };
+}
+
+QVideoFrameFormat getFrameFormat(QScreen* screen)
+{
+    const QSize screenSize = getPhysicalSizePixels(screen);
+
+    QVideoFrameFormat format = { screenSize, QVideoFrameFormat::Format_BGRA8888 };
+    format.setFrameRate(static_cast<int>(screen->refreshRate()));
+
+    return format;
+}
+
 } // namespace
 
 class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegSurfaceCaptureThread
 {
 public:
-    Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen)
-        : QFFmpegSurfaceCaptureThread()
-        , m_screen(screen)
+    Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen,
+            const QVideoFrameFormat &format)
+        : m_screen(screen)
+        , m_format(format)
     {
         setFrameRate(screen->refreshRate());
         addFrameCallback(screenCapture, &QFFmpegScreenCaptureDxgi::newVideoFrame);
@@ -328,27 +371,15 @@ public:
     {
         m_duplication = DxgiDuplication();
         const ComStatus status = m_duplication.initialize(m_screen);
-
-        QSize frameSize = m_duplication.getFrameSize();
-        QVideoFrameFormat frameFormat(frameSize, QVideoFrameFormat::Format_BGRA8888);
-
-        m_formatMutex.lock();
-        m_format = frameFormat;
-        m_format.setFrameRate(int(frameRate()));
-        m_formatMutex.unlock();
-        m_waitForFormat.wakeAll();
-
         if (!status) {
-            updateError(QPlatformSurfaceCapture::CaptureFailed, status.str());
+            updateError(CaptureFailed, status.str());
             return;
         }
+
         QFFmpegSurfaceCaptureThread::run();
     }
 
     QVideoFrameFormat format() {
-        QMutexLocker locker(&m_formatMutex);
-        if (!m_format.isValid())
-            m_waitForFormat.wait(&m_formatMutex);
         return m_format;
     }
 
@@ -383,6 +414,11 @@ public:
             qCWarning(qLcScreenCaptureDxgi) << status.str();
         } else if (maybeBuf) {
             std::unique_ptr<QD3D11TextureVideoBuffer> buffer = std::move(*maybeBuf);
+
+            const QSize bufSize = buffer->getSize();
+            if (bufSize != m_format.frameSize())
+                m_format.setFrameSize(bufSize);
+
             frame = { buffer.release(), format() };
         }
 
@@ -390,10 +426,8 @@ public:
     }
 
 private:
-    QScreen *const m_screen = nullptr;
-    QWaitCondition m_waitForFormat;
+    const QScreen *m_screen = nullptr;
     QVideoFrameFormat m_format;
-    QMutex m_formatMutex;
     DxgiDuplication m_duplication;
 };
 
@@ -421,7 +455,13 @@ bool QFFmpegScreenCaptureDxgi::setActiveInternal(bool active)
         if (!checkScreenWithError(screen))
             return false;
 
-        m_grabber.reset(new Grabber(*this, screen));
+        const QVideoFrameFormat format = getFrameFormat(screen);
+        if (!format.isValid()) {
+            updateError(NotFound, QLatin1String("Unable to determine screen size or format"));
+            return false;
+        }
+
+        m_grabber.reset(new Grabber(*this, screen, format));
         m_grabber->start();
     }
 
