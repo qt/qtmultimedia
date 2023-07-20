@@ -124,17 +124,17 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
 }
 
 std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID codecID,
-                                                                   const QSize &sourceSize)
+                                                                   const QSize &resolution)
 {
-    auto matchesSizeConstraints = [&sourceSize](const HWAccel &accel) {
+    auto matchesSizeConstraints = [&resolution](const HWAccel &accel) {
         const auto constraints = accel.constraints();
         if (!constraints)
             return true;
 
-        return sourceSize.width() >= constraints->min_width
-                && sourceSize.height() >= constraints->min_height
-                && sourceSize.width() <= constraints->max_width
-                && sourceSize.height() <= constraints->max_height;
+        return resolution.width() >= constraints->min_width
+                && resolution.height() >= constraints->min_height
+                && resolution.width() <= constraints->max_width
+                && resolution.height() <= constraints->max_height;
     };
 
     // 1st - attempt to find hw accelerated encoder
