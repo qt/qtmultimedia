@@ -42,7 +42,7 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
     const auto qVideoCodec = encoderSettings.videoCodec();
     const auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
 
-    std::tie(d->codec, d->accel) = findHwEncoder(codecID, sourceSize);
+    std::tie(d->codec, d->accel) = findHwEncoder(codecID, d->settings.videoResolution());
 
     if (!d->codec)
         d->codec = findSwEncoder(codecID, sourceFormat, sourceSWFormat);
