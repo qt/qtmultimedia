@@ -243,8 +243,9 @@ private:
                 return false;
             }
 
-            m_format = QVideoFrameFormat(QSize(m_xImage->width, m_xImage->height), pixelFormat);
-            m_format.setFrameRate(frameRate());
+            QVideoFrameFormat format(QSize(m_xImage->width, m_xImage->height), pixelFormat);
+            format.setFrameRate(frameRate());
+            m_format = format;
         }
 
         return m_attached;

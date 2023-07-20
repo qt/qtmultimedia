@@ -103,8 +103,9 @@ private:
             return false;
         }
 
-        m_format = QVideoFrameFormat(size, QVideoFrameFormat::Format_BGRX8888);
-        m_format.setFrameRate(frameRate());
+        QVideoFrameFormat format(size, QVideoFrameFormat::Format_BGRX8888);
+        format.setFrameRate(frameRate());
+        m_format = format;
         return true;
     }
 
