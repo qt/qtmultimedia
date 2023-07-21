@@ -32,18 +32,16 @@ static int audioRingBufferSize(int bufferSize, int maxPeriodSize)
 
 QDarwinAudioSinkBuffer::QDarwinAudioSinkBuffer(int bufferSize, int maxPeriodSize,
                                                const QAudioFormat &audioFormat)
-    : m_deviceError(false),
-      m_maxPeriodSize(maxPeriodSize),
-      m_device(nullptr),
+    : m_maxPeriodSize(maxPeriodSize),
+      m_bytesPerFrame(audioFormat.bytesPerFrame()),
+      m_periodTime(maxPeriodSize / m_bytesPerFrame * 1000 / audioFormat.sampleRate()),
       m_buffer(
               std::make_unique<CoreAudioRingBuffer>(audioRingBufferSize(bufferSize, maxPeriodSize)))
 {
-    m_bytesPerFrame = audioFormat.bytesPerFrame();
-    m_periodTime = m_maxPeriodSize / m_bytesPerFrame * 1000 / audioFormat.sampleRate();
-
     m_fillTimer = new QTimer(this);
     m_fillTimer->setTimerType(Qt::PreciseTimer);
-    connect(m_fillTimer, SIGNAL(timeout()), SLOT(fillBuffer()));
+    m_fillTimer->setInterval(m_buffer->size() / 2 / m_maxPeriodSize * m_periodTime);
+    connect(m_fillTimer, &QTimer::timeout, this, &QDarwinAudioSinkBuffer::fillBuffer);
 }
 
 QDarwinAudioSinkBuffer::~QDarwinAudioSinkBuffer() = default;
@@ -108,17 +106,28 @@ int QDarwinAudioSinkBuffer::available() const
     return m_buffer->free();
 }
 
+bool QDarwinAudioSinkBuffer::deviceAtEnd() const
+{
+    return m_deviceAtEnd;
+}
+
 void QDarwinAudioSinkBuffer::reset()
 {
     m_buffer->reset();
-    m_device = nullptr;
-    m_deviceError = false;
+    setFillingEnabled(false);
+    setPrefetchDevice(nullptr);
 }
 
 void QDarwinAudioSinkBuffer::setPrefetchDevice(QIODevice *device)
 {
-    if (std::exchange(m_device, device) != device && device)
-        fillBuffer();
+    if (std::exchange(m_device, device) == device)
+        return;
+
+    m_deviceError = false;
+    m_deviceAtEnd = device && device->atEnd();
+    const auto wasFillingEnabled = m_fillingEnabled;
+    setFillingEnabled(false);
+    setFillingEnabled(wasFillingEnabled);
 }
 
 QIODevice *QDarwinAudioSinkBuffer::prefetchDevice() const
@@ -126,15 +135,17 @@ QIODevice *QDarwinAudioSinkBuffer::prefetchDevice() const
     return m_device;
 }
 
-void QDarwinAudioSinkBuffer::startFillTimer()
+void QDarwinAudioSinkBuffer::setFillingEnabled(bool enabled)
 {
-    if (m_device)
-        m_fillTimer->start(m_buffer->size() / 2 / m_maxPeriodSize * m_periodTime);
-}
+    if (std::exchange(m_fillingEnabled, enabled) == enabled)
+        return;
 
-void QDarwinAudioSinkBuffer::stopFillTimer()
-{
-    m_fillTimer->stop();
+    if (!enabled)
+        m_fillTimer->stop();
+    else if (m_device) {
+        fillBuffer();
+        m_fillTimer->start();
+    }
 }
 
 void QDarwinAudioSinkBuffer::fillBuffer()
@@ -151,12 +162,13 @@ void QDarwinAudioSinkBuffer::fillBuffer()
 
             if (region.second > 0) {
                 region.second = m_device->read(region.first, region.second);
+                m_deviceAtEnd = m_device->atEnd();
                 if (region.second > 0)
                     filled += region.second;
                 else if (region.second == 0)
                     wecan = false;
                 else if (region.second < 0) {
-                    m_fillTimer->stop();
+                    setFillingEnabled(false);
                     region.second = 0;
                     m_deviceError = true;
                 }
@@ -206,6 +218,8 @@ QDarwinAudioSink::QDarwinAudioSink(const QAudioDevice &device, QObject *parent)
     m_device = di.id();
 
     m_clockFrequency = CoreAudioUtils::frequency() / 1000;
+
+    connect(this, &QDarwinAudioSink::stateChanged, this, &QDarwinAudioSink::updateAudioDevice);
 }
 
 QDarwinAudioSink::~QDarwinAudioSink()
@@ -227,16 +241,12 @@ void QDarwinAudioSink::start(QIODevice *device)
         return;
     }
 
-    auto guard = m_stateMachine.start();
-    Q_ASSERT(guard);
-
-    m_audioBuffer->reset();
     m_audioBuffer->setPrefetchDevice(device);
 
     m_pullMode = true;
     m_totalFrames = 0;
 
-    audioThreadStart();
+    m_stateMachine.start();
 }
 
 QIODevice *QDarwinAudioSink::start()
@@ -248,50 +258,42 @@ QIODevice *QDarwinAudioSink::start()
         return m_audioIO;
     }
 
-    auto guard = m_stateMachine.start(false);
-    Q_ASSERT(guard);
-
-    m_audioBuffer->reset();
-    m_audioBuffer->setPrefetchDevice(nullptr);
-
     m_pullMode = false;
     m_totalFrames = 0;
+
+    m_stateMachine.start(false);
 
     return m_audioIO;
 }
 
 void QDarwinAudioSink::stop()
 {
-    if (auto guard = m_stateMachine.stop(QAudio::NoError, true)) {
-        stopTimers();
+    if (m_audioBuffer)
+        m_audioBuffer->setFillingEnabled(false);
 
+    if (auto guard = m_stateMachine.stop(QAudio::NoError, true)) {
         if (guard.prevState() == QAudio::ActiveState) {
             m_stateMachine.waitForDrained(std::chrono::milliseconds(500));
 
             if (m_stateMachine.isDraining())
                 qWarning() << "Failed wait for sink drained";
-
-            audioDeviceStop();
         }
     }
 }
 
 void QDarwinAudioSink::reset()
 {
-    if (auto guard = m_stateMachine.stopOrUpdateError())
-        audioThreadStop(guard.prevState());
+    m_stateMachine.stopOrUpdateError();
 }
 
 void QDarwinAudioSink::suspend()
 {
-    if (auto guard = m_stateMachine.suspend())
-        audioThreadStop(guard.prevState());
+    m_stateMachine.suspend();
 }
 
 void QDarwinAudioSink::resume()
 {
-    if (auto guard = m_stateMachine.resume())
-        audioThreadStart();
+    m_stateMachine.resume();
 }
 
 qsizetype QDarwinAudioSink::bytesFree() const
@@ -361,8 +363,7 @@ qreal QDarwinAudioSink::volume() const
 
 void QDarwinAudioSink::inputReady()
 {
-    if (auto guard = m_stateMachine.activateFromIdle())
-        audioDeviceStart();
+    m_stateMachine.activateFromIdle();
 }
 
 OSStatus QDarwinAudioSink::renderCallback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
@@ -536,7 +537,8 @@ bool QDarwinAudioSink::open()
 
     m_audioBuffer = std::make_unique<QDarwinAudioSinkBuffer>(m_internalBufferSize,
                                                              m_periodSizeBytes, m_audioFormat);
-    connect(m_audioBuffer.get(), SIGNAL(readyRead()), SLOT(inputReady())); // Pull
+    connect(m_audioBuffer.get(), &QDarwinAudioSinkBuffer::readyRead, this,
+            &QDarwinAudioSink::inputReady); // Pull
 
     m_audioIO = new QDarwinAudioSinkDevice(m_audioBuffer.get(), this);
 
@@ -556,58 +558,25 @@ bool QDarwinAudioSink::open()
 void QDarwinAudioSink::close()
 {
     if (m_audioUnit != 0) {
-        if (auto guard = m_stateMachine.stop()) {
-            audioThreadStop(guard.prevState());
-            QSignalBlocker blocker(this);
-            guard.reset();
-        }
+        m_stateMachine.stop();
+
         AudioUnitUninitialize(m_audioUnit);
         AudioComponentInstanceDispose(m_audioUnit);
+        m_audioUnit = 0;
     }
 
     m_audioBuffer.reset();
 }
 
-void QDarwinAudioSink::audioThreadStart()
-{
-    startTimers();
-    if (m_stateMachine.state() == QAudio::ActiveState)
-        audioDeviceStart();
-}
-
-void QDarwinAudioSink::audioThreadStop(QAudio::State prevState)
-{
-    stopTimers();
-    if (prevState == QAudio::ActiveState)
-        audioDeviceStop();
-}
-
-void QDarwinAudioSink::audioDeviceStart()
-{
-    AudioOutputUnitStart(m_audioUnit);
-}
-
-void QDarwinAudioSink::audioDeviceStop()
-{
-    AudioOutputUnitStop(m_audioUnit);
-}
-
 void QDarwinAudioSink::onAudioDeviceIdle()
 {
-    if (auto guard = m_stateMachine.updateActiveOrIdle(false)) {
-        auto device = m_audioBuffer ? m_audioBuffer->prefetchDevice() : nullptr;
-        const bool atEnd = device && device->atEnd();
-        guard.setError(atEnd ? QAudio::NoError : QAudio::UnderrunError);
-
-        if (guard.prevState() == QAudio::ActiveState)
-            audioDeviceStop();
-    }
+    const bool atEnd = m_audioBuffer->deviceAtEnd();
+    m_stateMachine.updateActiveOrIdle(false, atEnd ? QAudio::NoError : QAudio::UnderrunError);
 }
 
 void QDarwinAudioSink::onAudioDeviceError()
 {
-    if (auto guard = m_stateMachine.stop(QAudio::IOError))
-        audioThreadStop(guard.prevState());
+    m_stateMachine.stop(QAudio::IOError);
 }
 
 void QDarwinAudioSink::onAudioDeviceDrained()
@@ -615,14 +584,22 @@ void QDarwinAudioSink::onAudioDeviceDrained()
     m_stateMachine.onDrained();
 }
 
-void QDarwinAudioSink::startTimers()
+void QDarwinAudioSink::updateAudioDevice()
 {
-    m_audioBuffer->startFillTimer();
-}
 
-void QDarwinAudioSink::stopTimers()
-{
-    m_audioBuffer->stopFillTimer();
+    const auto state = m_stateMachine.state();
+
+    Q_ASSERT(m_audioBuffer);
+    Q_ASSERT(m_audioUnit);
+
+    if (state == QAudio::StoppedState)
+        m_audioBuffer->reset();
+    else
+        m_audioBuffer->setFillingEnabled(state != QAudio::SuspendedState);
+
+    const bool unitStarted = state == QAudio::ActiveState;
+    if (std::exchange(m_audioUnitStarted, unitStarted) != unitStarted)
+        (unitStarted ? AudioOutputUnitStart : AudioOutputUnitStop)(m_audioUnit);
 }
 
 QT_END_NAMESPACE
