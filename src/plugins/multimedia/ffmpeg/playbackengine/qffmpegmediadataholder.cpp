@@ -49,8 +49,9 @@ static std::optional<qint64> streamDuration(const AVStream &stream)
 static int streamOrientation(const AVStream *stream)
 {
     Q_ASSERT(stream);
-    size_t dataSize = 0;
-    constexpr int32_t displayMatrixSize = sizeof(int32_t) * 9;
+    using SideDataSize = decltype(AVPacketSideData::size);
+    SideDataSize dataSize = 0;
+    constexpr SideDataSize displayMatrixSize = sizeof(int32_t) * 9;
     const uint8_t *sideData = av_stream_get_side_data(stream, AV_PKT_DATA_DISPLAYMATRIX, &dataSize);
     if (dataSize < displayMatrixSize)
         return 0;
