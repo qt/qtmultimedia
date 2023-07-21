@@ -47,14 +47,16 @@ public:
     qint64 writeBytes(const char *data, qint64 maxSize);
 
     int available() const;
+
+    bool deviceAtEnd() const;
+
     void reset();
 
     void setPrefetchDevice(QIODevice *device);
 
     QIODevice *prefetchDevice() const;
 
-    void startFillTimer();
-    void stopFillTimer();
+    void setFillingEnabled(bool enabled);
 
 signals:
     void readyRead();
@@ -63,12 +65,14 @@ private slots:
     void fillBuffer();
 
 private:
-    bool m_deviceError;
-    int m_maxPeriodSize;
-    int m_bytesPerFrame;
-    int m_periodTime;
-    QIODevice *m_device;
-    QTimer *m_fillTimer;
+    bool m_deviceError = false;
+    bool m_fillingEnabled = false;
+    bool m_deviceAtEnd = false;
+    const int m_maxPeriodSize = 0;
+    const int m_bytesPerFrame = 0;
+    const int m_periodTime = 0;
+    QIODevice *m_device = nullptr;
+    QTimer *m_fillTimer = nullptr;
     std::unique_ptr<CoreAudioRingBuffer> m_buffer;
 };
 
@@ -115,6 +119,7 @@ public:
 
 private slots:
     void inputReady();
+    void updateAudioDevice();
 
 private:
     enum ThreadState { Running, Draining, Stopped };
@@ -128,16 +133,9 @@ private:
 
     bool open();
     void close();
-    void audioThreadStart();
-    void audioThreadStop(QAudio::State prevState = QAudio::ActiveState);
-    void audioDeviceStart();
-    void audioDeviceStop();
     void onAudioDeviceIdle();
     void onAudioDeviceError();
     void onAudioDeviceDrained();
-
-    void startTimers();
-    void stopTimers();
 
     QAudioDevice m_audioDeviceInfo;
     QByteArray m_device;
@@ -154,6 +152,7 @@ private:
     AudioDeviceID m_audioDeviceId;
 #endif
     AudioUnit m_audioUnit = 0;
+    bool m_audioUnitStarted = false;
     Float64 m_clockFrequency = 0;
     AudioStreamBasicDescription m_streamFormat;
     std::unique_ptr<QDarwinAudioSinkBuffer> m_audioBuffer;
