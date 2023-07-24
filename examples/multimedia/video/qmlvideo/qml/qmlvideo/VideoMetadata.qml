@@ -33,10 +33,6 @@ Scene {
             }
             Text {
                 color: "#e0e0e0"
-                text: "Size:" + videoMetaData.value(MediaMetaData.Size)
-            }
-            Text {
-                color: "#e0e0e0"
                 text: "Resolution:" + videoMetaData.value(MediaMetaData.Resolution)
             }
             Text {
