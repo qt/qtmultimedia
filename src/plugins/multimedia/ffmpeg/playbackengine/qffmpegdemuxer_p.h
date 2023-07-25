@@ -65,7 +65,7 @@ private:
     std::unordered_map<int, StreamData> m_streams;
     PositionWithOffset m_posWithOffset;
     qint64 m_endPts = 0;
-    std::atomic<int> m_loops = QMediaPlayer::Once;
+    QAtomicInt m_loops = QMediaPlayer::Once;
 };
 
 } // namespace QFFmpeg

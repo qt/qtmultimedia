@@ -16,8 +16,7 @@
 
 #include "playbackengine/qffmpegplaybackenginedefs_p.h"
 #include "qthread.h"
-
-#include <atomic>
+#include "qatomic.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -73,9 +72,9 @@ private slots:
 private:
     std::unique_ptr<QTimer> m_timer;
 
-    std::atomic_bool m_paused = true;
-    std::atomic_bool m_atEnd = false;
-    std::atomic_bool m_deleting = false;
+    QAtomicInteger<bool> m_paused = true;
+    QAtomicInteger<bool> m_atEnd = false;
+    QAtomicInteger<bool> m_deleting = false;
     const Id m_id;
 };
 } // namespace QFFmpeg

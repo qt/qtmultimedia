@@ -102,12 +102,12 @@ private:
 
 private:
     TimeController m_timeController;
-    std::atomic<qint64> m_lastPosition = 0;
-    std::atomic<qint64> m_seekPos = 0;
+    QAtomicInteger<qint64> m_lastPosition = 0;
+    QAtomicInteger<qint64> m_seekPos = 0;
     int m_loopIndex = 0;
     QQueue<Frame> m_frames;
 
-    std::atomic_bool m_isStepForced = false;
+    QAtomicInteger<bool> m_isStepForced = false;
     std::optional<TimePoint> m_explicitNextFrameTime;
 };
 
