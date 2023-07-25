@@ -36,11 +36,27 @@ private:
     std::unique_ptr<QRhiTexture> m_tex;
 };
 
-class AndroidTextureVideoBuffer : public QAbstractVideoBuffer
+// QRhiWithThreadGuard keeps QRhi and QThread (that created it) alive to allow proper cleaning
+class QRhiWithThreadGuard : public QObject {
+    Q_OBJECT
+public:
+    QRhiWithThreadGuard(std::shared_ptr<QRhi> r, std::shared_ptr<AndroidTextureThread> t)
+        : m_rhi(std::move(r)), m_thread(std::move(t)) {}
+    ~QRhiWithThreadGuard();
+private:
+    std::shared_ptr<QRhi> m_rhi;
+    std::shared_ptr<AndroidTextureThread> m_thread;
+};
+
+
+class AndroidTextureVideoBuffer : public QRhiWithThreadGuard, public QAbstractVideoBuffer
 {
 public:
-    AndroidTextureVideoBuffer(QRhi *rhi, std::unique_ptr<QRhiTexture> tex, const QSize &size)
-        : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle, rhi)
+    AndroidTextureVideoBuffer(
+            std::shared_ptr<QRhi> rhi, std::shared_ptr<AndroidTextureThread> thread,
+            std::unique_ptr<QRhiTexture> tex, const QSize &size)
+        : QRhiWithThreadGuard(std::move(rhi), std::move(thread))
+          , QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle, rhi.get())
           , m_size(size)
           , m_tex(std::move(tex))
     {}
@@ -254,7 +270,10 @@ class AndroidTextureThread : public QThread
 {
     Q_OBJECT
 public:
-    AndroidTextureThread() : QThread() {
+    AndroidTextureThread(QAndroidTextureVideoOutput * vo)
+        : QThread()
+        , m_videoOutput(vo)
+    {
     }
 
     ~AndroidTextureThread() {
@@ -286,7 +305,7 @@ public slots:
             m_surfaceTexture->updateTexImage();
             auto matrix = extTransformMatrix(m_surfaceTexture.get());
             auto tex = m_textureCopy->copyExternalTexture(m_size, matrix);
-            auto *buffer = new AndroidTextureVideoBuffer(m_rhi.get(), std::move(tex), m_size);
+            auto *buffer = new AndroidTextureVideoBuffer(m_rhi, m_videoOutput->getSurfaceThread(), std::move(tex), m_size);
             QVideoFrame frame(buffer, QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888));
             emit newFrame(frame);
         }
@@ -335,12 +354,19 @@ signals:
     void newFrame(const QVideoFrame &);
 
 private:
-    std::unique_ptr<QRhi> m_rhi;
+    QAndroidTextureVideoOutput * m_videoOutput;
+    std::shared_ptr<QRhi> m_rhi;
     std::unique_ptr<AndroidSurfaceTexture> m_surfaceTexture;
     std::unique_ptr<QRhiTexture> m_texture;
     std::unique_ptr<TextureCopy> m_textureCopy;
     QSize m_size;
 };
+
+QRhiWithThreadGuard::~QRhiWithThreadGuard() {
+    // It may happen that reseting m_rhi shared_ptr will delete it (if it is the last reference)
+    // QRHI need to be deleted from the thread that created it.
+    QMetaObject::invokeMethod(m_thread.get(), [&]() {m_rhi.reset();}, Qt::BlockingQueuedConnection);
+}
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject *parent)
     : QAndroidVideoOutput(parent)
@@ -352,7 +378,12 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject
         return;
     }
 
-    m_surfaceThread = std::make_unique<AndroidTextureThread>();
+    startNewSurfaceThread();
+}
+
+void QAndroidTextureVideoOutput::startNewSurfaceThread()
+{
+    m_surfaceThread = std::make_shared<AndroidTextureThread>(this);
     connect(m_surfaceThread.get(), &AndroidTextureThread::newFrame,
             this, &QAndroidTextureVideoOutput::newFrame);
     m_surfaceThread->start();
@@ -360,6 +391,9 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject
 
 QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
+    // Make sure that no more VideFrames will be created by surfaceThread
+    QMetaObject::invokeMethod(m_surfaceThread.get(),
+        &AndroidTextureThread::clearSurfaceTexture, Qt::BlockingQueuedConnection);
 }
 
 void QAndroidTextureVideoOutput::setSubtitle(const QString &subtitle)
@@ -419,6 +453,11 @@ void QAndroidTextureVideoOutput::reset()
     if (m_sink)
         m_sink->platformVideoSink()->setVideoFrame({});
     QMetaObject::invokeMethod(m_surfaceThread.get(), &AndroidTextureThread::clearSurfaceTexture);
+    // We are not allowed to work on the same thread after the reset
+    // as there may be pending frames and should not be handled.
+    startNewSurfaceThread();
+    QMetaObject::invokeMethod(m_surfaceThread.get(),
+        [&](){ m_surfaceThread->setFrameSize(m_nativeSize); }, Qt::BlockingQueuedConnection);
 }
 
 void QAndroidTextureVideoOutput::newFrame(const QVideoFrame &frame)
