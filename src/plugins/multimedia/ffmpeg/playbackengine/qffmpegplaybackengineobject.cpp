@@ -10,9 +10,9 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-static std::atomic<PlaybackEngineObject::Id> PersistentId = 0;
+static QAtomicInteger<PlaybackEngineObject::Id> PersistentId = 0;
 
-PlaybackEngineObject::PlaybackEngineObject() : m_id(++PersistentId) { }
+PlaybackEngineObject::PlaybackEngineObject() : m_id(PersistentId.fetchAndAddRelaxed(1)) { }
 
 PlaybackEngineObject::~PlaybackEngineObject()
 {
@@ -27,7 +27,7 @@ bool PlaybackEngineObject::isPaused() const
 
 void PlaybackEngineObject::setAtEnd(bool isAtEnd)
 {
-    if (m_atEnd.exchange(isAtEnd) != isAtEnd)
+    if (m_atEnd.testAndSetRelease(!isAtEnd, isAtEnd) && isAtEnd)
         emit atEnd();
 }
 
@@ -43,13 +43,13 @@ PlaybackEngineObject::Id PlaybackEngineObject::id() const
 
 void PlaybackEngineObject::setPaused(bool isPaused)
 {
-    if (m_paused.exchange(isPaused) != isPaused)
+    if (m_paused.testAndSetRelease(!isPaused, isPaused))
         QMetaObject::invokeMethod(this, &PlaybackEngineObject::onPauseChanged);
 }
 
 void PlaybackEngineObject::kill()
 {
-    m_deleting = true;
+    m_deleting.storeRelease(true);
 
     disconnect();
     deleteLater();
