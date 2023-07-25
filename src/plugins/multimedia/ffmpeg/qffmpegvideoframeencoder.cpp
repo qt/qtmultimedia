@@ -49,8 +49,9 @@ bool VideoFrameEncoder::initCodec()
 {
     const auto qVideoCodec = d->settings.videoCodec();
     const auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
+    const auto resolution = d->settings.videoResolution();
 
-    std::tie(d->codec, d->accel) = findHwEncoder(codecID, d->settings.videoResolution());
+    std::tie(d->codec, d->accel) = findHwEncoder(codecID, resolution);
 
     if (!d->codec)
         d->codec = findSwEncoder(codecID, d->sourceSWFormat);
@@ -61,6 +62,19 @@ bool VideoFrameEncoder::initCodec()
     }
 
     qCDebug(qLcVideoFrameEncoder) << "found encoder" << d->codec->name << "for id" << d->codec->id;
+
+#ifdef Q_OS_WINDOWS
+    // TODO: investigate, there might be more encoders not supporting odd resolution
+    if (strcmp(d->codec->name, "h264_mf") == 0) {
+        auto makeEven = [](int size) { return size & ~1; };
+        const QSize fixedResolution(makeEven(resolution.width()), makeEven(resolution.height()));
+        if (fixedResolution != resolution) {
+            qCDebug(qLcVideoFrameEncoder) << "Fix odd video resolution for codec" << d->codec->name << ":"
+                                          << resolution << "->" << fixedResolution;
+            d->settings.setVideoResolution(fixedResolution);
+        }
+    }
+#endif
 
     return true;
 }
