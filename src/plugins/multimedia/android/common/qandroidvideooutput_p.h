@@ -53,6 +53,7 @@ protected:
     QAndroidVideoOutput(QObject *parent) : QObject(parent) { }
 };
 
+class AndroidTextureThread;
 class QAndroidTextureVideoOutput : public QAndroidVideoOutput
 {
     Q_OBJECT
@@ -71,15 +72,17 @@ public:
     QSize getVideoSize() const override { return m_nativeSize; }
 
     void setSubtitle(const QString &subtitle);
+    std::shared_ptr<AndroidTextureThread> getSurfaceThread() { return m_surfaceThread; }
 private Q_SLOTS:
     void newFrame(const QVideoFrame &);
 
 private:
+    void startNewSurfaceThread();
     QVideoSink *m_sink = nullptr;
     QSize m_nativeSize;
     bool m_surfaceCreatedWithoutRhi = false;
 
-    std::unique_ptr<class AndroidTextureThread> m_surfaceThread;
+    std::shared_ptr<AndroidTextureThread> m_surfaceThread;
 };
 
 QT_END_NAMESPACE
