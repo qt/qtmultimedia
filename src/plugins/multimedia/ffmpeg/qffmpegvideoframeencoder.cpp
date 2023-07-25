@@ -17,7 +17,7 @@ static Q_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencod
 namespace QFFmpeg {
 
 VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSettings,
-                                     const QSize &sourceSize, float frameRate,
+                                     const QSize &sourceSize, qreal sourceFrameRate,
                                      AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
                                      AVFormatContext *formatContext)
     : d(new Data)
@@ -26,11 +26,13 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
     Q_ASSERT(isHwPixelFormat(sourceFormat) || sourceSWFormat == sourceFormat);
 
     d->settings = encoderSettings;
-    d->frameRate = frameRate;
     d->sourceSize = sourceSize;
 
     if (!d->settings.videoResolution().isValid())
         d->settings.setVideoResolution(d->sourceSize);
+
+    if (d->settings.videoFrameRate() <= 0.)
+        d->settings.setVideoFrameRate(sourceFrameRate);
 
     d->sourceFormat = sourceFormat;
     d->sourceSWFormat = sourceSWFormat;
@@ -115,7 +117,7 @@ bool QFFmpeg::VideoFrameEncoder::initCodecContext(AVFormatContext *formatContext
     d->stream->codecpar->width = resolution.width();
     d->stream->codecpar->height = resolution.height();
     d->stream->codecpar->sample_aspect_ratio = AVRational{1, 1};
-    float requestedRate = d->frameRate;
+    float requestedRate = d->settings.videoFrameRate();
     constexpr int TimeScaleFactor = 1000; // Allows not to follow fixed rate
     d->stream->time_base = AVRational{ 1, static_cast<int>(requestedRate * TimeScaleFactor) };
 
