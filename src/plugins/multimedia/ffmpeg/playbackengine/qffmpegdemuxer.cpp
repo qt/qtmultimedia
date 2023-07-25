@@ -26,15 +26,14 @@ static qint64 streamTimeToUs(const AVStream *stream, qint64 time)
 
 Demuxer::Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffset,
                  const StreamIndexes &streamIndexes, int loops)
-    : m_context(context), m_posWithOffset(posWithOffset)
+    : m_context(context), m_posWithOffset(posWithOffset), m_loops(loops)
 {
     qCDebug(qLcDemuxer) << "Create demuxer."
                         << "pos:" << posWithOffset.pos << "loop offset:" << posWithOffset.offset.pos
                         << "loop index:" << posWithOffset.offset.index << "loops:" << loops;
-    m_loops = loops;
 
     Q_ASSERT(m_context);
-    Q_ASSERT(m_loops < 0 || m_posWithOffset.offset.index < m_loops);
+    Q_ASSERT(loops < 0 || m_posWithOffset.offset.index < loops);
 
     for (auto i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         if (streamIndexes[i] >= 0) {
@@ -53,7 +52,8 @@ void Demuxer::doNextStep()
     if (av_read_frame(m_context, packet.avPacket()) < 0) {
         ++m_posWithOffset.offset.index;
 
-        if (m_loops >= 0 && m_posWithOffset.offset.index >= m_loops) {
+        const auto loops = m_loops.loadAcquire();
+        if (loops >= 0 && m_posWithOffset.offset.index >= loops) {
             qCDebug(qLcDemuxer) << "finish demuxing";
             setAtEnd(true);
         } else {
@@ -163,7 +163,7 @@ Demuxer::RequestingSignal Demuxer::signalByTrackType(QPlatformMediaPlayer::Track
 void Demuxer::setLoops(int loopsCount)
 {
     qCDebug(qLcDemuxer) << "setLoops to demuxer" << loopsCount;
-    m_loops = loopsCount;
+    m_loops.storeRelease(loopsCount);
 }
 
 } // namespace QFFmpeg

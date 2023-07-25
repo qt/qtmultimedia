@@ -46,8 +46,8 @@ void Renderer::setPlaybackRate(float rate)
 
 void Renderer::doForceStep()
 {
-    if (!m_isStepForced.exchange(true))
-        QMetaObject::invokeMethod(this, [=]() {
+    if (m_isStepForced.testAndSetOrdered(false, true))
+        QMetaObject::invokeMethod(this, [this]() {
             // maybe set m_forceStepMaxPos
 
             if (isAtEnd()) {
@@ -72,11 +72,11 @@ void Renderer::onFinalFrameReceived()
 
 void Renderer::render(Frame frame)
 {
-    const auto isFrameOutdated = frame.isValid() && frame.absoluteEnd() < m_seekPos;
+    const auto isFrameOutdated = frame.isValid() && frame.absoluteEnd() < seekPosition();
 
     if (isFrameOutdated) {
         qCDebug(qLcRenderer) << "frame outdated! absEnd:" << frame.absoluteEnd() << "absPts"
-                             << frame.absolutePts() << "seekPos:" << m_seekPos;
+                             << frame.absolutePts() << "seekPos:" << seekPosition();
         emit frameProcessed(frame);
         return;
     }
@@ -122,7 +122,7 @@ int Renderer::timerInterval() const
 
 bool Renderer::setForceStepDone()
 {
-    if (!m_isStepForced.exchange(false))
+    if (!m_isStepForced.testAndSetOrdered(true, false))
         return false;
 
     m_explicitNextFrameTime.reset();
@@ -148,8 +148,8 @@ void Renderer::doNextStep()
         m_frames.dequeue();
 
         if (frame.isValid()) {
-            m_lastPosition = std::max(frame.absolutePts(), m_lastPosition.load());
-            m_seekPos = frame.absoluteEnd();
+            m_lastPosition.storeRelease(std::max(frame.absolutePts(), lastPosition()));
+            m_seekPos.storeRelaxed(frame.absoluteEnd());
 
             const auto loopIndex = frame.loopOffset().index;
             if (m_loopIndex < loopIndex) {
