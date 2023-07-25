@@ -254,7 +254,21 @@ class AndroidTextureThread : public QThread
 {
     Q_OBJECT
 public:
-    AndroidTextureThread() : QThread() {}
+    AndroidTextureThread() : QThread() {
+    }
+
+    ~AndroidTextureThread() {
+        QMetaObject::invokeMethod(this,
+                &AndroidTextureThread::clearSurfaceTexture, Qt::BlockingQueuedConnection);
+        this->quit();
+        this->wait();
+    }
+
+    void start()
+    {
+        QThread::start();
+        moveToThread(this);
+    }
 
     void initRhi(QOpenGLContext *context)
     {
@@ -341,17 +355,11 @@ QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject
     m_surfaceThread = std::make_unique<AndroidTextureThread>();
     connect(m_surfaceThread.get(), &AndroidTextureThread::newFrame,
             this, &QAndroidTextureVideoOutput::newFrame);
-
     m_surfaceThread->start();
-    m_surfaceThread->moveToThread(m_surfaceThread.get());
 }
 
 QAndroidTextureVideoOutput::~QAndroidTextureVideoOutput()
 {
-    QMetaObject::invokeMethod(m_surfaceThread.get(),
-            &AndroidTextureThread::clearSurfaceTexture, Qt::BlockingQueuedConnection);
-    m_surfaceThread->quit();
-    m_surfaceThread->wait();
 }
 
 void QAndroidTextureVideoOutput::setSubtitle(const QString &subtitle)
