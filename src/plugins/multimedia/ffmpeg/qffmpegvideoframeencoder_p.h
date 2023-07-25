@@ -29,7 +29,6 @@ class VideoFrameEncoder
     public:
         QAtomicInt ref = 0;
         QMediaEncoderSettings settings;
-        float frameRate = 0.;
         QSize sourceSize;
 
         std::unique_ptr<HWAccel> accel;
@@ -50,7 +49,7 @@ class VideoFrameEncoder
 public:
     VideoFrameEncoder() = default;
     VideoFrameEncoder(const QMediaEncoderSettings &encoderSettings, const QSize &sourceSize,
-                      float frameRate, AVPixelFormat sourceFormat, AVPixelFormat swFormat,
+                      qreal sourceFrameRate, AVPixelFormat sourceFormat, AVPixelFormat swFormat,
                       AVFormatContext *formatContext);
     ~VideoFrameEncoder();
 
