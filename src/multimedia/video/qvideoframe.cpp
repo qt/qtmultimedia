@@ -17,6 +17,8 @@
 #include <qvariant.h>
 #include <private/qrhi_p.h>
 
+#include <mutex>
+
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
@@ -46,6 +48,8 @@ public:
     QVideoFrame::RotationAngle rotationAngle = QVideoFrame::Rotation0;
     bool mirrored = false;
     QImage image;
+    std::once_flag imageOnceFlag;
+
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)
 };
@@ -676,11 +680,12 @@ QImage QVideoFrame::toImage() const
 {
     if (!isValid())
         return {};
-    if (!d->image.isNull())
-        return d->image;
 
-    d->image = qImageFromVideoFrame(*this, rotationAngle(), mirrored(),
-                                    surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom);
+    std::call_once(d->imageOnceFlag, [this]() {
+        const bool mirrorY = surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom;
+        d->image = qImageFromVideoFrame(*this, rotationAngle(), mirrored(), mirrorY);
+    });
+
     return d->image;
 }
 
