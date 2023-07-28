@@ -65,7 +65,7 @@ public:
     const AVRational &getTimeBase() const;
 
     int sendFrame(AVFrameUPtr frame);
-    AVPacket *retrievePacket();
+    AVPacketUPtr retrievePacket();
 
 private:
     void updateConversions();
