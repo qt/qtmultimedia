@@ -309,24 +309,55 @@ AVPacketUPtr VideoFrameEncoder::retrievePacket()
 {
     if (!d || !d->codecContext)
         return nullptr;
-    AVPacketUPtr packet(av_packet_alloc());
-    int ret = avcodec_receive_packet(d->codecContext.get(), packet.get());
-    if (ret < 0) {
-        if (ret != AVERROR(EOF) && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
-            qCDebug(qLcVideoFrameEncoder) << "Error receiving packet" << ret << err2str(ret);
-        return nullptr;
+
+    auto getPacket = [&]() {
+        AVPacketUPtr packet(av_packet_alloc());
+        const int ret = avcodec_receive_packet(d->codecContext.get(), packet.get());
+        if (ret < 0) {
+            if (ret != AVERROR(EOF) && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
+                qCDebug(qLcVideoFrameEncoder) << "Error receiving packet" << ret << err2str(ret);
+            return AVPacketUPtr{};
+        }
+        auto ts = timeStampMs(packet->pts, d->stream->time_base);
+
+        qCDebug(qLcVideoFrameEncoder)
+                << "got a packet" << packet->pts << packet->dts << (ts ? *ts : 0);
+
+        packet->stream_index = d->stream->id;
+        return packet;
+    };
+
+    auto fixPacketDts = [&](AVPacket &packet) {
+        // Workaround for some ffmpeg codecs bugs (e.g. nvenc)
+        // Ideally, packet->pts < packet->dts is not expected
+
+        if (packet.dts == AV_NOPTS_VALUE)
+            return true;
+
+        packet.dts -= m_packetDtsOffset;
+
+        if (packet.pts != AV_NOPTS_VALUE && packet.pts < packet.dts) {
+            m_packetDtsOffset += packet.dts - packet.pts;
+            packet.dts = packet.pts;
+
+            if (m_prevPacketDts != AV_NOPTS_VALUE && packet.dts < m_prevPacketDts) {
+                qCWarning(qLcVideoFrameEncoder)
+                        << "Skip packet; failed to fix dts:" << packet.dts << m_prevPacketDts;
+                return false;
+            }
+        }
+
+        m_prevPacketDts = packet.dts;
+
+        return true;
+    };
+
+    while (auto packet = getPacket()) {
+        if (fixPacketDts(*packet))
+            return packet;
     }
-    auto ts = timeStampMs(packet->pts, d->stream->time_base);
 
-    qCDebug(qLcVideoFrameEncoder) << "got a packet" << packet->pts << packet->dts << (ts ? *ts : 0);
-
-    if (packet->dts != AV_NOPTS_VALUE && packet->pts < packet->dts) {
-        // the case seems to be an ffmpeg bug
-        packet->dts = AV_NOPTS_VALUE;
-    }
-
-    packet->stream_index = d->stream->id;
-    return packet;
+    return nullptr;
 }
 
 void VideoFrameEncoder::updateConversions()

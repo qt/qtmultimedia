@@ -75,6 +75,10 @@ private:
     bool initTargetFormats();
 
     bool initCodecContext(AVFormatContext *formatContext);
+
+private:
+    int64_t m_prevPacketDts = AV_NOPTS_VALUE;
+    int64_t m_packetDtsOffset = 0;
 };
 
 
