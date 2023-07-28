@@ -22,7 +22,7 @@
 #include <qaudioformat.h>
 #include <qaudiobuffer.h>
 
-#include <qqueue.h>
+#include <queue>
 
 QT_BEGIN_NAMESPACE
 
@@ -101,14 +101,15 @@ private:
 class Muxer : public Thread
 {
     mutable QMutex queueMutex;
-    QQueue<AVPacket *> packetQueue;
+    std::queue<AVPacketUPtr> packetQueue;
+
 public:
     Muxer(Encoder *encoder);
 
-    void addPacket(AVPacket *);
+    void addPacket(AVPacketUPtr packet);
 
 private:
-    AVPacket *takePacket();
+    AVPacketUPtr takePacket();
 
     void init() override;
     void cleanup() override;
@@ -134,7 +135,8 @@ protected:
 class AudioEncoder : public EncoderThread
 {
     mutable QMutex queueMutex;
-    QQueue<QAudioBuffer> audioBufferQueue;
+    std::queue<QAudioBuffer> audioBufferQueue;
+
 public:
     AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings);
 
@@ -167,8 +169,8 @@ private:
 class VideoEncoder : public EncoderThread
 {
     mutable QMutex queueMutex;
-    QQueue<QVideoFrame> videoFrameQueue;
-    const qsizetype maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
+    std::queue<QVideoFrame> videoFrameQueue;
+    const size_t maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
 
 public:
     VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,

@@ -305,14 +305,13 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
     return avcodec_send_frame(d->codecContext.get(), frame.get());
 }
 
-AVPacket *VideoFrameEncoder::retrievePacket()
+AVPacketUPtr VideoFrameEncoder::retrievePacket()
 {
     if (!d || !d->codecContext)
         return nullptr;
-    AVPacket *packet = av_packet_alloc();
-    int ret = avcodec_receive_packet(d->codecContext.get(), packet);
+    AVPacketUPtr packet(av_packet_alloc());
+    int ret = avcodec_receive_packet(d->codecContext.get(), packet.get());
     if (ret < 0) {
-        av_packet_free(&packet);
         if (ret != AVERROR(EOF) && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF)
             qCDebug(qLcVideoFrameEncoder) << "Error receiving packet" << ret << err2str(ret);
         return nullptr;

@@ -25,10 +25,25 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder")
+static Q_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder");
 
 namespace QFFmpeg
 {
+
+namespace {
+
+template<typename T>
+T dequeueIfPossible(std::queue<T> &queue)
+{
+    if (queue.empty())
+        return T{};
+
+    auto result = std::move(queue.front());
+    queue.pop();
+    return result;
+}
+
+} // namespace
 
 Encoder::Encoder(const QMediaEncoderSettings &settings, const QUrl &url)
     : settings(settings)
@@ -180,21 +195,21 @@ Muxer::Muxer(Encoder *encoder)
     setObjectName(QLatin1String("Muxer"));
 }
 
-void Muxer::addPacket(AVPacket *packet)
+void Muxer::addPacket(AVPacketUPtr packet)
 {
-//    qCDebug(qLcFFmpegEncoder) << "Muxer::addPacket" << packet->pts << packet->stream_index;
-    QMutexLocker locker(&queueMutex);
-    packetQueue.enqueue(packet);
+    {
+        QMutexLocker locker(&queueMutex);
+        packetQueue.push(std::move(packet));
+    }
+
+    //    qCDebug(qLcFFmpegEncoder) << "Muxer::addPacket" << packet->pts << packet->stream_index;
     wake();
 }
 
-AVPacket *Muxer::takePacket()
+AVPacketUPtr Muxer::takePacket()
 {
     QMutexLocker locker(&queueMutex);
-    if (packetQueue.isEmpty())
-        return nullptr;
-//    qCDebug(qLcFFmpegEncoder) << "Muxer::takePacket" << packetQueue.first()->pts;
-    return packetQueue.dequeue();
+    return dequeueIfPossible(packetQueue);
 }
 
 void Muxer::init()
@@ -209,15 +224,17 @@ void Muxer::cleanup()
 bool QFFmpeg::Muxer::shouldWait() const
 {
     QMutexLocker locker(&queueMutex);
-    return packetQueue.isEmpty();
+    return packetQueue.empty();
 }
 
 void Muxer::loop()
 {
-    auto *packet = takePacket();
+    auto packet = takePacket();
     //   qCDebug(qLcFFmpegEncoder) << "writing packet to file" << packet->pts << packet->duration <<
     //   packet->stream_index;
-    av_interleaved_write_frame(encoder->formatContext, packet);
+
+    // the function takes ownership for the packet
+    av_interleaved_write_frame(encoder->formatContext, packet.release());
 }
 
 
@@ -347,7 +364,8 @@ void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 {
     QMutexLocker locker(&queueMutex);
     if (!paused.loadRelaxed()) {
-        audioBufferQueue.enqueue(buffer);
+        audioBufferQueue.push(buffer);
+        locker.unlock();
         wake();
     }
 }
@@ -355,9 +373,7 @@ void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 QAudioBuffer AudioEncoder::takeBuffer()
 {
     QMutexLocker locker(&queueMutex);
-    if (audioBufferQueue.isEmpty())
-        return QAudioBuffer();
-    return audioBufferQueue.dequeue();
+    return dequeueIfPossible(audioBufferQueue);
 }
 
 void AudioEncoder::init()
@@ -371,7 +387,7 @@ void AudioEncoder::init()
 
 void AudioEncoder::cleanup()
 {
-    while (!audioBufferQueue.isEmpty())
+    while (!audioBufferQueue.empty())
         loop();
     while (avcodec_send_frame(codec, nullptr) == AVERROR(EAGAIN))
         retrievePackets();
@@ -381,16 +397,15 @@ void AudioEncoder::cleanup()
 bool AudioEncoder::shouldWait() const
 {
     QMutexLocker locker(&queueMutex);
-    return audioBufferQueue.isEmpty();
+    return audioBufferQueue.empty();
 }
 
 void AudioEncoder::retrievePackets()
 {
     while (1) {
-        AVPacket *packet = av_packet_alloc();
-        int ret = avcodec_receive_packet(codec, packet);
+        AVPacketUPtr packet(av_packet_alloc());
+        int ret = avcodec_receive_packet(codec, packet.get());
         if (ret < 0) {
-            av_packet_unref(packet);
             if (ret != AVERROR(EOF))
                 break;
             if (ret != AVERROR(EAGAIN)) {
@@ -403,7 +418,7 @@ void AudioEncoder::retrievePackets()
 
         // qCDebug(qLcFFmpegEncoder) << "writing audio packet" << packet->size << packet->pts << packet->dts;
         packet->stream_index = stream->id;
-        encoder->muxer->addPacket(packet);
+        encoder->muxer->addPacket(std::move(packet));
     }
 }
 
@@ -494,7 +509,7 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
     if (queueFull) {
         qCDebug(qLcFFmpegEncoder) << "Encoder frame queue full. Frame lost.";
     } else if (!paused.loadRelaxed()) {
-        videoFrameQueue.enqueue(frame);
+        videoFrameQueue.push(frame);
 
         locker.unlock(); // Avoid context switch on wake wake-up
 
@@ -510,20 +525,15 @@ bool VideoEncoder::isValid() const
 QVideoFrame VideoEncoder::takeFrame()
 {
     QMutexLocker locker(&queueMutex);
-
-    QVideoFrame frame;
-    if (!videoFrameQueue.isEmpty())
-        frame = videoFrameQueue.dequeue();
-
-    return frame;
+    return dequeueIfPossible(videoFrameQueue);
 }
 
 void VideoEncoder::retrievePackets()
 {
     if (!frameEncoder)
         return;
-    while (AVPacket *packet = frameEncoder->retrievePacket())
-        encoder->muxer->addPacket(packet);
+    while (auto packet = frameEncoder->retrievePacket())
+        encoder->muxer->addPacket(std::move(packet));
 }
 
 void VideoEncoder::init()
@@ -536,7 +546,7 @@ void VideoEncoder::init()
 
 void VideoEncoder::cleanup()
 {
-    while (!videoFrameQueue.isEmpty())
+    while (!videoFrameQueue.empty())
         loop();
     if (frameEncoder) {
         while (frameEncoder->sendFrame(nullptr) == AVERROR(EAGAIN))
@@ -548,7 +558,7 @@ void VideoEncoder::cleanup()
 bool VideoEncoder::shouldWait() const
 {
     QMutexLocker locker(&queueMutex);
-    return videoFrameQueue.isEmpty();
+    return videoFrameQueue.empty();
 }
 
 struct QVideoFrameHolder
