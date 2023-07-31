@@ -24,41 +24,19 @@ namespace QFFmpeg {
 
 class VideoFrameEncoder
 {
-    class Data final
-    {
-    public:
-        QAtomicInt ref = 0;
-        QMediaEncoderSettings settings;
-        QSize sourceSize;
-
-        std::unique_ptr<HWAccel> accel;
-        const AVCodec *codec = nullptr;
-        AVStream *stream = nullptr;
-        AVCodecContextUPtr codecContext;
-        std::unique_ptr<SwsContext, decltype(&sws_freeContext)> converter = { nullptr,
-                                                                              &sws_freeContext };
-        AVPixelFormat sourceFormat = AV_PIX_FMT_NONE;
-        AVPixelFormat sourceSWFormat = AV_PIX_FMT_NONE;
-        AVPixelFormat targetFormat = AV_PIX_FMT_NONE;
-        AVPixelFormat targetSWFormat = AV_PIX_FMT_NONE;
-        bool downloadFromHW = false;
-        bool uploadToHW = false;
-    };
-
-    QExplicitlySharedDataPointer<Data> d;
 public:
-    VideoFrameEncoder() = default;
-    VideoFrameEncoder(const QMediaEncoderSettings &encoderSettings, const QSize &sourceSize,
-                      qreal sourceFrameRate, AVPixelFormat sourceFormat, AVPixelFormat swFormat,
-                      AVFormatContext *formatContext);
+    static std::unique_ptr<VideoFrameEncoder> create(const QMediaEncoderSettings &encoderSettings,
+                                                     const QSize &sourceSize, qreal sourceFrameRate,
+                                                     AVPixelFormat sourceFormat,
+                                                     AVPixelFormat sourceSWFormat,
+                                                     AVFormatContext *formatContext);
+
     ~VideoFrameEncoder();
 
     bool open();
 
-    bool isNull() const { return !d; }
-
-    AVPixelFormat sourceFormat() const { return d ? d->sourceFormat : AV_PIX_FMT_NONE; }
-    AVPixelFormat targetFormat() const { return d ? d->targetFormat : AV_PIX_FMT_NONE; }
+    AVPixelFormat sourceFormat() const { return m_sourceFormat; }
+    AVPixelFormat targetFormat() const { return m_targetFormat; }
 
     qint64 getPts(qint64 ms) const;
 
@@ -68,6 +46,8 @@ public:
     AVPacketUPtr retrievePacket();
 
 private:
+    VideoFrameEncoder() = default;
+
     void updateConversions();
 
     bool initCodec();
@@ -77,11 +57,25 @@ private:
     bool initCodecContext(AVFormatContext *formatContext);
 
 private:
+    QMediaEncoderSettings m_settings;
+    QSize m_sourceSize;
+
+    std::unique_ptr<HWAccel> m_accel;
+    const AVCodec *m_codec = nullptr;
+    AVStream *m_stream = nullptr;
+    AVCodecContextUPtr m_codecContext;
+    std::unique_ptr<SwsContext, decltype(&sws_freeContext)> m_converter = { nullptr,
+                                                                            &sws_freeContext };
+    AVPixelFormat m_sourceFormat = AV_PIX_FMT_NONE;
+    AVPixelFormat m_sourceSWFormat = AV_PIX_FMT_NONE;
+    AVPixelFormat m_targetFormat = AV_PIX_FMT_NONE;
+    AVPixelFormat m_targetSWFormat = AV_PIX_FMT_NONE;
+    bool m_downloadFromHW = false;
+    bool m_uploadToHW = false;
+
     int64_t m_prevPacketDts = AV_NOPTS_VALUE;
     int64_t m_packetDtsOffset = 0;
 };
-
-
 }
 
 QT_END_NAMESPACE
