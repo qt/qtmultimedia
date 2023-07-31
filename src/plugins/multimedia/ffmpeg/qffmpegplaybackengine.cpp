@@ -444,6 +444,10 @@ bool PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
 {
     stop();
 
+    // we should wait for objects deleting instead
+    // optimized solution might be implemented in the future.
+    deleteFreeThreads();
+
     m_codecs = {};
 
     if (auto error = recreateAVFormatContext(media, stream)) {
