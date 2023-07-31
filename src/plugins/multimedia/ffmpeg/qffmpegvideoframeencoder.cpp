@@ -139,10 +139,12 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     if (d->codec->id == AV_CODEC_ID_HEVC)
         d->stream->codecpar->codec_tag = MKTAG('h','v','c','1');
 
+    const auto resolution = d->settings.videoResolution();
+
     // ### Fix hardcoded values
     d->stream->codecpar->format = d->targetFormat;
-    d->stream->codecpar->width = d->settings.videoResolution().width();
-    d->stream->codecpar->height = d->settings.videoResolution().height();
+    d->stream->codecpar->width = resolution.width();
+    d->stream->codecpar->height = resolution.height();
     d->stream->codecpar->sample_aspect_ratio = AVRational{1, 1};
     float requestedRate = d->frameRate;
     constexpr int TimeScaleFactor = 1000; // Allows not to follow fixed rate
@@ -182,6 +184,9 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     qCDebug(qLcVideoFrameEncoder) << "requesting time base" << d->codecContext->time_base.num << d->codecContext->time_base.den;
     auto [num, den] = qRealToFraction(requestedRate);
     d->codecContext->framerate = { num, den };
+    d->codecContext->pix_fmt = d->targetFormat;
+    d->codecContext->width = resolution.width();
+    d->codecContext->height = resolution.height();
     if (d->accel) {
         auto deviceContext = d->accel->hwDeviceContextAsBuffer();
         if (deviceContext)
