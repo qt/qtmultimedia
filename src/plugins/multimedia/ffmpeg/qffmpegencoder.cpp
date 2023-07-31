@@ -476,8 +476,7 @@ VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settin
     }
 
     frameEncoder = new VideoFrameEncoder(settings, format.frameSize(), frameRate, ffmpegPixelFormat,
-                                         swFormat);
-    frameEncoder->initWithFormatContext(encoder->formatContext);
+                                         swFormat, encoder->formatContext);
 }
 
 VideoEncoder::~VideoEncoder()

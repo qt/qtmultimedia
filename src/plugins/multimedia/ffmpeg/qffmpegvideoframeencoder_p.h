@@ -27,8 +27,6 @@ class VideoFrameEncoder
     class Data final
     {
     public:
-        ~Data();
-
         QAtomicInt ref = 0;
         QMediaEncoderSettings settings;
         float frameRate = 0.;
@@ -38,7 +36,8 @@ class VideoFrameEncoder
         const AVCodec *codec = nullptr;
         AVStream *stream = nullptr;
         AVCodecContextUPtr codecContext;
-        SwsContext *converter = nullptr;
+        std::unique_ptr<SwsContext, decltype(&sws_freeContext)> converter = { nullptr,
+                                                                              &sws_freeContext };
         AVPixelFormat sourceFormat = AV_PIX_FMT_NONE;
         AVPixelFormat sourceSWFormat = AV_PIX_FMT_NONE;
         AVPixelFormat targetFormat = AV_PIX_FMT_NONE;
@@ -50,10 +49,11 @@ class VideoFrameEncoder
     QExplicitlySharedDataPointer<Data> d;
 public:
     VideoFrameEncoder() = default;
-    VideoFrameEncoder(const QMediaEncoderSettings &encoderSettings, const QSize &sourceSize, float frameRate, AVPixelFormat sourceFormat, AVPixelFormat swFormat);
+    VideoFrameEncoder(const QMediaEncoderSettings &encoderSettings, const QSize &sourceSize,
+                      float frameRate, AVPixelFormat sourceFormat, AVPixelFormat swFormat,
+                      AVFormatContext *formatContext);
     ~VideoFrameEncoder();
 
-    void initWithFormatContext(AVFormatContext *formatContext);
     bool open();
 
     bool isNull() const { return !d; }
@@ -67,6 +67,15 @@ public:
 
     int sendFrame(AVFrameUPtr frame);
     AVPacket *retrievePacket();
+
+private:
+    void updateConversions();
+
+    bool initCodec();
+
+    bool initTargetFormats();
+
+    bool initCodecContext(AVFormatContext *formatContext);
 };
 
 
