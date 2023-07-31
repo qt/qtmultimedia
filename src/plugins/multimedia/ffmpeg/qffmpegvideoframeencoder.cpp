@@ -12,21 +12,19 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencoder")
+static Q_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencoder");
 
 namespace QFFmpeg {
 
-VideoFrameEncoder::Data::~Data()
-{
-    if (converter)
-        sws_freeContext(converter);
-}
-
 VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSettings,
                                      const QSize &sourceSize, float frameRate,
-                                     AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat)
+                                     AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
+                                     AVFormatContext *formatContext)
     : d(new Data)
 {
+    Q_ASSERT(isSwPixelFormat(sourceSWFormat));
+    Q_ASSERT(isHwPixelFormat(sourceFormat) || sourceSWFormat == sourceFormat);
+
     d->settings = encoderSettings;
     d->frameRate = frameRate;
     d->sourceSize = sourceSize;
@@ -37,98 +35,69 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
     d->sourceFormat = sourceFormat;
     d->sourceSWFormat = sourceSWFormat;
 
-    Q_ASSERT(isSwPixelFormat(sourceSWFormat));
+    if (!initCodec() || !initTargetFormats() || !initCodecContext(formatContext)) {
+        d = {};
+        return;
+    }
 
-    const auto qVideoCodec = encoderSettings.videoCodec();
+    updateConversions();
+}
+
+bool VideoFrameEncoder::initCodec()
+{
+    const auto qVideoCodec = d->settings.videoCodec();
     const auto codecID = QFFmpegMediaFormatInfo::codecIdForVideoCodec(qVideoCodec);
 
     std::tie(d->codec, d->accel) = findHwEncoder(codecID, d->settings.videoResolution());
 
     if (!d->codec)
-        d->codec = findSwEncoder(codecID, sourceSWFormat);
+        d->codec = findSwEncoder(codecID, d->sourceSWFormat);
 
     if (!d->codec) {
         qWarning() << "Could not find encoder for codecId" << codecID;
-        d = {};
-        return;
+        return false;
     }
 
     qCDebug(qLcVideoFrameEncoder) << "found encoder" << d->codec->name << "for id" << d->codec->id;
 
-    d->targetFormat = findTargetFormat(sourceFormat, sourceSWFormat, d->codec, d->accel.get());
+    return true;
+}
+
+bool VideoFrameEncoder::initTargetFormats()
+{
+    d->targetFormat =
+            findTargetFormat(d->sourceFormat, d->sourceSWFormat, d->codec, d->accel.get());
 
     if (d->targetFormat == AV_PIX_FMT_NONE) {
-        qWarning() << "Could not find target format for codecId" << codecID;
-        d = {};
-        return;
+        qWarning() << "Could not find target format for codecId" << d->codec->id;
+        return false;
     }
 
-    const bool needToScale = d->sourceSize != d->settings.videoResolution();
-    const bool zeroCopy = d->sourceFormat == d->targetFormat && !needToScale;
+    Q_ASSERT(isHwPixelFormat(d->targetFormat) == !!d->accel);
 
-    if (zeroCopy) {
-        qCDebug(qLcVideoFrameEncoder) << "zero copy encoding, format" << d->targetFormat;
-        // no need to initialize any converters
-        return;
-    }
-
-    if (isHwPixelFormat(d->sourceFormat))
-        d->downloadFromHW = true;
-    else
-        d->sourceSWFormat = d->sourceFormat;
-
-    if (isHwPixelFormat(d->targetFormat)) {
-        Q_ASSERT(d->accel);
-        // if source and target formats don't agree, but the target is a HW format, we need to upload
-        d->uploadToHW = true;
+    if (d->accel) {
         d->targetSWFormat = findTargetSWFormat(d->sourceSWFormat, d->codec, *d->accel);
 
         if (d->targetSWFormat == AV_PIX_FMT_NONE) {
             qWarning() << "Cannot find software target format. sourceSWFormat:" << d->sourceSWFormat
                        << "targetFormat:" << d->targetFormat;
-            d = {};
-            return;
+            return false;
         }
 
-        qCDebug(qLcVideoFrameEncoder)
-                << "using sw format" << d->targetSWFormat << "as transfer format.";
-
-        // need to create a frames context to convert the input data
         d->accel->createFramesContext(d->targetSWFormat, d->settings.videoResolution());
+        if (!d->accel->hwFramesContextAsBuffer())
+            return false;
     } else {
         d->targetSWFormat = d->targetFormat;
     }
 
-    if (d->sourceSWFormat != d->targetSWFormat || needToScale) {
-        const auto targetSize = d->settings.videoResolution();
-        qCDebug(qLcVideoFrameEncoder)
-                << "camera and encoder use different formats:" << d->sourceSWFormat
-                << d->targetSWFormat << "or sizes:" << d->sourceSize << targetSize;
-
-        d->converter =
-                sws_getContext(d->sourceSize.width(), d->sourceSize.height(), d->sourceSWFormat,
-                               targetSize.width(), targetSize.height(), d->targetSWFormat,
-                               SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
-    }
-
-    qCDebug(qLcVideoFrameEncoder) << "VideoFrameEncoder conversions initialized:"
-                                  << "sourceFormat:" << d->sourceFormat
-                                  << (isHwPixelFormat(d->sourceFormat) ? "(hw)" : "(sw)")
-                                  << "targetFormat:" << d->targetFormat
-                                  << (isHwPixelFormat(d->targetFormat) ? "(hw)" : "(sw)")
-                                  << "sourceSWFormat:" << d->sourceSWFormat
-                                  << "targetSWFormat:" << d->targetSWFormat;
+    return true;
 }
 
-VideoFrameEncoder::~VideoFrameEncoder()
-{
-}
+VideoFrameEncoder::~VideoFrameEncoder() = default;
 
-void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatContext)
+bool QFFmpeg::VideoFrameEncoder::initCodecContext(AVFormatContext *formatContext)
 {
-    if (!d)
-        return;
-
     d->stream = avformat_new_stream(formatContext, nullptr);
     d->stream->id = formatContext->nb_streams - 1;
     //qCDebug(qLcVideoFrameEncoder) << "Video stream: index" << d->stream->id;
@@ -175,8 +144,7 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     d->codecContext.reset(avcodec_alloc_context3(d->codec));
     if (!d->codecContext) {
         qWarning() << "Could not allocate codec context";
-        d = {};
-        return;
+        return false;
     }
 
     avcodec_parameters_to_context(d->codecContext.get(), d->stream->codecpar);
@@ -187,14 +155,18 @@ void QFFmpeg::VideoFrameEncoder::initWithFormatContext(AVFormatContext *formatCo
     d->codecContext->pix_fmt = d->targetFormat;
     d->codecContext->width = resolution.width();
     d->codecContext->height = resolution.height();
+
     if (d->accel) {
         auto deviceContext = d->accel->hwDeviceContextAsBuffer();
-        if (deviceContext)
-            d->codecContext->hw_device_ctx = av_buffer_ref(deviceContext);
+        Q_ASSERT(deviceContext);
+        d->codecContext->hw_device_ctx = av_buffer_ref(deviceContext);
+
         auto framesContext = d->accel->hwFramesContextAsBuffer();
-        if (framesContext)
-            d->codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
+        Q_ASSERT(deviceContext);
+        d->codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
     }
+
+    return true;
 }
 
 bool VideoFrameEncoder::open()
@@ -230,13 +202,26 @@ const AVRational &VideoFrameEncoder::getTimeBase() const
 
 int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
 {
-    if (!d->codecContext) {
+    if (!d || !d->codecContext) {
         qWarning() << "codec context is not initialized!";
         return AVERROR(EINVAL);
     }
 
     if (!frame)
         return avcodec_send_frame(d->codecContext.get(), frame.get());
+
+    if (frame->format != d->sourceFormat) {
+        qWarning() << "Frame format has changed:" << d->sourceFormat << "->" << frame->format;
+        return AVERROR(EINVAL);
+    }
+
+    const QSize frameSize(frame->width, frame->height);
+    if (frameSize != d->sourceSize) {
+        qCDebug(qLcVideoFrameEncoder) << "Update conversions on the fly. Source size"
+                                      << d->sourceSize << "->" << frameSize;
+        d->sourceSize = frameSize;
+        updateConversions();
+    }
 
     int64_t pts = 0;
     AVRational timeBase = {};
@@ -262,7 +247,7 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
         f->height = d->settings.videoResolution().height();
 
         av_frame_get_buffer(f.get(), 0);
-        const auto scaledHeight = sws_scale(d->converter, frame->data, frame->linesize, 0,
+        const auto scaledHeight = sws_scale(d->converter.get(), frame->data, frame->linesize, 0,
                                             frame->height, f->data, f->linesize);
 
         if (scaledHeight != f->height)
@@ -327,6 +312,47 @@ AVPacket *VideoFrameEncoder::retrievePacket()
 
     packet->stream_index = d->stream->id;
     return packet;
+}
+
+void VideoFrameEncoder::updateConversions()
+{
+    const bool needToScale = d->sourceSize != d->settings.videoResolution();
+    const bool zeroCopy = d->sourceFormat == d->targetFormat && !needToScale;
+
+    d->converter.reset();
+
+    if (zeroCopy) {
+        d->downloadFromHW = false;
+        d->uploadToHW = false;
+
+        qCDebug(qLcVideoFrameEncoder) << "zero copy encoding, format" << d->targetFormat;
+        // no need to initialize any converters
+        return;
+    }
+
+    d->downloadFromHW = d->sourceFormat != d->sourceSWFormat;
+    d->uploadToHW = d->targetFormat != d->targetSWFormat;
+
+    if (d->sourceSWFormat != d->targetSWFormat || needToScale) {
+        const auto targetSize = d->settings.videoResolution();
+        qCDebug(qLcVideoFrameEncoder)
+                << "video source and encoder use different formats:" << d->sourceSWFormat
+                << d->targetSWFormat << "or sizes:" << d->sourceSize << targetSize;
+
+        d->converter.reset(sws_getContext(d->sourceSize.width(), d->sourceSize.height(),
+                                          d->sourceSWFormat, targetSize.width(),
+                                          targetSize.height(), d->targetSWFormat, SWS_FAST_BILINEAR,
+                                          nullptr, nullptr, nullptr));
+    }
+
+    qCDebug(qLcVideoFrameEncoder) << "VideoFrameEncoder conversions initialized:"
+                                  << "sourceFormat:" << d->sourceFormat
+                                  << (isHwPixelFormat(d->sourceFormat) ? "(hw)" : "(sw)")
+                                  << "targetFormat:" << d->targetFormat
+                                  << (isHwPixelFormat(d->targetFormat) ? "(hw)" : "(sw)")
+                                  << "sourceSWFormat:" << d->sourceSWFormat
+                                  << "targetSWFormat:" << d->targetSWFormat
+                                  << "converter:" << d->converter.get();
 }
 
 } // namespace QFFmpeg
