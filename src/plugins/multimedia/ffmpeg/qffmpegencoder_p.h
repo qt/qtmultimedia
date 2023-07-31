@@ -18,9 +18,12 @@
 #include "qffmpeg_p.h"
 #include "qffmpeghwaccel_p.h"
 
+#include "private/qmultimediautils_p.h"
+
 #include <private/qplatformmediarecorder_p.h>
 #include <qaudioformat.h>
 #include <qaudiobuffer.h>
+#include <qmediarecorder.h>
 
 #include <queue>
 
@@ -165,7 +168,6 @@ private:
     QMediaEncoderSettings settings;
 };
 
-
 class VideoEncoder : public EncoderThread
 {
     mutable QMutex queueMutex;
@@ -177,9 +179,9 @@ public:
                  const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
     ~VideoEncoder() override;
 
-    void addFrame(const QVideoFrame &frame);
-
     bool isValid() const;
+
+    void addFrame(const QVideoFrame &frame);
 
     void setPaused(bool b) override
     {
@@ -197,7 +199,7 @@ private:
     bool shouldWait() const override;
     void loop() override;
 
-    VideoFrameEncoder *frameEncoder = nullptr;
+    std::unique_ptr<VideoFrameEncoder> frameEncoder;
 
     QAtomicInteger<qint64> baseTime = std::numeric_limits<qint64>::min();
     qint64 lastFrameTime = 0;
