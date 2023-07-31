@@ -253,10 +253,14 @@ AVPixelFormat HWAccel::hwFormat() const
     return pixelFormatForHwDevice(deviceType());
 }
 
-AVHWFramesConstraintsUPtr HWAccel::constraints() const
+const AVHWFramesConstraints *HWAccel::constraints() const
 {
-    return AVHWFramesConstraintsUPtr(
-            av_hwdevice_get_hwframe_constraints(hwDeviceContextAsBuffer(), nullptr));
+    std::call_once(m_constraintsOnceFlag, [this]() {
+        if (auto context = hwDeviceContextAsBuffer())
+            m_constraints.reset(av_hwdevice_get_hwframe_constraints(context, nullptr));
+    });
+
+    return m_constraints.get();
 }
 
 std::pair<const AVCodec *, std::unique_ptr<HWAccel>>

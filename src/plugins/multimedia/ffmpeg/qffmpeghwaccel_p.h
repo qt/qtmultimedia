@@ -20,6 +20,7 @@
 #include <qshareddata.h>
 #include <memory>
 #include <functional>
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -86,6 +87,9 @@ class HWAccel
     AVBufferUPtr m_hwDeviceContext;
     AVBufferUPtr m_hwFramesContext;
 
+    mutable std::once_flag m_constraintsOnceFlag;
+    mutable AVHWFramesConstraintsUPtr m_constraints;
+
 public:
     ~HWAccel();
 
@@ -104,7 +108,7 @@ public:
     AVBufferRef *hwDeviceContextAsBuffer() const { return m_hwDeviceContext.get(); }
     AVHWDeviceContext *hwDeviceContext() const;
     AVPixelFormat hwFormat() const;
-    AVHWFramesConstraintsUPtr constraints() const;
+    const AVHWFramesConstraints *constraints() const;
 
     void createFramesContext(AVPixelFormat swFormat, const QSize &size);
     AVBufferRef *hwFramesContextAsBuffer() const { return m_hwFramesContext.get(); }
