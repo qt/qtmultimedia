@@ -50,7 +50,6 @@ void PlaybackEngineObject::setPaused(bool isPaused)
 void PlaybackEngineObject::kill()
 {
     m_deleting = true;
-    setPaused(true);
 
     disconnect();
     deleteLater();
