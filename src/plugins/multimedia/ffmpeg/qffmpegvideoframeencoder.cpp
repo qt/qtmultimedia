@@ -45,7 +45,7 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
     std::tie(d->codec, d->accel) = findHwEncoder(codecID, d->settings.videoResolution());
 
     if (!d->codec)
-        d->codec = findSwEncoder(codecID, sourceFormat, sourceSWFormat);
+        d->codec = findSwEncoder(codecID, sourceSWFormat);
 
     if (!d->codec) {
         qWarning() << "Could not find encoder for codecId" << codecID;
@@ -81,7 +81,7 @@ VideoFrameEncoder::VideoFrameEncoder(const QMediaEncoderSettings &encoderSetting
         Q_ASSERT(d->accel);
         // if source and target formats don't agree, but the target is a HW format, we need to upload
         d->uploadToHW = true;
-        d->targetSWFormat = findTargetSWFormat(d->sourceSWFormat, *d->accel);
+        d->targetSWFormat = findTargetSWFormat(d->sourceSWFormat, d->codec, *d->accel);
 
         if (d->targetSWFormat == AV_PIX_FMT_NONE) {
             qWarning() << "Cannot find software target format. sourceSWFormat:" << d->sourceSWFormat
