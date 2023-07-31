@@ -80,6 +80,8 @@ void Encoder::addVideoSource(QPlatformVideoSource * source)
 
     if (!frameFormat.isValid()) {
         qCWarning(qLcFFmpegEncoder) << "Cannot add source; invalid vide frame format";
+        emit error(QMediaRecorder::ResourceError,
+                   QLatin1StringView("Cannot get video source format"));
         return;
     }
 
@@ -94,13 +96,16 @@ void Encoder::addVideoSource(QPlatformVideoSource * source)
                               << (hwPixelFormat ? *hwPixelFormat : AV_PIX_FMT_NONE);
 
     auto veUPtr = std::make_unique<VideoEncoder>(this, settings, frameFormat, hwPixelFormat);
-    if (veUPtr->isValid()) {
-        auto ve = veUPtr.release();
-        auto conn = connect(source, &QPlatformVideoSource::newVideoFrame,
-                            ve, &VideoEncoder::addFrame, Qt::DirectConnection);
-        videoEncoders.append(ve);
-        connections.append(conn);
+    if (!veUPtr->isValid()) {
+        emit error(QMediaRecorder::FormatError, QLatin1StringView("Cannot initialize encoder"));
+        return;
     }
+
+    auto ve = veUPtr.release();
+    auto conn = connect(source, &QPlatformVideoSource::newVideoFrame,
+                            ve, &VideoEncoder::addFrame, Qt::DirectConnection);
+    videoEncoders.append(ve);
+    connections.append(conn);
 }
 
 void Encoder::start()
