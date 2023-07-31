@@ -322,7 +322,7 @@ void AudioEncoder::open()
 {
     AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
 
-    codec = avcodec_alloc_context3(avCodec);
+    codecContext.reset(avcodec_alloc_context3(avCodec));
 
     if (stream->time_base.num != 1 || stream->time_base.den != format.sampleRate()) {
         qCDebug(qLcFFmpegEncoder) << "Most likely, av_format_write_header changed time base from"
@@ -330,38 +330,43 @@ void AudioEncoder::open()
                                   << stream->time_base.num << "/" << stream->time_base.den;
     }
 
-    codec->time_base = stream->time_base;
+    codecContext->time_base = stream->time_base;
 
-    avcodec_parameters_to_context(codec, stream->codecpar);
+    avcodec_parameters_to_context(codecContext.get(), stream->codecpar);
 
     AVDictionaryHolder opts;
-    applyAudioEncoderOptions(settings, avCodec->name, codec, opts);
+    applyAudioEncoderOptions(settings, avCodec->name, codecContext.get(), opts);
 
-    int res = avcodec_open2(codec, avCodec, opts);
+    int res = avcodec_open2(codecContext.get(), avCodec, opts);
     qCDebug(qLcFFmpegEncoder) << "audio codec opened" << res;
-    qCDebug(qLcFFmpegEncoder) << "audio codec params: fmt=" << codec->sample_fmt << "rate=" << codec->sample_rate;
+    qCDebug(qLcFFmpegEncoder) << "audio codec params: fmt=" << codecContext->sample_fmt
+                              << "rate=" << codecContext->sample_rate;
 
-    if (codec->sample_fmt != requested) {
+    if (codecContext->sample_fmt != requested) {
+        SwrContext *resampler = nullptr;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-        resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
-                                       codec->channel_layout,  // out_ch_layout
-                                       codec->sample_fmt,    // out_sample_fmt
-                                       codec->sample_rate,                // out_sample_rate
-                                       av_get_default_channel_layout(format.channelCount()), // in_ch_layout
-                                       requested,   // in_sample_fmt
-                                       format.sampleRate(),                // in_sample_rate
-                                       0,                    // log_offset
-                                       nullptr);
+        resampler = swr_alloc_set_opts(
+                nullptr, // we're allocating a new context
+                codecContext->channel_layout, // out_ch_layout
+                codecContext->sample_fmt, // out_sample_fmt
+                codecContext->sample_rate, // out_sample_rate
+                av_get_default_channel_layout(format.channelCount()), // in_ch_layout
+                requested, // in_sample_fmt
+                format.sampleRate(), // in_sample_rate
+                0, // log_offset
+                nullptr);
 #else
         AVChannelLayout in_ch_layout = {};
         av_channel_layout_default(&in_ch_layout, format.channelCount());
-        swr_alloc_set_opts2(&resampler,  // we're allocating a new context
-                            &codec->ch_layout, codec->sample_fmt, codec->sample_rate,
-                            &in_ch_layout, requested, format.sampleRate(),
-                            0, nullptr);
+        swr_alloc_set_opts2(&resampler, // we're allocating a new context
+                            &codecContext->ch_layout, codecContext->sample_fmt,
+                            codecContext->sample_rate, &in_ch_layout, requested,
+                            format.sampleRate(), 0, nullptr);
 #endif
 
         swr_init(resampler);
+
+        this->resampler.reset(resampler);
     }
 }
 
@@ -385,7 +390,7 @@ void AudioEncoder::init()
 {
     open();
     if (input) {
-        input->setFrameSize(codec->frame_size);
+        input->setFrameSize(codecContext->frame_size);
     }
     qCDebug(qLcFFmpegEncoder) << "AudioEncoder::init started audio device thread.";
 }
@@ -394,7 +399,7 @@ void AudioEncoder::cleanup()
 {
     while (!audioBufferQueue.empty())
         loop();
-    while (avcodec_send_frame(codec, nullptr) == AVERROR(EAGAIN))
+    while (avcodec_send_frame(codecContext.get(), nullptr) == AVERROR(EAGAIN))
         retrievePackets();
     retrievePackets();
 }
@@ -409,7 +414,7 @@ void AudioEncoder::retrievePackets()
 {
     while (1) {
         AVPacketUPtr packet(av_packet_alloc());
-        int ret = avcodec_receive_packet(codec, packet.get());
+        int ret = avcodec_receive_packet(codecContext.get(), packet.get());
         if (ret < 0) {
             if (ret != AVERROR(EOF))
                 break;
@@ -437,28 +442,29 @@ void AudioEncoder::loop()
     retrievePackets();
 
     auto frame = makeAVFrame();
-    frame->format = codec->sample_fmt;
+    frame->format = codecContext->sample_fmt;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    frame->channel_layout = codec->channel_layout;
-    frame->channels = codec->channels;
+    frame->channel_layout = codecContext->channel_layout;
+    frame->channels = codecContext->channels;
 #else
-    frame->ch_layout = codec->ch_layout;
+    frame->ch_layout = codecContext->ch_layout;
 #endif
-    frame->sample_rate = codec->sample_rate;
+    frame->sample_rate = codecContext->sample_rate;
     frame->nb_samples = buffer.frameCount();
     if (frame->nb_samples)
         av_frame_get_buffer(frame.get(), 0);
 
     if (resampler) {
         const uint8_t *data = buffer.constData<uint8_t>();
-        swr_convert(resampler, frame->extended_data, frame->nb_samples, &data, frame->nb_samples);
+        swr_convert(resampler.get(), frame->extended_data, frame->nb_samples, &data,
+                    frame->nb_samples);
     } else {
         memcpy(frame->buf[0]->data, buffer.constData<uint8_t>(), buffer.byteCount());
     }
 
     const auto &timeBase = stream->time_base;
     const auto pts = timeBase.den && timeBase.num
-            ? timeBase.den * samplesWritten / (codec->sample_rate * timeBase.num)
+            ? timeBase.den * samplesWritten / (codecContext->sample_rate * timeBase.num)
             : samplesWritten;
     setAVFrameTime(*frame, pts, timeBase);
     samplesWritten += buffer.frameCount();
@@ -469,7 +475,7 @@ void AudioEncoder::loop()
     //    qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
     //    ((double)buffer.frameCount()/frame->sample_rate);
 
-    int ret = avcodec_send_frame(codec, frame.get());
+    int ret = avcodec_send_frame(codecContext.get(), frame.get());
     if (ret < 0) {
         char errStr[1024];
         av_strerror(ret, errStr, 1024);

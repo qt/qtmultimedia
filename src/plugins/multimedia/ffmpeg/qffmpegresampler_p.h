@@ -40,7 +40,7 @@ private:
 
 private:
     QAudioFormat m_outputFormat;
-    SwrContext *resampler = nullptr;
+    SwrContextUPtr m_resampler;
     qint64 m_samplesProcessed = 0;
     qint64 m_endCompensationSample = std::numeric_limits<qint64>::min();
     qint32 m_sampleCompensationDelta = 0;
