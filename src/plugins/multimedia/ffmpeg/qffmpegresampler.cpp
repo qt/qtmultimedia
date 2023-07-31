@@ -33,6 +33,7 @@ Resampler::Resampler(const Codec *codec, const QAudioFormat &outputFormat)
 
 
     qCDebug(qLcResampler) << "init resampler" << m_outputFormat.sampleRate() << config << codecpar->sample_rate;
+    SwrContext *resampler = nullptr;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
     auto inConfig = codecpar->channel_layout;
     if (inConfig == 0)
@@ -61,12 +62,10 @@ Resampler::Resampler(const Codec *codec, const QAudioFormat &outputFormat)
                         nullptr);
 #endif
     swr_init(resampler);
+    m_resampler.reset(resampler);
 }
 
-Resampler::~Resampler()
-{
-    swr_free(&resampler);
-}
+Resampler::~Resampler() = default;
 
 QAudioBuffer Resampler::resample(const AVFrame *frame)
 {
@@ -75,7 +74,8 @@ QAudioBuffer Resampler::resample(const AVFrame *frame)
     QByteArray samples(m_outputFormat.bytesForFrames(maxOutSamples), Qt::Uninitialized);
     auto **in = const_cast<const uint8_t **>(frame->extended_data);
     auto *out = reinterpret_cast<uint8_t *>(samples.data());
-    const int outSamples = swr_convert(resampler, &out, maxOutSamples, in, frame->nb_samples);
+    const int outSamples =
+            swr_convert(m_resampler.get(), &out, maxOutSamples, in, frame->nb_samples);
 
     samples.resize(m_outputFormat.bytesForFrames(outSamples));
 
@@ -89,7 +89,7 @@ QAudioBuffer Resampler::resample(const AVFrame *frame)
 
 int Resampler::adjustMaxOutSamples(const AVFrame *frame)
 {
-    int maxOutSamples = swr_get_out_samples(resampler, frame->nb_samples);
+    int maxOutSamples = swr_get_out_samples(m_resampler.get(), frame->nb_samples);
 
     const auto remainingCompensationDistance = m_endCompensationSample - m_samplesProcessed;
 
@@ -101,7 +101,7 @@ int Resampler::adjustMaxOutSamples(const AVFrame *frame)
         // however it's not significant for our logic, in fact.
         // TODO: probably, it will need some improvements
         setSampleCompensation(0, 0);
-        maxOutSamples = swr_get_out_samples(resampler, frame->nb_samples);
+        maxOutSamples = swr_get_out_samples(m_resampler.get(), frame->nb_samples);
     }
 
     return maxOutSamples;
@@ -109,7 +109,7 @@ int Resampler::adjustMaxOutSamples(const AVFrame *frame)
 
 void Resampler::setSampleCompensation(qint32 delta, quint32 distance)
 {
-    const int res = swr_set_compensation(resampler, delta, static_cast<int>(distance));
+    const int res = swr_set_compensation(m_resampler.get(), delta, static_cast<int>(distance));
     if (res < 0)
         qCWarning(qLcResampler) << "swr_set_compensation fail:" << res;
     else {

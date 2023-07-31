@@ -158,11 +158,11 @@ private:
     void loop() override;
 
     AVStream *stream = nullptr;
-    AVCodecContext *codec = nullptr;
-    QFFmpegAudioInput *input;
+    AVCodecContextUPtr codecContext;
+    QFFmpegAudioInput *input = nullptr;
     QAudioFormat format;
 
-    SwrContext *resampler = nullptr;
+    SwrContextUPtr resampler;
     qint64 samplesWritten = 0;
     const AVCodec *avCodec = nullptr;
     QMediaEncoderSettings settings;
