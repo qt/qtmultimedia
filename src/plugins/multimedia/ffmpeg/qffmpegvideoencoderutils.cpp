@@ -14,6 +14,10 @@ namespace QFFmpeg {
 static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFormatDesc,
                                             AVPixelFormat fmt)
 {
+    // determine the format used by the encoder.
+    // We prefer YUV422 based formats such as NV12 or P010. Selection trues to find the best
+    // matching format for the encoder depending on the bit depth of the source format
+
     const auto *desc = av_pix_fmt_desc_get(fmt);
     if (!desc)
         return NotSuitableAVScore;
@@ -53,73 +57,54 @@ static AVScore calculateTargetSwFormatScore(const AVPixFmtDescriptor *sourceSwFo
     return score;
 }
 
-static AVScore calculateTargetFormatScore(const HWAccel *accel, AVPixelFormat sourceFormat,
-                                          const AVPixFmtDescriptor *sourceSwFormatDesc,
-                                          AVPixelFormat fmt)
+static auto targetSwFormatScoreCalculator(AVPixelFormat sourceFormat)
 {
-    if (accel) {
-        // accept source format as the best one to ensure zero-copy
-        // TODO: maybe, checking of accel->hwFormat() should go first,
-        // to be investigated
-        if (fmt == sourceFormat)
-            return BestAVScore;
-
-        if (accel->hwFormat() == fmt)
-            return BestAVScore - 1;
-
-        // The case is suspicious, but probably we should accept it
-        if (isHwPixelFormat(fmt))
-            return BestAVScore - 2;
-    } else {
-        if (isHwPixelFormat(fmt))
-            return NotSuitableAVScore;
-
-        if (fmt == sourceFormat)
-            return BestAVScore;
-    }
-
-    return calculateTargetSwFormatScore(sourceSwFormatDesc, fmt);
+    const auto sourceSwFormatDesc = av_pix_fmt_desc_get(sourceFormat);
+    return [=](AVPixelFormat fmt) { return calculateTargetSwFormatScore(sourceSwFormatDesc, fmt); };
 }
 
-static auto targetFormatScoreCalculator(const HWAccel *accel, AVPixelFormat sourceFormat,
-                                        AVPixelFormat sourceSWFormat)
+AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *codec,
+                                 const HWAccel &accel)
 {
-    const auto sourceSwFormatDesc = av_pix_fmt_desc_get(sourceSWFormat);
-    return [=](AVPixelFormat fmt) {
-        return calculateTargetFormatScore(accel, sourceFormat, sourceSwFormatDesc, fmt);
-    };
-}
+    auto scoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
 
-AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const HWAccel &accel)
-{
-    // determine the format used by the encoder.
-    // We prefer YUV422 based formats such as NV12 or P010. Selection trues to find the best
-    // matching format for the encoder depending on the bit depth of the source format
-
-    const auto sourceFormatDesc = av_pix_fmt_desc_get(sourceSWFormat);
     const auto constraints = accel.constraints();
+    if (constraints && constraints->valid_sw_formats)
+        return findBestAVFormat(constraints->valid_sw_formats, scoreCalculator).first;
 
-    if (!constraints || !constraints->valid_sw_formats)
-        return sourceSWFormat;
+    // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
+    // codec->pix_fmts
+    if (codec->pix_fmts)
+        return findBestAVFormat(codec->pix_fmts, scoreCalculator).first;
 
-    auto [format, scores] = findBestAVFormat(constraints->valid_sw_formats, [&](AVPixelFormat fmt) {
-        return calculateTargetSwFormatScore(sourceFormatDesc, fmt);
-    });
-
-    return format;
+    return AV_PIX_FMT_NONE;
 }
 
 AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
                                const AVCodec *codec, const HWAccel *accel)
 {
+    if (accel) {
+        const auto hwFormat = accel->hwFormat();
+
+        const auto constraints = accel->constraints();
+        if (constraints && hasAVFormat(constraints->valid_hw_formats, hwFormat))
+            return hwFormat;
+
+        // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
+        // codec->pix_fmts
+        if (hasAVFormat(codec->pix_fmts, hwFormat))
+            return hwFormat;
+
+        return AV_PIX_FMT_NONE;
+    }
+
     if (!codec->pix_fmts) {
         qWarning() << "Codec pix formats are undefined, it's likely to behave incorrectly";
 
-        // if no accel created, accept only sw format
-        return accel || !isHwPixelFormat(sourceFormat) ? sourceFormat : sourceSWFormat;
+        return sourceSWFormat;
     }
 
-    auto scoreCalculator = targetFormatScoreCalculator(accel, sourceFormat, sourceSWFormat);
+    auto scoreCalculator = targetSwFormatScoreCalculator(sourceFormat);
     return findBestAVFormat(codec->pix_fmts, scoreCalculator).first;
 }
 
@@ -144,10 +129,9 @@ std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID cod
     return result;
 }
 
-const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceFormat,
-                             AVPixelFormat sourceSWFormat)
+const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
 {
-    auto formatScoreCalculator = targetFormatScoreCalculator(nullptr, sourceFormat, sourceSWFormat);
+    auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
 
     return findAVEncoder(codecID, [&formatScoreCalculator](const AVCodec *codec) {
         if (!codec->pix_fmts)

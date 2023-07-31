@@ -21,7 +21,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const HWAccel &accel);
+AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *codec,
+                                 const HWAccel &accel);
 
 AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
                                const AVCodec *codec, const HWAccel *accel);
@@ -29,8 +30,7 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
 std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID codecID,
                                                                    const QSize &sourceSize);
 
-const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceFormat,
-                             AVPixelFormat sourceSWFormat);
+const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat);
 
 } // namespace QFFmpeg
 
