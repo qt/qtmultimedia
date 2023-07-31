@@ -3,6 +3,9 @@
 
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
 
+#include "qtimer.h"
+#include "qdebug.h"
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
@@ -10,6 +13,12 @@ namespace QFFmpeg {
 static std::atomic<PlaybackEngineObject::Id> PersistentId = 0;
 
 PlaybackEngineObject::PlaybackEngineObject() : m_id(++PersistentId) { }
+
+PlaybackEngineObject::~PlaybackEngineObject()
+{
+    if (thread() != QThread::currentThread())
+        qWarning() << "The playback engine object is being removed in an unexpected thread";
+}
 
 bool PlaybackEngineObject::isPaused() const
 {
@@ -55,16 +64,22 @@ bool PlaybackEngineObject::canDoNextStep() const
 QTimer &PlaybackEngineObject::timer()
 {
     if (!m_timer) {
-        m_timer = new QTimer(this);
+        m_timer = std::make_unique<QTimer>();
         m_timer->setTimerType(Qt::PreciseTimer);
         m_timer->setSingleShot(true);
-        connect(m_timer, &QTimer::timeout, this, [this]() {
+        connect(m_timer.get(), &QTimer::timeout, this, [this]() {
             if (!m_deleting && canDoNextStep())
                 doNextStep();
         });
     }
 
     return *m_timer;
+}
+
+void PlaybackEngineObject::onTimeout()
+{
+    if (!m_deleting && canDoNextStep())
+        doNextStep();
 }
 
 int PlaybackEngineObject::timerInterval() const
