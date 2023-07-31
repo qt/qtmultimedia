@@ -495,13 +495,15 @@ VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settin
         frameRate = 30.;
     }
 
-    frameEncoder = new VideoFrameEncoder(settings, format.frameSize(), frameRate, ffmpegPixelFormat,
-                                         swFormat, encoder->formatContext);
+    frameEncoder = VideoFrameEncoder::create(settings, format.frameSize(), frameRate,
+                                             ffmpegPixelFormat, swFormat, encoder->formatContext);
 }
 
-VideoEncoder::~VideoEncoder()
+VideoEncoder::~VideoEncoder() = default;
+
+bool VideoEncoder::isValid() const
 {
-    delete frameEncoder;
+    return frameEncoder != nullptr;
 }
 
 void VideoEncoder::addFrame(const QVideoFrame &frame)
@@ -520,11 +522,6 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
 
         wake();
     }
-}
-
-bool VideoEncoder::isValid() const
-{
-    return !frameEncoder->isNull();
 }
 
 QVideoFrame VideoEncoder::takeFrame()
@@ -588,7 +585,7 @@ void VideoEncoder::loop()
     if (!frame.isValid())
         return;
 
-    if (frameEncoder->isNull())
+    if (!isValid())
         return;
 
 //    qCDebug(qLcFFmpegEncoder) << "new video buffer" << frame.startTime();
