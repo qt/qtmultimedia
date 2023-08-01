@@ -205,6 +205,8 @@ std::string cvFormatToString(uint32_t format);
 #endif
 }
 
+QDebug operator<<(QDebug, const AVRational &);
+
 QT_END_NAMESPACE
 
 #endif

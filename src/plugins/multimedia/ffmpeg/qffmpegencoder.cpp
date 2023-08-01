@@ -326,8 +326,7 @@ void AudioEncoder::open()
 
     if (stream->time_base.num != 1 || stream->time_base.den != format.sampleRate()) {
         qCDebug(qLcFFmpegEncoder) << "Most likely, av_format_write_header changed time base from"
-                                  << 1 << "/" << format.sampleRate() << "to"
-                                  << stream->time_base.num << "/" << stream->time_base.den;
+                                  << 1 << "/" << format.sampleRate() << "to" << stream->time_base;
     }
 
     codecContext->time_base = stream->time_base;
