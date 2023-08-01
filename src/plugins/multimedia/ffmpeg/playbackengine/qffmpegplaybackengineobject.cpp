@@ -66,10 +66,7 @@ QTimer &PlaybackEngineObject::timer()
         m_timer = std::make_unique<QTimer>();
         m_timer->setTimerType(Qt::PreciseTimer);
         m_timer->setSingleShot(true);
-        connect(m_timer.get(), &QTimer::timeout, this, [this]() {
-            if (!m_deleting && canDoNextStep())
-                doNextStep();
-        });
+        connect(m_timer.get(), &QTimer::timeout, this, &PlaybackEngineObject::onTimeout);
     }
 
     return *m_timer;
