@@ -350,4 +350,10 @@ std::string cvFormatToString(uint32_t cvFormat)
 
 } // namespace QFFmpeg
 
+QDebug operator<<(QDebug dbg, const AVRational &value)
+{
+    dbg << value.num << "/" << value.den;
+    return dbg;
+}
+
 QT_END_NAMESPACE

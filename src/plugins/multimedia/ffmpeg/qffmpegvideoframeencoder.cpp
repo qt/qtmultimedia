@@ -95,12 +95,10 @@ bool VideoFrameEncoder::initCodec()
 
     if (m_codec->supported_framerates && qLcVideoFrameEncoder().isEnabled(QtDebugMsg))
         for (auto rate = m_codec->supported_framerates; rate->num && rate->den; ++rate)
-            qCDebug(qLcVideoFrameEncoder)
-                    << "supported frame rate:" << rate->num << "/" << rate->den;
+            qCDebug(qLcVideoFrameEncoder) << "supported frame rate:" << *rate;
 
     m_codecFrameRate = adjustFrameRate(m_codec->supported_framerates, m_settings.videoFrameRate());
-    qCDebug(qLcVideoFrameEncoder) << "Adjusted frame rate:" << m_codecFrameRate.num << "/"
-                                  << m_codecFrameRate.den;
+    qCDebug(qLcVideoFrameEncoder) << "Adjusted frame rate:" << m_codecFrameRate;
 
     return true;
 }
@@ -203,7 +201,7 @@ bool VideoFrameEncoder::open()
         return false;
     }
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base"
-                                  << m_codecContext->time_base.num << m_codecContext->time_base.den;
+                                  << m_codecContext->time_base;
     return true;
 }
 
@@ -300,8 +298,7 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
         frame = std::move(f);
     }
 
-    qCDebug(qLcVideoFrameEncoder) << "sending frame" << pts << "*" << timeBase.num << "/"
-                                  << timeBase.den;
+    qCDebug(qLcVideoFrameEncoder) << "sending frame" << pts << "*" << timeBase;
 
     setAVFrameTime(*frame, pts, timeBase);
     return avcodec_send_frame(m_codecContext.get(), frame.get());
