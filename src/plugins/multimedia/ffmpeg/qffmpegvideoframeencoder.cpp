@@ -85,6 +85,23 @@ bool VideoFrameEncoder::initCodec()
     }
 #endif
 
+    auto fixedResolution = adjustVideoResolution(m_codec, m_settings.videoResolution());
+    if (resolution != fixedResolution) {
+        qCDebug(qLcVideoFrameEncoder) << "Fix odd video resolution for codec" << m_codec->name
+                                      << ":" << resolution << "->" << fixedResolution;
+
+        m_settings.setVideoResolution(fixedResolution);
+    }
+
+    if (m_codec->supported_framerates && qLcVideoFrameEncoder().isEnabled(QtDebugMsg))
+        for (auto rate = m_codec->supported_framerates; rate->num && rate->den; ++rate)
+            qCDebug(qLcVideoFrameEncoder)
+                    << "supported frame rate:" << rate->num << "/" << rate->den;
+
+    m_codecFrameRate = adjustFrameRate(m_codec->supported_framerates, m_settings.videoFrameRate());
+    qCDebug(qLcVideoFrameEncoder) << "Adjusted frame rate:" << m_codecFrameRate.num << "/"
+                                  << m_codecFrameRate.den;
+
     return true;
 }
 
@@ -139,32 +156,10 @@ bool QFFmpeg::VideoFrameEncoder::initCodecContext(AVFormatContext *formatContext
     m_stream->codecpar->width = resolution.width();
     m_stream->codecpar->height = resolution.height();
     m_stream->codecpar->sample_aspect_ratio = AVRational{ 1, 1 };
-    float requestedRate = m_settings.videoFrameRate();
-    constexpr int TimeScaleFactor = 1000; // Allows not to follow fixed rate
-    m_stream->time_base = AVRational{ 1, static_cast<int>(requestedRate * TimeScaleFactor) };
-
-    float delta = 1e10;
-    if (m_codec->supported_framerates) {
-        // codec only supports fixed frame rates
-        auto *best = m_codec->supported_framerates;
-        qCDebug(qLcVideoFrameEncoder) << "Finding fixed rate:";
-        for (auto *f = m_codec->supported_framerates; f->num != 0; f++) {
-            auto maybeRate = toFloat(*f);
-            if (!maybeRate)
-                continue;
-            float d = qAbs(*maybeRate - requestedRate);
-            qCDebug(qLcVideoFrameEncoder) << "    " << f->num << f->den << d;
-            if (d < delta) {
-                best = f;
-                delta = d;
-            }
-        }
-        qCDebug(qLcVideoFrameEncoder) << "Fixed frame rate required. Requested:" << requestedRate << "Using:" << best->num << "/" << best->den;
-        m_stream->time_base = *best;
-        requestedRate = toFloat(*best).value_or(0.f);
-    }
 
     Q_ASSERT(m_codec);
+
+    m_stream->time_base = adjustFrameTimeBase(m_codec->supported_framerates, m_codecFrameRate);
     m_codecContext.reset(avcodec_alloc_context3(m_codec));
     if (!m_codecContext) {
         qWarning() << "Could not allocate codec context";
@@ -173,10 +168,10 @@ bool QFFmpeg::VideoFrameEncoder::initCodecContext(AVFormatContext *formatContext
 
     avcodec_parameters_to_context(m_codecContext.get(), m_stream->codecpar);
     m_codecContext->time_base = m_stream->time_base;
-    qCDebug(qLcVideoFrameEncoder) << "requesting time base" << m_codecContext->time_base.num
+    qCDebug(qLcVideoFrameEncoder) << "codecContext time base" << m_codecContext->time_base.num
                                   << m_codecContext->time_base.den;
-    auto [num, den] = qRealToFraction(requestedRate);
-    m_codecContext->framerate = { num, den };
+
+    m_codecContext->framerate = m_codecFrameRate;
     m_codecContext->pix_fmt = m_targetFormat;
     m_codecContext->width = resolution.width();
     m_codecContext->height = resolution.height();
@@ -209,7 +204,6 @@ bool VideoFrameEncoder::open()
     }
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base"
                                   << m_codecContext->time_base.num << m_codecContext->time_base.den;
-    m_stream->time_base = m_stream->time_base;
     return true;
 }
 
