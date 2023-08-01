@@ -73,6 +73,8 @@ private:
     bool m_downloadFromHW = false;
     bool m_uploadToHW = false;
 
+    AVRational m_codecFrameRate = { 0, 1 };
+
     int64_t m_prevPacketDts = AV_NOPTS_VALUE;
     int64_t m_packetDtsOffset = 0;
 };

@@ -32,6 +32,31 @@ std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID cod
 
 const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat);
 
+/**
+ * @brief adjustFrameRate get a rational frame rate be requested qreal rate.
+ *        If the codec supports fixed frame rate (non-null supportedRates),
+ *        the function selects the most suitable one,
+ *        otherwise just makes AVRational from qreal.
+ */
+AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate);
+
+/**
+ * @brief adjustFrameTimeBase gets adjusted timebase by a list of supported frame rates
+ *        and an already adjusted frame rate.
+ *
+ *        Timebase is the fundamental unit of time (in seconds) in terms
+ *        of which frame timestamps are represented.
+ *        For fixed-fps content (non-null supportedRates),
+ *        timebase should be 1/framerate.
+ *
+ *        For more information, see AVStream::time_base and AVCodecContext::time_base.
+ *
+ *        The adjusted time base is supposed to be set to stream and codec context.
+ */
+AVRational adjustFrameTimeBase(const AVRational *supportedRates, AVRational frameRate);
+
+QSize adjustVideoResolution(const AVCodec *codec, QSize requestedResolution);
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

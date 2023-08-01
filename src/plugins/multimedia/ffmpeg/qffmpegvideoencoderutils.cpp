@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegvideoencoderutils_p.h"
+#include "private/qmultimediautils_p.h"
 
 extern "C" {
 #include <libavutil/pixdesc.h>
@@ -140,6 +141,72 @@ const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
 
         return findBestAVFormat(codec->pix_fmts, formatScoreCalculator).second;
     });
+}
+
+AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate)
+{
+    qreal diff = std::numeric_limits<qreal>::max();
+
+    auto getDiff = [requestedRate](qreal currentRate) {
+        return qMax(requestedRate, currentRate) / qMin(requestedRate, currentRate);
+
+        // Using just a liniar delta is also possible, but
+        // relative comparison should work better
+        // return qAbs(currentRate - requestedRate);
+    };
+
+    if (supportedRates) {
+        const AVRational *result = nullptr;
+        for (auto rate = supportedRates; rate->num && rate->den; ++rate) {
+            const qreal currentDiff = getDiff(qreal(rate->num) / rate->den);
+
+            if (currentDiff < diff) {
+                diff = currentDiff;
+                result = supportedRates;
+            }
+        }
+
+        if (result)
+            return *result;
+    }
+
+    const auto [num, den] = qRealToFraction(requestedRate);
+    return { num, den };
+}
+
+AVRational adjustFrameTimeBase(const AVRational *supportedRates, AVRational frameRate)
+{
+    // TODO: user-specified frame rate might be required.
+    if (supportedRates) {
+        auto hasFrameRate = [&]() {
+            for (auto rate = supportedRates; rate->num && rate->den; ++rate)
+                if (rate->den == frameRate.den && rate->num == frameRate.num)
+                    return true;
+
+            return false;
+        };
+
+        Q_ASSERT(hasFrameRate());
+
+        return { frameRate.den, frameRate.num };
+    }
+
+    constexpr int TimeScaleFactor = 1000; // Allows not to follow fixed rate
+    return { frameRate.den, frameRate.num * TimeScaleFactor };
+}
+
+QSize adjustVideoResolution(const AVCodec *codec, QSize requestedResolution)
+{
+#ifdef Q_OS_WINDOWS
+    // TODO: investigate, there might be more encoders not supporting odd resolution
+    if (strcmp(codec->name, "h264_mf") == 0) {
+        auto makeEven = [](int size) { return size & ~1; };
+        return QSize(makeEven(requestedResolution.width()), makeEven(requestedResolution.height()));
+    }
+#else
+    Q_UNUSED(codec);
+#endif
+    return requestedResolution;
 }
 
 } // namespace QFFmpeg
