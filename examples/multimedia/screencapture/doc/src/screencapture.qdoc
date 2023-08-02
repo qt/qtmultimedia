@@ -23,9 +23,9 @@
 
     The example consists of three custom classes. The UI and all screen capture
     functionality is implemented in the class ScreenCapturePreview. The classes
-    ScreenlListModel and WindowListModel only serves as models behind the two
+    ScreenListModel and WindowListModel only serve as models behind the two
     QListView widgets. The main function creates a ScreenCapturePreview object,
-    which in turn creates an instance of either QScreenCapture or QWindowCapture,
+    which in turn creates instances of QScreenCapture and QWindowCapture,
     and a QMediaCaptureSession and QVideoWidget, in addition to all the UI widgets.
 
     The screen and window models are populated with the return values of
