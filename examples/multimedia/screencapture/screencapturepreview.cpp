@@ -98,10 +98,10 @@ void ScreenCapturePreview::onCurrentWindowSelectionChanged(QItemSelection select
     if (auto indexes = selection.indexes(); !indexes.empty()) {
         auto window = windowListModel->window(indexes.front());
         if (!window.isValid()) {
-            const auto questionResust = QMessageBox::question(
+            const auto questionResult = QMessageBox::question(
                     this, tr("Invalid window"),
                     tr("The window is no longer valid. Update the list of windows?"));
-            if (questionResust == QMessageBox::Yes) {
+            if (questionResult == QMessageBox::Yes) {
                 updateActive(SourceType::Window, false);
 
                 windowListView->clearSelection();
