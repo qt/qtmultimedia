@@ -123,7 +123,6 @@ QPulseAudioSink::~QPulseAudioSink()
         QSignalBlocker blocker(this);
         guard.reset();
     }
-    QCoreApplication::processEvents();
 }
 
 QAudio::Error QPulseAudioSink::error() const
