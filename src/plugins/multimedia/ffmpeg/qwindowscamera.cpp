@@ -322,8 +322,8 @@ void QWindowsCamera::setActive(bool active)
             activeChanged(true);
 
     } else {
-        emit activeChanged(false);
         m_active.reset();
+        emit activeChanged(false);
     }
 }
 
