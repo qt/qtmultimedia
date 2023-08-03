@@ -1318,8 +1318,10 @@ QMediaMetaData QMediaPlayer::metaData() const
 /*!
     \qmlproperty real QtMultimedia::MediaPlayer::playbackRate
 
-    This property holds the rate at which audio is played at as a multiple of
+    This property holds the rate at which media is played at as a multiple of
     the normal rate.
+
+    For more information, see \l{QMediaPlayer::playbackRate}.
 
     Defaults to \c{1.0}.
 */
