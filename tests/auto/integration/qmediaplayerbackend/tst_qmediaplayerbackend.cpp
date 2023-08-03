@@ -2078,7 +2078,8 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
 
     connect(&sink, &QVideoSink::videoSizeChanged, [&]() {
         QCOMPARE(sink.videoSize(), sink.videoFrame().size());
-        ++videoSizeCounter;
+        if (sink.videoSize().isValid()) // filter end frame
+            ++videoSizeCounter;
     });
 
     player.setSource(localVideoFile2);
