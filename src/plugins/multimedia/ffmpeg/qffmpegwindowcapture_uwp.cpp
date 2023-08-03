@@ -141,7 +141,8 @@ struct WindowGrabber
 {
     WindowGrabber() = default;
 
-    WindowGrabber(IDXGIAdapter1 *adapter, HWND hwnd) : m_frameSize{ getWindowSize(hwnd) }
+    WindowGrabber(IDXGIAdapter1 *adapter, HWND hwnd)
+        : m_frameSize{ getWindowSize(hwnd) }, m_captureWindow{ hwnd }
     {
         check_hresult(D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, nullptr, 0,
                                         D3D11_SDK_VERSION, m_device.put(), nullptr, nullptr));
@@ -174,8 +175,19 @@ struct WindowGrabber
     com_ptr<IDXGISurface> tryGetFrame()
     {
         const Direct3D11CaptureFrame frame = m_framePool.TryGetNextFrame();
-        if (!frame)
+        if (!frame) {
+
+            // Stop capture and report failure if window was closed. If we don't stop,
+            // testing shows that either we don't get any frames, or we get blank frames.
+            // Emitting an error will prevent this inconsistent behavior, and makes the
+            // Windows implementation behave like the Linux implementation
+            if (!IsWindow(m_captureWindow))
+                throw std::runtime_error("Window was closed");
+
+            // Blank frames may come spuriously if no new window texture
+            // is available yet.
             return {};
+        }
 
         if (m_frameSize != frame.ContentSize()) {
             m_frameSize = frame.ContentSize();
@@ -193,8 +205,33 @@ private:
         const auto interop = factory.as<IGraphicsCaptureItemInterop>();
 
         GraphicsCaptureItem item = { nullptr };
-        check_hresult(interop->CreateForWindow(hwnd, winrt::guid_of<GraphicsCaptureItem>(),
-                                               winrt::put_abi(item)));
+        winrt::hresult status = S_OK;
+
+        // Attempt to create capture item with retry, because this occasionally fails,
+        // particularly in unit tests. When the failure code is E_INVALIDARG, it
+        // seems to help to sleep for a bit and retry. See QTBUG-116025.
+        constexpr int maxRetry = 10;
+        constexpr std::chrono::milliseconds retryDelay{ 100 };
+        for (int retryNum = 0; retryNum < maxRetry; ++retryNum) {
+
+            status = interop->CreateForWindow(hwnd, winrt::guid_of<GraphicsCaptureItem>(),
+                                              winrt::put_abi(item));
+
+            if (status != E_INVALIDARG)
+                break;
+
+            qCWarning(qLcWindowCaptureUwp)
+                    << "Failed to create capture item:"
+                    << QString::fromStdWString(winrt::hresult_error(status).message().c_str())
+                    << "Retry number" << retryNum;
+
+            if (retryNum + 1 < maxRetry)
+                QThread::sleep(retryDelay);
+        }
+
+        // Throw if we fail to create the capture item
+        check_hresult(status);
+
         return item;
     }
 
@@ -243,6 +280,7 @@ private:
         return texture.as<IDXGISurface>();
     }
 
+    HWND m_captureWindow{};
     winrt::Windows::Graphics::SizeInt32 m_frameSize{};
     com_ptr<ID3D11Device> m_device;
     Direct3D11CaptureFramePool m_framePool{ nullptr };
@@ -320,6 +358,8 @@ protected:
                     + QString::fromWCharArray(err.message().c_str());
 
             updateError(InternalError, message);
+        } catch (const std::runtime_error& e) {
+            updateError(CaptureFailed, QString::fromLatin1(e.what()));
         }
 
         return {};

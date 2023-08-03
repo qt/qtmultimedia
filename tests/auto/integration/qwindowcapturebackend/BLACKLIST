@@ -1,0 +1,13 @@
+macos ci
+
+#QTBUG-112827 on Android
+#QTBUG-111190, v4l2m2m issues
+[recorder_encodesFrames_toValidMediaFile]
+linux ci
+android ci
+
+#QTBUG-112827 on Android
+#QTBUG-111190, v4l2m2m issues
+[recorder_encodesFrames_toValidMediaFile_whenWindowResizes]
+linux ci
+android ci
