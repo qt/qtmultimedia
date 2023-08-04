@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 qt_find_package(EGL)
-qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VA VAAPI::DRM MODULE_NAME multimedia QMAKE_LIB vaapi)
+qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAME multimedia QMAKE_LIB vaapi)
 
 qt_internal_find_apple_system_framework(FWCoreMedia CoreMedia)
 qt_internal_find_apple_system_framework(FWCoreAudio CoreAudio)
