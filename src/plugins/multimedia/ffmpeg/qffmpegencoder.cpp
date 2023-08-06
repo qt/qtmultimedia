@@ -57,6 +57,8 @@ Encoder::Encoder(const QMediaEncoderSettings &settings, const QUrl &url)
     formatContext->url = (char *)av_malloc(encoded.size() + 1);
     memcpy(formatContext->url, encoded.constData(), encoded.size() + 1);
     formatContext->pb = nullptr;
+
+    // Initialize the AVIOContext for accessing the resource indicated by the url
     auto result = avio_open2(&formatContext->pb, formatContext->url, AVIO_FLAG_WRITE, nullptr, nullptr);
     qCDebug(qLcFFmpegEncoder) << "opened" << result << formatContext->url;
 
@@ -148,6 +150,10 @@ void EncodingFinalizer::run()
     int res = av_write_trailer(encoder->formatContext);
     if (res < 0)
         qWarning() << "could not write trailer" << res;
+
+    // Close the AVIOContext and release any file handles
+    res = avio_close(encoder->formatContext->pb);
+    Q_ASSERT(res == 0);
 
     avformat_free_context(encoder->formatContext);
     qCDebug(qLcFFmpegEncoder) << "    done finalizing.";
