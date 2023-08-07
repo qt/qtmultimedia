@@ -155,6 +155,15 @@ public class QtVideoDeviceManager {
         }
     }
 
+    public int[] getSupportedAfModes(String cameraId) {
+
+        CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
+        if (characteristics == null)
+            return new int[0];
+
+        return characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+    }
+
     public String[] getSupportedFlashModes(String cameraId) {
 
         CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);

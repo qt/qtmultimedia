@@ -58,6 +58,7 @@ public class QtCamera2 {
     private static int MaxNumberFrames = 10;
     private int mFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
     private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
+    private int mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
 
     native void onCameraOpened(String cameraId);
     native void onCameraDisconnect(String cameraId);
@@ -290,11 +291,18 @@ public class QtCamera2 {
             try {
                 mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(template);
                 mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
+                mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
+                for (int mode : mVideoDeviceManager.getSupportedAfModes(mCameraId)) {
+                    if (mode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
+                        mAFMode = mode;
+                        break;
+                    }
+                }
 
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
                 mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mTorchMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mAFMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
 
                 mPreviewRequest = mPreviewRequestBuilder.build();
@@ -366,9 +374,13 @@ public class QtCamera2 {
 
     public void takePhoto() {
         try {
-            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-            mState = STATE_WAITING_LOCK;
-            mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+            if (mAFMode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
+                mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+                mState = STATE_WAITING_LOCK;
+                mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback, mBackgroundHandler);
+            } else {
+                capturePhoto();
+            }
         } catch (CameraAccessException e) {
             Log.w("QtCamera2", "Cannot get access to the camera: " + e);
         }
