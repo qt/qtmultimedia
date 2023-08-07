@@ -360,6 +360,7 @@ void QAndroidCamera::updateCameraCharacteristics()
     m_TorchModeSupported = deviceManager.callMethod<jboolean>(
             "isTorchModeSupported", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
 
+    m_supportedFlashModes.clear();
     m_supportedFlashModes.append(QCamera::FlashOff);
     QJniObject flashModesObj = deviceManager.callMethod<QtJniTypes::StringArray>(
             "getSupportedFlashModes",
@@ -389,6 +390,7 @@ void QAndroidCamera::cleanCameraCharacteristics()
         setFlashMode(QCamera::FlashOff);
     }
     m_supportedFlashModes.clear();
+    m_supportedFlashModes.append(QCamera::FlashOff);
 }
 
 void QAndroidCamera::setFlashMode(QCamera::FlashMode mode)
