@@ -63,10 +63,17 @@ struct QMediaMetaDataForeign
     QML_NAMED_ELEMENT(mediaMetaData)
 };
 
+// To prevent the same type from being exported twice into qmltypes
+// (for value type and for the enums)
+struct QMediaMetaDataDerived : public QMediaMetaData
+{
+    Q_GADGET
+};
+
 namespace QMediaMetaDataNamespaceForeign
 {
     Q_NAMESPACE
-    QML_FOREIGN_NAMESPACE(QMediaMetaData)
+    QML_FOREIGN_NAMESPACE(QMediaMetaDataDerived)
     QML_NAMED_ELEMENT(MediaMetaData)
 };
 
@@ -98,10 +105,17 @@ struct QAudioDeviceForeign
     QML_NAMED_ELEMENT(audioDevice)
 };
 
+// To prevent the same type from being exported twice into qmltypes
+// (for value type and for the enums)
+struct QAudioDeviceDerived : public QAudioDevice
+{
+    Q_GADGET
+};
+
 namespace QAudioDeviceNamespaceForeign
 {
     Q_NAMESPACE
-    QML_FOREIGN_NAMESPACE(QAudioDevice)
+    QML_FOREIGN_NAMESPACE(QAudioDeviceDerived)
     QML_NAMED_ELEMENT(AudioDevice)
 };
 
@@ -112,10 +126,17 @@ struct QCameraDeviceForeign
     QML_NAMED_ELEMENT(cameraDevice)
 };
 
+// To prevent the same type from being exported twice into qmltypes
+// (for value type and for the enums)
+struct QCameraDeviceDerived : public QCameraDevice
+{
+    Q_GADGET
+};
+
 namespace QCameraDeviceNamespaceForeign
 {
     Q_NAMESPACE
-    QML_FOREIGN_NAMESPACE(QCameraDevice)
+    QML_FOREIGN_NAMESPACE(QCameraDeviceDerived)
     QML_NAMED_ELEMENT(CameraDevice)
 };
 
@@ -126,10 +147,17 @@ struct QMediaFormatForeign
     QML_NAMED_ELEMENT(mediaFormat)
 };
 
+// To prevent the same type from being exported twice into qmltypes
+// (for value type and for the enums)
+struct QMediaFormatDerived : public QMediaFormat
+{
+    Q_GADGET
+};
+
 namespace QMediaFormatNamespaceForeign
 {
     Q_NAMESPACE
-    QML_FOREIGN_NAMESPACE(QMediaFormat)
+    QML_FOREIGN_NAMESPACE(QMediaFormatDerived)
     QML_NAMED_ELEMENT(MediaFormat)
 };
 
