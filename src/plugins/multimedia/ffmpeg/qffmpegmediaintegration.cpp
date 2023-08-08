@@ -16,11 +16,12 @@
 
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
+
+#include "qavfscreencapture_p.h"
 #endif
 
 #ifdef Q_OS_DARWIN
 #include "qavfcamera_p.h"
-#include "qavfscreencapture_p.h"
 #elif defined(Q_OS_WINDOWS)
 #include "qwindowscamera_p.h"
 #include "qwindowsvideodevices_p.h"
