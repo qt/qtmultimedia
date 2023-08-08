@@ -182,13 +182,6 @@ struct QCapturableWindowForeign
     QML_NAMED_ELEMENT(capturableWindow)
 };
 
-namespace QCapturableWindowNamespaceForeign
-{
-    Q_NAMESPACE
-    QML_FOREIGN_NAMESPACE(QCapturableWindow)
-    QML_NAMED_ELEMENT(CapturableWindow)
-};
-
 struct QWindowCaptureForeign
 {
     Q_GADGET
