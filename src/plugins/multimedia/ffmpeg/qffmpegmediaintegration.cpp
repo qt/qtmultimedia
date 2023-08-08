@@ -16,13 +16,14 @@
 
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
+
+#include "qcgcapturablewindows_p.h"
+#include "qcgwindowcapture_p.h"
+#include "qavfscreencapture_p.h"
 #endif
 
 #ifdef Q_OS_DARWIN
 #include "qavfcamera_p.h"
-#include "qavfscreencapture_p.h"
-#include "qcgwindowcapture_p.h"
-#include "qcgcapturablewindows_p.h"
 
 #elif defined(Q_OS_WINDOWS)
 #include "qwindowscamera_p.h"
@@ -155,7 +156,7 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
         m_capturableWindows = std::make_unique<QX11CapturableWindows>();
-#elif defined Q_OS_DARWIN
+#elif defined Q_OS_MACOSX
     m_capturableWindows = std::make_unique<QCGCapturableWindows>();
 #elif defined(Q_OS_WINDOWS)
     m_capturableWindows = std::make_unique<QWinCapturableWindows>();

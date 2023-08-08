@@ -81,9 +81,6 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
         qavfcamera.mm qavfcamera_p.h
         qavfsamplebufferdelegate.mm qavfsamplebufferdelegate_p.h
-        qavfscreencapture.mm qavfscreencapture_p.h
-        qcgwindowcapture.mm qcgwindowcapture_p.h
-        qcgcapturablewindows.mm qcgcapturablewindows_p.h
     INCLUDE_DIRECTORIES
         ../darwin
         ../darwin/camera
@@ -96,6 +93,13 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         ${FWVideoToolbox}
         ${FWSecurity}
         AVFoundation::AVFoundation
+)
+
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION MACOS
+    SOURCES
+        qavfscreencapture.mm qavfscreencapture_p.h
+        qcgwindowcapture.mm qcgwindowcapture_p.h
+        qcgcapturablewindows.mm qcgcapturablewindows_p.h
 )
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION WIN32
