@@ -165,7 +165,11 @@ struct WindowGrabber
         m_session.StartCapture();
     }
 
-    ~WindowGrabber() { m_session.Close(); }
+    ~WindowGrabber()
+    {
+        m_framePool.Close();
+        m_session.Close();
+    }
 
     com_ptr<IDXGISurface> tryGetFrame()
     {
