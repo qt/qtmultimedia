@@ -1,7 +1,6 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-
 #ifndef QFFMPEGMEDIARECODER_H
 #define QFFMPEGMEDIARECODER_H
 
@@ -17,9 +16,6 @@
 //
 
 #include <private/qplatformmediarecorder_p.h>
-#include "qffmpegmediacapturesession_p.h"
-
-#include "qffmpeg_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -27,6 +23,7 @@ class QAudioSource;
 class QAudioSourceIO;
 class QAudioBuffer;
 class QMediaMetaData;
+class QFFmpegMediaCaptureSession;
 
 namespace QFFmpeg {
 class Encoder;
@@ -49,7 +46,7 @@ public:
     void setMetaData(const QMediaMetaData &) override;
     QMediaMetaData metaData() const override;
 
-    void setCaptureSession(QPlatformMediaCaptureSession *session);
+    void setCaptureSession(QFFmpegMediaCaptureSession *session);
 
 private Q_SLOTS:
     void newDuration(qint64 d) { durationChanged(d); }
@@ -57,10 +54,16 @@ private Q_SLOTS:
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
 
 private:
+    using Encoder = QFFmpeg::Encoder;
+    struct EncoderDeleter
+    {
+        void operator()(Encoder *) const;
+    };
+
     QFFmpegMediaCaptureSession *m_session = nullptr;
     QMediaMetaData m_metaData;
 
-    QFFmpeg::Encoder *encoder = nullptr;
+    std::unique_ptr<Encoder, EncoderDeleter> m_encoder;
 };
 
 QT_END_NAMESPACE
