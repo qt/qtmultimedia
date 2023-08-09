@@ -42,10 +42,14 @@ package org.qtproject.qt.android.multimedia;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.util.Log;
 import java.lang.Math;
+import java.io.ByteArrayOutputStream;
 
 public class QtCameraListener implements Camera.ShutterCallback,
                                          Camera.PictureCallback,
@@ -65,6 +69,7 @@ public class QtCameraListener implements Camera.ShutterCallback,
     private Camera.Size m_previewSize = null;
     private int m_previewFormat = ImageFormat.NV21; // Default preview format on all devices
     private int m_previewBytesPerLine = -1;
+    private int m_rotation = 0;
 
     private QtCameraListener(int id)
     {
@@ -115,6 +120,11 @@ public class QtCameraListener implements Camera.ShutterCallback,
     public void clearPreviewCallback(Camera camera)
     {
         camera.setPreviewCallbackWithBuffer(null);
+    }
+
+    public void setPhotoRotation(int rotation)
+    {
+        m_rotation = rotation;
     }
 
     public void setupPreviewCallback(Camera camera)
@@ -200,7 +210,22 @@ public class QtCameraListener implements Camera.ShutterCallback,
     @Override
     public void onPictureTaken(byte[] data, Camera camera)
     {
-        notifyPictureCaptured(m_cameraId, data);
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(m_cameraId, info);
+        Bitmap source = BitmapFactory.decodeByteArray(data, 0, data.length);
+        Matrix matrix = new Matrix();
+        matrix.postRotate(m_rotation);
+        if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
+            matrix.postScale(-1, 1, source.getWidth() / 2.0f, source.getHeight() / 2.0f);
+        }
+        Bitmap rotatedBitmap = Bitmap.createBitmap(source, 0, 0, source.getWidth(),
+                                                       source.getHeight(), matrix, true);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        byte[] byteArray = outputStream.toByteArray();
+        rotatedBitmap.recycle();
+        source.recycle();
+        notifyPictureCaptured(m_cameraId, byteArray);
     }
 
     @Override

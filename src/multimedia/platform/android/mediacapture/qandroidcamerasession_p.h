@@ -138,7 +138,8 @@ private Q_SLOTS:
 
     void onCameraTakePictureFailed();
     void onCameraPictureExposed();
-    void onCameraPictureCaptured(const QVideoFrame &frame);
+    void onCameraPictureCaptured(const QByteArray &bytes, QVideoFrameFormat::PixelFormat format,
+                              QSize size, int bytesPerLine);
     void onLastPreviewFrameFetched(const QVideoFrame &frame);
     void onNewPreviewFrame(const QVideoFrame &frame);
     void onCameraPreviewStarted();
@@ -157,8 +158,9 @@ private:
     void applyImageSettings();
 
     void processPreviewImage(int id, const QVideoFrame &frame, int rotation);
-    void processCapturedImage(int id, const QVideoFrame &frame, bool captureToBuffer,
-                              const QString &fileName);
+    void processCapturedImage(int id, const QByteArray &bytes, const QString &fileName);
+    void processCapturedImageToBuffer(int id, const QByteArray &bytes,
+                              QVideoFrameFormat::PixelFormat format, QSize size, int bytesPerLine);
 
     void setActiveHelper(bool active);
 
