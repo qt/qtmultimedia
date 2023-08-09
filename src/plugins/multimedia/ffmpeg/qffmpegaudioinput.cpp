@@ -4,6 +4,7 @@
 #include <qiodevice.h>
 #include <qaudiosource.h>
 #include <qaudiobuffer.h>
+#include <qatomic.h>
 #include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
@@ -34,8 +35,8 @@ public:
     }
     void setFrameSize(int frameSize)
     {
-        QMutexLocker locker(&m_mutex);
-        m_bufferSize = m_format.bytesForFrames(frameSize);
+        m_bufferSize.storeRelease(frameSize > 0 ? m_format.bytesForFrames(frameSize)
+                                                : DefaultAudioInputBufferSize);
     }
     void setRunning(bool r) {
         QMutexLocker locker(&m_mutex);
@@ -56,7 +57,7 @@ public:
         QMetaObject::invokeMethod(this, "updateVolume");
     }
 
-    int bufferSize() const { return m_bufferSize; }
+    int bufferSize() const { return m_bufferSize.loadAcquire(); }
 
 protected:
     qint64 readData(char *, qint64) override
@@ -67,11 +68,12 @@ protected:
     {
         int l = len;
         while (len > 0) {
-            int toAppend = qMin(len, m_bufferSize - m_pcm.size());
+            const auto bufferSize = m_bufferSize.loadAcquire();
+            int toAppend = qMin(len, bufferSize - m_pcm.size());
             m_pcm.append(data, toAppend);
             data += toAppend;
             len -= toAppend;
-            if (m_pcm.size() == m_bufferSize)
+            if (m_pcm.size() == bufferSize)
                 sendBuffer();
         }
 
@@ -115,7 +117,7 @@ private:
         qint64 time = fmt.durationForBytes(m_processed);
         QAudioBuffer buffer(m_pcm, fmt, time);
         emit m_input->newAudioBuffer(buffer);
-        m_processed += m_bufferSize;
+        m_processed += m_pcm.size();
         m_pcm.clear();
     }
 
@@ -128,7 +130,7 @@ private:
     QFFmpegAudioInput *m_input = nullptr;
     std::unique_ptr<QAudioSource> m_src;
     QAudioFormat m_format;
-    std::atomic<int> m_bufferSize = DefaultAudioInputBufferSize;
+    QAtomicInt m_bufferSize = DefaultAudioInputBufferSize;
     qint64 m_processed = 0;
     QByteArray m_pcm;
 };
