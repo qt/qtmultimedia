@@ -72,7 +72,8 @@ Encoder::~Encoder()
 void Encoder::addAudioInput(QFFmpegAudioInput *input)
 {
     audioEncode = new AudioEncoder(this, input, settings);
-    connect(input, &QFFmpegAudioInput::newAudioBuffer, this, &Encoder::newAudioBuffer);
+    addMediaFrameHandler(input, &QFFmpegAudioInput::newAudioBuffer, audioEncode,
+                         &AudioEncoder::addBuffer);
     input->setRunning(true);
 }
 
@@ -104,10 +105,8 @@ void Encoder::addVideoSource(QPlatformVideoSource * source)
     }
 
     auto ve = veUPtr.release();
-    auto conn = connect(source, &QPlatformVideoSource::newVideoFrame,
-                            ve, &VideoEncoder::addFrame, Qt::DirectConnection);
+    addMediaFrameHandler(source, &QPlatformVideoSource::newVideoFrame, ve, &VideoEncoder::addFrame);
     videoEncoders.append(ve);
-    connections.append(conn);
 }
 
 void Encoder::start()
@@ -131,8 +130,6 @@ void Encoder::start()
     for (auto *videoEncoder : videoEncoders)
         if (videoEncoder->isValid())
             videoEncoder->start();
-
-    isRecording = true;
 }
 
 EncodingFinalizer::EncodingFinalizer(Encoder *e) : encoder(e) {
@@ -185,12 +182,6 @@ void Encoder::setMetaData(const QMediaMetaData &metaData)
     this->metaData = metaData;
 }
 
-void Encoder::newAudioBuffer(const QAudioBuffer &buffer)
-{
-    if (audioEncode && isRecording)
-        audioEncode->addBuffer(buffer);
-}
-
 void Encoder::newTimeStamp(qint64 time)
 {
     QMutexLocker locker(&timeMutex);
@@ -198,6 +189,13 @@ void Encoder::newTimeStamp(qint64 time)
         timeRecorded = time;
         emit durationChanged(time);
     }
+}
+
+template<typename... Args>
+void Encoder::addMediaFrameHandler(Args &&...args)
+{
+    auto connection = connect(std::forward<Args>(args)..., Qt::DirectConnection);
+    connections.append(connection);
 }
 
 Muxer::Muxer(Encoder *encoder)

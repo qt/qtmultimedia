@@ -71,13 +71,16 @@ public:
     void setMetaData(const QMediaMetaData &metaData);
 
 public Q_SLOTS:
-    void newAudioBuffer(const QAudioBuffer &buffer);
     void newTimeStamp(qint64 time);
 
 Q_SIGNALS:
     void durationChanged(qint64 duration);
     void error(QMediaRecorder::Error code, const QString &description);
     void finalizationDone();
+
+private:
+    template<typename... Args>
+    void addMediaFrameHandler(Args &&...args);
 
 private:
     // TODO: improve the encasulation
@@ -90,7 +93,6 @@ private:
     QMediaMetaData metaData;
     AVFormatContext *formatContext = nullptr;
     Muxer *muxer = nullptr;
-    bool isRecording = false;
 
     AudioEncoder *audioEncode = nullptr;
     QList<VideoEncoder *> videoEncoders;
