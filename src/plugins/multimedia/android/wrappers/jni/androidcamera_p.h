@@ -189,7 +189,7 @@ Q_SIGNALS:
 
     void takePictureFailed();
     void pictureExposed();
-    void pictureCaptured(const QVideoFrame &frame);
+    void pictureCaptured(const QByteArray &frame, QVideoFrameFormat::PixelFormat format, QSize size, int bytesPerLine);
     void lastPreviewFrameFetched(const QVideoFrame &frame);
     void newPreviewFrame(const QVideoFrame &frame);
 

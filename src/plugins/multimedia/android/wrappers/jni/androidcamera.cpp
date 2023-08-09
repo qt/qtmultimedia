@@ -125,10 +125,9 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
         bytesPerLine = -1;
     }
 
-    QVideoFrame frame(new QMemoryVideoBuffer(bytes, bytesPerLine),
-                      QVideoFrameFormat(pictureSize, qt_pixelFormatFromAndroidImageFormat(format)));
+    auto pictureFormat = qt_pixelFormatFromAndroidImageFormat(format);
 
-    emit camera->pictureCaptured(frame);
+    emit camera->pictureCaptured(bytes, pictureFormat, pictureSize, bytesPerLine);
 }
 
 static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data,
@@ -1205,6 +1204,7 @@ bool AndroidCameraPrivate::setPreviewDisplay(void *surfaceHolder)
 void AndroidCameraPrivate::setDisplayOrientation(int degrees)
 {
     m_camera.callMethod<void>("setDisplayOrientation", "(I)V", degrees);
+    m_cameraListener.callMethod<void>("setPhotoRotation", "(I)V", degrees);
 }
 
 bool AndroidCameraPrivate::isZoomSupported()
