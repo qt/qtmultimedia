@@ -167,27 +167,30 @@ static void dumpCodecInfo(const AVCodec *codec)
     }
 }
 
-static bool isCodecValid(const AVCodec *encoder,
+static bool isCodecValid(const AVCodec *codec,
                          const std::vector<AVHWDeviceType> &availableHwDeviceTypes)
 {
-    if (encoder->type != AVMEDIA_TYPE_VIDEO)
+    if (codec->type != AVMEDIA_TYPE_VIDEO)
         return true;
 
-    if (!encoder->pix_fmts)
+    const auto pixFmts = codec->pix_fmts;
+
+    if (!pixFmts)
         return true; // To be investigated. This happens for RAW_VIDEO, that is supposed to be OK,
-                     // and with v4l2m2m codec, that is suspicious.
+                     // and with v4l2m2m codecs, that is suspicious.
 
-    auto checkFormat = [&](AVPixelFormat pixelFormat) {
-        if (isSwPixelFormat(pixelFormat))
-            return true; // If a codec supports sw pixel formats, it can be used without hw accel
+    if (findAVFormat(pixFmts, &isHwPixelFormat) == AV_PIX_FMT_NONE)
+        return true;
 
-        return std::any_of(availableHwDeviceTypes.begin(), availableHwDeviceTypes.end(),
-                           [&pixelFormat](AVHWDeviceType type) {
-                               return pixelFormatForHwDevice(type) == pixelFormat;
-                           });
+    if ((codec->capabilities & AV_CODEC_CAP_HARDWARE) == 0)
+        return true;
+
+    auto checkDeviceType = [pixFmts](AVHWDeviceType type) {
+        return hasAVFormat(pixFmts, pixelFormatForHwDevice(type));
     };
 
-    return findAVFormat(encoder->pix_fmts, checkFormat) != AV_PIX_FMT_NONE;
+    return std::any_of(availableHwDeviceTypes.begin(), availableHwDeviceTypes.end(),
+                       checkDeviceType);
 }
 
 const CodecsStorage &codecsStorage(CodecStorageType codecsType)

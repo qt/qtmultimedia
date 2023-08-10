@@ -66,9 +66,16 @@ public:
     }
 };
 
+bool thread_local FFmpegLogsEnabledInThread = true;
+static bool UseCustomFFmpegLogger = false;
+
 static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl)
 {
-    Q_UNUSED(ptr)
+    if (!FFmpegLogsEnabledInThread)
+        return;
+
+    if (!UseCustomFFmpegLogger)
+        return av_log_default_callback(ptr, level, fmt, vl);
 
     // filter logs above the chosen level and AV_LOG_QUIET (negative level)
     if (level < 0 || level > av_log_get_level())
@@ -88,8 +95,20 @@ static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl
         qCritical() << message;
 }
 
+static void setupFFmpegLogger()
+{
+    if (qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG")) {
+        av_log_set_level(AV_LOG_DEBUG);
+        UseCustomFFmpegLogger = true;
+    }
+
+    av_log_set_callback(&qffmpegLogCallback);
+}
+
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
+    setupFFmpegLogger();
+
     m_formatsInfo = new QFFmpegMediaFormatInfo();
 
 #if defined(Q_OS_ANDROID)
@@ -103,15 +122,13 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
     m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
 #endif
 
-    if (qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG")) {
-        av_log_set_level(AV_LOG_DEBUG);
-        av_log_set_callback(&qffmpegLogCallback);
-    }
-
 #ifndef QT_NO_DEBUG
     qDebug() << "Available HW decoding frameworks:";
-    AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
-    while ((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
+    for (auto type : QFFmpeg::HWAccel::decodingDeviceTypes())
+        qDebug() << "    " << av_hwdevice_get_type_name(type);
+
+    qDebug() << "Available HW encoding frameworks:";
+    for (auto type : QFFmpeg::HWAccel::encodingDeviceTypes())
         qDebug() << "    " << av_hwdevice_get_type_name(type);
 #endif
 }
