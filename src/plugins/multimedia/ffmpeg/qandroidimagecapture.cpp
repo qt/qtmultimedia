@@ -9,6 +9,7 @@ QT_BEGIN_NAMESPACE
 QAndroidImageCapture::QAndroidImageCapture(QImageCapture *parent)
     : QFFmpegImageCapture(parent)
 {
+    connect(this, &QPlatformImageCapture::imageSaved, this, &QAndroidImageCapture::updateExif);
 }
 
 QAndroidImageCapture::~QAndroidImageCapture()
@@ -34,4 +35,12 @@ void QAndroidImageCapture::setupVideoSourceConnections()
         connect(androidCamera, &QAndroidCamera::onCaptured, this, &QAndroidImageCapture::newVideoFrame);
     else
         QFFmpegImageCapture::setupVideoSourceConnections();
+}
+
+void QAndroidImageCapture::updateExif(int id, const QString &filename)
+{
+    Q_UNUSED(id);
+    auto androidCamera = qobject_cast<QAndroidCamera *>(videoSource());
+    if (androidCamera)
+        androidCamera->updateExif(filename);
 }

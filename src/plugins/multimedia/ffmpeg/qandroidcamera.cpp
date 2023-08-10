@@ -529,6 +529,11 @@ void QAndroidCamera::capture()
     m_jniCamera.callMethod<void>("takePhoto");
 }
 
+void QAndroidCamera::updateExif(const QString &filename)
+{
+    m_jniCamera.callMethod<void>("saveExifToFile", QJniObject::fromString(filename).object<jstring>());
+}
+
 void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
 {
     Q_UNUSED(frameNumber);
