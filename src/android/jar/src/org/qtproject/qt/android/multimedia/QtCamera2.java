@@ -3,6 +3,7 @@
 package org.qtproject.qt.android.multimedia;
 
 import org.qtproject.qt.android.multimedia.QtVideoDeviceManager;
+import org.qtproject.qt.android.multimedia.QtExifDataHandler;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -59,6 +60,7 @@ public class QtCamera2 {
     private int mFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
     private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
     private int mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
+    private QtExifDataHandler mExifDataHandler = null;
 
     native void onCameraOpened(String cameraId);
     native void onCameraDisconnect(String cameraId);
@@ -350,6 +352,7 @@ public class QtCamera2 {
             public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request,
                                            TotalCaptureResult result) {
                     try {
+                        mExifDataHandler = new QtExifDataHandler(result);
                         // Reset the focus/flash and go back to the normal state of preview.
                         mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                                                    CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
@@ -384,6 +387,14 @@ public class QtCamera2 {
         } catch (CameraAccessException e) {
             Log.w("QtCamera2", "Cannot get access to the camera: " + e);
         }
+    }
+
+    public void saveExifToFile(String path)
+    {
+        if (mExifDataHandler != null)
+            mExifDataHandler.save(path);
+        else
+            Log.e("QtCamera2", "No Exif data that could be saved to " + path);
     }
 
     public void zoomTo(float factor)

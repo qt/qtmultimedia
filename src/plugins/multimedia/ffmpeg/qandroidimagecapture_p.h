@@ -29,6 +29,9 @@ public:
 protected:
     void setupVideoSourceConnections() override;
     int doCapture(const QString &fileName) override;
+
+private slots:
+    void updateExif(int id, const QString &filename);
 };
 
 QT_END_NAMESPACE

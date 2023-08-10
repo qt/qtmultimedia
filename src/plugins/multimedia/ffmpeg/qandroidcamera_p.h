@@ -48,6 +48,7 @@ public:
     static bool registerNativeMethods();
 
     void capture();
+    void updateExif(const QString &filename);
 public slots:
     void onApplicationStateChanged();
     void onCameraOpened();
