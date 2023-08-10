@@ -120,9 +120,7 @@ public:
     static const std::vector<AVHWDeviceType> &decodingDeviceTypes();
 
 private:
-    HWAccel(AVBufferRef *hwDeviceContext, AVBufferRef *hwFrameContext = nullptr)
-        : m_hwDeviceContext(hwDeviceContext), m_hwFramesContext(hwFrameContext)
-    {}
+    HWAccel(AVBufferUPtr hwDeviceContext) : m_hwDeviceContext(std::move(hwDeviceContext)) { }
 };
 
 }
