@@ -233,6 +233,12 @@ void MediaDataHolder::updateStreams()
         m_streamMap[trackType].append({ (int)i, isDefault, metaData });
     }
 
+    // With some media files, streams may be lacking duration info. Let's
+    // get it from ffmpeg's duration estimation instead.
+    if (m_duration == 0 && m_context->duration > 0ll) {
+        m_duration = m_context->duration;
+    }
+
     for (auto trackType :
          { QPlatformMediaPlayer::VideoStream, QPlatformMediaPlayer::AudioStream }) {
         auto &requestedStream = m_requestedStreams[trackType];

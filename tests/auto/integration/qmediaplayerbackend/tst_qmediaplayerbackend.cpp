@@ -74,6 +74,7 @@ private slots:
     void multiplePlaybackRateChangingStressTest();
     void multipleSeekStressTest();
     void playbackRateChanging();
+    void durationDetectionIssues_data();
     void durationDetectionIssues();
     void finiteLoops();
     void infiniteLoops();
@@ -98,8 +99,6 @@ private:
     QUrl localCompressedSoundFile;
     QUrl localFileWithMetadata;
     QUrl localVideoFile3ColorsWithSound;
-    QUrl videoWithDurationIssues; // ffmpeg detects stream an incorrect stream duration, so we take
-                                  // the correct duration from the metadata
 
     const std::array<QRgb, 3> video3Colors = { { 0xFF0000, 0x00FF00, 0x0000FF } };
 
@@ -232,9 +231,6 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     localFileWithMetadata =
             MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/nokia-tune.mp3");
-
-    videoWithDurationIssues = MediaFileSelector::selectMediaFile(
-            QStringList() << "qrc:/testdata/duration_issues.webm");
 
     qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
@@ -1705,10 +1701,49 @@ void tst_QMediaPlayerBackend::position()
     QVERIFY(player.position() < 550);
 }
 
+void tst_QMediaPlayerBackend::durationDetectionIssues_data()
+{
+    QTest::addColumn<QString>("mediaFile");
+    QTest::addColumn<qint64>("expectedDuration");
+    QTest::addColumn<int>("expectedVideoTrackCount");
+    QTest::addColumn<qint64>("expectedVideoTrackDuration");
+    QTest::addColumn<int>("expectedAudioTrackCount");
+    QTest::addColumn<QVariant>("expectedAudioTrackDuration");
+
+    // clang-format off
+
+    QTest::newRow("stream-duration-in-metadata")
+            << QString{ "qrc:/testdata/duration_issues.webm" }
+            << 400ll        // Total media duration
+            << 1            // Number of video tracks in file
+            << 400ll        // Video stream duration
+            << 0            // Number of audio tracks in file
+            << QVariant{};  // Audio stream duration (unused)
+
+    QTest::newRow("no-stream-duration-in-metadata")
+            << QString{ "qrc:/testdata/nokia-tune.mkv" }
+            << 7531ll       // Total media duration
+            << 0            // Number of video tracks in file
+            << 0ll          // Video stream duration (unused)
+            << 1            // Number of audio tracks in file
+            << QVariant{};  // Audio stream duration (not present on file)
+
+    // clang-format on
+}
+
 void tst_QMediaPlayerBackend::durationDetectionIssues()
 {
-    if (videoWithDurationIssues.isEmpty())
-        QSKIP("No supported video file");
+    QFETCH(QString, mediaFile);
+    QFETCH(qint64, expectedDuration);
+    QFETCH(int, expectedVideoTrackCount);
+    QFETCH(qint64, expectedVideoTrackDuration);
+    QFETCH(int, expectedAudioTrackCount);
+    QFETCH(QVariant, expectedAudioTrackDuration);
+
+    // ffmpeg detects stream an incorrect stream duration, so we take
+    // the correct duration from the metadata
+    const QUrl videoWithDurationIssues =
+            MediaFileSelector::selectMediaFile({ mediaFile });
 
     TestVideoSink surface(false);
     QAudioOutput output;
@@ -1720,15 +1755,26 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
     player.setAudioOutput(&output);
     player.setSource(videoWithDurationIssues);
 
+    // Duration event received
     QCOMPARE(durationSpy.size(), 1);
-    QCOMPARE(durationSpy.front().front(), QVariant(qint64(400)));
+    QCOMPARE(durationSpy.front().front(), expectedDuration);
 
-    QCOMPARE(player.duration(), 400);
-    QCOMPARE(player.metaData().value(QMediaMetaData::Duration), QVariant(qint64(400)));
+    // Duration property
+    QCOMPARE(player.duration(), expectedDuration);
+    QCOMPARE(player.metaData().value(QMediaMetaData::Duration), expectedDuration);
 
-    auto videoTracks = player.videoTracks();
-    QCOMPARE(videoTracks.size(), 1);
-    QCOMPARE(videoTracks.front().value(QMediaMetaData::Duration), QVariant(qint64(400)));
+    // Track duration properties
+    const auto videoTracks = player.videoTracks();
+    QCOMPARE(videoTracks.size(), expectedVideoTrackCount);
+
+    if (expectedVideoTrackCount != 0)
+        QCOMPARE(videoTracks.front().value(QMediaMetaData::Duration), expectedVideoTrackDuration);
+
+    const auto audioTracks = player.audioTracks();
+    QCOMPARE(audioTracks.size(), expectedAudioTrackCount);
+
+    if (expectedAudioTrackCount != 0)
+        QCOMPARE(audioTracks.front().value(QMediaMetaData::Duration), expectedAudioTrackDuration);
 }
 
 static std::vector<std::pair<qint64, qint64>>
