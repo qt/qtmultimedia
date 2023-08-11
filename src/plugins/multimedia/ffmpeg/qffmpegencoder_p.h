@@ -100,6 +100,8 @@ private:
 
     QMutex timeMutex;
     qint64 timeRecorded = 0;
+
+    bool isHeaderWritten = false;
 };
 
 
