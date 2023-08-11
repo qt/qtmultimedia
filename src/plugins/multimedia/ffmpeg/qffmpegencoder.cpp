@@ -115,12 +115,16 @@ void Encoder::start()
 
     formatContext->metadata = QFFmpegMetaData::toAVMetaData(metaData);
 
+    Q_ASSERT(!isHeaderWritten);
+
     int res = avformat_write_header(formatContext, nullptr);
     if (res < 0) {
         qWarning() << "could not write header, error:" << res << err2str(res);
         emit error(QMediaRecorder::ResourceError, "Cannot start writing the stream");
         return;
     }
+
+    isHeaderWritten = true;
 
     qCDebug(qLcFFmpegEncoder) << "stream header is successfully written";
 
@@ -144,12 +148,15 @@ void EncodingFinalizer::run()
         videoEncoder->kill();
     encoder->muxer->kill();
 
-    int res = av_write_trailer(encoder->formatContext);
-    if (res < 0)
-        qWarning() << "could not write trailer" << res;
+    if (encoder->isHeaderWritten) {
+        const int res = av_write_trailer(encoder->formatContext);
+        if (res < 0)
+            qWarning() << "could not write trailer" << res;
+    }
+    // else ffmpeg might crash
 
     // Close the AVIOContext and release any file handles
-    res = avio_close(encoder->formatContext->pb);
+    const int res = avio_close(encoder->formatContext->pb);
     Q_ASSERT(res == 0);
 
     avformat_free_context(encoder->formatContext);
