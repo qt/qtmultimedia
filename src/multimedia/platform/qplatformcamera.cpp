@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qplatformcamera_p.h"
+#include "private/qcameradevice_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -22,13 +23,15 @@ QCameraFormat QPlatformCamera::findBestCameraFormat(const QCameraDevice &camera)
         const auto isValid = fmt.pixelFormat() != QVideoFrameFormat::Format_Invalid;
         const auto resolution = fmt.resolution();
         const auto sufficientFrameRate = std::min(fmt.maxFrameRate(), MinSufficientFrameRate);
+        const auto pixelFormatScore =
+                cameraPixelFormatScore(fmt.pixelFormat(), QCameraFormatPrivate::getColorRange(fmt));
 
         return std::make_tuple(
                 isValid, // 1st: ensure valid formats
                 sufficientFrameRate, // 2nd: ensure the highest frame rate in the range [0; 29]*/
                 resolution.width() * resolution.height(), // 3rd: ensure the highest resolution
-                cameraPixelFormatScore(fmt.pixelFormat()),
-                fmt.maxFrameRate()); // 4th: ensure the highest framerate in the whole range
+                pixelFormatScore, // 4th: eshure the best pixel format
+                fmt.maxFrameRate()); // 5th: ensure the highest framerate in the whole range
     };
 
     const auto formats = camera.videoFormats();

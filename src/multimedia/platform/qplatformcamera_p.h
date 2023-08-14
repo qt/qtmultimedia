@@ -116,7 +116,11 @@ Q_SIGNALS:
 protected:
     explicit QPlatformCamera(QCamera *parent);
 
-    virtual int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat /*format*/) const { return 0; }
+    virtual int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat /*format*/,
+                                       QVideoFrameFormat::ColorRange /*colorRange*/) const
+    {
+        return 0;
+    }
 
     QCameraFormat findBestCameraFormat(const QCameraDevice &camera) const;
     QCameraFormat m_cameraFormat;

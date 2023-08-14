@@ -24,10 +24,22 @@ QT_BEGIN_NAMESPACE
 class QCameraFormatPrivate : public QSharedData
 {
 public:
-    QVideoFrameFormat::PixelFormat pixelFormat;
+    QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
     QSize resolution;
     float minFrameRate = 0;
     float maxFrameRate = 0;
+    QVideoFrameFormat::ColorRange colorRange = QVideoFrameFormat::ColorRange_Unknown;
+
+    static QVideoFrameFormat::ColorRange getColorRange(const QCameraFormat &format)
+    {
+        auto d = handle(format);
+        return d ? d->colorRange : QVideoFrameFormat::ColorRange_Unknown;
+    }
+
+    static const QCameraFormatPrivate *handle(const QCameraFormat &format)
+    {
+        return format.d.get();
+    }
 
     QCameraFormat create() { return QCameraFormat(this); }
 };

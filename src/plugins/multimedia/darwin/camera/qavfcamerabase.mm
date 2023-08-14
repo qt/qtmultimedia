@@ -166,6 +166,7 @@ void QAVFVideoDevices::updateCameraDevices()
 
             auto encoding = CMVideoFormatDescriptionGetCodecType(format.formatDescription);
             auto pixelFormat = QAVFHelpers::fromCVPixelFormat(encoding);
+            auto colorRange = QAVFHelpers::colorRangeForCVPixelFormat(encoding);
             // Ignore pixel formats we can't handle
             if (pixelFormat == QVideoFrameFormat::Format_Invalid) {
                 qCDebug(qLcCamera) << "ignore camera CV format" << encoding
@@ -192,16 +193,12 @@ void QAVFVideoDevices::updateCameraDevices()
 #endif
 
             qCDebug(qLcCamera) << "Add camera format. pixelFormat:" << pixelFormat
-                               << "cvPixelFormat" << encoding << "resolution:" << resolution
-                               << "frameRate: [" << minFrameRate << maxFrameRate << "]";
+                               << "colorRange:" << colorRange << "cvPixelFormat" << encoding
+                               << "resolution:" << resolution << "frameRate: [" << minFrameRate
+                               << maxFrameRate << "]";
 
-            auto *f = new QCameraFormatPrivate{
-                QSharedData(),
-                pixelFormat,
-                resolution,
-                minFrameRate,
-                maxFrameRate
-            };
+            auto *f = new QCameraFormatPrivate{ QSharedData(), pixelFormat,  resolution,
+                                                minFrameRate,  maxFrameRate, colorRange };
             videoFormats << f->create();
         }
         if (videoFormats.isEmpty()) {

@@ -59,7 +59,8 @@ public:
     AVFCaptureFramesDelegate *captureDelegate() const;
     void resetCaptureDelegate() const;
 
-    void setPixelFormat(const QVideoFrameFormat::PixelFormat format);
+    void setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat,
+                        QVideoFrameFormat::ColorRange colorRange);
 
 Q_SIGNALS:
     void newViewfinderFrame(const QVideoFrame &frame);
