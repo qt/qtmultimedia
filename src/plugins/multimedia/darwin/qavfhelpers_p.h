@@ -21,19 +21,19 @@
 #include <CoreVideo/CVPixelBuffer.h>
 #include <CoreVideo/CVImageBuffer.h>
 
-enum {
-    // macOS 10.14 doesn't define this pixel format yet
-    q_kCVPixelFormatType_OneComponent16 = 'L016'
-};
-
 QT_BEGIN_NAMESPACE
+
+using CvPixelFormat = unsigned;
+constexpr CvPixelFormat CvPixelFormatInvalid = 0;
 
 namespace QAVFHelpers
 {
-    QVideoFrameFormat::PixelFormat fromCVPixelFormat(unsigned avPixelFormat);
-    bool toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv);
+QVideoFrameFormat::ColorRange colorRangeForCVPixelFormat(CvPixelFormat cvPixelFormat);
+QVideoFrameFormat::PixelFormat fromCVPixelFormat(CvPixelFormat cvPixelFormat);
+CvPixelFormat toCVPixelFormat(QVideoFrameFormat::PixelFormat pixFmt,
+                              QVideoFrameFormat::ColorRange colorRange);
 
-    QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL = false);
+QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL = false);
 };
 
 QT_END_NAMESPACE
