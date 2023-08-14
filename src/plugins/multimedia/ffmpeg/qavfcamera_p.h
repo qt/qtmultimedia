@@ -60,7 +60,8 @@ public:
 
     std::optional<int> ffmpegHWPixelFormat() const override;
 
-    int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixFmt) const override;
+    int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixelFmt,
+                               QVideoFrameFormat::ColorRange colorRange) const override;
 
 private:
     void requestCameraPermissionIfNeeded();

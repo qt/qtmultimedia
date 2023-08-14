@@ -350,12 +350,11 @@ std::optional<int> QAVFCamera::ffmpegHWPixelFormat() const
     return m_hwPixelFormat == AV_PIX_FMT_NONE ? std::optional<int>{} : m_hwPixelFormat;
 }
 
-int QAVFCamera::cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixFmt) const
+int QAVFCamera::cameraPixelFormatScore(QVideoFrameFormat::PixelFormat pixelFormat,
+                                       QVideoFrameFormat::ColorRange colorRange) const
 {
-    unsigned cvFormat = 0;
-    const auto isSupported =
-            QAVFHelpers::toCVPixelFormat(pixFmt, cvFormat) && isCVFormatSupported(cvFormat);
-    return static_cast<int>(isSupported);
+    auto cvFormat = QAVFHelpers::toCVPixelFormat(pixelFormat, colorRange);
+    return static_cast<int>(isCVFormatSupported(cvFormat));
 }
 
 QT_END_NAMESPACE

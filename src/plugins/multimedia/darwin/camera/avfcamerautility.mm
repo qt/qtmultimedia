@@ -7,6 +7,7 @@
 #include <QtCore/qvector.h>
 #include <QtCore/qpair.h>
 #include <private/qmultimediautils_p.h>
+#include <private/qcameradevice_p.h>
 #include "avfvideobuffer_p.h"
 #include "qavfhelpers_p.h"
 
@@ -100,19 +101,29 @@ qt_convert_to_capture_device_format(AVCaptureDevice *captureDevice,
                                     const QCameraFormat &cameraFormat,
                                     const std::function<bool(uint32_t)> &cvFormatValidator)
 {
+    const auto cameraFormatPrivate = QCameraFormatPrivate::handle(cameraFormat);
+    if (!cameraFormatPrivate)
+        return nil;
+
+    const auto requiredCvPixFormat = QAVFHelpers::toCVPixelFormat(cameraFormatPrivate->pixelFormat,
+                                                                  cameraFormatPrivate->colorRange);
+
+    if (requiredCvPixFormat == CvPixelFormatInvalid)
+        return nil;
+
     AVCaptureDeviceFormat *newFormat = nil;
     NSArray<AVCaptureDeviceFormat *> *formats = captureDevice.formats;
     for (AVCaptureDeviceFormat *format in formats) {
         CMFormatDescriptionRef formatDesc = format.formatDescription;
         CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
-        FourCharCode formatCodec = CMVideoFormatDescriptionGetCodecType(formatDesc);
-        if (QAVFHelpers::fromCVPixelFormat(formatCodec) == cameraFormat.pixelFormat()
-            && cameraFormat.resolution().width() == dim.width
-            && cameraFormat.resolution().height() == dim.height
-            && (!cvFormatValidator || cvFormatValidator(formatCodec))) {
+        FourCharCode cvPixFormat = CMVideoFormatDescriptionGetCodecType(formatDesc);
+
+        if (requiredCvPixFormat == cvPixFormat
+            && cameraFormatPrivate->resolution == QSize(dim.width, dim.height)
+            && (!cvFormatValidator || cvFormatValidator(cvPixFormat))) {
             for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
-                if (frameRateRange.minFrameRate >= cameraFormat.minFrameRate()
-                    && frameRateRange.maxFrameRate <= cameraFormat.maxFrameRate()) {
+                if (frameRateRange.minFrameRate >= cameraFormatPrivate->minFrameRate
+                    && frameRateRange.maxFrameRate <= cameraFormatPrivate->maxFrameRate) {
                     newFormat = format;
                     break;
                 }

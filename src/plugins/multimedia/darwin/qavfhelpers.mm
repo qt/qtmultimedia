@@ -7,102 +7,72 @@
 
 #import <CoreVideo/CoreVideo.h>
 
-static QVideoFrameFormat::ColorRange colorRangeForPixelFormat(unsigned avPixelFormat)
+namespace {
+
+using PixelFormat = QVideoFrameFormat::PixelFormat;
+using ColorRange = QVideoFrameFormat::ColorRange;
+
+// clang-format off
+constexpr std::tuple<CvPixelFormat, PixelFormat, ColorRange> PixelFormatMap[] = {
+    { kCVPixelFormatType_32ARGB, PixelFormat::Format_ARGB8888, ColorRange::ColorRange_Unknown },
+    { kCVPixelFormatType_32BGRA, PixelFormat::Format_BGRA8888, ColorRange::ColorRange_Unknown },
+    { kCVPixelFormatType_420YpCbCr8Planar, PixelFormat::Format_YUV420P, ColorRange::ColorRange_Unknown },
+    { kCVPixelFormatType_420YpCbCr8PlanarFullRange, PixelFormat::Format_YUV420P, ColorRange::ColorRange_Full },
+    { kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange, PixelFormat::Format_NV12, ColorRange::ColorRange_Video },
+    { kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, PixelFormat::Format_NV12, ColorRange::ColorRange_Full },
+    { kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange, PixelFormat::Format_P010, ColorRange::ColorRange_Video },
+    { kCVPixelFormatType_420YpCbCr10BiPlanarFullRange, PixelFormat::Format_P010, ColorRange::ColorRange_Full },
+    { kCVPixelFormatType_422YpCbCr8, PixelFormat::Format_UYVY, ColorRange::ColorRange_Video },
+    { kCVPixelFormatType_422YpCbCr8_yuvs, PixelFormat::Format_YUYV, ColorRange::ColorRange_Video },
+    { kCVPixelFormatType_OneComponent8, PixelFormat::Format_Y8, ColorRange::ColorRange_Unknown },
+    { kCVPixelFormatType_OneComponent16, PixelFormat::Format_Y16, ColorRange::ColorRange_Unknown },
+
+    // The cases with kCMVideoCodecType_JPEG/kCMVideoCodecType_JPEG_OpenDML as cv pixel format should be investigated.
+    // Matching kCMVideoCodecType_JPEG_OpenDML to ColorRange_Full is a little hack to distinguish between
+    // kCMVideoCodecType_JPEG and kCMVideoCodecType_JPEG_OpenDML.
+    { kCMVideoCodecType_JPEG, PixelFormat::Format_Jpeg, ColorRange::ColorRange_Unknown },
+    { kCMVideoCodecType_JPEG_OpenDML, PixelFormat::Format_Jpeg, ColorRange::ColorRange_Full }
+};
+// clang-format on
+
+template<typename Type, typename... Args>
+Type findInPixelFormatMap(Type defaultValue, Args... args)
 {
-    switch (avPixelFormat) {
-    case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
-    case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
-    case kCVPixelFormatType_420YpCbCr10BiPlanarFullRange:
-        return QVideoFrameFormat::ColorRange_Full;
-    case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
-    case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange:
-    case kCVPixelFormatType_422YpCbCr8:
-    case kCVPixelFormatType_422YpCbCr8_yuvs:
-        return QVideoFrameFormat::ColorRange_Video;
-    default:
-        return QVideoFrameFormat::ColorRange_Unknown;
-    }
+    auto checkElement = [&](const auto &element) {
+        return ((args == std::get<Args>(element)) && ...);
+    };
+
+    auto found = std::find_if(std::begin(PixelFormatMap), std::end(PixelFormatMap), checkElement);
+    return found == std::end(PixelFormatMap) ? defaultValue : std::get<Type>(*found);
 }
 
-QVideoFrameFormat::PixelFormat QAVFHelpers::fromCVPixelFormat(unsigned avPixelFormat)
-{
-    switch (avPixelFormat) {
-    case kCVPixelFormatType_32ARGB:
-        return QVideoFrameFormat::Format_ARGB8888;
-    case kCVPixelFormatType_32BGRA:
-        return QVideoFrameFormat::Format_BGRA8888;
-    case kCVPixelFormatType_420YpCbCr8Planar:
-    case kCVPixelFormatType_420YpCbCr8PlanarFullRange:
-        return QVideoFrameFormat::Format_YUV420P;
-    case kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange:
-    case kCVPixelFormatType_420YpCbCr8BiPlanarFullRange:
-        return QVideoFrameFormat::Format_NV12;
-    case kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange:
-    case kCVPixelFormatType_420YpCbCr10BiPlanarFullRange:
-        return QVideoFrameFormat::Format_P010;
-    case kCVPixelFormatType_422YpCbCr8:
-        return QVideoFrameFormat::Format_UYVY;
-    case kCVPixelFormatType_422YpCbCr8_yuvs:
-        return QVideoFrameFormat::Format_YUYV;
-    case kCVPixelFormatType_OneComponent8:
-        return QVideoFrameFormat::Format_Y8;
-    case q_kCVPixelFormatType_OneComponent16:
-        return QVideoFrameFormat::Format_Y16;
-
-    case kCMVideoCodecType_JPEG:
-    case kCMVideoCodecType_JPEG_OpenDML:
-        return QVideoFrameFormat::Format_Jpeg;
-    default:
-        return QVideoFrameFormat::Format_Invalid;
-    }
 }
 
-bool QAVFHelpers::toCVPixelFormat(QVideoFrameFormat::PixelFormat qtFormat, unsigned &conv)
+ColorRange QAVFHelpers::colorRangeForCVPixelFormat(CvPixelFormat cvPixelFormat)
 {
-    switch (qtFormat) {
-    case QVideoFrameFormat::Format_ARGB8888:
-        conv = kCVPixelFormatType_32ARGB;
-        break;
-    case QVideoFrameFormat::Format_BGRA8888:
-        conv = kCVPixelFormatType_32BGRA;
-        break;
-    case QVideoFrameFormat::Format_YUV420P:
-        conv = kCVPixelFormatType_420YpCbCr8PlanarFullRange;
-        break;
-    case QVideoFrameFormat::Format_NV12:
-        conv = kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
-        break;
-    case QVideoFrameFormat::Format_P010:
-        conv = kCVPixelFormatType_420YpCbCr10BiPlanarFullRange;
-        break;
-    case QVideoFrameFormat::Format_UYVY:
-        conv = kCVPixelFormatType_422YpCbCr8;
-        break;
-    case QVideoFrameFormat::Format_YUYV:
-        conv = kCVPixelFormatType_422YpCbCr8_yuvs;
-        break;
-    case QVideoFrameFormat::Format_Y8:
-        conv = kCVPixelFormatType_OneComponent8;
-        break;
-    case QVideoFrameFormat::Format_Y16:
-        conv = q_kCVPixelFormatType_OneComponent16;
-        break;
-    default:
-        return false;
-    }
+    return findInPixelFormatMap(ColorRange::ColorRange_Unknown, cvPixelFormat);
+}
 
-    return true;
+PixelFormat QAVFHelpers::fromCVPixelFormat(CvPixelFormat cvPixelFormat)
+{
+    return findInPixelFormatMap(PixelFormat::Format_Invalid, cvPixelFormat);
+}
+
+CvPixelFormat QAVFHelpers::toCVPixelFormat(PixelFormat pixelFmt, ColorRange colorRange)
+{
+    return findInPixelFormatMap(CvPixelFormatInvalid, pixelFmt, colorRange);
 }
 
 QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL)
 {
-    auto avPixelFormat = CVPixelBufferGetPixelFormatType(buffer);
-    auto pixelFormat = fromCVPixelFormat(avPixelFormat);
+    auto cvPixelFormat = CVPixelBufferGetPixelFormatType(buffer);
+    auto pixelFormat = fromCVPixelFormat(cvPixelFormat);
     if (openGL) {
-        if (avPixelFormat == kCVPixelFormatType_32BGRA)
+        if (cvPixelFormat == kCVPixelFormatType_32BGRA)
             pixelFormat = QVideoFrameFormat::Format_SamplerRect;
         else
-            qWarning() << "Accelerated macOS OpenGL video supports BGRA only, got CV pixel format" << avPixelFormat;
+            qWarning() << "Accelerated macOS OpenGL video supports BGRA only, got CV pixel format"
+                       << cvPixelFormat;
     }
 
     size_t width = CVPixelBufferGetWidth(buffer);
@@ -166,7 +136,7 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
         }
     }
 
-    format.setColorRange(colorRangeForPixelFormat(avPixelFormat));
+    format.setColorRange(colorRangeForCVPixelFormat(cvPixelFormat));
     format.setColorSpace(colorSpace);
     format.setColorTransfer(colorTransfer);
     return format;
