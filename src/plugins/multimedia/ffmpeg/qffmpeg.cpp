@@ -91,13 +91,17 @@ static void dumpCodecInfo(const AVCodec *codec)
         { AV_CODEC_CAP_FRAME_THREADS, "FRAME_THREADS" },
         { AV_CODEC_CAP_SLICE_THREADS, "SLICE_THREADS" },
         { AV_CODEC_CAP_PARAM_CHANGE, "PARAM_CHANGE" },
+#ifdef AV_CODEC_CAP_OTHER_THREADS
         { AV_CODEC_CAP_OTHER_THREADS, "OTHER_THREADS" },
+#endif
         { AV_CODEC_CAP_VARIABLE_FRAME_SIZE, "VARIABLE_FRAME_SIZE" },
         { AV_CODEC_CAP_AVOID_PROBING, "AVOID_PROBING" },
         { AV_CODEC_CAP_HARDWARE, "HARDWARE" },
         { AV_CODEC_CAP_HYBRID, "HYBRID" },
         { AV_CODEC_CAP_ENCODER_REORDERED_OPAQUE, "ENCODER_REORDERED_OPAQUE" },
+#ifdef AV_CODEC_CAP_ENCODER_FLUSH
         { AV_CODEC_CAP_ENCODER_FLUSH, "ENCODER_FLUSH" },
+#endif
     };
 
     qCDebug(qLcFFmpegUtils) << mediaType << type << codec->name << "id:" << codec->id
