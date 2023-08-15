@@ -184,14 +184,24 @@ static void apply_vaapi(const QMediaEncoderSettings &settings, AVCodecContext *c
 #endif
 
 static void apply_nvenc(const QMediaEncoderSettings &settings, AVCodecContext *codec,
-                        AVDictionary ** /*opts*/)
+                        AVDictionary **opts)
 {
-    if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding
-        || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
+    switch (settings.encodingMode()) {
+    case QMediaRecorder::EncodingMode::AverageBitRateEncoding:
+        av_dict_set(opts, "vbr", "1", 0);
         codec->bit_rate = settings.videoBitRate();
-    } else {
-        static const int q[] = { 51, 48, 35, 15, 1 };
-        codec->global_quality = q[settings.quality()];
+        break;
+    case QMediaRecorder::EncodingMode::ConstantBitRateEncoding:
+        av_dict_set(opts, "cbr", "1", 0);
+        codec->bit_rate = settings.videoBitRate();
+        codec->rc_max_rate = codec->rc_min_rate = codec->bit_rate;
+        break;
+    case QMediaRecorder::EncodingMode::ConstantQualityEncoding: {
+        static const char *q[] = { "51", "48", "35", "15", "1" };
+        av_dict_set(opts, "cq", q[settings.quality()], 0);
+    } break;
+    default:
+        break;
     }
 }
 
@@ -267,6 +277,7 @@ const struct {
                               { "libvpx_vp9", apply_libvpx },
                               { "h264_nvenc", apply_nvenc },
                               { "hevc_nvenc", apply_nvenc },
+                              { "av1_nvenc", apply_nvenc },
 #ifdef Q_OS_DARWIN
                               { "h264_videotoolbox", apply_videotoolbox },
                               { "hevc_videotoolbox", apply_videotoolbox },
@@ -286,10 +297,10 @@ const struct {
                               { "h264_mf", apply_mf },
 #endif
 #ifdef Q_OS_ANDROID
-                              { "hevc_mediacodec", apply_mediacodec},
+                              { "hevc_mediacodec", apply_mediacodec },
                               { "h264_mediacodec", apply_mediacodec },
 #endif
-    { nullptr, nullptr } };
+                              { nullptr, nullptr } };
 
 const struct {
     const char *name;
