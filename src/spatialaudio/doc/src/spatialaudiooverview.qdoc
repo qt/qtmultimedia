@@ -5,7 +5,7 @@
 \page spatialaudiooverview.html
 \title Spatial Audio Overview
 \brief Support for spatial audio.
-\ingroup explanation
+\ingroup explanations-graphicsandmultimedia
 
 The Qt Spatial Audio API provides a number of classes that allow the creation of
 three dimensional sound scene. It is defined by objects located in 3D space
