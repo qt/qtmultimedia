@@ -224,6 +224,53 @@ static bool isNoConversionFormat(AVPixelFormat f)
     return !needsConversion;
 };
 
+namespace {
+
+bool hwTextureConversionEnabled(AVPixelFormat fmt)
+{
+
+    // HW textures conversions are not stable in specific cases, dependent on the hardware and OS.
+    // We need the env var for testing with no textures conversion on the user's side.
+    static bool isDisableConversionSet = false;
+    static const int disableHwConversion = qEnvironmentVariableIntValue(
+            "QT_DISABLE_HW_TEXTURES_CONVERSION", &isDisableConversionSet);
+
+    if (disableHwConversion)
+        return false;
+
+#if QT_CONFIG(wmf)
+    if (fmt == AV_PIX_FMT_D3D11) {
+        // On Windows, HW texture conversion currently causes stuttering video display and possibly
+        // crash on AMD GPUs. See for example QTBUG-113832 and QTBUG-111543. On this platform, HW
+        // texture conversions have to be explicitly enabled for debugging and testing.
+        if (!isDisableConversionSet)
+            return false;
+    }
+#else
+    Q_UNUSED(fmt);
+#endif
+
+    return true;
+}
+
+void setupDecoder(const AVPixelFormat format, AVCodecContext *const codecContext)
+{
+    if (!hwTextureConversionEnabled(format))
+        return;
+
+#if QT_CONFIG(wmf)
+    if (format == AV_PIX_FMT_D3D11)
+        QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(codecContext);
+#elif defined Q_OS_ANDROID
+    if (format == AV_PIX_FMT_MEDIACODEC)
+        QFFmpeg::MediaCodecTextureConverter::setupDecoderSurface(codecContext);
+#else
+    Q_UNUSED(codecContext);
+#endif
+}
+
+} // namespace
+
 // Used for the AVCodecContext::get_format callback
 AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *suggestedFormats)
 {
@@ -269,14 +316,7 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
 
         const auto &format = formatAndScore.first;
         if (format != AV_PIX_FMT_NONE) {
-#if QT_CONFIG(wmf)
-            if (format == AV_PIX_FMT_D3D11)
-                QFFmpeg::D3D11TextureConverter::SetupDecoderTextures(codecContext);
-#endif
-#ifdef Q_OS_ANDROID
-            if (format == AV_PIX_FMT_MEDIACODEC)
-                QFFmpeg::MediaCodecTextureConverter::setupDecoderSurface(codecContext);
-#endif
+            setupDecoder(format, codecContext);
             qCDebug(qLHWAccel) << "Selected format" << format << "for hw" << device_ctx->type;
             return format;
         }
@@ -416,36 +456,6 @@ TextureSet *TextureConverter::getTextures(AVFrame *frame)
     Q_ASSERT(frame->format == d->format);
     return d->backend->getTextures(frame);
 }
-
-namespace {
-
-bool hwTextureConversionEnabled(AVPixelFormat fmt) {
-
-    // HW textures conversions are not stable in specific cases, dependent on the hardware and OS.
-    // We need the env var for testing with no textures conversion on the user's side.
-    static bool isDisableConversionSet = false;
-    static const int disableHwConversion = qEnvironmentVariableIntValue(
-            "QT_DISABLE_HW_TEXTURES_CONVERSION", &isDisableConversionSet);
-
-    if (disableHwConversion)
-        return false;
-
-#if QT_CONFIG(wmf)
-    if (fmt == AV_PIX_FMT_D3D11) {
-        // On Windows, HW texture conversion currently causes stuttering video display and possibly
-        // crash on AMD GPUs. See for example QTBUG-113832 and QTBUG-111543. On this platform, HW
-        // texture conversions have to be explicitly enabled for debugging and testing.
-        if (!isDisableConversionSet)
-            return false;
-    }
-#else
-    Q_UNUSED(fmt);
-#endif
-
-    return true;
-}
-
-} // namespace
 
 void TextureConverter::updateBackend(AVPixelFormat fmt)
 {
