@@ -11,62 +11,69 @@
 
 #include <QtCore/qlist.h>
 #include <QtCore/qset.h>
+#include <QtCore/qhash.h>
 #include <QtGui/qimagewriter.h>
 
 QT_BEGIN_NAMESPACE
 
-template<typename T>
-static T codecForFormat(GUID format) = delete;
-
-template<>
-QMediaFormat::AudioCodec codecForFormat(GUID format)
-{
-    return QWindowsMultimediaUtils::codecForAudioFormat(format);
-}
-
-template<>
-QMediaFormat::VideoCodec codecForFormat(GUID format)
-{
-    return QWindowsMultimediaUtils::codecForVideoFormat(format);
-}
+namespace {
 
 template<typename T>
-static QSet<T> getCodecSet(GUID category)
+using CheckedCodecs = QHash<QPair<T, QMediaFormat::ConversionMode>, bool>;
+
+bool isSupportedMFT(const GUID &category, const MFT_REGISTER_TYPE_INFO &type, QMediaFormat::ConversionMode mode)
 {
-    QSet<T> codecSet;
+    UINT32 count = 0;
     IMFActivate **activateArrayRaw = nullptr;
-    UINT32 num = 0;
+    HRESULT hr = MFTEnumEx(
+            category,
+            MFT_ENUM_FLAG_ALL,
+            (mode == QMediaFormat::Encode) ? nullptr : &type,  // Input type
+            (mode == QMediaFormat::Encode) ? &type : nullptr,  // Output type
+            &activateArrayRaw,
+            &count
+            );
 
-    HRESULT hr = MFTEnumEx(category, MFT_ENUM_FLAG_ALL, nullptr, nullptr, &activateArrayRaw, &num);
+    if (FAILED(hr))
+        return false;
 
-    if (SUCCEEDED(hr)) {
-        QComTaskResource<IMFActivate *[], QComDeleter> activateArray(activateArrayRaw, num);
-
-        for (UINT32 i = 0; i < num; ++i) {
-            ComPtr<IMFTransform> transform;
-            UINT32 typeIndex = 0;
-
-            hr = activateArray[i]->ActivateObject(IID_PPV_ARGS(transform.GetAddressOf()));
-
-            while (SUCCEEDED(hr)) {
-                ComPtr<IMFMediaType> mediaType;
-
-                if (category == MFT_CATEGORY_AUDIO_ENCODER || category == MFT_CATEGORY_VIDEO_ENCODER)
-                    hr = transform->GetOutputAvailableType(0, typeIndex++, mediaType.GetAddressOf());
-                else
-                    hr = transform->GetInputAvailableType(0, typeIndex++, mediaType.GetAddressOf());
-
-                if (SUCCEEDED(hr)) {
-                    GUID subtype = GUID_NULL;
-                    hr = mediaType->GetGUID(MF_MT_SUBTYPE, &subtype);
-                    if (SUCCEEDED(hr))
-                        codecSet.insert(codecForFormat<T>(subtype));
-                }
-            }
-        }
+    QComTaskResource<IMFActivate *[], QComDeleter> activateArray(activateArrayRaw, count);
+    for (UINT32 i = 0; i < count; ++i) {
+        ComPtr<IMFTransform> transform;
+        hr = activateArray[i]->ActivateObject(IID_PPV_ARGS(transform.GetAddressOf()));
+        if (SUCCEEDED(hr))
+            return true;
     }
 
-    return codecSet;
+    return false;
+}
+
+bool isSupportedCodec(QMediaFormat::AudioCodec codec, QMediaFormat::ConversionMode mode)
+{
+    return isSupportedMFT((mode == QMediaFormat::Encode) ? MFT_CATEGORY_AUDIO_ENCODER : MFT_CATEGORY_AUDIO_DECODER,
+                          { MFMediaType_Audio, QWindowsMultimediaUtils::audioFormatForCodec(codec) },
+                          mode);
+}
+
+bool isSupportedCodec(QMediaFormat::VideoCodec codec, QMediaFormat::ConversionMode mode)
+{
+    return isSupportedMFT((mode == QMediaFormat::Encode) ? MFT_CATEGORY_VIDEO_ENCODER : MFT_CATEGORY_VIDEO_DECODER,
+                          { MFMediaType_Video, QWindowsMultimediaUtils::videoFormatForCodec(codec) },
+                          mode);
+}
+
+template <typename T>
+bool isSupportedCodec(T codec, QMediaFormat::ConversionMode m, CheckedCodecs<T> &checkedCodecs)
+{
+    if (auto it = checkedCodecs.constFind(qMakePair(codec, m)); it != checkedCodecs.constEnd())
+        return it.value();
+
+    const bool supported = isSupportedCodec(codec, m);
+
+    checkedCodecs.insert(qMakePair(codec, m), supported);
+    return supported;
+}
+
 }
 
 static QList<QImageCapture::FileFormat> getImageFormatList()
@@ -147,31 +154,25 @@ QWindowsFormatInfo::QWindowsFormatInfo()
         QMediaFormat::WMV,
     };
 
-    const auto audioDecoders = getCodecSet<QMediaFormat::AudioCodec>(MFT_CATEGORY_AUDIO_DECODER);
-    const auto audioEncoders = getCodecSet<QMediaFormat::AudioCodec>(MFT_CATEGORY_AUDIO_ENCODER);
-    const auto videoDecoders = getCodecSet<QMediaFormat::VideoCodec>(MFT_CATEGORY_VIDEO_DECODER);
-    const auto videoEncoders = getCodecSet<QMediaFormat::VideoCodec>(MFT_CATEGORY_VIDEO_ENCODER);
+    CheckedCodecs<QMediaFormat::AudioCodec> checkedAudioCodecs;
+    CheckedCodecs<QMediaFormat::VideoCodec> checkedVideoCodecs;
+
+    auto ensureCodecs = [&] (CodecMap &codecs, QMediaFormat::ConversionMode mode) {
+        codecs.audio.removeIf([&] (auto codec) { return !isSupportedCodec(codec, mode, checkedAudioCodecs); });
+        codecs.video.removeIf([&] (auto codec) { return !isSupportedCodec(codec, mode, checkedVideoCodecs); });
+        return !codecs.video.empty() || !codecs.audio.empty();
+    };
 
     for (const auto &codecMap : containerTable) {
-
-        const QSet<QMediaFormat::AudioCodec> mapAudioSet(codecMap.audio.cbegin(), codecMap.audio.cend());
-        const QSet<QMediaFormat::VideoCodec> mapVideoSet(codecMap.video.cbegin(), codecMap.video.cend());
-
         if (decoderFormats.contains(codecMap.format)) {
-            CodecMap m;
-            m.format = codecMap.format;
-            m.audio = (audioDecoders & mapAudioSet).values();
-            m.video = (videoDecoders & mapVideoSet).values();
-            if (!m.video.empty() || !m.audio.empty())
+            auto m = codecMap;
+            if (ensureCodecs(m, QMediaFormat::Decode))
                 decoders.append(m);
         }
 
         if (encoderFormats.contains(codecMap.format)) {
-            CodecMap m;
-            m.format = codecMap.format;
-            m.audio = (audioEncoders & mapAudioSet).values();
-            m.video = (videoEncoders & mapVideoSet).values();
-            if (!m.video.empty() || !m.audio.empty())
+            auto m = codecMap;
+            if (ensureCodecs(m, QMediaFormat::Encode))
                 encoders.append(m);
         }
     }
