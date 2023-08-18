@@ -57,6 +57,20 @@ static int bitrateForSettings(const QMediaEncoderSettings &settings, bool hdr = 
     return bitrate;
 }
 
+static void apply_openh264(const QMediaEncoderSettings &settings, AVCodecContext *codec,
+                           AVDictionary **opts)
+{
+    if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding
+        || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
+        codec->bit_rate = settings.videoBitRate();
+        av_dict_set(opts, "rc_mode", "bitrate", 0);
+    } else {
+        av_dict_set(opts, "rc_mode", "quality", 0);
+        static const int q[] = { 51, 48, 38, 25, 5 };
+        codec->qmax = codec->qmin = q[settings.quality()];
+    }
+}
+
 static void apply_x264(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **opts)
 {
     if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
@@ -275,6 +289,7 @@ const struct {
                               { "libx265xx", apply_x265 },
                               { "libvpx", apply_libvpx },
                               { "libvpx_vp9", apply_libvpx },
+                              { "libopenh264", apply_openh264 },
                               { "h264_nvenc", apply_nvenc },
                               { "hevc_nvenc", apply_nvenc },
                               { "av1_nvenc", apply_nvenc },
