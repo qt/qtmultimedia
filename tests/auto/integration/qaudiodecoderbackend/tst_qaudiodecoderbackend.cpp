@@ -154,7 +154,7 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferReadySignal()
 
     int sampleCount = 0;
 
-    connect(&decoder, &QAudioDecoder::bufferReady, [&]() {
+    connect(&decoder, &QAudioDecoder::bufferReady, this, [&]() {
         QVERIFY(decoder.bufferAvailable());
         QVERIFY(decoder.isDecoding());
 
@@ -194,7 +194,7 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferAvailableSignal() {
 
     int sampleCount = 0;
 
-    connect(&decoder, &QAudioDecoder::bufferAvailableChanged, [&](bool available) {
+    connect(&decoder, &QAudioDecoder::bufferAvailableChanged, this, [&](bool available) {
         QCOMPARE(decoder.bufferAvailable(), available);
 
         if (!available)
@@ -238,7 +238,7 @@ void tst_QAudioDecoderBackend::stopOnBufferReady()
     if (decoder.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
 
-    connect(&decoder, &QAudioDecoder::bufferReady, [&]() {
+    connect(&decoder, &QAudioDecoder::bufferReady, this, [&]() {
         decoder.read(); // run next reading
         decoder.stop();
     });
@@ -269,7 +269,7 @@ void tst_QAudioDecoderBackend::restartOnBufferReady()
     int sampleCount = 0;
 
     std::once_flag restartOnce;
-    connect(&decoder, &QAudioDecoder::bufferReady, [&]() {
+    connect(&decoder, &QAudioDecoder::bufferReady, this, [&]() {
         QVERIFY(decoder.bufferAvailable());
 
         auto buffer = decoder.read();
@@ -309,7 +309,7 @@ void tst_QAudioDecoderBackend::restartOnFinish()
 
     int sampleCount = 0;
 
-    connect(&decoder, &QAudioDecoder::bufferReady, [&]() {
+    connect(&decoder, &QAudioDecoder::bufferReady, this, [&]() {
         auto buffer = decoder.read();
         QVERIFY(buffer.isValid());
 
@@ -319,7 +319,7 @@ void tst_QAudioDecoderBackend::restartOnFinish()
     QSignalSpy finishSpy(&decoder, &QAudioDecoder::finished);
 
     std::once_flag restartOnce;
-    connect(&decoder, &QAudioDecoder::finished, [&]() {
+    connect(&decoder, &QAudioDecoder::finished, this, [&]() {
         QVERIFY(!decoder.bufferAvailable());
         QVERIFY(!decoder.isDecoding());
 

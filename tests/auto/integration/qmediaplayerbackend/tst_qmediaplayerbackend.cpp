@@ -155,7 +155,8 @@ private:
 
 static void setVideoSinkAsyncFramesCounter(QVideoSink &sink, std::atomic_int &counter)
 {
-    QObject::connect(&sink, &QVideoSink::videoFrameChanged, [&counter]() { ++counter; });
+    QObject::connect(&sink, &QVideoSink::videoFrameChanged,
+                     &sink, [&counter]() { ++counter; }, Qt::DirectConnection);
 }
 
 void tst_QMediaPlayerBackend::init()
@@ -1431,10 +1432,10 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
     player.setSource(localVideoFile3ColorsWithSound);
 
     std::optional<QRgb> color;
-    connect(&surface, &QVideoSink::videoFrameChanged, [&](const QVideoFrame& frame) {
+    connect(&surface, &QVideoSink::videoFrameChanged, this, [&](const QVideoFrame& frame) {
         auto image = frame.toImage();
         color = image.isNull() ? std::optional<QRgb>{} : image.pixel(1, 1);
-    });
+    }, Qt::DirectConnection);
 
     auto checkColorAndPosition = [&](int colorIndex, QString errorTag) {
         QVERIFY(color);
@@ -1563,7 +1564,8 @@ void tst_QMediaPlayerBackend::playerStateAtEOS()
     player.setAudioOutput(&output);
 
     bool endOfMediaReceived = false;
-    connect(&player, &QMediaPlayer::mediaStatusChanged, [&](QMediaPlayer::MediaStatus status) {
+    connect(&player, &QMediaPlayer::mediaStatusChanged,
+            this, [&](QMediaPlayer::MediaStatus status) {
         if (status == QMediaPlayer::EndOfMedia) {
             QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
             endOfMediaReceived = true;
@@ -2116,17 +2118,17 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
     std::atomic<int> videoFrameCounter = 0;
     std::atomic<int> videoSizeCounter = 0;
 
-    connect(&sink, &QVideoSink::videoFrameChanged, [&](const QVideoFrame &frame) {
+    connect(&sink, &QVideoSink::videoFrameChanged, this, [&](const QVideoFrame &frame) {
         QCOMPARE(sink.videoFrame(), frame);
         QCOMPARE(sink.videoSize(), frame.size());
         ++videoFrameCounter;
-    });
+    }, Qt::DirectConnection);
 
-    connect(&sink, &QVideoSink::videoSizeChanged, [&]() {
+    connect(&sink, &QVideoSink::videoSizeChanged, this, [&]() {
         QCOMPARE(sink.videoSize(), sink.videoFrame().size());
         if (sink.videoSize().isValid()) // filter end frame
             ++videoSizeCounter;
-    });
+    }, Qt::DirectConnection);
 
     player.setSource(localVideoFile2);
     player.play();

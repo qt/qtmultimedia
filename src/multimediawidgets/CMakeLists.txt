@@ -11,8 +11,6 @@ qt_internal_add_module(MultimediaWidgets
     SOURCES
         qtmultimediawidgetsglobal.h
         qvideowidget.cpp qvideowidget.h qvideowidget_p.h
-    DEFINES
-        QT_NO_CONTEXTLESS_CONNECT
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::WidgetsPrivate

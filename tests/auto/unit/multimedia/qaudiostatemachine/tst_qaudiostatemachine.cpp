@@ -504,8 +504,10 @@ void tst_QAudioStateMachine::deleteNotifierInSlot_suppressesAdjacentSignal()
         changeNotifier.reset();
     };
 
-    connect(changeNotifier.get(), &QAudioStateChangeNotifier::errorChanged, onSignal);
-    connect(changeNotifier.get(), &QAudioStateChangeNotifier::stateChanged, onSignal);
+    connect(changeNotifier.get(), &QAudioStateChangeNotifier::errorChanged,
+            this, onSignal, Qt::DirectConnection);
+    connect(changeNotifier.get(), &QAudioStateChangeNotifier::stateChanged,
+            this, onSignal, Qt::DirectConnection);
 
     stateMachine.stop(QAudio::IOError);
 }
@@ -523,7 +525,7 @@ void tst_QAudioStateMachine::
     int changesCount = 0; // non-atomic on purpose; it tests the guard protection
 
     connect(&changeNotifier, &QAudioStateChangeNotifier::stateChanged,
-            [&](QAudio::State) { ++signalsCount; });
+            this, [&](QAudio::State) { ++signalsCount; }, Qt::DirectConnection);
 
     std::vector<std::atomic_int> counters(2);
 
@@ -590,7 +592,7 @@ void tst_QAudioStateMachine::
     int changesCount = 0; // non-atomic on purpose; it tests the guard protection
 
     connect(&changeNotifier, &QAudioStateChangeNotifier::stateChanged,
-            [&](QAudio::State) { ++signalsCount; });
+            this, [&](QAudio::State) { ++signalsCount; }, Qt::DirectConnection);
 
     std::vector<std::atomic_int> counters(2);
 

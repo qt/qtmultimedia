@@ -16,8 +16,6 @@ qt_internal_add_plugin(QSGVivanteVideoNodeFactoryPlugin
         qsgvivantevideomaterialshader.cpp qsgvivantevideomaterialshader.h
         qsgvivantevideonode.cpp qsgvivantevideonode.h
         qsgvivantevideonodefactory.cpp qsgvivantevideonodefactory.h
-    DEFINES
-        QT_NO_CONTEXTLESS_CONNECT
     LIBRARIES
         Qt::Core
         Qt::Gui
