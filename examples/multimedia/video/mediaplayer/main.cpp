@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     if (!parser.positionalArguments().isEmpty()) {
         QUrl source = QUrl::fromUserInput(parser.positionalArguments().at(0), QDir::currentPath());
         QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
-                         [source](QObject *object, const QUrl &) {
+                         &engine, [source](QObject *object, const QUrl &) {
                              qDebug() << "setting source";
                              object->setProperty("source", source);
                          });

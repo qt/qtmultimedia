@@ -32,8 +32,6 @@ qt_internal_add_qml_module(MultimediaQuickPrivate
         qsgvideotexture.cpp qsgvideotexture_p.h
         qtmultimediaquickglobal_p.h
         qtmultimediaquicktypes.cpp qtmultimediaquicktypes_p.h
-    DEFINES
-        QT_NO_CONTEXTLESS_CONNECT
     QML_FILES
         ${qml_files}
     PUBLIC_LIBRARIES

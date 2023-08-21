@@ -784,13 +784,13 @@ void QAndroidCameraSession::setVideoSink(QVideoSink *sink)
 
     if (m_sink)
         m_retryPreviewConnection =
-                connect(m_sink->platformVideoSink(), &QPlatformVideoSink::rhiChanged, [&]()
+                connect(m_sink->platformVideoSink(), &QPlatformVideoSink::rhiChanged, this, [&]()
                         {
                             if (m_active) {
                                 setActive(false);
                                 setActive(true);
                             }
-                        });
+                        }, Qt::DirectConnection);
     if (m_sink) {
         delete m_textureOutput;
         m_textureOutput = nullptr;

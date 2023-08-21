@@ -1,5 +1,8 @@
 // Copyright (C) 2016 Research In Motion
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+#undef QT_NO_CONTEXTLESS_CONNECT // Remove after porting connect() calls
+
 #include "qqnxplatformcamera_p.h"
 #include "qqnxcameraframebuffer_p.h"
 #include "qqnxmediacapturesession_p.h"
