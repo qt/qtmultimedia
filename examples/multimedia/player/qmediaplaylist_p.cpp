@@ -55,8 +55,8 @@ void QMediaPlaylistPrivate::ensureParser()
         return;
 
     parser = new QPlaylistFileParser(q_ptr);
-    QObject::connect(parser, &QPlaylistFileParser::finished, [this]() { loadFinished(); });
-    QObject::connect(parser, &QPlaylistFileParser::error,
+    QObject::connect(parser, &QPlaylistFileParser::finished, q_ptr, [this]() { loadFinished(); });
+    QObject::connect(parser, &QPlaylistFileParser::error, q_ptr,
                      [this](QMediaPlaylist::Error err, const QString &errorMsg) {
                          loadFailed(err, errorMsg);
                      });
