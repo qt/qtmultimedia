@@ -224,7 +224,9 @@ QAudioFormat::ChannelConfig CoreAudioUtils::fromAudioChannelLayout(const AudioCh
     quint32 channels = 0;
     if (layout->mChannelLayoutTag == kAudioChannelLayoutTag_UseChannelDescriptions) {
         // special case 1 and 2 channel configs, as they are often reported without proper descriptions
-        if (layout->mNumberChannelDescriptions == 1 && layout->mChannelDescriptions[0].mChannelLabel == kAudioChannelLabel_Unknown)
+        if (layout->mNumberChannelDescriptions == 1
+            && (layout->mChannelDescriptions[0].mChannelLabel == kAudioChannelLabel_Unknown
+                || layout->mChannelDescriptions[0].mChannelLabel == kAudioChannelLabel_Mono))
             return QAudioFormat::ChannelConfigMono;
         if (layout->mNumberChannelDescriptions == 2 &&
             layout->mChannelDescriptions[0].mChannelLabel == kAudioChannelLabel_Unknown &&
