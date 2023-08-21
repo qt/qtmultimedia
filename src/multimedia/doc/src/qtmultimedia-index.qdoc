@@ -173,6 +173,10 @@
     See the \l {https://ffmpeg.org/legal.html}{FFmpeg licensing page} for further
     details.
 
+    Note that video compression standards, such as the H.264 media compression
+    standard, may be covered by patents and can incur royalty fees. Such fees
+    are not covered by the Qt licenses.
+
     \section1 Target platform and backend notes
     We aim to align the behavior on all the platforms but there are some issues
     to consider.
