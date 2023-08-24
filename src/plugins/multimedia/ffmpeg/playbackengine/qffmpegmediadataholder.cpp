@@ -165,7 +165,11 @@ MediaDataHolder::recreateAVFormatContext(const QUrl &media, QIODevice *stream)
         context->pb = avio_alloc_context(buffer, bufferSize, false, stream, &readQIODevice, nullptr, &seekQIODevice);
     }
 
-    int ret = avformat_open_input(&context, url.constData(), nullptr, nullptr);
+    AVDictionaryHolder dict;
+    constexpr auto NetworkTimeoutUs = "5000000";
+    av_dict_set(dict, "timeout", NetworkTimeoutUs, 0);
+
+    int ret = avformat_open_input(&context, url.constData(), nullptr, dict);
     if (ret < 0) {
         auto code = QMediaPlayer::ResourceError;
         if (ret == AVERROR(EACCES))
