@@ -12,6 +12,7 @@
 #include "qffmpegimagecapture_p.h"
 #include "qffmpegaudioinput_p.h"
 #include "qffmpegaudiodecoder_p.h"
+#include "qffmpegsymbolsresolve_p.h"
 #include "qgrabwindowsurfacecapture_p.h"
 
 #ifdef Q_OS_MACOS
@@ -108,6 +109,8 @@ static void setupFFmpegLogger()
 
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 {
+    resolveSymbols();
+
     setupFFmpegLogger();
 
     m_formatsInfo = new QFFmpegMediaFormatInfo();

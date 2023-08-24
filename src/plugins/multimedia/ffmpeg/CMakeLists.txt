@@ -37,6 +37,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
         qffmpegsurfacecapturethread.cpp qffmpegsurfacecapturethread_p.h
+        qffmpegsymbolsresolve_p.h
 
         qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
         playbackengine/qffmpegplaybackengineobject.cpp playbackengine/qffmpegplaybackengineobject_p.h
@@ -61,6 +62,18 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil
 )
 
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_OPENSSL_SYMBOLS
+    SOURCES
+        qffmpegsymbolsresolveutils.cpp qffmpegsymbolsresolveutils_p.h
+        qffmpegopensslsymbols.cpp
+    INCLUDE_DIRECTORIES
+        ${OPENSSL_INCLUDE_DIR}
+)
+
+if (DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
+    target_compile_definitions(QFFmpegMediaPlugin PRIVATE DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
+endif()
+
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_FEATURE_vaapi
     SOURCES
         qffmpeghwaccel_vaapi.cpp qffmpeghwaccel_vaapi_p.h
@@ -71,7 +84,6 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_
         VAAPI::VAAPI
         EGL::EGL
 )
-
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
     SOURCES
