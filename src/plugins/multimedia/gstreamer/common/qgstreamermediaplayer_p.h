@@ -80,9 +80,10 @@ public:
     void pause() override;
     void stop() override;
 
+    void *nativePipeline() override;
+
     bool processBusMessage(const QGstreamerMessage& message) override;
     bool processSyncMessage(const QGstreamerMessage& message) override;
-
 public Q_SLOTS:
     void updatePosition() { positionChanged(position()); }
 
