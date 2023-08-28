@@ -246,6 +246,11 @@ void QGstreamerMediaPlayer::stop()
     stopOrEOS(false);
 }
 
+void *QGstreamerMediaPlayer::nativePipeline()
+{
+    return playerPipeline.pipeline();
+}
+
 void QGstreamerMediaPlayer::stopOrEOS(bool eos)
 {
     positionUpdateTimer.stop();
