@@ -33,9 +33,9 @@ Row {
         function populate() {
             audioInputModel.clear()
 
-            for (var audioInput of audioInputs)
-                audioInputModel.append({ text: audioInput.description, value:
-                                        { type: 'audioInput', audioInput: audioInput } })
+            for (var audioDevice of audioInputs)
+                audioInputModel.append({ text: audioDevice.description, value:
+                                        { type: 'audioDevice', audioDevice: audioDevice } })
         }
     }
     ComboBox {
@@ -48,6 +48,6 @@ Row {
         font.pointSize: Style.fontSize
         displayText: typeof currentValue === 'undefined' ? "unavailable" : currentText
         valueRole: "value"
-        onCurrentValueChanged: if (typeof comboBox.currentValue !== 'undefined') audioInput.device = currentValue
+        onCurrentValueChanged: if (typeof comboBox.currentValue !== 'undefined') audioInput.device = currentValue.audioDevice
     }
 }
