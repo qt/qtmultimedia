@@ -6,7 +6,10 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import QtMultimedia
 
+pragma ComponentBehavior: Bound
+
 ColumnLayout {
+    id: root
     required property MediaRecorder recorder
 
     Text { text: "Metadata settings" }
@@ -14,10 +17,10 @@ ColumnLayout {
     ListModel { id: metaDataModel }
 
     Connections {
-        target: recorder
+        target: root.recorder
         function onMetaDataChanged() {
             metaDataModel.clear()
-            for (var key of recorder.metaData.keys()) {
+            for (var key of root.recorder.metaData.keys()) {
                 if (recorder.metaData.stringValue(key))
                     metaDataModel.append(
                                 { text: recorder.metaData.metaDataKeyToString(key)
@@ -67,7 +70,7 @@ ColumnLayout {
                 font.pointSize: Style.fontSize
                 clip: true
                 onAccepted: {
-                    recorder.metaData.insert(metaDataType.currentValue, text)
+                    root.recorder.metaData.insert(metaDataType.currentValue, text)
                     recorder.metaDataChanged()
                     text = ""
                     textInput.deselect()
@@ -121,8 +124,8 @@ ColumnLayout {
                     anchors.bottom: parent.bottom
                     font.pointSize: Style.fontSize
                     clip: true
-                    text: recorder.metaData.stringValue(r.value)
-                    onAccepted: recorder.metaData.insert(r.value, text)
+                    text: root.recorder.metaData.stringValue(r.value)
+                    onAccepted: root.recorder.metaData.insert(r.value, text)
 
                 }
             }
@@ -132,7 +135,7 @@ ColumnLayout {
                 text: "del"
                 font.pointSize: Style.fontSize
                 background: StyleRectangle { anchors.fill: parent }
-                onClicked: { recorder.metaData.remove(r.value); recorder.metaDataChanged() }
+                onClicked: { root.recorder.metaData.remove(r.value); recorder.metaDataChanged() }
             }
         }
     }
