@@ -23,7 +23,7 @@ using namespace QWindowsMultimediaUtils;
 class CameraReaderCallback : public IMFSourceReaderCallback
 {
 public:
-    CameraReaderCallback() : m_cRef(1) {}
+    CameraReaderCallback() : m_cRef(1) { }
 
     //from IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override
@@ -33,7 +33,7 @@ public:
         if (riid == IID_IMFSourceReaderCallback) {
             *ppvObject = static_cast<IMFSourceReaderCallback*>(this);
         } else if (riid == IID_IUnknown) {
-            *ppvObject = static_cast<IUnknown*>(static_cast<IMFSourceReaderCallback*>(this));
+            *ppvObject = static_cast<IUnknown *>(this);
         } else {
             *ppvObject =  nullptr;
             return E_NOINTERFACE;
@@ -68,7 +68,7 @@ public:
     }
 private:
     // Destructor is private. Caller should call Release.
-    virtual ~CameraReaderCallback() {}
+    virtual ~CameraReaderCallback() { }
 
     LONG m_cRef;
     ActiveCamera *m_activeCamera = nullptr;
