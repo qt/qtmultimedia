@@ -178,8 +178,6 @@ static ComPtr<IMFMediaType> findVideoType(IMFSourceReader *reader,
 
 class ActiveCamera {
 public:
-    ActiveCamera() = delete;
-
     static std::unique_ptr<ActiveCamera> create(QWindowsCamera &wc, const QCameraDevice &device, const QCameraFormat &format)
     {
         auto ac = std::unique_ptr<ActiveCamera>(new ActiveCamera(wc));
