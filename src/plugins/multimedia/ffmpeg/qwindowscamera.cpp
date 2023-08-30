@@ -24,7 +24,6 @@ class CameraReaderCallback : public IMFSourceReaderCallback
 {
 public:
     CameraReaderCallback() : m_cRef(1) {}
-    virtual ~CameraReaderCallback() {}
 
     //from IUnknown
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override
@@ -68,6 +67,9 @@ public:
         m_activeCamera = activeCamera;
     }
 private:
+    // Destructor is private. Caller should call Release.
+    virtual ~CameraReaderCallback() {}
+
     LONG m_cRef;
     ActiveCamera *m_activeCamera = nullptr;
     QMutex m_mutex;
