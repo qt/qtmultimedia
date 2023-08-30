@@ -174,6 +174,27 @@ set(FFMPEG_LIBRARIES "")
 set(FFMPEG_DEFINITIONS "")
 set(FFMPEG_LIBRARY_DIRS "")
 
+# Apply dynamic symbols resolve for Linux build only. We might add Android and QNX as well.
+set(ENABLE_DYNAMIC_RESOLVE_OPENSSL_SYMBOLS ${LINUX} CACHE INTERNAL "")
+set(ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS ${LINUX} CACHE INTERNAL "")
+
+function(__try_add_dynamic_resolve_dependency dep added)
+  set(added TRUE PARENT_SCOPE)
+
+  if(ENABLE_DYNAMIC_RESOLVE_OPENSSL_SYMBOLS AND
+      (${dep} STREQUAL "ssl" OR ${dep} STREQUAL "crypto"))
+    set(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS TRUE CACHE INTERNAL "")
+  elseif(ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS AND ${dep} STREQUAL "va")
+    set(DYNAMIC_RESOLVE_VAAPI_SYMBOLS TRUE CACHE INTERNAL "")
+  elseif(ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS AND ${dep} STREQUAL "va-drm")
+    set(DYNAMIC_RESOLVE_VA_DRM_SYMBOLS TRUE CACHE INTERNAL "")
+  elseif(ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS AND ${dep} STREQUAL "va-x11")
+    set(DYNAMIC_RESOLVE_VA_X11_SYMBOLS TRUE CACHE INTERNAL "")
+  else()
+    set(added FALSE PARENT_SCOPE)
+  endif()
+endfunction()
+
 # Function parses package config file to find the static library dependencies
 # and adds them to the target library.
 function(__ffmpeg_internal_set_dependencies lib)
@@ -196,11 +217,8 @@ function(__ffmpeg_internal_set_dependencies lib)
     foreach(dependency ${deps_no_suffix})
       string(REGEX REPLACE ${prefix_l} "" dependency ${dependency})
       if(NOT ${lib} STREQUAL ${dependency})
-        # Apply dynamic symbols resolve for Linux build only. We might add Android and QNX as well.
-        if(LINUX AND (${dependency} STREQUAL "ssl" OR ${dependency} STREQUAL "crypto"))
-          # TODO: implement OpenSsl headers check (or reuse WrapOpenSSLHeaders_FOUND)
-          set(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS TRUE CACHE INTERNAL "")
-        else()
+        __try_add_dynamic_resolve_dependency(${dependency} added)
+        if(NOT added)
           target_link_libraries(FFmpeg::${lib} INTERFACE ${dependency})
         endif()
       endif()
