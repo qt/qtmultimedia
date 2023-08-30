@@ -199,8 +199,7 @@ public:
 
     bool setFormat(const QCameraFormat &format)
     {
-        m_reader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
-        m_flushWait.acquire();
+        flush();
 
         auto videoType = findVideoType(m_reader.Get(), format);
         if (videoType) {
@@ -257,13 +256,19 @@ public:
 
     ~ActiveCamera()
     {
-        m_reader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
-        m_flushWait.acquire();
+        flush();
         m_readerCallback->setActiveCamera(nullptr);
     }
 
 private:
     explicit ActiveCamera(QWindowsCamera &wc) : m_windowsCamera(wc), m_flushWait(0) {};
+
+    void flush()
+    {
+        if (SUCCEEDED(m_reader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM))) {
+            m_flushWait.acquire();
+        }
+    }
 
     QWindowsCamera &m_windowsCamera;
 
