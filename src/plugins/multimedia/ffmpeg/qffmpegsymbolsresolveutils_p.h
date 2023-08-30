@@ -110,6 +110,12 @@ struct FuncInfo<R(A...)>
 #define VARS3() VARS2(), VAR(2)
 #define VARS4() VARS3(), VAR(3)
 #define VARS5() VARS4(), VAR(4)
+#define VARS6() VARS5(), VAR(5)
+#define VARS7() VARS6(), VAR(6)
+#define VARS8() VARS7(), VAR(7)
+#define VARS9() VARS8(), VAR(8)
+#define VARS10() VARS9(), VAR(9)
+#define VARS11() VARS10(), VAR(10)
 
 #define TYPE_WITH_VAR(F, I) std::tuple_element_t<I, FuncInfo<decltype(F)>::Args> VAR(I)
 #define TYPES_WITH_VARS0(F)
@@ -118,6 +124,13 @@ struct FuncInfo<R(A...)>
 #define TYPES_WITH_VARS3(F) TYPES_WITH_VARS2(F), TYPE_WITH_VAR(F, 2)
 #define TYPES_WITH_VARS4(F) TYPES_WITH_VARS3(F), TYPE_WITH_VAR(F, 3)
 #define TYPES_WITH_VARS5(F) TYPES_WITH_VARS4(F), TYPE_WITH_VAR(F, 4)
+#define TYPES_WITH_VARS6(F) TYPES_WITH_VARS5(F), TYPE_WITH_VAR(F, 5)
+#define TYPES_WITH_VARS7(F) TYPES_WITH_VARS6(F), TYPE_WITH_VAR(F, 6)
+#define TYPES_WITH_VARS8(F) TYPES_WITH_VARS7(F), TYPE_WITH_VAR(F, 7)
+#define TYPES_WITH_VARS9(F) TYPES_WITH_VARS8(F), TYPE_WITH_VAR(F, 8)
+#define TYPES_WITH_VARS10(F) TYPES_WITH_VARS9(F), TYPE_WITH_VAR(F, 9)
+#define TYPES_WITH_VARS11(F) TYPES_WITH_VARS10(F), TYPE_WITH_VAR(F, 10)
+
 
 #define RET(F, ...) DefaultReturn<FuncInfo<decltype(F)>::Return>{__VA_ARGS__}
 

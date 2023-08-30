@@ -70,18 +70,58 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_OPENSSL_S
         ${OPENSSL_INCLUDE_DIR}
 )
 
-if (DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
-    target_compile_definitions(QFFmpegMediaPlugin PRIVATE DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
+if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
+    if (QT_FEATURE_vaapi AND NOT DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
+        message(WARNING
+               "QT_FEATURE_vaapi is found but ffmpeg doesn't include vaapi,"
+               "however dynamic symbols resolve is possible.")
+
+        set(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS TRUE CACHE INTERNAL "")
+    elseif (NOT QT_FEATURE_vaapi AND DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
+
+        message(FATAL_ERROR
+               "QT_FEATURE_vaapi is not found "
+               "but ffmpeg includes VAAPI and dynamic symbols resolve is enabled.")
+    endif()
 endif()
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_ffmpeg AND QT_FEATURE_vaapi
+qt_internal_extend_target(QFFmpegMediaPlugin
+    CONDITION
+        DYNAMIC_RESOLVE_OPENSSL_SYMBOLS OR DYNAMIC_RESOLVE_VAAPI_SYMBOLS
+    SOURCES
+        qffmpegsymbolsresolveutils.cpp qffmpegsymbolsresolveutils_p.h
+)
+
+function (__propagate_to_compile_definitions VAR)
+    if (${VAR})
+        target_compile_definitions(QFFmpegMediaPlugin PRIVATE ${VAR})
+    endif()
+endfunction()
+
+__propagate_to_compile_definitions(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
+__propagate_to_compile_definitions(DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
+__propagate_to_compile_definitions(DYNAMIC_RESOLVE_VA_DRM_SYMBOLS)
+__propagate_to_compile_definitions(DYNAMIC_RESOLVE_VA_X11_SYMBOLS)
+
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_VAAPI_SYMBOLS
+    SOURCES
+        qffmpegvaapisymbols.cpp
+    INCLUDE_DIRECTORIES
+        "$<TARGET_PROPERTY:VAAPI::VAAPI,INTERFACE_INCLUDE_DIRECTORIES>"
+)
+
+qt_internal_extend_target(QFFmpegMediaPlugin
+    CONDITION NOT DYNAMIC_RESOLVE_VAAPI_SYMBOLS AND QT_FEATURE_vaapi
+    LIBRARIES VAAPI::VAAPI
+)
+
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_vaapi
     SOURCES
         qffmpeghwaccel_vaapi.cpp qffmpeghwaccel_vaapi_p.h
     NO_UNITY_BUILD_SOURCES
         # Conflicts with macros defined in X11.h, and Xlib.h
         qffmpeghwaccel_vaapi.cpp
     LIBRARIES
-        VAAPI::VAAPI
         EGL::EGL
 )
 

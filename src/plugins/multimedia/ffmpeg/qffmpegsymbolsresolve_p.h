@@ -25,6 +25,11 @@ inline void resolveSymbols()
     extern bool resolveOpenSsl();
     resolveOpenSsl();
 #endif
+
+#ifdef DYNAMIC_RESOLVE_VAAPI_SYMBOLS
+    extern bool resolveVAAPI();
+    resolveVAAPI();
+#endif
 }
 
 QT_END_NAMESPACE
