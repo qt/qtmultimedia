@@ -20,7 +20,6 @@ qt_internal_add_test(tst_qmediaplayerbackend
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
-        Qt::MultimediaPrivate
         Qt::MultimediaQuickPrivate
         Qt::Qml
         Qt::Quick
