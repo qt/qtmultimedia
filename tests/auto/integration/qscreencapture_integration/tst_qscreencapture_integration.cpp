@@ -355,6 +355,11 @@ void tst_QScreenCaptureIntegration::setScreen_selectsSecondaryScreen_whenCalledW
 
 void tst_QScreenCaptureIntegration::capture_capturesToFile_whenConnectedToMediaRecorder()
 {
+#ifdef Q_OS_LINUX
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("QTBUG-116671: SKIP on linux CI to avoid crashes in ffmpeg. To be fixed.");
+#endif
+
     // Create widget with blue color
     auto widget = QTestWidget::createAndShow(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
                                                  QRect{ 200, 100, 430, 351 });

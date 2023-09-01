@@ -154,6 +154,10 @@ private slots:
 
     void recorder_encodesFrames_toValidMediaFile()
     {
+#ifdef Q_OS_LINUX
+        if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+            QSKIP("QTBUG-116671: SKIP on linux CI to avoid crashes in ffmpeg. To be fixed.");
+#endif
         QFETCH(QSize, windowSize);
 
         WindowCaptureWithWidgetAndRecorderFixture fixture;
@@ -179,6 +183,10 @@ private slots:
 
     void recorder_encodesFrames_toValidMediaFile_whenWindowResizes()
     {
+#ifdef Q_OS_LINUX
+        if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+            QSKIP("QTBUG-116671: SKIP on linux CI to avoid crashes in ffmpeg. To be fixed.");
+#endif
         QFETCH(int, increment);
 
         QSize windowSize = { 200, 150 };
