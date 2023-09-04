@@ -5,7 +5,8 @@
 #include <QtQuick/qsgmaterial.h>
 #include "qsgvideotexture_p.h"
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
-#include <private/qquicktextnode_p.h>
+#include <private/qsginternaltextnode_p.h>
+#include <private/qquickitem_p.h>
 #include <private/qquickvideooutput_p.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <qmutex.h>
@@ -218,11 +219,14 @@ void QSGVideoNode::updateSubtitle(const QVideoFrame &frame)
     if (frame.subtitleText().isEmpty())
         return;
 
-    m_subtitleTextNode = new QQuickTextNode(m_parent);
+    QQuickItemPrivate *parent_d = QQuickItemPrivate::get(m_parent);
+
+    m_subtitleTextNode = parent_d->sceneGraphContext()->createInternalTextNode(parent_d->sceneGraphRenderContext());
+    m_subtitleTextNode->setColor(Qt::white);
     QColor bgColor = Qt::black;
     bgColor.setAlpha(128);
     m_subtitleTextNode->addRectangleNode(m_subtitleLayout.bounds, bgColor);
-    m_subtitleTextNode->addTextLayout(m_subtitleLayout.layout.position(), &m_subtitleLayout.layout, Qt::white);
+    m_subtitleTextNode->addTextLayout(m_subtitleLayout.layout.position(), &m_subtitleLayout.layout);
     appendChildNode(m_subtitleTextNode);
     setSubtitleGeometry();
 }

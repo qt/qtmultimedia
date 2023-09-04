@@ -27,7 +27,7 @@ QT_BEGIN_NAMESPACE
 
 class QSGVideoMaterial;
 class QQuickVideoOutput;
-class QQuickTextNode;
+class QSGInternalTextNode;
 
 class QSGVideoNode : public QSGGeometryNode
 {
@@ -57,7 +57,7 @@ private:
     QSGVideoMaterial *m_material;
 
     QVideoTextureHelper::SubtitleLayout m_subtitleLayout;
-    QQuickTextNode *m_subtitleTextNode = nullptr;
+    QSGInternalTextNode *m_subtitleTextNode = nullptr;
 };
 
 QT_END_NAMESPACE
