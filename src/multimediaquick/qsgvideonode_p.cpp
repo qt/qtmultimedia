@@ -76,11 +76,11 @@ public:
     int compare(const QSGMaterial *other) const override {
         const QSGVideoMaterial *m = static_cast<const QSGVideoMaterial *>(other);
 
-        qint64 diff = m_textures[0]->comparisonKey() - m->m_textures[0]->comparisonKey();
+        qint64 diff = m_textures[0].comparisonKey() - m->m_textures[0].comparisonKey();
         if (!diff)
-            diff = m_textures[1]->comparisonKey() - m->m_textures[1]->comparisonKey();
+            diff = m_textures[1].comparisonKey() - m->m_textures[1].comparisonKey();
         if (!diff)
-            diff = m_textures[2]->comparisonKey() - m->m_textures[2]->comparisonKey();
+            diff = m_textures[2].comparisonKey() - m->m_textures[2].comparisonKey();
 
         return diff < 0 ? -1 : (diff > 0 ? 1 : 0);
     }
@@ -108,7 +108,7 @@ public:
 
     enum { NVideoFrameSlots = 4 };
     QVideoFrame m_videoFrameSlots[NVideoFrameSlots];
-    QScopedPointer<QSGVideoTexture> m_textures[3];
+    std::array<QSGVideoTexture, 3> m_textures;
     std::unique_ptr<QVideoFrameTextures> m_videoFrameTextures;
 };
 
@@ -125,7 +125,7 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
     // update and upload all textures
     m_videoFrameTextures = QVideoTextureHelper::createTextures(m_currentFrame, rhi, resourceUpdates, std::move(m_videoFrameTextures));
     for (int plane = 0; plane < 3; ++plane)
-        m_textures[plane]->setRhiTexture(m_videoFrameTextures->texture(plane));
+        m_textures[plane].setRhiTexture(m_videoFrameTextures->texture(plane));
     m_texturesDirty = false;
 }
 
@@ -165,17 +165,13 @@ void QSGVideoMaterialRhiShader::updateSampledImage(RenderState &state, int bindi
         return;
 
     auto m = static_cast<QSGVideoMaterial *>(newMaterial);
-    *texture = m->m_textures[binding - 1].data();
+    *texture = &m->m_textures[binding - 1];
 }
 
 QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &format) :
     m_format(format),
     m_opacity(1.0)
 {
-    m_textures[0].reset(new QSGVideoTexture);
-    m_textures[1].reset(new QSGVideoTexture);
-    m_textures[2].reset(new QSGVideoTexture);
-
     setFlag(Blending, false);
 }
 
