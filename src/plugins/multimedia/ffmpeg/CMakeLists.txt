@@ -63,7 +63,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_OPENSSL_SYMBOLS
     SOURCES
-        qffmpegsymbolsresolveutils.cpp qffmpegsymbolsresolveutils_p.h
         qffmpegopensslsymbols.cpp
     INCLUDE_DIRECTORIES
         ${OPENSSL_INCLUDE_DIR}
@@ -75,7 +74,7 @@ if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
                "QT_FEATURE_vaapi is found but ffmpeg doesn't include vaapi,"
                "however dynamic symbols resolve is possible.")
 
-        set(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS TRUE CACHE INTERNAL "")
+        set(DYNAMIC_RESOLVE_VAAPI_SYMBOLS TRUE CACHE INTERNAL "")
     elseif (NOT QT_FEATURE_vaapi AND DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
 
         message(FATAL_ERROR
