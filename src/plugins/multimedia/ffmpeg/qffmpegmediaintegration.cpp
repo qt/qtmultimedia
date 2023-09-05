@@ -144,8 +144,6 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 
     setupFFmpegLogger();
 
-    m_formatsInfo = new QFFmpegMediaFormatInfo();
-
 #if defined(Q_OS_ANDROID)
     m_videoDevices = std::make_unique<QAndroidVideoDevices>(this);
 #elif QT_CONFIG(linux_v4l)
@@ -174,16 +172,6 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
     for (auto type : QFFmpeg::HWAccel::encodingDeviceTypes())
         qDebug() << "    " << av_hwdevice_get_type_name(type);
 #endif
-}
-
-QFFmpegMediaIntegration::~QFFmpegMediaIntegration()
-{
-    delete m_formatsInfo;
-}
-
-QPlatformMediaFormatInfo *QFFmpegMediaIntegration::formatInfo()
-{
-    return m_formatsInfo;
 }
 
 QMaybe<QPlatformAudioDecoder *> QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
@@ -285,6 +273,11 @@ QMaybe<QPlatformVideoSink *> QFFmpegMediaIntegration::createVideoSink(QVideoSink
 QMaybe<QPlatformAudioInput *> QFFmpegMediaIntegration::createAudioInput(QAudioInput *input)
 {
     return new QFFmpegAudioInput(input);
+}
+
+QPlatformMediaFormatInfo *QFFmpegMediaIntegration::createFormatInfo()
+{
+    return new QFFmpegMediaFormatInfo;
 }
 
 #ifdef Q_OS_ANDROID

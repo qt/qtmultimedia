@@ -21,6 +21,7 @@
 #include <qstring.h>
 
 #include <memory>
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -60,7 +61,7 @@ public:
 
     QPlatformMediaIntegration();
     virtual ~QPlatformMediaIntegration();
-    virtual QPlatformMediaFormatInfo *formatInfo() = 0;
+    const QPlatformMediaFormatInfo *formatInfo();
 
     virtual QList<QCameraDevice> videoInputs();
     virtual QMaybe<QPlatformCamera *> createCamera(QCamera *) { return notAvailable; }
@@ -83,6 +84,9 @@ public:
 
     QPlatformVideoDevices *videoDevices() { return m_videoDevices.get(); }
 
+protected:
+    virtual QPlatformMediaFormatInfo *createFormatInfo();
+
 private:
     friend class QMockIntegrationFactory;
     // API to be able to test with a mock backend
@@ -93,6 +97,9 @@ private:
 protected:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
     std::unique_ptr<QPlatformCapturableWindows> m_capturableWindows;
+
+    mutable std::unique_ptr<QPlatformMediaFormatInfo> m_formatInfo;
+    mutable std::once_flag m_formatInfoOnceFlg;
 };
 
 QT_END_NAMESPACE

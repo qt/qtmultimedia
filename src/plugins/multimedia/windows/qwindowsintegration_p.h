@@ -29,8 +29,6 @@ public:
     QWindowsMediaIntegration();
     ~QWindowsMediaIntegration();
 
-    QPlatformMediaFormatInfo *formatInfo() override;
-
     QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
 
     QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
@@ -41,7 +39,8 @@ public:
 
     QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *sink) override;
 
-    QWindowsFormatInfo *m_formatInfo = nullptr;
+protected:
+    QPlatformMediaFormatInfo *createFormatInfo() override;
 };
 
 QT_END_NAMESPACE

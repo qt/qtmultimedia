@@ -49,22 +49,14 @@ QAndroidIntegration::QAndroidIntegration()
 
 }
 
-QAndroidIntegration::~QAndroidIntegration()
-{
-    delete m_formatInfo;
-}
-
 QMaybe<QPlatformAudioDecoder *> QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new QAndroidAudioDecoder(decoder);
 }
 
-QPlatformMediaFormatInfo *QAndroidIntegration::formatInfo()
+QPlatformMediaFormatInfo *QAndroidIntegration::createFormatInfo()
 {
-    if (!m_formatInfo)
-        m_formatInfo = new QAndroidFormatInfo();
-    return m_formatInfo;
-
+    return new QAndroidFormatInfo;
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QAndroidIntegration::createCaptureSession()

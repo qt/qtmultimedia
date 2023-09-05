@@ -26,10 +26,11 @@ class QGstreamerIntegration : public QPlatformMediaIntegration
 {
 public:
     QGstreamerIntegration();
-    ~QGstreamerIntegration();
 
-    static QGstreamerIntegration *instance() { return static_cast<QGstreamerIntegration *>(QPlatformMediaIntegration::instance()); }
-    QPlatformMediaFormatInfo *formatInfo() override;
+    static QGstreamerIntegration *instance()
+    {
+        return static_cast<QGstreamerIntegration *>(QPlatformMediaIntegration::instance());
+    }
 
     QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
     QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
@@ -43,11 +44,11 @@ public:
     QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *) override;
     QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *) override;
 
-    const QGstreamerFormatInfo *gstFormatsInfo() const;
+    const QGstreamerFormatInfo *gstFormatsInfo();
     GstDevice *videoDevice(const QByteArray &id) const;
 
-private:
-    QGstreamerFormatInfo *m_formatsInfo;
+protected:
+    QPlatformMediaFormatInfo *createFormatInfo() override;
 };
 
 QT_END_NAMESPACE

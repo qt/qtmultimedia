@@ -25,9 +25,6 @@ class QDarwinIntegration : public QPlatformMediaIntegration
 {
 public:
     QDarwinIntegration();
-    ~QDarwinIntegration();
-
-    QPlatformMediaFormatInfo *formatInfo() override;
 
     QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *) override;
     QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
@@ -38,7 +35,8 @@ public:
 
     QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) override;
 
-    QPlatformMediaFormatInfo *m_formatInfo = nullptr;
+protected:
+    QPlatformMediaFormatInfo *createFormatInfo() override;
 };
 
 QT_END_NAMESPACE
