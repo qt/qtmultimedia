@@ -14,6 +14,7 @@
 
 #include "qplatformcapturablewindows_p.h"
 #include "QtCore/private/qfactoryloader_p.h"
+#include "private/qplatformmediaformatinfo_p.h"
 #include "qplatformmediaplugin_p.h"
 
 class QDummyIntegration : public QPlatformMediaIntegration
@@ -23,7 +24,6 @@ public:
     {
         qCritical("QtMultimedia is not currently supported on this platform or compiler.");
     }
-    QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
 };
 
 static Q_LOGGING_CATEGORY(qLcMediaPlugin, "qt.multimedia.plugin")
@@ -142,6 +142,20 @@ QList<QCapturableWindow> QPlatformMediaIntegration::capturableWindows()
 bool QPlatformMediaIntegration::isCapturableWindowValid(const QCapturableWindowPrivate &window)
 {
     return m_capturableWindows && m_capturableWindows->isWindowValid(window);
+}
+
+const QPlatformMediaFormatInfo *QPlatformMediaIntegration::formatInfo()
+{
+    std::call_once(m_formatInfoOnceFlg, [this]() {
+        m_formatInfo.reset(createFormatInfo());
+        Q_ASSERT(m_formatInfo);
+    });
+    return m_formatInfo.get();
+}
+
+QPlatformMediaFormatInfo *QPlatformMediaIntegration::createFormatInfo()
+{
+    return new QPlatformMediaFormatInfo;
 }
 
 QPlatformMediaIntegration::QPlatformMediaIntegration() = default;

@@ -45,16 +45,9 @@ QDarwinIntegration::QDarwinIntegration()
     m_videoDevices = std::make_unique<QAVFVideoDevices>(this);
 }
 
-QDarwinIntegration::~QDarwinIntegration()
+QPlatformMediaFormatInfo *QDarwinIntegration::createFormatInfo()
 {
-    delete m_formatInfo;
-}
-
-QPlatformMediaFormatInfo *QDarwinIntegration::formatInfo()
-{
-    if (!m_formatInfo)
-        m_formatInfo = new QDarwinFormatInfo();
-    return m_formatInfo;
+    return new QDarwinFormatInfo();
 }
 
 QMaybe<QPlatformAudioDecoder *> QDarwinIntegration::createAudioDecoder(QAudioDecoder *decoder)

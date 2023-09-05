@@ -26,9 +26,6 @@ class QQnxMediaIntegration : public QPlatformMediaIntegration
 {
 public:
     QQnxMediaIntegration();
-    ~QQnxMediaIntegration();
-
-    QPlatformMediaFormatInfo *formatInfo() override;
 
     QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *sink) override;
 
@@ -42,7 +39,8 @@ public:
 
     QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *parent) override;
 
-    QQnxFormatInfo *m_formatInfo = nullptr;
+protected:
+    QPlatformMediaFormatInfo *createFormatInfo() override;
 };
 
 QT_END_NAMESPACE

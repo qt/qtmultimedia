@@ -37,16 +37,9 @@ QQnxMediaIntegration::QQnxMediaIntegration()
     m_videoDevices = std::make_unique<QQnxVideoDevices>(this);
 }
 
-QQnxMediaIntegration::~QQnxMediaIntegration()
+QPlatformMediaFormatInfo *QQnxMediaIntegration::createFormatInfo()
 {
-    delete m_formatInfo;
-}
-
-QPlatformMediaFormatInfo *QQnxMediaIntegration::formatInfo()
-{
-    if (!m_formatInfo)
-        m_formatInfo = new QQnxFormatInfo();
-    return m_formatInfo;
+    return new QQnxFormatInfo;
 }
 
 QMaybe<QPlatformVideoSink *> QQnxMediaIntegration::createVideoSink(QVideoSink *sink)

@@ -25,9 +25,6 @@ class QAndroidIntegration : public QPlatformMediaIntegration
 {
 public:
     QAndroidIntegration();
-    ~QAndroidIntegration();
-
-    QPlatformMediaFormatInfo *formatInfo() override;
 
     QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
     QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
@@ -42,7 +39,8 @@ public:
     QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) override;
     QList<QCameraDevice> videoInputs() override;
 
-    QPlatformMediaFormatInfo  *m_formatInfo = nullptr;
+protected:
+    QPlatformMediaFormatInfo *createFormatInfo() override;
 };
 
 QT_END_NAMESPACE
