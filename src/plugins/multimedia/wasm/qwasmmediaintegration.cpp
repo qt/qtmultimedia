@@ -51,11 +51,6 @@ QWasmMediaIntegration::QWasmMediaIntegration()
    m_videoDevices = std::make_unique<QWasmCameraDevices>(this);
 }
 
-QWasmMediaIntegration::~QWasmMediaIntegration()
-{
-    delete m_formatInfo;
-}
-
 QMaybe<QPlatformMediaPlayer *> QWasmMediaIntegration::createPlayer(QMediaPlayer *player)
 {
     return new QWasmMediaPlayer(player);
@@ -76,12 +71,10 @@ QMaybe<QPlatformAudioOutput *> QWasmMediaIntegration::createAudioOutput(QAudioOu
     return new QWasmAudioOutput(q);
 }
 
-QPlatformMediaFormatInfo *QWasmMediaIntegration::formatInfo()
+QPlatformMediaFormatInfo *QWasmMediaIntegration::createFormatInfo()
 {
-    if (!m_formatInfo) {
-        m_formatInfo = new QPlatformMediaFormatInfo();
-    }
-    return m_formatInfo;
+    // TODO: create custom implementation
+    return new QPlatformMediaFormatInfo;
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QWasmMediaIntegration::createCaptureSession()

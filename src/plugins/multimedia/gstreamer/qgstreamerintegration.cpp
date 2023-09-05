@@ -41,22 +41,16 @@ QGstreamerIntegration::QGstreamerIntegration()
 {
     gst_init(nullptr, nullptr);
     m_videoDevices = std::make_unique<QGstreamerVideoDevices>(this);
-    m_formatsInfo = new QGstreamerFormatInfo();
 }
 
-QGstreamerIntegration::~QGstreamerIntegration()
+QPlatformMediaFormatInfo *QGstreamerIntegration::createFormatInfo()
 {
-    delete m_formatsInfo;
+    return new QGstreamerFormatInfo();
 }
 
-QPlatformMediaFormatInfo *QGstreamerIntegration::formatInfo()
+const QGstreamerFormatInfo *QGstreamerIntegration::gstFormatsInfo()
 {
-    return m_formatsInfo;
-}
-
-const QGstreamerFormatInfo *QGstreamerIntegration::gstFormatsInfo() const
-{
-    return m_formatsInfo;
+    return static_cast<const QGstreamerFormatInfo *>(formatInfo());
 }
 
 QMaybe<QPlatformAudioDecoder *> QGstreamerIntegration::createAudioDecoder(QAudioDecoder *decoder)

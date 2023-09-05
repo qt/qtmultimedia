@@ -36,8 +36,6 @@ public:
         return static_cast<QMockIntegration *>(QPlatformMediaIntegration::instance());
     }
 
-    QPlatformMediaFormatInfo *formatInfo() override { return nullptr; }
-
     QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
     QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *) override;
     QMaybe<QPlatformCamera *> createCamera(QCamera *) override;

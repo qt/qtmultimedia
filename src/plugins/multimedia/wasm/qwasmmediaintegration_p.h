@@ -27,11 +27,6 @@ class QWasmMediaIntegration : public QPlatformMediaIntegration
 {
 public:
     QWasmMediaIntegration();
-    ~QWasmMediaIntegration() override;
-
-    QPlatformMediaFormatInfo *formatInfo() override;
-
-    QPlatformMediaFormatInfo *m_formatInfo = nullptr;
 
     QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *player) override;
     QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *sink) override;
@@ -44,6 +39,9 @@ public:
     QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *recorder) override;
     QMaybe<QPlatformImageCapture *> createImageCapture(QImageCapture *imageCapture) override;
     QList<QCameraDevice> videoInputs() override;
+
+protected:
+    QPlatformMediaFormatInfo *createFormatInfo() override;
 };
 
 QT_END_NAMESPACE

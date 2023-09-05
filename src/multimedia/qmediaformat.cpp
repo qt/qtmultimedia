@@ -455,14 +455,6 @@ QMimeType QMediaFormat::mimeType() const
     return QMimeDatabase().mimeTypeForName(QString::fromLatin1(mimeTypeForFormat[fmt + 1]));
 }
 
-static QPlatformMediaFormatInfo *formatInfo()
-{
-    QPlatformMediaFormatInfo *result = nullptr;
-    if (auto *pi = QPlatformMediaIntegration::instance())
-        result = pi->formatInfo();
-    return result;
-}
-
 /*!
     \enum QMediaFormat::ConversionMode
 
@@ -501,8 +493,7 @@ static QPlatformMediaFormatInfo *formatInfo()
 */
 QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat::ConversionMode m)
 {
-    auto *fi = formatInfo();
-    return fi != nullptr ? fi->supportedFileFormats(*this, m) : QList<QMediaFormat::FileFormat>{};
+    return QPlatformMediaIntegration::instance()->formatInfo()->supportedFileFormats(*this, m);
 }
 
 /*!
@@ -528,8 +519,7 @@ QList<QMediaFormat::FileFormat> QMediaFormat::supportedFileFormats(QMediaFormat:
 */
 QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat::ConversionMode m)
 {
-    auto *fi = formatInfo();
-    return fi != nullptr ? fi->supportedVideoCodecs(*this, m) : QList<QMediaFormat::VideoCodec>{};
+    return QPlatformMediaIntegration::instance()->formatInfo()->supportedVideoCodecs(*this, m);
 }
 
 /*!
@@ -555,8 +545,7 @@ QList<QMediaFormat::VideoCodec> QMediaFormat::supportedVideoCodecs(QMediaFormat:
 */
 QList<QMediaFormat::AudioCodec> QMediaFormat::supportedAudioCodecs(QMediaFormat::ConversionMode m)
 {
-    auto *fi = formatInfo();
-    return fi != nullptr ? fi->supportedAudioCodecs(*this, m) : QList<QMediaFormat::AudioCodec>{};
+    return QPlatformMediaIntegration::instance()->formatInfo()->supportedAudioCodecs(*this, m);
 }
 
 /*!

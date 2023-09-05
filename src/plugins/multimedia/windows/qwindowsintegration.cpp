@@ -43,17 +43,13 @@ QWindowsMediaIntegration::QWindowsMediaIntegration()
 
 QWindowsMediaIntegration::~QWindowsMediaIntegration()
 {
-    delete m_formatInfo;
-
     MFShutdown();
     CoUninitialize();
 }
 
-QPlatformMediaFormatInfo *QWindowsMediaIntegration::formatInfo()
+QPlatformMediaFormatInfo *QWindowsMediaIntegration::createFormatInfo()
 {
-    if (!m_formatInfo)
-        m_formatInfo = new QWindowsFormatInfo();
-    return m_formatInfo;
+    return new QWindowsFormatInfo();
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QWindowsMediaIntegration::createCaptureSession()
