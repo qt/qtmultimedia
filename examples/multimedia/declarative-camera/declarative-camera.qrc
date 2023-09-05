@@ -12,6 +12,7 @@
         <file>CameraButton.qml</file>
         <file>CameraListPopup.qml</file>
         <file>CameraListButton.qml</file>
+        <file>FlashControl.qml</file>
         <file>images/camera_auto_mode.png</file>
         <file>images/camera_camera_setting.png</file>
         <file>images/camera_flash_auto.png</file>
