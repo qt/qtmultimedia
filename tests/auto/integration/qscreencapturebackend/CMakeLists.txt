@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 #####################################################################
-## tst_qscreencapture_integration Test:
+## tst_qscreencapturebackend Test:
 #####################################################################
 
-qt_internal_add_test(tst_qscreencapture_integration
+qt_internal_add_test(tst_qscreencapturebackend
     SOURCES
-        tst_qscreencapture_integration.cpp
+        tst_qscreencapturebackend.cpp
     LIBRARIES
         Qt::Multimedia
         Qt::Gui
