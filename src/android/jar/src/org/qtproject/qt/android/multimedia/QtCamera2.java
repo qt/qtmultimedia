@@ -28,6 +28,7 @@ import android.view.Surface;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
+import java.lang.Thread;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -233,7 +234,27 @@ public class QtCamera2 {
     ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            QtCamera2.this.onFrameAvailable(mCameraId, reader.acquireLatestImage());
+            try {
+                Image img = reader.acquireLatestImage();
+                if (img != null)
+                    QtCamera2.this.onFrameAvailable(mCameraId, img);
+            } catch (IllegalStateException e) {
+                // It seems that ffmpeg is processing images for too long (and does not close it)
+                // Give it a little more time. Restarting the camera session if it doesn't help
+                Log.e("QtCamera2", "Image processing taking too long. Let's wait 0,5s more " + e);
+                try {
+                    Thread.sleep(500);
+                    QtCamera2.this.onFrameAvailable(mCameraId, reader.acquireLatestImage());
+                } catch (IllegalStateException | InterruptedException e2) {
+                    Log.e("QtCamera2", "Will not wait anymore. Restart camera session. " + e2);
+                    // Remember current used camera ID, because stopAndClose will clear the value
+                    String cameraId = mCameraId;
+                    stopAndClose();
+                    addImageReader(mImageReader.getWidth(), mImageReader.getHeight(),
+                                   mImageReader.getImageFormat());
+                    open(cameraId);
+                }
+            }
         }
     };
 
@@ -241,6 +262,9 @@ public class QtCamera2 {
 
         if (mImageReader != null)
             removeSurface(mImageReader.getSurface());
+
+        if (mCapturedPhotoReader != null)
+            removeSurface(mCapturedPhotoReader.getSurface());
 
         mImageReader = ImageReader.newInstance(width, height, format, MaxNumberFrames);
         mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
