@@ -64,6 +64,17 @@ static auto targetSwFormatScoreCalculator(AVPixelFormat sourceFormat)
     return [=](AVPixelFormat fmt) { return calculateTargetSwFormatScore(sourceSwFormatDesc, fmt); };
 }
 
+static bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
+{
+    switch (pixFormat) {
+    case AV_PIX_FMT_MEDIACODEC:
+        // Mediacodec doesn't accept AV_PIX_FMT_MEDIACODEC (QTBUG-116836)
+        return false;
+    default:
+        return true;
+    }
+}
+
 AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *codec,
                                  const HWAccel &accel)
 {
@@ -84,19 +95,22 @@ AVPixelFormat findTargetSWFormat(AVPixelFormat sourceSWFormat, const AVCodec *co
 AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceSWFormat,
                                const AVCodec *codec, const HWAccel *accel)
 {
+    Q_UNUSED(sourceFormat);
+
     if (accel) {
         const auto hwFormat = accel->hwFormat();
+
+        // TODO: handle codec->capabilities & AV_CODEC_CAP_HARDWARE here
+        if (!isHwFormatAcceptedByCodec(hwFormat))
+            return findTargetSWFormat(sourceSWFormat, codec, *accel);
 
         const auto constraints = accel->constraints();
         if (constraints && hasAVFormat(constraints->valid_hw_formats, hwFormat))
             return hwFormat;
 
-        // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
-        // codec->pix_fmts
+        // Some codecs, don't expose constraints, let's find the format in codec->pix_fmts
         if (hasAVFormat(codec->pix_fmts, hwFormat))
             return hwFormat;
-
-        return AV_PIX_FMT_NONE;
     }
 
     if (!codec->pix_fmts) {
@@ -105,8 +119,8 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
         return sourceSWFormat;
     }
 
-    auto scoreCalculator = targetSwFormatScoreCalculator(sourceFormat);
-    return findBestAVFormat(codec->pix_fmts, scoreCalculator).first;
+    auto swScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);
+    return findBestAVFormat(codec->pix_fmts, swScoreCalculator).first;
 }
 
 std::pair<const AVCodec *, std::unique_ptr<HWAccel>> findHwEncoder(AVCodecID codecID,
