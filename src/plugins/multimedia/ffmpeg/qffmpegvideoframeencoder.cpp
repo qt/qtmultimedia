@@ -29,7 +29,9 @@ VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings, const QS
     result->m_settings = encoderSettings;
     result->m_sourceSize = sourceSize;
     result->m_sourceFormat = sourceFormat;
-    result->m_sourceSWFormat = sourceSWFormat;
+
+    // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
+    result->m_sourceSWFormat = isSwPixelFormat(sourceFormat) ? sourceFormat : sourceSWFormat;
 
     if (!result->m_settings.videoResolution().isValid())
         result->m_settings.setVideoResolution(sourceSize);
@@ -112,9 +114,9 @@ bool VideoFrameEncoder::initTargetFormats()
         return false;
     }
 
-    Q_ASSERT(isHwPixelFormat(m_targetFormat) == !!m_accel);
+    if (isHwPixelFormat(m_targetFormat)) {
+        Q_ASSERT(m_accel);
 
-    if (m_accel) {
         m_targetSWFormat = findTargetSWFormat(m_sourceSWFormat, m_codec, *m_accel);
 
         if (m_targetSWFormat == AV_PIX_FMT_NONE) {
@@ -179,9 +181,8 @@ bool QFFmpeg::VideoFrameEncoder::initCodecContext(AVFormatContext *formatContext
         Q_ASSERT(deviceContext);
         m_codecContext->hw_device_ctx = av_buffer_ref(deviceContext);
 
-        auto framesContext = m_accel->hwFramesContextAsBuffer();
-        Q_ASSERT(deviceContext);
-        m_codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
+        if (auto framesContext = m_accel->hwFramesContextAsBuffer())
+            m_codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
     }
 
     return true;
