@@ -110,9 +110,17 @@ QMediaRecorder::QMediaRecorder(QObject *parent)
       d_ptr(new QMediaRecorderPrivate)
 {
     Q_D(QMediaRecorder);
+
+    auto &mediaIntegration = *QPlatformMediaIntegration::instance();
+
     d->q_ptr = this;
-    auto maybeControl = QPlatformMediaIntegration::instance()->createRecorder(this);
+    auto maybeControl = mediaIntegration.createRecorder(this);
     if (maybeControl) {
+        // The first format info initialization may take some time,
+        // for users it seems to be more suitable to have a delay on the object construction
+        // rather than on QMediaRecorder::record
+        mediaIntegration.formatInfo();
+
         d->control = maybeControl.value();
     } else {
         d->initErrorMessage = maybeControl.error();
