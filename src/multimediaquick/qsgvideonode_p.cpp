@@ -126,6 +126,9 @@ void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resour
 
     // update and upload all textures
     m_videoFrameTextures = QVideoTextureHelper::createTextures(m_currentFrame, rhi, resourceUpdates, std::move(m_videoFrameTextures));
+    if (!m_videoFrameTextures)
+        return;
+
     for (int plane = 0; plane < 3; ++plane)
         m_textures[plane].setRhiTexture(m_videoFrameTextures->texture(plane));
     m_texturesDirty = false;
