@@ -9,8 +9,12 @@
 #include <qstringliteral.h>
 
 #include <va/va.h>
+#ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
 #include <va/va_drm.h>
+#endif
+#ifdef DYNAMIC_RESOLVE_VA_X11_SYMBOLS
 #include <va/va_x11.h>
+#endif
 #include <va/va_str.h>
 
 QT_BEGIN_NAMESPACE
