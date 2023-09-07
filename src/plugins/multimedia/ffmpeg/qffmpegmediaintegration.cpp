@@ -157,7 +157,7 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
         m_capturableWindows = std::make_unique<QX11CapturableWindows>();
-#elif defined Q_OS_MACOSX
+#elif defined Q_OS_MACOS
     m_capturableWindows = std::make_unique<QCGCapturableWindows>();
 #elif defined(Q_OS_WINDOWS)
     m_capturableWindows = std::make_unique<QWinCapturableWindows>();
