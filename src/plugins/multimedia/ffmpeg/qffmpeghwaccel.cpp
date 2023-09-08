@@ -40,8 +40,9 @@ static const std::initializer_list<AVHWDeviceType> preferredHardwareAccelerators
 #if defined(Q_OS_ANDROID)
     AV_HWDEVICE_TYPE_MEDIACODEC,
 #elif defined(Q_OS_LINUX)
-    AV_HWDEVICE_TYPE_VAAPI,
     AV_HWDEVICE_TYPE_CUDA,
+    AV_HWDEVICE_TYPE_VAAPI,
+
     // TODO: investigate VDPAU advantages.
     // nvenc/nvdec codecs use AV_HWDEVICE_TYPE_CUDA by default, but they can also use VDPAU
     // if it's included into the ffmpeg build and vdpau drivers are installed.
