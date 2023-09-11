@@ -11,37 +11,7 @@ QT_BEGIN_NAMESPACE
 using Notifier = QAudioStateMachine::Notifier;
 using namespace AudioStateMachineUtils;
 
-struct QAudioStateMachine::Synchronizer {
-    QMutex m_mutex;
-    QWaitCondition m_condition;
-
-    template <typename Changer>
-    void changeState(Changer&& changer) {
-        {
-            QMutexLocker locker(&m_mutex);
-            changer();
-        }
-
-        m_condition.notify_all();
-    }
-
-    void waitForOperationFinished(std::atomic<RawState>& state)
-    {
-        QMutexLocker locker(&m_mutex);
-        while (isWaitingState(state))
-            m_condition.wait(&m_mutex);
-    }
-
-    void waitForDrained(std::atomic<RawState>& state, std::chrono::milliseconds timeout) {
-        QMutexLocker locker(&m_mutex);
-        if (isDrainingState(state))
-            m_condition.wait(&m_mutex, timeout.count());
-    }
-};
-
-QAudioStateMachine::QAudioStateMachine(QAudioStateChangeNotifier &notifier, bool synchronize) :
-    m_notifier(&notifier),
-    m_sychronizer(synchronize ? std::make_unique<Synchronizer>() : nullptr)
+QAudioStateMachine::QAudioStateMachine(QAudioStateChangeNotifier &notifier) : m_notifier(&notifier)
 {
 }
 
@@ -49,98 +19,70 @@ QAudioStateMachine::~QAudioStateMachine() = default;
 
 QAudio::State QAudioStateMachine::state() const
 {
-    return toAudioState(m_state);
+    return toAudioState(m_state.load(std::memory_order_acquire));
 }
 
 QAudio::Error QAudioStateMachine::error() const
 {
-    return m_error;
+    return toAudioError(m_state.load(std::memory_order_acquire));
 }
 
-Notifier QAudioStateMachine::changeState(std::pair<RawState, uint32_t> prevStatesSet,
-                                         RawState newState, QAudio::Error error, bool shouldDrain)
+template <typename StatesChecker, typename NewState>
+Notifier QAudioStateMachine::changeState(const StatesChecker &checker, const NewState &newState)
 {
-    auto checkState = [flags = prevStatesSet.second](RawState state) {
-        return (flags >> state) & 1;
-    };
-
-    if (!m_sychronizer) {
-        RawState prevState = prevStatesSet.first;
-        const auto exchanged = multipleCompareExchange(
-                m_state, prevState, newState, checkState);
+    if constexpr (std::is_same_v<RawState, NewState>)
+        return changeState(checker, [newState](RawState) { return newState; });
+    else {
+        RawState prevState = m_state.load(std::memory_order_relaxed);
+        const auto exchanged = multipleCompareExchange(m_state, prevState, checker, newState);
 
         if (Q_LIKELY(exchanged))
-            return { this, newState, prevState, error };
+            return { this, newState(prevState), prevState };
 
         return {};
-    }
-
-    while (true) {
-        RawState prevState = prevStatesSet.first;
-
-        const auto newWaitingState = newState | (shouldDrain ? WaitingFlags : InProgressFlag);
-
-        const auto exchanged = multipleCompareExchange(
-                m_state, prevState, newWaitingState, [checkState](RawState state) {
-                    return !isWaitingState(state) && checkState(state);
-                });
-
-        if (Q_LIKELY(exchanged))
-            return { this, newState, prevState, error };
-
-        if (!isWaitingState(prevState))
-            return {};
-
-        if (!checkState(fromWaitingState(prevState)))
-            return {};
-
-        m_sychronizer->waitForOperationFinished(m_state);
     }
 }
 
 Notifier QAudioStateMachine::stop(QAudio::Error error, bool shouldDrain, bool forceUpdateError)
 {
-    auto result = changeState(
-            makeStatesSet(QAudio::ActiveState, QAudio::IdleState, QAudio::SuspendedState),
-            QAudio::StoppedState, error, shouldDrain);
+    auto statesChecker =
+            makeStatesChecker(QAudio::ActiveState, QAudio::IdleState, QAudio::SuspendedState,
+                              forceUpdateError ? QAudio::StoppedState : QAudio::ActiveState);
 
-    if (!result && forceUpdateError)
-        setError(error);
+    const auto state = toRawState(QAudio::StoppedState, error);
+    auto getNewState = [&](RawState prevState) {
+        const bool shouldAddFlag = shouldDrain && toAudioState(prevState) == QAudio::ActiveState;
+        return shouldAddFlag ? addDrainingFlag(state) : state;
+    };
 
-    return result;
+    return changeState(statesChecker, getNewState);
 }
 
 Notifier QAudioStateMachine::start(bool active)
 {
-    return changeState(makeStatesSet(QAudio::StoppedState),
-                       active ? QAudio::ActiveState : QAudio::IdleState);
+    return changeState(makeStatesChecker(QAudio::StoppedState),
+                       toRawState(active ? QAudio::ActiveState : QAudio::IdleState));
 }
 
-void QAudioStateMachine::waitForDrained(std::chrono::milliseconds timeout)
+bool QAudioStateMachine::isActiveOrIdle() const
 {
-    if (m_sychronizer)
-        m_sychronizer->waitForDrained(m_state, timeout);
-}
-
-void QAudioStateMachine::onDrained()
-{
-    if (m_sychronizer)
-        m_sychronizer->changeState([this]() { m_state &= ~DrainingFlag; });
-}
-
-bool QAudioStateMachine::isDraining() const
-{
-    return isDrainingState(m_state);
-}
-
-bool QAudioStateMachine::isActiveOrIdle() const {
     const auto state = this->state();
     return state == QAudio::ActiveState || state == QAudio::IdleState;
 }
 
+bool QAudioStateMachine::onDrained()
+{
+    return changeState(isDrainingState, removeDrainingFlag);
+}
+
+bool QAudioStateMachine::isDraining() const
+{
+    return isDrainingState(m_state.load(std::memory_order_acquire));
+}
+
 std::pair<bool, bool> QAudioStateMachine::getDrainedAndStopped() const
 {
-    const RawState state = m_state;
+    const auto state = m_state.load(std::memory_order_acquire);
     return { !isDrainingState(state), toAudioState(state) == QAudio::StoppedState };
 }
 
@@ -149,11 +91,11 @@ Notifier QAudioStateMachine::suspend()
     // Due to the current documentation, we set QAudio::NoError.
     // TBD: leave the previous error should be more reasonable (IgnoreError)
     const auto error = QAudio::NoError;
-    auto result = changeState(makeStatesSet(QAudio::ActiveState, QAudio::IdleState),
-                              QAudio::SuspendedState, error);
+    auto result = changeState(makeStatesChecker(QAudio::ActiveState, QAudio::IdleState),
+                              toRawState(QAudio::SuspendedState, error));
 
     if (result)
-        m_suspendedInState = result.prevState();
+        m_suspendedInState = result.prevAudioState();
 
     return result;
 }
@@ -163,53 +105,46 @@ Notifier QAudioStateMachine::resume()
     // Due to the current documentation, we set QAudio::NoError.
     // TBD: leave the previous error should be more reasonable (IgnoreError)
     const auto error = QAudio::NoError;
-    return changeState(makeStatesSet(QAudio::SuspendedState), m_suspendedInState, error);
+    return changeState(makeStatesChecker(QAudio::SuspendedState),
+                       toRawState(m_suspendedInState, error));
 }
 
 Notifier QAudioStateMachine::activateFromIdle()
 {
-    return changeState(makeStatesSet(QAudio::IdleState), QAudio::ActiveState);
+    return changeState(makeStatesChecker(QAudio::IdleState), toRawState(QAudio::ActiveState));
 }
 
 Notifier QAudioStateMachine::updateActiveOrIdle(bool isActive, QAudio::Error error)
 {
     const auto state = isActive ? QAudio::ActiveState : QAudio::IdleState;
-    return changeState(makeStatesSet(QAudio::ActiveState, QAudio::IdleState), state, error);
+    return changeState(makeStatesChecker(QAudio::ActiveState, QAudio::IdleState),
+                       toRawState(state, error));
 }
 
-void QAudioStateMachine::setError(QAudio::Error error)
+Notifier QAudioStateMachine::setError(QAudio::Error error)
 {
-    if (m_error.exchange(error) != error && m_notifier)
-        emit m_notifier->errorChanged(error);
+    auto fixState = [error](RawState prevState) { return setStateError(prevState, error); };
+    return changeState([](RawState) { return true; }, fixState);
 }
 
 Notifier QAudioStateMachine::forceSetState(QAudio::State state, QAudio::Error error)
 {
-    return changeState(makeStatesSet(QAudio::ActiveState, QAudio::IdleState, QAudio::SuspendedState,
-                                     QAudio::StoppedState),
-                       state, error);
+    return changeState([](RawState) { return true; }, toRawState(state, error));
 }
 
-void QAudioStateMachine::reset(RawState state, RawState prevState, QAudio::Error error)
+void QAudioStateMachine::reset(RawState state, RawState prevState)
 {
-    Q_ASSERT(!isWaitingState(state));
-
-    if (!m_sychronizer && m_state != state)
-        return;
-
-    const auto isErrorChanged = m_error.exchange(error) != error;
-
-    if (m_sychronizer)
-        m_sychronizer->changeState([&](){ m_state = state; });
-
     auto notifier = m_notifier;
 
-    if (prevState != state && notifier)
-        emit notifier->stateChanged(toAudioState(state));
+    const auto audioState = toAudioState(state);
+    const auto audioError = toAudioError(state);
+
+    if (toAudioState(prevState) != audioState && notifier)
+        emit notifier->stateChanged(audioState);
 
     // check the notifier in case the object was deleted in
-    if (isErrorChanged && notifier)
-        emit notifier->errorChanged(error);
+    if (toAudioError(prevState) != audioError && notifier)
+        emit notifier->errorChanged(audioError);
 }
 
 QT_END_NAMESPACE

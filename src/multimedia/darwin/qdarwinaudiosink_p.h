@@ -24,9 +24,8 @@
 #include <CoreAudio/CoreAudioTypes.h>
 
 #include <QtCore/QIODevice>
-#include <QtCore/QWaitCondition>
-#include <QtCore/QMutex>
 #include <qdarwinaudiodevice_p.h>
+#include <qsemaphore.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -163,6 +162,7 @@ private:
     bool m_pullMode = false;
 
     QAudioStateMachine m_stateMachine;
+    QSemaphore m_drainSemaphore;
 };
 
 QT_END_NAMESPACE
