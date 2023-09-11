@@ -272,17 +272,23 @@ void QDarwinAudioSink::stop()
         m_audioBuffer->setFillingEnabled(false);
 
     if (auto notifier = m_stateMachine.stop(QAudio::NoError, true)) {
-        if (notifier.prevState() == QAudio::ActiveState) {
-            m_stateMachine.waitForDrained(std::chrono::milliseconds(500));
+        Q_ASSERT((notifier.prevAudioState() == QAudio::ActiveState) == notifier.isDraining());
+        if (notifier.isDraining() && !m_drainSemaphore.tryAcquire(1, 500)) {
+            const bool wasDraining = m_stateMachine.onDrained();
 
-            if (m_stateMachine.isDraining())
-                qWarning() << "Failed wait for sink drained";
+            qWarning() << "Failed wait for getting sink drained; was draining:" << wasDraining;
+
+            // handle a rare corner case when the audio thread managed to release the semaphore in
+            // the time window between tryAcquire and onDrained
+            if (!wasDraining)
+                m_drainSemaphore.acquire();
         }
     }
 }
 
 void QDarwinAudioSink::reset()
 {
+    onAudioDeviceDrained();
     m_stateMachine.stopOrUpdateError();
 }
 
@@ -392,8 +398,7 @@ OSStatus QDarwinAudioSink::renderCallback(void *inRefCon, AudioUnitRenderActionF
             d->m_totalFrames += framesRead;
 
 #if defined(Q_OS_MACOS)
-            // If playback is already stopped.
-            if (!drained) {
+            if (stopped) {
                 qreal oldVolume = d->m_cachedVolume;
                 // Decrease volume smoothly.
                 d->setVolume(d->m_volume / 2);
@@ -413,12 +418,8 @@ OSStatus QDarwinAudioSink::renderCallback(void *inRefCon, AudioUnitRenderActionF
         }
         else {
             ioData->mBuffers[0].mDataByteSize = 0;
-            if (framesRead == 0) {
-                if (!drained)
-                    d->onAudioDeviceDrained();
-                else
-                    d->onAudioDeviceIdle();
-            }
+            if (framesRead == 0)
+                d->onAudioDeviceIdle();
             else
                 d->onAudioDeviceError();
         }
@@ -571,7 +572,14 @@ void QDarwinAudioSink::close()
 void QDarwinAudioSink::onAudioDeviceIdle()
 {
     const bool atEnd = m_audioBuffer->deviceAtEnd();
-    m_stateMachine.updateActiveOrIdle(false, atEnd ? QAudio::NoError : QAudio::UnderrunError);
+    if (!m_stateMachine.updateActiveOrIdle(false, atEnd ? QAudio::NoError : QAudio::UnderrunError))
+        onAudioDeviceDrained();
+}
+
+void QDarwinAudioSink::onAudioDeviceDrained()
+{
+    if (m_stateMachine.onDrained())
+        m_drainSemaphore.release();
 }
 
 void QDarwinAudioSink::onAudioDeviceError()
@@ -579,14 +587,8 @@ void QDarwinAudioSink::onAudioDeviceError()
     m_stateMachine.stop(QAudio::IOError);
 }
 
-void QDarwinAudioSink::onAudioDeviceDrained()
-{
-    m_stateMachine.onDrained();
-}
-
 void QDarwinAudioSink::updateAudioDevice()
 {
-
     const auto state = m_stateMachine.state();
 
     Q_ASSERT(m_audioBuffer);
