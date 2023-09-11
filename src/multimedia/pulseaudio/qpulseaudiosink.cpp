@@ -112,17 +112,14 @@ static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *
 }
 
 QPulseAudioSink::QPulseAudioSink(const QByteArray &device, QObject *parent)
-    : QPlatformAudioSink(parent), m_device(device), m_stateMachine(*this, false)
+    : QPlatformAudioSink(parent), m_device(device), m_stateMachine(*this)
 {
 }
 
 QPulseAudioSink::~QPulseAudioSink()
 {
-    if (auto notifier = m_stateMachine.stop()) {
+    if (auto notifier = m_stateMachine.stop())
         close();
-        QSignalBlocker blocker(this);
-        notifier.reset();
-    }
 }
 
 QAudio::Error QPulseAudioSink::error() const
@@ -166,14 +163,13 @@ void QPulseAudioSink::start(QIODevice *device)
         return;
     }
 
-    auto notifier = m_stateMachine.start();
-    Q_ASSERT(notifier);
-
     // ensure we only process timing infos that are up to date
     gettimeofday(&lastTimingInfo, nullptr);
     lastProcessedUSecs = 0;
 
     connect(m_audioSource, &QIODevice::readyRead, this, &QPulseAudioSink::startReading);
+
+    m_stateMachine.start();
 }
 
 void QPulseAudioSink::startReading()
@@ -191,15 +187,14 @@ QIODevice *QPulseAudioSink::start()
     if (!open())
         return nullptr;
 
-    auto notifier = m_stateMachine.start(false);
-    Q_ASSERT(notifier);
-
     m_audioSource = new PulseOutputPrivate(this);
     m_audioSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
 
     // ensure we only process timing infos that are up to date
     gettimeofday(&lastTimingInfo, nullptr);
     lastProcessedUSecs = 0;
+
+    m_stateMachine.start(false);
 
     return m_audioSource;
 }

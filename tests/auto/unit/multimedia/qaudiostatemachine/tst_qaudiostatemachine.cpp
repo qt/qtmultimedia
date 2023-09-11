@@ -43,17 +43,21 @@ private slots:
     void stop_doesntChangeState_whenStateIsStopped_data();
     void stop_doesntChangeState_whenStateIsStopped();
 
+    void stopWithDraining_changesState_whenStateIsNotStopped_data();
+    void stopWithDraining_changesState_whenStateIsNotStopped();
+
+    void methods_dontChangeState_whenDraining();
+
+    void onDrained_finishesDraining();
+
+    void onDrained_getsFailed_whenDrainHasntBeenCalled_data();
+    void onDrained_getsFailed_whenDrainHasntBeenCalled();
+
     void updateActiveOrIdle_doesntChangeState_whenStateIsNotActiveOrIdle_data();
     void updateActiveOrIdle_doesntChangeState_whenStateIsNotActiveOrIdle();
 
     void updateActiveOrIdle_changesState_whenStateIsActiveOrIdle_data();
     void updateActiveOrIdle_changesState_whenStateIsActiveOrIdle();
-
-    void stopWithDraining_setDrainingFlagUnderTheGuard();
-
-    void onDrained_interruptsWaitingForDrained_whenCalledFromAnotherThread();
-
-    void waitForDrained_waitsLimitedTime();
 
     void suspendAndResume_saveAndRestoreState_whenStateIsActiveOrIdle_data();
     void suspendAndResume_saveAndRestoreState_whenStateIsActiveOrIdle();
@@ -66,10 +70,9 @@ private slots:
 
     void deleteNotifierInSlot_suppressesAdjacentSignal();
 
-    void
-    twoThreadsToggleSuspendResumeAndIdleActive_statesAreConsistent_whenSynchronizationEnabled();
+    void twoThreadsToggleSuspendResumeAndIdleActive_statesAreConsistent();
 
-    void twoThreadsToggleStartStop_statesAreConsistent_whenSynchronizationEnabled();
+    void twoThreadsToggleStartStop_statesAreConsistent();
 
 private:
     void generateNotStoppedPrevStates()
@@ -98,9 +101,7 @@ void tst_QAudioStateMachine::constructor_setsStoppedStateWithNoError()
 
     QCOMPARE(stateMachine.state(), QAudio::StoppedState);
     QCOMPARE(stateMachine.error(), QAudio::NoError);
-    QVERIFY(!stateMachine.isDraining());
     QVERIFY(!stateMachine.isActiveOrIdle());
-    QCOMPARE(stateMachine.getDrainedAndStopped(), std::make_pair(true, true));
 }
 
 void tst_QAudioStateMachine::start_changesState_whenStateIsStopped_data()
@@ -180,17 +181,14 @@ void tst_QAudioStateMachine::stop_changesState_whenStateIsNotStopped()
     auto notifier = stateMachine.stop();
     QVERIFY(notifier);
 
-    QVERIFY(!stateMachine.isDraining());
-
     QCOMPARE(stateMachine.state(), QAudio::StoppedState);
-    QCOMPARE(stateMachine.error(), prevError);
+    QCOMPARE(stateMachine.error(), QAudio::NoError);
 
     QCOMPARE(stateSpy.size(), 0);
     QCOMPARE(errorSpy.size(), 0);
+    QVERIFY(!notifier.isDraining());
 
     notifier.reset();
-
-    QVERIFY(!stateMachine.isDraining());
 
     QCOMPARE(stateSpy.size(), 1);
     QCOMPARE(stateSpy.front().front().value<QAudio::State>(), QAudio::StoppedState);
@@ -200,6 +198,7 @@ void tst_QAudioStateMachine::stop_changesState_whenStateIsNotStopped()
 
     QCOMPARE(stateMachine.state(), QAudio::StoppedState);
     QCOMPARE(stateMachine.error(), QAudio::NoError);
+    QVERIFY(!stateMachine.isDraining());
 }
 
 void tst_QAudioStateMachine::stop_doesntChangeState_whenStateIsStopped_data()
@@ -228,6 +227,111 @@ void tst_QAudioStateMachine::stop_doesntChangeState_whenStateIsStopped()
     QCOMPARE(errorSpy.size(), 0);
     QCOMPARE(stateMachine.state(), QAudio::StoppedState);
     QCOMPARE(stateMachine.error(), error);
+    QVERIFY(!stateMachine.isDraining());
+}
+
+void tst_QAudioStateMachine::stopWithDraining_changesState_whenStateIsNotStopped_data()
+{
+    generateNotStoppedPrevStates();
+}
+
+void tst_QAudioStateMachine::stopWithDraining_changesState_whenStateIsNotStopped()
+{
+    QFETCH(QAudio::State, prevState);
+    QFETCH(QAudio::Error, prevError);
+
+    QAudioStateChangeNotifier changeNotifier;
+    QAudioStateMachine stateMachine(changeNotifier);
+
+    stateMachine.forceSetState(prevState, prevError);
+
+    QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
+
+    auto notifier = stateMachine.stop(QAudio::NoError, true);
+    QVERIFY(notifier);
+    QCOMPARE(notifier.isDraining(), prevState == QAudio::ActiveState);
+    notifier.reset();
+
+    QCOMPARE(stateMachine.state(), QAudio::StoppedState);
+    QCOMPARE(stateMachine.error(), QAudio::NoError);
+    QCOMPARE(stateMachine.isDraining(), prevState == QAudio::ActiveState);
+
+    QCOMPARE(stateSpy.size(), 1);
+}
+
+void tst_QAudioStateMachine::methods_dontChangeState_whenDraining()
+{
+    QAudioStateChangeNotifier changeNotifier;
+    QAudioStateMachine stateMachine(changeNotifier);
+
+    stateMachine.forceSetState(QAudio::ActiveState);
+    stateMachine.stop(QAudio::IOError, true);
+    QVERIFY(stateMachine.isDraining());
+
+    QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
+    QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
+
+    QVERIFY(!stateMachine.start());
+    QVERIFY(!stateMachine.stop());
+    QVERIFY(!stateMachine.stop(QAudio::NoError, true));
+    QVERIFY(!stateMachine.suspend());
+    QVERIFY(!stateMachine.resume());
+    QVERIFY(!stateMachine.updateActiveOrIdle(false));
+    QVERIFY(!stateMachine.updateActiveOrIdle(true));
+
+    QCOMPARE(stateMachine.state(), QAudio::StoppedState);
+    QCOMPARE(stateMachine.error(), QAudio::IOError);
+
+    QCOMPARE(stateSpy.size(), 0);
+    QCOMPARE(errorSpy.size(), 0);
+
+    QVERIFY(stateMachine.isDraining());
+}
+
+void tst_QAudioStateMachine::onDrained_finishesDraining()
+{
+    QAudioStateChangeNotifier changeNotifier;
+    QAudioStateMachine stateMachine(changeNotifier);
+
+    stateMachine.forceSetState(QAudio::ActiveState);
+    stateMachine.stop(QAudio::IOError, true);
+    QVERIFY(stateMachine.isDraining());
+
+    QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
+    QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
+
+    QVERIFY(stateMachine.onDrained());
+    QVERIFY(!stateMachine.isDraining());
+
+    QCOMPARE(stateSpy.size(), 0);
+    QCOMPARE(errorSpy.size(), 0);
+
+    QCOMPARE(stateMachine.state(), QAudio::StoppedState);
+    QCOMPARE(stateMachine.error(), QAudio::IOError);
+
+    QVERIFY(stateMachine.start());
+}
+
+void tst_QAudioStateMachine::onDrained_getsFailed_whenDrainHasntBeenCalled_data()
+{
+    generateNotStoppedPrevStates();
+    QTest::newRow("from Stopped State") << QAudio::StoppedState << QAudio::IOError;
+}
+
+void tst_QAudioStateMachine::onDrained_getsFailed_whenDrainHasntBeenCalled()
+{
+    QFETCH(QAudio::State, prevState);
+    QFETCH(QAudio::Error, prevError);
+
+    QAudioStateChangeNotifier changeNotifier;
+    QAudioStateMachine stateMachine(changeNotifier);
+
+    stateMachine.forceSetState(prevState, prevError);
+
+    QVERIFY(!stateMachine.onDrained());
+
+    QCOMPARE(stateMachine.state(), prevState);
+    QCOMPARE(stateMachine.error(), prevError);
 }
 
 void tst_QAudioStateMachine::updateActiveOrIdle_doesntChangeState_whenStateIsNotActiveOrIdle_data()
@@ -293,7 +397,7 @@ void tst_QAudioStateMachine::updateActiveOrIdle_changesState_whenStateIsActiveOr
     QCOMPARE(errorSpy.size(), 0);
 
     QCOMPARE(stateMachine.state(), expectedState);
-    QCOMPARE(stateMachine.error(), prevError);
+    QCOMPARE(stateMachine.error(), error);
 
     notifier.reset();
 
@@ -307,89 +411,6 @@ void tst_QAudioStateMachine::updateActiveOrIdle_changesState_whenStateIsActiveOr
 
     QCOMPARE(stateMachine.state(), expectedState);
     QCOMPARE(stateMachine.error(), error);
-}
-
-void tst_QAudioStateMachine::stopWithDraining_setDrainingFlagUnderTheGuard()
-{
-    QAudioStateChangeNotifier changeNotifier;
-    QAudioStateMachine stateMachine(changeNotifier);
-
-    stateMachine.start();
-
-    auto notifier = stateMachine.stop(QAudio::IOError, true);
-    QVERIFY(notifier);
-    QVERIFY(stateMachine.isDraining());
-    QCOMPARE(stateMachine.getDrainedAndStopped(), std::make_pair(false, true));
-    QCOMPARE(stateMachine.state(), QAudio::StoppedState);
-
-    notifier.reset();
-
-    QVERIFY(!stateMachine.isDraining());
-    QCOMPARE(stateMachine.getDrainedAndStopped(), std::make_pair(true, true));
-}
-
-void tst_QAudioStateMachine::onDrained_interruptsWaitingForDrained_whenCalledFromAnotherThread()
-{
-    QAudioStateChangeNotifier changeNotifier;
-    QAudioStateMachine stateMachine(changeNotifier);
-
-    stateMachine.start();
-
-    QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
-    QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
-
-    auto notifier = stateMachine.stop(QAudio::IOError, true);
-    QVERIFY(notifier);
-    QVERIFY(stateMachine.isDraining());
-    QCOMPARE(stateMachine.state(), QAudio::StoppedState);
-
-    std::atomic_bool threadStared = false;
-    auto thread = QThread::create([&]() {
-        threadStared = true;
-        QTest::qSleep(100);
-        stateMachine.onDrained();
-    });
-
-    thread->start();
-
-    QTRY_VERIFY(threadStared);
-
-    QElapsedTimer elapsedTimer;
-    elapsedTimer.start();
-    stateMachine.waitForDrained(std::chrono::milliseconds(2000));
-    QVERIFY(!stateMachine.isDraining());
-
-    QCOMPARE_LE(elapsedTimer.elapsed(), 100 + 200);
-
-    thread->wait();
-
-    QCOMPARE(stateSpy.size(), 0);
-    QCOMPARE(errorSpy.size(), 0);
-
-    notifier.reset();
-
-    QCOMPARE(stateSpy.size(), 1);
-    QCOMPARE(errorSpy.size(), 1);
-}
-
-void tst_QAudioStateMachine::waitForDrained_waitsLimitedTime()
-{
-    QAudioStateChangeNotifier changeNotifier;
-    QAudioStateMachine stateMachine(changeNotifier);
-
-    stateMachine.start();
-
-    auto notifier = stateMachine.stop(QAudio::IOError, true);
-    QVERIFY(notifier);
-
-    QElapsedTimer elapsedTimer;
-    elapsedTimer.start();
-    stateMachine.waitForDrained(std::chrono::milliseconds(100));
-
-    QCOMPARE_LE(elapsedTimer.elapsed(), 100 + 200);
-    QCOMPARE_GE(elapsedTimer.elapsed(), 100);
-    QVERIFY(stateMachine.isDraining());
-    QCOMPARE(stateMachine.getDrainedAndStopped(), std::make_pair(false, true));
 }
 
 void tst_QAudioStateMachine::suspendAndResume_saveAndRestoreState_whenStateIsActiveOrIdle_data()
@@ -512,8 +533,7 @@ void tst_QAudioStateMachine::deleteNotifierInSlot_suppressesAdjacentSignal()
     stateMachine.stop(QAudio::IOError);
 }
 
-void tst_QAudioStateMachine::
-        twoThreadsToggleSuspendResumeAndIdleActive_statesAreConsistent_whenSynchronizationEnabled()
+void tst_QAudioStateMachine::twoThreadsToggleSuspendResumeAndIdleActive_statesAreConsistent()
 {
     QAudioStateChangeNotifier changeNotifier;
     QAudioStateMachine stateMachine(changeNotifier);
@@ -522,7 +542,7 @@ void tst_QAudioStateMachine::
     QCOMPARE(stateMachine.state(), QAudio::ActiveState);
 
     std::atomic<int> signalsCount = 0;
-    int changesCount = 0; // non-atomic on purpose; it tests the guard protection
+    std::atomic<int> changesCount = 0;
 
     connect(&changeNotifier, &QAudioStateChangeNotifier::stateChanged,
             this, [&](QAudio::State) { ++signalsCount; }, Qt::DirectConnection);
@@ -534,19 +554,17 @@ void tst_QAudioStateMachine::
             auto notifier = stateMachine.suspend();
             QVERIFY(notifier);
             QVERIFY(notifier.isStateChanged());
+            QCOMPARE(notifier.audioState(), QAudio::SuspendedState);
             ++changesCount;
         }
-
-        QCOMPARE(stateMachine.state(), QAudio::SuspendedState);
 
         {
             auto notifier = stateMachine.resume();
             QVERIFY(notifier);
             QVERIFY(notifier.isStateChanged());
+            QCOMPARE_NE(notifier.audioState(), QAudio::SuspendedState);
             ++changesCount;
         }
-
-        QCOMPARE_NE(stateMachine.state(), QAudio::SuspendedState);
     });
 
     auto threadIdleActive = createTestThread(counters, 1, [&]() {
@@ -554,14 +572,14 @@ void tst_QAudioStateMachine::
             if (notifier.isStateChanged())
                 ++changesCount;
 
-            QCOMPARE(stateMachine.state(), QAudio::IdleState);
+            QCOMPARE(notifier.audioState(), QAudio::IdleState);
         }
 
         if (auto notifier = stateMachine.updateActiveOrIdle(true)) {
             if (notifier.isStateChanged())
                 ++changesCount;
 
-            QCOMPARE(stateMachine.state(), QAudio::ActiveState);
+            QCOMPARE(notifier.audioState(), QAudio::ActiveState);
         }
     });
 
@@ -579,8 +597,7 @@ void tst_QAudioStateMachine::
     QCOMPARE(signalsCount, changesCount);
 }
 
-void tst_QAudioStateMachine::
-        twoThreadsToggleStartStop_statesAreConsistent_whenSynchronizationEnabled()
+void tst_QAudioStateMachine::twoThreadsToggleStartStop_statesAreConsistent()
 {
     QAudioStateChangeNotifier changeNotifier;
     QAudioStateMachine stateMachine(changeNotifier);
@@ -589,7 +606,7 @@ void tst_QAudioStateMachine::
     QCOMPARE(stateMachine.state(), QAudio::ActiveState);
 
     std::atomic<int> signalsCount = 0;
-    int changesCount = 0; // non-atomic on purpose; it tests the guard protection
+    std::atomic<int> changesCount = 0;
 
     connect(&changeNotifier, &QAudioStateChangeNotifier::stateChanged,
             this, [&](QAudio::State) { ++signalsCount; }, Qt::DirectConnection);
@@ -598,31 +615,30 @@ void tst_QAudioStateMachine::
 
     auto threadStartActive = createTestThread(counters, 0, [&]() {
         if (auto startNotifier = stateMachine.start()) {
-            QCOMPARE(startNotifier.prevState(), QAudio::StoppedState);
-            QCOMPARE(stateMachine.state(), QAudio::ActiveState);
+            QCOMPARE(startNotifier.prevAudioState(), QAudio::StoppedState);
+            QCOMPARE(startNotifier.audioState(), QAudio::ActiveState);
             ++changesCount;
             startNotifier.reset();
 
             auto stopNotifier = stateMachine.stop();
             ++changesCount;
             QVERIFY(stopNotifier);
-            QCOMPARE(stopNotifier.prevState(), QAudio::ActiveState);
-            QCOMPARE(stateMachine.state(), QAudio::StoppedState);
+            QCOMPARE(stopNotifier.prevAudioState(), QAudio::ActiveState);
         }
     });
 
     auto threadStartIdle = createTestThread(counters, 1, [&]() {
         if (auto startNotifier = stateMachine.start(false)) {
-            QCOMPARE(startNotifier.prevState(), QAudio::StoppedState);
-            QCOMPARE(stateMachine.state(), QAudio::IdleState);
+            QCOMPARE(startNotifier.prevAudioState(), QAudio::StoppedState);
+            QCOMPARE(startNotifier.audioState(), QAudio::IdleState);
             ++changesCount;
             startNotifier.reset();
 
             auto stopNotifier = stateMachine.stop();
             ++changesCount;
             QVERIFY(stopNotifier);
-            QCOMPARE(stateMachine.state(), QAudio::StoppedState);
-            QCOMPARE(stopNotifier.prevState(), QAudio::IdleState);
+            QCOMPARE(stopNotifier.audioState(), QAudio::StoppedState);
+            QCOMPARE(stopNotifier.prevAudioState(), QAudio::IdleState);
         }
     });
 
