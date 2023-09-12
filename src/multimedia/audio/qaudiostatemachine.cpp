@@ -8,7 +8,7 @@
 
 QT_BEGIN_NAMESPACE
 
-using Guard = QAudioStateMachine::StateChangeGuard;
+using Notifier = QAudioStateMachine::Notifier;
 using RawState = QAudioStateMachine::RawState;
 
 namespace {
@@ -104,8 +104,8 @@ QAudio::Error QAudioStateMachine::error() const
     return m_error;
 }
 
-Guard QAudioStateMachine::changeState(std::pair<RawState, uint32_t> prevStatesSet,
-                                      RawState newState, QAudio::Error error, bool shouldDrain)
+Notifier QAudioStateMachine::changeState(std::pair<RawState, uint32_t> prevStatesSet,
+                                         RawState newState, QAudio::Error error, bool shouldDrain)
 {
     auto checkState = [flags = prevStatesSet.second](RawState state) {
         return (flags >> state) & 1;
@@ -145,7 +145,7 @@ Guard QAudioStateMachine::changeState(std::pair<RawState, uint32_t> prevStatesSe
     }
 }
 
-Guard QAudioStateMachine::stop(QAudio::Error error, bool shouldDrain, bool forceUpdateError)
+Notifier QAudioStateMachine::stop(QAudio::Error error, bool shouldDrain, bool forceUpdateError)
 {
     auto result = changeState(
             makeStatesSet(QAudio::ActiveState, QAudio::IdleState, QAudio::SuspendedState),
@@ -157,7 +157,7 @@ Guard QAudioStateMachine::stop(QAudio::Error error, bool shouldDrain, bool force
     return result;
 }
 
-Guard QAudioStateMachine::start(bool active)
+Notifier QAudioStateMachine::start(bool active)
 {
     return changeState(makeStatesSet(QAudio::StoppedState),
                        active ? QAudio::ActiveState : QAudio::IdleState);
@@ -191,7 +191,7 @@ std::pair<bool, bool> QAudioStateMachine::getDrainedAndStopped() const
     return { !isDrainingState(state), toAudioState(state) == QAudio::StoppedState };
 }
 
-Guard QAudioStateMachine::suspend()
+Notifier QAudioStateMachine::suspend()
 {
     // Due to the current documentation, we set QAudio::NoError.
     // TBD: leave the previous error should be more reasonable (IgnoreError)
@@ -205,7 +205,7 @@ Guard QAudioStateMachine::suspend()
     return result;
 }
 
-Guard QAudioStateMachine::resume()
+Notifier QAudioStateMachine::resume()
 {
     // Due to the current documentation, we set QAudio::NoError.
     // TBD: leave the previous error should be more reasonable (IgnoreError)
@@ -213,12 +213,12 @@ Guard QAudioStateMachine::resume()
     return changeState(makeStatesSet(QAudio::SuspendedState), m_suspendedInState, error);
 }
 
-Guard QAudioStateMachine::activateFromIdle()
+Notifier QAudioStateMachine::activateFromIdle()
 {
     return changeState(makeStatesSet(QAudio::IdleState), QAudio::ActiveState);
 }
 
-Guard QAudioStateMachine::updateActiveOrIdle(bool isActive, QAudio::Error error)
+Notifier QAudioStateMachine::updateActiveOrIdle(bool isActive, QAudio::Error error)
 {
     const auto state = isActive ? QAudio::ActiveState : QAudio::IdleState;
     return changeState(makeStatesSet(QAudio::ActiveState, QAudio::IdleState), state, error);
@@ -230,7 +230,7 @@ void QAudioStateMachine::setError(QAudio::Error error)
         emit m_notifier->errorChanged(error);
 }
 
-Guard QAudioStateMachine::forceSetState(QAudio::State state, QAudio::Error error)
+Notifier QAudioStateMachine::forceSetState(QAudio::State state, QAudio::Error error)
 {
     return changeState(makeStatesSet(QAudio::ActiveState, QAudio::IdleState, QAudio::SuspendedState,
                                      QAudio::StoppedState),

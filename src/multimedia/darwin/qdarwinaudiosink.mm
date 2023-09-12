@@ -271,8 +271,8 @@ void QDarwinAudioSink::stop()
     if (m_audioBuffer)
         m_audioBuffer->setFillingEnabled(false);
 
-    if (auto guard = m_stateMachine.stop(QAudio::NoError, true)) {
-        if (guard.prevState() == QAudio::ActiveState) {
+    if (auto notifier = m_stateMachine.stop(QAudio::NoError, true)) {
+        if (notifier.prevState() == QAudio::ActiveState) {
             m_stateMachine.waitForDrained(std::chrono::milliseconds(500));
 
             if (m_stateMachine.isDraining())

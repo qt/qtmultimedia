@@ -118,10 +118,10 @@ QPulseAudioSink::QPulseAudioSink(const QByteArray &device, QObject *parent)
 
 QPulseAudioSink::~QPulseAudioSink()
 {
-    if (auto guard = m_stateMachine.stop()) {
+    if (auto notifier = m_stateMachine.stop()) {
         close();
         QSignalBlocker blocker(this);
-        guard.reset();
+        notifier.reset();
     }
 }
 
@@ -166,8 +166,8 @@ void QPulseAudioSink::start(QIODevice *device)
         return;
     }
 
-    auto guard = m_stateMachine.start();
-    Q_ASSERT(guard);
+    auto notifier = m_stateMachine.start();
+    Q_ASSERT(notifier);
 
     // ensure we only process timing infos that are up to date
     gettimeofday(&lastTimingInfo, nullptr);
@@ -191,8 +191,8 @@ QIODevice *QPulseAudioSink::start()
     if (!open())
         return nullptr;
 
-    auto guard = m_stateMachine.start(false);
-    Q_ASSERT(guard);
+    auto notifier = m_stateMachine.start(false);
+    Q_ASSERT(notifier);
 
     m_audioSource = new PulseOutputPrivate(this);
     m_audioSource->open(QIODevice::WriteOnly|QIODevice::Unbuffered);
@@ -487,7 +487,7 @@ qint64 QPulseAudioSink::write(const char *data, qint64 len)
 
 void QPulseAudioSink::stop()
 {
-    if (auto guard = m_stateMachine.stop())
+    if (auto notifier = m_stateMachine.stop())
         close();
 }
 
@@ -579,7 +579,7 @@ qint64 QPulseAudioSink::processedUSecs() const
 
 void QPulseAudioSink::resume()
 {
-    if (auto guard = m_stateMachine.resume()) {
+    if (auto notifier = m_stateMachine.resume()) {
         m_resuming = true;
 
         {
@@ -611,7 +611,7 @@ QAudioFormat QPulseAudioSink::format() const
 
 void QPulseAudioSink::suspend()
 {
-    if (auto guard = m_stateMachine.suspend()) {
+    if (auto notifier = m_stateMachine.suspend()) {
         m_tickTimer.stop();
 
         QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
@@ -626,7 +626,7 @@ void QPulseAudioSink::suspend()
 
 void QPulseAudioSink::reset()
 {
-    if (auto guard = m_stateMachine.stopOrUpdateError())
+    if (auto notifier = m_stateMachine.stopOrUpdateError())
         close();
 }
 
@@ -675,7 +675,7 @@ qreal QPulseAudioSink::volume() const
 
 void QPulseAudioSink::onPulseContextFailed()
 {
-    if (auto guard = m_stateMachine.stop(QAudio::FatalError))
+    if (auto notifier = m_stateMachine.stop(QAudio::FatalError))
         close();
 }
 
