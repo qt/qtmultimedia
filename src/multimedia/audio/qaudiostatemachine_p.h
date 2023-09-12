@@ -14,9 +14,7 @@
 //
 // We mean it.
 //
-
-#include <QtMultimedia/qaudio.h>
-
+#include "qaudiostatemachineutils_p.h"
 #include <qmutex.h>
 #include <qwaitcondition.h>
 #include <qpointer.h>
@@ -40,7 +38,7 @@ class QAudioStateChangeNotifier;
 class Q_MULTIMEDIA_EXPORT QAudioStateMachine
 {
 public:
-    using RawState = int;
+    using RawState = AudioStateMachineUtils::RawState;
     class Notifier
     {
     public:
