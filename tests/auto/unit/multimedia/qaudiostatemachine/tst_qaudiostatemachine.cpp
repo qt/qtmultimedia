@@ -177,8 +177,8 @@ void tst_QAudioStateMachine::stop_changesState_whenStateIsNotStopped()
     QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
     QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
 
-    auto guard = stateMachine.stop();
-    QVERIFY(guard);
+    auto notifier = stateMachine.stop();
+    QVERIFY(notifier);
 
     QVERIFY(!stateMachine.isDraining());
 
@@ -188,7 +188,7 @@ void tst_QAudioStateMachine::stop_changesState_whenStateIsNotStopped()
     QCOMPARE(stateSpy.size(), 0);
     QCOMPARE(errorSpy.size(), 0);
 
-    guard.reset();
+    notifier.reset();
 
     QVERIFY(!stateMachine.isDraining());
 
@@ -286,8 +286,8 @@ void tst_QAudioStateMachine::updateActiveOrIdle_changesState_whenStateIsActiveOr
 
     const auto expectedState = active ? QAudio::ActiveState : QAudio::IdleState;
 
-    auto guard = stateMachine.updateActiveOrIdle(active, error);
-    QVERIFY(guard);
+    auto notifier = stateMachine.updateActiveOrIdle(active, error);
+    QVERIFY(notifier);
 
     QCOMPARE(stateSpy.size(), 0);
     QCOMPARE(errorSpy.size(), 0);
@@ -295,7 +295,7 @@ void tst_QAudioStateMachine::updateActiveOrIdle_changesState_whenStateIsActiveOr
     QCOMPARE(stateMachine.state(), expectedState);
     QCOMPARE(stateMachine.error(), prevError);
 
-    guard.reset();
+    notifier.reset();
 
     QCOMPARE(stateSpy.size(), expectedState == prevState ? 0 : 1);
     if (!stateSpy.empty())
@@ -316,13 +316,13 @@ void tst_QAudioStateMachine::stopWithDraining_setDrainingFlagUnderTheGuard()
 
     stateMachine.start();
 
-    auto guard = stateMachine.stop(QAudio::IOError, true);
-    QVERIFY(guard);
+    auto notifier = stateMachine.stop(QAudio::IOError, true);
+    QVERIFY(notifier);
     QVERIFY(stateMachine.isDraining());
     QCOMPARE(stateMachine.getDrainedAndStopped(), std::make_pair(false, true));
     QCOMPARE(stateMachine.state(), QAudio::StoppedState);
 
-    guard.reset();
+    notifier.reset();
 
     QVERIFY(!stateMachine.isDraining());
     QCOMPARE(stateMachine.getDrainedAndStopped(), std::make_pair(true, true));
@@ -338,8 +338,8 @@ void tst_QAudioStateMachine::onDrained_interruptsWaitingForDrained_whenCalledFro
     QSignalSpy stateSpy(&changeNotifier, &QAudioStateChangeNotifier::stateChanged);
     QSignalSpy errorSpy(&changeNotifier, &QAudioStateChangeNotifier::errorChanged);
 
-    auto guard = stateMachine.stop(QAudio::IOError, true);
-    QVERIFY(guard);
+    auto notifier = stateMachine.stop(QAudio::IOError, true);
+    QVERIFY(notifier);
     QVERIFY(stateMachine.isDraining());
     QCOMPARE(stateMachine.state(), QAudio::StoppedState);
 
@@ -366,7 +366,7 @@ void tst_QAudioStateMachine::onDrained_interruptsWaitingForDrained_whenCalledFro
     QCOMPARE(stateSpy.size(), 0);
     QCOMPARE(errorSpy.size(), 0);
 
-    guard.reset();
+    notifier.reset();
 
     QCOMPARE(stateSpy.size(), 1);
     QCOMPARE(errorSpy.size(), 1);
@@ -379,8 +379,8 @@ void tst_QAudioStateMachine::waitForDrained_waitsLimitedTime()
 
     stateMachine.start();
 
-    auto guard = stateMachine.stop(QAudio::IOError, true);
-    QVERIFY(guard);
+    auto notifier = stateMachine.stop(QAudio::IOError, true);
+    QVERIFY(notifier);
 
     QElapsedTimer elapsedTimer;
     elapsedTimer.start();
