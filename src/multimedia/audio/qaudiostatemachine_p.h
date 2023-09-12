@@ -30,9 +30,8 @@ class QAudioStateChangeNotifier;
 /* QAudioStateMachine provides an opportunity to
  * toggle QAudio::State with QAudio::Error in
  * a thread-safe manner.
- * The toggling functions return a guard,
- * which scope guaranties thread safety (if synchronization enabled)
- * and notifies about the change via
+ * The toggling functions return a notifier,
+ * which notifies about the change via
  * QAudioStateChangeNotifier::stateChanged and errorChanged.
  *
  * The state machine is supposed to be used mostly in
@@ -42,7 +41,7 @@ class Q_MULTIMEDIA_EXPORT QAudioStateMachine
 {
 public:
     using RawState = int;
-    class StateChangeGuard
+    class Notifier
     {
     public:
         void reset()
@@ -51,10 +50,10 @@ public:
                 stateMachine->reset(m_state, m_prevState, m_error);
         }
 
-        ~StateChangeGuard() { reset(); }
+        ~Notifier() { reset(); }
 
-        StateChangeGuard(const StateChangeGuard &) = delete;
-        StateChangeGuard(StateChangeGuard &&other) noexcept
+        Notifier(const Notifier &) = delete;
+        Notifier(Notifier &&other) noexcept
             : m_stateMachine(std::exchange(other.m_stateMachine, nullptr)),
               m_state(other.m_state),
               m_prevState(other.m_prevState),
@@ -69,7 +68,7 @@ public:
         // Can be added make state changing more flexible
         // but needs some investigation to ensure state change consistency
         // The method is supposed to be used for sync read/write
-        // under "guard = updateActiveOrIdle(isActive)"
+        // under "notifier = updateActiveOrIdle(isActive)"
         // void setState(QAudio::State state) { ... }
 
         bool isStateChanged() const { return m_state != m_prevState; }
@@ -77,10 +76,8 @@ public:
         QAudio::State prevState() const { return QAudio::State(m_prevState); }
 
     private:
-        StateChangeGuard(QAudioStateMachine *stateMachine = nullptr,
-                         RawState state = QAudio::StoppedState,
-                         RawState prevState = QAudio::StoppedState,
-                         QAudio::Error error = QAudio::NoError)
+        Notifier(QAudioStateMachine *stateMachine = nullptr, RawState state = QAudio::StoppedState,
+                 RawState prevState = QAudio::StoppedState, QAudio::Error error = QAudio::NoError)
             : m_stateMachine(stateMachine), m_state(state), m_prevState(prevState), m_error(error)
         {
         }
@@ -116,39 +113,39 @@ public:
     void onDrained();
 
     // Active/Idle/Suspended -> Stopped
-    StateChangeGuard stop(QAudio::Error error = QAudio::NoError, bool shouldDrain = false,
-                          bool forceUpdateError = false);
+    Notifier stop(QAudio::Error error = QAudio::NoError, bool shouldDrain = false,
+                  bool forceUpdateError = false);
 
     // Active/Idle/Suspended -> Stopped
-    StateChangeGuard stopOrUpdateError(QAudio::Error error = QAudio::NoError)
+    Notifier stopOrUpdateError(QAudio::Error error = QAudio::NoError)
     {
         return stop(error, false, true);
     }
 
     // Stopped -> Active/Idle
-    StateChangeGuard start(bool isActive = true);
+    Notifier start(bool isActive = true);
 
     // Active/Idle -> Suspended + saves the exchanged state
-    StateChangeGuard suspend();
+    Notifier suspend();
 
     // Suspended -> saved state (Active/Idle)
-    StateChangeGuard resume();
+    Notifier resume();
 
     // Idle -> Active
-    StateChangeGuard activateFromIdle();
+    Notifier activateFromIdle();
 
     // Active/Idle -> Active/Idle + updateError
-    StateChangeGuard updateActiveOrIdle(bool isActive, QAudio::Error error = QAudio::NoError);
+    Notifier updateActiveOrIdle(bool isActive, QAudio::Error error = QAudio::NoError);
 
     // Any -> Any; better use more strict methods
-    StateChangeGuard forceSetState(QAudio::State state, QAudio::Error error = QAudio::NoError);
+    Notifier forceSetState(QAudio::State state, QAudio::Error error = QAudio::NoError);
 
     // force set the error
     void setError(QAudio::Error error);
 
 private:
-    StateChangeGuard changeState(std::pair<RawState, uint32_t> prevStatesSet, RawState state,
-                                 QAudio::Error error = QAudio::NoError, bool shouldDrain = false);
+    Notifier changeState(std::pair<RawState, uint32_t> prevStatesSet, RawState state,
+                         QAudio::Error error = QAudio::NoError, bool shouldDrain = false);
 
     void reset(RawState state, RawState prevState, QAudio::Error error);
 
