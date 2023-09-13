@@ -110,6 +110,8 @@ public class QtVideoDeviceManager {
 
         StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
         Size[] sizes = map.getOutputSizes(imageFormat);
+        if (sizes == null)
+            return new String[0];
 
         String[] stream = new String[sizes.length];
 
