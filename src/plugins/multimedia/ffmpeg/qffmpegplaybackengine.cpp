@@ -5,6 +5,7 @@
 #include "qvideosink.h"
 #include "qaudiooutput.h"
 #include "private/qplatformaudiooutput_p.h"
+#include "private/qplatformvideosink_p.h"
 #include "qiodevice.h"
 #include "playbackengine/qffmpegdemuxer_p.h"
 #include "playbackengine/qffmpegstreamdecoder_p.h"
@@ -455,6 +456,8 @@ bool PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
         return false;
     }
 
+    updateVideoSinkSize();
+
     return true;
 }
 
@@ -464,6 +467,7 @@ void PlaybackEngine::setVideoSink(QVideoSink *sink)
     if (prev == sink)
         return;
 
+    updateVideoSinkSize(prev);
     updateActiveVideoOutput(sink);
 
     if (!sink || !prev) {
@@ -525,6 +529,7 @@ void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, i
     m_streams = defaultObjectsArray<decltype(m_streams)>();
     m_demuxer.reset();
 
+    updateVideoSinkSize();
     createObjectsIfNeeded();
     updateObjectsPausedState();
 }
@@ -565,6 +570,18 @@ void PlaybackEngine::updateActiveVideoOutput(QVideoSink *sink, bool cleanOutput)
     if (auto renderer =
                 qobject_cast<VideoRenderer *>(m_renderers[QPlatformMediaPlayer::VideoStream].get()))
         renderer->setOutput(sink, cleanOutput);
+}
+
+void PlaybackEngine::updateVideoSinkSize(QVideoSink *prevSink)
+{
+    auto platformVideoSink = m_videoSink ? m_videoSink->platformVideoSink() : nullptr;
+    if (!platformVideoSink)
+        return;
+
+    if (prevSink && prevSink->platformVideoSink())
+        platformVideoSink->setNativeSize(prevSink->platformVideoSink()->nativeSize());
+    else if (auto size = metaData().value(QMediaMetaData::Resolution); size.isValid())
+        platformVideoSink->setNativeSize(size.value<QSize>());
 }
 }
 
