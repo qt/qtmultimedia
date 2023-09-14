@@ -10,6 +10,8 @@
 #include <qvideoframe.h>
 #include <qaudiooutput.h>
 
+#include <private/qplatformvideosink_p.h>
+
 #include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlcomponent.h>
 #include <QtQml/qqmlproperty.h>
@@ -85,6 +87,7 @@ private slots:
     void lazyLoadVideo();
     void videoSinkSignals();
     void nonAsciiFileName();
+    void setMedia_setsVideoSinkSize_beforePlaying();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -2118,6 +2121,10 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
     std::atomic<int> videoFrameCounter = 0;
     std::atomic<int> videoSizeCounter = 0;
 
+    player.setSource(localVideoFile2);
+
+    sink.platformVideoSink()->setNativeSize({}); // reset size to be able to check the size update
+
     connect(&sink, &QVideoSink::videoFrameChanged, this, [&](const QVideoFrame &frame) {
         QCOMPARE(sink.videoFrame(), frame);
         QCOMPARE(sink.videoSize(), frame.size());
@@ -2130,7 +2137,6 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
             ++videoSizeCounter;
     }, Qt::DirectConnection);
 
-    player.setSource(localVideoFile2);
     player.play();
 
     QTRY_COMPARE_GE(videoFrameCounter, 2);
@@ -2161,6 +2167,28 @@ void tst_QMediaPlayerBackend::nonAsciiFileName()
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
     QCOMPARE(errorOccurredSpy.size(), 0);
+}
+
+void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
+{
+    QVideoSink sink1;
+    QVideoSink sink2;
+    QMediaPlayer player;
+
+    QSignalSpy spy1(&sink1, &QVideoSink::videoSizeChanged);
+    QSignalSpy spy2(&sink2, &QVideoSink::videoSizeChanged);
+
+    player.setVideoOutput(&sink1);
+    QCOMPARE(sink1.videoSize(), QSize());
+
+    player.setSource(localVideoFile3ColorsWithSound);
+    QCOMPARE(sink1.videoSize(), QSize(684, 384));
+
+    player.setVideoOutput(&sink2);
+    QCOMPARE(sink2.videoSize(), QSize(684, 384));
+
+    QCOMPARE(spy1.size(), 1);
+    QCOMPARE(spy2.size(), 1);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)

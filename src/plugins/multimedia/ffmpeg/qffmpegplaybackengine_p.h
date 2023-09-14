@@ -177,6 +177,8 @@ private:
 
     bool hasRenderer(quint64 id) const;
 
+    void updateVideoSinkSize(QVideoSink *prevSink = nullptr);
+
 private:
     TimeController m_timeController;
 
