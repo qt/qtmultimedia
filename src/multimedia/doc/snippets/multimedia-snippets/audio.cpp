@@ -99,6 +99,7 @@ public:
 
 public Q_SLOTS:
     void handleStateChanged(QAudio::State newState);
+    void stopAudioOutput();
 
 private:
     //! [Audio output class members]
@@ -132,15 +133,22 @@ void AudioOutputExample::setup()
 }
 //! [Audio output setup]
 
+//! [Audio output stop]
+void AudioOutputExample::stopAudioOutput()
+{
+    audio->stop();
+    sourceFile.close();
+    delete audio;
+}
+//! [Audio output stop]
+
 //! [Audio output state changed]
 void AudioOutputExample::handleStateChanged(QAudio::State newState)
 {
     switch (newState) {
         case QAudio::IdleState:
             // Finished playing (no more data)
-            audio->stop();
-            sourceFile.close();
-            delete audio;
+            AudioOutputExample::stopAudioOutput();
             break;
 
         case QAudio::StoppedState:
