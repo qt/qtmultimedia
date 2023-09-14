@@ -57,7 +57,7 @@ class Encoder : public QObject
 {
     Q_OBJECT
 public:
-    Encoder(const QMediaEncoderSettings &settings, const QUrl &url);
+    Encoder(const QMediaEncoderSettings &settings, const QString &filePath);
     ~Encoder();
 
     void addAudioInput(QFFmpegAudioInput *input);

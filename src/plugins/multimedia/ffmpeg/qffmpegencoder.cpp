@@ -45,17 +45,16 @@ T dequeueIfPossible(std::queue<T> &queue)
 
 } // namespace
 
-Encoder::Encoder(const QMediaEncoderSettings &settings, const QUrl &url)
+Encoder::Encoder(const QMediaEncoderSettings &settings, const QString &filePath)
     : settings(settings)
 {
     const AVOutputFormat *avFormat = QFFmpegMediaFormatInfo::outputFormatForFileFormat(settings.fileFormat());
-
     formatContext = avformat_alloc_context();
     formatContext->oformat = const_cast<AVOutputFormat *>(avFormat); // constness varies
 
-    QByteArray encoded = url.toEncoded();
-    formatContext->url = (char *)av_malloc(encoded.size() + 1);
-    memcpy(formatContext->url, encoded.constData(), encoded.size() + 1);
+    QByteArray filePathUtf8 = filePath.toUtf8();
+    formatContext->url = (char *)av_malloc(filePathUtf8.size() + 1);
+    memcpy(formatContext->url, filePathUtf8.constData(), filePathUtf8.size() + 1);
     formatContext->pb = nullptr;
 
     // Initialize the AVIOContext for accessing the resource indicated by the url
