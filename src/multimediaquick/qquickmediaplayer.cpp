@@ -15,7 +15,7 @@ void QQuickMediaPlayer::qmlSetSource(const QUrl &source)
     m_source = source;
     const QQmlContext *context = qmlContext(this);
     setSource(context ? context->resolvedUrl(source) : source);
-    emit sourceChanged(source);
+    emit qmlSourceChanged(source);
 }
 
 QUrl QQuickMediaPlayer::qmlSource() const
