@@ -582,7 +582,12 @@ void tst_QVideoFrame::map()
 void tst_QVideoFrame::mapPlanes_data()
 {
     QTest::addColumn<QVideoFrame>("frame");
+
+    // Distance between subsequent lines within a color plane in bytes
     QTest::addColumn<QList<int> >("strides");
+
+    // Distance from first pixel of first color plane to first pixel
+    // of n'th plane in bytes
     QTest::addColumn<QList<int> >("offsets");
 
     static uchar bufferData[1024];
@@ -605,6 +610,10 @@ void tst_QVideoFrame::mapPlanes_data()
         << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YUV420P))
         << (QList<int>() << 64 << 32 << 32)
         << (QList<int>() << 4096 << 5120);
+    QTest::newRow("Format_YUV422P")
+        << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YUV422P))
+        << (QList<int>() << 64 << 16 << 16)                // TODO: This is wrong. U and V planes are half the width of Y plane, not 1/4
+        << (QList<int>() << 64 * 64 << 64 * 64 + 32 * 32); // TODO: This is wrong. The U->V distance is (stride/2 * height), not (stride/2 * height/2)
     QTest::newRow("Format_YV12")
         << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YV12))
         << (QList<int>() << 64 << 32 << 32)
