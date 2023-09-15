@@ -32,6 +32,8 @@ private slots:
     void construct();
     void frameSize_data();
     void frameSize();
+    void planeCount_returnsNumberOfColorPlanesDictatedByPixelFormat_data() const;
+    void planeCount_returnsNumberOfColorPlanesDictatedByPixelFormat() const;
     void viewport_data();
     void viewport();
     void scanLineDirection_data();
@@ -164,6 +166,59 @@ void tst_QVideoFrameFormat::frameSize()
     QCOMPARE(format.frameSize(), newSize);
     QCOMPARE(format.frameWidth(), newSize.width());
     QCOMPARE(format.frameHeight(), newSize.height());
+}
+
+void tst_QVideoFrameFormat::planeCount_returnsNumberOfColorPlanesDictatedByPixelFormat_data() const {
+    QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
+    QTest::addColumn<int>("colorPlanes"); // Number of planes as specified by QVideoFrameFormat::PixelFormat documentation
+
+    QTest::newRow("ARGB8888") << QVideoFrameFormat::Format_ARGB8888 << 1;
+    QTest::newRow("ARGB8888_Premultiplied") << QVideoFrameFormat::Format_ARGB8888_Premultiplied << 1;
+    QTest::newRow("XRGB8888") << QVideoFrameFormat::Format_XRGB8888 << 1;
+    QTest::newRow("BGRA8888") << QVideoFrameFormat::Format_BGRA8888 << 1;
+    QTest::newRow("BGRA8888_Premultiplied") << QVideoFrameFormat::Format_BGRA8888_Premultiplied << 1;
+    QTest::newRow("BGRX8888") << QVideoFrameFormat::Format_BGRX8888 << 1;
+    QTest::newRow("ABGR8888") << QVideoFrameFormat::Format_ABGR8888 << 1;
+    QTest::newRow("XBGR8888") << QVideoFrameFormat::Format_XBGR8888 << 1;
+    QTest::newRow("RGBA8888") << QVideoFrameFormat::Format_RGBA8888 << 1;
+    QTest::newRow("RGBX8888") << QVideoFrameFormat::Format_RGBX8888 << 1;
+
+    QTest::newRow("AUYVY") << QVideoFrameFormat::Format_AYUV << 1;
+    QTest::newRow("AYUV_Premultiplied") << QVideoFrameFormat::Format_AYUV_Premultiplied << 1;
+    QTest::newRow("YUV420P") << QVideoFrameFormat::Format_YUV420P << 3;
+    QTest::newRow("YUV422P") << QVideoFrameFormat::Format_YUV422P << 3;
+    QTest::newRow("YV12") << QVideoFrameFormat::Format_YV12 << 3;
+
+    QTest::newRow("UYVY") << QVideoFrameFormat::Format_UYVY << 1;
+    QTest::newRow("YUYV") << QVideoFrameFormat::Format_YUYV << 1;
+    QTest::newRow("NV12") << QVideoFrameFormat::Format_NV12 << 2;
+    QTest::newRow("NV21") << QVideoFrameFormat::Format_NV21 << 2;
+
+    QTest::newRow("IMC1") << QVideoFrameFormat::Format_IMC1 << 3;
+    QTest::newRow("IMC2") << QVideoFrameFormat::Format_IMC2 << 2;
+    QTest::newRow("IMC3") << QVideoFrameFormat::Format_IMC3 << 3;
+    QTest::newRow("IMC4") << QVideoFrameFormat::Format_IMC4 << 2;
+
+    QTest::newRow("Y8") << QVideoFrameFormat::Format_Y8 << 1;
+    QTest::newRow("Y16") << QVideoFrameFormat::Format_Y16 << 1;
+
+    QTest::newRow("P010") << QVideoFrameFormat::Format_P010 << 2;
+    QTest::newRow("P016") << QVideoFrameFormat::Format_P016 << 2;
+
+    QTest::newRow("SamplerExternalOES") << QVideoFrameFormat::Format_SamplerExternalOES << 1;
+    QTest::newRow("Jpeg") << QVideoFrameFormat::Format_Jpeg << 1;
+    QTest::newRow("SamplerRect") << QVideoFrameFormat::Format_SamplerRect << 1;
+
+    QTest::newRow("YUV420P10") << QVideoFrameFormat::Format_YUV420P10 << 3;
+}
+
+void tst_QVideoFrameFormat::planeCount_returnsNumberOfColorPlanesDictatedByPixelFormat() const {
+    QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
+    QFETCH(int, colorPlanes);
+
+    const QVideoFrameFormat frameFormat = QVideoFrameFormat({}, pixelFormat);
+
+    QCOMPARE_EQ(frameFormat.planeCount(), colorPlanes);
 }
 
 void tst_QVideoFrameFormat::viewport_data()
