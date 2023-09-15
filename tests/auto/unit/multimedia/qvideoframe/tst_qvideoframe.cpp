@@ -612,8 +612,8 @@ void tst_QVideoFrame::mapPlanes_data()
         << (QList<int>() << 4096 << 5120);
     QTest::newRow("Format_YUV422P")
         << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YUV422P))
-        << (QList<int>() << 64 << 16 << 16)                // TODO: This is wrong. U and V planes are half the width of Y plane, not 1/4
-        << (QList<int>() << 64 * 64 << 64 * 64 + 32 * 32); // TODO: This is wrong. The U->V distance is (stride/2 * height), not (stride/2 * height/2)
+        << (QList<int>() << 64 << 64 / 2 << 64 / 2)
+        << (QList<int>() << 64 * 64 << 64 * 64 + 64 / 2 * 64);
     QTest::newRow("Format_YV12")
         << QVideoFrame(QVideoFrameFormat(QSize(60, 64), QVideoFrameFormat::Format_YV12))
         << (QList<int>() << 64 << 32 << 32)

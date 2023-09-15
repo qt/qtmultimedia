@@ -100,7 +100,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
     },
      // Format_YUV422P
     { 3, 1,
-      [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
+      [](int stride, int height) { return stride * height * 2; },
      { QRhiTexture::R8, QRhiTexture::R8, QRhiTexture::R8 },
      { { 1, 1 }, { 2, 1 }, { 2, 1 } }
     },
