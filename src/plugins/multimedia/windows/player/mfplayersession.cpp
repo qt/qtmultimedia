@@ -461,17 +461,16 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
     IMFActivate *activate = NULL;
     if (mediaType == Audio) {
         if (m_audioOutput) {
-            HRESULT hr = MFCreateAudioRendererActivate(&activate);
-            if (FAILED(hr)) {
-                qWarning() << "Failed to create audio renderer activate";
+            auto id = m_audioOutput->device.id();
+            if (id.isEmpty()) {
+                qInfo() << "No audio output";
                 node->Release();
                 return NULL;
             }
 
-            auto id = m_audioOutput->device.id();
-            if (id.isEmpty()) {
-                qWarning() << "No audio output";
-                activate->Release();
+            HRESULT hr = MFCreateAudioRendererActivate(&activate);
+            if (FAILED(hr)) {
+                qWarning() << "Failed to create audio renderer activate";
                 node->Release();
                 return NULL;
             }
