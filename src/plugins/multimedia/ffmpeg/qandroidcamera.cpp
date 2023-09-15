@@ -35,9 +35,9 @@ Q_DECLARE_JNI_CLASS(QtVideoDeviceManager,
 
 Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat");
 
-Q_DECLARE_JNI_TYPE(AndroidImage, "Landroid/media/Image;")
+Q_DECLARE_JNI_CLASS(AndroidImage, "android/media/Image")
 Q_DECLARE_JNI_TYPE(AndroidImagePlaneArray, "[Landroid/media/Image$Plane;")
-Q_DECLARE_JNI_TYPE(JavaByteBuffer, "Ljava/nio/ByteBuffer;")
+Q_DECLARE_JNI_CLASS(JavaByteBuffer, "java/nio/ByteBuffer")
 Q_DECLARE_JNI_TYPE(StringArray, "[Ljava/lang/String;")
 
 QT_BEGIN_NAMESPACE
