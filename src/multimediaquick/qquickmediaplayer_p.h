@@ -26,7 +26,7 @@ QT_BEGIN_NAMESPACE
 class Q_MULTIMEDIAQUICK_EXPORT QQuickMediaPlayer : public QMediaPlayer
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl source READ qmlSource WRITE qmlSetSource NOTIFY sourceChanged)
+    Q_PROPERTY(QUrl source READ qmlSource WRITE qmlSetSource NOTIFY qmlSourceChanged FINAL)
     QML_NAMED_ELEMENT(MediaPlayer)
 
 public:
@@ -37,7 +37,7 @@ public:
     QUrl qmlSource() const;
 
 Q_SIGNALS:
-    void sourceChanged(const QUrl &source);
+    void qmlSourceChanged(const QUrl &source);
 
 private:
     QUrl m_source;
