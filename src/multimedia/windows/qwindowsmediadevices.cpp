@@ -308,7 +308,8 @@ void QWindowsMediaDevices::prepareAudio()
     ComPtr<IMMDevice> device;
     hr = deviceEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, device.GetAddressOf());
     if (FAILED(hr)) {
-        qWarning() << "Failed to retrieve default audio endpoint" << hr;
+        if (hr != E_NOTFOUND)
+            qWarning() << "Failed to retrieve default audio endpoint" << hr;
         return;
     }
 
