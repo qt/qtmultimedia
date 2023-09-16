@@ -95,7 +95,7 @@ AndroidSurfaceView::AndroidSurfaceView()
     QNativeInterface::QAndroidApplication::runOnAndroidMainThread([this] {
         m_surfaceView = QJniObject("android/view/SurfaceView",
                                    "(Landroid/content/Context;)V",
-                                   QNativeInterface::QAndroidApplication::context());
+                                   static_cast<jobject>(QNativeInterface::QAndroidApplication::context()));
     }).waitForFinished();
 
     Q_ASSERT(m_surfaceView.isValid());
