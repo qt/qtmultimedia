@@ -23,6 +23,8 @@
 #include <qsocketnotifier.h>
 #include <qmutex.h>
 
+#include <sys/time.h>
+
 QT_BEGIN_NAMESPACE
 
 class QV4L2CameraDevices : public QPlatformVideoDevices
