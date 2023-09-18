@@ -435,6 +435,20 @@ static bool readWglNvDxInteropProc(WglNvDxInterop &f)
 }
 #endif
 
+namespace {
+
+bool hwTextureRenderingEnabled() {
+    // add possibility for an user to opt-out HW video rendering
+    // using the same env. variable as for FFmpeg backend
+    static bool isDisableConversionSet = false;
+    static const int disableHwConversion = qEnvironmentVariableIntValue(
+            "QT_DISABLE_HW_TEXTURES_CONVERSION", &isDisableConversionSet);
+
+    return !isDisableConversionSet || !disableHwConversion;
+}
+
+}
+
 HRESULT D3DPresentEngine::createD3DDevice()
 {
     if (!m_D3D9 || !m_devices)
@@ -442,23 +456,26 @@ HRESULT D3DPresentEngine::createD3DDevice()
 
     m_useTextureRendering = false;
     UINT adapterID = 0;
-    QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
-    if (rhi) {
-        if (rhi->backend() == QRhi::D3D11) {
-            m_useTextureRendering = findD3D11AdapterID(*rhi, m_D3D9.Get(), adapterID);
-#if QT_CONFIG(opengl)
-        } else if (rhi->backend() == QRhi::OpenGLES2)  {
-            m_useTextureRendering = readWglNvDxInteropProc(m_wglNvDxInterop);
-#endif
-        } else {
-            qCDebug(qLcEvrD3DPresentEngine) << "Not supported RHI backend type";
-        }
-    } else {
-        qCDebug(qLcEvrD3DPresentEngine) << "No RHI associated with this sink";
-    }
 
-    if (!m_useTextureRendering)
-        qCDebug(qLcEvrD3DPresentEngine) << "Could not find compatible RHI adapter, zero copy disabled";
+    if (hwTextureRenderingEnabled()) {
+        QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
+        if (rhi) {
+            if (rhi->backend() == QRhi::D3D11) {
+                m_useTextureRendering = findD3D11AdapterID(*rhi, m_D3D9.Get(), adapterID);
+#if QT_CONFIG(opengl)
+            } else if (rhi->backend() == QRhi::OpenGLES2)  {
+                m_useTextureRendering = readWglNvDxInteropProc(m_wglNvDxInterop);
+#endif
+            } else {
+                qCDebug(qLcEvrD3DPresentEngine) << "Not supported RHI backend type";
+            }
+        } else {
+            qCDebug(qLcEvrD3DPresentEngine) << "No RHI associated with this sink";
+        }
+
+        if (!m_useTextureRendering)
+            qCDebug(qLcEvrD3DPresentEngine) << "Could not find compatible RHI adapter, zero copy disabled";
+    }
 
     D3DCAPS9 ddCaps;
     ZeroMemory(&ddCaps, sizeof(ddCaps));
