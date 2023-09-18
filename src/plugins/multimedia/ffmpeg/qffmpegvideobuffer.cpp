@@ -42,19 +42,20 @@ QFFmpegVideoBuffer::~QFFmpegVideoBuffer() = default;
 void QFFmpegVideoBuffer::convertSWFrame()
 {
     Q_ASSERT(swFrame);
-    bool needsConversion = false;
-    auto pixelFormat = toQtPixelFormat(AVPixelFormat(swFrame->format), &needsConversion);
-    if (pixelFormat != m_pixelFormat || isFrameFlipped(*swFrame)) {
-        AVPixelFormat newFormat = toAVPixelFormat(m_pixelFormat);
+
+    const auto actualAVPixelFormat = AVPixelFormat(swFrame->format);
+    const auto targetAVPixelFormat = toAVPixelFormat(m_pixelFormat);
+    if (actualAVPixelFormat != targetAVPixelFormat || isFrameFlipped(*swFrame)) {
+        Q_ASSERT(toQtPixelFormat(targetAVPixelFormat) == m_pixelFormat);
         // convert the format into something we can handle
-        SwsContext *c = sws_getContext(swFrame->width, swFrame->height, AVPixelFormat(swFrame->format),
-                                       swFrame->width, swFrame->height, newFormat,
+        SwsContext *c = sws_getContext(swFrame->width, swFrame->height, actualAVPixelFormat,
+                                       swFrame->width, swFrame->height, targetAVPixelFormat,
                                        SWS_BICUBIC, nullptr, nullptr, nullptr);
 
         auto newFrame = QFFmpeg::makeAVFrame();
         newFrame->width = swFrame->width;
         newFrame->height = swFrame->height;
-        newFrame->format = newFormat;
+        newFrame->format = targetAVPixelFormat;
         av_frame_get_buffer(newFrame.get(), 0);
 
         sws_scale(c, swFrame->data, swFrame->linesize, 0, swFrame->height, newFrame->data, newFrame->linesize);
