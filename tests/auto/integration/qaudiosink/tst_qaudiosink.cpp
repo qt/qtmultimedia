@@ -596,10 +596,10 @@ void tst_QAudioSink::pullResumeFromUnderrun()
     format.setSampleFormat(QAudioFormat::UInt8);
     format.setSampleRate(8000);
 
+    AudioPullSource audioSource;
     QAudioSink audioOutput(format, this);
     QSignalSpy stateSignal(&audioOutput, SIGNAL(stateChanged(QAudio::State)));
 
-    AudioPullSource audioSource;
     audioSource.open(QIODeviceBase::ReadOnly);
     audioSource.available = chunkSize;
     QCOMPARE(audioOutput.state(), QAudio::StoppedState);
