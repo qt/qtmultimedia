@@ -204,12 +204,16 @@ std::unique_ptr<QVideoFrameTextures> QFFmpegVideoBuffer::mapTextures(QRhi *)
         return {};
     if (!hwFrame)
         return {};
+    if (textureConverter.isNull()) {
+        textures = nullptr;
+        return {};
+    }
+
     textures.reset(textureConverter.getTextures(hwFrame.get()));
     if (!textures) {
         static thread_local int lastFormat = 0;
         if (std::exchange(lastFormat, hwFrame->format) != hwFrame->format) // prevent logging spam
-            qWarning() << "    failed to get textures for frame; format:" << hwFrame->format
-                       << "textureConverter" << (textureConverter.isNull() ? "null" : "not null");
+            qWarning() << "    failed to get textures for frame; format:" << hwFrame->format;
     }
     return {};
 }
