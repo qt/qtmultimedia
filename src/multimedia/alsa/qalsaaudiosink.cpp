@@ -115,21 +115,21 @@ int QAlsaAudioSink::setFormat()
         break;
     case QAudioFormat::Int16:
         if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
-            pcmformat = SND_PCM_FORMAT_S16_LE;
-        else
             pcmformat = SND_PCM_FORMAT_S16_BE;
+        else
+            pcmformat = SND_PCM_FORMAT_S16_LE;
         break;
     case QAudioFormat::Int32:
         if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
-            pcmformat = SND_PCM_FORMAT_S32_LE;
-        else
             pcmformat = SND_PCM_FORMAT_S32_BE;
+        else
+            pcmformat = SND_PCM_FORMAT_S32_LE;
         break;
     case QAudioFormat::Float:
         if constexpr (QSysInfo::ByteOrder == QSysInfo::BigEndian)
-            pcmformat = SND_PCM_FORMAT_FLOAT_LE;
-        else
             pcmformat = SND_PCM_FORMAT_FLOAT_BE;
+        else
+            pcmformat = SND_PCM_FORMAT_FLOAT_LE;
     default:
         break;
     }
