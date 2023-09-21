@@ -4,6 +4,7 @@
 #include "qandroidcameraframe_p.h"
 #include <jni.h>
 #include <QDebug>
+#include <QtCore/qjnitypes.h>
 #include <QtCore/QLoggingCategory>
 
 Q_DECLARE_JNI_CLASS(AndroidImageFormat, "android/graphics/ImageFormat");
