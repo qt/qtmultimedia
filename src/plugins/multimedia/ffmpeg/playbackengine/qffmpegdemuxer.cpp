@@ -71,18 +71,19 @@ void Demuxer::doNextStep()
         return;
     }
 
-    const auto streamIndex = packet.avPacket()->stream_index;
+    auto &avPacket = *packet.avPacket();
+
+    const auto streamIndex = avPacket.stream_index;
     const auto stream = m_context->streams[streamIndex];
 
     auto it = m_streams.find(streamIndex);
 
     if (it != m_streams.end()) {
-        const auto packetEndPos =
-                streamTimeToUs(stream, packet.avPacket()->pts + packet.avPacket()->duration);
+        const auto packetEndPos = streamTimeToUs(stream, avPacket.pts + avPacket.duration);
         m_endPts = std::max(m_endPts, m_posWithOffset.offset.pos + packetEndPos);
 
-        it->second.bufferingTime += streamTimeToUs(stream, packet.avPacket()->duration);
-        it->second.bufferingSize += packet.avPacket()->size;
+        it->second.bufferingTime += streamTimeToUs(stream, avPacket.duration);
+        it->second.bufferingSize += avPacket.size;
 
         auto signal = signalByTrackType(it->second.trackType);
         emit (this->*signal)(packet);
@@ -98,13 +99,14 @@ void Demuxer::onPacketProcessed(Packet packet)
     if (packet.sourceId() != id())
         return;
 
-    const auto streamIndex = packet.avPacket()->stream_index;
+    auto &avPacket = *packet.avPacket();
+
+    const auto streamIndex = avPacket.stream_index;
     auto it = m_streams.find(streamIndex);
 
     if (it != m_streams.end()) {
-        it->second.bufferingTime -=
-                streamTimeToUs(m_context->streams[streamIndex], packet.avPacket()->duration);
-        it->second.bufferingSize -= packet.avPacket()->size;
+        it->second.bufferingTime -= streamTimeToUs(m_context->streams[streamIndex], avPacket.duration);
+        it->second.bufferingSize -= avPacket.size;
 
         Q_ASSERT(it->second.bufferingTime >= 0);
         Q_ASSERT(it->second.bufferingSize >= 0);
