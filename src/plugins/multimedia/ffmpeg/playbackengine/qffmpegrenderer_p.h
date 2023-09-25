@@ -45,6 +45,8 @@ public:
     bool isStepForced() const;
 
 public slots:
+    void setInitialPosition(TimePoint tp, qint64 trackPos);
+
     void onFinalFrameReceived();
 
     void render(Frame);

@@ -424,6 +424,22 @@ void PlaybackEngine::createDemuxer()
         connect(stream.get(), &StreamDecoder::packetProcessed, m_demuxer.get(),
                 &Demuxer::onPacketProcessed);
     });
+
+    if (!isSeekable() || duration() <= 0) {
+        // We need initial synchronization for such streams
+        forEachExistingObject([&](auto &object) {
+            using Type = std::remove_reference_t<decltype(*object)>;
+            if constexpr (!std::is_same_v<Type, Demuxer>)
+                connect(m_demuxer.get(), &Demuxer::firstPacketFound, object.get(),
+                        &Type::setInitialPosition);
+        });
+
+        auto updateTimeController = [this](TimeController::TimePoint tp, qint64 pos) {
+            m_timeController.sync(tp, pos);
+        };
+
+        connect(m_demuxer.get(), &Demuxer::firstPacketFound, this, updateTimeController);
+    }
 }
 
 void PlaybackEngine::deleteFreeThreads() {

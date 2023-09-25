@@ -36,6 +36,8 @@ public:
     QPlatformMediaPlayer::TrackType trackType() const;
 
 public slots:
+    void setInitialPosition(TimePoint tp, qint64 trackPos);
+
     void decode(Packet);
 
     void onFinalPacketReceived();
@@ -65,7 +67,7 @@ private:
 
 private:
     Codec m_codec;
-    const qint64 m_absSeekPos = 0;
+    qint64 m_absSeekPos = 0;
     const QPlatformMediaPlayer::TrackType m_trackType;
 
     qint32 m_pendingFramesCount = 0;
