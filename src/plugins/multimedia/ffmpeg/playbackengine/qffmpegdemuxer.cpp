@@ -66,6 +66,8 @@ void Demuxer::doNextStep()
 
             qCDebug(qLcDemuxer) << "Demuxer loops changed. Index:" << m_posWithOffset.offset.index
                                 << "Offset:" << m_posWithOffset.offset.pos;
+
+            scheduleNextStep(false);
         }
 
         return;
@@ -133,17 +135,22 @@ void Demuxer::ensureSeeked()
     if (std::exchange(m_seeked, true))
         return;
 
-    const qint64 seekPos = m_posWithOffset.pos * AV_TIME_BASE / 1000000;
-    auto err = av_seek_frame(m_context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
+    if ((m_context->ctx_flags & AVFMTCTX_UNSEEKABLE) == 0) {
+        const qint64 seekPos = m_posWithOffset.pos * AV_TIME_BASE / 1000000;
+        auto err = av_seek_frame(m_context, -1, seekPos, AVSEEK_FLAG_BACKWARD);
 
-    if (err < 0) {
-        qDebug() << err2str(err);
-        emit error(err, err2str(err));
-        return;
+        if (err < 0) {
+            qCWarning(qLcDemuxer) << "Failed to seek, pos" << seekPos;
+
+            // Drop an error of seeking to initial position of streams with undefined duration.
+            // This needs improvements.
+            if (seekPos != 0 || m_context->duration > 0)
+                emit error(QMediaPlayer::ResourceError,
+                           QLatin1StringView("Failed to seek: ") + err2str(err));
+        }
     }
 
     setAtEnd(false);
-    scheduleNextStep();
 }
 
 Demuxer::RequestingSignal Demuxer::signalByTrackType(QPlatformMediaPlayer::TrackType trackType)
