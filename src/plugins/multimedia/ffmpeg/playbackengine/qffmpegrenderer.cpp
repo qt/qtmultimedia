@@ -65,6 +65,20 @@ bool Renderer::isStepForced() const
     return m_isStepForced;
 }
 
+void Renderer::setInitialPosition(TimePoint tp, qint64 trackPos)
+{
+    QMetaObject::invokeMethod(this, [this, tp, trackPos]() {
+        Q_ASSERT(m_loopIndex == 0);
+        Q_ASSERT(m_frames.empty());
+
+        m_loopIndex = 0;
+        m_lastPosition.storeRelease(trackPos);
+        m_seekPos.storeRelease(trackPos);
+
+        m_timeController.sync(tp, trackPos);
+    });
+}
+
 void Renderer::onFinalFrameReceived()
 {
     render({});

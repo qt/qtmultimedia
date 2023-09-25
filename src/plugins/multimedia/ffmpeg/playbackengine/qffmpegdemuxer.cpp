@@ -87,6 +87,12 @@ void Demuxer::doNextStep()
         it->second.bufferingTime += streamTimeToUs(stream, avPacket.duration);
         it->second.bufferingSize += avPacket.size;
 
+        if (!m_firstPacketFound) {
+            m_firstPacketFound = true;
+            const auto pos = streamTimeToUs(stream, avPacket.pts);
+            emit firstPacketFound(std::chrono::steady_clock::now(), pos);
+        }
+
         auto signal = signalByTrackType(it->second.trackType);
         emit (this->*signal)(packet);
     }

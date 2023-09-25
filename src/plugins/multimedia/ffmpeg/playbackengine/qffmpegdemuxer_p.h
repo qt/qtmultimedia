@@ -44,6 +44,7 @@ signals:
     void requestProcessAudioPacket(Packet);
     void requestProcessVideoPacket(Packet);
     void requestProcessSubtitlePacket(Packet);
+    void firstPacketFound(TimePoint tp, qint64 trackPos);
 
 private:
     bool canDoNextStep() const override;
@@ -62,6 +63,7 @@ private:
 
     AVFormatContext *m_context = nullptr;
     bool m_seeked = false;
+    bool m_firstPacketFound = false;
     std::unordered_map<int, StreamData> m_streams;
     PositionWithOffset m_posWithOffset;
     qint64 m_endPts = 0;
