@@ -95,7 +95,7 @@ Scene {
             id: cameraLoader
             onLoaded: {
                 item.parent = cameraHolder
-                item.centerIn = cameraHolder
+                item.anchors.centerIn = cameraHolder
                 item.contentType = "camera"
                 item.showFrameRate = true
                 item.width = itemWidth
@@ -121,6 +121,7 @@ Scene {
                 console.log("[qmlvideo] SceneMulti.camera.onError")
                 cameraHolder.stop()
             }
+            ignoreUnknownSignals: true
         }
 
         function start() {
