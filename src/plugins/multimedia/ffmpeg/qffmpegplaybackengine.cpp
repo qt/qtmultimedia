@@ -239,7 +239,7 @@ void PlaybackEngine::forEachExistingObject(Action &&action)
 
 void PlaybackEngine::seek(qint64 pos)
 {
-    pos = qBound(0, pos, duration());
+    pos = boundPosition(pos);
 
     m_timeController.setPaused(true);
     m_timeController.sync(m_currentLoopOffset.pos + pos);
@@ -512,10 +512,7 @@ qint64 PlaybackEngine::currentPosition(bool topPos) const {
                          : std::min(*pos, rendererPos);
     }
 
-    if (!pos)
-        pos = m_timeController.currentPosition();
-
-    return qBound(0, *pos - m_currentLoopOffset.pos, duration());
+    return boundPosition(pos ? *pos : m_timeController.currentPosition());
 }
 
 void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, int streamNumber)
@@ -582,6 +579,12 @@ void PlaybackEngine::updateVideoSinkSize(QVideoSink *prevSink)
         platformVideoSink->setNativeSize(prevSink->platformVideoSink()->nativeSize());
     else if (auto size = metaData().value(QMediaMetaData::Resolution); size.isValid())
         platformVideoSink->setNativeSize(size.value<QSize>());
+}
+
+qint64 PlaybackEngine::boundPosition(qint64 position) const
+{
+    position = qMax(position, 0);
+    return duration() > 0 ? qMin(position, duration()) : position;
 }
 }
 

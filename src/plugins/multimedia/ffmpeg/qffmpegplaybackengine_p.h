@@ -179,6 +179,8 @@ private:
 
     void updateVideoSinkSize(QVideoSink *prevSink = nullptr);
 
+    qint64 boundPosition(qint64 position) const;
+
 private:
     TimeController m_timeController;
 
