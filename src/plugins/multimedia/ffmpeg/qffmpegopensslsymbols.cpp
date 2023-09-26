@@ -41,7 +41,7 @@ static Libs loadLibs()
 // openssl on Android has specific suffixes
 #if defined(Q_OS_ANDROID)
     {
-        auto suffix = qgetenv("ANDROID_OPENSSL_SUFFIX");
+        auto suffix = qEnvironmentVariable("ANDROID_OPENSSL_SUFFIX");
         if (suffix.isEmpty())
             suffix = QString("_"_L1) + QString::number(majorVersion);
 
