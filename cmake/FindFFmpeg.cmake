@@ -175,7 +175,9 @@ set(FFMPEG_DEFINITIONS "")
 set(FFMPEG_LIBRARY_DIRS "")
 
 # Apply dynamic symbols resolve for Linux build only. We might add Android and QNX as well.
-set(ENABLE_DYNAMIC_RESOLVE_OPENSSL_SYMBOLS ${LINUX} CACHE INTERNAL "")
+if (ANDROID OR LINUX)
+  set(ENABLE_DYNAMIC_RESOLVE_OPENSSL_SYMBOLS TRUE CACHE INTERNAL "")
+endif()
 set(ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS ${LINUX} CACHE INTERNAL "")
 
 function(__try_add_dynamic_resolve_dependency dep added)
