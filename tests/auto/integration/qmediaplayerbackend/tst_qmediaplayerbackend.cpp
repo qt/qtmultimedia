@@ -9,6 +9,7 @@
 #include <qvideosink.h>
 #include <qvideoframe.h>
 #include <qaudiooutput.h>
+#include <qprocess.h>
 
 #include <private/qplatformvideosink_p.h>
 
@@ -88,10 +89,15 @@ private slots:
     void videoSinkSignals();
     void nonAsciiFileName();
     void setMedia_setsVideoSinkSize_beforePlaying();
+    void play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
-    bool isWavSupported();
+    bool isWavSupported() const;
+
+    bool canCreateRtspStream() const;
+    std::unique_ptr<QProcess> createRtspStreamProcess(QString fileName, QString outputUrl);
+    void detectVlcCommand();
 
     //one second local wav file
     QUrl localWavFile;
@@ -106,6 +112,7 @@ private:
     const std::array<QRgb, 3> video3Colors = { { 0xFF0000, 0x00FF00, 0x0000FF } };
 
     bool m_inCISystem;
+    QString vlcCommand;
 };
 
 /*
@@ -156,6 +163,41 @@ private:
     bool m_storeFrames;
 };
 
+static bool commandExists(const QString &command)
+{
+
+#if defined(Q_OS_WINDOWS)
+    static constexpr QChar separator = ';';
+#else
+    static constexpr QChar separator = ':';
+#endif
+    static const QStringList pathDirs = qEnvironmentVariable("PATH").split(separator);
+    return std::any_of(pathDirs.cbegin(), pathDirs.cend(), [&command](const QString &dir) {
+        QString fullPath = QDir(dir).filePath(command);
+        return QFile::exists(fullPath);
+    });
+}
+
+static std::unique_ptr<QTemporaryFile> copyResourceToTemporaryFile(QString resource,
+                                                                   QString filePattern)
+{
+    QFile resourceFile(resource);
+    if (!resourceFile.open(QIODeviceBase::ReadOnly))
+        return nullptr;
+
+    auto temporaryFile = std::make_unique<QTemporaryFile>(filePattern);
+    if (!temporaryFile->open())
+        return nullptr;
+
+    QByteArray bytes = resourceFile.readAll();
+    QDataStream stream(temporaryFile.get());
+    stream.writeRawData(bytes.data(), bytes.length());
+
+    temporaryFile->close();
+
+    return temporaryFile;
+}
+
 static void setVideoSinkAsyncFramesCounter(QVideoSink &sink, std::atomic_int &counter)
 {
     QObject::connect(&sink, &QVideoSink::videoFrameChanged,
@@ -196,9 +238,41 @@ QUrl tst_QMediaPlayerBackend::selectVideoFile(const QStringList& mediaCandidates
     return QUrl();
 }
 
-bool tst_QMediaPlayerBackend::isWavSupported()
+bool tst_QMediaPlayerBackend::isWavSupported() const
 {
     return !localWavFile.isEmpty();
+}
+
+void tst_QMediaPlayerBackend::detectVlcCommand()
+{
+    vlcCommand = qEnvironmentVariable("QT_VLC_COMMAND");
+
+    if (!vlcCommand.isEmpty())
+        return;
+
+#if defined(Q_OS_WINDOWS)
+    vlcCommand = "vlc.exe";
+#else
+    vlcCommand = "vlc";
+#endif
+    if (commandExists(vlcCommand))
+        return;
+
+    vlcCommand.clear();
+
+#if defined(Q_OS_MACOS)
+    vlcCommand = "/Applications/VLC.app/Contents/MacOS/VLC";
+#elif defined(Q_OS_WINDOWS)
+    vlcCommand = "C:/Program Files/VideoLAN/VLC/vlc.exe";
+#endif
+
+    if (!QFile::exists(vlcCommand))
+        vlcCommand.clear();
+}
+
+bool tst_QMediaPlayerBackend::canCreateRtspStream() const
+{
+    return !vlcCommand.isEmpty();
 }
 
 void tst_QMediaPlayerBackend::initTestCase()
@@ -235,6 +309,8 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     localFileWithMetadata =
             MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/nokia-tune.mp3");
+
+    detectVlcCommand();
 
     qgetenv("QT_TEST_CI").toInt(&m_inCISystem,10);
 }
@@ -1313,6 +1389,13 @@ It findSimilarColor(It it, It end, QRgb color)
     });
 }
 
+template <typename Colors>
+size_t findSimilarColorIndex(const Colors &colors, QRgb color)
+{
+    return std::distance(std::begin(colors),
+                         findSimilarColor(std::begin(colors), std::end(colors), color));
+}
+
 void tst_QMediaPlayerBackend::multipleSeekStressTest()
 {
 #ifdef Q_OS_ANDROID
@@ -1356,9 +1439,7 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
         auto frameImage = frame.toImage();
         const auto actualColor = frameImage.pixel(1, 1);
 
-        const auto actualColorIndex = std::distance(
-                video3Colors.begin(),
-                findSimilarColor(video3Colors.begin(), video3Colors.end(), actualColor));
+        const auto actualColorIndex = findSimilarColorIndex(video3Colors, actualColor);
 
         const auto expectedColorIndex = pos / 1000;
 
@@ -1450,9 +1531,7 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
             qDebug() << "Actual Color:" << QColor(actualColor)
                      << "Expected Color:" << QColor(expectedColor);
             qDebug() << "Most probable actual color index:"
-                     << std::distance(video3Colors.begin(),
-                                      findSimilarColor(video3Colors.begin(), video3Colors.end(),
-                                                       actualColor))
+                     << findSimilarColorIndex(video3Colors, actualColor)
                      << " Expected color index:" << colorIndex;
             qDebug() << "Actual position:" << player.position();
         });
@@ -2145,23 +2224,14 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
 
 void tst_QMediaPlayerBackend::nonAsciiFileName()
 {
-    QFile resourceFile(":/testdata/test.wav");
-    if (!resourceFile.open(QIODeviceBase::ReadOnly))
-        QSKIP("Could not open a resource file");
-
-    QTemporaryFile temporaryFile("äöüØøÆ中文");
-    if (!temporaryFile.open())
-        QSKIP("Could not open a temporary file");
-
-    QByteArray bytes = resourceFile.readAll();
-    QDataStream stream(&temporaryFile);
-    stream.writeRawData(bytes.data(), bytes.length());
+    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/test.wav", "äöüØøÆ中文.XXXXXX");
+    QVERIFY(temporaryFile);
 
     QMediaPlayer player;
 
     QSignalSpy errorOccurredSpy(&player, &QMediaPlayer::errorOccurred);
 
-    player.setSource(temporaryFile.fileName());
+    player.setSource(temporaryFile->fileName());
     player.play();
 
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
@@ -2189,6 +2259,100 @@ void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
 
     QCOMPARE(spy1.size(), 1);
     QCOMPARE(spy2.size(), 1);
+}
+
+std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QString fileName,
+                                                                           QString outputUrl)
+{
+    Q_ASSERT(!vlcCommand.isEmpty());
+
+    auto process = std::make_unique<QProcess>();
+#if defined(Q_OS_WINDOWS)
+    fileName.replace('/', '\\');
+#endif
+
+    // clang-format off
+    QStringList vlcParams =
+    {
+        "-vvv", fileName,
+        "--sout", QLatin1String("#rtp{sdp=%1}").arg(outputUrl),
+        "--intf", "dummy"
+    };
+    // clang-format on
+
+    process->start(vlcCommand, vlcParams);
+    if (!process->waitForStarted())
+        return nullptr;
+
+    // rtsp stream might be with started some delay after the vlc process starts.
+    // Ideally, we should wait for open connections, it requires some extra work + QNetwork dependency.
+    QTest::qWait(500);
+
+    return process;
+}
+
+void tst_QMediaPlayerBackend::play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream()
+{
+    if (!canCreateRtspStream())
+        QSKIP("Rtsp stream cannot be created");
+
+    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    QVERIFY(temporaryFile);
+
+    const QString streamUrl = "rtsp://localhost:8083/stream";
+
+    auto process = createRtspStreamProcess(temporaryFile->fileName(), streamUrl);
+    QVERIFY2(process, "Cannot start rtsp process");
+
+    auto processCloser = qScopeGuard([&process]() { process->close(); });
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+
+    QSignalSpy errorSpy(&player, &QMediaPlayer::errorOccurred);
+
+    player.setVideoSink(&surface);
+    // Ignore audio output to check timings accuratelly
+    // player.setAudioOutput(&output);
+
+    player.setSource(streamUrl);
+
+    player.play();
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+
+    const auto colors = { qRgb(0, 0, 0xFF), qRgb(0xFF, 0, 0), qRgb(0, 0xFE, 0) };
+    const auto colorInterval = 5000;
+
+    for (auto pos : { colorInterval / 2, colorInterval + 100 }) {
+        qDebug() << "Waiting for position:" << pos;
+
+        QTRY_COMPARE_GT(player.position(), pos);
+
+        auto frame1 = surface.waitForFrame();
+        QVERIFY(frame1.isValid());
+        QCOMPARE(frame1.size(), QSize(160, 120));
+
+        QCOMPARE_GT(frame1.startTime(), pos * 1000);
+
+        auto frameTime = frame1.startTime();
+        const auto coloIndex = frameTime / (colorInterval * 1000);
+        QCOMPARE_LT(coloIndex, 2);
+
+        const auto image1 = frame1.toImage();
+        QVERIFY(!image1.isNull());
+        QCOMPARE(findSimilarColorIndex(colors, image1.pixel(1, 1)), coloIndex);
+        QCOMPARE(findSimilarColorIndex(colors, image1.pixel(100, 100)), coloIndex);
+
+        auto frame2 = surface.waitForFrame();
+        QVERIFY(frame2.isValid());
+        QCOMPARE_GT(frame2.startTime(), frame1.startTime());
+    }
+
+    player.stop();
+
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(errorSpy.size(), 0);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
