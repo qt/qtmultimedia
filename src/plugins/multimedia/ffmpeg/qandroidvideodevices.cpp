@@ -37,7 +37,7 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoDevices()
 {
     QList<QCameraDevice> devices;
 
-    QJniObject deviceManager(QtJniTypes::className<QtJniTypes::QtVideoDeviceManager>(),
+    QJniObject deviceManager(QtJniTypes::Traits<QtJniTypes::QtVideoDeviceManager>::className(),
                              QNativeInterface::QAndroidApplication::context());
 
     if (!deviceManager.isValid()) {

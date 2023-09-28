@@ -74,7 +74,7 @@ bool checkCameraPermission()
 
 int sensorOrientation(QString cameraId)
 {
-    QJniObject deviceManager(QtJniTypes::className<QtJniTypes::QtVideoDeviceManager>(),
+    QJniObject deviceManager(QtJniTypes::Traits<QtJniTypes::QtVideoDeviceManager>::className(),
                              QNativeInterface::QAndroidApplication::context());
 
     if (!deviceManager.isValid()) {
@@ -91,7 +91,7 @@ int sensorOrientation(QString cameraId)
 
 QAndroidCamera::QAndroidCamera(QCamera *camera) : QPlatformCamera(camera)
 {
-    m_jniCamera = QJniObject(QtJniTypes::className<QtJniTypes::QtCamera2>(),
+    m_jniCamera = QJniObject(QtJniTypes::Traits<QtJniTypes::QtCamera2>::className(),
                              QNativeInterface::QAndroidApplication::context());
 
     m_hwAccel = QFFmpeg::HWAccel::create(AVHWDeviceType::AV_HWDEVICE_TYPE_MEDIACODEC);
@@ -347,7 +347,7 @@ void QAndroidCamera::updateCameraCharacteristics()
         return;
     }
 
-    QJniObject deviceManager(QtJniTypes::className<QtJniTypes::QtVideoDeviceManager>(),
+    QJniObject deviceManager(QtJniTypes::Traits<QtJniTypes::QtVideoDeviceManager>::className(),
                              QNativeInterface::QAndroidApplication::context());
 
     if (!deviceManager.isValid()) {
@@ -663,7 +663,7 @@ bool QAndroidCamera::registerNativeMethods()
 {
     static const bool registered = []() {
         return QJniEnvironment().registerNativeMethods(
-                QtJniTypes::className<QtJniTypes::QtCamera2>(),
+                QtJniTypes::Traits<QtJniTypes::QtCamera2>::className(),
                 {
                         Q_JNI_NATIVE_METHOD(onCameraOpened),
                         Q_JNI_NATIVE_METHOD(onCameraDisconnect),
