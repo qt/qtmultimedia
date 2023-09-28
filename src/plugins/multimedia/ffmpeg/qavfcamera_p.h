@@ -69,6 +69,7 @@ private:
     void updateVideoInput();
     void attachVideoInputDevice();
     uint32_t setPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat, uint32_t inputCvPixFormat);
+    QSize adjustedResolution() const;
 
     AVCaptureDevice *device() const;
 
