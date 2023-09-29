@@ -27,6 +27,9 @@
 
 QT_BEGIN_NAMESPACE
 
+class QV4L2FileDescriptor;
+class QV4L2MemoryTransfer;
+
 class QV4L2CameraDevices : public QPlatformVideoDevices
 {
     Q_OBJECT
@@ -44,24 +47,6 @@ private:
 private:
     QList<QCameraDevice> m_cameras;
     QFileSystemWatcher m_deviceWatcher;
-};
-
-struct QV4L2CameraBuffers
-{
-public:
-    ~QV4L2CameraBuffers();
-
-    void release(int index);
-    void unmapBuffers();
-
-    QAtomicInt ref;
-    QMutex mutex;
-    struct MappedBuffer {
-        void *data;
-        qsizetype size;
-    };
-    QList<MappedBuffer> mappedBuffers;
-    int v4l2FileDescriptor = -1;
 };
 
 class Q_MULTIMEDIA_EXPORT QV4L2Camera : public QPlatformCamera
@@ -107,8 +92,6 @@ public:
 
     QVideoFrameFormat frameFormat() const override;
 
-    void releaseBuffer(int index);
-
 private Q_SLOTS:
     void readFrame();
 
@@ -126,12 +109,13 @@ private:
     int getV4L2Parameter(quint32 id) const;
 
     void setV4L2CameraFormat();
-    void initMMap();
+    void initV4L2MemoryTransfer();
     void startCapturing();
     void stopCapturing();
 
     std::unique_ptr<QSocketNotifier> notifier;
-    QExplicitlySharedDataPointer<QV4L2CameraBuffers> d;
+    std::unique_ptr<QV4L2MemoryTransfer> memoryTransfer;
+    std::shared_ptr<QV4L2FileDescriptor> v4l2FileDescriptor;
 
     bool v4l2AutoWhiteBalanceSupported = false;
     bool v4l2ColorTemperatureSupported = false;
@@ -150,8 +134,11 @@ private:
     bool v4l2TorchSupported = false;
     int v4l2MinZoom = 0;
     int v4l2MaxZoom = 0;
+    bool v4l2CameraFormatInitialized = false;
+
     timeval firstFrameTime = {-1, -1};
-    int bytesPerLine = -1;
+    quint32 bytesPerLine = 0;
+    quint32 imageSize = 0;
     QVideoFrameFormat::ColorSpace colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
     qint64 frameDuration = -1;
     bool cameraBusy = false;
