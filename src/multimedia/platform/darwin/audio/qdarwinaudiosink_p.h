@@ -50,18 +50,18 @@
 // We mean it.
 //
 
-#include <qaudiosystem_p.h>
+#include <private/qaudiosystem_p.h>
+#include <private/qaudiostatemachine_p.h>
 
-#if defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
 # include <CoreAudio/CoreAudio.h>
 #endif
 #include <AudioUnit/AudioUnit.h>
 #include <CoreAudio/CoreAudioTypes.h>
 
 #include <QtCore/QIODevice>
-#include <QtCore/QWaitCondition>
-#include <QtCore/QMutex>
 #include <private/qdarwinaudiodevice_p.h>
+#include <qsemaphore.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -82,12 +82,16 @@ public:
     qint64 writeBytes(const char *data, qint64 maxSize);
 
     int available() const;
+
+    bool deviceAtEnd() const;
+
     void reset();
 
     void setPrefetchDevice(QIODevice *device);
 
-    void startFillTimer();
-    void stopFillTimer();
+    QIODevice *prefetchDevice() const;
+
+    void setFillingEnabled(bool enabled);
 
 signals:
     void readyRead();
@@ -96,13 +100,15 @@ private slots:
     void fillBuffer();
 
 private:
-    bool m_deviceError;
-    int m_maxPeriodSize;
-    int m_bytesPerFrame;
-    int m_periodTime;
-    QIODevice *m_device;
-    QTimer *m_fillTimer;
-    CoreAudioRingBuffer *m_buffer;
+    bool m_deviceError = false;
+    bool m_fillingEnabled = false;
+    bool m_deviceAtEnd = false;
+    const int m_maxPeriodSize = 0;
+    const int m_bytesPerFrame = 0;
+    const int m_periodTime = 0;
+    QIODevice *m_device = nullptr;
+    QTimer *m_fillTimer = nullptr;
+    std::unique_ptr<CoreAudioRingBuffer> m_buffer;
 };
 
 class QDarwinAudioSinkDevice : public QIODevice
@@ -125,7 +131,7 @@ class QDarwinAudioSink : public QPlatformAudioSink
     Q_OBJECT
 
 public:
-    QDarwinAudioSink(const QAudioDevice &device);
+    QDarwinAudioSink(const QAudioDevice &device, QObject *parent);
     ~QDarwinAudioSink();
 
     void start(QIODevice *device);
@@ -147,16 +153,10 @@ public:
     qreal volume() const;
 
 private slots:
-    void deviceStopped();
     void inputReady();
+    void updateAudioDevice();
 
 private:
-    enum {
-        Running,
-        Draining,
-        Stopped
-    };
-
     static OSStatus renderCallback(void *inRefCon,
                                     AudioUnitRenderActionFlags *ioActionFlags,
                                     const AudioTimeStamp *inTimeStamp,
@@ -166,16 +166,9 @@ private:
 
     bool open();
     void close();
-    void audioThreadStart();
-    void audioThreadStop();
-    void audioThreadDrain();
-    void audioDeviceStart();
-    void audioDeviceStop();
-    void audioDeviceIdle();
-    void audioDeviceError();
-
-    void startTimers();
-    void stopTimers();
+    void onAudioDeviceIdle();
+    void onAudioDeviceError();
+    void onAudioDeviceDrained();
 
     QAudioDevice m_audioDeviceInfo;
     QByteArray m_device;
@@ -192,20 +185,18 @@ private:
     AudioDeviceID m_audioDeviceId;
 #endif
     AudioUnit m_audioUnit = 0;
+    bool m_audioUnitStarted = false;
     Float64 m_clockFrequency = 0;
     AudioStreamBasicDescription m_streamFormat;
-    QDarwinAudioSinkBuffer *m_audioBuffer = nullptr;
-    QAtomicInt m_audioThreadState;
-    QWaitCondition m_threadFinished;
-    QMutex m_mutex;
+    std::unique_ptr<QDarwinAudioSinkBuffer> m_audioBuffer;
     qreal m_cachedVolume = 1.;
 #if defined(Q_OS_MACOS)
     qreal m_volume = 1.;
 #endif
     bool m_pullMode = false;
 
-    QAudio::Error m_errorCode = QAudio::NoError;
-    QAudio::State m_stateCode = QAudio::StoppedState;
+    QAudioStateMachine m_stateMachine;
+    QSemaphore m_drainSemaphore;
 };
 
 QT_END_NAMESPACE

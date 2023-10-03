@@ -357,7 +357,7 @@ QPlatformAudioSource *QDarwinMediaDevices::createAudioSource(const QAudioDevice 
 
 QPlatformAudioSink *QDarwinMediaDevices::createAudioSink(const QAudioDevice &info)
 {
-    return new QDarwinAudioSink(info);
+    return new QDarwinAudioSink(info, nullptr);
 }
 
 

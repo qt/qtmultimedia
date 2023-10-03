@@ -42,6 +42,7 @@
 
 QT_BEGIN_NAMESPACE
 
+
 /*!
     \class QPlatformAudioSink
     \brief The QPlatformAudioSink class is a base class for audio backends.
@@ -249,6 +250,16 @@ QT_BEGIN_NAMESPACE
     \fn QPlatformAudioSource::stateChanged(QAudio::State state)
     This signal is emitted when the device \a state has changed.
 */
+
+QAudioStateChangeNotifier::QAudioStateChangeNotifier(QObject *parent) : QObject(parent) { }
+
+QPlatformAudioSink::QPlatformAudioSink(QObject *parent) : QAudioStateChangeNotifier(parent) { }
+
+qreal QPlatformAudioSink::volume() const
+{
+    return 1.0;
+}
+
 
 QT_END_NAMESPACE
 
