@@ -60,7 +60,7 @@ Row {
 
     MediaDevices { id: mediaDevices }
 
-    AudioInput { id: audioInput; muted: false }
+    AudioInput { id: audioInput; muted: !audioSwitch.checked }
 
     Switch {
         id: audioSwitch;

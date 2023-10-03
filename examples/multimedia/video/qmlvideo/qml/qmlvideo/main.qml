@@ -49,6 +49,7 @@
 ****************************************************************************/
 
 import QtQuick
+import QtQuick.Dialogs
 
 Rectangle {
     id: root
@@ -114,7 +115,10 @@ Rectangle {
             textColorSelected: "white"
             height: d.buttonHeight
             text: (root.source1 == "") ? "Select file 1" : root.source1
-            onClicked: fileBrowser1.show()
+            onClicked: {
+                fileBrowser.setFirstSource = true
+                fileBrowser.open()
+            }
         }
 
         Button {
@@ -130,7 +134,10 @@ Rectangle {
             textColorSelected: "white"
             height: d.buttonHeight
             text: (root.source2 == "") ? "Select file 2" : root.source2
-            onClicked: fileBrowser2.show()
+            onClicked: {
+                fileBrowser.setFirstSource = false
+                fileBrowser.open()
+            }
         }
 
         Button {
@@ -237,26 +244,15 @@ Rectangle {
         ignoreUnknownSignals: true
     }
 
-    FileBrowser {
-        id: fileBrowser1
-        anchors.fill: root
-        onFolderChanged: fileBrowser2.folder = folder
-        Component.onCompleted: fileSelected.connect(root.openFile1)
-    }
-
-    FileBrowser {
-        id: fileBrowser2
-        anchors.fill: root
-        onFolderChanged: fileBrowser1.folder = folder
-        Component.onCompleted: fileSelected.connect(root.openFile2)
-    }
-
-    function openFile1(path) {
-        root.source1 = path
-    }
-
-    function openFile2(path) {
-        root.source2 = path
+    FileDialog {
+        id: fileBrowser
+        property bool setFirstSource
+        onAccepted: {
+            if (setFirstSource)
+               root.source1 = currentFile
+            else
+               root.source2 = currentFile
+        }
     }
 
     ErrorDialog {
@@ -270,8 +266,7 @@ Rectangle {
     // Called from main() once root properties have been set
     function init() {
         performanceLoader.init()
-        fileBrowser1.folder = videoPath
-        fileBrowser2.folder = videoPath
+        fileBrowser.currentFolder = videoPath
     }
 
     function qmlFramePainted() {

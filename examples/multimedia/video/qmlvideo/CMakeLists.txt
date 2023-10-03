@@ -79,7 +79,6 @@ set(qmlvideo_resource_files
     "qml/qmlvideo/CameraSpin.qml"
     "qml/qmlvideo/Content.qml"
     "qml/qmlvideo/ErrorDialog.qml"
-    "qml/qmlvideo/FileBrowser.qml"
     "qml/qmlvideo/Scene.qml"
     "qml/qmlvideo/SceneBasic.qml"
     "qml/qmlvideo/SceneDrag.qml"
