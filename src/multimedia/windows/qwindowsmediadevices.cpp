@@ -291,8 +291,20 @@ QPlatformAudioSink *QWindowsMediaDevices::createAudioSink(const QAudioDevice &de
     return new QWindowsAudioSink(devInfo->immDev(), parent);
 }
 
+static bool isPrepareAudioEnabled()
+{
+    static bool isDisableAudioPrepareSet = false;
+    static const int disableAudioPrepare =
+            qEnvironmentVariableIntValue("QT_DISABLE_AUDIO_PREPARE", &isDisableAudioPrepareSet);
+
+    return !isDisableAudioPrepareSet || disableAudioPrepare == 0;
+}
+
 void QWindowsMediaDevices::prepareAudio()
 {
+    if (!isPrepareAudioEnabled())
+        return;
+
     if (m_isAudioClientWarmedUp.exchange(true))
         return;
 
