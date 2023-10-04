@@ -52,11 +52,6 @@ exampledirs += ../../../examples/multimedia \
                snippets \
                ../../multimediawidgets/doc/snippets
 
-manifestmeta.highlighted.names  = "QtMultimedia/QML Media Player Example" \
-                                  "QtMultimedia/Media Player Example" \
-                                  "QtMultimedia/Camera Example" \
-                                  "QtMultimedia/QML Recorder Example" \
-
 headerdirs += .. \
               ../../multimediawidgets \
               ../../multimediaquick
@@ -75,6 +70,11 @@ ignoresince = 6.3
 navigation.landingpage = "Qt Multimedia"
 navigation.cppclassespage = "Qt Multimedia C++ Classes"
 navigation.qmltypespage = "Qt Multimedia QML Types"
+
+# Highlighted examples in Graphics & Multimedia category
+manifestmeta.highlighted.names = \
+    "QtMultimedia/Screen Capture Example" \
+    "QtMultimedia/QML Video Recorder"
 
 # Fail the documentation build if there are more warnings than the limit
 
