@@ -151,10 +151,10 @@ QPlatformMediaPlayer::TrackType MediaDataHolder::trackTypeFromMediaType(int medi
     }
 }
 
-QMaybe<MediaDataHolder, MediaDataHolder::ContextError> MediaDataHolder::create(const QUrl &mediaUrl,
-                                                                               QIODevice *stream)
+namespace {
+QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError> loadMedia(const QUrl &mediaUrl,
+                                                                    QIODevice *stream)
 {
-
     const QByteArray url = mediaUrl.toString(QUrl::PreferLocalFile).toUtf8();
 
     AVFormatContext *context = nullptr;
@@ -162,8 +162,9 @@ QMaybe<MediaDataHolder, MediaDataHolder::ContextError> MediaDataHolder::create(c
     if (stream) {
         if (!stream->isOpen()) {
             if (!stream->open(QIODevice::ReadOnly))
-                return ContextError{ QMediaPlayer::ResourceError,
-                                     QLatin1String("Could not open source device.") };
+                return MediaDataHolder::ContextError{
+                    QMediaPlayer::ResourceError, QLatin1String("Could not open source device.")
+                };
         }
         if (!stream->isSequential())
             stream->seek(0);
@@ -171,7 +172,8 @@ QMaybe<MediaDataHolder, MediaDataHolder::ContextError> MediaDataHolder::create(c
 
         constexpr int bufferSize = 32768;
         unsigned char *buffer = (unsigned char *)av_malloc(bufferSize);
-        context->pb = avio_alloc_context(buffer, bufferSize, false, stream, &readQIODevice, nullptr, &seekQIODevice);
+        context->pb = avio_alloc_context(buffer, bufferSize, false, stream, &readQIODevice, nullptr,
+                                         &seekQIODevice);
     }
 
     AVDictionaryHolder dict;
@@ -180,46 +182,47 @@ QMaybe<MediaDataHolder, MediaDataHolder::ContextError> MediaDataHolder::create(c
 
     int ret = avformat_open_input(&context, url.constData(), nullptr, dict);
     if (ret < 0) {
+        // TODO: Release context if allocated
         auto code = QMediaPlayer::ResourceError;
         if (ret == AVERROR(EACCES))
             code = QMediaPlayer::AccessDeniedError;
         else if (ret == AVERROR(EINVAL))
             code = QMediaPlayer::FormatError;
 
-        return ContextError{ code, QMediaPlayer::tr("Could not open file") };
+        return MediaDataHolder::ContextError{ code, QMediaPlayer::tr("Could not open file") };
     }
 
     ret = avformat_find_stream_info(context, nullptr);
     if (ret < 0) {
         avformat_close_input(&context);
-        return ContextError{ QMediaPlayer::FormatError,
-                             QMediaPlayer::tr("Could not find stream information for media file") };
+        return MediaDataHolder::ContextError{
+            QMediaPlayer::FormatError,
+            QMediaPlayer::tr("Could not find stream information for media file")
+        };
     }
 
 #ifndef QT_NO_DEBUG
     av_dump_format(context, 0, url.constData(), 0);
 #endif
-
-    MediaDataHolder media;
-    media.m_isSeekable = !(context->ctx_flags & AVFMTCTX_UNSEEKABLE);
-    media.m_context.reset(context);
-
-    media.updateStreams();
-    media.updateMetaData();
-
-    return media;
+    return AVFormatContextUPtr{ context };
+}
 }
 
-void MediaDataHolder::updateStreams()
+QMaybe<MediaDataHolder, MediaDataHolder::ContextError> MediaDataHolder::create(const QUrl &url,
+                                                                               QIODevice *stream)
 {
-    m_duration = 0;
-    m_requestedStreams = { -1, -1, -1 };
-    m_currentAVStreamIndex = { -1, -1, -1 };
-    m_streamMap = {};
+    QMaybe context = loadMedia(url, stream);
+    if (context)
+        return MediaDataHolder{ std::move(context.value()) };
+    return context.error();
+}
 
-    if (!m_context) {
-        return;
-    }
+MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context)
+{
+    Q_ASSERT(context);
+
+    m_context = std::move(context);
+    m_isSeekable = !(m_context->ctx_flags & AVFMTCTX_UNSEEKABLE);
 
     for (unsigned int i = 0; i < m_context->nb_streams; ++i) {
 
@@ -264,6 +267,8 @@ void MediaDataHolder::updateStreams()
         if (requestedStream >= 0)
             m_currentAVStreamIndex[trackType] = streamMap[requestedStream].avStreamIndex;
     }
+
+    updateMetaData();
 }
 
 void MediaDataHolder::updateMetaData()
