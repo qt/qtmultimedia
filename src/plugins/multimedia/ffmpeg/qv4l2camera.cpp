@@ -905,8 +905,7 @@ void QV4L2Camera::stopCapturing()
     if (!d)
         return;
 
-    delete notifier;
-    notifier = nullptr;
+    notifier.reset();
 
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
@@ -940,8 +939,8 @@ void QV4L2Camera::startCapturing()
     if (ioctl(d->v4l2FileDescriptor, VIDIOC_STREAMON, &type) < 0)
         qWarning() << "failed to start capture";
 
-    notifier = new QSocketNotifier(d->v4l2FileDescriptor, QSocketNotifier::Read);
-    connect(notifier, &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
+    notifier = std::make_unique<QSocketNotifier>(d->v4l2FileDescriptor, QSocketNotifier::Read);
+    connect(notifier.get(), &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
 
     firstFrameTime = { -1, -1 };
 }
