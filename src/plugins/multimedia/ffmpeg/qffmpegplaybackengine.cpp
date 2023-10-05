@@ -122,7 +122,7 @@ void PlaybackEngine::onRendererSynchronized(quint64 id, std::chrono::steady_cloc
 }
 
 void PlaybackEngine::setState(QMediaPlayer::PlaybackState state) {
-    if (!avContext())
+    if (!m_media.avContext())
         return;
 
     if (state == m_state)
@@ -202,7 +202,7 @@ PlaybackEngine::createRenderer(QPlatformMediaPlayer::TrackType trackType)
     switch (trackType) {
     case QPlatformMediaPlayer::VideoStream:
         return m_videoSink
-                ? createPlaybackEngineObject<VideoRenderer>(m_timeController, m_videoSink, getRotationAngle())
+                ? createPlaybackEngineObject<VideoRenderer>(m_timeController, m_videoSink, m_media.getRotationAngle())
                 : RendererPtr{ {}, {} };
     case QPlatformMediaPlayer::AudioStream:
         return m_audioOutput
@@ -309,7 +309,7 @@ void PlaybackEngine::recreateObjects()
 
 void PlaybackEngine::createObjectsIfNeeded()
 {
-    if (m_state == QMediaPlayer::StoppedState || !avContext())
+    if (m_state == QMediaPlayer::StoppedState || !m_media.avContext())
         return;
 
     for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i)
@@ -368,7 +368,7 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
 
 std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackType trackType)
 {
-    const auto streamIndex = currentStreamIndex(trackType);
+    const auto streamIndex = m_media.currentStreamIndex(trackType);
     if (streamIndex < 0)
         return {};
 
@@ -377,7 +377,7 @@ std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackTy
     if (!result) {
         qCDebug(qLcPlaybackEngine)
                 << "Create codec for stream:" << streamIndex << "trackType:" << trackType;
-        auto maybeCodec = Codec::create(avContext()->streams[streamIndex]);
+        auto maybeCodec = Codec::create(m_media.avContext()->streams[streamIndex]);
 
         if (!maybeCodec) {
             emit errorOccured(QMediaPlayer::FormatError,
@@ -405,7 +405,7 @@ void PlaybackEngine::createDemuxer()
     forEachExistingObject<StreamDecoder>([&](auto &stream) {
         hasStreams = true;
         const auto trackType = stream->trackType();
-        streamIndexes[trackType] = currentStreamIndex(trackType);
+        streamIndexes[trackType] = m_media.currentStreamIndex(trackType);
     });
 
     if (!hasStreams)
@@ -413,7 +413,7 @@ void PlaybackEngine::createDemuxer()
 
     const PositionWithOffset positionWithOffset{ currentPosition(false), m_currentLoopOffset };
 
-    m_demuxer = createPlaybackEngineObject<Demuxer>(avContext(), positionWithOffset,
+    m_demuxer = createPlaybackEngineObject<Demuxer>(m_media.avContext(), positionWithOffset,
                                                     streamIndexes, m_loops);
 
     forEachExistingObject<StreamDecoder>([&](auto &stream) {
@@ -467,7 +467,7 @@ bool PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
 
     m_codecs = {};
 
-    if (auto error = recreateAVFormatContext(media, stream)) {
+    if (auto error = m_media.recreateAVFormatContext(media, stream)) {
         emit errorOccured(error->code, error->description);
         return false;
     }
@@ -531,9 +531,32 @@ qint64 PlaybackEngine::currentPosition(bool topPos) const {
     return boundPosition(pos ? *pos : m_timeController.currentPosition());
 }
 
+qint64 PlaybackEngine::duration() const
+{
+    return m_media.duration();
+}
+
+bool PlaybackEngine::isSeekable() const { return m_media.isSeekable(); }
+
+const QList<MediaDataHolder::StreamInfo> &
+PlaybackEngine::streamInfo(QPlatformMediaPlayer::TrackType trackType) const
+{
+    return m_media.streamInfo(trackType);
+}
+
+const QMediaMetaData &PlaybackEngine::metaData() const
+{
+    return m_media.metaData();
+}
+
+int PlaybackEngine::activeTrack(QPlatformMediaPlayer::TrackType type) const
+{
+    return m_media.activeTrack(type);
+}
+
 void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, int streamNumber)
 {
-    if (!MediaDataHolder::setActiveTrack(trackType, streamNumber))
+    if (!m_media.setActiveTrack(trackType, streamNumber))
         return;
 
     m_codecs[trackType] = {};
