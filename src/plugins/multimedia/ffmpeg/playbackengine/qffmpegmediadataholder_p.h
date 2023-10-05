@@ -19,6 +19,7 @@
 #include "private/qplatformmediaplayer_p.h"
 #include "qffmpeg_p.h"
 #include "qvideoframe.h"
+#include <private/qmultimediautils_p.h>
 
 #include <array>
 #include <optional>
@@ -69,7 +70,7 @@ public:
 
     int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
 
-    std::optional<ContextError> recreateAVFormatContext(const QUrl &media, QIODevice *stream);
+    static QMaybe<MediaDataHolder, ContextError> create(const QUrl &mediaUrl, QIODevice *stream);
 
     bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
