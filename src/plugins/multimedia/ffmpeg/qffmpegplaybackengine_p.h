@@ -63,7 +63,7 @@ class QFFmpegMediaPlayer;
 namespace QFFmpeg
 {
 
-class PlaybackEngine : public QObject, public MediaDataHolder
+class PlaybackEngine : public QObject
 {
     Q_OBJECT
 public:
@@ -101,9 +101,18 @@ public:
 
     void setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
-    using MediaDataHolder::activeTrack;
-
     qint64 currentPosition(bool topPos = true) const;
+
+    qint64 duration() const;
+
+    bool isSeekable() const;
+
+    const QList<MediaDataHolder::StreamInfo> &
+    streamInfo(QPlatformMediaPlayer::TrackType trackType) const;
+
+    const QMediaMetaData &metaData() const;
+
+    int activeTrack(QPlatformMediaPlayer::TrackType type) const;
 
 signals:
     void endOfStream();
@@ -182,6 +191,8 @@ private:
     qint64 boundPosition(qint64 position) const;
 
 private:
+    MediaDataHolder m_media;
+
     TimeController m_timeController;
 
     std::unordered_map<QString, std::unique_ptr<QThread>> m_threads;
