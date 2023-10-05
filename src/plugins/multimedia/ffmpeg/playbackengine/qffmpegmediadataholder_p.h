@@ -69,16 +69,15 @@ public:
 
     int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
 
-protected:
     std::optional<ContextError> recreateAVFormatContext(const QUrl &media, QIODevice *stream);
-
-    void updateStreams();
-
-    void updateMetaData();
 
     bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
 private:
+    void updateStreams();
+
+    void updateMetaData();
+
     std::unique_ptr<AVFormatContext, AVFormatContextDeleter> m_context;
     bool m_isSeekable = false;
 
