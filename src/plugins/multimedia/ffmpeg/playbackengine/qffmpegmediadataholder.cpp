@@ -69,6 +69,16 @@ QVideoFrame::RotationAngle MediaDataHolder::getRotationAngle() const
     return static_cast<QVideoFrame::RotationAngle>(orientation);
 }
 
+AVFormatContext *MediaDataHolder::avContext()
+{
+    return m_context.get();
+}
+
+int MediaDataHolder::currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const
+{
+    return m_currentAVStreamIndex[trackType];
+}
+
 static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::TrackType trackType,
                             const AVStream *stream)
 {

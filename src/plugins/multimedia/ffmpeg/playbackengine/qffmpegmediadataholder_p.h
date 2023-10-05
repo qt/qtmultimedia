@@ -65,6 +65,10 @@ public:
 
     QVideoFrame::RotationAngle getRotationAngle() const;
 
+    AVFormatContext *avContext();
+
+    int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
+
 protected:
     std::optional<ContextError> recreateAVFormatContext(const QUrl &media, QIODevice *stream);
 
@@ -74,7 +78,7 @@ protected:
 
     bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
-protected:
+private:
     std::unique_ptr<AVFormatContext, AVFormatContextDeleter> m_context;
     bool m_isSeekable = false;
 
