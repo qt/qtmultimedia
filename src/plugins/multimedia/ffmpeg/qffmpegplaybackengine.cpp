@@ -122,7 +122,7 @@ void PlaybackEngine::onRendererSynchronized(quint64 id, std::chrono::steady_cloc
 }
 
 void PlaybackEngine::setState(QMediaPlayer::PlaybackState state) {
-    if (!m_context)
+    if (!avContext())
         return;
 
     if (state == m_state)
@@ -309,7 +309,7 @@ void PlaybackEngine::recreateObjects()
 
 void PlaybackEngine::createObjectsIfNeeded()
 {
-    if (m_state == QMediaPlayer::StoppedState || !m_context)
+    if (m_state == QMediaPlayer::StoppedState || !avContext())
         return;
 
     for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i)
@@ -368,7 +368,7 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
 
 std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackType trackType)
 {
-    const auto streamIndex = m_currentAVStreamIndex[trackType];
+    const auto streamIndex = currentStreamIndex(trackType);
     if (streamIndex < 0)
         return {};
 
@@ -377,7 +377,7 @@ std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackTy
     if (!result) {
         qCDebug(qLcPlaybackEngine)
                 << "Create codec for stream:" << streamIndex << "trackType:" << trackType;
-        auto maybeCodec = Codec::create(m_context->streams[streamIndex]);
+        auto maybeCodec = Codec::create(avContext()->streams[streamIndex]);
 
         if (!maybeCodec) {
             emit errorOccured(QMediaPlayer::FormatError,
@@ -399,13 +399,13 @@ bool PlaybackEngine::hasMediaStream() const
 
 void PlaybackEngine::createDemuxer()
 {
-    decltype(m_currentAVStreamIndex) streamIndexes = { -1, -1, -1 };
+    std::array<int, QPlatformMediaPlayer::NTrackTypes> streamIndexes = { -1, -1, -1 };
 
     bool hasStreams = false;
     forEachExistingObject<StreamDecoder>([&](auto &stream) {
         hasStreams = true;
         const auto trackType = stream->trackType();
-        streamIndexes[trackType] = m_currentAVStreamIndex[trackType];
+        streamIndexes[trackType] = currentStreamIndex(trackType);
     });
 
     if (!hasStreams)
@@ -413,7 +413,7 @@ void PlaybackEngine::createDemuxer()
 
     const PositionWithOffset positionWithOffset{ currentPosition(false), m_currentLoopOffset };
 
-    m_demuxer = createPlaybackEngineObject<Demuxer>(m_context.get(), positionWithOffset,
+    m_demuxer = createPlaybackEngineObject<Demuxer>(avContext(), positionWithOffset,
                                                     streamIndexes, m_loops);
 
     forEachExistingObject<StreamDecoder>([&](auto &stream) {
