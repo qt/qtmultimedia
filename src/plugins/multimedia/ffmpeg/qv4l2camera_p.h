@@ -128,7 +128,7 @@ private:
     void startCapturing();
     void stopCapturing();
 
-    QSocketNotifier *notifier = nullptr;
+    std::unique_ptr<QSocketNotifier> notifier;
     QExplicitlySharedDataPointer<QV4L2CameraBuffers> d;
 
     bool v4l2AutoWhiteBalanceSupported = false;
