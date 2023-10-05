@@ -466,9 +466,15 @@ bool PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
     deleteFreeThreads();
 
     m_codecs = {};
+    m_media = {};
 
-    if (auto error = m_media.recreateAVFormatContext(media, stream)) {
-        emit errorOccured(error->code, error->description);
+    QMaybe mediaHolder = MediaDataHolder::create(media, stream);
+
+    if (mediaHolder) {
+        m_media = std::move(mediaHolder.value());
+    } else {
+        const auto [code, description] = mediaHolder.error();
+        emit errorOccured(code, description);
         return false;
     }
 
