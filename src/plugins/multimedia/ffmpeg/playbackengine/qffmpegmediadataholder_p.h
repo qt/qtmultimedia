@@ -28,10 +28,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-struct AVFormatContextDeleter
-{
-    void operator()(AVFormatContext *avFormat) const { avformat_close_input(&avFormat); }
-};
+using AVFormatContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<decltype(&avformat_close_input), &avformat_close_input>>;
 
 class MediaDataHolder
 {
@@ -52,6 +49,8 @@ public:
     using StreamsMap = std::array<QList<StreamInfo>, QPlatformMediaPlayer::NTrackTypes>;
     using StreamIndexes = std::array<int, QPlatformMediaPlayer::NTrackTypes>;
 
+    MediaDataHolder() = default;
+    MediaDataHolder(AVFormatContextUPtr context);
     static QPlatformMediaPlayer::TrackType trackTypeFromMediaType(int mediaType);
 
     int activeTrack(QPlatformMediaPlayer::TrackType type) const;
@@ -70,21 +69,19 @@ public:
 
     int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
 
-    static QMaybe<MediaDataHolder, ContextError> create(const QUrl &mediaUrl, QIODevice *stream);
+    static QMaybe<MediaDataHolder, ContextError> create(const QUrl &url, QIODevice *stream);
 
     bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
 private:
-    void updateStreams();
-
     void updateMetaData();
 
-    std::unique_ptr<AVFormatContext, AVFormatContextDeleter> m_context;
+    AVFormatContextUPtr m_context;
     bool m_isSeekable = false;
 
-    StreamIndexes m_currentAVStreamIndex = { { -1, -1, -1 } };
+    StreamIndexes m_currentAVStreamIndex = { -1, -1, -1 };
     StreamsMap m_streamMap;
-    StreamIndexes m_requestedStreams = { { -1, -1, -1 } };
+    StreamIndexes m_requestedStreams = { -1, -1, -1 };
     qint64 m_duration = 0;
     QMediaMetaData m_metaData;
 };
