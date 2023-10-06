@@ -27,38 +27,59 @@ class QAudioSink;
 namespace QFFmpeg
 {
 
-class Thread : public QThread
+/*!
+    FFmpeg thread that is used to implement a consumer pattern.
+
+    This thread processes work items until no more data is available.
+    When no more data is available, it sleeps until it is notified about
+    more available data.
+ */
+class ConsumerThread : public QThread
 {
 public:
-    mutable QMutex mutex;
-    qint64 timeOut = -1;
+    /*!
+        Stops the thread and deletes this object
+     */
+    void stopAndDelete();
+
+protected:
+
+    /*!
+        Called on this thread when thread starts
+     */
+    virtual void init() = 0;
+
+    /*!
+        Called on this thread before thread exits
+     */
+    virtual void cleanup() = 0;
+
+    /*!
+        Process one work item. Called repeatedly until hasData() returns
+        false, in which case the thread sleeps until the next dataReady()
+        notification.
+
+        Note: processOne() should never block.
+     */
+    virtual void processOne() = 0;
+
+    /*!
+        Wake thread from sleep and process data until
+        hasData() returns false.
+    */
+    void dataReady();
+
+    /*!
+        Must return true when data is available for processing
+     */
+    virtual bool hasData() const = 0;
+
 private:
+    void run() final;
+
+    QMutex exitMutex; // Protects exit flag.
     QWaitCondition condition;
-
-protected:
-    QAtomicInteger<bool> exit = false;
-
-public:
-    // public API is thread-safe
-
-    void kill();
-    virtual void killHelper() {}
-
-    void wake() {
-        condition.wakeAll();
-    }
-
-protected:
-    virtual void init() {}
-    virtual void cleanup() {}
-    // loop() should never block, all blocking has to happen in shouldWait()
-    virtual void loop() = 0;
-    virtual bool shouldWait() const { return false; }
-
-private:
-    void maybePause();
-
-    void run() override;
+    bool exit = false;
 };
 
 }
