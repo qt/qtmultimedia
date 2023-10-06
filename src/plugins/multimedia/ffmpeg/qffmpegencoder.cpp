@@ -142,10 +142,10 @@ EncodingFinalizer::EncodingFinalizer(Encoder *e) : encoder(e) {
 void EncodingFinalizer::run()
 {
     if (encoder->audioEncode)
-        encoder->audioEncode->kill();
+        encoder->audioEncode->stopAndDelete();
     for (auto &videoEncoder : encoder->videoEncoders)
-        videoEncoder->kill();
-    encoder->muxer->kill();
+        videoEncoder->stopAndDelete();
+    encoder->muxer->stopAndDelete();
 
     if (encoder->isHeaderWritten) {
         const int res = av_write_trailer(encoder->formatContext);
@@ -218,7 +218,7 @@ void Muxer::addPacket(AVPacketUPtr packet)
     }
 
     //    qCDebug(qLcFFmpegEncoder) << "Muxer::addPacket" << packet->pts << packet->stream_index;
-    wake();
+    dataReady();
 }
 
 AVPacketUPtr Muxer::takePacket()
@@ -236,13 +236,13 @@ void Muxer::cleanup()
 {
 }
 
-bool QFFmpeg::Muxer::shouldWait() const
+bool QFFmpeg::Muxer::hasData() const
 {
     QMutexLocker locker(&queueMutex);
-    return packetQueue.empty();
+    return !packetQueue.empty();
 }
 
-void Muxer::loop()
+void Muxer::processOne()
 {
     auto packet = takePacket();
     //   qCDebug(qLcFFmpegEncoder) << "writing packet to file" << packet->pts << packet->duration <<
@@ -385,7 +385,7 @@ void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
     if (!paused.loadRelaxed()) {
         audioBufferQueue.push(buffer);
         locker.unlock();
-        wake();
+        dataReady();
     }
 }
 
@@ -407,16 +407,16 @@ void AudioEncoder::init()
 void AudioEncoder::cleanup()
 {
     while (!audioBufferQueue.empty())
-        loop();
+        processOne();
     while (avcodec_send_frame(codecContext.get(), nullptr) == AVERROR(EAGAIN))
         retrievePackets();
     retrievePackets();
 }
 
-bool AudioEncoder::shouldWait() const
+bool AudioEncoder::hasData() const
 {
     QMutexLocker locker(&queueMutex);
-    return audioBufferQueue.empty();
+    return !audioBufferQueue.empty();
 }
 
 void AudioEncoder::retrievePackets()
@@ -441,7 +441,7 @@ void AudioEncoder::retrievePackets()
     }
 }
 
-void AudioEncoder::loop()
+void AudioEncoder::processOne()
 {
     QAudioBuffer buffer = takeBuffer();
     if (!buffer.isValid() || paused.loadAcquire())
@@ -535,7 +535,7 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
 
         locker.unlock(); // Avoid context switch on wake wake-up
 
-        wake();
+        dataReady();
     }
 }
 
@@ -564,7 +564,7 @@ void VideoEncoder::init()
 void VideoEncoder::cleanup()
 {
     while (!videoFrameQueue.empty())
-        loop();
+        processOne();
     if (frameEncoder) {
         while (frameEncoder->sendFrame(nullptr) == AVERROR(EAGAIN))
             retrievePackets();
@@ -572,10 +572,10 @@ void VideoEncoder::cleanup()
     }
 }
 
-bool VideoEncoder::shouldWait() const
+bool VideoEncoder::hasData() const
 {
     QMutexLocker locker(&queueMutex);
-    return videoFrameQueue.empty();
+    return !videoFrameQueue.empty();
 }
 
 struct QVideoFrameHolder
@@ -589,7 +589,7 @@ static void freeQVideoFrame(void *opaque, uint8_t *)
     delete reinterpret_cast<QVideoFrameHolder *>(opaque);
 }
 
-void VideoEncoder::loop()
+void VideoEncoder::processOne()
 {
     if (paused.loadAcquire())
         return;
