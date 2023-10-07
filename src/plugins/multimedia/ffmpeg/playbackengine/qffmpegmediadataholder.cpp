@@ -206,14 +206,15 @@ QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError> loadMedia(const QUrl 
 #endif
     return AVFormatContextUPtr{ context };
 }
-}
+} // namespace
 
-QMaybe<MediaDataHolder, MediaDataHolder::ContextError> MediaDataHolder::create(const QUrl &url,
-                                                                               QIODevice *stream)
+MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *stream)
 {
     QMaybe context = loadMedia(url, stream);
-    if (context)
-        return MediaDataHolder{ std::move(context.value()) };
+    if (context) {
+        // MediaDataHolder is wrapped in a shared pointer to interop with signal/slot mechanism
+        return QSharedPointer<MediaDataHolder>{ new MediaDataHolder{ std::move(context.value()) } };
+    }
     return context.error();
 }
 

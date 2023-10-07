@@ -19,13 +19,16 @@
 #include <qmediametadata.h>
 #include <qtimer.h>
 #include <qpointer.h>
+#include <qfuture.h>
 #include "qffmpeg_p.h"
+#include "playbackengine/qffmpegmediadataholder_p.h"
 
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 class PlaybackEngine;
 }
+
 class QPlatformAudioOutput;
 
 class QFFmpegMediaPlayer : public QObject, public QPlatformMediaPlayer
@@ -67,13 +70,10 @@ public:
     void setActiveTrack(TrackType, int streamNumber) override;
     void setLoops(int loops) override;
 
-    Q_INVOKABLE void delayedLoadedStatus() {
-        if (mediaStatus() == QMediaPlayer::LoadingMedia)
-            mediaStatusChanged(QMediaPlayer::LoadedMedia);
-    }
-
 private:
     void runPlayback();
+    void handleIncorrectMedia(QMediaPlayer::MediaStatus status);
+    void setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaDataHolder);
 
 private slots:
     void updatePosition();
@@ -86,6 +86,7 @@ private slots:
 
 private:
     QTimer m_positionUpdateTimer;
+    QMediaPlayer::PlaybackState m_requestedStatus = QMediaPlayer::StoppedState;
 
     using PlaybackEngine = QFFmpeg::PlaybackEngine;
 
@@ -96,6 +97,7 @@ private:
     QUrl m_url;
     QPointer<QIODevice> m_device;
     float m_playbackRate = 1.;
+    QFuture<void> m_loadMedia;
 };
 
 QT_END_NAMESPACE

@@ -69,7 +69,8 @@ public:
 
     int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
 
-    static QMaybe<MediaDataHolder, ContextError> create(const QUrl &url, QIODevice *stream);
+    using Maybe = QMaybe<QSharedPointer<MediaDataHolder>, ContextError>;
+    static Maybe create(const QUrl &url, QIODevice *stream);
 
     bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 

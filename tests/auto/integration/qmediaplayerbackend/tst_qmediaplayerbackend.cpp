@@ -54,7 +54,7 @@ private slots:
     void setSource_emitsError_whenCalledWithInvalidFile();
     void setSource_emitsMediaStatusChange_whenCalledWithInvalidFile();
     void setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidFile();
-    void setSouce_setsSourceMediaStatusAndError_whenCalledWithInvalidFile();
+    void setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidFile();
     void pause_doesNotChangePlayerState_whenInvalidFileLoaded();
     void play_resetsErrorState_whenCalledWithInvalidFile();
     void loadInvalidMediaWhilePlayingAndRestore();
@@ -311,7 +311,7 @@ void tst_QMediaPlayerBackend::setSource_doesNotEmitPlaybackStateChange_whenCalle
     QVERIFY(m_fixture->playbackStateChanged.empty());
 }
 
-void tst_QMediaPlayerBackend::setSouce_setsSourceMediaStatusAndError_whenCalledWithInvalidFile()
+void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidFile()
 {
     if (!isWavSupported())
         QSKIP("Sound format is not supported");
@@ -483,7 +483,7 @@ void tst_QMediaPlayerBackend::loadMediaWhilePlaying()
 
     m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
     m_fixture->player.play();
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
     QVERIFY(m_fixture->surface.waitForFrame().isValid());
     QVERIFY(m_fixture->player.hasAudio());
     QVERIFY(m_fixture->player.hasVideo());
@@ -491,6 +491,9 @@ void tst_QMediaPlayerBackend::loadMediaWhilePlaying()
     m_fixture->clearSpies();
 
     m_fixture->player.setSource(m_localWavFile2);
+
+    QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::MediaStatus::LoadedMedia);
+
     QCOMPARE(m_fixture->player.source(), m_localWavFile2);
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(m_fixture->playbackStateChanged.size(), 1);
@@ -502,6 +505,9 @@ void tst_QMediaPlayerBackend::loadMediaWhilePlaying()
     m_fixture->player.play();
 
     m_fixture->player.setSource(m_localVideoFile2);
+
+    QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::MediaStatus::LoadedMedia);
+
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
     QVERIFY(m_fixture->player.hasVideo());
     QVERIFY(!m_fixture->player.hasAudio());
@@ -545,7 +551,7 @@ void tst_QMediaPlayerBackend::playPauseStop()
 
     m_fixture->player.play();
 
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
 
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
@@ -1755,6 +1761,8 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
     player.setAudioOutput(&output);
     player.setSource(videoWithDurationIssues);
 
+    QTRY_COMPARE_EQ(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
     // Duration event received
     QCOMPARE(durationSpy.size(), 1);
     QCOMPARE(durationSpy.front().front(), expectedDuration);
@@ -2087,7 +2095,7 @@ void tst_QMediaPlayerBackend::lazyLoadVideo()
     QQuickItem *videoPlayer = qobject_cast<QQuickItem *>(loader->findChild<QQuickItem *>("videoPlayer"));
     QVERIFY(videoPlayer);
 
-    QCOMPARE(QQmlProperty::read(videoPlayer, "playbackState").value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PlayingState);
+    QTRY_COMPARE_EQ(QQmlProperty::read(videoPlayer, "playbackState").value<QMediaPlayer::PlaybackState>(), QMediaPlayer::PlayingState);
     QCOMPARE(QQmlProperty::read(videoPlayer, "error").value<QMediaPlayer::Error>(), QMediaPlayer::NoError);
 
     QVideoSink *videoSink = QQmlProperty::read(videoPlayer, "videoSink").value<QVideoSink *>();
@@ -2117,6 +2125,8 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
     std::atomic<int> videoSizeCounter = 0;
 
     player.setSource(m_localVideoFile2);
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::MediaStatus::LoadedMedia);
 
     sink.platformVideoSink()->setNativeSize({}); // reset size to be able to check the size update
 
@@ -2168,6 +2178,9 @@ void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
     QCOMPARE(sink1.videoSize(), QSize());
 
     player.setSource(m_localVideoFile3ColorsWithSound);
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::MediaStatus::LoadedMedia);
+
     QCOMPARE(sink1.videoSize(), QSize(684, 384));
 
     player.setVideoOutput(&sink2);

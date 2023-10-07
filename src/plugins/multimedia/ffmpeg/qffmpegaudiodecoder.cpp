@@ -137,7 +137,15 @@ void QFFmpegAudioDecoder::start()
     connect(m_decoder.get(), &AudioDecoder::newAudioBuffer, this,
             &QFFmpegAudioDecoder::newAudioBuffer);
 
-    m_decoder->setMedia(m_url, m_sourceDevice);
+    QFFmpeg::MediaDataHolder::Maybe media = QFFmpeg::MediaDataHolder::create(m_url, m_sourceDevice);
+
+    if (media)
+        m_decoder->setMedia(std::move(*media.value()));
+    else {
+        auto [code, description] = media.error();
+        errorSignal(code, description);
+    }
+
     if (!checkNoError())
         return;
 
