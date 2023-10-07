@@ -38,7 +38,7 @@
  * OBJECTS WEAK CONNECTIVITY
  *
  * - The objects know nothing about others and about PlaybackEngine.
- *   For any interractions the objects use slots/signals.
+ *   For any interactions the objects use slots/signals.
  *
  * - PlaybackEngine knows the objects object and is able to create/delete them and
  *   call their public methods.
@@ -71,7 +71,7 @@ public:
 
     ~PlaybackEngine() override;
 
-    bool setMedia(const QUrl &media, QIODevice *stream);
+    void setMedia(MediaDataHolder media);
 
     void setVideoSink(QVideoSink *sink);
 

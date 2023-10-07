@@ -457,30 +457,14 @@ void PlaybackEngine::deleteFreeThreads() {
         thr->wait();
 }
 
-bool PlaybackEngine::setMedia(const QUrl &media, QIODevice *stream)
+void PlaybackEngine::setMedia(MediaDataHolder media)
 {
-    stop();
+    Q_ASSERT(!m_media.avContext()); // Playback engine does not support reloading media
+    Q_ASSERT(m_state == QMediaPlayer::StoppedState);
+    Q_ASSERT(m_threads.empty());
 
-    // we should wait for objects deleting instead
-    // optimized solution might be implemented in the future.
-    deleteFreeThreads();
-
-    m_codecs = {};
-    m_media = {};
-
-    QMaybe mediaHolder = MediaDataHolder::create(media, stream);
-
-    if (mediaHolder) {
-        m_media = std::move(mediaHolder.value());
-    } else {
-        const auto [code, description] = mediaHolder.error();
-        emit errorOccured(code, description);
-        return false;
-    }
-
+    m_media = std::move(media);
     updateVideoSinkSize();
-
-    return true;
 }
 
 void PlaybackEngine::setVideoSink(QVideoSink *sink)

@@ -10,6 +10,7 @@
 #include <qiodevice.h>
 #include <qvideosink.h>
 #include <qtimer.h>
+#include <QtConcurrent/QtConcurrent>
 
 #include <qloggingcategory.h>
 
@@ -25,7 +26,10 @@ QFFmpegMediaPlayer::QFFmpegMediaPlayer(QMediaPlayer *player)
     connect(&m_positionUpdateTimer, &QTimer::timeout, this, &QFFmpegMediaPlayer::updatePosition);
 }
 
-QFFmpegMediaPlayer::~QFFmpegMediaPlayer() = default;
+QFFmpegMediaPlayer::~QFFmpegMediaPlayer()
+{
+    m_loadMedia.waitForFinished(); // TODO: Add cancellation
+};
 
 qint64 QFFmpegMediaPlayer::duration() const
 {
@@ -34,6 +38,9 @@ qint64 QFFmpegMediaPlayer::duration() const
 
 void QFFmpegMediaPlayer::setPosition(qint64 position)
 {
+    if (mediaStatus() == QMediaPlayer::LoadingMedia)
+        return;
+
     if (m_playbackEngine) {
         m_playbackEngine->seek(position * 1000);
         updatePosition();
@@ -104,21 +111,24 @@ const QIODevice *QFFmpegMediaPlayer::mediaStream() const
     return m_device;
 }
 
+void QFFmpegMediaPlayer::handleIncorrectMedia(QMediaPlayer::MediaStatus status)
+{
+    seekableChanged(false);
+    audioAvailableChanged(false);
+    videoAvailableChanged(false);
+    metaDataChanged();
+    mediaStatusChanged(status);
+    m_playbackEngine = nullptr;
+};
+
 void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 {
+    // Wait for previous unfinished load attempts. TODO: add cancellation
+    m_loadMedia.waitForFinished();
+
     m_url = media;
     m_device = stream;
     m_playbackEngine = nullptr;
-
-    positionChanged(0);
-
-    auto handleIncorrectMedia = [this](QMediaPlayer::MediaStatus status) {
-        seekableChanged(false);
-        audioAvailableChanged(false);
-        videoAvailableChanged(false);
-        metaDataChanged();
-        mediaStatusChanged(status);
-    };
 
     if (media.isEmpty() && !stream) {
         handleIncorrectMedia(QMediaPlayer::NoMedia);
@@ -126,6 +136,32 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     }
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
+
+    m_requestedStatus = QMediaPlayer::StoppedState;
+
+    // Load media asynchronously to keep GUI thread responsive while loading media
+    m_loadMedia = QtConcurrent::run(
+            [this](const QUrl &media, QIODevice *stream) {
+                // On worker thread
+                const MediaDataHolder::Maybe mediaHolder = MediaDataHolder::create(media, stream);
+
+                // Transition back to calling thread using invokeMethod because
+                // QFuture continuations back on calling thread may deadlock (QTBUG-117918)
+                QMetaObject::invokeMethod(this, [this, mediaHolder] {
+                    setMediaAsync(mediaHolder);
+                });
+            }, media, stream);
+}
+
+void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaDataHolder)
+{
+    if (!mediaDataHolder) {
+        const auto [code, description] = mediaDataHolder.error();
+        error(code, description);
+        handleIncorrectMedia(QMediaPlayer::MediaStatus::InvalidMedia);
+        return;
+    }
+
     m_playbackEngine = std::make_unique<PlaybackEngine>();
 
     connect(m_playbackEngine.get(), &PlaybackEngine::endOfStream, this,
@@ -135,11 +171,7 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     connect(m_playbackEngine.get(), &PlaybackEngine::loopChanged, this,
             &QFFmpegMediaPlayer::onLoopChanged);
 
-    if (!m_playbackEngine->setMedia(media, stream)) {
-        m_playbackEngine.reset();
-        handleIncorrectMedia(QMediaPlayer::InvalidMedia);
-        return;
-    }
+    m_playbackEngine->setMedia(std::move(*mediaDataHolder.value()));
 
     m_playbackEngine->setAudioSink(m_audioOutput);
     m_playbackEngine->setVideoSink(m_videoSink);
@@ -156,12 +188,23 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
     videoAvailableChanged(
             !m_playbackEngine->streamInfo(QPlatformMediaPlayer::VideoStream).isEmpty());
 
-    // TODO: get rid of the delayed update
-    QMetaObject::invokeMethod(this, "delayedLoadedStatus", Qt::QueuedConnection);
+    mediaStatusChanged(QMediaPlayer::LoadedMedia);
+
+    if (m_requestedStatus != QMediaPlayer::StoppedState) {
+        if (m_requestedStatus == QMediaPlayer::PlayingState)
+            play();
+        else if (m_requestedStatus == QMediaPlayer::PausedState)
+            pause();
+    }
 }
 
 void QFFmpegMediaPlayer::play()
 {
+    if (mediaStatus() == QMediaPlayer::LoadingMedia) {
+        m_requestedStatus = QMediaPlayer::PlayingState;
+        return;
+    }
+
     if (!m_playbackEngine)
         return;
 
@@ -183,8 +226,14 @@ void QFFmpegMediaPlayer::runPlayback()
 
 void QFFmpegMediaPlayer::pause()
 {
+    if (mediaStatus() == QMediaPlayer::LoadingMedia) {
+        m_requestedStatus = QMediaPlayer::PausedState;
+        return;
+    }
+
     if (!m_playbackEngine)
         return;
+
     if (mediaStatus() == QMediaPlayer::EndOfMedia && state() == QMediaPlayer::StoppedState) {
         m_playbackEngine->seek(0);
         positionChanged(0);
@@ -197,8 +246,14 @@ void QFFmpegMediaPlayer::pause()
 
 void QFFmpegMediaPlayer::stop()
 {
+    if (mediaStatus() == QMediaPlayer::LoadingMedia) {
+        m_requestedStatus = QMediaPlayer::StoppedState;
+        return;
+    }
+
     if (!m_playbackEngine)
         return;
+
     m_playbackEngine->stop();
     m_positionUpdateTimer.stop();
     positionChanged(0);
