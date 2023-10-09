@@ -28,6 +28,12 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
+struct ICancelToken
+{
+    virtual ~ICancelToken() = default;
+    virtual bool isCancelled() const = 0;
+};
+
 using AVFormatContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<decltype(&avformat_close_input), &avformat_close_input>>;
 
 class MediaDataHolder
@@ -50,7 +56,8 @@ public:
     using StreamIndexes = std::array<int, QPlatformMediaPlayer::NTrackTypes>;
 
     MediaDataHolder() = default;
-    MediaDataHolder(AVFormatContextUPtr context);
+    MediaDataHolder(AVFormatContextUPtr context, const std::shared_ptr<ICancelToken> &cancelToken);
+
     static QPlatformMediaPlayer::TrackType trackTypeFromMediaType(int mediaType);
 
     int activeTrack(QPlatformMediaPlayer::TrackType type) const;
@@ -70,14 +77,19 @@ public:
     int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
 
     using Maybe = QMaybe<QSharedPointer<MediaDataHolder>, ContextError>;
-    static Maybe create(const QUrl &url, QIODevice *stream);
+    static Maybe create(const QUrl &url, QIODevice *stream,
+                        const std::shared_ptr<ICancelToken> &cancelToken);
 
     bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
 
 private:
     void updateMetaData();
 
+    std::shared_ptr<ICancelToken> m_cancelToken; // NOTE: Cancel token may be accessed by
+                                                 // AVFormatContext during destruction and
+                                                 // must outlive the context object
     AVFormatContextUPtr m_context;
+
     bool m_isSeekable = false;
 
     StreamIndexes m_currentAVStreamIndex = { -1, -1, -1 };

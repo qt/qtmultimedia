@@ -19,6 +19,7 @@ qt_internal_add_test(tst_qmediaplayerbackend
         mediaplayerstate.h
         fake.h
         fixture.h
+        server.h
         tst_qmediaplayerbackend.cpp
     LIBRARIES
         Qt::Gui

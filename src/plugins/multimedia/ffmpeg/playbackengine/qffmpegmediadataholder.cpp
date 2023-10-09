@@ -152,12 +152,12 @@ QPlatformMediaPlayer::TrackType MediaDataHolder::trackTypeFromMediaType(int medi
 }
 
 namespace {
-QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError> loadMedia(const QUrl &mediaUrl,
-                                                                    QIODevice *stream)
+QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError>
+loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancelToken> &cancelToken)
 {
     const QByteArray url = mediaUrl.toString(QUrl::PreferLocalFile).toUtf8();
 
-    AVFormatContext *context = nullptr;
+    AVFormatContextUPtr context{ avformat_alloc_context() };
 
     if (stream) {
         if (!stream->isOpen()) {
@@ -168,7 +168,6 @@ QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError> loadMedia(const QUrl 
         }
         if (!stream->isSequential())
             stream->seek(0);
-        context = avformat_alloc_context();
 
         constexpr int bufferSize = 32768;
         unsigned char *buffer = (unsigned char *)av_malloc(bufferSize);
@@ -180,9 +179,22 @@ QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError> loadMedia(const QUrl 
     constexpr auto NetworkTimeoutUs = "5000000";
     av_dict_set(dict, "timeout", NetworkTimeoutUs, 0);
 
-    int ret = avformat_open_input(&context, url.constData(), nullptr, dict);
+    context->interrupt_callback.opaque = cancelToken.get();
+    context->interrupt_callback.callback = [](void *opaque) {
+        const auto *cancelToken = static_cast<const ICancelToken *>(opaque);
+        if (cancelToken && cancelToken->isCancelled())
+            return 1;
+        return 0;
+    };
+
+    int ret = 0;
+    {
+        AVFormatContext *contextRaw = context.release();
+        ret = avformat_open_input(&contextRaw, url.constData(), nullptr, dict);
+        context.reset(contextRaw);
+    }
+
     if (ret < 0) {
-        // TODO: Release context if allocated
         auto code = QMediaPlayer::ResourceError;
         if (ret == AVERROR(EACCES))
             code = QMediaPlayer::AccessDeniedError;
@@ -192,9 +204,8 @@ QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError> loadMedia(const QUrl 
         return MediaDataHolder::ContextError{ code, QMediaPlayer::tr("Could not open file") };
     }
 
-    ret = avformat_find_stream_info(context, nullptr);
+    ret = avformat_find_stream_info(context.get(), nullptr);
     if (ret < 0) {
-        avformat_close_input(&context);
         return MediaDataHolder::ContextError{
             QMediaPlayer::FormatError,
             QMediaPlayer::tr("Could not find stream information for media file")
@@ -202,23 +213,26 @@ QMaybe<AVFormatContextUPtr, MediaDataHolder::ContextError> loadMedia(const QUrl 
     }
 
 #ifndef QT_NO_DEBUG
-    av_dump_format(context, 0, url.constData(), 0);
+    av_dump_format(context.get(), 0, url.constData(), 0);
 #endif
-    return AVFormatContextUPtr{ context };
+    return context;
 }
 } // namespace
 
-MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *stream)
+MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *stream,
+                                               const std::shared_ptr<ICancelToken> &cancelToken)
 {
-    QMaybe context = loadMedia(url, stream);
+    QMaybe context = loadMedia(url, stream, cancelToken);
     if (context) {
         // MediaDataHolder is wrapped in a shared pointer to interop with signal/slot mechanism
-        return QSharedPointer<MediaDataHolder>{ new MediaDataHolder{ std::move(context.value()) } };
+        return QSharedPointer<MediaDataHolder>{ new MediaDataHolder{ std::move(context.value()), cancelToken } };
     }
     return context.error();
 }
 
-MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context)
+MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
+                                 const std::shared_ptr<ICancelToken> &cancelToken)
+    : m_cancelToken{ cancelToken }
 {
     Q_ASSERT(context);
 

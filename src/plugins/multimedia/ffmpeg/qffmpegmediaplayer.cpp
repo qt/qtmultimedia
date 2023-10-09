@@ -16,6 +16,22 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QFFmpeg {
+
+class CancelToken : public ICancelToken
+{
+public:
+
+    bool isCancelled() const override { return m_cancelled.load(std::memory_order_acquire); }
+
+    void cancel() { m_cancelled.store(true, std::memory_order_release); }
+
+private:
+    std::atomic_bool m_cancelled = false;
+};
+
+} // namespace QFFmpeg
+
 using namespace QFFmpeg;
 
 QFFmpegMediaPlayer::QFFmpegMediaPlayer(QMediaPlayer *player)
@@ -28,7 +44,10 @@ QFFmpegMediaPlayer::QFFmpegMediaPlayer(QMediaPlayer *player)
 
 QFFmpegMediaPlayer::~QFFmpegMediaPlayer()
 {
-    m_loadMedia.waitForFinished(); // TODO: Add cancellation
+    if (m_cancelToken)
+        m_cancelToken->cancel();
+
+    m_loadMedia.waitForFinished();
 };
 
 qint64 QFFmpegMediaPlayer::duration() const
@@ -123,7 +142,10 @@ void QFFmpegMediaPlayer::handleIncorrectMedia(QMediaPlayer::MediaStatus status)
 
 void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 {
-    // Wait for previous unfinished load attempts. TODO: add cancellation
+    // Wait for previous unfinished load attempts.
+    if (m_cancelToken)
+        m_cancelToken->cancel();
+
     m_loadMedia.waitForFinished();
 
     m_url = media;
@@ -139,22 +161,37 @@ void QFFmpegMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
 
     m_requestedStatus = QMediaPlayer::StoppedState;
 
-    // Load media asynchronously to keep GUI thread responsive while loading media
-    m_loadMedia = QtConcurrent::run(
-            [this](const QUrl &media, QIODevice *stream) {
-                // On worker thread
-                const MediaDataHolder::Maybe mediaHolder = MediaDataHolder::create(media, stream);
+    m_cancelToken = std::make_shared<CancelToken>();
 
-                // Transition back to calling thread using invokeMethod because
-                // QFuture continuations back on calling thread may deadlock (QTBUG-117918)
-                QMetaObject::invokeMethod(this, [this, mediaHolder] {
-                    setMediaAsync(mediaHolder);
-                });
-            }, media, stream);
+    // Load media asynchronously to keep GUI thread responsive while loading media
+    m_loadMedia = QtConcurrent::run([this, media, stream, cancelToken = m_cancelToken] {
+        // On worker thread
+        const MediaDataHolder::Maybe mediaHolder =
+                MediaDataHolder::create(media, stream, cancelToken);
+
+        // Transition back to calling thread using invokeMethod because
+        // QFuture continuations back on calling thread may deadlock (QTBUG-117918)
+        QMetaObject::invokeMethod(this, [this, mediaHolder, cancelToken] {
+            setMediaAsync(mediaHolder, cancelToken);
+        });
+    });
 }
 
-void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaDataHolder)
+void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaDataHolder,
+                                       const std::shared_ptr<QFFmpeg::CancelToken> &cancelToken)
 {
+    Q_ASSERT(mediaStatus() == QMediaPlayer::LoadingMedia);
+
+    // If loading was cancelled, we do not emit any signals about failing
+    // to load media (or any other events). The rationale is that cancellation
+    // either happens during destruction, where the signals are no longer
+    // of interest, or it happens as a response to user requesting to load
+    // another media file. In the latter case, we don't want to risk popping
+    // up error dialogs or similar.
+    if (cancelToken->isCancelled()) {
+        return;
+    }
+
     if (!mediaDataHolder) {
         const auto [code, description] = mediaDataHolder.error();
         error(code, description);
