@@ -26,6 +26,8 @@
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
+class CancelToken;
+
 class PlaybackEngine;
 }
 
@@ -73,7 +75,8 @@ public:
 private:
     void runPlayback();
     void handleIncorrectMedia(QMediaPlayer::MediaStatus status);
-    void setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaDataHolder);
+    void setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaDataHolder,
+                       const std::shared_ptr<QFFmpeg::CancelToken> &cancelToken);
 
 private slots:
     void updatePosition();
@@ -98,6 +101,8 @@ private:
     QPointer<QIODevice> m_device;
     float m_playbackRate = 1.;
     QFuture<void> m_loadMedia;
+    std::shared_ptr<QFFmpeg::CancelToken> m_cancelToken; // For interrupting ongoing
+                                                         // network connection attempt
 };
 
 QT_END_NAMESPACE

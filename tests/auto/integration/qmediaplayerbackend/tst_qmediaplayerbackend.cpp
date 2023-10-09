@@ -7,13 +7,17 @@
 #include "mediaplayerstate.h"
 #include "fake.h"
 #include "fixture.h"
+#include "server.h"
 #include <qmediametadata.h>
 #include <qaudiobuffer.h>
 #include <qvideosink.h>
 #include <qvideoframe.h>
 #include <qaudiooutput.h>
 #include <qprocess.h>
-
+#include <private/qglobal_p.h>
+#ifdef QT_FEATURE_network
+#include <qtcpserver.h>
+#endif
 #include <qmediatimerange.h>
 #include <private/qplatformvideosink_p.h>
 
@@ -55,6 +59,8 @@ private slots:
     void setSource_emitsMediaStatusChange_whenCalledWithInvalidFile();
     void setSource_doesNotEmitPlaybackStateChange_whenCalledWithInvalidFile();
     void setSource_setsSourceMediaStatusAndError_whenCalledWithInvalidFile();
+    void setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond();
+    void destructor_cancelsPreviousSetSource_whenServerDoesNotRespond();
     void pause_doesNotChangePlayerState_whenInvalidFileLoaded();
     void play_resetsErrorState_whenCalledWithInvalidFile();
     void loadInvalidMediaWhilePlayingAndRestore();
@@ -329,6 +335,58 @@ void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalled
     const MediaPlayerState actualState{ m_fixture->player };
 
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+}
+
+void tst_QMediaPlayerBackend::setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond()
+{
+#ifdef QT_FEATURE_network
+    UnResponsiveRtspServer server;
+
+    QVERIFY(server.listen());
+
+    m_fixture->player.setSource(server.address());
+    QVERIFY(server.waitForConnection());
+
+    m_fixture->player.setSource(m_localVideoFile);
+
+    // Cancellation can not be reliably verified due to relatively short timeout,
+    // but we can verify that the player is in the correct state.
+    QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    // Cancellation is silent
+    QVERIFY(m_fixture->errorOccurred.empty());
+
+    // Media status is emitted as if only one file was loaded
+    QList<QList<QVariant>> expectedMediaStatus = { { QMediaPlayer::MediaStatus::LoadingMedia },
+                                                   { QMediaPlayer::MediaStatus::LoadedMedia } };
+    QCOMPARE_EQ(m_fixture->mediaStatusChanged, expectedMediaStatus);
+
+    // Two media source changed signals should be emitted still
+    QList<QList<QVariant>> expectedSource = { { server.address() }, { m_localVideoFile } };
+    QCOMPARE_EQ(m_fixture->sourceChanged, expectedSource);
+
+#else
+    QSKIP("Test requires network feature");
+#endif
+}
+
+void tst_QMediaPlayerBackend::destructor_cancelsPreviousSetSource_whenServerDoesNotRespond()
+{
+#ifdef QT_FEATURE_network
+    UnResponsiveRtspServer server;
+    QVERIFY(server.listen());
+
+    auto player = std::make_unique<QMediaPlayer>();
+    player->setSource(server.address());
+
+    QVERIFY(server.waitForConnection());
+
+    // Cancel connection (should be fast, but can't be reliably verified
+    // in a test. For now we just verify that we don't crash.
+    player = nullptr;
+#else
+    QSKIP("Test requires network feature");
+#endif
 }
 
 void tst_QMediaPlayerBackend::pause_doesNotChangePlayerState_whenInvalidFileLoaded()
