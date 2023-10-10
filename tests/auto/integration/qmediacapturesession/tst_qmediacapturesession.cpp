@@ -42,6 +42,9 @@ class tst_QMediaCaptureSession: public QObject
 
 private slots:
 
+#ifdef Q_OS_ANDROID
+    void initTestCase() { QSKIP("SKIP initTestCase on CI, because of QTBUG-118571"); }
+#endif
     void testAudioMute();
     void stress_test_setup_and_teardown();
 

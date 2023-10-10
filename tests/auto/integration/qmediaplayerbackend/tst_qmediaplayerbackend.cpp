@@ -272,6 +272,10 @@ bool tst_QMediaPlayerBackend::canCreateRtspStream() const
 
 void tst_QMediaPlayerBackend::initTestCase()
 {
+#ifdef Q_OS_ANDROID
+     QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
+#endif
+
     QMediaPlayer player;
     if (!player.isAvailable())
         QSKIP("Media player service is not available");

@@ -59,6 +59,9 @@ void tst_QAudioDecoderBackend::init()
 
 void tst_QAudioDecoderBackend::initTestCase()
 {
+#ifdef Q_OS_ANDROID
+     QSKIP("SKIP initTestCase on CI, because of QTBUG-118572");
+#endif
     QAudioDecoder d;
     if (!d.isSupported())
         QSKIP("Audio decoder service is not available");
