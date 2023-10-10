@@ -79,7 +79,7 @@ bool isSupportedCodec(T codec, QMediaFormat::ConversionMode m, CheckedCodecs<T> 
 static QList<QImageCapture::FileFormat> getImageFormatList()
 {
     QList<QImageCapture::FileFormat> list;
-    auto formats = QImageWriter::supportedImageFormats();
+    const auto formats = QImageWriter::supportedImageFormats();
 
     for (const auto &f : formats) {
         auto format = QString::fromUtf8(f);
