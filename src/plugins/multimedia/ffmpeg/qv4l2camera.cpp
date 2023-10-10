@@ -28,6 +28,17 @@ QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLV4L2Camera, "qt.multimedia.ffmpeg.v4l2camera");
 
+static int xioctl(int fd, int request, void *arg)
+{
+    int res;
+
+    do {
+        res = ioctl(fd, request, arg);
+    } while (res == -1 && EINTR == errno);
+
+    return res;
+}
+
 static bool areCamerasEqual(QList<QCameraDevice> a, QList<QCameraDevice> b) {
     auto areCamerasDataEqual = [](const QCameraDevice& a, const QCameraDevice& b) {
         Q_ASSERT(QCameraDevicePrivate::handle(a));
@@ -130,7 +141,7 @@ bool QV4L2CameraDevices::doCheckCameras()
         v4l2_fmtdesc formatDesc = {};
 
         struct v4l2_capability cap;
-        if (ioctl(fd, VIDIOC_QUERYCAP, &cap) < 0)
+        if (xioctl(fd, VIDIOC_QUERYCAP, &cap) < 0)
             continue;
 
         if (cap.device_caps & V4L2_CAP_META_CAPTURE)
@@ -148,7 +159,7 @@ bool QV4L2CameraDevices::doCheckCameras()
 
         formatDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-        while (!ioctl(fd, VIDIOC_ENUM_FMT, &formatDesc)) {
+        while (!xioctl(fd, VIDIOC_ENUM_FMT, &formatDesc)) {
             auto pixelFmt = formatForV4L2Format(formatDesc.pixelformat);
             qCDebug(qLV4L2Camera) << "    " << pixelFmt;
 
@@ -161,7 +172,7 @@ bool QV4L2CameraDevices::doCheckCameras()
             v4l2_frmsizeenum frameSize = {};
             frameSize.pixel_format = formatDesc.pixelformat;
 
-            while (!ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
+            while (!xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
                 ++frameSize.index;
                 if (frameSize.type != V4L2_FRMSIZE_TYPE_DISCRETE)
                     continue;
@@ -175,7 +186,7 @@ bool QV4L2CameraDevices::doCheckCameras()
                 frameInterval.width = frameSize.discrete.width;
                 frameInterval.height = frameSize.discrete.height;
 
-                while (!ioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
+                while (!xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
                     ++frameInterval.index;
                     if (frameInterval.type != V4L2_FRMIVAL_TYPE_DISCRETE)
                         continue;
@@ -264,7 +275,7 @@ void QV4L2CameraBuffers::release(int index)
     buf.memory = V4L2_MEMORY_MMAP;
     buf.index = index;
 
-    if (ioctl(v4l2FileDescriptor, VIDIOC_QBUF, &buf) < 0)
+    if (xioctl(v4l2FileDescriptor, VIDIOC_QBUF, &buf) < 0)
         qWarning() << "Couldn't release V4L2 buffer" << errno << strerror(errno) << index;
 }
 
@@ -456,7 +467,7 @@ bool QV4L2Camera::isFlashReady() const
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
 
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0)
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0)
         return true;
 
     return false;
@@ -584,7 +595,7 @@ void QV4L2Camera::readFrame()
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
 
-    if (ioctl(d->v4l2FileDescriptor, VIDIOC_DQBUF, &buf) < 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_DQBUF, &buf) < 0) {
         if (errno == ENODEV) {
             // camera got removed while being active
             stopCapturing();
@@ -656,14 +667,14 @@ void QV4L2Camera::initV4L2Controls()
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
 
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2AutoWhiteBalanceSupported = true;
         setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, true);
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2MinColorTemp = queryControl.minimum;
         v4l2MaxColorTemp = queryControl.maximum;
         v4l2ColorTemperatureSupported = true;
@@ -672,13 +683,13 @@ void QV4L2Camera::initV4L2Controls()
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_EXPOSURE_AUTO;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2AutoExposureSupported = true;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2ManualExposureSupported = true;
         v4l2MinExposure = queryControl.minimum;
         v4l2MaxExposure = queryControl.maximum;
@@ -687,7 +698,7 @@ void QV4L2Camera::initV4L2Controls()
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_EXPOSURE_BIAS;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2MinExposureAdjustment = queryControl.minimum;
         v4l2MaxExposureAdjustment = queryControl.maximum;
         features |= QCamera::Feature::ExposureCompensation;
@@ -695,9 +706,9 @@ void QV4L2Camera::initV4L2Controls()
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_ISO_SENSITIVITY_AUTO;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         queryControl.id = V4L2_CID_ISO_SENSITIVITY;
-        if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
             features |= QCamera::Feature::IsoSensitivity;
             minIsoChanged(queryControl.minimum);
             maxIsoChanged(queryControl.minimum);
@@ -706,7 +717,7 @@ void QV4L2Camera::initV4L2Controls()
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_FOCUS_ABSOLUTE;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2MinExposureAdjustment = queryControl.minimum;
         v4l2MaxExposureAdjustment = queryControl.maximum;
         features |= QCamera::Feature::FocusDistance;
@@ -714,13 +725,13 @@ void QV4L2Camera::initV4L2Controls()
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_FOCUS_RANGE;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2RangedFocus = true;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_FLASH_LED_MODE;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2FlashSupported = queryControl.minimum <= V4L2_FLASH_LED_MODE_FLASH && queryControl.maximum >= V4L2_FLASH_LED_MODE_FLASH;
         v4l2TorchSupported = queryControl.minimum <= V4L2_FLASH_LED_MODE_TORCH && queryControl.maximum >= V4L2_FLASH_LED_MODE_TORCH;
     }
@@ -729,7 +740,7 @@ void QV4L2Camera::initV4L2Controls()
     v4l2MaxZoom = 0;
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_ZOOM_ABSOLUTE;
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2MinZoom = queryControl.minimum;
         v4l2MaxZoom = queryControl.maximum;
     }
@@ -777,7 +788,7 @@ int QV4L2Camera::setV4L2ColorTemperature(int temperature)
 bool QV4L2Camera::setV4L2Parameter(quint32 id, qint32 value)
 {
     struct v4l2_control control{id, value};
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_S_CTRL, &control) != 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_S_CTRL, &control) != 0) {
         qWarning() << "Unable to set the V4L2 Parameter" << Qt::hex << id << "to" << value << qt_error_string(errno);
         return false;
     }
@@ -787,7 +798,7 @@ bool QV4L2Camera::setV4L2Parameter(quint32 id, qint32 value)
 int QV4L2Camera::getV4L2Parameter(quint32 id) const
 {
     struct v4l2_control control{id, 0};
-    if (::ioctl(d->v4l2FileDescriptor, VIDIOC_G_CTRL, &control) != 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_G_CTRL, &control) != 0) {
         qWarning() << "Unable to get the V4L2 Parameter" << Qt::hex << id << qt_error_string(errno);
         return 0;
     }
@@ -810,7 +821,7 @@ void QV4L2Camera::setV4L2CameraFormat()
 
     qCDebug(qLV4L2Camera) << "setting camera format to" << size;
 
-    if (ioctl(d->v4l2FileDescriptor, VIDIOC_S_FMT, &fmt) < 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_S_FMT, &fmt) < 0) {
         if (errno == EBUSY) {
             setCameraBusy();
             return;
@@ -846,7 +857,7 @@ void QV4L2Camera::setV4L2CameraFormat()
     streamParam.parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
     auto [num, den] = qRealToFraction(1./m_cameraFormat.maxFrameRate());
     streamParam.parm.capture.timeperframe = { (uint)num, (uint)den };
-    ioctl(d->v4l2FileDescriptor, VIDIOC_S_PARM, &streamParam);
+    xioctl(d->v4l2FileDescriptor, VIDIOC_S_PARM, &streamParam);
 
     frameDuration = 1000000*streamParam.parm.capture.timeperframe.numerator
                     /streamParam.parm.capture.timeperframe.denominator;
@@ -862,7 +873,7 @@ void QV4L2Camera::initMMap()
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = V4L2_MEMORY_MMAP;
 
-    if (ioctl(d->v4l2FileDescriptor, VIDIOC_REQBUFS, &req) < 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_REQBUFS, &req) < 0) {
         if (errno == EBUSY)
             setCameraBusy();
         qWarning() << "requesting mmap'ed buffers failed" << strerror(errno);
@@ -880,7 +891,7 @@ void QV4L2Camera::initMMap()
         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buf.memory = V4L2_MEMORY_MMAP;
 
-        if (ioctl(d->v4l2FileDescriptor, VIDIOC_QUERYBUF, &buf) != 0) {
+        if (xioctl(d->v4l2FileDescriptor, VIDIOC_QUERYBUF, &buf) != 0) {
             qWarning() << "Can't map buffer" << n;
             return;
         }
@@ -909,7 +920,7 @@ void QV4L2Camera::stopCapturing()
 
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (ioctl(d->v4l2FileDescriptor, VIDIOC_STREAMOFF, &type) < 0) {
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_STREAMOFF, &type) < 0) {
         if (errno != ENODEV)
             qWarning() << "failed to stop capture";
     }
@@ -930,13 +941,13 @@ void QV4L2Camera::startCapturing()
         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buf.memory = V4L2_MEMORY_MMAP;
 
-        if (ioctl(d->v4l2FileDescriptor, VIDIOC_QBUF, &buf) < 0) {
+        if (xioctl(d->v4l2FileDescriptor, VIDIOC_QBUF, &buf) < 0) {
             qWarning() << "failed to set up mapped buffer";
             return;
         }
     }
     enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (ioctl(d->v4l2FileDescriptor, VIDIOC_STREAMON, &type) < 0)
+    if (xioctl(d->v4l2FileDescriptor, VIDIOC_STREAMON, &type) < 0)
         qWarning() << "failed to start capture";
 
     notifier = std::make_unique<QSocketNotifier>(d->v4l2FileDescriptor, QSocketNotifier::Read);
