@@ -289,6 +289,9 @@ void tst_QScreenCaptureBackend::removeWhileCapture(
 
 void tst_QScreenCaptureBackend::initTestCase()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("SKIP initTestCase on CI, because of QTBUG-118573");
+#endif
 #if defined(Q_OS_LINUX)
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci" &&
         qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")

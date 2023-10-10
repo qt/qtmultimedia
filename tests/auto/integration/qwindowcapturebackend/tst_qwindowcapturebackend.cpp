@@ -29,6 +29,9 @@ class tst_QWindowCaptureBackend : public QObject
 private slots:
     static void initTestCase()
     {
+#ifdef Q_OS_ANDROID
+     QSKIP("Feature does not work on Android");
+#endif
 #if defined(Q_OS_LINUX)
         if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci"
             && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
