@@ -106,6 +106,9 @@ public Q_SLOTS:
 
 void tst_QCameraBackend::initTestCase()
 {
+#ifdef Q_OS_ANDROID
+    QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
+#endif
     QCamera camera;
     noCamera = !camera.isAvailable();
 }

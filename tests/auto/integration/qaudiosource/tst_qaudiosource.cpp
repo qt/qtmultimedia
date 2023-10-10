@@ -105,6 +105,10 @@ QString tst_QAudioSource::formatToFileName(const QAudioFormat &format)
 void tst_QAudioSource::initTestCase()
 {
     m_inCISystem = qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci";
+#ifdef Q_OS_ANDROID
+    // SKIP initTestCase because of QTBUG-118572
+    m_inCISystem = true;
+#endif
 
     if (m_inCISystem)
         QSKIP("SKIP initTestCase on CI. To be fixed");

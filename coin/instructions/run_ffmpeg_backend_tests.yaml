@@ -15,6 +15,9 @@ enable_if:
       env_var: TARGET_OSVERSION_COIN
       contains_value: opensuse
     - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
+      contains_value: android_any
+    - condition: runtime
       env_var: NON_QTBASE_CMAKE_ARGS
       contains_value: "-DFFMPEG_DIR=/"
     - condition: runtime

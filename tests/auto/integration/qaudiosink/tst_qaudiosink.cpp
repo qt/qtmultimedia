@@ -208,6 +208,9 @@ void tst_QAudioSink::generate_audiofile_testrows()
 
 void tst_QAudioSink::initTestCase()
 {
+#ifdef Q_OS_ANDROID
+     QSKIP("SKIP initTestCase on CI, because of QTBUG-118572");
+#endif
     // Only perform tests if audio output device exists
     const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
 
