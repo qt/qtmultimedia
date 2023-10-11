@@ -41,6 +41,7 @@
 #define EVRD3DPRESENTENGINE_H
 
 #include <QMutex>
+#include <QSize>
 #include <QVideoSurfaceFormat>
 
 #include <d3d9.h>
@@ -120,7 +121,7 @@ public:
     bool supportsTextureRendering() const;
     bool isTextureRenderingEnabled() const { return m_useTextureRendering; }
 
-    HRESULT createVideoSamples(IMFMediaType *format, QList<IMFSample*>& videoSampleQueue);
+    HRESULT createVideoSamples(IMFMediaType *format, QList<IMFSample*>& videoSampleQueue, QSize frameSize);
     QVideoSurfaceFormat videoSurfaceFormat() const { return m_surfaceFormat; }
     QVideoFrame makeVideoFrame(IMFSample* sample);
 

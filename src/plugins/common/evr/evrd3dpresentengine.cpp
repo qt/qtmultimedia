@@ -520,7 +520,7 @@ void D3DPresentEngine::setHint(Hint hint, bool enable)
         m_useTextureRendering = enable && supportsTextureRendering();
 }
 
-HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSample*> &videoSampleQueue)
+HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSample*> &videoSampleQueue, QSize frameSize)
 {
     if (!format)
         return MF_E_UNEXPECTED;
@@ -536,6 +536,11 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSamp
     hr = MFGetAttributeSize(format, MF_MT_FRAME_SIZE, &width, &height);
     if (FAILED(hr))
         return hr;
+
+    if (frameSize.isValid() && !frameSize.isEmpty()) {
+        width = frameSize.width();
+        height = frameSize.height();
+    }
 
     DWORD d3dFormat = 0;
     hr = qt_evr_getFourCC(format, &d3dFormat);

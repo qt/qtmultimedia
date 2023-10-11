@@ -374,6 +374,8 @@ void QDeclarativeVideoOutput::_q_updateNativeSize()
     if (!m_backend)
         return;
 
+    m_geometryDirty = true;
+
     QSize size = m_backend->nativeSize();
     if (!qIsDefaultAspect(m_orientation)) {
         size.transpose();
@@ -381,8 +383,6 @@ void QDeclarativeVideoOutput::_q_updateNativeSize()
 
     if (m_nativeSize != size) {
         m_nativeSize = size;
-
-        m_geometryDirty = true;
 
         setImplicitWidth(size.width());
         setImplicitHeight(size.height());
@@ -421,9 +421,8 @@ void QDeclarativeVideoOutput::_q_updateGeometry()
     }
 
     if (m_backend) {
-        if (!m_backend->videoSurface() || m_backend->videoSurface()->isActive())
-            m_backend->updateGeometry();
-        else
+        m_backend->updateGeometry();
+        if (m_backend->videoSurface() && !m_backend->videoSurface()->isActive())
             m_geometryDirty = true;
     }
 

@@ -171,6 +171,20 @@ bool AVFCameraFlashControl::applyFlashSettings()
         return false;
     }
 
+    auto setAvTorchModeSafe = [&captureDevice](AVCaptureTorchMode avTorchMode) {
+        if ([captureDevice isTorchModeSupported:avTorchMode])
+            captureDevice.torchMode = avTorchMode;
+        else
+            qDebugCamera() << Q_FUNC_INFO << "Attempt to setup unsupported torch mode " << avTorchMode;
+    };
+
+    auto setAvFlashModeSafe = [&captureDevice](AVCaptureFlashMode avFlashMode) {
+        if ([captureDevice isFlashModeSupported:avFlashMode])
+            captureDevice.flashMode = avFlashMode;
+        else
+            qDebugCamera() << Q_FUNC_INFO << "Attempt to setup unsupported flash mode " << avFlashMode;
+    };
+
     if (!isFlashModeSupported(m_flashMode)) {
         qDebugCamera() << Q_FUNC_INFO << "unsupported mode" << m_flashMode;
         return false;
@@ -192,7 +206,7 @@ bool AVFCameraFlashControl::applyFlashSettings()
                 return false;
             }
 #endif
-            captureDevice.torchMode = AVCaptureTorchModeOff;
+            setAvTorchModeSafe(AVCaptureTorchModeOff);
         }
 #ifdef Q_OS_IOS
         if (![captureDevice isFlashAvailable]) {
@@ -209,7 +223,7 @@ bool AVFCameraFlashControl::applyFlashSettings()
                 return false;
             }
 #endif
-            captureDevice.flashMode = AVCaptureFlashModeOff;
+            setAvFlashModeSafe(AVCaptureFlashModeOff);
         }
 
 #ifdef Q_OS_IOS
@@ -221,13 +235,13 @@ bool AVFCameraFlashControl::applyFlashSettings()
     }
 
     if (m_flashMode == QCameraExposure::FlashOff)
-        captureDevice.flashMode = AVCaptureFlashModeOff;
+        setAvFlashModeSafe(AVCaptureFlashModeOff);
     else if (m_flashMode == QCameraExposure::FlashOn)
-        captureDevice.flashMode = AVCaptureFlashModeOn;
+        setAvFlashModeSafe(AVCaptureFlashModeOn);
     else if (m_flashMode == QCameraExposure::FlashAuto)
-        captureDevice.flashMode = AVCaptureFlashModeAuto;
+        setAvFlashModeSafe(AVCaptureFlashModeAuto);
     else if (m_flashMode == QCameraExposure::FlashVideoLight)
-        captureDevice.torchMode = AVCaptureTorchModeOn;
+        setAvTorchModeSafe(AVCaptureTorchModeOn);
 
     return true;
 }

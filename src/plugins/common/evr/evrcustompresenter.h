@@ -44,6 +44,7 @@
 #include <qmutex.h>
 #include <qqueue.h>
 #include <qevent.h>
+#include <qrect.h>
 #include <qvideosurfaceformat.h>
 
 #include "evrdefs.h"
@@ -257,6 +258,7 @@ public:
 
     void supportedFormatsChanged();
     void setSurface(QAbstractVideoSurface *surface);
+    void setCropRect(QRect cropRect);
 
     void startSurface();
     void stopSurface();
@@ -368,6 +370,7 @@ private:
     QAbstractVideoSurface *m_surface;
     bool m_canRenderToSurface;
     qint64 m_positionOffset; // Seek position in microseconds.
+    QRect m_cropRect;  // Video crop rectangle
 };
 
 bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter);

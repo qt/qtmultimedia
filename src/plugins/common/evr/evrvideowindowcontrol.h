@@ -85,6 +85,8 @@ public:
 
     void applyImageControls();
 
+    void setCropRect(QRect cropRect);
+
 private:
     void clear();
     DXVA2_Fixed32 scaleProcAmpValue(DWORD prop, int value) const;
@@ -94,6 +96,7 @@ private:
     DWORD m_dirtyValues;
     Qt::AspectRatioMode m_aspectRatioMode;
     QRect m_displayRect;
+    QRect m_cropRect;
     int m_brightness;
     int m_contrast;
     int m_hue;
