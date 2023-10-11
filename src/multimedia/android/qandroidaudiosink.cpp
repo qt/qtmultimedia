@@ -62,6 +62,7 @@ void QAndroidAudioSink::start(QIODevice *device)
     if (!preparePlayer())
         return;
 
+    m_endSound = false;
     m_pullMode = true;
     m_audioSource = device;
     m_nextBuffer = 0;
@@ -263,7 +264,23 @@ void QAndroidAudioSink::bufferAvailable()
 
     // We're in pull mode.
     const int index = m_nextBuffer * m_bufferSize;
-    const qint64 readSize = m_audioSource->read(m_buffers + index, m_bufferSize);
+    qint64 readSize = 0;
+    if (m_audioSource->atEnd()) {
+        // The whole sound was passed to player buffer, but setting SL_PLAYSTATE_STOPPED state
+        // too quickly will result in cutting of end of the sound. Therefore, we make it a little
+        // longer with empty data to make sure they will be played correctly
+        if (m_endSound) {
+            m_endSound = false;
+            setState(QAudio::IdleState);
+            return;
+        }
+        m_endSound = true;
+        readSize = m_bufferSize;
+        memset(m_buffers + index, 0, readSize);
+    } else {
+        readSize = m_audioSource->read(m_buffers + index, m_bufferSize);
+    }
+
 
     if (readSize < 1) {
         QMetaObject::invokeMethod(this, "onEOSEvent", Qt::QueuedConnection);
@@ -281,9 +298,6 @@ void QAndroidAudioSink::bufferAvailable()
 
     m_nextBuffer = (m_nextBuffer + 1) % BufferCount;
     QMetaObject::invokeMethod(this, "onBytesProcessed", Qt::QueuedConnection, Q_ARG(qint64, readSize));
-
-    if (m_audioSource->atEnd())
-        setState(QAudio::IdleState);
 }
 
 void QAndroidAudioSink::playCallback(SLPlayItf player, void *ctx, SLuint32 event)
