@@ -91,6 +91,7 @@ private:
     int m_bufferSize = 0;
     qint64 m_elapsedTime = 0;
     qint64 m_processedBytes = 0;
+    bool m_endSound = false;
     QAtomicInt m_availableBuffers = BufferCount;
     SLuint32 m_eventMask = SL_PLAYEVENT_HEADATEND;
     bool m_startRequiresInit = true;
