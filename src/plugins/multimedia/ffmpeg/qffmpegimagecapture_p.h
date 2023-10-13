@@ -19,6 +19,7 @@
 #include <private/qplatformimagecapture_p.h>
 #include "qffmpegmediacapturesession_p.h"
 
+#include <QtCore/qpointer.h>
 #include <qqueue.h>
 
 QT_BEGIN_NAMESPACE

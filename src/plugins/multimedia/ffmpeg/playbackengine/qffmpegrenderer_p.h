@@ -18,6 +18,8 @@
 #include "playbackengine/qffmpegtimecontroller_p.h"
 #include "playbackengine/qffmpegframe_p.h"
 
+#include <QtCore/qpointer.h>
+
 #include <chrono>
 
 QT_BEGIN_NAMESPACE

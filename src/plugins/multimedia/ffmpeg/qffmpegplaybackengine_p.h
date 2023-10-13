@@ -51,6 +51,8 @@
 #include "playbackengine/qffmpegcodec_p.h"
 #include "playbackengine/qffmpegpositionwithoffset_p.h"
 
+#include <QtCore/qpointer.h>
+
 #include <unordered_map>
 
 QT_BEGIN_NAMESPACE
