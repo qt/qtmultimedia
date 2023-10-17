@@ -71,7 +71,7 @@ FocusScope {
 
             Item {
                 implicitWidth: buttonsWidth
-                height: 70
+                implicitHeight: 70
                 CameraButton {
                     text: "View"
                     anchors.fill: parent
