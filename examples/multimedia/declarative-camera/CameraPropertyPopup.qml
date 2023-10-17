@@ -52,7 +52,7 @@ Popup {
                 anchors.fill: parent
                 onClicked: {
                     propertyPopup.currentValue = value
-                    propertyPopup.selected(value)
+                    propertyPopup.selected()
                 }
             }
         }
