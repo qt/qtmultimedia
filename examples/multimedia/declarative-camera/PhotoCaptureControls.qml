@@ -75,7 +75,7 @@ FocusScope {
                 CameraButton {
                     text: "View"
                     anchors.fill: parent
-                    onClicked:state = captureControls.previewSelected()
+                    onClicked: captureControls.previewSelected()
                     visible: captureControls.previewAvailable
                 }
             }
