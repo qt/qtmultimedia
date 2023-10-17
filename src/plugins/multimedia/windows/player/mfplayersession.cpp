@@ -39,25 +39,15 @@
 QT_BEGIN_NAMESPACE
 
 MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
-    : m_cRef(1)
-    , m_playerControl(playerControl)
-    , m_session(0)
-    , m_presentationClock(0)
-    , m_rateControl(0)
-    , m_rateSupport(0)
-    , m_volumeControl(0)
-    , m_netsourceStatistics(0)
-    , m_scrubbing(false)
-    , m_restoreRate(1)
-    , m_sourceResolver(0)
-    , m_hCloseEvent(0)
-    , m_closing(false)
-    , m_mediaTypes(0)
-    , m_pendingRate(1)
-    , m_status(QMediaPlayer::NoMedia)
-    , m_audioSampleGrabber(0)
-    , m_audioSampleGrabberNode(0)
-    , m_videoProbeMFT(0)
+    : m_cRef(1),
+      m_playerControl(playerControl),
+      m_scrubbing(false),
+      m_restoreRate(1),
+      m_hCloseEvent(0),
+      m_closing(false),
+      m_mediaTypes(0),
+      m_pendingRate(1),
+      m_status(QMediaPlayer::NoMedia)
 
 {
     connect(this, &MFPlayerSession::sessionEvent, this, &MFPlayerSession::handleSessionEvent);
@@ -76,7 +66,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     m_request.prevCmd = CmdNone;
     m_request.rate = 1.0f;
 
-    m_audioSampleGrabber = new AudioSampleGrabberCallback;
+    m_audioSampleGrabber = makeComObject<AudioSampleGrabberCallback>();
     m_videoRendererControl = new MFVideoRendererControl(this);
 }
 
@@ -133,35 +123,21 @@ void MFPlayerSession::close()
         if (m_sourceResolver)
             m_sourceResolver->shutdown();
     }
-    if (m_sourceResolver) {
-        m_sourceResolver->Release();
-        m_sourceResolver = 0;
-    }
-    if (m_videoProbeMFT) {
-        m_videoProbeMFT->Release();
-        m_videoProbeMFT = 0;
-    }
+    m_sourceResolver.Reset();
+    m_videoProbeMFT.Reset();
 
     m_videoRendererControl->releaseActivate();
 //    } else if (m_playerService->videoWindowControl()) {
 //        m_playerService->videoWindowControl()->releaseActivate();
 //    }
 
-    if (m_session)
-        m_session->Release();
-    m_session = 0;
+    m_session.Reset();
     if (m_hCloseEvent)
         CloseHandle(m_hCloseEvent);
     m_hCloseEvent = 0;
     m_lastPosition = -1;
     m_position = 0;
 }
-
-MFPlayerSession::~MFPlayerSession()
-{
-    m_audioSampleGrabber->Release();
-}
-
 
 void MFPlayerSession::load(const QUrl &url, QIODevice *stream)
 {
@@ -228,7 +204,8 @@ void MFPlayerSession::handleSourceError(long hr)
 
 void MFPlayerSession::handleMediaSourceReady()
 {
-    if (QMediaPlayer::LoadingMedia != m_status || !m_sourceResolver || m_sourceResolver != sender())
+    if (QMediaPlayer::LoadingMedia != m_status || !m_sourceResolver
+        || m_sourceResolver.Get() != sender())
         return;
 #ifdef DEBUG_MEDIAFOUNDATION
     qDebug() << "handleMediaSourceReady";
@@ -240,7 +217,7 @@ void MFPlayerSession::handleMediaSourceReady()
     mediaSource->GetCharacteristics(&dwCharacteristics);
     seekableUpdate(MFMEDIASOURCE_CAN_SEEK & dwCharacteristics);
 
-    IMFPresentationDescriptor* sourcePD;
+    ComPtr<IMFPresentationDescriptor> sourcePD;
     hr = mediaSource->CreatePresentationDescriptor(&sourcePD);
     if (SUCCEEDED(hr)) {
         m_duration = 0;
@@ -249,9 +226,8 @@ void MFPlayerSession::handleMediaSourceReady()
         sourcePD->GetUINT64(MF_PD_DURATION, &m_duration);
         //convert from 100 nanosecond to milisecond
         durationUpdate(qint64(m_duration / 10000));
-        setupPlaybackTopology(mediaSource, sourcePD);
+        setupPlaybackTopology(mediaSource, sourcePD.Get());
         tracksChanged();
-        sourcePD->Release();
     } else {
         changeStatus(QMediaPlayer::InvalidMedia);
         error(QMediaPlayer::ResourceError, tr("Cannot create presentation descriptor."), true);
@@ -271,7 +247,7 @@ bool MFPlayerSession::getStreamInfo(IMFStreamDescriptor *stream,
     *name = QString();
     *language = QString();
 
-    IMFMediaTypeHandler *typeHandler = nullptr;
+    ComPtr<IMFMediaTypeHandler> typeHandler;
 
     if (SUCCEEDED(stream->GetMediaTypeHandler(&typeHandler))) {
 
@@ -299,13 +275,10 @@ bool MFPlayerSession::getStreamInfo(IMFStreamDescriptor *stream,
                 *type = Video;
         }
 
-        IMFMediaType *mediaType = nullptr;
+        ComPtr<IMFMediaType> mediaType;
         if (SUCCEEDED(typeHandler->GetCurrentMediaType(&mediaType))) {
             mediaType->GetGUID(MF_MT_SUBTYPE, format);
-            mediaType->Release();
         }
-
-        typeHandler->Release();
     }
 
     return *type != Unknown;
@@ -323,7 +296,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         return;
     }
 
-    IMFTopology *topology;
+    ComPtr<IMFTopology> topology;
     hr = MFCreateTopology(&topology);
     if (FAILED(hr)) {
         changeStatus(QMediaPlayer::InvalidMedia);
@@ -336,7 +309,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
     for (DWORD i = 0; i < cSourceStreams; i++) {
         BOOL selected = FALSE;
         bool streamAdded = false;
-        IMFStreamDescriptor *streamDesc = NULL;
+        ComPtr<IMFStreamDescriptor> streamDesc;
 
         HRESULT hr = sourcePD->GetStreamDescriptorByIndex(i, &selected, &streamDesc);
         if (SUCCEEDED(hr)) {
@@ -347,7 +320,8 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
             QString streamLanguage;
             GUID format = GUID_NULL;
 
-            if (getStreamInfo(streamDesc, &mediaType, &streamName, &streamLanguage, &format)) {
+            if (getStreamInfo(streamDesc.Get(), &mediaType, &streamName, &streamLanguage,
+                              &format)) {
 
                 QPlatformMediaPlayer::TrackType trackType = (mediaType == Audio) ?
                             QPlatformMediaPlayer::AudioStream : QPlatformMediaPlayer::VideoStream;
@@ -364,20 +338,23 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
                 m_trackInfo[trackType].format = format;
 
                 if (((m_mediaTypes & mediaType) == 0) && selected) { // Check if this type isn't already added
-                    IMFTopologyNode *sourceNode = addSourceNode(topology, source, sourcePD, streamDesc);
+                    ComPtr<IMFTopologyNode> sourceNode =
+                            addSourceNode(topology.Get(), source, sourcePD, streamDesc.Get());
                     if (sourceNode) {
-                        IMFTopologyNode *outputNode = addOutputNode(mediaType, topology, 0);
+                        ComPtr<IMFTopologyNode> outputNode =
+                                addOutputNode(mediaType, topology.Get(), 0);
                         if (outputNode) {
                             bool connected = false;
                             if (mediaType == Audio) {
                                 if (!m_audioSampleGrabberNode)
-                                    connected = setupAudioSampleGrabber(topology, sourceNode, outputNode);
+                                    connected = setupAudioSampleGrabber(
+                                            topology.Get(), sourceNode.Get(), outputNode.Get());
                             }
                             sourceNode->GetTopoNodeID(&m_trackInfo[trackType].sourceNodeId);
                             outputNode->GetTopoNodeID(&m_trackInfo[trackType].outputNodeId);
 
                             if (!connected)
-                                hr = sourceNode->ConnectOutput(0, outputNode, 0);
+                                hr = sourceNode->ConnectOutput(0, outputNode.Get(), 0);
 
                             if (FAILED(hr)) {
                                 error(QMediaPlayer::FormatError, tr("Unable to play any stream."), false);
@@ -397,17 +374,13 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
                                     break;
                                 }
                             }
-                            outputNode->Release();
                         }
-                        sourceNode->Release();
                     }
                 }
             }
 
             if (selected && !streamAdded)
                 sourcePD->DeselectStream(i);
-
-            streamDesc->Release();
         }
     }
 
@@ -418,7 +391,7 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         if (m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId != TOPOID(-1))
             topology = insertMFT(topology, m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId);
 
-        hr = m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
+        hr = m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology.Get());
         if (SUCCEEDED(hr)) {
             m_updatingTopology = true;
         } else {
@@ -426,13 +399,14 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
             error(QMediaPlayer::ResourceError, tr("Failed to set topology."), true);
         }
     }
-    topology->Release();
 }
 
-IMFTopologyNode* MFPlayerSession::addSourceNode(IMFTopology* topology, IMFMediaSource* source,
-                                                IMFPresentationDescriptor* presentationDesc, IMFStreamDescriptor *streamDesc)
+ComPtr<IMFTopologyNode> MFPlayerSession::addSourceNode(IMFTopology *topology,
+                                                       IMFMediaSource *source,
+                                                       IMFPresentationDescriptor *presentationDesc,
+                                                       IMFStreamDescriptor *streamDesc)
 {
-    IMFTopologyNode *node = NULL;
+    ComPtr<IMFTopologyNode> node;
     HRESULT hr = MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE, &node);
     if (SUCCEEDED(hr)) {
         hr = node->SetUnknown(MF_TOPONODE_SOURCE, source);
@@ -441,46 +415,43 @@ IMFTopologyNode* MFPlayerSession::addSourceNode(IMFTopology* topology, IMFMediaS
             if (SUCCEEDED(hr)) {
                 hr = node->SetUnknown(MF_TOPONODE_STREAM_DESCRIPTOR, streamDesc);
                 if (SUCCEEDED(hr)) {
-                    hr = topology->AddNode(node);
+                    hr = topology->AddNode(node.Get());
                     if (SUCCEEDED(hr))
                         return node;
                 }
             }
         }
-        node->Release();
     }
     return NULL;
 }
 
-IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology* topology, DWORD sinkID)
+ComPtr<IMFTopologyNode> MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology *topology,
+                                                       DWORD sinkID)
 {
-    IMFTopologyNode *node = NULL;
+    ComPtr<IMFTopologyNode> node;
     if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, &node)))
         return NULL;
 
-    IMFActivate *activate = NULL;
+    ComPtr<IMFActivate> activate;
     if (mediaType == Audio) {
         if (m_audioOutput) {
             auto id = m_audioOutput->device.id();
             if (id.isEmpty()) {
                 qInfo() << "No audio output";
-                node->Release();
                 return NULL;
             }
 
             HRESULT hr = MFCreateAudioRendererActivate(&activate);
             if (FAILED(hr)) {
                 qWarning() << "Failed to create audio renderer activate";
-                node->Release();
                 return NULL;
             }
 
             QString s = QString::fromUtf8(id);
             hr = activate->SetString(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID, (LPCWSTR)s.utf16());
             if (FAILED(hr)) {
-                qWarning() << "Failed to set attribute for audio device" << m_audioOutput->device.description();
-                activate->Release();
-                node->Release();
+                qWarning() << "Failed to set attribute for audio device"
+                           << m_audioOutput->device.description();
                 return NULL;
             }
         }
@@ -497,17 +468,15 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
         error(QMediaPlayer::FormatError, tr("Unknown stream type."), false);
     }
 
-    if (!activate
-            || FAILED(node->SetObject(activate))
-            || FAILED(node->SetUINT32(MF_TOPONODE_STREAMID, sinkID))
-            || FAILED(node->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE))
-            || FAILED(topology->AddNode(node))) {
-        node->Release();
-        node = NULL;
+    if (!activate || FAILED(node->SetObject(activate.Get()))
+        || FAILED(node->SetUINT32(MF_TOPONODE_STREAMID, sinkID))
+        || FAILED(node->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE))
+        || FAILED(topology->AddNode(node.Get()))) {
+        node.Reset();
     }
 
     if (activate && mediaType == Audio)
-        activate->Release();
+        activate.Reset();
 
     return node;
 }
@@ -515,9 +484,10 @@ IMFTopologyNode* MFPlayerSession::addOutputNode(MediaType mediaType, IMFTopology
 bool MFPlayerSession::addAudioSampleGrabberNode(IMFTopology *topology)
 {
     HRESULT hr = S_OK;
-    IMFMediaType *pType = 0;
-    IMFActivate *sinkActivate = 0;
     do {
+        ComPtr<IMFMediaType> pType;
+        ComPtr<IMFActivate> sinkActivate;
+
         hr = MFCreateMediaType(&pType);
         if (FAILED(hr))
             break;
@@ -530,7 +500,8 @@ bool MFPlayerSession::addAudioSampleGrabberNode(IMFTopology *topology)
         if (FAILED(hr))
             break;
 
-        hr = MFCreateSampleGrabberSinkActivate(pType, m_audioSampleGrabber, &sinkActivate);
+        hr = MFCreateSampleGrabberSinkActivate(pType.Get(), m_audioSampleGrabber.Get(),
+                                               &sinkActivate);
         if (FAILED(hr))
             break;
 
@@ -543,7 +514,7 @@ bool MFPlayerSession::addAudioSampleGrabberNode(IMFTopology *topology)
         if (FAILED(hr))
             break;
 
-        hr = m_audioSampleGrabberNode->SetObject(sinkActivate);
+        hr = m_audioSampleGrabberNode->SetObject(sinkActivate.Get());
         if (FAILED(hr))
             break;
 
@@ -555,23 +526,14 @@ bool MFPlayerSession::addAudioSampleGrabberNode(IMFTopology *topology)
         if (FAILED(hr))
             break;
 
-        hr = topology->AddNode(m_audioSampleGrabberNode);
+        hr = topology->AddNode(m_audioSampleGrabberNode.Get());
         if (FAILED(hr))
             break;
 
-        pType->Release();
-        sinkActivate->Release();
         return true;
     } while (false);
 
-    if (pType)
-        pType->Release();
-    if (sinkActivate)
-        sinkActivate->Release();
-    if (m_audioSampleGrabberNode) {
-        m_audioSampleGrabberNode->Release();
-        m_audioSampleGrabberNode = NULL;
-    }
+    m_audioSampleGrabberNode.Reset();
     return false;
 }
 
@@ -581,31 +543,23 @@ bool MFPlayerSession::setupAudioSampleGrabber(IMFTopology *topology, IMFTopology
         return false;
 
     HRESULT hr = S_OK;
-    IMFTopologyNode *pTeeNode = NULL;
-
-    IMFMediaTypeHandler *typeHandler = NULL;
-    IMFMediaType *mediaType = NULL;
     do {
+        ComPtr<IMFTopologyNode> pTeeNode;
+
         hr = MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE, &pTeeNode);
         if (FAILED(hr))
             break;
-        hr = sourceNode->ConnectOutput(0, pTeeNode, 0);
+        hr = sourceNode->ConnectOutput(0, pTeeNode.Get(), 0);
         if (FAILED(hr))
             break;
         hr = pTeeNode->ConnectOutput(0, outputNode, 0);
         if (FAILED(hr))
             break;
-        hr = pTeeNode->ConnectOutput(1, m_audioSampleGrabberNode, 0);
+        hr = pTeeNode->ConnectOutput(1, m_audioSampleGrabberNode.Get(), 0);
         if (FAILED(hr))
             break;
     } while (false);
 
-    if (pTeeNode)
-        pTeeNode->Release();
-    if (mediaType)
-        mediaType->Release();
-    if (typeHandler)
-        typeHandler->Release();
     return hr == S_OK;
 }
 
@@ -615,10 +569,10 @@ bool MFPlayerSession::setupAudioSampleGrabber(IMFTopology *topology, IMFTopology
 // IMFStreamSink pointer before the topology loader resolves the topology.
 HRESULT BindOutputNode(IMFTopologyNode *pNode)
 {
-    IUnknown *nodeObject = NULL;
-    IMFActivate *activate = NULL;
-    IMFStreamSink *stream = NULL;
-    IMFMediaSink *sink = NULL;
+    ComPtr<IUnknown> nodeObject;
+    ComPtr<IMFActivate> activate;
+    ComPtr<IMFStreamSink> stream;
+    ComPtr<IMFMediaSink> sink;
 
     HRESULT hr = pNode->GetObject(&nodeObject);
     if (FAILED(hr))
@@ -644,20 +598,12 @@ HRESULT BindOutputNode(IMFTopologyNode *pNode)
 
         // Replace the node's object pointer with the stream sink.
         if (SUCCEEDED(hr)) {
-            hr = pNode->SetObject(stream);
+            hr = pNode->SetObject(stream.Get());
         }
     } else {
         hr = nodeObject->QueryInterface(IID_PPV_ARGS(&stream));
     }
 
-    if (nodeObject)
-        nodeObject->Release();
-    if (activate)
-        activate->Release();
-    if (stream)
-        stream->Release();
-    if (sink)
-        sink->Release();
     return hr;
 }
 
@@ -665,7 +611,7 @@ HRESULT BindOutputNode(IMFTopologyNode *pNode)
 // Sets the IMFStreamSink pointers on all of the output nodes in a topology.
 HRESULT BindOutputNodes(IMFTopology *pTopology)
 {
-    IMFCollection *collection;
+    ComPtr<IMFCollection> collection;
 
     // Get the collection of output nodes.
     HRESULT hr = pTopology->GetOutputNodeCollection(&collection);
@@ -677,25 +623,22 @@ HRESULT BindOutputNodes(IMFTopology *pTopology)
 
         if (SUCCEEDED(hr)) {
             for (DWORD i = 0; i < cNodes; i++) {
-                IUnknown *element;
+                ComPtr<IUnknown> element;
                 hr = collection->GetElement(i, &element);
                 if (FAILED(hr))
                     break;
 
-                IMFTopologyNode *node;
-                hr = element->QueryInterface(IID_IMFTopologyNode, (void**)&node);
-                element->Release();
+                ComPtr<IMFTopologyNode> node;
+                hr = element->QueryInterface(IID_IMFTopologyNode, &node);
                 if (FAILED(hr))
                     break;
 
                 // Bind this node.
-                hr = BindOutputNode(node);
-                node->Release();
+                hr = BindOutputNode(node.Get());
                 if (FAILED(hr))
                     break;
             }
         }
-        collection->Release();
     }
 
     return hr;
@@ -704,30 +647,31 @@ HRESULT BindOutputNodes(IMFTopology *pTopology)
 // This method binds output nodes to complete the topology,
 // then loads the topology and inserts MFT between the output node
 // and a filter connected to the output node.
-IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNodeId)
+ComPtr<IMFTopology> MFPlayerSession::insertMFT(const ComPtr<IMFTopology> &topology,
+                                               TOPOID outputNodeId)
 {
     bool isNewTopology = false;
 
-    IMFTopoLoader *topoLoader = 0;
-    IMFTopology *resolvedTopology = 0;
-    IMFCollection *outputNodes = 0;
+    ComPtr<IMFTopoLoader> topoLoader;
+    ComPtr<IMFTopology> resolvedTopology;
+    ComPtr<IMFCollection> outputNodes;
 
     do {
-        if (FAILED(BindOutputNodes(topology)))
+        if (FAILED(BindOutputNodes(topology.Get())))
             break;
 
         if (FAILED(MFCreateTopoLoader(&topoLoader)))
             break;
 
-        if (FAILED(topoLoader->Load(topology, &resolvedTopology, NULL))) {
+        if (FAILED(topoLoader->Load(topology.Get(), &resolvedTopology, NULL))) {
             // Topology could not be resolved, adding ourselves a color converter
             // to the topology might solve the problem
-            insertColorConverter(topology, outputNodeId);
-            if (FAILED(topoLoader->Load(topology, &resolvedTopology, NULL)))
+            insertColorConverter(topology.Get(), outputNodeId);
+            if (FAILED(topoLoader->Load(topology.Get(), &resolvedTopology, NULL)))
                 break;
         }
 
-        if (insertResizer(resolvedTopology))
+        if (insertResizer(resolvedTopology.Get()))
             isNewTopology = true;
 
         // Get all output nodes and search for video output node.
@@ -739,18 +683,18 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
             break;
 
         for (DWORD n = 0; n < elementCount; n++) {
-            IUnknown *element = 0;
-            IMFTopologyNode *node = 0;
-            IUnknown *outputObject = 0;
-            IMFTopologyNode *inputNode = 0;
-            IMFTopologyNode *mftNode = 0;
+            ComPtr<IUnknown> element;
+            ComPtr<IMFTopologyNode> node;
+            ComPtr<IUnknown> outputObject;
+            ComPtr<IMFTopologyNode> inputNode;
+            ComPtr<IMFTopologyNode> mftNode;
             bool mftAdded = false;
 
             do {
                 if (FAILED(outputNodes->GetElement(n, &element)))
                     break;
 
-                if (FAILED(element->QueryInterface(IID_IMFTopologyNode, (void**)&node)))
+                if (FAILED(element->QueryInterface(IID_IMFTopologyNode, &node)))
                     break;
 
                 TOPOID id;
@@ -763,7 +707,7 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
                 if (FAILED(node->GetObject(&outputObject)))
                     break;
 
-                m_videoProbeMFT->setVideoSink(outputObject);
+                m_videoProbeMFT->setVideoSink(outputObject.Get());
 
                 // Insert MFT between the output node and the node connected to it.
                 DWORD outputIndex = 0;
@@ -773,32 +717,21 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
                 if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
                     break;
 
-                if (FAILED(mftNode->SetObject(m_videoProbeMFT)))
+                if (FAILED(mftNode->SetObject(m_videoProbeMFT.Get())))
                     break;
 
-                if (FAILED(resolvedTopology->AddNode(mftNode)))
+                if (FAILED(resolvedTopology->AddNode(mftNode.Get())))
                     break;
 
-                if (FAILED(inputNode->ConnectOutput(0, mftNode, 0)))
+                if (FAILED(inputNode->ConnectOutput(0, mftNode.Get(), 0)))
                     break;
 
-                if (FAILED(mftNode->ConnectOutput(0, node, 0)))
+                if (FAILED(mftNode->ConnectOutput(0, node.Get(), 0)))
                     break;
 
                 mftAdded = true;
                 isNewTopology = true;
             } while (false);
-
-            if (mftNode)
-                mftNode->Release();
-            if (inputNode)
-                inputNode->Release();
-            if (node)
-                node->Release();
-            if (element)
-                element->Release();
-            if (outputObject)
-                outputObject->Release();
 
             if (mftAdded)
                 break;
@@ -807,19 +740,9 @@ IMFTopology *MFPlayerSession::insertMFT(IMFTopology *topology, TOPOID outputNode
         }
     } while (false);
 
-    if (outputNodes)
-        outputNodes->Release();
-
-    if (topoLoader)
-        topoLoader->Release();
-
     if (isNewTopology) {
-        topology->Release();
         return resolvedTopology;
     }
-
-    if (resolvedTopology)
-        resolvedTopology->Release();
 
     return topology;
 }
@@ -832,26 +755,20 @@ bool MFPlayerSession::insertResizer(IMFTopology *topology)
 {
     bool inserted = false;
     WORD elementCount = 0;
-    IMFTopologyNode *node = 0;
-    IUnknown *object = 0;
-    IWMColorConvProps *colorConv = 0;
-    IMFTransform *resizer = 0;
-    IMFTopologyNode *resizerNode = 0;
-    IMFTopologyNode *inputNode = 0;
+    ComPtr<IMFTopologyNode> node;
+    ComPtr<IUnknown> object;
+    ComPtr<IWMColorConvProps> colorConv;
+    ComPtr<IMFTransform> resizer;
+    ComPtr<IMFTopologyNode> resizerNode;
+    ComPtr<IMFTopologyNode> inputNode;
 
     HRESULT hr = topology->GetNodeCount(&elementCount);
     if (FAILED(hr))
         return false;
 
     for (WORD i = 0; i < elementCount; ++i) {
-        if (node) {
-            node->Release();
-            node = 0;
-        }
-        if (object) {
-            object->Release();
-            object = 0;
-        }
+        node.Reset();
+        object.Reset();
 
         if (FAILED(topology->GetNode(i, &node)))
             break;
@@ -866,54 +783,42 @@ bool MFPlayerSession::insertResizer(IMFTopology *topology)
         if (FAILED(node->GetObject(&object)))
             break;
 
-        if (FAILED(object->QueryInterface(&colorConv)))
+        if (FAILED(object->QueryInterface(IID_PPV_ARGS(&colorConv))))
             continue;
 
-        if (FAILED(CoCreateInstance(CLSID_CResizerDMO, NULL, CLSCTX_INPROC_SERVER, IID_IMFTransform, (void**)&resizer)))
+        if (FAILED(CoCreateInstance(CLSID_CResizerDMO, NULL, CLSCTX_INPROC_SERVER, IID_IMFTransform,
+                                    &resizer)))
             break;
 
         if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &resizerNode)))
             break;
 
-        if (FAILED(resizerNode->SetObject(resizer)))
+        if (FAILED(resizerNode->SetObject(resizer.Get())))
             break;
 
-        if (FAILED(topology->AddNode(resizerNode)))
+        if (FAILED(topology->AddNode(resizerNode.Get())))
             break;
 
         DWORD outputIndex = 0;
         if (FAILED(node->GetInput(0, &inputNode, &outputIndex))) {
-            topology->RemoveNode(resizerNode);
+            topology->RemoveNode(resizerNode.Get());
             break;
         }
 
-        if (FAILED(inputNode->ConnectOutput(0, resizerNode, 0))) {
-            topology->RemoveNode(resizerNode);
+        if (FAILED(inputNode->ConnectOutput(0, resizerNode.Get(), 0))) {
+            topology->RemoveNode(resizerNode.Get());
             break;
         }
 
-        if (FAILED(resizerNode->ConnectOutput(0, node, 0))) {
-            inputNode->ConnectOutput(0, node, 0);
-            topology->RemoveNode(resizerNode);
+        if (FAILED(resizerNode->ConnectOutput(0, node.Get(), 0))) {
+            inputNode->ConnectOutput(0, node.Get(), 0);
+            topology->RemoveNode(resizerNode.Get());
             break;
         }
 
         inserted = true;
         break;
     }
-
-    if (node)
-        node->Release();
-    if (object)
-        object->Release();
-    if (colorConv)
-        colorConv->Release();
-    if (resizer)
-        resizer->Release();
-    if (resizerNode)
-        resizerNode->Release();
-    if (inputNode)
-        inputNode->Release();
 
     return inserted;
 }
@@ -924,27 +829,27 @@ bool MFPlayerSession::insertResizer(IMFTopology *topology)
 // for some reason it fails to do so in some cases, we then do it ourselves.
 void MFPlayerSession::insertColorConverter(IMFTopology *topology, TOPOID outputNodeId)
 {
-    IMFCollection *outputNodes = 0;
+    ComPtr<IMFCollection> outputNodes;
 
     if (FAILED(topology->GetOutputNodeCollection(&outputNodes)))
         return;
 
     DWORD elementCount = 0;
     if (FAILED(outputNodes->GetElementCount(&elementCount)))
-        goto done;
+        return;
 
     for (DWORD n = 0; n < elementCount; n++) {
-        IUnknown *element = 0;
-        IMFTopologyNode *node = 0;
-        IMFTopologyNode *inputNode = 0;
-        IMFTopologyNode *mftNode = 0;
-        IMFTransform *converter = 0;
+        ComPtr<IUnknown> element;
+        ComPtr<IMFTopologyNode> node;
+        ComPtr<IMFTopologyNode> inputNode;
+        ComPtr<IMFTopologyNode> mftNode;
+        ComPtr<IMFTransform> converter;
 
         do {
             if (FAILED(outputNodes->GetElement(n, &element)))
                 break;
 
-            if (FAILED(element->QueryInterface(IID_IMFTopologyNode, (void**)&node)))
+            if (FAILED(element->QueryInterface(IID_IMFTopologyNode, &node)))
                 break;
 
             TOPOID id;
@@ -961,38 +866,24 @@ void MFPlayerSession::insertColorConverter(IMFTopology *topology, TOPOID outputN
             if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
                 break;
 
-            if (FAILED(CoCreateInstance(CLSID_CColorConvertDMO, NULL, CLSCTX_INPROC_SERVER, IID_IMFTransform, (void**)&converter)))
+            if (FAILED(CoCreateInstance(CLSID_CColorConvertDMO, NULL, CLSCTX_INPROC_SERVER,
+                                        IID_IMFTransform, &converter)))
                 break;
 
-            if (FAILED(mftNode->SetObject(converter)))
+            if (FAILED(mftNode->SetObject(converter.Get())))
                 break;
 
-            if (FAILED(topology->AddNode(mftNode)))
+            if (FAILED(topology->AddNode(mftNode.Get())))
                 break;
 
-            if (FAILED(inputNode->ConnectOutput(0, mftNode, 0)))
+            if (FAILED(inputNode->ConnectOutput(0, mftNode.Get(), 0)))
                 break;
 
-            if (FAILED(mftNode->ConnectOutput(0, node, 0)))
+            if (FAILED(mftNode->ConnectOutput(0, node.Get(), 0)))
                 break;
 
         } while (false);
-
-        if (mftNode)
-            mftNode->Release();
-        if (inputNode)
-            inputNode->Release();
-        if (node)
-            node->Release();
-        if (element)
-            element->Release();
-        if (converter)
-            converter->Release();
     }
-
-done:
-    if (outputNodes)
-        outputNodes->Release();
 }
 
 void MFPlayerSession::stop(bool immediate)
@@ -1124,7 +1015,7 @@ bool MFPlayerSession::createSession()
 
     m_hCloseEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-    hr = m_session->BeginGetEvent(this, m_session);
+    hr = m_session->BeginGetEvent(this, m_session.Get());
     if (FAILED(hr)) {
         changeStatus(QMediaPlayer::InvalidMedia);
         error(QMediaPlayer::ResourceError, tr("Unable to pull session events."), false);
@@ -1132,13 +1023,15 @@ bool MFPlayerSession::createSession()
         return false;
     }
 
-    m_sourceResolver = new SourceResolver();
-    QObject::connect(m_sourceResolver, &SourceResolver::mediaSourceReady, this, &MFPlayerSession::handleMediaSourceReady);
-    QObject::connect(m_sourceResolver, &SourceResolver::error, this, &MFPlayerSession::handleSourceError);
+    m_sourceResolver = makeComObject<SourceResolver>();
+    QObject::connect(m_sourceResolver.Get(), &SourceResolver::mediaSourceReady, this,
+                     &MFPlayerSession::handleMediaSourceReady);
+    QObject::connect(m_sourceResolver.Get(), &SourceResolver::error, this,
+                     &MFPlayerSession::handleSourceError);
 
-    m_videoProbeMFT = new MFTransform;
-//    for (int i = 0; i < m_videoProbes.size(); ++i)
-//        m_videoProbeMFT->addProbe(m_videoProbes.at(i));
+    m_videoProbeMFT = makeComObject<MFTransform>();
+    //    for (int i = 0; i < m_videoProbes.size(); ++i)
+    //        m_videoProbeMFT->addProbe(m_videoProbes.at(i));
 
     m_position = 0;
     return true;
@@ -1526,10 +1419,10 @@ ULONG MFPlayerSession::Release(void)
 
 HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
 {
-    if (pResult->GetStateNoAddRef() != m_session)
+    if (pResult->GetStateNoAddRef() != m_session.Get())
         return S_OK;
 
-    IMFMediaEvent *pEvent = NULL;
+    ComPtr<IMFMediaEvent> pEvent;
     // Get the event from the event queue.
     HRESULT hr = m_session->EndGetEvent(pResult, &pEvent);
     if (FAILED(hr)) {
@@ -1539,36 +1432,30 @@ HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
     MediaEventType meType = MEUnknown;
     hr = pEvent->GetType(&meType);
     if (FAILED(hr)) {
-        pEvent->Release();
         return S_OK;
     }
 
     if (meType == MESessionClosed) {
         SetEvent(m_hCloseEvent);
-        pEvent->Release();
         return S_OK;
     } else {
-        hr = m_session->BeginGetEvent(this, m_session);
+        hr = m_session->BeginGetEvent(this, m_session.Get());
         if (FAILED(hr)) {
-            pEvent->Release();
             return S_OK;
         }
     }
 
     if (!m_closing) {
         emit sessionEvent(pEvent);
-    } else {
-        pEvent->Release();
     }
     return S_OK;
 }
 
-void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
+void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEvent)
 {
     HRESULT hrStatus = S_OK;
     HRESULT hr = sessionEvent->GetStatus(&hrStatus);
     if (FAILED(hr) || !m_session) {
-        sessionEvent->Release();
         return;
     }
 
@@ -1690,22 +1577,19 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             error(QMediaPlayer::FormatError, tr("Unsupported media, a codec is missing."), true);
         } else {
             if (m_audioSampleGrabberNode) {
-                IUnknown *obj = 0;
+                ComPtr<IUnknown> obj;
                 if (SUCCEEDED(m_audioSampleGrabberNode->GetObject(&obj))) {
-                    IMFStreamSink *streamSink = 0;
+                    ComPtr<IMFStreamSink> streamSink;
                     if (SUCCEEDED(obj->QueryInterface(IID_PPV_ARGS(&streamSink)))) {
-                        IMFMediaTypeHandler *typeHandler = 0;
+                        ComPtr<IMFMediaTypeHandler> typeHandler;
                         if (SUCCEEDED(streamSink->GetMediaTypeHandler((&typeHandler)))) {
-                            IMFMediaType *mediaType = 0;
+                            ComPtr<IMFMediaType> mediaType;
                             if (SUCCEEDED(typeHandler->GetCurrentMediaType(&mediaType))) {
-                                m_audioSampleGrabber->setFormat(QWindowsAudioUtils::mediaTypeToFormat(mediaType));
-                                mediaType->Release();
+                                m_audioSampleGrabber->setFormat(
+                                        QWindowsAudioUtils::mediaTypeToFormat(mediaType.Get()));
                             }
-                            typeHandler->Release();
                         }
-                        streamSink->Release();
                     }
-                    obj->Release();
                 }
             }
 
@@ -1720,7 +1604,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
     }
 
     if (FAILED(hrStatus)) {
-        sessionEvent->Release();
         return;
     }
 
@@ -1752,14 +1635,15 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
             UINT32 status;
             if (SUCCEEDED(sessionEvent->GetUINT32(MF_EVENT_TOPOLOGY_STATUS, &status))) {
                 if (status == MF_TOPOSTATUS_READY) {
-                    IMFClock* clock;
+                    ComPtr<IMFClock> clock;
                     if (SUCCEEDED(m_session->GetClock(&clock))) {
-                        clock->QueryInterface(IID_IMFPresentationClock, (void**)(&m_presentationClock));
-                        clock->Release();
+                        clock->QueryInterface(IID_IMFPresentationClock, &m_presentationClock);
                     }
 
-                    if (SUCCEEDED(MFGetService(m_session, MF_RATE_CONTROL_SERVICE, IID_PPV_ARGS(&m_rateControl)))) {
-                        if (SUCCEEDED(MFGetService(m_session, MF_RATE_CONTROL_SERVICE, IID_PPV_ARGS(&m_rateSupport)))) {
+                    if (SUCCEEDED(MFGetService(m_session.Get(), MF_RATE_CONTROL_SERVICE,
+                                               IID_PPV_ARGS(&m_rateControl)))) {
+                        if (SUCCEEDED(MFGetService(m_session.Get(), MF_RATE_CONTROL_SERVICE,
+                                                   IID_PPV_ARGS(&m_rateSupport)))) {
                             if (SUCCEEDED(m_rateSupport->IsRateSupported(TRUE, 0, NULL)))
                                 m_canScrub = true;
                         }
@@ -1772,9 +1656,11 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
                             }
                         }
                     }
-                    MFGetService(m_session, MFNETSOURCE_STATISTICS_SERVICE, IID_PPV_ARGS(&m_netsourceStatistics));
+                    MFGetService(m_session.Get(), MFNETSOURCE_STATISTICS_SERVICE,
+                                 IID_PPV_ARGS(&m_netsourceStatistics));
 
-                    if (SUCCEEDED(MFGetService(m_session, MR_STREAM_VOLUME_SERVICE, IID_PPV_ARGS(&m_volumeControl))))
+                    if (SUCCEEDED(MFGetService(m_session.Get(), MR_STREAM_VOLUME_SERVICE,
+                                               IID_PPV_ARGS(&m_volumeControl))))
                         setVolumeInternal(m_muted ? 0 : m_volume);
 
                     m_updatingTopology = false;
@@ -1786,8 +1672,6 @@ void MFPlayerSession::handleSessionEvent(IMFMediaEvent *sessionEvent)
     default:
         break;
     }
-
-    sessionEvent->Release();
 }
 
 void MFPlayerSession::updatePendingCommands(Command command)
@@ -1877,30 +1761,12 @@ void MFPlayerSession::clear()
         metaDataChanged();
     }
 
-    if (m_presentationClock) {
-        m_presentationClock->Release();
-        m_presentationClock = NULL;
-    }
-    if (m_rateControl) {
-        m_rateControl->Release();
-        m_rateControl = NULL;
-    }
-    if (m_rateSupport) {
-        m_rateSupport->Release();
-        m_rateSupport = NULL;
-    }
-    if (m_volumeControl) {
-        m_volumeControl->Release();
-        m_volumeControl = NULL;
-    }
-    if (m_netsourceStatistics) {
-        m_netsourceStatistics->Release();
-        m_netsourceStatistics = NULL;
-    }
-    if (m_audioSampleGrabberNode) {
-        m_audioSampleGrabberNode->Release();
-        m_audioSampleGrabberNode = NULL;
-    }
+    m_presentationClock.Reset();
+    m_rateControl.Reset();
+    m_rateSupport.Reset();
+    m_volumeControl.Reset();
+    m_netsourceStatistics.Reset();
+    m_audioSampleGrabberNode.Reset();
 }
 
 void MFPlayerSession::setAudioOutput(QPlatformAudioOutput *device)
@@ -1953,7 +1819,7 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
     if (m_trackInfo[QPlatformMediaPlayer::VideoStream].format == MFVideoFormat_HEVC)
         return;
 
-    IMFTopology *topology = nullptr;
+    ComPtr<IMFTopology> topology;
 
     if (SUCCEEDED(m_session->GetFullTopology(QMM_MFSESSION_GETFULLTOPOLOGY_CURRENT, 0, &topology))) {
 
@@ -1963,25 +1829,23 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
             stop();
 
         if (m_trackInfo[type].outputNodeId != TOPOID(-1)) {
-            IMFTopologyNode *node = nullptr;
+            ComPtr<IMFTopologyNode> node;
             if (SUCCEEDED(topology->GetNodeByID(m_trackInfo[type].outputNodeId, &node))) {
-                topology->RemoveNode(node);
-                node->Release();
+                topology->RemoveNode(node.Get());
                 m_trackInfo[type].outputNodeId = TOPOID(-1);
             }
         }
         if (m_trackInfo[type].sourceNodeId != TOPOID(-1)) {
-            IMFTopologyNode *node = nullptr;
+            ComPtr<IMFTopologyNode> node;
             if (SUCCEEDED(topology->GetNodeByID(m_trackInfo[type].sourceNodeId, &node))) {
-                topology->RemoveNode(node);
-                node->Release();
+                topology->RemoveNode(node.Get());
                 m_trackInfo[type].sourceNodeId = TOPOID(-1);
             }
         }
 
         IMFMediaSource *mediaSource = m_sourceResolver->mediaSource();
 
-        IMFPresentationDescriptor *sourcePD = nullptr;
+        ComPtr<IMFPresentationDescriptor> sourcePD;
         if (SUCCEEDED(mediaSource->CreatePresentationDescriptor(&sourcePD))) {
 
             if (m_trackInfo[type].currentIndex >= 0 && m_trackInfo[type].currentIndex < nativeIndexes.count())
@@ -1990,35 +1854,33 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
             m_trackInfo[type].currentIndex = index;
 
             if (index == -1) {
-                m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
+                m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology.Get());
             } else {
                 int nativeIndex = nativeIndexes.at(index);
                 sourcePD->SelectStream(nativeIndex);
 
-                IMFStreamDescriptor *streamDesc = nullptr;
+                ComPtr<IMFStreamDescriptor> streamDesc;
                 BOOL selected = FALSE;
 
                 if (SUCCEEDED(sourcePD->GetStreamDescriptorByIndex(nativeIndex, &selected, &streamDesc))) {
-                    IMFTopologyNode *sourceNode = addSourceNode(topology, mediaSource, sourcePD, streamDesc);
+                    ComPtr<IMFTopologyNode> sourceNode = addSourceNode(
+                            topology.Get(), mediaSource, sourcePD.Get(), streamDesc.Get());
                     if (sourceNode) {
-                        IMFTopologyNode *outputNode = addOutputNode(MFPlayerSession::Audio, topology, 0);
+                        ComPtr<IMFTopologyNode> outputNode =
+                                addOutputNode(MFPlayerSession::Audio, topology.Get(), 0);
                         if (outputNode) {
-                            if (SUCCEEDED(sourceNode->ConnectOutput(0, outputNode, 0))) {
+                            if (SUCCEEDED(sourceNode->ConnectOutput(0, outputNode.Get(), 0))) {
                                 sourceNode->GetTopoNodeID(&m_trackInfo[type].sourceNodeId);
                                 outputNode->GetTopoNodeID(&m_trackInfo[type].outputNodeId);
-                                m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology);
+                                m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE,
+                                                       topology.Get());
                             }
-                            outputNode->Release();
                         }
-                        sourceNode->Release();
                     }
-                    streamDesc->Release();
                 }
             }
             m_updatingTopology = true;
-            sourcePD->Release();
         }
-        topology->Release();
     }
 }
 
