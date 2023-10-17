@@ -29,7 +29,7 @@ FocusScope {
                   ? GridLayout.LeftToRight : GridLayout.TopToBottom
             Item {
                 implicitWidth: buttonsWidth
-                height: 70
+                implicitHeight: 70
                 CameraButton {
                     text: "Record"
                     anchors.fill: parent
@@ -40,7 +40,7 @@ FocusScope {
 
             Item {
                 implicitWidth: buttonsWidth
-                height: 70
+                implicitHeight: 70
                 CameraButton {
                     id: stopButton
                     text: "Stop"
@@ -52,7 +52,7 @@ FocusScope {
 
             Item {
                 implicitWidth: buttonsWidth
-                height: 70
+                implicitHeight: 70
                 CameraButton {
                     text: "View"
                     anchors.fill: parent
