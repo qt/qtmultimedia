@@ -24,67 +24,67 @@ FocusScope {
 
         GridLayout {
             id: buttonsColumn
-            anchors.margins: buttonsmargin
+            anchors.margins: captureControls.buttonsmargin
             flow: captureControls.state === "MobilePortrait"
                   ? GridLayout.LeftToRight : GridLayout.TopToBottom
             Item {
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 implicitHeight: 70
                 CameraButton {
                     text: "Record"
                     anchors.fill: parent
-                    visible: captureSession.recorder.recorderState !== MediaRecorder.RecordingState
-                    onClicked: captureSession.recorder.record()
+                    visible: captureControls.captureSession.recorder.recorderState !== MediaRecorder.RecordingState
+                    onClicked: captureControls.captureSession.recorder.record()
                 }
             }
 
             Item {
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 implicitHeight: 70
                 CameraButton {
                     id: stopButton
                     text: "Stop"
                     anchors.fill: parent
-                    visible: captureSession.recorder.recorderState === MediaRecorder.RecordingState
-                    onClicked: captureSession.recorder.stop()
+                    visible: captureControls.captureSession.recorder.recorderState === MediaRecorder.RecordingState
+                    onClicked: captureControls.captureSession.recorder.stop()
                 }
             }
 
             Item {
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 implicitHeight: 70
                 CameraButton {
                     text: "View"
                     anchors.fill: parent
                     onClicked: captureControls.previewSelected()
                     //don't show View button during recording
-                    visible: captureSession.recorder.actualLocation && !stopButton.visible
+                    visible: captureControls.captureSession.recorder.actualLocation && !stopButton.visible
                 }
             }
         }
 
         GridLayout {
             id: bottomColumn
-            anchors.margins: buttonsmargin
+            anchors.margins: captureControls.buttonsmargin
             flow: captureControls.state === "MobilePortrait"
                   ? GridLayout.LeftToRight : GridLayout.TopToBottom
 
             CameraListButton {
-                implicitWidth: buttonsWidth
-                onValueChanged: captureSession.camera.cameraDevice = value
+                implicitWidth: captureControls.buttonsWidth
+                onValueChanged: captureControls.captureSession.camera.cameraDevice = value
                 state: captureControls.state
             }
 
             CameraButton {
                 text: "Switch to Photo"
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 onClicked: captureControls.photoModeSelected()
             }
 
             CameraButton {
                 id: quitButton
                 text: "Quit"
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 onClicked: Qt.quit()
             }
         }
@@ -96,9 +96,9 @@ FocusScope {
         width : 100
         height: parent.height
 
-        currentZoom: captureSession.camera.zoomFactor
-        maximumZoom: captureSession.camera.maximumZoomFactor
-        onZoomTo: captureSession.camera.zoomFactor = target
+        currentZoom: captureControls.captureSession.camera.zoomFactor
+        maximumZoom: captureControls.captureSession.camera.maximumZoomFactor
+        onZoomTo: captureControls.captureSession.camera.zoomFactor = target
     }
 
     FlashControl {
@@ -106,7 +106,7 @@ FocusScope {
         y : captureControls.state === "MobilePortrait" ?
                 parent.height - (buttonPaneShadow.height + height) : parent.height - height
 
-        cameraDevice: captureSession.camera
+        cameraDevice: captureControls.captureSession.camera
     }
 
     states: [
@@ -120,21 +120,27 @@ FocusScope {
             }
             AnchorChanges {
                 target: buttonPaneShadow
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.bottom: captureControls.bottom
+                anchors.left: captureControls.left
+                anchors.right: captureControls.right
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
                 target: buttonsColumn
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
+                // qmllint disable incompatible-type
+                anchors.left: buttonPaneShadow.left
+                anchors.right: buttonPaneShadow.right
+                anchors.top: buttonPaneShadow.top
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
-                target: bottomColumn;
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
+                target: bottomColumn
+                // qmllint disable incompatible-type
+                anchors.bottom: buttonPaneShadow.bottom
+                anchors.left: buttonPaneShadow.left
+                anchors.right: buttonPaneShadow.right
+                // qmllint enable incompatible-type
             }
         },
         State {
@@ -149,20 +155,26 @@ FocusScope {
             }
             AnchorChanges {
                 target: buttonPaneShadow
-                anchors.top: parent.top
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.top: captureControls.top
+                anchors.right: captureControls.right
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
-                target: buttonsColumn;
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left;
+                target: buttonsColumn
+                // qmllint disable incompatible-type
+                anchors.top: buttonPaneShadow.top
+                anchors.bottom: buttonPaneShadow.bottom
+                anchors.left: buttonPaneShadow.left
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
-                target: bottomColumn;
-                anchors.top: parent.top;
-                anchors.bottom: parent.bottom;
-                anchors.right: parent.right;
+                target: bottomColumn
+                // qmllint disable incompatible-type
+                anchors.top: buttonPaneShadow.top
+                anchors.bottom: buttonPaneShadow.bottom
+                anchors.right: buttonPaneShadow.right
+                // qmllint enable incompatible-type
             }
         },
         State {
@@ -172,19 +184,25 @@ FocusScope {
                 buttonPaneShadow.height: parent.height
             }
             AnchorChanges {
-                target: buttonPaneShadow;
-                anchors.top: parent.top;
-                anchors.right: parent.right;
+                target: buttonPaneShadow
+                // qmllint disable incompatible-type
+                anchors.top: captureControls.top
+                anchors.right: captureControls.right
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
-                target: buttonsColumn;
-                anchors.top: parent.top
-                anchors.right: parent.right
+                target: buttonsColumn
+                // qmllint disable incompatible-type
+                anchors.top: buttonPaneShadow.top
+                anchors.right: buttonPaneShadow.right
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
-                target: bottomColumn;
-                anchors.bottom: parent.bottom;
-                anchors.right: parent.right;
+                target: bottomColumn
+                // qmllint disable incompatible-type
+                anchors.bottom: buttonPaneShadow.bottom
+                anchors.right: buttonPaneShadow.right
+                // qmllint enable incompatible-type
             }
         }
     ]

@@ -19,7 +19,7 @@ Item {
 
         Switch {
             id: flashModeControl
-            visible: mIsFlashSupported
+            visible: flashControl.mIsFlashSupported
             opacity: checked ? 0.75 : 0.25
             text: "Flash"
             contentItem: Text {
@@ -32,17 +32,17 @@ Item {
                 if (position) {
                     if (torchModeControl.checked)
                         torchModeControl.toggle();
-                    cameraDevice.flashMode = Camera.FlashOn;
+                    flashControl.cameraDevice.flashMode = Camera.FlashOn
 
                 } else {
-                    cameraDevice.flashMode = Camera.FlashOff;
+                    flashControl.cameraDevice.flashMode = Camera.FlashOff
                 }
             }
         }
 
         Switch {
             id: torchModeControl
-            visible: mIsTorchSupported
+            visible: flashControl.mIsTorchSupported
             opacity: checked ? 0.75 : 0.25
             text: "Torch"
             contentItem: Text {
@@ -55,9 +55,9 @@ Item {
                 if (position) {
                     if (flashModeControl.checked)
                         flashModeControl.toggle();
-                    cameraDevice.torchMode = Camera.TorchOn;
+                    flashControl.cameraDevice.torchMode = Camera.TorchOn
                 } else {
-                    cameraDevice.torchMode = Camera.TorchOff;
+                    flashControl.cameraDevice.torchMode = Camera.TorchOff
                 }
             }
         }
