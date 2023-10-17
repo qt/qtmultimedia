@@ -24,19 +24,19 @@ FocusScope {
 
         GridLayout {
             id: buttonsColumn
-            anchors.margins: buttonsmargin
+            anchors.margins: captureControls.buttonsmargin
             flow: captureControls.state === "MobilePortrait"
                   ? GridLayout.LeftToRight : GridLayout.TopToBottom
             CameraButton {
                 text: "Capture"
-                implicitWidth: buttonsWidth
-                visible: captureSession.imageCapture.readyForCapture
-                onClicked: captureSession.imageCapture.captureToFile("")
+                implicitWidth: captureControls.buttonsWidth
+                visible: captureControls.captureSession.imageCapture.readyForCapture
+                onClicked: captureControls.captureSession.imageCapture.captureToFile("")
             }
 
             CameraPropertyButton {
                 id : wbModesButton
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 state: captureControls.state
                 value: Camera.WhiteBalanceAuto
                 model: ListModel {
@@ -70,7 +70,7 @@ FocusScope {
             }
 
             Item {
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 implicitHeight: 70
                 CameraButton {
                     text: "View"
@@ -83,25 +83,25 @@ FocusScope {
 
         GridLayout {
             id: bottomColumn
-            anchors.margins: buttonsmargin
+            anchors.margins: captureControls.buttonsmargin
             flow: captureControls.state === "MobilePortrait"
                   ? GridLayout.LeftToRight : GridLayout.TopToBottom
 
             CameraListButton {
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 state: captureControls.state
-                onValueChanged: captureSession.camera.cameraDevice = value
+                onValueChanged: captureControls.captureSession.camera.cameraDevice = value
             }
 
             CameraButton {
                 text: "Switch to Video"
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 onClicked: captureControls.videoModeSelected()
             }
 
             CameraButton {
                 id: quitButton
-                implicitWidth: buttonsWidth
+                implicitWidth: captureControls.buttonsWidth
                 text: "Quit"
                 onClicked: Qt.quit()
             }
@@ -115,9 +115,9 @@ FocusScope {
         width : 100
         height: parent.height
 
-        currentZoom: camera.zoomFactor
-        maximumZoom: camera.maximumZoomFactor
-        onZoomTo: camera.zoomFactor = target
+        currentZoom: captureControls.captureSession.camera.zoomFactor
+        maximumZoom: captureControls.captureSession.camera.maximumZoomFactor
+        onZoomTo: captureControls.captureSession.camera.zoomFactor = target
     }
 
     FlashControl {
@@ -125,7 +125,7 @@ FocusScope {
         y : captureControls.state === "MobilePortrait" ?
                 parent.height - (buttonPaneShadow.height + height) : parent.height - height
 
-        cameraDevice: camera
+        cameraDevice: captureControls.captureSession.camera
     }
 
     states: [
@@ -139,21 +139,27 @@ FocusScope {
             }
             AnchorChanges {
                 target: buttonPaneShadow
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.bottom: captureControls.bottom
+                anchors.left: captureControls.left
+                anchors.right: captureControls.right
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
                 target: buttonsColumn
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
+                // qmllint disable incompatible-type
+                anchors.left: buttonPaneShadow.left
+                anchors.right: buttonPaneShadow.right
+                anchors.top: buttonPaneShadow.top
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
                 target: bottomColumn
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.bottom: buttonPaneShadow.bottom
+                anchors.left: buttonPaneShadow.left
+                anchors.right: buttonPaneShadow.right
+                // qmllint enable incompatible-type
             }
         },
         State {
@@ -168,20 +174,26 @@ FocusScope {
             }
             AnchorChanges {
                 target: buttonPaneShadow
-                anchors.top: parent.top
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.top: captureControls.top
+                anchors.right: captureControls.right
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
                 target: buttonsColumn
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.left: parent.left
+                // qmllint disable incompatible-type
+                anchors.top: buttonPaneShadow.top
+                anchors.bottom: buttonPaneShadow.bottom
+                anchors.left: buttonPaneShadow.left
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
                 target: bottomColumn
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.top: buttonPaneShadow.top
+                anchors.bottom: buttonPaneShadow.bottom
+                anchors.right: buttonPaneShadow.right
+                // qmllint enable incompatible-type
             }
         },
         State {
@@ -192,18 +204,24 @@ FocusScope {
             }
             AnchorChanges {
                 target: buttonPaneShadow
-                anchors.top: parent.top
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.top: captureControls.top
+                anchors.right: captureControls.right
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
                 target: buttonsColumn
-                anchors.top: parent.top
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.top: buttonPaneShadow.top
+                anchors.right: buttonPaneShadow.right
+                // qmllint enable incompatible-type
             }
             AnchorChanges {
                 target: bottomColumn
-                anchors.bottom: parent.bottom
-                anchors.right: parent.right
+                // qmllint disable incompatible-type
+                anchors.bottom: buttonPaneShadow.bottom
+                anchors.right: buttonPaneShadow.right
+                // qmllint enable incompatible-type
             }
         }
     ]

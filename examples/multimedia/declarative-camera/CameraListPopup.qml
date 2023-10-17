@@ -1,7 +1,9 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+pragma ComponentBehavior: Bound
 import QtQuick
+import QtMultimedia
 
 Popup {
     id: cameraListPopup
@@ -29,11 +31,16 @@ Popup {
         clip: true
 
         delegate: Item {
+            id: cameraListItem
+
+            required property int index
+            required property cameraDevice modelData
+
             width: cameraListPopup.itemWidth
             height: cameraListPopup.itemHeight
 
             Text {
-                text: modelData.description
+                text: cameraListItem.modelData.description
 
                 anchors.fill: parent
                 anchors.margins: 5
@@ -49,9 +56,9 @@ Popup {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    view.currentIndex = index
-                    cameraListPopup.currentValue = modelData
-                    popup.selected()
+                    view.currentIndex = cameraListItem.index
+                    cameraListPopup.currentValue = cameraListItem.modelData
+                    cameraListPopup.selected()
                 }
             }
         }
