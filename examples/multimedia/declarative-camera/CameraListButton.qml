@@ -44,24 +44,30 @@ Item {
             name: "MobilePortrait"
             AnchorChanges {
                 target: popup
-                anchors.bottom: parent.top;
-                anchors.left: parent.left;
+                // qmllint disable incompatible-type
+                anchors.bottom: cameraListButton.top
+                anchors.left: cameraListButton.left
+                // qmllint enable incompatible-type
             }
         },
         State {
             name: "MobileLandscape"
             AnchorChanges {
                 target: popup
-                anchors.top: parent.top;
-                anchors.right: parent.left;
+                // qmllint disable incompatible-type
+                anchors.top: cameraListButton.top
+                anchors.right: cameraListButton.left
+                // qmllint enable incompatible-type
             }
         },
         State {
             name: "Other"
             AnchorChanges {
                 target: popup
-                anchors.top: parent.top;
-                anchors.right: parent.left;
+                // qmllint disable incompatible-type
+                anchors.top: cameraListButton.top
+                anchors.right: cameraListButton.left
+                // qmllint enable incompatible-type
             }
         }
     ]

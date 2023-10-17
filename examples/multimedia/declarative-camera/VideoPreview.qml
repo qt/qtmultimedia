@@ -18,7 +18,7 @@ Item {
                 videoPreview.closed();
         }
         onSourceChanged: {
-            if (visible && source !== "")
+            if (videoPreview.visible && source !== "")
                 play();
         }
 

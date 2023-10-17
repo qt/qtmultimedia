@@ -1,6 +1,7 @@
 // Copyright (C) 2017 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+pragma ComponentBehavior: Bound
 import QtQuick
 
 Popup {
@@ -38,20 +39,25 @@ Popup {
         snapMode: ListView.SnapOneItem
         highlightFollowsCurrentItem: true
         highlight: Rectangle { color: "gray"; radius: 5 }
-        currentIndex: indexForValue(propertyPopup.currentValue)
+        currentIndex: propertyPopup.indexForValue(propertyPopup.currentValue)
 
         delegate: Item {
+            id: propertyItem
+
+            required property url icon
+            required property var value
+
             width: propertyPopup.itemWidth
             height: 70
 
             Image {
                 anchors.centerIn: parent
-                source: icon
+                source: propertyItem.icon
             }
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    propertyPopup.currentValue = value
+                    propertyPopup.currentValue = propertyItem.value
                     propertyPopup.selected()
                 }
             }
