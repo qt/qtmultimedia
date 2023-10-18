@@ -117,7 +117,7 @@ FocusScope {
 
         currentZoom: captureControls.captureSession.camera.zoomFactor
         maximumZoom: captureControls.captureSession.camera.maximumZoomFactor
-        onZoomTo: captureControls.captureSession.camera.zoomFactor = target
+        onZoomTo: (target) => captureControls.captureSession.camera.zoomFactor = target
     }
 
     FlashControl {
