@@ -17,12 +17,12 @@ Rectangle {
     states: [
         State {
             name: "invisible"
-            PropertyChanges { target: popup; opacity: 0 }
+            PropertyChanges { popup.opacity: 0 }
         },
 
         State {
             name: "visible"
-            PropertyChanges { target: popup; opacity: 1.0 }
+            PropertyChanges { popup.opacity: 1.0 }
         }
     ]
 

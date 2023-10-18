@@ -132,17 +132,10 @@ FocusScope {
         State {
             name: "MobilePortrait"
             PropertyChanges {
-                target: buttonPaneShadow
-                width: parent.width
-                height: captureControls.buttonsPanelPortraitHeight
-            }
-            PropertyChanges {
-                target: buttonsColumn
-                height: captureControls.buttonsPanelPortraitHeight / 2 - buttonsmargin
-            }
-            PropertyChanges {
-                target: bottomColumn
-                height: captureControls.buttonsPanelPortraitHeight / 2 - buttonsmargin
+                buttonPaneShadow.width: parent.width
+                buttonPaneShadow.height: captureControls.buttonsPanelPortraitHeight
+                buttonsColumn.height: captureControls.buttonsPanelPortraitHeight / 2 - buttonsmargin
+                bottomColumn.height: captureControls.buttonsPanelPortraitHeight / 2 - buttonsmargin
             }
             AnchorChanges {
                 target: buttonPaneShadow
@@ -166,19 +159,12 @@ FocusScope {
         State {
             name: "MobileLandscape"
             PropertyChanges {
-                target: buttonPaneShadow
-                width: buttonsPanelWidth
-                height: parent.height
-            }
-            PropertyChanges {
-                target: buttonsColumn
-                height: parent.height
-                width: buttonPaneShadow.width / 2
-            }
-            PropertyChanges {
-                target: bottomColumn
-                height: parent.height
-                width: buttonPaneShadow.width / 2
+                buttonPaneShadow.width: buttonsPanelWidth
+                buttonPaneShadow.height: parent.height
+                buttonsColumn.height: parent.height
+                buttonsColumn.width: buttonPaneShadow.width / 2
+                bottomColumn.height: parent.height
+                bottomColumn.width: buttonPaneShadow.width / 2
             }
             AnchorChanges {
                 target: buttonPaneShadow
@@ -201,9 +187,8 @@ FocusScope {
         State {
             name: "Other"
             PropertyChanges {
-                target: buttonPaneShadow
-                width: bottomColumn.width + 16
-                height: parent.height
+                buttonPaneShadow.width: bottomColumn.width + 16
+                buttonPaneShadow.height: parent.height
             }
             AnchorChanges {
                 target: buttonPaneShadow
