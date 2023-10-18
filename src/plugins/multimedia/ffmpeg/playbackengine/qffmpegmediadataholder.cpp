@@ -69,6 +69,16 @@ QVideoFrame::RotationAngle MediaDataHolder::getRotationAngle() const
     return static_cast<QVideoFrame::RotationAngle>(orientation);
 }
 
+AVFormatContext *MediaDataHolder::avContext()
+{
+    return m_context.get();
+}
+
+int MediaDataHolder::currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const
+{
+    return m_currentAVStreamIndex[trackType];
+}
+
 static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::TrackType trackType,
                             const AVStream *stream)
 {
@@ -141,12 +151,11 @@ QPlatformMediaPlayer::TrackType MediaDataHolder::trackTypeFromMediaType(int medi
     }
 }
 
-std::optional<MediaDataHolder::ContextError>
-MediaDataHolder::recreateAVFormatContext(const QUrl &media, QIODevice *stream)
+QMaybe<MediaDataHolder, MediaDataHolder::ContextError> MediaDataHolder::create(const QUrl &mediaUrl,
+                                                                               QIODevice *stream)
 {
-    *this = MediaDataHolder{};
 
-    QByteArray url = media.toString(QUrl::PreferLocalFile).toUtf8();
+    const QByteArray url = mediaUrl.toString(QUrl::PreferLocalFile).toUtf8();
 
     AVFormatContext *context = nullptr;
 
@@ -191,13 +200,14 @@ MediaDataHolder::recreateAVFormatContext(const QUrl &media, QIODevice *stream)
     av_dump_format(context, 0, url.constData(), 0);
 #endif
 
-    m_isSeekable = !(context->ctx_flags & AVFMTCTX_UNSEEKABLE);
-    m_context.reset(context);
+    MediaDataHolder media;
+    media.m_isSeekable = !(context->ctx_flags & AVFMTCTX_UNSEEKABLE);
+    media.m_context.reset(context);
 
-    updateStreams();
-    updateMetaData();
+    media.updateStreams();
+    media.updateMetaData();
 
-    return {};
+    return media;
 }
 
 void MediaDataHolder::updateStreams()

@@ -278,7 +278,7 @@ void QAVFCamera::updateCameraFormat()
     }
 
     if (hwAccel) {
-        hwAccel->createFramesContext(avPixelFormat, m_cameraFormat.resolution());
+        hwAccel->createFramesContext(avPixelFormat, adjustedResolution());
         m_hwPixelFormat = hwAccel->hwFormat();
     } else {
         m_hwPixelFormat = AV_PIX_FMT_NONE;
@@ -338,6 +338,25 @@ uint32_t QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFo
     m_videoDataOutput.videoSettings = outputSettings;
 
     return [bestFormat unsignedIntValue];
+}
+
+QSize QAVFCamera::adjustedResolution() const
+{
+    // Check, that we have matching dimesnions.
+    QSize resolution = m_cameraFormat.resolution();
+    AVCaptureConnection *connection = [m_videoDataOutput connectionWithMediaType:AVMediaTypeVideo];
+    if (!connection.supportsVideoOrientation)
+        return resolution;
+
+    // Either portrait but actually sizes of landscape, or
+    // landscape with dimensions of portrait - not what
+    // sample delegate will report (it depends on videoOrientation set).
+    const bool isPortraitOrientation = connection.videoOrientation == AVCaptureVideoOrientationPortrait;
+    const bool isPortraitResolution = resolution.height() > resolution.width();
+    if (isPortraitOrientation != isPortraitResolution)
+        resolution.transpose();
+
+    return resolution;
 }
 
 void QAVFCamera::syncHandleFrame(const QVideoFrame &frame)

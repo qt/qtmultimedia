@@ -48,7 +48,7 @@ struct CodecsComparator
 };
 
 template<typename FlagNames>
-static QString flagsToString(int flags, const FlagNames &flagNames)
+QString flagsToString(int flags, const FlagNames &flagNames)
 {
     QString result;
     int leftover = flags;
@@ -68,7 +68,7 @@ static QString flagsToString(int flags, const FlagNames &flagNames)
     return result;
 }
 
-static void dumpCodecInfo(const AVCodec *codec)
+void dumpCodecInfo(const AVCodec *codec)
 {
     using FlagNames = std::initializer_list<std::pair<int, const char *>>;
     const auto mediaType = codec->type == AVMEDIA_TYPE_VIDEO ? "video"
@@ -167,8 +167,7 @@ static void dumpCodecInfo(const AVCodec *codec)
     }
 }
 
-static bool isCodecValid(const AVCodec *codec,
-                         const std::vector<AVHWDeviceType> &availableHwDeviceTypes)
+bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &availableHwDeviceTypes)
 {
     if (codec->type != AVMEDIA_TYPE_VIDEO)
         return true;
@@ -252,7 +251,7 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
     return storages[codecsType];
 }
 
-static const char *preferredHwCodecNameSuffix(bool isEncoder, AVHWDeviceType deviceType)
+const char *preferredHwCodecNameSuffix(bool isEncoder, AVHWDeviceType deviceType)
 {
     switch (deviceType) {
     case AV_HWDEVICE_TYPE_VAAPI:

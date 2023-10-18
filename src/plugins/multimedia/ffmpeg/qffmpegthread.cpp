@@ -3,54 +3,45 @@
 
 #include "qffmpegthread_p.h"
 
-#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
 using namespace QFFmpeg;
 
-void Thread::kill()
+void ConsumerThread::stopAndDelete()
 {
     {
-        QMutexLocker locker(&mutex);
-        exit.storeRelease(true);
-        killHelper();
+        QMutexLocker locker(&exitMutex);
+        exit = true;
     }
-    wake();
+    dataReady();
     wait();
     delete this;
 }
 
-void Thread::maybePause()
+void ConsumerThread::dataReady()
 {
-    while (timeOut > 0 || shouldWait()) {
-        if (exit.loadAcquire())
-            break;
-
-        QElapsedTimer timer;
-        timer.start();
-        if (condition.wait(&mutex, QDeadlineTimer(timeOut, Qt::PreciseTimer))) {
-            if (timeOut >= 0) {
-                timeOut -= timer.elapsed();
-                if (timeOut < 0)
-                    timeOut = -1;
-            }
-        } else {
-            timeOut = -1;
-        }
-    }
+    condition.wakeAll();
 }
 
-void Thread::run()
+void ConsumerThread::run()
 {
     init();
-    QMutexLocker locker(&mutex);
-    while (1) {
-        maybePause();
-        if (exit.loadAcquire())
-            break;
-        loop();
+
+    while (true) {
+
+        {
+            QMutexLocker locker(&exitMutex);
+            while (!hasData() && !exit)
+                condition.wait(&exitMutex);
+
+            if (exit)
+                break;
+        }
+
+        processOne();
     }
+
     cleanup();
 }
 

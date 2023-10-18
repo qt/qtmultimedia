@@ -18,7 +18,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpeg.cpp qffmpeg_p.h
         qffmpegaudiodecoder.cpp qffmpegaudiodecoder_p.h
         qffmpegaudioinput.cpp qffmpegaudioinput_p.h
-        qffmpegclock.cpp qffmpegclock_p.h
         qffmpeghwaccel.cpp qffmpeghwaccel_p.h
         qffmpegencoderoptions.cpp qffmpegencoderoptions_p.h
         qffmpegmediametadata.cpp qffmpegmediametadata_p.h

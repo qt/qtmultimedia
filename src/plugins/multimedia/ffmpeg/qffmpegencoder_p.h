@@ -105,7 +105,7 @@ private:
 };
 
 
-class Muxer : public Thread
+class Muxer : public ConsumerThread
 {
     mutable QMutex queueMutex;
     std::queue<AVPacketUPtr> packetQueue;
@@ -120,13 +120,13 @@ private:
 
     void init() override;
     void cleanup() override;
-    bool shouldWait() const override;
-    void loop() override;
+    bool hasData() const override;
+    void processOne() override;
 
     Encoder *encoder;
 };
 
-class EncoderThread : public Thread
+class EncoderThread : public ConsumerThread
 {
 public:
     virtual void setPaused(bool b)
@@ -158,8 +158,8 @@ private:
 
     void init() override;
     void cleanup() override;
-    bool shouldWait() const override;
-    void loop() override;
+    bool hasData() const override;
+    void processOne() override;
 
     AVStream *stream = nullptr;
     AVCodecContextUPtr codecContext;
@@ -200,8 +200,8 @@ private:
 
     void init() override;
     void cleanup() override;
-    bool shouldWait() const override;
-    void loop() override;
+    bool hasData() const override;
+    void processOne() override;
 
     std::unique_ptr<VideoFrameEncoder> frameEncoder;
 

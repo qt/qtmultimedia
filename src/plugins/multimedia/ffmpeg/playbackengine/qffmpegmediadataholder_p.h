@@ -19,6 +19,7 @@
 #include "private/qplatformmediaplayer_p.h"
 #include "qffmpeg_p.h"
 #include "qvideoframe.h"
+#include <private/qmultimediautils_p.h>
 
 #include <array>
 #include <optional>
@@ -65,16 +66,19 @@ public:
 
     QVideoFrame::RotationAngle getRotationAngle() const;
 
-protected:
-    std::optional<ContextError> recreateAVFormatContext(const QUrl &media, QIODevice *stream);
+    AVFormatContext *avContext();
 
+    int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
+
+    static QMaybe<MediaDataHolder, ContextError> create(const QUrl &mediaUrl, QIODevice *stream);
+
+    bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
+
+private:
     void updateStreams();
 
     void updateMetaData();
 
-    bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
-
-protected:
     std::unique_ptr<AVFormatContext, AVFormatContextDeleter> m_context;
     bool m_isSeekable = false;
 

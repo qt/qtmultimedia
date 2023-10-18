@@ -16,6 +16,9 @@ list(APPEND testdata_resource_files ${test_data_glob})
 qt_internal_add_test(tst_qmediaplayerbackend
     SOURCES
         ../shared/mediafileselector.h
+        mediaplayerstate.h
+        fake.h
+        fixture.h
         tst_qmediaplayerbackend.cpp
     LIBRARIES
         Qt::Gui
