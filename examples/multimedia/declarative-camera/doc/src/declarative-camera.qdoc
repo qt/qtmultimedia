@@ -26,13 +26,19 @@ controls.
 
 \section1 Using screen orientation to select layout
 
-In \c declarative-camera.qml we handle detecting the orientation we're in and
-select the appropriate layout while also catering for the limitations of small
-screen mobile devices like so:
+The orientation and control layout state logic is encapsulated in a separate
+Item, \c controlLayout like so:
 
 \quotefromfile declarative-camera/declarative-camera.qml
-\skipto Rectangle {
-\printto states: [
+\skipto Item {
+\printto PhotoCaptureControls {
+
+The \c stillControls and \c videoControls objects both bind to the \c state
+and \c buttonsWidth properties of this Item, as shown in \c stillControls:
+
+\printto VideoCaptureControls {
+
+To support debugging, a message about layout state change is logged.
 
 Here is the portrait layout:
 

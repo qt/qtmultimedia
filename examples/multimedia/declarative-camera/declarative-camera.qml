@@ -16,24 +16,6 @@ Rectangle {
     property int buttonsPanelLandscapeWidth: 328
     property int buttonsPanelPortraitHeight: 180
 
-    onWidthChanged: {
-        setState()
-    }
-    function setState() {
-        if (Qt.platform.os === "android" || Qt.platform.os === "ios") {
-            if (Screen.desktopAvailableWidth < Screen.desktopAvailableHeight) {
-                stillControls.state = "MobilePortrait";
-            } else {
-                stillControls.state  = "MobileLandscape";
-            }
-        } else {
-            stillControls.state = "Other";
-        }
-        console.log("State: " + stillControls.state);
-        stillControls.buttonsWidth = (stillControls.state === "MobilePortrait")
-                ? Screen.desktopAvailableWidth/3.4 : 144
-    }
-
     states: [
         State {
             name: "PhotoCapture"
@@ -108,10 +90,38 @@ Rectangle {
         //        autoOrientation: true
     }
 
+    Item {
+        id: controlLayout
+
+        readonly property bool isMobile: Qt.platform.os === "android" || Qt.platform.os === "ios"
+        readonly property bool isLandscape: Screen.desktopAvailableWidth >= Screen.desktopAvailableHeight
+        property int buttonsWidth: state === "MobilePortrait" ? Screen.desktopAvailableWidth / 3.4 : 114
+
+        states: [
+            State {
+                name: "MobileLandscape"
+                when: controlLayout.isMobile && controlLayout.isLandscape
+            },
+            State {
+                name: "MobilePortrait"
+                when: controlLayout.isMobile && !controlLayout.isLandscape
+            },
+            State {
+                name: "Other"
+                when: !controlLayout.isMobile
+            }
+        ]
+
+        onStateChanged: {
+            console.log("State: " + controlLayout.state)
+        }
+    }
+
     PhotoCaptureControls {
         id: stillControls
-        state: setState()
+        state: controlLayout.state
         anchors.fill: parent
+        buttonsWidth: controlLayout.buttonsWidth
         buttonsPanelPortraitHeight: cameraUI.buttonsPanelPortraitHeight
         buttonsPanelWidth: cameraUI.buttonsPanelLandscapeWidth
         captureSession: captureSession
@@ -123,9 +133,9 @@ Rectangle {
 
     VideoCaptureControls {
         id: videoControls
-        state: stillControls.state
+        state: controlLayout.state
         anchors.fill: parent
-        buttonsWidth: stillControls.buttonsWidth
+        buttonsWidth: controlLayout.buttonsWidth
         buttonsPanelPortraitHeight: cameraUI.buttonsPanelPortraitHeight
         buttonsPanelWidth: cameraUI.buttonsPanelLandscapeWidth
         captureSession: captureSession
