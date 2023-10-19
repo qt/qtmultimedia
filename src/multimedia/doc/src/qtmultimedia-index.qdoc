@@ -174,8 +174,10 @@
     details.
 
     Note that video compression standards, such as the H.264 media compression
-    standard, may be covered by patents and can incur royalty fees. Such fees
-    are not covered by the Qt licenses.
+    standard, may be covered by patents and can incur royalty fees. This can
+    apply to any implementation, also if the implementation is provided as an
+    operating system service, through a third party library, or through any of
+    Qt Multimedia's backends. Such fees are not covered by the Qt licenses.
 
     \section1 Target platform and backend notes
     We aim to align the behavior on all the platforms but there are some issues
