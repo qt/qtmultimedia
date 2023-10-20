@@ -213,6 +213,9 @@ bool QV4L2CameraDevices::doCheckCameras()
             ++formatDesc.index;
         }
 
+        if (camera->videoFormats.empty())
+            continue;
+
         // first camera is default
         camera->isDefault = std::exchange(first, false);
 
