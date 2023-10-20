@@ -616,10 +616,9 @@ void QV4L2Camera::readFrame()
     buffer->data.bytesPerLine[0] = bytesPerLine;
     buffer->data.data[0] = (uchar *)d->mappedBuffers.at(i).data;
     buffer->data.size[0] = d->mappedBuffers.at(i).size;
-    QVideoFrameFormat fmt(m_cameraFormat.resolution(), m_cameraFormat.pixelFormat());
-    fmt.setColorSpace(colorSpace);
-//    qCDebug(qLV4L2Camera) << "got a frame" << d->mappedBuffers.at(i).data << d->mappedBuffers.at(i).size << fmt << i;
-    QVideoFrame frame(buffer, fmt);
+    //    qCDebug(qLV4L2Camera) << "got a frame" << d->mappedBuffers.at(i).data <<
+    //    d->mappedBuffers.at(i).size << fmt << i;
+    QVideoFrame frame(buffer, frameFormat());
 
     if (firstFrameTime.tv_sec == -1)
         firstFrameTime = buf.timestamp;
@@ -954,6 +953,13 @@ void QV4L2Camera::startCapturing()
     connect(notifier.get(), &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
 
     firstFrameTime = { -1, -1 };
+}
+
+QVideoFrameFormat QV4L2Camera::frameFormat() const
+{
+    auto result = QPlatformCamera::frameFormat();
+    result.setColorSpace(colorSpace);
+    return result;
 }
 
 QT_END_NAMESPACE

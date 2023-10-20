@@ -105,6 +105,8 @@ public:
     void setWhiteBalanceMode(QCamera::WhiteBalanceMode /*mode*/) override;
     void setColorTemperature(int /*temperature*/) override;
 
+    QVideoFrameFormat frameFormat() const override;
+
     void releaseBuffer(int index);
 
 private Q_SLOTS:
