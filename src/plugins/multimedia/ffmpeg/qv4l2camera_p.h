@@ -49,6 +49,30 @@ private:
     QFileSystemWatcher m_deviceWatcher;
 };
 
+struct V4L2CameraInfo
+{
+    bool formatInitialized = false;
+
+    bool autoWhiteBalanceSupported = false;
+    bool colorTemperatureSupported = false;
+    bool autoExposureSupported = false;
+    bool manualExposureSupported = false;
+    bool flashSupported = false;
+    bool torchSupported = false;
+    qint32 minColorTemp = 5600; // Daylight...
+    qint32 maxColorTemp = 5600;
+    qint32 minExposure = 0;
+    qint32 maxExposure = 0;
+    qint32 minExposureAdjustment = 0;
+    qint32 maxExposureAdjustment = 0;
+    qint32 minFocus = 0;
+    qint32 maxFocus = 0;
+    qint32 rangedFocus = false;
+
+    int minZoom = 0;
+    int maxZoom = 0;
+};
+
 class Q_MULTIMEDIA_EXPORT QV4L2Camera : public QPlatformCamera
 {
     Q_OBJECT
@@ -117,24 +141,7 @@ private:
     std::unique_ptr<QV4L2MemoryTransfer> memoryTransfer;
     std::shared_ptr<QV4L2FileDescriptor> v4l2FileDescriptor;
 
-    bool v4l2AutoWhiteBalanceSupported = false;
-    bool v4l2ColorTemperatureSupported = false;
-    bool v4l2AutoExposureSupported = false;
-    bool v4l2ManualExposureSupported = false;
-    qint32 v4l2MinColorTemp = 5600; // Daylight...
-    qint32 v4l2MaxColorTemp = 5600;
-    qint32 v4l2MinExposure = 0;
-    qint32 v4l2MaxExposure = 0;
-    qint32 v4l2MinExposureAdjustment = 0;
-    qint32 v4l2MaxExposureAdjustment = 0;
-    qint32 v4l2MinFocus = 0;
-    qint32 v4l2MaxFocus = 0;
-    qint32 v4l2RangedFocus = false;
-    bool v4l2FlashSupported = false;
-    bool v4l2TorchSupported = false;
-    int v4l2MinZoom = 0;
-    int v4l2MaxZoom = 0;
-    bool v4l2CameraFormatInitialized = false;
+    V4L2CameraInfo v4l2Info;
 
     timeval firstFrameTime = {-1, -1};
     quint32 bytesPerLine = 0;
