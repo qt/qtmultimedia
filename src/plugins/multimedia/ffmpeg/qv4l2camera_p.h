@@ -121,11 +121,6 @@ private Q_SLOTS:
 
 private:
     void setCameraBusy();
-
-    bool m_active = false;
-
-    QCameraDevice m_cameraDevice;
-
     void initV4L2Controls();
     void closeV4L2Fd();
     int setV4L2ColorTemperature(int temperature);
@@ -137,18 +132,22 @@ private:
     void startCapturing();
     void stopCapturing();
 
-    std::unique_ptr<QSocketNotifier> notifier;
-    std::unique_ptr<QV4L2MemoryTransfer> memoryTransfer;
-    std::shared_ptr<QV4L2FileDescriptor> v4l2FileDescriptor;
+private:
+    bool m_active = false;
+    QCameraDevice m_cameraDevice;
 
-    V4L2CameraInfo v4l2Info;
+    std::unique_ptr<QSocketNotifier> m_notifier;
+    std::unique_ptr<QV4L2MemoryTransfer> m_memoryTransfer;
+    std::shared_ptr<QV4L2FileDescriptor> m_v4l2FileDescriptor;
 
-    timeval firstFrameTime = {-1, -1};
-    quint32 bytesPerLine = 0;
-    quint32 imageSize = 0;
-    QVideoFrameFormat::ColorSpace colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
-    qint64 frameDuration = -1;
-    bool cameraBusy = false;
+    V4L2CameraInfo m_v4l2Info;
+
+    timeval m_firstFrameTime = { -1, -1 };
+    quint32 m_bytesPerLine = 0;
+    quint32 m_imageSize = 0;
+    QVideoFrameFormat::ColorSpace m_colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
+    qint64 m_frameDuration = -1;
+    bool m_cameraBusy = false;
 };
 
 QT_END_NAMESPACE

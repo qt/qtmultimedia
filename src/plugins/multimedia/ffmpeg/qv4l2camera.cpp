@@ -305,31 +305,31 @@ void QV4L2Camera::setFocusMode(QCamera::FocusMode mode)
         return;
 
     bool focusDist = supportedFeatures() & QCamera::Feature::FocusDistance;
-    if (!focusDist && !v4l2Info.rangedFocus)
+    if (!focusDist && !m_v4l2Info.rangedFocus)
         return;
 
     switch (mode) {
     default:
     case QCamera::FocusModeAuto:
         setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 1);
-        if (v4l2Info.rangedFocus)
+        if (m_v4l2Info.rangedFocus)
             setV4L2Parameter(V4L2_CID_AUTO_FOCUS_RANGE, V4L2_AUTO_FOCUS_RANGE_AUTO);
         break;
     case QCamera::FocusModeAutoNear:
         setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 1);
-        if (v4l2Info.rangedFocus)
+        if (m_v4l2Info.rangedFocus)
             setV4L2Parameter(V4L2_CID_AUTO_FOCUS_RANGE, V4L2_AUTO_FOCUS_RANGE_MACRO);
         else if (focusDist)
-            setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, v4l2Info.minFocus);
+            setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, m_v4l2Info.minFocus);
         break;
     case QCamera::FocusModeAutoFar:
         setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 1);
-        if (v4l2Info.rangedFocus)
+        if (m_v4l2Info.rangedFocus)
             setV4L2Parameter(V4L2_CID_AUTO_FOCUS_RANGE, V4L2_AUTO_FOCUS_RANGE_INFINITY);
         break;
     case QCamera::FocusModeInfinity:
         setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 0);
-        setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, v4l2Info.maxFocus);
+        setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, m_v4l2Info.maxFocus);
         break;
     case QCamera::FocusModeManual:
         setV4L2Parameter(V4L2_CID_FOCUS_AUTO, 0);
@@ -341,17 +341,17 @@ void QV4L2Camera::setFocusMode(QCamera::FocusMode mode)
 
 void QV4L2Camera::setFocusDistance(float d)
 {
-    int distance = v4l2Info.minFocus + int((v4l2Info.maxFocus - v4l2Info.minFocus) * d);
+    int distance = m_v4l2Info.minFocus + int((m_v4l2Info.maxFocus - m_v4l2Info.minFocus) * d);
     setV4L2Parameter(V4L2_CID_FOCUS_ABSOLUTE, distance);
     focusDistanceChanged(d);
 }
 
 void QV4L2Camera::zoomTo(float factor, float)
 {
-    if (v4l2Info.maxZoom == v4l2Info.minZoom)
+    if (m_v4l2Info.maxZoom == m_v4l2Info.minZoom)
         return;
     factor = qBound(1., factor, 2.);
-    int zoom = v4l2Info.minZoom + (factor - 1.) * (v4l2Info.maxZoom - v4l2Info.minZoom);
+    int zoom = m_v4l2Info.minZoom + (factor - 1.) * (m_v4l2Info.maxZoom - m_v4l2Info.minZoom);
     setV4L2Parameter(V4L2_CID_ZOOM_ABSOLUTE, zoom);
     zoomFactorChanged(factor);
 }
@@ -367,7 +367,7 @@ bool QV4L2Camera::isFocusModeSupported(QCamera::FocusMode mode) const
 
 void QV4L2Camera::setFlashMode(QCamera::FlashMode mode)
 {
-    if (!v4l2Info.flashSupported || mode == QCamera::FlashOn)
+    if (!m_v4l2Info.flashSupported || mode == QCamera::FlashOn)
         return;
     setV4L2Parameter(V4L2_CID_FLASH_LED_MODE, mode == QCamera::FlashAuto ? V4L2_FLASH_LED_MODE_FLASH : V4L2_FLASH_LED_MODE_NONE);
     flashModeChanged(mode);
@@ -375,7 +375,7 @@ void QV4L2Camera::setFlashMode(QCamera::FlashMode mode)
 
 bool QV4L2Camera::isFlashModeSupported(QCamera::FlashMode mode) const
 {
-    if (v4l2Info.flashSupported && mode == QCamera::FlashAuto)
+    if (m_v4l2Info.flashSupported && mode == QCamera::FlashAuto)
         return true;
     return mode == QCamera::FlashOff;
 }
@@ -386,12 +386,12 @@ bool QV4L2Camera::isFlashReady() const
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
 
-    return v4l2FileDescriptor && v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl);
+    return m_v4l2FileDescriptor && m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl);
 }
 
 void QV4L2Camera::setTorchMode(QCamera::TorchMode mode)
 {
-    if (!v4l2Info.torchSupported || mode == QCamera::TorchOn)
+    if (!m_v4l2Info.torchSupported || mode == QCamera::TorchOn)
         return;
     setV4L2Parameter(V4L2_CID_FLASH_LED_MODE, mode == QCamera::TorchOn ? V4L2_FLASH_LED_MODE_TORCH : V4L2_FLASH_LED_MODE_NONE);
     torchModeChanged(mode);
@@ -400,13 +400,13 @@ void QV4L2Camera::setTorchMode(QCamera::TorchMode mode)
 bool QV4L2Camera::isTorchModeSupported(QCamera::TorchMode mode) const
 {
     if (mode == QCamera::TorchOn)
-        return v4l2Info.torchSupported;
+        return m_v4l2Info.torchSupported;
     return mode == QCamera::TorchOff;
 }
 
 void QV4L2Camera::setExposureMode(QCamera::ExposureMode mode)
 {
-    if (v4l2Info.autoExposureSupported && v4l2Info.manualExposureSupported) {
+    if (m_v4l2Info.autoExposureSupported && m_v4l2Info.manualExposureSupported) {
         if (mode != QCamera::ExposureAuto && mode != QCamera::ExposureManual)
             return;
         int value = QCamera::ExposureAuto ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL;
@@ -420,16 +420,16 @@ bool QV4L2Camera::isExposureModeSupported(QCamera::ExposureMode mode) const
 {
     if (mode == QCamera::ExposureAuto)
         return true;
-    if (v4l2Info.manualExposureSupported && v4l2Info.autoExposureSupported)
+    if (m_v4l2Info.manualExposureSupported && m_v4l2Info.autoExposureSupported)
         return mode == QCamera::ExposureManual;
     return false;
 }
 
 void QV4L2Camera::setExposureCompensation(float compensation)
 {
-    if ((v4l2Info.minExposureAdjustment != 0 || v4l2Info.maxExposureAdjustment != 0)) {
-        int value = qBound(v4l2Info.minExposureAdjustment, (int)(compensation * 1000),
-                           v4l2Info.maxExposureAdjustment);
+    if ((m_v4l2Info.minExposureAdjustment != 0 || m_v4l2Info.maxExposureAdjustment != 0)) {
+        int value = qBound(m_v4l2Info.minExposureAdjustment, (int)(compensation * 1000),
+                           m_v4l2Info.maxExposureAdjustment);
         setV4L2Parameter(V4L2_CID_AUTO_EXPOSURE_BIAS, value);
         exposureCompensationChanged(value/1000.);
         return;
@@ -457,8 +457,9 @@ int QV4L2Camera::isoSensitivity() const
 
 void QV4L2Camera::setManualExposureTime(float secs)
 {
-    if (v4l2Info.manualExposureSupported && v4l2Info.autoExposureSupported) {
-        int exposure = qBound(v4l2Info.minExposure, qRound(secs * 10000.), v4l2Info.maxExposure);
+    if (m_v4l2Info.manualExposureSupported && m_v4l2Info.autoExposureSupported) {
+        int exposure =
+                qBound(m_v4l2Info.minExposure, qRound(secs * 10000.), m_v4l2Info.maxExposure);
         setV4L2Parameter(V4L2_CID_EXPOSURE_ABSOLUTE, exposure);
         exposureTimeChanged(exposure/10000.);
         return;
@@ -472,7 +473,7 @@ float QV4L2Camera::exposureTime() const
 
 bool QV4L2Camera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
 {
-    if (v4l2Info.autoWhiteBalanceSupported && v4l2Info.colorTemperatureSupported)
+    if (m_v4l2Info.autoWhiteBalanceSupported && m_v4l2Info.colorTemperatureSupported)
         return true;
 
     return mode == QCamera::WhiteBalanceAuto;
@@ -505,9 +506,9 @@ void QV4L2Camera::setColorTemperature(int temperature)
 
 void QV4L2Camera::readFrame()
 {
-    Q_ASSERT(memoryTransfer);
+    Q_ASSERT(m_memoryTransfer);
 
-    auto buffer = memoryTransfer->dequeueBuffer();
+    auto buffer = m_memoryTransfer->dequeueBuffer();
     if (!buffer) {
         qCWarning(qLcV4L2Camera) << "Cannot take buffer";
 
@@ -520,33 +521,33 @@ void QV4L2Camera::readFrame()
         return;
     }
 
-    auto videoBuffer = new QMemoryVideoBuffer(buffer->data, bytesPerLine);
+    auto videoBuffer = new QMemoryVideoBuffer(buffer->data, m_bytesPerLine);
     QVideoFrame frame(videoBuffer, frameFormat());
 
     auto &v4l2Buffer = buffer->v4l2Buffer;
 
-    if (firstFrameTime.tv_sec == -1)
-        firstFrameTime = v4l2Buffer.timestamp;
-    qint64 secs = v4l2Buffer.timestamp.tv_sec - firstFrameTime.tv_sec;
-    qint64 usecs = v4l2Buffer.timestamp.tv_usec - firstFrameTime.tv_usec;
+    if (m_firstFrameTime.tv_sec == -1)
+        m_firstFrameTime = v4l2Buffer.timestamp;
+    qint64 secs = v4l2Buffer.timestamp.tv_sec - m_firstFrameTime.tv_sec;
+    qint64 usecs = v4l2Buffer.timestamp.tv_usec - m_firstFrameTime.tv_usec;
     frame.setStartTime(secs*1000000 + usecs);
-    frame.setEndTime(frame.startTime() + frameDuration);
+    frame.setEndTime(frame.startTime() + m_frameDuration);
 
     emit newVideoFrame(frame);
 
-    if (!memoryTransfer->enqueueBuffer(v4l2Buffer.index))
+    if (!m_memoryTransfer->enqueueBuffer(v4l2Buffer.index))
         qCWarning(qLcV4L2Camera) << "Cannot add buffer";
 }
 
 void QV4L2Camera::setCameraBusy()
 {
-    cameraBusy = true;
+    m_cameraBusy = true;
     emit error(QCamera::CameraError, QLatin1String("Camera is in use"));
 }
 
 void QV4L2Camera::initV4L2Controls()
 {
-    v4l2Info = {};
+    m_v4l2Info = {};
     QCamera::Features features;
 
     const QByteArray deviceName = m_cameraDevice.id();
@@ -563,7 +564,7 @@ void QV4L2Camera::initV4L2Controls()
         return;
     }
 
-    v4l2FileDescriptor = std::make_shared<QV4L2FileDescriptor>(descriptor);
+    m_v4l2FileDescriptor = std::make_shared<QV4L2FileDescriptor>(descriptor);
 
     qCDebug(qLcV4L2Camera) << "FD=" << descriptor;
 
@@ -571,48 +572,48 @@ void QV4L2Camera::initV4L2Controls()
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
 
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.autoWhiteBalanceSupported = true;
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.autoWhiteBalanceSupported = true;
         setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, true);
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.minColorTemp = queryControl.minimum;
-        v4l2Info.maxColorTemp = queryControl.maximum;
-        v4l2Info.colorTemperatureSupported = true;
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.minColorTemp = queryControl.minimum;
+        m_v4l2Info.maxColorTemp = queryControl.maximum;
+        m_v4l2Info.colorTemperatureSupported = true;
         features |= QCamera::Feature::ColorTemperature;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_EXPOSURE_AUTO;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.autoExposureSupported = true;
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.autoExposureSupported = true;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.manualExposureSupported = true;
-        v4l2Info.minExposure = queryControl.minimum;
-        v4l2Info.maxExposure = queryControl.maximum;
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.manualExposureSupported = true;
+        m_v4l2Info.minExposure = queryControl.minimum;
+        m_v4l2Info.maxExposure = queryControl.maximum;
         features |= QCamera::Feature::ManualExposureTime;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_EXPOSURE_BIAS;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.minExposureAdjustment = queryControl.minimum;
-        v4l2Info.maxExposureAdjustment = queryControl.maximum;
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.minExposureAdjustment = queryControl.minimum;
+        m_v4l2Info.maxExposureAdjustment = queryControl.maximum;
         features |= QCamera::Feature::ExposureCompensation;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_ISO_SENSITIVITY_AUTO;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
         queryControl.id = V4L2_CID_ISO_SENSITIVITY;
-        if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
             features |= QCamera::Feature::IsoSensitivity;
             minIsoChanged(queryControl.minimum);
             maxIsoChanged(queryControl.minimum);
@@ -621,48 +622,48 @@ void QV4L2Camera::initV4L2Controls()
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_FOCUS_ABSOLUTE;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.minExposureAdjustment = queryControl.minimum;
-        v4l2Info.maxExposureAdjustment = queryControl.maximum;
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.minExposureAdjustment = queryControl.minimum;
+        m_v4l2Info.maxExposureAdjustment = queryControl.maximum;
         features |= QCamera::Feature::FocusDistance;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_AUTO_FOCUS_RANGE;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.rangedFocus = true;
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.rangedFocus = true;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_FLASH_LED_MODE;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.flashSupported = queryControl.minimum <= V4L2_FLASH_LED_MODE_FLASH
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.flashSupported = queryControl.minimum <= V4L2_FLASH_LED_MODE_FLASH
                 && queryControl.maximum >= V4L2_FLASH_LED_MODE_FLASH;
-        v4l2Info.torchSupported = queryControl.minimum <= V4L2_FLASH_LED_MODE_TORCH
+        m_v4l2Info.torchSupported = queryControl.minimum <= V4L2_FLASH_LED_MODE_TORCH
                 && queryControl.maximum >= V4L2_FLASH_LED_MODE_TORCH;
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_ZOOM_ABSOLUTE;
-    if (v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        v4l2Info.minZoom = queryControl.minimum;
-        v4l2Info.maxZoom = queryControl.maximum;
+    if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
+        m_v4l2Info.minZoom = queryControl.minimum;
+        m_v4l2Info.maxZoom = queryControl.maximum;
     }
     // zoom factors are in arbitrary units, so we simply normalize them to go from 1 to 2
     // if they are different
     minimumZoomFactorChanged(1);
-    maximumZoomFactorChanged(v4l2Info.minZoom != v4l2Info.maxZoom ? 2 : 1);
+    maximumZoomFactorChanged(m_v4l2Info.minZoom != m_v4l2Info.maxZoom ? 2 : 1);
 
     supportedFeaturesChanged(features);
 }
 
 void QV4L2Camera::closeV4L2Fd()
 {
-    Q_ASSERT(!memoryTransfer);
+    Q_ASSERT(!m_memoryTransfer);
 
-    v4l2Info = {};
-    cameraBusy = false;
-    v4l2FileDescriptor = nullptr;
+    m_v4l2Info = {};
+    m_cameraBusy = false;
+    m_v4l2FileDescriptor = nullptr;
 }
 
 int QV4L2Camera::setV4L2ColorTemperature(int temperature)
@@ -670,16 +671,17 @@ int QV4L2Camera::setV4L2ColorTemperature(int temperature)
     struct v4l2_control control;
     ::memset(&control, 0, sizeof(control));
 
-    if (v4l2Info.autoWhiteBalanceSupported) {
+    if (m_v4l2Info.autoWhiteBalanceSupported) {
         setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, temperature == 0 ? true : false);
     } else if (temperature == 0) {
         temperature = 5600;
     }
 
-    if (temperature != 0 && v4l2Info.colorTemperatureSupported) {
-        temperature = qBound(v4l2Info.minColorTemp, temperature, v4l2Info.maxColorTemp);
-        if (!setV4L2Parameter(V4L2_CID_WHITE_BALANCE_TEMPERATURE,
-                              qBound(v4l2Info.minColorTemp, temperature, v4l2Info.maxColorTemp)))
+    if (temperature != 0 && m_v4l2Info.colorTemperatureSupported) {
+        temperature = qBound(m_v4l2Info.minColorTemp, temperature, m_v4l2Info.maxColorTemp);
+        if (!setV4L2Parameter(
+                    V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+                    qBound(m_v4l2Info.minColorTemp, temperature, m_v4l2Info.maxColorTemp)))
             temperature = 0;
     } else {
         temperature = 0;
@@ -691,7 +693,7 @@ int QV4L2Camera::setV4L2ColorTemperature(int temperature)
 bool QV4L2Camera::setV4L2Parameter(quint32 id, qint32 value)
 {
     v4l2_control control{ id, value };
-    if (!v4l2FileDescriptor->call(VIDIOC_S_CTRL, &control)) {
+    if (!m_v4l2FileDescriptor->call(VIDIOC_S_CTRL, &control)) {
         qWarning() << "Unable to set the V4L2 Parameter" << Qt::hex << id << "to" << value << qt_error_string(errno);
         return false;
     }
@@ -701,7 +703,7 @@ bool QV4L2Camera::setV4L2Parameter(quint32 id, qint32 value)
 int QV4L2Camera::getV4L2Parameter(quint32 id) const
 {
     struct v4l2_control control{id, 0};
-    if (!v4l2FileDescriptor->call(VIDIOC_G_CTRL, &control)) {
+    if (!m_v4l2FileDescriptor->call(VIDIOC_G_CTRL, &control)) {
         qWarning() << "Unable to get the V4L2 Parameter" << Qt::hex << id << qt_error_string(errno);
         return 0;
     }
@@ -710,7 +712,7 @@ int QV4L2Camera::getV4L2Parameter(quint32 id) const
 
 void QV4L2Camera::setV4L2CameraFormat()
 {
-    if (v4l2Info.formatInitialized || !v4l2FileDescriptor)
+    if (m_v4l2Info.formatInitialized || !m_v4l2FileDescriptor)
         return;
 
     Q_ASSERT(!m_cameraFormat.isNull());
@@ -728,7 +730,7 @@ void QV4L2Camera::setV4L2CameraFormat()
 
     qCDebug(qLcV4L2Camera) << "setting camera format to" << size << fmt.fmt.pix.pixelformat;
 
-    if (!v4l2FileDescriptor->call(VIDIOC_S_FMT, &fmt)) {
+    if (!m_v4l2FileDescriptor->call(VIDIOC_S_FMT, &fmt)) {
         if (errno == EBUSY) {
             setCameraBusy();
             return;
@@ -736,29 +738,29 @@ void QV4L2Camera::setV4L2CameraFormat()
         qWarning() << "Couldn't set video format on v4l2 camera" << strerror(errno);
     }
 
-    v4l2Info.formatInitialized = true;
-    cameraBusy = false;
+    m_v4l2Info.formatInitialized = true;
+    m_cameraBusy = false;
 
-    bytesPerLine = fmt.fmt.pix.bytesperline;
-    imageSize = std::max(fmt.fmt.pix.sizeimage, bytesPerLine * fmt.fmt.pix.height);
+    m_bytesPerLine = fmt.fmt.pix.bytesperline;
+    m_imageSize = std::max(fmt.fmt.pix.sizeimage, m_bytesPerLine * fmt.fmt.pix.height);
 
     switch (v4l2_colorspace(fmt.fmt.pix.colorspace)) {
     default:
     case V4L2_COLORSPACE_DCI_P3:
-        colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
+        m_colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
         break;
     case V4L2_COLORSPACE_REC709:
-        colorSpace = QVideoFrameFormat::ColorSpace_BT709;
+        m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
         break;
     case V4L2_COLORSPACE_JPEG:
-        colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
+        m_colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
         break;
     case V4L2_COLORSPACE_SRGB:
         // ##### is this correct???
-        colorSpace = QVideoFrameFormat::ColorSpace_BT601;
+        m_colorSpace = QVideoFrameFormat::ColorSpace_BT601;
         break;
     case V4L2_COLORSPACE_BT2020:
-        colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
+        m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
         break;
     }
 
@@ -768,22 +770,22 @@ void QV4L2Camera::setV4L2CameraFormat()
     streamParam.parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
     auto [num, den] = qRealToFraction(1./m_cameraFormat.maxFrameRate());
     streamParam.parm.capture.timeperframe = { (uint)num, (uint)den };
-    v4l2FileDescriptor->call(VIDIOC_S_PARM, &streamParam);
+    m_v4l2FileDescriptor->call(VIDIOC_S_PARM, &streamParam);
 
-    frameDuration = 1000000*streamParam.parm.capture.timeperframe.numerator
-                    /streamParam.parm.capture.timeperframe.denominator;
+    m_frameDuration = 1000000 * streamParam.parm.capture.timeperframe.numerator
+            / streamParam.parm.capture.timeperframe.denominator;
 }
 
 void QV4L2Camera::initV4L2MemoryTransfer()
 {
-    if (cameraBusy)
+    if (m_cameraBusy)
         return;
 
-    Q_ASSERT(!memoryTransfer);
+    Q_ASSERT(!m_memoryTransfer);
 
-    memoryTransfer = makeUserPtrMemoryTransfer(v4l2FileDescriptor, imageSize);
+    m_memoryTransfer = makeUserPtrMemoryTransfer(m_v4l2FileDescriptor, m_imageSize);
 
-    if (memoryTransfer)
+    if (m_memoryTransfer)
         return;
 
     if (errno == EBUSY) {
@@ -793,9 +795,9 @@ void QV4L2Camera::initV4L2MemoryTransfer()
 
     qCDebug(qLcV4L2Camera) << "Cannot init V4L2_MEMORY_USERPTR; trying V4L2_MEMORY_MMAP";
 
-    memoryTransfer = makeMMapMemoryTransfer(v4l2FileDescriptor);
+    m_memoryTransfer = makeMMapMemoryTransfer(m_v4l2FileDescriptor);
 
-    if (!memoryTransfer) {
+    if (!m_memoryTransfer) {
         qCWarning(qLcV4L2Camera) << "Cannot init v4l2 memory transfer," << qt_error_string(errno);
         emit error(QCamera::CameraError, QLatin1String("Cannot init V4L2 memory transfer"));
     }
@@ -803,47 +805,48 @@ void QV4L2Camera::initV4L2MemoryTransfer()
 
 void QV4L2Camera::stopCapturing()
 {
-    if (!memoryTransfer || !v4l2FileDescriptor)
+    if (!m_memoryTransfer || !m_v4l2FileDescriptor)
         return;
 
-    notifier = nullptr;
+    m_notifier = nullptr;
 
-    if (!v4l2FileDescriptor->stopStream()) {
+    if (!m_v4l2FileDescriptor->stopStream()) {
         // TODO: handle the case carefully to avoid possible memory corruption
         if (errno != ENODEV)
             qWarning() << "failed to stop capture";
     }
 
-    memoryTransfer = nullptr;
-    cameraBusy = false;
+    m_memoryTransfer = nullptr;
+    m_cameraBusy = false;
 }
 
 void QV4L2Camera::startCapturing()
 {
-    if (!v4l2FileDescriptor)
+    if (!m_v4l2FileDescriptor)
         return;
 
     setV4L2CameraFormat();
     initV4L2MemoryTransfer();
 
-    if (cameraBusy || !memoryTransfer)
+    if (m_cameraBusy || !m_memoryTransfer)
         return;
 
-    if (!v4l2FileDescriptor->startStream()) {
+    if (!m_v4l2FileDescriptor->startStream()) {
         qWarning() << "Couldn't start v4l2 camera stream";
         return;
     }
 
-    notifier = std::make_unique<QSocketNotifier>(v4l2FileDescriptor->get(), QSocketNotifier::Read);
-    connect(notifier.get(), &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
+    m_notifier =
+            std::make_unique<QSocketNotifier>(m_v4l2FileDescriptor->get(), QSocketNotifier::Read);
+    connect(m_notifier.get(), &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
 
-    firstFrameTime = { -1, -1 };
+    m_firstFrameTime = { -1, -1 };
 }
 
 QVideoFrameFormat QV4L2Camera::frameFormat() const
 {
     auto result = QPlatformCamera::frameFormat();
-    result.setColorSpace(colorSpace);
+    result.setColorSpace(m_colorSpace);
     return result;
 }
 
