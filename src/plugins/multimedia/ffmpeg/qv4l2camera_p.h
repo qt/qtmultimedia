@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QFFMPEGCAMERA_H
-#define QFFMPEGCAMERA_H
+#ifndef QV4L2CAMERA_H
+#define QV4L2CAMERA_H
 
 //
 //  W A R N I N G
@@ -16,38 +16,13 @@
 //
 
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformvideodevices_p.h>
-#include <private/qplatformmediaintegration_p.h>
-
-#include <qfilesystemwatcher.h>
-#include <qsocketnotifier.h>
-#include <qmutex.h>
-
 #include <sys/time.h>
 
 QT_BEGIN_NAMESPACE
 
 class QV4L2FileDescriptor;
 class QV4L2MemoryTransfer;
-
-class QV4L2CameraDevices : public QPlatformVideoDevices
-{
-    Q_OBJECT
-public:
-    QV4L2CameraDevices(QPlatformMediaIntegration *integration);
-
-    QList<QCameraDevice> videoDevices() const override;
-
-public Q_SLOTS:
-    void checkCameras();
-
-private:
-    bool doCheckCameras();
-
-private:
-    QList<QCameraDevice> m_cameras;
-    QFileSystemWatcher m_deviceWatcher;
-};
+class QSocketNotifier;
 
 struct V4L2CameraInfo
 {
@@ -72,6 +47,9 @@ struct V4L2CameraInfo
     int minZoom = 0;
     int maxZoom = 0;
 };
+
+QVideoFrameFormat::PixelFormat formatForV4L2Format(uint32_t v4l2Format);
+uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format);
 
 class Q_MULTIMEDIA_EXPORT QV4L2Camera : public QPlatformCamera
 {
@@ -152,6 +130,4 @@ private:
 
 QT_END_NAMESPACE
 
-
-#endif  // QFFMPEGCAMERA_H
-
+#endif // QV4L2CAMERA_H
