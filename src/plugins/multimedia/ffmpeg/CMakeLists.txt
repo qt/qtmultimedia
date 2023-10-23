@@ -189,6 +189,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_linux_v4l
         qv4l2camera.cpp qv4l2camera_p.h
         qv4l2filedescriptor.cpp qv4l2filedescriptor_p.h
         qv4l2memorytransfer.cpp qv4l2memorytransfer_p.h
+        qv4l2cameradevices.cpp qv4l2cameradevices_p.h
 )
 
 if (ANDROID)

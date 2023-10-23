@@ -42,6 +42,7 @@ extern "C" {
 
 #if QT_CONFIG(linux_v4l)
 #include "qv4l2camera_p.h"
+#include "qv4l2cameradevices_p.h"
 #endif
 
 #if QT_CONFIG(xlib)
