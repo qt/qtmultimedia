@@ -7,8 +7,8 @@ Popup {
     id: propertyPopup
 
     property alias model : view.model
-    property variant currentValue
-    property variant currentItem : model.get(view.currentIndex)
+    property var currentValue
+    property var currentItem : model.get(view.currentIndex)
 
     property int itemWidth : 100
     property int itemHeight : 70
