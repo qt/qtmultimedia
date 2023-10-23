@@ -7,8 +7,8 @@ Popup {
     id: cameraListPopup
 
     property alias model : view.model
-    property variant currentValue
-    property variant currentItem : model[view.currentIndex]
+    property cameraDevice currentValue
+    property cameraDevice currentItem : model[view.currentIndex]
 
     property int itemWidth : 200
     property int itemHeight : 50
