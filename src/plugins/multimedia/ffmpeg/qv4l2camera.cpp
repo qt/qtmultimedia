@@ -703,3 +703,5 @@ QVideoFrameFormat QV4L2Camera::frameFormat() const
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qv4l2camera_p.cpp"

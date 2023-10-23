@@ -164,3 +164,5 @@ bool QV4L2CameraDevices::doCheckCameras()
 }
 
 QT_END_NAMESPACE
+
+#include "moc_qv4l2cameradevices_p.cpp"
