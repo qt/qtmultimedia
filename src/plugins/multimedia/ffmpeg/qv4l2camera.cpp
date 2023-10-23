@@ -5,52 +5,17 @@
 #include "qv4l2filedescriptor_p.h"
 #include "qv4l2memorytransfer_p.h"
 
-#include <qdir.h>
-#include <qendian.h>
 #include <private/qcameradevice_p.h>
-#include <private/qabstractvideobuffer_p.h>
-#include <private/qvideotexturehelper_p.h>
 #include <private/qmultimediautils_p.h>
-#include <private/qplatformmediadevices_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qcore_unix_p.h>
 
+#include <qsocketnotifier.h>
 #include <qloggingcategory.h>
-
-#include <sys/stat.h>
 
 QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcV4L2Camera, "qt.multimedia.ffmpeg.v4l2camera");
-
-static bool areCamerasEqual(QList<QCameraDevice> a, QList<QCameraDevice> b) {
-    auto areCamerasDataEqual = [](const QCameraDevice& a, const QCameraDevice& b) {
-        Q_ASSERT(QCameraDevicePrivate::handle(a));
-        Q_ASSERT(QCameraDevicePrivate::handle(b));
-        return *QCameraDevicePrivate::handle(a) == *QCameraDevicePrivate::handle(b);
-    };
-
-    return std::equal(a.cbegin(), a.cend(), b.cbegin(), b.cend(), areCamerasDataEqual);
-}
-
-QV4L2CameraDevices::QV4L2CameraDevices(QPlatformMediaIntegration *integration)
-    : QPlatformVideoDevices(integration)
-{
-    m_deviceWatcher.addPath(QLatin1String("/dev"));
-    connect(&m_deviceWatcher, &QFileSystemWatcher::directoryChanged, this, &QV4L2CameraDevices::checkCameras);
-    doCheckCameras();
-}
-
-QList<QCameraDevice> QV4L2CameraDevices::videoDevices() const
-{
-    return m_cameras;
-}
-
-void QV4L2CameraDevices::checkCameras()
-{
-    if (doCheckCameras())
-        emit videoInputsChanged();
-}
 
 static const struct {
     QVideoFrameFormat::PixelFormat fmt;
@@ -78,7 +43,7 @@ static const struct {
     { QVideoFrameFormat::Format_Invalid,  0                    },
 };
 
-static QVideoFrameFormat::PixelFormat formatForV4L2Format(uint32_t v4l2Format)
+QVideoFrameFormat::PixelFormat formatForV4L2Format(uint32_t v4l2Format)
 {
     auto *f = formatMap;
     while (f->v4l2Format) {
@@ -89,7 +54,7 @@ static QVideoFrameFormat::PixelFormat formatForV4L2Format(uint32_t v4l2Format)
     return QVideoFrameFormat::Format_Invalid;
 }
 
-static uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format)
+uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format)
 {
     auto *f = formatMap;
     while (f->v4l2Format) {
@@ -98,119 +63,6 @@ static uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format)
         ++f;
     }
     return 0;
-}
-
-
-bool QV4L2CameraDevices::doCheckCameras()
-{
-    QList<QCameraDevice> newCameras;
-
-    QDir dir(QLatin1String("/dev"));
-    const auto devices = dir.entryList(QDir::System);
-
-    bool first = true;
-
-    for (auto device : devices) {
-        //        qCDebug(qLcV4L2Camera) << "device:" << device;
-        if (!device.startsWith(QLatin1String("video")))
-            continue;
-
-        QByteArray file = QFile::encodeName(dir.filePath(device));
-        const int fd = open(file.constData(), O_RDONLY);
-        if (fd < 0)
-            continue;
-
-        auto fileCloseGuard = qScopeGuard([fd](){ close(fd); });
-
-        v4l2_fmtdesc formatDesc = {};
-
-        struct v4l2_capability cap;
-        if (xioctl(fd, VIDIOC_QUERYCAP, &cap) < 0)
-            continue;
-
-        if (cap.device_caps & V4L2_CAP_META_CAPTURE)
-            continue;
-        if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-            continue;
-        if (!(cap.capabilities & V4L2_CAP_STREAMING))
-            continue;
-
-        auto camera = std::make_unique<QCameraDevicePrivate>();
-
-        camera->id = file;
-        camera->description = QString::fromUtf8((const char *)cap.card);
-        qCDebug(qLcV4L2Camera) << "found camera" << camera->id << camera->description;
-
-        formatDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-
-        while (!xioctl(fd, VIDIOC_ENUM_FMT, &formatDesc)) {
-            auto pixelFmt = formatForV4L2Format(formatDesc.pixelformat);
-            qCDebug(qLcV4L2Camera) << "    " << pixelFmt;
-
-            if (pixelFmt == QVideoFrameFormat::Format_Invalid) {
-                ++formatDesc.index;
-                continue;
-            }
-
-            qCDebug(qLcV4L2Camera) << "frame sizes:";
-            v4l2_frmsizeenum frameSize = {};
-            frameSize.pixel_format = formatDesc.pixelformat;
-
-            while (!xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
-                ++frameSize.index;
-                if (frameSize.type != V4L2_FRMSIZE_TYPE_DISCRETE)
-                    continue;
-
-                QSize resolution(frameSize.discrete.width, frameSize.discrete.height);
-                float min = 1e10;
-                float max = 0;
-
-                v4l2_frmivalenum frameInterval = {};
-                frameInterval.pixel_format = formatDesc.pixelformat;
-                frameInterval.width = frameSize.discrete.width;
-                frameInterval.height = frameSize.discrete.height;
-
-                while (!xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
-                    ++frameInterval.index;
-                    if (frameInterval.type != V4L2_FRMIVAL_TYPE_DISCRETE)
-                        continue;
-                    float rate = float(frameInterval.discrete.denominator)/float(frameInterval.discrete.numerator);
-                    if (rate > max)
-                        max = rate;
-                    if (rate < min)
-                        min = rate;
-                }
-
-                qCDebug(qLcV4L2Camera) << "    " << resolution << min << max;
-
-                if (min <= max) {
-                    auto fmt = std::make_unique<QCameraFormatPrivate>();
-                    fmt->pixelFormat = pixelFmt;
-                    fmt->resolution = resolution;
-                    fmt->minFrameRate = min;
-                    fmt->maxFrameRate = max;
-                    camera->videoFormats.append(fmt.release()->create());
-                    camera->photoResolutions.append(resolution);
-                }
-            }
-
-            ++formatDesc.index;
-        }
-
-        if (camera->videoFormats.empty())
-            continue;
-
-        // first camera is default
-        camera->isDefault = std::exchange(first, false);
-
-        newCameras.append(camera.release()->create());
-    }
-
-    if (areCamerasEqual(m_cameras, newCameras))
-        return false;
-
-    m_cameras = std::move(newCameras);
-    return true;
 }
 
 QV4L2Camera::QV4L2Camera(QCamera *camera)
