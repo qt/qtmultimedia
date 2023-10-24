@@ -17,16 +17,6 @@
 
 // The implementation is based on a boilerplate from the MF SDK example.
 
-MFTransform::MFTransform():
-    m_cRef(1),
-    m_inputType(0),
-    m_outputType(0),
-    m_sample(0),
-    m_videoSinkTypeHandler(0),
-    m_bytesPerLine(0)
-{
-}
-
 MFTransform::~MFTransform()
 {
     if (m_inputType)
@@ -67,36 +57,6 @@ void MFTransform::setVideoSink(IUnknown *videoSink)
 
     if (videoSink)
         videoSink->QueryInterface(IID_PPV_ARGS(&m_videoSinkTypeHandler));
-}
-
-STDMETHODIMP MFTransform::QueryInterface(REFIID riid, void** ppv)
-{
-    if (!ppv)
-        return E_POINTER;
-    if (riid == IID_IMFTransform) {
-        *ppv = static_cast<IMFTransform*>(this);
-    } else if (riid == IID_IUnknown) {
-        *ppv = static_cast<IUnknown*>(this);
-    } else {
-        *ppv =  NULL;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) MFTransform::AddRef()
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) MFTransform::Release()
-{
-    ULONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0) {
-        delete this;
-    }
-    return cRef;
 }
 
 STDMETHODIMP MFTransform::GetStreamLimits(DWORD *pdwInputMinimum, DWORD *pdwInputMaximum, DWORD *pdwOutputMinimum, DWORD *pdwOutputMaximum)
