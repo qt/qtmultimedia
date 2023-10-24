@@ -19,12 +19,12 @@
 #include <qwindowsmfdefs_p.h>
 
 #include <QtCore/qmap.h>
+#include <private/qcomobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class CMMNotificationClient : public IMMNotificationClient
+class CMMNotificationClient : public QComObject<IMMNotificationClient>
 {
-    LONG m_cRef;
     ComPtr<IMMDeviceEnumerator> m_enumerator;
     QWindowsMediaDevices *m_windowsMediaDevices;
     QMap<QString, DWORD> m_deviceState;
@@ -32,44 +32,11 @@ class CMMNotificationClient : public IMMNotificationClient
 public:
     CMMNotificationClient(QWindowsMediaDevices *windowsMediaDevices,
                           ComPtr<IMMDeviceEnumerator> enumerator,
-                          QMap<QString, DWORD> &&deviceState) :
-        m_cRef(1),
-        m_enumerator(enumerator),
-        m_windowsMediaDevices(windowsMediaDevices),
-        m_deviceState(deviceState)
+                          QMap<QString, DWORD> &&deviceState)
+        : m_enumerator(enumerator),
+          m_windowsMediaDevices(windowsMediaDevices),
+          m_deviceState(deviceState)
     {}
-
-    virtual ~CMMNotificationClient() {}
-
-    // IUnknown methods -- AddRef, Release, and QueryInterface
-    ULONG STDMETHODCALLTYPE AddRef() override
-    {
-        return InterlockedIncrement(&m_cRef);
-    }
-
-    ULONG STDMETHODCALLTYPE Release() override
-    {
-        ULONG ulRef = InterlockedDecrement(&m_cRef);
-        if (0 == ulRef) {
-            delete this;
-        }
-        return ulRef;
-    }
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, VOID **ppvInterface) override
-    {
-        if (IID_IUnknown == riid) {
-            AddRef();
-            *ppvInterface = (IUnknown*)this;
-        } else if (__uuidof(IMMNotificationClient) == riid) {
-            AddRef();
-            *ppvInterface = (IMMNotificationClient*)this;
-        } else {
-            *ppvInterface = NULL;
-            return E_NOINTERFACE;
-        }
-        return S_OK;
-    }
 
     HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged(EDataFlow flow, ERole role, LPCWSTR) override
     {
@@ -144,6 +111,10 @@ public:
                     emitAudioDevicesChanged(flow);
         }
     }
+
+private:
+    // Destructor is not public. Caller should call Release.
+    ~CMMNotificationClient() override = default;
 };
 
 QWindowsMediaDevices::QWindowsMediaDevices()
