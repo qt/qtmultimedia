@@ -9,6 +9,7 @@
 #include <private/qplatformvideosink_p.h>
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qwindowsmfdefs_p.h>
+#include <private/qcomobject_p.h>
 #include <qvideosink.h>
 #include <qvideoframeformat.h>
 #include <qtimer.h>
@@ -23,6 +24,46 @@
 #define PAD_TO_DWORD(x)  (((x) + 3) & ~3)
 
 QT_BEGIN_NAMESPACE
+
+namespace QtPrivate {
+
+template <>
+struct QComObjectTraits<IMFFinalizableMediaSink>
+{
+    static constexpr bool isGuidOf(REFIID riid) noexcept
+    {
+        return QComObjectTraits<IMFFinalizableMediaSink, IMFMediaSink>::isGuidOf(riid);
+    }
+};
+
+template <>
+struct QComObjectTraits<IMFStreamSink>
+{
+    static constexpr bool isGuidOf(REFIID riid) noexcept
+    {
+        return QComObjectTraits<IMFStreamSink, IMFMediaEventGenerator>::isGuidOf(riid);
+    }
+};
+
+} // namespace QtPrivate
+
+namespace {
+// Custom interface for handling IMFStreamSink::PlaceMarker calls asynchronously.
+static const GUID IID_IMarker = {
+    0xa3ff32de, 0x1031, 0x438a, { 0x8b, 0x47, 0x82, 0xf8, 0xac, 0xda, 0x59, 0xb7 }
+};
+MIDL_INTERFACE("a3ff32de-1031-438a-8b47-82f8acda59b7")
+IMarker : public IUnknown
+{
+    virtual STDMETHODIMP GetMarkerType(MFSTREAMSINK_MARKER_TYPE * pType) = 0;
+    virtual STDMETHODIMP GetMarkerValue(PROPVARIANT * pvar) = 0;
+    virtual STDMETHODIMP GetContext(PROPVARIANT * pvar) = 0;
+};
+} // namespace
+
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(IMarker, 0xa3ff32de, 0x1031, 0x438a, 0x8b, 0x47, 0x82, 0xf8, 0xac, 0xda, 0x59, 0xb7)
+#endif
 
 namespace
 {
@@ -82,17 +123,7 @@ namespace
         QVideoFrame::MapMode m_mapMode;
     };
 
-    // Custom interface for handling IMFStreamSink::PlaceMarker calls asynchronously.
-    static const GUID IID_IMarker = {0xa3ff32de, 0x1031, 0x438a, {0x8b, 0x47, 0x82, 0xf8, 0xac, 0xda, 0x59, 0xb7}};
-    MIDL_INTERFACE("a3ff32de-1031-438a-8b47-82f8acda59b7")
-    IMarker : public IUnknown
-    {
-        virtual STDMETHODIMP GetMarkerType(MFSTREAMSINK_MARKER_TYPE *pType) = 0;
-        virtual STDMETHODIMP GetMarkerValue(PROPVARIANT *pvar) = 0;
-        virtual STDMETHODIMP GetContext(PROPVARIANT *pvar) = 0;
-    };
-
-    class Marker : public IMarker
+    class Marker : public QComObject<IMarker>
     {
     public:
         static HRESULT Create(
@@ -127,37 +158,6 @@ namespace
             return hr;
         }
 
-        // IUnknown methods.
-        STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override
-        {
-            if (!ppv)
-                return E_POINTER;
-            if (iid == IID_IUnknown) {
-                *ppv = static_cast<IUnknown*>(this);
-            } else if (iid == IID_IMarker) {
-                *ppv = static_cast<IMarker*>(this);
-            } else {
-                *ppv = NULL;
-                return E_NOINTERFACE;
-            }
-            AddRef();
-            return S_OK;
-        }
-
-        STDMETHODIMP_(ULONG) AddRef() override
-        {
-            return InterlockedIncrement(&m_cRef);
-        }
-
-        STDMETHODIMP_(ULONG) Release() override
-        {
-            LONG cRef = InterlockedDecrement(&m_cRef);
-            if (cRef == 0)
-                delete this;
-            // For thread safety, return a temporary variable.
-            return cRef;
-        }
-
         STDMETHODIMP GetMarkerType(MFSTREAMSINK_MARKER_TYPE *pType) override
         {
             if (pType == NULL)
@@ -186,22 +186,21 @@ namespace
         PROPVARIANT m_varContextValue;
 
     private:
-        long    m_cRef = 1;
-
         Marker(MFSTREAMSINK_MARKER_TYPE eMarkerType) : m_eMarkerType(eMarkerType)
         {
             PropVariantInit(&m_varMarkerValue);
             PropVariantInit(&m_varContextValue);
         }
 
-        virtual ~Marker()
+        // Destructor is not public. Caller should call Release.
+        ~Marker() override
         {
             PropVariantClear(&m_varMarkerValue);
             PropVariantClear(&m_varContextValue);
         }
     };
 
-    class MediaStream : public QObject, public IMFStreamSink, public IMFMediaTypeHandler
+    class MediaStream : public QObject, public QComObject<IMFStreamSink, IMFMediaTypeHandler>
     {
         Q_OBJECT
         friend class MFVideoRendererControl;
@@ -218,46 +217,6 @@ namespace
                 qWarning("Failed to create mf event queue!");
             if (FAILED(MFAllocateWorkQueue(&m_workQueueId)))
                 qWarning("Failed to allocated mf work queue!");
-        }
-
-        ~MediaStream()
-        {
-            Q_ASSERT(m_shutdown);
-        }
-
-        //from IUnknown
-        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
-        {
-            if (!ppvObject)
-                return E_POINTER;
-            if (riid == IID_IMFStreamSink) {
-                *ppvObject = static_cast<IMFStreamSink*>(this);
-            } else if (riid == IID_IMFMediaEventGenerator) {
-                *ppvObject = static_cast<IMFMediaEventGenerator*>(this);
-            } else if (riid == IID_IMFMediaTypeHandler) {
-                *ppvObject = static_cast<IMFMediaTypeHandler*>(this);
-            } else if (riid == IID_IUnknown) {
-                *ppvObject = static_cast<IUnknown*>(static_cast<IMFStreamSink*>(this));
-            } else {
-                *ppvObject =  NULL;
-                return E_NOINTERFACE;
-            }
-            AddRef();
-            return S_OK;
-        }
-
-        STDMETHODIMP_(ULONG) AddRef(void) override
-        {
-            return InterlockedIncrement(&m_cRef);
-        }
-
-        STDMETHODIMP_(ULONG) Release(void) override
-        {
-            LONG cRef = InterlockedDecrement(&m_cRef);
-            if (cRef == 0)
-                delete this;
-            // For thread safety, return a temporary variable.
-            return cRef;
         }
 
         //from IMFMediaEventGenerator
@@ -883,7 +842,7 @@ namespace
         // Used to queue asynchronous operations. When we call MFPutWorkItem, we use this
         // object for the callback state (pState). Then, when the callback is invoked,
         // we can use the object to determine which asynchronous operation to perform.
-        class AsyncOperation : public IUnknown
+        class AsyncOperation : public QComObject<IUnknown>
         {
         public:
             AsyncOperation(StreamOperation op)
@@ -893,46 +852,18 @@ namespace
 
             StreamOperation m_op;   // The operation to perform.
 
-            //from IUnknown
-            STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override
-            {
-                if (!ppv)
-                    return E_POINTER;
-                if (iid == IID_IUnknown) {
-                    *ppv = static_cast<IUnknown*>(this);
-                } else {
-                    *ppv = NULL;
-                    return E_NOINTERFACE;
-                }
-                AddRef();
-                return S_OK;
-            }
-            STDMETHODIMP_(ULONG) AddRef() override
-            {
-                return InterlockedIncrement(&m_cRef);
-            }
-            STDMETHODIMP_(ULONG) Release() override
-            {
-                ULONG uCount = InterlockedDecrement(&m_cRef);
-                if (uCount == 0)
-                    delete this;
-                // For thread safety, return a temporary variable.
-                return uCount;
-            }
-
         private:
-            long    m_cRef = 1;
-            virtual ~AsyncOperation()
-            {
-                Q_ASSERT(m_cRef == 0);
-            }
+            // Destructor is not public. Caller should call Release.
+            ~AsyncOperation() override = default;
         };
+
+        // Destructor is not public. Caller should call Release.
+        ~MediaStream() override { Q_ASSERT(m_shutdown); }
 
         // ValidStateMatrix: Defines a look-up table that says which operations
         // are valid from which states.
         static BOOL ValidStateMatrix[State_Count][Op_Count];
 
-        long m_cRef = 1;
         QMutex m_mutex;
 
         IMFMediaType *m_currentMediaType = nullptr;
@@ -1359,21 +1290,13 @@ namespace
         // 2. While paused, the sink accepts samples but does not process them.
     };
 
-    class MediaSink : public IMFFinalizableMediaSink,
-                      public IMFClockStateSink,
-                      public IMFMediaSinkPreroll,
-                      public IMFGetService,
-                      public IMFRateSupport
+    class MediaSink : public QComObject<IMFFinalizableMediaSink, IMFClockStateSink,
+                                        IMFMediaSinkPreroll, IMFGetService, IMFRateSupport>
     {
     public:
         MediaSink(MFVideoRendererControl *rendererControl)
         {
             m_stream = new MediaStream(this, rendererControl);
-        }
-
-        virtual ~MediaSink()
-        {
-            Q_ASSERT(m_shutdown);
         }
 
         void setSurface(QVideoSink *surface)
@@ -1414,45 +1337,6 @@ namespace
         {
             QMutexLocker locker(&m_mutex);
             return m_playRate;
-        }
-
-        //from IUnknown
-        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
-        {
-            if (!ppvObject)
-                return E_POINTER;
-            if (riid == IID_IMFMediaSink) {
-                *ppvObject = static_cast<IMFMediaSink*>(this);
-            } else if (riid == IID_IMFGetService) {
-                *ppvObject = static_cast<IMFGetService*>(this);
-            } else if (riid == IID_IMFMediaSinkPreroll) {
-                *ppvObject = static_cast<IMFMediaSinkPreroll*>(this);
-            } else if (riid == IID_IMFClockStateSink) {
-                *ppvObject = static_cast<IMFClockStateSink*>(this);
-            } else if (riid == IID_IMFRateSupport) {
-                *ppvObject = static_cast<IMFRateSupport*>(this);
-            } else if (riid == IID_IUnknown) {
-                *ppvObject = static_cast<IUnknown*>(static_cast<IMFFinalizableMediaSink*>(this));
-            } else {
-                *ppvObject =  NULL;
-                return E_NOINTERFACE;
-            }
-            AddRef();
-            return S_OK;
-        }
-
-        STDMETHODIMP_(ULONG) AddRef(void) override
-        {
-            return InterlockedIncrement(&m_cRef);
-        }
-
-        STDMETHODIMP_(ULONG) Release(void) override
-        {
-            LONG cRef = InterlockedDecrement(&m_cRef);
-            if (cRef == 0)
-                delete this;
-            // For thread safety, return a temporary variable.
-            return cRef;
         }
 
         // IMFGetService methods
@@ -1725,7 +1609,9 @@ namespace
         }
 
     private:
-        long    m_cRef = 1;
+        // Destructor is not public. Caller should call Release.
+        ~MediaSink() override { Q_ASSERT(m_shutdown); }
+
         QMutex  m_mutex;
         bool    m_shutdown = false;
         IMFPresentationClock *m_presentationClock = nullptr;
@@ -1733,56 +1619,14 @@ namespace
         float   m_playRate = 1;
     };
 
-    class VideoRendererActivate : public IMFActivate
+    class VideoRendererActivate : public QComObject<IMFActivate>
     {
     public:
         VideoRendererActivate(MFVideoRendererControl *rendererControl)
-            : m_cRef(1)
-            , m_sink(0)
-            , m_rendererControl(rendererControl)
-            , m_attributes(0)
-            , m_videoSink(0)
+            : m_sink(0), m_rendererControl(rendererControl), m_attributes(0), m_videoSink(0)
         {
             MFCreateAttributes(&m_attributes, 0);
             m_sink = new MediaSink(rendererControl);
-        }
-
-        virtual ~VideoRendererActivate()
-        {
-            m_attributes->Release();
-        }
-
-        //from IUnknown
-        STDMETHODIMP QueryInterface(REFIID riid, void** ppvObject) override
-        {
-            if (!ppvObject)
-                return E_POINTER;
-            if (riid == IID_IMFActivate) {
-                *ppvObject = static_cast<IMFActivate*>(this);
-            } else if (riid == IID_IMFAttributes) {
-                *ppvObject = static_cast<IMFAttributes*>(this);
-            } else if (riid == IID_IUnknown) {
-                *ppvObject = static_cast<IUnknown*>(static_cast<IMFActivate*>(this));
-            } else {
-                *ppvObject =  NULL;
-                return E_NOINTERFACE;
-            }
-            AddRef();
-            return S_OK;
-        }
-
-        STDMETHODIMP_(ULONG) AddRef(void) override
-        {
-            return InterlockedIncrement(&m_cRef);
-        }
-
-        STDMETHODIMP_(ULONG) Release(void) override
-        {
-            LONG cRef = InterlockedDecrement(&m_cRef);
-            if (cRef == 0)
-                delete this;
-            // For thread safety, return a temporary variable.
-            return cRef;
         }
 
         //from IMFActivate
@@ -2079,7 +1923,9 @@ namespace
         }
 
     private:
-        long    m_cRef;
+        // Destructor is not public. Caller should call Release.
+        ~VideoRendererActivate() override { m_attributes->Release(); }
+
         MediaSink *m_sink;
         MFVideoRendererControl *m_rendererControl;
         IMFAttributes *m_attributes;
@@ -2093,8 +1939,6 @@ class EVRCustomPresenterActivate : public MFAbstractActivate
 {
 public:
     EVRCustomPresenterActivate(QVideoSink *sink);
-    ~EVRCustomPresenterActivate()
-    { }
 
     STDMETHODIMP ActivateObject(REFIID riid, void **ppv) override;
     STDMETHODIMP ShutdownObject() override;
@@ -2104,6 +1948,9 @@ public:
     void setCropRect(QRect cropRect);
 
 private:
+    // Destructor is not public. Caller should call Release.
+    ~EVRCustomPresenterActivate() override { }
+
     EVRCustomPresenter *m_presenter;
     QVideoSink *m_videoSink;
     QRect m_cropRect;

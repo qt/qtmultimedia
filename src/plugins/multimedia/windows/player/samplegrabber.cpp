@@ -3,39 +3,6 @@
 
 #include "samplegrabber_p.h"
 
-STDMETHODIMP SampleGrabberCallback::QueryInterface(REFIID riid, void** ppv)
-{
-    if (!ppv)
-        return E_POINTER;
-    if (riid == IID_IMFSampleGrabberSinkCallback) {
-        *ppv = static_cast<IMFSampleGrabberSinkCallback*>(this);
-    } else if (riid == IID_IMFClockStateSink) {
-        *ppv = static_cast<IMFClockStateSink*>(this);
-    } else if (riid == IID_IUnknown) {
-        *ppv = static_cast<IUnknown*>(this);
-    } else {
-        *ppv =  NULL;
-        return E_NOINTERFACE;
-    }
-    AddRef();
-    return S_OK;
-}
-
-STDMETHODIMP_(ULONG) SampleGrabberCallback::AddRef()
-{
-    return InterlockedIncrement(&m_cRef);
-}
-
-STDMETHODIMP_(ULONG) SampleGrabberCallback::Release()
-{
-    ULONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0) {
-        delete this;
-    }
-    return cRef;
-
-}
-
 // IMFClockStateSink methods.
 
 STDMETHODIMP SampleGrabberCallback::OnClockStart(MFTIME hnsSystemTime, LONGLONG llClockStartOffset)

@@ -20,7 +20,7 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qmutex.h>
 #include <QtMultimedia/qvideoframeformat.h>
-
+#include <private/qcomobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -28,21 +28,13 @@ class MFVideoProbeControl;
 
 class QVideoFrame;
 
-class MFTransform: public IMFTransform
+class MFTransform : public QComObject<IMFTransform>
 {
 public:
-    MFTransform();
-    virtual ~MFTransform();
-
     void addProbe(MFVideoProbeControl* probe);
     void removeProbe(MFVideoProbeControl* probe);
 
     void setVideoSink(IUnknown *videoSink);
-
-    // IUnknown methods
-    STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override;
-    STDMETHODIMP_(ULONG) AddRef() override;
-    STDMETHODIMP_(ULONG) Release() override;
 
     // IMFTransform methods
     STDMETHODIMP GetStreamLimits(DWORD *pdwInputMinimum, DWORD *pdwInputMaximum, DWORD *pdwOutputMinimum, DWORD *pdwOutputMaximum) override;
@@ -70,16 +62,18 @@ public:
     STDMETHODIMP ProcessOutput(DWORD dwFlags, DWORD cOutputBufferCount, MFT_OUTPUT_DATA_BUFFER *pOutputSamples, DWORD *pdwStatus) override;
 
 private:
+    // Destructor is not public. Caller should call Release.
+    ~MFTransform() override;
+
     HRESULT OnFlush();
     static QVideoFrameFormat videoFormatForMFMediaType(IMFMediaType *mediaType, int *bytesPerLine);
     QVideoFrame makeVideoFrame();
     QByteArray dataFromBuffer(IMFMediaBuffer *buffer, int height, int *bytesPerLine);
     bool isMediaTypeSupported(IMFMediaType *type);
 
-    long m_cRef;
-    IMFMediaType *m_inputType;
-    IMFMediaType *m_outputType;
-    IMFSample *m_sample;
+    IMFMediaType *m_inputType = nullptr;
+    IMFMediaType *m_outputType = nullptr;
+    IMFSample *m_sample = nullptr;
     QMutex m_mutex;
 
     IMFMediaTypeHandler *m_videoSinkTypeHandler;
@@ -88,7 +82,7 @@ private:
     QMutex m_videoProbeMutex;
 
     QVideoFrameFormat m_format;
-    int m_bytesPerLine;
+    int m_bytesPerLine = 0;
 };
 
 QT_END_NAMESPACE

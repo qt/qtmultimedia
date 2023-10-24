@@ -20,17 +20,26 @@
 #include <QtMultimedia/qaudioformat.h>
 #include <mfapi.h>
 #include <mfidl.h>
+#include <private/qcomobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class SampleGrabberCallback : public IMFSampleGrabberSinkCallback
+namespace QtPrivate {
+
+template <>
+struct QComObjectTraits<IMFSampleGrabberSinkCallback>
+{
+    static constexpr bool isGuidOf(REFIID riid) noexcept
+    {
+        return QComObjectTraits<IMFSampleGrabberSinkCallback, IMFClockStateSink>::isGuidOf(riid);
+    }
+};
+
+} // namespace QtPrivate
+
+class SampleGrabberCallback : public QComObject<IMFSampleGrabberSinkCallback>
 {
 public:
-    // IUnknown methods
-    STDMETHODIMP QueryInterface(REFIID iid, void** ppv) override;
-    STDMETHODIMP_(ULONG) AddRef() override;
-    STDMETHODIMP_(ULONG) Release() override;
-
     // IMFClockStateSink methods
     STDMETHODIMP OnClockStart(MFTIME hnsSystemTime, LONGLONG llClockStartOffset) override;
     STDMETHODIMP OnClockStop(MFTIME hnsSystemTime) override;
@@ -43,13 +52,10 @@ public:
     STDMETHODIMP OnShutdown() override;
 
 protected:
-    SampleGrabberCallback() : m_cRef(1) {}
+    SampleGrabberCallback() = default;
 
-public:
-    virtual ~SampleGrabberCallback() {}
-
-private:
-    long m_cRef;
+    // Destructor is not public. Caller should call Release.
+    ~SampleGrabberCallback() override = default;
 };
 
 class AudioSampleGrabberCallback: public SampleGrabberCallback {
