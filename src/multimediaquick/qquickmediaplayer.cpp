@@ -49,7 +49,7 @@ void QQuickMediaPlayer::onPositionChanged(qint64 position)
 
 void QQuickMediaPlayer::onDurationChanged(qint64 duration)
 {
-    emit qmlPositionChanged(static_cast<int>(duration));
+    emit qmlDurationChanged(static_cast<int>(duration));
 }
 
 QT_END_NAMESPACE
