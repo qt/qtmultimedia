@@ -20,7 +20,9 @@ public:
           sourceChanged(&player, &QMediaPlayer::sourceChanged),
           mediaStatusChanged(&player, &QMediaPlayer::mediaStatusChanged),
           positionChanged(&player, &QMediaPlayer::positionChanged),
-          durationChanged(&player, &QMediaPlayer::durationChanged)
+          durationChanged(&player, &QMediaPlayer::durationChanged),
+          volumeChanged(&output, &QAudioOutput::volumeChanged),
+          mutedChanged(&output, &QAudioOutput::mutedChanged)
     {
         setVideoSinkAsyncFramesCounter(surface, framesCount);
 
@@ -49,6 +51,11 @@ public:
     QSignalSpy mediaStatusChanged;
     QSignalSpy positionChanged;
     QSignalSpy durationChanged;
+    QSignalSpy volumeChanged;
+    QSignalSpy mutedChanged;
 };
+
+// Helper to create an object that is comparable to a QSignalSpy
+using SignalList = QList<QList<QVariant>>;
 
 #endif // FIXTURE_H
