@@ -69,6 +69,7 @@ private:
     QIODevice *m_ioDevice = nullptr;
 
     bool m_deviceChanged = false;
+    bool m_drained = false;
 };
 
 } // namespace QFFmpeg
