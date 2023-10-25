@@ -71,8 +71,17 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
         return {};
 
     if (!m_bufferedData.isValid()) {
-        if (!frame.isValid())
-            return {};
+        if (!frame.isValid()) {
+            if (m_drained)
+                return {};
+
+            m_drained = true;
+            const auto time = currentBufferLoadingTime();
+
+            qCDebug(qLcAudioRenderer) << "Draining AudioRenderer, time:" << time;
+
+            return { time.count() == 0, time };
+        }
 
         updateSynchronization(frame);
         m_bufferedData = m_resampler->resample(frame.avFrame());
