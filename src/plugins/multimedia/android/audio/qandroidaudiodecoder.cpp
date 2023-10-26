@@ -59,7 +59,7 @@ void Decoder::setSource(const QUrl &source)
                 "org/qtproject/qt/android/multimedia/QtMultimediaUtils",
                 "getMimeType",
                 "(Landroid/content/Context;Ljava/lang/String;)Ljava/lang/String;",
-                static_cast<jobject>(QNativeInterface::QAndroidApplication::context()),
+                QNativeInterface::QAndroidApplication::context().object(),
                 QJniObject::fromString(source.path()).object());
 
     const QString mime = path.isValid() ? path.toString() : "";

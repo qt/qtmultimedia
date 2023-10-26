@@ -287,7 +287,7 @@ void AndroidMediaRecorder::setOutputFile(const QString &path)
                     "org/qtproject/qt/android/QtNative",
                     "openFdObjectForContentUrl",
                     "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/io/FileDescriptor;",
-                    static_cast<jobject>(QNativeInterface::QAndroidApplication::context()),
+                    QNativeInterface::QAndroidApplication::context().object(),
                     QJniObject::fromString(path).object(),
                     QJniObject::fromString(QLatin1String("rw")).object());
 

@@ -27,7 +27,7 @@ AndroidMediaPlayer::AndroidMediaPlayer()
     const jlong id = reinterpret_cast<jlong>(this);
     mMediaPlayer = QJniObject(QtAndroidMediaPlayerClassName,
                               "(Landroid/content/Context;J)V",
-                              static_cast<jobject>(context),
+                              context.object(),
                               id);
     mediaPlayers->append(this);
 }
