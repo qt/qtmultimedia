@@ -22,6 +22,7 @@
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/private/qerrorinfo_p.h>
 #include <QtCore/private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -115,8 +116,8 @@ public:
     virtual void setMetaData(const QMediaMetaData &) {}
     virtual QMediaMetaData metaData() const { return {}; }
 
-    QMediaRecorder::Error error() const { return m_error;}
-    QString errorString() const { return m_errorString; }
+    QMediaRecorder::Error error() const { return m_error.code(); }
+    QString errorString() const { return m_error.description(); }
 
     QUrl outputLocation() const { return m_outputLocation; }
     virtual void setOutputLocation(const QUrl &location) { m_outputLocation = location; }
@@ -137,8 +138,7 @@ protected:
 
 private:
     QMediaRecorder *q = nullptr;
-    QMediaRecorder::Error m_error = QMediaRecorder::NoError;
-    QString m_errorString;
+    QErrorInfo<QMediaRecorder::Error> m_error;
     QUrl m_actualLocation;
     QUrl m_outputLocation;
     qint64 m_duration = 0;

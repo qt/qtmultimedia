@@ -53,27 +53,17 @@ void QPlatformSurfaceCapture::setSource(Source source)
 
 QPlatformSurfaceCapture::Error QPlatformSurfaceCapture::error() const
 {
-    return m_error;
+    return m_error.code();
 }
 
 QString QPlatformSurfaceCapture::errorString() const
 {
-    return m_errorString;
+    return m_error.description();
 }
 
 void QPlatformSurfaceCapture::updateError(Error error, const QString &errorString)
 {
-    bool changed = error != m_error || errorString != m_errorString;
-    m_error = error;
-    m_errorString = errorString;
-    if (changed) {
-        if (m_error != NoError) {
-            emit errorOccurred(error, errorString);
-            qWarning() << "Screen capture fail:" << error << "," << errorString;
-        }
-
-        emit errorChanged();
-    }
+    m_error.setAndNotify(error, errorString, *this);
 }
 
 bool QPlatformSurfaceCapture::checkScreenWithError(ScreenSource &screen)
