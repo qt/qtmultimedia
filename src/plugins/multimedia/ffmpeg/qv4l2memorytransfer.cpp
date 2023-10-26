@@ -4,11 +4,14 @@
 #include "qv4l2memorytransfer_p.h"
 #include "qv4l2filedescriptor_p.h"
 
+#include <qloggingcategory.h>
 #include <qdebug.h>
 #include <sys/mman.h>
 #include <optional>
 
 QT_BEGIN_NAMESPACE
+
+static Q_LOGGING_CATEGORY(qLcV4L2MemoryTransfer, "qt.multimedia.ffmpeg.v4l2camera.memorytransfer");
 
 namespace {
 
@@ -28,7 +31,7 @@ public:
     {
         quint32 buffersCount = 2;
         if (!fileDescriptor->requestBuffers(V4L2_MEMORY_USERPTR, buffersCount)) {
-            qWarning() << "Cannot request V4L2_MEMORY_USERPTR buffers";
+            qCWarning(qLcV4L2MemoryTransfer) << "Cannot request V4L2_MEMORY_USERPTR buffers";
             return {};
         }
 
@@ -101,7 +104,7 @@ public:
     {
         quint32 buffersCount = 2;
         if (!fileDescriptor->requestBuffers(V4L2_MEMORY_MMAP, buffersCount)) {
-            qWarning() << "Cannot request V4L2_MEMORY_MMAP buffers";
+            qCWarning(qLcV4L2MemoryTransfer) << "Cannot request V4L2_MEMORY_MMAP buffers";
             return {};
         }
 
