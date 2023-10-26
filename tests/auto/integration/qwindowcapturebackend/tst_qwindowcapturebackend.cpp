@@ -53,7 +53,6 @@ private slots:
     {
         WindowCaptureFixture fixture;
 
-        QTest::ignoreMessage(QtWarningMsg, QRegularExpression{ ".*Screen capture fail.*" });
         fixture.m_capture.setActive(true);
 
         QVERIFY(!fixture.m_capture.isActive());
@@ -236,8 +235,6 @@ private slots:
 
         // Get capturing started
         fixture.m_grabber.waitAndTakeFrames(3);
-
-        QTest::ignoreMessage(QtWarningMsg, QRegularExpression{ ".*Screen capture fail.*" });
 
         // Closing the process waits for it to exit
         fixture.m_windowProcess.close();
