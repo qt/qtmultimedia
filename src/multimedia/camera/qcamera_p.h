@@ -16,6 +16,7 @@
 //
 
 #include "private/qobject_p.h"
+#include "private/qerrorinfo_p.h"
 #include "qcamera.h"
 #include "qcameradevice.h"
 
@@ -28,25 +29,18 @@ class QCameraPrivate : public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QCamera)
 public:
-    QCameraPrivate()
-        : QObjectPrivate(),
-          error(QCamera::NoError)
-    {
-    }
-
     void init(const QCameraDevice &device);
 
     QMediaCaptureSession *captureSession = nullptr;
     QPlatformCamera *control = nullptr;
 
-    QCamera::Error error;
-    QString errorString;
+    QErrorInfo<QCamera::Error> error;
 
     QCameraDevice cameraDevice;
     QCameraFormat cameraFormat;
 
     void _q_error(int error, const QString &errorString);
-    void unsetError() { error = QCamera::NoError; errorString.clear(); }
+    void unsetError() { error = {}; }
 };
 
 QT_END_NAMESPACE

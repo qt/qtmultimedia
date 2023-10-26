@@ -157,11 +157,7 @@ void QCameraPrivate::_q_error(int error, const QString &errorString)
 {
     Q_Q(QCamera);
 
-    this->error = QCamera::Error(error);
-    this->errorString = errorString;
-
-    emit q->errorChanged();
-    emit q->errorOccurred(this->error, errorString);
+    this->error.setAndNotify(QCamera::Error(error), errorString, *q);
 }
 
 void QCameraPrivate::init(const QCameraDevice &device)
@@ -171,8 +167,7 @@ void QCameraPrivate::init(const QCameraDevice &device)
     auto maybeControl = QPlatformMediaIntegration::instance()->createCamera(q);
     if (!maybeControl) {
         qWarning() << "Failed to initialize QCamera" << maybeControl.error();
-        error = QCamera::CameraError;
-        errorString =  maybeControl.error();
+        error = { QCamera::CameraError, maybeControl.error() };
         return;
     }
     control = maybeControl.value();
@@ -301,7 +296,7 @@ void QCamera::setActive(bool active)
 
 QCamera::Error QCamera::error() const
 {
-    return d_func()->error;
+    return d_func()->error.code();
 }
 
 /*!
@@ -317,7 +312,7 @@ QCamera::Error QCamera::error() const
 */
 QString QCamera::errorString() const
 {
-    return d_func()->errorString;
+    return d_func()->error.description();
 }
 
 /*! \enum QCamera::Feature

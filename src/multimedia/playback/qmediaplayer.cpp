@@ -120,14 +120,7 @@ void QMediaPlayerPrivate::setError(QMediaPlayer::Error error, const QString &err
 {
     Q_Q(QMediaPlayer);
 
-    auto prevError = std::exchange(this->error, error);
-    auto prevErrorString = std::exchange(this->errorString, errorString);
-
-    if (prevError != error || prevErrorString != errorString)
-        emit q->errorChanged();
-
-    if (error != QMediaPlayer::NoError)
-        emit q->errorOccurred(error, errorString);
+    this->error.setAndNotify(error, errorString, *q);
 }
 
 void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
@@ -469,7 +462,7 @@ void QMediaPlayer::setLoops(int loops)
 */
 QMediaPlayer::Error QMediaPlayer::error() const
 {
-    return d_func()->error;
+    return d_func()->error.code();
 }
 
 /*!
@@ -486,7 +479,7 @@ QMediaPlayer::Error QMediaPlayer::error() const
 */
 QString QMediaPlayer::errorString() const
 {
-    return d_func()->errorString;
+    return d_func()->error.description();
 }
 
 /*!

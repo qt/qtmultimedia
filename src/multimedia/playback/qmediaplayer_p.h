@@ -20,6 +20,7 @@
 #include "qvideosink.h"
 #include "qaudiooutput.h"
 #include <private/qplatformmediaplayer_p.h>
+#include <private/qerrorinfo_p.h>
 
 #include "private/qobject_p.h"
 #include <QtCore/qobject.h>
@@ -40,8 +41,7 @@ class QMediaPlayerPrivate : public QObjectPrivate
 
 public:
     QMediaPlayerPrivate() = default;
-    QPlatformMediaPlayer* control = nullptr;
-    QString errorString;
+    QPlatformMediaPlayer *control = nullptr;
 
     QAudioOutput *audioOutput = nullptr;
     QVideoSink *videoSink = nullptr;
@@ -52,7 +52,7 @@ public:
     QIODevice *stream = nullptr;
 
     QMediaPlayer::PlaybackState state = QMediaPlayer::StoppedState;
-    QMediaPlayer::Error error = QMediaPlayer::NoError;
+    QErrorInfo<QMediaPlayer::Error> error;
 
     void setMedia(const QUrl &media, QIODevice *stream = nullptr);
 

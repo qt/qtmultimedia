@@ -62,6 +62,7 @@ qt_internal_add_module(Multimedia
         qmediatimerange.cpp qmediatimerange.h
         qmultimediautils.cpp qmultimediautils_p.h
         qtmultimediaglobal.h qtmultimediaglobal_p.h
+        qerrorinfo_p.h
         recording/qmediacapturesession.cpp recording/qmediacapturesession.h
         recording/qmediarecorder.cpp recording/qmediarecorder.h recording/qmediarecorder_p.h
         recording/qscreencapture.cpp recording/qscreencapture.h

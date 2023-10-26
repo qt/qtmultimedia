@@ -47,13 +47,7 @@ void QPlatformMediaRecorder::actualLocationChanged(const QUrl &location)
 
 void QPlatformMediaRecorder::error(QMediaRecorder::Error error, const QString &errorString)
 {
-    if (error == m_error && errorString == m_errorString)
-        return;
-    m_error = error;
-    m_errorString = errorString;
-    if (error != QMediaRecorder::NoError)
-        emit q->errorOccurred(error, errorString);
-    emit q->errorChanged();
+    m_error.setAndNotify(error, errorString, *q);
 }
 
 void QPlatformMediaRecorder::metaDataChanged()

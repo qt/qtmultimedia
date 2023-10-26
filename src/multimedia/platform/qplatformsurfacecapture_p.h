@@ -18,6 +18,7 @@
 #include "qplatformvideosource_p.h"
 #include "qscreen.h"
 #include "qpointer.h"
+#include "private/qerrorinfo_p.h"
 
 #include <optional>
 #include <variant>
@@ -74,8 +75,7 @@ Q_SIGNALS:
     void errorOccurred(Error error, QString errorString);
 
 private:
-    Error m_error = NoError;
-    QString m_errorString;
+    QErrorInfo<Error> m_error;
     Source m_source;
     bool m_active = false;
 };
