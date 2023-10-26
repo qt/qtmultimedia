@@ -76,5 +76,8 @@ manifestmeta.highlighted.names = \
     "QtMultimedia/Screen Capture Example" \
     "QtMultimedia/QML Video Recorder"
 
+# Highlighted examples in Mobile category
+manifestmeta.highlighted.names += "QtMultimedia/QML Camera Application"
+
 # Fail the documentation build if there are more warnings than the limit
 warninglimit = 0
