@@ -195,10 +195,10 @@ void Renderer::doNextStep()
     scheduleNextStep(false);
 }
 
-std::chrono::microseconds Renderer::frameDelay(const Frame &frame) const
+std::chrono::microseconds Renderer::frameDelay(const Frame &frame, TimePoint timePoint) const
 {
     return std::chrono::duration_cast<std::chrono::microseconds>(
-            Clock::now() - m_timeController.timeFromPosition(frame.absolutePts()));
+            timePoint - m_timeController.timeFromPosition(frame.absolutePts()));
 }
 
 void Renderer::changeRendererTime(std::chrono::microseconds offset)
