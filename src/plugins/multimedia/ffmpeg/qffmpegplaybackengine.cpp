@@ -108,11 +108,6 @@ void PlaybackEngine::onRendererSynchronized(quint64 id, std::chrono::steady_cloc
     Q_ASSERT(m_renderers[QPlatformMediaPlayer::AudioStream]
              && m_renderers[QPlatformMediaPlayer::AudioStream]->id() == id);
 
-    if (m_timeController.positionFromTime(tp) < pos) {
-        // TODO: maybe check with an asset
-        qWarning() << "Unexpected synchronization " << m_timeController.positionFromTime(tp) - pos;
-    }
-
     m_timeController.sync(tp, pos);
 
     forEachExistingObject<Renderer>([&](auto &renderer) {
