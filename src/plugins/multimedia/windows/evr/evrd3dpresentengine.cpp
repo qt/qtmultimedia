@@ -592,7 +592,9 @@ HRESULT D3DPresentEngine::checkFormat(D3DFORMAT format)
     return ok ? S_OK : D3DERR_NOTAVAILABLE;
 }
 
-HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSample*> &videoSampleQueue, QSize frameSize)
+HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format,
+                                             QList<ComPtr<IMFSample>> &videoSampleQueue,
+                                             QSize frameSize)
 {
     if (!format || !m_device)
         return MF_E_UNEXPECTED;
@@ -641,7 +643,7 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format, QList<IMFSamp
             break;
 
         m_sampleTextureHandle[i] = {videoSample.Get(), sharedHandle};
-        videoSampleQueue.append(videoSample.Detach());
+        videoSampleQueue.append(videoSample);
     }
 
     if (SUCCEEDED(hr)) {
