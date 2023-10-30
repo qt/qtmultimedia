@@ -592,6 +592,8 @@ static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdat
         return false;
     }
 
+    auto unmapFrameGuard = qScopeGuard([&frame] { frame.unmap(); });
+
     QVideoFrameFormat fmt = frame.surfaceFormat();
     QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
     QSize size = fmt.frameSize();
