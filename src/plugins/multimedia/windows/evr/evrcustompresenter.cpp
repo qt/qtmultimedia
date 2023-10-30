@@ -61,24 +61,15 @@ bool qt_evr_setCustomPresenter(IUnknown *evr, EVRCustomPresenter *presenter)
 class PresentSampleEvent : public QEvent
 {
 public:
-    PresentSampleEvent(IMFSample *sample)
-        : QEvent(QEvent::Type(EVRCustomPresenter::PresentSample))
-        , m_sample(sample)
+    explicit PresentSampleEvent(IMFSample *sample)
+        : QEvent(static_cast<Type>(EVRCustomPresenter::PresentSample)), m_sample(sample)
     {
-        if (m_sample)
-            m_sample->AddRef();
     }
 
-    ~PresentSampleEvent() override
-    {
-        if (m_sample)
-            m_sample->Release();
-    }
-
-    IMFSample *sample() const { return m_sample; }
+    IMFSample *sample() const { return m_sample.Get(); }
 
 private:
-    IMFSample *m_sample;
+    const ComPtr<IMFSample> m_sample;
 };
 
 Scheduler::Scheduler(EVRCustomPresenter *presenter)
@@ -98,8 +89,6 @@ Scheduler::Scheduler(EVRCustomPresenter *presenter)
 Scheduler::~Scheduler()
 {
     qt_evr_safe_release(&m_clock);
-    for (int i = 0; i < m_scheduledSamples.size(); ++i)
-        m_scheduledSamples[i]->Release();
     m_scheduledSamples.clear();
 }
 
@@ -200,8 +189,6 @@ HRESULT Scheduler::stopScheduler()
 
     // Discard samples.
     m_mutex.lock();
-    for (int i = 0; i < m_scheduledSamples.size(); ++i)
-        m_scheduledSamples[i]->Release();
     m_scheduledSamples.clear();
     m_mutex.unlock();
 
@@ -250,7 +237,6 @@ HRESULT Scheduler::scheduleSample(IMFSample *sample, bool presentNow)
     } else {
         // Queue the sample and ask the scheduler thread to wake up.
         m_mutex.lock();
-        sample->AddRef();
         m_scheduledSamples.enqueue(sample);
         m_mutex.unlock();
 
@@ -265,20 +251,18 @@ HRESULT Scheduler::processSamplesInQueue(LONG *nextSleep)
 {
     HRESULT hr = S_OK;
     LONG wait = 0;
-    IMFSample *sample = NULL;
 
     // Process samples until the queue is empty or until the wait time > 0.
     while (!m_scheduledSamples.isEmpty()) {
         m_mutex.lock();
-        sample = m_scheduledSamples.dequeue();
+        ComPtr<IMFSample> sample = m_scheduledSamples.dequeue();
         m_mutex.unlock();
 
         // Process the next sample in the queue. If the sample is not ready
         // for presentation. the value returned in wait is > 0, which
         // means the scheduler should sleep for that amount of time.
 
-        hr = processSample(sample, &wait);
-        qt_evr_safe_release(&sample);
+        hr = processSample(sample.Get(), &wait);
 
         if (FAILED(hr) || wait > 0)
             break;
@@ -346,7 +330,6 @@ HRESULT Scheduler::processSample(IMFSample *sample, LONG *pNextSleep)
     } else {
         // The sample is not ready yet. Return it to the queue.
         m_mutex.lock();
-        sample->AddRef();
         m_scheduledSamples.prepend(sample);
         m_mutex.unlock();
     }
@@ -399,8 +382,6 @@ DWORD Scheduler::schedulerThreadProcPrivate()
             case Flush:
                 // Flushing: Clear the sample queue and set the event.
                 m_mutex.lock();
-                for (int i = 0; i < m_scheduledSamples.size(); ++i)
-                    m_scheduledSamples[i]->Release();
                 m_scheduledSamples.clear();
                 m_mutex.unlock();
                 wait = INFINITE;
@@ -1095,7 +1076,7 @@ HRESULT EVRCustomPresenter::flush()
 
     if (m_renderState == RenderStopped && m_videoSink) {
         // Repaint with black.
-        presentSample(NULL);
+        presentSample(nullptr);
     }
 
     return S_OK;
