@@ -161,7 +161,7 @@ public:
 
 private:
     QMutex m_mutex;
-    QList<IMFSample*> m_videoSampleQueue;
+    QList<ComPtr<IMFSample>> m_videoSampleQueue;
     bool m_initialized;
 };
 
