@@ -23,6 +23,7 @@
 #include <qvideoframeformat.h>
 #include <qvideosink.h>
 #include <qpointer.h>
+#include <private/qcomptr_p.h>
 
 #include <d3d9.h>
 #include <dxva2api.h>
@@ -129,7 +130,7 @@ private:
 
     EVRCustomPresenter *m_presenter;
 
-    QQueue<IMFSample*> m_scheduledSamples; // Samples waiting to be presented.
+    QQueue<ComPtr<IMFSample>> m_scheduledSamples; // Samples waiting to be presented.
 
     IMFClock *m_clock; // Presentation clock. Can be NULL.
 
