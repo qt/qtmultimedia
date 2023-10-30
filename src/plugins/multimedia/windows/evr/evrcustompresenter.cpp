@@ -445,7 +445,7 @@ HRESULT SamplePool::returnSample(IMFSample *sample)
     return S_OK;
 }
 
-HRESULT SamplePool::initialize(QList<IMFSample*> &samples)
+HRESULT SamplePool::initialize(QList<ComPtr<IMFSample>> &&samples)
 {
     QMutexLocker locker(&m_mutex);
 
@@ -453,15 +453,10 @@ HRESULT SamplePool::initialize(QList<IMFSample*> &samples)
         return MF_E_INVALIDREQUEST;
 
     // Move these samples into our allocated queue.
-    for (const auto &sample : std::as_const(samples)) {
-        m_videoSampleQueue.append(sample);
-    }
+    m_videoSampleQueue.append(std::move(samples));
 
     m_initialized = true;
 
-    for (auto sample : std::as_const(samples))
-        sample->Release();
-    samples.clear();
     return S_OK;
 }
 
@@ -1330,7 +1325,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     }
 
     MFRatio fps = { 0, 0 };
-    QList<IMFSample*> sampleQueue;
+    QList<ComPtr<IMFSample>> sampleQueue;
 
     // Cannot set the media type after shutdown.
     HRESULT hr = checkShutdown();
@@ -1362,7 +1357,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     }
 
     // Add the samples to the sample pool.
-    hr = m_samplePool.initialize(sampleQueue);
+    hr = m_samplePool.initialize(std::move(sampleQueue));
     if (FAILED(hr))
         goto done;
 

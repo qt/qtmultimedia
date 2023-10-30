@@ -107,7 +107,8 @@ public:
     HRESULT checkFormat(D3DFORMAT format);
     UINT refreshRate() const { return m_displayMode.RefreshRate; }
 
-    HRESULT createVideoSamples(IMFMediaType *format, QList<IMFSample*>& videoSampleQueue, QSize frameSize);
+    HRESULT createVideoSamples(IMFMediaType *format, QList<ComPtr<IMFSample>> &videoSampleQueue,
+                               QSize frameSize);
     QVideoFrameFormat videoSurfaceFormat() const { return m_surfaceFormat; }
     QVideoFrame makeVideoFrame(IMFSample* sample);
 
