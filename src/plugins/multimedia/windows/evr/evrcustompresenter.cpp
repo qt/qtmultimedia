@@ -431,13 +431,10 @@ HRESULT SamplePool::getSample(IMFSample **sample)
     // but when we get it back, we want to re-insert it onto the opposite end.
     // (see ReturnSample)
 
-    IMFSample *taken = m_videoSampleQueue.takeFirst();
+    ComPtr<IMFSample> taken = m_videoSampleQueue.takeFirst();
 
     // Give the sample to the caller.
-    *sample = taken;
-    (*sample)->AddRef();
-
-    taken->Release();
+    *sample = taken.Detach();
 
     return S_OK;
 }
@@ -450,7 +447,6 @@ HRESULT SamplePool::returnSample(IMFSample *sample)
         return MF_E_NOT_INITIALIZED;
 
     m_videoSampleQueue.append(sample);
-    sample->AddRef();
 
     return S_OK;
 }
@@ -463,8 +459,7 @@ HRESULT SamplePool::initialize(QList<IMFSample*> &samples)
         return MF_E_INVALIDREQUEST;
 
     // Move these samples into our allocated queue.
-    for (auto sample : std::as_const(samples)) {
-        sample->AddRef();
+    for (const auto &sample : std::as_const(samples)) {
         m_videoSampleQueue.append(sample);
     }
 
@@ -480,8 +475,6 @@ HRESULT SamplePool::clear()
 {
     QMutexLocker locker(&m_mutex);
 
-    for (auto sample : std::as_const(m_videoSampleQueue))
-        sample->Release();
     m_videoSampleQueue.clear();
     m_initialized = false;
 
