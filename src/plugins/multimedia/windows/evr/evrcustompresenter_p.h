@@ -154,7 +154,7 @@ public:
     SamplePool();
     ~SamplePool();
 
-    HRESULT initialize(QList<IMFSample*> &samples);
+    HRESULT initialize(QList<ComPtr<IMFSample>> &&samples);
     HRESULT clear();
 
     HRESULT getSample(IMFSample **sample);
