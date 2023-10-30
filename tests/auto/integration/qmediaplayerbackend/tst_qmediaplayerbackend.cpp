@@ -36,6 +36,31 @@
 
 QT_USE_NAMESPACE
 
+namespace {
+static qreal colorDifference(QRgb first, QRgb second)
+{
+    const auto diffVector = QVector3D(qRed(first), qGreen(first), qBlue(first))
+            - QVector3D(qRed(second), qGreen(second), qBlue(second));
+    static const auto normalizationFactor = 1. / (255 * qSqrt(3.));
+    return diffVector.length() * normalizationFactor;
+}
+
+template <typename It>
+It findSimilarColor(It it, It end, QRgb color)
+{
+    return std::min_element(it, end, [color](QRgb first, QRgb second) {
+        return colorDifference(first, color) < colorDifference(second, color);
+    });
+}
+
+template <typename Colors>
+size_t findSimilarColorIndex(const Colors &colors, QRgb color)
+{
+    return std::distance(std::begin(colors),
+                         findSimilarColor(std::begin(colors), std::end(colors), color));
+}
+}
+
 /*
  This is the backend conformance test.
 
@@ -52,8 +77,11 @@ public slots:
     void cleanup() { m_fixture = nullptr; }
 
 private slots:
+    void destructor_cancelsPreviousSetSource_whenServerDoesNotRespond();
+
     void getters_returnExpectedValues_whenCalledWithDefaultConstructedPlayer_data() const;
     void getters_returnExpectedValues_whenCalledWithDefaultConstructedPlayer() const;
+
     void setSource_emitsSourceChanged_whenCalledWithInvalidFile();
     void setSource_emitsError_whenCalledWithInvalidFile();
     void setSource_emitsMediaStatusChange_whenCalledWithInvalidFile();
@@ -62,32 +90,39 @@ private slots:
     void setSource_silentlyCancelsPreviousCall_whenServerDoesNotRespond();
     void setSource_changesSourceAndMediaStatus_whenCalledWithValidFile();
     void setSource_updatesExpectedAttributes_whenMediaHasLoaded();
-    void destructor_cancelsPreviousSetSource_whenServerDoesNotRespond();
-    void pause_doesNotChangePlayerState_whenInvalidFileLoaded();
-    void play_resetsErrorState_whenCalledWithInvalidFile();
     void setSource_stopsAndEntersErrorState_whenPlayerWasPlaying();
-    void play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia();
     void setSource_loadsAudioTrack_whenCalledWithValidWavFile();
     void setSource_resetsState_whenCalledWithEmptyUrl();
     void setSource_loadsNewMedia_whenPreviousMediaWasFullyLoaded();
     void setSource_loadsCorrectTracks_whenLoadingMediaInSequence();
-    void play_doesNothing_whenMediaIsNotLoaded();
-    void pause_doesNothing_whenMediaIsNotLoaded();
-    void play_setsPlaybackStateAndMediaStatus_whenValidFileIsLoaded();
-    void play_startsPlaybackAndChangesPosition_whenValidFileIsLoaded();
-    void pause_entersPauseState_whenPlayerWasPlaying();
-    void stop_entersStoppedState_whenPlayerWasPaused();
-    void play_doesNotEnterMediaLoadingState_whenResumingPlayingAfterStop();
     void setSource_remainsInStoppedState_whenPlayerWasStopped();
     void setSource_entersStoppedState_whenPlayerWasPlaying();
+
+    void pause_doesNotChangePlayerState_whenInvalidFileLoaded();
+    void pause_doesNothing_whenMediaIsNotLoaded();
+    void pause_entersPauseState_whenPlayerWasPlaying();
+
+    void play_resetsErrorState_whenCalledWithInvalidFile();
+    void play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia();
+    void play_doesNothing_whenMediaIsNotLoaded();
+    void play_setsPlaybackStateAndMediaStatus_whenValidFileIsLoaded();
+    void play_startsPlaybackAndChangesPosition_whenValidFileIsLoaded();
+    void play_doesNotEnterMediaLoadingState_whenResumingPlayingAfterStop();
     void playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl();
-    void processEOS();
-    void deleteLaterAtEOS();
+    void play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream();
+
+    void stop_entersStoppedState_whenPlayerWasPaused();
+
     void setVolume_changesVolume_whenVolumeIsInRange();
     void setVolume_clampsToRange_whenVolumeIsOutsideRange();
     void setVolume_doesNotChangeMutedState();
+
     void setMuted_changesMutedState_whenMutedStateChanged();
     void setMuted_doesNotChangeVolume();
+
+    void processEOS();
+    void deleteLaterAtEOS();
+
     void volumeAcrossFiles_data();
     void volumeAcrossFiles();
     void initialVolume();
@@ -119,7 +154,6 @@ private slots:
     void videoSinkSignals();
     void nonAsciiFileName();
     void setMedia_setsVideoSinkSize_beforePlaying();
-    void play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream();
 
 private:
     QUrl selectVideoFile(const QStringList& mediaCandidates);
@@ -252,6 +286,25 @@ void tst_QMediaPlayerBackend::initTestCase()
     m_localFileWithMetadata = MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/nokia-tune.mp3");
 
     detectVlcCommand();
+}
+
+void tst_QMediaPlayerBackend::destructor_cancelsPreviousSetSource_whenServerDoesNotRespond()
+{
+#ifdef QT_FEATURE_network
+    UnResponsiveRtspServer server;
+    QVERIFY(server.listen());
+
+    auto player = std::make_unique<QMediaPlayer>();
+    player->setSource(server.address());
+
+    QVERIFY(server.waitForConnection());
+
+    // Cancel connection (should be fast, but can't be reliably verified
+    // in a test. For now we just verify that we don't crash.
+    player = nullptr;
+#else
+    QSKIP("Test requires network feature");
+#endif
 }
 
 void tst_QMediaPlayerBackend::
@@ -426,58 +479,6 @@ void tst_QMediaPlayerBackend::setSource_updatesExpectedAttributes_whenMediaHasLo
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
 }
 
-
-void tst_QMediaPlayerBackend::destructor_cancelsPreviousSetSource_whenServerDoesNotRespond()
-{
-#ifdef QT_FEATURE_network
-    UnResponsiveRtspServer server;
-    QVERIFY(server.listen());
-
-    auto player = std::make_unique<QMediaPlayer>();
-    player->setSource(server.address());
-
-    QVERIFY(server.waitForConnection());
-
-    // Cancel connection (should be fast, but can't be reliably verified
-    // in a test. For now we just verify that we don't crash.
-    player = nullptr;
-#else
-    QSKIP("Test requires network feature");
-#endif
-}
-
-void tst_QMediaPlayerBackend::pause_doesNotChangePlayerState_whenInvalidFileLoaded()
-{
-    m_fixture->player.setSource({ "Some not existing media" });
-    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
-
-    const MediaPlayerState expectedState{ m_fixture->player };
-
-    m_fixture->player.pause();
-
-    const MediaPlayerState actualState{ m_fixture->player };
-
-    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
-}
-
-void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
-{
-    m_fixture->player.setSource({ "Some not existing media" });
-    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
-
-    MediaPlayerState expectedState{ m_fixture->player };
-
-    m_fixture->player.play();
-
-    expectedState.error = QMediaPlayer::NoError;
-    COMPARE_MEDIA_PLAYER_STATE_EQ(MediaPlayerState{ m_fixture->player }, expectedState);
-
-    QTest::qWait(150); // wait a bit and check position is not changed
-
-    COMPARE_MEDIA_PLAYER_STATE_EQ(MediaPlayerState{ m_fixture->player }, expectedState);
-    QCOMPARE(m_fixture->surface.m_totalFrames, 0);
-}
-
 void tst_QMediaPlayerBackend::setSource_stopsAndEntersErrorState_whenPlayerWasPlaying()
 {
     // Arrange
@@ -506,25 +507,6 @@ void tst_QMediaPlayerBackend::setSource_stopsAndEntersErrorState_whenPlayerWasPl
     QCOMPARE(m_fixture->framesCount, savedFramesCount);
 }
 
-void tst_QMediaPlayerBackend::play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia()
-{
-    // Arrange
-    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
-    m_fixture->player.play();
-    QTRY_VERIFY(m_fixture->framesCount > 0);
-    m_fixture->player.setSource(QUrl("Some not existing media"));
-    QTRY_COMPARE(m_fixture->player.error(), QMediaPlayer::ResourceError);
-    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
-
-    // Act
-    m_fixture->player.play();
-
-    // Assert
-    QTRY_VERIFY(m_fixture->framesCount > 0);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
-    QCOMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QCOMPARE(m_fixture->player.error(), QMediaPlayer::NoError);
-}
 
 void tst_QMediaPlayerBackend::setSource_loadsAudioTrack_whenCalledWithValidWavFile()
 {
@@ -647,144 +629,6 @@ void tst_QMediaPlayerBackend::setSource_loadsCorrectTracks_whenLoadingMediaInSeq
     QCOMPARE(m_fixture->errorOccurred.size(), 0);
 }
 
-void tst_QMediaPlayerBackend::play_doesNothing_whenMediaIsNotLoaded()
-{
-    m_fixture->player.play();
-
-    const MediaPlayerState expectedState = MediaPlayerState::defaultState();
-    const MediaPlayerState actualState{ m_fixture->player };
-
-    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
-
-    QVERIFY(m_fixture->playbackStateChanged.empty());
-    QVERIFY(m_fixture->mediaStatusChanged.empty());
-    QVERIFY(m_fixture->positionChanged.empty());
-    QVERIFY(m_fixture->errorOccurred.empty());
-}
-
-void tst_QMediaPlayerBackend::pause_doesNothing_whenMediaIsNotLoaded()
-{
-    m_fixture->player.pause();
-
-    const MediaPlayerState expectedState = MediaPlayerState::defaultState();
-    const MediaPlayerState actualState{ m_fixture->player };
-
-    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
-
-    QVERIFY(m_fixture->playbackStateChanged.empty());
-    QVERIFY(m_fixture->mediaStatusChanged.empty());
-    QVERIFY(m_fixture->positionChanged.empty());
-    QVERIFY(m_fixture->errorOccurred.empty());
-}
-
-void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFileIsLoaded()
-{
-    m_fixture->player.setSource(m_localVideoFile);
-    m_fixture->player.play();
-
-    QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
-
-    QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
-    QTRY_COMPARE(m_fixture->mediaStatusChanged,
-                 SignalList({ { QMediaPlayer::LoadingMedia },
-                              { QMediaPlayer::LoadedMedia },
-                              { QMediaPlayer::BufferedMedia } }));
-
-}
-
-void tst_QMediaPlayerBackend::play_startsPlaybackAndChangesPosition_whenValidFileIsLoaded()
-{
-    m_fixture->player.setSource(m_localVideoFile);
-    m_fixture->player.play();
-
-    QTRY_VERIFY(m_fixture->player.position() > 100);
-    QTRY_VERIFY(!m_fixture->durationChanged.empty());
-    QTRY_VERIFY(!m_fixture->positionChanged.empty());
-    QTRY_VERIFY(m_fixture->positionChanged.last()[0].value<qint64>() > 100);
-}
-
-void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
-{
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
-
-    // Arrange
-    m_fixture->player.setSource(m_localWavFile);
-    m_fixture->player.play();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
-    m_fixture->clearSpies();
-    const qint64 positionBeforePause = m_fixture->player.position();
-
-    // Act
-    m_fixture->player.pause();
-
-    // Assert
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PausedState);
-    QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PausedState } }));
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
-
-    QTest::qWait(500);
-
-    QTRY_VERIFY(qAbs(m_fixture->player.position() - positionBeforePause) < 150);
-}
-
-void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
-{
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
-
-    // Arrange
-    m_fixture->player.setSource(m_localWavFile);
-    m_fixture->player.play();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
-    m_fixture->player.pause();
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
-    m_fixture->clearSpies();
-
-    // Act
-    m_fixture->player.stop();
-
-    // Assert
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
-
-    QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::StoppedState } }));
-    // it's allowed to emit statusChanged() signal async
-    QTRY_COMPARE(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::LoadedMedia } }));
-
-    QTRY_COMPARE(m_fixture->player.position(), qint64(0));
-    QTRY_VERIFY(!m_fixture->positionChanged.empty());
-    QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
-    QVERIFY(m_fixture->player.duration() > 0);
-}
-
-void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPlayingAfterStop()
-{
-    if (!isWavSupported())
-        QSKIP("Sound format is not supported");
-
-    // Arrange: go through a play->pause->stop sequence
-    m_fixture->player.setSource(m_localWavFile);
-    m_fixture->player.play();
-    QTRY_VERIFY(m_fixture->player.position() > 100);
-    m_fixture->player.pause();
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
-    m_fixture->player.stop();
-    m_fixture->clearSpies();
-
-    // Act
-    m_fixture->player.play();
-
-    // Assert
-    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
-    QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
-
-    // Note: Should not go through Loading again when play -> stop -> play
-    QCOMPARE_EQ(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::BufferedMedia } }));
-}
-
 void tst_QMediaPlayerBackend::setSource_remainsInStoppedState_whenPlayerWasStopped()
 {
     if (!isWavSupported())
@@ -842,6 +686,166 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
     QCOMPARE(m_fixture->player.position(), 0);
 }
 
+void tst_QMediaPlayerBackend::pause_doesNotChangePlayerState_whenInvalidFileLoaded()
+{
+    m_fixture->player.setSource({ "Some not existing media" });
+    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
+
+    const MediaPlayerState expectedState{ m_fixture->player };
+
+    m_fixture->player.pause();
+
+    const MediaPlayerState actualState{ m_fixture->player };
+
+    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+}
+
+void tst_QMediaPlayerBackend::pause_doesNothing_whenMediaIsNotLoaded()
+{
+    m_fixture->player.pause();
+
+    const MediaPlayerState expectedState = MediaPlayerState::defaultState();
+    const MediaPlayerState actualState{ m_fixture->player };
+
+    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+
+    QVERIFY(m_fixture->playbackStateChanged.empty());
+    QVERIFY(m_fixture->mediaStatusChanged.empty());
+    QVERIFY(m_fixture->positionChanged.empty());
+    QVERIFY(m_fixture->errorOccurred.empty());
+}
+
+void tst_QMediaPlayerBackend::pause_entersPauseState_whenPlayerWasPlaying()
+{
+    if (!isWavSupported())
+        QSKIP("Sound format is not supported");
+
+    // Arrange
+    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.play();
+    QTRY_VERIFY(m_fixture->player.position() > 100);
+    m_fixture->clearSpies();
+    const qint64 positionBeforePause = m_fixture->player.position();
+
+    // Act
+    m_fixture->player.pause();
+
+    // Assert
+    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PausedState);
+    QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PausedState } }));
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    QTest::qWait(500);
+
+    QTRY_VERIFY(qAbs(m_fixture->player.position() - positionBeforePause) < 150);
+}
+
+void tst_QMediaPlayerBackend::play_resetsErrorState_whenCalledWithInvalidFile()
+{
+    m_fixture->player.setSource({ "Some not existing media" });
+    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
+
+    MediaPlayerState expectedState{ m_fixture->player };
+
+    m_fixture->player.play();
+
+    expectedState.error = QMediaPlayer::NoError;
+    COMPARE_MEDIA_PLAYER_STATE_EQ(MediaPlayerState{ m_fixture->player }, expectedState);
+
+    QTest::qWait(150); // wait a bit and check position is not changed
+
+    COMPARE_MEDIA_PLAYER_STATE_EQ(MediaPlayerState{ m_fixture->player }, expectedState);
+    QCOMPARE(m_fixture->surface.m_totalFrames, 0);
+}
+
+void tst_QMediaPlayerBackend::play_resumesPlaying_whenValidMediaIsProvidedAfterInvalidMedia()
+{
+    // Arrange
+    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
+    m_fixture->player.play();
+    QTRY_VERIFY(m_fixture->framesCount > 0);
+    m_fixture->player.setSource(QUrl("Some not existing media"));
+    QTRY_COMPARE(m_fixture->player.error(), QMediaPlayer::ResourceError);
+    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
+
+    // Act
+    m_fixture->player.play();
+
+    // Assert
+    QTRY_VERIFY(m_fixture->framesCount > 0);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QCOMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
+    QCOMPARE(m_fixture->player.error(), QMediaPlayer::NoError);
+}
+
+void tst_QMediaPlayerBackend::play_doesNothing_whenMediaIsNotLoaded()
+{
+    m_fixture->player.play();
+
+    const MediaPlayerState expectedState = MediaPlayerState::defaultState();
+    const MediaPlayerState actualState{ m_fixture->player };
+
+    COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
+
+    QVERIFY(m_fixture->playbackStateChanged.empty());
+    QVERIFY(m_fixture->mediaStatusChanged.empty());
+    QVERIFY(m_fixture->positionChanged.empty());
+    QVERIFY(m_fixture->errorOccurred.empty());
+}
+
+void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFileIsLoaded()
+{
+    m_fixture->player.setSource(m_localVideoFile);
+    m_fixture->player.play();
+
+    QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
+    QTRY_COMPARE(m_fixture->mediaStatusChanged,
+                 SignalList({ { QMediaPlayer::LoadingMedia },
+                              { QMediaPlayer::LoadedMedia },
+                              { QMediaPlayer::BufferedMedia } }));
+
+}
+
+void tst_QMediaPlayerBackend::play_startsPlaybackAndChangesPosition_whenValidFileIsLoaded()
+{
+    m_fixture->player.setSource(m_localVideoFile);
+    m_fixture->player.play();
+
+    QTRY_VERIFY(m_fixture->player.position() > 100);
+    QTRY_VERIFY(!m_fixture->durationChanged.empty());
+    QTRY_VERIFY(!m_fixture->positionChanged.empty());
+    QTRY_VERIFY(m_fixture->positionChanged.last()[0].value<qint64>() > 100);
+}
+
+void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPlayingAfterStop()
+{
+    if (!isWavSupported())
+        QSKIP("Sound format is not supported");
+
+    // Arrange: go through a play->pause->stop sequence
+    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.play();
+    QTRY_VERIFY(m_fixture->player.position() > 100);
+    m_fixture->player.pause();
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    m_fixture->player.stop();
+    m_fixture->clearSpies();
+
+    // Act
+    m_fixture->player.play();
+
+    // Assert
+    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
+
+    // Note: Should not go through Loading again when play -> stop -> play
+    QCOMPARE_EQ(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::BufferedMedia } }));
+}
+
 void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl()
 {
     if (!isWavSupported())
@@ -874,6 +878,167 @@ void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayb
     QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), 0);
 }
 
+void tst_QMediaPlayerBackend::
+        play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream()
+{
+    if (!canCreateRtspStream())
+        QSKIP("Rtsp stream cannot be created");
+
+    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    QVERIFY(temporaryFile);
+
+    const QString streamUrl = "rtsp://localhost:8083/stream";
+
+    auto process = createRtspStreamProcess(temporaryFile->fileName(), streamUrl);
+    QVERIFY2(process, "Cannot start rtsp process");
+
+    auto processCloser = qScopeGuard([&process]() { process->close(); });
+
+    TestVideoSink surface(false);
+    QMediaPlayer player;
+
+    QSignalSpy errorSpy(&player, &QMediaPlayer::errorOccurred);
+
+    player.setVideoSink(&surface);
+    // Ignore audio output to check timings accuratelly
+    // player.setAudioOutput(&output);
+
+    player.setSource(streamUrl);
+
+    player.play();
+
+    QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+
+    const auto colors = { qRgb(0, 0, 0xFF), qRgb(0xFF, 0, 0), qRgb(0, 0xFE, 0) };
+    const auto colorInterval = 5000;
+
+    for (auto pos : { colorInterval / 2, colorInterval + 100 }) {
+        qDebug() << "Waiting for position:" << pos;
+
+        QTRY_COMPARE_GT(player.position(), pos);
+
+        auto frame1 = surface.waitForFrame();
+        QVERIFY(frame1.isValid());
+        QCOMPARE(frame1.size(), QSize(160, 120));
+
+        QCOMPARE_GT(frame1.startTime(), pos * 1000);
+
+        auto frameTime = frame1.startTime();
+        const auto coloIndex = frameTime / (colorInterval * 1000);
+        QCOMPARE_LT(coloIndex, 2);
+
+        const auto image1 = frame1.toImage();
+        QVERIFY(!image1.isNull());
+        QCOMPARE(findSimilarColorIndex(colors, image1.pixel(1, 1)), coloIndex);
+        QCOMPARE(findSimilarColorIndex(colors, image1.pixel(100, 100)), coloIndex);
+
+        auto frame2 = surface.waitForFrame();
+        QVERIFY(frame2.isValid());
+        QCOMPARE_GT(frame2.startTime(), frame1.startTime());
+    }
+
+    player.stop();
+
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(errorSpy.size(), 0);
+}
+
+void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
+{
+    if (!isWavSupported())
+        QSKIP("Sound format is not supported");
+
+    // Arrange
+    m_fixture->player.setSource(m_localWavFile);
+    m_fixture->player.play();
+    QTRY_VERIFY(m_fixture->player.position() > 100);
+    m_fixture->player.pause();
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    m_fixture->clearSpies();
+
+    // Act
+    m_fixture->player.stop();
+
+    // Assert
+    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::StoppedState } }));
+    // it's allowed to emit statusChanged() signal async
+    QTRY_COMPARE(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::LoadedMedia } }));
+
+    QTRY_COMPARE(m_fixture->player.position(), qint64(0));
+    QTRY_VERIFY(!m_fixture->positionChanged.empty());
+    QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
+    QVERIFY(m_fixture->player.duration() > 0);
+}
+
+void tst_QMediaPlayerBackend::setVolume_changesVolume_whenVolumeIsInRange()
+{
+    m_fixture->output.setVolume(0.0f);
+    QCOMPARE_EQ(m_fixture->output.volume(), 0.0f);
+    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f } }));
+
+    m_fixture->output.setVolume(0.5f);
+    QCOMPARE_EQ(m_fixture->output.volume(), 0.5f);
+    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f }, { 0.5f } }));
+
+    m_fixture->output.setVolume(1.0f);
+    QCOMPARE_EQ(m_fixture->output.volume(), 1.0f);
+    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f }, { 0.5f }, { 1.0f } }));
+}
+
+void tst_QMediaPlayerBackend::setVolume_clampsToRange_whenVolumeIsOutsideRange()
+{
+    m_fixture->output.setVolume(-0.1f);
+    QCOMPARE_EQ(m_fixture->output.volume(), 0.0f);
+    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f } }));
+
+    m_fixture->output.setVolume(1.1f);
+    QCOMPARE_EQ(m_fixture->output.volume(), 1.0f);
+    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f }, { 1.0f } }));
+}
+
+void tst_QMediaPlayerBackend::setVolume_doesNotChangeMutedState()
+{
+    m_fixture->output.setMuted(true);
+    m_fixture->output.setVolume(0.5f);
+    QVERIFY(m_fixture->output.isMuted());
+
+    m_fixture->output.setMuted(false);
+    m_fixture->output.setVolume(0.0f);
+    QVERIFY(!m_fixture->output.isMuted());
+}
+
+void tst_QMediaPlayerBackend::setMuted_changesMutedState_whenMutedStateChanged()
+{
+    m_fixture->output.setMuted(true);
+    QVERIFY(m_fixture->output.isMuted());
+    QCOMPARE(m_fixture->mutedChanged, SignalList({ { true } }));
+
+    // No new events emitted when muted state did not change
+    m_fixture->output.setMuted(true);
+    QCOMPARE(m_fixture->mutedChanged, SignalList({ { true } }));
+
+    m_fixture->output.setMuted(false);
+    QVERIFY(!m_fixture->output.isMuted());
+    QCOMPARE(m_fixture->mutedChanged, SignalList({ { true }, { false } }));
+
+    // No new events emitted when muted state did not change
+    m_fixture->output.setMuted(false);
+    QCOMPARE(m_fixture->mutedChanged, SignalList({ { true }, { false } }));
+}
+
+void tst_QMediaPlayerBackend::setMuted_doesNotChangeVolume()
+{
+    m_fixture->output.setVolume(0.5f);
+
+    m_fixture->output.setMuted(true);
+    QCOMPARE_EQ(m_fixture->output.volume(), 0.5f);
+
+    m_fixture->output.setMuted(false);
+    QCOMPARE_EQ(m_fixture->output.volume(), 0.5f);
+}
 
 void tst_QMediaPlayerBackend::processEOS()
 {
@@ -1029,73 +1194,6 @@ void tst_QMediaPlayerBackend::deleteLaterAtEOS()
     // Verify that the player was destroyed within the event loop.
     // This check will fail without the fix for QTBUG-24927.
     QVERIFY(player.isNull());
-}
-
-void tst_QMediaPlayerBackend::setVolume_changesVolume_whenVolumeIsInRange()
-{
-    m_fixture->output.setVolume(0.0f);
-    QCOMPARE_EQ(m_fixture->output.volume(), 0.0f);
-    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f } }));
-
-    m_fixture->output.setVolume(0.5f);
-    QCOMPARE_EQ(m_fixture->output.volume(), 0.5f);
-    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f }, { 0.5f } }));
-
-    m_fixture->output.setVolume(1.0f);
-    QCOMPARE_EQ(m_fixture->output.volume(), 1.0f);
-    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f }, { 0.5f }, { 1.0f } }));
-}
-
-void tst_QMediaPlayerBackend::setVolume_clampsToRange_whenVolumeIsOutsideRange()
-{
-    m_fixture->output.setVolume(-0.1f);
-    QCOMPARE_EQ(m_fixture->output.volume(), 0.0f);
-    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f } }));
-
-    m_fixture->output.setVolume(1.1f);
-    QCOMPARE_EQ(m_fixture->output.volume(), 1.0f);
-    QCOMPARE(m_fixture->volumeChanged, SignalList({ { 0.0f }, { 1.0f } }));
-}
-
-void tst_QMediaPlayerBackend::setVolume_doesNotChangeMutedState()
-{
-    m_fixture->output.setMuted(true);
-    m_fixture->output.setVolume(0.5f);
-    QVERIFY(m_fixture->output.isMuted());
-
-    m_fixture->output.setMuted(false);
-    m_fixture->output.setVolume(0.0f);
-    QVERIFY(!m_fixture->output.isMuted());
-}
-
-void tst_QMediaPlayerBackend::setMuted_changesMutedState_whenMutedStateChanged()
-{
-    m_fixture->output.setMuted(true);
-    QVERIFY(m_fixture->output.isMuted());
-    QCOMPARE(m_fixture->mutedChanged, SignalList({ { true } }));
-
-    // No new events emitted when muted state did not change
-    m_fixture->output.setMuted(true);
-    QCOMPARE(m_fixture->mutedChanged, SignalList({ { true } }));
-
-    m_fixture->output.setMuted(false);
-    QVERIFY(!m_fixture->output.isMuted());
-    QCOMPARE(m_fixture->mutedChanged, SignalList({ {true}, { false } }));
-
-    // No new events emitted when muted state did not change
-    m_fixture->output.setMuted(false);
-    QCOMPARE(m_fixture->mutedChanged, SignalList({ { true }, { false } }));
-}
-
-void tst_QMediaPlayerBackend::setMuted_doesNotChangeVolume()
-{
-    m_fixture->output.setVolume(0.5f);
-
-    m_fixture->output.setMuted(true);
-    QCOMPARE_EQ(m_fixture->output.volume(), 0.5f);
-
-    m_fixture->output.setMuted(false);
-    QCOMPARE_EQ(m_fixture->output.volume(), 0.5f);
 }
 
 void tst_QMediaPlayerBackend::volumeAcrossFiles_data()
@@ -1538,28 +1636,6 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 
     QCOMPARE(player.playbackState(), QMediaPlayer::PlaybackState::StoppedState);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::MediaStatus::EndOfMedia);
-}
-
-static qreal colorDifference(QRgb first, QRgb second)
-{
-    const auto diffVector = QVector3D(qRed(first), qGreen(first), qBlue(first)) - QVector3D(qRed(second), qGreen(second), qBlue(second));
-    static const auto normalizationFactor = 1. / ( 255 * qSqrt(3.) );
-    return diffVector.length() * normalizationFactor;
-}
-
-template<typename It>
-It findSimilarColor(It it, It end, QRgb color)
-{
-    return std::min_element(it, end, [color](QRgb first, QRgb second) {
-        return colorDifference(first, color) < colorDifference(second, color);
-    });
-}
-
-template <typename Colors>
-size_t findSimilarColorIndex(const Colors &colors, QRgb color)
-{
-    return std::distance(std::begin(colors),
-                         findSimilarColor(std::begin(colors), std::end(colors), color));
 }
 
 void tst_QMediaPlayerBackend::multipleSeekStressTest()
@@ -2442,70 +2518,6 @@ std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QStri
     QTest::qWait(500);
 
     return process;
-}
-
-void tst_QMediaPlayerBackend::play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream()
-{
-    if (!canCreateRtspStream())
-        QSKIP("Rtsp stream cannot be created");
-
-    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
-    QVERIFY(temporaryFile);
-
-    const QString streamUrl = "rtsp://localhost:8083/stream";
-
-    auto process = createRtspStreamProcess(temporaryFile->fileName(), streamUrl);
-    QVERIFY2(process, "Cannot start rtsp process");
-
-    auto processCloser = qScopeGuard([&process]() { process->close(); });
-
-    TestVideoSink surface(false);
-    QMediaPlayer player;
-
-    QSignalSpy errorSpy(&player, &QMediaPlayer::errorOccurred);
-
-    player.setVideoSink(&surface);
-    // Ignore audio output to check timings accuratelly
-    // player.setAudioOutput(&output);
-
-    player.setSource(streamUrl);
-
-    player.play();
-
-    QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-
-    const auto colors = { qRgb(0, 0, 0xFF), qRgb(0xFF, 0, 0), qRgb(0, 0xFE, 0) };
-    const auto colorInterval = 5000;
-
-    for (auto pos : { colorInterval / 2, colorInterval + 100 }) {
-        qDebug() << "Waiting for position:" << pos;
-
-        QTRY_COMPARE_GT(player.position(), pos);
-
-        auto frame1 = surface.waitForFrame();
-        QVERIFY(frame1.isValid());
-        QCOMPARE(frame1.size(), QSize(160, 120));
-
-        QCOMPARE_GT(frame1.startTime(), pos * 1000);
-
-        auto frameTime = frame1.startTime();
-        const auto coloIndex = frameTime / (colorInterval * 1000);
-        QCOMPARE_LT(coloIndex, 2);
-
-        const auto image1 = frame1.toImage();
-        QVERIFY(!image1.isNull());
-        QCOMPARE(findSimilarColorIndex(colors, image1.pixel(1, 1)), coloIndex);
-        QCOMPARE(findSimilarColorIndex(colors, image1.pixel(100, 100)), coloIndex);
-
-        auto frame2 = surface.waitForFrame();
-        QVERIFY(frame2.isValid());
-        QCOMPARE_GT(frame2.startTime(), frame1.startTime());
-    }
-
-    player.stop();
-
-    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(errorSpy.size(), 0);
 }
 
 QTEST_MAIN(tst_QMediaPlayerBackend)
