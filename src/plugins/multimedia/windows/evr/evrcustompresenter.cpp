@@ -889,8 +889,6 @@ HRESULT EVRCustomPresenter::OnClockSetRate(MFTIME, float rate)
     // frame-step operation.
     if ((m_playbackRate == 0.0f) && (rate != 0.0f)) {
         cancelFrameStep();
-        for (auto sample : std::as_const(m_frameStep.samples))
-            sample->Release();
         m_frameStep.samples.clear();
     }
 
@@ -1093,8 +1091,6 @@ HRESULT EVRCustomPresenter::flush()
     m_scheduler.flush();
 
     // Flush the frame-step queue.
-    for (auto sample : std::as_const(m_frameStep.samples))
-        sample->Release();
     m_frameStep.samples.clear();
 
     if (m_renderState == RenderStopped && m_videoSink) {
@@ -1187,9 +1183,6 @@ HRESULT EVRCustomPresenter::prepareFrameStep(DWORD steps)
 
 HRESULT EVRCustomPresenter::startFrameStep()
 {
-    HRESULT hr = S_OK;
-    IMFSample *sample = NULL;
-
     if (m_frameStep.state == FrameStepWaitingStart) {
         // We have a frame-step request, and are waiting for the clock to start.
         // Set the state to "pending," which means we are waiting for samples.
@@ -1197,13 +1190,11 @@ HRESULT EVRCustomPresenter::startFrameStep()
 
         // If the frame-step queue already has samples, process them now.
         while (!m_frameStep.samples.isEmpty() && (m_frameStep.state == FrameStepPending)) {
-            sample = m_frameStep.samples.takeFirst();
+            const ComPtr<IMFSample> sample = m_frameStep.samples.takeFirst();
 
-            hr = deliverFrameStepSample(sample);
+            const HRESULT hr = deliverFrameStepSample(sample.Get());
             if (FAILED(hr))
-                goto done;
-
-            qt_evr_safe_release(&sample);
+                return hr;
 
             // We break from this loop when:
             //   (a) the frame-step queue is empty, or
@@ -1213,19 +1204,15 @@ HRESULT EVRCustomPresenter::startFrameStep()
         // We are not frame stepping. Therefore, if the frame-step queue has samples,
         // we need to process them normally.
         while (!m_frameStep.samples.isEmpty()) {
-            sample = m_frameStep.samples.takeFirst();
+            const ComPtr<IMFSample> sample = m_frameStep.samples.takeFirst();
 
-            hr = deliverSample(sample, false);
+            const HRESULT hr = deliverSample(sample.Get(), false);
             if (FAILED(hr))
-                goto done;
-
-            qt_evr_safe_release(&sample);
+                return hr;
         }
     }
 
-done:
-    qt_evr_safe_release(&sample);
-    return hr;
+    return S_OK;
 }
 
 HRESULT EVRCustomPresenter::completeFrameStep(IMFSample *sample)
@@ -1671,7 +1658,6 @@ HRESULT EVRCustomPresenter::deliverFrameStepSample(IMFSample *sample)
         // A frame was already submitted. Put this sample on the frame-step queue,
         // in case we are asked to step to the next frame. If frame-stepping is
         // cancelled, this sample will be processed normally.
-        sample->AddRef();
         m_frameStep.samples.append(sample);
     } else {
         // We're ready to frame-step.
@@ -1686,7 +1672,6 @@ HRESULT EVRCustomPresenter::deliverFrameStepSample(IMFSample *sample)
             // This is the right frame, but the clock hasn't started yet. Put the
             // sample on the frame-step queue. When the clock starts, the sample
             // will be processed.
-            sample->AddRef();
             m_frameStep.samples.append(sample);
         } else {
             // This is the right frame *and* the clock has started. Deliver this sample.

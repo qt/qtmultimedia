@@ -315,7 +315,7 @@ private:
     struct FrameStep
     {
         FrameStepState state = FrameStepNone;
-        QList<IMFSample*> samples;
+        QList<ComPtr<IMFSample>> samples;
         DWORD steps = 0;
         DWORD_PTR sampleNoRef = 0;
     };
