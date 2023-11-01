@@ -112,7 +112,7 @@ public:
     const LONGLONG &lastSampleTime() const { return m_lastSampleTime; }
     const LONGLONG &frameDuration() const { return m_perFrameInterval; }
 
-    HRESULT startScheduler(IMFClock *clock);
+    HRESULT startScheduler(ComPtr<IMFClock> clock);
     HRESULT stopScheduler();
 
     HRESULT scheduleSample(IMFSample *sample, bool presentNow);
@@ -132,7 +132,7 @@ private:
 
     QQueue<ComPtr<IMFSample>> m_scheduledSamples; // Samples waiting to be presented.
 
-    IMFClock *m_clock; // Presentation clock. Can be NULL.
+    ComPtr<IMFClock> m_clock; // Presentation clock. Can be NULL.
 
     DWORD m_threadID;
     HANDLE m_schedulerThread;
@@ -344,10 +344,10 @@ private:
 
     D3DPresentEngine *m_presentEngine; // Rendering engine. (Never null if the constructor succeeds.)
 
-    IMFClock *m_clock; // The EVR's clock.
-    IMFTransform *m_mixer; // The EVR's mixer.
-    IMediaEventSink *m_mediaEventSink; // The EVR's event-sink interface.
-    IMFMediaType *m_mediaType; // Output media type
+    ComPtr<IMFClock> m_clock; // The EVR's clock.
+    ComPtr<IMFTransform> m_mixer; // The EVR's mixer.
+    ComPtr<IMediaEventSink> m_mediaEventSink; // The EVR's event-sink interface.
+    ComPtr<IMFMediaType> m_mediaType; // Output media type
 
     QPointer<QVideoSink> m_videoSink;
     bool m_canRenderToSurface;
