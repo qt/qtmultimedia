@@ -74,7 +74,6 @@ private:
 
 Scheduler::Scheduler(EVRCustomPresenter *presenter)
     : m_presenter(presenter)
-    , m_clock(NULL)
     , m_threadID(0)
     , m_schedulerThread(0)
     , m_threadReadyEvent(0)
@@ -88,7 +87,6 @@ Scheduler::Scheduler(EVRCustomPresenter *presenter)
 
 Scheduler::~Scheduler()
 {
-    qt_evr_safe_release(&m_clock);
     m_scheduledSamples.clear();
 }
 
@@ -105,7 +103,7 @@ void Scheduler::setFrameRate(const MFRatio& fps)
     m_perFrame_1_4th = m_perFrameInterval / 4;
 }
 
-HRESULT Scheduler::startScheduler(IMFClock *clock)
+HRESULT Scheduler::startScheduler(ComPtr<IMFClock> clock)
 {
     if (m_schedulerThread)
         return E_UNEXPECTED;
@@ -115,11 +113,7 @@ HRESULT Scheduler::startScheduler(IMFClock *clock)
     HANDLE hObjects[2];
     DWORD dwWait = 0;
 
-    if (m_clock)
-        m_clock->Release();
     m_clock = clock;
-    if (m_clock)
-        m_clock->AddRef();
 
     // Set a high the timer resolution (ie, short timer period).
     timeBeginPeriod(1);
@@ -495,9 +489,6 @@ EVRCustomPresenter::EVRCustomPresenter(QVideoSink *sink)
     , m_endStreaming(false)
     , m_playbackRate(1.0f)
     , m_presentEngine(new D3DPresentEngine(sink))
-    , m_clock(0)
-    , m_mixer(0)
-    , m_mediaEventSink(0)
     , m_mediaType(0)
     , m_videoSink(0)
     , m_canRenderToSurface(false)
@@ -517,11 +508,6 @@ EVRCustomPresenter::~EVRCustomPresenter()
     m_scheduler.flush();
     m_scheduler.stopScheduler();
     m_samplePool.clear();
-
-    qt_evr_safe_release(&m_clock);
-    qt_evr_safe_release(&m_mixer);
-    qt_evr_safe_release(&m_mediaEventSink);
-    qt_evr_safe_release(&m_mediaType);
 
     delete m_presentEngine;
 }
@@ -609,9 +595,9 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
     if (isActive())
         return MF_E_INVALIDREQUEST;
 
-    qt_evr_safe_release(&m_clock);
-    qt_evr_safe_release(&m_mixer);
-    qt_evr_safe_release(&m_mediaEventSink);
+    m_clock.Reset();
+    m_mixer.Reset();
+    m_mediaEventSink.Reset();
 
     // Ask for the clock. Optional, because the EVR might not have a clock.
     objectCount = 1;
@@ -633,7 +619,7 @@ HRESULT EVRCustomPresenter::InitServicePointers(IMFTopologyServiceLookup *lookup
         return hr;
 
     // Make sure that we can work with this mixer.
-    hr = configureMixer(m_mixer);
+    hr = configureMixer(m_mixer.Get());
     if (FAILED(hr))
         return hr;
 
@@ -667,9 +653,9 @@ HRESULT EVRCustomPresenter::ReleaseServicePointers()
     setMediaType(NULL);
 
     // Release all services that were acquired from InitServicePointers.
-    qt_evr_safe_release(&m_clock);
-    qt_evr_safe_release(&m_mixer);
-    qt_evr_safe_release(&m_mediaEventSink);
+    m_clock.Reset();
+    m_mixer.Reset();
+    m_mediaEventSink.Reset();
 
     return S_OK;
 }
@@ -1287,7 +1273,7 @@ HRESULT EVRCustomPresenter::createOptimalVideoType(IMFMediaType *proposedType, I
         m_sourceRect.bottom = float(m_cropRect.y() + m_cropRect.height()) / height;
 
         if (m_mixer)
-            configureMixer(m_mixer);
+            configureMixer(m_mixer.Get());
     } else {
         rcOutput.left = 0;
         rcOutput.top = 0;
@@ -1338,7 +1324,7 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
     // Clearing the media type is allowed in any state (including shutdown).
     if (!mediaType) {
         stopSurface();
-        qt_evr_safe_release(&m_mediaType);
+        m_mediaType.Reset();
         releaseResources();
         return S_OK;
     }
@@ -1353,11 +1339,11 @@ HRESULT EVRCustomPresenter::setMediaType(IMFMediaType *mediaType)
 
     // Check if the new type is actually different.
     // Note: This function safely handles NULL input parameters.
-    if (qt_evr_areMediaTypesEqual(m_mediaType, mediaType))
+    if (qt_evr_areMediaTypesEqual(m_mediaType.Get(), mediaType))
         goto done; // Nothing more to do.
 
     // We're really changing the type. First get rid of the old type.
-    qt_evr_safe_release(&m_mediaType);
+    m_mediaType.Reset();
     releaseResources();
 
     // Initialize the presenter engine with the new media type.
@@ -1633,7 +1619,7 @@ HRESULT EVRCustomPresenter::deliverFrameStepSample(IMFSample *sample)
     IUnknown *unk = NULL;
 
     // For rate 0, discard any sample that ends earlier than the clock time.
-    if (isScrubbing() && m_clock && qt_evr_isSampleTimePassed(m_clock, sample)) {
+    if (isScrubbing() && m_clock && qt_evr_isSampleTimePassed(m_clock.Get(), sample)) {
         // Discard this sample.
     } else if (m_frameStep.state >= FrameStepScheduled) {
         // A frame was already submitted. Put this sample on the frame-step queue,
@@ -1790,7 +1776,7 @@ float EVRCustomPresenter::getMaxRate(bool thin)
     UINT monitorRateHz = 0;
 
     if (!thin && m_mediaType) {
-        qt_evr_getFrameRate(m_mediaType, &fps);
+        qt_evr_getFrameRate(m_mediaType.Get(), &fps);
         monitorRateHz = m_presentEngine->refreshRate();
 
         if (fps.Denominator && fps.Numerator && monitorRateHz) {
