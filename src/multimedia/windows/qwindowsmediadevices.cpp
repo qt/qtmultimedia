@@ -20,6 +20,7 @@
 
 #include <QtCore/qmap.h>
 #include <private/qcomobject_p.h>
+#include <private/qsystemerror_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -126,35 +127,36 @@ QWindowsMediaDevices::QWindowsMediaDevices()
                 CLSCTX_INPROC_SERVER,__uuidof(IMMDeviceEnumerator),
                 (void**)&m_deviceEnumerator);
 
-    if (SUCCEEDED(hr)) {
-        QMap<QString, DWORD> devState;
-        ComPtr<IMMDeviceCollection> devColl;
-        UINT count = 0;
+    if (FAILED(hr)) {
+        qWarning("Failed to instantiate IMMDeviceEnumerator (%s)."
+                 "Audio device change notification will be disabled",
+            qPrintable(QSystemError::windowsComString(hr)));
+        return;
+    }
 
-        if (SUCCEEDED(m_deviceEnumerator->EnumAudioEndpoints(EDataFlow::eAll, DEVICE_STATEMASK_ALL, devColl.GetAddressOf()))
-            && SUCCEEDED(devColl->GetCount(&count)))
-        {
-            for (UINT i = 0; i < count; i++) {
-                ComPtr<IMMDevice> device;
-                DWORD state = 0;
-                QComTaskResource<WCHAR> id;
+    QMap<QString, DWORD> devState;
+    ComPtr<IMMDeviceCollection> devColl;
+    UINT count = 0;
 
-                if (SUCCEEDED(devColl->Item(i, device.GetAddressOf()))
-                    && SUCCEEDED(device->GetState(&state))
-                    && SUCCEEDED(device->GetId(id.address()))) {
-                    devState.insert(QString::fromWCharArray(id.get()), state);
-                }
+    if (SUCCEEDED(m_deviceEnumerator->EnumAudioEndpoints(EDataFlow::eAll, DEVICE_STATEMASK_ALL, devColl.GetAddressOf()))
+        && SUCCEEDED(devColl->GetCount(&count)))
+    {
+        for (UINT i = 0; i < count; i++) {
+            ComPtr<IMMDevice> device;
+            DWORD state = 0;
+            QComTaskResource<WCHAR> id;
+
+            if (SUCCEEDED(devColl->Item(i, device.GetAddressOf()))
+                && SUCCEEDED(device->GetState(&state))
+                && SUCCEEDED(device->GetId(id.address()))) {
+                devState.insert(QString::fromWCharArray(id.get()), state);
             }
         }
-
-
-        m_notificationClient =
-                makeComObject<CMMNotificationClient>(this, m_deviceEnumerator, std::move(devState));
-        m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient.Get());
-
-    } else {
-        qWarning() << "Audio device change notification disabled";
     }
+
+
+    m_notificationClient = makeComObject<CMMNotificationClient>(this, m_deviceEnumerator, std::move(devState));
+    m_deviceEnumerator->RegisterEndpointNotificationCallback(m_notificationClient.Get());
 }
 
 QWindowsMediaDevices::~QWindowsMediaDevices()
@@ -178,6 +180,9 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
 
 QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mode) const
 {
+    if (!m_deviceEnumerator)
+        return {};
+
     const auto audioOut = mode == QAudioDevice::Output;
 
     const auto defaultAudioDeviceID = [this, audioOut]{
