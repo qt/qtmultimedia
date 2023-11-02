@@ -74,8 +74,6 @@ Scheduler::Scheduler(EVRCustomPresenter *presenter)
     : m_presenter(presenter)
     , m_threadID(0)
     , m_schedulerThread(0)
-    , m_threadReadyEvent(0)
-    , m_flushEvent(0)
     , m_playbackRate(1.0f)
     , m_perFrame_1_4th(0)
 {
@@ -113,14 +111,14 @@ HRESULT Scheduler::startScheduler(ComPtr<IMFClock> clock)
     timeBeginPeriod(1);
 
     // Create an event to wait for the thread to start.
-    m_threadReadyEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    m_threadReadyEvent = EventHandle{ CreateEvent(NULL, FALSE, FALSE, NULL) };
     if (!m_threadReadyEvent) {
         hr = HRESULT_FROM_WIN32(GetLastError());
         goto done;
     }
 
     // Create an event to wait for flush commands to complete.
-    m_flushEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    m_flushEvent = EventHandle{ CreateEvent(NULL, FALSE, FALSE, NULL) };
     if (!m_flushEvent) {
         hr = HRESULT_FROM_WIN32(GetLastError());
         goto done;
@@ -134,7 +132,7 @@ HRESULT Scheduler::startScheduler(ComPtr<IMFClock> clock)
     }
 
     // Wait for the thread to signal the "thread ready" event.
-    hObjects[0] = m_threadReadyEvent;
+    hObjects[0] = m_threadReadyEvent.get();
     hObjects[1] = m_schedulerThread;
     dwWait = WaitForMultipleObjects(2, hObjects, FALSE, INFINITE);  // Wait for EITHER of these handles.
     if (WAIT_OBJECT_0 != dwWait) {
@@ -150,10 +148,8 @@ HRESULT Scheduler::startScheduler(ComPtr<IMFClock> clock)
 
 done:
     // Regardless success/failure, we are done using the "thread ready" event.
-    if (m_threadReadyEvent) {
-        CloseHandle(m_threadReadyEvent);
-        m_threadReadyEvent = NULL;
-    }
+    m_threadReadyEvent = {};
+
     return hr;
 }
 
@@ -172,8 +168,7 @@ HRESULT Scheduler::stopScheduler()
     CloseHandle(m_schedulerThread);
     m_schedulerThread = NULL;
 
-    CloseHandle(m_flushEvent);
-    m_flushEvent = NULL;
+    m_flushEvent = {};
 
     // Discard samples.
     m_mutex.lock();
@@ -194,7 +189,7 @@ HRESULT Scheduler::flush()
 
         // Wait for the scheduler thread to signal the flush event,
         // OR for the thread to terminate.
-        HANDLE objects[] = { m_flushEvent, m_schedulerThread };
+        HANDLE objects[] = { m_flushEvent.get(), m_schedulerThread };
 
         WaitForMultipleObjects(ARRAYSIZE(objects), objects, FALSE, SCHEDULER_TIMEOUT);
     }
@@ -347,7 +342,7 @@ DWORD Scheduler::schedulerThreadProcPrivate()
     PeekMessage(&msg, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
     // Signal to the scheduler that the thread is ready.
-    SetEvent(m_threadReadyEvent);
+    SetEvent(m_threadReadyEvent.get());
 
     while (!exitThread) {
         // Wait for a thread message OR until the wait time expires.
@@ -373,7 +368,7 @@ DWORD Scheduler::schedulerThreadProcPrivate()
                 m_scheduledSamples.clear();
                 m_mutex.unlock();
                 wait = INFINITE;
-                SetEvent(m_flushEvent);
+                SetEvent(m_flushEvent.get());
                 break;
             case Schedule:
                 // Process as many samples as we can.

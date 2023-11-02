@@ -43,7 +43,6 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
       m_playerControl(playerControl),
       m_scrubbing(false),
       m_restoreRate(1),
-      m_hCloseEvent(0),
       m_closing(false),
       m_mediaTypes(0),
       m_pendingRate(1),
@@ -109,7 +108,7 @@ void MFPlayerSession::close()
         m_closing = true;
         hr = m_session->Close();
         if (SUCCEEDED(hr)) {
-            DWORD dwWaitResult = WaitForSingleObject(m_hCloseEvent, 2000);
+            DWORD dwWaitResult = WaitForSingleObject(m_hCloseEvent.get(), 2000);
             if (dwWaitResult == WAIT_TIMEOUT) {
                 qWarning() << "session close time out!";
             }
@@ -132,9 +131,7 @@ void MFPlayerSession::close()
 //    }
 
     m_session.Reset();
-    if (m_hCloseEvent)
-        CloseHandle(m_hCloseEvent);
-    m_hCloseEvent = 0;
+    m_hCloseEvent = {};
     m_lastPosition = -1;
     m_position = 0;
 }
@@ -1013,7 +1010,7 @@ bool MFPlayerSession::createSession()
         return false;
     }
 
-    m_hCloseEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+    m_hCloseEvent = EventHandle{ CreateEvent(NULL, FALSE, FALSE, NULL) };
 
     hr = m_session->BeginGetEvent(this, m_session.Get());
     if (FAILED(hr)) {
@@ -1436,7 +1433,7 @@ HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
     }
 
     if (meType == MESessionClosed) {
-        SetEvent(m_hCloseEvent);
+        SetEvent(m_hCloseEvent.get());
         return S_OK;
     } else {
         hr = m_session->BeginGetEvent(this, m_session.Get());
