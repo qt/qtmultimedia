@@ -164,14 +164,10 @@
     the \l{GNU General Public License, version 2}.
     See \l{Qt Licensing} for further details.
 
-    The FFmpeg backend uses the \l {https://ffmpeg.org}{FFmpeg framework}.
-    FFmpeg is licensed under LGPLv2.1, GPLv2, or later versions of the licenses.
-    Some optional components of FFmpeg are only available under GPL. The FFmpeg
-    backend shipped with the Qt binary packages is configured to not contain any
-    of the components that are available under GPLv2 only.
+    Furthermore, Qt Multimedia in Qt \QtVersion may contain third-party modules
+    under following permissive licenses:
 
-    See the \l {https://ffmpeg.org/legal.html}{FFmpeg licensing page} for further
-    details.
+    \generatelist{groupsbymodule attributions-qtmultimedia}
 
     Note that video compression standards, such as the H.264 media compression
     standard, may be covered by patents and can incur royalty fees. This can
