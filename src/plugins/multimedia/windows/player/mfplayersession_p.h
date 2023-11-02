@@ -31,6 +31,7 @@
 #include <qtimer.h>
 #include "mfplayercontrol_p.h"
 #include <private/qcomptr_p.h>
+#include <evrhelpers_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -159,7 +160,7 @@ private:
     float m_restoreRate;
 
     ComPtr<SourceResolver> m_sourceResolver;
-    HANDLE m_hCloseEvent;
+    EventHandle m_hCloseEvent;
     bool m_closing;
 
     enum MediaType
