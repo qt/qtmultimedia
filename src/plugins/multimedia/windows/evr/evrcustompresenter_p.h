@@ -24,6 +24,7 @@
 #include <qvideosink.h>
 #include <qpointer.h>
 #include <private/qcomptr_p.h>
+#include "evrhelpers_p.h"
 
 #include <d3d9.h>
 #include <dxva2api.h>
@@ -133,8 +134,8 @@ private:
 
     DWORD m_threadID;
     HANDLE m_schedulerThread;
-    HANDLE m_threadReadyEvent;
-    HANDLE m_flushEvent;
+    EventHandle m_threadReadyEvent;
+    EventHandle m_flushEvent;
 
     float m_playbackRate;
     LONGLONG m_perFrame_1_4th; // 1/4th of the frame duration.
