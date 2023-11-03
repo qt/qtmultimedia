@@ -60,6 +60,12 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil
 )
 
+if(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
+    if(NOT OPENSSL_INCLUDE_DIR AND OPENSSL_ROOT_DIR)
+        set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
+    endif()
+endif()
+
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_OPENSSL_SYMBOLS
     SOURCES
         qffmpegopensslsymbols.cpp
