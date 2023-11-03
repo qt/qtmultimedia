@@ -8,7 +8,6 @@
 #include <private/qquicktextnode_p.h>
 #include <private/qquickvideooutput_p.h>
 #include <private/qabstractvideobuffer_p.h>
-#include <qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -93,7 +92,6 @@ public:
     }
 
     void setCurrentFrame(const QVideoFrame &frame) {
-        QMutexLocker lock(&m_frameMutex);
         m_currentFrame = frame;
         m_texturesDirty = true;
     }
@@ -104,7 +102,6 @@ public:
     float m_planeWidth[3];
     float m_opacity;
 
-    QMutex m_frameMutex;
     bool m_texturesDirty = false;
     QVideoFrame m_currentFrame;
 
@@ -116,7 +113,6 @@ public:
 
 void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
 {
-    QMutexLocker locker(&m_frameMutex);
     if (!m_texturesDirty)
         return;
 
