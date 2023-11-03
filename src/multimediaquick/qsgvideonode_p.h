@@ -49,12 +49,12 @@ private:
     QQuickVideoOutput *m_parent = nullptr;
     QRectF m_rect;
     QRectF m_textureRect;
-    int m_orientation;
-    int m_frameOrientation;
-    bool m_frameMirrored;
+    int m_orientation = -1;
+    int m_frameOrientation = -1;
+    bool m_frameMirrored = false;
 
     QVideoFrameFormat m_format;
-    QSGVideoMaterial *m_material;
+    QSGVideoMaterial *m_material = nullptr;
 
     QVideoTextureHelper::SubtitleLayout m_subtitleLayout;
     QQuickTextNode *m_subtitleTextNode = nullptr;

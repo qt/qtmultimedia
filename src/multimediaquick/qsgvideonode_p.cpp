@@ -54,8 +54,6 @@ public:
 
 protected:
     QVideoFrameFormat m_format;
-    float m_planeWidth[3] = {0, 0, 0};
-    QMatrix4x4 m_colorMatrix;
 };
 
 class QSGVideoMaterial : public QSGMaterial
@@ -97,8 +95,7 @@ public:
     void updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates);
 
     QVideoFrameFormat m_format;
-    float m_planeWidth[3];
-    float m_opacity;
+    float m_opacity = 1.0f;
 
     bool m_texturesDirty = false;
     QVideoFrame m_currentFrame;
@@ -168,17 +165,13 @@ void QSGVideoMaterialRhiShader::updateSampledImage(RenderState &state, int bindi
 }
 
 QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &format) :
-    m_format(format),
-    m_opacity(1.0)
+    m_format(format)
 {
     setFlag(Blending, false);
 }
 
 QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format)
     : m_parent(parent),
-      m_orientation(-1),
-      m_frameOrientation(-1),
-      m_frameMirrored(false),
       m_format(format)
 {
     setFlag(QSGNode::OwnsMaterial);
