@@ -21,6 +21,7 @@ public:
           mediaStatusChanged(&player, &QMediaPlayer::mediaStatusChanged),
           positionChanged(&player, &QMediaPlayer::positionChanged),
           durationChanged(&player, &QMediaPlayer::durationChanged),
+          playbackRateChanged(&player, &QMediaPlayer::playbackRateChanged),
           volumeChanged(&output, &QAudioOutput::volumeChanged),
           mutedChanged(&output, &QAudioOutput::mutedChanged)
     {
@@ -38,6 +39,9 @@ public:
         mediaStatusChanged.clear();
         positionChanged.clear();
         durationChanged.clear();
+        playbackRateChanged.clear();
+        volumeChanged.clear();
+        mutedChanged.clear();
     }
 
     QMediaPlayer player;
@@ -51,6 +55,7 @@ public:
     QSignalSpy mediaStatusChanged;
     QSignalSpy positionChanged;
     QSignalSpy durationChanged;
+    QSignalSpy playbackRateChanged;
     QSignalSpy volumeChanged;
     QSignalSpy mutedChanged;
 };
