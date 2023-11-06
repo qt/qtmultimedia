@@ -113,6 +113,10 @@ private slots:
 
     void stop_entersStoppedState_whenPlayerWasPaused();
 
+    void playbackRate_returnsOne_byDefault();
+    void setPlaybackRate_changesPlaybackRateAndEmitsSignal_data();
+    void setPlaybackRate_changesPlaybackRateAndEmitsSignal();
+
     void setVolume_changesVolume_whenVolumeIsInRange();
     void setVolume_clampsToRange_whenVolumeIsOutsideRange();
     void setVolume_doesNotChangeMutedState();
@@ -971,6 +975,49 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
     QTRY_VERIFY(!m_fixture->positionChanged.empty());
     QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
     QVERIFY(m_fixture->player.duration() > 0);
+}
+
+void tst_QMediaPlayerBackend::playbackRate_returnsOne_byDefault()
+{
+    QCOMPARE_EQ(m_fixture->player.playbackRate(), static_cast<qreal>(1.0f));
+}
+
+void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackRateAndEmitsSignal_data()
+{
+    QTest::addColumn<float>("initialPlaybackRate");
+    QTest::addColumn<float>("targetPlaybackRate");
+    QTest::addColumn<float>("expectedPlaybackRate");
+    QTest::addColumn<bool>("signalExpected");
+
+    QTest::addRow("Increase") << 1.0f << 2.0f << 2.0f << true;
+    QTest::addRow("Decrease") << 1.0f << 0.5f << 0.5f << true;
+    QTest::addRow("Keep") << 0.5f << 0.5f << 0.5f << false;
+    QTest::addRow("DecreaseBelowZero") << 0.5f << -0.5f << 0.0f << true;
+    QTest::addRow("KeepDecreasingBelowZero") << -0.5f << -0.6f << 0.0f << false;
+
+}
+
+void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackRateAndEmitsSignal()
+{
+    QFETCH(const float, initialPlaybackRate);
+    QFETCH(const float, targetPlaybackRate);
+    QFETCH(const float, expectedPlaybackRate);
+    QFETCH(const bool, signalExpected);
+
+    // Arrange
+    m_fixture->player.setPlaybackRate(initialPlaybackRate);
+    m_fixture->clearSpies();
+
+    // Act
+    m_fixture->player.setPlaybackRate(targetPlaybackRate);
+
+    // Assert
+    if (signalExpected)
+        QCOMPARE_EQ(m_fixture->playbackRateChanged, SignalList({ { expectedPlaybackRate } }));
+    else
+        QVERIFY(m_fixture->playbackRateChanged.empty());
+
+    QCOMPARE_EQ(m_fixture->player.playbackRate(), expectedPlaybackRate);
 }
 
 void tst_QMediaPlayerBackend::setVolume_changesVolume_whenVolumeIsInRange()

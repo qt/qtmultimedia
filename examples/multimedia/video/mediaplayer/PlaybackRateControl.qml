@@ -27,7 +27,7 @@ Item {
             onMoved: { mediaPlayer.setPlaybackRate(value) }
         }
         Text {
-            text: "Rate " + slider.value + "x"
+            text: "Rate " + mediaPlayer.playbackRate + "x"
         }
     }
 }
