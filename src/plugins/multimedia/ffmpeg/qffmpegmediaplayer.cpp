@@ -113,11 +113,17 @@ qreal QFFmpegMediaPlayer::playbackRate() const
 
 void QFFmpegMediaPlayer::setPlaybackRate(qreal rate)
 {
-    if (m_playbackRate == rate)
+    const float effectiveRate = std::max(static_cast<float>(rate), 0.0f);
+
+    if (qFuzzyCompare(m_playbackRate, effectiveRate))
         return;
-    m_playbackRate = rate;
+
+    m_playbackRate = effectiveRate;
+
     if (m_playbackEngine)
-        m_playbackEngine->setPlaybackRate(rate);
+        m_playbackEngine->setPlaybackRate(effectiveRate);
+
+    emit playbackRateChanged(effectiveRate);
 }
 
 QUrl QFFmpegMediaPlayer::media() const

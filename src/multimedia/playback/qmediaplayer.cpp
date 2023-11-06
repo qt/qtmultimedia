@@ -1301,11 +1301,11 @@ QMediaMetaData QMediaPlayer::metaData() const
     \property QMediaPlayer::playbackRate
     \brief the playback rate of the current media.
 
-    This value is a multiplier applied to the media's standard play rate. By
-    default this value is 1.0, indicating that the media is playing at the
-    standard pace. Values higher than 1.0 will increase the rate of play.
-    Values less than zero can be set and indicate the media should rewind at the
-    multiplier of the standard pace.
+    This value is a multiplier applied to the media's standard playback
+    rate. By default this value is 1.0, indicating that the media is
+    playing at the standard speed. Values higher than 1.0 will increase
+    the playback speed, while values between 0.0 and 1.0 results in
+    slower playback. Negative playback rates are not supported.
 
     Not all playback services support change of the playback rate. It is
     framework defined as to the status and quality of audio and video
