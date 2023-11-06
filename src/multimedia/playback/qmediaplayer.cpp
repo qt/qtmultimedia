@@ -97,15 +97,15 @@ QT_BEGIN_NAMESPACE
     \sa AudioOutput, VideoOutput
 */
 
-void QMediaPlayerPrivate::setState(QMediaPlayer::PlaybackState ps)
+void QMediaPlayerPrivate::setState(QMediaPlayer::PlaybackState toState)
 {
     Q_Q(QMediaPlayer);
 
-    if (ps != state) {
-        if (ps == QMediaPlayer::PlayingState || state == QMediaPlayer::PlayingState)
-            emit q->playingChanged(ps == QMediaPlayer::PlayingState);
-        state = ps;
-        emit q->playbackStateChanged(ps);
+    if (toState != state) {
+        const auto fromState = std::exchange(state, toState);
+        if (toState == QMediaPlayer::PlayingState || fromState == QMediaPlayer::PlayingState)
+            emit q->playingChanged(toState == QMediaPlayer::PlayingState);
+        emit q->playbackStateChanged(toState);
     }
 }
 
@@ -1016,6 +1016,12 @@ QMediaMetaData QMediaPlayer::metaData() const
     \qmlsignal QtMultimedia::MediaPlayer::playbackStateChanged()
 
     This signal is emitted when the \l playbackState property is altered.
+*/
+
+/*!
+    \qmlsignal QtMultimedia::MediaPlayer::playingChanged()
+
+    This signal is emitted when the \l playing property changes.
 */
 
 /*!
