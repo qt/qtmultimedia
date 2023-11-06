@@ -12,7 +12,7 @@
 #include <qmatrix4x4.h>
 
 static void initResource() {
-    Q_INIT_RESOURCE(shaders);
+    Q_INIT_RESOURCE(qtmultimedia_shaders);
 }
 
 QT_BEGIN_NAMESPACE

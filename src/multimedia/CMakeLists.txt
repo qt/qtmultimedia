@@ -283,7 +283,7 @@ set(VIDEO_SHADERS
     "shaders/nv12_bt2020_hlg.frag"
 )
 
-qt_internal_add_shaders(Multimedia "shaders"
+qt_internal_add_shaders(Multimedia "qtmultimedia_shaders"
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -297,7 +297,7 @@ qt_internal_add_shaders(Multimedia "shaders"
 
 string(REPLACE ".frag" "_linear.frag.qsb" LINEAR_VIDEO_SHADERS "${VIDEO_SHADERS}")
 
-qt_internal_add_shaders(Multimedia "shaders_linear"
+qt_internal_add_shaders(Multimedia "qtmultimedia_shaders_linear"
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -312,7 +312,7 @@ qt_internal_add_shaders(Multimedia "shaders_linear"
         QMM_OUTPUTSURFACE_LINEAR
 )
 
-qt_internal_add_shaders(Multimedia "shaders_gl_macos"
+qt_internal_add_shaders(Multimedia "qtmultimedia_shaders_gl_macos"
     SILENT
     BATCHABLE
     PRECOMPILE
@@ -328,7 +328,7 @@ qt_internal_add_shaders(Multimedia "shaders_gl_macos"
         "shaders/rectsampler_bgra.frag"
 )
 
-qt_internal_add_shaders(Multimedia "shaders_gl_macos_linear"
+qt_internal_add_shaders(Multimedia "qtmultimedia_shaders_gl_macos_linear"
     SILENT
     BATCHABLE
     PRECOMPILE
