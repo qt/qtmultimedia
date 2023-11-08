@@ -377,7 +377,8 @@ std::optional<Codec> PlaybackEngine::codecForTrack(QPlatformMediaPlayer::TrackTy
     if (!result) {
         qCDebug(qLcPlaybackEngine)
                 << "Create codec for stream:" << streamIndex << "trackType:" << trackType;
-        auto maybeCodec = Codec::create(m_media.avContext()->streams[streamIndex]);
+        auto maybeCodec =
+                Codec::create(m_media.avContext()->streams[streamIndex], m_media.avContext());
 
         if (!maybeCodec) {
             emit errorOccured(QMediaPlayer::FormatError,
@@ -606,8 +607,18 @@ void PlaybackEngine::updateVideoSinkSize(QVideoSink *prevSink)
 
     if (prevSink && prevSink->platformVideoSink())
         platformVideoSink->setNativeSize(prevSink->platformVideoSink()->nativeSize());
-    else if (auto size = metaData().value(QMediaMetaData::Resolution); size.isValid())
-        platformVideoSink->setNativeSize(size.value<QSize>());
+    else {
+        const auto streamIndex = m_media.currentStreamIndex(QPlatformMediaPlayer::VideoStream);
+        if (streamIndex >= 0) {
+            const auto context = m_media.avContext();
+            const auto stream = context->streams[streamIndex];
+            const auto pixelAspectRatio = av_guess_sample_aspect_ratio(context, stream, nullptr);
+            // auto size = metaData().value(QMediaMetaData::Resolution)
+            platformVideoSink->setNativeSize(
+                    qCalculateFrameSize({ stream->codecpar->width, stream->codecpar->height },
+                                        { pixelAspectRatio.num, pixelAspectRatio.den }));
+        }
+    }
 }
 
 qint64 PlaybackEngine::boundPosition(qint64 position) const
