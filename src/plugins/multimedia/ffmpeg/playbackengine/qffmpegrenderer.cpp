@@ -12,7 +12,8 @@ static Q_LOGGING_CATEGORY(qLcRenderer, "qt.multimedia.ffmpeg.renderer");
 
 Renderer::Renderer(const TimeController &tc, const std::chrono::microseconds &seekPosTimeOffset)
     : m_timeController(tc),
-      m_lastPosition(tc.currentPosition()),
+      m_lastFrameEnd(tc.currentPosition()),
+      m_lastPosition(m_lastFrameEnd),
       m_seekPos(tc.currentPosition(-seekPosTimeOffset))
 {
 }
@@ -119,17 +120,24 @@ float Renderer::playbackRate() const
 
 int Renderer::timerInterval() const
 {
-    auto frame = !m_frames.empty() ? m_frames.front() : Frame();
-    if (frame.isValid()) {
-        using namespace std::chrono;
+    if (m_frames.empty())
+        return 0;
 
-        const auto nextTime = m_explicitNextFrameTime
-                ? *m_explicitNextFrameTime
-                : m_timeController.timeFromPosition(frame.absolutePts());
+    auto calculateInterval = [](const TimePoint &nextTime) {
+        using namespace std::chrono;
 
         const auto delay = nextTime - Clock::now();
         return std::max(0, static_cast<int>(duration_cast<milliseconds>(delay).count()));
-    }
+    };
+
+    if (m_explicitNextFrameTime)
+        return calculateInterval(*m_explicitNextFrameTime);
+
+    if (m_frames.front().isValid())
+        return calculateInterval(m_timeController.timeFromPosition(m_frames.front().absolutePts()));
+
+    if (m_lastFrameEnd > 0)
+        return calculateInterval(m_timeController.timeFromPosition(m_lastFrameEnd));
 
     return 0;
 }
@@ -163,7 +171,10 @@ void Renderer::doNextStep()
 
         if (frame.isValid()) {
             m_lastPosition.storeRelease(std::max(frame.absolutePts(), lastPosition()));
-            m_seekPos.storeRelaxed(frame.absoluteEnd());
+
+            // TODO: get rid of m_lastFrameEnd or m_seekPos
+            m_lastFrameEnd = frame.absoluteEnd();
+            m_seekPos.storeRelaxed(m_lastFrameEnd);
 
             const auto loopIndex = frame.loopOffset().index;
             if (m_loopIndex < loopIndex) {
@@ -172,6 +183,8 @@ void Renderer::doNextStep()
             }
 
             emit frameProcessed(frame);
+        } else {
+            m_lastPosition.storeRelease(std::max(m_lastFrameEnd, lastPosition()));
         }
     } else {
         m_explicitNextFrameTime = Clock::now() + result.recheckInterval;

@@ -110,6 +110,7 @@ private slots:
     void play_doesNotEnterMediaLoadingState_whenResumingPlayingAfterStop();
     void playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl();
     void play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream();
+    void play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
 
@@ -176,6 +177,7 @@ private:
     QUrl m_localCompressedSoundFile;
     QUrl m_localFileWithMetadata;
     QUrl m_localVideoFile3ColorsWithSound;
+    QUrl m_oneRedFrameVideo;
 
     const std::array<QRgb, 3> m_video3Colors = { { 0xFF0000, 0x00FF00, 0x0000FF } };
     QString m_vlcCommand;
@@ -287,7 +289,11 @@ void tst_QMediaPlayerBackend::initTestCase()
     mediaCandidates << "qrc:/testdata/nokia-tune.mp3";
     mediaCandidates << "qrc:/testdata/nokia-tune.mkv";
     m_localCompressedSoundFile = MediaFileSelector::selectMediaFile(mediaCandidates);
+
     m_localFileWithMetadata = MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/nokia-tune.mp3");
+
+    m_oneRedFrameVideo =
+            MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/one_red_frame.mp4");
 
     detectVlcCommand();
 }
@@ -945,6 +951,30 @@ void tst_QMediaPlayerBackend::
 
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(errorSpy.size(), 0);
+}
+
+void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames()
+{
+    m_fixture->player.setSource(m_oneRedFrameVideo);
+    m_fixture->player.play();
+
+    auto firstFrame = m_fixture->surface.waitForFrame();
+    QVERIFY(firstFrame.isValid());
+
+    QElapsedTimer timer;
+    timer.start();
+
+    auto endFrame = m_fixture->surface.waitForFrame();
+    QVERIFY(!endFrame.isValid());
+
+    const auto elapsed = timer.elapsed();
+
+    // 1000 is expected
+    QCOMPARE_GT(elapsed, 900);
+    QCOMPARE_LT(elapsed, 1400);
+
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(m_fixture->surface.m_totalFrames, 2);
 }
 
 void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()

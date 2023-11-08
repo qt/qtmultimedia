@@ -104,8 +104,10 @@ private:
 
 private:
     TimeController m_timeController;
+    qint64 m_lastFrameEnd = 0;
     QAtomicInteger<qint64> m_lastPosition = 0;
     QAtomicInteger<qint64> m_seekPos = 0;
+
     int m_loopIndex = 0;
     QQueue<Frame> m_frames;
 
