@@ -297,7 +297,9 @@ void QAndroidAudioSink::bufferAvailable()
     }
 
     m_nextBuffer = (m_nextBuffer + 1) % BufferCount;
-    QMetaObject::invokeMethod(this, "onBytesProcessed", Qt::QueuedConnection, Q_ARG(qint64, readSize));
+    if (!m_endSound) {
+        QMetaObject::invokeMethod(this, "onBytesProcessed", Qt::QueuedConnection, Q_ARG(qint64, readSize));
+    }
 }
 
 void QAndroidAudioSink::playCallback(SLPlayItf player, void *ctx, SLuint32 event)
