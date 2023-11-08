@@ -1305,6 +1305,7 @@ void tst_QMediaPlayerBackend::play_resumesPlaying_whenValidMediaIsProvidedAfterI
     m_fixture->player.setSource(QUrl("Some not existing media"));
     QTRY_COMPARE(m_fixture->player.error(), QMediaPlayer::ResourceError);
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
+    m_fixture->surface.m_frameList.clear();
 
     // Act
     m_fixture->player.play();
