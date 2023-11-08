@@ -10,10 +10,12 @@ static Q_LOGGING_CATEGORY(qLcPlaybackEngineCodec, "qt.multimedia.playbackengine.
 
 namespace QFFmpeg {
 
-Codec::Data::Data(AVCodecContextUPtr context, AVStream *stream,
+Codec::Data::Data(AVCodecContextUPtr context, AVStream *stream, AVFormatContext *formatContext,
                   std::unique_ptr<QFFmpeg::HWAccel> hwAccel)
     : context(std::move(context)), stream(stream), hwAccel(std::move(hwAccel))
 {
+    if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+        pixelAspectRatio = av_guess_sample_aspect_ratio(formatContext, stream, nullptr);
 }
 
 Codec::Data::~Data()
@@ -23,7 +25,7 @@ Codec::Data::~Data()
     avcodec_close(context.get());
 }
 
-QMaybe<Codec> Codec::create(AVStream *stream)
+QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext)
 {
     if (!stream)
         return { "Invalid stream" };
@@ -71,7 +73,14 @@ QMaybe<Codec> Codec::create(AVStream *stream)
     if (ret < 0)
         return QString("Failed to open FFmpeg codec context " + err2str(ret));
 
-    return Codec(new Data(std::move(context), stream, std::move(hwAccel)));
+    return Codec(new Data(std::move(context), stream, formatContext, std::move(hwAccel)));
+}
+
+AVRational Codec::pixelAspectRatio(AVFrame *frame) const
+{
+    // does the same as av_guess_sample_aspect_ratio, but more efficient
+    return d->pixelAspectRatio.num && d->pixelAspectRatio.den ? d->pixelAspectRatio
+                                                              : frame->sample_aspect_ratio;
 }
 
 QT_END_NAMESPACE

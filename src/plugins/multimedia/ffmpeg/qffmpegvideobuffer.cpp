@@ -3,6 +3,7 @@
 
 #include "qffmpegvideobuffer_p.h"
 #include "private/qvideotexturehelper_p.h"
+#include "private/qmultimediautils_p.h"
 #include "qffmpeghwaccel_p.h"
 
 extern "C" {
@@ -22,8 +23,11 @@ static bool isFrameFlipped(const AVFrame& frame) {
 
 QT_BEGIN_NAMESPACE
 
-QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle), frame(frame.get())
+QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame, AVRational pixelAspectRatio)
+    : QAbstractVideoBuffer(QVideoFrame::NoHandle),
+      frame(frame.get()),
+      m_size(qCalculateFrameSize({ frame->width, frame->height },
+                                 { pixelAspectRatio.num, pixelAspectRatio.den }))
 {
     if (frame->hw_frames_ctx) {
         hwFrame = std::move(frame);
@@ -45,16 +49,18 @@ void QFFmpegVideoBuffer::convertSWFrame()
 
     const auto actualAVPixelFormat = AVPixelFormat(swFrame->format);
     const auto targetAVPixelFormat = toAVPixelFormat(m_pixelFormat);
-    if (actualAVPixelFormat != targetAVPixelFormat || isFrameFlipped(*swFrame)) {
+
+    if (actualAVPixelFormat != targetAVPixelFormat || isFrameFlipped(*swFrame)
+        || m_size != QSize(swFrame->width, swFrame->height)) {
         Q_ASSERT(toQtPixelFormat(targetAVPixelFormat) == m_pixelFormat);
         // convert the format into something we can handle
         SwsContext *c = sws_getContext(swFrame->width, swFrame->height, actualAVPixelFormat,
-                                       swFrame->width, swFrame->height, targetAVPixelFormat,
+                                       m_size.width(), m_size.height(), targetAVPixelFormat,
                                        SWS_BICUBIC, nullptr, nullptr, nullptr);
 
         auto newFrame = QFFmpeg::makeAVFrame();
-        newFrame->width = swFrame->width;
-        newFrame->height = swFrame->height;
+        newFrame->width = m_size.width();
+        newFrame->height = m_size.height();
         newFrame->format = targetAVPixelFormat;
         av_frame_get_buffer(newFrame.get(), 0);
 
@@ -230,7 +236,7 @@ QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::pixelFormat() const
 
 QSize QFFmpegVideoBuffer::size() const
 {
-    return QSize(frame->width, frame->height);
+    return m_size;
 }
 
 QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::toQtPixelFormat(AVPixelFormat avPixelFormat, bool *needsConversion)
