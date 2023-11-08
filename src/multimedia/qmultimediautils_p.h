@@ -18,6 +18,7 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/private/qglobal_p.h>
 #include <qstring.h>
+#include <qsize.h>
 #include <utility>
 #include <optional>
 
@@ -93,6 +94,8 @@ struct Fraction {
 };
 
 Q_MULTIMEDIA_EXPORT Fraction qRealToFraction(qreal value);
+
+Q_MULTIMEDIA_EXPORT QSize qCalculateFrameSize(QSize resolution, Fraction pixelAspectRatio);
 
 QT_END_NAMESPACE
 

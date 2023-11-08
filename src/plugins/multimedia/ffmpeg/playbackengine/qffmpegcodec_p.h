@@ -29,17 +29,20 @@ class Codec
 {
     struct Data
     {
-        Data(AVCodecContextUPtr context, AVStream *stream,
+        Data(AVCodecContextUPtr context, AVStream *stream, AVFormatContext *formatContext,
              std::unique_ptr<QFFmpeg::HWAccel> hwAccel);
         ~Data();
         QAtomicInt ref;
         AVCodecContextUPtr context;
         AVStream *stream = nullptr;
+        AVRational pixelAspectRatio = { 0, 1 };
         std::unique_ptr<QFFmpeg::HWAccel> hwAccel;
     };
 
 public:
-    static QMaybe<Codec> create(AVStream *);
+    static QMaybe<Codec> create(AVStream *stream, AVFormatContext *formatContext);
+
+    AVRational pixelAspectRatio(AVFrame *frame) const;
 
     AVCodecContext *context() const { return d->context.get(); }
     AVStream *stream() const { return d->stream; }

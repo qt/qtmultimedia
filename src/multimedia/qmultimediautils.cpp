@@ -37,4 +37,15 @@ Fraction qRealToFraction(qreal value)
         return { n1 + integral * d1, d1 };
 }
 
+QSize qCalculateFrameSize(QSize resolution, Fraction par)
+{
+    if (par.numerator == par.denominator || par.numerator < 1 || par.denominator < 1)
+        return resolution;
+
+    if (par.numerator > par.denominator)
+        return { resolution.width() * par.numerator / par.denominator, resolution.height() };
+
+    return { resolution.width(), resolution.height() * par.denominator / par.numerator };
+}
+
 QT_END_NAMESPACE
