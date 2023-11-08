@@ -613,6 +613,8 @@ void tst_QCameraBackend::testVideoRecording()
 
     QMediaPlayer player;
     player.setSource(fileName);
+
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(320, 240));
     QCOMPARE_GT(player.duration(), 350);
     QCOMPARE_LT(player.duration(), 550);
