@@ -391,11 +391,10 @@ static QMatrix4x4 colorMatrix(const QVideoFrameFormat &format)
     default:
     case QVideoFrameFormat::ColorSpace_BT709:
         if (format.colorRange() == QVideoFrameFormat::ColorRange_Full)
-            return QMatrix4x4(
-                1.f,  0.000f,  1.5748f, -0.8774f,
-                1.f, -0.187324f, -0.468124f,  0.327724f,
-                1.f,  1.8556f,  0.000f, -0.9278f,
-                0.0f,    0.000f,  0.000f,  1.0000f);
+            return QMatrix4x4(1.0f,  0.0f,       1.5748f,   -0.790488f,
+                              1.0f, -0.187324f, -0.468124f,  0.329010f,
+                              1.0f,  1.855600f,  0.0f,      -0.931439f,
+                              0.0f,  0.0f,       0.0f,       1.0f);
         return QMatrix4x4(
             1.1644f,  0.000f,  1.7928f, -0.9731f,
             1.1644f, -0.2132f, -0.5329f,  0.3015f,
