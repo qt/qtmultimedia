@@ -214,15 +214,15 @@ qint64 QAudioBuffer::startTime() const noexcept
 }
 
 /*!
+    \fn template <typename T> const T* QAudioBuffer::constData() const
+
     Returns a pointer to this buffer's data.  You can only read it.
 
     This method is preferred over the const version of \l data() to
     prevent unnecessary copying.
 
-    There is also a templatized version of this constData() function that
-    allows you to retrieve a specific type of read-only pointer to
-    the data.  Note that there is no checking done on the format of
-    the audio buffer - this is simply a convenience function.
+    Note that there is no checking done on the format of the audio
+    buffer - this is simply a convenience function.
 
     \code
     // With a 16bit sample buffer:
@@ -230,6 +230,7 @@ qint64 QAudioBuffer::startTime() const noexcept
     \endcode
 
 */
+
 const void *QAudioBuffer::constData() const noexcept
 {
     if (!d)
@@ -238,14 +239,14 @@ const void *QAudioBuffer::constData() const noexcept
 }
 
 /*!
+    \fn template <typename T> const T* QAudioBuffer::data() const
+
     Returns a pointer to this buffer's data.  You can only read it.
 
     You should use the \l constData() function rather than this
     to prevent accidental deep copying.
 
-    There is also a templatized version of this data() function that
-    allows you to retrieve a specific type of read-only pointer to
-    the data.  Note that there is no checking done on the format of
+    Note that there is no checking done on the format of
     the audio buffer - this is simply a convenience function.
 
     \code
@@ -253,6 +254,7 @@ const void *QAudioBuffer::constData() const noexcept
     const quint16 *data = buffer->data<quint16>();
     \endcode
 */
+
 const void *QAudioBuffer::data() const noexcept
 {
     if (!d)
@@ -260,28 +262,24 @@ const void *QAudioBuffer::data() const noexcept
     return d->data.constData();
 }
 
-/*
-    Template data/constData functions caused override problems with qdoc,
-    so moved their docs into the non template versions.
-*/
-
 /*!
+    \fn template <typename T> T* QAudioBuffer::data()
+
     Returns a pointer to this buffer's data.  You can modify the
     data through the returned pointer.
 
     Since QAudioBuffer objects are explicitly shared, you should usually
     call detach() before modifying the data through this function.
 
-    There is also a templatized version of data() allows you to retrieve
-    a specific type of pointer to the data.  Note that there is no
-    checking done on the format of the audio buffer - this is
-    simply a convenience function.
+    Note that there is no checking done on the format of the audio
+    buffer - this is simply a convenience function.
 
     \code
     // With a 16bit sample buffer:
     quint16 *data = buffer->data<quint16>(); // May cause deep copy
     \endcode
 */
+
 void *QAudioBuffer::data()
 {
     if (!d)
