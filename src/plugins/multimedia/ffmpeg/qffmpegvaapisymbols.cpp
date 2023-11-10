@@ -37,7 +37,10 @@ static Libs loadLibs()
     return {};
 }
 
-constexpr size_t symbolsCount = 39
+constexpr size_t symbolsCount = 38
+#if VA_CHECK_VERSION(1, 9, 0)
+        + 1
+#endif
 #ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
         + 1
 #endif
@@ -79,7 +82,9 @@ DEFINE_FUNC(vaEndPicture, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaCreateBuffer, 7, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaMapBuffer, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaUnmapBuffer, 2, VA_STATUS_ERROR_OPERATION_FAILED);
+#if VA_CHECK_VERSION(1, 9, 0)
 DEFINE_FUNC(vaSyncBuffer, 3, VA_STATUS_ERROR_OPERATION_FAILED);
+#endif
 DEFINE_FUNC(vaDestroyBuffer, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 
 DEFINE_FUNC(vaCreateSurfaces, 8, VA_STATUS_ERROR_OPERATION_FAILED);
