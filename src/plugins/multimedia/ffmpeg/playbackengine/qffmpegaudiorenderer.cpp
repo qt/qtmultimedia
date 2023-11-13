@@ -28,6 +28,32 @@ constexpr auto SampleCompenationOffset = AudioSinkBufferTime / 10;
 constexpr qreal CompensationAngleFactor = 0.01;
 
 constexpr auto DurationBias = 2ms; // avoids extra timer events
+
+qreal sampleRateFactor() {
+    // Test purposes:
+    //
+    // The env var describes a factor for the sample rate of
+    // audio data that we feed to the audio sink.
+    //
+    // In some cases  audio sink might consume data slightly slower or faster than expected;
+    // even though the synchronization in the audio renderer is supposed to handle it,
+    // it makes sense to experiment with QT_MEDIA_PLAYER_AUDIO_SAMPLE_RATE_FACTOR != 1.
+    //
+    // Set QT_MEDIA_PLAYER_AUDIO_SAMPLE_RATE_FACTOR > 1 (e.g. 1.01 - 1.1) to test high buffer loading
+    //     or try compensating too fast data consumption by the audio sink.
+    // Set QT_MEDIA_PLAYER_AUDIO_SAMPLE_RATE_FACTOR < 1 to test low buffer loading
+    //     or try compensating too slow data consumption by the audio sink.
+
+
+    static const qreal result = []() {
+        const auto sampleRateFactorStr = qEnvironmentVariable("QT_MEDIA_PLAYER_AUDIO_SAMPLE_RATE_FACTOR");
+        bool ok = false;
+        const auto result = sampleRateFactorStr.toDouble(&ok);
+        return ok ? result : 1.;
+    }();
+
+    return result;
+}
 } // namespace
 
 AudioRenderer::AudioRenderer(const TimeController &tc, QAudioOutput *output)
@@ -131,14 +157,9 @@ void AudioRenderer::initResempler(const Codec *codec)
     #endif
     */
 
-    // Test purposes:
-    // Set PlaybackRateDeviation > 1 (e.g. 1.01) to test high buffer loading
-    // or PlaybackRateDeviation < 1 to test low buffer loading.
-    constexpr qreal PlaybackRateDeviation = 1.;
-
     auto resamplerFormat = m_format;
     resamplerFormat.setSampleRate(
-            qRound(m_format.sampleRate() / playbackRate() * PlaybackRateDeviation));
+            qRound(m_format.sampleRate() / playbackRate() * sampleRateFactor()));
     m_resampler = std::make_unique<Resampler>(codec, resamplerFormat);
 }
 
