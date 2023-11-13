@@ -1,0 +1,22 @@
+// Copyright (C) 2023 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+/*!
+    //! [content]
+    \section1 Screen Capture Limitations
+    On Qt 6.5.2 and 6.5.3, the following limitations apply to using \1ScreenCapture:
+    \list
+        \li It is only supported with the FFmpeg backend.
+        \li It is supported on all desktop platforms, except Linux with Wayland
+            compositor, due to Wayland protocol restrictions and limitations.
+        \li It is not supported on mobile operating systems, except on Android.
+            There, you might run into performance issues as the class is currently
+            implemented via QScreen::grabWindow, which is not optimal for the use case.
+        \li On Linux, it works with X11, but it has not been tested on embedded.
+        \li In most cases, we set a screen capture frame rate that equals the screen
+            refresh rate, except on Windows, where the rate might be flexible.
+            Such a frame rate (75/120 FPS) might cause performance issues on weak
+            CPUs if the captured screen is of 4K resolution.
+    \endlist
+    //! [content]
+*/
