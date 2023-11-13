@@ -35,6 +35,10 @@ public:
     file.
 
     \snippet multimedia-snippets/media.cpp Media recorder
+
+    \include qscreencapture-limitations.qdocinc {content} {Q}
+
+    \sa QMediaCaptureSession
 */
 /*!
     \qmltype ScreenCapture
@@ -65,7 +69,9 @@ public:
     }
 \endqml
 
-    \sa ScreenCapture, CaptureSession
+    \include qscreencapture-limitations.qdocinc {content} {}
+
+    \sa CaptureSession
 */
 
 QScreenCapture::QScreenCapture(QObject *parent)
