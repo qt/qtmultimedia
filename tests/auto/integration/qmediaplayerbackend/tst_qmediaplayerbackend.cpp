@@ -1966,7 +1966,7 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
 
     player.setPlaybackRate(0.5);
 
-    waitUntil(1900);
+    waitUntil(1800);
     checkColorAndPosition(1, "Check 0.5 playback rate");
 
     player.stop();
