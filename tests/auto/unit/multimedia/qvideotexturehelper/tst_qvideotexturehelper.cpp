@@ -16,22 +16,24 @@ struct ColorSpaceCoeff
     float a;
     float b;
     float c;
-    float d;
-    float e;
 };
 
 // Coefficients used in ITU-R BT.709-6 Table 3 - Signal format
 constexpr ColorSpaceCoeff BT709Coefficients = {
-    0.2126f, 0.7152f, 0.0722f, // E_g' = 0.2126 * E_R' + 0.7152 * E_G' + 0.0722 * E_B'
-    1.8556f,                   // E_CB' = (E_B' - E_g') / 1.8556
-    1.5748f,                   // E_CR' = (E_R' - E_g') / 1.5748
+    0.2126f, 0.7152f, 0.0722f  // E_g' = 0.2126 * E_R' + 0.7152 * E_G' + 0.0722 * E_B'
+                               //
+                               // Note that the other coefficients can be derived from a and c
+                               // to re-normalize the values, see ITU-R BT.601-7, section 2.5.2
+                               //
+                               // E_CB' = (E_B' - E_g') / 1.8556 -> 1.8556 == (1-0.0722) * 2
+                               // E_CR' = (E_R' - E_g') / 1.5748 -> 1.5748 == (1-0.2126) * 2
 };
 
 // Coefficients used in ITU-R BT.2020-2 Table 4 - Signal format
 constexpr ColorSpaceCoeff BT2020Coefficients = {
-    0.2627f, 0.6780f, 0.0593f, // Y_c' = (0.2627 R + 0.6780 G + 0.05938 B)'
-    1.8814f,                   // C_B' = (B' - Y') / 1.8814
-    1.4746f                    // C_R' = (R' - Y') / 1.4746
+    0.2627f, 0.6780f, 0.0593f  // Y_c' = (0.2627 R + 0.6780 G + 0.05938 B)'
+                               // C_B' = (B' - Y') / 1.8814 -> 1.8814 == 2*(1-0.0593)
+                               // C_R' = (R' - Y') / 1.4746 -> 1.4746 == 2*(1-0.2627)
 };
 
 struct ColorSpaceEntry
@@ -105,7 +107,12 @@ QMatrix4x4 yuv2rgb(QVideoFrameFormat::ColorSpace colorSpace, QVideoFrameFormat::
         normalizeYUV.translate(0.0f, uvOffset, uvOffset);
     }
 
-    const auto [a, b, c, d, e] = getColorSpaceCoef(colorSpace, range);
+    const auto [a, b, c] = getColorSpaceCoef(colorSpace, range);
+
+    // Re-normalization coefficients that restores the color difference
+    // signals to (-0.5..0.5)
+    const auto d = 2 * (1.0f - c);
+    const auto e = 2 * (1.0f - a);
 
     // Color matrix from ITU-R BT.709-6 Table 3 - Signal Format
     // Same as ITU-R BT.2020-2 Table 4 - Signal format
