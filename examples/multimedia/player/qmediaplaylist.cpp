@@ -48,7 +48,7 @@ int QMediaPlaylistPrivate::nextPosition(int steps) const
         return currentPos;
     case QMediaPlaylist::Sequential:
         if (next >= playlist.size())
-            next = -1;
+            next = 0;
         break;
     case QMediaPlaylist::Loop:
         next %= playlist.count();
@@ -75,7 +75,7 @@ int QMediaPlaylistPrivate::prevPosition(int steps) const
         return currentPos;
     case QMediaPlaylist::Sequential:
         if (next < 0)
-            next = -1;
+            next = playlist.size() - 1;
         break;
     case QMediaPlaylist::Loop:
         next %= playlist.size();
