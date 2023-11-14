@@ -40,6 +40,9 @@ PlayerControls::PlayerControls(QWidget *parent) : QWidget(parent)
 
     m_volumeSlider = new QSlider(Qt::Horizontal, this);
     m_volumeSlider->setRange(0, 100);
+    QSizePolicy sp = m_volumeSlider->sizePolicy();
+    sp.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
+    m_volumeSlider->setSizePolicy(sp);
 
     connect(m_volumeSlider, &QSlider::valueChanged, this,
             &PlayerControls::onVolumeSliderValueChanged);
