@@ -9,8 +9,8 @@ QT_BEGIN_NAMESPACE
 // 4 sec for buffering. TODO: maybe move to env var customization
 static constexpr qint64 MaxBufferingTimeUs = 4'000'000;
 
-// Currently, consider only time. TODO: maybe move to env var customization
-static constexpr qint64 MaxBufferingSize = std::numeric_limits<qint64>::max();
+// around 4 sec of hdr video
+static constexpr qint64 MaxBufferingSize = 32 * 1024 * 1024;
 
 namespace QFFmpeg {
 
@@ -23,6 +23,11 @@ static qint64 streamTimeToUs(const AVStream *stream, qint64 time)
     const auto res = mul(time * 1000000, stream->time_base);
     return res ? *res : time;
 }
+
+static auto isStreamLimitReached = [](const auto &streamIndexToData) {
+    return streamIndexToData.second.bufferingTime >= MaxBufferingTimeUs
+            || streamIndexToData.second.bufferingSize >= MaxBufferingSize;
+};
 
 Demuxer::Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffset,
                  const StreamIndexes &streamIndexes, int loops)
@@ -55,6 +60,10 @@ void Demuxer::doNextStep()
         const auto loops = m_loops.loadAcquire();
         if (loops >= 0 && m_posWithOffset.offset.index >= loops) {
             qCDebug(qLcDemuxer) << "finish demuxing";
+
+            if (!std::exchange(m_buffered, true))
+                emit packetsBuffered();
+
             setAtEnd(true);
         } else {
             m_seeked = false;
@@ -86,6 +95,11 @@ void Demuxer::doNextStep()
 
         it->second.bufferingTime += streamTimeToUs(stream, avPacket.duration);
         it->second.bufferingSize += avPacket.size;
+
+        if (!m_buffered && isStreamLimitReached(*it)) {
+            m_buffered = true;
+            emit packetsBuffered();
+        }
 
         if (!m_firstPacketFound) {
             m_firstPacketFound = true;
@@ -125,15 +139,8 @@ void Demuxer::onPacketProcessed(Packet packet)
 
 bool Demuxer::canDoNextStep() const
 {
-    if (!PlaybackEngineObject::canDoNextStep() || isAtEnd() || m_streams.empty())
-        return false;
-
-    auto checkBufferingTime = [](const auto &streamIndexToData) {
-        return streamIndexToData.second.bufferingTime < MaxBufferingTimeUs &&
-               streamIndexToData.second.bufferingSize < MaxBufferingSize;
-    };
-
-    return std::all_of(m_streams.begin(), m_streams.end(), checkBufferingTime);
+    return PlaybackEngineObject::canDoNextStep() && !isAtEnd() && !m_streams.empty()
+            && std::none_of(m_streams.begin(), m_streams.end(), isStreamLimitReached);
 }
 
 void Demuxer::ensureSeeked()

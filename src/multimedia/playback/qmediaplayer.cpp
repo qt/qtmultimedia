@@ -1231,7 +1231,7 @@ QMediaMetaData QMediaPlayer::metaData() const
 
     Playback can start or resume only when the buffer is entirely filled.
     When the buffer is filled, \c MediaPlayer.Buffered is true.
-    When buffer progress is between \c 0.0 and \c 0.1, \c MediaPlayer.Buffering
+    When buffer progress is between \c 0.0 and \c 1.0, \c MediaPlayer.Buffering
     is set to \c{true}.
 
     A value lower than \c 1.0 implies that the property \c MediaPlayer.StalledMedia

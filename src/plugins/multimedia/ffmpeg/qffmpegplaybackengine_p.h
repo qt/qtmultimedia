@@ -120,6 +120,7 @@ signals:
     void endOfStream();
     void errorOccured(int, const QString &);
     void loopChanged();
+    void buffered();
 
 protected: // objects managing
     struct ObjectDeleter

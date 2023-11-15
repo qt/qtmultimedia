@@ -412,6 +412,8 @@ void PlaybackEngine::createDemuxer()
     m_demuxer = createPlaybackEngineObject<Demuxer>(m_media.avContext(), positionWithOffset,
                                                     streamIndexes, m_loops);
 
+    connect(m_demuxer.get(), &Demuxer::packetsBuffered, this, &PlaybackEngine::buffered);
+
     forEachExistingObject<StreamDecoder>([&](auto &stream) {
         connect(m_demuxer.get(), Demuxer::signalByTrackType(stream->trackType()), stream.get(),
                 &StreamDecoder::decode);

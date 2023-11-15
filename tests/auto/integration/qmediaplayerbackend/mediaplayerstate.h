@@ -108,7 +108,7 @@ struct MediaPlayerState
         state.position = 0;
         state.hasAudio = false;
         state.hasVideo = false;
-        state.bufferProgress = 1.0f;
+        state.bufferProgress = 0.0f;
         state.bufferedTimeRange = QMediaTimeRange{};
         state.isSeekable = false;
         state.playbackRate = static_cast<qreal>(1);

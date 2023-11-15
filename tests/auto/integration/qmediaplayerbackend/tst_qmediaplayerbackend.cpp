@@ -691,6 +691,7 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
     QTRY_COMPARE(m_fixture->mediaStatusChanged,
                  SignalList({ { QMediaPlayer::LoadedMedia },
+                              { QMediaPlayer::BufferingMedia },
                               { QMediaPlayer::BufferedMedia },
                               { QMediaPlayer::LoadedMedia },
                               { QMediaPlayer::LoadingMedia },
@@ -897,8 +898,8 @@ void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFile
     QTRY_COMPARE(m_fixture->mediaStatusChanged,
                  SignalList({ { QMediaPlayer::LoadingMedia },
                               { QMediaPlayer::LoadedMedia },
+                              { QMediaPlayer::BufferingMedia },
                               { QMediaPlayer::BufferedMedia } }));
-
 }
 
 void tst_QMediaPlayerBackend::play_startsPlaybackAndChangesPosition_whenValidFileIsLoaded()
@@ -931,11 +932,11 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
 
     // Assert
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferingMedia);
     QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
 
     // Note: Should not go through Loading again when play -> stop -> play
-    QCOMPARE_EQ(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::BufferedMedia } }));
+    QCOMPARE_EQ(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::BufferingMedia } }));
 }
 
 void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl()
@@ -959,6 +960,7 @@ void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayb
 
     QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
                     SignalList({ { QMediaPlayer::LoadedMedia },
+                                 { QMediaPlayer::BufferingMedia },
                                  { QMediaPlayer::BufferedMedia },
                                  { QMediaPlayer::LoadedMedia },
                                  { QMediaPlayer::NoMedia } }));
@@ -1562,7 +1564,6 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
 
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
     QTRY_VERIFY(player.position() > position);
-    QCOMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
     QTest::qWait(100);
     // Check that it never played from the beginning
@@ -1597,7 +1598,6 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
     player.play();
 
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
     QVERIFY(qAbs(player.position() - position) < qint64(200));
 
     QTest::qWait(500);
@@ -1790,11 +1790,10 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 
     QCOMPARE(spy.size(), 1);
     QCOMPARE(spy.at(0).size(), 1);
-    QCOMPARE(spy.at(0).at(0).value<QMediaPlayer::PlaybackState>(),
-             QMediaPlayer::PlaybackState::StoppedState);
+    QCOMPARE(spy.at(0).at(0).value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
 
-    QCOMPARE(player.playbackState(), QMediaPlayer::PlaybackState::StoppedState);
-    QCOMPARE(player.mediaStatus(), QMediaPlayer::MediaStatus::EndOfMedia);
+    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 }
 
 void tst_QMediaPlayerBackend::multipleSeekStressTest()
@@ -2332,38 +2331,45 @@ void tst_QMediaPlayerBackend::infiniteLoops()
               "investigated: QTBUG-111744");
 #endif
 
-    TestVideoSink surface(false);
-    QMediaPlayer player;
+    m_fixture->surface.setStoreFrames(false);
 
-    player.setVideoOutput(&surface);
-
-    QCOMPARE(player.loops(), 1);
-    player.setLoops(QMediaPlayer::Infinite);
-    QCOMPARE(player.loops(), QMediaPlayer::Infinite);
+    m_fixture->player.setLoops(QMediaPlayer::Infinite);
+    QCOMPARE(m_fixture->player.loops(), QMediaPlayer::Infinite);
 
     // select some small file
-    player.setSource(m_localVideoFile2);
-    player.setPlaybackRate(20);
+    m_fixture->player.setSource(m_localVideoFile2);
+    m_fixture->player.setPlaybackRate(20);
 
-    player.play();
-    surface.waitForFrame();
+    m_fixture->player.play();
+    m_fixture->surface.waitForFrame();
 
     for (int i = 0; i < 2; ++i) {
-        QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
+        m_fixture->positionChanged.clear();
 
         QTest::qWait(
-                std::max(static_cast<int>(player.duration() / player.playbackRate() * 4),
+                std::max(static_cast<int>(m_fixture->player.duration()
+                                          / m_fixture->player.playbackRate() * 4),
                          300 /*ensure some minimum waiting time to reduce threading flakiness*/));
-        QCOMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
-        QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+        QVERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferingMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia);
+        QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
 
-        const auto intervals = positionChangingIntervals(positionSpy);
+        const auto intervals = positionChangingIntervals(m_fixture->positionChanged);
         QVERIFY(!intervals.empty());
-        QCOMPARE(intervals.front().second, player.duration());
+        QCOMPARE(intervals.front().second, m_fixture->player.duration());
     }
 
-    player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
-    QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    m_fixture->player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
+    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+
+    QCOMPARE(m_fixture->mediaStatusChanged,
+             SignalList({ { QMediaPlayer::LoadingMedia },
+                          { QMediaPlayer::LoadedMedia },
+                          { QMediaPlayer::BufferingMedia },
+                          { QMediaPlayer::BufferedMedia },
+                          { QMediaPlayer::LoadedMedia } }));
 }
 
 void tst_QMediaPlayerBackend::seekOnLoops()
@@ -2609,19 +2615,16 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
 
 void tst_QMediaPlayerBackend::nonAsciiFileName()
 {
-    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/test.wav", "äöüØøÆ中文.XXXXXX");
+    auto temporaryFile =
+            copyResourceToTemporaryFile(":/testdata/test.wav", "äöüØøÆ中文.XXXXXX.wav");
     QVERIFY(temporaryFile);
 
-    QMediaPlayer player;
+    m_fixture->player.setSource(temporaryFile->fileName());
+    m_fixture->player.play();
 
-    QSignalSpy errorOccurredSpy(&player, &QMediaPlayer::errorOccurred);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
-    player.setSource(temporaryFile->fileName());
-    player.play();
-
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::BufferedMedia);
-
-    QCOMPARE(errorOccurredSpy.size(), 0);
+    QCOMPARE(m_fixture->errorOccurred.size(), 0);
 }
 
 void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
