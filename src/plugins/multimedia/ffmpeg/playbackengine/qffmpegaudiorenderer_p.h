@@ -64,6 +64,16 @@ protected:
         Microseconds minSoundDelay = Microseconds(0);
     };
 
+    struct BufferedDataWithOffset
+    {
+        QAudioBuffer buffer;
+        qsizetype offset = 0;
+
+        bool isValid() const { return buffer.isValid(); }
+        qsizetype size() const { return buffer.byteCount() - offset; }
+        const char *data() const { return buffer.constData<char>() + offset; }
+    };
+
     RenderingResult renderInternal(Frame frame) override;
 
     void onPlaybackRateChanged() override;
@@ -98,8 +108,7 @@ private:
     std::unique_ptr<Resampler> m_resampler;
     QAudioFormat m_format;
 
-    QAudioBuffer m_bufferedData;
-    qsizetype m_bufferBytesWritten = 0;
+    BufferedDataWithOffset m_bufferedData;
     QIODevice *m_ioDevice = nullptr;
 
     bool m_deviceChanged = false;
