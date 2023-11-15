@@ -58,16 +58,24 @@ private:
     struct StreamData
     {
         QPlatformMediaPlayer::TrackType trackType = QPlatformMediaPlayer::TrackType::NTrackTypes;
-        qint64 bufferingTime = 0;
-        qint64 bufferingSize = 0;
+        qint64 bufferedDuration = 0;
+        qint64 bufferedSize = 0;
+
+        qint64 maxSentPacketsPos = 0;
+        qint64 maxProcessedPacketPos = 0;
+
+        bool isDataLimitReached = false;
     };
 
+    void updateStreamDataLimitFlag(StreamData &streamData);
+
+private:
     AVFormatContext *m_context = nullptr;
     bool m_seeked = false;
     bool m_firstPacketFound = false;
     std::unordered_map<int, StreamData> m_streams;
     PositionWithOffset m_posWithOffset;
-    qint64 m_endPts = 0;
+    qint64 m_maxPacketsEndPos = 0;
     QAtomicInt m_loops = QMediaPlayer::Once;
     bool m_buffered = false;
 };

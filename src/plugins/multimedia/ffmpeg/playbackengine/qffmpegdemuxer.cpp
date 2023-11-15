@@ -7,10 +7,10 @@
 QT_BEGIN_NAMESPACE
 
 // 4 sec for buffering. TODO: maybe move to env var customization
-static constexpr qint64 MaxBufferingTimeUs = 4'000'000;
+static constexpr qint64 MaxBufferedDurationUs = 4'000'000;
 
 // around 4 sec of hdr video
-static constexpr qint64 MaxBufferingSize = 32 * 1024 * 1024;
+static constexpr qint64 MaxBufferedSize = 32 * 1024 * 1024;
 
 namespace QFFmpeg {
 
@@ -24,10 +24,11 @@ static qint64 streamTimeToUs(const AVStream *stream, qint64 time)
     return res ? *res : time;
 }
 
-static auto isStreamLimitReached = [](const auto &streamIndexToData) {
-    return streamIndexToData.second.bufferingTime >= MaxBufferingTimeUs
-            || streamIndexToData.second.bufferingSize >= MaxBufferingSize;
-};
+static qint64 packetEndPos(const AVStream *stream, const Packet &packet)
+{
+    return packet.loopOffset().pos
+            + streamTimeToUs(stream, packet.avPacket()->pts + packet.avPacket()->duration);
+}
 
 Demuxer::Demuxer(AVFormatContext *context, const PositionWithOffset &posWithOffset,
                  const StreamIndexes &streamIndexes, int loops)
@@ -68,8 +69,8 @@ void Demuxer::doNextStep()
         } else {
             m_seeked = false;
             m_posWithOffset.pos = 0;
-            m_posWithOffset.offset.pos = m_endPts;
-            m_endPts = 0;
+            m_posWithOffset.offset.pos = m_maxPacketsEndPos;
+            m_maxPacketsEndPos = 0;
 
             ensureSeeked();
 
@@ -88,15 +89,20 @@ void Demuxer::doNextStep()
     const auto stream = m_context->streams[streamIndex];
 
     auto it = m_streams.find(streamIndex);
-
     if (it != m_streams.end()) {
-        const auto packetEndPos = streamTimeToUs(stream, avPacket.pts + avPacket.duration);
-        m_endPts = std::max(m_endPts, m_posWithOffset.offset.pos + packetEndPos);
+        auto &streamData = it->second;
 
-        it->second.bufferingTime += streamTimeToUs(stream, avPacket.duration);
-        it->second.bufferingSize += avPacket.size;
+        const auto endPos = packetEndPos(stream, packet);
+        m_maxPacketsEndPos = qMax(m_maxPacketsEndPos, endPos);
 
-        if (!m_buffered && isStreamLimitReached(*it)) {
+        // Increase buffered metrics as the packet has been processed.
+
+        streamData.bufferedDuration += streamTimeToUs(stream, avPacket.duration);
+        streamData.bufferedSize += avPacket.size;
+        streamData.maxSentPacketsPos = qMax(streamData.maxSentPacketsPos, endPos);
+        updateStreamDataLimitFlag(streamData);
+
+        if (!m_buffered && streamData.isDataLimitReached) {
             m_buffered = true;
             emit packetsBuffered();
         }
@@ -124,14 +130,23 @@ void Demuxer::onPacketProcessed(Packet packet)
     auto &avPacket = *packet.avPacket();
 
     const auto streamIndex = avPacket.stream_index;
+    const auto stream = m_context->streams[streamIndex];
     auto it = m_streams.find(streamIndex);
 
     if (it != m_streams.end()) {
-        it->second.bufferingTime -= streamTimeToUs(m_context->streams[streamIndex], avPacket.duration);
-        it->second.bufferingSize -= avPacket.size;
+        auto &streamData = it->second;
 
-        Q_ASSERT(it->second.bufferingTime >= 0);
-        Q_ASSERT(it->second.bufferingSize >= 0);
+        // Decrease buffered metrics as new data (the packet) has been received (buffered)
+
+        streamData.bufferedDuration -= streamTimeToUs(stream, avPacket.duration);
+        streamData.bufferedSize -= avPacket.size;
+        streamData.maxProcessedPacketPos =
+                qMax(streamData.maxProcessedPacketPos, packetEndPos(stream, packet));
+
+        Q_ASSERT(it->second.bufferedDuration >= 0);
+        Q_ASSERT(it->second.bufferedSize >= 0);
+
+        updateStreamDataLimitFlag(streamData);
     }
 
     scheduleNextStep();
@@ -139,8 +154,18 @@ void Demuxer::onPacketProcessed(Packet packet)
 
 bool Demuxer::canDoNextStep() const
 {
+    auto isDataLimitReached = [](const auto &streamIndexToData) {
+        return streamIndexToData.second.isDataLimitReached;
+    };
+
+    // Demuxer waits:
+    //     - if it's paused
+    //     - if the end has been reached
+    //     - if streams are empty (probably, should be handled on the initialization)
+    //     - if at least one of the streams has reached the data limit (duration or size)
+
     return PlaybackEngineObject::canDoNextStep() && !isAtEnd() && !m_streams.empty()
-            && std::none_of(m_streams.begin(), m_streams.end(), isStreamLimitReached);
+            && std::none_of(m_streams.begin(), m_streams.end(), isDataLimitReached);
 }
 
 void Demuxer::ensureSeeked()
@@ -186,6 +211,15 @@ void Demuxer::setLoops(int loopsCount)
 {
     qCDebug(qLcDemuxer) << "setLoops to demuxer" << loopsCount;
     m_loops.storeRelease(loopsCount);
+}
+
+void Demuxer::updateStreamDataLimitFlag(StreamData &streamData)
+{
+    const auto packetsPosDiff = streamData.maxSentPacketsPos - streamData.maxProcessedPacketPos;
+    streamData.isDataLimitReached =
+           streamData.bufferedDuration >= MaxBufferedDurationUs
+        || (streamData.bufferedDuration == 0 && packetsPosDiff >= MaxBufferedDurationUs)
+        || streamData.bufferedSize >= MaxBufferedSize;
 }
 
 } // namespace QFFmpeg
