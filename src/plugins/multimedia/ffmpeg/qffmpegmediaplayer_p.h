@@ -86,6 +86,7 @@ private slots:
         QPlatformMediaPlayer::error(error, errorString);
     }
     void onLoopChanged();
+    void onBuffered();
 
 private:
     QTimer m_positionUpdateTimer;

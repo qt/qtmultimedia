@@ -45,6 +45,7 @@ signals:
     void requestProcessVideoPacket(Packet);
     void requestProcessSubtitlePacket(Packet);
     void firstPacketFound(TimePoint tp, qint64 trackPos);
+    void packetsBuffered();
 
 private:
     bool canDoNextStep() const override;
@@ -68,6 +69,7 @@ private:
     PositionWithOffset m_posWithOffset;
     qint64 m_endPts = 0;
     QAtomicInt m_loops = QMediaPlayer::Once;
+    bool m_buffered = false;
 };
 
 } // namespace QFFmpeg

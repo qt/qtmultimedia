@@ -30,6 +30,8 @@ public:
         return spy.wait() ? spy.at(0).at(0).value<QVideoFrame>() : QVideoFrame{};
     }
 
+    void setStoreFrames(bool storeFrames) { m_storeFrames = storeFrames; }
+
 private Q_SLOTS:
     void addVideoFrame(const QVideoFrame &frame)
     {
