@@ -771,6 +771,10 @@ void tst_QMediaPlayerBackend::
     QCOMPARE(frame.surfaceFormat().frameSize(), expectedVideoSize);
     QCOMPARE(frame.surfaceFormat().viewport(), QRect(QPoint(), expectedVideoSize));
 
+#ifdef Q_OS_ANDROID
+    QSKIP("frame.toImage will return null image because of QTBUG-108446");
+#endif
+
     auto image = frame.toImage();
     QCOMPARE(frame.size(), expectedVideoSize);
 
