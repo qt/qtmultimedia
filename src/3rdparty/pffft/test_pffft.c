@@ -248,8 +248,8 @@ void benchmark_ffts(int N, int cplx) {
 
   int k;
   int max_iter = 5120000/N*4;
-#ifdef __arm__
-  max_iter /= 4;
+#if defined(__arm__) || defined(__arm64__) || defined(__aarch64__)
+  max_iter /= 8;
 #endif
   int iter;
 
