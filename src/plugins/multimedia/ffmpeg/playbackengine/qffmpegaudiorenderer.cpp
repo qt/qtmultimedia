@@ -103,7 +103,7 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
     auto firstFrameFlagGuard = qScopeGuard([&]() { m_firstFrame = false; });
 
     const SynchronizationStamp syncStamp{ m_sink->state(), m_sink->bytesFree(),
-                                          m_bufferBytesWritten, Clock::now() };
+                                          m_bufferedData.offset, Clock::now() };
 
     if (!m_bufferedData.isValid()) {
         if (!frame.isValid()) {
@@ -117,29 +117,24 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
             return { time.count() == 0, time };
         }
 
-        m_bufferedData = m_resampler->resample(frame.avFrame());
-        m_bufferBytesWritten = 0;
+        m_bufferedData = { m_resampler->resample(frame.avFrame()) };
     }
 
     if (m_bufferedData.isValid()) {
         // synchronize after "QIODevice::write" to deliver audio data to the sink ASAP.
         auto syncGuard = qScopeGuard([&]() { updateSynchronization(syncStamp, frame); });
 
-        const auto bytesWritten =
-                m_ioDevice->write(m_bufferedData.constData<char>() + m_bufferBytesWritten,
-                                  m_bufferedData.byteCount() - m_bufferBytesWritten);
+        const auto bytesWritten = m_ioDevice->write(m_bufferedData.data(), m_bufferedData.size());
 
-        m_bufferBytesWritten += bytesWritten;
+        m_bufferedData.offset += bytesWritten;
 
-        if (m_bufferBytesWritten >= m_bufferedData.byteCount()) {
+        if (m_bufferedData.size() <= 0) {
             m_bufferedData = {};
-            m_bufferBytesWritten = 0;
 
             return {};
         }
 
-        const auto remainingDuration =
-                durationForBytes(m_bufferedData.byteCount() - m_bufferBytesWritten);
+        const auto remainingDuration = durationForBytes(m_bufferedData.size());
 
         return { false,
                  std::min(remainingDuration + DurationBias, m_timings.actualBufferDuration / 2) };
@@ -207,7 +202,6 @@ void AudioRenderer::freeOutput()
     m_ioDevice = nullptr;
 
     m_bufferedData = {};
-    m_bufferBytesWritten = 0;
     m_deviceChanged = false;
     m_timings = {};
     m_bufferLoadingInfo = {};
