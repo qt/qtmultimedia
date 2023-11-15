@@ -274,7 +274,7 @@ void pffft_aligned_free(void *p) {
   if (p) free(*((void **) p - 1));
 }
 
-int pffft_simd_size() { return SIMD_SZ; }
+int pffft_simd_size(void) { return SIMD_SZ; }
 
 /*
   passf2 and passb2 has been merged here, fsign = -1 for passf2, +1 for passb2
