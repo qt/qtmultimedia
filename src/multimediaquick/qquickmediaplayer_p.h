@@ -32,6 +32,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickMediaPlayer : public QMediaPlayer
     // Int is expected to be enough for actual purposes.
     Q_PROPERTY(int duration READ qmlDuration NOTIFY qmlDurationChanged FINAL)
     Q_PROPERTY(int position READ qmlPosition WRITE setQmlPosition NOTIFY qmlPositionChanged FINAL)
+    Q_PROPERTY(bool autoPlay READ autoPlay WRITE setAutoPlay NOTIFY autoPlayChanged FINAL)
 
     QML_NAMED_ELEMENT(MediaPlayer)
 
@@ -48,17 +49,25 @@ public:
 
     int qmlDuration() const;
 
+    bool autoPlay() const;
+
+    void setAutoPlay(bool autoPlay);
+
 private:
     void onPositionChanged(qint64 position);
     void onDurationChanged(qint64 position);
+    void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
 
 Q_SIGNALS:
     void qmlSourceChanged(const QUrl &source);
     void qmlPositionChanged(int position);
     void qmlDurationChanged(int duration);
+    void autoPlayChanged(bool autoPlay);
 
 private:
     QUrl m_source;
+    bool m_autoPlay = false;
+    bool m_wasMediaLoaded = false;
 };
 
 QT_END_NAMESPACE
