@@ -32,8 +32,6 @@ static const MFTIME ONE_SECOND = 10000000;
 static const LONG   ONE_MSEC = 1000;
 
 // Function declarations.
-static HRESULT setDesiredSampleTime(IMFSample *sample, const LONGLONG& hnsSampleTime, const LONGLONG& hnsDuration);
-static HRESULT clearDesiredSampleTime(IMFSample *sample);
 static HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect& nrcSource);
 static QVideoFrameFormat::PixelFormat pixelFormatFromMediaType(IMFMediaType *type);
 
@@ -79,9 +77,7 @@ Scheduler::Scheduler(EVRCustomPresenter *presenter)
     , m_threadReadyEvent(0)
     , m_flushEvent(0)
     , m_playbackRate(1.0f)
-    , m_perFrameInterval(0)
     , m_perFrame_1_4th(0)
-    , m_lastSampleTime(0)
 {
 }
 
@@ -97,10 +93,8 @@ void Scheduler::setFrameRate(const MFRatio& fps)
     // Convert to a duration.
     MFFrameRateToAverageTimePerFrame(fps.Numerator, fps.Denominator, &AvgTimePerFrame);
 
-    m_perFrameInterval = (MFTIME)AvgTimePerFrame;
-
     // Calculate 1/4th of this value, because we use it frequently.
-    m_perFrame_1_4th = m_perFrameInterval / 4;
+    m_perFrame_1_4th = AvgTimePerFrame / 4;
 }
 
 HRESULT Scheduler::startScheduler(ComPtr<IMFClock> clock)
@@ -479,7 +473,6 @@ EVRCustomPresenter::EVRCustomPresenter(QVideoSink *sink)
     , m_scheduler(this)
     , m_tokenCounter(0)
     , m_sampleNotify(false)
-    , m_repaint(false)
     , m_prerolled(false)
     , m_endStreaming(false)
     , m_playbackRate(1.0f)
@@ -1168,7 +1161,7 @@ HRESULT EVRCustomPresenter::startFrameStep()
         while (!m_frameStep.samples.isEmpty()) {
             const ComPtr<IMFSample> sample = m_frameStep.samples.takeFirst();
 
-            const HRESULT hr = deliverSample(sample.Get(), false);
+            const HRESULT hr = deliverSample(sample.Get());
             if (FAILED(hr))
                 return hr;
         }
@@ -1478,7 +1471,6 @@ HRESULT EVRCustomPresenter::processOutput()
     DWORD status = 0;
     LONGLONG mixerStartTime = 0, mixerEndTime = 0;
     MFTIME systemTime = 0;
-    BOOL repaint = m_repaint; // Temporarily store this state flag.
 
     MFT_OUTPUT_DATA_BUFFER dataBuffer;
     ZeroMemory(&dataBuffer, sizeof(dataBuffer));
@@ -1488,7 +1480,7 @@ HRESULT EVRCustomPresenter::processOutput()
     // If the clock is not running, we present the first sample,
     // and then don't present any more until the clock starts.
 
-    if ((m_renderState != RenderStarted) && !m_repaint && m_prerolled)
+    if ((m_renderState != RenderStarted) && m_prerolled)
         return S_FALSE;
 
     // Make sure we have a pointer to the mixer.
@@ -1505,20 +1497,9 @@ HRESULT EVRCustomPresenter::processOutput()
     // From now on, we have a valid video sample pointer, where the mixer will
     // write the video data.
 
-    if (m_repaint) {
-        // Repaint request. Ask the mixer for the most recent sample.
-        setDesiredSampleTime(sample, m_scheduler.lastSampleTime(), m_scheduler.frameDuration());
-
-        m_repaint = false; // OK to clear this flag now.
-    } else {
-        // Not a repaint request. Clear the desired sample time; the mixer will
-        // give us the next frame in the stream.
-        clearDesiredSampleTime(sample);
-
-        if (m_clock) {
-            // Latency: Record the starting time for ProcessOutput.
-            m_clock->GetCorrelatedTime(0, &mixerStartTime, &systemTime);
-        }
+    if (m_clock) {
+        // Latency: Record the starting time for ProcessOutput.
+        m_clock->GetCorrelatedTime(0, &mixerStartTime, &systemTime);
     }
 
     // Now we are ready to get an output sample from the mixer.
@@ -1550,7 +1531,7 @@ HRESULT EVRCustomPresenter::processOutput()
     } else {
         // We got an output sample from the mixer.
 
-        if (m_clock && !repaint) {
+        if (m_clock) {
             // Latency: Record the ending time for the ProcessOutput operation,
             // and notify the EVR of the latency.
 
@@ -1566,12 +1547,12 @@ HRESULT EVRCustomPresenter::processOutput()
             goto done;
 
         // Schedule the sample.
-        if ((m_frameStep.state == FrameStepNone) || repaint) {
-            hr = deliverSample(sample, repaint);
+        if (m_frameStep.state == FrameStepNone) {
+            hr = deliverSample(sample);
             if (FAILED(hr))
                 goto done;
         } else {
-            // We are frame-stepping (and this is not a repaint request).
+            // We are frame-stepping
             hr = deliverFrameStepSample(sample);
             if (FAILED(hr))
                 goto done;
@@ -1588,13 +1569,13 @@ done:
     return hr;
 }
 
-HRESULT EVRCustomPresenter::deliverSample(IMFSample *sample, bool repaint)
+HRESULT EVRCustomPresenter::deliverSample(IMFSample *sample)
 {
-    // If we are not actively playing, OR we are scrubbing (rate = 0) OR this is a
-    // repaint request, then we need to present the sample immediately. Otherwise,
+    // If we are not actively playing, OR we are scrubbing (rate = 0),
+    // then we need to present the sample immediately. Otherwise,
     // schedule it normally.
 
-    bool presentNow = ((m_renderState != RenderStarted) ||  isScrubbing() || repaint);
+    bool presentNow = ((m_renderState != RenderStarted) ||  isScrubbing());
 
     HRESULT hr = m_scheduler.scheduleSample(sample, presentNow);
 
@@ -1637,7 +1618,7 @@ HRESULT EVRCustomPresenter::deliverFrameStepSample(IMFSample *sample)
             m_frameStep.samples.append(sample);
         } else {
             // This is the right frame *and* the clock has started. Deliver this sample.
-            hr = deliverSample(sample, false);
+            hr = deliverSample(sample);
             if (FAILED(hr))
                 goto done;
 
@@ -1856,55 +1837,6 @@ void EVRCustomPresenter::presentSample(IMFSample *sample)
 void EVRCustomPresenter::positionChanged(qint64 position)
 {
     m_positionOffset = position * 1000;
-}
-
-HRESULT setDesiredSampleTime(IMFSample *sample, const LONGLONG &sampleTime, const LONGLONG &duration)
-{
-    if (!sample)
-        return E_POINTER;
-
-    HRESULT hr = S_OK;
-    IMFDesiredSample *desired = NULL;
-
-    hr = sample->QueryInterface(IID_PPV_ARGS(&desired));
-    if (SUCCEEDED(hr))
-        desired->SetDesiredSampleTimeAndDuration(sampleTime, duration);
-
-    qt_evr_safe_release(&desired);
-    return hr;
-}
-
-HRESULT clearDesiredSampleTime(IMFSample *sample)
-{
-    if (!sample)
-        return E_POINTER;
-
-    HRESULT hr = S_OK;
-
-    IMFDesiredSample *desired = NULL;
-    IUnknown *unkSwapChain = NULL;
-
-    // We store some custom attributes on the sample, so we need to cache them
-    // and reset them.
-    //
-    // This works around the fact that IMFDesiredSample::Clear() removes all of the
-    // attributes from the sample.
-
-    UINT32 counter = MFGetAttributeUINT32(sample, MFSamplePresenter_SampleCounter, (UINT32)-1);
-
-    hr = sample->QueryInterface(IID_PPV_ARGS(&desired));
-    if (SUCCEEDED(hr)) {
-        desired->Clear();
-
-        hr = sample->SetUINT32(MFSamplePresenter_SampleCounter, counter);
-        if (FAILED(hr))
-            goto done;
-    }
-
-done:
-    qt_evr_safe_release(&unkSwapChain);
-    qt_evr_safe_release(&desired);
-    return hr;
 }
 
 HRESULT setMixerSourceRect(IMFTransform *mixer, const MFVideoNormalizedRect &sourceRect)

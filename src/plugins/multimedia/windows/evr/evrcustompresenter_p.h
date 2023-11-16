@@ -109,9 +109,6 @@ public:
     void setFrameRate(const MFRatio &fps);
     void setClockRate(float rate) { m_playbackRate = rate; }
 
-    const LONGLONG &lastSampleTime() const { return m_lastSampleTime; }
-    const LONGLONG &frameDuration() const { return m_perFrameInterval; }
-
     HRESULT startScheduler(ComPtr<IMFClock> clock);
     HRESULT stopScheduler();
 
@@ -140,9 +137,7 @@ private:
     HANDLE m_flushEvent;
 
     float m_playbackRate;
-    MFTIME m_perFrameInterval; // Duration of each frame.
     LONGLONG m_perFrame_1_4th; // 1/4th of the frame duration.
-    MFTIME m_lastSampleTime; // Most recent sample time.
 
     QMutex m_mutex;
 };
@@ -297,7 +292,7 @@ private:
     // Managing samples
     void processOutputLoop();
     HRESULT processOutput();
-    HRESULT deliverSample(IMFSample *sample, bool repaint);
+    HRESULT deliverSample(IMFSample *sample);
     HRESULT trackSample(IMFSample *sample);
     void releaseResources();
 
@@ -335,7 +330,6 @@ private:
 
     // Rendering state
     bool m_sampleNotify; // Did the mixer signal it has an input sample?
-    bool m_repaint; // Do we need to repaint the last sample?
     bool m_prerolled; // Have we presented at least one sample?
     bool m_endStreaming; // Did we reach the end of the stream (EOS)?
 
