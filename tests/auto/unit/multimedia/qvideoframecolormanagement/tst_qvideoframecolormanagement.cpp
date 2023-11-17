@@ -113,22 +113,64 @@ QString path(const QTemporaryDir &dir, const TestParams &param, const QString &s
     return dir.filePath(name(param) + suffix);
 }
 
+// clang-format off
+
+class RgbToYCbCrConverter
+{
+public:
+    constexpr RgbToYCbCrConverter(double Wr, double Wg)
+        : m_wr{ Wr }, m_wg{ Wg }, m_wb{ 1.0 - Wr - Wg }
+    { }
+
+    // Calculate Y in range [0..255]
+    constexpr double Y(QRgb rgb) const
+    {
+        return m_wr * qRed(rgb) + m_wg * qGreen(rgb) + m_wb * qBlue(rgb);
+    }
+
+    // Calculate Cb in range [0..255]
+    constexpr double Cb(QRgb rgb) const
+    {
+        return (qBlue(rgb) - Y(rgb)) / (2 * (1.0 - m_wb)) + 255.0 / 2;
+    }
+
+    // Calculate Cr in range [0..255]
+    constexpr double Cr(QRgb rgb) const
+    {
+        return (qRed(rgb) - Y(rgb)) / (2 * (1.0 - m_wr)) + 255.0 / 2;
+    }
+
+private:
+    const double m_wr;
+    const double m_wg;
+    const double m_wb;
+};
+
+// clang-format on
+
+constexpr RgbToYCbCrConverter rgb2yuv_bt709_full{0.2126, 0.7152};
+
+constexpr uchar double2uchar(double v)
+{
+    return static_cast<uchar>(std::clamp(v + 0.5, 0.5, 255.5));
+}
+
 constexpr void rgb2y(const QRgb &rgb, uchar *y)
 {
-    const float Y = 0.2126f * qRed(rgb) + 0.7152f * qGreen(rgb) + 0.0722f * qBlue(rgb);
-    y[0] = static_cast<uchar>(std::clamp(Y + 0.5f, 0.0f, 255.0f));
+    const double Y = rgb2yuv_bt709_full.Y(rgb);
+    y[0] = double2uchar(Y);
 }
 
 constexpr uchar rgb2u(const QRgb &rgb)
 {
-    const double U = -0.0999 * qRed(rgb) + -0.3361 * qGreen(rgb) + 0.4360 * qBlue(rgb);
-    return static_cast<uchar>(std::clamp(U + 127.5, 0.0, 255.0));
+    const double U = rgb2yuv_bt709_full.Cb(rgb);
+    return double2uchar(U);
 }
 
 constexpr uchar rgb2v(const QRgb &rgb)
 {
-    const double V = 0.6150 * qRed(rgb) + -0.5586 * qGreen(rgb) + -0.0564 * qBlue(rgb);
-    return static_cast<uchar>(std::clamp(V + 127.5, 0.0, 255.0));
+    const double V = rgb2yuv_bt709_full.Cr(rgb);
+    return double2uchar(V);
 }
 
 void rgb2y(const QImage &image, QVideoFrame &frame, int yPlane)
@@ -255,9 +297,10 @@ QVideoFrame createTestFrame(const TestParams &params, const QImage &image)
 
 struct ImageDiffReport
 {
-    int DiffCountAboveThreshold;
-    int MaxDiff;
-    int PixelCount;
+    int DiffCountAboveThreshold; // Number of channel differences above threshold
+    int MaxDiff;                 // Maximum difference between two images (max across channels)
+    int PixelCount;              // Number of pixels in the image
+    QImage DiffImage;            // The difference image (absolute per-channel difference)
 };
 
 double aboveThresholdDiffRatio(const ImageDiffReport &report)
@@ -274,40 +317,59 @@ int maxChannelDiff(QRgb lhs, QRgb rhs)
     // clang-format on
 }
 
-std::optional<ImageDiffReport> compareImages(const QImage &computed, const QImage &baseline,
+int clampedAbsDiff(int lhs, int rhs)
+{
+    return std::clamp(std::abs(lhs - rhs), 0, 255);
+}
+
+QRgb pixelDiff(QRgb lhs, QRgb rhs)
+{
+    return qRgb(clampedAbsDiff(qRed(lhs), qRed(rhs)), clampedAbsDiff(qGreen(lhs), qGreen(rhs)),
+                clampedAbsDiff(qBlue(lhs), qBlue(rhs)));
+}
+
+std::optional<ImageDiffReport> compareImagesRgb32(const QImage &computed, const QImage &baseline,
                                              int channelThreshold)
 {
-    const QImage lhs = computed.convertToFormat(QImage::Format_RGB32);
-    const QImage rhs = baseline.convertToFormat(QImage::Format_RGB32);
+    Q_ASSERT(baseline.format() == QImage::Format_RGB32);
 
-    if (lhs.size() != rhs.size())
+    if (computed.size() != baseline.size())
         return {};
 
-    if (lhs.format() != rhs.format())
+    if (computed.format() != baseline.format())
         return {};
 
-    if (lhs.colorSpace() != rhs.colorSpace())
+    if (computed.colorSpace() != baseline.colorSpace())
         return {};
 
-    const QSize size = lhs.size();
+    const QSize size = baseline.size();
 
     ImageDiffReport report{};
     report.PixelCount = size.width() * size.height();
+    report.DiffImage = QImage(size, baseline.format());
 
     // Iterate over all pixels and update report
     for (int l = 0; l < size.height(); l++) {
-        const QRgb *colorLeft = reinterpret_cast<const QRgb *>(lhs.constScanLine(l));
-        const QRgb *colorRight = reinterpret_cast<const QRgb *>(rhs.constScanLine(l));
+        const QRgb *colorComputed = reinterpret_cast<const QRgb *>(computed.constScanLine(l));
+        const QRgb *colorBaseline = reinterpret_cast<const QRgb *>(baseline.constScanLine(l));
+        QRgb *colorDiff = reinterpret_cast<QRgb *>(report.DiffImage.scanLine(l));
+
         int w = size.width();
         while (w--) {
-            if ((*colorLeft++ & RGB_MASK) != (*colorRight++ & RGB_MASK)) {
-                const int diff = maxChannelDiff(*colorLeft, *colorRight);
+            *colorDiff = pixelDiff(*colorComputed, *colorBaseline);
+            if (*colorComputed != *colorBaseline) {
+                const int diff = maxChannelDiff(*colorComputed, *colorBaseline);
+
                 if (diff > report.MaxDiff)
                     report.MaxDiff = diff;
-                if (diff > channelThreshold) {
+
+                if (diff > channelThreshold)
                     ++report.DiffCountAboveThreshold;
-                }
             }
+
+            ++colorComputed;
+            ++colorBaseline;
+            ++colorDiff;
         }
     }
     return report;
@@ -362,7 +424,7 @@ public:
                  << "output images";
     }
 
-    QImage getReference(TestParams param) const
+    QImage getReference(const TestParams &param) const
     {
         const QString referenceName = name(param);
         const QString referencePath = m_testdataDir->filePath(referenceName + ".png");
@@ -383,9 +445,9 @@ public:
         m_testdataDir->setAutoRemove(false);
     }
 
-    bool saveActualImage(const TestParams &params, const QImage &image) const
+    bool saveComputedImage(const TestParams &params, const QImage &image, const QString& suffix) const
     {
-        if (!image.save(path(*m_testdataDir, params, "_actual.png"))) {
+        if (!image.save(path(*m_testdataDir, params, suffix))) {
             qDebug() << "Unexpectedly failed to save actual image to file";
             Q_ASSERT(false);
             return false;
@@ -421,18 +483,23 @@ std::optional<ImageDiffReport> compareToReference(const TestParams &params, cons
         return {};
     }
 
-    const std::optional<ImageDiffReport> diffs =
-            compareImages(actual, expected, maxChannelThreshold);
-    if (!diffs)
-        return diffs;
+    // Convert to RGB32 to simplify image comparison
+    const QImage computed = actual.convertToFormat(QImage::Format_RGB32);
+    const QImage baseline = expected.convertToFormat(QImage::Format_RGB32);
 
-    if (diffs->MaxDiff > 0) {
+    std::optional<ImageDiffReport> diffReport = compareImagesRgb32(computed, baseline, maxChannelThreshold);
+    if (!diffReport)
+        return {};
+
+    if (diffReport->MaxDiff > 0) {
         // Images are not equal, and may require manual inspection
-        if (!references.saveActualImage(params, actual))
+        if (!references.saveComputedImage(params, computed, "_actual.png"))
+            return {};
+        if (!references.saveComputedImage(params, diffReport->DiffImage, "_diff.png"))
             return {};
     }
 
-    return diffs;
+    return diffReport;
 }
 
 } // namespace
@@ -458,6 +525,10 @@ private slots:
         }
     }
 
+    // This test is a regression test for the QMultimedia display pipeline.
+    // It compares rendered output (as created by toImage) against reference
+    // images stored to file. The reference images were created by the test
+    // itself, and does not verify correctness, just changes to render output.
     void toImage_savesWithCorrectColors()
     {
         QFETCH(const QString, fileName);
@@ -476,7 +547,11 @@ private slots:
         std::optional<ImageDiffReport> result =
                 compareToReference(params, actual, m_reference, diffThreshold);
 
-        QVERIFY(result);
+        // Sanity checks
+        QVERIFY(result.has_value());
+        QCOMPARE_GT(result->PixelCount, 0);
+
+        // Verify that images are similar
         const double ratioAboveThreshold =
                 static_cast<double>(result->DiffCountAboveThreshold) / result->PixelCount;
         QCOMPARE_LT(ratioAboveThreshold, 0.01);
