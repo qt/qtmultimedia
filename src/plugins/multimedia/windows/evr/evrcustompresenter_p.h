@@ -115,7 +115,6 @@ public:
 
     HRESULT scheduleSample(const ComPtr<IMFSample> &sample, bool presentNow);
     HRESULT processSamplesInQueue(LONG *nextSleep);
-    HRESULT processSample(const ComPtr<IMFSample> &sample, LONG *nextSleep);
     HRESULT flush();
 
     bool areSamplesScheduled();
@@ -125,6 +124,7 @@ public:
 
 private:
     DWORD schedulerThreadProcPrivate();
+    bool isSampleReadyToPresent(IMFSample *sample, LONG *pNextSleep) const;
 
     EVRCustomPresenter *m_presenter;
 
@@ -138,7 +138,7 @@ private:
     EventHandle m_flushEvent;
 
     float m_playbackRate;
-    LONGLONG m_perFrame_1_4th; // 1/4th of the frame duration.
+    MFTIME m_perFrame_1_4th; // 1/4th of the frame duration.
 
     QMutex m_mutex;
 };
