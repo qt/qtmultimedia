@@ -238,21 +238,35 @@ HRESULT Scheduler::processSamplesInQueue(LONG *nextSleep)
     HRESULT hr = S_OK;
     LONG wait = 0;
 
+    QQueue<ComPtr<IMFSample>> scheduledSamples;
+
+    m_mutex.lock();
+    m_scheduledSamples.swap(scheduledSamples);
+    m_mutex.unlock();
+
     // Process samples until the queue is empty or until the wait time > 0.
-    while (!m_scheduledSamples.isEmpty()) {
-        m_mutex.lock();
-        ComPtr<IMFSample> sample = m_scheduledSamples.dequeue();
-        m_mutex.unlock();
+    while (!scheduledSamples.isEmpty()) {
+        ComPtr<IMFSample> sample = scheduledSamples.dequeue();
 
         // Process the next sample in the queue. If the sample is not ready
         // for presentation. the value returned in wait is > 0, which
         // means the scheduler should sleep for that amount of time.
+        if (isSampleReadyToPresent(sample.Get(), &wait)) {
+            m_presenter->presentSample(sample.Get());
+            continue;
+        }
 
-        hr = processSample(sample.Get(), &wait);
-
-        if (FAILED(hr) || wait > 0)
+        if (wait > 0) {
+            // return the sample to scheduler
+            scheduledSamples.prepend(sample);
             break;
+        }
     }
+
+    m_mutex.lock();
+    scheduledSamples.append(std::move(m_scheduledSamples));
+    m_scheduledSamples.swap(scheduledSamples);
+    m_mutex.unlock();
 
     // If the wait time is zero, it means we stopped because the queue is
     // empty (or an error occurred). Set the wait time to infinite; this will
@@ -264,65 +278,50 @@ HRESULT Scheduler::processSamplesInQueue(LONG *nextSleep)
     return hr;
 }
 
-HRESULT Scheduler::processSample(const ComPtr<IMFSample> &sample, LONG *pNextSleep)
+bool Scheduler::isSampleReadyToPresent(IMFSample *sample, LONG *pNextSleep) const
 {
-    HRESULT hr = S_OK;
+    *pNextSleep = 0;
+    if (!m_clock)
+        return true;
 
-    LONGLONG hnsPresentationTime = 0;
-    LONGLONG hnsTimeNow = 0;
-    MFTIME   hnsSystemTime = 0;
+    MFTIME hnsPresentationTime = 0;
+    MFTIME hnsTimeNow = 0;
+    MFTIME hnsSystemTime = 0;
 
-    bool presentNow = true;
-    LONG nextSleep = 0;
+    // Get the sample's time stamp. It is valid for a sample to
+    // have no time stamp.
+    HRESULT hr = sample->GetSampleTime(&hnsPresentationTime);
 
-    if (m_clock) {
-        // Get the sample's time stamp. It is valid for a sample to
-        // have no time stamp.
-        hr = sample->GetSampleTime(&hnsPresentationTime);
+    // Get the clock time. (But if the sample does not have a time stamp,
+    // we don't need the clock time.)
+    if (SUCCEEDED(hr))
+        hr = m_clock->GetCorrelatedTime(0, &hnsTimeNow, &hnsSystemTime);
 
-        // Get the clock time. (But if the sample does not have a time stamp,
-        // we don't need the clock time.)
-        if (SUCCEEDED(hr))
-            hr = m_clock->GetCorrelatedTime(0, &hnsTimeNow, &hnsSystemTime);
-
-        // Calculate the time until the sample's presentation time.
-        // A negative value means the sample is late.
-        LONGLONG hnsDelta = hnsPresentationTime - hnsTimeNow;
-        if (m_playbackRate < 0) {
-            // For reverse playback, the clock runs backward. Therefore, the
-            // delta is reversed.
-            hnsDelta = - hnsDelta;
-        }
-
-        if (hnsDelta < - m_perFrame_1_4th) {
-            // This sample is late.
-            presentNow = true;
-        } else if (hnsDelta > (3 * m_perFrame_1_4th)) {
-            // This sample is still too early. Go to sleep.
-            nextSleep = MFTimeToMsec(hnsDelta - (3 * m_perFrame_1_4th));
-
-            // Adjust the sleep time for the clock rate. (The presentation clock runs
-            // at m_fRate, but sleeping uses the system clock.)
-            if (m_playbackRate != 0)
-                nextSleep = (LONG)(nextSleep / qFabs(m_playbackRate));
-
-            // Don't present yet.
-            presentNow = false;
-        }
+    // Calculate the time until the sample's presentation time.
+    // A negative value means the sample is late.
+    MFTIME hnsDelta = hnsPresentationTime - hnsTimeNow;
+    if (m_playbackRate < 0) {
+        // For reverse playback, the clock runs backward. Therefore, the
+        // delta is reversed.
+        hnsDelta = - hnsDelta;
     }
 
-    if (presentNow) {
-        m_presenter->presentSample(sample);
+    if (hnsDelta < - m_perFrame_1_4th) {
+        // This sample is late - skip.
+        return false;
+    } else if (hnsDelta > (3 * m_perFrame_1_4th)) {
+        // This sample came too early - reschedule
+        *pNextSleep = MFTimeToMsec(hnsDelta - (3 * m_perFrame_1_4th));
+
+        // Adjust the sleep time for the clock rate. (The presentation clock runs
+        // at m_fRate, but sleeping uses the system clock.)
+        if (m_playbackRate != 0)
+            *pNextSleep = (LONG)(*pNextSleep / qFabs(m_playbackRate));
+        return *pNextSleep == 0;
     } else {
-        // The sample is not ready yet. Return it to the queue.
-        m_mutex.lock();
-        m_scheduledSamples.prepend(sample);
-        m_mutex.unlock();
+        // This sample can be presented right now
+        return true;
     }
-
-    *pNextSleep = nextSleep;
-
-    return hr;
 }
 
 DWORD WINAPI Scheduler::schedulerThreadProc(LPVOID parameter)
