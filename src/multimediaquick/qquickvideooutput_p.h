@@ -88,9 +88,7 @@ private:
     void updateGeometry();
     QRectF adjustedViewport() const;
 
-    friend class QSGVideoItemSurface;
     void setFrame(const QVideoFrame &frame);
-    void stop();
 
     void invalidateSceneGraph();
 

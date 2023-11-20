@@ -105,14 +105,14 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
 
     m_sink = new QVideoSink(this);
     qRegisterMetaType<QVideoFrameFormat>();
-    QObject::connect(m_sink, &QVideoSink::videoFrameChanged, this,
-                     [&](const QVideoFrame &frame) {
-                         setFrame(frame);
-                         emit frameUpdated(frame.size());
-                     }, Qt::DirectConnection);
+    connect(m_sink, &QVideoSink::videoFrameChanged, this,
+            [&](const QVideoFrame &frame) {
+                setFrame(frame);
+                emit frameUpdated(frame.size());
+            },
+            Qt::DirectConnection);
 
-    QObject::connect(this, &QQuickVideoOutput::frameUpdated,
-                     this, &QQuickVideoOutput::_q_newFrame);
+    connect(this, &QQuickVideoOutput::frameUpdated, this, &QQuickVideoOutput::_q_newFrame);
 
     initRhiForSink();
 }
@@ -395,10 +395,10 @@ void QQuickVideoOutput::itemChange(QQuickItem::ItemChange change,
 
     if (m_window) {
         // We want to receive the signals in the render thread
-        QObject::connect(m_window, &QQuickWindow::sceneGraphInitialized, this, &QQuickVideoOutput::_q_sceneGraphInitialized,
-                         Qt::DirectConnection);
-        QObject::connect(m_window, &QQuickWindow::sceneGraphInvalidated,
-                         this, &QQuickVideoOutput::_q_invalidateSceneGraph, Qt::DirectConnection);
+        connect(m_window, &QQuickWindow::sceneGraphInitialized, this,
+                &QQuickVideoOutput::_q_sceneGraphInitialized, Qt::DirectConnection);
+        connect(m_window, &QQuickWindow::sceneGraphInvalidated, this,
+                &QQuickVideoOutput::_q_invalidateSceneGraph, Qt::DirectConnection);
     }
     initRhiForSink();
 }
@@ -525,18 +525,12 @@ QRectF QQuickVideoOutput::adjustedViewport() const
 
 void QQuickVideoOutput::setFrame(const QVideoFrame &frame)
 {
-    m_frameMutex.lock();
+    QMutexLocker lock(&m_frameMutex);
+
     m_surfaceFormat = frame.surfaceFormat();
     m_frame = frame;
     m_frameOrientation = frame.rotationAngle();
     m_frameChanged = true;
-    m_frameMutex.unlock();
-}
-
-void QQuickVideoOutput::stop()
-{
-    setFrame({});
-    update();
 }
 
 QT_END_NAMESPACE
