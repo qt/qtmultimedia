@@ -106,13 +106,11 @@ QQuickVideoOutput::QQuickVideoOutput(QQuickItem *parent) :
     m_sink = new QVideoSink(this);
     qRegisterMetaType<QVideoFrameFormat>();
     connect(m_sink, &QVideoSink::videoFrameChanged, this,
-            [&](const QVideoFrame &frame) {
+            [this](const QVideoFrame &frame) {
                 setFrame(frame);
-                emit frameUpdated(frame.size());
+                QMetaObject::invokeMethod(this, "_q_newFrame", frame.size());
             },
             Qt::DirectConnection);
-
-    connect(this, &QQuickVideoOutput::frameUpdated, this, &QQuickVideoOutput::_q_newFrame);
 
     initRhiForSink();
 }
