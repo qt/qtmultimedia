@@ -75,7 +75,6 @@ Q_SIGNALS:
     void orientationChanged();
     void sourceRectChanged();
     void contentRectChanged();
-    void frameUpdated(QSize);
 
 protected:
     QSGNode *updatePaintNode(QSGNode *, UpdatePaintNodeData *) override;
