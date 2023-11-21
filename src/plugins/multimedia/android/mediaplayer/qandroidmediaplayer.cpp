@@ -8,6 +8,7 @@
 #include "qandroidaudiooutput_p.h"
 #include "qaudiooutput.h"
 
+#include <private/qplatformvideosink_p.h>
 #include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
@@ -68,6 +69,9 @@ QAndroidMediaPlayer::QAndroidMediaPlayer(QMediaPlayer *parent)
 
 QAndroidMediaPlayer::~QAndroidMediaPlayer()
 {
+    if (m_videoSink)
+        disconnect(m_videoSink->platformVideoSink(), nullptr, this, nullptr);
+
     mMediaPlayer->disconnect();
     mMediaPlayer->release();
     delete mMediaPlayer;
@@ -292,6 +296,9 @@ void QAndroidMediaPlayer::setVideoSink(QVideoSink *sink)
     if (m_videoSink == sink)
         return;
 
+    if (m_videoSink)
+        disconnect(m_videoSink->platformVideoSink(), nullptr, this, nullptr);
+
     m_videoSink = sink;
 
     if (!m_videoSink) {
@@ -312,6 +319,9 @@ void QAndroidMediaPlayer::setVideoSink(QVideoSink *sink)
 
     if (mVideoOutput->isReady())
         mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture());
+
+    connect(m_videoSink->platformVideoSink(), &QPlatformVideoSink::rhiChanged, this, [&]()
+            { mMediaPlayer->setDisplay(mVideoOutput->surfaceTexture()); });
 }
 
 void QAndroidMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
