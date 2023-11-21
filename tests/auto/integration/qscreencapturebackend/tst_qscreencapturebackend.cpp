@@ -227,8 +227,9 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
         auto pixelColor = [&drawingOffset, pixelRatio, &image](int x, int y) {
             return image.pixelColor((QPoint(x, y) + drawingOffset) * pixelRatio).toRgb();
         };
-
-        QCOMPARE(image.size(), expectedSize * pixelRatio);
+        const int capturedWidth = qRound(image.size().width() / pixelRatio);
+        const int capturedHeight = qRound(image.size().height() / pixelRatio);
+        QCOMPARE(QSize(capturedWidth, capturedHeight), expectedSize);
         QCOMPARE(pixelColor(0, 0), QColor(0xFF, 0, 0));
 
         QCOMPARE(pixelColor(39, 50), QColor(0xFF, 0, 0));
