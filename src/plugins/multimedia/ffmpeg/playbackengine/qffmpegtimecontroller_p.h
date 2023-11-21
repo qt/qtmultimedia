@@ -34,7 +34,7 @@ public:
 
     TimeController();
 
-    float playbackRate() const;
+    PlaybackRate playbackRate() const;
 
     void setPlaybackRate(PlaybackRate playbackRate);
 

@@ -17,7 +17,7 @@ TimeController::TimeController()
     sync();
 }
 
-float TimeController::playbackRate() const
+TimeController::PlaybackRate TimeController::playbackRate() const
 {
     return m_playbackRate;
 }
@@ -33,8 +33,7 @@ void TimeController::setPlaybackRate(PlaybackRate playbackRate)
     m_playbackRate = playbackRate;
 
     if (m_softSyncData)
-        m_softSyncData = makeSoftSyncData(m_softSyncData->srcTimePoint, m_softSyncData->srcPosition,
-                                          m_softSyncData->dstTimePoint);
+        m_softSyncData = makeSoftSyncData(m_timePoint, m_position, m_softSyncData->dstTimePoint);
 }
 
 void TimeController::sync(qint64 trackPos)
@@ -80,7 +79,7 @@ qint64 TimeController::positionFromTime(TimePoint tp, bool ignorePause) const
     tp = m_paused && !ignorePause ? m_timePoint : tp;
 
     if (m_softSyncData && tp < m_softSyncData->dstTimePoint) {
-        const float rate =
+        const PlaybackRate rate =
                 tp > m_softSyncData->srcTimePoint ? m_softSyncData->internalRate : m_playbackRate;
 
         return (m_softSyncData->srcPosition
@@ -135,9 +134,13 @@ TimeController::TimePoint TimeController::timeFromPositionInternal(const TrackTi
 void TimeController::scrollTimeTillNow()
 {
     const auto now = Clock::now();
-    if (!m_paused)
+    if (!m_paused) {
         m_position = positionFromTimeInternal(now);
-    else if (m_softSyncData) {
+
+        // let's forget outdated syncronizations
+        if (m_softSyncData && m_softSyncData->dstTimePoint <= now)
+            m_softSyncData.reset();
+    } else if (m_softSyncData) {
         m_softSyncData->dstTimePoint += now - m_timePoint;
         m_softSyncData->srcTimePoint += now - m_timePoint;
     }
