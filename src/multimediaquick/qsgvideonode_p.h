@@ -32,13 +32,12 @@ class QSGInternalTextNode;
 class QSGVideoNode : public QSGGeometryNode
 {
 public:
-    QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format);
+    QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &videoFormat);
     ~QSGVideoNode();
 
-    QVideoFrameFormat::PixelFormat pixelFormat() const {
-        return m_format.pixelFormat();
-    }
+    QVideoFrameFormat::PixelFormat pixelFormat() const { return m_videoFormat.pixelFormat(); }
     void setCurrentFrame(const QVideoFrame &frame);
+    void setSurfaceFormat(const QRhiSwapChain::Format surfaceFormat);
 
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
@@ -53,7 +52,7 @@ private:
     int m_frameOrientation = -1;
     bool m_frameMirrored = false;
 
-    QVideoFrameFormat m_format;
+    QVideoFrameFormat m_videoFormat;
     QSGVideoMaterial *m_material = nullptr;
 
     QVideoTextureHelper::SubtitleLayout m_subtitleLayout;

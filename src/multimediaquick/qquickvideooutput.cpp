@@ -513,6 +513,11 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
     videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect,
                                        qNormalizedOrientation(orientation()));
 
+    if (const QQuickWindow *const videoOutputWindow = window()) {
+        if (const QRhiSwapChain *const swapChain = videoOutputWindow->swapChain())
+            videoNode->setSurfaceFormat(swapChain->format());
+    }
+
     return videoNode;
 }
 
