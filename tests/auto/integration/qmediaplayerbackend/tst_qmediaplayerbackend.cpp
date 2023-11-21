@@ -149,7 +149,8 @@ private slots:
     void multipleMediaPlayback();
     void multiplePlaybackRateChangingStressTest();
     void multipleSeekStressTest();
-    void playbackRateChanging();
+    void setPlaybackRate_changesActualRateAndFramesRenderingTime_data();
+    void setPlaybackRate_changesActualRateAndFramesRenderingTime();
     void durationDetectionIssues_data();
     void durationDetectionIssues();
     void finiteLoops();
@@ -1908,8 +1909,22 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
     }
 }
 
-void tst_QMediaPlayerBackend::playbackRateChanging()
+void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderingTime_data()
 {
+    QTest::addColumn<bool>("withAudio");
+    QTest::addColumn<int>("positionDeviationMs");
+
+    QTest::newRow("Without audio") << false << 150;
+
+    // set greater positionDeviationMs for case with audio due to possible synchronization.
+    QTest::newRow("With audio") << true << 200;
+}
+
+void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderingTime()
+{
+    QFETCH(bool, withAudio);
+    QFETCH(int, positionDeviationMs);
+
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
 #endif
@@ -1921,69 +1936,86 @@ void tst_QMediaPlayerBackend::playbackRateChanging()
         QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To be "
               "investigated: QTBUG-111744");
 #endif
+    m_fixture->surface.setStoreFrames(false);
+    m_fixture->player.setAudioOutput(
+            withAudio ? &m_fixture->output
+                      : nullptr); // TODO: mock audio output and check sound by frequency
+    m_fixture->player.setSource(m_localVideoFile3ColorsWithSound);
 
-    TestVideoSink surface(false);
-    QAudioOutput output;
-    QMediaPlayer player;
+    auto checkColorAndPosition = [&](qint64 expectedPosition, QString errorTag) {
+        constexpr qint64 intervalTime = 1000;
 
-    player.setAudioOutput(&output); // TODO: mock audio output and check sound by frequency
-    player.setVideoOutput(&surface);
-    player.setSource(m_localVideoFile3ColorsWithSound);
-
-    std::optional<QRgb> color;
-    connect(&surface, &QVideoSink::videoFrameChanged, this, [&](const QVideoFrame& frame) {
-        auto image = frame.toImage();
-        color = image.isNull() ? std::optional<QRgb>{} : image.pixel(1, 1);
-    }, Qt::DirectConnection);
-
-    auto checkColorAndPosition = [&](int colorIndex, QString errorTag) {
-        QVERIFY(color);
+        const int colorIndex = expectedPosition / intervalTime;
         const auto expectedColor = m_video3Colors[colorIndex];
-        const auto actualColor = *color;
+        const auto actualPosition = m_fixture->player.position();
+
+        auto frame = m_fixture->surface.videoFrame();
+        auto image = frame.toImage();
+        QVERIFY(!image.isNull());
+
+        const auto actualColor = image.pixel(1, 1);
 
         auto errorPrintingGuard = qScopeGuard([&]() {
             qDebug() << "Error Tag:" << errorTag;
-            qDebug() << "Actual Color:" << QColor(actualColor)
-                     << "Expected Color:" << QColor(expectedColor);
-            qDebug() << "Most probable actual color index:"
+            qDebug() << "  Actual Color:" << QColor(actualColor)
+                     << "  Expected Color:" << QColor(expectedColor);
+            qDebug() << "  Most probable actual color index:"
                      << findSimilarColorIndex(m_video3Colors, actualColor)
-                     << " Expected color index:" << colorIndex;
-            qDebug() << "Actual position:" << player.position();
+                     << "Expected color index:" << colorIndex;
+            qDebug() << "  Actual position:" << actualPosition;
+            qDebug() << "  Frame start time:" << frame.startTime();
         });
-
-        constexpr qint64 intervalTime = 1000;
 
         // TODO: investigate why frames sometimes are not delivered in time on windows
         constexpr qreal maxColorDifference = 0.18;
+        QVERIFY(m_fixture->player.isPlaying());
         QCOMPARE_LE(colorDifference(actualColor, expectedColor), maxColorDifference);
-        QCOMPARE_GT(player.position(), intervalTime * colorIndex);
-        QCOMPARE_LT(player.position(), intervalTime * (colorIndex + 1));
+        QCOMPARE_GT(actualPosition, expectedPosition - positionDeviationMs);
+        QCOMPARE_LT(actualPosition, expectedPosition + positionDeviationMs);
+
+        const auto framePosition = frame.startTime() / 1000;
+
+        QCOMPARE_GT(framePosition, expectedPosition - positionDeviationMs);
+        QCOMPARE_LT(framePosition, expectedPosition + positionDeviationMs);
+        QCOMPARE_LT(qAbs(framePosition - actualPosition), positionDeviationMs);
 
         errorPrintingGuard.dismiss();
     };
 
-    player.play();
+    m_fixture->player.play();
 
-    auto waitUntil = [&](quint64 t) {
-        surface.waitForFrame();
+    m_fixture->surface.waitForFrame();
 
-        QTest::qWait((t - player.position()) / player.playbackRate());
+    auto waitUntil = [&](qint64 targetPosition) {
+        const auto position = m_fixture->player.position();
+
+        const auto waitingIntervalMs =
+                static_cast<int>((targetPosition - position) / m_fixture->player.playbackRate());
+
+        if (targetPosition > position)
+            QTest::qWait(waitingIntervalMs);
+
+        qDebug() << "Test waiting:" << waitingIntervalMs << "ms, Position:" << position << "=>"
+                 << m_fixture->player.position() << "Expected target position:" << targetPosition
+                 << "playbackRate:" << m_fixture->player.playbackRate();
     };
 
     waitUntil(400);
-    checkColorAndPosition(0, "Check default playback rate");
+    checkColorAndPosition(400, "Check default playback rate");
 
-    player.setPlaybackRate(2.);
+    m_fixture->player.setPlaybackRate(2.);
 
     waitUntil(1400);
-    checkColorAndPosition(1, "Check 2.0 playback rate");
+    checkColorAndPosition(1400, "Check 2.0 playback rate");
 
-    player.setPlaybackRate(0.5);
+    m_fixture->player.setPlaybackRate(0.5);
 
     waitUntil(1800);
-    checkColorAndPosition(1, "Check 0.5 playback rate");
+    checkColorAndPosition(1800, "Check 0.5 playback rate");
 
-    player.stop();
+    m_fixture->player.setPlaybackRate(0.321);
+
+    m_fixture->player.stop();
 }
 
 void tst_QMediaPlayerBackend::surfaceTest()
