@@ -39,11 +39,14 @@ class QSGVideoMaterial;
 class QSGVideoMaterialRhiShader : public QSGMaterialShader
 {
 public:
-    QSGVideoMaterialRhiShader(const QVideoFrameFormat &format)
-        : m_format(format)
+    QSGVideoMaterialRhiShader(const QVideoFrameFormat &videoFormat,
+                              const QRhiSwapChain::Format surfaceFormat)
+        : m_videoFormat(videoFormat), m_surfaceFormat(surfaceFormat)
     {
-        setShaderFileName(VertexStage, m_format.vertexShaderFileName());
-        setShaderFileName(FragmentStage, m_format.fragmentShaderFileName());
+        setShaderFileName(VertexStage, QVideoTextureHelper::vertexShaderFileName(m_videoFormat));
+        setShaderFileName(
+                FragmentStage,
+                QVideoTextureHelper::fragmentShaderFileName(m_videoFormat, m_surfaceFormat));
     }
 
     bool updateUniformData(RenderState &state, QSGMaterial *newMaterial,
@@ -53,21 +56,22 @@ public:
                             QSGMaterial *newMaterial, QSGMaterial *oldMaterial) override;
 
 protected:
-    QVideoFrameFormat m_format;
+    QVideoFrameFormat m_videoFormat;
+    QRhiSwapChain::Format m_surfaceFormat;
 };
 
 class QSGVideoMaterial : public QSGMaterial
 {
 public:
-    QSGVideoMaterial(const QVideoFrameFormat &format);
+    QSGVideoMaterial(const QVideoFrameFormat &videoFormat);
 
     [[nodiscard]] QSGMaterialType *type() const override {
         static QSGMaterialType type[QVideoFrameFormat::NPixelFormats];
-        return &type[m_format.pixelFormat()];
+        return &type[m_videoFormat.pixelFormat()];
     }
 
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
-        return new QSGVideoMaterialRhiShader(m_format);
+        return new QSGVideoMaterialRhiShader(m_videoFormat, m_surfaceFormat);
     }
 
     int compare(const QSGMaterial *other) const override {
@@ -92,9 +96,15 @@ public:
         m_texturesDirty = true;
     }
 
+    void setSurfaceFormat(const QRhiSwapChain::Format surfaceFormat)
+    {
+        m_surfaceFormat = surfaceFormat;
+    }
+
     void updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates);
 
-    QVideoFrameFormat m_format;
+    QVideoFrameFormat m_videoFormat;
+    QRhiSwapChain::Format m_surfaceFormat = QRhiSwapChain::SDR;
     float m_opacity = 1.0f;
 
     bool m_texturesDirty = false;
@@ -146,8 +156,8 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
     // updated by this function and we need that already in updateUniformData.
     m->updateTextures(state.rhi(), state.resourceUpdateBatch());
 
-    m_format.updateUniformData(state.uniformData(), m->m_currentFrame,
-                               state.combinedMatrix(), state.opacity());
+    m_videoFormat.updateUniformData(state.uniformData(), m->m_currentFrame, state.combinedMatrix(),
+                                    state.opacity());
 
     return true;
 }
@@ -164,19 +174,18 @@ void QSGVideoMaterialRhiShader::updateSampledImage(RenderState &state, int bindi
     *texture = &m->m_textures[binding - 1];
 }
 
-QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &format) :
-    m_format(format)
+QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &videoFormat)
+    : m_videoFormat(videoFormat)
 {
     setFlag(Blending, false);
 }
 
-QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format)
-    : m_parent(parent),
-      m_format(format)
+QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &videoFormat)
+    : m_parent(parent), m_videoFormat(videoFormat)
 {
     setFlag(QSGNode::OwnsMaterial);
     setFlag(QSGNode::OwnsGeometry);
-    m_material = new QSGVideoMaterial(format);
+    m_material = new QSGVideoMaterial(videoFormat);
     setMaterial(m_material);
 }
 
@@ -190,6 +199,12 @@ void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
     m_material->setCurrentFrame(frame);
     markDirty(DirtyMaterial);
     updateSubtitle(frame);
+}
+
+void QSGVideoNode::setSurfaceFormat(const QRhiSwapChain::Format surfaceFormat)
+{
+    m_material->setSurfaceFormat(surfaceFormat);
+    markDirty(DirtyMaterial);
 }
 
 void QSGVideoNode::updateSubtitle(const QVideoFrame &frame)
