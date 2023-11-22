@@ -85,6 +85,7 @@ struct NullHandleTraits
 };
 
 using EventHandle = QUniqueHandle<NullHandleTraits>;
+using ThreadHandle = QUniqueHandle<NullHandleTraits>;
 
 QT_END_NAMESPACE
 

@@ -133,7 +133,7 @@ private:
     ComPtr<IMFClock> m_clock; // Presentation clock. Can be NULL.
 
     DWORD m_threadID;
-    HANDLE m_schedulerThread;
+    ThreadHandle m_schedulerThread;
     EventHandle m_threadReadyEvent;
     EventHandle m_flushEvent;
 
