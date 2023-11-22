@@ -73,7 +73,6 @@ private:
 Scheduler::Scheduler(EVRCustomPresenter *presenter)
     : m_presenter(presenter)
     , m_threadID(0)
-    , m_schedulerThread(0)
     , m_playbackRate(1.0f)
     , m_perFrame_1_4th(0)
 {
@@ -125,7 +124,7 @@ HRESULT Scheduler::startScheduler(ComPtr<IMFClock> clock)
     }
 
     // Create the scheduler thread.
-    m_schedulerThread = CreateThread(NULL, 0, schedulerThreadProc, (LPVOID)this, 0, &dwID);
+    m_schedulerThread = ThreadHandle{ CreateThread(NULL, 0, schedulerThreadProc, (LPVOID)this, 0, &dwID) };
     if (!m_schedulerThread) {
         hr = HRESULT_FROM_WIN32(GetLastError());
         goto done;
@@ -133,12 +132,11 @@ HRESULT Scheduler::startScheduler(ComPtr<IMFClock> clock)
 
     // Wait for the thread to signal the "thread ready" event.
     hObjects[0] = m_threadReadyEvent.get();
-    hObjects[1] = m_schedulerThread;
+    hObjects[1] = m_schedulerThread.get();
     dwWait = WaitForMultipleObjects(2, hObjects, FALSE, INFINITE);  // Wait for EITHER of these handles.
     if (WAIT_OBJECT_0 != dwWait) {
         // The thread terminated early for some reason. This is an error condition.
-        CloseHandle(m_schedulerThread);
-        m_schedulerThread = NULL;
+        m_schedulerThread = {};
 
         hr = E_UNEXPECTED;
         goto done;
@@ -162,12 +160,10 @@ HRESULT Scheduler::stopScheduler()
     PostThreadMessage(m_threadID, Terminate, 0, 0);
 
     // Wait for the thread to exit.
-    WaitForSingleObject(m_schedulerThread, INFINITE);
+    WaitForSingleObject(m_schedulerThread.get(), INFINITE);
 
     // Close handles.
-    CloseHandle(m_schedulerThread);
-    m_schedulerThread = NULL;
-
+    m_schedulerThread = {};
     m_flushEvent = {};
 
     // Discard samples.
@@ -189,7 +185,7 @@ HRESULT Scheduler::flush()
 
         // Wait for the scheduler thread to signal the flush event,
         // OR for the thread to terminate.
-        HANDLE objects[] = { m_flushEvent.get(), m_schedulerThread };
+        HANDLE objects[] = { m_flushEvent.get(), m_schedulerThread.get() };
 
         WaitForMultipleObjects(ARRAYSIZE(objects), objects, FALSE, SCHEDULER_TIMEOUT);
     }
@@ -211,7 +207,7 @@ HRESULT Scheduler::scheduleSample(IMFSample *sample, bool presentNow)
     HRESULT hr = S_OK;
     DWORD dwExitCode = 0;
 
-    GetExitCodeThread(m_schedulerThread, &dwExitCode);
+    GetExitCodeThread(m_schedulerThread.get(), &dwExitCode);
     if (dwExitCode != STILL_ACTIVE)
         return E_FAIL;
 
