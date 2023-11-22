@@ -216,6 +216,11 @@ HRESULT Scheduler::scheduleSample(const ComPtr<IMFSample> &sample, bool presentN
     if (presentNow || !m_clock) {
         m_presenter->presentSample(sample);
     } else {
+        if (m_playbackRate > 0.0f && qt_evr_isSampleTimePassed(m_clock.Get(), sample.Get())) {
+            qCDebug(qLcEvrCustomPresenter) << "Discard the sample, it came too late";
+            return hr;
+        }
+
         // Queue the sample and ask the scheduler thread to wake up.
         m_mutex.lock();
         m_scheduledSamples.enqueue(sample);
