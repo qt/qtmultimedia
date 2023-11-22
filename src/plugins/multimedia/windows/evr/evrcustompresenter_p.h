@@ -113,9 +113,9 @@ public:
     HRESULT startScheduler(ComPtr<IMFClock> clock);
     HRESULT stopScheduler();
 
-    HRESULT scheduleSample(IMFSample *sample, bool presentNow);
+    HRESULT scheduleSample(const ComPtr<IMFSample> &sample, bool presentNow);
     HRESULT processSamplesInQueue(LONG *nextSleep);
-    HRESULT processSample(IMFSample *sample, LONG *nextSleep);
+    HRESULT processSample(const ComPtr<IMFSample> &sample, LONG *nextSleep);
     HRESULT flush();
 
     bool areSamplesScheduled();
@@ -153,8 +153,8 @@ public:
     HRESULT initialize(QList<ComPtr<IMFSample>> &&samples);
     HRESULT clear();
 
-    HRESULT getSample(IMFSample **sample);
-    HRESULT returnSample(IMFSample *sample);
+    ComPtr<IMFSample> takeSample();
+    void returnSample(const ComPtr<IMFSample> &sample);
 
 private:
     QMutex m_mutex;
@@ -240,7 +240,7 @@ public:
 
     void startSurface();
     void stopSurface();
-    void presentSample(IMFSample *sample);
+    void presentSample(const ComPtr<IMFSample> &sample);
 
     bool event(QEvent *) override;
 
@@ -293,15 +293,15 @@ private:
     // Managing samples
     void processOutputLoop();
     HRESULT processOutput();
-    HRESULT deliverSample(IMFSample *sample);
-    HRESULT trackSample(IMFSample *sample);
+    HRESULT deliverSample(const ComPtr<IMFSample> &sample);
+    HRESULT trackSample(const ComPtr<IMFSample> &sample);
     void releaseResources();
 
     // Frame-stepping
     HRESULT prepareFrameStep(DWORD steps);
     HRESULT startFrameStep();
-    HRESULT deliverFrameStepSample(IMFSample *sample);
-    HRESULT completeFrameStep(IMFSample *sample);
+    HRESULT deliverFrameStepSample(const ComPtr<IMFSample> &sample);
+    HRESULT completeFrameStep(const ComPtr<IMFSample> &sample);
     HRESULT cancelFrameStep();
 
     // Callback when a video sample is released.
