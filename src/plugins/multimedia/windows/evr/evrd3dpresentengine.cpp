@@ -30,7 +30,7 @@ class IMFSampleVideoBuffer: public QAbstractVideoBuffer
 {
 public:
     IMFSampleVideoBuffer(ComPtr<IDirect3DDevice9Ex> device,
-                          IMFSample *sample, QRhi *rhi, QVideoFrame::HandleType type = QVideoFrame::NoHandle)
+                         const ComPtr<IMFSample> &sample, QRhi *rhi, QVideoFrame::HandleType type = QVideoFrame::NoHandle)
         : QAbstractVideoBuffer(type, rhi)
         , m_device(device)
         , m_sample(sample)
@@ -133,7 +133,7 @@ private:
 class D3D11TextureVideoBuffer: public IMFSampleVideoBuffer
 {
 public:
-    D3D11TextureVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, IMFSample *sample,
+    D3D11TextureVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
                             HANDLE sharedHandle, QRhi *rhi)
         : IMFSampleVideoBuffer(std::move(device), sample, rhi, QVideoFrame::RhiTextureHandle)
         , m_sharedHandle(sharedHandle)
@@ -302,7 +302,7 @@ private:
 class OpenGlVideoBuffer: public IMFSampleVideoBuffer
 {
 public:
-    OpenGlVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, IMFSample *sample,
+    OpenGlVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
                       const WglNvDxInterop &wglNvDxInterop, HANDLE sharedHandle, QRhi *rhi)
         : IMFSampleVideoBuffer(std::move(device), sample, rhi, QVideoFrame::RhiTextureHandle)
         , m_sharedHandle(sharedHandle)
@@ -671,14 +671,14 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format,
     return hr;
 }
 
-QVideoFrame D3DPresentEngine::makeVideoFrame(IMFSample *sample)
+QVideoFrame D3DPresentEngine::makeVideoFrame(const ComPtr<IMFSample> &sample)
 {
     if (!sample)
         return {};
 
     HANDLE sharedHandle = nullptr;
     for (const auto &p : m_sampleTextureHandle)
-        if (p.first == sample)
+        if (p.first == sample.Get())
             sharedHandle = p.second;
 
     QAbstractVideoBuffer *vb = nullptr;
