@@ -81,7 +81,7 @@ private:
     bool m_stop = false;
     bool m_flush = false;
     bool m_frameMirrored = false;
-    QVideoFrame::RotationAngle m_frameRotationAngle = QVideoFrame::Rotation0;
+    QVideo::RotationAngle m_frameRotationAngle = QVideo::Rotation0;
 
     // --- only accessed from one thread
     QVideoFrameFormat m_format;

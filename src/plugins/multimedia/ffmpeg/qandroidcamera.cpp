@@ -212,7 +212,7 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     lastTimestamp = timestamp;
 }
 
-QVideoFrame::RotationAngle QAndroidCamera::rotation()
+QVideo::RotationAngle QAndroidCamera::rotation()
 {
     auto screen = QGuiApplication::primaryScreen();
     auto screenOrientation = screen->orientation();
@@ -240,7 +240,7 @@ QVideoFrame::RotationAngle QAndroidCamera::rotation()
     int sign = (m_cameraDevice.position() == QCameraDevice::Position::FrontFace) ? 1 : -1;
     int rotation = (sensorOrientation(m_cameraDevice.id()) - deviceOrientation * sign + 360) % 360;
 
-    return QVideoFrame::RotationAngle(rotation);
+    return QVideo::RotationAngle(rotation);
 }
 
 void QAndroidCamera::setActive(bool active)

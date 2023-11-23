@@ -45,7 +45,7 @@ public:
     int mappedCount = 0;
     QMutex mapMutex;
     QString subtitleText;
-    QVideoFrame::RotationAngle rotationAngle = QVideoFrame::Rotation0;
+    QVideo::RotationAngle rotationAngle = QVideo::Rotation0;
     bool mirrored = false;
     QImage image;
     std::once_flag imageOnceFlag;
@@ -644,7 +644,7 @@ void QVideoFrame::setEndTime(qint64 time)
 void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
 {
     if (d)
-        d->rotationAngle = angle;
+        d->rotationAngle = QVideo::RotationAngle(angle);
 }
 
 /*!
@@ -652,7 +652,7 @@ void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
  */
 QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
 {
-    return d ? d->rotationAngle : Rotation0;
+    return QVideoFrame::RotationAngle(d ? d->rotationAngle : QVideo::Rotation0);
 }
 
 /*!
@@ -683,7 +683,7 @@ QImage QVideoFrame::toImage() const
 
     std::call_once(d->imageOnceFlag, [this]() {
         const bool mirrorY = surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom;
-        d->image = qImageFromVideoFrame(*this, rotationAngle(), mirrored(), mirrorY);
+        d->image = qImageFromVideoFrame(*this, QVideo::RotationAngle(rotationAngle()), mirrored(), mirrorY);
     });
 
     return d->image;

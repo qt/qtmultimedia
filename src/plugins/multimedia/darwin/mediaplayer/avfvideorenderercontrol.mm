@@ -118,7 +118,7 @@ void AVFVideoRendererControl::setLayer(CALayer *layer)
     AVFVideoSinkInterface::setLayer(layer);
 }
 
-void AVFVideoRendererControl::setVideoRotation(QVideoFrame::RotationAngle rotation)
+void AVFVideoRendererControl::setVideoRotation(QVideo::RotationAngle rotation)
 {
     m_rotation = rotation;
 }
