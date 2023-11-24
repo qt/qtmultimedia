@@ -139,6 +139,8 @@ private slots:
     void subsequentPlayback();
     void surfaceTest();
     void metadata();
+    void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail_data();
+    void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail();
     void playerStateAtEOS();
     void playFromBuffer();
     void audioVideoAvailable();
@@ -183,6 +185,8 @@ private:
     QUrl m_localCompressedSoundFile;
     QUrl m_localFileWithMetadata;
     QUrl m_localVideoFile3ColorsWithSound;
+    QUrl m_videoFileWithJpegThumbnail;
+    QUrl m_videoFileWithPngThumbnail;
     QUrl m_oneRedFrameVideo;
     QUrl m_192x108_PAR_2_3_Video;
     QUrl m_192x108_PAR_3_2_Video;
@@ -291,6 +295,14 @@ void tst_QMediaPlayerBackend::initTestCase()
     mediaCandidates.clear();
     mediaCandidates << "qrc:/testdata/3colors_with_sound_1s.mp4";
     m_localVideoFile3ColorsWithSound = MediaFileSelector::selectMediaFile(mediaCandidates);
+
+    mediaCandidates.clear();
+    mediaCandidates << "qrc:/testdata/audio_video_with_jpg_thumbnail.mp4";
+    m_videoFileWithJpegThumbnail = MediaFileSelector::selectMediaFile(mediaCandidates);
+
+    mediaCandidates.clear();
+    mediaCandidates << "qrc:/testdata/audio_video_with_png_thumbnail.mp4";
+    m_videoFileWithPngThumbnail = MediaFileSelector::selectMediaFile(mediaCandidates);
 
     mediaCandidates.clear();
     mediaCandidates << "qrc:/testdata/BigBuckBunny.mp4";
@@ -2041,30 +2053,66 @@ void tst_QMediaPlayerBackend::surfaceTest()
 
 void tst_QMediaPlayerBackend::metadata()
 {
-    if (m_localFileWithMetadata.isEmpty())
-        QSKIP("No supported media file");
+    QVERIFY(!m_localFileWithMetadata.isEmpty());
 
-    QAudioOutput output;
-    QMediaPlayer player;
-    player.setAudioOutput(&output);
+    m_fixture->player.setSource(m_localFileWithMetadata);
 
-    QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
+    QTRY_VERIFY(m_fixture->metadataChanged.size() > 0);
 
-    player.setSource(m_localFileWithMetadata);
+    const QMediaMetaData metadata = m_fixture->player.metaData();
+    QCOMPARE(metadata.value(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
+    QCOMPARE(metadata.value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
+    QCOMPARE(metadata.value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
+    QCOMPARE(metadata.value(QMediaMetaData::Duration), QVariant(7704));
+    QVERIFY(!metadata.value(QMediaMetaData::ThumbnailImage).value<QImage>().isNull());
+    m_fixture->clearSpies();
 
-    QTRY_VERIFY(metadataChangedSpy.size() > 0);
+    m_fixture->player.setSource(QUrl());
 
-    QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), QStringLiteral("Nokia Tune"));
-    QCOMPARE(player.metaData().value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
-    QCOMPARE(player.metaData().value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
-    QCOMPARE(player.metaData().value(QMediaMetaData::Duration), QVariant(7696));
+    QCOMPARE(m_fixture->metadataChanged.size(), 1);
+    QVERIFY(m_fixture->player.metaData().isEmpty());
+}
 
-    metadataChangedSpy.clear();
+void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail_data()
+{
+    QTest::addColumn<QUrl>("mediaUrl");
+    QTest::addColumn<bool>("hasThumbnail");
+    QTest::addColumn<QSize>("expectedSize");
+    QTest::addColumn<QColor>("expectedColor");
 
-    player.setSource(QUrl());
+    QTest::addRow("jpeg thumbnail") << m_videoFileWithJpegThumbnail << true << QSize{ 20, 28 } << QColor(35, 177, 77);
+    QTest::addRow("png thumbnail") << m_videoFileWithPngThumbnail << true << QSize{ 20, 28 } << QColor(35, 177, 77);
+    QTest::addRow("no thumbnail") << m_localVideoFile3ColorsWithSound << false << QSize{ 0, 0 } << QColor(0, 0, 0);
+}
 
-    QCOMPARE(metadataChangedSpy.size(), 1);
-    QVERIFY(player.metaData().isEmpty());
+void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail()
+{
+    // Arrange
+    QFETCH(const QUrl, mediaUrl);
+    QFETCH(const bool, hasThumbnail);
+    QFETCH(const QSize, expectedSize);
+    QFETCH(const QColor, expectedColor);
+
+    m_fixture->player.setSource(mediaUrl);
+    QTRY_VERIFY(!m_fixture->metadataChanged.empty());
+
+    // Act
+    const QMediaMetaData metadata = m_fixture->player.metaData();
+    const QImage thumbnail = metadata.value(QMediaMetaData::ThumbnailImage).value<QImage>();
+
+    // Assert
+    QCOMPARE_EQ(!thumbnail.isNull(), hasThumbnail);
+    QCOMPARE_EQ(thumbnail.size(), expectedSize);
+
+    if (hasThumbnail) {
+        const QPoint center{ expectedSize.width() / 2, expectedSize.height() / 2 };
+        const auto centerColor = thumbnail.pixelColor(center);
+
+        constexpr int maxChannelDiff = 5;
+        QCOMPARE_LT(std::abs(centerColor.red() - expectedColor.red()), maxChannelDiff);
+        QCOMPARE_LT(std::abs(centerColor.green() - expectedColor.green()), maxChannelDiff);
+        QCOMPARE_LT(std::abs(centerColor.blue() - expectedColor.blue()), maxChannelDiff);
+    }
 }
 
 void tst_QMediaPlayerBackend::playerStateAtEOS()
