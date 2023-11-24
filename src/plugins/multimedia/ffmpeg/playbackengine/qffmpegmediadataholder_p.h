@@ -97,6 +97,7 @@ private:
     StreamIndexes m_requestedStreams = { -1, -1, -1 };
     qint64 m_duration = 0;
     QMediaMetaData m_metaData;
+    std::optional<QImage> m_cachedThumbnail;
 };
 
 } // namespace QFFmpeg
