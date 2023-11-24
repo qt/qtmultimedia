@@ -5,12 +5,16 @@
 #define QVIDEO_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtCore/qmetaobject.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QVideo
 {
+Q_NAMESPACE_EXPORT(Q_MULTIMEDIA_EXPORT)
+
 enum RotationAngle { Rotation0 = 0, Rotation90 = 90, Rotation180 = 180, Rotation270 = 270 };
+Q_ENUM_NS(RotationAngle)
 }
 
 QT_END_NAMESPACE
