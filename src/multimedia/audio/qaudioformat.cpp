@@ -435,7 +435,7 @@ QAudioFormat::ChannelConfig QAudioFormat::defaultChannelConfigForChannelCount(in
     QAudioBuffer.
 
     \value Unknown        Not Set
-    \value UInt8          Samples are unsigned 8 bit signed integers
+    \value UInt8          Samples are 8 bit unsigned integers
     \value Int16          Samples are 16 bit signed integers
     \value Int32          Samples are 32 bit signed integers
     \value Float          Samples are floats
