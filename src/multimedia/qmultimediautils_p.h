@@ -52,6 +52,10 @@ public:
         m_value = std::move(v);
     }
 
+    QMaybe(const QMaybe &other) = default;
+
+    QMaybe &operator=(const QMaybe &other) = default;
+
     QMaybe(const Error& error) : m_error(error) { }
 
     template<class... Args>
@@ -85,7 +89,7 @@ public:
 
 private:
     std::optional<Value> m_value;
-    const Error m_error;
+    Error m_error;
 };
 
 struct Fraction {
