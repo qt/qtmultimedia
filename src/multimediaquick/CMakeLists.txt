@@ -39,7 +39,6 @@ qt_internal_add_qml_module(MultimediaQuickPrivate
         Qt::MultimediaPrivate
         Qt::Quick
         Qt::QuickPrivate
-    GENERATE_CPP_EXPORTS
 )
 
 target_sources(quickmultimedia PRIVATE multimedia_plugin.cpp)

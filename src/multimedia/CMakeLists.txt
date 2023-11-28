@@ -113,7 +113,6 @@ qt_internal_add_module(Multimedia
         Qt::GuiPrivate
     NO_PCH_SOURCES
         compat/removed_api.cpp
-    GENERATE_CPP_EXPORTS
 )
 
 qt_internal_extend_target(Multimedia
