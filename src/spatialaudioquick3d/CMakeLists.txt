@@ -27,7 +27,6 @@ qt_internal_add_qml_module(Quick3DSpatialAudioPrivate
     PUBLIC_LIBRARIES
         Qt::Quick3DPrivate
         Qt::SpatialAudio
-    GENERATE_CPP_EXPORTS
 )
 
 target_sources(quick3dspatialaudio PRIVATE qquick3dspatialaudio_plugin.cpp)

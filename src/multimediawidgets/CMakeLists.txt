@@ -22,7 +22,6 @@ qt_internal_add_module(MultimediaWidgets
     PRIVATE_MODULE_INTERFACE
         Qt::MultimediaPrivate
         Qt::WidgetsPrivate
-    GENERATE_CPP_EXPORTS
 )
 
 ## Scopes:

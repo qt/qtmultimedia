@@ -20,7 +20,6 @@ qt_internal_add_module(SpatialAudio
         Qt::BundledResonanceAudio
     PUBLIC_LIBRARIES
         Qt::Multimedia
-    GENERATE_CPP_EXPORTS
 )
 
 
