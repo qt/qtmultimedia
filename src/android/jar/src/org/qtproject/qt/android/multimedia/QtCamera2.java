@@ -61,6 +61,7 @@ public class QtCamera2 {
     private int mFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
     private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
     private int mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
+    private Rect mZoom = null;
     private QtExifDataHandler mExifDataHandler = null;
 
     native void onCameraOpened(String cameraId);
@@ -330,6 +331,8 @@ public class QtCamera2 {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, mAFMode);
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
+                if (mZoom != null)
+                    mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom);
 
                 mPreviewRequest = mPreviewRequestBuilder.build();
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
@@ -369,6 +372,8 @@ public class QtCamera2 {
                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mCapturedPhotoReader.getSurface());
             captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, mFlashMode);
+            if (mZoom != null)
+                captureBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom);
 
             CameraCaptureSession.CaptureCallback captureCallback
                         = new CameraCaptureSession.CaptureCallback() {
@@ -433,9 +438,9 @@ public class QtCamera2 {
             float zoomRatio = 1/factor;
             int croppedWidth = activePixels.width() - (int)(activePixels.width() * zoomRatio);
             int croppedHeight = activePixels.height() - (int)(activePixels.height() * zoomRatio);
-            Rect zoom = new Rect(croppedWidth/2, croppedHeight/2, activePixels.width() - croppedWidth/2,
+            mZoom = new Rect(croppedWidth/2, croppedHeight/2, activePixels.width() - croppedWidth/2,
                                  activePixels.height() - croppedHeight/2);
-            mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+            mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, mZoom);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
             try {
