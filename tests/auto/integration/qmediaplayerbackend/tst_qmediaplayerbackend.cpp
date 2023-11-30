@@ -117,6 +117,7 @@ private slots:
     void play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
+    void stop_setsPositionToZero_afterPlayingToEndOfMedia();
 
     void playbackRate_returnsOne_byDefault();
     void setPlaybackRate_changesPlaybackRateAndEmitsSignal_data();
@@ -1132,6 +1133,27 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
     QCOMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), qint64(0));
     QVERIFY(m_fixture->player.duration() > 0);
 }
+
+void tst_QMediaPlayerBackend::stop_setsPositionToZero_afterPlayingToEndOfMedia()
+{
+    // Arrange
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
+    m_fixture->player.play();
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+
+    // Act
+    m_fixture->player.stop();
+
+    // Assert
+    QCOMPARE(m_fixture->player.position(), qint64(0));
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+
+    m_fixture->player.play();
+    QVERIFY(m_fixture->surface.waitForFrame().isValid());
+}
+
 
 void tst_QMediaPlayerBackend::playbackRate_returnsOne_byDefault()
 {
