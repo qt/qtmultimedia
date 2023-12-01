@@ -131,7 +131,9 @@ public class QtCamera2 {
             switch (mState) {
                 case STATE_WAITING_LOCK: {
                     Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-                    if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
+                    if (afState == null) {
+                        capturePhoto();
+                    } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
                         CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                         if (aeState == null ||
