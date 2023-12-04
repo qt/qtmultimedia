@@ -252,6 +252,15 @@ Item {
     property alias source:          player.source
 
     /*!
+        \since 6.7
+        \qmlproperty bool Video::autoPlay
+
+        This property controls whether the media begins to play automatically after it gets loaded.
+        Defaults to \c false.
+    */
+    property alias autoPlay:        player.autoPlay
+
+    /*!
         \qmlproperty real Video::volume
 
         This property holds the audio volume.
