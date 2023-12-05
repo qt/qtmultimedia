@@ -40,8 +40,11 @@ class QSGVideoMaterialRhiShader : public QSGMaterialShader
 {
 public:
     QSGVideoMaterialRhiShader(const QVideoFrameFormat &videoFormat,
-                              const QRhiSwapChain::Format surfaceFormat)
-        : m_videoFormat(videoFormat), m_surfaceFormat(surfaceFormat)
+                              const QRhiSwapChain::Format surfaceFormat,
+                              const QRhiSwapChainHdrInfo &hdrInfo)
+        : m_videoFormat(videoFormat)
+        , m_surfaceFormat(surfaceFormat)
+        , m_hdrInfo(hdrInfo)
     {
         setShaderFileName(VertexStage, QVideoTextureHelper::vertexShaderFileName(m_videoFormat));
         setShaderFileName(
@@ -58,6 +61,7 @@ public:
 protected:
     QVideoFrameFormat m_videoFormat;
     QRhiSwapChain::Format m_surfaceFormat;
+    QRhiSwapChainHdrInfo m_hdrInfo;
 };
 
 class QSGVideoMaterial : public QSGMaterial
@@ -71,7 +75,7 @@ public:
     }
 
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {
-        return new QSGVideoMaterialRhiShader(m_videoFormat, m_surfaceFormat);
+        return new QSGVideoMaterialRhiShader(m_videoFormat, m_surfaceFormat, m_hdrInfo);
     }
 
     int compare(const QSGMaterial *other) const override {
@@ -101,11 +105,17 @@ public:
         m_surfaceFormat = surfaceFormat;
     }
 
+    void setHdrInfo(const QRhiSwapChainHdrInfo &hdrInfo)
+    {
+        m_hdrInfo = hdrInfo;
+    }
+
     void updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates);
 
     QVideoFrameFormat m_videoFormat;
     QRhiSwapChain::Format m_surfaceFormat = QRhiSwapChain::SDR;
     float m_opacity = 1.0f;
+    QRhiSwapChainHdrInfo m_hdrInfo;
 
     bool m_texturesDirty = false;
     QVideoFrame m_currentFrame;
@@ -156,8 +166,16 @@ bool QSGVideoMaterialRhiShader::updateUniformData(RenderState &state, QSGMateria
     // updated by this function and we need that already in updateUniformData.
     m->updateTextures(state.rhi(), state.resourceUpdateBatch());
 
-    m_videoFormat.updateUniformData(state.uniformData(), m->m_currentFrame, state.combinedMatrix(),
-                                    state.opacity());
+    float maxNits = 100; // Default to de-facto SDR nits
+    if (m_surfaceFormat == QRhiSwapChain::HDRExtendedSrgbLinear) {
+        if (m_hdrInfo.limitsType == QRhiSwapChainHdrInfo::ColorComponentValue)
+            maxNits = 100 * m_hdrInfo.limits.colorComponentValue.maxColorComponentValue;
+        else
+            maxNits = m_hdrInfo.limits.luminanceInNits.maxLuminance;
+    }
+
+    QVideoTextureHelper::updateUniformData(state.uniformData(), m_videoFormat,
+        m->m_currentFrame, state.combinedMatrix(), state.opacity(), maxNits);
 
     return true;
 }
@@ -204,6 +222,12 @@ void QSGVideoNode::setCurrentFrame(const QVideoFrame &frame)
 void QSGVideoNode::setSurfaceFormat(const QRhiSwapChain::Format surfaceFormat)
 {
     m_material->setSurfaceFormat(surfaceFormat);
+    markDirty(DirtyMaterial);
+}
+
+void QSGVideoNode::setHdrInfo(const QRhiSwapChainHdrInfo &hdrInfo)
+{
+    m_material->setHdrInfo(hdrInfo);
     markDirty(DirtyMaterial);
 }
 
