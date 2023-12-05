@@ -514,8 +514,10 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
                                        qNormalizedOrientation(orientation()));
 
     if (const QQuickWindow *const videoOutputWindow = window()) {
-        if (const QRhiSwapChain *const swapChain = videoOutputWindow->swapChain())
+        if (QRhiSwapChain *const swapChain = videoOutputWindow->swapChain()) {
             videoNode->setSurfaceFormat(swapChain->format());
+            videoNode->setHdrInfo(swapChain->hdrInfo());
+        }
     }
 
     return videoNode;

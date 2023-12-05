@@ -38,6 +38,7 @@ public:
     QVideoFrameFormat::PixelFormat pixelFormat() const { return m_videoFormat.pixelFormat(); }
     void setCurrentFrame(const QVideoFrame &frame);
     void setSurfaceFormat(const QRhiSwapChain::Format surfaceFormat);
+    void setHdrInfo(const QRhiSwapChainHdrInfo &hdrInfo);
 
     void setTexturedRectGeometry(const QRectF &boundingRect, const QRectF &textureRect, int orientation);
 
