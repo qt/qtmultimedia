@@ -16,7 +16,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static constexpr int SinkPeriodTimeMs = 20;
+static constexpr uint SinkPeriodTimeMs = 20;
 
 #define LOW_LATENCY_CATEGORY_NAME "game"
 
@@ -297,9 +297,11 @@ bool QPulseAudioSink::open()
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
 
     const pa_buffer_attr *buffer = pa_stream_get_buffer_attr(m_stream);
-    m_periodTime = SinkPeriodTimeMs;
-    m_periodSize = pa_usec_to_bytes(m_periodTime * 1000, &m_spec);
     m_bufferSize = buffer->tlength;
+
+    // Adjust period time to reduce chance of it being higher than amount of bytes requested by PulseAudio server
+    m_periodTime = qMin(SinkPeriodTimeMs, pa_bytes_to_usec(m_bufferSize, &m_spec) / 1000 / 2);
+    m_periodSize = pa_usec_to_bytes(m_periodTime * 1000, &m_spec);
     m_audioBuffer.resize(buffer->maxlength);
 
     const qint64 streamSize = m_audioSource ? m_audioSource->size() : 0;
@@ -367,6 +369,7 @@ void QPulseAudioSink::close()
     if (m_audioSource) {
         if (m_pullMode) {
             disconnect(m_audioSource, &QIODevice::readyRead, this, nullptr);
+            m_audioSource->reset();
         } else {
             delete m_audioSource;
             m_audioSource = nullptr;
@@ -394,31 +397,37 @@ void QPulseAudioSink::userFeed()
 
     if (m_pullMode) {
         int writableSize = bytesFree();
-        int chunks = writableSize / m_periodSize;
-        if (chunks == 0) {
+
+        if (writableSize == 0)
+        {
+            // PulseAudio server doesn't want any more data
             m_stateMachine.activateFromIdle();
             return;
         }
 
-        const int input = std::min(m_periodSize, static_cast<int>(m_audioBuffer.size()));
+        // Write up to writableSize
+        const int inputSize = std::min({ m_periodSize, static_cast<int>(m_audioBuffer.size()), writableSize });
 
         Q_ASSERT(!m_audioBuffer.empty());
-        int audioBytesPulled = m_audioSource->read(m_audioBuffer.data(), input);
-        Q_ASSERT(audioBytesPulled <= input);
+        int audioBytesPulled = m_audioSource->read(m_audioBuffer.data(), inputSize);
+        Q_ASSERT(audioBytesPulled <= inputSize);
+
         if (audioBytesPulled > 0) {
-            if (audioBytesPulled > input) {
+            if (audioBytesPulled > inputSize) {
                 qCWarning(qLcPulseAudioOut)
                         << "Invalid audio data size provided by pull source:" << audioBytesPulled
-                        << "should be less than" << input;
-                audioBytesPulled = input;
+                        << "should be less than" << inputSize;
+                audioBytesPulled = inputSize;
             }
             auto bytesWritten = write(m_audioBuffer.data(), audioBytesPulled);
             if (bytesWritten != audioBytesPulled)
-                qWarning() << "Unfinished write should not happen since the data provided is "
-                              "less than writableSize:"
+                qWarning() << "Unfinished write:"
                            << bytesWritten << "vs" << audioBytesPulled;
 
-            if (chunks > 1) {
+            m_stateMachine.activateFromIdle();
+
+            if (inputSize < writableSize)
+            {
                 // PulseAudio needs more data. Ask for it immediately.
                 QMetaObject::invokeMethod(this, &QPulseAudioSink::userFeed, Qt::QueuedConnection);
             }
