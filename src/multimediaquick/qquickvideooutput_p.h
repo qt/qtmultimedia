@@ -111,7 +111,7 @@ private:
 
     QPointer<QQuickWindow> m_window;
     QVideoSink *m_sink = nullptr;
-    QVideoFrameFormat m_surfaceFormat;
+    QVideoFrameFormat m_videoFormat;
 
     QList<QVideoFrame> m_videoFrameQueue;
     QVideoFrame m_frame;
