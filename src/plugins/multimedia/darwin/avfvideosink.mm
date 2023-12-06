@@ -83,7 +83,11 @@ void AVFVideoSinkInterface::setVideoSink(AVFVideoSink *sink)
     if (sink == m_sink)
         return;
 
+    if (m_sink)
+        m_sink->setVideoSinkInterface(nullptr);
+
     m_sink = sink;
+
     if (m_sink) {
         m_sink->setVideoSinkInterface(this);
         reconfigure();
