@@ -57,7 +57,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
-        FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil
 )
 
 if(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
@@ -75,7 +74,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_OPENSSL_S
 
 if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
     if (QT_FEATURE_vaapi AND NOT DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
-        if (FFMPEG_IS_STATIC)
+        if (NOT FFMPEG_SHARED_LIBRARIES)
             message(WARNING
                    "QT_FEATURE_vaapi is found but statically built ffmpeg doesn't include vaapi,"
                    "however dynamic symbols resolve is possible.")
@@ -242,3 +241,17 @@ if (ANDROID)
         android.permission.MODIFY_AUDIO_SETTINGS
     )
 endif()
+
+# TODO: get libs from FindFFmpeg.cmake
+set(ffmpeg_libs FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil)
+
+if (QT_DEPLOY_FFMPEG AND NOT BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "QT_DEPLOY_FFMPEG is not implemented yet for static builds")
+endif()
+
+if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND BUILD_SHARED_LIBS)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtDeployFFmpeg.cmake")
+    qt_internal_multimedia_copy_or_install_ffmpeg()
+endif()
+
+qt_internal_extend_target(QFFmpegMediaPlugin LIBRARIES ${ffmpeg_libs})
