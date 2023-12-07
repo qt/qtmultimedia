@@ -18,6 +18,8 @@
 #include <mfidl.h>
 #include <private/qcomobject_p.h>
 
+QT_BEGIN_NAMESPACE
+
 namespace QtPrivate {
 
 template <>
@@ -194,5 +196,7 @@ protected:
 private:
     IMFAttributes *m_attributes = nullptr;
 };
+
+QT_END_NAMESPACE
 
 #endif // MFACTIVATE_H
