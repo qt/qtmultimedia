@@ -15,8 +15,6 @@
 // We mean it.
 //
 
-#include <qthread.h>
-
 #include "qvideoframe.h"
 #include "private/qplatformsurfacecapture_p.h"
 
@@ -25,7 +23,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QTimer;
+class QThread;
 
 static constexpr qreal DefaultScreenCaptureFrameRate = 60.;
 
@@ -36,14 +34,15 @@ static constexpr qreal DefaultScreenCaptureFrameRate = 60.;
 static constexpr qreal MaxScreenCaptureFrameRate = 60.;
 static constexpr qreal MinScreenCaptureFrameRate = 1.;
 
-class QFFmpegSurfaceCaptureThread : public QThread
+class QFFmpegSurfaceCaptureThread : public QObject
 {
     Q_OBJECT
 public:
-    QFFmpegSurfaceCaptureThread();
+    QFFmpegSurfaceCaptureThread(bool runInThread = true);
 
     ~QFFmpegSurfaceCaptureThread() override;
 
+    void start();
     void stop();
 
     template<typename Object, typename Method>
@@ -58,23 +57,29 @@ signals:
     void errorUpdated(QPlatformSurfaceCapture::Error error, const QString &description);
 
 protected:
-    void run() override;
-
     void updateError(QPlatformSurfaceCapture::Error error, const QString &description = {});
 
     virtual QVideoFrame grabFrame() = 0;
 
-protected:
     void setFrameRate(qreal rate);
 
     qreal frameRate() const;
 
     void updateTimerInterval();
 
+    virtual void initializeGrabbingContext();
+    virtual void finalizeGrabbingContext();
+
+    bool isGrabbingContextInitialized() const;
+
 private:
+    struct GrabbingContext;
+    class GrabbingThread;
+
+    std::unique_ptr<GrabbingContext> m_context;
     qreal m_rate = 0;
-    std::unique_ptr<QTimer> m_timer;
     std::optional<QPlatformSurfaceCapture::Error> m_prevError;
+    std::unique_ptr<QThread> m_thread;
 };
 
 QT_END_NAMESPACE

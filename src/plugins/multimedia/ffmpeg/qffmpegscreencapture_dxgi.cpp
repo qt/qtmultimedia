@@ -21,6 +21,8 @@
 #include <thread>
 #include <chrono>
 
+#include <mutex> // std::scoped_lock
+
 QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcScreenCaptureDxgi, "qt.multimedia.ffmpeg.screencapturedxgi")
@@ -367,18 +369,6 @@ public:
         stop();
     }
 
-    void run() override
-    {
-        m_duplication = DxgiDuplication();
-        const ComStatus status = m_duplication.initialize(m_screen);
-        if (!status) {
-            updateError(CaptureFailed, status.str());
-            return;
-        }
-
-        QFFmpegSurfaceCaptureThread::run();
-    }
-
     QVideoFrameFormat format() {
         return m_format;
     }
@@ -423,6 +413,19 @@ public:
         }
 
         return frame;
+    }
+
+  protected:
+    void initializeGrabbingContext() override
+    {
+        m_duplication = DxgiDuplication();
+        const ComStatus status = m_duplication.initialize(m_screen);
+        if (!status) {
+            updateError(CaptureFailed, status.str());
+            return;
+        }
+
+        QFFmpegSurfaceCaptureThread::initializeGrabbingContext();
     }
 
 private:
