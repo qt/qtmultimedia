@@ -30,6 +30,7 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 
 #include "qvideoframe.h"
 #include <qwindow.h>
+#include <qthread.h>
 #include <qloggingcategory.h>
 #include <qguiapplication.h>
 #include <private/qmultimediautils_p.h>
@@ -280,6 +281,7 @@ private:
         return texture.as<IDXGISurface>();
     }
 
+    MultithreadedApartment m_comApartment{};
     HWND m_captureWindow{};
     winrt::Windows::Graphics::SizeInt32 m_frameSize{};
     com_ptr<ID3D11Device> m_device;
@@ -317,19 +319,15 @@ public:
 
 protected:
 
-    void run() override
+    void initializeGrabbingContext() override
     {
         if (!m_adapter || !IsWindow(m_hwnd))
             return; // Error already logged
 
         try {
-            MultithreadedApartment comApartment;
-
             m_windowGrabber = std::make_unique<WindowGrabber>(m_adapter.get(), m_hwnd);
 
-            QFFmpegSurfaceCaptureThread::run();
-
-            m_windowGrabber = nullptr;
+            QFFmpegSurfaceCaptureThread::initializeGrabbingContext();
         } catch (const winrt::hresult_error &err) {
 
             const QString message = QLatin1String("Unable to capture window: ")
@@ -337,6 +335,12 @@ protected:
 
             updateError(InternalError, message);
         }
+    }
+
+    void finalizeGrabbingContext() override
+    {
+        QFFmpegSurfaceCaptureThread::finalizeGrabbingContext();
+        m_windowGrabber = nullptr;
     }
 
     QVideoFrame grabFrame() override
