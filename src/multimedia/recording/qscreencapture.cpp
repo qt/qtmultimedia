@@ -189,7 +189,7 @@ QScreen *QScreenCapture::screen() const
 }
 
 /*!
-    \qmlproperty string QtMultimedia::ScreenCapture::error
+    \qmlproperty enumeration QtMultimedia::ScreenCapture::error
     Returns a code of the last error.
 */
 
