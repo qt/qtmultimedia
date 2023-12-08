@@ -1503,6 +1503,9 @@ void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEve
         case MF_E_MEDIAPROC_WRONGSTATE:
             error(QMediaPlayer::ResourceError, tr("Media session state error."), true);
             break;
+        case MF_E_INVALID_STREAM_DATA:
+            error(QMediaPlayer::ResourceError, tr("Invalid stream data."), true);
+            break;
         default:
             error(QMediaPlayer::ResourceError, tr("Media session serious error."), true);
             break;
