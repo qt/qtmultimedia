@@ -185,7 +185,8 @@ public:
     void onReadSample(HRESULT status, LONGLONG timestamp, IMFSample *sample)
     {
         if (FAILED(status)) {
-            emit m_windowsCamera.error(int(status), std::system_category().message(status).c_str());
+            const std::string msg{ std::system_category().message(status) };
+            emit m_windowsCamera.error(QCamera::CameraError, QString::fromStdString(msg));
             return;
         }
 
