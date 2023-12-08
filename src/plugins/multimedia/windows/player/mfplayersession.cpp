@@ -26,7 +26,6 @@
 #include <nserror.h>
 #include <winerror.h>
 #include "sourceresolver_p.h"
-#include "samplegrabber_p.h"
 #include "mftvideo_p.h"
 #include <wmcodecdsp.h>
 
@@ -65,7 +64,6 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     m_request.prevCmd = CmdNone;
     m_request.rate = 1.0f;
 
-    m_audioSampleGrabber = makeComObject<AudioSampleGrabberCallback>();
     m_videoRendererControl = new MFVideoRendererControl(this);
 }
 
@@ -341,17 +339,10 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
                         ComPtr<IMFTopologyNode> outputNode =
                                 addOutputNode(mediaType, topology.Get(), 0);
                         if (outputNode) {
-                            bool connected = false;
-                            if (mediaType == Audio) {
-                                if (!m_audioSampleGrabberNode)
-                                    connected = setupAudioSampleGrabber(
-                                            topology.Get(), sourceNode.Get(), outputNode.Get());
-                            }
                             sourceNode->GetTopoNodeID(&m_trackInfo[trackType].sourceNodeId);
                             outputNode->GetTopoNodeID(&m_trackInfo[trackType].outputNodeId);
 
-                            if (!connected)
-                                hr = sourceNode->ConnectOutput(0, outputNode.Get(), 0);
+                            hr = sourceNode->ConnectOutput(0, outputNode.Get(), 0);
 
                             if (FAILED(hr)) {
                                 error(QMediaPlayer::FormatError, tr("Unable to play any stream."), false);
@@ -476,88 +467,6 @@ ComPtr<IMFTopologyNode> MFPlayerSession::addOutputNode(MediaType mediaType, IMFT
         activate.Reset();
 
     return node;
-}
-
-bool MFPlayerSession::addAudioSampleGrabberNode(IMFTopology *topology)
-{
-    HRESULT hr = S_OK;
-    do {
-        ComPtr<IMFMediaType> pType;
-        ComPtr<IMFActivate> sinkActivate;
-
-        hr = MFCreateMediaType(&pType);
-        if (FAILED(hr))
-            break;
-
-        hr = pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
-        if (FAILED(hr))
-            break;
-
-        hr = pType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
-        if (FAILED(hr))
-            break;
-
-        hr = MFCreateSampleGrabberSinkActivate(pType.Get(), m_audioSampleGrabber.Get(),
-                                               &sinkActivate);
-        if (FAILED(hr))
-            break;
-
-        // Note: Data is distorted if this attribute is enabled
-        hr = sinkActivate->SetUINT32(MF_SAMPLEGRABBERSINK_IGNORE_CLOCK, FALSE);
-        if (FAILED(hr))
-            break;
-
-        hr = MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, &m_audioSampleGrabberNode);
-        if (FAILED(hr))
-            break;
-
-        hr = m_audioSampleGrabberNode->SetObject(sinkActivate.Get());
-        if (FAILED(hr))
-            break;
-
-        hr = m_audioSampleGrabberNode->SetUINT32(MF_TOPONODE_STREAMID, 0); // Identifier of the stream sink.
-        if (FAILED(hr))
-            break;
-
-        hr = m_audioSampleGrabberNode->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-        if (FAILED(hr))
-            break;
-
-        hr = topology->AddNode(m_audioSampleGrabberNode.Get());
-        if (FAILED(hr))
-            break;
-
-        return true;
-    } while (false);
-
-    m_audioSampleGrabberNode.Reset();
-    return false;
-}
-
-bool MFPlayerSession::setupAudioSampleGrabber(IMFTopology *topology, IMFTopologyNode *sourceNode, IMFTopologyNode *outputNode)
-{
-    if (!addAudioSampleGrabberNode(topology))
-        return false;
-
-    HRESULT hr = S_OK;
-    do {
-        ComPtr<IMFTopologyNode> pTeeNode;
-
-        hr = MFCreateTopologyNode(MF_TOPOLOGY_TEE_NODE, &pTeeNode);
-        if (FAILED(hr))
-            break;
-        hr = sourceNode->ConnectOutput(0, pTeeNode.Get(), 0);
-        if (FAILED(hr))
-            break;
-        hr = pTeeNode->ConnectOutput(0, outputNode, 0);
-        if (FAILED(hr))
-            break;
-        hr = pTeeNode->ConnectOutput(1, m_audioSampleGrabberNode.Get(), 0);
-        if (FAILED(hr))
-            break;
-    } while (false);
-
-    return hr == S_OK;
 }
 
 // BindOutputNode
@@ -1576,23 +1485,6 @@ void MFPlayerSession::handleSessionEvent(const ComPtr<IMFMediaEvent> &sessionEve
             changeStatus(QMediaPlayer::InvalidMedia);
             error(QMediaPlayer::FormatError, tr("Unsupported media, a codec is missing."), true);
         } else {
-            if (m_audioSampleGrabberNode) {
-                ComPtr<IUnknown> obj;
-                if (SUCCEEDED(m_audioSampleGrabberNode->GetObject(&obj))) {
-                    ComPtr<IMFStreamSink> streamSink;
-                    if (SUCCEEDED(obj->QueryInterface(IID_PPV_ARGS(&streamSink)))) {
-                        ComPtr<IMFMediaTypeHandler> typeHandler;
-                        if (SUCCEEDED(streamSink->GetMediaTypeHandler((&typeHandler)))) {
-                            ComPtr<IMFMediaType> mediaType;
-                            if (SUCCEEDED(typeHandler->GetCurrentMediaType(&mediaType))) {
-                                m_audioSampleGrabber->setFormat(
-                                        QWindowsAudioUtils::mediaTypeToFormat(mediaType.Get()));
-                            }
-                        }
-                    }
-                }
-            }
-
             // Topology is resolved and successfuly set, this happens only after loading a new media.
             // Make sure we always start the media from the beginning
             m_lastPosition = -1;
@@ -1766,7 +1658,6 @@ void MFPlayerSession::clear()
     m_rateSupport.Reset();
     m_volumeControl.Reset();
     m_netsourceStatistics.Reset();
-    m_audioSampleGrabberNode.Reset();
 }
 
 void MFPlayerSession::setAudioOutput(QPlatformAudioOutput *device)
