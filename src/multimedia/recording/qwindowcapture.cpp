@@ -210,7 +210,7 @@ void QWindowCapture::setActive(bool active)
 
 
 /*!
-    \qmlproperty string QtMultimedia::WindowCapture::error
+    \qmlproperty enumeration QtMultimedia::WindowCapture::error
     Returns a code of the last error.
 */
 
