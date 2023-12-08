@@ -225,12 +225,7 @@ private:
                                           IMFStreamDescriptor *streamDesc);
     ComPtr<IMFTopologyNode> addOutputNode(MediaType mediaType, IMFTopology *topology, DWORD sinkID);
 
-    bool addAudioSampleGrabberNode(IMFTopology* topology);
-    bool setupAudioSampleGrabber(IMFTopology *topology, IMFTopologyNode *sourceNode, IMFTopologyNode *outputNode);
     QAudioFormat audioFormatForMFMediaType(IMFMediaType *mediaType) const;
-    // ### Below can be used to monitor the audio channel. Currently unused.
-    ComPtr<AudioSampleGrabberCallback> m_audioSampleGrabber;
-    ComPtr<IMFTopologyNode> m_audioSampleGrabberNode;
 
     ComPtr<IMFTopology> insertMFT(const ComPtr<IMFTopology> &topology, TOPOID outputNodeId);
     bool insertResizer(IMFTopology *topology);
