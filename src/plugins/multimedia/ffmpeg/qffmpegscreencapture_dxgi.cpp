@@ -7,7 +7,7 @@
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qmultimediautils_p.h>
 #include <private/qwindowsmultimediautils_p.h>
-#include <qpa/qplatformscreen_p.h>
+#include <qtgui/qscreen_platform.h>
 #include "qvideoframe.h"
 
 #include <qloggingcategory.h>
@@ -285,7 +285,7 @@ private:
         if (!screen)
             return { unexpect, E_FAIL, "Cannot find nullptr screen"_L1 };
 
-        auto *winScreen = screen->nativeInterface<QNativeInterface::Private::QWindowsScreen>();
+        auto *winScreen = screen->nativeInterface<QNativeInterface::QWindowsScreen>();
         HMONITOR handle = winScreen ? winScreen->handle() : nullptr;
 
         ComPtr<IDXGIFactory1> factory;
@@ -320,7 +320,7 @@ private:
 
 QSize getPhysicalSizePixels(const QScreen *screen)
 {
-    const auto *winScreen = screen->nativeInterface<QNativeInterface::Private::QWindowsScreen>();
+    const auto *winScreen = screen->nativeInterface<QNativeInterface::QWindowsScreen>();
     if (!winScreen)
         return {};
 
