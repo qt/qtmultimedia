@@ -3,7 +3,7 @@
 
 #include "qcgwindowcapture_p.h"
 #include "private/qcapturablewindow_p.h"
-#include "qffmpegsurfacecapturethread_p.h"
+#include "qffmpegsurfacecapturegrabber_p.h"
 #include "private/qabstractvideobuffer_p.h"
 
 #include "qscreen.h"
@@ -73,7 +73,7 @@ private:
     size_t m_bytesPerLine = 0;
 };
 
-class QCGWindowCapture::Grabber : public QFFmpegSurfaceCaptureThread
+class QCGWindowCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
 public:
     Grabber(QCGWindowCapture &capture, CGWindowID wid) : m_capture(capture), m_wid(wid)

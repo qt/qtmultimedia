@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qx11surfacecapture_p.h"
-#include "qffmpegsurfacecapturethread_p.h"
+#include "qffmpegsurfacecapturegrabber_p.h"
 
 #include <qvideoframe.h>
 #include <qscreen.h>
@@ -83,7 +83,7 @@ QVideoFrameFormat::PixelFormat xImagePixelFormat(const XImage &image)
 
 } // namespace
 
-class QX11SurfaceCapture::Grabber : private QFFmpegSurfaceCaptureThread
+class QX11SurfaceCapture::Grabber : private QFFmpegSurfaceCaptureGrabber
 {
 public:
     static std::unique_ptr<Grabber> create(QX11SurfaceCapture &capture, QScreen *screen)
