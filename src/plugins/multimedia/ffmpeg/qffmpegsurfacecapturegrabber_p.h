@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QFFMPEGSURFACECAPTURETHREAD_P_H
-#define QFFMPEGSURFACECAPTURETHREAD_P_H
+#ifndef QFFMPEGSURFACECAPTUREGRABBER_P_H
+#define QFFMPEGSURFACECAPTUREGRABBER_P_H
 
 //
 //  W A R N I N G
@@ -34,13 +34,13 @@ static constexpr qreal DefaultScreenCaptureFrameRate = 60.;
 static constexpr qreal MaxScreenCaptureFrameRate = 60.;
 static constexpr qreal MinScreenCaptureFrameRate = 1.;
 
-class QFFmpegSurfaceCaptureThread : public QObject
+class QFFmpegSurfaceCaptureGrabber : public QObject
 {
     Q_OBJECT
 public:
-    QFFmpegSurfaceCaptureThread(bool runInThread = true);
+    QFFmpegSurfaceCaptureGrabber(bool runInThread = true);
 
-    ~QFFmpegSurfaceCaptureThread() override;
+    ~QFFmpegSurfaceCaptureGrabber() override;
 
     void start();
     void stop();
@@ -48,7 +48,7 @@ public:
     template<typename Object, typename Method>
     void addFrameCallback(Object &object, Method method)
     {
-        connect(this, &QFFmpegSurfaceCaptureThread::frameGrabbed,
+        connect(this, &QFFmpegSurfaceCaptureGrabber::frameGrabbed,
                 &object, method, Qt::DirectConnection);
     }
 
@@ -84,4 +84,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // QFFMPEGSURFACECAPTURETHREAD_P_H
+#endif // QFFMPEGSURFACECAPTUREGRABBER_P_H

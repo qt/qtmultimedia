@@ -4,7 +4,7 @@
 #include "qgdiwindowcapture_p.h"
 
 #include "qvideoframe.h"
-#include "qffmpegsurfacecapturethread_p.h"
+#include "qffmpegsurfacecapturegrabber_p.h"
 #include "private/qcapturablewindow_p.h"
 #include "private/qmemoryvideobuffer_p.h"
 
@@ -15,7 +15,7 @@ static Q_LOGGING_CATEGORY(qLcGdiWindowCapture, "qt.multimedia.ffmpeg.gdiwindowca
 
 QT_BEGIN_NAMESPACE
 
-class QGdiWindowCapture::Grabber : public QFFmpegSurfaceCaptureThread
+class QGdiWindowCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
 public:
     static std::unique_ptr<Grabber> create(QGdiWindowCapture &capture, HWND hWnd)

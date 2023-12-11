@@ -3,7 +3,7 @@
 
 #include "qavfscreencapture_p.h"
 #include "qavfsamplebufferdelegate_p.h"
-#include "qffmpegsurfacecapturethread_p.h"
+#include "qffmpegsurfacecapturegrabber_p.h"
 
 #include <qscreen.h>
 
