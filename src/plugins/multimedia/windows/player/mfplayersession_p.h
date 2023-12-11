@@ -230,8 +230,6 @@ private:
     ComPtr<IMFTopology> insertMFT(const ComPtr<IMFTopology> &topology, TOPOID outputNodeId);
     bool insertResizer(IMFTopology *topology);
     void insertColorConverter(IMFTopology *topology, TOPOID outputNodeId);
-    // ### Below can be used to monitor the video channel. Functionality currently unused.
-    ComPtr<MFTransform> m_videoProbeMFT;
 
     QTimer m_signalPositionChangeTimer;
     qint64 m_lastPosition = -1;

@@ -15,7 +15,6 @@
 #include "qaudiooutput.h"
 
 #include "mfplayercontrol_p.h"
-#include "mfevrvideowindowcontrol_p.h"
 #include "mfvideorenderercontrol_p.h"
 #include <mfmetadata_p.h>
 #include <private/qwindowsmfdefs_p.h>
@@ -26,7 +25,6 @@
 #include <nserror.h>
 #include <winerror.h>
 #include "sourceresolver_p.h"
-#include "mftvideo_p.h"
 #include <wmcodecdsp.h>
 
 #include <mmdeviceapi.h>
@@ -121,7 +119,6 @@ void MFPlayerSession::close()
             m_sourceResolver->shutdown();
     }
     m_sourceResolver.Reset();
-    m_videoProbeMFT.Reset();
 
     m_videoRendererControl->releaseActivate();
 //    } else if (m_playerService->videoWindowControl()) {
@@ -579,71 +576,6 @@ ComPtr<IMFTopology> MFPlayerSession::insertMFT(const ComPtr<IMFTopology> &topolo
 
         if (insertResizer(resolvedTopology.Get()))
             isNewTopology = true;
-
-        // Get all output nodes and search for video output node.
-        if (FAILED(resolvedTopology->GetOutputNodeCollection(&outputNodes)))
-            break;
-
-        DWORD elementCount = 0;
-        if (FAILED(outputNodes->GetElementCount(&elementCount)))
-            break;
-
-        for (DWORD n = 0; n < elementCount; n++) {
-            ComPtr<IUnknown> element;
-            ComPtr<IMFTopologyNode> node;
-            ComPtr<IUnknown> outputObject;
-            ComPtr<IMFTopologyNode> inputNode;
-            ComPtr<IMFTopologyNode> mftNode;
-            bool mftAdded = false;
-
-            do {
-                if (FAILED(outputNodes->GetElement(n, &element)))
-                    break;
-
-                if (FAILED(element->QueryInterface(IID_IMFTopologyNode, &node)))
-                    break;
-
-                TOPOID id;
-                if (FAILED(node->GetTopoNodeID(&id)))
-                    break;
-
-                if (id != outputNodeId)
-                    break;
-
-                if (FAILED(node->GetObject(&outputObject)))
-                    break;
-
-                m_videoProbeMFT->setVideoSink(outputObject.Get());
-
-                // Insert MFT between the output node and the node connected to it.
-                DWORD outputIndex = 0;
-                if (FAILED(node->GetInput(0, &inputNode, &outputIndex)))
-                    break;
-
-                if (FAILED(MFCreateTopologyNode(MF_TOPOLOGY_TRANSFORM_NODE, &mftNode)))
-                    break;
-
-                if (FAILED(mftNode->SetObject(m_videoProbeMFT.Get())))
-                    break;
-
-                if (FAILED(resolvedTopology->AddNode(mftNode.Get())))
-                    break;
-
-                if (FAILED(inputNode->ConnectOutput(0, mftNode.Get(), 0)))
-                    break;
-
-                if (FAILED(mftNode->ConnectOutput(0, node.Get(), 0)))
-                    break;
-
-                mftAdded = true;
-                isNewTopology = true;
-            } while (false);
-
-            if (mftAdded)
-                break;
-            else
-                m_videoProbeMFT->setVideoSink(NULL);
-        }
     } while (false);
 
     if (isNewTopology) {
@@ -934,10 +866,6 @@ bool MFPlayerSession::createSession()
                      &MFPlayerSession::handleMediaSourceReady);
     QObject::connect(m_sourceResolver.Get(), &SourceResolver::error, this,
                      &MFPlayerSession::handleSourceError);
-
-    m_videoProbeMFT = makeComObject<MFTransform>();
-    //    for (int i = 0; i < m_videoProbes.size(); ++i)
-    //        m_videoProbeMFT->addProbe(m_videoProbes.at(i));
 
     m_position = 0;
     return true;
