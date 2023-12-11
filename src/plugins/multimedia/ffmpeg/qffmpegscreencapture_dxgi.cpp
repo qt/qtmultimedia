@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
 #include "qffmpegscreencapture_dxgi_p.h"
-#include "qffmpegsurfacecapturethread_p.h"
+#include "qffmpegsurfacecapturegrabber_p.h"
 #include <private/qabstractvideobuffer_p.h>
 #include <private/qmultimediautils_p.h>
 #include <private/qwindowsmultimediautils_p.h>
@@ -351,7 +351,7 @@ QVideoFrameFormat getFrameFormat(QScreen* screen)
 
 } // namespace
 
-class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegSurfaceCaptureThread
+class QFFmpegScreenCaptureDxgi::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
 public:
     Grabber(QFFmpegScreenCaptureDxgi &screenCapture, QScreen *screen,
@@ -424,7 +424,7 @@ public:
             return;
         }
 
-        QFFmpegSurfaceCaptureThread::initializeGrabbingContext();
+        QFFmpegSurfaceCaptureGrabber::initializeGrabbingContext();
     }
 
 private:
