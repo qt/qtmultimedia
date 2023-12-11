@@ -1461,17 +1461,8 @@ void EVRCustomPresenter::processOutputLoop()
 
 HRESULT EVRCustomPresenter::processOutput()
 {
-    HRESULT hr = S_OK;
-    DWORD status = 0;
-    LONGLONG mixerStartTime = 0, mixerEndTime = 0;
-    MFTIME systemTime = 0;
-
-    MFT_OUTPUT_DATA_BUFFER dataBuffer;
-    ZeroMemory(&dataBuffer, sizeof(dataBuffer));
-
     // If the clock is not running, we present the first sample,
     // and then don't present any more until the clock starts.
-
     if ((m_renderState != RenderStarted) && m_prerolled)
         return S_FALSE;
 
@@ -1487,17 +1478,21 @@ HRESULT EVRCustomPresenter::processOutput()
     // From now on, we have a valid video sample pointer, where the mixer will
     // write the video data.
 
+    LONGLONG mixerStartTime = 0, mixerEndTime = 0;
+    MFTIME systemTime = 0;
+
     if (m_clock) {
         // Latency: Record the starting time for ProcessOutput.
         m_clock->GetCorrelatedTime(0, &mixerStartTime, &systemTime);
     }
 
     // Now we are ready to get an output sample from the mixer.
-    dataBuffer.dwStreamID = 0;
+    DWORD status = 0;
+    MFT_OUTPUT_DATA_BUFFER dataBuffer = {};
     dataBuffer.pSample = sample.Get();
-    dataBuffer.dwStatus = 0;
-
-    hr = m_mixer->ProcessOutput(0, 1, &dataBuffer, &status);
+    HRESULT hr = m_mixer->ProcessOutput(0, 1, &dataBuffer, &status);
+    // Important: Release any events returned from the ProcessOutput method.
+    qt_evr_safe_release(&dataBuffer.pEvents);
 
     if (FAILED(hr)) {
         // Return the sample to the pool.
@@ -1515,43 +1510,37 @@ HRESULT EVRCustomPresenter::processOutput()
             // We have to wait for the mixer to get more input.
             m_sampleNotify = false;
         }
-    } else {
-        // We got an output sample from the mixer.
 
-        if (m_clock) {
-            // Latency: Record the ending time for the ProcessOutput operation,
-            // and notify the EVR of the latency.
-
-            m_clock->GetCorrelatedTime(0, &mixerEndTime, &systemTime);
-
-            LONGLONG latencyTime = mixerEndTime - mixerStartTime;
-            notifyEvent(EC_PROCESSING_LATENCY, reinterpret_cast<LONG_PTR>(&latencyTime), 0);
-        }
-
-        // Set up notification for when the sample is released.
-        hr = trackSample(sample);
-        if (FAILED(hr))
-            goto done;
-
-        // Schedule the sample.
-        if (m_frameStep.state == FrameStepNone) {
-            hr = deliverSample(sample);
-            if (FAILED(hr))
-                goto done;
-        } else {
-            // We are frame-stepping
-            hr = deliverFrameStepSample(sample);
-            if (FAILED(hr))
-                goto done;
-        }
-
-        m_prerolled = true; // We have presented at least one sample now.
+        return hr;
     }
 
-done:
-    // Important: Release any events returned from the ProcessOutput method.
-    qt_evr_safe_release(&dataBuffer.pEvents);
-    return hr;
+    // We got an output sample from the mixer.
+    if (m_clock) {
+        // Latency: Record the ending time for the ProcessOutput operation,
+        // and notify the EVR of the latency.
+
+        m_clock->GetCorrelatedTime(0, &mixerEndTime, &systemTime);
+
+        LONGLONG latencyTime = mixerEndTime - mixerStartTime;
+        notifyEvent(EC_PROCESSING_LATENCY, reinterpret_cast<LONG_PTR>(&latencyTime), 0);
+    }
+
+    // Set up notification for when the sample is released.
+    hr = trackSample(sample);
+    if (FAILED(hr))
+        return hr;
+
+    // Schedule the sample.
+    if (m_frameStep.state == FrameStepNone)
+        hr = deliverSample(sample);
+    else // We are frame-stepping
+        hr = deliverFrameStepSample(sample);
+
+    if (FAILED(hr))
+        return hr;
+
+    m_prerolled = true; // We have presented at least one sample now.
+    return S_OK;
 }
 
 HRESULT EVRCustomPresenter::deliverSample(const ComPtr<IMFSample> &sample)
