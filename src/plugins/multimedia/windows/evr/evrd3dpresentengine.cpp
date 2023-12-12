@@ -152,13 +152,11 @@ public:
         if (!dev)
             return {};
 
-        ComPtr<ID3D11Texture2D> sampleTexture;
-        HRESULT hr = dev->OpenSharedResource(m_sharedHandle, IID_PPV_ARGS(&sampleTexture));
-
+        ComPtr<ID3D11Texture2D> d3d11tex;
+        HRESULT hr = dev->OpenSharedResource(m_sharedHandle, __uuidof(ID3D11Texture2D), (void**)(d3d11tex.GetAddressOf()));
         if (SUCCEEDED(hr)) {
-
             D3D11_TEXTURE2D_DESC desc = {};
-            sampleTexture->GetDesc(&desc);
+            d3d11tex->GetDesc(&desc);
             QRhiTexture::Format format;
             if (desc.Format == DXGI_FORMAT_B8G8R8A8_UNORM)
                 format = QRhiTexture::BGRA8;
@@ -167,23 +165,9 @@ public:
             else
                 return {};
 
-            // Copy the media sample's texture to a local texture to prevent
-            // WMF from overwriting the texture before it has been presented.
-            // This can result in a texture allocation per frame, but D3D seems
-            // to be good at hiding this overhead. It is not unlikely that
-            // D3D already uses internal caches to reduce the allocation cost.
-            ComPtr<ID3D11Texture2D> frameTexture;
-            hr = dev->CreateTexture2D(&desc, nullptr, frameTexture.GetAddressOf());
-            if (hr != S_OK)
-                return {};
-
-            ComPtr<ID3D11DeviceContext> context;
-            dev->GetImmediateContext(context.GetAddressOf());
-            context->CopyResource(frameTexture.Get(), sampleTexture.Get());
-
             std::unique_ptr<QRhiTexture> tex(rhi->newTexture(format, QSize{int(desc.Width), int(desc.Height)}, 1, {}));
-            tex->createFrom({ quint64(frameTexture.Get()), 0 });
-            return std::make_unique<QVideoFrameD3D11Textures>(std::move(tex), std::move(frameTexture));
+            tex->createFrom({quint64(d3d11tex.Get()), 0});
+            return std::make_unique<QVideoFrameD3D11Textures>(std::move(tex), std::move(d3d11tex));
 
         } else {
             qCDebug(qLcEvrD3DPresentEngine) << "Failed to obtain D3D11Texture2D from D3D9Texture2D handle";
