@@ -30,6 +30,19 @@ QT_BEGIN_NAMESPACE
     from the system, it will update the corresponding device list and emit a signal
     notifying about the change.
 
+    The QMediaDevices::audioInputs and QMediaDevices::audioOutputs functions can be used
+    to enumerate all microphones and speakers/headsets on the system. This example first
+    gets a list of all connected microphones, and then prints their identifier, description,
+    and if it is the default device or not.
+
+    \snippet multimedia-snippets/devices.cpp Media Audio Input Device Enumeration
+
+    Similarly, the QMediaDevices::videoInputs will return a list of all connected cameras.
+    In this example we list all connected cameras and their identifier, description, and
+    if it is the default camera or not.
+
+    \snippet multimedia-snippets/devices.cpp Media Video Input Device Enumeration
+
     QMediaDevices monitors the system defaults for each device group. It will notify about
     any changes done through the system settings. For example, if the user selects a new
     default audio output in the system settings, QMediaDevices will update the default audio
