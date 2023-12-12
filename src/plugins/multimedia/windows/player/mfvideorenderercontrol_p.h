@@ -18,8 +18,7 @@
 #include <qobject.h>
 #include <qpointer.h>
 #include <qrect.h>
-#include <mfapi.h>
-#include <mfidl.h>
+#include <mfobjects.h>
 
 QT_BEGIN_NAMESPACE
 class EVRCustomPresenterActivate;
@@ -27,32 +26,19 @@ class QVideoSink;
 
 class MFVideoRendererControl : public QObject
 {
-    Q_OBJECT
 public:
     MFVideoRendererControl(QObject *parent = 0);
     ~MFVideoRendererControl();
 
-    QVideoSink *sink() const;
     void setSink(QVideoSink *surface);
-
-    void setCropRect(QRect cropRect);
+    void setCropRect(const QRect &cropRect);
 
     IMFActivate* createActivate();
     void releaseActivate();
 
-protected:
-    void customEvent(QEvent *event) override;
-
-private Q_SLOTS:
-    void present();
-
 private:
-    void clear();
-
     QPointer<QVideoSink> m_sink;
     IMFActivate *m_currentActivate = nullptr;
-    IMFSampleGrabberSinkCallback *m_callback = nullptr;
-
     EVRCustomPresenterActivate *m_presenterActivate = nullptr;
 };
 
