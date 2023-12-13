@@ -12,6 +12,8 @@ typedef QList<jlong> SurfaceTextures;
 Q_GLOBAL_STATIC(SurfaceTextures, g_surfaceTextures);
 Q_GLOBAL_STATIC(QMutex, g_textureMutex);
 
+static QAtomicInteger<quint64> indexCounter = 0u;
+
 // native method for QtSurfaceTexture.java
 static void notifyFrameAvailable(JNIEnv* , jobject, jlong id)
 {
@@ -27,6 +29,7 @@ static void notifyFrameAvailable(JNIEnv* , jobject, jlong id)
 
 AndroidSurfaceTexture::AndroidSurfaceTexture(quint32 texName)
     : QObject()
+    , m_index(indexCounter.fetchAndAddRelaxed(1))
 {
     Q_STATIC_ASSERT(sizeof (jlong) >= sizeof (void *));
     m_surfaceTexture = QJniObject("android/graphics/SurfaceTexture", "(I)V", jint(texName));
