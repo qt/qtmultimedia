@@ -298,10 +298,11 @@ public:
     }
 
 public slots:
-    void onFrameAvailable()
+    void onFrameAvailable(quint64 index)
     {
-        // Check if 'm_surfaceTexture' is not reset because there can be pending frames in queue.
-        if (m_surfaceTexture) {
+        // Check if 'm_surfaceTexture' is not reset and if the current index is the same that
+        // was used for creating connection because there can be pending frames in queue.
+        if (m_surfaceTexture && m_surfaceTexture->index() == index) {
             m_surfaceTexture->updateTexImage();
             auto matrix = extTransformMatrix(m_surfaceTexture.get());
             auto tex = m_textureCopy->copyExternalTexture(m_size, matrix);
@@ -337,8 +338,9 @@ public slots:
         m_texture->create();
         m_surfaceTexture = std::make_unique<AndroidSurfaceTexture>(m_texture->nativeTexture().object);
         if (m_surfaceTexture->surfaceTexture()) {
+            const quint64 index = m_surfaceTexture->index();
             connect(m_surfaceTexture.get(), &AndroidSurfaceTexture::frameAvailable, this,
-                    &AndroidTextureThread::onFrameAvailable);
+                    [this, index] () { this->onFrameAvailable(index); });
 
             m_textureCopy = std::make_unique<TextureCopy>(m_rhi.get(), m_texture.get());
 
@@ -453,11 +455,6 @@ void QAndroidTextureVideoOutput::reset()
     if (m_sink)
         m_sink->platformVideoSink()->setVideoFrame({});
     QMetaObject::invokeMethod(m_surfaceThread.get(), &AndroidTextureThread::clearSurfaceTexture);
-    // We are not allowed to work on the same thread after the reset
-    // as there may be pending frames and should not be handled.
-    startNewSurfaceThread();
-    QMetaObject::invokeMethod(m_surfaceThread.get(),
-        [&](){ m_surfaceThread->setFrameSize(m_nativeSize); }, Qt::BlockingQueuedConnection);
 }
 
 void QAndroidTextureVideoOutput::newFrame(const QVideoFrame &frame)
