@@ -31,12 +31,13 @@ Item, \c controlLayout like so:
 
 \quotefromfile declarative-camera/declarative-camera.qml
 \skipto Item {
-\printto PhotoCaptureControls {
+\printuntil /^    }/
 
 The \c stillControls and \c videoControls objects both bind to the \c state
 and \c buttonsWidth properties of this Item, as shown in \c stillControls:
 
-\printto VideoCaptureControls {
+\skipto PhotoCaptureControls
+\printuntil /^    }/
 
 To support debugging, a message about layout state change is logged.
 
@@ -48,7 +49,9 @@ You can see the \c state property is initially set as \c PhotoCapture.
 
 Then the \c states themselves are defined like so:
 
-\printto CaptureSession {
+\quotefromfile declarative-camera/declarative-camera.qml
+\skipto states: [
+\printuntil /^    ]/
 
 \section1 Controls for capturing
 
@@ -141,16 +144,15 @@ Here we check if the functions are supported:
 
 \quotefromfile declarative-camera/FlashControl.qml
 \skipto property Camera cameraDevice
-\printto Column {
+\printline Camera
+\printline FlashOn
+\printline TorchOn
 
 Here we implement the \c flashModeControl switch, which also directly controls
 the Camera device.
 
-\printuntil cameraDevice.flashMode = Camera.FlashOff;
+\skipto Switch {
+\printuntil /^        }/
 
 Torch control is implemented in a similar way.
-
-
-
-
 */

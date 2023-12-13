@@ -6,6 +6,13 @@
 QT_BEGIN_NAMESPACE
 
 /*!
+    \namespace QVideo
+    \since 6.7
+    \inmodule QtMultimedia
+    \brief Enumerations for camera and video functionality.
+*/
+
+/*!
     \enum QVideo::RotationAngle
     \since 6.7
 
