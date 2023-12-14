@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import frequencymonitor
 
 Rectangle {
     id: root
@@ -47,7 +48,7 @@ Rectangle {
 
     Loader {
         id: frameRateLoader
-        source: root.showFrameRate ? "../frequencymonitor/FrequencyItem.qml" : ""
+        sourceComponent: root.showFrameRate ? FrequencyItem : undefined
         onLoaded: {
             item.parent = root
             item.anchors.top = root.top

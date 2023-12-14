@@ -62,8 +62,8 @@ Rectangle {
     state: enabled ? "baseState" : "hidden"
 
     function createQmlFrameRateItem() {
-        var component = Qt.createComponent("../frequencymonitor/FrequencyItem.qml")
-        if (component.status == Component.Ready)
+        let component = Qt.createComponent("frequencymonitor", "FrequencyItem")
+        if (component.status === Component.Ready)
             d.qmlFrameRateItem = component.createObject(column, { label: "QML frame rate",
                                                                    displayed: root.displayed,
                                                                   logging: root.logging
@@ -71,8 +71,8 @@ Rectangle {
     }
 
     function createVideoFrameRateItem() {
-        var component = Qt.createComponent("../frequencymonitor/FrequencyItem.qml")
-        if (component.status == Component.Ready)
+        let component = Qt.createComponent("frequencymonitor", "FrequencyItem")
+        if (component.status === Component.Ready)
             d.videoFrameRateItem = component.createObject(column, { label: "Video frame rate",
                                                                      displayed: root.displayed,
                                                                     logging: root.logging

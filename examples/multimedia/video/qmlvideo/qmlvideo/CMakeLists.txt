@@ -1,0 +1,76 @@
+# Copyright (C) 2023 The Qt Company Ltd.
+# SPDX-License-Identifier: BSD-3-Clause
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    message(FATAL_ERROR "This module is part of the 'qmlvideo' example, and should not be built independently.")
+endif()
+
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/qmlvideo/qmlvideo")
+
+qt_add_qml_module(qmlvideo
+    URI qmlvideo
+    QML_FILES
+        "Button.qml"
+        "CameraBasic.qml"
+        "CameraDrag.qml"
+        "CameraDummy.qml"
+        "CameraFullScreen.qml"
+        "CameraFullScreenInverted.qml"
+        "CameraItem.qml"
+        "CameraMove.qml"
+        "CameraOverlay.qml"
+        "CameraResize.qml"
+        "CameraRotate.qml"
+        "CameraSpin.qml"
+        "Content.qml"
+        "ErrorDialog.qml"
+        "Scene.qml"
+        "SceneBasic.qml"
+        "SceneDrag.qml"
+        "SceneFullScreen.qml"
+        "SceneFullScreenInverted.qml"
+        "SceneMove.qml"
+        "SceneMulti.qml"
+        "SceneOverlay.qml"
+        "SceneResize.qml"
+        "SceneRotate.qml"
+        "SceneSelectionPanel.qml"
+        "SceneSpin.qml"
+        "SeekControl.qml"
+        "VideoBasic.qml"
+        "VideoDrag.qml"
+        "VideoDummy.qml"
+        "VideoFillMode.qml"
+        "VideoFullScreen.qml"
+        "VideoFullScreenInverted.qml"
+        "VideoItem.qml"
+        "VideoMetadata.qml"
+        "VideoMove.qml"
+        "VideoOverlay.qml"
+        "VideoPlaybackRate.qml"
+        "VideoResize.qml"
+        "VideoRotate.qml"
+        "VideoSeek.qml"
+        "VideoSpin.qml"
+        "Main.qml"
+    RESOURCES
+        "images/folder.png"
+        "images/leaves.jpg"
+        "images/up.png"
+)
+
+target_link_libraries(qmlvideo PRIVATE
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Quick
+)
+
+install(TARGETS qmlvideo
+    RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
+    BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
+    LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/qmldir
+    DESTINATION "${INSTALL_EXAMPLEDIR}"
+)

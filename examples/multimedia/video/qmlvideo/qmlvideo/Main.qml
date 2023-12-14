@@ -3,6 +3,7 @@
 
 import QtQuick
 import QtQuick.Dialogs
+import performancemonitor
 
 Rectangle {
     id: root
@@ -37,7 +38,7 @@ Rectangle {
 
         function init() {
             var enabled = root.perfMonitorsLogging || root.perfMonitorsVisible
-            source = enabled ? "../performancemonitor/PerformanceItem.qml" : ""
+            sourceComponent = enabled ? PerformanceItem : undefined
         }
 
         onLoaded: {

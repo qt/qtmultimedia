@@ -27,7 +27,7 @@ which moves across the \l{VideoOutput} item.
 
 \section1 Application Structure
 
-The \c main.qml file creates a UI which includes the following items:
+The \c Main.qml file creates a UI which includes the following items:
 
 \list
     \li Two \c Button instances, each of which displays a filename, and can be
@@ -48,13 +48,13 @@ in the center of the screen) is implemented in the \c VideoBasic.qml file.  As
 you can see from the code, this makes use of a type of inheritance; a
 \c VideoBasic item ...
 
-\quotefromfile video/qmlvideo/qml/qmlvideo/VideoBasic.qml
-\skipto import
+\quotefromfile video/qmlvideo/qmlvideo/VideoBasic.qml
+\skipto SceneBasic
 \printuntil /^\}/
 
 ... is of type \c SceneBasic ...
 
-\quotefromfile video/qmlvideo/qml/qmlvideo/SceneBasic.qml
+\quotefromfile video/qmlvideo/qmlvideo/SceneBasic.qml
 \skipto import
 \printuntil contentType
 \dots
@@ -66,7 +66,7 @@ you can see from the code, this makes use of a type of inheritance; a
 
 ... which itself is a \c Scene:
 
-\quotefromfile video/qmlvideo/qml/qmlvideo/Scene.qml
+\quotefromfile video/qmlvideo/qmlvideo/Scene.qml
 \skipto import
 \printuntil root
 \dots
@@ -100,7 +100,10 @@ object to a JavaScript function, which will eventually call
 \c frequencyItem.notify():
 
 \quotefromfile video/qmlvideo/main.cpp
-\skipto QGuiApplication
+\skipto int main(
+\printuntil ;
+\dots
+\skipto QQuickView
 \printuntil ;
 \dots
 \skipto QQuickItem
