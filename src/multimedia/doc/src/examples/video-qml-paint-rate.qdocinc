@@ -25,7 +25,7 @@ The FrequencyMonitor class is exposed to QML like this
 
 and its data is displayed by defining a QML item called FrequencyItem, like this:
 
-\quotefromfile video/qmlvideo/qml/frequencymonitor/FrequencyItem.qml
+\quotefromfile video/qmlvideo/frequencymonitor/FrequencyItem.qml
 \skipto import FrequencyMonitor
 \printuntil id: root
 \dots

@@ -10,7 +10,7 @@ Scene {
 
     Image {
         id: background
-        source: "qrc:/images/leaves.jpg"
+        source: "images/leaves.jpg"
         x: (parent.width - width) / 2
         y: (parent.height - height) / 2
 

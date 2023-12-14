@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     }
 
     QQuickView viewer;
-    viewer.setSource(QUrl("qrc:///qml/qmlvideo/main.qml"));
+    viewer.loadFromModule("qmlvideo", "Main");
     QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QQuickView::close);
 
     QQuickItem *rootObject = viewer.rootObject();
