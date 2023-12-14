@@ -35,11 +35,21 @@ struct State
     QOffscreenSurface *fallbackSurface = nullptr;
 #endif
     bool cpuOnly = false;
+#if defined(Q_OS_ANDROID)
+    QMetaObject::Connection appStateChangedConnection;
+#endif
     ~State() {
+        resetRhi();
+    }
+
+    void resetRhi() {
         delete rhi;
+        rhi = nullptr;
 #if QT_CONFIG(opengl)
         delete fallbackSurface;
+        fallbackSurface = nullptr;
 #endif
+        cpuOnly = false;
     }
 };
 
@@ -159,6 +169,16 @@ static QRhi *initializeRHI(QRhi *videoFrameRhi)
                 if (backend == QRhi::OpenGLES2)
                     params.shareContext = static_cast<const QRhiGles2NativeHandles*>(videoFrameRhi->nativeHandles())->context;
                 g_state.localData().rhi = QRhi::create(QRhi::OpenGLES2, &params);
+
+#if defined(Q_OS_ANDROID)
+                // reset RHI state on application suspension, as this will be invalid after resuming
+                if (!g_state.localData().appStateChangedConnection) {
+                    g_state.localData().appStateChangedConnection = QObject::connect(qApp, &QGuiApplication::applicationStateChanged, qApp, [](auto state) {
+                        if (state == Qt::ApplicationSuspended)
+                            g_state.localData().resetRhi();
+                    });
+                }
+#endif
             }
         }
 #endif
