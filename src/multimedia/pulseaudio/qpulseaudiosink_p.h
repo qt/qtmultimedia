@@ -67,6 +67,7 @@ protected:
 
 private:
     void startReading();
+    void stopTimer();
 
     bool open();
     void close();
@@ -101,9 +102,9 @@ private:
     qreal m_volume = 1.0;
 
     std::atomic<pa_operation *> m_drainOperation = nullptr;
-    int m_periodSize = 0;
+    int m_pullingPeriodSize = 0;
     int m_bufferSize = 0;
-    int m_periodTime = 0;
+    int m_pullingPeriodTime = 0;
     bool m_pullMode = true;
     bool m_opened = false;
     bool m_resuming = false;
