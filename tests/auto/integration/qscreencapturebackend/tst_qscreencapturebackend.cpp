@@ -288,7 +288,7 @@ void tst_QScreenCaptureBackend::removeWhileCapture(
 void tst_QScreenCaptureBackend::initTestCase()
 {
 #ifdef Q_OS_ANDROID
-    QSKIP("SKIP initTestCase on CI, because of QTBUG-118573");
+    QSKIP("grabWindow() no longer supported on Android adding child windows support: QTBUG-118849");
 #endif
 #if defined(Q_OS_LINUX)
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci" &&
