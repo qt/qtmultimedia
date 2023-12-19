@@ -98,8 +98,18 @@ static void outputStreamDrainComplete(pa_stream *stream, int success, void *user
 
     qCDebug(qLcPulseAudioOut) << "Stream drained:" << bool(success) << userdata;
 
+    QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+    pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
+
     if (userdata && success)
         static_cast<QPulseAudioSink *>(userdata)->streamDrainedCallback();
+}
+
+static void outputStreamFlushComplete(pa_stream *stream, int success, void *userdata)
+{
+    Q_UNUSED(stream);
+
+    qCDebug(qLcPulseAudioOut) << "Stream flushed:" << bool(success) << userdata;
 }
 
 static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *userdata)
@@ -135,9 +145,10 @@ QAudio::State QPulseAudioSink::state() const
 void QPulseAudioSink::streamUnderflowCallback()
 {
     if (m_audioSource && m_audioSource->atEnd()) {
-        qCDebug(qLcPulseAudioOut) << "Draining stream at end of buffer";
-
-        exchangeDrainOperation(pa_stream_drain(m_stream, outputStreamDrainComplete, this));
+        if (m_stateMachine.state() != QAudio::StoppedState) {
+            qCDebug(qLcPulseAudioOut) << "Draining stream at end of buffer";
+            exchangeDrainOperation(pa_stream_drain(m_stream, outputStreamDrainComplete, this));
+        }
     } else if (!m_resuming) {
         m_stateMachine.updateActiveOrIdle(false, QAudio::UnderrunError);
     }
@@ -353,11 +364,7 @@ void QPulseAudioSink::close()
         pa_stream_set_overflow_callback(m_stream, nullptr, nullptr);
         pa_stream_set_latency_update_callback(m_stream, nullptr, nullptr);
 
-        if (auto prevOp = exchangeDrainOperation(nullptr))
-            // cancel the draining callback that is not relevant already
-            pa_operation_cancel(prevOp.get());
-
-        PAOperationUPtr(pa_stream_drain(m_stream, outputStreamDrainComplete, nullptr));
+        PAOperationUPtr(pa_stream_flush(m_stream, outputStreamFlushComplete, nullptr));
 
         pa_stream_disconnect(m_stream);
         pa_stream_unref(m_stream);
@@ -375,6 +382,7 @@ void QPulseAudioSink::close()
             m_audioSource = nullptr;
         }
     }
+
     m_opened = false;
     m_resuming = false;
     m_audioBuffer.clear();
@@ -491,8 +499,21 @@ qint64 QPulseAudioSink::write(const char *data, qint64 len)
 
 void QPulseAudioSink::stop()
 {
-    if (auto notifier = m_stateMachine.stop())
+    if (auto notifier = m_stateMachine.stop()) {
+        {
+            QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+            std::lock_guard lock(*pulseEngine);
+
+            if (auto prevOp = exchangeDrainOperation(nullptr))
+                // cancel the draining callback that is not relevant already
+                pa_operation_cancel(prevOp.get());
+
+            PAOperationUPtr drainOp(pa_stream_drain(m_stream, outputStreamDrainComplete, nullptr));
+            pulseEngine->wait(drainOp.get());
+        }
+
         close();
+    }
 }
 
 qsizetype QPulseAudioSink::bytesFree() const
