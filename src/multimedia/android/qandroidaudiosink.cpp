@@ -314,7 +314,7 @@ void QAndroidAudioSink::bufferQueueCallback(SLBufferQueueItf bufferQueue, void *
 {
     Q_UNUSED(bufferQueue);
     QAndroidAudioSink *audioOutput = reinterpret_cast<QAndroidAudioSink *>(ctx);
-    audioOutput->bufferAvailable();
+    QMetaObject::invokeMethod(audioOutput, "bufferAvailable", Qt::QueuedConnection);
 }
 
 bool QAndroidAudioSink::preparePlayer()
