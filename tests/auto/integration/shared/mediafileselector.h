@@ -44,7 +44,7 @@ public:
     template <typename... Media>
     MaybeUrl select(Media... media)
     {
-        return select({ std::move(media)... });
+        return select({ std::move(nativeFileName(media))... });
     }
 
     MaybeUrl select(const QStringList &candidates)
@@ -133,7 +133,28 @@ private:
         return QUrl(media);
     }
 
+    QString nativeFileName(const QString &media)
+    {
+#ifdef Q_OS_ANDROID
+        auto it = m_nativeFiles.find(media);
+        if (it != m_nativeFiles.end())
+            return it->second->fileName();
+
+        QFile file(media);
+        if (file.open(QIODevice::ReadOnly)) {
+            m_nativeFiles.insert({ media,  std::unique_ptr<QTemporaryFile>(QTemporaryFile::createNativeFile(file))});
+            return m_nativeFiles[media]->fileName();
+        }
+        qWarning() << "Failed to create temporary file";
+#endif // Q_OS_ANDROID
+
+        return media;
+    }
+
 private:
+#ifdef Q_OS_ANDROID
+    std::unordered_map<QString, std::unique_ptr<QTemporaryFile>> m_nativeFiles;
+#endif
     std::unordered_map<QString, QString> m_mediaToErrors;
     quint32 m_failedSelectionsCount = 0;
 };
