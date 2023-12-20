@@ -208,9 +208,6 @@ void tst_QAudioSink::generate_audiofile_testrows()
 
 void tst_QAudioSink::initTestCase()
 {
-#ifdef Q_OS_ANDROID
-     QSKIP("SKIP initTestCase on CI, because of QTBUG-118572");
-#endif
     // Only perform tests if audio output device exists
     const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
 
@@ -247,6 +244,13 @@ void tst_QAudioSink::initTestCase()
     // PCM 44100 stereo S16LE
     format.setSampleRate(44100);
     if (audioDevice.isFormatSupported(format))
+#ifdef Q_OS_ANDROID
+        // Testset crash on emulator x86 with API 23 (Android 6) for 44,1 MHz.
+        // It is not happen on x86 with API 24. What is more, there is no crash when
+        // tested sample rate is 44,999 or any other value. Seems like problem on
+        // emulator side. Let's turn off this frequency for API 23
+        if (QNativeInterface::QAndroidApplication::sdkVersion() > __ANDROID_API_M__)
+#endif
         testFormats.append(format);
 
     // PCM 48000 stereo S16LE
