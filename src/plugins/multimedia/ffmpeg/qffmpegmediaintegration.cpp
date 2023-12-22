@@ -59,6 +59,10 @@ extern "C" {
 #include "qx11capturablewindows_p.h"
 #endif
 
+#if QT_CONFIG(eglfs)
+#include "qeglfsscreencapture_p.h"
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class QFFmpegMediaPlugin : public QPlatformMediaPlugin
@@ -211,6 +215,11 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
+#endif
+
+#if QT_CONFIG(eglfs)
+    if (QEglfsScreenCapture::isSupported())
+        return new QEglfsScreenCapture;
 #endif
 
 #if defined(Q_OS_WINDOWS)
