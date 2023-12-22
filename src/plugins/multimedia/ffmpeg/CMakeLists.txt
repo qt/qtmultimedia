@@ -195,6 +195,11 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
         Xext
 )
 
+qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_eglfs
+    SOURCES
+        qeglfsscreencapture.cpp qeglfsscreencapture_p.h
+)
+
 set_source_files_properties(qx11surfacecapture.cpp qx11capturablewindows.cpp # X headers
                             PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
