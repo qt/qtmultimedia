@@ -79,7 +79,7 @@ endif()
 # Marks the given component as found if both *_LIBRARY_NAME AND *_INCLUDE_DIRS is present.
 #
 macro(set_component_found _component)
-  if (${_component}_LIBRARY_NAME AND ${_component}_INCLUDE_DIRS AND
+  if (${_component}_LIBRARY_NAME AND ${_component}_INCLUDE_DIR AND
       (${_component}_SHARED_LIBRARIES OR NOT shared_libs_required))
       # message(STATUS "  - ${_component} found.")
     set(${_component}_FOUND TRUE)
@@ -119,7 +119,12 @@ macro(find_component _component _pkgconfig _library _header)
       list(APPEND CMAKE_FIND_ROOT_PATH "${FFMPEG_ROOT}")
   endif()
 
-  find_path(${_component}_INCLUDE_DIRS ${_header}
+  if (${_component}_INCLUDE_DIR AND NOT EXISTS ${${_component}_INCLUDE_DIR})
+    message(STATUS "Cached include dir ${${_component}_INCLUDE_DIR} doesn't exist")
+    unset(${_component}_INCLUDE_DIR CACHE)
+  endif()
+
+  find_path(${_component}_INCLUDE_DIR ${_header}
     HINTS
       ${PC_${_component}_INCLUDEDIR}
       ${PC_${_component}_INCLUDE_DIRS}
@@ -132,6 +137,11 @@ macro(find_component _component _pkgconfig _library _header)
 
   if (shared_libs_required AND NOT WIN32)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_SHARED_LIBRARY_SUFFIX})
+  endif()
+
+  if (${_component}_LIBRARY AND NOT EXISTS ${${_component}_LIBRARY})
+    message(STATUS "Cached library ${${_component}_LIBRARY} doesn't exist")
+    unset(${_component}_LIBRARY CACHE)
   endif()
 
   find_library(${_component}_LIBRARY
@@ -185,7 +195,7 @@ foreach (_component ${FFmpeg_FIND_COMPONENTS})
   if (${_component}_FOUND)
     list(APPEND FFMPEG_LIBRARIES    ${${_component}_LIBRARY_NAME})
     list(APPEND FFMPEG_DEFINITIONS  ${${_component}_DEFINITIONS})
-    list(APPEND FFMPEG_INCLUDE_DIRS ${${_component}_INCLUDE_DIRS})
+    list(APPEND FFMPEG_INCLUDE_DIRS ${${_component}_INCLUDE_DIR})
     list(APPEND FFMPEG_LIBRARY_DIRS ${${_component}_LIBRARY_DIR})
 
     if (${_component}_SHARED_LIBRARIES)
@@ -270,7 +280,7 @@ endfunction()
         add_library(FFmpeg::${_lowerComponent} INTERFACE IMPORTED)
         set_target_properties(FFmpeg::${_lowerComponent} PROPERTIES
             INTERFACE_COMPILE_OPTIONS "${${_component}_DEFINITIONS}"
-            INTERFACE_INCLUDE_DIRECTORIES ${${_component}_INCLUDE_DIRS}
+            INTERFACE_INCLUDE_DIRECTORIES ${${_component}_INCLUDE_DIR}
             INTERFACE_LINK_LIBRARIES "${${_component}_LIBRARY_NAME}"
             INTERFACE_LINK_DIRECTORIES "${${_component}_LIBRARY_DIR}"
         )
@@ -331,7 +341,7 @@ endif()
 # Compile the list of required vars
 set(_FFmpeg_REQUIRED_VARS FFMPEG_LIBRARIES FFMPEG_INCLUDE_DIRS)
 foreach (_component ${FFmpeg_FIND_COMPONENTS})
-  list(APPEND _FFmpeg_REQUIRED_VARS ${_component}_LIBRARY ${_component}_INCLUDE_DIRS)
+  list(APPEND _FFmpeg_REQUIRED_VARS ${_component}_LIBRARY ${_component}_INCLUDE_DIR)
 endforeach ()
 
 # Give a nice error message if some of the required vars are missing.
