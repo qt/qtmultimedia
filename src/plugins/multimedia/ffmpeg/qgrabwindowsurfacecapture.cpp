@@ -6,14 +6,14 @@
 #include "qscreencapture.h"
 #include "qffmpegsurfacecapturegrabber_p.h"
 
-#include "private/qabstractvideobuffer_p.h"
+#include "private/qimagevideobuffer_p.h"
+#include "private/qcapturablewindow_p.h"
 
 #include "qscreen.h"
 #include "qmutex.h"
 #include "qwaitcondition.h"
 #include "qpixmap.h"
 #include "qguiapplication.h"
-#include "private/qcapturablewindow_p.h"
 #include "qwindow.h"
 #include "qpointer.h"
 
@@ -24,40 +24,6 @@ QT_BEGIN_NAMESPACE
 namespace {
 
 using WindowUPtr = std::unique_ptr<QWindow>;
-
-class QImageVideoBuffer : public QAbstractVideoBuffer
-{
-public:
-    QImageVideoBuffer(QImage &&image)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle), m_image(std::move(image))
-    {
-    }
-
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
-    MapData map(QVideoFrame::MapMode mode) override
-    {
-        MapData mapData;
-        if (m_mapMode == QVideoFrame::NotMapped && !m_image.isNull() && mode != QVideoFrame::NotMapped) {
-            m_mapMode = mode;
-
-            mapData.nPlanes = 1;
-            mapData.bytesPerLine[0] = m_image.bytesPerLine();
-            mapData.data[0] = m_image.bits();
-            mapData.size[0] = m_image.sizeInBytes();
-        }
-
-        return mapData;
-    }
-
-    void unmap() override
-    {
-        m_mapMode = QVideoFrame::NotMapped;
-    }
-
-    QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
-    QImage m_image;
-};
 
 } // namespace
 
