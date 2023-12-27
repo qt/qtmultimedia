@@ -22,6 +22,8 @@ extern "C" {
   (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(59, 18, 100)) // since ffmpeg n5.0
 #define QT_FFMPEG_HAS_FRAME_DURATION \
   (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(60, 3, 100)) // since ffmpeg n6.0
+#define QT_FFMPEG_STREAM_SIDE_DATA_DEPRECATED \
+  (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(60, 15, 100)) // since ffmpeg n6.1
 
 QT_BEGIN_NAMESPACE
 
@@ -196,6 +198,8 @@ inline bool isSwPixelFormat(AVPixelFormat format)
 }
 
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType);
+
+const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataType type);
 
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);
