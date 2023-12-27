@@ -49,13 +49,13 @@ static std::optional<qint64> streamDuration(const AVStream &stream)
 static int streamOrientation(const AVStream *stream)
 {
     Q_ASSERT(stream);
-    using SideDataSize = decltype(AVPacketSideData::size);
-    SideDataSize dataSize = 0;
-    constexpr SideDataSize displayMatrixSize = sizeof(int32_t) * 9;
-    const uint8_t *sideData = av_stream_get_side_data(stream, AV_PKT_DATA_DISPLAYMATRIX, &dataSize);
-    if (dataSize < displayMatrixSize)
+
+    constexpr auto displayMatrixSize = sizeof(int32_t) * 9;
+    const auto *sideData = streamSideData(stream, AV_PKT_DATA_DISPLAYMATRIX);
+    if (!sideData || sideData->size < displayMatrixSize)
         return 0;
-    auto displayMatrix = reinterpret_cast<const int32_t *>(sideData);
+
+    auto displayMatrix = reinterpret_cast<const int32_t *>(sideData->data);
     auto rotation = static_cast<int>(std::round(av_display_rotation_get(displayMatrix)));
     // Convert counterclockwise rotation angle to clockwise, restricted to 0, 90, 180 and 270
     if (rotation % 90 != 0)
