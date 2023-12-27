@@ -412,6 +412,21 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
     }
 }
 
+const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataType type)
+{
+    Q_ASSERT(stream);
+
+#if QT_FFMPEG_STREAM_SIDE_DATA_DEPRECATED
+    return av_packet_side_data_get(stream->codecpar->coded_side_data,
+                                   stream->codecpar->nb_coded_side_data, type);
+#else
+    auto checkType = [type](const auto &item) { return item.type == type; };
+    const auto end = stream->side_data + stream->nb_side_data;
+    const auto found = std::find_if(stream->side_data, end, checkType);
+    return found == end ? nullptr : found;
+#endif
+}
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t cvFormat)
 {
