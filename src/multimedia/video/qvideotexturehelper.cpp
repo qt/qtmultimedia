@@ -629,7 +629,18 @@ static bool updateTextureWithMap(QVideoFrame frame, QRhi *rhi, QRhiResourceUpdat
         subresDesc.setData(QByteArray((const char *)image.bits(), image.bytesPerLine()*image.height()));
         subresDesc.setDataStride(image.bytesPerLine());
     } else {
-        subresDesc.setData(QByteArray::fromRawData((const char *)frame.bits(plane), frame.mappedBytes(plane)));
+        const auto frameBits = reinterpret_cast<const char *>(frame.bits(plane));
+        const auto mappedBytes = frame.mappedBytes(plane);
+        auto underlyingByteArray = frame.videoBuffer()->underlyingByteArray(plane);
+
+        if (underlyingByteArray.size() == mappedBytes) {
+            Q_ASSERT(underlyingByteArray.constData() == frameBits);
+            subresDesc.setData(std::move(underlyingByteArray));
+        }
+        else {
+            subresDesc.setData(QByteArray::fromRawData(frameBits, mappedBytes));
+        }
+
         subresDesc.setDataStride(frame.bytesPerLine(plane));
     }
 
