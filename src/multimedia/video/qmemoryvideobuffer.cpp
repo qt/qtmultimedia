@@ -48,7 +48,12 @@ QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
 
         mapData.nPlanes = 1;
         mapData.bytesPerLine[0] = m_bytesPerLine;
-        mapData.data[0] = reinterpret_cast<uchar *>(m_data.data());
+        // avoid detaching and extra copying in case the underlyingByteArray is
+        // being held by textures or anything else.
+        if (mode == QVideoFrame::ReadOnly)
+            mapData.data[0] = reinterpret_cast<uchar *>(const_cast<char*>(m_data.constData()));
+        else
+            mapData.data[0] = reinterpret_cast<uchar *>(m_data.data());
         mapData.size[0] = m_data.size();
     }
 
@@ -61,6 +66,14 @@ QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
 void QMemoryVideoBuffer::unmap()
 {
     m_mapMode = QVideoFrame::NotMapped;
+}
+
+/*!
+    \reimp
+*/
+QByteArray QMemoryVideoBuffer::underlyingByteArray(int plane) const
+{
+    return plane == 0 ? m_data : QByteArray{};
 }
 
 QT_END_NAMESPACE
