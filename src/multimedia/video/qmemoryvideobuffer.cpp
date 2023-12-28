@@ -17,11 +17,11 @@ QT_BEGIN_NAMESPACE
 /*!
     Constructs a video buffer with an image stride of \a bytesPerLine from a byte \a array.
 */
-QMemoryVideoBuffer::QMemoryVideoBuffer(const QByteArray &array, int bytesPerLine)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle)
+QMemoryVideoBuffer::QMemoryVideoBuffer(QByteArray data, int bytesPerLine)
+    : QAbstractVideoBuffer(QVideoFrame::NoHandle),
+      m_bytesPerLine(bytesPerLine),
+      m_data(std::move(data))
 {
-    data = array;
-    this->bytesPerLine = bytesPerLine;
 }
 
 /*!
@@ -43,13 +43,13 @@ QVideoFrame::MapMode QMemoryVideoBuffer::mapMode() const
 QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     MapData mapData;
-    if (m_mapMode == QVideoFrame::NotMapped && data.size() && mode != QVideoFrame::NotMapped) {
+    if (m_mapMode == QVideoFrame::NotMapped && m_data.size() && mode != QVideoFrame::NotMapped) {
         m_mapMode = mode;
 
         mapData.nPlanes = 1;
-        mapData.bytesPerLine[0] = bytesPerLine;
-        mapData.data[0] = reinterpret_cast<uchar *>(data.data());
-        mapData.size[0] = data.size();
+        mapData.bytesPerLine[0] = m_bytesPerLine;
+        mapData.data[0] = reinterpret_cast<uchar *>(m_data.data());
+        mapData.size[0] = m_data.size();
     }
 
     return mapData;
