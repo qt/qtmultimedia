@@ -122,7 +122,31 @@ static void setupFFmpegLogger()
     av_log_set_callback(&qffmpegLogCallback);
 }
 
-static QPlatformSurfaceCapture *createWindowCaptureByBackend(QString backend) {
+static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
+{
+    if (backend == QLatin1String("grabwindow"))
+        return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
+
+#if QT_CONFIG(eglfs)
+    if (backend == QLatin1String("eglfs"))
+        return new QEglfsScreenCapture;
+#endif
+
+#if QT_CONFIG(xlib)
+    if (backend == QLatin1String("x11"))
+        return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
+#elif defined(Q_OS_WINDOWS)
+    if (backend == QLatin1String("dxgi"))
+        return new QFFmpegScreenCaptureDxgi;
+#elif defined(Q_OS_MACOS)
+    if (backend == QLatin1String("avf"))
+        return new QAVFScreenCapture;
+#endif
+    return nullptr;
+}
+
+static QPlatformSurfaceCapture *createWindowCaptureByBackend(QString backend)
+{
     if (backend == QLatin1String("grabwindow"))
         return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
 
@@ -212,6 +236,15 @@ QMaybe<QPlatformCamera *> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 
 QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCapture *)
 {
+    static const QString screenCaptureBackend = qgetenv("QT_SCREEN_CAPTURE_BACKEND").toLower();
+
+    if (!screenCaptureBackend.isEmpty()) {
+        if (auto screenCapture = createScreenCaptureByBackend(screenCaptureBackend))
+            return screenCapture;
+
+        qWarning() << "Not supported QT_SCREEN_CAPTURE_BACKEND:" << screenCaptureBackend;
+    }
+
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
