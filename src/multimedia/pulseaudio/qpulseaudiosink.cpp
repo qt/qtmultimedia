@@ -17,6 +17,7 @@
 QT_BEGIN_NAMESPACE
 
 static constexpr uint SinkPeriodTimeMs = 20;
+static constexpr uint DefaultBufferLengthMs = 100;
 
 #define LOW_LATENCY_CATEGORY_NAME "game"
 
@@ -288,14 +289,17 @@ bool QPulseAudioSink::open()
     pa_stream_set_latency_update_callback(m_stream, outputStreamLatencyCallback, this);
 
     pa_buffer_attr requestedBuffer;
+    // Request a target buffer size
+    auto targetBufferSize = bufferSize();
+    requestedBuffer.tlength = targetBufferSize ? targetBufferSize : (uint32_t)-1;
+    // Rest should be determined by PulseAudio
     requestedBuffer.fragsize = (uint32_t)-1;
     requestedBuffer.maxlength = (uint32_t)-1;
     requestedBuffer.minreq = (uint32_t)-1;
     requestedBuffer.prebuf = (uint32_t)-1;
-    requestedBuffer.tlength = m_bufferSize;
 
     pa_stream_flags flags = pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_ADJUST_LATENCY);
-    if (pa_stream_connect_playback(m_stream, m_device.data(), (m_bufferSize > 0) ? &requestedBuffer : nullptr, flags, nullptr, nullptr) < 0) {
+    if (pa_stream_connect_playback(m_stream, m_device.data(), &requestedBuffer, flags, nullptr, nullptr) < 0) {
         qCWarning(qLcPulseAudioOut) << "pa_stream_connect_playback() failed!";
         pa_stream_unref(m_stream);
         m_stream = nullptr;
@@ -532,7 +536,17 @@ void QPulseAudioSink::setBufferSize(qsizetype value)
 
 qsizetype QPulseAudioSink::bufferSize() const
 {
-    return m_bufferSize;
+    if (m_bufferSize)
+        return m_bufferSize;
+
+    if (m_spec.rate > 0)
+        return pa_usec_to_bytes(DefaultBufferLengthMs * 1000, &m_spec);
+
+    auto spec = QPulseAudioInternal::audioFormatToSampleSpec(m_format);
+    if (pa_sample_spec_valid(&spec))
+        return pa_usec_to_bytes(DefaultBufferLengthMs * 1000, &spec);
+
+    return 0;
 }
 
 static qint64 operator-(timeval t1, timeval t2)
