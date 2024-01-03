@@ -1,4 +1,4 @@
-// Copyright (C) 2021 The Qt Company Ltd.
+// Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include <QCommandLineParser>
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     QQmlApplicationEngine engine;
-    const QUrl url(QStringLiteral("qrc:/main.qml"));
+    const QUrl url(QStringLiteral("qrc:/Main.qml"));
 
     if (!parser.positionalArguments().isEmpty()) {
         QUrl source = QUrl::fromUserInput(parser.positionalArguments().at(0), QDir::currentPath());
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
                          });
     }
 
-    engine.load(url);
+    engine.loadFromModule("mediaplayer", "Main");
 
     return app.exec();
 }
