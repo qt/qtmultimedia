@@ -25,10 +25,12 @@ less performant than desktop platforms when playing hi-def video.
 Using and selecting different Codecs/video formats have not yet been tested, but whatever
 video formats the browser supports will most likely work.
 
-Playing streaming bytes instead of a url. e.g. setSource(QIOStream) is also not currently supported.
+Playing data from a stream (using \c {setSourceDevice(QIODevice*)}), instead
+of fetching a URL, isn't supported.
+
 Some advanced features may or may not work at this time.
 
-To setup playing a video file:
+To set up playing a video file:
 
    QMediaPlayer *player = new QMediaPlayer(this);
    QAudioOutput audioOutput; // chooses the default audio routing
