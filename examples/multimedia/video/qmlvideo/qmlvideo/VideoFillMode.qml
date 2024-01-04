@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 import QtMultimedia
 
 Scene {
@@ -24,24 +25,24 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: Math.max(parent.width, parent.height) / 5
-        height: root.buttonHeight
-        text: "PreserveAspectFit"
+        text: qsTr("PreserveAspectFit")
+        // qmllint disable
         onClicked: {
             if (!content.dummy) {
-                var video = content.contentItem()
+                let video = content.contentItem
                 if (video.fillMode === VideoOutput.Stretch) {
                     video.fillMode = VideoOutput.PreserveAspectFit
-                    text = "PreserveAspectFit"
+                    text = qsTr("PreserveAspectFit")
                 } else if (video.fillMode === VideoOutput.PreserveAspectFit) {
                     video.fillMode = VideoOutput.PreserveAspectCrop
-                    text = "PreserveAspectCrop"
+                    text = qsTr("PreserveAspectCrop")
                 } else {
                     video.fillMode = VideoOutput.Stretch
-                    text = "Stretch"
+                    text = qsTr("Stretch")
                 }
             }
         }
+        // qmllint enable
     }
 
     Component.onCompleted: root.content = content

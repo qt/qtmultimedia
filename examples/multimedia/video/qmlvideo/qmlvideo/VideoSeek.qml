@@ -25,9 +25,11 @@ Scene {
             margins: 10
             bottom: parent.bottom
         }
-        duration: content.contentItem() ? content.contentItem().duration : 0
-        playPosition: content.contentItem() ? content.contentItem().position : 0
-        onSeekPositionChanged: content.contentItem().seek(seekPosition);
+        // qmllint disable
+        duration: content.contentItem?.duration ?? 0
+        playPosition: content.contentItem?.position ?? 0
+        onSeekPositionChanged: content.contentItem?.seek(seekPosition);
+        // qmllint enable
     }
 
     Component.onCompleted: root.content = content

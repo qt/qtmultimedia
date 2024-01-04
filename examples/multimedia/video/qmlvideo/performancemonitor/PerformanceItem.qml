@@ -41,8 +41,7 @@ Rectangle {
         State {
             name: "hidden"
             PropertyChanges {
-                target: root
-                opacity: 0
+                root.opacity: 0
             }
         }
     ]
@@ -64,19 +63,19 @@ Rectangle {
     function createQmlFrameRateItem() {
         let component = Qt.createComponent("frequencymonitor", "FrequencyItem")
         if (component.status === Component.Ready)
-            d.qmlFrameRateItem = component.createObject(column, { label: "QML frame rate",
-                                                                   displayed: root.displayed,
+            d.qmlFrameRateItem = component.createObject(column, { label: qsTr("QML frame rate"),
+                                                                  displayed: root.displayed,
                                                                   logging: root.logging
-                                                                })
+                                                                });
     }
 
     function createVideoFrameRateItem() {
         let component = Qt.createComponent("frequencymonitor", "FrequencyItem")
         if (component.status === Component.Ready)
-            d.videoFrameRateItem = component.createObject(column, { label: "Video frame rate",
-                                                                     displayed: root.displayed,
+            d.videoFrameRateItem = component.createObject(column, { label: qsTr("Video frame rate"),
+                                                                    displayed: root.displayed,
                                                                     logging: root.logging
-                                                                  })
+                                                                  });
         videoFrameRateActiveConnections.target = d.videoFrameRateItem
     }
 
@@ -87,13 +86,11 @@ Rectangle {
     }
 
     function videoFramePainted() {
-        if (d.videoFrameRateItem)
-            d.videoFrameRateItem.notify()
+        d.videoFrameRateItem?.notify()
     }
 
     function qmlFramePainted() {
-        if (d.qmlFrameRateItem)
-            d.qmlFrameRateItem.notify()
+        d.qmlFrameRateItem?.notify()
     }
 
     onVideoActiveChanged: {

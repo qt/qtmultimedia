@@ -3,6 +3,7 @@
 
 #include "performancemonitor.h"
 #include "trace.h"
+#include "qmlvideo/videosingleton.h"
 #ifdef PERFORMANCEMONITOR_SUPPORT
 #    include "performancemonitordeclarative.h"
 #endif
@@ -78,28 +79,27 @@ int main(int argc, char *argv[])
             url2 = QUrl::fromLocalFile(source2);
     }
 
+    const QStringList moviesLocation = QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
+    const QUrl videoPath = QUrl::fromLocalFile(moviesLocation.isEmpty() ? app.applicationDirPath()
+                                                                        : moviesLocation.front());
+
     QQuickView viewer;
+    VideoSingleton* singleton = viewer.engine()->singletonInstance<VideoSingleton*>("qmlvideo", "VideoSingleton");
+    singleton->setVideoPath(videoPath);
+    singleton->setSource1(source1);
+    singleton->setSource2(source2);
+    singleton->setVolume(volume);
     viewer.loadFromModule("qmlvideo", "Main");
     QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QQuickView::close);
 
-    QQuickItem *rootObject = viewer.rootObject();
-    rootObject->setProperty("source1", url1);
-    rootObject->setProperty("source2", url2);
-    rootObject->setProperty("volume", volume);
-
 #ifdef PERFORMANCEMONITOR_SUPPORT
+    QQuickItem *rootObject = viewer.rootObject();
     if (performanceMonitorState.valid) {
         rootObject->setProperty("perfMonitorsLogging", performanceMonitorState.logging);
         rootObject->setProperty("perfMonitorsVisible", performanceMonitorState.visible);
     }
     QObject::connect(&viewer, SIGNAL(afterRendering()), rootObject, SLOT(qmlFramePainted()));
 #endif
-
-    const QStringList moviesLocation =
-            QStandardPaths::standardLocations(QStandardPaths::MoviesLocation);
-    const QUrl videoPath = QUrl::fromLocalFile(moviesLocation.isEmpty() ? app.applicationDirPath()
-                                                                        : moviesLocation.front());
-    viewer.rootContext()->setContextProperty("videoPath", videoPath);
 
     QMetaObject::invokeMethod(rootObject, "init");
 

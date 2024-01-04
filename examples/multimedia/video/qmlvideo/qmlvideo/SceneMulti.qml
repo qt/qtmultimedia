@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 
 Scene {
     id: root
@@ -24,28 +25,30 @@ Scene {
             id: root
             color: "transparent"
 
-            function content() {
-                return root.parent
-            }
+            signal start
+            signal stop
 
-            Text {
+            Label {
                 anchors {
                     horizontalCenter: parent.horizontalCenter
                     bottom: parent.bottom
                     margins: 20
                 }
-                text: content() ? content().started ? "Tap to stop" : "Tap to start" : ""
-                color: "#e0e0e0"
+                // qmllint disable
+                text:  root.started ? qsTr("Tap to stop") : qsTr("Tap to start")
+                // qmllint enable
             }
 
             MouseArea {
                 anchors.fill: parent
+                // qmllint disable
                 onClicked: {
-                    if (content().started)
-                        content().stop()
+                    if (root.started)
+                        root.stop()
                     else
-                        content().start()
+                        root.start()
                 }
+                // qmllint enable
             }
         }
     }
@@ -63,14 +66,19 @@ Scene {
         showBorder: true
         showFrameRate: started
         source: parent.source1
-        width: itemWidth
+        width: root.itemWidth
         volume: parent.volume
 
         Loader {
             id: video1StartStopLoader
+
+            property bool started: parent.started
+
             onLoaded: {
                 item.parent = video1
                 item.anchors.fill = video1
+                item.start.connect(video1.start)
+                item.stop.connect(video1.stop)
             }
         }
 
@@ -79,17 +87,19 @@ Scene {
 
     Rectangle {
         id: cameraHolder
+
+        property bool started: false
+
         anchors {
             horizontalCenter: parent.horizontalCenter
             top: parent.top
             topMargin: root.itemTopMargin
         }
         border.width: 1
-        border.color: "white"
+        border.color: palette.base
         color: "transparent"
-        width: itemWidth
+        width: root.itemWidth
         height: width
-        property bool started: false
 
         Loader {
             id: cameraLoader
@@ -98,7 +108,7 @@ Scene {
                 item.anchors.centerIn = cameraHolder
                 item.contentType = "camera"
                 item.showFrameRate = true
-                item.width = itemWidth
+                item.width = root.itemWidth
                 item.z = 1.0
                 cameraErrorConnection.target = item
                 item.initialize()
@@ -107,17 +117,22 @@ Scene {
 
         Loader {
             id: cameraStartStopLoader
+
+            property bool started: parent.started
+
             sourceComponent: startStopComponent
             onLoaded: {
                 item.parent = cameraHolder
                 item.anchors.fill = cameraHolder
                 item.z = 2.0
+                item.start.connect(cameraHolder.start)
+                item.stop.connect(cameraHolder.stop)
             }
         }
 
         Connections {
             id: cameraErrorConnection
-            onError: {
+            function onError() {
                 console.log("[qmlvideo] SceneMulti.camera.onError")
                 cameraHolder.stop()
             }
@@ -148,14 +163,19 @@ Scene {
         showBorder: true
         showFrameRate: started
         source: parent.source2
-        width: itemWidth
+        width: root.itemWidth
         volume: parent.volume
 
         Loader {
             id: video2StartStopLoader
+
+            property bool started: parent.started
+
             onLoaded: {
                 item.parent = video2
                 item.anchors.fill = video2
+                item.start.connect(video2.start)
+                item.stop.connect(video2.stop)
             }
         }
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 
 Scene {
     id: root
@@ -26,10 +27,8 @@ Scene {
             bottom: rotateNegativeButton.top
             margins: parent.margins
         }
-        width: Math.max(parent.width, parent.height) / 10
-        height: root.buttonHeight
-        text: "Rotate +" + delta
-        onClicked: content.rotation = content.rotation + delta
+        text: qsTr("Rotate +%1").arg(root.delta)
+        onClicked: content.rotation = content.rotation + root.delta
     }
 
     Button {
@@ -39,10 +38,8 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: Math.max(parent.width, parent.height) / 10
-        height: root.buttonHeight
-        text: "Rotate -" + delta
-        onClicked: content.rotation = content.rotation - delta
+        text: qsTr("Rotate -%1").arg(root.delta)
+        onClicked: content.rotation = content.rotation - root.delta
     }
 
     Button {
@@ -52,8 +49,6 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: Math.max(parent.width, parent.height) / 25
-        height: root.buttonHeight
         enabled: false
         text: content.rotation % 360
     }

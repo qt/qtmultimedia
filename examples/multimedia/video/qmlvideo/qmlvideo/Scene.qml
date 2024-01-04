@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 
 Rectangle {
     id: root
-    color: "black"
-    property alias buttonHeight: closeButton.height
+    color: palette.window
     property string source1
     property string source2
     property int contentWidth: parent.width / 2
@@ -24,13 +24,8 @@ Rectangle {
             right: parent.right
             margins: root.margins
         }
-        width: Math.max(parent.width, parent.height) / 12
-        height: Math.min(parent.width, parent.height) / 12
         z: 2.0
-        bgColor: "#212121"
-        bgColorSelected: "#757575"
-        textColorSelected: "white"
-        text: "Back"
+        text: qsTr("Back")
         onClicked: root.close()
     }
 }

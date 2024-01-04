@@ -1,6 +1,5 @@
 module qmlvideo
 
-Button 1.0 Button.qml
 CameraBasic 1.0 CameraBasic.qml
 CameraDrag 1.0 CameraDrag.qml
 CameraDummy 1.0 CameraDummy.qml

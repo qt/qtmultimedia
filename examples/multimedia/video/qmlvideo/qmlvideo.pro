@@ -12,27 +12,29 @@ DEFINES += \
     PERFORMANCEMONITOR_SUPPORT
 
 SOURCES += \
-    main.cpp \
     frequencymonitor.cpp \
     frequencymonitordeclarative.cpp \
+    main.cpp \
     performancemonitor.cpp \
-    performancemonitordeclarative.cpp
+    performancemonitordeclarative.cpp \
+    qmlvideo/videosingleton.cpp
+
+INCLUDEPATH += qmlvideo
+
+DEFINES += QMLVIDEO_LIB
 
 HEADERS += \
-    trace.h \
     frequencymonitor.h \
     performancemonitor.h \
-    performancemonitordeclarative.h
+    performancemonitordeclarative.h \
+    trace.h \
+    qmlvideo/videosingleton.h
 
 resources.files = \
-    qmlvideo/images/folder.png \
-    qmlvideo/images/leaves.jpg \
-    qmlvideo/images/up.png \
     frequencymonitor/FrequencyItem.qml \
     frequencymonitor/qmldir \
     performancemonitor/PerformanceItem.qml \
     performancemonitor/qmldir \
-    qmlvideo/Button.qml \
     qmlvideo/CameraBasic.qml \
     qmlvideo/CameraDrag.qml \
     qmlvideo/CameraDummy.qml \
@@ -46,6 +48,7 @@ resources.files = \
     qmlvideo/CameraSpin.qml \
     qmlvideo/Content.qml \
     qmlvideo/ErrorDialog.qml \
+    qmlvideo/Main.qml \
     qmlvideo/Scene.qml \
     qmlvideo/SceneBasic.qml \
     qmlvideo/SceneDrag.qml \
@@ -74,12 +77,18 @@ resources.files = \
     qmlvideo/VideoRotate.qml \
     qmlvideo/VideoSeek.qml \
     qmlvideo/VideoSpin.qml \
-    qmlvideo/Main.qml \
+    qmlvideo/images/folder.png \
+    qmlvideo/images/leaves.jpg \
+    qmlvideo/images/up.png \
     qmlvideo/qmldir
 
 resources.prefix = /qt/qml/
 
 RESOURCES += resources
+
+CONFIG += qmltypes
+QML_IMPORT_NAME = qmlvideo
+QML_IMPORT_MAJOR_VERSION = 1
 
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/video/qmlvideo
 INSTALLS += target

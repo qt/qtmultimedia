@@ -15,7 +15,7 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: "white"
+        color: palette.base
         opacity: 0.3
         radius: parent.height / 15
     }
@@ -24,7 +24,7 @@ Item {
         id: progressBar
         anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
         width: seekControl.duration == 0 ? 0 : background.width * seekControl.playPosition / seekControl.duration
-        color: "black"
+        color: palette.highlight
         opacity: 0.7
     }
 
@@ -33,9 +33,9 @@ Item {
         anchors { left: parent.left; top: parent.top; bottom: parent.bottom; leftMargin: 10 }
         horizontalAlignment: Text.AlignLeft
         verticalAlignment: Text.AlignVCenter
-        color: "white"
+        color: palette.windowText
         smooth: true
-        text: formatTime(playPosition)
+        text: seekControl.formatTime(seekControl.playPosition)
     }
 
     Text {
@@ -43,16 +43,16 @@ Item {
         anchors { right: parent.right; top: parent.top; bottom: parent.bottom; rightMargin: 10 }
         horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
-        color: "white"
+        color: palette.windowText
         smooth: true
-        text: formatTime(duration)
+        text: seekControl.formatTime(seekControl.duration)
     }
 
     Rectangle {
         id: progressHandle
         height: parent.height
         width: parent.height / 2
-        color: "white"
+        color: palette.accent
         opacity: 0.5
         anchors.verticalCenter: progressBar.verticalCenter
         x: seekControl.duration == 0 ? 0 : seekControl.playPosition / seekControl.duration * background.width
@@ -96,8 +96,8 @@ Item {
 
     function formatTime(timeInMs) {
         if (!timeInMs || timeInMs <= 0) return "0:00"
-        var seconds = timeInMs / 1000;
-        var minutes = Math.floor(seconds / 60)
+        let seconds = timeInMs / 1000;
+        let minutes = Math.floor(seconds / 60)
         seconds = Math.floor(seconds % 60)
         if (seconds < 10) seconds = "0" + seconds;
         return minutes + ":" + seconds

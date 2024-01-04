@@ -36,17 +36,20 @@ target_compile_definitions(qmlvideoexample PUBLIC
     PERFORMANCEMONITOR_SUPPORT
 )
 
+add_subdirectory(qmlvideo)
+add_subdirectory(performancemonitor)
+add_subdirectory(frequencymonitor)
+
 target_link_libraries(qmlvideoexample PRIVATE
     Qt::Core
     Qt::Gui
     Qt::Multimedia
     Qt::Qml
     Qt::Quick
+    qmlvideo
+    performancemonitor
+    frequencymonitor
 )
-
-add_subdirectory(qmlvideo)
-add_subdirectory(performancemonitor)
-add_subdirectory(frequencymonitor)
 
 install(TARGETS qmlvideoexample
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"

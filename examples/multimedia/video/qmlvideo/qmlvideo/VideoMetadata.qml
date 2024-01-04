@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 import QtMultimedia
+
+pragma ComponentBehavior: Bound
 
 Scene {
     id: root
     property string contentType: "video"
 
     Content {
-        id: content
+        id: videoContent
         anchors.centerIn: parent
         width: parent.contentWidth
         contentType: "video"
@@ -26,61 +29,52 @@ Scene {
         id: metadata
         Column {
             anchors.fill: parent
-            property var videoMetaData: content.contentItem().metaData
-            Text {
-                color: "#e0e0e0"
-                text: "Title:" + videoMetaData.value(MediaMetaData.Title)
+            // qmllint disable
+            property var videoMetaData: videoContent.contentItem?.metaData
+            // qmllint enable
+            Label {
+                text: qsTr("Title: %1").arg(parent.videoMetaData?.value(MediaMetaData.Title) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Resolution:" + videoMetaData.value(MediaMetaData.Resolution)
+            Label {
+                text: qsTr("Resolution: %1").arg(parent.videoMetaData?.value(MediaMetaData.Resolution) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Media type:" + videoMetaData.value(MediaMetaData.MediaType)
+            Label {
+                text: qsTr("Media type: %1").arg(parent.videoMetaData?.value(MediaMetaData.MediaType) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Video codec:" + videoMetaData.value(MediaMetaData.VideoCodec)
+            Label {
+                text: qsTr("Video codec: %1").arg(parent.videoMetaData?.value(MediaMetaData.VideoCodec) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Video bit rate:" + videoMetaData.value(MediaMetaData.VideoBitRate)
+            Label {
+                text: qsTr("Video bit rate: %1").arg(parent.videoMetaData?.value(MediaMetaData.VideoBitRate) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Video frame rate:" +videoMetaData.value(MediaMetaData.VideoFrameRate)
+            Label {
+                text: qsTr("Video frame rate: %1").arg(parent.videoMetaData?.value(MediaMetaData.VideoFrameRate) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Audio codec:" + videoMetaData.value(MediaMetaData.AudioCodec)
+            Label {
+                text: qsTr("Audio codec: %1").arg(parent.videoMetaData?.value(MediaMetaData.AudioCodec) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Audio bit rate:" + videoMetaData.value(MediaMetaData.AudioBitRate)
+            Label {
+                text: qsTr("Audio bit rate: %1").arg(parent.videoMetaData?.value(MediaMetaData.AudioBitRate) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Date:" + videoMetaData.value(MediaMetaData.Date)
+            Label {
+                text: qsTr("Date: %1").arg(parent.videoMetaData?.value(MediaMetaData.Date) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Description:" + videoMetaData.value(MediaMetaData.Description)
+            Label {
+                text: qsTr("Description: %1").arg(parent.videoMetaData?.value(MediaMetaData.Description) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Copyright:" + videoMetaData.value(MediaMetaData.Copyright)
+            Label {
+                text: qsTr("Copyright: %1").arg(parent.videoMetaData?.value(MediaMetaData.Copyright) ?? qsTr("Unknown"))
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Seekable:" + content.contentItem().seekable
+            Label {
+                // qmllint disable
+                text: qsTr("Seekable: %1").arg(videoContent.contentItem?.seekable ?? qsTr("Unknown"))
+                // qmllint enable
             }
-            Text {
-                color: "#e0e0e0"
-                text: "Orientation:" + videoMetaData.value(MediaMetaData.Orientation)
+            Label {
+                text: qsTr("Orientation: %1").arg(parent.videoMetaData?.value(MediaMetaData.Orientation) ?? qsTr("Unknown"))
             }
         }
     }
 
-    Component.onCompleted: root.content = content
+    Component.onCompleted: root.content = videoContent
 }

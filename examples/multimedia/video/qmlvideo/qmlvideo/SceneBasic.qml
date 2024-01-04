@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 
 Scene {
     id: root
@@ -21,15 +22,14 @@ Scene {
         onVideoFramePainted: root.videoFramePainted()
     }
 
-    Text {
+    Label {
         anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
             margins: 20
         }
-        text: content.started ? "Tap the screen to stop content"
-                              : "Tap the screen to start content"
-        color: "#e0e0e0"
+        text: content.started ? qsTr("Tap the screen to stop content")
+                              : qsTr("Tap the screen to start content")
         z: 2.0
     }
 

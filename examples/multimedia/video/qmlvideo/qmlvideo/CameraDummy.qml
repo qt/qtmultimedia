@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 
 // Item which is loaded by CameraItem if Qt Multimedia is not available
 Rectangle {
@@ -13,12 +14,11 @@ Rectangle {
     signal sizeChanged
     signal framePainted
 
-    Text {
+    Label {
         anchors.fill: parent
         anchors.margins: 10
-        color: "white"
         horizontalAlignment: Text.AlignHCenter
-        text: "Failed to create Camera item\n\nCheck that Qt Multimedia is installed"
+        text: qsTr("Failed to create Camera item\n\nCheck that Qt Multimedia is installed")
         verticalAlignment: Text.AlignVCenter
         wrapMode: Text.Wrap
     }
