@@ -9,8 +9,11 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/multimedia/video/qmlvideo/qmlvide
 
 qt_add_qml_module(qmlvideo
     URI qmlvideo
+    SOURCES
+        videosingleton.cpp
+        videosingleton.h
+        qmlvideo_global.h
     QML_FILES
-        "Button.qml"
         "CameraBasic.qml"
         "CameraDrag.qml"
         "CameraDummy.qml"
@@ -24,6 +27,7 @@ qt_add_qml_module(qmlvideo
         "CameraSpin.qml"
         "Content.qml"
         "ErrorDialog.qml"
+        "Main.qml"
         "Scene.qml"
         "SceneBasic.qml"
         "SceneDrag.qml"
@@ -52,12 +56,13 @@ qt_add_qml_module(qmlvideo
         "VideoRotate.qml"
         "VideoSeek.qml"
         "VideoSpin.qml"
-        "Main.qml"
     RESOURCES
         "images/folder.png"
         "images/leaves.jpg"
         "images/up.png"
 )
+
+target_compile_definitions(qmlvideo PRIVATE QMLVIDEO_LIB)
 
 target_link_libraries(qmlvideo PRIVATE
     Qt6::Core

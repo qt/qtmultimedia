@@ -6,7 +6,7 @@ import frequencymonitor
 
 Rectangle {
     id: root
-    border.color: "white"
+    border.color: palette.window
     border.width: showBorder ? 1 : 0
     color: "transparent"
     property string contentType // "camera" or "video"
@@ -17,6 +17,7 @@ Rectangle {
     property bool started: false
     property bool showFrameRate: false
     property bool showBorder: false
+    property alias contentItem: contentLoader.item
 
     signal initialized
     signal error
@@ -29,8 +30,7 @@ Rectangle {
     Connections {
         id: framePaintedConnection
         function onFramePainted() {
-            if (frameRateLoader.item)
-                frameRateLoader.item.notify()
+            (frameRateLoader.item as FrequencyItem)?.notify()
             root.videoFramePainted()
         }
         ignoreUnknownSignals: true
@@ -40,15 +40,20 @@ Rectangle {
         id: errorConnection
         function onFatalError() {
             console.log("[qmlvideo] Content.onFatalError")
-            stop()
+            root.stop()
             root.error()
         }
         ignoreUnknownSignals: true
     }
 
+    Component {
+        id: frequencyItem
+        FrequencyItem {}
+    }
+
     Loader {
         id: frameRateLoader
-        sourceComponent: root.showFrameRate ? FrequencyItem : undefined
+        sourceComponent: root.showFrameRate ? frequencyItem : undefined
         onLoaded: {
             item.parent = root
             item.anchors.top = root.top
@@ -58,13 +63,13 @@ Rectangle {
     }
 
     onWidthChanged: {
-        if (contentItem())
-            contentItem().width = width
+        if (root.contentItem)
+            root.contentItem.width = width
     }
 
     onHeightChanged: {
-        if (contentItem())
-            contentItem().height = height
+        if (root.contentItem)
+            root.contentItem.height = height
     }
 
     function initialize() {
@@ -105,6 +110,7 @@ Rectangle {
         }
     }
 
+    // qmllint disable
     function stop() {
         if (contentLoader.item) {
             contentLoader.item.stop()
@@ -113,7 +119,7 @@ Rectangle {
             root.started = false
         }
     }
+    // qmllint enable
 
-    function contentItem() { return contentLoader.item }
-    function updateRootSize() { root.height = contentItem().height }
+    function updateRootSize() { root.height = (root.contentItem as Item).height }
 }

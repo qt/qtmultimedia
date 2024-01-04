@@ -16,8 +16,7 @@ Rectangle {
         State {
             name: "on"
             PropertyChanges {
-                target: root
-                opacity: 1.0
+                root.opacity: 1.0
             }
         }
     ]
@@ -42,8 +41,8 @@ Rectangle {
 
     Rectangle {
         anchors.centerIn: parent
-        width: dialogWidth
-        height: dialogHeight
+        width: root.dialogWidth
+        height: root.dialogHeight
         radius: 5
         color: "white"
 

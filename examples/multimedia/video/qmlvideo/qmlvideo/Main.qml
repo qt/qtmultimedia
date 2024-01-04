@@ -2,43 +2,39 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 import QtQuick.Dialogs
 import performancemonitor
 
 Rectangle {
     id: root
     anchors.fill: parent
-    color: "black"
+    color: palette.window
 
-    property string source1
-    property string source2
-    property color bgColor: "black"
-    property real volume: 0.25
     property bool perfMonitorsLogging: false
     property bool perfMonitorsVisible: false
-
-    QtObject {
-        id: d
-        property int itemHeight: root.height > root.width ? root.width / 10 : root.height / 10
-        property int buttonHeight: 0.8 * itemHeight
-        property int margins: 5
-    }
 
     Loader {
         id: performanceLoader
 
         Connections {
-            target: inner
+            target: columnLayout
             function onVisibleChanged() {
                 if (performanceLoader.item)
-                    performanceLoader.item.enabled = !inner.visible
+                    performanceLoader.item.enabled = !columnLayout.visible
             }
             ignoreUnknownSignals: true
         }
 
+        Component {
+            id: performanceItem
+            PerformanceItem {}
+        }
+
         function init() {
             var enabled = root.perfMonitorsLogging || root.perfMonitorsVisible
-            sourceComponent = enabled ? PerformanceItem : undefined
+            sourceComponent = enabled ? performanceItem : undefined
         }
 
         onLoaded: {
@@ -51,106 +47,58 @@ Rectangle {
         }
     }
 
-    Rectangle {
-        id: inner
+    ColumnLayout {
+        id: columnLayout
         anchors.fill: parent
-        color: root.bgColor
+        spacing: 5
 
         Button {
             id: openFile1Button
-            anchors {
-                top: parent.top
-                left: parent.left
-                right: exitButton.left
-                margins: d.margins
-            }
-            bgColor: "#212121"
-            bgColorSelected: "#757575"
-            textColorSelected: "white"
-            height: d.buttonHeight
-            text: (root.source1 == "") ? "Select file 1" : root.source1
+            text: (VideoSingleton.source1 == '') ? qsTr("Select file 1") : VideoSingleton.source1
+            Component.onCompleted: console.log("source1: " + VideoSingleton.source1)
             onClicked: {
-                fileBrowser.setFirstSource = true
-                fileBrowser.open()
+                fileDialog.setFirstSource = true
+                fileDialog.open()
             }
+
+            Layout.fillWidth: true
         }
 
         Button {
             id: openFile2Button
-            anchors {
-                top: openFile1Button.bottom
-                left: parent.left
-                right: exitButton.left
-                margins: d.margins
-            }
-            bgColor: "#212121"
-            bgColorSelected: "#757575"
-            textColorSelected: "white"
-            height: d.buttonHeight
-            text: (root.source2 == "") ? "Select file 2" : root.source2
+            text: (VideoSingleton.source2 == '') ? qsTr("Select file 2") : VideoSingleton.source2
+            Component.onCompleted: console.log("source2: " + VideoSingleton.source2)
             onClicked: {
-                fileBrowser.setFirstSource = false
-                fileBrowser.open()
+                fileDialog.setFirstSource = false
+                fileDialog.open()
             }
+
+            Layout.fillWidth: true
         }
 
-        Button {
-            id: exitButton
-            anchors {
-                top: parent.top
-                right: parent.right
-                margins: d.margins
-            }
-            bgColor: "#212121"
-            bgColorSelected: "#757575"
-            textColorSelected: "white"
-            width: parent.width / 10
-            height: d.buttonHeight
-            text: "Exit"
-            onClicked: Qt.quit()
-        }
+        RowLayout {
+            Layout.fillWidth: true
 
-        Row {
-            id: modes
-            anchors.top: openFile2Button.bottom
-            anchors.margins: 0
-            anchors.topMargin: 5
-            Button {
-                width: root.width / 2
-                height: 0.8 * d.itemHeight
-                bgColor: "#212121"
-                radius: 0
-                text: "Video Modes"
-                enabled: false
-            }
-            Button {
-                width: root.width / 2
-                height: 0.8 * d.itemHeight
-                bgColor: "#212121"
-                radius: 0
-                text: "Camera Modes"
-                enabled: false
-            }
-        }
+            Label {
+                text: qsTr("Video Modes")
 
-        Rectangle {
-            id: divider
-            height: 1
-            width: parent.width
-            color: "black"
-            anchors.top: modes.bottom
+                horizontalAlignment: Qt.AlignHCenter
+                Layout.preferredWidth: 50
+                Layout.fillWidth: true
+            }
+            Label {
+                text: qsTr("Camera Modes")
+
+                horizontalAlignment: Qt.AlignHCenter
+                Layout.preferredWidth: 50
+                Layout.fillWidth: true
+            }
         }
 
         SceneSelectionPanel {
             id: sceneSelectionPanel
-            itemHeight: d.itemHeight
-            color: "#212121"
-            anchors {
-                top: divider.bottom
-                left: parent.left
-                right: parent.right
-                bottom: parent.bottom
-            }
+            itemHeight: Math.min(width / 10, height / 10)
+            color: palette.dark
             radius: 0
             onSceneSourceChanged: {
                 sceneLoader.source = sceneSource
@@ -162,16 +110,15 @@ Rectangle {
                 } else {
                     scene = sceneLoader.item
                     if (scene) {
-                        if (scene.contentType === "video" && source1 === "") {
-                            errorDialog.show("You must first select a video file")
+                        if (scene.contentType === "video" && VideoSingleton.source1 === "") {
+                            errorDialog.show(qsTr("You must first select a video file"))
                             sceneSource = ""
                         } else {
                             scene.parent = root
-                            scene.color = root.bgColor
-                            scene.buttonHeight = d.buttonHeight
-                            scene.source1 = source1
-                            scene.source2 = source2
-                            scene.volume = volume
+                            scene.color = root.palette.window
+                            scene.source1 = VideoSingleton.source1
+                            scene.source2 = VideoSingleton.source2
+                            scene.volume = VideoSingleton.volume
                             scene.anchors.fill = root
                             scene.close.connect(closeScene)
                             scene.content.initialize()
@@ -180,8 +127,11 @@ Rectangle {
                     }
                 }
                 videoFramePaintedConnection.target = scene
-                inner.visible = innerVisible
+                columnLayout.visible = innerVisible
             }
+
+            Layout.fillWidth: true
+            Layout.fillHeight: true
         }
     }
 
@@ -191,42 +141,46 @@ Rectangle {
 
     Connections {
         id: videoFramePaintedConnection
+        // qmllint disable
         function onVideoFramePainted() {
             if (performanceLoader.item)
                 performanceLoader.item.videoFramePainted()
         }
+        // qmllint enable
         ignoreUnknownSignals: true
     }
 
     FileDialog {
-        id: fileBrowser
+        id: fileDialog
         property bool setFirstSource
-        onAccepted: {
+        onAccepted: function() {
             if (setFirstSource)
-               root.source1 = currentFile
+               VideoSingleton.source1 = selectedFile
             else
-               root.source2 = currentFile
+               VideoSingleton.source2 = selectedFile
         }
     }
 
     ErrorDialog {
         id: errorDialog
         anchors.fill: root
-        dialogWidth: d.itemHeight * 5
-        dialogHeight: d.itemHeight * 3
+        dialogWidth: Math.min(root.width, root.height) * 0.5
+        dialogHeight: Math.min(root.width, root.height) * 0.3
         enabled: false
     }
 
     // Called from main() once root properties have been set
     function init() {
         performanceLoader.init()
-        fileBrowser.currentFolder = videoPath
+        fileDialog.currentFolder = VideoSingleton.videoPath
     }
 
+    // qmllint disable
     function qmlFramePainted() {
         if (performanceLoader.item)
             performanceLoader.item.qmlFramePainted()
     }
+    // qmllint enable
 
     function closeScene() {
         sceneSelectionPanel.sceneSource = ""

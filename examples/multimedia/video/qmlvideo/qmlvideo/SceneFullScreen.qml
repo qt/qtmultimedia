@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 
 Scene {
     id: root
@@ -19,8 +20,10 @@ Scene {
         states: [
             State {
                 name: "fullScreen"
-                PropertyChanges { target: content; width: content.parent.width }
-                PropertyChanges { target: content; height: content.parent.height }
+                PropertyChanges {
+                    content.width: content.parent.width
+                    content.height: content.parent.height
+                }
             }
         ]
 
@@ -49,14 +52,13 @@ Scene {
         onVideoFramePainted: root.videoFramePainted()
     }
 
-    Text {
+    Label {
         anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
             margins: 20
         }
-        text: "Tap on the content to toggle full-screen mode"
-        color: "#e0e0e0"
+        text: qsTr("Tap on the content to toggle full-screen mode")
         z: 2.0
     }
 

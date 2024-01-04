@@ -19,7 +19,7 @@ Scene {
         SequentialAnimation on x {
             id: animation
             loops: Animation.Infinite
-            property int from: margin
+            property int from: root.margin
             property int to: 100
             property int duration: 1500
             running: false

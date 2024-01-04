@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 
 Scene {
     id: root
@@ -20,7 +21,7 @@ Scene {
         states: [
             State {
                 name: "nonFullScreen"
-                PropertyChanges { target: content; width: content.parent.contentWidth }
+                PropertyChanges { content.width: root.contentWidth }
             }
         ]
 
@@ -43,7 +44,7 @@ Scene {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: content.state = (content.state == "nonFullScreen") ? "baseState" : "nonFullScreen"
+            onClicked: content.state = (content.state === "nonFullScreen") ? "baseState" : "nonFullScreen"
         }
 
         onVideoFramePainted: root.videoFramePainted()
@@ -54,14 +55,13 @@ Scene {
         }
     }
 
-    Text {
+    Label {
         anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
             margins: 20
         }
-        text: "Tap on the content to toggle full-screen mode"
-        color: "#e0e0e0"
+        text: qsTr("Tap on the content to toggle full-screen mode")
         z: 2.0
     }
 

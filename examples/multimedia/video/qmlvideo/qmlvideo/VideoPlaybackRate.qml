@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
+import QtQuick.Controls
 
 Scene {
     id: root
@@ -26,12 +27,10 @@ Scene {
             bottom: decreaseButton.top
             margins: parent.margins
         }
-        width: Math.max(parent.width, parent.height) / 10
-        height: root.buttonHeight
-        text: "Increase"
+        text: qsTr("Increase")
         onClicked: {
-            var video = content.contentItem()
-            video.playbackRate += delta
+            let video = (content.contentItem as VideoItem)
+            video.playbackRate += root.delta
         }
     }
 
@@ -42,12 +41,10 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: Math.max(parent.width, parent.height) / 10
-        height: root.buttonHeight
-        text: "Decrease"
+        text: qsTr("Decrease")
         onClicked: {
-            var video = content.contentItem()
-            video.playbackRate -= delta
+            let video = (content.contentItem as VideoItem)
+            video.playbackRate -= root.delta
         }
     }
 
@@ -58,10 +55,10 @@ Scene {
             verticalCenter: parent.verticalCenter
             margins: parent.margins
         }
-        width: Math.max(parent.width, parent.height) / 25
-        height: root.buttonHeight
         enabled: false
-        text: Math.round(10 * content.contentItem().playbackRate) / 10
+        // qmllint disable
+        text: Math.round(10 * content.contentItem?.playbackRate ?? 1) / 10
+        // qmllint enable
     }
 
     Component.onCompleted: root.content = content
