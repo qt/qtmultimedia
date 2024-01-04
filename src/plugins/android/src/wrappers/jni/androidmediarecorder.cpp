@@ -213,6 +213,32 @@ void AndroidMediaRecorder::stop()
     }
 }
 
+void AndroidMediaRecorder::pause()
+{
+    QJNIEnvironmentPrivate env;
+    m_mediaRecorder.callMethod<void>("pause");
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
+        env->ExceptionClear();
+    }
+}
+
+bool AndroidMediaRecorder::resume()
+{
+    QJNIEnvironmentPrivate env;
+    m_mediaRecorder.callMethod<void>("resume");
+    if (env->ExceptionCheck()) {
+#ifdef QT_DEBUG
+        env->ExceptionDescribe();
+#endif
+        env->ExceptionClear();
+        return false;
+    }
+    return true;
+}
+
 void AndroidMediaRecorder::setAudioChannels(int numChannels)
 {
     m_mediaRecorder.callMethod<void>("setAudioChannels", "(I)V", numChannels);
