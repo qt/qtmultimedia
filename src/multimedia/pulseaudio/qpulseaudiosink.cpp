@@ -368,7 +368,7 @@ void QPulseAudioSink::close()
         pa_stream_set_overflow_callback(m_stream, nullptr, nullptr);
         pa_stream_set_latency_update_callback(m_stream, nullptr, nullptr);
 
-        PAOperationUPtr(pa_stream_flush(m_stream, outputStreamFlushComplete, nullptr));
+        PAOperationUPtr operation(pa_stream_flush(m_stream, outputStreamFlushComplete, nullptr));
 
         pa_stream_disconnect(m_stream);
         pa_stream_unref(m_stream);
