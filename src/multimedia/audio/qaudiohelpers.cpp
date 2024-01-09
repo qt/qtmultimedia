@@ -43,6 +43,8 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace {
+
 // Base implementation of 24 bits number.
 // Used to adjust 3 bytes values by a factor.
 // TODO: Uses little-endian only.
@@ -85,6 +87,7 @@ public:
     }
 };
 
+}
 
 namespace QAudioHelperInternal
 {
