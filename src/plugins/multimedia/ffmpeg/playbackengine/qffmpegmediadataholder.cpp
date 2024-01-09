@@ -50,7 +50,8 @@ static int streamOrientation(const AVStream *stream)
 {
     Q_ASSERT(stream);
 
-    constexpr auto displayMatrixSize = sizeof(int32_t) * 9;
+    using SideDataSize = decltype(AVPacketSideData::size);
+    constexpr SideDataSize displayMatrixSize = sizeof(int32_t) * 9;
     const auto *sideData = streamSideData(stream, AV_PKT_DATA_DISPLAYMATRIX);
     if (!sideData || sideData->size < displayMatrixSize)
         return 0;
