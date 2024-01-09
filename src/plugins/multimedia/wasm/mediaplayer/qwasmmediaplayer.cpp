@@ -9,10 +9,12 @@
 #include <QtCore/qloggingcategory.h>
 #include <QUuid>
 #include <QtGlobal>
+#include <QMimeDatabase>
+#include <QFileInfo>
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.mediaplayer.wasm");
+static Q_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.wasm.mediaplayer");
 
 QWasmMediaPlayer::QWasmMediaPlayer(QMediaPlayer *parent)
     : QPlatformMediaPlayer(parent),
@@ -202,14 +204,16 @@ const QIODevice *QWasmMediaPlayer::mediaStream() const
 
 void QWasmMediaPlayer::setMedia(const QUrl &mediaContent, QIODevice *stream)
 {
-    qDebug() << Q_FUNC_INFO << mediaContent << isVideoAvailable()
-             << isAudioAvailable();
+    QMimeDatabase db;
+
     if (mediaContent.isEmpty()) {
         if (stream) {
             m_mediaStream = stream;
-            if (isVideoAvailable()) {
+            if (db.mimeTypeForData(stream).name().contains("video")) {
+                setVideoAvailable(true);
                 m_videoOutput->setSource(m_mediaStream);
             }  else {
+                setAudioAvailable(true);
                 m_audioOutput->setSource(m_mediaStream);
             }
         } else {
@@ -217,10 +221,14 @@ void QWasmMediaPlayer::setMedia(const QUrl &mediaContent, QIODevice *stream)
             setMediaStatus(QMediaPlayer::NoMedia);
         }
     } else {
-        if (isVideoAvailable())
+        QString sourceFile = mediaContent.toLocalFile();
+        if (db.mimeTypeForFile(QFileInfo(sourceFile)).name().contains("video")) {
+                setVideoAvailable(true);
             m_videoOutput->setSource(mediaContent);
-        else
+        } else {
+            setAudioAvailable(true);
             m_audioOutput->setSource(mediaContent);
+        }
     }
 
     resetBufferingProgress();
