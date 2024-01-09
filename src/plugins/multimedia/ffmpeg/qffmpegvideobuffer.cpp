@@ -324,13 +324,13 @@ AVPixelFormat QFFmpegVideoBuffer::toAVPixelFormat(QVideoFrameFormat::PixelFormat
         // We're using the data from the converted QImage here, which is in BGRA.
         return AV_PIX_FMT_BGRA;
     case QVideoFrameFormat::Format_ARGB8888:
-    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
         return AV_PIX_FMT_ARGB;
+    case QVideoFrameFormat::Format_ARGB8888_Premultiplied:
     case QVideoFrameFormat::Format_XRGB8888:
         return AV_PIX_FMT_0RGB;
     case QVideoFrameFormat::Format_BGRA8888:
-    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
         return AV_PIX_FMT_BGRA;
+    case QVideoFrameFormat::Format_BGRA8888_Premultiplied:
     case QVideoFrameFormat::Format_BGRX8888:
         return AV_PIX_FMT_BGR0;
     case QVideoFrameFormat::Format_ABGR8888:
@@ -339,6 +339,8 @@ AVPixelFormat QFFmpegVideoBuffer::toAVPixelFormat(QVideoFrameFormat::PixelFormat
         return AV_PIX_FMT_0BGR;
     case QVideoFrameFormat::Format_RGBA8888:
         return AV_PIX_FMT_RGBA;
+    // to be added in 6.8:
+    // case QVideoFrameFormat::Format_RGBA8888_Premultiplied:
     case QVideoFrameFormat::Format_RGBX8888:
         return AV_PIX_FMT_RGB0;
 
