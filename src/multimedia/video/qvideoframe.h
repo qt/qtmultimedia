@@ -5,8 +5,8 @@
 #define QVIDEOFRAME_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/qvideo.h>
+#include <QtMultimedia/qvideoframeformat.h>
 
 #include <QtCore/qmetatype.h>
 #include <QtCore/qshareddata.h>
