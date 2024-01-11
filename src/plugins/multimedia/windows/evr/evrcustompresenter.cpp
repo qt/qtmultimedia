@@ -1795,11 +1795,11 @@ void EVRCustomPresenter::presentSample(const ComPtr<IMFSample> &sample)
     if (SUCCEEDED(m_mixer->GetInputCurrentType(0, inputStreamType.GetAddressOf()))) {
         auto rotation = static_cast<MFVideoRotationFormat>(MFGetAttributeUINT32(inputStreamType.Get(), MF_MT_VIDEO_ROTATION, 0));
         switch (rotation) {
-        case MFVideoRotationFormat_0: frame.setRotationAngle(QVideo::Rotation0); break;
-        case MFVideoRotationFormat_90: frame.setRotationAngle(QVideo::Rotation90); break;
-        case MFVideoRotationFormat_180: frame.setRotationAngle(QVideo::Rotation180); break;
-        case MFVideoRotationFormat_270: frame.setRotationAngle(QVideo::Rotation270); break;
-        default: frame.setRotationAngle(QVideo::Rotation0);
+        case MFVideoRotationFormat_0: frame.setRotation(QtVideo::Rotation::None); break;
+        case MFVideoRotationFormat_90: frame.setRotation(QtVideo::Rotation::Clockwise90); break;
+        case MFVideoRotationFormat_180: frame.setRotation(QtVideo::Rotation::Clockwise180); break;
+        case MFVideoRotationFormat_270: frame.setRotation(QtVideo::Rotation::Clockwise270); break;
+        default: frame.setRotation(QtVideo::Rotation::None);
         }
     }
 

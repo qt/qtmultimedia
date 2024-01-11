@@ -9,12 +9,12 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QVideo
+namespace QtVideo
 {
 Q_NAMESPACE_EXPORT(Q_MULTIMEDIA_EXPORT)
 
-enum RotationAngle { Rotation0 = 0, Rotation90 = 90, Rotation180 = 180, Rotation270 = 270 };
-Q_ENUM_NS(RotationAngle)
+enum class Rotation { None = 0, Clockwise90 = 90, Clockwise180 = 180, Clockwise270 = 270 };
+Q_ENUM_NS(Rotation)
 }
 
 QT_END_NAMESPACE

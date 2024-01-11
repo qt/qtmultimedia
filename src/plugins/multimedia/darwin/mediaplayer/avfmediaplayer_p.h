@@ -74,7 +74,7 @@ public:
     QMediaMetaData metaData() const override;
 
     static void videoOrientationForAssetTrack(AVAssetTrack *track,
-                                       QVideo::RotationAngle &angle,
+                                       QtVideo::Rotation &angle,
                                        bool &mirrored);
 
 public Q_SLOTS:
@@ -121,7 +121,7 @@ private:
     void setSeekable(bool seekable);
     void resetStream(QIODevice *stream = nullptr);
 
-    void orientationChanged(QVideo::RotationAngle rotation, bool mirrored);
+    void orientationChanged(QtVideo::Rotation rotation, bool mirrored);
 
     AVFVideoRendererControl *m_videoOutput = nullptr;
     AVFVideoSink *m_videoSink = nullptr;

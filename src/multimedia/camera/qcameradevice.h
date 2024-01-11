@@ -50,7 +50,7 @@ class Q_MULTIMEDIA_EXPORT QCameraDevice
     Q_PROPERTY(bool isDefault READ isDefault CONSTANT)
     Q_PROPERTY(Position position READ position CONSTANT)
     Q_PROPERTY(QList<QCameraFormat> videoFormats READ videoFormats CONSTANT)
-    Q_PROPERTY(QVideo::RotationAngle correctionAngle READ correctionAngle CONSTANT)
+    Q_PROPERTY(QtVideo::Rotation correctionAngle READ correctionAngle CONSTANT)
 public:
     QCameraDevice();
     QCameraDevice(const QCameraDevice& other);
@@ -84,7 +84,7 @@ public:
     QList<QSize> photoResolutions() const;
     QList<QCameraFormat> videoFormats() const;
 
-    QVideo::RotationAngle correctionAngle() const;
+    QtVideo::Rotation correctionAngle() const;
     // ### Add zoom and other camera information
 
 private:
