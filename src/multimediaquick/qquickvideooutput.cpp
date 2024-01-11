@@ -534,7 +534,7 @@ void QQuickVideoOutput::setFrame(const QVideoFrame &frame)
 
     m_videoFormat = frame.surfaceFormat();
     m_frame = frame;
-    m_frameOrientation = frame.rotationAngle();
+    m_frameOrientation = static_cast<int>(frame.rotation());
     m_frameChanged = true;
 }
 

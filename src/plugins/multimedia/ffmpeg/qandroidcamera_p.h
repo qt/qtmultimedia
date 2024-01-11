@@ -68,7 +68,7 @@ private:
     bool isActivating() const { return m_state != State::Closed; }
 
     void setState(State newState);
-    QVideo::RotationAngle rotation();
+    QtVideo::Rotation rotation();
     void updateCameraCharacteristics();
     void cleanCameraCharacteristics();
 

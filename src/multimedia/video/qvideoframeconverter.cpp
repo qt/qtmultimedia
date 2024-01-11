@@ -114,13 +114,13 @@ static QShader vfcGetShader(const QString &name)
     return shader;
 }
 
-static void rasterTransform(QImage &image, QVideo::RotationAngle rotation,
+static void rasterTransform(QImage &image, QtVideo::Rotation rotation,
                             bool mirrorX, bool mirrorY)
 {
     QTransform t;
     if (mirrorX)
         t.scale(-1.f, 1.f);
-    if (rotation != QVideo::Rotation0)
+    if (rotation != QtVideo::Rotation::None)
         t.rotate(float(rotation));
     if (mirrorY)
         t.scale(1.f, -1.f);
@@ -249,7 +249,7 @@ static bool updateTextures(QRhi *rhi,
     return true;
 }
 
-static QImage convertJPEG(const QVideoFrame &frame, QVideo::RotationAngle rotation, bool mirrorX, bool mirrorY)
+static QImage convertJPEG(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX, bool mirrorY)
 {
     QVideoFrame varFrame = frame;
     if (!varFrame.map(QVideoFrame::ReadOnly)) {
@@ -263,7 +263,7 @@ static QImage convertJPEG(const QVideoFrame &frame, QVideo::RotationAngle rotati
     return image;
 }
 
-static QImage convertCPU(const QVideoFrame &frame, QVideo::RotationAngle rotation, bool mirrorX, bool mirrorY)
+static QImage convertCPU(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX, bool mirrorY)
 {
     VideoFrameConvertFunc convert = qConverterForFormat(frame.pixelFormat());
     if (!convert) {
@@ -284,7 +284,7 @@ static QImage convertCPU(const QVideoFrame &frame, QVideo::RotationAngle rotatio
     }
 }
 
-QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideo::RotationAngle rotation, bool mirrorX, bool mirrorY)
+QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX, bool mirrorY)
 {
 #ifdef Q_OS_DARWIN
     QMacAutoReleasePool releasePool;
@@ -321,7 +321,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideo::RotationAngle rota
 
     // Do conversion using shaders
 
-    const int rotationIndex = (rotation / 90) % 4;
+    const int rotationIndex = (qToUnderlying(rotation) / 90) % 4;
 
     QSize frameSize = frame.size();
     if (rotationIndex % 2)

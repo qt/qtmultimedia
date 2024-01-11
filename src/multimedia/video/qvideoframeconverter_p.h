@@ -19,7 +19,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_MULTIMEDIA_EXPORT QImage qImageFromVideoFrame(const QVideoFrame &frame, QVideo::RotationAngle rotation = QVideo::Rotation0, bool mirrorX = false, bool mirrorY = false);
+Q_MULTIMEDIA_EXPORT QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation = QtVideo::Rotation::None, bool mirrorX = false, bool mirrorY = false);
 
 QT_END_NAMESPACE
 

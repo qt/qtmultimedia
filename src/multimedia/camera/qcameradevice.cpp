@@ -322,7 +322,7 @@ bool QCameraDevice::isDefault() const
 
 /*!
     \since 6.7
-    \qmlproperty QVideo::RotationAngle QtMultimedia::cameraDevice::correctionAngle
+    \qmlproperty QtVideo::Rotation QtMultimedia::cameraDevice::correctionAngle
 
     Returns the rotation angle needed to compensate for the physical camera rotation of the camera
     compared to its native orientation. In other words, the property represents the clockwise angle
@@ -347,9 +347,9 @@ bool QCameraDevice::isDefault() const
 
     \image camera_correctionAngle_90.png Example with 90 degrees \a correctionAngle
 */
-QVideo::RotationAngle QCameraDevice::correctionAngle() const
+QtVideo::Rotation QCameraDevice::correctionAngle() const
 {
-    return d ? QVideo::RotationAngle(d->orientation) : QVideo::Rotation0;
+    return d ? QtVideo::Rotation(d->orientation) : QtVideo::Rotation::None;
 }
 
 /*!

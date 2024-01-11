@@ -118,7 +118,7 @@ void AVFVideoRendererControl::setLayer(CALayer *layer)
     AVFVideoSinkInterface::setLayer(layer);
 }
 
-void AVFVideoRendererControl::setVideoRotation(QVideo::RotationAngle rotation)
+void AVFVideoRendererControl::setVideoRotation(QtVideo::Rotation rotation)
 {
     m_rotation = rotation;
 }
@@ -153,7 +153,7 @@ void AVFVideoRendererControl::updateVideoFrame(const CVTimeStamp &ts)
     CVPixelBufferRelease(pixelBuffer);
 
     frame = QVideoFrame(buffer, buffer->videoFormat());
-    frame.setRotationAngle(m_rotation);
+    frame.setRotation(m_rotation);
     frame.setMirrored(m_mirrored);
     m_sink->setVideoFrame(frame);
 }

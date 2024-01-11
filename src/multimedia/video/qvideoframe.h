@@ -41,6 +41,16 @@ public:
         ReadWrite = ReadOnly | WriteOnly
     };
 
+#if QT_DEPRECATED_SINCE(6, 7)
+    enum RotationAngle
+    {
+        Rotation0 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::Rotation::None instead") = 0,
+        Rotation90 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::Rotation::Clockwise90 instead") = 90,
+        Rotation180 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::Rotation::Clockwise180 instead") = 180,
+        Rotation270 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QtVideo::Rotation::Clockwise270 instead") = 270
+    };
+#endif
+
     QVideoFrame();
     QVideoFrame(const QVideoFrameFormat &format);
     QVideoFrame(const QVideoFrame &other);
@@ -90,20 +100,15 @@ public:
     void setEndTime(qint64 time);
 
 #if QT_DEPRECATED_SINCE(6, 7)
-    enum RotationAngle
-    {
-        Rotation0 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QVideo::Rotation0 instead") = QVideo::Rotation0,
-        Rotation90 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QVideo::Rotation90 instead") = QVideo::Rotation90,
-        Rotation180 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QVideo::Rotation180 instead") = QVideo::Rotation180,
-        Rotation270 Q_DECL_ENUMERATOR_DEPRECATED_X("Use QVideo::Rotation270 instead") = QVideo::Rotation270
-    };
+    QT_DEPRECATED_VERSION_X_6_7("Use QVideoFrame::setRotation(QtVideo::Rotation) instead")
+    void setRotationAngle(RotationAngle angle) { setRotation(QtVideo::Rotation(angle)); }
 
-    QT_DEPRECATED_VERSION_X_6_7("Use QVideoFrame::setRotationAngle(QVideo::RotationAngle) instead")
-    void setRotationAngle(RotationAngle angle) { setRotationAngle(QVideo::RotationAngle(angle)); }
+    QT_DEPRECATED_VERSION_X_6_7("Use QVideoFrame::rotation() instead")
+    RotationAngle rotationAngle() const { return RotationAngle(rotation()); }
 #endif
 
-    void setRotationAngle(QVideo::RotationAngle);
-    RotationAngle rotationAngle() const;
+    void setRotation(QtVideo::Rotation angle);
+    QtVideo::Rotation rotation() const;
 
     void setMirrored(bool);
     bool mirrored() const;

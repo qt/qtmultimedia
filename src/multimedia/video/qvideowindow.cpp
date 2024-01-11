@@ -332,7 +332,7 @@ void QVideoWindowPrivate::render()
         return;
     }
 
-    int frameRotationIndex = (m_currentFrame.rotationAngle() / 90) % 4;
+    const int frameRotationIndex = (static_cast<int>(m_currentFrame.rotation()) / 90) % 4;
     QSize frameSize = m_currentFrame.size();
     if (frameRotationIndex % 2)
         frameSize.transpose();
