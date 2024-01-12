@@ -661,7 +661,6 @@ void QWasmVideoOutput::doElementCallbacks()
     // emptied
     auto emptiedCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
-        checkNetworkState();
         qCDebug(qWasmMediaVideoOutput) << "emptied";
         emit readyChanged(false);
         m_currentMediaStatus = QMediaPlayer::EndOfMedia;
