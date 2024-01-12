@@ -87,6 +87,8 @@ public:
     // mediacapturesession has the videosink
     QVideoSink *m_wasmSink = nullptr;
 
+    emscripten::val currentVideoElement() { return m_video; }
+
 Q_SIGNALS:
     void readyChanged(bool);
     void bufferingChanged(qint32 percent);

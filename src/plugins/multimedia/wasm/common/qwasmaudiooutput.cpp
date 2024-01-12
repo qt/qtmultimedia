@@ -30,8 +30,23 @@ void QWasmAudioOutput::setAudioDevice(const QAudioDevice &audioDevice)
     device = audioDevice;
 }
 
+void QWasmAudioOutput::setVideoElement(emscripten::val videoElement)
+{
+    m_videoElement = videoElement;
+}
+
+emscripten::val QWasmAudioOutput::videoElement()
+{
+    return m_videoElement;
+}
+
 void QWasmAudioOutput::setMuted(bool muted)
 {
+    emscripten::val realElement = videoElement();
+    if (!realElement.isUndefined()) {
+        realElement.set("muted", muted);
+        return;
+    }
     if (m_audio.isUndefined() || m_audio.isNull()) {
         qCDebug(qWasmMediaAudioOutput) << "Error"
                                        << "Audio element could not be created";
@@ -44,14 +59,20 @@ void QWasmAudioOutput::setMuted(bool muted)
 
 void QWasmAudioOutput::setVolume(float volume)
 {
+    volume = qBound(qreal(0.0), volume, qreal(1.0));
+    emscripten::val realElement = videoElement();
+    if (!realElement.isUndefined()) {
+        realElement.set("volume", volume);
+        return;
+    }
     if (m_audio.isUndefined() || m_audio.isNull()) {
         qCDebug(qWasmMediaAudioOutput) << "Error"
-                                       << "Audio element could not be created";
+                                       << "Audio element not available";
         emit errorOccured(QMediaPlayer::ResourceError,
                           QStringLiteral("Media file could not be opened"));
         return;
     }
-    volume = qBound(qreal(0.0), volume, qreal(1.0));
+
     m_audio.set("volume", volume);
 }
 
