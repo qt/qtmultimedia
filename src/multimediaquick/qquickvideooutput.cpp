@@ -13,6 +13,7 @@
 #include <private/qquickwindow_p.h>
 #include <private/qmultimediautils_p.h>
 #include <qsgvideonode_p.h>
+#include <QtCore/qrunnable.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -503,6 +504,8 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
     if (m_frameChanged) {
         videoNode->setCurrentFrame(m_frame);
 
+        updateHdr(videoNode);
+
         //don't keep the frame for more than really necessary
         m_frameChanged = false;
         m_frame = QVideoFrame();
@@ -512,14 +515,47 @@ QSGNode *QQuickVideoOutput::updatePaintNode(QSGNode *oldNode,
     videoNode->setTexturedRectGeometry(m_renderedRect, m_sourceTextureRect,
                                        qNormalizedOrientation(orientation()));
 
-    if (const QQuickWindow *const videoOutputWindow = window()) {
-        if (QRhiSwapChain *const swapChain = videoOutputWindow->swapChain()) {
-            videoNode->setSurfaceFormat(swapChain->format());
-            videoNode->setHdrInfo(swapChain->hdrInfo());
+    return videoNode;
+}
+
+void QQuickVideoOutput::updateHdr(QSGVideoNode *videoNode)
+{
+    auto *videoOutputWindow = window();
+    if (!videoOutputWindow)
+        return;
+
+    auto *swapChain = videoOutputWindow->swapChain();
+    if (!swapChain)
+        return;
+
+    static const bool autoHdrEnabled = qEnvironmentVariableIntValue("QT_MEDIA_AUTO_HDR");
+
+    if (autoHdrEnabled) {
+        constexpr auto sdrMaxLuminance = 100.0f;
+        const auto frameMaxLuminance = m_frame.surfaceFormat().maxLuminance();
+
+        const auto requiredSwapChainFormat = frameMaxLuminance > sdrMaxLuminance
+                ? QRhiSwapChain::HDRExtendedSrgbLinear
+                : QRhiSwapChain::SDR;
+
+        if (swapChain->format() != requiredSwapChainFormat) {
+            auto *recreateSwapChainJob =
+                    QRunnable::create([swapChain, requiredSwapChainFormat]() {
+                        swapChain->destroy();
+                        swapChain->setFormat(requiredSwapChainFormat);
+                        swapChain->createOrResize();
+                    });
+
+            // Even though the 'recreate swap chain' job is scheduled for the current frame the
+            // effect will be visible only starting from the next frame since the recreation would
+            // happen after the actual swap.
+            videoOutputWindow->scheduleRenderJob(recreateSwapChainJob,
+                                                 QQuickWindow::AfterSwapStage);
         }
     }
 
-    return videoNode;
+    videoNode->setSurfaceFormat(swapChain->format());
+    videoNode->setHdrInfo(swapChain->hdrInfo());
 }
 
 QRectF QQuickVideoOutput::adjustedViewport() const

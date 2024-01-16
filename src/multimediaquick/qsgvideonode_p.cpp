@@ -72,8 +72,9 @@ public:
     QSGVideoMaterial(const QVideoFrameFormat &videoFormat);
 
     [[nodiscard]] QSGMaterialType *type() const override {
-        static QSGMaterialType type[QVideoFrameFormat::NPixelFormats];
-        return &type[m_videoFormat.pixelFormat()];
+        static constexpr int NFormats = QRhiSwapChain::HDRExtendedDisplayP3Linear + 1;
+        static QSGMaterialType type[QVideoFrameFormat::NPixelFormats][NFormats];
+        return &type[m_videoFormat.pixelFormat()][m_surfaceFormat];
     }
 
     [[nodiscard]] QSGMaterialShader *createShader(QSGRendererInterface::RenderMode) const override {

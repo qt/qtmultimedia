@@ -31,6 +31,7 @@ QT_BEGIN_NAMESPACE
 class QQuickVideoBackend;
 class QVideoOutputOrientationHandler;
 class QVideoSink;
+class QSGVideoNode;
 
 class Q_MULTIMEDIAQUICK_EXPORT QQuickVideoOutput : public QQuickItem
 {
@@ -92,6 +93,7 @@ private:
     void invalidateSceneGraph();
 
     void initRhiForSink();
+    void updateHdr(QSGVideoNode *videoNode);
 
 private Q_SLOTS:
     void _q_newFrame(QSize);
