@@ -5,7 +5,7 @@
     \example videowidget
     \title Video Widget Example
     \ingroup multimedia_examples
-    \examplecategory {Graphics & Multimedia}
+    \examplecategory {Multimedia}
     \brief Implementing a video player widget.
     \meta {tag} {widgets,QVideoWidget}
 
