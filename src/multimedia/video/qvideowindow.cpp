@@ -487,7 +487,7 @@ bool QVideoWindow::event(QEvent *e)
     case QEvent::Expose:
         d->isExposed = isExposed();
         if (d->isExposed)
-            requestUpdate();
+            d->render();
         return true;
 
     default:
