@@ -5,10 +5,6 @@
 #include "qffmpegmediaformatinfo_p.h"
 #include <qloggingcategory.h>
 
-extern "C" {
-#include <libavutil/opt.h>
-}
-
 static Q_LOGGING_CATEGORY(qLcResampler, "qt.multimedia.ffmpeg.resampler")
 
 QT_BEGIN_NAMESPACE
@@ -19,50 +15,17 @@ namespace QFFmpeg
 Resampler::Resampler(const Codec *codec, const QAudioFormat &outputFormat)
     : m_outputFormat(outputFormat)
 {
+    Q_ASSERT(codec);
+
     qCDebug(qLcResampler) << "createResampler";
     const AVStream *audioStream = codec->stream();
-    const auto *codecpar = audioStream->codecpar;
 
     if (!m_outputFormat.isValid())
         // want the native format
         m_outputFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(audioStream->codecpar);
 
-    QAudioFormat::ChannelConfig config = m_outputFormat.channelConfig();
-    if (config == QAudioFormat::ChannelConfigUnknown)
-        config = QAudioFormat::defaultChannelConfigForChannelCount(m_outputFormat.channelCount());
-
-
-    qCDebug(qLcResampler) << "init resampler" << m_outputFormat.sampleRate() << config << codecpar->sample_rate;
-    SwrContext *resampler = nullptr;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    auto inConfig = codecpar->channel_layout;
-    if (inConfig == 0)
-        inConfig = QFFmpegMediaFormatInfo::avChannelLayout(QAudioFormat::defaultChannelConfigForChannelCount(codecpar->channels));
-    resampler = swr_alloc_set_opts(nullptr,  // we're allocating a new context
-                                   QFFmpegMediaFormatInfo::avChannelLayout(config),  // out_ch_layout
-                                   QFFmpegMediaFormatInfo::avSampleFormat(m_outputFormat.sampleFormat()),    // out_sample_fmt
-                                   m_outputFormat.sampleRate(),                // out_sample_rate
-                                   inConfig, // in_ch_layout
-                                   AVSampleFormat(codecpar->format),   // in_sample_fmt
-                                   codecpar->sample_rate,                // in_sample_rate
-                                   0,                    // log_offset
-                                   nullptr);
-#else
-    AVChannelLayout in_ch_layout = codecpar->ch_layout;
-    AVChannelLayout out_ch_layout = {};
-    av_channel_layout_from_mask(&out_ch_layout, QFFmpegMediaFormatInfo::avChannelLayout(config));
-    swr_alloc_set_opts2(&resampler,  // we're allocating a new context
-                        &out_ch_layout,
-                        QFFmpegMediaFormatInfo::avSampleFormat(m_outputFormat.sampleFormat()),
-                        m_outputFormat.sampleRate(),
-                        &in_ch_layout,
-                        AVSampleFormat(codecpar->format),
-                        codecpar->sample_rate,
-                        0,
-                        nullptr);
-#endif
-    swr_init(resampler);
-    m_resampler.reset(resampler);
+    m_resampler = createResampleContext(ResampleAudioFormat(audioStream->codecpar),
+                                        ResampleAudioFormat(m_outputFormat));
 }
 
 Resampler::~Resampler() = default;

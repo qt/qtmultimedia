@@ -27,6 +27,8 @@ extern "C" {
 
 QT_BEGIN_NAMESPACE
 
+class QAudioFormat;
+
 namespace QFFmpeg
 {
 
@@ -200,6 +202,24 @@ inline bool isSwPixelFormat(AVPixelFormat format)
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType);
 
 const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataType type);
+
+struct ResampleAudioFormat
+{
+    ResampleAudioFormat(const AVCodecParameters* codecPar);
+
+    ResampleAudioFormat(const QAudioFormat& audioFormat);
+
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+    uint64_t channelLayoutMask;
+#else
+    AVChannelLayout channelLayout;
+#endif
+    AVSampleFormat sampleFormat;
+    int sampleRate;
+};
+
+SwrContextUPtr createResampleContext(const ResampleAudioFormat& inputFormat,
+                                     const ResampleAudioFormat& outputFormat);
 
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);
