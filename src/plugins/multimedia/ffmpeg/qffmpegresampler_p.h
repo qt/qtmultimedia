@@ -16,37 +16,44 @@
 
 #include "qaudiobuffer.h"
 #include "qffmpeg_p.h"
+#include "private/qplatformaudioresampler_p.h"
 
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg
 {
-
 class Codec;
+}
 
-class Resampler
+class QFFmpegResampler : public QPlatformAudioResampler
 {
 public:
-    Resampler(const Codec *codec, const QAudioFormat &outputFormat);
-    ~Resampler();
+    QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat);
+    QFFmpegResampler(const QFFmpeg::Codec* codec, const QAudioFormat &outputFormat);
+
+    ~QFFmpegResampler() override;
+
+    QAudioBuffer resample(const char* data, size_t size) override;
 
     QAudioBuffer resample(const AVFrame *frame);
+
     qint64 samplesProcessed() const { return m_samplesProcessed; }
     void setSampleCompensation(qint32 delta, quint32 distance);
     qint32 activeSampleCompensationDelta() const;
 
 private:
-    int adjustMaxOutSamples(const AVFrame *frame);
+    int adjustMaxOutSamples(int inputSamplesCount);
+
+    QAudioBuffer resample(const uint8_t **inputData, int inputSamplesCount);
 
 private:
+    QAudioFormat m_inputFormat;
     QAudioFormat m_outputFormat;
-    SwrContextUPtr m_resampler;
+    QFFmpeg::SwrContextUPtr m_resampler;
     qint64 m_samplesProcessed = 0;
     qint64 m_endCompensationSample = std::numeric_limits<qint64>::min();
     qint32 m_sampleCompensationDelta = 0;
 };
-
-}
 
 QT_END_NAMESPACE
 
