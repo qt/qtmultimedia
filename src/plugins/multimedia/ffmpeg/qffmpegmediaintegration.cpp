@@ -173,16 +173,6 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 
     setupFFmpegLogger();
 
-#if defined(Q_OS_ANDROID)
-    m_videoDevices = std::make_unique<QAndroidVideoDevices>(this);
-#elif QT_CONFIG(linux_v4l)
-    m_videoDevices = std::make_unique<QV4L2CameraDevices>(this);
-#elif defined Q_OS_DARWIN
-    m_videoDevices = std::make_unique<QAVFVideoDevices>(this);
-#elif defined(Q_OS_WINDOWS)
-    m_videoDevices = std::make_unique<QWindowsVideoDevices>(this);
-#endif
-
 #if QT_CONFIG(xlib)
     if (QX11SurfaceCapture::isSupported())
         m_capturableWindows = std::make_unique<QX11CapturableWindows>();
@@ -321,6 +311,21 @@ QMaybe<QPlatformAudioInput *> QFFmpegMediaIntegration::createAudioInput(QAudioIn
 QPlatformMediaFormatInfo *QFFmpegMediaIntegration::createFormatInfo()
 {
     return new QFFmpegMediaFormatInfo;
+}
+
+QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
+{
+#if defined(Q_OS_ANDROID)
+    return new QAndroidVideoDevices(this);
+#elif QT_CONFIG(linux_v4l)
+    return new QV4L2CameraDevices(this);
+#elif defined Q_OS_DARWIN
+    return new QAVFVideoDevices(this);
+#elif defined(Q_OS_WINDOWS)
+    return new QWindowsVideoDevices(this);
+#else
+    return nullptr;
+#endif
 }
 
 #ifdef Q_OS_ANDROID

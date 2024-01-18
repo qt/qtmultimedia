@@ -45,10 +45,11 @@ public:
     QMaybe<QPlatformAudioOutput *> createAudioOutput(QAudioOutput *) override;
 
     const QGstreamerFormatInfo *gstFormatsInfo();
-    GstDevice *videoDevice(const QByteArray &id) const;
+    GstDevice *videoDevice(const QByteArray &id);
 
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
+    QPlatformVideoDevices *createVideoDevices() override;
 };
 
 QT_END_NAMESPACE
