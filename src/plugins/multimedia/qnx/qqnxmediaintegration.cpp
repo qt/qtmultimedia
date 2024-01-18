@@ -32,14 +32,16 @@ public:
     }
 };
 
-QQnxMediaIntegration::QQnxMediaIntegration()
-{
-    m_videoDevices = std::make_unique<QQnxVideoDevices>(this);
-}
+QQnxMediaIntegration::QQnxMediaIntegration() = default;
 
 QPlatformMediaFormatInfo *QQnxMediaIntegration::createFormatInfo()
 {
     return new QQnxFormatInfo;
+}
+
+QPlatformVideoDevices *QQnxMediaIntegration::createVideoDevices()
+{
+    return new QQnxVideoDevices(this);
 }
 
 QMaybe<QPlatformVideoSink *> QQnxMediaIntegration::createVideoSink(QVideoSink *sink)

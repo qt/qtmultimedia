@@ -46,10 +46,7 @@ public:
     }
 };
 
-QWasmMediaIntegration::QWasmMediaIntegration()
-{
-   m_videoDevices = std::make_unique<QWasmCameraDevices>(this);
-}
+QWasmMediaIntegration::QWasmMediaIntegration() = default;
 
 QMaybe<QPlatformMediaPlayer *> QWasmMediaIntegration::createPlayer(QMediaPlayer *player)
 {
@@ -77,6 +74,11 @@ QPlatformMediaFormatInfo *QWasmMediaIntegration::createFormatInfo()
     return new QPlatformMediaFormatInfo;
 }
 
+QPlatformVideoDevices *QWasmMediaIntegration::createVideoDevices()
+{
+    return new QWasmCameraDevices(this);
+}
+
 QMaybe<QPlatformMediaCaptureSession *> QWasmMediaIntegration::createCaptureSession()
 {
     return new QWasmMediaCaptureSession();
@@ -100,7 +102,7 @@ QWasmMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 
 QList<QCameraDevice> QWasmMediaIntegration::videoInputs()
 {
-    return m_videoDevices->videoDevices();
+    return videoDevices()->videoDevices();
 }
 
 QT_END_NAMESPACE

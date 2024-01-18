@@ -120,7 +120,8 @@ void QPlatformMediaIntegration::setPlatformFactory(Factory factory)
 
 QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
 {
-    return m_videoDevices ? m_videoDevices->videoDevices() : QList<QCameraDevice>{};
+    auto devices = videoDevices();
+    return devices ? devices->videoDevices() : QList<QCameraDevice>{};
 }
 
 QMaybe<QPlatformAudioInput *> QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
@@ -145,6 +146,13 @@ const QPlatformMediaFormatInfo *QPlatformMediaIntegration::formatInfo()
 QPlatformMediaFormatInfo *QPlatformMediaIntegration::createFormatInfo()
 {
     return new QPlatformMediaFormatInfo;
+}
+
+QPlatformVideoDevices *QPlatformMediaIntegration::videoDevices()
+{
+    std::call_once(m_videoDevicesOnceFlag,
+                   [this]() { m_videoDevices.reset(createVideoDevices()); });
+    return m_videoDevices.get();
 }
 
 QPlatformMediaIntegration::QPlatformMediaIntegration() = default;

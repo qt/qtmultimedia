@@ -64,6 +64,9 @@ public:
     QMockVideoSink *lastVideoSink() const { return m_lastVideoSink; }
     QMockSurfaceCapture *lastScreenCapture() { return m_lastScreenCapture; }
 
+protected:
+    QPlatformVideoDevices *createVideoDevices() override;
+
 private:
     friend class QMockIntegrationFactory;
     QMockIntegration();

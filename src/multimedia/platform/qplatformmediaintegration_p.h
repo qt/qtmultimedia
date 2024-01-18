@@ -74,10 +74,12 @@ public:
 
     virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) { return notAvailable; }
 
-    QPlatformVideoDevices *videoDevices() { return m_videoDevices.get(); }
+    QPlatformVideoDevices *videoDevices();
 
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
+
+    virtual QPlatformVideoDevices *createVideoDevices() { return nullptr; }
 
 private:
     friend class QMockIntegrationFactory;
@@ -86,8 +88,9 @@ private:
     struct InstanceHolder;
     static void setPlatformFactory(Factory factory);
 
-protected:
+private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
+    std::once_flag m_videoDevicesOnceFlag;
 
     mutable std::unique_ptr<QPlatformMediaFormatInfo> m_formatInfo;
     mutable std::once_flag m_formatInfoOnceFlg;
