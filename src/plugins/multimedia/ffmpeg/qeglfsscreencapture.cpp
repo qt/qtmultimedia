@@ -3,12 +3,14 @@
 // GPL-3.0-only
 
 #include "qeglfsscreencapture_p.h"
+
 #include "qffmpegsurfacecapturegrabber_p.h"
 #include "qguiapplication.h"
-
+#include "qopenglvideobuffer_p.h"
 #include "private/qimagevideobuffer_p.h"
 
 #include <QtOpenGL/private/qopenglcompositor_p.h>
+#include <QtOpenGL/private/qopenglframebufferobject_p.h>
 
 #include <QtQuick/qquickwindow.h>
 
@@ -22,7 +24,8 @@ public:
     {
         addFrameCallback(screenCapture, &QEglfsScreenCapture::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &screenCapture, &QEglfsScreenCapture::updateError);
-        // Limit frame rate to 30 fps for performance reasons, to be reviewed at the next optimization round
+        // Limit frame rate to 30 fps for performance reasons,
+        // to be reviewed at the next optimization round
         setFrameRate(std::min(screen->refreshRate(), 30.0));
     }
 
@@ -33,25 +36,29 @@ public:
 protected:
     QVideoFrame grabFrame() override
     {
-        QOpenGLCompositor *compositor = QOpenGLCompositor::instance();
-        QImage img = compositor->grab();
+        auto nativeSize = QOpenGLCompositor::instance()->nativeTargetGeometry().size();
+        auto fbo = std::make_unique<QOpenGLFramebufferObject>(nativeSize);
 
-        if (img.isNull()) {
-            updateError(Error::InternalError, QLatin1String("Null image captured"));
+        if (!QOpenGLCompositor::instance()->grabToFrameBufferObject(
+                    fbo.get(), QOpenGLCompositor::NotFlipped)) {
+            updateError(Error::InternalError, QLatin1String("Couldn't grab to framebuffer object"));
             return {};
         }
 
+        if (!fbo->isValid()) {
+            updateError(Error::InternalError, QLatin1String("Framebuffer object invalid"));
+            return {};
+        }
+
+        auto videoBuffer = std::make_unique<QOpenGLVideoBuffer>(std::move(fbo));
+
         if (!m_format.isValid()) {
-            // This is a hack to use RGBX8888 video frame format for RGBA8888_Premultiplied image format,
-            // due to the lack of QVideoFrameFormat::Format_RGBA8888_Premultiplied
-            auto videoFrameFormat = img.format() == QImage::Format_RGBA8888_Premultiplied
-                    ? QVideoFrameFormat::Format_RGBX8888
-                    : QVideoFrameFormat::pixelFormatFromImageFormat(img.format());
-            m_format = { img.size(), videoFrameFormat };
+            auto image = videoBuffer->ensureImageBuffer().underlyingImage();
+            m_format = { image.size(), QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
             m_format.setFrameRate(frameRate());
         }
 
-        return QVideoFrame(new QImageVideoBuffer(std::move(img)), m_format);
+        return QVideoFrame(videoBuffer.release(), m_format);
     }
 
     QVideoFrameFormat m_format;

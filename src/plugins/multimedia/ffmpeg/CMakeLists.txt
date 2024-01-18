@@ -204,6 +204,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_xlib
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_eglfs
     SOURCES
         qeglfsscreencapture.cpp qeglfsscreencapture_p.h
+        qopenglvideobuffer.cpp qopenglvideobuffer_p.h
     LIBRARIES
         Qt::OpenGLPrivate
         Qt::Quick
