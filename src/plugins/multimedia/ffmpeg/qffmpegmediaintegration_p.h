@@ -49,6 +49,8 @@ protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
 
     QPlatformVideoDevices *createVideoDevices() override;
+
+    QPlatformCapturableWindows *createCapturableWindows() override;
 };
 
 QT_END_NAMESPACE

@@ -173,15 +173,6 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 
     setupFFmpegLogger();
 
-#if QT_CONFIG(xlib)
-    if (QX11SurfaceCapture::isSupported())
-        m_capturableWindows = std::make_unique<QX11CapturableWindows>();
-#elif defined Q_OS_MACOS
-    m_capturableWindows = std::make_unique<QCGCapturableWindows>();
-#elif defined(Q_OS_WINDOWS)
-    m_capturableWindows = std::make_unique<QWinCapturableWindows>();
-#endif
-
 #ifndef QT_NO_DEBUG
     qDebug() << "Available HW decoding frameworks:";
     for (auto type : QFFmpeg::HWAccel::decodingDeviceTypes())
@@ -326,6 +317,19 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
 #else
     return nullptr;
 #endif
+}
+
+QPlatformCapturableWindows *QFFmpegMediaIntegration::createCapturableWindows()
+{
+#if QT_CONFIG(xlib)
+    if (QX11SurfaceCapture::isSupported())
+        return new QX11CapturableWindows;
+#elif defined Q_OS_MACOS
+    return new QCGCapturableWindows;
+#elif defined(Q_OS_WINDOWS)
+    return new QWinCapturableWindows;
+#endif
+    return nullptr;
 }
 
 #ifdef Q_OS_ANDROID

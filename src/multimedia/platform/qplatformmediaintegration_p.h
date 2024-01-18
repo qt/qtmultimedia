@@ -79,15 +79,19 @@ public:
 
     virtual QMaybe<QPlatformVideoSink *> createVideoSink(QVideoSink *) { return notAvailable; }
 
-    QList<QCapturableWindow> capturableWindows();
+    QList<QCapturableWindow> capturableWindowsList();
     bool isCapturableWindowValid(const QCapturableWindowPrivate &);
 
     QPlatformVideoDevices *videoDevices();
+
+    QPlatformCapturableWindows *capturableWindows();
 
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
 
     virtual QPlatformVideoDevices *createVideoDevices() { return nullptr; }
+
+    virtual QPlatformCapturableWindows *createCapturableWindows() { return nullptr; }
 
 private:
     friend class QMockIntegrationFactory;
@@ -96,13 +100,12 @@ private:
     struct InstanceHolder;
     static void setPlatformFactory(Factory factory);
 
-protected:
-    // TODO: initialize via once_flag and move to private
-    std::unique_ptr<QPlatformCapturableWindows> m_capturableWindows;
-
 private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
     std::once_flag m_videoDevicesOnceFlag;
+
+    std::unique_ptr<QPlatformCapturableWindows> m_capturableWindows;
+    std::once_flag m_capturableWindowsOnceFlag;
 
     mutable std::unique_ptr<QPlatformMediaFormatInfo> m_formatInfo;
     mutable std::once_flag m_formatInfoOnceFlg;
