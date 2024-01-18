@@ -186,7 +186,7 @@ void AudioRenderer::initResempler(const Codec *codec)
     auto resamplerFormat = m_format;
     resamplerFormat.setSampleRate(
             qRound(m_format.sampleRate() / playbackRate() * sampleRateFactor()));
-    m_resampler = std::make_unique<Resampler>(codec, resamplerFormat);
+    m_resampler = std::make_unique<QFFmpegResampler>(codec, resamplerFormat);
 }
 
 void AudioRenderer::freeOutput()

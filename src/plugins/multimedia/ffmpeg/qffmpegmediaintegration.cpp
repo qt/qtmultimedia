@@ -12,6 +12,7 @@
 #include "qffmpegimagecapture_p.h"
 #include "qffmpegaudioinput_p.h"
 #include "qffmpegaudiodecoder_p.h"
+#include "qffmpegresampler_p.h"
 #include "qffmpegsymbolsresolve_p.h"
 #include "qgrabwindowsurfacecapture_p.h"
 
@@ -187,6 +188,11 @@ QFFmpegMediaIntegration::QFFmpegMediaIntegration()
 QMaybe<QPlatformAudioDecoder *> QFFmpegMediaIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {
     return new QFFmpegAudioDecoder(decoder);
+}
+
+QMaybe<QPlatformAudioResampler *> QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat)
+{
+    return new QFFmpegResampler(inputFormat, outputFormat);
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QFFmpegMediaIntegration::createCaptureSession()
