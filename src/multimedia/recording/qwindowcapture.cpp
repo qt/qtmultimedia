@@ -119,7 +119,7 @@ QWindowCapture::~QWindowCapture()
  */
 QList<QCapturableWindow> QWindowCapture::capturableWindows()
 {
-    return QPlatformMediaIntegration::instance()->capturableWindows();
+    return QPlatformMediaIntegration::instance()->capturableWindowsList();
 }
 
 QMediaCaptureSession *QWindowCapture::captureSession() const

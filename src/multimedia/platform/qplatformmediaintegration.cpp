@@ -135,14 +135,16 @@ QMaybe<QPlatformAudioOutput *> QPlatformMediaIntegration::createAudioOutput(QAud
     return new QPlatformAudioOutput(q);
 }
 
-QList<QCapturableWindow> QPlatformMediaIntegration::capturableWindows()
+QList<QCapturableWindow> QPlatformMediaIntegration::capturableWindowsList()
 {
-    return m_capturableWindows ? m_capturableWindows->windows() : QList<QCapturableWindow>{};
+    const auto capturableWindows = this->capturableWindows();
+    return capturableWindows ? capturableWindows->windows() : QList<QCapturableWindow>{};
 }
 
 bool QPlatformMediaIntegration::isCapturableWindowValid(const QCapturableWindowPrivate &window)
 {
-    return m_capturableWindows && m_capturableWindows->isWindowValid(window);
+    const auto capturableWindows = this->capturableWindows();
+    return capturableWindows && capturableWindows->isWindowValid(window);
 }
 
 const QPlatformMediaFormatInfo *QPlatformMediaIntegration::formatInfo()
@@ -164,6 +166,13 @@ QPlatformVideoDevices *QPlatformMediaIntegration::videoDevices()
     std::call_once(m_videoDevicesOnceFlag,
                    [this]() { m_videoDevices.reset(createVideoDevices()); });
     return m_videoDevices.get();
+}
+
+QPlatformCapturableWindows *QPlatformMediaIntegration::capturableWindows()
+{
+    std::call_once(m_capturableWindowsOnceFlag,
+                   [this]() { m_capturableWindows.reset(createCapturableWindows()); });
+    return m_capturableWindows.get();
 }
 
 QPlatformMediaIntegration::QPlatformMediaIntegration() = default;
