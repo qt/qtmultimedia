@@ -66,6 +66,9 @@ public:
     QMockSurfaceCapture *lastScreenCapture() { return m_lastScreenCapture; }
     QMockSurfaceCapture *lastWindowCapture() { return m_lastWindowCapture; }
 
+protected:
+    QPlatformVideoDevices *createVideoDevices() override;
+
 private:
     friend class QMockIntegrationFactory;
     QMockIntegration();
