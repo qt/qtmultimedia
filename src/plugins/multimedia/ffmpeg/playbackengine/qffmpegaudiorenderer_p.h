@@ -22,10 +22,7 @@ QT_BEGIN_NAMESPACE
 
 class QAudioOutput;
 class QAudioSink;
-
-namespace QFFmpeg {
-class Resampler;
-};
+class QFFmpegResampler;
 
 namespace QFFmpeg {
 
@@ -105,7 +102,7 @@ private:
     std::unique_ptr<QAudioSink> m_sink;
     AudioTimings m_timings;
     BufferLoadingInfo m_bufferLoadingInfo;
-    std::unique_ptr<Resampler> m_resampler;
+    std::unique_ptr<QFFmpegResampler> m_resampler;
     QAudioFormat m_format;
 
     BufferedDataWithOffset m_bufferedData;
