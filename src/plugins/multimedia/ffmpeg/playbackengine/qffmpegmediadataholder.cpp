@@ -64,10 +64,10 @@ static int streamOrientation(const AVStream *stream)
     return rotation < 0 ? -rotation % 360 : -rotation % 360 + 360;
 }
 
-QVideo::RotationAngle MediaDataHolder::getRotationAngle() const
+QtVideo::Rotation MediaDataHolder::rotation() const
 {
     int orientation = m_metaData.value(QMediaMetaData::Orientation).toInt();
-    return static_cast<QVideo::RotationAngle>(orientation);
+    return static_cast<QtVideo::Rotation>(orientation);
 }
 
 AVFormatContext *MediaDataHolder::avContext()
