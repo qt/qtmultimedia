@@ -2805,11 +2805,11 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
 {
     QTest::addColumn<MaybeUrl>("fileURL");
     QTest::addColumn<QRgb>("expectedColor");
-    QTest::addColumn<QVideo::RotationAngle>("expectedRotationAngle");
-    QTest::addRow("without rotation") << m_colorMatrixVideo << QRgb(0xff0000) << QVideo::Rotation0;
-    QTest::addRow("90 deg clockwise") << m_colorMatrix90degClockwiseVideo << QRgb(0x0000FF) << QVideo::Rotation90;
-    QTest::addRow("180 deg clockwise") << m_colorMatrix180degClockwiseVideo << QRgb(0xFFFF00) << QVideo::Rotation180;
-    QTest::addRow("270 deg clockwise") << m_colorMatrix270degClockwiseVideo << QRgb(0x00FF00) << QVideo::Rotation270;
+    QTest::addColumn<QtVideo::Rotation>("expectedRotationAngle");
+    QTest::addRow("without rotation") << m_colorMatrixVideo << QRgb(0xff0000) << QtVideo::Rotation::None;
+    QTest::addRow("90 deg clockwise") << m_colorMatrix90degClockwiseVideo << QRgb(0x0000FF) << QtVideo::Rotation::Clockwise90;
+    QTest::addRow("180 deg clockwise") << m_colorMatrix180degClockwiseVideo << QRgb(0xFFFF00) << QtVideo::Rotation::Clockwise180;
+    QTest::addRow("270 deg clockwise") << m_colorMatrix270degClockwiseVideo << QRgb(0x00FF00) << QtVideo::Rotation::Clockwise270;
 }
 
 void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata()
@@ -2823,7 +2823,7 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     // Fetch path and expected color of upper left area of each file
     QFETCH(MaybeUrl, fileURL);
     QFETCH(QRgb, expectedColor);
-    QFETCH(QVideo::RotationAngle, expectedRotationAngle);
+    QFETCH(QtVideo::Rotation, expectedRotationAngle);
 
     CHECK_SELECTED_URL(fileURL);
 
@@ -2832,12 +2832,14 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
     // Compare orientation metadata of QMediaPlayer with expected value
-    auto playerOrientation = m_fixture->player.metaData().value(QMediaMetaData::Orientation);
+    const auto metaData = m_fixture->player.metaData();
+    const auto playerOrientation = metaData.value(QMediaMetaData::Orientation).value<QtVideo::Rotation>();
     QCOMPARE(playerOrientation, expectedRotationAngle);
 
     // Compare orientation metadata of active video stream with expected value
-    int activeVideoTrack = m_fixture->player.activeVideoTrack();
-    auto videoTrackOrientation = m_fixture->player.videoTracks().at(activeVideoTrack).value(QMediaMetaData::Orientation);
+    const int activeVideoTrack = m_fixture->player.activeVideoTrack();
+    const auto videoTrackMetaData = m_fixture->player.videoTracks().at(activeVideoTrack);
+    const auto videoTrackOrientation = videoTrackMetaData.value(QMediaMetaData::Orientation).value<QtVideo::Rotation>();
     QCOMPARE(videoTrackOrientation, expectedRotationAngle);
 
     // Play video file, sample upper left area, compare with expected color
@@ -2845,7 +2847,7 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
     QVideoFrame videoFrame = m_fixture->surface.waitForFrame();
     QVERIFY(videoFrame.isValid());
-    QCOMPARE(videoFrame.rotationAngle(), expectedRotationAngle);
+    QCOMPARE(QtVideo::Rotation(videoFrame.rotationAngle()), expectedRotationAngle);
     QImage image = videoFrame.toImage();
     QVERIFY(!image.isNull());
     QRgb upperLeftColor = image.pixel(5, 5);

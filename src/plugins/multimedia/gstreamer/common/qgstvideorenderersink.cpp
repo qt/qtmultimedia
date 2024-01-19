@@ -122,7 +122,7 @@ bool QGstVideoRenderer::start(const QGstCaps& caps)
     QMutexLocker locker(&m_mutex);
 
     m_frameMirrored = false;
-    m_frameRotationAngle = QVideo::Rotation0;
+    m_frameRotationAngle = QtVideo::Rotation::None;
 
     if (m_active) {
         m_flush = true;
@@ -264,11 +264,11 @@ void QGstVideoRenderer::gstEvent(GstEvent *event)
     QMutexLocker locker(&m_mutex);
     m_frameMirrored = mirrored;
     switch (rotationAngle) {
-    case 0: m_frameRotationAngle = QVideo::Rotation0; break;
-    case 90: m_frameRotationAngle = QVideo::Rotation90; break;
-    case 180: m_frameRotationAngle = QVideo::Rotation180; break;
-    case 270: m_frameRotationAngle = QVideo::Rotation270; break;
-    default: m_frameRotationAngle = QVideo::Rotation0;
+    case 0: m_frameRotationAngle = QtVideo::Rotation::None; break;
+    case 90: m_frameRotationAngle = QtVideo::Rotation::Clockwise90; break;
+    case 180: m_frameRotationAngle = QtVideo::Rotation::Clockwise180; break;
+    case 270: m_frameRotationAngle = QtVideo::Rotation::Clockwise270; break;
+    default: m_frameRotationAngle = QtVideo::Rotation::None;
     }
 }
 
@@ -357,7 +357,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
                 QVideoFrame frame(videoBuffer, m_format);
                 QGstUtils::setFrameTimeStamps(&frame, buffer);
                 frame.setMirrored(m_frameMirrored);
-                frame.setRotationAngle(m_frameRotationAngle);
+                frame.setRotationAngle(QVideoFrame::RotationAngle(m_frameRotationAngle));
 
                 qCDebug(qLcGstVideoRenderer) << "    sending video frame";
                 m_sink->setVideoFrame(frame);

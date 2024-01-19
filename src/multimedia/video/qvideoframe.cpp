@@ -45,7 +45,7 @@ public:
     int mappedCount = 0;
     QMutex mapMutex;
     QString subtitleText;
-    QVideo::RotationAngle rotationAngle = QVideo::Rotation0;
+    QtVideo::Rotation rotation = QtVideo::Rotation::None;
     bool mirrored = false;
     QImage image;
     std::once_flag imageOnceFlag;
@@ -644,7 +644,7 @@ void QVideoFrame::setEndTime(qint64 time)
 void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
 {
     if (d)
-        d->rotationAngle = QVideo::RotationAngle(angle);
+        d->rotation = QtVideo::Rotation(angle);
 }
 
 /*!
@@ -652,7 +652,7 @@ void QVideoFrame::setRotationAngle(QVideoFrame::RotationAngle angle)
  */
 QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
 {
-    return QVideoFrame::RotationAngle(d ? d->rotationAngle : QVideo::Rotation0);
+    return QVideoFrame::RotationAngle(d ? d->rotation : QtVideo::Rotation::None);
 }
 
 /*!
@@ -683,7 +683,7 @@ QImage QVideoFrame::toImage() const
 
     std::call_once(d->imageOnceFlag, [this]() {
         const bool mirrorY = surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom;
-        d->image = qImageFromVideoFrame(*this, QVideo::RotationAngle(rotationAngle()), mirrored(), mirrorY);
+        d->image = qImageFromVideoFrame(*this, QtVideo::Rotation(rotationAngle()), mirrored(), mirrorY);
     });
 
     return d->image;
@@ -724,7 +724,7 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
 
     QRectF targetRect = rect;
     QSizeF size = this->size();
-    if (rotationAngle() % 180)
+    if (qToUnderlying(rotationAngle()) % 180)
         size.transpose();
 
     size.scale(targetRect.size(), options.aspectRatioMode);

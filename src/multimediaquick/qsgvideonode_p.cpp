@@ -286,9 +286,10 @@ void QSGVideoNode::setSubtitleGeometry()
 /* Update the vertices and texture coordinates.  Orientation must be in {0,90,180,270} */
 void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect, int orientation)
 {
+    const auto currentFrameOrientation = m_material ? static_cast<int>(m_material->m_currentFrame.rotationAngle()) : 0;
     bool frameChanged = false;
     if (m_material) {
-        if (m_material->m_currentFrame.rotationAngle() != m_frameOrientation
+        if (currentFrameOrientation != m_frameOrientation
             || m_material->m_currentFrame.mirrored() != m_frameMirrored) {
             frameChanged = true;
         }
@@ -301,12 +302,10 @@ void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &tex
     m_textureRect = textureRect;
     m_orientation = orientation;
     if (m_material) {
-        m_frameOrientation = m_material->m_currentFrame.rotationAngle();
+        m_frameOrientation = currentFrameOrientation;
         m_frameMirrored = m_material->m_currentFrame.mirrored();
     }
-    int videoRotation = orientation;
-    videoRotation += m_material ? m_material->m_currentFrame.rotationAngle() : 0;
-    videoRotation %= 360;
+    const int videoRotation = (orientation + currentFrameOrientation) % 360;
 
     QSGGeometry *g = geometry();
 
