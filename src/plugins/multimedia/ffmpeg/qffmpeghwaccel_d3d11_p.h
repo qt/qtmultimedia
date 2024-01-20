@@ -63,7 +63,7 @@ public:
 private:
     bool ensureDestTex(const ComPtr<ID3D11Device1> &dev);
     bool ensureSrcTex(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex);
-    bool isSrcInitialized(const ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex);
+    bool isSrcInitialized(const ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex) const;
     bool recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex);
 
     SharedTextureHandle m_sharedHandle{};
@@ -94,7 +94,7 @@ private:
     TextureBridge m_bridge;
 };
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
 

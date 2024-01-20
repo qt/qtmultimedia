@@ -6,9 +6,10 @@
 #include <qvideoframeformat.h>
 #include "qffmpegvideobuffer_p.h"
 
-
 #include <private/qvideotexturehelper_p.h>
 #include <private/qcomptr_p.h>
+#include <private/quniquehandle_p.h>
+
 #include <rhi/qrhi.h>
 
 #include <qopenglfunctions.h>
@@ -18,14 +19,12 @@
 #include <libavutil/hwcontext_d3d11va.h>
 #include <d3d11_1.h>
 #include <dxgi1_2.h>
-#include <private/quniquehandle_p.h>
-
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcMediaFFmpegHWAccel, "qt.multimedia.hwaccel");
-
 namespace {
+
+Q_LOGGING_CATEGORY(qLcMediaFFmpegHWAccel, "qt.multimedia.hwaccel");
 
 ComPtr<ID3D11Device1> GetD3DDevice(QRhi *rhi)
 {
@@ -42,9 +41,8 @@ ComPtr<ID3D11Device1> GetD3DDevice(QRhi *rhi)
     return dev1;
 }
 
-}
+} // namespace
 namespace QFFmpeg {
-
 
 bool TextureBridge::copyToSharedTex(ID3D11Device *dev, ID3D11DeviceContext *ctx,
                                     const ComPtr<ID3D11Texture2D> &tex, UINT index)
@@ -111,7 +109,8 @@ bool TextureBridge::ensureSrcTex(ID3D11Device *dev, const ComPtr<ID3D11Texture2D
     return true;
 }
 
-bool TextureBridge::isSrcInitialized(const ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex)
+bool TextureBridge::isSrcInitialized(const ID3D11Device *dev,
+                                     const ComPtr<ID3D11Texture2D> &tex) const
 {
     if (!m_srcTex)
         return false;
@@ -170,14 +169,9 @@ bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D>
 class D3D11TextureSet : public TextureSet
 {
 public:
-    D3D11TextureSet(ComPtr<ID3D11Texture2D> &&tex)
-        : m_tex(tex)
-    {}
+    D3D11TextureSet(ComPtr<ID3D11Texture2D> &&tex) : m_tex(std::move(tex)) { }
 
-    qint64 textureHandle(int /*plane*/) override
-    {
-        return qint64(m_tex.Get());
-    }
+    qint64 textureHandle(int /*plane*/) override { return reinterpret_cast<qint64>(m_tex.Get()); }
 
 private:
     ComPtr<ID3D11Texture2D> m_tex;
@@ -200,13 +194,13 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
     if (!frame || !frame->hw_frames_ctx || frame->format != AV_PIX_FMT_D3D11)
         return nullptr;
 
-    const auto *fCtx = reinterpret_cast<AVHWFramesContext*>(frame->hw_frames_ctx->data);
+    const auto *fCtx = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
     const auto *ctx = fCtx->device_ctx;
 
     if (!ctx || ctx->type != AV_HWDEVICE_TYPE_D3D11VA)
         return nullptr;
 
-    const ComPtr<ID3D11Texture2D> ffmpegTex = reinterpret_cast<ID3D11Texture2D*>(frame->data[0]);
+    const ComPtr<ID3D11Texture2D> ffmpegTex = reinterpret_cast<ID3D11Texture2D *>(frame->data[0]);
     const int index = static_cast<int>(reinterpret_cast<intptr_t>(frame->data[1]));
 
     if (rhi->backend() == QRhi::D3D11) {
@@ -243,17 +237,15 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
 
 void D3D11TextureConverter::SetupDecoderTextures(AVCodecContext *s)
 {
-    int ret = avcodec_get_hw_frames_parameters(s,
-                                               s->hw_device_ctx,
-                                               AV_PIX_FMT_D3D11,
+    int ret = avcodec_get_hw_frames_parameters(s, s->hw_device_ctx, AV_PIX_FMT_D3D11,
                                                &s->hw_frames_ctx);
     if (ret < 0) {
         qCDebug(qLcMediaFFmpegHWAccel) << "Failed to allocate HW frames context" << ret;
         return;
     }
 
-    auto *frames_ctx = (AVHWFramesContext *)s->hw_frames_ctx->data;
-    auto *hwctx = (AVD3D11VAFramesContext *)frames_ctx->hwctx;
+    const auto *frames_ctx = reinterpret_cast<const AVHWFramesContext *>(s->hw_frames_ctx->data);
+    auto *hwctx = static_cast<AVD3D11VAFramesContext *>(frames_ctx->hwctx);
     hwctx->MiscFlags = D3D11_RESOURCE_MISC_SHARED;
     hwctx->BindFlags = D3D11_BIND_DECODER | D3D11_BIND_SHADER_RESOURCE;
     ret = av_hwframe_ctx_init(s->hw_frames_ctx);
@@ -263,6 +255,6 @@ void D3D11TextureConverter::SetupDecoderTextures(AVCodecContext *s)
     }
 }
 
-}
+} // namespace QFFmpeg
 
 QT_END_NAMESPACE
