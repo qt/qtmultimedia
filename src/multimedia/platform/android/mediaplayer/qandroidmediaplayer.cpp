@@ -84,6 +84,8 @@ QAndroidMediaPlayer::QAndroidMediaPlayer(QMediaPlayer *parent)
       mMediaPlayer(new AndroidMediaPlayer),
       mState(AndroidMediaPlayer::Uninitialized)
 {
+    // Set seekable to True by default. It changes if MEDIA_INFO_NOT_SEEKABLE is received
+    seekableChanged(true);
     connect(mMediaPlayer, &AndroidMediaPlayer::bufferingChanged, this,
             &QAndroidMediaPlayer::onBufferingChanged);
     connect(mMediaPlayer, &AndroidMediaPlayer::info, this, &QAndroidMediaPlayer::onInfo);
@@ -461,11 +463,6 @@ void QAndroidMediaPlayer::stop()
     mMediaPlayer->stop();
 }
 
-bool QAndroidMediaPlayer::isSeekable() const
-{
-    return true;
-}
-
 void QAndroidMediaPlayer::onInfo(qint32 what, qint32 extra)
 {
     StateChangeNotifier notifier(this);
@@ -545,7 +542,9 @@ void QAndroidMediaPlayer::onError(qint32 what, qint32 extra)
         setMediaStatus(QMediaPlayer::InvalidMedia);
         break;
     case AndroidMediaPlayer::MEDIA_ERROR_BAD_THINGS_ARE_GOING_TO_HAPPEN:
-        errorString += QLatin1String(" (Unknown error/Insufficient resources)");
+        errorString += mMediaContent.scheme() == QLatin1String("rtsp")
+            ? QLatin1String(" (Unknown error/Insufficient resources or RTSP may not be supported)")
+            : QLatin1String(" (Unknown error/Insufficient resources)");
         error = QMediaPlayer::ResourceError;
         break;
     }

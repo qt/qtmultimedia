@@ -82,6 +82,7 @@ public:
     virtual void start() { }
     virtual void stop() { }
     virtual void reset() { }
+    virtual QSize getVideoSize() const { return QSize(0, 0); }
 
 Q_SIGNALS:
     void readyChanged(bool);
@@ -122,6 +123,7 @@ public:
     void stop() override;
     void reset() override;
     void renderFrame();
+    QSize getVideoSize() const override { return m_nativeSize; }
 
     void setSubtitle(const QString &subtitle);
 private Q_SLOTS:

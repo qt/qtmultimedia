@@ -227,8 +227,10 @@ QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &format) :
 
 QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &format)
     : m_parent(parent),
-    m_orientation(-1),
-    m_format(format)
+      m_orientation(-1),
+      m_frameOrientation(-1),
+      m_frameMirrored(false),
+      m_format(format)
 {
     setFlag(QSGNode::OwnsMaterial);
     setFlag(QSGNode::OwnsGeometry);
@@ -303,12 +305,24 @@ void QSGVideoNode::setSubtitleGeometry()
 /* Update the vertices and texture coordinates.  Orientation must be in {0,90,180,270} */
 void QSGVideoNode::setTexturedRectGeometry(const QRectF &rect, const QRectF &textureRect, int orientation)
 {
-    if (rect == m_rect && textureRect == m_textureRect && orientation == m_orientation)
+    bool frameChanged = false;
+    if (m_material) {
+        if (m_material->m_currentFrame.rotationAngle() != m_frameOrientation
+            || m_material->m_currentFrame.mirrored() != m_frameMirrored) {
+            frameChanged = true;
+        }
+    }
+    if (rect == m_rect && textureRect == m_textureRect && orientation == m_orientation
+        && !frameChanged)
         return;
 
     m_rect = rect;
     m_textureRect = textureRect;
     m_orientation = orientation;
+    if (m_material) {
+        m_frameOrientation = m_material->m_currentFrame.rotationAngle();
+        m_frameMirrored = m_material->m_currentFrame.mirrored();
+    }
     int videoRotation = orientation;
     videoRotation += m_material ? m_material->m_currentFrame.rotationAngle() : 0;
     videoRotation %= 360;

@@ -711,7 +711,7 @@ void AVFCamera::applyFlashSettings()
         };
 
         if (mode == QCamera::FlashOff) {
-            captureDevice.flashMode = AVCaptureFlashModeOff;
+            setAvFlashModeSafe(AVCaptureFlashModeOff);
         } else {
             if (isFlashAvailable(captureDevice)) {
                 if (mode == QCamera::FlashOn)

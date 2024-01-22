@@ -121,6 +121,7 @@ private:
     bool isFlashSupported = false;
     bool isFlashAutoSupported = false;
     bool isTorchSupported = false;
+    bool isPendingSetActive = false;
     QCameraDevice m_cameraDev;
 
     QMap<QCamera::WhiteBalanceMode, QString> m_supportedWhiteBalanceModes;

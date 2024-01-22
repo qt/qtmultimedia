@@ -111,7 +111,7 @@ MFPlayerSession::MFPlayerSession(MFPlayerControl *playerControl)
     m_request.rate = 1.0f;
 
     m_audioSampleGrabber = new AudioSampleGrabberCallback;
-    m_videoRendererControl = new MFVideoRendererControl;
+    m_videoRendererControl = new MFVideoRendererControl(this);
 }
 
 void MFPlayerSession::timeout()
@@ -1593,8 +1593,13 @@ ULONG MFPlayerSession::AddRef(void)
 ULONG MFPlayerSession::Release(void)
 {
     LONG cRef = InterlockedDecrement(&m_cRef);
-    if (cRef == 0)
+    if (cRef == 0) {
         this->deleteLater();
+
+        // In rare cases the session has queued events to be run between deleteLater and deleting,
+        // so we set the parent control to nullptr in order to prevent crashes in the cases.
+        m_playerControl = nullptr;
+    }
     return cRef;
 }
 
