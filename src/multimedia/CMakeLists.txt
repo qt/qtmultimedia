@@ -40,6 +40,7 @@ qt_internal_add_module(Multimedia
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformaudioinput_p.h
         platform/qplatformaudiooutput_p.h
+        platform/qplatformaudioresampler_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
         platform/qplatformvideosource.cpp platform/qplatformvideosource_p.h
         platform/qplatformsurfacecapture.cpp platform/qplatformsurfacecapture_p.h

@@ -7,8 +7,11 @@
 #include "qaudiodevice.h"
 #include "qaudiosink.h"
 #include "qmediadevices.h"
+#include "qaudiobuffer.h"
 #include <QtCore/qloggingcategory.h>
 #include <private/qplatformmediadevices_p.h>
+#include <private/qplatformmediaintegration_p.h>
+#include <private/qplatformaudioresampler_p.h>
 
 static Q_LOGGING_CATEGORY(qLcSoundEffect, "qt.multimedia.soundeffect")
 
@@ -81,6 +84,7 @@ public:
     QSoundEffect::Status m_status = QSoundEffect::Null;
     std::unique_ptr<QAudioSink, AudioSinkDeleter> m_audioSink;
     std::unique_ptr<QSample, SampleDeleter> m_sample;
+    QAudioBuffer m_audioBuffer;
     bool m_muted = false;
     float m_volume = 1.0;
     bool m_sampleReady = false;
@@ -107,7 +111,35 @@ void QSoundEffectPrivate::sampleReady()
     disconnect(m_sample.get(), &QSample::error, this, &QSoundEffectPrivate::decoderError);
     disconnect(m_sample.get(), &QSample::ready, this, &QSoundEffectPrivate::sampleReady);
     if (!m_audioSink) {
-        m_audioSink.reset(new QAudioSink(m_audioDevice, m_sample->format()));
+        const auto audioDevice =
+                m_audioDevice.isNull() ? QMediaDevices::defaultAudioOutput() : m_audioDevice;
+        const auto &sampleFormat = m_sample->format();
+        const auto sampleChannelConfig =
+                sampleFormat.channelConfig() == QAudioFormat::ChannelConfigUnknown
+                ? QAudioFormat::defaultChannelConfigForChannelCount(sampleFormat.channelCount())
+                : sampleFormat.channelConfig();
+
+        if (sampleChannelConfig != audioDevice.channelConfiguration()
+            && audioDevice.channelConfiguration() != QAudioFormat::ChannelConfigUnknown) {
+            qCDebug(qLcSoundEffect) << "Create resampler for channels mapping: config"
+                                    << sampleFormat.channelConfig() << "=> config"
+                                    << audioDevice.channelConfiguration();
+            auto outputFormat = sampleFormat;
+            outputFormat.setChannelConfig(audioDevice.channelConfiguration());
+            if (auto maybeResampler = QPlatformMediaIntegration::instance()->createAudioResampler(
+                        m_sample->format(), outputFormat)) {
+                std::unique_ptr<QPlatformAudioResampler> resampler(maybeResampler.value());
+                m_audioBuffer =
+                        resampler->resample(m_sample->data().constData(), m_sample->data().size());
+            } else {
+                qCDebug(qLcSoundEffect) << "Cannot create resampler for channels mapping";
+            }
+        }
+
+        if (!m_audioBuffer.isValid())
+            m_audioBuffer = QAudioBuffer(m_sample->data(), m_sample->format());
+
+        m_audioSink.reset(new QAudioSink(audioDevice, m_audioBuffer.format()));
         connect(m_audioSink.get(), &QAudioSink::stateChanged, this, &QSoundEffectPrivate::stateChanged);
         if (!m_muted)
             m_audioSink->setVolume(m_volume);
@@ -151,8 +183,8 @@ qint64 QSoundEffectPrivate::readData(char *data, qint64 len)
 
     qint64 bytesWritten = 0;
 
-    const int   sampleSize = m_sample->data().size();
-    const char* sampleData = m_sample->data().constData();
+    const int sampleSize = m_audioBuffer.byteCount();
+    const char *sampleData = m_audioBuffer.constData<char>();
 
     while (len && m_runningCount) {
         int toWrite = qMin(sampleSize - m_offset, len);
