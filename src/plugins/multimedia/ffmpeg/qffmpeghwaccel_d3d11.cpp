@@ -139,10 +139,13 @@ bool TextureBridge::isSrcInitialized(const ID3D11Device *dev,
 
 bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex)
 {
+    m_sharedHandle.close();
+
     CD3D11_TEXTURE2D_DESC desc{};
     tex->GetDesc(&desc);
 
     CD3D11_TEXTURE2D_DESC texDesc{ desc.Format, desc.Width, desc.Height };
+    texDesc.MipLevels = 1;
     texDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX | D3D11_RESOURCE_MISC_SHARED_NTHANDLE;
 
     if (dev->CreateTexture2D(&texDesc, nullptr, m_srcTex.ReleaseAndGetAddressOf()) != S_OK)
