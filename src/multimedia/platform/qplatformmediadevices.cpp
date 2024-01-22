@@ -12,6 +12,7 @@
 
 #include <qmutex.h>
 #include <qloggingcategory.h>
+#include <QtCore/qcoreapplication.h>
 
 #if defined(Q_OS_ANDROID)
 #include <qandroidmediadevices_p.h>
@@ -33,18 +34,26 @@
 QT_BEGIN_NAMESPACE
 
 namespace {
-struct DevicesHolder {
-    ~DevicesHolder()
+
+struct DevicesHolder
+{
+    ~DevicesHolder() { reset(); }
+
+    void reset()
     {
         QMutexLocker locker(&mutex);
+
         delete nativeInstance;
         nativeInstance = nullptr;
         instance = nullptr;
     }
+
     QBasicMutex mutex;
     QPlatformMediaDevices *instance = nullptr;
     QPlatformMediaDevices *nativeInstance = nullptr;
-} devicesHolder;
+};
+
+DevicesHolder devicesHolder;
 
 }
 
@@ -71,6 +80,16 @@ QPlatformMediaDevices *QPlatformMediaDevices::instance()
 #else
     devicesHolder.nativeInstance = new QPlatformMediaDevices;
 #endif
+
+    if (!QCoreApplication::instance()) {
+        // QTBUG-120198: Destructors are not called when shutting down
+        // application with Windows backend.
+        qWarning("Accessing QMediaDevices without a QCoreApplication");
+    } else {
+        connect(qApp, &QObject::destroyed, devicesHolder.nativeInstance, []() {
+            devicesHolder.reset();
+        });
+    }
 
     devicesHolder.instance = devicesHolder.nativeInstance;
     return devicesHolder.instance;
