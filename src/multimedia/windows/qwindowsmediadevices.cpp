@@ -162,6 +162,9 @@ QWindowsMediaDevices::QWindowsMediaDevices()
 QWindowsMediaDevices::~QWindowsMediaDevices()
 {
     if (m_deviceEnumerator) {
+        // Note: Calling UnregisterEndpointNotificationCallback after CoUninitialize
+        // will abruptly terminate application, preventing remaining destructors from
+        // being called (QTBUG-120198).
         m_deviceEnumerator->UnregisterEndpointNotificationCallback(m_notificationClient.Get());
     }
     if (m_warmUpAudioClient) {
