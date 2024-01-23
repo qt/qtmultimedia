@@ -125,7 +125,8 @@ private:
         setFrameRate(screen->refreshRate());
 
         QPixmap p = screen->grabWindow(wid);
-        QImage img = p.toImage();
+        auto buffer = std::make_unique<QImageVideoBuffer>(p.toImage());
+        const auto img = buffer->underlyingImage();
 
         QVideoFrameFormat format(img.size(),
                                  QVideoFrameFormat::pixelFormatFromImageFormat(img.format()));
@@ -138,7 +139,7 @@ private:
             return {};
         }
 
-        return QVideoFrame(new QImageVideoBuffer(std::move(img)), format);
+        return QVideoFrame(buffer.release(), format);
     }
 
 private:
