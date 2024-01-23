@@ -31,6 +31,8 @@ public:
 
     void unmap() override;
 
+    QImage underlyingImage() const;
+
 private:
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
     QImage m_image;

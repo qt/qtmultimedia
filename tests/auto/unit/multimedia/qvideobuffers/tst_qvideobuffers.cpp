@@ -5,6 +5,7 @@
 
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qimagevideobuffer_p.h>
+#include "qvideoframeformat.h"
 
 using BufferPtr = std::shared_ptr<QAbstractVideoBuffer>;
 using MapModes = std::vector<QVideoFrame::MapMode>;
@@ -39,6 +40,9 @@ private slots:
 
     void unmap_resetsMappedState_whenBufferIsMapped_data();
     void unmap_resetsMappedState_whenBufferIsMapped();
+
+    void imageBuffer_fixesInputImage_data();
+    void imageBuffer_fixesInputImage();
 
 private:
     QString mapModeToString(QVideoFrame::MapMode mapMode) const
@@ -216,6 +220,75 @@ void tst_QVideoBuffers::unmap_resetsMappedState_whenBufferIsMapped()
 
     const auto data = reinterpret_cast<const char*>(mappedData.data[0]);
     QCOMPARE(QByteArray(data, mappedData.size[0]), m_byteArray);
+}
+
+void tst_QVideoBuffers::imageBuffer_fixesInputImage_data()
+{
+    QTest::addColumn<QImage::Format>("inputImageFormat");
+    QTest::addColumn<QImage::Format>("underlyingImageFormat");
+
+    QTest::newRow("Format_RGB32 => Format_RGB32") << QImage::Format_RGB32 << QImage::Format_RGB32;
+    QTest::newRow("Format_ARGB32 => Format_ARGB32")
+            << QImage::Format_ARGB32 << QImage::Format_ARGB32;
+    QTest::newRow("Format_ARGB32_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_ARGB32_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_RGBA8888 => Format_RGBA8888")
+            << QImage::Format_RGBA8888 << QImage::Format_RGBA8888;
+    QTest::newRow("Format_RGBA8888_Premultiplied => Format_RGBA8888_Premultiplied")
+            << QImage::Format_RGBA8888_Premultiplied << QImage::Format_RGBA8888_Premultiplied;
+    QTest::newRow("Format_RGBX8888 => Format_RGBX8888")
+            << QImage::Format_RGBX8888 << QImage::Format_RGBX8888;
+    QTest::newRow("Format_Grayscale8 => Format_Grayscale8")
+            << QImage::Format_Grayscale8 << QImage::Format_Grayscale8;
+    QTest::newRow("Format_Grayscale16 => Format_Grayscale16")
+            << QImage::Format_Grayscale16 << QImage::Format_Grayscale16;
+
+    QTest::newRow("Format_ARGB8565_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_ARGB8565_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_ARGB6666_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_ARGB6666_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_ARGB8555_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_ARGB8555_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_ARGB4444_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_ARGB4444_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_A2BGR30_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_A2BGR30_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_A2RGB30_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_A2RGB30_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_RGBA64_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_RGBA64_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_RGBA16FPx4_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_RGBA16FPx4_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+    QTest::newRow("Format_RGBA32FPx4_Premultiplied => Format_ARGB32_Premultiplied")
+            << QImage::Format_RGBA32FPx4_Premultiplied << QImage::Format_ARGB32_Premultiplied;
+
+    QTest::newRow("Format_Alpha8 => Format_ARGB32")
+            << QImage::Format_Alpha8 << QImage::Format_ARGB32;
+    QTest::newRow("Format_RGBA64 => Format_ARGB32")
+            << QImage::Format_RGBA64 << QImage::Format_ARGB32;
+    QTest::newRow("Format_RGBA16FPx4 => Format_ARGB32")
+            << QImage::Format_RGBA16FPx4 << QImage::Format_ARGB32;
+    QTest::newRow("Format_RGBA32FPx4 => Format_ARGB32")
+            << QImage::Format_RGBA32FPx4 << QImage::Format_ARGB32;
+}
+
+void tst_QVideoBuffers::imageBuffer_fixesInputImage()
+{
+    QFETCH(QImage::Format, inputImageFormat);
+    QFETCH(QImage::Format, underlyingImageFormat);
+
+    m_image.convertTo(inputImageFormat);
+    QImageVideoBuffer buffer(m_image);
+
+    auto underlyingImage = buffer.underlyingImage();
+
+    QCOMPARE(underlyingImage.format(), underlyingImageFormat);
+    QCOMPARE_NE(QVideoFrameFormat::pixelFormatFromImageFormat(underlyingImage.format()),
+                QVideoFrameFormat::Format_Invalid);
+    QCOMPARE(m_image.convertedTo(underlyingImageFormat), underlyingImage);
+
+    if (inputImageFormat == underlyingImageFormat)
+        QCOMPARE(m_image.constBits(), underlyingImage.constBits());
 }
 
 QTEST_APPLESS_MAIN(tst_QVideoBuffers);
