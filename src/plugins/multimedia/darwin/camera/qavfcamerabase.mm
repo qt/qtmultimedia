@@ -8,6 +8,7 @@
 #include "qavfhelpers_p.h"
 #include <private/qplatformmediaintegration_p.h>
 #include <QtCore/qset.h>
+#include <QtCore/qsystemdetection.h>
 
 QT_USE_NAMESPACE
 
@@ -137,12 +138,57 @@ void QAVFVideoDevices::updateCameraDevices()
 
     QList<QCameraDevice> cameras;
 
-    AVCaptureDevice *defaultDevice = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-    NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    // List of all capture device types that we want to discover. Seems that this is the
+    // only way to discover all types. This filter is mandatory and has no "unspecified"
+    // option like AVCaptureDevicePosition(Unspecified) has. Order of the list is important
+    // because discovered devices will be in the same order and we want the first one found
+    // to be our default device.
+    NSArray *discoveryDevices = @[
+#ifdef Q_OS_IOS
+      AVCaptureDeviceTypeBuiltInTripleCamera,    // We always  prefer triple camera.
+      AVCaptureDeviceTypeBuiltInDualCamera,      // If triple is not available, we prefer
+                                                 // dual with wide + tele lens.
+      AVCaptureDeviceTypeBuiltInDualWideCamera,  // Dual with wide and ultrawide is still
+                                                 // better than single.
+#endif
+      AVCaptureDeviceTypeBuiltInWideAngleCamera, // This is the most common single camera type.
+                                                 // We prefer that over tele and ultra-wide.
+#ifdef Q_OS_IOS
+      AVCaptureDeviceTypeBuiltInTelephotoCamera, // Cannot imagine how, but if only tele and
+                                                 // ultrawide are available, we prefer tele.
+      AVCaptureDeviceTypeBuiltInUltraWideCamera,
+#endif
+    ];
+
+#if QT_DARWIN_PLATFORM_SDK_EQUAL_OR_ABOVE(__MAC_14_0, __IPHONE_17_0, __TVOS_NA, __WATCHOS_NA)
+    if (@available(macOS 14, iOS 17, *)) {
+      discoveryDevices = [discoveryDevices arrayByAddingObjectsFromArray: @[
+        AVCaptureDeviceTypeExternal,
+        AVCaptureDeviceTypeContinuityCamera
+      ]];
+    } else
+#endif
+    {
+#ifdef Q_OS_MACOS
+    QT_WARNING_PUSH
+    QT_WARNING_DISABLE_DEPRECATED
+        discoveryDevices = [discoveryDevices arrayByAddingObjectsFromArray: @[
+            AVCaptureDeviceTypeExternalUnknown
+        ]];
+    QT_WARNING_POP
+#endif
+    }
+    // Create discovery session to discover all possible camera types of the system.
+    // Both "hard" and "soft" types.
+    AVCaptureDeviceDiscoverySession *discoverySession = [AVCaptureDeviceDiscoverySession
+                                                         discoverySessionWithDeviceTypes:discoveryDevices
+                                                         mediaType:AVMediaTypeVideo
+                                                         position:AVCaptureDevicePositionUnspecified];
+    NSArray<AVCaptureDevice *> *videoDevices = discoverySession.devices;
 
     for (AVCaptureDevice *device in videoDevices) {
         auto info = std::make_unique<QCameraDevicePrivate>();
-        if (defaultDevice && [defaultDevice.uniqueID isEqualToString:device.uniqueID])
+        if ([videoDevices[0].uniqueID isEqualToString:device.uniqueID])
             info->isDefault = true;
         info->id = QByteArray([[device uniqueID] UTF8String]);
         info->description = QString::fromNSString([device localizedName]);
