@@ -648,7 +648,7 @@ void QVideoFrame::setEndTime(qint64 time)
 */
 
 /*!
-    \fn RotationAngle QVideoFrame::rotationAngle()
+    \fn QVideoFrame::RotationAngle QVideoFrame::rotationAngle() const
     \deprecated [6.7] Use \c QVideoFrame::rotation instead.
 
     Returns the angle the frame should be rotated clockwise before displaying.
