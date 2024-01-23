@@ -5,7 +5,7 @@
 #define QVIDEO_H
 
 #include <QtMultimedia/qtmultimediaexports.h>
-#include <QtCore/qmetaobject.h>
+#include <QtCore/qobjectdefs.h>
 #include <QtCore/qtconfigmacros.h>
 
 QT_BEGIN_NAMESPACE
