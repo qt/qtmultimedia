@@ -80,4 +80,4 @@ manifestmeta.highlighted.names = \
 manifestmeta.highlighted.names += "QtMultimedia/QML Camera Application"
 
 # Fail the documentation build if there are more warnings than the limit
-warninglimit += 0
+warninglimit = 0

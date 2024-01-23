@@ -158,7 +158,7 @@ void QQuickImageCapture::_q_imageCaptured(int id, const QImage &preview)
 /*!
     \qmlsignal QtMultimedia::ImageCapture::imageCaptured(requestId, preview)
 
-    This signal is emitted when an image with requested \a id has been captured
+    This signal is emitted when an image with requested id \a requestId has been captured
     but not yet saved to the filesystem.  The \a preview
     parameter is the captured image.
 
