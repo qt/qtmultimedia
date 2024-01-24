@@ -149,8 +149,12 @@ void EncodingFinalizer::run()
 
     if (encoder->isHeaderWritten) {
         const int res = av_write_trailer(encoder->formatContext);
-        if (res < 0)
-            qWarning() << "could not write trailer" << res;
+        if (res < 0) {
+            const auto errorDescription = err2str(res);
+            qCWarning(qLcFFmpegEncoder) << "could not write trailer" << res << errorDescription;
+            emit encoder->error(QMediaRecorder::FormatError,
+                                QLatin1String("Cannot write trailer: ") + errorDescription);
+        }
     }
     // else ffmpeg might crash
 
@@ -658,7 +662,7 @@ void VideoEncoder::processOne()
     int ret = frameEncoder->sendFrame(std::move(avFrame));
     if (ret < 0) {
         qCDebug(qLcFFmpegEncoder) << "error sending frame" << ret << err2str(ret);
-        encoder->error(QMediaRecorder::ResourceError, err2str(ret));
+        emit encoder->error(QMediaRecorder::ResourceError, err2str(ret));
     }
 }
 
