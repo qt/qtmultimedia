@@ -143,13 +143,16 @@ QFFmpegAudioInput::QFFmpegAudioInput(QAudioInput *qq)
     qRegisterMetaType<QAudioBuffer>();
 
     inputThread = std::make_unique<QThread>();
-    audioIO = std::make_unique<QFFmpeg::AudioSourceIO>(this);
+    audioIO = new QFFmpeg::AudioSourceIO(this);
     audioIO->moveToThread(inputThread.get());
     inputThread->start();
 }
 
 QFFmpegAudioInput::~QFFmpegAudioInput()
 {
+    // Ensure that COM is uninitialized by nested QWindowsResampler
+    // on the same thread that initialized it.
+    audioIO->deleteLater();
     inputThread->exit();
     inputThread->wait();
 }
