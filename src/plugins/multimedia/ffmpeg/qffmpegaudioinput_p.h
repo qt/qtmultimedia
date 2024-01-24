@@ -48,7 +48,7 @@ Q_SIGNALS:
     void newAudioBuffer(const QAudioBuffer &buffer);
 
 private:
-    std::unique_ptr<QFFmpeg::AudioSourceIO> audioIO;
+    QFFmpeg::AudioSourceIO *audioIO = nullptr;
     std::unique_ptr<QThread> inputThread;
 };
 
