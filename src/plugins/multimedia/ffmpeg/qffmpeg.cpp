@@ -479,11 +479,18 @@ SwrContextUPtr createResampleContext(const ResampleAudioFormat& inputFormat,
                                    0,
                                    nullptr);
 #else
+
+#if QT_FFMPEG_SWR_CONST_CH_LAYOUT
+    using AVChannelLayoutPrm = const AVChannelLayout*;
+#else
+    using AVChannelLayoutPrm = AVChannelLayout*;
+#endif
+
     swr_alloc_set_opts2(&resampler,
-                        &outputFormat.channelLayout,
+                        const_cast<AVChannelLayoutPrm>(&outputFormat.channelLayout),
                         outputFormat.sampleFormat,
                         outputFormat.sampleRate,
-                        &inputFormat.channelLayout,
+                        const_cast<AVChannelLayoutPrm>(&inputFormat.channelLayout),
                         inputFormat.sampleFormat,
                         inputFormat.sampleRate,
                         0,
