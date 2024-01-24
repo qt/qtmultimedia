@@ -159,30 +159,15 @@ const AVCodec *findSwEncoder(AVCodecID codecID, AVPixelFormat sourceSWFormat)
 
 AVRational adjustFrameRate(const AVRational *supportedRates, qreal requestedRate)
 {
-    qreal diff = std::numeric_limits<qreal>::max();
-
-    auto getDiff = [requestedRate](qreal currentRate) {
-        return qMax(requestedRate, currentRate) / qMin(requestedRate, currentRate);
-
-        // Using just a liniar delta is also possible, but
-        // relative comparison should work better
-        // return qAbs(currentRate - requestedRate);
+    auto calcScore = [requestedRate](const AVRational &rate) {
+        // relative comparison
+        return qMin(requestedRate * rate.den, qreal(rate.num))
+                / qMax(requestedRate * rate.den, qreal(rate.num));
     };
 
-    if (supportedRates) {
-        const AVRational *result = nullptr;
-        for (auto rate = supportedRates; rate->num && rate->den; ++rate) {
-            const qreal currentDiff = getDiff(qreal(rate->num) / rate->den);
-
-            if (currentDiff < diff) {
-                diff = currentDiff;
-                result = supportedRates;
-            }
-        }
-
-        if (result)
-            return *result;
-    }
+    const auto result = findBestAVValue(supportedRates, calcScore).first;
+    if (result.num && result.den)
+        return result;
 
     const auto [num, den] = qRealToFraction(requestedRate);
     return { num, den };
