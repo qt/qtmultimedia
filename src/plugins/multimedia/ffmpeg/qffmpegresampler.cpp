@@ -17,8 +17,8 @@ QFFmpegResampler::QFFmpegResampler(const QAudioFormat &inputFormat, const QAudio
     Q_ASSERT(inputFormat.isValid());
     Q_ASSERT(outputFormat.isValid());
 
-    m_resampler = createResampleContext(ResampleAudioFormat(m_inputFormat),
-                                        ResampleAudioFormat(m_outputFormat));
+    m_resampler =
+            createResampleContext(AVAudioFormat(m_inputFormat), AVAudioFormat(m_outputFormat));
 }
 
 QFFmpegResampler::QFFmpegResampler(const Codec* codec, const QAudioFormat &outputFormat)
@@ -33,8 +33,8 @@ QFFmpegResampler::QFFmpegResampler(const Codec* codec, const QAudioFormat &outpu
         // want the native format
         m_outputFormat = QFFmpegMediaFormatInfo::audioFormatFromCodecParameters(audioStream->codecpar);
 
-    m_resampler = createResampleContext(ResampleAudioFormat(audioStream->codecpar),
-                                        ResampleAudioFormat(m_outputFormat));
+    m_resampler = createResampleContext(AVAudioFormat(audioStream->codecpar),
+                                        AVAudioFormat(m_outputFormat));
 }
 
 QFFmpegResampler::~QFFmpegResampler() = default;
