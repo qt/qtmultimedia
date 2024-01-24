@@ -46,22 +46,23 @@ T dequeueIfPossible(std::queue<T> &queue)
 } // namespace
 
 Encoder::Encoder(const QMediaEncoderSettings &settings, const QString &filePath)
-    : settings(settings)
+    : m_settings(settings)
 {
     const AVOutputFormat *avFormat = QFFmpegMediaFormatInfo::outputFormatForFileFormat(settings.fileFormat());
-    formatContext = avformat_alloc_context();
-    formatContext->oformat = const_cast<AVOutputFormat *>(avFormat); // constness varies
+    m_formatContext = avformat_alloc_context();
+    m_formatContext->oformat = const_cast<AVOutputFormat *>(avFormat); // constness varies
 
     QByteArray filePathUtf8 = filePath.toUtf8();
-    formatContext->url = (char *)av_malloc(filePathUtf8.size() + 1);
-    memcpy(formatContext->url, filePathUtf8.constData(), filePathUtf8.size() + 1);
-    formatContext->pb = nullptr;
+    m_formatContext->url = (char *)av_malloc(filePathUtf8.size() + 1);
+    memcpy(m_formatContext->url, filePathUtf8.constData(), filePathUtf8.size() + 1);
+    m_formatContext->pb = nullptr;
 
     // Initialize the AVIOContext for accessing the resource indicated by the url
-    auto result = avio_open2(&formatContext->pb, formatContext->url, AVIO_FLAG_WRITE, nullptr, nullptr);
-    qCDebug(qLcFFmpegEncoder) << "opened" << result << formatContext->url;
+    auto result = avio_open2(&m_formatContext->pb, m_formatContext->url, AVIO_FLAG_WRITE, nullptr,
+                             nullptr);
+    qCDebug(qLcFFmpegEncoder) << "opened" << result << m_formatContext->url;
 
-    muxer = new Muxer(this);
+    m_muxer = new Muxer(this);
 }
 
 Encoder::~Encoder()
@@ -70,8 +71,8 @@ Encoder::~Encoder()
 
 void Encoder::addAudioInput(QFFmpegAudioInput *input)
 {
-    audioEncode = new AudioEncoder(this, input, settings);
-    addMediaFrameHandler(input, &QFFmpegAudioInput::newAudioBuffer, audioEncode,
+    m_audioEncoder = new AudioEncoder(this, input, m_settings);
+    addMediaFrameHandler(input, &QFFmpegAudioInput::newAudioBuffer, m_audioEncoder,
                          &AudioEncoder::addBuffer);
     input->setRunning(true);
 }
@@ -97,7 +98,7 @@ void Encoder::addVideoSource(QPlatformVideoSource * source)
                               << "frameRate=" << frameFormat.frameRate() << "ffmpegHWPixelFormat="
                               << (hwPixelFormat ? *hwPixelFormat : AV_PIX_FMT_NONE);
 
-    auto veUPtr = std::make_unique<VideoEncoder>(this, settings, frameFormat, hwPixelFormat);
+    auto veUPtr = std::make_unique<VideoEncoder>(this, m_settings, frameFormat, hwPixelFormat);
     if (!veUPtr->isValid()) {
         emit error(QMediaRecorder::FormatError, QLatin1StringView("Cannot initialize encoder"));
         return;
@@ -105,74 +106,75 @@ void Encoder::addVideoSource(QPlatformVideoSource * source)
 
     auto ve = veUPtr.release();
     addMediaFrameHandler(source, &QPlatformVideoSource::newVideoFrame, ve, &VideoEncoder::addFrame);
-    videoEncoders.append(ve);
+    m_videoEncoders.append(ve);
 }
 
 void Encoder::start()
 {
     qCDebug(qLcFFmpegEncoder) << "Encoder::start!";
 
-    formatContext->metadata = QFFmpegMetaData::toAVMetaData(metaData);
+    m_formatContext->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
 
-    Q_ASSERT(!isHeaderWritten);
+    Q_ASSERT(!m_isHeaderWritten);
 
-    int res = avformat_write_header(formatContext, nullptr);
+    int res = avformat_write_header(m_formatContext, nullptr);
     if (res < 0) {
         qWarning() << "could not write header, error:" << res << err2str(res);
         emit error(QMediaRecorder::ResourceError, "Cannot start writing the stream");
         return;
     }
 
-    isHeaderWritten = true;
+    m_isHeaderWritten = true;
 
     qCDebug(qLcFFmpegEncoder) << "stream header is successfully written";
 
-    muxer->start();
-    if (audioEncode)
-        audioEncode->start();
-    for (auto *videoEncoder : videoEncoders)
+    m_muxer->start();
+    if (m_audioEncoder)
+        m_audioEncoder->start();
+    for (auto *videoEncoder : m_videoEncoders)
         if (videoEncoder->isValid())
             videoEncoder->start();
 }
 
-EncodingFinalizer::EncodingFinalizer(Encoder *e) : encoder(e) {
+EncodingFinalizer::EncodingFinalizer(Encoder *e) : m_encoder(e)
+{
     connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
 
 void EncodingFinalizer::run()
 {
-    if (encoder->audioEncode)
-        encoder->audioEncode->stopAndDelete();
-    for (auto &videoEncoder : encoder->videoEncoders)
+    if (m_encoder->m_audioEncoder)
+        m_encoder->m_audioEncoder->stopAndDelete();
+    for (auto &videoEncoder : m_encoder->m_videoEncoders)
         videoEncoder->stopAndDelete();
-    encoder->muxer->stopAndDelete();
+    m_encoder->m_muxer->stopAndDelete();
 
-    if (encoder->isHeaderWritten) {
-        const int res = av_write_trailer(encoder->formatContext);
+    if (m_encoder->m_isHeaderWritten) {
+        const int res = av_write_trailer(m_encoder->m_formatContext);
         if (res < 0) {
             const auto errorDescription = err2str(res);
             qCWarning(qLcFFmpegEncoder) << "could not write trailer" << res << errorDescription;
-            emit encoder->error(QMediaRecorder::FormatError,
-                                QLatin1String("Cannot write trailer: ") + errorDescription);
+            emit m_encoder->error(QMediaRecorder::FormatError,
+                                  QLatin1String("Cannot write trailer: ") + errorDescription);
         }
     }
     // else ffmpeg might crash
 
     // Close the AVIOContext and release any file handles
-    const int res = avio_close(encoder->formatContext->pb);
+    const int res = avio_close(m_encoder->m_formatContext->pb);
     Q_ASSERT(res == 0);
 
-    avformat_free_context(encoder->formatContext);
+    avformat_free_context(m_encoder->m_formatContext);
     qCDebug(qLcFFmpegEncoder) << "    done finalizing.";
-    emit encoder->finalizationDone();
-    delete encoder;
+    emit m_encoder->finalizationDone();
+    delete m_encoder;
 }
 
 void Encoder::finalize()
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
 
-    for (auto &conn : connections)
+    for (auto &conn : m_connections)
         disconnect(conn);
 
     auto *finalizer = new EncodingFinalizer(this);
@@ -181,22 +183,22 @@ void Encoder::finalize()
 
 void Encoder::setPaused(bool p)
 {
-    if (audioEncode)
-       audioEncode->setPaused(p);
-    for (auto &videoEncoder : videoEncoders)
-       videoEncoder->setPaused(p);
+    if (m_audioEncoder)
+        m_audioEncoder->setPaused(p);
+    for (auto &videoEncoder : m_videoEncoders)
+        videoEncoder->setPaused(p);
 }
 
 void Encoder::setMetaData(const QMediaMetaData &metaData)
 {
-    this->metaData = metaData;
+    m_metaData = metaData;
 }
 
 void Encoder::newTimeStamp(qint64 time)
 {
-    QMutexLocker locker(&timeMutex);
-    if (time > timeRecorded) {
-        timeRecorded = time;
+    QMutexLocker locker(&m_timeMutex);
+    if (time > m_timeRecorded) {
+        m_timeRecorded = time;
         emit durationChanged(time);
     }
 }
@@ -205,11 +207,10 @@ template<typename... Args>
 void Encoder::addMediaFrameHandler(Args &&...args)
 {
     auto connection = connect(std::forward<Args>(args)..., Qt::DirectConnection);
-    connections.append(connection);
+    m_connections.append(connection);
 }
 
-Muxer::Muxer(Encoder *encoder)
-    : encoder(encoder)
+Muxer::Muxer(Encoder *encoder) : m_encoder(encoder)
 {
     setObjectName(QLatin1String("Muxer"));
 }
@@ -217,8 +218,8 @@ Muxer::Muxer(Encoder *encoder)
 void Muxer::addPacket(AVPacketUPtr packet)
 {
     {
-        QMutexLocker locker(&queueMutex);
-        packetQueue.push(std::move(packet));
+        QMutexLocker locker(&m_queueMutex);
+        m_packetQueue.push(std::move(packet));
     }
 
     //    qCDebug(qLcFFmpegEncoder) << "Muxer::addPacket" << packet->pts << packet->stream_index;
@@ -227,8 +228,8 @@ void Muxer::addPacket(AVPacketUPtr packet)
 
 AVPacketUPtr Muxer::takePacket()
 {
-    QMutexLocker locker(&queueMutex);
-    return dequeueIfPossible(packetQueue);
+    QMutexLocker locker(&m_queueMutex);
+    return dequeueIfPossible(m_packetQueue);
 }
 
 void Muxer::init()
@@ -242,8 +243,8 @@ void Muxer::cleanup()
 
 bool QFFmpeg::Muxer::hasData() const
 {
-    QMutexLocker locker(&queueMutex);
-    return !packetQueue.empty();
+    QMutexLocker locker(&m_queueMutex);
+    return !m_packetQueue.empty();
 }
 
 void Muxer::processOne()
@@ -253,7 +254,7 @@ void Muxer::processOne()
     //   packet->stream_index;
 
     // the function takes ownership for the packet
-    av_interleaved_write_frame(encoder->formatContext, packet.release());
+    av_interleaved_write_frame(m_encoder->m_formatContext, packet.release());
 }
 
 
@@ -269,107 +270,107 @@ static AVSampleFormat bestMatchingSampleFormat(AVSampleFormat requested, const A
     return result == AV_SAMPLE_FMT_NONE ? requested : result;
 }
 
-AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings)
-    : input(input)
-    , settings(settings)
+AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
+                           const QMediaEncoderSettings &settings)
+    : EncoderThread(encoder), m_input(input), m_settings(settings)
 {
-    this->encoder = encoder;
-
     setObjectName(QLatin1String("AudioEncoder"));
     qCDebug(qLcFFmpegEncoder) << "AudioEncoder" << settings.audioCodec();
 
-    format = input->device.preferredFormat();
+    m_format = input->device.preferredFormat();
     auto codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
-    Q_ASSERT(avformat_query_codec(encoder->formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
+    Q_ASSERT(
+            avformat_query_codec(encoder->m_formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
 
-    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
+    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(m_format.sampleFormat());
 
-    avCodec = QFFmpeg::findAVEncoder(codecID, {}, requested);
+    m_avCodec = QFFmpeg::findAVEncoder(codecID, {}, requested);
 
-    if (!avCodec)
-        avCodec = QFFmpeg::findAVEncoder(codecID);
+    if (!m_avCodec)
+        m_avCodec = QFFmpeg::findAVEncoder(codecID);
 
-    qCDebug(qLcFFmpegEncoder) << "found audio codec" << avCodec->name;
+    qCDebug(qLcFFmpegEncoder) << "found audio codec" << m_avCodec->name;
 
-    Q_ASSERT(avCodec);
+    Q_ASSERT(m_avCodec);
 
-    AVSampleFormat bestSampleFormat = bestMatchingSampleFormat(requested, avCodec->sample_fmts);
+    AVSampleFormat bestSampleFormat = bestMatchingSampleFormat(requested, m_avCodec->sample_fmts);
 
-    stream = avformat_new_stream(encoder->formatContext, nullptr);
-    stream->id = encoder->formatContext->nb_streams - 1;
-    stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
-    stream->codecpar->codec_id = codecID;
+    m_stream = avformat_new_stream(encoder->m_formatContext, nullptr);
+    m_stream->id = encoder->m_formatContext->nb_streams - 1;
+    m_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
+    m_stream->codecpar->codec_id = codecID;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    stream->codecpar->channel_layout = av_get_default_channel_layout(format.channelCount());
-    stream->codecpar->channels = format.channelCount();
+    m_stream->codecpar->channel_layout = av_get_default_channel_layout(m_format.channelCount());
+    m_stream->codecpar->channels = m_format.channelCount();
 #else
-    av_channel_layout_default(&stream->codecpar->ch_layout, format.channelCount());
+    av_channel_layout_default(&m_stream->codecpar->ch_layout, m_format.channelCount());
 #endif
-    stream->codecpar->sample_rate = format.sampleRate();
-    stream->codecpar->frame_size = 1024;
-    stream->codecpar->format = bestSampleFormat;
-    stream->time_base = AVRational{ 1, format.sampleRate() };
+    m_stream->codecpar->sample_rate = m_format.sampleRate();
+    m_stream->codecpar->frame_size = 1024;
+    m_stream->codecpar->format = bestSampleFormat;
+    m_stream->time_base = AVRational{ 1, m_format.sampleRate() };
 
-    qCDebug(qLcFFmpegEncoder) << "set stream time_base" << stream->time_base.num << "/"
-                              << stream->time_base.den;
+    qCDebug(qLcFFmpegEncoder) << "set stream time_base" << m_stream->time_base.num << "/"
+                              << m_stream->time_base.den;
 }
 
 void AudioEncoder::open()
 {
-    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(format.sampleFormat());
+    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(m_format.sampleFormat());
 
-    codecContext.reset(avcodec_alloc_context3(avCodec));
+    m_codecContext.reset(avcodec_alloc_context3(m_avCodec));
 
-    if (stream->time_base.num != 1 || stream->time_base.den != format.sampleRate()) {
+    if (m_stream->time_base.num != 1 || m_stream->time_base.den != m_format.sampleRate()) {
         qCDebug(qLcFFmpegEncoder) << "Most likely, av_format_write_header changed time base from"
-                                  << 1 << "/" << format.sampleRate() << "to" << stream->time_base;
+                                  << 1 << "/" << m_format.sampleRate() << "to"
+                                  << m_stream->time_base;
     }
 
-    codecContext->time_base = stream->time_base;
+    m_codecContext->time_base = m_stream->time_base;
 
-    avcodec_parameters_to_context(codecContext.get(), stream->codecpar);
+    avcodec_parameters_to_context(m_codecContext.get(), m_stream->codecpar);
 
     AVDictionaryHolder opts;
-    applyAudioEncoderOptions(settings, avCodec->name, codecContext.get(), opts);
+    applyAudioEncoderOptions(m_settings, m_avCodec->name, m_codecContext.get(), opts);
 
-    int res = avcodec_open2(codecContext.get(), avCodec, opts);
+    int res = avcodec_open2(m_codecContext.get(), m_avCodec, opts);
     qCDebug(qLcFFmpegEncoder) << "audio codec opened" << res;
-    qCDebug(qLcFFmpegEncoder) << "audio codec params: fmt=" << codecContext->sample_fmt
-                              << "rate=" << codecContext->sample_rate;
+    qCDebug(qLcFFmpegEncoder) << "audio codec params: fmt=" << m_codecContext->sample_fmt
+                              << "rate=" << m_codecContext->sample_rate;
 
-    if (codecContext->sample_fmt != requested) {
+    if (m_codecContext->sample_fmt != requested) {
         SwrContext *resampler = nullptr;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
         resampler = swr_alloc_set_opts(
                 nullptr, // we're allocating a new context
-                codecContext->channel_layout, // out_ch_layout
-                codecContext->sample_fmt, // out_sample_fmt
-                codecContext->sample_rate, // out_sample_rate
-                av_get_default_channel_layout(format.channelCount()), // in_ch_layout
+                m_codecContext->channel_layout, // out_ch_layout
+                m_codecContext->sample_fmt, // out_sample_fmt
+                m_codecContext->sample_rate, // out_sample_rate
+                av_get_default_channel_layout(m_format.channelCount()), // in_ch_layout
                 requested, // in_sample_fmt
-                format.sampleRate(), // in_sample_rate
+                m_format.sampleRate(), // in_sample_rate
                 0, // log_offset
                 nullptr);
 #else
         AVChannelLayout in_ch_layout = {};
-        av_channel_layout_default(&in_ch_layout, format.channelCount());
+        av_channel_layout_default(&in_ch_layout, m_format.channelCount());
         swr_alloc_set_opts2(&resampler, // we're allocating a new context
-                            &codecContext->ch_layout, codecContext->sample_fmt,
-                            codecContext->sample_rate, &in_ch_layout, requested,
-                            format.sampleRate(), 0, nullptr);
+                            &m_codecContext->ch_layout, m_codecContext->sample_fmt,
+                            m_codecContext->sample_rate, &in_ch_layout, requested,
+                            m_format.sampleRate(), 0, nullptr);
 #endif
 
         swr_init(resampler);
 
-        this->resampler.reset(resampler);
+        m_resampler.reset(resampler);
     }
 }
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 {
-    QMutexLocker locker(&queueMutex);
-    if (!paused.loadRelaxed()) {
-        audioBufferQueue.push(buffer);
+    QMutexLocker locker(&m_queueMutex);
+    if (!m_paused.loadRelaxed()) {
+        m_audioBufferQueue.push(buffer);
         locker.unlock();
         dataReady();
     }
@@ -377,39 +378,39 @@ void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 
 QAudioBuffer AudioEncoder::takeBuffer()
 {
-    QMutexLocker locker(&queueMutex);
-    return dequeueIfPossible(audioBufferQueue);
+    QMutexLocker locker(&m_queueMutex);
+    return dequeueIfPossible(m_audioBufferQueue);
 }
 
 void AudioEncoder::init()
 {
     open();
-    if (input) {
-        input->setFrameSize(codecContext->frame_size);
+    if (m_input) {
+        m_input->setFrameSize(m_codecContext->frame_size);
     }
     qCDebug(qLcFFmpegEncoder) << "AudioEncoder::init started audio device thread.";
 }
 
 void AudioEncoder::cleanup()
 {
-    while (!audioBufferQueue.empty())
+    while (!m_audioBufferQueue.empty())
         processOne();
-    while (avcodec_send_frame(codecContext.get(), nullptr) == AVERROR(EAGAIN))
+    while (avcodec_send_frame(m_codecContext.get(), nullptr) == AVERROR(EAGAIN))
         retrievePackets();
     retrievePackets();
 }
 
 bool AudioEncoder::hasData() const
 {
-    QMutexLocker locker(&queueMutex);
-    return !audioBufferQueue.empty();
+    QMutexLocker locker(&m_queueMutex);
+    return !m_audioBufferQueue.empty();
 }
 
 void AudioEncoder::retrievePackets()
 {
     while (1) {
         AVPacketUPtr packet(av_packet_alloc());
-        int ret = avcodec_receive_packet(codecContext.get(), packet.get());
+        int ret = avcodec_receive_packet(m_codecContext.get(), packet.get());
         if (ret < 0) {
             if (ret != AVERROR(EOF))
                 break;
@@ -422,55 +423,55 @@ void AudioEncoder::retrievePackets()
         }
 
         // qCDebug(qLcFFmpegEncoder) << "writing audio packet" << packet->size << packet->pts << packet->dts;
-        packet->stream_index = stream->id;
-        encoder->muxer->addPacket(std::move(packet));
+        packet->stream_index = m_stream->id;
+        m_encoder->m_muxer->addPacket(std::move(packet));
     }
 }
 
 void AudioEncoder::processOne()
 {
     QAudioBuffer buffer = takeBuffer();
-    if (!buffer.isValid() || paused.loadAcquire())
+    if (!buffer.isValid() || m_paused.loadAcquire())
         return;
 
 //    qCDebug(qLcFFmpegEncoder) << "new audio buffer" << buffer.byteCount() << buffer.format() << buffer.frameCount() << codec->frame_size;
     retrievePackets();
 
     auto frame = makeAVFrame();
-    frame->format = codecContext->sample_fmt;
+    frame->format = m_codecContext->sample_fmt;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    frame->channel_layout = codecContext->channel_layout;
-    frame->channels = codecContext->channels;
+    frame->channel_layout = m_codecContext->channel_layout;
+    frame->channels = m_codecContext->channels;
 #else
-    frame->ch_layout = codecContext->ch_layout;
+    frame->ch_layout = m_codecContext->ch_layout;
 #endif
-    frame->sample_rate = codecContext->sample_rate;
+    frame->sample_rate = m_codecContext->sample_rate;
     frame->nb_samples = buffer.frameCount();
     if (frame->nb_samples)
         av_frame_get_buffer(frame.get(), 0);
 
-    if (resampler) {
+    if (m_resampler) {
         const uint8_t *data = buffer.constData<uint8_t>();
-        swr_convert(resampler.get(), frame->extended_data, frame->nb_samples, &data,
+        swr_convert(m_resampler.get(), frame->extended_data, frame->nb_samples, &data,
                     frame->nb_samples);
     } else {
         memcpy(frame->buf[0]->data, buffer.constData<uint8_t>(), buffer.byteCount());
     }
 
-    const auto &timeBase = stream->time_base;
+    const auto &timeBase = m_stream->time_base;
     const auto pts = timeBase.den && timeBase.num
-            ? timeBase.den * samplesWritten / (codecContext->sample_rate * timeBase.num)
-            : samplesWritten;
+            ? timeBase.den * m_samplesWritten / (m_codecContext->sample_rate * timeBase.num)
+            : m_samplesWritten;
     setAVFrameTime(*frame, pts, timeBase);
-    samplesWritten += buffer.frameCount();
+    m_samplesWritten += buffer.frameCount();
 
-    qint64 time = format.durationForFrames(samplesWritten);
-    encoder->newTimeStamp(time/1000);
+    qint64 time = m_format.durationForFrames(m_samplesWritten);
+    m_encoder->newTimeStamp(time / 1000);
 
     //    qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
     //    ((double)buffer.frameCount()/frame->sample_rate);
 
-    int ret = avcodec_send_frame(codecContext.get(), frame.get());
+    int ret = avcodec_send_frame(m_codecContext.get(), frame.get());
     if (ret < 0) {
         char errStr[1024];
         av_strerror(ret, errStr, 1024);
@@ -480,9 +481,8 @@ void AudioEncoder::processOne()
 
 VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
                            const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat)
+    : EncoderThread(encoder)
 {
-    this->encoder = encoder;
-
     setObjectName(QLatin1String("VideoEncoder"));
 
     AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
@@ -496,28 +496,29 @@ VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settin
         frameRate = 30.;
     }
 
-    frameEncoder = VideoFrameEncoder::create(settings, format.frameSize(), frameRate,
-                                             ffmpegPixelFormat, swFormat, encoder->formatContext);
+    m_frameEncoder =
+            VideoFrameEncoder::create(settings, format.frameSize(), frameRate, ffmpegPixelFormat,
+                                      swFormat, encoder->m_formatContext);
 }
 
 VideoEncoder::~VideoEncoder() = default;
 
 bool VideoEncoder::isValid() const
 {
-    return frameEncoder != nullptr;
+    return m_frameEncoder != nullptr;
 }
 
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
-    QMutexLocker locker(&queueMutex);
+    QMutexLocker locker(&m_queueMutex);
 
     // Drop frames if encoder can not keep up with the video source data rate
-    const bool queueFull = videoFrameQueue.size() >= maxQueueSize;
+    const bool queueFull = m_videoFrameQueue.size() >= m_maxQueueSize;
 
     if (queueFull) {
         qCDebug(qLcFFmpegEncoder) << "Encoder frame queue full. Frame lost.";
-    } else if (!paused.loadRelaxed()) {
-        videoFrameQueue.push(frame);
+    } else if (!m_paused.loadRelaxed()) {
+        m_videoFrameQueue.push(frame);
 
         locker.unlock(); // Avoid context switch on wake wake-up
 
@@ -527,32 +528,32 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
 
 QVideoFrame VideoEncoder::takeFrame()
 {
-    QMutexLocker locker(&queueMutex);
-    return dequeueIfPossible(videoFrameQueue);
+    QMutexLocker locker(&m_queueMutex);
+    return dequeueIfPossible(m_videoFrameQueue);
 }
 
 void VideoEncoder::retrievePackets()
 {
-    if (!frameEncoder)
+    if (!m_frameEncoder)
         return;
-    while (auto packet = frameEncoder->retrievePacket())
-        encoder->muxer->addPacket(std::move(packet));
+    while (auto packet = m_frameEncoder->retrievePacket())
+        m_encoder->m_muxer->addPacket(std::move(packet));
 }
 
 void VideoEncoder::init()
 {
     qCDebug(qLcFFmpegEncoder) << "VideoEncoder::init started video device thread.";
-    bool ok = frameEncoder->open();
+    bool ok = m_frameEncoder->open();
     if (!ok)
-        emit encoder->error(QMediaRecorder::ResourceError, "Could not initialize encoder");
+        emit m_encoder->error(QMediaRecorder::ResourceError, "Could not initialize encoder");
 }
 
 void VideoEncoder::cleanup()
 {
-    while (!videoFrameQueue.empty())
+    while (!m_videoFrameQueue.empty())
         processOne();
-    if (frameEncoder) {
-        while (frameEncoder->sendFrame(nullptr) == AVERROR(EAGAIN))
+    if (m_frameEncoder) {
+        while (m_frameEncoder->sendFrame(nullptr) == AVERROR(EAGAIN))
             retrievePackets();
         retrievePackets();
     }
@@ -560,8 +561,8 @@ void VideoEncoder::cleanup()
 
 bool VideoEncoder::hasData() const
 {
-    QMutexLocker locker(&queueMutex);
-    return !videoFrameQueue.empty();
+    QMutexLocker locker(&m_queueMutex);
+    return !m_videoFrameQueue.empty();
 }
 
 struct QVideoFrameHolder
@@ -577,7 +578,7 @@ static void freeQVideoFrame(void *opaque, uint8_t *)
 
 void VideoEncoder::processOne()
 {
-    if (paused.loadAcquire())
+    if (m_paused.loadAcquire())
         return;
 
     retrievePackets();
@@ -597,7 +598,7 @@ void VideoEncoder::processOne()
     if (videoBuffer) {
         // ffmpeg video buffer, let's use the native AVFrame stored in there
         auto *hwFrame = videoBuffer->getHWFrame();
-        if (hwFrame && hwFrame->format == frameEncoder->sourceFormat())
+        if (hwFrame && hwFrame->format == m_frameEncoder->sourceFormat())
             avFrame.reset(av_frame_clone(hwFrame));
     }
 
@@ -605,7 +606,7 @@ void VideoEncoder::processOne()
         frame.map(QVideoFrame::ReadOnly);
         auto size = frame.size();
         avFrame = makeAVFrame();
-        avFrame->format = frameEncoder->sourceFormat();
+        avFrame->format = m_frameEncoder->sourceFormat();
         avFrame->width = size.width();
         avFrame->height = size.height();
 
@@ -627,24 +628,24 @@ void VideoEncoder::processOne()
         avFrame->opaque_ref = av_buffer_create(nullptr, 0, freeQVideoFrame, new QVideoFrameHolder{frame, img}, 0);
     }
 
-    if (baseTime.loadAcquire() == std::numeric_limits<qint64>::min()) {
-        baseTime.storeRelease(frame.startTime() - lastFrameTime);
-        qCDebug(qLcFFmpegEncoder) << ">>>> adjusting base time to" << baseTime.loadAcquire()
-                                  << frame.startTime() << lastFrameTime;
+    if (m_baseTime.loadAcquire() == std::numeric_limits<qint64>::min()) {
+        m_baseTime.storeRelease(frame.startTime() - m_lastFrameTime);
+        qCDebug(qLcFFmpegEncoder) << ">>>> adjusting base time to" << m_baseTime.loadAcquire()
+                                  << frame.startTime() << m_lastFrameTime;
     }
 
-    qint64 time = frame.startTime() - baseTime.loadAcquire();
-    lastFrameTime = frame.endTime() - baseTime.loadAcquire();
+    qint64 time = frame.startTime() - m_baseTime.loadAcquire();
+    m_lastFrameTime = frame.endTime() - m_baseTime.loadAcquire();
 
-    setAVFrameTime(*avFrame, frameEncoder->getPts(time), frameEncoder->getTimeBase());
+    setAVFrameTime(*avFrame, m_frameEncoder->getPts(time), m_frameEncoder->getTimeBase());
 
-    encoder->newTimeStamp(time/1000);
+    m_encoder->newTimeStamp(time / 1000);
 
-    qCDebug(qLcFFmpegEncoder) << ">>> sending frame" << avFrame->pts << time << lastFrameTime;
-    int ret = frameEncoder->sendFrame(std::move(avFrame));
+    qCDebug(qLcFFmpegEncoder) << ">>> sending frame" << avFrame->pts << time << m_lastFrameTime;
+    int ret = m_frameEncoder->sendFrame(std::move(avFrame));
     if (ret < 0) {
         qCDebug(qLcFFmpegEncoder) << "error sending frame" << ret << err2str(ret);
-        emit encoder->error(QMediaRecorder::ResourceError, err2str(ret));
+        emit m_encoder->error(QMediaRecorder::ResourceError, err2str(ret));
     }
 }
 
