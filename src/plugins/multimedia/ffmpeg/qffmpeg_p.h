@@ -27,6 +27,16 @@ extern "C" {
 #define QT_FFMPEG_SWR_CONST_CH_LAYOUT \
     (LIBSWRESAMPLE_VERSION_INT >= AV_VERSION_INT(4, 9, 100))
 
+inline bool operator==(const AVRational &lhs, const AVRational &rhs)
+{
+    return lhs.num == rhs.num && lhs.den == rhs.den;
+}
+
+inline bool operator!=(const AVRational &lhs, const AVRational &rhs)
+{
+    return !(lhs == rhs);
+}
+
 QT_BEGIN_NAMESPACE
 
 class QAudioFormat;
@@ -178,20 +188,30 @@ Format findAVFormat(const Format *fmts, const Predicate &predicate)
     return findBestAVFormat(fmts, scoresGetter).first;
 }
 
-template<typename Format, typename CalculateScore>
-std::pair<Format, AVScore> findBestAVFormat(const Format *fmts,
-                                            const CalculateScore &calculateScore)
+template <typename Value, typename CalculateScore>
+auto findBestAVValue(const Value *values, const CalculateScore &calculateScore,
+                     Value invalidValue = {})
 {
-    std::pair result(Format(-1), NotSuitableAVScore);
-    if (fmts) {
-        for (; *fmts != -1 && result.second != BestAVScore; ++fmts) {
-            const auto score = calculateScore(*fmts);
+    using Limits = std::numeric_limits<decltype(calculateScore(*values))>;
+    std::pair result(invalidValue, Limits::min());
+    if (values) {
+        for (; *values != invalidValue && result.second != Limits::max(); ++values) {
+            const auto score = calculateScore(*values);
             if (score > result.second)
-                result = std::pair(*fmts, score);
+                result = { *values, score };
         }
     }
 
     return result;
+}
+
+template <typename Format, typename CalculateScore>
+std::pair<Format, AVScore> findBestAVFormat(const Format *fmts,
+                                            const CalculateScore &calculateScore)
+{
+    static_assert(std::is_same_v<Format, AVSampleFormat> || std::is_same_v<Format, AVPixelFormat>,
+                  "The input value is not AV format, use findBestAVValue instead.");
+    return findBestAVValue(fmts, calculateScore, Format(-1));
 }
 
 bool isHwPixelFormat(AVPixelFormat format);
