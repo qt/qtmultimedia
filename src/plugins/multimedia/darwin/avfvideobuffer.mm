@@ -135,9 +135,15 @@ quint64 AVFVideoBuffer::textureHandle(int plane) const
 
             // Create a CoreVideo pixel buffer backed Metal texture image from the texture cache.
             QMutexLocker locker(sink->textureCacheMutex());
+            if (!metalCache && sink->cvMetalTextureCache)
+                metalCache = CVMetalTextureCacheRef(CFRetain(sink->cvMetalTextureCache));
+            if (!metalCache) {
+                qWarning("cannot create texture, Metal texture cache was released?");
+                return {};
+            }
             auto ret = CVMetalTextureCacheCreateTextureFromImage(
                             kCFAllocatorDefault,
-                            sink->cvMetalTextureCache,
+                            metalCache,
                             m_buffer, nil,
                             rhiTextureFormatToMetalFormat(textureDescription->textureFormat[plane]),
                             width, height,
