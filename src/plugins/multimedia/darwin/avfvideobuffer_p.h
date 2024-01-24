@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/qvideoframe.h>
 #include <private/qabstractvideobuffer_p.h>
+#include <private/qcore_mac_p.h>
 
 #include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
@@ -48,7 +49,7 @@ private:
     AVFVideoSinkInterface *sink = nullptr;
 
     mutable CVMetalTextureRef cvMetalTexture[3] = {};
-
+    mutable QCFType<CVMetalTextureCacheRef> metalCache;
 #if defined(Q_OS_MACOS)
     mutable CVOpenGLTextureRef cvOpenGLTexture = nullptr;
 #elif defined(Q_OS_IOS)
