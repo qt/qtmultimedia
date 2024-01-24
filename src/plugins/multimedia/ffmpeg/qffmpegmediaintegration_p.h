@@ -26,11 +26,6 @@ class QFFmpegMediaIntegration : public QPlatformMediaIntegration
 public:
     QFFmpegMediaIntegration();
 
-    static QFFmpegMediaIntegration *instance()
-    {
-        return static_cast<QFFmpegMediaIntegration *>(QPlatformMediaIntegration::instance());
-    }
-
     QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *decoder) override;
     QMaybe<QPlatformAudioResampler *> createAudioResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat) override;
     QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() override;
