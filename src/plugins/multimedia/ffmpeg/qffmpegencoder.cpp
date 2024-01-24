@@ -259,32 +259,14 @@ void Muxer::processOne()
 
 static AVSampleFormat bestMatchingSampleFormat(AVSampleFormat requested, const AVSampleFormat *available)
 {
-    if (!available)
-        return requested;
+    auto calcScore = [requested](AVSampleFormat format) {
+        return format == requested                              ? BestAVScore
+                : format == av_get_planar_sample_fmt(requested) ? BestAVScore - 1
+                                                                : 0;
+    };
 
-    const AVSampleFormat *f = available;
-    AVSampleFormat best = *f;
-/*
-    enum {
-        First,
-        Planar,
-        Exact,
-    } score = First;
-*/
-    for (; *f != AV_SAMPLE_FMT_NONE; ++f) {
-        qCDebug(qLcFFmpegEncoder) << "format:" << *f;
-        if (*f == requested) {
-            best = *f;
-//            score = Exact;
-            break;
-        }
-
-        if (av_get_planar_sample_fmt(requested) == *f) {
-//            score = Planar;
-            best = *f;
-        }
-    }
-    return best;
+    const auto result = findBestAVFormat(available, calcScore).first;
+    return result == AV_SAMPLE_FMT_NONE ? requested : result;
 }
 
 AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings)
