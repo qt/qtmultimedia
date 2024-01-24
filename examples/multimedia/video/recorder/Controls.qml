@@ -46,6 +46,10 @@ Row {
         id: optionButtons
         spacing: Style.intraSpacing
         Button {
+            leftPadding: 0
+            rightPadding: 0
+            topPadding: 0
+            bottomPadding: 0
             height: Style.height
             width: Style.widthMedium
             background: StyleRectangle { anchors.fill: parent }
@@ -54,6 +58,10 @@ Row {
             font.pointSize: Style.fontSize
         }
         Button {
+            leftPadding: 0
+            rightPadding: 0
+            topPadding: 0
+            bottomPadding: 0
             height: Style.height
             width: Style.widthMedium
             background: StyleRectangle { anchors.fill: parent }
