@@ -13,6 +13,22 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
+AVAudioFormat::AVAudioFormat(const AVCodecContext *context)
+    : sampleFormat(context->sample_fmt), sampleRate(context->sample_rate)
+{
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+    if (context->channel_layout) {
+        channelLayoutMask = context->channel_layout;
+    } else {
+        const auto channelConfig =
+                QAudioFormat::defaultChannelConfigForChannelCount(context->channels);
+        channelLayoutMask = QFFmpegMediaFormatInfo::avChannelLayout(channelConfig);
+    }
+#else
+    channelLayout = context->ch_layout;
+#endif
+}
+
 AVAudioFormat::AVAudioFormat(const AVCodecParameters *codecPar)
     : sampleFormat(AVSampleFormat(codecPar->format)), sampleRate(codecPar->sample_rate)
 {
@@ -44,6 +60,17 @@ AVAudioFormat::AVAudioFormat(const QAudioFormat &audioFormat)
 #else
     av_channel_layout_from_mask(&channelLayout, mask);
 #endif
+}
+
+bool operator==(const AVAudioFormat &lhs, const AVAudioFormat &rhs)
+{
+    return lhs.sampleFormat == rhs.sampleFormat && lhs.sampleRate == rhs.sampleRate &&
+#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
+            lhs.channelLayoutMask == rhs.channelLayoutMask
+#else
+            lhs.channelLayout == rhs.channelLayout
+#endif
+            ;
 }
 
 } // namespace QFFmpeg

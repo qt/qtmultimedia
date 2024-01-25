@@ -18,6 +18,19 @@
 #include "qffmpegdefs_p.h"
 #include <private/qtmultimediaglobal_p.h>
 
+#if !QT_FFMPEG_OLD_CHANNEL_LAYOUT
+inline bool operator==(const AVChannelLayout &lhs, const AVChannelLayout &rhs)
+{
+    return lhs.order == rhs.order && lhs.nb_channels == rhs.nb_channels && lhs.u.mask == rhs.u.mask;
+}
+
+inline bool operator!=(const AVChannelLayout &lhs, const AVChannelLayout &rhs)
+{
+    return !(lhs == rhs);
+}
+
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class QAudioFormat;
@@ -26,6 +39,8 @@ namespace QFFmpeg {
 
 struct AVAudioFormat
 {
+    AVAudioFormat(const AVCodecContext *context);
+
     AVAudioFormat(const AVCodecParameters *codecPar);
 
     AVAudioFormat(const QAudioFormat &audioFormat);
@@ -38,6 +53,13 @@ struct AVAudioFormat
     AVSampleFormat sampleFormat;
     int sampleRate;
 };
+
+bool operator==(const AVAudioFormat &lhs, const AVAudioFormat &rhs);
+
+inline bool operator!=(const AVAudioFormat &lhs, const AVAudioFormat &rhs)
+{
+    return !(lhs == rhs);
+}
 
 } // namespace QFFmpeg
 

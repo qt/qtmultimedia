@@ -15,6 +15,7 @@
 #include "qffmpegvideobuffer_p.h"
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegencoderoptions_p.h"
+#include "qffmpegaudioencoderutils_p.h"
 
 #include <qloggingcategory.h>
 
@@ -257,19 +258,6 @@ void Muxer::processOne()
     av_interleaved_write_frame(m_encoder->m_formatContext, packet.release());
 }
 
-
-static AVSampleFormat bestMatchingSampleFormat(AVSampleFormat requested, const AVSampleFormat *available)
-{
-    auto calcScore = [requested](AVSampleFormat format) {
-        return format == requested                              ? BestAVScore
-                : format == av_get_planar_sample_fmt(requested) ? BestAVScore - 1
-                                                                : 0;
-    };
-
-    const auto result = findBestAVFormat(available, calcScore).first;
-    return result == AV_SAMPLE_FMT_NONE ? requested : result;
-}
-
 AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
                            const QMediaEncoderSettings &settings)
     : EncoderThread(encoder), m_input(input), m_settings(settings)
@@ -279,12 +267,11 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
 
     m_format = input->device.preferredFormat();
     auto codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
-    Q_ASSERT(
-            avformat_query_codec(encoder->m_formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
+    Q_ASSERT(avformat_query_codec(encoder->m_formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
 
-    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(m_format.sampleFormat());
+    const AVAudioFormat requestedAudioFormat(m_format);
 
-    m_avCodec = QFFmpeg::findAVEncoder(codecID, {}, requested);
+    m_avCodec = QFFmpeg::findAVEncoder(codecID, {}, requestedAudioFormat.sampleFormat);
 
     if (!m_avCodec)
         m_avCodec = QFFmpeg::findAVEncoder(codecID);
@@ -293,22 +280,27 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
 
     Q_ASSERT(m_avCodec);
 
-    AVSampleFormat bestSampleFormat = bestMatchingSampleFormat(requested, m_avCodec->sample_fmts);
-
     m_stream = avformat_new_stream(encoder->m_formatContext, nullptr);
     m_stream->id = encoder->m_formatContext->nb_streams - 1;
     m_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
     m_stream->codecpar->codec_id = codecID;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-    m_stream->codecpar->channel_layout = av_get_default_channel_layout(m_format.channelCount());
-    m_stream->codecpar->channels = m_format.channelCount();
+    m_stream->codecpar->channel_layout =
+            adjustChannelLayout(m_avCodec->channel_layouts, requestedAudioFormat.channelLayoutMask);
+    m_stream->codecpar->channels = qPopulationCount(m_stream->codecpar->channel_layout);
 #else
-    av_channel_layout_default(&m_stream->codecpar->ch_layout, m_format.channelCount());
+    m_stream->codecpar->ch_layout =
+            adjustChannelLayout(m_avCodec->ch_layouts, requestedAudioFormat.channelLayout);
 #endif
-    m_stream->codecpar->sample_rate = m_format.sampleRate();
+    const auto sampleRate =
+            adjustSampleRate(m_avCodec->supported_samplerates, requestedAudioFormat.sampleRate);
+
+    m_stream->codecpar->sample_rate = sampleRate;
     m_stream->codecpar->frame_size = 1024;
-    m_stream->codecpar->format = bestSampleFormat;
-    m_stream->time_base = AVRational{ 1, m_format.sampleRate() };
+    m_stream->codecpar->format =
+            adjustSampleFormat(m_avCodec->sample_fmts, requestedAudioFormat.sampleFormat);
+
+    m_stream->time_base = AVRational{ 1, sampleRate };
 
     qCDebug(qLcFFmpegEncoder) << "set stream time_base" << m_stream->time_base.num << "/"
                               << m_stream->time_base.den;
@@ -316,8 +308,6 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
 
 void AudioEncoder::open()
 {
-    AVSampleFormat requested = QFFmpegMediaFormatInfo::avSampleFormat(m_format.sampleFormat());
-
     m_codecContext.reset(avcodec_alloc_context3(m_avCodec));
 
     if (m_stream->time_base.num != 1 || m_stream->time_base.den != m_format.sampleRate()) {
@@ -339,32 +329,11 @@ void AudioEncoder::open()
     qCDebug(qLcFFmpegEncoder) << "audio codec params: fmt=" << m_codecContext->sample_fmt
                               << "rate=" << m_codecContext->sample_rate;
 
-    if (m_codecContext->sample_fmt != requested) {
-        SwrContext *resampler = nullptr;
-#if QT_FFMPEG_OLD_CHANNEL_LAYOUT
-        resampler = swr_alloc_set_opts(
-                nullptr, // we're allocating a new context
-                m_codecContext->channel_layout, // out_ch_layout
-                m_codecContext->sample_fmt, // out_sample_fmt
-                m_codecContext->sample_rate, // out_sample_rate
-                av_get_default_channel_layout(m_format.channelCount()), // in_ch_layout
-                requested, // in_sample_fmt
-                m_format.sampleRate(), // in_sample_rate
-                0, // log_offset
-                nullptr);
-#else
-        AVChannelLayout in_ch_layout = {};
-        av_channel_layout_default(&in_ch_layout, m_format.channelCount());
-        swr_alloc_set_opts2(&resampler, // we're allocating a new context
-                            &m_codecContext->ch_layout, m_codecContext->sample_fmt,
-                            m_codecContext->sample_rate, &in_ch_layout, requested,
-                            m_format.sampleRate(), 0, nullptr);
-#endif
+    const AVAudioFormat requestedAudioFormat(m_format);
+    const AVAudioFormat codecAudioFormat(m_codecContext.get());
 
-        swr_init(resampler);
-
-        m_resampler.reset(resampler);
-    }
+    if (requestedAudioFormat != codecAudioFormat)
+        m_resampler = createResampleContext(requestedAudioFormat, codecAudioFormat);
 }
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
@@ -434,6 +403,12 @@ void AudioEncoder::processOne()
     QAudioBuffer buffer = takeBuffer();
     if (!buffer.isValid() || m_paused.loadAcquire())
         return;
+
+    if (buffer.format() != m_format) {
+        // should we recreate recreate resampler here?
+        qWarning() << "Get invalid audio format:" << buffer.format() << ", expected:" << m_format;
+        return;
+    }
 
 //    qCDebug(qLcFFmpegEncoder) << "new audio buffer" << buffer.byteCount() << buffer.format() << buffer.frameCount() << codec->frame_size;
     retrievePackets();
