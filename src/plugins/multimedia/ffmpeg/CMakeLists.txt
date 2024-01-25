@@ -36,6 +36,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegresampler.cpp qffmpegresampler_p.h
         qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
         qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
+        qffmpegaudioencoderutils.cpp qffmpegaudioencoderutils_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
         qffmpegsurfacecapturegrabber.cpp qffmpegsurfacecapturegrabber_p.h
         qffmpegsymbolsresolve_p.h
