@@ -103,6 +103,15 @@ struct AVDictionaryHolder
 
     operator AVDictionary **() { return &opts; }
 
+    AVDictionaryHolder() = default;
+
+    Q_DISABLE_COPY(AVDictionaryHolder)
+
+    AVDictionaryHolder(AVDictionaryHolder &&other) noexcept
+        : opts(std::exchange(other.opts, nullptr))
+    {
+    }
+
     ~AVDictionaryHolder()
     {
         if (opts)
