@@ -195,6 +195,8 @@ bool VideoFrameEncoder::open()
 
     AVDictionaryHolder opts;
     applyVideoEncoderOptions(m_settings, m_codec->name, m_codecContext.get(), opts);
+    applyExperimentalCodecOptions(m_codec, opts);
+
     int res = avcodec_open2(m_codecContext.get(), m_codec, opts);
     if (res < 0) {
         m_codecContext.reset();

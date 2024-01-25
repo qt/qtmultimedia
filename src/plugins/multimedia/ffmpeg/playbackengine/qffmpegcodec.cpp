@@ -68,6 +68,7 @@ QMaybe<Codec> Codec::create(AVStream *stream, AVFormatContext *formatContext)
     AVDictionaryHolder opts;
     av_dict_set(opts, "refcounted_frames", "1", 0);
     av_dict_set(opts, "threads", "auto", 0);
+    applyExperimentalCodecOptions(decoder, opts);
 
     ret = avcodec_open2(context.get(), decoder, opts);
     if (ret < 0)

@@ -42,7 +42,11 @@ using CodecsStorage = std::vector<const AVCodec *>;
 
 struct CodecsComparator
 {
-    bool operator()(const AVCodec *a, const AVCodec *b) const { return a->id < b->id; }
+    bool operator()(const AVCodec *a, const AVCodec *b) const
+    {
+        return a->id < b->id
+                || (a->id == b->id && isAVCodecExperimental(a) < isAVCodecExperimental(b));
+    }
 
     bool operator()(const AVCodec *a, AVCodecID id) const { return a->id < id; }
 };
@@ -204,7 +208,12 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
             // find experimental codecs in the last order,
             // now we don't consider them at all since they are supposed to
             // be not stable, maybe we shouldn't.
-            if (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) {
+            // Currently, it's possible to turn them on for testing purposes.
+
+            static const auto experimentalCodecsEnabled =
+                    qEnvironmentVariableIntValue("QT_ENABLE_EXPERIMENTAL_CODECS");
+
+            if (!experimentalCodecsEnabled && isAVCodecExperimental(codec)) {
                 qCDebug(qLcFFmpegUtils) << "Skip experimental codec" << codec->name;
                 continue;
             }
@@ -378,6 +387,20 @@ bool isHwPixelFormat(AVPixelFormat format)
 {
     const auto desc = av_pix_fmt_desc_get(format);
     return desc && (desc->flags & AV_PIX_FMT_FLAG_HWACCEL) != 0;
+}
+
+bool isAVCodecExperimental(const AVCodec *codec)
+{
+    return (codec->capabilities & AV_CODEC_CAP_EXPERIMENTAL) != 0;
+}
+
+void applyExperimentalCodecOptions(const AVCodec *codec, AVDictionary** opts)
+{
+    if (isAVCodecExperimental(codec)) {
+        qCWarning(qLcFFmpegUtils) << "Applying the option 'strict -2' for the experimental codec"
+                                  << codec->name << ". it's unlikely to work properly";
+        av_dict_set(opts, "strict", "-2", 0);
+    }
 }
 
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)

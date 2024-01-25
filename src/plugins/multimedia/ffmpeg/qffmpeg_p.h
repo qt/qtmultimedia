@@ -221,6 +221,10 @@ inline bool isSwPixelFormat(AVPixelFormat format)
     return !isHwPixelFormat(format);
 }
 
+bool isAVCodecExperimental(const AVCodec *codec);
+
+void applyExperimentalCodecOptions(const AVCodec *codec, AVDictionary** opts);
+
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType);
 
 const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataType type);
