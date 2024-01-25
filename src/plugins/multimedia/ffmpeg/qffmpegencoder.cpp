@@ -332,6 +332,7 @@ void AudioEncoder::open()
 
     AVDictionaryHolder opts;
     applyAudioEncoderOptions(m_settings, m_avCodec->name, m_codecContext.get(), opts);
+    applyExperimentalCodecOptions(m_avCodec, opts);
 
     int res = avcodec_open2(m_codecContext.get(), m_avCodec, opts);
     qCDebug(qLcFFmpegEncoder) << "audio codec opened" << res;
