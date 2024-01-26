@@ -87,7 +87,7 @@ QAudioInput::~QAudioInput()
     UI volume controls should usually be scaled non-linearly. For example,
     using a logarithmic scale will produce linear changes in perceived loudness,
     which is what a user would normally expect from a volume control.
-    \sa QAudio::convertVolume()
+    \sa QtAudio::convertVolume()
 */
 /*!
     \property QAudioInput::volume

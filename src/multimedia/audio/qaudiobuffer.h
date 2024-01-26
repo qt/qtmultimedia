@@ -8,7 +8,7 @@
 
 #include <QtMultimedia/qtmultimediaglobal.h>
 
-#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qtaudio.h>
 #include <QtMultimedia/qaudioformat.h>
 
 QT_BEGIN_NAMESPACE

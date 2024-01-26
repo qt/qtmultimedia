@@ -217,9 +217,9 @@ void applyVolume(int volumeSliderValue)
 {
     // volumeSliderValue is in the range [0..100]
 
-    qreal linearVolume = QAudio::convertVolume(volumeSliderValue / qreal(100.0),
-                                               QAudio::LogarithmicVolumeScale,
-                                               QAudio::LinearVolumeScale);
+    qreal linearVolume = QtAudio::convertVolume(volumeSliderValue / qreal(100.0),
+                                                QtAudio::LogarithmicVolumeScale,
+                                                QtAudio::LinearVolumeScale);
 
     player.setVolume(qRound(linearVolume * 100));
 }

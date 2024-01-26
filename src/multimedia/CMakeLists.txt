@@ -18,7 +18,7 @@ qt_internal_find_apple_system_framework(FWAudioToolbox AudioToolbox) # special c
 qt_internal_add_module(Multimedia
     PLUGIN_TYPES multimedia
     SOURCES
-        audio/qaudio.cpp audio/qaudio.h
+        audio/qtaudio.cpp audio/qtaudio.h audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
         audio/qaudiodecoder.cpp audio/qaudiodecoder.h
         audio/qaudiodevice.cpp audio/qaudiodevice.h audio/qaudiodevice_p.h
@@ -37,6 +37,7 @@ qt_internal_add_module(Multimedia
         camera/qcamera.cpp camera/qcamera.h camera/qcamera_p.h
         camera/qcameradevice.cpp camera/qcameradevice.h camera/qcameradevice_p.h
         camera/qimagecapture.cpp camera/qimagecapture.h
+        compat/removed_api.cpp
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformaudioinput_p.h
         platform/qplatformaudiooutput_p.h
@@ -100,6 +101,8 @@ qt_internal_add_module(Multimedia
     PRIVATE_MODULE_INTERFACE
         Qt::CorePrivate
         Qt::GuiPrivate
+    NO_PCH_SOURCES
+        compat/removed_api.cpp
     GENERATE_CPP_EXPORTS
 )
 
