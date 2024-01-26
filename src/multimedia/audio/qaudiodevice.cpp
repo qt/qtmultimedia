@@ -237,7 +237,7 @@ bool QAudioDevice::isFormatSupported(const QAudioFormat &settings) const
 
     These settings are provided by the platform/audio plugin being used.
 
-    They are also dependent on the \l {QAudio}::Mode being used.
+    They are also dependent on the \l {QtAudio}::Mode being used.
 
     A typical audio system would provide something like:
     \list

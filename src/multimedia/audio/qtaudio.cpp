@@ -1,8 +1,8 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 
-#include <qaudio.h>
+#include <qtaudio.h>
 #include <qmath.h>
 #include <QDebug>
 
@@ -11,16 +11,16 @@ QT_BEGIN_NAMESPACE
 #define LOG100 4.60517018599
 
 /*!
-    \namespace QAudio
+    \namespace QtAudio
     \ingroup multimedia-namespaces
-    \brief The QAudio namespace contains enums used by the audio classes.
+    \brief The QtAudio namespace contains enums used by the audio classes.
     \inmodule QtMultimedia
     \ingroup multimedia
     \ingroup multimedia_audio
 */
 
 /*!
-    \enum QAudio::Error
+    \enum QtAudio::Error
 
     \value NoError         No errors have occurred
     \value OpenError       An error occurred opening the audio device
@@ -30,7 +30,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \enum QAudio::State
+    \enum QtAudio::State
 
     \value ActiveState       Audio data is being processed, this state is set after start() is called
                              and while audio data is available to be processed.
@@ -44,7 +44,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \enum QAudio::VolumeScale
+    \enum QtAudio::VolumeScale
 
     This enum defines the different audio volume scales.
 
@@ -59,11 +59,10 @@ QT_BEGIN_NAMESPACE
     \value DecibelVolumeScale       Decibel (dB, amplitude) logarithmic scale. \c -200 is silence
                                     and \c 0 is full volume.
 
-    \since 5.8
-    \sa QAudio::convertVolume()
+    \sa QtAudio::convertVolume()
 */
 
-namespace QAudio
+namespace QtAudio
 {
 
 /*!
@@ -84,7 +83,6 @@ namespace QAudio
 
     \snippet multimedia-snippets/audio.cpp Volume conversion
 
-    \since 5.8
     \sa VolumeScale, QAudioSink::setVolume(), QAudioSource::setVolume(),
     QSoundEffect::setVolume()
 */

@@ -53,7 +53,7 @@ QT_BEGIN_NAMESPACE
 
     At any point in time, QAudioSource will be in one of four states:
     active, suspended, stopped, or idle. These states are specified by
-    the QAudio::State enum. You can request a state change directly through
+    the QtAudio::State enum. You can request a state change directly through
     suspend(), resume(), stop(), reset(), and start(). The current
     state is reported by state(). QAudioSink will also signal you
     when the state changes (stateChanged()).
@@ -66,8 +66,8 @@ QT_BEGIN_NAMESPACE
     which states the QAudioSource has been in.
 
     If an error should occur, you can fetch its reason with error().
-    The possible error reasons are described by the QAudio::Error
-    enum. The QAudioSource will enter the \l{QAudio::}{StoppedState} when
+    The possible error reasons are described by the QtAudio::Error
+    enum. The QAudioSource will enter the \l{QtAudio::}{StoppedState} when
     an error is encountered.  Connect to the stateChanged() signal to
     handle the error:
 
@@ -131,11 +131,11 @@ QAudioSource::~QAudioSource()
     \l{QIODevice::Append}{Append} or \l{QIODevice::ReadWrite}{ReadWrite} modes.
 
     If the QAudioSource is able to successfully get audio data, state() returns
-    either QAudio::ActiveState or QAudio::IdleState, error() returns QAudio::NoError
+    either QtAudio::ActiveState or QtAudio::IdleState, error() returns QtAudio::NoError
     and the stateChanged() signal is emitted.
 
-    If a problem occurs during this process, error() returns QAudio::OpenError,
-    state() returns QAudio::StoppedState and the stateChanged() signal is emitted.
+    If a problem occurs during this process, error() returns QtAudio::OpenError,
+    state() returns QtAudio::StoppedState and the stateChanged() signal is emitted.
 
     \sa QIODevice
 */
@@ -157,11 +157,11 @@ void QAudioSource::start(QIODevice* device)
     if you start another stream.
 
     If the QAudioSource is able to access the system's audio device, state() returns
-    QAudio::IdleState, error() returns QAudio::NoError
+    QtAudio::IdleState, error() returns QtAudio::NoError
     and the stateChanged() signal is emitted.
 
-    If a problem occurs during this process, error() returns QAudio::OpenError,
-    state() returns QAudio::StoppedState and the stateChanged() signal is emitted.
+    If a problem occurs during this process, error() returns QtAudio::OpenError,
+    state() returns QtAudio::StoppedState and the stateChanged() signal is emitted.
 
     \sa QIODevice
 */
@@ -186,7 +186,7 @@ QAudioFormat QAudioSource::format() const
 /*!
     Stops the audio input, detaching from the system resource.
 
-    Sets error() to QAudio::NoError, state() to QAudio::StoppedState and
+    Sets error() to QtAudio::NoError, state() to QtAudio::StoppedState and
     emit stateChanged() signal.
 */
 
@@ -209,7 +209,7 @@ void QAudioSource::reset()
 /*!
     Stops processing audio data, preserving buffered audio data.
 
-    Sets error() to QAudio::NoError, state() to QAudio::SuspendedState and
+    Sets error() to QtAudio::NoError, state() to QtAudio::SuspendedState and
     emit stateChanged() signal.
 */
 
@@ -222,9 +222,9 @@ void QAudioSource::suspend()
 /*!
     Resumes processing audio data after a suspend().
 
-    Sets error() to QAudio::NoError.
-    Sets state() to QAudio::ActiveState if you previously called start(QIODevice*).
-    Sets state() to QAudio::IdleState if you previously called start().
+    Sets error() to QtAudio::NoError.
+    Sets state() to QtAudio::ActiveState if you previously called start(QIODevice*).
+    Sets state() to QtAudio::IdleState if you previously called start().
     emits stateChanged() signal.
 */
 
@@ -268,7 +268,7 @@ qsizetype QAudioSource::bufferSize() const
 /*!
     Returns the amount of audio data available to read in bytes.
 
-    Note: returned value is only valid while in QAudio::ActiveState or QAudio::IdleState
+    Note: returned value is only valid while in QtAudio::ActiveState or QtAudio::IdleState
     state, otherwise returns zero.
 */
 
@@ -340,7 +340,7 @@ qint64 QAudioSource::elapsedUSecs() const
     Returns the error state.
 */
 
-QAudio::Error QAudioSource::error() const
+QtAudio::Error QAudioSource::error(QT6_IMPL_NEW_OVERLOAD) const
 {
     return d ? d->error() : QAudio::OpenError;
 }
@@ -349,14 +349,18 @@ QAudio::Error QAudioSource::error() const
     Returns the state of audio processing.
 */
 
-QAudio::State QAudioSource::state() const
+QtAudio::State QAudioSource::state(QT6_IMPL_NEW_OVERLOAD) const
 {
     return d ? d->state() : QAudio::StoppedState;
 }
 
 /*!
-    \fn QAudioSource::stateChanged(QAudio::State state)
+    \fn QAudioSource::stateChanged(QtAudio::State state)
     This signal is emitted when the device \a state has changed.
+
+    \note The QtAudio namespace was named QAudio up to and including Qt 6.6.
+    String-based connections to this signal have to use \c{QAudio::State} as
+    the parameter type: \c{connect(source, SIGNAL(stateChanged(QAudio::State)), ...);}
 */
 
 QT_END_NAMESPACE

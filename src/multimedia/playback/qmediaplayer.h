@@ -8,7 +8,7 @@
 #include <QtCore/qurl.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qmediaenumdebug.h>
-#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qtaudio.h>
 
 QT_BEGIN_NAMESPACE
 

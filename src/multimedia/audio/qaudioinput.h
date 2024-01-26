@@ -6,7 +6,7 @@
 
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
-#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qtaudio.h>
 
 #include <functional>
 
