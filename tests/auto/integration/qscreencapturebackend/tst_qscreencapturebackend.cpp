@@ -82,8 +82,12 @@ private:
 
 class TestVideoSink : public QVideoSink
 {
+    Q_OBJECT
 public:
-    TestVideoSink() = default;
+    TestVideoSink()
+    {
+        connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::videoFrameChangedSync);
+    }
 
     void setStoreImagesEnabled(bool storeImages = true) {
         if (storeImages)
@@ -93,6 +97,15 @@ public:
     }
 
     const std::vector<QImage> &images() const { return m_images; }
+
+    QVideoFrame waitForFrame()
+    {
+        QSignalSpy spy(this, &TestVideoSink::videoFrameChangedSync);
+        return spy.wait() ? spy.at(0).at(0).value<QVideoFrame>() : QVideoFrame{};
+    }
+
+signals:
+    void videoFrameChangedSync(QVideoFrame frame);
 
 private:
     void storeImage(const QVideoFrame &frame) {
@@ -214,7 +227,19 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
 
     sc.setActive(true);
 
+    QVERIFY(sc.isActive());
+
+    // In some cases, on Linux the window seems to be of a wrong color after appearance,
+    // the delay helps.
+    // TODO: remove the delay
     QTest::qWait(300);
+
+    // Let's wait for the first frame to address a potential initialization delay.
+    // In practice, the delay varies between the platform and may randomly get increased.
+    {
+        const auto firstFrame = sink.waitForFrame();
+        QVERIFY(firstFrame.isValid());
+    }
 
     sink.setStoreImagesEnabled();
 
