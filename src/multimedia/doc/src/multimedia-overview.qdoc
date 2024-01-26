@@ -120,6 +120,13 @@ platform. This can mean that support for various codecs, or containers will vary
 between machines. This support depends on what the end user has installed.
 See \l{Supported Media Formats} for more detail.
 
+\note Qt Multimedia APIs depend on functionality provided by QCoreApplication,
+and multimedia objects created using the Qt Multimedia APIs can only be used
+during the lifetime of this application object. It is therefore important to
+create a QCoreApplication, QGuiApplication, or QApplication before accessing
+any of the Qt Multimedia APIs. If the application object is recreated, make
+sure that any Qt Multimedia objects are also recreated.
+
 \section1 Changes from Previous Versions
 
 If you previously used Qt Multimedia in Qt 5, see
