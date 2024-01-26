@@ -4,7 +4,7 @@
 #ifndef QCAMERAINFO_H
 #define QCAMERAINFO_H
 
-#include <QtMultimedia/qvideo.h>
+#include <QtMultimedia/qtvideo.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qsharedpointer.h>
 
