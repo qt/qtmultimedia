@@ -1,8 +1,8 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QVIDEO_H
-#define QVIDEO_H
+#ifndef QTVIDEO_H
+#define QTVIDEO_H
 
 #include <QtMultimedia/qtmultimediaexports.h>
 #include <QtCore/qobjectdefs.h>
@@ -20,4 +20,4 @@ Q_ENUM_NS(Rotation)
 
 QT_END_NAMESPACE
 
-#endif // QVIDEO_H
+#endif // QTVIDEO_H
