@@ -103,9 +103,7 @@ protected:
 private:
     friend class QMockIntegrationFactory;
     // API to be able to test with a mock backend
-    using Factory = std::function<std::unique_ptr<QPlatformMediaIntegration>()>;
-    struct InstanceHolder;
-    static void setPlatformFactory(Factory factory);
+    static void setPlatformFactory(std::function<std::unique_ptr<QPlatformMediaIntegration>()> factory);
 
 private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
