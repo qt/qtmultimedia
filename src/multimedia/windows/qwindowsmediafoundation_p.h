@@ -31,6 +31,8 @@ public:
 
     bool valid() const;
 
+    decltype(&::MFStartup) mfStartup = nullptr;
+    decltype(&::MFShutdown) mfShutdown = nullptr;
     decltype(&::MFCreateMediaType) mfCreateMediaType = nullptr;
     decltype(&::MFCreateMemoryBuffer) mfCreateMemoryBuffer = nullptr;
     decltype(&::MFCreateSample) mfCreateSample = nullptr;
@@ -38,6 +40,18 @@ public:
 private:
     QSystemLibrary m_mfplat{ QStringLiteral("Mfplat.dll") };
     bool m_valid = false;
+};
+
+class QMFRuntimeInit
+{
+    Q_DISABLE_COPY_MOVE(QMFRuntimeInit)
+public:
+    QMFRuntimeInit(QWindowsMediaFoundation *wmf);
+    ~QMFRuntimeInit();
+
+private:
+    QWindowsMediaFoundation *m_wmf;
+    HRESULT m_initResult;
 };
 
 QT_END_NAMESPACE
