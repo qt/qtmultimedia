@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsmediafoundation_p.h"
+#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -31,7 +32,9 @@ QWindowsMediaFoundation::QWindowsMediaFoundation()
     if (!m_mfplat.load(false))
         return;
 
-    m_valid = setProcAddress(m_mfplat, mfCreateMediaType, "MFCreateMediaType")
+    m_valid = setProcAddress(m_mfplat, mfStartup, "MFStartup")
+            && setProcAddress(m_mfplat, mfShutdown, "MFShutdown")
+            && setProcAddress(m_mfplat, mfCreateMediaType, "MFCreateMediaType")
             && setProcAddress(m_mfplat, mfCreateMemoryBuffer, "MFCreateMemoryBuffer")
             && setProcAddress(m_mfplat, mfCreateSample, "MFCreateSample");
 
@@ -43,6 +46,25 @@ QWindowsMediaFoundation::~QWindowsMediaFoundation() = default;
 bool QWindowsMediaFoundation::valid() const
 {
     return m_valid;
+}
+
+QMFRuntimeInit::QMFRuntimeInit(QWindowsMediaFoundation *wmf)
+    : m_wmf{ wmf }, m_initResult{ wmf ? m_wmf->mfStartup(MF_VERSION, MFSTARTUP_FULL) : E_FAIL }
+{
+    if (m_initResult != S_OK)
+        qErrnoWarning(m_initResult, "Failed to initialize Windows Media Foundation");
+}
+
+QMFRuntimeInit::~QMFRuntimeInit()
+{
+    // According to documentation MFShutdown should be called
+    // also when MFStartup failed. This is wrong.
+    if (FAILED(m_initResult))
+        return;
+
+    const HRESULT hr = m_wmf->mfShutdown();
+    if (hr != S_OK)
+        qErrnoWarning(hr, "Failed to shut down Windows Media Foundation");
 }
 
 QT_END_NAMESPACE
