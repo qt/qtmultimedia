@@ -20,8 +20,10 @@
 #include <qbytearrayview.h>
 #include <qaudioformat.h>
 #include <private/qcomptr_p.h>
+#include <private/qwindowsmediafoundation_p.h>
 #include <qt_windows.h>
 #include <mftransform.h>
+#include <QtCore/private/qfunctions_win_p.h>
 
 struct IMFSample;
 struct IMFTransform;
@@ -54,8 +56,10 @@ private:
     HRESULT processInput(const QByteArrayView &in);
     HRESULT processOutput(QByteArray &out);
 
+    QComHelper m_comRuntime;
+    QWindowsMediaFoundation *m_wmf{ QWindowsMediaFoundation::instance() };
+    QMFRuntimeInit m_wmfRuntime{ m_wmf };
     ComPtr<IMFTransform> m_resampler;
-    QWindowsMediaFoundation *m_wmf = nullptr;
 
     bool m_resamplerNeedsSampleBuffer = false;
     quint64 m_totalInputBytes = 0;
