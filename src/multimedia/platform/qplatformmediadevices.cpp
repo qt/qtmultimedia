@@ -53,32 +53,32 @@ struct DevicesHolder
     QPlatformMediaDevices *nativeInstance = nullptr;
 };
 
-DevicesHolder devicesHolder;
+Q_GLOBAL_STATIC(DevicesHolder, devicesHolder);
 
 }
 
 QPlatformMediaDevices *QPlatformMediaDevices::instance()
 {
-    QMutexLocker locker(&devicesHolder.mutex);
-    if (devicesHolder.instance)
-        return devicesHolder.instance;
+    QMutexLocker locker(&devicesHolder->mutex);
+    if (devicesHolder->instance)
+        return devicesHolder->instance;
 
 #ifdef Q_OS_DARWIN
-    devicesHolder.nativeInstance = new QDarwinMediaDevices;
+    devicesHolder->nativeInstance = new QDarwinMediaDevices;
 #elif defined(Q_OS_WINDOWS)
-    devicesHolder.nativeInstance = new QWindowsMediaDevices;
+    devicesHolder->nativeInstance = new QWindowsMediaDevices;
 #elif defined(Q_OS_ANDROID)
-    devicesHolder.nativeInstance = new QAndroidMediaDevices;
+    devicesHolder->nativeInstance = new QAndroidMediaDevices;
 #elif QT_CONFIG(alsa)
-    devicesHolder.nativeInstance = new QAlsaMediaDevices;
+    devicesHolder->nativeInstance = new QAlsaMediaDevices;
 #elif QT_CONFIG(pulseaudio)
-    devicesHolder.nativeInstance = new QPulseAudioMediaDevices;
+    devicesHolder->nativeInstance = new QPulseAudioMediaDevices;
 #elif defined(Q_OS_QNX)
-    devicesHolder.nativeInstance = new QQnxMediaDevices;
+    devicesHolder->nativeInstance = new QQnxMediaDevices;
 #elif defined(Q_OS_WASM)
-    devicesHolder.nativeInstance = new QWasmMediaDevices;
+    devicesHolder->nativeInstance = new QWasmMediaDevices;
 #else
-    devicesHolder.nativeInstance = new QPlatformMediaDevices;
+    devicesHolder->nativeInstance = new QPlatformMediaDevices;
 #endif
 
     if (!QCoreApplication::instance()) {
@@ -86,13 +86,13 @@ QPlatformMediaDevices *QPlatformMediaDevices::instance()
         // application with Windows backend.
         qWarning("Accessing QMediaDevices without a QCoreApplication");
     } else {
-        connect(qApp, &QObject::destroyed, devicesHolder.nativeInstance, []() {
-            devicesHolder.reset();
+        connect(qApp, &QObject::destroyed, devicesHolder->nativeInstance, []() {
+            devicesHolder->reset();
         });
     }
 
-    devicesHolder.instance = devicesHolder.nativeInstance;
-    return devicesHolder.instance;
+    devicesHolder->instance = devicesHolder->nativeInstance;
+    return devicesHolder->instance;
 }
 
 
@@ -111,7 +111,7 @@ void QPlatformMediaDevices::initVideoDevicesConnection() {
 
 void QPlatformMediaDevices::setDevices(QPlatformMediaDevices *devices)
 {
-    devicesHolder.instance = devices;
+    devicesHolder->instance = devices;
 }
 
 QPlatformMediaDevices::~QPlatformMediaDevices() = default;

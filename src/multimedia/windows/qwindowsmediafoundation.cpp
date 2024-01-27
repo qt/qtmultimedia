@@ -9,6 +9,7 @@
 QT_BEGIN_NAMESPACE
 
 namespace {
+
 struct Holder {
     ~Holder()
     {
@@ -18,9 +19,11 @@ struct Holder {
     bool loadFailed = false;
     QBasicMutex mutex;
     std::unique_ptr<QWindowsMediaFoundation> instance;
-} holder;
+};
 
-}
+Q_GLOBAL_STATIC(Holder, holder)
+
+} // namespace
 
 QWindowsMediaFoundation::~QWindowsMediaFoundation() = default;
 
@@ -32,11 +35,11 @@ template<typename T> bool setProcAddress(QSystemLibrary &lib, T &f, std::string_
 
 QWindowsMediaFoundation *QWindowsMediaFoundation::instance()
 {
-    QMutexLocker locker(&holder.mutex);
-    if (holder.instance)
-        return holder.instance.get();
+    QMutexLocker locker(&holder->mutex);
+    if (holder->instance)
+        return holder->instance.get();
 
-    if (holder.loadFailed)
+    if (holder->loadFailed)
         return nullptr;
 
     std::unique_ptr<QWindowsMediaFoundation> wmf(new QWindowsMediaFoundation);
@@ -45,12 +48,12 @@ QWindowsMediaFoundation *QWindowsMediaFoundation::instance()
             && setProcAddress(wmf->m_mfplat, wmf->mfCreateMemoryBuffer, "MFCreateMemoryBuffer")
             && setProcAddress(wmf->m_mfplat, wmf->mfCreateSample, "MFCreateSample"))
         {
-            holder.instance = std::move(wmf);
-            return holder.instance.get();
+            holder->instance = std::move(wmf);
+            return holder->instance.get();
         }
     }
 
-    holder.loadFailed = true;
+    holder->loadFailed = true;
     return nullptr;
 }
 
