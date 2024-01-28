@@ -121,8 +121,6 @@ private:
 QWindowsMediaDevices::QWindowsMediaDevices()
     : QPlatformMediaDevices()
 {
-    CoInitialize(nullptr);
-
     auto hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
                 CLSCTX_INPROC_SERVER,__uuidof(IMMDeviceEnumerator),
                 (void**)&m_deviceEnumerator);
@@ -177,8 +175,6 @@ QWindowsMediaDevices::~QWindowsMediaDevices()
     m_deviceEnumerator.Reset();
     m_notificationClient.Reset();
     m_warmUpAudioClient.Reset();
-
-    CoUninitialize();
 }
 
 QList<QAudioDevice> QWindowsMediaDevices::availableDevices(QAudioDevice::Mode mode) const
