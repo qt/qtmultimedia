@@ -1,6 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
 #include "qmockintegration.h"
 #include "qmockmediaplayer.h"
 #include "qmockaudiodecoder.h"
@@ -14,6 +15,22 @@
 #include <private/qplatformvideodevices_p.h>
 
 QT_BEGIN_NAMESPACE
+
+class MockMultimediaPlugin : public QPlatformMediaPlugin
+{
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "mock.json")
+
+public:
+    MockMultimediaPlugin() : QPlatformMediaPlugin() { }
+
+    QPlatformMediaIntegration *create(const QString &name) override
+    {
+        if (name == QLatin1String("mock"))
+            return new QMockIntegration;
+        return nullptr;
+    }
+};
 
 class QMockVideoDevices : public QPlatformVideoDevices
 {
@@ -77,7 +94,12 @@ private:
     QList<QCameraDevice> m_cameraDevices;
 };
 
-QMockIntegration::QMockIntegration() = default;
+bool QMockIntegration::s_created = false;
+
+QMockIntegration::QMockIntegration()
+{
+    s_created = true;
+}
 
 QMockIntegration::~QMockIntegration() = default;
 
@@ -171,3 +193,5 @@ void QMockIntegration::addNewCamera()
 bool QMockCamera::simpleCamera = false;
 
 QT_END_NAMESPACE
+
+#include "qmockintegration.moc"

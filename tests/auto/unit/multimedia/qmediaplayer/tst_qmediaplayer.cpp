@@ -21,6 +21,8 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class AutoConnection
 {
 public:
@@ -98,7 +100,6 @@ private slots:
 private:
     void setupCommonTestData();
 
-    QMockIntegrationFactory mockIntegrationFactory;
     QMockMediaPlayer *mockPlayer;
     QAudioOutput *audioOutput = nullptr;
     QMediaPlayer *player;
