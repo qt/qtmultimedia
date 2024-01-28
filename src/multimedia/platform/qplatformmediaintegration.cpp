@@ -11,6 +11,7 @@
 #include <qmediadevices.h>
 #include <qcameradevice.h>
 #include <qloggingcategory.h>
+#include <QtCore/qcoreapplication.h>
 
 #include "qplatformcapturablewindows_p.h"
 #include "QtCore/private/qfactoryloader_p.h"
@@ -77,6 +78,9 @@ struct InstanceHolder
 {
     InstanceHolder()
     {
+        if (!QCoreApplication::instance())
+            qCCritical(qLcMediaPlugin()) << "Qt Multimedia requires a QCoreApplication instance";
+
         const auto backends = availableBackends();
         QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
         if (backend.isEmpty() && !backends.isEmpty())
