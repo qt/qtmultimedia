@@ -19,6 +19,8 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QAudioRecorder: public QObject
 {
     Q_OBJECT
@@ -34,7 +36,6 @@ private slots:
 
 private:
     QMediaRecorder *encoder = nullptr;
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QAudioRecorder::init()

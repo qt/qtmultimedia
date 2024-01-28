@@ -29,6 +29,7 @@ class QMockSurfaceCapture;
 class QMockIntegration : public QPlatformMediaIntegration
 {
 public:
+    QMockIntegration();
     ~QMockIntegration();
 
     static QMockIntegration *instance()
@@ -64,13 +65,14 @@ public:
     QMockVideoSink *lastVideoSink() const { return m_lastVideoSink; }
     QMockSurfaceCapture *lastScreenCapture() { return m_lastScreenCapture; }
 
+    static bool created() { return s_created; }
+
 protected:
     QPlatformVideoDevices *createVideoDevices() override;
 
 private:
-    friend class QMockIntegrationFactory;
-    QMockIntegration();
 
+    static bool s_created;
     Flags m_flags = {};
     QMockMediaPlayer *m_lastPlayer = nullptr;
     QMockAudioDecoder *m_lastAudioDecoderControl = nullptr;
@@ -83,27 +85,17 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);
 
-class QMockIntegrationFactory
-{
-public:
-    QMockIntegrationFactory() { QMockIntegration::setPlatformFactory(std::ref(*this)); }
+#define Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN          \
+    Q_IMPORT_PLUGIN(MockMultimediaPlugin)        \
+    struct EnableMockPlugin                      \
+    {                                            \
+        EnableMockPlugin()                       \
+        {                                        \
+            qputenv("QT_MEDIA_BACKEND", "mock"); \
+        }                                        \
+    };                                           \
+    static EnableMockPlugin s_mockMultimediaPluginEnabler;
 
-    ~QMockIntegrationFactory() { QMockIntegration::setPlatformFactory(nullptr); }
-
-    std::unique_ptr<QPlatformMediaIntegration> operator()()
-    {
-        Q_ASSERT(!m_wasRun);
-        m_wasRun = true;
-        return std::unique_ptr<QPlatformMediaIntegration>(new QMockIntegration);
-    }
-
-    bool wasRun() const { return m_wasRun; }
-
-    Q_DISABLE_COPY(QMockIntegrationFactory);
-
-private:
-    bool m_wasRun = false;
-};
 
 QT_END_NAMESPACE
 

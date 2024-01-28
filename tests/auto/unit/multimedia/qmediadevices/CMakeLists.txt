@@ -9,5 +9,5 @@ qt_internal_add_test(tst_qmediadevices
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
-        QtMultimediaMockBackend
+        MockMultimediaPlugin
 )

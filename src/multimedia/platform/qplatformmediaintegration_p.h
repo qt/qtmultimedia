@@ -89,11 +89,6 @@ protected:
     virtual QPlatformVideoDevices *createVideoDevices() { return nullptr; }
 
 private:
-    friend class QMockIntegrationFactory;
-    // API to be able to test with a mock backend
-    static void setPlatformFactory(std::function<std::unique_ptr<QPlatformMediaIntegration>()> factory);
-
-private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
     std::once_flag m_videoDevicesOnceFlag;
 

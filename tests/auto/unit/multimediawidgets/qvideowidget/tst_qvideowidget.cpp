@@ -19,6 +19,9 @@
 #include <qmockvideosink.h>
 
 QT_USE_NAMESPACE
+
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QVideoWidget : public QObject
 {
     Q_OBJECT
@@ -159,7 +162,6 @@ void tst_QVideoWidget::sizeHint()
 //    QFETCH(QRect, viewport);
     QFETCH(QSize, expectedSize);
 
-    QMockIntegrationFactory mockCreator;
     QtTestVideoWidget widget;
     QMediaPlayer player;
 
