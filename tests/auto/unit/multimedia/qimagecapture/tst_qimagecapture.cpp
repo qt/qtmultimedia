@@ -15,6 +15,8 @@
 
 QT_USE_NAMESPACE
 
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QImageCapture: public QObject
 {
     Q_OBJECT
@@ -38,9 +40,6 @@ private slots:
     void imageExposed();
     void imageSaved();
     void readyForCaptureChanged();
-
-private:
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 void tst_QImageCapture::initTestCase() { }
