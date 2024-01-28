@@ -17,7 +17,7 @@ qt_internal_add_test(tst_qmediaplayer
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::Network
-        QtMultimediaMockBackend
+        MockMultimediaPlugin
 )
 
 # Resources:

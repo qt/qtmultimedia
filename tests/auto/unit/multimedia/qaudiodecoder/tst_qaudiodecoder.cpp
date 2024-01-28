@@ -9,11 +9,16 @@
 #include "qmockaudiodecoder.h"
 #include "qmockintegration.h"
 
+QT_USE_NAMESPACE
+
+Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
+
 class tst_QAudioDecoder : public QObject
 {
     Q_OBJECT
 
 public:
+
     tst_QAudioDecoder();
 
 private Q_SLOTS:
@@ -24,9 +29,6 @@ private Q_SLOTS:
     void source();
     void readAll();
     void nullControl();
-
-private:
-    QMockIntegrationFactory mockIntegrationFactory;
 };
 
 tst_QAudioDecoder::tst_QAudioDecoder()
