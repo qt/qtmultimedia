@@ -98,15 +98,12 @@ QPlatformMediaDevices *QPlatformMediaDevices::instance()
 
 QPlatformMediaDevices::QPlatformMediaDevices() = default;
 
-void QPlatformMediaDevices::initVideoDevicesConnection() {
-    std::call_once(m_videoDevicesConnectionFlag, [this]() {
-        QMetaObject::invokeMethod(this, [this]() {
-            auto videoDevices = QPlatformMediaIntegration::instance()->videoDevices();
-            if (videoDevices)
-                connect(videoDevices, &QPlatformVideoDevices::videoInputsChanged, this,
-                        &QPlatformMediaDevices::videoInputsChanged);
-        }, Qt::QueuedConnection);
-    });
+void QPlatformMediaDevices::initVideoDevicesConnection()
+{
+    // Make sure we are notified if video inputs changed
+    if (const auto videoDevices = QPlatformMediaIntegration::instance()->videoDevices())
+        connect(videoDevices, &QPlatformVideoDevices::videoInputsChanged, this,
+                &QPlatformMediaDevices::videoInputsChanged, Qt::UniqueConnection);
 }
 
 void QPlatformMediaDevices::setDevices(QPlatformMediaDevices *devices)

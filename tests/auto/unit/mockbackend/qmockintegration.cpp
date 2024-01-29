@@ -94,13 +94,7 @@ private:
     QList<QCameraDevice> m_cameraDevices;
 };
 
-bool QMockIntegration::s_created = false;
-
-QMockIntegration::QMockIntegration()
-{
-    s_created = true;
-}
-
+QMockIntegration::QMockIntegration() = default;
 QMockIntegration::~QMockIntegration() = default;
 
 QPlatformVideoDevices *QMockIntegration::createVideoDevices()
