@@ -359,6 +359,10 @@ void QAndroidAudioSource::processBuffer()
     QByteArray *processedBuffer = &m_buffers[m_currentBuffer];
     writeDataToDevice(processedBuffer->constData(), processedBuffer->size());
 
+    // Make sure that it was not stopped from writeDataToDevice
+    if (m_deviceState == QAudio::StoppedState || m_deviceState == QAudio::SuspendedState)
+        return;
+
     // Re-enqueue the buffer
     SLresult result = (*m_bufferQueue)->Enqueue(m_bufferQueue,
                                                 processedBuffer->data(),
