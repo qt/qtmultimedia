@@ -7,7 +7,6 @@
 #include <qmediadevices.h>
 
 #include "qmockintegration.h"
-#include "qmockmediadevices.h"
 
 QT_USE_NAMESPACE
 
@@ -23,9 +22,6 @@ public slots:
 private slots:
     void videoInputsChangedEmitted_whenCamerasChanged();
     void onlyVideoInputsChangedEmitted_when2MediaDevicesCreated_andCamerasChanged();
-
-private:
-    QMockMediaDevices devices;
 };
 
 void tst_QMediaDevices::initTestCase() { }
