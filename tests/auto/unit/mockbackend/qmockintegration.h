@@ -65,14 +65,11 @@ public:
     QMockVideoSink *lastVideoSink() const { return m_lastVideoSink; }
     QMockSurfaceCapture *lastScreenCapture() { return m_lastScreenCapture; }
 
-    static bool created() { return s_created; }
-
 protected:
     QPlatformVideoDevices *createVideoDevices() override;
 
 private:
 
-    static bool s_created;
     Flags m_flags = {};
     QMockMediaPlayer *m_lastPlayer = nullptr;
     QMockAudioDecoder *m_lastAudioDecoderControl = nullptr;
