@@ -14,16 +14,20 @@
 #include <QtCore/qcoreapplication.h>
 
 #include "qplatformcapturablewindows_p.h"
-#include "QtCore/private/qfactoryloader_p.h"
-#include "private/qplatformmediaformatinfo_p.h"
+#include "qplatformmediadevices_p.h"
+#include <QtCore/private/qfactoryloader_p.h>
+#include <QtCore/private/qcoreapplication_p.h>
+#include <private/qplatformmediaformatinfo_p.h>
 #include "qplatformmediaplugin_p.h"
 
-class QDummyIntegration : public QPlatformMediaIntegration
+namespace {
+
+class QFallbackIntegration : public QPlatformMediaIntegration
 {
 public:
-    QDummyIntegration()
+    QFallbackIntegration()
     {
-        qCritical("QtMultimedia is not currently supported on this platform or compiler.");
+        qWarning("No QtMultimedia backends found. Only QMediaDevices, QAudioDevice, QSoundEffect, QAudioSink, and QAudioSource are available.");
     }
 };
 
@@ -72,8 +76,6 @@ static QString defaultBackend(const QStringList &backends)
     return backends[0];
 }
 
-namespace {
-
 struct InstanceHolder
 {
     InstanceHolder()
@@ -91,8 +93,8 @@ struct InstanceHolder
                 qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), backend));
 
         if (!instance) {
-            qWarning() << "could not load multimedia backend" << backend;
-            instance = std::make_unique<QDummyIntegration>();
+            // No backends found. Use fallback to support basic functionality
+            instance = std::make_unique<QFallbackIntegration>();
         }
     }
 
@@ -152,22 +154,51 @@ QPlatformMediaFormatInfo *QPlatformMediaIntegration::createFormatInfo()
     return new QPlatformMediaFormatInfo;
 }
 
+// clang-format off
+std::unique_ptr<QPlatformMediaDevices> QPlatformMediaIntegration::createMediaDevices()
+{
+    // Avoid releasing WMF resources and uninitializing WMF during static
+    // destruction, QTBUG-120198
+    if (QCoreApplication::instance())
+        connect(qApp, &QObject::destroyed, this, [this] {
+            m_mediaDevices = nullptr;
+        });
+
+    return QPlatformMediaDevices::create();
+}
+
 QPlatformVideoDevices *QPlatformMediaIntegration::videoDevices()
 {
     std::call_once(m_videoDevicesOnceFlag,
-                   [this]() { m_videoDevices.reset(createVideoDevices()); });
+                   [this]() {
+                       m_videoDevices.reset(createVideoDevices());
+                   });
     return m_videoDevices.get();
 }
 
 QPlatformCapturableWindows *QPlatformMediaIntegration::capturableWindows()
 {
     std::call_once(m_capturableWindowsOnceFlag,
-                   [this]() { m_capturableWindows.reset(createCapturableWindows()); });
+                   [this]() {
+                       m_capturableWindows.reset(createCapturableWindows());
+                   });
     return m_capturableWindows.get();
 }
+
+QPlatformMediaDevices *QPlatformMediaIntegration::mediaDevices()
+{
+    std::call_once(m_mediaDevicesOnceFlag, [this] {
+        m_mediaDevices = createMediaDevices();
+    });
+    return m_mediaDevices.get();
+}
+
+// clang-format on
 
 QPlatformMediaIntegration::QPlatformMediaIntegration() = default;
 
 QPlatformMediaIntegration::~QPlatformMediaIntegration() = default;
 
 QT_END_NAMESPACE
+
+#include "moc_qplatformmediaintegration_p.cpp"

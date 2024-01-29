@@ -4,6 +4,7 @@
 #include "qwasmmediarecorder_p.h"
 #include "qwasmmediacapturesession_p.h"
 #include <private/qplatformmediadevices_p.h>
+#include <private/qplatformmediaintegration_p.h>
 #include "qwasmcamera_p.h"
 #include "qwasmaudioinput_p.h"
 
@@ -21,7 +22,7 @@ QWasmMediaRecorder::QWasmMediaRecorder(QMediaRecorder *parent)
     : QPlatformMediaRecorder(parent)
 {
     m_durationTimer.reset(new QElapsedTimer());
-    QPlatformMediaDevices::instance(); // initialize getUserMedia
+    QPlatformMediaIntegration::instance()->mediaDevices(); // initialize getUserMedia
 }
 
 QWasmMediaRecorder::~QWasmMediaRecorder()

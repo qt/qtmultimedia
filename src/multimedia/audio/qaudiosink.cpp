@@ -87,7 +87,7 @@ QAudioSink::QAudioSink(const QAudioFormat &format, QObject *parent)
 QAudioSink::QAudioSink(const QAudioDevice &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QPlatformMediaDevices::instance()->audioOutputDevice(format, audioDevice, parent);
+    d = QPlatformMediaIntegration::instance()->mediaDevices()->audioOutputDevice(format, audioDevice, parent);
     if (d)
         connect(d, &QPlatformAudioSink::stateChanged, this, [this](QAudio::State state) {
             // if the signal has been emitted from another thread,

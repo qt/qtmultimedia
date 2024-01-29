@@ -69,6 +69,7 @@ public:
 
 protected:
     QPlatformVideoDevices *createVideoDevices() override;
+    std::unique_ptr<QPlatformMediaDevices> createMediaDevices() override;
 
 private:
 
