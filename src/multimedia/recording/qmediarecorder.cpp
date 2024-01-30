@@ -224,6 +224,34 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
             emit errorOccurred(QMediaRecorder::LocationNotWritable, tr("Output location not writable"));
 }
 
+/*!
+    Set the output IO device for media content.
+
+    The \a device must have been opened in the \l{QIODevice::Write}{Write} or
+    \l{QIODevice::ReadWrite}{ReadWrite} modes before the recording starts.
+
+    The media recorder doesn't take ownership of the specified \a device.
+    If the recording has been started, the device must be kept alive and open until
+    the signal \c recorderStateChanged(StoppedState) is emitted.
+
+    \sa outputDevice()
+*/
+void QMediaRecorder::setOutputDevice(QIODevice */*device*/)
+{
+    // TODO: implement
+}
+
+/*!
+    Returns the output IO device for media content.
+
+    \sa setOutputDevice()
+*/
+QIODevice *QMediaRecorder::outputDevice() const
+{
+    // TODO: implement
+    return nullptr;
+}
+
 QUrl QMediaRecorder::actualLocation() const
 {
     Q_D(const QMediaRecorder);

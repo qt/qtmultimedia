@@ -90,6 +90,9 @@ public:
     QUrl outputLocation() const;
     void setOutputLocation(const QUrl &location);
 
+    void setOutputDevice(QIODevice *device);
+    QIODevice *outputDevice() const;
+
     QUrl actualLocation() const;
 
     RecorderState recorderState() const;
