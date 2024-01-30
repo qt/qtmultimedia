@@ -199,12 +199,6 @@ void QMediaRecorder::setCaptureSession(QMediaCaptureSession *session)
 */
 
 /*!
-    \qmlproperty bool QtMultimedia::MediaRecorder::isAvailable
-    \brief This property holds whether the recorder service is ready to use.
-
-    Returns \c true if media recorder service ready to use.
-*/
-/*!
     Returns \c true if media recorder service ready to use.
 */
 bool QMediaRecorder::isAvailable() const
