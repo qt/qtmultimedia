@@ -171,7 +171,6 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     }
 
     if (m_audioInput) {
-        m_mediaRecorder->setAudioSource(AndroidMediaRecorder::Camcorder);
         m_mediaRecorder->setAudioInput(m_audioInput->device.id());
         if (!m_mediaRecorder->isAudioSourceSet())
             m_mediaRecorder->setAudioSource(AndroidMediaRecorder::DefaultAudioSource);
