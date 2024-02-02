@@ -39,6 +39,7 @@ Row {
             id: recordingTime
             anchors.horizontalCenter: parent.horizontalCenter
             font.pointSize: Style.fontSize
+            color: palette.text
         }
     }
 
