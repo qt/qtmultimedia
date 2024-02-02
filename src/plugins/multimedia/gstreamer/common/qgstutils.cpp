@@ -21,12 +21,15 @@
 #include <gst/audio/audio.h>
 #include <gst/video/video.h>
 
-template<typename T, int N> constexpr int lengthOf(const T (&)[N]) { return N; }
-
 QT_BEGIN_NAMESPACE
 
-
 namespace {
+
+template <typename T, int N>
+constexpr int lengthOf(const T (&)[N])
+{
+    return N;
+}
 
 static const char *audioSampleFormatNames[QAudioFormat::NSampleFormats] = {
     nullptr,
