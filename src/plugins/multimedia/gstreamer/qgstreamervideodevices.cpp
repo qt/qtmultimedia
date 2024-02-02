@@ -5,9 +5,6 @@
 #include "qmediadevices.h"
 #include "private/qcameradevice_p.h"
 
-#include "qgstreameraudiosource_p.h"
-#include "qgstreameraudiosink_p.h"
-#include "qgstreameraudiodevice_p.h"
 #include "qgstutils_p.h"
 
 QT_BEGIN_NAMESPACE

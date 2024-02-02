@@ -15,8 +15,6 @@
 #include "qgstreameraudiooutput_p.h"
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
 
-#include <memory>
-
 QT_BEGIN_NAMESPACE
 
 class QGstreamerMediaPlugin : public QPlatformMediaPlugin

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
 #include "qgstreamerbufferprobe_p.h"
-#include "qgstutils_p.h"
 
 QT_BEGIN_NAMESPACE
 
