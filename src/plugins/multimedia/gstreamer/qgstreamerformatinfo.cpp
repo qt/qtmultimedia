@@ -3,8 +3,6 @@
 
 #include "qgstreamerformatinfo_p.h"
 
-#include "qgstutils_p.h"
-
 QT_BEGIN_NAMESPACE
 
 QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure structure)
