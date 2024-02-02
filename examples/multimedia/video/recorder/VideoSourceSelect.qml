@@ -130,7 +130,7 @@ Row {
             font.underline: isToggler
             font.bold: comboBox.currentIndex === index && !isToggler ||
                        isToggler && comboBox.highlightedIndex === index
-            palette.text: isToggler ? 'blue' : comboBox.palette.text
+            palette.text: isToggler ? comboBox.palette.link : comboBox.palette.text
 
             MouseArea {
                 anchors.fill: parent
