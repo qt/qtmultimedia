@@ -162,13 +162,16 @@ void QAmbientSound::setEngine(QAudioEngine *engine)
 {
     if (d->engine == engine)
         return;
-    auto *ep = QAudioEnginePrivate::get(engine);
 
+    // Remove self from old engine (if necessary)
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep)
         ep->removeStereoSound(this);
+
     d->engine = engine;
 
-    ep = QAudioEnginePrivate::get(engine);
+    // Add self to new engine if necessary
+    ep = QAudioEnginePrivate::get(d->engine);
     if (ep) {
         ep->addStereoSound(this);
         ep->resonanceAudio->api->SetSourceVolume(d->sourceId, d->volume);
