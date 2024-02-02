@@ -560,13 +560,16 @@ void QSpatialSound::setEngine(QAudioEngine *engine)
 {
     if (d->engine == engine)
         return;
-    auto *ep = QAudioEnginePrivate::get(engine);
 
+    // Remove self from old engine (if necessary)
+    auto *ep = QAudioEnginePrivate::get(d->engine);
     if (ep)
         ep->removeSpatialSound(this);
+
     d->engine = engine;
 
-    ep = QAudioEnginePrivate::get(engine);
+    // Add self to new engine if necessary
+    ep = QAudioEnginePrivate::get(d->engine);
     if (ep) {
         ep->addSpatialSound(this);
         ep->resonanceAudio->api->SetSourcePosition(d->sourceId, d->pos.x(), d->pos.y(), d->pos.z());
