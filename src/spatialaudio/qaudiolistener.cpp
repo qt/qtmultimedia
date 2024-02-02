@@ -45,6 +45,8 @@ QAudioListener::QAudioListener(QAudioEngine *engine)
  */
 QAudioListener::~QAudioListener()
 {
+    // Unregister this listener from the engine
+    setEngine(nullptr);
     delete d;
 }
 
