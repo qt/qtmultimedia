@@ -12,7 +12,10 @@ ColumnLayout {
     id: root
     required property MediaRecorder recorder
 
-    Text { text: "Metadata settings" }
+    Text {
+        text: "Metadata settings"
+        color: palette.text
+    }
 
     ListModel { id: metaDataModel }
 
