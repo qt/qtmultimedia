@@ -3,56 +3,22 @@
 
 #include "qvideoframe.h"
 
+#include "qvideoframe_p.h"
 #include "qvideotexturehelper_p.h"
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconverter_p.h"
-#include "qvideoframeformat.h"
 #include "qpainter.h"
 #include <qtextlayout.h>
 
 #include <qimage.h>
-#include <qmutex.h>
 #include <qpair.h>
 #include <qsize.h>
 #include <qvariant.h>
 #include <rhi/qrhi.h>
 
-#include <mutex>
-
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
-
-class QVideoFramePrivate : public QSharedData
-{
-public:
-    QVideoFramePrivate() = default;
-    QVideoFramePrivate(const QVideoFrameFormat &format)
-        : format(format)
-    {
-    }
-
-    ~QVideoFramePrivate()
-    {
-        delete buffer;
-    }
-
-    qint64 startTime = -1;
-    qint64 endTime = -1;
-    QAbstractVideoBuffer::MapData mapData;
-    QVideoFrameFormat format;
-    QAbstractVideoBuffer *buffer = nullptr;
-    int mappedCount = 0;
-    QMutex mapMutex;
-    QString subtitleText;
-    QtVideo::Rotation rotation = QtVideo::Rotation::None;
-    bool mirrored = false;
-    QImage image;
-    std::once_flag imageOnceFlag;
-
-private:
-    Q_DISABLE_COPY(QVideoFramePrivate)
-};
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
 
