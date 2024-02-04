@@ -15,9 +15,11 @@
 // We mean it.
 //
 
+#include "qvideoframe.h"
 #include "qabstractvideobuffer_p.h"
 #include "qshareddata.h"
 #include "private/qtvideo_p.h"
+
 #include <qmutex.h>
 #include <mutex> // std::once
 
@@ -30,6 +32,15 @@ public:
     QVideoFramePrivate(const QVideoFrameFormat &format) : format(format) { }
 
     ~QVideoFramePrivate() { delete buffer; }
+
+    static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); };
+
+    QVideoFrame adoptThisByVideoFrame()
+    {
+        QVideoFrame frame;
+        frame.d = QExplicitlySharedDataPointer(this, QAdoptSharedDataTag{});
+        return frame;
+    }
 
     qint64 startTime = -1;
     qint64 endTime = -1;
