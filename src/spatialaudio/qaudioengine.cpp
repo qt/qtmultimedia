@@ -155,7 +155,6 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
 QAudioEnginePrivate::QAudioEnginePrivate()
 {
     device = QMediaDevices::defaultAudioOutput();
-    audioThread.setPriority(QThread::TimeCriticalPriority);
 }
 
 QAudioEnginePrivate::~QAudioEnginePrivate()
@@ -455,7 +454,7 @@ void QAudioEngine::start()
 
     d->outputStream.reset(new QAudioOutputStream(d));
     d->outputStream->moveToThread(&d->audioThread);
-    d->audioThread.start();
+    d->audioThread.start(QThread::TimeCriticalPriority);
 
     QMetaObject::invokeMethod(d->outputStream.get(), "startOutput");
 }
