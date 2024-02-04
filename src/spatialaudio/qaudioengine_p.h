@@ -67,7 +67,6 @@ public:
 
     QThread audioThread;
     std::unique_ptr<QAudioOutputStream> outputStream;
-    std::unique_ptr<QAmbisonicDecoder> ambisonicDecoder;
 
     QAudioListener *listener = nullptr;
     QList<QSpatialSound *> sources;

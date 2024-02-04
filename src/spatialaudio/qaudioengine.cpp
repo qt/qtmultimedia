@@ -24,6 +24,8 @@ QT_BEGIN_NAMESPACE
 // It might be possible to set this value lower on other OSes.
 const int bufferTimeMs = 100;
 
+// This class lives in the audioThread, but pulls data from QAudioEnginePrivate
+// which lives in the mainThread.
 class QAudioOutputStream : public QIODevice
 {
     Q_OBJECT
@@ -61,7 +63,7 @@ public:
                                     d->device.channelConfiguration() : QAudioFormat::ChannelConfigStereo);
         format.setSampleRate(d->sampleRate);
         format.setSampleFormat(QAudioFormat::Int16);
-        d->ambisonicDecoder.reset(new QAmbisonicDecoder(QAmbisonicDecoder::HighQuality, format));
+        ambisonicDecoder.reset(new QAmbisonicDecoder(QAmbisonicDecoder::HighQuality, format));
         sink.reset(new QAudioSink(d->device, format));
         sink->setBufferSize(d->sampleRate*bufferTimeMs/1000*sizeof(qint16)*format.channelCount());
         sink->start(this);
@@ -70,7 +72,7 @@ public:
     Q_INVOKABLE void stopOutput() {
         sink->stop();
         sink.reset();
-        d->ambisonicDecoder.reset();
+        ambisonicDecoder.reset();
     }
 
     Q_INVOKABLE void restartOutput() {
@@ -89,6 +91,7 @@ private:
     qint64 m_pos = 0;
     QAudioEnginePrivate *d = nullptr;
     std::unique_ptr<QAudioSink> sink;
+    std::unique_ptr<QAmbisonicDecoder> ambisonicDecoder;
 };
 
 
@@ -108,7 +111,7 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
 
     d->updateRooms();
 
-    int nChannels = d->ambisonicDecoder ? d->ambisonicDecoder->nOutputChannels() : 2;
+    int nChannels = ambisonicDecoder ? ambisonicDecoder->nOutputChannels() : 2;
     if (len < nChannels*int(sizeof(float))*QAudioEnginePrivate::bufferSize)
         return 0;
 
@@ -130,12 +133,12 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
             d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf, 2, QAudioEnginePrivate::bufferSize);
         }
 
-        if (d->ambisonicDecoder && d->outputMode == QAudioEngine::Surround) {
+        if (ambisonicDecoder && d->outputMode == QAudioEngine::Surround) {
             const float *channels[QAmbisonicDecoder::maxAmbisonicChannels];
             const float *reverbBuffers[2];
-            int nSamples = d->resonanceAudio->getAmbisonicOutput(channels, reverbBuffers, d->ambisonicDecoder->nInputChannels());
-            Q_ASSERT(d->ambisonicDecoder->nOutputChannels() <= 8);
-            d->ambisonicDecoder->processBufferWithReverb(channels, reverbBuffers, fd, nSamples);
+            int nSamples = d->resonanceAudio->getAmbisonicOutput(channels, reverbBuffers, ambisonicDecoder->nInputChannels());
+            Q_ASSERT(ambisonicDecoder->nOutputChannels() <= 8);
+            ambisonicDecoder->processBufferWithReverb(channels, reverbBuffers, fd, nSamples);
         } else {
             ok = d->resonanceAudio->api->FillInterleavedOutputBuffer(2, QAudioEnginePrivate::bufferSize, fd);
             if (!ok) {
