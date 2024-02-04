@@ -134,6 +134,7 @@ public:
 
     QAbstractVideoBuffer *videoBuffer() const;
 private:
+    friend class QVideoFramePrivate;
     QExplicitlySharedDataPointer<QVideoFramePrivate> d;
 };
 
