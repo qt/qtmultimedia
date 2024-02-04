@@ -65,7 +65,7 @@ public:
         format.setSampleFormat(QAudioFormat::Int16);
         ambisonicDecoder.reset(new QAmbisonicDecoder(QAmbisonicDecoder::HighQuality, format));
         sink.reset(new QAudioSink(d->device, format));
-        sink->setBufferSize(d->sampleRate*bufferTimeMs/1000*sizeof(qint16)*format.channelCount());
+        sink->setBufferSize(d->sampleRate * bufferTimeMs / 1000 * sizeof(qint16) * format.channelCount());
         sink->start(this);
     }
 
