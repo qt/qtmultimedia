@@ -56,7 +56,7 @@ public:
     }
 
     Q_INVOKABLE void startOutput() {
-        QMutexLocker l(&d->mutex);
+        d->mutex.lock();
         Q_ASSERT(!sink);
         QAudioFormat format;
         format.setChannelConfig(d->outputMode == QAudioEngine::Surround ?
@@ -66,6 +66,9 @@ public:
         ambisonicDecoder.reset(new QAmbisonicDecoder(QAmbisonicDecoder::HighQuality, format));
         sink.reset(new QAudioSink(d->device, format));
         sink->setBufferSize(d->sampleRate * bufferTimeMs / 1000 * sizeof(qint16) * format.channelCount());
+        d->mutex.unlock();
+        // It is important to unlock the mutex before starting the sink, as the sink will
+        // call readData() in the audio thread, which will try to lock the mutex (again)
         sink->start(this);
     }
 
@@ -109,6 +112,7 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
     if (d->paused.loadRelaxed())
         return 0;
 
+    QMutexLocker l(&d->mutex);
     d->updateRooms();
 
     int nChannels = ambisonicDecoder ? ambisonicDecoder->nOutputChannels() : 2;
@@ -122,12 +126,16 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
         // Fill input buffers
         for (auto *source : std::as_const(d->sources)) {
             auto *sp = QSpatialSoundPrivate::get(source);
+            if (!sp)
+                continue;
             float buf[QAudioEnginePrivate::bufferSize];
             sp->getBuffer(buf, QAudioEnginePrivate::bufferSize, 1);
             d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf, 1, QAudioEnginePrivate::bufferSize);
         }
         for (auto *source : std::as_const(d->stereoSources)) {
             auto *sp = QAmbientSoundPrivate::get(source);
+            if (!sp)
+                continue;
             float buf[2*QAudioEnginePrivate::bufferSize];
             sp->getBuffer(buf, QAudioEnginePrivate::bufferSize, 2);
             d->resonanceAudio->api->SetInterleavedBuffer(sp->sourceId, buf, 2, QAudioEnginePrivate::bufferSize);
@@ -167,6 +175,7 @@ QAudioEnginePrivate::~QAudioEnginePrivate()
 
 void QAudioEnginePrivate::addSpatialSound(QSpatialSound *sound)
 {
+    QMutexLocker l(&mutex);
     QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
     sd->sourceId = resonanceAudio->api->CreateSoundObjectSource(vraudio::kBinauralHighQuality);
@@ -175,6 +184,7 @@ void QAudioEnginePrivate::addSpatialSound(QSpatialSound *sound)
 
 void QAudioEnginePrivate::removeSpatialSound(QSpatialSound *sound)
 {
+    QMutexLocker l(&mutex);
     QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
     resonanceAudio->api->DestroySource(sd->sourceId);
@@ -184,6 +194,7 @@ void QAudioEnginePrivate::removeSpatialSound(QSpatialSound *sound)
 
 void QAudioEnginePrivate::addStereoSound(QAmbientSound *sound)
 {
+    QMutexLocker l(&mutex);
     QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
     sd->sourceId = resonanceAudio->api->CreateStereoSource(2);
@@ -192,6 +203,7 @@ void QAudioEnginePrivate::addStereoSound(QAmbientSound *sound)
 
 void QAudioEnginePrivate::removeStereoSound(QAmbientSound *sound)
 {
+    QMutexLocker l(&mutex);
     QAmbientSoundPrivate *sd = QAmbientSoundPrivate::get(sound);
 
     resonanceAudio->api->DestroySource(sd->sourceId);
@@ -201,14 +213,17 @@ void QAudioEnginePrivate::removeStereoSound(QAmbientSound *sound)
 
 void QAudioEnginePrivate::addRoom(QAudioRoom *room)
 {
+    QMutexLocker l(&mutex);
     rooms.append(room);
 }
 
 void QAudioEnginePrivate::removeRoom(QAudioRoom *room)
 {
+    QMutexLocker l(&mutex);
     rooms.removeOne(room);
 }
 
+// This method is called from the audio thread
 void QAudioEnginePrivate::updateRooms()
 {
     if (!roomEffectsEnabled)
@@ -272,6 +287,8 @@ void QAudioEnginePrivate::updateRooms()
     // update room effects for all sound sources
     for (auto *s : std::as_const(sources)) {
         auto *sp = QSpatialSoundPrivate::get(s);
+        if (!sp)
+            continue;
         sp->updateRoomEffects();
     }
 }
