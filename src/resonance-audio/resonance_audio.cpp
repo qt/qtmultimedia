@@ -22,7 +22,7 @@ int ResonanceAudio::getAmbisonicOutput(const float *buffers[], const float *reve
 {
     impl->ProcessNextBuffer();
     auto *buffer = impl->GetAmbisonicOutputBuffer();
-    if (nChannels != buffer->num_channels())
+    if (!buffer || nChannels != buffer->num_channels())
         return -1;
 
     for (int i = 0; i < nChannels; ++i) {
