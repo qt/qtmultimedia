@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qvideotexturehelper_p.h"
-#include "qvideoframe.h"
 #include "qabstractvideobuffer_p.h"
+#include "qvideoframeconverter_p.h"
 
 #include <qpainter.h>
 #include <qloggingcategory.h>
@@ -561,10 +561,31 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     ud->maxLum = fromLinear(float(maxNits)/100.f);
 }
 
+// There's no maping between QRhiTexture formats and QImage formats.
+// The function gets a size compatible format; it works fine as
+// QRhi relies on the given QRhiTexture format instead of the image format.
+static QImage::Format sizeCompatibleImageFormat(QRhiTexture::Format rhiFromat)
+{
+    switch (rhiFromat) {
+    case QRhiTexture::RGBA8:
+    case QRhiTexture::BGRA8:
+    case QRhiTexture::RG16:
+        return QImage::Format_ARGB32;
+    case QRhiTexture::R16:
+    case QRhiTexture::RG8:
+        return QImage::Format_Grayscale16;
+    case QRhiTexture::R8:
+        return QImage::Format_Grayscale8;
+    default:
+        qWarning() << "QRhiTexture::Format" << rhiFromat
+                   << "must be mapped to a size-compatible QImage::Format";
+        Q_ASSERT(!"QRhiTexture::Format is not mapped to a size-compatible QImage::Format");
+        return QImage::Format_Grayscale8;
+    }
+}
+
 static bool updateTextureWithMap(QVideoFrame& frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)
 {
-    Q_ASSERT(frame.isMapped());
-
     QVideoFrameFormat fmt = frame.surfaceFormat();
     QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
     QSize size = fmt.frameSize();
@@ -593,25 +614,24 @@ static bool updateTextureWithMap(QVideoFrame& frame, QRhi *rhi, QRhiResourceUpda
     QRhiTextureSubresourceUploadDescription subresDesc;
     QImage image;
     if (pixelFormat == QVideoFrameFormat::Format_Jpeg) {
+        Q_ASSERT(plane == 0);
+
+        // calling QVideoFrame::toImage is not accurate. To be fixed.
         image = frame.toImage();
         image.convertTo(QImage::Format_ARGB32);
-        subresDesc.setData(QByteArray((const char *)image.bits(), image.bytesPerLine()*image.height()));
-        subresDesc.setDataStride(image.bytesPerLine());
+
     } else {
-        const auto frameBits = reinterpret_cast<const char *>(frame.bits(plane));
-        const auto mappedBytes = frame.mappedBytes(plane);
-        const auto underlyingByteArray = frame.videoBuffer()->underlyingByteArray(plane);
-
-        if (underlyingByteArray.size() == mappedBytes) {
-            Q_ASSERT(underlyingByteArray.constData() == frameBits);
-            subresDesc.setData(underlyingByteArray);
-        }
-        else {
-            subresDesc.setData(QByteArray::fromRawData(frameBits, mappedBytes));
-        }
-
-        subresDesc.setDataStride(frame.bytesPerLine(plane));
+        image = videoFramePlaneAsImage(
+                frame, plane, sizeCompatibleImageFormat(texDesc.textureFormat[plane]), planeSize);
     }
+
+    if (image.isNull()) {
+        qWarning() << "Cannot represent the plane" << plane << "as an image";
+        return false;
+    }
+
+    subresDesc.setImage(image);
+    subresDesc.setDataStride(image.bytesPerLine());
 
     QRhiTextureUploadEntry entry(0, 0, subresDesc);
     QRhiTextureUploadDescription desc({ entry });
@@ -694,13 +714,6 @@ static std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(QVideoFrame
     auto oldArray = dynamic_cast<QVideoFrameTexturesArray *>(old);
     if (oldArray)
         textures = oldArray->takeTextures();
-
-    if (!frame.map(QVideoFrame::ReadOnly)) {
-        qWarning() << "could not map data of QVideoFrame for upload";
-        return {};
-    }
-
-    auto unmapFrameGuard = qScopeGuard([&frame] { frame.unmap(); });
 
     bool ok = true;
     for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
