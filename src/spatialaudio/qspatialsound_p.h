@@ -16,6 +16,7 @@
 //
 
 #include <qspatialsound.h>
+#include <qambientsound_p.h>
 #include <qaudioengine_p.h>
 #include <qurl.h>
 #include <qvector3d.h>
