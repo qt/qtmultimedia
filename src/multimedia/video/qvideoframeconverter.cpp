@@ -4,6 +4,7 @@
 #include "qvideoframeconverter_p.h"
 #include "qvideoframeconversionhelper_p.h"
 #include "qvideoframeformat.h"
+#include "qvideoframe_p.h"
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qsize.h>
@@ -421,6 +422,37 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
     return QImage(reinterpret_cast<const uchar *>(imageData->constData()),
                   readResult.pixelSize.width(), readResult.pixelSize.height(),
                   QImage::Format_RGBA8888_Premultiplied, imageCleanupHandler, imageData);
+}
+
+QImage videoFramePlaneAsImage(QVideoFrame &frame, int plane, QImage::Format targetFormat,
+                              QSize targetSize)
+{
+    if (plane >= frame.planeCount())
+        return {};
+
+    if (!frame.map(QVideoFrame::ReadOnly)) {
+        qWarning() << "Cannot map a video frame in ReadOnly mode!";
+        return {};
+    }
+
+    auto frameHandle = QVideoFramePrivate::handle(frame);
+
+    // With incrementing the reference counter, we share the mapped QVideoFrame
+    // with the target QImage. The function imageCleanupFunction is going to adopt
+    // the frameHandle by QVideoFrame and dereference it upon the destruction.
+    frameHandle->ref.ref();
+
+    auto imageCleanupFunction = [](void *data) {
+        QVideoFrame frame = reinterpret_cast<QVideoFramePrivate *>(data)->adoptThisByVideoFrame();
+        Q_ASSERT(frame.isMapped());
+        frame.unmap();
+    };
+
+    const auto bytesPerLine = frame.bytesPerLine(plane);
+
+    return QImage(reinterpret_cast<const uchar *>(frame.bits(plane)), targetSize.width(),
+                  qMin(targetSize.height(), frame.mappedBytes(plane) / bytesPerLine), bytesPerLine,
+                  targetFormat, imageCleanupFunction, frameHandle);
 }
 
 QT_END_NAMESPACE
