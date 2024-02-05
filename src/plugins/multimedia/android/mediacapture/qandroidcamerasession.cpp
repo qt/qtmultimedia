@@ -286,7 +286,7 @@ void QAndroidCameraSession::applyResolution(const QSize &captureSize, bool resta
 
     // -- adjust FPS
 
-    AndroidCamera::FpsRange adjustedFps = m_requestedFpsRange;;
+    AndroidCamera::FpsRange adjustedFps = m_requestedFpsRange;
     if (adjustedFps.min == 0 || adjustedFps.max == 0)
         adjustedFps = currentFpsRange;
 

@@ -125,7 +125,7 @@ QList<QAudioFormat::SampleFormat> QGValue::getSampleFormats() const
         auto *name = v.toString();
         QAudioFormat::SampleFormat fmt = gstSampleFormatToSampleFormat(name);
         if (fmt == QAudioFormat::Unknown)
-            continue;;
+            continue;
         formats.append(fmt);
     }
     return formats;
