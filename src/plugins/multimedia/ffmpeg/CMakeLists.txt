@@ -204,6 +204,7 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_eglfs
         qeglfsscreencapture.cpp qeglfsscreencapture_p.h
     LIBRARIES
         Qt::OpenGLPrivate
+        Qt::Quick
 )
 
 set_source_files_properties(qx11surfacecapture.cpp qx11capturablewindows.cpp # X headers
