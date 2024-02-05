@@ -10,6 +10,8 @@
 
 #include <QtOpenGL/private/qopenglcompositor_p.h>
 
+#include <QtQuick/qquickwindow.h>
+
 QT_BEGIN_NAMESPACE
 
 class QEglfsScreenCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
@@ -22,13 +24,13 @@ public:
         connect(this, &Grabber::errorUpdated, &screenCapture, &QEglfsScreenCapture::updateError);
         // Limit frame rate to 30 fps for performance reasons, to be reviewed at the next optimization round
         setFrameRate(std::min(screen->refreshRate(), 30.0));
-        start();
     }
 
     ~Grabber() override { stop(); }
 
     QVideoFrameFormat format() { return m_format; }
 
+protected:
     QVideoFrame grabFrame() override
     {
         QOpenGLCompositor *compositor = QOpenGLCompositor::instance();
@@ -52,8 +54,44 @@ public:
         return QVideoFrame(new QImageVideoBuffer(std::move(img)), m_format);
     }
 
-private:
     QVideoFrameFormat m_format;
+};
+
+class QEglfsScreenCapture::QuickGrabber : public Grabber
+{
+public:
+    QuickGrabber(QEglfsScreenCapture &screenCapture, QScreen *screen, QQuickWindow *quickWindow)
+        : Grabber(screenCapture, screen), m_quickWindow(quickWindow)
+    {
+        Q_ASSERT(m_quickWindow);
+    }
+
+protected:
+    QVideoFrame grabFrame() override
+    {
+        if (!m_quickWindow) {
+            updateError(Error::InternalError, QLatin1String("Window deleted"));
+            return {};
+        }
+
+        QImage image = m_quickWindow->grabWindow();
+
+        if (image.isNull()) {
+            updateError(Error::InternalError, QLatin1String("Image invalid"));
+            return {};
+        }
+
+        if (!m_format.isValid()) {
+            m_format = { image.size(),
+                         QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
+            m_format.setFrameRate(frameRate());
+        }
+
+        return QVideoFrame(new QImageVideoBuffer(std::move(image)), m_format);
+    }
+
+private:
+    QPointer<QQuickWindow> m_quickWindow;
 };
 
 QEglfsScreenCapture::QEglfsScreenCapture() : QPlatformSurfaceCapture(ScreenSource{}) { }
@@ -72,35 +110,63 @@ bool QEglfsScreenCapture::setActiveInternal(bool active)
 
     if (m_grabber)
         m_grabber.reset();
-    else {
-        auto screen = source<ScreenSource>();
-        if (!checkScreenWithError(screen))
-            return false;
 
-        QOpenGLCompositor *compositor = QOpenGLCompositor::instance();
-        if (!compositor->context()) {
-            updateError(Error::CaptureFailed, QLatin1String("OpenGL context is not found"));
-            return false;
-        }
+    if (!active)
+        return true;
 
-        if (!compositor->targetWindow()) {
-            updateError(Error::CaptureFailed, QLatin1String("Target window is not set for OpenGL compositor"));
-            return false;
-        }
+    m_grabber = createGrabber();
 
-        // TODO Add check to differentiate between uninitialized UI and QML
-        // If UI not started, wait and try again, and then give error if still not started.
-        // If QML, give not supported error for now.
-
-        m_grabber = std::make_unique<Grabber>(*this, screen);
+    if (!m_grabber) {
+        // TODO: This could mean that the UI is not started yet, so we should wait and try again,
+        // and then give error if still not started. Might not be possible here.
+        return false;
     }
 
-    return static_cast<bool>(m_grabber) == active;
+    m_grabber->start();
+    return true;
 }
 
 bool QEglfsScreenCapture::isSupported()
 {
     return QGuiApplication::platformName() == QLatin1String("eglfs");
+}
+
+std::unique_ptr<QEglfsScreenCapture::Grabber> QEglfsScreenCapture::createGrabber()
+{
+    auto screen = source<ScreenSource>();
+    if (!checkScreenWithError(screen))
+        return nullptr;
+
+    QOpenGLCompositor *compositor = QOpenGLCompositor::instance();
+
+    if (compositor->context()) {
+        // Create OpenGL grabber
+        if (!compositor->targetWindow()) {
+            updateError(Error::CaptureFailed,
+                        QLatin1String("Target window is not set for OpenGL compositor"));
+            return nullptr;
+        }
+
+        return std::make_unique<Grabber>(*this, screen);
+    }
+
+    // Check for QQuickWindow
+    auto windows = QGuiApplication::topLevelWindows();
+    auto it = std::find_if(windows.begin(), windows.end(), [screen](QWindow *window) {
+        auto quickWindow = qobject_cast<QQuickWindow *>(window);
+        if (!quickWindow)
+            return false;
+
+        return quickWindow->screen() == screen;
+    });
+
+    if (it != windows.end()) {
+        // Create grabber that calls QQuickWindow::grabWindow
+        return std::make_unique<QuickGrabber>(*this, screen, qobject_cast<QQuickWindow *>(*it));
+    }
+
+    updateError(Error::CaptureFailed, QLatin1String("No existing OpenGL context or QQuickWindow"));
+    return nullptr;
 }
 
 QT_END_NAMESPACE

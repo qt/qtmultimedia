@@ -37,6 +37,10 @@ private:
 
 private:
     class Grabber;
+    class QuickGrabber;
+
+    std::unique_ptr<Grabber> createGrabber();
+
     std::unique_ptr<Grabber> m_grabber;
 };
 
