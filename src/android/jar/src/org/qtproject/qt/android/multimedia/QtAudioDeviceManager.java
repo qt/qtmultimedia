@@ -127,6 +127,7 @@ public class QtAudioDeviceManager
 
     private static String audioDeviceTypeToString(int type)
     {
+        // API <= 23 types
         switch (type)
         {
             case AudioDeviceInfo.TYPE_AUX_LINE:
@@ -164,11 +165,16 @@ public class QtAudioDeviceManager
                 return "Wired headphones";
             case AudioDeviceInfo.TYPE_WIRED_HEADSET:
                 return "Wired headset";
-            case AudioDeviceInfo.TYPE_TELEPHONY:
-            case AudioDeviceInfo.TYPE_UNKNOWN:
-            default:
-                return "Unknown-Type";
         }
+
+        // API 24
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            if (type == AudioDeviceInfo.TYPE_BUS)
+                return "Bus";
+        }
+
+        return "Unknown-Type";
+
     }
 
     private static String[] getAudioDevices(int type)
