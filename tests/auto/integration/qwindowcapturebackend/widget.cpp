@@ -48,7 +48,7 @@ void TestWidget::togglePattern()
     setDisplayPattern(p);
 }
 
-void TestWidget::paintEvent(QPaintEvent *paintEvent)
+void TestWidget::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
     p.setPen(Qt::NoPen);
