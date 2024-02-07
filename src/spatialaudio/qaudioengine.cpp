@@ -59,13 +59,18 @@ public:
         d->mutex.lock();
         Q_ASSERT(!sink);
         QAudioFormat format;
-        format.setChannelConfig(d->outputMode == QAudioEngine::Surround ?
-                                    d->device.channelConfiguration() : QAudioFormat::ChannelConfigStereo);
+        auto channelConfig = d->outputMode == QAudioEngine::Surround ?
+                             d->device.channelConfiguration() : QAudioFormat::ChannelConfigStereo;
+        if (channelConfig != QAudioFormat::ChannelConfigUnknown)
+            format.setChannelConfig(channelConfig);
+        else
+            format.setChannelCount(d->device.preferredFormat().channelCount());
         format.setSampleRate(d->sampleRate);
         format.setSampleFormat(QAudioFormat::Int16);
         ambisonicDecoder.reset(new QAmbisonicDecoder(QAmbisonicDecoder::HighQuality, format));
         sink.reset(new QAudioSink(d->device, format));
-        sink->setBufferSize(d->sampleRate * bufferTimeMs / 1000 * sizeof(qint16) * format.channelCount());
+        const qsizetype bufferSize = format.bytesForDuration(bufferTimeMs * 1000);
+        sink->setBufferSize(bufferSize);
         d->mutex.unlock();
         // It is important to unlock the mutex before starting the sink, as the sink will
         // call readData() in the audio thread, which will try to lock the mutex (again)
