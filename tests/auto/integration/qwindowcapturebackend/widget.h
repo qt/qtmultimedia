@@ -29,7 +29,7 @@ public slots:
     void togglePattern();
 
 protected:
-    void paintEvent(QPaintEvent * /*event*/) override;
+    void paintEvent(QPaintEvent *) override;
 
 private:
     void drawColoredSquares(QPainter &p);
