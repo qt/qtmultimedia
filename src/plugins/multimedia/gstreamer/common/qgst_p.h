@@ -468,7 +468,9 @@ public:
         }
 #ifndef QT_NO_DEBUG
         if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL)
-            qWarning() << "Could not change state of" << name() << "to" << state << change;
+            qWarning() << "Could not change state of" << name() << "to"
+                       << gst_element_state_get_name(state)
+                       << gst_element_state_change_return_get_name(change);
 #endif
         return change == GST_STATE_CHANGE_SUCCESS;
     }
