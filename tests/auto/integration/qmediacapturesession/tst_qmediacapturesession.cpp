@@ -79,6 +79,8 @@ private slots:
     void capture_is_not_available_when_Camera_is_null();
     void can_add_ImageCapture_and_capture_during_recording();
 
+    void can_reset_audio_input_output();
+
 private:
     void recordOk(QMediaCaptureSession &session);
     void recordFail(QMediaCaptureSession &session);
@@ -1012,6 +1014,28 @@ void tst_QMediaCaptureSession::testAudioMute()
     decoder.stop();
 
     QFile(actualLocation).remove();
+}
+
+void tst_QMediaCaptureSession::can_reset_audio_input_output()
+{
+    QAudioInput in1;
+    QMediaCaptureSession session;
+    session.setAudioInput(&in1);
+    QVERIFY(session.audioInput() != nullptr);
+    QAudioInput in2;
+    QSignalSpy changeSpy1(&session, &QMediaCaptureSession::audioInputChanged);
+    session.setAudioInput(&in2);
+    QVERIFY(session.audioInput() != nullptr);
+    QCOMPARE(changeSpy1.count(), 1);
+
+    QAudioOutput out1;
+    session.setAudioOutput(&out1);
+    QVERIFY(session.audioOutput() != nullptr);
+    QSignalSpy changeSpy2(&session, &QMediaCaptureSession::audioOutputChanged);
+    QAudioOutput out2;
+    session.setAudioOutput(&out2);
+    QVERIFY(session.audioOutput() != nullptr);
+    QCOMPARE(changeSpy2.count(), 1);
 }
 
 QTEST_MAIN(tst_QMediaCaptureSession)
