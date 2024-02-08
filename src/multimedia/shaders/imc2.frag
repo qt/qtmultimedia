@@ -14,8 +14,8 @@ void main()
 {
     float Y = texture(plane1Texture, texCoord).r;
     float x = texCoord.x/2.;
-    float U = texture(plane2Texture, vec2(x, texCoord.y)).r;
-    float V = texture(plane2Texture, vec2(x + .5, texCoord.y)).r;
+    float U = texture(plane2Texture, vec2(x + .5, texCoord.y)).r;
+    float V = texture(plane2Texture, vec2(x, texCoord.y)).r;
     vec4 color = vec4(Y, U, V, 1.);
     fragColor = ubuf.colorMatrix * color * ubuf.opacity;
 
