@@ -184,7 +184,11 @@ void QMediaCaptureSession::setAudioInput(QAudioInput *input)
     QAudioInput *oldInput = d_ptr->audioInput;
     if (oldInput == input)
         return;
-    d_ptr->audioInput = input;
+
+    // To avoid double emit of audioInputChanged
+    // from recursive setAudioInput(nullptr) call.
+    d_ptr->audioInput = nullptr;
+
     if (d_ptr->captureSession)
         d_ptr->captureSession->setAudioInput(nullptr);
     if (oldInput)
@@ -194,6 +198,7 @@ void QMediaCaptureSession::setAudioInput(QAudioInput *input)
         if (d_ptr->captureSession)
             d_ptr->captureSession->setAudioInput(input->handle());
     }
+    d_ptr->audioInput = input;
     emit audioInputChanged();
 }
 
@@ -502,7 +507,12 @@ void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
     QAudioOutput *oldOutput = d_ptr->audioOutput;
     if (oldOutput == output)
         return;
-    d_ptr->audioOutput = output;
+
+    // We don't want to end up with signal emitted
+    // twice (from recursive call setAudioInput(nullptr)
+    // from oldOutput->setDisconnectFunction():
+    d_ptr->audioOutput = nullptr;
+
     if (d_ptr->captureSession)
         d_ptr->captureSession->setAudioOutput(nullptr);
     if (oldOutput)
@@ -512,6 +522,7 @@ void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
         if (d_ptr->captureSession)
             d_ptr->captureSession->setAudioOutput(output->handle());
     }
+    d_ptr->audioOutput = output;
     emit audioOutputChanged();
 }
 /*!
