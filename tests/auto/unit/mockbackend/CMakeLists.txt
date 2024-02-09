@@ -12,6 +12,7 @@ qt_internal_add_plugin(MockMultimediaPlugin
     OUTPUT_NAME mockmultimediaplugin
     PLUGIN_TYPE multimedia
     OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../plugins"
+    DEFAULT_IF FALSE
     SOURCES
         qmockaudiodecoder.cpp qmockaudiodecoder.h
         qmockaudiooutput.h
