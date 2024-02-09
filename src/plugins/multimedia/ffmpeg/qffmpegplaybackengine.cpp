@@ -516,7 +516,10 @@ qint64 PlaybackEngine::currentPosition(bool topPos) const {
                          : std::min(*pos, rendererPos);
     }
 
-    return boundPosition(pos ? *pos : m_timeController.currentPosition());
+    if (!pos)
+        pos = m_timeController.currentPosition();
+
+    return boundPosition(*pos - m_currentLoopOffset.pos);
 }
 
 qint64 PlaybackEngine::duration() const
