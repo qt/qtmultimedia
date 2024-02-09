@@ -155,8 +155,16 @@ qint64 QAudioOutputStream::readData(char *data, qint64 len)
         } else {
             ok = d->resonanceAudio->api->FillInterleavedOutputBuffer(2, QAudioEnginePrivate::bufferSize, fd);
             if (!ok) {
-                qWarning() << "    Reading failed!";
-                break;
+                // If we get here, it means that resonanceAudio did not actually fill the buffer.
+                // Sometimes this is expected, for example if resonanceAudio does not have any sources.
+                // In this case we just fill the buffer with silence.
+                if (d->sources.isEmpty() && d->stereoSources.isEmpty()) {
+                    memset(fd, 0, nChannels * QAudioEnginePrivate::bufferSize * sizeof(short));
+                } else {
+                    // If we get here, it means that something unexpected happened, so bail.
+                    qWarning() << "    Reading failed!";
+                    break;
+                }
             }
         }
         fd += nChannels*QAudioEnginePrivate::bufferSize;
