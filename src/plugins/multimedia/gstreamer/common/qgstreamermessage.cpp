@@ -12,47 +12,14 @@ QT_BEGIN_NAMESPACE
     \internal
 */
 
-QGstreamerMessage::QGstreamerMessage(GstMessage* message):
-    m_message(message)
-{
-    gst_message_ref(m_message);
-}
-
-QGstreamerMessage::QGstreamerMessage(QGstreamerMessage const& m):
-    m_message(m.m_message)
-{
-    gst_message_ref(m_message);
-}
-
 QGstreamerMessage::QGstreamerMessage(const QGstStructure &structure)
 {
-    gst_structure_get(structure.structure, "message", GST_TYPE_MESSAGE, &m_message, nullptr);
-}
-
-QGstreamerMessage::~QGstreamerMessage()
-{
-    if (m_message != nullptr)
-        gst_message_unref(m_message);
+    gst_structure_get(structure.structure, "message", GST_TYPE_MESSAGE, &m_object, nullptr);
 }
 
 GstMessage* QGstreamerMessage::rawMessage() const
 {
-    return m_message;
-}
-
-QGstreamerMessage& QGstreamerMessage::operator=(QGstreamerMessage const& rhs)
-{
-    if (rhs.m_message != m_message) {
-        if (rhs.m_message != nullptr)
-            gst_message_ref(rhs.m_message);
-
-        if (m_message != nullptr)
-            gst_message_unref(m_message);
-
-        m_message = rhs.m_message;
-    }
-
-    return *this;
+    return m_object;
 }
 
 QT_END_NAMESPACE
