@@ -130,6 +130,92 @@ public:
     Q_MULTIMEDIA_EXPORT QList<QAudioFormat::SampleFormat> getSampleFormats() const;
 };
 
+namespace QGstPointerImpl {
+
+template <typename RefcountedObject>
+struct QGstRefcountingAdaptor;
+
+template <typename GstType>
+class QGstObjectWrapper
+{
+    using Adaptor = QGstRefcountingAdaptor<GstType>;
+
+protected:
+    GstType *m_object = nullptr;
+
+public:
+    enum RefMode { HasRef, NeedsRef };
+
+    constexpr QGstObjectWrapper() = default;
+
+    explicit QGstObjectWrapper(GstType *object, RefMode mode = NeedsRef) : m_object(object)
+    {
+        if (m_object && mode == NeedsRef)
+            Adaptor::ref(m_object);
+    }
+
+    QGstObjectWrapper(const QGstObjectWrapper &other) : m_object(other.m_object)
+    {
+        if (m_object)
+            Adaptor::ref(m_object);
+    }
+
+    ~QGstObjectWrapper()
+    {
+        if (m_object)
+            Adaptor::unref(m_object);
+    }
+
+    QGstObjectWrapper(QGstObjectWrapper &&other) noexcept
+        : m_object(std::exchange(other.m_object, nullptr))
+    {
+    }
+
+    QGstObjectWrapper &
+    operator=(const QGstObjectWrapper &other) // NOLINT: bugprone-unhandled-self-assign
+    {
+        if (m_object != other.m_object) {
+            GstType *originalObject = m_object;
+
+            m_object = other.m_object;
+            if (m_object)
+                Adaptor::ref(m_object);
+            if (originalObject)
+                Adaptor::unref(originalObject);
+        }
+        return *this;
+    }
+
+    QGstObjectWrapper &operator=(QGstObjectWrapper &&other) noexcept
+    {
+        if (this != &other) {
+            GstType *originalObject = m_object;
+            m_object = std::exchange(other.m_object, nullptr);
+
+            if (originalObject)
+                Adaptor::unref(originalObject);
+        }
+        return *this;
+    }
+
+    friend bool operator==(const QGstObjectWrapper &a, const QGstObjectWrapper &b)
+    {
+        return a.m_object == b.m_object;
+    }
+    friend bool operator!=(const QGstObjectWrapper &a, const QGstObjectWrapper &b)
+    {
+        return a.m_object != b.m_object;
+    }
+
+    explicit operator bool() const { return bool(m_object); }
+    bool isNull() const { return !m_object; }
+
+protected:
+    GstType *get() const { return m_object; }
+};
+
+} // namespace QGstPointerImpl
+
 class QGstStructure {
 public:
     const GstStructure *structure = nullptr;
@@ -157,51 +243,32 @@ public:
     QGstStructure copy() const { return gst_structure_copy(structure); }
 };
 
-class QGstCaps {
-    GstCaps *caps = nullptr;
+template <>
+struct QGstPointerImpl::QGstRefcountingAdaptor<GstCaps>
+{
+    static void ref(GstCaps *arg) noexcept { gst_caps_ref(arg); }
+    static void unref(GstCaps *arg) noexcept { gst_caps_unref(arg); }
+};
+
+class QGstCaps : public QGstPointerImpl::QGstObjectWrapper<GstCaps>
+{
+    using BaseClass = QGstPointerImpl::QGstObjectWrapper<GstCaps>;
+
 public:
-    enum RefMode { HasRef, NeedsRef };
+    using BaseClass::BaseClass;
+    QGstCaps(const QGstCaps &) = default;
+    QGstCaps(QGstCaps &&) noexcept = default;
+    QGstCaps &operator=(const QGstCaps &) = default;
+    QGstCaps &operator=(QGstCaps &&) noexcept = default;
+
     enum MemoryFormat { CpuMemory, GLTexture, DMABuf };
 
-    QGstCaps() = default;
-
-    explicit QGstCaps(GstCaps *c, RefMode mode) : caps(c)
-    {
-        if (mode == NeedsRef)
-            gst_caps_ref(caps);
-    }
-
-    QGstCaps(const QGstCaps &other) : caps(other.caps)
-    {
-        if (caps)
-            gst_caps_ref(caps);
-    }
-
-    ~QGstCaps() {
-        if (caps)
-            gst_caps_unref(caps);
-    }
-
-    QGstCaps &operator=(const QGstCaps &other)
-    {
-        if (this != &other) {
-            if (other.caps)
-                gst_caps_ref(other.caps);
-            if (caps)
-                gst_caps_unref(caps);
-            caps = other.caps;
-        }
-        return *this;
-    }
-
-    bool isNull() const { return !caps; }
-
-    QByteArray toString() const { return toString(caps); }
-    int size() const { return int(gst_caps_get_size(caps)); }
-    QGstStructure at(int index) const { return gst_caps_get_structure(caps, index); }
-    GstCaps *get() const { return caps; }
+    QByteArray toString() const { return toString(m_object); }
+    int size() const { return int(gst_caps_get_size(m_object)); }
+    QGstStructure at(int index) const { return gst_caps_get_structure(m_object, index); }
+    GstCaps *get() const { return m_object; }
     MemoryFormat memoryFormat() const {
-        auto *features = gst_caps_get_features(caps, 0);
+        auto *features = gst_caps_get_features(m_object, 0);
         if (gst_caps_features_contains(features, "memory:GLMemory"))
             return GLTexture;
         else if (gst_caps_features_contains(features, "memory:DMABuf"))
@@ -227,67 +294,31 @@ public:
     static QGstCaps fromCameraFormat(const QCameraFormat &format);
 };
 
-class QGstObject
+template <>
+struct QGstPointerImpl::QGstRefcountingAdaptor<GstObject>
 {
-protected:
-    GstObject *m_object = nullptr;
+    static void ref(GstObject *arg) noexcept { gst_object_ref_sink(arg); }
+    static void unref(GstObject *arg) noexcept { gst_object_unref(arg); }
+};
+
+class QGstObject : public QGstPointerImpl::QGstObjectWrapper<GstObject>
+{
+    using BaseClass = QGstPointerImpl::QGstObjectWrapper<GstObject>;
+
 public:
-    enum RefMode { HasRef, NeedsRef };
+    using BaseClass::BaseClass;
+    QGstObject(const QGstObject &) = default;
+    QGstObject(QGstObject &&) noexcept = default;
 
-    QGstObject() = default;
-    explicit QGstObject(GstObject *o, RefMode mode = HasRef)
-        : m_object(o)
+    virtual ~QGstObject() = default;
+
+    QGstObject &operator=(const QGstObject &) = default;
+    QGstObject &operator=(QGstObject &&) noexcept = default;
+
+    void set(const char *property, const char *str)
     {
-        if (o && mode == NeedsRef)
-            // Use ref_sink to remove any floating references
-            gst_object_ref_sink(m_object);
+        g_object_set(m_object, property, str, nullptr);
     }
-    QGstObject(const QGstObject &other)
-        : m_object(other.m_object)
-    {
-        if (m_object)
-            gst_object_ref(m_object);
-    }
-    QGstObject &operator=(const QGstObject &other)
-    {
-        if (this == &other)
-            return *this;
-        if (other.m_object)
-            gst_object_ref(other.m_object);
-        if (m_object)
-            gst_object_unref(m_object);
-        m_object = other.m_object;
-        return *this;
-    }
-
-    QGstObject(QGstObject &&other) noexcept
-        : m_object(std::exchange(other.m_object, nullptr))
-    {}
-    QGstObject &operator=(QGstObject &&other)
-    {
-        if (this != &other) {
-            if (m_object)
-                gst_object_unref(m_object);
-            m_object = std::exchange(other.m_object, nullptr);
-        }
-        return *this;
-    }
-
-    virtual ~QGstObject() {
-        if (m_object)
-            gst_object_unref(m_object);
-    }
-
-    explicit operator bool() const { return bool(m_object); }
-
-    friend bool operator==(const QGstObject &a, const QGstObject &b)
-    { return a.m_object == b.m_object; }
-    friend bool operator!=(const QGstObject &a, const QGstObject &b)
-    { return a.m_object != b.m_object; }
-
-    bool isNull() const { return !m_object; }
-
-    void set(const char *property, const char *str) { g_object_set(m_object, property, str, nullptr); }
     void set(const char *property, bool b) { g_object_set(m_object, property, gboolean(b), nullptr); }
     void set(const char *property, uint i) { g_object_set(m_object, property, guint(i), nullptr); }
     void set(const char *property, int i) { g_object_set(m_object, property, gint(i), nullptr); }
@@ -321,13 +352,15 @@ class QGstElement;
 class QGstPad : public QGstObject
 {
 public:
-    QGstPad() = default;
-    QGstPad(const QGstObject &o)
-        : QGstPad(GST_PAD(o.object()), NeedsRef)
-    {}
-    QGstPad(GstPad *pad, RefMode mode = NeedsRef)
-        : QGstObject(&pad->object, mode)
-    {}
+    using QGstObject::QGstObject;
+    QGstPad(const QGstPad &) = default;
+    QGstPad(QGstPad &&) noexcept = default;
+
+    QGstPad(const QGstObject &o) : QGstPad(GST_PAD(o.object()), NeedsRef) { }
+    QGstPad(GstPad *pad, RefMode mode = NeedsRef) : QGstObject(&pad->object, mode) { }
+
+    QGstPad &operator=(const QGstPad &) = default;
+    QGstPad &operator=(QGstPad &&) noexcept = default;
 
     QGstCaps currentCaps() const
     { return QGstCaps(gst_pad_get_current_caps(pad()), QGstCaps::HasRef); }
@@ -409,15 +442,18 @@ public:
 class QGstElement : public QGstObject
 {
 public:
-    QGstElement() = default;
-    QGstElement(const QGstObject &o)
-        : QGstElement(GST_ELEMENT(o.object()), NeedsRef)
-    {}
-    QGstElement(GstElement *element, RefMode mode = NeedsRef)
-        : QGstObject(&element->object, mode)
-    {}
+    using QGstObject::QGstObject;
 
-    QGstElement(const char *factory, const char *name = nullptr)
+    QGstElement(const QGstElement &) = default;
+    QGstElement(QGstElement &&) noexcept = default;
+    QGstElement &operator=(const QGstElement &) = default;
+    QGstElement &operator=(QGstElement &&) noexcept = default;
+
+    QGstElement(GstElement *element, RefMode mode = NeedsRef) : QGstObject(&element->object, mode)
+    {
+    }
+
+    explicit QGstElement(const char *factory, const char *name = nullptr)
         : QGstElement(gst_element_factory_make(factory, name), NeedsRef)
     {
 #ifndef QT_NO_DEBUG
@@ -536,14 +572,13 @@ inline QGstElement QGstPad::parent() const
 class QGstBin : public QGstElement
 {
 public:
-    QGstBin() = default;
-    QGstBin(const QGstObject &o)
-        : QGstBin(GST_BIN(o.object()), NeedsRef)
-    {}
-    QGstBin(const char *name)
-        : QGstElement(gst_bin_new(name), NeedsRef)
-    {
-    }
+    using QGstElement::QGstElement;
+    QGstBin(const QGstBin &) = default;
+    QGstBin(QGstBin &&) noexcept = default;
+    QGstBin &operator=(const QGstBin &) = default;
+    QGstBin &operator=(QGstBin &&) noexcept = default;
+
+    QGstBin(const char *name) : QGstElement(gst_bin_new(name), NeedsRef) { }
     QGstBin(GstBin *bin, RefMode mode = NeedsRef)
         : QGstElement(&bin->element, mode)
     {}
