@@ -195,7 +195,7 @@ QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
     GstVideoInfo vidInfo;
     GstVideoInfo *infoPtr = info ? info : &vidInfo;
 
-    if (gst_video_info_from_caps(infoPtr, caps)) {
+    if (gst_video_info_from_caps(infoPtr, m_object)) {
         int index = indexOfVideoFormat(infoPtr->finfo->format);
 
         if (index != -1) {
@@ -291,8 +291,8 @@ QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
 
 void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier)
 {
-    if (!gst_caps_is_writable(caps))
-        caps = gst_caps_make_writable(caps);
+    if (!gst_caps_is_writable(m_object))
+        m_object = gst_caps_make_writable(m_object);
 
     GValue list = {};
     g_value_init(&list, GST_TYPE_LIST);
@@ -315,11 +315,11 @@ void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &form
                                         "height"   , GST_TYPE_INT_RANGE, 1, INT_MAX,
                                         nullptr);
     gst_structure_set_value(structure, "format", &list);
-    gst_caps_append_structure(caps, structure);
+    gst_caps_append_structure(m_object, structure);
     g_value_unset(&list);
 
     if (modifier)
-        gst_caps_set_features(caps, size() - 1, gst_caps_features_from_string(modifier));
+        gst_caps_set_features(m_object, size() - 1, gst_caps_features_from_string(modifier));
 }
 
 QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
@@ -343,7 +343,7 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
                                       nullptr);
     }
     auto caps = QGstCaps::create();
-    gst_caps_append_structure(caps.caps, structure);
+    gst_caps_append_structure(caps.m_object, structure);
     return caps;
 }
 
