@@ -36,7 +36,7 @@ class Q_MULTIMEDIA_EXPORT QGstreamerVideoSink
 {
     Q_OBJECT
 public:
-    explicit QGstreamerVideoSink(QVideoSink *parent = 0);
+    explicit QGstreamerVideoSink(QVideoSink *parent = nullptr);
     ~QGstreamerVideoSink();
 
     void setRhi(QRhi *rhi) override;
