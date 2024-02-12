@@ -358,7 +358,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 GstQuery *query = gst_query_new_seeking(GST_FORMAT_TIME);
                 gboolean canSeek = false;
                 if (gst_element_query(playerPipeline.element(), query)) {
-                    gst_query_parse_seeking(query, NULL, &canSeek, nullptr, nullptr);
+                    gst_query_parse_seeking(query, nullptr, &canSeek, nullptr, nullptr);
                     qCDebug(qLcMediaPlayer) << "    pipeline is seekable:" << canSeek;
                 } else {
                     qCDebug(qLcMediaPlayer) << "    query for seekable failed.";
