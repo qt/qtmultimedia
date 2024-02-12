@@ -67,7 +67,7 @@ public:
 
     GstStateChangeReturn setState(GstState state);
 
-    GstPipeline *pipeline() const { return GST_PIPELINE_CAST(m_object); }
+    GstPipeline *pipeline() const { return GST_PIPELINE_CAST(get()); }
 
     void dumpGraph(const char *fileName)
     {

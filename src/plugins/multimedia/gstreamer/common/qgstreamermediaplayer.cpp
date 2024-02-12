@@ -273,7 +273,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     qCDebug(qLcMediaPlayer) << "received bus message from" << message.source().name()
                             << gst_message_type_get_name(message.type());
 
-    GstMessage* gm = message.rawMessage();
+    GstMessage* gm = message.message();
     switch (message.type()) {
     case GST_MESSAGE_TAG: {
         // #### This isn't ideal. We shouldn't catch stream specific tags here, rather the global ones
@@ -438,7 +438,7 @@ bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
     if (message.type() != GST_MESSAGE_NEED_CONTEXT)
         return false;
     const gchar *type = nullptr;
-    gst_message_parse_context_type (message.rawMessage(), &type);
+    gst_message_parse_context_type (message.message(), &type);
     if (strcmp(type, GST_GL_DISPLAY_CONTEXT_TYPE))
         return false;
     if (!gstVideoOutput || !gstVideoOutput->gstreamerVideoSink())
@@ -446,7 +446,7 @@ bool QGstreamerMediaPlayer::processSyncMessage(const QGstreamerMessage &message)
     auto *context = gstVideoOutput->gstreamerVideoSink()->gstGlDisplayContext();
     if (!context)
         return false;
-    gst_element_set_context(GST_ELEMENT(GST_MESSAGE_SRC(message.rawMessage())), context);
+    gst_element_set_context(GST_ELEMENT(GST_MESSAGE_SRC(message.message())), context);
     playerPipeline.dumpGraph("need_context");
     return true;
 #else

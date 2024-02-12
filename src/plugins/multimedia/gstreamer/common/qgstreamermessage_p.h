@@ -41,13 +41,11 @@ public:
     QGstreamerMessage &operator=(const QGstreamerMessage &) = default;
     QGstreamerMessage &operator=(QGstreamerMessage &&) noexcept = default;
 
-    explicit QGstreamerMessage(const QGstStructure &structure);
-
     GstMessageType type() const { return GST_MESSAGE_TYPE(get()); }
     QGstObject source() const { return QGstObject(GST_MESSAGE_SRC(get())); }
     QGstStructure structure() const { return QGstStructure(gst_message_get_structure(get())); }
 
-    GstMessage* rawMessage() const;
+    GstMessage *message() const { return get(); }
 };
 
 QT_END_NAMESPACE

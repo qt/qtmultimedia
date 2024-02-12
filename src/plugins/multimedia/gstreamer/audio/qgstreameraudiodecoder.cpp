@@ -106,7 +106,7 @@ void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *or
 
 bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
 {
-    GstMessage* gm = message.rawMessage();
+    GstMessage* gm = message.message();
     if (gm) {
         if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_DURATION) {
             updateDuration();
@@ -304,7 +304,7 @@ void QGstreamerAudioDecoder::start()
         if (mFormat.isValid()) {
             setAudioFlags(false);
             auto caps = QGstUtils::capsForAudioFormat(mFormat);
-            gst_app_sink_set_caps(m_appSink, caps.get());
+            gst_app_sink_set_caps(m_appSink, caps.caps());
         } else {
             // We want whatever the native audio format is
             setAudioFlags(true);

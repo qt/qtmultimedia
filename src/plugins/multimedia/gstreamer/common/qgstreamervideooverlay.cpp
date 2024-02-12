@@ -208,7 +208,7 @@ void QGstreamerVideoOverlay::setFullScreen(bool fullscreen)
 
 bool QGstreamerVideoOverlay::processSyncMessage(const QGstreamerMessage &message)
 {
-    if (!gst_is_video_overlay_prepare_window_handle_message(message.rawMessage()))
+    if (!gst_is_video_overlay_prepare_window_handle_message(message.message()))
         return false;
     gst_video_overlay_set_window_handle(GST_VIDEO_OVERLAY(m_videoSink.object()), m_windowId);
     return true;

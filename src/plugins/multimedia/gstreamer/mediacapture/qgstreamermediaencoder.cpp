@@ -73,7 +73,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
         QGstStructure s = msg.structure();
         qCDebug(qLcMediaEncoderGst) << "received element message from" << msg.source().name() << s.name();
         if (s.name() == "GstBinForwarded")
-            msg = QGstreamerMessage(s);
+            msg = s.getMessage();
         if (msg.isNull())
             return false;
     }
@@ -87,7 +87,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
     if (msg.type() == GST_MESSAGE_ERROR) {
         GError *err;
         gchar *debug;
-        gst_message_parse_error(msg.rawMessage(), &err, &debug);
+        gst_message_parse_error(msg.message(), &err, &debug);
         error(QMediaRecorder::ResourceError, QString::fromUtf8(err->message));
         g_error_free(err);
         g_free(debug);
@@ -111,11 +111,11 @@ static GstEncodingContainerProfile *createContainerProfile(const QMediaEncoderSe
 
     auto caps = formatInfo->formatCaps(settings.fileFormat());
 
-    GstEncodingContainerProfile *profile = (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
-        "container_profile",
-        (gchar *)"custom container profile",
-        const_cast<GstCaps *>(caps.get()),
-        nullptr); //preset
+    GstEncodingContainerProfile *profile =
+            (GstEncodingContainerProfile *)gst_encoding_container_profile_new(
+                    "container_profile", (gchar *)"custom container profile",
+                    const_cast<GstCaps *>(caps.caps()),
+                    nullptr); // preset
     return profile;
 }
 
@@ -127,11 +127,10 @@ static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &setti
     if (caps.isNull())
         return nullptr;
 
-    GstEncodingVideoProfile *profile = gst_encoding_video_profile_new(
-        const_cast<GstCaps *>(caps.get()),
-        nullptr,
-        nullptr, //restriction
-        0); //presence
+    GstEncodingVideoProfile *profile =
+            gst_encoding_video_profile_new(const_cast<GstCaps *>(caps.caps()), nullptr,
+                                           nullptr, // restriction
+                                           0); // presence
 
     gst_encoding_video_profile_set_pass(profile, 0);
     gst_encoding_video_profile_set_variableframerate(profile, TRUE);
@@ -147,11 +146,11 @@ static GstEncodingProfile *createAudioProfile(const QMediaEncoderSettings &setti
     if (caps.isNull())
         return nullptr;
 
-    GstEncodingProfile *profile = (GstEncodingProfile *)gst_encoding_audio_profile_new(
-        const_cast<GstCaps *>(caps.get()),
-        nullptr, //preset
-        nullptr,   //restriction
-        0);     //presence
+    GstEncodingProfile *profile =
+            (GstEncodingProfile *)gst_encoding_audio_profile_new(const_cast<GstCaps *>(caps.caps()),
+                                                                 nullptr, // preset
+                                                                 nullptr, // restriction
+                                                                 0); // presence
 
     return profile;
 }

@@ -172,7 +172,7 @@ static void padAdded(GstElement *element, GstPad *pad, gpointer data)
 
 bool QGStreamerAudioSink::processBusMessage(const QGstreamerMessage &message)
 {
-    auto *msg = message.rawMessage();
+    auto *msg = message.message();
     switch (GST_MESSAGE_TYPE (msg)) {
     case GST_MESSAGE_EOS:
         setState(QAudio::IdleState);
