@@ -33,7 +33,7 @@ class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
 class QGstreamerVideoSink;
 
-class QGstreamerMediaCapture : public QPlatformMediaCaptureSession
+class QGstreamerMediaCapture final : public QPlatformMediaCaptureSession
 {
     Q_OBJECT
 
