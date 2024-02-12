@@ -11,13 +11,17 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.MediaCodecList;
+import android.media.MediaCodecInfo;
 import android.util.Range;
 import android.util.Size;
 import android.util.Log;
 
 import java.lang.String;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 public class QtVideoDeviceManager {
@@ -44,6 +48,37 @@ public class QtVideoDeviceManager {
         }
         return null;
     }
+
+    static private boolean isSoftwareCodec(String longCodecName) {
+        longCodecName = longCodecName.toLowerCase();
+        return longCodecName.startsWith("omx.google.") || longCodecName.startsWith("c2.android.")
+               || !(longCodecName.startsWith("omx.") || longCodecName.startsWith("c2."));
+    }
+
+    private enum CODEC {
+      DECODER,
+      ENCODER
+    }
+    static private String[] getHWVideoCodecs(CODEC expectedType) {
+        MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
+        MediaCodecInfo[] mediaCodecInfo = mediaCodecList.getCodecInfos();
+        Set<String> codecs = new HashSet<String>();
+
+        for (MediaCodecInfo codecInfo : mediaCodecInfo) {
+            CODEC currentType = codecInfo.isEncoder() ? CODEC.ENCODER : CODEC.DECODER;
+            if (currentType == expectedType && !isSoftwareCodec(codecInfo.getName())) {
+                String[] supportedTypes = codecInfo.getSupportedTypes();
+                for (String type : supportedTypes) {
+                    if (type.startsWith("video/"))
+                        codecs.add(type.substring(6));
+                }
+            }
+        }
+        return codecs.toArray(new String[codecs.size()]);
+    }
+
+    static public String[] getHWVideoDecoders() { return getHWVideoCodecs(CODEC.DECODER); }
+    static public String[] getHWVideoEncoders() { return getHWVideoCodecs(CODEC.ENCODER); }
 
     public String[] getCameraIdList() {
         try {
