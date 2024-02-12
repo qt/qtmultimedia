@@ -3,6 +3,7 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include "qgstutils_p.h"
+#include "qgstreamermessage_p.h"
 
 #include <QtCore/qdatetime.h>
 #include <QtCore/qdir.h>
@@ -195,7 +196,7 @@ QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
     GstVideoInfo vidInfo;
     GstVideoInfo *infoPtr = info ? info : &vidInfo;
 
-    if (gst_video_info_from_caps(infoPtr, m_object)) {
+    if (gst_video_info_from_caps(infoPtr, get())) {
         int index = indexOfVideoFormat(infoPtr->finfo->format);
 
         if (index != -1) {
@@ -291,8 +292,8 @@ QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
 
 void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier)
 {
-    if (!gst_caps_is_writable(m_object))
-        m_object = gst_caps_make_writable(m_object);
+    if (!gst_caps_is_writable(get()))
+        *this = QGstCaps(gst_caps_make_writable(release()), QGstCaps::RefMode::HasRef);
 
     GValue list = {};
     g_value_init(&list, GST_TYPE_LIST);
@@ -315,11 +316,11 @@ void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &form
                                         "height"   , GST_TYPE_INT_RANGE, 1, INT_MAX,
                                         nullptr);
     gst_structure_set_value(structure, "format", &list);
-    gst_caps_append_structure(m_object, structure);
+    gst_caps_append_structure(get(), structure);
     g_value_unset(&list);
 
     if (modifier)
-        gst_caps_set_features(m_object, size() - 1, gst_caps_features_from_string(modifier));
+        gst_caps_set_features(get(), size() - 1, gst_caps_features_from_string(modifier));
 }
 
 QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
@@ -343,7 +344,7 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
                                       nullptr);
     }
     auto caps = QGstCaps::create();
-    gst_caps_append_structure(caps.m_object, structure);
+    gst_caps_append_structure(caps.get(), structure);
     return caps;
 }
 
@@ -447,6 +448,13 @@ QGRange<float> QGstStructure::frameRateRange() const
     }
 
     return {minRate, maxRate};
+}
+
+QGstreamerMessage QGstStructure::getMessage()
+{
+    GstMessage *message = nullptr;
+    gst_structure_get(structure, "message", GST_TYPE_MESSAGE, &message, nullptr);
+    return QGstreamerMessage(message, QGstreamerMessage::HasRef);
 }
 
 GList *qt_gst_video_sinks()
