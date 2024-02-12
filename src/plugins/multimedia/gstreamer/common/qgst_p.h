@@ -68,6 +68,14 @@ public:
     explicit operator const char *() const { return str; }
 };
 
+#ifndef QT_NO_DEBUG
+inline QDebug operator<<(QDebug dbg, const QGString &str)
+{
+    dbg << (const char *)str;
+    return dbg;
+}
+#endif
+
 class QGValue
 {
 public:
@@ -702,6 +710,28 @@ inline QString errorMessageCannotFindElement(std::string_view element)
 {
     return QStringLiteral("Could not find the %1 GStreamer element").arg(element.data());
 }
+
+struct QGstTagListHandleTraits
+{
+    using Type = GstTagList *;
+    static Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept
+    {
+        gst_tag_list_unref(handle);
+        return true;
+    }
+};
+
+struct QGstClockHandleTraits
+{
+    using Type = GstClock *;
+    static Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept
+    {
+        gst_object_unref(handle);
+        return true;
+    }
+};
 
 QT_END_NAMESPACE
 
