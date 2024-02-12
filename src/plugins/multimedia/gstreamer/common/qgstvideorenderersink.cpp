@@ -562,10 +562,9 @@ GstCaps *QGstVideoRendererSink::get_caps(GstBaseSink *base, GstCaps *filter)
 
     QGstCaps caps = sink->renderer->caps();
     if (filter)
-        caps = QGstCaps(gst_caps_intersect(caps.get(), filter), QGstCaps::HasRef);
+        caps = QGstCaps(gst_caps_intersect(caps.caps(), filter), QGstCaps::HasRef);
 
-    gst_caps_ref(caps.get());
-    return caps.get();
+    return caps.release();
 }
 
 gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *gcaps)

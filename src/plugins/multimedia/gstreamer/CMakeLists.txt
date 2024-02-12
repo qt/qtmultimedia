@@ -17,7 +17,7 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         common/qgstreameraudiooutput.cpp common/qgstreameraudiooutput_p.h
         common/qgstreamerbufferprobe.cpp common/qgstreamerbufferprobe_p.h
         common/qgstreamermetadata.cpp common/qgstreamermetadata_p.h
-        common/qgstreamermessage.cpp common/qgstreamermessage_p.h
+        common/qgstreamermessage_p.h
         common/qgstreamermediaplayer.cpp common/qgstreamermediaplayer_p.h
         common/qgstreamervideooutput.cpp common/qgstreamervideooutput_p.h
         common/qgstreamervideooverlay.cpp common/qgstreamervideooverlay_p.h
