@@ -146,14 +146,12 @@ void QGstreamerImageCapture::setResolution(const QSize &resolution)
         qDebug() << "Camera not ready";
         return;
     }
-    auto caps = QGstCaps(gst_caps_copy(padCaps.get()), QGstCaps::HasRef);
+    auto caps = QGstCaps(gst_caps_copy(padCaps.caps()), QGstCaps::HasRef);
     if (caps.isNull()) {
         return;
     }
-    gst_caps_set_simple(caps.get(),
-        "width", G_TYPE_INT, resolution.width(),
-        "height", G_TYPE_INT, resolution.height(),
-        nullptr);
+    gst_caps_set_simple(caps.caps(), "width", G_TYPE_INT, resolution.width(), "height", G_TYPE_INT,
+                        resolution.height(), nullptr);
     filter.set("caps", caps);
 }
 
@@ -169,7 +167,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 
     auto caps = QGstCaps(gst_pad_get_current_caps(bin.staticPad("sink").pad()), QGstCaps::HasRef);
     GstVideoInfo previewInfo;
-    gst_video_info_from_caps(&previewInfo, caps.get());
+    gst_video_info_from_caps(&previewInfo, caps.caps());
 
     auto memoryFormat = caps.memoryFormat();
     auto fmt = caps.formatForCaps(&previewInfo);
