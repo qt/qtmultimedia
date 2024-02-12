@@ -36,7 +36,7 @@ class QGstVideoRenderer : public QObject
 {
     Q_OBJECT
 public:
-    QGstVideoRenderer(QGstreamerVideoSink *sink);
+    explicit QGstVideoRenderer(QGstreamerVideoSink *sink);
     ~QGstVideoRenderer();
 
     QGstCaps caps();

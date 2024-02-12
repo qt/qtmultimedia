@@ -42,7 +42,7 @@ QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *pa
     if (!audioconvert)
         return errorMessageCannotFindElement("audioconvert");
 
-    QGstPipeline playbin = GST_PIPELINE_CAST(QGstElement("playbin", "playbin").element());
+    QGstPipeline playbin(GST_PIPELINE_CAST(QGstElement("playbin", "playbin").element()));
     if (!playbin)
         return errorMessageCannotFindElement("playbin");
 
@@ -97,7 +97,7 @@ void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *or
     g_object_get(orig, "source", &appsrc, NULL);
 
     auto *qAppSrc = self->appsrc();
-    qAppSrc->setExternalAppSrc(appsrc);
+    qAppSrc->setExternalAppSrc(QGstElement(appsrc));
     qAppSrc->setup(self->mDevice);
 
     g_object_unref(G_OBJECT(appsrc));
