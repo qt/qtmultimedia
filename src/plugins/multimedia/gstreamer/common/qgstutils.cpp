@@ -32,7 +32,7 @@ constexpr int lengthOf(const T (&)[N])
     return N;
 }
 
-static const char *audioSampleFormatNames[QAudioFormat::NSampleFormats] = {
+const char *audioSampleFormatNames[QAudioFormat::NSampleFormats] = {
     nullptr,
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
     "U8",
@@ -47,7 +47,7 @@ static const char *audioSampleFormatNames[QAudioFormat::NSampleFormats] = {
 #endif
 };
 
-static QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
+QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
 {
     if (fmt) {
         for (int i = 1; i < QAudioFormat::NSampleFormats; ++i) {
@@ -143,8 +143,7 @@ struct VideoFormat
     GstVideoFormat gstFormat;
 };
 
-static const VideoFormat qt_videoFormatLookup[] =
-{
+const VideoFormat qt_videoFormatLookup[] = {
     { QVideoFrameFormat::Format_YUV420P, GST_VIDEO_FORMAT_I420 },
     { QVideoFrameFormat::Format_YUV422P, GST_VIDEO_FORMAT_Y42B },
     { QVideoFrameFormat::Format_YV12   , GST_VIDEO_FORMAT_YV12 },
@@ -171,7 +170,7 @@ static const VideoFormat qt_videoFormatLookup[] =
 #endif
 };
 
-static int indexOfVideoFormat(QVideoFrameFormat::PixelFormat format)
+int indexOfVideoFormat(QVideoFrameFormat::PixelFormat format)
 {
     for (int i = 0; i < lengthOf(qt_videoFormatLookup); ++i)
         if (qt_videoFormatLookup[i].pixelFormat == format)
@@ -180,7 +179,7 @@ static int indexOfVideoFormat(QVideoFrameFormat::PixelFormat format)
     return -1;
 }
 
-static int indexOfVideoFormat(GstVideoFormat format)
+int indexOfVideoFormat(GstVideoFormat format)
 {
     for (int i = 0; i < lengthOf(qt_videoFormatLookup); ++i)
         if (qt_videoFormatLookup[i].gstFormat == format)
@@ -189,7 +188,7 @@ static int indexOfVideoFormat(GstVideoFormat format)
     return -1;
 }
 
-}
+} // namespace
 
 QVideoFrameFormat QGstCaps::formatForCaps(GstVideoInfo *info) const
 {
