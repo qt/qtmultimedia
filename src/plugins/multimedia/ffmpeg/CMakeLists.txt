@@ -42,6 +42,7 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegsymbolsresolve_p.h
 
         qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
+        playbackengine/qffmpegplaybackenginedefs_p.h
         playbackengine/qffmpegplaybackengineobject.cpp playbackengine/qffmpegplaybackengineobject_p.h
         playbackengine/qffmpegdemuxer.cpp playbackengine/qffmpegdemuxer_p.h
         playbackengine/qffmpegstreamdecoder.cpp playbackengine/qffmpegstreamdecoder_p.h
