@@ -107,7 +107,7 @@ public:
                 md.nPlanes = 1;
                 md.bytesPerLine[0] = rect.Pitch;
                 md.data[0] = rect.pBits;
-                md.size[0] = desc.Width * desc.Height;
+                md.size[0] = rect.Pitch * desc.Height;
 
                 m_mapMode = QVideoFrame::ReadOnly;
 
