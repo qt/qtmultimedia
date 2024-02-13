@@ -15,20 +15,21 @@
 #include "qgstutils_p.h"
 
 #if QT_CONFIG(gstreamer_gl)
-#include <rhi/qrhi.h>
-#include <QtGui/qopenglcontext.h>
-#include <QtGui/qopenglfunctions.h>
-#include <QtGui/qopengl.h>
+#  include <QtGui/rhi/qrhi.h>
+#  include <QtGui/qopenglcontext.h>
+#  include <QtGui/qopenglfunctions.h>
+#  include <QtGui/qopengl.h>
 
-#include <gst/gl/gstglconfig.h>
-#include <gst/gl/gstglmemory.h>
-#include <gst/gl/gstglsyncmeta.h>
-#if QT_CONFIG(linux_dmabuf)
-#include <gst/allocators/gstdmabuf.h>
-#endif
+#  include <gst/gl/gstglconfig.h>
+#  include <gst/gl/gstglmemory.h>
+#  include <gst/gl/gstglsyncmeta.h>
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
+#  include <EGL/egl.h>
+#  include <EGL/eglext.h>
+
+#  if QT_CONFIG(linux_dmabuf)
+#    include <gst/allocators/gstdmabuf.h>
+#  endif
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -66,6 +67,10 @@ QGstVideoBuffer::QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QG
         eglDisplay =  sink->eglDisplay();
         eglImageTargetTexture2D = sink->eglImageTargetTexture2D();
     }
+
+#if !QT_CONFIG(gstreamer_gl)
+    Q_UNUSED(memoryFormat);
+#endif
 }
 
 QGstVideoBuffer::~QGstVideoBuffer()
