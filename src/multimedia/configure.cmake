@@ -101,7 +101,7 @@ qt_feature("evr" PUBLIC PRIVATE
 )
 qt_feature("gstreamer_1_0" PRIVATE
     LABEL "GStreamer 1.0"
-    CONDITION GStreamer_FOUND
+    CONDITION ( LINUX AND GStreamer_FOUND )
     ENABLE INPUT_gstreamer STREQUAL 'yes'
     DISABLE INPUT_gstreamer STREQUAL 'no'
 )
