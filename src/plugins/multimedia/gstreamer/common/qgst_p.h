@@ -17,8 +17,9 @@
 
 #include <private/qtmultimediaglobal_p.h>
 
-#include <QSemaphore>
+#include <QtCore/qsemaphore.h>
 #include <QtCore/qlist.h>
+#include <QtCore/qdebug.h>
 #include <QtCore/private/quniquehandle_p.h>
 
 #include <QtMultimedia/qaudioformat.h>
@@ -34,7 +35,6 @@
 #include <gst/interfaces/photography.h>
 #undef GST_USE_UNSTABLE_API
 #endif
-#include <qdebug.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -71,12 +71,6 @@ public:
 
     QLatin1StringView asStringView() const { return QLatin1StringView{ get() }; }
 };
-
-inline QDebug operator<<(QDebug dbg, const QGString &str)
-{
-    dbg << str.get();
-    return dbg;
-}
 
 class QGValue
 {
@@ -256,13 +250,6 @@ public:
     Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
     Q_MULTIMEDIA_EXPORT QGstreamerMessage getMessage();
 
-    QByteArray toString() const
-    {
-        char *s = gst_structure_to_string(structure);
-        QByteArray str(s);
-        g_free(s);
-        return str;
-    }
     QGstStructure copy() const { return gst_structure_copy(structure); }
 };
 
@@ -307,18 +294,6 @@ public:
 
     static QGstCaps fromCameraFormat(const QCameraFormat &format);
 };
-
-inline QDebug operator<<(QDebug dbg, const GstCaps *caps)
-{
-    dbg << QGString(gst_caps_to_string(caps));
-    return dbg;
-}
-
-inline QDebug operator<<(QDebug dbg, const QGstCaps &caps)
-{
-    dbg << caps.caps();
-    return dbg;
-}
 
 template <>
 struct QGstPointerImpl::QGstRefcountingAdaptor<GstObject>
@@ -594,9 +569,7 @@ public:
         }
 #ifndef QT_NO_DEBUG
         if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL)
-            qWarning() << "Could not change state of" << name() << "to"
-                       << gst_element_state_get_name(state)
-                       << gst_element_state_change_return_get_name(change);
+            qWarning() << "Could not change state of" << name() << "to" << state << change;
 #endif
         return change == GST_STATE_CHANGE_SUCCESS;
     }
@@ -735,6 +708,17 @@ struct QGstClockHandleTraits
     static bool close(Type handle) noexcept
     {
         gst_object_unref(handle);
+        return true;
+    }
+};
+
+struct QGstStructureHandleTraits
+{
+    using Type = GstStructure *;
+    static Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept
+    {
+        gst_structure_free(handle);
         return true;
     }
 };

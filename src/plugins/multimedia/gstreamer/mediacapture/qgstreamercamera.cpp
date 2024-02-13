@@ -1,9 +1,10 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include <qcameradevice.h>
+#include <qgstreamercamera_p.h>
 
-#include "qgstreamercamera_p.h"
+#include <qcameradevice.h>
+#include <qgst_debug_p.h>
 #include <qgstreamervideodevices_p.h>
 #include <qgstreamerintegration_p.h>
 #include <qmediacapturesession.h>
