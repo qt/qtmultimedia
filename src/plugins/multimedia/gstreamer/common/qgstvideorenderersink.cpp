@@ -3,11 +3,12 @@
 
 #include <qvideoframe.h>
 #include <qvideosink.h>
-#include <QDebug>
-#include <QMap>
-#include <QThread>
-#include <QEvent>
-#include <QCoreApplication>
+#include <QtCore/QDebug>
+#include <QtCore/QMap>
+#include <QtCore/QThread>
+#include <QtCore/QEvent>
+#include <QtCore/QCoreApplication>
+#include <QtCore/private/quniquehandle_p.h>
 
 #include <private/qfactoryloader_p.h>
 #include "qgstvideobuffer_p.h"
@@ -240,7 +241,7 @@ void QGstVideoRenderer::gstEvent(GstEvent *event)
     if (!taglist)
         return;
 
-    gchar *value = nullptr;
+    QUniqueHandle<QGstStringHandleTraits> value;
     if (!gst_tag_list_get_string(taglist, GST_TAG_IMAGE_ORIENTATION, &value))
         return;
 
@@ -252,13 +253,13 @@ void QGstVideoRenderer::gstEvent(GstEvent *event)
     bool mirrored = false;
     int rotationAngle = 0;
 
-    if (!strncmp(rotate, value, rotateLen)) {
-        rotationAngle = atoi(value + rotateLen);
-    } else if (!strncmp(flipRotate, value, flipRotateLen)) {
+    if (!strncmp(rotate, value.get(), rotateLen)) {
+        rotationAngle = atoi(value.get() + rotateLen);
+    } else if (!strncmp(flipRotate, value.get(), flipRotateLen)) {
         // To flip by horizontal axis is the same as to mirror by vertical axis
         // and rotate by 180 degrees.
         mirrored = true;
-        rotationAngle = (180 + atoi(value + flipRotateLen)) % 360;
+        rotationAngle = (180 + atoi(value.get() + flipRotateLen)) % 360;
     }
 
     QMutexLocker locker(&m_mutex);

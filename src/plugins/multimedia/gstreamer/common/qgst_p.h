@@ -733,6 +733,17 @@ struct QGstClockHandleTraits
     }
 };
 
+struct QGstStringHandleTraits
+{
+    using Type = gchar *;
+    static Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept
+    {
+        g_free(handle);
+        return true;
+    }
+};
+
 QT_END_NAMESPACE
 
 #endif
