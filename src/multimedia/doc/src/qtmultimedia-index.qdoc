@@ -202,7 +202,8 @@
         \li MediaCodec framework on Android
     \endlist
 
-    \note These are still available but with \b limited support.
+    \note These are still available but with \b limited support. The gstreamer
+    backend is only available on Linux.
 
     \section2 Backend support
     Maintainers will strive to fix critical issues with the native backends but
