@@ -118,7 +118,7 @@ qt_feature("gstreamer_photography" PRIVATE
 )
 qt_feature("gstreamer_gl" PRIVATE
     LABEL "GStreamer OpenGL"
-    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND
+    CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND AND EGL_FOUND
 )
 
 qt_feature("gpu_vivante" PRIVATE
