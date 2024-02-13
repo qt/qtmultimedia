@@ -7,7 +7,6 @@
 #include <private/qaudiohelpers_p.h>
 
 #include "qpulseaudiosink_p.h"
-#include "qpulseaudiodevice_p.h"
 #include "qaudioengine_pulse_p.h"
 #include "qpulsehelpers_p.h"
 #include <sys/types.h>
@@ -97,7 +96,7 @@ static void outputStreamDrainComplete(pa_stream *stream, int success, void *user
 {
     Q_UNUSED(stream);
 
-    qCDebug(qLcPulseAudioOut) << "Stream drained:" << bool(success) << userdata;
+    qCDebug(qLcPulseAudioOut) << "Stream drained:" << static_cast<bool>(success) << userdata;
 
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
@@ -110,7 +109,7 @@ static void outputStreamFlushComplete(pa_stream *stream, int success, void *user
 {
     Q_UNUSED(stream);
 
-    qCDebug(qLcPulseAudioOut) << "Stream flushed:" << bool(success) << userdata;
+    qCDebug(qLcPulseAudioOut) << "Stream flushed:" << static_cast<bool>(success) << userdata;
 }
 
 static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *userdata)
@@ -119,7 +118,7 @@ static void streamAdjustPrebufferCallback(pa_stream *stream, int success, void *
     Q_UNUSED(success);
     Q_UNUSED(userdata);
 
-    qCDebug(qLcPulseAudioOut) << "Prebuffer adjusted:" << bool(success);
+    qCDebug(qLcPulseAudioOut) << "Prebuffer adjusted:" << static_cast<bool>(success);
 }
 
 QPulseAudioSink::QPulseAudioSink(const QByteArray &device, QObject *parent)
@@ -291,12 +290,12 @@ bool QPulseAudioSink::open()
     pa_buffer_attr requestedBuffer;
     // Request a target buffer size
     auto targetBufferSize = bufferSize();
-    requestedBuffer.tlength = targetBufferSize ? targetBufferSize : (uint32_t)-1;
+    requestedBuffer.tlength = targetBufferSize ? targetBufferSize : static_cast<uint32_t>(-1);
     // Rest should be determined by PulseAudio
-    requestedBuffer.fragsize = (uint32_t)-1;
-    requestedBuffer.maxlength = (uint32_t)-1;
-    requestedBuffer.minreq = (uint32_t)-1;
-    requestedBuffer.prebuf = (uint32_t)-1;
+    requestedBuffer.fragsize = static_cast<uint32_t>(-1);
+    requestedBuffer.maxlength = static_cast<uint32_t>(-1);
+    requestedBuffer.minreq = static_cast<uint32_t>(-1);
+    requestedBuffer.prebuf = static_cast<uint32_t>(-1);
 
     pa_stream_flags flags = pa_stream_flags(PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_ADJUST_LATENCY);
     if (pa_stream_connect_playback(m_stream, m_device.data(), &requestedBuffer, flags, nullptr, nullptr) < 0) {
