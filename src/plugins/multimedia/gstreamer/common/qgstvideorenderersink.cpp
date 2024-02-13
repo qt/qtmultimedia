@@ -241,7 +241,7 @@ void QGstVideoRenderer::gstEvent(GstEvent *event)
     if (!taglist)
         return;
 
-    QUniqueHandle<QGstStringHandleTraits> value;
+    QGString value;
     if (!gst_tag_list_get_string(taglist, GST_TAG_IMAGE_ORIENTATION, &value))
         return;
 
