@@ -19,6 +19,7 @@
 
 #include <QSemaphore>
 #include <QtCore/qlist.h>
+#include <QtCore/private/quniquehandle_p.h>
 
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qvideoframe.h>
@@ -49,26 +50,31 @@ template <typename T> struct QGRange
     T max;
 };
 
-class QGString
+struct QGstStringHandleTraits
 {
-    char *str;
+    using Type = gchar *;
+    static Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept
+    {
+        g_free(handle);
+        return true;
+    }
+};
+
+struct QGString : QUniqueHandle<QGstStringHandleTraits>
+{
+private:
+    using BaseClass = QUniqueHandle<QGstStringHandleTraits>;
+
 public:
-    QGString(const QGString &) = delete;
-    QGString(QGString &&) = delete;
+    using BaseClass::BaseClass;
 
-    explicit QGString(char *string) : str(string) { }
-    ~QGString() { g_free(str); }
-
-    QGString &operator=(const QGString &) = delete;
-    QGString &operator=(QGString &&) = delete;
-
-    explicit operator QByteArray() const { return QByteArray(str); }
-    explicit operator const char *() const { return str; }
+    QLatin1StringView asStringView() const { return QLatin1StringView{ get() }; }
 };
 
 inline QDebug operator<<(QDebug dbg, const QGString &str)
 {
-    dbg << (const char *)str;
+    dbg << str.get();
     return dbg;
 }
 
@@ -728,17 +734,6 @@ struct QGstClockHandleTraits
     static bool close(Type handle) noexcept
     {
         gst_object_unref(handle);
-        return true;
-    }
-};
-
-struct QGstStringHandleTraits
-{
-    using Type = gchar *;
-    static Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle) noexcept
-    {
-        g_free(handle);
         return true;
     }
 };
