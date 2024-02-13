@@ -187,7 +187,7 @@
     In this release the \l {http://ffmpeg.org}{FFmpeg framework} is set as the
     default backend on Windows, macOS, Android, and Linux except Yocto distribution.
 
-    The version shipped with Qt binary packages is \b{FFmpeg 6.0} and is tested
+    The version shipped with Qt binary packages is \b{FFmpeg 6.1} and is tested
     by the maintainers.
 
     \note See \l{Licenses and Attributions} regarding what components are removed
