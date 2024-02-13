@@ -8,9 +8,10 @@
 #include <qgstreameraudiooutput_p.h>
 #include <qgstreamervideooutput_p.h>
 #include <qgstreamervideosink_p.h>
-#include "qgstreamermessage_p.h"
+#include <qgstreamermessage_p.h>
 #include <qgstreameraudiodevice_p.h>
 #include <qgstappsrc_p.h>
+#include <qgst_debug_p.h>
 #include <qaudiodevice.h>
 
 #include <QtCore/qdir.h>
@@ -275,8 +276,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     if (message.isNull())
         return false;
 
-    qCDebug(qLcMediaPlayer) << "received bus message from" << message.source().name()
-                            << gst_message_type_get_name(message.type());
+    qCDebug(qLcMediaPlayer) << "received bus message:" << message;
 
     GstMessage* gm = message.message();
     switch (message.type()) {
@@ -285,8 +285,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         QUniqueHandle<QGstTagListHandleTraits> tagList;
         gst_message_parse_tag(gm, &tagList);
 
-        // qCDebug(qLcMediaPlayer) << "Got tags: " << message.source().name() <<
-        // gst_tag_list_to_string(tag_list);
+        qCDebug(qLcMediaPlayer) << "    Got tags: " << tagList.get();
         auto metaData = QGstreamerMetaData::fromGstTagList(tagList.get());
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
@@ -326,10 +325,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         GstState    pending;
 
         gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
-        qCDebug(qLcMediaPlayer) << "    state changed message"
-                                << gst_element_state_get_name(oldState)
-                                << gst_element_state_get_name(newState)
-                                << gst_element_state_get_name(pending);
+        qCDebug(qLcMediaPlayer) << "    state changed message" << oldState << newState << pending;
 
         switch (newState) {
         case GST_STATE_VOID_PENDING:
@@ -393,7 +389,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         GError *err;
         gchar *debug;
         gst_message_parse_warning (gm, &err, &debug);
-        qCWarning(qLcMediaPlayer) << "Warning:" << QString::fromUtf8(err->message);
+        qCWarning(qLcMediaPlayer) << "Warning:" << err;
         playerPipeline.dumpGraph("warning");
         g_error_free (err);
         g_free (debug);
@@ -404,7 +400,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             GError *err;
             gchar *debug;
             gst_message_parse_info (gm, &err, &debug);
-            qCDebug(qLcMediaPlayer) << "Info:" << QString::fromUtf8(err->message);
+            qCDebug(qLcMediaPlayer) << "Info:" << err;
             g_error_free (err);
             g_free (debug);
         }
@@ -868,10 +864,9 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
         QUniqueHandle<QGstTagListHandleTraits> tagList;
 
         g_object_get(sinkPad.object(), "tags", &tagList, nullptr);
-        if (tagList) {
-            qCDebug(qLcMediaPlayer)
-                    << "    tags=" << QGString(gst_tag_list_to_string(tagList.get()));
-        } else
+        if (tagList)
+            qCDebug(qLcMediaPlayer) << "    tags=" << tagList.get();
+        else
             qCDebug(qLcMediaPlayer) << "    tags=(null)";
     }
 

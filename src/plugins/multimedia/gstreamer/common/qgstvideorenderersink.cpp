@@ -11,8 +11,10 @@
 #include <QtCore/private/quniquehandle_p.h>
 
 #include <private/qfactoryloader_p.h>
-#include "qgstvideobuffer_p.h"
-#include "qgstreamervideosink_p.h"
+#include <qgstvideobuffer_p.h>
+#include <qgstreamervideosink_p.h>
+#include <qgst_debug_p.h>
+#include <qgstutils_p.h>
 
 #include "qgstvideorenderersink_p.h"
 
@@ -21,7 +23,6 @@
 #include <qloggingcategory.h>
 #include <qdebug.h>
 
-#include "qgstutils_p.h"
 
 #include <rhi/qrhi.h>
 #if QT_CONFIG(gstreamer_gl)
@@ -340,7 +341,7 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
 
             m_flushed = false;
 
-            auto meta = gst_buffer_get_video_crop_meta (buffer);
+            GstVideoCropMeta *meta = gst_buffer_get_video_crop_meta(buffer);
             if (meta) {
                 QRect vp(meta->x, meta->y, meta->width, meta->height);
                 if (m_format.viewport() != vp) {
