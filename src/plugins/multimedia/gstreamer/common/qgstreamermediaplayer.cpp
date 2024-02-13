@@ -473,7 +473,7 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
     auto caps = pad.currentCaps();
     auto type = caps.at(0).name();
     qCDebug(qLcMediaPlayer) << "Received new pad" << pad.name() << "from" << src.name() << "type" << type;
-    qCDebug(qLcMediaPlayer) << "    " << caps.toString();
+    qCDebug(qLcMediaPlayer) << "    " << caps;
 
     TrackType streamType = NTrackTypes;
     if (type.startsWith("video/x-raw")) {
@@ -810,7 +810,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     auto caps = topology["caps"].toCaps();
     auto structure = caps.at(0);
     auto fileFormat = QGstreamerFormatInfo::fileFormatForCaps(structure);
-    qCDebug(qLcMediaPlayer) << caps.toString() << fileFormat;
+    qCDebug(qLcMediaPlayer) << caps << fileFormat;
     m_metaData.insert(QMediaMetaData::FileFormat, QVariant::fromValue(fileFormat));
     m_metaData.insert(QMediaMetaData::Duration, duration());
     m_metaData.insert(QMediaMetaData::Url, m_url);
@@ -840,11 +840,11 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
         if (structure.name().startsWith("audio/")) {
             auto codec = QGstreamerFormatInfo::audioCodecForCaps(structure);
             m_metaData.insert(QMediaMetaData::AudioCodec, QVariant::fromValue(codec));
-            qCDebug(qLcMediaPlayer) << "    audio" << caps.toString() << (int)codec;
+            qCDebug(qLcMediaPlayer) << "    audio" << caps << (int)codec;
         } else if (structure.name().startsWith("video/")) {
             auto codec = QGstreamerFormatInfo::videoCodecForCaps(structure);
             m_metaData.insert(QMediaMetaData::VideoCodec, QVariant::fromValue(codec));
-            qCDebug(qLcMediaPlayer) << "    video" << caps.toString() << (int)codec;
+            qCDebug(qLcMediaPlayer) << "    video" << caps << (int)codec;
             auto framerate = structure["framerate"].getFraction();
             if (framerate)
                 m_metaData.insert(QMediaMetaData::VideoFrameRate, *framerate);
