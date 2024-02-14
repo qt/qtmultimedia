@@ -146,22 +146,20 @@ QAudio::State QPulseAudioSink::state() const
 
 void QPulseAudioSink::streamUnderflowCallback()
 {
-    if (m_audioSource && m_audioSource->atEnd()) {
-        if (m_stateMachine.state() != QAudio::StoppedState) {
-            qCDebug(qLcPulseAudioOut) << "Draining stream at end of buffer";
-            exchangeDrainOperation(pa_stream_drain(m_stream, outputStreamDrainComplete, this));
-        }
-    } else if (!m_resuming) {
-        m_stateMachine.updateActiveOrIdle(false, QAudio::UnderrunError);
+    bool atEnd = m_audioSource && m_audioSource->atEnd();
+    if (atEnd && m_stateMachine.state() != QAudio::StoppedState) {
+        qCDebug(qLcPulseAudioOut) << "Draining stream at end of buffer";
+        exchangeDrainOperation(pa_stream_drain(m_stream, outputStreamDrainComplete, this));
     }
+
+    m_stateMachine.updateActiveOrIdle(
+            false, (m_pullMode && atEnd) ? QAudio::NoError : QAudio::UnderrunError);
 }
 
 void QPulseAudioSink::streamDrainedCallback()
 {
     if (!exchangeDrainOperation(nullptr))
         return;
-
-    m_stateMachine.updateActiveOrIdle(false);
 }
 
 void QPulseAudioSink::start(QIODevice *device)
@@ -180,17 +178,18 @@ void QPulseAudioSink::start(QIODevice *device)
     gettimeofday(&lastTimingInfo, nullptr);
     lastProcessedUSecs = 0;
 
-    connect(m_audioSource, &QIODevice::readyRead, this, &QPulseAudioSink::startReading);
+    connect(m_audioSource, &QIODevice::readyRead, this, &QPulseAudioSink::startPulling);
 
     m_stateMachine.start();
 }
 
-void QPulseAudioSink::startReading()
+void QPulseAudioSink::startPulling()
 {
+    Q_ASSERT(m_pullMode);
     if (m_tickTimer.isActive())
         return;
 
-    m_tickTimer.start((m_pullMode ? m_pullingPeriodTime : SinkPeriodTimeMs), this);
+    m_tickTimer.start(m_pullingPeriodTime, this);
 }
 
 void QPulseAudioSink::stopTimer()
@@ -366,7 +365,8 @@ bool QPulseAudioSink::open()
 
     m_opened = true;
 
-    startReading();
+    if (m_pullMode)
+        startPulling();
 
     m_elapsedTimeOffset = 0;
 
@@ -412,20 +412,13 @@ void QPulseAudioSink::close()
     }
 
     m_opened = false;
-    m_resuming = false;
     m_audioBuffer.clear();
 }
 
 void QPulseAudioSink::timerEvent(QTimerEvent *event)
 {
-    if (event->timerId() == m_tickTimer.timerId()) {
-        m_resuming = false;
-
-        if (m_pullMode)
-            userFeed();
-        else if (state() == QAudio::IdleState)
-            m_stateMachine.setError(QAudio::UnderrunError);
-    }
+    if (event->timerId() == m_tickTimer.timerId() && m_pullMode)
+        userFeed();
 
     QPlatformAudioSink::timerEvent(event);
 }
@@ -461,16 +454,12 @@ void QPulseAudioSink::userFeed()
 
         m_stateMachine.activateFromIdle();
 
-        if (inputSize < writableSize) {
-            // PulseAudio needs more data.
+        if (inputSize < writableSize) // PulseAudio needs more data.
             QMetaObject::invokeMethod(this, &QPulseAudioSink::userFeed, Qt::QueuedConnection);
-        }
     } else if (audioBytesPulled == 0) {
         stopTimer();
         const auto atEnd = m_audioSource->atEnd();
         qCDebug(qLcPulseAudioOut) << "No more data available, source is done:" << atEnd;
-
-        m_stateMachine.updateActiveOrIdle(false, atEnd ? QAudio::NoError : QAudio::UnderrunError);
     }
 }
 
@@ -640,8 +629,6 @@ qint64 QPulseAudioSink::processedUSecs() const
 void QPulseAudioSink::resume()
 {
     if (auto notifier = m_stateMachine.resume()) {
-        m_resuming = true;
-
         {
             QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
 
@@ -655,7 +642,8 @@ void QPulseAudioSink::resume()
             pulseEngine->wait(operation.get());
         }
 
-        startReading();
+        if (m_pullMode)
+            startPulling();
     }
 }
 
