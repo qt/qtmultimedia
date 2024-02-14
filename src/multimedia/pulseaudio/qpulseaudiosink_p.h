@@ -66,7 +66,7 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
-    void startReading();
+    void startPulling();
     void stopTimer();
 
     bool open();
@@ -107,7 +107,6 @@ private:
     int m_pullingPeriodTime = 0;
     bool m_pullMode = true;
     bool m_opened = false;
-    bool m_resuming = false;
 
     QAudioStateMachine m_stateMachine;
 };
