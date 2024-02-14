@@ -468,6 +468,34 @@ QGstreamerMessage QGstStructure::getMessage()
     return QGstreamerMessage(message, QGstreamerMessage::HasRef);
 }
 
+std::optional<Fraction> QGstStructure::pixelAspectRatio() const
+{
+    gint numerator;
+    gint denominator;
+    if (gst_structure_get_fraction(structure, "pixel-aspect-ratio", &numerator, &denominator)) {
+        return Fraction{
+            numerator,
+            denominator,
+        };
+    }
+
+    return std::nullopt;
+}
+
+QSize QGstStructure::nativeSize() const
+{
+    QSize size = resolution();
+    if (!size.isValid()) {
+        qWarning() << Q_FUNC_INFO << "invalid resolution when querying nativeSize";
+        return size;
+    }
+
+    std::optional<Fraction> par = pixelAspectRatio();
+    if (par)
+        size = qCalculateFrameSize(size, *par);
+    return size;
+}
+
 GList *qt_gst_video_sinks()
 {
     return gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_SINK

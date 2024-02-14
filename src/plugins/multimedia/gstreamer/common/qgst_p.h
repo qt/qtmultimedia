@@ -16,6 +16,7 @@
 //
 
 #include <private/qtmultimediaglobal_p.h>
+#include <private/qmultimediautils_p.h>
 
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qlist.h>
@@ -237,6 +238,8 @@ public:
     Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat pixelFormat() const;
     Q_MULTIMEDIA_EXPORT QGRange<float> frameRateRange() const;
     Q_MULTIMEDIA_EXPORT QGstreamerMessage getMessage();
+    Q_MULTIMEDIA_EXPORT std::optional<Fraction> pixelAspectRatio() const;
+    Q_MULTIMEDIA_EXPORT QSize nativeSize() const;
 
     QGstStructure copy() const { return gst_structure_copy(structure); }
 };
