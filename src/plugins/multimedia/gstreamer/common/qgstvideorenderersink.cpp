@@ -318,7 +318,14 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             locker->unlock();
 
             m_flushed = true;
-            m_format = startCaps.formatForCaps(&m_videoInfo);
+            auto optionalFormatAndVideoInfo = startCaps.formatAndVideoInfo();
+            if (optionalFormatAndVideoInfo) {
+                std::tie(m_format, m_videoInfo) = std::move(*optionalFormatAndVideoInfo);
+            } else {
+                m_format = {};
+                m_videoInfo = {};
+            }
+
             memoryFormat = startCaps.memoryFormat();
 
             locker->relock();
