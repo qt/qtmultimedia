@@ -276,15 +276,9 @@ public:
     int size() const { return int(gst_caps_get_size(get())); }
     QGstStructure at(int index) const { return gst_caps_get_structure(get(), index); }
     GstCaps *caps() const { return get(); }
-    MemoryFormat memoryFormat() const {
-        auto *features = gst_caps_get_features(get(), 0);
-        if (gst_caps_features_contains(features, "memory:GLMemory"))
-            return GLTexture;
-        else if (gst_caps_features_contains(features, "memory:DMABuf"))
-            return DMABuf;
-        return CpuMemory;
-    }
-    QVideoFrameFormat formatForCaps(GstVideoInfo *info) const;
+
+    MemoryFormat memoryFormat() const;
+    std::optional<std::pair<QVideoFrameFormat, GstVideoInfo>> formatAndVideoInfo() const;
 
     void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier = nullptr);
 

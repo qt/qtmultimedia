@@ -166,11 +166,15 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     emit readyForCaptureChanged(isReadyForCapture());
 
     auto caps = QGstCaps(gst_pad_get_current_caps(bin.staticPad("sink").pad()), QGstCaps::HasRef);
-    GstVideoInfo previewInfo;
-    gst_video_info_from_caps(&previewInfo, caps.caps());
 
     auto memoryFormat = caps.memoryFormat();
-    auto fmt = caps.formatForCaps(&previewInfo);
+
+    GstVideoInfo previewInfo;
+    QVideoFrameFormat fmt;
+    auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
+    if (optionalFormatAndVideoInfo)
+        std::tie(fmt, previewInfo) = std::move(*optionalFormatAndVideoInfo);
+
     auto *sink = m_session->gstreamerVideoSink();
     auto *gstBuffer = new QGstVideoBuffer(buffer, previewInfo, sink, fmt, memoryFormat);
     QVideoFrame frame(gstBuffer, fmt);
