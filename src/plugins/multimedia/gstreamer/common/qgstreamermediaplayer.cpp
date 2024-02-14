@@ -852,10 +852,10 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
             auto framerate = structure["framerate"].getFraction();
             if (framerate)
                 m_metaData.insert(QMediaMetaData::VideoFrameRate, *framerate);
-            auto width = structure["width"].toInt();
-            auto height = structure["height"].toInt();
-            if (width && height)
-                m_metaData.insert(QMediaMetaData::Resolution, QSize(*width, *height));
+
+            QSize resolution = structure.resolution();
+            if (resolution.isValid())
+                m_metaData.insert(QMediaMetaData::Resolution, resolution);
         }
     }
 
