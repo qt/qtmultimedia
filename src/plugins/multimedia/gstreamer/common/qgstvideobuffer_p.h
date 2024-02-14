@@ -33,9 +33,6 @@ public:
 
     QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,
                     const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
-    QGstVideoBuffer(GstBuffer *buffer, const QVideoFrameFormat &format, const GstVideoInfo &info)
-        : QGstVideoBuffer(buffer, info, nullptr, format, QGstCaps::CpuMemory)
-    {}
     ~QGstVideoBuffer();
 
     GstBuffer *buffer() const { return m_buffer; }
@@ -47,8 +44,8 @@ public:
     std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) override;
 
 private:
-    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
-    QVideoFrameFormat m_frameFormat;
+    const QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
+    const QVideoFrameFormat m_frameFormat;
     QRhi *m_rhi = nullptr;
     mutable GstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame;
