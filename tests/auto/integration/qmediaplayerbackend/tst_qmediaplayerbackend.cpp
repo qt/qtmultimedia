@@ -2359,19 +2359,30 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
         QCOMPARE(audioTracks.front().value(QMediaMetaData::Duration), expectedAudioTrackDuration);
 }
 
-static std::vector<std::pair<qint64, qint64>>
-positionChangingIntervals(const QSignalSpy &positionSpy)
+struct LoopIteration {
+    qint64 startPos;
+    qint64 endPos;
+    qint64 posCount;
+};
+// Creates a vector of LoopIterations, containing start- and end position
+// and the number of position changes per video loop iteration.
+static std::vector<LoopIteration> loopIterations(const QSignalSpy &positionSpy)
 {
-    std::vector<std::pair<qint64, qint64>> result;
+    std::vector<LoopIteration> result;
+    // Loops through all positions emitted by QMediaPlayer::positionChanged
     for (auto &params : positionSpy) {
         const auto pos = params.front().value<qint64>();
 
-        if (result.empty() || pos < result.back().second)
-            result.emplace_back(pos, pos);
-        else
-            result.back().second = pos;
+        // Adds new LoopIteration struct to result if position is lower than previous position
+        if (result.empty() || pos < result.back().endPos) {
+            result.push_back(LoopIteration{pos, pos, 1});
+        }
+        // Updates end position of the current LoopIteration if position is higher than previous position
+        else {
+            result.back().posCount++;
+            result.back().endPos = pos;
+        }
     }
-
     return result;
 }
 
@@ -2385,53 +2396,54 @@ void tst_QMediaPlayerBackend::finiteLoops()
               "investigated: QTBUG-111744");
 #endif
 
-    TestVideoSink surface(false);
-    QMediaPlayer player;
+    m_fixture->surface.setStoreFrames(false);
 
-    QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
+    QCOMPARE(m_fixture->player.loops(), 1);
+    m_fixture->player.setLoops(3);
+    QCOMPARE(m_fixture->player.loops(), 3);
 
-    player.setVideoOutput(&surface);
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
+    m_fixture->player.setPlaybackRate(5);
+    QCOMPARE(m_fixture->player.loops(), 3);
 
-    QCOMPARE(player.loops(), 1);
-    player.setLoops(3);
-    QCOMPARE(player.loops(), 3);
-
-    player.setSource(*m_localVideoFile3ColorsWithSound);
-    player.setPlaybackRate(5);
-
-    player.play();
-    surface.waitForFrame();
+    m_fixture->player.play();
+    m_fixture->surface.waitForFrame();
 
     // check pause doesn't affect looping
     {
-        QTest::qWait(static_cast<int>(player.duration() * 3
-                                      * 0.6 /*relative pos*/ / player.playbackRate()));
-        player.pause();
-        player.play();
+        QTest::qWait(static_cast<int>(m_fixture->player.duration() * 3
+                                      * 0.6 /*relative pos*/ / m_fixture->player.playbackRate()));
+        m_fixture->player.pause();
+        m_fixture->player.play();
     }
 
-    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
 
-    auto intervals = positionChangingIntervals(positionSpy);
+    // Check for expected number of loop iterations and startPos, endPos and posCount per iteration
+    std::vector<LoopIteration> iterations = loopIterations(m_fixture->positionChanged);
+    QCOMPARE(iterations.size(), 3u);
+    QCOMPARE_GT(iterations[0].startPos, 0);
+    QCOMPARE(iterations[0].endPos, m_fixture->player.duration());
+    QCOMPARE_GT(iterations[0].posCount, 10);
+    QCOMPARE(iterations[1].startPos, 0);
+    QCOMPARE(iterations[1].endPos, m_fixture->player.duration());
+    QCOMPARE_GT(iterations[1].posCount, 10);
+    QCOMPARE(iterations[2].startPos, 0);
+    QCOMPARE(iterations[2].endPos, m_fixture->player.duration());
+    QCOMPARE_GT(iterations[2].posCount, 10);
 
-    QCOMPARE(intervals.size(), 3u);
-    QCOMPARE_GT(intervals[0].first, 0);
-    QCOMPARE(intervals[0].second, player.duration());
-    QCOMPARE(intervals[1], std::make_pair(qint64(0), player.duration()));
-    QCOMPARE(intervals[2], std::make_pair(qint64(0), player.duration()));
+    QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
-    QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
-
-    // be sure that counter is reset if repeat the same
+    // Check that loop counter is reset when playback is restarted.
     {
-        positionSpy.clear();
-        player.play();
-        player.setPlaybackRate(10);
-        surface.waitForFrame();
+        m_fixture->positionChanged.clear();
+        m_fixture->player.play();
+        m_fixture->player.setPlaybackRate(10);
+        m_fixture->surface.waitForFrame();
 
-        QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
-        QCOMPARE(positionChangingIntervals(positionSpy).size(), 3u);
-        QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+        QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+        QCOMPARE(loopIterations(m_fixture->positionChanged).size(), 3u);
+        QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
     }
 }
 
@@ -2468,9 +2480,9 @@ void tst_QMediaPlayerBackend::infiniteLoops()
                 || m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia);
         QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
 
-        const auto intervals = positionChangingIntervals(m_fixture->positionChanged);
-        QVERIFY(!intervals.empty());
-        QCOMPARE(intervals.front().second, m_fixture->player.duration());
+        const auto iterations = loopIterations(m_fixture->positionChanged);
+        QVERIFY(!iterations.empty());
+        QCOMPARE(iterations.front().endPos, m_fixture->player.duration());
     }
 
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
@@ -2525,13 +2537,18 @@ void tst_QMediaPlayerBackend::seekOnLoops()
 
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
 
-    auto intervals = positionChangingIntervals(positionSpy);
+    auto iterations = loopIterations(positionSpy);
 
-    QCOMPARE(intervals.size(), 3u);
-    QCOMPARE_GT(intervals[0].first, 0);
-    QCOMPARE(intervals[0].second, player.duration());
-    QCOMPARE(intervals[1], std::make_pair(qint64(0), player.duration()));
-    QCOMPARE(intervals[2], std::make_pair(qint64(0), player.duration()));
+    QCOMPARE(iterations.size(), 3u);
+    QCOMPARE_GT(iterations[0].startPos, 0);
+    QCOMPARE(iterations[0].endPos, player.duration());
+    QCOMPARE_GT(iterations[0].posCount, 2);
+    QCOMPARE(iterations[1].startPos, 0);
+    QCOMPARE(iterations[1].endPos, player.duration());
+    QCOMPARE_GT(iterations[1].posCount, 2);
+    QCOMPARE(iterations[2].startPos, 0);
+    QCOMPARE(iterations[2].endPos, player.duration());
+    QCOMPARE_GT(iterations[2].posCount, 2);
 
     QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 }
@@ -2572,10 +2589,12 @@ void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
-    auto intervals = positionChangingIntervals(positionSpy);
-    QCOMPARE(intervals.size(), 2u);
+    auto iterations = loopIterations(positionSpy);
+    QCOMPARE(iterations.size(), 2u);
 
-    QCOMPARE(intervals[1], std::make_pair(qint64(0), player.duration()));
+    QCOMPARE(iterations[1].startPos, 0);
+    QCOMPARE(iterations[1].endPos, player.duration());
+    QCOMPARE_GT(iterations[1].posCount, 2);
 }
 
 void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
