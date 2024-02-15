@@ -61,7 +61,7 @@ QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc 
     //    g_signal_connect (gstDecodeBin, "pad-added", (GCallback) padAdded, conv);
 
     const auto *audioInfo = static_cast<const QGStreamerAudioDeviceInfo *>(device.handle());
-    gstOutput = gst_device_create_element(audioInfo->gstDevice, nullptr);
+    gstOutput = QGstElement(gst_device_create_element(audioInfo->gstDevice, nullptr));
 
     gstPipeline.add(gstAppSrc, queue, /*gstDecodeBin, */ audioconvert, gstVolume, gstOutput);
     gstAppSrc.link(queue, audioconvert, gstVolume, gstOutput);

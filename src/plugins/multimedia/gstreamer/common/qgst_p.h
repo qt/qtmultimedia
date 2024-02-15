@@ -55,16 +55,23 @@ class QGString
 {
     char *str;
 public:
-    QGString(char *string) : str(string) {}
+    QGString(const QGString &) = delete;
+    QGString(QGString &&) = delete;
+
+    explicit QGString(char *string) : str(string) { }
     ~QGString() { g_free(str); }
-    operator QByteArray() { return QByteArray(str); }
-    operator const char *() { return str; }
+
+    QGString &operator=(const QGString &) = delete;
+    QGString &operator=(QGString &&) = delete;
+
+    explicit operator QByteArray() const { return QByteArray(str); }
+    explicit operator const char *() const { return str; }
 };
 
 class QGValue
 {
 public:
-    QGValue(const GValue *v) : value(v) {}
+    explicit QGValue(const GValue *v) : value(v) { }
     const GValue *value;
 
     bool isNull() const { return !value; }
@@ -108,8 +115,8 @@ public:
     {
         if (!GST_VALUE_HOLDS_FRACTION_RANGE(value))
             return std::nullopt;
-        QGValue min = gst_value_get_fraction_range_min(value);
-        QGValue max = gst_value_get_fraction_range_max(value);
+        QGValue min = QGValue{ gst_value_get_fraction_range_min(value) };
+        QGValue max = QGValue{ gst_value_get_fraction_range_max(value) };
         return QGRange<float>{ *min.getFraction(), *max.getFraction() };
     }
 
@@ -125,7 +132,7 @@ public:
 
     inline bool isList() const { return value && GST_VALUE_HOLDS_LIST(value); }
     inline int listSize() const { return gst_value_list_get_size(value); }
-    inline QGValue at(int index) const { return gst_value_list_get_value(value, index); }
+    inline QGValue at(int index) const { return QGValue{ gst_value_list_get_value(value, index) }; }
 
     Q_MULTIMEDIA_EXPORT QList<QAudioFormat::SampleFormat> getSampleFormats() const;
 };
@@ -227,7 +234,10 @@ public:
 
     QByteArrayView name() const { return gst_structure_get_name(structure); }
 
-    QGValue operator[](const char *name) const { return gst_structure_get_value(structure, name); }
+    QGValue operator[](const char *name) const
+    {
+        return QGValue{ gst_structure_get_value(structure, name) };
+    }
 
     Q_MULTIMEDIA_EXPORT QSize resolution() const;
     Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat pixelFormat() const;
@@ -329,7 +339,12 @@ public:
     void set(const char *property, const QGstCaps &c) { g_object_set(m_object, property, c.get(), nullptr); }
 
     QGString getString(const char *property) const
-    { char *s = nullptr; g_object_get(m_object, property, &s, nullptr); return s; }
+    {
+        char *s = nullptr;
+        g_object_get(m_object, property, &s, nullptr);
+        return QGString(s);
+    }
+
     QGstStructure getStructure(const char *property) const
     { GstStructure *s = nullptr; g_object_get(m_object, property, &s, nullptr); return QGstStructure(s); }
     bool getBool(const char *property) const { gboolean b = false; g_object_get(m_object, property, &b, nullptr); return b; }
@@ -356,8 +371,8 @@ public:
     QGstPad(const QGstPad &) = default;
     QGstPad(QGstPad &&) noexcept = default;
 
-    QGstPad(const QGstObject &o) : QGstPad(GST_PAD(o.object()), NeedsRef) { }
-    QGstPad(GstPad *pad, RefMode mode = NeedsRef) : QGstObject(&pad->object, mode) { }
+    explicit QGstPad(const QGstObject &o) : QGstPad(GST_PAD(o.object()), NeedsRef) { }
+    explicit QGstPad(GstPad *pad, RefMode mode = NeedsRef) : QGstObject(&pad->object, mode) { }
 
     QGstPad &operator=(const QGstPad &) = default;
     QGstPad &operator=(QGstPad &&) noexcept = default;
@@ -427,12 +442,10 @@ class QGstClock : public QGstObject
 {
 public:
     QGstClock() = default;
-    QGstClock(const QGstObject &o)
-        : QGstClock(GST_CLOCK(o.object()))
-    {}
-    QGstClock(GstClock *clock, RefMode mode = NeedsRef)
-        : QGstObject(&clock->object, mode)
-    {}
+    explicit QGstClock(const QGstObject &o) : QGstClock(GST_CLOCK(o.object())) { }
+    explicit QGstClock(GstClock *clock, RefMode mode = NeedsRef) : QGstObject(&clock->object, mode)
+    {
+    }
 
     GstClock *clock() const { return GST_CLOCK_CAST(object()); }
 
@@ -449,7 +462,8 @@ public:
     QGstElement &operator=(const QGstElement &) = default;
     QGstElement &operator=(QGstElement &&) noexcept = default;
 
-    QGstElement(GstElement *element, RefMode mode = NeedsRef) : QGstObject(&element->object, mode)
+    explicit QGstElement(GstElement *element, RefMode mode = NeedsRef)
+        : QGstObject(&element->object, mode)
     {
     }
 
@@ -578,10 +592,8 @@ public:
     QGstBin &operator=(const QGstBin &) = default;
     QGstBin &operator=(QGstBin &&) noexcept = default;
 
-    QGstBin(const char *name) : QGstElement(gst_bin_new(name), NeedsRef) { }
-    QGstBin(GstBin *bin, RefMode mode = NeedsRef)
-        : QGstElement(&bin->element, mode)
-    {}
+    explicit QGstBin(const char *name) : QGstElement(gst_bin_new(name), NeedsRef) { }
+    explicit QGstBin(GstBin *bin, RefMode mode = NeedsRef) : QGstElement(&bin->element, mode) { }
 
     void add(const QGstElement &element)
     { gst_bin_add(bin(), element.element()); }

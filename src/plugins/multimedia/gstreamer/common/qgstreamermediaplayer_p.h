@@ -99,7 +99,10 @@ private:
         void removeAllInputPads();
         QGstPad inputPad(int index);
         int activeInputIndex() const { return isConnected ? tracks.indexOf(activeInputPad()) : -1; }
-        QGstPad activeInputPad() const { return isConnected ? selector.getObject("active-pad") : QGstPad{}; }
+        QGstPad activeInputPad() const
+        {
+            return isConnected ? QGstPad{ selector.getObject("active-pad") } : QGstPad{};
+        }
         void setActiveInputPad(QGstPad input) { selector.set("active-pad", input); }
         int trackCount() const { return tracks.count(); }
 

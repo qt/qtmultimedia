@@ -64,7 +64,7 @@ public:
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
 private:
-    QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput);
+    explicit QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput);
 
     friend QGstreamerMediaEncoder;
     // Gst elements

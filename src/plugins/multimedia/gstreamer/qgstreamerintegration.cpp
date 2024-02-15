@@ -23,9 +23,7 @@ class QGstreamerMediaPlugin : public QPlatformMediaPlugin
     Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "gstreamer.json")
 
 public:
-    QGstreamerMediaPlugin()
-        : QPlatformMediaPlugin()
-    {}
+    QGstreamerMediaPlugin() = default;
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
