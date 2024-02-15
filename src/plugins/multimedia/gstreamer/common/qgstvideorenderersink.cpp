@@ -118,7 +118,7 @@ QGstCaps QGstVideoRenderer::caps()
 
 bool QGstVideoRenderer::start(const QGstCaps& caps)
 {
-    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << caps.toString();
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << caps;
     QMutexLocker locker(&m_mutex);
 
     m_frameMirrored = false;
@@ -573,7 +573,7 @@ gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *gcaps)
 
     auto caps = QGstCaps(gcaps, QGstCaps::NeedsRef);
 
-    qCDebug(qLcGstVideoRenderer) << "set_caps:" << caps.toString();
+    qCDebug(qLcGstVideoRenderer) << "set_caps:" << caps;
 
     if (caps.isNull()) {
         sink->renderer->stop();

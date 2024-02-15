@@ -33,9 +33,7 @@
 #include <gst/interfaces/photography.h>
 #undef GST_USE_UNSTABLE_API
 #endif
-#ifndef QT_NO_DEBUG
 #include <qdebug.h>
-#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -67,6 +65,12 @@ public:
     explicit operator QByteArray() const { return QByteArray(str); }
     explicit operator const char *() const { return str; }
 };
+
+inline QDebug operator<<(QDebug dbg, const QGString &str)
+{
+    dbg << (const char *)str;
+    return dbg;
+}
 
 class QGValue
 {
@@ -276,7 +280,6 @@ public:
 
     enum MemoryFormat { CpuMemory, GLTexture, DMABuf };
 
-    QByteArray toString() const { return toString(get()); }
     int size() const { return int(gst_caps_get_size(get())); }
     QGstStructure at(int index) const { return gst_caps_get_structure(get(), index); }
     GstCaps *caps() const { return get(); }
@@ -296,16 +299,20 @@ public:
         return QGstCaps(gst_caps_new_empty(), HasRef);
     }
 
-    static QByteArray toString(const GstCaps *caps)
-    {
-        gchar *c = gst_caps_to_string(caps);
-        QByteArray b(c);
-        g_free(c);
-        return b;
-    }
-
     static QGstCaps fromCameraFormat(const QCameraFormat &format);
 };
+
+inline QDebug operator<<(QDebug dbg, const GstCaps *caps)
+{
+    dbg << QGString(gst_caps_to_string(caps));
+    return dbg;
+}
+
+inline QDebug operator<<(QDebug dbg, const QGstCaps &caps)
+{
+    dbg << caps.caps();
+    return dbg;
+}
 
 template <>
 struct QGstPointerImpl::QGstRefcountingAdaptor<GstObject>
