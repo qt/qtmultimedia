@@ -18,6 +18,7 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/quniquehandle_p.h>
 #include <QtNetwork/qnetworkaccessmanager.h>
 #include <QtNetwork/qnetworkreply.h>
 
@@ -125,7 +126,11 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
     playerPipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.installMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
 
-    gst_pipeline_use_clock(playerPipeline.pipeline(), gst_system_clock_obtain());
+    QUniqueHandle<QGstClockHandleTraits> systemClock{
+        gst_system_clock_obtain(),
+    };
+
+    gst_pipeline_use_clock(playerPipeline.pipeline(), systemClock.get());
 
     /* Taken from gstdicoverer.c:
      * This is ugly. We get the GType of decodebin so we can quickly detect
@@ -277,10 +282,12 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     switch (message.type()) {
     case GST_MESSAGE_TAG: {
         // #### This isn't ideal. We shouldn't catch stream specific tags here, rather the global ones
-        GstTagList *tag_list;
-        gst_message_parse_tag(gm, &tag_list);
-        //qCDebug(qLcMediaPlayer) << "Got tags: " << message.source().name() << gst_tag_list_to_string(tag_list);
-        auto metaData = QGstreamerMetaData::fromGstTagList(tag_list);
+        QUniqueHandle<QGstTagListHandleTraits> tagList;
+        gst_message_parse_tag(gm, &tagList);
+
+        // qCDebug(qLcMediaPlayer) << "Got tags: " << message.source().name() <<
+        // gst_tag_list_to_string(tag_list);
+        auto metaData = QGstreamerMetaData::fromGstTagList(tagList.get());
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
         break;
@@ -816,9 +823,10 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     m_metaData.insert(QMediaMetaData::Url, m_url);
     QGValue tags = topology["tags"];
     if (!tags.isNull()) {
-        GstTagList *tagList = nullptr;
+        QUniqueHandle<QGstTagListHandleTraits> tagList;
         gst_structure_get(topology.structure, "tags", GST_TYPE_TAG_LIST, &tagList, nullptr);
-        const auto metaData = QGstreamerMetaData::fromGstTagList(tagList);
+
+        const auto metaData = QGstreamerMetaData::fromGstTagList(tagList.get());
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
     }
@@ -857,11 +865,14 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
 
     auto sinkPad = trackSelector(VideoStream).activeInputPad();
     if (!sinkPad.isNull()) {
-        bool hasTags = g_object_class_find_property (G_OBJECT_GET_CLASS (sinkPad.object()), "tags") != NULL;
+        QUniqueHandle<QGstTagListHandleTraits> tagList;
 
-        GstTagList *tl = nullptr;
-        g_object_get(sinkPad.object(), "tags", &tl, nullptr);
-        qCDebug(qLcMediaPlayer) << "    tags=" << hasTags << (tl ? gst_tag_list_to_string(tl) : "(null)");
+        g_object_get(sinkPad.object(), "tags", &tagList, nullptr);
+        if (tagList) {
+            qCDebug(qLcMediaPlayer)
+                    << "    tags=" << QGString(gst_tag_list_to_string(tagList.get()));
+        } else
+            qCDebug(qLcMediaPlayer) << "    tags=(null)";
     }
 
 
@@ -881,10 +892,10 @@ QMediaMetaData QGstreamerMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackT
     if (track.isNull())
         return {};
 
-    GstTagList *tagList = nullptr;
+    QUniqueHandle<QGstTagListHandleTraits> tagList;
     g_object_get(track.object(), "tags", &tagList, nullptr);
 
-    return tagList ? QGstreamerMetaData::fromGstTagList(tagList) : QMediaMetaData{};
+    return tagList ? QGstreamerMetaData::fromGstTagList(tagList.get()) : QMediaMetaData{};
 }
 
 int QGstreamerMediaPlayer::activeTrack(TrackType type)
