@@ -11,7 +11,8 @@
 #include "qgstreameraudiooutput_p.h"
 #include "qgstreamervideooutput_p.h"
 
-#include <qloggingcategory.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/private/quniquehandle_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -55,7 +56,11 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutpu
     // the clock is sourced from the elements (e.g. from an audio source).
     // Since the elements are added and removed dynamically the clock would
     // also change causing lost of synchronization in the pipeline.
-    gst_pipeline_use_clock(gstPipeline.pipeline(), gst_system_clock_obtain());
+
+    QUniqueHandle<QGstClockHandleTraits> systemClock{
+        gst_system_clock_obtain(),
+    };
+    gst_pipeline_use_clock(gstPipeline.pipeline(), systemClock.get());
 
     // This is the recording pipeline with only live sources, thus the pipeline
     // will be always in the playing state.
