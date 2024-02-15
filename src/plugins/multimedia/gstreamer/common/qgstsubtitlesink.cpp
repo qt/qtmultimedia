@@ -118,7 +118,7 @@ GstCaps *QGstSubtitleSink::get_caps(GstBaseSink *base, GstCaps *filter)
 
 gboolean QGstSubtitleSink::set_caps(GstBaseSink *base, GstCaps *caps)
 {
-    qDebug() << "set_caps:" << QGstCaps::toString(caps);
+    qDebug() << "set_caps:" << caps;
     return gst_sink_parent_class->set_caps(base, caps);
 }
 
