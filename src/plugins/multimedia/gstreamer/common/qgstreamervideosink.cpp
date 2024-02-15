@@ -59,7 +59,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     gstQueue.link(gstPreprocess);
     sinkBin.addGhostPad(gstQueue, "sink");
 
-    gstSubtitleSink = GST_ELEMENT(QGstSubtitleSink::createSink(this));
+    gstSubtitleSink = QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)));
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink()
