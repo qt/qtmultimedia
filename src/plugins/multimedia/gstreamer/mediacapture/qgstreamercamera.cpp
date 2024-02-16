@@ -58,9 +58,7 @@ QGstreamerCamera::QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFil
 QGstreamerCamera::~QGstreamerCamera()
 {
 #if QT_CONFIG(linux_v4l)
-    if (v4l2FileDescriptor >= 0)
-        qt_safe_close(v4l2FileDescriptor);
-    v4l2FileDescriptor = -1;
+    v4l2FileDescriptor.close();
 #endif
     gstCameraBin.setStateSync(GST_STATE_NULL);
 }
@@ -98,7 +96,7 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
         gstNewCamera = QGstElement(gst_device_create_element(device, "camerasrc"));
         if (QGstStructure properties = gst_device_get_properties(device); !properties.isNull()) {
             if (properties.name() == "v4l2deviceprovider")
-                m_v4l2Device = QString::fromUtf8(properties["device.path"].toString());
+                m_v4l2DevicePath = QString::fromUtf8(properties["device.path"].toString());
             properties.free();
         }
     }
@@ -615,63 +613,62 @@ void QGstreamerCamera::initV4L2Controls()
     v4l2ColorTemperatureSupported = false;
     QCamera::Features features;
 
+    Q_ASSERT(!m_v4l2DevicePath.isEmpty());
 
-    const QString deviceName = v4l2Device();
-    Q_ASSERT(!deviceName.isEmpty());
-
-    v4l2FileDescriptor = qt_safe_open(deviceName.toLocal8Bit().constData(), O_RDONLY);
-    if (v4l2FileDescriptor == -1) {
-        qWarning() << "Unable to open the camera" << deviceName
+    v4l2FileDescriptor = QFileDescriptorHandle{
+        qt_safe_open(m_v4l2DevicePath.toLocal8Bit().constData(), O_RDONLY),
+    };
+    if (!v4l2FileDescriptor) {
+        qWarning() << "Unable to open the camera" << m_v4l2DevicePath
                    << "for read to query the parameter info:" << qt_error_string(errno);
         return;
     }
 
-    struct v4l2_queryctrl queryControl;
-    ::memset(&queryControl, 0, sizeof(queryControl));
+    struct v4l2_queryctrl queryControl = {};
     queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
 
-    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2AutoWhiteBalanceSupported = true;
         setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, true);
     }
 
-    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl = {};
     queryControl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2MinColorTemp = queryControl.minimum;
         v4l2MaxColorTemp = queryControl.maximum;
         v4l2ColorTemperatureSupported = true;
         features |= QCamera::Feature::ColorTemperature;
     }
 
-    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl = {};
     queryControl.id = V4L2_CID_EXPOSURE_AUTO;
-    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2AutoExposureSupported = true;
     }
 
-    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl = {};
     queryControl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
-    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2ManualExposureSupported = true;
         v4l2MinExposure = queryControl.minimum;
         v4l2MaxExposure = queryControl.maximum;
         features |= QCamera::Feature::ManualExposureTime;
     }
 
-    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl = {};
     queryControl.id = V4L2_CID_AUTO_EXPOSURE_BIAS;
-    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_QUERYCTRL, &queryControl) == 0) {
         v4l2MinExposureAdjustment = queryControl.minimum;
         v4l2MaxExposureAdjustment = queryControl.maximum;
         features |= QCamera::Feature::ExposureCompensation;
     }
 
-    ::memset(&queryControl, 0, sizeof(queryControl));
+    queryControl = {};
     queryControl.id = V4L2_CID_ISO_SENSITIVITY_AUTO;
-    if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+    if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_QUERYCTRL, &queryControl) == 0) {
         queryControl.id = V4L2_CID_ISO_SENSITIVITY;
-        if (::ioctl(v4l2FileDescriptor, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_QUERYCTRL, &queryControl) == 0) {
             features |= QCamera::Feature::IsoSensitivity;
             minIsoChanged(queryControl.minimum);
             maxIsoChanged(queryControl.minimum);
@@ -683,9 +680,6 @@ void QGstreamerCamera::initV4L2Controls()
 
 int QGstreamerCamera::setV4L2ColorTemperature(int temperature)
 {
-    struct v4l2_control control;
-    ::memset(&control, 0, sizeof(control));
-
     if (v4l2AutoWhiteBalanceSupported) {
         setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, temperature == 0 ? true : false);
     } else if (temperature == 0) {
@@ -706,7 +700,7 @@ int QGstreamerCamera::setV4L2ColorTemperature(int temperature)
 bool QGstreamerCamera::setV4L2Parameter(quint32 id, qint32 value)
 {
     struct v4l2_control control{id, value};
-    if (::ioctl(v4l2FileDescriptor, VIDIOC_S_CTRL, &control) != 0) {
+    if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_S_CTRL, &control) != 0) {
         qWarning() << "Unable to set the V4L2 Parameter" << Qt::hex << id << "to" << value << qt_error_string(errno);
         return false;
     }
@@ -716,7 +710,7 @@ bool QGstreamerCamera::setV4L2Parameter(quint32 id, qint32 value)
 int QGstreamerCamera::getV4L2Parameter(quint32 id) const
 {
     struct v4l2_control control{id, 0};
-    if (::ioctl(v4l2FileDescriptor, VIDIOC_G_CTRL, &control) != 0) {
+    if (::ioctl(v4l2FileDescriptor.get(), VIDIOC_G_CTRL, &control) != 0) {
         qWarning() << "Unable to get the V4L2 Parameter" << Qt::hex << id << qt_error_string(errno);
         return 0;
     }
