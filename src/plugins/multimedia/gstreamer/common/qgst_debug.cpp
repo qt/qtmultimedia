@@ -33,6 +33,11 @@ QDebug operator<<(QDebug dbg, const QGstreamerMessage &msg)
     return dbg << msg.message();
 }
 
+QDebug operator<<(QDebug dbg, const QUniqueGErrorHandle &handle)
+{
+    return dbg << handle.get();
+}
+
 QDebug operator<<(QDebug dbg, const QGstElement &element)
 {
     return dbg << element.element();
@@ -129,8 +134,7 @@ QDebug operator<<(QDebug dbg, const GstDevice *device)
 
     dbg << gst_device_get_display_name(d) << "(" << gst_device_get_device_class(d) << ") ";
     dbg << "Caps: " << QGstCaps(gst_device_get_caps(d)) << ", ";
-    dbg << "Properties: "
-        << QUniqueHandle<QGstStructureHandleTraits>{ gst_device_get_properties(d) }.get();
+    dbg << "Properties: " << QUniqueGstStructureHandle{ gst_device_get_properties(d) }.get();
     return dbg;
 }
 

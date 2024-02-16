@@ -85,12 +85,10 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
     }
 
     if (msg.type() == GST_MESSAGE_ERROR) {
-        GError *err;
-        gchar *debug;
+        QUniqueGErrorHandle err;
+        QGString debug;
         gst_message_parse_error(msg.message(), &err, &debug);
-        error(QMediaRecorder::ResourceError, QString::fromUtf8(err->message));
-        g_error_free(err);
-        g_free(debug);
+        error(QMediaRecorder::ResourceError, QString::fromUtf8(err.get()->message));
         if (!m_finalizing)
             stop();
         finalize();

@@ -4,6 +4,7 @@
 
 #include "qgstreameraudiodecoder_p.h"
 #include "qgstreamermessage_p.h"
+#include "qgst_debug_p.h"
 
 #include <qgstutils_p.h>
 
@@ -93,14 +94,12 @@ void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *or
     if (!self->appsrc())
         return;
 
-    GstElement *appsrc;
+    QGstElementHandle appsrc;
     g_object_get(orig, "source", &appsrc, NULL);
 
     auto *qAppSrc = self->appsrc();
-    qAppSrc->setExternalAppSrc(QGstElement(appsrc));
+    qAppSrc->setExternalAppSrc(QGstElement(appsrc.get())); // CHECK: can we `release()`?
     qAppSrc->setup(self->mDevice);
-
-    g_object_unref(G_OBJECT(appsrc));
 }
 #endif
 
@@ -164,38 +163,32 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
                 break;
 
             case GST_MESSAGE_ERROR: {
-                GError *err;
-                gchar *debug;
+                QUniqueGErrorHandle err;
+                QGString debug;
                 gst_message_parse_error(gm, &err, &debug);
-                if (err->domain == GST_STREAM_ERROR
-                    && err->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
+                if (err.get()->domain == GST_STREAM_ERROR
+                    && err.get()->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
                     processInvalidMedia(QAudioDecoder::FormatError,
                                         tr("Cannot play stream of type: <unknown>"));
                 else
                     processInvalidMedia(QAudioDecoder::ResourceError,
-                                        QString::fromUtf8(err->message));
-                qWarning() << "Error:" << QString::fromUtf8(err->message);
-                g_error_free(err);
-                g_free(debug);
+                                        QString::fromUtf8(err.get()->message));
+                qWarning() << "Error:" << err;
                 break;
             }
             case GST_MESSAGE_WARNING: {
-                GError *err;
-                gchar *debug;
+                QUniqueGErrorHandle err;
+                QGString debug;
                 gst_message_parse_warning(gm, &err, &debug);
-                qWarning() << "Warning:" << QString::fromUtf8(err->message);
-                g_error_free(err);
-                g_free(debug);
+                qWarning() << "Warning:" << err;
                 break;
             }
 #ifdef DEBUG_DECODER
             case GST_MESSAGE_INFO: {
-                GError *err;
-                gchar *debug;
+                QUniqueGErrorHandle err;
+                QGString debug;
                 gst_message_parse_info(gm, &err, &debug);
-                qDebug() << "Info:" << QString::fromUtf8(err->message);
-                g_error_free(err);
-                g_free(debug);
+                qDebug() << "Info:" << err;
                 break;
             }
 #endif
@@ -203,12 +196,12 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
                 break;
             }
         } else if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ERROR) {
-            GError *err;
-            gchar *debug;
+            QUniqueGErrorHandle err;
+            QGString debug;
             gst_message_parse_error(gm, &err, &debug);
             QAudioDecoder::Error qerror = QAudioDecoder::ResourceError;
-            if (err->domain == GST_STREAM_ERROR) {
-                switch (err->code) {
+            if (err.get()->domain == GST_STREAM_ERROR) {
+                switch (err.get()->code) {
                 case GST_STREAM_ERROR_DECRYPT:
                 case GST_STREAM_ERROR_DECRYPT_NOKEY:
                     qerror = QAudioDecoder::AccessDeniedError;
@@ -224,8 +217,8 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
                 default:
                     break;
                 }
-            } else if (err->domain == GST_CORE_ERROR) {
-                switch (err->code) {
+            } else if (err.get()->domain == GST_CORE_ERROR) {
+                switch (err.get()->code) {
                 case GST_CORE_ERROR_MISSING_PLUGIN:
                     qerror = QAudioDecoder::FormatError;
                     break;
@@ -234,9 +227,7 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
                 }
             }
 
-            processInvalidMedia(qerror, QString::fromUtf8(err->message));
-            g_error_free(err);
-            g_free(debug);
+            processInvalidMedia(qerror, QString::fromUtf8(err.get()->message));
         }
     }
 
@@ -383,13 +374,13 @@ QAudioBuffer QGstreamerAudioDecoder::read()
         const char* bufferData = nullptr;
         int bufferSize = 0;
 
-        GstSample *sample = gst_app_sink_pull_sample(m_appSink);
-        GstBuffer *buffer = gst_sample_get_buffer(sample);
+        QGstSampleHandle sample{ gst_app_sink_pull_sample(m_appSink) };
+        GstBuffer *buffer = gst_sample_get_buffer(sample.get());
         GstMapInfo mapInfo;
         gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
         bufferData = (const char*)mapInfo.data;
         bufferSize = mapInfo.size;
-        QAudioFormat format = QGstUtils::audioFormatForSample(sample);
+        QAudioFormat format = QGstUtils::audioFormatForSample(sample.get());
 
         if (format.isValid()) {
             // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
@@ -403,7 +394,6 @@ QAudioBuffer QGstreamerAudioDecoder::read()
             }
         }
         gst_buffer_unmap(buffer, &mapInfo);
-        gst_sample_unref(sample);
     }
 
     return audioBuffer;
