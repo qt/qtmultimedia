@@ -164,13 +164,15 @@ void QGstreamerVideoSink::updateGstContexts()
     m_eglDisplay = pni->nativeResourceForIntegration("egldisplay");
 //    qDebug() << "platform is" << platform << m_eglDisplay;
 
-    GstGLDisplay *gstGlDisplay = nullptr;
+    QGstGLDisplayHandle gstGlDisplay;
+
     const char *contextName = "eglcontext";
     GstGLPlatform glPlatform = GST_GL_PLATFORM_EGL;
     // use the egl display if we have one
     if (m_eglDisplay) {
 #if GST_GL_HAVE_PLATFORM_EGL
-        gstGlDisplay = (GstGLDisplay *)gst_gl_display_egl_new_with_egl_display(m_eglDisplay);
+        gstGlDisplay.reset(
+                GST_GL_DISPLAY_CAST(gst_gl_display_egl_new_with_egl_display(m_eglDisplay)));
         m_eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
 #endif
     } else {
@@ -182,13 +184,15 @@ void QGstreamerVideoSink::updateGstContexts()
                 contextName = "glxcontext";
                 glPlatform = GST_GL_PLATFORM_GLX;
 
-                gstGlDisplay = (GstGLDisplay *)gst_gl_display_x11_new_with_display((Display *)display);
+                gstGlDisplay.reset(GST_GL_DISPLAY_CAST(
+                        gst_gl_display_x11_new_with_display(reinterpret_cast<Display *>(display))));
             }
 #endif
 #if GST_GL_HAVE_WINDOW_WAYLAND && __has_include("wayland-client.h")
             if (platform.startsWith(QLatin1String("wayland"))) {
                 Q_ASSERT(!gstGlDisplay);
-                gstGlDisplay = (GstGLDisplay *)gst_gl_display_wayland_new_with_display((struct wl_display *)display);
+                gstGlDisplay.reset(GST_GL_DISPLAY_CAST(gst_gl_display_wayland_new_with_display(
+                        reinterpret_cast<struct wl_display *>(display))));
             }
 #endif
         }
@@ -204,29 +208,29 @@ void QGstreamerVideoSink::updateGstContexts()
         qWarning() << "Could not find resource for" << contextName;
 
     GstGLAPI glApi = QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGL ? GST_GL_API_OPENGL : GST_GL_API_GLES2;
-    GstGLContext *appContext = gst_gl_context_new_wrapped(gstGlDisplay, (guintptr)nativeContext, glPlatform, glApi);
+    QGstGLContextHandle appContext{
+        gst_gl_context_new_wrapped(gstGlDisplay.get(), guintptr(nativeContext), glPlatform, glApi),
+    };
     if (!appContext)
         qWarning() << "Could not create wrappped context for platform:" << glPlatform;
 
-    GstGLContext *displayContext = nullptr;
     GError *error = nullptr;
-    gst_gl_display_create_context(gstGlDisplay, appContext, &displayContext, &error);
+    QGstGLContextHandle displayContext;
+    gst_gl_display_create_context(gstGlDisplay.get(), appContext.get(), &displayContext, &error);
     if (error) {
         qWarning() << "Could not create display context:" << error->message;
         g_clear_error(&error);
     }
 
-    if (appContext)
-        gst_object_unref(appContext);
+    appContext.close();
 
     m_gstGlDisplayContext = gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, false);
-    gst_context_set_gl_display(m_gstGlDisplayContext, gstGlDisplay);
-    gst_object_unref(gstGlDisplay);
+    gst_context_set_gl_display(m_gstGlDisplayContext, gstGlDisplay.get());
 
     m_gstGlLocalContext = gst_context_new("gst.gl.local_context", false);
     GstStructure *structure = gst_context_writable_structure(m_gstGlLocalContext);
-    gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext, nullptr);
-    gst_object_unref(displayContext);
+    gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext.get(), nullptr);
+    displayContext.close();
 
     if (!gstPipeline.isNull())
         gst_element_set_context(gstPipeline.element(), m_gstGlLocalContext);

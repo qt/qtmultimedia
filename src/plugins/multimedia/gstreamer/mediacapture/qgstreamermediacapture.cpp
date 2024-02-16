@@ -57,7 +57,7 @@ QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutpu
     // Since the elements are added and removed dynamically the clock would
     // also change causing lost of synchronization in the pipeline.
 
-    QUniqueHandle<QGstClockHandleTraits> systemClock{
+    QGstClockHandle systemClock{
         gst_system_clock_obtain(),
     };
     gst_pipeline_use_clock(gstPipeline.pipeline(), systemClock.get());

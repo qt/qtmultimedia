@@ -20,10 +20,11 @@
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qdebug.h>
-#include <QtCore/private/quniquehandle_p.h>
 
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qvideoframe.h>
+
+#include "qgst_handle_types_p.h"
 
 #include <gst/gst.h>
 #include <gst/video/video-info.h>
@@ -50,26 +51,12 @@ template <typename T> struct QGRange
     T max;
 };
 
-struct QGstStringHandleTraits
+struct QGString : QUniqueGStringHandle
 {
-    using Type = gchar *;
-    static Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle) noexcept
-    {
-        g_free(handle);
-        return true;
-    }
-};
-
-struct QGString : QUniqueHandle<QGstStringHandleTraits>
-{
-private:
-    using BaseClass = QUniqueHandle<QGstStringHandleTraits>;
-
-public:
-    using BaseClass::BaseClass;
+    using QUniqueGStringHandle::QUniqueGStringHandle;
 
     QLatin1StringView asStringView() const { return QLatin1StringView{ get() }; }
+    QString toQString() const { return QString::fromUtf8(get()); }
 };
 
 class QGValue
@@ -683,39 +670,6 @@ inline QString errorMessageCannotFindElement(std::string_view element)
 {
     return QStringLiteral("Could not find the %1 GStreamer element").arg(element.data());
 }
-
-struct QGstTagListHandleTraits
-{
-    using Type = GstTagList *;
-    static Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle) noexcept
-    {
-        gst_tag_list_unref(handle);
-        return true;
-    }
-};
-
-struct QGstClockHandleTraits
-{
-    using Type = GstClock *;
-    static Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle) noexcept
-    {
-        gst_object_unref(handle);
-        return true;
-    }
-};
-
-struct QGstStructureHandleTraits
-{
-    using Type = GstStructure *;
-    static Type invalidValue() noexcept { return nullptr; }
-    static bool close(Type handle) noexcept
-    {
-        gst_structure_free(handle);
-        return true;
-    }
-};
 
 QT_END_NAMESPACE
 
