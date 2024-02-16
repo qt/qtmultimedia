@@ -29,6 +29,7 @@ QDebug operator<<(QDebug, const QGstPad &);
 QDebug operator<<(QDebug, const QGString &);
 QDebug operator<<(QDebug, const QGValue &);
 QDebug operator<<(QDebug, const QGstreamerMessage &);
+QDebug operator<<(QDebug, const QUniqueGErrorHandle &);
 
 QDebug operator<<(QDebug, const GstCaps *);
 QDebug operator<<(QDebug, const GstVideoInfo *);

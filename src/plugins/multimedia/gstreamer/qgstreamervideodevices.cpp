@@ -64,9 +64,11 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
 
     for (auto device : m_videoSources) {
         QCameraDevicePrivate *info = new QCameraDevicePrivate;
-        auto *desc = gst_device_get_display_name(device.gstDevice);
-        info->description = QString::fromUtf8(desc);
-        g_free(desc);
+
+        QGString desc{
+            gst_device_get_display_name(device.gstDevice),
+        };
+        info->description = desc.toQString();
         info->id = device.id;
 
         if (QGstStructure properties = gst_device_get_properties(device.gstDevice); !properties.isNull()) {

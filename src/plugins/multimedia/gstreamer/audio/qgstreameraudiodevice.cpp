@@ -8,18 +8,19 @@
 
 QT_BEGIN_NAMESPACE
 
-QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteArray &device, QAudioDevice::Mode mode)
+QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteArray &device,
+                                                     QAudioDevice::Mode mode)
     : QAudioDevicePrivate(device, mode),
-      gstDevice(d)
+      gstDevice{
+          (GstDevice *)gst_object_ref(d),
+      }
 {
-    Q_ASSERT(gstDevice);
-    gst_object_ref(gstDevice);
+    QGString name{
+        gst_device_get_display_name(gstDevice.get()),
+    };
+    description = name.toQString();
 
-    auto *n = gst_device_get_display_name(gstDevice);
-    description = QString::fromUtf8(n);
-    g_free(n);
-
-    auto caps = QGstCaps(gst_device_get_caps(gstDevice),QGstCaps::HasRef);
+    auto caps = QGstCaps(gst_device_get_caps(gstDevice.get()), QGstCaps::HasRef);
     int size = caps.size();
     for (int i = 0; i < size; ++i) {
         auto c = caps.at(i);
@@ -46,10 +47,6 @@ QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteAr
     preferredFormat.setSampleFormat(f);
 }
 
-QGStreamerAudioDeviceInfo::~QGStreamerAudioDeviceInfo()
-{
-    if (gstDevice)
-        gst_object_unref(gstDevice);
-}
+QGStreamerAudioDeviceInfo::~QGStreamerAudioDeviceInfo() = default;
 
 QT_END_NAMESPACE

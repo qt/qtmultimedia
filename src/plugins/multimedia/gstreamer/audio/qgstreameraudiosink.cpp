@@ -11,11 +11,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <qgstpipeline_p.h>
+#include <qgst_debug_p.h>
 #include <qgstappsrc_p.h>
-
-#include <qgstutils_p.h>
+#include <qgstpipeline_p.h>
 #include <qgstreamermessage_p.h>
+#include <qgstutils_p.h>
 
 #include <utility>
 
@@ -61,7 +61,7 @@ QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc 
     //    g_signal_connect (gstDecodeBin, "pad-added", (GCallback) padAdded, conv);
 
     const auto *audioInfo = static_cast<const QGStreamerAudioDeviceInfo *>(device.handle());
-    gstOutput = QGstElement(gst_device_create_element(audioInfo->gstDevice, nullptr));
+    gstOutput = QGstElement(gst_device_create_element(audioInfo->gstDevice.get(), nullptr));
 
     gstPipeline.add(gstAppSrc, queue, /*gstDecodeBin, */ audioconvert, gstVolume, gstOutput);
     gstAppSrc.link(queue, audioconvert, gstVolume, gstOutput);
@@ -159,9 +159,8 @@ static void padAdded(GstElement *element, GstPad *pad, gpointer data)
 {
   GstElement *other = static_cast<GstElement *>(data);
 
-  gchar *name = gst_pad_get_name(pad);
+  QGString name { gst_pad_get_name(pad)};
   qDebug("A new pad %s was created for %s\n", name, gst_element_get_name(element));
-  g_free(name);
 
   qDebug("element %s will be linked to %s\n",
            gst_element_get_name(element),
@@ -179,14 +178,11 @@ bool QGStreamerAudioSink::processBusMessage(const QGstreamerMessage &message)
         break;
     case GST_MESSAGE_ERROR: {
         setError(QAudio::IOError);
-        gchar  *debug;
-        GError *error;
+        QUniqueGErrorHandle error;
+        QGString debug;
 
-        gst_message_parse_error (msg, &error, &debug);
-        g_free (debug);
-
-        qDebug("Error: %s\n", error->message);
-        g_error_free (error);
+        gst_message_parse_error(msg, &error, &debug);
+        qDebug() << "Error:" << error;
 
         break;
     }

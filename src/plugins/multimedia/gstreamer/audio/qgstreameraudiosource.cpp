@@ -127,7 +127,7 @@ bool QGStreamerAudioSource::open()
         return false;
     }
 
-    gstInput = QGstElement(gst_device_create_element(deviceInfo->gstDevice, nullptr));
+    gstInput = QGstElement(gst_device_create_element(deviceInfo->gstDevice.get(), nullptr));
     if (gstInput.isNull()) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);
@@ -204,14 +204,11 @@ gboolean QGStreamerAudioSource::busMessage(GstBus *, GstMessage *msg, gpointer u
         break;
     case GST_MESSAGE_ERROR: {
         input->setError(QAudio::IOError);
-        gchar  *debug;
-        GError *error;
+        QUniqueGErrorHandle error;
+        QGString debug;
 
         gst_message_parse_error (msg, &error, &debug);
-        g_free (debug);
-
-        qDebug("Error: %s\n", error->message);
-        g_error_free (error);
+        qDebug() << "Error:" << error.get();
 
         break;
     }

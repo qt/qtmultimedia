@@ -127,7 +127,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
     playerPipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.installMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
 
-    QUniqueHandle<QGstClockHandleTraits> systemClock{
+    QGstClockHandle systemClock{
         gst_system_clock_obtain(),
     };
 
@@ -282,7 +282,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     switch (message.type()) {
     case GST_MESSAGE_TAG: {
         // #### This isn't ideal. We shouldn't catch stream specific tags here, rather the global ones
-        QUniqueHandle<QGstTagListHandleTraits> tagList;
+        QGstTagListHandle tagList;
         gst_message_parse_tag(gm, &tagList);
 
         qCDebug(qLcMediaPlayer) << "    Got tags: " << tagList.get();
@@ -819,7 +819,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     m_metaData.insert(QMediaMetaData::Url, m_url);
     QGValue tags = topology["tags"];
     if (!tags.isNull()) {
-        QUniqueHandle<QGstTagListHandleTraits> tagList;
+        QGstTagListHandle tagList;
         gst_structure_get(topology.structure, "tags", GST_TYPE_TAG_LIST, &tagList, nullptr);
 
         const auto metaData = QGstreamerMetaData::fromGstTagList(tagList.get());
@@ -861,7 +861,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
 
     auto sinkPad = trackSelector(VideoStream).activeInputPad();
     if (!sinkPad.isNull()) {
-        QUniqueHandle<QGstTagListHandleTraits> tagList;
+        QGstTagListHandle tagList;
 
         g_object_get(sinkPad.object(), "tags", &tagList, nullptr);
         if (tagList)
@@ -887,7 +887,7 @@ QMediaMetaData QGstreamerMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackT
     if (track.isNull())
         return {};
 
-    QUniqueHandle<QGstTagListHandleTraits> tagList;
+    QGstTagListHandle tagList;
     g_object_get(track.object(), "tags", &tagList, nullptr);
 
     return tagList ? QGstreamerMetaData::fromGstTagList(tagList.get()) : QMediaMetaData{};
