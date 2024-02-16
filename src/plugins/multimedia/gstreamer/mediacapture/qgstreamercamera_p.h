@@ -61,14 +61,13 @@ public:
     void setWhiteBalanceMode(QCamera::WhiteBalanceMode mode) override;
     void setColorTemperature(int temperature) override;
 
-    QString v4l2Device() const { return m_v4l2Device; }
-    bool isV4L2Camera() const { return !m_v4l2Device.isEmpty(); }
-
 private:
     QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFilter, QGstElement videoconvert,
                      QGstElement videoscale, QCamera *camera);
 
     void updateCameraProperties();
+
+    bool isV4L2Camera() const { return !m_v4l2DevicePath.isEmpty(); }
 #if QT_CONFIG(linux_v4l)
     void initV4L2Controls();
     int setV4L2ColorTemperature(int temperature);
@@ -85,7 +84,7 @@ private:
     qint32 v4l2MaxExposure = 0;
     qint32 v4l2MinExposureAdjustment = 0;
     qint32 v4l2MaxExposureAdjustment = 0;
-    int v4l2FileDescriptor = -1;
+    QFileDescriptorHandle v4l2FileDescriptor;
 #endif
 
     QCameraDevice m_cameraDevice;
@@ -98,7 +97,7 @@ private:
     QGstElement gstVideoScale;
 
     bool m_active = false;
-    QString m_v4l2Device;
+    QString m_v4l2DevicePath;
 };
 
 QT_END_NAMESPACE
