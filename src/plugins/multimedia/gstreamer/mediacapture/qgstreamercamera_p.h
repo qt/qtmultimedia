@@ -67,8 +67,8 @@ private:
 
     void updateCameraProperties();
 
-    bool isV4L2Camera() const { return !m_v4l2DevicePath.isEmpty(); }
 #if QT_CONFIG(linux_v4l)
+    bool isV4L2Camera() const;
     void initV4L2Controls();
     int setV4L2ColorTemperature(int temperature);
     bool setV4L2Parameter(quint32 id, qint32 value);
@@ -84,7 +84,29 @@ private:
     qint32 v4l2MaxExposure = 0;
     qint32 v4l2MinExposureAdjustment = 0;
     qint32 v4l2MaxExposureAdjustment = 0;
-    QFileDescriptorHandle v4l2FileDescriptor;
+
+    template <typename Functor>
+    auto withV4L2DeviceFileDescriptor(Functor &&f) const
+    {
+        using ReturnType = std::invoke_result_t<Functor, int>;
+        Q_ASSERT(isV4L2Camera());
+
+        if (int gstreamerDeviceFd = gstCamera.getInt("device-fd"); gstreamerDeviceFd != -1)
+            return f(gstreamerDeviceFd);
+
+        auto v4l2FileDescriptor = QFileDescriptorHandle{
+            qt_safe_open(m_v4l2DevicePath.toLocal8Bit().constData(), O_RDONLY),
+        };
+        if (!v4l2FileDescriptor) {
+            qWarning() << "Unable to open the camera" << m_v4l2DevicePath
+                       << "for read to query the parameter info:" << qt_error_string(errno);
+            if constexpr (std::is_void_v<ReturnType>)
+                return;
+            else
+                return ReturnType{};
+        }
+        return f(v4l2FileDescriptor.get());
+    }
 #endif
 
     QCameraDevice m_cameraDevice;
