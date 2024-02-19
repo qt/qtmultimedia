@@ -303,8 +303,9 @@ bool QPulseAudioSink::open()
 
     pa_buffer_attr requestedBuffer;
     // Request a target buffer size
-    auto targetBufferSize = bufferSize();
-    requestedBuffer.tlength = targetBufferSize ? targetBufferSize : static_cast<uint32_t>(-1);
+    auto targetBufferSize = m_userBufferSize ? *m_userBufferSize : defaultBufferSize();
+    requestedBuffer.tlength =
+            targetBufferSize ? static_cast<uint32_t>(targetBufferSize) : static_cast<uint32_t>(-1);
     // Rest should be determined by PulseAudio
     requestedBuffer.fragsize = static_cast<uint32_t>(-1);
     requestedBuffer.maxlength = static_cast<uint32_t>(-1);
@@ -537,7 +538,7 @@ qsizetype QPulseAudioSink::bytesFree() const
 
 void QPulseAudioSink::setBufferSize(qsizetype value)
 {
-    m_bufferSize = value;
+    m_userBufferSize = value;
 }
 
 qsizetype QPulseAudioSink::bufferSize() const
@@ -545,14 +546,10 @@ qsizetype QPulseAudioSink::bufferSize() const
     if (m_bufferSize)
         return m_bufferSize;
 
-    if (m_spec.rate > 0)
-        return pa_usec_to_bytes(DefaultBufferLengthMs * 1000, &m_spec);
+    if (m_userBufferSize)
+        return *m_userBufferSize;
 
-    auto spec = QPulseAudioInternal::audioFormatToSampleSpec(m_format);
-    if (pa_sample_spec_valid(&spec))
-        return pa_usec_to_bytes(DefaultBufferLengthMs * 1000, &spec);
-
-    return 0;
+    return defaultBufferSize();
 }
 
 static qint64 operator-(timeval t1, timeval t2)
@@ -730,6 +727,18 @@ void QPulseAudioSink::onPulseContextFailed()
 PAOperationUPtr QPulseAudioSink::exchangeDrainOperation(pa_operation *newOperation)
 {
     return PAOperationUPtr(m_drainOperation.exchange(newOperation));
+}
+
+qsizetype QPulseAudioSink::defaultBufferSize() const
+{
+    if (m_spec.rate > 0)
+        return pa_usec_to_bytes(DefaultBufferLengthMs * 1000, &m_spec);
+
+    auto spec = QPulseAudioInternal::audioFormatToSampleSpec(m_format);
+    if (pa_sample_spec_valid(&spec))
+        return pa_usec_to_bytes(DefaultBufferLengthMs * 1000, &spec);
+
+    return 0;
 }
 
 QT_END_NAMESPACE
