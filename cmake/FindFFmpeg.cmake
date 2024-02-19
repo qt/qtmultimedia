@@ -305,6 +305,8 @@ endfunction()
   list(REMOVE_DUPLICATES FFMPEG_LIBRARY_DIRS)
   list(REMOVE_DUPLICATES FFMPEG_SHARED_LIBRARIES)
 
+  message(STATUS "FFmpeg shared libs: ${FFMPEG_SHARED_LIBRARIES}")
+
   # cache the vars.
   set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
   set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    CACHE STRING "The FFmpeg libraries." FORCE)
