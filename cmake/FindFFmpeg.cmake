@@ -73,6 +73,30 @@ if (QT_DEPLOY_FFMPEG AND BUILD_SHARED_LIBS)
     set(shared_libs_required TRUE)
 endif()
 
+# finds ffmpeg libs, including symlinks, for the specified component.
+macro(find_shared_libs_for_component _component)
+  # the searching pattern is pretty rough but it seems to be sufficient to gather dynamic libs
+  get_filename_component(name_we ${${_component}_LIBRARY} NAME_WE)
+
+  if (WIN32)
+    get_filename_component(dir_name ${${_component}_LIBRARY_DIR} NAME)
+    if (${dir_name} STREQUAL "lib" AND EXISTS "${${_component}_LIBRARY_DIR}/../bin")
+      # llvm-mingv builds aux ffmpeg static libs like lib/libavutil.dll.a and cmake finds
+      # only them even though the folder bin/ contains proper *.dll and *.lib.
+
+      string(REGEX REPLACE "^lib" "" name_we "${name_we}")
+      set(shared_lib_pattern "../bin/${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    else()
+      set(shared_lib_pattern "${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    endif()
+
+  else()
+    set(shared_lib_pattern "${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}*")
+  endif()
+
+  file(GLOB ${_component}_SHARED_LIBRARIES "${${_component}_LIBRARY_DIR}/${shared_lib_pattern}")
+endmacro()
+
 #
 ### Macro: set_component_found
 #
@@ -167,10 +191,7 @@ macro(find_component _component _pkgconfig _library _header)
     # On Windows, shared linking goes through 'integration' static libs, so we should look for shared ones anyway
     # On Unix, we gather symlinks as well so that we could install them.
     if (WIN32 OR ${${_component}_LIBRARY_NAME} MATCHES "\\${CMAKE_SHARED_LIBRARY_SUFFIX}$")
-      # the searching pattern is pretty rough but it seems to be sufficient to gather dynamic libs
-       get_filename_component(name_we ${${_component}_LIBRARY} NAME_WE)
-
-      file(GLOB ${_component}_SHARED_LIBRARIES "${${_component}_LIBRARY_DIR}/${name_we}*${CMAKE_SHARED_LIBRARY_SUFFIX}*")
+      find_shared_libs_for_component(${_component})
     endif()
 
   endif()
