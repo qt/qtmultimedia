@@ -2,6 +2,9 @@ macos ci
 windows ci
 android ci
 
+#QTBUG-122577
+opensuse-15.5 ci
+
 #QTBUG-111190, v4l2m2m issues
 [capture_capturesToFile_whenConnectedToMediaRecorder]
 linux ci
