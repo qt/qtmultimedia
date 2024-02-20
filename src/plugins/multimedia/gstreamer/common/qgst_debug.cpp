@@ -169,6 +169,19 @@ QDebug operator<<(QDebug dbg, GstMessageType type)
     return dbg << gst_message_type_get_name(type);
 }
 
+QDebug operator<<(QDebug dbg, GstPadDirection direction)
+{
+    switch (direction) {
+    case GST_PAD_UNKNOWN:
+        return dbg << "GST_PAD_UNKNOWN";
+    case GST_PAD_SRC:
+        return dbg << "GST_PAD_SRC";
+    case GST_PAD_SINK:
+        return dbg << "GST_PAD_SINK";
+    }
+    return dbg;
+}
+
 QDebug operator<<(QDebug dbg, const GValue *value)
 {
     switch (G_VALUE_TYPE(value)) {
