@@ -68,6 +68,7 @@ struct QGstSampleHandleTraits
 
 using QGstClockHandleTraits = QGstSafeObjectHandleTraits<GstClock>;
 using QGstElementHandleTraits = QGstSafeObjectHandleTraits<GstElement>;
+using QGstElementFactoryHandleTraits = QGstSafeObjectHandleTraits<GstElementFactory>;
 using QGstDeviceHandleTraits = QGstSafeObjectHandleTraits<GstDevice>;
 
 struct QUniqueGstStructureHandleTraits
@@ -124,6 +125,7 @@ using QGstGLDisplayHandleTraits = QGstSafeObjectHandleTraits<GstGLDisplay>;
 using QGstTagListHandle = QUniqueHandle<QGstImpl::QGstTagListHandleTraits>;
 using QGstClockHandle = QUniqueHandle<QGstImpl::QGstClockHandleTraits>;
 using QGstElementHandle = QUniqueHandle<QGstImpl::QGstElementHandleTraits>;
+using QGstElementFactoryHandle = QUniqueHandle<QGstImpl::QGstElementFactoryHandleTraits>;
 using QGstDeviceHandle = QUniqueHandle<QGstImpl::QGstDeviceHandleTraits>;
 using QGstSampleHandle = QUniqueHandle<QGstImpl::QGstSampleHandleTraits>;
 using QUniqueGstStructureHandle = QUniqueHandle<QGstImpl::QUniqueGstStructureHandleTraits>;
