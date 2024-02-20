@@ -44,6 +44,7 @@ QDebug operator<<(QDebug, const GstTagList *);
 QDebug operator<<(QDebug, GstState);
 QDebug operator<<(QDebug, GstStateChangeReturn);
 QDebug operator<<(QDebug, GstMessageType);
+QDebug operator<<(QDebug, GstPadDirection);
 
 QDebug operator<<(QDebug, const GValue *);
 QDebug operator<<(QDebug, const GError *);
