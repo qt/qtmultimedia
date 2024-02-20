@@ -46,15 +46,27 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     //
     // To fix this, simply insert the element into the pipeline if it's available. Otherwise
     // we simply use an identity element.
-    gstQueue = QGstElement("queue");
-    auto imxVideoConvert = QGstElement("imxvideoconvert_g2d");
-    auto nvidiaVideoConvert = QGstElement("nvvidconv");
-    if (!imxVideoConvert.isNull())
-        gstPreprocess = imxVideoConvert;
-    else if (!nvidiaVideoConvert.isNull())
-        gstPreprocess = nvidiaVideoConvert;
-    else
-        gstPreprocess = QGstElement("identity");
+    gstQueue = QGstElement::create("queue");
+
+    QGstElementFactoryHandle factory = QGstElementFactoryHandle{
+        gst_element_factory_find("imxvideoconvert_g2d"),
+    };
+
+    if (!factory)
+        factory = QGstElementFactoryHandle{
+            gst_element_factory_find("nvvidconv"),
+        };
+
+    if (!factory)
+        factory = QGstElementFactoryHandle{
+            gst_element_factory_find("identity"),
+        };
+
+    gstPreprocess = QGstElement{
+        gst_element_factory_create(factory.get(), "preprocess"),
+        QGstElement::NeedsRef,
+    };
+
     sinkBin.add(gstQueue, gstPreprocess);
     gstQueue.link(gstPreprocess);
     sinkBin.addGhostPad(gstQueue, "sink");
