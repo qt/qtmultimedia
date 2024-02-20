@@ -498,13 +498,28 @@ public:
     {
     }
 
-    explicit QGstElement(const char *factory, const char *name = nullptr)
-        : QGstElement(gst_element_factory_make(factory, name), NeedsRef)
+    static QGstElement create(const char *factory, const char *name = nullptr)
     {
+        GstElement *element = gst_element_factory_make(factory, name);
+
 #ifndef QT_NO_DEBUG
-        if (!get())
+        if (!element) {
             qWarning() << "Failed to make element" << name << "from factory" << factory;
+            return QGstElement{};
+        }
 #endif
+
+        return QGstElement{
+            element,
+            NeedsRef,
+        };
+    }
+
+    explicit QGstElement(const char *factory, const char *name = nullptr)
+        : QGstElement{
+              create(factory, name),
+          }
+    {
     }
 
     bool link(const QGstElement &next)
