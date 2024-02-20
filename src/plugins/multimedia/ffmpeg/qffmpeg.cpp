@@ -192,9 +192,17 @@ bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &avail
 
     const auto pixFmts = codec->pix_fmts;
 
-    if (!pixFmts)
+    if (!pixFmts) {
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
+        // Disable V4L2 M2M codecs for encoding for now,
+        // TODO: Investigate on how to get them working
+        if (std::strstr(codec->name, "_v4l2m2m") && av_codec_is_encoder(codec))
+            return false;
+#endif
+
         return true; // To be investigated. This happens for RAW_VIDEO, that is supposed to be OK,
-                     // and with v4l2m2m codecs, that is suspicious.
+        // and with v4l2m2m codecs, that is suspicious.
+    }
 
     if (findAVFormat(pixFmts, &isHwPixelFormat) == AV_PIX_FMT_NONE)
         return true;
@@ -271,16 +279,18 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
                 if (isCodecValid(codec, HWAccel::decodingDeviceTypes(), platformHwDecoders))
                     result[DECODERS].emplace_back(codec);
                 else
-                    qCDebug(qLcFFmpegUtils) << "Skip decoder" << codec->name
-                                            << "due to disabled matching hw acceleration";
+                    qCDebug(qLcFFmpegUtils)
+                            << "Skip decoder" << codec->name
+                            << "due to disabled matching hw acceleration, or dysfunctional codec";
             }
 
             if (av_codec_is_encoder(codec)) {
                 if (isCodecValid(codec, HWAccel::encodingDeviceTypes(), platformHwEncoders))
                     result[ENCODERS].emplace_back(codec);
                 else
-                    qCDebug(qLcFFmpegUtils) << "Skip encoder" << codec->name
-                                            << "due to disabled matching hw acceleration";
+                    qCDebug(qLcFFmpegUtils)
+                            << "Skip encoder" << codec->name
+                            << "due to disabled matching hw acceleration, or dysfunctional codec";
             }
         }
 
