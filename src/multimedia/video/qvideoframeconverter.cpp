@@ -449,10 +449,11 @@ QImage videoFramePlaneAsImage(QVideoFrame &frame, int plane, QImage::Format targ
     };
 
     const auto bytesPerLine = frame.bytesPerLine(plane);
+    const auto height =
+            bytesPerLine ? qMin(targetSize.height(), frame.mappedBytes(plane) / bytesPerLine) : 0;
 
-    return QImage(reinterpret_cast<const uchar *>(frame.bits(plane)), targetSize.width(),
-                  qMin(targetSize.height(), frame.mappedBytes(plane) / bytesPerLine), bytesPerLine,
-                  targetFormat, imageCleanupFunction, frameHandle);
+    return QImage(reinterpret_cast<const uchar *>(frame.bits(plane)), targetSize.width(), height,
+                  bytesPerLine, targetFormat, imageCleanupFunction, frameHandle);
 }
 
 QT_END_NAMESPACE
