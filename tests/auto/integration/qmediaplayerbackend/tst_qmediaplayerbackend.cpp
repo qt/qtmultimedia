@@ -2516,49 +2516,45 @@ void tst_QMediaPlayerBackend::seekOnLoops()
               "investigated: QTBUG-111744");
 #endif
 
-    TestVideoSink surface(false);
-    QMediaPlayer player;
+    m_fixture->surface.setStoreFrames(false);
 
-    QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
+    m_fixture->player.setLoops(3);
+    m_fixture->player.setPlaybackRate(2);
 
-    player.setVideoOutput(&surface);
-    player.setLoops(3);
-    player.setPlaybackRate(2);
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
 
-    player.setSource(*m_localVideoFile3ColorsWithSound);
-
-    player.play();
-    surface.waitForFrame();
+    m_fixture->player.play();
+    m_fixture->surface.waitForFrame();
 
     // seek in the 1st loop
-    player.setPosition(player.duration() * 4 / 5);
+    m_fixture->player.setPosition(m_fixture->player.duration() * 4 / 5);
 
     // wait for the 2nd loop and seek
-    surface.waitForFrame();
-    QTRY_VERIFY(player.position() < player.duration() / 2);
-    player.setPosition(player.duration() * 8 / 9);
+    m_fixture->surface.waitForFrame();
+    QTRY_VERIFY(m_fixture->player.position() < m_fixture->player.duration() / 2);
+    m_fixture->player.setPosition(m_fixture->player.duration() * 8 / 9);
 
     // wait for the 3rd loop and seek
-    surface.waitForFrame();
-    QTRY_VERIFY(player.position() < player.duration() / 2);
-    player.setPosition(player.duration() * 4 / 5);
+    m_fixture->surface.waitForFrame();
+    QTRY_VERIFY(m_fixture->player.position() < m_fixture->player.duration() / 2);
+    m_fixture->player.setPosition(m_fixture->player.duration() * 4 / 5);
 
-    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
 
-    auto iterations = loopIterations(positionSpy);
+    auto iterations = loopIterations(m_fixture->positionChanged);
 
     QCOMPARE(iterations.size(), 3u);
     QCOMPARE_GT(iterations[0].startPos, 0);
-    QCOMPARE(iterations[0].endPos, player.duration());
+    QCOMPARE(iterations[0].endPos, m_fixture->player.duration());
     QCOMPARE_GT(iterations[0].posCount, 2);
     QCOMPARE(iterations[1].startPos, 0);
-    QCOMPARE(iterations[1].endPos, player.duration());
+    QCOMPARE(iterations[1].endPos, m_fixture->player.duration());
     QCOMPARE_GT(iterations[1].posCount, 2);
     QCOMPARE(iterations[2].startPos, 0);
-    QCOMPARE(iterations[2].endPos, player.duration());
+    QCOMPARE(iterations[2].endPos, m_fixture->player.duration());
     QCOMPARE_GT(iterations[2].posCount, 2);
 
-    QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 }
 
 void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
@@ -2571,37 +2567,33 @@ void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
               "investigated: QTBUG-111744");
 #endif
 
-    TestVideoSink surface(false);
-    QMediaPlayer player;
+    m_fixture->surface.setStoreFrames(false);
 
-    QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
+    m_fixture->player.setLoops(4);
+    m_fixture->player.setPlaybackRate(5);
 
-    player.setVideoOutput(&surface);
-    player.setLoops(4);
-    player.setPlaybackRate(5);
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
 
-    player.setSource(*m_localVideoFile3ColorsWithSound);
+    m_fixture->player.play();
+    m_fixture->surface.waitForFrame();
 
-    player.play();
-    surface.waitForFrame();
-
-    player.setPosition(player.duration() * 4 / 5);
+    m_fixture->player.setPosition(m_fixture->player.duration() * 4 / 5);
 
     // wait for the 2nd loop
-    surface.waitForFrame();
-    QTRY_VERIFY(player.position() < player.duration() / 2);
-    player.setPosition(player.duration() * 8 / 9);
+    m_fixture->surface.waitForFrame();
+    QTRY_VERIFY(m_fixture->player.position() < m_fixture->player.duration() / 2);
+    m_fixture->player.setPosition(m_fixture->player.duration() * 8 / 9);
 
-    player.setLoops(1);
+    m_fixture->player.setLoops(1);
 
-    QTRY_COMPARE(player.playbackState(), QMediaPlayer::StoppedState);
-    QCOMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
-    auto iterations = loopIterations(positionSpy);
+    auto iterations = loopIterations(m_fixture->positionChanged);
     QCOMPARE(iterations.size(), 2u);
 
     QCOMPARE(iterations[1].startPos, 0);
-    QCOMPARE(iterations[1].endPos, player.duration());
+    QCOMPARE(iterations[1].endPos, m_fixture->player.duration());
     QCOMPARE_GT(iterations[1].posCount, 2);
 }
 
