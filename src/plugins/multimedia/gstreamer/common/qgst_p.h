@@ -428,21 +428,25 @@ public:
 
     template<auto Member, typename T>
     void addProbe(T *instance, GstPadProbeType type) {
-        struct Impl {
-            static GstPadProbeReturn callback(GstPad *pad, GstPadProbeInfo *info, gpointer userData) {
-                return (static_cast<T *>(userData)->*Member)(QGstPad(pad, NeedsRef), info);
-            };
+        auto callback = [](GstPad *pad, GstPadProbeInfo *info, gpointer userData) {
+            return (static_cast<T *>(userData)->*Member)(QGstPad(pad, NeedsRef), info);
         };
 
-        gst_pad_add_probe (pad(), type, Impl::callback, instance, nullptr);
+        gst_pad_add_probe(pad(), type, callback, instance, nullptr);
     }
 
-    void doInIdleProbe(std::function<void()> work) {
+    template <typename Functor>
+    void doInIdleProbe(Functor &&work)
+    {
         struct CallbackData {
             QSemaphore waitDone;
-            std::function<void()> work;
-        } cd;
-        cd.work = work;
+            Functor work;
+        };
+
+        CallbackData cd{
+            .waitDone = QSemaphore{},
+            .work = std::forward<Functor>(work),
+        };
 
         auto callback= [](GstPad *, GstPadProbeInfo *, gpointer p) {
             auto cd = reinterpret_cast<CallbackData*>(p);
@@ -457,16 +461,14 @@ public:
 
     template<auto Member, typename T>
     void addEosProbe(T *instance) {
-        struct Impl {
-            static GstPadProbeReturn callback(GstPad */*pad*/, GstPadProbeInfo *info, gpointer userData) {
-                if (GST_EVENT_TYPE(GST_PAD_PROBE_INFO_DATA(info)) != GST_EVENT_EOS)
-                    return GST_PAD_PROBE_PASS;
-                (static_cast<T *>(userData)->*Member)();
-                return GST_PAD_PROBE_REMOVE;
-            };
+        auto callback = [](GstPad *, GstPadProbeInfo *info, gpointer userData) {
+            if (GST_EVENT_TYPE(GST_PAD_PROBE_INFO_DATA(info)) != GST_EVENT_EOS)
+                return GST_PAD_PROBE_PASS;
+            (static_cast<T *>(userData)->*Member)();
+            return GST_PAD_PROBE_REMOVE;
         };
 
-        gst_pad_add_probe (pad(), GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, Impl::callback, instance, nullptr);
+        gst_pad_add_probe(pad(), GST_PAD_PROBE_TYPE_EVENT_DOWNSTREAM, callback, instance, nullptr);
     }
 };
 
