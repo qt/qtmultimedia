@@ -41,21 +41,17 @@ static Q_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer")
 QT_BEGIN_NAMESPACE
 
 QGstVideoRenderer::QGstVideoRenderer(QGstreamerVideoSink *sink)
-    : m_sink(sink)
+    : m_sink(sink), m_surfaceCaps(createSurfaceCaps(sink))
 {
-    createSurfaceCaps();
 }
 
 QGstVideoRenderer::~QGstVideoRenderer()
 {
 }
 
-void QGstVideoRenderer::createSurfaceCaps()
+QGstCaps QGstVideoRenderer::createSurfaceCaps(QGstreamerVideoSink *sink)
 {
-    QRhi *rhi = m_sink->rhi();
-    Q_UNUSED(rhi);
-
-    auto caps = QGstCaps::create();
+    QGstCaps caps = QGstCaps::create();
 
     // All the formats that both we and gstreamer support
     auto formats = QList<QVideoFrameFormat::PixelFormat>()
@@ -80,10 +76,11 @@ void QGstVideoRenderer::createSurfaceCaps()
                    << QVideoFrameFormat::Format_Y16
         ;
 #if QT_CONFIG(gstreamer_gl)
+    QRhi *rhi = sink->rhi();
     if (rhi && rhi->backend() == QRhi::OpenGLES2) {
         caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
 #if QT_CONFIG(linux_dmabuf)
-        if (m_sink->eglDisplay() && m_sink->eglImageTargetTexture2D()) {
+        if (sink->eglDisplay() && sink->eglImageTargetTexture2D()) {
             // We currently do not handle planar DMA buffers, as it's somewhat unclear how to
             // convert the planar EGLImage into something we can use from OpenGL
             auto singlePlaneFormats = QList<QVideoFrameFormat::PixelFormat>()
@@ -107,14 +104,11 @@ void QGstVideoRenderer::createSurfaceCaps()
     }
 #endif
     caps.addPixelFormats(formats);
-
-    m_surfaceCaps = caps;
+    return caps;
 }
 
-QGstCaps QGstVideoRenderer::caps()
+const QGstCaps &QGstVideoRenderer::caps()
 {
-    QMutexLocker locker(&m_mutex);
-
     return m_surfaceCaps;
 }
 
