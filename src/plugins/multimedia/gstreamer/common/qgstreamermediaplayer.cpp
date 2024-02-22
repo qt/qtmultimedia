@@ -613,8 +613,7 @@ void QGstreamerMediaPlayer::removeOutput(TrackSelector &ts)
 
     if (!e.isNull()) {
         qCDebug(qLcMediaPlayer) << "removing output for track type" << ts.type;
-        playerPipeline.remove(e);
-        e.setStateSync(GST_STATE_NULL);
+        playerPipeline.stopAndRemoveElements(e);
     }
 
     ts.isConnected = false;
