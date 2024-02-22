@@ -114,8 +114,7 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
 
     // FIXME: most probably source can be disconnected outside of idle probe
     audioSrc.staticPad("src").doInIdleProbe([&]() { qUnlinkGstElements(audioSrc, audioVolume); });
-    audioSrc.setStateSync(GST_STATE_NULL);
-    gstAudioInput.remove(audioSrc);
+    gstAudioInput.stopAndRemoveElements(audioSrc);
     audioSrc = newSrc;
     gstAudioInput.add(audioSrc);
     qLinkGstElements(audioSrc, audioVolume);
