@@ -670,6 +670,15 @@ public:
             gst_bin_remove_many(bin(), ts.element()..., nullptr);
     }
 
+    template <typename... Ts>
+    std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void>
+    stopAndRemoveElements(Ts... ts)
+    {
+        bool stateChangeSuccessful = (ts.setStateSync(GST_STATE_NULL) && ...);
+        Q_ASSERT(stateChangeSuccessful);
+        remove(ts...);
+    }
+
     GstBin *bin() const { return GST_BIN_CAST(get()); }
 
     void addGhostPad(const QGstElement &child, const char *name)
