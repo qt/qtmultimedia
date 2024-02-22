@@ -133,10 +133,8 @@ void QGstreamerVideoSink::updateSinkElement()
 
     gstPipeline.beginConfig();
 
-    if (!gstVideoSink.isNull()) {
-        gstVideoSink.setStateSync(GST_STATE_NULL);
-        sinkBin.remove(gstVideoSink);
-    }
+    if (!gstVideoSink.isNull())
+        sinkBin.stopAndRemoveElements(gstVideoSink);
 
     gstVideoSink = newSink;
     sinkBin.add(gstVideoSink);

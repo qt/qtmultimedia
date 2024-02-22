@@ -348,10 +348,7 @@ void QGstreamerMediaEncoder::finalize()
 
     qCDebug(qLcMediaEncoderGst) << "finalize";
 
-    gstPipeline.remove(gstEncoder);
-    gstPipeline.remove(gstFileSink);
-    gstEncoder.setStateSync(GST_STATE_NULL);
-    gstFileSink.setStateSync(GST_STATE_NULL);
+    gstPipeline.stopAndRemoveElements(gstEncoder, gstFileSink);
     gstFileSink = {};
     gstEncoder = {};
     m_finalizing = false;

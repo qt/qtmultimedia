@@ -74,10 +74,9 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         return;
 
     gstPipeline.beginConfig();
-    if (!videoSink.isNull()) {
-        gstVideoOutput.remove(videoSink);
-        videoSink.setStateSync(GST_STATE_NULL);
-    }
+    if (!videoSink.isNull())
+        gstVideoOutput.stopAndRemoveElements(videoSink);
+
     videoSink = gstSink;
     gstVideoOutput.add(videoSink);
 
@@ -126,9 +125,8 @@ void QGstreamerVideoOutput::unlinkSubtitleStream()
     subtitleSrc = {};
     if (!subtitleSink.isNull()) {
         gstPipeline.beginConfig();
-        gstPipeline.remove(subtitleSink);
+        gstPipeline.stopAndRemoveElements(subtitleSink);
         gstPipeline.endConfig();
-        subtitleSink.setStateSync(GST_STATE_NULL);
         subtitleSink = {};
     }
     if (m_videoSink)
@@ -138,8 +136,7 @@ void QGstreamerVideoOutput::unlinkSubtitleStream()
 void QGstreamerVideoOutput::doLinkSubtitleStream()
 {
     if (!subtitleSink.isNull()) {
-        gstPipeline.remove(subtitleSink);
-        subtitleSink.setStateSync(GST_STATE_NULL);
+        gstPipeline.stopAndRemoveElements(subtitleSink);
         subtitleSink = {};
     }
     if (!m_videoSink || subtitleSrc.isNull())
