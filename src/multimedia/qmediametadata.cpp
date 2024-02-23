@@ -63,7 +63,7 @@ QT_BEGIN_NAMESPACE
     \row \li Composer \li The composer of the media.  \li QStringList
     \row \li LeadPerformer \li The lead performer in the media.  \li QStringList
 
-    \row \li ThumbnailImage \li An embedded thumbnail image.  \li QImage
+    \row \li ThumbnailImage \li An embedded thumbnail image if present in metadata. \li QImage
     \row \li CoverArtImage \li An embedded cover art image. \li  QImage
 
     \header \li {3,1}
@@ -272,7 +272,7 @@ QMetaType QMediaMetaData::keyType(Key key)
     \value TrackNumber
     \value Composer Media composer's info.
     \value LeadPerformer
-    \value ThumbnailImage Media thumbnail image
+    \value ThumbnailImage Media thumbnail image (if embedded in metadata)
     \value CoverArtImage Media cover art
     \value Orientation
     \value Resolution
