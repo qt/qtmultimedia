@@ -54,7 +54,7 @@ QGstreamerAudioOutput::QGstreamerAudioOutput(QGstElement audioconvert, QGstEleme
 {
     audioQueue = QGstElement::createFromFactory("queue", "audioQueue");
     gstAudioOutput.add(audioQueue, audioConvert, audioResample, audioVolume, audioSink);
-    audioQueue.link(audioConvert, audioResample, audioVolume, audioSink);
+    qLinkGstElements(audioQueue, audioConvert, audioResample, audioVolume, audioSink);
 
     gstAudioOutput.addGhostPad(audioQueue, "sink");
 }
@@ -111,12 +111,12 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
         newSink = QGstElement::createFromFactory("autoaudiosink", "audiosink");
     }
 
-    audioVolume.staticPad("src").doInIdleProbe([&](){
-        audioVolume.unlink(audioSink);
+    audioVolume.staticPad("src").doInIdleProbe([&]() {
+        qUnlinkGstElements(audioVolume, audioSink);
         gstAudioOutput.remove(audioSink);
         gstAudioOutput.add(newSink);
         newSink.syncStateWithParent();
-        audioVolume.link(newSink);
+        qLinkGstElements(audioVolume, newSink);
     });
 
     audioSink.setStateSync(GST_STATE_NULL);
