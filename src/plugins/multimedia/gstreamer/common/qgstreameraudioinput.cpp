@@ -42,7 +42,7 @@ QGstreamerAudioInput::QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement
       audioVolume(std::move(volume))
 {
     gstAudioInput.add(audioSrc, audioVolume);
-    audioSrc.link(audioVolume);
+    qLinkGstElements(audioSrc, audioVolume);
 
     gstAudioInput.addGhostPad(audioVolume, "src");
 }
@@ -113,14 +113,12 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
     }
 
     // FIXME: most probably source can be disconnected outside of idle probe
-    audioSrc.staticPad("src").doInIdleProbe([&](){
-        audioSrc.unlink(audioVolume);
-    });
+    audioSrc.staticPad("src").doInIdleProbe([&]() { qUnlinkGstElements(audioSrc, audioVolume); });
     audioSrc.setStateSync(GST_STATE_NULL);
     gstAudioInput.remove(audioSrc);
     audioSrc = newSrc;
     gstAudioInput.add(audioSrc);
-    audioSrc.link(audioVolume);
+    qLinkGstElements(audioSrc, audioVolume);
     audioSrc.syncStateWithParent();
 }
 

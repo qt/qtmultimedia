@@ -69,7 +69,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     };
 
     sinkBin.add(gstQueue, gstPreprocess);
-    gstQueue.link(gstPreprocess);
+    qLinkGstElements(gstQueue, gstPreprocess);
     sinkBin.addGhostPad(gstQueue, "sink");
 
     gstSubtitleSink = QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)));
@@ -140,7 +140,7 @@ void QGstreamerVideoSink::updateSinkElement()
 
     gstVideoSink = newSink;
     sinkBin.add(gstVideoSink);
-    if (!gstPreprocess.link(gstVideoSink))
+    if (!qLinkGstElements(gstPreprocess, gstVideoSink))
         qCDebug(qLcMediaVideoSink) << "couldn't link preprocess and sink";
     gstVideoSink.setState(GST_STATE_PAUSED);
 
