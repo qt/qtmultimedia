@@ -95,9 +95,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
 
         auto camera = gstCamera->gstElement();
 
-        gstPipeline.remove(camera);
-        gstPipeline.remove(gstVideoTee);
-        gstPipeline.remove(gstVideoOutput->gstElement());
+        gstPipeline.remove(camera, gstVideoTee, gstVideoOutput->gstElement());
 
         camera.setStateSync(GST_STATE_NULL);
         gstVideoTee.setStateSync(GST_STATE_NULL);
@@ -119,7 +117,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
         linkTeeToPad(gstVideoTee, gstVideoOutput->gstElement().staticPad("sink"));
         linkTeeToPad(gstVideoTee, imageCaptureSink);
 
-        camera.link(gstVideoTee);
+        qLinkGstElements(camera, gstVideoTee);
 
         gstVideoOutput->gstElement().setState(GST_STATE_PLAYING);
         gstVideoTee.setState(GST_STATE_PLAYING);
@@ -256,8 +254,7 @@ void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
             gstAudioOutput->gstElement().setStateSync(GST_STATE_NULL);
         }
 
-        gstPipeline.remove(gstAudioInput->gstElement());
-        gstPipeline.remove(gstAudioTee);
+        gstPipeline.remove(gstAudioInput->gstElement(), gstAudioTee);
         gstAudioInput->gstElement().setStateSync(GST_STATE_NULL);
         gstAudioTee.setStateSync(GST_STATE_NULL);
         gstAudioTee = {};
@@ -269,7 +266,7 @@ void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
         gstAudioTee = QGstElement::createFromFactory("tee", "audiotee");
         gstAudioTee.set("allow-not-linked", true);
         gstPipeline.add(gstAudioInput->gstElement(), gstAudioTee);
-        gstAudioInput->gstElement().link(gstAudioTee);
+        qLinkGstElements(gstAudioInput->gstElement(), gstAudioTee);
 
         if (gstAudioOutput) {
             gstPipeline.add(gstAudioOutput->gstElement());

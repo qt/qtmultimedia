@@ -35,7 +35,7 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement si
     videoQueue = QGstElement::createFromFactory("queue", "videoQueue");
     videoSink.set("sync", true);
     gstVideoOutput.add(videoQueue, videoConvert, videoSink);
-    if (!videoQueue.link(videoConvert, videoSink))
+    if (!qLinkGstElements(videoQueue, videoConvert, videoSink))
         qCDebug(qLcMediaVideoOutput) << ">>>>>> linking failed";
 
     gstVideoOutput.addGhostPad(videoQueue, "sink");
@@ -81,7 +81,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     videoSink = gstSink;
     gstVideoOutput.add(videoSink);
 
-    videoConvert.link(videoSink);
+    qLinkGstElements(videoConvert, videoSink);
     GstEvent *event = gst_event_new_reconfigure();
     gst_element_send_event(videoSink.element(), event);
     videoSink.syncStateWithParent();
@@ -148,7 +148,7 @@ void QGstreamerVideoOutput::doLinkSubtitleStream()
         subtitleSink = m_videoSink->subtitleSink();
         gstPipeline.add(subtitleSink);
     }
-    if (!subtitleSrc.link(subtitleSink))
+    if (!qLinkGstElements(subtitleSrc, subtitleSink))
         qCDebug(qLcMediaVideoOutput) << "link subtitle stream failed";
 }
 

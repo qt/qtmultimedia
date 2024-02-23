@@ -583,7 +583,7 @@ void QGstreamerMediaPlayer::connectOutput(TrackSelector &ts)
     if (!e.isNull()) {
         qCDebug(qLcMediaPlayer) << "connecting output for track type" << ts.type;
         playerPipeline.add(e);
-        ts.selector.link(e);
+        qLinkGstElements(ts.selector, e);
         e.setState(GST_STATE_PAUSED);
     }
 
@@ -721,7 +721,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         }
         decoder.set("post-stream-topology", true);
         playerPipeline.add(src, decoder);
-        src.link(decoder);
+        qLinkGstElements(src, decoder);
 
         m_appSrc->setup(m_stream);
         seekableChanged(!stream->isSequential());

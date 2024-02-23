@@ -29,6 +29,7 @@
 #include <gst/gst.h>
 #include <gst/video/video-info.h>
 
+#include <type_traits>
 #include <functional>
 
 #if QT_CONFIG(gstreamer_photography)
@@ -516,20 +517,6 @@ public:
         };
     }
 
-    bool link(const QGstElement &next)
-    { return gst_element_link(element(), next.element()); }
-    bool link(const QGstElement &n1, const QGstElement &n2)
-    { return gst_element_link_many(element(), n1.element(), n2.element(), nullptr); }
-    bool link(const QGstElement &n1, const QGstElement &n2, const QGstElement &n3)
-    { return gst_element_link_many(element(), n1.element(), n2.element(), n3.element(), nullptr); }
-    bool link(const QGstElement &n1, const QGstElement &n2, const QGstElement &n3, const QGstElement &n4)
-    { return gst_element_link_many(element(), n1.element(), n2.element(), n3.element(), n4.element(), nullptr); }
-    bool link(const QGstElement &n1, const QGstElement &n2, const QGstElement &n3, const QGstElement &n4, const QGstElement &n5)
-    { return gst_element_link_many(element(), n1.element(), n2.element(), n3.element(), n4.element(), n5.element(), nullptr); }
-
-    void unlink(const QGstElement &next)
-    { gst_element_unlink(element(), next.element()); }
-
     QGstPad staticPad(const char *name) const { return QGstPad(gst_element_get_static_pad(element(), name), HasRef); }
     QGstPad src() const { return staticPad("src"); }
     QGstPad sink() const { return staticPad("sink"); }
@@ -616,6 +603,26 @@ public:
     GstElement *element() const { return GST_ELEMENT_CAST(get()); }
 };
 
+template <typename... Ts>
+std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), bool>
+qLinkGstElements(const Ts &...ts)
+{
+    if constexpr (sizeof...(Ts) == 2)
+        return gst_element_link(ts.element()...);
+    else
+        return gst_element_link_many(ts.element()..., nullptr);
+}
+
+template <typename... Ts>
+std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void>
+qUnlinkGstElements(const Ts &...ts)
+{
+    if constexpr (sizeof...(Ts) == 2)
+        gst_element_unlink(ts.element()...);
+    else
+        gst_element_unlink_many(ts.element()..., nullptr);
+}
+
 inline QGstElement QGstPad::parent() const
 {
     return QGstElement(gst_pad_get_parent_element(pad()), HasRef);
@@ -643,20 +650,23 @@ public:
 
     explicit QGstBin(GstBin *bin, RefMode mode = NeedsRef) : QGstElement(&bin->element, mode) { }
 
-    void add(const QGstElement &element)
-    { gst_bin_add(bin(), element.element()); }
-    void add(const QGstElement &e1, const QGstElement &e2)
-    { gst_bin_add_many(bin(), e1.element(), e2.element(), nullptr); }
-    void add(const QGstElement &e1, const QGstElement &e2, const QGstElement &e3)
-    { gst_bin_add_many(bin(), e1.element(), e2.element(), e3.element(), nullptr); }
-    void add(const QGstElement &e1, const QGstElement &e2, const QGstElement &e3, const QGstElement &e4)
-    { gst_bin_add_many(bin(), e1.element(), e2.element(), e3.element(), e4.element(), nullptr); }
-    void add(const QGstElement &e1, const QGstElement &e2, const QGstElement &e3, const QGstElement &e4, const QGstElement &e5)
-    { gst_bin_add_many(bin(), e1.element(), e2.element(), e3.element(), e4.element(), e5.element(), nullptr); }
-    void add(const QGstElement &e1, const QGstElement &e2, const QGstElement &e3, const QGstElement &e4, const QGstElement &e5, const QGstElement &e6)
-    { gst_bin_add_many(bin(), e1.element(), e2.element(), e3.element(), e4.element(), e5.element(), e6.element(), nullptr); }
-    void remove(const QGstElement &element)
-    { gst_bin_remove(bin(), element.element()); }
+    template <typename... Ts>
+    std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void> add(const Ts &...ts)
+    {
+        if constexpr (sizeof...(Ts) == 1)
+            gst_bin_add(bin(), ts.element()...);
+        else
+            gst_bin_add_many(bin(), ts.element()..., nullptr);
+    }
+
+    template <typename... Ts>
+    std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void> remove(const Ts &...ts)
+    {
+        if constexpr (sizeof...(Ts) == 1)
+            gst_bin_remove(bin(), ts.element()...);
+        else
+            gst_bin_remove_many(bin(), ts.element()..., nullptr);
+    }
 
     GstBin *bin() const { return GST_BIN_CAST(get()); }
 

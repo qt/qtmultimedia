@@ -294,7 +294,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     }
 
     gstPipeline.add(gstEncoder, gstFileSink);
-    gstEncoder.link(gstFileSink);
+    qLinkGstElements(gstEncoder, gstFileSink);
     m_metaData.setMetaData(gstEncoder.bin());
 
     m_session->linkEncoder(audioSink, videoSink);

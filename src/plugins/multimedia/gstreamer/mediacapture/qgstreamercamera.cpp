@@ -51,7 +51,7 @@ QGstreamerCamera::QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFil
     gstDecode = QGstElement::createFromFactory("identity");
     gstCameraBin = QGstBin::create("camerabin");
     gstCameraBin.add(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
-    gstCamera.link(gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
+    qLinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
     gstCameraBin.addGhostPad(gstVideoScale, "src");
 }
 
@@ -103,12 +103,8 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
     auto gstNewDecode = QGstElement::createFromFactory(
             f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
-    gstCamera.unlink(gstCapsFilter);
-    gstCapsFilter.unlink(gstDecode);
-    gstDecode.unlink(gstVideoConvert);
-
-    gstCameraBin.remove(gstCamera);
-    gstCameraBin.remove(gstDecode);
+    qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
+    gstCameraBin.remove(gstCamera, gstDecode);
 
     gstCamera.setStateSync(GST_STATE_NULL);
     gstDecode.setStateSync(GST_STATE_NULL);
@@ -117,10 +113,7 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 
     gstCameraBin.add(gstNewCamera, gstNewDecode);
 
-    gstNewDecode.link(gstVideoConvert);
-    gstCapsFilter.link(gstNewDecode);
-
-    if (!gstNewCamera.link(gstCapsFilter))
+    if (!qLinkGstElements(gstNewCamera, gstCapsFilter, gstNewDecode, gstVideoConvert))
         qWarning() << "linking camera failed" << gstCamera.name() << caps;
 
     // Start sending frames once pipeline is linked
@@ -151,16 +144,12 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
     gstCameraBin.add(newGstDecode);
     newGstDecode.syncStateWithParent();
 
-    gstCamera.staticPad("src").doInIdleProbe([&](){
-        gstCamera.unlink(gstCapsFilter);
-        gstCapsFilter.unlink(gstDecode);
-        gstDecode.unlink(gstVideoConvert);
+    gstCamera.staticPad("src").doInIdleProbe([&]() {
+        qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
 
         gstCapsFilter.set("caps", caps);
 
-        newGstDecode.link(gstVideoConvert);
-        gstCapsFilter.link(newGstDecode);
-        if (!gstCamera.link(gstCapsFilter))
+        if (!qLinkGstElements(gstCamera, gstCapsFilter, newGstDecode, gstVideoConvert))
             qWarning() << "linking filtered camera to decoder failed" << gstCamera.name() << caps;
     });
 

@@ -64,7 +64,7 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
     sink.set("async", false);
 
     bin.add(queue, filter, videoConvert, encoder, muxer, sink);
-    queue.link(filter, videoConvert, encoder, muxer, sink);
+    qLinkGstElements(queue, filter, videoConvert, encoder, muxer, sink);
     bin.addGhostPad(queue, "sink");
 
     addProbeToPad(queue.staticPad("src").pad(), false);

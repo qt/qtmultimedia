@@ -164,7 +164,7 @@ bool QGStreamerAudioSource::open()
         gstVolume.set("volume", m_volume);
 
     gstPipeline.add(gstInput, gstVolume, conv, gstAppSink);
-    gstInput.link(gstVolume, conv, gstAppSink);
+    qLinkGstElements(gstInput, gstVolume, conv, gstAppSink);
 
     gstPipeline.setState(GST_STATE_PLAYING);
 
