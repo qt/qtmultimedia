@@ -22,11 +22,11 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformAudioInput *> QGstreamerAudioInput::create(QAudioInput *parent)
 {
-    QGstElement autoaudiosrc("autoaudiosrc", "autoaudiosrc");
+    QGstElement autoaudiosrc = QGstElement::createFromFactory("autoaudiosrc", "autoaudiosrc");
     if (!autoaudiosrc)
         return errorMessageCannotFindElement("autoaudiosrc");
 
-    QGstElement volume("volume", "volume");
+    QGstElement volume = QGstElement::createFromFactory("volume", "volume");
     if (!volume)
         return errorMessageCannotFindElement("volume");
 
@@ -37,7 +37,7 @@ QGstreamerAudioInput::QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement
                                            QAudioInput *parent)
     : QObject(parent),
       QPlatformAudioInput(parent),
-      gstAudioInput("audioInput"),
+      gstAudioInput(QGstBin::create("audioInput")),
       audioSrc(std::move(autoaudiosrc)),
       audioVolume(std::move(volume))
 {
@@ -90,7 +90,7 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
     QGstElement newSrc;
     if constexpr (QT_CONFIG(pulseaudio)) {
         auto id = m_audioDevice.id();
-        newSrc = QGstElement("pulsesrc", "audiosrc");
+        newSrc = QGstElement::createFromFactory("pulsesrc", "audiosrc");
         if (!newSrc.isNull())
             newSrc.set("device", id.constData());
         else
@@ -109,7 +109,7 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
 
     if (newSrc.isNull()) {
         qCWarning(qLcMediaAudioInput) << "Failed to create a gst element for the audio device, using a default audio source";
-        newSrc = QGstElement("autoaudiosrc", "audiosrc");
+        newSrc = QGstElement::createFromFactory("autoaudiosrc", "audiosrc");
     }
 
     // FIXME: most probably source can be disconnected outside of idle probe

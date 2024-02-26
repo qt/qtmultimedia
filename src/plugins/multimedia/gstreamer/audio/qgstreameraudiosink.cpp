@@ -27,11 +27,11 @@ QMaybe<QPlatformAudioSink *> QGStreamerAudioSink::create(const QAudioDevice &dev
     if (!maybeAppSrc)
         return maybeAppSrc.error();
 
-    QGstElement audioconvert("audioconvert", "conv");
+    QGstElement audioconvert = QGstElement::createFromFactory("audioconvert", "conv");
     if (!audioconvert)
         return errorMessageCannotFindElement("audioconvert");
 
-    QGstElement volume("volume", "volume");
+    QGstElement volume = QGstElement::createFromFactory("volume", "volume");
     if (!volume)
         return errorMessageCannotFindElement("volume");
 
@@ -39,10 +39,11 @@ QMaybe<QPlatformAudioSink *> QGStreamerAudioSink::create(const QAudioDevice &dev
 }
 
 QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc *appsrc,
-                                         QGstElement audioconvert, QGstElement volume, QObject *parent)
+                                         QGstElement audioconvert, QGstElement volume,
+                                         QObject *parent)
     : QPlatformAudioSink(parent),
       m_device(device.id()),
-      gstPipeline("pipeline"),
+      gstPipeline(QGstPipeline::create("pipeline")),
       gstVolume(std::move(volume)),
       m_appSrc(appsrc)
 {
@@ -52,7 +53,7 @@ QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc 
     connect(m_appSrc, &QGstAppSrc::noMoreData, this, &QGStreamerAudioSink::needData);
     gstAppSrc = m_appSrc->element();
 
-    QGstElement queue("queue", "queue");
+    QGstElement queue = QGstElement::createFromFactory("queue", "queue");
 
     if (m_volume != 1.)
         gstVolume.set("volume", m_volume);
