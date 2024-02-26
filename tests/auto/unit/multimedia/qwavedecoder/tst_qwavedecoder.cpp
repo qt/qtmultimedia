@@ -91,7 +91,10 @@ void tst_QWaveDecoder::file_data()
     QTest::newRow("File isawav_2_16_44100_be.wav") << testFilePath("isawav_2_16_44100_be.wav")  << tst_QWaveDecoder::None << 2 << 16 << 44100;
     // The next file has extra data in the wave header.
     QTest::newRow("File isawav_1_16_44100_le_2.wav") << testFilePath("isawav_1_16_44100_le_2.wav")  << tst_QWaveDecoder::None << 1 << 16 << 44100;
-
+    // The next file has embedded bext chunk with odd payload (QTBUG-122193)
+    QTest::newRow("File isawav_1_8_8000_odd_bext.wav") << testFilePath("isawav_1_8_8000_odd_bext.wav")  << tst_QWaveDecoder::None << 1 << 8 << 8000;
+    // The next file has embedded bext chunk with even payload
+    QTest::newRow("File isawav_1_8_8000_even_bext.wav") << testFilePath("isawav_1_8_8000_even_bext.wav")  << tst_QWaveDecoder::None << 1 << 8 << 8000;
     // 32 bit waves are not supported
     QTest::newRow("File isawav_1_32_8000_le.wav") << testFilePath("isawav_1_32_8000_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 8000;
     QTest::newRow("File isawav_1_32_44100_le.wav") << testFilePath("isawav_1_32_44100_le.wav")  << tst_QWaveDecoder::FormatDescriptor << 1 << 32 << 44100;
