@@ -50,7 +50,7 @@ static QGstElement findBestVideoSink()
     for (auto i : elementMap) {
         if (platform != QLatin1String(i.qtPlatform))
             continue;
-        QGstElement choice(i.gstreamerElement, i.gstreamerElement);
+        QGstElement choice = QGstElement::createFromFactory(i.gstreamerElement, i.gstreamerElement);
         if (choice.isNull())
             continue;
 
@@ -96,7 +96,7 @@ QGstreamerVideoOverlay::QGstreamerVideoOverlay(QGstreamerVideoSink *parent, cons
 {
     QGstElement sink;
     if (!elementName.isEmpty())
-        sink = QGstElement(elementName.constData(), nullptr);
+        sink = QGstElement::createFromFactory(elementName.constData());
     else
         sink = findBestVideoSink();
 

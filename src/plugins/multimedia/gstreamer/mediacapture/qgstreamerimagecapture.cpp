@@ -23,15 +23,16 @@ static Q_LOGGING_CATEGORY(qLcImageCaptureGst, "qt.multimedia.imageCapture")
 
 QMaybe<QPlatformImageCapture *> QGstreamerImageCapture::create(QImageCapture *parent)
 {
-    QGstElement videoconvert("videoconvert", "imageCaptureConvert");
+    QGstElement videoconvert =
+            QGstElement::createFromFactory("videoconvert", "imageCaptureConvert");
     if (!videoconvert)
         return errorMessageCannotFindElement("videoconvert");
 
-    QGstElement jpegenc("jpegenc", "jpegEncoder");
+    QGstElement jpegenc = QGstElement::createFromFactory("jpegenc", "jpegEncoder");
     if (!jpegenc)
         return errorMessageCannotFindElement("jpegenc");
 
-    QGstElement jifmux("jifmux", "jpegMuxer");
+    QGstElement jifmux = QGstElement::createFromFactory("jifmux", "jpegMuxer");
     if (!jifmux)
         return errorMessageCannotFindElement("jifmux");
 
@@ -46,9 +47,9 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
       encoder(std::move(jpegenc)),
       muxer(std::move(jifmux))
 {
-    bin = QGstBin("imageCaptureBin");
+    bin = QGstBin::create("imageCaptureBin");
 
-    queue = QGstElement("queue", "imageCaptureQueue");
+    queue = QGstElement::createFromFactory("queue", "imageCaptureQueue");
     // configures the queue to be fast, lightweight and non blocking
     queue.set("leaky", 2 /*downstream*/);
     queue.set("silent", true);
@@ -56,8 +57,8 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
     queue.set("max-size-bytes", uint(0));
     queue.set("max-size-time", quint64(0));
 
-    sink = QGstElement("fakesink","imageCaptureSink");
-    filter = QGstElement("capsfilter", "filter");
+    sink = QGstElement::createFromFactory("fakesink", "imageCaptureSink");
+    filter = QGstElement::createFromFactory("capsfilter", "filter");
     // imageCaptureSink do not wait for a preroll buffer when going READY -> PAUSED
     // as no buffer will arrive until capture() is called
     sink.set("async", false);

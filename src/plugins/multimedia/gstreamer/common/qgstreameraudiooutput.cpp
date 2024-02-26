@@ -22,19 +22,19 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformAudioOutput *> QGstreamerAudioOutput::create(QAudioOutput *parent)
 {
-    QGstElement audioconvert("audioconvert", "audioConvert");
+    QGstElement audioconvert = QGstElement::createFromFactory("audioconvert", "audioConvert");
     if (!audioconvert)
         return errorMessageCannotFindElement("audioconvert");
 
-    QGstElement audioresample("audioresample", "audioResample");
+    QGstElement audioresample = QGstElement::createFromFactory("audioresample", "audioResample");
     if (!audioresample)
         return errorMessageCannotFindElement("audioresample");
 
-    QGstElement volume("volume", "volume");
+    QGstElement volume = QGstElement::createFromFactory("volume", "volume");
     if (!volume)
         return errorMessageCannotFindElement("volume");
 
-    QGstElement autoaudiosink("autoaudiosink", "autoAudioSink");
+    QGstElement autoaudiosink = QGstElement::createFromFactory("autoaudiosink", "autoAudioSink");
     if (!autoaudiosink)
         return errorMessageCannotFindElement("autoaudiosink");
 
@@ -46,13 +46,13 @@ QGstreamerAudioOutput::QGstreamerAudioOutput(QGstElement audioconvert, QGstEleme
                                              QAudioOutput *parent)
     : QObject(parent),
       QPlatformAudioOutput(parent),
-      gstAudioOutput("audioOutput"),
+      gstAudioOutput(QGstBin::create("audioOutput")),
       audioConvert(std::move(audioconvert)),
       audioResample(std::move(audioresample)),
       audioVolume(std::move(volume)),
       audioSink(std::move(autoaudiosink))
 {
-    audioQueue = QGstElement("queue", "audioQueue");
+    audioQueue = QGstElement::createFromFactory("queue", "audioQueue");
     gstAudioOutput.add(audioQueue, audioConvert, audioResample, audioVolume, audioSink);
     audioQueue.link(audioConvert, audioResample, audioVolume, audioSink);
 
@@ -89,7 +89,7 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
     QGstElement newSink;
     if constexpr (QT_CONFIG(pulseaudio)) {
         auto id = m_audioOutput.id();
-        newSink = QGstElement("pulsesink", "audiosink");
+        newSink = QGstElement::createFromFactory("pulsesink", "audiosink");
         if (!newSink.isNull())
             newSink.set("device", id.constData());
         else
@@ -108,7 +108,7 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
 
     if (newSink.isNull()) {
         qCWarning(qLcMediaAudioOutput) << "Failed to create a gst element for the audio device, using a default audio sink";
-        newSink = QGstElement("autoaudiosink", "audiosink");
+        newSink = QGstElement::createFromFactory("autoaudiosink", "audiosink");
     }
 
     audioVolume.staticPad("src").doInIdleProbe([&](){

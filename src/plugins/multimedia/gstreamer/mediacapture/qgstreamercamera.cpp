@@ -20,19 +20,19 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformCamera *> QGstreamerCamera::create(QCamera *camera)
 {
-    QGstElement videotestsrc("videotestsrc");
+    QGstElement videotestsrc = QGstElement::createFromFactory("videotestsrc");
     if (!videotestsrc)
         return errorMessageCannotFindElement("videotestsrc");
 
-    QGstElement capsFilter("capsfilter", "videoCapsFilter");
+    QGstElement capsFilter = QGstElement::createFromFactory("capsfilter", "videoCapsFilter");
     if (!capsFilter)
         return errorMessageCannotFindElement("capsfilter");
 
-    QGstElement videoconvert("videoconvert", "videoConvert");
+    QGstElement videoconvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
     if (!videoconvert)
         return errorMessageCannotFindElement("videoconvert");
 
-    QGstElement videoscale("videoscale", "videoScale");
+    QGstElement videoscale = QGstElement::createFromFactory("videoscale", "videoScale");
     if (!videoscale)
         return errorMessageCannotFindElement("videoscale");
 
@@ -48,8 +48,8 @@ QGstreamerCamera::QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFil
       gstVideoConvert(std::move(videoconvert)),
       gstVideoScale(std::move(videoscale))
 {
-    gstDecode = QGstElement("identity");
-    gstCameraBin = QGstBin("camerabin");
+    gstDecode = QGstElement::createFromFactory("identity");
+    gstCameraBin = QGstBin::create("camerabin");
     gstCameraBin.add(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
     gstCamera.link(gstCapsFilter, gstDecode, gstVideoConvert, gstVideoScale);
     gstCameraBin.addGhostPad(gstVideoScale, "src");
@@ -86,7 +86,7 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 
     QGstElement gstNewCamera;
     if (camera.isNull()) {
-        gstNewCamera = QGstElement("videotestsrc");
+        gstNewCamera = QGstElement::createFromFactory("videotestsrc");
     } else {
         auto *integration = static_cast<QGstreamerIntegration *>(QGstreamerIntegration::instance());
         auto *device = integration->videoDevice(camera.id());
@@ -100,7 +100,8 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 
     QCameraFormat f = findBestCameraFormat(camera);
     auto caps = QGstCaps::fromCameraFormat(f);
-    auto gstNewDecode = QGstElement(f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
+    auto gstNewDecode = QGstElement::createFromFactory(
+            f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
     gstCamera.unlink(gstCapsFilter);
     gstCapsFilter.unlink(gstDecode);
@@ -145,7 +146,8 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
 
     auto caps = QGstCaps::fromCameraFormat(f);
 
-    auto newGstDecode = QGstElement(f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
+    auto newGstDecode = QGstElement::createFromFactory(
+            f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
     gstCameraBin.add(newGstDecode);
     newGstDecode.syncStateWithParent();
 

@@ -180,11 +180,11 @@ QGstPipeline &QGstPipeline::operator=(const QGstPipeline &o)
     return *this;
 }
 
-QGstPipeline::QGstPipeline(const char *name)
-    : QGstBin(GST_BIN(gst_pipeline_new(name)), NeedsRef)
+QGstPipeline QGstPipeline::create(const char *name)
 {
-    d = new QGstPipelinePrivate(gst_pipeline_get_bus(pipeline()));
-    d->ref();
+    return QGstPipeline{
+        GST_PIPELINE(gst_pipeline_new(name)),
+    };
 }
 
 QGstPipeline::QGstPipeline(GstPipeline *p)

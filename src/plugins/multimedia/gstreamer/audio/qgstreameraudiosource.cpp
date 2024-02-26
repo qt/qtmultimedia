@@ -148,7 +148,7 @@ bool QGStreamerAudioSource::open()
     qDebug() << "Caps: " << gst_caps_to_string(gstCaps);
 #endif
 
-    gstPipeline = QGstPipeline("pipeline");
+    gstPipeline = QGstPipeline::create("pipeline");
 
     auto *gstBus = gst_pipeline_get_bus(gstPipeline.pipeline());
     gst_bus_add_watch(gstBus, &QGStreamerAudioSource::busMessage, this);
@@ -157,8 +157,8 @@ bool QGStreamerAudioSource::open()
     gstAppSink = createAppSink();
     gstAppSink.set("caps", gstCaps);
 
-    QGstElement conv("audioconvert", "conv");
-    gstVolume = QGstElement("volume", "volume");
+    QGstElement conv = QGstElement::createFromFactory("audioconvert", "conv");
+    gstVolume = QGstElement::createFromFactory("volume", "volume");
     Q_ASSERT(gstVolume);
     if (m_volume != 1.)
         gstVolume.set("volume", m_volume);
@@ -282,7 +282,7 @@ void QGStreamerAudioSource::reset()
 
 QGstElement QGStreamerAudioSource::createAppSink()
 {
-    QGstElement sink("appsink", "appsink");
+    QGstElement sink = QGstElement::createFromFactory("appsink", "appsink");
     GstAppSink *appSink = reinterpret_cast<GstAppSink *>(sink.element());
 
     GstAppSinkCallbacks callbacks;
