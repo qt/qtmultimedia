@@ -62,9 +62,11 @@ private:
 
     struct chunk
     {
-        char        id[4];
-        quint32     size;
+        char        id[4]; // A four-character code that identifies the representation of the chunk data
+                           // padded on the right with blank characters (ASCII 32)
+        quint32     size;  // Does not include the size of the id or size fields or the pad byte at the end of payload
     };
+
     bool peekChunk(chunk* pChunk, bool handleEndianness = true);
 
     struct RIFFHeader
