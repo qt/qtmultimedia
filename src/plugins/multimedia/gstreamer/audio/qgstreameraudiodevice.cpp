@@ -12,7 +12,8 @@ QGStreamerAudioDeviceInfo::QGStreamerAudioDeviceInfo(GstDevice *d, const QByteAr
                                                      QAudioDevice::Mode mode)
     : QAudioDevicePrivate(device, mode),
       gstDevice{
-          (GstDevice *)gst_object_ref(d),
+          d,
+          QGstDeviceHandle::NeedsRef,
       }
 {
     QGString name{
