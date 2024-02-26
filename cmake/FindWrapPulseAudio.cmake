@@ -33,3 +33,5 @@ endif()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(WrapPulseAudio REQUIRED_VARS
                                 PULSEAUDIO_LIBRARY PULSEAUDIO_INCLUDE_DIR WrapPulseAudio_FOUND)
+
+mark_as_advanced(PULSEAUDIO_LIBRARY PULSEAUDIO_INCLUDE_DIR)
