@@ -113,8 +113,6 @@ QPulseAudioSource::QPulseAudioSource(const QByteArray &device, QObject *parent)
 QPulseAudioSource::~QPulseAudioSource()
 {
     close();
-    disconnect(m_timer, SIGNAL(timeout()));
-    QCoreApplication::processEvents();
     delete m_timer;
 }
 
