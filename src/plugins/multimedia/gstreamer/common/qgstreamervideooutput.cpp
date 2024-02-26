@@ -15,25 +15,24 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
 {
-    QGstElement videoConvert("videoconvert", "videoConvert");
+    QGstElement videoConvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
     if (!videoConvert)
         return errorMessageCannotFindElement("videoconvert");
 
-    QGstElement videoSink("fakesink", "fakeVideoSink");
+    QGstElement videoSink = QGstElement::createFromFactory("fakesink", "fakeVideoSink");
     if (!videoSink)
         return errorMessageCannotFindElement("fakesink");
 
     return new QGstreamerVideoOutput(videoConvert, videoSink, parent);
 }
 
-QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement sink,
-                                             QObject *parent)
+QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement sink, QObject *parent)
     : QObject(parent),
-      gstVideoOutput("videoOutput"),
+      gstVideoOutput(QGstBin::create("videoOutput")),
       videoConvert(std::move(convert)),
       videoSink(std::move(sink))
 {
-    videoQueue = QGstElement("queue", "videoQueue");
+    videoQueue = QGstElement::createFromFactory("queue", "videoQueue");
     videoSink.set("sync", true);
     gstVideoOutput.add(videoQueue, videoConvert, videoSink);
     if (!videoQueue.link(videoConvert, videoSink))
@@ -65,7 +64,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         gstSink = m_videoSink->gstSink();
         isFakeSink = false;
     } else {
-        gstSink = QGstElement("fakesink", "fakevideosink");
+        gstSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
         Q_ASSERT(gstSink);
         gstSink.set("sync", true);
         isFakeSink = true;

@@ -14,7 +14,7 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QGstAppSrc *> QGstAppSrc::create(QObject *parent)
 {
-    QGstElement appsrc("appsrc", "appsrc");
+    QGstElement appsrc = QGstElement::createFromFactory("appsrc", "appsrc");
     if (!appsrc)
         return errorMessageCannotFindElement("appsrc");
 

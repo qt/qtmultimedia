@@ -46,7 +46,7 @@ QMaybe<QPlatformMediaCaptureSession *> QGstreamerMediaCapture::create()
 }
 
 QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput)
-    : gstPipeline("pipeline"), gstVideoOutput(videoOutput)
+    : gstPipeline(QGstPipeline::create("pipeline")), gstVideoOutput(videoOutput)
 {
     gstVideoOutput->setParent(this);
     gstVideoOutput->setIsPreview();
@@ -110,7 +110,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     gstCamera = control;
     if (gstCamera) {
         QGstElement camera = gstCamera->gstElement();
-        gstVideoTee = QGstElement("tee", "videotee");
+        gstVideoTee = QGstElement::createFromFactory("tee", "videotee");
         gstVideoTee.set("allow-not-linked", true);
 
         gstPipeline.add(gstVideoOutput->gstElement(), camera, gstVideoTee);
@@ -190,7 +190,8 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
     if (!gstVideoTee.isNull() && !videoSink.isNull()) {
         auto caps = gst_pad_get_current_caps(gstVideoTee.sink().pad());
 
-        encoderVideoCapsFilter = QGstElement("capsfilter", "encoderVideoCapsFilter");
+        encoderVideoCapsFilter =
+                QGstElement::createFromFactory("capsfilter", "encoderVideoCapsFilter");
         Q_ASSERT(encoderVideoCapsFilter);
         encoderVideoCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
 
@@ -205,7 +206,8 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
     if (!gstAudioTee.isNull() && !audioSink.isNull()) {
         auto caps = gst_pad_get_current_caps(gstAudioTee.sink().pad());
 
-        encoderAudioCapsFilter = QGstElement("capsfilter", "encoderAudioCapsFilter");
+        encoderAudioCapsFilter =
+                QGstElement::createFromFactory("capsfilter", "encoderAudioCapsFilter");
         Q_ASSERT(encoderAudioCapsFilter);
         encoderAudioCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
 
@@ -264,7 +266,7 @@ void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
     gstAudioInput = static_cast<QGstreamerAudioInput *>(input);
     if (gstAudioInput) {
         Q_ASSERT(gstAudioTee.isNull());
-        gstAudioTee = QGstElement("tee", "audiotee");
+        gstAudioTee = QGstElement::createFromFactory("tee", "audiotee");
         gstAudioTee.set("allow-not-linked", true);
         gstPipeline.add(gstAudioInput->gstElement(), gstAudioTee);
         gstAudioInput->gstElement().link(gstAudioTee);

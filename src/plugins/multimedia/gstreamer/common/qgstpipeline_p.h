@@ -46,9 +46,10 @@ public:
     constexpr QGstPipeline() = default;
     QGstPipeline(const QGstPipeline &o);
     QGstPipeline &operator=(const QGstPipeline &o);
-    explicit QGstPipeline(const char *name);
     explicit QGstPipeline(GstPipeline *p);
     ~QGstPipeline() override;
+
+    static QGstPipeline create(const char *name);
 
     // This is needed to help us avoid sending QVideoFrames or audio buffers to the
     // application while we're prerolling the pipeline.

@@ -39,11 +39,12 @@ typedef enum {
 
 QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *parent)
 {
-    QGstElement audioconvert("audioconvert", "audioconvert");
+    QGstElement audioconvert = QGstElement::createFromFactory("audioconvert", "audioconvert");
     if (!audioconvert)
         return errorMessageCannotFindElement("audioconvert");
 
-    QGstPipeline playbin(GST_PIPELINE_CAST(QGstElement("playbin", "playbin").element()));
+    QGstPipeline playbin(
+            GST_PIPELINE_CAST(QGstElement::createFromFactory("playbin", "playbin").element()));
     if (!playbin)
         return errorMessageCannotFindElement("playbin");
 
@@ -60,7 +61,7 @@ QGstreamerAudioDecoder::QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement
     // Set the rest of the pipeline up
     setAudioFlags(true);
 
-    m_outputBin = QGstBin("audio-output-bin");
+    m_outputBin = QGstBin::create("audio-output-bin");
     m_outputBin.add(m_audioConvert);
 
     // add ghostpad
