@@ -439,9 +439,15 @@ bool QWaveDecoder::findChunk(const char *chunkId)
         if (qstrncmp(descriptor.id, chunkId, 4) == 0)
             return true;
 
+        // A program reading a RIFF file can skip over any chunk whose chunk
+        // ID it doesn't recognize; it simply skips the number of bytes specified
+        // by ckSize plus the pad byte, if present. See Multimedia Programming
+        // Interface and Data Specifications 1.0. IBM / Microsoft. August 1991. pp. 10-11.
+        const quint32 sizeWithPad = descriptor.size + (descriptor.size & 1);
+
         // It's possible that bytes->available() is less than the chunk size
         // if it's corrupt.
-        junkToSkip = qint64(sizeof(chunk) + descriptor.size);
+        junkToSkip = qint64(sizeof(chunk) + sizeWithPad);
 
         // Skip the current amount
         if (junkToSkip > 0)
