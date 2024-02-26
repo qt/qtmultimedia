@@ -177,6 +177,8 @@ macro(find_component _component _pkgconfig _library _header)
 
   set(${_component}_DEFINITIONS  ${PC_${_component}_CFLAGS_OTHER})
   set_component_found(${_component})
+
+  mark_as_advanced(${_component}_LIBRARY)
 endmacro()
 
 # Clear the previously cached variables, because they are recomputed every time
@@ -204,6 +206,9 @@ foreach (_component ${FFmpeg_FIND_COMPONENTS})
     else()
       list(APPEND FFMPEG_STATIC_COMPONENTS ${_component})
     endif()
+
+    mark_as_advanced(${_component}_LIBRARY_NAME ${_component}_DEFINITIONS ${_component}_INCLUDE_DIR
+        ${_component}_LIBRARY_DIR ${_component}_SHARED_LIBRARIES)
   endif()
 endforeach()
 
