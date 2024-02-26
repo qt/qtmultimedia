@@ -373,8 +373,8 @@ void QWaveDecoder::handleData()
             }
 
             format.setSampleFormat(fmt);
-            format.setSampleRate(/*qFromBigEndian<quint32>*/(wave.sampleRate));
-            format.setChannelCount(/*qFromBigEndian<quint16>*/(wave.numChannels));
+            format.setSampleRate(rate);
+            format.setChannelCount(channels);
 
             state = QWaveDecoder::WaitingForDataState;
         }
