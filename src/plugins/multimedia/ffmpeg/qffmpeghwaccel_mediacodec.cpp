@@ -17,8 +17,6 @@ extern "C" {
 
 namespace QFFmpeg {
 
-Q_GLOBAL_STATIC(AndroidSurfaceTexture, androidSurfaceTexture, 0);
-
 class MediaCodecTextureSet : public TextureSet
 {
 public:
@@ -30,8 +28,33 @@ private:
     qint64 handle;
 };
 
+namespace {
+
+void deleteSurface(AVHWDeviceContext *ctx)
+{
+    AndroidSurfaceTexture* s = reinterpret_cast<AndroidSurfaceTexture *>(ctx->user_opaque);
+    delete s;
+}
+
+AndroidSurfaceTexture* getTextureSurface(AVFrame *frame)
+{
+    if (!frame || !frame->hw_frames_ctx)
+        return nullptr;
+
+    auto *frameContext = reinterpret_cast<AVHWFramesContext *>(frame->hw_frames_ctx->data);
+
+    if (!frameContext || !frameContext->device_ctx)
+        return nullptr;
+
+    AVHWDeviceContext *deviceContext = frameContext->device_ctx;
+
+    return reinterpret_cast<AndroidSurfaceTexture *>(deviceContext->user_opaque);
+}
+} // namespace
+
 void MediaCodecTextureConverter::setupDecoderSurface(AVCodecContext *avCodecContext)
 {
+    std::unique_ptr<AndroidSurfaceTexture> androidSurfaceTexture(new AndroidSurfaceTexture(0));
     AVMediaCodecContext *mediacodecContext = av_mediacodec_alloc_context();
     av_mediacodec_default_init(avCodecContext, mediacodecContext, androidSurfaceTexture->surface());
 
@@ -51,14 +74,21 @@ void MediaCodecTextureConverter::setupDecoderSurface(AVCodecContext *avCodecCont
         return;
 
     mediaDeviceContext->surface = androidSurfaceTexture->surface();
+
+    Q_ASSERT(deviceContext->user_opaque == nullptr);
+    deviceContext->user_opaque = androidSurfaceTexture.release();
+    deviceContext->free = deleteSurface;
 }
 
 TextureSet *MediaCodecTextureConverter::getTextures(AVFrame *frame)
 {
-    if (!androidSurfaceTexture->isValid())
+    AndroidSurfaceTexture * androidSurfaceTexture = getTextureSurface(frame);
+
+    if (!androidSurfaceTexture || !androidSurfaceTexture->isValid())
         return {};
 
-    if (!externalTexture) {
+    if (!externalTexture || m_currentSurfaceIndex != androidSurfaceTexture->index()) {
+        m_currentSurfaceIndex = androidSurfaceTexture->index();
         androidSurfaceTexture->detachFromGLContext();
         externalTexture = std::unique_ptr<QRhiTexture>(
                 rhi->newTexture(QRhiTexture::Format::RGBA8, { frame->width, frame->height }, 1,
