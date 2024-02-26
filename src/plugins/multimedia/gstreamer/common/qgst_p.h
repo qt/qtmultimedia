@@ -499,7 +499,7 @@ public:
     {
     }
 
-    static QGstElement create(const char *factory, const char *name = nullptr)
+    static QGstElement createFromFactory(const char *factory, const char *name = nullptr)
     {
         GstElement *element = gst_element_factory_make(factory, name);
 
@@ -514,13 +514,6 @@ public:
             element,
             NeedsRef,
         };
-    }
-
-    explicit QGstElement(const char *factory, const char *name = nullptr)
-        : QGstElement{
-              create(factory, name),
-          }
-    {
     }
 
     bool link(const QGstElement &next)
@@ -637,7 +630,17 @@ public:
     QGstBin &operator=(const QGstBin &) = default;
     QGstBin &operator=(QGstBin &&) noexcept = default;
 
-    explicit QGstBin(const char *name) : QGstElement(gst_bin_new(name), NeedsRef) { }
+    static QGstBin create(const char *name) { return QGstBin(gst_bin_new(name), NeedsRef); }
+    static QGstBin createFromFactory(const char *factory, const char *name)
+    {
+        QGstElement element = QGstElement::createFromFactory(factory, name);
+        Q_ASSERT(GST_IS_BIN(element.element()));
+        return QGstBin{
+            GST_BIN(element.release()),
+            RefMode::HasRef,
+        };
+    }
+
     explicit QGstBin(GstBin *bin, RefMode mode = NeedsRef) : QGstElement(&bin->element, mode) { }
 
     void add(const QGstElement &element)
