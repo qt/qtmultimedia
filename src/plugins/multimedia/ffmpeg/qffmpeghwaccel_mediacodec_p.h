@@ -30,6 +30,7 @@ public:
     static void setupDecoderSurface(AVCodecContext *s);
 private:
     std::unique_ptr<QRhiTexture> externalTexture;
+    quint64 m_currentSurfaceIndex = 0;
 };
 }
 #endif // QFFMPEGHWACCEL_MEDIACODEC_P_H
