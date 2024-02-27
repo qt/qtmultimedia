@@ -375,7 +375,10 @@ QAudioBuffer QGstreamerAudioDecoder::read()
         const char* bufferData = nullptr;
         int bufferSize = 0;
 
-        QGstSampleHandle sample{ gst_app_sink_pull_sample(m_appSink) };
+        QGstSampleHandle sample{
+            gst_app_sink_pull_sample(m_appSink),
+            QGstSampleHandle::HasRef,
+        };
         GstBuffer *buffer = gst_sample_get_buffer(sample.get());
         GstMapInfo mapInfo;
         gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
