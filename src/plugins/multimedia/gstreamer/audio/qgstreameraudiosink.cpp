@@ -43,7 +43,7 @@ QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc 
                                          QObject *parent)
     : QPlatformAudioSink(parent),
       m_device(device.id()),
-      gstPipeline(QGstPipeline::create("pipeline")),
+      gstPipeline(QGstPipeline::create("audioSinkPipeline")),
       gstVolume(std::move(volume)),
       m_appSrc(appsrc)
 {
