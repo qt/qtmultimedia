@@ -309,14 +309,16 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
             videoPauseControl.installOn(videoSink);
     }
 
-    gstPipeline.add(gstEncoder, gstFileSink);
-    qLinkGstElements(gstEncoder, gstFileSink);
-    m_metaData.setMetaData(gstEncoder.bin());
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        gstPipeline.add(gstEncoder, gstFileSink);
+        qLinkGstElements(gstEncoder, gstFileSink);
+        m_metaData.setMetaData(gstEncoder.bin());
 
-    m_session->linkEncoder(audioSink, videoSink);
+        m_session->linkEncoder(audioSink, videoSink);
 
-    gstEncoder.syncStateWithParent();
-    gstFileSink.syncStateWithParent();
+        gstEncoder.syncStateWithParent();
+        gstFileSink.syncStateWithParent();
+    });
 
     signalDurationChangedTimer.start();
     gstPipeline.dumpGraph("recording");

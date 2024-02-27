@@ -154,18 +154,17 @@ void QGstreamerVideoSink::updateSinkElement()
     if (newSink == gstVideoSink)
         return;
 
-    gstPipeline.beginConfig();
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        if (!gstVideoSink.isNull())
+            sinkBin.stopAndRemoveElements(gstVideoSink);
 
-    if (!gstVideoSink.isNull())
-        sinkBin.stopAndRemoveElements(gstVideoSink);
+        gstVideoSink = newSink;
+        sinkBin.add(gstVideoSink);
+        if (!qLinkGstElements(gstCapsFilter, gstVideoSink))
+            qCDebug(qLcMediaVideoSink) << "couldn't link caps filter and sink";
+        gstVideoSink.setState(GST_STATE_PAUSED);
+    });
 
-    gstVideoSink = newSink;
-    sinkBin.add(gstVideoSink);
-    if (!qLinkGstElements(gstCapsFilter, gstVideoSink))
-        qCDebug(qLcMediaVideoSink) << "couldn't link caps filter and sink";
-    gstVideoSink.setState(GST_STATE_PAUSED);
-
-    gstPipeline.endConfig();
     gstPipeline.dumpGraph("updateVideoSink");
 }
 

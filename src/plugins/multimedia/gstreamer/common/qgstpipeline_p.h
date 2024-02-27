@@ -85,8 +85,13 @@ public:
 #endif
     }
 
-    void beginConfig();
-    void endConfig();
+    template <typename Functor>
+    void modifyPipelineWhileNotRunning(Functor &&fn)
+    {
+        beginConfig();
+        fn();
+        endConfig();
+    }
 
     void flush();
 
@@ -98,6 +103,10 @@ public:
     qint64 position() const;
 
     qint64 duration() const;
+
+private:
+    void beginConfig();
+    void endConfig();
 };
 
 QT_END_NAMESPACE
