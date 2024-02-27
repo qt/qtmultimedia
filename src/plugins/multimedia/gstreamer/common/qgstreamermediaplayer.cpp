@@ -768,17 +768,17 @@ void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
 
     auto &ts = trackSelector(AudioStream);
 
-    playerPipeline.beginConfig();
-    if (gstAudioOutput) {
-        removeOutput(ts);
-        gstAudioOutput->setPipeline({});
-    }
-    gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
-    if (gstAudioOutput) {
-        gstAudioOutput->setPipeline(playerPipeline);
-        connectOutput(ts);
-    }
-    playerPipeline.endConfig();
+    playerPipeline.modifyPipelineWhileNotRunning([&] {
+        if (gstAudioOutput) {
+            removeOutput(ts);
+            gstAudioOutput->setPipeline({});
+        }
+        gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
+        if (gstAudioOutput) {
+            gstAudioOutput->setPipeline(playerPipeline);
+            connectOutput(ts);
+        }
+    });
 }
 
 QMediaMetaData QGstreamerMediaPlayer::metaData() const
@@ -916,14 +916,14 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
     if (type == QPlatformMediaPlayer::SubtitleStream)
         gstVideoOutput->flushSubtitles();
 
-    playerPipeline.beginConfig();
-    if (track.isNull()) {
-        removeOutput(ts);
-    } else {
-        ts.setActiveInputPad(track);
-        connectOutput(ts);
-    }
-    playerPipeline.endConfig();
+    playerPipeline.modifyPipelineWhileNotRunning([&] {
+        if (track.isNull()) {
+            removeOutput(ts);
+        } else {
+            ts.setActiveInputPad(track);
+            connectOutput(ts);
+        }
+    });
 
     // seek to force an immediate change of the stream
     if (playerPipeline.state() == GST_STATE_PLAYING)
