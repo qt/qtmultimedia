@@ -115,10 +115,10 @@ struct QGstTagListHandleTraits
         gst_tag_list_unref(handle);
         return true;
     }
+    static Type ref(Type handle) noexcept { return gst_tag_list_ref(handle); }
 };
 
 struct QGstSampleHandleTraits
-
 {
     using Type = GstSample *;
     static constexpr Type invalidValue() noexcept { return nullptr; }
@@ -127,6 +127,7 @@ struct QGstSampleHandleTraits
         gst_sample_unref(handle);
         return true;
     }
+    static Type ref(Type handle) noexcept { return gst_sample_ref(handle); }
 };
 
 struct QUniqueGstStructureHandleTraits
@@ -199,14 +200,15 @@ struct QGstHandleHelper
 
 } // namespace QGstImpl
 
-using QGstTagListHandle = QGstImpl::QGstHandleHelper<GstTagList>::UniqueHandle;
 using QGstClockHandle = QGstImpl::QGstHandleHelper<GstClock>::UniqueHandle;
 using QGstElementHandle = QGstImpl::QGstHandleHelper<GstElement>::UniqueHandle;
 using QGstElementFactoryHandle = QGstImpl::QGstHandleHelper<GstElementFactory>::UniqueHandle;
 using QGstDeviceHandle = QGstImpl::QGstHandleHelper<GstDevice>::SharedHandle;
 using QGstDeviceMonitorHandle = QGstImpl::QGstHandleHelper<GstDeviceMonitor>::UniqueHandle;
 using QGstBusHandle = QGstImpl::QGstHandleHelper<GstBus>::UniqueHandle;
-using QGstSampleHandle = QGstImpl::QGstHandleHelper<GstSample>::UniqueHandle;
+
+using QGstTagListHandle = QGstImpl::QSharedHandle<QGstImpl::QGstTagListHandleTraits>;
+using QGstSampleHandle = QGstImpl::QSharedHandle<QGstImpl::QGstSampleHandleTraits>;
 
 using QUniqueGstStructureHandle = QUniqueHandle<QGstImpl::QUniqueGstStructureHandleTraits>;
 using QUniqueGStringHandle = QUniqueHandle<QGstImpl::QUniqueGStringHandleTraits>;
