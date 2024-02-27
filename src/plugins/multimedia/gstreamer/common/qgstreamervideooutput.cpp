@@ -15,9 +15,9 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
 {
-    QGstElement videoConvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
+    QGstElement videoConvert = QGstElement::createFromFactory("videoconvertscale", "videoConvert");
     if (!videoConvert)
-        return errorMessageCannotFindElement("videoconvert");
+        return errorMessageCannotFindElement("videoconvertscale");
 
     QGstElement videoSink = QGstElement::createFromFactory("fakesink", "fakeVideoSink");
     if (!videoSink)

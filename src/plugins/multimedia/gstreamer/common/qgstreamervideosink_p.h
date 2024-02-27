@@ -64,6 +64,7 @@ private:
     QGstBin sinkBin;
     QGstElement gstQueue;
     QGstElement gstPreprocess;
+    QGstElement gstCapsFilter;
     QGstElement gstVideoSink;
     QGstElement gstQtSink;
     QGstElement gstSubtitleSink;
