@@ -73,21 +73,20 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     if (videoSink == gstSink)
         return;
 
-    gstPipeline.beginConfig();
-    if (!videoSink.isNull())
-        gstVideoOutput.stopAndRemoveElements(videoSink);
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        if (!videoSink.isNull())
+            gstVideoOutput.stopAndRemoveElements(videoSink);
 
-    videoSink = gstSink;
-    gstVideoOutput.add(videoSink);
+        videoSink = gstSink;
+        gstVideoOutput.add(videoSink);
 
-    qLinkGstElements(videoConvert, videoSink);
-    GstEvent *event = gst_event_new_reconfigure();
-    gst_element_send_event(videoSink.element(), event);
-    videoSink.syncStateWithParent();
+        qLinkGstElements(videoConvert, videoSink);
+        GstEvent *event = gst_event_new_reconfigure();
+        gst_element_send_event(videoSink.element(), event);
+        videoSink.syncStateWithParent();
 
-    doLinkSubtitleStream();
-
-    gstPipeline.endConfig();
+        doLinkSubtitleStream();
+    });
 
     qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
 
@@ -111,10 +110,10 @@ void QGstreamerVideoOutput::linkSubtitleStream(QGstElement src)
     if (src == subtitleSrc)
         return;
 
-    gstPipeline.beginConfig();
-    subtitleSrc = src;
-    doLinkSubtitleStream();
-    gstPipeline.endConfig();
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        subtitleSrc = src;
+        doLinkSubtitleStream();
+    });
 }
 
 void QGstreamerVideoOutput::unlinkSubtitleStream()
@@ -124,9 +123,10 @@ void QGstreamerVideoOutput::unlinkSubtitleStream()
     qCDebug(qLcMediaVideoOutput) << "unlink subtitle stream";
     subtitleSrc = {};
     if (!subtitleSink.isNull()) {
-        gstPipeline.beginConfig();
-        gstPipeline.stopAndRemoveElements(subtitleSink);
-        gstPipeline.endConfig();
+        gstPipeline.modifyPipelineWhileNotRunning([&] {
+            gstPipeline.stopAndRemoveElements(subtitleSink);
+            return;
+        });
         subtitleSink = {};
     }
     if (m_videoSink)
