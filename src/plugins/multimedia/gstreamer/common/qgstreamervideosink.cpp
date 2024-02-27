@@ -68,8 +68,28 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
         QGstElement::NeedsRef,
     };
 
-    sinkBin.add(gstQueue, gstPreprocess);
-    qLinkGstElements(gstQueue, gstPreprocess);
+    bool disablePixelAspectRatio =
+            qEnvironmentVariableIsSet("QT_MULTIMEDIA_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO");
+    if (disablePixelAspectRatio) {
+        // Enabling the pixel aspect ratio may expose a gstreamer bug on cameras that don't expose a
+        // pixel-aspect-ratio via `VIDIOC_CROPCAP`. This can cause the caps negotiation to fail.
+        // Using the QT_MULTIMEDIA_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO environment variable, on can
+        // disable pixel-aspect-ratio handling
+        //
+        // compare: https://gitlab.freedesktop.org/gstreamer/gstreamer/-/merge_requests/6242
+        gstCapsFilter =
+                QGstElement::createFromFactory("identity", "nullPixelAspectRatioCapsFilter");
+    } else {
+        gstCapsFilter = QGstElement::createFromFactory("capsfilter", "pixelAspectRatioCapsFilter");
+        QGstCaps capsFilterCaps{
+            gst_caps_new_simple("video/x-raw", "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1, NULL),
+            QGstCaps::HasRef,
+        };
+        g_object_set(gstCapsFilter.element(), "caps", capsFilterCaps.release(), NULL);
+    }
+
+    sinkBin.add(gstQueue, gstPreprocess, gstCapsFilter);
+    qLinkGstElements(gstQueue, gstPreprocess, gstCapsFilter);
     sinkBin.addGhostPad(gstQueue, "sink");
 
     gstSubtitleSink = QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)));
@@ -141,8 +161,8 @@ void QGstreamerVideoSink::updateSinkElement()
 
     gstVideoSink = newSink;
     sinkBin.add(gstVideoSink);
-    if (!qLinkGstElements(gstPreprocess, gstVideoSink))
-        qCDebug(qLcMediaVideoSink) << "couldn't link preprocess and sink";
+    if (!qLinkGstElements(gstCapsFilter, gstVideoSink))
+        qCDebug(qLcMediaVideoSink) << "couldn't link caps filter and sink";
     gstVideoSink.setState(GST_STATE_PAUSED);
 
     gstPipeline.endConfig();
