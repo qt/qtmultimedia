@@ -46,7 +46,7 @@ QMaybe<QPlatformMediaCaptureSession *> QGstreamerMediaCapture::create()
 }
 
 QGstreamerMediaCapture::QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput)
-    : gstPipeline(QGstPipeline::create("pipeline")), gstVideoOutput(videoOutput)
+    : gstPipeline(QGstPipeline::create("mediaCapturePipeline")), gstVideoOutput(videoOutput)
 {
     gstVideoOutput->setParent(this);
     gstVideoOutput->setIsPreview();
