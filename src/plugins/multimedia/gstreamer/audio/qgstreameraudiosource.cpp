@@ -148,7 +148,7 @@ bool QGStreamerAudioSource::open()
     qDebug() << "Caps: " << gst_caps_to_string(gstCaps);
 #endif
 
-    gstPipeline = QGstPipeline::create("pipeline");
+    gstPipeline = QGstPipeline::create("audioSourcePipeline");
 
     auto *gstBus = gst_pipeline_get_bus(gstPipeline.pipeline());
     gst_bus_add_watch(gstBus, &QGStreamerAudioSource::busMessage, this);
