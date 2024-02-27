@@ -50,7 +50,10 @@ QDebug operator<<(QDebug dbg, const QGstPad &pad)
 
 QDebug operator<<(QDebug dbg, const GstCaps *caps)
 {
-    return dbg << QGString(gst_caps_to_string(caps));
+    if (caps)
+        return dbg << QGString(gst_caps_to_string(caps));
+    else
+        return dbg << "null";
 }
 
 QDebug operator<<(QDebug dbg, const GstVideoInfo *info)
@@ -64,7 +67,10 @@ QDebug operator<<(QDebug dbg, const GstVideoInfo *info)
 
 QDebug operator<<(QDebug dbg, const GstStructure *structure)
 {
-    return dbg << QGString(gst_structure_to_string(structure));
+    if (structure)
+        return dbg << QGString(gst_structure_to_string(structure));
+    else
+        return dbg << "null";
 }
 
 QDebug operator<<(QDebug dbg, const GstObject *object)
