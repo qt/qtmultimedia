@@ -6,6 +6,7 @@
 #include "qgstreamerformatinfo_p.h"
 #include "qgstpipeline_p.h"
 #include "qgstreamermessage_p.h"
+#include "qgst_debug_p.h"
 #include <private/qplatformcamera_p.h>
 #include "qaudiodevice.h"
 #include <private/qmediastoragelocation_p.h>
@@ -55,36 +56,35 @@ void QGstreamerMediaEncoder::handleSessionError(QMediaRecorder::Error code, cons
     stop();
 }
 
-bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
+bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
 {
-    if (message.isNull())
-        return false;
-    auto msg = message;
+    constexpr bool traceStateChange = false;
+    constexpr bool traceAllEvents = false;
 
-//    qCDebug(qLcMediaEncoderGst) << "received event from" << message.source().name() << Qt::hex << message.type();
-//    if (message.type() == GST_MESSAGE_STATE_CHANGED) {
-//        GstState    oldState;
-//        GstState    newState;
-//        GstState    pending;
-//        gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
-//        qCDebug(qLcMediaEncoderGst) << "received state change from" << message.source().name() << oldState << newState << pending;
-//    }
-    if (msg.type() == GST_MESSAGE_ELEMENT) {
+    if (msg.isNull())
+        return false;
+
+    if constexpr (traceAllEvents)
+        qCDebug(qLcMediaEncoderGst) << "received event:" << msg;
+
+    switch (msg.type()) {
+    case GST_MESSAGE_ELEMENT: {
         QGstStructure s = msg.structure();
-        qCDebug(qLcMediaEncoderGst) << "received element message from" << msg.source().name() << s.name();
         if (s.name() == "GstBinForwarded")
-            msg = s.getMessage();
-        if (msg.isNull())
-            return false;
+            return processBusMessage(s.getMessage());
+
+        qCDebug(qLcMediaEncoderGst)
+                << "received element message from" << msg.source().name() << s.name();
+        return false;
     }
 
-    if (msg.type() == GST_MESSAGE_EOS) {
+    case GST_MESSAGE_EOS: {
         qCDebug(qLcMediaEncoderGst) << "received EOS from" << msg.source().name();
         finalize();
         return false;
     }
 
-    if (msg.type() == GST_MESSAGE_ERROR) {
+    case GST_MESSAGE_ERROR: {
         QUniqueGErrorHandle err;
         QGString debug;
         gst_message_parse_error(msg.message(), &err, &debug);
@@ -92,9 +92,25 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &message)
         if (!m_finalizing)
             stop();
         finalize();
+        return false;
     }
 
-    return false;
+    case GST_MESSAGE_STATE_CHANGED: {
+        if constexpr (traceStateChange) {
+            GstState oldState;
+            GstState newState;
+            GstState pending;
+            gst_message_parse_state_changed(msg.message(), &oldState, &newState, &pending);
+            qCDebug(qLcMediaEncoderGst) << "received state change from" << msg.source().name()
+                                        << oldState << newState << pending;
+        }
+
+        return false;
+    }
+
+    default:
+        return false;
+    };
 }
 
 qint64 QGstreamerMediaEncoder::duration() const
