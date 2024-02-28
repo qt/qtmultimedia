@@ -942,6 +942,10 @@ void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFile
                               { QMediaPlayer::LoadedMedia },
                               { QMediaPlayer::BufferingMedia },
                               { QMediaPlayer::BufferedMedia } }));
+
+    QTRY_COMPARE_GT(m_fixture->bufferProgressChanged.size(), 0);
+    QTRY_COMPARE_NE(m_fixture->bufferProgressChanged.front().front(), 0.f);
+    QTRY_COMPARE(m_fixture->bufferProgressChanged.back().front(), 1.f);
 }
 
 void tst_QMediaPlayerBackend::play_startsPlaybackAndChangesPosition_whenValidFileIsLoaded()
@@ -1127,6 +1131,7 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::StoppedState } }));
     // it's allowed to emit statusChanged() signal async
     QTRY_COMPARE(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::LoadedMedia } }));
+    QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
 
     QTRY_COMPARE(m_fixture->player.position(), qint64(0));
     QTRY_VERIFY(!m_fixture->positionChanged.empty());
@@ -1318,6 +1323,9 @@ void tst_QMediaPlayerBackend::processEOS()
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(m_fixture->playbackStateChanged.size(), 2);
     QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
+
+    QCOMPARE_GT(m_fixture->bufferProgressChanged.size(), 1);
+    QCOMPARE(m_fixture->bufferProgressChanged.back().front(), 0.f);
 
     //position stays at the end of file
     QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
