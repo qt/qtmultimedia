@@ -51,13 +51,14 @@ public:
     qint64 size() const override {
         if (m_sample->state() != QSample::Ready)
             return 0;
-        return m_loopCount == QSoundEffect::Infinite ? 0 : m_loopCount * m_sample->data().size();
+        return m_loopCount == QSoundEffect::Infinite ? 0 : m_loopCount * m_audioBuffer.byteCount();
     }
     qint64 bytesAvailable() const override {
         if (m_sample->state() != QSample::Ready)
             return 0;
-        return m_loopCount == QSoundEffect::Infinite
-                   ? std::numeric_limits<qint64>::max() : m_runningCount * m_sample->data().size() - m_offset;
+        if (m_loopCount == QSoundEffect::Infinite)
+            return std::numeric_limits<qint64>::max();
+        return m_runningCount * m_audioBuffer.byteCount() - m_offset;
     }
     bool isSequential() const override {
         return m_loopCount == QSoundEffect::Infinite;
