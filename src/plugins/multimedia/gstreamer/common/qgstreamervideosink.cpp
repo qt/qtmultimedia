@@ -118,6 +118,9 @@ void QGstreamerVideoSink::setRhi(QRhi *rhi)
 
 void QGstreamerVideoSink::createQtSink()
 {
+    if (gstQtSink)
+        gstQtSink.setStateSync(GST_STATE_NULL);
+
     gstQtSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)));
 }
 
