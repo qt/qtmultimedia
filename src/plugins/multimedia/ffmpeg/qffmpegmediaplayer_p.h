@@ -78,6 +78,8 @@ private:
     void setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaDataHolder,
                        const std::shared_ptr<QFFmpeg::CancelToken> &cancelToken);
 
+    void mediaStatusChanged(QMediaPlayer::MediaStatus);
+
 private slots:
     void updatePosition();
     void endOfStream();
@@ -101,6 +103,7 @@ private:
     QUrl m_url;
     QPointer<QIODevice> m_device;
     float m_playbackRate = 1.;
+    float m_bufferProgress = 0.f;
     QFuture<void> m_loadMedia;
     std::shared_ptr<QFFmpeg::CancelToken> m_cancelToken; // For interrupting ongoing
                                                          // network connection attempt

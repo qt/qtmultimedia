@@ -104,10 +104,24 @@ void QFFmpegMediaPlayer::onBuffered()
 
 float QFFmpegMediaPlayer::bufferProgress() const
 {
-    const auto status = mediaStatus();
-    return status == QMediaPlayer::BufferingMedia   ? 0.25f // to be improved
-            : status == QMediaPlayer::BufferedMedia ? 1.f
-                                                    : 0.f;
+    return m_bufferProgress;
+}
+
+void QFFmpegMediaPlayer::mediaStatusChanged(QMediaPlayer::MediaStatus status)
+{
+    if (mediaStatus() == status)
+        return;
+
+    const auto newBufferProgress = status == QMediaPlayer::BufferingMedia ? 0.25f // to be improved
+            : status == QMediaPlayer::BufferedMedia                       ? 1.f
+                                                                          : 0.f;
+
+    if (!qFuzzyCompare(newBufferProgress, m_bufferProgress)) {
+        m_bufferProgress = newBufferProgress;
+        bufferProgressChanged(newBufferProgress);
+    }
+
+    QPlatformMediaPlayer::mediaStatusChanged(status);
 }
 
 QMediaTimeRange QFFmpegMediaPlayer::availablePlaybackRanges() const
