@@ -322,11 +322,6 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
     return *suggestedFormats;
 }
 
-TextureConverter::Data::~Data()
-{
-    delete backend;
-}
-
 HWAccel::~HWAccel() = default;
 
 std::unique_ptr<HWAccel> HWAccel::create(AVHWDeviceType deviceType)
@@ -456,22 +451,22 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
     switch (fmt) {
 #if QT_CONFIG(vaapi)
     case AV_PIX_FMT_VAAPI:
-        d->backend = new VAAPITextureConverter(d->rhi);
+        d->backend = std::make_unique<VAAPITextureConverter>(d->rhi);
         break;
 #endif
 #ifdef Q_OS_DARWIN
     case AV_PIX_FMT_VIDEOTOOLBOX:
-        d->backend = new VideoToolBoxTextureConverter(d->rhi);
+        d->backend = std::make_unique<VideoToolBoxTextureConverter>(d->rhi);
         break;
 #endif
 #if QT_CONFIG(wmf)
     case AV_PIX_FMT_D3D11:
-        d->backend = new D3D11TextureConverter(d->rhi);
+        d->backend = std::make_unique<D3D11TextureConverter>(d->rhi);
         break;
 #endif
 #ifdef Q_OS_ANDROID
     case AV_PIX_FMT_MEDIACODEC:
-        d->backend = new MediaCodecTextureConverter(d->rhi);
+        d->backend = std::make_unique<MediaCodecTextureConverter>(d->rhi);
         break;
 #endif
     default:
