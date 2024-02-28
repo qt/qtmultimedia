@@ -59,11 +59,10 @@ class TextureConverter
     class Data final
     {
     public:
-        ~Data();
         QAtomicInt ref = 0;
         QRhi *rhi = nullptr;
         AVPixelFormat format = AV_PIX_FMT_NONE;
-        TextureConverterBackend *backend = nullptr;
+        std::unique_ptr<TextureConverterBackend> backend;
     };
 public:
     TextureConverter(QRhi *rhi = nullptr);
