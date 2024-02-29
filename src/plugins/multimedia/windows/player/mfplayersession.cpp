@@ -359,6 +359,9 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
                                     break;
                                 }
                             }
+                        } else {
+                            // remove the source node if the output node cannot be created
+                            topology->RemoveNode(sourceNode.Get());
                         }
                     }
                 }
