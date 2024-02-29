@@ -4,10 +4,11 @@
 #include "qgstreamervideooverlay_p.h"
 
 #include <QtGui/qguiapplication.h>
-#include "qgstutils_p.h"
+#include "qglist_helper_p.h"
 #include "qgst_p.h"
 #include "qgstreamermessage_p.h"
 #include "qgstreamervideosink_p.h"
+#include "qgstutils_p.h"
 
 #include <gst/video/videooverlay.h>
 
@@ -67,9 +68,7 @@ static QGstElement findBestVideoSink()
     // If none of the known video sinks are available, try to find one that implements the
     // GstVideoOverlay interface and has autoplugging rank.
     GList *list = qt_gst_video_sinks();
-    for (GList *item = list; item != nullptr; item = item->next) {
-        GstElementFactory *f = GST_ELEMENT_FACTORY(item->data);
-
+    for (GstElementFactory *f : QGstUtils::GListRangeAdaptor<GstElementFactory *>(list)) {
         if (!gst_element_factory_has_interface(f, "GstVideoOverlay"))
             continue;
 

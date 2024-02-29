@@ -6,6 +6,7 @@
 #include "private/qcameradevice_p.h"
 
 #include "qgstutils_p.h"
+#include "qglist_helper_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -46,14 +47,14 @@ QGstreamerVideoDevices::QGstreamerVideoDevices(QPlatformMediaIntegration *integr
 
     GList *devices = gst_device_monitor_get_devices(m_deviceMonitor.get());
 
-    while (devices) {
-        GstDevice *device = static_cast<GstDevice *>(devices->data);
+    for (GstDevice *device : QGstUtils::GListRangeAdaptor<GstDevice *>(devices)) {
         addDevice(QGstDeviceHandle{
                 device,
                 QGstDeviceHandle::HasRef,
         });
-        devices = g_list_delete_link(devices, devices);
     }
+
+    g_list_free(devices);
 }
 
 QGstreamerVideoDevices::~QGstreamerVideoDevices()
