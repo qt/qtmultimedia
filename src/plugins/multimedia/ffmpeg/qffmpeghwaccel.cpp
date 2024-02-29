@@ -26,6 +26,9 @@
 #include <rhi/qrhi.h>
 #include <qloggingcategory.h>
 #include <unordered_set>
+#ifdef Q_OS_LINUX
+#include <QLibrary>
+#endif
 
 /* Infrastructure for HW acceleration goes into this file. */
 
@@ -74,8 +77,18 @@ static bool precheckDriver(AVHWDeviceType type)
 {
     // precheckings might need some improvements
 #if defined(Q_OS_LINUX)
-    if (type == AV_HWDEVICE_TYPE_CUDA)
-        return QFile::exists(QLatin1String("/proc/driver/nvidia/version"));
+    if (type == AV_HWDEVICE_TYPE_CUDA) {
+        if (!QFile::exists(QLatin1String("/proc/driver/nvidia/version")))
+            return false;
+
+        // QTBUG-122199
+        // CUDA backend requires libnvcuvid in libavcodec
+        QLibrary lib("libnvcuvid.so");
+        if (!lib.load())
+            return false;
+        lib.unload();
+        return true;
+    }
 #elif defined(Q_OS_WINDOWS)
     if (type == AV_HWDEVICE_TYPE_D3D11VA)
         return QSystemLibrary(QLatin1String("d3d11.dll")).load();
