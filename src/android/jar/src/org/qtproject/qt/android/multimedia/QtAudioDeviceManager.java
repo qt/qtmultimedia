@@ -253,6 +253,11 @@ public class QtAudioDeviceManager
                              + "Wired Headphones are connected");
                        setAudioOutput(AudioManager.MODE_IN_CALL, false, false);
                        return true;
+                   case AudioDeviceInfo.TYPE_HDMI:
+                   case AudioDeviceInfo.TYPE_HDMI_ARC:
+                   case AudioDeviceInfo.TYPE_HDMI_EARC:
+                       setAudioOutput(AudioManager.MODE_NORMAL, false, false);
+                       return true;
                    default:
                        return false;
                }
