@@ -1,6 +1,7 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
+#include "qglist_helper_p.h"
 #include "qgstreamerformatinfo_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -143,16 +144,11 @@ static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> g
     GList *elementList = gst_element_factory_list_get_elements(decode ? GST_ELEMENT_FACTORY_TYPE_DECODER : GST_ELEMENT_FACTORY_TYPE_ENCODER,
                                                                GST_RANK_MARGINAL);
 
-    GList *element = elementList;
-    while (element) {
-        GstElementFactory *factory = (GstElementFactory *)element->data;
-        element = element->next;
-
-        const GList *padTemplates = gst_element_factory_get_static_pad_templates(factory);
-        while (padTemplates) {
-            GstStaticPadTemplate *padTemplate = (GstStaticPadTemplate *)padTemplates->data;
-            padTemplates = padTemplates->next;
-
+    for (GstElementFactory *factory :
+         QGstUtils::GListRangeAdaptor<GstElementFactory *>(elementList)) {
+        for (GstStaticPadTemplate *padTemplate :
+             QGstUtils::GListRangeAdaptor<GstStaticPadTemplate *>(
+                     gst_element_factory_get_static_pad_templates(factory))) {
             if (padTemplate->direction == padDirection) {
                 auto caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
 
@@ -181,19 +177,17 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
 
     GstPadDirection padDirection = demuxer ? GST_PAD_SINK : GST_PAD_SRC;
 
-    GList *elementList = gst_element_factory_list_get_elements(demuxer ? GST_ELEMENT_FACTORY_TYPE_DEMUXER : GST_ELEMENT_FACTORY_TYPE_MUXER,
-                                                               GST_RANK_MARGINAL);
-    GList *element = elementList;
-    while (element) {
-        GstElementFactory *factory = (GstElementFactory *)element->data;
-        element = element->next;
+    GList *elementList = gst_element_factory_list_get_elements(
+            demuxer ? GST_ELEMENT_FACTORY_TYPE_DEMUXER : GST_ELEMENT_FACTORY_TYPE_MUXER,
+            GST_RANK_MARGINAL);
 
+    for (GstElementFactory *factory :
+         QGstUtils::GListRangeAdaptor<GstElementFactory *>(elementList)) {
         QList<QMediaFormat::FileFormat> fileFormats;
 
-        const GList *padTemplates = gst_element_factory_get_static_pad_templates(factory);
-        while (padTemplates) {
-            GstStaticPadTemplate *padTemplate = (GstStaticPadTemplate *)padTemplates->data;
-            padTemplates = padTemplates->next;
+        for (GstStaticPadTemplate *padTemplate :
+             QGstUtils::GListRangeAdaptor<GstStaticPadTemplate *>(
+                     gst_element_factory_get_static_pad_templates(factory))) {
 
             if (padTemplate->direction == padDirection) {
                 auto caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
@@ -212,10 +206,9 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
         QList<QMediaFormat::AudioCodec> audioCodecs;
         QList<QMediaFormat::VideoCodec> videoCodecs;
 
-        padTemplates = gst_element_factory_get_static_pad_templates(factory);
-        while (padTemplates) {
-            GstStaticPadTemplate *padTemplate = (GstStaticPadTemplate *)padTemplates->data;
-            padTemplates = padTemplates->next;
+        for (GstStaticPadTemplate *padTemplate :
+             QGstUtils::GListRangeAdaptor<GstStaticPadTemplate *>(
+                     gst_element_factory_get_static_pad_templates(factory))) {
 
             // check the other side for supported inputs/outputs
             if (padTemplate->direction != padDirection) {
@@ -275,16 +268,12 @@ static QList<QImageCapture::FileFormat> getImageFormatList()
     GList *elementList = gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_ENCODER,
                                                                GST_RANK_MARGINAL);
 
-    GList *element = elementList;
-    while (element) {
-        GstElementFactory *factory = (GstElementFactory *)element->data;
-        element = element->next;
+    for (GstElementFactory *factory :
+         QGstUtils::GListRangeAdaptor<GstElementFactory *>(elementList)) {
 
-        const GList *padTemplates = gst_element_factory_get_static_pad_templates(factory);
-        while (padTemplates) {
-            GstStaticPadTemplate *padTemplate = (GstStaticPadTemplate *)padTemplates->data;
-            padTemplates = padTemplates->next;
-
+        for (GstStaticPadTemplate *padTemplate :
+             QGstUtils::GListRangeAdaptor<GstStaticPadTemplate *>(
+                     gst_element_factory_get_static_pad_templates(factory))) {
             if (padTemplate->direction == GST_PAD_SRC) {
                 QGstCaps caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
 
