@@ -266,7 +266,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     g_object_set (gstEncoder.object(), "profile", encodingProfile, nullptr);
     gst_encoding_profile_unref(encodingProfile);
 
-    gstFileSink = QGstBin::createFromFactory("filesink", "filesink");
+    gstFileSink = QGstElement::createFromFactory("filesink", "filesink");
     Q_ASSERT(gstFileSink);
     gstFileSink.set("location", QFile::encodeName(actualSink.toLocalFile()).constData());
     gstFileSink.set("async", false);
