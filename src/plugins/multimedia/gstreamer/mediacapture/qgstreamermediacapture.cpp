@@ -89,36 +89,38 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *camera)
     if (gstCamera == control)
         return;
 
-    if (gstCamera) {
-        unlinkTeeFromPad(gstVideoTee, encoderVideoSink);
-        unlinkTeeFromPad(gstVideoTee, imageCaptureSink);
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        if (gstCamera) {
+            unlinkTeeFromPad(gstVideoTee, encoderVideoSink);
+            unlinkTeeFromPad(gstVideoTee, imageCaptureSink);
 
-        auto camera = gstCamera->gstElement();
+            auto camera = gstCamera->gstElement();
 
-        gstPipeline.stopAndRemoveElements(camera, gstVideoTee, gstVideoOutput->gstElement());
+            gstPipeline.stopAndRemoveElements(camera, gstVideoTee, gstVideoOutput->gstElement());
 
-        gstVideoTee = {};
-        gstCamera->setCaptureSession(nullptr);
-    }
+            gstVideoTee = {};
+            gstCamera->setCaptureSession(nullptr);
+        }
 
-    gstCamera = control;
-    if (gstCamera) {
-        QGstElement camera = gstCamera->gstElement();
-        gstVideoTee = QGstElement::createFromFactory("tee", "videotee");
-        gstVideoTee.set("allow-not-linked", true);
+        gstCamera = control;
+        if (gstCamera) {
+            QGstElement camera = gstCamera->gstElement();
+            gstVideoTee = QGstElement::createFromFactory("tee", "videotee");
+            gstVideoTee.set("allow-not-linked", true);
 
-        gstPipeline.add(gstVideoOutput->gstElement(), camera, gstVideoTee);
+            gstPipeline.add(gstVideoOutput->gstElement(), camera, gstVideoTee);
 
-        linkTeeToPad(gstVideoTee, encoderVideoSink);
-        linkTeeToPad(gstVideoTee, gstVideoOutput->gstElement().staticPad("sink"));
-        linkTeeToPad(gstVideoTee, imageCaptureSink);
+            linkTeeToPad(gstVideoTee, encoderVideoSink);
+            linkTeeToPad(gstVideoTee, gstVideoOutput->gstElement().staticPad("sink"));
+            linkTeeToPad(gstVideoTee, imageCaptureSink);
 
-        qLinkGstElements(camera, gstVideoTee);
+            qLinkGstElements(camera, gstVideoTee);
 
-        gstVideoOutput->gstElement().setState(GST_STATE_PLAYING);
-        gstVideoTee.setState(GST_STATE_PLAYING);
-        camera.setState(GST_STATE_PLAYING);
-    }
+            gstVideoOutput->gstElement().setState(GST_STATE_PLAYING);
+            gstVideoTee.setState(GST_STATE_PLAYING);
+            camera.setState(GST_STATE_PLAYING);
+        }
+    });
 
     gstPipeline.dumpGraph("camera");
 
