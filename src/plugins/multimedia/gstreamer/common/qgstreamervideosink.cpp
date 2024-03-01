@@ -34,8 +34,6 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcMediaVideoSink, "qt.multimedia.videosink")
-
 QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
@@ -161,8 +159,7 @@ void QGstreamerVideoSink::updateSinkElement()
 
         gstVideoSink = newSink;
         sinkBin.add(gstVideoSink);
-        if (!qLinkGstElements(gstCapsFilter, gstVideoSink))
-            qCDebug(qLcMediaVideoSink) << "couldn't link caps filter and sink";
+        qLinkGstElements(gstCapsFilter, gstVideoSink);
         gstVideoSink.setState(GST_STATE_PAUSED);
     });
 
