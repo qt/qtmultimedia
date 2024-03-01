@@ -145,7 +145,7 @@ bool QAndroidCameraFrame::parse(const QJniObject &frame)
         break;
     case QVideoFrameFormat::Format_Jpeg:
         qCWarning(qLCAndroidCameraFrame)
-                << "FFMpeg HW Mediacodec does not encode other than YCbCr formats";
+                << "FFmpeg HW Mediacodec does not encode other than YCbCr formats";
         // we still parse it to preview the frame
         m_image = QImage::fromData(buffer[0], bufferSize[0]);
         m_planes[0].rowStride = m_image.bytesPerLine();

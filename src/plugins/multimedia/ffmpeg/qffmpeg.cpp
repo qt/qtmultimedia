@@ -296,7 +296,7 @@ const CodecsStorage &codecsStorage(CodecStorageType codecsType)
                 && qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG");
 
         if (shouldDumpCodecsInfo) {
-            qCDebug(qLcFFmpegUtils) << "Advanced ffmpeg codecs info:";
+            qCDebug(qLcFFmpegUtils) << "Advanced FFmpeg codecs info:";
             for (auto &storage : result) {
                 std::for_each(storage.begin(), storage.end(), &dumpCodecInfo);
                 qCDebug(qLcFFmpegUtils) << "---------------------------";
