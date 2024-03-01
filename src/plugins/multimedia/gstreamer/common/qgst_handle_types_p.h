@@ -198,6 +198,30 @@ struct QGstHandleHelper
     using UniqueHandle = QUniqueHandle<QGstSafeObjectHandleTraits>;
 };
 
+template <typename GstType>
+struct QGstMiniObjectHandleHelper
+{
+    struct Traits
+    {
+        using Type = GstType *;
+        static constexpr Type invalidValue() noexcept { return nullptr; }
+        static bool close(Type handle) noexcept
+        {
+            gst_mini_object_unref(GST_MINI_OBJECT_CAST(handle));
+            return true;
+        }
+
+        static Type ref(Type handle) noexcept
+        {
+            gst_mini_object_ref(GST_MINI_OBJECT_CAST(handle));
+            return handle;
+        }
+    };
+
+    using SharedHandle = QSharedHandle<Traits>;
+    using UniqueHandle = QUniqueHandle<Traits>;
+};
+
 } // namespace QGstImpl
 
 using QGstClockHandle = QGstImpl::QGstHandleHelper<GstClock>::UniqueHandle;
@@ -214,6 +238,7 @@ using QUniqueGstStructureHandle = QUniqueHandle<QGstImpl::QUniqueGstStructureHan
 using QUniqueGStringHandle = QUniqueHandle<QGstImpl::QUniqueGStringHandleTraits>;
 using QUniqueGErrorHandle = QUniqueHandle<QGstImpl::QUniqueGErrorHandleTraits>;
 using QFileDescriptorHandle = QUniqueHandle<QGstImpl::QFileDescriptorHandleTraits>;
+using QGstContextHandle = QGstImpl::QGstMiniObjectHandleHelper<GstContext>::UniqueHandle;
 
 #if QT_CONFIG(gstreamer_gl)
 using QGstGLContextHandle = QGstImpl::QGstHandleHelper<GstGLContext>::UniqueHandle;
