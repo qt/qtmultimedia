@@ -79,6 +79,7 @@ public slots:
 private slots:
     void testMediaFilesAreSupported();
     void destructor_cancelsPreviousSetSource_whenServerDoesNotRespond();
+    void destructor_emitsOnlyQObjectDestroyedSignal_whenPlayerIsRunning();
 
     void getters_returnExpectedValues_whenCalledWithDefaultConstructedPlayer_data() const;
     void getters_returnExpectedValues_whenCalledWithDefaultConstructedPlayer() const;
@@ -352,6 +353,35 @@ void tst_QMediaPlayerBackend::destructor_cancelsPreviousSetSource_whenServerDoes
 #else
     QSKIP("Test requires network feature");
 #endif
+}
+
+void tst_QMediaPlayerBackend::destructor_emitsOnlyQObjectDestroyedSignal_whenPlayerIsRunning()
+{
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
+    // Arrange
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
+    m_fixture->player.play();
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    m_fixture->clearSpies();
+
+    // Act
+    m_fixture->player.~QMediaPlayer();
+    new (&m_fixture->player) QMediaPlayer;
+
+    // Assert
+    QCOMPARE(m_fixture->playbackStateChanged.size(), 0);
+    QCOMPARE(m_fixture->errorOccurred.size(), 0);
+    QCOMPARE(m_fixture->sourceChanged.size(), 0);
+    QCOMPARE(m_fixture->mediaStatusChanged.size(), 0);
+    QCOMPARE(m_fixture->positionChanged.size(), 0);
+    QCOMPARE(m_fixture->durationChanged.size(), 0);
+    QCOMPARE(m_fixture->metadataChanged.size(), 0);
+    QCOMPARE(m_fixture->volumeChanged.size(), 0);
+    QCOMPARE(m_fixture->mutedChanged.size(), 0);
+    QCOMPARE(m_fixture->bufferProgressChanged.size(), 0);
+    QCOMPARE(m_fixture->destroyed.size(), 1);
 }
 
 void tst_QMediaPlayerBackend::
