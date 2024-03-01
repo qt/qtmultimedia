@@ -18,7 +18,7 @@ class TestVideoSink : public QVideoSink
 {
     Q_OBJECT
 public:
-    explicit TestVideoSink(bool storeFrames = true) : m_storeFrames(storeFrames)
+    explicit TestVideoSink(bool storeFrames = false) : m_storeFrames(storeFrames)
     {
         connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::addVideoFrame);
         connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::videoFrameChangedSync);
@@ -30,7 +30,7 @@ public:
         return spy.wait() ? spy.at(0).at(0).value<QVideoFrame>() : QVideoFrame{};
     }
 
-    void setStoreFrames(bool storeFrames) { m_storeFrames = storeFrames; }
+    void setStoreFrames(bool storeFrames = true) { m_storeFrames = storeFrames; }
 
 private Q_SLOTS:
     void addVideoFrame(const QVideoFrame &frame)
