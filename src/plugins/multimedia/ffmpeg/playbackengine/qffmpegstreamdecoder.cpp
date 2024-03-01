@@ -128,7 +128,7 @@ void StreamDecoder::decodeMedia(Packet packet)
         sendPacketResult = sendAVPacket(packet);
 
         if (sendPacketResult != AVERROR(EAGAIN))
-            qWarning() << "Unexpected ffmpeg behavior";
+            qWarning() << "Unexpected FFmpeg behavior";
     }
 
     if (sendPacketResult == 0)

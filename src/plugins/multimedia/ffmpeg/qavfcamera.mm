@@ -293,7 +293,7 @@ uint32_t QAVFCamera::setPixelFormat(QVideoFrameFormat::PixelFormat cameraPixelFo
     }
 
     if (bestScore < DefaultAVScore)
-        qWarning() << "QCamera::setCameraFormat: Cannot find hw ffmpeg supported cv pix format";
+        qWarning() << "QCamera::setCameraFormat: Cannot find hw FFmpeg supported cv pix format";
 
     NSDictionary *outputSettings = @{
         (NSString *)kCVPixelBufferPixelFormatTypeKey : bestFormat,

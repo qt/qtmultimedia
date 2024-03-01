@@ -80,7 +80,7 @@ if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
     if (QT_FEATURE_vaapi AND NOT DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
         if (NOT FFMPEG_SHARED_LIBRARIES)
             message(WARNING
-                   "QT_FEATURE_vaapi is found but statically built ffmpeg doesn't include vaapi,"
+                   "QT_FEATURE_vaapi is found but statically built FFmpeg doesn't include vaapi,"
                    "however dynamic symbols resolve is possible.")
         endif()
 
@@ -89,7 +89,7 @@ if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
 
         message(FATAL_ERROR
                "QT_FEATURE_vaapi is not found "
-               "but ffmpeg includes VAAPI and dynamic symbols resolve is enabled.")
+               "but FFmpeg includes VAAPI and dynamic symbols resolve is enabled.")
     endif()
 endif()
 
