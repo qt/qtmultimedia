@@ -109,9 +109,7 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
     gstCapsFilter.set("caps", caps);
 
     gstCameraBin.add(gstNewCamera, gstNewDecode);
-
-    if (!qLinkGstElements(gstNewCamera, gstCapsFilter, gstNewDecode, gstVideoConvert))
-        qWarning() << "linking camera failed" << gstCamera.name() << caps;
+    qLinkGstElements(gstNewCamera, gstCapsFilter, gstNewDecode, gstVideoConvert);
 
     // Start sending frames once pipeline is linked
     // FIXME: put camera to READY state before linking to decoder as in the NULL state it does not know its true caps
@@ -145,9 +143,7 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
 
         gstCapsFilter.set("caps", caps);
-
-        if (!qLinkGstElements(gstCamera, gstCapsFilter, newGstDecode, gstVideoConvert))
-            qWarning() << "linking filtered camera to decoder failed" << gstCamera.name() << caps;
+        qLinkGstElements(gstCamera, gstCapsFilter, newGstDecode, gstVideoConvert);
     });
 
     gstCameraBin.stopAndRemoveElements(gstDecode);
