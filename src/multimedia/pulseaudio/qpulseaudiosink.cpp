@@ -392,6 +392,10 @@ void QPulseAudioSink::close()
         pa_stream_set_overflow_callback(m_stream, nullptr, nullptr);
         pa_stream_set_latency_update_callback(m_stream, nullptr, nullptr);
 
+        if (auto prevOp = exchangeDrainOperation(nullptr))
+            // cancel draining operation to prevent calling draining callback after closing.
+            pa_operation_cancel(prevOp.get());
+
         PAOperationUPtr operation(pa_stream_flush(m_stream, outputStreamFlushComplete, nullptr));
 
         pa_stream_disconnect(m_stream);
