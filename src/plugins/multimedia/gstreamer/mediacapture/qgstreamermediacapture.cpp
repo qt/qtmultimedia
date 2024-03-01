@@ -182,57 +182,61 @@ QPlatformMediaRecorder *QGstreamerMediaCapture::mediaRecorder()
 
 void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
 {
-    if (!gstVideoTee.isNull() && !videoSink.isNull()) {
-        auto caps = gst_pad_get_current_caps(gstVideoTee.sink().pad());
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        if (!gstVideoTee.isNull() && !videoSink.isNull()) {
+            auto caps = gst_pad_get_current_caps(gstVideoTee.sink().pad());
 
-        encoderVideoCapsFilter =
-                QGstElement::createFromFactory("capsfilter", "encoderVideoCapsFilter");
-        Q_ASSERT(encoderVideoCapsFilter);
-        encoderVideoCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
+            encoderVideoCapsFilter =
+                    QGstElement::createFromFactory("capsfilter", "encoderVideoCapsFilter");
+            Q_ASSERT(encoderVideoCapsFilter);
+            encoderVideoCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
 
-        gstPipeline.add(encoderVideoCapsFilter);
+            gstPipeline.add(encoderVideoCapsFilter);
 
-        encoderVideoCapsFilter.src().link(videoSink);
-        linkTeeToPad(gstVideoTee, encoderVideoCapsFilter.sink());
-        encoderVideoCapsFilter.setState(GST_STATE_PLAYING);
-        encoderVideoSink = encoderVideoCapsFilter.sink();
-    }
+            encoderVideoCapsFilter.src().link(videoSink);
+            linkTeeToPad(gstVideoTee, encoderVideoCapsFilter.sink());
+            encoderVideoCapsFilter.setState(GST_STATE_PLAYING);
+            encoderVideoSink = encoderVideoCapsFilter.sink();
+        }
 
-    if (!gstAudioTee.isNull() && !audioSink.isNull()) {
-        auto caps = gst_pad_get_current_caps(gstAudioTee.sink().pad());
+        if (!gstAudioTee.isNull() && !audioSink.isNull()) {
+            auto caps = gst_pad_get_current_caps(gstAudioTee.sink().pad());
 
-        encoderAudioCapsFilter =
-                QGstElement::createFromFactory("capsfilter", "encoderAudioCapsFilter");
-        Q_ASSERT(encoderAudioCapsFilter);
-        encoderAudioCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
+            encoderAudioCapsFilter =
+                    QGstElement::createFromFactory("capsfilter", "encoderAudioCapsFilter");
+            Q_ASSERT(encoderAudioCapsFilter);
+            encoderAudioCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
 
-        gstPipeline.add(encoderAudioCapsFilter);
+            gstPipeline.add(encoderAudioCapsFilter);
 
-        encoderAudioCapsFilter.src().link(audioSink);
-        linkTeeToPad(gstAudioTee, encoderAudioCapsFilter.sink());
-        encoderAudioCapsFilter.setState(GST_STATE_PLAYING);
-        encoderAudioSink = encoderAudioCapsFilter.sink();
-    }
+            encoderAudioCapsFilter.src().link(audioSink);
+            linkTeeToPad(gstAudioTee, encoderAudioCapsFilter.sink());
+            encoderAudioCapsFilter.setState(GST_STATE_PLAYING);
+            encoderAudioSink = encoderAudioCapsFilter.sink();
+        }
+    });
 }
 
 void QGstreamerMediaCapture::unlinkEncoder()
 {
-    if (!encoderVideoCapsFilter.isNull()) {
-        encoderVideoCapsFilter.src().unlinkPeer();
-        unlinkTeeFromPad(gstVideoTee, encoderVideoCapsFilter.sink());
-        gstPipeline.stopAndRemoveElements(encoderVideoCapsFilter);
-        encoderVideoCapsFilter = {};
-    }
+    gstPipeline.modifyPipelineWhileNotRunning([&] {
+        if (!encoderVideoCapsFilter.isNull()) {
+            encoderVideoCapsFilter.src().unlinkPeer();
+            unlinkTeeFromPad(gstVideoTee, encoderVideoCapsFilter.sink());
+            gstPipeline.stopAndRemoveElements(encoderVideoCapsFilter);
+            encoderVideoCapsFilter = {};
+        }
 
-    if (!encoderAudioCapsFilter.isNull()) {
-        encoderAudioCapsFilter.src().unlinkPeer();
-        unlinkTeeFromPad(gstAudioTee, encoderAudioCapsFilter.sink());
-        gstPipeline.stopAndRemoveElements(encoderAudioCapsFilter);
-        encoderAudioCapsFilter = {};
-    }
+        if (!encoderAudioCapsFilter.isNull()) {
+            encoderAudioCapsFilter.src().unlinkPeer();
+            unlinkTeeFromPad(gstAudioTee, encoderAudioCapsFilter.sink());
+            gstPipeline.stopAndRemoveElements(encoderAudioCapsFilter);
+            encoderAudioCapsFilter = {};
+        }
 
-    encoderAudioSink = {};
-    encoderVideoSink = {};
+        encoderAudioSink = {};
+        encoderVideoSink = {};
+    });
 }
 
 void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
