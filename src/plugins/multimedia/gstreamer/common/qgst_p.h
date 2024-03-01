@@ -608,13 +608,22 @@ public:
 };
 
 template <typename... Ts>
-std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), bool>
+std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void>
 qLinkGstElements(const Ts &...ts)
 {
-    if constexpr (sizeof...(Ts) == 2)
-        return gst_element_link(ts.element()...);
-    else
-        return gst_element_link_many(ts.element()..., nullptr);
+    bool link_success = [&] {
+        if constexpr (sizeof...(Ts) == 2)
+            return gst_element_link(ts.element()...);
+        else
+            return gst_element_link_many(ts.element()..., nullptr);
+    }();
+
+    if (Q_UNLIKELY(!link_success)) {
+        qWarning() << "qLinkGstElements: could not link elements: "
+                   << std::initializer_list<const char *>{
+                          (GST_ELEMENT_NAME(ts.element()))...,
+                      };
+    }
 }
 
 template <typename... Ts>
