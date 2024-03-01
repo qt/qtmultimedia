@@ -4,6 +4,7 @@
 #include "qgstreamervideosink_p.h"
 #include "qgstvideorenderersink_p.h"
 #include "qgstsubtitlesink_p.h"
+#include <qgst_debug_p.h>
 #include <qgstutils_p.h>
 #include <rhi/qrhi.h>
 
@@ -167,12 +168,8 @@ void QGstreamerVideoSink::updateSinkElement()
 
 void QGstreamerVideoSink::unrefGstContexts()
 {
-    if (m_gstGlDisplayContext)
-        gst_context_unref(m_gstGlDisplayContext);
-    m_gstGlDisplayContext = nullptr;
-    if (m_gstGlLocalContext)
-        gst_context_unref(m_gstGlLocalContext);
-    m_gstGlLocalContext = nullptr;
+    m_gstGlDisplayContext.close();
+    m_gstGlLocalContext.close();
     m_eglDisplay = nullptr;
     m_eglImageTargetTexture2D = nullptr;
 }
@@ -244,26 +241,24 @@ void QGstreamerVideoSink::updateGstContexts()
     if (!appContext)
         qWarning() << "Could not create wrappped context for platform:" << glPlatform;
 
-    GError *error = nullptr;
+    QUniqueGErrorHandle error;
     QGstGLContextHandle displayContext;
     gst_gl_display_create_context(gstGlDisplay.get(), appContext.get(), &displayContext, &error);
-    if (error) {
-        qWarning() << "Could not create display context:" << error->message;
-        g_clear_error(&error);
-    }
+    if (error)
+        qWarning() << "Could not create display context:" << error;
 
     appContext.close();
 
-    m_gstGlDisplayContext = gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, false);
-    gst_context_set_gl_display(m_gstGlDisplayContext, gstGlDisplay.get());
+    m_gstGlDisplayContext.reset(gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, false));
+    gst_context_set_gl_display(m_gstGlDisplayContext.get(), gstGlDisplay.get());
 
-    m_gstGlLocalContext = gst_context_new("gst.gl.local_context", false);
-    GstStructure *structure = gst_context_writable_structure(m_gstGlLocalContext);
+    m_gstGlLocalContext.reset(gst_context_new("gst.gl.local_context", false));
+    GstStructure *structure = gst_context_writable_structure(m_gstGlLocalContext.get());
     gst_structure_set(structure, "context", GST_TYPE_GL_CONTEXT, displayContext.get(), nullptr);
     displayContext.close();
 
     if (!gstPipeline.isNull())
-        gst_element_set_context(gstPipeline.element(), m_gstGlLocalContext);
+        gst_element_set_context(gstPipeline.element(), m_gstGlLocalContext.get());
 #endif // #if QT_CONFIG(gstreamer_gl)
 }
 
