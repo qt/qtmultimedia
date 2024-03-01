@@ -274,9 +274,13 @@ QMediaPlayer::~QMediaPlayer()
 {
     Q_D(QMediaPlayer);
 
-    // Disconnect everything to prevent notifying
-    // when a receiver is already destroyed.
-    disconnect();
+    // prevents emitting audioOutputChanged and videoOutputChanged.
+    QSignalBlocker blocker(this);
+
+    // Reset audio output and video sink to ensure proper unregistering of the source
+    // To be investigated: registering of the source might be removed after switching on the ffmpeg
+    // backend;
+
     setAudioOutput(nullptr);
 
     d->setVideoSink(nullptr);
