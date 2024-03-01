@@ -97,7 +97,7 @@ static bool checkHwType(AVHWDeviceType type)
 {
     const auto deviceName = av_hwdevice_get_type_name(type);
     if (!deviceName) {
-        qWarning() << "Internal ffmpeg error, unknow hw type:" << type;
+        qWarning() << "Internal FFmpeg error, unknow hw type:" << type;
         return false;
     }
 
