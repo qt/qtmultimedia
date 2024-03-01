@@ -1521,7 +1521,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 #endif
     CHECK_SELECTED_URL(m_localVideoFile);
 
-    TestVideoSink surface;
+    TestVideoSink surface(true);
     QAudioOutput output;
     QMediaPlayer player;
 
@@ -1985,7 +1985,6 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
         QSKIP("SKIP on macOS CI since multiple fake drawing on macOS CI platform causes UB. To be "
               "investigated: QTBUG-111744");
 #endif
-    m_fixture->surface.setStoreFrames(false);
     m_fixture->player.setAudioOutput(
             withAudio ? &m_fixture->output
                       : nullptr); // TODO: mock audio output and check sound by frequency
@@ -2404,8 +2403,6 @@ void tst_QMediaPlayerBackend::finiteLoops()
               "investigated: QTBUG-111744");
 #endif
 
-    m_fixture->surface.setStoreFrames(false);
-
     QCOMPARE(m_fixture->player.loops(), 1);
     m_fixture->player.setLoops(3);
     QCOMPARE(m_fixture->player.loops(), 3);
@@ -2465,8 +2462,6 @@ void tst_QMediaPlayerBackend::infiniteLoops()
               "investigated: QTBUG-111744");
 #endif
 
-    m_fixture->surface.setStoreFrames(false);
-
     m_fixture->player.setLoops(QMediaPlayer::Infinite);
     QCOMPARE(m_fixture->player.loops(), QMediaPlayer::Infinite);
 
@@ -2516,8 +2511,6 @@ void tst_QMediaPlayerBackend::seekOnLoops()
               "investigated: QTBUG-111744");
 #endif
 
-    m_fixture->surface.setStoreFrames(false);
-
     m_fixture->player.setLoops(3);
     m_fixture->player.setPlaybackRate(2);
 
@@ -2566,8 +2559,6 @@ void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
         QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
               "investigated: QTBUG-111744");
 #endif
-
-    m_fixture->surface.setStoreFrames(false);
 
     m_fixture->player.setLoops(4);
     m_fixture->player.setPlaybackRate(5);
