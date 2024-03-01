@@ -21,9 +21,9 @@
 #
 #   FFMPEG_FOUND         - System has the all required components.
 #   FFMPEG_INCLUDE_DIRS  - Include directory necessary for using the required components headers.
-#   FFMPEG_LIBRARIES     - Link these to use the required ffmpeg components.
+#   FFMPEG_LIBRARIES     - Link these to use the required FFmpeg components.
 #   FFMPEG_LIBRARY_DIRS  - Link directories
-#   FFMPEG_DEFINITIONS   - Compiler switches required for using the required ffmpeg components.
+#   FFMPEG_DEFINITIONS   - Compiler switches required for using the required FFmpeg components.
 #
 # For each of the components it will additionally set.
 #
@@ -73,7 +73,7 @@ if (QT_DEPLOY_FFMPEG AND BUILD_SHARED_LIBS)
     set(shared_libs_required TRUE)
 endif()
 
-# finds ffmpeg libs, including symlinks, for the specified component.
+# finds FFmpeg libs, including symlinks, for the specified component.
 macro(find_shared_libs_for_component _component)
   # the searching pattern is pretty rough but it seems to be sufficient to gather dynamic libs
   get_filename_component(name_we ${${_component}_LIBRARY} NAME_WE)
@@ -345,7 +345,7 @@ endfunction()
 
 list(LENGTH FFMPEG_LIBRARY_DIRS DIRS_COUNT)
 if (${DIRS_COUNT} GREATER 1)
-  message(WARNING "One ffmpeg library dir is expected, found dirs: ${FFMPEG_LIBRARY_DIRS}")
+  message(WARNING "One FFmpeg library dir is expected, found dirs: ${FFMPEG_LIBRARY_DIRS}")
 endif()
 
 if(FFMPEG_SHARED_COMPONENTS AND FFMPEG_STATIC_COMPONENTS)

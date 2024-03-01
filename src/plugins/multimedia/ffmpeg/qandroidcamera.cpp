@@ -285,7 +285,7 @@ void QAndroidCamera::setActive(bool active)
 
         // this should use the camera format.
         // but there is only 2 fully supported formats on android - JPG and YUV420P
-        // and JPEG is not supported for encoding in FFMpeg, so it's locked for YUV for now.
+        // and JPEG is not supported for encoding in FFmpeg, so it's locked for YUV for now.
         const static int imageFormat =
                 QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
         m_jniCamera.callMethod<jboolean>("addImageReader", jint(width), jint(height),
