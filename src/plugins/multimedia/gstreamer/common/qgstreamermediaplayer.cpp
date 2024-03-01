@@ -374,37 +374,32 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         break;
     }
     case GST_MESSAGE_ERROR: {
-        GError *err;
-        gchar *debug;
+        QUniqueGErrorHandle err;
+        QUniqueGStringHandle debug;
         gst_message_parse_error(gm, &err, &debug);
-        if (err->domain == GST_STREAM_ERROR && err->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
+        if (err.get()->domain == GST_STREAM_ERROR
+            && err.get()->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
             emit error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
         else
-            emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err->message));
+            emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
         playerPipeline.dumpGraph("error");
         mediaStatusChanged(QMediaPlayer::InvalidMedia);
-        g_error_free(err);
-        g_free(debug);
         break;
     }
     case GST_MESSAGE_WARNING: {
-        GError *err;
-        gchar *debug;
+        QUniqueGErrorHandle err;
+        QUniqueGStringHandle debug;
         gst_message_parse_warning (gm, &err, &debug);
         qCWarning(qLcMediaPlayer) << "Warning:" << err;
         playerPipeline.dumpGraph("warning");
-        g_error_free (err);
-        g_free (debug);
         break;
     }
     case GST_MESSAGE_INFO: {
         if (qLcMediaPlayer().isDebugEnabled()) {
-            GError *err;
-            gchar *debug;
+            QUniqueGErrorHandle err;
+            QUniqueGStringHandle debug;
             gst_message_parse_info (gm, &err, &debug);
             qCDebug(qLcMediaPlayer) << "Info:" << err;
-            g_error_free (err);
-            g_free (debug);
         }
         break;
     }

@@ -48,8 +48,8 @@ public:
     void setPipeline(QGstPipeline pipeline);
     bool inStoppedState() const;
 
-    GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext; }
-    GstContext *gstGlLocalContext() const { return m_gstGlLocalContext; }
+    GstContext *gstGlDisplayContext() const { return m_gstGlDisplayContext.get(); }
+    GstContext *gstGlLocalContext() const { return m_gstGlLocalContext.get(); }
     Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
     QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
 
@@ -73,8 +73,9 @@ private:
 
     Qt::HANDLE m_eglDisplay = nullptr;
     QFunctionPointer m_eglImageTargetTexture2D = nullptr;
-    GstContext *m_gstGlLocalContext = nullptr;
-    GstContext *m_gstGlDisplayContext = nullptr;
+
+    QGstContextHandle m_gstGlLocalContext;
+    QGstContextHandle m_gstGlDisplayContext;
 };
 
 QT_END_NAMESPACE
