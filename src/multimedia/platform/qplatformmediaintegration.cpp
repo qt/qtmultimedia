@@ -7,6 +7,7 @@
 #include <qmutex.h>
 #include <qplatformaudioinput_p.h>
 #include <qplatformaudiooutput_p.h>
+#include <qplatformaudioresampler_p.h>
 #include <qplatformvideodevices_p.h>
 #include <qmediadevices.h>
 #include <qcameradevice.h>
@@ -116,6 +117,12 @@ QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
 {
     auto devices = videoDevices();
     return devices ? devices->videoDevices() : QList<QCameraDevice>{};
+}
+
+QMaybe<std::unique_ptr<QPlatformAudioResampler>>
+QPlatformMediaIntegration::createAudioResampler(const QAudioFormat &, const QAudioFormat &)
+{
+    return notAvailable;
 }
 
 QMaybe<QPlatformAudioInput *> QPlatformMediaIntegration::createAudioInput(QAudioInput *q)
