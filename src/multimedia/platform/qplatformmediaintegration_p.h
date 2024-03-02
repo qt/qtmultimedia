@@ -66,12 +66,9 @@ public:
     virtual QPlatformSurfaceCapture *createScreenCapture(QScreenCapture *) { return nullptr; }
 
     virtual QMaybe<QPlatformAudioDecoder *> createAudioDecoder(QAudioDecoder *) { return notAvailable; }
-    virtual QMaybe<QPlatformAudioResampler *>
+    virtual QMaybe<std::unique_ptr<QPlatformAudioResampler>>
     createAudioResampler(const QAudioFormat & /*inputFormat*/,
-                         const QAudioFormat & /*outputFormat*/)
-    {
-        return notAvailable;
-    }
+                         const QAudioFormat & /*outputFormat*/);
     virtual QMaybe<QPlatformMediaCaptureSession *> createCaptureSession() { return notAvailable; }
     virtual QMaybe<QPlatformMediaPlayer *> createPlayer(QMediaPlayer *) { return notAvailable; }
     virtual QMaybe<QPlatformMediaRecorder *> createRecorder(QMediaRecorder *) { return notAvailable; }
