@@ -190,9 +190,11 @@ QMaybe<QPlatformAudioDecoder *> QFFmpegMediaIntegration::createAudioDecoder(QAud
     return new QFFmpegAudioDecoder(decoder);
 }
 
-QMaybe<QPlatformAudioResampler *> QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat)
+QMaybe<std::unique_ptr<QPlatformAudioResampler>>
+QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat,
+                                              const QAudioFormat &outputFormat)
 {
-    return new QFFmpegResampler(inputFormat, outputFormat);
+    return { std::make_unique<QFFmpegResampler>(inputFormat, outputFormat) };
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QFFmpegMediaIntegration::createCaptureSession()

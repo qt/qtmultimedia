@@ -127,14 +127,14 @@ void QSoundEffectPrivate::sampleReady()
                                     << audioDevice.channelConfiguration();
             auto outputFormat = sampleFormat;
             outputFormat.setChannelConfig(audioDevice.channelConfiguration());
-            if (auto maybeResampler = QPlatformMediaIntegration::instance()->createAudioResampler(
-                        m_sample->format(), outputFormat)) {
-                std::unique_ptr<QPlatformAudioResampler> resampler(maybeResampler.value());
-                m_audioBuffer =
-                        resampler->resample(m_sample->data().constData(), m_sample->data().size());
-            } else {
+
+            const auto resampler = QPlatformMediaIntegration::instance()->createAudioResampler(
+                    m_sample->format(), outputFormat);
+            if (resampler)
+                m_audioBuffer = resampler.value()->resample(m_sample->data().constData(),
+                                                            m_sample->data().size());
+            else
                 qCDebug(qLcSoundEffect) << "Cannot create resampler for channels mapping";
-            }
         }
 
         if (!m_audioBuffer.isValid())
