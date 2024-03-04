@@ -29,6 +29,7 @@ set_target_properties(qmlvideoexample PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+    MACOSX_BUNDLE_GUI_IDENTIFIER "io.qt.examples.qmlvideo"
 )
 
 target_compile_definitions(qmlvideoexample PUBLIC
@@ -52,7 +53,17 @@ target_link_libraries(qmlvideoexample PRIVATE
 )
 
 install(TARGETS qmlvideoexample
+    BUNDLE DESTINATION .
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
-    BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
 )
+
+qt_generate_deploy_qml_app_script(
+    TARGET qmlvideoexample
+    OUTPUT_SCRIPT deploy_script
+    MACOS_BUNDLE_POST_BUILD
+    NO_UNSUPPORTED_PLATFORM_ERROR
+    DEPLOY_USER_QML_MODULES_ON_UNSUPPORTED_PLATFORM
+)
+
+install(SCRIPT ${deploy_script})
