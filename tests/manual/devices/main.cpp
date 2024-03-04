@@ -4,13 +4,14 @@
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QCameraDevice>
+#include <QCoreApplication>
 #include <QMediaDevices>
 #include <QString>
 #include <QTextStream>
 
 #include <stdio.h>
 
-QString formatToString(QAudioFormat::SampleFormat sampleFormat)
+static QString formatToString(QAudioFormat::SampleFormat sampleFormat)
 {
     switch (sampleFormat) {
     case QAudioFormat::UInt8:
@@ -26,7 +27,7 @@ QString formatToString(QAudioFormat::SampleFormat sampleFormat)
     }
 }
 
-QString positionToString(QCameraDevice::Position position)
+static QString positionToString(QCameraDevice::Position position)
 {
     switch (position) {
     case QCameraDevice::BackFace:
@@ -38,7 +39,7 @@ QString positionToString(QCameraDevice::Position position)
     }
 }
 
-void printAudioDeviceInfo(QTextStream &out, const QAudioDevice &deviceInfo)
+static void printAudioDeviceInfo(QTextStream &out, const QAudioDevice &deviceInfo)
 {
     const auto isDefault = deviceInfo.isDefault() ? "Yes" : "No";
     const auto preferredFormat = deviceInfo.preferredFormat();
@@ -73,7 +74,7 @@ void printAudioDeviceInfo(QTextStream &out, const QAudioDevice &deviceInfo)
     out << Qt::endl;
 }
 
-void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDevice)
+static void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDevice)
 {
     const auto isDefault = cameraDevice.isDefault() ? "Yes" : "No";
     const auto position = cameraDevice.position();
@@ -113,8 +114,8 @@ void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDevice)
 
 int main(int argc, char *argv[])
 {
-    Q_UNUSED(argc);
-    Q_UNUSED(argv);
+    QCoreApplication app(argc, argv); // QtMultimedia needs an application singleton
+
     QTextStream out(stdout);
 
     const auto audioInputDevices = QMediaDevices::audioInputs();
@@ -132,6 +133,4 @@ int main(int argc, char *argv[])
     out << Qt::endl << "Video devices detected: " << Qt::endl;
     for (auto &cameraDevice : videoInputDevices)
         printVideoDeviceInfo(out, cameraDevice);
-
-    return 0;
 }
