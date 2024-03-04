@@ -301,17 +301,28 @@ TextureSet *VAAPITextureConverter::getTextures(AVFrame *frame)
         };
         images[i] = eglCreateImage(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr, img_attr);
         if (!images[i]) {
-            qWarning() << "eglCreateImage failed for plane" << i << Qt::hex << eglGetError();
-            return nullptr;
+            const GLenum error = eglGetError();
+            if (error == EGL_BAD_MATCH) {
+                qWarning() << "eglCreateImage failed for plane" << i << "with error code EGL_BAD_MATCH, "
+                              "disabling hardware acceleration. This could indicate an EGL implementation issue."
+                              "\nVAAPI driver: " << vaQueryVendorString(vaDisplay)
+                           << "\nEGL vendor:" << eglQueryString(eglDisplay, EGL_VENDOR);
+                this->rhi = nullptr; // Disabling texture conversion here to fix QTBUG-112312
+                return nullptr;
+            }
+            if (error) {
+                qWarning() << "eglCreateImage failed for plane" << i << "with error code" << error;
+                return nullptr;
+            }
         }
         functions.glActiveTexture(GL_TEXTURE0 + i);
         functions.glBindTexture(GL_TEXTURE_2D, glTextures[i]);
 
         PFNGLEGLIMAGETARGETTEXTURE2DOESPROC eglImageTargetTexture2D = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)this->eglImageTargetTexture2D;
         eglImageTargetTexture2D(GL_TEXTURE_2D, images[i]);
-        if (glGetError()) {
-            qWarning() << "eglImageTargetTexture2D failed";
-        }
+        GLenum error = glGetError();
+        if (error)
+            qWarning() << "eglImageTargetTexture2D failed with error code" << error;
     }
 
     for (int i = 0;  i < (int)prime.num_objects;  ++i)
