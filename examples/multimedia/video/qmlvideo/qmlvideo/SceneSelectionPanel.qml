@@ -43,42 +43,17 @@ Rectangle {
     }
 
     Component {
-        id: leftDelegate
-        Item {
-            width: root.width / 2
-            height: 0.8 * root.itemHeight
-
+        id: buttonDelegate
+        Button {
             required property string name
             required property string source
 
-            Button {
-                anchors.fill: parent
-                anchors.margins: 5
-                anchors.rightMargin: 2.5
-                anchors.bottomMargin: 0
-                text: parent.name
-                onClicked: root.sceneSource = parent.source
-            }
-        }
-    }
-
-    Component {
-        id: rightDelegate
-        Item {
             width: root.width / 2
-            height: 0.8 * root.itemHeight
+            height: root.itemHeight
 
-            required property string name
-            required property string source
-
-            Button {
-                anchors.fill: parent
-                anchors.margins: 5
-                anchors.leftMargin: 2.5
-                anchors.bottomMargin: 0
-                text: parent.name
-                onClicked: root.sceneSource = parent.source
-            }
+            text: name
+            padding: 3
+            onClicked: root.sceneSource = source
         }
     }
 
@@ -98,14 +73,14 @@ Rectangle {
             Column {
                 Repeater {
                     model: videolist
-                    delegate: leftDelegate
+                    delegate: buttonDelegate
                 }
             }
 
             Column {
                 Repeater {
                     model: cameralist
-                    delegate: rightDelegate
+                    delegate: buttonDelegate
                 }
             }
         }
