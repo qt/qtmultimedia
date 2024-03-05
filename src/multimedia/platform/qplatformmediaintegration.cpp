@@ -40,21 +40,6 @@ Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
 
 static const auto FFmpegBackend = QStringLiteral("ffmpeg");
 
-static QStringList availableBackends()
-{
-    QStringList list;
-
-    if (QFactoryLoader *fl = loader()) {
-        const auto keyMap = fl->keyMap();
-        for (auto it = keyMap.constBegin(); it != keyMap.constEnd(); ++it)
-            if (!list.contains(it.value()))
-                list << it.value();
-    }
-
-    qCDebug(qLcMediaPlugin) << "Available backends" << list;
-    return list;
-}
-
 static QString defaultBackend(const QStringList &backends)
 {
 #ifdef QT_DEFAULT_MEDIA_BACKEND
@@ -84,7 +69,7 @@ struct InstanceHolder
         if (!QCoreApplication::instance())
             qCCritical(qLcMediaPlugin()) << "Qt Multimedia requires a QCoreApplication instance";
 
-        const auto backends = availableBackends();
+        const QStringList backends = QPlatformMediaIntegration::availableBackends();
         QString backend = QString::fromUtf8(qgetenv("QT_MEDIA_BACKEND"));
         if (backend.isEmpty() && !backends.isEmpty())
             backend = defaultBackend(backends);
@@ -201,6 +186,21 @@ QPlatformMediaDevices *QPlatformMediaIntegration::mediaDevices()
 }
 
 // clang-format on
+
+QStringList QPlatformMediaIntegration::availableBackends()
+{
+    QStringList list;
+
+    if (QFactoryLoader *fl = loader()) {
+        const auto keyMap = fl->keyMap();
+        for (auto it = keyMap.constBegin(); it != keyMap.constEnd(); ++it)
+            if (!list.contains(it.value()))
+                list << it.value();
+    }
+
+    qCDebug(qLcMediaPlugin) << "Available backends" << list;
+    return list;
+}
 
 QPlatformMediaIntegration::QPlatformMediaIntegration() = default;
 
