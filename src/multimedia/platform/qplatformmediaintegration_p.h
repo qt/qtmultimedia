@@ -86,6 +86,8 @@ public:
 
     QPlatformMediaDevices *mediaDevices();
 
+    static QStringList availableBackends();
+
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
 
