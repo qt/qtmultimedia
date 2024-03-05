@@ -96,7 +96,7 @@ QAudioSource::QAudioSource(const QAudioFormat &format, QObject *parent)
 QAudioSource::QAudioSource(const QAudioDevice &audioDevice, const QAudioFormat &format, QObject *parent):
     QObject(parent)
 {
-    d = QPlatformMediaDevices::instance()->audioInputDevice(format, audioDevice, parent);
+    d = QPlatformMediaIntegration::instance()->mediaDevices()->audioInputDevice(format, audioDevice, parent);
     if (d) {
         connect(d, &QPlatformAudioSource::stateChanged, this, [this](QAudio::State state) {
             // if the signal has been emitted from another thread,

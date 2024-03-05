@@ -14,6 +14,8 @@
 #include <private/qcameradevice_p.h>
 #include <private/qplatformvideodevices_p.h>
 
+#include "qmockmediadevices.h"
+
 QT_BEGIN_NAMESPACE
 
 class MockMultimediaPlugin : public QPlatformMediaPlugin
@@ -100,6 +102,11 @@ QMockIntegration::~QMockIntegration() = default;
 QPlatformVideoDevices *QMockIntegration::createVideoDevices()
 {
     return new QMockVideoDevices(this);
+}
+
+std::unique_ptr<QPlatformMediaDevices> QMockIntegration::createMediaDevices()
+{
+    return std::make_unique<QMockMediaDevices>();
 }
 
 QMaybe<QPlatformAudioDecoder *> QMockIntegration::createAudioDecoder(QAudioDecoder *decoder)

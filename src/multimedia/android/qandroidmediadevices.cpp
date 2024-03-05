@@ -72,12 +72,12 @@ void QAndroidMediaDevices::forwardAudioInputsChanged()
 
 static void onAudioInputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    static_cast<QAndroidMediaDevices*>(QPlatformMediaDevices::instance())->forwardAudioInputsChanged();
+    static_cast<QAndroidMediaDevices*>(QPlatformMediaIntegration::instance()->mediaDevices())->forwardAudioInputsChanged();
 }
 
 static void onAudioOutputDevicesUpdated(JNIEnv */*env*/, jobject /*thiz*/)
 {
-    static_cast<QAndroidMediaDevices*>(QPlatformMediaDevices::instance())->forwardAudioOutputsChanged();
+    static_cast<QAndroidMediaDevices*>(QPlatformMediaIntegration::instance()->mediaDevices())->forwardAudioOutputsChanged();
 }
 
 Q_DECL_EXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void * /*reserved*/)

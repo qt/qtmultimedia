@@ -3,7 +3,7 @@
 
 #include "qwasmmediadevices_p.h"
 #include "private/qcameradevice_p.h"
-
+#include "private/qplatformmediaintegration_p.h"
 #include "qwasmaudiosource_p.h"
 #include "qwasmaudiosink_p.h"
 #include "qwasmaudiodevice_p.h"
@@ -20,7 +20,7 @@ Q_LOGGING_CATEGORY(qWasmMediaDevices, "qt.multimedia.wasm.mediadevices")
 QWasmCameraDevices::QWasmCameraDevices(QPlatformMediaIntegration *integration)
     : QPlatformVideoDevices(integration)
 {
-    m_mediaDevices = QPlatformMediaDevices::instance();
+    m_mediaDevices = QPlatformMediaIntegration::instance()->mediaDevices();
 }
 
 QList<QCameraDevice> QWasmCameraDevices::videoDevices() const

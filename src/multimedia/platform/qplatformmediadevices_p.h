@@ -19,6 +19,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <mutex>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -37,8 +38,7 @@ public:
     QPlatformMediaDevices();
     ~QPlatformMediaDevices() override;
 
-    static void setDevices(QPlatformMediaDevices *);
-    static QPlatformMediaDevices *instance();
+    static std::unique_ptr<QPlatformMediaDevices> create();
 
     virtual QList<QAudioDevice> audioInputs() const;
     virtual QList<QAudioDevice> audioOutputs() const;

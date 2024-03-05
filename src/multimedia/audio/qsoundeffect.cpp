@@ -100,7 +100,7 @@ QSoundEffectPrivate::QSoundEffectPrivate(QSoundEffect *q, const QAudioDevice &au
 {
     open(QIODevice::ReadOnly);
 
-    QPlatformMediaDevices::instance()->prepareAudio();
+    QPlatformMediaIntegration::instance()->mediaDevices()->prepareAudio();
 }
 
 void QSoundEffectPrivate::sampleReady()

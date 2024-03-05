@@ -50,8 +50,9 @@ class QPlatformAudioInput;
 class QPlatformAudioOutput;
 class QPlatformVideoDevices;
 
-class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration
+class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration : public QObject
 {
+    Q_OBJECT
     inline static const QString notAvailable = QStringLiteral("Not available");
 public:
     static QPlatformMediaIntegration *instance();
@@ -83,10 +84,14 @@ public:
 
     QPlatformVideoDevices *videoDevices();
 
+    QPlatformMediaDevices *mediaDevices();
+
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
 
     virtual QPlatformVideoDevices *createVideoDevices() { return nullptr; }
+
+    virtual std::unique_ptr<QPlatformMediaDevices> createMediaDevices();
 
 private:
     std::unique_ptr<QPlatformVideoDevices> m_videoDevices;
@@ -94,6 +99,9 @@ private:
 
     mutable std::unique_ptr<QPlatformMediaFormatInfo> m_formatInfo;
     mutable std::once_flag m_formatInfoOnceFlg;
+
+    std::unique_ptr<QPlatformMediaDevices> m_mediaDevices;
+    std::once_flag m_mediaDevicesOnceFlag;
 };
 
 QT_END_NAMESPACE

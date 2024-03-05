@@ -9,7 +9,6 @@ QT_BEGIN_NAMESPACE
 QMockMediaDevices::QMockMediaDevices()
     : QPlatformMediaDevices()
 {
-    setDevices(this);
 }
 
 QMockMediaDevices::~QMockMediaDevices() = default;
