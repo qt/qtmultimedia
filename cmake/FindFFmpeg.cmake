@@ -20,10 +20,7 @@
 # ::
 #
 #   FFMPEG_FOUND         - System has the all required components.
-#   FFMPEG_INCLUDE_DIRS  - Include directory necessary for using the required components headers.
-#   FFMPEG_LIBRARIES     - Link these to use the required FFmpeg components.
-#   FFMPEG_LIBRARY_DIRS  - Link directories
-#   FFMPEG_DEFINITIONS   - Compiler switches required for using the required FFmpeg components.
+#   FFMPEG_SHARED_LIBRARIES - Found FFmpeg shared libraries.
 #
 # For each of the components it will additionally set.
 #
@@ -203,11 +200,7 @@ endmacro()
 
 # Clear the previously cached variables, because they are recomputed every time
 # the Find script is included.
-unset(FFMPEG_INCLUDE_DIRS)
-unset(FFMPEG_LIBRARIES)
-unset(FFMPEG_SHARED_LIBRARIES)
-unset(FFMPEG_DEFINITIONS)
-unset(FFMPEG_LIBRARY_DIRS)
+unset(FFMPEG_SHARED_LIBRARIES CACHE)
 
 # Check for components.
 foreach (_component ${FFmpeg_FIND_COMPONENTS})
@@ -328,18 +321,9 @@ endfunction()
   message(STATUS "FFmpeg shared libs: ${FFMPEG_SHARED_LIBRARIES}")
 
   # cache the vars.
-  set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
-  set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    CACHE STRING "The FFmpeg libraries." FORCE)
-  set(FFMPEG_DEFINITIONS  ${FFMPEG_DEFINITIONS}  CACHE STRING "The FFmpeg cflags." FORCE)
-  set(FFMPEG_LIBRARY_DIRS ${FFMPEG_LIBRARY_DIRS} CACHE STRING "The FFmpeg library dirs." FORCE)
   set(FFMPEG_SHARED_LIBRARIES ${FFMPEG_SHARED_LIBRARIES} CACHE STRING "The FFmpeg dynamic libraries." FORCE)
 
-  mark_as_advanced(FFMPEG_INCLUDE_DIRS
-                   FFMPEG_LIBRARIES
-                   FFMPEG_DEFINITIONS
-                   FFMPEG_LIBRARY_DIRS
-                   FFMPEG_SHARED_LIBRARIES
-               )
+  mark_as_advanced(FFMPEG_SHARED_LIBRARIES)
 # endif ()
 
 list(LENGTH FFMPEG_LIBRARY_DIRS DIRS_COUNT)
