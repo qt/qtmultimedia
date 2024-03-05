@@ -64,6 +64,8 @@ public:
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
 private:
+    void setCameraActive(bool activate);
+
     explicit QGstreamerMediaCapture(QGstreamerVideoOutput *videoOutput);
 
     friend QGstreamerMediaEncoder;
@@ -72,6 +74,7 @@ private:
 
     QGstreamerAudioInput *gstAudioInput = nullptr;
     QGstreamerCamera *gstCamera = nullptr;
+    QMetaObject::Connection gstCameraActiveConnection;
 
     QGstElement gstAudioTee;
     QGstElement gstVideoTee;
