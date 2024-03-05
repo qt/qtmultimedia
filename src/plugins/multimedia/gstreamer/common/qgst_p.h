@@ -701,6 +701,8 @@ public:
     {
         gst_element_add_pad(element(), gst_ghost_pad_new(name, pad.pad()));
     }
+
+    bool syncChildrenState() { return gst_bin_sync_children_states(bin()); }
 };
 
 inline QGstStructure QGValue::toStructure() const
