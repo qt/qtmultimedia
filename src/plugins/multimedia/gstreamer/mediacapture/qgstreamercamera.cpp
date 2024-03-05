@@ -112,10 +112,11 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
     qLinkGstElements(gstNewCamera, gstCapsFilter, gstNewDecode, gstVideoConvert);
 
     // Start sending frames once pipeline is linked
-    // FIXME: put camera to READY state before linking to decoder as in the NULL state it does not know its true caps
-    gstCapsFilter.syncStateWithParent();
-    gstNewDecode.syncStateWithParent();
-    gstNewCamera.syncStateWithParent();
+    // FIXME: put camera to READY state before linking to decoder as in the NULL state it does not
+    // know its true caps
+
+    gstCameraBin.syncChildrenState();
+
 
     gstCamera = gstNewCamera;
     gstDecode = gstNewDecode;
