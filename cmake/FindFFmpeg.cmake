@@ -70,7 +70,7 @@ if (NOT FFmpeg_FIND_COMPONENTS)
 endif ()
 
 if (QT_DEPLOY_FFMPEG AND BUILD_SHARED_LIBS)
-    set(shared_libs_required TRUE)
+    set(shared_libs_desired TRUE)
 endif()
 
 # finds FFmpeg libs, including symlinks, for the specified component.
@@ -103,8 +103,7 @@ endmacro()
 # Marks the given component as found if both *_LIBRARY_NAME AND *_INCLUDE_DIRS is present.
 #
 macro(set_component_found _component)
-  if (${_component}_LIBRARY_NAME AND ${_component}_INCLUDE_DIR AND
-      (${_component}_SHARED_LIBRARIES OR NOT shared_libs_required))
+  if (${_component}_LIBRARY_NAME AND ${_component}_INCLUDE_DIR)
       # message(STATUS "  - ${_component} found.")
     set(${_component}_FOUND TRUE)
     set(${CMAKE_FIND_PACKAGE_NAME}_${_component}_FOUND TRUE)
@@ -159,8 +158,8 @@ macro(find_component _component _pkgconfig _library _header)
       ffmpeg include
   )
 
-  if (shared_libs_required AND NOT WIN32)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_SHARED_LIBRARY_SUFFIX})
+  if (shared_libs_desired AND NOT WIN32)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES "${CMAKE_SHARED_LIBRARY_SUFFIX};${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
   if (${_component}_LIBRARY AND NOT EXISTS ${${_component}_LIBRARY})
@@ -345,14 +344,20 @@ endfunction()
 
 list(LENGTH FFMPEG_LIBRARY_DIRS DIRS_COUNT)
 if (${DIRS_COUNT} GREATER 1)
-  message(WARNING "One FFmpeg library dir is expected, found dirs: ${FFMPEG_LIBRARY_DIRS}")
+  message(WARNING "One ffmpeg library dir is expected, found dirs: ${FFMPEG_LIBRARY_DIRS}")
 endif()
 
 if(FFMPEG_SHARED_COMPONENTS AND FFMPEG_STATIC_COMPONENTS)
   message(WARNING
     "Only static or shared components are expected\n"
     "  static components: ${FFMPEG_STATIC_COMPONENTS}\n"
-    "  static components: ${FFMPEG_SHARED_COMPONENTS}")
+    "  shared components: ${FFMPEG_SHARED_COMPONENTS}")
+endif()
+
+if (shared_libs_desired AND NOT FFMPEG_SHARED_COMPONENTS)
+  message(WARNING 
+         "Shared FFmpeg libs are desired as QT_DEPLOY_FFMPEG=TRUE, but haven't been found!\n"
+         "Remove QT_DEPLOY_FFMPEG or set the proper path to shared FFmpeg via FFMPEG_DIR.")
 endif()
 
 if (NOT TARGET FFmpeg::FFmpeg)
