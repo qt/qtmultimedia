@@ -18,18 +18,14 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <mutex>
 #include <memory>
 
 QT_BEGIN_NAMESPACE
 
-class QMediaDevices;
 class QAudioDevice;
-class QCameraDevice;
 class QPlatformAudioSource;
 class QPlatformAudioSink;
 class QAudioFormat;
-class QPlatformMediaIntegration;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaDevices : public QObject
 {
