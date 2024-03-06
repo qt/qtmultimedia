@@ -4,6 +4,7 @@
 #include "qmediastoragelocation_p.h"
 
 #include <QStandardPaths>
+#include <QUrl>
 
 QT_BEGIN_NAMESPACE
 
@@ -65,7 +66,7 @@ QString QMediaStorageLocation::generateFileName(const QString &requestedName,
 
     QString path = requestedName;
 
-    if (QFileInfo(path).isRelative())
+    if (QFileInfo(path).isRelative() && QUrl(path).isRelative())
         path = defaultDirectory(type).absoluteFilePath(path);
 
     if (QFileInfo(path).isDir())
