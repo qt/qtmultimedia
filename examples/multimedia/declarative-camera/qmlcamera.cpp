@@ -20,7 +20,6 @@ int main(int argc, char *argv[])
         // quit() signal, so do this (optionally use Qt.exit()).
         QObject::connect(view.engine(), &QQmlEngine::quit, qApp, &QGuiApplication::quit);
         view.setSource(QUrl("qrc:///declarative-camera.qml"));
-        view.resize(800, 480);
         view.show();
     };
 

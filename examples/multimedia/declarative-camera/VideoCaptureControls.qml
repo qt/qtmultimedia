@@ -92,9 +92,9 @@ FocusScope {
 
     ZoomControl {
         x : 0
-        y : captureControls.state === "MobilePortrait" ? -buttonPaneShadow.height : 0
+        y : captureControls.state === "MobilePortrait" ? -buttonPaneShadow.height/2 : 0
         width : 100
-        height: parent.height
+        height: parent.height - (flashControl.visible * flashControl.height)
 
         currentZoom: captureControls.captureSession.camera.zoomFactor
         maximumZoom: captureControls.captureSession.camera.maximumZoomFactor
@@ -102,6 +102,7 @@ FocusScope {
     }
 
     FlashControl {
+        id: flashControl
         x : 10
         y : captureControls.state === "MobilePortrait" ?
                 parent.height - (buttonPaneShadow.height + height) : parent.height - height

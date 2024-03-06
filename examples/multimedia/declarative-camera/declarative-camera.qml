@@ -7,14 +7,12 @@ import QtMultimedia
 Rectangle {
     id : cameraUI
 
-    width: 800
-    height: 480
     color: "black"
     state: "PhotoCapture"
 
     property string platformScreen: ""
-    property int buttonsPanelLandscapeWidth: 328
-    property int buttonsPanelPortraitHeight: 180
+    property int buttonsPanelLandscapeWidth: cameraUI.width/2
+    property int buttonsPanelPortraitHeight: cameraUI.height/3
 
     states: [
         State {
