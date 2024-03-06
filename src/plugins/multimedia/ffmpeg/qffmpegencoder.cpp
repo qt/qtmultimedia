@@ -114,6 +114,13 @@ void Encoder::start()
 {
     qCDebug(qLcFFmpegEncoder) << "Encoder::start!";
 
+    if (m_formatContext->pb == nullptr) {
+        qWarning() << "AVIOContext is null";
+        emit error(QMediaRecorder::ResourceError,
+                   "AVIOContext initialization failed. Cannot start");
+        return;
+    }
+
     m_formatContext->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
 
     Q_ASSERT(!m_isHeaderWritten);
