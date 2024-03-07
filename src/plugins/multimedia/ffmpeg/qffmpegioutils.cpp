@@ -12,14 +12,25 @@ namespace QFFmpeg {
 int readQIODevice(void *opaque, uint8_t *buf, int buf_size)
 {
     auto *dev = static_cast<QIODevice *>(opaque);
+    Q_ASSERT(dev);
+
     if (dev->atEnd())
         return AVERROR_EOF;
     return dev->read(reinterpret_cast<char *>(buf), buf_size);
 }
 
+int writeQIODevice(void *opaque, uint8_t *buf, int buf_size)
+{
+    auto dev = static_cast<QIODevice *>(opaque);
+    Q_ASSERT(dev);
+
+    return dev->write(reinterpret_cast<const char *>(buf), buf_size);
+}
+
 int64_t seekQIODevice(void *opaque, int64_t offset, int whence)
 {
     QIODevice *dev = static_cast<QIODevice *>(opaque);
+    Q_ASSERT(dev);
 
     if (dev->isSequential())
         return AVERROR(EINVAL);
