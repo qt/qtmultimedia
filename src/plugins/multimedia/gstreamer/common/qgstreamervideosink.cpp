@@ -46,7 +46,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     //
     // To fix this, simply insert the element into the pipeline if it's available. Otherwise
     // we simply use an identity element.
-    gstQueue = QGstElement::createFromFactory("queue");
+    gstQueue = QGstElement::createFromFactory("queue", "videoSinkQueue");
 
     QGstElementFactoryHandle factory = QGstElementFactoryHandle{
         gst_element_factory_find("imxvideoconvert_g2d"),
