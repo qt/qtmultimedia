@@ -47,22 +47,9 @@ T dequeueIfPossible(std::queue<T> &queue)
 } // namespace
 
 Encoder::Encoder(const QMediaEncoderSettings &settings, const QString &filePath)
-    : m_settings(settings)
+    : m_settings(settings), m_formatContext(settings.fileFormat())
 {
-    const AVOutputFormat *avFormat = QFFmpegMediaFormatInfo::outputFormatForFileFormat(settings.fileFormat());
-    m_formatContext = avformat_alloc_context();
-    m_formatContext->oformat = const_cast<AVOutputFormat *>(avFormat); // constness varies
-
-    QByteArray filePathUtf8 = filePath.toUtf8();
-    m_formatContext->url = (char *)av_malloc(filePathUtf8.size() + 1);
-    memcpy(m_formatContext->url, filePathUtf8.constData(), filePathUtf8.size() + 1);
-    m_formatContext->pb = nullptr;
-
-    // Initialize the AVIOContext for accessing the resource indicated by the url
-    auto result = avio_open2(&m_formatContext->pb, m_formatContext->url, AVIO_FLAG_WRITE, nullptr,
-                             nullptr);
-    qCDebug(qLcFFmpegEncoder) << "opened" << result << m_formatContext->url;
-
+    m_formatContext.openAVIO(filePath);
     m_muxer = new Muxer(this);
 }
 
@@ -114,7 +101,7 @@ void Encoder::start()
 {
     qCDebug(qLcFFmpegEncoder) << "Encoder::start!";
 
-    if (m_formatContext->pb == nullptr) {
+    if (!m_formatContext.isAVIOOpen()) {
         qWarning() << "AVIOContext is null";
         emit error(QMediaRecorder::ResourceError,
                    "AVIOContext initialization failed. Cannot start");
@@ -168,11 +155,8 @@ void EncodingFinalizer::run()
     }
     // else ffmpeg might crash
 
-    // Close the AVIOContext and release any file handles
-    const int res = avio_close(m_encoder->m_formatContext->pb);
-    Q_ASSERT(res == 0);
+    m_encoder->m_formatContext.closeAVIO();
 
-    avformat_free_context(m_encoder->m_formatContext);
     qCDebug(qLcFFmpegEncoder) << "    done finalizing.";
     emit m_encoder->finalizationDone();
     delete m_encoder;

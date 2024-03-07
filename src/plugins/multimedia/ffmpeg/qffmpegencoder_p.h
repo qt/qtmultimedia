@@ -17,6 +17,7 @@
 #include "qffmpegthread_p.h"
 #include "qffmpeg_p.h"
 #include "qffmpeghwaccel_p.h"
+#include "qffmpegencodingformatcontext_p.h"
 
 #include "private/qmultimediautils_p.h"
 
@@ -91,7 +92,7 @@ private:
 
     QMediaEncoderSettings m_settings;
     QMediaMetaData m_metaData;
-    AVFormatContext *m_formatContext = nullptr;
+    EncodingFormatContext m_formatContext;
     Muxer *m_muxer = nullptr;
 
     AudioEncoder *m_audioEncoder = nullptr;
