@@ -227,12 +227,12 @@ std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorag
     std::unordered_set<AVCodecID> availabeCodecs;
 
     auto getCodecId = [] (const QString& codecName) {
-        if (codecName == QStringView("3gpp")) return AV_CODEC_ID_H263;
-        if (codecName == QStringView("avc")) return AV_CODEC_ID_H264;
-        if (codecName == QStringView("hevc")) return AV_CODEC_ID_HEVC;
-        if (codecName == QStringView("mp4v-es")) return AV_CODEC_ID_MPEG4;
-        if (codecName == QStringView("x-vnd.on2.vp8")) return AV_CODEC_ID_VP8;
-        if (codecName == QStringView("x-vnd.on2.vp9")) return AV_CODEC_ID_VP9;
+        if (codecName == QStringLiteral("3gpp")) return AV_CODEC_ID_H263;
+        if (codecName == QStringLiteral("avc")) return AV_CODEC_ID_H264;
+        if (codecName == QStringLiteral("hevc")) return AV_CODEC_ID_HEVC;
+        if (codecName == QStringLiteral("mp4v-es")) return AV_CODEC_ID_MPEG4;
+        if (codecName == QStringLiteral("x-vnd.on2.vp8")) return AV_CODEC_ID_VP8;
+        if (codecName == QStringLiteral("x-vnd.on2.vp9")) return AV_CODEC_ID_VP9;
         return AV_CODEC_ID_NONE;
     };
 
