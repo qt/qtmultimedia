@@ -160,9 +160,26 @@ QDebug operator<<(QDebug dbg, const GstTagList *tagList)
     return dbg;
 }
 
+QDebug operator<<(QDebug dbg, const GstQuery *query)
+{
+    dbg << GST_QUERY_TYPE_NAME(query);
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const GstEvent *event)
+{
+    dbg << GST_EVENT_TYPE_NAME(event);
+    return dbg;
+}
+
 QDebug operator<<(QDebug dbg, GstState state)
 {
     return dbg << gst_element_state_get_name(state);
+}
+
+QDebug operator<<(QDebug dbg, GstStateChange transition)
+{
+    return dbg << gst_state_change_get_name(transition);
 }
 
 QDebug operator<<(QDebug dbg, GstStateChangeReturn stateChangeReturn)
