@@ -50,17 +50,13 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
         return;
     }
 
-    const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
+    auto actualLocation = findActualLocation(settings);
 
-    auto primaryLocation = audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation;
-    auto suffix = settings.mimeType().preferredSuffix();
-    QString location = QMediaStorageLocation::generateFileName(outputLocation().toString(QUrl::PreferLocalFile), primaryLocation, suffix);
-    qCDebug(qLcMediaEncoder) << "recording new video to" << location;
-    qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat() << settings.audioCodec();
+    qCDebug(qLcMediaEncoder) << "recording new media to" << actualLocation;
+    qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat()
+                             << settings.audioCodec();
 
-    Q_ASSERT(!location.isEmpty());
-
-    m_encoder.reset(new Encoder(settings, location));
+    m_encoder.reset(new Encoder(settings, actualLocation));
     m_encoder->setMetaData(m_metaData);
     connect(m_encoder.get(), &QFFmpeg::Encoder::durationChanged, this,
             &QFFmpegMediaRecorder::newDuration);
@@ -82,7 +78,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
 
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);
-    actualLocationChanged(QUrl::fromLocalFile(location));
+    actualLocationChanged(QUrl::fromLocalFile(actualLocation));
 
     m_encoder->start();
 }

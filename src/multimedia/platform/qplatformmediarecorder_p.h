@@ -136,6 +136,8 @@ protected:
 
     QMediaRecorder *mediaRecorder() { return q; }
 
+    QString findActualLocation(const QMediaEncoderSettings &settings) const;
+
 private:
     QMediaRecorder *q = nullptr;
     QErrorInfo<QMediaRecorder::Error> m_error;
