@@ -40,8 +40,11 @@ QDebug operator<<(QDebug, const GstPad *);
 QDebug operator<<(QDebug, const GstDevice *);
 QDebug operator<<(QDebug, const GstMessage *);
 QDebug operator<<(QDebug, const GstTagList *);
+QDebug operator<<(QDebug, const GstQuery *);
+QDebug operator<<(QDebug, const GstEvent *);
 
 QDebug operator<<(QDebug, GstState);
+QDebug operator<<(QDebug, GstStateChange);
 QDebug operator<<(QDebug, GstStateChangeReturn);
 QDebug operator<<(QDebug, GstMessageType);
 QDebug operator<<(QDebug, GstPadDirection);
