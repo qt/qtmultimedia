@@ -4,7 +4,7 @@
 #include "qffmpegencodingformatcontext_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegioutils_p.h"
-#include "qiodevice.h"
+#include "qfile.h"
 #include "QtCore/qloggingcategory.h"
 
 QT_BEGIN_NAMESPACE
@@ -36,6 +36,7 @@ EncodingFormatContext::~EncodingFormatContext()
 void EncodingFormatContext::openAVIO(const QString &filePath)
 {
     Q_ASSERT(!isAVIOOpen());
+    Q_ASSERT(!filePath.isEmpty());
 
     const QByteArray filePathUtf8 = filePath.toUtf8();
 
@@ -52,6 +53,28 @@ void EncodingFormatContext::openAVIO(const QString &filePath)
     Q_ASSERT(m_avFormatContext->url == nullptr);
     if (isAVIOOpen())
         m_avFormatContext->url = url.release();
+    else
+        openAVIOWithQFile(filePath);
+}
+
+void EncodingFormatContext::openAVIOWithQFile(const QString &filePath)
+{
+    // QTBUG-123082, To be investigated:
+    // - should we use the logic with QFile for all file paths?
+    // - does avio_open2 handle network protocols that QFile doesn't?
+    // - which buffer size should we set to opening with QFile to ensure the best performance?
+
+    auto file = std::make_unique<QFile>(filePath);
+
+    if (!file->open(QFile::WriteOnly)) {
+        qCDebug(qLcEncodingFormatContext) << "Cannot open QFile" << filePath;
+        return;
+    }
+
+    openAVIO(file.get());
+
+    if (isAVIOOpen())
+        m_outputFile = std::move(file);
 }
 
 void EncodingFormatContext::openAVIO(QIODevice *device)
@@ -82,6 +105,9 @@ void EncodingFormatContext::closeAVIO()
         // delete url even though it might be delete by avformat_free_context to
         // ensure consistency in openAVIO/closeAVIO.
         av_freep(&m_avFormatContext->url);
+        m_outputFile.reset();
+    } else {
+        Q_ASSERT(!m_outputFile);
     }
 }
 
