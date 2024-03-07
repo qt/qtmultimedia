@@ -310,8 +310,20 @@ bool QGstPipeline::setPlaybackRate(double rate)
 {
     if (rate == d->m_rate)
         return false;
-    seek(position(), rate);
-    return true;
+
+    constexpr GstSeekFlags seekFlags =
+#if GST_CHECK_VERSION(1, 18, 0)
+            GST_SEEK_FLAG_INSTANT_RATE_CHANGE;
+#else
+            GST_SEEK_FLAG_FLUSH;
+#endif
+
+    bool success = gst_element_seek(element(), rate, GST_FORMAT_TIME, seekFlags, GST_SEEK_TYPE_NONE,
+                                    GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
+    if (success)
+        d->m_rate = rate;
+
+    return success;
 }
 
 double QGstPipeline::playbackRate() const
