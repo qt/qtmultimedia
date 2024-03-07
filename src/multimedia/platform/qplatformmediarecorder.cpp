@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qplatformmediarecorder_p.h"
+#include "qstandardpaths.h"
+#include "qmediastoragelocation_p.h"
 #include <QObject>
 
 QT_BEGIN_NAMESPACE
@@ -53,6 +55,21 @@ void QPlatformMediaRecorder::error(QMediaRecorder::Error error, const QString &e
 void QPlatformMediaRecorder::metaDataChanged()
 {
     emit q->metaDataChanged();
+}
+
+QString QPlatformMediaRecorder::findActualLocation(const QMediaEncoderSettings &settings) const
+{
+    const auto audioOnly = settings.videoCodec() == QMediaFormat::VideoCodec::Unspecified;
+
+    const auto primaryLocation =
+            audioOnly ? QStandardPaths::MusicLocation : QStandardPaths::MoviesLocation;
+    const QString suffix = settings.mimeType().preferredSuffix();
+    const QString location = QMediaStorageLocation::generateFileName(
+            outputLocation().toString(QUrl::PreferLocalFile), primaryLocation, suffix);
+
+    Q_ASSERT(!location.isEmpty());
+
+    return location;
 }
 
 QT_END_NAMESPACE
