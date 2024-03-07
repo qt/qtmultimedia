@@ -57,15 +57,12 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
             gst_element_factory_find("nvvidconv"),
         };
 
-    if (!factory)
-        factory = QGstElementFactoryHandle{
-            gst_element_factory_find("identity"),
+    if (factory) {
+        gstPreprocess = QGstElement{
+            gst_element_factory_create(factory.get(), "preprocess"),
+            QGstElement::NeedsRef,
         };
-
-    gstPreprocess = QGstElement{
-        gst_element_factory_create(factory.get(), "preprocess"),
-        QGstElement::NeedsRef,
-    };
+    }
 
     bool disablePixelAspectRatio =
             qEnvironmentVariableIsSet("QT_MULTIMEDIA_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO");
@@ -87,8 +84,13 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
         g_object_set(gstCapsFilter.element(), "caps", capsFilterCaps.release(), NULL);
     }
 
-    sinkBin.add(gstQueue, gstPreprocess, gstCapsFilter);
-    qLinkGstElements(gstQueue, gstPreprocess, gstCapsFilter);
+    if (gstPreprocess) {
+        sinkBin.add(gstQueue, gstPreprocess, gstCapsFilter);
+        qLinkGstElements(gstQueue, gstPreprocess, gstCapsFilter);
+    } else {
+        sinkBin.add(gstQueue, gstCapsFilter);
+        qLinkGstElements(gstQueue, gstCapsFilter);
+    }
     sinkBin.addGhostPad(gstQueue, "sink");
 
     gstSubtitleSink = QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)));
