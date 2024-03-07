@@ -27,6 +27,7 @@
 #include <qmediarecorder.h>
 
 #include <queue>
+#include <variant>
 
 QT_BEGIN_NAMESPACE
 
@@ -58,7 +59,8 @@ class Encoder : public QObject
 {
     Q_OBJECT
 public:
-    Encoder(const QMediaEncoderSettings &settings, const QString &filePath);
+    using Output = std::variant<QString, QIODevice *>;
+    Encoder(const QMediaEncoderSettings &settings, Output output);
     ~Encoder();
 
     void addAudioInput(QFFmpegAudioInput *input);

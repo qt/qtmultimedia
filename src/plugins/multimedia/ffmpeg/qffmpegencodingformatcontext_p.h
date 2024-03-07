@@ -20,6 +20,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QIODevice;
+
 namespace QFFmpeg {
 
 class EncodingFormatContext
@@ -29,6 +31,8 @@ public:
     ~EncodingFormatContext();
 
     void openAVIO(const QString &filePath);
+
+    void openAVIO(QIODevice *device);
 
     bool isAVIOOpen() const { return m_avFormatContext->pb != nullptr; }
 

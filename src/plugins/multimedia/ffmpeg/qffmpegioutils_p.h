@@ -23,6 +23,8 @@ namespace QFFmpeg {
 
 int readQIODevice(void *opaque, uint8_t *buf, int buf_size);
 
+int writeQIODevice(void *opaque, uint8_t *buf, int buf_size);
+
 int64_t seekQIODevice(void *opaque, int64_t offset, int whence);
 
 } // namespace QFFmpeg

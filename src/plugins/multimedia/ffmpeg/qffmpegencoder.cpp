@@ -46,10 +46,15 @@ T dequeueIfPossible(std::queue<T> &queue)
 
 } // namespace
 
-Encoder::Encoder(const QMediaEncoderSettings &settings, const QString &filePath)
+Encoder::Encoder(const QMediaEncoderSettings &settings, Output output)
     : m_settings(settings), m_formatContext(settings.fileFormat())
 {
-    m_formatContext.openAVIO(filePath);
+    auto openAVIO = [this](const auto &output) { m_formatContext.openAVIO(output); };
+    std::visit(openAVIO, output);
+
+    if (!m_formatContext.isAVIOOpen())
+        qCWarning(qLcFFmpegEncoder) << "Unable to open IO device to record media";
+
     m_muxer = new Muxer(this);
 }
 
