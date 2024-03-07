@@ -21,6 +21,7 @@
 QT_BEGIN_NAMESPACE
 
 class QIODevice;
+class QFile;
 
 namespace QFFmpeg {
 
@@ -47,8 +48,11 @@ public:
 private:
     Q_DISABLE_COPY_MOVE(EncodingFormatContext)
 
+    void openAVIOWithQFile(const QString &filePath);
+
 private:
     AVFormatContext *m_avFormatContext;
+    std::unique_ptr<QFile> m_outputFile;
 };
 
 } // namespace QFFmpeg
