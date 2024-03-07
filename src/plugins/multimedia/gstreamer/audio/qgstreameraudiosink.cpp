@@ -53,7 +53,7 @@ QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc 
     connect(m_appSrc, &QGstAppSrc::noMoreData, this, &QGStreamerAudioSink::needData);
     gstAppSrc = m_appSrc->element();
 
-    QGstElement queue = QGstElement::createFromFactory("queue", "queue");
+    QGstElement queue = QGstElement::createFromFactory("queue", "audioSinkQueue");
 
     if (m_volume != 1.)
         gstVolume.set("volume", m_volume);
