@@ -5,6 +5,7 @@
 
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegmediaformatinfo_p.h"
+#include "qffmpegioutils_p.h"
 #include "qiodevice.h"
 #include "qdatetime.h"
 #include "qloggingcategory.h"
@@ -107,36 +108,6 @@ static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::Trac
         break;
     }
 };
-
-static int readQIODevice(void *opaque, uint8_t *buf, int buf_size)
-{
-    auto *dev = static_cast<QIODevice *>(opaque);
-    if (dev->atEnd())
-        return AVERROR_EOF;
-    return dev->read(reinterpret_cast<char *>(buf), buf_size);
-}
-
-static int64_t seekQIODevice(void *opaque, int64_t offset, int whence)
-{
-    QIODevice *dev = static_cast<QIODevice *>(opaque);
-
-    if (dev->isSequential())
-        return AVERROR(EINVAL);
-
-    if (whence & AVSEEK_SIZE)
-        return dev->size();
-
-    whence &= ~AVSEEK_FORCE;
-
-    if (whence == SEEK_CUR)
-        offset += dev->pos();
-    else if (whence == SEEK_END)
-        offset += dev->size();
-
-    if (!dev->seek(offset))
-        return AVERROR(EINVAL);
-    return offset;
-}
 
 QPlatformMediaPlayer::TrackType MediaDataHolder::trackTypeFromMediaType(int mediaType)
 {
