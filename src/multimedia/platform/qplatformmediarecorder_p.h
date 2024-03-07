@@ -18,6 +18,8 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qmimetype.h>
+#include <QtCore/qpointer.h>
+#include <QtCore/qiodevice.h>
 
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qmediametadata.h>
@@ -125,6 +127,9 @@ public:
     void clearActualLocation() { m_actualLocation.clear(); }
     void clearError() { error(QMediaRecorder::NoError, QString()); }
 
+    QIODevice *outputDevice() const { return m_outputDevice; }
+    void setOutputDevice(QIODevice *device) { m_outputDevice = device; }
+
 protected:
     explicit QPlatformMediaRecorder(QMediaRecorder *parent);
 
@@ -143,6 +148,7 @@ private:
     QErrorInfo<QMediaRecorder::Error> m_error;
     QUrl m_actualLocation;
     QUrl m_outputLocation;
+    QPointer<QIODevice> m_outputDevice;
     qint64 m_duration = 0;
 
     QMediaRecorder::RecorderState m_state = QMediaRecorder::StoppedState;

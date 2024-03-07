@@ -236,9 +236,10 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
 
     \sa outputDevice()
 */
-void QMediaRecorder::setOutputDevice(QIODevice */*device*/)
+void QMediaRecorder::setOutputDevice(QIODevice *device)
 {
-    // TODO: implement
+    Q_D(QMediaRecorder);
+    d->control->setOutputDevice(device);
 }
 
 /*!
@@ -248,8 +249,8 @@ void QMediaRecorder::setOutputDevice(QIODevice */*device*/)
 */
 QIODevice *QMediaRecorder::outputDevice() const
 {
-    // TODO: implement
-    return nullptr;
+    Q_D(const QMediaRecorder);
+    return d->control->outputDevice();
 }
 
 QUrl QMediaRecorder::actualLocation() const

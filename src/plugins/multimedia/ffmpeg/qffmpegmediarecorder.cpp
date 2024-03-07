@@ -50,15 +50,26 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
         return;
     }
 
-    auto actualLocation = findActualLocation(settings);
+    if (outputDevice() && !outputLocation().isEmpty())
+        qCWarning(qLcMediaEncoder)
+                << "Both outputDevice and outputLocation has been set to QMediaRecorder";
 
-    qCDebug(qLcMediaEncoder) << "recording new media to" << actualLocation;
-    qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat()
-                             << settings.audioCodec();
+    if (outputDevice() && !outputDevice()->isWritable())
+        qCWarning(qLcMediaEncoder) << "Output device has been set but not it's not writable";
 
+    QString actualLocation;
     auto formatContext = std::make_unique<QFFmpeg::EncodingFormatContext>(settings.fileFormat());
 
-    formatContext->openAVIO(actualLocation);
+    if (outputDevice() && outputDevice()->isWritable()) {
+        formatContext->openAVIO(outputDevice());
+    } else {
+        actualLocation = findActualLocation(settings);
+        qCDebug(qLcMediaEncoder) << "recording new media to" << actualLocation;
+        formatContext->openAVIO(actualLocation);
+    }
+
+    qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat()
+                             << settings.audioCodec();
 
     if (!formatContext->isAVIOOpen()) {
         error(QMediaRecorder::LocationNotWritable,
