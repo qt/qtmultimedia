@@ -48,7 +48,7 @@ public:
 
     void convertSWFrame();
 
-    AVFrame *getHWFrame() const { return hwFrame.get(); }
+    AVFrame *getHWFrame() const { return m_hwFrame.get(); }
 
     void setTextureConverter(const QFFmpeg::TextureConverter &converter);
 
@@ -60,13 +60,13 @@ public:
 
 private:
     QVideoFrameFormat::PixelFormat m_pixelFormat;
-    AVFrame *frame = nullptr;
-    AVFrameUPtr hwFrame;
-    AVFrameUPtr swFrame;
+    AVFrame *m_frame = nullptr;
+    AVFrameUPtr m_hwFrame;
+    AVFrameUPtr m_swFrame;
     QSize m_size;
-    QFFmpeg::TextureConverter textureConverter;
+    QFFmpeg::TextureConverter m_textureConverter;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
-    std::unique_ptr<QFFmpeg::TextureSet> textures;
+    std::unique_ptr<QFFmpeg::TextureSet> m_textures;
 };
 
 QT_END_NAMESPACE
