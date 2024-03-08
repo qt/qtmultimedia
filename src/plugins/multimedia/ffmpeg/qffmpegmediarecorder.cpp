@@ -56,7 +56,17 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     qCDebug(qLcMediaEncoder) << "requested format:" << settings.fileFormat()
                              << settings.audioCodec();
 
-    m_encoder.reset(new Encoder(settings, actualLocation));
+    auto formatContext = std::make_unique<QFFmpeg::EncodingFormatContext>(settings.fileFormat());
+
+    formatContext->openAVIO(actualLocation);
+
+    if (!formatContext->isAVIOOpen()) {
+        error(QMediaRecorder::LocationNotWritable,
+              QMediaRecorder::tr("Cannot open the output location for writing"));
+        return;
+    }
+
+    m_encoder.reset(new Encoder(settings, std::move(formatContext)));
     m_encoder->setMetaData(m_metaData);
     connect(m_encoder.get(), &QFFmpeg::Encoder::durationChanged, this,
             &QFFmpegMediaRecorder::newDuration);
