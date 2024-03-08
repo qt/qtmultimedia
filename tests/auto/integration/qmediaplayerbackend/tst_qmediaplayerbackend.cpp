@@ -162,6 +162,7 @@ private slots:
     void infiniteLoops();
     void seekOnLoops();
     void changeLoopsOnTheFly();
+    void seekAfterLoopReset();
     void changeVideoOutputNoFramesLost();
     void cleanSinkAndNoMoreFramesAfterStop();
     void lazyLoadVideo();
@@ -2616,6 +2617,41 @@ void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
     QCOMPARE(iterations[1].startPos, 0);
     QCOMPARE(iterations[1].endPos, m_fixture->player.duration());
     QCOMPARE_GT(iterations[1].posCount, 2);
+}
+
+void tst_QMediaPlayerBackend::seekAfterLoopReset()
+{
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
+#ifdef Q_OS_MACOS
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QSKIP("The test accidently gets crashed on macOS CI, not reproduced locally. To be "
+              "investigated: QTBUG-111744");
+#endif
+
+    m_fixture->surface.setStoreFrames(false);
+
+    m_fixture->player.setLoops(QMediaPlayer::Infinite);
+    m_fixture->player.setPlaybackRate(2);
+
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
+
+    m_fixture->player.play();
+    m_fixture->surface.waitForFrame();
+
+    // seek in the 1st loop
+    m_fixture->player.setPosition(m_fixture->player.duration() * 4 / 5);
+
+    // wait for the 2nd loop
+    m_fixture->surface.waitForFrame();
+    QTRY_VERIFY(m_fixture->player.position() < m_fixture->player.duration() / 2);
+
+    // reset loops and seek
+    m_fixture->player.setLoops(1);
+    m_fixture->player.setPosition(m_fixture->player.duration() * 8 / 9);
+
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 }
 
 void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
