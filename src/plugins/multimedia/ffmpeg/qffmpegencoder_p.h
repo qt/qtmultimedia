@@ -59,8 +59,7 @@ class Encoder : public QObject
 {
     Q_OBJECT
 public:
-    using Output = std::variant<QString, QIODevice *>;
-    Encoder(const QMediaEncoderSettings &settings, Output output);
+    Encoder(const QMediaEncoderSettings &settings, std::unique_ptr<EncodingFormatContext> context);
     ~Encoder();
 
     void addAudioInput(QFFmpegAudioInput *input);
@@ -85,6 +84,8 @@ private:
     template<typename... Args>
     void addMediaFrameHandler(Args &&...args);
 
+    AVFormatContext *avFormatContext() { return m_formatContext->avFormatContext(); }
+
 private:
     // TODO: improve the encasulation
     friend class EncodingFinalizer;
@@ -94,7 +95,7 @@ private:
 
     QMediaEncoderSettings m_settings;
     QMediaMetaData m_metaData;
-    EncodingFormatContext m_formatContext;
+    std::unique_ptr<EncodingFormatContext> m_formatContext;
     Muxer *m_muxer = nullptr;
 
     AudioEncoder *m_audioEncoder = nullptr;

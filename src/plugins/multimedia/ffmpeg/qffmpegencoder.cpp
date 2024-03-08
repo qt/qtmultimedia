@@ -46,16 +46,12 @@ T dequeueIfPossible(std::queue<T> &queue)
 
 } // namespace
 
-Encoder::Encoder(const QMediaEncoderSettings &settings, Output output)
-    : m_settings(settings), m_formatContext(settings.fileFormat())
+Encoder::Encoder(const QMediaEncoderSettings &settings,
+                 std::unique_ptr<EncodingFormatContext> context)
+    : m_settings(settings), m_formatContext(std::move(context)), m_muxer(new Muxer(this))
 {
-    auto openAVIO = [this](const auto &output) { m_formatContext.openAVIO(output); };
-    std::visit(openAVIO, output);
-
-    if (!m_formatContext.isAVIOOpen())
-        qCWarning(qLcFFmpegEncoder) << "Unable to open IO device to record media";
-
-    m_muxer = new Muxer(this);
+    Q_ASSERT(m_formatContext);
+    Q_ASSERT(m_formatContext->isAVIOOpen());
 }
 
 Encoder::~Encoder()
@@ -106,18 +102,11 @@ void Encoder::start()
 {
     qCDebug(qLcFFmpegEncoder) << "Encoder::start!";
 
-    if (!m_formatContext.isAVIOOpen()) {
-        qWarning() << "AVIOContext is null";
-        emit error(QMediaRecorder::ResourceError,
-                   "AVIOContext initialization failed. Cannot start");
-        return;
-    }
-
-    m_formatContext->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
+    avFormatContext()->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
 
     Q_ASSERT(!m_isHeaderWritten);
 
-    int res = avformat_write_header(m_formatContext, nullptr);
+    int res = avformat_write_header(avFormatContext(), nullptr);
     if (res < 0) {
         qWarning() << "could not write header, error:" << res << err2str(res);
         emit error(QMediaRecorder::ResourceError, "Cannot start writing the stream");
@@ -150,7 +139,7 @@ void EncodingFinalizer::run()
     m_encoder->m_muxer->stopAndDelete();
 
     if (m_encoder->m_isHeaderWritten) {
-        const int res = av_write_trailer(m_encoder->m_formatContext);
+        const int res = av_write_trailer(m_encoder->avFormatContext());
         if (res < 0) {
             const auto errorDescription = err2str(res);
             qCWarning(qLcFFmpegEncoder) << "could not write trailer" << res << errorDescription;
@@ -160,7 +149,8 @@ void EncodingFinalizer::run()
     }
     // else ffmpeg might crash
 
-    m_encoder->m_formatContext.closeAVIO();
+    // close AVIO before emitting finalizationDone.
+    m_encoder->m_formatContext->closeAVIO();
 
     qCDebug(qLcFFmpegEncoder) << "    done finalizing.";
     emit m_encoder->finalizationDone();
@@ -251,7 +241,7 @@ void Muxer::processOne()
     //   packet->stream_index;
 
     // the function takes ownership for the packet
-    av_interleaved_write_frame(m_encoder->m_formatContext, packet.release());
+    av_interleaved_write_frame(m_encoder->avFormatContext(), packet.release());
 }
 
 AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
@@ -263,7 +253,8 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
 
     m_format = input->device.preferredFormat();
     auto codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
-    Q_ASSERT(avformat_query_codec(encoder->m_formatContext->oformat, codecID, FF_COMPLIANCE_NORMAL));
+    Q_ASSERT(avformat_query_codec(encoder->avFormatContext()->oformat, codecID,
+                                  FF_COMPLIANCE_NORMAL));
 
     const AVAudioFormat requestedAudioFormat(m_format);
 
@@ -276,8 +267,8 @@ AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
 
     Q_ASSERT(m_avCodec);
 
-    m_stream = avformat_new_stream(encoder->m_formatContext, nullptr);
-    m_stream->id = encoder->m_formatContext->nb_streams - 1;
+    m_stream = avformat_new_stream(encoder->avFormatContext(), nullptr);
+    m_stream->id = encoder->avFormatContext()->nb_streams - 1;
     m_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
     m_stream->codecpar->codec_id = codecID;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
@@ -470,7 +461,7 @@ VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settin
 
     m_frameEncoder =
             VideoFrameEncoder::create(settings, format.frameSize(), frameRate, ffmpegPixelFormat,
-                                      swFormat, encoder->m_formatContext);
+                                      swFormat, encoder->avFormatContext());
 }
 
 VideoEncoder::~VideoEncoder() = default;
