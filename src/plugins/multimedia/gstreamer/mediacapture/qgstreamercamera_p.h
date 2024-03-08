@@ -15,11 +15,12 @@
 // We mean it.
 //
 
-#include <QHash>
 #include <private/qplatformcamera_p.h>
 #include <private/qmultimediautils_p.h>
-#include "qgstreamermediacapture_p.h"
-#include <qgst_p.h>
+
+#include <mediacapture/qgstreamermediacapture_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstpipeline_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -37,6 +38,7 @@ public:
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
 
+    void setPipeline(const QGstPipeline &);
     QGstElement gstElement() const { return QGstElement(gstCameraBin.element()); }
 #if QT_CONFIG(gstreamer_photography)
     GstPhotography *photography() const;
@@ -117,6 +119,7 @@ private:
     QGstElement gstDecode;
     QGstElement gstVideoConvert;
     QGstElement gstVideoScale;
+    QGstPipeline gstPipeline;
 
     bool m_active = false;
     QString m_v4l2DevicePath;
