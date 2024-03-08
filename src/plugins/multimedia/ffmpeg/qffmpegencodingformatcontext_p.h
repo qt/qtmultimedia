@@ -39,11 +39,9 @@ public:
 
     void closeAVIO();
 
-    operator AVFormatContext *() { return m_avFormatContext; }
-    operator const AVFormatContext *() const { return m_avFormatContext; }
+    AVFormatContext *avFormatContext() { return m_avFormatContext; }
 
-    AVFormatContext *operator->() { return m_avFormatContext; }
-    const AVFormatContext *operator->() const { return m_avFormatContext; }
+    const AVFormatContext *avFormatContext() const { return m_avFormatContext; }
 
 private:
     Q_DISABLE_COPY_MOVE(EncodingFormatContext)
