@@ -229,15 +229,16 @@ bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &avail
 std::optional<std::unordered_set<AVCodecID>> availableHWCodecs(const CodecStorageType type)
 {
 #ifdef Q_OS_ANDROID
+    using namespace Qt::StringLiterals;
     std::unordered_set<AVCodecID> availabeCodecs;
 
     auto getCodecId = [] (const QString& codecName) {
-        if (codecName == QStringLiteral("3gpp")) return AV_CODEC_ID_H263;
-        if (codecName == QStringLiteral("avc")) return AV_CODEC_ID_H264;
-        if (codecName == QStringLiteral("hevc")) return AV_CODEC_ID_HEVC;
-        if (codecName == QStringLiteral("mp4v-es")) return AV_CODEC_ID_MPEG4;
-        if (codecName == QStringLiteral("x-vnd.on2.vp8")) return AV_CODEC_ID_VP8;
-        if (codecName == QStringLiteral("x-vnd.on2.vp9")) return AV_CODEC_ID_VP9;
+        if (codecName == "3gpp"_L1) return AV_CODEC_ID_H263;
+        if (codecName == "avc"_L1) return AV_CODEC_ID_H264;
+        if (codecName == "hevc"_L1) return AV_CODEC_ID_HEVC;
+        if (codecName == "mp4v-es"_L1) return AV_CODEC_ID_MPEG4;
+        if (codecName == "x-vnd.on2.vp8"_L1) return AV_CODEC_ID_VP8;
+        if (codecName == "x-vnd.on2.vp9"_L1) return AV_CODEC_ID_VP9;
         return AV_CODEC_ID_NONE;
     };
 
