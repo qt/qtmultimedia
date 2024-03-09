@@ -5,6 +5,7 @@
 
 #include "qvideoframe_p.h"
 #include "qvideotexturehelper_p.h"
+#include "qmultimediautils_p.h"
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconverter_p.h"
 #include "qpainter.h"
@@ -708,9 +709,7 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
     }
 
     QRectF targetRect = rect;
-    QSizeF size = this->size();
-    if (qToUnderlying(rotation()) % 180)
-        size.transpose();
+    QSizeF size = qRotatedFrameSize(*this);
 
     size.scale(targetRect.size(), options.aspectRatioMode);
 

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qsgvideonode_p.h"
+#include "private/qmultimediautils_p.h"
 #include <QtQuick/qsgmaterial.h>
 #include "qsgvideotexture_p.h"
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
@@ -237,8 +238,9 @@ void QSGVideoNode::updateSubtitle(const QVideoFrame &frame)
     QSize subtitleFrameSize = m_rect.size().toSize();
     if (subtitleFrameSize.isEmpty())
         return;
-    if (m_orientation % 180)
-        subtitleFrameSize.transpose();
+
+    subtitleFrameSize = qRotatedFrameSize(subtitleFrameSize, m_orientation);
+
     if (!m_subtitleLayout.update(subtitleFrameSize, frame.subtitleText()))
         return;
 
