@@ -16,6 +16,7 @@
 //
 
 #include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/private/qtvideo_p.h>
 #include <QtCore/private/qglobal_p.h>
 #include <qstring.h>
 #include <qsize.h>
@@ -23,6 +24,8 @@
 #include <optional>
 
 QT_BEGIN_NAMESPACE
+
+class QVideoFrame;
 
 struct QUnexpect
 {
@@ -100,6 +103,17 @@ struct Fraction {
 Q_MULTIMEDIA_EXPORT Fraction qRealToFraction(qreal value);
 
 Q_MULTIMEDIA_EXPORT QSize qCalculateFrameSize(QSize resolution, Fraction pixelAspectRatio);
+
+// TODO: after adding pixel aspect ratio to QVideoFrameFormat, the function should
+// consider PAR as well as rotation
+Q_MULTIMEDIA_EXPORT QSize qRotatedFrameSize(QSize size, int rotation);
+
+inline QSize qRotatedFrameSize(QSize size, QtVideo::Rotation rotation)
+{
+    return qRotatedFrameSize(size, qToUnderlying(rotation));
+}
+
+Q_MULTIMEDIA_EXPORT QSize qRotatedFrameSize(const QVideoFrame &frame);
 
 QT_END_NAMESPACE
 
