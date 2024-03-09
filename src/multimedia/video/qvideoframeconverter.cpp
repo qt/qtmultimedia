@@ -5,6 +5,7 @@
 #include "qvideoframeconversionhelper_p.h"
 #include "qvideoframeformat.h"
 #include "qvideoframe_p.h"
+#include "qmultimediautils_p.h"
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qsize.h>
@@ -322,11 +323,7 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
 
     // Do conversion using shaders
 
-    const int rotationIndex = (qToUnderlying(rotation) / 90) % 4;
-
-    QSize frameSize = frame.size();
-    if (rotationIndex % 2)
-        frameSize.transpose();
+    const QSize frameSize = qRotatedFrameSize(frame.size(), rotation);
 
     vertexBuffer.reset(rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(g_quad)));
     vertexBuffer->create();
@@ -394,7 +391,8 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
     cb->setViewport({ 0, 0, float(frameSize.width()), float(frameSize.height()) });
     cb->setShaderResources(shaderResourceBindings.get());
 
-    quint32 vertexOffset = quint32(sizeof(float)) * 16 * rotationIndex;
+    const int rotationIndex = (qToUnderlying(rotation) / 90) % 4;
+    const quint32 vertexOffset = quint32(sizeof(float)) * 16 * rotationIndex;
     const QRhiCommandBuffer::VertexInput vbufBinding(vertexBuffer.get(), vertexOffset);
     cb->setVertexInput(0, 1, &vbufBinding);
     cb->draw(4);
