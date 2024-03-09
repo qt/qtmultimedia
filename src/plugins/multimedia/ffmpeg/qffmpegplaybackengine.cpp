@@ -612,11 +612,14 @@ void PlaybackEngine::updateVideoSinkSize(QVideoSink *prevSink)
         if (streamIndex >= 0) {
             const auto context = m_media.avContext();
             const auto stream = context->streams[streamIndex];
-            const auto pixelAspectRatio = av_guess_sample_aspect_ratio(context, stream, nullptr);
+            const AVRational pixelAspectRatio =
+                    av_guess_sample_aspect_ratio(context, stream, nullptr);
             // auto size = metaData().value(QMediaMetaData::Resolution)
-            platformVideoSink->setNativeSize(
+            const QSize size =
                     qCalculateFrameSize({ stream->codecpar->width, stream->codecpar->height },
-                                        { pixelAspectRatio.num, pixelAspectRatio.den }));
+                                        { pixelAspectRatio.num, pixelAspectRatio.den });
+
+            platformVideoSink->setNativeSize(qRotatedFrameSize(size, m_media.rotation()));
         }
     }
 }

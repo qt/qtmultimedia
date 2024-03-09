@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qmultimediautils_p.h"
+#include "qvideoframe.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -46,6 +47,17 @@ QSize qCalculateFrameSize(QSize resolution, Fraction par)
         return { resolution.width() * par.numerator / par.denominator, resolution.height() };
 
     return { resolution.width(), resolution.height() * par.denominator / par.numerator };
+}
+
+QSize qRotatedFrameSize(QSize size, int rotation)
+{
+    Q_ASSERT(rotation % 90 == 0);
+    return rotation % 180 ? size.transposed() : size;
+}
+
+QSize qRotatedFrameSize(const QVideoFrame &frame)
+{
+    return qRotatedFrameSize(frame.size(), frame.rotationAngle());
 }
 
 QT_END_NAMESPACE
