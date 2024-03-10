@@ -23,7 +23,7 @@ qt_add_executable(devices
 )
 
 set_target_properties(devices PROPERTIES
-    WIN32_EXECUTABLE TRUE
+    WIN32_EXECUTABLE FALSE
     MACOSX_BUNDLE TRUE
 )
 
