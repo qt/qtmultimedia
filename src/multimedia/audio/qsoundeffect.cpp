@@ -114,6 +114,14 @@ void QSoundEffectPrivate::sampleReady()
     if (!m_audioSink) {
         const auto audioDevice =
                 m_audioDevice.isNull() ? QMediaDevices::defaultAudioOutput() : m_audioDevice;
+
+        if (audioDevice.isNull()) {
+            // We are likely on a virtual machine, for example in CI
+            qCCritical(qLcSoundEffect) << "Failed to play sound. No audio devices present.";
+            setStatus(QSoundEffect::Error);
+            return;
+        }
+
         const auto &sampleFormat = m_sample->format();
         const auto sampleChannelConfig =
                 sampleFormat.channelConfig() == QAudioFormat::ChannelConfigUnknown
@@ -141,6 +149,7 @@ void QSoundEffectPrivate::sampleReady()
             m_audioBuffer = QAudioBuffer(m_sample->data(), m_sample->format());
 
         m_audioSink.reset(new QAudioSink(audioDevice, m_audioBuffer.format()));
+
         connect(m_audioSink.get(), &QAudioSink::stateChanged, this, &QSoundEffectPrivate::stateChanged);
         if (!m_muted)
             m_audioSink->setVolume(m_volume);

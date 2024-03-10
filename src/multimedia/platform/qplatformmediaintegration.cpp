@@ -13,6 +13,7 @@
 #include <qcameradevice.h>
 #include <qloggingcategory.h>
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qapplicationstatic.h>
 
 #include "qplatformmediadevices_p.h"
 #include <QtCore/private/qfactoryloader_p.h>
@@ -73,7 +74,7 @@ struct InstanceHolder
         if (backend.isEmpty() && !backends.isEmpty())
             backend = defaultBackend(backends);
 
-        qCDebug(qLcMediaPlugin) << "loading backend" << backend;
+        qCDebug(qLcMediaPlugin) << "Loading media backend" << backend;
         instance.reset(
                 qLoadPlugin<QPlatformMediaIntegration, QPlatformMediaPlugin>(loader(), backend));
 
@@ -83,10 +84,54 @@ struct InstanceHolder
         }
     }
 
+    ~InstanceHolder()
+    {
+        instance.reset();
+        qCDebug(qLcMediaPlugin) << "Released media backend";
+    }
+
+    // Play nice with QtGlobalStatic::ApplicationHolder
+    using QAS_Type = InstanceHolder;
+    static void innerFunction(void *pointer)
+    {
+        new (pointer) InstanceHolder();
+    }
+
     std::unique_ptr<QPlatformMediaIntegration> instance;
 };
 
-Q_GLOBAL_STATIC(InstanceHolder, instanceHolder);
+// Specialized implementation of Q_APPLICATION_STATIC which behaves as
+// an application static if a Qt application is present, otherwise as a Q_GLOBAL_STATIC.
+// By doing this, and we have a Qt application, all system resources allocated by the
+// backend is released when application lifetime ends. This is important on Windows,
+// where Windows Media Foundation instances should not be released during static destruction.
+//
+// If we don't have a Qt application available when instantiating the instance holder,
+// it will be created once, and not destroyed until static destruction. This can cause
+// abrupt termination of Windows applications during static destruction. This is not a
+// supported use case, but we keep this as a fallback to keep old applications functional.
+// See also QTBUG-120198
+struct ApplicationHolder : QtGlobalStatic::ApplicationHolder<InstanceHolder>
+{
+    // Replace QtGlobalStatic::ApplicationHolder::pointer to prevent crash if
+    // no application is present
+    static InstanceHolder* pointer()
+    {
+        if (guard.loadAcquire() == QtGlobalStatic::Initialized)
+            return realPointer();
+
+        QMutexLocker locker(&mutex);
+        if (guard.loadRelaxed() == QtGlobalStatic::Uninitialized) {
+            InstanceHolder::innerFunction(&storage);
+
+            if (const QCoreApplication *app = QCoreApplication::instance())
+                QObject::connect(app, &QObject::destroyed, app, reset, Qt::DirectConnection);
+
+            guard.storeRelease(QtGlobalStatic::Initialized);
+        }
+        return realPointer();
+    }
+};
 
 } // namespace
 
@@ -94,7 +139,8 @@ QT_BEGIN_NAMESPACE
 
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-    return instanceHolder->instance.get();
+    static QGlobalStatic<ApplicationHolder> s_instanceHolder;
+    return s_instanceHolder->instance.get();
 }
 
 QList<QCameraDevice> QPlatformMediaIntegration::videoInputs()
@@ -133,19 +179,12 @@ QPlatformMediaFormatInfo *QPlatformMediaIntegration::createFormatInfo()
     return new QPlatformMediaFormatInfo;
 }
 
-// clang-format off
 std::unique_ptr<QPlatformMediaDevices> QPlatformMediaIntegration::createMediaDevices()
 {
-    // Avoid releasing WMF resources and uninitializing WMF during static
-    // destruction, QTBUG-120198
-    if (QCoreApplication::instance())
-        connect(qApp, &QObject::destroyed, this, [this] {
-            m_mediaDevices = nullptr;
-        });
-
     return QPlatformMediaDevices::create();
 }
 
+// clang-format off
 QPlatformVideoDevices *QPlatformMediaIntegration::videoDevices()
 {
     std::call_once(m_videoDevicesOnceFlag,
