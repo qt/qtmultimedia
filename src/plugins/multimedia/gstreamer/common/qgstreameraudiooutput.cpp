@@ -124,5 +124,3 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
 }
 
 QT_END_NAMESPACE
-
-#include "moc_qgstreameraudiooutput_p.cpp"

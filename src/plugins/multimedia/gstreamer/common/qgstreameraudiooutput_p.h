@@ -32,8 +32,6 @@ class QAudioDevice;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerAudioOutput : public QObject, public QPlatformAudioOutput
 {
-    Q_OBJECT
-
 public:
     static QMaybe<QPlatformAudioOutput *> create(QAudioOutput *parent);
     ~QGstreamerAudioOutput();
@@ -45,10 +43,6 @@ public:
     void setPipeline(const QGstPipeline &pipeline);
 
     QGstElement gstElement() const { return gstAudioOutput; }
-
-Q_SIGNALS:
-    void mutedChanged(bool);
-    void volumeChanged(int);
 
 private:
     QGstreamerAudioOutput(QGstElement audioconvert, QGstElement audioresample, QGstElement volume,
