@@ -19,7 +19,6 @@
 #include "qabstractvideobuffer_p.h"
 
 #include <qmutex.h>
-#include <mutex> // std::once
 
 QT_BEGIN_NAMESPACE
 
@@ -51,7 +50,7 @@ public:
     QtVideo::Rotation rotation = QtVideo::Rotation::None;
     bool mirrored = false;
     QImage image;
-    std::once_flag imageOnceFlag;
+    QMutex imageMutex;
 
 private:
     Q_DISABLE_COPY(QVideoFramePrivate)

@@ -427,6 +427,15 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
     }
 
     d->mappedCount++;
+
+    // unlock mapMutex to avoid potential deadlock imageMutex <--> mapMutex
+    lock.unlock();
+
+    if ((mode & QVideoFrame::WriteOnly) != 0) {
+        QMutexLocker lock(&d->imageMutex);
+        d->image = {};
+    }
+
     return true;
 }
 
@@ -667,10 +676,12 @@ QImage QVideoFrame::toImage() const
     if (!isValid())
         return {};
 
-    std::call_once(d->imageOnceFlag, [this]() {
+    QMutexLocker lock(&d->imageMutex);
+
+    if (d->image.isNull()) {
         const bool mirrorY = surfaceFormat().scanLineDirection() != QVideoFrameFormat::TopToBottom;
         d->image = qImageFromVideoFrame(*this, rotation(), mirrored(), mirrorY);
-    });
+    }
 
     return d->image;
 }
