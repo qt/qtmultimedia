@@ -32,8 +32,6 @@ class QAudioDevice;
 
 class Q_MULTIMEDIA_EXPORT QGstreamerAudioInput : public QObject, public QPlatformAudioInput
 {
-    Q_OBJECT
-
 public:
     static QMaybe<QPlatformAudioInput *> create(QAudioInput *parent);
     ~QGstreamerAudioInput();
@@ -49,10 +47,6 @@ public:
     void setMuted(bool muted) override;
 
     QGstElement gstElement() const { return gstAudioInput; }
-
-Q_SIGNALS:
-    void mutedChanged(bool);
-    void volumeChanged(int);
 
 private:
     QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement volume, QAudioInput *parent);
