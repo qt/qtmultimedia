@@ -4,3 +4,8 @@
 add_subdirectory(audiodecoder)
 add_subdirectory(devices)
 add_subdirectory(wasm)
+
+if(TARGET Qt::Quick)
+    add_subdirectory(qml-minimal-camera)
+    add_subdirectory(qml-minimal-player)
+endif()
