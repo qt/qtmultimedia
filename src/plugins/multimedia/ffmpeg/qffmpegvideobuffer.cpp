@@ -5,12 +5,15 @@
 #include "private/qvideotexturehelper_p.h"
 #include "private/qmultimediautils_p.h"
 #include "qffmpeghwaccel_p.h"
+#include "qloggingcategory.h"
 
 extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/hdr_dynamic_metadata.h>
 #include <libavutil/mastering_display_metadata.h>
 }
+
+QT_BEGIN_NAMESPACE
 
 static bool isFrameFlipped(const AVFrame& frame) {
     for (int i = 0; i < AV_NUM_DATA_POINTERS && frame.data[i]; ++i) {
@@ -21,7 +24,7 @@ static bool isFrameFlipped(const AVFrame& frame) {
     return false;
 }
 
-QT_BEGIN_NAMESPACE
+static Q_LOGGING_CATEGORY(qLcFFmpegVideoBuffer, "qt.multimedia.ffmpeg.videobuffer");
 
 QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame, AVRational pixelAspectRatio)
     : QAbstractVideoBuffer(QVideoFrame::NoHandle),
@@ -196,6 +199,19 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
         mapData.bytesPerLine[i] = m_swFrame->linesize[i];
         mapData.size[i] = mapData.bytesPerLine[i]*desc->heightForPlane(m_swFrame->height, i);
     }
+
+    if ((mode & QVideoFrame::WriteOnly) != 0 && m_hwFrame) {
+        m_type = QVideoFrame::NoHandle;
+        m_hwFrame.reset();
+        if (m_textures) {
+            qCDebug(qLcFFmpegVideoBuffer)
+                    << "Mapping of FFmpeg video buffer with write mode when "
+                       "textures have been created. Visual artifacts might "
+                       "happen if the frame is still in the rendering pipeline";
+            m_textures.reset();
+        }
+    }
+
     return mapData;
 }
 

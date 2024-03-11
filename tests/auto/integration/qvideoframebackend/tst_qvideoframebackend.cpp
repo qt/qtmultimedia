@@ -8,6 +8,7 @@
 
 #include "mediafileselector.h"
 #include "testvideosink.h"
+#include "private/qvideotexturehelper_p.h"
 
 QT_USE_NAMESPACE
 
@@ -25,6 +26,9 @@ private slots:
 
     void toImage_retainsThePreviousMappedState_data();
     void toImage_retainsThePreviousMappedState();
+
+    void toImage_rendersUpdatedFrame_afterMappingInWriteModeAndModifying_data();
+    void toImage_rendersUpdatedFrame_afterMappingInWriteModeAndModifying();
 
 private:
     QVideoFrame createDefaultFrame() const;
@@ -123,17 +127,82 @@ void tst_QVideoFrameBackend::toImage_retainsThePreviousMappedState()
     QFETCH(const QVideoFrame::MapMode, initialMapMode);
     const bool initiallyMapped = initialMapMode != QVideoFrame::NotMapped;
 
-    auto frame = std::invoke(frameCreator, this);
+    QVideoFrame frame = std::invoke(frameCreator, this);
     QVERIFY(frame.isValid());
 
     frame.map(initialMapMode);
     QCOMPARE(frame.mapMode(), initialMapMode);
 
-    auto image = frame.toImage();
+    QImage image = frame.toImage();
     QVERIFY(!image.isNull());
 
     QCOMPARE(frame.mapMode(), initialMapMode);
     QCOMPARE(frame.isMapped(), initiallyMapped);
+}
+
+void tst_QVideoFrameBackend::toImage_rendersUpdatedFrame_afterMappingInWriteModeAndModifying_data()
+{
+    QTest::addColumn<FrameCreator>("frameCreator");
+    QTest::addColumn<QVideoFrame::MapMode>("mapMode");
+
+    // clang-format off
+    QTest::addRow("defaulFrame.writeOnly") << &tst_QVideoFrameBackend::createDefaultFrame
+                                           << QVideoFrame::WriteOnly;
+    QTest::addRow("defaulFrame.readWrite") << &tst_QVideoFrameBackend::createDefaultFrame
+                                           << QVideoFrame::ReadWrite;
+
+    addMediaPlayerFrameTestData([]()
+    {
+        QTest::addRow("mediaPlayerFrame.writeOnly")
+                << &tst_QVideoFrameBackend::createMediaPlayerFrame
+                << QVideoFrame::WriteOnly;
+        QTest::addRow("mediaPlayerFrame.readWrite")
+                << &tst_QVideoFrameBackend::createMediaPlayerFrame
+                << QVideoFrame::ReadWrite;
+    });
+    // clang-format on
+}
+
+void tst_QVideoFrameBackend::toImage_rendersUpdatedFrame_afterMappingInWriteModeAndModifying()
+{
+    QFETCH(const FrameCreator, frameCreator);
+    QFETCH(const QVideoFrame::MapMode, mapMode);
+
+    // Arrange
+
+    QVideoFrame frame = std::invoke(frameCreator, this);
+    QVERIFY(frame.isValid());
+
+    QImage originalImage = frame.toImage();
+    QVERIFY(!originalImage.isNull());
+
+    // Act: map the frame in write mode and change the top level pixel
+    frame.map(mapMode);
+    QVERIFY(frame.isWritable());
+
+    QCOMPARE_NE(frame.pixelFormat(), QVideoFrameFormat::Format_Invalid);
+
+    const QVideoTextureHelper::TextureDescription *textureDescription =
+            QVideoTextureHelper::textureDescription(frame.pixelFormat());
+    QVERIFY(textureDescription);
+
+    uchar *firstPlaneBits = frame.bits(0);
+    QVERIFY(firstPlaneBits);
+
+    for (int i = 0; i < textureDescription->strideFactor; ++i)
+        firstPlaneBits[i] = ~firstPlaneBits[i];
+
+    frame.unmap();
+
+    // get an image from modified frame
+    QImage modifiedImage = frame.toImage();
+
+    // Assert
+
+    QVERIFY(!frame.isMapped());
+    QCOMPARE_NE(originalImage.pixel(0, 0), modifiedImage.pixel(0, 0));
+    QCOMPARE(originalImage.pixel(1, 0), modifiedImage.pixel(1, 0));
+    QCOMPARE(originalImage.pixel(1, 1), modifiedImage.pixel(1, 1));
 }
 
 QTEST_MAIN(tst_QVideoFrameBackend)
