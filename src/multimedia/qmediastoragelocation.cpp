@@ -53,11 +53,16 @@ QString QMediaStorageLocation::generateFileName(const QString &requestedName,
                                                 QStandardPaths::StandardLocation type,
                                                 const QString &extension)
 {
-    auto prefix = QLatin1String("clip_");
+    using namespace Qt::StringLiterals;
+
+    if (QUrl(requestedName).scheme() == "content"_L1)
+        return requestedName;
+
+    auto prefix = "clip_"_L1;
     switch (type) {
-        case QStandardPaths::PicturesLocation: prefix = QLatin1String("image_"); break;
-        case QStandardPaths::MoviesLocation: prefix = QLatin1String("video_"); break;
-        case QStandardPaths::MusicLocation: prefix = QLatin1String("record_"); break;
+        case QStandardPaths::PicturesLocation: prefix = "image_"_L1; break;
+        case QStandardPaths::MoviesLocation: prefix = "video_"_L1; break;
+        case QStandardPaths::MusicLocation: prefix = "record_"_L1; break;
         default: break;
     }
 
