@@ -201,7 +201,9 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 
 void QFFmpegVideoBuffer::unmap()
 {
-    // nothing to do here for SW buffers
+    // nothing to do here for SW buffers.
+    // Set NotMapped mode to ensure map/unmap/mapMode consisteny.
+    m_mode = QVideoFrame::NotMapped;
 }
 
 std::unique_ptr<QVideoFrameTextures> QFFmpegVideoBuffer::mapTextures(QRhi *)
