@@ -28,7 +28,7 @@
 #include <QtQuick/qquickview.h>
 #include <QtQuick/private/qquickloader_p.h>
 
-#include "../shared/mediafileselector.h"
+#include "mediafileselector.h"
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qquickvideooutput_p.h"
 
@@ -178,7 +178,7 @@ private:
     std::unique_ptr<QProcess> createRtspStreamProcess(QString fileName, QString outputUrl);
     void detectVlcCommand();
 
-    //one second local wav file
+    // one second local wav file
     MaybeUrl m_localWavFile = QUnexpect{};
     MaybeUrl m_localWavFile2 = QUnexpect{};
     MaybeUrl m_localVideoFile = QUnexpect{};
