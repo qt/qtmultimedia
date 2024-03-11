@@ -68,7 +68,6 @@ void QGstreamerAudioInput::setVolume(float vol)
         return;
     m_volume = vol;
     audioVolume.set("volume", vol);
-    emit volumeChanged(m_volume);
 }
 
 void QGstreamerAudioInput::setMuted(bool muted)
@@ -77,7 +76,6 @@ void QGstreamerAudioInput::setMuted(bool muted)
         return;
     m_muted = muted;
     audioVolume.set("mute", muted);
-    emit mutedChanged(muted);
 }
 
 void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
@@ -127,5 +125,3 @@ QAudioDevice QGstreamerAudioInput::audioInput() const
 }
 
 QT_END_NAMESPACE
-
-#include "moc_qgstreameraudioinput_p.cpp"
