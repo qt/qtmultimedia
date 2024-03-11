@@ -561,31 +561,18 @@ void updateUniformData(QByteArray *dst, const QVideoFrameFormat &format, const Q
     ud->maxLum = fromLinear(float(maxNits)/100.f);
 }
 
-// There's no maping between QRhiTexture formats and QImage formats.
-// The function gets a size compatible format; it works fine as
-// QRhi relies on the given QRhiTexture format instead of the image format.
-static QImage::Format sizeCompatibleImageFormat(QRhiTexture::Format rhiFromat)
-{
-    switch (rhiFromat) {
-    case QRhiTexture::RGBA8:
-    case QRhiTexture::BGRA8:
-    case QRhiTexture::RG16:
-        return QImage::Format_ARGB32;
-    case QRhiTexture::R16:
-    case QRhiTexture::RG8:
-        return QImage::Format_Grayscale16;
-    case QRhiTexture::R8:
-        return QImage::Format_Grayscale8;
-    default:
-        qWarning() << "QRhiTexture::Format" << rhiFromat
-                   << "must be mapped to a size-compatible QImage::Format";
-        Q_ASSERT(!"QRhiTexture::Format is not mapped to a size-compatible QImage::Format");
-        return QImage::Format_Grayscale8;
-    }
-}
+enum class UpdateTextureWithMapResult : uint8_t {
+    Failed,
+    UpdatedWithDataCopy,
+    UpdatedWithDataReference
+};
 
-static bool updateTextureWithMap(QVideoFrame& frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, int plane, std::unique_ptr<QRhiTexture> &tex)
+static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame, QRhi *rhi,
+                                                       QRhiResourceUpdateBatch *rub, int plane,
+                                                       std::unique_ptr<QRhiTexture> &tex)
 {
+    Q_ASSERT(frame.isMapped());
+
     QVideoFrameFormat fmt = frame.surfaceFormat();
     QVideoFrameFormat::PixelFormat pixelFormat = fmt.pixelFormat();
     QSize size = fmt.frameSize();
@@ -598,7 +585,7 @@ static bool updateTextureWithMap(QVideoFrame& frame, QRhi *rhi, QRhiResourceUpda
         tex.reset(rhi->newTexture(texDesc.textureFormat[plane], planeSize, 1, {}));
         if (!tex) {
             qWarning("Failed to create new texture (size %dx%d)", planeSize.width(), planeSize.height());
-            return false;
+            return UpdateTextureWithMapResult::Failed;
         }
     }
 
@@ -607,37 +594,37 @@ static bool updateTextureWithMap(QVideoFrame& frame, QRhi *rhi, QRhiResourceUpda
         tex->setPixelSize(planeSize);
         if (!tex->create()) {
             qWarning("Failed to create texture (size %dx%d)", planeSize.width(), planeSize.height());
-            return false;
+            return UpdateTextureWithMapResult::Failed;
         }
     }
 
+    auto result = UpdateTextureWithMapResult::UpdatedWithDataCopy;
+
     QRhiTextureSubresourceUploadDescription subresDesc;
-    QImage image;
+
     if (pixelFormat == QVideoFrameFormat::Format_Jpeg) {
         Q_ASSERT(plane == 0);
+
+        QImage image;
 
         // calling QVideoFrame::toImage is not accurate. To be fixed.
         image = frame.toImage();
         image.convertTo(QImage::Format_ARGB32);
+        subresDesc.setImage(image);
 
     } else {
-        image = videoFramePlaneAsImage(
-                frame, plane, sizeCompatibleImageFormat(texDesc.textureFormat[plane]), planeSize);
+        // Note, QByteArray::fromRawData creare QByteArray as a view without data copying
+        subresDesc.setData(QByteArray::fromRawData(
+                reinterpret_cast<const char *>(frame.bits(plane)), frame.mappedBytes(plane)));
+        subresDesc.setDataStride(frame.bytesPerLine(plane));
+        result = UpdateTextureWithMapResult::UpdatedWithDataReference;
     }
-
-    if (image.isNull()) {
-        qWarning() << "Cannot represent the plane" << plane << "as an image";
-        return false;
-    }
-
-    subresDesc.setImage(image);
-    subresDesc.setDataStride(image.bytesPerLine());
 
     QRhiTextureUploadEntry entry(0, 0, subresDesc);
     QRhiTextureUploadDescription desc({ entry });
     rub->uploadTexture(tex.get(), desc);
 
-    return true;
+    return result;
 }
 
 static std::unique_ptr<QRhiTexture> createTextureFromHandle(const QVideoFrame &frame, QRhi *rhi, int plane)
@@ -677,9 +664,18 @@ class QVideoFrameTexturesArray : public QVideoFrameTextures
 {
 public:
     using TextureArray = std::array<std::unique_ptr<QRhiTexture>, TextureDescription::maxPlanes>;
-    QVideoFrameTexturesArray(TextureArray &&textures)
-        : m_textures(std::move(textures))
-    {}
+    QVideoFrameTexturesArray(TextureArray &&textures, QVideoFrame mappedFrame = {})
+        : m_textures(std::move(textures)), m_mappedFrame(std::move(mappedFrame))
+    {
+        Q_ASSERT(!m_mappedFrame.isValid() || m_mappedFrame.isReadable());
+    }
+
+    // We keep the source frame mapped during the target texture lifetime.
+    // Alternatively, we may use setting a custom image to QRhiTextureSubresourceUploadDescription,
+    // unsig videoFramePlaneAsImage, however, the OpenGL rendering pipeline in QRhi
+    // may keep QImage, and consequently the mapped QVideoFrame,
+    // even after the target texture is deleted: QTBUG-123174.
+    ~QVideoFrameTexturesArray() { m_mappedFrame.unmap(); }
 
     QRhiTexture *texture(uint plane) const override
     {
@@ -690,6 +686,7 @@ public:
 
 private:
     TextureArray m_textures;
+    QVideoFrame m_mappedFrame;
 };
 
 static std::unique_ptr<QVideoFrameTextures> createTexturesFromHandles(const QVideoFrame &frame, QRhi *rhi)
@@ -715,14 +712,26 @@ static std::unique_ptr<QVideoFrameTextures> createTexturesFromMemory(QVideoFrame
     if (oldArray)
         textures = oldArray->takeTextures();
 
-    bool ok = true;
-    for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
-        ok &= updateTextureWithMap(frame, rhi, rub, plane, textures[plane]);
-    }
-    if (ok)
-        return std::make_unique<QVideoFrameTexturesArray>(std::move(textures));
-    else
+    if (!frame.map(QVideoFrame::ReadOnly)) {
+        qWarning() << "Cannot map a video frame in ReadOnly mode!";
         return {};
+    }
+
+    auto unmapFrameGuard = qScopeGuard([&frame] { frame.unmap(); });
+
+    bool shouldKeepMapping = false;
+    for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
+        const auto result = updateTextureWithMap(frame, rhi, rub, plane, textures[plane]);
+        if (result == UpdateTextureWithMapResult::Failed)
+            return {};
+
+        if (result == UpdateTextureWithMapResult::UpdatedWithDataReference)
+            shouldKeepMapping = true;
+    }
+
+    // as QVideoFrame::unmap does nothing with null frames, we just move the frame to the result
+    return std::make_unique<QVideoFrameTexturesArray>(
+            std::move(textures), shouldKeepMapping ? std::move(frame) : QVideoFrame());
 }
 
 std::unique_ptr<QVideoFrameTextures> createTextures(QVideoFrame &frame, QRhi *rhi, QRhiResourceUpdateBatch *rub, std::unique_ptr<QVideoFrameTextures> &&oldTextures)
