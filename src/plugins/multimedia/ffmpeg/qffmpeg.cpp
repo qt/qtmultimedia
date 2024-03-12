@@ -198,6 +198,13 @@ bool isCodecValid(const AVCodec *codec, const std::vector<AVHWDeviceType> &avail
         // TODO: Investigate on how to get them working
         if (std::strstr(codec->name, "_v4l2m2m") && av_codec_is_encoder(codec))
             return false;
+
+        // MediaCodec in Android is used for hardware-accelerated media processing. That is why
+        // before marking it as valid, we need to make sure if it is available on current device.
+        if (std::strstr(codec->name, "_mediacodec")
+            && (codec->capabilities & AV_CODEC_CAP_HARDWARE)
+            && codecAvailableOnDevice && codecAvailableOnDevice->count(codec->id) == 0)
+            return false;
 #endif
 
         return true; // To be investigated. This happens for RAW_VIDEO, that is supposed to be OK,
