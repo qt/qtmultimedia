@@ -35,8 +35,8 @@ public:
     ~QGstreamerAudioOutput();
 
     void setAudioDevice(const QAudioDevice &) override;
-    void setVolume(float volume) override;
-    void setMuted(bool muted) override;
+    void setVolume(float) override;
+    void setMuted(bool) override;
 
     void setPipeline(const QGstPipeline &pipeline);
 

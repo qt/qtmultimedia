@@ -34,23 +34,17 @@ public:
     static QMaybe<QPlatformAudioInput *> create(QAudioInput *parent);
     ~QGstreamerAudioInput();
 
-    int volume() const;
-    bool isMuted() const;
-
     bool setAudioInput(const QAudioDevice &);
     QAudioDevice audioInput() const;
 
     void setAudioDevice(const QAudioDevice &) override;
-    void setVolume(float volume) override;
-    void setMuted(bool muted) override;
+    void setVolume(float) override;
+    void setMuted(bool) override;
 
     QGstElement gstElement() const { return gstAudioInput; }
 
 private:
     QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement volume, QAudioInput *parent);
-
-    float m_volume = 1.;
-    bool m_muted = false;
 
     QAudioDevice m_audioDevice;
 

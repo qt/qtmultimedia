@@ -52,29 +52,13 @@ QGstreamerAudioInput::~QGstreamerAudioInput()
     gstAudioInput.setStateSync(GST_STATE_NULL);
 }
 
-int QGstreamerAudioInput::volume() const
+void QGstreamerAudioInput::setVolume(float volume)
 {
-    return m_volume;
-}
-
-bool QGstreamerAudioInput::isMuted() const
-{
-    return m_muted;
-}
-
-void QGstreamerAudioInput::setVolume(float vol)
-{
-    if (vol == m_volume)
-        return;
-    m_volume = vol;
-    audioVolume.set("volume", vol);
+    audioVolume.set("volume", volume);
 }
 
 void QGstreamerAudioInput::setMuted(bool muted)
 {
-    if (muted == m_muted)
-        return;
-    m_muted = muted;
     audioVolume.set("mute", muted);
 }
 
