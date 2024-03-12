@@ -42,7 +42,7 @@ public:
     QGstreamerMessage &operator=(QGstreamerMessage &&) noexcept = default;
 
     GstMessageType type() const { return GST_MESSAGE_TYPE(get()); }
-    QGstObject source() const { return QGstObject(GST_MESSAGE_SRC(get())); }
+    QGstObject source() const { return QGstObject(GST_MESSAGE_SRC(get()), QGstObject::NeedsRef); }
     QGstStructure structure() const { return QGstStructure(gst_message_get_structure(get())); }
 
     GstMessage *message() const { return get(); }
