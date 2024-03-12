@@ -38,6 +38,11 @@ QDebug operator<<(QDebug dbg, const QUniqueGErrorHandle &handle)
     return dbg << handle.get();
 }
 
+QDebug operator<<(QDebug dbg, const QUniqueGStringHandle &handle)
+{
+    return dbg << handle.get();
+}
+
 QDebug operator<<(QDebug dbg, const QGstElement &element)
 {
     return dbg << element.element();
@@ -172,6 +177,16 @@ QDebug operator<<(QDebug dbg, const GstEvent *event)
     return dbg;
 }
 
+QDebug operator<<(QDebug dbg, const GstPadTemplate *padTemplate)
+{
+    QGstCaps caps = padTemplate
+            ? QGstCaps{ gst_pad_template_get_caps(const_cast<GstPadTemplate *>(padTemplate)), QGstCaps::HasRef, }
+            : QGstCaps{};
+
+    dbg << caps;
+    return dbg;
+}
+
 QDebug operator<<(QDebug dbg, GstState state)
 {
     return dbg << gst_element_state_get_name(state);
@@ -258,6 +273,16 @@ QDebug operator<<(QDebug dbg, const GValue *value)
         }
         dbg << "}";
         return dbg;
+    }
+
+    if (G_VALUE_TYPE(value) == GST_TYPE_PAD_DIRECTION) {
+        GstPadDirection direction = static_cast<GstPadDirection>(g_value_get_enum(value));
+        return dbg << direction;
+    }
+
+    if (G_VALUE_TYPE(value) == GST_TYPE_PAD_TEMPLATE) {
+        GstPadTemplate *padTemplate = static_cast<GstPadTemplate *>(g_value_get_object(value));
+        return dbg << padTemplate;
     }
 
     dbg << "(not implemented: " << G_VALUE_TYPE_NAME(value) << ")";
