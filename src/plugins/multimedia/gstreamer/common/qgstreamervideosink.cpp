@@ -34,6 +34,8 @@
 
 QT_BEGIN_NAMESPACE
 
+static Q_LOGGING_CATEGORY(qLcGstVideoSink, "qt.multimedia.gstvideosink");
+
 QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     : QPlatformVideoSink(parent)
 {
@@ -48,9 +50,24 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     // we simply use an identity element.
     gstQueue = QGstElement::createFromFactory("queue", "videoSinkQueue");
 
-    QGstElementFactoryHandle factory = QGstElementFactoryHandle{
-        gst_element_factory_find("imxvideoconvert_g2d"),
-    };
+    QGstElementFactoryHandle factory;
+
+    // QT_MULTIMEDIA_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT allows users to override the
+    // conversion element. Ideally we construct the element programatically, though.
+    QByteArray preprocessOverride =
+            qgetenv("QT_MULTIMEDIA_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT");
+    if (!preprocessOverride.isEmpty()) {
+        qCDebug(qLcGstVideoSink) << "requesting conversion element from environment: "
+                                 << preprocessOverride;
+        factory = QGstElementFactoryHandle{
+            gst_element_factory_find(preprocessOverride.constData()),
+        };
+    }
+
+    if (!factory)
+        factory = QGstElementFactoryHandle{
+            gst_element_factory_find("imxvideoconvert_g2d"),
+        };
 
     if (!factory)
         factory = QGstElementFactoryHandle{
@@ -58,6 +75,10 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
         };
 
     if (factory) {
+        qCDebug(qLcGstVideoSink) << "instantiating conversion element: "
+                                 << g_type_name(
+                                            gst_element_factory_get_element_type(factory.get()));
+
         gstPreprocess = QGstElement{
             gst_element_factory_create(factory.get(), "preprocess"),
             QGstElement::NeedsRef,
