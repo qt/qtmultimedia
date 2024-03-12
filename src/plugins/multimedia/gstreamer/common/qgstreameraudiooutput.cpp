@@ -58,9 +58,9 @@ QGstreamerAudioOutput::~QGstreamerAudioOutput()
     gstAudioOutput.setStateSync(GST_STATE_NULL);
 }
 
-void QGstreamerAudioOutput::setVolume(float vol)
+void QGstreamerAudioOutput::setVolume(float volume)
 {
-    audioVolume.set("volume", vol);
+    audioVolume.set("volume", volume);
 }
 
 void QGstreamerAudioOutput::setMuted(bool muted)
