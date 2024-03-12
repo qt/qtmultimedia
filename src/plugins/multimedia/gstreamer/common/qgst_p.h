@@ -109,7 +109,7 @@ public:
 
     constexpr QGstObjectWrapper() = default;
 
-    explicit QGstObjectWrapper(GstType *object, RefMode mode = NeedsRef) : m_object(object)
+    explicit QGstObjectWrapper(GstType *object, RefMode mode) : m_object(object)
     {
         if (m_object && mode == NeedsRef)
             Adaptor::ref(m_object);
