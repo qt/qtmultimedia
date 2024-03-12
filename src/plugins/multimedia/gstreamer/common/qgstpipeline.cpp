@@ -52,7 +52,8 @@ public:
         QMutexLocker lock(&d->filterMutex);
 
         for (QGstreamerSyncMessageFilter *filter : std::as_const(d->syncFilters)) {
-            if (filter->processSyncMessage(QGstreamerMessage(message))) {
+            if (filter->processSyncMessage(
+                        QGstreamerMessage{ message, QGstreamerMessage::NeedsRef })) {
                 gst_message_unref(message);
                 return GST_BUS_DROP;
             }
@@ -81,13 +82,19 @@ private Q_SLOTS:
 private:
     void processMessage(GstMessage* message)
     {
-        QGstreamerMessage msg(message);
+        QGstreamerMessage msg{
+            message,
+            QGstreamerMessage::NeedsRef,
+        };
         doProcessMessage(msg);
     }
 
     void queueMessage(GstMessage* message)
     {
-        QGstreamerMessage msg(message);
+        QGstreamerMessage msg{
+            message,
+            QGstreamerMessage::NeedsRef,
+        };
         QMetaObject::invokeMethod(this, "doProcessMessage", Qt::QueuedConnection,
                                   Q_ARG(QGstreamerMessage, msg));
     }
