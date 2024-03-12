@@ -18,7 +18,7 @@ class QEglfsScreenCapture::Grabber : public QFFmpegSurfaceCaptureGrabber
 {
 public:
     Grabber(QEglfsScreenCapture &screenCapture, QScreen *screen)
-        : QFFmpegSurfaceCaptureGrabber(false)
+        : QFFmpegSurfaceCaptureGrabber(QFFmpegSurfaceCaptureGrabber::UseCurrentThread)
     {
         addFrameCallback(screenCapture, &QEglfsScreenCapture::newVideoFrame);
         connect(this, &Grabber::errorUpdated, &screenCapture, &QEglfsScreenCapture::updateError);
