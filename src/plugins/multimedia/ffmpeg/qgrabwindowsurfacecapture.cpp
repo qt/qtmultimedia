@@ -57,7 +57,13 @@ public:
 
 private:
     Grabber(QGrabWindowSurfaceCapture &capture, QScreen *screen, WindowUPtr window)
-        : QFFmpegSurfaceCaptureGrabber(QGuiApplication::platformName() != QLatin1String("eglfs")), m_capture(capture), m_screen(screen), m_window(std::move(window))
+        : QFFmpegSurfaceCaptureGrabber(
+                QGuiApplication::platformName() == QLatin1String("eglfs")
+                        ? QFFmpegSurfaceCaptureGrabber::UseCurrentThread
+                        : QFFmpegSurfaceCaptureGrabber::CreateGrabbingThread),
+          m_capture(capture),
+          m_screen(screen),
+          m_window(std::move(window))
     {
         connect(qApp, &QGuiApplication::screenRemoved, this, &Grabber::onScreenRemoved);
         addFrameCallback(m_capture, &QGrabWindowSurfaceCapture::newVideoFrame);
