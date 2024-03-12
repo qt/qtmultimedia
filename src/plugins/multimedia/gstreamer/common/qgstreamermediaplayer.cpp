@@ -745,9 +745,9 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
 
     if (state() == QMediaPlayer::PlayingState) {
-            int ret = playerPipeline.setState(GST_STATE_PLAYING);
-            if (ret == GST_STATE_CHANGE_FAILURE)
-                qCWarning(qLcMediaPlayer) << "Unable to set the pipeline to the playing state.";
+        int ret = playerPipeline.setState(GST_STATE_PLAYING);
+        if (ret == GST_STATE_CHANGE_FAILURE)
+            qCWarning(qLcMediaPlayer) << "Unable to set the pipeline to the playing state.";
     } else {
         int ret = playerPipeline.setState(GST_STATE_PAUSED);
         if (!ret)
