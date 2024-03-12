@@ -26,10 +26,10 @@ class QAudioInput;
 class Q_MULTIMEDIA_EXPORT QPlatformAudioInput
 {
 public:
-    QPlatformAudioInput(QAudioInput *qq) : q(qq) {}
-    virtual ~QPlatformAudioInput() {}
+    explicit QPlatformAudioInput(QAudioInput *qq) : q(qq) { }
+    virtual ~QPlatformAudioInput() = default;
 
-    virtual void setAudioDevice(const QAudioDevice &/*device*/) {}
+    virtual void setAudioDevice(const QAudioDevice & /*device*/) { }
     virtual void setMuted(bool /*muted*/) {}
     virtual void setVolume(float /*volume*/) {}
 

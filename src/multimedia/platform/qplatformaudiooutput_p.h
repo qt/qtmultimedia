@@ -24,8 +24,8 @@ class QAudioOutput;
 class Q_MULTIMEDIA_EXPORT QPlatformAudioOutput
 {
 public:
-    QPlatformAudioOutput(QAudioOutput *qq) : q(qq) {}
-    virtual ~QPlatformAudioOutput() {}
+    explicit QPlatformAudioOutput(QAudioOutput *qq) : q(qq) { }
+    virtual ~QPlatformAudioOutput() = default;
 
     virtual void setAudioDevice(const QAudioDevice &/*device*/) {}
     virtual void setMuted(bool /*muted*/) {}
