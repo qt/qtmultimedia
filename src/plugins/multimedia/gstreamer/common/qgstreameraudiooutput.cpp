@@ -7,12 +7,6 @@
 #include <qaudiooutput.h>
 
 #include <QtCore/qloggingcategory.h>
-#include <QtNetwork/qnetworkaccessmanager.h>
-#include <QtNetwork/qnetworkreply.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 #include <utility>
 
