@@ -327,7 +327,8 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         GstState    pending;
 
         gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
-        qCDebug(qLcMediaPlayer) << "    state changed message" << oldState << newState << pending;
+        qCDebug(qLcMediaPlayer) << "    state changed message from" << oldState << "to" << newState
+                                << pending;
 
         switch (newState) {
         case GST_STATE_VOID_PENDING:
@@ -377,6 +378,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         QUniqueGErrorHandle err;
         QUniqueGStringHandle debug;
         gst_message_parse_error(gm, &err, &debug);
+        qCDebug(qLcMediaPlayer) << "    error" << err << debug;
         if (err.get()->domain == GST_STREAM_ERROR
             && err.get()->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
             emit error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
