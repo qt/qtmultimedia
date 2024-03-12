@@ -81,14 +81,12 @@ private:
     QFFmpegSurfaceCaptureGrabber& m_grabber;
 };
 
-QFFmpegSurfaceCaptureGrabber::QFFmpegSurfaceCaptureGrabber(bool runInThread)
+QFFmpegSurfaceCaptureGrabber::QFFmpegSurfaceCaptureGrabber(ThreadPolicy threadPolicy)
 {
     setFrameRate(DefaultScreenCaptureFrameRate);
 
-    if (!runInThread)
-        return;
-
-    m_thread = std::make_unique<GrabbingThread>(*this);
+    if (threadPolicy == CreateGrabbingThread)
+        m_thread = std::make_unique<GrabbingThread>(*this);
 }
 
 void QFFmpegSurfaceCaptureGrabber::start()
