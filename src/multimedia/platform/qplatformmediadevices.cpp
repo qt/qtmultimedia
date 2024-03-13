@@ -12,7 +12,7 @@
 #include <qandroidmediadevices_p.h>
 #elif defined(Q_OS_DARWIN)
 #include <qdarwinmediadevices_p.h>
-#elif defined(Q_OS_WINDOWS)
+#elif defined(Q_OS_WINDOWS) && QT_CONFIG(wmf)
 #include <qwindowsmediadevices_p.h>
 #elif QT_CONFIG(alsa)
 #include <qalsamediadevices_p.h>
@@ -31,7 +31,7 @@ std::unique_ptr<QPlatformMediaDevices> QPlatformMediaDevices::create()
 {
 #ifdef Q_OS_DARWIN
     return std::make_unique<QDarwinMediaDevices>();
-#elif defined(Q_OS_WINDOWS)
+#elif defined(Q_OS_WINDOWS) && QT_CONFIG(wmf)
     return std::make_unique<QWindowsMediaDevices>();
 #elif defined(Q_OS_ANDROID)
     return std::make_unique<QAndroidMediaDevices>();
