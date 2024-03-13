@@ -50,7 +50,8 @@ public:
     void flushSubtitles();
 
 private:
-    QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoSink, QObject *parent);
+    QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoScale, QGstElement videoSink,
+                          QObject *parent);
 
     void doLinkSubtitleStream();
 
@@ -63,6 +64,7 @@ private:
     QGstBin gstVideoOutput;
     QGstElement videoQueue;
     QGstElement videoConvert;
+    QGstElement videoScale;
     QGstElement videoSink;
 
     QGstElement subtitleSrc;
