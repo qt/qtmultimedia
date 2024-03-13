@@ -34,8 +34,6 @@
 #include <gst/allocators/gstdmabuf.h>
 #endif
 
-//#define DEBUG_VIDEO_SURFACE_SINK
-
 static Q_LOGGING_CATEGORY(qLcGstVideoRenderer, "qt.multimedia.gstvideorenderer")
 
 QT_BEGIN_NAMESPACE
@@ -45,9 +43,7 @@ QGstVideoRenderer::QGstVideoRenderer(QGstreamerVideoSink *sink)
 {
 }
 
-QGstVideoRenderer::~QGstVideoRenderer()
-{
-}
+QGstVideoRenderer::~QGstVideoRenderer() = default;
 
 QGstCaps QGstVideoRenderer::createSurfaceCaps(QGstreamerVideoSink *sink)
 {
@@ -573,20 +569,16 @@ GstCaps *QGstVideoRendererSink::get_caps(GstBaseSink *base, GstCaps *filter)
 gboolean QGstVideoRendererSink::set_caps(GstBaseSink *base, GstCaps *gcaps)
 {
     VO_SINK(base);
-
     auto caps = QGstCaps(gcaps, QGstCaps::NeedsRef);
 
     qCDebug(qLcGstVideoRenderer) << "set_caps:" << caps;
 
     if (caps.isNull()) {
         sink->renderer->stop();
-
         return TRUE;
-    } else if (sink->renderer->start(caps)) {
-        return TRUE;
-    } else {
-        return FALSE;
     }
+
+    return sink->renderer->start(caps);
 }
 
 gboolean QGstVideoRendererSink::propose_allocation(GstBaseSink *base, GstQuery *query)
@@ -632,5 +624,3 @@ gboolean QGstVideoRendererSink::event(GstBaseSink *base, GstEvent * event)
 }
 
 QT_END_NAMESPACE
-
-#include "moc_qgstvideorenderersink_p.cpp"
