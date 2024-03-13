@@ -15,27 +15,52 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
 {
-    QGstElement videoConvert = QGstElement::createFromFactory("videoconvertscale", "videoConvert");
-    if (!videoConvert)
-        return errorMessageCannotFindElement("videoconvertscale");
+    QGstElement videoConvert;
+    QGstElement videoScale;
+
+    QGstElementFactoryHandle factory = QGstElementFactoryHandle{
+        gst_element_factory_find("videoconvertscale"),
+    };
+
+    if (factory) { // videoconvertscale is only available in gstreamer 1.20
+        videoConvert = QGstElement{
+            gst_element_factory_create(factory.get(), "videoConvertScale"),
+            QGstElement::NeedsRef,
+        };
+    } else {
+        videoConvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
+        if (!videoConvert)
+            return errorMessageCannotFindElement("videoconvert");
+
+        videoScale = QGstElement::createFromFactory("videoscale", "videoScale");
+        if (!videoScale)
+            return errorMessageCannotFindElement("videoscale");
+    }
 
     QGstElement videoSink = QGstElement::createFromFactory("fakesink", "fakeVideoSink");
     if (!videoSink)
         return errorMessageCannotFindElement("fakesink");
+    videoSink.set("sync", true);
 
-    return new QGstreamerVideoOutput(videoConvert, videoSink, parent);
+    return new QGstreamerVideoOutput(videoConvert, videoScale, videoSink, parent);
 }
 
-QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement sink, QObject *parent)
+QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement scale,
+                                             QGstElement sink, QObject *parent)
     : QObject(parent),
       gstVideoOutput(QGstBin::create("videoOutput")),
       videoConvert(std::move(convert)),
+      videoScale(std::move(scale)),
       videoSink(std::move(sink))
 {
     videoQueue = QGstElement::createFromFactory("queue", "videoQueue");
-    videoSink.set("sync", true);
-    gstVideoOutput.add(videoQueue, videoConvert, videoSink);
-    qLinkGstElements(videoQueue, videoConvert, videoSink);
+    if (videoScale) {
+        gstVideoOutput.add(videoQueue, videoConvert, videoScale, videoSink);
+        qLinkGstElements(videoQueue, videoConvert, videoScale, videoSink);
+    } else {
+        gstVideoOutput.add(videoQueue, videoConvert, videoSink);
+        qLinkGstElements(videoQueue, videoConvert, videoSink);
+    }
 
     gstVideoOutput.addGhostPad(videoQueue, "sink");
 }
@@ -79,7 +104,11 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         videoSink = gstSink;
         gstVideoOutput.add(videoSink);
 
-        qLinkGstElements(videoConvert, videoSink);
+        if (videoScale)
+            qLinkGstElements(videoScale, videoSink);
+        else
+            qLinkGstElements(videoConvert, videoSink);
+
         GstEvent *event = gst_event_new_reconfigure();
         gst_element_send_event(videoSink.element(), event);
         videoSink.syncStateWithParent();
