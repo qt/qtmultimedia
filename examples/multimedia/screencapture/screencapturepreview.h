@@ -36,8 +36,8 @@ public:
 private slots:
     void onCurrentScreenSelectionChanged(QItemSelection index);
     void onCurrentWindowSelectionChanged(QItemSelection index);
-    void onWindowCaptureErrorOccured(QWindowCapture::Error error, const QString &errorString);
-    void onScreenCaptureErrorOccured(QScreenCapture::Error error, const QString &errorString);
+    void onWindowCaptureErrorChanged();
+    void onScreenCaptureErrorChanged();
     void onStartStopButtonClicked();
 
 private:

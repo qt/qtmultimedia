@@ -71,10 +71,10 @@ ScreenCapturePreview::ScreenCapturePreview(QWidget *parent)
             &ScreenCapturePreview::onCurrentWindowSelectionChanged);
     connect(startStopButton, &QPushButton::clicked, this,
             &ScreenCapturePreview::onStartStopButtonClicked);
-    connect(screenCapture, &QScreenCapture::errorOccurred, this,
-            &ScreenCapturePreview::onScreenCaptureErrorOccured, Qt::QueuedConnection);
-    connect(windowCapture, &QWindowCapture::errorOccurred, this,
-            &ScreenCapturePreview::onWindowCaptureErrorOccured, Qt::QueuedConnection);
+    connect(screenCapture, &QScreenCapture::errorChanged, this,
+            &ScreenCapturePreview::onScreenCaptureErrorChanged, Qt::QueuedConnection);
+    connect(windowCapture, &QWindowCapture::errorChanged, this,
+            &ScreenCapturePreview::onWindowCaptureErrorChanged, Qt::QueuedConnection);
 
     updateActive(SourceType::Screen, true);
 }
@@ -119,16 +119,20 @@ void ScreenCapturePreview::onCurrentWindowSelectionChanged(QItemSelection select
     }
 }
 
-void ScreenCapturePreview::onWindowCaptureErrorOccured(QWindowCapture::Error,
-                                                       const QString &errorString)
+void ScreenCapturePreview::onWindowCaptureErrorChanged()
 {
-    QMessageBox::warning(this, tr("QWindowCapture: Error occurred"), errorString);
+    if (windowCapture->error() == QWindowCapture::NoError)
+        return;
+
+    QMessageBox::warning(this, tr("QWindowCapture: Error occurred"), windowCapture->errorString());
 }
 
-void ScreenCapturePreview::onScreenCaptureErrorOccured(QScreenCapture::Error,
-                                                       const QString &errorString)
+void ScreenCapturePreview::onScreenCaptureErrorChanged()
 {
-    QMessageBox::warning(this, tr("QScreenCapture: Error occurred"), errorString);
+    if (screenCapture->error() == QScreenCapture::NoError)
+        return;
+
+    QMessageBox::warning(this, tr("QScreenCapture: Error occurred"), screenCapture->errorString());
 }
 
 void ScreenCapturePreview::onStartStopButtonClicked()
