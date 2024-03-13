@@ -34,7 +34,6 @@ class QVideoSink;
 
 class QGstVideoRenderer : public QObject
 {
-    Q_OBJECT
 public:
     explicit QGstVideoRenderer(QGstreamerVideoSink *sink);
     ~QGstVideoRenderer();
