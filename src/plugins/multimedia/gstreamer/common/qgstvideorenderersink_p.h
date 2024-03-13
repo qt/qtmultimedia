@@ -47,7 +47,6 @@ public:
     void stop();
     void unlock();
     bool proposeAllocation(GstQuery *);
-    void flush();
     GstFlowReturn render(GstBuffer *);
     bool query(GstQuery *);
     void gstEvent(GstEvent *);
@@ -90,8 +89,6 @@ private:
     static void instance_init(GTypeInstance *instance, gpointer g_class);
 
     static void finalize(GObject *object);
-
-    static void handleShowPrerollChange(GObject *o, GParamSpec *p, gpointer d);
 
     static GstStateChangeReturn change_state(GstElement *element, GstStateChange transition);
 
