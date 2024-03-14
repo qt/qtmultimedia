@@ -258,6 +258,14 @@ GstStateChangeReturn QGstPipeline::setState(GstState state)
     return retval;
 }
 
+void QGstPipeline::dumpGraph(const char *fileName)
+{
+    if (isNull())
+        return;
+
+    QGstBin{ bin(), QGstBin::NeedsRef }.dumpGraph(fileName);
+}
+
 void QGstPipeline::beginConfig()
 {
     if (!d)
