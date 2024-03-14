@@ -359,6 +359,9 @@ void QAndroidCamera::updateCameraCharacteristics()
     const float maxZoom = deviceManager.callMethod<jfloat>(
                 "getMaxZoom", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
     maximumZoomFactorChanged(maxZoom);
+    if (maxZoom < zoomFactor()) {
+        zoomTo(1.0, -1.0);
+    }
 
     m_TorchModeSupported = deviceManager.callMethod<jboolean>(
             "isTorchModeSupported", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
@@ -384,6 +387,9 @@ void QAndroidCamera::updateCameraCharacteristics()
 void QAndroidCamera::cleanCameraCharacteristics()
 {
     maximumZoomFactorChanged(1.0);
+    if (zoomFactor() != 1.0) {
+        zoomTo(1.0, -1.0);
+    }
     if (torchMode() != QCamera::TorchOff) {
         setTorchMode(QCamera::TorchOff);
     }
