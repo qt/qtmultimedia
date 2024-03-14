@@ -181,6 +181,8 @@ void QGstreamerVideoSink::updateSinkElement()
         if (!gstVideoSink.isNull())
             sinkBin.stopAndRemoveElements(gstVideoSink);
 
+        newSink.set("async", false); // no asynchronous state changes
+
         gstVideoSink = newSink;
         sinkBin.add(gstVideoSink);
         qLinkGstElements(gstCapsFilter, gstVideoSink);
