@@ -90,13 +90,11 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
     QGstElement gstSink;
     if (m_videoSink) {
         gstSink = m_videoSink->gstSink();
-        isFakeSink = false;
     } else {
         gstSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
         Q_ASSERT(gstSink);
         gstSink.set("sync", true);
         gstSink.set("async", false); // no asynchronous state changes
-        isFakeSink = true;
     }
 
     if (videoSink == gstSink)
