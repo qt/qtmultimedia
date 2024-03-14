@@ -873,4 +873,17 @@ bool QGstBin::syncChildrenState()
     return gst_bin_sync_children_states(bin());
 }
 
+void QGstBin::dumpGraph(const char *fileNamePrefix)
+{
+    if (isNull())
+        return;
+
+    GST_DEBUG_BIN_TO_DOT_FILE(bin(),
+                              GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL
+                                                   | GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE
+                                                   | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS
+                                                   | GST_DEBUG_GRAPH_SHOW_STATES),
+                              fileNamePrefix);
+}
+
 QT_END_NAMESPACE
