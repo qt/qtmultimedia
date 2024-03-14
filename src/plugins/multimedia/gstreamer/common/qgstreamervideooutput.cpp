@@ -54,6 +54,10 @@ QGstreamerVideoOutput::QGstreamerVideoOutput(QGstElement convert, QGstElement sc
       videoSink(std::move(sink))
 {
     videoQueue = QGstElement::createFromFactory("queue", "videoQueue");
+
+    videoSink.set("sync", true);
+    videoSink.set("async", false); // no asynchronous state changes
+
     if (videoScale) {
         gstVideoOutput.add(videoQueue, videoConvert, videoScale, videoSink);
         qLinkGstElements(videoQueue, videoConvert, videoScale, videoSink);
@@ -91,6 +95,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         gstSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
         Q_ASSERT(gstSink);
         gstSink.set("sync", true);
+        gstSink.set("async", false); // no asynchronous state changes
         isFakeSink = true;
     }
 
