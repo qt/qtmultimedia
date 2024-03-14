@@ -70,20 +70,7 @@ public:
 
     GstPipeline *pipeline() const { return GST_PIPELINE_CAST(get()); }
 
-    void dumpGraph(const char *fileName)
-    {
-        if (isNull())
-            return;
-
-#if 1 //def QT_GST_CAPTURE_DEBUG
-        GST_DEBUG_BIN_TO_DOT_FILE(bin(),
-                                  GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL |
-                                                       GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
-                                  fileName);
-#else
-        Q_UNUSED(fileName);
-#endif
-    }
+    void dumpGraph(const char *fileName);
 
     template <typename Functor>
     void modifyPipelineWhileNotRunning(Functor &&fn)

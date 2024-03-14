@@ -515,6 +515,8 @@ public:
     void addGhostPad(const char *name, const QGstPad &pad);
 
     bool syncChildrenState();
+
+    void dumpGraph(const char *fileNamePrefix);
 };
 
 
