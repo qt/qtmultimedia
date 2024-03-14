@@ -56,7 +56,6 @@ private:
     void doLinkSubtitleStream();
 
     QPointer<QGstreamerVideoSink> m_videoSink;
-    bool isFakeSink = true;
 
     // Gst elements
     QGstPipeline gstPipeline;
