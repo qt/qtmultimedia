@@ -281,6 +281,7 @@ public:
 
     void connect(const char *name, GCallback callback, gpointer userData);
 
+    GType type() const;
     GstObject *object() const;
     const char *name() const;
 };

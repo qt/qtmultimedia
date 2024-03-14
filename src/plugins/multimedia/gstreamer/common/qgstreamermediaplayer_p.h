@@ -88,9 +88,9 @@ public Q_SLOTS:
     void updatePosition() { positionChanged(position()); }
 
 private:
-    QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput, QGstElement decodebin,
-                          QGstElement videoInputSelector, QGstElement audioInputSelector,
-                          QGstElement subTitleInputSelector, QMediaPlayer *parent);
+    QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput, QGstElement videoInputSelector,
+                          QGstElement audioInputSelector, QGstElement subTitleInputSelector,
+                          QMediaPlayer *parent);
 
     struct TrackSelector {
         TrackSelector(TrackType, QGstElement selector);
@@ -139,7 +139,6 @@ private:
 
     QGstAppSrc *m_appSrc = nullptr;
 
-    GType decodebinType;
     QGstStructure topology;
 
     // Gst elements

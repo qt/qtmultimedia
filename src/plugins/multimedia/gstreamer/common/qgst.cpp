@@ -619,6 +619,11 @@ void QGstObject::connect(const char *name, GCallback callback, gpointer userData
     g_signal_connect(get(), name, callback, userData);
 }
 
+GType QGstObject::type() const
+{
+    return G_OBJECT_TYPE(get());
+}
+
 GstObject *QGstObject::object() const
 {
     return get();

@@ -81,10 +81,6 @@ QMaybe<QPlatformMediaPlayer *> QGstreamerMediaPlayer::create(QMediaPlayer *paren
     if (!videoOutput)
         return videoOutput.error();
 
-    QGstElement decodebin = QGstElement::createFromFactory("decodebin", nullptr);
-    if (!decodebin)
-        return errorMessageCannotFindElement("decodebin");
-
     QGstElement videoInputSelector =
             QGstElement::createFromFactory("input-selector", "videoInputSelector");
     if (!videoInputSelector)
@@ -100,12 +96,12 @@ QMaybe<QPlatformMediaPlayer *> QGstreamerMediaPlayer::create(QMediaPlayer *paren
     if (!subTitleInputSelector)
         return errorMessageCannotFindElement("input-selector");
 
-    return new QGstreamerMediaPlayer(videoOutput.value(), decodebin, videoInputSelector,
-                                     audioInputSelector, subTitleInputSelector, parent);
+    return new QGstreamerMediaPlayer(videoOutput.value(), videoInputSelector, audioInputSelector,
+                                     subTitleInputSelector, parent);
 }
 
 QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
-                                             QGstElement decodebin, QGstElement videoInputSelector,
+                                             QGstElement videoInputSelector,
                                              QGstElement audioInputSelector,
                                              QGstElement subTitleInputSelector,
                                              QMediaPlayer *parent)
@@ -135,11 +131,6 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
 
     gst_pipeline_use_clock(playerPipeline.pipeline(), systemClock.get());
 
-    /* Taken from gstdicoverer.c:
-     * This is ugly. We get the GType of decodebin so we can quickly detect
-     * when a decodebin is added to uridecodebin so we can set the
-     * post-stream-topology setting to TRUE */
-    decodebinType = G_OBJECT_TYPE(decodebin.element());
     connect(&positionUpdateTimer, &QTimer::timeout, this, &QGstreamerMediaPlayer::updatePosition);
 }
 
@@ -616,12 +607,21 @@ void QGstreamerMediaPlayer::removeOutput(TrackSelector &ts)
     ts.isConnected = false;
 }
 
-void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement */*uridecodebin*/, GstElement *child, QGstreamerMediaPlayer *that)
+void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement * /*uridecodebin*/,
+                                                             GstElement *child,
+                                                             QGstreamerMediaPlayer *)
 {
     QGstElement c(child);
     qCDebug(qLcMediaPlayer) << "New element added to uridecodebin:" << c.name();
 
-    if (G_OBJECT_TYPE(child) == that->decodebinType) {
+    static const GType decodeBinType = [] {
+        QGstElementFactoryHandle factory = QGstElementFactoryHandle{
+            gst_element_factory_find("decodebin"),
+        };
+        return gst_element_factory_get_element_type(factory.get());
+    }();
+
+    if (c.type() == decodeBinType) {
         qCDebug(qLcMediaPlayer) << "     -> setting post-stream-topology property";
         c.set("post-stream-topology", true);
     }
@@ -723,15 +723,26 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         seekableChanged(!stream->isSequential());
     } else {
         // use uridecodebin
-        decoder = QGstElement::createFromFactory("uridecodebin", "uridecoder");
+        decoder = QGstElement::createFromFactory("uridecodebin", "decoder");
         if (!decoder) {
             emit error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("uridecodebin"));
             return;
         }
         playerPipeline.add(decoder);
-        // can't set post-stream-topology to true, as uridecodebin doesn't have the property. Use a hack
-        decoder.connect("element-added", GCallback(QGstreamerMediaPlayer::uridecodebinElementAddedCallback), this);
-        decoder.connect("source-setup", GCallback(QGstreamerMediaPlayer::sourceSetupCallback), this);
+
+        constexpr bool hasPostStreamTopology = GST_CHECK_VERSION(1, 22, 0);
+        if constexpr (hasPostStreamTopology) {
+            decoder.set("post-stream-topology", true);
+        } else {
+            // can't set post-stream-topology to true, as uridecodebin doesn't have the property.
+            // Use a hack
+            decoder.connect("element-added",
+                            GCallback(QGstreamerMediaPlayer::uridecodebinElementAddedCallback),
+                            this);
+        }
+
+        decoder.connect("source-setup", GCallback(QGstreamerMediaPlayer::sourceSetupCallback),
+                        this);
 
         decoder.set("uri", content.toEncoded().constData());
         if (m_bufferProgress != 0) {
