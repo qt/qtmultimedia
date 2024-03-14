@@ -634,26 +634,26 @@ void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstEle
 
     qCDebug(qLcMediaPlayer) << "Setting up source:" << g_type_name_from_instance((GTypeInstance*)source);
 
-    if (QLatin1String("GstRTSPSrc") == QString::fromUtf8(g_type_name_from_instance((GTypeInstance*)source))) {
+    if (QLatin1String("GstRTSPSrc") == g_type_name_from_instance((GTypeInstance *)source)) {
         QGstElement s(source);
         int latency{40};
         bool ok{false};
-        int v = QString::fromLocal8Bit(qgetenv("QT_MEDIA_RTSP_LATENCY")).toUInt(&ok);
+        int v = qEnvironmentVariableIntValue("QT_MEDIA_RTSP_LATENCY", &ok);
         if (ok)
             latency = v;
         qCDebug(qLcMediaPlayer) << "    -> setting source latency to:" << latency << "ms";
         s.set("latency", latency);
 
         bool drop{true};
-        v = QString::fromLocal8Bit(qgetenv("QT_MEDIA_RTSP_DROP_ON_LATENCY")).toUInt(&ok);
+        v = qEnvironmentVariableIntValue("QT_MEDIA_RTSP_DROP_ON_LATENCY", &ok);
         if (ok && v == 0)
             drop = false;
         qCDebug(qLcMediaPlayer) << "    -> setting drop-on-latency to:" << drop;
         s.set("drop-on-latency", drop);
 
         bool retrans{false};
-        v = QString::fromLocal8Bit(qgetenv("QT_MEDIA_RTSP_DO_RETRANSMISSION")).toUInt(&ok);
-        if (ok && v not_eq 0)
+        v = qEnvironmentVariableIntValue("QT_MEDIA_RTSP_DO_RETRANSMISSION", &ok);
+        if (ok && v != 0)
             retrans = true;
         qCDebug(qLcMediaPlayer) << "    -> setting do-retransmission to:" << retrans;
         s.set("do-retransmission", retrans);
