@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <QVideoSink>
 #include <QVideoWidget>
+#include <QSysInfo>
 
 #include <qcamera.h>
 #include <qcameradevice.h>
@@ -42,9 +43,17 @@ class tst_QMediaCaptureSession: public QObject
 
 private slots:
 
+    void initTestCase()
+    {
+        if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci") {
 #ifdef Q_OS_ANDROID
-    void initTestCase() { QSKIP("SKIP initTestCase on CI, because of QTBUG-118571"); }
+            QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
+#elif defined(Q_OS_LINUX)
+            if (QSysInfo::productType().contains("opensuse", Qt::CaseInsensitive))
+                QSKIP("SKIP initTestCase on CI, because of QTBUG-123356");
 #endif
+        }
+    }
     void testAudioMute();
     void stress_test_setup_and_teardown();
 
