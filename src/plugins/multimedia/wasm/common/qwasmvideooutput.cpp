@@ -232,7 +232,7 @@ void QWasmVideoOutput::setSource(const QUrl &url)
     if (url.isLocalFile()) {
         QFile localFile(url.toLocalFile());
         if (localFile.open(QIODevice::ReadOnly)) {
-            QDataStream buffer(&localFile);   // we will serialize the data into the file
+            QDataStream buffer(&localFile); // we will serialize the data into the file
             setSource(buffer.device());
         } else {
             qWarning() << "Failed to open file";
