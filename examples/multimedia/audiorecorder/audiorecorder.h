@@ -14,6 +14,7 @@ namespace Ui {
 class AudioRecorder;
 }
 class QAudioBuffer;
+class QMediaDevices;
 QT_END_NAMESPACE
 
 class AudioLevel;
@@ -38,6 +39,7 @@ private slots:
     void updateProgress(qint64 pos);
     void displayErrorMessage();
 
+    void updateDevices();
     void updateFormats();
 
 private:
@@ -48,6 +50,8 @@ private:
 
     QMediaCaptureSession m_captureSession;
     QMediaRecorder *m_audioRecorder = nullptr;
+    QMediaDevices *m_mediaDevices = nullptr;
+
     QList<AudioLevel *> m_audioLevels;
     bool m_outputLocationSet = false;
     bool m_updatingFormats = false;

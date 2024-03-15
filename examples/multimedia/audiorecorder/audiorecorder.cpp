@@ -74,11 +74,10 @@ void AudioRecorder::init()
     // m_probe->setSource(m_audioRecorder);
 
     // audio devices
-    ui->audioDeviceBox->addItem(tr("Default"), QVariant(QString()));
-    for (auto device : QMediaDevices::audioInputs()) {
-        auto name = device.description();
-        ui->audioDeviceBox->addItem(name, QVariant::fromValue(device));
-    }
+    m_mediaDevices = new QMediaDevices(this);
+    connect(m_mediaDevices, &QMediaDevices::audioInputsChanged, this,
+            &AudioRecorder::updateDevices);
+    updateDevices();
 
     // audio codecs and container formats
     updateFormats();
@@ -192,6 +191,25 @@ void AudioRecorder::setOutputLocation()
 void AudioRecorder::displayErrorMessage()
 {
     ui->statusbar->showMessage(m_audioRecorder->errorString());
+}
+
+void AudioRecorder::updateDevices()
+{
+    const auto currentDevice = boxValue(ui->audioDeviceBox).value<QAudioDevice>();
+    int currentDeviceIndex = 0;
+
+    ui->audioDeviceBox->clear();
+
+    ui->audioDeviceBox->addItem(tr("Default"), {});
+    for (const auto &device : m_mediaDevices->audioInputs()) {
+        const auto name = device.description();
+        ui->audioDeviceBox->addItem(name, QVariant::fromValue(device));
+
+        if (device.id() == currentDevice.id())
+            currentDeviceIndex = ui->audioDeviceBox->count() - 1;
+    }
+
+    ui->audioDeviceBox->setCurrentIndex(currentDeviceIndex);
 }
 
 void AudioRecorder::updateFormats()
