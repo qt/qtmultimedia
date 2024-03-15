@@ -12,12 +12,10 @@ This page covers the availability of Qt Multimedia features on WebAssembly.
 
 Due to the asynchronous nature of javascript, some features such as getting the list of
 QMediaDevices, will not be readily available and may take some time to request permissions and
-gather the list of devices.
+gather the list of devices. The audioInputsChanged, audioOutputsChanged and
+videoInputChanged signals from QMediaDevices class will be emitted when they are available.
 
-Playing video currently works by using an html 2d context, so all operations are on the CPU.
-This also means that only QGraphicsVideoItem/QGraphicsScene will work.
-There is no current support for QMultimediaWidgets / QVideoWidget which uses a webgl
-context to take processing onto the GPU.
+Playing video currently works by using a html 2d context, so all operations are on the CPU.
 
 Performance is acceptable, although there is a copy on every frame, so it may be
 less performant than desktop platforms when playing hi-def video.
@@ -30,27 +28,8 @@ of fetching a URL, isn't supported.
 
 Some advanced features may or may not work at this time.
 
-To set up playing a video file:
-
-   QMediaPlayer *player = new QMediaPlayer(this);
-   QAudioOutput audioOutput; // chooses the default audio routing
-   player->setAudioOutput(&audioOutput);
-
-   QGraphicsVideoItem *item = new QGraphicsVideoItem();
-   player->setVideoOutput(item);
-
-   QGraphicsScene *scene = new QGraphicsScene(this);
-
-   ui->graphicsView->setScene(scene);
-   ui->graphicsView->scene()->addItem(item);
-   ui->graphicsView->show();
-
-and then to play the url:
-
-   player->setSource(QUrl(urlStr));
-   player->play();
-
-Files can be served from the/any web server. Because of the restriction on local file storage,
-playing local files is discouraged.
+Files can be served from the/any web server, respective
+of \l{https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS}{CORS}. Because of
+the limited size of local file storage, playing local files is discouraged.
 
  */
