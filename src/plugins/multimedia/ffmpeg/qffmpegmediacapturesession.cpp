@@ -162,24 +162,22 @@ void QFFmpegMediaCaptureSession::updateAudioSink()
 
     m_audioIODevice = m_audioSink->start();
     if (m_audioIODevice) {
-        connect(m_audioInput, &QFFmpegAudioInput::newAudioBuffer, m_audioSink.get(),
-                [this](const QAudioBuffer &buffer) {
-                    if (m_audioBufferSize < preferredAudioSinkBufferSize(*m_audioInput)) {
-                        qCDebug(qLcFFmpegMediaCaptureSession)
-                                << "Recreate audiosink due to small buffer size:"
-                                << m_audioBufferSize;
+        auto writeToDevice = [this](const QAudioBuffer &buffer) {
+            if (m_audioBufferSize < preferredAudioSinkBufferSize(*m_audioInput)) {
+                qCDebug(qLcFFmpegMediaCaptureSession)
+                        << "Recreate audiosink due to small buffer size:" << m_audioBufferSize;
 
-                        updateAudioSink();
-                    }
+                updateAudioSink();
+            }
 
-                    const auto written =
-                            m_audioIODevice->write(buffer.data<const char>(), buffer.byteCount());
+            const auto written =
+                    m_audioIODevice->write(buffer.data<const char>(), buffer.byteCount());
 
-                    if (written < buffer.byteCount())
-                        qCWarning(qLcFFmpegMediaCaptureSession)
-                                << "Not all bytes written:" << written << "vs"
-                                << buffer.byteCount();
-                });
+            if (written < buffer.byteCount())
+                qCWarning(qLcFFmpegMediaCaptureSession)
+                        << "Not all bytes written:" << written << "vs" << buffer.byteCount();
+        };
+        connect(m_audioInput, &QFFmpegAudioInput::newAudioBuffer, m_audioSink.get(), writeToDevice);
     } else {
         qWarning() << "Failed to start audiosink push mode";
     }
