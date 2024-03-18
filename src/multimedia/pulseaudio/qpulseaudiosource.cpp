@@ -106,14 +106,11 @@ QPulseAudioSource::QPulseAudioSource(const QByteArray &device, QObject *parent)
     , m_stream(nullptr)
     , m_device(device)
 {
-    m_timer = new QTimer(this);
-    connect(m_timer, SIGNAL(timeout()), SLOT(userFeed()));
 }
 
 QPulseAudioSource::~QPulseAudioSource()
 {
     close();
-    delete m_timer;
 }
 
 void QPulseAudioSource::setError(QAudio::Error error)
@@ -307,7 +304,7 @@ bool QPulseAudioSource::open()
     connect(pulseEngine, &QPulseAudioEngine::contextFailed, this, &QPulseAudioSource::onPulseContextFailed);
 
     m_opened = true;
-    m_timer->start(m_periodTime);
+    m_timer.start(m_periodTime, this);
 
     m_elapsedTimeOffset = 0;
     m_totalTimeValue = 0;
@@ -320,7 +317,7 @@ void QPulseAudioSource::close()
     if (!m_opened)
         return;
 
-    m_timer->stop();
+    m_timer.stop();
 
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
 
@@ -482,7 +479,7 @@ void QPulseAudioSource::resume()
             pulseEngine->wait(operation.get());
         }
 
-        m_timer->start(m_periodTime);
+        m_timer.start(m_periodTime, this);
 
         setState(QAudio::ActiveState);
         setError(QAudio::NoError);
@@ -531,7 +528,7 @@ void QPulseAudioSource::suspend()
         setError(QAudio::NoError);
         setState(QAudio::SuspendedState);
 
-        m_timer->stop();
+        m_timer.stop();
 
         QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
 
@@ -540,6 +537,14 @@ void QPulseAudioSource::suspend()
         PAOperationUPtr operation(pa_stream_cork(m_stream, 1, inputStreamSuccessCallback, nullptr));
         pulseEngine->wait(operation.get());
     }
+}
+
+void QPulseAudioSource::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() == m_timer.timerId())
+        userFeed();
+
+    QPlatformAudioSource::timerEvent(event);
 }
 
 void QPulseAudioSource::userFeed()
