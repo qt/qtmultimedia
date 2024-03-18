@@ -67,6 +67,9 @@ public:
     QAudio::State m_deviceState;
     qreal m_volume;
 
+protected:
+    void timerEvent(QTimerEvent *event) override;
+
 private slots:
     void userFeed();
     bool deviceReady();
@@ -88,7 +91,7 @@ private:
     int m_bufferSize;
     int m_periodSize;
     unsigned int m_periodTime;
-    QTimer *m_timer;
+    QBasicTimer m_timer;
     qint64 m_elapsedTimeOffset;
     pa_stream *m_stream;
     QByteArray m_streamName;
