@@ -80,7 +80,7 @@ private Q_SLOTS:
     }
 
 private:
-    void processMessage(GstMessage* message)
+    void processMessage(GstMessage *message)
     {
         QGstreamerMessage msg{
             message,
@@ -89,20 +89,9 @@ private:
         doProcessMessage(msg);
     }
 
-    void queueMessage(GstMessage* message)
+    static gboolean busCallback(GstBus *, GstMessage *message, gpointer data)
     {
-        QGstreamerMessage msg{
-            message,
-            QGstreamerMessage::NeedsRef,
-        };
-        QMetaObject::invokeMethod(this, "doProcessMessage", Qt::QueuedConnection,
-                                  Q_ARG(QGstreamerMessage, msg));
-    }
-
-    static gboolean busCallback(GstBus *bus, GstMessage *message, gpointer data)
-    {
-        Q_UNUSED(bus);
-        static_cast<QGstPipelinePrivate *>(data)->queueMessage(message);
+        static_cast<QGstPipelinePrivate *>(data)->processMessage(message);
         return TRUE;
     }
 };
