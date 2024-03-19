@@ -71,19 +71,16 @@ protected:
 
 private slots:
     void userFeed();
-    bool deviceReady();
     void onPulseContextFailed();
 
 private:
     void applyVolume(const void *src, void *dest, int len);
 
-    int checkBytesReady();
     bool open();
     void close();
 
     bool m_pullMode;
     bool m_opened;
-    int m_bytesAvailable;
     int m_bufferSize;
     int m_periodSize;
     unsigned int m_periodTime;
