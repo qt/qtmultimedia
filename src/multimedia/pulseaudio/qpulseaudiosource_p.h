@@ -25,6 +25,7 @@
 #include "qaudio.h"
 #include "qaudiodevice.h"
 #include <private/qaudiosystem_p.h>
+#include <private/qaudiostatemachine_p.h>
 
 #include <pulse/pulseaudio.h>
 
@@ -63,8 +64,6 @@ public:
     qint64 m_totalTimeValue;
     QIODevice *m_audioSource;
     QAudioFormat m_format;
-    QAudio::Error m_errorState;
-    QAudio::State m_deviceState;
     qreal m_volume;
 
 protected:
@@ -76,9 +75,6 @@ private slots:
     void onPulseContextFailed();
 
 private:
-    void setState(QAudio::State state);
-    void setError(QAudio::Error error);
-
     void applyVolume(const void *src, void *dest, int len);
 
     int checkBytesReady();
@@ -98,6 +94,8 @@ private:
     QByteArray m_device;
     QByteArray m_tempBuffer;
     pa_sample_spec m_spec;
+
+    QAudioStateMachine m_stateMachine;
 };
 
 class PulseInputPrivate : public QIODevice
