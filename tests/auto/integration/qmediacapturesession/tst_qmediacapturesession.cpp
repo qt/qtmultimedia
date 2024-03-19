@@ -48,9 +48,6 @@ private slots:
         if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci") {
 #ifdef Q_OS_ANDROID
             QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
-#elif defined(Q_OS_LINUX)
-            if (QSysInfo::productType().contains("opensuse", Qt::CaseInsensitive))
-                QSKIP("SKIP initTestCase on CI, because of QTBUG-123356");
 #endif
         }
     }
