@@ -97,7 +97,6 @@ QPulseAudioSource::QPulseAudioSource(const QByteArray &device, QObject *parent)
     , m_volume(qreal(1.0f))
     , m_pullMode(true)
     , m_opened(false)
-    , m_bytesAvailable(0)
     , m_bufferSize(0)
     , m_periodSize(0)
     , m_periodTime(SourcePeriodTimeMs)
@@ -317,22 +316,27 @@ void QPulseAudioSource::close()
     m_opened = false;
 }
 
-int QPulseAudioSource::checkBytesReady()
-{
-    m_bytesAvailable = m_stateMachine.isActiveOrIdle() ? pa_stream_readable_size(m_stream) : 0;
-    return m_bytesAvailable;
-}
-
 qsizetype QPulseAudioSource::bytesReady() const
 {
-    return qMax(m_bytesAvailable, 0);
+    if (!m_stateMachine.isActiveOrIdle())
+        return 0;
+
+    std::lock_guard lock(*QPulseAudioEngine::instance());
+
+    int bytes = pa_stream_readable_size(m_stream);
+    if (bytes < 0) {
+        qWarning() << "pa_stream_readable_size() failed:"
+                   << pa_strerror(pa_context_errno(pa_stream_get_context(m_stream)));
+        return 0;
+    }
+
+    return static_cast<qsizetype>(bytes);
 }
 
 qint64 QPulseAudioSource::read(char *data, qint64 len)
 {
     Q_ASSERT(data != nullptr || len == 0);
 
-    m_bytesAvailable = checkBytesReady();
     m_stateMachine.updateActiveOrIdle(true, QAudio::NoError);
     int readBytes = 0;
 
@@ -512,34 +516,19 @@ void QPulseAudioSource::userFeed()
 //    QTime now(QTime::currentTime());
 //    qDebug()<< now.second() << "s " << now.msec() << "ms :userFeed() IN";
 #endif
-    deviceReady();
-}
-
-bool QPulseAudioSource::deviceReady()
-{
    if (m_pullMode) {
         // reads some audio data and writes it to QIODevice
         read(nullptr,0);
-    } else {
+    } else if (m_audioSource != nullptr) {
         // emits readyRead() so user will call read() on QIODevice to get some audio data
-        if (m_audioSource != nullptr) {
-            PulseInputPrivate *a = qobject_cast<PulseInputPrivate*>(m_audioSource);
-            a->trigger();
-        }
+        PulseInputPrivate *a = qobject_cast<PulseInputPrivate*>(m_audioSource);
+        a->trigger();
     }
-    m_bytesAvailable = checkBytesReady();
-
-    // TODO: This doesn't look correct, check how this should work
-//    if (m_deviceState != QAudio::ActiveState)
-//        return true;
-
-    return true;
 }
 
 void QPulseAudioSource::reset()
 {
     stop();
-    m_bytesAvailable = 0;
 }
 
 void QPulseAudioSource::onPulseContextFailed()
