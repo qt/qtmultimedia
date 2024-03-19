@@ -70,7 +70,7 @@ public:
     void createOffscreenElement(const QSize &offscreenSize);
     void doElementCallbacks();
     void updateVideoElementGeometry(const QRect &windowGeometry);
-    void addSourceElement(const QString &urlString);
+    void updateVideoElementSource(const QString &src);
     void addCameraSourceElement(const std::string &id);
     void removeSourceElement();
     void setVideoMode(QWasmVideoOutput::WasmVideoMode mode);

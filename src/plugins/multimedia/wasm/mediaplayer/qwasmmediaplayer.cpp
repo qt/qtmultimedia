@@ -204,6 +204,7 @@ const QIODevice *QWasmMediaPlayer::mediaStream() const
 
 void QWasmMediaPlayer::setMedia(const QUrl &mediaContent, QIODevice *stream)
 {
+    qCDebug(lcMediaPlayer) << Q_FUNC_INFO << mediaContent << stream;
     QMimeDatabase db;
 
     if (mediaContent.isEmpty()) {
