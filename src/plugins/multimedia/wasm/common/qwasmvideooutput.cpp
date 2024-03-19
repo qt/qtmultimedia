@@ -227,11 +227,10 @@ void QWasmVideoOutput::setSource(const QUrl &url)
     qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << url;
 
     if (m_video.isUndefined() || m_video.isNull()) {
-        // error
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
 
+    m_source = url.toString();
     if (url.isEmpty()) {
         stop();
         return;
@@ -247,26 +246,13 @@ void QWasmVideoOutput::setSource(const QUrl &url)
         return;
     }
 
-    // is network path
-    m_source = url.toString();
-
-    addSourceElement(m_source);
+    updateVideoElementSource(m_source);
 }
 
-void QWasmVideoOutput::addSourceElement(const QString &urlString)
+void QWasmVideoOutput::updateVideoElementSource(const QString &src)
 {
-    if (m_video.isUndefined() || m_video.isNull()) {
-        // error
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
-        return;
-    }
-    emscripten::val document = emscripten::val::global("document");
-
-    if (!urlString.isEmpty())
-        m_video.set("src", m_source.toStdString());
-
-    if (!urlString.isEmpty())
-        m_video.call<void>("load");
+    m_video.set("src", src.toStdString());
+    m_video.call<void>("load");
 }
 
 void QWasmVideoOutput::addCameraSourceElement(const std::string &id)
@@ -454,10 +440,8 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
     body.call<void>("appendChild", m_video);
 
     // Create/add video source
-    emscripten::val videoElementGeometry =
-            document.call<emscripten::val>("createElement", std::string("source"));
-
-    videoElementGeometry.set("src", m_source.toStdString());
+    document.call<emscripten::val>("createElement",
+                                   std::string("source")).set("src", m_source.toStdString());
 
     // Set position:absolute, which makes it possible to position the video
     // element using x,y. coordinates, relative to its parent (the page's <body>
@@ -465,6 +449,9 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
     emscripten::val style = m_video["style"];
     style.set("position", "absolute");
     style.set("display", "none"); // hide
+
+    if (!m_source.isEmpty())
+        updateVideoElementSource(m_source);
 }
 
 void QWasmVideoOutput::createOffscreenElement(const QSize &offscreenSize)
@@ -522,7 +509,7 @@ void QWasmVideoOutput::doElementCallbacks()
     // play
     auto playCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
-        qCDebug(qWasmMediaVideoOutput) << "play";
+        qCDebug(qWasmMediaVideoOutput) << "play" << m_video["src"].as<std::string>();
         if (!m_isSeeking)
             emit stateChanged(QWasmMediaPlayer::Preparing);
     };
