@@ -62,8 +62,10 @@ bool QWasmCamera::isActive() const
 
 void QWasmCamera::setActive(bool active)
 {
+
     if (!m_CaptureSession) {
         emit error(QCamera::CameraError, QStringLiteral("video surface error"));
+        m_shouldBeActive = true;
         return;
     }
 
@@ -72,9 +74,15 @@ void QWasmCamera::setActive(bool active)
         return;
     }
 
-    m_cameraOutput->setSurface(m_CaptureSession->videoSink());
+    QVideoSink *sink = m_CaptureSession->videoSink();
+    if (!sink) {
+        qWarning() << Q_FUNC_INFO << "sink not ready";
+        return;
+    }
 
+    m_cameraOutput->setSurface(m_CaptureSession->videoSink());
     m_cameraActive = active;
+    m_shouldBeActive = false;
 
     if (m_cameraActive)
         m_cameraOutput->start();
@@ -130,6 +138,9 @@ void QWasmCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
         return;
 
     m_CaptureSession = captureSession;
+
+    if (m_shouldBeActive)
+        setActive(true);
 }
 
 void QWasmCamera::setFocusMode(QCamera::FocusMode mode)

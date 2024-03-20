@@ -46,7 +46,19 @@ Row {
         active: windowAvailable
     }
 
-    MediaDevices { id: mediaDevices }
+    MediaDevices { id: mediaDevices
+        onVideoInputsChanged: {
+
+            videoSourceModel.populate()
+
+            for (var i = 0; i < videoSourceModel.count; i++) {
+                if (videoSourceModel.get(i).value.type !== 'toggler') {
+                    comboBox.currentIndex = i
+                    break
+                }
+            }
+        }
+    }
 
     Switch {
         id: videoSourceSwitch

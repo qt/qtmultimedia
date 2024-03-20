@@ -74,7 +74,7 @@ private:
     void updateCameraFeatures();
 
     QCameraDevice m_cameraDev;
-    QWasmMediaCaptureSession *m_CaptureSession;
+    QWasmMediaCaptureSession *m_CaptureSession = nullptr;
     bool m_cameraActive = false;
     QScopedPointer <QWasmVideoOutput> m_cameraOutput;
 
