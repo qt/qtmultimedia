@@ -19,6 +19,7 @@
 #include <qstring.h>
 #include <optional>
 #include <utility>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -77,8 +78,8 @@ public:
         return *m_value;
     }
 
-    constexpr Value *operator->() noexcept { return &value(); }
-    constexpr const Value *operator->() const noexcept { return &value(); }
+    constexpr Value *operator->() noexcept { return std::addressof(value()); }
+    constexpr const Value *operator->() const noexcept { return std::addressof(value()); }
 
     constexpr Value &operator*() &noexcept { return value(); }
     constexpr const Value &operator*() const &noexcept { return value(); }
