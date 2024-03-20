@@ -140,7 +140,7 @@ float QCameraFormat::minFrameRate() const noexcept
 
     Returns the highest frame rate defined by this format.
 
-    In 6.2, the camera will always try to use the maximum frame rate supported by a
+    The camera will always try to use the maximum frame rate supported by a
     certain video format.
 */
 
@@ -149,7 +149,7 @@ float QCameraFormat::minFrameRate() const noexcept
 
     Returns the highest frame rate defined by this format.
 
-    In 6.2, the camera will always try to use the highest frame rate supported by a
+    The camera will always try to use the highest frame rate supported by a
     certain video format.
 */
 float QCameraFormat::maxFrameRate() const noexcept

@@ -112,25 +112,30 @@ qt_convert_to_capture_device_format(AVCaptureDevice *captureDevice,
         return nil;
 
     AVCaptureDeviceFormat *newFormat = nil;
+    Float64 newFormatMaxFrameRate = {};
     NSArray<AVCaptureDeviceFormat *> *formats = captureDevice.formats;
     for (AVCaptureDeviceFormat *format in formats) {
         CMFormatDescriptionRef formatDesc = format.formatDescription;
         CMVideoDimensions dim = CMVideoFormatDescriptionGetDimensions(formatDesc);
         FourCharCode cvPixFormat = CMVideoFormatDescriptionGetCodecType(formatDesc);
 
-        if (requiredCvPixFormat == cvPixFormat
-            && cameraFormatPrivate->resolution == QSize(dim.width, dim.height)
-            && (!cvFormatValidator || cvFormatValidator(cvPixFormat))) {
-            for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
-                if (frameRateRange.minFrameRate >= cameraFormatPrivate->minFrameRate
-                    && frameRateRange.maxFrameRate <= cameraFormatPrivate->maxFrameRate) {
-                    newFormat = format;
-                    break;
-                }
+        if (cvPixFormat != requiredCvPixFormat)
+            continue;
+
+        if (cameraFormatPrivate->resolution != QSize(dim.width, dim.height))
+            continue;
+
+        if (cvFormatValidator && !cvFormatValidator(cvPixFormat))
+            continue;
+
+        for (AVFrameRateRange *frameRateRange in format.videoSupportedFrameRateRanges) {
+            if (frameRateRange.minFrameRate >= cameraFormatPrivate->minFrameRate
+                && frameRateRange.maxFrameRate <= cameraFormatPrivate->maxFrameRate
+                && newFormatMaxFrameRate < frameRateRange.maxFrameRate) {
+                newFormat = format;
+                newFormatMaxFrameRate = frameRateRange.maxFrameRate;
             }
         }
-        if (newFormat)
-            break;
     }
     return newFormat;
 }
