@@ -266,7 +266,15 @@ void QGstreamerVideoSink::updateGstContexts()
     if (!appContext)
         qWarning() << "Could not create wrappped context for platform:" << glPlatform;
 
+    gst_gl_context_activate(appContext.get(), true);
+
     QUniqueGErrorHandle error;
+    gst_gl_context_fill_info(appContext.get(), &error);
+    if (error) {
+        qWarning() << "Could not fill context info:" << error;
+        error = {};
+    }
+
     QGstGLContextHandle displayContext;
     gst_gl_display_create_context(gstGlDisplay.get(), appContext.get(), &displayContext, &error);
     if (error)
