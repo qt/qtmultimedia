@@ -13,7 +13,9 @@
 #include <qvideosink.h>
 #include <qvideoframe.h>
 #include <qaudiooutput.h>
+#if QT_CONFIG(process)
 #include <qprocess.h>
+#endif
 #include <private/qglobal_p.h>
 #ifdef QT_FEATURE_network
 #include <qtcpserver.h>
@@ -182,7 +184,9 @@ private:
     QUrl selectVideoFile(const QStringList &mediaCandidates);
 
     bool canCreateRtspStream() const;
+#if QT_CONFIG(process)
     std::unique_ptr<QProcess> createRtspStreamProcess(QString fileName, QString outputUrl);
+#endif
     void detectVlcCommand();
 
     // one second local wav file
@@ -1078,6 +1082,9 @@ void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayb
 void tst_QMediaPlayerBackend::
         play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream()
 {
+#if !QT_CONFIG(process)
+    QSKIP("This test requires QProcess support");
+#else
     if (!canCreateRtspStream())
         QSKIP("Rtsp stream cannot be created");
 
@@ -1138,6 +1145,7 @@ void tst_QMediaPlayerBackend::
 
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     QCOMPARE(errorSpy.size(), 0);
+#endif //QT_CONFIG(process)
 }
 
 void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames()
@@ -2971,6 +2979,7 @@ void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
     QCOMPARE(spy2.size(), 1);
 }
 
+#if QT_CONFIG(process)
 std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QString fileName,
                                                                            QString outputUrl)
 {
@@ -3000,6 +3009,7 @@ std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QStri
 
     return process;
 }
+#endif //QT_CONFIG(process)
 
 void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrientationMetadata_data()
 {
