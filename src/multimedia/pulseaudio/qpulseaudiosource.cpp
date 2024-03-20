@@ -528,7 +528,8 @@ void QPulseAudioSource::userFeed()
 
 void QPulseAudioSource::reset()
 {
-    stop();
+    if (auto notifier = m_stateMachine.stopOrUpdateError())
+        close();
 }
 
 void QPulseAudioSource::onPulseContextFailed()
