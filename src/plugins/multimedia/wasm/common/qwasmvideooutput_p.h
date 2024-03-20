@@ -119,6 +119,7 @@ private:
     bool m_isSeeking = false;
     bool m_hasAudio = false;
     bool m_cameraIsReady = false;
+    bool m_shouldBeStarted = false;
 
     emscripten::val m_offscreenContext = emscripten::val::undefined();
     QSize m_pendingVideoSize;
