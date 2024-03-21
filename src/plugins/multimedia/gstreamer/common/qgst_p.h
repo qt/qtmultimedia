@@ -88,7 +88,7 @@ template <typename DestinationType, typename SourceType>
 DestinationType *qGstSafeCast(SourceType *arg)
 {
     using Traits = QGstImpl::GstObjectTraits<DestinationType>;
-    if (Traits::isObjectOfType(arg))
+    if (arg && Traits::isObjectOfType(arg))
         return Traits::cast(arg);
     return nullptr;
 }
@@ -97,7 +97,8 @@ template <typename DestinationType, typename SourceType>
 DestinationType *qGstCheckedCast(SourceType *arg)
 {
     using Traits = QGstImpl::GstObjectTraits<DestinationType>;
-    Q_ASSERT(Traits::isObjectOfType(arg));
+    if (arg)
+        Q_ASSERT(Traits::isObjectOfType(arg));
     return Traits::cast(arg);
 }
 
