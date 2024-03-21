@@ -732,6 +732,19 @@ QGstElement QGstElement::createFromFactory(const char *factory, const char *name
     };
 }
 
+QGstElement QGstElement::createFromDevice(const QGstDeviceHandle &device, const char *name)
+{
+    return createFromDevice(device.get(), name);
+}
+
+QGstElement QGstElement::createFromDevice(GstDevice *device, const char *name)
+{
+    return QGstElement{
+        gst_device_create_element(device, name),
+        QGstElement::NeedsRef,
+    };
+}
+
 QGstPad QGstElement::staticPad(const char *name) const
 {
     return QGstPad(gst_element_get_static_pad(element(), name), HasRef);
