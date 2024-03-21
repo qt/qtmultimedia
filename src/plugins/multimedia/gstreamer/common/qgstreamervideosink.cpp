@@ -86,12 +86,12 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     }
 
     bool disablePixelAspectRatio =
-            qEnvironmentVariableIsSet("QT_MULTIMEDIA_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO");
+            qEnvironmentVariableIsSet("QT_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO");
     if (disablePixelAspectRatio) {
         // Enabling the pixel aspect ratio may expose a gstreamer bug on cameras that don't expose a
         // pixel-aspect-ratio via `VIDIOC_CROPCAP`. This can cause the caps negotiation to fail.
-        // Using the QT_MULTIMEDIA_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO environment variable, on can
-        // disable pixel-aspect-ratio handling
+        // Using the QT_GSTREAMER_DISABLE_PIXEL_ASPECT_RATIO environment variable, one can disable
+        // pixel-aspect-ratio handling
         //
         // compare: https://gitlab.freedesktop.org/gstreamer/gstreamer/-/merge_requests/6242
         gstCapsFilter =
