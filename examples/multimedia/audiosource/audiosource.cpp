@@ -233,9 +233,9 @@ void InputTest::toggleSuspend()
 
 void InputTest::deviceChanged(int index)
 {
-    m_audioInfo->stop();
     m_audioInput->stop();
     m_audioInput->disconnect(this);
+    m_audioInfo->stop();
 
     initializeAudio(m_deviceBox->itemData(index).value<QAudioDevice>());
 }
