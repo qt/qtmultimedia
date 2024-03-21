@@ -75,10 +75,12 @@ struct GstObjectTraits
     };                                                  \
     static_assert(true, "ensure semicolon")
 
-QGST_DEFINE_CAST_TRAITS(GstPipeline, PIPELINE);
-QGST_DEFINE_CAST_TRAITS(GstElement, ELEMENT);
 QGST_DEFINE_CAST_TRAITS(GstBin, BIN);
+QGST_DEFINE_CAST_TRAITS(GstClock, CLOCK);
+QGST_DEFINE_CAST_TRAITS(GstElement, ELEMENT);
+QGST_DEFINE_CAST_TRAITS(GstObject, OBJECT);
 QGST_DEFINE_CAST_TRAITS(GstPad, PAD);
+QGST_DEFINE_CAST_TRAITS(GstPipeline, PIPELINE);
 
 template <>
 struct GstObjectTraits<GObject>

@@ -637,9 +637,21 @@ const char *QGstObject::name() const
 
 // QGstPad
 
-QGstPad::QGstPad(const QGstObject &o) : QGstPad(GST_PAD(o.object()), NeedsRef) { }
+QGstPad::QGstPad(const QGstObject &o)
+    : QGstPad{
+          qGstSafeCast<GstPad>(o.object()),
+          QGstElement::NeedsRef,
+      }
+{
+}
 
-QGstPad::QGstPad(GstPad *pad, RefMode mode) : QGstObject(&pad->object, mode) { }
+QGstPad::QGstPad(GstPad *pad, RefMode mode)
+    : QGstObject{
+          qGstCheckedCast<GstObject>(pad),
+          mode,
+      }
+{
+}
 
 QGstCaps QGstPad::currentCaps() const
 {
@@ -683,7 +695,7 @@ QGstElement QGstPad::parent() const
 
 GstPad *QGstPad::pad() const
 {
-    return GST_PAD_CAST(object());
+    return qGstCheckedCast<GstPad>(object());
 }
 
 GstEvent *QGstPad::stickyEvent(GstEventType type)
@@ -698,15 +710,25 @@ bool QGstPad::sendEvent(GstEvent *event)
 
 // QGstClock
 
-QGstClock::QGstClock(const QGstObject &o) : QGstClock(GST_CLOCK(o.object()), QGstElement::NeedsRef)
+QGstClock::QGstClock(const QGstObject &o)
+    : QGstClock{
+          qGstSafeCast<GstClock>(o.object()),
+          QGstElement::NeedsRef,
+      }
 {
 }
 
-QGstClock::QGstClock(GstClock *clock, RefMode mode) : QGstObject(&clock->object, mode) { }
+QGstClock::QGstClock(GstClock *clock, RefMode mode)
+    : QGstObject{
+          qGstCheckedCast<GstObject>(clock),
+          mode,
+      }
+{
+}
 
 GstClock *QGstClock::clock() const
 {
-    return GST_CLOCK_CAST(object());
+    return qGstCheckedCast<GstClock>(object());
 }
 
 GstClockTime QGstClock::time() const
@@ -716,7 +738,13 @@ GstClockTime QGstClock::time() const
 
 // QGstElement
 
-QGstElement::QGstElement(GstElement *element, RefMode mode) : QGstObject(&element->object, mode) { }
+QGstElement::QGstElement(GstElement *element, RefMode mode)
+    : QGstObject{
+          qGstCheckedCast<GstObject>(element),
+          mode,
+      }
+{
+}
 
 QGstElement QGstElement::createFromFactory(const char *factory, const char *name)
 {
@@ -897,11 +925,17 @@ QGstBin QGstBin::createFromFactory(const char *factory, const char *name)
     };
 }
 
-QGstBin::QGstBin(GstBin *bin, RefMode mode) : QGstElement(&bin->element, mode) { }
+QGstBin::QGstBin(GstBin *bin, RefMode mode)
+    : QGstElement{
+          qGstCheckedCast<GstElement>(bin),
+          mode,
+      }
+{
+}
 
 GstBin *QGstBin::bin() const
 {
-    return GST_BIN_CAST(get());
+    return qGstCheckedCast<GstBin>(object());
 }
 
 void QGstBin::addGhostPad(const QGstElement &child, const char *name)
