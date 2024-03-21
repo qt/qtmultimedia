@@ -127,7 +127,7 @@ bool QGStreamerAudioSource::open()
         return false;
     }
 
-    gstInput = QGstElement(gst_device_create_element(deviceInfo->gstDevice.get(), nullptr));
+    gstInput = QGstElement::createFromDevice(deviceInfo->gstDevice);
     if (gstInput.isNull()) {
         setError(QAudio::OpenError);
         setState(QAudio::StoppedState);

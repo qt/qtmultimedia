@@ -90,14 +90,10 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
             qCWarning(qLcMediaAudioOutput) << "Invalid audio device";
     } else {
         auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioOutput.handle());
-        if (deviceInfo && deviceInfo->gstDevice) {
-            newSink = QGstElement{
-                gst_device_create_element(deviceInfo->gstDevice.get(), "audiosink"),
-                QGstElement::HasRef,
-            };
-        } else {
+        if (deviceInfo && deviceInfo->gstDevice)
+            newSink = QGstElement::createFromDevice(deviceInfo->gstDevice, "audiosink");
+        else
             qCWarning(qLcMediaAudioOutput) << "Invalid audio device";
-        }
     }
 
     if (newSink.isNull()) {
