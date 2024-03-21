@@ -388,7 +388,7 @@ void AudioEncoder::retrievePackets()
 void AudioEncoder::processOne()
 {
     QAudioBuffer buffer = takeBuffer();
-    if (!buffer.isValid() || m_paused.loadAcquire())
+    if (!buffer.isValid())
         return;
 
     if (buffer.format() != m_format) {
@@ -541,9 +541,6 @@ static void freeQVideoFrame(void *opaque, uint8_t *)
 
 void VideoEncoder::processOne()
 {
-    if (m_paused.loadAcquire())
-        return;
-
     retrievePackets();
 
     auto frame = takeFrame();
