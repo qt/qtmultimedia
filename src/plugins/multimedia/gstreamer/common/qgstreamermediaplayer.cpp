@@ -716,6 +716,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
             return;
         }
         decoder.set("post-stream-topology", true);
+        decoder.set("use-buffering", true);
         playerPipeline.add(src, decoder);
         qLinkGstElements(src, decoder);
 
@@ -745,6 +746,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
                         this);
 
         decoder.set("uri", content.toEncoded().constData());
+        decoder.set("use-buffering", true);
         if (m_bufferProgress != 0) {
             m_bufferProgress = 0;
             emit bufferProgressChanged(0.);
