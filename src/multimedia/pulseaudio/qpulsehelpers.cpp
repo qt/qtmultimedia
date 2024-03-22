@@ -6,6 +6,8 @@
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(qLcPulseAudioOut, "qt.multimedia.pulseaudio.output")
+Q_LOGGING_CATEGORY(qLcPulseAudioIn, "qt.multimedia.pulseaudio.input")
+Q_LOGGING_CATEGORY(qLcPulseAudioEngine, "qt.multimedia.pulseaudio.engine")
 
 namespace QPulseAudioInternal
 {
