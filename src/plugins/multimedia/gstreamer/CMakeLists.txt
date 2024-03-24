@@ -56,7 +56,7 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
 
 qt_internal_extend_target(QGstreamerMediaPlugin CONDITION QT_FEATURE_gstreamer_photography
     LIBRARIES
-        -lgstphotography-1.0
+        GStreamer::Photography
 )
 
 qt_internal_extend_target(QGstreamerMediaPlugin CONDITION QT_FEATURE_gstreamer_gl
