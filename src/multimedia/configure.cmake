@@ -101,12 +101,7 @@ qt_feature("evr" PUBLIC PRIVATE
 )
 qt_feature("gstreamer_1_0" PRIVATE
     LABEL "GStreamer 1.0"
-    CONDITION ( LINUX AND GStreamer_FOUND )
-    ENABLE INPUT_gstreamer STREQUAL 'yes'
-    DISABLE INPUT_gstreamer STREQUAL 'no'
-)
-qt_feature("gstreamer" PRIVATE
-    CONDITION QT_FEATURE_gstreamer_1_0
+    CONDITION GStreamer_FOUND
 )
 qt_feature("gstreamer_app" PRIVATE
     LABEL "GStreamer App"
@@ -119,6 +114,12 @@ qt_feature("gstreamer_photography" PRIVATE
 qt_feature("gstreamer_gl" PRIVATE
     LABEL "GStreamer OpenGL"
     CONDITION QT_FEATURE_opengl AND QT_FEATURE_gstreamer_1_0 AND GStreamer_Gl_FOUND AND EGL_FOUND
+)
+qt_feature("gstreamer" PRIVATE
+    LABEL "QtMM GStreamer plugin"
+    CONDITION (QT_FEATURE_gstreamer_1_0 AND QT_FEATURE_gstreamer_gl AND QT_FEATURE_gstreamer_app)
+    ENABLE INPUT_gstreamer STREQUAL 'yes'
+    DISABLE INPUT_gstreamer STREQUAL 'no'
 )
 
 qt_feature("gpu_vivante" PRIVATE
