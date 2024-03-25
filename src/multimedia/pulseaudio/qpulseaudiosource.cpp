@@ -139,14 +139,7 @@ QAudioFormat QPulseAudioSource::format() const
 
 void QPulseAudioSource::start(QIODevice *device)
 {
-    m_stateMachine.stopOrUpdateError();
-
-    if (!m_pullMode && m_audioSource) {
-        delete m_audioSource;
-        m_audioSource = nullptr;
-    }
-
-    close();
+    reset();
 
     if (!open())
         return;
@@ -159,14 +152,7 @@ void QPulseAudioSource::start(QIODevice *device)
 
 QIODevice *QPulseAudioSource::start()
 {
-    m_stateMachine.stopOrUpdateError();
-
-    if (!m_pullMode && m_audioSource) {
-        delete m_audioSource;
-        m_audioSource = nullptr;
-    }
-
-    close();
+    reset();
 
     if (!open())
         return nullptr;
