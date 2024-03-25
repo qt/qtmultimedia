@@ -29,7 +29,7 @@ QT_BEGIN_NAMESPACE
 
 class QGstreamerVideoSink;
 
-class Q_MULTIMEDIA_EXPORT QGstSubtitleSink
+class QGstSubtitleSink
 {
 public:
     GstBaseSink parent;
