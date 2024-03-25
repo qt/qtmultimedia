@@ -143,6 +143,10 @@ qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
         qffmpeghwaccel_videotoolbox.mm qffmpeghwaccel_videotoolbox_p.h
         qavfcamera.mm qavfcamera_p.h
         qavfsamplebufferdelegate.mm qavfsamplebufferdelegate_p.h
+
+    NO_UNITY_BUILD_SOURCES
+        qffmpeghwaccel_videotoolbox.mm # AVMediaType clash between libavformat and AVFoundation
+
     INCLUDE_DIRECTORIES
         ../darwin
         ../darwin/camera
