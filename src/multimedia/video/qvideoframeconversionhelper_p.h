@@ -133,7 +133,7 @@ using BGRX8888 = RgbPixel<2, 1, 0>;
         stride = 0; \
     }
 
-#define ALIGN(boundary, ptr, x, length) \
+#define QT_MEDIA_ALIGN(boundary, ptr, x, length) \
     for (; ((reinterpret_cast<qintptr>(ptr) & (boundary - 1)) != 0) && x < length; ++x)
 
 QT_END_NAMESPACE
