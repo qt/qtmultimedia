@@ -31,7 +31,7 @@ QT_BEGIN_NAMESPACE
 
 class QNetworkReply;
 
-class Q_MULTIMEDIA_EXPORT QGstAppSrc  : public QObject
+class QGstAppSrc : public QObject
 {
     Q_OBJECT
 public:
