@@ -7,10 +7,11 @@
 
 #include "../shared/mediafileselector.h"
 
-#define TEST_FILE_NAME "testdata/test.wav"
-#define TEST_UNSUPPORTED_FILE_NAME "testdata/test-unsupported.avi"
-#define TEST_CORRUPTED_FILE_NAME "testdata/test-corrupted.wav"
-#define TEST_INVALID_SOURCE "invalid"
+constexpr char TEST_FILE_NAME[] = "testdata/test.wav";
+constexpr char TEST_UNSUPPORTED_FILE_NAME[] = "testdata/test-unsupported.avi";
+constexpr char TEST_CORRUPTED_FILE_NAME[] = "testdata/test-corrupted.wav";
+constexpr char TEST_INVALID_SOURCE[] = "invalid";
+constexpr char TEST_NO_AUDIO_TRACK[] = "testdata/test-no-audio-track.mp4";
 
 QT_USE_NAMESPACE
 
@@ -42,6 +43,7 @@ private slots:
     void corruptedFileTest();
     void invalidSource();
     void deviceTest();
+    void play_emitsFormatError_whenMediaHasNoAudioTrack();
 
 private:
     QUrl testFileUrl(const QString filePath);
@@ -919,6 +921,19 @@ void tst_QAudioDecoderBackend::deviceTest()
     QVERIFY(!d.bufferAvailable());
     QTRY_COMPARE(durationSpy.size(), 2);
     QCOMPARE(d.duration(), qint64(-1));
+}
+
+void tst_QAudioDecoderBackend::play_emitsFormatError_whenMediaHasNoAudioTrack() {
+    QAudioDecoder decoder;
+
+    QSignalSpy errors{ &decoder, qOverload<QAudioDecoder::Error>(&QAudioDecoder::error) };
+
+    decoder.setSource(testFileUrl(TEST_NO_AUDIO_TRACK));
+    decoder.start();
+
+    QTRY_VERIFY(!errors.empty());
+
+    QCOMPARE_EQ(decoder.error(), QAudioDecoder::Error::FormatError);
 }
 
 QTEST_MAIN(tst_QAudioDecoderBackend)
