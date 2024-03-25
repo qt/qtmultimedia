@@ -23,10 +23,9 @@
 QT_BEGIN_NAMESPACE
 class QGstreamerVideoSink;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoOverlay
-        : public QObject
-        , public QGstreamerSyncMessageFilter
-        , private QGstreamerBufferProbe
+class QGstreamerVideoOverlay : public QObject,
+                               public QGstreamerSyncMessageFilter,
+                               private QGstreamerBufferProbe
 {
     Q_OBJECT
 public:

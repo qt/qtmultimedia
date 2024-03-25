@@ -30,7 +30,7 @@ struct QGstPointerImpl::QGstRefcountingAdaptor<GstMessage>
     static void unref(GstMessage *arg) noexcept { gst_message_unref(arg); }
 };
 
-class Q_MULTIMEDIA_EXPORT QGstreamerMessage : public QGstPointerImpl::QGstObjectWrapper<GstMessage>
+class QGstreamerMessage : public QGstPointerImpl::QGstObjectWrapper<GstMessage>
 {
     using BaseClass = QGstPointerImpl::QGstObjectWrapper<GstMessage>;
 

@@ -23,7 +23,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class Q_MULTIMEDIA_EXPORT QGstreamerBufferProbe
+class QGstreamerBufferProbe
 {
 public:
     enum Flags
