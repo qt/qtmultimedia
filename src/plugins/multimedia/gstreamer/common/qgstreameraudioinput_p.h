@@ -28,7 +28,7 @@ QT_BEGIN_NAMESPACE
 
 class QAudioDevice;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerAudioInput : public QObject, public QPlatformAudioInput
+class QGstreamerAudioInput : public QObject, public QPlatformAudioInput
 {
 public:
     static QMaybe<QPlatformAudioInput *> create(QAudioInput *parent);

@@ -89,7 +89,7 @@ private:
     QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
 };
 
-class Q_MULTIMEDIA_EXPORT QGstVideoRendererSink
+class QGstVideoRendererSink
 {
 public:
     GstVideoSink parent;

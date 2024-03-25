@@ -35,11 +35,10 @@ class QGstAppSrc;
 class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerMediaPlayer
-    : public QObject,
-      public QPlatformMediaPlayer,
-      public QGstreamerBusMessageFilter,
-      public QGstreamerSyncMessageFilter
+class QGstreamerMediaPlayer : public QObject,
+                              public QPlatformMediaPlayer,
+                              public QGstreamerBusMessageFilter,
+                              public QGstreamerSyncMessageFilter
 {
     Q_OBJECT
 

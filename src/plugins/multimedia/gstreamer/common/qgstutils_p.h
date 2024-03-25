@@ -35,14 +35,14 @@ class QImage;
 class QVideoFrameFormat;
 
 namespace QGstUtils {
-    Q_MULTIMEDIA_EXPORT QAudioFormat audioFormatForSample(GstSample *sample);
-    QAudioFormat audioFormatForCaps(const QGstCaps &caps);
-    Q_MULTIMEDIA_EXPORT QGstCaps capsForAudioFormat(const QAudioFormat &format);
+QAudioFormat audioFormatForSample(GstSample *sample);
+QAudioFormat audioFormatForCaps(const QGstCaps &caps);
+QGstCaps capsForAudioFormat(const QAudioFormat &format);
 
-    void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
+void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
 }
 
-Q_MULTIMEDIA_EXPORT GList *qt_gst_video_sinks();
+GList *qt_gst_video_sinks();
 
 QT_END_NAMESPACE
 

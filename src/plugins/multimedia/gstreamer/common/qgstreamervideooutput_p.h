@@ -29,7 +29,7 @@ QT_BEGIN_NAMESPACE
 
 class QVideoSink;
 
-class Q_MULTIMEDIA_EXPORT QGstreamerVideoOutput : public QObject
+class QGstreamerVideoOutput : public QObject
 {
     Q_OBJECT
 
