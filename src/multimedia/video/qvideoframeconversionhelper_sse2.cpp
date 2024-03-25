@@ -29,7 +29,7 @@ void convert_to_ARGB32_sse2(const QVideoFrame &frame, uchar *output)
         auto *pixel = reinterpret_cast<const Pixel *>(src);
 
         int x = 0;
-        ALIGN(16, argb, x, width) {
+        QT_MEDIA_ALIGN(16, argb, x, width) {
             *argb = pixel->convert();
             ++pixel;
             ++argb;
@@ -86,7 +86,7 @@ void QT_FASTCALL qt_copy_pixels_with_mask_sse2(uint32_t *dst, const uint32_t *sr
 
     size_t x = 0;
 
-    ALIGN(16, dst, x, size)
+    QT_MEDIA_ALIGN(16, dst, x, size)
         *(dst++) = *(src++) | mask;
 
     for (; x < size - (4 * 4 - 1); x += 4 * 4) {
