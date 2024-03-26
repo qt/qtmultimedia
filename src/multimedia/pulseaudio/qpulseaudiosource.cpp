@@ -35,31 +35,32 @@ static void inputStreamStateCallback(pa_stream *stream, void *userdata)
     pa_stream_state_t state = pa_stream_get_state(stream);
     qCDebug(qLcPulseAudioIn) << "Stream state: " << state;
     switch (state) {
-        case PA_STREAM_CREATING:
+    case PA_STREAM_CREATING:
         break;
-        case PA_STREAM_READY:
-            if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg))) {
-                QPulseAudioSource *audioInput = static_cast<QPulseAudioSource *>(userdata);
-                const pa_buffer_attr *buffer_attr = pa_stream_get_buffer_attr(stream);
-                qCDebug(qLcPulseAudioIn) << "*** maxlength: " << buffer_attr->maxlength;
-                qCDebug(qLcPulseAudioIn) << "*** prebuf: " << buffer_attr->prebuf;
-                qCDebug(qLcPulseAudioIn) << "*** fragsize: " << buffer_attr->fragsize;
-                qCDebug(qLcPulseAudioIn) << "*** minreq: " << buffer_attr->minreq;
-                qCDebug(qLcPulseAudioIn) << "*** tlength: " << buffer_attr->tlength;
+    case PA_STREAM_READY:
+        if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg))) {
+            QPulseAudioSource *audioInput = static_cast<QPulseAudioSource *>(userdata);
+            const pa_buffer_attr *buffer_attr = pa_stream_get_buffer_attr(stream);
+            qCDebug(qLcPulseAudioIn) << "*** maxlength: " << buffer_attr->maxlength;
+            qCDebug(qLcPulseAudioIn) << "*** prebuf: " << buffer_attr->prebuf;
+            qCDebug(qLcPulseAudioIn) << "*** fragsize: " << buffer_attr->fragsize;
+            qCDebug(qLcPulseAudioIn) << "*** minreq: " << buffer_attr->minreq;
+            qCDebug(qLcPulseAudioIn) << "*** tlength: " << buffer_attr->tlength;
 
-                pa_sample_spec spec =
-                        QPulseAudioInternal::audioFormatToSampleSpec(audioInput->format());
-                qCDebug(qLcPulseAudioIn) << "*** bytes_to_usec: " << pa_bytes_to_usec(buffer_attr->fragsize, &spec);
-            }
-            break;
-        case PA_STREAM_TERMINATED:
-            break;
-        case PA_STREAM_FAILED:
-        default:
-            qWarning() << "Stream error: " << currentError(stream);
-            QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
-            pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
-            break;
+            pa_sample_spec spec =
+                    QPulseAudioInternal::audioFormatToSampleSpec(audioInput->format());
+            qCDebug(qLcPulseAudioIn)
+                    << "*** bytes_to_usec: " << pa_bytes_to_usec(buffer_attr->fragsize, &spec);
+        }
+        break;
+    case PA_STREAM_TERMINATED:
+        break;
+    case PA_STREAM_FAILED:
+    default:
+        qWarning() << "Stream error:" << currentError(stream);
+        QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
+        pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
+        break;
     }
 }
 
@@ -83,32 +84,31 @@ static void inputStreamSuccessCallback(pa_stream *stream, int success, void *use
     Q_UNUSED(userdata);
     Q_UNUSED(success);
 
-    //if (!success)
-    //TODO: Is cork success?  i->operation_success = success;
+    // if (!success)
+    // TODO: Is cork success?  i->operation_success = success;
 
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
 
 QPulseAudioSource::QPulseAudioSource(const QByteArray &device, QObject *parent)
-    : QPlatformAudioSource(parent)
-    , m_totalTimeValue(0)
-    , m_audioSource(nullptr)
-    , m_volume(qreal(1.0f))
-    , m_pullMode(true)
-    , m_opened(false)
-    , m_bufferSize(0)
-    , m_periodSize(0)
-    , m_periodTime(SourcePeriodTimeMs)
-    , m_stream(nullptr)
-    , m_device(device)
-    , m_stateMachine(*this)
+    : QPlatformAudioSource(parent),
+      m_totalTimeValue(0),
+      m_audioSource(nullptr),
+      m_volume(qreal(1.0f)),
+      m_pullMode(true),
+      m_opened(false),
+      m_bufferSize(0),
+      m_periodSize(0),
+      m_periodTime(SourcePeriodTimeMs),
+      m_stream(nullptr),
+      m_device(device),
+      m_stateMachine(*this)
 {
 }
 
 QPulseAudioSource::~QPulseAudioSource()
 {
-    qDebug() << Q_FUNC_INFO;
     // TODO: Investigate draining the stream
     if (auto notifier = m_stateMachine.stop())
         close();
@@ -177,7 +177,8 @@ bool QPulseAudioSource::open()
 
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
 
-    if (!pulseEngine->context() || pa_context_get_state(pulseEngine->context()) != PA_CONTEXT_READY) {
+    if (!pulseEngine->context()
+        || pa_context_get_state(pulseEngine->context()) != PA_CONTEXT_READY) {
         m_stateMachine.stopOrUpdateError(QAudio::FatalError);
         return false;
     }
@@ -193,10 +194,10 @@ bool QPulseAudioSource::open()
 
     m_spec = spec;
 
-//    if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg)) {
-//        QTime now(QTime::currentTime());
-//        qCDebug(qLcPulseAudioIn) << now.second() << "s " << now.msec() << "ms :open()";
-//    }
+    //if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg)) {
+    //    QTime now(QTime::currentTime());
+    //    qCDebug(qLcPulseAudioIn) << now.second() << "s " << now.msec() << "ms :open()";
+    //}
 
     if (m_streamName.isNull())
         m_streamName =
@@ -219,7 +220,7 @@ bool QPulseAudioSource::open()
     pa_stream_set_underflow_callback(m_stream, inputStreamUnderflowCallback, this);
     pa_stream_set_overflow_callback(m_stream, inputStreamOverflowCallback, this);
 
-    m_periodSize = pa_usec_to_bytes(SourcePeriodTimeMs*1000, &spec);
+    m_periodSize = pa_usec_to_bytes(SourcePeriodTimeMs * 1000, &spec);
 
     int flags = 0;
     pa_buffer_attr buffer_attr;
@@ -234,8 +235,11 @@ bool QPulseAudioSource::open()
     else
         buffer_attr.fragsize = static_cast<uint32_t>(m_periodSize);
 
-    flags |= PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_INTERPOLATE_TIMING;
-    if (pa_stream_connect_record(m_stream, m_device.data(), &buffer_attr, static_cast<pa_stream_flags_t>(flags)) < 0) {
+    flags |= PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_INTERPOLATE_TIMING;
+
+    int connectionResult = pa_stream_connect_record(m_stream, m_device.data(), &buffer_attr,
+                                                    static_cast<pa_stream_flags_t>(flags));
+    if (connectionResult < 0) {
         qWarning() << "pa_stream_connect_record() failed!";
         pa_stream_unref(m_stream);
         m_stream = nullptr;
@@ -244,13 +248,13 @@ bool QPulseAudioSource::open()
         return false;
     }
 
-//    if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg))) {
-//        auto *ss = pa_stream_get_sample_spec(m_stream);
-//        qCDebug(qLcPulseAudioIn) << "connected stream:";
-//        qCDebug(qLcPulseAudioIn) << "    channels" << ss->channels << spec.channels;
-//        qCDebug(qLcPulseAudioIn) << "    format" << ss->format << spec.format;
-//        qCDebug(qLcPulseAudioIn) << "    rate" << ss->rate << spec.rate;
-//    }
+    //if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg))) {
+    //    auto *ss = pa_stream_get_sample_spec(m_stream);
+    //    qCDebug(qLcPulseAudioIn) << "connected stream:";
+    //    qCDebug(qLcPulseAudioIn) << "    channels" << ss->channels << spec.channels;
+    //    qCDebug(qLcPulseAudioIn) << "    format" << ss->format << spec.format;
+    //    qCDebug(qLcPulseAudioIn) << "    rate" << ss->rate << spec.rate;
+    //}
 
     while (pa_stream_get_state(m_stream) != PA_STREAM_READY)
         pa_threaded_mainloop_wait(pulseEngine->mainloop());
@@ -263,7 +267,8 @@ bool QPulseAudioSource::open()
 
     pulseEngine->unlock();
 
-    connect(pulseEngine, &QPulseAudioEngine::contextFailed, this, &QPulseAudioSource::onPulseContextFailed);
+    connect(pulseEngine, &QPulseAudioEngine::contextFailed, this,
+            &QPulseAudioSource::onPulseContextFailed);
 
     m_opened = true;
     m_timer.start(m_periodTime, this);
@@ -296,7 +301,8 @@ void QPulseAudioSource::close()
         m_stream = nullptr;
     }
 
-    disconnect(pulseEngine, &QPulseAudioEngine::contextFailed, this, &QPulseAudioSource::onPulseContextFailed);
+    disconnect(pulseEngine, &QPulseAudioEngine::contextFailed, this,
+               &QPulseAudioSource::onPulseContextFailed);
 
     if (!m_pullMode && m_audioSource) {
         delete m_audioSource;
@@ -351,7 +357,8 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
 
         if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg))) {
             auto readableSize = pa_stream_readable_size(m_stream);
-            qCDebug(qLcPulseAudioIn) << "QPulseAudioSource::read -- " << readableSize << " bytes available from pulse audio";
+            qCDebug(qLcPulseAudioIn) << "QPulseAudioSource::read -- " << readableSize
+                                     << " bytes available from pulse audio";
         }
 
         QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
@@ -359,9 +366,9 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
 
         const void *audioBuffer;
 
-        // Second and third parameters (audioBuffer and length) to pa_stream_peek are output parameters,
-        // the audioBuffer pointer is set to point to the actual pulse audio data,
-        // and the length is set to the length of this data.
+        // Second and third parameters (audioBuffer and length) to pa_stream_peek are output
+        // parameters, the audioBuffer pointer is set to point to the actual pulse audio data, and
+        // the length is set to the length of this data.
         if (pa_stream_peek(m_stream, &audioBuffer, &readLength) < 0) {
             qWarning() << "pa_stream_peek() failed:" << currentError(m_stream);
             pulseEngine->unlock();
@@ -384,16 +391,19 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
             applyVolume(audioBuffer, data + readBytes, actualLength);
         }
 
-        qCDebug(qLcPulseAudioIn) << "QPulseAudioSource::read -- wrote " << actualLength << " to client";
+        qCDebug(qLcPulseAudioIn) << "QPulseAudioSource::read -- wrote " << actualLength
+                                 << " to client";
 
         if (actualLength < qint64(readLength)) {
             int diff = readLength - actualLength;
             int oldSize = m_tempBuffer.size();
 
-            qCDebug(qLcPulseAudioIn) << "QPulseAudioSource::read -- appending " << diff << " bytes of data to temp buffer";
+            qCDebug(qLcPulseAudioIn) << "QPulseAudioSource::read -- appending " << diff
+                                     << " bytes of data to temp buffer";
 
             m_tempBuffer.resize(m_tempBuffer.size() + diff);
-            applyVolume(static_cast<const char *>(audioBuffer) + actualLength, m_tempBuffer.data() + oldSize, diff);
+            applyVolume(static_cast<const char *>(audioBuffer) + actualLength,
+                        m_tempBuffer.data() + oldSize, diff);
             QMetaObject::invokeMethod(this, "userFeed", Qt::QueuedConnection);
         }
 
@@ -407,7 +417,8 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
             break;
     }
 
-    qCDebug(qLcPulseAudioIn) << "QPulseAudioSource::read -- returning after reading " << readBytes << " bytes";
+    qCDebug(qLcPulseAudioIn) << "QPulseAudioSource::read -- returning after reading " << readBytes
+                             << " bytes";
 
     return readBytes;
 }
@@ -468,8 +479,8 @@ qint64 QPulseAudioSource::processedUSecs() const
     pa_usec_t usecs = 0;
     int result = pa_stream_get_time(m_stream, &usecs);
     Q_UNUSED(result);
-//    if (result != 0)
-//        qWarning() << "no timing info from pulse";
+    //if (result != 0)
+    //    qWarning() << "no timing info from pulse";
 
     return usecs;
 }
@@ -501,17 +512,17 @@ void QPulseAudioSource::userFeed()
     if (!m_stateMachine.isActiveOrIdle())
         return;
 
-//    if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg)) {
-//        QTime now(QTime::currentTime());
-//        qCDebug(qLcPulseAudioIn) << now.second() << "s " << now.msec() << "ms :userFeed() IN";
-//    }
+    //if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg)) {
+    //    QTime now(QTime::currentTime());
+    //    qCDebug(qLcPulseAudioIn) << now.second() << "s " << now.msec() << "ms :userFeed() IN";
+    //}
 
-   if (m_pullMode) {
+    if (m_pullMode) {
         // reads some audio data and writes it to QIODevice
-        read(nullptr,0);
+        read(nullptr, 0);
     } else if (m_audioSource != nullptr) {
         // emits readyRead() so user will call read() on QIODevice to get some audio data
-        PulseInputPrivate *a = qobject_cast<PulseInputPrivate*>(m_audioSource);
+        PulseInputPrivate *a = qobject_cast<PulseInputPrivate *>(m_audioSource);
         a->trigger();
     }
 }
@@ -530,7 +541,7 @@ void QPulseAudioSource::onPulseContextFailed()
 
 PulseInputPrivate::PulseInputPrivate(QPulseAudioSource *audio)
 {
-    m_audioDevice = qobject_cast<QPulseAudioSource*>(audio);
+    m_audioDevice = qobject_cast<QPulseAudioSource *>(audio);
 }
 
 qint64 PulseInputPrivate::readData(char *data, qint64 len)
