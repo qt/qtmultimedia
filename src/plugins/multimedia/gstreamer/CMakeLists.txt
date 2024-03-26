@@ -33,6 +33,7 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         qgstreamervideodevices.cpp qgstreamervideodevices_p.h
         qgstreamerformatinfo.cpp qgstreamerformatinfo_p.h
         qgstreamerintegration.cpp qgstreamerintegration_p.h
+        qgstreamerplugin.cpp
         mediacapture/qgstreamercamera.cpp mediacapture/qgstreamercamera_p.h
         mediacapture/qgstreamerimagecapture.cpp mediacapture/qgstreamerimagecapture_p.h
         mediacapture/qgstreamermediacapture.cpp mediacapture/qgstreamermediacapture_p.h
