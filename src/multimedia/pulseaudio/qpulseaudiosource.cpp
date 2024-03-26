@@ -220,19 +220,19 @@ bool QPulseAudioSource::open()
 
     int flags = 0;
     pa_buffer_attr buffer_attr;
-    buffer_attr.maxlength = (uint32_t) -1;
-    buffer_attr.prebuf = (uint32_t) -1;
-    buffer_attr.tlength = (uint32_t) -1;
-    buffer_attr.minreq = (uint32_t) -1;
+    buffer_attr.maxlength = static_cast<uint32_t>(-1);
+    buffer_attr.prebuf = static_cast<uint32_t>(-1);
+    buffer_attr.tlength = static_cast<uint32_t>(-1);
+    buffer_attr.minreq = static_cast<uint32_t>(-1);
     flags |= PA_STREAM_ADJUST_LATENCY;
 
     if (m_bufferSize > 0)
-        buffer_attr.fragsize = (uint32_t) m_bufferSize;
+        buffer_attr.fragsize = static_cast<uint32_t>(m_bufferSize);
     else
-        buffer_attr.fragsize = (uint32_t) m_periodSize;
+        buffer_attr.fragsize = static_cast<uint32_t>(m_periodSize);
 
     flags |= PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_INTERPOLATE_TIMING;
-    if (pa_stream_connect_record(m_stream, m_device.data(), &buffer_attr, (pa_stream_flags_t)flags) < 0) {
+    if (pa_stream_connect_record(m_stream, m_device.data(), &buffer_attr, static_cast<pa_stream_flags_t>(flags)) < 0) {
         qWarning() << "pa_stream_connect_record() failed!";
         pa_stream_unref(m_stream);
         m_stream = nullptr;
@@ -255,7 +255,7 @@ bool QPulseAudioSource::open()
     const pa_buffer_attr *actualBufferAttr = pa_stream_get_buffer_attr(m_stream);
     m_periodSize = actualBufferAttr->fragsize;
     m_periodTime = pa_bytes_to_usec(m_periodSize, &spec) / 1000;
-    if (actualBufferAttr->tlength != (uint32_t)-1)
+    if (actualBufferAttr->tlength != static_cast<uint32_t>(-1))
         m_bufferSize = actualBufferAttr->tlength;
 
     pulseEngine->unlock();
