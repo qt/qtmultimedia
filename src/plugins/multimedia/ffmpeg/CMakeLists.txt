@@ -81,6 +81,14 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
 )
 
 if (LINUX OR ANDROID)
+    # We have 2 options: link shared stubs to QFFmpegMediaPlugin vs
+    # static compilation of the needed stubs to the FFmpeg plugin.
+    # Currently, we chose the second option so that user could trivially
+    # remove the FFmpeg libs we ship.
+    # Set QT_LINK_STUBS_TO_FFMPEG_PLUGIN = TRUE to change the behavior.
+
+    # set(QT_LINK_STUBS_TO_FFMPEG_PLUGIN TRUE)
+
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtAddFFmpegStubs.cmake")
     qt_internal_multimedia_add_ffmpeg_stubs()
 endif()
@@ -97,8 +105,11 @@ if (QT_FEATURE_vaapi)
             EGL::EGL
     )
 
-    qt_internal_multimedia_find_vaapi_soversion()
-    qt_internal_multimedia_add_private_stub_to_plugin("va")
+    list(FIND FFMPEG_STUBS "va" va_stub_index)
+    if (NOT QT_LINK_STUBS_TO_FFMPEG_PLUGIN AND (FFMPEG_SHARED_LIBRARIES OR ${va_stub_index} EQUAL -1))
+        qt_internal_multimedia_find_vaapi_soversion()
+        qt_internal_multimedia_add_private_stub_to_plugin("va")
+    endif()
 endif()
 
 
@@ -241,3 +252,4 @@ if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND BUILD_SHARED_LIBS)
 endif()
 
 qt_internal_extend_target(QFFmpegMediaPlugin LIBRARIES ${ffmpeg_libs})
+

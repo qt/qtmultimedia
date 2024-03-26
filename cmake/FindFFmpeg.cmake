@@ -236,7 +236,13 @@ function(qt_internal_multimedia_try_add_dynamic_resolve_dependency _component de
 
   set(supported_stubs "ssl|crypto|va|va-drm|va-x11")
   if(${_component}_SHARED_LIBRARIES)
-    # to be implemented
+    set(stub_prefix "Qt${PROJECT_VERSION_MAJOR}FFmpegStub-")
+    if (${dep} MATCHES "^${stub_prefix}(${supported_stubs})$")
+      string(REPLACE "${stub_prefix}" "" dep "${dep}")
+      set(FFMPEG_STUBS ${FFMPEG_STUBS} ${dep} CACHE INTERNAL "")
+
+      set(dynamic_resolve_added TRUE PARENT_SCOPE)
+    endif()
   elseif (${dep} MATCHES "^(${supported_stubs})$")
     set(FFMPEG_STUBS ${FFMPEG_STUBS} ${dep} CACHE INTERNAL "")
     set(dynamic_resolve_added TRUE PARENT_SCOPE)
