@@ -35,8 +35,9 @@ public:
     }
     void setFrameSize(int frameSize)
     {
-        m_bufferSize.storeRelease(frameSize > 0 ? m_format.bytesForFrames(frameSize)
-                                                : DefaultAudioInputBufferSize);
+        m_bufferSize.storeRelease((frameSize > 0 && m_format.isValid())
+                                          ? m_format.bytesForFrames(frameSize)
+                                          : DefaultAudioInputBufferSize);
     }
     void setRunning(bool r) {
         QMutexLocker locker(&m_mutex);
