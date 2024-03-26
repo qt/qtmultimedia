@@ -1,20 +1,21 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <qgstreamercamera_p.h>
+#include <mediacapture/qgstreamercamera_p.h>
 
-#include <qcameradevice.h>
-#include <qgst_debug_p.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtCore/qdebug.h>
+
+#include <common/qgst_debug_p.h>
 #include <qgstreamervideodevices_p.h>
 #include <qgstreamerintegration_p.h>
-#include <qmediacapturesession.h>
 
 #if QT_CONFIG(linux_v4l)
 #include <linux/videodev2.h>
 #include <private/qcore_unix_p.h>
 #endif
 
-#include <QtCore/qdebug.h>
 
 QT_BEGIN_NAMESPACE
 

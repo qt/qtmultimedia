@@ -1,19 +1,18 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qgstreamerintegration_p.h"
-#include "qgstreamervideodevices_p.h"
-#include "qgstreamermediaplayer_p.h"
-#include "qgstreamermediacapture_p.h"
-#include "qgstreameraudiodecoder_p.h"
-#include "qgstreamercamera_p.h"
-#include "qgstreamermediaencoder_p.h"
-#include "qgstreamerimagecapture_p.h"
-#include "qgstreamerformatinfo_p.h"
-#include "qgstreamervideosink_p.h"
-#include "qgstreameraudioinput_p.h"
-#include "qgstreameraudiooutput_p.h"
-#include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <qgstreamerintegration_p.h>
+#include <qgstreamerformatinfo_p.h>
+#include <qgstreamervideodevices_p.h>
+#include <audio/qgstreameraudiodecoder_p.h>
+#include <common/qgstreameraudioinput_p.h>
+#include <common/qgstreameraudiooutput_p.h>
+#include <common/qgstreamermediaplayer_p.h>
+#include <common/qgstreamervideosink_p.h>
+#include <mediacapture/qgstreamercamera_p.h>
+#include <mediacapture/qgstreamerimagecapture_p.h>
+#include <mediacapture/qgstreamermediacapture_p.h>
+#include <mediacapture/qgstreamermediaencoder_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -105,5 +104,3 @@ GstDevice *QGstreamerIntegration::videoDevice(const QByteArray &id)
 }
 
 QT_END_NAMESPACE
-
-#include "qgstreamerintegration.moc"

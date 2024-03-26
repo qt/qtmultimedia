@@ -2,20 +2,21 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qgstreamerimagecapture_p.h"
-#include <private/qplatformcamera_p.h>
-#include <private/qplatformimagecapture_p.h>
-#include <qgstvideobuffer_p.h>
-#include <qgstutils_p.h>
-#include <qgstreamermetadata_p.h>
-#include <qvideoframeformat.h>
-#include <private/qmediastoragelocation_p.h>
 
-#include <QtCore/QDebug>
-#include <QtCore/QDir>
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qstandardpaths.h>
+#include <QtCore/qloggingcategory.h>
+
+#include <common/qgstreamermetadata_p.h>
+#include <common/qgstvideobuffer_p.h>
+#include <common/qgstutils_p.h>
+
 #include <utility>
-#include <qstandardpaths.h>
-
-#include <qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 

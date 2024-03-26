@@ -19,7 +19,7 @@
 #include <private/qabstractvideobuffer_p.h>
 #include <QtCore/qvariant.h>
 
-#include <qgst_p.h>
+#include <common/qgst_p.h>
 #include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE

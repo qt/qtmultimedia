@@ -12,7 +12,7 @@
 #include <gst/video/gstvideometa.h>
 #include <gst/pbutils/gstpluginsbaseversion.h>
 
-#include "qgstutils_p.h"
+#include <common/qgstutils_p.h>
 
 #if QT_CONFIG(gstreamer_gl)
 #  include <QtGui/rhi/qrhi.h>

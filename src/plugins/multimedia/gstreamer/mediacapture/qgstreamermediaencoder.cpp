@@ -1,21 +1,22 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qgstreamermediaencoder_p.h"
-#include "qgstreamerintegration_p.h"
-#include "qgstreamerformatinfo_p.h"
-#include "qgstpipeline_p.h"
-#include "qgstreamermessage_p.h"
-#include "qgst_debug_p.h"
-#include <private/qplatformcamera_p.h>
-#include "qaudiodevice.h"
-#include <private/qmediastoragelocation_p.h>
+#include <mediacapture/qgstreamermediaencoder_p.h>
+#include <qgstreamerformatinfo_p.h>
+#include <common/qgstpipeline_p.h>
+#include <common/qgstreamermessage_p.h>
+#include <common/qgst_debug_p.h>
+#include <qgstreamerintegration_p.h>
 
-#include <qdebug.h>
-#include <qeventloop.h>
-#include <qstandardpaths.h>
-#include <qmimetype.h>
-#include <qloggingcategory.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qeventloop.h>
+#include <QtCore/qstandardpaths.h>
+#include <QtCore/qmimetype.h>
+#include <QtCore/qloggingcategory.h>
 
 #include <gst/gsttagsetter.h>
 #include <gst/gstversion.h>

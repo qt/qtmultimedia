@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qgst_handle_types_p.h"
+#include <common/qgst_handle_types_p.h>
 
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qmultimediautils_p.h>
