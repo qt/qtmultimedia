@@ -1,27 +1,27 @@
 // Copyright (C) 2016 Jolla Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <qvideoframe.h>
-#include <qvideosink.h>
-#include <QtCore/QDebug>
-#include <QtCore/QMap>
-#include <QtCore/QThread>
-#include <QtCore/QEvent>
-#include <QtCore/QCoreApplication>
-#include <QtCore/private/quniquehandle_p.h>
-
-#include <private/qfactoryloader_p.h>
-#include <qgstvideobuffer_p.h>
-#include <qgstreamervideosink_p.h>
-#include <qgst_debug_p.h>
-#include <qgstutils_p.h>
-
 #include "qgstvideorenderersink_p.h"
+
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtCore/private/qfactoryloader_p.h>
+#include <QtCore/private/quniquehandle_p.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qthread.h>
+#include <QtGui/qevent.h>
+
+#include <common/qgstvideobuffer_p.h>
+#include <common/qgstreamervideosink_p.h>
+#include <common/qgst_debug_p.h>
+#include <common/qgstutils_p.h>
 
 #include <gst/video/video.h>
 #include <gst/video/gstvideometa.h>
-#include <qloggingcategory.h>
-#include <qdebug.h>
 
 
 #include <rhi/qrhi.h>

@@ -4,11 +4,11 @@
 #include "qgstreamervideooverlay_p.h"
 
 #include <QtGui/qguiapplication.h>
-#include "qglist_helper_p.h"
+#include <common/qglist_helper_p.h>
 #include "qgst_p.h"
 #include "qgstreamermessage_p.h"
 #include "qgstreamervideosink_p.h"
-#include "qgstutils_p.h"
+#include <common/qgstutils_p.h>
 
 #include <gst/video/videooverlay.h>
 

@@ -1,15 +1,14 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qgstreamermediacapture_p.h"
-#include "qgstreamermediaencoder_p.h"
-#include "qgstreamerimagecapture_p.h"
-#include "qgstreamercamera_p.h"
-#include <qgstpipeline_p.h>
-
-#include "qgstreameraudioinput_p.h"
-#include "qgstreameraudiooutput_p.h"
-#include "qgstreamervideooutput_p.h"
+#include <mediacapture/qgstreamermediacapture_p.h>
+#include <mediacapture/qgstreamermediaencoder_p.h>
+#include <mediacapture/qgstreamerimagecapture_p.h>
+#include <mediacapture/qgstreamercamera_p.h>
+#include <common/qgstpipeline_p.h>
+#include <common/qgstreameraudioinput_p.h>
+#include <common/qgstreameraudiooutput_p.h>
+#include <common/qgstreamervideooutput_p.h>
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/quniquehandle_p.h>
