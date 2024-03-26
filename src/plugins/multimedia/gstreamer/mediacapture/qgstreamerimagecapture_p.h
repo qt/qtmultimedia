@@ -17,12 +17,12 @@
 
 #include <private/qplatformimagecapture_p.h>
 #include <private/qmultimediautils_p.h>
-#include "qgstreamermediacapture_p.h"
-#include "qgstreamerbufferprobe_p.h"
 
 #include <qqueue.h>
 
-#include <qgst_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstreamerbufferprobe_p.h>
+#include <mediacapture/qgstreamermediacapture_p.h>
 #include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE

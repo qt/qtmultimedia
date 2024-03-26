@@ -19,7 +19,7 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qmap.h>
 #include <QtCore/qset.h>
-#include <qgst_p.h>
+#include <common/qgst_p.h>
 #include <gst/video/video.h>
 #include <qaudioformat.h>
 #include <qcamera.h>

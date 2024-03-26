@@ -18,7 +18,7 @@
 #include <private/qplatformmediaformatinfo_p.h>
 #include <qhash.h>
 #include <qlist.h>
-#include <qgstutils_p.h>
+#include <common/qgstutils_p.h>
 
 QT_BEGIN_NAMESPACE
 

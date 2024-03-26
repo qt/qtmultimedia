@@ -43,10 +43,6 @@ qt_internal_add_plugin(QGstreamerMediaPlugin
         common/qgstreamervideosink.cpp
     DEFINES
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
-    INCLUDE_DIRECTORIES
-        audio
-        common
-        mediacapture
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate

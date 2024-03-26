@@ -29,8 +29,9 @@
 #include "qaudiodevice.h"
 #include <private/qaudiosystem_p.h>
 
-#include <qgstutils_p.h>
-#include <qgstpipeline_p.h>
+#include <common/qgstutils_p.h>
+#include <common/qgstpipeline_p.h>
+
 #include <gst/app/gstappsink.h>
 
 QT_BEGIN_NAMESPACE

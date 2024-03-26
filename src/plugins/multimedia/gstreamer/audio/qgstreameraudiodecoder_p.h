@@ -15,21 +15,21 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformaudiodecoder_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <QObject>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qurl.h>
 
-#include <private/qplatformaudiodecoder_p.h>
-#include <private/qmultimediautils_p.h>
-#include <qgstpipeline_p.h>
-#include "qaudiodecoder.h"
+#include <common/qgstpipeline_p.h>
+#include <common/qgst_p.h>
 
 #if QT_CONFIG(gstreamer_app)
-#include <qgstappsrc_p.h>
+#  include <common/qgstappsrc_p.h>
 #endif
 
-#include <qgst_p.h>
 #include <gst/app/gstappsink.h>
 
 QT_BEGIN_NAMESPACE

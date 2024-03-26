@@ -4,18 +4,18 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmath.h>
-#include <private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
 
-#include "qgstreameraudiosink_p.h"
-#include "qgstreameraudiodevice_p.h"
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <qgst_debug_p.h>
-#include <qgstappsrc_p.h>
-#include <qgstpipeline_p.h>
-#include <qgstreamermessage_p.h>
-#include <qgstutils_p.h>
+#include <audio/qgstreameraudiosink_p.h>
+#include <audio/qgstreameraudiodevice_p.h>
+#include <common/qgst_debug_p.h>
+#include <common/qgstappsrc_p.h>
+#include <common/qgstpipeline_p.h>
+#include <common/qgstreamermessage_p.h>
+#include <common/qgstutils_p.h>
 
 #include <utility>
 

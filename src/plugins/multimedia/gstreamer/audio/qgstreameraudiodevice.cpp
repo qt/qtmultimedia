@@ -3,7 +3,7 @@
 
 #include "qgstreameraudiodevice_p.h"
 
-#include <qgstutils_p.h>
+#include <common/qgstutils_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
