@@ -166,90 +166,74 @@ void QGstPipelinePrivate::removeMessageFilter(QGstreamerBusMessageFilter *filter
         busFilters.removeAll(filter);
 }
 
-QGstPipeline::QGstPipeline(const QGstPipeline &o)
-    : QGstBin(o.bin(), NeedsRef),
-    d(o.d)
-{
-    if (d)
-        d->ref();
-}
-
-QGstPipeline &QGstPipeline::operator=(const QGstPipeline &o)
-{
-    if (this == &o)
-        return *this;
-    if (o.d)
-        o.d->ref();
-    if (d)
-        d->deref();
-    QGstBin::operator=(o);
-    d = o.d;
-    return *this;
-}
-
 QGstPipeline QGstPipeline::create(const char *name)
 {
+    GstPipeline *pipeline = qGstCheckedCast<GstPipeline>(gst_pipeline_new(name));
+
+    QGstPipelinePrivate *d = new QGstPipelinePrivate(gst_pipeline_get_bus(pipeline));
+    g_object_set_data_full(qGstCheckedCast<GObject>(pipeline), "pipeline-private", d,
+                           [](gpointer ptr) {
+                               delete reinterpret_cast<QGstPipelinePrivate *>(ptr);
+                               return;
+                           });
+
     return QGstPipeline{
-        GST_PIPELINE(gst_pipeline_new(name)),
+        pipeline,
+        QGstPipeline::NeedsRef,
     };
 }
 
-QGstPipeline::QGstPipeline(GstPipeline *p)
-    : QGstBin(&p->bin, NeedsRef)
+QGstPipeline::QGstPipeline(GstPipeline *p, RefMode mode) : QGstBin(qGstCheckedCast<GstBin>(p), mode)
 {
-    d = new QGstPipelinePrivate(gst_pipeline_get_bus(pipeline()));
-    d->ref();
 }
 
-QGstPipeline::~QGstPipeline()
-{
-    if (d)
-        d->deref();
-}
+QGstPipeline::~QGstPipeline() = default;
 
 bool QGstPipeline::inStoppedState() const
 {
-    Q_ASSERT(d);
+    QGstPipelinePrivate *d = getPrivate();
     return d->inStoppedState;
 }
 
 void QGstPipeline::setInStoppedState(bool stopped)
 {
-    Q_ASSERT(d);
+    QGstPipelinePrivate *d = getPrivate();
     d->inStoppedState = stopped;
 }
 
 void QGstPipeline::setFlushOnConfigChanges(bool flush)
 {
+    QGstPipelinePrivate *d = getPrivate();
     d->m_flushOnConfigChanges = flush;
 }
 
 void QGstPipeline::installMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
-    Q_ASSERT(d);
+    QGstPipelinePrivate *d = getPrivate();
     d->installMessageFilter(filter);
 }
 
 void QGstPipeline::removeMessageFilter(QGstreamerSyncMessageFilter *filter)
 {
-    Q_ASSERT(d);
+    QGstPipelinePrivate *d = getPrivate();
     d->removeMessageFilter(filter);
 }
 
 void QGstPipeline::installMessageFilter(QGstreamerBusMessageFilter *filter)
 {
-    Q_ASSERT(d);
+    QGstPipelinePrivate *d = getPrivate();
     d->installMessageFilter(filter);
 }
 
 void QGstPipeline::removeMessageFilter(QGstreamerBusMessageFilter *filter)
 {
-    Q_ASSERT(d);
+    QGstPipelinePrivate *d = getPrivate();
     d->removeMessageFilter(filter);
 }
 
 GstStateChangeReturn QGstPipeline::setState(GstState state)
 {
+    QGstPipelinePrivate *d = getPrivate();
     auto retval = gst_element_set_state(element(), state);
     if (d->m_pendingFlush) {
         d->m_pendingFlush = false;
@@ -268,8 +252,7 @@ void QGstPipeline::dumpGraph(const char *fileName)
 
 void QGstPipeline::beginConfig()
 {
-    if (!d)
-        return;
+    QGstPipelinePrivate *d = getPrivate();
     Q_ASSERT(!isNull());
 
     ++d->m_configCounter;
@@ -283,8 +266,7 @@ void QGstPipeline::beginConfig()
 
 void QGstPipeline::endConfig()
 {
-    if (!d)
-        return;
+    QGstPipelinePrivate *d = getPrivate();
     Q_ASSERT(!isNull());
 
     --d->m_configCounter;
@@ -300,11 +282,13 @@ void QGstPipeline::endConfig()
 
 void QGstPipeline::flush()
 {
+    QGstPipelinePrivate *d = getPrivate();
     seek(position(), d->m_rate);
 }
 
 bool QGstPipeline::seek(qint64 pos, double rate)
 {
+    QGstPipelinePrivate *d = getPrivate();
     // always adjust the rate, so it can be  set before playback starts
     // setting position needs a loaded media file that's seekable
     d->m_rate = rate;
@@ -323,6 +307,7 @@ bool QGstPipeline::seek(qint64 pos, double rate)
 
 bool QGstPipeline::setPlaybackRate(double rate)
 {
+    QGstPipelinePrivate *d = getPrivate();
     if (rate == d->m_rate)
         return false;
 
@@ -343,17 +328,20 @@ bool QGstPipeline::setPlaybackRate(double rate)
 
 double QGstPipeline::playbackRate() const
 {
+    QGstPipelinePrivate *d = getPrivate();
     return d->m_rate;
 }
 
 bool QGstPipeline::setPosition(qint64 pos)
 {
+    QGstPipelinePrivate *d = getPrivate();
     return seek(pos, d->m_rate);
 }
 
 qint64 QGstPipeline::position() const
 {
     gint64 pos;
+    QGstPipelinePrivate *d = getPrivate();
     if (gst_element_query_position(element(), GST_FORMAT_TIME, &pos))
         d->m_position = pos;
     return d->m_position;
@@ -364,6 +352,14 @@ qint64 QGstPipeline::duration() const
     gint64 d;
     if (!gst_element_query_duration(element(), GST_FORMAT_TIME, &d))
         return 0.;
+    return d;
+}
+
+QGstPipelinePrivate *QGstPipeline::getPrivate() const
+{
+    gpointer p = g_object_get_data(qGstCheckedCast<GObject>(object()), "pipeline-private");
+    auto *d = reinterpret_cast<QGstPipelinePrivate *>(p);
+    Q_ASSERT(d);
     return d;
 }
 
