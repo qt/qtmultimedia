@@ -343,7 +343,7 @@ void QPulseAudioEngine::prepare()
 
     pa_context_set_state_callback(m_context, contextStateCallbackInit, this);
 
-    if (pa_context_connect(m_context, nullptr, (pa_context_flags_t)0, nullptr) < 0) {
+    if (pa_context_connect(m_context, nullptr, static_cast<pa_context_flags_t>(0), nullptr) < 0) {
         qWarning() << "PulseAudioService: pa_context_connect() failed";
         pa_context_unref(m_context);
         pa_threaded_mainloop_unlock(m_mainLoop);
