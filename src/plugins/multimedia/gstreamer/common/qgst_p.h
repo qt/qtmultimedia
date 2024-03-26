@@ -80,6 +80,27 @@ QGST_DEFINE_CAST_TRAITS(GstElement, ELEMENT);
 QGST_DEFINE_CAST_TRAITS(GstBin, BIN);
 QGST_DEFINE_CAST_TRAITS(GstPad, PAD);
 
+template <>
+struct GstObjectTraits<GObject>
+{
+    using Type = GObject;
+    template <typename U>
+    static bool isObjectOfType(U *arg)
+    {
+        return G_IS_OBJECT(arg);
+    }
+    template <typename U>
+    static Type *cast(U *arg)
+    {
+        return G_OBJECT(arg);
+    }
+    template <typename U>
+    static Type *checked_cast(U *arg)
+    {
+        return G_OBJECT(arg);
+    }
+};
+
 #undef QGST_DEFINE_CAST_TRAITS
 
 } // namespace QGstImpl
@@ -315,8 +336,6 @@ public:
     QGstObject(const QGstObject &) = default;
     QGstObject(QGstObject &&) noexcept = default;
 
-    virtual ~QGstObject() = default;
-
     QGstObject &operator=(const QGstObject &) = default;
     QGstObject &operator=(QGstObject &&) noexcept = default;
 
@@ -435,6 +454,8 @@ public:
     GstClockTime time() const;
 };
 
+class QGstPipeline;
+
 class QGstElement : public QGstObject
 {
 public:
@@ -503,6 +524,9 @@ public:
     void setBaseTime(GstClockTime time) const;
 
     GstElement *element() const;
+
+    QGstElement getParent() const;
+    QGstPipeline getPipeline() const;
 };
 
 template <typename... Ts>

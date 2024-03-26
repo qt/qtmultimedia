@@ -41,13 +41,14 @@ class QGstPipelinePrivate;
 
 class QGstPipeline : public QGstBin
 {
-    QGstPipelinePrivate *d = nullptr;
 public:
     constexpr QGstPipeline() = default;
-    QGstPipeline(const QGstPipeline &o);
-    QGstPipeline &operator=(const QGstPipeline &o);
-    explicit QGstPipeline(GstPipeline *p);
-    ~QGstPipeline() override;
+    QGstPipeline(const QGstPipeline &) = default;
+    QGstPipeline(QGstPipeline &&) = default;
+    QGstPipeline &operator=(const QGstPipeline &) = default;
+    QGstPipeline &operator=(QGstPipeline &&) noexcept = default;
+    QGstPipeline(GstPipeline *, RefMode mode);
+    ~QGstPipeline();
 
     static QGstPipeline create(const char *name);
 
@@ -92,6 +93,8 @@ public:
     qint64 duration() const;
 
 private:
+    QGstPipelinePrivate *getPrivate() const;
+
     void beginConfig();
     void endConfig();
 };

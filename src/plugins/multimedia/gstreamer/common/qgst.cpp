@@ -3,6 +3,7 @@
 
 #include <common/qgst_p.h>
 #include <common/qgst_debug_p.h>
+#include <common/qgstpipeline_p.h>
 #include <common/qgstreamermessage_p.h>
 
 #include <QtCore/qdebug.h>
@@ -850,6 +851,31 @@ void QGstElement::setBaseTime(GstClockTime time) const
 GstElement *QGstElement::element() const
 {
     return GST_ELEMENT_CAST(get());
+}
+
+QGstElement QGstElement::getParent() const
+{
+    return QGstElement{
+        qGstCheckedCast<GstElement>(gst_element_get_parent(object())),
+        QGstElement::HasRef,
+    };
+}
+
+QGstPipeline QGstElement::getPipeline() const
+{
+    QGstElement ancestor = *this;
+    for (;;) {
+        QGstElement greatAncestor = ancestor.getParent();
+        if (greatAncestor) {
+            ancestor = std::move(greatAncestor);
+            continue;
+        }
+
+        return QGstPipeline{
+            qGstSafeCast<GstPipeline>(ancestor.element()),
+            QGstPipeline::NeedsRef,
+        };
+    }
 }
 
 // QGstBin
