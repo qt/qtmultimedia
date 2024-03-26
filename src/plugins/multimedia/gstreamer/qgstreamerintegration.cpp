@@ -16,22 +16,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerMediaPlugin : public QPlatformMediaPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID QPlatformMediaPlugin_iid FILE "gstreamer.json")
-
-public:
-    QGstreamerMediaPlugin() = default;
-
-    QPlatformMediaIntegration* create(const QString &name) override
-    {
-        if (name == QLatin1String("gstreamer"))
-            return new QGstreamerIntegration;
-        return nullptr;
-    }
-};
-
 QGstreamerIntegration::QGstreamerIntegration()
 {
     gst_init(nullptr, nullptr);
