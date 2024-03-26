@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 //#define DEBUG_DECODER
 
-#include "qgstreameraudiodecoder_p.h"
-#include "qgstreamermessage_p.h"
-#include "qgst_debug_p.h"
+#include <audio/qgstreameraudiodecoder_p.h>
 
-#include <qgstutils_p.h>
+#include <common/qgstreamermessage_p.h>
+#include <common/qgst_debug_p.h>
+#include <common/qgstutils_p.h>
 
 #include <gst/gstvalue.h>
 #include <gst/base/gstbasesrc.h>

@@ -1,14 +1,13 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include <qgstreameraudioinput_p.h>
-#include <qgstreameraudiodevice_p.h>
-#include <qaudiodevice.h>
-#include <qaudioinput.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioinput.h>
 
 #include <QtCore/qloggingcategory.h>
-#include <QtNetwork/qnetworkaccessmanager.h>
-#include <QtNetwork/qnetworkreply.h>
+
+#include <audio/qgstreameraudiodevice_p.h>
+#include <common/qgstreameraudioinput_p.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

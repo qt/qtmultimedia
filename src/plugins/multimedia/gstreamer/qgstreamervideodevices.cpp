@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
 #include "qgstreamervideodevices_p.h"
-#include "qmediadevices.h"
-#include "private/qcameradevice_p.h"
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
 
-#include "qgstutils_p.h"
-#include "qglist_helper_p.h"
+#include <common/qgstutils_p.h>
+#include <common/qglist_helper_p.h>
 
 QT_BEGIN_NAMESPACE
 

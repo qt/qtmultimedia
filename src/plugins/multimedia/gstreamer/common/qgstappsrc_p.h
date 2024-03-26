@@ -24,7 +24,7 @@
 #include <QtCore/private/qringbuffer_p.h>
 #include <QtCore/qatomic.h>
 
-#include <qgst_p.h>
+#include <common/qgst_p.h>
 #include <gst/app/gstappsrc.h>
 
 QT_BEGIN_NAMESPACE

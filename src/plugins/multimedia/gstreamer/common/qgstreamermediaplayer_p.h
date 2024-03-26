@@ -20,8 +20,8 @@
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qmultimediautils_p.h>
 #include <qurl.h>
-#include <qgst_p.h>
-#include <qgstpipeline_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstpipeline_p.h>
 
 #include <QtCore/qtimer.h>
 

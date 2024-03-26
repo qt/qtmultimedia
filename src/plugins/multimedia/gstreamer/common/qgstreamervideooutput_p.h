@@ -18,12 +18,12 @@
 #include <QtCore/qobject.h>
 #include <private/qtmultimediaglobal_p.h>
 #include <private/qmultimediautils_p.h>
-#include <qgst_p.h>
-#include <qgstpipeline_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstpipeline_p.h>
+#include <common/qgstreamervideosink_p.h>
 #include <qwaitcondition.h>
 #include <qmutex.h>
 #include <qpointer.h>
-#include <qgstreamervideosink_p.h>
 
 QT_BEGIN_NAMESPACE
 

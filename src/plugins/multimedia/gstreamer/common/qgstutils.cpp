@@ -1,7 +1,7 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include "qgstutils_p.h"
+#include <common/qgstutils_p.h>
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 

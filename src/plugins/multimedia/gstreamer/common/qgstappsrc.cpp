@@ -4,7 +4,7 @@
 #include <QDebug>
 
 #include "qgstappsrc_p.h"
-#include "qgstutils_p.h"
+#include <common/qgstutils_p.h>
 #include "qnetworkreply.h"
 #include "qloggingcategory.h"
 

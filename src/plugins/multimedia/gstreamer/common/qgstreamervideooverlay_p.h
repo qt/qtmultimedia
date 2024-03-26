@@ -15,9 +15,9 @@
 // We mean it.
 //
 
-#include <qgstpipeline_p.h>
-#include <qgstreamerbufferprobe_p.h>
-#include <qgst_p.h>
+#include <common/qgstpipeline_p.h>
+#include <common/qgstreamerbufferprobe_p.h>
+#include <common/qgst_p.h>
 #include <QtGui/qwindowdefs.h>
 
 QT_BEGIN_NAMESPACE

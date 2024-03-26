@@ -21,8 +21,8 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qaudiodevice.h>
 
-#include <qgst_p.h>
-#include <qgstpipeline_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstpipeline_p.h>
 
 QT_BEGIN_NAMESPACE
 

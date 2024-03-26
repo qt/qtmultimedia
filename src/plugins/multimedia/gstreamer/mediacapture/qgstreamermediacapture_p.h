@@ -18,8 +18,8 @@
 #include <private/qplatformmediacapture_p.h>
 #include <private/qplatformmediaintegration_p.h>
 
-#include <qgst_p.h>
-#include <qgstpipeline_p.h>
+#include <common/qgst_p.h>
+#include <common/qgstpipeline_p.h>
 
 #include <qtimer.h>
 

@@ -1,7 +1,7 @@
 // Copyright (C) 2016 Jolla Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include "qgstreamerbufferprobe_p.h"
+#include <common/qgstreamerbufferprobe_p.h>
 
 QT_BEGIN_NAMESPACE
 

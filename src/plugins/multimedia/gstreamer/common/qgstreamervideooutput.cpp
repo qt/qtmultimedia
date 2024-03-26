@@ -1,13 +1,14 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include <qgstreamervideooutput_p.h>
-#include <qgstreamervideosink_p.h>
-#include <qgstsubtitlesink_p.h>
-#include <qvideosink.h>
+#include <QtMultimedia/qvideosink.h>
 
 #include <QtCore/qloggingcategory.h>
-#include <qthread.h>
+#include <QtCore/qthread.h>
+
+#include <common/qgstreamervideooutput_p.h>
+#include <common/qgstreamervideosink_p.h>
+#include <common/qgstsubtitlesink_p.h>
 
 static Q_LOGGING_CATEGORY(qLcMediaVideoOutput, "qt.multimedia.videooutput")
 

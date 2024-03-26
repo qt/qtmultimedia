@@ -20,7 +20,7 @@
 #include <qaudiodevice.h>
 #include <vector>
 
-#include "qgst_handle_types_p.h"
+#include <common/qgst_handle_types_p.h>
 
 QT_BEGIN_NAMESPACE
 

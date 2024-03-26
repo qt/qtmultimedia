@@ -22,7 +22,7 @@
 #include <QtCore/qqueue.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qwaitcondition.h>
-#include <qgst_p.h>
+#include <common/qgst_p.h>
 #include <gst/base/gstbasesink.h>
 
 QT_BEGIN_NAMESPACE

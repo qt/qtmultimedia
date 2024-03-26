@@ -21,8 +21,9 @@
 
 #include "qaudio.h"
 #include "qaudiodevice.h"
-#include "qgst_handle_types_p.h"
 #include <private/qaudiodevice_p.h>
+
+#include <common/qgst_handle_types_p.h>
 
 #include <gst/gst.h>
 

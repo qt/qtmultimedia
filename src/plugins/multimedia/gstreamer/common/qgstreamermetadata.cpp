@@ -8,7 +8,7 @@
 #include <QtCore/qtimezone.h>
 
 #include <gst/gstversion.h>
-#include <qgstutils_p.h>
+#include <common/qgstutils_p.h>
 #include <qlocale.h>
 
 QT_BEGIN_NAMESPACE

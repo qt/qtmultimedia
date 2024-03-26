@@ -1,11 +1,11 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include "qgstreamervideosink_p.h"
-#include "qgstvideorenderersink_p.h"
-#include "qgstsubtitlesink_p.h"
-#include <qgst_debug_p.h>
-#include <qgstutils_p.h>
+#include <common/qgstreamervideosink_p.h>
+#include <common/qgstvideorenderersink_p.h>
+#include <common/qgstsubtitlesink_p.h>
+#include <common/qgst_debug_p.h>
+#include <common/qgstutils_p.h>
 #include <QtGui/private/qrhi_p.h>
 
 #if QT_CONFIG(gstreamer_gl)

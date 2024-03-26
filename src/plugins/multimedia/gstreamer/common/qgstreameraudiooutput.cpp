@@ -1,11 +1,11 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include <qgstreameraudiooutput_p.h>
-#include <qgstreameraudiodevice_p.h>
-#include <qaudiodevice.h>
-#include <qaudiooutput.h>
+#include <common/qgstreameraudiooutput_p.h>
+#include <audio/qgstreameraudiodevice_p.h>
 
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudiooutput.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <utility>
