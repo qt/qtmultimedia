@@ -41,10 +41,11 @@ class QRhiWithThreadGuard : public QObject {
     Q_OBJECT
 public:
     QRhiWithThreadGuard(std::shared_ptr<QRhi> r, std::shared_ptr<AndroidTextureThread> t)
-        : m_rhi(std::move(r)), m_thread(std::move(t)) {}
+        : m_guardRhi(std::move(r)), m_thread(std::move(t)) {}
     ~QRhiWithThreadGuard();
+protected:
+    std::shared_ptr<QRhi> m_guardRhi;
 private:
-    std::shared_ptr<QRhi> m_rhi;
     std::shared_ptr<AndroidTextureThread> m_thread;
 };
 
@@ -56,7 +57,7 @@ public:
             std::shared_ptr<QRhi> rhi, std::shared_ptr<AndroidTextureThread> thread,
             std::unique_ptr<QRhiTexture> tex, const QSize &size)
         : QRhiWithThreadGuard(std::move(rhi), std::move(thread))
-          , QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle, rhi.get())
+          , QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle, m_guardRhi.get())
           , m_size(size)
           , m_tex(std::move(tex))
     {}
@@ -367,7 +368,7 @@ private:
 QRhiWithThreadGuard::~QRhiWithThreadGuard() {
     // It may happen that reseting m_rhi shared_ptr will delete it (if it is the last reference)
     // QRHI need to be deleted from the thread that created it.
-    QMetaObject::invokeMethod(m_thread.get(), [&]() {m_rhi.reset();}, Qt::BlockingQueuedConnection);
+    QMetaObject::invokeMethod(m_thread.get(), [&]() {m_guardRhi.reset();}, Qt::BlockingQueuedConnection);
 }
 
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject *parent)
