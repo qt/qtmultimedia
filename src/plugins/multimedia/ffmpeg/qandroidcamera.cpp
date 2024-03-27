@@ -332,10 +332,18 @@ void QAndroidCamera::setState(QAndroidCamera::State newState)
 
 bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
 {
-    if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
+    const auto chosenFormat = format.isNull() ? getDefaultCameraFormat() : format;
+
+    if (chosenFormat == m_cameraFormat || !m_cameraDevice.videoFormats().contains(chosenFormat))
         return false;
 
-    m_cameraFormat = format.isNull() ? getDefaultCameraFormat() : format;
+    m_cameraFormat = chosenFormat;
+
+    if (isActive()) {
+        // Restart the camera to set new camera format
+        setActive(false);
+        setActive(true);
+    }
 
     return true;
 }
