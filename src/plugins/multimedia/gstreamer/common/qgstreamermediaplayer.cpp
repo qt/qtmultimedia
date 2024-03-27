@@ -634,7 +634,7 @@ void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstEle
 
     qCDebug(qLcMediaPlayer) << "Setting up source:" << g_type_name_from_instance((GTypeInstance*)source);
 
-    if (QLatin1String("GstRTSPSrc") == g_type_name_from_instance((GTypeInstance *)source)) {
+    if (std::string_view("GstRTSPSrc") == g_type_name_from_instance((GTypeInstance *)source)) {
         QGstElement s(source);
         int latency{40};
         bool ok{false};
