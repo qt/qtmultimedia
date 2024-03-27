@@ -587,7 +587,8 @@ public:
 
 inline QString errorMessageCannotFindElement(std::string_view element)
 {
-    return QStringLiteral("Could not find the %1 GStreamer element").arg(element.data());
+    return QStringLiteral("Could not find the %1 GStreamer element")
+            .arg(QLatin1StringView(element));
 }
 
 QT_END_NAMESPACE
