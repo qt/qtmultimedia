@@ -150,5 +150,3 @@ void EVRCustomPresenterActivate::setCropRect(QRect cropRect)
 }
 
 QT_END_NAMESPACE
-
-#include "mfvideorenderercontrol.moc"
