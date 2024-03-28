@@ -698,7 +698,9 @@ bool QGstPad::sendEvent(GstEvent *event)
 
 // QGstClock
 
-QGstClock::QGstClock(const QGstObject &o) : QGstClock(GST_CLOCK(o.object())) { }
+QGstClock::QGstClock(const QGstObject &o) : QGstClock(GST_CLOCK(o.object()), QGstElement::NeedsRef)
+{
+}
 
 QGstClock::QGstClock(GstClock *clock, RefMode mode) : QGstObject(&clock->object, mode) { }
 

@@ -72,7 +72,7 @@ static QGstElement findBestVideoSink()
         if (!gst_element_factory_has_interface(f, "GstVideoOverlay"))
             continue;
 
-        choice = QGstElement(gst_element_factory_create(f, nullptr));
+        choice = QGstElement(gst_element_factory_create(f, nullptr), QGstElement::NeedsRef);
         if (choice.isNull())
             continue;
 

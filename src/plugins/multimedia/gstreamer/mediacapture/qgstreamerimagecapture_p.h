@@ -46,7 +46,7 @@ public:
 
     void setCaptureSession(QPlatformMediaCaptureSession *session);
 
-    QGstElement gstElement() const { return QGstElement{ bin.element() }; }
+    QGstElement gstElement() const { return bin; }
 
 public Q_SLOTS:
     void cameraActiveChanged(bool active);

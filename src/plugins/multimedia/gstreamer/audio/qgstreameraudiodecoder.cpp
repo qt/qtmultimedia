@@ -100,7 +100,8 @@ void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *or
     g_object_get(orig, "source", &appsrc, NULL);
 
     auto *qAppSrc = self->appsrc();
-    qAppSrc->setExternalAppSrc(QGstElement(appsrc.get())); // CHECK: can we `release()`?
+    qAppSrc->setExternalAppSrc(
+            QGstElement(appsrc.get(), QGstElement::NeedsRef)); // CHECK: can we `release()`?
     qAppSrc->setup(self->mDevice);
 }
 #endif
