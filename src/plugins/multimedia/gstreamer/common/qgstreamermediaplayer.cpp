@@ -680,7 +680,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     decoder = QGstElement();
     removeAllOutputs();
     seekableChanged(false);
-    playerPipeline.setInStoppedState(true);
+    Q_ASSERT(playerPipeline.inStoppedState());
 
     if (m_duration != 0) {
         m_duration = 0;
@@ -756,15 +756,8 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
 
-    if (state() == QMediaPlayer::PlayingState) {
-        int ret = playerPipeline.setState(GST_STATE_PLAYING);
-        if (ret == GST_STATE_CHANGE_FAILURE)
-            qCWarning(qLcMediaPlayer) << "Unable to set the pipeline to the playing state.";
-    } else {
-        int ret = playerPipeline.setState(GST_STATE_PAUSED);
-        if (!ret)
-            qCWarning(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
-    }
+    if (!playerPipeline.setState(GST_STATE_PAUSED))
+        qCWarning(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
 
     playerPipeline.setPosition(0);
     positionChanged(0);
