@@ -377,7 +377,7 @@ public:
     QGstPad(QGstPad &&) noexcept = default;
 
     explicit QGstPad(const QGstObject &o);
-    explicit QGstPad(GstPad *pad, RefMode mode = NeedsRef);
+    explicit QGstPad(GstPad *pad, RefMode mode);
 
     QGstPad &operator=(const QGstPad &) = default;
     QGstPad &operator=(QGstPad &&) noexcept = default;
@@ -448,7 +448,7 @@ class QGstClock : public QGstObject
 public:
     QGstClock() = default;
     explicit QGstClock(const QGstObject &o);
-    explicit QGstClock(GstClock *clock, RefMode mode = NeedsRef);
+    explicit QGstClock(GstClock *clock, RefMode mode);
 
     GstClock *clock() const;
     GstClockTime time() const;
@@ -466,7 +466,7 @@ public:
     QGstElement &operator=(const QGstElement &) = default;
     QGstElement &operator=(QGstElement &&) noexcept = default;
 
-    explicit QGstElement(GstElement *element, RefMode mode = NeedsRef);
+    explicit QGstElement(GstElement *element, RefMode mode);
     static QGstElement createFromFactory(const char *factory, const char *name = nullptr);
     static QGstElement createFromDevice(const QGstDeviceHandle &, const char *name = nullptr);
     static QGstElement createFromDevice(GstDevice *, const char *name = nullptr);
@@ -493,7 +493,8 @@ public:
     void onPadAdded(T *instance) {
         struct Impl {
             static void callback(GstElement *e, GstPad *pad, gpointer userData) {
-                (static_cast<T *>(userData)->*Member)(QGstElement(e), QGstPad(pad, NeedsRef));
+                (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef),
+                                                      QGstPad(pad, NeedsRef));
             };
         };
 
@@ -503,7 +504,8 @@ public:
     void onPadRemoved(T *instance) {
         struct Impl {
             static void callback(GstElement *e, GstPad *pad, gpointer userData) {
-                (static_cast<T *>(userData)->*Member)(QGstElement(e), QGstPad(pad, NeedsRef));
+                (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef),
+                                                      QGstPad(pad, NeedsRef));
             };
         };
 
@@ -513,7 +515,7 @@ public:
     void onNoMorePads(T *instance) {
         struct Impl {
             static void callback(GstElement *e, gpointer userData) {
-                (static_cast<T *>(userData)->*Member)(QGstElement(e));
+                (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef));
             };
         };
 

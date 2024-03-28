@@ -114,7 +114,8 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     }
     sinkBin.addGhostPad(gstQueue, "sink");
 
-    gstSubtitleSink = QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)));
+    gstSubtitleSink =
+            QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)), QGstElement::NeedsRef);
 }
 
 QGstreamerVideoSink::~QGstreamerVideoSink()
@@ -163,7 +164,8 @@ void QGstreamerVideoSink::createQtSink()
     if (gstQtSink)
         gstQtSink.setStateSync(GST_STATE_NULL);
 
-    gstQtSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)));
+    gstQtSink = QGstElement(reinterpret_cast<GstElement *>(QGstVideoRendererSink::createSink(this)),
+                            QGstElement::NeedsRef);
 }
 
 void QGstreamerVideoSink::updateSinkElement()

@@ -610,7 +610,7 @@ void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement * /*urid
                                                              GstElement *child,
                                                              QGstreamerMediaPlayer *)
 {
-    QGstElement c(child);
+    QGstElement c(child, QGstElement::NeedsRef);
     qCDebug(qLcMediaPlayer) << "New element added to uridecodebin:" << c.name();
 
     static const GType decodeBinType = [] {
@@ -634,7 +634,7 @@ void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstEle
     qCDebug(qLcMediaPlayer) << "Setting up source:" << g_type_name_from_instance((GTypeInstance*)source);
 
     if (std::string_view("GstRTSPSrc") == g_type_name_from_instance((GTypeInstance *)source)) {
-        QGstElement s(source);
+        QGstElement s(source, QGstElement::NeedsRef);
         int latency{40};
         bool ok{false};
         int v = qEnvironmentVariableIntValue("QT_MEDIA_RTSP_LATENCY", &ok);
