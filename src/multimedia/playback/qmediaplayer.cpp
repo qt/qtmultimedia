@@ -591,7 +591,7 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
 
     Setting the media to a null QUrl will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
-    to that media.
+    to that media. Setting the media will stop the playback.
 
     \note This function returns immediately after recording the specified source of the media.
     It does not wait for the media to finish loading and does not check for errors. Listen for
