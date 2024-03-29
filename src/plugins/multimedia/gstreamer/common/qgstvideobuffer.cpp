@@ -220,7 +220,7 @@ struct GlTextures
 {
     uint count = 0;
     bool owned = false;
-    std::array<guint32, QVideoTextureHelper::TextureDescription::maxPlanes> names;
+    std::array<guint32, QVideoTextureHelper::TextureDescription::maxPlanes> names{};
 };
 
 class QGstQVideoFrameTextures : public QVideoFrameTextures
