@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <QObject>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtCore/qobject.h>
 
-#include <common/qgst_p.h>
+#include "qgst_p.h"
 
 QT_BEGIN_NAMESPACE
 
