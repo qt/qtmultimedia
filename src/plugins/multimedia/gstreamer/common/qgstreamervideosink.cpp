@@ -74,10 +74,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
                                  << g_type_name(
                                             gst_element_factory_get_element_type(factory.get()));
 
-        gstPreprocess = QGstElement{
-            gst_element_factory_create(factory.get(), "preprocess"),
-            QGstElement::NeedsRef,
-        };
+        gstPreprocess = QGstElement::createFromFactory(factory, "preprocess");
     }
 
     bool disablePixelAspectRatio =

@@ -568,6 +568,9 @@ public:
 
     explicit QGstElement(GstElement *element, RefMode mode);
     static QGstElement createFromFactory(const char *factory, const char *name = nullptr);
+    static QGstElement createFromFactory(GstElementFactory *, const char *name = nullptr);
+    static QGstElement createFromFactory(const QGstElementFactoryHandle &,
+                                         const char *name = nullptr);
     static QGstElement createFromDevice(const QGstDeviceHandle &, const char *name = nullptr);
     static QGstElement createFromDevice(GstDevice *, const char *name = nullptr);
     static QGstElement createFromPipelineDescription(const char *);
