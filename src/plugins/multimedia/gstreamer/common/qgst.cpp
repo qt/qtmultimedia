@@ -891,6 +891,20 @@ QGstElement QGstElement::createFromFactory(const char *factory, const char *name
     };
 }
 
+QGstElement QGstElement::createFromFactory(GstElementFactory *factory, const char *name)
+{
+    return QGstElement{
+        gst_element_factory_create(factory, name),
+        NeedsRef,
+    };
+}
+
+QGstElement QGstElement::createFromFactory(const QGstElementFactoryHandle &factory,
+                                           const char *name)
+{
+    return createFromFactory(factory.get(), name);
+}
+
 QGstElement QGstElement::createFromDevice(const QGstDeviceHandle &device, const char *name)
 {
     return createFromDevice(device.get(), name);

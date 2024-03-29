@@ -22,10 +22,7 @@ QMaybe<QGstreamerVideoOutput *> QGstreamerVideoOutput::create(QObject *parent)
     QGstElementFactoryHandle factory = QGstElement::findFactory("videoconvertscale");
 
     if (factory) { // videoconvertscale is only available in gstreamer 1.20
-        videoConvert = QGstElement{
-            gst_element_factory_create(factory.get(), "videoConvertScale"),
-            QGstElement::NeedsRef,
-        };
+        videoConvert = QGstElement::createFromFactory(factory, "videoConvertScale");
     } else {
         videoConvert = QGstElement::createFromFactory("videoconvert", "videoConvert");
         if (!videoConvert)
