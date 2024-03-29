@@ -26,7 +26,6 @@ class QGstreamerMetaData : public QMediaMetaData
 {
 public:
     static QGstreamerMetaData fromGstTagList(const GstTagList *tags);
-    GstTagList *toGstTagList() const;
 
     void setMetaData(GstBin *bin) const;
     void setMetaData(GstElement *element) const;
