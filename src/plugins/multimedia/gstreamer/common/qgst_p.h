@@ -15,20 +15,19 @@
 // We mean it.
 //
 
-#include <common/qgst_handle_types_p.h>
-
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qmultimediautils_p.h>
-
 #include <QtCore/qdebug.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qsemaphore.h>
 
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 
 #include <gst/gst.h>
 #include <gst/video/video-info.h>
+
+#include "qgst_handle_types_p.h"
 
 #include <type_traits>
 
@@ -677,6 +676,8 @@ public:
     bool syncChildrenState();
 
     void dumpGraph(const char *fileNamePrefix);
+
+    QGstElement findByName(const char *);
 };
 
 class QGstBaseSink : public QGstElement
