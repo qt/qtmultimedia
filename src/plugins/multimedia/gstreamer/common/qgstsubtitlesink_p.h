@@ -32,7 +32,7 @@ class QGstreamerVideoSink;
 class QGstSubtitleSink
 {
 public:
-    GstBaseSink parent;
+    GstBaseSink parent{};
 
     static QGstSubtitleSink *createSink(QGstreamerVideoSink *sink);
 

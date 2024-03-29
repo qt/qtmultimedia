@@ -84,7 +84,7 @@ private:
 
     // --- only accessed from one thread
     QVideoFrameFormat m_format;
-    GstVideoInfo m_videoInfo;
+    GstVideoInfo m_videoInfo{};
     bool m_flushed = true;
     QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
 };
@@ -92,7 +92,7 @@ private:
 class QGstVideoRendererSink
 {
 public:
-    GstVideoSink parent;
+    GstVideoSink parent{};
 
     static QGstVideoRendererSink *createSink(QGstreamerVideoSink *surface);
     static void setSink(QGstreamerVideoSink *surface);
