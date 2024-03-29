@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
 #include "qmediacapturesession.h"
+#include "qmediacapturesession_p.h"
 #include "qaudiodevice.h"
 #include "qcamera.h"
 #include "qmediarecorder.h"
 #include "qimagecapture.h"
 #include "qvideosink.h"
 #include "qscreencapture.h"
-
-#include <qpointer.h>
 
 #include "qplatformmediaintegration_p.h"
 #include "qplatformmediacapture_p.h"
@@ -18,34 +17,18 @@
 
 QT_BEGIN_NAMESPACE
 
-class QMediaCaptureSessionPrivate
+void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
 {
-public:
-    QMediaCaptureSession *q = nullptr;
-    QPlatformMediaCaptureSession *captureSession = nullptr;
-    QAudioInput *audioInput = nullptr;
-    QAudioOutput *audioOutput = nullptr;
-    QPointer<QCamera> camera;
-    QPointer<QScreenCapture> screenCapture;
-    QPointer<QImageCapture> imageCapture;
-    QPointer<QMediaRecorder> recorder;
-    QPointer<QVideoSink> videoSink;
-    QPointer<QObject> videoOutput;
-
-    void setVideoSink(QVideoSink *sink)
-    {
-        if (sink == videoSink)
-            return;
-        if (videoSink)
-            videoSink->setSource(nullptr);
-        videoSink = sink;
-        if (sink)
-            sink->setSource(q);
-        if (captureSession)
-            captureSession->setVideoPreview(sink);
-        emit q->videoOutputChanged();
-    }
-
+    if (sink == videoSink)
+        return;
+    if (videoSink)
+        videoSink->setSource(nullptr);
+    videoSink = sink;
+    if (sink)
+        sink->setSource(q);
+    if (captureSession)
+        captureSession->setVideoPreview(sink);
+    emit q->videoOutputChanged();
 };
 
 /*!

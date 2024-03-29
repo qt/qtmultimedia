@@ -33,5 +33,6 @@ add_subdirectory(qwavedecoder)
 
 if(QT_FEATURE_gstreamer)
     add_subdirectory(gstreamer_backend)
+    add_subdirectory(qmediacapture_gstreamer)
     add_subdirectory(qmediaplayer_gstreamer)
 endif()

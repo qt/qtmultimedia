@@ -63,6 +63,8 @@ public:
 
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
+    void *nativePipeline() override;
+
 private:
     void setCameraActive(bool activate);
 
