@@ -1057,6 +1057,14 @@ void QGstBin::dumpGraph(const char *fileNamePrefix)
                               fileNamePrefix);
 }
 
+QGstElement QGstBin::findByName(const char *name)
+{
+    return QGstElement{
+        gst_bin_get_by_name(bin(), name),
+        QGstElement::NeedsRef,
+    };
+}
+
 // QGstBaseSink
 
 QGstBaseSink::QGstBaseSink(GstBaseSink *element, RefMode mode)
