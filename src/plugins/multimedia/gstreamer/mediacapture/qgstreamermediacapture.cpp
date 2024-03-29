@@ -322,6 +322,10 @@ QGstreamerVideoSink *QGstreamerMediaCapture::gstreamerVideoSink() const
     return gstVideoOutput ? gstVideoOutput->gstreamerVideoSink() : nullptr;
 }
 
+void *QGstreamerMediaCapture::nativePipeline()
+{
+    return gstPipeline.pipeline();
+}
 
 QT_END_NAMESPACE
 

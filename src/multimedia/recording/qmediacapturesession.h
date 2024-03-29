@@ -78,6 +78,8 @@ Q_SIGNALS:
     void audioOutputChanged();
 
 private:
+    friend class QPlatformMediaCaptureSession;
+
     QMediaCaptureSessionPrivate *d_ptr;
     Q_DISABLE_COPY(QMediaCaptureSession)
     Q_DECLARE_PRIVATE(QMediaCaptureSession)
