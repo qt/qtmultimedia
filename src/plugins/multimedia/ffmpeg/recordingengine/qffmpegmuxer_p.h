@@ -5,8 +5,6 @@
 
 #include "qffmpegthread_p.h"
 #include "qffmpeg_p.h"
-#include <QtCore/QtGlobal>
-#include <QtCore/qobject.h>
 #include <queue>
 
 QT_BEGIN_NAMESPACE

@@ -3,13 +3,19 @@
 #ifndef QFFMPEGVIDEOENCODER_P_H
 #define QFFMPEGVIDEOENCODER_P_H
 
-#include "qffmpegrecordingengine_p.h"
+#include "qffmpegencoderthread_p.h"
 #include "qffmpeg_p.h"
-#include <QtCore/QtGlobal>
+#include <qvideoframe.h>
+#include <queue>
 
 QT_BEGIN_NAMESPACE
 
+class QVideoFrameFormat;
+class QMediaEncoderSettings;
+
 namespace QFFmpeg {
+class VideoFrameEncoder;
+
 
 class VideoEncoder : public EncoderThread
 {

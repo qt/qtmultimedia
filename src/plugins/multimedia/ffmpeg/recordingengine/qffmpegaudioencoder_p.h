@@ -4,12 +4,15 @@
 #define QFFMPEGAUDIOENCODER_P_H
 
 #include "qffmpeg_p.h"
-#include "qffmpegrecordingengine_p.h"
+#include "qffmpegencoderthread_p.h"
+#include "private/qplatformmediarecorder_p.h"
 #include <qaudiobuffer.h>
-#include <QtCore/QtGlobal>
 #include <queue>
 
 QT_BEGIN_NAMESPACE
+
+class QMediaEncoderSettings;
+class QFFmpegAudioInput;
 
 namespace QFFmpeg {
 

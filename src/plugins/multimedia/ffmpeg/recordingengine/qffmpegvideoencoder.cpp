@@ -3,6 +3,7 @@
 #include "qffmpegvideoencoder_p.h"
 #include "qffmpegmuxer_p.h"
 #include "qffmpegvideobuffer_p.h"
+#include "qffmpegrecordingengine_p.h"
 #include "qffmpegvideoframeencoder_p.h"
 #include <QtCore/qloggingcategory.h>
 
