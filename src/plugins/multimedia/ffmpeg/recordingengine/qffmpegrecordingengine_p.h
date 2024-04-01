@@ -15,11 +15,7 @@
 //
 
 #include "qffmpegthread_p.h"
-#include "qffmpeg_p.h"
-#include "qffmpeghwaccel_p.h"
 #include "qffmpegencodingformatcontext_p.h"
-
-#include "private/qmultimediautils_p.h"
 
 #include <private/qplatformmediarecorder_p.h>
 #include <qmediarecorder.h>
@@ -41,7 +37,6 @@ class AudioEncoder;
 class VideoEncoder;
 class VideoFrameEncoder;
 
-
 template <typename T>
 T dequeueIfPossible(std::queue<T> &queue)
 {
@@ -52,17 +47,6 @@ T dequeueIfPossible(std::queue<T> &queue)
     queue.pop();
     return result;
 }
-
-class EncodingFinalizer : public QThread
-{
-public:
-    EncodingFinalizer(RecordingEngine *e);
-
-    void run() override;
-
-private:
-    RecordingEngine *m_encoder = nullptr;
-};
 
 class RecordingEngine : public QObject
 {
@@ -80,6 +64,8 @@ public:
     void setPaused(bool p);
 
     void setMetaData(const QMediaMetaData &metaData);
+    AVFormatContext *avFormatContext() { return m_formatContext->avFormatContext(); }
+    Muxer *getMuxer() { return m_muxer; }
 
 public Q_SLOTS:
     void newTimeStamp(qint64 time);
@@ -93,15 +79,18 @@ private:
     template<typename... Args>
     void addMediaFrameHandler(Args &&...args);
 
-    AVFormatContext *avFormatContext() { return m_formatContext->avFormatContext(); }
+    class EncodingFinalizer : public QThread
+    {
+    public:
+        EncodingFinalizer(RecordingEngine *e);
+
+        void run() override;
+
+    private:
+        RecordingEngine *m_encoder = nullptr;
+    };
 
 private:
-    // TODO: improve the encasulation
-    friend class EncodingFinalizer;
-    friend class AudioEncoder;
-    friend class VideoEncoder;
-    friend class Muxer;
-
     QMediaEncoderSettings m_settings;
     QMediaMetaData m_metaData;
     std::unique_ptr<EncodingFormatContext> m_formatContext;

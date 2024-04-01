@@ -72,7 +72,7 @@ void VideoEncoder::retrievePackets()
     if (!m_frameEncoder)
         return;
     while (auto packet = m_frameEncoder->retrievePacket())
-        m_encoder->m_muxer->addPacket(std::move(packet));
+        m_encoder->getMuxer()->addPacket(std::move(packet));
 }
 
 void VideoEncoder::init()

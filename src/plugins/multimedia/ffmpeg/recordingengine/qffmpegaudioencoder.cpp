@@ -153,7 +153,7 @@ void AudioEncoder::retrievePackets()
         // qCDebug(qLcFFmpegEncoder) << "writing audio packet" << packet->size << packet->pts <<
         // packet->dts;
         packet->stream_index = m_stream->id;
-        m_encoder->m_muxer->addPacket(std::move(packet));
+        m_encoder->getMuxer()->addPacket(std::move(packet));
     }
 }
 
