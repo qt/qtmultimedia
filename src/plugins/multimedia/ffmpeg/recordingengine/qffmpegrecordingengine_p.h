@@ -131,42 +131,6 @@ protected:
     RecordingEngine *m_encoder = nullptr;
 };
 
-class VideoEncoder : public EncoderThread
-{
-public:
-    VideoEncoder(RecordingEngine *encoder, const QMediaEncoderSettings &settings,
-                 const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
-    ~VideoEncoder() override;
-
-    bool isValid() const;
-
-    void addFrame(const QVideoFrame &frame);
-
-    void setPaused(bool b) override
-    {
-        EncoderThread::setPaused(b);
-        if (b)
-            m_baseTime.storeRelease(-1);
-    }
-
-private:
-    QVideoFrame takeFrame();
-    void retrievePackets();
-
-    void init() override;
-    void cleanup() override;
-    bool hasData() const override;
-    void processOne() override;
-
-private:
-    mutable QMutex m_queueMutex;
-    std::queue<QVideoFrame> m_videoFrameQueue;
-    const size_t m_maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
-
-    std::unique_ptr<VideoFrameEncoder> m_frameEncoder;
-    QAtomicInteger<qint64> m_baseTime = std::numeric_limits<qint64>::min();
-    qint64 m_lastFrameTime = 0;
-};
 }
 
 QT_END_NAMESPACE
