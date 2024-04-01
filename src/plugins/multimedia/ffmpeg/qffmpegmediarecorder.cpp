@@ -9,7 +9,7 @@
 #include "qaudiosource.h"
 #include "qffmpegaudioinput_p.h"
 #include "qaudiobuffer.h"
-#include "qffmpegencoder_p.h"
+#include "recordingengine/qffmpegencoder_p.h"
 #include "qffmpegmediacapturesession_p.h"
 
 #include <qdebug.h>
