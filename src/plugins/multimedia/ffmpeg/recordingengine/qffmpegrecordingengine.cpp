@@ -1,6 +1,6 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
-#include "qffmpegencoder_p.h"
+#include "qffmpegrecordingengine_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegvideoframeencoder_p.h"
 #include "private/qmultimediautils_p.h"
@@ -46,7 +46,7 @@ T dequeueIfPossible(std::queue<T> &queue)
 
 } // namespace
 
-Encoder::Encoder(const QMediaEncoderSettings &settings,
+RecordingEngine::RecordingEngine(const QMediaEncoderSettings &settings,
                  std::unique_ptr<EncodingFormatContext> context)
     : m_settings(settings), m_formatContext(std::move(context)), m_muxer(new Muxer(this))
 {
@@ -54,11 +54,11 @@ Encoder::Encoder(const QMediaEncoderSettings &settings,
     Q_ASSERT(m_formatContext->isAVIOOpen());
 }
 
-Encoder::~Encoder()
+RecordingEngine::~RecordingEngine()
 {
 }
 
-void Encoder::addAudioInput(QFFmpegAudioInput *input)
+void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
 {
     m_audioEncoder = new AudioEncoder(this, input, m_settings);
     addMediaFrameHandler(input, &QFFmpegAudioInput::newAudioBuffer, m_audioEncoder,
@@ -66,7 +66,7 @@ void Encoder::addAudioInput(QFFmpegAudioInput *input)
     input->setRunning(true);
 }
 
-void Encoder::addVideoSource(QPlatformVideoSource * source)
+void RecordingEngine::addVideoSource(QPlatformVideoSource * source)
 {
     auto frameFormat = source->frameFormat();
 
@@ -98,9 +98,9 @@ void Encoder::addVideoSource(QPlatformVideoSource * source)
     m_videoEncoders.append(ve);
 }
 
-void Encoder::start()
+void RecordingEngine::start()
 {
-    qCDebug(qLcFFmpegEncoder) << "Encoder::start!";
+    qCDebug(qLcFFmpegEncoder) << "RecordingEngine::start!";
 
     avFormatContext()->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
 
@@ -125,7 +125,7 @@ void Encoder::start()
             videoEncoder->start();
 }
 
-EncodingFinalizer::EncodingFinalizer(Encoder *e) : m_encoder(e)
+EncodingFinalizer::EncodingFinalizer(RecordingEngine *e) : m_encoder(e)
 {
     connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
@@ -157,7 +157,7 @@ void EncodingFinalizer::run()
     delete m_encoder;
 }
 
-void Encoder::finalize()
+void RecordingEngine::finalize()
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
 
@@ -168,7 +168,7 @@ void Encoder::finalize()
     finalizer->start();
 }
 
-void Encoder::setPaused(bool p)
+void RecordingEngine::setPaused(bool p)
 {
     if (m_audioEncoder)
         m_audioEncoder->setPaused(p);
@@ -176,12 +176,12 @@ void Encoder::setPaused(bool p)
         videoEncoder->setPaused(p);
 }
 
-void Encoder::setMetaData(const QMediaMetaData &metaData)
+void RecordingEngine::setMetaData(const QMediaMetaData &metaData)
 {
     m_metaData = metaData;
 }
 
-void Encoder::newTimeStamp(qint64 time)
+void RecordingEngine::newTimeStamp(qint64 time)
 {
     QMutexLocker locker(&m_timeMutex);
     if (time > m_timeRecorded) {
@@ -191,13 +191,13 @@ void Encoder::newTimeStamp(qint64 time)
 }
 
 template<typename... Args>
-void Encoder::addMediaFrameHandler(Args &&...args)
+void RecordingEngine::addMediaFrameHandler(Args &&...args)
 {
     auto connection = connect(std::forward<Args>(args)..., Qt::DirectConnection);
     m_connections.append(connection);
 }
 
-Muxer::Muxer(Encoder *encoder) : m_encoder(encoder)
+Muxer::Muxer(RecordingEngine *encoder) : m_encoder(encoder)
 {
     setObjectName(QLatin1String("Muxer"));
 }
@@ -244,7 +244,7 @@ void Muxer::processOne()
     av_interleaved_write_frame(m_encoder->avFormatContext(), packet.release());
 }
 
-AudioEncoder::AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input,
+AudioEncoder::AudioEncoder(RecordingEngine *encoder, QFFmpegAudioInput *input,
                            const QMediaEncoderSettings &settings)
     : EncoderThread(encoder), m_input(input), m_settings(settings)
 {
@@ -442,7 +442,7 @@ void AudioEncoder::processOne()
     }
 }
 
-VideoEncoder::VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
+VideoEncoder::VideoEncoder(RecordingEngine *encoder, const QMediaEncoderSettings &settings,
                            const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat)
     : EncoderThread(encoder)
 {
@@ -479,7 +479,7 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
     const bool queueFull = m_videoFrameQueue.size() >= m_maxQueueSize;
 
     if (queueFull) {
-        qCDebug(qLcFFmpegEncoder) << "Encoder frame queue full. Frame lost.";
+        qCDebug(qLcFFmpegEncoder) << "RecordingEngine frame queue full. Frame lost.";
     } else if (!m_paused.loadRelaxed()) {
         m_videoFrameQueue.push(frame);
 
@@ -613,4 +613,4 @@ void VideoEncoder::processOne()
 
 QT_END_NAMESPACE
 
-#include "moc_qffmpegencoder_p.cpp"
+#include "moc_qffmpegrecordingengine_p.cpp"
