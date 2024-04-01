@@ -131,40 +131,6 @@ protected:
     RecordingEngine *m_encoder = nullptr;
 };
 
-class AudioEncoder : public EncoderThread
-{
-public:
-    AudioEncoder(RecordingEngine *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings);
-
-    void open();
-    void addBuffer(const QAudioBuffer &buffer);
-
-    QFFmpegAudioInput *audioInput() const { return m_input; }
-
-private:
-    QAudioBuffer takeBuffer();
-    void retrievePackets();
-
-    void init() override;
-    void cleanup() override;
-    bool hasData() const override;
-    void processOne() override;
-
-private:
-    mutable QMutex m_queueMutex;
-    std::queue<QAudioBuffer> m_audioBufferQueue;
-
-    AVStream *m_stream = nullptr;
-    AVCodecContextUPtr m_codecContext;
-    QFFmpegAudioInput *m_input = nullptr;
-    QAudioFormat m_format;
-
-    SwrContextUPtr m_resampler;
-    qint64 m_samplesWritten = 0;
-    const AVCodec *m_avCodec = nullptr;
-    QMediaEncoderSettings m_settings;
-};
-
 class VideoEncoder : public EncoderThread
 {
 public:
