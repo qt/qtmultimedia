@@ -15,10 +15,11 @@
 //
 
 #include "qffmpeghwaccel_p.h"
-#include "qvideoframeformat.h"
 #include "private/qplatformmediarecorder_p.h"
 
 QT_BEGIN_NAMESPACE
+
+class QMediaEncoderSettings;
 
 namespace QFFmpeg {
 

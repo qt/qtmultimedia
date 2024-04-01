@@ -6,21 +6,14 @@
 #include "private/qmultimediautils_p.h"
 
 #include <qdebug.h>
-#include <qiodevice.h>
 #include "qffmpegaudioencoder_p.h"
 #include "qffmpegaudioinput_p.h"
 #include <private/qplatformcamera_p.h>
-#include <private/qplatformvideosource_p.h>
 #include "qffmpegvideobuffer_p.h"
 #include "qffmpegvideoencoder_p.h"
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegmuxer_p.h"
 #include <qloggingcategory.h>
-
-extern "C" {
-#include <libavutil/pixdesc.h>
-#include <libavutil/common.h>
-}
 
 QT_BEGIN_NAMESPACE
 
