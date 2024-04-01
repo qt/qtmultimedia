@@ -9,7 +9,7 @@
 #include "qaudiosource.h"
 #include "qffmpegaudioinput_p.h"
 #include "qaudiobuffer.h"
-#include "recordingengine/qffmpegencoder_p.h"
+#include "recordingengine/qffmpegrecordingengine_p.h"
 #include "qffmpegmediacapturesession_p.h"
 
 #include <qdebug.h>
@@ -77,13 +77,13 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
         return;
     }
 
-    m_encoder.reset(new Encoder(settings, std::move(formatContext)));
+    m_encoder.reset(new RecordingEngine(settings, std::move(formatContext)));
     m_encoder->setMetaData(m_metaData);
-    connect(m_encoder.get(), &QFFmpeg::Encoder::durationChanged, this,
+    connect(m_encoder.get(), &QFFmpeg::RecordingEngine::durationChanged, this,
             &QFFmpegMediaRecorder::newDuration);
-    connect(m_encoder.get(), &QFFmpeg::Encoder::finalizationDone, this,
+    connect(m_encoder.get(), &QFFmpeg::RecordingEngine::finalizationDone, this,
             &QFFmpegMediaRecorder::finalizationDone);
-    connect(m_encoder.get(), &QFFmpeg::Encoder::error, this,
+    connect(m_encoder.get(), &QFFmpeg::RecordingEngine::error, this,
             &QFFmpegMediaRecorder::handleSessionError);
 
     auto *audioInput = m_session->audioInput();
@@ -169,7 +169,7 @@ void QFFmpegMediaRecorder::setCaptureSession(QFFmpegMediaCaptureSession *session
         return;
 }
 
-void QFFmpegMediaRecorder::EncoderDeleter::operator()(Encoder *encoder) const
+void QFFmpegMediaRecorder::EncoderDeleter::operator()(RecordingEngine *encoder) const
 {
     // ### all of the below should be done asynchronous. finalize() should do it's work in a thread
     // to avoid blocking the UI in case of slow codecs
