@@ -101,12 +101,12 @@ void RecordingEngine::start()
             videoEncoder->start();
 }
 
-EncodingFinalizer::EncodingFinalizer(RecordingEngine *e) : m_encoder(e)
+RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine *e) : m_encoder(e)
 {
     connect(this, &QThread::finished, this, &QObject::deleteLater);
 }
 
-void EncodingFinalizer::run()
+void RecordingEngine::EncodingFinalizer::run()
 {
     if (m_encoder->m_audioEncoder)
         m_encoder->m_audioEncoder->stopAndDelete();
