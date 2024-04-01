@@ -22,7 +22,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegaudiodecoder.cpp qffmpegaudiodecoder_p.h
         qffmpegaudioinput.cpp qffmpegaudioinput_p.h
         qffmpeghwaccel.cpp qffmpeghwaccel_p.h
-        qffmpegencoderoptions.cpp qffmpegencoderoptions_p.h
         qffmpegmediametadata.cpp qffmpegmediametadata_p.h
         qffmpegmediaplayer.cpp qffmpegmediaplayer_p.h
         qffmpegvideosink.cpp qffmpegvideosink_p.h
@@ -32,13 +31,9 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegimagecapture.cpp qffmpegimagecapture_p.h
         qffmpegmediacapturesession.cpp qffmpegmediacapturesession_p.h
         qffmpegmediarecorder.cpp qffmpegmediarecorder_p.h
-        qffmpegencoder.cpp qffmpegencoder_p.h
         qffmpegthread.cpp qffmpegthread_p.h
         qffmpegresampler.cpp qffmpegresampler_p.h
         qffmpegencodingformatcontext.cpp qffmpegencodingformatcontext_p.h
-        qffmpegvideoframeencoder.cpp qffmpegvideoframeencoder_p.h
-        qffmpegvideoencoderutils.cpp qffmpegvideoencoderutils_p.h
-        qffmpegaudioencoderutils.cpp qffmpegaudioencoderutils_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
         qffmpegsurfacecapturegrabber.cpp qffmpegsurfacecapturegrabber_p.h
         qffmpegsymbolsresolve_p.h
@@ -58,6 +53,18 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         playbackengine/qffmpegpacket_p.h
         playbackengine/qffmpegframe_p.h
         playbackengine/qffmpegpositionwithoffset_p.h
+
+        recordingengine/qffmpegaudioencoderutils_p.h
+        recordingengine/qffmpegaudioencoderutils.cpp
+        recordingengine/qffmpegencoder_p.h
+        recordingengine/qffmpegencoder.cpp
+        recordingengine/qffmpegencoderoptions_p.h
+        recordingengine/qffmpegencoderoptions.cpp
+        recordingengine/qffmpegvideoencoderutils_p.h
+        recordingengine/qffmpegvideoencoderutils.cpp
+        recordingengine/qffmpegvideoframeencoder_p.h
+        recordingengine/qffmpegvideoframeencoder.cpp
+
     DEFINES
         QT_COMPILING_FFMPEG
     LIBRARIES
