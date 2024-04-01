@@ -22,12 +22,9 @@
 #include "private/qmultimediautils_p.h"
 
 #include <private/qplatformmediarecorder_p.h>
-#include <qaudioformat.h>
-#include <qaudiobuffer.h>
 #include <qmediarecorder.h>
 
 #include <queue>
-#include <variant>
 
 QT_BEGIN_NAMESPACE
 
@@ -118,17 +115,6 @@ private:
     qint64 m_timeRecorded = 0;
 
     bool m_isHeaderWritten = false;
-};
-
-class EncoderThread : public ConsumerThread
-{
-public:
-    EncoderThread(RecordingEngine *encoder) : m_encoder(encoder) { }
-    virtual void setPaused(bool b) { m_paused.storeRelease(b); }
-
-protected:
-    QAtomicInteger<bool> m_paused = false;
-    RecordingEngine *m_encoder = nullptr;
 };
 
 }
