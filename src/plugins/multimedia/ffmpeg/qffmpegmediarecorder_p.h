@@ -26,7 +26,7 @@ class QMediaMetaData;
 class QFFmpegMediaCaptureSession;
 
 namespace QFFmpeg {
-class Encoder;
+class RecordingEngine;
 }
 
 class QFFmpegMediaRecorder : public QObject, public QPlatformMediaRecorder
@@ -54,16 +54,16 @@ private Q_SLOTS:
     void handleSessionError(QMediaRecorder::Error code, const QString &description);
 
 private:
-    using Encoder = QFFmpeg::Encoder;
+    using RecordingEngine = QFFmpeg::RecordingEngine;
     struct EncoderDeleter
     {
-        void operator()(Encoder *) const;
+        void operator()(RecordingEngine *) const;
     };
 
     QFFmpegMediaCaptureSession *m_session = nullptr;
     QMediaMetaData m_metaData;
 
-    std::unique_ptr<Encoder, EncoderDeleter> m_encoder;
+    std::unique_ptr<RecordingEngine, EncoderDeleter> m_encoder;
 };
 
 QT_END_NAMESPACE

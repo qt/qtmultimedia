@@ -38,7 +38,7 @@ class QPlatformVideoSource;
 namespace QFFmpeg
 {
 
-class Encoder;
+class RecordingEngine;
 class Muxer;
 class AudioEncoder;
 class VideoEncoder;
@@ -47,20 +47,20 @@ class VideoFrameEncoder;
 class EncodingFinalizer : public QThread
 {
 public:
-    EncodingFinalizer(Encoder *e);
+    EncodingFinalizer(RecordingEngine *e);
 
     void run() override;
 
 private:
-    Encoder *m_encoder = nullptr;
+    RecordingEngine *m_encoder = nullptr;
 };
 
-class Encoder : public QObject
+class RecordingEngine : public QObject
 {
     Q_OBJECT
 public:
-    Encoder(const QMediaEncoderSettings &settings, std::unique_ptr<EncodingFormatContext> context);
-    ~Encoder();
+    RecordingEngine(const QMediaEncoderSettings &settings, std::unique_ptr<EncodingFormatContext> context);
+    ~RecordingEngine();
 
     void addAudioInput(QFFmpegAudioInput *input);
     void addVideoSource(QPlatformVideoSource *source);
@@ -112,7 +112,7 @@ private:
 class Muxer : public ConsumerThread
 {
 public:
-    Muxer(Encoder *encoder);
+    Muxer(RecordingEngine *encoder);
 
     void addPacket(AVPacketUPtr packet);
 
@@ -128,24 +128,24 @@ private:
     mutable QMutex m_queueMutex;
     std::queue<AVPacketUPtr> m_packetQueue;
 
-    Encoder *m_encoder;
+    RecordingEngine *m_encoder;
 };
 
 class EncoderThread : public ConsumerThread
 {
 public:
-    EncoderThread(Encoder *encoder) : m_encoder(encoder) { }
+    EncoderThread(RecordingEngine *encoder) : m_encoder(encoder) { }
     virtual void setPaused(bool b) { m_paused.storeRelease(b); }
 
 protected:
     QAtomicInteger<bool> m_paused = false;
-    Encoder *m_encoder = nullptr;
+    RecordingEngine *m_encoder = nullptr;
 };
 
 class AudioEncoder : public EncoderThread
 {
 public:
-    AudioEncoder(Encoder *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings);
+    AudioEncoder(RecordingEngine *encoder, QFFmpegAudioInput *input, const QMediaEncoderSettings &settings);
 
     void open();
     void addBuffer(const QAudioBuffer &buffer);
@@ -179,7 +179,7 @@ private:
 class VideoEncoder : public EncoderThread
 {
 public:
-    VideoEncoder(Encoder *encoder, const QMediaEncoderSettings &settings,
+    VideoEncoder(RecordingEngine *encoder, const QMediaEncoderSettings &settings,
                  const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
     ~VideoEncoder() override;
 
