@@ -44,6 +44,18 @@ class AudioEncoder;
 class VideoEncoder;
 class VideoFrameEncoder;
 
+
+template <typename T>
+T dequeueIfPossible(std::queue<T> &queue)
+{
+    if (queue.empty())
+        return T{};
+
+    auto result = std::move(queue.front());
+    queue.pop();
+    return result;
+}
+
 class EncodingFinalizer : public QThread
 {
 public:
@@ -106,29 +118,6 @@ private:
     qint64 m_timeRecorded = 0;
 
     bool m_isHeaderWritten = false;
-};
-
-
-class Muxer : public ConsumerThread
-{
-public:
-    Muxer(RecordingEngine *encoder);
-
-    void addPacket(AVPacketUPtr packet);
-
-private:
-    AVPacketUPtr takePacket();
-
-    void init() override;
-    void cleanup() override;
-    bool hasData() const override;
-    void processOne() override;
-
-private:
-    mutable QMutex m_queueMutex;
-    std::queue<AVPacketUPtr> m_packetQueue;
-
-    RecordingEngine *m_encoder;
 };
 
 class EncoderThread : public ConsumerThread

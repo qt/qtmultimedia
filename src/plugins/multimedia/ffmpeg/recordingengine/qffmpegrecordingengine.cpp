@@ -16,7 +16,7 @@
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegencoderoptions_p.h"
 #include "qffmpegaudioencoderutils_p.h"
-
+#include "qffmpegmuxer_p.h"
 #include <qloggingcategory.h>
 
 extern "C" {
@@ -30,21 +30,6 @@ static Q_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder");
 
 namespace QFFmpeg
 {
-
-namespace {
-
-template<typename T>
-T dequeueIfPossible(std::queue<T> &queue)
-{
-    if (queue.empty())
-        return T{};
-
-    auto result = std::move(queue.front());
-    queue.pop();
-    return result;
-}
-
-} // namespace
 
 RecordingEngine::RecordingEngine(const QMediaEncoderSettings &settings,
                  std::unique_ptr<EncodingFormatContext> context)
@@ -195,53 +180,6 @@ void RecordingEngine::addMediaFrameHandler(Args &&...args)
 {
     auto connection = connect(std::forward<Args>(args)..., Qt::DirectConnection);
     m_connections.append(connection);
-}
-
-Muxer::Muxer(RecordingEngine *encoder) : m_encoder(encoder)
-{
-    setObjectName(QLatin1String("Muxer"));
-}
-
-void Muxer::addPacket(AVPacketUPtr packet)
-{
-    {
-        QMutexLocker locker(&m_queueMutex);
-        m_packetQueue.push(std::move(packet));
-    }
-
-    //    qCDebug(qLcFFmpegEncoder) << "Muxer::addPacket" << packet->pts << packet->stream_index;
-    dataReady();
-}
-
-AVPacketUPtr Muxer::takePacket()
-{
-    QMutexLocker locker(&m_queueMutex);
-    return dequeueIfPossible(m_packetQueue);
-}
-
-void Muxer::init()
-{
-    qCDebug(qLcFFmpegEncoder) << "Muxer::init started thread.";
-}
-
-void Muxer::cleanup()
-{
-}
-
-bool QFFmpeg::Muxer::hasData() const
-{
-    QMutexLocker locker(&m_queueMutex);
-    return !m_packetQueue.empty();
-}
-
-void Muxer::processOne()
-{
-    auto packet = takePacket();
-    //   qCDebug(qLcFFmpegEncoder) << "writing packet to file" << packet->pts << packet->duration <<
-    //   packet->stream_index;
-
-    // the function takes ownership for the packet
-    av_interleaved_write_frame(m_encoder->avFormatContext(), packet.release());
 }
 
 AudioEncoder::AudioEncoder(RecordingEngine *encoder, QFFmpegAudioInput *input,
