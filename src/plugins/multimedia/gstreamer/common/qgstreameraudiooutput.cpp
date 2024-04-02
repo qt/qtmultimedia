@@ -68,11 +68,6 @@ void QGstreamerAudioOutput::setMuted(bool muted)
     audioVolume.set("mute", muted);
 }
 
-void QGstreamerAudioOutput::setPipeline(const QGstPipeline &pipeline)
-{
-    gstPipeline = pipeline;
-}
-
 void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
 {
     if (info == m_audioOutput)
@@ -101,16 +96,14 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
         newSink = QGstElement::createFromFactory("autoaudiosink", "audiosink");
     }
 
-    audioVolume.staticPad("src").doInIdleProbe([&]() {
+    QGstPipeline::modifyPipelineWhileNotRunning(gstAudioOutput.getPipeline(), [&] {
         qUnlinkGstElements(audioVolume, audioSink);
-        gstAudioOutput.remove(audioSink);
-        gstAudioOutput.add(newSink);
-        newSink.syncStateWithParent();
-        qLinkGstElements(audioVolume, newSink);
+        gstAudioOutput.stopAndRemoveElements(audioSink);
+        audioSink = std::move(newSink);
+        gstAudioOutput.add(audioSink);
+        audioSink.syncStateWithParent();
+        qLinkGstElements(audioVolume, audioSink);
     });
-
-    audioSink.setStateSync(GST_STATE_NULL);
-    audioSink = newSink;
 }
 
 QT_END_NAMESPACE
