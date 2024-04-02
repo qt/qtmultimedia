@@ -447,6 +447,20 @@ void QGstCaps::addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &form
         gst_caps_set_features(get(), size() - 1, gst_caps_features_from_string(modifier));
 }
 
+void QGstCaps::setResolution(QSize resolution)
+{
+    Q_ASSERT(resolution.isValid());
+    GValue width{};
+    g_value_init(&width, G_TYPE_INT);
+    g_value_set_int(&width, resolution.width());
+    GValue height{};
+    g_value_init(&height, G_TYPE_INT);
+    g_value_set_int(&height, resolution.height());
+
+    gst_caps_set_value(caps(), "width", &width);
+    gst_caps_set_value(caps(), "height", &height);
+}
+
 QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
 {
     QSize size = format.resolution();
