@@ -81,6 +81,15 @@ public:
         endConfig();
     }
 
+    template <typename Functor>
+    static void modifyPipelineWhileNotRunning(QGstPipeline &&pipeline, Functor &&fn)
+    {
+        if (pipeline)
+            pipeline.modifyPipelineWhileNotRunning(fn);
+        else
+            fn();
+    }
+
     void flush();
 
     bool seek(qint64 pos, double rate);
