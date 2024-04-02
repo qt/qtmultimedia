@@ -15,12 +15,10 @@
 // We mean it.
 //
 
-#include <QtMultimedia/qaudiodecoder.h>
-
-#include <QtCore/qpair.h>
-
 #include <QtMultimedia/qaudiobuffer.h>
 #include <QtMultimedia/qaudiodecoder.h>
+#include <QtCore/qpair.h>
+#include <QtCore/qurl.h>
 #include <QtCore/private/qglobal_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -73,8 +71,11 @@ public:
     QAudioDecoder::Error error() const { return m_error; }
     QString errorString() const { return m_errorString; }
 
+    virtual ~QPlatformAudioDecoder();
+
 protected:
     explicit QPlatformAudioDecoder(QAudioDecoder *parent);
+
 private:
     QAudioDecoder *q = nullptr;
 

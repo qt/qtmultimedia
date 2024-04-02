@@ -6,11 +6,9 @@
 
 QT_BEGIN_NAMESPACE
 
-QPlatformAudioDecoder::QPlatformAudioDecoder(QAudioDecoder *parent)
-    : QObject(parent),
-    q(parent)
-{
-}
+QPlatformAudioDecoder::QPlatformAudioDecoder(QAudioDecoder *parent) : q(parent) { }
+
+QPlatformAudioDecoder::~QPlatformAudioDecoder() = default;
 
 void QPlatformAudioDecoder::error(int error, const QString &errorString)
 {
