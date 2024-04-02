@@ -20,7 +20,7 @@ qt_internal_add_module(Multimedia
     SOURCES
         audio/qtaudio.cpp audio/qtaudio.h audio/qaudio.h
         audio/qaudiobuffer.cpp audio/qaudiobuffer.h
-        audio/qaudiodecoder.cpp audio/qaudiodecoder.h
+        audio/qaudiodecoder.cpp audio/qaudiodecoder.h audio/qaudiodecoder_p.h
         audio/qaudiodevice.cpp audio/qaudiodevice.h audio/qaudiodevice_p.h
         audio/qaudioinput.cpp audio/qaudioinput.h
         audio/qaudiooutput.cpp audio/qaudiooutput.h
