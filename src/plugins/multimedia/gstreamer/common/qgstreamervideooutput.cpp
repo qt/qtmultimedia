@@ -82,9 +82,11 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         m_videoSink->setPipeline({});
 
     m_videoSink = gstVideoSink;
-    if (m_videoSink)
+    if (m_videoSink) {
         m_videoSink->setPipeline(gstPipeline);
-
+        if (nativeSize.isValid())
+            m_videoSink->setNativeSize(nativeSize);
+    }
     QGstElement gstSink;
     if (m_videoSink) {
         gstSink = m_videoSink->gstSink();
@@ -197,6 +199,13 @@ void QGstreamerVideoOutput::flushSubtitles()
         event = gst_event_new_flush_stop(false);
         pad.sendEvent(event);
     }
+}
+
+void QGstreamerVideoOutput::setNativeSize(QSize sz)
+{
+    nativeSize = sz;
+    if (m_videoSink)
+        m_videoSink->setNativeSize(nativeSize);
 }
 
 QT_END_NAMESPACE

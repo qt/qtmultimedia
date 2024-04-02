@@ -870,7 +870,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
             qCDebug(qLcMediaPlayer) << "    tags=(null)";
 
         QSize nativeSize = structure.nativeSize();
-        gstVideoOutput->gstreamerVideoSink()->setNativeSize(nativeSize);
+        gstVideoOutput->setNativeSize(nativeSize);
     }
 
 
