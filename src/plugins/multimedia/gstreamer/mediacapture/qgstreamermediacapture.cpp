@@ -212,7 +212,6 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
 
             encoderVideoCapsFilter.src().link(videoSink);
             linkTeeToPad(gstVideoTee, encoderVideoCapsFilter.sink());
-            encoderVideoCapsFilter.syncStateWithParent();
             encoderVideoSink = encoderVideoCapsFilter.sink();
         }
 
@@ -228,7 +227,6 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
 
             encoderAudioCapsFilter.src().link(audioSink);
             linkTeeToPad(gstAudioTee, encoderAudioCapsFilter.sink());
-            encoderVideoCapsFilter.syncStateWithParent();
             encoderAudioSink = encoderAudioCapsFilter.sink();
         }
     });
