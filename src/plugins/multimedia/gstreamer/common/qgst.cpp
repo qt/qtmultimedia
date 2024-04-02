@@ -846,6 +846,7 @@ bool QGstElement::setStateSync(GstState state, std::chrono::nanoseconds timeout)
 
 bool QGstElement::syncStateWithParent()
 {
+    Q_ASSERT(element());
     return gst_element_sync_state_with_parent(element()) == TRUE;
 }
 
