@@ -27,6 +27,10 @@ class QVideoFramePrivate : public QSharedData
 public:
     QVideoFramePrivate() = default;
     QVideoFramePrivate(const QVideoFrameFormat &format) : format(format) { }
+    QVideoFramePrivate(QVideoFrameFormat format, std::unique_ptr<QAbstractVideoBuffer> buffer)
+        : format{ std::move(format) }, buffer{ std::move(buffer) }
+    {
+    }
 
     static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); };
 

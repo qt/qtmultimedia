@@ -8,6 +8,7 @@
 #include "qmultimediautils_p.h"
 #include "qmemoryvideobuffer_p.h"
 #include "qvideoframeconverter_p.h"
+#include "qimagevideobuffer_p.h"
 #include "qpainter.h"
 #include <qtextlayout.h>
 
@@ -104,6 +105,48 @@ QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
         if (!data.isEmpty())
             d->buffer = std::make_unique<QMemoryVideoBuffer>(data, textureDescription->strideForWidth(format.frameWidth()));
     }
+}
+
+/*!
+    Constructs a QVideoFrame from a QImage. The QImage pixels are copied
+    into the QVideoFrame's memory buffer. The resulting frame has the
+    same size as the QImage, but the number of bytes per line may
+    differ.
+
+    If the QImage::Format matches one of the formats in
+    QVideoFrameFormat::PixelFormat, the QVideoFrame will use that format
+    without any pixel format conversion. Otherwise, the image is first
+    converted to a supported (A)RGB format using QImage::convertedTo()
+    with the Qt::AutoColor flag. This may incur a performance penalty.
+
+    If QImage::isNull() evaluates to true for the input QImage, the
+    QVideoFrame will be invalid and QVideoFrameFormat::isValid() will
+    return false.
+
+    \sa QVideoFrameFormat::pixelFormatFromImageFormat()
+    \sa QImage::convertedTo()
+    \sa QImage::isNull()
+*/
+QVideoFrame::QVideoFrame(const QImage &image)
+{
+    auto buffer = std::make_unique<QImageVideoBuffer>(image);
+
+    // If the QImage::Format is not convertible to QVideoFrameFormat,
+    // QImageVideoBuffer automatically converts image to a compatible
+    // (A)RGB format.
+    const QImage &bufferImage = buffer->underlyingImage();
+
+    if (bufferImage.isNull())
+        return;
+
+    // `bufferImage` is now supported by QVideoFrameFormat::pixelFormatFromImageFormat()
+    QVideoFrameFormat format = {
+        bufferImage.size(), QVideoFrameFormat::pixelFormatFromImageFormat(bufferImage.format())
+    };
+
+    Q_ASSERT(format.isValid());
+
+    d = new QVideoFramePrivate{ std::move(format), std::move(buffer) };
 }
 
 /*!

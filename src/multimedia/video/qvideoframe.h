@@ -53,6 +53,7 @@ public:
 
     QVideoFrame();
     QVideoFrame(const QVideoFrameFormat &format);
+    explicit QVideoFrame(const QImage &image);
     QVideoFrame(const QVideoFrame &other);
     ~QVideoFrame();
 
