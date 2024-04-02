@@ -43,9 +43,8 @@ QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *pa
     if (!audioconvert)
         return errorMessageCannotFindElement("audioconvert");
 
-    QGstPipeline playbin(
-            GST_PIPELINE_CAST(QGstElement::createFromFactory("playbin", "playbin").element()),
-            QGstPipeline::NeedsRef);
+    QGstPipeline playbin = QGstPipeline::adopt(
+            GST_PIPELINE_CAST(QGstElement::createFromFactory("playbin", "playbin").element()));
     if (!playbin)
         return errorMessageCannotFindElement("playbin");
 
