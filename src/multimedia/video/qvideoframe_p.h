@@ -28,8 +28,6 @@ public:
     QVideoFramePrivate() = default;
     QVideoFramePrivate(const QVideoFrameFormat &format) : format(format) { }
 
-    ~QVideoFramePrivate() { delete buffer; }
-
     static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); };
 
     QVideoFrame adoptThisByVideoFrame()
@@ -43,7 +41,7 @@ public:
     qint64 endTime = -1;
     QAbstractVideoBuffer::MapData mapData;
     QVideoFrameFormat format;
-    QAbstractVideoBuffer *buffer = nullptr;
+    std::unique_ptr<QAbstractVideoBuffer> buffer;
     int mappedCount = 0;
     QMutex mapMutex;
     QString subtitleText;

@@ -76,7 +76,7 @@ QVideoFrame::QVideoFrame()
 QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format)
     : d(new QVideoFramePrivate(format))
 {
-    d->buffer = buffer;
+    d->buffer.reset(buffer);
 }
 
 /*!
@@ -84,7 +84,7 @@ QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &
 */
 QAbstractVideoBuffer *QVideoFrame::videoBuffer() const
 {
-    return d ? d->buffer : nullptr;
+    return d ? d->buffer.get() : nullptr;
 }
 
 /*!
@@ -102,7 +102,7 @@ QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
 
         // Check the memory was successfully allocated.
         if (!data.isEmpty())
-            d->buffer = new QMemoryVideoBuffer(data, textureDescription->strideForWidth(format.frameWidth()));
+            d->buffer = std::make_unique<QMemoryVideoBuffer>(data, textureDescription->strideForWidth(format.frameWidth()));
     }
 }
 
