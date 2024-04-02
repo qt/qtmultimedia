@@ -39,7 +39,7 @@ private slots:
                 "mediaDevices_doesNotCrash_whenCalledWithoutApplication_impl"_L1));
     }
 
-    bool mediaDevices_doesNotCrash_whenCalledWithoutApplication_impl(int argc, char **argv)
+    bool mediaDevices_doesNotCrash_whenCalledWithoutApplication_impl(int /*argc*/, char ** /*argv*/)
     {
         Q_ASSERT(!qApp);
 
