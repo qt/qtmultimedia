@@ -104,25 +104,20 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
     auto gstNewDecode = QGstElement::createFromFactory(
             f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
-    auto updateCameraBin = [&] {
+    QGstPipeline::modifyPipelineWhileNotRunning(gstCamera.getPipeline(), [&] {
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
         gstCameraBin.stopAndRemoveElements(gstCamera, gstDecode);
 
         gstCapsFilter.set("caps", caps);
 
-        gstCameraBin.add(gstNewCamera, gstNewDecode);
-        qLinkGstElements(gstNewCamera, gstCapsFilter, gstNewDecode, gstVideoConvert);
+        gstCamera = std::move(gstNewCamera);
+        gstDecode = std::move(gstNewDecode);
+
+        gstCameraBin.add(gstCamera, gstDecode);
+        qLinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
 
         gstCameraBin.syncChildrenState();
-    };
-
-    if (gstPipeline)
-        gstPipeline.modifyPipelineWhileNotRunning(updateCameraBin);
-    else
-        updateCameraBin();
-
-    gstCamera = gstNewCamera;
-    gstDecode = gstNewDecode;
+    });
 
     updateCameraProperties();
 }
@@ -141,7 +136,7 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
     auto newGstDecode = QGstElement::createFromFactory(
             f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
-    auto updateCameraBin = [&] {
+    QGstPipeline::modifyPipelineWhileNotRunning(gstCamera.getPipeline(), [&] {
         newGstDecode.syncStateWithParent();
 
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
@@ -149,24 +144,14 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
 
         gstCapsFilter.set("caps", caps);
 
-        gstCameraBin.add(newGstDecode);
-        qLinkGstElements(gstCamera, gstCapsFilter, newGstDecode, gstVideoConvert);
+        gstDecode = std::move(newGstDecode);
+
+        gstCameraBin.add(gstDecode);
+        qLinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
         gstCameraBin.syncChildrenState();
-    };
-
-    if (gstPipeline)
-        gstPipeline.modifyPipelineWhileNotRunning(updateCameraBin);
-    else
-        updateCameraBin();
-
-    gstDecode = newGstDecode;
+    });
 
     return true;
-}
-
-void QGstreamerCamera::setPipeline(QGstPipeline const &pipeline)
-{
-    gstPipeline = pipeline;
 }
 
 void QGstreamerCamera::updateCameraProperties()

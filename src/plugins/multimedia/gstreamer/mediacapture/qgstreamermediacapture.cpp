@@ -92,13 +92,11 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *platformCamera)
         QObject::disconnect(gstCameraActiveConnection);
         if (gstVideoTee)
             setCameraActive(false);
-        gstCamera->setPipeline({});
     }
 
     gstCamera = camera;
 
     if (gstCamera) {
-        gstCamera->setPipeline(gstPipeline);
         gstCameraActiveConnection = QObject::connect(camera, &QGstreamerCamera::activeChanged, this,
                                                      &QGstreamerMediaCapture::setCameraActive);
         if (gstCamera->isActive())

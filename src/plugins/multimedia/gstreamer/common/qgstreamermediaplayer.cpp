@@ -771,15 +771,12 @@ void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)
     auto &ts = trackSelector(AudioStream);
 
     playerPipeline.modifyPipelineWhileNotRunning([&] {
-        if (gstAudioOutput) {
+        if (gstAudioOutput)
             removeOutput(ts);
-            gstAudioOutput->setPipeline({});
-        }
+
         gstAudioOutput = static_cast<QGstreamerAudioOutput *>(output);
-        if (gstAudioOutput) {
-            gstAudioOutput->setPipeline(playerPipeline);
+        if (gstAudioOutput)
             connectOutput(ts);
-        }
     });
 }
 

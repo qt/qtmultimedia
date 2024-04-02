@@ -38,7 +38,6 @@ public:
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
 
-    void setPipeline(const QGstPipeline &);
     QGstElement gstElement() const { return gstCameraBin; }
 #if QT_CONFIG(gstreamer_photography)
     GstPhotography *photography() const;

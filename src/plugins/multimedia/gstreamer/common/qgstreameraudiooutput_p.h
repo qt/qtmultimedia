@@ -38,8 +38,6 @@ public:
     void setVolume(float) override;
     void setMuted(bool) override;
 
-    void setPipeline(const QGstPipeline &pipeline);
-
     QGstElement gstElement() const { return gstAudioOutput; }
 
 private:
