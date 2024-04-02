@@ -50,7 +50,9 @@ public:
     QGstPipeline(GstPipeline *, RefMode mode);
     ~QGstPipeline();
 
+    // installs QGstPipelinePrivate as "pipeline-private" gobject property
     static QGstPipeline create(const char *name);
+    static QGstPipeline adopt(GstPipeline *);
 
     // This is needed to help us avoid sending QVideoFrames or audio buffers to the
     // application while we're prerolling the pipeline.

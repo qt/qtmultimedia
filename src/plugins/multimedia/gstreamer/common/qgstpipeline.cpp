@@ -158,7 +158,11 @@ void QGstPipelinePrivate::removeMessageFilter(QGstreamerBusMessageFilter *filter
 QGstPipeline QGstPipeline::create(const char *name)
 {
     GstPipeline *pipeline = qGstCheckedCast<GstPipeline>(gst_pipeline_new(name));
+    return adopt(pipeline);
+}
 
+QGstPipeline QGstPipeline::adopt(GstPipeline *pipeline)
+{
     QGstPipelinePrivate *d = new QGstPipelinePrivate(gst_pipeline_get_bus(pipeline));
     g_object_set_data_full(qGstCheckedCast<GObject>(pipeline), "pipeline-private", d,
                            [](gpointer ptr) {
