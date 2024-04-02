@@ -49,6 +49,8 @@ public:
     void setIsPreview();
     void flushSubtitles();
 
+    void setNativeSize(QSize);
+
 private:
     QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoScale, QGstElement videoSink,
                           QObject *parent);
@@ -68,6 +70,8 @@ private:
 
     QGstElement subtitleSrc;
     QGstElement subtitleSink;
+
+    QSize nativeSize;
 };
 
 QT_END_NAMESPACE
