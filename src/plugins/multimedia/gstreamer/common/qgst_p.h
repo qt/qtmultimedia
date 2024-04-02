@@ -316,6 +316,7 @@ public:
     std::optional<std::pair<QVideoFrameFormat, GstVideoInfo>> formatAndVideoInfo() const;
 
     void addPixelFormats(const QList<QVideoFrameFormat::PixelFormat> &formats, const char *modifier = nullptr);
+    void setResolution(QSize);
 
     static QGstCaps create();
 
