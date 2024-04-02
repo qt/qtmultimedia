@@ -130,7 +130,7 @@ QGstElement QGstreamerVideoSink::gstSink()
 
 void QGstreamerVideoSink::setPipeline(QGstPipeline pipeline)
 {
-    gstPipeline = pipeline;
+    gstPipeline = std::move(pipeline);
 }
 
 bool QGstreamerVideoSink::inStoppedState() const
