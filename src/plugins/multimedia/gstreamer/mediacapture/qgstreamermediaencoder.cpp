@@ -138,9 +138,13 @@ static GstEncodingProfile *createVideoProfile(const QMediaEncoderSettings &setti
 {
     auto *formatInfo = QGstreamerIntegration::instance()->gstFormatsInfo();
 
-    auto caps = formatInfo->videoCaps(settings.mediaFormat());
+    QGstCaps caps = formatInfo->videoCaps(settings.mediaFormat());
     if (caps.isNull())
         return nullptr;
+
+    QSize videoResolution = settings.videoResolution();
+    if (videoResolution.isValid())
+        caps.setResolution(videoResolution);
 
     GstEncodingVideoProfile *profile =
             gst_encoding_video_profile_new(const_cast<GstCaps *>(caps.caps()), nullptr,
