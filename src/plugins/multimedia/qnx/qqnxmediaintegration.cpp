@@ -32,7 +32,7 @@ public:
     }
 };
 
-QQnxMediaIntegration::QQnxMediaIntegration() = default;
+QQnxMediaIntegration::QQnxMediaIntegration() : QPlatformMediaIntegration(QLatin1String("qnx")) { }
 
 QPlatformMediaFormatInfo *QQnxMediaIntegration::createFormatInfo()
 {
