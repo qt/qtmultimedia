@@ -38,7 +38,7 @@ public:
 
     QPlatformMediaIntegration *create(const QString &name) override
     {
-        if (name == QLatin1String("wasm"))
+        if (name == u"wasm")
             return new QWasmMediaIntegration;
         return nullptr;
     }

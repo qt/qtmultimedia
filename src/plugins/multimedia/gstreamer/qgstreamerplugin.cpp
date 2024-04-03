@@ -17,7 +17,7 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("gstreamer"))
+        if (name == u"gstreamer")
             return new QGstreamerIntegration;
         return nullptr;
     }
