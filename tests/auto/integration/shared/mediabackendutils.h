@@ -5,6 +5,7 @@
 #define MEDIABACKENDUTILS_H
 
 #include <QtTest/qtestcase.h>
+#include <private/qplatformmediaintegration_p.h>
 
 #define QSKIP_GSTREAMER(message)                                          \
     do {                                                                  \
