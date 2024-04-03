@@ -4,6 +4,8 @@
 #include "qmultimediautils_p.h"
 #include "qvideoframe.h"
 
+#include <QtCore/qdir.h>
+
 QT_BEGIN_NAMESPACE
 
 Fraction qRealToFraction(qreal value)
@@ -58,6 +60,14 @@ QSize qRotatedFrameSize(QSize size, int rotation)
 QSize qRotatedFrameSize(const QVideoFrame &frame)
 {
     return qRotatedFrameSize(frame.size(), frame.rotation());
+}
+
+QUrl qMediaFromUserInput(QUrl url)
+{
+    using namespace Qt::Literals;
+    if (url.scheme().isEmpty() || url.scheme() == "file"_L1)
+        url = QUrl::fromUserInput(url.toString(), QDir::currentPath(), QUrl::AssumeLocalFile);
+    return url;
 }
 
 QT_END_NAMESPACE

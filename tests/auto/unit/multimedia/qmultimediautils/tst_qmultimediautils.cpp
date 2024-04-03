@@ -19,6 +19,8 @@ private slots:
     void fraction_of_upper_boundary();
 
     void qRotatedFrameSize_returnsSizeAccordinglyToRotation();
+
+    void qMediaFromUserInput_addsFilePrefix_whenCalledWithLocalFile();
 };
 
 void tst_QMultimediaUtils::fraction_of_0()
@@ -91,6 +93,20 @@ void tst_QMultimediaUtils::qRotatedFrameSize_returnsSizeAccordinglyToRotation()
 
     QCOMPARE(qRotatedFrameSize({ 11, 22 }, QtVideo::Rotation::Clockwise90), QSize(22, 11));
     QCOMPARE(qRotatedFrameSize({ 11, 22 }, QtVideo::Rotation::Clockwise270), QSize(22, 11));
+}
+
+void tst_QMultimediaUtils::qMediaFromUserInput_addsFilePrefix_whenCalledWithLocalFile()
+{
+    using namespace Qt::Literals;
+
+    QCOMPARE(qMediaFromUserInput(QUrl(u"/foo/bar/baz"_s)), QUrl(u"file:///foo/bar/baz"_s));
+    QCOMPARE(qMediaFromUserInput(QUrl::fromLocalFile(u"C:/foo/bar/baz"_s)),
+             QUrl(u"file:///C:/foo/bar/baz"_s));
+    QCOMPARE(qMediaFromUserInput(QUrl(u"file:///foo/bar/baz"_s)), QUrl(u"file:///foo/bar/baz"_s));
+    QCOMPARE(qMediaFromUserInput(QUrl(u"http://foo/bar/baz"_s)), QUrl(u"http://foo/bar/baz"_s));
+
+    QCOMPARE(qMediaFromUserInput(QUrl(u"foo/bar/baz"_s)),
+             QUrl::fromLocalFile(QDir::currentPath() + u"/foo/bar/baz"_s));
 }
 
 QTEST_MAIN(tst_QMultimediaUtils)

@@ -18,7 +18,8 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/qtvideo.h>
 #include <QtMultimedia/private/qmaybe_p.h>
-#include <qsize.h>
+#include <QtCore/qsize.h>
+#include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -43,6 +44,8 @@ inline QSize qRotatedFrameSize(QSize size, QtVideo::Rotation rotation)
 }
 
 Q_MULTIMEDIA_EXPORT QSize qRotatedFrameSize(const QVideoFrame &frame);
+
+Q_MULTIMEDIA_EXPORT QUrl qMediaFromUserInput(QUrl fileName);
 
 QT_END_NAMESPACE
 
