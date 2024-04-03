@@ -53,7 +53,9 @@ QMaybe<QPlatformAudioDecoder *> QGstreamerAudioDecoder::create(QAudioDecoder *pa
 
 QGstreamerAudioDecoder::QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement audioconvert,
                                                QAudioDecoder *parent)
-    : QPlatformAudioDecoder(parent), m_playbin(playbin), m_audioConvert(audioconvert)
+    : QPlatformAudioDecoder(parent),
+      m_playbin(std::move(playbin)),
+      m_audioConvert(std::move(audioconvert))
 {
     // Sort out messages
     m_playbin.installMessageFilter(this);
@@ -94,13 +96,13 @@ void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *or
     Q_UNUSED(pspec);
 
     // In case we switch from appsrc to not
-    if (!self->appsrc())
+    if (!self->m_appSrc)
         return;
 
     QGstElementHandle appsrc;
     g_object_get(orig, "source", &appsrc, NULL);
 
-    auto *qAppSrc = self->appsrc();
+    auto *qAppSrc = self->m_appSrc;
     qAppSrc->setExternalAppSrc(
             QGstElement(appsrc.get(), QGstElement::NeedsRef)); // CHECK: can we `release()`?
     qAppSrc->setup(self->mDevice);
@@ -468,8 +470,10 @@ void QGstreamerAudioDecoder::addAppSink()
     gst_app_sink_set_max_buffers(m_appSink.appSink(), MAX_BUFFERS_IN_QUEUE);
     gst_base_sink_set_sync(m_appSink.baseSink(), FALSE);
 
-    m_outputBin.add(m_appSink);
-    qLinkGstElements(m_audioConvert, m_appSink);
+    QGstPipeline::modifyPipelineWhileNotRunning(m_playbin.getPipeline(), [&] {
+        m_outputBin.add(m_appSink);
+        qLinkGstElements(m_audioConvert, m_appSink);
+    });
 }
 
 void QGstreamerAudioDecoder::removeAppSink()
@@ -477,8 +481,10 @@ void QGstreamerAudioDecoder::removeAppSink()
     if (!m_appSink)
         return;
 
-    qUnlinkGstElements(m_audioConvert, m_appSink);
-    m_outputBin.stopAndRemoveElements(m_appSink);
+    QGstPipeline::modifyPipelineWhileNotRunning(m_playbin.getPipeline(), [&] {
+        qUnlinkGstElements(m_audioConvert, m_appSink);
+        m_outputBin.stopAndRemoveElements(m_appSink);
+    });
     m_appSink = {};
 }
 
