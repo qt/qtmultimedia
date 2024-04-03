@@ -65,18 +65,17 @@ public:
     // GStreamerBusMessageFilter interface
     bool processBusMessage(const QGstreamerMessage &message) override;
 
-#if QT_CONFIG(gstreamer_app)
-    QGstAppSrc *appsrc() const { return m_appSrc; }
-    static void configureAppSrcElement(GObject*, GObject*, GParamSpec*, QGstreamerAudioDecoder *_this);
-#endif
-
-    static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
-
 private slots:
     void updateDuration();
 
 private:
     QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement audioconvert, QAudioDecoder *parent);
+
+#if QT_CONFIG(gstreamer_app)
+    static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
+    static void configureAppSrcElement(GObject *, GObject *, GParamSpec *,
+                                       QGstreamerAudioDecoder *_this);
+#endif
 
     void setAudioFlags(bool wantNativeAudio);
     void addAppSink();
