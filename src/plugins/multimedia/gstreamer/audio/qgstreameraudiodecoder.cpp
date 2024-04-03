@@ -82,6 +82,8 @@ QGstreamerAudioDecoder::~QGstreamerAudioDecoder()
 {
     stop();
 
+    m_playbin.removeMessageFilter(this);
+
 #if QT_CONFIG(gstreamer_app)
     delete m_appSrc;
 #endif
