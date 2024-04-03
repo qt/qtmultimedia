@@ -294,10 +294,10 @@ QGstAppSink QGStreamerAudioSource::createAppSink()
     return sink;
 }
 
-void QGStreamerAudioSource::newDataAvailable(GstSample *sample)
+void QGStreamerAudioSource::newDataAvailable(QGstSampleHandle sample)
 {
     if (m_audioSink) {
-        GstBuffer *buffer = gst_sample_get_buffer(sample);
+        GstBuffer *buffer = gst_sample_get_buffer(sample.get());
         GstMapInfo mapInfo;
         gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
         const char *bufferData = (const char*)mapInfo.data;
@@ -314,8 +314,6 @@ void QGStreamerAudioSource::newDataAvailable(GstSample *sample)
 
         gst_buffer_unmap(buffer, &mapInfo);
     }
-
-    gst_sample_unref(sample);
 }
 
 GstFlowReturn QGStreamerAudioSource::new_sample(GstAppSink *sink, gpointer user_data)
@@ -323,8 +321,14 @@ GstFlowReturn QGStreamerAudioSource::new_sample(GstAppSink *sink, gpointer user_
     // "Note that the preroll buffer will also be returned as the first buffer when calling gst_app_sink_pull_buffer()."
     QGStreamerAudioSource *control = static_cast<QGStreamerAudioSource*>(user_data);
 
-    GstSample *sample = gst_app_sink_pull_sample(sink);
-    QMetaObject::invokeMethod(control, "newDataAvailable", Qt::AutoConnection, Q_ARG(GstSample *, sample));
+    QGstSampleHandle sample{
+        gst_app_sink_pull_sample(sink),
+        QGstSampleHandle::HasRef,
+    };
+
+    QMetaObject::invokeMethod(control, [control, sample = std::move(sample)]() mutable {
+        control->newDataAvailable(std::move(sample));
+    });
 
     return GST_FLOW_OK;
 }
@@ -337,7 +341,7 @@ void QGStreamerAudioSource::eos(GstAppSink *, gpointer user_data)
 
 GStreamerInputPrivate::GStreamerInputPrivate(QGStreamerAudioSource *audio)
 {
-    m_audioDevice = qobject_cast<QGStreamerAudioSource*>(audio);
+    m_audioDevice = audio;
 }
 
 qint64 GStreamerInputPrivate::readData(char *data, qint64 len)
@@ -363,5 +367,3 @@ qint64 GStreamerInputPrivate::bytesAvailable() const
 
 
 QT_END_NAMESPACE
-
-#include "moc_qgstreameraudiosource_p.cpp"

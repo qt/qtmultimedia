@@ -41,7 +41,6 @@ class GStreamerInputPrivate;
 class QGStreamerAudioSource
     : public QPlatformAudioSource
 {
-    Q_OBJECT
     friend class GStreamerInputPrivate;
 public:
     QGStreamerAudioSource(const QAudioDevice &device, QObject *parent);
@@ -65,9 +64,6 @@ public:
     void setVolume(qreal volume) override;
     qreal volume() const override;
 
-private Q_SLOTS:
-    void newDataAvailable(GstSample *sample);
-
 private:
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
@@ -80,6 +76,8 @@ private:
     void close();
 
     static gboolean busMessage(GstBus *bus, GstMessage *msg, gpointer user_data);
+
+    void newDataAvailable(QGstSampleHandle sample);
 
     QAudioDevice m_info;
     qint64 m_bytesWritten = 0;
@@ -106,7 +104,6 @@ private:
 
 class GStreamerInputPrivate : public QIODevice
 {
-    Q_OBJECT
 public:
     explicit GStreamerInputPrivate(QGStreamerAudioSource *audio);
 
