@@ -72,7 +72,7 @@ private:
     void setState(QAudio::State state);
     void setError(QAudio::Error error);
 
-    QGstElement createAppSink();
+    QGstAppSink createAppSink();
     static GstFlowReturn new_sample(GstAppSink *, gpointer user_data);
     static void eos(GstAppSink *, gpointer user_data);
 
@@ -101,7 +101,7 @@ private:
     QGstElement gstInput;
     QGstPipeline gstPipeline;
     QGstElement gstVolume;
-    QGstElement gstAppSink;
+    QGstAppSink gstAppSink;
 };
 
 class GStreamerInputPrivate : public QIODevice

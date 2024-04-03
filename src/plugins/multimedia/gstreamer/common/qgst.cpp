@@ -1027,4 +1027,66 @@ void QGstBin::dumpGraph(const char *fileNamePrefix)
                               fileNamePrefix);
 }
 
+// QGstBaseSink
+
+QGstBaseSink::QGstBaseSink(GstBaseSink *element, RefMode mode)
+    : QGstElement{
+          qGstCheckedCast<GstElement>(element),
+          mode,
+      }
+{
+}
+
+GstBaseSink *QGstBaseSink::baseSink() const
+{
+    return qGstCheckedCast<GstBaseSink>(element());
+}
+
+#if QT_CONFIG(gstreamer_app)
+
+// QGstAppSink
+
+QGstAppSink::QGstAppSink(GstAppSink *element, RefMode mode)
+    : QGstBaseSink{
+          qGstCheckedCast<GstBaseSink>(element),
+          mode,
+      }
+{
+}
+
+QGstAppSink QGstAppSink::create(const char *name)
+{
+    QGstElement created = QGstElement::createFromFactory("appsink", name);
+    return QGstAppSink{
+        qGstCheckedCast<GstAppSink>(created.element()),
+        QGstAppSink::NeedsRef,
+    };
+}
+
+GstAppSink *QGstAppSink::appSink() const
+{
+    return qGstCheckedCast<GstAppSink>(element());
+}
+
+void QGstAppSink::setCaps(const QGstCaps &caps)
+{
+    gst_app_sink_set_caps(appSink(), caps.caps());
+}
+
+void QGstAppSink::setCallbacks(GstAppSinkCallbacks &callbacks, gpointer user_data,
+                               GDestroyNotify notify)
+{
+    gst_app_sink_set_callbacks(appSink(), &callbacks, user_data, notify);
+}
+
+QGstSampleHandle QGstAppSink::pullSample()
+{
+    return QGstSampleHandle{
+        gst_app_sink_pull_sample(appSink()),
+        QGstSampleHandle::HasRef,
+    };
+}
+
+#endif
+
 QT_END_NAMESPACE
