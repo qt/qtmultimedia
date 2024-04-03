@@ -71,6 +71,8 @@ QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc 
 QGStreamerAudioSink::~QGStreamerAudioSink()
 {
     close();
+    gstPipeline.removeMessageFilter(this);
+
     gstPipeline = {};
     gstVolume = {};
     gstAppSrc = {};
