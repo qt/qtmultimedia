@@ -27,7 +27,7 @@ namespace {
 class QFallbackIntegration : public QPlatformMediaIntegration
 {
 public:
-    QFallbackIntegration()
+    QFallbackIntegration() : QPlatformMediaIntegration(QLatin1String("fallback"))
     {
         qWarning("No QtMultimedia backends found. Only QMediaDevices, QAudioDevice, QSoundEffect, QAudioSink, and QAudioSource are available.");
     }
@@ -241,7 +241,12 @@ QStringList QPlatformMediaIntegration::availableBackends()
     return list;
 }
 
-QPlatformMediaIntegration::QPlatformMediaIntegration() = default;
+QLatin1String QPlatformMediaIntegration::name()
+{
+    return m_backendName;
+}
+
+QPlatformMediaIntegration::QPlatformMediaIntegration(QLatin1String name) : m_backendName(name) { }
 
 QPlatformMediaIntegration::~QPlatformMediaIntegration() = default;
 
