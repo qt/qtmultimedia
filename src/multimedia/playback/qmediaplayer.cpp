@@ -3,6 +3,7 @@
 
 #include "qmediaplayer_p.h"
 
+#include <private/qmultimediautils_p.h>
 #include <private/qplatformmediaintegration_p.h>
 #include <qvideosink.h>
 #include <qaudiooutput.h>
@@ -11,10 +12,10 @@
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qtimer.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qtemporaryfile.h>
-#include <QtCore/qdir.h>
 #include <QtCore/qcoreapplication.h>
 
 #if defined(Q_OS_ANDROID)
@@ -188,9 +189,7 @@ void QMediaPlayerPrivate::setMedia(const QUrl &media, QIODevice *stream)
         }
     } else {
         qrcMedia = QUrl();
-        QUrl url = media;
-        if (url.scheme().isEmpty() || url.scheme() == QLatin1String("file"))
-            url = QUrl::fromUserInput(media.toString(), QDir::currentPath(), QUrl::AssumeLocalFile);
+        QUrl url = qMediaFromUserInput(media);
         if (url.scheme() == QLatin1String("content") && !stream) {
             file.reset(new QFile(media.url()));
             stream = file.get();
