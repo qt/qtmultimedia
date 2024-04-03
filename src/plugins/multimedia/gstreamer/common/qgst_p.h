@@ -33,9 +33,14 @@
 #include <type_traits>
 
 #if QT_CONFIG(gstreamer_photography)
-#define GST_USE_UNSTABLE_API
-#include <gst/interfaces/photography.h>
-#undef GST_USE_UNSTABLE_API
+#  define GST_USE_UNSTABLE_API
+#  include <gst/interfaces/photography.h>
+#  undef GST_USE_UNSTABLE_API
+#endif
+
+#if QT_CONFIG(gstreamer_app)
+#  include <gst/app/gstappsink.h>
+#  include <gst/app/gstappsrc.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -81,6 +86,13 @@ QGST_DEFINE_CAST_TRAITS(GstElement, ELEMENT);
 QGST_DEFINE_CAST_TRAITS(GstObject, OBJECT);
 QGST_DEFINE_CAST_TRAITS(GstPad, PAD);
 QGST_DEFINE_CAST_TRAITS(GstPipeline, PIPELINE);
+QGST_DEFINE_CAST_TRAITS(GstBaseSink, BASE_SINK);
+QGST_DEFINE_CAST_TRAITS(GstBaseSrc, BASE_SRC);
+
+#if QT_CONFIG(gstreamer_app)
+QGST_DEFINE_CAST_TRAITS(GstAppSink, APP_SINK);
+QGST_DEFINE_CAST_TRAITS(GstAppSrc, APP_SRC);
+#endif
 
 template <>
 struct GstObjectTraits<GObject>
@@ -665,6 +677,44 @@ public:
     void dumpGraph(const char *fileNamePrefix);
 };
 
+class QGstBaseSink : public QGstElement
+{
+public:
+    using QGstElement::QGstElement;
+
+    explicit QGstBaseSink(GstBaseSink *, RefMode);
+
+    QGstBaseSink(const QGstBaseSink &) = default;
+    QGstBaseSink(QGstBaseSink &&) noexcept = default;
+    QGstBaseSink &operator=(const QGstBaseSink &) = default;
+    QGstBaseSink &operator=(QGstBaseSink &&) noexcept = default;
+
+    GstBaseSink *baseSink() const;
+};
+
+#if QT_CONFIG(gstreamer_app)
+class QGstAppSink : public QGstBaseSink
+{
+public:
+    using QGstBaseSink::QGstBaseSink;
+
+    explicit QGstAppSink(GstAppSink *, RefMode);
+
+    QGstAppSink(const QGstAppSink &) = default;
+    QGstAppSink(QGstAppSink &&) noexcept = default;
+    QGstAppSink &operator=(const QGstAppSink &) = default;
+    QGstAppSink &operator=(QGstAppSink &&) noexcept = default;
+
+    static QGstAppSink create(const char *name);
+
+    GstAppSink *appSink() const;
+
+    void setCaps(const QGstCaps &caps);
+    void setCallbacks(GstAppSinkCallbacks &callbacks, gpointer user_data, GDestroyNotify notify);
+
+    QGstSampleHandle pullSample();
+};
+#endif
 
 inline QString errorMessageCannotFindElement(std::string_view element)
 {

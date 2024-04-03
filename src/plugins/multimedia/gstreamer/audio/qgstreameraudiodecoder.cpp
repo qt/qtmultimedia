@@ -304,11 +304,11 @@ void QGstreamerAudioDecoder::start()
         if (mFormat.isValid()) {
             setAudioFlags(false);
             auto caps = QGstUtils::capsForAudioFormat(mFormat);
-            gst_app_sink_set_caps(m_appSink, caps.caps());
+            m_appSink.setCaps(caps);
         } else {
             // We want whatever the native audio format is
             setAudioFlags(true);
-            gst_app_sink_set_caps(m_appSink, nullptr);
+            m_appSink.setCaps({});
         }
     }
 
@@ -378,10 +378,7 @@ QAudioBuffer QGstreamerAudioDecoder::read()
         const char* bufferData = nullptr;
         int bufferSize = 0;
 
-        QGstSampleHandle sample{
-            gst_app_sink_pull_sample(m_appSink),
-            QGstSampleHandle::HasRef,
-        };
+        QGstSampleHandle sample = m_appSink.pullSample();
         GstBuffer *buffer = gst_sample_get_buffer(sample.get());
         GstMapInfo mapInfo;
         gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
@@ -464,17 +461,15 @@ void QGstreamerAudioDecoder::addAppSink()
     if (m_appSink)
         return;
 
-    m_appSink = (GstAppSink*)gst_element_factory_make("appsink", nullptr);
+    m_appSink = QGstAppSink::create("decoderAppSink");
+    GstAppSinkCallbacks callbacks{};
+    callbacks.new_sample = new_sample;
+    m_appSink.setCallbacks(callbacks, this, nullptr);
+    gst_app_sink_set_max_buffers(m_appSink.appSink(), MAX_BUFFERS_IN_QUEUE);
+    gst_base_sink_set_sync(m_appSink.baseSink(), FALSE);
 
-    GstAppSinkCallbacks callbacks;
-    memset(&callbacks, 0, sizeof(callbacks));
-    callbacks.new_sample = &new_sample;
-    gst_app_sink_set_callbacks(m_appSink, &callbacks, this, nullptr);
-    gst_app_sink_set_max_buffers(m_appSink, MAX_BUFFERS_IN_QUEUE);
-    gst_base_sink_set_sync(GST_BASE_SINK(m_appSink), FALSE);
-
-    gst_bin_add(m_outputBin.bin(), GST_ELEMENT(m_appSink));
-    gst_element_link(m_audioConvert.element(), GST_ELEMENT(m_appSink));
+    m_outputBin.add(m_appSink);
+    qLinkGstElements(m_audioConvert, m_appSink);
 }
 
 void QGstreamerAudioDecoder::removeAppSink()
@@ -482,10 +477,9 @@ void QGstreamerAudioDecoder::removeAppSink()
     if (!m_appSink)
         return;
 
-    gst_element_unlink(m_audioConvert.element(), GST_ELEMENT(m_appSink));
-    gst_bin_remove(m_outputBin.bin(), GST_ELEMENT(m_appSink));
-
-    m_appSink = nullptr;
+    qUnlinkGstElements(m_audioConvert, m_appSink);
+    m_outputBin.stopAndRemoveElements(m_appSink);
+    m_appSink = {};
 }
 
 void QGstreamerAudioDecoder::updateDuration()
