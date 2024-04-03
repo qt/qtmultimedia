@@ -57,7 +57,7 @@ public class QtCamera2 {
     private int mState = STATE_PREVIEW;
     private Object mStartMutex = new Object();
     private boolean mIsStarted = false;
-    private static int MaxNumberFrames = 10;
+    private static int MaxNumberFrames = 12;
     private int mFlashMode = CaptureRequest.CONTROL_AE_MODE_ON;
     private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
     private int mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
