@@ -43,11 +43,7 @@ public:
     }
 };
 
-
-QAndroidIntegration::QAndroidIntegration()
-{
-
-}
+QAndroidIntegration::QAndroidIntegration() : QPlatformMediaIntegration(QLatin1String("android")) { }
 
 QMaybe<QPlatformAudioDecoder *> QAndroidIntegration::createAudioDecoder(QAudioDecoder *decoder)
 {

@@ -57,7 +57,7 @@ class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration : public QObject
 public:
     static QPlatformMediaIntegration *instance();
 
-    QPlatformMediaIntegration();
+    explicit QPlatformMediaIntegration(QLatin1String);
     virtual ~QPlatformMediaIntegration();
     const QPlatformMediaFormatInfo *formatInfo();
 
@@ -84,6 +84,7 @@ public:
     QPlatformMediaDevices *mediaDevices();
 
     static QStringList availableBackends();
+    QLatin1String name(); // for unit tests
 
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
@@ -101,6 +102,8 @@ private:
 
     std::unique_ptr<QPlatformMediaDevices> m_mediaDevices;
     std::once_flag m_mediaDevicesOnceFlag;
+
+    const QLatin1String m_backendName;
 };
 
 QT_END_NAMESPACE

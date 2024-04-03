@@ -21,6 +21,7 @@ QT_BEGIN_NAMESPACE
 Q_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
 
 QGstreamerIntegration::QGstreamerIntegration()
+    : QPlatformMediaIntegration(QLatin1String("gstreamer"))
 {
     gst_init(nullptr, nullptr);
     qCDebug(lcGstreamer) << "Using gstreamer version: " << gst_version_string();

@@ -34,6 +34,7 @@ public:
 };
 
 QWindowsMediaIntegration::QWindowsMediaIntegration()
+    : QPlatformMediaIntegration(QLatin1String("windows"))
 {
     CoInitialize(NULL);
     MFStartup(MF_VERSION);

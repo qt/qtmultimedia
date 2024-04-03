@@ -46,7 +46,8 @@ public:
     }
 };
 
-QWasmMediaIntegration::QWasmMediaIntegration() = default;
+QWasmMediaIntegration::QWasmMediaIntegration()
+    : QPlatformMediaIntegration(QLatin1String("wasm")) { }
 
 QMaybe<QPlatformMediaPlayer *> QWasmMediaIntegration::createPlayer(QMediaPlayer *player)
 {

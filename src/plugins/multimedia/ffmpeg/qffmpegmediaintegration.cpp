@@ -137,6 +137,7 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
 }
 
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
+    : QPlatformMediaIntegration(QLatin1String("ffmpeg"))
 {
     resolveSymbols();
 
