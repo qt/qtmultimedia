@@ -26,7 +26,7 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("qnx"))
+        if (name == u"qnx")
             return new QQnxMediaIntegration;
         return nullptr;
     }

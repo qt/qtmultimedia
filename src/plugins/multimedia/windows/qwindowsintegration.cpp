@@ -27,7 +27,7 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("windows"))
+        if (name == u"windows")
             return new QWindowsMediaIntegration;
         return nullptr;
     }

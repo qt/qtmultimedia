@@ -29,7 +29,7 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("darwin"))
+        if (name == u"darwin")
             return new QDarwinIntegration;
         return nullptr;
     }
