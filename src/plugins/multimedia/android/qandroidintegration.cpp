@@ -37,7 +37,7 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("android"))
+        if (name == u"android")
             return new QAndroidIntegration;
         return nullptr;
     }

@@ -68,7 +68,7 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == QLatin1String("ffmpeg"))
+        if (name == u"ffmpeg")
             return new QFFmpegMediaIntegration;
         return nullptr;
     }
@@ -115,22 +115,22 @@ static void setupFFmpegLogger()
 
 static QPlatformSurfaceCapture *createScreenCaptureByBackend(QString backend)
 {
-    if (backend == QLatin1String("grabwindow"))
+    if (backend == u"grabwindow")
         return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 
 #if QT_CONFIG(eglfs)
-    if (backend == QLatin1String("eglfs"))
+    if (backend == u"eglfs")
         return new QEglfsScreenCapture;
 #endif
 
 #if QT_CONFIG(xlib)
-    if (backend == QLatin1String("x11"))
+    if (backend == u"x11")
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
 #elif defined(Q_OS_WINDOWS)
-    if (backend == QLatin1String("dxgi"))
+    if (backend == u"dxgi")
         return new QFFmpegScreenCaptureDxgi;
 #elif defined(Q_OS_MACOS)
-    if (backend == QLatin1String("avf"))
+    if (backend == u"avf")
         return new QAVFScreenCapture;
 #endif
     return nullptr;
