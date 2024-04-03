@@ -106,44 +106,58 @@ bool QV4L2CameraDevices::doCheckCameras()
             frameSize.pixel_format = formatDesc.pixelformat;
 
             while (!xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
+                QList<QSize> resolutions;
+                if (frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
+                    resolutions.append(QSize(frameSize.discrete.width,
+                                             frameSize.discrete.height));
+                } else {
+                    resolutions.append(QSize(frameSize.stepwise.max_width,
+                                             frameSize.stepwise.max_height));
+                    resolutions.append(QSize(frameSize.stepwise.min_width,
+                                             frameSize.stepwise.min_height));
+                }
+
+                for (auto resolution : resolutions) {
+                    float min = 1e10;
+                    float max = 0;
+                    auto updateMaxMinFrameRate = [&max, &min](auto discreteFrameRate) {
+                        const float rate = float(discreteFrameRate.denominator)
+                                           / float(discreteFrameRate.numerator);
+                        if (rate > max)
+                            max = rate;
+                        if (rate < min)
+                            min = rate;
+                    };
+
+                    v4l2_frmivalenum frameInterval = {};
+                    frameInterval.pixel_format = formatDesc.pixelformat;
+                    frameInterval.width = resolution.width();
+                    frameInterval.height = resolution.height();
+
+                    while (!xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
+                        if (frameInterval.type == V4L2_FRMIVAL_TYPE_DISCRETE) {
+                            updateMaxMinFrameRate(frameInterval.discrete);
+                        } else {
+                            updateMaxMinFrameRate(frameInterval.stepwise.max);
+                            updateMaxMinFrameRate(frameInterval.stepwise.min);
+                        }
+                        ++frameInterval.index;
+                    }
+
+                    qCDebug(qLcV4L2CameraDevices) << "    " << resolution << min << max;
+
+                    if (min <= max) {
+                        auto fmt = std::make_unique<QCameraFormatPrivate>();
+                        fmt->pixelFormat = pixelFmt;
+                        fmt->resolution = resolution;
+                        fmt->minFrameRate = min;
+                        fmt->maxFrameRate = max;
+                        camera->videoFormats.append(fmt.release()->create());
+                        camera->photoResolutions.append(resolution);
+                    }
+                }
                 ++frameSize.index;
-                if (frameSize.type != V4L2_FRMSIZE_TYPE_DISCRETE)
-                    continue;
-
-                QSize resolution(frameSize.discrete.width, frameSize.discrete.height);
-                float min = 1e10;
-                float max = 0;
-
-                v4l2_frmivalenum frameInterval = {};
-                frameInterval.pixel_format = formatDesc.pixelformat;
-                frameInterval.width = frameSize.discrete.width;
-                frameInterval.height = frameSize.discrete.height;
-
-                while (!xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
-                    ++frameInterval.index;
-                    if (frameInterval.type != V4L2_FRMIVAL_TYPE_DISCRETE)
-                        continue;
-                    float rate = float(frameInterval.discrete.denominator)
-                            / float(frameInterval.discrete.numerator);
-                    if (rate > max)
-                        max = rate;
-                    if (rate < min)
-                        min = rate;
-                }
-
-                qCDebug(qLcV4L2CameraDevices) << "    " << resolution << min << max;
-
-                if (min <= max) {
-                    auto fmt = std::make_unique<QCameraFormatPrivate>();
-                    fmt->pixelFormat = pixelFmt;
-                    fmt->resolution = resolution;
-                    fmt->minFrameRate = min;
-                    fmt->maxFrameRate = max;
-                    camera->videoFormats.append(fmt.release()->create());
-                    camera->photoResolutions.append(resolution);
-                }
             }
-
             ++formatDesc.index;
         }
 
