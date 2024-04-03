@@ -88,7 +88,7 @@ private:
     QGstPipeline m_playbin;
     QGstBin m_outputBin;
     QGstElement m_audioConvert;
-    GstAppSink *m_appSink = nullptr;
+    QGstAppSink m_appSink;
     QGstAppSrc *m_appSrc = nullptr;
 
     QUrl mSource;

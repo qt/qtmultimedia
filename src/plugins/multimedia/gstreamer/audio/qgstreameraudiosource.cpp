@@ -280,18 +280,16 @@ void QGStreamerAudioSource::reset()
 
 //#define MAX_BUFFERS_IN_QUEUE 4
 
-QGstElement QGStreamerAudioSource::createAppSink()
+QGstAppSink QGStreamerAudioSource::createAppSink()
 {
-    QGstElement sink = QGstElement::createFromFactory("appsink", "appsink");
-    GstAppSink *appSink = reinterpret_cast<GstAppSink *>(sink.element());
+    QGstAppSink sink = QGstAppSink::create("appsink");
 
-    GstAppSinkCallbacks callbacks;
-    memset(&callbacks, 0, sizeof(callbacks));
-    callbacks.eos = &eos;
-    callbacks.new_sample = &new_sample;
-    gst_app_sink_set_callbacks(appSink, &callbacks, this, nullptr);
-//    gst_app_sink_set_max_buffers(appSink, MAX_BUFFERS_IN_QUEUE);
-    gst_base_sink_set_sync(GST_BASE_SINK(appSink), FALSE);
+    GstAppSinkCallbacks callbacks{};
+    callbacks.eos = eos;
+    callbacks.new_sample = new_sample;
+    sink.setCallbacks(callbacks, this, nullptr);
+    //    gst_app_sink_set_max_buffers(sink.appSink(), MAX_BUFFERS_IN_QUEUE);
+    gst_base_sink_set_sync(sink.baseSink(), FALSE);
 
     return sink;
 }
