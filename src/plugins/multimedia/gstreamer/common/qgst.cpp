@@ -629,9 +629,18 @@ QGstObject QGstObject::getObject(const char *property) const
     return QGstObject(o, HasRef);
 }
 
-void QGstObject::connect(const char *name, GCallback callback, gpointer userData)
+QGObjectHandlerConnection QGstObject::connect(const char *name, GCallback callback,
+                                              gpointer userData)
 {
-    g_signal_connect(get(), name, callback, userData);
+    return QGObjectHandlerConnection{
+        *this,
+        g_signal_connect(get(), name, callback, userData),
+    };
+}
+
+void QGstObject::disconnect(gulong handlerId)
+{
+    g_signal_handler_disconnect(get(), handlerId);
 }
 
 GType QGstObject::type() const
@@ -647,6 +656,43 @@ GstObject *QGstObject::object() const
 const char *QGstObject::name() const
 {
     return get() ? GST_OBJECT_NAME(get()) : "(null)";
+}
+
+// QGObjectHandlerConnection
+
+QGObjectHandlerConnection::QGObjectHandlerConnection(QGstObject object, gulong handlerId)
+    : object{ std::move(object) }, handlerId{ handlerId }
+{
+}
+
+void QGObjectHandlerConnection::disconnect()
+{
+    if (!object)
+        return;
+
+    object.disconnect(handlerId);
+    object = {};
+    handlerId = invalidHandlerId;
+}
+
+// QGObjectHandlerScopedConnection
+
+QGObjectHandlerScopedConnection::QGObjectHandlerScopedConnection(
+        QGObjectHandlerConnection connection)
+    : connection{
+          std::move(connection),
+      }
+{
+}
+
+QGObjectHandlerScopedConnection::~QGObjectHandlerScopedConnection()
+{
+    connection.disconnect();
+}
+
+void QGObjectHandlerScopedConnection::disconnect()
+{
+    connection.disconnect();
 }
 
 // QGstPad

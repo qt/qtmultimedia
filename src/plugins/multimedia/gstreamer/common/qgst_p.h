@@ -330,6 +330,8 @@ struct QGstPointerImpl::QGstRefcountingAdaptor<GstObject>
     static void unref(GstObject *arg) noexcept { gst_object_unref(arg); }
 };
 
+class QGObjectHandlerConnection;
+
 class QGstObject : public QGstPointerImpl::QGstObjectWrapper<GstObject>
 {
     using BaseClass = QGstPointerImpl::QGstObjectWrapper<GstObject>;
@@ -363,11 +365,52 @@ public:
     double getDouble(const char *property) const;
     QGstObject getObject(const char *property) const;
 
-    void connect(const char *name, GCallback callback, gpointer userData);
+    QGObjectHandlerConnection connect(const char *name, GCallback callback, gpointer userData);
+    void disconnect(gulong handlerId);
 
     GType type() const;
     GstObject *object() const;
     const char *name() const;
+};
+
+class QGObjectHandlerConnection
+{
+public:
+    QGObjectHandlerConnection(QGstObject object, gulong handler);
+
+    QGObjectHandlerConnection() = default;
+    QGObjectHandlerConnection(const QGObjectHandlerConnection &) = default;
+    QGObjectHandlerConnection(QGObjectHandlerConnection &&) = default;
+    QGObjectHandlerConnection &operator=(const QGObjectHandlerConnection &) = default;
+    QGObjectHandlerConnection &operator=(QGObjectHandlerConnection &&) = default;
+
+    void disconnect();
+
+private:
+    static constexpr gulong invalidHandlerId = std::numeric_limits<gulong>::max();
+
+    QGstObject object;
+    gulong handlerId = invalidHandlerId;
+};
+
+// disconnects in dtor
+class QGObjectHandlerScopedConnection
+{
+public:
+    QGObjectHandlerScopedConnection(QGObjectHandlerConnection connection);
+
+    QGObjectHandlerScopedConnection() = default;
+    QGObjectHandlerScopedConnection(const QGObjectHandlerScopedConnection &) = delete;
+    QGObjectHandlerScopedConnection &operator=(const QGObjectHandlerScopedConnection &) = delete;
+    QGObjectHandlerScopedConnection(QGObjectHandlerScopedConnection &&) = default;
+    QGObjectHandlerScopedConnection &operator=(QGObjectHandlerScopedConnection &&) = default;
+
+    ~QGObjectHandlerScopedConnection();
+
+    void disconnect();
+
+private:
+    QGObjectHandlerConnection connection;
 };
 
 class QGstElement;
@@ -495,37 +538,46 @@ public:
     void sendEvent(GstEvent *event) const;
     void sendEos() const;
 
-    template<auto Member, typename T>
-    void onPadAdded(T *instance) {
-        struct Impl {
-            static void callback(GstElement *e, GstPad *pad, gpointer userData) {
+    template <auto Member, typename T>
+    QGObjectHandlerConnection onPadAdded(T *instance)
+    {
+        struct Impl
+        {
+            static void callback(GstElement *e, GstPad *pad, gpointer userData)
+            {
                 (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef),
                                                       QGstPad(pad, NeedsRef));
             };
         };
 
-        connect("pad-added", G_CALLBACK(Impl::callback), instance);
+        return connect("pad-added", G_CALLBACK(Impl::callback), instance);
     }
-    template<auto Member, typename T>
-    void onPadRemoved(T *instance) {
-        struct Impl {
-            static void callback(GstElement *e, GstPad *pad, gpointer userData) {
+    template <auto Member, typename T>
+    QGObjectHandlerConnection onPadRemoved(T *instance)
+    {
+        struct Impl
+        {
+            static void callback(GstElement *e, GstPad *pad, gpointer userData)
+            {
                 (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef),
                                                       QGstPad(pad, NeedsRef));
             };
         };
 
-        connect("pad-removed", G_CALLBACK(Impl::callback), instance);
+        return connect("pad-removed", G_CALLBACK(Impl::callback), instance);
     }
-    template<auto Member, typename T>
-    void onNoMorePads(T *instance) {
-        struct Impl {
-            static void callback(GstElement *e, gpointer userData) {
+    template <auto Member, typename T>
+    QGObjectHandlerConnection onNoMorePads(T *instance)
+    {
+        struct Impl
+        {
+            static void callback(GstElement *e, gpointer userData)
+            {
                 (static_cast<T *>(userData)->*Member)(QGstElement(e, NeedsRef));
             };
         };
 
-        connect("no-more-pads", G_CALLBACK(Impl::callback), instance);
+        return connect("no-more-pads", G_CALLBACK(Impl::callback), instance);
     }
 
     GstClockTime baseTime() const;
