@@ -45,7 +45,7 @@ QGstVideoRenderer::QGstVideoRenderer(QGstreamerVideoSink *sink)
 
 QGstVideoRenderer::~QGstVideoRenderer() = default;
 
-QGstCaps QGstVideoRenderer::createSurfaceCaps(QGstreamerVideoSink *sink)
+QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerVideoSink *sink)
 {
     QGstCaps caps = QGstCaps::create();
 
