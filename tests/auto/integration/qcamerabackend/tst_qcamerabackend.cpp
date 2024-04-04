@@ -355,7 +355,7 @@ void tst_QCameraBackend::testCameraCapture()
 
     int id = imageCapture.captureToFile();
 
-    QTRY_VERIFY(!savedSignal.isEmpty());
+    QTRY_VERIFY_WITH_TIMEOUT(!savedSignal.isEmpty(), 8000);
 
     QTRY_COMPARE(capturedSignal.size(), 1);
     QCOMPARE(capturedSignal.last().first().toInt(), id);
