@@ -19,7 +19,11 @@ QT_BEGIN_NAMESPACE
 // Class forward declaration required for QDoc bug
 class QString;
 
+#if defined(Q_QDOC)
 namespace QtAudio
+#else
+namespace QAudio
+#endif
 {
     enum Error { NoError, OpenError, IOError, UnderrunError, FatalError };
     enum State { ActiveState, SuspendedState, StoppedState, IdleState };
@@ -34,8 +38,8 @@ namespace QtAudio
     Q_MULTIMEDIA_EXPORT float convertVolume(float volume, VolumeScale from, VolumeScale to);
 }
 
-#if !defined(Q_QDOC) && !QT_MULTIMEDIA_REMOVED_SINCE(6, 7)
-namespace QAudio = QtAudio;
+#if !defined(Q_QDOC)
+namespace QtAudio = QAudio;
 #endif
 
 #ifndef QT_NO_DEBUG_STREAM

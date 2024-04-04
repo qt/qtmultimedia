@@ -340,7 +340,7 @@ qint64 QAudioSource::elapsedUSecs() const
     Returns the error state.
 */
 
-QtAudio::Error QAudioSource::error(QT6_IMPL_NEW_OVERLOAD) const
+QtAudio::Error QAudioSource::error() const
 {
     return d ? d->error() : QAudio::OpenError;
 }
@@ -349,7 +349,7 @@ QtAudio::Error QAudioSource::error(QT6_IMPL_NEW_OVERLOAD) const
     Returns the state of audio processing.
 */
 
-QtAudio::State QAudioSource::state(QT6_IMPL_NEW_OVERLOAD) const
+QtAudio::State QAudioSource::state() const
 {
     return d ? d->state() : QAudio::StoppedState;
 }

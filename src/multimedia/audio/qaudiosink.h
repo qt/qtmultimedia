@@ -49,21 +49,18 @@ public:
     qint64 processedUSecs() const;
     qint64 elapsedUSecs() const;
 
-#if QT_MULTIMEDIA_REMOVED_SINCE(6, 7)
-    QAudio::Error error() const;
-    QAudio::State state() const;
-#endif
-    QtAudio::Error error(QT6_DECL_NEW_OVERLOAD) const;
-    QtAudio::State state(QT6_DECL_NEW_OVERLOAD) const;
+    QtAudio::Error error() const;
+    QtAudio::State state() const;
 
     void setVolume(qreal);
     qreal volume() const;
 
 Q_SIGNALS:
-#ifdef Q_MOC_RUN
-    void stateChanged(QAudio::State state);
-#else
+#if defined(Q_QDOC)
     void stateChanged(QtAudio::State state);
+#else
+    // use QAudio here to keep string-based connections working
+    void stateChanged(QAudio::State state);
 #endif
 
 private:
