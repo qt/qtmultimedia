@@ -62,7 +62,11 @@ QT_BEGIN_NAMESPACE
     \sa QtAudio::convertVolume()
 */
 
+#if defined(Q_QDOC)
 namespace QtAudio
+#else
+namespace QAudio
+#endif
 {
 
 /*!
