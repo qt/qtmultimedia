@@ -114,6 +114,7 @@ private:
     friend class QGstreamerStreamsControl;
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
+    void disconnectDecoderHandlers();
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
     static void sourceSetupCallback(GstElement *uridecodebin, GstElement *source, QGstreamerMediaPlayer *that);
     void parseStreamsAndMetadata();
@@ -151,6 +152,12 @@ private:
     //    QGstElement streamSynchronizer;
 
     QHash<QByteArray, QGstPad> decoderOutputMap;
+
+    // decoder connections
+    QGObjectHandlerScopedConnection padAdded;
+    QGObjectHandlerScopedConnection padRemoved;
+    QGObjectHandlerScopedConnection sourceSetup;
+    QGObjectHandlerScopedConnection elementAdded;
 };
 
 QT_END_NAMESPACE

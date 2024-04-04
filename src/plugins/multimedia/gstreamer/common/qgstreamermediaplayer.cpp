@@ -74,6 +74,18 @@ QGstreamerMediaPlayer::TrackSelector &QGstreamerMediaPlayer::trackSelector(Track
     return ts;
 }
 
+void QGstreamerMediaPlayer::disconnectDecoderHandlers()
+{
+    auto handlers = std::initializer_list<QGObjectHandlerScopedConnection *>{
+        &padAdded,
+        &padRemoved,
+        &sourceSetup,
+        &elementAdded,
+    };
+    for (QGObjectHandlerScopedConnection *handler : handlers)
+        handler->disconnect();
+}
+
 QMaybe<QPlatformMediaPlayer *> QGstreamerMediaPlayer::create(QMediaPlayer *parent)
 {
     auto videoOutput = QGstreamerVideoOutput::create();
@@ -677,6 +689,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     if (!decoder.isNull())
         playerPipeline.remove(decoder);
     src = QGstElement();
+    disconnectDecoderHandlers();
     decoder = QGstElement();
     removeAllOutputs();
     seekableChanged(false);
@@ -736,13 +749,13 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         } else {
             // can't set post-stream-topology to true, as uridecodebin doesn't have the property.
             // Use a hack
-            decoder.connect("element-added",
-                            GCallback(QGstreamerMediaPlayer::uridecodebinElementAddedCallback),
-                            this);
+            elementAdded = decoder.connect(
+                    "element-added",
+                    GCallback(QGstreamerMediaPlayer::uridecodebinElementAddedCallback), this);
         }
 
-        decoder.connect("source-setup", GCallback(QGstreamerMediaPlayer::sourceSetupCallback),
-                        this);
+        sourceSetup = decoder.connect("source-setup",
+                                      GCallback(QGstreamerMediaPlayer::sourceSetupCallback), this);
 
         decoder.set("uri", content.toEncoded().constData());
         decoder.set("use-buffering", true);
@@ -751,8 +764,8 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
             emit bufferProgressChanged(0.);
         }
     }
-    decoder.onPadAdded<&QGstreamerMediaPlayer::decoderPadAdded>(this);
-    decoder.onPadRemoved<&QGstreamerMediaPlayer::decoderPadRemoved>(this);
+    padAdded = decoder.onPadAdded<&QGstreamerMediaPlayer::decoderPadAdded>(this);
+    padRemoved = decoder.onPadRemoved<&QGstreamerMediaPlayer::decoderPadRemoved>(this);
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
 
