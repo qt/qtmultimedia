@@ -117,7 +117,7 @@ qt_feature("gstreamer_gl" PRIVATE
 )
 qt_feature("gstreamer" PRIVATE
     LABEL "QtMM GStreamer plugin"
-    CONDITION (QT_FEATURE_gstreamer_1_0 AND QT_FEATURE_gstreamer_gl AND QT_FEATURE_gstreamer_app)
+    CONDITION (QT_FEATURE_gstreamer_1_0 AND QT_FEATURE_gstreamer_app)
     ENABLE INPUT_gstreamer STREQUAL 'yes'
     DISABLE INPUT_gstreamer STREQUAL 'no'
 )
