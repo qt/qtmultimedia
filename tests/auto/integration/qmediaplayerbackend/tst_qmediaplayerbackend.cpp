@@ -55,7 +55,7 @@ It findSimilarColor(It it, It end, QRgb color)
 }
 
 template <typename Colors>
-size_t findSimilarColorIndex(const Colors &colors, QRgb color)
+auto findSimilarColorIndex(const Colors &colors, QRgb color)
 {
     return std::distance(std::begin(colors),
                          findSimilarColor(std::begin(colors), std::end(colors), color));

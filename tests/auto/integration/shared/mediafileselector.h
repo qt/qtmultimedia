@@ -28,7 +28,7 @@ using MaybeUrl = QMaybe<QUrl, QString>;
 class MediaFileSelector
 {
 public:
-    quint32 failedSelectionsCount() const { return m_failedSelectionsCount; }
+    int failedSelectionsCount() const { return m_failedSelectionsCount; }
 
     QString dumpErrors() const
     {
@@ -138,7 +138,7 @@ private:
 
 private:
     std::unordered_map<QString, QString> m_mediaToErrors;
-    quint32 m_failedSelectionsCount = 0;
+    int m_failedSelectionsCount = 0;
 };
 
 QT_END_NAMESPACE
