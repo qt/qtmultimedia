@@ -359,13 +359,16 @@ void tst_QAudioSource::pull()
     QTRY_VERIFY2((audioInput.processedUSecs() > 0), "elapsedUSecs() is still zero after start()");
 
     // Allow some recording to happen
-    QTest::qWait(300); // .3 seconds should be plenty
+    QTest::qWait(3000); // 3 seconds should be plenty
 
     stateSignal.clear();
 
     qint64 processedUs = audioInput.processedUSecs();
-    QVERIFY2(qTolerantCompare(processedUs, 300000LL),
-             QString("processedUSecs() doesn't fall in acceptable range, should be 300000 (%1)").arg(processedUs).toUtf8().constData());
+    QVERIFY2(qTolerantCompare(processedUs, 3000000LL),
+             QString("processedUSecs() doesn't fall in acceptable range, should be 3000000 (%1)")
+                     .arg(processedUs)
+                     .toUtf8()
+                     .constData());
 
     audioInput.stop();
     QTRY_VERIFY2((stateSignal.size() == 1),
@@ -384,10 +387,6 @@ void tst_QAudioSource::pull()
 
 void tst_QAudioSource::pullSuspendResume()
 {
-#ifdef Q_OS_LINUX
-    if (m_inCISystem)
-        QSKIP("QTBUG-26504 Fails 20% of time with pulseaudio backend");
-#endif
     QFETCH(FilePtr, audioFile);
     QFETCH(QAudioFormat, audioFormat);
 
@@ -424,7 +423,7 @@ void tst_QAudioSource::pullSuspendResume()
     QTRY_VERIFY2((audioInput.processedUSecs() > 0), "elapsedUSecs() is still zero after start()");
 
     // Allow some recording to happen
-    QTest::qWait(300); // .3 seconds should be plenty
+    QTest::qWait(3000); // 3 seconds should be plenty
 
     QVERIFY2((audioInput.state() == QAudio::ActiveState),
              "didn't transition to ActiveState after some recording");
@@ -443,8 +442,11 @@ void tst_QAudioSource::pullSuspendResume()
     // Check that only 'elapsed', and not 'processed' increases while suspended
     qint64 elapsedUs = audioInput.elapsedUSecs();
     qint64 processedUs = audioInput.processedUSecs();
-    QVERIFY2(qTolerantCompare(processedUs, 300000LL),
-             QString("processedUSecs() doesn't fall in acceptable range, should be 300000 (%1)").arg(processedUs).toUtf8().constData());
+    QVERIFY2(qTolerantCompare(processedUs, 3000000LL),
+             QString("processedUSecs() doesn't fall in acceptable range, should be 3000000 (%1)")
+                     .arg(processedUs)
+                     .toUtf8()
+                     .constData());
     QTRY_VERIFY(audioInput.elapsedUSecs() > elapsedUs);
     QVERIFY(audioInput.processedUSecs() == processedUs);
 
