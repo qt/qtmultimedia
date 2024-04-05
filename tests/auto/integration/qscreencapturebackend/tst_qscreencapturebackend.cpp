@@ -464,7 +464,7 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
         QImage image = sink.images().at(i);
         QVERIFY(!image.isNull());
         QRgb rgb = image.pixel(point);
-//        qDebug() << QString("RGB: %1, %2, %3").arg(qRed(rgb)).arg(qGreen(rgb)).arg(qBlue(rgb));
+//        qDebug() << QStringLiteral("RGB: %1, %2, %3").arg(qRed(rgb)).arg(qGreen(rgb)).arg(qBlue(rgb));
 
         // RGB values should be 0, 0, 255. Compensating for inaccurate video encoding.
         QVERIFY(qRed(rgb) <= 60);
@@ -477,7 +477,7 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
         QImage image = sink.images().at(i);
         QVERIFY(!image.isNull());
         QRgb rgb = image.pixel(point);
-//        qDebug() << QString("RGB: %1, %2, %3").arg(qRed(rgb)).arg(qGreen(rgb)).arg(qBlue(rgb));
+//        qDebug() << QStringLiteral("RGB: %1, %2, %3").arg(qRed(rgb)).arg(qGreen(rgb)).arg(qBlue(rgb));
 
         // RGB values should be 0, 255, 0. Compensating for inaccurate video encoding.
         QVERIFY(qRed(rgb) <= 60);

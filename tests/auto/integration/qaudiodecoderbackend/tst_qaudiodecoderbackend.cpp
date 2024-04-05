@@ -360,7 +360,7 @@ void tst_QAudioDecoderBackend::fileTest()
 
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.source(), QString(""));
+    QCOMPARE(d.source(), QStringLiteral(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
@@ -547,7 +547,7 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
 
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.source(), QString(""));
+    QCOMPARE(d.source(), QStringLiteral(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
 
     // Test local file
@@ -802,7 +802,7 @@ void tst_QAudioDecoderBackend::deviceTest()
 
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.source(), QString(""));
+    QCOMPARE(d.source(), QStringLiteral(""));
     QVERIFY(d.audioFormat() == QAudioFormat());
     QFile file(m_wavFile->toString());
     QVERIFY(file.open(QIODevice::ReadOnly));

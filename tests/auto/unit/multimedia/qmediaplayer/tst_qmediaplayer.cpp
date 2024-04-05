@@ -176,7 +176,7 @@ void tst_QMediaPlayer::setupCommonTestData()
                                 qreal(1)  << QMediaPlayer::NoError << QString();
     QTest::newRow("valid+error") << true << QMediaPlayer::StoppedState << QMediaPlayer::InvalidMedia <<
                                 QUrl(QUrl("http://example.com/stream")) << qint64(0) << qint64(0) << false << 50 << false << false << 0 <<
-                                qreal(0) << QMediaPlayer::ResourceError << QString("Resource unavailable");
+                                qreal(0) << QMediaPlayer::ResourceError << QStringLiteral("Resource unavailable");
 }
 
 void tst_QMediaPlayer::initTestCase()

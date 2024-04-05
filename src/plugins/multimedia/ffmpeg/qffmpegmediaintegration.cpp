@@ -99,7 +99,7 @@ static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl
     if (level < 0 || level > av_log_get_level())
         return;
 
-    QString message = QString("FFmpeg log: %1").arg(QString::vasprintf(fmt, vl));
+    QString message = QStringLiteral("FFmpeg log: %1").arg(QString::vasprintf(fmt, vl));
     if (message.endsWith("\n"))
         message.removeLast();
 

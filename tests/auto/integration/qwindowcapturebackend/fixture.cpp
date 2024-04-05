@@ -58,11 +58,11 @@ bool WindowCaptureFixture::compareImages(QImage actual, const QImage &expected,
     qWarning() << "Expected image:";
     qWarning() << expected;
 
-    const QString actualName = getResultsPath(QString("actual%1.png").arg(fileSuffix));
+    const QString actualName = getResultsPath(QStringLiteral("actual%1.png").arg(fileSuffix));
     if (!actual.save(actualName))
         qWarning() << "Failed to save actual file to " << actualName;
 
-    const QString expectedName = getResultsPath(QString("expected%1.png").arg(fileSuffix));
+    const QString expectedName = getResultsPath(QStringLiteral("expected%1.png").arg(fileSuffix));
     if (!expected.save(expectedName))
         qWarning() << "Failed to save expected file to " << expectedName;
 

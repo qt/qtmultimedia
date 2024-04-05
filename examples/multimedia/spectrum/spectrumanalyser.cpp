@@ -170,7 +170,7 @@ void SpectrumAnalyser::calculate(const QByteArray &buffer, const QAudioFormat &f
 #ifdef DUMP_SPECTRUMANALYSER
         m_count++;
         const QString pcmFileName =
-                m_outputDir.filePath(QString("spectrum_%1.pcm").arg(m_count, 4, 10, QChar('0')));
+                m_outputDir.filePath(QStringLiteral("spectrum_%1.pcm").arg(m_count, 4, 10, QChar('0')));
         QFile pcmFile(pcmFileName);
         pcmFile.open(QIODevice::WriteOnly);
         const int bufferLength = m_numSamples * bytesPerFrame;
