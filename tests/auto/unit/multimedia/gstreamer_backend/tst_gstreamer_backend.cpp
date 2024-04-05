@@ -4,8 +4,10 @@
 #include "tst_gstreamer_backend.h"
 
 #include <QtTest/QtTest>
-#include <QtQGstreamerMediaPlugin/private/qgstreamermetadata_p.h>
+
 #include <QtQGstreamerMediaPlugin/private/qgst_handle_types_p.h>
+#include <QtQGstreamerMediaPlugin/private/qgst_p.h>
+#include <QtQGstreamerMediaPlugin/private/qgstreamermetadata_p.h>
 
 QT_USE_NAMESPACE
 
@@ -71,6 +73,49 @@ void tst_GStreamer::metadata_taglistToMetaData_extractsDuration()
     QMediaMetaData parsed = taglistToMetaData(tagList.get());
 
     QCOMPARE(parsed[QMediaMetaData::Duration].value<int>(), 400);
+}
+
+void tst_GStreamer::QGstBin_createFromPipelineDescription()
+{
+    QGstBin bin = QGstBin::createFromPipelineDescription("identity name=foo ! identity name=bar");
+
+    QVERIFY(bin);
+    QVERIFY(bin.findByName("foo"));
+    QCOMPARE_EQ(bin.findByName("foo").getParent(), bin);
+    QVERIFY(bin.findByName("bar"));
+    QVERIFY(!bin.findByName("baz"));
+    bin.dumpGraph("QGstBin_createFromPipelineDescription");
+}
+
+void tst_GStreamer::QGstElement_createFromPipelineDescription()
+{
+    using namespace std::string_view_literals;
+    QGstElement element = QGstElement::createFromPipelineDescription("identity name=foo");
+    QCOMPARE_EQ(element.name(), "foo"sv);
+    QCOMPARE_EQ(element.typeName(), "GstIdentity"sv);
+}
+
+void tst_GStreamer::QGstElement_createFromPipelineDescription_multipleElementsCreatesBin()
+{
+    using namespace std::string_view_literals;
+    QGstElement element =
+            QGstElement::createFromPipelineDescription("identity name=foo ! identity name=bar");
+
+    QVERIFY(element);
+    QCOMPARE_EQ(element.typeName(), "GstPipeline"sv);
+
+    QGstBin bin{
+        qGstSafeCast<GstBin>(element.element()),
+        QGstBin::NeedsRef,
+    };
+
+    QVERIFY(bin);
+    QVERIFY(bin.findByName("foo"));
+    QCOMPARE_EQ(bin.findByName("foo").getParent(), bin);
+    QVERIFY(bin.findByName("bar"));
+    QVERIFY(!bin.findByName("baz"));
+
+    bin.dumpGraph("QGstElement_createFromPipelineDescription_multipleElements");
 }
 
 QTEST_GUILESS_MAIN(tst_GStreamer)
