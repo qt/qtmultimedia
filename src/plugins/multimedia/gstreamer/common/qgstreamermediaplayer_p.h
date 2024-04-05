@@ -31,7 +31,7 @@ QT_BEGIN_NAMESPACE
 
 class QNetworkAccessManager;
 class QGstreamerMessage;
-class QGstAppSrc;
+class QGstAppSource;
 class QGstreamerAudioOutput;
 class QGstreamerVideoOutput;
 
@@ -137,7 +137,7 @@ private:
     qint64 m_duration = 0;
     QTimer positionUpdateTimer;
 
-    QGstAppSrc *m_appSrc = nullptr;
+    QGstAppSource *m_appSrc = nullptr;
 
     QGstStructure topology;
 

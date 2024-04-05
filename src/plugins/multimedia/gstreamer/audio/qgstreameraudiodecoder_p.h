@@ -27,7 +27,7 @@
 #include <common/qgst_p.h>
 
 #if QT_CONFIG(gstreamer_app)
-#  include <common/qgstappsrc_p.h>
+#  include <common/qgstappsource_p.h>
 #endif
 
 #include <gst/app/gstappsink.h>
@@ -88,7 +88,7 @@ private:
     QGstBin m_outputBin;
     QGstElement m_audioConvert;
     QGstAppSink m_appSink;
-    QGstAppSrc *m_appSrc = nullptr;
+    QGstAppSource *m_appSrc = nullptr;
 
     QUrl mSource;
     QIODevice *mDevice = nullptr;

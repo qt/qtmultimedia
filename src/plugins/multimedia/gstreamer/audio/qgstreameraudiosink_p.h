@@ -33,7 +33,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstAppSrc;
+class QGstAppSource;
 
 class QGStreamerAudioSink
     : public QPlatformAudioSink,
@@ -69,7 +69,7 @@ private Q_SLOTS:
     void needData();
 
 private:
-    QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc *appsrc, QGstElement audioconvert,
+    QGStreamerAudioSink(const QAudioDevice &device, QGstAppSource *appsrc, QGstElement audioconvert,
                         QGstElement volume, QObject *parent);
 
     void setState(QAudio::State state);
@@ -100,7 +100,7 @@ private:
     QGstElement gstOutput;
     QGstElement gstVolume;
     QGstElement gstAppSrc;
-    QGstAppSrc *m_appSrc = nullptr;
+    QGstAppSource *m_appSrc = nullptr;
 };
 
 class GStreamerOutputPrivate : public QIODevice
