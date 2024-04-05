@@ -85,10 +85,10 @@ private:
 
 QString tst_QAudioSink::formatToFileName(const QAudioFormat &format)
 {
-    return QString("%1_%2_%3")
-        .arg(format.sampleRate())
-        .arg(format.bytesPerSample())
-        .arg(format.channelCount());
+    return QStringLiteral("%1_%2_%3")
+            .arg(format.sampleRate())
+            .arg(format.bytesPerSample())
+            .arg(format.channelCount());
 }
 
 void tst_QAudioSink::createSineWaveData(const QAudioFormat &format, qint64 length, int sampleRate)
@@ -201,7 +201,7 @@ void tst_QAudioSink::generate_audiofile_testrows()
     QTest::addColumn<QAudioFormat>("audioFormat");
 
     for (int i=0; i<audioFiles.size(); i++) {
-        QTest::newRow(QString("Audio File %1").arg(i).toUtf8().constData())
+        QTest::newRow(QStringLiteral("Audio File %1").arg(i).toUtf8().constData())
                 << audioFiles.at(i) << testFormats.at(i);
     }
 }
@@ -296,11 +296,23 @@ void tst_QAudioSink::format()
     QAudioFormat actual    = audioOutput.format();
 
     QVERIFY2((requested.channelCount() == actual.channelCount()),
-            QString("channels: requested=%1, actual=%2").arg(requested.channelCount()).arg(actual.channelCount()).toUtf8().constData());
+             QStringLiteral("channels: requested=%1, actual=%2")
+                     .arg(requested.channelCount())
+                     .arg(actual.channelCount())
+                     .toUtf8()
+                     .constData());
     QVERIFY2((requested.sampleRate() == actual.sampleRate()),
-            QString("sampleRate: requested=%1, actual=%2").arg(requested.sampleRate()).arg(actual.sampleRate()).toUtf8().constData());
+             QStringLiteral("sampleRate: requested=%1, actual=%2")
+                     .arg(requested.sampleRate())
+                     .arg(actual.sampleRate())
+                     .toUtf8()
+                     .constData());
     QVERIFY2((requested.sampleFormat() == actual.sampleFormat()),
-            QString("sampleFormat: requested=%1, actual=%2").arg((ushort)requested.sampleFormat()).arg((ushort)actual.sampleFormat()).toUtf8().constData());
+             QStringLiteral("sampleFormat: requested=%1, actual=%2")
+                     .arg((ushort)requested.sampleFormat())
+                     .arg((ushort)actual.sampleFormat())
+                     .toUtf8()
+                     .constData());
     QVERIFY(requested == actual);
 }
 
@@ -360,12 +372,20 @@ void tst_QAudioSink::bufferSize()
     QFETCH(int, bufferSize);
     QAudioSink audioOutput(audioDevice.preferredFormat(), this);
 
-    QVERIFY2((audioOutput.error() == QAudio::NoError), QString("error() was not set to QAudio::NoError on creation(%1)").arg(bufferSize).toUtf8().constData());
+    QVERIFY2((audioOutput.error() == QAudio::NoError),
+             QStringLiteral("error() was not set to QAudio::NoError on creation(%1)")
+                     .arg(bufferSize)
+                     .toUtf8()
+                     .constData());
 
     audioOutput.setBufferSize(bufferSize);
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after setBufferSize");
     QVERIFY2((audioOutput.bufferSize() == bufferSize),
-             QString("bufferSize: requested=%1, actual=%2").arg(bufferSize).arg(audioOutput.bufferSize()).toUtf8().constData());
+             QStringLiteral("bufferSize: requested=%1, actual=%2")
+                     .arg(bufferSize)
+                     .arg(audioOutput.bufferSize())
+                     .toUtf8()
+                     .constData());
 }
 
 void tst_QAudioSink::stopWhileStopped()
@@ -452,7 +472,7 @@ void tst_QAudioSink::pull()
 
     // Check that QAudioSink immediately transitions to ActiveState
     QTRY_VERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal on start(), got %1 signals instead")
+                 QStringLiteral("didn't emit signal on start(), got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -476,7 +496,7 @@ void tst_QAudioSink::pull()
     audioOutput.stop();
     QTest::qWait(40);
     QVERIFY2((stateSignal.size() == 1),
-             QString("didn't emit StoppedState signal after stop(), got %1 signals instead")
+             QStringLiteral("didn't emit StoppedState signal after stop(), got %1 signals instead")
                      .arg(dumpStateSignalSpy(stateSignal))
                      .toUtf8()
                      .constData());
@@ -510,7 +530,7 @@ void tst_QAudioSink::pullSuspendResume()
     audioOutput.start(audioFile.data());
     // Check that QAudioSink immediately transitions to ActiveState
     QTRY_VERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal on start(), got %1 signals instead")
+                 QStringLiteral("didn't emit signal on start(), got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -525,9 +545,13 @@ void tst_QAudioSink::pullSuspendResume()
     audioOutput.suspend();
     QTest::qWait(100);
 
-    QTRY_VERIFY2((stateSignal.size() == 1),
-             QString("didn't emit SuspendedState signal after suspend(), got %1 signals instead")
-             .arg(dumpStateSignalSpy(stateSignal)).toUtf8().constData());
+    QTRY_VERIFY2(
+            (stateSignal.size() == 1),
+            QStringLiteral(
+                    "didn't emit SuspendedState signal after suspend(), got %1 signals instead")
+                    .arg(dumpStateSignalSpy(stateSignal))
+                    .toUtf8()
+                    .constData());
     QVERIFY2((audioOutput.state() == QAudio::SuspendedState), "didn't transition to SuspendedState after suspend()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after suspend()");
     stateSignal.clear();
@@ -543,7 +567,7 @@ void tst_QAudioSink::pullSuspendResume()
 
     // Check that QAudioSink immediately transitions to ActiveState
     QVERIFY2((stateSignal.size() == 1),
-             QString("didn't emit signal after resume(), got %1 signals instead")
+             QStringLiteral("didn't emit signal after resume(), got %1 signals instead")
                      .arg(dumpStateSignalSpy(stateSignal))
                      .toUtf8()
                      .constData());
@@ -563,7 +587,7 @@ void tst_QAudioSink::pullSuspendResume()
     audioOutput.stop();
     QTest::qWait(40);
     QVERIFY2((stateSignal.size() == 1),
-             QString("didn't emit StoppedState signal after stop(), got %1 signals instead")
+             QStringLiteral("didn't emit StoppedState signal after stop(), got %1 signals instead")
                      .arg(dumpStateSignalSpy(stateSignal))
                      .toUtf8()
                      .constData());
@@ -666,7 +690,7 @@ void tst_QAudioSink::push()
 
     // Check that QAudioSink immediately transitions to IdleState
     QTRY_VERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal on start(), got %1 signals instead")
+                 QStringLiteral("didn't emit signal on start(), got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -684,7 +708,7 @@ void tst_QAudioSink::push()
     auto checker = [&]() {
         // Check for transition to ActiveState when data is provided
         QVERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal after receiving data, got %1 signals instead")
+                 QStringLiteral("didn't emit signal after receiving data, got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -711,7 +735,10 @@ void tst_QAudioSink::push()
     audioOutput.stop();
     QTest::qWait(40);
     QVERIFY2((stateSignal.size() == 1),
-             QString("didn't emit StoppedState signal after stop(), got %1 signals instead").arg(dumpStateSignalSpy(stateSignal)).toUtf8().constData());
+             QStringLiteral("didn't emit StoppedState signal after stop(), got %1 signals instead")
+                     .arg(dumpStateSignalSpy(stateSignal))
+                     .toUtf8()
+                     .constData());
     QVERIFY2((audioOutput.state() == QAudio::StoppedState), "didn't transitions to StoppedState after stop()");
 
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error() is not QAudio::NoError after stop()");
@@ -744,7 +771,7 @@ void tst_QAudioSink::pushSuspendResume()
 
     // Check that QAudioSink immediately transitions to IdleState
     QTRY_VERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal on start(), got %1 signals instead")
+                 QStringLiteral("didn't emit signal on start(), got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -759,7 +786,7 @@ void tst_QAudioSink::pushSuspendResume()
 
     auto firstHalfChecker = [&]() {
         QVERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal after receiving data, got %1 signals instead")
+                 QStringLiteral("didn't emit signal after receiving data, got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -779,9 +806,13 @@ void tst_QAudioSink::pushSuspendResume()
     const auto suspendedInState = audioOutput.state();
     audioOutput.suspend();
 
-    QTRY_VERIFY2((stateSignal.size() == 1),
-             QString("didn't emit SuspendedState signal after suspend(), got %1 signals instead")
-             .arg(dumpStateSignalSpy(stateSignal)).toUtf8().constData());
+    QTRY_VERIFY2(
+            (stateSignal.size() == 1),
+            QStringLiteral(
+                    "didn't emit SuspendedState signal after suspend(), got %1 signals instead")
+                    .arg(dumpStateSignalSpy(stateSignal))
+                    .toUtf8()
+                    .constData());
     QVERIFY2((audioOutput.state() == QAudio::SuspendedState), "didn't transition to SuspendedState after suspend()");
     QVERIFY2((audioOutput.error() == QAudio::NoError), "error state is not equal to QAudio::NoError after suspend()");
     stateSignal.clear();
@@ -801,7 +832,7 @@ void tst_QAudioSink::pushSuspendResume()
 
     // Check that QAudioSink immediately transitions to IdleState
     QVERIFY2((stateSignal.size() == 1),
-             QString("didn't emit signal after resume(), got %1 signals instead")
+             QStringLiteral("didn't emit signal after resume(), got %1 signals instead")
                      .arg(dumpStateSignalSpy(stateSignal))
                      .toUtf8()
                      .constData());
@@ -832,7 +863,7 @@ void tst_QAudioSink::pushSuspendResume()
     audioOutput.stop();
     QTest::qWait(40);
     QVERIFY2((stateSignal.size() == 1),
-             QString("didn't emit StoppedState signal after stop(), got %1 signals instead")
+             QStringLiteral("didn't emit StoppedState signal after stop(), got %1 signals instead")
                      .arg(dumpStateSignalSpy(stateSignal))
                      .toUtf8()
                      .constData());
@@ -908,7 +939,7 @@ void tst_QAudioSink::pushUnderrun()
 
     // Check that QAudioSink immediately transitions to IdleState
     QTRY_VERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal on start(), got %1 signals instead")
+                 QStringLiteral("didn't emit signal on start(), got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -927,7 +958,7 @@ void tst_QAudioSink::pushUnderrun()
 
     auto firstHalfChecker = [&]() {
         QVERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal after receiving data, got %1 signals instead")
+                 QStringLiteral("didn't emit signal after receiving data, got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -946,8 +977,10 @@ void tst_QAudioSink::pushUnderrun()
     QTest::qWait(700);
 
     QVERIFY2((stateSignal.size() == 1),
-             QString("didn't emit IdleState signal after suspend(), got %1 signals instead")
-             .arg(dumpStateSignalSpy(stateSignal)).toUtf8().constData());
+             QStringLiteral("didn't emit IdleState signal after suspend(), got %1 signals instead")
+                     .arg(dumpStateSignalSpy(stateSignal))
+                     .toUtf8()
+                     .constData());
     QVERIFY2((audioOutput.state() == QAudio::IdleState), "didn't transition to IdleState, no data");
     QVERIFY2((audioOutput.error() == QAudio::UnderrunError), "error state is not equal to QAudio::UnderrunError, no data");
     stateSignal.clear();
@@ -955,7 +988,7 @@ void tst_QAudioSink::pushUnderrun()
     // Play rest of the clip
     auto restChecker = [&]() {
         QVERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit signal after receiving data, got %1 signals instead")
+                 QStringLiteral("didn't emit signal after receiving data, got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -971,7 +1004,7 @@ void tst_QAudioSink::pushUnderrun()
     // Wait until playback finishes
     QVERIFY2(audioFile->atEnd(), "didn't play to EOF");
     QTRY_VERIFY2((stateSignal.size() == 1),
-                 QString("didn't emit IdleState signal when at EOF, got %1 signals instead")
+                 QStringLiteral("didn't emit IdleState signal when at EOF, got %1 signals instead")
                          .arg(dumpStateSignalSpy(stateSignal))
                          .toUtf8()
                          .constData());
@@ -983,7 +1016,7 @@ void tst_QAudioSink::pushUnderrun()
     audioOutput.stop();
     QTest::qWait(40);
     QVERIFY2((stateSignal.size() == 1),
-             QString("didn't emit StoppedState signal after stop(), got %1 signals instead")
+             QStringLiteral("didn't emit StoppedState signal after stop(), got %1 signals instead")
                      .arg(dumpStateSignalSpy(stateSignal))
                      .toUtf8()
                      .constData());

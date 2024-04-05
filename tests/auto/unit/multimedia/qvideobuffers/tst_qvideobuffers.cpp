@@ -67,9 +67,9 @@ private:
         QTest::addColumn<QVideoFrame::MapMode>("mapMode");
 
         for (auto mode : modes) {
-            QTest::newRow(QString("ImageBuffer, %1").arg(mapModeToString(mode)).toUtf8().constData())
+            QTest::newRow(QStringLiteral("ImageBuffer, %1").arg(mapModeToString(mode)).toUtf8().constData())
                     << createImageBuffer() << mode;
-            QTest::newRow(QString("MemoryBuffer, %1").arg(mapModeToString(mode)).toUtf8().constData())
+            QTest::newRow(QStringLiteral("MemoryBuffer, %1").arg(mapModeToString(mode)).toUtf8().constData())
                     << createMemoryBuffer() << mode;
         }
     }

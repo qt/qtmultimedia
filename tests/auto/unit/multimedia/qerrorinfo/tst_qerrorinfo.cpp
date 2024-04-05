@@ -62,22 +62,22 @@ void tst_QErrorInfo::setAndNotify_setsErrorAndNotifes_data()
     QTest::newRow("No error -> An error with empty string")
             << TestError::NoError << QString() << TestError::ErrorA << QString() << true << true;
     QTest::newRow("No error -> An error with non-empty string")
-            << TestError::NoError << QString() << TestError::ErrorB << QString("error") << true
+            << TestError::NoError << QString() << TestError::ErrorB << QStringLiteral("error") << true
             << true;
     QTest::newRow("An error with empty string -> No error")
             << TestError::ErrorA << QString() << TestError::NoError << QString() << true << false;
     QTest::newRow("An error with non-empty string -> No Error")
-            << TestError::ErrorA << QString("error") << TestError::NoError << QString() << true
+            << TestError::ErrorA << QStringLiteral("error") << TestError::NoError << QString() << true
             << false;
     QTest::newRow("An error -> Another error")
-            << TestError::ErrorA << QString("error A") << TestError::ErrorB << QString("error B")
+            << TestError::ErrorA << QStringLiteral("error A") << TestError::ErrorB << QStringLiteral("error B")
             << true << true;
     QTest::newRow("An error -> Another error with empty string")
-            << TestError::ErrorA << QString("error A") << TestError::ErrorB << QString() << true
+            << TestError::ErrorA << QStringLiteral("error A") << TestError::ErrorB << QString() << true
             << true;
     QTest::newRow("An error -> The same error with changed string")
-            << TestError::ErrorA << QString("error") << TestError::ErrorA
-            << QString("another error") << true << true;
+            << TestError::ErrorA << QStringLiteral("error") << TestError::ErrorA
+            << QStringLiteral("another error") << true << true;
 }
 
 void tst_QErrorInfo::setAndNotify_setsErrorAndNotifes()

@@ -103,8 +103,8 @@ void AudioTest::test()
         } else {
             QAudioFormat nearest = m_deviceInfo.preferredFormat();
             testResult->setText(tr("Failed"));
-            nearestSampleRate->setText(QString("%1").arg(nearest.sampleRate()));
-            nearestChannel->setText(QString("%1").arg(nearest.channelCount()));
+            nearestSampleRate->setText(QStringLiteral("%1").arg(nearest.sampleRate()));
+            nearestChannel->setText(QStringLiteral("%1").arg(nearest.channelCount()));
             nearestSampleFormat->setText(toString(nearest.sampleFormat()));
         }
     } else
@@ -175,13 +175,13 @@ void AudioTest::populateTable()
         allFormatsTable->setItem(row, 2, sampleTypeItem);
 
         QTableWidgetItem *sampleRateItem =
-                new QTableWidgetItem(QString("%1 - %2")
+                new QTableWidgetItem(QStringLiteral("%1 - %2")
                                              .arg(m_deviceInfo.minimumSampleRate())
                                              .arg(m_deviceInfo.maximumSampleRate()));
         allFormatsTable->setItem(row, 0, sampleRateItem);
 
         QTableWidgetItem *channelsItem =
-                new QTableWidgetItem(QString("%1 - %2")
+                new QTableWidgetItem(QStringLiteral("%1 - %2")
                                              .arg(m_deviceInfo.minimumChannelCount())
                                              .arg(m_deviceInfo.maximumChannelCount()));
         allFormatsTable->setItem(row, 1, channelsItem);

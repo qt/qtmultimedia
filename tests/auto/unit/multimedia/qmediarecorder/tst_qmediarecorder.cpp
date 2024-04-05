@@ -209,14 +209,14 @@ void tst_QMediaRecorder::testSink()
 {
     encoder->setOutputLocation(QUrl("test.tmp"));
     QUrl s = encoder->outputLocation();
-    QCOMPARE(s.toString(), QString("test.tmp"));
+    QCOMPARE(s.toString(), QStringLiteral("test.tmp"));
     QCOMPARE(encoder->actualLocation(), QUrl());
 
     //the actual location is available after record
     encoder->record();
-    QCOMPARE(encoder->actualLocation().toString(), QString("test.tmp"));
+    QCOMPARE(encoder->actualLocation().toString(), QStringLiteral("test.tmp"));
     encoder->stop();
-    QCOMPARE(encoder->actualLocation().toString(), QString("test.tmp"));
+    QCOMPARE(encoder->actualLocation().toString(), QStringLiteral("test.tmp"));
 
     //setOutputLocation resets the actual location
     encoder->setOutputLocation(QUrl());
@@ -473,7 +473,7 @@ void tst_QMediaRecorder::testApplicationInative()
     encoder.setQuality(QMediaRecorder::VeryHighQuality);
 
     encoder.setOutputLocation(QUrl("test.tmp"));
-    QCOMPARE(encoder.outputLocation().toString(), QString("test.tmp"));
+    QCOMPARE(encoder.outputLocation().toString(), QStringLiteral("test.tmp"));
     QCOMPARE(encoder.actualLocation(), QUrl());
 
     encoder.record();
@@ -487,7 +487,7 @@ void tst_QMediaRecorder::testApplicationInative()
     encoder.stop();
 
     // the actual location is available after record
-    QCOMPARE(encoder.actualLocation().toString(), QString("test.tmp"));
+    QCOMPARE(encoder.actualLocation().toString(), QStringLiteral("test.tmp"));
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaRecorder)

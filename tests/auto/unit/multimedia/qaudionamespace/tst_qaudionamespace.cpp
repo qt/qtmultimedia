@@ -210,7 +210,7 @@ void tst_QAudioNamespace::convertVolume()
 
     qreal actualOutput = QAudio::convertVolume(input, from, to);
     QVERIFY2(qAbs(actualOutput - expectedOutput) < 0.01,
-             QString("actual: %1, expected: %2").arg(actualOutput).arg(expectedOutput).toLocal8Bit().constData());
+             QStringLiteral("actual: %1, expected: %2").arg(actualOutput).arg(expectedOutput).toLocal8Bit().constData());
 }
 
 QTEST_MAIN(tst_QAudioNamespace)

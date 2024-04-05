@@ -130,7 +130,7 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
                        << "GST_STATE_PAUSED"
                        << "GST_STATE_PLAYING";
 
-                qDebug() << QString("state changed: old: %1  new: %2  pending: %3")
+                qDebug() << QStringLiteral("state changed: old: %1  new: %2  pending: %3")
                                     .arg(states[oldState])
                                     .arg(states[newState])
                                     .arg(states[pending])

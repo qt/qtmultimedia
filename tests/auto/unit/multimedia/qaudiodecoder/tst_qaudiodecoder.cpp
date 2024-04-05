@@ -40,7 +40,7 @@ void tst_QAudioDecoder::ctors()
     QAudioDecoder d;
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
-    QCOMPARE(d.source(), QString(""));
+    QCOMPARE(d.source(), QStringLiteral(""));
 
     d.setSource(QUrl());
     QVERIFY(!d.isDecoding());
