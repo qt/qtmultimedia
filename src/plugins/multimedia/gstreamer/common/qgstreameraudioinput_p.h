@@ -46,6 +46,8 @@ public:
 private:
     QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement volume, QAudioInput *parent);
 
+    QGstElement createGstElement();
+
     QAudioDevice m_audioDevice;
 
     // Gst elements
