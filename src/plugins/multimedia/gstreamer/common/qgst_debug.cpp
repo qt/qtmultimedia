@@ -160,8 +160,23 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
     QDebugStateSaver saver(dbg);
     dbg.nospace();
 
-    dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
-        << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg);
+    switch (msg->type) {
+    case GST_MESSAGE_ERROR: {
+        QUniqueGErrorHandle err;
+        QGString debug;
+        gst_message_parse_error(const_cast<GstMessage *>(msg), &err, &debug);
+
+        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
+            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg) << ", Error: " << err << " (" << debug
+            << ")";
+        break;
+    }
+
+    default: {
+        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
+            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg);
+    }
+    }
     return dbg;
 }
 
