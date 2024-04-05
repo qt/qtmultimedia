@@ -2112,7 +2112,7 @@ void tst_QMediaPlayerBackend::surfaceTest()
     player.setSource(*m_localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
-    QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
+    QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QStringLiteral("Expected >= 25, got %1").arg(surface.m_totalFrames)));
 }
 
 void tst_QMediaPlayerBackend::metadata()
@@ -2218,7 +2218,7 @@ void tst_QMediaPlayerBackend::playFromBuffer()
     player.setSourceDevice(&file, *m_localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
-    QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QString("Expected >= 25, got %1").arg(surface.m_totalFrames)));
+    QVERIFY2(surface.m_totalFrames >= 25, qPrintable(QStringLiteral("Expected >= 25, got %1").arg(surface.m_totalFrames)));
 }
 
 void tst_QMediaPlayerBackend::audioVideoAvailable()

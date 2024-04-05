@@ -101,7 +101,7 @@ std::vector<QVideoFrameFormat::ColorSpace> colorSpaces()
 
 QString name(const TestParams &p)
 {
-    return QString("%1_%2_%3_%4")
+    return QStringLiteral("%1_%2_%3_%4")
             .arg(p.fileName)
             .arg(toString(p.pixelFormat))
             .arg(toString(p.colorSpace))

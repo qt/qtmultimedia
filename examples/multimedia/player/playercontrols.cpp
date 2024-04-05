@@ -159,7 +159,7 @@ void PlayerControls::setPlaybackRate(float rate)
         }
     }
 
-    m_rateBox->addItem(QString("%1x").arg(rate), QVariant(rate));
+    m_rateBox->addItem(QStringLiteral("%1x").arg(rate), QVariant(rate));
     m_rateBox->setCurrentIndex(m_rateBox->count() - 1);
 }
 

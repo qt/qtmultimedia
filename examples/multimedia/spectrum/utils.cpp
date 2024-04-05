@@ -34,7 +34,7 @@ QString formatToString(const QAudioFormat &format)
             break;
         }
 
-        QString formatChannels = QString("%1 channels").arg(format.channelCount());
+        QString formatChannels = QStringLiteral("%1 channels").arg(format.channelCount());
         switch (format.channelCount()) {
         case 1:
             formatChannels = "mono";
@@ -44,7 +44,7 @@ QString formatToString(const QAudioFormat &format)
             break;
         }
 
-        result = QString("%1 Hz %2 bit %3 %4")
+        result = QStringLiteral("%1 Hz %2 bit %3 %4")
                          .arg(format.sampleRate())
                          .arg(format.bytesPerSample() * 8)
                          .arg(formatType)

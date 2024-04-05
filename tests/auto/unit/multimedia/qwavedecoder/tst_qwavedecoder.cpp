@@ -60,7 +60,7 @@ void tst_QWaveDecoder::cleanupTestCase()
 
 static QString testFilePath(const char *filename)
 {
-    QString path = QString("data/%1").arg(filename);
+    QString path = QStringLiteral("data/%1").arg(filename);
     return QFINDTESTDATA(path);
 }
 

@@ -188,7 +188,7 @@ void Spectrograph::selectBar(int index)
 {
     const QPair<qreal, qreal> frequencyRange = barRange(index);
     const QString message =
-            QString("%1 - %2 Hz").arg(frequencyRange.first).arg(frequencyRange.second);
+            QStringLiteral("%1 - %2 Hz").arg(frequencyRange.first).arg(frequencyRange.second);
     emit infoMessage(message, BarSelectionInterval);
 
     if (NullTimerId != m_timerId)
