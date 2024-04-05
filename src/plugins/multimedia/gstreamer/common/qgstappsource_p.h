@@ -31,12 +31,12 @@ QT_BEGIN_NAMESPACE
 
 class QNetworkReply;
 
-class QGstAppSrc : public QObject
+class QGstAppSource : public QObject
 {
     Q_OBJECT
 public:
-    static QMaybe<QGstAppSrc *> create(QObject *parent = nullptr);
-    ~QGstAppSrc();
+    static QMaybe<QGstAppSource *> create(QObject *parent = nullptr);
+    ~QGstAppSource();
 
     bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
     void setAudioFormat(const QAudioFormat &f);
@@ -62,7 +62,7 @@ private Q_SLOTS:
 
     void streamDestroyed();
 private:
-    QGstAppSrc(QGstElement appsrc, QObject *parent);
+    QGstAppSource(QGstElement appsrc, QObject *parent);
 
     bool setStream(QIODevice *, qint64 offset);
     bool isStreamValid() const

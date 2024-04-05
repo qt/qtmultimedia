@@ -12,7 +12,7 @@
 #include <audio/qgstreameraudiosink_p.h>
 #include <audio/qgstreameraudiodevice_p.h>
 #include <common/qgst_debug_p.h>
-#include <common/qgstappsrc_p.h>
+#include <common/qgstappsource_p.h>
 #include <common/qgstpipeline_p.h>
 #include <common/qgstreamermessage_p.h>
 #include <common/qgstutils_p.h>
@@ -23,7 +23,7 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QPlatformAudioSink *> QGStreamerAudioSink::create(const QAudioDevice &device, QObject *parent)
 {
-    auto maybeAppSrc = QGstAppSrc::create();
+    auto maybeAppSrc = QGstAppSource::create();
     if (!maybeAppSrc)
         return maybeAppSrc.error();
 
@@ -38,7 +38,7 @@ QMaybe<QPlatformAudioSink *> QGStreamerAudioSink::create(const QAudioDevice &dev
     return new QGStreamerAudioSink(device, maybeAppSrc.value(), audioconvert, volume, parent);
 }
 
-QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc *appsrc,
+QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSource *appsrc,
                                          QGstElement audioconvert, QGstElement volume,
                                          QObject *parent)
     : QPlatformAudioSink(parent),
@@ -49,8 +49,8 @@ QGStreamerAudioSink::QGStreamerAudioSink(const QAudioDevice &device, QGstAppSrc 
 {
     gstPipeline.installMessageFilter(this);
 
-    connect(m_appSrc, &QGstAppSrc::bytesProcessed, this, &QGStreamerAudioSink::bytesProcessedByAppSrc);
-    connect(m_appSrc, &QGstAppSrc::noMoreData, this, &QGStreamerAudioSink::needData);
+    connect(m_appSrc, &QGstAppSource::bytesProcessed, this, &QGStreamerAudioSink::bytesProcessedByAppSrc);
+    connect(m_appSrc, &QGstAppSource::noMoreData, this, &QGStreamerAudioSink::needData);
     gstAppSrc = m_appSrc->element();
 
     QGstElement queue = QGstElement::createFromFactory("queue", "audioSinkQueue");

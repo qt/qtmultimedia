@@ -5,7 +5,7 @@
 
 #include <audio/qgstreameraudiodevice_p.h>
 #include <common/qgst_debug_p.h>
-#include <common/qgstappsrc_p.h>
+#include <common/qgstappsource_p.h>
 #include <common/qgstpipeline_p.h>
 #include <common/qgstreameraudiooutput_p.h>
 #include <common/qgstreamermessage_p.h>
@@ -713,7 +713,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
     if (m_stream) {
         if (!m_appSrc) {
-            auto maybeAppSrc = QGstAppSrc::create(this);
+            auto maybeAppSrc = QGstAppSource::create(this);
             if (maybeAppSrc) {
                 m_appSrc = maybeAppSrc.value();
             } else {
