@@ -13,6 +13,7 @@
 
 #include <private/qplatformcamera_p.h>
 #include <private/qplatformimagecapture_p.h>
+#include <private/qplatformmediaintegration_p.h>
 #include <qcamera.h>
 #include <qcameradevice.h>
 #include <qimagecapture.h>
@@ -591,6 +592,9 @@ void tst_QCameraBackend::testVideoRecording()
     recorder.record();
     durationChanged.clear();
     if (!recorderErrorSignal.empty() || recorderErrorSignal.wait(550)) {
+        if (QPlatformMediaIntegration::instance()->name() == "gstreamer")
+            QEXPECT_FAIL("", "QTBUG-124148: GStreamer might return ResourceError", Continue);
+
         QCOMPARE(recorderErrorSignal.last().first().toInt(), QMediaRecorder::FormatError);
         return;
     }
