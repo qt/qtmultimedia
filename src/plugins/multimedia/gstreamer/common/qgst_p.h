@@ -408,6 +408,7 @@ public:
     void disconnect(gulong handlerId);
 
     GType type() const;
+    const char *typeName() const;
     GstObject *object() const;
     const char *name() const;
 };
@@ -555,6 +556,8 @@ public:
     static QGstElement createFromFactory(const char *factory, const char *name = nullptr);
     static QGstElement createFromDevice(const QGstDeviceHandle &, const char *name = nullptr);
     static QGstElement createFromDevice(GstDevice *, const char *name = nullptr);
+    static QGstElement createFromPipelineDescription(const char *);
+    static QGstElement createFromPipelineDescription(const QByteArray &);
 
     QGstPad staticPad(const char *name) const;
     QGstPad src() const;
@@ -666,6 +669,12 @@ public:
     explicit QGstBin(GstBin *bin, RefMode mode = NeedsRef);
     static QGstBin create(const char *name);
     static QGstBin createFromFactory(const char *factory, const char *name);
+    static QGstBin createFromPipelineDescription(const QByteArray &pipelineDescription,
+                                                 const char *name = nullptr,
+                                                 bool ghostUnlinkedPads = false);
+    static QGstBin createFromPipelineDescription(const char *pipelineDescription,
+                                                 const char *name = nullptr,
+                                                 bool ghostUnlinkedPads = false);
 
     template <typename... Ts>
     std::enable_if_t<(std::is_base_of_v<QGstElement, Ts> && ...), void> add(const Ts &...ts)

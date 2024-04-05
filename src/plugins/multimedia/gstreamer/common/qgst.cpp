@@ -656,6 +656,11 @@ GType QGstObject::type() const
     return G_OBJECT_TYPE(get());
 }
 
+const char *QGstObject::typeName() const
+{
+    return g_type_name(type());
+}
+
 GstObject *QGstObject::object() const
 {
     return get();
@@ -844,6 +849,25 @@ QGstElement QGstElement::createFromDevice(GstDevice *device, const char *name)
     };
 }
 
+QGstElement QGstElement::createFromPipelineDescription(const char *str)
+{
+    QUniqueGErrorHandle error;
+    QGstElement element{
+        gst_parse_launch(str, &error),
+        QGstElement::NeedsRef,
+    };
+
+    if (error) // error does not mean that the element could not be constructed
+        qWarning() << "gst_parse_launch error:" << error;
+
+    return element;
+}
+
+QGstElement QGstElement::createFromPipelineDescription(const QByteArray &str)
+{
+    return createFromPipelineDescription(str.constData());
+}
+
 QGstPad QGstElement::staticPad(const char *name) const
 {
     return QGstPad(gst_element_get_static_pad(element(), name), HasRef);
@@ -999,6 +1023,36 @@ QGstBin QGstBin::createFromFactory(const char *factory, const char *name)
     return QGstBin{
         GST_BIN(element.release()),
         RefMode::HasRef,
+    };
+}
+
+QGstBin QGstBin::createFromPipelineDescription(const QByteArray &pipelineDescription,
+                                               const char *name, bool ghostUnlinkedPads)
+{
+    return createFromPipelineDescription(pipelineDescription.constData(), name, ghostUnlinkedPads);
+}
+
+QGstBin QGstBin::createFromPipelineDescription(const char *pipelineDescription, const char *name,
+                                               bool ghostUnlinkedPads)
+{
+    QUniqueGErrorHandle error;
+
+    GstElement *element =
+            gst_parse_bin_from_description_full(pipelineDescription, ghostUnlinkedPads,
+                                                /*context=*/nullptr, GST_PARSE_FLAG_NONE, &error);
+
+    if (!element) {
+        qWarning() << "Failed to make element from pipeline description" << pipelineDescription
+                   << error;
+        return QGstBin{};
+    }
+
+    if (name)
+        gst_element_set_name(element, name);
+
+    return QGstBin{
+        element,
+        NeedsRef,
     };
 }
 
