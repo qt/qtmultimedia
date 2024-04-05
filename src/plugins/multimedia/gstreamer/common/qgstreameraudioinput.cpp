@@ -46,6 +46,56 @@ QGstreamerAudioInput::QGstreamerAudioInput(QGstElement autoaudiosrc, QGstElement
     gstAudioInput.addGhostPad(audioVolume, "src");
 }
 
+QGstElement QGstreamerAudioInput::createGstElement()
+{
+    const auto *customDeviceInfo =
+            dynamic_cast<const QGStreamerCustomAudioDeviceInfo *>(m_audioDevice.handle());
+
+    if (customDeviceInfo) {
+        qCDebug(qLcMediaAudioInput)
+                << "requesting custom audio src element: " << customDeviceInfo->id;
+
+        QGstElement element = QGstBin::createFromPipelineDescription(customDeviceInfo->id,
+                                                                     /*name=*/nullptr,
+                                                                     /*ghostUnlinkedPads=*/true);
+        if (element)
+            return element;
+
+        qCWarning(qLcMediaAudioInput)
+                << "Cannot create audio source element:" << customDeviceInfo->id;
+    }
+
+    const QByteArray &id = m_audioDevice.id();
+    if constexpr (QT_CONFIG(pulseaudio)) {
+        QGstElement newSrc = QGstElement::createFromFactory("pulsesrc", "audiosrc");
+        if (newSrc) {
+            newSrc.set("device", id.constData());
+            return newSrc;
+        } else {
+            qWarning() << "Cannot create pulsesrc";
+        }
+    } else if constexpr (QT_CONFIG(alsa)) {
+        QGstElement newSrc = QGstElement::createFromFactory("alsasrc", "audiosrc");
+        if (newSrc) {
+            newSrc.set("device", id.constData());
+            return newSrc;
+        } else {
+            qWarning() << "Cannot create alsasrc";
+        }
+    } else {
+        auto *deviceInfo = dynamic_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
+        if (deviceInfo && deviceInfo->gstDevice) {
+            QGstElement element = QGstElement::createFromDevice(deviceInfo->gstDevice, "audiosrc");
+            if (element)
+                return element;
+        }
+    }
+    qCWarning(qLcMediaAudioInput) << "Invalid audio device";
+    qCWarning(qLcMediaAudioInput)
+            << "Failed to create a gst element for the audio device, using a default audio source";
+    return QGstElement::createFromFactory("autoaudiosrc", "audiosrc");
+}
+
 QGstreamerAudioInput::~QGstreamerAudioInput()
 {
     gstAudioInput.setStateSync(GST_STATE_NULL);
@@ -67,36 +117,8 @@ void QGstreamerAudioInput::setAudioDevice(const QAudioDevice &device)
         return;
     qCDebug(qLcMediaAudioInput) << "setAudioInput" << device.description() << device.isNull();
     m_audioDevice = device;
-    const QByteArray &id = m_audioDevice.id();
 
-    QGstElement newSrc;
-    if constexpr (QT_CONFIG(pulseaudio)) {
-        newSrc = QGstElement::createFromFactory("pulsesrc", "audiosrc");
-        if (newSrc)
-            newSrc.set("device", id.constData());
-        else
-            qWarning() << "Cannot create pulsesrc";
-    } else if constexpr (QT_CONFIG(alsa)) {
-        newSrc = QGstElement::createFromFactory("alsasrc", "audiosrc");
-        if (newSrc)
-            newSrc.set("device", id.constData());
-        else
-            qWarning() << "Cannot create alsasrc";
-    } else {
-        auto *gstDeviceInfo =
-                dynamic_cast<const QGStreamerAudioDeviceInfo *>(m_audioDevice.handle());
-        if (gstDeviceInfo && gstDeviceInfo->gstDevice) {
-            newSrc = QGstElement::createFromDevice(gstDeviceInfo->gstDevice, "audiosrc");
-        } else {
-            qWarning() << "Invalid audio device";
-        }
-    }
-
-    if (newSrc.isNull()) {
-        qWarning() << "Failed to create a gst element for the audio device, using a default audio "
-                      "source";
-        newSrc = QGstElement::createFromFactory("autoaudiosrc", "audiosrc");
-    }
+    QGstElement newSrc = createGstElement();
 
     QGstPipeline::modifyPipelineWhileNotRunning(gstAudioInput.getPipeline(), [&] {
         qUnlinkGstElements(audioSrc, audioVolume);

@@ -19,11 +19,11 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qlist.h>
 
-#include "qaudio.h"
-#include "qaudiodevice.h"
-#include <private/qaudiodevice_p.h>
+#include <QtMultimedia/qaudio.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qaudiodevice_p.h>
 
-#include <common/qgst_handle_types_p.h>
+#include <QtQGstreamerMediaPlugin/private/qgst_handle_types_p.h>
 
 #include <gst/gst.h>
 
@@ -33,10 +33,18 @@ class QGStreamerAudioDeviceInfo : public QAudioDevicePrivate
 {
 public:
     QGStreamerAudioDeviceInfo(GstDevice *gstDevice, const QByteArray &device, QAudioDevice::Mode mode);
-    ~QGStreamerAudioDeviceInfo();
 
     QGstDeviceHandle gstDevice;
 };
+
+class QGStreamerCustomAudioDeviceInfo : public QAudioDevicePrivate
+{
+public:
+    QGStreamerCustomAudioDeviceInfo(const QByteArray &gstreamerPipeline, QAudioDevice::Mode mode);
+};
+
+QAudioDevice qMakeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline);
+QAudioDevice qMakeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline);
 
 QT_END_NAMESPACE
 
