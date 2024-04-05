@@ -24,6 +24,10 @@ private slots:
     void metadata_taglistToMetaData_extractsOrientation_data();
     void metadata_taglistToMetaData_extractsDuration();
 
+    void QGstBin_createFromPipelineDescription();
+    void QGstElement_createFromPipelineDescription();
+    void QGstElement_createFromPipelineDescription_multipleElementsCreatesBin();
+
 private:
     QGstreamerIntegration integration;
 };
