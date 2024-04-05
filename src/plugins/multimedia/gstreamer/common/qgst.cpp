@@ -1056,6 +1056,21 @@ GstBaseSink *QGstBaseSink::baseSink() const
     return qGstCheckedCast<GstBaseSink>(element());
 }
 
+// QGstBaseSrc
+
+QGstBaseSrc::QGstBaseSrc(GstBaseSrc *element, RefMode mode)
+    : QGstElement{
+          qGstCheckedCast<GstElement>(element),
+          mode,
+      }
+{
+}
+
+GstBaseSrc *QGstBaseSrc::baseSrc() const
+{
+    return qGstCheckedCast<GstBaseSrc>(element());
+}
+
 #if QT_CONFIG(gstreamer_app)
 
 // QGstAppSink
@@ -1099,6 +1114,41 @@ QGstSampleHandle QGstAppSink::pullSample()
         gst_app_sink_pull_sample(appSink()),
         QGstSampleHandle::HasRef,
     };
+}
+
+// QGstAppSrc
+
+QGstAppSrc::QGstAppSrc(GstAppSrc *element, RefMode mode)
+    : QGstBaseSrc{
+          qGstCheckedCast<GstBaseSrc>(element),
+          mode,
+      }
+{
+}
+
+QGstAppSrc QGstAppSrc::create(const char *name)
+{
+    QGstElement created = QGstElement::createFromFactory("appsrc", name);
+    return QGstAppSrc{
+        qGstCheckedCast<GstAppSrc>(created.element()),
+        QGstAppSrc::NeedsRef,
+    };
+}
+
+GstAppSrc *QGstAppSrc::appSrc() const
+{
+    return qGstCheckedCast<GstAppSrc>(element());
+}
+
+void QGstAppSrc::setCallbacks(GstAppSrcCallbacks &callbacks, gpointer user_data,
+                              GDestroyNotify notify)
+{
+    gst_app_src_set_callbacks(appSrc(), &callbacks, user_data, notify);
+}
+
+GstFlowReturn QGstAppSrc::pushBuffer(GstBuffer *buffer)
+{
+    return gst_app_src_push_buffer(appSrc(), buffer);
 }
 
 #endif
