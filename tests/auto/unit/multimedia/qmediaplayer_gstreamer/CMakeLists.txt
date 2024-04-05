@@ -8,7 +8,24 @@
 qt_internal_add_test(tst_qmediaplayer_gstreamer
     SOURCES
         tst_qmediaplayer_gstreamer.cpp
+        ../../../shared/qscopedenvironmentvariable.h
+    INCLUDE_DIRECTORIES
+        ../../../shared
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::QGstreamerMediaPluginPrivate
 )
+
+
+# Resources:
+set(testdata_resource_files
+    "testdata/color_matrix.mp4"
+)
+
+qt_internal_add_resource(tst_qmediaplayer_gstreamer "testdata"
+    PREFIX
+        "/"
+    FILES
+        ${testdata_resource_files}
+)
+
