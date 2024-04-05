@@ -53,28 +53,42 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     // we simply use an identity element.
     QGstElementFactoryHandle factory;
 
-    // QT_MULTIMEDIA_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT allows users to override the
+    // QT_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT allows users to override the
     // conversion element. Ideally we construct the element programatically, though.
-    QByteArray preprocessOverride =
-            qgetenv("QT_MULTIMEDIA_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT");
+    QByteArray preprocessOverride = qgetenv("QT_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT");
     if (!preprocessOverride.isEmpty()) {
-        qCDebug(qLcGstVideoSink) << "requesting conversion element from environment: "
+        qCDebug(qLcGstVideoSink) << "requesting conversion element from environment:"
                                  << preprocessOverride;
-        factory = QGstElement::findFactory(preprocessOverride);
+
+        gstPreprocess = QGstBin::createFromPipelineDescription(preprocessOverride, nullptr,
+                                                               /*ghostUnlinkedPads=*/true);
+        if (!gstPreprocess)
+            qCWarning(qLcGstVideoSink) << "Cannot create conversion element:" << preprocessOverride;
     }
 
-    if (!factory)
-        factory = QGstElement::findFactory("imxvideoconvert_g2d");
+    if (!gstPreprocess) {
+        // This is a hack for some iMX and NVidia platforms. These require the use of a special
+        // video conversion element in the pipeline before the video sink, as they unfortunately
+        // output some proprietary format from the decoder even though it's sometimes marked as
+        // a regular supported video/x-raw format.
+        static constexpr auto decodersToTest = {
+            "imxvideoconvert_g2d",
+            "nvvidconv",
+        };
 
-    if (!factory)
-        factory = QGstElement::findFactory("nvvidconv");
+        for (const char *decoder : decodersToTest) {
+            factory = QGstElement::findFactory(decoder);
+            if (factory)
+                break;
+        }
 
-    if (factory) {
-        qCDebug(qLcGstVideoSink) << "instantiating conversion element: "
-                                 << g_type_name(
-                                            gst_element_factory_get_element_type(factory.get()));
+        if (factory) {
+            qCDebug(qLcGstVideoSink)
+                    << "instantiating conversion element:"
+                    << g_type_name(gst_element_factory_get_element_type(factory.get()));
 
-        gstPreprocess = QGstElement::createFromFactory(factory, "preprocess");
+            gstPreprocess = QGstElement::createFromFactory(factory, "preprocess");
+        }
     }
 
     bool disablePixelAspectRatio =
