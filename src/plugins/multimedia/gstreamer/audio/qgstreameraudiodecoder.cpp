@@ -287,7 +287,7 @@ void QGstreamerAudioDecoder::start()
         }
 
         if (!m_appSrc) {
-            auto maybeAppSrc = QGstAppSrc::create(this);
+            auto maybeAppSrc = QGstAppSource::create(this);
             if (maybeAppSrc) {
                 m_appSrc = maybeAppSrc.value();
             } else {
