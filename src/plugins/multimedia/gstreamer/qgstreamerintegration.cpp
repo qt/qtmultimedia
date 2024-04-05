@@ -14,11 +14,16 @@
 #include <mediacapture/qgstreamermediacapture_p.h>
 #include <mediacapture/qgstreamermediaencoder_p.h>
 
+#include <QtCore/qloggingcategory.h>
+
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
 
 QGstreamerIntegration::QGstreamerIntegration()
 {
     gst_init(nullptr, nullptr);
+    qCDebug(lcGstreamer) << "Using gstreamer version: " << gst_version_string();
 }
 
 QPlatformMediaFormatInfo *QGstreamerIntegration::createFormatInfo()
