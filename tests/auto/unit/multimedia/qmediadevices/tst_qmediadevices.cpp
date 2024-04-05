@@ -16,15 +16,10 @@ class tst_QMediaDevices : public QObject
 {
     Q_OBJECT
 
-public slots:
-    void initTestCase();
-
 private slots:
     void videoInputsChangedEmitted_whenCamerasChanged();
     void onlyVideoInputsChangedEmitted_when2MediaDevicesCreated_andCamerasChanged();
 };
-
-void tst_QMediaDevices::initTestCase() { }
 
 void tst_QMediaDevices::videoInputsChangedEmitted_whenCamerasChanged()
 {
