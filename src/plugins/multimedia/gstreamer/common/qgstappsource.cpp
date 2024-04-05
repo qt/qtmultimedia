@@ -59,7 +59,6 @@ bool QGstAppSource::setup(QIODevice *stream, qint64 offset)
     gst_app_src_set_stream_type(appSrc, m_streamType);
     gst_app_src_set_size(appSrc, m_sequential ? -1 : m_stream->size() - m_offset);
 
-    m_networkReply = qobject_cast<QNetworkReply *>(m_stream);
     m_noMoreData = true;
 
     return true;

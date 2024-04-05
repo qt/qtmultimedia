@@ -29,8 +29,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QNetworkReply;
-
 class QGstAppSource : public QObject
 {
     Q_OBJECT
@@ -78,7 +76,6 @@ private:
     void eosOrIdle();
 
     QIODevice *m_stream = nullptr;
-    QNetworkReply *m_networkReply = nullptr;
     QRingBuffer m_buffer;
     QAudioFormat m_format;
 
