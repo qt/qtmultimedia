@@ -21,12 +21,6 @@ class tst_QImageCapture: public QObject
 {
     Q_OBJECT
 
-public slots:
-    void initTestCase();
-    void init();
-    void cleanup();
-    void cleanupTestCase();
-
 private slots:
     void constructor();
     void isAvailable();
@@ -41,18 +35,6 @@ private slots:
     void imageSaved();
     void readyForCaptureChanged();
 };
-
-void tst_QImageCapture::initTestCase() { }
-
-void tst_QImageCapture::init()
-{
-}
-
-void tst_QImageCapture::cleanup()
-{
-}
-
-void tst_QImageCapture::cleanupTestCase() { }
 
 void tst_QImageCapture::constructor()
 {
