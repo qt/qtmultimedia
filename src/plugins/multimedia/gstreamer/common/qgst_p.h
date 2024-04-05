@@ -692,6 +692,21 @@ public:
     GstBaseSink *baseSink() const;
 };
 
+class QGstBaseSrc : public QGstElement
+{
+public:
+    using QGstElement::QGstElement;
+
+    explicit QGstBaseSrc(GstBaseSrc *, RefMode);
+
+    QGstBaseSrc(const QGstBaseSrc &) = default;
+    QGstBaseSrc(QGstBaseSrc &&) noexcept = default;
+    QGstBaseSrc &operator=(const QGstBaseSrc &) = default;
+    QGstBaseSrc &operator=(QGstBaseSrc &&) noexcept = default;
+
+    GstBaseSrc *baseSrc() const;
+};
+
 #if QT_CONFIG(gstreamer_app)
 class QGstAppSink : public QGstBaseSink
 {
@@ -714,6 +729,28 @@ public:
 
     QGstSampleHandle pullSample();
 };
+
+class QGstAppSrc : public QGstBaseSrc
+{
+public:
+    using QGstBaseSrc::QGstBaseSrc;
+
+    explicit QGstAppSrc(GstAppSrc *, RefMode);
+
+    QGstAppSrc(const QGstAppSrc &) = default;
+    QGstAppSrc(QGstAppSrc &&) noexcept = default;
+    QGstAppSrc &operator=(const QGstAppSrc &) = default;
+    QGstAppSrc &operator=(QGstAppSrc &&) noexcept = default;
+
+    static QGstAppSrc create(const char *name);
+
+    GstAppSrc *appSrc() const;
+
+    void setCallbacks(GstAppSrcCallbacks &callbacks, gpointer user_data, GDestroyNotify notify);
+
+    GstFlowReturn pushBuffer(GstBuffer *); // take ownership
+};
+
 #endif
 
 inline QString errorMessageCannotFindElement(std::string_view element)

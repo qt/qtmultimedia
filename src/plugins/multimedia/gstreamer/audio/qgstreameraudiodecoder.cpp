@@ -93,11 +93,10 @@ QGstreamerAudioDecoder::~QGstreamerAudioDecoder()
 }
 
 #if QT_CONFIG(gstreamer_app)
-void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *orig, GParamSpec *pspec, QGstreamerAudioDecoder *self)
+void QGstreamerAudioDecoder::configureAppSrcElement([[maybe_unused]] GObject *object, GObject *orig,
+                                                    [[maybe_unused]] GParamSpec *pspec,
+                                                    QGstreamerAudioDecoder *self)
 {
-    Q_UNUSED(object);
-    Q_UNUSED(pspec);
-
     // In case we switch from appsrc to not
     if (!self->m_appSrc)
         return;
@@ -106,8 +105,10 @@ void QGstreamerAudioDecoder::configureAppSrcElement(GObject* object, GObject *or
     g_object_get(orig, "source", &appsrc, NULL);
 
     auto *qAppSrc = self->m_appSrc;
-    qAppSrc->setExternalAppSrc(
-            QGstElement(appsrc.get(), QGstElement::NeedsRef)); // CHECK: can we `release()`?
+    qAppSrc->setExternalAppSrc(QGstAppSrc{
+            qGstSafeCast<GstAppSrc>(appsrc.get()),
+            QGstAppSrc::NeedsRef, // CHECK: can we `release()`?
+    });
     qAppSrc->setup(self->mDevice);
 }
 #endif
