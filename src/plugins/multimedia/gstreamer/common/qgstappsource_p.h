@@ -39,7 +39,7 @@ public:
     bool setup(QIODevice *stream = nullptr, qint64 offset = 0);
     void setAudioFormat(const QAudioFormat &f);
 
-    void setExternalAppSrc(const QGstElement &appsrc);
+    void setExternalAppSrc(QGstAppSrc);
     QGstElement element();
 
     void write(const char *data, qsizetype size);
@@ -60,7 +60,7 @@ private Q_SLOTS:
 
     void streamDestroyed();
 private:
-    QGstAppSource(QGstElement appsrc, QObject *parent);
+    QGstAppSource(QGstAppSrc appsrc, QObject *parent);
 
     bool setStream(QIODevice *, qint64 offset);
     bool isStreamValid() const
@@ -79,7 +79,7 @@ private:
     QRingBuffer m_buffer;
     QAudioFormat m_format;
 
-    QGstElement m_appSrc;
+    QGstAppSrc m_appSrc;
     bool m_sequential = true;
     bool m_suspended = false;
     bool m_noMoreData = false;

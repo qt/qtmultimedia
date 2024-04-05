@@ -14,14 +14,14 @@ QT_BEGIN_NAMESPACE
 
 QMaybe<QGstAppSource *> QGstAppSource::create(QObject *parent)
 {
-    QGstElement appsrc = QGstElement::createFromFactory("appsrc", "appsrc");
+    QGstAppSrc appsrc = QGstAppSrc::create("appsrc");
     if (!appsrc)
         return errorMessageCannotFindElement("appsrc");
 
     return new QGstAppSource(appsrc, parent);
 }
 
-QGstAppSource::QGstAppSource(QGstElement appsrc, QObject *parent)
+QGstAppSource::QGstAppSource(QGstAppSrc appsrc, QObject *parent)
     : QObject(parent), m_appSrc(std::move(appsrc))
 {
 }
@@ -41,14 +41,14 @@ bool QGstAppSource::setup(QIODevice *stream, qint64 offset)
     if (!setStream(stream, offset))
         return false;
 
-    auto *appSrc = GST_APP_SRC(m_appSrc.element());
-    GstAppSrcCallbacks m_callbacks;
-    memset(&m_callbacks, 0, sizeof(GstAppSrcCallbacks));
-    m_callbacks.need_data = &QGstAppSource::on_need_data;
-    m_callbacks.enough_data = &QGstAppSource::on_enough_data;
-    m_callbacks.seek_data = &QGstAppSource::on_seek_data;
-    gst_app_src_set_callbacks(appSrc, (GstAppSrcCallbacks*)&m_callbacks, this, nullptr);
+    GstAppSrcCallbacks callbacks{};
+    callbacks.need_data = QGstAppSource::on_need_data;
+    callbacks.enough_data = QGstAppSource::on_enough_data;
+    callbacks.seek_data = QGstAppSource::on_seek_data;
 
+    m_appSrc.setCallbacks(callbacks, this, nullptr);
+
+    GstAppSrc *appSrc = m_appSrc.appSrc();
     m_maxBytes = gst_app_src_get_max_bytes(appSrc);
     m_suspended = false;
 
@@ -76,9 +76,9 @@ void QGstAppSource::setAudioFormat(const QAudioFormat &f)
     m_appSrc.set("format", GST_FORMAT_TIME);
 }
 
-void QGstAppSource::setExternalAppSrc(const QGstElement &appsrc)
+void QGstAppSource::setExternalAppSrc(QGstAppSrc appsrc)
 {
-    m_appSrc = appsrc;
+    m_appSrc = std::move(appsrc);
 }
 
 bool QGstAppSource::setStream(QIODevice *stream, qint64 offset)
@@ -201,7 +201,7 @@ void QGstAppSource::pushData()
     m_noMoreData = false;
     emit bytesProcessed(bytesRead);
 
-    GstFlowReturn ret = gst_app_src_push_buffer(GST_APP_SRC(m_appSrc.element()), buffer);
+    GstFlowReturn ret = m_appSrc.pushBuffer(buffer);
     if (ret == GST_FLOW_ERROR) {
         qWarning() << "QGstAppSrc: push buffer error";
     } else if (ret == GST_FLOW_FLUSHING) {
