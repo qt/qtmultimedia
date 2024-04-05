@@ -32,21 +32,10 @@ private:
         return QTest::qWaitFor([&newFrameReceived]() { return newFrameReceived; });
     }
 
-public slots:
-    void initTestCase();
-    void init();
-    void cleanup();
-
 private slots:
     void destructionOfActiveCapture();
 
 };
-
-void tst_QScreenCapture::initTestCase() { }
-
-void tst_QScreenCapture::init() { }
-
-void tst_QScreenCapture::cleanup() { }
 
 void tst_QScreenCapture::destructionOfActiveCapture()
 {
