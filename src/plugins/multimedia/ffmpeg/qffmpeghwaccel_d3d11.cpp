@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpeghwaccel_d3d11_p.h"
+#include "playbackengine/qffmpegstreamdecoder_p.h"
 
 #include <qvideoframeformat.h>
 #include "qffmpegvideobuffer_p.h"
@@ -240,6 +241,19 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
 
 void D3D11TextureConverter::SetupDecoderTextures(AVCodecContext *s)
 {
+    // We are holding pool frames alive for quite long, which may cause
+    // codecs to run out of frames because FFmpeg has a fixed size
+    // decoder frame pool. We must therefore add extra frames to the pool
+    // to account for the frames we keep alive. First, we need to account
+    // for the maximum number of queued frames during rendering. In
+    // addition, we add one frame for the RHI rendering pipeline, and one
+    // additional frame because we may hold one in the Qt event loop.
+
+    const qint32 maxRenderQueueSize = StreamDecoder::maxQueueSize(QPlatformMediaPlayer::VideoStream);
+    constexpr qint32 framesHeldByRhi = 1;
+    constexpr qint32 framesHeldByQtEventLoop = 1;
+    s->extra_hw_frames = maxRenderQueueSize + framesHeldByRhi + framesHeldByQtEventLoop;
+
     int ret = avcodec_get_hw_frames_parameters(s, s->hw_device_ctx, AV_PIX_FMT_D3D11,
                                                &s->hw_frames_ctx);
     if (ret < 0) {
