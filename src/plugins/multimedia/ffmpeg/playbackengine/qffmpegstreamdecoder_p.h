@@ -35,6 +35,9 @@ public:
 
     QPlatformMediaPlayer::TrackType trackType() const;
 
+    // Maximum number of frames that we are allowed to keep in render queue
+    static qint32 maxQueueSize(QPlatformMediaPlayer::TrackType type);
+
 public slots:
     void setInitialPosition(TimePoint tp, qint64 trackPos);
 

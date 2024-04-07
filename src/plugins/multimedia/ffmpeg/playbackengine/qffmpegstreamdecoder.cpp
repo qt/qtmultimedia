@@ -78,6 +78,21 @@ QPlatformMediaPlayer::TrackType StreamDecoder::trackType() const
     return m_trackType;
 }
 
+qint32 StreamDecoder::maxQueueSize(QPlatformMediaPlayer::TrackType type)
+{
+    switch (type) {
+
+    case QPlatformMediaPlayer::VideoStream:
+        return 3;
+    case QPlatformMediaPlayer::AudioStream:
+        return 9;
+    case QPlatformMediaPlayer::SubtitleStream:
+        return 6; /*main packet and closing packet*/
+    default:
+        Q_UNREACHABLE_RETURN(-1);
+    }
+}
+
 void StreamDecoder::onFrameProcessed(Frame frame)
 {
     if (frame.sourceId() != id())
@@ -91,14 +106,7 @@ void StreamDecoder::onFrameProcessed(Frame frame)
 
 bool StreamDecoder::canDoNextStep() const
 {
-    constexpr qint32 maxPendingFramesCount = 3;
-    constexpr qint32 maxPendingAudioFramesCount = 9;
-
-    const auto maxCount = m_trackType == QPlatformMediaPlayer::AudioStream
-            ? maxPendingAudioFramesCount
-            : m_trackType == QPlatformMediaPlayer::SubtitleStream
-            ? maxPendingFramesCount * 2 /*main packet and closing packet*/
-            : maxPendingFramesCount;
+    const qint32 maxCount = maxQueueSize(m_trackType);
 
     return !m_packets.empty() && m_pendingFramesCount < maxCount
             && PlaybackEngineObject::canDoNextStep();
