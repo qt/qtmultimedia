@@ -46,9 +46,10 @@ ComPtr<ID3D11Device1> GetD3DDevice(QRhi *rhi)
 namespace QFFmpeg {
 
 bool TextureBridge::copyToSharedTex(ID3D11Device *dev, ID3D11DeviceContext *ctx,
-                                    const ComPtr<ID3D11Texture2D> &tex, UINT index)
+                                    const ComPtr<ID3D11Texture2D> &tex, UINT index,
+                                    const QSize &frameSize)
 {
-    if (!ensureSrcTex(dev, tex))
+    if (!ensureSrcTex(dev, tex, frameSize))
         return false;
 
     // Flush to ensure that texture is fully updated before we share it.
@@ -57,7 +58,14 @@ bool TextureBridge::copyToSharedTex(ID3D11Device *dev, ID3D11DeviceContext *ctx,
     if (m_srcMutex->AcquireSync(m_srcKey, INFINITE) != S_OK)
         return false;
 
-    ctx->CopySubresourceRegion(m_srcTex.Get(), 0, 0, 0, 0, tex.Get(), index, nullptr);
+    const UINT width = static_cast<UINT>(frameSize.width());
+    const UINT height = static_cast<UINT>(frameSize.height());
+
+    // A crop box is needed because FFmpeg may have created textures
+    // that are bigger than the frame size to account for the decoder's
+    // surface alignment requirements.
+    const D3D11_BOX crop{ 0, 0, 0, width, height, 1 };
+    ctx->CopySubresourceRegion(m_srcTex.Get(), 0, 0, 0, 0, tex.Get(), index, &crop);
 
     m_srcMutex->ReleaseSync(m_destKey);
     return true;
@@ -102,16 +110,17 @@ bool TextureBridge::ensureDestTex(const ComPtr<ID3D11Device1> &dev)
     return true;
 }
 
-bool TextureBridge::ensureSrcTex(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex)
+bool TextureBridge::ensureSrcTex(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex, const QSize &frameSize)
 {
-    if (!isSrcInitialized(dev, tex))
-        return recreateSrc(dev, tex);
+    if (!isSrcInitialized(dev, tex, frameSize))
+        return recreateSrc(dev, tex, frameSize);
 
     return true;
 }
 
 bool TextureBridge::isSrcInitialized(const ID3D11Device *dev,
-                                     const ComPtr<ID3D11Texture2D> &tex) const
+                                     const ComPtr<ID3D11Texture2D> &tex,
+                                     const QSize &frameSize) const
 {
     if (!m_srcTex)
         return false;
@@ -132,20 +141,26 @@ bool TextureBridge::isSrcInitialized(const ID3D11Device *dev,
     if (inputDesc.Format != currentDesc.Format)
         return false;
 
-    if (inputDesc.Width != currentDesc.Width || inputDesc.Height != currentDesc.Height)
+    const UINT width = static_cast<UINT>(frameSize.width());
+    const UINT height = static_cast<UINT>(frameSize.height());
+
+    if (currentDesc.Width != width || currentDesc.Height != height)
         return false;
 
     return true;
 }
 
-bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex)
+bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D> &tex, const QSize &frameSize)
 {
     m_sharedHandle.close();
 
     CD3D11_TEXTURE2D_DESC desc{};
     tex->GetDesc(&desc);
 
-    CD3D11_TEXTURE2D_DESC texDesc{ desc.Format, desc.Width, desc.Height };
+    const UINT width = static_cast<UINT>(frameSize.width());
+    const UINT height = static_cast<UINT>(frameSize.height());
+
+    CD3D11_TEXTURE2D_DESC texDesc{ desc.Format, width, height };
     texDesc.MipLevels = 1;
     texDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX | D3D11_RESOURCE_MISC_SHARED_NTHANDLE;
 
@@ -220,9 +235,11 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
             avDeviceCtx->lock(avDeviceCtx->lock_ctx);
             QScopeGuard autoUnlock([&] { avDeviceCtx->unlock(avDeviceCtx->lock_ctx); });
 
-            // Populate the shared texture with one slice from the frame pool
+            // Populate the shared texture with one slice from the frame pool, cropping away
+            // extra surface alignment areas that FFmpeg adds to the textures
+            QSize frameSize{ frame->width, frame->height };
             if (!m_bridge.copyToSharedTex(avDeviceCtx->device, avDeviceCtx->device_context,
-                                          ffmpegTex, index)) {
+                                          ffmpegTex, index, frameSize)) {
                 return nullptr;
             }
         }
