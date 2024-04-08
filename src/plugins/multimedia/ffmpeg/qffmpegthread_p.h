@@ -77,9 +77,9 @@ protected:
 private:
     void run() final;
 
-    QMutex exitMutex; // Protects exit flag.
-    QWaitCondition condition;
-    bool exit = false;
+    QMutex m_exitMutex; // Protects exit flag.
+    QWaitCondition m_condition;
+    bool m_exit = false;
 };
 
 }
