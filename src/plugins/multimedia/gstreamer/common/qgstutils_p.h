@@ -15,24 +15,16 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <QtCore/qlist.h>
-#include <QtCore/qmap.h>
-#include <QtCore/qset.h>
-#include <common/qgst_p.h>
-#include <gst/video/video.h>
-#include <qaudioformat.h>
-#include <qcamera.h>
-#include <qvideoframe.h>
-#include <QDebug>
+#include <gst/gstsample.h>
+#include <gst/gstbuffer.h>
+
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 
-class QSize;
-class QVariant;
-class QByteArray;
-class QImage;
-class QVideoFrameFormat;
+class QAudioFormat;
+class QGstCaps;
+class QVideoFrame;
 
 namespace QGstUtils {
 QAudioFormat audioFormatForSample(GstSample *sample);
@@ -40,7 +32,7 @@ QAudioFormat audioFormatForCaps(const QGstCaps &caps);
 QGstCaps capsForAudioFormat(const QAudioFormat &format);
 
 void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
-}
+} // namespace QGstUtils
 
 GList *qt_gst_video_sinks();
 
