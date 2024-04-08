@@ -388,10 +388,10 @@ void tst_QMediaRecorder::metaData()
     QVERIFY(recorder.metaData().isEmpty());
 
     QMediaMetaData data;
-    data.insert(QMediaMetaData::Author, QString::fromUtf8("John Doe"));
+    data.insert(QMediaMetaData::Author, QStringLiteral("John Doe"));
     recorder.setMetaData(data);
 
-    QCOMPARE(recorder.metaData().value(QMediaMetaData::Author).toString(), QString::fromUtf8("John Doe"));
+    QCOMPARE(recorder.metaData().value(QMediaMetaData::Author).toString(), QStringLiteral("John Doe"));
 }
 
 void tst_QMediaRecorder::testIsAvailable()

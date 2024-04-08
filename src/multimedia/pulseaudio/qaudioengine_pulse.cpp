@@ -63,7 +63,7 @@ static bool updateDevicesMap(QReadWriteLock &lock, QByteArray defaultDeviceId,
 static void serverInfoCallback(pa_context *context, const pa_server_info *info, void *userdata)
 {
     if (!info) {
-        qWarning() << QString::fromLatin1("Failed to get server information: %s").arg(QString::fromUtf8(pa_strerror(pa_context_errno(context))));
+        qWarning() << QStringLiteral("Failed to get server information: %s").arg(QString::fromUtf8(pa_strerror(pa_context_errno(context))));
         return;
     }
 
@@ -73,7 +73,7 @@ static void serverInfoCallback(pa_context *context, const pa_server_info *info, 
         pa_sample_spec_snprint(ss, sizeof(ss), &info->sample_spec);
         pa_channel_map_snprint(cm, sizeof(cm), &info->channel_map);
 
-        qCDebug(qLcPulseAudioEngine) << QString::fromLatin1("User name: %1\n"
+        qCDebug(qLcPulseAudioEngine) << QStringLiteral("User name: %1\n"
                             "Host Name: %2\n"
                             "Server Name: %3\n"
                             "Server Version: %4\n"
@@ -128,7 +128,7 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
     QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine*>(userdata);
 
     if (isLast < 0) {
-        qWarning() << QString::fromLatin1("Failed to get sink information: %s").arg(QString::fromUtf8(pa_strerror(pa_context_errno(context))));
+        qWarning() << QStringLiteral("Failed to get sink information: %s").arg(QString::fromUtf8(pa_strerror(pa_context_errno(context))));
         return;
     }
 
@@ -146,7 +146,7 @@ static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int 
             { PA_SINK_UNLINKED, "UNLINKED" },
         };
 
-        qCDebug(qLcPulseAudioEngine) << QString::fromUtf8("Sink #%1\n"
+        qCDebug(qLcPulseAudioEngine) << QStringLiteral("Sink #%1\n"
                             "\tState: %2\n"
                             "\tName: %3\n"
                             "\tDescription: %4\n"
@@ -180,7 +180,7 @@ static void sourceInfoCallback(pa_context *context, const pa_source_info *info, 
             { PA_SOURCE_SUSPENDED, "SUSPENDED" },
             { PA_SOURCE_UNLINKED, "UNLINKED" } };
 
-        qCDebug(qLcPulseAudioEngine) << QString::fromLatin1("Source #%1\n"
+        qCDebug(qLcPulseAudioEngine) << QStringLiteral("Source #%1\n"
                             "\tState: %2\n"
                             "\tName: %3\n"
                             "\tDescription: %4\n"
@@ -375,7 +375,7 @@ void QPulseAudioEngine::prepare()
 
             case PA_CONTEXT_FAILED:
             default:
-                qCritical() << QString::fromLatin1("PulseAudioService: Connection failure: %1")
+                qCritical() << QStringLiteral("PulseAudioService: Connection failure: %1")
                                 .arg(QString::fromUtf8(pa_strerror(pa_context_errno(m_context))));
                 keepGoing = false;
                 ok = false;

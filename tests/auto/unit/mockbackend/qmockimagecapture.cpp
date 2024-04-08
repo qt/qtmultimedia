@@ -40,7 +40,7 @@ void QMockImageCapture::captured()
     emit imageCaptured(m_captureRequest, QImage());
 
     QMediaMetaData metaData;
-    metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
+    metaData.insert(QMediaMetaData::Author, QStringLiteral("Author"));
     metaData.insert(QMediaMetaData::Date, QDateTime(QDate(2021, 1, 1), QTime()));
 
     emit imageMetadataAvailable(m_captureRequest, metaData);

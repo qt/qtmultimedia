@@ -56,7 +56,7 @@ static void inputStreamStateCallback(pa_stream *stream, void *userdata)
     case PA_STREAM_FAILED:
     default:
         const char *errorString = pa_strerror(pa_context_errno(pa_stream_get_context(stream)));
-        qWarning() << QString::fromLatin1("Stream error: %1").arg(QString::fromUtf8(errorString));
+        qWarning() << QStringLiteral("Stream error: %1").arg(QString::fromUtf8(errorString));
         QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
         pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
         break;
@@ -371,7 +371,7 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
         if (pa_stream_peek(m_stream, &audioBuffer, &readLength) < 0) {
             const char *errorString =
                     pa_strerror(pa_context_errno(pa_stream_get_context(m_stream)));
-            qWarning() << QString::fromLatin1("pa_stream_peek() failed: %1")
+            qWarning() << QStringLiteral("pa_stream_peek() failed: %1")
                                   .arg(QString::fromUtf8(errorString));
             pulseEngine->unlock();
             return 0;

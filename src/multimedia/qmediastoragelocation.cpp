@@ -34,13 +34,13 @@ QDir QMediaStorageLocation::defaultDirectory(QStandardPaths::StandardLocation ty
 static QString generateFileName(const QDir &dir, const QString &prefix, const QString &extension)
 {
     auto lastMediaIndex = 0;
-    const auto list = dir.entryList({ QString::fromLatin1("%1*.%2").arg(prefix, extension) });
+    const auto list = dir.entryList({ QStringLiteral("%1*.%2").arg(prefix, extension) });
     for (const QString &fileName : list) {
         auto mediaIndex = QStringView{fileName}.mid(prefix.size(), fileName.size() - prefix.size() - extension.size() - 1).toInt();
         lastMediaIndex = qMax(lastMediaIndex, mediaIndex);
     }
 
-    const QString name = QString::fromLatin1("%1%2.%3")
+    const QString name = QStringLiteral("%1%2.%3")
             .arg(prefix)
             .arg(lastMediaIndex + 1, 4, 10, QLatin1Char('0'))
             .arg(extension);

@@ -173,7 +173,7 @@ void QCameraPrivate::init(const QCameraDevice &device)
     control = maybeControl.value();
     cameraDevice = !device.isNull() ? device : QMediaDevices::defaultVideoInput();
     if (cameraDevice.isNull())
-        _q_error(QCamera::CameraError, QString::fromUtf8("No camera detected"));
+        _q_error(QCamera::CameraError, QStringLiteral("No camera detected"));
     control->setCamera(cameraDevice);
     q->connect(control, SIGNAL(activeChanged(bool)), q, SIGNAL(activeChanged(bool)));
     q->connect(control, SIGNAL(error(int,QString)), q, SLOT(_q_error(int,QString)));
