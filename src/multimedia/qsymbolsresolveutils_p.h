@@ -1,8 +1,13 @@
-// Copyright (C) 2023 The Qt Company Ltd.
+// Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#ifndef QFFMPEGSYMBOLSRESOLVEUTILS_P_H
-#define QFFMPEGSYMBOLSRESOLVEUTILS_P_H
+#ifndef Q_SYMBOLSRESOLVEUTILS
+#define Q_SYMBOLSRESOLVEUTILS
+
+#include <QtCore/qlibrary.h>
+#include <QtMultimedia/qtmultimediaexports.h>
+#include <tuple>
+#include <memory>
 
 //
 //  W A R N I N G
@@ -15,55 +20,7 @@
 // We mean it.
 //
 
-#include <QtCore/qlibrary.h>
-
-#include <qatomic.h>
-
-#include <vector>
-#include <memory>
-#include <tuple>
-
 QT_BEGIN_NAMESPACE
-
-using Libs = std::vector<std::unique_ptr<QLibrary>>;
-
-class LibSymbolsResolver
-{
-public:
-    using FunctionSetter = void (*)(QFunctionPointer);
-    using LibsLoader = Libs (*)();
-
-    LibSymbolsResolver(const char *libName, size_t symbolsCount, LibsLoader libsLoader);
-
-    bool resolve();
-
-    void registerSymbol(const char *name, FunctionSetter setter);
-
-    static void unload(const Libs &libs);
-
-    static bool tryLoad(const Libs &libs);
-
-private:
-    static QFunctionPointer resolve(const Libs &libs, const char *symbolName);
-
-private:
-    const char *const m_libName;
-    LibsLoader m_libsLoader;
-
-    struct SymbolElement
-    {
-        const char *name;
-        FunctionSetter setter;
-    };
-
-    std::vector<SymbolElement> m_symbols;
-
-    enum State { Initial, Requested, Ready, Finished };
-
-    QAtomicInteger<int> m_state = Initial;
-};
-
-QT_END_NAMESPACE
 
 template <typename T>
 struct DefaultReturn
@@ -76,7 +33,6 @@ struct DefaultReturn
 template <>
 struct DefaultReturn<void>
 {
-    DefaultReturn(int = 0){};
     template <typename... Arg>
     void operator()(Arg &&...) { }
 };
@@ -91,17 +47,67 @@ struct FuncInfo<R(A...)>
     using Args = std::tuple<A...>;
 };
 
+class Q_MULTIMEDIA_EXPORT SymbolsResolver
+{
+public:
+    using LibraryLoader = std::unique_ptr<QLibrary> (*)();
+    static bool isLazyLoadEnabled();
+
+    ~SymbolsResolver();
+protected:
+    SymbolsResolver(const char *libName, LibraryLoader loader);
+
+    SymbolsResolver(const char *libName, const char *version = "");
+
+    QFunctionPointer initFunction(const char *name);
+
+    struct SymbolsMarker {};
+    void checkLibrariesLoaded(SymbolsMarker *begin, SymbolsMarker *end);
+
+private:
+    const char *m_libName;
+    std::unique_ptr<QLibrary> m_library;
+};
+
+QT_END_NAMESPACE
+
 // clang-format off
+
+#define BEGIN_INIT_FUNCS(...) \
+    QT_USE_NAMESPACE \
+    namespace { \
+        class SymbolsResolverImpl : SymbolsResolver { \
+        public: \
+            SymbolsResolverImpl() : SymbolsResolver(__VA_ARGS__) \
+            { checkLibrariesLoaded(&symbolsBegin, &symbolsEnd); } \
+            static const SymbolsResolverImpl& instance() \
+            { static const SymbolsResolverImpl instance; return instance; } \
+            SymbolsMarker symbolsBegin;
+
+#define INIT_FUNC(F) QFunctionPointer F = initFunction(#F);
+
+#define END_INIT_FUNCS() \
+           SymbolsMarker symbolsEnd; \
+        }; \
+        [[maybe_unused]] static const auto *instantResolver = \
+            SymbolsResolver::isLazyLoadEnabled() ? &SymbolsResolverImpl::instance() : nullptr; \
+    }
+
+
+#ifdef Q_EXPORT_STUB_SYMBOLS
+#define EXPORT_FUNC Q_MULTIMEDIA_EXPORT
+#else
+#define EXPORT_FUNC
+#endif
 
 #define DEFINE_FUNC_IMPL(F, Vars, TypesWithVars, ReturnFunc) \
     using F##_ReturnType = FuncInfo<decltype(F)>::Return; \
-    using q_##F##_Type = F##_ReturnType (*)(TypesWithVars(F)); \
-    static q_##F##_Type q_##F = []() { \
-        auto setter = [](QFunctionPointer ptr) { q_##F = (q_##F##_Type)ptr; }; \
-        resolver()->registerSymbol(#F, setter); \
-        return [](TypesWithVars(F)) { return ReturnFunc(Vars()); }; \
-    }(); \
-    extern "C" [[maybe_unused]] F##_ReturnType F(TypesWithVars(F)) { return q_##F(Vars()); }
+    extern "C" EXPORT_FUNC [[maybe_unused]] F##_ReturnType F(TypesWithVars(F)) { \
+        using F##_Type = F##_ReturnType (*)(TypesWithVars(F)); \
+        const auto f = SymbolsResolverImpl::instance().F; \
+        return f ? (reinterpret_cast<F##_Type>(f))(Vars()) : ReturnFunc(); \
+    }
+
 
 #define VAR(I) a##I
 #define VARS0()
@@ -139,4 +145,4 @@ struct FuncInfo<R(A...)>
 
 // clang-format on
 
-#endif // QFFMPEGSYMBOLSRESOLVEUTILS_P_H
+#endif // Q_SYMBOLSRESOLVEUTILS
