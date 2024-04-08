@@ -6,6 +6,7 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qtimezone.h>
+#include <QtGui/qimage.h>
 
 #include <gst/gstversion.h>
 #include <common/qgstutils_p.h>

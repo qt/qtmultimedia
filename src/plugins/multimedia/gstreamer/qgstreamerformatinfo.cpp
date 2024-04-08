@@ -4,6 +4,8 @@
 #include <common/qglist_helper_p.h>
 #include "qgstreamerformatinfo_p.h"
 
+#include <gst/gst.h>
+
 QT_BEGIN_NAMESPACE
 
 QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure structure)

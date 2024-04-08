@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include <common/qgstutils_p.h>
+#include <common/qgst_p.h>
 
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/qaudioformat.h>
+
+#include <chrono>
 
 QT_BEGIN_NAMESPACE
 
@@ -36,7 +39,7 @@ QAudioFormat::SampleFormat gstSampleFormatToSampleFormat(const char *fmt)
     return QAudioFormat::Unknown;
 }
 
-}
+} // namespace
 
 /*
   Returns audio format for a sample \a sample.
@@ -114,16 +117,20 @@ QList<QAudioFormat::SampleFormat> QGValue::getSampleFormats() const
 
 void QGstUtils::setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer)
 {
-    // GStreamer uses nanoseconds, Qt uses microseconds
-    qint64 startTime = GST_BUFFER_TIMESTAMP(buffer);
-    if (startTime >= 0) {
-        frame->setStartTime(startTime/G_GINT64_CONSTANT (1000));
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
 
-        qint64 duration = GST_BUFFER_DURATION(buffer);
-        if (duration >= 0)
-            frame->setEndTime((startTime + duration)/G_GINT64_CONSTANT (1000));
+    // GStreamer uses nanoseconds, Qt uses microseconds
+    nanoseconds startTime{ GST_BUFFER_TIMESTAMP(buffer) };
+    if (startTime >= 0ns) {
+        frame->setStartTime(floor<microseconds>(startTime).count());
+
+        nanoseconds duration{ GST_BUFFER_DURATION(buffer) };
+        if (duration >= 0ns)
+            frame->setEndTime(floor<microseconds>(startTime + duration).count());
     }
 }
+
 GList *qt_gst_video_sinks()
 {
     return gst_element_factory_list_get_elements(GST_ELEMENT_FACTORY_TYPE_SINK
