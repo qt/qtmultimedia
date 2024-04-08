@@ -33,8 +33,9 @@ QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
     videoPauseControl(*this)
 {
     signalDurationChangedTimer.setInterval(100);
-    signalDurationChangedTimer.callOnTimeout(&signalDurationChangedTimer,
-                                             [this](){ durationChanged(duration()); });
+    signalDurationChangedTimer.callOnTimeout(&signalDurationChangedTimer, [this]() {
+        durationChanged(duration());
+    });
 }
 
 QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
