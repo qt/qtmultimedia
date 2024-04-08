@@ -3,6 +3,7 @@
 
 #include "qgstreameraudiodevice_p.h"
 
+#include <common/qgst_p.h>
 #include <common/qgstutils_p.h>
 #include <private/qplatformmediaintegration_p.h>
 

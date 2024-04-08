@@ -5,6 +5,7 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
 
+#include <common/qgst_p.h>
 #include <common/qgstutils_p.h>
 #include <common/qglist_helper_p.h>
 
