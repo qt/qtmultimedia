@@ -149,7 +149,8 @@ private slots:
     void audioVideoAvailable();
     void isSeekable();
     void positionAfterSeek();
-    void videoDimensions();
+    void pause_rendersVideoAtCorrectResolution_data();
+    void pause_rendersVideoAtCorrectResolution();
     void position();
     void multipleMediaPlayback();
     void multiplePlaybackRateChangingStressTest();
@@ -184,6 +185,7 @@ private:
     MaybeUrl m_localWavFile2 = QUnexpect{};
     MaybeUrl m_localVideoFile = QUnexpect{};
     MaybeUrl m_localVideoFile2 = QUnexpect{};
+    MaybeUrl m_av1File = QUnexpect{};
     MaybeUrl m_videoDimensionTestFile = QUnexpect{};
     MaybeUrl m_localCompressedSoundFile = QUnexpect{};
     MaybeUrl m_localFileWithMetadata = QUnexpect{};
@@ -304,6 +306,10 @@ void tst_QMediaPlayerBackend::init()
 
     m_videoFileWithPngThumbnail =
             m_mediaSelector.select("qrc:/testdata/audio_video_with_png_thumbnail.mp4");
+
+#ifndef Q_OS_MACOS // QTBUG-119711 Add support for AV1 decoding with the FFmpeg backend in online installer
+    m_av1File = m_mediaSelector.select("qrc:/testdata/busAv1.webm");
+#endif
 
     m_localVideoFile2 =
             m_mediaSelector.select("qrc:/testdata/BigBuckBunny.mp4", "qrc:/testdata/busMpeg4.mp4");
@@ -2279,22 +2285,44 @@ void tst_QMediaPlayerBackend::positionAfterSeek()
     QTRY_VERIFY(player.position() < 700);
 }
 
-void tst_QMediaPlayerBackend::videoDimensions()
+void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution_data()
 {
-    CHECK_SELECTED_URL(m_videoDimensionTestFile);
+    QTest::addColumn<MaybeUrl>("mediaFile");
+    QTest::addColumn<int>("width");
+    QTest::addColumn<int>("height");
 
+    QTest::addRow("mp4") << m_videoDimensionTestFile << 540 << 320;
+    QTest::addRow("av1") << m_av1File << 160 * 143 / 80 << 160;
+}
+
+void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution()
+{
+    QFETCH(const MaybeUrl, mediaFile);
+    QFETCH(const int, width);
+    QFETCH(const int, height);
+    CHECK_SELECTED_URL(mediaFile);
+
+    // Arrange
     TestVideoSink surface(true);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
     QVERIFY(!player.isSeekable());
-    player.setSource(*m_videoDimensionTestFile);
+    player.setSource(*mediaFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+
+    // Act
     player.pause();
+
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
+        QEXPECT_FAIL("av1", "QTBUG-119711: AV1 decoding requires HW support", Abort);
+
     QTRY_COMPARE(surface.m_totalFrames, 1);
-    QCOMPARE(surface.m_frameList.last().width(), 540);
-    QCOMPARE(surface.videoSize().width(), 540);
-    QCOMPARE(surface.m_frameList.last().height(), 320);
-    QCOMPARE(surface.videoSize().height(), 320);
+
+    // Assert
+    QCOMPARE(surface.m_frameList.last().width(), width);
+    QCOMPARE(surface.videoSize().width(), width);
+    QCOMPARE(surface.m_frameList.last().height(), height);
+    QCOMPARE(surface.videoSize().height(), height);
 }
 
 void tst_QMediaPlayerBackend::position()
