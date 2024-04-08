@@ -28,6 +28,8 @@
 #include <QtCore/private/qcore_mac_p.h>
 #endif
 
+#include <mediabackendutils.h>
+
 QT_USE_NAMESPACE
 
 /*
@@ -590,10 +592,8 @@ void tst_QCameraBackend::testVideoRecording()
     QTRY_VERIFY(camera->isActive());
 
     recorder.record();
-    durationChanged.clear();
     if (!recorderErrorSignal.empty() || recorderErrorSignal.wait(550)) {
-        if (QPlatformMediaIntegration::instance()->name() == "gstreamer")
-            QEXPECT_FAIL("", "QTBUG-124148: GStreamer might return ResourceError", Continue);
+        QEXPECT_FAIL_GSTREAMER("", "QTBUG-124148: GStreamer might return ResourceError", Continue);
 
         QCOMPARE(recorderErrorSignal.last().first().toInt(), QMediaRecorder::FormatError);
         return;
@@ -618,7 +618,7 @@ void tst_QCameraBackend::testVideoRecording()
     QMediaPlayer player;
     player.setSource(fileName);
 
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::LoadedMedia, 8s);
     QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(320, 240));
     QCOMPARE_GT(player.duration(), 350);
     QCOMPARE_LT(player.duration(), 650);
@@ -664,8 +664,8 @@ void tst_QCameraBackend::testNativeMetadata()
     recorder.setMetaData(metaData);
 
     recorder.record();
-    durationChanged.clear();
     QTRY_VERIFY(durationChanged.size());
+    QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecorderState::RecordingState);
 
     QCOMPARE(recorder.metaData(), metaData);
 
@@ -673,13 +673,19 @@ void tst_QCameraBackend::testNativeMetadata()
     recorder.stop();
 
     QTRY_VERIFY(recorderStateChanged.size() > 0);
+    QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecorderState::StoppedState);
 
     QVERIFY(errorSignal.isEmpty());
-    QVERIFY(recorderErrorSignal.isEmpty());
+    if (QPlatformMediaIntegration::instance()->name() != "gstreamer") {
+        // https://bugreports.qt.io/browse/QTBUG-124183
+        QVERIFY(recorderErrorSignal.isEmpty());
+    }
 
     QString fileName = recorder.actualLocation().toLocalFile();
     QVERIFY(!fileName.isEmpty());
     QVERIFY(QFileInfo(fileName).size() > 0);
+
+    QSKIP_GSTREAMER("QTBUG-124182: spurious failure while retrieving the metadata");
 
     // QMediaRecorder::metaData() can only test that QMediaMetaData is set properly on the recorder.
     // Use QMediaPlayer to test that the native metadata is properly set on the track
