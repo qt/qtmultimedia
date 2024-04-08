@@ -405,7 +405,7 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
 
     // Insert metadata
     QMediaMetaData metaData;
-    metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
+    metaData.insert(QMediaMetaData::Author, QStringLiteral("Author"));
     metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
     recorder.setMetaData(metaData);
 

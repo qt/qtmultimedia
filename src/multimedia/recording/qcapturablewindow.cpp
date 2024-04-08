@@ -145,7 +145,7 @@ QCapturableWindow::QCapturableWindow(QCapturableWindowPrivate *capturablePrivate
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug dbg, const QCapturableWindow &window)
 {
-    dbg << QString::fromUtf8("Capturable window '%1'").arg(window.description());
+    dbg << QStringLiteral("Capturable window '%1'").arg(window.description());
     return dbg;
 }
 #endif

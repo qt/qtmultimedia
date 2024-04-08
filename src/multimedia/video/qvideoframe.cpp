@@ -796,12 +796,12 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
 
     if (onlyOne) {
         if (start > 0)
-            return QString::fromLatin1("@%1:%2:%3.%4")
+            return QStringLiteral("@%1:%2:%3.%4")
                     .arg(start, 1, 10, QLatin1Char('0'))
                     .arg(s_minutes, 2, 10, QLatin1Char('0'))
                     .arg(s_seconds, 2, 10, QLatin1Char('0'))
                     .arg(s_millis, 2, 10, QLatin1Char('0'));
-        return QString::fromLatin1("@%1:%2.%3")
+        return QStringLiteral("@%1:%2.%3")
                 .arg(s_minutes, 2, 10, QLatin1Char('0'))
                 .arg(s_seconds, 2, 10, QLatin1Char('0'))
                 .arg(s_millis, 2, 10, QLatin1Char('0'));
@@ -810,12 +810,12 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
     if (end == -1) {
         // Similar to start-start, except it means keep displaying it?
         if (start > 0)
-            return QString::fromLatin1("%1:%2:%3.%4 - forever")
+            return QStringLiteral("%1:%2:%3.%4 - forever")
                     .arg(start, 1, 10, QLatin1Char('0'))
                     .arg(s_minutes, 2, 10, QLatin1Char('0'))
                     .arg(s_seconds, 2, 10, QLatin1Char('0'))
                     .arg(s_millis, 2, 10, QLatin1Char('0'));
-        return QString::fromLatin1("%1:%2.%3 - forever")
+        return QStringLiteral("%1:%2.%3 - forever")
                 .arg(s_minutes, 2, 10, QLatin1Char('0'))
                 .arg(s_seconds, 2, 10, QLatin1Char('0'))
                 .arg(s_millis, 2, 10, QLatin1Char('0'));
@@ -829,7 +829,7 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
     end /= 60;
 
     if (start > 0 || end > 0)
-        return QString::fromLatin1("%1:%2:%3.%4 - %5:%6:%7.%8")
+        return QStringLiteral("%1:%2:%3.%4 - %5:%6:%7.%8")
                 .arg(start, 1, 10, QLatin1Char('0'))
                 .arg(s_minutes, 2, 10, QLatin1Char('0'))
                 .arg(s_seconds, 2, 10, QLatin1Char('0'))
@@ -838,7 +838,7 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
                 .arg(e_minutes, 2, 10, QLatin1Char('0'))
                 .arg(e_seconds, 2, 10, QLatin1Char('0'))
                 .arg(e_millis, 2, 10, QLatin1Char('0'));
-    return QString::fromLatin1("%1:%2.%3 - %4:%5.%6")
+    return QStringLiteral("%1:%2.%3 - %4:%5.%6")
             .arg(s_minutes, 2, 10, QLatin1Char('0'))
             .arg(s_seconds, 2, 10, QLatin1Char('0'))
             .arg(s_millis, 2, 10, QLatin1Char('0'))

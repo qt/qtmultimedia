@@ -27,7 +27,7 @@ WindowCaptureFixture::WindowCaptureFixture()
 
 QString WindowCaptureFixture::getResultsPath(const QString &fileName)
 {
-    const QString sep = QString::fromLatin1("--");
+    const QString sep = QStringLiteral("--");
 
     QString stem = QCoreApplication::applicationName();
     if (const char *currentTest = QTest::currentTestFunction())

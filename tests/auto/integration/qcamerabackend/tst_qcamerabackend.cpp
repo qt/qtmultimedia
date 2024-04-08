@@ -575,7 +575,7 @@ void tst_QCameraBackend::testVideoRecording()
 
     // Insert metadata
     QMediaMetaData metaData;
-    metaData.insert(QMediaMetaData::Author, QString::fromUtf8("Author"));
+    metaData.insert(QMediaMetaData::Author, QStringLiteral("Author"));
     metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
     recorder.setMetaData(metaData);
 
@@ -653,9 +653,9 @@ void tst_QCameraBackend::testNativeMetadata()
     // Insert common metadata supported on all platforms
     // Don't use Date, as some backends set that on their own
     QMediaMetaData metaData;
-    metaData.insert(QMediaMetaData::Title, QString::fromUtf8("Title"));
+    metaData.insert(QMediaMetaData::Title, QStringLiteral("Title"));
     metaData.insert(QMediaMetaData::Language, QVariant::fromValue(QLocale::German));
-    metaData.insert(QMediaMetaData::Description, QString::fromUtf8("Description"));
+    metaData.insert(QMediaMetaData::Description, QStringLiteral("Description"));
 
     recorder.setMetaData(metaData);
 
