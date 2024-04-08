@@ -13,7 +13,6 @@
 #include "qffmpegaudioinput_p.h"
 #include "qffmpegaudiodecoder_p.h"
 #include "qffmpegresampler_p.h"
-#include "qffmpegsymbolsresolve_p.h"
 #include "qgrabwindowsurfacecapture_p.h"
 #include "qffmpegconverter_p.h"
 
@@ -172,8 +171,6 @@ static QPlatformSurfaceCapture *createWindowCaptureByBackend(QString backend)
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
     : QPlatformMediaIntegration(QLatin1String("ffmpeg"))
 {
-    resolveSymbols();
-
     setupFFmpegLogger();
 
 #ifndef QT_NO_DEBUG

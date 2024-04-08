@@ -1,11 +1,8 @@
-// Copyright (C) 2023 The Qt Company Ltd.
+// Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtCore/qlibrary.h>
+#include <QtMultimedia/private/qsymbolsresolveutils_p.h>
 
-#include "qffmpegsymbolsresolveutils_p.h"
-
-#include <QtCore/qglobal.h>
 #include <qstringliteral.h>
 
 #include <openssl/bio.h>
@@ -14,28 +11,28 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
-QT_BEGIN_NAMESPACE
-
 using namespace Qt::StringLiterals;
 
-static Libs loadLibs()
+static std::unique_ptr<QLibrary> loadLib()
 {
-    Libs libs(2);
-    libs[0] = std::make_unique<QLibrary>();
-    libs[1] = std::make_unique<QLibrary>();
+    // TODO: improve using OPENSSL_NEEDED_SOVERSION
+
+    auto lib = std::make_unique<QLibrary>();
 
     const auto majorVersion = OPENSSL_VERSION_NUMBER >> 28;
 
-    auto tryLoad = [&](QString sslName, QString cryptoName, auto version) {
-        libs[0]->setFileNameAndVersion(sslName, version);
-        libs[1]->setFileNameAndVersion(cryptoName, version);
-        return LibSymbolsResolver::tryLoad(libs);
+    auto tryLoad = [&](QString sslName, auto version) {
+        lib->setFileNameAndVersion(sslName, version);
+        return lib->load();
     };
 
 // Due to binary compatibility issues between 1.x.x openssl version, let's try taking exact version
 #if defined(SHLIB_VERSION_NUMBER)
-    if (majorVersion <= 1 && tryLoad("ssl"_L1, "crypto"_L1, SHLIB_VERSION_NUMBER ""_L1))
-        return libs;
+    if (majorVersion <= 1) {
+        if (tryLoad("ssl"_L1, SHLIB_VERSION_NUMBER ""_L1))
+            return lib;
+        return {};
+    }
 #endif
 
 // openssl on Android has specific suffixes
@@ -45,27 +42,139 @@ static Libs loadLibs()
         if (suffix.isEmpty())
             suffix = QString("_"_L1) + QString::number(majorVersion);
 
-        if (tryLoad("ssl"_L1 + suffix, "crypto"_L1 + suffix, -1))
-            return libs;
+        if (tryLoad("ssl"_L1 + suffix, -1))
+            return lib;
     }
 #endif
 
-    if (tryLoad("ssl"_L1, "crypto"_L1, majorVersion))
-        return libs;
+    if (tryLoad("ssl"_L1, majorVersion))
+        return lib;
 
     return {};
 };
 
-Q_GLOBAL_STATIC(LibSymbolsResolver, resolver, "OpenSsl", 75, loadLibs);
 
-void resolveOpenSsl()
-{
-    resolver()->resolve();
-}
+BEGIN_INIT_FUNCS("ssl", loadLib)
 
-QT_END_NAMESPACE
+// BN functions
 
-QT_USE_NAMESPACE
+INIT_FUNC(BN_value_one);
+INIT_FUNC(BN_mod_word);
+
+INIT_FUNC(BN_div_word)
+INIT_FUNC(BN_mul_word)
+INIT_FUNC(BN_add_word)
+INIT_FUNC(BN_sub_word)
+INIT_FUNC(BN_set_word)
+INIT_FUNC(BN_new)
+INIT_FUNC(BN_cmp)
+
+INIT_FUNC(BN_free);
+
+INIT_FUNC(BN_copy);
+
+INIT_FUNC(BN_CTX_new);
+
+INIT_FUNC(BN_CTX_free);
+INIT_FUNC(BN_CTX_start);
+
+INIT_FUNC(BN_CTX_get);
+INIT_FUNC(BN_CTX_end);
+
+INIT_FUNC(BN_rand);
+INIT_FUNC(BN_mod_exp);
+
+INIT_FUNC(BN_num_bits);
+INIT_FUNC(BN_num_bits_word);
+
+INIT_FUNC(BN_bn2hex);
+INIT_FUNC(BN_bn2dec);
+
+INIT_FUNC(BN_hex2bn);
+INIT_FUNC(BN_dec2bn);
+INIT_FUNC(BN_asc2bn);
+
+INIT_FUNC(BN_bn2bin);
+INIT_FUNC(BN_bin2bn);
+
+// BIO-related functions
+
+INIT_FUNC(BIO_new);
+INIT_FUNC(BIO_free);
+
+INIT_FUNC(BIO_read);
+INIT_FUNC(BIO_write);
+INIT_FUNC(BIO_s_mem);
+
+INIT_FUNC(BIO_set_data);
+
+INIT_FUNC(BIO_get_data);
+INIT_FUNC(BIO_set_init);
+
+INIT_FUNC(BIO_set_flags);
+INIT_FUNC(BIO_test_flags);
+INIT_FUNC(BIO_clear_flags);
+
+INIT_FUNC(BIO_meth_new);
+INIT_FUNC(BIO_meth_free);
+
+INIT_FUNC(BIO_meth_set_write);
+INIT_FUNC(BIO_meth_set_read);
+INIT_FUNC(BIO_meth_set_puts);
+INIT_FUNC(BIO_meth_set_gets);
+INIT_FUNC(BIO_meth_set_ctrl);
+INIT_FUNC(BIO_meth_set_create);
+INIT_FUNC(BIO_meth_set_destroy);
+INIT_FUNC(BIO_meth_set_callback_ctrl);
+
+// SSL functions
+
+INIT_FUNC(SSL_CTX_new);
+INIT_FUNC(SSL_CTX_up_ref);
+INIT_FUNC(SSL_CTX_free);
+
+INIT_FUNC(SSL_new);
+INIT_FUNC(SSL_up_ref);
+INIT_FUNC(SSL_free);
+
+INIT_FUNC(SSL_accept);
+INIT_FUNC(SSL_stateless);
+INIT_FUNC(SSL_connect);
+INIT_FUNC(SSL_read);
+INIT_FUNC(SSL_peek);
+INIT_FUNC(SSL_write);
+INIT_FUNC(SSL_ctrl);
+INIT_FUNC(SSL_shutdown);
+INIT_FUNC(SSL_set_bio);
+
+// options are unsigned long in openssl 1.1.1, and uint64 in 3.x.x
+INIT_FUNC(SSL_CTX_set_options);
+
+INIT_FUNC(SSL_get_error);
+INIT_FUNC(SSL_CTX_load_verify_locations);
+
+INIT_FUNC(SSL_CTX_set_verify);
+INIT_FUNC(SSL_CTX_use_PrivateKey);
+
+INIT_FUNC(SSL_CTX_use_PrivateKey_file);
+INIT_FUNC(SSL_CTX_use_certificate_chain_file);
+
+INIT_FUNC(ERR_get_error);
+
+INIT_FUNC(ERR_error_string);
+
+// TLS functions
+
+INIT_FUNC(TLS_client_method);
+INIT_FUNC(TLS_server_method);
+
+// RAND functions
+
+INIT_FUNC(RAND_bytes);
+
+END_INIT_FUNCS()
+
+//////////// Define
 
 // BN functions
 

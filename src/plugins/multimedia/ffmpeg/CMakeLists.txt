@@ -37,7 +37,6 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         qffmpegencodingformatcontext.cpp qffmpegencodingformatcontext_p.h
         qgrabwindowsurfacecapture.cpp qgrabwindowsurfacecapture_p.h
         qffmpegsurfacecapturegrabber.cpp qffmpegsurfacecapturegrabber_p.h
-        qffmpegsymbolsresolve_p.h
 
         qffmpegplaybackengine.cpp qffmpegplaybackengine_p.h
         playbackengine/qffmpegplaybackenginedefs_p.h
@@ -81,75 +80,27 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         Qt::CorePrivate
 )
 
-if(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
-    if(NOT OPENSSL_INCLUDE_DIR AND OPENSSL_ROOT_DIR)
-        set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
-    endif()
+if (LINUX OR ANDROID)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtAddFFmpegStubs.cmake")
+    qt_internal_multimedia_add_ffmpeg_stubs()
 endif()
 
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_OPENSSL_SYMBOLS
-    SOURCES
-        qffmpegopensslsymbols.cpp
-    INCLUDE_DIRECTORIES
-        ${OPENSSL_INCLUDE_DIR}
-)
 
-if (ENABLE_DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
-    if (QT_FEATURE_vaapi AND NOT DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
-        if (NOT FFMPEG_SHARED_LIBRARIES)
-            message(WARNING
-                   "QT_FEATURE_vaapi is found but statically built FFmpeg doesn't include vaapi,"
-                   "however dynamic symbols resolve is possible.")
-        endif()
+if (QT_FEATURE_vaapi)
+    qt_internal_extend_target(QFFmpegMediaPlugin
+        SOURCES
+            qffmpeghwaccel_vaapi.cpp qffmpeghwaccel_vaapi_p.h
+        NO_UNITY_BUILD_SOURCES
+            # Conflicts with macros defined in X11.h, and Xlib.h
+            qffmpeghwaccel_vaapi.cpp
+        LIBRARIES
+            EGL::EGL
+    )
 
-        set(DYNAMIC_RESOLVE_VAAPI_SYMBOLS TRUE CACHE INTERNAL "")
-    elseif (NOT QT_FEATURE_vaapi AND DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
-
-        message(FATAL_ERROR
-               "QT_FEATURE_vaapi is not found "
-               "but FFmpeg includes VAAPI and dynamic symbols resolve is enabled.")
-    endif()
+    qt_internal_multimedia_find_vaapi_soversion()
+    qt_internal_multimedia_add_private_stub_to_plugin("va")
 endif()
 
-qt_internal_extend_target(QFFmpegMediaPlugin
-    CONDITION
-        DYNAMIC_RESOLVE_OPENSSL_SYMBOLS OR DYNAMIC_RESOLVE_VAAPI_SYMBOLS
-    SOURCES
-        qffmpegsymbolsresolveutils.cpp qffmpegsymbolsresolveutils_p.h
-)
-
-function (__propagate_to_compile_definitions VAR)
-    if (${VAR})
-        target_compile_definitions(QFFmpegMediaPlugin PRIVATE ${VAR})
-    endif()
-endfunction()
-
-__propagate_to_compile_definitions(DYNAMIC_RESOLVE_OPENSSL_SYMBOLS)
-__propagate_to_compile_definitions(DYNAMIC_RESOLVE_VAAPI_SYMBOLS)
-__propagate_to_compile_definitions(DYNAMIC_RESOLVE_VA_DRM_SYMBOLS)
-__propagate_to_compile_definitions(DYNAMIC_RESOLVE_VA_X11_SYMBOLS)
-
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION DYNAMIC_RESOLVE_VAAPI_SYMBOLS
-    SOURCES
-        qffmpegvaapisymbols.cpp
-    INCLUDE_DIRECTORIES
-        "$<TARGET_PROPERTY:VAAPI::VAAPI,INTERFACE_INCLUDE_DIRECTORIES>"
-)
-
-qt_internal_extend_target(QFFmpegMediaPlugin
-    CONDITION NOT DYNAMIC_RESOLVE_VAAPI_SYMBOLS AND QT_FEATURE_vaapi
-    LIBRARIES VAAPI::VAAPI
-)
-
-qt_internal_extend_target(QFFmpegMediaPlugin CONDITION QT_FEATURE_vaapi
-    SOURCES
-        qffmpeghwaccel_vaapi.cpp qffmpeghwaccel_vaapi_p.h
-    NO_UNITY_BUILD_SOURCES
-        # Conflicts with macros defined in X11.h, and Xlib.h
-        qffmpeghwaccel_vaapi.cpp
-    LIBRARIES
-        EGL::EGL
-)
 
 qt_internal_extend_target(QFFmpegMediaPlugin CONDITION APPLE
     SOURCES

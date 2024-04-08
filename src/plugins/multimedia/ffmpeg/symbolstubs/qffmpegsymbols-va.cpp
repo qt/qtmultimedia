@@ -1,65 +1,69 @@
-// Copyright (C) 2023 The Qt Company Ltd.
+// Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtCore/qlibrary.h>
-
-#include "qffmpegsymbolsresolveutils_p.h"
-
-#include <QtCore/qglobal.h>
-#include <qstringliteral.h>
+#include <QtMultimedia/private/qsymbolsresolveutils_p.h>
 
 #include <va/va.h>
-#ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
-#include <va/va_drm.h>
-#endif
-#ifdef DYNAMIC_RESOLVE_VA_X11_SYMBOLS
-#include <va/va_x11.h>
-#endif
 #include <va/va_str.h>
 
-QT_BEGIN_NAMESPACE
+BEGIN_INIT_FUNCS("va", VA_NEEDED_SOVERSION)
 
-static Libs loadLibs()
-{
-    constexpr int version = VA_MAJOR_VERSION + 1;
-    Libs libs;
-    libs.push_back(std::make_unique<QLibrary>("va", version));
-#ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
-    libs.push_back(std::make_unique<QLibrary>("va-drm", version));
-#endif
 
-#ifdef DYNAMIC_RESOLVE_VA_X11_SYMBOLS
-    libs.push_back(std::make_unique<QLibrary>("va-x11", version));
-#endif
+INIT_FUNC(vaInitialize);
+INIT_FUNC(vaTerminate);
+INIT_FUNC(vaErrorStr);
+INIT_FUNC(vaSetErrorCallback);
+INIT_FUNC(vaSetInfoCallback);
 
-    if (LibSymbolsResolver::tryLoad(libs))
-        return libs;
+INIT_FUNC(vaCreateImage);
+INIT_FUNC(vaGetImage);
+INIT_FUNC(vaPutImage);
+INIT_FUNC(vaDeriveImage);
+INIT_FUNC(vaDestroyImage);
+INIT_FUNC(vaQueryImageFormats);
 
-    return {};
-}
+INIT_FUNC(vaBeginPicture);
+INIT_FUNC(vaRenderPicture);
+INIT_FUNC(vaEndPicture);
 
-constexpr size_t symbolsCount = 40
+INIT_FUNC(vaCreateBuffer);
+INIT_FUNC(vaMapBuffer);
+INIT_FUNC(vaUnmapBuffer);
 #if VA_CHECK_VERSION(1, 9, 0)
-        + 1
+INIT_FUNC(vaSyncBuffer);
 #endif
-#ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
-        + 1
-#endif
-#ifdef DYNAMIC_RESOLVE_VA_X11_SYMBOLS
-        + 1
-#endif
-        ;
+INIT_FUNC(vaDestroyBuffer);
 
-Q_GLOBAL_STATIC(LibSymbolsResolver, resolver, "VAAPI", symbolsCount, loadLibs);
+INIT_FUNC(vaCreateSurfaces);
+INIT_FUNC(vaSyncSurface);
+INIT_FUNC(vaExportSurfaceHandle);
+INIT_FUNC(vaDestroySurfaces);
 
-void resolveVAAPI()
-{
-    resolver()->resolve();
-}
+INIT_FUNC(vaCreateConfig);
+INIT_FUNC(vaGetConfigAttributes);
+INIT_FUNC(vaMaxNumProfiles);
+INIT_FUNC(vaMaxNumImageFormats);
+INIT_FUNC(vaMaxNumEntrypoints);
+INIT_FUNC(vaQueryConfigProfiles);
+INIT_FUNC(vaQueryConfigEntrypoints);
+INIT_FUNC(vaQuerySurfaceAttributes);
+INIT_FUNC(vaDestroyConfig);
 
-QT_END_NAMESPACE
+INIT_FUNC(vaCreateContext);
+INIT_FUNC(vaDestroyContext);
 
-QT_USE_NAMESPACE
+INIT_FUNC(vaQueryVendorString);
+INIT_FUNC(vaProfileStr);
+INIT_FUNC(vaEntrypointStr);
+
+INIT_FUNC(vaGetDisplayAttributes);
+
+INIT_FUNC(vaSetDriverName);
+
+INIT_FUNC(vaAcquireBufferHandle);
+INIT_FUNC(vaReleaseBufferHandle);
+
+END_INIT_FUNCS()
 
 DEFINE_FUNC(vaInitialize, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaTerminate, 1, VA_STATUS_ERROR_OPERATION_FAILED);
@@ -117,11 +121,3 @@ DEFINE_FUNC(vaSetDriverName, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 
 DEFINE_FUNC(vaAcquireBufferHandle, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaReleaseBufferHandle, 2, VA_STATUS_ERROR_OPERATION_FAILED);
-
-#ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
-DEFINE_FUNC(vaGetDisplayDRM, 1); // va-drm
-#endif
-
-#ifdef DYNAMIC_RESOLVE_VA_X11_SYMBOLS
-DEFINE_FUNC(vaGetDisplay, 1); // va-x11
-#endif

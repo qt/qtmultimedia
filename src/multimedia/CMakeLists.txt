@@ -107,6 +107,10 @@ qt_internal_add_module(Multimedia
     GENERATE_CPP_EXPORTS
 )
 
+qt_internal_extend_target(Multimedia
+    CONDITION LINUX OR ANDROID
+    SOURCES qsymbolsresolveutils.cpp qsymbolsresolveutils_p.h)
+
 qt_internal_add_simd_part(Multimedia SIMD sse2
     SOURCES
         video/qvideoframeconversionhelper_sse2.cpp
