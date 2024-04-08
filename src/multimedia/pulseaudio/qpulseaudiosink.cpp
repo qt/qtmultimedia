@@ -42,7 +42,7 @@ static void outputStreamStateCallback(pa_stream *stream, void *userdata)
 
     case PA_STREAM_FAILED:
     default:
-        qWarning() << QString::fromLatin1("Stream error: %1")
+        qWarning() << QStringLiteral("Stream error: %1")
                               .arg(QString::fromUtf8(pa_strerror(
                                       pa_context_errno(pa_stream_get_context(stream)))));
         QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();

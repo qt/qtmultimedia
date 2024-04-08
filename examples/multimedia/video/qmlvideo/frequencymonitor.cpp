@@ -156,7 +156,7 @@ void FrequencyMonitor::notify()
 void FrequencyMonitor::trace()
 {
     Q_D(FrequencyMonitor);
-    const QString value = QString::fromLatin1("instant %1 average %2")
+    const QString value = QStringLiteral("instant %1 average %2")
                                   .arg(d->m_instantaneousFrequency, 0, 'f', 2)
                                   .arg(d->m_averageFrequency, 0, 'f', 2);
     if (d->m_label.isEmpty())

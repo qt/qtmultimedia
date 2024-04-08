@@ -149,7 +149,7 @@ void tst_QImageCapture::errors()
         session.setImageCapture(&imageCapture);
 
         QVERIFY(imageCapture.isAvailable() == true);
-        imageCapture.captureToFile(QString::fromLatin1("/dev/null"));
+        imageCapture.captureToFile(QStringLiteral("/dev/null"));
         QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
         QVERIFY(!imageCapture.errorString().isEmpty());
     }
@@ -244,7 +244,7 @@ void tst_QImageCapture::imageSaved()
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
-    imageCapture.captureToFile(QString::fromLatin1("/usr/share"));
+    imageCapture.captureToFile(QStringLiteral("/usr/share"));
     QTRY_VERIFY(imageCapture.isReadyForCapture());
 
     QVERIFY(spy.size() == 1);

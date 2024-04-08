@@ -402,7 +402,7 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key key) const
         return QMediaFormat::videoCodecName(value.value<QMediaFormat::VideoCodec>());
     case Resolution: {
         QSize size = value.toSize();
-        return QString::fromUtf8("%1 x %2").arg(size.width()).arg(size.height());
+        return QStringLiteral("%1 x %2").arg(size.width()).arg(size.height());
     }
     case ThumbnailImage:
     case CoverArtImage:
