@@ -671,7 +671,7 @@ void tst_QCameraBackend::testNativeMetadata()
     QMediaPlayer player;
     player.setAudioOutput(&output);
 
-    QSignalSpy metadataChangedSpy(&player, SIGNAL(metaDataChanged()));
+    QSignalSpy metadataChangedSpy(&player, &QMediaPlayer::metaDataChanged);
 
     player.setSource(QUrl::fromLocalFile(fileName));
     player.play();
