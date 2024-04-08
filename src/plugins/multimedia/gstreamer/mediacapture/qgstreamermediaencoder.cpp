@@ -89,6 +89,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
         QUniqueGErrorHandle err;
         QGString debug;
         gst_message_parse_error(msg.message(), &err, &debug);
+        qCDebug(qLcMediaEncoderGst) << "received error:" << msg.source().name() << err << debug;
         error(QMediaRecorder::ResourceError, QString::fromUtf8(err.get()->message));
         if (!m_finalizing)
             stop();
