@@ -9,6 +9,12 @@
 BEGIN_INIT_FUNCS("va", VA_NEEDED_SOVERSION)
 
 
+INIT_FUNC(vaExportSurfaceHandle);
+INIT_FUNC(vaSyncSurface);
+INIT_FUNC(vaQueryVendorString);
+
+#ifndef Q_FFMPEG_PLUGIN_STUBS_ONLY
+
 INIT_FUNC(vaInitialize);
 INIT_FUNC(vaTerminate);
 INIT_FUNC(vaErrorStr);
@@ -35,8 +41,6 @@ INIT_FUNC(vaSyncBuffer);
 INIT_FUNC(vaDestroyBuffer);
 
 INIT_FUNC(vaCreateSurfaces);
-INIT_FUNC(vaSyncSurface);
-INIT_FUNC(vaExportSurfaceHandle);
 INIT_FUNC(vaDestroySurfaces);
 
 INIT_FUNC(vaCreateConfig);
@@ -52,7 +56,6 @@ INIT_FUNC(vaDestroyConfig);
 INIT_FUNC(vaCreateContext);
 INIT_FUNC(vaDestroyContext);
 
-INIT_FUNC(vaQueryVendorString);
 INIT_FUNC(vaProfileStr);
 INIT_FUNC(vaEntrypointStr);
 
@@ -63,7 +66,17 @@ INIT_FUNC(vaSetDriverName);
 INIT_FUNC(vaAcquireBufferHandle);
 INIT_FUNC(vaReleaseBufferHandle);
 
+#endif
+
 END_INIT_FUNCS()
+
+constexpr auto emptyString = "";
+
+DEFINE_FUNC(vaExportSurfaceHandle, 5, VA_STATUS_ERROR_OPERATION_FAILED);
+DEFINE_FUNC(vaSyncSurface, 2, VA_STATUS_ERROR_OPERATION_FAILED);
+DEFINE_FUNC(vaQueryVendorString, 1, emptyString);
+
+#ifndef Q_FFMPEG_PLUGIN_STUBS_ONLY
 
 DEFINE_FUNC(vaInitialize, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaTerminate, 1, VA_STATUS_ERROR_OPERATION_FAILED);
@@ -93,8 +106,6 @@ DEFINE_FUNC(vaSyncBuffer, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaDestroyBuffer, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 
 DEFINE_FUNC(vaCreateSurfaces, 8, VA_STATUS_ERROR_OPERATION_FAILED);
-DEFINE_FUNC(vaSyncSurface, 2, VA_STATUS_ERROR_OPERATION_FAILED);
-DEFINE_FUNC(vaExportSurfaceHandle, 5, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaDestroySurfaces, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 
 DEFINE_FUNC(vaCreateConfig, 6, VA_STATUS_ERROR_OPERATION_FAILED);
@@ -110,8 +121,7 @@ DEFINE_FUNC(vaDestroyConfig, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaCreateContext, 8);
 DEFINE_FUNC(vaDestroyContext, 2);
 
-constexpr auto emptyString = "";
-DEFINE_FUNC(vaQueryVendorString, 1, emptyString);
+
 DEFINE_FUNC(vaProfileStr, 1, emptyString);
 DEFINE_FUNC(vaEntrypointStr, 1, emptyString);
 
@@ -121,3 +131,6 @@ DEFINE_FUNC(vaSetDriverName, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 
 DEFINE_FUNC(vaAcquireBufferHandle, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 DEFINE_FUNC(vaReleaseBufferHandle, 2, VA_STATUS_ERROR_OPERATION_FAILED);
+
+#endif
+

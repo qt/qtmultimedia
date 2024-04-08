@@ -107,6 +107,7 @@ if (QT_FEATURE_vaapi)
 
     list(FIND FFMPEG_STUBS "va" va_stub_index)
     if (NOT QT_LINK_STUBS_TO_FFMPEG_PLUGIN AND (FFMPEG_SHARED_LIBRARIES OR ${va_stub_index} EQUAL -1))
+        target_compile_definitions(QFFmpegMediaPlugin PRIVATE Q_FFMPEG_PLUGIN_STUBS_ONLY)
         qt_internal_multimedia_find_vaapi_soversion()
         qt_internal_multimedia_add_private_stub_to_plugin("va")
     endif()
