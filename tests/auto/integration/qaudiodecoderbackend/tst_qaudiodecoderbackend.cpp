@@ -5,7 +5,8 @@
 #include <QDebug>
 #include "qaudiodecoder.h"
 
-#include "../shared/mediafileselector.h"
+#include "mediafileselector.h"
+#include "mediabackendutils.h"
 
 constexpr char TEST_FILE_NAME[] = "testdata/test.wav";
 constexpr char TEST_UNSUPPORTED_FILE_NAME[] = "testdata/test-unsupported.avi";
@@ -923,7 +924,10 @@ void tst_QAudioDecoderBackend::deviceTest()
     QCOMPARE(d.duration(), qint64(-1));
 }
 
-void tst_QAudioDecoderBackend::play_emitsFormatError_whenMediaHasNoAudioTrack() {
+void tst_QAudioDecoderBackend::play_emitsFormatError_whenMediaHasNoAudioTrack()
+{
+    QSKIP_GSTREAMER("QTBUG-124206: gstreamer does not emit errors");
+
     QAudioDecoder decoder;
 
     QSignalSpy errors{ &decoder, qOverload<QAudioDecoder::Error>(&QAudioDecoder::error) };
