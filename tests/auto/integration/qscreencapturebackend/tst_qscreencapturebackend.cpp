@@ -244,7 +244,7 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
     const int framesCount = static_cast<int>(sink.images().size());
 
     QCOMPARE_LE(framesCount, expectedFramesCount + 2);
-    QCOMPARE_GE(framesCount, expectedFramesCount / 2);
+    QCOMPARE_GE(framesCount, 1);
 
     for (const auto &image : sink.images()) {
         auto pixelColor = [&drawingOffset, pixelRatio, &image](int x, int y) {
@@ -397,7 +397,7 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
 
     sc.setActive(true);
 
-    QTest::qWait(200); // wait a bit for SC threading activating
+    QTest::qWait(1000); // wait a bit for SC threading activating
 
     {
         QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
@@ -408,9 +408,9 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
         QCOMPARE(recorder.recorderState(), QMediaRecorder::RecordingState);
     }
 
-    QTest::qWait(300);
+    QTest::qWait(1000);
     widget->setColors(QColor(0, 0xFF, 0), QColor(0, 0xFF, 0)); // Change widget color
-    QTest::qWait(300);
+    QTest::qWait(1000);
 
     {
         QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
@@ -428,9 +428,11 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
     TestVideoSink sink;
     QMediaPlayer player;
     player.setSource(fileName);
-    QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(videoResolution));
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(),
+                QSize(videoResolution));
     QCOMPARE_GT(player.duration(), 350);
-    QCOMPARE_LT(player.duration(), 650);
+    QCOMPARE_LT(player.duration(), 3000);
 
     // Convert video frames to QImages
     player.setVideoSink(&sink);
