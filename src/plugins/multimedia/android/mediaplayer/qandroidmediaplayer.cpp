@@ -648,7 +648,6 @@ void QAndroidMediaPlayer::onStateChanged(qint32 state)
         mMediaPlayer->setDisplay(0);
         if (mVideoOutput) {
             mVideoOutput->stop();
-            mVideoOutput->reset();
         }
     }
 }
