@@ -255,7 +255,7 @@ void QGstreamerAudioDecoder::setSource(const QUrl &fileName)
     bool isSignalRequired = (mSource != fileName);
     mSource = fileName;
     if (isSignalRequired)
-        emit sourceChanged();
+        sourceChanged();
 }
 
 QIODevice *QGstreamerAudioDecoder::sourceDevice() const
@@ -270,7 +270,7 @@ void QGstreamerAudioDecoder::setSourceDevice(QIODevice *device)
     bool isSignalRequired = (mDevice != device);
     mDevice = device;
     if (isSignalRequired)
-        emit sourceChanged();
+        sourceChanged();
 }
 
 void QGstreamerAudioDecoder::start()
@@ -329,17 +329,17 @@ void QGstreamerAudioDecoder::stop()
     // GStreamer thread is stopped. Can safely access m_buffersAvailable
     if (m_buffersAvailable != 0) {
         m_buffersAvailable = 0;
-        emit bufferAvailableChanged(false);
+        bufferAvailableChanged(false);
     }
 
     if (m_position != -1) {
         m_position = -1;
-        emit positionChanged(m_position);
+        positionChanged(m_position);
     }
 
     if (m_duration != -1) {
         m_duration = -1;
-        emit durationChanged(m_duration);
+        durationChanged(m_duration);
     }
 
     setIsDecoding(false);
@@ -354,7 +354,7 @@ void QGstreamerAudioDecoder::setAudioFormat(const QAudioFormat &format)
 {
     if (mFormat != format) {
         mFormat = format;
-        emit formatChanged(mFormat);
+        formatChanged(mFormat);
     }
 }
 
@@ -375,7 +375,7 @@ QAudioBuffer QGstreamerAudioDecoder::read()
 
     if (buffersAvailable) {
         if (buffersAvailable == 1)
-            emit bufferAvailableChanged(false);
+            bufferAvailableChanged(false);
 
         const char* bufferData = nullptr;
         int bufferSize = 0;
@@ -396,7 +396,7 @@ QAudioBuffer QGstreamerAudioDecoder::read()
             position /= 1000; // convert to milliseconds
             if (position != m_position) {
                 m_position = position;
-                emit positionChanged(m_position);
+                positionChanged(m_position);
             }
         }
         gst_buffer_unmap(buffer, &mapInfo);
@@ -424,7 +424,7 @@ qint64 QGstreamerAudioDecoder::duration() const
 void QGstreamerAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
 {
     stop();
-    emit error(int(errorCode), errorString);
+    error(int(errorCode), errorString);
 }
 
 GstFlowReturn QGstreamerAudioDecoder::new_sample(GstAppSink *, gpointer user_data)
@@ -494,7 +494,7 @@ void QGstreamerAudioDecoder::updateDuration()
 
     if (m_duration != duration) {
         m_duration = duration;
-        emit durationChanged(m_duration);
+        durationChanged(m_duration);
     }
 
     if (m_duration > 0)

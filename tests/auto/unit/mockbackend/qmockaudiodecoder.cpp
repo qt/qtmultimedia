@@ -46,7 +46,7 @@ void QMockAudioDecoder::setAudioFormat(const QAudioFormat &format)
 {
     if (mFormat != format) {
         mFormat = format;
-        emit formatChanged(mFormat);
+        formatChanged(mFormat);
     }
 }
 
@@ -58,11 +58,11 @@ void QMockAudioDecoder::start()
     if (!isDecoding()) {
         if (!mSource.isEmpty()) {
             setIsDecoding(true);
-            emit durationChanged(duration());
+            durationChanged(duration());
 
             QTimer::singleShot(50, this, SLOT(pretendDecode()));
         } else {
-            emit error(QAudioDecoder::ResourceError, "No source set");
+            error(QAudioDecoder::ResourceError, "No source set");
         }
     }
 }
@@ -74,7 +74,7 @@ void QMockAudioDecoder::stop()
         mPosition = 0;
         mBuffers.clear();
         setIsDecoding(false);
-        emit bufferAvailableChanged(false);
+        bufferAvailableChanged(false);
     }
 }
 
@@ -87,10 +87,10 @@ QAudioBuffer QMockAudioDecoder::read()
         positionChanged(mPosition);
 
         if (mBuffers.isEmpty())
-            emit bufferAvailableChanged(false);
+            bufferAvailableChanged(false);
 
         if (mBuffers.isEmpty() && mSerial >= MOCK_DECODER_MAX_BUFFERS) {
-            emit finished();
+            finished();
         } else
             QTimer::singleShot(50, this, SLOT(pretendDecode()));
     }
@@ -128,9 +128,9 @@ void QMockAudioDecoder::pretendDecode()
                 / (mFormat.sampleRate() * mFormat.channelCount());
         mSerial++;
         mBuffers.push_back(QAudioBuffer(b, mFormat, position));
-        emit bufferReady();
+        bufferReady();
         if (mBuffers.size() == 1)
-            emit bufferAvailableChanged(true);
+            bufferAvailableChanged(true);
     }
 }
 
