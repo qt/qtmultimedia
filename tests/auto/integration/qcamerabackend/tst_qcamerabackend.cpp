@@ -231,6 +231,11 @@ void tst_QCameraBackend::testCameraActive()
 
 void tst_QCameraBackend::testCameraStartParallel()
 {
+#ifdef Q_OS_LINUX
+    QSKIP("Multi-camera feature is currently not supported on Linux. "
+          "Cannot open same device twice.");
+#endif
+
     if (noCamera)
         QSKIP("No camera available");
 
