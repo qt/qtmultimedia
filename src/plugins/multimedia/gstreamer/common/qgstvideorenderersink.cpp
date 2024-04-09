@@ -438,16 +438,8 @@ GType QGstVideoRendererSink::get_type()
         nullptr                                            // value_table
     };
 
-    static const GType type = []() {
-        const auto result = g_type_register_static(
-                GST_TYPE_VIDEO_SINK, "QGstVideoRendererSink", &info, GTypeFlags(0));
-
-        // Register the sink type to be used in custom piplines.
-        // When surface is ready the sink can be used.
-        gst_element_register(nullptr, "qtvideosink", GST_RANK_PRIMARY, result);
-
-        return result;
-    }();
+    static const GType type = g_type_register_static(GST_TYPE_VIDEO_SINK, "QGstVideoRendererSink",
+                                                     &info, GTypeFlags(0));
 
     return type;
 }
