@@ -244,6 +244,10 @@ void tst_QCameraBackend::testCameraStartParallel()
     QSKIP("Multi-camera feature is currently not supported on Android. "
           "Cannot open same device twice.");
 #endif
+#ifdef Q_OS_LINUX
+    QSKIP("Multi-camera feature is currently not supported on Linux. "
+          "Cannot open same device twice.");
+#endif
     if (noCamera)
         QSKIP("No camera available");
 
