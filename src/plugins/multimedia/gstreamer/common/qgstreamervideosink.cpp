@@ -102,7 +102,7 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
             gst_caps_new_simple("video/x-raw", "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1, NULL),
             QGstCaps::HasRef,
         };
-        g_object_set(gstCapsFilter.element(), "caps", capsFilterCaps.release(), NULL);
+        g_object_set(gstCapsFilter.element(), "caps", capsFilterCaps.caps(), NULL);
     }
 
     if (gstPreprocess) {

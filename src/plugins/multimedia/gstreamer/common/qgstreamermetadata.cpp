@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qgstreamermetadata_p.h"
-#include <QDebug>
 #include <QtMultimedia/qmediametadata.h>
+#include <QtCore/qdebug.h>
 #include <QtCore/qdatetime.h>
+#include <QtCore/qlocale.h>
 #include <QtCore/qtimezone.h>
 #include <QtGui/qimage.h>
 
 #include <gst/gstversion.h>
+#include <common/qgst_handle_types_p.h>
 #include <common/qgstutils_p.h>
-#include <qlocale.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -234,13 +235,16 @@ void QGstreamerMetaData::setMetaData(GstElement *element) const
             case QMetaType::QDate:
             case QMetaType::QDateTime: {
                 QDateTime date = tagValue.toDateTime();
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                    GST_TAG_MERGE_REPLACE,
-                    tagName,
-                    gst_date_time_new(date.offsetFromUtc() / 60. / 60.,
-                                date.date().year(), date.date().month(), date.date().day(),
-                                date.time().hour(), date.time().minute(), date.time().second()),
-                    nullptr);
+
+                QGstGstDateTimeHandle dateTime{
+                    gst_date_time_new(date.offsetFromUtc() / 60. / 60., date.date().year(),
+                                      date.date().month(), date.date().day(), date.time().hour(),
+                                      date.time().minute(), date.time().second()),
+                    QGstGstDateTimeHandle::HasRef,
+                };
+
+                gst_tag_setter_add_tags(GST_TAG_SETTER(element), GST_TAG_MERGE_REPLACE, tagName,
+                                        dateTime.get(), nullptr);
                 break;
             }
             default: {
