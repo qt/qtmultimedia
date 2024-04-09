@@ -417,7 +417,6 @@ void QAndroidCameraSession::stopPreview()
 
     if (m_videoOutput) {
         m_videoOutput->stop();
-        m_videoOutput->reset();
     }
     m_previewStarted = false;
 }
