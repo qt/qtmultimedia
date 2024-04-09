@@ -21,7 +21,7 @@ struct DummyHandleTraits
 {
     using Type = int;
     static Type invalidValue() { return -1; }
-    static bool close(Type handle) { return true; }
+    static bool close(Type /*handle*/) { return true; }
 };
 
 using DummyHandle = QUniqueHandle<DummyHandleTraits>;
