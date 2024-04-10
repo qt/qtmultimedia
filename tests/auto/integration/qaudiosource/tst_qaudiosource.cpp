@@ -118,8 +118,8 @@ void tst_QAudioSource::initTestCase()
     if (m_inCISystem)
         QSKIP("SKIP initTestCase on CI. To be fixed");
 
-    // Only perform tests if audio output device exists
-    const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
+    // Only perform tests if audio input device exists
+    const QList<QAudioDevice> devices = QMediaDevices::audioInputs();
 
     if (devices.size() <= 0)
         QSKIP("No audio backend");
