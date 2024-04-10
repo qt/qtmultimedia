@@ -62,10 +62,10 @@ QRgb swizzle(uint value, QVideoFrameFormat::PixelFormat format)
                 | ((value & 0xff) << 16)        // b -> r
                 | (((value >> 8) & 0xff) << 8)  // g -> g
                 | ((value >> 16) & 0xff);       // r -> b
+    default:
+        qWarning() << "Unsupported format";
+        return 0;
     }
-
-    qWarning() << "Unsupported format";
-    return 0;
 }
 
 std::vector<QRgb> swizzle(const std::vector<uint> &pixels, QVideoFrameFormat::PixelFormat format)
@@ -87,7 +87,6 @@ std::optional<std::vector<QRgb>> getPixels(QVideoFrame &frame)
 
     const uint *mappedPixels = reinterpret_cast<const uint *>(frame.bits(0));
     const unsigned long long stride = frame.bytesPerLine(0) / sizeof(QRgb);
-    const int count = frame.size().width() * frame.size().height();
 
     std::vector<uint> pixels;
     for (int j = 0; j < frame.size().height(); ++j) {
