@@ -128,7 +128,7 @@ private:
 
     QMediaMetaData m_metaData;
 
-    int m_bufferProgress = -1;
+    int m_bufferProgress = 0;
     QUrl m_url;
     QIODevice *m_stream = nullptr;
 
