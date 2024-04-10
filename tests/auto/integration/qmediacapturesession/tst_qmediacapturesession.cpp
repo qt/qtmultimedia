@@ -971,22 +971,18 @@ void tst_QMediaCaptureSession::testAudioMute()
     QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
 
     QMediaFormat format;
-    format.setAudioCodec(QMediaFormat::AudioCodec::MP3);
+    format.setAudioCodec(QMediaFormat::AudioCodec::Wave);
     recorder.setMediaFormat(format);
 
-    recorder.record();
     audioInput.setMuted(true);
+
+    recorder.record();
 
     QCOMPARE(spy.size(), 1);
     QCOMPARE(spy.last()[0], true);
 
     QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 2000);
     QVERIFY(durationChanged.wait(2000));
-
-    audioInput.setMuted(false);
-
-    QCOMPARE(spy.size(), 2);
-    QCOMPARE(spy.last()[0], false);
 
     recorder.stop();
 
@@ -1020,6 +1016,11 @@ void tst_QMediaCaptureSession::testAudioMute()
     decoder.stop();
 
     QFile(actualLocation).remove();
+
+    audioInput.setMuted(false);
+
+    QCOMPARE(spy.size(), 2);
+    QCOMPARE(spy.last()[0], false);
 }
 
 void tst_QMediaCaptureSession::can_reset_audio_input_output()
