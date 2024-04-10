@@ -73,6 +73,7 @@ private:
     ComPtr<IDXGIKeyedMutex> m_srcMutex;
 
     const UINT m_destKey = 1;
+    ComPtr<ID3D11Device1> m_destDevice;
     ComPtr<ID3D11Texture2D> m_destTex;
     ComPtr<IDXGIKeyedMutex> m_destMutex;
 

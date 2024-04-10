@@ -89,10 +89,16 @@ ComPtr<ID3D11Texture2D> TextureBridge::copyFromSharedTex(const ComPtr<ID3D11Devi
 
 bool TextureBridge::ensureDestTex(const ComPtr<ID3D11Device1> &dev)
 {
+    if (m_destDevice != dev) {
+        // Destination device changed. Recreate texture.
+        m_destTex = nullptr;
+        m_destDevice = dev;
+    }
+
     if (m_destTex)
         return true;
 
-    if (dev->OpenSharedResource1(m_sharedHandle.get(), IID_PPV_ARGS(&m_destTex)) != S_OK)
+    if (m_destDevice->OpenSharedResource1(m_sharedHandle.get(), IID_PPV_ARGS(&m_destTex)) != S_OK)
         return false;
 
     CD3D11_TEXTURE2D_DESC desc{};
@@ -101,7 +107,7 @@ bool TextureBridge::ensureDestTex(const ComPtr<ID3D11Device1> &dev)
     desc.MiscFlags = 0;
     desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 
-    if (dev->CreateTexture2D(&desc, nullptr, m_outputTex.ReleaseAndGetAddressOf()) != S_OK)
+    if (m_destDevice->CreateTexture2D(&desc, nullptr, m_outputTex.ReleaseAndGetAddressOf()) != S_OK)
         return false;
 
     if (m_destTex.As(&m_destMutex) != S_OK)
@@ -127,7 +133,7 @@ bool TextureBridge::isSrcInitialized(const ID3D11Device *dev,
 
     // Check if device has changed
     ComPtr<ID3D11Device> texDevice;
-    tex->GetDevice(texDevice.GetAddressOf());
+    m_srcTex->GetDevice(texDevice.GetAddressOf());
     if (dev != texDevice.Get())
         return false;
 
