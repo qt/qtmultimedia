@@ -20,10 +20,13 @@
 #include <QtMultimedia/private/qmaybe_p.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qurl.h>
+#include <QtGui/rhi/qrhi.h>
 
 QT_BEGIN_NAMESPACE
 
+class QRhiSwapChain;
 class QVideoFrame;
+class QVideoFrameFormat;
 
 struct Fraction {
     int numerator;
@@ -46,6 +49,15 @@ inline QSize qRotatedFrameSize(QSize size, QtVideo::Rotation rotation)
 Q_MULTIMEDIA_EXPORT QSize qRotatedFrameSize(const QVideoFrame &frame);
 
 Q_MULTIMEDIA_EXPORT QUrl qMediaFromUserInput(QUrl fileName);
+
+Q_MULTIMEDIA_EXPORT bool qIsAutoHdrEnabled();
+
+Q_MULTIMEDIA_EXPORT QRhiSwapChain::Format
+qGetRequiredSwapChainFormat(const QVideoFrameFormat &format);
+
+Q_MULTIMEDIA_EXPORT bool
+qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
+                             QRhiSwapChain::Format requiredSwapChainFormat);
 
 QT_END_NAMESPACE
 

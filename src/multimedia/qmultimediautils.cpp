@@ -3,6 +3,7 @@
 
 #include "qmultimediautils_p.h"
 #include "qvideoframe.h"
+#include "qvideoframeformat.h"
 
 #include <QtCore/qdir.h>
 
@@ -68,6 +69,32 @@ QUrl qMediaFromUserInput(QUrl url)
     if (url.scheme().isEmpty() || url.scheme() == "file"_L1)
         url = QUrl::fromUserInput(url.toString(), QDir::currentPath(), QUrl::AssumeLocalFile);
     return url;
+}
+
+bool qIsAutoHdrEnabled()
+{
+    static const bool autoHdrEnabled = qEnvironmentVariableIntValue("QT_MEDIA_AUTO_HDR");
+
+    return autoHdrEnabled;
+}
+
+QRhiSwapChain::Format qGetRequiredSwapChainFormat(const QVideoFrameFormat &format)
+{
+    constexpr auto sdrMaxLuminance = 100.0f;
+    const auto formatMaxLuminance = format.maxLuminance();
+
+    return formatMaxLuminance > sdrMaxLuminance ? QRhiSwapChain::HDRExtendedSrgbLinear
+                                                : QRhiSwapChain::SDR;
+}
+
+bool qShouldUpdateSwapChainFormat(QRhiSwapChain *swapChain,
+                                  QRhiSwapChain::Format requiredSwapChainFormat)
+{
+    if (!swapChain)
+        return false;
+
+    return qIsAutoHdrEnabled() && swapChain->format() != requiredSwapChainFormat
+            && swapChain->isFormatSupported(requiredSwapChainFormat);
 }
 
 QT_END_NAMESPACE
