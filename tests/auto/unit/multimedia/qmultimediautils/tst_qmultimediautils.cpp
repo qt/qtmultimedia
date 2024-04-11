@@ -4,6 +4,7 @@
 #include <QtTest/QtTest>
 #include <QDebug>
 #include <private/qmultimediautils_p.h>
+#include <qvideoframeformat.h>
 
 class tst_QMultimediaUtils : public QObject
 {
@@ -21,6 +22,13 @@ private slots:
     void qRotatedFrameSize_returnsSizeAccordinglyToRotation();
 
     void qMediaFromUserInput_addsFilePrefix_whenCalledWithLocalFile();
+
+    void qGetRequiredSwapChainFormat_returnsSdr_whenMaxLuminanceIsBelowSdrThreshold_data();
+    void qGetRequiredSwapChainFormat_returnsSdr_whenMaxLuminanceIsBelowSdrThreshold();
+    void qGetRequiredSwapChainFormat_returnsHdr_whenMaxLuminanceIsBelowHdrThreshold_data();
+    void qGetRequiredSwapChainFormat_returnsHdr_whenMaxLuminanceIsBelowHdrThreshold();
+
+    void qShouldUpdateSwapChainFormat_returnsFalse_whenSwapChainIsNullPointer();
 };
 
 void tst_QMultimediaUtils::fraction_of_0()
@@ -107,6 +115,69 @@ void tst_QMultimediaUtils::qMediaFromUserInput_addsFilePrefix_whenCalledWithLoca
 
     QCOMPARE(qMediaFromUserInput(QUrl(u"foo/bar/baz"_s)),
              QUrl::fromLocalFile(QDir::currentPath() + u"/foo/bar/baz"_s));
+}
+
+void tst_QMultimediaUtils::
+        qGetRequiredSwapChainFormat_returnsSdr_whenMaxLuminanceIsBelowSdrThreshold_data()
+{
+    QTest::addColumn<float>("maxLuminance");
+
+    QTest::newRow("0") << 0.0f;
+    QTest::newRow("80") << 80.0f;
+    QTest::newRow("100") << 100.0f;
+}
+
+void tst_QMultimediaUtils::
+        qGetRequiredSwapChainFormat_returnsSdr_whenMaxLuminanceIsBelowSdrThreshold()
+{
+    // Arrange
+    QFETCH(float, maxLuminance);
+
+    QVideoFrameFormat format;
+    format.setMaxLuminance(maxLuminance);
+
+    // Act
+    QRhiSwapChain::Format requiredSwapChainFormat = qGetRequiredSwapChainFormat(format);
+
+    // Assert
+    QCOMPARE(requiredSwapChainFormat, QRhiSwapChain::Format::SDR);
+}
+
+void tst_QMultimediaUtils::
+        qGetRequiredSwapChainFormat_returnsHdr_whenMaxLuminanceIsBelowHdrThreshold_data()
+{
+    QTest::addColumn<float>("maxLuminance");
+
+    QTest::newRow("101") << 101.0f;
+    QTest::newRow("300") << 300.0f;
+    QTest::newRow("1600") << 1600.0f;
+}
+
+void tst_QMultimediaUtils::
+        qGetRequiredSwapChainFormat_returnsHdr_whenMaxLuminanceIsBelowHdrThreshold()
+{
+    // Arrange
+    QVideoFrameFormat format;
+    format.setMaxLuminance(300.0f);
+
+    // Act
+    QRhiSwapChain::Format requiredSwapChainFormat = qGetRequiredSwapChainFormat(format);
+
+    // Assert
+    QCOMPARE(requiredSwapChainFormat, QRhiSwapChain::Format::HDRExtendedSrgbLinear);
+}
+
+void tst_QMultimediaUtils::qShouldUpdateSwapChainFormat_returnsFalse_whenSwapChainIsNullPointer()
+{
+    // Arrange
+    QRhiSwapChain *swapChain = nullptr;
+    QRhiSwapChain::Format requiredSwapChainFormat = QRhiSwapChain::Format::SDR;
+
+    // Act
+    bool shouldUpdate = qShouldUpdateSwapChainFormat(swapChain, requiredSwapChainFormat);
+
+    // Assert
+    QCOMPARE(shouldUpdate, false);
 }
 
 QTEST_MAIN(tst_QMultimediaUtils)

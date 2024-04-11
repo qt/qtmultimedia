@@ -7,6 +7,7 @@
 #include <qpainter.h>
 #include <private/qguiapplication_p.h>
 #include <private/qmemoryvideobuffer_p.h>
+#include <private/qmultimediautils_p.h>
 #include <qpa/qplatformintegration.h>
 
 QT_BEGIN_NAMESPACE
@@ -153,8 +154,6 @@ void QVideoWindowPrivate::initRhi()
 
     m_swapChain.reset(m_rhi->newSwapChain());
     m_swapChain->setWindow(q);
-    if (m_swapChain->isFormatSupported(QRhiSwapChain::HDRExtendedSrgbLinear))
-        m_swapChain->setFormat(QRhiSwapChain::HDRExtendedSrgbLinear);
     m_renderPass.reset(m_swapChain->newCompatibleRenderPassDescriptor());
     m_swapChain->setRenderPassDescriptor(m_renderPass.get());
 
@@ -343,6 +342,14 @@ void QVideoWindowPrivate::render()
 
     if (!m_hasSwapChain || (m_swapChain->currentPixelSize() != m_swapChain->surfacePixelSize()))
         resizeSwapChain();
+
+    const auto requiredSwapChainFormat =
+            qGetRequiredSwapChainFormat(m_currentFrame.surfaceFormat());
+    if (qShouldUpdateSwapChainFormat(m_swapChain.get(), requiredSwapChainFormat)) {
+        releaseSwapChain();
+        m_swapChain->setFormat(requiredSwapChainFormat);
+        resizeSwapChain();
+    }
 
     if (!m_hasSwapChain)
         return;
