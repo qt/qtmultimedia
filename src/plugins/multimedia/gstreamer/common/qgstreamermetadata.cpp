@@ -97,91 +97,91 @@ static void addTagToMap(const GstTagList *list,
     val.g_type = 0;
     gst_tag_list_copy_value(&val, list, tag);
 
-
-    switch( G_VALUE_TYPE(&val) ) {
-        case G_TYPE_STRING:
-        {
-            const gchar *str_value = g_value_get_string(&val);
-            if (key == QMediaMetaData::Language) {
-                map->insert(key, QVariant::fromValue(QLocale::codeToLanguage(QString::fromUtf8(str_value), QLocale::ISO639Part2)));
-                break;
-            }
-            map->insert(key, QString::fromUtf8(str_value));
+    switch (G_VALUE_TYPE(&val)) {
+    case G_TYPE_STRING: {
+        const gchar *str_value = g_value_get_string(&val);
+        if (key == QMediaMetaData::Language) {
+            map->insert(key,
+                        QVariant::fromValue(QLocale::codeToLanguage(QString::fromUtf8(str_value),
+                                                                    QLocale::ISO639Part2)));
             break;
         }
-        case G_TYPE_INT:
-            map->insert(key, g_value_get_int(&val));
-            break;
-        case G_TYPE_UINT:
-            map->insert(key, g_value_get_uint(&val));
-            break;
-        case G_TYPE_LONG:
-            map->insert(key, qint64(g_value_get_long(&val)));
-            break;
-        case G_TYPE_BOOLEAN:
-            map->insert(key, g_value_get_boolean(&val));
-            break;
-        case G_TYPE_CHAR:
-            map->insert(key, g_value_get_schar(&val));
-            break;
-        case G_TYPE_DOUBLE:
-            map->insert(key, g_value_get_double(&val));
-            break;
-        default:
-            // GST_TYPE_DATE is a function, not a constant, so pull it out of the switch
-            if (G_VALUE_TYPE(&val) == G_TYPE_DATE) {
-                const GDate *date = (const GDate *)g_value_get_boxed(&val);
-                if (g_date_valid(date)) {
-                    int year = g_date_get_year(date);
-                    int month = g_date_get_month(date);
-                    int day = g_date_get_day(date);
-                    // don't insert if we already have a datetime.
-                    if (!map->contains(key))
-                        map->insert(key, QDateTime(QDate(year, month, day), QTime()));
-                }
-            } else if (G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME) {
-                const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
-                int year = gst_date_time_has_year(dateTime) ? gst_date_time_get_year(dateTime) : 0;
-                int month = gst_date_time_has_month(dateTime) ? gst_date_time_get_month(dateTime) : 0;
-                int day = gst_date_time_has_day(dateTime) ? gst_date_time_get_day(dateTime) : 0;
-                int hour = 0;
-                int minute = 0;
-                int second = 0;
-                float tz = 0;
-                if (gst_date_time_has_time(dateTime)) {
-                    hour = gst_date_time_get_hour(dateTime);
-                    minute = gst_date_time_get_minute(dateTime);
-                    second = gst_date_time_get_second(dateTime);
-                    tz = gst_date_time_get_time_zone_offset(dateTime);
-                }
-                QDateTime qDateTime(QDate(year, month, day), QTime(hour, minute, second),
-                                    QTimeZone(tz * 60 * 60));
-                map->insert(key, qDateTime);
-            } else if (G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE) {
-                GstSample *sample = (GstSample *)g_value_get_boxed(&val);
-                GstCaps* caps = gst_sample_get_caps(sample);
-                if (caps && !gst_caps_is_empty(caps)) {
-                    GstStructure *structure = gst_caps_get_structure(caps, 0);
-                    const gchar *name = gst_structure_get_name(structure);
-                    if (QByteArray(name).startsWith("image/")) {
-                        GstBuffer *buffer = gst_sample_get_buffer(sample);
-                        if (buffer) {
-                            GstMapInfo info;
-                            gst_buffer_map(buffer, &info, GST_MAP_READ);
-                            map->insert(key, QImage::fromData(info.data, info.size, name));
-                            gst_buffer_unmap(buffer, &info);
-                        }
+        map->insert(key, QString::fromUtf8(str_value));
+        break;
+    }
+    case G_TYPE_INT:
+        map->insert(key, g_value_get_int(&val));
+        break;
+    case G_TYPE_UINT:
+        map->insert(key, g_value_get_uint(&val));
+        break;
+    case G_TYPE_LONG:
+        map->insert(key, qint64(g_value_get_long(&val)));
+        break;
+    case G_TYPE_BOOLEAN:
+        map->insert(key, g_value_get_boolean(&val));
+        break;
+    case G_TYPE_CHAR:
+        map->insert(key, g_value_get_schar(&val));
+        break;
+    case G_TYPE_DOUBLE:
+        map->insert(key, g_value_get_double(&val));
+        break;
+    default:
+        // GST_TYPE_DATE is a function, not a constant, so pull it out of the switch
+        if (G_VALUE_TYPE(&val) == G_TYPE_DATE) {
+            const GDate *date = (const GDate *)g_value_get_boxed(&val);
+            if (g_date_valid(date)) {
+                int year = g_date_get_year(date);
+                int month = g_date_get_month(date);
+                int day = g_date_get_day(date);
+                // don't insert if we already have a datetime.
+                if (!map->contains(key))
+                    map->insert(key, QDateTime(QDate(year, month, day), QTime()));
+            }
+        } else if (G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME) {
+            const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
+            int year = gst_date_time_has_year(dateTime) ? gst_date_time_get_year(dateTime) : 0;
+            int month = gst_date_time_has_month(dateTime) ? gst_date_time_get_month(dateTime) : 0;
+            int day = gst_date_time_has_day(dateTime) ? gst_date_time_get_day(dateTime) : 0;
+            int hour = 0;
+            int minute = 0;
+            int second = 0;
+            float tz = 0;
+            if (gst_date_time_has_time(dateTime)) {
+                hour = gst_date_time_get_hour(dateTime);
+                minute = gst_date_time_get_minute(dateTime);
+                second = gst_date_time_get_second(dateTime);
+                tz = gst_date_time_get_time_zone_offset(dateTime);
+            }
+            QDateTime qDateTime(QDate(year, month, day), QTime(hour, minute, second),
+                                QTimeZone(tz * 60 * 60));
+            map->insert(key, qDateTime);
+        } else if (G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE) {
+            GstSample *sample = (GstSample *)g_value_get_boxed(&val);
+            GstCaps *caps = gst_sample_get_caps(sample);
+            if (caps && !gst_caps_is_empty(caps)) {
+                GstStructure *structure = gst_caps_get_structure(caps, 0);
+                const gchar *name = gst_structure_get_name(structure);
+                if (QByteArray(name).startsWith("image/")) {
+                    GstBuffer *buffer = gst_sample_get_buffer(sample);
+                    if (buffer) {
+                        GstMapInfo info;
+                        gst_buffer_map(buffer, &info, GST_MAP_READ);
+                        map->insert(key, QImage::fromData(info.data, info.size, name));
+                        gst_buffer_unmap(buffer, &info);
                     }
                 }
-            } else if (G_VALUE_TYPE(&val) == GST_TYPE_FRACTION) {
-                int nom = gst_value_get_fraction_numerator(&val);
-                int denom = gst_value_get_fraction_denominator(&val);
-
-                if (denom > 0) {
-                    map->insert(key, double(nom)/denom);
-                }
             }
-            break;
+        } else if (G_VALUE_TYPE(&val) == GST_TYPE_FRACTION) {
+            int nom = gst_value_get_fraction_numerator(&val);
+            int denom = gst_value_get_fraction_denominator(&val);
+
+            if (denom > 0) {
+                map->insert(key, double(nom) / denom);
+            }
+        }
+        break;
     }
 
     g_value_unset(&val);
