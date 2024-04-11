@@ -52,13 +52,14 @@ qt_internal_add_module(QGstreamerMediaPluginPrivate
 )
 
 qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_photography
-    LIBRARIES
+    PUBLIC_LIBRARIES
         GStreamer::Photography
 )
 
 qt_internal_extend_target(QGstreamerMediaPluginPrivate CONDITION QT_FEATURE_gstreamer_gl
-    LIBRARIES
+    PUBLIC_LIBRARIES
         GStreamer::Gl
+    LIBRARIES
         EGL::EGL
 )
 
