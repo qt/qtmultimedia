@@ -15,77 +15,135 @@
 
 QT_BEGIN_NAMESPACE
 
-struct {
+namespace {
+
+namespace MetadataLookupImpl {
+
+#ifdef __cpp_lib_constexpr_algorithms
+#  define constexpr_lookup constexpr
+#else
+#  define constexpr_lookup /*constexpr*/
+#endif
+
+struct MetadataKeyValuePair
+{
     const char *tag;
     QMediaMetaData::Key key;
-} gstTagToMetaDataKey[] = {
-    { GST_TAG_TITLE, QMediaMetaData::Title },
-    { GST_TAG_COMMENT, QMediaMetaData::Comment },
-    { GST_TAG_DESCRIPTION, QMediaMetaData::Description },
-    { GST_TAG_GENRE, QMediaMetaData::Genre },
-    { GST_TAG_DATE_TIME, QMediaMetaData::Date },
-    { GST_TAG_DATE, QMediaMetaData::Date },
-
-    { GST_TAG_LANGUAGE_CODE, QMediaMetaData::Language },
-
-    { GST_TAG_ORGANIZATION, QMediaMetaData::Publisher },
-    { GST_TAG_COPYRIGHT, QMediaMetaData::Copyright },
-
-    // Media
-    { GST_TAG_DURATION, QMediaMetaData::Duration },
-
-    // Audio
-    { GST_TAG_BITRATE, QMediaMetaData::AudioBitRate },
-    { GST_TAG_AUDIO_CODEC, QMediaMetaData::AudioCodec },
-
-    // Music
-    { GST_TAG_ALBUM, QMediaMetaData::AlbumTitle },
-    { GST_TAG_ALBUM_ARTIST, QMediaMetaData::AlbumArtist },
-    { GST_TAG_ARTIST, QMediaMetaData::ContributingArtist },
-    { GST_TAG_TRACK_NUMBER, QMediaMetaData::TrackNumber },
-
-    { GST_TAG_PREVIEW_IMAGE, QMediaMetaData::ThumbnailImage },
-    { GST_TAG_IMAGE, QMediaMetaData::CoverArtImage },
-
-    // Image/Video
-    { "resolution", QMediaMetaData::Resolution },
-    { GST_TAG_IMAGE_ORIENTATION, QMediaMetaData::Orientation },
-
-    // Video
-    { GST_TAG_VIDEO_CODEC, QMediaMetaData::VideoCodec },
-
-    // Movie
-    { GST_TAG_PERFORMER, QMediaMetaData::LeadPerformer },
-
-    { nullptr, QMediaMetaData::Title }
 };
 
-static QMediaMetaData::Key tagToKey(const char *tag)
+constexpr const char *toTag(const char *t)
 {
-    auto *map = gstTagToMetaDataKey;
-    while (map->tag) {
-        if (!strcmp(map->tag, tag))
-            return map->key;
-        ++map;
-    }
+    return t;
+}
+constexpr const char *toTag(const MetadataKeyValuePair &kv)
+{
+    return kv.tag;
+}
+
+constexpr QMediaMetaData::Key toKey(QMediaMetaData::Key k)
+{
+    return k;
+}
+constexpr QMediaMetaData::Key toKey(const MetadataKeyValuePair &kv)
+{
+    return kv.key;
+}
+
+constexpr auto compareByKey = [](const auto &lhs, const auto &rhs) {
+    return toKey(lhs) < toKey(rhs);
+};
+
+constexpr auto compareByTag = [](const auto &lhs, const auto &rhs) {
+    return std::strcmp(toTag(lhs), toTag(rhs)) < 0;
+};
+
+constexpr_lookup auto makeLookupTable()
+{
+    std::array<MetadataKeyValuePair, 22> lookupTable{ {
+            { GST_TAG_TITLE, QMediaMetaData::Title },
+            { GST_TAG_COMMENT, QMediaMetaData::Comment },
+            { GST_TAG_DESCRIPTION, QMediaMetaData::Description },
+            { GST_TAG_GENRE, QMediaMetaData::Genre },
+            { GST_TAG_DATE_TIME, QMediaMetaData::Date },
+            { GST_TAG_DATE, QMediaMetaData::Date },
+
+            { GST_TAG_LANGUAGE_CODE, QMediaMetaData::Language },
+
+            { GST_TAG_ORGANIZATION, QMediaMetaData::Publisher },
+            { GST_TAG_COPYRIGHT, QMediaMetaData::Copyright },
+
+            // Media
+            { GST_TAG_DURATION, QMediaMetaData::Duration },
+
+            // Audio
+            { GST_TAG_BITRATE, QMediaMetaData::AudioBitRate },
+            { GST_TAG_AUDIO_CODEC, QMediaMetaData::AudioCodec },
+
+            // Music
+            { GST_TAG_ALBUM, QMediaMetaData::AlbumTitle },
+            { GST_TAG_ALBUM_ARTIST, QMediaMetaData::AlbumArtist },
+            { GST_TAG_ARTIST, QMediaMetaData::ContributingArtist },
+            { GST_TAG_TRACK_NUMBER, QMediaMetaData::TrackNumber },
+
+            { GST_TAG_PREVIEW_IMAGE, QMediaMetaData::ThumbnailImage },
+            { GST_TAG_IMAGE, QMediaMetaData::CoverArtImage },
+
+            // Image/Video
+            { "resolution", QMediaMetaData::Resolution },
+            { GST_TAG_IMAGE_ORIENTATION, QMediaMetaData::Orientation },
+
+            // Video
+            { GST_TAG_VIDEO_CODEC, QMediaMetaData::VideoCodec },
+
+            // Movie
+            { GST_TAG_PERFORMER, QMediaMetaData::LeadPerformer },
+    } };
+
+    std::sort(lookupTable.begin(), lookupTable.end(),
+              [](const MetadataKeyValuePair &lhs, const MetadataKeyValuePair &rhs) {
+                  return std::string_view(lhs.tag) < std::string_view(rhs.tag);
+              });
+    return lookupTable;
+}
+
+constexpr_lookup auto gstTagToMetaDataKey = makeLookupTable();
+constexpr_lookup auto metaDataKeyToGstTag = [] {
+    auto array = gstTagToMetaDataKey;
+    std::sort(array.begin(), array.end(), compareByKey);
+    return array;
+}();
+
+} // namespace MetadataLookupImpl
+
+QMediaMetaData::Key tagToKey(const char *tag)
+{
+    if (tag == nullptr)
+        return QMediaMetaData::Key(-1);
+
+    using namespace MetadataLookupImpl;
+    auto foundIterator = std::lower_bound(gstTagToMetaDataKey.begin(), gstTagToMetaDataKey.end(),
+                                          tag, compareByTag);
+    if (std::strcmp(foundIterator->tag, tag) == 0)
+        return foundIterator->key;
+
     return QMediaMetaData::Key(-1);
 }
 
-static const char *keyToTag(QMediaMetaData::Key key)
+const char *keyToTag(QMediaMetaData::Key key)
 {
-    auto *map = gstTagToMetaDataKey;
-    while (map->tag) {
-        if (map->key == key)
-            return map->tag;
-        ++map;
-    }
+    using namespace MetadataLookupImpl;
+    auto foundIterator = std::lower_bound(metaDataKeyToGstTag.begin(), metaDataKeyToGstTag.end(),
+                                          key, compareByKey);
+    if (foundIterator->key == key)
+        return foundIterator->tag;
+
     return nullptr;
 }
 
+#undef constexpr_lookup
+
 //internal
-static void addTagToMap(const GstTagList *list,
-                        const gchar *tag,
-                        gpointer user_data)
+void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
 {
     QMediaMetaData::Key key = tagToKey(tag);
     if (key == QMediaMetaData::Key(-1))
@@ -187,6 +245,7 @@ static void addTagToMap(const GstTagList *list,
     g_value_unset(&val);
 }
 
+} // namespace
 
 QGstreamerMetaData QGstreamerMetaData::fromGstTagList(const GstTagList *tags)
 {
