@@ -1,0 +1,94 @@
+// Copyright (C) 2024 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-building-from-source.html
+\title Building Qt Multimedia from sources
+\brief This document describes how to build Qt Multimedia with full
+feature support from source code.
+
+This page describes the process of configuring and building \l{Qt
+Multimedia}. This description assumes familiarity with \l{Building Qt
+Sources} which specifies build requirements for your platform, as well
+as an overview of \l{Qt Configure Options}. For platform-specific
+considerations related to the Qt Multimedia module, see \l{Platform
+Notes} below.
+
+\section1 Building from source
+
+Building Qt Multimedia with full feature support depends on \l
+{https://ffmpeg.org/}{FFmpeg} headers and libraries on most platforms.
+It is possible to build Qt Multimedia without the Qt Multimedia FFmpeg
+media backend, but this is only recommended when building for platforms
+where the FFmpeg backend is not supported.
+
+FFmpeg developer libraries required to build Qt Multimedia can be built
+from sources or downloaded as binary packages. Qt Multimedia can use
+either static linking or dynamic linking to FFmpeg libraries. We
+recommend using the same major version of FFmpeg that is listed in
+\l{FFmpeg as the default backend}.
+
+To build Qt Multimedia with FFmpeg support, specify the \c{-DFFMPEG_DIR}
+CMake variable on the configure command line when building Qt. Note the
+\c{--} separator which separates ordinary configure arguments from CMake
+parameters.
+
+\badcode
+qt-source/configure -- -DFFMPEG_DIR=<FFMPEG_DIR>
+\endcode
+
+Here, \c{<FFMPEG_DIR>} is the directory containing the FFmpeg include,
+lib, and bin directories. To build Qt Multimedia without FFmpeg, omit
+the \c{<FFMPEG_DIR>} variable or specify the \c{-no-feature-ffmpeg}
+configure option.
+
+If you prefer not to build all Qt's submodules, you can reduce configure
+and build times using the \c{-submodules} configure option. This will
+configure a build that only builds Qt Multimedia and its dependencies.
+
+\badcode
+qt-source/configure -submodules qtmultimedia -- -DFFMPEG_DIR=<FFMPEG_DIR>
+\endcode
+
+If you configure Qt Multimedia against FFmpeg built with shared
+libraries (dynamic linking), the FFmpeg shared libraries must be in the
+module loader's search path to run tests or use examples.
+
+\note Qt Multimedia requires the FFmpeg avformat, avcodec, swresample,
+swscale, and avutil libraries during runtime to be able to use the
+FFmpeg media backend. If one or more of these dynamic libraries are not
+found during application startup, the FFmpeg media backend will fail to
+load, and the system will attempt to load the native backend. Qt
+Multimedia doesn't support as many features on native backends.
+
+If you don't already have these libraries in the \c{path}, specify the
+\c{-DQT_DEPLOY_FFMPEG=ON} configure option. With this option enabled,
+the necessary FFmpeg binaries will be copied to Qt's install directory
+during the build and install steps:
+
+\badcode
+qt-source/configure -submodules qtmultimedia -- -DFFMPEG_DIR=<FFMPEG_DIR> -DQT_DEPLOY_FFMPEG=ON
+\endcode
+
+After configuring Qt Multimedia, carefully review the configure summary
+(found in the config.summary file). You can verify that FFmpeg is found
+under the "Plugin" section. Then follow the regular build and install
+steps described in \l{Building Qt Sources}.
+
+\section1 Platform Notes
+
+\section2 Linux
+
+\list
+    \li When configuring Qt Multimedia with FFmpeg enabled, the
+        pulseaudio development package is required. Without this
+        package, FFmpeg will not be recognized.
+    \li When using a version of FFmpeg that is built with VAAPI support,
+        we recommend building Qt Multimedia with VAAPI support as well
+        to make hardware texture conversion possible. To configure Qt
+        Multimedia with VAAPI support, VAAPI developer libraries must be
+        installed on your system. Review the config.summary file to
+        verify that VAAPI support is enabled under the "Hardware
+        acceleration and features" section.
+\endlist
+*/

@@ -48,6 +48,9 @@
         target_link_libraries(my_project PRIVATE Qt6::Multimedia)
    \endcode
 
+   See \l {Building Qt Multimedia from sources} for guidance on building
+   Qt Multimedia from sources.
+
     \section1 Overviews and important topics
 
      \list
