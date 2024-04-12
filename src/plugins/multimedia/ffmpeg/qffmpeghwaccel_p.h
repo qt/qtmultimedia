@@ -39,7 +39,7 @@ class TextureSet {
 public:
     // ### Should add QVideoFrameFormat::PixelFormat here
     virtual ~TextureSet() {}
-    virtual qint64 textureHandle(int /*plane*/) { return 0; }
+    virtual qint64 textureHandle(QRhi *, int /*plane*/) { return 0; }
 };
 
 class TextureConverterBackend
