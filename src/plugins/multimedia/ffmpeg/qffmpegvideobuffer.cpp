@@ -242,9 +242,9 @@ std::unique_ptr<QVideoFrameTextures> QFFmpegVideoBuffer::mapTextures(QRhi *)
     return {};
 }
 
-quint64 QFFmpegVideoBuffer::textureHandle(int plane) const
+quint64 QFFmpegVideoBuffer::textureHandle(QRhi *rhi, int plane) const
 {
-    return m_textures ? m_textures->textureHandle(plane) : 0;
+    return m_textures ? m_textures->textureHandle(rhi, plane) : 0;
 }
 
 QVideoFrameFormat::PixelFormat QFFmpegVideoBuffer::pixelFormat() const

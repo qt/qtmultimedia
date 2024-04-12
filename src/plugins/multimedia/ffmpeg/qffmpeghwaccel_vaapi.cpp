@@ -155,7 +155,7 @@ class VAAPITextureSet : public TextureSet
 {
 public:
     ~VAAPITextureSet();
-    qint64 textureHandle(int plane) override {
+    qint64 textureHandle(QRhi *, int plane) override {
         return textures[plane];
     }
 

@@ -22,7 +22,7 @@ class MediaCodecTextureSet : public TextureSet
 public:
     MediaCodecTextureSet(qint64 textureHandle) : handle(textureHandle) { }
 
-    qint64 textureHandle(int plane) override { return (plane == 0) ? handle : 0; }
+    qint64 textureHandle(QRhi *, int plane) override { return (plane == 0) ? handle : 0; }
 
 private:
     qint64 handle;
