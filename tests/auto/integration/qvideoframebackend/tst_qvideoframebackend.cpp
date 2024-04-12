@@ -9,6 +9,9 @@
 #include "mediafileselector.h"
 #include "testvideosink.h"
 #include "private/qvideotexturehelper_p.h"
+#include "private/qvideowindow_p.h"
+#include <thread>
+
 
 QT_USE_NAMESPACE
 
@@ -30,6 +33,8 @@ private slots:
     void toImage_rendersUpdatedFrame_afterMappingInWriteModeAndModifying_data();
     void toImage_rendersUpdatedFrame_afterMappingInWriteModeAndModifying();
 
+    void toImage_returnsImage_whenCalledFromSeparateThreadAndWhileRenderingToWindow();
+
 private:
     QVideoFrame createDefaultFrame() const;
 
@@ -42,6 +47,7 @@ private:
 
 private:
     MaybeUrl m_oneRedFrameVideo = QUnexpect{};
+    MaybeUrl m_colorsVideo = QUnexpect{};
     MediaFileSelector m_mediaSelector;
 };
 
@@ -86,6 +92,7 @@ void tst_QVideoFrameBackend::initTestCase()
 #endif
 
     m_oneRedFrameVideo = m_mediaSelector.select("qrc:/testdata/one_red_frame.mp4");
+    m_colorsVideo = m_mediaSelector.select("qrc:/testdata/colors.mp4");
 }
 
 void tst_QVideoFrameBackend::testMediaFilesAreSupported()
@@ -203,6 +210,48 @@ void tst_QVideoFrameBackend::toImage_rendersUpdatedFrame_afterMappingInWriteMode
     QCOMPARE_NE(originalImage.pixel(0, 0), modifiedImage.pixel(0, 0));
     QCOMPARE(originalImage.pixel(1, 0), modifiedImage.pixel(1, 0));
     QCOMPARE(originalImage.pixel(1, 1), modifiedImage.pixel(1, 1));
+}
+
+void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAndWhileRenderingToWindow()
+{
+    if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci") {
+#ifdef Q_OS_MACOS
+        QSKIP("SKIP on macOS because of crash and error \"Failed to create QWindow::MetalSurface. Metal is not supported by any of the GPUs in this system.\"");
+#elif defined(Q_OS_ANDROID)
+        QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
+#endif
+    }
+    // Arrange
+    QVideoWindow window;
+    window.show();
+
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+
+    QMediaPlayer player;
+    player.setVideoOutput(&window);
+
+    const QVideoSink *sink = window.videoSink();
+    std::vector<QImage> images;
+
+    // act
+    connect(sink, &QVideoSink::videoFrameChanged, sink, [&](const QVideoFrame &frame) {
+
+        // Run toImage on separate thread to exercise special code path
+        QImage image;
+        auto t = std::thread([&] { image = frame.toImage(); });
+        t.join();
+
+        if (!image.isNull())
+            images.push_back(image);
+    });
+
+    // Arrange some more
+    player.setSource(*m_colorsVideo);
+    player.setLoops(10);
+    player.play();
+
+    // assert
+    QTRY_COMPARE_GE_WITH_TIMEOUT(images.size(), 10u, std::chrono::seconds(60) );
 }
 
 QTEST_MAIN(tst_QVideoFrameBackend)

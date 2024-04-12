@@ -194,11 +194,20 @@ bool TextureBridge::recreateSrc(ID3D11Device *dev, const ComPtr<ID3D11Texture2D>
 class D3D11TextureSet : public TextureSet
 {
 public:
-    D3D11TextureSet(ComPtr<ID3D11Texture2D> &&tex) : m_tex(std::move(tex)) { }
+    D3D11TextureSet(QRhi *rhi, ComPtr<ID3D11Texture2D> &&tex)
+        : m_owner{ rhi }, m_tex(std::move(tex))
+    {
+    }
 
-    qint64 textureHandle(int /*plane*/) override { return reinterpret_cast<qint64>(m_tex.Get()); }
+    qint64 textureHandle(QRhi *rhi, int /*plane*/) override
+    {
+        if (rhi != m_owner)
+            return 0u;
+        return reinterpret_cast<qint64>(m_tex.Get());
+    }
 
 private:
+    QRhi *m_owner = nullptr;
     ComPtr<ID3D11Texture2D> m_tex;
 };
 
@@ -256,7 +265,7 @@ TextureSet *D3D11TextureConverter::getTextures(AVFrame *frame)
         if (!output)
             return nullptr;
 
-        return new D3D11TextureSet(std::move(output));
+        return new D3D11TextureSet(rhi, std::move(output));
     }
 
     return nullptr;

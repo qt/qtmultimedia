@@ -278,7 +278,7 @@ void tst_QVideoFrame::create()
     QVERIFY(frame.isValid());
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
     QVERIFY(frame.videoBuffer() != nullptr);
-    QCOMPARE(frame.videoBuffer()->textureHandle(0), 0u);
+    QCOMPARE(frame.videoBuffer()->textureHandle(nullptr, 0), 0u);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
