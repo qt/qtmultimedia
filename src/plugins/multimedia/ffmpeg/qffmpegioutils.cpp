@@ -19,7 +19,7 @@ int readQIODevice(void *opaque, uint8_t *buf, int buf_size)
     return dev->read(reinterpret_cast<char *>(buf), buf_size);
 }
 
-int writeQIODevice(void *opaque, uint8_t *buf, int buf_size)
+int writeQIODevice(void *opaque, AvioWriteBufferType buf, int buf_size)
 {
     auto dev = static_cast<QIODevice *>(opaque);
     Q_ASSERT(dev);
