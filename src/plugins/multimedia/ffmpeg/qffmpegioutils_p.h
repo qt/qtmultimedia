@@ -16,6 +16,9 @@
 //
 
 #include "qtmultimediaglobal.h"
+#include "qffmpegdefs_p.h"
+
+#include <type_traits>
 
 QT_BEGIN_NAMESPACE
 
@@ -23,7 +26,10 @@ namespace QFFmpeg {
 
 int readQIODevice(void *opaque, uint8_t *buf, int buf_size);
 
-int writeQIODevice(void *opaque, uint8_t *buf, int buf_size);
+using AvioWriteBufferType =
+        std::conditional_t<QT_FFMPEG_AVIO_WRITE_CONST, const uint8_t *, uint8_t *>;
+
+int writeQIODevice(void *opaque, AvioWriteBufferType buf, int buf_size);
 
 int64_t seekQIODevice(void *opaque, int64_t offset, int whence);
 
