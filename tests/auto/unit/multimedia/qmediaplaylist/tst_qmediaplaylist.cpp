@@ -5,8 +5,6 @@
 #include <QDebug>
 #include "qmediaplaylist.h"
 
-//TESTED_COMPONENT=src/multimedia
-
 QT_USE_NAMESPACE
 
 class tst_QMediaPlaylist : public QObject

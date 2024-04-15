@@ -9,8 +9,6 @@
 #include <QStringList>
 #include <QList>
 
-//TESTED_COMPONENT=src/multimedia
-
 class tst_QAudioFormat : public QObject
 {
     Q_OBJECT
