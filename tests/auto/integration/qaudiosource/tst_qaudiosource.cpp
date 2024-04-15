@@ -15,8 +15,6 @@
 
 #include <qwavedecoder.h>
 
-//TESTED_COMPONENT=src/multimedia
-
 #define RANGE_ERR 0.5
 
 template<typename T> inline bool qTolerantCompare(T value, T expected)
