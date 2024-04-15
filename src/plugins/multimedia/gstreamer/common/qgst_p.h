@@ -538,7 +538,7 @@ public:
     QGstPad getRequestPad(const char *name) const;
     void releaseRequestPad(const QGstPad &pad) const;
 
-    GstState state() const;
+    GstState state(std::chrono::nanoseconds timeout = std::chrono::seconds(0)) const;
     GstStateChangeReturn setState(GstState state);
     bool setStateSync(GstState state, std::chrono::nanoseconds timeout = std::chrono::seconds(1));
     bool syncStateWithParent();

@@ -879,10 +879,18 @@ void QGstElement::releaseRequestPad(const QGstPad &pad) const
     return gst_element_release_request_pad(element(), pad.pad());
 }
 
-GstState QGstElement::state() const
+GstState QGstElement::state(std::chrono::nanoseconds timeout) const
 {
+    using namespace std::chrono_literals;
+
     GstState state;
-    gst_element_get_state(element(), &state, nullptr, 0);
+    GstStateChangeReturn change =
+            gst_element_get_state(element(), &state, nullptr, timeout.count());
+
+    if (Q_UNLIKELY(change == GST_STATE_CHANGE_ASYNC))
+        qWarning() << "QGstElement::state detected an asynchronous state change. Return value not "
+                      "reliable";
+
     return state;
 }
 
