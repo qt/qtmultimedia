@@ -10,8 +10,6 @@
 #include <QList>
 #include <QMediaDevices>
 
-//TESTED_COMPONENT=src/multimedia
-
 class tst_QAudioDevice : public QObject
 {
     Q_OBJECT
