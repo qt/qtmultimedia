@@ -7,6 +7,10 @@
 #include <qmediaplayer.h>
 #include <qaudiooutput.h>
 #include <qtest.h>
+#include <qsignalspy.h>
+
+#include "fake.h"
+#include "testvideosink.h"
 
 QT_USE_NAMESPACE
 
