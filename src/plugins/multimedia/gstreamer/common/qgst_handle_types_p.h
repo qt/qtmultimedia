@@ -240,6 +240,7 @@ using QUniqueGErrorHandle = QUniqueHandle<QGstImpl::QUniqueGErrorHandleTraits>;
 using QFileDescriptorHandle = QUniqueHandle<QGstImpl::QFileDescriptorHandleTraits>;
 using QGstContextHandle = QGstImpl::QGstMiniObjectHandleHelper<GstContext>::UniqueHandle;
 using QGstGstDateTimeHandle = QGstImpl::QGstMiniObjectHandleHelper<GstDateTime>::SharedHandle;
+using QGstPluginFeatureHandle = QGstImpl::QGstHandleHelper<GstPluginFeature>::SharedHandle;
 
 #if QT_CONFIG(gstreamer_gl)
 using QGstGLContextHandle = QGstImpl::QGstHandleHelper<GstGLContext>::UniqueHandle;
