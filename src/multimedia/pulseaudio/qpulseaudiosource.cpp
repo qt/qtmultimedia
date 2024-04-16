@@ -33,7 +33,7 @@ static void inputStreamStateCallback(pa_stream *stream, void *userdata)
 
     Q_UNUSED(userdata);
     pa_stream_state_t state = pa_stream_get_state(stream);
-    qCDebug(qLcPulseAudioIn) << "Stream state: " << QPulseAudioInternal::stateToQString(state);
+    qCDebug(qLcPulseAudioIn) << "Stream state: " << state;
     switch (state) {
     case PA_STREAM_CREATING:
         break;
@@ -204,8 +204,7 @@ bool QPulseAudioSource::open()
                 QStringLiteral("QtmPulseStream-%1-%2").arg(::getpid()).arg(quintptr(this)).toUtf8();
 
     if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg))) {
-        qCDebug(qLcPulseAudioIn) << "Format: "
-                                 << QPulseAudioInternal::sampleFormatToQString(spec.format);
+        qCDebug(qLcPulseAudioIn) << "Format: " << spec.format;
         qCDebug(qLcPulseAudioIn) << "Rate: " << spec.rate;
         qCDebug(qLcPulseAudioIn) << "Channels: " << spec.channels;
         qCDebug(qLcPulseAudioIn) << "Frame size: " << pa_frame_size(&spec);

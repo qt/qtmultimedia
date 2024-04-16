@@ -266,10 +266,8 @@ static void contextStateCallbackInit(pa_context *context, void *userdata)
 {
     Q_UNUSED(context);
 
-    if (Q_UNLIKELY(qLcPulseAudioEngine().isEnabled(QtDebugMsg))) {
-        QString stateStr = QPulseAudioInternal::stateToQString(pa_context_get_state(context));
-        qCDebug(qLcPulseAudioEngine) << stateStr;
-    }
+    if (Q_UNLIKELY(qLcPulseAudioEngine().isEnabled(QtDebugMsg)))
+        qCDebug(qLcPulseAudioEngine) << pa_context_get_state(context);
 
     QPulseAudioEngine *pulseEngine = reinterpret_cast<QPulseAudioEngine*>(userdata);
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
@@ -280,10 +278,8 @@ static void contextStateCallback(pa_context *c, void *userdata)
     QPulseAudioEngine *self = reinterpret_cast<QPulseAudioEngine*>(userdata);
     pa_context_state_t state = pa_context_get_state(c);
 
-    if (Q_UNLIKELY(qLcPulseAudioEngine().isEnabled(QtDebugMsg))) {
-        QString stateStr = QPulseAudioInternal::stateToQString(state);
-        qCDebug(qLcPulseAudioEngine) << stateStr;
-    }
+    if (Q_UNLIKELY(qLcPulseAudioEngine().isEnabled(QtDebugMsg)))
+        qCDebug(qLcPulseAudioEngine) << state;
 
     if (state == PA_CONTEXT_FAILED)
         QMetaObject::invokeMethod(self, "onContextFailed", Qt::QueuedConnection);
