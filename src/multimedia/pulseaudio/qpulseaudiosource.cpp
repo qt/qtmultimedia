@@ -199,10 +199,8 @@ bool QPulseAudioSource::open()
     //}
 
     if (m_streamName.isNull())
-        m_streamName = QString(QLatin1String("QtmPulseStream-%1-%2"))
-                               .arg(::getpid())
-                               .arg(quintptr(this))
-                               .toUtf8();
+        m_streamName =
+                QStringLiteral("QtmPulseStream-%1-%2").arg(::getpid()).arg(quintptr(this)).toUtf8();
 
     if (Q_UNLIKELY(qLcPulseAudioIn().isEnabled(QtDebugMsg))) {
         qCDebug(qLcPulseAudioIn) << "Format: "
