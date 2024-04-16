@@ -63,9 +63,10 @@ static bool updateDevicesMap(QReadWriteLock &lock, QByteArray defaultDeviceId,
 static void serverInfoCallback(pa_context *context, const pa_server_info *info, void *userdata)
 {
     using namespace Qt::Literals;
+    using namespace QPulseAudioInternal;
 
     if (!info) {
-        qWarning() << QStringLiteral("Failed to get server information: %s").arg(QString::fromUtf8(pa_strerror(pa_context_errno(context))));
+        qWarning() << "Failed to get server information:" << currentError(context);
         return;
     }
 
@@ -127,11 +128,12 @@ static void serverInfoCallback(pa_context *context, const pa_server_info *info, 
 static void sinkInfoCallback(pa_context *context, const pa_sink_info *info, int isLast, void *userdata)
 {
     using namespace Qt::Literals;
+    using namespace QPulseAudioInternal;
 
     QPulseAudioEngine *pulseEngine = static_cast<QPulseAudioEngine *>(userdata);
 
     if (isLast < 0) {
-        qWarning() << QStringLiteral("Failed to get sink information: %s").arg(QString::fromUtf8(pa_strerror(pa_context_errno(context))));
+        qWarning() << "Failed to get sink information:" << currentError(context);
         return;
     }
 
@@ -306,6 +308,7 @@ QPulseAudioEngine::~QPulseAudioEngine()
 
 void QPulseAudioEngine::prepare()
 {
+    using namespace QPulseAudioInternal;
     bool keepGoing = true;
     bool ok = true;
 
@@ -380,8 +383,8 @@ void QPulseAudioEngine::prepare()
 
             case PA_CONTEXT_FAILED:
             default:
-                qCritical() << QStringLiteral("PulseAudioService: Connection failure: %1")
-                                .arg(QString::fromUtf8(pa_strerror(pa_context_errno(m_context))));
+                qCritical() << "PulseAudioService: Connection failure:"
+                            << currentError(m_context);
                 keepGoing = false;
                 ok = false;
         }

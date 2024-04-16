@@ -199,6 +199,16 @@ QAudioFormat sampleSpecToAudioFormat(const pa_sample_spec &spec)
     return format;
 }
 
+QUtf8StringView currentError(const pa_context *context)
+{
+    return pa_strerror(pa_context_errno(context));
 }
+
+QUtf8StringView currentError(const pa_stream *stream)
+{
+    return currentError(pa_stream_get_context(stream));
+}
+
+} // namespace QPulseAudioInternal
 
 QT_END_NAMESPACE

@@ -96,7 +96,11 @@ static inline QString stateToQString(pa_context_state_t state)
 
     return u"Unknown state: %0"_s.arg(int(state));
 }
-}
+
+QUtf8StringView currentError(const pa_context *);
+QUtf8StringView currentError(const pa_stream *);
+
+} // namespace QPulseAudioInternal
 
 QT_END_NAMESPACE
 
