@@ -213,7 +213,8 @@ bool QPulseAudioSource::open()
 #endif
 
     if (m_streamName.isNull())
-        m_streamName = QString(QLatin1String("QtmPulseStream-%1-%2")).arg(::getpid()).arg(quintptr(this)).toUtf8();
+        m_streamName =
+                QStringLiteral("QtmPulseStream-%1-%2").arg(::getpid()).arg(quintptr(this)).toUtf8();
 
 #ifdef DEBUG_PULSE
         qDebug() << "Format: " << QPulseAudioInternal::sampleFormatToQString(spec.format);
