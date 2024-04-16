@@ -29,6 +29,8 @@ static void inputStreamReadCallback(pa_stream *stream, size_t length, void *user
 
 static void inputStreamStateCallback(pa_stream *stream, void *userdata)
 {
+    using namespace QPulseAudioInternal;
+
     Q_UNUSED(userdata);
     pa_stream_state_t state = pa_stream_get_state(stream);
 #ifdef DEBUG_PULSE
@@ -56,7 +58,7 @@ static void inputStreamStateCallback(pa_stream *stream, void *userdata)
             break;
         case PA_STREAM_FAILED:
         default:
-            qWarning() << QStringLiteral("Stream error: %1").arg(QString::fromUtf8(pa_strerror(pa_context_errno(pa_stream_get_context(stream)))));
+            qWarning() << "Stream error: " << currentError(stream);
             QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
             pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
             break;
@@ -319,6 +321,8 @@ void QPulseAudioSource::close()
 
 qsizetype QPulseAudioSource::bytesReady() const
 {
+    using namespace QPulseAudioInternal;
+
     if (!m_stateMachine.isActiveOrIdle())
         return 0;
 
@@ -326,8 +330,7 @@ qsizetype QPulseAudioSource::bytesReady() const
 
     int bytes = pa_stream_readable_size(m_stream);
     if (bytes < 0) {
-        qWarning() << "pa_stream_readable_size() failed:"
-                   << pa_strerror(pa_context_errno(pa_stream_get_context(m_stream)));
+        qWarning() << "pa_stream_readable_size() failed:" << currentError(m_stream);
         return 0;
     }
 
@@ -336,6 +339,8 @@ qsizetype QPulseAudioSource::bytesReady() const
 
 qint64 QPulseAudioSource::read(char *data, qint64 len)
 {
+    using namespace QPulseAudioInternal;
+
     Q_ASSERT(data != nullptr || len == 0);
 
     m_stateMachine.updateActiveOrIdle(true, QAudio::NoError);
@@ -371,8 +376,7 @@ qint64 QPulseAudioSource::read(char *data, qint64 len)
         // the audioBuffer pointer is set to point to the actual pulse audio data,
         // and the length is set to the length of this data.
         if (pa_stream_peek(m_stream, &audioBuffer, &readLength) < 0) {
-            qWarning() << QStringLiteral("pa_stream_peek() failed: %1")
-                          .arg(QString::fromUtf8(pa_strerror(pa_context_errno(pa_stream_get_context(m_stream)))));
+            qWarning() << "pa_stream_peek() failed:" << currentError(m_stream);
             pulseEngine->unlock();
             return 0;
         }
