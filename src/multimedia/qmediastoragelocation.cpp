@@ -78,7 +78,7 @@ QString QMediaStorageLocation::generateFileName(const QString &requestedName,
         return generateFileName(QDir(path), prefix, extension);
 
     if (!path.endsWith(extension))
-        path.append(QString(QLatin1String(".%1")).arg(extension));
+        path.append(QStringLiteral(".%1").arg(extension));
 
     return path;
 }
