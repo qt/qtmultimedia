@@ -73,7 +73,7 @@ class tst_QMediaPlayerBackend : public QObject
     Q_OBJECT
 public slots:
     void initTestCase();
-    void init();
+    void init() { m_fixture = std::make_unique<Fixture>(); }
     void cleanup() { m_fixture = nullptr; }
 
 private slots:
@@ -281,16 +281,12 @@ void tst_QMediaPlayerBackend::initTestCase()
 #ifdef Q_OS_ANDROID
      QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
 #endif
+
     QMediaPlayer player;
     if (!player.isAvailable())
         QSKIP("Media player service is not available");
-}
 
-void tst_QMediaPlayerBackend::init()
-{
-    m_fixture = std::make_unique<Fixture>();
     qRegisterMetaType<MaybeUrl>();
-    detectVlcCommand();
 
     m_localWavFile = m_mediaSelector.select("qrc:/testdata/test.wav");
     m_localWavFile2 = m_mediaSelector.select("qrc:/testdata/_test.wav");
@@ -333,6 +329,8 @@ void tst_QMediaPlayerBackend::init()
             m_mediaSelector.select("qrc:/testdata/color_matrix_180_deg_clockwise.mp4");
     m_colorMatrix270degClockwiseVideo =
             m_mediaSelector.select("qrc:/testdata/color_matrix_270_deg_clockwise.mp4");
+
+    detectVlcCommand();
 }
 
 void tst_QMediaPlayerBackend::testMediaFilesAreSupported()
