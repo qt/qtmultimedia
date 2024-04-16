@@ -528,30 +528,18 @@ void QQuickVideoOutput::updateHdr(QSGVideoNode *videoNode)
     if (!swapChain)
         return;
 
-    static const bool autoHdrEnabled = qEnvironmentVariableIntValue("QT_MEDIA_AUTO_HDR");
+    const auto requiredSwapChainFormat = qGetRequiredSwapChainFormat(m_frame.surfaceFormat());
+    if (qShouldUpdateSwapChainFormat(swapChain, requiredSwapChainFormat)) {
+        auto *recreateSwapChainJob = QRunnable::create([swapChain, requiredSwapChainFormat]() {
+            swapChain->destroy();
+            swapChain->setFormat(requiredSwapChainFormat);
+            swapChain->createOrResize();
+        });
 
-    if (autoHdrEnabled) {
-        constexpr auto sdrMaxLuminance = 100.0f;
-        const auto frameMaxLuminance = m_frame.surfaceFormat().maxLuminance();
-
-        const auto requiredSwapChainFormat = frameMaxLuminance > sdrMaxLuminance
-                ? QRhiSwapChain::HDRExtendedSrgbLinear
-                : QRhiSwapChain::SDR;
-
-        if (swapChain->format() != requiredSwapChainFormat) {
-            auto *recreateSwapChainJob =
-                    QRunnable::create([swapChain, requiredSwapChainFormat]() {
-                        swapChain->destroy();
-                        swapChain->setFormat(requiredSwapChainFormat);
-                        swapChain->createOrResize();
-                    });
-
-            // Even though the 'recreate swap chain' job is scheduled for the current frame the
-            // effect will be visible only starting from the next frame since the recreation would
-            // happen after the actual swap.
-            videoOutputWindow->scheduleRenderJob(recreateSwapChainJob,
-                                                 QQuickWindow::AfterSwapStage);
-        }
+        // Even though the 'recreate swap chain' job is scheduled for the current frame the
+        // effect will be visible only starting from the next frame since the recreation would
+        // happen after the actual swap.
+        videoOutputWindow->scheduleRenderJob(recreateSwapChainJob, QQuickWindow::AfterSwapStage);
     }
 
     videoNode->setSurfaceFormat(swapChain->format());
