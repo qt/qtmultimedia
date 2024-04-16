@@ -468,6 +468,8 @@ void QPulseAudioSink::userFeed()
 
 qint64 QPulseAudioSink::write(const char *data, qint64 len)
 {
+    using namespace QPulseAudioInternal;
+
     QPulseAudioEngine *pulseEngine = QPulseAudioEngine::instance();
 
     pulseEngine->lock();
@@ -477,8 +479,8 @@ qint64 QPulseAudioSink::write(const char *data, qint64 len)
 
     if (pa_stream_begin_write(m_stream, &dest, &nbytes) < 0) {
         pulseEngine->unlock();
-        qCWarning(qLcPulseAudioOut) << "pa_stream_begin_write error:"
-                                    << pa_strerror(pa_context_errno(pulseEngine->context()));
+        qCWarning(qLcPulseAudioOut)
+                << "pa_stream_begin_write error:" << currentError(pulseEngine->context());
         m_stateMachine.updateActiveOrIdle(false, QAudio::IOError);
         return 0;
     }
@@ -497,8 +499,8 @@ qint64 QPulseAudioSink::write(const char *data, qint64 len)
 
     if ((pa_stream_write(m_stream, data, len, nullptr, 0, PA_SEEK_RELATIVE)) < 0) {
         pulseEngine->unlock();
-        qCWarning(qLcPulseAudioOut) << "pa_stream_write error:"
-                                    << pa_strerror(pa_context_errno(pulseEngine->context()));
+        qCWarning(qLcPulseAudioOut)
+                << "pa_stream_write error:" << currentError(pulseEngine->context());
         m_stateMachine.updateActiveOrIdle(false, QAudio::IOError);
         return 0;
     }
