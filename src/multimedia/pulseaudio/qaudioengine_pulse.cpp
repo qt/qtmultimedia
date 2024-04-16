@@ -276,7 +276,7 @@ static void contextStateCallbackInit(pa_context *context, void *userdata)
 {
     Q_UNUSED(context);
 #ifdef DEBUG_PULSE
-    qDebug() << QPulseAudioInternal::stateToQString(pa_context_get_state(context));
+    qDebug() << pa_context_get_state(context);
 #endif
     QPulseAudioEngine *pulseEngine = reinterpret_cast<QPulseAudioEngine*>(userdata);
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
@@ -288,7 +288,7 @@ static void contextStateCallback(pa_context *c, void *userdata)
     pa_context_state_t state = pa_context_get_state(c);
 
 #ifdef DEBUG_PULSE
-    qDebug() << QPulseAudioInternal::stateToQString(state);
+    qDebug() << state;
 #endif
 
     if (state == PA_CONTEXT_FAILED)

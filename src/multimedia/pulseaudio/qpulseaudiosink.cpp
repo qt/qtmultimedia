@@ -250,8 +250,7 @@ bool QPulseAudioSink::open()
 
     if (Q_UNLIKELY(qLcPulseAudioOut().isEnabled(QtDebugMsg))) {
         qCDebug(qLcPulseAudioOut) << "Opening stream with.";
-        qCDebug(qLcPulseAudioOut) << "\tFormat: "
-                                  << QPulseAudioInternal::sampleFormatToQString(spec.format);
+        qCDebug(qLcPulseAudioOut) << "\tFormat: " << spec.format;
         qCDebug(qLcPulseAudioOut) << "\tRate: " << spec.rate;
         qCDebug(qLcPulseAudioOut) << "\tChannels: " << spec.channels;
         qCDebug(qLcPulseAudioOut) << "\tFrame size: " << pa_frame_size(&spec);
