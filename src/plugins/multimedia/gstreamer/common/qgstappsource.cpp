@@ -36,6 +36,8 @@ QGstAppSource::~QGstAppSource()
 
 bool QGstAppSource::setup(QIODevice *stream, qint64 offset)
 {
+    QMutexLocker locker(&m_mutex);
+
     if (m_appSrc.isNull())
         return false;
 
@@ -67,6 +69,8 @@ bool QGstAppSource::setup(QIODevice *stream, qint64 offset)
 
 void QGstAppSource::setAudioFormat(const QAudioFormat &f)
 {
+    QMutexLocker locker(&m_mutex);
+
     m_format = f;
     if (!m_format.isValid())
         return;
@@ -79,14 +83,15 @@ void QGstAppSource::setAudioFormat(const QAudioFormat &f)
 
 void QGstAppSource::setExternalAppSrc(QGstAppSrc appsrc)
 {
+    QMutexLocker locker(&m_mutex);
     m_appSrc = std::move(appsrc);
 }
 
 bool QGstAppSource::setStream(QIODevice *stream, qint64 offset)
 {
     if (m_stream) {
-        disconnect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
-        disconnect(m_stream, SIGNAL(destroyed()), this, SLOT(streamDestroyed()));
+        disconnect(m_stream, &QIODevice::readyRead, this, &QGstAppSource::onDataReady);
+        disconnect(m_stream, &QIODevice::destroyed, this, &QGstAppSource::streamDestroyed);
         m_stream = nullptr;
     }
 
@@ -99,21 +104,28 @@ bool QGstAppSource::setStream(QIODevice *stream, qint64 offset)
         if (!stream->isOpen() && !stream->open(QIODevice::ReadOnly))
             return false;
         m_stream = stream;
-        connect(m_stream, SIGNAL(destroyed()), SLOT(streamDestroyed()));
-        connect(m_stream, SIGNAL(readyRead()), this, SLOT(onDataReady()));
+        connect(m_stream, &QIODevice::destroyed, this, &QGstAppSource::streamDestroyed);
+        connect(m_stream, &QIODevice::readyRead, this, &QGstAppSource::onDataReady);
         m_sequential = m_stream->isSequential();
         m_offset = offset;
     }
     return true;
 }
 
-QGstElement QGstAppSource::element()
+bool QGstAppSource::isStreamValid() const
+{
+    return m_stream != nullptr && m_stream->isOpen();
+}
+
+QGstElement QGstAppSource::element() const
 {
     return m_appSrc;
 }
 
 void QGstAppSource::write(const char *data, qsizetype size)
 {
+    QMutexLocker locker(&m_mutex);
+
     qCDebug(qLcAppSrc) << "write" << size << m_noMoreData << m_dataRequestSize;
     if (!size)
         return;
@@ -121,6 +133,25 @@ void QGstAppSource::write(const char *data, qsizetype size)
     m_buffer.append(data, size);
     m_noMoreData = false;
     pushData();
+}
+
+bool QGstAppSource::canAcceptMoreData() const
+{
+    QMutexLocker locker(&m_mutex);
+    return m_noMoreData || m_dataRequestSize != 0;
+}
+
+void QGstAppSource::suspend()
+{
+    QMutexLocker locker(&m_mutex);
+    m_suspended = true;
+}
+
+void QGstAppSource::resume()
+{
+    QMutexLocker locker(&m_mutex);
+    m_suspended = false;
+    m_noMoreData = true;
 }
 
 void QGstAppSource::onDataReady()
@@ -227,10 +258,13 @@ gboolean QGstAppSource::on_seek_data(GstAppSrc *, guint64 arg0, gpointer userdat
 
     QGstAppSource *self = reinterpret_cast<QGstAppSource *>(userdata);
     Q_ASSERT(self);
+
+    QMutexLocker locker(&self->m_mutex);
+
     if (self->m_sequential)
         return false;
 
-    QMetaObject::invokeMethod(self, "doSeek", Qt::AutoConnection, Q_ARG(qint64, arg0));
+    self->doSeek(arg0);
     return true;
 }
 
@@ -239,6 +273,7 @@ void QGstAppSource::on_enough_data(GstAppSrc *, gpointer userdata)
     qCDebug(qLcAppSrc) << "on_enough_data";
     QGstAppSource *self = static_cast<QGstAppSource *>(userdata);
     Q_ASSERT(self);
+    QMutexLocker locker(&self->m_mutex);
     self->m_dataRequestSize = 0;
 }
 
@@ -247,8 +282,9 @@ void QGstAppSource::on_need_data(GstAppSrc *, guint arg0, gpointer userdata)
     qCDebug(qLcAppSrc) << "on_need_data requesting bytes" << arg0;
     QGstAppSource *self = static_cast<QGstAppSource *>(userdata);
     Q_ASSERT(self);
+    QMutexLocker locker(&self->m_mutex);
     self->m_dataRequestSize = arg0;
-    QMetaObject::invokeMethod(self, "pushData", Qt::AutoConnection);
+    self->pushData();
     qCDebug(qLcAppSrc) << "done on_need_data";
 }
 

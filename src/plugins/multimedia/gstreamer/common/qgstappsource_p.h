@@ -23,6 +23,7 @@
 #include <QtCore/qiodevice.h>
 #include <QtCore/private/qringbuffer_p.h>
 #include <QtCore/qatomic.h>
+#include <QtCore/qmutex.h>
 
 #include <common/qgst_p.h>
 #include <gst/app/gstappsrc.h>
@@ -40,14 +41,14 @@ public:
     void setAudioFormat(const QAudioFormat &f);
 
     void setExternalAppSrc(QGstAppSrc);
-    QGstElement element();
+    QGstElement element() const;
 
     void write(const char *data, qsizetype size);
 
-    bool canAcceptMoreData() { return m_noMoreData || m_dataRequestSize != 0; }
+    bool canAcceptMoreData() const;
 
-    void suspend() { m_suspended = true; }
-    void resume() { m_suspended = false; m_noMoreData = true; }
+    void suspend();
+    void resume();
 
 Q_SIGNALS:
     void bytesProcessed(int bytes);
@@ -63,10 +64,7 @@ private:
     QGstAppSource(QGstAppSrc appsrc, QObject *parent);
 
     bool setStream(QIODevice *, qint64 offset);
-    bool isStreamValid() const
-    {
-        return m_stream != nullptr && m_stream->isOpen();
-    }
+    bool isStreamValid() const;
 
     static gboolean on_seek_data(GstAppSrc *element, guint64 arg0, gpointer userdata);
     static void on_enough_data(GstAppSrc *element, gpointer userdata);
@@ -74,6 +72,8 @@ private:
 
     void sendEOS();
     void eosOrIdle();
+
+    mutable QMutex m_mutex;
 
     QIODevice *m_stream = nullptr;
     QRingBuffer m_buffer;
