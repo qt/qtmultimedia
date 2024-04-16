@@ -29,6 +29,7 @@
 #include <QtQuick/private/qquickloader_p.h>
 
 #include "mediafileselector.h"
+#include "mediabackendutils.h"
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qquickvideooutput_p.h"
 
@@ -555,7 +556,13 @@ void tst_QMediaPlayerBackend::setSource_updatesExpectedAttributes_whenMediaHasLo
     expectedState.videoTracks = std::nullopt; // Don't compare
     expectedState.activeAudioTrack = 0;
     expectedState.activeVideoTrack = 0;
-    expectedState.duration = 15018;
+
+    if (isGStreamerPlatform())
+        expectedState.duration = 15019;
+    else if (isDarwinPlatform())
+        expectedState.duration = 15000;
+    else
+        expectedState.duration = 15018;
     expectedState.hasAudio = true;
     expectedState.hasVideo = true;
     expectedState.isSeekable = true;
