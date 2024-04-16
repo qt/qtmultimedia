@@ -117,6 +117,8 @@ private:
     void disconnectDecoderHandlers();
     static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
     static void sourceSetupCallback(GstElement *uridecodebin, GstElement *source, QGstreamerMediaPlayer *that);
+    static void unknownTypeCallback(GstElement *decodebin, GstPad *pad, GstCaps *caps,
+                                    QGstreamerMediaPlayer *self);
     void parseStreamsAndMetadata();
     void connectOutput(TrackSelector &ts);
     void removeOutput(TrackSelector &ts);
@@ -158,6 +160,7 @@ private:
     QGObjectHandlerScopedConnection padRemoved;
     QGObjectHandlerScopedConnection sourceSetup;
     QGObjectHandlerScopedConnection elementAdded;
+    QGObjectHandlerScopedConnection unknownType;
 };
 
 QT_END_NAMESPACE

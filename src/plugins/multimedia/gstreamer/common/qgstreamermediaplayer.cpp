@@ -77,10 +77,7 @@ QGstreamerMediaPlayer::TrackSelector &QGstreamerMediaPlayer::trackSelector(Track
 void QGstreamerMediaPlayer::disconnectDecoderHandlers()
 {
     auto handlers = std::initializer_list<QGObjectHandlerScopedConnection *>{
-        &padAdded,
-        &padRemoved,
-        &sourceSetup,
-        &elementAdded,
+        &padAdded, &padRemoved, &sourceSetup, &elementAdded, &unknownType,
     };
     for (QGObjectHandlerScopedConnection *handler : handlers)
         handler->disconnect();
@@ -671,6 +668,19 @@ void QGstreamerMediaPlayer::sourceSetupCallback(GstElement *uridecodebin, GstEle
     }
 }
 
+void QGstreamerMediaPlayer::unknownTypeCallback(GstElement *decodebin, GstPad *pad, GstCaps *caps,
+                                                QGstreamerMediaPlayer *self)
+{
+    Q_UNUSED(decodebin)
+    Q_UNUSED(pad)
+    Q_UNUSED(self)
+    qCDebug(qLcMediaPlayer) << "Unknown type:" << caps;
+
+    QMetaObject::invokeMethod(self, [self] {
+        self->stop();
+    });
+}
+
 void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 {
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << "setting location to" << content;
@@ -729,6 +739,9 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         }
         decoder.set("post-stream-topology", true);
         decoder.set("use-buffering", true);
+        unknownType = decoder.connect("unknown-type",
+                                      GCallback(QGstreamerMediaPlayer::unknownTypeCallback), this);
+
         playerPipeline.add(src, decoder);
         qLinkGstElements(src, decoder);
 
@@ -756,6 +769,9 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 
         sourceSetup = decoder.connect("source-setup",
                                       GCallback(QGstreamerMediaPlayer::sourceSetupCallback), this);
+
+        unknownType = decoder.connect("unknown-type",
+                                      GCallback(QGstreamerMediaPlayer::unknownTypeCallback), this);
 
         decoder.set("uri", content.toEncoded().constData());
         decoder.set("use-buffering", true);
