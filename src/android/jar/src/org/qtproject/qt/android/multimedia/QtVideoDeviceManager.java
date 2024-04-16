@@ -137,6 +137,7 @@ public class QtVideoDeviceManager {
         return activeArraySize;
     }
 
+    static final int maxResolution = 3840*2160; // 4k resolution
     public String[] getStreamConfigurationsSizes(String cameraId, int imageFormat) {
 
         CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
@@ -148,13 +149,14 @@ public class QtVideoDeviceManager {
         if (sizes == null)
             return new String[0];
 
-        String[] stream = new String[sizes.length];
+        ArrayList<String> stream = new ArrayList<>();
 
         for (int index = 0; index < sizes.length; index++) {
-            stream[index] = sizes[index].toString();
+            if (sizes[index].getWidth() * sizes[index].getHeight() <= maxResolution)
+                stream.add(sizes[index].toString());
         }
 
-        return stream;
+        return stream.toArray(new String[0]);
     }
 
     public int stringToControlAEMode(String mode) {
