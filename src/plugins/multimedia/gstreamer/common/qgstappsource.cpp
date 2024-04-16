@@ -24,6 +24,7 @@ QMaybe<QGstAppSource *> QGstAppSource::create(QObject *parent)
 QGstAppSource::QGstAppSource(QGstAppSrc appsrc, QObject *parent)
     : QObject(parent), m_appSrc(std::move(appsrc))
 {
+    m_appSrc.set("emit-signals", false);
 }
 
 QGstAppSource::~QGstAppSource()
