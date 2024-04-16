@@ -2162,6 +2162,10 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHas
 
 void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail()
 {
+    // QTBUG-124380: gstreamer reports CoverArtImage instead of ThumbnailImage
+    QMediaMetaData::Key key =
+            isGStreamerPlatform() ? QMediaMetaData::CoverArtImage : QMediaMetaData::ThumbnailImage;
+
     // Arrange
     QFETCH(const MaybeUrl, mediaUrl);
     QFETCH(const bool, hasThumbnail);
@@ -2175,7 +2179,7 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHas
 
     // Act
     const QMediaMetaData metadata = m_fixture->player.metaData();
-    const QImage thumbnail = metadata.value(QMediaMetaData::ThumbnailImage).value<QImage>();
+    const QImage thumbnail = metadata.value(key).value<QImage>();
 
     // Assert
     QCOMPARE_EQ(!thumbnail.isNull(), hasThumbnail);
