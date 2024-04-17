@@ -134,8 +134,15 @@ private:
     QUrl m_url;
     QIODevice *m_stream = nullptr;
 
+    enum class ResourceErrorState : uint8_t {
+        NoError,
+        ErrorOccurred,
+        ErrorReported,
+    };
+
     bool prerolling = false;
     bool m_requiresSeekOnPlay = false;
+    ResourceErrorState m_resourceErrorState = ResourceErrorState::NoError;
     qint64 m_duration = 0;
     QTimer positionUpdateTimer;
 
