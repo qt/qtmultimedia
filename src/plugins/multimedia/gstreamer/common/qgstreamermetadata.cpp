@@ -3,6 +3,7 @@
 
 #include "qgstreamermetadata_p.h"
 #include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qtvideo.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qdatetime.h>
 #include <QtCore/qlocale.h>
@@ -145,6 +146,8 @@ const char *keyToTag(QMediaMetaData::Key key)
 //internal
 void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
 {
+    using namespace std::string_view_literals;
+
     QMediaMetaData::Key key = tagToKey(tag);
     if (key == QMediaMetaData::Key(-1))
         return;
@@ -158,13 +161,29 @@ void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
     switch (G_VALUE_TYPE(&val)) {
     case G_TYPE_STRING: {
         const gchar *str_value = g_value_get_string(&val);
-        if (key == QMediaMetaData::Language) {
-            map->insert(key,
-                        QVariant::fromValue(QLocale::codeToLanguage(QString::fromUtf8(str_value),
-                                                                    QLocale::ISO639Part2)));
+
+        switch (key) {
+        case QMediaMetaData::Language: {
+            map->emplace(key,
+                         QVariant::fromValue(QLocale::codeToLanguage(QString::fromUtf8(str_value),
+                                                                     QLocale::ISO639Part2)));
             break;
         }
-        map->insert(key, QString::fromUtf8(str_value));
+        case QMediaMetaData::Orientation: {
+            if (str_value == "rotate-90"sv)
+                map->emplace(key, QVariant::fromValue(QtVideo::Rotation::Clockwise90));
+            else if (str_value == "rotate-180"sv)
+                map->emplace(key, QVariant::fromValue(QtVideo::Rotation::Clockwise180));
+            else if (str_value == "rotate-270"sv)
+                map->emplace(key, QVariant::fromValue(QtVideo::Rotation::Clockwise270));
+            else if (str_value == "rotate-0"sv)
+                map->emplace(key, QVariant::fromValue(QtVideo::Rotation::None));
+            break;
+        }
+        default:
+            map->emplace(key, QString::fromUtf8(str_value));
+            break;
+        };
         break;
     }
     case G_TYPE_INT:
