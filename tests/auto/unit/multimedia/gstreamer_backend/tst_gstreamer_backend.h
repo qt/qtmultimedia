@@ -16,6 +16,8 @@ class tst_GStreamer : public QObject
 
 private slots:
     void metadata_fromGstTagList();
+    void metadata_fromGstTagList_extractsOrientation();
+    void metadata_fromGstTagList_extractsOrientation_data();
 
 private:
     QGstreamerIntegration integration;
