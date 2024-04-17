@@ -678,7 +678,7 @@ void tst_QCameraBackend::testNativeMetadata()
     QTRY_VERIFY(recorder.recorderState() == QMediaRecorder::RecorderState::StoppedState);
 
     QVERIFY(errorSignal.isEmpty());
-    if (QPlatformMediaIntegration::instance()->name() != "gstreamer") {
+    if (!isGStreamerPlatform()) {
         // https://bugreports.qt.io/browse/QTBUG-124183
         QVERIFY(recorderErrorSignal.isEmpty());
     }
