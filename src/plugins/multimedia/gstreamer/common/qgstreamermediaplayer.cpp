@@ -227,7 +227,8 @@ void QGstreamerMediaPlayer::play()
 
 void QGstreamerMediaPlayer::pause()
 {
-    if (state() == QMediaPlayer::PausedState || m_url.isEmpty())
+    if (state() == QMediaPlayer::PausedState || m_url.isEmpty()
+        || m_resourceErrorState != ResourceErrorState::NoError)
         return;
 
     positionUpdateTimer.stop();
@@ -378,12 +379,30 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         QUniqueGStringHandle debug;
         gst_message_parse_error(gm, &err, &debug);
         qCDebug(qLcMediaPlayer) << "    error" << err << debug;
-        if (err.get()->domain == GST_STREAM_ERROR
-            && err.get()->code == GST_STREAM_ERROR_CODEC_NOT_FOUND)
-            emit error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
-        else
-            emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
-        playerPipeline.dumpGraph("error");
+
+        GQuark errorDomain = err.get()->domain;
+        gint errorCode = err.get()->code;
+
+        if (errorDomain == GST_STREAM_ERROR) {
+            if (errorCode == GST_STREAM_ERROR_CODEC_NOT_FOUND)
+                emit error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
+            else {
+                emit error(QMediaPlayer::FormatError, QString::fromUtf8(err.get()->message));
+            }
+        } else if (errorDomain == GST_RESOURCE_ERROR) {
+            if (errorCode == GST_RESOURCE_ERROR_NOT_FOUND) {
+                if (m_resourceErrorState != ResourceErrorState::ErrorReported) {
+                    // gstreamer seems to deliver multiple GST_RESOURCE_ERROR_NOT_FOUND events
+                    emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
+                    m_resourceErrorState = ResourceErrorState::ErrorReported;
+                    m_url.clear();
+                }
+            } else {
+                emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
+            }
+        } else {
+            playerPipeline.dumpGraph("error");
+        }
         mediaStatusChanged(QMediaPlayer::InvalidMedia);
         break;
     }
@@ -686,6 +705,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << "setting location to" << content;
 
     prerolling = true;
+    m_resourceErrorState = ResourceErrorState::NoError;
 
     bool ret = playerPipeline.setStateSync(GST_STATE_NULL);
     if (!ret)
