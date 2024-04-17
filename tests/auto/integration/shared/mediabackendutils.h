@@ -7,16 +7,31 @@
 #include <QtTest/qtestcase.h>
 #include <private/qplatformmediaintegration_p.h>
 
-#define QSKIP_GSTREAMER(message)                                          \
-    do {                                                                  \
-        if (QPlatformMediaIntegration::instance()->name() == "gstreamer") \
-            QSKIP(message);                                               \
-    } while (0)
+inline bool isGStreamerPlatform()
+{
+    return QPlatformMediaIntegration::instance()->name() == "gstreamer";
+}
 
-#define QEXPECT_FAIL_GSTREAMER(dataIndex, comment, mode)                  \
-    do {                                                                  \
-        if (QPlatformMediaIntegration::instance()->name() == "gstreamer") \
-            QEXPECT_FAIL(dataIndex, comment, mode);                       \
-    } while (0)
+inline bool isDarwinPlatform()
+{
+    return QPlatformMediaIntegration::instance()->name() == "darwin";
+}
+
+inline bool isAndroidPlatform()
+{
+    return QPlatformMediaIntegration::instance()->name() == "android";
+}
+
+#define QSKIP_GSTREAMER(message) \
+  do {                           \
+    if (isGStreamerPlatform())   \
+      QSKIP(message);            \
+  } while (0)
+
+#define QEXPECT_FAIL_GSTREAMER(dataIndex, comment, mode) \
+  do {                                                   \
+    if (isGStreamerPlatform())                           \
+      QEXPECT_FAIL(dataIndex, comment, mode);            \
+  } while (0)
 
 #endif // MEDIABACKENDUTILS_H
