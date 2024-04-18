@@ -56,7 +56,7 @@ public:
 
     QUrl media() const override;
     const QIODevice *mediaStream() const override;
-    void setMedia(const QUrl&, QIODevice *) override;
+    void setMedia(const QUrl &, QIODevice *) override;
 
     bool streamPlaybackSupported() const override { return true; }
 
@@ -81,6 +81,7 @@ public:
 
     bool processBusMessage(const QGstreamerMessage& message) override;
     bool processSyncMessage(const QGstreamerMessage& message) override;
+
     void updatePosition() { positionChanged(position()); }
 
 private:
@@ -88,7 +89,8 @@ private:
                           QGstElement audioInputSelector, QGstElement subTitleInputSelector,
                           QMediaPlayer *parent);
 
-    struct TrackSelector {
+    struct TrackSelector
+    {
         TrackSelector(TrackType, QGstElement selector);
         QGstPad createInputPad();
         void removeInputPad(QGstPad pad);
@@ -112,15 +114,23 @@ private:
     void decoderPadAdded(const QGstElement &src, const QGstPad &pad);
     void decoderPadRemoved(const QGstElement &src, const QGstPad &pad);
     void disconnectDecoderHandlers();
-    static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child, QGstreamerMediaPlayer *that);
-    static void sourceSetupCallback(GstElement *uridecodebin, GstElement *source, QGstreamerMediaPlayer *that);
+    static void uridecodebinElementAddedCallback(GstElement *uridecodebin, GstElement *child,
+                                                 QGstreamerMediaPlayer *that);
+    static void sourceSetupCallback(GstElement *uridecodebin, GstElement *source,
+                                    QGstreamerMediaPlayer *that);
     static void unknownTypeCallback(GstElement *decodebin, GstPad *pad, GstCaps *caps,
                                     QGstreamerMediaPlayer *self);
+    static void decodebinElementAddedCallback(GstBin *decodebin, GstBin *sub_bin,
+                                              GstElement *element, QGstreamerMediaPlayer *self);
+    static void decodebinElementRemovedCallback(GstBin *decodebin, GstBin *sub_bin,
+                                                GstElement *element, QGstreamerMediaPlayer *self);
+
     void parseStreamsAndMetadata();
     void connectOutput(TrackSelector &ts);
     void removeOutput(TrackSelector &ts);
     void removeAllOutputs();
     void stopOrEOS(bool eos);
+    bool canTrackProgress() const { return decodeBinQueues > 0; }
 
     std::array<TrackSelector, NTrackTypes> trackSelectors;
     TrackSelector &trackSelector(TrackType type);
@@ -139,6 +149,7 @@ private:
 
     bool prerolling = false;
     bool m_requiresSeekOnPlay = false;
+    bool m_initialBufferProgressSent = false;
     ResourceErrorState m_resourceErrorState = ResourceErrorState::NoError;
     qint64 m_duration = 0;
     QTimer positionUpdateTimer;
@@ -163,8 +174,12 @@ private:
     QGObjectHandlerScopedConnection padAdded;
     QGObjectHandlerScopedConnection padRemoved;
     QGObjectHandlerScopedConnection sourceSetup;
-    QGObjectHandlerScopedConnection elementAdded;
+    QGObjectHandlerScopedConnection uridecodebinElementAdded;
     QGObjectHandlerScopedConnection unknownType;
+    QGObjectHandlerScopedConnection elementAdded;
+    QGObjectHandlerScopedConnection elementRemoved;
+
+    int decodeBinQueues = 0;
 };
 
 QT_END_NAMESPACE
