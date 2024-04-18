@@ -38,6 +38,12 @@ inline bool isWindowsPlatform()
       QSKIP(message);            \
   } while (0)
 
+#define QSKIP_FFMPEG(message) \
+  do {                        \
+    if (isFFMPEGPlatform())   \
+      QSKIP(message);         \
+  } while (0)
+
 #define QEXPECT_FAIL_GSTREAMER(dataIndex, comment, mode) \
   do {                                                   \
     if (isGStreamerPlatform())                           \
