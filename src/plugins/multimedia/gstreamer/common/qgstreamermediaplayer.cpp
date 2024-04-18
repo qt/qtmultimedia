@@ -249,8 +249,13 @@ void QGstreamerMediaPlayer::pause()
 
 void QGstreamerMediaPlayer::stop()
 {
-    if (state() == QMediaPlayer::StoppedState)
+    if (state() == QMediaPlayer::StoppedState) {
+        if (position() != 0) {
+            playerPipeline.setPosition(0);
+            positionChanged(0);
+        }
         return;
+    }
     stopOrEOS(false);
 }
 
