@@ -92,6 +92,9 @@ private:
 
     static MaybeUrl selectMediaFile(QString media)
     {
+        if (qEnvironmentVariableIsSet("QTEST_SKIP_MEDIA_VALIDATION"))
+            return QUrl(media);
+
         using namespace Qt::StringLiterals;
 
         QAudioOutput audioOutput;
