@@ -158,8 +158,6 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown()
 
 void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_session()
 {
-    QSKIP_GSTREAMER("QTBUG-123905: stress_test_setup_and_teardown and friends can crash");
-
     QMediaCaptureSession session;
     for (int i = 0; i < 50; i++) {
         QMediaRecorder recorder;
@@ -181,8 +179,6 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_session()
 
 void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_recorder()
 {
-    QSKIP_GSTREAMER("QTBUG-123905: stress_test_setup_and_teardown and friends can crash");
-
     QMediaCaptureSession session;
     QMediaRecorder recorder;
     for (int i = 0; i < 50; i++) {
@@ -204,8 +200,6 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_recorder()
 
 void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_camera()
 {
-    QSKIP_GSTREAMER("QTBUG-123905: stress_test_setup_and_teardown and friends can crash");
-
     QCamera camera;
     for (int i = 0; i < 50; i++) {
         QMediaCaptureSession session;
@@ -227,8 +221,6 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_camera()
 
 void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_audioinput()
 {
-    QSKIP_GSTREAMER("QTBUG-123905: stress_test_setup_and_teardown and friends can crash");
-
     QAudioInput input;
     for (int i = 0; i < 50; i++) {
         QMediaCaptureSession session;
@@ -250,8 +242,6 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_audioinput()
 
 void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_audiooutput()
 {
-    QSKIP_GSTREAMER("QTBUG-123905: stress_test_setup_and_teardown and friends can crash");
-
     QAudioOutput output;
     for (int i = 0; i < 50; i++) {
         QMediaCaptureSession session;
@@ -273,8 +263,6 @@ void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_audiooutput()
 
 void tst_QMediaCaptureSession::stress_test_setup_and_teardown_keep_video()
 {
-    QSKIP_GSTREAMER("QTBUG-123905: stress_test_setup_and_teardown and friends can crash");
-
     QVideoWidget video;
     for (int i = 0; i < 50; i++) {
         QMediaCaptureSession session;

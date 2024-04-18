@@ -252,7 +252,33 @@ void QGstPipeline::beginConfig()
     if (d->m_configCounter > 1)
         return;
 
-    d->m_savedState = state();
+    GstState state;
+    GstState pending;
+    GstStateChangeReturn stateChangeReturn = gst_element_get_state(element(), &state, &pending, 0);
+    switch (stateChangeReturn) {
+    case GST_STATE_CHANGE_ASYNC: {
+        if (state == GST_STATE_PLAYING) {
+            // playing->paused transition in progress. wait for it to finish
+            bool stateChangeSuccessful = this->finishStateChange();
+            if (!stateChangeSuccessful)
+                qWarning() << "QGstPipeline::beginConfig: timeout when waiting for state change";
+        }
+
+        state = pending;
+        break;
+    }
+    case GST_STATE_CHANGE_FAILURE: {
+        // should not happen
+        qCritical() << "QGstPipeline::beginConfig: state change failure";
+        break;
+    }
+
+    case GST_STATE_CHANGE_NO_PREROLL:
+    case GST_STATE_CHANGE_SUCCESS:
+        break;
+    }
+
+    d->m_savedState = state;
     if (d->m_savedState == GST_STATE_PLAYING)
         setStateSync(GST_STATE_PAUSED);
 }
