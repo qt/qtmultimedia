@@ -117,6 +117,8 @@ private slots:
     void playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl();
     void play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream();
     void play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames();
+    void play_startsPlayback_withAndWithoutOutputsConnected();
+    void play_startsPlayback_withAndWithoutOutputsConnected_data();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
     void stop_setsPositionToZero_afterPlayingToEndOfMedia();
@@ -602,7 +604,6 @@ void tst_QMediaPlayerBackend::setSource_stopsAndEntersErrorState_whenPlayerWasPl
     QTest::qWait(20);
     QCOMPARE(m_fixture->framesCount, savedFramesCount);
 }
-
 
 void tst_QMediaPlayerBackend::setSource_loadsAudioTrack_whenCalledWithValidWavFile()
 {
@@ -1151,6 +1152,54 @@ void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLong
 
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
     QCOMPARE(m_fixture->surface.m_totalFrames, 2);
+}
+
+void tst_QMediaPlayerBackend::play_startsPlayback_withAndWithoutOutputsConnected()
+{
+    QSKIP_GSTREAMER("QTBUG-124501: Fails with gstreamer");
+
+    QFETCH(const bool, audioConnected);
+    QFETCH(const bool, videoConnected);
+
+    CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
+    if (!videoConnected && !audioConnected)
+        QSKIP_FFMPEG("FFMPEG backend playback fails when no output is connected");
+
+    // Arrange
+    m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
+    if (!audioConnected)
+        m_fixture->player.setAudioOutput(nullptr);
+
+    if (!videoConnected)
+        m_fixture->player.setVideoOutput(nullptr);
+
+    m_fixture->clearSpies();
+
+    // Act
+    m_fixture->player.play();
+
+    // Assert
+    QTRY_VERIFY(!m_fixture->mediaStatusChanged.empty()
+                && m_fixture->mediaStatusChanged.back()
+                        == QList<QVariant>{ QMediaPlayer::EndOfMedia });
+
+    QTRY_COMPARE_EQ(m_fixture->playbackStateChanged,
+                    SignalList({
+                            { QMediaPlayer::PlayingState },
+                            { QMediaPlayer::StoppedState },
+                    }));
+}
+
+void tst_QMediaPlayerBackend::play_startsPlayback_withAndWithoutOutputsConnected_data()
+{
+    QTest::addColumn<bool>("videoConnected");
+    QTest::addColumn<bool>("audioConnected");
+
+    QTest::addRow("all connected") << true << true;
+    QTest::addRow("video connected") << true << false;
+    QTest::addRow("audio connected") << false << true;
+    QTest::addRow("no output connected") << false << false;
 }
 
 void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
