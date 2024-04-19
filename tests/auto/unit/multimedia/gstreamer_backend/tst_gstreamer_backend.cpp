@@ -11,12 +11,23 @@ QT_USE_NAMESPACE
 
 using namespace Qt::Literals;
 
-void tst_GStreamer::metadata_fromGstTagList()
+QGstTagListHandle tst_GStreamer::parseTagList(const char *str)
 {
     QGstTagListHandle tagList{
-        gst_tag_list_new_from_string(R"(taglist, title="My Video", comment="yada")"),
+        gst_tag_list_new_from_string(str),
         QGstTagListHandle::NeedsRef,
     };
+    return tagList;
+}
+
+QGstTagListHandle tst_GStreamer::parseTagList(const QByteArray &ba)
+{
+    return parseTagList(ba.constData());
+}
+
+void tst_GStreamer::metadata_fromGstTagList()
+{
+    QGstTagListHandle tagList = parseTagList(R"(taglist, title="My Video", comment="yada")");
 
     QGstreamerMetaData parsed = QGstreamerMetaData::fromGstTagList(tagList.get());
 
@@ -29,11 +40,7 @@ void tst_GStreamer::metadata_fromGstTagList_extractsOrientation()
     QFETCH(QByteArray, taglist);
     QFETCH(QtVideo::Rotation, rotation);
 
-    QGstTagListHandle tagList{
-        gst_tag_list_new_from_string(taglist.constData()),
-        QGstTagListHandle::NeedsRef,
-    };
-
+    QGstTagListHandle tagList = parseTagList(taglist);
     QGstreamerMetaData parsed = QGstreamerMetaData::fromGstTagList(tagList.get());
     QCOMPARE(parsed[QMediaMetaData::Orientation].value<QtVideo::Rotation>(), rotation);
 }
@@ -54,6 +61,17 @@ void tst_GStreamer::metadata_fromGstTagList_extractsOrientation_data()
     QTest::newRow("270 degree")
             << R"(taglist, title="My Video", comment="yada", image-orientation=(string)rotate-270)"_ba
             << QtVideo::Rotation::Clockwise270;
+}
+
+void tst_GStreamer::metadata_fromGstTagList_extractsDuration()
+{
+    QGstTagListHandle tagList = parseTagList(
+            R"__(taglist, video-codec=(string)"On2\ VP9",  container-specific-track-id=(string)1, extended-comment=(string){ "ALPHA_MODE\=1", "HANDLER_NAME\=Apple\ Video\ Media\ Handler", "VENDOR_ID\=appl", "TIMECODE\=00:00:00:00", "DURATION\=00:00:00.400000000" }, encoder=(string)"Lavc59.37.100\ libvpx-vp9")__");
+
+    QGstreamerMetaData parsed = QGstreamerMetaData::fromGstTagList(tagList.get());
+
+    QEXPECT_FAIL("", "duration in extended comment", Continue);
+    QCOMPARE(parsed[QMediaMetaData::Duration].value<int>(), 400);
 }
 
 QTEST_GUILESS_MAIN(tst_GStreamer)
