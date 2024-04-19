@@ -537,6 +537,9 @@ void tst_QMediaPlayerBackend::setSource_changesSourceAndMediaStatus_whenCalledWi
     expectedState.source = *m_localVideoFile;
     expectedState.mediaStatus = QMediaPlayer::LoadingMedia;
 
+    if (isGStreamerPlatform()) // gstreamer synchronously identifies file streams as seekable
+        expectedState.isSeekable = true;
+
     MediaPlayerState actualState{ m_fixture->player };
 
     COMPARE_MEDIA_PLAYER_STATE_EQ(actualState, expectedState);
@@ -571,6 +574,9 @@ void tst_QMediaPlayerBackend::setSource_updatesExpectedAttributes_whenMediaHasLo
     expectedState.hasVideo = true;
     expectedState.isSeekable = true;
     expectedState.metaData = std::nullopt; // Don't compare
+
+    if (isGStreamerPlatform())
+        expectedState.bufferProgress = std::nullopt; // QTBUG-124633: can change before play()
 
     MediaPlayerState actualState{ m_fixture->player };
 
@@ -981,14 +987,14 @@ void tst_QMediaPlayerBackend::play_setsPlaybackStateAndMediaStatus_whenValidFile
     m_fixture->player.play();
 
     QTRY_COMPARE_EQ(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_COMPARE_EQ(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
 
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
-    QTRY_COMPARE(m_fixture->mediaStatusChanged,
-                 SignalList({ { QMediaPlayer::LoadingMedia },
-                              { QMediaPlayer::LoadedMedia },
-                              { QMediaPlayer::BufferingMedia },
-                              { QMediaPlayer::BufferedMedia } }));
+    QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
+                    SignalList({ { QMediaPlayer::LoadingMedia },
+                                 { QMediaPlayer::LoadedMedia },
+                                 { QMediaPlayer::BufferingMedia },
+                                 { QMediaPlayer::BufferedMedia } }));
 
     QTRY_COMPARE_GT(m_fixture->bufferProgressChanged.size(), 0);
     QTRY_COMPARE_NE(m_fixture->bufferProgressChanged.front().front(), 0.f);
@@ -1026,11 +1032,15 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
 
     // Assert
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferingMedia);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
     QCOMPARE_EQ(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::PlayingState } }));
 
     // Note: Should not go through Loading again when play -> stop -> play
-    QCOMPARE_EQ(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::BufferingMedia } }));
+    QCOMPARE_EQ(m_fixture->mediaStatusChanged,
+                SignalList({
+                        { QMediaPlayer::BufferingMedia },
+                        { QMediaPlayer::BufferedMedia },
+                }));
 }
 
 void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayback_whenSetSourceWasCalledWithEmptyUrl()
@@ -1134,26 +1144,31 @@ void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLong
 {
     CHECK_SELECTED_URL(m_oneRedFrameVideo);
 
+    m_fixture->surface.setStoreFrames(true);
+
     m_fixture->player.setSource(*m_oneRedFrameVideo);
     m_fixture->player.play();
 
-    auto firstFrame = m_fixture->surface.waitForFrame();
-    QVERIFY(firstFrame.isValid());
+    QTRY_COMPARE_GT(m_fixture->surface.m_totalFrames, 0);
+    QVERIFY(m_fixture->surface.m_frameList.front().isValid());
 
     QElapsedTimer timer;
     timer.start();
 
-    auto endFrame = m_fixture->surface.waitForFrame();
-    QVERIFY(!endFrame.isValid());
-
+    QTRY_COMPARE_GT(m_fixture->surface.m_totalFrames, 1);
     const auto elapsed = timer.elapsed();
 
-    // 1000 is expected
-    QCOMPARE_GT(elapsed, 900);
-    QCOMPARE_LT(elapsed, 1400);
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124005: GStreamer timing seems to be off
+
+        // 1000 is expected
+        QCOMPARE_GT(elapsed, 900);
+        QCOMPARE_LT(elapsed, 1400);
+    }
 
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
     QCOMPARE(m_fixture->surface.m_totalFrames, 2);
+    QVERIFY(!m_fixture->surface.m_frameList.back().isValid());
 }
 
 void tst_QMediaPlayerBackend::play_startsPlayback_withAndWithoutOutputsConnected()
@@ -1226,7 +1241,10 @@ void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
     QCOMPARE(m_fixture->playbackStateChanged, SignalList({ { QMediaPlayer::StoppedState } }));
     // it's allowed to emit statusChanged() signal async
     QTRY_COMPARE(m_fixture->mediaStatusChanged, SignalList({ { QMediaPlayer::LoadedMedia } }));
-    QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
+
+    if (!isGStreamerPlatform())
+        // QTBUG-124517: for some media types gstreamer does not emit buffer progress messages
+        QCOMPARE(m_fixture->bufferProgressChanged, SignalList({ { 0.f } }));
 
     QTRY_COMPARE(m_fixture->player.position(), qint64(0));
     QTRY_VERIFY(!m_fixture->positionChanged.empty());
@@ -1427,10 +1445,13 @@ void tst_QMediaPlayerBackend::processEOS()
     QCOMPARE(m_fixture->playbackStateChanged.size(), 2);
     QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
 
-    QCOMPARE_GT(m_fixture->bufferProgressChanged.size(), 1);
-    QCOMPARE(m_fixture->bufferProgressChanged.back().front(), 0.f);
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124517: for some media types gstreamer does not emit buffer progress messages
+        QCOMPARE_GT(m_fixture->bufferProgressChanged.size(), 1);
+        QCOMPARE(m_fixture->bufferProgressChanged.back().front(), 0.f);
+    }
 
-    //position stays at the end of file
+    // position stays at the end of file
     QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
     QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
     QTRY_COMPARE(m_fixture->positionChanged.last()[0].value<qint64>(), m_fixture->player.duration());
@@ -2812,10 +2833,15 @@ void tst_QMediaPlayerBackend::cleanSinkAndNoMoreFramesAfterStop()
     for (int i = 0; i < 8; ++i) {
         player.play();
         QTRY_VERIFY(framesCount > 0);
+        QVERIFY(sink.videoFrame().isValid());
 
         player.stop();
 
-        QVERIFY(!sink.videoFrame().isValid());
+        if (isGStreamerPlatform())
+            // QTBUG-124005: stop() is asynchronous in gstreamer
+            QTRY_VERIFY(!sink.videoFrame().isValid());
+        else
+            QVERIFY(!sink.videoFrame().isValid());
 
         QCOMPARE_NE(framesCount, 0);
         framesCount = 0;
