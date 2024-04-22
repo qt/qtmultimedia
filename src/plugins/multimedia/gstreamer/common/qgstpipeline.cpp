@@ -324,11 +324,16 @@ bool QGstPipeline::seek(qint64 pos, double rate)
     return true;
 }
 
-bool QGstPipeline::setPlaybackRate(double rate)
+bool QGstPipeline::setPlaybackRate(double rate, bool applyToPipeline)
 {
     QGstPipelinePrivate *d = getPrivate();
     if (rate == d->m_rate)
         return false;
+
+    if (!applyToPipeline) {
+        d->m_rate = rate;
+        return true;
+    }
 
     constexpr GstSeekFlags seekFlags =
 #if GST_CHECK_VERSION(1, 18, 0)
