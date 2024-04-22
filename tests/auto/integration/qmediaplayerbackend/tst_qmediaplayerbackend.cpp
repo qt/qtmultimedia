@@ -2810,6 +2810,9 @@ void tst_QMediaPlayerBackend::lazyLoadVideo()
 
 void tst_QMediaPlayerBackend::videoSinkSignals()
 {
+    std::atomic<int> videoFrameCounter = 0;
+    std::atomic<int> videoSizeCounter = 0;
+
     // TODO: come up with custom frames source,
     // create the test target tst_QVideoSinkBackend,
     // and move the test there
@@ -2819,9 +2822,6 @@ void tst_QMediaPlayerBackend::videoSinkSignals()
     QVideoSink sink;
     QMediaPlayer player;
     player.setVideoSink(&sink);
-
-    std::atomic<int> videoFrameCounter = 0;
-    std::atomic<int> videoSizeCounter = 0;
 
     player.setSource(*m_localVideoFile2);
 
