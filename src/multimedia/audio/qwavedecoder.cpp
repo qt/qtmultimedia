@@ -91,6 +91,10 @@ qint64 QWaveDecoder::pos() const
     return device->pos();
 }
 
+void QWaveDecoder::setIODevice(QIODevice * /* device */)
+{
+}
+
 QAudioFormat QWaveDecoder::audioFormat() const
 {
     return format;
