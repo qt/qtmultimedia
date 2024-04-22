@@ -37,6 +37,8 @@
 
 QT_USE_NAMESPACE
 
+using namespace Qt::Literals;
+
 namespace {
 static qreal colorDifference(QRgb first, QRgb second)
 {
@@ -2284,9 +2286,9 @@ void tst_QMediaPlayerBackend::playFromBuffer()
     TestVideoSink surface(false);
     QMediaPlayer player;
     player.setVideoOutput(&surface);
-    QFile file(m_localVideoFile->toLocalFile());
-    if (!file.open(QIODevice::ReadOnly))
-        QSKIP("Could not open file");
+    QFile file(u":"_s + m_localVideoFile->toEncoded(QUrl::RemoveScheme));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+
     player.setSourceDevice(&file, *m_localVideoFile);
     player.play();
     QTRY_VERIFY(player.position() >= 1000);
