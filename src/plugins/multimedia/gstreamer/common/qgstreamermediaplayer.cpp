@@ -180,7 +180,8 @@ qreal QGstreamerMediaPlayer::playbackRate() const
 
 void QGstreamerMediaPlayer::setPlaybackRate(qreal rate)
 {
-    if (playerPipeline.setPlaybackRate(rate))
+    bool applyRateToPipeline = state() != QMediaPlayer::StoppedState;
+    if (playerPipeline.setPlaybackRate(rate, applyRateToPipeline))
         playbackRateChanged(rate);
 }
 
