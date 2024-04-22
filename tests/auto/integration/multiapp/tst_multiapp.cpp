@@ -33,37 +33,23 @@ public slots:
     }
 
 private slots:
-    void mediaDevices_doesNotCrash_whenCalledWithoutApplication()
+    void mediaDevices_doesNotCrash_whenRecreatingApplication()
     {
         QVERIFY(executeTestOutOfProcess(
-                "mediaDevices_doesNotCrash_whenCalledWithoutApplication_impl"_L1));
+                "mediaDevices_doesNotCrash_whenRecreatingApplication_impl"_L1));
     }
 
-    bool mediaDevices_doesNotCrash_whenCalledWithoutApplication_impl(int /*argc*/, char ** /*argv*/)
+    bool mediaDevices_doesNotCrash_whenRecreatingApplication_impl(int argc, char ** argv)
     {
-        Q_ASSERT(!qApp);
-
-        QMediaDevices::defaultAudioOutput(); // Just verify that we don't crash
-        return true;
-    }
-
-    void mediaDevices_doesNotCrash_whenCalledAfterApplicationExit()
-    {
-        QVERIFY(executeTestOutOfProcess(
-                "mediaDevices_doesNotCrash_whenCalledAfterApplicationExit_impl"_L1));
-    }
-
-    bool mediaDevices_doesNotCrash_whenCalledAfterApplicationExit_impl(int argc, char **argv)
-    {
-        Q_ASSERT(!qApp);
-
         {
             QCoreApplication app{ argc, argv };
-            // Create the backend bound to the lifetime of the app
+            QMediaDevices::defaultAudioOutput();
+        }
+        {
+            QCoreApplication app{ argc, argv };
             QMediaDevices::defaultAudioOutput();
         }
 
-        QMediaDevices::defaultAudioOutput(); // Just verify that we don't crash
         return true;
     }
 

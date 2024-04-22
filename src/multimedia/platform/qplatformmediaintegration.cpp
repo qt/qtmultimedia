@@ -91,48 +91,10 @@ struct InstanceHolder
         qCDebug(qLcMediaPlugin) << "Released media backend";
     }
 
-    // Play nice with QtGlobalStatic::ApplicationHolder
-    using QAS_Type = InstanceHolder;
-    static void innerFunction(void *pointer)
-    {
-        new (pointer) InstanceHolder();
-    }
-
     std::unique_ptr<QPlatformMediaIntegration> instance;
 };
 
-// Specialized implementation of Q_APPLICATION_STATIC which behaves as
-// an application static if a Qt application is present, otherwise as a Q_GLOBAL_STATIC.
-// By doing this, and we have a Qt application, all system resources allocated by the
-// backend is released when application lifetime ends. This is important on Windows,
-// where Windows Media Foundation instances should not be released during static destruction.
-//
-// If we don't have a Qt application available when instantiating the instance holder,
-// it will be created once, and not destroyed until static destruction. This can cause
-// abrupt termination of Windows applications during static destruction. This is not a
-// supported use case, but we keep this as a fallback to keep old applications functional.
-// See also QTBUG-120198
-struct ApplicationHolder : QtGlobalStatic::ApplicationHolder<InstanceHolder>
-{
-    // Replace QtGlobalStatic::ApplicationHolder::pointer to prevent crash if
-    // no application is present
-    static InstanceHolder* pointer()
-    {
-        if (guard.loadAcquire() == QtGlobalStatic::Initialized)
-            return realPointer();
-
-        QMutexLocker locker(&mutex);
-        if (guard.loadRelaxed() == QtGlobalStatic::Uninitialized) {
-            InstanceHolder::innerFunction(&storage);
-
-            if (const QCoreApplication *app = QCoreApplication::instance())
-                QObject::connect(app, &QObject::destroyed, app, reset, Qt::DirectConnection);
-
-            guard.storeRelease(QtGlobalStatic::Initialized);
-        }
-        return realPointer();
-    }
-};
+Q_APPLICATION_STATIC(InstanceHolder, s_instanceHolder);
 
 } // namespace
 
@@ -140,7 +102,6 @@ QT_BEGIN_NAMESPACE
 
 QPlatformMediaIntegration *QPlatformMediaIntegration::instance()
 {
-    static QGlobalStatic<ApplicationHolder> s_instanceHolder;
     return s_instanceHolder->instance.get();
 }
 
