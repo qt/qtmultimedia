@@ -3,7 +3,8 @@
 #include <qavfhelpers_p.h>
 #include <CoreMedia/CMFormatDescription.h>
 #include <CoreVideo/CoreVideo.h>
-#include <qdebug.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/private/qcore_mac_p.h>
 
 #import <CoreVideo/CoreVideo.h>
 
@@ -83,8 +84,8 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
     auto colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
     auto colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;
 
-    if (CFStringRef cSpace = reinterpret_cast<CFStringRef>(
-                CVBufferGetAttachment(buffer, kCVImageBufferYCbCrMatrixKey, nullptr))) {
+    if (auto cSpace =
+                QCFString(CVBufferCopyAttachment(buffer, kCVImageBufferYCbCrMatrixKey, nullptr))) {
         if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_709_2)) {
             colorSpace = QVideoFrameFormat::ColorSpace_BT709;
         } else if (CFEqual(cSpace, kCVImageBufferYCbCrMatrix_ITU_R_601_4)
@@ -95,8 +96,10 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
         }
     }
 
-    if (CFStringRef cTransfer = reinterpret_cast<CFStringRef>(
-        CVBufferGetAttachment(buffer, kCVImageBufferTransferFunctionKey, nullptr))) {
+    if (auto cTransfer = QCFString(
+                CVBufferCopyAttachment(buffer, kCVImageBufferTransferFunctionKey, nullptr))) {
+
+        using QCFNumber = QCFType<CFNumberRef>;
 
         if (CFEqual(cTransfer, kCVImageBufferTransferFunction_ITU_R_709_2)) {
             colorTransfer = QVideoFrameFormat::ColorTransfer_BT709;
@@ -105,8 +108,8 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
         } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_sRGB)) {
             colorTransfer = QVideoFrameFormat::ColorTransfer_Gamma22;
         } else if (CFEqual(cTransfer, kCVImageBufferTransferFunction_UseGamma)) {
-            auto gamma = reinterpret_cast<CFNumberRef>(
-                        CVBufferGetAttachment(buffer, kCVImageBufferGammaLevelKey, nullptr));
+            auto gamma =
+                    QCFNumber(CVBufferCopyAttachment(buffer, kCVImageBufferGammaLevelKey, nullptr));
             double g;
             CFNumberGetValue(gamma, kCFNumberFloat32Type, &g);
             // These are best fit values given what we have in our enum
