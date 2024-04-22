@@ -95,7 +95,7 @@ public:
     void flush();
 
     bool seek(qint64 pos, double rate);
-    bool setPlaybackRate(double rate);
+    bool setPlaybackRate(double rate, bool applyToPipeline = true);
     double playbackRate() const;
 
     bool setPosition(qint64 pos);
