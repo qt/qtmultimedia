@@ -22,6 +22,16 @@ inline bool isAndroidPlatform()
     return QPlatformMediaIntegration::instance()->name() == "android";
 }
 
+inline bool isFFMPEGPlatform()
+{
+    return QPlatformMediaIntegration::instance()->name() == "ffmpeg";
+}
+
+inline bool isWindowsPlatform()
+{
+    return QPlatformMediaIntegration::instance()->name() == "windows";
+}
+
 #define QSKIP_GSTREAMER(message) \
   do {                           \
     if (isGStreamerPlatform())   \
