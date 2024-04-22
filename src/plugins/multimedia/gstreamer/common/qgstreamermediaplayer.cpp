@@ -911,6 +911,9 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
             QSize resolution = structure.resolution();
             if (resolution.isValid())
                 m_metaData.insert(QMediaMetaData::Resolution, resolution);
+
+            QSize nativeSize = structure.nativeSize();
+            gstVideoOutput->setNativeSize(nativeSize);
         }
     }
 
@@ -923,9 +926,6 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
             qCDebug(qLcMediaPlayer) << "    tags=" << tagList.get();
         else
             qCDebug(qLcMediaPlayer) << "    tags=(null)";
-
-        QSize nativeSize = structure.nativeSize();
-        gstVideoOutput->setNativeSize(nativeSize);
     }
 
 
