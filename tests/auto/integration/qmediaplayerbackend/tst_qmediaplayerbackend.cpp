@@ -1219,9 +1219,17 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackRateAndEmitsSignal_
     QTest::addRow("Increase") << 1.0f << 2.0f << 2.0f << true;
     QTest::addRow("Decrease") << 1.0f << 0.5f << 0.5f << true;
     QTest::addRow("Keep") << 0.5f << 0.5f << 0.5f << false;
-    QTest::addRow("DecreaseBelowZero") << 0.5f << -0.5f << 0.0f << true;
-    QTest::addRow("KeepDecreasingBelowZero") << -0.5f << -0.6f << 0.0f << false;
 
+    bool backendSupportsNegativePlayback =
+            isWindowsPlatform() || isDarwinPlatform() || isGStreamerPlatform();
+
+    if (backendSupportsNegativePlayback) {
+        QTest::addRow("DecreaseBelowZero") << 0.5f << -0.5f << -0.5f << true;
+        QTest::addRow("KeepDecreasingBelowZero") << -0.5f << -0.6f << -0.6f << true;
+    } else {
+        QTest::addRow("DecreaseBelowZero") << 0.5f << -0.5f << 0.0f << true;
+        QTest::addRow("KeepDecreasingBelowZero") << -0.5f << -0.6f << 0.0f << false;
+    }
 }
 
 void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackRateAndEmitsSignal()
