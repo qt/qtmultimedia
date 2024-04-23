@@ -3,6 +3,8 @@
 
 #include <common/qgstreamerbufferprobe_p.h>
 
+#include <common/qgst_p.h>
+
 QT_BEGIN_NAMESPACE
 
 QGstreamerBufferProbe::QGstreamerBufferProbe(Flags flags)
@@ -14,10 +16,14 @@ QGstreamerBufferProbe::~QGstreamerBufferProbe() = default;
 
 void QGstreamerBufferProbe::addProbeToPad(GstPad *pad, bool downstream)
 {
-    if (GstCaps *caps = gst_pad_get_current_caps(pad)) {
-        probeCaps(caps);
-        gst_caps_unref(caps);
-    }
+    QGstCaps caps{
+        gst_pad_get_current_caps(pad),
+        QGstCaps::HasRef,
+    };
+
+    if (caps)
+        probeCaps(caps.caps());
+
     if (m_flags & ProbeCaps) {
         m_capsProbeId = gst_pad_add_probe(
                     pad,

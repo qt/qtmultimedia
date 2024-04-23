@@ -77,7 +77,7 @@ private:
     const QGstCaps m_surfaceCaps;
 
     QGstCaps m_startCaps;
-    GstBuffer *m_renderBuffer = nullptr;
+    QGstBufferHandle m_renderBuffer;
 
     bool m_notified = false;
     bool m_stop = false;

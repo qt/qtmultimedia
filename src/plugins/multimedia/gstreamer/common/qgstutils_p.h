@@ -31,7 +31,7 @@ QAudioFormat audioFormatForSample(GstSample *sample);
 QAudioFormat audioFormatForCaps(const QGstCaps &caps);
 QGstCaps capsForAudioFormat(const QAudioFormat &format);
 
-void setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer);
+void setFrameTimeStampsFromBuffer(QVideoFrame *frame, GstBuffer *buffer);
 } // namespace QGstUtils
 
 GList *qt_gst_video_sinks();
