@@ -98,35 +98,35 @@ int QGstreamerImageCapture::captureToBuffer()
 int QGstreamerImageCapture::doCapture(const QString &fileName)
 {
     qCDebug(qLcImageCaptureGst) << "do capture";
+
+    // emit error in the next event loop,
+    // so application can associate it with returned request id.
+    auto invokeDeferred = [&](auto &&fn) {
+        QMetaObject::invokeMethod(this, std::forward<decltype(fn)>(fn), Qt::QueuedConnection);
+    };
+
     if (!m_session) {
-        //emit error in the next event loop,
-        //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                  Q_ARG(int, -1),
-                                  Q_ARG(int, QImageCapture::ResourceError),
-                                  Q_ARG(QString, QPlatformImageCapture::msgImageCaptureNotSet()));
+        invokeDeferred([this] {
+            emit error(-1, QImageCapture::ResourceError,
+                       QPlatformImageCapture::msgImageCaptureNotSet());
+        });
 
         qCDebug(qLcImageCaptureGst) << "error 1";
         return -1;
     }
     if (!m_session->camera()) {
-        //emit error in the next event loop,
-        //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                  Q_ARG(int, -1),
-                                  Q_ARG(int, QImageCapture::ResourceError),
-                                  Q_ARG(QString,tr("No camera available.")));
+        invokeDeferred([this] {
+            emit error(-1, QImageCapture::ResourceError, tr("No camera available."));
+        });
 
         qCDebug(qLcImageCaptureGst) << "error 2";
         return -1;
     }
     if (passImage) {
-        //emit error in the next event loop,
-        //so application can associate it with returned request id.
-        QMetaObject::invokeMethod(this, "error", Qt::QueuedConnection,
-                                  Q_ARG(int, -1),
-                                  Q_ARG(int, QImageCapture::NotReadyError),
-                                  Q_ARG(QString, QPlatformImageCapture::msgCameraNotReady()));
+        invokeDeferred([this] {
+            emit error(-1, QImageCapture::NotReadyError,
+                       QPlatformImageCapture::msgCameraNotReady());
+        });
 
         qCDebug(qLcImageCaptureGst) << "error 3";
         return -1;
