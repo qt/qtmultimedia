@@ -73,8 +73,9 @@ QGstreamerAudioDecoder::QGstreamerAudioDecoder(QGstPipeline playbin, QGstElement
     m_outputBin.addGhostPad(m_audioConvert, "sink");
 
     g_object_set(m_playbin.object(), "audio-sink", m_outputBin.element(), NULL);
-    g_signal_connect(m_playbin.object(), "deep-notify::source",
-                     (GCallback)&QGstreamerAudioDecoder::configureAppSrcElement, (gpointer)this);
+
+    m_deepNotifySourceConnection = m_playbin.connect(
+            "deep-notify::source", (GCallback)&configureAppSrcElement, (gpointer)this);
 
     // Set volume to 100%
     gdouble volume = 1.0;

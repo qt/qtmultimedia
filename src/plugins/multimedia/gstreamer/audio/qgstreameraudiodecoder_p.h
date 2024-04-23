@@ -101,6 +101,8 @@ private:
     qint64 m_duration = -1;
 
     int m_durationQueries = 0;
+
+    QGObjectHandlerScopedConnection m_deepNotifySourceConnection;
 };
 
 QT_END_NAMESPACE

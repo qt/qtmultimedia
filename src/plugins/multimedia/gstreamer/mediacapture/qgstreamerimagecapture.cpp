@@ -71,7 +71,7 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
     addProbeToPad(queue.staticPad("src").pad(), false);
 
     sink.set("signal-handoffs", true);
-    g_signal_connect(sink.object(), "handoff", G_CALLBACK(&QGstreamerImageCapture::saveImageFilter), this);
+    m_handoffConnection = sink.connect("handoff", G_CALLBACK(&saveImageFilter), this);
 }
 
 QGstreamerImageCapture::~QGstreamerImageCapture()
