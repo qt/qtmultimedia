@@ -86,6 +86,8 @@ private:
 
     bool passImage = false;
     bool cameraActive = false;
+
+    QGObjectHandlerScopedConnection m_handoffConnection;
 };
 
 QT_END_NAMESPACE
