@@ -139,7 +139,9 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
 
     gst_pipeline_use_clock(playerPipeline.pipeline(), systemClock.get());
 
-    connect(&positionUpdateTimer, &QTimer::timeout, this, &QGstreamerMediaPlayer::updatePosition);
+    connect(&positionUpdateTimer, &QTimer::timeout, this, [this] {
+        updatePosition();
+    });
 }
 
 QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
@@ -391,20 +393,20 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 
         if (errorDomain == GST_STREAM_ERROR) {
             if (errorCode == GST_STREAM_ERROR_CODEC_NOT_FOUND)
-                emit error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
+                error(QMediaPlayer::FormatError, tr("Cannot play stream of type: <unknown>"));
             else {
-                emit error(QMediaPlayer::FormatError, QString::fromUtf8(err.get()->message));
+                error(QMediaPlayer::FormatError, QString::fromUtf8(err.get()->message));
             }
         } else if (errorDomain == GST_RESOURCE_ERROR) {
             if (errorCode == GST_RESOURCE_ERROR_NOT_FOUND) {
                 if (m_resourceErrorState != ResourceErrorState::ErrorReported) {
                     // gstreamer seems to deliver multiple GST_RESOURCE_ERROR_NOT_FOUND events
-                    emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
+                    error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
                     m_resourceErrorState = ResourceErrorState::ErrorReported;
                     m_url.clear();
                 }
             } else {
-                emit error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
+                error(QMediaPlayer::ResourceError, QString::fromUtf8(err.get()->message));
             }
         } else {
             playerPipeline.dumpGraph("error");
@@ -753,14 +755,14 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
             if (maybeAppSrc) {
                 m_appSrc = maybeAppSrc.value();
             } else {
-                emit error(QMediaPlayer::ResourceError, maybeAppSrc.error());
+                error(QMediaPlayer::ResourceError, maybeAppSrc.error());
                 return;
             }
         }
         src = m_appSrc->element();
         decoder = QGstElement::createFromFactory("decodebin", "decoder");
         if (!decoder) {
-            emit error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("decodebin"));
+            error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("decodebin"));
             return;
         }
         decoder.set("post-stream-topology", true);
@@ -777,7 +779,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         // use uridecodebin
         decoder = QGstElement::createFromFactory("uridecodebin", "decoder");
         if (!decoder) {
-            emit error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("uridecodebin"));
+            error(QMediaPlayer::ResourceError, errorMessageCannotFindElement("uridecodebin"));
             return;
         }
         playerPipeline.add(decoder);
@@ -987,5 +989,3 @@ void QGstreamerMediaPlayer::setActiveTrack(TrackType type, int index)
 }
 
 QT_END_NAMESPACE
-
-#include "moc_qgstreamermediaplayer_p.cpp"

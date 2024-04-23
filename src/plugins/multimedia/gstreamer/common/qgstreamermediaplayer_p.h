@@ -40,8 +40,6 @@ class QGstreamerMediaPlayer : public QObject,
                               public QGstreamerBusMessageFilter,
                               public QGstreamerSyncMessageFilter
 {
-    Q_OBJECT
-
 public:
     static QMaybe<QPlatformMediaPlayer *> create(QMediaPlayer *parent = nullptr);
     ~QGstreamerMediaPlayer();
@@ -83,7 +81,6 @@ public:
 
     bool processBusMessage(const QGstreamerMessage& message) override;
     bool processSyncMessage(const QGstreamerMessage& message) override;
-public Q_SLOTS:
     void updatePosition() { positionChanged(position()); }
 
 private:
