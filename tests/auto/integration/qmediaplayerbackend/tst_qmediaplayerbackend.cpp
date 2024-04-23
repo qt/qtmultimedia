@@ -1834,7 +1834,7 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
 
     player.play();
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_VERIFY(player.position() > 1000);
+    QTRY_COMPARE_GT(player.position(), 1000);
     player.pause();
     QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
     // make sure position does not "jump" closer to the end of the file
@@ -1844,10 +1844,10 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
     QTRY_COMPARE(player.position(), qint64(0));
     player.play();
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_VERIFY(player.position() > 1000);
+    QTRY_COMPARE_GT(player.position(), 1000);
     player.pause();
     QCOMPARE(player.playbackState(), QMediaPlayer::PausedState);
-    QVERIFY(player.position() > 1000);
+    QCOMPARE_GT(player.position(), 1000);
 }
 
 void tst_QMediaPlayerBackend::multipleMediaPlayback()
