@@ -115,7 +115,7 @@ QList<QAudioFormat::SampleFormat> QGValue::getSampleFormats() const
     return formats;
 }
 
-void QGstUtils::setFrameTimeStamps(QVideoFrame *frame, GstBuffer *buffer)
+void QGstUtils::setFrameTimeStampsFromBuffer(QVideoFrame *frame, GstBuffer *buffer)
 {
     using namespace std::chrono;
     using namespace std::chrono_literals;

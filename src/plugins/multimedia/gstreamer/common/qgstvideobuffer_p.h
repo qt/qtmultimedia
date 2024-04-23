@@ -30,12 +30,10 @@ class QOpenGLContext;
 class QGstVideoBuffer final : public QAbstractVideoBuffer
 {
 public:
-
-    QGstVideoBuffer(GstBuffer *buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,
+    QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,
                     const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
     ~QGstVideoBuffer();
 
-    GstBuffer *buffer() const { return m_buffer; }
     QVideoFrame::MapMode mapMode() const override;
 
     MapData map(QVideoFrame::MapMode mode) override;
@@ -49,7 +47,7 @@ private:
     QRhi *m_rhi = nullptr;
     mutable GstVideoInfo m_videoInfo;
     mutable GstVideoFrame m_frame{};
-    GstBuffer *m_buffer = nullptr;
+    const QGstBufferHandle m_buffer;
     QVideoFrame::MapMode m_mode = QVideoFrame::NotMapped;
     Qt::HANDLE eglDisplay = nullptr;
     QFunctionPointer eglImageTargetTexture2D = nullptr;

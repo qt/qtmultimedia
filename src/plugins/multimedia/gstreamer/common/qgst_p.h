@@ -333,6 +333,8 @@ public:
     static QGstCaps create();
 
     static QGstCaps fromCameraFormat(const QCameraFormat &format);
+
+    QGstCaps copy() const;
 };
 
 template <>

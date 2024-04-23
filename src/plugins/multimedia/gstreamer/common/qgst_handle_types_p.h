@@ -46,7 +46,7 @@ struct QSharedHandle : private QUniqueHandle<HandleTraits>
     }
 
     QSharedHandle(const QSharedHandle &o)
-        : QSharedHandle{
+        : BaseClass{
               HandleTraits::ref(o.get()),
           }
     {
@@ -238,6 +238,7 @@ using QUniqueGstStructureHandle = QUniqueHandle<QGstImpl::QUniqueGstStructureHan
 using QUniqueGStringHandle = QUniqueHandle<QGstImpl::QUniqueGStringHandleTraits>;
 using QUniqueGErrorHandle = QUniqueHandle<QGstImpl::QUniqueGErrorHandleTraits>;
 using QFileDescriptorHandle = QUniqueHandle<QGstImpl::QFileDescriptorHandleTraits>;
+using QGstBufferHandle = QGstImpl::QGstMiniObjectHandleHelper<GstBuffer>::SharedHandle;
 using QGstContextHandle = QGstImpl::QGstMiniObjectHandleHelper<GstContext>::UniqueHandle;
 using QGstGstDateTimeHandle = QGstImpl::QGstMiniObjectHandleHelper<GstDateTime>::SharedHandle;
 using QGstPluginFeatureHandle = QGstImpl::QGstHandleHelper<GstPluginFeature>::SharedHandle;

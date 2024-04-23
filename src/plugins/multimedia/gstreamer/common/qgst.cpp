@@ -482,6 +482,14 @@ QGstCaps QGstCaps::fromCameraFormat(const QCameraFormat &format)
     return caps;
 }
 
+QGstCaps QGstCaps::copy() const
+{
+    return QGstCaps{
+        gst_caps_copy(caps()),
+        QGstCaps::HasRef,
+    };
+}
+
 QGstCaps::MemoryFormat QGstCaps::memoryFormat() const
 {
     auto *features = gst_caps_get_features(get(), 0);
