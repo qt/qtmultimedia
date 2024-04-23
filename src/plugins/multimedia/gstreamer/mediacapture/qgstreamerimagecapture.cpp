@@ -145,15 +145,15 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
 
 void QGstreamerImageCapture::setResolution(const QSize &resolution)
 {
-    auto padCaps = QGstCaps(gst_pad_get_current_caps(bin.staticPad("sink").pad()), QGstCaps::HasRef);
+    QGstCaps padCaps = bin.staticPad("sink").currentCaps();
     if (padCaps.isNull()) {
         qDebug() << "Camera not ready";
         return;
     }
-    auto caps = QGstCaps(gst_caps_copy(padCaps.caps()), QGstCaps::HasRef);
-    if (caps.isNull()) {
+    QGstCaps caps = padCaps.copy();
+    if (caps.isNull())
         return;
-    }
+
     gst_caps_set_simple(caps.caps(), "width", G_TYPE_INT, resolution.width(), "height", G_TYPE_INT,
                         resolution.height(), nullptr);
     filter.set("caps", caps);
@@ -165,12 +165,16 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
         return false;
     qCDebug(qLcImageCaptureGst) << "probe buffer";
 
+    QGstBufferHandle bufferHandle{
+        buffer,
+        QGstBufferHandle::NeedsRef,
+    };
+
     passImage = false;
 
     emit readyForCaptureChanged(isReadyForCapture());
 
-    auto caps = QGstCaps(gst_pad_get_current_caps(bin.staticPad("sink").pad()), QGstCaps::HasRef);
-
+    QGstCaps caps = bin.staticPad("sink").currentCaps();
     auto memoryFormat = caps.memoryFormat();
 
     GstVideoInfo previewInfo;
@@ -180,7 +184,9 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
         std::tie(fmt, previewInfo) = std::move(*optionalFormatAndVideoInfo);
 
     auto *sink = m_session->gstreamerVideoSink();
-    auto *gstBuffer = new QGstVideoBuffer(buffer, previewInfo, sink, fmt, memoryFormat);
+    auto *gstBuffer = new QGstVideoBuffer{
+        std::move(bufferHandle), previewInfo, sink, fmt, memoryFormat,
+    };
     QVideoFrame frame(gstBuffer, fmt);
     QImage img = frame.toImage();
     if (img.isNull()) {

@@ -177,7 +177,7 @@ void QGstVideoRenderer::flush()
     QMutexLocker locker(&m_mutex);
 
     m_flush = true;
-    m_renderBuffer = nullptr;
+    m_renderBuffer = {};
     m_renderCondition.wakeAll();
 
     notify();
@@ -189,11 +189,14 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
     qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::render";
 
     m_renderReturn = GST_FLOW_OK;
-    m_renderBuffer = buffer;
+    m_renderBuffer = QGstBufferHandle{
+        buffer,
+        QGstBufferHandle::NeedsRef,
+    };
 
     waitForAsyncEvent(&locker, &m_renderCondition, 300);
 
-    m_renderBuffer = nullptr;
+    m_renderBuffer = {};
 
     return m_renderReturn;
 }
@@ -353,19 +356,17 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
         }
 
     } else if (m_renderBuffer) {
-        GstBuffer *buffer = m_renderBuffer;
-        m_renderBuffer = nullptr;
+        QGstBufferHandle buffer = std::move(m_renderBuffer);
         m_renderReturn = GST_FLOW_ERROR;
 
         qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::handleEvent(renderBuffer)" << m_active << m_sink;
         if (m_active && m_sink) {
-            gst_buffer_ref(buffer);
 
             locker->unlock();
 
             m_flushed = false;
 
-            GstVideoCropMeta *meta = gst_buffer_get_video_crop_meta(buffer);
+            GstVideoCropMeta *meta = gst_buffer_get_video_crop_meta(buffer.get());
             if (meta) {
                 QRect vp(meta->x, meta->y, meta->width, meta->height);
                 if (m_format.viewport() != vp) {
@@ -381,15 +382,13 @@ bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
             } else {
                 QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_sink, m_format, memoryFormat);
                 QVideoFrame frame(videoBuffer, m_format);
-                QGstUtils::setFrameTimeStamps(&frame, buffer);
+                QGstUtils::setFrameTimeStampsFromBuffer(&frame, buffer.get());
                 frame.setMirrored(m_frameMirrored);
                 frame.setRotation(m_frameRotationAngle);
 
                 qCDebug(qLcGstVideoRenderer) << "    sending video frame";
                 m_sink->setVideoFrame(frame);
             }
-
-            gst_buffer_unref(buffer);
 
             locker->relock();
 

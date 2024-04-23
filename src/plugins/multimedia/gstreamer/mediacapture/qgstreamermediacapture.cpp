@@ -198,12 +198,12 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
 {
     gstPipeline.modifyPipelineWhileNotRunning([&] {
         if (!gstVideoTee.isNull() && !videoSink.isNull()) {
-            auto caps = gst_pad_get_current_caps(gstVideoTee.sink().pad());
+            QGstCaps caps = gstVideoTee.sink().currentCaps();
 
             encoderVideoCapsFilter =
                     QGstElement::createFromFactory("capsfilter", "encoderVideoCapsFilter");
             Q_ASSERT(encoderVideoCapsFilter);
-            encoderVideoCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
+            encoderVideoCapsFilter.set("caps", caps);
 
             gstPipeline.add(encoderVideoCapsFilter);
 
@@ -213,12 +213,12 @@ void QGstreamerMediaCapture::linkEncoder(QGstPad audioSink, QGstPad videoSink)
         }
 
         if (!gstAudioTee.isNull() && !audioSink.isNull()) {
-            auto caps = gst_pad_get_current_caps(gstAudioTee.sink().pad());
+            QGstCaps caps = gstAudioTee.sink().currentCaps();
 
             encoderAudioCapsFilter =
                     QGstElement::createFromFactory("capsfilter", "encoderAudioCapsFilter");
             Q_ASSERT(encoderAudioCapsFilter);
-            encoderAudioCapsFilter.set("caps", QGstCaps(caps, QGstCaps::HasRef));
+            encoderAudioCapsFilter.set("caps", caps);
 
             gstPipeline.add(encoderAudioCapsFilter);
 
