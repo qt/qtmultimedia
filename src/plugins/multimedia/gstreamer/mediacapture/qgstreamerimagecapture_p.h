@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <private/qplatformimagecapture_p.h>
-#include <private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 
-#include <qqueue.h>
+#include <QtCore/qqueue.h>
 
 #include <common/qgst_p.h>
 #include <common/qgstreamerbufferprobe_p.h>
@@ -58,7 +58,10 @@ private:
 
     void setResolution(const QSize &resolution);
     int doCapture(const QString &fileName);
-    static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad, void *appdata);
+    static gboolean saveImageFilter(GstElement *element, GstBuffer *buffer, GstPad *pad,
+                                    QGstreamerImageCapture *capture);
+
+    void saveBufferToImage(GstBuffer *buffer);
 
     QGstreamerMediaCapture *m_session = nullptr;
     int m_lastId = 0;
