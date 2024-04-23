@@ -10,7 +10,7 @@ if(TARGET Qt::Quick)
     add_subdirectory(qml-minimal-camera)
     add_subdirectory(qml-minimal-player)
 
-    if (QT_FEATURE_gstreamer)
+    if(QT_FEATURE_gstreamer)
         add_subdirectory(qml-gstreamer-rtp)
     endif()
 endif()
