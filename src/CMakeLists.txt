@@ -8,7 +8,7 @@ add_subdirectory(multimedia)
 if(ANDROID)
     add_subdirectory(android)
 endif()
-if (QT_FEATURE_spatialaudio)
+if(QT_FEATURE_spatialaudio)
     add_subdirectory(spatialaudio)
 endif()
 

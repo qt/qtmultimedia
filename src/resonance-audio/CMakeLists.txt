@@ -1,7 +1,7 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-if (MINGW AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+if(MINGW AND CMAKE_SIZEOF_VOID_P EQUAL 4)
     set(NO_SIMD_DEFINES PFFFT_SIMD_DISABLE DISABLE_SIMD)
 endif()
 

@@ -31,6 +31,6 @@ add_subdirectory(qerrorinfo)
 add_subdirectory(qvideobuffers)
 add_subdirectory(qwavedecoder)
 
-if (QT_FEATURE_gstreamer)
+if(QT_FEATURE_gstreamer)
     add_subdirectory(gstreamer_backend)
 endif()

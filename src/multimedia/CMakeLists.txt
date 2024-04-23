@@ -167,7 +167,7 @@ qt_internal_extend_target(Multimedia CONDITION ANDROID
         OpenSLES
 )
 
-if (ANDROID)
+if(ANDROID)
     set_property(TARGET Multimedia APPEND PROPERTY QT_ANDROID_BUNDLED_JAR_DEPENDENCIES
         jar/Qt${QtMultimedia_VERSION_MAJOR}AndroidMultimedia.jar:org.qtproject.qt.android.multimedia.QtAudioDeviceManager
     )
@@ -355,7 +355,7 @@ qt_internal_add_shaders(Multimedia "qtmultimedia_shaders_gl_macos_linear"
         "shaders/rectsampler_bgra_linear.frag.qsb"
 )
 
-if (DEFINED QT_DEFAULT_MEDIA_BACKEND)
+if(DEFINED QT_DEFAULT_MEDIA_BACKEND)
     target_compile_definitions(Multimedia
         PRIVATE QT_DEFAULT_MEDIA_BACKEND="${QT_DEFAULT_MEDIA_BACKEND}")
 endif()
