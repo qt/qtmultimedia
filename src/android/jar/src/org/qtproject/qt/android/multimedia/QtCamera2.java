@@ -24,6 +24,7 @@ import android.graphics.ImageFormat;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.util.Range;
 import android.view.Surface;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
@@ -62,6 +63,7 @@ public class QtCamera2 {
     private int mTorchMode = CameraMetadata.FLASH_MODE_OFF;
     private int mAFMode = CaptureRequest.CONTROL_AF_MODE_OFF;
     private float mZoomFactor = 1.0f;
+    private Range<Integer> mFpsRange = null;
     private QtExifDataHandler mExifDataHandler = null;
 
     native void onCameraOpened(String cameraId);
@@ -261,7 +263,14 @@ public class QtCamera2 {
         }
     };
 
-    public boolean addImageReader(int width, int height, int format) {
+
+    public void prepareCamera(int width, int height, int format, int minFps, int maxFps) {
+
+        addImageReader(width, height, format);
+        setFrameRate(minFps, maxFps);
+    }
+
+    private void addImageReader(int width, int height, int format) {
 
         if (mImageReader != null)
             removeSurface(mImageReader.getSurface());
@@ -276,8 +285,14 @@ public class QtCamera2 {
         mCapturedPhotoReader = ImageReader.newInstance(width, height, format, MaxNumberFrames);
         mCapturedPhotoReader.setOnImageAvailableListener(mOnPhotoAvailableListener, mBackgroundHandler);
         addSurface(mCapturedPhotoReader.getSurface());
+    }
 
-        return true;
+    private void setFrameRate(int minFrameRate, int maxFrameRate) {
+
+        if (minFrameRate <= 0 || maxFrameRate <= 0)
+            mFpsRange = null;
+        else
+            mFpsRange = new Range<>(minFrameRate, maxFrameRate);
     }
 
     public boolean addSurface(Surface surface) {
@@ -335,7 +350,8 @@ public class QtCamera2 {
                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CameraMetadata.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
                 if (mZoomFactor != 1.0f)
                     mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, getScalerCropRegion());
-
+                if (mFpsRange != null)
+                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, mFpsRange);
                 mPreviewRequest = mPreviewRequestBuilder.build();
                 mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback, mBackgroundHandler);
                 mIsStarted = true;

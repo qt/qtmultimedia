@@ -55,8 +55,8 @@ QCameraFormat getDefaultCameraFormat()
     QCameraFormatPrivate *defaultFormat = new QCameraFormatPrivate{
         .pixelFormat = QVideoFrameFormat::Format_YUV420P,
         .resolution = { 1920, 1080 },
-        .minFrameRate = 30,
-        .maxFrameRate = 60,
+        .minFrameRate = 12,
+        .maxFrameRate = 30,
     };
     return defaultFormat->create();
 }
@@ -273,6 +273,15 @@ void QAndroidCamera::setActive(bool active)
         setState(State::WaitingOpen);
         g_qcameras->insert(m_cameraDevice.id(), this);
 
+        // this should use the camera format.
+        // but there is only 2 fully supported formats on android - JPG and YUV420P
+        // and JPEG is not supported for encoding in FFmpeg, so it's locked for YUV for now.
+        const static int imageFormat =
+                QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
+        m_jniCamera.callMethod<void>("prepareCamera", jint(width), jint(height),
+                                     jint(imageFormat), jint(m_cameraFormat.minFrameRate()),
+                                     jint(m_cameraFormat.maxFrameRate()));
+
         bool canOpen = m_jniCamera.callMethod<jboolean>(
                 "open", QJniObject::fromString(m_cameraDevice.id()).object<jstring>());
 
@@ -282,15 +291,6 @@ void QAndroidCamera::setActive(bool active)
             emit error(QCamera::CameraError,
                        QString("Failed to start camera: ").append(m_cameraDevice.description()));
         }
-
-        // this should use the camera format.
-        // but there is only 2 fully supported formats on android - JPG and YUV420P
-        // and JPEG is not supported for encoding in FFmpeg, so it's locked for YUV for now.
-        const static int imageFormat =
-                QJniObject::getStaticField<QtJniTypes::AndroidImageFormat, jint>("YUV_420_888");
-        m_jniCamera.callMethod<jboolean>("addImageReader", jint(width), jint(height),
-                                         jint(imageFormat));
-
     } else {
         m_jniCamera.callMethod<void>("stopAndClose");
         m_jniCamera.callMethod<void>("clearSurfaces");
