@@ -62,6 +62,10 @@ QString toString(QVideoFrameFormat::PixelFormat f)
         return "420p";
     case QVideoFrameFormat::Format_YUV422P:
         return "422p";
+    case QVideoFrameFormat::Format_UYVY:
+        return "uyvy";
+    case QVideoFrameFormat::Format_YUYV:
+        return "yuyv";
     default:
         Q_ASSERT(false);
         return ""; // Not implemented yet
@@ -73,7 +77,8 @@ std::vector<QVideoFrameFormat::PixelFormat> pixelFormats()
     return { QVideoFrameFormat::Format_NV12,    QVideoFrameFormat::Format_NV21,
              QVideoFrameFormat::Format_IMC1,    QVideoFrameFormat::Format_IMC2,
              QVideoFrameFormat::Format_IMC3,    QVideoFrameFormat::Format_IMC4,
-             QVideoFrameFormat::Format_YUV420P, QVideoFrameFormat::Format_YUV422P };
+             QVideoFrameFormat::Format_YUV420P, QVideoFrameFormat::Format_YUV422P,
+             QVideoFrameFormat::Format_UYVY,    QVideoFrameFormat::Format_YUYV };
 }
 
 QString toString(QVideoFrameFormat::ColorSpace s)
@@ -155,10 +160,10 @@ constexpr uchar double2uchar(double v)
     return static_cast<uchar>(std::clamp(v + 0.5, 0.5, 255.5));
 }
 
-constexpr void rgb2y(const QRgb &rgb, uchar *y)
+constexpr uchar rgb2y(const QRgb &rgb)
 {
     const double Y = rgb2yuv_bt709_full.Y(rgb);
-    y[0] = double2uchar(Y);
+    return double2uchar(Y);
 }
 
 constexpr uchar rgb2u(const QRgb &rgb)
@@ -173,19 +178,19 @@ constexpr uchar rgb2v(const QRgb &rgb)
     return double2uchar(V);
 }
 
-void rgb2y(const QImage &image, QVideoFrame &frame, int yPlane)
+void rgb2y_planar(const QImage &image, QVideoFrame &frame, int yPlane)
 {
     uchar *bits = frame.bits(yPlane);
     for (int row = 0; row < image.height(); ++row) {
         for (int col = 0; col < image.width(); ++col) {
             const QRgb pixel = image.pixel(col, row);
-            rgb2y(pixel, bits + col);
+            bits[col] = rgb2y(pixel);
         }
         bits += frame.bytesPerLine(yPlane);
     }
 }
 
-void rgb2uv(const QImage &image, QVideoFrame &frame)
+void rgb2uv_planar(const QImage &image, QVideoFrame &frame)
 {
     uchar *vBits = nullptr;
     uchar *uBits = nullptr;
@@ -254,7 +259,7 @@ void rgb2uv(const QImage &image, QVideoFrame &frame)
     }
 }
 
-void naive_rgbToYuv(const QImage &image, QVideoFrame &frame)
+void naive_rgbToYuv_planar(const QImage &image, QVideoFrame &frame)
 {
     Q_ASSERT(image.format() == QImage::Format_RGB32);
     Q_ASSERT(frame.planeCount() > 1);
@@ -262,8 +267,53 @@ void naive_rgbToYuv(const QImage &image, QVideoFrame &frame)
 
     frame.map(QVideoFrame::WriteOnly);
 
-    rgb2y(image, frame, 0);
-    rgb2uv(image, frame);
+    rgb2y_planar(image, frame, 0);
+    rgb2uv_planar(image, frame);
+
+    frame.unmap();
+}
+
+void naive_rgbToYuv422(const QImage &image, QVideoFrame &frame)
+{
+    // Packed format uyvy or yuyv. Each 32 bit frame sample represents
+    // two pixels with distinct y values, but shared u and v values
+    Q_ASSERT(image.format() == QImage::Format_RGB32);
+    Q_ASSERT(frame.planeCount() == 1);
+    Q_ASSERT(image.size() == frame.size());
+
+    const QVideoFrameFormat::PixelFormat format = frame.pixelFormat();
+
+    Q_ASSERT(format == QVideoFrameFormat::Format_UYVY || format == QVideoFrameFormat::Format_YUYV);
+
+    constexpr int plane = 0;
+    frame.map(QVideoFrame::WriteOnly);
+
+    uchar *line = frame.bits(plane);
+    for (int row = 0; row < image.height(); ++row) {
+        uchar *bits = line;
+        for (int col = 0; col < image.width() - 1; col += 2) {
+            // Handle to image pixels at a time
+            const QRgb pixel0 = image.pixel(col, row);
+            const QRgb pixel1 = image.pixel(col + 1, row);
+
+            // Down-sample u and v channels
+            bits[0] = (rgb2u(pixel0) + rgb2u(pixel1)) / 2;
+            bits[2] = (rgb2v(pixel0) + rgb2v(pixel1)) / 2;
+
+            // But not the y-channel
+            bits[1] = rgb2y(pixel0);
+            bits[3] = rgb2y(pixel1);
+
+            // Swizzle fom uyuv to yuyv
+            if (format == QVideoFrameFormat::Format_YUYV) {
+                std::swap(bits[0], bits[1]);
+                std::swap(bits[2], bits[3]);
+            }
+
+            bits += 4;
+        }
+        line += frame.bytesPerLine(plane);
+    }
 
     frame.unmap();
 }
@@ -285,7 +335,10 @@ QVideoFrame createTestFrame(const TestParams &params, const QImage &image)
         || params.pixelFormat == QVideoFrameFormat::Format_NV21
         || params.pixelFormat == QVideoFrameFormat::Format_YUV420P
         || params.pixelFormat == QVideoFrameFormat::Format_YUV422P) {
-        naive_rgbToYuv(image, frame);
+        naive_rgbToYuv_planar(image, frame);
+    } else if (params.pixelFormat == QVideoFrameFormat::Format_UYVY
+               || params.pixelFormat == QVideoFrameFormat::Format_YUYV) {
+        naive_rgbToYuv422(image, frame);
     } else {
         qDebug() << "Not implemented yet";
         Q_ASSERT(false);
