@@ -86,7 +86,9 @@ bool QGstreamerImageCapture::isReadyForCapture() const
 
 int QGstreamerImageCapture::capture(const QString &fileName)
 {
-    QString path = QMediaStorageLocation::generateFileName(fileName, QStandardPaths::PicturesLocation, QLatin1String("jpg"));
+    using namespace Qt::Literals;
+    QString path = QMediaStorageLocation::generateFileName(
+            fileName, QStandardPaths::PicturesLocation, u"jpg"_s);
     return doCapture(path);
 }
 
@@ -231,7 +233,8 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
         return;
     }
 
-    connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this, &QGstreamerImageCapture::onCameraChanged);
+    connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this,
+            &QGstreamerImageCapture::onCameraChanged);
     onCameraChanged();
 }
 
@@ -255,47 +258,42 @@ void QGstreamerImageCapture::onCameraChanged()
     }
 }
 
-gboolean QGstreamerImageCapture::saveImageFilter(GstElement *element,
-                                                       GstBuffer *buffer,
-                                                       GstPad *pad,
-                                                       void *appdata)
+gboolean QGstreamerImageCapture::saveImageFilter(GstElement *, GstBuffer *buffer, GstPad *,
+                                                 QGstreamerImageCapture *capture)
 {
-    Q_UNUSED(element);
-    Q_UNUSED(pad);
-    QGstreamerImageCapture *capture = static_cast<QGstreamerImageCapture *>(appdata);
+    capture->saveBufferToImage(buffer);
+    return true;
+}
 
-    capture->passImage = false;
+void QGstreamerImageCapture::saveBufferToImage(GstBuffer *buffer)
+{
+    passImage = false;
 
-    if (capture->pendingImages.isEmpty()) {
-        return true;
-    }
+    if (pendingImages.isEmpty())
+        return;
 
-    auto imageData = capture->pendingImages.dequeue();
-    if (imageData.filename.isEmpty()) {
-        return true;
-    }
+    auto imageData = pendingImages.dequeue();
+    if (imageData.filename.isEmpty())
+        return;
 
     qCDebug(qLcImageCaptureGst) << "saving image as" << imageData.filename;
 
     QFile f(imageData.filename);
-    if (f.open(QFile::WriteOnly)) {
-        GstMapInfo info;
-        if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
-            f.write(reinterpret_cast<const char *>(info.data), info.size);
-            gst_buffer_unmap(buffer, &info);
-        }
-        f.close();
-
-        static QMetaMethod savedSignal = QMetaMethod::fromSignal(&QGstreamerImageCapture::imageSaved);
-        savedSignal.invoke(capture,
-                           Qt::QueuedConnection,
-                           Q_ARG(int, imageData.id),
-                           Q_ARG(QString, imageData.filename));
-    } else {
+    if (!f.open(QFile::WriteOnly)) {
         qCDebug(qLcImageCaptureGst) << "   could not open image file for writing";
+        return;
     }
 
-    return TRUE;
+    GstMapInfo info;
+    if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
+        f.write(reinterpret_cast<const char *>(info.data), info.size);
+        gst_buffer_unmap(buffer, &info);
+    }
+    f.close();
+
+    QMetaObject::invokeMethod(this, [this, imageData = std::move(imageData)]() mutable {
+        imageSaved(imageData.id, imageData.filename);
+    });
 }
 
 QImageEncoderSettings QGstreamerImageCapture::imageSettings() const
@@ -307,9 +305,9 @@ void QGstreamerImageCapture::setImageSettings(const QImageEncoderSettings &setti
 {
     if (m_settings != settings) {
         QSize resolution = settings.resolution();
-        if (m_settings.resolution() != resolution && !resolution.isEmpty()) {
+        if (m_settings.resolution() != resolution && !resolution.isEmpty())
             setResolution(resolution);
-        }
+
         m_settings = settings;
     }
 }
