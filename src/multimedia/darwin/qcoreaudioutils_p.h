@@ -59,6 +59,7 @@ public:
 
     void reset();
 
+    static const inline unsigned bufferMultiplier = 4;
 private:
     int     m_bufferSize;
     int     m_readPos;

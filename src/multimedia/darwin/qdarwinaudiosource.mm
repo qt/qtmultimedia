@@ -619,7 +619,7 @@ bool QDarwinAudioSource::open()
 
     {
         QMutexLocker lock(m_audioBuffer);
-        m_audioBuffer = new QDarwinAudioSourceBuffer(m_internalBufferSize * 4,
+        m_audioBuffer = new QDarwinAudioSourceBuffer(m_internalBufferSize * CoreAudioRingBuffer::bufferMultiplier,
                                             m_periodSizeBytes,
                                             m_deviceFormat,
                                             m_streamFormat,

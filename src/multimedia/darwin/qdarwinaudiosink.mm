@@ -25,6 +25,9 @@ QT_BEGIN_NAMESPACE
 
 static int audioRingBufferSize(int bufferSize, int maxPeriodSize)
 {
+#if defined(Q_OS_IOS)
+    bufferSize *= CoreAudioRingBuffer::bufferMultiplier;
+#endif
     // TODO: review this code
     return bufferSize
             + (bufferSize % maxPeriodSize == 0 ? 0 : maxPeriodSize - (bufferSize % maxPeriodSize));
