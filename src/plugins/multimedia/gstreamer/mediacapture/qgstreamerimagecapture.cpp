@@ -170,6 +170,13 @@ void QGstreamerImageCapture::setResolution(const QSize &resolution)
     filter.set("caps", caps);
 }
 
+// HACK: gcc-10 and earlier reject [=,this] when building with c++17
+#if __cplusplus >= 202002L
+#  define EQ_THIS_CAPTURE =, this
+#else
+#  define EQ_THIS_CAPTURE =
+#endif
+
 bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 {
     QMutexLocker guard(&m_mutex);
@@ -196,34 +203,52 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     if (optionalFormatAndVideoInfo)
         std::tie(fmt, previewInfo) = std::move(*optionalFormatAndVideoInfo);
 
-    auto *sink = m_session->gstreamerVideoSink();
-    auto *gstBuffer = new QGstVideoBuffer{
-        std::move(bufferHandle), previewInfo, sink, fmt, memoryFormat,
-    };
-    QVideoFrame frame(gstBuffer, fmt);
-    QImage img = frame.toImage();
-    if (img.isNull()) {
-        qDebug() << "received a null image";
-        return true;
-    }
+    int futureId = futureIDAllocator += 1;
 
-    auto &imageData = pendingImages.head();
+    // ensure QVideoFrame::toImage is executed on a worker thread that is joined before the
+    // qApplication is destroyed
+    QFuture<void> future = QtConcurrent::run([EQ_THIS_CAPTURE]() mutable {
+        QMutexLocker guard(&m_mutex);
+        auto scopeExit = qScopeGuard([&] {
+            m_pendingFutures.remove(futureId);
+        });
 
-    emit imageExposed(imageData.id);
+        if (!m_session) {
+            qDebug() << "QGstreamerImageCapture::probeBuffer: no session";
+            return;
+        }
 
-    qCDebug(qLcImageCaptureGst) << "Image available!";
-    emit imageAvailable(imageData.id, frame);
+        auto *sink = m_session->gstreamerVideoSink();
+        auto *gstBuffer = new QGstVideoBuffer{
+            std::move(bufferHandle), previewInfo, sink, fmt, memoryFormat,
+        };
+        QVideoFrame frame(gstBuffer, fmt);
+        QImage img = frame.toImage();
+        if (img.isNull()) {
+            qDebug() << "received a null image";
+            return;
+        }
 
-    emit imageCaptured(imageData.id, img);
+        auto &imageData = pendingImages.head();
 
-    QMediaMetaData metaData = this->metaData();
-    metaData.insert(QMediaMetaData::Resolution, frame.size());
-    imageData.metaData = metaData;
+        emit imageExposed(imageData.id);
+        qCDebug(qLcImageCaptureGst) << "Image available!";
+        emit imageAvailable(imageData.id, frame);
+        emit imageCaptured(imageData.id, img);
 
-    emit imageMetadataAvailable(imageData.id, metaData);
+        QMediaMetaData imageMetaData = metaData();
+        imageMetaData.insert(QMediaMetaData::Resolution, frame.size());
+        imageData.metaData = imageMetaData;
+
+        emit imageMetadataAvailable(imageData.id, imageMetaData);
+    });
+
+    m_pendingFutures.insert(futureId, future);
 
     return true;
 }
+
+#undef EQ_THIS_CAPTURE
 
 void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
