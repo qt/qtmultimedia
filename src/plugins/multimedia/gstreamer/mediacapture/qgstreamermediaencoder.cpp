@@ -313,7 +313,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     gstPipeline.modifyPipelineWhileNotRunning([&] {
         gstPipeline.add(gstEncoder, gstFileSink);
         qLinkGstElements(gstEncoder, gstFileSink);
-        m_metaData.setMetaData(gstEncoder.bin());
+        applyMetaDataToTagSetter(m_metaData, gstEncoder);
 
         m_session->linkEncoder(audioSink, videoSink);
 
@@ -380,7 +380,7 @@ void QGstreamerMediaEncoder::setMetaData(const QMediaMetaData &metaData)
 {
     if (!m_session)
         return;
-    m_metaData = static_cast<const QGstreamerMetaData &>(metaData);
+    m_metaData = metaData;
 }
 
 QMediaMetaData QGstreamerMediaEncoder::metaData() const

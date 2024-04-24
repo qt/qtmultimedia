@@ -307,7 +307,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         gst_message_parse_tag(gm, &tagList);
 
         qCDebug(qLcMediaPlayer) << "    Got tags: " << tagList.get();
-        auto metaData = QGstreamerMetaData::fromGstTagList(tagList.get());
+        auto metaData = taglistToMetaData(tagList);
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
 
@@ -970,7 +970,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
         QGstTagListHandle tagList;
         gst_structure_get(topology.structure, "tags", GST_TYPE_TAG_LIST, &tagList, nullptr);
 
-        const auto metaData = QGstreamerMetaData::fromGstTagList(tagList.get());
+        const auto metaData = taglistToMetaData(tagList);
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
     }
@@ -1041,7 +1041,7 @@ QMediaMetaData QGstreamerMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackT
     QGstTagListHandle tagList;
     g_object_get(track.object(), "tags", &tagList, nullptr);
 
-    return tagList ? QGstreamerMetaData::fromGstTagList(tagList.get()) : QMediaMetaData{};
+    return taglistToMetaData(tagList);
 }
 
 int QGstreamerMediaPlayer::activeTrack(TrackType type)

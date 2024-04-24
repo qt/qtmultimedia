@@ -209,8 +209,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     imageData.metaData = metaData;
 
     // ensure taginject injects this metaData
-    const auto &md = static_cast<const QGstreamerMetaData &>(metaData);
-    md.setMetaData(muxer.element());
+    applyMetaDataToTagSetter(metaData, muxer);
 
     emit imageMetadataAvailable(imageData.id, metaData);
 

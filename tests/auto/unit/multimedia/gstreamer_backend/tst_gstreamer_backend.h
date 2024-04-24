@@ -19,10 +19,10 @@ class tst_GStreamer : public QObject
     QGstTagListHandle parseTagList(const QByteArray &);
 
 private slots:
-    void metadata_fromGstTagList();
-    void metadata_fromGstTagList_extractsOrientation();
-    void metadata_fromGstTagList_extractsOrientation_data();
-    void metadata_fromGstTagList_extractsDuration();
+    void metadata_taglistToMetaData();
+    void metadata_taglistToMetaData_extractsOrientation();
+    void metadata_taglistToMetaData_extractsOrientation_data();
+    void metadata_taglistToMetaData_extractsDuration();
 
 private:
     QGstreamerIntegration integration;
