@@ -81,6 +81,7 @@ QGstreamerImageCapture::~QGstreamerImageCapture()
 
 bool QGstreamerImageCapture::isReadyForCapture() const
 {
+    QMutexLocker guard(&m_mutex);
     return m_session && !passImage && cameraActive;
 }
 
@@ -107,6 +108,7 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
         QMetaObject::invokeMethod(this, std::forward<decltype(fn)>(fn), Qt::QueuedConnection);
     };
 
+    QMutexLocker guard(&m_mutex);
     if (!m_session) {
         invokeDeferred([this] {
             emit error(-1, QImageCapture::ResourceError,
@@ -161,6 +163,8 @@ void QGstreamerImageCapture::setResolution(const QSize &resolution)
 
 bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 {
+    QMutexLocker guard(&m_mutex);
+
     if (!passImage)
         return false;
     qCDebug(qLcImageCaptureGst) << "probe buffer";
@@ -214,6 +218,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 
 void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *session)
 {
+    QMutexLocker guard(&m_mutex);
     QGstreamerMediaCapture *captureSession = static_cast<QGstreamerMediaCapture *>(session);
     if (m_session == captureSession)
         return;
@@ -241,7 +246,10 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
 
 void QGstreamerImageCapture::setMetaData(const QMediaMetaData &m)
 {
-    QPlatformImageCapture::setMetaData(m);
+    {
+        QMutexLocker guard(&m_mutex);
+        QPlatformImageCapture::setMetaData(m);
+    }
 
     // ensure taginject injects this metaData
     applyMetaDataToTagSetter(m, muxer);
@@ -259,9 +267,11 @@ void QGstreamerImageCapture::cameraActiveChanged(bool active)
 
 void QGstreamerImageCapture::onCameraChanged()
 {
+    QMutexLocker guard(&m_mutex);
     if (m_session->camera()) {
         cameraActiveChanged(m_session->camera()->isActive());
-        connect(m_session->camera(), &QPlatformCamera::activeChanged, this, &QGstreamerImageCapture::cameraActiveChanged);
+        connect(m_session->camera(), &QPlatformCamera::activeChanged, this,
+                &QGstreamerImageCapture::cameraActiveChanged);
     } else {
         cameraActiveChanged(false);
     }
@@ -276,6 +286,7 @@ gboolean QGstreamerImageCapture::saveImageFilter(GstElement *, GstBuffer *buffer
 
 void QGstreamerImageCapture::saveBufferToImage(GstBuffer *buffer)
 {
+    QMutexLocker guard(&m_mutex);
     passImage = false;
 
     if (pendingImages.isEmpty())
