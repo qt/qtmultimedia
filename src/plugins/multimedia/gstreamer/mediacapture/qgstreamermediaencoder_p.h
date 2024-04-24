@@ -76,7 +76,7 @@ private:
     void finalize();
 
     QGstreamerMediaCapture *m_session = nullptr;
-    QGstreamerMetaData m_metaData;
+    QMediaMetaData m_metaData;
     QTimer signalDurationChangedTimer;
 
     QGstPipeline gstPipeline;

@@ -79,6 +79,29 @@ struct GstObjectTraits
     };                                                  \
     static_assert(true, "ensure semicolon")
 
+#define QGST_DEFINE_CAST_TRAITS_FOR_INTERFACE(ClassName, MACRO_LABEL) \
+  template <>                                                         \
+  struct GstObjectTraits<ClassName>                                   \
+  {                                                                   \
+    using Type = ClassName;                                           \
+    template <typename U>                                             \
+    static bool isObjectOfType(U *arg)                                \
+    {                                                                 \
+      return GST_IS_##MACRO_LABEL(arg);                               \
+    }                                                                 \
+    template <typename U>                                             \
+    static Type *cast(U *arg)                                         \
+    {                                                                 \
+      return checked_cast(arg);                                       \
+    }                                                                 \
+    template <typename U>                                             \
+    static Type *checked_cast(U *arg)                                 \
+    {                                                                 \
+      return GST_##MACRO_LABEL(arg);                                  \
+    }                                                                 \
+  };                                                                  \
+  static_assert(true, "ensure semicolon")
+
 QGST_DEFINE_CAST_TRAITS(GstBin, BIN);
 QGST_DEFINE_CAST_TRAITS(GstClock, CLOCK);
 QGST_DEFINE_CAST_TRAITS(GstElement, ELEMENT);
@@ -87,6 +110,8 @@ QGST_DEFINE_CAST_TRAITS(GstPad, PAD);
 QGST_DEFINE_CAST_TRAITS(GstPipeline, PIPELINE);
 QGST_DEFINE_CAST_TRAITS(GstBaseSink, BASE_SINK);
 QGST_DEFINE_CAST_TRAITS(GstBaseSrc, BASE_SRC);
+
+QGST_DEFINE_CAST_TRAITS_FOR_INTERFACE(GstTagSetter, TAG_SETTER);
 
 #if QT_CONFIG(gstreamer_app)
 QGST_DEFINE_CAST_TRAITS(GstAppSink, APP_SINK);
@@ -115,6 +140,7 @@ struct GstObjectTraits<GObject>
 };
 
 #undef QGST_DEFINE_CAST_TRAITS
+#undef QGST_DEFINE_CAST_TRAITS_FOR_INTERFACE
 
 } // namespace QGstImpl
 

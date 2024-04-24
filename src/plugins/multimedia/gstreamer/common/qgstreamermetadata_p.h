@@ -16,20 +16,16 @@
 //
 
 #include <qmediametadata.h>
-#include <qvariant.h>
 
-#include <gst/gst.h>
+#include "qgst_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerMetaData : public QMediaMetaData
-{
-public:
-    static QGstreamerMetaData fromGstTagList(const GstTagList *tags);
+QMediaMetaData taglistToMetaData(const GstTagList *);
+QMediaMetaData taglistToMetaData(const QGstTagListHandle &);
 
-    void setMetaData(GstBin *bin) const;
-    void setMetaData(GstElement *element) const;
-};
+void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstBin &);
+void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstElement &);
 
 QT_END_NAMESPACE
 

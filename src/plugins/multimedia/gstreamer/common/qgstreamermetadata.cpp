@@ -144,15 +144,15 @@ const char *keyToTag(QMediaMetaData::Key key)
 #undef constexpr_lookup
 
 //internal
-void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
+void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
 {
+    QMediaMetaData &metadata = *reinterpret_cast<QMediaMetaData *>(userdata);
+
     using namespace std::string_view_literals;
 
     QMediaMetaData::Key key = tagToKey(tag);
     if (key == QMediaMetaData::Key(-1))
         return;
-
-    auto *map = reinterpret_cast<QHash<QMediaMetaData::Key, QVariant>* >(user_data);
 
     GValue val;
     val.g_type = 0;
@@ -164,45 +164,45 @@ void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
 
         switch (key) {
         case QMediaMetaData::Language: {
-            map->emplace(key,
-                         QVariant::fromValue(QLocale::codeToLanguage(QString::fromUtf8(str_value),
-                                                                     QLocale::ISO639Part2)));
+            metadata.insert(key,
+                            QVariant::fromValue(QLocale::codeToLanguage(
+                                    QString::fromUtf8(str_value), QLocale::ISO639Part2)));
             break;
         }
         case QMediaMetaData::Orientation: {
             if (str_value == "rotate-90"sv)
-                map->emplace(key, QVariant::fromValue(QtVideo::Rotation::Clockwise90));
+                metadata.insert(key, QVariant::fromValue(QtVideo::Rotation::Clockwise90));
             else if (str_value == "rotate-180"sv)
-                map->emplace(key, QVariant::fromValue(QtVideo::Rotation::Clockwise180));
+                metadata.insert(key, QVariant::fromValue(QtVideo::Rotation::Clockwise180));
             else if (str_value == "rotate-270"sv)
-                map->emplace(key, QVariant::fromValue(QtVideo::Rotation::Clockwise270));
+                metadata.insert(key, QVariant::fromValue(QtVideo::Rotation::Clockwise270));
             else if (str_value == "rotate-0"sv)
-                map->emplace(key, QVariant::fromValue(QtVideo::Rotation::None));
+                metadata.insert(key, QVariant::fromValue(QtVideo::Rotation::None));
             break;
         }
         default:
-            map->emplace(key, QString::fromUtf8(str_value));
+            metadata.insert(key, QString::fromUtf8(str_value));
             break;
         };
         break;
     }
     case G_TYPE_INT:
-        map->insert(key, g_value_get_int(&val));
+        metadata.insert(key, g_value_get_int(&val));
         break;
     case G_TYPE_UINT:
-        map->insert(key, g_value_get_uint(&val));
+        metadata.insert(key, g_value_get_uint(&val));
         break;
     case G_TYPE_LONG:
-        map->insert(key, qint64(g_value_get_long(&val)));
+        metadata.insert(key, qint64(g_value_get_long(&val)));
         break;
     case G_TYPE_BOOLEAN:
-        map->insert(key, g_value_get_boolean(&val));
+        metadata.insert(key, g_value_get_boolean(&val));
         break;
     case G_TYPE_CHAR:
-        map->insert(key, g_value_get_schar(&val));
+        metadata.insert(key, g_value_get_schar(&val));
         break;
     case G_TYPE_DOUBLE:
-        map->insert(key, g_value_get_double(&val));
+        metadata.insert(key, g_value_get_double(&val));
         break;
     default:
         // GST_TYPE_DATE is a function, not a constant, so pull it out of the switch
@@ -213,8 +213,8 @@ void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
                 int month = g_date_get_month(date);
                 int day = g_date_get_day(date);
                 // don't insert if we already have a datetime.
-                if (!map->contains(key))
-                    map->insert(key, QDateTime(QDate(year, month, day), QTime()));
+                if (!metadata.keys().contains(key))
+                    metadata.insert(key, QDateTime(QDate(year, month, day), QTime()));
             }
         } else if (G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME) {
             const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
@@ -233,7 +233,7 @@ void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
             }
             QDateTime qDateTime(QDate(year, month, day), QTime(hour, minute, second),
                                 QTimeZone(tz * 60 * 60));
-            map->insert(key, qDateTime);
+            metadata.insert(key, qDateTime);
         } else if (G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE) {
             GstSample *sample = (GstSample *)g_value_get_boxed(&val);
             GstCaps *caps = gst_sample_get_caps(sample);
@@ -245,7 +245,7 @@ void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
                     if (buffer) {
                         GstMapInfo info;
                         gst_buffer_map(buffer, &info, GST_MAP_READ);
-                        map->insert(key, QImage::fromData(info.data, info.size, name));
+                        metadata.insert(key, QImage::fromData(info.data, info.size, name));
                         gst_buffer_unmap(buffer, &info);
                     }
                 }
@@ -254,9 +254,8 @@ void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
             int nom = gst_value_get_fraction_numerator(&val);
             int denom = gst_value_get_fraction_denominator(&val);
 
-            if (denom > 0) {
-                map->insert(key, double(nom) / denom);
-            }
+            if (denom > 0)
+                metadata.insert(key, double(nom) / denom);
         }
         break;
     }
@@ -266,91 +265,99 @@ void addTagToMap(const GstTagList *list, const gchar *tag, gpointer user_data)
 
 } // namespace
 
-QGstreamerMetaData QGstreamerMetaData::fromGstTagList(const GstTagList *tags)
+QMediaMetaData taglistToMetaData(const GstTagList *tagList)
 {
-    QGstreamerMetaData m;
-    gst_tag_list_foreach(tags, addTagToMap, &m.data);
+    QMediaMetaData m;
+    if (tagList)
+        gst_tag_list_foreach(tagList, reinterpret_cast<GstTagForeachFunc>(&addTagToMetaData), &m);
     return m;
 }
 
-
-void QGstreamerMetaData::setMetaData(GstElement *element) const
+QMediaMetaData taglistToMetaData(const QGstTagListHandle &handle)
 {
-    if (!GST_IS_TAG_SETTER(element))
-        return;
+    return taglistToMetaData(handle.get());
+}
 
-    gst_tag_setter_reset_tags(GST_TAG_SETTER(element));
+static void applyMetaDataToTagSetter(const QMediaMetaData &metadata, GstTagSetter *element)
+{
+    gst_tag_setter_reset_tags(element);
 
-    for (auto it = data.cbegin(), end = data.cend(); it != end; ++it) {
-        const char *tagName = keyToTag(it.key());
+    for (QMediaMetaData::Key key : metadata.keys()) {
+        const char *tagName = keyToTag(key);
         if (!tagName)
             continue;
-        const QVariant &tagValue = it.value();
+        const QVariant &tagValue = metadata.value(key);
+
+        auto setTag = [&](const auto &value) {
+            gst_tag_setter_add_tags(element, GST_TAG_MERGE_REPLACE, tagName, value, nullptr);
+        };
 
         switch (tagValue.typeId()) {
-            case QMetaType::QString:
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                    GST_TAG_MERGE_REPLACE,
-                    tagName,
-                    tagValue.toString().toUtf8().constData(),
-                    nullptr);
-                break;
-            case QMetaType::Int:
-            case QMetaType::LongLong:
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                    GST_TAG_MERGE_REPLACE,
-                    tagName,
-                    tagValue.toInt(),
-                    nullptr);
-                break;
-            case QMetaType::Double:
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                    GST_TAG_MERGE_REPLACE,
-                    tagName,
-                    tagValue.toDouble(),
-                    nullptr);
-                break;
-            case QMetaType::QDate:
-            case QMetaType::QDateTime: {
-                QDateTime date = tagValue.toDateTime();
+        case QMetaType::QString:
+            setTag(tagValue.toString().toUtf8().constData());
+            break;
+        case QMetaType::Int:
+        case QMetaType::LongLong:
+            setTag(tagValue.toInt());
+            break;
+        case QMetaType::Double:
+            setTag(tagValue.toDouble());
+            break;
+        case QMetaType::QDate:
+        case QMetaType::QDateTime: {
+            QDateTime date = tagValue.toDateTime();
 
-                QGstGstDateTimeHandle dateTime{
-                    gst_date_time_new(date.offsetFromUtc() / 60. / 60., date.date().year(),
-                                      date.date().month(), date.date().day(), date.time().hour(),
-                                      date.time().minute(), date.time().second()),
-                    QGstGstDateTimeHandle::HasRef,
-                };
+            QGstGstDateTimeHandle dateTime{
+                gst_date_time_new(date.offsetFromUtc() / 60. / 60., date.date().year(),
+                                  date.date().month(), date.date().day(), date.time().hour(),
+                                  date.time().minute(), date.time().second()),
+                QGstGstDateTimeHandle::HasRef,
+            };
 
-                gst_tag_setter_add_tags(GST_TAG_SETTER(element), GST_TAG_MERGE_REPLACE, tagName,
-                                        dateTime.get(), nullptr);
-                break;
+            setTag(dateTime.get());
+            break;
+        }
+        default: {
+            if (tagValue.typeId() == qMetaTypeId<QLocale::Language>()) {
+                QByteArray language = QLocale::languageToCode(tagValue.value<QLocale::Language>(),
+                                                              QLocale::ISO639Part2)
+                                              .toUtf8();
+                setTag(language.constData());
             }
-            default: {
-                if (tagValue.typeId() == qMetaTypeId<QLocale::Language>()) {
-                    QByteArray language = QLocale::languageToCode(tagValue.value<QLocale::Language>(), QLocale::ISO639Part2).toUtf8();
-                    gst_tag_setter_add_tags(GST_TAG_SETTER(element),
-                                            GST_TAG_MERGE_REPLACE,
-                                            tagName,
-                                            language.constData(),
-                                            nullptr);
-                }
 
-                break;
-            }
+            break;
+        }
         }
     }
 }
 
-void QGstreamerMetaData::setMetaData(GstBin *bin) const
+void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstElement &element)
 {
-    GstIterator *elements = gst_bin_iterate_all_by_interface(bin, GST_TYPE_TAG_SETTER);
-    GValue item = G_VALUE_INIT;
-    while (gst_iterator_next(elements, &item) == GST_ITERATOR_OK) {
-        GstElement * const element = GST_ELEMENT(g_value_get_object(&item));
-        setMetaData(element);
-    }
-    gst_iterator_free(elements);
+    GstTagSetter *tagSetter = qGstSafeCast<GstTagSetter>(element.element());
+    if (tagSetter)
+        applyMetaDataToTagSetter(metadata, tagSetter);
+    else
+        qWarning() << "applyMetaDataToTagSetter failed: element not a GstTagSetter"
+                   << element.name();
 }
 
+void applyMetaDataToTagSetter(const QMediaMetaData &metadata, const QGstBin &bin)
+{
+    GstIterator *elements = gst_bin_iterate_all_by_interface(bin.bin(), GST_TYPE_TAG_SETTER);
+    GValue item = {};
+
+    while (gst_iterator_next(elements, &item) == GST_ITERATOR_OK) {
+        GstElement *element = static_cast<GstElement *>(g_value_get_object(&item));
+        if (!element)
+            continue;
+
+        GstTagSetter *tagSetter = qGstSafeCast<GstTagSetter>(element);
+
+        if (tagSetter)
+            applyMetaDataToTagSetter(metadata, tagSetter);
+    }
+
+    gst_iterator_free(elements);
+}
 
 QT_END_NAMESPACE
