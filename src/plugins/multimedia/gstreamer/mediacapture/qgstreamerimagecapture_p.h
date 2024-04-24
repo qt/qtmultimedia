@@ -20,6 +20,7 @@
 
 #include <QtCore/qmutex.h>
 #include <QtCore/qqueue.h>
+#include <QtConcurrent/QtConcurrentRun>
 
 #include <common/qgst_p.h>
 #include <common/qgstreamerbufferprobe_p.h>
@@ -93,6 +94,9 @@ private:
     bool cameraActive = false;
 
     QGObjectHandlerScopedConnection m_handoffConnection;
+
+    QMap<int, QFuture<void>> m_pendingFutures;
+    int futureIDAllocator = 0;
 };
 
 QT_END_NAMESPACE
