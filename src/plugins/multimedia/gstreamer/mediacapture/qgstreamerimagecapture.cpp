@@ -77,6 +77,15 @@ QGstreamerImageCapture::QGstreamerImageCapture(QGstElement videoconvert, QGstEle
 QGstreamerImageCapture::~QGstreamerImageCapture()
 {
     bin.setStateSync(GST_STATE_NULL);
+
+    // wait for pending futures
+    auto pendingFutures = [&] {
+        QMutexLocker guard(&m_mutex);
+        return std::move(m_pendingFutures);
+    }();
+
+    for (QFuture<void> &pendingImage : pendingFutures)
+        pendingImage.waitForFinished();
 }
 
 bool QGstreamerImageCapture::isReadyForCapture() const
@@ -292,28 +301,45 @@ void QGstreamerImageCapture::saveBufferToImage(GstBuffer *buffer)
     if (pendingImages.isEmpty())
         return;
 
-    auto imageData = pendingImages.dequeue();
+    PendingImage imageData = pendingImages.dequeue();
     if (imageData.filename.isEmpty())
         return;
 
-    qCDebug(qLcImageCaptureGst) << "saving image as" << imageData.filename;
+    int id = futureIDAllocator++;
+    QGstBufferHandle bufferHandle{
+        buffer,
+        QGstBufferHandle::NeedsRef,
+    };
 
-    QFile f(imageData.filename);
-    if (!f.open(QFile::WriteOnly)) {
-        qCDebug(qLcImageCaptureGst) << "   could not open image file for writing";
-        return;
-    }
+    QFuture<void> saveImageFuture = QtConcurrent::run([this, imageData, bufferHandle,
+                                                       id]() mutable {
+        auto cleanup = qScopeGuard([&] {
+            QMutexLocker guard(&m_mutex);
+            m_pendingFutures.remove(id);
+        });
 
-    GstMapInfo info;
-    if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
-        f.write(reinterpret_cast<const char *>(info.data), info.size);
-        gst_buffer_unmap(buffer, &info);
-    }
-    f.close();
+        qCDebug(qLcImageCaptureGst) << "saving image as" << imageData.filename;
 
-    QMetaObject::invokeMethod(this, [this, imageData = std::move(imageData)]() mutable {
-        imageSaved(imageData.id, imageData.filename);
+        QFile f(imageData.filename);
+        if (!f.open(QFile::WriteOnly)) {
+            qCDebug(qLcImageCaptureGst) << "   could not open image file for writing";
+            return;
+        }
+
+        GstMapInfo info;
+        GstBuffer *buffer = bufferHandle.get();
+        if (gst_buffer_map(buffer, &info, GST_MAP_READ)) {
+            f.write(reinterpret_cast<const char *>(info.data), info.size);
+            gst_buffer_unmap(buffer, &info);
+        }
+        f.close();
+
+        QMetaObject::invokeMethod(this, [this, imageData = std::move(imageData)]() mutable {
+            imageSaved(imageData.id, imageData.filename);
+        });
     });
+
+    m_pendingFutures.insert(id, saveImageFuture);
 }
 
 QImageEncoderSettings QGstreamerImageCapture::imageSettings() const
