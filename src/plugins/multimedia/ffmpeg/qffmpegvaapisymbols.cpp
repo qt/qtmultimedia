@@ -37,7 +37,7 @@ static Libs loadLibs()
     return {};
 }
 
-constexpr size_t symbolsCount = 38
+constexpr size_t symbolsCount = 40
 #if VA_CHECK_VERSION(1, 9, 0)
         + 1
 #endif
@@ -113,6 +113,9 @@ DEFINE_FUNC(vaEntrypointStr, 1, emptyString);
 DEFINE_FUNC(vaGetDisplayAttributes, 3, VA_STATUS_ERROR_OPERATION_FAILED);
 
 DEFINE_FUNC(vaSetDriverName, 2, VA_STATUS_ERROR_OPERATION_FAILED);
+
+DEFINE_FUNC(vaAcquireBufferHandle, 3, VA_STATUS_ERROR_OPERATION_FAILED);
+DEFINE_FUNC(vaReleaseBufferHandle, 2, VA_STATUS_ERROR_OPERATION_FAILED);
 
 #ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
 DEFINE_FUNC(vaGetDisplayDRM, 1); // va-drm

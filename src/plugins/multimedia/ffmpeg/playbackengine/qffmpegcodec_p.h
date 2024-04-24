@@ -31,7 +31,6 @@ class Codec
     {
         Data(AVCodecContextUPtr context, AVStream *stream, AVFormatContext *formatContext,
              std::unique_ptr<QFFmpeg::HWAccel> hwAccel);
-        ~Data();
         QAtomicInt ref;
         AVCodecContextUPtr context;
         AVStream *stream = nullptr;
