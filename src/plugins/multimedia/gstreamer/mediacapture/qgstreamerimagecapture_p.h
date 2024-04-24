@@ -18,6 +18,7 @@
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 
+#include <QtCore/qmutex.h>
 #include <QtCore/qqueue.h>
 
 #include <common/qgst_p.h>
@@ -65,6 +66,8 @@ private:
 
     void saveBufferToImage(GstBuffer *buffer);
 
+    mutable QRecursiveMutex
+            m_mutex; // guard all elements accessed from probeBuffer/saveBufferToImage
     QGstreamerMediaCapture *m_session = nullptr;
     int m_lastId = 0;
     QImageEncoderSettings m_settings;
