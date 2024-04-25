@@ -50,7 +50,6 @@ public:
     QMutex mapMutex;
     QString subtitleText;
     QtVideo::Rotation rotation = QtVideo::Rotation::None;
-    bool mirrored = false;
     QImage image;
     QMutex imageMutex;
 

@@ -167,6 +167,8 @@ private slots:
 
     void emptyData();
 
+    void mirrored_takesValue_fromVideoFrameFormat();
+
     void constructor_createsInvalidFrame_whenCalledWithNullImage();
     void constructor_createsInvalidFrame_whenCalledWithEmptyImage();
     void constructor_createsInvalidFrame_whenCalledWithInvalidImageFormat();
@@ -1105,6 +1107,19 @@ void tst_QVideoFrame::emptyData()
     QVideoFrame f(new QMemoryVideoBuffer(data, 600),
                   QVideoFrameFormat(QSize(800, 600), QVideoFrameFormat::Format_ARGB8888));
     QVERIFY(!f.map(QVideoFrame::ReadOnly));
+}
+
+void tst_QVideoFrame::mirrored_takesValue_fromVideoFrameFormat()
+{
+    QVideoFrameFormat format(QSize(10, 20), QVideoFrameFormat::Format_ARGB8888);
+    format.setMirrored(true);
+
+    QVideoFrame frame(format);
+    QVERIFY(frame.mirrored());
+
+    frame.setMirrored(false);
+    QVERIFY(!frame.mirrored());
+    QVERIFY(!frame.surfaceFormat().isMirrored());
 }
 
 void tst_QVideoFrame::constructor_createsInvalidFrame_whenCalledWithNullImage()

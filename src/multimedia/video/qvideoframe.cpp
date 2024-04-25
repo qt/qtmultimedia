@@ -695,12 +695,13 @@ QtVideo::Rotation QVideoFrame::rotation() const
 }
 
 /*!
-    Sets the \a mirrored flag for the frame.
+    Sets the \a mirrored flag for the frame and
+    sets the flag to the underlying \l surfaceFormat.
 */
 void QVideoFrame::setMirrored(bool mirrored)
 {
     if (d)
-        d->mirrored = mirrored;
+        d->format.setMirrored(mirrored);
 }
 
 /*!
@@ -708,7 +709,7 @@ void QVideoFrame::setMirrored(bool mirrored)
 */
 bool QVideoFrame::mirrored() const
 {
-    return d && d->mirrored;
+    return d && d->format.isMirrored();
 }
 
 /*!
