@@ -61,6 +61,9 @@ private:
     bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
     static QGstCaps createSurfaceCaps(QGstreamerVideoSink *);
 
+    void gstEventHandleTag(GstEvent *);
+    void gstEventHandleEOS(GstEvent *);
+
     QPointer<QGstreamerVideoSink> m_sink;
 
     QMutex m_mutex;
