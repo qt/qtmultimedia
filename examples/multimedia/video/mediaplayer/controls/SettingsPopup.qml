@@ -11,11 +11,6 @@ Popup {
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-    background: Rectangle {
-        color: "#F6F6F6"
-    }
-
-
     required property MetadataInfo metadataInfo
     required property MediaPlayer mediaPlayer
     required property TracksInfo audioTracksInfo
@@ -156,7 +151,8 @@ Popup {
                     id: metadataRect
                     implicitWidth: 240
                     implicitHeight: metadataList.height
-                    border.color: "#8E8E93"
+                    border.color: palette.dark
+                    color: palette.window
                     radius: 6
 
                     Column {
@@ -167,7 +163,7 @@ Popup {
                         Repeater {
                             Row {
                                 spacing: metadataList.padding
-                                Text {
+                                Label {
                                     text: model.name
                                     font.bold: true
                                     width: (metadataRect.width - 3 * metadataList.padding) / 2
@@ -176,7 +172,7 @@ Popup {
                                     font.pixelSize: 12
                                 }
 
-                                Text {
+                                Label {
                                     text: model.value
                                     width: (metadataRect.width - 3 * metadataList.padding) / 2
                                     horizontalAlignment: Text.AlignLeft
@@ -189,7 +185,7 @@ Popup {
                         }
                     }
 
-                    Text {
+                    Label {
                         id: metadataNoList
                         visible: settingsController.metadataInfo.count === 0
                         anchors.centerIn: parent

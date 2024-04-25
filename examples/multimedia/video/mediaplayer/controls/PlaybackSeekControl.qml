@@ -24,7 +24,7 @@ Item {
         spacing: 22
 
         //! [0]
-        Text {
+        Label {
             id: currentTime
             Layout.preferredWidth: 45
             text: seekController.formatToMinutes(seekController.mediaPlayer.position)
@@ -44,7 +44,7 @@ Item {
         }
 
         //! [1]
-        Text {
+        Label {
             id: remainingTime
             Layout.preferredWidth: 45
             text: seekController.formatToMinutes(seekController.mediaPlayer.duration - seekController.mediaPlayer.position)

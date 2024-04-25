@@ -178,7 +178,7 @@ Item {
         topPadding: 28
         visible: landscapePlaybackControls
         background: Rectangle {
-            color: "#F6F6F6"
+            color: palette.window
         }
 
         ColumnLayout {
@@ -249,7 +249,7 @@ Item {
         topPadding: 28
         visible: !landscapePlaybackControls
         background: Rectangle {
-            color: "#F6F6F6"
+            color: palette.window
         }
 
         ColumnLayout {

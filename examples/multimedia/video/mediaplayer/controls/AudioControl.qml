@@ -32,6 +32,7 @@ Item {
             icon.source: audioController.muted ? "../images/volume_mute.svg" : "../images/volume.svg"
             icon.width: audioController.iconDimension
             icon.height: audioController.iconDimension
+            icon.color: palette.buttonText
             flat: true
             checkable: true
         }
