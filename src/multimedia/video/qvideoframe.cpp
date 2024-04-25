@@ -112,6 +112,7 @@ QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
     into the QVideoFrame's memory buffer. The resulting frame has the
     same size as the QImage, but the number of bytes per line may
     differ.
+    \since 6.8
 
     If the QImage::Format matches one of the formats in
     QVideoFrameFormat::PixelFormat, the QVideoFrame will use that format
