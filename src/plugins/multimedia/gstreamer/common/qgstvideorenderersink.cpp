@@ -224,9 +224,22 @@ bool QGstVideoRenderer::query(GstQuery *query)
 
 void QGstVideoRenderer::gstEvent(GstEvent *event)
 {
-    if (GST_EVENT_TYPE(event) != GST_EVENT_TAG)
-        return;
+    switch (GST_EVENT_TYPE(event)) {
+    case GST_EVENT_TAG:
+        qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::gstEvent: Tag";
+        return gstEventHandleTag(event);
+    case GST_EVENT_EOS:
+        qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::gstEvent: EOS";
+        return gstEventHandleEOS(event);
 
+    default:
+        qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::gstEvent: unhandled event - " << event;
+        return;
+    }
+}
+
+void QGstVideoRenderer::gstEventHandleTag(GstEvent *event)
+{
     GstTagList *taglist = nullptr;
     gst_event_parse_tag(event, &taglist);
     if (!taglist)
@@ -256,12 +269,26 @@ void QGstVideoRenderer::gstEvent(GstEvent *event)
     QMutexLocker locker(&m_mutex);
     m_frameMirrored = mirrored;
     switch (rotationAngle) {
-    case 0: m_frameRotationAngle = QtVideo::Rotation::None; break;
-    case 90: m_frameRotationAngle = QtVideo::Rotation::Clockwise90; break;
-    case 180: m_frameRotationAngle = QtVideo::Rotation::Clockwise180; break;
-    case 270: m_frameRotationAngle = QtVideo::Rotation::Clockwise270; break;
-    default: m_frameRotationAngle = QtVideo::Rotation::None;
+    case 0:
+        m_frameRotationAngle = QtVideo::Rotation::None;
+        break;
+    case 90:
+        m_frameRotationAngle = QtVideo::Rotation::Clockwise90;
+        break;
+    case 180:
+        m_frameRotationAngle = QtVideo::Rotation::Clockwise180;
+        break;
+    case 270:
+        m_frameRotationAngle = QtVideo::Rotation::Clockwise270;
+        break;
+    default:
+        m_frameRotationAngle = QtVideo::Rotation::None;
     }
+}
+
+void QGstVideoRenderer::gstEventHandleEOS(GstEvent *)
+{
+    stop();
 }
 
 bool QGstVideoRenderer::event(QEvent *event)
