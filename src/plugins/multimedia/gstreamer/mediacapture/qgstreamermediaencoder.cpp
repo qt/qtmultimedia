@@ -340,6 +340,7 @@ void QGstreamerMediaEncoder::pause()
     if (!m_session || m_finalizing || state() != QMediaRecorder::RecordingState)
         return;
     signalDurationChangedTimer.stop();
+    durationChanged(duration());
     gstPipeline.dumpGraph("before-pause");
     stateChanged(QMediaRecorder::PausedState);
 }
@@ -357,6 +358,7 @@ void QGstreamerMediaEncoder::stop()
 {
     if (!m_session || m_finalizing || state() == QMediaRecorder::StoppedState)
         return;
+    durationChanged(duration());
     qCDebug(qLcMediaEncoderGst) << "stop";
     m_finalizing = true;
     m_session->unlinkEncoder();
