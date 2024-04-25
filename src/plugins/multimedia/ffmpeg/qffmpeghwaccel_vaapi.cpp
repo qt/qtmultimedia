@@ -231,7 +231,7 @@ TextureSet *VAAPITextureConverter::getTextures(AVFrame *frame)
 
     VASurfaceID vaSurface = (uintptr_t)frame->data[3];
 
-    VADRMPRIMESurfaceDescriptor prime;
+    VADRMPRIMESurfaceDescriptor prime = {};
     if (vaExportSurfaceHandle(vaDisplay, vaSurface,
                               VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
                               VA_EXPORT_SURFACE_READ_ONLY |
@@ -245,6 +245,13 @@ TextureSet *VAAPITextureConverter::getTextures(AVFrame *frame)
         qWarning() << "vaExportSurfaceHandle failed";
         return nullptr;
     }
+
+    // Make sure all fd's in 'prime' are closed when we return from this function
+    QScopeGuard closeObjectsGuard([&prime]() {
+        for (uint32_t i = 0;  i < prime.num_objects;  ++i)
+            close(prime.objects[i].fd);
+    });
+
     // ### Check that prime.fourcc is what we expect
     vaSyncSurface(vaDisplay, vaSurface);
 
@@ -324,9 +331,6 @@ TextureSet *VAAPITextureConverter::getTextures(AVFrame *frame)
         if (error)
             qWarning() << "eglImageTargetTexture2D failed with error code" << error;
     }
-
-    for (int i = 0;  i < (int)prime.num_objects;  ++i)
-        close(prime.objects[i].fd);
 
     for (int i = 0;  i < nPlanes;  ++i) {
         functions.glActiveTexture(GL_TEXTURE0 + i);
