@@ -1,31 +1,85 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QApplication>
-
+#include <QtCore/QTimer>
+#include <QtCore/QCommandLineParser>
+#include <QtMultimedia/QAudioOutput>
+#include <QtMultimedia/QMediaPlayer>
+#include <QtMultimediaWidgets/QVideoWidget>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QWidget>
-#include <QtMultimedia/QMediaPlayer>
-#include <QtMultimedia/QAudioOutput>
-#include <QtMultimediaWidgets/QVideoWidget>
+
+using namespace std::chrono_literals;
+using namespace Qt::Literals;
+
+int mainToggleWidgets(QString filename)
+{
+    QMediaPlayer player;
+    QVideoWidget widget1;
+    QVideoWidget widget2;
+    QAudioOutput audioOutput;
+    player.setVideoOutput(&widget1);
+    player.setAudioOutput(&audioOutput);
+    player.setSource(filename);
+
+    QTimer toggleOutput;
+    bool toggled = {};
+
+    toggleOutput.callOnTimeout([&] {
+        toggled = !toggled;
+        if (toggled)
+            player.setVideoOutput(&widget2);
+        else
+            player.setVideoOutput(&widget1);
+    });
+
+    toggleOutput.setInterval(1s);
+    toggleOutput.start();
+
+    widget1.show();
+    widget2.show();
+    player.play();
+    return QApplication::exec();
+}
+
+int mainSimple(QString filename)
+{
+    QMediaPlayer player;
+    QVideoWidget widget1;
+    QAudioOutput audioOutput;
+    player.setVideoOutput(&widget1);
+    player.setAudioOutput(&audioOutput);
+    player.setSource(filename);
+
+    widget1.show();
+    player.play();
+    return QApplication::exec();
+}
 
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
-    QMediaPlayer player;
-    QVideoWidget widget;
-    QAudioOutput audioOutput;
-    player.setVideoOutput(&widget);
-    player.setAudioOutput(&audioOutput);
 
-    if (QApplication::arguments().size() > 1) {
-        player.setSource(QApplication::arguments()[1]);
-    } else {
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Minimal Player");
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addPositionalArgument("media", "File to play");
+
+    QCommandLineOption toggleWidgetsOption{ "toggle-widgets", "Toggle between widgets." };
+    parser.addOption(toggleWidgetsOption);
+
+    parser.process(app);
+
+    if (parser.positionalArguments().isEmpty()) {
         qInfo() << "Please specify a video source";
         return 0;
     }
 
-    widget.show();
-    player.play();
-    return QApplication::exec();
+    QString filename = parser.positionalArguments()[0];
+
+    if (parser.isSet(toggleWidgetsOption))
+        return mainToggleWidgets(filename);
+
+    return mainSimple(filename);
 }
