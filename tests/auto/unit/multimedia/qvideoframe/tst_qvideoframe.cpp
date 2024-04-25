@@ -59,6 +59,8 @@ private slots:
     void image();
 
     void emptyData();
+
+    void mirrored_takesValue_fromVideoFrameFormat();
 };
 
 class QtTestDummyVideoBuffer : public QObject, public QAbstractVideoBuffer
@@ -990,6 +992,19 @@ void tst_QVideoFrame::emptyData()
     QVideoFrame f(new QMemoryVideoBuffer(data, 600),
                   QVideoFrameFormat(QSize(800, 600), QVideoFrameFormat::Format_ARGB8888));
     QVERIFY(!f.map(QVideoFrame::ReadOnly));
+}
+
+void tst_QVideoFrame::mirrored_takesValue_fromVideoFrameFormat()
+{
+    QVideoFrameFormat format(QSize(10, 20), QVideoFrameFormat::Format_ARGB8888);
+    format.setMirrored(true);
+
+    QVideoFrame frame(format);
+    QVERIFY(frame.mirrored());
+
+    frame.setMirrored(false);
+    QVERIFY(!frame.mirrored());
+    QVERIFY(!frame.surfaceFormat().isMirrored());
 }
 
 QTEST_MAIN(tst_QVideoFrame)
