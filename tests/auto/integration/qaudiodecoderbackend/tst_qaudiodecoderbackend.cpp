@@ -507,8 +507,8 @@ void tst_QAudioDecoderBackend::fileTest()
         buffer = d.read();
         QVERIFY(buffer.isValid());
         QTRY_VERIFY(!positionSpy.isEmpty());
-        QCOMPARE(positionSpy.takeLast().at(0).toLongLong(), qint64(duration / 1000));
-        QVERIFY(d.position() - (duration / 1000) < 20);
+        QCOMPARE(positionSpy.takeLast().at(0).toLongLong(), qlonglong(duration / 1000));
+        QCOMPARE_LT(d.position() - (duration / 1000), 20u);
 
         duration += buffer.duration();
         sampleCount += buffer.sampleCount();
@@ -521,10 +521,10 @@ void tst_QAudioDecoderBackend::fileTest()
 
     // Resampling might end up with fewer or more samples
     // so be a bit sloppy
-    QVERIFY(qAbs(sampleCount - 22047) < 100);
-    QVERIFY(qAbs(byteCount - 22047) < 100);
-    QVERIFY(qAbs(qint64(duration) - 1000000) < 20000);
-    QVERIFY(qAbs((d.position() + (buffer.duration() / 1000)) - 1000) < 20);
+    QCOMPARE_LT(qAbs(sampleCount - 22047), 100);
+    QCOMPARE_LT(qAbs(byteCount - 22047), 100);
+    QCOMPARE_LT(qAbs(qint64(duration) - 1000000), 20000);
+    QCOMPARE_LT(qAbs((d.position() + (buffer.duration() / 1000)) - 1000), 20);
     QTRY_COMPARE(finishedSpy.size(), 1);
     QVERIFY(!d.bufferAvailable());
     QVERIFY(!d.isDecoding());
