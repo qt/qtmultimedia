@@ -54,6 +54,15 @@ QDebug operator<<(QDebug, GstPadDirection);
 QDebug operator<<(QDebug, const GValue *);
 QDebug operator<<(QDebug, const GError *);
 
+struct QCompactGstMessageAdaptor
+{
+    explicit QCompactGstMessageAdaptor(const QGstreamerMessage &m);
+    explicit QCompactGstMessageAdaptor(GstMessage *m);
+    GstMessage *msg;
+};
+
+QDebug operator<<(QDebug, const QCompactGstMessageAdaptor &);
+
 QT_END_NAMESPACE
 
 #endif

@@ -362,8 +362,8 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         GstState    pending;
 
         gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
-        qCDebug(qLcMediaPlayer) << "    state changed message from" << oldState << "to" << newState
-                                << pending;
+        qCDebug(qLcMediaPlayer) << "    state changed message from"
+                                << QCompactGstMessageAdaptor(message);
 
         switch (newState) {
         case GST_STATE_VOID_PENDING:
@@ -427,11 +427,11 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         break;
     }
     case GST_MESSAGE_ERROR: {
+        qCDebug(qLcMediaPlayer) << "    error" << QCompactGstMessageAdaptor(message);
+
         QUniqueGErrorHandle err;
         QUniqueGStringHandle debug;
         gst_message_parse_error(gm, &err, &debug);
-        qCDebug(qLcMediaPlayer) << "    error" << err << debug;
-
         GQuark errorDomain = err.get()->domain;
         gint errorCode = err.get()->code;
 
@@ -458,23 +458,17 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         mediaStatusChanged(QMediaPlayer::InvalidMedia);
         break;
     }
-    case GST_MESSAGE_WARNING: {
-        QUniqueGErrorHandle err;
-        QUniqueGStringHandle debug;
-        gst_message_parse_warning (gm, &err, &debug);
-        qCWarning(qLcMediaPlayer) << "Warning:" << err;
+
+    case GST_MESSAGE_WARNING:
+        qCWarning(qLcMediaPlayer) << "Warning:" << QCompactGstMessageAdaptor(message);
         playerPipeline.dumpGraph("warning");
         break;
-    }
-    case GST_MESSAGE_INFO: {
-        if (qLcMediaPlayer().isDebugEnabled()) {
-            QUniqueGErrorHandle err;
-            QUniqueGStringHandle debug;
-            gst_message_parse_info (gm, &err, &debug);
-            qCDebug(qLcMediaPlayer) << "Info:" << err;
-        }
+
+    case GST_MESSAGE_INFO:
+        if (qLcMediaPlayer().isDebugEnabled())
+            qCDebug(qLcMediaPlayer) << "Info:" << QCompactGstMessageAdaptor(message);
         break;
-    }
+
     case GST_MESSAGE_SEGMENT_START: {
         qCDebug(qLcMediaPlayer) << "    segment start message, updating position";
         QGstStructure structure(gst_message_get_structure(gm));

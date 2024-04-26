@@ -172,6 +172,42 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         break;
     }
 
+    case GST_MESSAGE_WARNING: {
+        QUniqueGErrorHandle err;
+        QGString debug;
+        gst_message_parse_warning(const_cast<GstMessage *>(msg), &err, &debug);
+
+        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
+            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg) << ", Warning: " << err << " ("
+            << debug << ")";
+        break;
+    }
+
+    case GST_MESSAGE_INFO: {
+        QUniqueGErrorHandle err;
+        QGString debug;
+        gst_message_parse_info(const_cast<GstMessage *>(msg), &err, &debug);
+
+        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
+            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg) << ", Info: " << err << " (" << debug
+            << ")";
+        break;
+    }
+
+    case GST_MESSAGE_STATE_CHANGED: {
+        GstState oldState;
+        GstState newState;
+        GstState pending;
+
+        gst_message_parse_state_changed(const_cast<GstMessage *>(msg), &oldState, &newState,
+                                        &pending);
+
+        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
+            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg) << ", OldState: " << oldState
+            << ", NewState: " << newState << "Pending State: " << pending;
+        break;
+    }
+
     default: {
         dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
             << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg);
@@ -314,6 +350,69 @@ QDebug operator<<(QDebug dbg, const GValue *value)
 QDebug operator<<(QDebug dbg, const GError *error)
 {
     return dbg << error->message;
+}
+
+QCompactGstMessageAdaptor::QCompactGstMessageAdaptor(const QGstreamerMessage &m)
+    : QCompactGstMessageAdaptor{
+          m.message(),
+      }
+{
+}
+
+QCompactGstMessageAdaptor::QCompactGstMessageAdaptor(GstMessage *m)
+    : msg{
+          m,
+      }
+{
+}
+
+QDebug operator<<(QDebug dbg, const QCompactGstMessageAdaptor &m)
+{
+    std::optional<QDebugStateSaver> saver(dbg);
+    dbg.nospace();
+
+    switch (GST_MESSAGE_TYPE(m.msg)) {
+    case GST_MESSAGE_ERROR: {
+        QUniqueGErrorHandle err;
+        QGString debug;
+        gst_message_parse_error(m.msg, &err, &debug);
+        dbg << err << " (" << debug << ")";
+        return dbg;
+    }
+
+    case GST_MESSAGE_WARNING: {
+        QUniqueGErrorHandle err;
+        QGString debug;
+        gst_message_parse_warning(m.msg, &err, &debug);
+        dbg << err << " (" << debug << ")";
+        return dbg;
+    }
+
+    case GST_MESSAGE_INFO: {
+        QUniqueGErrorHandle err;
+        QGString debug;
+        gst_message_parse_info(m.msg, &err, &debug);
+
+        dbg << err << " (" << debug << ")";
+        return dbg;
+    }
+
+    case GST_MESSAGE_STATE_CHANGED: {
+        GstState oldState;
+        GstState newState;
+        GstState pending;
+
+        gst_message_parse_state_changed(m.msg, &oldState, &newState, &pending);
+
+        dbg << oldState << "->" << newState << "(pending: " << pending << ")";
+        return dbg;
+    }
+
+    default: {
+        saver.reset();
+        return dbg << m.msg;
+    }
+    }
 }
 
 QT_END_NAMESPACE

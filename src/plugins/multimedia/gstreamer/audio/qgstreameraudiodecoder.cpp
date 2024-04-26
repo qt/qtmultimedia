@@ -134,8 +134,8 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
             gst_message_parse_state_changed(gm, &oldState, &newState, &pending);
 
             if constexpr (extendedMessageTracing)
-                qCDebug(qLcGstreamerAudioDecoder) << "    state changed message from" << oldState
-                                                  << "to" << newState << pending;
+                qCDebug(qLcGstreamerAudioDecoder)
+                        << "    state changed" << QCompactGstMessageAdaptor(message);
 
             bool isDecoding = false;
             switch (newState) {
@@ -177,33 +177,30 @@ bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
             else
                 processInvalidMedia(QAudioDecoder::ResourceError,
                                     QString::fromUtf8(err.get()->message));
-            qCWarning(qLcGstreamerAudioDecoder) << "Error:" << err;
+
+            qCWarning(qLcGstreamerAudioDecoder) << "Error:" << QCompactGstMessageAdaptor(message);
             break;
         }
-        case GST_MESSAGE_WARNING: {
-            QUniqueGErrorHandle err;
-            QGString debug;
-            gst_message_parse_warning(gm, &err, &debug);
-            qCWarning(qLcGstreamerAudioDecoder) << "Warning:" << err;
+
+        case GST_MESSAGE_WARNING:
+            qCWarning(qLcGstreamerAudioDecoder) << "Warning:" << QCompactGstMessageAdaptor(message);
             break;
-        }
-        case GST_MESSAGE_INFO: {
-            if (qLcGstreamerAudioDecoder().isDebugEnabled()) {
-                QUniqueGErrorHandle err;
-                QGString debug;
-                gst_message_parse_info(gm, &err, &debug);
-                qDebug() << "Info:" << err;
-            }
+
+        case GST_MESSAGE_INFO:
+            if (qLcGstreamerAudioDecoder().isDebugEnabled())
+                qDebug() << "Info:" << QCompactGstMessageAdaptor(message);
+
             break;
-        }
+
         default:
             break;
         }
     } else if (GST_MESSAGE_TYPE(gm) == GST_MESSAGE_ERROR) {
+        qCDebug(qLcGstreamerAudioDecoder) << "    error" << QCompactGstMessageAdaptor(message);
+
         QUniqueGErrorHandle err;
         QGString debug;
         gst_message_parse_error(gm, &err, &debug);
-        qCDebug(qLcGstreamerAudioDecoder) << "    error" << err << debug;
 
         QAudioDecoder::Error qerror = QAudioDecoder::ResourceError;
         if (err.get()->domain == GST_STREAM_ERROR) {
