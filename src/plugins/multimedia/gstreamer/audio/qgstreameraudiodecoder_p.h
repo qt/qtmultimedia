@@ -57,7 +57,6 @@ public:
     void setAudioFormat(const QAudioFormat &format) override;
 
     QAudioBuffer read() override;
-    bool bufferAvailable() const override;
 
     qint64 position() const override;
     qint64 duration() const override;
@@ -73,6 +72,8 @@ private:
 
 #if QT_CONFIG(gstreamer_app)
     static GstFlowReturn new_sample(GstAppSink *sink, gpointer user_data);
+    GstFlowReturn newSample(GstAppSink *sink);
+
     static void configureAppSrcElement(GObject *, GObject *, GParamSpec *,
                                        QGstreamerAudioDecoder *_this);
 #endif
@@ -96,13 +97,13 @@ private:
     QIODevice *mDevice = nullptr;
     QAudioFormat mFormat;
 
-    mutable QMutex m_buffersMutex;
     int m_buffersAvailable = 0;
-
     qint64 m_position = -1;
     qint64 m_duration = -1;
 
     int m_durationQueries = 0;
+
+    qint32 m_currentSessionId{};
 
     QGObjectHandlerScopedConnection m_deepNotifySourceConnection;
 };

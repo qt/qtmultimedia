@@ -327,6 +327,7 @@ void QGstreamerAudioDecoder::start()
 void QGstreamerAudioDecoder::stop()
 {
     m_playbin.setState(GST_STATE_NULL);
+    m_currentSessionId += 1;
     removeAppSink();
 
     // GStreamer thread is stopped. Can safely access m_buffersAvailable
@@ -365,53 +366,36 @@ QAudioBuffer QGstreamerAudioDecoder::read()
 {
     QAudioBuffer audioBuffer;
 
-    int buffersAvailable;
-    {
-        QMutexLocker locker(&m_buffersMutex);
-        buffersAvailable = m_buffersAvailable;
+    if (m_buffersAvailable == 0)
+        return audioBuffer;
 
-        // need to decrement before pulling a buffer
-        // to make sure assert in QGstreamerAudioDecoderControl::new_buffer works
-        m_buffersAvailable--;
-    }
+    m_buffersAvailable -= 1;
 
+    if (m_buffersAvailable == 0)
+        bufferAvailableChanged(false);
 
-    if (buffersAvailable) {
-        if (buffersAvailable == 1)
-            bufferAvailableChanged(false);
+    QGstSampleHandle sample = m_appSink.pullSample();
+    GstBuffer *buffer = gst_sample_get_buffer(sample.get());
+    GstMapInfo mapInfo;
+    gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
+    const char *bufferData = (const char *)mapInfo.data;
+    int bufferSize = mapInfo.size;
+    QAudioFormat format = QGstUtils::audioFormatForSample(sample.get());
 
-        const char* bufferData = nullptr;
-        int bufferSize = 0;
-
-        QGstSampleHandle sample = m_appSink.pullSample();
-        GstBuffer *buffer = gst_sample_get_buffer(sample.get());
-        GstMapInfo mapInfo;
-        gst_buffer_map(buffer, &mapInfo, GST_MAP_READ);
-        bufferData = (const char*)mapInfo.data;
-        bufferSize = mapInfo.size;
-        QAudioFormat format = QGstUtils::audioFormatForSample(sample.get());
-
-        if (format.isValid()) {
-            // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
-            // We could improve performance by implementing QAbstractAudioBuffer for GstBuffer.
-            qint64 position = getPositionFromBuffer(buffer);
-            audioBuffer = QAudioBuffer(QByteArray((const char*)bufferData, bufferSize), format, position);
-            position /= 1000; // convert to milliseconds
-            if (position != m_position) {
-                m_position = position;
-                positionChanged(m_position);
-            }
+    if (format.isValid()) {
+        // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
+        // We could improve performance by implementing QAbstractAudioBuffer for GstBuffer.
+        qint64 position = getPositionFromBuffer(buffer);
+        audioBuffer = QAudioBuffer(QByteArray(bufferData, bufferSize), format, position);
+        position /= 1000; // convert to milliseconds
+        if (position != m_position) {
+            m_position = position;
+            positionChanged(m_position);
         }
-        gst_buffer_unmap(buffer, &mapInfo);
     }
+    gst_buffer_unmap(buffer, &mapInfo);
 
     return audioBuffer;
-}
-
-bool QGstreamerAudioDecoder::bufferAvailable() const
-{
-    QMutexLocker locker(&m_buffersMutex);
-    return m_buffersAvailable > 0;
 }
 
 qint64 QGstreamerAudioDecoder::position() const
@@ -430,28 +414,28 @@ void QGstreamerAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode,
     error(int(errorCode), errorString);
 }
 
-GstFlowReturn QGstreamerAudioDecoder::new_sample(GstAppSink *, gpointer user_data)
+GstFlowReturn QGstreamerAudioDecoder::newSample(GstAppSink *)
 {
-    qCDebug(qLcGstreamerAudioDecoder) << "QGstreamerAudioDecoder::new_sample";
-
     // "Note that the preroll buffer will also be returned as the first buffer when calling
     // gst_app_sink_pull_buffer()."
-    QGstreamerAudioDecoder *decoder = reinterpret_cast<QGstreamerAudioDecoder*>(user_data);
 
-    int buffersAvailable;
-    {
-        QMutexLocker locker(&decoder->m_buffersMutex);
-        buffersAvailable = decoder->m_buffersAvailable;
-        decoder->m_buffersAvailable++;
-        Q_ASSERT(decoder->m_buffersAvailable <= MAX_BUFFERS_IN_QUEUE);
-    }
+    QMetaObject::invokeMethod(this, [this, sessionId = m_currentSessionId] {
+        if (sessionId != m_currentSessionId)
+            return; // stop()ed before message is executed
 
-    qCDebug(qLcGstreamerAudioDecoder) << "QGstreamerAudioDecoder::new_sample" << buffersAvailable;
+        m_buffersAvailable += 1;
+        bufferAvailableChanged(true);
+        bufferReady();
+    });
 
-    if (!buffersAvailable)
-        decoder->bufferAvailableChanged(true);
-    decoder->bufferReady();
     return GST_FLOW_OK;
+}
+
+GstFlowReturn QGstreamerAudioDecoder::new_sample(GstAppSink *sink, gpointer user_data)
+{
+    QGstreamerAudioDecoder *decoder = reinterpret_cast<QGstreamerAudioDecoder *>(user_data);
+    qCDebug(qLcGstreamerAudioDecoder) << "QGstreamerAudioDecoder::new_sample";
+    return decoder->newSample(sink);
 }
 
 void QGstreamerAudioDecoder::setAudioFlags(bool wantNativeAudio)
