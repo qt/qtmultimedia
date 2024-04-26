@@ -13,41 +13,47 @@
 
 using namespace Qt::StringLiterals;
 
+[[maybe_unused]] static constexpr auto SHLIB_VERSION =
+#if defined(OPENSSL_SHLIB_VERSION)
+    OPENSSL_SHLIB_VERSION;
+#elif defined(SHLIB_VERSION_NUMBER)
+    SHLIB_VERSION_NUMBER;
+#endif
+
+
+#if !defined(Q_OS_ANDROID)
+CHECK_VERSIONS("ssl", SSL_NEEDED_SOVERSION, SHLIB_VERSION);
+#endif
+
 static std::unique_ptr<QLibrary> loadLib()
 {
-    // TODO: improve using OPENSSL_NEEDED_SOVERSION
-
     auto lib = std::make_unique<QLibrary>();
-
-    const auto majorVersion = OPENSSL_VERSION_NUMBER >> 28;
 
     auto tryLoad = [&](QString sslName, auto version) {
         lib->setFileNameAndVersion(sslName, version);
         return lib->load();
     };
 
-// Due to binary compatibility issues between 1.x.x openssl version, let's try taking exact version
-#if defined(SHLIB_VERSION_NUMBER)
-    if (majorVersion <= 1) {
-        if (tryLoad("ssl"_L1, SHLIB_VERSION_NUMBER ""_L1))
-            return lib;
-        return {};
-    }
-#endif
-
 // openssl on Android has specific suffixes
 #if defined(Q_OS_ANDROID)
     {
         auto suffix = qEnvironmentVariable("ANDROID_OPENSSL_SUFFIX");
-        if (suffix.isEmpty())
-            suffix = QString("_"_L1) + QString::number(majorVersion);
+        if (suffix.isEmpty()) {
+#if (OPENSSL_VERSION_NUMBER >> 28) < 3 // major version < 3
+            suffix = "_1_1"_L1;
+#elif OPENSSL_VERSION_MAJOR == 3
+            suffix = "_3"_L1;
+#else
+            static_assert(false, "Unexpected openssl version");
+#endif
+        }
 
         if (tryLoad("ssl"_L1 + suffix, -1))
             return lib;
     }
 #endif
 
-    if (tryLoad("ssl"_L1, majorVersion))
+    if (tryLoad("ssl"_L1, SSL_NEEDED_SOVERSION ""_L1))
         return lib;
 
     return {};
