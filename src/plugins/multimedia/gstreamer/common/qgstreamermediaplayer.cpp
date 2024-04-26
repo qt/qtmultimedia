@@ -296,9 +296,6 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
 
 bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 {
-    if (message.isNull())
-        return false;
-
     qCDebug(qLcMediaPlayer) << "received bus message:" << message;
 
     GstMessage* gm = message.message();

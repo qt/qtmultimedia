@@ -63,9 +63,6 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
     constexpr bool traceStateChange = false;
     constexpr bool traceAllEvents = false;
 
-    if (msg.isNull())
-        return false;
-
     if constexpr (traceAllEvents)
         qCDebug(qLcMediaEncoderGst) << "received event:" << msg;
 
