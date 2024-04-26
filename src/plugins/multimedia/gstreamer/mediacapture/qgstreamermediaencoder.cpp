@@ -84,10 +84,12 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
     }
 
     case GST_MESSAGE_ERROR: {
+        qCDebug(qLcMediaEncoderGst)
+                << "received error:" << msg.source().name() << QCompactGstMessageAdaptor(msg);
+
         QUniqueGErrorHandle err;
         QGString debug;
         gst_message_parse_error(msg.message(), &err, &debug);
-        qCDebug(qLcMediaEncoderGst) << "received error:" << msg.source().name() << err << debug;
         error(QMediaRecorder::ResourceError, QString::fromUtf8(err.get()->message));
         if (!m_finalizing)
             stop();
@@ -96,14 +98,9 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
     }
 
     case GST_MESSAGE_STATE_CHANGED: {
-        if constexpr (traceStateChange) {
-            GstState oldState;
-            GstState newState;
-            GstState pending;
-            gst_message_parse_state_changed(msg.message(), &oldState, &newState, &pending);
-            qCDebug(qLcMediaEncoderGst) << "received state change from" << msg.source().name()
-                                        << oldState << newState << pending;
-        }
+        if constexpr (traceStateChange)
+            qCDebug(qLcMediaEncoderGst)
+                    << "received state change" << QCompactGstMessageAdaptor(msg);
 
         return false;
     }
