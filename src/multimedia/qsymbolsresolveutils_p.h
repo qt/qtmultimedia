@@ -22,6 +22,30 @@
 
 QT_BEGIN_NAMESPACE
 
+constexpr bool areVersionsEqual(const char lhs[], const char rhs[])
+{
+    int i = 0;
+    for (; lhs[i] && rhs[i]; ++i)
+        if (lhs[i] != rhs[i])
+            return false;
+    return lhs[i] == rhs[i];
+}
+
+constexpr bool areVersionsEqual(const char lhs[], int rhsInt)
+{
+    int lhsInt = 0;
+    for (int i = 0; lhs[i]; ++i) {
+        if (lhs[i] < '0' || lhs[i] > '9')
+            return false;
+
+        lhsInt *= 10;
+        lhsInt += lhs[i] - '0';
+    }
+
+    return lhsInt == rhsInt;
+}
+
+
 template <typename T>
 struct DefaultReturn
 {
@@ -69,9 +93,14 @@ private:
     std::unique_ptr<QLibrary> m_library;
 };
 
+
 QT_END_NAMESPACE
 
 // clang-format off
+
+#define CHECK_VERSIONS(Name, NeededSoversion, DetectedVersion) \
+    static_assert(areVersionsEqual(NeededSoversion, DetectedVersion), \
+                 "Configuartion error: misleading " Name " versions!")
 
 #define BEGIN_INIT_FUNCS(...) \
     QT_USE_NAMESPACE \

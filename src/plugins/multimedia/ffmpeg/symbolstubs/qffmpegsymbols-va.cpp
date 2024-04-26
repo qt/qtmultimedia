@@ -6,6 +6,14 @@
 #include <va/va.h>
 #include <va/va_str.h>
 
+// VAAPI generated the actual *.so name due to the rule:
+// https://github.com/intel/libva/blob/master/configure.ac
+//
+// The library name is generated libva.<x>.<y>.0 where
+// <x> = VA-API major version + 1
+// <y> = 100 * VA-API minor version + VA-API micro version
+CHECK_VERSIONS("va", VA_NEEDED_SOVERSION, VA_MAJOR_VERSION + 1);
+
 BEGIN_INIT_FUNCS("va", VA_NEEDED_SOVERSION)
 
 
