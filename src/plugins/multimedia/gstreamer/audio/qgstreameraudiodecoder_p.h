@@ -81,7 +81,9 @@ private:
     void addAppSink();
     void removeAppSink();
 
-    void processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString);
+    bool handlePlaybinMessage(const QGstreamerMessage &);
+
+    void processInvalidMedia(QAudioDecoder::Error errorCode, const QString &errorString);
     static qint64 getPositionFromBuffer(GstBuffer* buffer);
 
     QGstPipeline m_playbin;
