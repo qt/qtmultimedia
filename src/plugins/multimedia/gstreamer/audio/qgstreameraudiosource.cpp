@@ -4,14 +4,16 @@
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qmath.h>
-#include <private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
 
 #include "qgstreameraudiosource_p.h"
 #include "qgstreameraudiodevice_p.h"
+#include "common/qgst_p.h"
+#include "common/qgst_debug_p.h"
+
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <gst/gst.h>
 Q_DECLARE_OPAQUE_POINTER(GstSample *);
 Q_DECLARE_METATYPE(GstSample *);
 
@@ -204,12 +206,7 @@ gboolean QGStreamerAudioSource::busMessage(GstBus *, GstMessage *msg, gpointer u
         break;
     case GST_MESSAGE_ERROR: {
         input->setError(QAudio::IOError);
-        QUniqueGErrorHandle error;
-        QGString debug;
-
-        gst_message_parse_error (msg, &error, &debug);
-        qDebug() << "Error:" << error.get();
-
+        qDebug() << "Error:" << QCompactGstMessageAdaptor(msg);
         break;
     }
     default:

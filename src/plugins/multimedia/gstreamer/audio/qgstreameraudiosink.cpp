@@ -181,12 +181,7 @@ bool QGStreamerAudioSink::processBusMessage(const QGstreamerMessage &message)
         break;
     case GST_MESSAGE_ERROR: {
         setError(QAudio::IOError);
-        QUniqueGErrorHandle error;
-        QGString debug;
-
-        gst_message_parse_error(msg, &error, &debug);
-        qDebug() << "Error:" << error;
-
+        qDebug() << "Error:" << QCompactGstMessageAdaptor(message);
         break;
     }
     default:
