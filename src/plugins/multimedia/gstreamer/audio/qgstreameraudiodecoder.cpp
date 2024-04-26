@@ -116,9 +116,6 @@ void QGstreamerAudioDecoder::configureAppSrcElement([[maybe_unused]] GObject *ob
 
 bool QGstreamerAudioDecoder::processBusMessage(const QGstreamerMessage &message)
 {
-    if (message.isNull())
-        return false;
-
     constexpr bool extendedMessageTracing = false;
 
     qCDebug(qLcGstreamerAudioDecoder) << "received bus message:" << message;

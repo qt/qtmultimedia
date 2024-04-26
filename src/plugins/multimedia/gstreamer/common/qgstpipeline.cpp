@@ -16,9 +16,7 @@ QT_BEGIN_NAMESPACE
 
 class QGstPipelinePrivate : public QObject
 {
-    Q_OBJECT
 public:
-
     int m_ref = 0;
     guint m_tag = 0;
     GstBus *m_bus = nullptr;
@@ -46,8 +44,12 @@ public:
     void installMessageFilter(QGstreamerBusMessageFilter *filter);
     void removeMessageFilter(QGstreamerBusMessageFilter *filter);
 
+private:
     static GstBusSyncReply syncGstBusFilter(GstBus* bus, GstMessage* message, QGstPipelinePrivate *d)
     {
+        if (!message)
+            return GST_BUS_PASS;
+
         Q_UNUSED(bus);
         QMutexLocker lock(&d->filterMutex);
 
@@ -62,31 +64,20 @@ public:
         return GST_BUS_PASS;
     }
 
-private Q_SLOTS:
-    void interval()
-    {
-        GstMessage* message;
-        while ((message = gst_bus_poll(m_bus, GST_MESSAGE_ANY, 0)) != nullptr) {
-            processMessage(message);
-            gst_message_unref(message);
-        }
-    }
-    void doProcessMessage(const QGstreamerMessage& msg)
-    {
-        for (QGstreamerBusMessageFilter *filter : std::as_const(busFilters)) {
-            if (filter->processBusMessage(msg))
-                break;
-        }
-    }
-
-private:
     void processMessage(GstMessage *message)
     {
+        if (!message)
+            return;
+
         QGstreamerMessage msg{
             message,
             QGstreamerMessage::NeedsRef,
         };
-        doProcessMessage(msg);
+
+        for (QGstreamerBusMessageFilter *filter : std::as_const(busFilters)) {
+            if (filter->processBusMessage(msg))
+                break;
+        }
     }
 
     static gboolean busCallback(GstBus *, GstMessage *message, gpointer data)
@@ -106,7 +97,13 @@ QGstPipelinePrivate::QGstPipelinePrivate(GstBus* bus, QObject* parent)
     if (!hasGlib) {
         m_intervalTimer = new QTimer(this);
         m_intervalTimer->setInterval(250);
-        connect(m_intervalTimer, SIGNAL(timeout()), SLOT(interval()));
+        QObject::connect(m_intervalTimer, &QTimer::timeout, this, [this] {
+            GstMessage *message;
+            while ((message = gst_bus_poll(m_bus, GST_MESSAGE_ANY, 0)) != nullptr) {
+                processMessage(message);
+                gst_message_unref(message);
+            }
+        });
         m_intervalTimer->start();
     } else {
         m_tag = gst_bus_add_watch_full(bus, G_PRIORITY_DEFAULT, busCallback, this, nullptr);
@@ -388,6 +385,3 @@ QGstPipelinePrivate *QGstPipeline::getPrivate() const
 }
 
 QT_END_NAMESPACE
-
-#include "qgstpipeline.moc"
-
