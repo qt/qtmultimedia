@@ -683,7 +683,7 @@ void QVideoFrame::setEndTime(qint64 time)
 void QVideoFrame::setRotation(QtVideo::Rotation angle)
 {
     if (d)
-        d->rotation = angle;
+        d->format.setRotation(angle);
 }
 
 /*!
@@ -691,7 +691,7 @@ void QVideoFrame::setRotation(QtVideo::Rotation angle)
  */
 QtVideo::Rotation QVideoFrame::rotation() const
 {
-    return QtVideo::Rotation(d ? d->rotation : QtVideo::Rotation::None);
+    return d ? d->format.rotation() : QtVideo::Rotation::None;
 }
 
 /*!

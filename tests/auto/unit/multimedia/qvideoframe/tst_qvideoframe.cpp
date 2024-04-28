@@ -5,6 +5,7 @@
 
 #include <qvideoframe.h>
 #include <qvideoframeformat.h>
+#include "QtTest/qtestcase.h"
 #include "private/qmemoryvideobuffer_p.h"
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
@@ -168,6 +169,7 @@ private slots:
     void emptyData();
 
     void mirrored_takesValue_fromVideoFrameFormat();
+    void rotation_takesValue_fromVideoFrameFormat();
 
     void constructor_createsInvalidFrame_whenCalledWithNullImage();
     void constructor_createsInvalidFrame_whenCalledWithEmptyImage();
@@ -1118,8 +1120,23 @@ void tst_QVideoFrame::mirrored_takesValue_fromVideoFrameFormat()
     QVERIFY(frame.mirrored());
 
     frame.setMirrored(false);
+    frame.setRotation(QtVideo::Rotation::Clockwise180);
     QVERIFY(!frame.mirrored());
     QVERIFY(!frame.surfaceFormat().isMirrored());
+}
+
+void tst_QVideoFrame::rotation_takesValue_fromVideoFrameFormat()
+{
+    QVideoFrameFormat format(QSize(10, 20), QVideoFrameFormat::Format_ARGB8888);
+    format.setRotation(QtVideo::Rotation::Clockwise270);
+
+    QVideoFrame frame(format);
+    QCOMPARE(frame.rotation(), QtVideo::Rotation::Clockwise270);
+
+    frame.setRotation(QtVideo::Rotation::Clockwise180);
+
+    QCOMPARE(frame.rotation(), QtVideo::Rotation::Clockwise180);
+    QCOMPARE(frame.surfaceFormat().rotation(), QtVideo::Rotation::Clockwise180);
 }
 
 void tst_QVideoFrame::constructor_createsInvalidFrame_whenCalledWithNullImage()

@@ -39,7 +39,8 @@ public:
             && viewport == other.viewport
             && frameRatesEqual(frameRate, other.frameRate)
             && colorSpace == other.colorSpace
-            && mirrored == other.mirrored)
+            && mirrored == other.mirrored
+            && rotation == other.rotation)
             return true;
 
         return false;
@@ -60,6 +61,7 @@ public:
     float frameRate = 0.0;
     float maxLuminance = -1.;
     bool mirrored = false;
+    QtVideo::Rotation rotation = QtVideo::Rotation::None;
 };
 
 QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFrameFormatPrivate);
@@ -680,6 +682,23 @@ void QVideoFrameFormat::setMirrored(bool mirrored)
 {
     detach();
     d->mirrored = mirrored;
+}
+
+/*!
+    Returns the rotation angle the matching video frame should be rotated clockwise before displaying.
+ */
+QtVideo::Rotation QVideoFrameFormat::rotation() const
+{
+    return d->rotation;
+}
+
+/*!
+    Sets the \a rotation angle the matching video frame should be rotated clockwise before displaying.
+ */
+void QVideoFrameFormat::setRotation(QtVideo::Rotation rotation)
+{
+    detach();
+    d->rotation = rotation;
 }
 
 /*!

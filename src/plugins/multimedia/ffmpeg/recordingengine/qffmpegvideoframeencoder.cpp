@@ -7,6 +7,10 @@
 #include "qffmpegvideoencoderutils_p.h"
 #include <qloggingcategory.h>
 
+extern "C" {
+#include "libavutil/display.h"
+}
+
 QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencoder");
@@ -14,9 +18,13 @@ static Q_LOGGING_CATEGORY(qLcVideoFrameEncoder, "qt.multimedia.ffmpeg.videoencod
 namespace QFFmpeg {
 
 std::unique_ptr<VideoFrameEncoder>
-VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings, const QSize &sourceSize,
-                          qreal sourceFrameRate, AVPixelFormat sourceFormat,
-                          AVPixelFormat sourceSWFormat, AVFormatContext *formatContext)
+VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
+                          const QSize &sourceSize,
+                          QtVideo::Rotation sourceRotation,
+                          qreal sourceFrameRate,
+                          AVPixelFormat sourceFormat,
+                          AVPixelFormat sourceSWFormat,
+                          AVFormatContext *formatContext)
 {
     Q_ASSERT(isSwPixelFormat(sourceSWFormat));
     Q_ASSERT(isHwPixelFormat(sourceFormat) || sourceSWFormat == sourceFormat);
@@ -26,6 +34,7 @@ VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings, const QS
     result->m_settings = encoderSettings;
     result->m_sourceSize = sourceSize;
     result->m_sourceFormat = sourceFormat;
+    result->m_sourceRotation = sourceRotation;
 
     // Temporary: check isSwPixelFormat because of android issue (QTBUG-116836)
     result->m_sourceSWFormat = isSwPixelFormat(sourceFormat) ? sourceFormat : sourceSWFormat;
@@ -153,6 +162,15 @@ bool QFFmpeg::VideoFrameEncoder::initCodecContext(AVFormatContext *formatContext
     m_stream->codecpar->width = resolution.width();
     m_stream->codecpar->height = resolution.height();
     m_stream->codecpar->sample_aspect_ratio = AVRational{ 1, 1 };
+
+    if (m_sourceRotation != QtVideo::Rotation::None) {
+        constexpr auto displayMatrixSize = sizeof(int32_t) * 9;
+        AVPacketSideData sideData = { reinterpret_cast<uint8_t *>(av_malloc(displayMatrixSize)),
+                                      displayMatrixSize, AV_PKT_DATA_DISPLAYMATRIX };
+        av_display_rotation_set(reinterpret_cast<int32_t *>(sideData.data),
+                                static_cast<double>(m_sourceRotation));
+        addStreamSideData(m_stream, sideData);
+    }
 
     Q_ASSERT(m_codec);
 

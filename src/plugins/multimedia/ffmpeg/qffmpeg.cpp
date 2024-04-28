@@ -509,6 +509,32 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
     }
 }
 
+AVPacketSideData *addStreamSideData(AVStream *stream, AVPacketSideData sideData)
+{
+    QScopeGuard freeData([&sideData]() { av_free(sideData.data); });
+#if QT_FFMPEG_STREAM_SIDE_DATA_DEPRECATED
+    AVPacketSideData *result = av_packet_side_data_add(
+                                          &stream->codecpar->coded_side_data,
+                                          &stream->codecpar->nb_coded_side_data,
+                                          sideData.type,
+                                          sideData.data,
+                                          sideData.size,
+                                          0);
+    if (result) {
+        // If the result is not null, the ownership is taken by AVStream,
+        // otherwise the data must be deleted.
+        freeData.dismiss();
+        return result;
+    }
+#else
+    Q_UNUSED(stream);
+    // TODO: implement for older FFmpeg versions
+    qWarning() << "Adding stream side data is not supported for FFmpeg < 6.1";
+#endif
+
+    return nullptr;
+}
+
 const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataType type)
 {
     Q_ASSERT(stream);

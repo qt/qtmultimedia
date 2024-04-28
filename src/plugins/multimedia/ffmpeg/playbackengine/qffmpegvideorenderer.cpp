@@ -62,10 +62,10 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
     format.setColorTransfer(buffer->colorTransfer());
     format.setColorRange(buffer->colorRange());
     format.setMaxLuminance(buffer->maxNits());
+    format.setRotation(m_rotation);
     QVideoFrame videoFrame(buffer.release(), format);
     videoFrame.setStartTime(frame.pts());
     videoFrame.setEndTime(frame.end());
-    videoFrame.setRotation(m_rotation);
     m_sink->setVideoFrame(videoFrame);
 
     return {};

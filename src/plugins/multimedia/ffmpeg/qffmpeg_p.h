@@ -227,6 +227,8 @@ void applyExperimentalCodecOptions(const AVCodec *codec, AVDictionary** opts);
 
 AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType);
 
+AVPacketSideData *addStreamSideData(AVStream *stream, AVPacketSideData sideData);
+
 const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataType type);
 
 SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,

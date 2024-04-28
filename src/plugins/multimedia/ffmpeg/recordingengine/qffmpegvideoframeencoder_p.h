@@ -27,7 +27,9 @@ class VideoFrameEncoder
 {
 public:
     static std::unique_ptr<VideoFrameEncoder> create(const QMediaEncoderSettings &encoderSettings,
-                                                     const QSize &sourceSize, qreal sourceFrameRate,
+                                                     const QSize &sourceSize,
+                                                     QtVideo::Rotation sourceRotation,
+                                                     qreal sourceFrameRate,
                                                      AVPixelFormat sourceFormat,
                                                      AVPixelFormat sourceSWFormat,
                                                      AVFormatContext *formatContext);
@@ -60,6 +62,7 @@ private:
 private:
     QMediaEncoderSettings m_settings;
     QSize m_sourceSize;
+    QtVideo::Rotation m_sourceRotation = QtVideo::Rotation::None;
 
     std::unique_ptr<HWAccel> m_accel;
     const AVCodec *m_codec = nullptr;

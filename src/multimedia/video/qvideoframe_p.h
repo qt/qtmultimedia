@@ -49,7 +49,6 @@ public:
     int mappedCount = 0;
     QMutex mapMutex;
     QString subtitleText;
-    QtVideo::Rotation rotation = QtVideo::Rotation::None;
     QImage image;
     QMutex imageMutex;
 

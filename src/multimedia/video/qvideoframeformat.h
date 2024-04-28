@@ -5,6 +5,7 @@
 #define QVIDEOSURFACEFORMAT_H
 
 #include <QtMultimedia/qtmultimediaglobal.h>
+#include <QtMultimedia/qtvideo.h>
 
 #include <QtCore/qlist.h>
 #include <QtCore/qmetatype.h>
@@ -181,6 +182,9 @@ public:
 
     bool isMirrored() const;
     void setMirrored(bool mirrored);
+
+    QtVideo::Rotation rotation() const;
+    void setRotation(QtVideo::Rotation rotation);
 
     QString vertexShaderFileName() const;
     QString fragmentShaderFileName() const;

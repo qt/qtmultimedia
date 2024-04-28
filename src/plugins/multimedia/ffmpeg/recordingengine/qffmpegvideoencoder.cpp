@@ -30,9 +30,13 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
         frameRate = 30.;
     }
 
-    m_frameEncoder =
-            VideoFrameEncoder::create(settings, format.frameSize(), frameRate, ffmpegPixelFormat,
-                                      swFormat, recordingEngine.avFormatContext());
+    m_frameEncoder = VideoFrameEncoder::create(settings,
+                                               format.frameSize(),
+                                               format.rotation(),
+                                               frameRate,
+                                               ffmpegPixelFormat,
+                                               swFormat,
+                                               recordingEngine.avFormatContext());
 }
 
 VideoEncoder::~VideoEncoder() = default;
