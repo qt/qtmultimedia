@@ -65,7 +65,8 @@ protected:
 
     /*!
         Wake thread from sleep and process data until
-        hasData() returns false.
+        hasData() returns false. The method is supposed to be invoked
+        right after the scope of QMutexLocker that lockLoopData returns.
     */
     void dataReady();
 
@@ -74,10 +75,16 @@ protected:
      */
     virtual bool hasData() const = 0;
 
+    /*!
+        Locks the loop data mutex. It must be used to protect loop data
+        like a queue of video frames.
+     */
+    QMutexLocker<QMutex> lockLoopData() const;
+
 private:
     void run() final;
 
-    QMutex m_exitMutex; // Protects exit flag.
+    mutable QMutex m_loopDataMutex;
     QWaitCondition m_condition;
     bool m_exit = false;
 };
