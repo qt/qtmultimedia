@@ -16,11 +16,10 @@ class QMediaEncoderSettings;
 namespace QFFmpeg {
 class VideoFrameEncoder;
 
-
 class VideoEncoder : public EncoderThread
 {
 public:
-    VideoEncoder(RecordingEngine *encoder, const QMediaEncoderSettings &settings,
+    VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoderSettings &settings,
                  const QVideoFrameFormat &format, std::optional<AVPixelFormat> hwFormat);
     ~VideoEncoder() override;
 
