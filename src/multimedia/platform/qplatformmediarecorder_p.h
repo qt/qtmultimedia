@@ -125,7 +125,7 @@ public:
     virtual void setOutputLocation(const QUrl &location) { m_outputLocation = location; }
     QUrl actualLocation() const { return m_actualLocation; }
     void clearActualLocation() { m_actualLocation.clear(); }
-    void clearError() { error(QMediaRecorder::NoError, QString()); }
+    void clearError() { updateError(QMediaRecorder::NoError, QString()); }
 
     QIODevice *outputDevice() const { return m_outputDevice; }
     void setOutputDevice(QIODevice *device) { m_outputDevice = device; }
@@ -136,7 +136,7 @@ protected:
     void stateChanged(QMediaRecorder::RecorderState state);
     void durationChanged(qint64 position);
     void actualLocationChanged(const QUrl &location);
-    void error(QMediaRecorder::Error error, const QString &errorString);
+    void updateError(QMediaRecorder::Error error, const QString &errorString);
     void metaDataChanged();
 
     QMediaRecorder *mediaRecorder() { return q; }

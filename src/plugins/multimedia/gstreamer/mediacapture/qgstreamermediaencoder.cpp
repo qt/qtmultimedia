@@ -54,7 +54,7 @@ bool QGstreamerMediaEncoder::isLocationWritable(const QUrl &) const
 
 void QGstreamerMediaEncoder::handleSessionError(QMediaRecorder::Error code, const QString &description)
 {
-    error(code, description);
+    updateError(code, description);
     stop();
 }
 
@@ -90,7 +90,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
         QUniqueGErrorHandle err;
         QGString debug;
         gst_message_parse_error(msg.message(), &err, &debug);
-        error(QMediaRecorder::ResourceError, QString::fromUtf8(err.get()->message));
+        updateError(QMediaRecorder::ResourceError, QString::fromUtf8(err.get()->message));
         if (!m_finalizing)
             stop();
         finalize();
@@ -262,7 +262,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     const auto hasAudio = m_session->audioInput() != nullptr;
 
     if (!hasVideo && !hasAudio) {
-        error(QMediaRecorder::ResourceError, QMediaRecorder::tr("No camera or audio input"));
+        updateError(QMediaRecorder::ResourceError, QMediaRecorder::tr("No camera or audio input"));
         return;
     }
 

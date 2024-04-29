@@ -67,10 +67,10 @@ public:
         if (m_mediaEncoder)
             m_mediaEncoder->actualLocationChanged(location);
     }
-    void error(int error, const QString &errorString)
+    void updateError(int error, const QString &errorString)
     {
         if (m_mediaEncoder)
-            m_mediaEncoder->error(QMediaRecorder::Error(error), errorString);
+            m_mediaEncoder->updateError(QMediaRecorder::Error(error), errorString);
     }
 
 private Q_SLOTS:

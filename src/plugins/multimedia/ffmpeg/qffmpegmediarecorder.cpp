@@ -32,7 +32,7 @@ bool QFFmpegMediaRecorder::isLocationWritable(const QUrl &) const
 
 void QFFmpegMediaRecorder::handleSessionError(QMediaRecorder::Error code, const QString &description)
 {
-    error(code, description);
+    updateError(code, description);
     stop();
 }
 
@@ -46,7 +46,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     const auto hasAudio = m_session->audioInput() != nullptr;
 
     if (!hasVideo && !hasAudio) {
-        error(QMediaRecorder::ResourceError, QMediaRecorder::tr("No video or audio input"));
+        updateError(QMediaRecorder::ResourceError, QMediaRecorder::tr("No video or audio input"));
         return;
     }
 
@@ -72,8 +72,8 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
                              << settings.audioCodec();
 
     if (!formatContext->isAVIOOpen()) {
-        error(QMediaRecorder::LocationNotWritable,
-              QMediaRecorder::tr("Cannot open the output location for writing"));
+        updateError(QMediaRecorder::LocationNotWritable,
+                    QMediaRecorder::tr("Cannot open the output location for writing"));
         return;
     }
 

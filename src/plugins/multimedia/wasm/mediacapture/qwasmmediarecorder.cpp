@@ -285,8 +285,8 @@ void QWasmMediaRecorder::setStream(emscripten::val stream)
                 theError["target"]["data-mediarecordercontext"].as<quintptr>());
 
         if (recorder) {
-            recorder->error(QMediaRecorder::ResourceError,
-                            QString::fromStdString(theError["message"].as<std::string>()));
+            recorder->updateError(QMediaRecorder::ResourceError,
+                                  QString::fromStdString(theError["message"].as<std::string>()));
             emit recorder->stateChanged(recorder->state());
         }
     };
@@ -381,12 +381,12 @@ void QWasmMediaRecorder::audioDataAvailable(emscripten::val blob, double timeCod
     auto fileReader = std::make_shared<qstdweb::FileReader>();
 
     fileReader->onError([=](emscripten::val theError) {
-        error(QMediaRecorder::ResourceError,
-              QString::fromStdString(theError["message"].as<std::string>()));
+        updateError(QMediaRecorder::ResourceError,
+                    QString::fromStdString(theError["message"].as<std::string>()));
     });
 
     fileReader->onAbort([=](emscripten::val) {
-        error(QMediaRecorder::ResourceError, QStringLiteral("File read aborted"));
+        updateError(QMediaRecorder::ResourceError, QStringLiteral("File read aborted"));
     });
 
     fileReader->onLoad([=](emscripten::val) {
@@ -473,7 +473,8 @@ void QWasmMediaRecorder::setTrackContraints(QMediaEncoderSettings &settings, ems
                     qCDebug(qWasmMediaRecorder)
                             << theError["code"].as<int>()
                             << QString::fromStdString(theError["message"].as<std::string>());
-                    error(QMediaRecorder::ResourceError, QString::fromStdString(theError["message"].as<std::string>()));
+                    updateError(QMediaRecorder::ResourceError,
+                                QString::fromStdString(theError["message"].as<std::string>()));
                 } },
             constraints);
         }

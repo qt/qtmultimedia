@@ -133,7 +133,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
         return;
 
     if (!m_cameraSession && !m_audioInput) {
-        emit error(QMediaRecorder::ResourceError, QLatin1String("No devices are set"));
+        updateError(QMediaRecorder::ResourceError, QLatin1String("No devices are set"));
         return;
     }
 
@@ -142,13 +142,13 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     const bool validCameraSession = m_cameraSession && m_cameraSession->camera();
 
     if (validCameraSession && !qt_androidCheckCameraPermission()) {
-        emit error(QMediaRecorder::ResourceError, QLatin1String("Camera permission denied."));
+        updateError(QMediaRecorder::ResourceError, QLatin1String("Camera permission denied."));
         setKeepAlive(false);
         return;
     }
 
     if (m_audioInput && !qt_androidCheckMicrophonePermission()) {
-        emit error(QMediaRecorder::ResourceError, QLatin1String("Microphone permission denied."));
+        updateError(QMediaRecorder::ResourceError, QLatin1String("Microphone permission denied."));
         setKeepAlive(false);
         return;
     }
@@ -221,15 +221,15 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     }
 
     if (!m_mediaRecorder->prepare()) {
-        emit error(QMediaRecorder::FormatError, QLatin1String("Unable to prepare the media recorder."));
+        updateError(QMediaRecorder::FormatError,
+                    QLatin1String("Unable to prepare the media recorder."));
         restartViewfinder();
 
         return;
     }
 
     if (!m_mediaRecorder->start()) {
-        emit error(QMediaRecorder::FormatError,
-                   QMediaRecorderPrivate::msgFailedStartRecording());
+        updateError(QMediaRecorder::FormatError, QMediaRecorderPrivate::msgFailedStartRecording());
         restartViewfinder();
 
         return;
@@ -451,7 +451,7 @@ void QAndroidCaptureSession::onError(int what, int extra)
     Q_UNUSED(what);
     Q_UNUSED(extra);
     stop(true);
-    emit error(QMediaRecorder::ResourceError, QLatin1String("Unknown error."));
+    updateError(QMediaRecorder::ResourceError, QLatin1String("Unknown error."));
 }
 
 void QAndroidCaptureSession::onInfo(int what, int extra)
@@ -460,11 +460,11 @@ void QAndroidCaptureSession::onInfo(int what, int extra)
     if (what == 800) {
         // MEDIA_RECORDER_INFO_MAX_DURATION_REACHED
         stop();
-        emit error(QMediaRecorder::OutOfSpaceError, QLatin1String("Maximum duration reached."));
+        updateError(QMediaRecorder::OutOfSpaceError, QLatin1String("Maximum duration reached."));
     } else if (what == 801) {
         // MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED
         stop();
-        emit error(QMediaRecorder::OutOfSpaceError, QLatin1String("Maximum file size reached."));
+        updateError(QMediaRecorder::OutOfSpaceError, QLatin1String("Maximum file size reached."));
     }
 }
 
