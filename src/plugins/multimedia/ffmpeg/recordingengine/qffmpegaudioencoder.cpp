@@ -15,16 +15,16 @@ namespace QFFmpeg {
 
 static Q_LOGGING_CATEGORY(qLcFFmpegAudioEncoder, "qt.multimedia.ffmpeg.audioencoder");
 
-AudioEncoder::AudioEncoder(RecordingEngine *encoder, QFFmpegAudioInput *input,
+AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, QFFmpegAudioInput *input,
                            const QMediaEncoderSettings &settings)
-    : EncoderThread(encoder), m_input(input), m_settings(settings)
+    : EncoderThread(recordingEngine), m_input(input), m_settings(settings)
 {
     setObjectName(QLatin1String("AudioEncoder"));
     qCDebug(qLcFFmpegAudioEncoder) << "AudioEncoder" << settings.audioCodec();
 
     m_format = input->device.preferredFormat();
     auto codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
-    Q_ASSERT(avformat_query_codec(encoder->avFormatContext()->oformat, codecID,
+    Q_ASSERT(avformat_query_codec(recordingEngine.avFormatContext()->oformat, codecID,
                                   FF_COMPLIANCE_NORMAL));
 
     const AVAudioFormat requestedAudioFormat(m_format);
@@ -38,8 +38,8 @@ AudioEncoder::AudioEncoder(RecordingEngine *encoder, QFFmpegAudioInput *input,
 
     Q_ASSERT(m_avCodec);
 
-    m_stream = avformat_new_stream(encoder->avFormatContext(), nullptr);
-    m_stream->id = encoder->avFormatContext()->nb_streams - 1;
+    m_stream = avformat_new_stream(recordingEngine.avFormatContext(), nullptr);
+    m_stream->id = recordingEngine.avFormatContext()->nb_streams - 1;
     m_stream->codecpar->codec_type = AVMEDIA_TYPE_AUDIO;
     m_stream->codecpar->codec_id = codecID;
 #if QT_FFMPEG_OLD_CHANNEL_LAYOUT
@@ -153,7 +153,7 @@ void AudioEncoder::retrievePackets()
         // qCDebug(qLcFFmpegEncoder) << "writing audio packet" << packet->size << packet->pts <<
         // packet->dts;
         packet->stream_index = m_stream->id;
-        m_encoder->getMuxer()->addPacket(std::move(packet));
+        m_recordingEngine.getMuxer()->addPacket(std::move(packet));
     }
 }
 
@@ -202,7 +202,7 @@ void AudioEncoder::processOne()
     m_samplesWritten += buffer.frameCount();
 
     qint64 time = m_format.durationForFrames(m_samplesWritten);
-    m_encoder->newTimeStamp(time / 1000);
+    m_recordingEngine.newTimeStamp(time / 1000);
 
     //    qCDebug(qLcFFmpegEncoder) << "sending audio frame" << buffer.byteCount() << frame->pts <<
     //    ((double)buffer.frameCount()/frame->sample_rate);

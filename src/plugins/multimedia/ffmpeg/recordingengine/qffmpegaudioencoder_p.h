@@ -19,7 +19,7 @@ namespace QFFmpeg {
 class AudioEncoder : public EncoderThread
 {
 public:
-    AudioEncoder(RecordingEngine *encoder, QFFmpegAudioInput *input,
+    AudioEncoder(RecordingEngine &recordingEngine, QFFmpegAudioInput *input,
                  const QMediaEncoderSettings &settings);
 
     void open();

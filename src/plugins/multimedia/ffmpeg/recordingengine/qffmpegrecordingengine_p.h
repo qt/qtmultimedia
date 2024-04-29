@@ -82,12 +82,12 @@ private:
     class EncodingFinalizer : public QThread
     {
     public:
-        EncodingFinalizer(RecordingEngine *e);
+        EncodingFinalizer(RecordingEngine &recordingEngine);
 
         void run() override;
 
     private:
-        RecordingEngine *m_encoder = nullptr;
+        RecordingEngine &m_recordingEngine;
     };
 
 private:

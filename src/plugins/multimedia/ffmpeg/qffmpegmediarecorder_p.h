@@ -55,7 +55,7 @@ private Q_SLOTS:
 
 private:
     using RecordingEngine = QFFmpeg::RecordingEngine;
-    struct EncoderDeleter
+    struct RecordingEngineDeleter
     {
         void operator()(RecordingEngine *) const;
     };
@@ -63,7 +63,7 @@ private:
     QFFmpegMediaCaptureSession *m_session = nullptr;
     QMediaMetaData m_metaData;
 
-    std::unique_ptr<RecordingEngine, EncoderDeleter> m_encoder;
+    std::unique_ptr<RecordingEngine, RecordingEngineDeleter> m_recordingEngine;
 };
 
 QT_END_NAMESPACE
