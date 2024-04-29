@@ -37,7 +37,6 @@ private:
     void processOne() override;
 
 private:
-    mutable QMutex m_queueMutex;
     std::queue<QAudioBuffer> m_audioBufferQueue;
 
     AVStream *m_stream = nullptr;

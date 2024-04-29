@@ -44,7 +44,6 @@ private:
     void processOne() override;
 
 private:
-    mutable QMutex m_queueMutex;
     std::queue<QVideoFrame> m_videoFrameQueue;
     const size_t m_maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
 

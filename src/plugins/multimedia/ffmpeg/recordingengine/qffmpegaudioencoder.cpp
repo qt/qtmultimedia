@@ -96,7 +96,7 @@ void AudioEncoder::open()
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 {
-    QMutexLocker locker(&m_queueMutex);
+    QMutexLocker locker = lockLoopData();
     if (!m_paused.loadRelaxed()) {
         m_audioBufferQueue.push(buffer);
         locker.unlock();
@@ -106,7 +106,7 @@ void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 
 QAudioBuffer AudioEncoder::takeBuffer()
 {
-    QMutexLocker locker(&m_queueMutex);
+    QMutexLocker locker = lockLoopData();
     return dequeueIfPossible(m_audioBufferQueue);
 }
 
@@ -130,7 +130,6 @@ void AudioEncoder::cleanup()
 
 bool AudioEncoder::hasData() const
 {
-    QMutexLocker locker(&m_queueMutex);
     return !m_audioBufferQueue.empty();
 }
 

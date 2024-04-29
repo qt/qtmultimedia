@@ -44,7 +44,7 @@ bool VideoEncoder::isValid() const
 
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
-    QMutexLocker locker(&m_queueMutex);
+    QMutexLocker locker = lockLoopData();
 
     // Drop frames if encoder can not keep up with the video source data rate
     const bool queueFull = m_videoFrameQueue.size() >= m_maxQueueSize;
@@ -62,7 +62,7 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
 
 QVideoFrame VideoEncoder::takeFrame()
 {
-    QMutexLocker locker(&m_queueMutex);
+    QMutexLocker locker = lockLoopData();
     return dequeueIfPossible(m_videoFrameQueue);
 }
 
@@ -95,7 +95,6 @@ void VideoEncoder::cleanup()
 
 bool VideoEncoder::hasData() const
 {
-    QMutexLocker locker(&m_queueMutex);
     return !m_videoFrameQueue.empty();
 }
 
