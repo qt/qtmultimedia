@@ -41,6 +41,13 @@ QT_BEGIN_NAMESPACE
 QGstVideoRenderer::QGstVideoRenderer(QGstreamerVideoSink *sink)
     : m_sink(sink), m_surfaceCaps(createSurfaceCaps(sink))
 {
+    QObject::connect(
+            sink, &QGstreamerVideoSink::aboutToBeDestroyed, this,
+            [this] {
+                QMutexLocker locker(&m_sinkMutex);
+                m_sink = nullptr;
+            },
+            Qt::DirectConnection);
 }
 
 QGstVideoRenderer::~QGstVideoRenderer() = default;
@@ -111,94 +118,110 @@ const QGstCaps &QGstVideoRenderer::caps()
 bool QGstVideoRenderer::start(const QGstCaps& caps)
 {
     qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::start" << caps;
-    QMutexLocker locker(&m_mutex);
 
-    m_frameMirrored = false;
-    m_frameRotationAngle = QtVideo::Rotation::None;
-
-    if (m_active) {
-        m_flush = true;
-        m_stop = true;
+    {
+        m_frameRotationAngle = QtVideo::Rotation::None;
+        auto optionalFormatAndVideoInfo = caps.formatAndVideoInfo();
+        if (optionalFormatAndVideoInfo) {
+            std::tie(m_format, m_videoInfo) = std::move(*optionalFormatAndVideoInfo);
+        } else {
+            m_format = {};
+            m_videoInfo = {};
+        }
+        m_memoryFormat = caps.memoryFormat();
     }
 
-    m_startCaps = caps;
-
-    /*
-    Waiting for start() to be invoked in the main thread may block
-    if gstreamer blocks the main thread until this call is finished.
-    This situation is rare and usually caused by setState(Null)
-    while pipeline is being prerolled.
-
-    The proper solution to this involves controlling gstreamer pipeline from
-    other thread than video surface.
-
-    Currently start() fails if wait() timed out.
-    */
-    if (!waitForAsyncEvent(&locker, &m_setupCondition, 1000) && !m_startCaps.isNull()) {
-        qWarning() << "Failed to start video surface due to main thread blocked.";
-        m_startCaps = {};
-    }
-
-    return m_active;
+    return true;
 }
 
 void QGstVideoRenderer::stop()
 {
-    QMutexLocker locker(&m_mutex);
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::stop";
 
-    if (!m_active)
+    QMetaObject::invokeMethod(this, [this] {
+        m_sink->setVideoFrame(QVideoFrame());
         return;
-
-    m_flush = true;
-    m_stop = true;
-
-    m_startCaps = {};
-
-    waitForAsyncEvent(&locker, &m_setupCondition, 500);
+    });
 }
 
 void QGstVideoRenderer::unlock()
 {
-    QMutexLocker locker(&m_mutex);
-
-    m_setupCondition.wakeAll();
-    m_renderCondition.wakeAll();
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::unlock";
 }
 
-bool QGstVideoRenderer::proposeAllocation(GstQuery *query)
+bool QGstVideoRenderer::proposeAllocation(GstQuery *)
 {
-    Q_UNUSED(query);
-    QMutexLocker locker(&m_mutex);
-    return m_active;
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::proposeAllocation";
+    return true;
 }
 
 void QGstVideoRenderer::flush()
 {
-    QMutexLocker locker(&m_mutex);
+    qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::flush";
 
-    m_flush = true;
-    m_renderBuffer = {};
-    m_renderCondition.wakeAll();
-
-    notify();
+    QMetaObject::invokeMethod(this, [this] {
+        if (m_sink)
+            m_sink->setVideoFrame(m_currentVideoFrame);
+    });
 }
 
 GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
 {
-    QMutexLocker locker(&m_mutex);
     qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::render";
 
-    m_renderReturn = GST_FLOW_OK;
-    m_renderBuffer = QGstBufferHandle{
-        buffer,
-        QGstBufferHandle::NeedsRef,
+    GstVideoCropMeta *meta = gst_buffer_get_video_crop_meta(buffer);
+    if (meta) {
+        QRect vp(meta->x, meta->y, meta->width, meta->height);
+        if (m_format.viewport() != vp) {
+            qCDebug(qLcGstVideoRenderer)
+                    << Q_FUNC_INFO << " Update viewport on Metadata: [" << meta->height << "x"
+                    << meta->width << " | " << meta->x << "x" << meta->y << "]";
+            // Update viewport if data is not the same
+            m_format.setViewport(vp);
+        }
+    }
+
+    struct RenderBufferState
+    {
+        QGstBufferHandle buffer;
+        QVideoFrameFormat format;
+        QGstCaps::MemoryFormat memoryFormat;
+        bool mirrored;
+        QtVideo::Rotation rotationAngle;
     };
 
-    waitForAsyncEvent(&locker, &m_renderCondition, 300);
+    RenderBufferState state{
+        .buffer = QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
+        .format = m_format,
+        .memoryFormat = m_memoryFormat,
+        .mirrored = m_frameMirrored,
+        .rotationAngle = m_frameRotationAngle,
+    };
 
-    m_renderBuffer = {};
+    qCDebug(qLcGstVideoRenderer) << "    sending video frame";
 
-    return m_renderReturn;
+    QMetaObject::invokeMethod(this, [this, state = std::move(state)]() mutable {
+        QGstVideoBuffer *videoBuffer = new QGstVideoBuffer{
+            state.buffer, m_videoInfo, m_sink, state.format, state.memoryFormat,
+        };
+        QVideoFrame frame(videoBuffer, state.format);
+        QGstUtils::setFrameTimeStampsFromBuffer(&frame, state.buffer.get());
+        frame.setMirrored(state.mirrored);
+        frame.setRotation(state.rotationAngle);
+
+        m_currentVideoFrame = std::move(frame);
+        if (!m_sink)
+            return;
+
+        if (m_sink->inStoppedState()) {
+            qCDebug(qLcGstVideoRenderer) << "    showing empty video frame";
+            m_currentVideoFrame = {};
+        }
+
+        m_sink->setVideoFrame(m_currentVideoFrame);
+    });
+
+    return GST_FLOW_OK;
 }
 
 bool QGstVideoRenderer::query(GstQuery *query)
@@ -209,6 +232,10 @@ bool QGstVideoRenderer::query(GstQuery *query)
         gst_query_parse_context_type(query, &type);
 
         if (strcmp(type, "gst.gl.local_context") != 0)
+            return false;
+
+        QMutexLocker locker(&m_sinkMutex);
+        if (!m_sink)
             return false;
 
         auto *gstGlContext = m_sink->gstGlLocalContext();
@@ -269,7 +296,6 @@ void QGstVideoRenderer::gstEventHandleTag(GstEvent *event)
         rotationAngle = (180 + atoi(value.get() + flipRotateLen)) % 360;
     }
 
-    QMutexLocker locker(&m_mutex);
     m_frameMirrored = mirrored;
     switch (rotationAngle) {
     case 0:
@@ -292,139 +318,6 @@ void QGstVideoRenderer::gstEventHandleTag(GstEvent *event)
 void QGstVideoRenderer::gstEventHandleEOS(GstEvent *)
 {
     stop();
-}
-
-bool QGstVideoRenderer::event(QEvent *event)
-{
-    if (event->type() == QEvent::UpdateRequest) {
-        QMutexLocker locker(&m_mutex);
-
-        if (m_notified) {
-            while (handleEvent(&locker)) {}
-            m_notified = false;
-        }
-        return true;
-    }
-
-    return QObject::event(event);
-}
-
-bool QGstVideoRenderer::handleEvent(QMutexLocker<QMutex> *locker)
-{
-    if (m_flush) {
-        m_flush = false;
-        if (m_active) {
-            locker->unlock();
-
-            if (m_sink && !m_flushed)
-                m_sink->setVideoFrame(QVideoFrame());
-            m_flushed = true;
-            locker->relock();
-        }
-    } else if (m_stop) {
-        m_stop = false;
-
-        if (m_active) {
-            m_active = false;
-            m_flushed = true;
-        }
-    } else if (!m_startCaps.isNull()) {
-        Q_ASSERT(!m_active);
-
-        auto startCaps = m_startCaps;
-        m_startCaps = {};
-
-        if (m_sink) {
-            locker->unlock();
-
-            m_flushed = true;
-            auto optionalFormatAndVideoInfo = startCaps.formatAndVideoInfo();
-            if (optionalFormatAndVideoInfo) {
-                std::tie(m_format, m_videoInfo) = std::move(*optionalFormatAndVideoInfo);
-            } else {
-                m_format = {};
-                m_videoInfo = {};
-            }
-
-            memoryFormat = startCaps.memoryFormat();
-
-            locker->relock();
-            m_active = m_format.isValid();
-        } else if (m_active) {
-            m_active = false;
-            m_flushed = true;
-        }
-
-    } else if (m_renderBuffer) {
-        QGstBufferHandle buffer = std::move(m_renderBuffer);
-        m_renderReturn = GST_FLOW_ERROR;
-
-        qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::handleEvent(renderBuffer)" << m_active << m_sink;
-        if (m_active && m_sink) {
-
-            locker->unlock();
-
-            m_flushed = false;
-
-            GstVideoCropMeta *meta = gst_buffer_get_video_crop_meta(buffer.get());
-            if (meta) {
-                QRect vp(meta->x, meta->y, meta->width, meta->height);
-                if (m_format.viewport() != vp) {
-                    qCDebug(qLcGstVideoRenderer) << Q_FUNC_INFO << " Update viewport on Metadata: [" << meta->height << "x" << meta->width << " | " << meta->x << "x" << meta->y << "]";
-                    // Update viewport if data is not the same
-                    m_format.setViewport(vp);
-                }
-            }
-
-            if (m_sink->inStoppedState()) {
-                qCDebug(qLcGstVideoRenderer) << "    sending empty video frame";
-                m_sink->setVideoFrame(QVideoFrame());
-            } else {
-                QGstVideoBuffer *videoBuffer = new QGstVideoBuffer(buffer, m_videoInfo, m_sink, m_format, memoryFormat);
-                QVideoFrame frame(videoBuffer, m_format);
-                QGstUtils::setFrameTimeStampsFromBuffer(&frame, buffer.get());
-                frame.setMirrored(m_frameMirrored);
-                frame.setRotation(m_frameRotationAngle);
-
-                qCDebug(qLcGstVideoRenderer) << "    sending video frame";
-                m_sink->setVideoFrame(frame);
-            }
-
-            locker->relock();
-
-            m_renderReturn = GST_FLOW_OK;
-        }
-
-        m_renderCondition.wakeAll();
-    } else {
-        m_setupCondition.wakeAll();
-
-        return false;
-    }
-    return true;
-}
-
-void QGstVideoRenderer::notify()
-{
-    if (!m_notified) {
-        m_notified = true;
-        QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
-    }
-}
-
-bool QGstVideoRenderer::waitForAsyncEvent(
-        QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time)
-{
-    if (QThread::currentThread() == thread()) {
-        while (handleEvent(locker)) {}
-        m_notified = false;
-
-        return true;
-    }
-
-    notify();
-
-    return condition->wait(&m_mutex, time);
 }
 
 static GstVideoSinkClass *gvrs_sink_parent_class;
