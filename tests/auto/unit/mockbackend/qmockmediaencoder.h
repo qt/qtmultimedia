@@ -41,7 +41,7 @@ public:
     }
     virtual QMediaMetaData metaData() const override { return m_metaData; }
 
-    using QPlatformMediaRecorder::error;
+    using QPlatformMediaRecorder::updateError;
 
 public:
     void record(QMediaEncoderSettings &settings) override
