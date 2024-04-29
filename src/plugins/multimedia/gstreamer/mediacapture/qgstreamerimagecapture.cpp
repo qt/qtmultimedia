@@ -111,44 +111,40 @@ int QGstreamerImageCapture::doCapture(const QString &fileName)
 {
     qCDebug(qLcImageCaptureGst) << "do capture";
 
-    // emit error in the next event loop,
-    // so application can associate it with returned request id.
-    auto invokeDeferred = [&](auto &&fn) {
-        QMetaObject::invokeMethod(this, std::forward<decltype(fn)>(fn), Qt::QueuedConnection);
-    };
+    {
+        QMutexLocker guard(&m_mutex);
+        if (!m_session) {
+            invokeDeferred([this] {
+                emit error(-1, QImageCapture::ResourceError,
+                           QPlatformImageCapture::msgImageCaptureNotSet());
+            });
 
-    QMutexLocker guard(&m_mutex);
-    if (!m_session) {
-        invokeDeferred([this] {
-            emit error(-1, QImageCapture::ResourceError,
-                       QPlatformImageCapture::msgImageCaptureNotSet());
-        });
+            qCDebug(qLcImageCaptureGst) << "error 1";
+            return -1;
+        }
+        if (!m_session->camera()) {
+            invokeDeferred([this] {
+                emit error(-1, QImageCapture::ResourceError, tr("No camera available."));
+            });
 
-        qCDebug(qLcImageCaptureGst) << "error 1";
-        return -1;
+            qCDebug(qLcImageCaptureGst) << "error 2";
+            return -1;
+        }
+        if (passImage) {
+            invokeDeferred([this] {
+                emit error(-1, QImageCapture::NotReadyError,
+                           QPlatformImageCapture::msgCameraNotReady());
+            });
+
+            qCDebug(qLcImageCaptureGst) << "error 3";
+            return -1;
+        }
+        m_lastId++;
+
+        pendingImages.enqueue({ m_lastId, fileName, QMediaMetaData{} });
+        // let one image pass the pipeline
+        passImage = true;
     }
-    if (!m_session->camera()) {
-        invokeDeferred([this] {
-            emit error(-1, QImageCapture::ResourceError, tr("No camera available."));
-        });
-
-        qCDebug(qLcImageCaptureGst) << "error 2";
-        return -1;
-    }
-    if (passImage) {
-        invokeDeferred([this] {
-            emit error(-1, QImageCapture::NotReadyError,
-                       QPlatformImageCapture::msgCameraNotReady());
-        });
-
-        qCDebug(qLcImageCaptureGst) << "error 3";
-        return -1;
-    }
-    m_lastId++;
-
-    pendingImages.enqueue({m_lastId, fileName, QMediaMetaData{}});
-    // let one image pass the pipeline
-    passImage = true;
 
     emit readyForCaptureChanged(false);
     return m_lastId;
@@ -192,7 +188,10 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 
     passImage = false;
 
-    emit readyForCaptureChanged(isReadyForCapture());
+    bool ready = isReadyForCapture();
+    invokeDeferred([this, ready] {
+        emit readyForCaptureChanged(ready);
+    });
 
     QGstCaps caps = bin.staticPad("sink").currentCaps();
     auto memoryFormat = caps.memoryFormat();
@@ -223,24 +222,26 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
             std::move(bufferHandle), previewInfo, sink, fmt, memoryFormat,
         };
         QVideoFrame frame(gstBuffer, fmt);
+
         QImage img = frame.toImage();
         if (img.isNull()) {
             qDebug() << "received a null image";
             return;
         }
 
-        auto &imageData = pendingImages.head();
-
-        emit imageExposed(imageData.id);
-        qCDebug(qLcImageCaptureGst) << "Image available!";
-        emit imageAvailable(imageData.id, frame);
-        emit imageCaptured(imageData.id, img);
-
         QMediaMetaData imageMetaData = metaData();
         imageMetaData.insert(QMediaMetaData::Resolution, frame.size());
-        imageData.metaData = imageMetaData;
+        pendingImages.head().metaData = std::move(imageMetaData);
+        PendingImage pendingImage = pendingImages.head();
 
-        emit imageMetadataAvailable(imageData.id, imageMetaData);
+        invokeDeferred([this, pendingImage = std::move(pendingImage), frame = std::move(frame),
+                        img = std::move(img)]() mutable {
+            emit imageExposed(pendingImage.id);
+            qCDebug(qLcImageCaptureGst) << "Image available!";
+            emit imageAvailable(pendingImage.id, frame);
+            emit imageCaptured(pendingImage.id, img);
+            emit imageMetadataAvailable(pendingImage.id, pendingImage.metaData);
+        });
     });
 
     m_pendingFutures.insert(futureId, future);

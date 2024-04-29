@@ -97,6 +97,12 @@ private:
 
     QMap<int, QFuture<void>> m_pendingFutures;
     int futureIDAllocator = 0;
+
+    template <typename Functor>
+    void invokeDeferred(Functor &&fn)
+    {
+        QMetaObject::invokeMethod(this, std::forward<decltype(fn)>(fn), Qt::QueuedConnection);
+    };
 };
 
 QT_END_NAMESPACE
