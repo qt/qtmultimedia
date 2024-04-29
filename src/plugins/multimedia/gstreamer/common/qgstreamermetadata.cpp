@@ -143,23 +143,112 @@ const char *keyToTag(QMediaMetaData::Key key)
 
 #undef constexpr_lookup
 
-//internal
+QtVideo::Rotation parseRotationTag(const char *string)
+{
+    using namespace std::string_view_literals;
+
+    if (string == "rotate-90"sv)
+        return QtVideo::Rotation::Clockwise90;
+    if (string == "rotate-180"sv)
+        return QtVideo::Rotation::Clockwise180;
+    if (string == "rotate-270"sv)
+        return QtVideo::Rotation::Clockwise270;
+    if (string == "rotate-0"sv)
+        return QtVideo::Rotation::None;
+
+    qCritical() << "cannot parse orientation: {}" << string;
+    return QtVideo::Rotation::None;
+}
+
+QDateTime parseDate(const GValue &val)
+{
+    Q_ASSERT(G_VALUE_TYPE(&val) == G_TYPE_DATE);
+
+    const GDate *date = (const GDate *)g_value_get_boxed(&val);
+    if (!g_date_valid(date))
+        return {};
+
+    int year = g_date_get_year(date);
+    int month = g_date_get_month(date);
+    int day = g_date_get_day(date);
+    return QDateTime(QDate(year, month, day), QTime());
+}
+
+QDateTime parseDateTime(const GValue &val)
+{
+    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME);
+
+    const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
+    int year = gst_date_time_has_year(dateTime) ? gst_date_time_get_year(dateTime) : 0;
+    int month = gst_date_time_has_month(dateTime) ? gst_date_time_get_month(dateTime) : 0;
+    int day = gst_date_time_has_day(dateTime) ? gst_date_time_get_day(dateTime) : 0;
+    int hour = 0;
+    int minute = 0;
+    int second = 0;
+    float tz = 0;
+    if (gst_date_time_has_time(dateTime)) {
+        hour = gst_date_time_get_hour(dateTime);
+        minute = gst_date_time_get_minute(dateTime);
+        second = gst_date_time_get_second(dateTime);
+        tz = gst_date_time_get_time_zone_offset(dateTime);
+    }
+    return QDateTime{
+        QDate(year, month, day),
+        QTime(hour, minute, second),
+        QTimeZone(tz * 60 * 60),
+    };
+}
+
+QImage parseImage(const GValue &val)
+{
+    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE);
+
+    GstSample *sample = (GstSample *)g_value_get_boxed(&val);
+    GstCaps *caps = gst_sample_get_caps(sample);
+    if (caps && !gst_caps_is_empty(caps)) {
+        GstStructure *structure = gst_caps_get_structure(caps, 0);
+        const gchar *name = gst_structure_get_name(structure);
+        if (QByteArray(name).startsWith("image/")) {
+            GstBuffer *buffer = gst_sample_get_buffer(sample);
+            if (buffer) {
+                GstMapInfo info;
+                gst_buffer_map(buffer, &info, GST_MAP_READ);
+                QImage image = QImage::fromData(info.data, info.size, name);
+                gst_buffer_unmap(buffer, &info);
+                return image;
+            }
+        }
+    }
+
+    return {};
+}
+
+std::optional<double> parseFractionAsDouble(const GValue &val)
+{
+    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_FRACTION);
+
+    int nom = gst_value_get_fraction_numerator(&val);
+    int denom = gst_value_get_fraction_denominator(&val);
+    if (denom == 0)
+        return std::nullopt;
+    return double(nom) / double(denom);
+}
+
+// internal
 void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
 {
     QMediaMetaData &metadata = *reinterpret_cast<QMediaMetaData *>(userdata);
-
-    using namespace std::string_view_literals;
 
     QMediaMetaData::Key key = tagToKey(tag);
     if (key == QMediaMetaData::Key(-1))
         return;
 
-    GValue val;
-    val.g_type = 0;
+    GValue val{};
     gst_tag_list_copy_value(&val, list, tag);
 
-    switch (G_VALUE_TYPE(&val)) {
-    case G_TYPE_STRING: {
+    GType type = G_VALUE_TYPE(&val);
+
+    if (type == G_TYPE_STRING) {
         const gchar *str_value = g_value_get_string(&val);
 
         switch (key) {
@@ -170,94 +259,42 @@ void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
             break;
         }
         case QMediaMetaData::Orientation: {
-            if (str_value == "rotate-90"sv)
-                metadata.insert(key, QVariant::fromValue(QtVideo::Rotation::Clockwise90));
-            else if (str_value == "rotate-180"sv)
-                metadata.insert(key, QVariant::fromValue(QtVideo::Rotation::Clockwise180));
-            else if (str_value == "rotate-270"sv)
-                metadata.insert(key, QVariant::fromValue(QtVideo::Rotation::Clockwise270));
-            else if (str_value == "rotate-0"sv)
-                metadata.insert(key, QVariant::fromValue(QtVideo::Rotation::None));
+            metadata.insert(key, QVariant::fromValue(parseRotationTag(str_value)));
             break;
         }
         default:
             metadata.insert(key, QString::fromUtf8(str_value));
             break;
         };
-        break;
-    }
-    case G_TYPE_INT:
+    } else if (type == G_TYPE_INT) {
         metadata.insert(key, g_value_get_int(&val));
-        break;
-    case G_TYPE_UINT:
+    } else if (type == G_TYPE_UINT) {
         metadata.insert(key, g_value_get_uint(&val));
-        break;
-    case G_TYPE_LONG:
+    } else if (type == G_TYPE_LONG) {
         metadata.insert(key, qint64(g_value_get_long(&val)));
-        break;
-    case G_TYPE_BOOLEAN:
+    } else if (type == G_TYPE_BOOLEAN) {
         metadata.insert(key, g_value_get_boolean(&val));
-        break;
-    case G_TYPE_CHAR:
+    } else if (type == G_TYPE_CHAR) {
         metadata.insert(key, g_value_get_schar(&val));
-        break;
-    case G_TYPE_DOUBLE:
+    } else if (type == G_TYPE_DOUBLE) {
         metadata.insert(key, g_value_get_double(&val));
-        break;
-    default:
-        // GST_TYPE_DATE is a function, not a constant, so pull it out of the switch
-        if (G_VALUE_TYPE(&val) == G_TYPE_DATE) {
-            const GDate *date = (const GDate *)g_value_get_boxed(&val);
-            if (g_date_valid(date)) {
-                int year = g_date_get_year(date);
-                int month = g_date_get_month(date);
-                int day = g_date_get_day(date);
-                // don't insert if we already have a datetime.
-                if (!metadata.keys().contains(key))
-                    metadata.insert(key, QDateTime(QDate(year, month, day), QTime()));
-            }
-        } else if (G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME) {
-            const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
-            int year = gst_date_time_has_year(dateTime) ? gst_date_time_get_year(dateTime) : 0;
-            int month = gst_date_time_has_month(dateTime) ? gst_date_time_get_month(dateTime) : 0;
-            int day = gst_date_time_has_day(dateTime) ? gst_date_time_get_day(dateTime) : 0;
-            int hour = 0;
-            int minute = 0;
-            int second = 0;
-            float tz = 0;
-            if (gst_date_time_has_time(dateTime)) {
-                hour = gst_date_time_get_hour(dateTime);
-                minute = gst_date_time_get_minute(dateTime);
-                second = gst_date_time_get_second(dateTime);
-                tz = gst_date_time_get_time_zone_offset(dateTime);
-            }
-            QDateTime qDateTime(QDate(year, month, day), QTime(hour, minute, second),
-                                QTimeZone(tz * 60 * 60));
-            metadata.insert(key, qDateTime);
-        } else if (G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE) {
-            GstSample *sample = (GstSample *)g_value_get_boxed(&val);
-            GstCaps *caps = gst_sample_get_caps(sample);
-            if (caps && !gst_caps_is_empty(caps)) {
-                GstStructure *structure = gst_caps_get_structure(caps, 0);
-                const gchar *name = gst_structure_get_name(structure);
-                if (QByteArray(name).startsWith("image/")) {
-                    GstBuffer *buffer = gst_sample_get_buffer(sample);
-                    if (buffer) {
-                        GstMapInfo info;
-                        gst_buffer_map(buffer, &info, GST_MAP_READ);
-                        metadata.insert(key, QImage::fromData(info.data, info.size, name));
-                        gst_buffer_unmap(buffer, &info);
-                    }
-                }
-            }
-        } else if (G_VALUE_TYPE(&val) == GST_TYPE_FRACTION) {
-            int nom = gst_value_get_fraction_numerator(&val);
-            int denom = gst_value_get_fraction_denominator(&val);
-
-            if (denom > 0)
-                metadata.insert(key, double(nom) / denom);
+    } else if (type == G_TYPE_DATE) {
+        if (!metadata.keys().contains(key)) {
+            QDateTime date = parseDate(val);
+            if (date.isValid())
+                metadata.insert(key, date);
         }
-        break;
+    } else if (type == GST_TYPE_DATE_TIME) {
+        metadata.insert(key, parseDateTime(val));
+    } else if (type == GST_TYPE_SAMPLE) {
+        QImage image = parseImage(val);
+        if (!image.isNull())
+            metadata.insert(key, image);
+    } else if (type == GST_TYPE_FRACTION) {
+        std::optional<double> fraction = parseFractionAsDouble(val);
+
+        if (fraction)
+            metadata.insert(key, *fraction);
     }
 
     g_value_unset(&val);
