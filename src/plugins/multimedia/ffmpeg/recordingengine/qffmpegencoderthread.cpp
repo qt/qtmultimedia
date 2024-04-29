@@ -6,7 +6,9 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
-EncoderThread::EncoderThread(RecordingEngine *encoder) : m_encoder(encoder) { }
+EncoderThread::EncoderThread(RecordingEngine &recordingEngine) : m_recordingEngine(recordingEngine)
+{
+}
 
 void EncoderThread::setPaused(bool b)
 {

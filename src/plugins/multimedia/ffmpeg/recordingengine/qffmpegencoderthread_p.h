@@ -14,12 +14,12 @@ class RecordingEngine;
 class EncoderThread : public ConsumerThread
 {
 public:
-    EncoderThread(RecordingEngine *encoder);
+    EncoderThread(RecordingEngine &recordingEngine);
     virtual void setPaused(bool b);
 
 protected:
     QAtomicInteger<bool> m_paused = false;
-    RecordingEngine *m_encoder = nullptr;
+    RecordingEngine &m_recordingEngine;
 };
 
 } // namespace QFFmpeg
