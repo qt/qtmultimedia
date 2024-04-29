@@ -15,7 +15,11 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtCore/qmutex.h>
+
 #include <gst/video/gstvideosink.h>
 #include <gst/video/video.h>
 
@@ -30,66 +34,45 @@
 #include <common/qgst_p.h>
 
 QT_BEGIN_NAMESPACE
-class QVideoSink;
 
 class QGstVideoRenderer : public QObject
 {
 public:
-    explicit QGstVideoRenderer(QGstreamerVideoSink *sink);
+    explicit QGstVideoRenderer(QGstreamerVideoSink *);
     ~QGstVideoRenderer();
 
     const QGstCaps &caps();
 
-    bool start(const QGstCaps& caps);
+    bool start(const QGstCaps &);
     void stop();
     void unlock();
-    bool proposeAllocation(GstQuery *query);
-
+    bool proposeAllocation(GstQuery *);
     void flush();
-
-    GstFlowReturn render(GstBuffer *buffer);
-
-    bool event(QEvent *event) override;
-    bool query(GstQuery *query);
-    void gstEvent(GstEvent *event);
-
-private slots:
-    bool handleEvent(QMutexLocker<QMutex> *locker);
+    GstFlowReturn render(GstBuffer *);
+    bool query(GstQuery *);
+    void gstEvent(GstEvent *);
 
 private:
     void notify();
-    bool waitForAsyncEvent(QMutexLocker<QMutex> *locker, QWaitCondition *condition, unsigned long time);
     static QGstCaps createSurfaceCaps(QGstreamerVideoSink *);
 
     void gstEventHandleTag(GstEvent *);
     void gstEventHandleEOS(GstEvent *);
 
-    QPointer<QGstreamerVideoSink> m_sink;
+    QMutex m_sinkMutex;
+    QGstreamerVideoSink *m_sink = nullptr; // written only from qt thread. so only readers on
+                                           // worker threads need to acquire the lock
 
-    QMutex m_mutex;
-    QWaitCondition m_setupCondition;
-    QWaitCondition m_renderCondition;
-
-    // --- accessed from multiple threads, need to hold mutex to access
-    GstFlowReturn m_renderReturn = GST_FLOW_OK;
-    bool m_active = false;
-
+    // --- only accessed from gstreamer thread
     const QGstCaps m_surfaceCaps;
-
-    QGstCaps m_startCaps;
-    QGstBufferHandle m_renderBuffer;
-
-    bool m_notified = false;
-    bool m_stop = false;
-    bool m_flush = false;
+    QVideoFrameFormat m_format;
+    GstVideoInfo m_videoInfo{};
+    QGstCaps::MemoryFormat m_memoryFormat = QGstCaps::CpuMemory;
     bool m_frameMirrored = false;
     QtVideo::Rotation m_frameRotationAngle = QtVideo::Rotation::None;
 
-    // --- only accessed from one thread
-    QVideoFrameFormat m_format;
-    GstVideoInfo m_videoInfo{};
-    bool m_flushed = true;
-    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
+    // --- only accessed from qt thread
+    QVideoFrame m_currentVideoFrame;
 };
 
 class QGstVideoRendererSink

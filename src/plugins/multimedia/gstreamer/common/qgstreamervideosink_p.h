@@ -21,7 +21,7 @@
 #include <common/qgstpipeline_p.h>
 #include <common/qgstreamervideooverlay_p.h>
 #include <QtGui/qcolor.h>
-#include <qvideosink.h>
+#include <QtMultimedia/qvideosink.h>
 
 #if QT_CONFIG(gstreamer_gl)
 #include <gst/gl/gl.h>
@@ -34,6 +34,7 @@ class QVideoWindow;
 class QGstreamerVideoSink : public QPlatformVideoSink
 {
     Q_OBJECT
+
 public:
     explicit QGstreamerVideoSink(QVideoSink *parent = nullptr);
     ~QGstreamerVideoSink();
@@ -51,6 +52,9 @@ public:
     GstContext *gstGlLocalContext() const { return m_gstGlLocalContext.get(); }
     Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
     QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
+
+Q_SIGNALS:
+    void aboutToBeDestroyed();
 
 private:
     void createQtSink();

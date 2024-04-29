@@ -121,6 +121,8 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
 
 QGstreamerVideoSink::~QGstreamerVideoSink()
 {
+    emit aboutToBeDestroyed();
+
     unrefGstContexts();
 
     setPipeline(QGstPipeline());
