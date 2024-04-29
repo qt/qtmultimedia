@@ -93,6 +93,11 @@ static bool precheckDriver(AVHWDeviceType type)
     if (type == AV_HWDEVICE_TYPE_D3D11VA)
         return QSystemLibrary(QLatin1String("d3d11.dll")).load();
 
+#if QT_FFMPEG_HAS_D3D12VA
+    if (type == AV_HWDEVICE_TYPE_D3D12VA)
+        return QSystemLibrary(QLatin1String("d3d12.dll")).load();
+#endif
+
     if (type == AV_HWDEVICE_TYPE_DXVA2)
         return QSystemLibrary(QLatin1String("d3d9.dll")).load();
 
@@ -122,6 +127,9 @@ static bool checkHwType(AVHWDeviceType type)
     if (type == AV_HWDEVICE_TYPE_MEDIACODEC ||
         type == AV_HWDEVICE_TYPE_VIDEOTOOLBOX ||
         type == AV_HWDEVICE_TYPE_D3D11VA ||
+#if QT_FFMPEG_HAS_D3D12VA
+        type == AV_HWDEVICE_TYPE_D3D12VA ||
+#endif
         type == AV_HWDEVICE_TYPE_DXVA2)
         return true; // Don't waste time; it's expected to work fine of the precheck is OK
 
