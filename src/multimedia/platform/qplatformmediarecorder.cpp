@@ -15,12 +15,12 @@ QPlatformMediaRecorder::QPlatformMediaRecorder(QMediaRecorder *parent)
 
 void QPlatformMediaRecorder::pause()
 {
-    error(QMediaRecorder::FormatError, QMediaRecorder::tr("Pause not supported"));
+    updateError(QMediaRecorder::FormatError, QMediaRecorder::tr("Pause not supported"));
 }
 
 void QPlatformMediaRecorder::resume()
 {
-    error(QMediaRecorder::FormatError, QMediaRecorder::tr("Resume not supported"));
+    updateError(QMediaRecorder::FormatError, QMediaRecorder::tr("Resume not supported"));
 }
 
 void QPlatformMediaRecorder::stateChanged(QMediaRecorder::RecorderState state)
@@ -47,7 +47,7 @@ void QPlatformMediaRecorder::actualLocationChanged(const QUrl &location)
     emit q->actualLocationChanged(location);
 }
 
-void QPlatformMediaRecorder::error(QMediaRecorder::Error error, const QString &errorString)
+void QPlatformMediaRecorder::updateError(QMediaRecorder::Error error, const QString &errorString)
 {
     m_error.setAndNotify(error, errorString, *q);
 }

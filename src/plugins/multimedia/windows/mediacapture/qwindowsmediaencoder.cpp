@@ -52,8 +52,8 @@ void QWindowsMediaEncoder::record(QMediaEncoderSettings &settings)
         m_mediaDeviceSession->setActive(true);
 
         if (!m_mediaDeviceSession->isActivating()) {
-            error(QMediaRecorder::ResourceError,
-                  QMediaRecorderPrivate::msgFailedStartRecording());
+            updateError(QMediaRecorder::ResourceError,
+                        QMediaRecorderPrivate::msgFailedStartRecording());
             return;
         }
     }
@@ -72,7 +72,7 @@ void QWindowsMediaEncoder::record(QMediaEncoderSettings &settings)
         stateChanged(m_state);
 
     } else {
-        error(ec, QMediaRecorderPrivate::msgFailedStartRecording());
+        updateError(ec, QMediaRecorderPrivate::msgFailedStartRecording());
     }
 }
 
@@ -85,7 +85,7 @@ void QWindowsMediaEncoder::pause()
         m_state = QMediaRecorder::PausedState;
         stateChanged(m_state);
     } else {
-        error(QMediaRecorder::FormatError, tr("Failed to pause recording"));
+        updateError(QMediaRecorder::FormatError, tr("Failed to pause recording"));
     }
 }
 
@@ -98,7 +98,7 @@ void QWindowsMediaEncoder::resume()
         m_state = QMediaRecorder::RecordingState;
         stateChanged(m_state);
     } else {
-        error(QMediaRecorder::FormatError, tr("Failed to resume recording"));
+        updateError(QMediaRecorder::FormatError, tr("Failed to resume recording"));
     }
 }
 
@@ -178,11 +178,11 @@ void QWindowsMediaEncoder::onDurationChanged(qint64 duration)
 void QWindowsMediaEncoder::onStreamingError(int errorCode)
 {
     if (errorCode == MF_E_VIDEO_RECORDING_DEVICE_INVALIDATED)
-        error(QMediaRecorder::ResourceError, tr("Camera is no longer present"));
+        updateError(QMediaRecorder::ResourceError, tr("Camera is no longer present"));
     else if (errorCode == MF_E_AUDIO_RECORDING_DEVICE_INVALIDATED)
-        error(QMediaRecorder::ResourceError, tr("Audio input is no longer present"));
+        updateError(QMediaRecorder::ResourceError, tr("Audio input is no longer present"));
     else
-        error(QMediaRecorder::ResourceError, tr("Streaming error"));
+        updateError(QMediaRecorder::ResourceError, tr("Streaming error"));
 
     if (m_state != QMediaRecorder::StoppedState) {
         m_mediaDeviceSession->stopRecording();
@@ -194,7 +194,7 @@ void QWindowsMediaEncoder::onStreamingError(int errorCode)
 void QWindowsMediaEncoder::onRecordingError(int errorCode)
 {
     Q_UNUSED(errorCode);
-    error(QMediaRecorder::ResourceError, tr("Recording error"));
+    updateError(QMediaRecorder::ResourceError, tr("Recording error"));
 
     auto lastState = m_state;
     m_state = QMediaRecorder::StoppedState;

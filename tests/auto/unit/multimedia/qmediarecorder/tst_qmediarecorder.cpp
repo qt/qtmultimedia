@@ -195,7 +195,7 @@ void tst_QMediaRecorder::testError()
     QCOMPARE(encoder->error(), QMediaRecorder::NoError);
     QCOMPARE(encoder->errorString(), QString());
 
-    mock->error(QMediaRecorder::FormatError, errorString);
+    mock->updateError(QMediaRecorder::FormatError, errorString);
     QCOMPARE(encoder->error(), QMediaRecorder::FormatError);
     QCOMPARE(encoder->errorString(), errorString);
     QCOMPARE(spy.size(), 1);
@@ -418,7 +418,7 @@ void tst_QMediaRecorder::testEnum()
     QCOMPARE(encoder->error(), QMediaRecorder::NoError);
     QCOMPARE(encoder->errorString(), QString());
 
-    emit mock->error(QMediaRecorder::ResourceError, errorString);
+    mock->updateError(QMediaRecorder::ResourceError, errorString);
     QCOMPARE(encoder->error(), QMediaRecorder::ResourceError);
     QCOMPARE(encoder->errorString(), errorString);
     QCOMPARE(spy.size(), 1);
