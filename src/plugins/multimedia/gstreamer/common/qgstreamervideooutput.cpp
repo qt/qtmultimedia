@@ -179,6 +179,14 @@ void QGstreamerVideoOutput::doLinkSubtitleStream()
     qLinkGstElements(subtitleSrc, subtitleSink);
 }
 
+void QGstreamerVideoOutput::updateNativeSize()
+{
+    if (!m_videoSink)
+        return;
+
+    m_videoSink->setNativeSize(qRotatedFrameSize(nativeSize, rotation));
+}
+
 void QGstreamerVideoOutput::setIsPreview()
 {
     // configures the queue to be fast and lightweight for camera preview
@@ -204,8 +212,13 @@ void QGstreamerVideoOutput::flushSubtitles()
 void QGstreamerVideoOutput::setNativeSize(QSize sz)
 {
     nativeSize = sz;
-    if (m_videoSink)
-        m_videoSink->setNativeSize(nativeSize);
+    updateNativeSize();
+}
+
+void QGstreamerVideoOutput::setRotation(QtVideo::Rotation rot)
+{
+    rotation = rot;
+    updateNativeSize();
 }
 
 QT_END_NAMESPACE
