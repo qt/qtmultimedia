@@ -309,6 +309,11 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         auto metaData = QGstreamerMetaData::fromGstTagList(tagList.get());
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
+
+        if (gstVideoOutput) {
+            QVariant rotation = m_metaData.value(QMediaMetaData::Orientation);
+            gstVideoOutput->setRotation(rotation.value<QtVideo::Rotation>());
+        }
         break;
     }
     case GST_MESSAGE_DURATION_CHANGED: {

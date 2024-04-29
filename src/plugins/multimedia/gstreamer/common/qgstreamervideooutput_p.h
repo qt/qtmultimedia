@@ -50,12 +50,14 @@ public:
     void flushSubtitles();
 
     void setNativeSize(QSize);
+    void setRotation(QtVideo::Rotation);
 
 private:
     QGstreamerVideoOutput(QGstElement videoConvert, QGstElement videoScale, QGstElement videoSink,
                           QObject *parent);
 
     void doLinkSubtitleStream();
+    void updateNativeSize();
 
     QPointer<QGstreamerVideoSink> m_videoSink;
 
@@ -72,6 +74,7 @@ private:
     QGstElement subtitleSink;
 
     QSize nativeSize;
+    QtVideo::Rotation rotation{};
 };
 
 QT_END_NAMESPACE
