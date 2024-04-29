@@ -307,8 +307,11 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 
         qCDebug(qLcMediaPlayer) << "    Got tags: " << tagList.get();
         auto metaData = taglistToMetaData(tagList);
+        auto keys = metaData.keys();
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
+        if (!keys.isEmpty())
+            emit metaDataChanged();
 
         if (gstVideoOutput) {
             QVariant rotation = m_metaData.value(QMediaMetaData::Orientation);

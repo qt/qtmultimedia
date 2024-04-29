@@ -687,8 +687,6 @@ void tst_QCameraBackend::testNativeMetadata()
     QVERIFY(!fileName.isEmpty());
     QVERIFY(QFileInfo(fileName).size() > 0);
 
-    QSKIP_GSTREAMER("QTBUG-124182: spurious failure while retrieving the metadata");
-
     // QMediaRecorder::metaData() can only test that QMediaMetaData is set properly on the recorder.
     // Use QMediaPlayer to test that the native metadata is properly set on the track
     QAudioOutput output;
@@ -700,15 +698,16 @@ void tst_QCameraBackend::testNativeMetadata()
     player.setSource(QUrl::fromLocalFile(fileName));
     player.play();
 
-    QTRY_VERIFY(metadataChangedSpy.size() > 0);
+    int metadataChangedRequiredCount = isGStreamerPlatform() ? 2 : 1;
 
-    QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(), metaData.value(QMediaMetaData::Title).toString());
+    QTRY_VERIFY(metadataChangedSpy.size() >= metadataChangedRequiredCount);
+
+    QCOMPARE(player.metaData().value(QMediaMetaData::Title).toString(),
+             metaData.value(QMediaMetaData::Title).toString());
     auto lang = player.metaData().value(QMediaMetaData::Language).value<QLocale::Language>();
     if (lang != QLocale::AnyLanguage)
         QCOMPARE(lang, metaData.value(QMediaMetaData::Language).value<QLocale::Language>());
     QCOMPARE(player.metaData().value(QMediaMetaData::Description).toString(), metaData.value(QMediaMetaData::Description).toString());
-
-    metadataChangedSpy.clear();
 
     player.stop();
     player.setSource({});
