@@ -151,6 +151,7 @@ QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
 {
     playerPipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.removeMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
+    playerPipeline.finishStateChange();
     playerPipeline.setStateSync(GST_STATE_NULL);
     topology.free();
 }
