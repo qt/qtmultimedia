@@ -216,8 +216,8 @@ void tst_QCameraBackend::testCameraActive()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error, const QString &)));
-    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
+    QSignalSpy errorSignal(&camera, &QCamera::errorOccurred);
+    QSignalSpy activeChangedSignal(&camera, &QCamera::activeChanged);
 
     QCOMPARE(camera.isActive(), false);
 
@@ -280,7 +280,7 @@ void tst_QCameraBackend::testCameraFormat()
     if (videoFormats.isEmpty())
         QSKIP("No Camera available, skipping test.");
     QCameraFormat cameraFormat = videoFormats.first();
-    QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
+    QSignalSpy spy(&camera, &QCamera::cameraFormatChanged);
     QVERIFY(spy.size() == 0);
 
     QMediaCaptureSession session;
@@ -344,9 +344,9 @@ void tst_QCameraBackend::testCameraCapture()
 
     QVERIFY(!imageCapture.isReadyForCapture());
 
-    QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,const QString&)));
+    QSignalSpy capturedSignal(&imageCapture, &QImageCapture::imageCaptured);
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
 
     imageCapture.captureToFile();
     QTRY_COMPARE(errorSignal.size(), 1);
@@ -403,10 +403,10 @@ void tst_QCameraBackend::testCaptureToBuffer()
 
     QTRY_VERIFY(camera.isActive());
 
-    QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy imageAvailableSignal(&imageCapture, SIGNAL(imageAvailable(int,QVideoFrame)));
-    QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,const QString&)));
+    QSignalSpy capturedSignal(&imageCapture, &QImageCapture::imageCaptured);
+    QSignalSpy imageAvailableSignal(&imageCapture, &QImageCapture::imageAvailable);
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
 
     camera.start();
     QTRY_VERIFY(imageCapture.isReadyForCapture());
@@ -448,8 +448,8 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
     camera.setFlashMode(QCamera::FlashOff);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
-    QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
+    QSignalSpy metadataSignal(&imageCapture, &QImageCapture::imageMetadataAvailable);
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
 
     camera.start();
 
@@ -472,9 +472,9 @@ void tst_QCameraBackend::testExposureCompensation()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy exposureCompensationSignal(&camera, SIGNAL(exposureCompensationChanged(float)));
+    QSignalSpy exposureCompensationSignal(&camera, &QCamera::exposureCompensationChanged);
 
-    //it should be possible to set exposure parameters in Unloaded state
+    // it should be possible to set exposure parameters in Unloaded state
     QCOMPARE(camera.exposureCompensation(), 0.);
     if (!(camera.supportedFeatures() & QCamera::Feature::ExposureCompensation))
         return;
@@ -571,10 +571,10 @@ void tst_QCameraBackend::testVideoRecording()
     QMediaRecorder recorder;
     session.setRecorder(&recorder);
 
-    QSignalSpy errorSignal(camera.data(), SIGNAL(errorOccurred(QCamera::Error, const QString &)));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(QMediaRecorder::Error, const QString &)));
-    QSignalSpy recorderStateChanged(&recorder, SIGNAL(recorderStateChanged(RecorderState)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy errorSignal(camera.data(), &QCamera::errorOccurred);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     recorder.setVideoResolution(320, 240);
 
@@ -643,10 +643,10 @@ void tst_QCameraBackend::testNativeMetadata()
     QMediaRecorder recorder;
     session.setRecorder(&recorder);
 
-    QSignalSpy errorSignal(&camera, SIGNAL(errorOccurred(QCamera::Error, const QString &)));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
-    QSignalSpy recorderStateChanged(&recorder, SIGNAL(recorderStateChanged(RecorderState)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy errorSignal(&camera, &QCamera::errorOccurred);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     camera.start();
     if (device.isNull()) {

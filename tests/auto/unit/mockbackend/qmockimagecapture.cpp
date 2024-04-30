@@ -25,7 +25,7 @@ int QMockImageCapture::capture(const QString &fileName)
         m_fileName = fileName;
         m_captureRequest++;
         emit readyForCaptureChanged(m_ready = false);
-        QTimer::singleShot(5, this, SLOT(captured()));
+        QTimer::singleShot(5, this, &QMockImageCapture::captured);
         return m_captureRequest;
     } else {
         emit error(-1, QImageCapture::NotReadyError,

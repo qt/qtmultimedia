@@ -54,8 +54,8 @@ void tst_QAudioDecoder::read()
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
-    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
-    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
 
     // Starting with empty source == error
@@ -115,8 +115,8 @@ void tst_QAudioDecoder::stop()
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
-    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
-    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
 
     // Starting with empty source == error
@@ -167,8 +167,8 @@ void tst_QAudioDecoder::format()
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);
 
-    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
-    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
 
     // Set the source to something
@@ -255,11 +255,11 @@ void tst_QAudioDecoder::readAll()
     d.setSource(QUrl::fromLocalFile("Foo"));
     QVERIFY(!d.isDecoding());
 
-    QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
-    QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
-    QSignalSpy isDecodingSpy(&d, SIGNAL(isDecodingChanged(bool)));
-    QSignalSpy finishedSpy(&d, SIGNAL(finished()));
-    QSignalSpy bufferAvailableSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy durationSpy(&d, &QAudioDecoder::durationChanged);
+    QSignalSpy positionSpy(&d, &QAudioDecoder::positionChanged);
+    QSignalSpy isDecodingSpy(&d, &QAudioDecoder::isDecodingChanged);
+    QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
+    QSignalSpy bufferAvailableSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     d.start();
     int i = 0;
     forever {

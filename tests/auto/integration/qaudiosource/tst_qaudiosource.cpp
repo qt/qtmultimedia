@@ -292,7 +292,7 @@ void tst_QAudioSource::stopWhileStopped()
     QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");
     QVERIFY2((audioInput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
 
-    QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+    QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
     audioInput.stop();
 
     // Check that no state transition occurred
@@ -312,7 +312,7 @@ void tst_QAudioSource::suspendWhileStopped()
     QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");
     QVERIFY2((audioInput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
 
-    QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+    QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
     audioInput.suspend();
 
     // Check that no state transition occurred
@@ -332,7 +332,7 @@ void tst_QAudioSource::resumeWhileStopped()
     QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");
     QVERIFY2((audioInput.error() == QAudio::NoError), "error() was not set to QAudio::NoError before start()");
 
-    QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+    QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
     audioInput.resume();
 
     // Check that no state transition occurred
@@ -347,7 +347,7 @@ void tst_QAudioSource::pull()
 
     QAudioSource audioInput(audioFormat, this);
 
-    QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+    QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
 
     // Check that we are in the default state before calling start
     QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");
@@ -416,7 +416,7 @@ void tst_QAudioSource::pullSuspendResume()
 
     QAudioSource audioInput(audioFormat, this);
 
-    QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+    QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
 
     // Check that we are in the default state before calling start
     QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");
@@ -518,7 +518,7 @@ void tst_QAudioSource::push()
 
     QAudioSource audioInput(audioFormat, this);
 
-    QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+    QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
 
     // Check that we are in the default state before calling start
     QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");
@@ -609,7 +609,7 @@ void tst_QAudioSource::pushSuspendResume()
 
     audioInput.setBufferSize(audioFormat.bytesForDuration(100000));
 
-    QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+    QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
 
     // Check that we are in the default state before calling start
     QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");
@@ -735,7 +735,7 @@ void tst_QAudioSource::reset()
     {
         QAudioSource audioInput(audioFormat, this);
 
-        QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+        QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
 
         // Check that we are in the default state before calling start
         QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");
@@ -765,7 +765,7 @@ void tst_QAudioSource::reset()
         QBuffer buffer;
         buffer.open(QIODevice::WriteOnly);
 
-        QSignalSpy stateSignal(&audioInput, SIGNAL(stateChanged(QAudio::State)));
+        QSignalSpy stateSignal(&audioInput, &QAudioSource::stateChanged);
 
         // Check that we are in the default state before calling start
         QVERIFY2((audioInput.state() == QAudio::StoppedState), "state() was not set to StoppedState before start()");

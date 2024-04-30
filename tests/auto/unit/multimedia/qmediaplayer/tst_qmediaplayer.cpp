@@ -294,32 +294,40 @@ void tst_QMediaPlayer::testPosition()
     QVERIFY(player->duration() == duration);
 
     if (seekable) {
-        { QSignalSpy spy(player, SIGNAL(positionChanged(qint64)));
-        player->setPosition(position);
-        QCOMPARE(player->position(), position);
-        QCOMPARE(spy.size(), 0); }
+        {
+            QSignalSpy spy(player, &QMediaPlayer::positionChanged);
+            player->setPosition(position);
+            QCOMPARE(player->position(), position);
+            QCOMPARE(spy.size(), 0);
+        }
 
         mockPlayer->setPosition(position);
-        { QSignalSpy spy(player, SIGNAL(positionChanged(qint64)));
-        player->setPosition(0);
-        QCOMPARE(player->position(), qint64(0));
-        QCOMPARE(spy.size(), position == 0 ? 0 : 1); }
+        {
+            QSignalSpy spy(player, &QMediaPlayer::positionChanged);
+            player->setPosition(0);
+            QCOMPARE(player->position(), qint64(0));
+            QCOMPARE(spy.size(), position == 0 ? 0 : 1);
+        }
 
         mockPlayer->setPosition(position);
-        { QSignalSpy spy(player, SIGNAL(positionChanged(qint64)));
-        player->setPosition(duration);
-        QCOMPARE(player->position(), duration);
-        QCOMPARE(spy.size(), position == duration ? 0 : 1); }
+        {
+            QSignalSpy spy(player, &QMediaPlayer::positionChanged);
+            player->setPosition(duration);
+            QCOMPARE(player->position(), duration);
+            QCOMPARE(spy.size(), position == duration ? 0 : 1);
+        }
 
         mockPlayer->setPosition(position);
-        { QSignalSpy spy(player, SIGNAL(positionChanged(qint64)));
-        player->setPosition(-1);
-        QCOMPARE(player->position(), qint64(0));
-        QCOMPARE(spy.size(), position == 0 ? 0 : 1); }
+        {
+            QSignalSpy spy(player, &QMediaPlayer::positionChanged);
+            player->setPosition(-1);
+            QCOMPARE(player->position(), qint64(0));
+            QCOMPARE(spy.size(), position == 0 ? 0 : 1);
+        }
 
     }
     else {
-        QSignalSpy spy(player, SIGNAL(positionChanged(qint64)));
+        QSignalSpy spy(player, &QMediaPlayer::positionChanged);
         player->setPosition(position);
 
         QCOMPARE(player->position(), position);
@@ -342,25 +350,33 @@ void tst_QMediaPlayer::testVolume()
     QVERIFY(audioOutput->volume() == vol);
 
     if (valid) {
-        { QSignalSpy spy(audioOutput, SIGNAL(volumeChanged(float)));
-        audioOutput->setVolume(.1f);
-        QCOMPARE(audioOutput->volume(), .1f);
-        QCOMPARE(spy.size(), 1); }
+        {
+            QSignalSpy spy(audioOutput, &QAudioOutput::volumeChanged);
+            audioOutput->setVolume(.1f);
+            QCOMPARE(audioOutput->volume(), .1f);
+            QCOMPARE(spy.size(), 1);
+        }
 
-        { QSignalSpy spy(audioOutput, SIGNAL(volumeChanged(float)));
-        audioOutput->setVolume(-1000.f);
-        QCOMPARE(audioOutput->volume(), 0.f);
-        QCOMPARE(spy.size(), 1); }
+        {
+            QSignalSpy spy(audioOutput, &QAudioOutput::volumeChanged);
+            audioOutput->setVolume(-1000.f);
+            QCOMPARE(audioOutput->volume(), 0.f);
+            QCOMPARE(spy.size(), 1);
+        }
 
-        { QSignalSpy spy(audioOutput, SIGNAL(volumeChanged(float)));
-        audioOutput->setVolume(1.f);
-        QCOMPARE(audioOutput->volume(), 1.f);
-        QCOMPARE(spy.size(), 1); }
+        {
+            QSignalSpy spy(audioOutput, &QAudioOutput::volumeChanged);
+            audioOutput->setVolume(1.f);
+            QCOMPARE(audioOutput->volume(), 1.f);
+            QCOMPARE(spy.size(), 1);
+        }
 
-        { QSignalSpy spy(audioOutput, SIGNAL(volumeChanged(float)));
-        audioOutput->setVolume(1000.f);
-        QCOMPARE(audioOutput->volume(), 1.f);
-        QCOMPARE(spy.size(), 0); }
+        {
+            QSignalSpy spy(audioOutput, &QAudioOutput::volumeChanged);
+            audioOutput->setVolume(1000.f);
+            QCOMPARE(audioOutput->volume(), 1.f);
+            QCOMPARE(spy.size(), 0);
+        }
     }
 }
 
@@ -381,7 +397,7 @@ void tst_QMediaPlayer::testMuted()
         audioOutput->setVolume(vol);
         QVERIFY(audioOutput->isMuted() == muted);
 
-        QSignalSpy spy(audioOutput, SIGNAL(mutedChanged(bool)));
+        QSignalSpy spy(audioOutput, &QAudioOutput::mutedChanged);
         audioOutput->setMuted(!muted);
         QCOMPARE(audioOutput->isMuted(), !muted);
         QCOMPARE(audioOutput->volume(), vol);
@@ -442,7 +458,7 @@ void tst_QMediaPlayer::testPlaybackRate()
         mockPlayer->setPlaybackRate(playbackRate);
         QVERIFY(player->playbackRate() == playbackRate);
 
-        QSignalSpy spy(player, SIGNAL(playbackRateChanged(qreal)));
+        QSignalSpy spy(player, &QMediaPlayer::playbackRateChanged);
         player->setPlaybackRate(playbackRate + 0.5f);
         QCOMPARE(player->playbackRate(), playbackRate + 0.5f);
         QCOMPARE(spy.size(), 1);
@@ -512,8 +528,8 @@ void tst_QMediaPlayer::testPlay()
     QCOMPARE(player->isPlaying(), state == QMediaPlayer::PlayingState);
     QCOMPARE(player->source(), mediaContent);
 
-    QSignalSpy spy(player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
-    QSignalSpy playingChanged(player, SIGNAL(playingChanged(bool)));
+    QSignalSpy spy(player, &QMediaPlayer::playbackStateChanged);
+    QSignalSpy playingChanged(player, &QMediaPlayer::playingChanged);
 
     player->play();
 
@@ -549,8 +565,8 @@ void tst_QMediaPlayer::testPause()
     QCOMPARE(player->isPlaying(), state == QMediaPlayer::PlayingState);
     QVERIFY(player->source() == mediaContent);
 
-    QSignalSpy spy(player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
-    QSignalSpy playingChanged(player, SIGNAL(playingChanged(bool)));
+    QSignalSpy spy(player, &QMediaPlayer::playbackStateChanged);
+    QSignalSpy playingChanged(player, &QMediaPlayer::playingChanged);
 
     player->pause();
 
@@ -584,8 +600,8 @@ void tst_QMediaPlayer::testStop()
     QCOMPARE(player->isPlaying(), state == QMediaPlayer::PlayingState);
     QVERIFY(player->source() == mediaContent);
 
-    QSignalSpy spy(player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
-    QSignalSpy playingChanged(player, SIGNAL(playingChanged(bool)));
+    QSignalSpy spy(player, &QMediaPlayer::playbackStateChanged);
+    QSignalSpy playingChanged(player, &QMediaPlayer::playingChanged);
 
     player->stop();
 
@@ -616,8 +632,8 @@ void tst_QMediaPlayer::testMediaStatus()
     mockPlayer->setMediaStatus(QMediaPlayer::NoMedia);
     mockPlayer->setBufferStatus(bufferProgress);
 
-    QSignalSpy statusSpy(player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    QSignalSpy bufferSpy(player, SIGNAL(bufferProgressChanged(float)));
+    QSignalSpy statusSpy(player, &QMediaPlayer::mediaStatusChanged);
+    QSignalSpy bufferSpy(player, &QMediaPlayer::bufferProgressChanged);
 
     QCOMPARE(player->mediaStatus(), QMediaPlayer::NoMedia);
 
@@ -786,9 +802,9 @@ void tst_QMediaPlayer::testQrc()
     mockPlayer->setState(QMediaPlayer::PlayingState, QMediaPlayer::NoMedia);
     mockPlayer->setStreamPlaybackSupported(backendHasStream);
 
-    QSignalSpy mediaSpy(player, SIGNAL(sourceChanged(QUrl)));
-    QSignalSpy statusSpy(player, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)));
-    QSignalSpy errorSpy(player, SIGNAL(errorOccurred(QMediaPlayer::Error,const QString&)));
+    QSignalSpy mediaSpy(player, &QMediaPlayer::sourceChanged);
+    QSignalSpy statusSpy(player, &QMediaPlayer::mediaStatusChanged);
+    QSignalSpy errorSpy(player, &QMediaPlayer::errorOccurred);
 
     player->setSource(mediaContent);
 
