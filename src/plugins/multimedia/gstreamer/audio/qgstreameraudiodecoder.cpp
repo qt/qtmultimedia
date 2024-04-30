@@ -514,7 +514,7 @@ void QGstreamerAudioDecoder::updateDuration()
     if (m_durationQueries > 0) {
         //increase delay between duration requests
         int delay = 25 << (5 - m_durationQueries);
-        QTimer::singleShot(delay, this, SLOT(updateDuration()));
+        QTimer::singleShot(delay, this, &QGstreamerAudioDecoder::updateDuration);
         m_durationQueries--;
     }
 }
