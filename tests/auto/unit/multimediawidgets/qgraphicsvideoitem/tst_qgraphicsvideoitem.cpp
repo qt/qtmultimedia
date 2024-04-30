@@ -214,7 +214,7 @@ void tst_QGraphicsVideoItem::nativeSize()
 
     QCOMPARE(item.nativeSize(), QSizeF());
 
-    QSignalSpy spy(&item, SIGNAL(nativeSizeChanged(QSizeF)));
+    QSignalSpy spy(&item, &QGraphicsVideoItem::nativeSizeChanged);
 
     QVideoFrameFormat format(frameSize, QVideoFrameFormat::Format_ARGB8888);
     format.setViewport(viewport);
