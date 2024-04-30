@@ -104,8 +104,8 @@ void tst_QMediaCaptureSession::recordOk(QMediaCaptureSession &session)
     QMediaRecorder recorder;
     session.setRecorder(&recorder);
 
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     recorder.record();
     QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 2000);
@@ -124,7 +124,7 @@ void tst_QMediaCaptureSession::recordOk(QMediaCaptureSession &session)
 void tst_QMediaCaptureSession::recordFail(QMediaCaptureSession &session)
 {
     QMediaRecorder recorder;
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
 
     session.setRecorder(&recorder);
     recorder.record();
@@ -294,7 +294,7 @@ void tst_QMediaCaptureSession::record_video_without_preview()
 
     session.setRecorder(&recorder);
 
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
 
     session.setCamera(&camera);
     camera.setActive(true);
@@ -319,8 +319,8 @@ void tst_QMediaCaptureSession::can_add_and_remove_AudioInput_with_and_without_Au
         QSKIP("No audio input available");
 
     QMediaCaptureSession session;
-    QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
-    QSignalSpy audioOutputChanged(&session, SIGNAL(audioOutputChanged()));
+    QSignalSpy audioInputChanged(&session, &QMediaCaptureSession::audioInputChanged);
+    QSignalSpy audioOutputChanged(&session, &QMediaCaptureSession::audioOutputChanged);
 
     session.setAudioInput(&input);
     QTRY_COMPARE(audioInputChanged.size(), 1);
@@ -351,10 +351,10 @@ void tst_QMediaCaptureSession::can_change_AudioDevices_on_attached_AudioInput()
         QSKIP("Two audio inputs are not available");
 
     QAudioInput input(audioInputs[0]);
-    QSignalSpy deviceChanged(&input, SIGNAL(deviceChanged()));
+    QSignalSpy deviceChanged(&input, &QAudioInput::deviceChanged);
 
     QMediaCaptureSession session;
-    QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
+    QSignalSpy audioInputChanged(&session, &QMediaCaptureSession::audioInputChanged);
 
     session.setAudioInput(&input);
     QTRY_COMPARE(audioInputChanged.size(), 1);
@@ -386,9 +386,9 @@ void tst_QMediaCaptureSession::can_change_AudioInput_during_recording()
 
     session.setRecorder(&recorder);
 
-    QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy audioInputChanged(&session, &QMediaCaptureSession::audioInputChanged);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     session.setAudioInput(&input);
     QTRY_COMPARE(audioInputChanged.size(), 1);
@@ -420,7 +420,7 @@ void tst_QMediaCaptureSession::disconnects_deleted_AudioInput()
         QSKIP("No audio input available");
 
     QMediaCaptureSession session;
-    QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
+    QSignalSpy audioInputChanged(&session, &QMediaCaptureSession::audioInputChanged);
     {
         QAudioInput input;
         session.setAudioInput(&input);
@@ -437,13 +437,13 @@ void tst_QMediaCaptureSession::can_move_AudioInput_between_sessions()
 
     QMediaCaptureSession session0;
     QMediaCaptureSession session1;
-    QSignalSpy audioInputChanged0(&session0, SIGNAL(audioInputChanged()));
-    QSignalSpy audioInputChanged1(&session1, SIGNAL(audioInputChanged()));
+    QSignalSpy audioInputChanged0(&session0, &QMediaCaptureSession::audioInputChanged);
+    QSignalSpy audioInputChanged1(&session1, &QMediaCaptureSession::audioInputChanged);
 
     QAudioInput input;
     {
         QMediaCaptureSession session2;
-        QSignalSpy audioInputChanged2(&session2, SIGNAL(audioInputChanged()));
+        QSignalSpy audioInputChanged2(&session2, &QMediaCaptureSession::audioInputChanged);
         session2.setAudioInput(&input);
         QTRY_COMPARE(audioInputChanged2.size(), 1);
     }
@@ -464,7 +464,7 @@ void tst_QMediaCaptureSession::disconnects_deleted_AudioOutput()
         QSKIP("No audio output available");
 
     QMediaCaptureSession session;
-    QSignalSpy audioOutputChanged(&session, SIGNAL(audioOutputChanged()));
+    QSignalSpy audioOutputChanged(&session, &QMediaCaptureSession::audioOutputChanged);
     {
         QAudioOutput output;
         session.setAudioOutput(&output);
@@ -484,13 +484,13 @@ void tst_QMediaCaptureSession::can_move_AudioOutput_between_sessions_and_player(
     QMediaCaptureSession session0;
     QMediaCaptureSession session1;
     QMediaPlayer player;
-    QSignalSpy audioOutputChanged0(&session0, SIGNAL(audioOutputChanged()));
-    QSignalSpy audioOutputChanged1(&session1, SIGNAL(audioOutputChanged()));
-    QSignalSpy audioOutputChangedPlayer(&player, SIGNAL(audioOutputChanged()));
+    QSignalSpy audioOutputChanged0(&session0, &QMediaCaptureSession::audioOutputChanged);
+    QSignalSpy audioOutputChanged1(&session1, &QMediaCaptureSession::audioOutputChanged);
+    QSignalSpy audioOutputChangedPlayer(&player, &QMediaPlayer::audioOutputChanged);
 
     {
         QMediaCaptureSession session2;
-        QSignalSpy audioOutputChanged2(&session2, SIGNAL(audioOutputChanged()));
+        QSignalSpy audioOutputChanged2(&session2, &QMediaCaptureSession::audioOutputChanged);
         session2.setAudioOutput(&output);
         QTRY_COMPARE(audioOutputChanged2.size(), 1);
     }
@@ -533,7 +533,7 @@ void tst_QMediaCaptureSession::can_add_and_remove_Camera()
 
     session.setRecorder(&recorder);
 
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
 
     session.setCamera(&camera);
     camera.setActive(true);
@@ -554,13 +554,13 @@ void tst_QMediaCaptureSession::can_move_Camera_between_sessions()
 {
     QMediaCaptureSession session0;
     QMediaCaptureSession session1;
-    QSignalSpy cameraChanged0(&session0, SIGNAL(cameraChanged()));
-    QSignalSpy cameraChanged1(&session1, SIGNAL(cameraChanged()));
+    QSignalSpy cameraChanged0(&session0, &QMediaCaptureSession::cameraChanged);
+    QSignalSpy cameraChanged1(&session1, &QMediaCaptureSession::cameraChanged);
     {
         QCamera camera;
         {
             QMediaCaptureSession session2;
-            QSignalSpy cameraChanged2(&session2, SIGNAL(cameraChanged()));
+            QSignalSpy cameraChanged2(&session2, &QMediaCaptureSession::cameraChanged);
             session2.setCamera(&camera);
             QTRY_COMPARE(cameraChanged2.size(), 1);
         }
@@ -594,9 +594,9 @@ void tst_QMediaCaptureSession::can_disconnect_Camera_when_recording()
 
     session.setRecorder(&recorder);
 
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     camera.setActive(true);
     session.setCamera(&camera);
@@ -636,7 +636,7 @@ void tst_QMediaCaptureSession::can_add_and_remove_different_Cameras()
 
     session.setRecorder(&recorder);
 
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
 
     camera.setActive(true);
     session.setCamera(&camera);
@@ -669,8 +669,8 @@ void tst_QMediaCaptureSession::can_change_CameraDevice_on_attached_Camera()
 
     session.setRecorder(&recorder);
 
-    QSignalSpy cameraDeviceChanged(&camera, SIGNAL(cameraDeviceChanged()));
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
+    QSignalSpy cameraDeviceChanged(&camera, &QCamera::cameraDeviceChanged);
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
 
     session.setCamera(&camera);
     QTRY_COMPARE(cameraChanged.size(), 1);
@@ -706,8 +706,8 @@ void tst_QMediaCaptureSession::can_change_VideoOutput_with_and_without_camera()
 
     QMediaCaptureSession session;
 
-    QSignalSpy videoOutputChanged(&session, SIGNAL(videoOutputChanged()));
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
+    QSignalSpy videoOutputChanged(&session, &QMediaCaptureSession::videoOutputChanged);
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
 
     session.setCamera(&camera);
     QTRY_COMPARE(cameraChanged.size(), 1);
@@ -742,10 +742,10 @@ void tst_QMediaCaptureSession::can_change_VideoOutput_when_recording()
 
     session.setRecorder(&recorder);
 
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
-    QSignalSpy videoOutputChanged(&session, SIGNAL(videoOutputChanged()));
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
+    QSignalSpy videoOutputChanged(&session, &QMediaCaptureSession::videoOutputChanged);
 
     camera.setActive(true);
     session.setCamera(&camera);
@@ -785,8 +785,8 @@ void tst_QMediaCaptureSession::can_add_and_remove_recorders()
     QMediaRecorder recorder2;
     QMediaCaptureSession session;
 
-    QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
-    QSignalSpy recorderChanged(&session, SIGNAL(recorderChanged()));
+    QSignalSpy audioInputChanged(&session, &QMediaCaptureSession::audioInputChanged);
+    QSignalSpy recorderChanged(&session, &QMediaCaptureSession::recorderChanged);
 
     session.setAudioInput(&input);
     QTRY_COMPARE(audioInputChanged.size(), 1);
@@ -808,13 +808,13 @@ void tst_QMediaCaptureSession::can_move_Recorder_between_sessions()
 {
     QMediaCaptureSession session0;
     QMediaCaptureSession session1;
-    QSignalSpy recorderChanged0(&session0, SIGNAL(recorderChanged()));
-    QSignalSpy recorderChanged1(&session1, SIGNAL(recorderChanged()));
+    QSignalSpy recorderChanged0(&session0, &QMediaCaptureSession::recorderChanged);
+    QSignalSpy recorderChanged1(&session1, &QMediaCaptureSession::recorderChanged);
     {
         QMediaRecorder recorder;
         {
             QMediaCaptureSession session2;
-            QSignalSpy recorderChanged2(&session2, SIGNAL(recorderChanged()));
+            QSignalSpy recorderChanged2(&session2, &QMediaCaptureSession::recorderChanged);
             session2.setRecorder(&recorder);
             QTRY_COMPARE(recorderChanged2.size(), 1);
         }
@@ -851,7 +851,7 @@ void tst_QMediaCaptureSession::can_record_AudioInput_with_null_AudioDevice()
     QAudioInput input(nullDevice);
 
     QMediaCaptureSession session;
-    QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
+    QSignalSpy audioInputChanged(&session, &QMediaCaptureSession::audioInputChanged);
 
     session.setAudioInput(&input);
     QTRY_COMPARE(audioInputChanged.size(), 1);
@@ -869,7 +869,7 @@ void tst_QMediaCaptureSession::can_record_Camera_with_null_CameraDevice()
     QCamera camera(nullDevice);
 
     QMediaCaptureSession session;
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
 
     session.setCamera(&camera);
     QTRY_COMPARE(cameraChanged.size(), 1);
@@ -890,10 +890,10 @@ void tst_QMediaCaptureSession::recording_stops_when_recorder_removed()
     QMediaRecorder recorder;
     QMediaCaptureSession session;
 
-    QSignalSpy audioInputChanged(&session, SIGNAL(audioInputChanged()));
-    QSignalSpy recorderChanged(&session, SIGNAL(recorderChanged()));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy audioInputChanged(&session, &QMediaCaptureSession::audioInputChanged);
+    QSignalSpy recorderChanged(&session, &QMediaCaptureSession::recorderChanged);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     session.setAudioInput(&input);
     QTRY_COMPARE(audioInputChanged.size(), 1);
@@ -927,9 +927,9 @@ void tst_QMediaCaptureSession::can_add_and_remove_ImageCapture()
     QImageCapture capture;
     QMediaCaptureSession session;
 
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
-    QSignalSpy imageCaptureChanged(&session, SIGNAL(imageCaptureChanged()));
-    QSignalSpy readyForCaptureChanged(&capture, SIGNAL(readyForCaptureChanged(bool)));
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
+    QSignalSpy imageCaptureChanged(&session, &QMediaCaptureSession::imageCaptureChanged);
+    QSignalSpy readyForCaptureChanged(&capture, &QImageCapture::readyForCaptureChanged);
 
     QVERIFY(!capture.isAvailable());
     QVERIFY(!capture.isReadyForCapture());
@@ -969,13 +969,13 @@ void tst_QMediaCaptureSession::can_move_ImageCapture_between_sessions()
 {
     QMediaCaptureSession session0;
     QMediaCaptureSession session1;
-    QSignalSpy imageCaptureChanged0(&session0, SIGNAL(imageCaptureChanged()));
-    QSignalSpy imageCaptureChanged1(&session1, SIGNAL(imageCaptureChanged()));
+    QSignalSpy imageCaptureChanged0(&session0, &QMediaCaptureSession::imageCaptureChanged);
+    QSignalSpy imageCaptureChanged1(&session1, &QMediaCaptureSession::imageCaptureChanged);
     {
         QImageCapture imageCapture;
         {
             QMediaCaptureSession session2;
-            QSignalSpy imageCaptureChanged2(&session2, SIGNAL(imageCaptureChanged()));
+            QSignalSpy imageCaptureChanged2(&session2, &QMediaCaptureSession::imageCaptureChanged);
             session2.setImageCapture(&imageCapture);
             QTRY_COMPARE(imageCaptureChanged2.size(), 1);
         }
@@ -1008,9 +1008,9 @@ void tst_QMediaCaptureSession::capture_is_not_available_when_Camera_is_null()
     QImageCapture capture;
     QMediaCaptureSession session;
 
-    QSignalSpy cameraChanged(&session, SIGNAL(cameraChanged()));
-    QSignalSpy capturedSignal(&capture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy readyForCaptureChanged(&capture, SIGNAL(readyForCaptureChanged(bool)));
+    QSignalSpy cameraChanged(&session, &QMediaCaptureSession::cameraChanged);
+    QSignalSpy capturedSignal(&capture, &QImageCapture::imageCaptured);
+    QSignalSpy readyForCaptureChanged(&capture, &QImageCapture::readyForCaptureChanged);
 
     session.setImageCapture(&capture);
     session.setCamera(&camera);
@@ -1045,12 +1045,12 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
     QMediaCaptureSession session;
     QMediaRecorder recorder;
 
-    QSignalSpy recorderChanged(&session, SIGNAL(recorderChanged()));
-    QSignalSpy recorderErrorSignal(&recorder, SIGNAL(errorOccurred(Error, const QString &)));
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
-    QSignalSpy imageCaptureChanged(&session, SIGNAL(imageCaptureChanged()));
-    QSignalSpy readyForCaptureChanged(&capture, SIGNAL(readyForCaptureChanged(bool)));
-    QSignalSpy capturedSignal(&capture, SIGNAL(imageCaptured(int,QImage)));
+    QSignalSpy recorderChanged(&session, &QMediaCaptureSession::recorderChanged);
+    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
+    QSignalSpy imageCaptureChanged(&session, &QMediaCaptureSession::imageCaptureChanged);
+    QSignalSpy readyForCaptureChanged(&capture, &QImageCapture::readyForCaptureChanged);
+    QSignalSpy capturedSignal(&capture, &QImageCapture::imageCaptured);
 
     session.setCamera(&camera);
     camera.setActive(true);
@@ -1102,7 +1102,7 @@ void tst_QMediaCaptureSession::testAudioMute()
     recorder.setOutputLocation(QStringLiteral("test"));
 
     QSignalSpy spy(&audioInput, &QAudioInput::mutedChanged);
-    QSignalSpy durationChanged(&recorder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     QMediaFormat format;
     format.setAudioCodec(QMediaFormat::AudioCodec::Wave);

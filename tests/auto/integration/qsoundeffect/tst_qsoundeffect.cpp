@@ -89,7 +89,7 @@ void tst_QSoundEffect::initTestCase()
 
 void tst_QSoundEffect::testSource()
 {
-    QSignalSpy readSignal(sound, SIGNAL(sourceChanged()));
+    QSignalSpy readSignal(sound, &QSoundEffect::sourceChanged);
 
     sound->setSource(url);
     sound->setVolume(0.1f);
@@ -108,8 +108,8 @@ void tst_QSoundEffect::testLooping()
     sound->setSource(url);
     QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
 
-    QSignalSpy readSignal_Count(sound, SIGNAL(loopCountChanged()));
-    QSignalSpy readSignal_Remaining(sound, SIGNAL(loopsRemainingChanged()));
+    QSignalSpy readSignal_Count(sound, &QSoundEffect::loopCountChanged);
+    QSignalSpy readSignal_Remaining(sound, &QSoundEffect::loopsRemainingChanged);
 
     sound->setLoopCount(3);
     sound->setVolume(0.1f);
@@ -195,7 +195,7 @@ void tst_QSoundEffect::testLooping()
 
 void tst_QSoundEffect::testVolume()
 {
-    QSignalSpy readSignal(sound, SIGNAL(volumeChanged()));
+    QSignalSpy readSignal(sound, &QSoundEffect::volumeChanged);
 
     sound->setVolume(0.5);
     QCOMPARE(sound->volume(),0.5);
@@ -205,7 +205,7 @@ void tst_QSoundEffect::testVolume()
 
 void tst_QSoundEffect::testMuting()
 {
-    QSignalSpy readSignal(sound, SIGNAL(mutedChanged()));
+    QSignalSpy readSignal(sound, &QSoundEffect::mutedChanged);
 
     sound->setMuted(true);
     QCOMPARE(sound->isMuted(),true);
@@ -375,7 +375,7 @@ void tst_QSoundEffect::testSupportedMimeTypes()
 void tst_QSoundEffect::testCorruptFile()
 {
     for (int i = 0; i < 10; i++) {
-        QSignalSpy statusSpy(sound, SIGNAL(statusChanged()));
+        QSignalSpy statusSpy(sound, &QSoundEffect::statusChanged);
         sound->setSource(urlCorrupted);
         QVERIFY(!sound->isPlaying());
         QVERIFY(sound->status() == QSoundEffect::Loading || sound->status() == QSoundEffect::Error);

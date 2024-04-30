@@ -176,8 +176,8 @@ void tst_QWaveDecoder::http()
     QNetworkReply *reply = nam.get(QNetworkRequest(QUrl::fromLocalFile(file)));
 
     QWaveDecoder waveDecoder(reply);
-    QSignalSpy validFormatSpy(&waveDecoder, SIGNAL(formatKnown()));
-    QSignalSpy parsingErrorSpy(&waveDecoder, SIGNAL(parsingError()));
+    QSignalSpy validFormatSpy(&waveDecoder, &QWaveDecoder::formatKnown);
+    QSignalSpy parsingErrorSpy(&waveDecoder, &QWaveDecoder::parsingError);
 
     QVERIFY(waveDecoder.open(QIODeviceBase::ReadOnly));
 
@@ -227,7 +227,7 @@ void tst_QWaveDecoder::readAllAtOnce()
     QVERIFY(stream.isOpen());
 
     QWaveDecoder waveDecoder(&stream);
-    QSignalSpy validFormatSpy(&waveDecoder, SIGNAL(formatKnown()));
+    QSignalSpy validFormatSpy(&waveDecoder, &QWaveDecoder::formatKnown);
 
     QVERIFY(waveDecoder.open(QIODeviceBase::ReadOnly));
 
@@ -255,7 +255,7 @@ void tst_QWaveDecoder::readPerByte()
     QVERIFY(stream.isOpen());
 
     QWaveDecoder waveDecoder(&stream);
-    QSignalSpy validFormatSpy(&waveDecoder, SIGNAL(formatKnown()));
+    QSignalSpy validFormatSpy(&waveDecoder, &QWaveDecoder::formatKnown);
 
     QVERIFY(waveDecoder.open(QIODeviceBase::ReadOnly));
 

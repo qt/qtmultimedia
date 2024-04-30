@@ -51,7 +51,7 @@ void tst_QCameraWidgets::testCameraEncodingProperyChange()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
+    QSignalSpy activeChangedSignal(&camera, &QCamera::activeChanged);
 
     camera.start();
     QCOMPARE(camera.isActive(), true);

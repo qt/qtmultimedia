@@ -197,7 +197,7 @@ void tst_QCamera::testSimpleCameraCapture()
     QCOMPARE(imageCapture.error(), QImageCapture::NoError);
     QVERIFY(imageCapture.errorString().isEmpty());
 
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
     imageCapture.captureToFile(QStringLiteral("/dev/null"));
     QCOMPARE(errorSignal.size(), 1);
     QCOMPARE(imageCapture.error(), QImageCapture::NotReadyError);
@@ -220,8 +220,8 @@ void tst_QCamera::testCameraCapture()
 
     QVERIFY(!imageCapture.isReadyForCapture());
 
-    QSignalSpy capturedSignal(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
-    QSignalSpy errorSignal(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
+    QSignalSpy capturedSignal(&imageCapture, &QImageCapture::imageCaptured);
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
 
     imageCapture.captureToFile(QStringLiteral("/dev/null"));
     QCOMPARE(capturedSignal.size(), 0);
@@ -249,8 +249,8 @@ void tst_QCamera::testCameraCaptureMetadata()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy metadataSignal(&imageCapture, SIGNAL(imageMetadataAvailable(int,const QMediaMetaData&)));
-    QSignalSpy savedSignal(&imageCapture, SIGNAL(imageSaved(int,QString)));
+    QSignalSpy metadataSignal(&imageCapture, &QImageCapture::imageMetadataAvailable);
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
 
     camera.start();
     int id = imageCapture.captureToFile(QStringLiteral("/dev/null"));
@@ -419,7 +419,7 @@ void tst_QCamera::testCameraEncodingProperyChange()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy activeChangedSignal(&camera, SIGNAL(activeChanged(bool)));
+    QSignalSpy activeChangedSignal(&camera, &QCamera::activeChanged);
 
     camera.start();
     QCOMPARE(camera.isActive(), true);
@@ -604,7 +604,7 @@ void tst_QCamera::testErrorSignal()
     Q_ASSERT(service);
     Q_ASSERT(service->mockCameraControl);
 
-    QSignalSpy spyError(&camera, SIGNAL(errorOccurred(QCamera::Error,const QString&)));
+    QSignalSpy spyError(&camera, &QCamera::errorOccurred);
 
     /* Set the QPlatformCamera error and verify if the signal is emitted correctly in QCamera */
     service->mockCameraControl->setError(QCamera::CameraError,QStringLiteral("Camera Error"));
@@ -681,7 +681,7 @@ void tst_QCamera::testSetCameraFormat()
     auto videoFormats = device.videoFormats();
     QVERIFY(videoFormats.size());
     QCameraFormat cameraFormat = videoFormats.first();
-    QSignalSpy spy(&camera, SIGNAL(cameraFormatChanged()));
+    QSignalSpy spy(&camera, &QCamera::cameraFormatChanged);
     QVERIFY(spy.size() == 0);
     camera.setCameraFormat(cameraFormat);
     QCOMPARE(spy.size(), 1);
@@ -733,7 +733,7 @@ void tst_QCamera::testZoomChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spy(&camera, SIGNAL(zoomFactorChanged(float)));
+    QSignalSpy spy(&camera, &QCamera::zoomFactorChanged);
     QVERIFY(spy.size() == 0);
     camera.setZoomFactor(2.0);
     QVERIFY(spy.size() == 1);
@@ -751,7 +751,7 @@ void tst_QCamera::testMaxZoomChangedSignal()
     QMockCamera *mock = QMockIntegration::instance()->lastCamera();
 
     // ### change max zoom factor on backend, e.g. by changing camera
-    QSignalSpy spy(&camera, SIGNAL(maximumZoomFactorChanged(float)));
+    QSignalSpy spy(&camera, &QCamera::maximumZoomFactorChanged);
     mock->maximumZoomFactorChanged(55);
     QVERIFY(spy.size() == 1);
     QCOMPARE(camera.maximumZoomFactor(), 55);
@@ -763,9 +763,9 @@ void tst_QCamera::testSignalExposureCompensationChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spyExposureCompensationChanged(&camera, SIGNAL(exposureCompensationChanged(float)));
+    QSignalSpy spyExposureCompensationChanged(&camera, &QCamera::exposureCompensationChanged);
 
-    QVERIFY(spyExposureCompensationChanged.size() ==0);
+    QVERIFY(spyExposureCompensationChanged.size() == 0);
 
     QVERIFY(camera.exposureCompensation() != 800);
     camera.setExposureCompensation(2.0);
@@ -790,7 +790,7 @@ void tst_QCamera::testSignalIsoSensitivityChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spyisoSensitivityChanged(&camera, SIGNAL(isoSensitivityChanged(int)));
+    QSignalSpy spyisoSensitivityChanged(&camera, &QCamera::isoSensitivityChanged);
 
     QVERIFY(spyisoSensitivityChanged.size() ==0);
 
@@ -805,9 +805,9 @@ void tst_QCamera::testSignalShutterSpeedChanged()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spySignalExposureTimeChanged(&camera, SIGNAL(exposureTimeChanged(float)));
+    QSignalSpy spySignalExposureTimeChanged(&camera, &QCamera::exposureTimeChanged);
 
-    QVERIFY(spySignalExposureTimeChanged.size() ==0);
+    QVERIFY(spySignalExposureTimeChanged.size() == 0);
 
     camera.setManualExposureTime(2.0);//set the ManualShutterSpeed to 2.0
     QTest::qWait(100);
@@ -821,7 +821,7 @@ void tst_QCamera::testSignalFlashReady()
     QCamera camera;
     session.setCamera(&camera);
 
-    QSignalSpy spyflashReady(&camera,SIGNAL(flashReady(bool)));
+    QSignalSpy spyflashReady(&camera, &QCamera::flashReady);
 
     QVERIFY(spyflashReady.size() == 0);
 

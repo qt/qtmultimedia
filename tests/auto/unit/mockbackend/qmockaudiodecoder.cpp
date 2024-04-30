@@ -60,7 +60,7 @@ void QMockAudioDecoder::start()
             setIsDecoding(true);
             durationChanged(duration());
 
-            QTimer::singleShot(50, this, SLOT(pretendDecode()));
+            QTimer::singleShot(50, this, &QMockAudioDecoder::pretendDecode);
         } else {
             error(QAudioDecoder::ResourceError, "No source set");
         }
@@ -92,7 +92,7 @@ QAudioBuffer QMockAudioDecoder::read()
         if (mBuffers.isEmpty() && mSerial >= MOCK_DECODER_MAX_BUFFERS) {
             finished();
         } else
-            QTimer::singleShot(50, this, SLOT(pretendDecode()));
+            QTimer::singleShot(50, this, &QMockAudioDecoder::pretendDecode);
     }
 
     return a;

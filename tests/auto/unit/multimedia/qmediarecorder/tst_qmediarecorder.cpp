@@ -124,7 +124,7 @@ void tst_QMediaRecorder::testNullControls()
     QCOMPARE(recorder.mediaFormat().videoCodec(), QMediaFormat::VideoCodec::VP9);
     QCOMPARE(recorder.mediaFormat().fileFormat(), QMediaFormat::MPEG4);
 
-    QSignalSpy spy(&recorder, SIGNAL(recorderStateChanged(RecorderState)));
+    QSignalSpy spy(&recorder, &QMediaRecorder::recorderStateChanged);
 
     recorder.record();
     QCOMPARE(recorder.recorderState(), QMediaRecorder::StoppedState);
@@ -186,7 +186,7 @@ void tst_QMediaRecorder::testError()
 {
     const QString errorString(QLatin1String("format error"));
 
-    QSignalSpy spy(encoder, SIGNAL(errorOccurred(Error, const QString&)));
+    QSignalSpy spy(encoder, &QMediaRecorder::errorOccurred);
 
     QCOMPARE(encoder->error(), QMediaRecorder::NoError);
     QCOMPARE(encoder->errorString(), QString());
@@ -226,8 +226,8 @@ void tst_QMediaRecorder::testSink()
 
 void tst_QMediaRecorder::testRecord()
 {
-    QSignalSpy stateSignal(encoder,SIGNAL(recorderStateChanged(RecorderState)));
-    QSignalSpy progressSignal(encoder, SIGNAL(durationChanged(qint64)));
+    QSignalSpy stateSignal(encoder, &QMediaRecorder::recorderStateChanged);
+    QSignalSpy progressSignal(encoder, &QMediaRecorder::durationChanged);
     encoder->record();
     QCOMPARE(encoder->recorderState(), QMediaRecorder::RecordingState);
     QCOMPARE(encoder->error(), QMediaRecorder::NoError);
@@ -409,7 +409,7 @@ void tst_QMediaRecorder::testEnum()
 {
     const QString errorString(QLatin1String("resource error"));
 
-    QSignalSpy spy(encoder, SIGNAL(errorOccurred(Error, const QString&)));
+    QSignalSpy spy(encoder, &QMediaRecorder::errorOccurred);
 
     QCOMPARE(encoder->error(), QMediaRecorder::NoError);
     QCOMPARE(encoder->errorString(), QString());

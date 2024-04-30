@@ -184,7 +184,7 @@ void tst_QVideoWidget::fullScreen()
 
     Qt::WindowFlags windowFlags = widget.windowFlags();
 
-    QSignalSpy spy(&widget, SIGNAL(fullScreenChanged(bool)));
+    QSignalSpy spy(&widget, &QVideoWidget::fullScreenChanged);
 
     // Test showing full screen with setFullScreen(true).
     widget.setFullScreen(true);

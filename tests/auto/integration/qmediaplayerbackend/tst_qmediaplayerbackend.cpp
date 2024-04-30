@@ -1542,9 +1542,9 @@ void tst_QMediaPlayerBackend::deleteLaterAtEOS()
     // QTRY_VERIFY or QTest::qWait. QTest::qWait makes extra effort to process
     // DeferredDelete events during the wait, which interferes with this test.
     QEventLoop loop;
-    QTimer::singleShot(0, &deleter, SLOT(play()));
-    QTimer::singleShot(5000, &loop, SLOT(quit()));
-    connect(player.data(), SIGNAL(destroyed()), &loop, SLOT(quit()));
+    QTimer::singleShot(0, &deleter, &DeleteLaterAtEos::play);
+    QTimer::singleShot(5000, &loop, &QEventLoop::quit);
+    connect(player.data(), &QObject::destroyed, &loop, &QEventLoop::quit);
     loop.exec();
     // Verify that the player was destroyed within the event loop.
     // This check will fail without the fix for QTBUG-24927.
@@ -1651,7 +1651,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
 
     player.setAudioOutput(&output);
 
-    QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
+    QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
 
     player.setVideoOutput(&surface);
 
@@ -1727,8 +1727,8 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
     player.setAudioOutput(&output);
     player.setVideoOutput(&surface);
 
-    QSignalSpy stateSpy(&player, SIGNAL(playbackStateChanged(QMediaPlayer::PlaybackState)));
-    QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
+    QSignalSpy stateSpy(&player, &QMediaPlayer::playbackStateChanged);
+    QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
 
     player.setSource(*m_localVideoFile);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
@@ -2039,7 +2039,7 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
     };
 
     auto seekAndCheck = [&](qint64 pos) {
-        QSignalSpy positionSpy(&player, SIGNAL(positionChanged(qint64)));
+        QSignalSpy positionSpy(&player, &QMediaPlayer::positionChanged);
         player.setPosition(pos);
 
         QTRY_VERIFY(positionSpy.size() >= 1);
@@ -2323,8 +2323,8 @@ void tst_QMediaPlayerBackend::audioVideoAvailable()
     TestVideoSink surface(false);
     QAudioOutput output;
     QMediaPlayer player;
-    QSignalSpy hasVideoSpy(&player, SIGNAL(hasVideoChanged(bool)));
-    QSignalSpy hasAudioSpy(&player, SIGNAL(hasAudioChanged(bool)));
+    QSignalSpy hasVideoSpy(&player, &QMediaPlayer::hasVideoChanged);
+    QSignalSpy hasAudioSpy(&player, &QMediaPlayer::hasAudioChanged);
     player.setVideoOutput(&surface);
     player.setAudioOutput(&output);
     player.setSource(*m_localVideoFile);

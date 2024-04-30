@@ -363,13 +363,13 @@ void tst_QAudioDecoderBackend::fileTest()
     QVERIFY(!d.bufferAvailable());
     QCOMPARE(d.source(), *m_wavFile);
 
-    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
-    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
-    QSignalSpy isDecodingSpy(&d, SIGNAL(isDecodingChanged(bool)));
-    QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
-    QSignalSpy finishedSpy(&d, SIGNAL(finished()));
-    QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
+    QSignalSpy isDecodingSpy(&d, &QAudioDecoder::isDecodingChanged);
+    QSignalSpy durationSpy(&d, &QAudioDecoder::durationChanged);
+    QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
+    QSignalSpy positionSpy(&d, &QAudioDecoder::positionChanged);
 
     d.start();
 
@@ -551,13 +551,13 @@ void tst_QAudioDecoderBackend::unsupportedFileTest()
     QVERIFY(!d.bufferAvailable());
     QCOMPARE(d.source(), url);
 
-    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
-    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
-    QSignalSpy isDecodingSpy(&d, SIGNAL(isDecodingChanged(bool)));
-    QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
-    QSignalSpy finishedSpy(&d, SIGNAL(finished()));
-    QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
+    QSignalSpy isDecodingSpy(&d, &QAudioDecoder::isDecodingChanged);
+    QSignalSpy durationSpy(&d, &QAudioDecoder::durationChanged);
+    QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
+    QSignalSpy positionSpy(&d, &QAudioDecoder::positionChanged);
 
     d.start();
     QTRY_VERIFY(!d.isDecoding());
@@ -630,13 +630,13 @@ void tst_QAudioDecoderBackend::corruptedFileTest()
     QVERIFY(!d.bufferAvailable());
     QCOMPARE(d.source(), url);
 
-    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
-    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
-    QSignalSpy isDecodingSpy(&d, SIGNAL(isDecodingChanged(bool)));
-    QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
-    QSignalSpy finishedSpy(&d, SIGNAL(finished()));
-    QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
+    QSignalSpy isDecodingSpy(&d, &QAudioDecoder::isDecodingChanged);
+    QSignalSpy durationSpy(&d, &QAudioDecoder::durationChanged);
+    QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
+    QSignalSpy positionSpy(&d, &QAudioDecoder::positionChanged);
 
     d.start();
     QTRY_VERIFY(!d.isDecoding());
@@ -704,13 +704,13 @@ void tst_QAudioDecoderBackend::invalidSource()
     QVERIFY(!d.bufferAvailable());
     QCOMPARE(d.source(), url);
 
-    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
-    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
-    QSignalSpy isDecodingSpy(&d, SIGNAL(isDecodingChanged(bool)));
-    QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
-    QSignalSpy finishedSpy(&d, SIGNAL(finished()));
-    QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
+    QSignalSpy isDecodingSpy(&d, &QAudioDecoder::isDecodingChanged);
+    QSignalSpy durationSpy(&d, &QAudioDecoder::durationChanged);
+    QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
+    QSignalSpy positionSpy(&d, &QAudioDecoder::positionChanged);
 
     d.start();
     QTRY_VERIFY(!d.isDecoding());
@@ -786,13 +786,13 @@ void tst_QAudioDecoderBackend::deviceTest()
     quint64 duration = 0;
     int sampleCount = 0;
 
-    QSignalSpy readySpy(&d, SIGNAL(bufferReady()));
-    QSignalSpy bufferChangedSpy(&d, SIGNAL(bufferAvailableChanged(bool)));
+    QSignalSpy readySpy(&d, &QAudioDecoder::bufferReady);
+    QSignalSpy bufferChangedSpy(&d, &QAudioDecoder::bufferAvailableChanged);
     QSignalSpy errorSpy(&d, SIGNAL(error(QAudioDecoder::Error)));
-    QSignalSpy isDecodingSpy(&d, SIGNAL(isDecodingChanged(bool)));
-    QSignalSpy durationSpy(&d, SIGNAL(durationChanged(qint64)));
-    QSignalSpy finishedSpy(&d, SIGNAL(finished()));
-    QSignalSpy positionSpy(&d, SIGNAL(positionChanged(qint64)));
+    QSignalSpy isDecodingSpy(&d, &QAudioDecoder::isDecodingChanged);
+    QSignalSpy durationSpy(&d, &QAudioDecoder::durationChanged);
+    QSignalSpy finishedSpy(&d, &QAudioDecoder::finished);
+    QSignalSpy positionSpy(&d, &QAudioDecoder::positionChanged);
 
     QVERIFY(!d.isDecoding());
     QVERIFY(d.bufferAvailable() == false);

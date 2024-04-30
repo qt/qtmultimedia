@@ -178,7 +178,7 @@ void tst_QImageCapture::error()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy spy(&imageCapture, SIGNAL(errorOccurred(int,QImageCapture::Error,QString)));
+    QSignalSpy spy(&imageCapture, &QImageCapture::errorOccurred);
     imageCapture.captureToFile();
     QTest::qWait(30);
     QVERIFY(spy.size() == 1);
@@ -196,7 +196,7 @@ void tst_QImageCapture::imageCaptured()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy spy(&imageCapture, SIGNAL(imageCaptured(int,QImage)));
+    QSignalSpy spy(&imageCapture, &QImageCapture::imageCaptured);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
@@ -219,7 +219,7 @@ void tst_QImageCapture::imageExposed()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy spy(&imageCapture, SIGNAL(imageExposed(int)));
+    QSignalSpy spy(&imageCapture, &QImageCapture::imageExposed);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
@@ -240,7 +240,7 @@ void tst_QImageCapture::imageSaved()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy spy(&imageCapture, SIGNAL(imageSaved(int,QString)));
+    QSignalSpy spy(&imageCapture, &QImageCapture::imageSaved);
     QVERIFY(imageCapture.isAvailable() == true);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     camera.start();
@@ -262,7 +262,7 @@ void tst_QImageCapture::readyForCaptureChanged()
     session.setCamera(&camera);
     session.setImageCapture(&imageCapture);
 
-    QSignalSpy spy(&imageCapture, SIGNAL(readyForCaptureChanged(bool)));
+    QSignalSpy spy(&imageCapture, &QImageCapture::readyForCaptureChanged);
     QVERIFY(imageCapture.isReadyForCapture() == false);
     imageCapture.captureToFile();
     QTest::qWait(100);
