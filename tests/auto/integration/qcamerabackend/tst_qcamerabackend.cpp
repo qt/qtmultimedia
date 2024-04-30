@@ -448,6 +448,12 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
 
     camera.setFlashMode(QCamera::FlashOff);
 
+    QMediaMetaData referenceMetaData;
+    referenceMetaData.insert(QMediaMetaData::Title, QStringLiteral("Title"));
+    referenceMetaData.insert(QMediaMetaData::Language, QVariant::fromValue(QLocale::German));
+    referenceMetaData.insert(QMediaMetaData::Description, QStringLiteral("Description"));
+    imageCapture.setMetaData(referenceMetaData);
+
     QSignalSpy metadataSignal(&imageCapture, &QImageCapture::imageMetadataAvailable);
     QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
 
@@ -460,7 +466,20 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
     int id = imageCapture.captureToFile(tmpFile);
     QTRY_VERIFY(!savedSignal.isEmpty());
     QVERIFY(!metadataSignal.isEmpty());
+
     QCOMPARE(metadataSignal.first().first().toInt(), id);
+    QMediaMetaData receivedMetaData = metadataSignal.first()[1].value<QMediaMetaData>();
+
+    if (isGStreamerPlatform()) {
+        for (auto key : {
+                     QMediaMetaData::Title,
+                     QMediaMetaData::Language,
+                     QMediaMetaData::Description,
+             })
+            QCOMPARE(receivedMetaData[key], referenceMetaData[key]);
+        QVERIFY(receivedMetaData[QMediaMetaData::Date].isValid());
+        QVERIFY(receivedMetaData[QMediaMetaData::Resolution].isValid());
+    }
 }
 
 void tst_QCameraBackend::testExposureCompensation()
@@ -708,6 +727,10 @@ void tst_QCameraBackend::testNativeMetadata()
     if (lang != QLocale::AnyLanguage)
         QCOMPARE(lang, metaData.value(QMediaMetaData::Language).value<QLocale::Language>());
     QCOMPARE(player.metaData().value(QMediaMetaData::Description).toString(), metaData.value(QMediaMetaData::Description).toString());
+    QVERIFY(player.metaData().value(QMediaMetaData::Resolution).isValid());
+
+    if (isGStreamerPlatform())
+        QVERIFY(player.metaData().value(QMediaMetaData::Date).isValid());
 
     player.stop();
     player.setSource({});
