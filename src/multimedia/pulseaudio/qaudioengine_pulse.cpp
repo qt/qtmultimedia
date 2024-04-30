@@ -477,7 +477,7 @@ void QPulseAudioEngine::onContextFailed()
     release();
 
     // Try to reconnect later
-    QTimer::singleShot(3000, this, SLOT(prepare()));
+    QTimer::singleShot(3000, this, &QPulseAudioEngine::prepare);
 }
 
 QPulseAudioEngine *QPulseAudioEngine::instance()

@@ -56,7 +56,7 @@ QT_BEGIN_NAMESPACE
 QQuickImageCapture::QQuickImageCapture(QObject *parent)
     : QImageCapture(parent)
 {
-    connect(this, SIGNAL(imageCaptured(int,QImage)), this, SLOT(_q_imageCaptured(int,QImage)));
+    connect(this, &QImageCapture::imageCaptured, this, &QQuickImageCapture::_q_imageCaptured);
 }
 
 QQuickImageCapture::~QQuickImageCapture() = default;

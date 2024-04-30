@@ -56,7 +56,7 @@ bool QWaveDecoder::open(QIODevice::OpenMode mode)
         if (canOpen && enoughDataAvailable())
             handleData();
         else
-            connect(device, SIGNAL(readyRead()), SLOT(handleData()));
+            connect(device, &QIODevice::readyRead, this, &QWaveDecoder::handleData);
         return canOpen;
     }
 
@@ -274,7 +274,7 @@ bool QWaveDecoder::writeDataLength()
 void QWaveDecoder::parsingFailed()
 {
     Q_ASSERT(device);
-    device->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
+    disconnect(device, &QIODevice::readyRead, this, &QWaveDecoder::handleData);
     emit parsingError();
 }
 
@@ -386,7 +386,7 @@ void QWaveDecoder::handleData()
 
     if (state == QWaveDecoder::WaitingForDataState) {
         if (findChunk("data")) {
-            device->disconnect(SIGNAL(readyRead()), this, SLOT(handleData()));
+            disconnect(device, &QIODevice::readyRead, this, &QWaveDecoder::handleData);
 
             chunk descriptor;
             device->read(reinterpret_cast<char *>(&descriptor), sizeof(chunk));
@@ -400,7 +400,7 @@ void QWaveDecoder::handleData()
                 dataSize = device->size() - headerLength();
 
             haveFormat = true;
-            connect(device, SIGNAL(readyRead()), SIGNAL(readyRead()));
+            connect(device, &QIODevice::readyRead, this, &QIODevice::readyRead);
             emit formatKnown();
 
             return;
