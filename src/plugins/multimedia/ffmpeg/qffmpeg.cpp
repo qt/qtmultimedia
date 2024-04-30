@@ -338,6 +338,9 @@ const char *preferredHwCodecNameSuffix(bool isEncoder, AVHWDeviceType deviceType
         return "_videotoolbox";
     case AV_HWDEVICE_TYPE_D3D11VA:
     case AV_HWDEVICE_TYPE_DXVA2:
+#if QT_FFMPEG_HAS_D3D12VA
+    case AV_HWDEVICE_TYPE_D3D12VA:
+#endif
         return "_mf";
     case AV_HWDEVICE_TYPE_CUDA:
     case AV_HWDEVICE_TYPE_VDPAU:
@@ -489,6 +492,10 @@ AVPixelFormat pixelFormatForHwDevice(AVHWDeviceType deviceType)
         return AV_PIX_FMT_QSV;
     case AV_HWDEVICE_TYPE_D3D11VA:
         return AV_PIX_FMT_D3D11;
+#if QT_FFMPEG_HAS_D3D12VA
+    case AV_HWDEVICE_TYPE_D3D12VA:
+        return AV_PIX_FMT_D3D12;
+#endif
     case AV_HWDEVICE_TYPE_DXVA2:
         return AV_PIX_FMT_DXVA2_VLD;
     case AV_HWDEVICE_TYPE_DRM:
