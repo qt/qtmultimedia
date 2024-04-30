@@ -204,12 +204,8 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
     emit imageCaptured(imageData.id, img);
 
     QMediaMetaData metaData = this->metaData();
-    metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
     metaData.insert(QMediaMetaData::Resolution, frame.size());
     imageData.metaData = metaData;
-
-    // ensure taginject injects this metaData
-    applyMetaDataToTagSetter(metaData, muxer);
 
     emit imageMetadataAvailable(imageData.id, metaData);
 
@@ -241,6 +237,14 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
     connect(m_session, &QPlatformMediaCaptureSession::cameraChanged, this,
             &QGstreamerImageCapture::onCameraChanged);
     onCameraChanged();
+}
+
+void QGstreamerImageCapture::setMetaData(const QMediaMetaData &m)
+{
+    QPlatformImageCapture::setMetaData(m);
+
+    // ensure taginject injects this metaData
+    applyMetaDataToTagSetter(m, muxer);
 }
 
 void QGstreamerImageCapture::cameraActiveChanged(bool active)

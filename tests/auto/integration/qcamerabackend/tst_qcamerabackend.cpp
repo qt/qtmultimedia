@@ -465,7 +465,6 @@ void tst_QCameraBackend::testCameraCaptureMetadata()
                      QMediaMetaData::Description,
              })
             QCOMPARE(receivedMetaData[key], referenceMetaData[key]);
-        QVERIFY(receivedMetaData[QMediaMetaData::Date].isValid());
         QVERIFY(receivedMetaData[QMediaMetaData::Resolution].isValid());
     }
 }

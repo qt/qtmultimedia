@@ -48,6 +48,8 @@ public:
 
     QGstElement gstElement() const { return bin; }
 
+    void setMetaData(const QMediaMetaData &m) override;
+
 public Q_SLOTS:
     void cameraActiveChanged(bool active);
     void onCameraChanged();
