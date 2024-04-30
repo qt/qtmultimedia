@@ -398,7 +398,8 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
         stop();
         if (m_finalizing) {
             QEventLoop loop;
-            loop.connect(mediaRecorder(), SIGNAL(recorderStateChanged(RecorderState)), SLOT(quit()));
+            QObject::connect(mediaRecorder(), &QMediaRecorder::recorderStateChanged, &loop,
+                             &QEventLoop::quit);
             loop.exec();
         }
 
