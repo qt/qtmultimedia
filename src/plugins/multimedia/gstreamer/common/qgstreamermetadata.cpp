@@ -234,19 +234,67 @@ std::optional<double> parseFractionAsDouble(const GValue &val)
     return double(nom) / double(denom);
 }
 
-// internal
+constexpr std::string_view extendedComment{ GST_TAG_EXTENDED_COMMENT };
+
+void addTagsFromExtendedComment(const GstTagList *list, const gchar *tag, QMediaMetaData &metadata)
+{
+    using namespace Qt::Literals;
+    assert(tag == extendedComment);
+
+    int entryCount = gst_tag_list_get_tag_size(list, tag);
+    for (int i = 0; i != entryCount; ++i) {
+        const GValue *value = gst_tag_list_get_value_index(list, tag, i);
+
+        const QLatin1StringView strValue{ g_value_get_string(value) };
+
+        auto equalIndex = strValue.indexOf(QLatin1StringView("="));
+        if (equalIndex == -1) {
+            qDebug() << "Cannot parse GST_TAG_EXTENDED_COMMENT entry: " << value;
+            continue;
+        }
+
+        const QLatin1StringView key = strValue.first(equalIndex);
+        const QLatin1StringView valueString = strValue.last(strValue.size() - equalIndex - 1);
+
+        if (key == "DURATION"_L1) {
+            QUniqueGstDateTimeHandle duration{
+                gst_date_time_new_from_iso8601_string(valueString.data()),
+            };
+
+            if (duration) {
+                using namespace std::chrono;
+
+                auto chronoDuration = hours(gst_date_time_get_hour(duration.get()))
+                        + minutes(gst_date_time_get_minute(duration.get()))
+                        + seconds(gst_date_time_get_second(duration.get()))
+                        + microseconds(gst_date_time_get_microsecond(duration.get()));
+
+                metadata.insert(QMediaMetaData::Duration,
+                                QVariant::fromValue(round<milliseconds>(chronoDuration).count()));
+            }
+        }
+    }
+}
+
 void addTagToMetaData(const GstTagList *list, const gchar *tag, void *userdata)
 {
     QMediaMetaData &metadata = *reinterpret_cast<QMediaMetaData *>(userdata);
 
     QMediaMetaData::Key key = tagToKey(tag);
-    if (key == QMediaMetaData::Key(-1))
+    if (key == QMediaMetaData::Key(-1)) {
+        if (tag == extendedComment)
+            addTagsFromExtendedComment(list, tag, metadata);
+
         return;
+    }
 
     GValue val{};
     gst_tag_list_copy_value(&val, list, tag);
 
     GType type = G_VALUE_TYPE(&val);
+
+    if (auto entryCount = gst_tag_list_get_tag_size(list, tag) != 0; entryCount != 1)
+        qWarning() << "addTagToMetaData: invaled entry count for" << tag << "-" << entryCount;
 
     if (type == G_TYPE_STRING) {
         const gchar *str_value = g_value_get_string(&val);

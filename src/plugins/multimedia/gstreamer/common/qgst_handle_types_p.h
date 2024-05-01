@@ -163,6 +163,18 @@ struct QUniqueGErrorHandleTraits
     }
 };
 
+
+struct QUniqueGstDateTimeHandleTraits
+{
+    using Type = GstDateTime *;
+    static constexpr Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept
+    {
+        gst_date_time_unref(handle);
+        return true;
+    }
+};
+
 struct QFileDescriptorHandleTraits
 {
     using Type = int;
@@ -237,6 +249,7 @@ using QGstSampleHandle = QGstImpl::QSharedHandle<QGstImpl::QGstSampleHandleTrait
 using QUniqueGstStructureHandle = QUniqueHandle<QGstImpl::QUniqueGstStructureHandleTraits>;
 using QUniqueGStringHandle = QUniqueHandle<QGstImpl::QUniqueGStringHandleTraits>;
 using QUniqueGErrorHandle = QUniqueHandle<QGstImpl::QUniqueGErrorHandleTraits>;
+using QUniqueGstDateTimeHandle = QUniqueHandle<QGstImpl::QUniqueGstDateTimeHandleTraits>;
 using QFileDescriptorHandle = QUniqueHandle<QGstImpl::QFileDescriptorHandleTraits>;
 using QGstBufferHandle = QGstImpl::QGstMiniObjectHandleHelper<GstBuffer>::SharedHandle;
 using QGstContextHandle = QGstImpl::QGstMiniObjectHandleHelper<GstContext>::UniqueHandle;
