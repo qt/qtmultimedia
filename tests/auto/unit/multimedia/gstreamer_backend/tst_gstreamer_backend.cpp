@@ -70,7 +70,6 @@ void tst_GStreamer::metadata_taglistToMetaData_extractsDuration()
 
     QMediaMetaData parsed = taglistToMetaData(tagList.get());
 
-    QEXPECT_FAIL("", "duration in extended comment", Continue);
     QCOMPARE(parsed[QMediaMetaData::Duration].value<int>(), 400);
 }
 
