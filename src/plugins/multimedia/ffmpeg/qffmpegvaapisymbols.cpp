@@ -21,14 +21,15 @@ QT_BEGIN_NAMESPACE
 
 static Libs loadLibs()
 {
+    constexpr int version = VA_MAJOR_VERSION + 1;
     Libs libs;
-    libs.push_back(std::make_unique<QLibrary>("va"));
+    libs.push_back(std::make_unique<QLibrary>("va", version));
 #ifdef DYNAMIC_RESOLVE_VA_DRM_SYMBOLS
-    libs.push_back(std::make_unique<QLibrary>("va-drm"));
+    libs.push_back(std::make_unique<QLibrary>("va-drm", version));
 #endif
 
 #ifdef DYNAMIC_RESOLVE_VA_X11_SYMBOLS
-    libs.push_back(std::make_unique<QLibrary>("va-x11"));
+    libs.push_back(std::make_unique<QLibrary>("va-x11", version));
 #endif
 
     if (LibSymbolsResolver::tryLoad(libs))
