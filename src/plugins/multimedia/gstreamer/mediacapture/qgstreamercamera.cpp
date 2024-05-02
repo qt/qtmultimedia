@@ -115,6 +115,8 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
             f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
     QGstPipeline::modifyPipelineWhileNotRunning(gstCamera.getPipeline(), [&] {
+        gstCamera.setStateSync(GST_STATE_READY); // stop camera, as it may have active tasks
+
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
         gstCameraBin.stopAndRemoveElements(gstCamera, gstDecode);
 
@@ -147,7 +149,7 @@ bool QGstreamerCamera::setCameraFormat(const QCameraFormat &format)
             f.pixelFormat() == QVideoFrameFormat::Format_Jpeg ? "jpegdec" : "identity");
 
     QGstPipeline::modifyPipelineWhileNotRunning(gstCamera.getPipeline(), [&] {
-        newGstDecode.syncStateWithParent();
+        gstCamera.setStateSync(GST_STATE_READY); // stop camera, as it may have active tasks
 
         qUnlinkGstElements(gstCamera, gstCapsFilter, gstDecode, gstVideoConvert);
         gstCameraBin.stopAndRemoveElements(gstDecode);
