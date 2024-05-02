@@ -15,6 +15,7 @@
 #include "qffmpegresampler_p.h"
 #include "qffmpegsymbolsresolve_p.h"
 #include "qgrabwindowsurfacecapture_p.h"
+#include "qffmpegconverter_p.h"
 
 #ifdef Q_OS_MACOS
 #include <VideoToolbox/VideoToolbox.h>
@@ -306,6 +307,12 @@ QMaybe<QPlatformVideoSink *> QFFmpegMediaIntegration::createVideoSink(QVideoSink
 QMaybe<QPlatformAudioInput *> QFFmpegMediaIntegration::createAudioInput(QAudioInput *input)
 {
     return new QFFmpegAudioInput(input);
+}
+
+QVideoFrame QFFmpegMediaIntegration::convertVideoFrame(QVideoFrame &srcFrame,
+                                                       const QVideoFrameFormat &destFormat)
+{
+    return convertFrame(srcFrame, destFormat);
 }
 
 QPlatformMediaFormatInfo *QFFmpegMediaIntegration::createFormatInfo()

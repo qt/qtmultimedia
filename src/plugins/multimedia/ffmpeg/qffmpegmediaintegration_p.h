@@ -41,6 +41,9 @@ public:
     QMaybe<QPlatformAudioInput *> createAudioInput(QAudioInput *input) override;
 //    QPlatformAudioOutput *createAudioOutput(QAudioOutput *) override;
 
+    QVideoFrame convertVideoFrame(QVideoFrame &srcFrame,
+                                  const QVideoFrameFormat &destFormat) override;
+
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
 
