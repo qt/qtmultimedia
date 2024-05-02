@@ -7,7 +7,6 @@ file(GLOB_RECURSE test_data_glob
     testdata/*)
 list(APPEND testdata_resource_files ${test_data_glob})
 
-
 qt_internal_add_test(tst_qvideoframecolormanagement
     SOURCES
         tst_qvideoframecolormanagement.cpp
