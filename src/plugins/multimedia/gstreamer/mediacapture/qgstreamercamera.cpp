@@ -80,6 +80,8 @@ void QGstreamerCamera::setActive(bool active)
 
 void QGstreamerCamera::setCamera(const QCameraDevice &camera)
 {
+    using namespace Qt::Literals;
+
     if (m_cameraDevice == camera)
         return;
 
@@ -90,7 +92,15 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
         gstNewCamera = QGstElement::createFromFactory("videotestsrc");
     } else {
         auto *integration = static_cast<QGstreamerIntegration *>(QGstreamerIntegration::instance());
-        auto *device = integration->videoDevice(camera.id());
+        GstDevice *device = integration->videoDevice(camera.id());
+
+        if (!device) {
+            emit error(QCamera::Error::CameraError,
+                       u"Failed to create GstDevice for camera: "_s
+                               + QString::fromUtf8(camera.id()));
+            return;
+        }
+
         gstNewCamera = QGstElement::createFromDevice(device, "camerasrc");
         if (QGstStructure properties = gst_device_get_properties(device); !properties.isNull()) {
             if (properties.name() == "v4l2deviceprovider")
