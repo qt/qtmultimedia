@@ -207,6 +207,12 @@ QLatin1String QPlatformMediaIntegration::name()
     return m_backendName;
 }
 
+QVideoFrame QPlatformMediaIntegration::convertVideoFrame(QVideoFrame &,
+                                                         const QVideoFrameFormat &)
+{
+    return {};
+}
+
 QPlatformMediaIntegration::QPlatformMediaIntegration(QLatin1String name) : m_backendName(name) { }
 
 QPlatformMediaIntegration::~QPlatformMediaIntegration() = default;
