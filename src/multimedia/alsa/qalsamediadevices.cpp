@@ -86,7 +86,6 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
             }
         }
     }
-    snd_device_name_free_hint(hints);
 
     if (!hasDefault && sysdefault) {
         // Make "sysdefault" the default device if there is no "default" device exists
@@ -94,11 +93,15 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
         hasDefault = true;
     }
     if (!hasDefault && devices.size() > 0) {
-        auto infop = new QAlsaAudioDeviceInfo("default", QString(), QAudioDevice::Output);
-        infop->isDefault = true;
-        devices.prepend(infop->create());
+        // forcefully declare the first device as "default"
+        QAlsaAudioDeviceInfo *infop = makeDeviceInfo(hints[0]);
+        if (infop) {
+            infop->isDefault = true;
+            devices.prepend(infop->create());
+        }
     }
 
+    snd_device_name_free_hint(hints);
     return devices;
 }
 
