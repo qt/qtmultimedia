@@ -78,12 +78,12 @@ static QList<QAudioDevice> availableDevices(QAudioDevice::Mode mode)
 
         if (infop) {
             devices.append(infop->create());
-            if (!hasDefault && infop->id == "default") {
+            if (!hasDefault && infop->id.startsWith("default")) {
                 infop->isDefault = true;
                 hasDefault = true;
-            } else if (!sysdefault && !hasDefault && infop->id == "sysdefault") {
-                sysdefault = infop;
             }
+            if (!sysdefault && infop->id.startsWith("sysdefault"))
+                sysdefault = infop;
         }
     }
 
