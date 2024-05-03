@@ -29,7 +29,6 @@ private:
     void processOne() override;
 
 private:
-    mutable QMutex m_queueMutex;
     std::queue<AVPacketUPtr> m_packetQueue;
 
     RecordingEngine *m_encoder;
