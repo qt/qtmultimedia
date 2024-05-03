@@ -37,7 +37,11 @@ void Muxer::init()
     qCDebug(qLcFFmpegMuxer) << "Muxer::init started thread.";
 }
 
-void Muxer::cleanup() { }
+void Muxer::cleanup()
+{
+    while (!m_packetQueue.empty())
+        processOne();
+}
 
 bool QFFmpeg::Muxer::hasData() const
 {
