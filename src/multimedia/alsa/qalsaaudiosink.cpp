@@ -30,13 +30,13 @@ QAlsaAudioSink::QAlsaAudioSink(const QByteArray &device, QObject *parent)
     m_device = device;
 
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(userFeed()));
+    connect(timer, &QTimer::timeout, this, &QAlsaAudioSink::userFeed);
 }
 
 QAlsaAudioSink::~QAlsaAudioSink()
 {
     close();
-    disconnect(timer, SIGNAL(timeout()));
+    disconnect(timer, &QTimer::timeout, this, &QAlsaAudioSink::userFeed);
     QCoreApplication::processEvents();
     delete timer;
 }
@@ -130,6 +130,7 @@ int QAlsaAudioSink::setFormat()
             pcmformat = SND_PCM_FORMAT_FLOAT_BE;
         else
             pcmformat = SND_PCM_FORMAT_FLOAT_LE;
+        break;
     default:
         break;
     }
