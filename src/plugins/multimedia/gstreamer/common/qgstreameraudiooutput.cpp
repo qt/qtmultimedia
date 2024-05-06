@@ -74,17 +74,23 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
         return;
     qCDebug(qLcMediaAudioOutput) << "setAudioOutput" << info.description() << info.isNull();
     m_audioOutput = info;
+    const QByteArray &id = m_audioOutput.id();
 
     QGstElement newSink;
     if constexpr (QT_CONFIG(pulseaudio)) {
-        auto id = m_audioOutput.id();
         newSink = QGstElement::createFromFactory("pulsesink", "audiosink");
-        if (!newSink.isNull())
+        if (newSink)
             newSink.set("device", id.constData());
         else
-            qCWarning(qLcMediaAudioOutput) << "Invalid audio device";
+            qCWarning(qLcMediaAudioOutput) << "Cannot create pulsesink";
+    } else if constexpr (QT_CONFIG(alsa)) {
+        newSink = QGstElement::createFromFactory("alsasink", "audiosink");
+        if (newSink)
+            newSink.set("device", id.constData());
+        else
+            qCWarning(qLcMediaAudioOutput) << "Cannot create alsasink";
     } else {
-        auto *deviceInfo = static_cast<const QGStreamerAudioDeviceInfo *>(m_audioOutput.handle());
+        auto *deviceInfo = dynamic_cast<const QGStreamerAudioDeviceInfo *>(m_audioOutput.handle());
         if (deviceInfo && deviceInfo->gstDevice)
             newSink = QGstElement::createFromDevice(deviceInfo->gstDevice, "audiosink");
         else
@@ -92,7 +98,8 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &info)
     }
 
     if (newSink.isNull()) {
-        qCWarning(qLcMediaAudioOutput) << "Failed to create a gst element for the audio device, using a default audio sink";
+        qCWarning(qLcMediaAudioOutput) << "Failed to create a gst element for the audio "
+                                          "device using a default audio sink";
         newSink = QGstElement::createFromFactory("autoaudiosink", "audiosink");
     }
 
