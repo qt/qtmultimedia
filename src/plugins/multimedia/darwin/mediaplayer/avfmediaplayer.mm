@@ -12,6 +12,7 @@
 #include <qpointer.h>
 #include <QFileInfo>
 #include <QtCore/qmath.h>
+#include <QtCore/qmutex.h>
 
 #import <AVFoundation/AVFoundation.h>
 
@@ -59,6 +60,12 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (BOOL) resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;
 @end
 
+#ifdef Q_OS_IOS
+// Alas, no such thing as 'class variable', hence globals:
+static unsigned sessionActivationCount;
+static QMutex sessionMutex;
+#endif // Q_OS_IOS
+
 @implementation AVFMediaPlayerObserver
 {
 @private
@@ -70,9 +77,38 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     BOOL m_bufferIsLikelyToKeepUp;
     NSData *m_data;
     NSString *m_mimeType;
+#ifdef Q_OS_IOS
+    BOOL m_activated;
+#endif
 }
 
 @synthesize m_player, m_playerItem, m_playerLayer, m_session;
+
+#ifdef Q_OS_IOS
+- (void)setSessionActive:(BOOL)active
+{
+    const QMutexLocker lock(&sessionMutex);
+    if (active) {
+        // Don't count the same player twice if already activated,
+        // unless it tried to deactivate first:
+        if (m_activated)
+            return;
+        if (!sessionActivationCount)
+            [AVAudioSession.sharedInstance setActive:YES error:nil];
+        ++sessionActivationCount;
+        m_activated = YES;
+    } else {
+        if (!sessionActivationCount || !m_activated) {
+            qWarning("Unbalanced audio session deactivation, ignoring.");
+            return;
+        }
+        --sessionActivationCount;
+        m_activated = NO;
+        if (!sessionActivationCount)
+            [AVAudioSession.sharedInstance setActive:NO error:nil];
+    }
+}
+#endif // Q_OS_IOS
 
 - (AVFMediaPlayerObserver *) initWithMediaPlayerSession:(AVFMediaPlayer *)session
 {
@@ -159,7 +195,7 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
     if (m_playerLayer)
         m_playerLayer.player = nil;
 #if defined(Q_OS_IOS)
-    [[AVAudioSession sharedInstance] setActive:NO error:nil];
+    [self setSessionActive:NO];
 #endif
 }
 
@@ -279,7 +315,7 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
                           context:AVFMediaPlayerObserverCurrentItemDurationObservationContext];
 #if defined(Q_OS_IOS)
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
-    [[AVAudioSession sharedInstance] setActive:YES error:nil];
+    [self setSessionActive:YES];
 #endif
 }
 
