@@ -30,9 +30,9 @@
 QT_BEGIN_NAMESPACE
 
 class QGstreamerImageCapture : public QPlatformImageCapture, private QGstreamerBufferProbe
-
 {
     Q_OBJECT
+
 public:
     static QMaybe<QPlatformImageCapture *> create(QImageCapture *parent);
     virtual ~QGstreamerImageCapture();
