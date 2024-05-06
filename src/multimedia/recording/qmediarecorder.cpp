@@ -227,7 +227,7 @@ void QMediaRecorder::setOutputLocation(const QUrl &location)
 /*!
     Set the output IO device for media content.
 
-    The \a device must have been opened in the \l{QIODevice::Write}{Write} or
+    The \a device must have been opened in the \l{QIODevice::WriteOnly}{WriteOnly} or
     \l{QIODevice::ReadWrite}{ReadWrite} modes before the recording starts.
 
     The media recorder doesn't take ownership of the specified \a device.
