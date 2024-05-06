@@ -211,8 +211,8 @@ void QImageCapture::addMetaData(const QMediaMetaData &metaData)
 {
     Q_D(QImageCapture);
     auto data = d->metaData;
-    for (auto k : metaData.keys())
-        data.insert(k, metaData.value(k));
+    for (auto &&[key, value] : metaData.asKeyValueRange())
+        data.insert(key, value);
     setMetaData(data);
 }
 
