@@ -493,6 +493,25 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
     return QString();
 }
 
+QDebug operator<<(QDebug dbg, const QMediaMetaData &metaData)
+{
+    QDebugStateSaver sv(dbg);
+    dbg.nospace();
+
+    dbg << "QMediaMetaData{";
+    auto range = metaData.asKeyValueRange();
+    auto begin = std::begin(range);
+
+    for (auto it = begin; it != std::end(range); ++it) {
+        if (it != begin)
+            dbg << ", ";
+        dbg << it->first << ": " << it->second;
+    }
+
+    dbg << "}";
+    return dbg;
+}
+
 // operator documentation
 /*!
 \fn QVariant &QMediaMetaData ::operator[](QMediaMetaData::Key k)
@@ -519,6 +538,11 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
     \variable QMediaMetaData::data
     \brief the meta data.
     \note this is a \c protected member of its class.
+*/
+
+/*!
+    \fn auto QMediaMetaData::asKeyValueRange() const
+    \internal
 */
 
 QT_END_NAMESPACE

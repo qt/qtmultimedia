@@ -284,18 +284,16 @@ void Player::metaDataChanged()
         m_metaDataLabels[i]->setDisabled(true);
     }
 
-    for (auto &key : metaData.keys()) {
+    for (auto &&[key, value] : metaData.asKeyValueRange()) {
         int i = int(key);
         if (key == QMediaMetaData::CoverArtImage) {
-            QVariant v = metaData.value(key);
             if (QLabel *cover = qobject_cast<QLabel *>(m_metaDataFields[key])) {
-                QImage coverImage = v.value<QImage>();
+                QImage coverImage = value.value<QImage>();
                 cover->setPixmap(QPixmap::fromImage(coverImage));
             }
         } else if (key == QMediaMetaData::ThumbnailImage) {
-            QVariant v = metaData.value(key);
             if (QLabel *thumbnail = qobject_cast<QLabel *>(m_metaDataFields[key])) {
-                QImage thumbnailImage = v.value<QImage>();
+                QImage thumbnailImage = value.value<QImage>();
                 thumbnail->setPixmap(QPixmap::fromImage(thumbnailImage));
             }
         } else if (QLineEdit *field = qobject_cast<QLineEdit *>(m_metaDataFields[key])) {

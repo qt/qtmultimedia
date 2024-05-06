@@ -163,9 +163,8 @@ QByteArray QFFmpegMetaData::value(const QMediaMetaData &metaData, QMediaMetaData
 
 AVDictionary *QFFmpegMetaData::toAVMetaData(const QMediaMetaData &metaData)
 {
-    const QList<Key> keys = metaData.keys();
     AVDictionary *dict = nullptr;
-    for (const auto &k : keys) {
+    for (const auto &&[k, v] : metaData.asKeyValueRange()) {
         const char *key = ::keyToTag(k);
         if (!key)
             continue;
