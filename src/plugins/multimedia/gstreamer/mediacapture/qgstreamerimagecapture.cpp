@@ -10,6 +10,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <common/qgstreamermetadata_p.h>
@@ -20,7 +21,60 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcImageCaptureGst, "qt.multimedia.imageCapture")
+namespace {
+Q_LOGGING_CATEGORY(qLcImageCaptureGst, "qt.multimedia.imageCapture")
+
+struct ThreadPoolSingleton
+{
+    QObject m_context;
+    QMutex m_poolMutex;
+    QThreadPool *m_instance{};
+    bool m_appUnderDestruction = false;
+
+    QThreadPool *get(const QMutexLocker<QMutex> &)
+    {
+        if (m_instance)
+            return m_instance;
+        if (m_appUnderDestruction || !qApp)
+            return nullptr;
+
+        using namespace std::chrono;
+
+        m_instance = new QThreadPool(qApp);
+        m_instance->setMaxThreadCount(1); // 1 thread;
+        static constexpr auto expiryTimeout = minutes(5);
+        m_instance->setExpiryTimeout(round<milliseconds>(expiryTimeout).count());
+
+        QObject::connect(qApp, &QCoreApplication::aboutToQuit, &m_context, [&] {
+            // we need to make sure that thread-local QRhi is destroyed before the application to
+            // prevent QTBUG-124189
+            QMutexLocker guard(&m_poolMutex);
+            delete m_instance;
+            m_instance = {};
+            m_appUnderDestruction = true;
+        });
+
+        QObject::connect(qApp, &QCoreApplication::destroyed, &m_context, [&] {
+            m_appUnderDestruction = false;
+        });
+        return m_instance;
+    }
+
+    template <typename Functor>
+    QFuture<void> run(Functor &&f)
+    {
+        QMutexLocker guard(&m_poolMutex);
+        QThreadPool *pool = get(guard);
+        if (!pool)
+            return QFuture<void>{};
+
+        return QtConcurrent::run(pool, std::forward<Functor>(f));
+    }
+};
+
+ThreadPoolSingleton s_threadPoolSingleton;
+
+}; // namespace
 
 QMaybe<QPlatformImageCapture *> QGstreamerImageCapture::create(QImageCapture *parent)
 {
@@ -206,7 +260,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 
     // ensure QVideoFrame::toImage is executed on a worker thread that is joined before the
     // qApplication is destroyed
-    QFuture<void> future = QtConcurrent::run([EQ_THIS_CAPTURE]() mutable {
+    QFuture<void> future = s_threadPoolSingleton.run([EQ_THIS_CAPTURE]() mutable {
         QMutexLocker guard(&m_mutex);
         auto scopeExit = qScopeGuard([&] {
             m_pendingFutures.remove(futureId);
@@ -243,6 +297,9 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
             emit imageMetadataAvailable(pendingImage.id, pendingImage.metaData);
         });
     });
+
+    if (!future.isValid()) // during qApplication shutdown the threadpool becomes unusable
+        return true;
 
     m_pendingFutures.insert(futureId, future);
 
