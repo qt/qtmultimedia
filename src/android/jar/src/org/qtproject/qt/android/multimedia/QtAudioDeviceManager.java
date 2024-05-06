@@ -233,7 +233,7 @@ public class QtAudioDeviceManager
                        setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, true, false);
                        return true;
                    case AudioDeviceInfo.TYPE_BUILTIN_SPEAKER:
-                       setAudioOutput(AudioManager.STREAM_MUSIC, false, true);
+                       setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, false, true);
                        return true;
                    case AudioDeviceInfo.TYPE_WIRED_HEADSET:
                    case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
