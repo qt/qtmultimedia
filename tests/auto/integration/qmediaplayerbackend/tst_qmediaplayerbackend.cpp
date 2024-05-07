@@ -1181,8 +1181,6 @@ void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLong
 
 void tst_QMediaPlayerBackend::play_startsPlayback_withAndWithoutOutputsConnected()
 {
-    QSKIP_GSTREAMER("QTBUG-124501: Fails with gstreamer");
-
     QFETCH(const bool, audioConnected);
     QFETCH(const bool, videoConnected);
 
