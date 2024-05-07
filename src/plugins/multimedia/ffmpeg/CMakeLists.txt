@@ -245,11 +245,11 @@ endif()
 # TODO: get libs from FindFFmpeg.cmake
 set(ffmpeg_libs FFmpeg::avformat FFmpeg::avcodec FFmpeg::swresample FFmpeg::swscale FFmpeg::avutil)
 
-if (QT_DEPLOY_FFMPEG AND NOT BUILD_SHARED_LIBS)
+if (QT_DEPLOY_FFMPEG AND NOT BUILD_SHARED_LIBS AND NOT UIKIT)
     message(FATAL_ERROR "QT_DEPLOY_FFMPEG is not implemented yet for static builds")
 endif()
 
-if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND BUILD_SHARED_LIBS)
+if (QT_DEPLOY_FFMPEG AND FFMPEG_SHARED_LIBRARIES AND (BUILD_SHARED_LIBS OR UIKIT))
     include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtDeployFFmpeg.cmake")
     qt_internal_multimedia_copy_or_install_ffmpeg()
 endif()
