@@ -265,8 +265,8 @@ void QGstPipeline::beginConfig()
         break;
     }
     case GST_STATE_CHANGE_FAILURE: {
-        // should not happen
-        qCritical() << "QGstPipeline::beginConfig: state change failure";
+        qDebug() << "QGstPipeline::beginConfig: state change failure";
+        dumpGraph("beginConfigFailure");
         break;
     }
 
