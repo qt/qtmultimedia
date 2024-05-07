@@ -171,6 +171,10 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancel
     constexpr auto NetworkTimeoutUs = "5000000";
     av_dict_set(dict, "timeout", NetworkTimeoutUs, 0);
 
+    const QByteArray protocolWhitelist = qgetenv("QT_FFMPEG_PROTOCOL_WHITELIST");
+    if (!protocolWhitelist.isNull())
+        av_dict_set(dict, "protocol_whitelist", protocolWhitelist.data(), 0);
+
     context->interrupt_callback.opaque = cancelToken.get();
     context->interrupt_callback.callback = [](void *opaque) {
         const auto *cancelToken = static_cast<const ICancelToken *>(opaque);
