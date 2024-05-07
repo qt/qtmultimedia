@@ -957,8 +957,16 @@ bool QGstElement::finishStateChange(std::chrono::nanoseconds timeout)
             gst_element_get_state(element(), &state, &pending, timeout.count());
 
 #ifndef QT_NO_DEBUG
-    if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL)
+    if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL) {
         qWarning() << "Could not finish change state of" << name() << change << state << pending;
+
+        static const bool dumpEnabled = qEnvironmentVariableIsSet("GST_DEBUG_DUMP_DOT_DIR");
+        if (dumpEnabled) {
+            QGstPipeline pipeline = getPipeline();
+            if (pipeline)
+                pipeline.dumpGraph("finishStateChangeFailure");
+        }
+    }
 #endif
     return change == GST_STATE_CHANGE_SUCCESS;
 }
@@ -1103,11 +1111,7 @@ void QGstBin::dumpGraph(const char *fileNamePrefix)
     if (isNull())
         return;
 
-    GST_DEBUG_BIN_TO_DOT_FILE(bin(),
-                              GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL
-                                                   | GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE
-                                                   | GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS
-                                                   | GST_DEBUG_GRAPH_SHOW_STATES),
+    GST_DEBUG_BIN_TO_DOT_FILE(bin(), GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL),
                               fileNamePrefix);
 }
 
