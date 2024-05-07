@@ -42,7 +42,7 @@ int mainToggleWidgets(QString filename)
     return QApplication::exec();
 }
 
-int mainSimple(QString filename)
+int mainSimple(QString filename, bool loop)
 {
     QMediaPlayer player;
     QVideoWidget widget1;
@@ -52,6 +52,10 @@ int mainSimple(QString filename)
     player.setSource(filename);
 
     widget1.show();
+
+    if (loop)
+        player.setLoops(QMediaPlayer::Infinite);
+
     player.play();
     return QApplication::exec();
 }
@@ -69,6 +73,9 @@ int main(int argc, char **argv)
     QCommandLineOption toggleWidgetsOption{ "toggle-widgets", "Toggle between widgets." };
     parser.addOption(toggleWidgetsOption);
 
+    QCommandLineOption loopOption{ "loop", "Loop." };
+    parser.addOption(loopOption);
+
     parser.process(app);
 
     if (parser.positionalArguments().isEmpty()) {
@@ -81,5 +88,7 @@ int main(int argc, char **argv)
     if (parser.isSet(toggleWidgetsOption))
         return mainToggleWidgets(filename);
 
-    return mainSimple(filename);
+    bool loop = parser.isSet(loopOption);
+
+    return mainSimple(filename, loop);
 }
