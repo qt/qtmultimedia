@@ -378,7 +378,10 @@ void tst_QMediaPlayerBackend::destructor_emitsOnlyQObjectDestroyedSignal_whenPla
     // Arrange
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
     m_fixture->player.play();
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+
+    // Wait for started
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     m_fixture->clearSpies();
 
