@@ -4,20 +4,16 @@
 package org.qtproject.qt.android.multimedia;
 
 import java.util.ArrayList;
-import android.bluetooth.BluetoothA2dp;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadset;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 public class QtAudioDeviceManager
@@ -25,6 +21,7 @@ public class QtAudioDeviceManager
     private static final String TAG = "QtAudioDeviceManager";
     static private AudioManager m_audioManager = null;
     static private final AudioDevicesReceiver m_audioDevicesReceiver = new AudioDevicesReceiver();
+    static private Handler handler = new Handler(Looper.getMainLooper());
     static private AudioRecord m_recorder = null;
     static private AudioTrack m_streamPlayer = null;
     static private Thread m_streamingThread = null;
@@ -37,36 +34,32 @@ public class QtAudioDeviceManager
     public static native void onAudioInputDevicesUpdated();
     public static native void onAudioOutputDevicesUpdated();
 
-    static private class AudioDevicesReceiver extends BroadcastReceiver
-    {
+    static private void updateDeviceList() {
+        onAudioInputDevicesUpdated();
+        onAudioOutputDevicesUpdated();
+    }
+
+    private static class AudioDevicesReceiver extends AudioDeviceCallback {
         @Override
-        public void onReceive(Context context, Intent intent) {
-             onAudioInputDevicesUpdated();
-            onAudioOutputDevicesUpdated();
+        public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+            updateDeviceList();
+        }
+
+        @Override
+        public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+            updateDeviceList();
         }
     }
 
-    public static void registerAudioHeadsetStateReceiver(Context context)
-    {
-        IntentFilter audioDevicesFilter = new IntentFilter();
-        audioDevicesFilter.addAction(AudioManager.ACTION_HEADSET_PLUG);
-        audioDevicesFilter.addAction(AudioManager.ACTION_HDMI_AUDIO_PLUG);
-        audioDevicesFilter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
-        audioDevicesFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        audioDevicesFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
-        audioDevicesFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        audioDevicesFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        audioDevicesFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
-        audioDevicesFilter.addAction(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED);
-        audioDevicesFilter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-        audioDevicesFilter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
 
-        context.registerReceiver(m_audioDevicesReceiver, audioDevicesFilter);
+    public static void registerAudioHeadsetStateReceiver()
+    {
+        m_audioManager.registerAudioDeviceCallback(m_audioDevicesReceiver, handler);
     }
 
-    public static void unregisterAudioHeadsetStateReceiver(Context context)
+    public static void unregisterAudioHeadsetStateReceiver()
     {
-        context.unregisterReceiver(m_audioDevicesReceiver);
+        m_audioManager.unregisterAudioDeviceCallback(m_audioDevicesReceiver);
     }
 
     static public void setContext(Context context)
