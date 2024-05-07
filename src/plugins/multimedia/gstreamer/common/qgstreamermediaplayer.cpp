@@ -906,9 +906,11 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     padRemoved = decoder.onPadRemoved<&QGstreamerMediaPlayer::decoderPadRemoved>(this);
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
-
-    if (!playerPipeline.setState(GST_STATE_PAUSED))
+    if (!playerPipeline.setState(GST_STATE_PAUSED)) {
         qCWarning(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
+        // Note: no further error handling: errors will be delivered via a GstMessage
+        return;
+    }
 
     playerPipeline.setPosition(0);
     positionChanged(0);
