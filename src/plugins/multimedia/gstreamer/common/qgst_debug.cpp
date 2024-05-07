@@ -4,6 +4,8 @@
 #include "qgst_debug_p.h"
 #include "qgstreamermessage_p.h"
 
+#include <gst/gstclock.h>
+
 QT_BEGIN_NAMESPACE
 
 // NOLINTBEGIN(performance-unnecessary-value-param)
@@ -155,10 +157,32 @@ QDebug operator<<(QDebug dbg, const GstDevice *device)
     return dbg;
 }
 
+namespace {
+
+struct Timepoint
+{
+    explicit Timepoint(guint64 us) : ts{ us } { }
+    guint64 ts;
+};
+
+QDebug operator<<(QDebug dbg, Timepoint ts)
+{
+    char buffer[128];
+    snprintf(buffer, sizeof(buffer), "%" GST_TIME_FORMAT, GST_TIME_ARGS(ts.ts));
+    dbg << buffer;
+    return dbg;
+}
+
+} // namespace
+
 QDebug operator<<(QDebug dbg, const GstMessage *msg)
 {
     QDebugStateSaver saver(dbg);
     dbg.nospace();
+
+    dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg);
+    if (GST_MESSAGE_TIMESTAMP(msg) != 0xFFFFFFFFFFFFFFFF)
+        dbg << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg);
 
     switch (msg->type) {
     case GST_MESSAGE_ERROR: {
@@ -166,9 +190,7 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         QGString debug;
         gst_message_parse_error(const_cast<GstMessage *>(msg), &err, &debug);
 
-        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
-            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg) << ", Error: " << err << " (" << debug
-            << ")";
+        dbg << ", Error: " << err << " (" << debug << ")";
         break;
     }
 
@@ -177,9 +199,7 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         QGString debug;
         gst_message_parse_warning(const_cast<GstMessage *>(msg), &err, &debug);
 
-        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
-            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg) << ", Warning: " << err << " ("
-            << debug << ")";
+        dbg << ", Warning: " << err << " (" << debug << ")";
         break;
     }
 
@@ -188,9 +208,23 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         QGString debug;
         gst_message_parse_info(const_cast<GstMessage *>(msg), &err, &debug);
 
-        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
-            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg) << ", Info: " << err << " (" << debug
-            << ")";
+        dbg << ", Info: " << err << " (" << debug << ")";
+        break;
+    }
+
+    case GST_MESSAGE_QOS: {
+        gboolean live;
+        guint64 running_time;
+        guint64 stream_time;
+        guint64 timestamp;
+        guint64 duration;
+
+        gst_message_parse_qos(const_cast<GstMessage *>(msg), &live, &running_time, &stream_time,
+                              &timestamp, &duration);
+
+        dbg << ", Live: " << bool(live) << ", Running time: " << Timepoint{ running_time }
+            << ", Stream time: " << Timepoint{ stream_time }
+            << ", Timestamp: " << Timepoint{ timestamp } << ", Duration: " << Timepoint{ duration };
         break;
     }
 
@@ -202,16 +236,13 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         gst_message_parse_state_changed(const_cast<GstMessage *>(msg), &oldState, &newState,
                                         &pending);
 
-        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
-            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg) << ", OldState: " << oldState
-            << ", NewState: " << newState << "Pending State: " << pending;
+        dbg << ", OldState: " << oldState << ", NewState: " << newState
+            << ", Pending State: " << pending;
         break;
     }
 
-    default: {
-        dbg << GST_MESSAGE_TYPE_NAME(msg) << ", Source: " << GST_MESSAGE_SRC_NAME(msg)
-            << ", Timestamp: " << GST_MESSAGE_TIMESTAMP(msg);
-    }
+    default:
+        break;
     }
     return dbg;
 }
@@ -404,7 +435,7 @@ QDebug operator<<(QDebug dbg, const QCompactGstMessageAdaptor &m)
 
         gst_message_parse_state_changed(m.msg, &oldState, &newState, &pending);
 
-        dbg << oldState << "->" << newState << "(pending: " << pending << ")";
+        dbg << oldState << " -> " << newState << " (pending: " << pending << ")";
         return dbg;
     }
 
