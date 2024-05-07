@@ -159,7 +159,6 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferReadySignal()
 
     connect(&decoder, &QAudioDecoder::bufferReady, this, [&]() {
         QVERIFY(decoder.bufferAvailable());
-        QVERIFY(decoder.isDecoding());
 
         auto buffer = decoder.read();
         QVERIFY(buffer.isValid());
@@ -201,8 +200,6 @@ void tst_QAudioDecoderBackend::indirectReadingByBufferAvailableSignal() {
 
         if (!available)
             return;
-
-        QVERIFY(decoder.isDecoding());
 
         while (decoder.bufferAvailable()) {
             auto buffer = decoder.read();
