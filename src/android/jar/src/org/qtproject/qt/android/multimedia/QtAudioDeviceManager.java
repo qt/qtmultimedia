@@ -26,6 +26,7 @@ public class QtAudioDeviceManager
     static private AudioTrack m_streamPlayer = null;
     static private Thread m_streamingThread = null;
     static private boolean m_isStreaming = false;
+    static private boolean m_useSpeaker = false;
     static private final int m_sampleRate = 8000;
     static private final int m_channels = AudioFormat.CHANNEL_CONFIGURATION_MONO;
     static private final int m_audioFormat = AudioFormat.ENCODING_PCM_16BIT;
@@ -37,6 +38,11 @@ public class QtAudioDeviceManager
     static private void updateDeviceList() {
         onAudioInputDevicesUpdated();
         onAudioOutputDevicesUpdated();
+        if (m_useSpeaker) {
+            final AudioDeviceInfo[] audioDevices =
+                                        m_audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
+            setAudioOutput(getModeForSpeaker(audioDevices), false, true);
+        }
     }
 
     private static class AudioDevicesReceiver extends AudioDeviceCallback {
@@ -219,8 +225,27 @@ public class QtAudioDeviceManager
         return ret;
     }
 
+    private static int getModeForSpeaker(AudioDeviceInfo[] audioDevices)
+    {
+        // If we want to force device to use speaker when Bluetooth or Wiread headset is connected,
+        // we need to use MODE_IN_COMMUNICATION. Otherwise the MODE_NORMAL can be used.
+        for (AudioDeviceInfo deviceInfo : audioDevices) {
+            switch (deviceInfo.getType()) {
+                case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
+                case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
+                case AudioDeviceInfo.TYPE_WIRED_HEADSET:
+                case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
+                     return AudioManager.MODE_IN_COMMUNICATION;
+                default: break;
+            }
+        }
+        return AudioManager.MODE_NORMAL;
+    }
+
+
     private static boolean setAudioOutput(int id)
     {
+        m_useSpeaker = false;
         final AudioDeviceInfo[] audioDevices =
                                         m_audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
         for (AudioDeviceInfo deviceInfo : audioDevices) {
@@ -232,7 +257,8 @@ public class QtAudioDeviceManager
                        setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, true, false);
                        return true;
                    case AudioDeviceInfo.TYPE_BUILTIN_SPEAKER:
-                       setAudioOutput(AudioManager.MODE_IN_COMMUNICATION, false, true);
+                       m_useSpeaker = true;
+                       setAudioOutput(getModeForSpeaker(audioDevices), false, true);
                        return true;
                    case AudioDeviceInfo.TYPE_WIRED_HEADSET:
                    case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
