@@ -44,3 +44,6 @@ redhatenterpriselinuxworkstation-6.6
 
 [surfaceTest]
 redhatenterpriselinuxworkstation-6.6
+
+[playlistObject]
+sles-15.4 # QTBUG-112930
