@@ -713,6 +713,23 @@ bool QVideoFrame::mirrored() const
 }
 
 /*!
+    Sets the frame \a rate of a video stream in frames per second.
+*/
+void QVideoFrame::setStreamFrameRate(qreal rate)
+{
+    if (d)
+        d->format.setStreamFrameRate(rate);
+}
+
+/*!
+    Returns the frame rate of a video stream in frames per second.
+*/
+qreal QVideoFrame::streamFrameRate() const
+{
+    return d ? d->format.streamFrameRate() : 0.;
+}
+
+/*!
     Based on the pixel format converts current video frame to image.
     \since 5.15
 */

@@ -114,6 +114,9 @@ public:
     void setMirrored(bool);
     bool mirrored() const;
 
+    void setStreamFrameRate(qreal rate);
+    qreal streamFrameRate() const;
+
     QImage toImage() const;
 
     struct PaintOptions {

@@ -170,6 +170,7 @@ private slots:
 
     void mirrored_takesValue_fromVideoFrameFormat();
     void rotation_takesValue_fromVideoFrameFormat();
+    void streamFrameRate_takesValue_fromVideoFrameFormat();
 
     void constructor_createsInvalidFrame_whenCalledWithNullImage();
     void constructor_createsInvalidFrame_whenCalledWithEmptyImage();
@@ -1137,6 +1138,20 @@ void tst_QVideoFrame::rotation_takesValue_fromVideoFrameFormat()
 
     QCOMPARE(frame.rotation(), QtVideo::Rotation::Clockwise180);
     QCOMPARE(frame.surfaceFormat().rotation(), QtVideo::Rotation::Clockwise180);
+}
+
+void tst_QVideoFrame::streamFrameRate_takesValue_fromVideoFrameFormat()
+{
+    QVideoFrameFormat format(QSize(10, 20), QVideoFrameFormat::Format_ARGB8888);
+    format.setStreamFrameRate(20.);
+
+    QVideoFrame frame(format);
+    QCOMPARE(frame.streamFrameRate(), 20.);
+
+    frame.setStreamFrameRate(25.);
+
+    QCOMPARE(frame.streamFrameRate(), 25.);
+    QCOMPARE(frame.surfaceFormat().streamFrameRate(), 25.);
 }
 
 void tst_QVideoFrame::constructor_createsInvalidFrame_whenCalledWithNullImage()
