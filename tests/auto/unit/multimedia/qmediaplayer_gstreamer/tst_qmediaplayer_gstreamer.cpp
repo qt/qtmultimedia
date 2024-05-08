@@ -1,63 +1,42 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include "tst_qmediaplayer_gstreamer.h"
+
 #include <QtTest/QtTest>
-#include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/private/qmediaplayer_p.h>
-#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
-#include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
 
 #include <qscopedenvironmentvariable.h>
-
-#include <memory>
 
 QT_USE_NAMESPACE
 
 using namespace Qt::Literals;
 
-class tst_QMediaPlayerGStreamer : public QObject
+QGStreamerPlatformSpecificInterface *tst_QMediaPlayerGStreamer::gstInterface()
 {
-    Q_OBJECT
+    return dynamic_cast<QGStreamerPlatformSpecificInterface *>(
+            QPlatformMediaIntegration::instance()->platformSpecificInterface());
+}
 
-public:
-    tst_QMediaPlayerGStreamer();
+GstPipeline *tst_QMediaPlayerGStreamer::getGstPipeline()
+{
+    QGStreamerPlatformSpecificInterface *iface = gstInterface();
+    return iface ? iface->gstPipeline(player.get()) : nullptr;
+}
 
-public slots:
-    void initTestCase();
-    void init();
-    void cleanup();
+QGstPipeline tst_QMediaPlayerGStreamer::getPipeline()
+{
+    return QGstPipeline{
+        getGstPipeline(),
+        QGstPipeline::NeedsRef,
+    };
+}
 
-private slots:
-    void constructor_preparesGstPipeline();
-    void videoSink_constructor_overridesConversionElement();
-    void videoSink_constructor_overridesConversionElement_withMultipleElements();
-
-private:
-    std::unique_ptr<QMediaPlayer> player;
-
-    GstPipeline *getGstPipeline()
-    {
-        auto *iface = QGStreamerPlatformSpecificInterface::instance();
-        return iface ? iface->gstPipeline(player.get()) : nullptr;
-    }
-
-    QGstPipeline getPipeline()
-    {
-        return QGstPipeline{
-            getGstPipeline(),
-            QGstPipeline::NeedsRef,
-        };
-    }
-
-    void dumpGraph(const char *fileNamePrefix)
-    {
-        GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(getGstPipeline()),
-                                  GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_VERBOSE),
-                                  fileNamePrefix);
-    }
-
-    bool mediaSupported = false;
-};
+void tst_QMediaPlayerGStreamer::dumpGraph(const char *fileNamePrefix)
+{
+    GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(getGstPipeline()),
+                              GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_VERBOSE), fileNamePrefix);
+}
 
 tst_QMediaPlayerGStreamer::tst_QMediaPlayerGStreamer()
 {
@@ -171,4 +150,4 @@ void tst_QMediaPlayerGStreamer::
 
 QTEST_GUILESS_MAIN(tst_QMediaPlayerGStreamer)
 
-#include "tst_qmediaplayer_gstreamer.moc"
+#include "moc_tst_qmediaplayer_gstreamer.cpp"
