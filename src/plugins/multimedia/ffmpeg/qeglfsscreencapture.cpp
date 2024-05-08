@@ -54,7 +54,7 @@ protected:
         if (!m_format.isValid()) {
             auto image = videoBuffer->ensureImageBuffer().underlyingImage();
             m_format = { image.size(), QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
-            m_format.setFrameRate(frameRate());
+            m_format.setStreamFrameRate(frameRate());
         }
 
         return QVideoFrame(videoBuffer.release(), m_format);
@@ -90,7 +90,7 @@ protected:
         if (!m_format.isValid()) {
             m_format = { image.size(),
                          QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
-            m_format.setFrameRate(frameRate());
+            m_format.setStreamFrameRate(frameRate());
         }
 
         return QVideoFrame(new QImageVideoBuffer(std::move(image)), m_format);

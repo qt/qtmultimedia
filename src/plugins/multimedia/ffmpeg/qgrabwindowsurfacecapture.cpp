@@ -136,7 +136,7 @@ private:
 
         QVideoFrameFormat format(img.size(),
                                  QVideoFrameFormat::pixelFormatFromImageFormat(img.format()));
-        format.setFrameRate(screen->refreshRate());
+        format.setStreamFrameRate(screen->refreshRate());
         updateFormat(format);
 
         if (!format.isValid()) {

@@ -84,7 +84,7 @@ void tst_QVideoFrameFormat::constructNull()
     QCOMPARE(format.frameHeight(), -1);
     QCOMPARE(format.viewport(), QRect());
     QCOMPARE(format.scanLineDirection(), QVideoFrameFormat::TopToBottom);
-    QCOMPARE(format.frameRate(), 0.0);
+    QCOMPARE(format.streamFrameRate(), 0.0);
     QCOMPARE(format.colorSpace(), QVideoFrameFormat::ColorSpace_Undefined);
 }
 
@@ -132,7 +132,7 @@ void tst_QVideoFrameFormat::construct()
     QCOMPARE(format.isValid(), valid);
     QCOMPARE(format.viewport(), viewport);
     QCOMPARE(format.scanLineDirection(), QVideoFrameFormat::TopToBottom);
-    QCOMPARE(format.frameRate(), 0.0);
+    QCOMPARE(format.streamFrameRate(), 0.0);
     QCOMPARE(format.colorSpace(), QVideoFrameFormat::ColorSpace_Undefined);
 }
 
@@ -335,9 +335,9 @@ void tst_QVideoFrameFormat::frameRate()
 
     QVideoFrameFormat format(QSize(64, 64), QVideoFrameFormat::Format_XRGB8888);
 
-    format.setFrameRate(frameRate);
+    format.setStreamFrameRate(frameRate);
 
-    QCOMPARE(format.frameRate(), frameRate);
+    QCOMPARE(format.streamFrameRate(), frameRate);
 }
 
 void tst_QVideoFrameFormat::compare()
@@ -395,13 +395,13 @@ void tst_QVideoFrameFormat::compare()
     QCOMPARE(format1 == format2, true);
     QCOMPARE(format1 != format2, false);
 
-    format1.setFrameRate(7.5);
+    format1.setStreamFrameRate(7.5);
 
     // Not equal frame rate differs.
     QCOMPARE(format1 == format2, false);
     QCOMPARE(format1 != format2, true);
 
-    format2.setFrameRate(qreal(7.50001));
+    format2.setStreamFrameRate(qreal(7.50001));
 
     // Equal.
     QCOMPARE(format1 == format2, true);
@@ -506,7 +506,7 @@ void tst_QVideoFrameFormat::copyAllParameters()
 
     original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
-    original.setFrameRate(qreal(15.0));
+    original.setStreamFrameRate(qreal(15.0));
     original.setColorSpace(QVideoFrameFormat::ColorSpace_BT709);
 
     /* Copy the original instance to copy and verify if both the instances
@@ -517,7 +517,7 @@ void tst_QVideoFrameFormat::copyAllParameters()
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
     QCOMPARE(copy.viewport(), QRect(0, 0, 1024, 1024));
-    QCOMPARE(copy.frameRate(), qreal(15.0));
+    QCOMPARE(copy.streamFrameRate(), qreal(15.0));
     QCOMPARE(copy.colorSpace(), QVideoFrameFormat::ColorSpace_BT709);
 
     /* Verify if both the instances are eqaul */
@@ -533,7 +533,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
             QSize(64, 64), QVideoFrameFormat::Format_AYUV);
     copy.setScanLineDirection(QVideoFrameFormat::TopToBottom);
     copy.setViewport(QRect(0, 0, 640, 320));
-    copy.setFrameRate(qreal(7.5));
+    copy.setStreamFrameRate(qreal(7.5));
     copy.setColorSpace(QVideoFrameFormat::ColorSpace_BT601);
 
     /* Create the instance and set all the parameters. */
@@ -541,7 +541,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
             QSize(1024, 768), QVideoFrameFormat::Format_ARGB8888);
     original.setScanLineDirection(QVideoFrameFormat::BottomToTop);
     original.setViewport(QRect(0, 0, 1024, 1024));
-    original.setFrameRate(qreal(15.0));
+    original.setStreamFrameRate(qreal(15.0));
     original.setColorSpace(QVideoFrameFormat::ColorSpace_BT709);
 
     /* Assign the original instance to copy and verify if both the instancess
@@ -552,7 +552,7 @@ void tst_QVideoFrameFormat::assignAllParameters()
     QCOMPARE(copy.frameSize(), QSize(1024, 768));
     QCOMPARE(copy.scanLineDirection(), QVideoFrameFormat::BottomToTop);
     QCOMPARE(copy.viewport(), QRect(0, 0, 1024, 1024));
-    QCOMPARE(copy.frameRate(), qreal(15.0));
+    QCOMPARE(copy.streamFrameRate(), qreal(15.0));
     QCOMPARE(copy.colorSpace(), QVideoFrameFormat::ColorSpace_BT709);
 
      /* Verify if both the instances are eqaul */

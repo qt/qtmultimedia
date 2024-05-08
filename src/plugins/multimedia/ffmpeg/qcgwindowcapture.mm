@@ -129,7 +129,7 @@ protected:
 
         QVideoFrameFormat format(QSize(CGImageGetWidth(imageRef), CGImageGetHeight(imageRef)),
                                  QVideoFrameFormat::Format_BGRA8888);
-        format.setFrameRate(frameRate());
+        format.setStreamFrameRate(frameRate());
 
         return QVideoFrame(new QCGImageVideoBuffer(imageRef), format);
     }

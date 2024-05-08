@@ -344,7 +344,7 @@ QVideoFrameFormat getFrameFormat(QScreen* screen)
     const QSize screenSize = getPhysicalSizePixels(screen);
 
     QVideoFrameFormat format = { screenSize, QVideoFrameFormat::Format_BGRA8888 };
-    format.setFrameRate(static_cast<int>(screen->refreshRate()));
+    format.setStreamFrameRate(static_cast<int>(screen->refreshRate()));
 
     return format;
 }

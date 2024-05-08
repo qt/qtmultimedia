@@ -50,7 +50,7 @@ QVideoFrameFormat QPlatformCamera::frameFormat() const
                              m_framePixelFormat == QVideoFrameFormat::Format_Invalid
                                      ? m_cameraFormat.pixelFormat()
                                      : m_framePixelFormat);
-    result.setFrameRate(m_cameraFormat.maxFrameRate());
+    result.setStreamFrameRate(m_cameraFormat.maxFrameRate());
     return result;
 }
 

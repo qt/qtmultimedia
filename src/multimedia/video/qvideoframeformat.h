@@ -153,8 +153,15 @@ public:
     Direction scanLineDirection() const;
     void setScanLineDirection(Direction direction);
 
+#if QT_DEPRECATED_SINCE(6, 8)
+    QT_DEPRECATED_VERSION_X_6_8("Use streamFrameRate()")
     qreal frameRate() const;
+    QT_DEPRECATED_VERSION_X_6_8("Use setStreamFrameRate()")
     void setFrameRate(qreal rate);
+#endif
+
+    qreal streamFrameRate() const;
+    void setStreamFrameRate(qreal rate);
 
 #if QT_DEPRECATED_SINCE(6, 4)
     QT_DEPRECATED_VERSION_X_6_4("Use colorSpace()")

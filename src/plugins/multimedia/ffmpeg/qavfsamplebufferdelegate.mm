@@ -196,7 +196,7 @@ static QVideoFrame createHwVideoFrame(QAVFSampleBufferDelegate &delegate,
         return;
     }
 
-    format.setFrameRate(frameRate);
+    format.setStreamFrameRate(frameRate);
 
     auto frame = createHwVideoFrame(*self, imageBuffer, format);
     if (!frame.isValid())

@@ -306,7 +306,7 @@ public:
 
         const qreal refreshRate = getMonitorRefreshRateHz(monitor);
 
-        m_format.setFrameRate(refreshRate);
+        m_format.setStreamFrameRate(refreshRate);
         setFrameRate(refreshRate);
 
         addFrameCallback(capture, &QFFmpegWindowCaptureUwp::newVideoFrame);

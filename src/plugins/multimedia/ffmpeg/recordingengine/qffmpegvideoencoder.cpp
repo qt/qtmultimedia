@@ -22,7 +22,7 @@ VideoEncoder::VideoEncoder(RecordingEngine &recordingEngine, const QMediaEncoder
     AVPixelFormat swFormat = QFFmpegVideoBuffer::toAVPixelFormat(format.pixelFormat());
     AVPixelFormat ffmpegPixelFormat =
             hwFormat && *hwFormat != AV_PIX_FMT_NONE ? *hwFormat : swFormat;
-    auto frameRate = format.frameRate();
+    auto frameRate = format.streamFrameRate();
     if (frameRate <= 0.) {
         qWarning() << "Invalid frameRate" << frameRate << "; Using the default instead";
 

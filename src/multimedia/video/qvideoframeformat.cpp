@@ -538,10 +538,28 @@ void QVideoFrameFormat::setScanLineDirection(Direction direction)
     d->scanLineDirection = direction;
 }
 
+#if QT_DEPRECATED_SINCE(6, 8)
 /*!
     Returns the frame rate of a video stream in frames per second.
 */
 qreal QVideoFrameFormat::frameRate() const
+{
+    return streamFrameRate();
+}
+
+/*!
+    Sets the frame \a rate of a video stream in frames per second.
+*/
+void QVideoFrameFormat::setFrameRate(qreal rate)
+{
+    setStreamFrameRate(rate);
+}
+#endif
+
+/*!
+    Returns the frame rate of a video stream in frames per second.
+*/
+qreal QVideoFrameFormat::streamFrameRate() const
 {
     return d->frameRate;
 }
@@ -549,7 +567,7 @@ qreal QVideoFrameFormat::frameRate() const
 /*!
     Sets the frame \a rate of a video stream in frames per second.
 */
-void QVideoFrameFormat::setFrameRate(qreal rate)
+void QVideoFrameFormat::setStreamFrameRate(qreal rate)
 {
     detach();
     d->frameRate = rate;
@@ -984,7 +1002,7 @@ QDebug operator<<(QDebug dbg, const QVideoFrameFormat &f)
         << "\n    frame size=" << f.frameSize()
         << "\n    viewport=" << f.viewport()
         << "\n    colorSpace=" << f.colorSpace()
-        << "\n    frameRate=" << f.frameRate()
+        << "\n    frameRate=" << f.streamFrameRate()
         << "\n    mirrored=" << f.isMirrored();
 
     return dbg;

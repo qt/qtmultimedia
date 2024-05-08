@@ -60,8 +60,8 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource * source)
     qCDebug(qLcFFmpegEncoder) << "adding video source" << source->metaObject()->className() << ":"
                               << "pixelFormat=" << frameFormat.pixelFormat()
                               << "frameSize=" << frameFormat.frameSize()
-                              << "frameRate=" << frameFormat.frameRate() << "ffmpegHWPixelFormat="
-                              << (hwPixelFormat ? *hwPixelFormat : AV_PIX_FMT_NONE);
+                              << "frameRate=" << frameFormat.streamFrameRate()
+                              << "ffmpegHWPixelFormat=" << (hwPixelFormat ? *hwPixelFormat : AV_PIX_FMT_NONE);
 
     auto veUPtr = std::make_unique<VideoEncoder>(*this, m_settings, frameFormat, hwPixelFormat);
     if (!veUPtr->isValid()) {

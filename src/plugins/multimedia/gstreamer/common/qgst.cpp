@@ -329,7 +329,7 @@ std::optional<std::pair<QVideoFrameFormat, GstVideoInfo>> QGstCaps::formatAndVid
                              qt_videoFormatLookup[index].pixelFormat);
 
     if (vidInfo.fps_d > 0)
-        format.setFrameRate(qreal(vidInfo.fps_n) / vidInfo.fps_d);
+        format.setStreamFrameRate(qreal(vidInfo.fps_n) / vidInfo.fps_d);
 
     QVideoFrameFormat::ColorRange range = QVideoFrameFormat::ColorRange_Unknown;
     switch (vidInfo.colorimetry.range) {
