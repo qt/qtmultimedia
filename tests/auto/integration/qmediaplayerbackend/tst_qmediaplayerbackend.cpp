@@ -106,6 +106,7 @@ private slots:
     void setSource_updatesTrackProperties();
     void setSource_emitsTracksChanged_data();
     void setSource_emitsTracksChanged();
+    void setSource_emitsError_whenSdpFileIsLoaded();
 
     void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data();
     void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio();
@@ -125,6 +126,7 @@ private slots:
     void play_waitsForLastFrameEnd_whenPlayingVideoWithLongFrames();
     void play_startsPlayback_withAndWithoutOutputsConnected();
     void play_startsPlayback_withAndWithoutOutputsConnected_data();
+    void play_playsRtpStream_whenSdpFileIsLoaded();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
     void stop_setsPositionToZero_afterPlayingToEndOfMedia();
@@ -186,8 +188,8 @@ private slots:
 private:
     QUrl selectVideoFile(const QStringList &mediaCandidates);
 
-    bool canCreateRtspStream() const;
-    std::unique_ptr<QProcess> createRtspStreamProcess(QString fileName, QString outputUrl);
+    bool canCreateRtpStream() const;
+    std::unique_ptr<QProcess> createRtpStreamProcess(QString fileName, QString sdpUrl);
     void detectVlcCommand();
 
     // one second local wav file
@@ -281,7 +283,7 @@ void tst_QMediaPlayerBackend::detectVlcCommand()
         m_vlcCommand.clear();
 }
 
-bool tst_QMediaPlayerBackend::canCreateRtspStream() const
+bool tst_QMediaPlayerBackend::canCreateRtpStream() const
 {
     return !m_vlcCommand.isEmpty();
 }
@@ -871,6 +873,43 @@ void tst_QMediaPlayerBackend::setSource_emitsTracksChanged()
     QCOMPARE(player.subtitleTracks().size(), numberOfSubtitleTracks);
 }
 
+void tst_QMediaPlayerBackend::setSource_emitsError_whenSdpFileIsLoaded()
+{
+    // NOTE: This test checks that playing rtp streams using local .sdp file as a source is blocked
+    // by default. For when the user wants to override these defaults, see
+    // play_playsRtpStream_whenSdpFileIsLoaded
+
+    if (!isFFMPEGPlatform())
+        QSKIP("This test is only for FFmpeg backend");
+
+    // Create stream
+    if (!canCreateRtpStream())
+        QSKIP("Rtp stream cannot be created");
+
+    // Make sure the default whitelist is used
+    qunsetenv("QT_FFMPEG_PROTOCOL_WHITELIST");
+
+    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    QVERIFY(temporaryFile);
+
+    // Pass a "file:" URL to VLC in order to generate an .sdp file
+    const QUrl sdpUrl = QUrl::fromLocalFile(QFileInfo("test.sdp").absoluteFilePath());
+
+    auto process = createRtpStreamProcess(temporaryFile->fileName(), sdpUrl.toString());
+    QVERIFY2(process, "Cannot start rtp process");
+
+    auto processCloser = qScopeGuard([&process, &sdpUrl]() {
+        // End stream
+        process->close();
+
+        // Remove .sdp file created by VLC
+        QFile(sdpUrl.toLocalFile()).remove();
+    });
+
+    m_fixture->player.setSource(sdpUrl);
+    QTRY_COMPARE_EQ(m_fixture->player.error(), QMediaPlayer::ResourceError);
+}
+
 void tst_QMediaPlayerBackend::
         setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data()
 {
@@ -1186,7 +1225,7 @@ void tst_QMediaPlayerBackend::playAndSetSource_emitsExpectedSignalsAndStopsPlayb
 void tst_QMediaPlayerBackend::
         play_createsFramesWithExpectedContentAndIncreasingFrameTime_whenPlayingRtspMediaStream()
 {
-    if (!canCreateRtspStream())
+    if (!canCreateRtpStream())
         QSKIP("Rtsp stream cannot be created");
 
     QSKIP_GSTREAMER("GStreamer tests fail");
@@ -1196,7 +1235,7 @@ void tst_QMediaPlayerBackend::
 
     const QString streamUrl = "rtsp://localhost:8083/stream";
 
-    auto process = createRtspStreamProcess(temporaryFile->fileName(), streamUrl);
+    auto process = createRtpStreamProcess(temporaryFile->fileName(), streamUrl);
     QVERIFY2(process, "Cannot start rtsp process");
 
     auto processCloser = qScopeGuard([&process]() { process->close(); });
@@ -1328,6 +1367,45 @@ void tst_QMediaPlayerBackend::play_startsPlayback_withAndWithoutOutputsConnected
     QTest::addRow("video connected") << true << false;
     QTest::addRow("audio connected") << false << true;
     QTest::addRow("no output connected") << false << false;
+}
+
+void tst_QMediaPlayerBackend::play_playsRtpStream_whenSdpFileIsLoaded()
+{
+    if (!isFFMPEGPlatform())
+        QSKIP("This test is only for FFmpeg backend");
+
+    // Create stream
+    if (!canCreateRtpStream())
+        QSKIP("Rtp stream cannot be created");
+
+    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    QVERIFY(temporaryFile);
+
+    // Pass a "file:" URL to VLC in order to generate an .sdp file
+    const QUrl sdpUrl = QUrl::fromLocalFile(QFileInfo("test.sdp").absoluteFilePath());
+
+    auto process = createRtpStreamProcess(temporaryFile->fileName(), sdpUrl.toString());
+    QVERIFY2(process, "Cannot start rtp process");
+
+    // Set reasonable protocol whitelist that includes rtp and udp
+    qputenv("QT_FFMPEG_PROTOCOL_WHITELIST", "file,crypto,data,rtp,udp");
+
+    auto processCloser = qScopeGuard([&process, &sdpUrl]() {
+        // End stream
+        process->close();
+
+        // Remove .sdp file created by VLC
+        QFile(sdpUrl.toLocalFile()).remove();
+
+        // Unset environment variable
+        qunsetenv("QT_FFMPEG_PROTOCOL_WHITELIST");
+    });
+
+    m_fixture->player.setSource(sdpUrl);
+
+    // Play
+    m_fixture->player.play();
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::PlayingState);
 }
 
 void tst_QMediaPlayerBackend::stop_entersStoppedState_whenPlayerWasPaused()
@@ -3184,8 +3262,8 @@ void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
     QCOMPARE(spy2.size(), 1);
 }
 
-std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QString fileName,
-                                                                           QString outputUrl)
+std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtpStreamProcess(QString fileName,
+                                                                          QString sdpUrl)
 {
     Q_ASSERT(!m_vlcCommand.isEmpty());
 
@@ -3194,21 +3272,17 @@ std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QStri
     fileName.replace('/', '\\');
 #endif
 
-    // clang-format off
-    QStringList vlcParams =
-    {
-        "-vvv", fileName,
-        "--sout", QLatin1String("#rtp{sdp=%1}").arg(outputUrl),
-        "--intf", "dummy"
-    };
-    // clang-format on
+    QStringList vlcParams = { "-vvv",   fileName,
+                              "--sout", QStringLiteral("#rtp{dst=localhost,sdp=%1}").arg(sdpUrl),
+                              "--intf", "dummy" };
 
     process->start(m_vlcCommand, vlcParams);
     if (!process->waitForStarted())
         return nullptr;
 
-    // rtsp stream might be with started some delay after the vlc process starts.
-    // Ideally, we should wait for open connections, it requires some extra work + QNetwork dependency.
+    // rtp stream might be with started some delay after the vlc process starts.
+    // Ideally, we should wait for open connections, it requires some extra work + QNetwork
+    // dependency.
     int timeout = 500;
 #ifdef Q_OS_MACOS
     timeout = 2000;
