@@ -65,6 +65,8 @@ MetaDataDialog::MetaDataDialog(QWidget *parent) : QDialog(parent)
             metaDataLayout->addRow(label, layout);
         }
         break;
+        case QMediaMetaData::HasHdrContent:
+            break; // Read-only
         default:
             metaDataLayout->addRow(label, lineEdit);
             break;

@@ -587,6 +587,36 @@ SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
     return SwrContextUPtr(resampler);
 }
 
+QVideoFrameFormat::ColorTransfer fromAvColorTransfer(AVColorTransferCharacteristic colorTrc) {
+    switch (colorTrc) {
+    case AVCOL_TRC_BT709:
+    // The following three cases have transfer characteristics identical to BT709
+    case AVCOL_TRC_BT1361_ECG:
+    case AVCOL_TRC_BT2020_10:
+    case AVCOL_TRC_BT2020_12:
+    case AVCOL_TRC_SMPTE240M: // almost identical to bt709
+        return QVideoFrameFormat::ColorTransfer_BT709;
+    case AVCOL_TRC_GAMMA22:
+    case AVCOL_TRC_SMPTE428: // No idea, let's hope for the best...
+    case AVCOL_TRC_IEC61966_2_1: // sRGB, close enough to 2.2...
+    case AVCOL_TRC_IEC61966_2_4: // not quite, but probably close enough
+        return QVideoFrameFormat::ColorTransfer_Gamma22;
+    case AVCOL_TRC_GAMMA28:
+        return QVideoFrameFormat::ColorTransfer_Gamma28;
+    case AVCOL_TRC_SMPTE170M:
+        return QVideoFrameFormat::ColorTransfer_BT601;
+    case AVCOL_TRC_LINEAR:
+        return QVideoFrameFormat::ColorTransfer_Linear;
+    case AVCOL_TRC_SMPTE2084:
+        return QVideoFrameFormat::ColorTransfer_ST2084;
+    case AVCOL_TRC_ARIB_STD_B67:
+        return QVideoFrameFormat::ColorTransfer_STD_B67;
+    default:
+        break;
+    }
+    return QVideoFrameFormat::ColorTransfer_Unknown;
+}
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t cvFormat)
 {

@@ -151,6 +151,8 @@ private slots:
     void metadata();
     void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail_data();
     void metadata_returnsMetadataWithThumbnail_whenMediaHasThumbnail();
+    void metadata_returnsMetadataWithHasHdrContent_whenMediaHasHdrContent_data();
+    void metadata_returnsMetadataWithHasHdrContent_whenMediaHasHdrContent();
     void playerStateAtEOS();
     void playFromBuffer();
     void audioVideoAvailable();
@@ -208,6 +210,7 @@ private:
     MaybeUrl m_colorMatrix90degClockwiseVideo = QUnexpect{};
     MaybeUrl m_colorMatrix180degClockwiseVideo = QUnexpect{};
     MaybeUrl m_colorMatrix270degClockwiseVideo = QUnexpect{};
+    MaybeUrl m_hdrVideo = QUnexpect{};
 
     MediaFileSelector m_mediaSelector;
 
@@ -338,6 +341,8 @@ void tst_QMediaPlayerBackend::initTestCase()
             m_mediaSelector.select("qrc:/testdata/color_matrix_180_deg_clockwise.mp4");
     m_colorMatrix270degClockwiseVideo =
             m_mediaSelector.select("qrc:/testdata/color_matrix_270_deg_clockwise.mp4");
+
+    m_hdrVideo = m_mediaSelector.select("qrc:/testdata/h264_avc1_yuv420p10le_tv_bt2020.mov");
 
     detectVlcCommand();
 }
@@ -2284,6 +2289,31 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHas
         QCOMPARE_LT(std::abs(centerColor.green() - expectedColor.green()), maxChannelDiff);
         QCOMPARE_LT(std::abs(centerColor.blue() - expectedColor.blue()), maxChannelDiff);
     }
+}
+
+void tst_QMediaPlayerBackend::metadata_returnsMetadataWithHasHdrContent_whenMediaHasHdrContent_data()
+{
+    QTest::addColumn<MaybeUrl>("mediaUrl");
+    QTest::addColumn<bool>("hasHdrContent");
+
+    QTest::addRow("SDR Video") << m_localVideoFile << false;
+    QTest::addRow("HDR Video") << m_hdrVideo << true;
+}
+
+void tst_QMediaPlayerBackend::metadata_returnsMetadataWithHasHdrContent_whenMediaHasHdrContent()
+{
+    QFETCH(const MaybeUrl, mediaUrl);
+    QFETCH(const bool, hasHdrContent);
+
+    QSKIP_IF_NOT_FFMPEG();
+
+    m_fixture->player.setSource(*mediaUrl);
+    QTRY_VERIFY(!m_fixture->metadataChanged.empty());
+
+    const QMediaMetaData metadata = m_fixture->player.videoTracks().front();
+    const bool hdrContent = metadata.value(QMediaMetaData::HasHdrContent).value<bool>();
+
+    QCOMPARE_EQ(hasHdrContent, hdrContent);
 }
 
 void tst_QMediaPlayerBackend::playerStateAtEOS()

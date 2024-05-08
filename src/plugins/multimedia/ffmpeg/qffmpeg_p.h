@@ -16,6 +16,7 @@
 
 #include "qffmpegdefs_p.h"
 #include "qffmpegavaudioformat_p.h"
+#include <QtMultimedia/qvideoframeformat.h>
 
 #include <qstring.h>
 #include <optional>
@@ -233,6 +234,8 @@ const AVPacketSideData *streamSideData(const AVStream *stream, AVPacketSideDataT
 
 SwrContextUPtr createResampleContext(const AVAudioFormat &inputFormat,
                                      const AVAudioFormat &outputFormat);
+
+QVideoFrameFormat::ColorTransfer fromAvColorTransfer(AVColorTransferCharacteristic colorTrc);
 
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);

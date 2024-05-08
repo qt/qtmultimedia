@@ -41,7 +41,7 @@ QT_BEGIN_NAMESPACE
     Media attributes
     \row \li MediaType \li The type of the media (audio, video, etc).  \li QString
     \row \li FileFormat \li The file format of the media.  \li QMediaFormat::FileFormat
-    \row \li Duration \li The duration in millseconds of the media.  \li qint64
+    \row \li Duration \li The duration in milliseconds of the media.  \li qint64
 
     \header \li {3,1}
     Audio attributes
@@ -53,6 +53,7 @@ QT_BEGIN_NAMESPACE
     \row \li VideoFrameRate \li The frame rate of the media's video stream. \li qreal
     \row \li VideoBitRate \li The bit rate of the media's video stream in bits per second.  \li int
     \row \li VideoCodec \li The codec of the media's video stream.  \li QMediaFormat::VideoCodec
+    \row \li HasHdrContent \li True if video is intended for HDR display (FFmpeg media backend only). \li bool
 
     \header \li {3,1}
     Music attributes
@@ -129,6 +130,10 @@ QMetaType QMediaMetaData::keyType(Key key)
 
     case Resolution:
         return QMetaType::fromType<QSize>();
+
+    case HasHdrContent:
+        return QMetaType::fromType<bool>();
+
     default:
         return QMetaType::fromType<void>();
     }
@@ -276,6 +281,7 @@ QMetaType QMediaMetaData::keyType(Key key)
     \value CoverArtImage Media cover art
     \value Orientation
     \value Resolution
+    \value [since 6.8] HasHdrContent Video may have HDR content (read only, FFmpeg media backend only)
 */
 
 /*!
@@ -385,6 +391,7 @@ QString QMediaMetaData::stringValue(QMediaMetaData::Key key) const
     case Composer:
     case Orientation:
     case LeadPerformer:
+    case HasHdrContent:
         return value.toString();
     case Language: {
         auto l = value.value<QLocale::Language>();
@@ -479,6 +486,8 @@ QString QMediaMetaData::metaDataKeyToString(QMediaMetaData::Key key)
             return (QCoreApplication::translate("QMediaMetaData", "Resolution"));
         case QMediaMetaData::LeadPerformer:
             return (QCoreApplication::translate("QMediaMetaData", "Lead performer"));
+        case QMediaMetaData::HasHdrContent:
+            return (QCoreApplication::translate("QMediaMetaData", "Has HDR content"));
     }
     return QString();
 }

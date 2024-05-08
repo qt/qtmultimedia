@@ -301,6 +301,20 @@ void Player::metaDataChanged()
         m_metaDataFields[i]->setDisabled(false);
         m_metaDataLabels[i]->setDisabled(false);
     }
+
+    const QList<QMediaMetaData> tracks = m_player->videoTracks();
+    const int currentVideoTrack = m_player->activeVideoTrack();
+    if (currentVideoTrack >= 0 && currentVideoTrack < tracks.size()) {
+        const QMediaMetaData track = tracks.value(currentVideoTrack);
+        for (const QMediaMetaData::Key &key : track.keys()) {
+            if (QLineEdit *field = qobject_cast<QLineEdit *>(m_metaDataFields[key])) {
+                QString stringValue = track.stringValue(key);
+                field->setText(stringValue);
+            }
+            m_metaDataFields[key]->setDisabled(true);
+            m_metaDataLabels[key]->setDisabled(true);
+        }
+    }
 #endif
 }
 

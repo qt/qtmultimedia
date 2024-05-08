@@ -391,17 +391,26 @@ void Camera::saveMetaData()
     for (int i = 0; i < QMediaMetaData::NumMetaData; i++) {
         QString val = m_metaDataDialog->m_metaDataFields[i]->text();
         if (!val.isEmpty()) {
-            auto key = static_cast<QMediaMetaData::Key>(i);
-            if (i == QMediaMetaData::CoverArtImage) {
+            const auto key = static_cast<QMediaMetaData::Key>(i);
+            switch (key) {
+            case QMediaMetaData::CoverArtImage: {
                 QImage coverArt(val);
                 data.insert(key, coverArt);
-            } else if (i == QMediaMetaData::ThumbnailImage) {
+                break;
+            }
+            case QMediaMetaData::ThumbnailImage: {
                 QImage thumbnail(val);
                 data.insert(key, thumbnail);
-            } else if (i == QMediaMetaData::Date) {
+                break;
+            }
+            case QMediaMetaData::Date: {
                 QDateTime date = QDateTime::fromString(val);
                 data.insert(key, date);
-            } else {
+                break;
+            }
+            case QMediaMetaData::HasHdrContent:
+                break;
+            default:
                 data.insert(key, val);
             }
         }

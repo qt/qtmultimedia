@@ -65,6 +65,25 @@ static int streamOrientation(const AVStream *stream)
     return rotation < 0 ? -rotation % 360 : -rotation % 360 + 360;
 }
 
+
+static bool colorTransferSupportsHdr(const AVStream *stream)
+{
+    if (!stream)
+        return false;
+
+    const AVCodecParameters *codecPar = stream->codecpar;
+    if (!codecPar)
+        return false;
+
+    const QVideoFrameFormat::ColorTransfer colorTransfer = fromAvColorTransfer(codecPar->color_trc);
+
+    // Assume that content is using HDR if the color transfer supports high
+    // dynamic range. The video may still not utilize the extended range,
+    // but we can't determine the actual range without decoding frames.
+    return colorTransfer == QVideoFrameFormat::ColorTransfer_ST2084
+            || colorTransfer == QVideoFrameFormat::ColorTransfer_STD_B67;
+}
+
 QtVideo::Rotation MediaDataHolder::rotation() const
 {
     int orientation = m_metaData.value(QMediaMetaData::Orientation).toInt();
@@ -97,6 +116,7 @@ static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::Trac
         metaData.insert(QMediaMetaData::VideoFrameRate,
                         qreal(stream->avg_frame_rate.num) / qreal(stream->avg_frame_rate.den));
         metaData.insert(QMediaMetaData::Orientation, QVariant::fromValue(streamOrientation(stream)));
+        metaData.insert(QMediaMetaData::HasHdrContent, colorTransferSupportsHdr(stream));
         break;
     case QPlatformMediaPlayer::AudioStream:
         metaData.insert(QMediaMetaData::AudioBitRate, (int)codecPar->bit_rate);
@@ -189,6 +209,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const std::shared_ptr<ICancel
 #endif
     return context;
 }
+
 } // namespace
 
 MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *stream,
