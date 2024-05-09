@@ -128,6 +128,7 @@ private:
     void parseStreamsAndMetadata();
     void connectOutput(TrackSelector &ts);
     void removeOutput(TrackSelector &ts);
+    void removeDynamicPipelineElements();
     void removeAllOutputs();
     void stopOrEOS(bool eos);
     bool canTrackProgress() const { return decodeBinQueues > 0; }
