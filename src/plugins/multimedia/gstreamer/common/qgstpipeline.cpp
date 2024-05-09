@@ -44,8 +44,17 @@ public:
     void installMessageFilter(QGstreamerBusMessageFilter *filter);
     void removeMessageFilter(QGstreamerBusMessageFilter *filter);
 
+    void processMessage(const QGstreamerMessage &msg)
+    {
+        for (QGstreamerBusMessageFilter *filter : std::as_const(busFilters)) {
+            if (filter->processBusMessage(msg))
+                break;
+        }
+    }
+
 private:
-    static GstBusSyncReply syncGstBusFilter(GstBus* bus, GstMessage* message, QGstPipelinePrivate *d)
+    static GstBusSyncReply syncGstBusFilter(GstBus *bus, GstMessage *message,
+                                            QGstPipelinePrivate *d)
     {
         if (!message)
             return GST_BUS_PASS;
@@ -74,10 +83,7 @@ private:
             QGstreamerMessage::NeedsRef,
         };
 
-        for (QGstreamerBusMessageFilter *filter : std::as_const(busFilters)) {
-            if (filter->processBusMessage(msg))
-                break;
-        }
+        processMessage(msg);
     }
 
     static gboolean busCallback(GstBus *, GstMessage *message, gpointer data)
@@ -230,6 +236,16 @@ GstStateChangeReturn QGstPipeline::setState(GstState state)
         flush();
     }
     return retval;
+}
+
+void QGstPipeline::processMessages(GstMessageType types)
+{
+    QGstPipelinePrivate *d = getPrivate();
+    QGstreamerMessage message{
+        gst_bus_pop_filtered(d->m_bus, types),
+        QGstreamerMessage::HasRef,
+    };
+    d->processMessage(message);
 }
 
 void QGstPipeline::dumpGraph(const char *fileName)
