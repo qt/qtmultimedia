@@ -131,6 +131,7 @@ private:
     void removeAllOutputs();
     void stopOrEOS(bool eos);
     bool canTrackProgress() const { return decodeBinQueues > 0; }
+    void detectPipelineIsSeekable();
 
     std::array<TrackSelector, NTrackTypes> trackSelectors;
     TrackSelector &trackSelector(TrackType type);
