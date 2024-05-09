@@ -413,7 +413,6 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 
                 emit tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
-                detectPipelineIsSeekable();
 
                 if (!playerPipeline.inStoppedState()) {
                     Q_ASSERT(!m_initialBufferProgressSent);
@@ -501,6 +500,11 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
             topology.free();
             topology = structure.copy();
         }
+        break;
+    }
+
+    case GST_MESSAGE_ASYNC_DONE: {
+        detectPipelineIsSeekable();
         break;
     }
 
