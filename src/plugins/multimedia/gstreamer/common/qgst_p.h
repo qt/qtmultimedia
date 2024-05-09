@@ -145,6 +145,13 @@ struct GstObjectTraits<GObject>
 } // namespace QGstImpl
 
 template <typename DestinationType, typename SourceType>
+bool qIsGstObjectOfType(SourceType *arg)
+{
+    using Traits = QGstImpl::GstObjectTraits<DestinationType>;
+    return arg && Traits::isObjectOfType(arg);
+}
+
+template <typename DestinationType, typename SourceType>
 DestinationType *qGstSafeCast(SourceType *arg)
 {
     using Traits = QGstImpl::GstObjectTraits<DestinationType>;
