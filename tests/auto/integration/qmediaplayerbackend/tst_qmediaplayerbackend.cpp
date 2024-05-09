@@ -1900,6 +1900,7 @@ void tst_QMediaPlayerBackend::multipleMediaPlayback()
 
     QCOMPARE(player.error(), QMediaPlayer::NoError);
     QCOMPARE(player.playbackState(), QMediaPlayer::PlayingState);
+    QVERIFY(player.isSeekable());
     QTRY_VERIFY(player.position() > 0);
     QCOMPARE(player.source(), *m_localVideoFile);
 
