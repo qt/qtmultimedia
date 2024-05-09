@@ -236,8 +236,10 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         gst_message_parse_state_changed(const_cast<GstMessage *>(msg), &oldState, &newState,
                                         &pending);
 
-        dbg << ", OldState: " << oldState << ", NewState: " << newState
-            << ", Pending State: " << pending;
+        dbg << ", Transition: " << oldState << "->" << newState;
+
+        if (pending != GST_STATE_VOID_PENDING)
+            dbg << ", Pending State: " << pending;
         break;
     }
 
@@ -435,7 +437,9 @@ QDebug operator<<(QDebug dbg, const QCompactGstMessageAdaptor &m)
 
         gst_message_parse_state_changed(m.msg, &oldState, &newState, &pending);
 
-        dbg << oldState << " -> " << newState << " (pending: " << pending << ")";
+        dbg << oldState << " -> " << newState;
+        if (pending != GST_STATE_VOID_PENDING)
+            dbg << " (pending: " << pending << ")";
         return dbg;
     }
 
