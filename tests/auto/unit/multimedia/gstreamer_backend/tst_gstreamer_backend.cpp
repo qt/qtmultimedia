@@ -7,6 +7,7 @@
 
 #include <QtQGstreamerMediaPlugin/private/qgst_handle_types_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgst_p.h>
+#include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgstreamermetadata_p.h>
 
 QT_USE_NAMESPACE
@@ -25,6 +26,38 @@ QGstTagListHandle tst_GStreamer::parseTagList(const char *str)
 QGstTagListHandle tst_GStreamer::parseTagList(const QByteArray &ba)
 {
     return parseTagList(ba.constData());
+}
+
+void tst_GStreamer::qGstCasts_withElement()
+{
+    QGstElement element = QGstElement::createFromFactory("identity", "myPipeline");
+    QVERIFY(element);
+
+    QVERIFY(!qIsGstObjectOfType<GstPipeline>(element.element()));
+    QVERIFY(!qIsGstObjectOfType<GstBin>(element.element()));
+}
+
+void tst_GStreamer::qGstCasts_withBin()
+{
+    QGstBin bin = QGstBin::create("bin");
+    QVERIFY(bin);
+
+    QVERIFY(!qIsGstObjectOfType<GstPipeline>(bin.element()));
+    QVERIFY(qIsGstObjectOfType<GstBin>(bin.element()));
+}
+
+void tst_GStreamer::qGstCasts_withPipeline()
+{
+    QGstPipeline pipeline = QGstPipeline::create("myPipeline");
+
+    QGstElement element{
+        qGstSafeCast<GstElement>(pipeline.pipeline()),
+        QGstElement::NeedsRef,
+    };
+
+    QVERIFY(element);
+    QVERIFY(qIsGstObjectOfType<GstPipeline>(element.element()));
+    QVERIFY(qIsGstObjectOfType<GstBin>(element.element()));
 }
 
 void tst_GStreamer::metadata_taglistToMetaData()
