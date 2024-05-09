@@ -73,6 +73,8 @@ public:
 
     GstPipeline *pipeline() const { return GST_PIPELINE_CAST(get()); }
 
+    void processMessages(GstMessageType = GST_MESSAGE_ANY);
+
     void dumpGraph(const char *fileName);
 
     template <typename Functor>
