@@ -294,6 +294,23 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
     m_initialBufferProgressSent = false;
 }
 
+void QGstreamerMediaPlayer::detectPipelineIsSeekable()
+{
+    qCDebug(qLcMediaPlayer) << "detectPipelineIsSeekable";
+    QGstQueryHandle query{
+        gst_query_new_seeking(GST_FORMAT_TIME),
+        QGstQueryHandle::HasRef,
+    };
+    gboolean canSeek = false;
+    if (gst_element_query(playerPipeline.element(), query.get())) {
+        gst_query_parse_seeking(query.get(), nullptr, &canSeek, nullptr, nullptr);
+        qCDebug(qLcMediaPlayer) << "    pipeline is seekable:" << canSeek;
+    } else {
+        qCWarning(qLcMediaPlayer) << "    query for seekable failed.";
+    }
+    seekableChanged(canSeek);
+}
+
 bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 {
     qCDebug(qLcMediaPlayer) << "received bus message:" << message;
@@ -396,17 +413,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 
                 emit tracksChanged();
                 mediaStatusChanged(QMediaPlayer::LoadedMedia);
-
-                GstQuery *query = gst_query_new_seeking(GST_FORMAT_TIME);
-                gboolean canSeek = false;
-                if (gst_element_query(playerPipeline.element(), query)) {
-                    gst_query_parse_seeking(query, nullptr, &canSeek, nullptr, nullptr);
-                    qCDebug(qLcMediaPlayer) << "    pipeline is seekable:" << canSeek;
-                } else {
-                    qCDebug(qLcMediaPlayer) << "    query for seekable failed.";
-                }
-                gst_query_unref(query);
-                seekableChanged(canSeek);
+                detectPipelineIsSeekable();
 
                 if (!playerPipeline.inStoppedState()) {
                     Q_ASSERT(!m_initialBufferProgressSent);
