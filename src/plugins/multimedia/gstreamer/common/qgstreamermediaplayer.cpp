@@ -695,6 +695,18 @@ void QGstreamerMediaPlayer::removeOutput(TrackSelector &ts)
     ts.isConnected = false;
 }
 
+void QGstreamerMediaPlayer::removeDynamicPipelineElements()
+{
+    for (QGstElement *element : { &src, &decoder }) {
+        if (element->isNull())
+            continue;
+
+        element->setStateSync(GstState::GST_STATE_NULL);
+        playerPipeline.remove(*element);
+        *element = QGstElement{};
+    }
+}
+
 void QGstreamerMediaPlayer::uridecodebinElementAddedCallback(GstElement * /*uridecodebin*/,
                                                              GstElement *child,
                                                              QGstreamerMediaPlayer *)
@@ -812,13 +824,8 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     m_url = content;
     m_stream = stream;
 
-    if (!src.isNull())
-        playerPipeline.remove(src);
-    if (!decoder.isNull())
-        playerPipeline.remove(decoder);
-    src = QGstElement();
+    removeDynamicPipelineElements();
     disconnectDecoderHandlers();
-    decoder = QGstElement();
     removeAllOutputs();
     seekableChanged(false);
     Q_ASSERT(playerPipeline.inStoppedState());
