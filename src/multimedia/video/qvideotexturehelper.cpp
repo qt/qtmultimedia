@@ -213,7 +213,7 @@ static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] =
         { { 1, 1 }, { 1, 1 }, { 1, 1 } }
     },
     // Format_YUV420P10
-    { 3, 1,
+    { 3, 2,
         [](int stride, int height) { return stride * ((height * 3 / 2 + 1) & ~1); },
         { QRhiTexture::R16, QRhiTexture::R16, QRhiTexture::R16 },
         { { 1, 1 }, { 2, 2 }, { 2, 2 } }
