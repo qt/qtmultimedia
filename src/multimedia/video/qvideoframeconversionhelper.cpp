@@ -34,31 +34,30 @@ static inline void planarYUV420_to_ARGB32(const uchar *y, int yStride,
                                           int width, int height)
 {
     height &= ~1;
-    quint32 *rgb0 = rgb;
-    quint32 *rgb1 = rgb + width;
 
-    for (int j = 0; j < height; j += 2) {
+    for (int j = 0; j + 1 < height; j += 2) {
         const uchar *lineY0 = y;
         const uchar *lineY1 = y + yStride;
         const uchar *lineU = u;
         const uchar *lineV = v;
 
-        for (int i = 0; i < width; i += 2) {
+        quint32 *rgb0 = rgb;
+        quint32 *rgb1 = rgb + width;
+        for (int i = 0; i + 1 < width; i += 2) {
             EXPAND_UV(*lineU, *lineV);
             lineU += uvPixelStride;
             lineV += uvPixelStride;
 
-            *rgb0++ = qYUVToARGB32(*lineY0++, rv, guv, bu);
-            *rgb0++ = qYUVToARGB32(*lineY0++, rv, guv, bu);
-            *rgb1++ = qYUVToARGB32(*lineY1++, rv, guv, bu);
-            *rgb1++ = qYUVToARGB32(*lineY1++, rv, guv, bu);
+            rgb0[i] = qYUVToARGB32(*lineY0++, rv, guv, bu);
+            rgb0[i + 1] = qYUVToARGB32(*lineY0++, rv, guv, bu);
+            rgb1[i] = qYUVToARGB32(*lineY1++, rv, guv, bu);
+            rgb1[i + 1] = qYUVToARGB32(*lineY1++, rv, guv, bu);
         }
 
         y += yStride << 1; // stride * 2
         u += uStride;
         v += vStride;
-        rgb0 += width;
-        rgb1 += width;
+        rgb += width << 1; // width * 2
     }
 }
 
@@ -69,30 +68,26 @@ static inline void planarYUV422_to_ARGB32(const uchar *y, int yStride,
                                           quint32 *rgb,
                                           int width, int height)
 {
-    quint32 *rgb0 = rgb;
-
     for (int j = 0; j < height; ++j) {
         const uchar *lineY0 = y;
         const uchar *lineU = u;
         const uchar *lineV = v;
 
-        for (int i = 0; i < width; i += 2) {
+        for (int i = 0; i + 1 < width; i += 2) {
             EXPAND_UV(*lineU, *lineV);
             lineU += uvPixelStride;
             lineV += uvPixelStride;
 
-            *rgb0++ = qYUVToARGB32(*lineY0++, rv, guv, bu);
-            *rgb0++ = qYUVToARGB32(*lineY0++, rv, guv, bu);
+            rgb[i]   = qYUVToARGB32(*lineY0++, rv, guv, bu);
+            rgb[i+1] = qYUVToARGB32(*lineY0++, rv, guv, bu);
         }
 
         y += yStride; // stride * 2
         u += uStride;
         v += vStride;
-        rgb0 += width;
+        rgb += width;
     }
 }
-
-
 
 static void QT_FASTCALL qt_convert_YUV420P_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
@@ -187,8 +182,7 @@ static void QT_FASTCALL qt_convert_UYVY_to_ARGB32(const QVideoFrame &frame, ucha
 
     for (int i = 0; i < height; ++i) {
         const uchar *lineSrc = src;
-
-        for (int j = 0; j < width; j += 2) {
+        for (int j = 0; j + 1 < width; j += 2) {
             int u = *lineSrc++;
             int y0 = *lineSrc++;
             int v = *lineSrc++;
@@ -196,11 +190,12 @@ static void QT_FASTCALL qt_convert_UYVY_to_ARGB32(const QVideoFrame &frame, ucha
 
             EXPAND_UV(u, v);
 
-            *rgb++ = qYUVToARGB32(y0, rv, guv, bu);
-            *rgb++ = qYUVToARGB32(y1, rv, guv, bu);
+            rgb[j] = qYUVToARGB32(y0, rv, guv, bu);
+            rgb[j+1] = qYUVToARGB32(y1, rv, guv, bu);
         }
 
         src += stride;
+        rgb += width;
     }
 }
 
@@ -213,8 +208,7 @@ static void QT_FASTCALL qt_convert_YUYV_to_ARGB32(const QVideoFrame &frame, ucha
 
     for (int i = 0; i < height; ++i) {
         const uchar *lineSrc = src;
-
-        for (int j = 0; j < width; j += 2) {
+        for (int j = 0; j + 1 < width; j += 2) {
             int y0 = *lineSrc++;
             int u = *lineSrc++;
             int y1 = *lineSrc++;
@@ -222,11 +216,12 @@ static void QT_FASTCALL qt_convert_YUYV_to_ARGB32(const QVideoFrame &frame, ucha
 
             EXPAND_UV(u, v);
 
-            *rgb++ = qYUVToARGB32(y0, rv, guv, bu);
-            *rgb++ = qYUVToARGB32(y1, rv, guv, bu);
+            rgb[j] = qYUVToARGB32(y0, rv, guv, bu);
+            rgb[j+1] = qYUVToARGB32(y1, rv, guv, bu);
         }
 
         src += stride;
+        rgb += width;
     }
 }
 
@@ -376,23 +371,24 @@ static void QT_FASTCALL qt_convert_premultiplied_to_ARGB32(const QVideoFrame &fr
 }
 
 static inline void planarYUV420_16bit_to_ARGB32(const uchar *y, int yStride,
-                                                  const uchar *u, int uStride,
-                                                  const uchar *v, int vStride,
-                                                  int uvPixelStride,
-                                          quint32 *rgb,
-                                          int width, int height)
+                                                const uchar *u, int uStride,
+                                                const uchar *v, int vStride,
+                                                int uvPixelStride,
+                                                quint32 *rgb,
+                                                int width, int height)
 {
     height &= ~1;
-    quint32 *rgb0 = rgb;
-    quint32 *rgb1 = rgb + width;
 
-    for (int j = 0; j < height; j += 2) {
+    for (int j = 0; j + 1 < height; j += 2) {
         const uchar *lineY0 = y;
         const uchar *lineY1 = y + yStride;
         const uchar *lineU = u;
         const uchar *lineV = v;
 
-        for (int i = 0; i < width; i += 2) {
+        quint32 *rgb0 = rgb;
+        quint32 *rgb1 = rgb + width;
+
+        for (int i = 0; i + 1 < width; i += 2) {
             EXPAND_UV(*lineU, *lineV);
             lineU += uvPixelStride;
             lineV += uvPixelStride;
@@ -410,10 +406,10 @@ static inline void planarYUV420_16bit_to_ARGB32(const uchar *y, int yStride,
         y += yStride << 1; // stride * 2
         u += uStride;
         v += vStride;
-        rgb0 += width;
-        rgb1 += width;
+        rgb += width * 2;
     }
 }
+
 
 static void QT_FASTCALL qt_convert_P016_to_ARGB32(const QVideoFrame &frame, uchar *output)
 {
