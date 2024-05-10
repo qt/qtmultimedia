@@ -6,6 +6,7 @@
 #include <qvideoframe.h>
 #include <qvideoframeformat.h>
 #include "private/qmemoryvideobuffer_p.h"
+#include "private/qvideoframeconverter_p.h"
 #include "private/qplatformmediaintegration_p.h"
 #include "private/qimagevideobuffer_p.h"
 #include <QtGui/QColorSpace>
@@ -22,6 +23,7 @@ struct TestParams
     QVideoFrameFormat::PixelFormat pixelFormat;
     QVideoFrameFormat::ColorSpace colorSpace;
     QVideoFrameFormat::ColorRange colorRange;
+    bool forceCpu;
 };
 
 QString toString(QVideoFrameFormat::ColorRange r)
@@ -45,54 +47,54 @@ std::vector<QVideoFrameFormat::ColorRange> colorRanges()
     };
 }
 
-// clang-format off
+const QSet s_formats{ QVideoFrameFormat::Format_ARGB8888,
+                      QVideoFrameFormat::Format_ARGB8888_Premultiplied,
+                      QVideoFrameFormat::Format_XRGB8888,
+                      QVideoFrameFormat::Format_BGRA8888,
+                      QVideoFrameFormat::Format_BGRA8888_Premultiplied,
+                      QVideoFrameFormat::Format_BGRX8888,
+                      QVideoFrameFormat::Format_ABGR8888,
+                      QVideoFrameFormat::Format_XBGR8888,
+                      QVideoFrameFormat::Format_RGBA8888,
+                      QVideoFrameFormat::Format_RGBX8888,
+                      QVideoFrameFormat::Format_NV12,
+                      QVideoFrameFormat::Format_NV21,
+                      QVideoFrameFormat::Format_IMC1,
+                      QVideoFrameFormat::Format_IMC2,
+                      QVideoFrameFormat::Format_IMC3,
+                      QVideoFrameFormat::Format_IMC4,
+                      QVideoFrameFormat::Format_AYUV,
+                      QVideoFrameFormat::Format_AYUV_Premultiplied,
+                      QVideoFrameFormat::Format_YV12,
+                      QVideoFrameFormat::Format_YUV420P,
+                      QVideoFrameFormat::Format_YUV422P,
+                      QVideoFrameFormat::Format_UYVY,
+                      QVideoFrameFormat::Format_YUYV,
+                      QVideoFrameFormat::Format_Y8,
+                      QVideoFrameFormat::Format_Y16,
+                      QVideoFrameFormat::Format_P010,
+                      QVideoFrameFormat::Format_P016,
+                      QVideoFrameFormat::Format_YUV420P10 };
 
-static const QHash<QVideoFrameFormat::PixelFormat, const char*> s_formats {
-    { QVideoFrameFormat::Format_ARGB8888, "argb8888" },
-    { QVideoFrameFormat::Format_ARGB8888_Premultiplied, "argb8888_premultiplied" },
-    { QVideoFrameFormat::Format_XRGB8888, "xrgb8888" },
-    { QVideoFrameFormat::Format_BGRA8888, "bgra8888" },
-    { QVideoFrameFormat::Format_BGRA8888_Premultiplied, "bgra8888_premultiplied" },
-    { QVideoFrameFormat::Format_BGRX8888, "bgrx8888" },
-    { QVideoFrameFormat::Format_ABGR8888, "abgr8888" },
-    { QVideoFrameFormat::Format_XBGR8888, "xbgr8888" },
-    { QVideoFrameFormat::Format_RGBA8888, "rgba8888" },
-    { QVideoFrameFormat::Format_RGBX8888, "rgbx8888" },
-    { QVideoFrameFormat::Format_NV12, "nv12" },
-    { QVideoFrameFormat::Format_NV21, "nv21" },
-    { QVideoFrameFormat::Format_IMC1, "imc1" },
-    { QVideoFrameFormat::Format_IMC2, "imc2" },
-    { QVideoFrameFormat::Format_IMC3, "imc3" },
-    { QVideoFrameFormat::Format_IMC4, "imc4" },
-    //{ QVideoFrameFormat::Format_AYUV, "ayuv" }, // TODO: Fixme (No corresponding FFmpeg format available)
-    //{ QVideoFrameFormat::Format_AYUV_Premultiplied, "ayuv_premultiplied" }, // TODO: Fixme (No corresponding FFmpeg format available)
-    { QVideoFrameFormat::Format_YV12, "yv12" },
-    { QVideoFrameFormat::Format_YUV420P, "420p" },
-    { QVideoFrameFormat::Format_YUV422P, "422p" },
-    { QVideoFrameFormat::Format_UYVY, "uyvy" },
-    { QVideoFrameFormat::Format_YUYV, "yuyv" },
-    { QVideoFrameFormat::Format_Y8, "y8" },
-    { QVideoFrameFormat::Format_Y16, "y16" },
-    { QVideoFrameFormat::Format_P010, "p010" },
-    { QVideoFrameFormat::Format_P016, "p016" },
-    { QVideoFrameFormat::Format_YUV420P10, "yuv420p10" }
-};
+bool hasCorrespondingFFmpegFormat(QVideoFrameFormat::PixelFormat format)
+{
+    return format != QVideoFrameFormat::Format_AYUV
+            && format != QVideoFrameFormat::Format_AYUV_Premultiplied;
+}
 
-// clang-format on
+bool supportsCpuConversion(QVideoFrameFormat::PixelFormat format)
+{
+    return format != QVideoFrameFormat::Format_YUV420P10;
+}
 
 QString toString(QVideoFrameFormat::PixelFormat f)
 {
-    if (!s_formats.contains(f)) {
-        Q_ASSERT(false);
-        return {};
-    }
-
-    return s_formats.value(f);
+    return QVideoFrameFormat::pixelFormatToString(f);
 }
 
-QList<QVideoFrameFormat::PixelFormat> pixelFormats()
+QSet<QVideoFrameFormat::PixelFormat> pixelFormats()
 {
-    return s_formats.keys();
+    return s_formats;
 }
 
 bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
@@ -139,11 +141,15 @@ std::vector<QVideoFrameFormat::ColorSpace> colorSpaces()
 
 QString name(const TestParams &p)
 {
-    return QStringLiteral("%1_%2_%3_%4")
-            .arg(p.fileName)
-            .arg(toString(p.pixelFormat))
-            .arg(toString(p.colorSpace))
-            .arg(toString(p.colorRange));
+    QString name = QStringLiteral("%1_%2_%3_%4%5")
+                                 .arg(p.fileName)
+                                 .arg(toString(p.pixelFormat))
+                                 .arg(toString(p.colorSpace))
+                                 .arg(toString(p.colorRange))
+                                 .arg(p.forceCpu ? "_cpu" : "")
+                                 .toLower();
+    name.replace(" ", "_");
+    return name;
 }
 
 QString path(const QTemporaryDir &dir, const TestParams &param, const QString &suffix = ".png")
@@ -381,7 +387,7 @@ class tst_qvideoframecolormanagement : public QObject
     Q_OBJECT
 private slots:
 
-    void toImage_savesWithCorrectColors_data()
+    void qImageFromVideoFrame_returnsQImageWithCorrectColors_data()
     {
         QTest::addColumn<QString>("fileName");
         QTest::addColumn<TestParams>("params");
@@ -389,12 +395,22 @@ private slots:
             for (const QVideoFrameFormat::PixelFormat pixelFormat : pixelFormats()) {
                 for (const QVideoFrameFormat::ColorSpace colorSpace : colorSpaces()) {
                     for (const QVideoFrameFormat::ColorRange colorRange : colorRanges()) {
+                        for (const bool forceCpu : { false, true }) {
 
-                        if (!isSupportedPixelFormat(pixelFormat))
-                            continue;
+                            if (!isSupportedPixelFormat(pixelFormat))
+                                continue;
 
-                        TestParams param{ file, pixelFormat, colorSpace, colorRange };
-                        QTest::addRow("%s", name(param).toLatin1().data()) << file << param;
+                            if (forceCpu && !supportsCpuConversion(pixelFormat))
+                                continue; // TODO: CPU Conversion not implemented
+
+                            if (!hasCorrespondingFFmpegFormat(pixelFormat))
+                                continue;
+
+                            TestParams param{
+                                file, pixelFormat, colorSpace, colorRange, forceCpu,
+                            };
+                            QTest::addRow("%s", name(param).toLatin1().data()) << file << param;
+                        }
                     }
                 }
             }
@@ -402,10 +418,11 @@ private slots:
     }
 
     // This test is a regression test for the QMultimedia display pipeline.
-    // It compares rendered output (as created by toImage) against reference
-    // images stored to file. The reference images were created by the test
-    // itself, and does not verify correctness, just changes to render output.
-    void toImage_savesWithCorrectColors()
+    // It compares rendered output (as created by qImageFromVideoFrame)
+    // against reference images stored to file. The reference images were
+    // created by the test itself, and does not verify correctness, just
+    // changes to render output.
+    void qImageFromVideoFrame_returnsQImageWithCorrectColors()
     {
         QFETCH(const QString, fileName);
         QFETCH(const TestParams, params);
@@ -416,7 +433,8 @@ private slots:
         const QVideoFrame frame = createTestFrame(params, templateImage);
 
         // Act
-        const QImage actual = frame.toImage();
+        const QImage actual =
+                qImageFromVideoFrame(frame, QtVideo::Rotation::None, false, false, params.forceCpu);
 
         // Assert
         constexpr int diffThreshold = 4;
@@ -438,6 +456,7 @@ private slots:
         QCOMPARE_LT(ratioAboveThreshold, 0.01); // Fraction of pixels with larger differences
         QCOMPARE_LT(result->MaxDiff, 6); // Maximum per-channel difference
     }
+
 
 private:
     ReferenceData m_reference;

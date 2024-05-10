@@ -286,7 +286,8 @@ static QImage convertCPU(const QVideoFrame &frame, QtVideo::Rotation rotation, b
     }
 }
 
-QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX, bool mirrorY)
+QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation, bool mirrorX,
+                            bool mirrorY, bool forceCpu)
 {
 #ifdef Q_OS_DARWIN
     QMacAutoReleasePool releasePool;
@@ -309,6 +310,9 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
 
     if (frame.pixelFormat() == QVideoFrameFormat::Format_Jpeg)
         return convertJPEG(frame, rotation, mirrorX, mirrorY);
+
+    if (forceCpu) // For test purposes
+        return convertCPU(frame, rotation, mirrorX, mirrorY);
 
     QRhi *rhi = nullptr;
 
