@@ -83,7 +83,8 @@ void VideoEncoder::init()
     qCDebug(qLcFFmpegVideoEncoder) << "VideoEncoder::init started video device thread.";
     bool ok = m_frameEncoder->open();
     if (!ok)
-        emit m_recordingEngine.error(QMediaRecorder::ResourceError, "Could not initialize encoder");
+        emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError,
+                                            "Could not initialize encoder");
 }
 
 void VideoEncoder::cleanup()
@@ -182,7 +183,7 @@ void VideoEncoder::processOne()
     int ret = m_frameEncoder->sendFrame(std::move(avFrame));
     if (ret < 0) {
         qCDebug(qLcFFmpegVideoEncoder) << "error sending frame" << ret << err2str(ret);
-        emit m_recordingEngine.error(QMediaRecorder::ResourceError, err2str(ret));
+        emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError, err2str(ret));
     }
 }
 
