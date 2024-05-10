@@ -56,7 +56,6 @@ private:
 
     QGstPipeline gstPipeline;
     QGstBin sinkBin;
-    QGstElement gstQueue;
     QGstElement gstPreprocess;
     QGstElement gstCapsFilter;
     QGstElement gstVideoSink;

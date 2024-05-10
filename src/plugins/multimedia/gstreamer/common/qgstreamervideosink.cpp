@@ -37,7 +37,12 @@ QT_BEGIN_NAMESPACE
 static Q_LOGGING_CATEGORY(qLcGstVideoSink, "qt.multimedia.gstvideosink");
 
 QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
-    : QPlatformVideoSink(parent)
+    : QPlatformVideoSink{
+          parent,
+      },
+      sinkBin{
+          QGstBin::create("videoSinkBin"),
+      }
 {
     sinkBin = QGstBin::create("videoSinkBin");
 
@@ -48,8 +53,6 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     //
     // To fix this, simply insert the element into the pipeline if it's available. Otherwise
     // we simply use an identity element.
-    gstQueue = QGstElement::createFromFactory("queue", "videoSinkQueue");
-
     QGstElementFactoryHandle factory;
 
     // QT_MULTIMEDIA_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT allows users to override the
@@ -103,13 +106,13 @@ QGstreamerVideoSink::QGstreamerVideoSink(QVideoSink *parent)
     }
 
     if (gstPreprocess) {
-        sinkBin.add(gstQueue, gstPreprocess, gstCapsFilter);
-        qLinkGstElements(gstQueue, gstPreprocess, gstCapsFilter);
+        sinkBin.add(gstPreprocess, gstCapsFilter);
+        qLinkGstElements(gstPreprocess, gstCapsFilter);
+        sinkBin.addGhostPad(gstPreprocess, "sink");
     } else {
-        sinkBin.add(gstQueue, gstCapsFilter);
-        qLinkGstElements(gstQueue, gstCapsFilter);
+        sinkBin.add(gstCapsFilter);
+        sinkBin.addGhostPad(gstCapsFilter, "sink");
     }
-    sinkBin.addGhostPad(gstQueue, "sink");
 
     gstSubtitleSink =
             QGstElement(GST_ELEMENT(QGstSubtitleSink::createSink(this)), QGstElement::NeedsRef);
