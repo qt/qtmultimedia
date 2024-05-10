@@ -261,7 +261,6 @@ private:
     friend class QMediaCaptureSession;
     Q_DISABLE_COPY(QCamera)
     Q_DECLARE_PRIVATE(QCamera)
-    Q_PRIVATE_SLOT(d_func(), void _q_error(int, const QString &))
     friend class QCameraDevice;
 };
 

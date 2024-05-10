@@ -252,7 +252,7 @@ void QAndroidCamera::setActive(bool active)
         return;
 
     if (!m_jniCamera.isValid()) {
-        emit error(QCamera::CameraError, "No connection to Android Camera2 API");
+        updateError(QCamera::CameraError, QStringLiteral("No connection to Android Camera2 API"));
         return;
     }
 
@@ -288,8 +288,8 @@ void QAndroidCamera::setActive(bool active)
         if (!canOpen) {
             g_qcameras->remove(m_cameraDevice.id());
             setState(State::Closed);
-            emit error(QCamera::CameraError,
-                       QString("Failed to start camera: ").append(m_cameraDevice.description()));
+            updateError(QCamera::CameraError,
+                        QString("Failed to start camera: ").append(m_cameraDevice.description()));
         }
     } else {
         m_jniCamera.callMethod<void>("stopAndClose");
@@ -316,8 +316,8 @@ void QAndroidCamera::setState(QAndroidCamera::State newState)
 
         m_state = State::Closed;
 
-        emit error(QCamera::CameraError,
-                   QString("Failed to start Camera %1").arg(m_cameraDevice.description()));
+        updateError(QCamera::CameraError,
+                    QString("Failed to start Camera %1").arg(m_cameraDevice.description()));
     }
 
     if (m_state == State::Closed && newState == State::WaitingOpen)
@@ -521,10 +521,10 @@ void QAndroidCamera::onCameraDisconnect()
 
 void QAndroidCamera::onCameraError(int reason)
 {
-    emit error(QCamera::CameraError,
-               QString("Capture error with Camera %1. Camera2 Api error code: %2")
-                       .arg(m_cameraDevice.description())
-                       .arg(reason));
+    updateError(QCamera::CameraError,
+                QString("Capture error with Camera %1. Camera2 Api error code: %2")
+                        .arg(m_cameraDevice.description())
+                        .arg(reason));
 }
 
 void QAndroidCamera::onSessionActive()
@@ -552,10 +552,10 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
 {
     Q_UNUSED(frameNumber);
 
-    emit error(QCamera::CameraError,
-               QString("Capture session failure with Camera %1. Camera2 Api error code: %2")
-                       .arg(m_cameraDevice.description())
-                       .arg(reason));
+    updateError(QCamera::CameraError,
+                QStringLiteral("Capture session failure with Camera %1. Camera2 Api error code: %2")
+                        .arg(m_cameraDevice.description())
+                        .arg(reason));
 }
 
 // JNI logic
