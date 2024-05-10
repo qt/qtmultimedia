@@ -72,7 +72,8 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void durationChanged(qint64 duration);
-    void error(QMediaRecorder::Error code, const QString &description);
+    void sessionError(QMediaRecorder::Error code, const QString &description);
+    void streamInitializationError(QMediaRecorder::Error code, const QString &description);
     void finalizationDone();
 
 private:
