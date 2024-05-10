@@ -21,8 +21,6 @@
 #include <QtCore/qurl.h>
 #include <QtCore/qloggingcategory.h>
 
-#define MAX_BUFFERS_IN_QUEUE 4
-
 QT_BEGIN_NAMESPACE
 
 static Q_LOGGING_CATEGORY(qLcGstreamerAudioDecoder, "qt.multimedia.gstreameraudiodecoder");
@@ -452,6 +450,8 @@ void QGstreamerAudioDecoder::setAudioFlags(bool wantNativeAudio)
 
 void QGstreamerAudioDecoder::addAppSink()
 {
+    using namespace std::chrono_literals;
+
     if (m_appSink)
         return;
 
@@ -460,8 +460,17 @@ void QGstreamerAudioDecoder::addAppSink()
     GstAppSinkCallbacks callbacks{};
     callbacks.new_sample = new_sample;
     m_appSink.setCallbacks(callbacks, this, nullptr);
-    gst_app_sink_set_max_buffers(m_appSink.appSink(), MAX_BUFFERS_IN_QUEUE);
-    gst_base_sink_set_sync(m_appSink.baseSink(), FALSE);
+
+#if GST_CHECK_VERSION(1, 24, 0)
+    static constexpr auto maxBufferTime = 500ms;
+    m_appSink.setMaxBufferTime(maxBufferTime);
+#else
+    static constexpr int maxBuffers = 16;
+    m_appSink.setMaxBuffers(maxBuffers);
+#endif
+
+    static constexpr bool sync = false;
+    m_appSink.setSync(sync);
 
     QGstPipeline::modifyPipelineWhileNotRunning(m_playbin.getPipeline(), [&] {
         m_outputBin.add(m_appSink);
