@@ -27,10 +27,11 @@ AVPixelFormat toAVPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
     switch (pixelFormat) {
     default:
     case QVideoFrameFormat::Format_Invalid:
+        return AV_PIX_FMT_NONE;
     case QVideoFrameFormat::Format_AYUV:
     case QVideoFrameFormat::Format_AYUV_Premultiplied:
+        return AV_PIX_FMT_NONE; // TODO: Fixme (No corresponding FFmpeg format available)
     case QVideoFrameFormat::Format_YV12:
-        return AV_PIX_FMT_NONE; // TODO: FIXME
     case QVideoFrameFormat::Format_IMC1:
     case QVideoFrameFormat::Format_IMC3:
     case QVideoFrameFormat::Format_IMC2:
@@ -93,6 +94,7 @@ struct SwsFrameData
 SwsFrameData getSwsData(QVideoFrame &dst)
 {
     switch (dst.pixelFormat()) {
+    case QVideoFrameFormat::Format_YV12:
     case QVideoFrameFormat::Format_IMC1:
         return { { dst.bits(0), dst.bits(2), dst.bits(1), nullptr },
                  { dst.bytesPerLine(0), dst.bytesPerLine(2), dst.bytesPerLine(1), 0 } };

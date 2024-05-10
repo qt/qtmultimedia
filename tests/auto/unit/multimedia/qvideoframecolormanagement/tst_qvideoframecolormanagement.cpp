@@ -45,43 +45,74 @@ std::vector<QVideoFrameFormat::ColorRange> colorRanges()
     };
 }
 
+// clang-format off
+
+static const QHash<QVideoFrameFormat::PixelFormat, const char*> s_formats {
+    { QVideoFrameFormat::Format_ARGB8888, "argb8888" },
+    { QVideoFrameFormat::Format_ARGB8888_Premultiplied, "argb8888_premultiplied" },
+    { QVideoFrameFormat::Format_XRGB8888, "xrgb8888" },
+    { QVideoFrameFormat::Format_BGRA8888, "bgra8888" },
+    { QVideoFrameFormat::Format_BGRA8888_Premultiplied, "bgra8888_premultiplied" },
+    { QVideoFrameFormat::Format_BGRX8888, "bgrx8888" },
+    { QVideoFrameFormat::Format_ABGR8888, "abgr8888" },
+    { QVideoFrameFormat::Format_XBGR8888, "xbgr8888" },
+    { QVideoFrameFormat::Format_RGBA8888, "rgba8888" },
+    { QVideoFrameFormat::Format_RGBX8888, "rgbx8888" },
+    { QVideoFrameFormat::Format_NV12, "nv12" },
+    { QVideoFrameFormat::Format_NV21, "nv21" },
+    { QVideoFrameFormat::Format_IMC1, "imc1" },
+    { QVideoFrameFormat::Format_IMC2, "imc2" },
+    { QVideoFrameFormat::Format_IMC3, "imc3" },
+    { QVideoFrameFormat::Format_IMC4, "imc4" },
+    //{ QVideoFrameFormat::Format_AYUV, "ayuv" }, // TODO: Fixme (No corresponding FFmpeg format available)
+    //{ QVideoFrameFormat::Format_AYUV_Premultiplied, "ayuv_premultiplied" }, // TODO: Fixme (No corresponding FFmpeg format available)
+    { QVideoFrameFormat::Format_YV12, "yv12" },
+    { QVideoFrameFormat::Format_YUV420P, "420p" },
+    { QVideoFrameFormat::Format_YUV422P, "422p" },
+    { QVideoFrameFormat::Format_UYVY, "uyvy" },
+    { QVideoFrameFormat::Format_YUYV, "yuyv" },
+    { QVideoFrameFormat::Format_Y8, "y8" },
+    { QVideoFrameFormat::Format_Y16, "y16" },
+    { QVideoFrameFormat::Format_P010, "p010" },
+    { QVideoFrameFormat::Format_P016, "p016" },
+    { QVideoFrameFormat::Format_YUV420P10, "yuv420p10" }
+};
+
+// clang-format on
+
 QString toString(QVideoFrameFormat::PixelFormat f)
 {
-    switch (f) {
-    case QVideoFrameFormat::Format_NV12:
-        return "nv12";
-    case QVideoFrameFormat::Format_NV21:
-        return "nv21";
-    case QVideoFrameFormat::Format_IMC1:
-        return "imc1";
-    case QVideoFrameFormat::Format_IMC2:
-        return "imc2";
-    case QVideoFrameFormat::Format_IMC3:
-        return "imc3";
-    case QVideoFrameFormat::Format_IMC4:
-        return "imc4";
-    case QVideoFrameFormat::Format_YUV420P:
-        return "420p";
-    case QVideoFrameFormat::Format_YUV422P:
-        return "422p";
-    case QVideoFrameFormat::Format_UYVY:
-        return "uyvy";
-    case QVideoFrameFormat::Format_YUYV:
-        return "yuyv";
-    default:
+    if (!s_formats.contains(f)) {
         Q_ASSERT(false);
-        return ""; // Not implemented yet
+        return {};
     }
+
+    return s_formats.value(f);
 }
 
-std::vector<QVideoFrameFormat::PixelFormat> pixelFormats()
+QList<QVideoFrameFormat::PixelFormat> pixelFormats()
 {
-    return { QVideoFrameFormat::Format_NV12,    QVideoFrameFormat::Format_NV21,
-             QVideoFrameFormat::Format_IMC1,    QVideoFrameFormat::Format_IMC2,
-             QVideoFrameFormat::Format_IMC3,    QVideoFrameFormat::Format_IMC4,
-             QVideoFrameFormat::Format_YUV420P, QVideoFrameFormat::Format_YUV422P,
-             QVideoFrameFormat::Format_UYVY,    QVideoFrameFormat::Format_YUYV };
+    return s_formats.keys();
 }
+
+bool isSupportedPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat)
+{
+#ifdef Q_OS_ANDROID
+    // TODO: QTBUG-125238
+    switch (pixelFormat) {
+    case QVideoFrameFormat::Format_Y16:
+    case QVideoFrameFormat::Format_P010:
+    case QVideoFrameFormat::Format_P016:
+    case QVideoFrameFormat::Format_YUV420P10:
+        return false;
+    default:
+        return true;
+    }
+#else
+    return true;
+#endif
+}
+
 
 QString toString(QVideoFrameFormat::ColorSpace s)
 {
@@ -358,6 +389,10 @@ private slots:
             for (const QVideoFrameFormat::PixelFormat pixelFormat : pixelFormats()) {
                 for (const QVideoFrameFormat::ColorSpace colorSpace : colorSpaces()) {
                     for (const QVideoFrameFormat::ColorRange colorRange : colorRanges()) {
+
+                        if (!isSupportedPixelFormat(pixelFormat))
+                            continue;
+
                         TestParams param{ file, pixelFormat, colorSpace, colorRange };
                         QTest::addRow("%s", name(param).toLatin1().data()) << file << param;
                     }
