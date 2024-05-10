@@ -72,16 +72,20 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
             &QFFmpegMediaRecorder::newDuration);
     connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::finalizationDone, this,
             &QFFmpegMediaRecorder::finalizationDone);
-    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::error, this,
+    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::sessionError, this,
             &QFFmpegMediaRecorder::handleSessionError);
 
-    auto *audioInput = m_session->audioInput();
-    if (audioInput) {
-        if (audioInput->device.isNull())
-            qWarning() << "Audio input device is null; cannot encode audio";
-        else
-            m_recordingEngine->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
-    }
+    auto handleStreamInitializationError = [this](QMediaRecorder::Error code,
+                                                  const QString &description) {
+        qCWarning(qLcMediaEncoder) << "Stream initialization error:" << description;
+        updateError(code, description);
+    };
+
+    connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::streamInitializationError, this,
+            handleStreamInitializationError);
+
+    if (auto audioInput = m_session->audioInput())
+        m_recordingEngine->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
 
     for (auto source : videoSources)
         m_recordingEngine->addVideoSource(source);
