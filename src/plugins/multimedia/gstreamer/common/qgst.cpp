@@ -1142,6 +1142,11 @@ QGstBaseSink::QGstBaseSink(GstBaseSink *element, RefMode mode)
 {
 }
 
+void QGstBaseSink::setSync(bool arg)
+{
+    gst_base_sink_set_sync(baseSink(), arg ? TRUE : FALSE);
+}
+
 GstBaseSink *QGstBaseSink::baseSink() const
 {
     return qGstCheckedCast<GstBaseSink>(element());
@@ -1186,6 +1191,18 @@ QGstAppSink QGstAppSink::create(const char *name)
 GstAppSink *QGstAppSink::appSink() const
 {
     return qGstCheckedCast<GstAppSink>(element());
+}
+
+#  if GST_CHECK_VERSION(1, 24, 0)
+void QGstAppSink::setMaxBufferTime(std::chrono::nanoseconds ns)
+{
+    gst_app_sink_set_max_time(appSink(), qGstClockTimeFromChrono(ns));
+}
+#  endif
+
+void QGstAppSink::setMaxBuffers(int n)
+{
+    gst_app_sink_set_max_buffers(appSink(), n);
 }
 
 void QGstAppSink::setCaps(const QGstCaps &caps)

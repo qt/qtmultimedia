@@ -735,6 +735,8 @@ public:
     QGstBaseSink &operator=(const QGstBaseSink &) = default;
     QGstBaseSink &operator=(QGstBaseSink &&) noexcept = default;
 
+    void setSync(bool);
+
     GstBaseSink *baseSink() const;
 };
 
@@ -770,6 +772,11 @@ public:
 
     GstAppSink *appSink() const;
 
+    void setMaxBuffers(int);
+#  if GST_CHECK_VERSION(1, 24, 0)
+    void setMaxBufferTime(std::chrono::nanoseconds);
+#  endif
+
     void setCaps(const QGstCaps &caps);
     void setCallbacks(GstAppSinkCallbacks &callbacks, gpointer user_data, GDestroyNotify notify);
 
@@ -798,6 +805,11 @@ public:
 };
 
 #endif
+
+inline GstClockTime qGstClockTimeFromChrono(std::chrono::nanoseconds ns)
+{
+    return ns.count();
+}
 
 inline QString errorMessageCannotFindElement(std::string_view element)
 {
