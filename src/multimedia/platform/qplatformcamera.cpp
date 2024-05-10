@@ -221,6 +221,13 @@ int QPlatformCamera::colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode m
     return 0;
 }
 
+void QPlatformCamera::updateError(QCamera::Error error, const QString &errorString)
+{
+    QMetaObject::invokeMethod(this, [this, error, errorString]() {
+        m_error.setAndNotify(error, errorString, *this);
+    });
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qplatformcamera_p.cpp"

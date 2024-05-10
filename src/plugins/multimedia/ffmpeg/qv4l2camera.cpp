@@ -394,7 +394,7 @@ void QV4L2Camera::readFrame()
 void QV4L2Camera::setCameraBusy()
 {
     m_cameraBusy = true;
-    emit error(QCamera::CameraError, QLatin1String("Camera is in use"));
+    updateError(QCamera::CameraError, QLatin1String("Camera is in use"));
 }
 
 void QV4L2Camera::initV4L2Controls()
@@ -412,7 +412,7 @@ void QV4L2Camera::initV4L2Controls()
         qCWarning(qLcV4L2Camera) << "Unable to open the camera" << deviceName
                                  << "for read to query the parameter info:"
                                  << qt_error_string(errno);
-        emit error(QCamera::CameraError, QLatin1String("Cannot open camera"));
+        updateError(QCamera::CameraError, QLatin1String("Cannot open camera"));
         return;
     }
 
@@ -651,7 +651,7 @@ void QV4L2Camera::initV4L2MemoryTransfer()
 
     if (!m_memoryTransfer) {
         qCWarning(qLcV4L2Camera) << "Cannot init v4l2 memory transfer," << qt_error_string(errno);
-        emit error(QCamera::CameraError, QLatin1String("Cannot init V4L2 memory transfer"));
+        updateError(QCamera::CameraError, QLatin1String("Cannot init V4L2 memory transfer"));
     }
 }
 

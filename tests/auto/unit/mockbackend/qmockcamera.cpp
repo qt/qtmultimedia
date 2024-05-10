@@ -34,12 +34,6 @@ void QMockCamera::setActive(bool active)
     emit activeChanged(active);
 }
 
-/* helper method to emit the signal error */
-void QMockCamera::setError(QCamera::Error err, QString errorString)
-{
-    emit error(err, errorString);
-}
-
 void QMockCamera::setCamera(const QCameraDevice &camera)
 {
     m_camera = camera;

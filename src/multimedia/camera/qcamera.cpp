@@ -152,14 +152,6 @@ QT_BEGIN_NAMESPACE
     See the \l{Camera Overview}{camera overview} for more information.
 */
 
-
-void QCameraPrivate::_q_error(int error, const QString &errorString)
-{
-    Q_Q(QCamera);
-
-    this->error.setAndNotify(QCamera::Error(error), errorString, *q);
-}
-
 void QCameraPrivate::init(const QCameraDevice &device)
 {
     Q_Q(QCamera);
@@ -167,16 +159,16 @@ void QCameraPrivate::init(const QCameraDevice &device)
     auto maybeControl = QPlatformMediaIntegration::instance()->createCamera(q);
     if (!maybeControl) {
         qWarning() << "Failed to initialize QCamera" << maybeControl.error();
-        error = { QCamera::CameraError, maybeControl.error() };
         return;
     }
     control = maybeControl.value();
     cameraDevice = !device.isNull() ? device : QMediaDevices::defaultVideoInput();
     if (cameraDevice.isNull())
-        _q_error(QCamera::CameraError, QStringLiteral("No camera detected"));
+        control->updateError(QCamera::CameraError, QStringLiteral("No camera detected"));
     control->setCamera(cameraDevice);
     q->connect(control, &QPlatformVideoSource::activeChanged, q, &QCamera::activeChanged);
-    q->connect(control, SIGNAL(error(int, QString)), q, SLOT(_q_error(int, QString)));
+    q->connect(control, &QPlatformCamera::errorChanged, q, &QCamera::errorChanged);
+    q->connect(control, &QPlatformCamera::errorOccurred, q, &QCamera::errorOccurred);
 }
 
 /*!
@@ -296,7 +288,9 @@ void QCamera::setActive(bool active)
 
 QCamera::Error QCamera::error() const
 {
-    return d_func()->error.code();
+    Q_D(const QCamera);
+
+    return d->control ? d->control->error() : QCamera::CameraError;
 }
 
 /*!
@@ -312,7 +306,10 @@ QCamera::Error QCamera::error() const
 */
 QString QCamera::errorString() const
 {
-    return d_func()->error.description();
+    Q_D(const QCamera);
+
+    return d->control ? d->control->errorString()
+                      : QStringLiteral("Camera is not supported on the platform");
 }
 
 /*! \enum QCamera::Feature

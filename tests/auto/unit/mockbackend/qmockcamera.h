@@ -31,9 +31,6 @@ public:
 
     void setActive(bool active) override;
 
-    /* helper method to emit the signal error */
-    void setError(QCamera::Error err, QString errorString);
-
     void setCamera(const QCameraDevice &camera) override;
 
     bool setCameraFormat(const QCameraFormat &format) override;

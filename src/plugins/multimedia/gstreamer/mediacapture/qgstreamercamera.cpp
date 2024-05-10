@@ -95,9 +95,9 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
         GstDevice *device = integration->videoDevice(camera.id());
 
         if (!device) {
-            emit error(QCamera::Error::CameraError,
-                       u"Failed to create GstDevice for camera: "_s
-                               + QString::fromUtf8(camera.id()));
+            updateError(QCamera::Error::CameraError,
+                        u"Failed to create GstDevice for camera: "_s
+                                + QString::fromUtf8(camera.id()));
             return;
         }
 
