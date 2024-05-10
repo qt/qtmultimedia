@@ -16,7 +16,6 @@
 //
 
 #include "private/qobject_p.h"
-#include "private/qerrorinfo_p.h"
 #include "qcamera.h"
 #include "qcameradevice.h"
 
@@ -34,13 +33,8 @@ public:
     QMediaCaptureSession *captureSession = nullptr;
     QPlatformCamera *control = nullptr;
 
-    QErrorInfo<QCamera::Error> error;
-
     QCameraDevice cameraDevice;
     QCameraFormat cameraFormat;
-
-    void _q_error(int error, const QString &errorString);
-    void unsetError() { error = {}; }
 };
 
 QT_END_NAMESPACE

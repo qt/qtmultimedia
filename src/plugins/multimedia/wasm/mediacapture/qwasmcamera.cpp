@@ -64,7 +64,7 @@ void QWasmCamera::setActive(bool active)
 {
 
     if (!m_CaptureSession) {
-        emit error(QCamera::CameraError, QStringLiteral("video surface error"));
+        updateError(QCamera::CameraError, QStringLiteral("video surface error"));
         m_shouldBeActive = true;
         return;
     }
@@ -120,7 +120,7 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
         createCamera(m_cameraDev);
         emit cameraIsReady();
     } else {
-        emit error(QCamera::CameraError, QStringLiteral("Failed to find a camera"));
+        updateError(QCamera::CameraError, QStringLiteral("Failed to find a camera"));
     }
 }
 
