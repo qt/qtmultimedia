@@ -189,6 +189,34 @@ Format findAVFormat(const Format *fmts, const Predicate &predicate)
     return findBestAVFormat(fmts, scoresGetter).first;
 }
 
+template <typename Predicate>
+const AVCodecHWConfig *findHwConfig(const AVCodec *codec, const Predicate &predicate)
+{
+    for (int i = 0; const auto hwConfig = avcodec_get_hw_config(codec, i); ++i) {
+        if (predicate(hwConfig))
+            return hwConfig;
+    }
+
+    return nullptr;
+}
+
+template <typename Predicate>
+AVPixelFormat findAVPixelFormat(const AVCodec *codec, const Predicate &predicate)
+{
+    const AVPixelFormat format = findAVFormat(codec->pix_fmts, predicate);
+    if (format != AV_PIX_FMT_NONE)
+        return format;
+
+    auto checkHwConfig = [&predicate](const AVCodecHWConfig *config) {
+        return config->pix_fmt != AV_PIX_FMT_NONE && predicate(config->pix_fmt);
+    };
+
+    if (auto hwConfig = findHwConfig(codec, checkHwConfig))
+        return hwConfig->pix_fmt;
+
+    return AV_PIX_FMT_NONE;
+}
+
 template <typename Value, typename CalculateScore>
 auto findBestAVValue(const Value *values, const CalculateScore &calculateScore,
                      Value invalidValue = {})
