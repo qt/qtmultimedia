@@ -38,9 +38,9 @@ public:
 
 private:
     void checkSurround();
-    bool surround40;
-    bool surround51;
-    bool surround71;
+    bool surround40{};
+    bool surround51{};
+    bool surround71{};
 };
 
 QT_END_NAMESPACE
