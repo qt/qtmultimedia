@@ -72,6 +72,23 @@ private:
 
     // --- only accessed from qt thread
     QVideoFrame m_currentVideoFrame;
+
+    struct RenderBufferState
+    {
+        QGstBufferHandle buffer;
+        QVideoFrameFormat format;
+        QGstCaps::MemoryFormat memoryFormat;
+        bool mirrored;
+        QtVideo::Rotation rotationAngle;
+
+        bool operator==(const RenderBufferState &rhs) const
+        {
+            return std::tie(buffer, format, memoryFormat, mirrored, rotationAngle)
+                    == std::tie(rhs.buffer, rhs.format, rhs.memoryFormat, rhs.mirrored,
+                                rhs.rotationAngle);
+        }
+    };
+    RenderBufferState m_currentState;
 };
 
 class QGstVideoRendererSink
