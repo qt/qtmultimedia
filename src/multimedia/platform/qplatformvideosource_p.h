@@ -43,9 +43,14 @@ public:
 
     virtual void setCaptureSession(QPlatformMediaCaptureSession *) { }
 
+    virtual QString errorString() const = 0;
+
+    bool hasError() const { return !errorString().isEmpty(); }
+
 Q_SIGNALS:
     void newVideoFrame(const QVideoFrame &);
     void activeChanged(bool);
+    void errorChanged();
 };
 
 QT_END_NAMESPACE
