@@ -15,12 +15,23 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+
 #include <gst/gst.h>
 
 QT_BEGIN_NAMESPACE
 
 class QGstreamerFormatInfo;
+
+class QGStreamerPlatformSpecificInterfaceImplementation : public QGStreamerPlatformSpecificInterface
+{
+public:
+    ~QGStreamerPlatformSpecificInterfaceImplementation() override;
+
+    QAudioDevice makeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline) override;
+    QAudioDevice makeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline) override;
+};
 
 class QGstreamerIntegration : public QPlatformMediaIntegration
 {
@@ -47,9 +58,13 @@ public:
     const QGstreamerFormatInfo *gstFormatsInfo();
     GstDevice *videoDevice(const QByteArray &id);
 
+    QAbstractPlatformSpecificInterface *platformSpecificInterface() override;
+
 protected:
     QPlatformMediaFormatInfo *createFormatInfo() override;
     QPlatformVideoDevices *createVideoDevices() override;
+
+    QGStreamerPlatformSpecificInterfaceImplementation m_platformSpecificImplementation;
 };
 
 QT_END_NAMESPACE

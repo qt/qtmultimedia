@@ -3,11 +3,12 @@
 
 #include <QtTest/QtTest>
 #include <QtMultimedia/QMediaCaptureSession>
+#include <QtMultimedia/QAudioDevice>
 #include <QtMultimedia/QAudioInput>
 #include <QtMultimedia/QAudioOutput>
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
-#include <QtQGstreamerMediaPlugin/private/qgstreameraudiodevice_p.h>
 
 #include <qscopedenvironmentvariable.h>
 
@@ -29,12 +30,19 @@ public slots:
     void cleanup();
 
 private slots:
+    void mediaIntegration_hasPlatformSpecificInterface();
     void constructor_preparesGstPipeline();
-    void audioInput_customAudioDevice_fromPipelineDescription();
-    void audioOutput_customAudioDevice_fromPipelineDescription();
+    void audioInput_makeCustomGStreamerAudioInput_fromPipelineDescription();
+    void audioOutput_makeCustomGStreamerAudioOutput_fromPipelineDescription();
 
 private:
     std::unique_ptr<QMediaCaptureSession> session;
+
+    QGStreamerPlatformSpecificInterface *gstInferface()
+    {
+        return dynamic_cast<QGStreamerPlatformSpecificInterface *>(
+                QPlatformMediaIntegration::instance()->platformSpecificInterface());
+    }
 
     GstPipeline *getGstPipeline()
     {
@@ -73,6 +81,11 @@ void tst_QMediaCaptureGStreamer::cleanup()
     session.reset();
 }
 
+void tst_QMediaCaptureGStreamer::mediaIntegration_hasPlatformSpecificInterface()
+{
+    QVERIFY(gstInferface());
+}
+
 void tst_QMediaCaptureGStreamer::constructor_preparesGstPipeline()
 {
     auto *rawPipeline = getGstPipeline();
@@ -87,14 +100,15 @@ void tst_QMediaCaptureGStreamer::constructor_preparesGstPipeline()
     dumpGraph("constructor_preparesGstPipeline");
 }
 
-void tst_QMediaCaptureGStreamer::audioInput_customAudioDevice_fromPipelineDescription()
+void tst_QMediaCaptureGStreamer::audioInput_makeCustomGStreamerAudioInput_fromPipelineDescription()
 {
     auto pipelineString =
             "audiotestsrc wave=2 freq=200 name=myOscillator ! identity name=myConverter"_ba;
 
     QAudioInput input{
-        qMakeCustomGStreamerAudioInput(pipelineString),
+        gstInferface()->makeCustomGStreamerAudioInput(pipelineString),
     };
+
     session->setAudioInput(&input);
 
     QGstPipeline pipeline = getPipeline();
@@ -108,20 +122,19 @@ void tst_QMediaCaptureGStreamer::audioInput_customAudioDevice_fromPipelineDescri
     dumpGraph("audioInput_customAudioDevice");
 }
 
-void tst_QMediaCaptureGStreamer::audioOutput_customAudioDevice_fromPipelineDescription()
+void tst_QMediaCaptureGStreamer::
+        audioOutput_makeCustomGStreamerAudioOutput_fromPipelineDescription()
 {
     auto pipelineStringInput =
             "audiotestsrc wave=2 freq=200 name=myOscillator ! identity name=myConverter"_ba;
-
     QAudioInput input{
-        qMakeCustomGStreamerAudioInput(pipelineStringInput),
+        gstInferface()->makeCustomGStreamerAudioInput(pipelineStringInput),
     };
     session->setAudioInput(&input);
 
     auto pipelineStringOutput = "identity name=myConverter ! fakesink name=mySink"_ba;
-
     QAudioOutput output{
-        qMakeCustomGStreamerAudioOutput(pipelineStringOutput),
+        gstInferface()->makeCustomGStreamerAudioOutput(pipelineStringOutput),
     };
     session->setAudioOutput(&output);
 

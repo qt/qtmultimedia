@@ -51,6 +51,12 @@ class QPlatformAudioOutput;
 class QPlatformVideoDevices;
 class QVideoFrame;
 
+class Q_MULTIMEDIA_EXPORT QAbstractPlatformSpecificInterface
+{
+public:
+    virtual ~QAbstractPlatformSpecificInterface() = default;
+};
+
 class Q_MULTIMEDIA_EXPORT QPlatformMediaIntegration : public QObject
 {
     Q_OBJECT
@@ -89,6 +95,8 @@ public:
 
     // Convert a QVideoFrame to the destination format
     virtual QVideoFrame convertVideoFrame(QVideoFrame &, const QVideoFrameFormat &);
+
+    virtual QAbstractPlatformSpecificInterface *platformSpecificInterface() { return nullptr; }
 
 protected:
     virtual QPlatformMediaFormatInfo *createFormatInfo();
