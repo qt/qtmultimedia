@@ -3,6 +3,7 @@
 #include "qffmpegrecordingengine_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegvideoframeencoder_p.h"
+#include "qffmpegencodinginitializer_p.h"
 #include "private/qmultimediautils_p.h"
 
 #include <qdebug.h>
@@ -57,16 +58,12 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
     input->setRunning(true);
 }
 
-void RecordingEngine::addVideoSource(QPlatformVideoSource * source)
+void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame)
 {
-    auto frameFormat = source->frameFormat();
+    QVideoFrameFormat frameFormat =
+            firstFrame.isValid() ? firstFrame.surfaceFormat() : source->frameFormat();
 
-    if (!frameFormat.isValid()) {
-        qCWarning(qLcFFmpegEncoder) << "Cannot add source; invalid vide frame format";
-        emit streamInitializationError(QMediaRecorder::ResourceError,
-                                       QLatin1StringView("Cannot get video source format"));
-        return;
-    }
+    Q_ASSERT(frameFormat.isValid());
 
     std::optional<AVPixelFormat> hwPixelFormat = source->ffmpegHWPixelFormat()
             ? AVPixelFormat(*source->ffmpegHWPixelFormat())
@@ -88,10 +85,16 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource * source)
     auto ve = veUPtr.release();
     addMediaFrameHandler(source, &QPlatformVideoSource::newVideoFrame, ve, &VideoEncoder::addFrame);
     m_videoEncoders.append(ve);
+
+    if (firstFrame.isValid())
+        ve->addFrame(firstFrame);
 }
 
 void RecordingEngine::start()
 {
+    Q_ASSERT(m_initializer);
+    m_initializer.reset();
+
     if (!m_audioEncoder && m_videoEncoders.empty()) {
         emit sessionError(QMediaRecorder::ResourceError,
                           QLatin1StringView("No valid stream found for encoding"));
@@ -122,6 +125,15 @@ void RecordingEngine::start()
     for (auto *videoEncoder : m_videoEncoders)
         if (videoEncoder->isValid())
             videoEncoder->start();
+}
+
+void RecordingEngine::initialize(QFFmpegAudioInput *audioInput,
+                                 const std::vector<QPlatformVideoSource *> &videoSources)
+{
+    qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> initialize";
+
+    m_initializer = std::make_unique<EncodingInitializer>(*this);
+    m_initializer->start(audioInput, videoSources);
 }
 
 RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recordingEngine)
@@ -162,6 +174,8 @@ void RecordingEngine::EncodingFinalizer::run()
 void RecordingEngine::finalize()
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> finalize";
+
+    m_initializer.reset();
 
     for (auto &conn : m_connections)
         disconnect(conn);

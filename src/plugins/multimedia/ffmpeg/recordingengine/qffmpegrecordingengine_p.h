@@ -36,6 +36,7 @@ class Muxer;
 class AudioEncoder;
 class VideoEncoder;
 class VideoFrameEncoder;
+class EncodingInitializer;
 
 template <typename T>
 T dequeueIfPossible(std::queue<T> &queue)
@@ -55,10 +56,8 @@ public:
     RecordingEngine(const QMediaEncoderSettings &settings, std::unique_ptr<EncodingFormatContext> context);
     ~RecordingEngine();
 
-    void addAudioInput(QFFmpegAudioInput *input);
-    void addVideoSource(QPlatformVideoSource *source);
-
-    void start();
+    void initialize(QFFmpegAudioInput *audioInput,
+                    const std::vector<QPlatformVideoSource *> &videoSources);
     void finalize();
 
     void setPaused(bool p);
@@ -91,6 +90,12 @@ private:
         RecordingEngine &m_recordingEngine;
     };
 
+    friend class EncodingInitializer;
+    void addAudioInput(QFFmpegAudioInput *input);
+    void addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame);
+
+    void start();
+
 private:
     QMediaEncoderSettings m_settings;
     QMediaMetaData m_metaData;
@@ -100,6 +105,7 @@ private:
     AudioEncoder *m_audioEncoder = nullptr;
     QList<VideoEncoder *> m_videoEncoders;
     QList<QMetaObject::Connection> m_connections;
+    std::unique_ptr<EncodingInitializer> m_initializer;
 
     QMutex m_timeMutex;
     qint64 m_timeRecorded = 0;
