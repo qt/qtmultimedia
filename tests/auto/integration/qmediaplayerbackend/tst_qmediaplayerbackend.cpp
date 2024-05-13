@@ -3037,7 +3037,11 @@ std::unique_ptr<QProcess> tst_QMediaPlayerBackend::createRtspStreamProcess(QStri
 
     // rtsp stream might be with started some delay after the vlc process starts.
     // Ideally, we should wait for open connections, it requires some extra work + QNetwork dependency.
-    QTest::qWait(500);
+    int timeout = 500;
+#ifdef Q_OS_MACOS
+    timeout = 2000;
+#endif
+    QTest::qWait(timeout);
 
     return process;
 }
