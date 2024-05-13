@@ -38,25 +38,26 @@ qt_internal_add_module(Multimedia
         camera/qcameradevice.cpp camera/qcameradevice.h camera/qcameradevice_p.h
         camera/qimagecapture.cpp camera/qimagecapture.h
         compat/removed_api.cpp
+        platform/qgstreamer_platformspecificinterface.cpp platform/qgstreamer_platformspecificinterface_p.h
         platform/qplatformaudiodecoder.cpp platform/qplatformaudiodecoder_p.h
         platform/qplatformaudioinput_p.h
         platform/qplatformaudiooutput_p.h
         platform/qplatformaudioresampler_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
-        platform/qplatformvideosource.cpp platform/qplatformvideosource_p.h
-        platform/qplatformsurfacecapture.cpp platform/qplatformsurfacecapture_p.h
+        platform/qplatformcapturablewindows_p.h
         platform/qplatformimagecapture.cpp platform/qplatformimagecapture_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h
         platform/qplatformmediadevices.cpp platform/qplatformmediadevices_p.h
-        platform/qplatformmediarecorder.cpp platform/qplatformmediarecorder_p.h
         platform/qplatformmediaformatinfo.cpp  platform/qplatformmediaformatinfo_p.h
         platform/qplatformmediaintegration.cpp platform/qplatformmediaintegration_p.h
         platform/qplatformmediaplayer.cpp platform/qplatformmediaplayer_p.h
         platform/qplatformmediaplugin.cpp platform/qplatformmediaplugin_p.h
+        platform/qplatformmediarecorder.cpp platform/qplatformmediarecorder_p.h
+        platform/qplatformsurfacecapture.cpp platform/qplatformsurfacecapture_p.h
         platform/qplatformvideodevices.cpp platform/qplatformvideodevices_p.h
         platform/qplatformvideosink.cpp platform/qplatformvideosink_p.h
+        platform/qplatformvideosource.cpp platform/qplatformvideosource_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
-        platform/qplatformcapturablewindows_p.h
         qmediadevices.cpp qmediadevices.h
         qmediaenumdebug.h
         qmediaformat.cpp  qmediaformat.h

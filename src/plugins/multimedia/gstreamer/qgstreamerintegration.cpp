@@ -4,6 +4,7 @@
 #include <qgstreamerintegration_p.h>
 #include <qgstreamerformatinfo_p.h>
 #include <qgstreamervideodevices_p.h>
+#include <audio/qgstreameraudiodevice_p.h>
 #include <audio/qgstreameraudiodecoder_p.h>
 #include <common/qgstreameraudioinput_p.h>
 #include <common/qgstreameraudiooutput_p.h>
@@ -17,6 +18,21 @@
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
+
+QGStreamerPlatformSpecificInterfaceImplementation::
+        ~QGStreamerPlatformSpecificInterfaceImplementation() = default;
+
+QAudioDevice QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerAudioInput(
+        const QByteArray &gstreamerPipeline)
+{
+    return qMakeCustomGStreamerAudioInput(gstreamerPipeline);
+}
+
+QAudioDevice QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerAudioOutput(
+        const QByteArray &gstreamerPipeline)
+{
+    return qMakeCustomGStreamerAudioOutput(gstreamerPipeline);
+}
 
 Q_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
 
@@ -118,6 +134,11 @@ GstDevice *QGstreamerIntegration::videoDevice(const QByteArray &id)
 {
     const auto devices = videoDevices();
     return devices ? static_cast<QGstreamerVideoDevices *>(devices)->videoDevice(id) : nullptr;
+}
+
+QAbstractPlatformSpecificInterface *QGstreamerIntegration::platformSpecificInterface()
+{
+    return &m_platformSpecificImplementation;
 }
 
 QT_END_NAMESPACE
