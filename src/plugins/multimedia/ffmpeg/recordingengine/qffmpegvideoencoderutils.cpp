@@ -108,8 +108,9 @@ AVPixelFormat findTargetFormat(AVPixelFormat sourceFormat, AVPixelFormat sourceS
         if (constraints && hasAVFormat(constraints->valid_hw_formats, hwFormat))
             return hwFormat;
 
-        // Some codecs, don't expose constraints, let's find the format in codec->pix_fmts
-        if (hasAVFormat(codec->pix_fmts, hwFormat))
+        // Some codecs, don't expose constraints,
+        // let's find the format in codec->pix_fmts and hw_config
+        if (isAVFormatSupported(codec, hwFormat))
             return hwFormat;
     }
 

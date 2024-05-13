@@ -151,10 +151,11 @@ static const std::vector<AVHWDeviceType> &deviceTypes()
         std::unordered_set<AVPixelFormat> hwPixFormats;
         void *opaque = nullptr;
         while (auto codec = av_codec_iterate(&opaque)) {
-            if (auto pixFmt = codec->pix_fmts)
-                for (; *pixFmt != AV_PIX_FMT_NONE; ++pixFmt)
-                    if (isHwPixelFormat(*pixFmt))
-                        hwPixFormats.insert(*pixFmt);
+            findAVPixelFormat(codec, [&](AVPixelFormat format) {
+                if (isHwPixelFormat(format))
+                    hwPixFormats.insert(format);
+                return false;
+            });
         }
 
         // create a device types list
@@ -300,7 +301,9 @@ AVPixelFormat getFormat(AVCodecContext *codecContext, const AVPixelFormat *sugge
             const bool shouldCheckCodecFormats = config->pix_fmt == AV_PIX_FMT_NONE;
 
             auto scoresGettor = [&](AVPixelFormat format) {
-                if (shouldCheckCodecFormats && !isAVFormatSupported(codecContext->codec, format))
+                // check in supported codec->pix_fmts;
+                // no reason to use findAVPixelFormat as we're already in the hw_config loop
+                if (shouldCheckCodecFormats && !hasAVFormat(codecContext->codec->pix_fmts, format))
                     return NotSuitableAVScore;
 
                 if (!shouldCheckCodecFormats && config->pix_fmt != format)
