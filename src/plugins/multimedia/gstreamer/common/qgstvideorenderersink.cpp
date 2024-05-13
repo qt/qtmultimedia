@@ -139,7 +139,8 @@ void QGstVideoRenderer::stop()
     qCDebug(qLcGstVideoRenderer) << "QGstVideoRenderer::stop";
 
     QMetaObject::invokeMethod(this, [this] {
-        m_sink->setVideoFrame(QVideoFrame());
+        m_currentState.buffer = {};
+        m_sink->setVideoFrame(QVideoFrame{});
         return;
     });
 }
@@ -171,15 +172,6 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
         }
     }
 
-    struct RenderBufferState
-    {
-        QGstBufferHandle buffer;
-        QVideoFrameFormat format;
-        QGstCaps::MemoryFormat memoryFormat;
-        bool mirrored;
-        QtVideo::Rotation rotationAngle;
-    };
-
     RenderBufferState state{
         .buffer = QGstBufferHandle{ buffer, QGstBufferHandle::NeedsRef },
         .format = m_format,
@@ -191,6 +183,18 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
     qCDebug(qLcGstVideoRenderer) << "    sending video frame";
 
     QMetaObject::invokeMethod(this, [this, state = std::move(state)]() mutable {
+        if (state == m_currentState) {
+            // same buffer received twice
+            if (!m_sink || !m_sink->inStoppedState())
+                return;
+
+            qCDebug(qLcGstVideoRenderer) << "    showing empty video frame";
+            m_currentVideoFrame = {};
+            m_sink->setVideoFrame(m_currentVideoFrame);
+            m_currentState = {};
+            return;
+        }
+
         QGstVideoBuffer *videoBuffer = new QGstVideoBuffer{
             state.buffer, m_videoInfo, m_sink, state.format, state.memoryFormat,
         };
@@ -198,8 +202,9 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
         QGstUtils::setFrameTimeStampsFromBuffer(&frame, state.buffer.get());
         frame.setMirrored(state.mirrored);
         frame.setRotation(state.rotationAngle);
-
         m_currentVideoFrame = std::move(frame);
+        m_currentState = std::move(state);
+
         if (!m_sink)
             return;
 
