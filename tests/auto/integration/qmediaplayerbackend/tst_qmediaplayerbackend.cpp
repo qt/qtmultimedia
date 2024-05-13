@@ -808,8 +808,14 @@ void tst_QMediaPlayerBackend::
 
     QTest::addRow("Horizontal expanding (par=3/2)")
             << m_192x108_PAR_3_2_Video << QSize(192 * 3 / 2, 108);
-    QTest::addRow("Vertical expanding (par=2/3)")
-            << m_192x108_PAR_2_3_Video << QSize(192, 108 * 3 / 2);
+
+    if (isGStreamerPlatform())
+        // QTBUG-125249: gstreamer tries "to keep the input height (because of interlacing)"
+        QTest::addRow("Horizontal shrinking (par=2/3)")
+                << m_192x108_PAR_2_3_Video << QSize(192 * 2 / 3, 108);
+    else
+        QTest::addRow("Vertical expanding (par=2/3)")
+                << m_192x108_PAR_2_3_Video << QSize(192, 108 * 3 / 2);
 }
 
 void tst_QMediaPlayerBackend::
