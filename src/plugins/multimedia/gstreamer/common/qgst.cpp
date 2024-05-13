@@ -297,6 +297,19 @@ std::optional<Fraction> QGstStructure::pixelAspectRatio() const
     return std::nullopt;
 }
 
+// QTBUG-125249: gstreamer tries "to keep the input height (because of interlacing)". Can we align
+// the behavior between gstreamer and ffmpeg?
+static QSize qCalculateFrameSizeGStreamer(QSize resolution, Fraction par)
+{
+    if (par.numerator == par.denominator || par.numerator < 1 || par.denominator < 1)
+        return resolution;
+
+    return QSize{
+        resolution.width() * par.numerator / par.denominator,
+        resolution.height(),
+    };
+}
+
 QSize QGstStructure::nativeSize() const
 {
     QSize size = resolution();
@@ -307,7 +320,7 @@ QSize QGstStructure::nativeSize() const
 
     std::optional<Fraction> par = pixelAspectRatio();
     if (par)
-        size = qCalculateFrameSize(size, *par);
+        size = qCalculateFrameSizeGStreamer(size, *par);
     return size;
 }
 
