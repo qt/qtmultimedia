@@ -111,12 +111,11 @@ public:
     static int colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode mode);
 
     QCamera::Error error() const { return m_error.code(); }
-    QString errorString() const { return m_error.description(); }
+    QString errorString() const final { return m_error.description(); }
 
     void updateError(QCamera::Error error, const QString &errorString);
 
 Q_SIGNALS:
-    void errorChanged();
     void errorOccurred(QCamera::Error error, const QString &errorString);
 
 protected:

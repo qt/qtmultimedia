@@ -61,7 +61,7 @@ public:
     Source source() const { return m_source; }
 
     Error error() const;
-    QString errorString() const;
+    QString errorString() const final;
 
 protected:
     virtual bool setActiveInternal(bool) = 0;
@@ -74,7 +74,6 @@ public Q_SLOTS:
 Q_SIGNALS:
     void sourceChanged(WindowSource);
     void sourceChanged(ScreenSource);
-    void errorChanged();
     void errorOccurred(Error error, QString errorString);
 
 private:
