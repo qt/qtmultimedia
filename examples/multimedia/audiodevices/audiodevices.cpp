@@ -70,7 +70,6 @@ void AudioTest::init()
     }
 #endif
     m_devices->videoInputs();
-    qDebug() << "<<<<<<<<<<<<<<<<<<";
     QMediaFormat().supportedFileFormats(QMediaFormat::Encode);
     connect(testButton, &QPushButton::clicked, this, &AudioTest::test);
     connect(modeBox, QOverload<int>::of(&QComboBox::activated), this, &AudioTest::modeChanged);
@@ -172,19 +171,19 @@ void AudioTest::populateTable()
         allFormatsTable->setRowCount(row + 1);
 
         QTableWidgetItem *sampleTypeItem = new QTableWidgetItem(toString(sampleFormat));
-        allFormatsTable->setItem(row, 2, sampleTypeItem);
+        allFormatsTable->setItem(row, 0, sampleTypeItem);
 
         QTableWidgetItem *sampleRateItem =
                 new QTableWidgetItem(QStringLiteral("%1 - %2")
                                              .arg(m_deviceInfo.minimumSampleRate())
                                              .arg(m_deviceInfo.maximumSampleRate()));
-        allFormatsTable->setItem(row, 0, sampleRateItem);
+        allFormatsTable->setItem(row, 1, sampleRateItem);
 
         QTableWidgetItem *channelsItem =
                 new QTableWidgetItem(QStringLiteral("%1 - %2")
                                              .arg(m_deviceInfo.minimumChannelCount())
                                              .arg(m_deviceInfo.maximumChannelCount()));
-        allFormatsTable->setItem(row, 1, channelsItem);
+        allFormatsTable->setItem(row, 2, channelsItem);
 
         ++row;
     }
