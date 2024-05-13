@@ -95,17 +95,12 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     connect(m_recordingEngine.get(), &QFFmpeg::RecordingEngine::streamInitializationError, this,
             handleStreamInitializationError);
 
-    if (auto audioInput = m_session->audioInput())
-        m_recordingEngine->addAudioInput(static_cast<QFFmpegAudioInput *>(audioInput));
-
-    for (auto source : videoSources)
-        m_recordingEngine->addVideoSource(source);
-
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);
     actualLocationChanged(QUrl::fromLocalFile(actualLocation));
 
-    m_recordingEngine->start();
+    m_recordingEngine->initialize(static_cast<QFFmpegAudioInput *>(m_session->audioInput()),
+                                  videoSources);
 }
 
 void QFFmpegMediaRecorder::pause()
