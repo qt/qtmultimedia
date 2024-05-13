@@ -666,7 +666,7 @@ void QGstreamerMediaPlayer::connectOutput(TrackSelector &ts)
         qCDebug(qLcMediaPlayer) << "connecting output for track type" << ts.type;
         playerPipeline.add(e);
         qLinkGstElements(ts.selector, e);
-        e.setState(GST_STATE_PAUSED);
+        e.syncStateWithParent();
     }
 
     ts.isConnected = true;
