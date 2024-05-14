@@ -72,6 +72,7 @@ public:
     void setActiveTrack(TrackType, int /*streamNumber*/) override;
 
     void setPosition(qint64 pos) override;
+    void setPosition(std::chrono::milliseconds pos);
 
     void play() override;
     void pause() override;
@@ -153,7 +154,7 @@ private:
     bool m_requiresSeekOnPlay = false;
     bool m_initialBufferProgressSent = false;
     ResourceErrorState m_resourceErrorState = ResourceErrorState::NoError;
-    qint64 m_duration = 0;
+    std::chrono::milliseconds m_duration{};
     QTimer positionUpdateTimer;
 
     QGstAppSource *m_appSrc = nullptr;

@@ -788,6 +788,7 @@ void tst_QAudioDecoderBackend::invalidSource()
 
 void tst_QAudioDecoderBackend::deviceTest()
 {
+    using namespace std::chrono;
     CHECK_SELECTED_URL(m_wavFile);
 
     QAudioDecoder d;
@@ -853,7 +854,13 @@ void tst_QAudioDecoderBackend::deviceTest()
         buffer = d.read();
         QVERIFY(buffer.isValid());
         QTRY_VERIFY(!positionSpy.isEmpty());
-        QVERIFY(positionSpy.takeLast().at(0).toLongLong() == qint64(duration / 1000));
+        if (isGStreamerPlatform())
+            QCOMPARE_EQ(positionSpy.takeLast().at(0).toLongLong(),
+                        round<milliseconds>(microseconds{ duration }).count());
+        else
+            QCOMPARE_EQ(positionSpy.takeLast().at(0).toLongLong(),
+                        floor<milliseconds>(microseconds{ duration }).count());
+
         QVERIFY(d.position() - (duration / 1000) < 20);
 
         duration += buffer.duration();

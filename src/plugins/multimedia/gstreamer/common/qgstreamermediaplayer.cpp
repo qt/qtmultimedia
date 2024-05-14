@@ -163,12 +163,12 @@ qint64 QGstreamerMediaPlayer::position() const
     if (playerPipeline.isNull() || m_url.isEmpty())
         return 0;
 
-    return playerPipeline.position()/1e6;
+    return playerPipeline.positionInMs().count();
 }
 
 qint64 QGstreamerMediaPlayer::duration() const
 {
-    return m_duration;
+    return m_duration.count();
 }
 
 float QGstreamerMediaPlayer::bufferProgress() const
@@ -195,12 +195,17 @@ void QGstreamerMediaPlayer::setPlaybackRate(qreal rate)
 
 void QGstreamerMediaPlayer::setPosition(qint64 pos)
 {
-    qint64 currentPos = playerPipeline.position()/1e6;
-    if (pos == currentPos)
+    std::chrono::milliseconds posInMs{ pos };
+    setPosition(posInMs);
+}
+
+void QGstreamerMediaPlayer::setPosition(std::chrono::milliseconds pos)
+{
+    if (pos == playerPipeline.position())
         return;
     playerPipeline.finishStateChange();
-    playerPipeline.setPosition(pos*1e6);
-    qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << pos << playerPipeline.position()/1e6;
+    playerPipeline.setPosition(pos);
+    qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << pos << playerPipeline.positionInMs();
     if (mediaStatus() == QMediaPlayer::EndOfMedia)
         mediaStatusChanged(QMediaPlayer::LoadedMedia);
     positionChanged(pos);
@@ -216,7 +221,7 @@ void QGstreamerMediaPlayer::play()
 
     playerPipeline.setInStoppedState(false);
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
-        playerPipeline.setPosition(0);
+        playerPipeline.setPosition({});
         updatePosition();
     }
 
@@ -250,7 +255,7 @@ void QGstreamerMediaPlayer::pause()
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
-        playerPipeline.setPosition(0);
+        playerPipeline.setPosition({});
     }
     updatePosition();
     emit stateChanged(QMediaPlayer::PausedState);
@@ -265,10 +270,11 @@ void QGstreamerMediaPlayer::pause()
 
 void QGstreamerMediaPlayer::stop()
 {
+    using namespace std::chrono_literals;
     if (state() == QMediaPlayer::StoppedState) {
         if (position() != 0) {
-            playerPipeline.setPosition(0);
-            positionChanged(0);
+            playerPipeline.setPosition({});
+            positionChanged(0ms);
             mediaStatusChanged(QMediaPlayer::LoadedMedia);
         }
         return;
@@ -283,14 +289,16 @@ const QGstPipeline &QGstreamerMediaPlayer::pipeline() const
 
 void QGstreamerMediaPlayer::stopOrEOS(bool eos)
 {
+    using namespace std::chrono_literals;
+
     positionUpdateTimer.stop();
     playerPipeline.setInStoppedState(true);
     bool ret = playerPipeline.setStateSync(GST_STATE_PAUSED);
     if (!ret)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the stopped state.";
     if (!eos) {
-        playerPipeline.setPosition(0);
-        positionChanged(0);
+        playerPipeline.setPosition(0ms);
+        positionChanged(0ms);
     }
     emit stateChanged(QMediaPlayer::StoppedState);
     if (eos)
@@ -343,17 +351,16 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         break;
     }
     case GST_MESSAGE_DURATION_CHANGED: {
-        qint64 d = playerPipeline.duration()/1e6;
+        std::chrono::milliseconds d = playerPipeline.durationInMs();
         qCDebug(qLcMediaPlayer) << "    duration changed message" << d;
         if (d != m_duration) {
             m_duration = d;
-            emit durationChanged(duration());
+            emit durationChanged(m_duration);
         }
         return false;
     }
     case GST_MESSAGE_EOS: {
-        qint64 duration = playerPipeline.duration() / 1e6;
-        positionChanged(duration);
+        positionChanged(playerPipeline.durationInMs());
         if (doLoop()) {
             setPosition(0);
             break;
@@ -411,11 +418,11 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 GST_DEBUG_BIN_TO_DOT_FILE(playerPipeline.bin(), GST_DEBUG_GRAPH_SHOW_ALL,
                                           "playerPipeline");
 
-                qint64 d = playerPipeline.duration() / 1e6;
+                std::chrono::milliseconds d = playerPipeline.durationInMs();
                 if (d != m_duration) {
                     m_duration = d;
                     qCDebug(qLcMediaPlayer) << "    duration changed" << d;
-                    emit durationChanged(duration());
+                    emit durationChanged(d);
                 }
 
                 parseStreamsAndMetadata();
@@ -497,7 +504,9 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         QGstStructure structure(gst_message_get_structure(gm));
         auto p = structure["position"].toInt64();
         if (p) {
-            qint64 position = (*p)/1000000;
+            std::chrono::milliseconds position{
+                (*p) / 1000000,
+            };
             emit positionChanged(position);
         }
         break;
@@ -825,6 +834,8 @@ void QGstreamerMediaPlayer::decodebinElementRemovedCallback(GstBin * /*decodebin
 
 void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 {
+    using namespace std::chrono_literals;
+
     qCDebug(qLcMediaPlayer) << Q_FUNC_INFO << "setting location to" << content;
 
     prerolling = true;
@@ -843,13 +854,13 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     seekableChanged(false);
     Q_ASSERT(playerPipeline.inStoppedState());
 
-    if (m_duration != 0) {
-        m_duration = 0;
-        durationChanged(0);
+    if (m_duration != 0ms) {
+        m_duration = 0ms;
+        durationChanged(0ms);
     }
     stateChanged(QMediaPlayer::StoppedState);
     if (position() != 0)
-        positionChanged(0);
+        positionChanged(0ms);
     if (!m_metaData.isEmpty()) {
         m_metaData.clear();
         metaDataChanged();
@@ -938,8 +949,8 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         return;
     }
 
-    playerPipeline.setPosition(0);
-    positionChanged(0);
+    playerPipeline.setPosition(0ms);
+    positionChanged(0ms);
 }
 
 void QGstreamerMediaPlayer::setAudioOutput(QPlatformAudioOutput *output)

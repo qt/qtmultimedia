@@ -96,14 +96,16 @@ public:
 
     void flush();
 
-    bool seek(qint64 pos, double rate);
+    bool seek(std::chrono::nanoseconds pos, double rate);
     bool setPlaybackRate(double rate, bool applyToPipeline = true);
     double playbackRate() const;
 
-    bool setPosition(qint64 pos);
-    qint64 position() const;
+    bool setPosition(std::chrono::nanoseconds pos);
+    std::chrono::nanoseconds position() const;
+    std::chrono::milliseconds positionInMs() const;
 
-    qint64 duration() const;
+    std::chrono::nanoseconds duration() const;
+    std::chrono::milliseconds durationInMs() const;
 
 private:
     QGstPipelinePrivate *getPrivate() const;
