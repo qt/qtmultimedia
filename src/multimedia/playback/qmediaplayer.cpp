@@ -596,6 +596,12 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
     It does not wait for the media to finish loading and does not check for errors. Listen for
     the mediaStatusChanged() and error() signals to be notified when the media is loaded and
     when an error occurs during loading.
+
+    \note FFmpeg, used by the FFmpeg media backend, restricts use of nested protocols for
+    security reasons. In controlled environments where all inputs are trusted, the list of
+    approved protocols can be overridden using the QT_FFMPEG_PROTOCOL_WHITELIST environment
+    variable. This environment variable is Qt's private API and can change between patch
+    releases without notice.
 */
 
 void QMediaPlayer::setSource(const QUrl &source)
