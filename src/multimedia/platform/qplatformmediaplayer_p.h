@@ -76,7 +76,9 @@ public:
     virtual int activeTrack(TrackType) { return -1; }
     virtual void setActiveTrack(TrackType, int /*streamNumber*/) {}
 
+    void durationChanged(std::chrono::milliseconds ms) { durationChanged(ms.count()); }
     void durationChanged(qint64 duration) { emit player->durationChanged(duration); }
+    void positionChanged(std::chrono::milliseconds ms) { positionChanged(ms.count()); }
     void positionChanged(qint64 position) {
         if (m_position == position)
             return;

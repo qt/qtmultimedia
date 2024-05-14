@@ -25,7 +25,7 @@ public:
     QList<QGstreamerSyncMessageFilter*> syncFilters;
     QList<QGstreamerBusMessageFilter*> busFilters;
     bool inStoppedState = true;
-    mutable qint64 m_position = 0;
+    mutable std::chrono::nanoseconds m_position{};
     double m_rate = 1.;
     bool m_flushOnConfigChanges = false;
     bool m_pendingFlush = false;
@@ -318,18 +318,18 @@ void QGstPipeline::flush()
     seek(position(), d->m_rate);
 }
 
-bool QGstPipeline::seek(qint64 pos, double rate)
+bool QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
 {
+    using namespace std::chrono_literals;
+
     QGstPipelinePrivate *d = getPrivate();
     // always adjust the rate, so it can be  set before playback starts
     // setting position needs a loaded media file that's seekable
     d->m_rate = rate;
-    qint64 from = rate > 0 ? pos : 0;
-    qint64 to = rate > 0 ? duration() : pos;
-    bool success = gst_element_seek(element(), rate, GST_FORMAT_TIME,
-                                    GstSeekFlags(GST_SEEK_FLAG_FLUSH),
-                                    GST_SEEK_TYPE_SET, from,
-                                    GST_SEEK_TYPE_SET, to);
+    std::chrono::nanoseconds from = rate > 0 ? pos : 0ns;
+    std::chrono::nanoseconds to = rate > 0 ? duration() : pos;
+    bool success = gst_element_seek(element(), rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
+                                    GST_SEEK_TYPE_SET, from.count(), GST_SEEK_TYPE_SET, to.count());
     if (!success)
         return false;
 
@@ -369,27 +369,39 @@ double QGstPipeline::playbackRate() const
     return d->m_rate;
 }
 
-bool QGstPipeline::setPosition(qint64 pos)
+bool QGstPipeline::setPosition(std::chrono::nanoseconds pos)
 {
     QGstPipelinePrivate *d = getPrivate();
     return seek(pos, d->m_rate);
 }
 
-qint64 QGstPipeline::position() const
+std::chrono::nanoseconds QGstPipeline::position() const
 {
     gint64 pos;
     QGstPipelinePrivate *d = getPrivate();
     if (gst_element_query_position(element(), GST_FORMAT_TIME, &pos))
-        d->m_position = pos;
+        d->m_position = std::chrono::nanoseconds{ pos };
     return d->m_position;
 }
 
-qint64 QGstPipeline::duration() const
+std::chrono::milliseconds QGstPipeline::positionInMs() const
+{
+    using namespace std::chrono;
+    return round<milliseconds>(position());
+}
+
+std::chrono::nanoseconds QGstPipeline::duration() const
 {
     gint64 d;
     if (!gst_element_query_duration(element(), GST_FORMAT_TIME, &d))
-        return 0.;
-    return d;
+        return {};
+    return std::chrono::nanoseconds{ d };
+}
+
+std::chrono::milliseconds QGstPipeline::durationInMs() const
+{
+    using namespace std::chrono;
+    return round<milliseconds>(duration());
 }
 
 QGstPipelinePrivate *QGstPipeline::getPrivate() const
