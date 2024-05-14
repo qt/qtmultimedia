@@ -347,6 +347,8 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
     }
     case GST_MESSAGE_EOS:
         if (doLoop()) {
+            qint64 duration = playerPipeline.duration() / 1e6;
+            positionChanged(duration);
             setPosition(0);
             break;
         }
