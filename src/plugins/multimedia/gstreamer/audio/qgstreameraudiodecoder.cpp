@@ -334,14 +334,14 @@ void QGstreamerAudioDecoder::stop()
         bufferAvailableChanged(false);
     }
 
-    if (m_position != -1) {
-        m_position = -1;
-        positionChanged(m_position);
+    if (m_position != invalidPosition) {
+        m_position = invalidPosition;
+        positionChanged(m_position.count());
     }
 
-    if (m_duration != -1) {
-        m_duration = -1;
-        durationChanged(m_duration);
+    if (m_duration != invalidDuration) {
+        m_duration = invalidDuration;
+        durationChanged(m_duration.count());
     }
 
     setIsDecoding(false);
@@ -362,6 +362,8 @@ void QGstreamerAudioDecoder::setAudioFormat(const QAudioFormat &format)
 
 QAudioBuffer QGstreamerAudioDecoder::read()
 {
+    using namespace std::chrono;
+
     QAudioBuffer audioBuffer;
 
     if (m_buffersAvailable == 0)
@@ -383,12 +385,16 @@ QAudioBuffer QGstreamerAudioDecoder::read()
     if (format.isValid()) {
         // XXX At the moment we have to copy data from GstBuffer into QAudioBuffer.
         // We could improve performance by implementing QAbstractAudioBuffer for GstBuffer.
-        qint64 position = getPositionFromBuffer(buffer);
-        audioBuffer = QAudioBuffer(QByteArray(bufferData, bufferSize), format, position);
-        position /= 1000; // convert to milliseconds
+        nanoseconds position = getPositionFromBuffer(buffer);
+        audioBuffer = QAudioBuffer{
+            QByteArray(bufferData, bufferSize),
+            format,
+            round<microseconds>(position).count(),
+        };
+        milliseconds positionInMs = round<milliseconds>(position);
         if (position != m_position) {
-            m_position = position;
-            positionChanged(m_position);
+            m_position = positionInMs;
+            positionChanged(m_position.count());
         }
     }
     gst_buffer_unmap(buffer, &mapInfo);
@@ -398,12 +404,12 @@ QAudioBuffer QGstreamerAudioDecoder::read()
 
 qint64 QGstreamerAudioDecoder::position() const
 {
-    return m_position;
+    return m_position.count();
 }
 
 qint64 QGstreamerAudioDecoder::duration() const
 {
-     return m_duration;
+    return m_duration.count();
 }
 
 void QGstreamerAudioDecoder::processInvalidMedia(QAudioDecoder::Error errorCode, const QString& errorString)
@@ -494,14 +500,14 @@ void QGstreamerAudioDecoder::removeAppSink()
 
 void QGstreamerAudioDecoder::updateDuration()
 {
-    int duration = m_playbin.duration() / 1000000;
+    std::chrono::milliseconds duration = m_playbin.durationInMs();
 
     if (m_duration != duration) {
         m_duration = duration;
-        durationChanged(m_duration);
+        durationChanged(m_duration.count());
     }
 
-    if (m_duration > 0)
+    if (m_duration.count() > 0)
         m_durationQueries = 0;
 
     if (m_durationQueries > 0) {
@@ -512,14 +518,15 @@ void QGstreamerAudioDecoder::updateDuration()
     }
 }
 
-qint64 QGstreamerAudioDecoder::getPositionFromBuffer(GstBuffer* buffer)
+std::chrono::nanoseconds QGstreamerAudioDecoder::getPositionFromBuffer(GstBuffer *buffer)
 {
-    qint64 position = GST_BUFFER_TIMESTAMP(buffer);
-    if (position >= 0)
-        position = position / G_GINT64_CONSTANT(1000); // microseconds
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+    nanoseconds position{ GST_BUFFER_TIMESTAMP(buffer) };
+    if (position >= 0ns)
+        return position;
     else
-        position = -1;
-    return position;
+        return invalidPosition;
 }
 
 QT_END_NAMESPACE

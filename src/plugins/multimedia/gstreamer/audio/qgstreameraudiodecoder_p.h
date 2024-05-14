@@ -85,7 +85,7 @@ private:
     bool handlePlaybinMessage(const QGstreamerMessage &);
 
     void processInvalidMedia(QAudioDecoder::Error errorCode, const QString &errorString);
-    static qint64 getPositionFromBuffer(GstBuffer* buffer);
+    static std::chrono::nanoseconds getPositionFromBuffer(GstBuffer *buffer);
 
     QGstPipeline m_playbin;
     QGstBin m_outputBin;
@@ -98,8 +98,11 @@ private:
     QAudioFormat mFormat;
 
     int m_buffersAvailable = 0;
-    qint64 m_position = -1;
-    qint64 m_duration = -1;
+
+    static constexpr auto invalidDuration = std::chrono::milliseconds::max();
+    static constexpr auto invalidPosition = std::chrono::milliseconds::max();
+    std::chrono::milliseconds m_position{ invalidPosition };
+    std::chrono::milliseconds m_duration{ invalidDuration };
 
     int m_durationQueries = 0;
 
