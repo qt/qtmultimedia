@@ -14,7 +14,13 @@
 // <y> = 100 * VA-API minor version + VA-API micro version
 CHECK_VERSIONS("va", VA_NEEDED_SOVERSION, VA_MAJOR_VERSION + 1);
 
-BEGIN_INIT_FUNCS("va", VA_NEEDED_SOVERSION)
+#ifdef Q_FFMPEG_PLUGIN_STUBS_ONLY
+constexpr const char *loggingName = "va(in plugin)";
+#else
+constexpr const char *loggingName = nullptr;
+#endif
+
+BEGIN_INIT_FUNCS("va", VA_NEEDED_SOVERSION, loggingName)
 
 
 INIT_FUNC(vaExportSurfaceHandle);

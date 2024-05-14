@@ -79,9 +79,10 @@ public:
 
     ~SymbolsResolver();
 protected:
-    SymbolsResolver(const char *libName, LibraryLoader loader);
+    SymbolsResolver(const char *libLoggingName, LibraryLoader loader);
 
-    SymbolsResolver(const char *libName, const char *version = "");
+    SymbolsResolver(const char *libName, const char *version = "",
+                    const char *libLoggingName = nullptr);
 
     QFunctionPointer initFunction(const char *name);
 
@@ -89,7 +90,7 @@ protected:
     void checkLibrariesLoaded(SymbolsMarker *begin, SymbolsMarker *end);
 
 private:
-    const char *m_libName;
+    const char *m_libLoggingName;
     std::unique_ptr<QLibrary> m_library;
 };
 

@@ -18,19 +18,22 @@ bool SymbolsResolver::isLazyLoadEnabled()
     return lazyLoad;
 }
 
-SymbolsResolver::SymbolsResolver(const char *libName, LibraryLoader loader) : m_libName(libName)
+SymbolsResolver::SymbolsResolver(const char *libLoggingName, LibraryLoader loader)
+    : m_libLoggingName(libLoggingName)
 {
-    Q_ASSERT(libName);
+    Q_ASSERT(libLoggingName);
     Q_ASSERT(loader);
 
     auto library = loader();
     if (library && library->isLoaded())
         m_library = std::move(library);
     else
-        qCWarning(qLcSymbolsResolver) << "Couldn't load" << m_libName << "library";
+        qCWarning(qLcSymbolsResolver) << "Couldn't load" << m_libLoggingName << "library";
 }
 
-SymbolsResolver::SymbolsResolver(const char *libName, const char *version) : m_libName(libName)
+SymbolsResolver::SymbolsResolver(const char *libName, const char *version,
+                                 const char *libLoggingName)
+    : m_libLoggingName(libLoggingName ? libLoggingName : libName)
 {
     Q_ASSERT(libName);
     Q_ASSERT(version);
@@ -40,7 +43,7 @@ SymbolsResolver::SymbolsResolver(const char *libName, const char *version) : m_l
     if (library->load())
         m_library = std::move(library);
     else
-        qCWarning(qLcSymbolsResolver) << "Couldn't load" << m_libName << "library";
+        qCWarning(qLcSymbolsResolver) << "Couldn't load" << m_libLoggingName << "library";
 }
 
 SymbolsResolver::~SymbolsResolver()
@@ -56,7 +59,7 @@ QFunctionPointer SymbolsResolver::initFunction(const char *funcName)
     if (auto func = m_library->resolve(funcName))
         return func;
 
-    qCWarning(qLcSymbolsResolver) << "Couldn't resolve" << m_libName << "symbol" << funcName;
+    qCWarning(qLcSymbolsResolver) << "Couldn't resolve" << m_libLoggingName << "symbol" << funcName;
     m_library->unload();
     m_library.reset();
     return nullptr;
@@ -65,11 +68,11 @@ QFunctionPointer SymbolsResolver::initFunction(const char *funcName)
 void SymbolsResolver::checkLibrariesLoaded(SymbolsMarker *begin, SymbolsMarker *end)
 {
     if (m_library) {
-        qCDebug(qLcSymbolsResolver) << m_libName << "symbols resolved";
+        qCDebug(qLcSymbolsResolver) << m_libLoggingName << "symbols resolved";
     } else {
         const auto size = reinterpret_cast<char *>(end) - reinterpret_cast<char *>(begin);
         memset(begin, 0, size);
-        qCWarning(qLcSymbolsResolver) << "Couldn't resolve" << m_libName << "symbols";
+        qCWarning(qLcSymbolsResolver) << "Couldn't resolve" << m_libLoggingName << "symbols";
     }
 }
 
