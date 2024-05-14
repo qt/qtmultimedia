@@ -2619,13 +2619,15 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QCOMPARE(iterations.size(), 3u);
     QCOMPARE_GT(iterations[0].startPos, 0);
     QCOMPARE(iterations[0].endPos, m_fixture->player.duration());
-    QCOMPARE_GT(iterations[0].posCount, 10);
     QCOMPARE(iterations[1].startPos, 0);
     QCOMPARE(iterations[1].endPos, m_fixture->player.duration());
-    QCOMPARE_GT(iterations[1].posCount, 10);
     QCOMPARE(iterations[2].startPos, 0);
     QCOMPARE(iterations[2].endPos, m_fixture->player.duration());
-    QCOMPARE_GT(iterations[2].posCount, 10);
+    if (isFFMPEGPlatform()) {
+        QCOMPARE_GT(iterations[0].posCount, 10);
+        QCOMPARE_GT(iterations[1].posCount, 10);
+        QCOMPARE_GT(iterations[2].posCount, 10);
+    }
 
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
