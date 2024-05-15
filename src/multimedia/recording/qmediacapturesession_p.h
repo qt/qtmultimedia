@@ -18,14 +18,16 @@
 #include <QtMultimedia/qmediacapturesession.h>
 
 #include <QtCore/qpointer.h>
+#include <QtCore/private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QMediaCaptureSessionPrivate
+class QMediaCaptureSessionPrivate : public QObjectPrivate
 {
 public:
-    QMediaCaptureSession *q = nullptr;
-    QPlatformMediaCaptureSession *captureSession = nullptr;
+    Q_DECLARE_PUBLIC(QMediaCaptureSession)
+
+    std::unique_ptr<QPlatformMediaCaptureSession> captureSession;
     QAudioInput *audioInput = nullptr;
     QAudioOutput *audioOutput = nullptr;
     QPointer<QCamera> camera;
