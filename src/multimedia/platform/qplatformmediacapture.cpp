@@ -32,15 +32,6 @@ std::vector<QPlatformVideoSource *> QPlatformMediaCaptureSession::activeVideoSou
     return result;
 }
 
-void *QPlatformMediaCaptureSession::nativePipeline(QMediaCaptureSession *session)
-{
-    auto sessionPrivate = session->d_func();
-    if (!sessionPrivate || !sessionPrivate->captureSession)
-        return nullptr;
-
-    return sessionPrivate->captureSession->nativePipeline();
-}
-
 QT_END_NAMESPACE
 
 #include "moc_qplatformmediacapture_p.cpp"

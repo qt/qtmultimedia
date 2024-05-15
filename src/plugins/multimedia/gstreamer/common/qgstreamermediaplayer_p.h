@@ -78,7 +78,7 @@ public:
     void pause() override;
     void stop() override;
 
-    void *nativePipeline() override;
+    const QGstPipeline &pipeline() const;
 
     bool processBusMessage(const QGstreamerMessage& message) override;
     bool processSyncMessage(const QGstreamerMessage& message) override;

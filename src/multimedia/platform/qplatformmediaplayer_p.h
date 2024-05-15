@@ -126,11 +126,6 @@ public:
         Q_EMIT player->loopsChanged();
     }
 
-    virtual void *nativePipeline() { return nullptr; }
-
-    // private API, the purpose is getting GstPipeline
-    static void *nativePipeline(QMediaPlayer *player);
-
 protected:
     explicit QPlatformMediaPlayer(QMediaPlayer *parent = nullptr);
 

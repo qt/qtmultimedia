@@ -38,7 +38,7 @@ private slots:
 private:
     std::unique_ptr<QMediaCaptureSession> session;
 
-    QGStreamerPlatformSpecificInterface *gstInferface()
+    static QGStreamerPlatformSpecificInterface *gstInterface()
     {
         return dynamic_cast<QGStreamerPlatformSpecificInterface *>(
                 QPlatformMediaIntegration::instance()->platformSpecificInterface());
@@ -46,8 +46,8 @@ private:
 
     GstPipeline *getGstPipeline()
     {
-        return reinterpret_cast<GstPipeline *>(
-                QPlatformMediaCaptureSession::nativePipeline(session.get()));
+        QGStreamerPlatformSpecificInterface *iface = gstInterface();
+        return iface ? iface->gstPipeline(session.get()) : nullptr;
     }
 
     QGstPipeline getPipeline()
@@ -83,7 +83,7 @@ void tst_QMediaCaptureGStreamer::cleanup()
 
 void tst_QMediaCaptureGStreamer::mediaIntegration_hasPlatformSpecificInterface()
 {
-    QVERIFY(gstInferface());
+    QVERIFY(gstInterface());
 }
 
 void tst_QMediaCaptureGStreamer::constructor_preparesGstPipeline()
@@ -106,7 +106,7 @@ void tst_QMediaCaptureGStreamer::audioInput_makeCustomGStreamerAudioInput_fromPi
             "audiotestsrc wave=2 freq=200 name=myOscillator ! identity name=myConverter"_ba;
 
     QAudioInput input{
-        gstInferface()->makeCustomGStreamerAudioInput(pipelineString),
+        gstInterface()->makeCustomGStreamerAudioInput(pipelineString),
     };
 
     session->setAudioInput(&input);
@@ -128,13 +128,13 @@ void tst_QMediaCaptureGStreamer::
     auto pipelineStringInput =
             "audiotestsrc wave=2 freq=200 name=myOscillator ! identity name=myConverter"_ba;
     QAudioInput input{
-        gstInferface()->makeCustomGStreamerAudioInput(pipelineStringInput),
+        gstInterface()->makeCustomGStreamerAudioInput(pipelineStringInput),
     };
     session->setAudioInput(&input);
 
     auto pipelineStringOutput = "identity name=myConverter ! fakesink name=mySink"_ba;
     QAudioOutput output{
-        gstInferface()->makeCustomGStreamerAudioOutput(pipelineStringOutput),
+        gstInterface()->makeCustomGStreamerAudioOutput(pipelineStringOutput),
     };
     session->setAudioOutput(&output);
 

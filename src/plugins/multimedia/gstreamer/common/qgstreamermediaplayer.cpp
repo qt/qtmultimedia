@@ -286,9 +286,9 @@ void QGstreamerMediaPlayer::stop()
     stopOrEOS(false);
 }
 
-void *QGstreamerMediaPlayer::nativePipeline()
+const QGstPipeline &QGstreamerMediaPlayer::pipeline() const
 {
-    return playerPipeline.pipeline();
+    return playerPipeline;
 }
 
 void QGstreamerMediaPlayer::stopOrEOS(bool eos)

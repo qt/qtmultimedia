@@ -71,11 +71,6 @@ public:
     // TBD: implement ordering of the sources basing on the order of adding
     std::vector<QPlatformVideoSource *> activeVideoSources();
 
-    virtual void *nativePipeline() { return nullptr; }
-
-    // private API, the purpose is getting GstPipeline
-    static void *nativePipeline(QMediaCaptureSession *);
-
 Q_SIGNALS:
     void cameraChanged();
     void screenCaptureChanged();

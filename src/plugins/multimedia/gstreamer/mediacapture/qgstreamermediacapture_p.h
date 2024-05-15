@@ -59,11 +59,9 @@ public:
     void linkEncoder(QGstPad audioSink, QGstPad videoSink);
     void unlinkEncoder();
 
-    const QGstPipeline &pipeline() const { return capturePipeline; }
+    const QGstPipeline &pipeline() const;
 
     QGstreamerVideoSink *gstreamerVideoSink() const;
-
-    void *nativePipeline() override;
 
 private:
     void setCameraActive(bool activate);
