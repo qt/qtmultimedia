@@ -283,9 +283,10 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
     bool ret = playerPipeline.setStateSync(GST_STATE_PAUSED);
     if (!ret)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the stopped state.";
-    if (!eos)
+    if (!eos) {
         playerPipeline.setPosition(0);
-    updatePosition();
+        positionChanged(0);
+    }
     emit stateChanged(QMediaPlayer::StoppedState);
     if (eos)
         mediaStatusChanged(QMediaPlayer::EndOfMedia);
@@ -345,15 +346,16 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         }
         return false;
     }
-    case GST_MESSAGE_EOS:
+    case GST_MESSAGE_EOS: {
+        qint64 duration = playerPipeline.duration() / 1e6;
+        positionChanged(duration);
         if (doLoop()) {
-            qint64 duration = playerPipeline.duration() / 1e6;
-            positionChanged(duration);
             setPosition(0);
             break;
         }
         stopOrEOS(true);
         break;
+    }
     case GST_MESSAGE_BUFFERING: {
         int progress = 0;
         gst_message_parse_buffering(gm, &progress);
