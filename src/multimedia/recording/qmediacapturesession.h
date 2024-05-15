@@ -80,7 +80,9 @@ Q_SIGNALS:
 private:
     friend class QPlatformMediaCaptureSession;
 
-    QMediaCaptureSessionPrivate *d_ptr;
+    // ### Qt7: remove unused member
+    QT6_ONLY(void *unused = nullptr;) // for ABI compatibility
+
     Q_DISABLE_COPY(QMediaCaptureSession)
     Q_DECLARE_PRIVATE(QMediaCaptureSession)
 };
