@@ -48,25 +48,30 @@ bool VideoEncoder::isValid() const
 
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
-    QMutexLocker locker = lockLoopData();
+    {
+        auto guard = lockLoopData();
 
-    // Drop frames if encoder can not keep up with the video source data rate
-    const bool queueFull = m_videoFrameQueue.size() >= m_maxQueueSize;
+        if (m_paused)
+            return;
 
-    if (queueFull) {
-        qCDebug(qLcFFmpegVideoEncoder) << "RecordingEngine frame queue full. Frame lost.";
-    } else if (!m_paused.loadRelaxed()) {
+        // Drop frames if encoder can not keep up with the video source data rate;
+        // canPushFrame might be used instead
+        const bool queueFull = m_videoFrameQueue.size() >= m_maxQueueSize;
+
+        if (queueFull) {
+            qCDebug(qLcFFmpegVideoEncoder) << "RecordingEngine frame queue full. Frame lost.";
+            return;
+        }
+
         m_videoFrameQueue.push(frame);
-
-        locker.unlock(); // Avoid context switch on wake wake-up
-
-        dataReady();
     }
+
+    dataReady();
 }
 
 QVideoFrame VideoEncoder::takeFrame()
 {
-    QMutexLocker locker = lockLoopData();
+    auto guard = lockLoopData();
     return dequeueIfPossible(m_videoFrameQueue);
 }
 
@@ -185,6 +190,16 @@ void VideoEncoder::processOne()
         qCDebug(qLcFFmpegVideoEncoder) << "error sending frame" << ret << err2str(ret);
         emit m_recordingEngine.sessionError(QMediaRecorder::ResourceError, err2str(ret));
     }
+}
+
+bool VideoEncoder::checkIfCanPushFrame() const
+{
+    if (isRunning())
+        return m_videoFrameQueue.size() < m_maxQueueSize;
+    if (!isFinished())
+        return m_videoFrameQueue.empty();
+
+    return false;
 }
 
 } // namespace QFFmpeg

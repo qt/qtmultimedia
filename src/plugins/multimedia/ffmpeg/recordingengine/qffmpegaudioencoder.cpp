@@ -96,18 +96,28 @@ void AudioEncoder::open()
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 {
-    QMutexLocker locker = lockLoopData();
-    if (!m_paused.loadRelaxed()) {
+    {
+        const std::chrono::microseconds bufferDuration(buffer.duration());
+        auto guard = lockLoopData();
+
+        if (m_paused)
+            return;
+
+        // TODO: apply logic with canPushFrame
+
         m_audioBufferQueue.push(buffer);
-        locker.unlock();
-        dataReady();
+        m_queueDuration += bufferDuration;
     }
+
+    dataReady();
 }
 
 QAudioBuffer AudioEncoder::takeBuffer()
 {
-    QMutexLocker locker = lockLoopData();
-    return dequeueIfPossible(m_audioBufferQueue);
+    auto locker = lockLoopData();
+    QAudioBuffer result = dequeueIfPossible(m_audioBufferQueue);
+    m_queueDuration -= std::chrono::microseconds(result.duration());
+    return result;
 }
 
 void AudioEncoder::init()
@@ -213,6 +223,17 @@ void AudioEncoder::processOne()
         //        qCDebug(qLcFFmpegEncoder) << "error sending frame" << ret << errStr;
     }
 }
+
+bool AudioEncoder::checkIfCanPushFrame() const
+{
+    if (isRunning())
+        return m_audioBufferQueue.size() <= 1 || m_queueDuration < m_maxQueueDuration;
+    if (!isFinished())
+        return m_audioBufferQueue.empty();
+
+    return false;
+}
+
 
 
 } // namespace QFFmpeg

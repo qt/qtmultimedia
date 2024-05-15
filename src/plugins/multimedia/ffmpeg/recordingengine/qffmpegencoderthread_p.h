@@ -13,12 +13,33 @@ class RecordingEngine;
 
 class EncoderThread : public ConsumerThread
 {
+    Q_OBJECT
 public:
     EncoderThread(RecordingEngine &recordingEngine);
-    virtual void setPaused(bool b);
+    virtual void setPaused(bool paused);
+
+    bool canPushFrame() const { return m_canPushFrame.load(std::memory_order_relaxed); }
+protected:
+    void updateCanPushFrame();
+
+    virtual bool checkIfCanPushFrame() const = 0;
+
+    auto lockLoopData()
+    {
+        return QScopeGuard([this, locker = ConsumerThread::lockLoopData()]() mutable {
+            const bool canPush = !m_paused && checkIfCanPushFrame();
+            locker.unlock();
+            if (m_canPushFrame.exchange(canPush, std::memory_order_relaxed) != canPush)
+                emit canPushFrameChanged();
+        });
+    }
+
+Q_SIGNALS:
+    void canPushFrameChanged();
 
 protected:
-    QAtomicInteger<bool> m_paused = false;
+    bool m_paused = false;
+    std::atomic_bool m_canPushFrame = false;
     RecordingEngine &m_recordingEngine;
 };
 

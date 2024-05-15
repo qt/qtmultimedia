@@ -34,6 +34,9 @@ public:
             m_baseTime.storeRelease(-1);
     }
 
+protected:
+    bool checkIfCanPushFrame() const override;
+
 private:
     QVideoFrame takeFrame();
     void retrievePackets();

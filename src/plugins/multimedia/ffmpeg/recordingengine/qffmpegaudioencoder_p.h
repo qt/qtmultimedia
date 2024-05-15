@@ -8,6 +8,7 @@
 #include "private/qplatformmediarecorder_p.h"
 #include <qaudiobuffer.h>
 #include <queue>
+#include <chrono>
 
 QT_BEGIN_NAMESPACE
 
@@ -27,6 +28,9 @@ public:
 
     QFFmpegAudioInput *audioInput() const { return m_input; }
 
+protected:
+    bool checkIfCanPushFrame() const override;
+
 private:
     QAudioBuffer takeBuffer();
     void retrievePackets();
@@ -38,6 +42,11 @@ private:
 
 private:
     std::queue<QAudioBuffer> m_audioBufferQueue;
+
+    // Arbitrarily chosen to limit audio queue duration
+    const std::chrono::microseconds m_maxQueueDuration = std::chrono::seconds(5);
+
+    std::chrono::microseconds m_queueDuration{ 0 };
 
     AVStream *m_stream = nullptr;
     AVCodecContextUPtr m_codecContext;
