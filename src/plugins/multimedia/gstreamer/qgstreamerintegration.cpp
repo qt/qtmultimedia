@@ -36,37 +36,64 @@ QAudioDevice QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStrea
 
 Q_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")
 
+namespace {
+
+void rankDownPlugin(GstRegistry *reg, const char *name)
+{
+    QGstPluginFeatureHandle pluginFeature{
+        gst_registry_lookup_feature(reg, name),
+        QGstPluginFeatureHandle::HasRef,
+    };
+    if (pluginFeature)
+        gst_plugin_feature_set_rank(pluginFeature.get(), GST_RANK_PRIMARY - 1);
+}
+
+// https://gstreamer.freedesktop.org/documentation/vaapi/index.html
+constexpr auto vaapiPluginNames = {
+    "vaapidecodebin", "vaapih264dec", "vaapih264enc",  "vaapih265dec",
+    "vaapijpegdec",   "vaapijpegenc", "vaapimpeg2dec", "vaapipostproc",
+    "vaapisink",      "vaapivp8dec",  "vaapivp9dec",
+};
+
+// https://gstreamer.freedesktop.org/documentation/va/index.html
+constexpr auto vaPluginNames = {
+    "vaav1dec",  "vacompositor", "vadeinterlace", "vah264dec", "vah264enc", "vah265dec",
+    "vajpegdec", "vampeg2dec",   "vapostproc",    "vavp8dec",  "vavp9dec",
+};
+
+// https://gstreamer.freedesktop.org/documentation/nvcodec/index.html
+constexpr auto nvcodecPluginNames = {
+    "cudaconvert",     "cudaconvertscale", "cudadownload",     "cudaipcsink",      "cudaipcsrc",
+    "cudascale",       "cudaupload",       "nvautogpuh264enc", "nvautogpuh265enc", "nvav1dec",
+    "nvcudah264enc",   "nvcudah265enc",    "nvd3d11h264enc",   "nvd3d11h265enc",   "nvh264dec",
+    "nvh264enc",       "nvh265dec",        "nvh265enc",        "nvjpegdec",        "nvjpegenc",
+    "nvmpeg2videodec", "nvmpeg4videodec",  "nvmpegvideodec",   "nvvp8dec",         "nvvp9dec",
+};
+
+} // namespace
+
 QGstreamerIntegration::QGstreamerIntegration()
     : QPlatformMediaIntegration(QLatin1String("gstreamer"))
 {
     gst_init(nullptr, nullptr);
     qCDebug(lcGstreamer) << "Using gstreamer version: " << gst_version_string();
 
+    GstRegistry *reg = gst_registry_get();
+
     if constexpr (!GST_CHECK_VERSION(1, 22, 0)) {
         GstRegistry* reg = gst_registry_get();
-        const auto pluginNames = {
-            "vaapidecodebin",
-            "vaapih264dec",
-            "vaapih264enc",
-            "vaapih265dec",
-            "vaapijpegdec",
-            "vaapijpegenc",
-            "vaapimpeg2dec",
-            "vaapipostproc",
-            "vaapisink",
-            "vaapivp8dec",
-            "vaapivp9dec"
-        };
+        for (const char *name : vaapiPluginNames)
+            rankDownPlugin(reg, name);
+    }
 
-        for (auto name : pluginNames) {
-            QGstPluginFeatureHandle pluginFeature {
-                gst_registry_lookup_feature(reg, name),
-                QGstPluginFeatureHandle::HasRef,
-            };
-            if (pluginFeature) {
-                gst_plugin_feature_set_rank(pluginFeature.get(), GST_RANK_PRIMARY - 1);
-            }
-        }
+    if (qEnvironmentVariableIsSet("QT_GSTREAMER_DISABLE_VA")) {
+        for (const char *name : vaPluginNames)
+            rankDownPlugin(reg, name);
+    }
+
+    if (qEnvironmentVariableIsSet("QT_GSTREAMER_DISABLE_NVCODEC")) {
+        for (const char *name : nvcodecPluginNames)
+            rankDownPlugin(reg, name);
     }
 }
 
