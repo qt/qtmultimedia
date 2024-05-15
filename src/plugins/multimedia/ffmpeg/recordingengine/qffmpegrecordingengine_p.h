@@ -96,13 +96,15 @@ private:
 
     void start();
 
+    template <typename F, typename... Args>
+    void forEachEncoder(F &&f, Args &&...args);
 private:
     QMediaEncoderSettings m_settings;
     QMediaMetaData m_metaData;
     std::unique_ptr<EncodingFormatContext> m_formatContext;
     Muxer *m_muxer = nullptr;
 
-    AudioEncoder *m_audioEncoder = nullptr;
+    QList<AudioEncoder *> m_audioEncoders;
     QList<VideoEncoder *> m_videoEncoders;
     QList<QMetaObject::Connection> m_connections;
     std::unique_ptr<EncodingInitializer> m_initializer;

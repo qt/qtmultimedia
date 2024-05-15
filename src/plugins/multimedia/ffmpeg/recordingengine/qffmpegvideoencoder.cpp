@@ -85,6 +85,8 @@ void VideoEncoder::retrievePackets()
 
 void VideoEncoder::init()
 {
+    Q_ASSERT(isValid());
+
     qCDebug(qLcFFmpegVideoEncoder) << "VideoEncoder::init started video device thread.";
     bool ok = m_frameEncoder->open();
     if (!ok)

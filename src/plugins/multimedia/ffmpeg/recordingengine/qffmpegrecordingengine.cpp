@@ -52,8 +52,9 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
         return;
     }
 
-    m_audioEncoder = new AudioEncoder(*this, input, m_settings);
-    addMediaFrameHandler(input, &QFFmpegAudioInput::newAudioBuffer, m_audioEncoder,
+    auto audioEncoder = new AudioEncoder(*this, input, m_settings);
+    m_audioEncoders.push_back(audioEncoder);
+    addMediaFrameHandler(input, &QFFmpegAudioInput::newAudioBuffer, audioEncoder,
                          &AudioEncoder::addBuffer);
     input->setRunning(true);
 }
@@ -95,7 +96,7 @@ void RecordingEngine::start()
     Q_ASSERT(m_initializer);
     m_initializer.reset();
 
-    if (!m_audioEncoder && m_videoEncoders.empty()) {
+    if (m_audioEncoders.empty() && m_videoEncoders.empty()) {
         emit sessionError(QMediaRecorder::ResourceError,
                           QLatin1StringView("No valid stream found for encoding"));
         return;
@@ -120,11 +121,8 @@ void RecordingEngine::start()
     qCDebug(qLcFFmpegEncoder) << "stream header is successfully written";
 
     m_muxer->start();
-    if (m_audioEncoder)
-        m_audioEncoder->start();
-    for (auto *videoEncoder : m_videoEncoders)
-        if (videoEncoder->isValid())
-            videoEncoder->start();
+
+    forEachEncoder([](QThread *thread) { thread->start(); });
 }
 
 void RecordingEngine::initialize(QFFmpegAudioInput *audioInput,
@@ -144,11 +142,7 @@ RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recording
 
 void RecordingEngine::EncodingFinalizer::run()
 {
-    if (m_recordingEngine.m_audioEncoder)
-        m_recordingEngine.m_audioEncoder->stopAndDelete();
-    for (auto &videoEncoder : m_recordingEngine.m_videoEncoders)
-        videoEncoder->stopAndDelete();
-    m_recordingEngine.m_muxer->stopAndDelete();
+    m_recordingEngine.forEachEncoder(&EncoderThread::stopAndDelete);
 
     if (m_recordingEngine.m_isHeaderWritten) {
         const int res = av_write_trailer(m_recordingEngine.avFormatContext());
@@ -184,12 +178,9 @@ void RecordingEngine::finalize()
     finalizer->start();
 }
 
-void RecordingEngine::setPaused(bool p)
+void RecordingEngine::setPaused(bool paused)
 {
-    if (m_audioEncoder)
-        m_audioEncoder->setPaused(p);
-    for (auto &videoEncoder : m_videoEncoders)
-        videoEncoder->setPaused(p);
+    forEachEncoder(&EncoderThread::setPaused, paused);
 }
 
 void RecordingEngine::setMetaData(const QMediaMetaData &metaData)
@@ -211,6 +202,15 @@ void RecordingEngine::addMediaFrameHandler(Args &&...args)
 {
     auto connection = connect(std::forward<Args>(args)..., Qt::DirectConnection);
     m_connections.append(connection);
+}
+
+template <typename F, typename... Args>
+void RecordingEngine::forEachEncoder(F &&f, Args &&...args)
+{
+    for (AudioEncoder *audioEncoder : m_audioEncoders)
+        std::invoke(f, audioEncoder, args...);
+    for (VideoEncoder *videoEncoder : m_videoEncoders)
+        std::invoke(f, videoEncoder, args...);
 }
 }
 
