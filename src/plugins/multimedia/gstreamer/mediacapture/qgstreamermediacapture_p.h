@@ -59,7 +59,7 @@ public:
     void linkEncoder(QGstPad audioSink, QGstPad videoSink);
     void unlinkEncoder();
 
-    QGstPipeline pipeline() const { return gstPipeline; }
+    const QGstPipeline &pipeline() const { return capturePipeline; }
 
     QGstreamerVideoSink *gstreamerVideoSink() const;
 
@@ -72,7 +72,7 @@ private:
 
     friend QGstreamerMediaEncoder;
     // Gst elements
-    QGstPipeline gstPipeline;
+    QGstPipeline capturePipeline;
 
     QGstreamerAudioInput *gstAudioInput = nullptr;
     QGstreamerCamera *gstCamera = nullptr;
