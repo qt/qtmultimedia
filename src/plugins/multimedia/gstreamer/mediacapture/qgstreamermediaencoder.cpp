@@ -40,10 +40,10 @@ QGstreamerMediaEncoder::QGstreamerMediaEncoder(QMediaRecorder *parent)
 
 QGstreamerMediaEncoder::~QGstreamerMediaEncoder()
 {
-    if (!gstPipeline.isNull()) {
+    if (!capturePipeline.isNull()) {
         finalize();
-        gstPipeline.removeMessageFilter(this);
-        gstPipeline.setStateSync(GST_STATE_NULL);
+        capturePipeline.removeMessageFilter(this);
+        capturePipeline.setStateSync(GST_STATE_NULL);
     }
 }
 
@@ -310,8 +310,8 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
             videoPauseControl.installOn(videoSink);
     }
 
-    gstPipeline.modifyPipelineWhileNotRunning([&] {
-        gstPipeline.add(gstEncoder, gstFileSink);
+    capturePipeline.modifyPipelineWhileNotRunning([&] {
+        capturePipeline.add(gstEncoder, gstFileSink);
         qLinkGstElements(gstEncoder, gstFileSink);
         applyMetaDataToTagSetter(m_metaData, gstEncoder);
 
@@ -322,7 +322,7 @@ void QGstreamerMediaEncoder::record(QMediaEncoderSettings &settings)
     });
 
     signalDurationChangedTimer.start();
-    gstPipeline.dumpGraph("recording");
+    capturePipeline.dumpGraph("recording");
 
     durationChanged(0);
     stateChanged(QMediaRecorder::RecordingState);
@@ -335,13 +335,13 @@ void QGstreamerMediaEncoder::pause()
         return;
     signalDurationChangedTimer.stop();
     durationChanged(duration());
-    gstPipeline.dumpGraph("before-pause");
+    capturePipeline.dumpGraph("before-pause");
     stateChanged(QMediaRecorder::PausedState);
 }
 
 void QGstreamerMediaEncoder::resume()
 {
-    gstPipeline.dumpGraph("before-resume");
+    capturePipeline.dumpGraph("before-resume");
     if (!m_session || m_finalizing || state() != QMediaRecorder::PausedState)
         return;
     signalDurationChangedTimer.start();
@@ -369,7 +369,7 @@ void QGstreamerMediaEncoder::finalize()
 
     qCDebug(qLcMediaEncoderGst) << "finalize";
 
-    gstPipeline.stopAndRemoveElements(gstEncoder, gstFileSink);
+    capturePipeline.stopAndRemoveElements(gstEncoder, gstFileSink);
     gstFileSink = {};
     gstEncoder = {};
     m_finalizing = false;
@@ -403,17 +403,17 @@ void QGstreamerMediaEncoder::setCaptureSession(QPlatformMediaCaptureSession *ses
             loop.exec();
         }
 
-        gstPipeline.removeMessageFilter(this);
-        gstPipeline = {};
+        capturePipeline.removeMessageFilter(this);
+        capturePipeline = {};
     }
 
     m_session = captureSession;
     if (!m_session)
         return;
 
-    gstPipeline = captureSession->gstPipeline;
-    gstPipeline.set("message-forward", true);
-    gstPipeline.installMessageFilter(this);
+    capturePipeline = captureSession->capturePipeline;
+    capturePipeline.set("message-forward", true);
+    capturePipeline.installMessageFilter(this);
 }
 
 QT_END_NAMESPACE

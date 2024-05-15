@@ -79,7 +79,7 @@ private:
     QMediaMetaData m_metaData;
     QTimer signalDurationChangedTimer;
 
-    QGstPipeline gstPipeline;
+    QGstPipeline capturePipeline;
     QGstBin gstEncoder;
     QGstElement gstFileSink;
 
