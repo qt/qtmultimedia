@@ -241,6 +241,11 @@ void QGstreamerMediaCapture::unlinkEncoder()
     });
 }
 
+const QGstPipeline &QGstreamerMediaCapture::pipeline() const
+{
+    return capturePipeline;
+}
+
 void QGstreamerMediaCapture::setAudioInput(QPlatformAudioInput *input)
 {
     if (gstAudioInput == input)
@@ -310,11 +315,6 @@ void QGstreamerMediaCapture::setAudioOutput(QPlatformAudioOutput *output)
 QGstreamerVideoSink *QGstreamerMediaCapture::gstreamerVideoSink() const
 {
     return gstVideoOutput ? gstVideoOutput->gstreamerVideoSink() : nullptr;
-}
-
-void *QGstreamerMediaCapture::nativePipeline()
-{
-    return capturePipeline.pipeline();
 }
 
 QT_END_NAMESPACE

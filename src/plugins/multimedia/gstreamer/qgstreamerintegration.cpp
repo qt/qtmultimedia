@@ -16,6 +16,8 @@
 #include <mediacapture/qgstreamermediaencoder_p.h>
 
 #include <QtCore/qloggingcategory.h>
+#include <QtMultimedia/private/qmediaplayer_p.h>
+#include <QtMultimedia/private/qmediacapturesession_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,6 +34,28 @@ QAudioDevice QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStrea
         const QByteArray &gstreamerPipeline)
 {
     return qMakeCustomGStreamerAudioOutput(gstreamerPipeline);
+}
+
+GstPipeline *QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaPlayer *player)
+{
+    auto *priv = reinterpret_cast<QMediaPlayerPrivate *>(QMediaPlayerPrivate::get(player));
+    if (!priv)
+        return nullptr;
+
+    QGstreamerMediaPlayer *gstreamerPlayer = dynamic_cast<QGstreamerMediaPlayer *>(priv->control);
+    return gstreamerPlayer ? gstreamerPlayer->pipeline().pipeline() : nullptr;
+}
+
+GstPipeline *
+QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaCaptureSession *session)
+{
+    auto *priv = QMediaCaptureSessionPrivate::get(session);
+    if (!priv)
+        return nullptr;
+
+    QGstreamerMediaCapture *gstreamerCapture =
+            dynamic_cast<QGstreamerMediaCapture *>(priv->captureSession.get());
+    return gstreamerCapture ? gstreamerCapture->pipeline().pipeline() : nullptr;
 }
 
 Q_LOGGING_CATEGORY(lcGstreamer, "qt.multimedia.gstreamer")

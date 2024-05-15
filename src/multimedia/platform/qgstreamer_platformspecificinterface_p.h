@@ -16,6 +16,8 @@
 
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
+typedef struct _GstPipeline GstPipeline; // NOLINT (bugprone-reserved-identifier)
+
 QT_BEGIN_NAMESPACE
 
 class Q_MULTIMEDIA_EXPORT QGStreamerPlatformSpecificInterface
@@ -27,6 +29,9 @@ public:
 public:
     virtual QAudioDevice makeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline) = 0;
     virtual QAudioDevice makeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline) = 0;
+
+    virtual GstPipeline *gstPipeline(QMediaPlayer *) = 0;
+    virtual GstPipeline *gstPipeline(QMediaCaptureSession *) = 0;
 };
 
 QT_END_NAMESPACE

@@ -25,6 +25,11 @@ QT_BEGIN_NAMESPACE
 class QMediaCaptureSessionPrivate : public QObjectPrivate
 {
 public:
+    static QMediaCaptureSessionPrivate *get(QMediaCaptureSession *session)
+    {
+        return reinterpret_cast<QMediaCaptureSessionPrivate *>(QObjectPrivate::get(session));
+    }
+
     Q_DECLARE_PUBLIC(QMediaCaptureSession)
 
     std::unique_ptr<QPlatformMediaCaptureSession> captureSession;
