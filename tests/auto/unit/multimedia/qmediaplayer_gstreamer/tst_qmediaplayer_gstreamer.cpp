@@ -4,6 +4,7 @@
 #include <QtTest/QtTest>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/private/qmediaplayer_p.h>
+#include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
 
 #include <memory>
@@ -27,9 +28,16 @@ private slots:
 private:
     std::unique_ptr<QMediaPlayer> player;
 
+    static QGStreamerPlatformSpecificInterface *gstInterface()
+    {
+        return dynamic_cast<QGStreamerPlatformSpecificInterface *>(
+                QPlatformMediaIntegration::instance()->platformSpecificInterface());
+    }
+
     GstPipeline *getGstPipeline()
     {
-        return reinterpret_cast<GstPipeline *>(QPlatformMediaPlayer::nativePipeline(player.get()));
+        QGStreamerPlatformSpecificInterface *iface = gstInterface();
+        return iface ? iface->gstPipeline(player.get()) : nullptr;
     }
 
     void dumpGraph(const char *fileNamePrefix)
