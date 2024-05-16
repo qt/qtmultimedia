@@ -142,6 +142,8 @@ private slots:
     void play_playsRtpStream_whenSdpFileIsLoaded();
     void play_succeedsFromSourceDevice();
     void play_succeedsFromSourceDevice_data();
+    void play_playbackLastsForTheExpectedTime();
+    void play_playbackLastsForTheExpectedTime_data();
 
     void stop_entersStoppedState_whenPlayerWasPaused();
     void stop_entersStoppedState_whenPlayerWasPaused_data();
@@ -244,6 +246,7 @@ private:
     MaybeUrl m_localWavFile2 = QUnexpect{};
     MaybeUrl m_localVideoFile = QUnexpect{};
     MaybeUrl m_localVideoFile2 = QUnexpect{};
+    MaybeUrl m_localVideoFile1Sec = QUnexpect{};
     MaybeUrl m_av1File = QUnexpect{};
     MaybeUrl m_videoDimensionTestFile = QUnexpect{};
     MaybeUrl m_localCompressedSoundFile = QUnexpect{};
@@ -369,6 +372,8 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     m_localVideoFile2 =
             m_mediaSelector.select("qrc:/testdata/BigBuckBunny.mp4", "qrc:/testdata/busMpeg4.mp4");
+
+    m_localVideoFile1Sec = m_mediaSelector.select("qrc:/testdata/busMpeg4.mp4");
 
     m_videoDimensionTestFile = m_mediaSelector.select("qrc:/testdata/BigBuckBunny.mp4");
 
@@ -1708,6 +1713,82 @@ void tst_QMediaPlayerBackend::play_succeedsFromSourceDevice_data()
     if constexpr (validateStreamDestructionDuringPlayback) {
         QTest::addRow("audio file, stream destroyed during playback") << m_localWavFile << false;
         QTest::addRow("video file, stream destroyed during playback") << m_localVideoFile << false;
+    }
+}
+
+void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime()
+{
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+
+    QFETCH(const QUrl, media);
+    QFETCH(const int, loops);
+    QFETCH(const float, rate);
+    QFETCH(const bool, pauseBeforePlay);
+
+    if (media == *m_localVideoFile1Sec && loops)
+        QSKIP_GSTREAMER("QTBUG-126799: Video looping video files fails with gstreamer");
+
+    if (isGStreamerPlatform() && isCI())
+        QSKIP_GSTREAMER("QTBUG-124005: spurious failures with gstreamer (significant startup lag)");
+
+    QMediaPlayer &player = m_fixture->player;
+
+    player.setSource(media);
+
+    // wait for preroll
+    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    if (pauseBeforePlay)
+        player.pause();
+
+    if (loops > 1)
+        player.setLoops(loops);
+
+    if (rate != 1.f)
+        player.setPlaybackRate(rate);
+
+    player.play();
+
+    auto timer = QElapsedTimer();
+    timer.start();
+
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(player.playbackState(), QMediaPlayer::StoppedState, 10s);
+
+    nanoseconds duration{ timer.durationElapsed() };
+    nanoseconds expectedDuration = milliseconds{ int(loops / rate * 1000) };
+
+    QVERIFY2(abs(duration - expectedDuration) < 600ms,
+             qPrintable(u"expected duration: %1ms, actual duration: %2ms"_s
+                                .arg(round<milliseconds>(expectedDuration).count())
+                                .arg(round<milliseconds>(duration).count())));
+
+    QCOMPARE_EQ(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+}
+
+void tst_QMediaPlayerBackend::play_playbackLastsForTheExpectedTime_data()
+{
+    QTest::addColumn<QUrl>("media");
+    QTest::addColumn<int>("loops");
+    QTest::addColumn<float>("rate");
+    QTest::addColumn<bool>("pauseBeforePlay");
+
+    for (MaybeUrl maybeUrl : { *m_localWavFile, *m_localVideoFile1Sec }) {
+        if (!maybeUrl)
+            continue;
+
+        for (float rate : { 1.f, 2.f, 0.5f }) {
+            for (bool pauseBeforePlay : { false, true }) {
+                for (int loops : { 1, 2 }) {
+                    auto name = QStringLiteral("file %1, loops %2, rate %3, pause before %4")
+                                        .arg(maybeUrl->toString())
+                                        .arg(loops)
+                                        .arg(rate)
+                                        .arg(pauseBeforePlay);
+                    QTest::addRow("%s", name.toLatin1().constData())
+                            << *maybeUrl << loops << rate << pauseBeforePlay;
+                }
+            }
+        }
     }
 }
 
