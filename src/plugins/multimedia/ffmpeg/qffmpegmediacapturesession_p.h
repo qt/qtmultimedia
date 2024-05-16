@@ -51,6 +51,9 @@ public:
     QPlatformSurfaceCapture *windowCapture() override;
     void setWindowCapture(QPlatformSurfaceCapture *) override;
 
+    QPlatformVideoFrameInput *videoFrameInput() override;
+    void setVideoFrameInput(QPlatformVideoFrameInput *) override;
+
     QPlatformImageCapture *imageCapture() override;
     void setImageCapture(QPlatformImageCapture *imageCapture) override;
 
@@ -59,6 +62,8 @@ public:
 
     void setAudioInput(QPlatformAudioInput *input) override;
     QPlatformAudioInput *audioInput() const;
+
+    void setAudioBufferInput(QPlatformAudioBufferInput *input) override;
 
     void setVideoPreview(QVideoSink *sink) override;
     void setAudioOutput(QPlatformAudioOutput *output) override;
@@ -85,6 +90,7 @@ private:
     QPointer<QPlatformCamera> m_camera;
     QPointer<QPlatformSurfaceCapture> m_screenCapture;
     QPointer<QPlatformSurfaceCapture> m_windowCapture;
+    QPointer<QPlatformVideoFrameInput> m_videoFrameInput;
     QPointer<QPlatformVideoSource> m_primaryActiveVideoSource;
 
     QPointer<QFFmpegAudioInput> m_audioInput;

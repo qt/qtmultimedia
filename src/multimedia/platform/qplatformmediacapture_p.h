@@ -29,6 +29,8 @@ class QPlatformAudioOutput;
 class QMediaCaptureSession;
 class QPlatformSurfaceCapture;
 class QPlatformVideoSource;
+class QPlatformAudioBufferInput;
+class QPlatformVideoFrameInput;
 
 class Q_MULTIMEDIA_EXPORT QPlatformMediaCaptureSession : public QObject
 {
@@ -49,6 +51,9 @@ public:
     virtual QPlatformSurfaceCapture *windowCapture() { return nullptr; }
     virtual void setWindowCapture(QPlatformSurfaceCapture *) { }
 
+    virtual QPlatformVideoFrameInput *videoFrameInput() { return nullptr; }
+    virtual void setVideoFrameInput(QPlatformVideoFrameInput *) { }
+
     virtual QPlatformImageCapture *imageCapture() = 0;
     virtual void setImageCapture(QPlatformImageCapture *) {}
 
@@ -56,6 +61,8 @@ public:
     virtual void setMediaRecorder(QPlatformMediaRecorder *) {}
 
     virtual void setAudioInput(QPlatformAudioInput *input) = 0;
+
+    virtual void setAudioBufferInput(QPlatformAudioBufferInput *) { }
 
     virtual void setVideoPreview(QVideoSink * /*sink*/) {}
 
@@ -73,6 +80,7 @@ Q_SIGNALS:
     void cameraChanged();
     void screenCaptureChanged();
     void windowCaptureChanged();
+    void videoFrameInputChanged();
     void imageCaptureChanged();
     void encoderChanged();
 

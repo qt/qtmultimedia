@@ -7,6 +7,7 @@
 #include "private/qplatformaudiooutput_p.h"
 #include "private/qplatformsurfacecapture_p.h"
 #include "private/qplatformaudiobufferinput_p.h"
+#include "private/qplatformvideoframeinput_p.h"
 #include "private/qplatformcamera_p.h"
 
 #include "qffmpegimagecapture_p.h"
@@ -74,6 +75,17 @@ void QFFmpegMediaCaptureSession::setWindowCapture(QPlatformSurfaceCapture *windo
         emit windowCaptureChanged();
 }
 
+QPlatformVideoFrameInput *QFFmpegMediaCaptureSession::videoFrameInput()
+{
+    return m_videoFrameInput;
+}
+
+void QFFmpegMediaCaptureSession::setVideoFrameInput(QPlatformVideoFrameInput *input)
+{
+    if (setVideoSource(m_videoFrameInput, input))
+        emit videoFrameInputChanged();
+}
+
 QPlatformImageCapture *QFFmpegMediaCaptureSession::imageCapture()
 {
     return m_imageCapture;
@@ -136,6 +148,12 @@ void QFFmpegMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
                 &QFFmpegMediaCaptureSession::updateAudioSink);
 
     updateAudioSink();
+}
+
+void QFFmpegMediaCaptureSession::setAudioBufferInput(QPlatformAudioBufferInput *input)
+{
+    // TODO: implement binding to audio sink like setAudioInput does
+    m_audioBufferInput = input;
 }
 
 void QFFmpegMediaCaptureSession::updateAudioSink()

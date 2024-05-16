@@ -8,6 +8,7 @@
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
 #include <QtMultimedia/private/qmediacapturesession_p.h>
 #include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+#include <QtMultimedia/private/qplatformvideoframeinput_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -23,6 +24,7 @@ std::vector<QPlatformVideoSource *> QPlatformMediaCaptureSession::activeVideoSou
             result.push_back(source);
     };
 
+    checkSource(videoFrameInput());
     checkSource(camera());
     checkSource(screenCapture());
     checkSource(windowCapture());
