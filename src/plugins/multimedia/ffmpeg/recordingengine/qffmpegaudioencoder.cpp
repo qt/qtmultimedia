@@ -15,14 +15,13 @@ namespace QFFmpeg {
 
 static Q_LOGGING_CATEGORY(qLcFFmpegAudioEncoder, "qt.multimedia.ffmpeg.audioencoder");
 
-AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, QFFmpegAudioInput *input,
+AudioEncoder::AudioEncoder(RecordingEngine &recordingEngine, const QAudioFormat &sourceFormat,
                            const QMediaEncoderSettings &settings)
-    : EncoderThread(recordingEngine), m_input(input), m_settings(settings)
+    : EncoderThread(recordingEngine), m_format(sourceFormat), m_settings(settings)
 {
     setObjectName(QLatin1String("AudioEncoder"));
     qCDebug(qLcFFmpegAudioEncoder) << "AudioEncoder" << settings.audioCodec();
 
-    m_format = input->device.preferredFormat();
     auto codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(settings.audioCodec());
     Q_ASSERT(avformat_query_codec(recordingEngine.avFormatContext()->oformat, codecID,
                                   FF_COMPLIANCE_NORMAL));
@@ -123,9 +122,9 @@ QAudioBuffer AudioEncoder::takeBuffer()
 void AudioEncoder::init()
 {
     open();
-    if (m_input) {
-        m_input->setFrameSize(m_codecContext->frame_size);
-    }
+    if (auto input = qobject_cast<QFFmpegAudioInput *>(source()))
+        input->setFrameSize(m_codecContext->frame_size);
+
     qCDebug(qLcFFmpegAudioEncoder) << "AudioEncoder::init started audio device thread.";
 }
 

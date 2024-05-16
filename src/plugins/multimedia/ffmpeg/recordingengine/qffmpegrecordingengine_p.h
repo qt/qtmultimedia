@@ -76,9 +76,6 @@ Q_SIGNALS:
     void finalizationDone();
 
 private:
-    template<typename... Args>
-    void addMediaFrameHandler(Args &&...args);
-
     class EncodingFinalizer : public QThread
     {
     public:
@@ -106,7 +103,6 @@ private:
 
     QList<AudioEncoder *> m_audioEncoders;
     QList<VideoEncoder *> m_videoEncoders;
-    QList<QMetaObject::Connection> m_connections;
     std::unique_ptr<EncodingInitializer> m_initializer;
 
     QMutex m_timeMutex;

@@ -45,17 +45,20 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
         return;
     }
 
-    if (!input->device.preferredFormat().isValid()) {
+    const QAudioFormat format = input->device.preferredFormat();
+
+    if (!format.isValid()) {
         emit streamInitializationError(
                 QMediaRecorder::FormatError,
                 QLatin1StringView("Audio device has invalid preferred format"));
         return;
     }
 
-    auto audioEncoder = new AudioEncoder(*this, input, m_settings);
+    auto audioEncoder = new AudioEncoder(*this, format, m_settings);
     m_audioEncoders.push_back(audioEncoder);
-    addMediaFrameHandler(input, &QFFmpegAudioInput::newAudioBuffer, audioEncoder,
-                         &AudioEncoder::addBuffer);
+    connect(input, &QFFmpegAudioInput::newAudioBuffer, audioEncoder, &AudioEncoder::addBuffer,
+            Qt::DirectConnection);
+    audioEncoder->setSource(input);
     input->setRunning(true);
 }
 
@@ -84,8 +87,10 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
     }
 
     auto ve = veUPtr.release();
-    addMediaFrameHandler(source, &QPlatformVideoSource::newVideoFrame, ve, &VideoEncoder::addFrame);
+    connect(source, &QPlatformVideoSource::newVideoFrame, ve, &VideoEncoder::addFrame,
+            Qt::DirectConnection);
     m_videoEncoders.append(ve);
+    ve->setSource(source);
 
     if (firstFrame.isValid())
         ve->addFrame(firstFrame);
@@ -171,8 +176,11 @@ void RecordingEngine::finalize()
 
     m_initializer.reset();
 
-    for (auto &conn : m_connections)
-        disconnect(conn);
+    forEachEncoder([&](EncoderThread *encoder) {
+        if (QObject *source = encoder->source()) {
+            disconnect(source, nullptr, encoder, nullptr);
+        }
+    });
 
     auto *finalizer = new EncodingFinalizer(*this);
     finalizer->start();
@@ -195,13 +203,6 @@ void RecordingEngine::newTimeStamp(qint64 time)
         m_timeRecorded = time;
         emit durationChanged(time);
     }
-}
-
-template<typename... Args>
-void RecordingEngine::addMediaFrameHandler(Args &&...args)
-{
-    auto connection = connect(std::forward<Args>(args)..., Qt::DirectConnection);
-    m_connections.append(connection);
 }
 
 template <typename F, typename... Args>

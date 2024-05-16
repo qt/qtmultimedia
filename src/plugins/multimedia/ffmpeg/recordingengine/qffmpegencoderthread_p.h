@@ -4,6 +4,7 @@
 #define QFFMPEGENCODERTHREAD_P_H
 
 #include "qffmpegthread_p.h"
+#include "qpointer.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -17,6 +18,10 @@ class EncoderThread : public ConsumerThread
 public:
     EncoderThread(RecordingEngine &recordingEngine);
     virtual void setPaused(bool paused);
+
+    void setSource(QObject *source) { m_source = source; }
+
+    QObject *source() const { return m_source; }
 
     bool canPushFrame() const { return m_canPushFrame.load(std::memory_order_relaxed); }
 protected:
@@ -41,6 +46,7 @@ protected:
     bool m_paused = false;
     std::atomic_bool m_canPushFrame = false;
     RecordingEngine &m_recordingEngine;
+    QPointer<QObject> m_source;
 };
 
 } // namespace QFFmpeg

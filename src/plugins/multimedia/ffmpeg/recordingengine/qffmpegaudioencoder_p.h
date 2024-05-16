@@ -13,25 +13,23 @@
 QT_BEGIN_NAMESPACE
 
 class QMediaEncoderSettings;
-class QFFmpegAudioInput;
 
 namespace QFFmpeg {
 
 class AudioEncoder : public EncoderThread
 {
 public:
-    AudioEncoder(RecordingEngine &recordingEngine, QFFmpegAudioInput *input,
+    AudioEncoder(RecordingEngine &recordingEngine, const QAudioFormat &sourceFormat,
                  const QMediaEncoderSettings &settings);
 
-    void open();
     void addBuffer(const QAudioBuffer &buffer);
-
-    QFFmpegAudioInput *audioInput() const { return m_input; }
 
 protected:
     bool checkIfCanPushFrame() const override;
 
 private:
+    void open();
+
     QAudioBuffer takeBuffer();
     void retrievePackets();
 
@@ -50,7 +48,6 @@ private:
 
     AVStream *m_stream = nullptr;
     AVCodecContextUPtr m_codecContext;
-    QFFmpegAudioInput *m_input = nullptr;
     QAudioFormat m_format;
 
     SwrContextUPtr m_resampler;
