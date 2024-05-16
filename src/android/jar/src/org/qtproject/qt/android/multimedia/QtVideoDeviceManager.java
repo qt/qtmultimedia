@@ -13,6 +13,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.MediaCodecList;
 import android.media.MediaCodecInfo;
+import android.os.Build;
 import android.util.Range;
 import android.util.Size;
 import android.util.Log;
@@ -217,6 +218,23 @@ public class QtVideoDeviceManager {
 
         String[] ret = new String[ supportedFlashModesList.size() ];
         return supportedFlashModesList.toArray(ret);
+    }
+
+    static public boolean isEmulator()
+    {
+        return ((Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
+            || Build.FINGERPRINT.startsWith("generic")
+            || Build.FINGERPRINT.startsWith("unknown")
+            || Build.HARDWARE.contains("goldfish")
+            || Build.HARDWARE.contains("ranchu")
+            || Build.MODEL.contains("google_sdk")
+            || Build.MODEL.contains("Emulator")
+            || Build.MODEL.contains("Android SDK built for x86")
+            || Build.MANUFACTURER.contains("Genymotion")
+            || Build.PRODUCT.contains("sdk")
+            || Build.PRODUCT.contains("vbox86p")
+            || Build.PRODUCT.contains("emulator")
+            || Build.PRODUCT.contains("simulator"));
     }
 
     public boolean isTorchModeSupported(String cameraId) {
