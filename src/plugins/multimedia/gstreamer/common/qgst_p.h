@@ -636,6 +636,7 @@ public:
 
     QGstElement getParent() const;
     QGstPipeline getPipeline() const;
+    void dumpPipelineGraph(const char *filename) const;
 };
 
 template <typename... Ts>

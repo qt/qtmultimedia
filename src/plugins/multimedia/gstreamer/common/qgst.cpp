@@ -956,13 +956,13 @@ bool QGstElement::setStateSync(GstState state, std::chrono::nanoseconds timeout)
     }
 
     GstStateChangeReturn change = gst_element_set_state(element(), state);
-    if (change == GST_STATE_CHANGE_ASYNC) {
+    if (change == GST_STATE_CHANGE_ASYNC)
         change = gst_element_get_state(element(), nullptr, &state, timeout.count());
-    }
-#ifndef QT_NO_DEBUG
-    if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL)
+
+    if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL) {
         qWarning() << "Could not change state of" << name() << "to" << state << change;
-#endif
+        dumpPipelineGraph("setStatSyncFailure");
+    }
     return change == GST_STATE_CHANGE_SUCCESS;
 }
 
@@ -978,18 +978,10 @@ bool QGstElement::finishStateChange(std::chrono::nanoseconds timeout)
     GstStateChangeReturn change =
             gst_element_get_state(element(), &state, &pending, timeout.count());
 
-#ifndef QT_NO_DEBUG
     if (change != GST_STATE_CHANGE_SUCCESS && change != GST_STATE_CHANGE_NO_PREROLL) {
         qWarning() << "Could not finish change state of" << name() << change << state << pending;
-
-        static const bool dumpEnabled = qEnvironmentVariableIsSet("GST_DEBUG_DUMP_DOT_DIR");
-        if (dumpEnabled) {
-            QGstPipeline pipeline = getPipeline();
-            if (pipeline)
-                pipeline.dumpGraph("finishStateChangeFailure");
-        }
+        dumpPipelineGraph("finishStateChangeFailure");
     }
-#endif
     return change == GST_STATE_CHANGE_SUCCESS;
 }
 
@@ -1050,6 +1042,16 @@ QGstPipeline QGstElement::getPipeline() const
             qGstSafeCast<GstPipeline>(ancestor.element()),
             QGstPipeline::NeedsRef,
         };
+    }
+}
+
+void QGstElement::dumpPipelineGraph(const char *filename) const
+{
+    static const bool dumpEnabled = qEnvironmentVariableIsSet("GST_DEBUG_DUMP_DOT_DIR");
+    if (dumpEnabled) {
+        QGstPipeline pipeline = getPipeline();
+        if (pipeline)
+            pipeline.dumpGraph(filename);
     }
 }
 
@@ -1133,8 +1135,7 @@ void QGstBin::dumpGraph(const char *fileNamePrefix)
     if (isNull())
         return;
 
-    GST_DEBUG_BIN_TO_DOT_FILE(bin(), GstDebugGraphDetails(GST_DEBUG_GRAPH_SHOW_ALL),
-                              fileNamePrefix);
+    GST_DEBUG_BIN_TO_DOT_FILE(bin(), GST_DEBUG_GRAPH_SHOW_VERBOSE, fileNamePrefix);
 }
 
 QGstElement QGstBin::findByName(const char *name)
