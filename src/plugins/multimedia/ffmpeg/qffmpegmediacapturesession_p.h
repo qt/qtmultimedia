@@ -29,6 +29,8 @@ class QAudioSink;
 class QFFmpegAudioInput;
 class QAudioBuffer;
 class QPlatformVideoSource;
+class QPlatformAudioBufferInput;
+class QPlatformAudioBufferInputBase;
 
 class QFFmpegMediaCaptureSession : public QPlatformMediaCaptureSession
 {
@@ -56,12 +58,16 @@ public:
     void setMediaRecorder(QPlatformMediaRecorder *recorder) override;
 
     void setAudioInput(QPlatformAudioInput *input) override;
-    QPlatformAudioInput *audioInput();
+    QPlatformAudioInput *audioInput() const;
 
     void setVideoPreview(QVideoSink *sink) override;
     void setAudioOutput(QPlatformAudioOutput *output) override;
 
     QPlatformVideoSource *primaryActiveVideoSource();
+
+    // it might be moved to the base class, but it needs QPlatformAudioInput
+    // to be QPlatformAudioBufferInputBase, which might not make sense
+    std::vector<QPlatformAudioBufferInputBase *> activeAudioInputs() const;
 
 private Q_SLOTS:
     void updateAudioSink();
@@ -81,7 +87,9 @@ private:
     QPointer<QPlatformSurfaceCapture> m_windowCapture;
     QPointer<QPlatformVideoSource> m_primaryActiveVideoSource;
 
-    QFFmpegAudioInput *m_audioInput = nullptr;
+    QPointer<QFFmpegAudioInput> m_audioInput;
+    QPointer<QPlatformAudioBufferInput> m_audioBufferInput;
+
     QFFmpegImageCapture *m_imageCapture = nullptr;
     QFFmpegMediaRecorder *m_mediaRecorder = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;

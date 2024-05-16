@@ -57,6 +57,8 @@ qt_internal_add_module(Multimedia
         platform/qplatformvideodevices.cpp platform/qplatformvideodevices_p.h
         platform/qplatformvideosink.cpp platform/qplatformvideosink_p.h
         platform/qplatformvideosource.cpp platform/qplatformvideosource_p.h
+        platform/qplatformvideoframeinput.cpp platform/qplatformvideoframeinput_p.h
+        platform/qplatformaudiobufferinput.cpp platform/qplatformaudiobufferinput_p.h
         playback/qmediaplayer.cpp playback/qmediaplayer.h playback/qmediaplayer_p.h
         qmediadevices.cpp qmediadevices.h
         qmediaenumdebug.h

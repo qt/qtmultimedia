@@ -25,7 +25,10 @@
 QT_BEGIN_NAMESPACE
 
 class QFFmpegAudioInput;
+class QPlatformAudioBufferInput;
+class QPlatformAudioBufferInputBase;
 class QVideoFrame;
+class QAudioBuffer;
 class QPlatformVideoSource;
 
 namespace QFFmpeg
@@ -56,7 +59,7 @@ public:
     RecordingEngine(const QMediaEncoderSettings &settings, std::unique_ptr<EncodingFormatContext> context);
     ~RecordingEngine();
 
-    void initialize(QFFmpegAudioInput *audioInput,
+    void initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
                     const std::vector<QPlatformVideoSource *> &videoSources);
     void finalize();
 
@@ -89,12 +92,17 @@ private:
 
     friend class EncodingInitializer;
     void addAudioInput(QFFmpegAudioInput *input);
+    void addAudioBufferInput(QPlatformAudioBufferInput *input, const QAudioBuffer &firstBuffer);
+    AudioEncoder *createAudioEncoder(QPlatformAudioBufferInputBase *input,
+                                     const QAudioFormat &format);
+
     void addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame);
 
     void start();
 
     template <typename F, typename... Args>
     void forEachEncoder(F &&f, Args &&...args);
+
 private:
     QMediaEncoderSettings m_settings;
     QMediaMetaData m_metaData;

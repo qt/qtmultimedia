@@ -42,8 +42,9 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
         return;
 
     auto videoSources = m_session->activeVideoSources();
+    auto audioInputs = m_session->activeAudioInputs();
     const auto hasVideo = !videoSources.empty();
-    const auto hasAudio = m_session->audioInput() != nullptr;
+    const auto hasAudio = !audioInputs.empty();
 
     if (!hasVideo && !hasAudio) {
         updateError(QMediaRecorder::ResourceError, QMediaRecorder::tr("No video or audio input"));
@@ -99,8 +100,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     stateChanged(QMediaRecorder::RecordingState);
     actualLocationChanged(QUrl::fromLocalFile(actualLocation));
 
-    m_recordingEngine->initialize(static_cast<QFFmpegAudioInput *>(m_session->audioInput()),
-                                  videoSources);
+    m_recordingEngine->initialize(audioInputs, videoSources);
 }
 
 void QFFmpegMediaRecorder::pause()

@@ -122,6 +122,8 @@ QAudioBuffer AudioEncoder::takeBuffer()
 void AudioEncoder::init()
 {
     open();
+
+    // TODO: try to address this dependency here.
     if (auto input = qobject_cast<QFFmpegAudioInput *>(source()))
         input->setFrameSize(m_codecContext->frame_size);
 

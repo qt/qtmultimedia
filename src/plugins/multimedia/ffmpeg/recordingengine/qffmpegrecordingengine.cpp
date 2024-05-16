@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegrecordingengine_p.h"
 #include "qffmpegmediaformatinfo_p.h"
-#include "qffmpegvideoframeencoder_p.h"
 #include "qffmpegencodinginitializer_p.h"
-#include "private/qmultimediautils_p.h"
-
-#include <qdebug.h>
 #include "qffmpegaudioencoder_p.h"
 #include "qffmpegaudioinput_p.h"
-#include <private/qplatformcamera_p.h>
-#include "qffmpegvideobuffer_p.h"
+
+#include "private/qmultimediautils_p.h"
+#include "private/qplatformaudiobufferinput_p.h"
+#include "private/qplatformvideosource_p.h"
+#include "private/qplatformvideoframeinput_p.h"
+
+#include "qdebug.h"
 #include "qffmpegvideoencoder_p.h"
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegmuxer_p.h"
-#include <qloggingcategory.h>
+#include "qloggingcategory.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -22,6 +23,16 @@ static Q_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder");
 
 namespace QFFmpeg
 {
+
+namespace
+{
+template <typename Input>
+void bindEncoderReadinessToInput(Input* input, EncoderThread* encoder)
+{
+    input->setEncoderReadinessGetter([encoder]() { return encoder->canPushFrame(); });
+    QObject::connect(encoder, &EncoderThread::canPushFrameChanged, input, &Input::encoderUpdated);
+}
+}
 
 RecordingEngine::RecordingEngine(const QMediaEncoderSettings &settings,
                  std::unique_ptr<EncodingFormatContext> context)
@@ -54,12 +65,36 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
         return;
     }
 
+    createAudioEncoder(input, format);
+
+    input->setRunning(true);
+}
+
+void RecordingEngine::addAudioBufferInput(QPlatformAudioBufferInput *input,
+                                          const QAudioBuffer &firstBuffer)
+{
+    Q_ASSERT(input);
+    const QAudioFormat format = firstBuffer.isValid() ? firstBuffer.format() : input->audioFormat();
+
+    AudioEncoder *audioEncoder = createAudioEncoder(input, format);
+    bindEncoderReadinessToInput(input, audioEncoder);
+
+    if (firstBuffer.isValid())
+        audioEncoder->addBuffer(firstBuffer);
+}
+
+AudioEncoder *RecordingEngine::createAudioEncoder(QPlatformAudioBufferInputBase *input,
+                                                  const QAudioFormat &format)
+{
+    Q_ASSERT(format.isValid());
+
     auto audioEncoder = new AudioEncoder(*this, format, m_settings);
     m_audioEncoders.push_back(audioEncoder);
-    connect(input, &QFFmpegAudioInput::newAudioBuffer, audioEncoder, &AudioEncoder::addBuffer,
-            Qt::DirectConnection);
+    connect(input, &QPlatformAudioBufferInputBase::newAudioBuffer, audioEncoder,
+            &AudioEncoder::addBuffer, Qt::DirectConnection);
     audioEncoder->setSource(input);
-    input->setRunning(true);
+
+    return audioEncoder;
 }
 
 void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame)
@@ -86,14 +121,17 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
         return;
     }
 
-    auto ve = veUPtr.release();
-    connect(source, &QPlatformVideoSource::newVideoFrame, ve, &VideoEncoder::addFrame,
+    auto videoEncoder = veUPtr.release();
+    connect(source, &QPlatformVideoSource::newVideoFrame, videoEncoder, &VideoEncoder::addFrame,
             Qt::DirectConnection);
-    m_videoEncoders.append(ve);
-    ve->setSource(source);
+    m_videoEncoders.append(videoEncoder);
+    videoEncoder->setSource(source);
+
+    if (auto videoFrameInput = qobject_cast<QPlatformVideoFrameInput *>(source))
+        bindEncoderReadinessToInput(videoFrameInput, videoEncoder);
 
     if (firstFrame.isValid())
-        ve->addFrame(firstFrame);
+        videoEncoder->addFrame(firstFrame);
 }
 
 void RecordingEngine::start()
@@ -130,13 +168,13 @@ void RecordingEngine::start()
     forEachEncoder([](QThread *thread) { thread->start(); });
 }
 
-void RecordingEngine::initialize(QFFmpegAudioInput *audioInput,
+void RecordingEngine::initialize(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
                                  const std::vector<QPlatformVideoSource *> &videoSources)
 {
     qCDebug(qLcFFmpegEncoder) << ">>>>>>>>>>>>>>> initialize";
 
     m_initializer = std::make_unique<EncodingInitializer>(*this);
-    m_initializer->start(audioInput, videoSources);
+    m_initializer->start(audioSources, videoSources);
 }
 
 RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recordingEngine)
@@ -179,6 +217,12 @@ void RecordingEngine::finalize()
     forEachEncoder([&](EncoderThread *encoder) {
         if (QObject *source = encoder->source()) {
             disconnect(source, nullptr, encoder, nullptr);
+            disconnect(encoder, nullptr, source, nullptr);
+
+            if (auto input = qobject_cast<QPlatformVideoFrameInput *>(source))
+                input->setEncoderReadinessGetter(nullptr);
+            else if (auto input = qobject_cast<QPlatformAudioBufferInput *>(source))
+                input->setEncoderReadinessGetter(nullptr);
         }
     });
 
