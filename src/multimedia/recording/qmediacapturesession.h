@@ -11,6 +11,7 @@ QT_BEGIN_NAMESPACE
 
 class QCamera;
 class QAudioInput;
+class QAudioBufferInput;
 class QAudioOutput;
 class QCameraDevice;
 class QImageCapture;
@@ -19,18 +20,23 @@ class QPlatformMediaCaptureSession;
 class QVideoSink;
 class QScreenCapture;
 class QWindowCapture;
+class QVideoFrameInput;
 
 class QMediaCaptureSessionPrivate;
 class Q_MULTIMEDIA_EXPORT QMediaCaptureSession : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QAudioInput *audioInput READ audioInput WRITE setAudioInput NOTIFY audioInputChanged)
+    Q_PROPERTY(QAudioBufferInput *audioBufferInput READ audioBufferInput WRITE setAudioBufferInput
+                       NOTIFY audioBufferInputChanged)
     Q_PROPERTY(QAudioOutput *audioOutput READ audioOutput WRITE setAudioOutput NOTIFY audioOutputChanged)
     Q_PROPERTY(QCamera *camera READ camera WRITE setCamera NOTIFY cameraChanged)
     Q_PROPERTY(
             QScreenCapture *screenCapture READ screenCapture WRITE setScreenCapture NOTIFY screenCaptureChanged)
     Q_PROPERTY(
             QWindowCapture *windowCapture READ windowCapture WRITE setWindowCapture NOTIFY windowCaptureChanged)
+    Q_PROPERTY(QVideoFrameInput *videoFrameInput READ videoFrameInput WRITE setVideoFrameInput
+                       NOTIFY videoFrameInputChanged)
     Q_PROPERTY(QImageCapture *imageCapture READ imageCapture WRITE setImageCapture NOTIFY imageCaptureChanged)
     Q_PROPERTY(QMediaRecorder *recorder READ recorder WRITE setRecorder NOTIFY recorderChanged)
     Q_PROPERTY(QObject *videoOutput READ videoOutput WRITE setVideoOutput NOTIFY videoOutputChanged)
@@ -40,6 +46,9 @@ public:
 
     QAudioInput *audioInput() const;
     void setAudioInput(QAudioInput *input);
+
+    QAudioBufferInput *audioBufferInput() const;
+    void setAudioBufferInput(QAudioBufferInput *input);
 
     QCamera *camera() const;
     void setCamera(QCamera *camera);
@@ -52,6 +61,9 @@ public:
 
     QWindowCapture *windowCapture();
     void setWindowCapture(QWindowCapture *windowCapture);
+
+    QVideoFrameInput *videoFrameInput() const;
+    void setVideoFrameInput(QVideoFrameInput *input);
 
     QMediaRecorder *recorder();
     void setRecorder(QMediaRecorder *recorder);
@@ -69,9 +81,11 @@ public:
 
 Q_SIGNALS:
     void audioInputChanged();
+    void audioBufferInputChanged();
     void cameraChanged();
     void screenCaptureChanged();
     void windowCaptureChanged();
+    void videoFrameInputChanged();
     void imageCaptureChanged();
     void recorderChanged();
     void videoOutputChanged();

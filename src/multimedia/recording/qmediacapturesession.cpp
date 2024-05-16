@@ -10,10 +10,12 @@
 #include "qvideosink.h"
 #include "qscreencapture.h"
 #include "qwindowcapture.h"
+#include "qvideoframeinput.h"
 
 #include "qplatformmediaintegration_p.h"
 #include "qplatformmediacapture_p.h"
 #include "qaudioinput.h"
+#include "qaudiobufferinput.h"
 #include "qaudiooutput.h"
 
 QT_BEGIN_NAMESPACE
@@ -43,18 +45,23 @@ void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
     \ingroup multimedia_video
     \ingroup multimedia_audio
 
-    The QMediaCaptureSession is the central class that manages capturing of media on the local device.
+    The QMediaCaptureSession is the central class that manages capturing of media on the local
+   device.
 
-    You can connect a video input to QMediaCaptureSession using setCamera(), setScreenCapture() or setWindowCapture().
-    A preview of the captured media can be seen by setting a QVideoWidget or QGraphicsVideoItem using setVideoOutput().
+    You can connect a video input to QMediaCaptureSession using setCamera(),
+    setScreenCapture(), setWindowCapture() or setVideoFrameInput().
+    A preview of the captured media can be seen by setting a QVideoWidget or QGraphicsVideoItem
+   using setVideoOutput().
 
-    You can connect a microphone to QMediaCaptureSession using setAudioInput().
+    You can connect a microphone to QMediaCaptureSession using setAudioInput(), or set your
+    custom audio input using setAudioBufferInput().
     The captured sound can be heard by routing the audio to an output device using setAudioOutput().
 
-    You can capture still images from a camera by setting a QImageCapture object on the capture session,
-    and record audio/video using a QMediaRecorder.
+    You can capture still images from a camera by setting a QImageCapture object on the capture
+   session, and record audio/video using a QMediaRecorder.
 
-    \sa QCamera, QAudioDevice, QMediaRecorder, QImageCapture, QScreenCapture, QWindowCapture, QMediaRecorder, QGraphicsVideoItem
+    \sa QCamera, QAudioDevice, QMediaRecorder, QImageCapture, QScreenCapture, QWindowCapture,
+   QVideoFrameInput, QMediaRecorder, QGraphicsVideoItem
 */
 
 /*!
@@ -141,6 +148,8 @@ QMediaCaptureSession::~QMediaCaptureSession()
     setImageCapture(nullptr);
     setScreenCapture(nullptr);
     setWindowCapture(nullptr);
+    setVideoFrameInput(nullptr);
+    setAudioBufferInput(nullptr);
     setAudioInput(nullptr);
     setAudioOutput(nullptr);
     d->setVideoSink(nullptr);
@@ -191,6 +200,45 @@ void QMediaCaptureSession::setAudioInput(QAudioInput *input)
     }
     d->audioInput = input;
     emit audioInputChanged();
+}
+
+/*!
+    \property QMediaCaptureSession::audioBufferInput
+    \since 6.8
+
+    \brief The object used to send custom audio buffers to \l QMediaRecorder.
+*/
+QAudioBufferInput *QMediaCaptureSession::audioBufferInput() const
+{
+    Q_D(const QMediaCaptureSession);
+
+    return d->audioBufferInput;
+}
+
+void QMediaCaptureSession::setAudioBufferInput(QAudioBufferInput *input)
+{
+    Q_D(QMediaCaptureSession);
+
+    // TODO: come up with an unification of the captures setup
+    QAudioBufferInput *oldInput = d->audioBufferInput;
+    if (oldInput == input)
+        return;
+    d->audioBufferInput = input;
+    if (d->captureSession)
+        d->captureSession->setAudioBufferInput(nullptr);
+    if (oldInput) {
+        if (oldInput->captureSession() && oldInput->captureSession() != this)
+            oldInput->captureSession()->setAudioBufferInput(nullptr);
+        oldInput->setCaptureSession(nullptr);
+    }
+    if (input) {
+        if (input->captureSession())
+            input->captureSession()->setAudioBufferInput(nullptr);
+        if (d->captureSession)
+            d->captureSession->setAudioBufferInput(input->platformAudioBufferInput());
+        input->setCaptureSession(this);
+    }
+    emit audioBufferInputChanged();
 }
 
 /*!
@@ -344,6 +392,44 @@ void QMediaCaptureSession::setWindowCapture(QWindowCapture *windowCapture)
         windowCapture->setCaptureSession(this);
     }
     emit windowCaptureChanged();
+}
+
+/*!
+    \property QMediaCaptureSession::videoFrameInput
+    \since 6.8
+
+    \brief The object used to send custom video frames to
+    \l QMediaRecorder or a video output.
+*/
+QVideoFrameInput *QMediaCaptureSession::videoFrameInput() const
+{
+    Q_D(const QMediaCaptureSession);
+    return d->videoFrameInput;
+}
+
+void QMediaCaptureSession::setVideoFrameInput(QVideoFrameInput *input)
+{
+    Q_D(QMediaCaptureSession);
+    // TODO: come up with an unification of the captures setup
+    QVideoFrameInput *oldInput = d->videoFrameInput;
+    if (oldInput == input)
+        return;
+    d->videoFrameInput = input;
+    if (d->captureSession)
+        d->captureSession->setVideoFrameInput(nullptr);
+    if (oldInput) {
+        if (oldInput->captureSession() && oldInput->captureSession() != this)
+            oldInput->captureSession()->setVideoFrameInput(nullptr);
+        oldInput->setCaptureSession(nullptr);
+    }
+    if (input) {
+        if (input->captureSession())
+            input->captureSession()->setVideoFrameInput(nullptr);
+        if (d->captureSession)
+            d->captureSession->setVideoFrameInput(input->platformVideoFrameInput());
+        input->setCaptureSession(this);
+    }
+    emit videoFrameInputChanged();
 }
 
 /*!

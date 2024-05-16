@@ -23,7 +23,7 @@ qt_internal_add_module(Multimedia
         audio/qaudiodecoder.cpp audio/qaudiodecoder.h audio/qaudiodecoder_p.h
         audio/qaudiodevice.cpp audio/qaudiodevice.h audio/qaudiodevice_p.h
         audio/qaudioinput.cpp audio/qaudioinput.h
-        audio/qaudiobufferinput.cpp
+        audio/qaudiobufferinput.cpp audio/qaudiobufferinput.h
         audio/qaudiooutput.cpp audio/qaudiooutput.h
         audio/qaudioformat.cpp audio/qaudioformat.h
         audio/qaudiohelpers.cpp audio/qaudiohelpers_p.h
@@ -78,7 +78,7 @@ qt_internal_add_module(Multimedia
         recording/qscreencapture.cpp recording/qscreencapture.h
         recording/qwindowcapture.cpp recording/qwindowcapture.h
         recording/qcapturablewindow.cpp recording/qcapturablewindow.h recording/qcapturablewindow_p.h
-        recording/qvideoframeinput.cpp
+        recording/qvideoframeinput.cpp recording/qvideoframeinput.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qimagevideobuffer.cpp video/qimagevideobuffer_p.h

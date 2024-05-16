@@ -34,10 +34,12 @@ public:
 
     std::unique_ptr<QPlatformMediaCaptureSession> captureSession;
     QAudioInput *audioInput = nullptr;
+    QPointer<QAudioBufferInput> audioBufferInput;
     QAudioOutput *audioOutput = nullptr;
     QPointer<QCamera> camera;
     QPointer<QScreenCapture> screenCapture;
     QPointer<QWindowCapture> windowCapture;
+    QPointer<QVideoFrameInput> videoFrameInput;
     QPointer<QImageCapture> imageCapture;
     QPointer<QMediaRecorder> recorder;
     QPointer<QVideoSink> videoSink;
