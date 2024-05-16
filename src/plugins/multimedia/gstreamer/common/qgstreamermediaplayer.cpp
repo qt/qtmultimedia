@@ -136,7 +136,6 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
     for (auto &ts : trackSelectors)
         playerPipeline.add(ts.selector);
 
-    playerPipeline.setState(GST_STATE_NULL);
     playerPipeline.installMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.installMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
 
