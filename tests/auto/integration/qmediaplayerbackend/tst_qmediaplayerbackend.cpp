@@ -193,6 +193,7 @@ private slots:
     void durationDetectionIssues_data();
     void durationDetectionIssues();
     void finiteLoops();
+    void finiteLoops_data();
     void infiniteLoops();
     void seekOnLoops();
     void changeLoopsOnTheFly();
@@ -3276,9 +3277,10 @@ static std::vector<LoopIteration> loopIterations(const QSignalSpy &positionSpy)
 
 void tst_QMediaPlayerBackend::finiteLoops()
 {
-    QSKIP_GSTREAMER("QTBUG-123056(?): spuriously failures of the gstreamer backend");
-
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+
+    QFETCH(bool, pauseDuringPlayback);
+    QFETCH(bool, rateChange);
 
 #ifdef Q_OS_MACOS
     if (qEnvironmentVariable("QTEST_ENVIRONMENT").toLower() == "ci")
@@ -3291,21 +3293,22 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QCOMPARE(m_fixture->player.loops(), 3);
 
     m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
-    m_fixture->player.setPlaybackRate(5);
+    if (rateChange)
+        m_fixture->player.setPlaybackRate(5);
     QCOMPARE(m_fixture->player.loops(), 3);
 
     m_fixture->player.play();
     m_fixture->surface.waitForFrame();
 
-    // check pause doesn't affect looping
-    {
+    if (pauseDuringPlayback) {
+        // check pause doesn't affect looping
         QTest::qWait(static_cast<int>(m_fixture->player.duration() * 3
                                       * 0.6 /*relative pos*/ / m_fixture->player.playbackRate()));
         m_fixture->player.pause();
         m_fixture->player.play();
     }
 
-    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+    QTRY_COMPARE_WITH_TIMEOUT(m_fixture->player.playbackState(), QMediaPlayer::StoppedState, 15s);
 
     // Check for expected number of loop iterations and startPos, endPos and posCount per iteration
     std::vector<LoopIteration> iterations = loopIterations(m_fixture->positionChanged);
@@ -3324,17 +3327,30 @@ void tst_QMediaPlayerBackend::finiteLoops()
 
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
-    // Check that loop counter is reset when playback is restarted.
-    {
-        m_fixture->positionChanged.clear();
-        m_fixture->player.play();
-        m_fixture->player.setPlaybackRate(10);
-        m_fixture->surface.waitForFrame();
+    if constexpr (QT_CONFIG(pulseaudio))
+        QSKIP_GSTREAMER(
+                "StoppedState is never reached, with pulseaudio. Possibly related to QTBUG-124372");
 
-        QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
-        QCOMPARE(loopIterations(m_fixture->positionChanged).size(), 3u);
-        QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
-    }
+    // Check that loop counter is reset when playback is restarted.
+    m_fixture->positionChanged.clear();
+    m_fixture->player.play();
+    m_fixture->player.setPlaybackRate(10);
+    m_fixture->surface.waitForFrame();
+
+    QTRY_COMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
+    QCOMPARE(loopIterations(m_fixture->positionChanged).size(), 3u);
+    QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
+}
+
+void tst_QMediaPlayerBackend::finiteLoops_data()
+{
+    QTest::addColumn<bool>("pauseDuringPlayback");
+    QTest::addColumn<bool>("rateChange");
+
+    QTest::newRow("No pause, default rate") << false << false;
+    QTest::newRow("No pause, fast rate") << false << true;
+    QTest::newRow("Pause, default rate") << true << false;
+    QTest::newRow("Pause, fast rate") << true << true;
 }
 
 void tst_QMediaPlayerBackend::infiniteLoops()
