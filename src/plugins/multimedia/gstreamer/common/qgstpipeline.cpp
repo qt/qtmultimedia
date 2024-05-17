@@ -14,6 +14,13 @@
 
 QT_BEGIN_NAMESPACE
 
+static constexpr GstSeekFlags rateChangeSeekFlags =
+#if GST_CHECK_VERSION(1, 18, 0)
+        GST_SEEK_FLAG_INSTANT_RATE_CHANGE;
+#else
+        GST_SEEK_FLAG_FLUSH;
+#endif
+
 class QGstPipelinePrivate : public QObject
 {
 public:
@@ -314,53 +321,45 @@ void QGstPipeline::endConfig()
 
 void QGstPipeline::flush()
 {
-    QGstPipelinePrivate *d = getPrivate();
-    seek(position(), d->m_rate);
+    seek(position());
 }
 
-bool QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
+void QGstPipeline::seek(std::chrono::nanoseconds pos, double rate)
 {
     using namespace std::chrono_literals;
 
     QGstPipelinePrivate *d = getPrivate();
-    // always adjust the rate, so it can be  set before playback starts
+    // always adjust the rate, so it can be set before playback starts
     // setting position needs a loaded media file that's seekable
-    d->m_rate = rate;
-    std::chrono::nanoseconds from = rate > 0 ? pos : 0ns;
-    std::chrono::nanoseconds to = rate > 0 ? duration() : pos;
-    bool success = gst_element_seek(element(), rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
-                                    GST_SEEK_TYPE_SET, from.count(), GST_SEEK_TYPE_SET, to.count());
-    if (!success)
-        return false;
+
+    bool success = (rate > 0)
+            ? gst_element_seek(element(), d->m_rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
+                               GST_SEEK_TYPE_SET, pos.count(), GST_SEEK_TYPE_END, 0)
+            : gst_element_seek(element(), d->m_rate, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
+                               GST_SEEK_TYPE_SET, 0, GST_SEEK_TYPE_SET, pos.count());
+
+    if (!success) {
+        qDebug() << "seek: gst_element_seek failed" << pos;
+        return;
+    }
 
     d->m_position = pos;
-    return true;
 }
 
-bool QGstPipeline::setPlaybackRate(double rate, bool applyToPipeline)
+void QGstPipeline::seek(std::chrono::nanoseconds pos)
+{
+    seek(pos, getPrivate()->m_rate);
+}
+
+void QGstPipeline::setPlaybackRate(double rate)
 {
     QGstPipelinePrivate *d = getPrivate();
     if (rate == d->m_rate)
-        return false;
+        return;
 
-    if (!applyToPipeline) {
-        d->m_rate = rate;
-        return true;
-    }
+    d->m_rate = rate;
 
-    constexpr GstSeekFlags seekFlags =
-#if GST_CHECK_VERSION(1, 18, 0)
-            GST_SEEK_FLAG_INSTANT_RATE_CHANGE;
-#else
-            GST_SEEK_FLAG_FLUSH;
-#endif
-
-    bool success = gst_element_seek(element(), rate, GST_FORMAT_TIME, seekFlags, GST_SEEK_TYPE_NONE,
-                                    GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
-    if (success)
-        d->m_rate = rate;
-
-    return success;
+    applyPlaybackRate(/*instantRateChange =*/true);
 }
 
 double QGstPipeline::playbackRate() const
@@ -369,10 +368,21 @@ double QGstPipeline::playbackRate() const
     return d->m_rate;
 }
 
-bool QGstPipeline::setPosition(std::chrono::nanoseconds pos)
+void QGstPipeline::applyPlaybackRate(bool instantRateChange)
 {
     QGstPipelinePrivate *d = getPrivate();
-    return seek(pos, d->m_rate);
+
+    bool success = gst_element_seek(element(), d->m_rate, GST_FORMAT_UNDEFINED,
+                                    instantRateChange ? rateChangeSeekFlags : GST_SEEK_FLAG_FLUSH,
+                                    GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE, GST_SEEK_TYPE_NONE,
+                                    GST_CLOCK_TIME_NONE);
+    if (!success)
+        qDebug() << "setPlaybackRate: gst_element_seek failed";
+}
+
+void QGstPipeline::setPosition(std::chrono::nanoseconds pos)
+{
+    seek(pos);
 }
 
 std::chrono::nanoseconds QGstPipeline::position() const
