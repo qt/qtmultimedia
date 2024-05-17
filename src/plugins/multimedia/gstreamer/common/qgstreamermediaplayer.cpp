@@ -188,9 +188,8 @@ qreal QGstreamerMediaPlayer::playbackRate() const
 
 void QGstreamerMediaPlayer::setPlaybackRate(qreal rate)
 {
-    bool applyRateToPipeline = state() != QMediaPlayer::StoppedState;
-    if (playerPipeline.setPlaybackRate(rate, applyRateToPipeline))
-        playbackRateChanged(rate);
+    playerPipeline.setPlaybackRate(rate);
+    playbackRateChanged(rate);
 }
 
 void QGstreamerMediaPlayer::setPosition(qint64 pos)
@@ -232,6 +231,11 @@ void QGstreamerMediaPlayer::play()
         // immediately, when they happen while paused.
         playerPipeline.flush();
         m_requiresSeekOnPlay = false;
+    } else {
+        // we get an assertion failure during instant playback rate changes
+        // https://gitlab.freedesktop.org/gstreamer/gstreamer/-/issues/3545
+        constexpr bool performInstantRateChange = false;
+        playerPipeline.applyPlaybackRate(/*instantRateChange=*/performInstantRateChange);
     }
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the playing state.";
@@ -251,7 +255,7 @@ void QGstreamerMediaPlayer::pause()
         playerPipeline.setInStoppedState(false);
         playerPipeline.flush();
     }
-    int ret = playerPipeline.setState(GST_STATE_PAUSED);
+    int ret = playerPipeline.setStateSync(GST_STATE_PAUSED);
     if (ret == GST_STATE_CHANGE_FAILURE)
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
@@ -945,7 +949,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
     padRemoved = decoder.onPadRemoved<&QGstreamerMediaPlayer::decoderPadRemoved>(this);
 
     mediaStatusChanged(QMediaPlayer::LoadingMedia);
-    if (!playerPipeline.setState(GST_STATE_PAUSED)) {
+    if (!playerPipeline.setStateSync(GST_STATE_PAUSED)) {
         qCWarning(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
         // Note: no further error handling: errors will be delivered via a GstMessage
         return;
