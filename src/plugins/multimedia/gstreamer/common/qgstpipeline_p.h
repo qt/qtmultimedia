@@ -96,11 +96,11 @@ public:
 
     void flush();
 
-    bool seek(std::chrono::nanoseconds pos, double rate);
-    bool setPlaybackRate(double rate, bool applyToPipeline = true);
+    void setPlaybackRate(double rate);
     double playbackRate() const;
+    void applyPlaybackRate(bool instantRateChange);
 
-    bool setPosition(std::chrono::nanoseconds pos);
+    void setPosition(std::chrono::nanoseconds pos);
     std::chrono::nanoseconds position() const;
     std::chrono::milliseconds positionInMs() const;
 
@@ -108,6 +108,9 @@ public:
     std::chrono::milliseconds durationInMs() const;
 
 private:
+    void seek(std::chrono::nanoseconds pos, double rate);
+    void seek(std::chrono::nanoseconds pos);
+
     QGstPipelinePrivate *getPrivate() const;
 
     void beginConfig();
