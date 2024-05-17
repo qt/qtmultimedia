@@ -207,7 +207,9 @@ void QGstreamerMediaPlayer::play()
 {
     if (state() == QMediaPlayer::PlayingState || m_url.isEmpty())
         return;
-    resetCurrentLoop();
+
+    if (state() != QMediaPlayer::PausedState)
+        resetCurrentLoop();
 
     playerPipeline.setInStoppedState(false);
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
