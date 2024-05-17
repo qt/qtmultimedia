@@ -212,6 +212,10 @@ qt_internal_add_3rdparty_library(BundledResonanceAudio
         ${PFFFT_DIR}
         ${SADIE_HRTFS_DIR}
         ../3rdparty/eigen
+    ATTRIBUTION_FILE_DIR_PATHS
+        ${RA_TOPLEVEL_DIR}
+        ${PFFFT_DIR}
+        ../3rdparty/eigen
 )
 
 # Required by pffft on certain PowerPC archs
