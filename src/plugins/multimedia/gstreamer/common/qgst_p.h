@@ -415,9 +415,9 @@ public:
     void disconnect(gulong handlerId);
 
     GType type() const;
-    const char *typeName() const;
+    QLatin1StringView typeName() const;
     GstObject *object() const;
-    const char *name() const;
+    QLatin1StringView name() const;
 };
 
 class QGObjectHandlerConnection
