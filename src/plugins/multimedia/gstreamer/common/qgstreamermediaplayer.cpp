@@ -26,6 +26,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#if QT_CONFIG(gstreamer_gl)
+#  include <gst/gl/gl.h>
+#endif
+
 static Q_LOGGING_CATEGORY(qLcMediaPlayer, "qt.multimedia.player")
 
 QT_BEGIN_NAMESPACE

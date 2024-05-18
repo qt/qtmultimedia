@@ -15,21 +15,12 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qplatformvideosink_p.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 
 #include <common/qgstpipeline_p.h>
-#include <common/qgstreamervideooverlay_p.h>
-#include <QtGui/qcolor.h>
-#include <QtMultimedia/qvideosink.h>
-
-#if QT_CONFIG(gstreamer_gl)
-#include <gst/gl/gl.h>
-#endif
 
 QT_BEGIN_NAMESPACE
-class QGstreamerVideoRenderer;
-class QVideoWindow;
 
 class QGstreamerVideoSink : public QPlatformVideoSink
 {
