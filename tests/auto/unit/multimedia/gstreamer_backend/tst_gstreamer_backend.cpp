@@ -12,6 +12,8 @@
 
 QT_USE_NAMESPACE
 
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
+
 using namespace Qt::Literals;
 
 QGstTagListHandle tst_GStreamer::parseTagList(const char *str)
@@ -149,6 +151,25 @@ void tst_GStreamer::QGstElement_createFromPipelineDescription_multipleElementsCr
     QVERIFY(!bin.findByName("baz"));
 
     bin.dumpGraph("QGstElement_createFromPipelineDescription_multipleElements");
+}
+
+void tst_GStreamer::QGstPad_inferTypeFromName()
+{
+    auto makePad = [](const char *name, GstPadDirection direction) {
+        return QGstPad{
+            gst_pad_new(name, direction),
+            QGstPad::NeedsRef,
+        };
+    };
+
+    QVERIFY(makePad("audio_0", GST_PAD_SRC).inferTrackTypeFromName()
+            == QPlatformMediaPlayer::AudioStream);
+    QVERIFY(makePad("video_0", GST_PAD_SRC).inferTrackTypeFromName()
+            == QPlatformMediaPlayer::VideoStream);
+    QVERIFY(makePad("text_0", GST_PAD_SRC).inferTrackTypeFromName()
+            == QPlatformMediaPlayer::SubtitleStream);
+    QVERIFY(makePad("src_0", GST_PAD_SRC).inferTrackTypeFromName() == std::nullopt);
+    QVERIFY(makePad("text", GST_PAD_SRC).inferTrackTypeFromName() == std::nullopt);
 }
 
 QTEST_GUILESS_MAIN(tst_GStreamer)
