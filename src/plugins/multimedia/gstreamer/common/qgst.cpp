@@ -669,9 +669,11 @@ GType QGstObject::type() const
     return G_OBJECT_TYPE(get());
 }
 
-const char *QGstObject::typeName() const
+QLatin1StringView QGstObject::typeName() const
 {
-    return g_type_name(type());
+    return QLatin1StringView{
+        g_type_name(type()),
+    };
 }
 
 GstObject *QGstObject::object() const
@@ -679,9 +681,11 @@ GstObject *QGstObject::object() const
     return get();
 }
 
-const char *QGstObject::name() const
+QLatin1StringView QGstObject::name() const
 {
-    return get() ? GST_OBJECT_NAME(get()) : "(null)";
+    using namespace Qt::StringLiterals;
+
+    return get() ? QLatin1StringView{ GST_OBJECT_NAME(get()) } : "(null)"_L1;
 }
 
 // QGObjectHandlerConnection
