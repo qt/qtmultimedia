@@ -170,7 +170,15 @@ private:
 
     //    QGstElement streamSynchronizer;
 
-    QHash<QByteArray, QGstPad> decoderOutputMap;
+    struct QGstPadLess
+    {
+        bool operator()(const QGstPad &lhs, const QGstPad &rhs) const
+        {
+            return lhs.pad() < rhs.pad();
+        }
+    };
+
+    std::map<QGstPad, QGstPad, QGstPadLess> decoderOutputMap;
 
     // decoder connections
     QGObjectHandlerScopedConnection padAdded;
