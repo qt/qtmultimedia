@@ -8,8 +8,6 @@ qt_internal_add_module(QGstreamerMediaPluginPrivate
     INTERNAL_MODULE
     SOURCES
         audio/qgstreameraudiodevice.cpp audio/qgstreameraudiodevice_p.h
-        audio/qgstreameraudiosource.cpp audio/qgstreameraudiosource_p.h
-        audio/qgstreameraudiosink.cpp audio/qgstreameraudiosink_p.h
         audio/qgstreameraudiodecoder.cpp audio/qgstreameraudiodecoder_p.h
         common/qglist_helper_p.h
         common/qgst.cpp common/qgst_p.h
