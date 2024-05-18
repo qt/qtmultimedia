@@ -124,11 +124,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
 
     qCDebug(qLcMediaVideoOutput) << "sinkChanged" << gstSink.name();
 
-    GST_DEBUG_BIN_TO_DOT_FILE(gstPipeline.bin(),
-                              GstDebugGraphDetails(/*GST_DEBUG_GRAPH_SHOW_ALL |*/ GST_DEBUG_GRAPH_SHOW_MEDIA_TYPE |
-                                                   GST_DEBUG_GRAPH_SHOW_NON_DEFAULT_PARAMS | GST_DEBUG_GRAPH_SHOW_STATES),
-                              videoSink.name());
-
+    gstPipeline.dumpGraph(videoSink.name().constData());
 }
 
 void QGstreamerVideoOutput::setPipeline(const QGstPipeline &pipeline)

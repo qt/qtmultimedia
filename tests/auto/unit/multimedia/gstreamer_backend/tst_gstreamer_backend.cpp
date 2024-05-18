@@ -124,8 +124,8 @@ void tst_GStreamer::QGstElement_createFromPipelineDescription()
 {
     using namespace std::string_view_literals;
     QGstElement element = QGstElement::createFromPipelineDescription("identity name=foo");
-    QCOMPARE_EQ(element.name(), "foo"sv);
-    QCOMPARE_EQ(element.typeName(), "GstIdentity"sv);
+    QCOMPARE_EQ(element.name().constData(), "foo"sv);
+    QCOMPARE_EQ(element.typeName().constData(), "GstIdentity"sv);
 }
 
 void tst_GStreamer::QGstElement_createFromPipelineDescription_multipleElementsCreatesBin()
@@ -135,7 +135,7 @@ void tst_GStreamer::QGstElement_createFromPipelineDescription_multipleElementsCr
             QGstElement::createFromPipelineDescription("identity name=foo ! identity name=bar");
 
     QVERIFY(element);
-    QCOMPARE_EQ(element.typeName(), "GstPipeline"sv);
+    QCOMPARE_EQ(element.typeName().constData(), "GstPipeline"sv);
 
     QGstBin bin{
         qGstSafeCast<GstBin>(element.element()),
