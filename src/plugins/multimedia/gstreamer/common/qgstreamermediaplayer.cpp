@@ -624,7 +624,7 @@ void QGstreamerMediaPlayer::decoderPadAdded(const QGstElement &src, const QGstPa
     if (!prerolling)
         emit tracksChanged();
 
-    decoderOutputMap.emplace(QByteArray{ pad.name().constData() }, sinkPad);
+    decoderOutputMap.emplace(pad, sinkPad);
 }
 
 void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGstPad &pad)
@@ -633,9 +633,11 @@ void QGstreamerMediaPlayer::decoderPadRemoved(const QGstElement &src, const QGst
         return;
 
     qCDebug(qLcMediaPlayer) << "Removed pad" << pad.name() << "from" << src.name();
-    auto track = decoderOutputMap.value(QByteArray{ pad.name().constData() });
-    if (track.isNull())
+
+    auto it = decoderOutputMap.find(pad);
+    if (it == decoderOutputMap.end())
         return;
+    QGstPad track = it->second;
 
     auto ts = std::find_if(std::begin(trackSelectors), std::end(trackSelectors),
                            [&](TrackSelector &ts){ return ts.selector == track.parent(); });
