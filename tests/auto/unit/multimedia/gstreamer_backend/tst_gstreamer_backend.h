@@ -32,6 +32,8 @@ private slots:
     void QGstElement_createFromPipelineDescription();
     void QGstElement_createFromPipelineDescription_multipleElementsCreatesBin();
 
+    void QGstPad_inferTypeFromName();
+
 private:
     QGstreamerIntegration integration;
 };

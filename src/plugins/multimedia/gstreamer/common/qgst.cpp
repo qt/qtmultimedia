@@ -753,6 +753,21 @@ QGstCaps QGstPad::queryCaps() const
     return QGstCaps(gst_pad_query_caps(pad(), nullptr), QGstCaps::HasRef);
 }
 
+std::optional<QPlatformMediaPlayer::TrackType> QGstPad::inferTrackTypeFromName() const
+{
+    using namespace Qt::Literals;
+    QLatin1StringView padName = name();
+
+    if (padName.startsWith("video_"_L1))
+        return QPlatformMediaPlayer::TrackType::VideoStream;
+    if (padName.startsWith("audio_"_L1))
+        return QPlatformMediaPlayer::TrackType::AudioStream;
+    if (padName.startsWith("text_"_L1))
+        return QPlatformMediaPlayer::TrackType::SubtitleStream;
+
+    return std::nullopt;
+}
+
 bool QGstPad::isLinked() const
 {
     return gst_pad_is_linked(pad());

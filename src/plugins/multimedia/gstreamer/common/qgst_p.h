@@ -23,6 +23,7 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <gst/gst.h>
 #include <gst/video/video-info.h>
@@ -477,6 +478,9 @@ public:
 
     QGstCaps currentCaps() const;
     QGstCaps queryCaps() const;
+
+    std::optional<QPlatformMediaPlayer::TrackType>
+    inferTrackTypeFromName() const; // for decodebin3 etc
 
     bool isLinked() const;
     bool link(const QGstPad &sink) const;
