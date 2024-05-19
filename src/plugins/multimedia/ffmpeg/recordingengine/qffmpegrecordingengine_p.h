@@ -93,8 +93,7 @@ private:
     friend class EncodingInitializer;
     void addAudioInput(QFFmpegAudioInput *input);
     void addAudioBufferInput(QPlatformAudioBufferInput *input, const QAudioBuffer &firstBuffer);
-    AudioEncoder *createAudioEncoder(QPlatformAudioBufferInputBase *input,
-                                     const QAudioFormat &format);
+    AudioEncoder *createAudioEncoder(const QAudioFormat &format);
 
     void addVideoSource(QPlatformVideoSource *source, const QVideoFrame &firstFrame);
 

@@ -5,13 +5,6 @@
 
 QT_BEGIN_NAMESPACE
 
-void QPlatformAudioBufferInput::setEncoderReadinessGetter(
-        std::function<bool()> encoderReadinessGetter)
-{
-    m_encoderReadinessGetter = std::move(encoderReadinessGetter);
-    emit encoderUpdated();
-}
-
 QT_END_NAMESPACE
 
 #include "moc_qplatformaudiobufferinput_p.cpp"

@@ -1,7 +1,8 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "private/qplatformaudiobufferinput_p.h"
+#include "qplatformaudiobufferinput_p.h"
+#include "qmediainputencoderinterface_p.h"
 #include "qmediaframeinput_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -52,9 +53,8 @@ private:
 
     bool checkIfCanSendMediaFrame() const override
     {
-        const auto &encoderReadinessGetter = m_platfromAudioBufferInput->encoderReadinessGetter();
-        if (encoderReadinessGetter)
-            return encoderReadinessGetter();
+        if (auto encoderInterface = m_platfromAudioBufferInput->encoderInterface())
+            return encoderInterface->canPushFrame();
 
         // Not implemented yet
         // return captureSession()->audioOutput() != nullptr;

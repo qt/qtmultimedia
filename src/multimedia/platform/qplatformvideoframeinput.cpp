@@ -5,13 +5,6 @@
 
 QT_BEGIN_NAMESPACE
 
-void QPlatformVideoFrameInput::setEncoderReadinessGetter(
-        std::function<bool()> encoderReadinessGetter)
-{
-    m_encoderReadinessGetter = std::move(encoderReadinessGetter);
-    emit encoderUpdated();
-}
-
 QT_END_NAMESPACE
 
 #include "moc_qplatformvideoframeinput_p.cpp"

@@ -20,6 +20,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QMediaInputEncoderInterface;
+
 class Q_MULTIMEDIA_EXPORT QPlatformAudioBufferInputBase : public QObject
 {
     Q_OBJECT
@@ -35,18 +37,17 @@ public:
 
     const QAudioFormat &audioFormat() const { return m_format; }
 
-    using EncoderReadinessGetter = std::function<bool()>;
-    const EncoderReadinessGetter &encoderReadinessGetter() const
+    QMediaInputEncoderInterface *encoderInterface() const { return m_encoderInterface; }
+    void setEncoderInterface(QMediaInputEncoderInterface *interface)
     {
-        return m_encoderReadinessGetter;
+        m_encoderInterface = interface;
     }
-    void setEncoderReadinessGetter(std::function<bool()> encoderReadinessGetter);
 
 Q_SIGNALS:
     void encoderUpdated();
 
 private:
-    std::function<bool()> m_encoderReadinessGetter;
+    QMediaInputEncoderInterface *m_encoderInterface = nullptr;
     QAudioFormat m_format;
 };
 

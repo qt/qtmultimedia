@@ -6,13 +6,15 @@
 #include "qffmpegthread_p.h"
 #include "qpointer.h"
 
+#include "private/qmediainputencoderinterface_p.h"
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
 class RecordingEngine;
 
-class EncoderThread : public ConsumerThread
+class EncoderThread : public ConsumerThread, public QMediaInputEncoderInterface
 {
     Q_OBJECT
 public:
@@ -23,7 +25,8 @@ public:
 
     QObject *source() const { return m_source; }
 
-    bool canPushFrame() const { return m_canPushFrame.load(std::memory_order_relaxed); }
+    bool canPushFrame() const override { return m_canPushFrame.load(std::memory_order_relaxed); }
+
 protected:
     void updateCanPushFrame();
 
