@@ -73,7 +73,7 @@ QPlatformCamera *QGstreamerMediaCapture::camera()
 
 void QGstreamerMediaCapture::setCamera(QPlatformCamera *platformCamera)
 {
-    QGstreamerCamera *camera = static_cast<QGstreamerCamera *>(platformCamera);
+    auto *camera = static_cast<QGstreamerCameraBase *>(platformCamera);
     if (gstCamera == camera)
         return;
 
@@ -86,7 +86,7 @@ void QGstreamerMediaCapture::setCamera(QPlatformCamera *platformCamera)
     gstCamera = camera;
 
     if (gstCamera) {
-        gstCameraActiveConnection = QObject::connect(camera, &QGstreamerCamera::activeChanged, this,
+        gstCameraActiveConnection = QObject::connect(camera, &QPlatformCamera::activeChanged, this,
                                                      &QGstreamerMediaCapture::setCameraActive);
         if (gstCamera->isActive())
             setCameraActive(true);
