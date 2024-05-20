@@ -25,7 +25,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCamera;
+class QGstreamerCameraBase;
 class QGstreamerImageCapture;
 class QGstreamerMediaEncoder;
 class QGstreamerAudioInput;
@@ -75,7 +75,7 @@ private:
     QGstPipeline capturePipeline;
 
     QGstreamerAudioInput *gstAudioInput = nullptr;
-    QGstreamerCamera *gstCamera = nullptr;
+    QGstreamerCameraBase *gstCamera = nullptr;
     QMetaObject::Connection gstCameraActiveConnection;
 
     QGstElement gstAudioTee;
