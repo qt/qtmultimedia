@@ -12,6 +12,7 @@ qt_internal_add_test(tst_qmediacapture_gstreamer
     INCLUDE_DIRECTORIES
         ../../../shared
     LIBRARIES
+        Qt::Multimedia
         Qt::MultimediaPrivate
         Qt::QGstreamerMediaPluginPrivate
 )

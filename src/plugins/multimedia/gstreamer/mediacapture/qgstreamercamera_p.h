@@ -130,6 +130,22 @@ private:
     QString m_v4l2DevicePath;
 };
 
+class QGstreamerCustomCamera : public QGstreamerCameraBase
+{
+public:
+    explicit QGstreamerCustomCamera(QCamera *);
+
+    QGstElement gstElement() const override { return gstCamera; }
+    void setCamera(const QCameraDevice &) override;
+
+    bool isActive() const override;
+    void setActive(bool) override;
+
+private:
+    QGstBin gstCamera;
+    bool m_active{};
+};
+
 QT_END_NAMESPACE
 
 #endif // QGSTREAMERCAMERACONTROL_H
