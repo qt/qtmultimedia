@@ -31,6 +31,8 @@ public:
 
     QAudioDevice makeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline) override;
     QAudioDevice makeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline) override;
+    QCamera *makeCustomGStreamerCamera(const QByteArray &gstreamerPipeline,
+                                       QObject *parent) override;
 
     GstPipeline *gstPipeline(QMediaPlayer *) override;
     GstPipeline *gstPipeline(QMediaCaptureSession *) override;

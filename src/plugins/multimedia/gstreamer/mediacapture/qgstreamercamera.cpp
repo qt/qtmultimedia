@@ -5,6 +5,7 @@
 
 #include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtCore/qdebug.h>
 
 #include <common/qgst_debug_p.h>
@@ -713,6 +714,34 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
         }
         return control.value;
     });
+}
+
+QGstreamerCustomCamera::QGstreamerCustomCamera(QCamera *camera)
+    : QGstreamerCameraBase{
+          camera,
+      }
+{
+}
+
+void QGstreamerCustomCamera::setCamera(const QCameraDevice &device)
+{
+    gstCamera = QGstBin::createFromPipelineDescription(device.id(), /*name=*/nullptr,
+                                                       /* ghostUnlinkedPads=*/true);
+}
+
+bool QGstreamerCustomCamera::isActive() const
+{
+    return m_active;
+}
+
+void QGstreamerCustomCamera::setActive(bool active)
+{
+    if (m_active == active)
+        return;
+
+    m_active = active;
+
+    emit activeChanged(active);
 }
 
 #endif

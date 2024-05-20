@@ -6,6 +6,10 @@ add_subdirectory(devices)
 add_subdirectory(minimal-player)
 add_subdirectory(wasm)
 
+if(QT_FEATURE_gstreamer)
+    add_subdirectory(gstreamer-custom-camera)
+endif()
+
 if(TARGET Qt::Quick)
     add_subdirectory(qml-minimal-camera)
     add_subdirectory(qml-minimal-player)
