@@ -18,8 +18,11 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtMultimedia/private/qmediaplayer_p.h>
 #include <QtMultimedia/private/qmediacapturesession_p.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
 
 QT_BEGIN_NAMESPACE
+
+static thread_local bool inCustomCameraConstruction = false;
 
 QGStreamerPlatformSpecificInterfaceImplementation::
         ~QGStreamerPlatformSpecificInterfaceImplementation() = default;
@@ -34,6 +37,21 @@ QAudioDevice QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStrea
         const QByteArray &gstreamerPipeline)
 {
     return qMakeCustomGStreamerAudioOutput(gstreamerPipeline);
+}
+
+QCamera *QGStreamerPlatformSpecificInterfaceImplementation::makeCustomGStreamerCamera(
+        const QByteArray &gstreamerPipeline, QObject *parent)
+{
+    QCameraDevicePrivate *info = new QCameraDevicePrivate;
+    info->id = gstreamerPipeline;
+    QCameraDevice device = info->create();
+
+    inCustomCameraConstruction = true;
+    auto guard = qScopeGuard([] {
+        inCustomCameraConstruction = false;
+    });
+
+    return new QCamera(device, parent);
 }
 
 GstPipeline *QGStreamerPlatformSpecificInterfaceImplementation::gstPipeline(QMediaPlayer *player)
@@ -153,7 +171,10 @@ QMaybe<QPlatformMediaPlayer *> QGstreamerIntegration::createPlayer(QMediaPlayer 
 
 QMaybe<QPlatformCamera *> QGstreamerIntegration::createCamera(QCamera *camera)
 {
-    return QGstreamerCamera::create(camera);
+    if (inCustomCameraConstruction)
+        return new QGstreamerCustomCamera(camera);
+    else
+        return QGstreamerCamera::create(camera);
 }
 
 QMaybe<QPlatformMediaRecorder *> QGstreamerIntegration::createRecorder(QMediaRecorder *recorder)

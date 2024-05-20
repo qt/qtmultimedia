@@ -2,17 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/QtTest>
-#include <QtMultimedia/QMediaCaptureSession>
 #include <QtMultimedia/QAudioDevice>
 #include <QtMultimedia/QAudioInput>
 #include <QtMultimedia/QAudioOutput>
-#include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/QCamera>
+#include <QtMultimedia/QMediaCaptureSession>
 #include <QtMultimedia/private/qgstreamer_platformspecificinterface_p.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
 #include <QtQGstreamerMediaPlugin/private/qgstpipeline_p.h>
 
 #include <qscopedenvironmentvariable.h>
 
 #include <memory>
+
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
 
 QT_USE_NAMESPACE
 
@@ -34,6 +37,9 @@ private slots:
     void constructor_preparesGstPipeline();
     void audioInput_makeCustomGStreamerAudioInput_fromPipelineDescription();
     void audioOutput_makeCustomGStreamerAudioOutput_fromPipelineDescription();
+
+    void makeCustomGStreamerCamera_fromPipelineDescription();
+    void makeCustomGStreamerCamera_fromPipelineDescription_multipleItems();
 
 private:
     std::unique_ptr<QMediaCaptureSession> session;
@@ -146,6 +152,35 @@ void tst_QMediaCaptureGStreamer::
     QVERIFY(pipeline.findByName("myConverter"));
 
     dumpGraph("audioOutput_customAudioDevice");
+}
+
+void tst_QMediaCaptureGStreamer::makeCustomGStreamerCamera_fromPipelineDescription()
+{
+    auto pipelineString = "videotestsrc name=mySrc"_ba;
+    QCamera *cam = gstInterface()->makeCustomGStreamerCamera(pipelineString, session.get());
+
+    session->setCamera(cam);
+    cam->start();
+
+    QGstPipeline pipeline = getPipeline();
+    QTEST_ASSERT(pipeline);
+    QVERIFY(pipeline.findByName("mySrc"));
+    dumpGraph("makeCustomGStreamerCamera_fromPipelineDescription");
+}
+
+void tst_QMediaCaptureGStreamer::makeCustomGStreamerCamera_fromPipelineDescription_multipleItems()
+{
+    auto pipelineString = "videotestsrc name=mySrc  ! gamma gamma=2.0 name=myFilter"_ba;
+    QCamera *cam = gstInterface()->makeCustomGStreamerCamera(pipelineString, session.get());
+
+    session->setCamera(cam);
+    cam->start();
+
+    QGstPipeline pipeline = getPipeline();
+    QTEST_ASSERT(pipeline);
+    QVERIFY(pipeline.findByName("mySrc"));
+    QVERIFY(pipeline.findByName("myFilter"));
+    dumpGraph("makeCustomGStreamerCamera_fromPipelineDescription_multipleItems");
 }
 
 QTEST_GUILESS_MAIN(tst_QMediaCaptureGStreamer)

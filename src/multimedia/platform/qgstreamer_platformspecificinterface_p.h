@@ -30,6 +30,8 @@ public:
 
     virtual QAudioDevice makeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline) = 0;
     virtual QAudioDevice makeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline) = 0;
+    virtual QCamera *makeCustomGStreamerCamera(const QByteArray &gstreamerPipeline,
+                                               QObject *parent) = 0;
 
     virtual GstPipeline *gstPipeline(QMediaPlayer *) = 0;
     virtual GstPipeline *gstPipeline(QMediaCaptureSession *) = 0;
