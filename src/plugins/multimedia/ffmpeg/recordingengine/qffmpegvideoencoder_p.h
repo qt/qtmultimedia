@@ -27,18 +27,17 @@ public:
 
     void addFrame(const QVideoFrame &frame);
 
-    void setPaused(bool b) override
-    {
-        EncoderThread::setPaused(b);
-        if (b)
-            m_baseTime.storeRelease(-1);
-    }
-
 protected:
     bool checkIfCanPushFrame() const override;
 
 private:
-    QVideoFrame takeFrame();
+    struct FrameInfo
+    {
+        QVideoFrame frame;
+        bool shouldAdjustTimeBase = false;
+    };
+
+    FrameInfo takeFrame();
     void retrievePackets();
 
     void init() override;
@@ -47,11 +46,12 @@ private:
     void processOne() override;
 
 private:
-    std::queue<QVideoFrame> m_videoFrameQueue;
+    std::queue<FrameInfo> m_videoFrameQueue;
     const size_t m_maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
 
     std::unique_ptr<VideoFrameEncoder> m_frameEncoder;
-    QAtomicInteger<qint64> m_baseTime = std::numeric_limits<qint64>::min();
+    qint64 m_baseTime = 0;
+    bool m_shouldAdjustTimeBaseForNextFrame = true;
     qint64 m_lastFrameTime = 0;
 };
 

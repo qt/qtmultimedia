@@ -54,8 +54,10 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
     {
         auto guard = lockLoopData();
 
-        if (m_paused)
+        if (m_paused) {
+            m_shouldAdjustTimeBaseForNextFrame = true;
             return;
+        }
 
         // Drop frames if encoder can not keep up with the video source data rate;
         // canPushFrame might be used instead
@@ -66,13 +68,14 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
             return;
         }
 
-        m_videoFrameQueue.push(frame);
+        m_videoFrameQueue.push({ frame, m_shouldAdjustTimeBaseForNextFrame });
+        m_shouldAdjustTimeBaseForNextFrame = false;
     }
 
     dataReady();
 }
 
-QVideoFrame VideoEncoder::takeFrame()
+VideoEncoder::FrameInfo VideoEncoder::takeFrame()
 {
     auto guard = lockLoopData();
     return dequeueIfPossible(m_videoFrameQueue);
@@ -128,7 +131,8 @@ void VideoEncoder::processOne()
 {
     retrievePackets();
 
-    QVideoFrame frame = takeFrame();
+    FrameInfo frameInfo = takeFrame();
+    QVideoFrame &frame = frameInfo.frame;
     Q_ASSERT(frame.isValid());
 
     if (!isValid())
@@ -174,14 +178,17 @@ void VideoEncoder::processOne()
                                                new QVideoFrameHolder{ frame, img }, 0);
     }
 
-    if (m_baseTime.loadAcquire() == std::numeric_limits<qint64>::min()) {
-        m_baseTime.storeRelease(frame.startTime() - m_lastFrameTime);
-        qCDebug(qLcFFmpegVideoEncoder) << ">>>> adjusting base time to" << m_baseTime.loadAcquire()
-                                       << frame.startTime() << m_lastFrameTime;
+    const qint64 startTime = frame.startTime();
+    const qint64 endTime = frame.endTime();
+
+    if (frameInfo.shouldAdjustTimeBase) {
+        m_baseTime += startTime - m_lastFrameTime;
+        qCDebug(qLcFFmpegVideoEncoder)
+                << ">>>> adjusting base time to" << m_baseTime << startTime << m_lastFrameTime;
     }
 
-    qint64 time = frame.startTime() - m_baseTime.loadAcquire();
-    m_lastFrameTime = frame.endTime() - m_baseTime.loadAcquire();
+    const qint64 time = startTime - m_baseTime;
+    m_lastFrameTime = endTime;
 
     setAVFrameTime(*avFrame, m_frameEncoder->getPts(time), m_frameEncoder->getTimeBase());
 

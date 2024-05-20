@@ -19,7 +19,8 @@ class EncoderThread : public ConsumerThread, public QMediaInputEncoderInterface
     Q_OBJECT
 public:
     EncoderThread(RecordingEngine &recordingEngine);
-    virtual void setPaused(bool paused);
+
+    void setPaused(bool paused);
 
     void setSource(QObject *source) { m_source = source; }
 
