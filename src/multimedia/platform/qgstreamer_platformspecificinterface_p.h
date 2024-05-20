@@ -26,7 +26,8 @@ class Q_MULTIMEDIA_EXPORT QGStreamerPlatformSpecificInterface
 public:
     ~QGStreamerPlatformSpecificInterface() override;
 
-public:
+    static QGStreamerPlatformSpecificInterface *instance();
+
     virtual QAudioDevice makeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline) = 0;
     virtual QAudioDevice makeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline) = 0;
 

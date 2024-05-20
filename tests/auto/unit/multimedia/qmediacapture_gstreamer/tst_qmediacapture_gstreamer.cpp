@@ -38,15 +38,14 @@ private slots:
 private:
     std::unique_ptr<QMediaCaptureSession> session;
 
-    static QGStreamerPlatformSpecificInterface *gstInterface()
+    QGStreamerPlatformSpecificInterface *gstInterface()
     {
-        return dynamic_cast<QGStreamerPlatformSpecificInterface *>(
-                QPlatformMediaIntegration::instance()->platformSpecificInterface());
+        return QGStreamerPlatformSpecificInterface::instance();
     }
 
     GstPipeline *getGstPipeline()
     {
-        QGStreamerPlatformSpecificInterface *iface = gstInterface();
+        auto *iface = QGStreamerPlatformSpecificInterface::instance();
         return iface ? iface->gstPipeline(session.get()) : nullptr;
     }
 
@@ -83,7 +82,7 @@ void tst_QMediaCaptureGStreamer::cleanup()
 
 void tst_QMediaCaptureGStreamer::mediaIntegration_hasPlatformSpecificInterface()
 {
-    QVERIFY(gstInterface());
+    QVERIFY(QGStreamerPlatformSpecificInterface::instance());
 }
 
 void tst_QMediaCaptureGStreamer::constructor_preparesGstPipeline()
