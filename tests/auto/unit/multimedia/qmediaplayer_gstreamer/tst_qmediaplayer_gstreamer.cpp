@@ -28,15 +28,9 @@ private slots:
 private:
     std::unique_ptr<QMediaPlayer> player;
 
-    static QGStreamerPlatformSpecificInterface *gstInterface()
-    {
-        return dynamic_cast<QGStreamerPlatformSpecificInterface *>(
-                QPlatformMediaIntegration::instance()->platformSpecificInterface());
-    }
-
     GstPipeline *getGstPipeline()
     {
-        QGStreamerPlatformSpecificInterface *iface = gstInterface();
+        auto *iface = QGStreamerPlatformSpecificInterface::instance();
         return iface ? iface->gstPipeline(player.get()) : nullptr;
     }
 
