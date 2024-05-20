@@ -34,7 +34,6 @@ public:
 
 class QGstreamerCamera : public QGstreamerCameraBase
 {
-    Q_OBJECT
 public:
     static QMaybe<QPlatformCamera *> create(QCamera *camera);
 
@@ -126,7 +125,6 @@ private:
     QGstElement gstDecode;
     QGstElement gstVideoConvert;
     QGstElement gstVideoScale;
-    QGstPipeline gstPipeline;
 
     bool m_active = false;
     QString m_v4l2DevicePath;
