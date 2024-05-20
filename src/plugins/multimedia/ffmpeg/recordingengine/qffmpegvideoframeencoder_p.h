@@ -48,6 +48,8 @@ public:
     int sendFrame(AVFrameUPtr frame);
     AVPacketUPtr retrievePacket();
 
+    const QMediaEncoderSettings &settings() { return m_settings; }
+
 private:
     VideoFrameEncoder() = default;
 

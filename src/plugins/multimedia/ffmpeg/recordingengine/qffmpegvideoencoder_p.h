@@ -45,6 +45,8 @@ private:
     bool hasData() const override;
     void processOne() override;
 
+    std::pair<qint64, qint64> frameTimeStamps(const QVideoFrame &frame) const;
+
 private:
     std::queue<FrameInfo> m_videoFrameQueue;
     const size_t m_maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)

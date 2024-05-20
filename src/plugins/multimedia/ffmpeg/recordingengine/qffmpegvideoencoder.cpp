@@ -178,8 +178,7 @@ void VideoEncoder::processOne()
                                                new QVideoFrameHolder{ frame, img }, 0);
     }
 
-    const qint64 startTime = frame.startTime();
-    const qint64 endTime = frame.endTime();
+    const auto [startTime, endTime] = frameTimeStamps(frame);
 
     if (frameInfo.shouldAdjustTimeBase) {
         m_baseTime += startTime - m_lastFrameTime;
@@ -211,6 +210,28 @@ bool VideoEncoder::checkIfCanPushFrame() const
         return m_videoFrameQueue.empty();
 
     return false;
+}
+
+std::pair<qint64, qint64> VideoEncoder::frameTimeStamps(const QVideoFrame &frame) const
+{
+    qint64 startTime = frame.startTime();
+    qint64 endTime = frame.endTime();
+
+    if (startTime == -1) {
+        startTime = m_lastFrameTime;
+        endTime = -1;
+    }
+
+    if (endTime == -1) {
+        qreal frameRate = frame.streamFrameRate();
+        if (frameRate <= 0.)
+            frameRate = m_frameEncoder->settings().videoFrameRate();
+
+        Q_ASSERT(frameRate > 0.f);
+        endTime = startTime + static_cast<qint64>(std::round(1000000 / frameRate));
+    }
+
+    return { startTime, endTime };
 }
 
 } // namespace QFFmpeg
