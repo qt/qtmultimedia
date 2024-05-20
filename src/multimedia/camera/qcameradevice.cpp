@@ -455,10 +455,12 @@ QCameraDevice& QCameraDevice::operator=(const QCameraDevice& other) = default;
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug d, const QCameraDevice &camera)
 {
-    d.maybeSpace() << QStringLiteral("QCameraDevice(name=%1, position=%2, orientation=%3)")
-                          .arg(camera.description())
-                          .arg(QString::fromLatin1(QCamera::staticMetaObject.enumerator(QCamera::staticMetaObject.indexOfEnumerator("Position"))
-                               .valueToKey(camera.position())));
+    d.maybeSpace() << QStringLiteral("QCameraDevice(name=%1, id=%2, position=%3)")
+                              .arg(camera.description())
+                              .arg(QLatin1StringView(camera.id()))
+                              .arg(QLatin1StringView(
+                                      QMetaEnum::fromType<QCameraDevice::Position>().valueToKey(
+                                              camera.position())));
     return d.space();
 }
 #endif
