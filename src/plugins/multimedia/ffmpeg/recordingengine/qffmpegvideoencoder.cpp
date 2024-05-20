@@ -48,6 +48,9 @@ bool VideoEncoder::isValid() const
 
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
+    if (!frame.isValid()) // TODO: report endOfStream
+        return;
+
     {
         auto guard = lockLoopData();
 
@@ -125,9 +128,8 @@ void VideoEncoder::processOne()
 {
     retrievePackets();
 
-    auto frame = takeFrame();
-    if (!frame.isValid())
-        return;
+    QVideoFrame frame = takeFrame();
+    Q_ASSERT(frame.isValid());
 
     if (!isValid())
         return;

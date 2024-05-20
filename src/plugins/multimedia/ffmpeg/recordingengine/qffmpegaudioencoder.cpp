@@ -95,6 +95,9 @@ void AudioEncoder::open()
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
 {
+    if (!buffer.isValid()) // TODO: report endOfStream
+        return;
+
     {
         const std::chrono::microseconds bufferDuration(buffer.duration());
         auto guard = lockLoopData();
@@ -170,8 +173,7 @@ void AudioEncoder::retrievePackets()
 void AudioEncoder::processOne()
 {
     QAudioBuffer buffer = takeBuffer();
-    if (!buffer.isValid())
-        return;
+    Q_ASSERT(buffer.isValid());
 
     if (buffer.format() != m_format) {
         // should we recreate recreate resampler here?
