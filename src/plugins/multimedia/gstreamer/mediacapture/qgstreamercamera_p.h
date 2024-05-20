@@ -24,7 +24,15 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerCamera : public QPlatformCamera
+class QGstreamerCameraBase : public QPlatformCamera
+{
+public:
+    using QPlatformCamera::QPlatformCamera;
+
+    virtual QGstElement gstElement() const = 0;
+};
+
+class QGstreamerCamera : public QGstreamerCameraBase
 {
 public:
     static QMaybe<QPlatformCamera *> create(QCamera *camera);
@@ -37,7 +45,7 @@ public:
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
 
-    QGstElement gstElement() const { return gstCameraBin; }
+    QGstElement gstElement() const override { return gstCameraBin; }
 #if QT_CONFIG(gstreamer_photography)
     GstPhotography *photography() const;
 #endif

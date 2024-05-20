@@ -43,7 +43,7 @@ QMaybe<QPlatformCamera *> QGstreamerCamera::create(QCamera *camera)
 QGstreamerCamera::QGstreamerCamera(QGstElement videotestsrc, QGstElement capsFilter,
                                    QGstElement videoconvert, QGstElement videoscale,
                                    QCamera *camera)
-    : QPlatformCamera(camera),
+    : QGstreamerCameraBase(camera),
       gstCamera(std::move(videotestsrc)),
       gstCapsFilter(std::move(capsFilter)),
       gstVideoConvert(std::move(videoconvert)),
