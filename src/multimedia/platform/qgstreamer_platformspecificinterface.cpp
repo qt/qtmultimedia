@@ -18,4 +18,10 @@ QT_BEGIN_NAMESPACE
 
 QGStreamerPlatformSpecificInterface::~QGStreamerPlatformSpecificInterface() = default;
 
+QGStreamerPlatformSpecificInterface *QGStreamerPlatformSpecificInterface::instance()
+{
+    return dynamic_cast<QGStreamerPlatformSpecificInterface *>(
+            QPlatformMediaIntegration::instance()->platformSpecificInterface());
+}
+
 QT_END_NAMESPACE
