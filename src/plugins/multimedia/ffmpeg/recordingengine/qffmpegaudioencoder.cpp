@@ -86,11 +86,7 @@ void AudioEncoder::open()
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << m_codecContext->sample_fmt
                               << "rate=" << m_codecContext->sample_rate;
 
-    const AVAudioFormat requestedAudioFormat(m_format);
-    const AVAudioFormat codecAudioFormat(m_codecContext.get());
-
-    if (requestedAudioFormat != codecAudioFormat)
-        m_resampler = createResampleContext(requestedAudioFormat, codecAudioFormat);
+    updateResampler();
 }
 
 void AudioEncoder::addBuffer(const QAudioBuffer &buffer)
@@ -176,9 +172,8 @@ void AudioEncoder::processOne()
     Q_ASSERT(buffer.isValid());
 
     if (buffer.format() != m_format) {
-        // should we recreate recreate resampler here?
-        qWarning() << "Get invalid audio format:" << buffer.format() << ", expected:" << m_format;
-        return;
+        m_format = buffer.format();
+        updateResampler();
     }
 
     //    qCDebug(qLcFFmpegEncoder) << "new audio buffer" << buffer.byteCount() << buffer.format()
@@ -237,7 +232,19 @@ bool AudioEncoder::checkIfCanPushFrame() const
     return false;
 }
 
+void AudioEncoder::updateResampler()
+{
+    m_resampler.reset();
 
+    const AVAudioFormat requestedAudioFormat(m_format);
+    const AVAudioFormat codecAudioFormat(m_codecContext.get());
+
+    if (requestedAudioFormat != codecAudioFormat)
+        m_resampler = createResampleContext(requestedAudioFormat, codecAudioFormat);
+
+    qCDebug(qLcFFmpegAudioEncoder)
+            << "Resampler updated. Input format:" << m_format << "Resampler:" << m_resampler.get();
+}
 
 } // namespace QFFmpeg
 

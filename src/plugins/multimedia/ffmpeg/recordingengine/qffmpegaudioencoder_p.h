@@ -32,6 +32,7 @@ private:
 
     QAudioBuffer takeBuffer();
     void retrievePackets();
+    void updateResampler();
 
     void init() override;
     void cleanup() override;
