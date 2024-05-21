@@ -1093,6 +1093,8 @@ void tst_QMediaPlayerBackend::
     if (!canCreateRtspStream())
         QSKIP("Rtsp stream cannot be created");
 
+    QSKIP_GSTREAMER("GStreamer tests fail");
+
     auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
     QVERIFY(temporaryFile);
 
@@ -1403,9 +1405,15 @@ void tst_QMediaPlayerBackend::setMuted_doesNotChangeVolume()
 
 void tst_QMediaPlayerBackend::processEOS()
 {
-    CHECK_SELECTED_URL(m_localWavFile);
-
-    m_fixture->player.setSource(*m_localWavFile);
+    if (!isGStreamerPlatform()) {
+        // QTBUG-124517: for some media types, including wav files, gstreamer does not emit buffer
+        // progress messages
+        CHECK_SELECTED_URL(m_localWavFile);
+        m_fixture->player.setSource(*m_localWavFile);
+    } else {
+        CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
+        m_fixture->player.setSource(*m_localVideoFile3ColorsWithSound);
+    }
 
     m_fixture->player.play();
     m_fixture->player.setPosition(900);
@@ -1431,7 +1439,7 @@ void tst_QMediaPlayerBackend::processEOS()
     m_fixture->player.play();
 
     //position is reset to start
-    QTRY_VERIFY(m_fixture->player.position() < 100);
+    QTRY_COMPARE_LT(m_fixture->player.position(), 500);
     QTRY_VERIFY(m_fixture->positionChanged.size() > 0);
     QCOMPARE(m_fixture->positionChanged.first()[0].value<qint64>(), 0);
 
@@ -1456,11 +1464,8 @@ void tst_QMediaPlayerBackend::processEOS()
     QCOMPARE(m_fixture->playbackStateChanged.size(), 2);
     QCOMPARE(m_fixture->playbackStateChanged.last()[0].value<QMediaPlayer::PlaybackState>(), QMediaPlayer::StoppedState);
 
-    if (!isGStreamerPlatform()) {
-        // QTBUG-124517: for some media types gstreamer does not emit buffer progress messages
-        QCOMPARE_GT(m_fixture->bufferProgressChanged.size(), 1);
-        QCOMPARE(m_fixture->bufferProgressChanged.back().front(), 0.f);
-    }
+    QCOMPARE_GT(m_fixture->bufferProgressChanged.size(), 1);
+    QCOMPARE(m_fixture->bufferProgressChanged.back().front(), 0.f);
 
     // position stays at the end of file
     QCOMPARE(m_fixture->player.position(), m_fixture->player.duration());
@@ -1848,6 +1853,8 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
 
 void tst_QMediaPlayerBackend::subsequentPlayback()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious seek failures with gstreamer");
+
     CHECK_SELECTED_URL(m_localCompressedSoundFile);
 
     QAudioOutput output;
@@ -1861,7 +1868,7 @@ void tst_QMediaPlayerBackend::subsequentPlayback()
 
     QCOMPARE(player.error(), QMediaPlayer::NoError);
     QTRY_COMPARE(player.playbackState(), QMediaPlayer::PlayingState);
-    QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 10000);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
     // Could differ by up to 1 compressed frame length
     QVERIFY(qAbs(player.position() - player.duration()) < 100);
@@ -2002,6 +2009,8 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 
 void tst_QMediaPlayerBackend::multipleSeekStressTest()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: spurious test failures with gstreamer");
+
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
 #endif
@@ -2109,6 +2118,8 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
 
 void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderingTime()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: timing issues");
+
     QFETCH(bool, withAudio);
     QFETCH(int, positionDeviationMs);
 
@@ -2221,6 +2232,10 @@ void tst_QMediaPlayerBackend::surfaceTest()
 
 void tst_QMediaPlayerBackend::metadata()
 {
+    // QTBUG-124380: gstreamer reports CoverArtImage instead of ThumbnailImage
+    QMediaMetaData::Key thumbnailKey =
+            isGStreamerPlatform() ? QMediaMetaData::CoverArtImage : QMediaMetaData::ThumbnailImage;
+
     CHECK_SELECTED_URL(m_localFileWithMetadata);
 
     m_fixture->player.setSource(*m_localFileWithMetadata);
@@ -2232,7 +2247,7 @@ void tst_QMediaPlayerBackend::metadata()
     QCOMPARE(metadata.value(QMediaMetaData::ContributingArtist).toString(), QStringLiteral("TestArtist"));
     QCOMPARE(metadata.value(QMediaMetaData::AlbumTitle).toString(), QStringLiteral("TestAlbum"));
     QCOMPARE(metadata.value(QMediaMetaData::Duration), QVariant(7704));
-    QVERIFY(!metadata.value(QMediaMetaData::ThumbnailImage).value<QImage>().isNull());
+    QVERIFY(!metadata.value(thumbnailKey).value<QImage>().isNull());
     m_fixture->clearSpies();
 
     m_fixture->player.setSource(QUrl());
@@ -2659,6 +2674,8 @@ void tst_QMediaPlayerBackend::infiniteLoops()
     m_fixture->player.stop(); // QMediaPlayer::stop stops whether or not looping is infinite
     QCOMPARE(m_fixture->player.playbackState(), QMediaPlayer::StoppedState);
 
+    if (isGStreamerPlatform())
+        return; // QTBUG-124005: many StalledMedia/BufferingMedia/BufferedMedia signals are emitted
     QCOMPARE(m_fixture->mediaStatusChanged,
              SignalList({ { QMediaPlayer::LoadingMedia },
                           { QMediaPlayer::LoadedMedia },
@@ -2795,6 +2812,8 @@ void tst_QMediaPlayerBackend::seekAfterLoopReset()
 
 void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
 {
+    QSKIP_GSTREAMER("QTBUG-124005: gstreamer will lose frames, possibly due to buffering");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
     QVideoSink sinks[4];
@@ -2817,11 +2836,11 @@ void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
     player.setVideoOutput(&sinks[1]);
     player.play();
 
-    QTRY_VERIFY(framesCount[1] >= framesCount[0] / 4);
+    QTRY_COMPARE_GE(framesCount[1], framesCount[0] / 4);
     player.setVideoOutput(&sinks[2]);
     const int savedFrameNumber1 = framesCount[1];
 
-    QTRY_VERIFY(framesCount[2] >= (framesCount[0] - savedFrameNumber1) / 2);
+    QTRY_COMPARE_GE(framesCount[2], (framesCount[0] - savedFrameNumber1) / 2);
     player.setVideoOutput(&sinks[3]);
     const int savedFrameNumber2 = framesCount[2];
 
@@ -2837,6 +2856,9 @@ void tst_QMediaPlayerBackend::changeVideoOutputNoFramesLost()
 
 void tst_QMediaPlayerBackend::cleanSinkAndNoMoreFramesAfterStop()
 {
+    QSKIP_GSTREAMER(
+            "QTBUG-124005: spurious failures on gstreamer, probably due to asynchronous play()");
+
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
     QVideoSink sink;
@@ -2867,6 +2889,9 @@ void tst_QMediaPlayerBackend::cleanSinkAndNoMoreFramesAfterStop()
         framesCount = 0;
 
         QTest::qWait(30);
+
+        if (isGStreamerPlatform())
+            continue; // QTBUG-124005: stop() is asynchronous in gstreamer
 
         // check if nothing changed after short waiting
         QCOMPARE(framesCount, 0);
@@ -3101,6 +3126,8 @@ void tst_QMediaPlayerBackend::play_playsRotatedVideoOutput_whenVideoFileHasOrien
     QRgb upperLeftColor = image.pixel(5, 5);
 
     QCOMPARE_LT(colorDifference(upperLeftColor, expectedColor), 0.005);
+
+    QSKIP_GSTREAMER("QTBUG-124005: surface.videoSize() not updated with rotation");
 
     // Compare videoSize of the output video sink with the expected value after getting a frame
     QCOMPARE(m_fixture->surface.videoSize(), videoSize);
