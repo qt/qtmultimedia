@@ -188,6 +188,11 @@ qreal QGstreamerMediaPlayer::playbackRate() const
 
 void QGstreamerMediaPlayer::setPlaybackRate(qreal rate)
 {
+    if (rate == m_rate)
+        return;
+
+    m_rate = rate;
+
     playerPipeline.setPlaybackRate(rate);
     playbackRateChanged(rate);
 }
