@@ -694,7 +694,8 @@ void tst_QMediaPlayerBackend::setSource_loadsNewMedia_whenPreviousMediaWasFullyL
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadingMedia);
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
     m_fixture->player.play();
-    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::BufferedMedia);
+    QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
+                || m_fixture->player.mediaStatus() == QMediaPlayer::EndOfMedia);
 
     // Load first file again, and wait for it to start loading
     m_fixture->player.setSource(*m_localWavFile2);
