@@ -154,6 +154,7 @@ private:
     bool m_requiresSeekOnPlay = false;
     bool m_initialBufferProgressSent = false;
     ResourceErrorState m_resourceErrorState = ResourceErrorState::NoError;
+    float m_rate = 1.f;
     std::chrono::milliseconds m_duration{};
     QTimer positionUpdateTimer;
 
