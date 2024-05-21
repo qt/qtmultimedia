@@ -78,6 +78,15 @@ QGstreamerMediaPlayer::TrackSelector &QGstreamerMediaPlayer::trackSelector(Track
     return ts;
 }
 
+void QGstreamerMediaPlayer::updateBufferProgress(float newProgress)
+{
+    if (qFuzzyIsNull(newProgress - m_bufferProgress))
+        return;
+
+    m_bufferProgress = newProgress;
+    bufferProgressChanged(m_bufferProgress);
+}
+
 void QGstreamerMediaPlayer::disconnectDecoderHandlers()
 {
     auto handlers = std::initializer_list<QGObjectHandlerScopedConnection *>{
@@ -171,7 +180,7 @@ qint64 QGstreamerMediaPlayer::duration() const
 
 float QGstreamerMediaPlayer::bufferProgress() const
 {
-    return m_bufferProgress/100.;
+    return m_bufferProgress;
 }
 
 QMediaTimeRange QGstreamerMediaPlayer::availablePlaybackRanges() const
@@ -273,8 +282,6 @@ void QGstreamerMediaPlayer::pause()
         mediaStatusChanged(QMediaPlayer::BufferedMedia);
     else
         mediaStatusChanged(QMediaPlayer::BufferingMedia);
-
-    emit bufferProgressChanged(m_bufferProgress / 100.);
 }
 
 void QGstreamerMediaPlayer::stop()
@@ -315,6 +322,7 @@ void QGstreamerMediaPlayer::stopOrEOS(bool eos)
     else
         mediaStatusChanged(QMediaPlayer::LoadedMedia);
     m_initialBufferProgressSent = false;
+    bufferProgressChanged(0.f);
 }
 
 void QGstreamerMediaPlayer::detectPipelineIsSeekable()
@@ -398,9 +406,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
                 mediaStatusChanged(QMediaPlayer::BufferingMedia);
         }
 
-        m_bufferProgress = progress;
-
-        emit bufferProgressChanged(m_bufferProgress / 100.);
+        updateBufferProgress(progress * 0.01);
         break;
     }
     case GST_MESSAGE_STATE_CHANGED: {
@@ -933,10 +939,7 @@ void QGstreamerMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         constexpr int mb = 1024 * 1024;
         decoder.set("ring-buffer-max-size", 2 * mb);
 
-        if (m_bufferProgress != 0) {
-            m_bufferProgress = 0;
-            emit bufferProgressChanged(0.);
-        }
+        updateBufferProgress(0.f);
 
         elementAdded = decoder.connect("deep-element-added",
                                        GCallback(decodebinElementAddedCallback), this);
