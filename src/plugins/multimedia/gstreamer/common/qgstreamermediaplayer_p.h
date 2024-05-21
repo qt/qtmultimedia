@@ -44,7 +44,6 @@ public:
     static QMaybe<QPlatformMediaPlayer *> create(QMediaPlayer *parent = nullptr);
     ~QGstreamerMediaPlayer();
 
-    qint64 position() const override;
     qint64 duration() const override;
 
     float bufferProgress() const override;
@@ -82,8 +81,6 @@ public:
 
     bool processBusMessage(const QGstreamerMessage& message) override;
     bool processSyncMessage(const QGstreamerMessage& message) override;
-
-    void updatePosition() { positionChanged(position()); }
 
 private:
     QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput, QGstElement videoInputSelector,
@@ -134,6 +131,9 @@ private:
     void stopOrEOS(bool eos);
     bool canTrackProgress() const { return decodeBinQueues > 0; }
     void detectPipelineIsSeekable();
+
+    std::chrono::nanoseconds pipelinePosition() const;
+    void updatePositionFromPipeline();
 
     std::array<TrackSelector, NTrackTypes> trackSelectors;
     TrackSelector &trackSelector(TrackType type);

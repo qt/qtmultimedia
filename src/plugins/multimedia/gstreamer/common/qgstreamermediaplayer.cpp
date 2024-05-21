@@ -146,7 +146,7 @@ QGstreamerMediaPlayer::QGstreamerMediaPlayer(QGstreamerVideoOutput *videoOutput,
     gst_pipeline_use_clock(playerPipeline.pipeline(), systemClock.get());
 
     connect(&positionUpdateTimer, &QTimer::timeout, this, [this] {
-        updatePosition();
+        updatePositionFromPipeline();
     });
 }
 
@@ -158,12 +158,20 @@ QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
     topology.free();
 }
 
-qint64 QGstreamerMediaPlayer::position() const
+std::chrono::nanoseconds QGstreamerMediaPlayer::pipelinePosition() const
 {
-    if (playerPipeline.isNull() || m_url.isEmpty())
-        return 0;
+    if (m_url.isEmpty())
+        return {};
 
-    return playerPipeline.positionInMs().count();
+    Q_ASSERT(playerPipeline);
+    return playerPipeline.position();
+}
+
+void QGstreamerMediaPlayer::updatePositionFromPipeline()
+{
+    using namespace std::chrono;
+
+    positionChanged(round<milliseconds>(pipelinePosition()));
 }
 
 qint64 QGstreamerMediaPlayer::duration() const
@@ -226,7 +234,7 @@ void QGstreamerMediaPlayer::play()
     playerPipeline.setInStoppedState(false);
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
         playerPipeline.setPosition({});
-        updatePosition();
+        positionChanged(0);
     }
 
     qCDebug(qLcMediaPlayer) << "play().";
@@ -265,8 +273,10 @@ void QGstreamerMediaPlayer::pause()
         qCDebug(qLcMediaPlayer) << "Unable to set the pipeline to the paused state.";
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
         playerPipeline.setPosition({});
+        positionChanged(0);
+    } else {
+        updatePositionFromPipeline();
     }
-    updatePosition();
     emit stateChanged(QMediaPlayer::PausedState);
 
     if (m_bufferProgress > 0 || !canTrackProgress())
