@@ -244,18 +244,8 @@ int VideoFrameEncoder::sendFrame(AVFrameUPtr frame)
     if (!frame)
         return avcodec_send_frame(m_codecContext.get(), frame.get());
 
-    if (frame->format != m_sourceFormat) {
-        qWarning() << "Frame format has changed:" << m_sourceFormat << "->" << frame->format;
+    if (!updateSourceFormatAndSize(frame.get()))
         return AVERROR(EINVAL);
-    }
-
-    const QSize frameSize(frame->width, frame->height);
-    if (frameSize != m_sourceSize) {
-        qCDebug(qLcVideoFrameEncoder) << "Update conversions on the fly. Source size"
-                                      << m_sourceSize << "->" << frameSize;
-        m_sourceSize = frameSize;
-        updateConversions();
-    }
 
     int64_t pts = 0;
     AVRational timeBase = {};
@@ -375,6 +365,44 @@ AVPacketUPtr VideoFrameEncoder::retrievePacket()
     }
 
     return nullptr;
+}
+
+bool VideoFrameEncoder::updateSourceFormatAndSize(const AVFrame *frame)
+{
+    Q_ASSERT(frame);
+
+    const QSize frameSize(frame->width, frame->height);
+    const AVPixelFormat frameFormat = static_cast<AVPixelFormat>(frame->format);
+
+    if (frameSize == m_sourceSize && frameFormat == m_sourceFormat)
+        return true;
+
+    auto applySourceFormatAndSize = [&](AVPixelFormat swFormat) {
+        m_sourceSize = frameSize;
+        m_sourceFormat = frameFormat;
+        m_sourceSWFormat = swFormat;
+        updateConversions();
+        return true;
+    };
+
+    if (frameFormat == m_sourceFormat)
+        return applySourceFormatAndSize(m_sourceSWFormat);
+
+    if (frameFormat == AV_PIX_FMT_NONE) {
+        qWarning() << "Got a frame with invalid pixel format";
+        return false;
+    }
+
+    if (isSwPixelFormat(frameFormat))
+        return applySourceFormatAndSize(frameFormat);
+
+    auto framesCtx = reinterpret_cast<const AVHWFramesContext *>(frame->hw_frames_ctx->data);
+    if (!framesCtx || framesCtx->sw_format == AV_PIX_FMT_NONE) {
+        qWarning() << "Cannot update conversions as hw frame has invalid framesCtx" << framesCtx;
+        return false;
+    }
+
+    return applySourceFormatAndSize(framesCtx->sw_format);
 }
 
 void VideoFrameEncoder::updateConversions()

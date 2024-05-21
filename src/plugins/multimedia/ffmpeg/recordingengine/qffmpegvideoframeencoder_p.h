@@ -53,6 +53,8 @@ public:
 private:
     VideoFrameEncoder() = default;
 
+    bool updateSourceFormatAndSize(const AVFrame *frame);
+
     void updateConversions();
 
     bool initCodec();
