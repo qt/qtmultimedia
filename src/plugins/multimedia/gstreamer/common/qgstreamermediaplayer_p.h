@@ -132,13 +132,13 @@ private:
 
     std::chrono::nanoseconds pipelinePosition() const;
     void updatePositionFromPipeline();
+    void updateBufferProgress(float);
 
     std::array<TrackSelector, NTrackTypes> trackSelectors;
     TrackSelector &trackSelector(TrackType type);
 
     QMediaMetaData m_metaData;
 
-    int m_bufferProgress = 0;
     QUrl m_url;
     QIODevice *m_stream = nullptr;
 
@@ -153,6 +153,7 @@ private:
     bool m_initialBufferProgressSent = false;
     ResourceErrorState m_resourceErrorState = ResourceErrorState::NoError;
     float m_rate = 1.f;
+    float m_bufferProgress = 0.f;
     std::chrono::milliseconds m_duration{};
     QTimer positionUpdateTimer;
 
