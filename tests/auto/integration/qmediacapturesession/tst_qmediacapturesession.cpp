@@ -21,6 +21,10 @@
 #include <qaudiodevice.h>
 #include <qaudiodecoder.h>
 #include <qaudiobuffer.h>
+#include <qscreencapture.h>
+#include <qwindowcapture.h>
+#include <qaudiobufferinput.h>
+#include <qvideoframeinput.h>
 
 #include <qcamera.h>
 #include <QMediaFormat>
@@ -51,6 +55,7 @@ private slots:
 #endif
         }
     }
+
     void testAudioMute();
     void stress_test_setup_and_teardown();
     void stress_test_setup_and_teardown_keep_session();
@@ -67,8 +72,15 @@ private slots:
     void can_change_AudioInput_during_recording();
     void disconnects_deleted_AudioInput();
     void can_move_AudioInput_between_sessions();
+
     void disconnects_deleted_AudioOutput();
     void can_move_AudioOutput_between_sessions_and_player();
+
+    void disconnects_deleted_AudioBufferInput();
+    void can_move_AudioBufferInput_between_sessions();
+
+    void disconnects_deleted_VideoFrameInput();
+    void can_move_VideoFrameInput_between_sessions();
 
     void can_add_and_remove_Camera();
     void can_move_Camera_between_sessions();
@@ -518,6 +530,89 @@ void tst_QMediaCaptureSession::can_move_AudioOutput_between_sessions_and_player(
     QVERIFY(player.audioOutput() == nullptr);
 }
 
+void tst_QMediaCaptureSession::disconnects_deleted_AudioBufferInput()
+{
+    QMediaCaptureSession session;
+    QSignalSpy audioBufferInputChanged(&session, &QMediaCaptureSession::audioBufferInputChanged);
+    {
+        QAudioBufferInput input;
+        session.setAudioBufferInput(&input);
+        QTRY_COMPARE(audioBufferInputChanged.size(), 1);
+    }
+    QCOMPARE(session.audioBufferInput(), nullptr);
+    QCOMPARE(audioBufferInputChanged.size(), 2);
+}
+
+void tst_QMediaCaptureSession::can_move_AudioBufferInput_between_sessions()
+{
+    QMediaCaptureSession session0;
+    QMediaCaptureSession session1;
+    QSignalSpy audioBufferInputChanged0(&session0, &QMediaCaptureSession::audioBufferInputChanged);
+    QSignalSpy audioBufferInputChanged1(&session1, &QMediaCaptureSession::audioBufferInputChanged);
+
+    QAudioBufferInput input;
+    {
+        QMediaCaptureSession session2;
+        QSignalSpy audioBufferInputChanged2(&session2,
+                                            &QMediaCaptureSession::audioBufferInputChanged);
+        session2.setAudioBufferInput(&input);
+        QCOMPARE(audioBufferInputChanged2.size(), 1);
+    }
+    session0.setAudioBufferInput(&input);
+    QCOMPARE(audioBufferInputChanged0.size(), 1);
+    QCOMPARE(session0.audioBufferInput(), &input);
+    QCOMPARE(input.captureSession(), &session0);
+
+    session1.setAudioBufferInput(&input);
+
+    QCOMPARE(audioBufferInputChanged0.size(), 2);
+    QCOMPARE(session0.audioBufferInput(), nullptr);
+    QCOMPARE(audioBufferInputChanged1.size(), 1);
+    QCOMPARE(session1.audioBufferInput(), &input);
+    QCOMPARE(input.captureSession(), &session1);
+}
+
+void tst_QMediaCaptureSession::disconnects_deleted_VideoFrameInput()
+{
+    QMediaCaptureSession session;
+    QSignalSpy videoFrameInputChanged(&session, &QMediaCaptureSession::videoFrameInputChanged);
+    {
+        QVideoFrameInput input;
+        session.setVideoFrameInput(&input);
+        QTRY_COMPARE(videoFrameInputChanged.size(), 1);
+    }
+    QCOMPARE(session.videoFrameInput(), nullptr);
+    QCOMPARE(videoFrameInputChanged.size(), 2);
+}
+
+void tst_QMediaCaptureSession::can_move_VideoFrameInput_between_sessions()
+{
+    QMediaCaptureSession session0;
+    QMediaCaptureSession session1;
+    QSignalSpy videoFrameInputChanged0(&session0, &QMediaCaptureSession::videoFrameInputChanged);
+    QSignalSpy videoFrameInputChanged1(&session1, &QMediaCaptureSession::videoFrameInputChanged);
+
+    QVideoFrameInput input;
+    {
+        QMediaCaptureSession session2;
+        QSignalSpy videoFrameInputChanged2(&session2,
+                                           &QMediaCaptureSession::videoFrameInputChanged);
+        session2.setVideoFrameInput(&input);
+        QCOMPARE(videoFrameInputChanged2.size(), 1);
+    }
+    session0.setVideoFrameInput(&input);
+    QCOMPARE(videoFrameInputChanged0.size(), 1);
+    QCOMPARE(session0.videoFrameInput(), &input);
+    QCOMPARE(input.captureSession(), &session0);
+
+    session1.setVideoFrameInput(&input);
+
+    QCOMPARE(videoFrameInputChanged0.size(), 2);
+    QCOMPARE(session0.videoFrameInput(), nullptr);
+    QCOMPARE(videoFrameInputChanged1.size(), 1);
+    QCOMPARE(session1.videoFrameInput(), &input);
+    QCOMPARE(input.captureSession(), &session1);
+}
 
 void tst_QMediaCaptureSession::can_add_and_remove_Camera()
 {
