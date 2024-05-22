@@ -45,6 +45,16 @@ QDebug operator<<(QDebug dbg, const QUniqueGStringHandle &handle)
     return dbg << handle.get();
 }
 
+QDebug operator<<(QDebug dbg, const QGstStreamCollectionHandle &handle)
+{
+    return dbg << handle.get();
+}
+
+QDebug operator<<(QDebug dbg, const QGstStreamHandle &handle)
+{
+    return dbg << handle.get();
+}
+
 QDebug operator<<(QDebug dbg, const QGstElement &element)
 {
     return dbg << element.element();
@@ -243,6 +253,22 @@ QDebug operator<<(QDebug dbg, const GstMessage *msg)
         break;
     }
 
+    case GST_MESSAGE_STREAM_COLLECTION: {
+        QGstStreamCollectionHandle collection;
+        gst_message_parse_stream_collection(const_cast<GstMessage *>(msg), &collection);
+
+        dbg << ", " << collection;
+        break;
+    }
+
+    case GST_MESSAGE_STREAMS_SELECTED: {
+        QGstStreamCollectionHandle collection;
+        gst_message_parse_streams_selected(const_cast<GstMessage *>(msg), &collection);
+
+        dbg << ", " << collection;
+        break;
+    }
+
     default:
         break;
     }
@@ -274,6 +300,35 @@ QDebug operator<<(QDebug dbg, const GstPadTemplate *padTemplate)
             : QGstCaps{};
 
     dbg << caps;
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const GstStreamCollection *streamCollection)
+{
+    GstStreamCollection *collection = const_cast<GstStreamCollection *>(streamCollection);
+    guint size = gst_stream_collection_get_size(collection);
+
+    dbg << "Stream Collection: {";
+    for (guint index = 0; index != size; ++index) {
+        dbg << gst_stream_collection_get_stream(collection, index);
+        if (index + 1 != size)
+            dbg << ", ";
+    }
+
+    dbg << "}";
+    return dbg;
+}
+
+QDebug operator<<(QDebug dbg, const GstStream *cstream)
+{
+    GstStream *stream = const_cast<GstStream *>(cstream);
+
+    dbg << "GstStream { ";
+    dbg << "Type: " << gst_stream_type_get_name(gst_stream_get_stream_type(stream));
+    dbg << ", Tags: " << gst_stream_get_tags(stream);
+    dbg << ", Caps: " << gst_stream_get_caps(stream);
+    dbg << "}";
+
     return dbg;
 }
 
