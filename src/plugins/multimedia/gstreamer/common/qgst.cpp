@@ -127,11 +127,11 @@ std::optional<QGRange<int>> QGValue::toIntRange() const
     return QGRange<int>{ gst_value_get_int_range_min(value), gst_value_get_int_range_max(value) };
 }
 
-QGstStructure QGValue::toStructure() const
+QGstStructureView QGValue::toStructure() const
 {
     if (!value || !GST_VALUE_HOLDS_STRUCTURE(value))
-        return QGstStructure();
-    return QGstStructure(gst_value_get_structure(value));
+        return QGstStructureView(nullptr);
+    return QGstStructureView(gst_value_get_structure(value));
 }
 
 QGstCaps QGValue::toCaps() const
@@ -156,38 +156,52 @@ QGValue QGValue::at(int index) const
     return QGValue{ gst_value_list_get_value(value, index) };
 }
 
-// QGstStructure
+// QGstStructureView
 
-QGstStructure::QGstStructure(const GstStructure *s) : structure(s) { }
+QGstStructureView::QGstStructureView(const GstStructure *s) : structure(s) { }
 
-void QGstStructure::free()
+QGstStructureView::QGstStructureView(const QUniqueGstStructureHandle &handle)
+    : QGstStructureView{ handle.get() }
 {
-    if (structure)
-        gst_structure_free(const_cast<GstStructure *>(structure));
-    structure = nullptr;
 }
 
-bool QGstStructure::isNull() const
+QUniqueGstStructureHandle QGstStructureView::clone() const
+{
+    return QUniqueGstStructureHandle{ gst_structure_copy(structure) };
+}
+
+bool QGstStructureView::isNull() const
 {
     return !structure;
 }
 
-QByteArrayView QGstStructure::name() const
+QByteArrayView QGstStructureView::name() const
 {
     return gst_structure_get_name(structure);
 }
 
-QGValue QGstStructure::operator[](const char *name) const
+QGValue QGstStructureView::operator[](const char *fieldname) const
 {
-    return QGValue{ gst_structure_get_value(structure, name) };
+    return QGValue{ gst_structure_get_value(structure, fieldname) };
 }
 
-QGstStructure QGstStructure::copy() const
+QGstCaps QGstStructureView::caps() const
 {
-    return gst_structure_copy(structure);
+    return operator[]("caps").toCaps();
 }
 
-QSize QGstStructure::resolution() const
+QGstTagListHandle QGstStructureView::tags() const
+{
+    QGValue tags = operator[]("tags");
+    if (tags.isNull())
+        return {};
+
+    QGstTagListHandle tagList;
+    gst_structure_get(structure, "tags", GST_TYPE_TAG_LIST, &tagList, nullptr);
+    return tagList;
+}
+
+QSize QGstStructureView::resolution() const
 {
     QSize size;
 
@@ -201,7 +215,7 @@ QSize QGstStructure::resolution() const
     return size;
 }
 
-QVideoFrameFormat::PixelFormat QGstStructure::pixelFormat() const
+QVideoFrameFormat::PixelFormat QGstStructureView::pixelFormat() const
 {
     QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
 
@@ -224,7 +238,7 @@ QVideoFrameFormat::PixelFormat QGstStructure::pixelFormat() const
     return pixelFormat;
 }
 
-QGRange<float> QGstStructure::frameRateRange() const
+QGRange<float> QGstStructureView::frameRateRange() const
 {
     float minRate = 0.;
     float maxRate = 0.;
@@ -276,14 +290,14 @@ QGRange<float> QGstStructure::frameRateRange() const
     return { minRate, maxRate };
 }
 
-QGstreamerMessage QGstStructure::getMessage()
+QGstreamerMessage QGstStructureView::getMessage()
 {
     GstMessage *message = nullptr;
     gst_structure_get(structure, "message", GST_TYPE_MESSAGE, &message, nullptr);
     return QGstreamerMessage(message, QGstreamerMessage::HasRef);
 }
 
-std::optional<Fraction> QGstStructure::pixelAspectRatio() const
+std::optional<Fraction> QGstStructureView::pixelAspectRatio() const
 {
     gint numerator;
     gint denominator;
@@ -310,7 +324,7 @@ static QSize qCalculateFrameSizeGStreamer(QSize resolution, Fraction par)
     };
 }
 
-QSize QGstStructure::nativeSize() const
+QSize QGstStructureView::nativeSize() const
 {
     QSize size = resolution();
     if (!size.isValid()) {
@@ -518,9 +532,11 @@ int QGstCaps::size() const
     return int(gst_caps_get_size(get()));
 }
 
-QGstStructure QGstCaps::at(int index) const
+QGstStructureView QGstCaps::at(int index) const
 {
-    return gst_caps_get_structure(get(), index);
+    return QGstStructureView{
+        gst_caps_get_structure(get(), index),
+    };
 }
 
 GstCaps *QGstCaps::caps() const
@@ -587,11 +603,11 @@ QGString QGstObject::getString(const char *property) const
     return QGString(s);
 }
 
-QGstStructure QGstObject::getStructure(const char *property) const
+QGstStructureView QGstObject::getStructure(const char *property) const
 {
     GstStructure *s = nullptr;
     g_object_get(get(), property, &s, nullptr);
-    return QGstStructure(s);
+    return QGstStructureView(s);
 }
 
 bool QGstObject::getBool(const char *property) const
@@ -751,6 +767,13 @@ QGstCaps QGstPad::currentCaps() const
 QGstCaps QGstPad::queryCaps() const
 {
     return QGstCaps(gst_pad_query_caps(pad(), nullptr), QGstCaps::HasRef);
+}
+
+QGstTagListHandle QGstPad::tags() const
+{
+    QGstTagListHandle tagList;
+    g_object_get(object(), "tags", &tagList, nullptr);
+    return tagList;
 }
 
 std::optional<QPlatformMediaPlayer::TrackType> QGstPad::inferTrackTypeFromName() const

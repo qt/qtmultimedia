@@ -23,7 +23,7 @@ QT_BEGIN_NAMESPACE
 class QGstreamerMessage;
 
 QDebug operator<<(QDebug, const QGstCaps &);
-QDebug operator<<(QDebug, const QGstStructure &);
+QDebug operator<<(QDebug, const QGstStructureView &);
 QDebug operator<<(QDebug, const QGstElement &);
 QDebug operator<<(QDebug, const QGstPad &);
 QDebug operator<<(QDebug, const QGString &);

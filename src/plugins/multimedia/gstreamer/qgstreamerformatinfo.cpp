@@ -8,7 +8,7 @@
 
 QT_BEGIN_NAMESPACE
 
-QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure structure)
+QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructureView structure)
 {
     const char *name = structure.name().data();
 
@@ -46,7 +46,7 @@ QMediaFormat::AudioCodec QGstreamerFormatInfo::audioCodecForCaps(QGstStructure s
     return QMediaFormat::AudioCodec::Unspecified;
 }
 
-QMediaFormat::VideoCodec QGstreamerFormatInfo::videoCodecForCaps(QGstStructure structure)
+QMediaFormat::VideoCodec QGstreamerFormatInfo::videoCodecForCaps(QGstStructureView structure)
 {
     const char *name = structure.name().data();
 
@@ -84,7 +84,7 @@ QMediaFormat::VideoCodec QGstreamerFormatInfo::videoCodecForCaps(QGstStructure s
     return QMediaFormat::VideoCodec::Unspecified;
 }
 
-QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure structure)
+QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructureView structure)
 {
     const char *name = structure.name().data();
 
@@ -120,7 +120,7 @@ QMediaFormat::FileFormat QGstreamerFormatInfo::fileFormatForCaps(QGstStructure s
 }
 
 
-QImageCapture::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructure structure)
+QImageCapture::FileFormat QGstreamerFormatInfo::imageFormatForCaps(QGstStructureView structure)
 {
     const char *name = structure.name().data();
 
@@ -155,7 +155,7 @@ static QPair<QList<QMediaFormat::AudioCodec>, QList<QMediaFormat::VideoCodec>> g
                 auto caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
 
                 for (int i = 0; i < caps.size(); i++) {
-                    QGstStructure structure = caps.at(i);
+                    QGstStructureView structure = caps.at(i);
                     auto a = QGstreamerFormatInfo::audioCodecForCaps(structure);
                     if (a != QMediaFormat::AudioCodec::Unspecified && !audio.contains(a))
                         audio.append(a);
@@ -195,7 +195,7 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
                 auto caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
 
                 for (int i = 0; i < caps.size(); i++) {
-                    QGstStructure structure = caps.at(i);
+                    QGstStructureView structure = caps.at(i);
                     auto fmt = fileFormatForCaps(structure);
                     if (fmt != QMediaFormat::UnspecifiedFormat)
                         fileFormats.append(fmt);
@@ -218,7 +218,7 @@ QList<QGstreamerFormatInfo::CodecMap> QGstreamerFormatInfo::getMuxerList(bool de
 
                 bool acceptsRawAudio = false;
                 for (int i = 0; i < caps.size(); i++) {
-                    QGstStructure structure = caps.at(i);
+                    QGstStructureView structure = caps.at(i);
                     if (structure.name() == "audio/x-raw")
                         acceptsRawAudio = true;
                     auto audio = audioCodecForCaps(structure);
@@ -280,7 +280,7 @@ static QList<QImageCapture::FileFormat> getImageFormatList()
                 QGstCaps caps = QGstCaps(gst_static_caps_get(&padTemplate->static_caps), QGstCaps::HasRef);
 
                 for (int i = 0; i < caps.size(); i++) {
-                    QGstStructure structure = caps.at(i);
+                    QGstStructureView structure = caps.at(i);
                     auto f = QGstreamerFormatInfo::imageFormatForCaps(structure);
                     if (f != QImageCapture::UnspecifiedFormat) {
 //                        qDebug() << structure.toString() << f;

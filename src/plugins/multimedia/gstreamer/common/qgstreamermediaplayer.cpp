@@ -155,7 +155,6 @@ QGstreamerMediaPlayer::~QGstreamerMediaPlayer()
     playerPipeline.removeMessageFilter(static_cast<QGstreamerBusMessageFilter *>(this));
     playerPipeline.removeMessageFilter(static_cast<QGstreamerSyncMessageFilter *>(this));
     playerPipeline.setStateSync(GST_STATE_NULL);
-    topology.free();
 }
 
 std::chrono::nanoseconds QGstreamerMediaPlayer::pipelinePosition() const
@@ -517,7 +516,7 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
 
     case GST_MESSAGE_SEGMENT_START: {
         qCDebug(qLcMediaPlayer) << "    segment start message, updating position";
-        QGstStructure structure(gst_message_get_structure(gm));
+        QGstStructureView structure(gst_message_get_structure(gm));
         auto p = structure["position"].toInt64();
         if (p) {
             std::chrono::milliseconds position{
@@ -528,12 +527,11 @@ bool QGstreamerMediaPlayer::processBusMessage(const QGstreamerMessage &message)
         break;
     }
     case GST_MESSAGE_ELEMENT: {
-        QGstStructure structure(gst_message_get_structure(gm));
+        QGstStructureView structure(gst_message_get_structure(gm));
         auto type = structure.name();
-        if (type == "stream-topology") {
-            topology.free();
-            topology = structure.copy();
-        }
+        if (type == "stream-topology")
+            topology = structure.clone();
+
         break;
     }
 
@@ -989,9 +987,9 @@ void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
     gstVideoOutput->setVideoSink(sink);
 }
 
-static QGstStructure endOfChain(const QGstStructure &s)
+static QGstStructureView endOfChain(const QGstStructureView &s)
 {
-    QGstStructure e = s;
+    QGstStructureView e = s;
     while (1) {
         auto next = e["next"].toStructure();
         if (!next.isNull())
@@ -1005,29 +1003,30 @@ static QGstStructure endOfChain(const QGstStructure &s)
 void QGstreamerMediaPlayer::parseStreamsAndMetadata()
 {
     qCDebug(qLcMediaPlayer) << "============== parse topology ============";
-    if (topology.isNull()) {
+
+    if (!topology) {
         qCDebug(qLcMediaPlayer) << "    null topology";
         return;
     }
-    auto caps = topology["caps"].toCaps();
-    auto structure = caps.at(0);
+
+    QGstStructureView topologyView{ topology };
+
+    QGstCaps caps = topologyView.caps();
+    QGstStructureView structure = caps.at(0);
     auto fileFormat = QGstreamerFormatInfo::fileFormatForCaps(structure);
     qCDebug(qLcMediaPlayer) << caps << fileFormat;
     m_metaData.insert(QMediaMetaData::FileFormat, QVariant::fromValue(fileFormat));
     m_metaData.insert(QMediaMetaData::Duration, duration());
     m_metaData.insert(QMediaMetaData::Url, m_url);
-    QGValue tags = topology["tags"];
-    if (!tags.isNull()) {
-        QGstTagListHandle tagList;
-        gst_structure_get(topology.structure, "tags", GST_TYPE_TAG_LIST, &tagList, nullptr);
-
+    QGstTagListHandle tagList = QGstStructureView{ topology }.tags();
+    if (tagList) {
         const auto metaData = taglistToMetaData(tagList);
         for (auto k : metaData.keys())
             m_metaData.insert(k, metaData.value(k));
     }
 
-    auto demux = endOfChain(topology);
-    auto next = demux["next"];
+    QGstStructureView demux = endOfChain(topologyView);
+    QGValue next = demux["next"];
     if (!next.isList()) {
         qCDebug(qLcMediaPlayer) << "    no additional streams";
         emit metaDataChanged();
@@ -1038,7 +1037,7 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     int size = next.listSize();
     for (int i = 0; i < size; ++i) {
         auto val = next.at(i);
-        caps = val.toStructure()["caps"].toCaps();
+        caps = val.toStructure().caps();
         structure = caps.at(0);
         if (structure.name().startsWith("audio/")) {
             auto codec = QGstreamerFormatInfo::audioCodecForCaps(structure);
@@ -1062,16 +1061,13 @@ void QGstreamerMediaPlayer::parseStreamsAndMetadata()
     }
 
     auto sinkPad = trackSelector(VideoStream).activeInputPad();
-    if (!sinkPad.isNull()) {
-        QGstTagListHandle tagList;
-
-        g_object_get(sinkPad.object(), "tags", &tagList, nullptr);
+    if (sinkPad) {
+        QGstTagListHandle tagList = sinkPad.tags();
         if (tagList)
             qCDebug(qLcMediaPlayer) << "    tags=" << tagList.get();
         else
             qCDebug(qLcMediaPlayer) << "    tags=(null)";
     }
-
 
     qCDebug(qLcMediaPlayer) << "============== end parse topology ============";
     emit metaDataChanged();
@@ -1086,12 +1082,10 @@ int QGstreamerMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)
 QMediaMetaData QGstreamerMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackType type, int index)
 {
     auto track = trackSelector(type).inputPad(index);
-    if (track.isNull())
+    if (!track)
         return {};
 
-    QGstTagListHandle tagList;
-    g_object_get(track.object(), "tags", &tagList, nullptr);
-
+    QGstTagListHandle tagList = track.tags();
     return taglistToMetaData(tagList);
 }
 

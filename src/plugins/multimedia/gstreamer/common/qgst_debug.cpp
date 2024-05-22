@@ -20,7 +20,7 @@ QDebug operator<<(QDebug dbg, const QGstCaps &caps)
     return dbg << caps.caps();
 }
 
-QDebug operator<<(QDebug dbg, const QGstStructure &structure)
+QDebug operator<<(QDebug dbg, const QGstStructureView &structure)
 {
     return dbg << structure.structure;
 }

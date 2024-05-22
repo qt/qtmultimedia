@@ -68,7 +68,7 @@ bool QGstreamerMediaEncoder::processBusMessage(const QGstreamerMessage &msg)
 
     switch (msg.type()) {
     case GST_MESSAGE_ELEMENT: {
-        QGstStructure s = msg.structure();
+        QGstStructureView s = msg.structure();
         if (s.name() == "GstBinForwarded")
             return processBusMessage(s.getMessage());
 
