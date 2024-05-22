@@ -242,6 +242,8 @@ using QGstElementFactoryHandle = QGstImpl::QGstHandleHelper<GstElementFactory>::
 using QGstDeviceHandle = QGstImpl::QGstHandleHelper<GstDevice>::SharedHandle;
 using QGstDeviceMonitorHandle = QGstImpl::QGstHandleHelper<GstDeviceMonitor>::UniqueHandle;
 using QGstBusHandle = QGstImpl::QGstHandleHelper<GstBus>::UniqueHandle;
+using QGstStreamCollectionHandle = QGstImpl::QGstHandleHelper<GstStreamCollection>::SharedHandle;
+using QGstStreamHandle = QGstImpl::QGstHandleHelper<GstStream>::SharedHandle;
 
 using QGstTagListHandle = QGstImpl::QSharedHandle<QGstImpl::QGstTagListHandleTraits>;
 using QGstSampleHandle = QGstImpl::QSharedHandle<QGstImpl::QGstSampleHandleTraits>;
