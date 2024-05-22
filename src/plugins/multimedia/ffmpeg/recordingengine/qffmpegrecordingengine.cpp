@@ -180,6 +180,7 @@ RecordingEngine::EncodingFinalizer::EncodingFinalizer(RecordingEngine &recording
 void RecordingEngine::EncodingFinalizer::run()
 {
     m_recordingEngine.forEachEncoder(&EncoderThread::stopAndDelete);
+    m_recordingEngine.m_muxer->stopAndDelete();
 
     if (m_recordingEngine.m_isHeaderWritten) {
         const int res = av_write_trailer(m_recordingEngine.avFormatContext());
