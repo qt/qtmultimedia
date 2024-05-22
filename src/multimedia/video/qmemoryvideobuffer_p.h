@@ -30,7 +30,6 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    QByteArray underlyingByteArray(int plane) const override;
 private:
     int m_bytesPerLine = 0;
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;

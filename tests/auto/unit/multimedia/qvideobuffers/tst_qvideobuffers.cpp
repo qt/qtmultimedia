@@ -33,11 +33,6 @@ private slots:
 
     void mapMemoryBufferWithReadOnly_doesntDetachArray();
 
-    void mapMemoryBufferWithWriteModes_detachsArray_data();
-    void mapMemoryBufferWithWriteModes_detachsArray();
-
-    void underlyingByteArray_returnsCorrectValueForPlanes();
-
     void unmap_resetsMappedState_whenBufferIsMapped_data();
     void unmap_resetsMappedState_whenBufferIsMapped();
 
@@ -158,43 +153,10 @@ void tst_QVideoBuffers::map_doesNothing_whenBufferIsMapped()
 void tst_QVideoBuffers::mapMemoryBufferWithReadOnly_doesntDetachArray()
 {
     auto buffer = createMemoryBuffer();
-    auto underlyingArray = buffer->underlyingByteArray(0);
 
     auto mappedData = buffer->map(QVideoFrame::ReadOnly);
     QCOMPARE(mappedData.nPlanes, 1);
-    QCOMPARE(mappedData.data[0], reinterpret_cast<const uchar *>(underlyingArray.constData()));
     QCOMPARE(mappedData.data[0], reinterpret_cast<const uchar *>(m_byteArray.constData()));
-}
-
-void tst_QVideoBuffers::mapMemoryBufferWithWriteModes_detachsArray_data()
-{
-    QTest::addColumn<QVideoFrame::MapMode>("mapMode");
-
-    QTest::newRow(mapModeToString(QVideoFrame::WriteOnly).toUtf8().constData()) << QVideoFrame::WriteOnly;
-    QTest::newRow(mapModeToString(QVideoFrame::WriteOnly).toUtf8().constData()) << QVideoFrame::WriteOnly;
-}
-
-void tst_QVideoBuffers::mapMemoryBufferWithWriteModes_detachsArray()
-{
-    QFETCH(QVideoFrame::MapMode, mapMode);
-
-    auto buffer = createMemoryBuffer();
-    auto underlyingArray = buffer->underlyingByteArray(0);
-
-    auto mappedData = buffer->map(mapMode);
-    QCOMPARE(mappedData.nPlanes, 1);
-    QCOMPARE_NE(mappedData.data[0], reinterpret_cast<const uchar *>(underlyingArray.constData()));
-}
-
-void tst_QVideoBuffers::underlyingByteArray_returnsCorrectValueForPlanes()
-{
-    auto buffer = createMemoryBuffer();
-
-    QCOMPARE(buffer->underlyingByteArray(0).constData(), m_byteArray.constData());
-
-    QVERIFY(buffer->underlyingByteArray(-1).isNull());
-    QVERIFY(buffer->underlyingByteArray(1).isNull());
-    QVERIFY(buffer->underlyingByteArray(2).isNull());
 }
 
 void tst_QVideoBuffers::unmap_resetsMappedState_whenBufferIsMapped_data()
