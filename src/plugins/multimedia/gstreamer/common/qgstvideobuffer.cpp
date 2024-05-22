@@ -79,12 +79,6 @@ QGstVideoBuffer::~QGstVideoBuffer()
     unmap();
 }
 
-
-QVideoFrame::MapMode QGstVideoBuffer::mapMode() const
-{
-    return m_mode;
-}
-
 QAbstractVideoBuffer::MapData QGstVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     const GstMapFlags flags = GstMapFlags(((mode & QVideoFrame::ReadOnly) ? GST_MAP_READ : 0)

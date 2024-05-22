@@ -37,7 +37,6 @@ public:
     AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);
     ~AVFVideoBuffer();
 
-    QVideoFrame::MapMode mapMode() const { return m_mode; }
     MapData map(QVideoFrame::MapMode mode);
     void unmap();
 

@@ -12,8 +12,6 @@ class QMockVideoBuffer : public QAbstractVideoBuffer
 public:
     QMockVideoBuffer(QImage image) : QAbstractVideoBuffer(QVideoFrame::NoHandle), m_image(image) { }
 
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
     MapData map(QVideoFrame::MapMode mode) override
     {
         MapData mapData;

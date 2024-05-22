@@ -34,8 +34,6 @@ public:
                     const QVideoFrameFormat &frameFormat, QGstCaps::MemoryFormat format);
     ~QGstVideoBuffer();
 
-    QVideoFrame::MapMode mapMode() const override;
-
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 

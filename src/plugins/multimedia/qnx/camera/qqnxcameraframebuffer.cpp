@@ -277,11 +277,6 @@ QQnxCameraFrameBuffer::QQnxCameraFrameBuffer(const camera_buffer_t *buffer, QRhi
     m_frameSize = ::frameSize(buffer);
 }
 
-QVideoFrame::MapMode QQnxCameraFrameBuffer::mapMode() const
-{
-    return QVideoFrame::ReadOnly;
-}
-
 QAbstractVideoBuffer::MapData QQnxCameraFrameBuffer::map(QVideoFrame::MapMode)
 {
     return m_mapData;

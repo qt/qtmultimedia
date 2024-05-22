@@ -34,7 +34,6 @@ public:
     QQnxCameraFrameBuffer(const QQnxCameraFrameBuffer&) = delete;
     QQnxCameraFrameBuffer& operator=(const QQnxCameraFrameBuffer&) = delete;
 
-    QVideoFrame::MapMode mapMode() const override;
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 

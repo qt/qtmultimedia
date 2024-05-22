@@ -44,8 +44,6 @@ public:
             m_memSurface->UnlockRect();
     }
 
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
     MapData map(QVideoFrame::MapMode mode) override
     {
         if (!m_sample || m_mapMode != QVideoFrame::NotMapped || mode != QVideoFrame::ReadOnly)

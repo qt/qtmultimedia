@@ -44,6 +44,7 @@ public:
     qint64 startTime = -1;
     qint64 endTime = -1;
     QAbstractVideoBuffer::MapData mapData;
+    QVideoFrame::MapMode mapMode = QVideoFrame::NotMapped;
     QVideoFrameFormat format;
     std::unique_ptr<QAbstractVideoBuffer> buffer;
     int mappedCount = 0;

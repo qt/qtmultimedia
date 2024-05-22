@@ -72,11 +72,6 @@ public:
         m_handle = 0;
     }
 
-    QVideoFrame::MapMode mapMode() const override
-    {
-        return QVideoFrame::ReadWrite;
-    }
-
     void unmap() override {}
 
     MapData map(QVideoFrame::MapMode /*mode*/) override
@@ -108,13 +103,11 @@ public:
         m_windowGrabber = windowGrabber;
     }
 
-    QVideoFrame::MapMode mapMode() const override
+    MapData map(QVideoFrame::MapMode mode) override
     {
-        return QVideoFrame::ReadOnly;
-    }
+        if (mode != QVideoFrame::ReadOnly)
+            return {};
 
-    MapData map(QVideoFrame::MapMode /*mode*/) override
-    {
         if (buffer.data) {
             qWarning("QnxRasterBuffer: need to unmap before mapping");
             return {};

@@ -83,11 +83,6 @@ public:
         QD3D11TextureVideoBuffer::unmap();
     }
 
-    QVideoFrame::MapMode mapMode() const override
-    {
-        return m_mapMode;
-    }
-
     MapData map(QVideoFrame::MapMode mode) override
     {
         MapData mapData;
