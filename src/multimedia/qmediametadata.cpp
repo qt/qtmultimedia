@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
 #include "qmediametadata.h"
+
 #include <QtCore/qcoreapplication.h>
-#include <qvariant.h>
-#include <qobject.h>
-#include <qdatetime.h>
-#include <qmediaformat.h>
-#include <qsize.h>
-#include <qurl.h>
-#include <qimage.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qsize.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qvariant.h>
+#include <QtGui/qimage.h>
+#include <QtMultimedia/qmediaformat.h>
 
 QT_BEGIN_NAMESPACE
 
