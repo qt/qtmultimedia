@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegencodinginitializer_p.h"
+#include "qffmpegrecordingengineutils_p.h"
 #include "qffmpegrecordingengine_p.h"
 #include "qffmpegaudioinput_p.h"
 #include "qvideoframe.h"
 
-#include "private/qplatformvideosource_p.h"
+#include "private/qplatformvideoframeinput_p.h"
+#include "private/qplatformaudiobufferinput_p.h"
 #include "private/qplatformaudiobufferinput_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -14,6 +16,12 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg {
 
 EncodingInitializer::EncodingInitializer(RecordingEngine &engine) : m_recordingEngine(engine) { }
+
+EncodingInitializer::~EncodingInitializer()
+{
+    for (QObject *source : m_pendingSources)
+        setEncoderInterface(source, nullptr);
+}
 
 void EncodingInitializer::start(const std::vector<QPlatformAudioBufferInputBase *> &audioSources,
                                 const std::vector<QPlatformVideoSource *> &videoSources)
@@ -45,12 +53,11 @@ void EncodingInitializer::addAudioBufferInput(QPlatformAudioBufferInput *input)
 
 void EncodingInitializer::addPendingAudioBufferInput(QPlatformAudioBufferInput *input)
 {
-    Q_ASSERT(m_pendingSources.count(input) == 0);
+    addPendingSource(input);
 
-    m_pendingSources.insert(input);
-
-    connect(input, &QPlatformAudioBufferInput::destroyed, this,
-            [this, input]() { erasePendingSource(input, QStringLiteral("Audio source deleted")); });
+    connect(input, &QPlatformAudioBufferInput::destroyed, this, [this, input]() {
+        erasePendingSource(input, QStringLiteral("Audio source deleted"), true);
+    });
 
     connect(input, &QPlatformAudioBufferInput::newAudioBuffer, this,
             [this, input](const QAudioBuffer &buffer) {
@@ -79,9 +86,7 @@ void EncodingInitializer::addVideoSource(QPlatformVideoSource *source)
 
 void EncodingInitializer::addPendingVideoSource(QPlatformVideoSource *source)
 {
-    Q_ASSERT(m_pendingSources.count(source) == 0);
-
-    m_pendingSources.insert(source);
+    addPendingSource(source);
 
     connect(source, &QPlatformVideoSource::errorChanged, this, [this, source]() {
         if (source->hasError())
@@ -89,8 +94,9 @@ void EncodingInitializer::addPendingVideoSource(QPlatformVideoSource *source)
                                QStringLiteral("Videio source error: ") + source->errorString());
     });
 
-    connect(source, &QPlatformVideoSource::destroyed, this,
-            [this, source]() { erasePendingSource(source, QStringLiteral("Source deleted")); });
+    connect(source, &QPlatformVideoSource::destroyed, this, [this, source]() {
+        erasePendingSource(source, QStringLiteral("Source deleted"), true);
+    });
 
     connect(source, &QPlatformVideoSource::activeChanged, this, [this, source]() {
         if (!source->isActive())
@@ -121,20 +127,37 @@ void EncodingInitializer::emitStreamInitializationError(QString error)
             QStringLiteral("Video steam initialization error. ") + error);
 }
 
+void EncodingInitializer::addPendingSource(QObject *source)
+{
+    Q_ASSERT(m_pendingSources.count(source) == 0);
+
+    setEncoderInterface(source, this);
+    m_pendingSources.emplace(source);
+}
+
 template <typename F>
-void EncodingInitializer::erasePendingSource(QObject *source, F &&functionOrError)
+void EncodingInitializer::erasePendingSource(QObject *source, F &&functionOrError, bool destroyed)
 {
     const auto erasedCount = m_pendingSources.erase(source);
     if (erasedCount == 0)
         return; // got a queued event, just ignore it.
+
+    if (!destroyed) {
+        setEncoderInterface(source, nullptr);
+        disconnect(source, nullptr, this, nullptr);
+    }
 
     if constexpr (std::is_invocable_v<F>)
         functionOrError();
     else
         emitStreamInitializationError(functionOrError);
 
-    disconnect(source, nullptr, this, nullptr);
     tryStartRecordingEngine();
+}
+
+bool EncodingInitializer::canPushFrame() const
+{
+    return true;
 }
 
 } // namespace QFFmpeg

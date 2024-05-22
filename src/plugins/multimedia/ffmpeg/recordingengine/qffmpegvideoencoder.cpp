@@ -5,6 +5,7 @@
 #include "qffmpegvideobuffer_p.h"
 #include "qffmpegrecordingengine_p.h"
 #include "qffmpegvideoframeencoder_p.h"
+#include "qffmpegrecordingengineutils_p.h"
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE

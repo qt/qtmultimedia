@@ -20,8 +20,6 @@
 #include <private/qplatformmediarecorder_p.h>
 #include <qmediarecorder.h>
 
-#include <queue>
-
 QT_BEGIN_NAMESPACE
 
 class QFFmpegAudioInput;
@@ -40,17 +38,6 @@ class AudioEncoder;
 class VideoEncoder;
 class VideoFrameEncoder;
 class EncodingInitializer;
-
-template <typename T>
-T dequeueIfPossible(std::queue<T> &queue)
-{
-    if (queue.empty())
-        return T{};
-
-    auto result = std::move(queue.front());
-    queue.pop();
-    return result;
-}
 
 class RecordingEngine : public QObject
 {

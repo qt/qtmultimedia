@@ -1,6 +1,7 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegaudioencoder_p.h"
+#include "qffmpegrecordingengineutils_p.h"
 #include "qffmpegaudioencoderutils_p.h"
 #include "qffmpegaudioinput_p.h"
 #include "qffmpegencoderoptions_p.h"

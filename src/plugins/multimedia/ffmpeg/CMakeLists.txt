@@ -68,6 +68,8 @@ qt_internal_add_plugin(QFFmpegMediaPlugin
         recordingengine/qffmpegrecordingengine.cpp
         recordingengine/qffmpegencodinginitializer_p.h
         recordingengine/qffmpegencodinginitializer.cpp
+        recordingengine/qffmpegrecordingengineutils_p.h
+        recordingengine/qffmpegrecordingengineutils.cpp
         recordingengine/qffmpegvideoencoder_p.h
         recordingengine/qffmpegvideoencoder.cpp
         recordingengine/qffmpegvideoencoderutils_p.h

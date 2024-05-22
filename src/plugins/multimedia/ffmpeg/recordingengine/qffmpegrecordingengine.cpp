@@ -4,6 +4,7 @@
 #include "qffmpegencodinginitializer_p.h"
 #include "qffmpegaudioencoder_p.h"
 #include "qffmpegaudioinput_p.h"
+#include "qffmpegrecordingengineutils_p.h"
 
 #include "private/qmultimediautils_p.h"
 #include "private/qplatformaudiobufferinput_p.h"
@@ -22,67 +23,6 @@ static Q_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder");
 
 namespace QFFmpeg
 {
-
-namespace
-{
-
-template <typename Encoder, typename Source>
-void connectToSource(Encoder *encoder, Source *source)
-{
-    Q_ASSERT(!encoder->source());
-    encoder->setSource(source);
-
-    auto setEncoderInterface = [encoder](auto input) {
-        using Input = std::remove_pointer_t<decltype(input)>;
-        input->setEncoderInterface(encoder);
-
-        QObject::connect(encoder, &EncoderThread::canPushFrameChanged, input,
-                         &Input::encoderUpdated);
-
-        // Postpone emit 'encoderUpdated' as the encoding pipeline may be not
-        // completely ready at the moment. The case is calling QMediaRecorder::stop
-        // upon handling 'readyToSendFrame'
-        QMetaObject::invokeMethod(input, &Input::encoderUpdated, Qt::QueuedConnection);
-    };
-
-    if constexpr (std::is_same_v<Encoder, VideoEncoder>) {
-        QObject::connect(source, &QPlatformVideoSource::newVideoFrame, encoder,
-                         &VideoEncoder::addFrame, Qt::DirectConnection);
-
-        if (auto videoFrameInput = qobject_cast<QPlatformVideoFrameInput *>(source))
-            setEncoderInterface(videoFrameInput);
-    } else {
-        QObject::connect(source, &QPlatformAudioBufferInputBase::newAudioBuffer, encoder,
-                         &AudioEncoder::addBuffer, Qt::DirectConnection);
-
-        if (auto audioBufferInput = qobject_cast<QPlatformAudioBufferInput *>(source))
-            setEncoderInterface(audioBufferInput);
-    }
-}
-
-void disconnectFromSource(EncoderThread *encoder)
-{
-    QObject *source = encoder->source();
-    if (!source)
-        return;
-
-    // We should address the dependency AudioEncoder from QFFmpegAudioInput to
-    // set null source here.
-    // encoder->setSource(nullptr);
-
-    auto unsetEncoderInterface = [](auto input) {
-        input->setEncoderInterface(nullptr);
-        emit input->encoderUpdated();
-    };
-
-    QObject::disconnect(source, nullptr, encoder, nullptr);
-
-    if (auto videoFrameInput = qobject_cast<QPlatformVideoFrameInput *>(source))
-        unsetEncoderInterface(videoFrameInput);
-    else if (auto audioBufferInput = qobject_cast<QPlatformAudioBufferInput *>(source))
-        unsetEncoderInterface(audioBufferInput);
-}
-}
 
 RecordingEngine::RecordingEngine(const QMediaEncoderSettings &settings,
                  std::unique_ptr<EncodingFormatContext> context)
@@ -116,7 +56,7 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
     }
 
     AudioEncoder *audioEncoder = createAudioEncoder(format);
-    connectToSource(audioEncoder, input);
+    connectEncoderToSource(audioEncoder, input);
 
     input->setRunning(true);
 }
@@ -133,7 +73,7 @@ void RecordingEngine::addAudioBufferInput(QPlatformAudioBufferInput *input,
     if (firstBuffer.isValid())
         audioEncoder->addBuffer(firstBuffer);
 
-    connectToSource(audioEncoder, input);
+    connectEncoderToSource(audioEncoder, input);
 }
 
 AudioEncoder *RecordingEngine::createAudioEncoder(const QAudioFormat &format)
@@ -177,7 +117,7 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
     if (firstFrame.isValid())
         videoEncoder->addFrame(firstFrame);
 
-    connectToSource(videoEncoder, source);
+    connectEncoderToSource(videoEncoder, source);
 }
 
 void RecordingEngine::start()
@@ -260,7 +200,7 @@ void RecordingEngine::finalize()
 
     m_initializer.reset();
 
-    forEachEncoder(&disconnectFromSource);
+    forEachEncoder(&disconnectEncoderFromSource);
 
     auto *finalizer = new EncodingFinalizer(*this);
     finalizer->start();
