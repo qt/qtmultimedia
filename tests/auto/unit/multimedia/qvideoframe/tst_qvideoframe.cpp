@@ -72,8 +72,6 @@ public:
     explicit QtTestDummyVideoBuffer(QVideoFrame::HandleType type)
         : QAbstractVideoBuffer(type) {}
 
-    [[nodiscard]] QVideoFrame::MapMode mapMode() const override { return QVideoFrame::NotMapped; }
-
     MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 };
@@ -87,8 +85,6 @@ public:
     explicit QtTestVideoBuffer(QVideoFrame::HandleType type)
         : QAbstractVideoBuffer(type)
     {}
-
-    [[nodiscard]] QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
 
     MapData map(QVideoFrame::MapMode mode) override
     {

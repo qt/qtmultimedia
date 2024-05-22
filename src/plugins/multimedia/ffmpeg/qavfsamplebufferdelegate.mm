@@ -69,8 +69,6 @@ public:
         return mapData;
     }
 
-    QVideoFrame::MapMode mapMode() const override { return m_mode; }
-
     void unmap() override
     {
         if (m_mode != QVideoFrame::NotMapped) {

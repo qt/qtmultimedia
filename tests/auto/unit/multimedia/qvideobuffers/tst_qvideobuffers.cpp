@@ -25,9 +25,6 @@ private slots:
     void map_changesMappedStateAndReturnsProperMappings_whenBufferIsNotMapped_data();
     void map_changesMappedStateAndReturnsProperMappings_whenBufferIsNotMapped();
 
-    void mapWithNotMappedMode_doesNothing_data();
-    void mapWithNotMappedMode_doesNothing();
-
     void map_doesNothing_whenBufferIsMapped_data();
     void map_doesNothing_whenBufferIsMapped();
 
@@ -106,8 +103,6 @@ void tst_QVideoBuffers::map_changesMappedStateAndReturnsProperMappings_whenBuffe
 
     auto mappedData = buffer->map(mapMode);
 
-    QCOMPARE(buffer->mapMode(), mapMode);
-
     QCOMPARE(mappedData.nPlanes, 1);
     QVERIFY(mappedData.data[0]);
     QCOMPARE(mappedData.size[0], 80);
@@ -115,23 +110,6 @@ void tst_QVideoBuffers::map_changesMappedStateAndReturnsProperMappings_whenBuffe
 
     const auto data = reinterpret_cast<const char*>(mappedData.data[0]);
     QCOMPARE(QByteArray(data, mappedData.size[0]), m_byteArray);
-}
-
-void tst_QVideoBuffers::mapWithNotMappedMode_doesNothing_data()
-{
-    generateImageAndMemoryBuffersWithAllModes();
-}
-
-void tst_QVideoBuffers::mapWithNotMappedMode_doesNothing()
-{
-    QFETCH(BufferPtr, buffer);
-    QFETCH(QVideoFrame::MapMode, mapMode);
-
-    buffer->map(mapMode);
-
-    buffer->map(QVideoFrame::NotMapped);
-
-    QCOMPARE(buffer->mapMode(), mapMode);
 }
 
 void tst_QVideoBuffers::map_doesNothing_whenBufferIsMapped_data()
@@ -147,7 +125,6 @@ void tst_QVideoBuffers::map_doesNothing_whenBufferIsMapped()
     buffer->map(mapMode);
     auto mappedData = buffer->map(QVideoFrame::ReadOnly);
     QCOMPARE(mappedData.nPlanes, 0);
-    QCOMPARE(buffer->mapMode(), mapMode);
 }
 
 void tst_QVideoBuffers::mapMemoryBufferWithReadOnly_doesntDetachArray()
@@ -173,12 +150,9 @@ void tst_QVideoBuffers::unmap_resetsMappedState_whenBufferIsMapped()
 
     buffer->unmap();
 
-    QCOMPARE(buffer->mapMode(), QVideoFrame::NotMapped);
-
     // Check buffer is valid and it's possible to map again
     auto mappedData = buffer->map(QVideoFrame::ReadOnly);
     QCOMPARE(mappedData.nPlanes, 1);
-    QCOMPARE(buffer->mapMode(), QVideoFrame::ReadOnly);
 
     const auto data = reinterpret_cast<const char*>(mappedData.data[0]);
     QCOMPARE(QByteArray(data, mappedData.size[0]), m_byteArray);

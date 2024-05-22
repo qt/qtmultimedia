@@ -48,8 +48,6 @@ public:
 
     ~QCGImageVideoBuffer() override { CFRelease(m_data); }
 
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
     MapData map(QVideoFrame::MapMode mode) override
     {
         MapData mapData;

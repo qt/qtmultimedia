@@ -168,11 +168,6 @@ float QFFmpegVideoBuffer::maxNits()
     return maxNits;
 }
 
-QVideoFrame::MapMode QFFmpegVideoBuffer::mapMode() const
-{
-    return m_mode;
-}
-
 QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     if (!m_swFrame) {

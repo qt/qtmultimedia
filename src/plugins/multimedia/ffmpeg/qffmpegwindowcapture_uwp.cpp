@@ -89,8 +89,6 @@ public:
 
     ~QUwpTextureVideoBuffer() override { QUwpTextureVideoBuffer::unmap(); }
 
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
     MapData map(QVideoFrame::MapMode mode) override
     {
         if (m_mapMode != QVideoFrame::NotMapped)

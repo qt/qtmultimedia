@@ -55,7 +55,6 @@ public:
         int size[4] = {};
     };
 
-    virtual QVideoFrame::MapMode mapMode() const = 0;
     virtual MapData map(QVideoFrame::MapMode mode) = 0;
     virtual void unmap() = 0;
 

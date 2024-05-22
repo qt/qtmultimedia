@@ -25,8 +25,6 @@ class Q_MULTIMEDIA_EXPORT QImageVideoBuffer : public QAbstractVideoBuffer
 public:
     QImageVideoBuffer(QImage image);
 
-    QVideoFrame::MapMode mapMode() const override;
-
     MapData map(QVideoFrame::MapMode mode) override;
 
     void unmap() override;

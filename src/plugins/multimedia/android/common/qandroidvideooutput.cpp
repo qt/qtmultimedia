@@ -62,8 +62,6 @@ public:
           , m_tex(std::move(tex))
     {}
 
-    QVideoFrame::MapMode mapMode() const override { return m_mapMode; }
-
     MapData map(QVideoFrame::MapMode mode) override;
 
     void unmap() override
@@ -95,7 +93,7 @@ public:
     {
         return m_atvb.mapTextures(rhi);
     }
-    QVideoFrame::MapMode mapMode() const override { return QVideoFrame::NotMapped; }
+
     MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 

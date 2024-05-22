@@ -56,11 +56,6 @@ QImageVideoBuffer::QImageVideoBuffer(QImage image)
 {
 }
 
-QVideoFrame::MapMode QImageVideoBuffer::mapMode() const
-{
-    return m_mapMode;
-}
-
 QAbstractVideoBuffer::MapData QImageVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     MapData mapData;

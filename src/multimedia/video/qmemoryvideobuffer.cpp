@@ -32,14 +32,6 @@ QMemoryVideoBuffer::~QMemoryVideoBuffer() = default;
 /*!
     \reimp
 */
-QVideoFrame::MapMode QMemoryVideoBuffer::mapMode() const
-{
-    return m_mapMode;
-}
-
-/*!
-    \reimp
-*/
 QAbstractVideoBuffer::MapData QMemoryVideoBuffer::map(QVideoFrame::MapMode mode)
 {
     MapData mapData;

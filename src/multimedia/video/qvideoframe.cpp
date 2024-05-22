@@ -237,7 +237,7 @@ int QVideoFrame::height() const
 
 bool QVideoFrame::isMapped() const
 {
-    return d && d->buffer && d->buffer->mapMode() != QVideoFrame::NotMapped;
+    return d && d->mapMode != QVideoFrame::NotMapped;
 }
 
 /*!
@@ -256,7 +256,7 @@ bool QVideoFrame::isMapped() const
 */
 bool QVideoFrame::isWritable() const
 {
-    return d && d->buffer && (d->buffer->mapMode() & QVideoFrame::WriteOnly);
+    return d && (d->mapMode & QVideoFrame::WriteOnly);
 }
 
 /*!
@@ -272,7 +272,7 @@ bool QVideoFrame::isWritable() const
 */
 bool QVideoFrame::isReadable() const
 {
-    return d && d->buffer && (d->buffer->mapMode() & QVideoFrame::ReadOnly);
+    return d && (d->mapMode & QVideoFrame::ReadOnly);
 }
 
 /*!
@@ -282,7 +282,7 @@ bool QVideoFrame::isReadable() const
 */
 QVideoFrame::MapMode QVideoFrame::mapMode() const
 {
-    return (d && d->buffer) ? d->buffer->mapMode() : QVideoFrame::NotMapped;
+    return d ? d->mapMode : QVideoFrame::NotMapped;
 }
 
 /*!
@@ -327,8 +327,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
 
     if (d->mappedCount > 0) {
         //it's allowed to map the video frame multiple times in read only mode
-        if (d->buffer->mapMode() == QVideoFrame::ReadOnly
-                && mode == QVideoFrame::ReadOnly) {
+        if (d->mapMode == QVideoFrame::ReadOnly && mode == QVideoFrame::ReadOnly) {
             d->mappedCount++;
             return true;
         }
@@ -344,6 +343,8 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
     d->mapData = d->buffer->map(mode);
     if (d->mapData.nPlanes == 0)
         return false;
+
+    d->mapMode = mode;
 
     if (d->mapData.nPlanes == 1) {
         auto pixelFmt = d->format.pixelFormat();
@@ -465,6 +466,7 @@ void QVideoFrame::unmap()
 
     if (d->mappedCount == 0) {
         d->mapData = {};
+        d->mapMode = QVideoFrame::NotMapped;
         d->buffer->unmap();
     }
 }
