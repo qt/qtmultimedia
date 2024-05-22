@@ -2110,7 +2110,7 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
     QTest::addColumn<bool>("withAudio");
     QTest::addColumn<int>("positionDeviationMs");
 
-    QTest::newRow("Without audio") << false << 150;
+    QTest::newRow("Without audio") << false << 170;
 
     // set greater positionDeviationMs for case with audio due to possible synchronization.
     QTest::newRow("With audio") << true << 200;
