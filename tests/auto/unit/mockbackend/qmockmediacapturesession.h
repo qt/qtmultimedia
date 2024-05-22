@@ -65,11 +65,19 @@ public:
     QPlatformSurfaceCapture *screenCapture() override { return m_screenCapture; }
     void setScreenCapture(QPlatformSurfaceCapture *capture) override { m_screenCapture = capture; }
 
+    QPlatformSurfaceCapture *windowCapture() override { return m_windowCapture; }
+    void setWindowCapture(QPlatformSurfaceCapture *capture) override { m_windowCapture = capture; }
+
+    QPlatformVideoFrameInput *videoFrameInput() override { return m_videoFrameInput; }
+    void setVideoFrameInput(QPlatformVideoFrameInput *input) override { m_videoFrameInput = input; }
+
     QMockCamera *mockCameraControl = nullptr;
     QPlatformImageCapture *mockImageCapture = nullptr;
     QMockMediaEncoder *mockControl = nullptr;
     QPlatformAudioInput *m_audioInput = nullptr;
     QPlatformSurfaceCapture *m_screenCapture = nullptr;
+    QPlatformSurfaceCapture *m_windowCapture = nullptr;
+    QPlatformVideoFrameInput *m_videoFrameInput = nullptr;
     bool hasControls;
 };
 
