@@ -93,6 +93,14 @@ void RecordingEngine::addVideoSource(QPlatformVideoSource *source, const QVideoF
 
     Q_ASSERT(frameFormat.isValid());
 
+    if (firstFrame.isValid() && frameFormat.streamFrameRate() <= 0.f) {
+        const qint64 startTime = firstFrame.startTime();
+        const qint64 endTime = firstFrame.endTime();
+        if (startTime != -1 && endTime > startTime)
+            frameFormat.setStreamFrameRate(static_cast<qreal>(VideoFrameTimeBase)
+                                           / (endTime - startTime));
+    }
+
     std::optional<AVPixelFormat> hwPixelFormat = source->ffmpegHWPixelFormat()
             ? AVPixelFormat(*source->ffmpegHWPixelFormat())
             : std::optional<AVPixelFormat>{};

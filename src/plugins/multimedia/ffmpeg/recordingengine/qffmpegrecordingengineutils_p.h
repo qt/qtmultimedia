@@ -25,6 +25,8 @@ class QPlatformVideoSource;
 
 namespace QFFmpeg {
 
+constexpr qint64 VideoFrameTimeBase = 1000000; // us in sec
+
 class EncoderThread;
 
 template <typename T>

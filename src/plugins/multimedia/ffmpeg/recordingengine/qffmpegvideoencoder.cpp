@@ -229,7 +229,7 @@ std::pair<qint64, qint64> VideoEncoder::frameTimeStamps(const QVideoFrame &frame
             frameRate = m_frameEncoder->settings().videoFrameRate();
 
         Q_ASSERT(frameRate > 0.f);
-        endTime = startTime + static_cast<qint64>(std::round(1000000 / frameRate));
+        endTime = startTime + static_cast<qint64>(std::round(VideoFrameTimeBase / frameRate));
     }
 
     return { startTime, endTime };
