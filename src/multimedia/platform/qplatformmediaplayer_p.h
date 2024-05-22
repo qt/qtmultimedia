@@ -22,6 +22,7 @@
 
 #include <QtCore/qpair.h>
 #include <QtCore/private/qglobal_p.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -140,6 +141,25 @@ private:
     int m_currentLoop = 0;
     qint64 m_position = 0;
 };
+
+#ifndef QT_NO_DEBUG_STREAM
+inline QDebug operator<<(QDebug dbg, QPlatformMediaPlayer::TrackType type)
+{
+    QDebugStateSaver save(dbg);
+    dbg.nospace();
+
+    switch (type) {
+    case QPlatformMediaPlayer::TrackType::AudioStream:
+        return dbg << "AudioStream";
+    case QPlatformMediaPlayer::TrackType::VideoStream:
+        return dbg << "VideoStream";
+    case QPlatformMediaPlayer::TrackType::SubtitleStream:
+        return dbg << "SubtitleStream";
+    default:
+        Q_UNREACHABLE_RETURN(dbg);
+    }
+}
+#endif
 
 QT_END_NAMESPACE
 
