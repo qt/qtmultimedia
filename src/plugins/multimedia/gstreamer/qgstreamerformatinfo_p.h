@@ -31,10 +31,10 @@ public:
     QGstCaps audioCaps(const QMediaFormat &f) const;
     QGstCaps videoCaps(const QMediaFormat &f) const;
 
-    static QMediaFormat::AudioCodec audioCodecForCaps(QGstStructure structure);
-    static QMediaFormat::VideoCodec videoCodecForCaps(QGstStructure structure);
-    static QMediaFormat::FileFormat fileFormatForCaps(QGstStructure structure);
-    static QImageCapture::FileFormat imageFormatForCaps(QGstStructure structure);
+    static QMediaFormat::AudioCodec audioCodecForCaps(QGstStructureView structure);
+    static QMediaFormat::VideoCodec videoCodecForCaps(QGstStructureView structure);
+    static QMediaFormat::FileFormat fileFormatForCaps(QGstStructureView structure);
+    static QImageCapture::FileFormat imageFormatForCaps(QGstStructureView structure);
 
     QList<CodecMap> getMuxerList(bool demuxer, QList<QMediaFormat::AudioCodec> audioCodecs, QList<QMediaFormat::VideoCodec> videoCodecs);
 };

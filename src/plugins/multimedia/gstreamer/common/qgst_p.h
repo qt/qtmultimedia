@@ -171,7 +171,7 @@ DestinationType *qGstCheckedCast(SourceType *arg)
 }
 
 class QSize;
-class QGstStructure;
+class QGstStructureView;
 class QGstCaps;
 class QGstPipelinePrivate;
 class QCameraFormat;
@@ -212,7 +212,7 @@ public:
     std::optional<QGRange<float>> getFractionRange() const;
     std::optional<QGRange<int>> toIntRange() const;
 
-    QGstStructure toStructure() const;
+    QGstStructureView toStructure() const;
     QGstCaps toCaps() const;
 
     bool isList() const;
@@ -310,18 +310,21 @@ protected:
 
 class QGstreamerMessage;
 
-class QGstStructure
+class QGstStructureView
 {
 public:
     const GstStructure *structure = nullptr;
-    QGstStructure() = default;
-    QGstStructure(const GstStructure *s);
-    void free();
+    explicit QGstStructureView(const GstStructure *);
+    explicit QGstStructureView(const QUniqueGstStructureHandle &);
+
+    QUniqueGstStructureHandle clone() const;
 
     bool isNull() const;
-
     QByteArrayView name() const;
-    QGValue operator[](const char *name) const;
+    QGValue operator[](const char *fieldname) const;
+
+    QGstCaps caps() const;
+    QGstTagListHandle tags() const;
 
     QSize resolution() const;
     QVideoFrameFormat::PixelFormat pixelFormat() const;
@@ -329,8 +332,6 @@ public:
     QGstreamerMessage getMessage();
     std::optional<Fraction> pixelAspectRatio() const;
     QSize nativeSize() const;
-
-    QGstStructure copy() const;
 };
 
 template <>
@@ -354,7 +355,7 @@ public:
     enum MemoryFormat { CpuMemory, GLTexture, DMABuf };
 
     int size() const;
-    QGstStructure at(int index) const;
+    QGstStructureView at(int index) const;
     GstCaps *caps() const;
 
     MemoryFormat memoryFormat() const;
@@ -402,7 +403,7 @@ public:
     void set(const char *property, const QGstCaps &c);
 
     QGString getString(const char *property) const;
-    QGstStructure getStructure(const char *property) const;
+    QGstStructureView getStructure(const char *property) const;
     bool getBool(const char *property) const;
     uint getUInt(const char *property) const;
     int getInt(const char *property) const;
@@ -478,6 +479,8 @@ public:
 
     QGstCaps currentCaps() const;
     QGstCaps queryCaps() const;
+
+    QGstTagListHandle tags() const;
 
     std::optional<QPlatformMediaPlayer::TrackType>
     inferTrackTypeFromName() const; // for decodebin3 etc
