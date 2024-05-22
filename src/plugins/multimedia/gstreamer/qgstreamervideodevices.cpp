@@ -76,11 +76,13 @@ QList<QCameraDevice> QGstreamerVideoDevices::videoDevices() const
         info->description = desc.toQString();
         info->id = device.id;
 
-        if (QGstStructure properties = gst_device_get_properties(device.gstDevice.get());
-            !properties.isNull()) {
-            auto def = properties["is-default"].toBool();
+        QUniqueGstStructureHandle properties{
+            gst_device_get_properties(device.gstDevice.get()),
+        };
+        if (properties) {
+            QGstStructureView view{ properties };
+            auto def = view["is-default"].toBool();
             info->isDefault = def && *def;
-            properties.free();
         }
 
         if (info->isDefault)

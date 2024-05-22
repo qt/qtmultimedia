@@ -160,7 +160,7 @@ private:
 
     QGstAppSource *m_appSrc = nullptr;
 
-    QGstStructure topology;
+    QUniqueGstStructureHandle topology;
 
     // Gst elements
     QGstPipeline playerPipeline;

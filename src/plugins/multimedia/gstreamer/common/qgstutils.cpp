@@ -56,7 +56,7 @@ QAudioFormat QGstUtils::audioFormatForSample(GstSample *sample)
 QAudioFormat QGstUtils::audioFormatForCaps(const QGstCaps &caps)
 {
     QAudioFormat format;
-    QGstStructure s = caps.at(0);
+    QGstStructureView s = caps.at(0);
     if (s.name() != "audio/x-raw")
         return format;
 

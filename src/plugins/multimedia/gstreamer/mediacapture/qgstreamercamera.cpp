@@ -103,10 +103,14 @@ void QGstreamerCamera::setCamera(const QCameraDevice &camera)
         }
 
         gstNewCamera = QGstElement::createFromDevice(device, "camerasrc");
-        if (QGstStructure properties = gst_device_get_properties(device); !properties.isNull()) {
-            if (properties.name() == "v4l2deviceprovider")
-                m_v4l2DevicePath = QString::fromUtf8(properties["device.path"].toString());
-            properties.free();
+        QUniqueGstStructureHandle properties{
+            gst_device_get_properties(device),
+        };
+
+        if (properties) {
+            QGstStructureView propertiesView{ properties };
+            if (propertiesView.name() == "v4l2deviceprovider")
+                m_v4l2DevicePath = QString::fromUtf8(propertiesView["device.path"].toString());
         }
     }
 
