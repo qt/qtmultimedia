@@ -51,10 +51,7 @@ QImage fixImage(QImage image)
 
 } // namespace
 
-QImageVideoBuffer::QImageVideoBuffer(QImage image)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle), m_image(fixImage(std::move(image)))
-{
-}
+QImageVideoBuffer::QImageVideoBuffer(QImage image) : m_image(fixImage(std::move(image))) { }
 
 QAbstractVideoBuffer::MapData QImageVideoBuffer::map(QVideoFrame::MapMode mode)
 {

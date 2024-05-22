@@ -31,7 +31,7 @@
 QT_BEGIN_NAMESPACE
 
 struct AVFMetalTexture;
-class AVFVideoBuffer : public QAbstractVideoBuffer
+class AVFVideoBuffer : public QHwVideoBuffer
 {
 public:
     AVFVideoBuffer(AVFVideoSinkInterface *sink, CVImageBufferRef buffer);

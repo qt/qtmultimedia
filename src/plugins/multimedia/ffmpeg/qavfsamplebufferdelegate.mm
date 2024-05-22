@@ -25,8 +25,7 @@ namespace {
 class CVImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    CVImageVideoBuffer(CVImageBufferRef imageBuffer)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle), m_buffer(imageBuffer)
+    CVImageVideoBuffer(CVImageBufferRef imageBuffer) : m_buffer(imageBuffer)
     {
         CVPixelBufferRetain(imageBuffer);
     }

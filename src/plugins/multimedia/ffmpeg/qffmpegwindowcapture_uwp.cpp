@@ -82,10 +82,7 @@ struct MultithreadedApartment
 class QUwpTextureVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QUwpTextureVideoBuffer(com_ptr<IDXGISurface> &&surface)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle), m_surface(surface)
-    {
-    }
+    QUwpTextureVideoBuffer(com_ptr<IDXGISurface> &&surface) : m_surface(surface) { }
 
     ~QUwpTextureVideoBuffer() override { QUwpTextureVideoBuffer::unmap(); }
 

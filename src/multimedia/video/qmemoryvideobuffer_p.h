@@ -23,7 +23,7 @@ class Q_MULTIMEDIA_EXPORT QMemoryVideoBuffer : public QAbstractVideoBuffer
 {
 public:
     QMemoryVideoBuffer(QByteArray data, int bytesPerLine);
-    ~QMemoryVideoBuffer();
+    ~QMemoryVideoBuffer() override;
 
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;

@@ -62,11 +62,11 @@ static std::tuple<int, int, bool> parseBufferLevel(const QString &value)
     return { level, capacity, true };
 }
 
-class QnxTextureBuffer : public QAbstractVideoBuffer
+class QnxTextureBuffer : public QHwVideoBuffer
 {
 public:
     QnxTextureBuffer(QQnxWindowGrabber *QQnxWindowGrabber)
-        : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle)
+        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle)
     {
         m_windowGrabber = QQnxWindowGrabber;
         m_handle = 0;
@@ -97,11 +97,7 @@ private:
 class QnxRasterBuffer : public QAbstractVideoBuffer
 {
 public:
-    QnxRasterBuffer(QQnxWindowGrabber *windowGrabber)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
-    {
-        m_windowGrabber = windowGrabber;
-    }
+    QnxRasterBuffer(QQnxWindowGrabber *windowGrabber) { m_windowGrabber = windowGrabber; }
 
     MapData map(QVideoFrame::MapMode mode) override
     {

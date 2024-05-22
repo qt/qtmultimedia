@@ -41,12 +41,6 @@ public:
 class Q_MULTIMEDIA_EXPORT QAbstractVideoBuffer
 {
 public:
-    QAbstractVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);
-    virtual ~QAbstractVideoBuffer();
-
-    QVideoFrame::HandleType handleType() const;
-    QRhi *rhi() const;
-
     struct MapData
     {
         int nPlanes = 0;
@@ -55,8 +49,20 @@ public:
         int size[4] = {};
     };
 
+    virtual ~QAbstractVideoBuffer();
     virtual MapData map(QVideoFrame::MapMode mode) = 0;
     virtual void unmap() = 0;
+};
+
+class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer
+{
+public:
+    QHwVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi = nullptr);
+
+    ~QHwVideoBuffer() override;
+
+    QVideoFrame::HandleType handleType() const { return m_type; }
+    QRhi *rhi() const { return m_rhi; }
 
     virtual std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *) { return {}; }
     virtual quint64 textureHandle(QRhi *, int /*plane*/) const { return 0; }
@@ -66,9 +72,6 @@ public:
 protected:
     QVideoFrame::HandleType m_type;
     QRhi *m_rhi = nullptr;
-
-private:
-    Q_DISABLE_COPY(QAbstractVideoBuffer)
 };
 
 #ifndef QT_NO_DEBUG_STREAM

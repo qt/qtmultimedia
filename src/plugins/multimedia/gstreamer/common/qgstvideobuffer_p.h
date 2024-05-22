@@ -27,7 +27,7 @@ class QVideoFrameFormat;
 class QGstreamerVideoSink;
 class QOpenGLContext;
 
-class QGstVideoBuffer final : public QAbstractVideoBuffer
+class QGstVideoBuffer final : public QHwVideoBuffer
 {
 public:
     QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info, QGstreamerVideoSink *sink,

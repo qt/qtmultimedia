@@ -22,7 +22,7 @@ QT_BEGIN_NAMESPACE
 class QImageVideoBuffer;
 class QOpenGLFramebufferObject;
 
-class QOpenGLVideoBuffer : public QAbstractVideoBuffer
+class QOpenGLVideoBuffer : public QHwVideoBuffer
 {
 public:
     QOpenGLVideoBuffer(std::unique_ptr<QOpenGLFramebufferObject> fbo);

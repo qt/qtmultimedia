@@ -316,8 +316,8 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, QtVideo::Rotation rotation
 
     QRhi *rhi = nullptr;
 
-    if (frame.videoBuffer())
-        rhi = frame.videoBuffer()->rhi();
+    if (QHwVideoBuffer *buffer = QVideoFramePrivate::hwBuffer(frame))
+        rhi = buffer->rhi();
 
     if (!rhi || rhi->thread() != QThread::currentThread())
         rhi = initializeRHI(rhi);

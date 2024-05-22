@@ -32,10 +32,10 @@ private slots:
     void mapModeDebug();
 };
 
-class QtTestVideoBuffer : public QAbstractVideoBuffer
+class QtTestVideoBuffer : public QHwVideoBuffer
 {
 public:
-    QtTestVideoBuffer(QVideoFrame::HandleType type) : QAbstractVideoBuffer(type) {}
+    QtTestVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
 
     MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}

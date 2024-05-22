@@ -25,7 +25,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QFFmpegVideoBuffer : public QAbstractVideoBuffer
+class QFFmpegVideoBuffer : public QHwVideoBuffer
 {
 public:
     using AVFrameUPtr = QFFmpeg::AVFrameUPtr;

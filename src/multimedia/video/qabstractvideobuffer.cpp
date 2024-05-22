@@ -74,39 +74,15 @@ QT_BEGIN_NAMESPACE
     \sa mapMode(), map()
 */
 
-/*!
-    Constructs an abstract video buffer of the given \a type.
-*/
-QAbstractVideoBuffer::QAbstractVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi)
-    : m_type(type),
-      m_rhi(rhi)
+// must be out-of-line to ensure correct working of dynamic_cast when QHwVideoBuffer is created in tests
+QAbstractVideoBuffer::~QAbstractVideoBuffer() = default;
+
+QHwVideoBuffer::QHwVideoBuffer(QVideoFrame::HandleType type, QRhi *rhi) : m_type(type), m_rhi(rhi)
 {
 }
 
-/*!
-    Destroys an abstract video buffer.
-*/
-QAbstractVideoBuffer::~QAbstractVideoBuffer()
-{
-}
-
-/*!
-    Returns the type of a video buffer's handle.
-
-    \sa handle()
-*/
-QVideoFrame::HandleType QAbstractVideoBuffer::handleType() const
-{
-    return m_type;
-}
-
-/*!
-    Returns the QRhi instance.
-*/
-QRhi *QAbstractVideoBuffer::rhi() const
-{
-    return m_rhi;
-}
+// must be out-of-line to ensure correct working of dynamic_cast when QHwVideoBuffer is created in tests
+QHwVideoBuffer::~QHwVideoBuffer() = default;
 
 /*! \fn uchar *QAbstractVideoBuffer::map(MapMode mode, int *numBytes, int *bytesPerLine)
 

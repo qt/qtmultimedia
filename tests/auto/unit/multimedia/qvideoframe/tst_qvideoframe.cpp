@@ -7,6 +7,7 @@
 #include <qvideoframeformat.h>
 #include "QtTest/qtestcase.h"
 #include "private/qmemoryvideobuffer_p.h"
+#include "private/qvideoframe_p.h"
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
@@ -232,28 +233,22 @@ private slots:
     void constructor_copiesImageData_whenCalledWithRGBFormats();
 };
 
-class QtTestDummyVideoBuffer : public QObject, public QAbstractVideoBuffer
+class QtTestDummyVideoBuffer : public QObject, public QHwVideoBuffer
 {
     Q_OBJECT
 public:
-    QtTestDummyVideoBuffer()
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle) {}
-    explicit QtTestDummyVideoBuffer(QVideoFrame::HandleType type)
-        : QAbstractVideoBuffer(type) {}
+    QtTestDummyVideoBuffer() : QHwVideoBuffer(QVideoFrame::NoHandle) { }
+    explicit QtTestDummyVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
 
     MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 };
 
-class QtTestVideoBuffer : public QAbstractVideoBuffer
+class QtTestVideoBuffer : public QHwVideoBuffer
 {
 public:
-    QtTestVideoBuffer()
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
-    {}
-    explicit QtTestVideoBuffer(QVideoFrame::HandleType type)
-        : QAbstractVideoBuffer(type)
-    {}
+    QtTestVideoBuffer() : QHwVideoBuffer(QVideoFrame::NoHandle) { }
+    explicit QtTestVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
 
     MapData map(QVideoFrame::MapMode mode) override
     {
@@ -335,8 +330,8 @@ void tst_QVideoFrame::create()
 
     QVERIFY(frame.isValid());
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
-    QVERIFY(frame.videoBuffer() != nullptr);
-    QCOMPARE(frame.videoBuffer()->textureHandle(nullptr, 0), 0u);
+    QCOMPARE(QVideoFramePrivate::hwBuffer(frame), nullptr);
+    QCOMPARE_NE(QVideoFramePrivate::buffer(frame), nullptr);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());

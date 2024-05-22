@@ -39,7 +39,7 @@ QT_BEGIN_NAMESPACE
 class QCGImageVideoBuffer : public QAbstractVideoBuffer
 {
 public:
-    QCGImageVideoBuffer(CGImageRef image) : QAbstractVideoBuffer(QVideoFrame::NoHandle)
+    QCGImageVideoBuffer(CGImageRef image)
     {
         auto provider = CGImageGetDataProvider(image);
         m_data = CGDataProviderCopyData(provider);

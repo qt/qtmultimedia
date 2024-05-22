@@ -7,10 +7,10 @@
 #include "qimage.h"
 #include "private/qabstractvideobuffer_p.h"
 
-class QMockVideoBuffer : public QAbstractVideoBuffer
+class QMockVideoBuffer : public QHwVideoBuffer
 {
 public:
-    QMockVideoBuffer(QImage image) : QAbstractVideoBuffer(QVideoFrame::NoHandle), m_image(image) { }
+    QMockVideoBuffer(QImage image) : QHwVideoBuffer(QVideoFrame::NoHandle), m_image(image) { }
 
     MapData map(QVideoFrame::MapMode mode) override
     {

@@ -27,7 +27,7 @@ static bool isFrameFlipped(const AVFrame& frame) {
 static Q_LOGGING_CATEGORY(qLcFFmpegVideoBuffer, "qt.multimedia.ffmpeg.videobuffer");
 
 QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame, AVRational pixelAspectRatio)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle),
+    : QHwVideoBuffer(QVideoFrame::NoHandle),
       m_frame(frame.get()),
       m_size(qCalculateFrameSize({ frame->width, frame->height },
                                  { pixelAspectRatio.num, pixelAspectRatio.den }))

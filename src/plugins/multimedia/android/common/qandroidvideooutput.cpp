@@ -49,17 +49,16 @@ private:
     std::shared_ptr<AndroidTextureThread> m_thread;
 };
 
-
-class AndroidTextureVideoBuffer : public QRhiWithThreadGuard, public QAbstractVideoBuffer
+class AndroidTextureVideoBuffer : public QRhiWithThreadGuard, public QHwVideoBuffer
 {
 public:
-    AndroidTextureVideoBuffer(
-            std::shared_ptr<QRhi> rhi, std::shared_ptr<AndroidTextureThread> thread,
-            std::unique_ptr<QRhiTexture> tex, const QSize &size)
-        : QRhiWithThreadGuard(std::move(rhi), std::move(thread))
-          , QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle, m_guardRhi.get())
-          , m_size(size)
-          , m_tex(std::move(tex))
+    AndroidTextureVideoBuffer(std::shared_ptr<QRhi> rhi,
+                              std::shared_ptr<AndroidTextureThread> thread,
+                              std::unique_ptr<QRhiTexture> tex, const QSize &size)
+        : QRhiWithThreadGuard(std::move(rhi), std::move(thread)),
+          QHwVideoBuffer(QVideoFrame::RhiTextureHandle, m_guardRhi.get()),
+          m_size(size),
+          m_tex(std::move(tex))
     {}
 
     MapData map(QVideoFrame::MapMode mode) override;
@@ -82,12 +81,11 @@ private:
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
 };
 
-class ImageFromVideoFrameHelper : public QAbstractVideoBuffer
+class ImageFromVideoFrameHelper : public QHwVideoBuffer
 {
 public:
     ImageFromVideoFrameHelper(AndroidTextureVideoBuffer &atvb)
-        : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle, atvb.rhi())
-          , m_atvb(atvb)
+        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle, atvb.rhi()), m_atvb(atvb)
     {}
     std::unique_ptr<QVideoFrameTextures> mapTextures(QRhi *rhi) override
     {

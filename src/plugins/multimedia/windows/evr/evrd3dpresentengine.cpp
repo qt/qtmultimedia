@@ -24,17 +24,17 @@
 
 QT_BEGIN_NAMESPACE
 
-static Q_LOGGING_CATEGORY(qLcEvrD3DPresentEngine, "qt.multimedia.evrd3dpresentengine")
+static Q_LOGGING_CATEGORY(qLcEvrD3DPresentEngine, "qt.multimedia.evrd3dpresentengine");
 
-class IMFSampleVideoBuffer: public QAbstractVideoBuffer
+class IMFSampleVideoBuffer : public QHwVideoBuffer
 {
 public:
-    IMFSampleVideoBuffer(ComPtr<IDirect3DDevice9Ex> device,
-                         const ComPtr<IMFSample> &sample, QRhi *rhi, QVideoFrame::HandleType type = QVideoFrame::NoHandle)
-        : QAbstractVideoBuffer(type, rhi)
-        , m_device(device)
-        , m_sample(sample)
-        , m_mapMode(QVideoFrame::NotMapped)
+    IMFSampleVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
+                         QRhi *rhi, QVideoFrame::HandleType type = QVideoFrame::NoHandle)
+        : QHwVideoBuffer(type, rhi),
+          m_device(device),
+          m_sample(sample),
+          m_mapMode(QVideoFrame::NotMapped)
     {
     }
 

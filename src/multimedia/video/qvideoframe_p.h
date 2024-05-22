@@ -26,13 +26,25 @@ class QVideoFramePrivate : public QSharedData
 {
 public:
     QVideoFramePrivate() = default;
-    QVideoFramePrivate(const QVideoFrameFormat &format) : format(format) { }
-    QVideoFramePrivate(QVideoFrameFormat format, std::unique_ptr<QAbstractVideoBuffer> buffer)
-        : format{ std::move(format) }, buffer{ std::move(buffer) }
+
+    QVideoFramePrivate(QVideoFrameFormat format,
+                       std::unique_ptr<QAbstractVideoBuffer> buffer = nullptr)
+        : format{ std::move(format) }, videoBuffer{ std::move(buffer) }
     {
+        hwVideoBuffer = dynamic_cast<QHwVideoBuffer *>(videoBuffer.get());
     }
 
     static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); };
+
+    static QHwVideoBuffer *hwBuffer(const QVideoFrame &frame)
+    {
+        return frame.d ? frame.d->hwVideoBuffer : nullptr;
+    };
+
+    static QAbstractVideoBuffer *buffer(const QVideoFrame &frame)
+    {
+        return frame.d ? frame.d->videoBuffer.get() : nullptr;
+    };
 
     QVideoFrame adoptThisByVideoFrame()
     {
@@ -46,7 +58,8 @@ public:
     QAbstractVideoBuffer::MapData mapData;
     QVideoFrame::MapMode mapMode = QVideoFrame::NotMapped;
     QVideoFrameFormat format;
-    std::unique_ptr<QAbstractVideoBuffer> buffer;
+    std::unique_ptr<QAbstractVideoBuffer> videoBuffer;
+    QHwVideoBuffer *hwVideoBuffer = nullptr;
     int mappedCount = 0;
     QMutex mapMutex;
     QString subtitleText;

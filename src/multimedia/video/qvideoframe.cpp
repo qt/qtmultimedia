@@ -75,9 +75,8 @@ QVideoFrame::QVideoFrame()
     \note This doesn't increment the reference count of the video buffer.
 */
 QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &format)
-    : d(new QVideoFramePrivate(format))
+    : d(new QVideoFramePrivate(format, std::unique_ptr<QAbstractVideoBuffer>(buffer)))
 {
-    d->buffer.reset(buffer);
 }
 
 /*!
@@ -85,7 +84,7 @@ QVideoFrame::QVideoFrame(QAbstractVideoBuffer *buffer, const QVideoFrameFormat &
 */
 QAbstractVideoBuffer *QVideoFrame::videoBuffer() const
 {
-    return d ? d->buffer.get() : nullptr;
+    return d ? d->videoBuffer.get() : nullptr;
 }
 
 /*!
@@ -103,7 +102,8 @@ QVideoFrame::QVideoFrame(const QVideoFrameFormat &format)
 
         // Check the memory was successfully allocated.
         if (!data.isEmpty())
-            d->buffer = std::make_unique<QMemoryVideoBuffer>(data, textureDescription->strideForWidth(format.frameWidth()));
+            d->videoBuffer = std::make_unique<QMemoryVideoBuffer>(
+                    data, textureDescription->strideForWidth(format.frameWidth()));
     }
 }
 
@@ -147,7 +147,8 @@ QVideoFrame::QVideoFrame(const QImage &image)
 
     Q_ASSERT(format.isValid());
 
-    d = new QVideoFramePrivate{ std::move(format), std::move(buffer) };
+    d = new QVideoFramePrivate{ std::move(format) };
+    d->videoBuffer = std::move(buffer);
 }
 
 /*!
@@ -213,7 +214,7 @@ QVideoFrame::~QVideoFrame() = default;
 */
 bool QVideoFrame::isValid() const
 {
-    return (d && d->buffer) && d->format.pixelFormat() != QVideoFrameFormat::Format_Invalid;
+    return d && d->videoBuffer && d->format.pixelFormat() != QVideoFrameFormat::Format_Invalid;
 }
 
 /*!
@@ -240,7 +241,7 @@ QVideoFrameFormat QVideoFrame::surfaceFormat() const
 */
 QVideoFrame::HandleType QVideoFrame::handleType() const
 {
-    return (d && d->buffer) ? d->buffer->handleType() : QVideoFrame::NoHandle;
+    return (d && d->hwVideoBuffer) ? d->hwVideoBuffer->handleType() : QVideoFrame::NoHandle;
 }
 
 /*!
@@ -361,8 +362,7 @@ QVideoFrame::MapMode QVideoFrame::mapMode() const
 */
 bool QVideoFrame::map(QVideoFrame::MapMode mode)
 {
-
-    if (!d || !d->buffer)
+    if (!d || !d->videoBuffer)
         return false;
 
     QMutexLocker lock(&d->mapMutex);
@@ -384,7 +384,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
     Q_ASSERT(d->mapData.nPlanes == 0);
     Q_ASSERT(d->mapData.size[0] == 0);
 
-    d->mapData = d->buffer->map(mode);
+    d->mapData = d->videoBuffer->map(mode);
     if (d->mapData.nPlanes == 0)
         return false;
 
@@ -496,7 +496,7 @@ bool QVideoFrame::map(QVideoFrame::MapMode mode)
 */
 void QVideoFrame::unmap()
 {
-    if (!d || !d->buffer)
+    if (!d || !d->videoBuffer)
         return;
 
     QMutexLocker lock(&d->mapMutex);
@@ -511,7 +511,7 @@ void QVideoFrame::unmap()
     if (d->mappedCount == 0) {
         d->mapData = {};
         d->mapMode = QVideoFrame::NotMapped;
-        d->buffer->unmap();
+        d->videoBuffer->unmap();
     }
 }
 

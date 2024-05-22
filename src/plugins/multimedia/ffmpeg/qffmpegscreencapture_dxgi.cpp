@@ -71,11 +71,7 @@ class QD3D11TextureVideoBuffer : public QAbstractVideoBuffer
 public:
     QD3D11TextureVideoBuffer(const ComPtr<ID3D11Device> &device, std::shared_ptr<QMutex> &mutex,
                              const ComPtr<ID3D11Texture2D> &texture, QSize size)
-        : QAbstractVideoBuffer(QVideoFrame::NoHandle)
-        , m_device(device)
-        , m_texture(texture)
-        , m_ctxMutex(mutex)
-        , m_size(size)
+        : m_device(device), m_texture(texture), m_ctxMutex(mutex), m_size(size)
     {}
 
     ~QD3D11TextureVideoBuffer()

@@ -18,9 +18,7 @@ QT_BEGIN_NAMESPACE
     Constructs a video buffer with an image stride of \a bytesPerLine from a byte \a array.
 */
 QMemoryVideoBuffer::QMemoryVideoBuffer(QByteArray data, int bytesPerLine)
-    : QAbstractVideoBuffer(QVideoFrame::NoHandle),
-      m_bytesPerLine(bytesPerLine),
-      m_data(std::move(data))
+    : m_bytesPerLine(bytesPerLine), m_data(std::move(data))
 {
 }
 

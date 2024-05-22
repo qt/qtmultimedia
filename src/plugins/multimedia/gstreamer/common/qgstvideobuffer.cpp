@@ -54,10 +54,10 @@ QT_BEGIN_NAMESPACE
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const GstVideoInfo &info,
                                  QGstreamerVideoSink *sink, const QVideoFrameFormat &frameFormat,
                                  QGstCaps::MemoryFormat format)
-    : QAbstractVideoBuffer((sink && sink->rhi() && format != QGstCaps::CpuMemory)
-                                   ? QVideoFrame::RhiTextureHandle
-                                   : QVideoFrame::NoHandle,
-                           sink ? sink->rhi() : nullptr),
+    : QHwVideoBuffer((sink && sink->rhi() && format != QGstCaps::CpuMemory)
+                             ? QVideoFrame::RhiTextureHandle
+                             : QVideoFrame::NoHandle,
+                     sink ? sink->rhi() : nullptr),
       memoryFormat(format),
       m_frameFormat(frameFormat),
       m_rhi(sink ? sink->rhi() : nullptr),

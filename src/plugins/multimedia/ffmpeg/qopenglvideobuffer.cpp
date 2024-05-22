@@ -55,7 +55,7 @@ static bool setCurrentOpenGLContext()
 }
 
 QOpenGLVideoBuffer::QOpenGLVideoBuffer(std::unique_ptr<QOpenGLFramebufferObject> fbo)
-    : QAbstractVideoBuffer(QVideoFrame::RhiTextureHandle), m_fbo(std::move(fbo))
+    : QHwVideoBuffer(QVideoFrame::RhiTextureHandle), m_fbo(std::move(fbo))
 {
     Q_ASSERT(m_fbo);
 }
