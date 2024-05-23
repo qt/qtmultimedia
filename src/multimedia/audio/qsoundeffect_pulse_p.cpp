@@ -970,7 +970,9 @@ void QSoundEffectPrivate::stop()
 
 void QSoundEffectPrivate::underRun()
 {
-    stop();
+    if (this->m_runningCount == 0 && !this->m_playQueued){
+        stop();
+    }
 }
 
 void QSoundEffectPrivate::streamReady()
